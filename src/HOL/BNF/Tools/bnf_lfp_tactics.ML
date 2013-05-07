@@ -23,7 +23,7 @@ sig
   val mk_ctor_induct2_tac: ctyp option list -> cterm option list -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_ctor_set_tac: thm -> thm -> thm list -> tactic
-  val mk_ctor_srel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_ctor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_ex_copy_alg_tac: int -> thm -> thm -> tactic
@@ -774,32 +774,32 @@ fun mk_wit_tac ctxt n ctor_set wit =
           EVERY' [hyp_subst_tac ctxt, dtac set_rev_mp, rtac equalityD1, resolve_tac ctor_set,
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_ctor_srel_tac ctxt in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets ctor_inject
+fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp map_cong0 ctor_map ctor_sets ctor_inject
   ctor_dtor set_maps ctor_set_incls ctor_set_set_inclss =
   let
     val m = length ctor_set_incls;
     val n = length ctor_set_set_inclss;
 
     val (passive_set_maps, active_set_maps) = chop m set_maps;
-    val in_Isrel = nth in_Isrels (i - 1);
+    val in_Irel = nth in_Irels (i - 1);
     val le_arg_cong_ctor_dtor = ctor_dtor RS arg_cong RS ord_eq_le_trans;
     val eq_arg_cong_ctor_dtor = ctor_dtor RS arg_cong RS trans;
     val if_tac =
-      EVERY' [dtac (in_Isrel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
-        rtac (in_srel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
+      EVERY' [dtac (in_Irel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
+        rtac (in_rel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
         EVERY' (map2 (fn set_map => fn ctor_set_incl =>
           EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac set_map,
             rtac ord_eq_le_trans, rtac trans_fun_cong_image_id_id_apply,
             rtac (ctor_set_incl RS subset_trans), etac le_arg_cong_ctor_dtor])
         passive_set_maps ctor_set_incls),
-        CONJ_WRAP' (fn (in_Isrel, (set_map, ctor_set_set_incls)) =>
-          EVERY' [rtac ord_eq_le_trans, rtac set_map, rtac @{thm image_subsetI},
-            rtac (in_Isrel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
+        CONJ_WRAP' (fn (in_Irel, (set_map, ctor_set_set_incls)) =>
+          EVERY' [rtac ord_eq_le_trans, rtac set_map, rtac @{thm image_subsetI}, rtac CollectI,
+            rtac @{thm prod_caseI}, rtac (in_Irel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
             CONJ_WRAP' (fn thm =>
               EVERY' (map etac [thm RS subset_trans, le_arg_cong_ctor_dtor]))
             ctor_set_set_incls,
             rtac conjI, rtac refl, rtac refl])
-        (in_Isrels ~~ (active_set_maps ~~ ctor_set_set_inclss)),
+        (in_Irels ~~ (active_set_maps ~~ ctor_set_set_inclss)),
         CONJ_WRAP' (fn conv =>
           EVERY' [rtac trans, rtac map_comp, rtac trans, rtac map_cong0,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
@@ -808,29 +808,37 @@ fun mk_ctor_srel_tac ctxt in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_s
           etac eq_arg_cong_ctor_dtor])
         fst_snd_convs];
     val only_if_tac =
-      EVERY' [dtac (in_srel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
-        rtac (in_Isrel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
+      EVERY' [dtac (in_rel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
+        rtac (in_Irel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
         CONJ_WRAP' (fn (ctor_set, passive_set_map) =>
           EVERY' [rtac ord_eq_le_trans, rtac ctor_set, rtac @{thm Un_least},
             rtac ord_eq_le_trans, rtac @{thm box_equals[OF _ refl]},
             rtac passive_set_map, rtac trans_fun_cong_image_id_id_apply, atac,
             CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_least}))
-              (fn (active_set_map, in_Isrel) => EVERY' [rtac ord_eq_le_trans,
+              (fn (active_set_map, in_Irel) => EVERY' [rtac ord_eq_le_trans,
                 rtac @{thm UN_cong[OF _ refl]}, rtac active_set_map, rtac @{thm UN_least},
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
-                dtac @{thm ssubst_mem[OF pair_collapse]}, dtac (in_Isrel RS iffD1),
-                dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
-                dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac,
-                hyp_subst_tac ctxt, REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
-            (rev (active_set_maps ~~ in_Isrels))])
+                dtac @{thm ssubst_mem[OF pair_collapse]},
+                REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
+                  @{thms prod_caseE iffD1[OF Pair_eq, elim_format]}),
+                hyp_subst_tac ctxt,
+                dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
+                TRY o
+                  EVERY' [dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac, hyp_subst_tac ctxt],
+                REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
+            (rev (active_set_maps ~~ in_Irels))])
         (ctor_sets ~~ passive_set_maps),
         rtac conjI,
         REPEAT_DETERM_N 2 o EVERY' [rtac trans, rtac ctor_map, rtac (ctor_inject RS iffD2),
           rtac trans, rtac map_comp, rtac trans, rtac map_cong0,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
-          EVERY' (map (fn in_Isrel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
-            dtac @{thm ssubst_mem[OF pair_collapse]}, dtac (in_Isrel RS iffD1),
-            dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE, atac]) in_Isrels),
+          EVERY' (map (fn in_Irel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
+            dtac @{thm ssubst_mem[OF pair_collapse]},
+            REPEAT_DETERM o
+              eresolve_tac (CollectE :: conjE :: @{thms prod_caseE iffD1[OF Pair_eq, elim_format]}),
+            hyp_subst_tac ctxt,
+            dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE, atac])
+          in_Irels),
           atac]]
   in
     EVERY' [rtac iffI, if_tac, only_if_tac] 1

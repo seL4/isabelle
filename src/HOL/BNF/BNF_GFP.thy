@@ -79,6 +79,9 @@ unfolding image2_def by auto
 lemma Id_subset: "Id \<subseteq> {(a, b). P a b \<or> a = b}"
 by auto
 
+lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
+by auto
+
 lemma IdD: "(a, b) \<in> Id \<Longrightarrow> a = b"
 by auto
 
@@ -99,6 +102,36 @@ unfolding Gr_def by simp
 
 lemma Gr_incl: "Gr A f \<subseteq> A <*> B \<longleftrightarrow> f ` A \<subseteq> B"
 unfolding Gr_def by auto
+
+lemma in_rel_Collect_split_eq: "in_rel (Collect (split X)) = X"
+unfolding fun_eq_iff by auto
+
+lemma Collect_split_in_rel_leI: "X \<subseteq> Y \<Longrightarrow> X \<subseteq> Collect (split (in_rel Y))"
+by auto
+
+lemma Collect_split_in_rel_leE: "X \<subseteq> Collect (split (in_rel Y)) \<Longrightarrow> (X \<subseteq> Y \<Longrightarrow> R) \<Longrightarrow> R"
+by force
+
+lemma Collect_split_in_relI: "x \<in> X \<Longrightarrow> x \<in> Collect (split (in_rel X))"
+by auto
+
+lemma conversep_in_rel: "(in_rel R)\<inverse>\<inverse> = in_rel (R\<inverse>)"
+unfolding fun_eq_iff by auto
+
+lemmas conversep_in_rel_Id_on =
+  trans[OF conversep_in_rel arg_cong[of _ _ in_rel, OF converse_Id_on]]
+
+lemma relcompp_in_rel: "in_rel R OO in_rel S = in_rel (R O S)"
+unfolding fun_eq_iff by auto
+
+lemmas relcompp_in_rel_Id_on =
+  trans[OF relcompp_in_rel arg_cong[of _ _ in_rel, OF Id_on_Comp[symmetric]]]
+
+lemma in_rel_Gr: "in_rel (Gr A f) = Grp A f"
+unfolding Gr_def Grp_def fun_eq_iff by auto
+
+lemma in_rel_Id_on_UNIV: "in_rel (Id_on UNIV) = op ="
+unfolding fun_eq_iff by auto
 
 definition relImage where
 "relImage R f \<equiv> {(f a1, f a2) | a1 a2. (a1,a2) \<in> R}"

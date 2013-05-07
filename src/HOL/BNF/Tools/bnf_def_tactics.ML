@@ -16,16 +16,16 @@ sig
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_set_map': thm -> thm
 
-  val mk_srel_Gr_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_Grp_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_srel_Id_tac: int -> thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_srel_O_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_eq_tac: int -> thm -> thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_OO_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_in_srel_tac: thm list -> int -> {prems: 'b, context: Proof.context} -> tactic
-  val mk_srel_converse_tac: thm -> tactic
-  val mk_srel_converse_le_tac: thm list -> thm -> thm -> thm -> thm list ->
+  val mk_in_rel_tac: thm list -> {prems: 'b, context: Proof.context} -> tactic
+  val mk_rel_conversep_tac: thm -> thm -> tactic
+  val mk_rel_conversep_le_tac: thm list -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_srel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -71,86 +71,77 @@ fun mk_map_wppull_tac map_id map_cong0 map_wpull map_comp set_maps =
         rtac (o_apply RS trans RS sym), rtac (o_apply RS trans), rtac thm,
         rtac conjunct2, etac bspec, etac set_mp, atac]]) [conjunct1, conjunct2]] 1;
 
-fun mk_srel_Gr_tac srel_O_Grs map_id map_cong0 map_id' map_comp set_maps
+fun mk_rel_Grp_tac rel_OO_Grps map_id map_cong0 map_id' map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
   in
     if null set_maps then
-      unfold_thms_tac ctxt srel_O_Grs THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
-    else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
-      EVERY' [rtac equalityI, rtac subsetI,
-        REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac Pair_eqD,
-        REPEAT_DETERM o etac conjE, hyp_subst_tac ctxt,
-        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
-        rtac sym, rtac trans, rtac map_comp, rtac map_cong0,
-        REPEAT_DETERM_N n o EVERY' [dtac @{thm set_rev_mp}, atac,
-          REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac ctxt,
-          rtac (o_apply RS trans), rtac (@{thm fst_conv} RS arg_cong RS trans),
-          rtac (@{thm snd_conv} RS sym)],
+      unfold_thms_tac ctxt ((map_id RS @{thm Grp_UNIV_id}) :: rel_OO_Grps) THEN
+      rtac @{thm Grp_UNIV_idI[OF refl]} 1
+    else unfold_thms_tac ctxt rel_OO_Grps THEN
+      EVERY' [rtac @{thm antisym}, rtac @{thm predicate2I},
+        REPEAT_DETERM o
+          eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
+        hyp_subst_tac ctxt, rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
+        REPEAT_DETERM_N n o EVERY' [rtac @{thm Collect_split_Grp_eqD}, etac @{thm set_mp}, atac],
         rtac CollectI,
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
-          rtac @{thm image_subsetI}, dtac @{thm set_rev_mp}, atac,
-          REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac ctxt,
-          stac @{thm fst_conv}, atac]) set_maps,
-        rtac @{thm subrelI}, etac CollectE, REPEAT_DETERM o eresolve_tac [exE, conjE],
-        REPEAT_DETERM o dtac Pair_eqD,
-        REPEAT_DETERM o etac conjE, hyp_subst_tac ctxt,
-        rtac @{thm relcompI}, rtac @{thm converseI},
+          rtac @{thm image_subsetI}, rtac @{thm Collect_split_Grp_inD}, etac @{thm set_mp}, atac])
+        set_maps,
+        rtac @{thm predicate2I}, REPEAT_DETERM o eresolve_tac [@{thm GrpE}, exE, conjE],
+        hyp_subst_tac ctxt,
+        rtac @{thm relcomppI}, rtac @{thm conversepI},
         EVERY' (map2 (fn convol => fn map_id =>
-          EVERY' [rtac CollectI, rtac exI, rtac conjI,
-            rtac Pair_eqI, rtac conjI, rtac refl, rtac sym,
-            rtac (box_equals OF [map_cong0, map_comp RS sym, map_id]),
+          EVERY' [rtac @{thm GrpI}, rtac (box_equals OF [map_cong0, map_comp RS sym, map_id]),
             REPEAT_DETERM_N n o rtac (convol RS fun_cong),
             REPEAT_DETERM o eresolve_tac [CollectE, conjE],
             rtac CollectI,
             CONJ_WRAP' (fn thm =>
               EVERY' [rtac @{thm ord_eq_le_trans}, rtac thm, rtac @{thm image_subsetI},
-                rtac @{thm convol_memI[of id _ "%x. x", OF id_apply refl]}, etac set_mp, atac])
+                rtac @{thm convol_mem_GrpI[OF refl]}, etac set_mp, atac])
             set_maps])
           @{thms fst_convol snd_convol} [map_id', refl])] 1
   end;
 
-fun mk_srel_Id_tac n srel_Gr map_id {context = ctxt, prems = _} =
-  unfold_thms_tac ctxt [srel_Gr, @{thm Id_alt}] THEN
-  (if n = 0 then rtac refl 1
-  else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ Gr]},
-    rtac equalityI, rtac subset_UNIV, rtac subsetI, rtac CollectI,
-    CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac map_id] 1);
+fun mk_rel_eq_tac n rel_Grp rel_cong map_id {context = ctxt, prems = _} =
+  (EVERY' (rtac (rel_cong RS trans) :: replicate n (rtac @{thm eq_alt})) THEN'
+  rtac (rel_Grp RSN (2, @{thm box_equals[OF _ sym sym[OF eq_alt]]})) THEN'
+  (if n = 0 then rtac refl
+  else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ "Grp"]},
+    rtac @{thm equalityI}, rtac subset_UNIV, rtac subsetI, rtac CollectI,
+    CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac map_id])) 1;
 
-fun mk_srel_mono_tac srel_O_Grs in_mono {context = ctxt, prems = _} =
-  unfold_thms_tac ctxt srel_O_Grs THEN
-    EVERY' [rtac @{thm relcomp_mono}, rtac @{thm iffD2[OF converse_mono]},
-      rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac,
-      rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac] 1;
+fun mk_rel_mono_tac rel_OO_Grps in_mono {context = ctxt, prems = _} =
+  unfold_thms_tac ctxt rel_OO_Grps THEN
+    EVERY' [rtac @{thm relcompp_mono}, rtac @{thm iffD2[OF conversep_mono]},
+      rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono},
+      rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono}] 1;
 
-fun mk_srel_converse_le_tac srel_O_Grs srel_Id map_cong0 map_comp set_maps
+fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
   in
-    if null set_maps then
-      unfold_thms_tac ctxt [srel_Id] THEN rtac equalityD2 1 THEN rtac @{thm converse_Id} 1
-    else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
-      EVERY' [rtac @{thm subrelI},
-        REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac Pair_eqD,
-        REPEAT_DETERM o etac conjE, hyp_subst_tac ctxt, rtac @{thm converseI},
-        rtac @{thm relcompI}, rtac @{thm converseI},
-        EVERY' (map (fn thm => EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, rtac trans,
+    if null set_maps then rtac (rel_eq RS @{thm leq_conversepI}) 1
+    else unfold_thms_tac ctxt (rel_OO_Grps) THEN
+      EVERY' [rtac @{thm predicate2I},
+        REPEAT_DETERM o
+          eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
+        hyp_subst_tac ctxt, rtac @{thm conversepI}, rtac @{thm relcomppI}, rtac @{thm conversepI},
+        EVERY' (map (fn thm => EVERY' [rtac @{thm GrpI}, rtac sym, rtac trans,
           rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
           rtac (map_comp RS sym), rtac CollectI,
           CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
-            etac @{thm flip_rel}]) set_maps]) [@{thm snd_fst_flip}, @{thm fst_snd_flip}])] 1
+            etac @{thm flip_pred}]) set_maps]) [@{thm snd_fst_flip}, @{thm fst_snd_flip}])] 1
   end;
 
-fun mk_srel_converse_tac le_converse =
-  EVERY' [rtac equalityI, rtac le_converse, rtac @{thm xt1(6)}, rtac @{thm converse_shift},
-    rtac le_converse, REPEAT_DETERM o stac @{thm converse_converse}, rtac subset_refl] 1;
+fun mk_rel_conversep_tac le_conversep rel_mono =
+  EVERY' [rtac @{thm antisym}, rtac le_conversep, rtac @{thm xt1(6)}, rtac @{thm conversep_shift},
+    rtac le_conversep, rtac @{thm iffD2[OF conversep_mono]}, rtac rel_mono,
+    REPEAT_DETERM o rtac @{thm eq_refl[OF sym[OF conversep_conversep]]}] 1;
 
-fun mk_srel_O_tac srel_O_Grs srel_Id map_cong0 map_wppull map_comp set_maps
+fun mk_rel_OO_tac rel_OO_Grs rel_eq map_cong0 map_wppull map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
@@ -158,59 +149,48 @@ fun mk_srel_O_tac srel_O_Grs srel_Id map_cong0 map_wppull map_comp set_maps
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
           rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_maps;
   in
-    if null set_maps then unfold_thms_tac ctxt [srel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
-    else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
-      EVERY' [rtac equalityI, rtac @{thm subrelI},
-        REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac Pair_eqD,
-        REPEAT_DETERM o etac conjE, hyp_subst_tac ctxt,
-        rtac @{thm relcompI}, rtac @{thm relcompI}, rtac @{thm converseI},
-        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
-        rtac sym, rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
-        REPEAT_DETERM_N n o rtac @{thm fst_fstO},
-        in_tac @{thm fstO_in},
-        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
-        rtac sym, rtac trans, rtac map_comp, rtac map_cong0,
-        REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply, rtac ballE, rtac subst,
-          rtac @{thm csquare_def}, rtac @{thm csquare_fstO_sndO}, atac, etac notE,
+    if null set_maps then rtac (rel_eq RS @{thm eq_OOI}) 1
+    else unfold_thms_tac ctxt rel_OO_Grs THEN
+      EVERY' [rtac @{thm antisym}, rtac @{thm predicate2I},
+        REPEAT_DETERM o
+          eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
+        hyp_subst_tac ctxt,
+        rtac @{thm relcomppI}, rtac @{thm relcomppI}, rtac @{thm conversepI}, rtac @{thm GrpI},
+        rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
+        REPEAT_DETERM_N n o rtac @{thm fst_fstOp},
+        in_tac @{thm fstOp_in},
+        rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
+        REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply, 
+          rtac ballE, rtac subst,
+          rtac @{thm csquare_def}, rtac @{thm csquare_fstOp_sndOp}, atac, etac notE,
           etac set_mp, atac],
-        in_tac @{thm fstO_in},
-        rtac @{thm relcompI}, rtac @{thm converseI},
-        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
-        rtac sym, rtac trans, rtac map_comp, rtac map_cong0,
+        in_tac @{thm fstOp_in},
+        rtac @{thm relcomppI}, rtac @{thm conversepI}, rtac @{thm GrpI},
+        rtac trans, rtac map_comp, rtac map_cong0,
         REPEAT_DETERM_N n o rtac o_apply,
-        in_tac @{thm sndO_in},
-        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
-        rtac sym, rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
-        REPEAT_DETERM_N n o rtac @{thm snd_sndO},
-        in_tac @{thm sndO_in},
-        rtac @{thm subrelI},
-        REPEAT_DETERM o eresolve_tac [CollectE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o eresolve_tac [exE, conjE],
-        REPEAT_DETERM o dtac Pair_eqD,
-        REPEAT_DETERM o etac conjE, hyp_subst_tac ctxt,
+        in_tac @{thm sndOp_in},
+        rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
+        REPEAT_DETERM_N n o rtac @{thm snd_sndOp},
+        in_tac @{thm sndOp_in},
+        rtac @{thm predicate2I},
+        REPEAT_DETERM o eresolve_tac [@{thm relcomppE}, @{thm conversepE}, @{thm GrpE}],
+        hyp_subst_tac ctxt,
         rtac allE, rtac subst, rtac @{thm wppull_def}, rtac map_wppull,
-        CONJ_WRAP' (K (rtac @{thm wppull_fstO_sndO})) set_maps,
-        etac allE, etac impE, etac conjI, etac conjI, atac,
+        CONJ_WRAP' (K (rtac @{thm wppull_fstOp_sndOp})) set_maps,
+        etac allE, etac impE, etac conjI, etac conjI, etac sym,
         REPEAT_DETERM o eresolve_tac [bexE, conjE],
-        rtac @{thm relcompI}, rtac @{thm converseI},
-        EVERY' (map (fn thm => EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, rtac sym, rtac trans,
+        rtac @{thm relcomppI}, rtac @{thm conversepI},
+        EVERY' (map (fn thm => EVERY' [rtac @{thm GrpI}, rtac trans,
           rtac trans, rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
-          rtac (map_comp RS sym), atac, atac]) [@{thm fst_fstO}, @{thm snd_sndO}])] 1
+          rtac (map_comp RS sym), atac, atac]) [@{thm fst_fstOp}, @{thm snd_sndOp}])] 1
   end;
 
-fun mk_in_srel_tac srel_O_Grs m {context = ctxt, prems = _} =
-  let
-    val ls' = replicate (Int.max (1, m)) ();
-  in
-    unfold_thms_tac ctxt (srel_O_Grs @
-      @{thms Gr_def converse_unfold relcomp_unfold mem_Collect_eq prod.cases Pair_eq}) THEN
-    EVERY' [rtac iffI, REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac ctxt, rtac exI,
-      rtac conjI, CONJ_WRAP' (K atac) ls', rtac conjI, rtac refl, rtac refl,
-      REPEAT_DETERM o eresolve_tac [exE, conjE], rtac exI, rtac conjI,
-      REPEAT_DETERM_N 2 o EVERY' [rtac exI, rtac conjI, etac @{thm conjI[OF refl sym]},
-        CONJ_WRAP' (K atac) ls']] 1
-  end;
+fun mk_in_rel_tac rel_OO_Grs {context = ctxt, prems = _} =
+  unfold_thms_tac ctxt rel_OO_Grs THEN
+  EVERY' [rtac iffI,
+    REPEAT_DETERM o eresolve_tac [@{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
+    hyp_subst_tac ctxt, rtac exI, rtac conjI, atac, rtac conjI, rtac refl, rtac refl,
+    REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm relcomppI}, rtac @{thm conversepI},
+    etac @{thm GrpI}, atac, etac @{thm GrpI}, atac] 1;
 
 end;

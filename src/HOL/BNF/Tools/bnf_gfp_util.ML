@@ -19,6 +19,7 @@ sig
   val mk_congruent: term -> term -> term
   val mk_clists: term -> term
   val mk_Id_on: term -> term
+  val mk_in_rel: term -> term
   val mk_equiv: term -> term -> term
   val mk_fromCard: term -> term -> term
   val mk_list_rec: term -> term -> term
@@ -64,6 +65,11 @@ fun mk_Id_on A =
     val AT = fastype_of A;
     val AAT = mk_relT (HOLogic.dest_setT AT, HOLogic.dest_setT AT);
   in Const (@{const_name Id_on}, AT --> AAT) $ A end;
+
+fun mk_in_rel R =
+  let
+    val ((A, B), RT) = `dest_relT (fastype_of R);
+  in Const (@{const_name in_rel}, RT --> mk_pred2T A B) $ R end;
 
 fun mk_Times (A, B) =
   let val AT = HOLogic.dest_setT (fastype_of A);

@@ -77,6 +77,7 @@ sig
   val mk_optionT: typ -> typ
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
+  val dest_pred2T: typ -> typ * typ
   val mk_sumT: typ * typ -> typ
 
   val ctwo: term
@@ -89,6 +90,7 @@ sig
   val mk_Card_order: term -> term
   val mk_Field: term -> term
   val mk_Gr: term -> term -> term
+  val mk_Grp: term -> term -> term
   val mk_IfN: typ -> term list -> term list -> term
   val mk_Trueprop_eq: term * term -> term
   val mk_UNION: term -> term -> term
@@ -101,14 +103,16 @@ sig
   val mk_cinfinite: term -> term
   val mk_collect: term list -> typ -> term
   val mk_converse: term -> term
+  val mk_conversep: term -> term
   val mk_cprod: term -> term -> term
   val mk_csum: term -> term -> term
   val mk_dir_image: term -> term -> term
   val mk_image: term -> term
   val mk_in: term list -> term list -> typ -> term
+  val mk_leq: term -> term -> term
   val mk_ordLeq: term -> term -> term
   val mk_rel_comp: term * term -> term
-  val mk_subset: term -> term -> term
+  val mk_rel_compp: term * term -> term
   val mk_wpull: term -> term -> term -> term -> term -> (term * term) option -> term -> term -> term
 
   val rapp: term -> term -> term
@@ -386,6 +390,7 @@ fun mk_pred2T T U = mk_predT [T, U];
 fun mk_optionT T = Type (@{type_name option}, [T]);
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
+val dest_pred2T = apsnd Term.domain_type o Term.dest_funT;
 fun mk_sumT (LT, RT) = Type (@{type_name Sum_Type.sum}, [LT, RT]);
 fun mk_partial_funT (ranT, domT) = domT --> mk_optionT ranT;
 
@@ -421,6 +426,23 @@ fun mk_rel_comp (R, S) =
 fun mk_Gr A f =
   let val ((AT, BT), FT) = `dest_funT (fastype_of f);
   in Const (@{const_name Gr}, HOLogic.mk_setT AT --> FT --> mk_relT (AT, BT)) $ A $ f end;
+
+fun mk_conversep R =
+  let
+    val RT = dest_pred2T (fastype_of R);
+    val RST = mk_pred2T (snd RT) (fst RT);
+  in Const (@{const_name conversep}, fastype_of R --> RST) $ R end;
+
+fun mk_rel_compp (R, S) =
+  let
+    val RT = fastype_of R;
+    val ST = fastype_of S;
+    val RST = mk_pred2T (fst (dest_pred2T RT)) (snd (dest_pred2T ST));
+  in Const (@{const_name relcompp}, RT --> ST --> RST) $ R $ S end;
+
+fun mk_Grp A f =
+  let val ((AT, BT), FT) = `dest_funT (fastype_of f);
+  in Const (@{const_name Grp}, HOLogic.mk_setT AT --> FT --> mk_pred2T AT BT) $ A $ f end;
 
 fun mk_image f =
   let val (T, U) = dest_funT (fastype_of f);
@@ -528,7 +550,7 @@ fun mk_wpull A B1 B2 f1 f2 pseudo p1 p2 =
         A $ B1 $ B2 $ f1 $ f2 $ e1 $ e2 $ p1 $ p2)
   end;
 
-fun mk_subset t1 t2 =
+fun mk_leq t1 t2 =
   Const (@{const_name less_eq}, (fastype_of t1) --> (fastype_of t2) --> HOLogic.boolT) $ t1 $ t2;
 
 fun mk_card_binop binop typop t1 t2 =

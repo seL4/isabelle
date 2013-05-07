@@ -28,7 +28,6 @@ sig
   val relN: string
   val setN: string
   val mk_setN: int -> string
-  val srelN: string
 
   val map_of_bnf: bnf -> term
   val sets_of_bnf: bnf -> term list
@@ -39,7 +38,6 @@ sig
   val mk_map_of_bnf: typ list -> typ list -> typ list -> bnf -> term
   val mk_rel_of_bnf: typ list -> typ list -> typ list -> bnf -> term
   val mk_sets_of_bnf: typ list list -> typ list list -> bnf -> term list
-  val mk_srel_of_bnf: typ list -> typ list -> typ list -> bnf -> term
   val mk_wits_of_bnf: typ list list -> typ list list -> bnf -> (int list * term) list
 
   val bd_Card_order_of_bnf: bnf -> thm
@@ -51,7 +49,7 @@ sig
   val in_bd_of_bnf: bnf -> thm
   val in_cong_of_bnf: bnf -> thm
   val in_mono_of_bnf: bnf -> thm
-  val in_srel_of_bnf: bnf -> thm
+  val in_rel_of_bnf: bnf -> thm
   val map_comp'_of_bnf: bnf -> thm
   val map_comp_of_bnf: bnf -> thm
   val map_cong0_of_bnf: bnf -> thm
@@ -62,21 +60,18 @@ sig
   val map_wppull_of_bnf: bnf -> thm
   val map_wpull_of_bnf: bnf -> thm
   val rel_def_of_bnf: bnf -> thm
+  val rel_Grp_of_bnf: bnf -> thm
+  val rel_OO_of_bnf: bnf -> thm
+  val rel_OO_Grp_of_bnf: bnf -> thm
+  val rel_cong_of_bnf: bnf -> thm
+  val rel_conversep_of_bnf: bnf -> thm
+  val rel_mono_of_bnf: bnf -> thm
   val rel_eq_of_bnf: bnf -> thm
   val rel_flip_of_bnf: bnf -> thm
-  val rel_srel_of_bnf: bnf -> thm
   val set_bd_of_bnf: bnf -> thm list
   val set_defs_of_bnf: bnf -> thm list
   val set_map'_of_bnf: bnf -> thm list
   val set_map_of_bnf: bnf -> thm list
-  val srel_def_of_bnf: bnf -> thm
-  val srel_Gr_of_bnf: bnf -> thm
-  val srel_Id_of_bnf: bnf -> thm
-  val srel_O_of_bnf: bnf -> thm
-  val srel_O_Gr_of_bnf: bnf -> thm
-  val srel_cong_of_bnf: bnf -> thm
-  val srel_converse_of_bnf: bnf -> thm
-  val srel_mono_of_bnf: bnf -> thm
   val wit_thms_of_bnf: bnf -> thm list
   val wit_thmss_of_bnf: bnf -> thm list list
 
@@ -120,12 +115,12 @@ type axioms = {
   set_bd: thm list,
   in_bd: thm,
   map_wpull: thm,
-  srel_O_Gr: thm
+  rel_OO_Grp: thm
 };
 
-fun mk_axioms' (((((((((id, comp), cong), nat), c_o), cinf), set_bd), in_bd), wpull), srel) =
+fun mk_axioms' (((((((((id, comp), cong), nat), c_o), cinf), set_bd), in_bd), wpull), rel) =
   {map_id = id, map_comp = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
-   bd_cinfinite = cinf, set_bd = set_bd, in_bd = in_bd, map_wpull = wpull, srel_O_Gr = srel};
+   bd_cinfinite = cinf, set_bd = set_bd, in_bd = in_bd, map_wpull = wpull, rel_OO_Grp = rel};
 
 fun dest_cons [] = raise Empty
   | dest_cons (x :: xs) = (x, xs);
@@ -144,16 +139,16 @@ fun mk_axioms n thms = thms
   ||> the_single
   |> mk_axioms';
 
-fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull srel =
-  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, srel];
+fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
+  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, rel];
 
 fun dest_axioms {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd, in_bd,
-  map_wpull, srel_O_Gr} =
+  map_wpull, rel_OO_Grp} =
   zip_axioms map_id map_comp map_cong0 set_map bd_card_order bd_cinfinite set_bd in_bd map_wpull
-    srel_O_Gr;
+    rel_OO_Grp;
 
 fun map_axioms f {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
-  in_bd, map_wpull, srel_O_Gr} =
+  in_bd, map_wpull, rel_OO_Grp} =
   {map_id = f map_id,
     map_comp = f map_comp,
     map_cong0 = f map_cong0,
@@ -163,21 +158,20 @@ fun map_axioms f {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfin
     set_bd = map f set_bd,
     in_bd = f in_bd,
     map_wpull = f map_wpull,
-    srel_O_Gr = f srel_O_Gr};
+    rel_OO_Grp = f rel_OO_Grp};
 
 val morph_axioms = map_axioms o Morphism.thm;
 
 type defs = {
   map_def: thm,
   set_defs: thm list,
-  rel_def: thm,
-  srel_def: thm
+  rel_def: thm
 }
 
-fun mk_defs map sets rel srel = {map_def = map, set_defs = sets, rel_def = rel, srel_def = srel};
+fun mk_defs map sets rel = {map_def = map, set_defs = sets, rel_def = rel};
 
-fun map_defs f {map_def, set_defs, rel_def, srel_def} =
-  {map_def = f map_def, set_defs = map f set_defs, rel_def = f rel_def, srel_def = f srel_def};
+fun map_defs f {map_def, set_defs, rel_def} =
+  {map_def = f map_def, set_defs = map f set_defs, rel_def = f rel_def};
 
 val morph_defs = map_defs o Morphism.thm;
 
@@ -188,47 +182,43 @@ type facts = {
   collect_set_map: thm lazy,
   in_cong: thm lazy,
   in_mono: thm lazy,
-  in_srel: thm lazy,
+  in_rel: thm lazy,
   map_comp': thm lazy,
   map_cong: thm lazy,
   map_id': thm lazy,
   map_wppull: thm lazy,
   rel_eq: thm lazy,
   rel_flip: thm lazy,
-  rel_srel: thm lazy,
   set_map': thm lazy list,
-  srel_cong: thm lazy,
-  srel_mono: thm lazy,
-  srel_Id: thm lazy,
-  srel_Gr: thm lazy,
-  srel_converse: thm lazy,
-  srel_O: thm lazy
+  rel_cong: thm lazy,
+  rel_mono: thm lazy,
+  rel_Grp: thm lazy,
+  rel_conversep: thm lazy,
+  rel_OO: thm lazy
 };
 
-fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_cong in_mono in_srel
-    map_comp' map_cong map_id' map_wppull rel_eq rel_flip rel_srel set_map' srel_cong srel_mono
-    srel_Id srel_Gr srel_converse srel_O = {
+fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_cong in_mono in_rel
+    map_comp' map_cong map_id' map_wppull rel_eq rel_flip set_map' rel_cong rel_mono
+    rel_Grp rel_conversep rel_OO = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
   collect_set_map = collect_set_map,
   in_cong = in_cong,
   in_mono = in_mono,
-  in_srel = in_srel,
+  in_rel = in_rel,
   map_comp' = map_comp',
   map_cong = map_cong,
   map_id' = map_id',
   map_wppull = map_wppull,
   rel_eq = rel_eq,
   rel_flip = rel_flip,
-  rel_srel = rel_srel,
   set_map' = set_map',
-  srel_cong = srel_cong,
-  srel_mono = srel_mono,
-  srel_Id = srel_Id,
-  srel_Gr = srel_Gr,
-  srel_converse = srel_converse,
-  srel_O = srel_O};
+  rel_cong = rel_cong,
+  rel_mono = rel_mono,
+  rel_Grp = rel_Grp,
+  rel_conversep = rel_conversep,
+  rel_OO = rel_OO};
 
 fun map_facts f {
   bd_Card_order,
@@ -237,42 +227,38 @@ fun map_facts f {
   collect_set_map,
   in_cong,
   in_mono,
-  in_srel,
+  in_rel,
   map_comp',
   map_cong,
   map_id',
   map_wppull,
   rel_eq,
   rel_flip,
-  rel_srel,
   set_map',
-  srel_cong,
-  srel_mono,
-  srel_Id,
-  srel_Gr,
-  srel_converse,
-  srel_O} =
+  rel_cong,
+  rel_mono,
+  rel_Grp,
+  rel_conversep,
+  rel_OO} =
   {bd_Card_order = f bd_Card_order,
     bd_Cinfinite = f bd_Cinfinite,
     bd_Cnotzero = f bd_Cnotzero,
     collect_set_map = Lazy.map f collect_set_map,
     in_cong = Lazy.map f in_cong,
     in_mono = Lazy.map f in_mono,
-    in_srel = Lazy.map f in_srel,
+    in_rel = Lazy.map f in_rel,
     map_comp' = Lazy.map f map_comp',
     map_cong = Lazy.map f map_cong,
     map_id' = Lazy.map f map_id',
     map_wppull = Lazy.map f map_wppull,
     rel_eq = Lazy.map f rel_eq,
     rel_flip = Lazy.map f rel_flip,
-    rel_srel = Lazy.map f rel_srel,
     set_map' = map (Lazy.map f) set_map',
-    srel_cong = Lazy.map f srel_cong,
-    srel_mono = Lazy.map f srel_mono,
-    srel_Id = Lazy.map f srel_Id,
-    srel_Gr = Lazy.map f srel_Gr,
-    srel_converse = Lazy.map f srel_converse,
-    srel_O = Lazy.map f srel_O};
+    rel_cong = Lazy.map f rel_cong,
+    rel_mono = Lazy.map f rel_mono,
+    rel_Grp = Lazy.map f rel_Grp,
+    rel_conversep = Lazy.map f rel_conversep,
+    rel_OO = Lazy.map f rel_OO};
 
 val morph_facts = map_facts o Morphism.thm;
 
@@ -302,8 +288,7 @@ datatype bnf = BNF of {
   facts: facts,
   nwits: int,
   wits: nonemptiness_witness list,
-  rel: term,
-  srel: term
+  rel: term
 };
 
 (* getters *)
@@ -357,13 +342,6 @@ fun mk_rel_of_bnf Ds Ts Us bnf =
     Term.subst_atomic_types
       ((#deads bnf_rep ~~ Ds) @ (#lives bnf_rep ~~ Ts) @ (#lives' bnf_rep ~~ Us)) (#rel bnf_rep)
   end;
-val srel_of_bnf = #srel o rep_bnf;
-fun mk_srel_of_bnf Ds Ts Us bnf =
-  let val bnf_rep = rep_bnf bnf;
-  in
-    Term.subst_atomic_types
-      ((#deads bnf_rep ~~ Ds) @ (#lives bnf_rep ~~ Ts) @ (#lives' bnf_rep ~~ Us)) (#srel bnf_rep)
-  end;
 
 (*thms*)
 val bd_card_order_of_bnf = #bd_card_order o #axioms o rep_bnf;
@@ -375,7 +353,7 @@ val collect_set_map_of_bnf = Lazy.force o #collect_set_map o #facts o rep_bnf;
 val in_bd_of_bnf = #in_bd o #axioms o rep_bnf;
 val in_cong_of_bnf = Lazy.force o #in_cong o #facts o rep_bnf;
 val in_mono_of_bnf = Lazy.force o #in_mono o #facts o rep_bnf;
-val in_srel_of_bnf = Lazy.force o #in_srel o #facts o rep_bnf;
+val in_rel_of_bnf = Lazy.force o #in_rel o #facts o rep_bnf;
 val map_def_of_bnf = #map_def o #defs o rep_bnf;
 val map_id_of_bnf = #map_id o #axioms o rep_bnf;
 val map_id'_of_bnf = Lazy.force o #map_id' o #facts o rep_bnf;
@@ -388,33 +366,30 @@ val map_wpull_of_bnf = #map_wpull o #axioms o rep_bnf;
 val rel_def_of_bnf = #rel_def o #defs o rep_bnf;
 val rel_eq_of_bnf = Lazy.force o #rel_eq o #facts o rep_bnf;
 val rel_flip_of_bnf = Lazy.force o #rel_flip o #facts o rep_bnf;
-val rel_srel_of_bnf = Lazy.force o #rel_srel o #facts o rep_bnf;
 val set_bd_of_bnf = #set_bd o #axioms o rep_bnf;
 val set_defs_of_bnf = #set_defs o #defs o rep_bnf;
 val set_map_of_bnf = #set_map o #axioms o rep_bnf;
 val set_map'_of_bnf = map Lazy.force o #set_map' o #facts o rep_bnf;
-val srel_cong_of_bnf = Lazy.force o #srel_cong o #facts o rep_bnf;
-val srel_mono_of_bnf = Lazy.force o #srel_mono o #facts o rep_bnf;
-val srel_def_of_bnf = #srel_def o #defs o rep_bnf;
-val srel_Id_of_bnf = Lazy.force o #srel_Id o #facts o rep_bnf;
-val srel_Gr_of_bnf = Lazy.force o #srel_Gr o #facts o rep_bnf;
-val srel_converse_of_bnf = Lazy.force o #srel_converse o #facts o rep_bnf;
-val srel_O_of_bnf = Lazy.force o #srel_O o #facts o rep_bnf;
-val srel_O_Gr_of_bnf = #srel_O_Gr o #axioms o rep_bnf;
+val rel_cong_of_bnf = Lazy.force o #rel_cong o #facts o rep_bnf;
+val rel_mono_of_bnf = Lazy.force o #rel_mono o #facts o rep_bnf;
+val rel_Grp_of_bnf = Lazy.force o #rel_Grp o #facts o rep_bnf;
+val rel_conversep_of_bnf = Lazy.force o #rel_conversep o #facts o rep_bnf;
+val rel_OO_of_bnf = Lazy.force o #rel_OO o #facts o rep_bnf;
+val rel_OO_Grp_of_bnf = #rel_OO_Grp o #axioms o rep_bnf;
 val wit_thms_of_bnf = maps #prop o wits_of_bnf;
 val wit_thmss_of_bnf = map #prop o wits_of_bnf;
 
-fun mk_bnf name T live lives lives' dead deads map sets bd axioms defs facts wits rel srel =
+fun mk_bnf name T live lives lives' dead deads map sets bd axioms defs facts wits rel =
   BNF {name = name, T = T,
        live = live, lives = lives, lives' = lives', dead = dead, deads = deads,
        map = map, sets = sets, bd = bd,
        axioms = axioms, defs = defs, facts = facts,
-       nwits = length wits, wits = wits, rel = rel, srel = srel};
+       nwits = length wits, wits = wits, rel = rel};
 
 fun morph_bnf phi (BNF {name = name, T = T, live = live, lives = lives, lives' = lives',
   dead = dead, deads = deads, map = map, sets = sets, bd = bd,
   axioms = axioms, defs = defs, facts = facts,
-  nwits = nwits, wits = wits, rel = rel, srel = srel}) =
+  nwits = nwits, wits = wits, rel = rel}) =
   BNF {name = Morphism.binding phi name, T = Morphism.typ phi T,
     live = live, lives = List.map (Morphism.typ phi) lives,
     lives' = List.map (Morphism.typ phi) lives',
@@ -426,7 +401,7 @@ fun morph_bnf phi (BNF {name = name, T = T, live = live, lives = lives, lives' =
     facts = morph_facts phi facts,
     nwits = nwits,
     wits = List.map (morph_witness phi) wits,
-    rel = Morphism.term phi rel, srel = Morphism.term phi srel};
+    rel = Morphism.term phi rel};
 
 fun eq_bnf (BNF {T = T1, live = live1, dead = dead1, ...},
   BNF {T = T2, live = live2, dead = dead2, ...}) =
@@ -460,15 +435,6 @@ fun normalize_rel ctxt instTs instA instB rel =
       Sign.typ_match thy (fastype_of rel, Library.foldr (op -->) (instTs, mk_pred2T instA instB))
         Vartab.empty;
   in Envir.subst_term (tyenv, Vartab.empty) rel end
-  handle Type.TYPE_MATCH => error "Bad predicator";
-
-fun normalize_srel ctxt instTs instA instB srel =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val tyenv =
-      Sign.typ_match thy (fastype_of srel, Library.foldr (op -->) (instTs, mk_relT (instA, instB)))
-        Vartab.empty;
-  in Envir.subst_term (tyenv, Vartab.empty) srel end
   handle Type.TYPE_MATCH => error "Bad relator";
 
 fun normalize_wit insts CA As wit =
@@ -503,7 +469,6 @@ val bdN = "bd";
 val witN = "wit";
 fun mk_witN i = witN ^ nonzero_string_of_int i;
 val relN = "rel";
-val srelN = "srel";
 
 val bd_card_orderN = "bd_card_order";
 val bd_cinfiniteN = "bd_cinfinite";
@@ -513,7 +478,7 @@ val bd_CnotzeroN = "bd_Cnotzero";
 val collect_set_mapN = "collect_set_map";
 val in_bdN = "in_bd";
 val in_monoN = "in_mono";
-val in_srelN = "in_srel";
+val in_relN = "in_rel";
 val map_idN = "map_id";
 val map_id'N = "map_id'";
 val map_compN = "map_comp";
@@ -523,16 +488,14 @@ val map_congN = "map_cong";
 val map_wpullN = "map_wpull";
 val rel_eqN = "rel_eq";
 val rel_flipN = "rel_flip";
-val rel_srelN = "rel_srel";
 val set_mapN = "set_map";
 val set_map'N = "set_map'";
 val set_bdN = "set_bd";
-val srel_IdN = "srel_Id";
-val srel_GrN = "srel_Gr";
-val srel_converseN = "srel_converse";
-val srel_monoN = "srel_mono"
-val srel_ON = "srel_comp";
-val srel_O_GrN = "srel_comp_Gr";
+val rel_GrpN = "rel_Grp";
+val rel_conversepN = "rel_conversep";
+val rel_monoN = "rel_mono"
+val rel_OON = "rel_compp";
+val rel_OO_GrpN = "rel_compp_Grp";
 
 datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
@@ -688,12 +651,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     fun mk_bnf_t As' = Term.subst_atomic_types ((deads ~~ Ds) @ (alphas ~~ As'));
     fun mk_bnf_T As' = Term.typ_subst_atomic ((deads ~~ Ds) @ (alphas ~~ As'));
 
-    val (setRTs, RTs) = map_split (`HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ Bs');
-    val setRTsAsCs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ Cs);
-    val setRTsBsCs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (Bs' ~~ Cs);
-    val setRT's = map (HOLogic.mk_setT o HOLogic.mk_prodT) (Bs' ~~ As');
-    val self_setRTs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ As');
-    val QTs = map2 mk_pred2T As' Bs';
+    val RTs = map HOLogic.mk_prodT (As' ~~ Bs');
+    val pred2RTs = map2 mk_pred2T As' Bs';
+    val pred2RTsAsCs = map2 mk_pred2T As' Cs;
+    val pred2RTsBsCs = map2 mk_pred2T Bs' Cs;
+    val pred2RT's = map2 mk_pred2T Bs' As';
+    val self_pred2RTs = map2 mk_pred2T As' As';
 
     val CA' = mk_bnf_T As' CA;
     val CB' = mk_bnf_T Bs' CA;
@@ -711,9 +674,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
     val pre_names_lthy = lthy;
-    val ((((((((((((((((((((((((fs, gs), hs), p), (x, x')), (y, y')), (z, z')), zs), As),
+    val (((((((((((((((((((((((fs, gs), hs), p), (x, x')), (y, y')), (z, z')), zs), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
-      (Qs, Qs')), names_lthy) = pre_names_lthy
+      names_lthy) = pre_names_lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
       ||>> mk_Frees "h" (map2 (curry (op -->)) As' Ts)
@@ -734,39 +697,30 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       ||>> mk_Frees "p1" (map2 (curry (op -->)) domTs B1Ts)
       ||>> mk_Frees "p2" (map2 (curry (op -->)) domTs B2Ts)
       ||>> mk_Frees "b" As'
-      ||>> mk_Frees' "r" setRTs
-      ||>> mk_Frees "r" setRTs
-      ||>> mk_Frees "s" setRTsBsCs
-      ||>> mk_Frees' "P" QTs;
+      ||>> mk_Frees' "R" pred2RTs
+      ||>> mk_Frees "R" pred2RTs
+      ||>> mk_Frees "S" pred2RTsBsCs;
 
     val fs_copy = map2 (retype_free o fastype_of) fs gs;
     val x_copy = retype_free CA' y;
 
-    (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
-    val O_Gr =
+    val setRs =
+      map3 (fn R => fn T => fn U =>
+          HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split R) Rs As' Bs';
+
+    (*Grp (in (Collect (split R1) .. Collect (split Rn))) (map fst .. fst)^--1 OO
+      Grp (in (Collect (split R1) .. Collect (split Rn))) (map snd .. snd)*)
+    val OO_Grp =
       let
         val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
         val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
-        val bnf_in = mk_in (map Free Rs') (map (mk_bnf_t RTs) bnf_sets) CRs';
+        val bnf_in = mk_in setRs (map (mk_bnf_t RTs) bnf_sets) CRs';
       in
-        mk_rel_comp (mk_converse (mk_Gr bnf_in map1), mk_Gr bnf_in map2)
+        mk_rel_compp (mk_conversep (mk_Grp bnf_in map1), mk_Grp bnf_in map2)
       end;
 
-    fun mk_predicate_of_set x_name y_name t =
-      let
-        val (T, U) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of t));
-        val x = Free (x_name, T);
-        val y = Free (y_name, U);
-      in fold_rev Term.lambda [x, y] (HOLogic.mk_mem (HOLogic.mk_prod (x, y), t)) end;
-
-    val sQs =
-      map3 (fn Q => fn T => fn U =>
-          HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split Q) Qs As' Bs';
-
     val rel_rhs = (case raw_rel_opt of
-        NONE =>
-        fold_rev absfree Qs' (mk_predicate_of_set (fst x') (fst y')
-          (Term.list_comb (fold_rev Term.absfree Rs' O_Gr, sQs)))
+        NONE => fold_rev Term.absfree Rs' OO_Grp
       | SOME raw_rel => prep_term no_defs_lthy raw_rel);
 
     val rel_bind_def =
@@ -782,32 +736,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val bnf_rel_def = Morphism.thm phi raw_rel_def;
     val bnf_rel = Morphism.term phi bnf_rel_term;
 
-    fun mk_bnf_rel QTs CA' CB' = normalize_rel lthy QTs CA' CB' bnf_rel;
+    fun mk_bnf_rel RTs CA' CB' = normalize_rel lthy RTs CA' CB' bnf_rel;
 
-    val rel = mk_bnf_rel QTs CA' CB';
-
-    val srel_rhs =
-      fold_rev Term.absfree Rs' (HOLogic.Collect_const CA'CB' $
-        Term.lambda p (Term.list_comb (rel, map (mk_predicate_of_set (fst x') (fst y')) Rs) $
-        HOLogic.mk_fst p $ HOLogic.mk_snd p));
-
-    val srel_bind_def = (fn () => Binding.suffix_name ("_" ^ srelN) b, srel_rhs);
-
-    val ((bnf_srel_term, raw_srel_def), (lthy, lthy_old)) =
-      lthy
-      |> maybe_define false srel_bind_def
-      ||> `(maybe_restore lthy);
-
-    val phi = Proof_Context.export_morphism lthy_old lthy;
-    val bnf_srel_def = Morphism.thm phi raw_srel_def;
-    val bnf_srel = Morphism.term phi bnf_srel_term;
-
-    fun mk_bnf_srel setRTs CA' CB' = normalize_srel lthy setRTs CA' CB' bnf_srel;
-
-    val srel = mk_bnf_srel setRTs CA' CB';
+    val rel = mk_bnf_rel pred2RTs CA' CB';
 
     val _ = case no_reflexive (raw_map_def :: raw_set_defs @ [raw_bd_def] @
-        raw_wit_defs @ [raw_rel_def, raw_srel_def]) of
+        raw_wit_defs @ [raw_rel_def]) of
         [] => ()
       | defs => Proof_Display.print_consts true lthy_old (K false)
           (map (dest_Free o fst o Logic.dest_equals o prop_of) defs);
@@ -900,10 +834,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
           (Logic.list_implies (prems, HOLogic.mk_Trueprop map_wpull))
       end;
 
-    val srel_O_Gr_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (srel, Rs), O_Gr));
+    val rel_OO_Grp_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), OO_Grp));
 
     val goals = zip_axioms map_id_goal map_comp_goal map_cong0_goal set_maps_goal card_order_bd_goal
-      cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal srel_O_Gr_goal;
+      cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_OO_Grp_goal;
 
     fun mk_wit_goals (I, wit) =
       let
@@ -953,11 +887,11 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         fun mk_in_mono () =
           let
-            val prems_mono = map2 (HOLogic.mk_Trueprop oo mk_subset) As As_copy;
+            val prems_mono = map2 (HOLogic.mk_Trueprop oo mk_leq) As As_copy;
             val in_mono_goal =
               fold_rev Logic.all (As @ As_copy)
                 (Logic.list_implies (prems_mono, HOLogic.mk_Trueprop
-                  (mk_subset (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
+                  (mk_leq (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
           in
             Goal.prove_sorry lthy [] [] in_mono_goal (K (mk_in_mono_tac live))
             |> Thm.close_derivation
@@ -1038,41 +972,41 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val map_wppull = Lazy.lazy mk_map_wppull;
 
-        val srel_O_Grs = no_refl [#srel_O_Gr axioms];
+        val rel_OO_Grps = no_refl [#rel_OO_Grp axioms];
 
-        fun mk_srel_Gr () =
+        fun mk_rel_Grp () =
           let
-            val lhs = Term.list_comb (srel, map2 mk_Gr As fs);
-            val rhs = mk_Gr (mk_in As bnf_sets_As CA') (Term.list_comb (bnf_map_AsBs, fs));
+            val lhs = Term.list_comb (rel, map2 mk_Grp As fs);
+            val rhs = mk_Grp (mk_in As bnf_sets_As CA') (Term.list_comb (bnf_map_AsBs, fs));
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (mk_srel_Gr_tac srel_O_Grs (#map_id axioms) (#map_cong0 axioms) (Lazy.force map_id')
+              (mk_rel_Grp_tac rel_OO_Grps (#map_id axioms) (#map_cong0 axioms) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_map'))
             |> Thm.close_derivation
           end;
 
-        val srel_Gr = Lazy.lazy mk_srel_Gr;
+        val rel_Grp = Lazy.lazy mk_rel_Grp;
 
-        fun mk_srel_prems f = map2 (HOLogic.mk_Trueprop oo f) Rs Rs_copy
-        fun mk_srel_concl f = HOLogic.mk_Trueprop
-          (f (Term.list_comb (srel, Rs), Term.list_comb (srel, Rs_copy)));
+        fun mk_rel_prems f = map2 (HOLogic.mk_Trueprop oo f) Rs Rs_copy
+        fun mk_rel_concl f = HOLogic.mk_Trueprop
+          (f (Term.list_comb (rel, Rs), Term.list_comb (rel, Rs_copy)));
 
-        fun mk_srel_mono () =
+        fun mk_rel_mono () =
           let
-            val mono_prems = mk_srel_prems mk_subset;
-            val mono_concl = mk_srel_concl (uncurry mk_subset);
+            val mono_prems = mk_rel_prems mk_leq;
+            val mono_concl = mk_rel_concl (uncurry mk_leq);
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
-              (mk_srel_mono_tac srel_O_Grs (Lazy.force in_mono))
+              (mk_rel_mono_tac rel_OO_Grps (Lazy.force in_mono))
             |> Thm.close_derivation
           end;
 
-        fun mk_srel_cong () =
+        fun mk_rel_cong () =
           let
-            val cong_prems = mk_srel_prems (curry HOLogic.mk_eq);
-            val cong_concl = mk_srel_concl HOLogic.mk_eq;
+            val cong_prems = mk_rel_prems (curry HOLogic.mk_eq);
+            val cong_concl = mk_rel_concl HOLogic.mk_eq;
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
@@ -1080,120 +1014,103 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             |> Thm.close_derivation
           end;
 
-        val srel_mono = Lazy.lazy mk_srel_mono;
-        val srel_cong = Lazy.lazy mk_srel_cong;
+        val rel_mono = Lazy.lazy mk_rel_mono;
+        val rel_cong = Lazy.lazy mk_rel_cong;
 
-        fun mk_srel_Id () =
-          let val srelAsAs = mk_bnf_srel self_setRTs CA' CA' in
+        fun mk_rel_eq () =
+          let val relAsAs = mk_bnf_rel self_pred2RTs CA' CA' in
             Goal.prove_sorry lthy [] []
-              (mk_Trueprop_eq (Term.list_comb (srelAsAs, map Id_const As'), Id_const CA'))
-              (mk_srel_Id_tac live (Lazy.force srel_Gr) (#map_id axioms))
+              (mk_Trueprop_eq (Term.list_comb (relAsAs, map HOLogic.eq_const As'),
+                HOLogic.eq_const CA'))
+              (mk_rel_eq_tac live (Lazy.force rel_Grp) (Lazy.force rel_cong) (#map_id axioms))
             |> Thm.close_derivation
           end;
 
-        val srel_Id = Lazy.lazy mk_srel_Id;
+        val rel_eq = Lazy.lazy mk_rel_eq;
 
-        fun mk_srel_converse () =
+        fun mk_rel_conversep () =
           let
-            val srelBsAs = mk_bnf_srel setRT's CB' CA';
-            val lhs = Term.list_comb (srelBsAs, map mk_converse Rs);
-            val rhs = mk_converse (Term.list_comb (srel, Rs));
-            val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
+            val relBsAs = mk_bnf_rel pred2RT's CB' CA';
+            val lhs = Term.list_comb (relBsAs, map mk_conversep Rs);
+            val rhs = mk_conversep (Term.list_comb (rel, Rs));
+            val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_leq lhs rhs));
             val le_thm = Goal.prove_sorry lthy [] [] le_goal
-              (mk_srel_converse_le_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong0 axioms)
+              (mk_rel_conversep_le_tac rel_OO_Grps (Lazy.force rel_eq) (#map_cong0 axioms)
                 (Lazy.force map_comp') (map Lazy.force set_map'))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
-            Goal.prove_sorry lthy [] [] goal (fn _ => mk_srel_converse_tac le_thm)
+            Goal.prove_sorry lthy [] [] goal
+              (K (mk_rel_conversep_tac le_thm (Lazy.force rel_mono)))
             |> Thm.close_derivation
           end;
 
-        val srel_converse = Lazy.lazy mk_srel_converse;
+        val rel_conversep = Lazy.lazy mk_rel_conversep;
 
-        fun mk_srel_O () =
+        fun mk_rel_OO () =
           let
-            val srelAsCs = mk_bnf_srel setRTsAsCs CA' CC';
-            val srelBsCs = mk_bnf_srel setRTsBsCs CB' CC';
-            val lhs = Term.list_comb (srelAsCs, map2 (curry mk_rel_comp) Rs Ss);
-            val rhs = mk_rel_comp (Term.list_comb (srel, Rs), Term.list_comb (srelBsCs, Ss));
+            val relAsCs = mk_bnf_rel pred2RTsAsCs CA' CC';
+            val relBsCs = mk_bnf_rel pred2RTsBsCs CB' CC';
+            val lhs = Term.list_comb (relAsCs, map2 (curry mk_rel_compp) Rs Ss);
+            val rhs = mk_rel_compp (Term.list_comb (rel, Rs), Term.list_comb (relBsCs, Ss));
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (mk_srel_O_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong0 axioms)
+              (mk_rel_OO_tac rel_OO_Grps (Lazy.force rel_eq) (#map_cong0 axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_map'))
             |> Thm.close_derivation
           end;
 
-        val srel_O = Lazy.lazy mk_srel_O;
+        val rel_OO = Lazy.lazy mk_rel_OO;
 
-        fun mk_in_srel () =
+        fun mk_in_rel () =
           let
-            val bnf_in = mk_in Rs (map (mk_bnf_t RTs) bnf_sets) CRs';
+            val bnf_in = mk_in setRs (map (mk_bnf_t RTs) bnf_sets) CRs';
             val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
             val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
             val map_fst_eq = HOLogic.mk_eq (map1 $ z, x);
             val map_snd_eq = HOLogic.mk_eq (map2 $ z, y);
-            val lhs = HOLogic.mk_mem (HOLogic.mk_prod (x, y), Term.list_comb (srel, Rs));
+            val lhs = Term.list_comb (rel, Rs) $ x $ y;
             val rhs =
               HOLogic.mk_exists (fst z', snd z', HOLogic.mk_conj (HOLogic.mk_mem (z, bnf_in),
                 HOLogic.mk_conj (map_fst_eq, map_snd_eq)));
             val goal =
               fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Goal.prove_sorry lthy [] [] goal (mk_in_srel_tac srel_O_Grs (length bnf_sets))
+            Goal.prove_sorry lthy [] [] goal (mk_in_rel_tac rel_OO_Grps)
             |> Thm.close_derivation
           end;
 
-        val in_srel = Lazy.lazy mk_in_srel;
+        val in_rel = Lazy.lazy mk_in_rel;
 
-        val eqset_imp_iff_pair = @{thm eqset_imp_iff_pair};
+        val predicate2_cong = @{thm predicate2_cong};
         val mem_Collect_etc = @{thms fst_conv mem_Collect_eq prod.cases snd_conv};
-        val mem_Collect_etc' = @{thms fst_conv mem_Collect_eq pair_in_Id_conv snd_conv};
-
-        fun mk_rel_srel () =
-          unfold_thms lthy mem_Collect_etc
-            (funpow live (fn thm => thm RS @{thm fun_cong_pair}) (bnf_srel_def RS meta_eq_to_obj_eq)
-               RS eqset_imp_iff_pair RS sym)
-          |> Drule.zero_var_indexes;
-
-        val rel_srel = Lazy.lazy mk_rel_srel;
-
-        fun mk_rel_eq () =
-          unfold_thms lthy (bnf_srel_def :: mem_Collect_etc')
-            (Lazy.force srel_Id RS @{thm arg_cong[of _ _ "%A x y. (x, y) : A"]})
-          |> Drule.eta_contraction_rule;
-
-        val rel_eq = Lazy.lazy mk_rel_eq;
 
         fun mk_rel_flip () =
           let
-            val srel_converse_thm = Lazy.force srel_converse;
-            val cts = map (SOME o certify lthy) sQs;
-            val srel_converse_thm' = cterm_instantiate_pos cts srel_converse_thm;
+            val rel_conversep_thm = Lazy.force rel_conversep;
+            val cts = map (SOME o certify lthy) Rs;
+            val rel_conversep_thm' = cterm_instantiate_pos cts rel_conversep_thm;
           in
-            unfold_thms lthy (bnf_srel_def :: @{thm converse_iff} :: mem_Collect_etc)
-              (srel_converse_thm' RS eqset_imp_iff_pair)
+            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS predicate2_cong)
             |> singleton (Proof_Context.export names_lthy pre_names_lthy)
           end;
 
         val rel_flip = Lazy.lazy mk_rel_flip;
 
-        val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def bnf_srel_def;
+        val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def;
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_cong in_mono
-          in_srel map_comp' map_cong map_id' map_wppull rel_eq rel_flip rel_srel set_map'
-          srel_cong srel_mono srel_Id srel_Gr srel_converse srel_O;
+          in_rel map_comp' map_cong map_id' map_wppull rel_eq rel_flip set_map'
+          rel_cong rel_mono rel_Grp rel_conversep rel_OO;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 
         val bnf_rel =
           Term.subst_atomic_types ((Ds ~~ deads) @ (As' ~~ alphas) @ (Bs' ~~ betas)) rel;
-        val bnf_srel =
-          Term.subst_atomic_types ((Ds ~~ deads) @ (As' ~~ alphas) @ (Bs' ~~ betas)) srel;
 
         val bnf = mk_bnf b CA live alphas betas dead deads bnf_map bnf_sets bnf_bd axioms defs facts
-          wits bnf_rel bnf_srel;
+          wits bnf_rel;
       in
         (bnf, lthy
           |> (if fact_policy = Note_All then
@@ -1208,7 +1125,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
                     (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
                     (in_bdN, [#in_bd axioms]),
                     (in_monoN, [Lazy.force (#in_mono facts)]),
-                    (in_srelN, [Lazy.force (#in_srel facts)]),
+                    (in_relN, [Lazy.force (#in_rel facts)]),
                     (map_compN, [#map_comp axioms]),
                     (map_idN, [#map_id axioms]),
                     (map_wpullN, [#map_wpull axioms]),
@@ -1232,14 +1149,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
                     (map_id'N, [Lazy.force (#map_id' facts)], []),
                     (rel_eqN, [Lazy.force (#rel_eq facts)], []),
                     (rel_flipN, [Lazy.force (#rel_flip facts)], []),
-                    (rel_srelN, [Lazy.force (#rel_srel facts)], []),
                     (set_map'N, map Lazy.force (#set_map' facts), []),
-                    (srel_O_GrN, srel_O_Grs, []),
-                    (srel_IdN, [Lazy.force (#srel_Id facts)], []),
-                    (srel_GrN, [Lazy.force (#srel_Gr facts)], []),
-                    (srel_converseN, [Lazy.force (#srel_converse facts)], []),
-                    (srel_monoN, [Lazy.force (#srel_mono facts)], []),
-                    (srel_ON, [Lazy.force (#srel_O facts)], [])]
+                    (rel_OO_GrpN, rel_OO_Grps, []),
+                    (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
+                    (rel_conversepN, [Lazy.force (#rel_conversep facts)], []),
+                    (rel_monoN, [Lazy.force (#rel_mono facts)], []),
+                    (rel_OON, [Lazy.force (#rel_OO facts)], [])]
                     |> filter_out (null o #2)
                     |> map (fn (thmN, thms, attrs) =>
                       ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)),
@@ -1252,8 +1167,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       end;
 
     val one_step_defs =
-      no_reflexive (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def,
-        bnf_srel_def]);
+      no_reflexive (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def]);
   in
     (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;

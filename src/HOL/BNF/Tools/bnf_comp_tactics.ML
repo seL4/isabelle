@@ -36,7 +36,7 @@ sig
   val mk_permute_in_bd_tac: ''a list -> ''a list -> thm -> thm -> thm -> tactic
 
   val mk_map_wpull_tac: thm -> thm list -> thm -> tactic
-  val mk_simple_srel_O_Gr_tac: Proof.context -> thm -> thm -> thm -> tactic
+  val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
 end;
 
@@ -52,8 +52,6 @@ val Cnotzero_UNIV = @{thm Cnotzero_UNIV};
 val arg_cong_Union = @{thm arg_cong[of _ _ Union]};
 val card_of_Card_order = @{thm card_of_Card_order};
 val csum_Cnotzero1 = @{thm csum_Cnotzero1};
-val csum_Cnotzero2 = @{thm csum_Cnotzero2};
-val ctwo_Cnotzero = @{thm ctwo_Cnotzero};
 val o_eq_dest_lhs = @{thm o_eq_dest_lhs};
 val ordIso_transitive = @{thm ordIso_transitive};
 val ordLeq_csum2 = @{thm ordLeq_csum2};
@@ -389,9 +387,8 @@ fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
   WRAP (fn thm => rtac thm 1 THEN REPEAT_DETERM (atac 1)) (K all_tac) inner_map_wpulls all_tac THEN
   TRY (REPEAT_DETERM (atac 1 ORELSE rtac @{thm wpull_id} 1));
 
-fun mk_simple_srel_O_Gr_tac ctxt srel_def srel_O_Gr in_alt_thm =
-  rtac (unfold_thms ctxt [srel_def]
-    (trans OF [srel_O_Gr, in_alt_thm RS @{thm O_Gr_cong} RS sym])) 1;
+fun mk_simple_rel_OO_Grp_tac rel_OO_Grp in_alt_thm =
+  rtac (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
 

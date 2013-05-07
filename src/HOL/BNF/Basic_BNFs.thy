@@ -27,9 +27,12 @@ unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
   unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
 
+lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
+  unfolding wpull_def Grp_def by auto
+
 bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
-  "\<lambda>x :: 'a \<Rightarrow> 'b \<Rightarrow> bool. x"
-apply (auto simp: Gr_def fun_eq_iff natLeq_card_order natLeq_cinfinite)
+  "id :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
 apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
 apply (rule ordLeq_transitive)
@@ -46,8 +49,8 @@ apply (rule natLeq_Card_order)
 done
 
 bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
-  "op =::'a \<Rightarrow> 'a \<Rightarrow> bool"
-apply (auto simp add: wpull_Gr_def Gr_def
+  "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
+apply (auto simp add: wpull_Grp_def Grp_def
   card_order_csum natLeq_card_order card_of_card_order_on
   cinfinite_csum natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq)
@@ -185,10 +188,10 @@ next
   qed
 next
   fix R S
-  show "{p. sum_rel (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
-        (Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map fst fst))\<inverse> O
-        Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map snd snd)"
-  unfolding setl_def setr_def sum_rel_def Gr_def relcomp_unfold converse_unfold
+  show "sum_rel R S =
+        (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (sum_map fst fst))\<inverse>\<inverse> OO
+        Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (sum_map snd snd)"
+  unfolding setl_def setr_def sum_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)
 
@@ -284,10 +287,10 @@ next
     unfolding wpull_def by simp fast
 next
   fix R S
-  show "{p. prod_rel (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
-        (Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair fst fst))\<inverse> O
-        Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair snd snd)"
-  unfolding prod_set_defs prod_rel_def Gr_def relcomp_unfold converse_unfold
+  show "prod_rel R S =
+        (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair fst fst))\<inverse>\<inverse> OO
+        Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair snd snd)"
+  unfolding prod_set_defs prod_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed simp+
 
@@ -385,10 +388,11 @@ next
   qed
 next
   fix R
-  show "{p. fun_rel op = (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
-        (Gr {x. range x \<subseteq> R} (op \<circ> fst))\<inverse> O Gr {x. range x \<subseteq> R} (op \<circ> snd)"
-  unfolding fun_rel_def Gr_def relcomp_unfold converse_unfold
-  by force
+  show "fun_rel op = R =
+        (Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> fst))\<inverse>\<inverse> OO
+         Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
+  unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps  subset_iff image_iff
+  by auto (force, metis pair_collapse)
 qed auto
 
 end
