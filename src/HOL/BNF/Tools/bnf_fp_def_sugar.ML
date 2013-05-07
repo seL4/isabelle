@@ -228,9 +228,8 @@ fun mk_co_iter lfp Ts Us t =
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
-fun mk_fp_iter lfp As Cs fp_iters0 =
-  map (mk_co_iter lfp As Cs) fp_iters0
-  |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
+fun mk_fp_iter lfp As Cs =
+  map (mk_co_iter lfp As Cs) #> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
 
 fun unzip_recT fpTs T =
   let
