@@ -59,8 +59,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
   let
     val timer = time (Timer.startRealTimer ());
 
-    val note_all = Config.get lthy bnf_note_all;
-
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
@@ -228,7 +226,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val set_map'ss = map set_map'_of_bnf bnfs;
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
-    val rel_defs = map rel_def_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
     val rel_eqs = map rel_eq_of_bnf bnfs;
     val rel_monos = map rel_mono_of_bnf bnfs;
@@ -2315,7 +2312,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val p2Ts = map2 (curry op -->) passiveXs passiveBs;
         val pTs = map2 (curry op -->) passiveXs passiveCs;
         val uTs = map2 (curry op -->) Ts Ts';
-        val JRTs = map2 (curry mk_relT) passiveAs passiveBs;
         val JphiTs = map2 mk_pred2T passiveAs passiveBs;
         val prodTs = map2 (curry HOLogic.mk_prodT) Ts Ts';
         val B1Ts = map HOLogic.mk_setT passiveAs;
@@ -2324,8 +2320,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
 
-        val ((((((((((((((((((((fs, fs'), fs_copy), gs), us),
-          (Jys, Jys')), (Jys_copy, Jys'_copy)), dtor_set_induct_phiss), JRs), Jphis),
+        val (((((((((((((((((((fs, fs'), fs_copy), gs), us),
+          (Jys, Jys')), (Jys_copy, Jys'_copy)), dtor_set_induct_phiss), Jphis),
           B1s), B2s), AXs), f1s), f2s), p1s), p2s), ps), (ys, ys')), (ys_copy, ys'_copy)),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
@@ -2335,7 +2331,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
-          ||>> mk_Frees "r" JRTs
           ||>> mk_Frees "P" JphiTs
           ||>> mk_Frees "B1" B1Ts
           ||>> mk_Frees "B2" B2Ts
@@ -2912,7 +2907,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Jrels = map in_rel_of_bnf Jbnfs;
-        val Jrel_defs = map rel_def_of_bnf Jbnfs;
 
         val folded_dtor_map_thms = map fold_maps dtor_map_thms;
         val folded_dtor_set_thmss = map (map fold_sets) dtor_set_thmss;

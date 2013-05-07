@@ -30,8 +30,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
   let
     val timer = time (Timer.startRealTimer ());
 
-    val note_all = Config.get lthy bnf_note_all;
-
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
@@ -1380,11 +1378,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val AXTs = map HOLogic.mk_setT passiveXs;
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
-        val IRTs = map2 (curry mk_relT) passiveAs passiveBs;
         val IphiTs = map2 mk_pred2T passiveAs passiveBs;
 
-        val (((((((((((((((fs, fs'), fs_copy), us),
-          B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')), IRs), Iphis),
+        val ((((((((((((((fs, fs'), fs_copy), us),
+          B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')), Iphis),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
           ||>> mk_Frees "f" fTs
@@ -1398,7 +1395,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           ||>> mk_Frees "p1" p1Ts
           ||>> mk_Frees "p2" p2Ts
           ||>> mk_Frees' "y" passiveAs
-          ||>> mk_Frees "S" IRTs
           ||>> mk_Frees "R" IphiTs;
 
         val map_FTFT's = map2 (fn Ds =>
@@ -1753,8 +1749,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Irels = map in_rel_of_bnf Ibnfs;
-        val rel_defs = map rel_def_of_bnf bnfs;
-        val Irel_defs = map rel_def_of_bnf Ibnfs;
 
         val ctor_set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
         val ctor_set_set_incl_thmsss = map (transpose o map (map fold_sets o tl)) Fset_set_thmsss;

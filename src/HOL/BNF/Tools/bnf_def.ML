@@ -662,7 +662,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val CB' = mk_bnf_T Bs' CA;
     val CC' = mk_bnf_T Cs CA;
     val CRs' = mk_bnf_T RTs CA;
-    val CA'CB' = HOLogic.mk_prodT (CA', CB');
 
     val bnf_map_AsAs = mk_bnf_map As' As';
     val bnf_map_AsBs = mk_bnf_map As' Bs';
@@ -674,15 +673,14 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
     val pre_names_lthy = lthy;
-    val (((((((((((((((((((((((fs, gs), hs), p), (x, x')), (y, y')), (z, z')), zs), As),
+    val ((((((((((((((((((((((fs, gs), hs), x), y), (z, z')), zs), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
       names_lthy) = pre_names_lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
       ||>> mk_Frees "h" (map2 (curry (op -->)) As' Ts)
-      ||>> yield_singleton (mk_Frees "p") CA'CB'
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "x") CA'
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "y") CB'
+      ||>> yield_singleton (mk_Frees "x") CA'
+      ||>> yield_singleton (mk_Frees "y") CB'
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "z") CRs'
       ||>> mk_Frees "z" As'
       ||>> mk_Frees "A" (map HOLogic.mk_setT As')
@@ -1022,7 +1020,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             Goal.prove_sorry lthy [] []
               (mk_Trueprop_eq (Term.list_comb (relAsAs, map HOLogic.eq_const As'),
                 HOLogic.eq_const CA'))
-              (mk_rel_eq_tac live (Lazy.force rel_Grp) (Lazy.force rel_cong) (#map_id axioms))
+              (K (mk_rel_eq_tac live (Lazy.force rel_Grp) (Lazy.force rel_cong) (#map_id axioms)))
             |> Thm.close_derivation
           end;
 
@@ -1083,16 +1081,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val in_rel = Lazy.lazy mk_in_rel;
 
-        val predicate2_cong = @{thm predicate2_cong};
-        val mem_Collect_etc = @{thms fst_conv mem_Collect_eq prod.cases snd_conv};
-
         fun mk_rel_flip () =
           let
             val rel_conversep_thm = Lazy.force rel_conversep;
             val cts = map (SOME o certify lthy) Rs;
             val rel_conversep_thm' = cterm_instantiate_pos cts rel_conversep_thm;
           in
-            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS predicate2_cong)
+            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_cong})
             |> singleton (Proof_Context.export names_lthy pre_names_lthy)
           end;
 

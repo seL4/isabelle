@@ -18,7 +18,7 @@ sig
 
   val mk_rel_Grp_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_rel_eq_tac: int -> thm -> thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_eq_tac: int -> thm -> thm -> thm -> tactic
   val mk_rel_OO_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
   val mk_in_rel_tac: thm list -> {prems: 'b, context: Proof.context} -> tactic
@@ -104,7 +104,7 @@ fun mk_rel_Grp_tac rel_OO_Grps map_id map_cong0 map_id' map_comp set_maps
           @{thms fst_convol snd_convol} [map_id', refl])] 1
   end;
 
-fun mk_rel_eq_tac n rel_Grp rel_cong map_id {context = ctxt, prems = _} =
+fun mk_rel_eq_tac n rel_Grp rel_cong map_id =
   (EVERY' (rtac (rel_cong RS trans) :: replicate n (rtac @{thm eq_alt})) THEN'
   rtac (rel_Grp RSN (2, @{thm box_equals[OF _ sym sym[OF eq_alt]]})) THEN'
   (if n = 0 then rtac refl
