@@ -26,6 +26,7 @@ sig
   val mk_rel_conversep_le_tac: thm list -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
   val mk_rel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_mono_strong_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -191,5 +192,16 @@ fun mk_in_rel_tac rel_OO_Gr {context = ctxt, prems = _} =
     hyp_subst_tac ctxt, rtac exI, rtac conjI, atac, rtac conjI, rtac refl, rtac refl,
     REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm relcomppI}, rtac @{thm conversepI},
     etac @{thm GrpI}, atac, etac @{thm GrpI}, atac] 1;
+
+fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
+  if null set_maps then atac 1
+  else
+    unfold_tac [in_rel] ctxt THEN
+    REPEAT_DETERM (eresolve_tac [exE, CollectE, conjE] 1) THEN
+    hyp_subst_tac ctxt 1 THEN
+    unfold_tac set_maps ctxt THEN
+    EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
+      CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_maps] 1;
+
 
 end;

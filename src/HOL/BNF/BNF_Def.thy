@@ -177,18 +177,13 @@ unfolding o_def fun_eq_iff by simp
 lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (split A) \<subseteq> Collect (split B)"
   by auto
 
+lemma Collect_split_mono_strong: 
+  "\<lbrakk>\<forall>a\<in>fst ` A. \<forall>b \<in> snd ` A. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (split P)\<rbrakk> \<Longrightarrow>
+  A \<subseteq> Collect (split Q)"
+  by fastforce
+
 lemma predicate2_cong: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
 by metis
-
-lemma fun_cong_pair: "f = g \<Longrightarrow> f {(a, b). R a b} = g {(a, b). R a b}"
-by (rule fun_cong)
-
-lemma flip_as_converse: "{(a, b). R b a} = converse {(a, b). R a b}"
-unfolding converse_def mem_Collect_eq prod.cases
-apply (rule arg_cong[of _ _ "\<lambda>x. Collect (prod_case x)"])
-apply (rule ext)+
-apply (unfold conversep_iff)
-by (rule refl)
 
 ML_file "Tools/bnf_def_tactics.ML"
 ML_file "Tools/bnf_def.ML"
