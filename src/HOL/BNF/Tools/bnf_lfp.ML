@@ -1366,6 +1366,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     fun mk_ctor_Irel_DEADID_thm ctor_inject bnf =
       trans OF [ctor_inject, rel_eq_of_bnf bnf RS @{thm predicate2_eqD} RS sym];
 
+    val IphiTs = map2 mk_pred2T passiveAs passiveBs;
+    val activeIphiTs = map2 mk_pred2T Ts Ts';
+    val ((Iphis, activeIphis), names_lthy) = names_lthy
+      |> mk_Frees "R" IphiTs
+      ||>> mk_Frees "IR" activeIphiTs;
+    val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
+
     (*register new datatypes as BNFs*)
     val (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms, lthy) =
       if m = 0 then
@@ -1383,10 +1390,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val AXTs = map HOLogic.mk_setT passiveXs;
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
-        val IphiTs = map2 mk_pred2T passiveAs passiveBs;
 
-        val ((((((((((((((fs, fs'), fs_copy), us),
-          B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')), Iphis),
+        val (((((((((((((fs, fs'), fs_copy), us),
+          B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
           ||>> mk_Frees "f" fTs
@@ -1399,8 +1405,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           ||>> mk_Frees "f2" f2Ts
           ||>> mk_Frees "p1" p1Ts
           ||>> mk_Frees "p2" p2Ts
-          ||>> mk_Frees' "y" passiveAs
-          ||>> mk_Frees "R" IphiTs;
+          ||>> mk_Frees' "y" passiveAs;
 
         val map_FTFT's = map2 (fn Ds =>
           mk_map_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
@@ -1746,7 +1751,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val timer = time (timer "registered new datatypes as BNFs");
 
-        val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Irels = map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
 
         val Irelphis = map (fn Irel => Term.list_comb (Irel, Iphis)) Irels;
@@ -1803,9 +1807,33 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
       end;
 
+      val Irel_induct_thm =
+        let
+          val relphis = map (fn rel => Term.list_comb (rel, Iphis @ activeIphis)) rels;
+          fun mk_prem relphi phi x y ctor ctor' =
+            fold_rev Logic.all [x, y] (Logic.mk_implies (HOLogic.mk_Trueprop (relphi $ x $ y),
+              HOLogic.mk_Trueprop (phi $ (ctor $ x) $ (ctor' $ y))));
+          val prems = map6 mk_prem relphis activeIphis xFs yFs ctors ctor's;
+
+          val Irels = if m = 0 then map HOLogic.eq_const Ts
+            else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
+          val Irelphis = map (fn Irel => Term.list_comb (Irel, Iphis)) Irels;
+          val concl =
+            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq Irelphis activeIphis));
+        in
+          Goal.prove_sorry lthy [] []
+            (fold_rev Logic.all (Iphis @ activeIphis) (Logic.list_implies (prems, concl)))
+            (mk_rel_induct_tac m ctor_induct2_thm ks ctor_Irel_thms
+               (map rel_mono_strong_of_bnf bnfs))
+          |> Thm.close_derivation
+        end;
+
+      val timer = time (timer "relator induction");
+
       val common_notes =
         [(ctor_inductN, [ctor_induct_thm]),
-        (ctor_induct2N, [ctor_induct2_thm])]
+        (ctor_induct2N, [ctor_induct2_thm]),
+        (rel_inductN, [Irel_induct_thm])]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 

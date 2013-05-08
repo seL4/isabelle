@@ -93,6 +93,8 @@ sig
   val morN: string
   val nchotomyN: string
   val recN: string
+  val rel_coinductN: string
+  val rel_inductN: string
   val rel_injectN: string
   val rel_distinctN: string
   val rvN: string
@@ -310,6 +312,8 @@ val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
 val rel_injectN = relN ^ "_" ^ injectN
+val rel_coinductN = relN ^ "_" ^ coinductN
+val rel_inductN = relN ^ "_" ^ inductN
 val selN = "sel"
 val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
