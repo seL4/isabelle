@@ -551,7 +551,7 @@ val robust_const_ary =
   in ary oo robust_const_type end
 
 (* This function only makes sense if "T" is as general as possible. *)
-fun robust_const_typargs thy (s, T) =
+fun robust_const_type_args thy (s, T) =
   if s = app_op_name then
     let val (T1, T2) = T |> domain_type |> dest_funT in [T1, T2] end
   else if String.isPrefix old_skolem_const_prefix s then
@@ -573,7 +573,7 @@ fun iterm_from_term thy type_enc bs (P $ Q) =
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | iterm_from_term thy type_enc _ (Const (c, T)) =
     (IConst (`(make_fixed_const (SOME type_enc)) c, T,
-             robust_const_typargs thy (c, T)),
+             robust_const_type_args thy (c, T)),
      atomic_types_of T)
   | iterm_from_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T, []), atomic_types_of T)
@@ -870,7 +870,7 @@ fun filter_type_args thy constrs type_enc s ary T_args =
                   T
                 else
                   dummyT
-              val U_args = (s, U) |> robust_const_typargs thy
+              val U_args = (s, U) |> robust_const_type_args thy
             in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
             handle TYPE _ => T_args
         val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
@@ -1087,10 +1087,13 @@ fun unmangled_type s =
 
 fun unmangled_const_name s =
   (s, s) |> unaliased_uncurried |> fst |> space_explode mangled_type_sep
+
 fun unmangled_const s =
   let val ss = unmangled_const_name s in
     (hd ss, map unmangled_type (tl ss))
   end
+
+val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
 fun introduce_proxies_in_iterm type_enc =
   let
@@ -1174,7 +1177,7 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
       if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
       else T_args
     | SOME s'' =>
-      filter_type_args thy constrs type_enc (invert_const s'') ary T_args
+      filter_type_args thy constrs type_enc (unmangled_invert_const s'') ary T_args
 fun filter_type_args_in_iterm thy constrs type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
@@ -1341,8 +1344,8 @@ fun tvar_footprint thy s ary =
   (case unprefix_and_unascii const_prefix s of
      SOME s =>
      let fun tvars_of T = [] |> Term.add_tvarsT T |> map fst in
-       s |> invert_const |> robust_const_type thy |> chop_fun ary |> fst
-         |> map tvars_of
+       s |> unmangled_invert_const |> robust_const_type thy |> chop_fun ary
+         |> fst |> map tvars_of
      end
    | NONE => [])
   handle TYPE _ => []
@@ -1551,8 +1554,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                         (if String.isSubstring uncurried_alias_sep s then
                            ary
                          else case try (robust_const_ary thy
-                                        o invert_const o hd
-                                        o unmangled_const_name) s of
+                                        o unmangled_invert_const) s of
                            SOME ary0 => Int.min (ary0, ary)
                          | NONE => ary)
                       | NONE => ary
@@ -1595,7 +1597,7 @@ fun min_ary_of sym_tab s =
   | NONE =>
     case unprefix_and_unascii const_prefix s of
       SOME s =>
-      let val s = s |> unmangled_const_name |> hd |> invert_const in
+      let val s = s |> unmangled_invert_const in
         if s = predicator_name then 1
         else if s = app_op_name then 2
         else if s = type_guard_name then 1
@@ -1859,7 +1861,7 @@ fun add_type_constrs_in_term thy =
     fun add (Const (@{const_name Meson.skolem}, _) $ _) = I
       | add (t $ u) = add t #> add u
       | add (Const x) =
-        x |> robust_const_typargs thy |> fold (fold_type_constrs set_insert)
+        x |> robust_const_type_args thy |> fold (fold_type_constrs set_insert)
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
@@ -2387,9 +2389,9 @@ fun decl_line_for_sym ctxt mono type_enc s
       else case unprefix_and_unascii const_prefix s of
         SOME s' =>
         let
-          val s' = s' |> invert_const
+          val s' = s' |> unmangled_invert_const
           val T = s' |> robust_const_type thy
-        in (T, robust_const_typargs thy (s', T)) end
+        in (T, robust_const_type_args thy (s', T)) end
       | NONE => raise Fail "unexpected type arguments"
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
@@ -2522,7 +2524,7 @@ fun do_uncurried_alias_lines_for_sym ctxt constrs mono type_enc sym_tab0 sym_tab
         val (role, maybe_negate) = honor_conj_sym_role in_conj
         val base_name = base_s0 |> `(make_fixed_const (SOME type_enc))
         val T = case types of [T] => T | _ => robust_const_type thy base_s0
-        val T_args = robust_const_typargs thy (base_s0, T)
+        val T_args = robust_const_type_args thy (base_s0, T)
         val (base_name as (base_s, _), T_args) =
           mangle_type_args_in_const type_enc base_name T_args
         val base_ary = min_ary_of sym_tab0 base_s
@@ -2564,7 +2566,7 @@ fun uncurried_alias_lines_for_sym ctxt constrs mono type_enc sym_tab0
     SOME mangled_s =>
     if String.isSubstring uncurried_alias_sep mangled_s then
       let
-        val base_s0 = mangled_s |> unmangled_const_name |> hd |> invert_const
+        val base_s0 = mangled_s |> unmangled_invert_const
       in
         do_uncurried_alias_lines_for_sym ctxt constrs mono type_enc sym_tab0
                                          sym_tab base_s0 types in_conj min_ary
