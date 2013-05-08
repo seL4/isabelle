@@ -1360,12 +1360,17 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "induction");
 
+    fun mk_ctor_map_DEADID_thm ctor_inject =
+      trans OF [id_apply, iffD2 OF [ctor_inject, id_apply RS sym]];
+
+    fun mk_ctor_Irel_DEADID_thm ctor_inject bnf =
+      trans OF [ctor_inject, rel_eq_of_bnf bnf RS @{thm predicate2_eqD} RS sym];
+
     (*register new datatypes as BNFs*)
     val (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms, lthy) =
       if m = 0 then
-        let val dummy_thms = replicate n Drule.dummy_thm in
-          (replicate n DEADID_bnf, dummy_thms, replicate n [], dummy_thms, lthy)
-        end
+        (replicate n DEADID_bnf, map mk_ctor_map_DEADID_thm ctor_inject_thms, replicate n [],
+        map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;

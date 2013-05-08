@@ -1095,7 +1095,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             val cts = map (SOME o certify lthy) Rs;
             val rel_conversep_thm' = cterm_instantiate_pos cts rel_conversep_thm;
           in
-            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_cong})
+            unfold_thms lthy @{thms conversep_iff} (rel_conversep_thm' RS @{thm predicate2_eqD})
             |> singleton (Proof_Context.export names_lthy pre_names_lthy)
           end;
 

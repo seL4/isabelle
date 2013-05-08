@@ -182,7 +182,7 @@ lemma Collect_split_mono_strong:
   A \<subseteq> Collect (split Q)"
   by fastforce
 
-lemma predicate2_cong: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
+lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
 by metis
 
 ML_file "Tools/bnf_def_tactics.ML"

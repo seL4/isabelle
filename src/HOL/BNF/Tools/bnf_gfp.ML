@@ -2297,12 +2297,17 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "coinduction");
 
+    fun mk_dtor_map_DEADID_thm dtor_inject =
+      trans OF [iffD2 OF [dtor_inject, id_apply], id_apply RS sym];
+
+    fun mk_dtor_Irel_DEADID_thm dtor_inject bnf =
+      trans OF [rel_eq_of_bnf bnf RS @{thm predicate2_eqD}, dtor_inject] RS sym;
+
     (*register new codatatypes as BNFs*)
     val (Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms, lthy) =
       if m = 0 then
-        let val dummy_thms = replicate n Drule.dummy_thm in
-          (replicate n DEADID_bnf, dummy_thms, replicate n [], dummy_thms, lthy)
-        end
+        (replicate n DEADID_bnf, map mk_dtor_map_DEADID_thm dtor_inject_thms, replicate n [],
+        map2 mk_dtor_Irel_DEADID_thm dtor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
