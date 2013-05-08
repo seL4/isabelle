@@ -1075,7 +1075,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             val goal =
               fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Goal.prove_sorry lthy [] [] goal (mk_in_rel_tac rel_OO_Grps)
+            Goal.prove_sorry lthy [] [] goal (mk_in_rel_tac (the_single rel_OO_Grps))
             |> Thm.close_derivation
           end;
 
