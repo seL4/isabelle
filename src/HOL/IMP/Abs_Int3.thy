@@ -110,15 +110,21 @@ qed
 
 end
 
-
-fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"map2_acom f (SKIP {a1}) (SKIP {a2}) = (SKIP {f a1 a2})" |
-"map2_acom f (x ::= e {a1}) (x' ::= e' {a2}) = (x ::= e {f a1 a2})" |
-"map2_acom f (C1;C2) (D1;D2) = (map2_acom f C1 D1; map2_acom f C2 D2)" |
-"map2_acom f (IF b THEN {p1} C1 ELSE {p2} C2 {a1}) (IF b' THEN {q1} D1 ELSE {q2} D2 {a2}) =
-  (IF b THEN {f p1 q1} map2_acom f C1 D1 ELSE {f p2 q2} map2_acom f C2 D2 {f a1 a2})" |
-"map2_acom f ({a1} WHILE b DO {p} C {a2}) ({a3} WHILE b' DO {p'} C' {a4}) =
-  ({f a1 a3} WHILE b DO {f p p'} map2_acom f C C' {f a2 a4})"
+text_raw{*\snip{maptwoacomdef}{2}{2}{% *}
+fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom"
+where
+"map2_acom f (SKIP {a\<^isub>1}) (SKIP {a\<^isub>2}) = (SKIP {f a\<^isub>1 a\<^isub>2})" |
+"map2_acom f (x ::= e {a\<^isub>1}) (x' ::= e' {a\<^isub>2}) = (x ::= e {f a\<^isub>1 a\<^isub>2})" |
+"map2_acom f (C\<^isub>1;C\<^isub>2) (D\<^isub>1;D\<^isub>2)
+  = (map2_acom f C\<^isub>1 D\<^isub>1; map2_acom f C\<^isub>2 D\<^isub>2)" |
+"map2_acom f (IF b THEN {p\<^isub>1} C\<^isub>1 ELSE {p\<^isub>2} C\<^isub>2 {a\<^isub>1})
+  (IF b' THEN {q\<^isub>1} D\<^isub>1 ELSE {q\<^isub>2} D\<^isub>2 {a\<^isub>2})
+  = (IF b THEN {f p\<^isub>1 q\<^isub>1} map2_acom f C\<^isub>1 D\<^isub>1
+     ELSE {f p\<^isub>2 q\<^isub>2} map2_acom f C\<^isub>2 D\<^isub>2 {f a\<^isub>1 a\<^isub>2})" |
+"map2_acom f ({a\<^isub>1} WHILE b DO {p} C {a\<^isub>2})
+  ({a\<^isub>3} WHILE b' DO {q} D {a\<^isub>4})
+  = ({f a\<^isub>1 a\<^isub>3} WHILE b DO {f p q} map2_acom f C D {f a\<^isub>2 a\<^isub>4})"
+text_raw{*}%endsnip*}
 
 lemma annos_map2_acom[simp]: "strip C2 = strip C1 \<Longrightarrow>
   annos(map2_acom f C1 C2) = map (%(x,y).f x y) (zip (annos C1) (annos C2))"
