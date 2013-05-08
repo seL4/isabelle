@@ -6,6 +6,12 @@ begin
 
 subsection "Interval Analysis"
 
+text{* Drop @{const Fin} around numerals on output: *}
+translations
+"_Numeral i" <= "CONST Fin(_Numeral i)"
+"0" <= "CONST Fin 0"
+"1" <= "CONST Fin 1"
+
 type_synonym eint = "int extended"
 type_synonym eint2 = "eint * eint"
 
@@ -405,11 +411,6 @@ qed
 
 
 subsubsection "Tests"
-
-(* Hide Fin in numerals on output *)
-declare
-Fin_numeral [code_post] Fin_neg_numeral [code_post]
-zero_extended_def[symmetric, code_post] one_extended_def[symmetric, code_post]
 
 value "show_acom_opt (AI_ivl test1_ivl)"
 
