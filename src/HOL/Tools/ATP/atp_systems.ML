@@ -610,7 +610,7 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
 (* Not really a prover: Experimental Polymorphic THF and DFG output *)
 
-fun dummy_config prem_role format type_enc : atp_config =
+fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
   {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
    arguments = K (K (K (K (K (K ""))))),
    proof_delims = [],
@@ -619,19 +619,19 @@ fun dummy_config prem_role format type_enc : atp_config =
    best_slices =
      K [(1.0, (((200, ""), format, type_enc,
                 if is_format_higher_order format then keep_lamsN
-                else combsN, false), ""))],
+                else combsN, uncurried_aliases), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 val dummy_thf_format =
   THF (Polymorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
 val dummy_thf_config =
-  dummy_config Hypothesis dummy_thf_format "poly_native_higher"
+  dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
 val spass_poly_format = DFG Polymorphic
 val spass_poly_config =
-  dummy_config (#prem_role spass_config) spass_poly_format "tc_native"
+  dummy_config (#prem_role spass_config) spass_poly_format "tc_native" true
 val spass_poly = (spass_polyN, fn () => spass_poly_config)
 
 (* Remote ATP invocation via SystemOnTPTP *)
