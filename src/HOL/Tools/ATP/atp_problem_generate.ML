@@ -1177,7 +1177,8 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
       if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
       else T_args
     | SOME s'' =>
-      filter_type_args thy constrs type_enc (unmangled_invert_const s'') ary T_args
+      filter_type_args thy constrs type_enc (unmangled_invert_const s'') ary
+                       T_args
 fun filter_type_args_in_iterm thy constrs type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
@@ -1644,21 +1645,42 @@ fun firstorderize_fact thy constrs type_enc sym_tab uncurried_aliases
                        completish =
   let
     fun do_app arg head = mk_app_op type_enc head arg
-    fun list_app_ops head args = fold do_app args head
+    fun list_app_ops (head, args) = fold do_app args head
     fun introduce_app_ops tm =
       let val (head, args) = tm |> strip_iterm_comb ||> map introduce_app_ops in
         case head of
           IConst (name as (s, _), T, T_args) =>
-          if uncurried_aliases andalso String.isPrefix const_prefix s then
-            let
-              val ary = length args
-              val name =
-                name |> ary > min_ary_of sym_tab s ? aliased_uncurried ary
-            in list_app (IConst (name, T, T_args)) args end
-          else
-            args |> chop (min_ary_of sym_tab s)
-                 |>> list_app head |-> list_app_ops
-        | _ => list_app_ops head args
+          let
+            val min_ary = min_ary_of sym_tab s
+            val ary =
+              if uncurried_aliases andalso String.isPrefix const_prefix s then
+                let
+                  val ary = length args
+                  (* In polymorphic native type encodings, it is impossible to
+                     declare a fully polymorphic symbol that takes more arguments
+                     than its signature (even though such concrete instances, where
+                     a type variable is instantiated by a function type, are
+                     possible.) *)
+                  val official_ary =
+                    if is_type_enc_polymorphic type_enc then
+                      case unprefix_and_unascii const_prefix s of
+                        SOME s' =>
+                        (case try (robust_const_ary thy) (invert_const s') of
+                           SOME ary => ary
+                         | NONE => min_ary)
+                      | NONE => min_ary
+                    else
+                      1000000000 (* irrealistically big arity *)
+                in Int.min (ary, official_ary) end
+              else
+                min_ary
+            val head =
+              if ary = min_ary then head
+              else IConst (aliased_uncurried ary name, T, T_args)
+          in
+            args |> chop ary |>> list_app head |> list_app_ops
+          end
+        | _ => list_app_ops (head, args)
       end
     fun introduce_predicators tm =
       case strip_iterm_comb tm of
