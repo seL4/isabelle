@@ -154,10 +154,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val hrecTs = map fastype_of Zeros;
     val hsetTs = map (fn hrecT => Library.foldr (op -->) (sTs, HOLogic.natT --> hrecT)) hrecTs;
 
-    val (((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
+    val (((((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
       z's), As), As_copy), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
-      self_fs), all_fs), gs), all_gs), xFs), xFs_copy), RFs), (Rtuple, Rtuple')), (hrecs, hrecs')),
-      (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), Kss),
+      self_fs), all_fs), gs), all_gs), xFs), xFs_copy), yFs), yFs_copy), RFs), (Rtuple, Rtuple')),
+      (hrecs, hrecs')), (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), Kss),
       names_lthy) = lthy
       |> mk_Frees' "b" activeAs
       ||>> mk_Frees "b" activeAs
@@ -181,6 +181,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       ||>> mk_Frees "g" all_gTs
       ||>> mk_Frees "x" FTsAs
       ||>> mk_Frees "x" FTsAs
+      ||>> mk_Frees "y" FTsBs
+      ||>> mk_Frees "y" FTsBs
       ||>> mk_Frees "x" FRTs
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "Rtuple") all_sbisT
       ||>> mk_Frees' "rec" hrecTs
@@ -275,14 +277,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val map_arg_cong_thms =
       let
-        val prems = map2 (curry mk_Trueprop_eq) xFs xFs_copy;
-        val maps = map (fn mapx => Term.list_comb (mapx, all_fs)) mapsAsBs;
+        val prems = map2 (curry mk_Trueprop_eq) yFs yFs_copy;
+        val maps = map (fn mapx => Term.list_comb (mapx, all_gs)) mapsBsCs';
         val concls =
-          map3 (fn x => fn y => fn mapx => mk_Trueprop_eq (mapx $ x, mapx $ y)) xFs xFs_copy maps;
+          map3 (fn x => fn y => fn mapx => mk_Trueprop_eq (mapx $ x, mapx $ y)) yFs yFs_copy maps;
         val goals =
           map4 (fn prem => fn concl => fn x => fn y =>
-            fold_rev Logic.all (x :: y :: all_fs) (Logic.mk_implies (prem, concl)))
-          prems concls xFs xFs_copy;
+            fold_rev Logic.all (x :: y :: all_gs) (Logic.mk_implies (prem, concl)))
+          prems concls yFs yFs_copy;
       in
         map (fn goal => Goal.prove_sorry lthy [] [] goal
           (K ((hyp_subst_tac lthy THEN' rtac refl) 1)) |> Thm.close_derivation) goals
@@ -1859,11 +1861,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val corec_Inls = map (Term.subst_atomic_types (activeBs ~~ Ts)) Inls;
     val corec_UNIVs = map2 (HOLogic.mk_UNIV oo curry mk_sumT) Ts activeAs;
 
-    val (((((((((((((Jzs, Jzs'), (Jz's, Jz's')), Jzs_copy), Jzs1), Jzs2), Jpairs),
+    val ((((((((((((((Jzs, Jzs'), (Jz's, Jz's')), Jzs_copy), Jz's_copy), Jzs1), Jzs2), Jpairs),
       FJzs), TRs), unfold_fs), unfold_fs_copy), corec_ss), phis), names_lthy) = names_lthy
       |> mk_Frees' "z" Ts
-      ||>> mk_Frees' "z" Ts'
-      ||>> mk_Frees "z" Ts
+      ||>> mk_Frees' "y" Ts'
+      ||>> mk_Frees "z'" Ts
+      ||>> mk_Frees "y'" Ts'
       ||>> mk_Frees "z1" Ts
       ||>> mk_Frees "z2" Ts
       ||>> mk_Frees "j" (map2 (curry HOLogic.mk_prodT) Ts Ts')
@@ -2297,17 +2300,29 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "coinduction");
 
-    fun mk_dtor_map_DEADID_thm dtor_inject =
-      trans OF [iffD2 OF [dtor_inject, id_apply], id_apply RS sym];
+    fun mk_dtor_map_DEADID_thm dtor_inject map_id =
+      trans OF [iffD2 OF [dtor_inject, id_apply], map_id RS sym];
 
-    fun mk_dtor_Irel_DEADID_thm dtor_inject bnf =
+    fun mk_dtor_Jrel_DEADID_thm dtor_inject bnf =
       trans OF [rel_eq_of_bnf bnf RS @{thm predicate2_eqD}, dtor_inject] RS sym;
 
+    val JphiTs = map2 mk_pred2T passiveAs passiveBs;
+    val prodTsTs' = map2 (curry HOLogic.mk_prodT) Ts Ts';
+    val fstsTsTs' = map fst_const prodTsTs';
+    val sndsTsTs' = map snd_const prodTsTs';
+    val activeJphiTs = map2 mk_pred2T Ts Ts';
+    val ((Jphis, activeJphis), names_lthy) = names_lthy
+      |> mk_Frees "R" JphiTs
+      ||>> mk_Frees "JR" activeJphiTs;
+    val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
+    val in_rels = map in_rel_of_bnf bnfs;
+
     (*register new codatatypes as BNFs*)
-    val (Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms, lthy) =
+    val (timer, Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_set_induct_thms,
+      dtor_Jrel_thms, lthy) =
       if m = 0 then
-        (replicate n DEADID_bnf, map mk_dtor_map_DEADID_thm dtor_inject_thms, replicate n [],
-        map2 mk_dtor_Irel_DEADID_thm dtor_inject_thms bnfs, lthy)
+        (timer, replicate n DEADID_bnf, map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_id's,
+        replicate n [], [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
@@ -2317,16 +2332,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val p2Ts = map2 (curry op -->) passiveXs passiveBs;
         val pTs = map2 (curry op -->) passiveXs passiveCs;
         val uTs = map2 (curry op -->) Ts Ts';
-        val JphiTs = map2 mk_pred2T passiveAs passiveBs;
-        val prodTs = map2 (curry HOLogic.mk_prodT) Ts Ts';
         val B1Ts = map HOLogic.mk_setT passiveAs;
         val B2Ts = map HOLogic.mk_setT passiveBs;
         val AXTs = map HOLogic.mk_setT passiveXs;
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
 
-        val (((((((((((((((((((fs, fs'), fs_copy), gs), us),
-          (Jys, Jys')), (Jys_copy, Jys'_copy)), dtor_set_induct_phiss), Jphis),
+        val ((((((((((((((((((fs, fs'), fs_copy), gs), us),
+          (Jys, Jys')), (Jys_copy, Jys'_copy)), dtor_set_induct_phiss),
           B1s), B2s), AXs), f1s), f2s), p1s), p2s), ps), (ys, ys')), (ys_copy, ys'_copy)),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
@@ -2336,7 +2349,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
-          ||>> mk_Frees "P" JphiTs
           ||>> mk_Frees "B1" B1Ts
           ||>> mk_Frees "B2" B2Ts
           ||>> mk_Frees "A" AXTs
@@ -2375,19 +2387,17 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val UNIV's = map HOLogic.mk_UNIV Ts';
         val CUNIVs = map HOLogic.mk_UNIV passiveCs;
         val UNIV''s = map HOLogic.mk_UNIV Ts'';
-        val fstsTsTs' = map fst_const prodTs;
-        val sndsTsTs' = map snd_const prodTs;
         val dtor''s = mk_dtors passiveCs;
         val f1s_maps = map (mk_map_id Ts f1s YTs dtors mk_mapsAY) ks;
         val f2s_maps = map (mk_map_id Ts' f2s YTs dtor's mk_mapsBY) ks;
         val pid_maps = map (mk_map_id XTs ps Ts'' Xdtors mk_mapsXC) ks;
         val pfst_Fmaps =
-          map (mk_Fmap fst_const p1s prodTs) (mk_mapsXA prodTs (fst o HOLogic.dest_prodT));
+          map (mk_Fmap fst_const p1s prodTsTs') (mk_mapsXA prodTsTs' (fst o HOLogic.dest_prodT));
         val psnd_Fmaps =
-          map (mk_Fmap snd_const p2s prodTs) (mk_mapsXB prodTs (snd o HOLogic.dest_prodT));
-        val p1id_Fmaps = map (mk_Fmap HOLogic.id_const p1s prodTs) (mk_mapsXA prodTs I);
-        val p2id_Fmaps = map (mk_Fmap HOLogic.id_const p2s prodTs) (mk_mapsXB prodTs I);
-        val pid_Fmaps = map (mk_Fmap HOLogic.id_const ps prodTs) (mk_mapsXC prodTs I);
+          map (mk_Fmap snd_const p2s prodTsTs') (mk_mapsXB prodTsTs' (snd o HOLogic.dest_prodT));
+        val p1id_Fmaps = map (mk_Fmap HOLogic.id_const p1s prodTsTs') (mk_mapsXA prodTsTs' I);
+        val p2id_Fmaps = map (mk_Fmap HOLogic.id_const p2s prodTsTs') (mk_mapsXB prodTsTs' I);
+        val pid_Fmaps = map (mk_Fmap HOLogic.id_const ps prodTsTs') (mk_mapsXC prodTsTs' I);
 
         val (dtor_map_thms, map_thms) =
           let
@@ -2904,13 +2914,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val dtor_set_set_incl_thmsss = map (map (map fold_sets)) hset_hset_dtor_incl_thmsss;
         val dtor_set_induct_thms = map fold_sets dtor_hset_induct_thms;
 
-        val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Jrels = map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
 
         val Jrelphis = map (fn Jrel => Term.list_comb (Jrel, Jphis)) Jrels;
         val relphis = map (fn rel => Term.list_comb (rel, Jphis @ Jrelphis)) rels;
-
-        val in_rels = map in_rel_of_bnf bnfs;
         val in_Jrels = map in_rel_of_bnf Jbnfs;
 
         val folded_dtor_map_thms = map fold_maps dtor_map_thms;
@@ -2956,15 +2963,131 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; (Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms,
-          lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
+       (timer, Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_set_induct_thms,
+          dtor_Jrel_thms, lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
       end;
+
+      val passiveABs = map2 (curry HOLogic.mk_prodT) passiveAs passiveBs;
+      val zip_ranTs = passiveABs @ prodTsTs';
+      val allJphis = Jphis @ activeJphis;
+      val zipFTs = mk_FTs zip_ranTs;
+      val zipTs = map3 (fn T => fn T' => fn FT => T --> T' --> FT) Ts Ts' zipFTs;
+      val zip_zTs = mk_Ts passiveABs;
+      val (((zips, (abs, abs')), zip_zs), names_lthy) = names_lthy
+        |> mk_Frees "zip" zipTs
+        ||>> mk_Frees' "ab" passiveABs
+        ||>> mk_Frees "z" zip_zTs;
+
+      val Iphi_sets =
+        map2 (fn phi => fn T => HOLogic.Collect_const T $ HOLogic.mk_split phi) allJphis zip_ranTs;
+      val in_phis = map2 (mk_in Iphi_sets) (mk_setss zip_ranTs) zipFTs;
+      val fstABs = map fst_const passiveABs;
+      val all_fsts = fstABs @ fstsTsTs';
+      val map_all_fsts = map2 (fn Ds => fn bnf =>
+        Term.list_comb (mk_map_of_bnf Ds zip_ranTs (passiveAs @ Ts) bnf, all_fsts)) Dss bnfs;
+      val Jmap_fsts = map2 (fn bnf => fn T => if m = 0 then HOLogic.id_const T
+        else Term.list_comb (mk_map_of_bnf deads passiveABs passiveAs bnf, fstABs)) Jbnfs Ts;
+
+      val sndABs = map snd_const passiveABs;
+      val all_snds = sndABs @ sndsTsTs';
+      val map_all_snds = map2 (fn Ds => fn bnf =>
+        Term.list_comb (mk_map_of_bnf Ds zip_ranTs (passiveBs @ Ts') bnf, all_snds)) Dss bnfs;
+      val Jmap_snds = map2 (fn bnf => fn T => if m = 0 then HOLogic.id_const T
+        else Term.list_comb (mk_map_of_bnf deads passiveABs passiveBs bnf, sndABs)) Jbnfs Ts;
+      val zip_unfolds = map (mk_unfold zip_zTs (map HOLogic.mk_split zips)) ks;
+      val zip_setss = map (mk_sets_of_bnf (replicate m deads) (replicate m passiveABs)) Jbnfs
+        |> transpose;
+      val in_Jrels = map in_rel_of_bnf Jbnfs;
+
+      val Jrel_coinduct_thm =
+        let
+          fun mk_helper_prem phi in_phi zip x y map map' dtor dtor' =
+            let
+              val zipxy = zip $ x $ y;
+            in
+              HOLogic.mk_Trueprop (list_all_free [x, y]
+                (HOLogic.mk_imp (phi $ x $ y, HOLogic.mk_conj (HOLogic.mk_mem (zipxy, in_phi),
+                  HOLogic.mk_conj (HOLogic.mk_eq (map $ zipxy, dtor $ x),
+                    HOLogic.mk_eq (map' $ zipxy, dtor' $ y))))))
+            end;
+          val helper_prems = map9 mk_helper_prem
+            activeJphis in_phis zips Jzs Jz's map_all_fsts map_all_snds dtors dtor's;
+          fun mk_helper_coind_concl fst phi x alt y map zip_unfold =
+            HOLogic.mk_imp (list_exists_free [if fst then y else x] (HOLogic.mk_conj (phi $ x $ y,
+              HOLogic.mk_eq (alt, map $ (zip_unfold $ HOLogic.mk_prod (x, y))))),
+            HOLogic.mk_eq (alt, if fst then x else y));
+          val helper_coind1_concl =
+            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+              (map6 (mk_helper_coind_concl true)
+              activeJphis Jzs Jzs_copy Jz's Jmap_fsts zip_unfolds));
+          val helper_coind2_concl =
+            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+              (map6 (mk_helper_coind_concl false)
+              activeJphis Jzs Jz's_copy Jz's Jmap_snds zip_unfolds));
+          val helper_coind_tac = mk_rel_coinduct_coind_tac m dtor_map_coinduct_thm ks map_comp's
+            map_cong0s map_arg_cong_thms set_map'ss dtor_unfold_thms folded_dtor_map_thms;
+          fun mk_helper_coind_thms vars concl =
+            Goal.prove_sorry lthy [] []
+              (fold_rev Logic.all (Jphis @ activeJphis @ vars @ zips)
+                (Logic.list_implies (helper_prems, concl)))
+              helper_coind_tac
+            |> Thm.close_derivation
+            |> split_conj_thm;
+          val helper_coind1_thms = mk_helper_coind_thms (Jzs @ Jzs_copy) helper_coind1_concl;
+          val helper_coind2_thms = mk_helper_coind_thms (Jz's @ Jz's_copy) helper_coind2_concl;
+
+          fun mk_helper_ind_concl phi ab' ab fst snd z active_phi x y zip_unfold set =
+            mk_Ball (set $ z) (Term.absfree ab' (list_all_free [x, y] (HOLogic.mk_imp
+              (HOLogic.mk_conj (active_phi $ x $ y,
+                 HOLogic.mk_eq (z, zip_unfold $ HOLogic.mk_prod (x, y))),
+              phi $ (fst $ ab) $ (snd $ ab)))));
+
+          val mk_helper_ind_concls =
+            map6 (fn Jphi => fn ab' => fn ab => fn fst => fn snd => fn zip_sets =>
+              map6 (mk_helper_ind_concl Jphi ab' ab fst snd)
+              zip_zs activeJphis Jzs Jz's zip_unfolds zip_sets)
+            Jphis abs' abs fstABs sndABs zip_setss
+            |> map (HOLogic.mk_Trueprop o Library.foldr1 HOLogic.mk_conj);
+
+          val helper_ind_thmss = if m = 0 then replicate n [] else
+            map3 (fn concl => fn j => fn set_induct =>
+              Goal.prove_sorry lthy [] []
+                (fold_rev Logic.all (Jphis @ activeJphis @ zip_zs @ zips)
+                  (Logic.list_implies (helper_prems, concl)))
+                (mk_rel_coinduct_ind_tac m ks dtor_unfold_thms set_map'ss j set_induct)
+              |> Thm.close_derivation
+              |> split_conj_thm)
+            mk_helper_ind_concls ls dtor_set_induct_thms
+            |> transpose;
+
+          val relphis = map (fn rel => Term.list_comb (rel, Jphis @ activeJphis)) rels;
+          fun mk_prem relphi phi x y dtor dtor' =
+            HOLogic.mk_Trueprop (list_all_free [x, y]
+              (HOLogic.mk_imp (phi $ x $ y, relphi $ (dtor $ x) $ (dtor' $ y))));
+          val prems = map6 mk_prem relphis activeJphis Jzs Jz's dtors dtor's;
+
+          val Jrels = if m = 0 then map HOLogic.eq_const Ts
+            else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
+          val Jrelphis = map (fn Jrel => Term.list_comb (Jrel, Jphis)) Jrels;
+          val concl =
+            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq activeJphis Jrelphis));
+        in
+          Goal.prove_sorry lthy [] []
+            (fold_rev Logic.all (Jphis @ activeJphis) (Logic.list_implies (prems, concl)))
+            (mk_rel_coinduct_tac in_rels in_Jrels
+               helper_ind_thmss helper_coind1_thms helper_coind2_thms)
+          |> Thm.close_derivation
+          |> (fn thm => thm OF (replicate n @{thm allI[OF allI[OF impI]]}))
+        end;
+
+      val timer = time (timer "relator coinduction");
 
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
         (dtor_map_coinductN, [dtor_map_coinduct_thm]),
         (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
-        (dtor_strong_coinductN, [dtor_strong_coinduct_thm])]
+        (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
+        (rel_coinductN, [Jrel_coinduct_thm])]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
@@ -2987,6 +3110,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
+    timer;
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, un_folds = unfolds, co_recs = corecs,
       co_induct = dtor_coinduct_thm, strong_co_induct = dtor_strong_coinduct_thm,
       dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,

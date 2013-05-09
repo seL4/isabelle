@@ -102,6 +102,12 @@ sig
     tactic
   val mk_raw_coind_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
     thm list -> thm list -> thm -> thm list -> tactic
+  val mk_rel_coinduct_tac: thm list -> thm list -> thm list list -> thm list -> thm list ->
+    {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_coinduct_coind_tac: int -> thm -> int list -> thm list -> thm list -> thm list ->
+    thm list list -> thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_coinduct_ind_tac: int -> int list -> thm list -> thm list list -> int -> thm ->
+    {prems: 'a, context: Proof.context} -> tactic
   val mk_rv_last_tac: ctyp option list -> cterm option list -> thm list -> thm list -> tactic
   val mk_sbis_lsbis_tac: Proof.context -> thm list -> thm -> thm -> tactic
   val mk_set_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
@@ -145,6 +151,7 @@ val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
 val snd_convol_fun_cong_sym = @{thm snd_convol} RS fun_cong RS sym;
 val sum_case_weak_cong = @{thm sum_case_weak_cong};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
+val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]}
 
 fun mk_coalg_set_tac coalg_def =
   dtac (coalg_def RS iffD1) 1 THEN
@@ -1567,6 +1574,88 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp map_cong0 dtor_map dtor_sets
           atac]]
   in
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
+  end;
+
+fun mk_rel_coinduct_coind_tac m coinduct ks map_comps map_congs map_arg_congs set_mapss 
+  dtor_unfolds dtor_maps {context = ctxt, prems = _} =
+  let val n = length ks;
+  in
+    EVERY' [DETERM o rtac coinduct,
+      EVERY' (map7 (fn i => fn map_comp => fn map_cong => fn map_arg_cong => fn set_maps =>
+          fn dtor_unfold => fn dtor_map =>
+        EVERY' [REPEAT_DETERM o eresolve_tac [exE, conjE],
+          select_prem_tac (length ks) (dtac @{thm spec2}) i, dtac mp, atac,
+          REPEAT_DETERM o eresolve_tac [CollectE, conjE], hyp_subst_tac ctxt,
+          rtac exI, rtac conjI, rtac conjI,
+          rtac (map_comp RS trans), rtac (dtor_map RS trans RS sym),
+          rtac (dtor_unfold RS map_arg_cong RS trans), rtac (trans OF [map_comp, map_cong]),
+          REPEAT_DETERM_N m o rtac @{thm trans[OF fun_cong[OF o_id] sym[OF fun_cong[OF id_o]]]},
+          REPEAT_DETERM_N n o (rtac @{thm sym[OF trans[OF o_apply]]} THEN' rtac @{thm fst_conv}),
+          rtac (map_comp RS trans), rtac (map_cong RS trans),
+          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF id_o]},
+          REPEAT_DETERM_N n o (rtac @{thm trans[OF o_apply]} THEN' rtac @{thm snd_conv}),
+          etac (@{thm prod.cases} RS map_arg_cong RS trans),
+          SELECT_GOAL (unfold_thms_tac ctxt @{thms prod.cases}), 
+          CONJ_WRAP' (fn set_map =>
+            EVERY' [REPEAT_DETERM o resolve_tac [allI, impI],
+              dtac (set_map RS equalityD1 RS set_mp),
+              REPEAT_DETERM o
+                eresolve_tac (imageE :: conjE :: @{thms iffD1[OF Pair_eq, elim_format]}),
+              hyp_subst_tac ctxt, rtac exI, rtac conjI, etac Collect_splitD_set_mp, atac,
+              rtac (o_apply RS trans), rtac (@{thm surjective_pairing} RS arg_cong)])
+          (drop m set_maps)])
+      ks map_comps map_congs map_arg_congs set_mapss dtor_unfolds dtor_maps)] 1
+  end;
+
+val split_id_unfolds = @{thms prod.cases image_id id_apply};
+
+fun mk_rel_coinduct_ind_tac m ks unfolds set_mapss j set_induct {context = ctxt, prems = _} =
+  let val n = length ks;
+  in
+    rtac set_induct 1 THEN
+    EVERY' (map3 (fn unfold => fn set_maps => fn i =>
+      EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], etac conjE,
+        select_prem_tac n (dtac @{thm spec2}) i, dtac mp, atac,
+        REPEAT_DETERM o eresolve_tac [CollectE, conjE, Collect_splitD_set_mp, set_rev_mp],
+        hyp_subst_tac ctxt,
+        SELECT_GOAL (unfold_thms_tac ctxt ([unfold, nth set_maps (j - 1)] @ split_id_unfolds)),
+        rtac subset_refl])
+    unfolds set_mapss ks) 1 THEN
+    EVERY' (map3 (fn unfold => fn set_maps => fn i =>
+      EVERY' (map (fn set_map =>
+        EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], etac conjE,
+        select_prem_tac n (dtac @{thm spec2}) i, dtac mp, atac,
+        REPEAT_DETERM o eresolve_tac [CollectE, conjE], hyp_subst_tac ctxt,
+        SELECT_GOAL (unfold_thms_tac ctxt ([unfold, set_map] @ split_id_unfolds)),
+        etac imageE, hyp_subst_tac ctxt, REPEAT_DETERM o eresolve_tac [allE, mp],
+        rtac conjI, etac Collect_splitD_set_mp, atac, rtac (@{thm surjective_pairing} RS arg_cong)])
+      (drop m set_maps)))
+    unfolds set_mapss ks) 1
+  end;
+
+fun mk_rel_coinduct_tac in_rels in_Jrels helper_indss helper_coind1s helper_coind2s
+  {context = ctxt, prems = _} =
+  let val n = length in_rels;
+  in
+    unfold_thms_tac ctxt (@{thm choice_iff} :: @{thm ex_simps(6)[symmetric]} :: in_rels) THEN
+    REPEAT_DETERM (etac exE 1) THEN
+    CONJ_WRAP' (fn (in_Jrel, (helper_inds, (helper_coind1, helper_coind2))) =>
+      EVERY' [rtac @{thm predicate2I}, rtac (in_Jrel RS iffD2), rtac exI, rtac conjI,
+        if null helper_inds then rtac UNIV_I
+        else rtac CollectI THEN'
+          CONJ_WRAP' (fn helper_ind =>
+            EVERY' [rtac (helper_ind RS rev_mp), REPEAT_DETERM_N n o atac,
+              REPEAT_DETERM_N n o etac thin_rl, rtac impI,
+              REPEAT_DETERM o resolve_tac [subsetI, CollectI, @{thm iffD2[OF split_beta]}],
+              dtac bspec, atac, REPEAT_DETERM o eresolve_tac [allE, mp, conjE],
+              etac (refl RSN (2, conjI))])
+          helper_inds,
+        rtac conjI,
+        rtac (helper_coind1 RS rev_mp), REPEAT_DETERM_N n o atac, REPEAT_DETERM_N n o etac thin_rl,
+        rtac impI, etac mp, rtac exI, etac (refl RSN (2, conjI)),
+        rtac (helper_coind2 RS rev_mp), REPEAT_DETERM_N n o atac, REPEAT_DETERM_N n o etac thin_rl,
+        rtac impI, etac mp, rtac exI, etac (refl RSN (2, conjI))])
+    (in_Jrels ~~ (helper_indss ~~ (helper_coind1s ~~ helper_coind2s))) 1
   end;
 
 end;

@@ -1360,8 +1360,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "induction");
 
-    fun mk_ctor_map_DEADID_thm ctor_inject =
-      trans OF [id_apply, iffD2 OF [ctor_inject, id_apply RS sym]];
+    fun mk_ctor_map_DEADID_thm ctor_inject map_id =
+      trans OF [id_apply, iffD2 OF [ctor_inject, map_id RS sym]];
 
     fun mk_ctor_Irel_DEADID_thm ctor_inject bnf =
       trans OF [ctor_inject, rel_eq_of_bnf bnf RS @{thm predicate2_eqD} RS sym];
@@ -1374,10 +1374,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
 
     (*register new datatypes as BNFs*)
-    val (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms, lthy) =
+    val (timer, Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms, lthy) =
       if m = 0 then
-        (replicate n DEADID_bnf, map mk_ctor_map_DEADID_thm ctor_inject_thms, replicate n [],
-        map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
+        (timer, replicate n DEADID_bnf, map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_id's,
+        replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
@@ -1803,7 +1803,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms,
+        (timer, Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms,
           lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
       end;
 
@@ -1854,6 +1854,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
+    timer;
     ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, un_folds = folds, co_recs = recs,
       co_induct = ctor_induct_thm, strong_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, map_thms = folded_ctor_map_thms,
