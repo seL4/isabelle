@@ -27,13 +27,13 @@ by(auto simp: eq_ivl_def)
 quotient_type ivl = eint2 / eq_ivl
 by(rule equivpI)(auto simp: reflp_def symp_def transp_def eq_ivl_def)
 
-abbreviation ivl_abbr :: "eint \<Rightarrow> eint \<Rightarrow> ivl" ("[_\<dots>_]") where
-"[l\<dots>h] == abs_ivl(l,h)"
+abbreviation ivl_abbr :: "eint \<Rightarrow> eint \<Rightarrow> ivl" ("[_, _]") where
+"[l,h] == abs_ivl(l,h)"
 
 lift_definition \<gamma>_ivl :: "ivl \<Rightarrow> int set" is \<gamma>_rep
 by(simp add: eq_ivl_def)
 
-lemma \<gamma>_ivl_nice: "\<gamma>_ivl[l\<dots>h] = {i. l \<le> Fin i \<and> Fin i \<le> h}"
+lemma \<gamma>_ivl_nice: "\<gamma>_ivl[l,h] = {i. l \<le> Fin i \<and> Fin i \<le> h}"
 by transfer (simp add: \<gamma>_rep_def)
 
 lift_definition num_ivl :: "int \<Rightarrow> ivl" is "\<lambda>i. (Fin i, Fin i)"
@@ -43,7 +43,7 @@ lift_definition in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool"
   is "\<lambda>i (l,h). l \<le> Fin i \<and> Fin i \<le> h"
 by(auto simp: eq_ivl_def \<gamma>_rep_def)
 
-lemma in_ivl_nice: "in_ivl i [l\<dots>h] = (l \<le> Fin i \<and> Fin i \<le> h)"
+lemma in_ivl_nice: "in_ivl i [l,h] = (l \<le> Fin i \<and> Fin i \<le> h)"
 by transfer simp
 
 definition is_empty_rep :: "eint2 \<Rightarrow> bool" where
@@ -187,20 +187,20 @@ end
 lemma eq_ivl_empty: "eq_ivl p empty_rep = is_empty_rep p"
 by (metis eq_ivl_iff is_empty_empty_rep)
 
-lemma le_ivl_nice: "[l1\<dots>h1] \<le> [l2\<dots>h2] \<longleftrightarrow>
-  (if [l1\<dots>h1] = \<bottom> then True else
-   if [l2\<dots>h2] = \<bottom> then False else l1 \<ge> l2 & h1 \<le> h2)"
+lemma le_ivl_nice: "[l1,h1] \<le> [l2,h2] \<longleftrightarrow>
+  (if [l1,h1] = \<bottom> then True else
+   if [l2,h2] = \<bottom> then False else l1 \<ge> l2 & h1 \<le> h2)"
 unfolding bot_ivl_def by transfer (simp add: le_rep_def eq_ivl_empty)
 
-lemma sup_ivl_nice: "[l1\<dots>h1] \<squnion> [l2\<dots>h2] =
-  (if [l1\<dots>h1] = \<bottom> then [l2\<dots>h2] else
-   if [l2\<dots>h2] = \<bottom> then [l1\<dots>h1] else [min l1 l2\<dots>max h1 h2])"
+lemma sup_ivl_nice: "[l1,h1] \<squnion> [l2,h2] =
+  (if [l1,h1] = \<bottom> then [l2,h2] else
+   if [l2,h2] = \<bottom> then [l1,h1] else [min l1 l2,max h1 h2])"
 unfolding bot_ivl_def by transfer (simp add: sup_rep_def eq_ivl_empty)
 
-lemma inf_ivl_nice: "[l1\<dots>h1] \<sqinter> [l2\<dots>h2] = [max l1 l2\<dots>min h1 h2]"
+lemma inf_ivl_nice: "[l1,h1] \<sqinter> [l2,h2] = [max l1 l2,min h1 h2]"
 by transfer (simp add: inf_rep_def)
 
-lemma top_ivl_nice: "\<top> = [-\<infinity>\<dots>\<infinity>]"
+lemma top_ivl_nice: "\<top> = [-\<infinity>,\<infinity>]"
 by (simp add: top_ivl_def)
 
 
@@ -218,8 +218,8 @@ by(auto simp: plus_rep_def eq_ivl_iff)
 instance ..
 end
 
-lemma plus_ivl_nice: "[l1\<dots>h1] + [l2\<dots>h2] =
-  (if [l1\<dots>h1] = \<bottom> \<or> [l2\<dots>h2] = \<bottom> then \<bottom> else [l1+l2 \<dots> h1+h2])"
+lemma plus_ivl_nice: "[l1,h1] + [l2,h2] =
+  (if [l1,h1] = \<bottom> \<or> [l2,h2] = \<bottom> then \<bottom> else [l1+l2 , h1+h2])"
 unfolding bot_ivl_def by transfer (auto simp: plus_rep_def eq_ivl_empty)
 
 lemma uminus_eq_Minf[simp]: "-x = Minf \<longleftrightarrow> x = Pinf"
@@ -252,7 +252,7 @@ end
 lemma \<gamma>_uminus: "i : \<gamma>_ivl iv \<Longrightarrow> -i \<in> \<gamma>_ivl(- iv)"
 by transfer (rule \<gamma>_uminus_rep)
 
-lemma uminus_nice: "-[l\<dots>h] = [-h\<dots>-l]"
+lemma uminus_nice: "-[l,h] = [-h,-l]"
 by transfer (simp add: uminus_rep_def)
 
 instantiation ivl :: minus
@@ -293,14 +293,14 @@ by transfer
 definition constrain_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
 "constrain_less_ivl res iv1 iv2 =
   (if res
-   then (iv1 \<sqinter> (below iv2 - [Fin 1\<dots>Fin 1]),
-         iv2 \<sqinter> (above iv1 + [Fin 1\<dots>Fin 1]))
+   then (iv1 \<sqinter> (below iv2 - [Fin 1,Fin 1]),
+         iv2 \<sqinter> (above iv1 + [Fin 1,Fin 1]))
    else (iv1 \<sqinter> above iv2, iv2 \<sqinter> below iv1))"
 
-lemma above_nice: "above[l\<dots>h] = (if [l\<dots>h] = \<bottom> then \<bottom> else [l\<dots>\<infinity>])"
+lemma above_nice: "above[l,h] = (if [l,h] = \<bottom> then \<bottom> else [l,\<infinity>])"
 unfolding bot_ivl_def by transfer (simp add: above_rep_def eq_ivl_empty)
 
-lemma below_nice: "below[l\<dots>h] = (if [l\<dots>h] = \<bottom> then \<bottom> else [-\<infinity>\<dots>h])"
+lemma below_nice: "below[l,h] = (if [l,h] = \<bottom> then \<bottom> else [-\<infinity>,h])"
 unfolding bot_ivl_def by transfer (simp add: below_rep_def eq_ivl_empty)
 
 lemma add_mono_le_Fin:

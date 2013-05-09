@@ -523,7 +523,7 @@ definition m_rep :: "eint2 \<Rightarrow> nat" where
 lift_definition m_ivl :: "ivl \<Rightarrow> nat" is m_rep
 by(auto simp: m_rep_def eq_ivl_iff)
 
-lemma m_ivl_nice: "m_ivl[l\<dots>h] = (if [l\<dots>h] = \<bottom> then 3 else
+lemma m_ivl_nice: "m_ivl[l,h] = (if [l,h] = \<bottom> then 3 else
    (if l = Minf then 0 else 1) + (if h = Pinf then 0 else 1))"
 unfolding bot_ivl_def
 by transfer (auto simp: m_rep_def eq_ivl_empty split: extended.split)
