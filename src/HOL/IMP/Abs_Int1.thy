@@ -134,14 +134,14 @@ qed
 
 end
 
-fun top_on_st :: "'a::top st \<Rightarrow> vname set \<Rightarrow> bool" where
+fun top_on_st :: "'a::top st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>s") where
 "top_on_st S X = (\<forall>x\<in>X. fun S x = \<top>)"
 
-fun top_on_opt :: "'a::top st option \<Rightarrow> vname set \<Rightarrow> bool" where
+fun top_on_opt :: "'a::top st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>o") where
 "top_on_opt (Some S)  X = top_on_st S X" |
 "top_on_opt None X = True"
 
-definition top_on_acom :: "'a::top st option acom \<Rightarrow> vname set \<Rightarrow> bool" where
+definition top_on_acom :: "'a::top st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>c") where
 "top_on_acom C X = (\<forall>a \<in> set(annos C). top_on_opt a X)"
 
 lemma top_on_top: "top_on_opt (\<top>::_ st option) X"
