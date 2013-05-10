@@ -115,7 +115,6 @@ fun generate_transfer_rule lthy quot_thm rsp_thm def_thm opt_par_thm =
   let
     val transfer_rule =
       ([quot_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer})
-      |> Morphism.thm (Local_Theory.target_morphism lthy)
       |> Lifting_Term.parametrize_transfer_rule lthy
   in
     (option_fold transfer_rule (generate_parametric_transfer_rule lthy transfer_rule) opt_par_thm
