@@ -498,7 +498,7 @@ fun mkthm ctxt asms (just: injust) =
           (case try_add ([thm1] RL inj_thms) thm2 of
             NONE =>
               (the (try_add ([thm2] RL inj_thms) thm1)
-                handle Option =>
+                handle Option.Option =>
                   (trace_thm ctxt [] thm1; trace_thm ctxt [] thm2;
                    raise Fail "Linear arithmetic: failed to add thms"))
           | SOME thm => thm)

@@ -31,7 +31,6 @@ function usage()
   echo "    -S           secure mode -- disallow critical operations"
   echo "    -T ADDR      startup process wrapper, with socket address"
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
-  echo "    -X           startup PGIP interaction mode"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
@@ -64,14 +63,13 @@ PROOFGENERAL=""
 SECURE=""
 WRAPPER_SOCKET=""
 WRAPPER_FIFOS=""
-PGIP=""
 MLTEXT=""
 MODES=""
 TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPST:W:Xe:fm:qruw" OPT
+while getopts "IPST:W:e:fm:qruw" OPT
 do
   case "$OPT" in
     I)
@@ -88,9 +86,6 @@ do
       ;;
     W)
       WRAPPER_FIFOS="$OPTARG"
-      ;;
-    X)
-      PGIP=true
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
@@ -226,8 +221,6 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
   [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
   [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
   MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
-elif [ -n "$PGIP" ]; then
-  MLTEXT="$MLTEXT; ProofGeneralPgip.init_pgip $ISAR;"
 elif [ -n "$PROOFGENERAL" ]; then
   MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then

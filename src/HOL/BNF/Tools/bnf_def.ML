@@ -123,7 +123,7 @@ fun mk_axioms' (((((((((id, comp), cong), nat), c_o), cinf), set_bd), in_bd), wp
   {map_id = id, map_comp = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
    bd_cinfinite = cinf, set_bd = set_bd, in_bd = in_bd, map_wpull = wpull, rel_OO_Grp = rel};
 
-fun dest_cons [] = raise Empty
+fun dest_cons [] = raise List.Empty
   | dest_cons (x :: xs) = (x, xs);
 
 fun mk_axioms n thms = thms

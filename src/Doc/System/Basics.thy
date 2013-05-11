@@ -383,7 +383,6 @@ Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
     -S           secure mode -- disallow critical operations
     -T ADDR      startup process wrapper, with socket address
     -W IN:OUT    startup process wrapper, with input/output fifos
-    -X           startup PGIP interaction mode
     -e MLTEXT    pass MLTEXT to the ML session
     -f           pass 'Session.finish();' to the ML session
     -m MODE      add print mode for output
@@ -456,8 +455,7 @@ text {*
   \medskip The @{verbatim "-I"} option makes Isabelle enter Isar
   interaction mode on startup, instead of the primitive ML top-level.
   The @{verbatim "-P"} option configures the top-level loop for
-  interaction with the Proof General user interface, and the
-  @{verbatim "-X"} option enables XML-based PGIP communication.
+  interaction with the Proof General user interface.
 
   \medskip The @{verbatim "-T"} or @{verbatim "-W"} option makes
   Isabelle enter a special process wrapper for interaction via

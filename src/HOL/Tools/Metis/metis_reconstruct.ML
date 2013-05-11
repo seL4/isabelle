@@ -722,12 +722,12 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
 (* for debugging only:
       fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
-        "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
+        "; tysubst: " ^ @{make_string} tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
-      val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
-      val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
-      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
+      val _ = tracing ("ORDERED CLUSTERS: " ^ @{make_string} ordered_clusters)
+      val _ = tracing ("AXIOM COUNTS: " ^ @{make_string} ax_counts)
+      val _ = tracing ("OUTER PARAMS: " ^ @{make_string} outer_param_names)
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_for_subst_info substs))
 *)

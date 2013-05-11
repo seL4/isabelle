@@ -12,7 +12,7 @@ sig
   val new_thms_deps: theory -> theory -> string list * string list
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
-  val pgip_channel_emacs: (string -> unit) -> unit
+  val init_pgip_session_id: unit -> unit
 
   (* More message functions... *)
   val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
@@ -26,7 +26,10 @@ end
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
 struct
 
-open Pgip;
+open PgipTypes;
+open PgipMarkup;
+open PgipInput;
+open PgipOutput;
 
 
 (** print mode **)
@@ -251,7 +254,7 @@ fun add_proof_body (PBody {thms, ...}) =
   thms |> fold (fn (_, (name, _, _)) => name <> "" ? Symtab.update (name, ()));
 
 fun add_thm th =
-  (case Thm.proof_body_of th of 
+  (case Thm.proof_body_of th of
     PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
       if Thm.has_name_hint th andalso Thm.get_name_hint th = name
       then add_proof_body (Future.join body)
@@ -367,6 +370,11 @@ val preferences = Unsynchronized.ref Preferences.pure_preferences;
 
 fun add_preference cat pref =
   CRITICAL (fn () => Unsynchronized.change preferences (Preferences.add cat pref));
+
+fun set_preference pref value =
+  (case AList.lookup (op =) (map (fn p => (#name p, p)) (maps snd (! preferences))) pref of
+    SOME {set, ...} => set value
+  | NONE => error ("Unknown prover preference: " ^ quote pref));
 
 fun setup_preferences_tweak () =
   CRITICAL (fn () => Unsynchronized.change preferences
@@ -845,50 +853,50 @@ exception PGIP_QUIT;
 fun quitpgip _ = raise PGIP_QUIT
 
 fun process_input inp = case inp
- of Pgip.Askpgip _          => askpgip inp
-  | Pgip.Askpgml _          => askpgml inp
-  | Pgip.Askprefs _         => askprefs inp
-  | Pgip.Askconfig _        => askconfig inp
-  | Pgip.Getpref _          => getpref inp
-  | Pgip.Setpref _          => setpref inp
-  | Pgip.Proverinit _       => proverinit inp
-  | Pgip.Proverexit _       => proverexit inp
-  | Pgip.Setproverflag _    => setproverflag inp
-  | Pgip.Dostep _           => dostep inp
-  | Pgip.Undostep _         => undostep inp
-  | Pgip.Redostep _         => redostep inp
-  | Pgip.Forget _           => error "<forget> not implemented by Isabelle"
-  | Pgip.Restoregoal _      => error "<restoregoal> not implemented by Isabelle"
-  | Pgip.Abortgoal _        => abortgoal inp
-  | Pgip.Askids _           => askids inp
-  | Pgip.Askrefs _          => askrefs inp
-  | Pgip.Showid _           => showid inp
-  | Pgip.Askguise _         => askguise inp
-  | Pgip.Parsescript _      => parsescript inp
-  | Pgip.Showproofstate _   => showproofstate inp
-  | Pgip.Showctxt _         => showctxt inp
-  | Pgip.Searchtheorems _   => searchtheorems inp
-  | Pgip.Setlinewidth _     => setlinewidth inp
-  | Pgip.Viewdoc _          => viewdoc inp
-  | Pgip.Doitem _           => doitem inp
-  | Pgip.Undoitem _         => undoitem inp
-  | Pgip.Redoitem _         => redoitem inp
-  | Pgip.Aborttheory _      => aborttheory inp
-  | Pgip.Retracttheory _    => retracttheory inp
-  | Pgip.Loadfile _         => loadfile inp
-  | Pgip.Openfile _         => openfile inp
-  | Pgip.Closefile _        => closefile inp
-  | Pgip.Abortfile _        => abortfile inp
-  | Pgip.Retractfile _      => retractfile inp
-  | Pgip.Changecwd _        => changecwd inp
-  | Pgip.Systemcmd _        => systemcmd inp
-  | Pgip.Quitpgip _         => quitpgip inp
+ of PgipInput.Askpgip _          => askpgip inp
+  | PgipInput.Askpgml _          => askpgml inp
+  | PgipInput.Askprefs _         => askprefs inp
+  | PgipInput.Askconfig _        => askconfig inp
+  | PgipInput.Getpref _          => getpref inp
+  | PgipInput.Setpref _          => setpref inp
+  | PgipInput.Proverinit _       => proverinit inp
+  | PgipInput.Proverexit _       => proverexit inp
+  | PgipInput.Setproverflag _    => setproverflag inp
+  | PgipInput.Dostep _           => dostep inp
+  | PgipInput.Undostep _         => undostep inp
+  | PgipInput.Redostep _         => redostep inp
+  | PgipInput.Forget _           => error "<forget> not implemented by Isabelle"
+  | PgipInput.Restoregoal _      => error "<restoregoal> not implemented by Isabelle"
+  | PgipInput.Abortgoal _        => abortgoal inp
+  | PgipInput.Askids _           => askids inp
+  | PgipInput.Askrefs _          => askrefs inp
+  | PgipInput.Showid _           => showid inp
+  | PgipInput.Askguise _         => askguise inp
+  | PgipInput.Parsescript _      => parsescript inp
+  | PgipInput.Showproofstate _   => showproofstate inp
+  | PgipInput.Showctxt _         => showctxt inp
+  | PgipInput.Searchtheorems _   => searchtheorems inp
+  | PgipInput.Setlinewidth _     => setlinewidth inp
+  | PgipInput.Viewdoc _          => viewdoc inp
+  | PgipInput.Doitem _           => doitem inp
+  | PgipInput.Undoitem _         => undoitem inp
+  | PgipInput.Redoitem _         => redoitem inp
+  | PgipInput.Aborttheory _      => aborttheory inp
+  | PgipInput.Retracttheory _    => retracttheory inp
+  | PgipInput.Loadfile _         => loadfile inp
+  | PgipInput.Openfile _         => openfile inp
+  | PgipInput.Closefile _        => closefile inp
+  | PgipInput.Abortfile _        => abortfile inp
+  | PgipInput.Retractfile _      => retractfile inp
+  | PgipInput.Changecwd _        => changecwd inp
+  | PgipInput.Systemcmd _        => systemcmd inp
+  | PgipInput.Quitpgip _         => quitpgip inp
 
 
 fun process_pgip_element pgipxml =
     case pgipxml of
         xml as (XML.Elem elem) =>
-        (case Pgip.input elem of
+        (case PgipInput.input elem of
              NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
                               (XML.string_of xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)
@@ -1009,32 +1017,65 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
 
 local
-    val pgip_output_channel = Unsynchronized.ref Output.physical_writeln
+
+fun invalid_pgip () = raise PGIP "Invalid PGIP packet received";
+
+fun output_emacs pgips = Output.urgent_message (output_pgips pgips);
+
+fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
+      let
+        fun preference_of {name, descr, default, pgiptype, get, set} =
+          {name = name, descr = SOME descr, default = SOME default, pgiptype = pgiptype};
+      in
+        ! preferences |> List.app (fn (prefcat, prefs) =>
+            output_emacs [Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}])
+      end
+  | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
+      let
+        val name =
+          (case Properties.get attrs "name" of
+            SOME name => name
+          | NONE => invalid_pgip ());
+        val value = XML.content_of data;
+      in set_preference name value end
+  | process_element_emacs _ = invalid_pgip ();
+
 in
 
-(* Set recipient for PGIP results *)
-fun pgip_channel_emacs writefn =
-    (init_pgip_session_id();
-     pgip_output_channel := writefn)
-
-(* Process a PGIP command.
-   This works for preferences but not generally guaranteed
-   because we haven't done full setup here (e.g., no pgml mode)  *)
 fun process_pgip_emacs str =
-     Unsynchronized.setmp output_xml_fn (!pgip_output_channel) process_pgip_plain str
-
-end
-
-
-(* Extra command for embedding prover-control inside document (obscure/debug usage). *)
+  let
+    val _ = pgip_refid := NONE;
+    val _ = pgip_refseq := NONE;
+  in
+    (case XML.parse str of
+      XML.Elem (("pgip", attrs), pgips) =>
+        let
+          val class = PgipTypes.get_attr "class" attrs;
+          val dest = PgipTypes.get_attr_opt "destid" attrs;
+          val seq = PgipTypes.read_pgipnat (PgipTypes.get_attr "seq" attrs);
+          val processit =
+            (case dest of
+              NONE => class = "pa"
+            | SOME id => matching_pgip_id id);
+         in
+           if processit then
+            (pgip_refid := PgipTypes.get_attr_opt "id" attrs;
+             pgip_refseq := SOME seq;
+             List.app process_element_emacs pgips)
+           else ()
+         end
+    | _ => invalid_pgip ())
+  end handle PGIP msg => error (msg ^ "\n" ^ str);
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.process_pgip", Keyword.control), Position.none) "(internal)"
     (Parse.text >>
-      (fn txt => Toplevel.imperative (fn () =>
+      (fn str => Toplevel.imperative (fn () =>
         if print_mode_active proof_general_emacsN
-        then process_pgip_emacs txt
-        else process_pgip_plain txt)));
+        then process_pgip_emacs str
+        else process_pgip_plain str)));
+
+end;
 
 end;

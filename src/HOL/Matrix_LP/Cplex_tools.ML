@@ -973,7 +973,7 @@ fun load_glpkResult name =
     result
     end
     handle (Tokenize s) => raise (Load_cplexResult ("Tokenize: "^s))
-     | Option => raise (Load_cplexResult "Option")
+     | Option.Option => raise (Load_cplexResult "Option")
 
 fun load_cplexResult name =
     let
@@ -1122,7 +1122,7 @@ fun load_cplexResult name =
     result
     end
     handle (Tokenize s) => raise (Load_cplexResult ("Tokenize: "^s))
-     | Option => raise (Load_cplexResult "Option")
+     | Option.Option => raise (Load_cplexResult "Option")
 
 exception Execute of string;
 

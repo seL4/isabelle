@@ -30,6 +30,7 @@ definition timing :: "String.literal \<Rightarrow> ('a \<Rightarrow> 'b) \<Right
   [simp]: "timing s f x = f x"
 
 code_const trace and flush and timing
+  (* FIXME proper @{make_string} instead of PolyML.makestring?!?! *)
   (Eval "Output.tracing" and "Output.tracing/ (PolyML.makestring _)" and "Timing.timeap'_msg")
 
 code_reserved Eval Output PolyML Timing

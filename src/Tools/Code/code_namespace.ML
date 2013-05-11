@@ -125,7 +125,7 @@ fun flat_program labelled_name { module_alias, module_prefix, reserved,
           Long_Name.append (fst (dest_name name)) (base_deresolver name)
       | deresolver module_name name =
           the (Symtab.lookup (the (Symtab.lookup deresolver_tab module_name)) name)
-          handle Option => error ("Unknown statement name: " ^ labelled_name name);
+          handle Option.Option => error ("Unknown statement name: " ^ labelled_name name);
 
   in { deresolver = deresolver, flat_program = flat_program } end;
 
