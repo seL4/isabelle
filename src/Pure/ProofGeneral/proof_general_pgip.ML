@@ -26,7 +26,10 @@ end
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
 struct
 
-open Pgip;
+open PgipTypes;
+open PgipMarkup;
+open PgipInput;
+open PgipOutput;
 
 
 (** print mode **)
@@ -845,50 +848,50 @@ exception PGIP_QUIT;
 fun quitpgip _ = raise PGIP_QUIT
 
 fun process_input inp = case inp
- of Pgip.Askpgip _          => askpgip inp
-  | Pgip.Askpgml _          => askpgml inp
-  | Pgip.Askprefs _         => askprefs inp
-  | Pgip.Askconfig _        => askconfig inp
-  | Pgip.Getpref _          => getpref inp
-  | Pgip.Setpref _          => setpref inp
-  | Pgip.Proverinit _       => proverinit inp
-  | Pgip.Proverexit _       => proverexit inp
-  | Pgip.Setproverflag _    => setproverflag inp
-  | Pgip.Dostep _           => dostep inp
-  | Pgip.Undostep _         => undostep inp
-  | Pgip.Redostep _         => redostep inp
-  | Pgip.Forget _           => error "<forget> not implemented by Isabelle"
-  | Pgip.Restoregoal _      => error "<restoregoal> not implemented by Isabelle"
-  | Pgip.Abortgoal _        => abortgoal inp
-  | Pgip.Askids _           => askids inp
-  | Pgip.Askrefs _          => askrefs inp
-  | Pgip.Showid _           => showid inp
-  | Pgip.Askguise _         => askguise inp
-  | Pgip.Parsescript _      => parsescript inp
-  | Pgip.Showproofstate _   => showproofstate inp
-  | Pgip.Showctxt _         => showctxt inp
-  | Pgip.Searchtheorems _   => searchtheorems inp
-  | Pgip.Setlinewidth _     => setlinewidth inp
-  | Pgip.Viewdoc _          => viewdoc inp
-  | Pgip.Doitem _           => doitem inp
-  | Pgip.Undoitem _         => undoitem inp
-  | Pgip.Redoitem _         => redoitem inp
-  | Pgip.Aborttheory _      => aborttheory inp
-  | Pgip.Retracttheory _    => retracttheory inp
-  | Pgip.Loadfile _         => loadfile inp
-  | Pgip.Openfile _         => openfile inp
-  | Pgip.Closefile _        => closefile inp
-  | Pgip.Abortfile _        => abortfile inp
-  | Pgip.Retractfile _      => retractfile inp
-  | Pgip.Changecwd _        => changecwd inp
-  | Pgip.Systemcmd _        => systemcmd inp
-  | Pgip.Quitpgip _         => quitpgip inp
+ of PgipInput.Askpgip _          => askpgip inp
+  | PgipInput.Askpgml _          => askpgml inp
+  | PgipInput.Askprefs _         => askprefs inp
+  | PgipInput.Askconfig _        => askconfig inp
+  | PgipInput.Getpref _          => getpref inp
+  | PgipInput.Setpref _          => setpref inp
+  | PgipInput.Proverinit _       => proverinit inp
+  | PgipInput.Proverexit _       => proverexit inp
+  | PgipInput.Setproverflag _    => setproverflag inp
+  | PgipInput.Dostep _           => dostep inp
+  | PgipInput.Undostep _         => undostep inp
+  | PgipInput.Redostep _         => redostep inp
+  | PgipInput.Forget _           => error "<forget> not implemented by Isabelle"
+  | PgipInput.Restoregoal _      => error "<restoregoal> not implemented by Isabelle"
+  | PgipInput.Abortgoal _        => abortgoal inp
+  | PgipInput.Askids _           => askids inp
+  | PgipInput.Askrefs _          => askrefs inp
+  | PgipInput.Showid _           => showid inp
+  | PgipInput.Askguise _         => askguise inp
+  | PgipInput.Parsescript _      => parsescript inp
+  | PgipInput.Showproofstate _   => showproofstate inp
+  | PgipInput.Showctxt _         => showctxt inp
+  | PgipInput.Searchtheorems _   => searchtheorems inp
+  | PgipInput.Setlinewidth _     => setlinewidth inp
+  | PgipInput.Viewdoc _          => viewdoc inp
+  | PgipInput.Doitem _           => doitem inp
+  | PgipInput.Undoitem _         => undoitem inp
+  | PgipInput.Redoitem _         => redoitem inp
+  | PgipInput.Aborttheory _      => aborttheory inp
+  | PgipInput.Retracttheory _    => retracttheory inp
+  | PgipInput.Loadfile _         => loadfile inp
+  | PgipInput.Openfile _         => openfile inp
+  | PgipInput.Closefile _        => closefile inp
+  | PgipInput.Abortfile _        => abortfile inp
+  | PgipInput.Retractfile _      => retractfile inp
+  | PgipInput.Changecwd _        => changecwd inp
+  | PgipInput.Systemcmd _        => systemcmd inp
+  | PgipInput.Quitpgip _         => quitpgip inp
 
 
 fun process_pgip_element pgipxml =
     case pgipxml of
         xml as (XML.Elem elem) =>
-        (case Pgip.input elem of
+        (case PgipInput.input elem of
              NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
                               (XML.string_of xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)

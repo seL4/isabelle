@@ -302,7 +302,6 @@ use "ProofGeneral/pgml.ML";
 use "ProofGeneral/pgip_markup.ML";
 use "ProofGeneral/pgip_input.ML";
 use "ProofGeneral/pgip_output.ML";
-use "ProofGeneral/pgip.ML";
 
 use "ProofGeneral/pgip_isabelle.ML";
 
@@ -347,8 +346,6 @@ Context.set_thread_data NONE;
 structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
 
 toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
-
-use "ProofGeneral/pgip_tests.ML";
 
 
 (* ML toplevel commands *)
