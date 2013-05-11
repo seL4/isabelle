@@ -1379,9 +1379,11 @@ fun kodkod_formula_from_nut ofs
       in
         case min_R of
           Vect (k, Atom _) => kk_vect_set_bool_op connective k r1 r2
-        | Func (_, Formula Neut) => set_oper r1 r2
-        | Func (_, Atom _) => set_oper (kk_join r1 true_atom)
-                                       (kk_join r2 true_atom)
+        | Func (_, R') =>
+          (case body_rep R' of
+             Formula Neut => set_oper r1 r2
+           | Atom _ => set_oper (kk_join r1 true_atom) (kk_join r2 true_atom)
+           | _ => raise REP ("Nitpick_Kodkod.to_set_bool_op", [min_R]))
         | _ => raise REP ("Nitpick_Kodkod.to_set_bool_op", [min_R])
       end
     and to_bit_word_unary_op T R oper =
