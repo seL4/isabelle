@@ -254,7 +254,7 @@ fun add_proof_body (PBody {thms, ...}) =
   thms |> fold (fn (_, (name, _, _)) => name <> "" ? Symtab.update (name, ()));
 
 fun add_thm th =
-  (case Thm.proof_body_of th of 
+  (case Thm.proof_body_of th of
     PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
       if Thm.has_name_hint th andalso Thm.get_name_hint th = name
       then add_proof_body (Future.join body)
@@ -370,6 +370,11 @@ val preferences = Unsynchronized.ref Preferences.pure_preferences;
 
 fun add_preference cat pref =
   CRITICAL (fn () => Unsynchronized.change preferences (Preferences.add cat pref));
+
+fun set_preference pref value =
+  (case AList.lookup (op =) (map (fn p => (#name p, p)) (maps snd (! preferences))) pref of
+    SOME {set, ...} => set value
+  | NONE => error ("Unknown prover preference: " ^ quote pref));
 
 fun setup_preferences_tweak () =
   CRITICAL (fn () => Unsynchronized.change preferences
@@ -1012,32 +1017,69 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
 
 local
-    val pgip_output_channel = Unsynchronized.ref Output.physical_writeln
+
+val pgip_output_channel = Unsynchronized.ref Output.physical_writeln
+
+fun invalid_pgip () = raise PGIP "Invalid PGIP packet received";
+
+fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
+      let
+        fun preference_of {name, descr, default, pgiptype, get, set} =
+          {name = name, descr = SOME descr, default = SOME default, pgiptype = pgiptype};
+      in
+        ! preferences |> List.app (fn (prefcat, prefs) =>
+            issue_pgip (Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}))
+      end
+  | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
+      let
+        val name =
+          (case Properties.get attrs "name" of
+            SOME name => name
+          | NONE => invalid_pgip ());
+        val value = XML.content_of data;
+      in set_preference name value end
+  | process_element_emacs _ = invalid_pgip ();
+
 in
 
-(* Set recipient for PGIP results *)
 fun pgip_channel_emacs writefn =
-    (init_pgip_session_id();
-     pgip_output_channel := writefn)
+ (init_pgip_session_id ();
+  pgip_output_channel := writefn);
 
-(* Process a PGIP command.
-   This works for preferences but not generally guaranteed
-   because we haven't done full setup here (e.g., no pgml mode)  *)
 fun process_pgip_emacs str =
-     Unsynchronized.setmp output_xml_fn (!pgip_output_channel) process_pgip_plain str
-
-end
-
-
-(* Extra command for embedding prover-control inside document (obscure/debug usage). *)
+  let
+    val _ = pgip_refid := NONE;
+    val _ = pgip_refseq := NONE;
+  in
+    (case XML.parse str of
+      XML.Elem (("pgip", attrs), pgips) =>
+        let
+          val class = PgipTypes.get_attr "class" attrs;
+          val dest = PgipTypes.get_attr_opt "destid" attrs;
+          val seq = PgipTypes.read_pgipnat (PgipTypes.get_attr "seq" attrs);
+          val processit =
+            (case dest of
+              NONE => class = "pa"
+            | SOME id => matching_pgip_id id);
+         in
+           if processit then
+            (pgip_refid := PgipTypes.get_attr_opt "id" attrs;
+             pgip_refseq := SOME seq;
+             List.app process_pgip_element pgips)
+           else ()
+         end
+    | _ => invalid_pgip ())
+  end handle PGIP msg => error (msg ^ "\n" ^ str);
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.process_pgip", Keyword.control), Position.none) "(internal)"
     (Parse.text >>
-      (fn txt => Toplevel.imperative (fn () =>
+      (fn str => Toplevel.imperative (fn () =>
         if print_mode_active proof_general_emacsN
-        then process_pgip_emacs txt
-        else process_pgip_plain txt)));
+        then Unsynchronized.setmp output_xml_fn (! pgip_output_channel) process_pgip_emacs str
+        else process_pgip_plain str)));
+
+end;
 
 end;
