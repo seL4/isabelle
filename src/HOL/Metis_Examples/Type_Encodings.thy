@@ -56,7 +56,7 @@ fun metis_exhaust_tac ctxt ths =
   let
     fun tac [] st = all_tac st
       | tac (type_enc :: type_encs) st =
-        st (* |> tap (fn _ => tracing (PolyML.makestring type_enc)) *)
+        st (* |> tap (fn _ => tracing (@{make_string} type_enc)) *)
            |> ((if null type_encs then all_tac else rtac @{thm fork} 1)
                THEN Metis_Tactic.metis_tac [type_enc]
                     ATP_Problem_Generate.combsN ctxt ths 1
