@@ -26,7 +26,7 @@ fun init_server_socket opt_host port =
            |> NetHostDB.addr
            |> rpair port
            |> INetSock.toAddr
-           handle Option => raise Fail ("Cannot resolve hostname: " ^ host));
+           handle Option.Option => raise Fail ("Cannot resolve hostname: " ^ host));
     val _ = Socket.bind (sock, addr);
     val _ = Socket.listen (sock, 5);
   in sock end;

@@ -46,7 +46,7 @@ fun decode_url s =
       |> Char.chr
       |> String.str
       |> Substring.full
-      handle Option => c;
+      handle Option.Option => c;
 
     fun f (done, s) =
       let

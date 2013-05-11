@@ -379,11 +379,11 @@ fun new_name ix (pairs, used) =
 
 fun freeze_one alist (ix, sort) =
   TFree (the (AList.lookup (op =) alist ix), sort)
-    handle Option =>
+    handle Option.Option =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thaw_one alist (a, sort) = TVar (the (AList.lookup (op =) alist a), sort)
-  handle Option => TFree (a, sort);
+  handle Option.Option => TFree (a, sort);
 
 in
 

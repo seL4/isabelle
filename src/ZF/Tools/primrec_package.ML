@@ -49,7 +49,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
     val (cname, _) = dest_Const constr
       handle TERM _ => raise RecError "ill-formed constructor";
     val con_info = the (Symtab.lookup (ConstructorsData.get thy) cname)
-      handle Option =>
+      handle Option.Option =>
       raise RecError "cannot determine datatype associated with function"
 
     val (ls, cargs, rs) = (map dest_Free ls_frees,

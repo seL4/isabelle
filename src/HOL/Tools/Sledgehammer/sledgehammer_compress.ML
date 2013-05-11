@@ -41,9 +41,9 @@ fun v_fold_index f v s =
 fun pop tab key =
   (let val v = hd (Inttab.lookup_list tab key) in
     (v, Inttab.remove_list (op =) (key, v) tab)
-  end) handle Empty => raise Fail "sledgehammer_compress: pop"
+  end) handle List.Empty => raise Fail "sledgehammer_compress: pop"
 fun pop_max tab = pop tab (the (Inttab.max_key tab))
-  handle Option => raise Fail "sledgehammer_compress: pop_max"
+  handle Option.Option => raise Fail "sledgehammer_compress: pop_max"
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
 (* Main function for compresing proofs *)
@@ -104,7 +104,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
           | (Prove (_, _, t, By_Metis _), Obtain (_, _, _, _, By_Metis _)) =>
               cons (Term.size_of_term t, i)
           | _ => I)
-            handle Option => raise Fail "sledgehammer_compress: add_if_cand")
+            handle Option.Option => raise Fail "sledgehammer_compress: add_if_cand")
         | add_if_cand _ _ = I
       val cand_tab =
         v_fold_index (add_if_cand step_vect) refed_by_vect []
@@ -121,7 +121,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
              #> handle_metis_fail
              #> Lazy.lazy)
           step_vect
-        handle Option => raise Fail "sledgehammer_compress: metis_time"
+        handle Option.Option => raise Fail "sledgehammer_compress: metis_time"
 
       fun sum_up_time lazy_time_vector =
         Vector.foldl
@@ -204,7 +204,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
                           (n_metis' - 1)
             end
           end
-        handle Option => raise Fail "sledgehammer_compress: merge_steps"
+        handle Option.Option => raise Fail "sledgehammer_compress: merge_steps"
              | List.Empty => raise Fail "sledgehammer_compress: merge_steps"
     in
       merge_steps metis_time step_vect refed_by_vect cand_tab n n_metis

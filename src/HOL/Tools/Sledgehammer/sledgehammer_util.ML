@@ -58,11 +58,11 @@ fun time_mult k t =
 
 fun parse_bool_option option name s =
   (case s of
-     "smart" => if option then NONE else raise Option
+     "smart" => if option then NONE else raise Option.Option
    | "false" => SOME false
    | "true" => SOME true
    | "" => SOME true
-   | _ => raise Option)
+   | _ => raise Option.Option)
   handle Option.Option =>
          let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
            error ("Parameter " ^ quote name ^ " must be assigned " ^

@@ -81,9 +81,9 @@ struct
        val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
        val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
        val lcon_info = the (Symtab.lookup (ConstructorsData.get thy) lname)
-         handle Option => raise Match;
+         handle Option.Option => raise Match;
        val rcon_info = the (Symtab.lookup (ConstructorsData.get thy) rname)
-         handle Option => raise Match;
+         handle Option.Option => raise Match;
        val new =
            if #big_rec_name lcon_info = #big_rec_name rcon_info
                andalso not (null (#free_iffs lcon_info)) then

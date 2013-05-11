@@ -384,9 +384,9 @@ fun unify ctxt q =
           (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty
     in
       fn ct => the (Inttab.lookup tab (ct |> term_of |> dest_number))
-        handle Option =>
+        handle Option.Option =>
           (writeln ("noz: Theorems-Table contains no entry for " ^
-              Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
+              Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option.Option)
     end
   fun unit_conv t =
    case (term_of t) of
@@ -472,9 +472,9 @@ let
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
      fn ct => the (Inttab.lookup tab (term_of ct |> dest_number))
-       handle Option =>
+       handle Option.Option =>
         (writeln ("dvd: Theorems-Table contains no entry for" ^
-            Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option)
+            Syntax.string_of_term ctxt (Thm.term_of ct)); raise Option.Option)
    end
  val dp =
    let val th = Simplifier.rewrite (put_simpset lin_ss ctxt)
@@ -541,9 +541,9 @@ let
                   sths) Termtab.empty
         in
           fn ct => the (Termtab.lookup tab (term_of ct))
-            handle Option =>
+            handle Option.Option =>
               (writeln ("inS: No theorem for " ^ Syntax.string_of_term ctxt (Thm.term_of ct));
-                raise Option)
+                raise Option.Option)
         end
        val (inf, nb, pd) = divide_and_conquer (f x dvd inS (abths S)) p
    in [dp, inf, nb, pd] MRS cpth
