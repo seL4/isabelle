@@ -12,7 +12,7 @@ sig
   val new_thms_deps: theory -> theory -> string list * string list
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
-  val pgip_channel_emacs: (string -> unit) -> unit
+  val init_pgip_session_id: unit -> unit
 
   (* More message functions... *)
   val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
@@ -1018,9 +1018,9 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
 
 local
 
-val pgip_output_channel = Unsynchronized.ref Output.physical_writeln
-
 fun invalid_pgip () = raise PGIP "Invalid PGIP packet received";
+
+fun output_emacs pgips = Output.urgent_message (output_pgips pgips);
 
 fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
       let
@@ -1028,7 +1028,7 @@ fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
           {name = name, descr = SOME descr, default = SOME default, pgiptype = pgiptype};
       in
         ! preferences |> List.app (fn (prefcat, prefs) =>
-            issue_pgip (Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}))
+            output_emacs [Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}])
       end
   | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
       let
@@ -1041,10 +1041,6 @@ fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
   | process_element_emacs _ = invalid_pgip ();
 
 in
-
-fun pgip_channel_emacs writefn =
- (init_pgip_session_id ();
-  pgip_output_channel := writefn);
 
 fun process_pgip_emacs str =
   let
@@ -1065,7 +1061,7 @@ fun process_pgip_emacs str =
            if processit then
             (pgip_refid := PgipTypes.get_attr_opt "id" attrs;
              pgip_refseq := SOME seq;
-             List.app process_pgip_element pgips)
+             List.app process_element_emacs pgips)
            else ()
          end
     | _ => invalid_pgip ())
@@ -1077,7 +1073,7 @@ val _ =
     (Parse.text >>
       (fn str => Toplevel.imperative (fn () =>
         if print_mode_active proof_general_emacsN
-        then Unsynchronized.setmp output_xml_fn (! pgip_output_channel) process_pgip_emacs str
+        then process_pgip_emacs str
         else process_pgip_plain str)));
 
 end;

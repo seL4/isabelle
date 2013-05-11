@@ -236,7 +236,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           Output.default_output Output.default_escape;
          Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
          setup_messages ();
-         ProofGeneralPgip.pgip_channel_emacs (! Output.Private_Hooks.urgent_message_fn);
+         ProofGeneralPgip.init_pgip_session_id ();
          setup_thy_loader ();
          setup_present_hook ();
          initialized := true);
