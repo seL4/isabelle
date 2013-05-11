@@ -55,8 +55,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
 
     (* handle metis preplay fail *)
     local
-      open Unsynchronized
-      val metis_fail = ref false
+      val metis_fail = Unsynchronized.ref false
     in
       fun handle_metis_fail try_metis () =
         try_metis () handle exn =>
