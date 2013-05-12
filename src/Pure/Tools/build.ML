@@ -109,7 +109,9 @@ fun use_theories last_timing options =
 fun use_theories_condition last_timing (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
     (case filter_out (can getenv_strict) condition of
-      [] => use_theories last_timing options (map (rpair Position.none) thys)
+      [] =>
+        (Options.set_default options;
+         use_theories last_timing options (map (rpair Position.none) thys))
     | conds =>
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
@@ -127,6 +129,8 @@ fun build args_file = Command_Line.tool (fn () =>
               (pair string (pair string (pair string
                 ((list (pair Options.decode (list string)))))))))))
           end;
+
+      val _ = Options.set_default options;
 
       val document_variants =
         map Present.read_variant (space_explode ":" (Options.string options "document_variants"));
@@ -160,6 +164,7 @@ fun build args_file = Command_Line.tool (fn () =>
       val res2 = Exn.capture Session.finish ();
       val _ = Par_Exn.release_all [res1, res2];
 
+      val _ = Options.reset_default ();
       val _ = if do_output then () else exit 0;
     in 0 end);
 

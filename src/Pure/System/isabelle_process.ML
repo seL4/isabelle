@@ -237,6 +237,7 @@ val _ =
   protocol_command "Isabelle_Process.options"
     (fn [options_yxml] =>
       let val options = Options.decode (YXML.parse_body options_yxml) in
+        Options.set_default options;
         Future.ML_statistics := true;
         Multithreading.trace := Options.int options "threads_trace";
         Multithreading.max_threads := Options.int options "threads";
