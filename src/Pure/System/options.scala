@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/options.scala
     Author:     Makarius
 
-Stand-alone options with external string representation.
+System options with external string representation.
 */
 
 package isabelle
