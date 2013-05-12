@@ -76,6 +76,7 @@ do
       ISAR=true
       ;;
     P)
+      ISAR=true
       PROOFGENERAL=true
       ;;
     S)
@@ -221,14 +222,16 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
   [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
   [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
   MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
-elif [ -n "$PROOFGENERAL" ]; then
-  MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
 elif [ "$ISAR" = true ]; then
   if [ -z "$ISABELLE_PROCESS_OPTIONS" ]; then
     ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
     "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" || fail "Failed to retrieve options"
   fi
-  MLTEXT="$MLTEXT; Isar.main ();"
+  if [ -n "$PROOFGENERAL" ]; then
+    MLTEXT="$MLTEXT; ProofGeneral.init ();"
+  else
+    MLTEXT="$MLTEXT; Isar.main ();"
+  fi
 else
   NICE=""
 fi

@@ -8,7 +8,7 @@ See also http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val test_markupN: string
-  val init: bool -> unit
+  val init: unit -> unit
   structure ThyLoad: sig val add_path: string -> unit end
 end;
 
@@ -91,9 +91,6 @@ fun setup_messages () =
   Output.Private_Hooks.warning_fn := message (special "K") (special "L") "### ";
   Output.Private_Hooks.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
   Output.Private_Hooks.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
-
-fun panic s =
-  (message (special "M") (special "N") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
 
 (* notification *)
@@ -227,24 +224,23 @@ val _ =
 
 val initialized = Unsynchronized.ref false;
 
-fun init false = panic "No Proof General interface support for Isabelle/classic mode."
-  | init true =
-      (if ! initialized then ()
-       else
-        (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
-         Output.add_mode ProofGeneralPgip.proof_general_emacsN
-          Output.default_output Output.default_escape;
-         Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
-         setup_messages ();
-         ProofGeneralPgip.init_pgip_session_id ();
-         setup_thy_loader ();
-         setup_present_hook ();
-         initialized := true);
-       sync_thy_loader ();
-       Unsynchronized.change print_mode (update (op =) ProofGeneralPgip.proof_general_emacsN);
-       Secure.PG_setup ();
-       Isar.toplevel_loop TextIO.stdIn
-        {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
+fun init () =
+  (if ! initialized then ()
+   else
+    (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
+     Output.add_mode ProofGeneralPgip.proof_general_emacsN
+      Output.default_output Output.default_escape;
+     Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
+     setup_messages ();
+     ProofGeneralPgip.init_pgip_session_id ();
+     setup_thy_loader ();
+     setup_present_hook ();
+     initialized := true);
+   sync_thy_loader ();
+   Unsynchronized.change print_mode (update (op =) ProofGeneralPgip.proof_general_emacsN);
+   Secure.PG_setup ();
+   Isar.toplevel_loop TextIO.stdIn
+    {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
 
 (* fake old ThyLoad -- with new semantics *)
