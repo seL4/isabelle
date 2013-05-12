@@ -67,6 +67,8 @@ use "PIDE/yxml.ML";
 
 use "General/graph.ML";
 
+use "System/options.ML";
+
 
 (* concurrency within the ML runtime *)
 
@@ -113,7 +115,6 @@ use "term.ML";
 use "context.ML";
 use "context_position.ML";
 use "config.ML";
-use "System/options.ML";
 
 
 (* inner syntax *)

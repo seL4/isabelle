@@ -27,6 +27,7 @@ sig
   val declare_generic: {global: bool} -> string -> (Context.generic -> value) -> raw
   val declare_global: string -> (Context.generic -> value) -> raw
   val declare: string -> (Context.generic -> value) -> raw
+  val declare_option: string -> raw
   val name_of: 'a T -> string
 end;
 
@@ -137,6 +138,17 @@ fun declare_generic {global} name default =
 
 val declare_global = declare_generic {global = true};
 val declare = declare_generic {global = false};
+
+fun declare_option name =
+  let
+    val typ = Options.default_typ name;
+    val default =
+      if typ = Options.boolT then fn _ => Bool (Options.default_bool name)
+      else if typ = Options.intT then fn _ => Int (Options.default_int name)
+      else if typ = Options.realT then fn _ => Real (Options.default_real name)
+      else if typ = Options.stringT then fn _ => String (Options.default_string name)
+      else error ("Unknown type for option " ^ quote name ^ " : " ^ quote typ);
+  in declare name default end;
 
 fun name_of (Config {name, ...}) = name;
 
