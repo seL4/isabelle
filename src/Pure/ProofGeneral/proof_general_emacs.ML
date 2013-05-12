@@ -7,7 +7,6 @@ See also http://proofgeneral.inf.ed.ac.uk
 
 signature PROOF_GENERAL =
 sig
-  val test_markupN: string
   val init: unit -> unit
   structure ThyLoad: sig val add_path: string -> unit end
 end;
@@ -15,21 +14,13 @@ end;
 structure ProofGeneral: PROOF_GENERAL =
 struct
 
-
-(* print modes *)
-
-val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
-val test_markupN = "test_markup";          (*XML markup for everything*)
+(* render markup *)
 
 fun special ch = chr 1 ^ ch;
-
-
-(* render markup *)
 
 local
 
 fun render_trees ts = fold render_tree ts
-
 and render_tree t =
   (case XML.unwrap_elem t of
     SOME (_, ts) => render_trees ts
@@ -38,11 +29,7 @@ and render_tree t =
         XML.Text s => Buffer.add s
       | XML.Elem ((name, props), ts) =>
           let
-            val (bg1, en1) =
-              if name <> Markup.promptN andalso print_mode_active test_markupN
-              then XML.output_markup (name, props)
-              else Markup.no_output;
-            val (bg2, en2) =
+            val (bg, en) =
               if null ts then Markup.no_output
               else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
               else if name = Markup.sendbackN then (special "W", special "X")
@@ -59,13 +46,7 @@ and render_tree t =
                     if kind = Markup.classN then (special "B", special "A")
                     else Markup.no_output
                 | NONE => Markup.no_output);
-          in
-            Buffer.add bg1 #>
-            Buffer.add bg2 #>
-            render_trees ts #>
-            Buffer.add en2 #>
-            Buffer.add en1
-          end));
+          in Buffer.add bg #> render_trees ts #> Buffer.add en end));
 
 in
 
@@ -160,6 +141,8 @@ fun restart () =
 
 
 (* theorem dependency output *)
+
+val thm_depsN = "thm_deps";
 
 local
 
