@@ -112,7 +112,9 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
           parent ("Unsorted", name) doc_dump verbose;
       val res1 = (use |> with_timing item timing |> Exn.capture) root;
       val res2 = Exn.capture finish ();
-    in ignore (Par_Exn.release_all [res1, res2]) end)
+      val _ = ignore (Par_Exn.release_all [res1, res2]);
+      val _ = Options.reset_default ();
+    in () end)
     |> Unsynchronized.setmp Proofterm.proofs level
     |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs parallel_proofs

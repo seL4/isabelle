@@ -58,7 +58,7 @@ function fail()
 
 # options
 
-ISAR=false
+ISAR=""
 PROOFGENERAL=""
 SECURE=""
 WRAPPER_SOCKET=""
@@ -76,7 +76,6 @@ do
       ISAR=true
       ;;
     P)
-      ISAR=true
       PROOFGENERAL=true
       ;;
     S)
@@ -210,7 +209,7 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="Unsynchronized.change print_mode (append [$MODES]); $MLTEXT"
 
-[ -n "$SECURE" ] && MLTEXT="$MLTEXT Secure.set_secure ();"
+[ -n "$SECURE" ] && MLTEXT="$MLTEXT; Secure.set_secure ();"
 
 NICE="nice"
 
@@ -222,18 +221,21 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
   [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
   [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
   MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
-elif [ "$ISAR" = true ]; then
+else
   if [ -z "$ISABELLE_PROCESS_OPTIONS" ]; then
     ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
     "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" || fail "Failed to retrieve options"
   fi
+  if [ "$INPUT" != RAW_ML_SYSTEM ]; then
+    MLTEXT="Options.load_default () handle _ => exit 2; $MLTEXT"
+  fi
   if [ -n "$PROOFGENERAL" ]; then
     MLTEXT="$MLTEXT; ProofGeneral.init ();"
-  else
+  elif [ -n "$ISAR" ]; then
     MLTEXT="$MLTEXT; Isar.main ();"
+  else
+    NICE=""
   fi
-else
-  NICE=""
 fi
 
 export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP ISABELLE_PROCESS_OPTIONS
