@@ -733,7 +733,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
           val metis_ft = AList.defined (op =) args metis_ftK
           val trivial =
             if AList.lookup (op =) args check_trivialK |> the_default trivial_default
-                            |> Bool.fromString |> the then
+                            |> Markup.parse_bool then
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle TimeLimit.TimeOut => false
             else false

@@ -6,6 +6,8 @@ Isabelle-specific implementation of quasi-abstract markup elements.
 
 signature MARKUP =
 sig
+  val parse_bool: string -> bool
+  val print_bool: bool -> string
   val parse_int: string -> int
   val print_int: int -> string
   type T = string * Properties.T
@@ -158,6 +160,15 @@ structure Markup: MARKUP =
 struct
 
 (** markup elements **)
+
+(* booleans *)
+
+fun parse_bool "true" = true
+  | parse_bool "false" = false
+  | parse_bool s = raise Fail ("Bad boolean: " ^ quote s);
+
+val print_bool = Bool.toString;
+
 
 (* integers *)
 
