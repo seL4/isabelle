@@ -8,6 +8,7 @@ signature OPTIONS =
 sig
   type T
   val empty: T
+  val typ: T -> string -> string
   val bool: T -> string -> bool
   val int: T -> string -> int
   val real: T -> string -> real
@@ -15,6 +16,10 @@ sig
   val declare: {name: string, typ: string, value: string} -> T -> T
   val decode: XML.body -> T
   val default: unit -> T
+  val default_bool: string -> bool
+  val default_int: string -> int
+  val default_real: string -> real
+  val default_string: string -> string
   val set_default: T -> unit
   val reset_default: unit -> unit
   val load_default: unit -> unit
@@ -33,6 +38,14 @@ val stringT = "string";
 datatype T = Options of {typ: string, value: string} Symtab.table;
 
 val empty = Options Symtab.empty;
+
+
+(* typ *)
+
+fun typ (Options tab) name =
+  (case Symtab.lookup tab name of
+    SOME opt => #typ opt
+  | NONE => error ("Unknown option " ^ quote name));
 
 
 (* get *)
@@ -86,6 +99,11 @@ fun default () =
   (case Synchronized.value global_default of
     SOME options => options
   | NONE => error "No global default options");
+
+fun default_bool name = bool (default ()) name;
+fun default_int name = int (default ()) name;
+fun default_real name = real (default ()) name;
+fun default_string name = string (default ()) name;
 
 fun set_default options = Synchronized.change global_default (K (SOME options));
 fun reset_default () = Synchronized.change global_default (K NONE);
