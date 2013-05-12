@@ -55,7 +55,6 @@ fun find_theorems arg_data send =
   end;
 in
 
-val () = Printer.show_question_marks_default := false;
 val () = ScgiServer.register ("find_theorems", SOME Mime.html, ScgiServer.simple_handler find_theorems);
 
 end;

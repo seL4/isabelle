@@ -145,7 +145,7 @@ val display_preferences =
   bool_pref Goal_Display.show_consts_default
     "show-consts"
     "Show types of consts in Isabelle goal display",
-  bool_pref Name_Space.names_long_default
+  options_pref "names_long"
     "long-names"
     "Show fully qualified names in Isabelle terms",
   bool_pref Printer.show_brackets_default
@@ -163,7 +163,7 @@ val advanced_display_preferences =
     "goals-limit"
     "Setting for maximum number of goals printed",
   print_depth_pref,
-  bool_pref Printer.show_question_marks_default
+  options_pref "show_question_marks"
     "show-question-marks"
     "Show leading question mark of variable name"];
 

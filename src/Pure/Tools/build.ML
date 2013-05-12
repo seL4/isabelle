@@ -93,11 +93,6 @@ fun use_theories last_timing options =
     |> no_document options ? Present.no_document
     |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty")
     |> Unsynchronized.setmp Goal.skip_proofs (Options.bool options "skip_proofs")
-    |> Unsynchronized.setmp Printer.show_question_marks_default
-        (Options.bool options "show_question_marks")
-    |> Unsynchronized.setmp Name_Space.names_long_default (Options.bool options "names_long")
-    |> Unsynchronized.setmp Name_Space.names_short_default (Options.bool options "names_short")
-    |> Unsynchronized.setmp Name_Space.names_unique_default (Options.bool options "names_unique")
     |> Unsynchronized.setmp Thy_Output.display_default (Options.bool options "thy_output_display")
     |> Unsynchronized.setmp Thy_Output.quotes_default (Options.bool options "thy_output_quotes")
     |> Unsynchronized.setmp Thy_Output.indent_default (Options.int options "thy_output_indent")

@@ -29,7 +29,6 @@ sig
   val show_markup_default: bool Unsynchronized.ref
   val show_markup_raw: Config.raw
   val show_structs_raw: Config.raw
-  val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_raw: Config.raw
   val show_type_constraint: Proof.context -> bool
   val show_sort_constraint: Proof.context -> bool
@@ -77,9 +76,7 @@ val show_markup = Config.bool show_markup_raw;
 val show_structs_raw = Config.declare "show_structs" (fn _ => Config.Bool false);
 val show_structs = Config.bool show_structs_raw;
 
-val show_question_marks_default = Unsynchronized.ref true;
-val show_question_marks_raw =
-  Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
+val show_question_marks_raw = Config.declare_option "show_question_marks";
 val show_question_marks = Config.bool show_question_marks_raw;
 
 fun show_type_constraint ctxt = Config.get ctxt show_types orelse Config.get ctxt show_markup;

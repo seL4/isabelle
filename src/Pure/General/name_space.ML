@@ -21,13 +21,10 @@ sig
   val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val names_long_default: bool Unsynchronized.ref
   val names_long_raw: Config.raw
   val names_long: bool Config.T
-  val names_short_default: bool Unsynchronized.ref
   val names_short_raw: Config.raw
   val names_short: bool Config.T
-  val names_unique_default: bool Unsynchronized.ref
   val names_unique_raw: Config.raw
   val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
@@ -166,16 +163,13 @@ fun valid_accesses (Name_Space {internals, ...}) name =
 fun intern space xname = #1 (lookup space xname);
 
 
-val names_long_default = Unsynchronized.ref false;
-val names_long_raw = Config.declare "names_long" (fn _ => Config.Bool (! names_long_default));
+val names_long_raw = Config.declare_option "names_long";
 val names_long = Config.bool names_long_raw;
 
-val names_short_default = Unsynchronized.ref false;
-val names_short_raw = Config.declare "names_short" (fn _ => Config.Bool (! names_short_default));
+val names_short_raw = Config.declare_option "names_short";
 val names_short = Config.bool names_short_raw;
 
-val names_unique_default = Unsynchronized.ref true;
-val names_unique_raw = Config.declare "names_unique" (fn _ => Config.Bool (! names_unique_default));
+val names_unique_raw = Config.declare_option "names_unique";
 val names_unique = Config.bool names_unique_raw;
 
 fun extern ctxt space name =
