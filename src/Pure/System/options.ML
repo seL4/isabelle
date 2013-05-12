@@ -26,6 +26,7 @@ sig
   val update: string -> string -> T -> T
   val decode: XML.body -> T
   val default: unit -> T
+  val default_typ: string -> string
   val default_bool: string -> bool
   val default_int: string -> int
   val default_real: string -> real
@@ -159,6 +160,7 @@ fun default () =
     SOME options => options
   | NONE => err_no_default ());
 
+fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
 fun default_int name = int (default ()) name;
 fun default_real name = real (default ()) name;

@@ -58,8 +58,7 @@ type preference =
 
 fun options_pref option_name pgip_name descr : preference =
   let
-    val options = Options.default ();
-    val typ = Options.typ options option_name;
+    val typ = Options.default_typ option_name;
     val pgiptype =
       if typ = Options.boolT then PgipTypes.Pgipbool
       else if typ = Options.intT then PgipTypes.Pgipint (NONE, NONE)
