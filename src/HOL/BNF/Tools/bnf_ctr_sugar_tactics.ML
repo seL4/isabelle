@@ -107,15 +107,13 @@ fun mk_case_cong_tac ctxt uexhaust cases =
   (rtac uexhaust THEN'
    EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases)) 1;
 
-val naked_ctxt = @{theory_context HOL};
-
 (* TODO: More precise "simp_thms"; get rid of "blast_tac" *)
 fun mk_split_tac ctxt uexhaust cases injectss distinctsss =
   rtac uexhaust 1 THEN
   ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
      simp_tac (ss_only (@{thms simp_thms} @ cases @ nth injectss (k - 1) @
        flat (nth distinctsss (k - 1))) ctxt)) k) THEN
-  ALLGOALS (blast_tac naked_ctxt);
+  ALLGOALS (blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt));
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 
