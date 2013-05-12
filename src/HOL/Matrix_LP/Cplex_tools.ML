@@ -1,5 +1,15 @@
 (*  Title:      HOL/Matrix_LP/Cplex_tools.ML
     Author:     Steven Obua
+
+Relevant Isabelle environment settings:
+
+  # LP_SOLVER is the default solver. It can be changed during runtime via Cplex.set_solver.
+  # First option: use the commercial cplex solver
+  #LP_SOLVER=CPLEX
+  #CPLEX_PATH=cplex
+  # Second option: use the open source glpk solver
+  #LP_SOLVER=GLPK
+  #GLPK_PATH=glpsol
 *)
 
 signature CPLEX =

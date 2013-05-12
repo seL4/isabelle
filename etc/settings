@@ -142,36 +142,6 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 #ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 #SMLNJ_CYGWIN_RUNTIME=1
 
-## Set HOME only for tools you have installed!
-
-# SVC (Stanford Validity Checker)
-#SVC_HOME=
-#SVC_MACHINE=i386-redhat-linux
-#SVC_MACHINE=sparc-sun-solaris
-
-# MiniSat 1.14 (SAT Solver, cf. src/HOL/Tools/sat_solver.ML)
-#MINISAT_HOME=/usr/local/bin
-
-# zChaff (SAT Solver, cf. src/HOL/Tools/sat_solver.ML)
-#ZCHAFF_HOME=/usr/local/bin
-
-# BerkMin561 (SAT Solver, cf. src/HOL/Tools/sat_solver.ML)
-#BERKMIN_HOME=/usr/local/bin
-#BERKMIN_EXE=BerkMin561-linux
-#BERKMIN_EXE=BerkMin561-solaris
-
-# Jerusat 1.3 (SAT Solver, cf. src/HOL/Tools/sat_solver.ML)
-#JERUSAT_HOME=/usr/local/bin
-
-# For configuring HOL/Matrix/cplex
-# LP_SOLVER is the default solver. It can be changed during runtime via Cplex.set_solver.
-# First option: use the commercial cplex solver
-#LP_SOLVER=CPLEX
-#CPLEX_PATH=cplex
-# Second option: use the open source glpk solver
-#LP_SOLVER=GLPK
-#GLPK_PATH=glpsol
-
 # Misc programming languages
 #ISABELLE_GHC="/usr/bin/ghc"
 #ISABELLE_OCAML="/usr/bin/ocaml"

@@ -14,6 +14,12 @@ Biconditionals (if-and-only-iff) are expanded if they require such translations
   in either operand.
 
 For each variable of type nat, an assumption is added that it is non-negative.
+
+Relevant Isabelle environment settings:
+
+  #SVC_HOME=
+  #SVC_MACHINE=i386-redhat-linux
+  #SVC_MACHINE=sparc-sun-solaris
 *)
 
 structure Svc =

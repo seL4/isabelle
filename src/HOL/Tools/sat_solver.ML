@@ -3,6 +3,22 @@
     Copyright   2004-2009
 
 Interface to external SAT solvers, and (simple) built-in SAT solvers.
+
+Relevant Isabelle environment settings:
+
+  # MiniSat 1.14
+  #MINISAT_HOME=/usr/local/bin
+
+  # zChaff
+  #ZCHAFF_HOME=/usr/local/bin
+
+  # BerkMin561
+  #BERKMIN_HOME=/usr/local/bin
+  #BERKMIN_EXE=BerkMin561-linux
+  #BERKMIN_EXE=BerkMin561-solaris
+
+  # Jerusat 1.3
+  #JERUSAT_HOME=/usr/local/bin
 *)
 
 signature SAT_SOLVER =
