@@ -17,6 +17,7 @@ sig
     pgiptype: PgipTypes.pgiptype,
     get: unit -> string,
     set: string -> unit}
+  val options_pref: string -> string -> string -> preference
   val generic_pref: ('a -> string) -> (string -> 'a) -> PgipTypes.pgiptype ->
     'a Unsynchronized.ref -> string -> string -> preference
   val string_pref: string Unsynchronized.ref -> string -> string -> preference
@@ -52,14 +53,35 @@ type preference =
   get: unit -> string,
   set: string -> unit};
 
+
+(* options as preferences *)
+
+fun options_pref option_name pgip_name descr : preference =
+  let
+    val options = Options.default ();
+    val typ = Options.typ options option_name;
+    val pgiptype =
+      if typ = Options.boolT then PgipTypes.Pgipbool
+      else if typ = Options.intT then PgipTypes.Pgipint (NONE, NONE)
+      else if typ = Options.realT then PgipTypes.Pgipreal
+      else PgipTypes.Pgipstring;
+  in
+   {name = pgip_name,
+    descr = descr,
+    default = Options.get_default option_name,
+    pgiptype = pgiptype,
+    get = fn () => Options.get_default option_name,
+    set = Options.put_default option_name}
+  end;
+
+
+(* generic preferences *)
+
 fun mkpref raw_get raw_set typ name descr : preference =
   let
     fun get () = CRITICAL raw_get;
     fun set x = CRITICAL (fn () => raw_set x);
   in {name = name, descr = descr, pgiptype = typ, get = get, set = set, default = get ()} end;
-
-
-(* generic preferences *)
 
 fun generic_pref read write typ r =
   mkpref (fn () => read (! r)) (fn x => r := write x) typ;
