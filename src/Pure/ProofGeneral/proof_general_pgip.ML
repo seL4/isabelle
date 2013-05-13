@@ -10,9 +10,6 @@ sig
   val proof_general_emacsN: string
 
   val new_thms_deps: theory -> theory -> string list * string list
-  val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
-
-  val init_pgip_session_id: unit -> unit
 
   (* More message functions... *)
   val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
@@ -47,7 +44,7 @@ val pgip_refseq = Unsynchronized.ref NONE: int option Unsynchronized.ref;
 local
   val pgip_class  = "pg"
   val pgip_tag = "Isabelle/Isar"
-  val pgip_id = Unsynchronized.ref ""
+  val pgip_id = "dummy"
   val pgip_seq = Unsynchronized.ref 0
   fun pgip_serial () = Unsynchronized.inc pgip_seq
 
@@ -55,7 +52,7 @@ local
     Pgip { tag = SOME pgip_tag,
            class = pgip_class,
            seq = pgip_serial (),
-           id = ! pgip_id,
+           id = pgip_id,
            destid = ! pgip_refid,
            (* destid=refid since Isabelle only communicates back to sender *)
            refid = ! pgip_refid,
@@ -63,11 +60,7 @@ local
            content = pgips }
 in
 
-fun init_pgip_session_id () =
-    pgip_id := getenv "HOSTNAME" ^ "/" ^ getenv "USER" ^ "/" ^
-               getenv "ISABELLE_PID" ^ "/" ^ Time.toString (Time.now ())
-
-fun matching_pgip_id id = (id = ! pgip_id)
+fun matching_pgip_id id = (id = pgip_id)
 
 val output_xml_fn = Unsynchronized.ref Output.physical_writeln
 fun output_xml s = ! output_xml_fn (XML.string_of s);
@@ -989,29 +982,6 @@ in
 
   fun pgip_toplevel x = loop true x
 end
-
-
-(* init *)
-
-val initialized = Unsynchronized.ref false;
-
-fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
-  | init_pgip true =
-      (if ! initialized then ()
-       else
-        (setup_preferences_tweak ();
-         Output.add_mode proof_generalN Output.default_output Output.default_escape;
-         Markup.add_mode proof_generalN YXML.output_markup;
-         setup_messages ();
-         setup_thy_loader ();
-         setup_present_hook ();
-         init_pgip_session_id ();
-         welcome ();
-         initialized := true);
-       sync_thy_loader ();
-       Unsynchronized.change print_mode (update (op =) proof_generalN);
-       pgip_toplevel tty_src);
-
 
 
 (** Out-of-loop PGIP commands (for Emacs hybrid mode) **)
