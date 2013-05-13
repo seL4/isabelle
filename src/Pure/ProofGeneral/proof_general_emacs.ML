@@ -140,9 +140,34 @@ fun restart () =
   welcome ());
 
 
-(* theorem dependency output *)
+(* theorem dependencies *)
 
-val thm_depsN = "thm_deps";
+local
+
+fun add_proof_body (PBody {thms, ...}) =
+  thms |> fold (fn (_, (name, _, _)) => name <> "" ? Symtab.update (name, ()));
+
+fun add_thm th =
+  (case Thm.proof_body_of th of
+    PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
+      if Thm.has_name_hint th andalso Thm.get_name_hint th = name
+      then add_proof_body (Future.join body)
+      else I
+  | body => add_proof_body body);
+
+in
+
+fun thm_deps ths =
+  let
+    (* FIXME proper derivation names!? *)
+    val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
+    val deps = Symtab.keys (fold add_thm ths Symtab.empty);
+  in (names, deps) end;
+
+end;
+
+
+(* report theorem dependencies *)
 
 local
 
@@ -154,11 +179,13 @@ fun thm_deps_message (thms, deps) =
 in
 
 fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
-  if print_mode_active thm_depsN andalso
+  if print_mode_active Preferences.thm_depsN andalso
     can Toplevel.theory_of state andalso Toplevel.is_theory state'
   then
-    let val (names, deps) =
-      ProofGeneralPgip.new_thms_deps (Toplevel.theory_of state) (Toplevel.theory_of state')
+    let
+      val prev_facts = Global_Theory.facts_of (Toplevel.theory_of state);
+      val facts = Global_Theory.facts_of (Toplevel.theory_of state');
+      val (names, deps) = thm_deps (maps #2 (Facts.dest_static [prev_facts] facts));
     in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)
@@ -205,21 +232,23 @@ val _ =
 
 (* init *)
 
+val proof_general_emacsN = "ProofGeneralEmacs";
+
 val initialized = Unsynchronized.ref false;
 
 fun init () =
   (if ! initialized then ()
    else
     (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
-     Output.add_mode ProofGeneralPgip.proof_general_emacsN
+     Output.add_mode proof_general_emacsN
       Output.default_output Output.default_escape;
-     Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
+     Markup.add_mode proof_general_emacsN YXML.output_markup;
      setup_messages ();
      setup_thy_loader ();
      setup_present_hook ();
      initialized := true);
    sync_thy_loader ();
-   Unsynchronized.change print_mode (update (op =) ProofGeneralPgip.proof_general_emacsN);
+   Unsynchronized.change print_mode (update (op =) proof_general_emacsN);
    Secure.PG_setup ();
    Isar.toplevel_loop TextIO.stdIn
     {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});

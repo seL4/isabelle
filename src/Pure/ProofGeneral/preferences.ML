@@ -26,6 +26,7 @@ sig
   val nat_pref: int Unsynchronized.ref -> string -> string -> preference
   val bool_pref: bool Unsynchronized.ref -> string -> string -> preference
   type T = (string * preference list) list
+  val thm_depsN: string
   val pure_preferences: T
   val remove: string -> T -> T
   val add: string -> preference -> T -> T

@@ -7,20 +7,11 @@ See http://proofgeneral.inf.ed.ac.uk/kit
 
 signature PROOF_GENERAL_PGIP =
 sig
-  val proof_general_emacsN: string
-
-  val new_thms_deps: theory -> theory -> string list * string list
-
   val add_preference: string -> Preferences.preference -> unit
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
 struct
-
-(** print mode **)
-
-val proof_general_emacsN = "ProofGeneralEmacs";
-
 
 (* assembling and issuing PGIP packets *)
 
@@ -48,40 +39,6 @@ in
 fun matching_pgip_id id = (id = pgip_id)
 
 fun output_pgip content = Output.urgent_message (XML.string_of (assemble_pgip content));
-
-end;
-
-
-
-(* theorem dependencies *)
-
-local
-
-fun add_proof_body (PBody {thms, ...}) =
-  thms |> fold (fn (_, (name, _, _)) => name <> "" ? Symtab.update (name, ()));
-
-fun add_thm th =
-  (case Thm.proof_body_of th of
-    PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
-      if Thm.has_name_hint th andalso Thm.get_name_hint th = name
-      then add_proof_body (Future.join body)
-      else I
-  | body => add_proof_body body);
-
-in
-
-fun thms_deps ths =
-  let
-    (* FIXME proper derivation names!? *)
-    val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
-    val deps = Symtab.keys (fold add_thm ths Symtab.empty);
-  in (names, deps) end;
-
-fun new_thms_deps thy thy' =
-  let
-    val prev_facts = Global_Theory.facts_of thy;
-    val facts = Global_Theory.facts_of thy';
-  in thms_deps (maps #2 (Facts.dest_static [prev_facts] facts)) end;
 
 end;
 
