@@ -97,8 +97,7 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
 fun check_finished ctxt th =
   if Thm.no_prems th then th
   else
-    raise THM ("Proof failed.\n" ^
-      Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt th), 0, [th]);
+    raise THM ("Proof failed.\n" ^ Pretty.string_of (Goal_Display.pretty_goal ctxt th), 0, [th]);
 
 fun finish ctxt = check_finished ctxt #> conclude;
 

@@ -975,7 +975,7 @@ val _ =  (* FIXME tty only *)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
       Toplevel.keep (fn state =>
-       (case limit of NONE => () | SOME n => Goal_Display.goals_limit_default := n;
+       (case limit of NONE => () | SOME n => Options.default_put_int "goals_limit" n;
         Toplevel.quiet := false;
         Print_Mode.with_modes modes (Toplevel.print_state true) state))));
 

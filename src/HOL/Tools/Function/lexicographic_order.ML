@@ -120,22 +120,21 @@ fun prove_row (c :: cs) =
 
 (** Error reporting **)
 
-fun pr_goals ctxt st =
-  Pretty.string_of
-    (Goal_Display.pretty_goal
-      {main = Config.get ctxt Goal_Display.show_main_goal, limit = false} ctxt st)
-
 fun row_index i = chr (i + 97)  (* FIXME not scalable wrt. chr range *)
 fun col_index j = string_of_int (j + 1)  (* FIXME not scalable wrt. table layout *)
 
 fun pr_unprovable_cell _ ((i,j), Less _) = []
   | pr_unprovable_cell ctxt ((i,j), LessEq (_, st)) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st]
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
+       Goal_Display.string_of_goal ctxt st]
   | pr_unprovable_cell ctxt ((i,j), None (st_leq, st_less)) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st_less ^
-       "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^ pr_goals ctxt st_leq]
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
+       Goal_Display.string_of_goal ctxt st_less ^
+       "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^
+       Goal_Display.string_of_goal ctxt st_leq]
   | pr_unprovable_cell ctxt ((i,j), False st) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st]
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
+       Goal_Display.string_of_goal ctxt st]
 
 fun pr_unprovable_subgoals ctxt table =
   table

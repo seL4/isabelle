@@ -213,7 +213,7 @@ text {*
   might look at terms more discretely.
 
   \item @{attribute goals_limit} controls the maximum number of
-  subgoals to be shown in goal output.
+  subgoals to be printed.
 
   \item @{attribute show_main_goal} controls whether the main result
   to be proven should be displayed.  This information might be

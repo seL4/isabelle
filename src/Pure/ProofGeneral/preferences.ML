@@ -159,9 +159,9 @@ val display_preferences =
     "Print terms eta-contracted"];
 
 val advanced_display_preferences =
- [nat_pref Goal_Display.goals_limit_default
+ [options_pref "goals_limit"
     "goals-limit"
-    "Setting for maximum number of goals printed",
+    "Setting for maximum number of subgoals to be printed",
   print_depth_pref,
   options_pref "show_question_marks"
     "show-question-marks"

@@ -612,7 +612,8 @@ fun proof_state state =
 
 fun goal_state name main = antiquotation name (Scan.succeed ())
   (fn {state, context = ctxt, ...} => fn () => output ctxt
-    [Goal_Display.pretty_goal {main = main, limit = true} ctxt (proof_state state)]);
+    [Goal_Display.pretty_goal
+      (Config.put Goal_Display.show_main_goal main ctxt) (proof_state state)]);
 
 in
 

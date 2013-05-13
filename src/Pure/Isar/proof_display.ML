@@ -105,8 +105,7 @@ fun pretty_goal_header goal =
 end;
 
 fun string_of_goal ctxt goal =
-  Pretty.string_of (Pretty.chunks
-    [pretty_goal_header goal, Goal_Display.pretty_goal {main = true, limit = false} ctxt goal]);
+  Pretty.string_of (Pretty.chunks [pretty_goal_header goal, Goal_Display.pretty_goal ctxt goal]);
 
 
 (* goal facts *)
