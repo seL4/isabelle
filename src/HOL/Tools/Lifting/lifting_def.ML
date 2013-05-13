@@ -572,7 +572,7 @@ fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
         (Pretty.string_of (Pretty.block
          [Pretty.str "Reason:", 
           Pretty.brk 2, 
-          Pretty.str "The type of the term cannot be instancied to",
+          Pretty.str "The type of the term cannot be instantiated to",
           Pretty.brk 1,
           Pretty.quote (Syntax.pretty_typ ctxt rty_forced),
           Pretty.str "."]))]
