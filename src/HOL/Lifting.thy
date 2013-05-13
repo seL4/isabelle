@@ -292,22 +292,6 @@ lemma Quotient_abs_induct:
   assumes "\<And>y. R y y \<Longrightarrow> P (Abs y)" shows "P x"
   using 1 assms unfolding Quotient_def by metis
 
-lemma Quotient_All_transfer:
-  "((T ===> op =) ===> op =) (Ball (Respects R)) All"
-  unfolding fun_rel_def Respects_def Quotient_cr_rel [OF 1]
-  by (auto, metis Quotient_abs_induct)
-
-lemma Quotient_Ex_transfer:
-  "((T ===> op =) ===> op =) (Bex (Respects R)) Ex"
-  unfolding fun_rel_def Respects_def Quotient_cr_rel [OF 1]
-  by (auto, metis Quotient_rep_reflp [OF 1] Quotient_abs_rep [OF 1])
-
-lemma Quotient_forall_transfer:
-  "((T ===> op =) ===> op =) (transfer_bforall (\<lambda>x. R x x)) transfer_forall"
-  using Quotient_All_transfer
-  unfolding transfer_forall_def transfer_bforall_def
-    Ball_def [abs_def] in_respects .
-
 end
 
 text {* Generating transfer rules for total quotients. *}
@@ -355,22 +339,6 @@ lemma typedef_right_total: "right_total T"
 
 lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
   unfolding fun_rel_def T_def by simp
-
-lemma typedef_All_transfer: "((T ===> op =) ===> op =) (Ball A) All"
-  unfolding T_def fun_rel_def
-  by (metis type_definition.Rep [OF type]
-    type_definition.Abs_inverse [OF type])
-
-lemma typedef_Ex_transfer: "((T ===> op =) ===> op =) (Bex A) Ex"
-  unfolding T_def fun_rel_def
-  by (metis type_definition.Rep [OF type]
-    type_definition.Abs_inverse [OF type])
-
-lemma typedef_forall_transfer:
-  "((T ===> op =) ===> op =)
-    (transfer_bforall (\<lambda>x. x \<in> A)) transfer_forall"
-  unfolding transfer_bforall_def transfer_forall_def Ball_def [symmetric]
-  by (rule typedef_All_transfer)
 
 end
 
@@ -539,6 +507,50 @@ shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
   apply (subst all_conj_distrib[symmetric])
   apply (intro choice)
   by metis
+
+subsection {* Domains *}
+
+lemma pcr_Domainp_par_left_total:
+  assumes "Domainp B = P"
+  assumes "left_total A"
+  assumes "(A ===> op=) P' P"
+  shows "Domainp (A OO B) = P'"
+using assms
+unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def fun_rel_def 
+by (fast intro: fun_eq_iff)
+
+lemma pcr_Domainp_par:
+assumes "Domainp B = P2"
+assumes "Domainp A = P1"
+assumes "(A ===> op=) P2' P2"
+shows "Domainp (A OO B) = (inf P1 P2')"
+using assms unfolding fun_rel_def Domainp_iff[abs_def] OO_def
+by (fast intro: fun_eq_iff)
+
+definition rel_pred_comp :: "('a => 'b => bool) => ('b => bool) => 'a => bool"  (infixr "OP" 75)
+where "rel_pred_comp R P \<equiv> \<lambda>x. \<exists>y. R x y \<and> P y"
+
+lemma pcr_Domainp:
+assumes "Domainp B = P"
+shows "Domainp (A OO B) = (A OP P)"
+using assms unfolding rel_pred_comp_def by blast
+
+lemma pcr_Domainp_total:
+  assumes "bi_total B"
+  assumes "Domainp A = P"
+  shows "Domainp (A OO B) = P"
+using assms unfolding bi_total_def 
+by fast
+
+lemma Quotient_to_Domainp:
+  assumes "Quotient R Abs Rep T"
+  shows "Domainp T = (\<lambda>x. R x x)"  
+by (simp add: Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
+
+lemma invariant_to_Domainp:
+  assumes "Quotient (Lifting.invariant P) Abs Rep T"
+  shows "Domainp T = P"
+by (simp add: invariant_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 
 subsection {* ML setup *}
 

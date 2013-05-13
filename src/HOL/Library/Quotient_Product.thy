@@ -15,9 +15,16 @@ definition
 where
   "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
+definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
+
 lemma prod_rel_apply [simp]:
   "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
   by (simp add: prod_rel_def)
+
+lemma prod_pred_apply [simp]:
+  "prod_pred P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
+  by (simp add: prod_pred_def)
 
 lemma map_pair_id [id_simps]:
   shows "map_pair id id = id"
@@ -36,6 +43,12 @@ using assms by (auto simp: prod_rel_def)
 lemma prod_rel_OO[relator_distr]:
   "(prod_rel A B) OO (prod_rel C D) = prod_rel (A OO C) (B OO D)"
 by (rule ext)+ (auto simp: prod_rel_def OO_def)
+
+lemma Domainp_prod[relator_domain]:
+  assumes "Domainp T1 = P1"
+  assumes "Domainp T2 = P2"
+  shows "Domainp (prod_rel T1 T2) = (prod_pred P1 P2)"
+using assms unfolding prod_rel_def prod_pred_def by blast
 
 lemma prod_reflp [reflexivity_rule]:
   assumes "reflp R1"
@@ -112,9 +125,6 @@ lemma Quotient_prod[quot_map]:
   shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2)
     (map_pair Rep1 Rep2) (prod_rel T1 T2)"
   using assms unfolding Quotient_alt_def by auto
-
-definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
 
 lemma prod_invariant_commute [invariant_commute]: 
   "prod_rel (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (prod_pred P1 P2)"

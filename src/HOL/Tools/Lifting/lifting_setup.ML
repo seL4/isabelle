@@ -221,6 +221,38 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
   end
 
+local
+  fun importT_inst_exclude exclude ts ctxt =
+    let
+      val tvars = rev (subtract op= exclude (fold Term.add_tvars ts []));
+      val (tfrees, ctxt') = Variable.invent_types (map #2 tvars) ctxt;
+    in (tvars ~~ map TFree tfrees, ctxt') end
+  
+  fun import_inst_exclude exclude ts ctxt =
+    let
+      val excludeT = fold (Term.add_tvarsT o snd) exclude []
+      val (instT, ctxt') = importT_inst_exclude excludeT ts ctxt;
+      val vars = map (apsnd (Term_Subst.instantiateT instT)) 
+        (rev (subtract op= exclude (fold Term.add_vars ts [])));
+      val (xs, ctxt'') = Variable.variant_fixes (map (#1 o #1) vars) ctxt';
+      val inst = vars ~~ map Free (xs ~~ map #2 vars);
+    in ((instT, inst), ctxt'') end
+  
+  fun import_terms_exclude exclude ts ctxt =
+    let val (inst, ctxt') = import_inst_exclude exclude ts ctxt
+    in (map (Term_Subst.instantiate inst) ts, ctxt') end
+in
+  fun reduce_goal not_fix goal tac ctxt =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val orig_ctxt = ctxt
+      val (fixed_goal, ctxt) = yield_singleton (import_terms_exclude not_fix) goal ctxt
+      val init_goal = Goal.init (cterm_of thy fixed_goal)
+    in
+      (singleton (Variable.export ctxt orig_ctxt) o Goal.conclude) (the (SINGLE tac init_goal))
+    end
+end
+
 local 
   val OO_rules = [@{thm bi_total_OO}, @{thm bi_unique_OO}, @{thm right_total_OO}, @{thm right_unique_OO}]
 in
@@ -319,11 +351,79 @@ in
       end
 end
 
-fun parametrize_quantifier lthy quant_transfer_rule =
-  Lifting_Term.parametrize_transfer_rule lthy quant_transfer_rule
+local
+  fun rewrite_first_Domainp_arg rewr_thm thm = Conv.fconv_rule (Conv.concl_conv ~1 (HOLogic.Trueprop_conv 
+      (Conv.arg1_conv (Conv.arg_conv (Conv.rewr_conv rewr_thm))))) thm
+  
+  fun fold_Domainp_pcrel pcrel_def thm =
+    let
+      val ct = thm |> cprop_of |> Drule.strip_imp_concl |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_arg
+      val pcrel_def = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) pcrel_def
+      val thm = Thm.instantiate (Thm.match (ct, Thm.rhs_of pcrel_def)) thm
+        handle Pattern.MATCH => raise CTERM ("fold_Domainp_pcrel", [ct, Thm.rhs_of pcrel_def]);
+    in
+      rewrite_first_Domainp_arg (Thm.symmetric pcrel_def) thm
+    end
+
+  fun reduce_Domainp ctxt rules thm =
+    let
+      val goal = thm |> prems_of |> hd
+      val var = goal |> HOLogic.dest_Trueprop |> dest_comb |> snd |> dest_Var 
+      val reduced_assm = reduce_goal [var] goal (TRY (REPEAT_ALL_NEW (resolve_tac rules) 1)) ctxt
+    in
+      reduced_assm RS thm
+    end
+in
+  fun parametrize_domain dom_thm (pcrel_info : Lifting_Info.pcrel_info) ctxt =
+    let
+      fun reduce_first_assm ctxt rules thm =
+        let
+          val goal = thm |> prems_of |> hd
+          val reduced_assm = reduce_goal [] goal (TRY (REPEAT_ALL_NEW (resolve_tac rules) 1)) ctxt
+        in
+          reduced_assm RS thm
+        end
+
+      val pcr_cr_met_eq = #pcr_cr_eq pcrel_info RS @{thm eq_reflection}
+      val pcr_Domainp_eq = rewrite_first_Domainp_arg (Thm.symmetric pcr_cr_met_eq) dom_thm
+      val pcrel_def = #pcrel_def pcrel_info
+      val pcr_Domainp_par_left_total = 
+        (dom_thm RS @{thm pcr_Domainp_par_left_total})
+          |> fold_Domainp_pcrel pcrel_def
+          |> reduce_first_assm ctxt (Lifting_Info.get_reflexivity_rules ctxt)
+      val pcr_Domainp_par = 
+        (dom_thm RS @{thm pcr_Domainp_par})      
+          |> fold_Domainp_pcrel pcrel_def
+          |> reduce_Domainp ctxt (Transfer.get_relator_domain ctxt)
+      val pcr_Domainp = 
+        (dom_thm RS @{thm pcr_Domainp})
+          |> fold_Domainp_pcrel pcrel_def
+      val thms =
+        [("domain",                 pcr_Domainp),
+         ("domain_par",             pcr_Domainp_par),
+         ("domain_par_left_total",  pcr_Domainp_par_left_total),
+         ("domain_eq",              pcr_Domainp_eq)]
+    in
+      thms
+    end
+
+  fun parametrize_total_domain bi_total pcrel_def ctxt =
+    let
+      val thm =
+        (bi_total RS @{thm pcr_Domainp_total})
+          |> fold_Domainp_pcrel pcrel_def 
+          |> reduce_Domainp ctxt (Transfer.get_relator_domain ctxt)
+    in
+      [("domain", thm)]
+    end
+
+end
 
 fun get_pcrel_info ctxt qty_full_name =  
   #pcrel_info (the (Lifting_Info.lookup_quotients ctxt qty_full_name))
+
+fun get_Domainp_thm quot_thm =
+   the (get_first (try(curry op RS quot_thm)) [@{thm invariant_to_Domainp}, @{thm Quotient_to_Domainp}])
 
 (*
   Sets up the Lifting package by a quotient theorem.
@@ -341,6 +441,7 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
     val quot_thm = Morphism.thm (Local_Theory.target_morphism lthy) quot_thm
     (**)
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val transfer_domain_attr = Attrib.internal (K Transfer.transfer_domain_add)
     val (rty, qty) = quot_thm_rty_qty quot_thm
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_full_name = (fst o dest_Type) qty
@@ -365,6 +466,7 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
           fold (fn (name, thm, attr) => (snd oo Local_Theory.note) ((qualify name, attr), 
             [quot_thm RS thm])) thms lthy
         end
+    val dom_thm = get_Domainp_thm quot_thm
 
     fun setup_transfer_rules_nonpar lthy =
       let
@@ -380,15 +482,9 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
                     [[quot_thm, reflp_thm] MRSL thm])) thms lthy
               end
             | NONE =>
-              let
-                val thms = 
-                  [("All_transfer",   @{thm Quotient_All_transfer}   ),
-                   ("Ex_transfer",    @{thm Quotient_Ex_transfer}    ),
-                   ("forall_transfer",@{thm Quotient_forall_transfer})]
-              in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                  [quot_thm RS thm])) thms lthy
-              end
+              lthy
+              |> (snd oo Local_Theory.note) ((qualify "domain", [transfer_domain_attr]), [dom_thm])
+
         val thms = 
           [("rel_eq_transfer", @{thm Quotient_rel_eq_transfer}),
            ("right_unique",    @{thm Quotient_right_unique}   ), 
@@ -412,33 +508,36 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
 
     fun setup_transfer_rules_par lthy =
       let
-        val pcrel_def = #pcrel_def (the (get_pcrel_info lthy qty_full_name))
+        val pcrel_info = (the (get_pcrel_info lthy qty_full_name))
+        val pcrel_def = #pcrel_def pcrel_info
         val lthy =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
+                val bi_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
+                val domain_thms = parametrize_total_domain bi_total pcrel_def lthy
                 val id_abs_transfer = generate_parametric_id lthy rty
                   (Lifting_Term.parametrize_transfer_rule lthy
                     ([quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}))
-                val bi_total = parametrize_class_constraint lthy pcrel_def 
-                    ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
+                val bi_total = parametrize_class_constraint lthy pcrel_def bi_total
                 val thms = 
                   [("id_abs_transfer",id_abs_transfer),
                    ("bi_total",       bi_total       )]
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                    [thm])) thms lthy
+                lthy
+                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
+                     [thm])) thms
+                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
+                     [thm])) domain_thms
               end
             | NONE =>
               let
-                val thms = 
-                  [("All_transfer",   @{thm Quotient_All_transfer}   ),
-                   ("Ex_transfer",    @{thm Quotient_Ex_transfer}    ),
-                   ("forall_transfer",@{thm Quotient_forall_transfer})]
+                val thms = parametrize_domain dom_thm pcrel_info lthy
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                  [parametrize_quantifier lthy (quot_thm RS thm)])) thms lthy
+                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
+                  [thm])) thms lthy
               end
+
         val rel_eq_transfer = generate_parametric_rel_eq lthy 
           (Lifting_Term.parametrize_transfer_rule lthy (quot_thm RS @{thm Quotient_rel_eq_transfer}))
             opt_par_thm
@@ -475,6 +574,7 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
 fun setup_by_typedef_thm gen_code typedef_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
+    val transfer_domain_attr = Attrib.internal (K Transfer.transfer_domain_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
     val (T_def, lthy) = define_crel rep_fun lthy
     (**)
@@ -497,6 +597,7 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
         Const ("Orderings.top_class.top", _) => 
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
         | _ =>  NONE
+    val dom_thm = get_Domainp_thm quot_thm
 
     fun setup_transfer_rules_nonpar lthy =
       let
@@ -512,17 +613,8 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
                     [[quot_thm, reflp_thm] MRSL thm])) thms lthy
               end
             | NONE =>
-              let
-                val thms = 
-                  [("All_transfer",   @{thm typedef_All_transfer}   ),
-                   ("Ex_transfer",    @{thm typedef_Ex_transfer}    )]
-              in
-                lthy
-                |> (snd oo Local_Theory.note) ((qualify "forall_transfer", [transfer_attr]), 
-                  [simplify ([typedef_thm, T_def] MRSL @{thm typedef_forall_transfer})])
-                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                  [[typedef_thm, T_def] MRSL thm])) thms
-              end
+              lthy
+              |> (snd oo Local_Theory.note) ((qualify "domain", [transfer_domain_attr]), [dom_thm])
         val thms = 
           [("rep_transfer", @{thm typedef_rep_transfer}),
            ("bi_unique",    @{thm typedef_bi_unique}   ),
@@ -535,35 +627,37 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
 
     fun setup_transfer_rules_par lthy =
       let
-        val pcrel_def = #pcrel_def (the (get_pcrel_info lthy qty_full_name))
+        val pcrel_info = (the (get_pcrel_info lthy qty_full_name))
+        val pcrel_def = #pcrel_def pcrel_info
+
         val lthy =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
+                val bi_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
+                val domain_thms = parametrize_total_domain bi_total pcrel_def lthy
+                val bi_total = parametrize_class_constraint lthy pcrel_def bi_total
                 val id_abs_transfer = generate_parametric_id lthy rty
                   (Lifting_Term.parametrize_transfer_rule lthy
                     ([quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}))
-                val bi_total = parametrize_class_constraint lthy pcrel_def 
-                    ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
                 val thms = 
-                  [("id_abs_transfer",id_abs_transfer),
-                   ("bi_total",       bi_total       )]
+                  [("bi_total",       bi_total       ),
+                   ("id_abs_transfer",id_abs_transfer)]              
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                    [thm])) thms lthy
+                lthy
+                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
+                     [thm])) thms
+                |> fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
+                     [thm])) domain_thms
               end
             | NONE =>
               let
-                val thms = 
-                  ("forall_transfer", simplify ([typedef_thm, T_def] MRSL @{thm typedef_forall_transfer})) 
-                  ::
-                  (map_snd (fn thm => [typedef_thm, T_def] MRSL thm)                
-                  [("All_transfer", @{thm typedef_All_transfer}),
-                   ("Ex_transfer",  @{thm typedef_Ex_transfer} )])
+                val thms = parametrize_domain dom_thm pcrel_info lthy
               in
-                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
-                  [parametrize_quantifier lthy thm])) thms lthy
+                fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_domain_attr]), 
+                  [thm])) thms lthy
               end
+              
         val thms = 
           ("rep_transfer", generate_parametric_id lthy rty 
             (Lifting_Term.parametrize_transfer_rule lthy ([typedef_thm, T_def] MRSL @{thm typedef_rep_transfer})))

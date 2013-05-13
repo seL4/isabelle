@@ -49,13 +49,8 @@ quotient_type rat = "int \<times> int" / partial: "ratrel"
   morphisms Rep_Rat Abs_Rat
   by (rule part_equivp_ratrel)
 
-declare rat.forall_transfer [transfer_rule del]
-
-lemma forall_rat_transfer [transfer_rule]: (* TODO: generate automatically *)
-  "(fun_rel (fun_rel cr_rat op =) op =)
-    (transfer_bforall (\<lambda>x. snd x \<noteq> 0)) transfer_forall"
-  using rat.forall_transfer by simp
-
+lemma Domainp_cr_rat [transfer_domain_rule]: "Domainp cr_rat = (\<lambda>x. snd x \<noteq> 0)"
+by (simp add: rat.domain)
 
 subsubsection {* Representation and basic operations *}
 
@@ -1126,10 +1121,12 @@ by simp
 hide_const (open) normalize positive
 
 lemmas [transfer_rule del] =
-  rat.All_transfer rat.Ex_transfer rat.rel_eq_transfer forall_rat_transfer
+  rat.rel_eq_transfer
   Fract.transfer zero_rat.transfer one_rat.transfer plus_rat.transfer
   uminus_rat.transfer times_rat.transfer inverse_rat.transfer
   positive.transfer of_rat.transfer rat.right_unique rat.right_total
+
+lemmas [transfer_domain_rule del] = Domainp_cr_rat rat.domain
 
 text {* De-register @{text "rat"} as a quotient type: *}
 

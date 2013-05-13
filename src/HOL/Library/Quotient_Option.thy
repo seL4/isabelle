@@ -24,6 +24,16 @@ lemma option_rel_unfold:
     | _ \<Rightarrow> False)"
   by (cases x) (cases y, simp_all)+
 
+fun option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool"
+where
+  "option_pred R None = True"
+| "option_pred R (Some x) = R x"
+
+lemma option_pred_unfold:
+  "option_pred P x = (case x of None \<Rightarrow> True
+    | Some x \<Rightarrow> P x)"
+by (cases x) simp_all
+
 lemma option_rel_map1:
   "option_rel R (Option.map f x) y \<longleftrightarrow> option_rel (\<lambda>x. R (f x)) x y"
   by (simp add: option_rel_unfold split: option.split)
@@ -54,6 +64,12 @@ using assms by (auto simp: option_rel_unfold split: option.splits)
 lemma option_rel_OO[relator_distr]:
   "(option_rel A) OO (option_rel B) = option_rel (A OO B)"
 by (rule ext)+ (auto simp: option_rel_unfold OO_def split: option.split)
+
+lemma Domainp_option[relator_domain]:
+  assumes "Domainp A = P"
+  shows "Domainp (option_rel A) = (option_pred P)"
+using assms unfolding Domainp_iff[abs_def] option_rel_unfold[abs_def] option_pred_unfold[abs_def]
+by (auto iff: fun_eq_iff split: option.split)
 
 lemma option_reflp[reflexivity_rule]:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
@@ -122,11 +138,6 @@ lemma Quotient_option[quot_map]:
     (Option.map Rep) (option_rel T)"
   using assms unfolding Quotient_alt_def option_rel_unfold
   by (simp split: option.split)
-
-fun option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool"
-where
-  "option_pred R None = True"
-| "option_pred R (Some x) = R x"
 
 lemma option_invariant_commute [invariant_commute]:
   "option_rel (Lifting.invariant P) = Lifting.invariant (option_pred P)"

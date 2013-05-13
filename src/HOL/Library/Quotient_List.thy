@@ -42,6 +42,21 @@ next
     by (induct arbitrary: ys, simp, clarsimp simp add: list_all2_Cons1, fast)
 qed
 
+lemma Domainp_list[relator_domain]:
+  assumes "Domainp A = P"
+  shows "Domainp (list_all2 A) = (list_all P)"
+proof -
+  {
+    fix x
+    have *: "\<And>x. (\<exists>y. A x y) = P x" using assms unfolding Domainp_iff by blast
+    have "(\<exists>y. (list_all2 A x y)) = list_all P x"
+    by (induction x) (simp_all add: * list_all2_Cons1)
+  }
+  then show ?thesis
+  unfolding Domainp_iff[abs_def]
+  by (auto iff: fun_eq_iff)
+qed 
+
 lemma list_reflp[reflexivity_rule]:
   assumes "reflp R"
   shows "reflp (list_all2 R)"

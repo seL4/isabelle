@@ -24,6 +24,16 @@ lemma sum_rel_unfold:
     | _ \<Rightarrow> False)"
   by (cases x) (cases y, simp_all)+
 
+fun sum_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
+where
+  "sum_pred P1 P2 (Inl a) = P1 a"
+| "sum_pred P1 P2 (Inr a) = P2 a"
+
+lemma sum_pred_unfold:
+  "sum_pred P1 P2 x = (case x of Inl x \<Rightarrow> P1 x
+    | Inr x \<Rightarrow> P2 x)"
+by (cases x) simp_all
+
 lemma sum_rel_map1:
   "sum_rel R1 R2 (sum_map f1 f2 x) y \<longleftrightarrow> sum_rel (\<lambda>x. R1 (f1 x)) (\<lambda>x. R2 (f2 x)) x y"
   by (simp add: sum_rel_unfold split: sum.split)
@@ -55,6 +65,13 @@ using assms by (auto simp: sum_rel_unfold split: sum.splits)
 lemma sum_rel_OO[relator_distr]:
   "(sum_rel A B) OO (sum_rel C D) = sum_rel (A OO C) (B OO D)"
 by (rule ext)+ (auto simp add: sum_rel_unfold OO_def split_sum_ex split: sum.split)
+
+lemma Domainp_sum[relator_domain]:
+  assumes "Domainp R1 = P1"
+  assumes "Domainp R2 = P2"
+  shows "Domainp (sum_rel R1 R2) = (sum_pred P1 P2)"
+using assms
+by (auto simp add: Domainp_iff split_sum_ex sum_pred_unfold iff: fun_eq_iff split: sum.split)
 
 lemma sum_reflp[reflexivity_rule]:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
@@ -116,21 +133,9 @@ lemma Quotient_sum[quot_map]:
   using assms unfolding Quotient_alt_def
   by (simp add: split_sum_all)
 
-fun sum_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> bool"
-where
-  "sum_pred R1 R2 (Inl a) = R1 a"
-| "sum_pred R1 R2 (Inr a) = R2 a"
-
 lemma sum_invariant_commute [invariant_commute]: 
   "sum_rel (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (sum_pred P1 P2)"
-  apply (simp add: fun_eq_iff Lifting.invariant_def)
-  apply (intro allI) 
-  apply (case_tac x rule: sum.exhaust)
-  apply (case_tac xa rule: sum.exhaust)
-  apply auto[2]
-  apply (case_tac xa rule: sum.exhaust)
-  apply auto
-done
+  by (auto simp add: fun_eq_iff Lifting.invariant_def sum_rel_unfold sum_pred_unfold split: sum.split)
 
 subsection {* Rules for quotient package *}
 

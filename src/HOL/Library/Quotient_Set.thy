@@ -40,6 +40,16 @@ lemma set_rel_OO[relator_distr]: "set_rel R OO set_rel S = set_rel (R OO S)"
   apply (simp add: set_rel_def, fast)
   done
 
+lemma Domainp_set[relator_domain]:
+  assumes "Domainp T = R"
+  shows "Domainp (set_rel T) = (\<lambda>A. Ball A R)"
+using assms unfolding set_rel_def Domainp_iff[abs_def]
+apply (intro ext)
+apply (rule iffI) 
+apply blast
+apply (rename_tac A, rule_tac x="{y. \<exists>x\<in>A. T x y}" in exI, fast)
+done
+
 lemma reflp_set_rel[reflexivity_rule]: "reflp R \<Longrightarrow> reflp (set_rel R)"
   unfolding reflp_def set_rel_def by fast
 
@@ -136,12 +146,18 @@ lemma set_rel_transfer [transfer_rule]:
     set_rel set_rel"
   unfolding fun_rel_def set_rel_def by fast
 
-subsubsection {* Rules requiring bi-unique or bi-total relations *}
+
+subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
 
 lemma member_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> set_rel A ===> op =) (op \<in>) (op \<in>)"
   using assms unfolding fun_rel_def set_rel_def bi_unique_def by fast
+
+lemma right_total_Collect_transfer[transfer_rule]:
+  assumes "right_total A"
+  shows "((A ===> op =) ===> set_rel A) (\<lambda>P. Collect (\<lambda>x. P x \<and> Domainp A x)) Collect"
+  using assms unfolding right_total_def set_rel_def fun_rel_def Domainp_iff by fast
 
 lemma Collect_transfer [transfer_rule]:
   assumes "bi_total A"
@@ -165,20 +181,42 @@ lemma subset_transfer [transfer_rule]:
   shows "(set_rel A ===> set_rel A ===> op =) (op \<subseteq>) (op \<subseteq>)"
   unfolding subset_eq [abs_def] by transfer_prover
 
+lemma right_total_UNIV_transfer[transfer_rule]: 
+  assumes "right_total A"
+  shows "(set_rel A) (Collect (Domainp A)) UNIV"
+  using assms unfolding right_total_def set_rel_def Domainp_iff by blast
+
 lemma UNIV_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "(set_rel A) UNIV UNIV"
   using assms unfolding set_rel_def bi_total_def by simp
+
+lemma right_total_Compl_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
+  shows "(set_rel A ===> set_rel A) (\<lambda>S. uminus S \<inter> Collect (Domainp A)) uminus"
+  unfolding Compl_eq [abs_def]
+  by (subst Collect_conj_eq[symmetric]) transfer_prover
 
 lemma Compl_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "bi_total A"
   shows "(set_rel A ===> set_rel A) uminus uminus"
   unfolding Compl_eq [abs_def] by transfer_prover
 
+lemma right_total_Inter_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
+  shows "(set_rel (set_rel A) ===> set_rel A) (\<lambda>S. Inter S \<inter> Collect (Domainp A)) Inter"
+  unfolding Inter_eq[abs_def]
+  by (subst Collect_conj_eq[symmetric]) transfer_prover
+
 lemma Inter_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "bi_total A"
   shows "(set_rel (set_rel A) ===> set_rel A) Inter Inter"
   unfolding Inter_eq [abs_def] by transfer_prover
+
+lemma filter_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "((A ===> op=) ===> set_rel A ===> set_rel A) Set.filter Set.filter"
+  unfolding Set.filter_def[abs_def] fun_rel_def set_rel_def by blast
 
 lemma finite_transfer [transfer_rule]:
   assumes "bi_unique A"

@@ -13,6 +13,11 @@ subsection {* Correspondence relation *}
 definition ZN :: "int \<Rightarrow> nat \<Rightarrow> bool"
   where "ZN = (\<lambda>z n. z = of_nat n)"
 
+subsection {* Transfer domain rules *}
+
+lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)" 
+  unfolding ZN_def Domainp_iff[abs_def] by (auto intro: zero_le_imp_eq_int)
+
 subsection {* Transfer rules *}
 
 lemma bi_unique_ZN [transfer_rule]: "bi_unique ZN"
@@ -155,11 +160,11 @@ apply transfer
 apply fact
 done
 
-text {* Quantifiers over higher types (e.g. @{text "nat list"}) may
-  generate @{text "Domainp"} assumptions when transferred. *}
+text {* Quantifiers over higher types (e.g. @{text "nat list"}) are
+  transferred to a readable formula thanks to the transfer domain rule @{thm Domainp_ZN} *}
 
 lemma
-  assumes "\<And>xs::int list. Domainp (list_all2 ZN) xs \<Longrightarrow>
+  assumes "\<And>xs::int list. list_all (\<lambda>x. x \<ge> 0) xs \<Longrightarrow>
     (listsum xs = 0) = list_all (\<lambda>x. x = 0) xs"
   shows "listsum xs = (0::nat) \<longleftrightarrow> list_all (\<lambda>x. x = 0) xs"
 apply transfer
@@ -170,7 +175,7 @@ text {* Equality on a higher type can be transferred if the relations
   involved are bi-unique. *}
 
 lemma
-  assumes "\<And>xs\<Colon>int list. \<lbrakk>Domainp (list_all2 ZN) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>
+  assumes "\<And>xs\<Colon>int list. \<lbrakk>list_all (\<lambda>x. x \<ge> 0) xs; xs \<noteq> []\<rbrakk> \<Longrightarrow>
     listsum xs < listsum (map (\<lambda>x. x + 1) xs)"
   shows "xs \<noteq> [] \<Longrightarrow> listsum xs < listsum (map Suc xs)"
 apply transfer

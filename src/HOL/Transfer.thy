@@ -1,5 +1,6 @@
 (*  Title:      HOL/Transfer.thy
     Author:     Brian Huffman, TU Muenchen
+    Author:     Ondrej Kuncar, TU Muenchen
 *)
 
 header {* Generic theorem transfer using relations *}
@@ -103,10 +104,6 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def fun_rel_def by fast
 
-text {* Handling of domains *}
-
-definition DOM :: "('a => 'b => bool) => ('a => bool) => bool" where "DOM T R \<equiv> Domainp T = R"
-
 ML_file "Tools/transfer.ML"
 setup Transfer.setup
 
@@ -116,6 +113,10 @@ declare fun_rel_eq [relator_eq]
 
 hide_const (open) Rel
 
+text {* Handling of domains *}
+
+lemma Domaimp_refl[transfer_domain_rule]:
+  "Domainp T = Domainp T" ..
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 
@@ -264,6 +265,21 @@ lemma eq_transfer [transfer_rule]:
   shows "(A ===> A ===> op =) (op =) (op =)"
   using assms unfolding bi_unique_def fun_rel_def by auto
 
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
+
+lemma right_total_Ex_transfer[transfer_rule]:
+  assumes "right_total A"
+  shows "((A ===> op=) ===> op=) (Bex (Collect (Domainp A))) Ex"
+using assms unfolding right_total_def Bex_def fun_rel_def Domainp_iff[abs_def]
+by blast
+
+lemma right_total_All_transfer[transfer_rule]:
+  assumes "right_total A"
+  shows "((A ===> op =) ===> op =) (Ball (Collect (Domainp A))) All"
+using assms unfolding right_total_def Ball_def fun_rel_def Domainp_iff[abs_def]
+by blast
+
 lemma All_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> op =) All All"
@@ -304,13 +320,6 @@ lemma funpow_transfer [transfer_rule]:
   "(op = ===> (A ===> A) ===> (A ===> A)) compow compow"
   unfolding funpow_def by transfer_prover
 
-text {* Fallback rule for transferring universal quantifiers over
-  correspondence relations that are not bi-total, and do not have
-  custom transfer rules (e.g. relations between function types). *}
-
-lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
-  by auto
-
 lemma Domainp_forall_transfer [transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op =) ===> op =)
@@ -318,9 +327,6 @@ lemma Domainp_forall_transfer [transfer_rule]:
   using assms unfolding right_total_def
   unfolding transfer_forall_def transfer_bforall_def fun_rel_def Domainp_iff
   by metis
-
-text {* Preferred rule for transferring universal quantifiers over
-  bi-total correspondence relations (later rules are tried first). *}
 
 lemma forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"

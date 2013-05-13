@@ -391,13 +391,8 @@ lemma eq_Real:
   using real.rel_eq_transfer
   unfolding real.pcr_cr_eq cr_real_def fun_rel_def realrel_def by simp
 
-declare real.forall_transfer [transfer_rule del]
-
-lemma forall_real_transfer [transfer_rule]: (* TODO: generate automatically *)
-  "(fun_rel (fun_rel pcr_real op =) op =)
-    (transfer_bforall cauchy) transfer_forall"
-  using real.forall_transfer
-  by (simp add: realrel_def)
+lemma Domainp_pcr_real [transfer_domain_rule]: "Domainp pcr_real = cauchy"
+by (simp add: real.domain_eq realrel_def)
 
 instantiation real :: field_inverse_zero
 begin
@@ -993,11 +988,14 @@ declare Abs_real_induct [induct del]
 declare Abs_real_cases [cases del]
 
 lemmas [transfer_rule del] =
-  real.All_transfer real.Ex_transfer real.rel_eq_transfer forall_real_transfer
+  real.rel_eq_transfer
   zero_real.transfer one_real.transfer plus_real.transfer uminus_real.transfer
   times_real.transfer inverse_real.transfer positive.transfer real.right_unique
   real.right_total
 
+lemmas [transfer_domain_rule del] = 
+  real.domain real.domain_eq Domainp_pcr_real real.domain_par real.domain_par_left_total
+  
 subsection{*More Lemmas*}
 
 text {* BH: These lemmas should not be necessary; they should be
