@@ -358,7 +358,7 @@ text {* The following options are available to tune the printed output
   or indentation for pretty printing of display material.
 
   \item @{antiquotation_option_def goals_limit}~@{text "= nat"}
-  determines the maximum number of goals to be printed (for goal-based
+  determines the maximum number of subgoals to be printed (for goal-based
   antiquotation).
 
   \item @{antiquotation_option_def source}~@{text "= bool"} prints the

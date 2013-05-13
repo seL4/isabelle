@@ -7,7 +7,6 @@ Display tactical goal state.
 
 signature GOAL_DISPLAY =
 sig
-  val goals_limit_default: int Unsynchronized.ref
   val goals_limit_raw: Config.raw
   val goals_limit: int Config.T
   val show_main_goal_default: bool Unsynchronized.ref
@@ -26,8 +25,7 @@ end;
 structure Goal_Display: GOAL_DISPLAY =
 struct
 
-val goals_limit_default = Unsynchronized.ref 10;
-val goals_limit_raw = Config.declare "goals_limit" (fn _ => Config.Int (! goals_limit_default));
+val goals_limit_raw = Config.declare_option "goals_limit";
 val goals_limit = Config.int goals_limit_raw;
 
 val show_main_goal_default = Unsynchronized.ref false;
