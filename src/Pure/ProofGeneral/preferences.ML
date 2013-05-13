@@ -18,19 +18,14 @@ sig
     get: unit -> string,
     set: string -> unit}
   val options_pref: string -> string -> string -> preference
-  val generic_pref: ('a -> string) -> (string -> 'a) -> PgipTypes.pgiptype ->
-    'a Unsynchronized.ref -> string -> string -> preference
   val string_pref: string Unsynchronized.ref -> string -> string -> preference
   val real_pref: real Unsynchronized.ref -> string -> string -> preference
   val int_pref: int Unsynchronized.ref -> string -> string -> preference
-  val nat_pref: int Unsynchronized.ref -> string -> string -> preference
   val bool_pref: bool Unsynchronized.ref -> string -> string -> preference
   type T = (string * preference list) list
   val thm_depsN: string
   val pure_preferences: T
-  val remove: string -> T -> T
   val add: string -> preference -> T -> T
-  val set_default: string * string -> T -> T
 end
 
 structure Preferences: PREFERENCES =
@@ -94,9 +89,6 @@ val real_pref =
 val int_pref =
   generic_pref PgipTypes.int_to_pgstring (PgipTypes.read_pgipint (NONE, NONE))
     (PgipTypes.Pgipint (NONE, NONE));
-
-val nat_pref =
-  generic_pref PgipTypes.int_to_pgstring PgipTypes.read_pgipnat PgipTypes.Pgipnat;
 
 val bool_pref =
   generic_pref PgipTypes.bool_to_pgstring PgipTypes.read_pgipbool PgipTypes.Pgipbool;
@@ -172,7 +164,7 @@ val tracing_preferences =
  [bool_pref Raw_Simplifier.simp_trace_default
     "trace-simplifier"
     "Trace simplification rules.",
-  nat_pref Raw_Simplifier.simp_trace_depth_limit_default
+  int_pref Raw_Simplifier.simp_trace_depth_limit_default
     "trace-simplifier-depth"
     "Trace simplifier depth limit.",
   bool_pref Pattern.trace_unify_fail
@@ -195,7 +187,7 @@ val proof_preferences =
     "skip-proofs"
     "Skip over proofs",
   proof_pref,
-  nat_pref Multithreading.max_threads
+  int_pref Multithreading.max_threads
     "max-threads"
     "Maximum number of threads",
   parallel_proof_pref];
@@ -210,18 +202,6 @@ val pure_preferences =
 (* table of categories and preferences; names must be unique *)
 
 type T = (string * preference list) list;
-
-fun remove name (tab: T) = tab |> map
-  (fn (cat, prefs) => (cat, filter_out (curry op = name o #name) prefs));
-
-fun set_default (setname, newdefault) (tab: T) = tab |> map
-  (fn (cat, prefs) =>
-    (cat, prefs |> map (fn (pref as {name, descr, default, pgiptype, get, set}) =>
-      if name = setname then
-        (set newdefault;
-          {name =name , descr = descr, default = newdefault,
-           pgiptype = pgiptype, get = get, set = set})
-      else pref)));
 
 fun add cname (pref: preference) (tab: T) = tab |> map
   (fn (cat, prefs) =>
