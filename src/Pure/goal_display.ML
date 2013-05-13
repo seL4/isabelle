@@ -10,7 +10,6 @@ sig
   val goals_limit_default: int Unsynchronized.ref
   val goals_limit_raw: Config.raw
   val goals_limit: int Config.T
-  val goals_total: bool Config.T
   val show_main_goal_default: bool Unsynchronized.ref
   val show_main_goal_raw: Config.raw
   val show_main_goal: bool Config.T
@@ -30,8 +29,6 @@ struct
 val goals_limit_default = Unsynchronized.ref 10;
 val goals_limit_raw = Config.declare "goals_limit" (fn _ => Config.Int (! goals_limit_default));
 val goals_limit = Config.int goals_limit_raw;
-
-val goals_total = Config.bool (Config.declare "goals_total" (fn _ => Config.Bool true));
 
 val show_main_goal_default = Unsynchronized.ref false;
 val show_main_goal_raw =
@@ -92,7 +89,6 @@ fun pretty_goals ctxt0 state =
     val show_consts = Config.get ctxt show_consts
     val show_main_goal = Config.get ctxt show_main_goal;
     val goals_limit = Config.get ctxt goals_limit;
-    val goals_total = Config.get ctxt goals_total;
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
@@ -135,8 +131,7 @@ fun pretty_goals ctxt0 state =
      (if ngoals = 0 then [Pretty.str "No subgoals!"]
       else if ngoals > goals_limit then
         pretty_subgoals (take goals_limit As) @
-        (if goals_total then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
-         else [])
+        [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
       else pretty_subgoals As) @
     pretty_ffpairs tpairs @
     (if show_consts then pretty_consts prop else []) @
@@ -149,9 +144,7 @@ fun pretty_goals_without_context th =
     Config.put show_main_goal true (Syntax.init_pretty_global (Thm.theory_of_thm th))
   in pretty_goals ctxt th end;
 
-fun pretty_goal ctxt th =
-  Pretty.chunks (pretty_goals (Config.put goals_total false ctxt) th);
-
+val pretty_goal = Pretty.chunks oo pretty_goals;
 val string_of_goal = Pretty.string_of oo pretty_goal;
 
 end;
