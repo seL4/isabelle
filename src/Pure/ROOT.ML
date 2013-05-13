@@ -299,7 +299,6 @@ use "Tools/legacy_xml_syntax.ML";
 (* configuration for Proof General *)
 
 use "ProofGeneral/pgip_types.ML";
-use "ProofGeneral/pgip_output.ML";
 
 (use
   |> Unsynchronized.setmp Proofterm.proofs 0

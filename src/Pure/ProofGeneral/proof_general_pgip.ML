@@ -34,21 +34,20 @@ local
   val pgip_seq = Unsynchronized.ref 0
   fun pgip_serial () = Unsynchronized.inc pgip_seq
 
-  fun assemble_pgips pgips =
-    PgipOutput.Pgip { tag = SOME pgip_tag,
-           class = pgip_class,
-           seq = pgip_serial (),
-           id = pgip_id,
-           destid = ! pgip_refid,
-           (* destid=refid since Isabelle only communicates back to sender *)
-           refid = ! pgip_refid,
-           refseq = ! pgip_refseq,
-           content = pgips }
+  fun assemble_pgip content =
+    XML.Elem(("pgip",
+             [("tag", pgip_tag), ("id", pgip_id)] @
+             PgipTypes.opt_attr "destid" (! pgip_refid) @
+             [("class", pgip_class)] @
+             PgipTypes.opt_attr "refid" (! pgip_refid) @
+             PgipTypes.opt_attr_map string_of_int "refseq" (! pgip_refseq) @
+             [("seq", string_of_int (pgip_serial ()))]),
+             content)
 in
 
 fun matching_pgip_id id = (id = pgip_id)
 
-val output_pgips = XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
+fun output_pgip content = Output.urgent_message (XML.string_of (assemble_pgip content));
 
 end;
 
@@ -106,16 +105,14 @@ local
 
 fun invalid_pgip () = raise PgipTypes.PGIP "Invalid PGIP packet received";
 
-fun output_emacs pgips = Output.urgent_message (output_pgips pgips);
-
 fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
       let
-        fun preference_of {name, descr, default, pgiptype, get = _, set = _} =
-          {name = name, descr = SOME descr, default = SOME default, pgiptype = pgiptype};
+        fun haspref {name, descr, default, pgiptype, get = _, set = _} =
+          PgipTypes.haspref {name = name, descr = SOME descr, default = SOME default,
+            pgiptype = pgiptype};
       in
-        ! preferences |> List.app (fn (prefcat, prefs) =>
-            output_emacs
-              [PgipOutput.Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}])
+        ! preferences |> List.app (fn (category, prefs) =>
+            output_pgip [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
       end
   | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
       let
