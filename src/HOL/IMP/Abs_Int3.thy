@@ -278,7 +278,7 @@ interpretation Abs_Int2
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
-defines AI_ivl' is AI_wn
+defines AI_wn_ivl is AI_wn
 ..
 
 
@@ -288,7 +288,7 @@ definition "step_up_ivl n = ((\<lambda>C. C \<nabla> step_ivl \<top> C)^^n)"
 definition "step_down_ivl n = ((\<lambda>C. C \<triangle> step_ivl \<top> C)^^n)"
 
 text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
-the loop took to execute. In contrast, @{const AI_ivl'} converges in a
+the loop took to execute. In contrast, @{const AI_wn_ivl} converges in a
 constant number of steps: *}
 
 value "show_acom (step_up_ivl 1 (bot test3_ivl))"
@@ -303,14 +303,14 @@ value "show_acom (step_down_ivl 1 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 2 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 3 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 4 (step_up_ivl 8 (bot test3_ivl)))"
-value "show_acom_opt (AI_ivl' test3_ivl)"
+value "show_acom_opt (AI_wn_ivl test3_ivl)"
 
 
 text{* Now all the analyses terminate: *}
 
-value "show_acom_opt (AI_ivl' test4_ivl)"
-value "show_acom_opt (AI_ivl' test5_ivl)"
-value "show_acom_opt (AI_ivl' test6_ivl)"
+value "show_acom_opt (AI_wn_ivl test4_ivl)"
+value "show_acom_opt (AI_wn_ivl test5_ivl)"
+value "show_acom_opt (AI_wn_ivl test6_ivl)"
 
 
 subsubsection "Generic Termination Proof"
@@ -543,7 +543,7 @@ by transfer
          split: prod.split extended.splits if_splits)
 
 definition n_ivl :: "ivl \<Rightarrow> nat" where
-"n_ivl ivl = 3 - m_ivl ivl"
+"n_ivl iv = 3 - m_ivl iv"
 
 lemma n_ivl_narrow:
   "x \<triangle> y < x \<Longrightarrow> n_ivl(x \<triangle> y) < n_ivl x"
@@ -578,15 +578,15 @@ apply (auto simp add: m_c_widen top_on_bot top_on_step'[simplified comp_def vars
 done
 
 lemma iter_narrow_step_ivl_termination:
-  "top_on_acom C0 (- vars C0) \<Longrightarrow> step_ivl \<top> C0 \<le> C0 \<Longrightarrow>
-  \<exists>C. iter_narrow (step_ivl \<top>) C0 = Some C"
-apply(rule iter_narrow_termination[where n = "n_c" and P = "%C. strip C0 = strip C \<and> top_on_acom C (-vars C)"])
+  "top_on_acom C (- vars C) \<Longrightarrow> step_ivl \<top> C \<le> C \<Longrightarrow>
+  \<exists>C'. iter_narrow (step_ivl \<top>) C = Some C'"
+apply(rule iter_narrow_termination[where n = "n_c" and P = "%C'. strip C = strip C' \<and> top_on_acom C' (-vars C')"])
 apply(auto simp: top_on_step'[simplified comp_def vars_acom_def]
         mono_step'_top n_c_narrow vars_acom_def top_on_acom_narrow)
 done
 
-theorem AI_ivl'_termination:
-  "\<exists>C. AI_ivl' c = Some C"
+theorem AI_wn_ivl_termination:
+  "\<exists>C. AI_wn_ivl c = Some C"
 apply(auto simp: AI_wn_def pfp_wn_def iter_winden_step_ivl_termination
            split: option.split)
 apply(rule iter_narrow_step_ivl_termination)
