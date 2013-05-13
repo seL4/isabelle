@@ -526,10 +526,15 @@ object Build
     private val (thread, result) =
       Simple_Thread.future("build") {
         Isabelle_System.bash_env(info.dir.file, env, script,
-          out_progress = (line: String) =>
+          progress_stdout = (line: String) =>
             Library.try_unprefix("\floading_theory = ", line) match {
               case Some(theory) => progress.theory(name, theory)
               case None =>
+            },
+          progress_limit =
+            info.options.int("process_output_limit") match {
+              case 0 => None
+              case m => Some(m * 1000000L)
             })
       }
 

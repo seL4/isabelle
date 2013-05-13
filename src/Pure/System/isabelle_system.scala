@@ -357,18 +357,33 @@ object Isabelle_System
   }
 
   def bash_env(cwd: JFile, env: Map[String, String], script: String,
-    out_progress: String => Unit = (_: String) => (),
-    err_progress: String => Unit = (_: String) => ()): Bash_Result =
+    progress_stdout: String => Unit = (_: String) => (),
+    progress_stderr: String => Unit = (_: String) => (),
+    progress_limit: Option[Long] = None): Bash_Result =
   {
     File.with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
-
       proc.stdin.close
+
+      val limited = new Object {
+        private var count = 0L
+        def apply(progress: String => Unit)(line: String): Unit = synchronized {
+          count = count + line.length + 1
+          progress_limit match {
+            case Some(limit) if count > limit => proc.terminate
+            case _ =>
+          }
+        }
+      }
       val (_, stdout) =
-        Simple_Thread.future("bash_stdout") { File.read_lines(proc.stdout, out_progress) }
+        Simple_Thread.future("bash_stdout") {
+          File.read_lines(proc.stdout, limited(progress_stdout))
+        }
       val (_, stderr) =
-        Simple_Thread.future("bash_stderr") { File.read_lines(proc.stderr, err_progress) }
+        Simple_Thread.future("bash_stderr") {
+          File.read_lines(proc.stderr, limited(progress_stderr))
+        }
 
       val rc =
         try { proc.join }
