@@ -111,10 +111,25 @@ fun Rel_conv ct =
   in Drule.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
 
 (* Conversion to preprocess a transfer rule *)
+fun strip_args n = funpow n (fst o dest_comb)
+
+fun safe_Rel_conv ct =
+  let
+    val head = ct |> term_of |> HOLogic.dest_Trueprop |> strip_args 2
+    fun is_known (Const (s, _)) = (s = @{const_name DOM})
+      | is_known _ = false
+  in
+    if not (is_known head)
+      then HOLogic.Trueprop_conv (Conv.fun_conv (Conv.fun_conv Rel_conv)) ct
+    else Conv.all_conv ct
+  end
+  handle TERM _ => Conv.all_conv ct
+;
+
 fun prep_conv ct = (
-      Conv.implies_conv Conv.all_conv prep_conv
+      Conv.implies_conv safe_Rel_conv prep_conv
       else_conv
-      HOLogic.Trueprop_conv (Conv.fun_conv (Conv.fun_conv Rel_conv))
+      safe_Rel_conv
       else_conv
       Conv.all_conv) ct
 

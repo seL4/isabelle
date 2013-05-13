@@ -103,6 +103,10 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def fun_rel_def by fast
 
+text {* Handling of domains *}
+
+definition DOM :: "('a => 'b => bool) => ('a => bool) => bool" where "DOM T R \<equiv> Domainp T = R"
+
 ML_file "Tools/transfer.ML"
 setup Transfer.setup
 
