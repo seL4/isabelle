@@ -224,7 +224,7 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
   "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" || fail "Failed to retrieve options"
-  if [ "$INPUT" != RAW_ML_SYSTEM ]; then
+  if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
     MLTEXT="Options.load_default () handle _ => exit 2; $MLTEXT"
   fi
   if [ -n "$PROOFGENERAL" ]; then
