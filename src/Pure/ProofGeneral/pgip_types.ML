@@ -4,22 +4,8 @@
 PGIP abstraction: types and conversions.
 *)
 
-(* TODO: PGML, proverflag *)
 signature PGIPTYPES =
 sig
-    (* Object types: the types of values which can be manipulated externally.
-       Ideally a list of other types would be configured as a parameter. *)
-    datatype objtype = ObjFile | ObjTheory | ObjTheorem | ObjComment  
-                     | ObjTerm | ObjType | ObjOther of string
-  
-    (* Names for values of objtypes (i.e. prover identifiers). Could be a parameter.
-       Names for ObjFiles are URIs. *)
-    type objname = string
-
-    type idtable = { context: objname option,    (* container's objname *)
-                     objtype: objtype, 
-                     ids: objname list }
-
     (* Types and values (used for preferences and dialogs) *)
 
     datatype pgiptype =
@@ -28,39 +14,8 @@ sig
 
     and pgipdtype = Pgipdtype of string option * pgiptype  (* type with opt. description *)
 
-    type pgipval   (* typed value *)
-
-    (* URLs we can cope with *)
-    type pgipurl
-
-    (* Representation error in reading/writing PGIP *)
     exception PGIP of string
-
-    (* Interface areas for message output *)
-    datatype displayarea = Status | Message | Display | Tracing | Internal | Other of string
-
-    (* Error levels *)
-    datatype fatality = Info | Warning | Nonfatal | Fatal | Panic | Log | Debug
-
-    (* File location *)
-    type location = { descr: string option,
-                      url: pgipurl option,
-                      line: int option,
-                      column: int option,
-                      char: int option,
-                      length: int option }
-end
-
-signature PGIPTYPES_OPNS = 
-sig
-    include PGIPTYPES
  
-    (* Object types *)
-    val name_of_objtype  : objtype -> string
-    val attrs_of_objtype : objtype -> XML.attributes
-    val objtype_of_attrs : XML.attributes -> objtype                    (* raises PGIP *)
-    val idtable_to_xml   : idtable -> XML.tree
-
     (* Values as XML strings *)
     val read_pgipint       : (int option * int option) -> string -> int (* raises PGIP *)
     val read_pgipnat       : string -> int                              (* raises PGIP *)
@@ -74,21 +29,6 @@ sig
 
     (* PGIP datatypes *)
     val pgiptype_to_xml   : pgiptype -> XML.tree
-    val read_pgval        : pgiptype -> string -> pgipval              (* raises PGIP *)
-    val pgval_to_string   : pgipval -> string
-
-    val attrs_of_displayarea : displayarea -> XML.attributes
-    val attrs_of_fatality : fatality -> XML.attributes
-    val attrs_of_location : location -> XML.attributes
-    val location_of_attrs : XML.attributes -> location (* raises PGIP *)
-
-    val pgipurl_of_url : Url.T -> pgipurl              (* raises PGIP *)
-    val pgipurl_of_string : string -> pgipurl          (* raises PGIP *)
-    val pgipurl_of_path : Path.T -> pgipurl
-    val path_of_pgipurl : pgipurl -> Path.T
-    val string_of_pgipurl : pgipurl -> string
-    val attrs_of_pgipurl : pgipurl -> XML.attributes
-    val pgipurl_of_attrs : XML.attributes -> pgipurl   (* raises PGIP *)
 
     (* XML utils, only for PGIP code *)
     val attr           : string -> string -> XML.attributes
@@ -99,8 +39,9 @@ sig
     val get_attr_dflt  : string -> string -> XML.attributes -> string
 end
 
-structure PgipTypes : PGIPTYPES_OPNS =
+structure PgipTypes : PGIPTYPES =
 struct
+
 exception PGIP of string
 
 (** XML utils **)
@@ -123,47 +64,6 @@ fun opt_attr_map f attr_name opt_val =
   *)
 
 fun opt_attr attr_name = opt_attr_map I attr_name
-
-
-(** Objtypes **)
-
-datatype objtype = ObjFile | ObjTheory | ObjTheorem | ObjComment  
-                 | ObjTerm | ObjType | ObjOther of string
-
-fun name_of_objtype obj = 
-    case obj of 
-        ObjFile    => "file"
-      | ObjTheory  => "theory"
-      | ObjTheorem => "theorem"
-      | ObjComment => "comment"
-      | ObjTerm    => "term"
-      | ObjType    => "type"
-      | ObjOther s => s
-
-val attrs_of_objtype = attr "objtype" o name_of_objtype
-
-fun objtype_of_attrs attrs = case get_attr "objtype" attrs of
-       "file" => ObjFile
-     | "theory" => ObjTheory
-     | "theorem" => ObjTheorem
-     | "comment" => ObjComment
-     | "term" => ObjTerm
-     | "type" => ObjType
-     | s => ObjOther s    (* where s mem other_objtypes_parameter *)
-
-type objname = string
-type idtable = { context: objname option,    (* container's objname *)
-                 objtype: objtype, 
-                 ids: objname list }
-
-fun idtable_to_xml {context, objtype, ids} = 
-    let 
-        val objtype_attrs = attrs_of_objtype objtype
-        val context_attrs = opt_attr "context" context
-        val ids_content = map (fn x => XML.Elem(("identifier", []), [XML.Text x])) ids
-    in 
-        XML.Elem (("idtable", objtype_attrs @ context_attrs), ids_content)
-    end
 
 
 (** Types and values **)
@@ -287,139 +187,6 @@ fun pgipdtype_to_xml (desco,ty) =
     end
 
 val pgiptype_to_xml = pgipdtype_to_xml o pair NONE
-
-fun read_pguval Pgipnull s = 
-    if s="" then Pgvalnull
-    else raise PGIP ("Expecting empty string for null type, not: " ^ quote s)
-  | read_pguval Pgipbool s = Pgvalbool (read_pgipbool s)
-  | read_pguval (Pgipint range) s = Pgvalint (read_pgipint range s)
-  | read_pguval Pgipnat s = Pgvalnat (read_pgipnat s)
-  | read_pguval Pgipreal s = Pgvalreal (read_pgipreal s)
-  | read_pguval (Pgipconst c) s = 
-    if c=s then Pgvalconst c 
-    else raise PGIP ("Given string: "^quote s^" doesn't match expected string: "^quote c)
-  | read_pguval Pgipstring s = 
-    if s<>"" then Pgvalstring s
-    else raise PGIP ("Expecting non-empty string, empty string illegal.")
-  | read_pguval (Pgipchoice tydescs) s = 
-    let 
-        (* Union type: match first in list *)
-        fun getty (Pgipdtype(_, ty)) = ty
-        val uval = get_first 
-                       (fn ty => SOME (read_pguval ty s) handle PGIP _ => NONE)
-                       (map getty tydescs)
-    in
-        case uval of SOME pgv => pgv | NONE => raise PGIP ("Can't match string: "^quote s^
-                                                           " against any allowed types.")
-    end
-
-fun read_pgval ty s = (ty, read_pguval ty s)
-            
-fun pgval_to_string (_, Pgvalnull) = ""
-  | pgval_to_string (_, Pgvalbool b) = bool_to_pgstring b
-  | pgval_to_string (_, Pgvalnat n) = int_to_pgstring n
-  | pgval_to_string (_, Pgvalint i) = int_to_pgstring i
-  | pgval_to_string (_, Pgvalreal x) = real_to_pgstring x
-  | pgval_to_string (_, Pgvalconst c) = string_to_pgstring c
-  | pgval_to_string (_, Pgvalstring s) = string_to_pgstring s
-
-
-type pgipurl = Path.T    (* URLs: only local files *)
-
-datatype displayarea = Status | Message | Display | Tracing | Internal | Other of string
-
-datatype fatality = Info | Warning | Nonfatal | Fatal | Panic | Log | Debug
-
-type location = { descr: string option,
-                  url: pgipurl option,
-                  line: int option,
-                  column: int option,
-                  char: int option,
-                  length: int option }
-
-
-
-(** Url operations **)
-
-
-fun pgipurl_of_string url = (* only handle file:/// or file://localhost/ *)
-        case Url.explode url of
-            (Url.File path) => path
-          | _ => raise PGIP ("Cannot access non-local URL " ^ quote url)
-                       
-fun pgipurl_of_path p = p
-
-fun path_of_pgipurl p = p  (* potentially raises PGIP, but not with this implementation *)
-
-fun string_of_pgipurl p = Path.implode p
-
-fun attrval_of_pgipurl purl =
-  "file:" ^ XML.text (File.platform_path (File.full_path Path.current purl))
-
-fun attrs_of_pgipurl purl = [("url", attrval_of_pgipurl purl)]
-
-val pgipurl_of_attrs = pgipurl_of_string o get_attr "url"
-
-fun pgipurl_of_url (Url.File p) = p
-  | pgipurl_of_url url = 
-    raise PGIP ("Cannot access non-local/non-file URL " ^ quote (Url.implode url))
-
-
-(** Messages and errors **)
-
-local
-  fun string_of_area Status = "status"
-    | string_of_area Message = "message"
-    | string_of_area Display = "display"
-    | string_of_area Tracing = "tracing"
-    | string_of_area Internal = "internal"
-    | string_of_area (Other s) = s
-
-  fun string_of_fatality Info = "info"
-    | string_of_fatality Warning = "warning"
-    | string_of_fatality Nonfatal = "nonfatal"
-    | string_of_fatality Fatal = "fatal"
-    | string_of_fatality Panic = "panic"
-    | string_of_fatality Log = "log"
-    | string_of_fatality Debug = "debug"
-in
-  fun attrs_of_displayarea area = [("area", string_of_area area)]
-
-  fun attrs_of_fatality fatality = [("fatality", string_of_fatality fatality)]
-
-  fun attrs_of_location ({ descr, url, line, column, char, length }:location) =
-      let 
-          val descr = opt_attr "location_descr" descr
-          val url = opt_attr_map attrval_of_pgipurl "location_url" url
-          val line = opt_attr_map int_to_pgstring "locationline" line
-          val column = opt_attr_map int_to_pgstring "locationcolumn"  column
-          val char = opt_attr_map int_to_pgstring "locationcharacter" char
-          val length = opt_attr_map int_to_pgstring "locationlength" length
-      in 
-          descr @ url @ line @ column @ char @ length
-      end
-
-    fun pgipint_of_string err s = 
-        case Int.fromString s of 
-            SOME i => i
-          | NONE => raise PGIP ("Type error in " ^ quote err ^ ": expected integer.")
-
-  fun location_of_attrs attrs = 
-      let
-          val descr = get_attr_opt "location_descr" attrs
-          val url = Option.map  pgipurl_of_string (get_attr_opt "location_url" attrs)
-          val line = Option.map (pgipint_of_string "location element line attribute")
-                                (get_attr_opt "locationline" attrs)
-          val column = Option.map (pgipint_of_string "location element column attribute")
-                                  (get_attr_opt "locationcolumn" attrs)
-          val char = Option.map (pgipint_of_string "location element char attribute")
-                                (get_attr_opt "locationcharacter" attrs)
-          val length = Option.map (pgipint_of_string "location element length attribute")
-                                  (get_attr_opt "locationlength" attrs)
-      in 
-          {descr=descr, url=url, line=line, column=column, char=char, length=length}
-      end
-end
 
 end
 
