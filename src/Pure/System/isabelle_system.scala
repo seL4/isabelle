@@ -369,6 +369,7 @@ object Isabelle_System
       val limited = new Object {
         private var count = 0L
         def apply(progress: String => Unit)(line: String): Unit = synchronized {
+          progress(line)
           count = count + line.length + 1
           progress_limit match {
             case Some(limit) if count > limit => proc.terminate
