@@ -299,19 +299,12 @@ use "Tools/legacy_xml_syntax.ML";
 (* configuration for Proof General *)
 
 use "ProofGeneral/pgip_types.ML";
-use "ProofGeneral/pgml.ML";
-use "ProofGeneral/pgip_markup.ML";
-use "ProofGeneral/pgip_input.ML";
 use "ProofGeneral/pgip_output.ML";
-
-use "ProofGeneral/pgip_isabelle.ML";
 
 (use
   |> Unsynchronized.setmp Proofterm.proofs 0
   |> Unsynchronized.setmp Multithreading.max_threads 0)
   "ProofGeneral/preferences.ML";
-
-use "ProofGeneral/pgip_parser.ML";
 
 use "ProofGeneral/proof_general_pgip.ML";
 use "ProofGeneral/proof_general_emacs.ML";

@@ -17,12 +17,6 @@ end
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
 struct
 
-open PgipTypes;
-open PgipMarkup;
-open PgipInput;
-open PgipOutput;
-
-
 (** print mode **)
 
 val proof_general_emacsN = "ProofGeneralEmacs";
@@ -41,7 +35,7 @@ local
   fun pgip_serial () = Unsynchronized.inc pgip_seq
 
   fun assemble_pgips pgips =
-    Pgip { tag = SOME pgip_tag,
+    PgipOutput.Pgip { tag = SOME pgip_tag,
            class = pgip_class,
            seq = pgip_serial (),
            id = pgip_id,
@@ -110,7 +104,7 @@ fun set_preference pref value =
 
 local
 
-fun invalid_pgip () = raise PGIP "Invalid PGIP packet received";
+fun invalid_pgip () = raise PgipTypes.PGIP "Invalid PGIP packet received";
 
 fun output_emacs pgips = Output.urgent_message (output_pgips pgips);
 
@@ -120,7 +114,8 @@ fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
           {name = name, descr = SOME descr, default = SOME default, pgiptype = pgiptype};
       in
         ! preferences |> List.app (fn (prefcat, prefs) =>
-            output_emacs [Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}])
+            output_emacs
+              [PgipOutput.Hasprefs {prefcategory = SOME prefcat, prefs = map preference_of prefs}])
       end
   | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
       let
@@ -157,7 +152,7 @@ fun process_pgip_emacs str =
            else ()
          end
     | _ => invalid_pgip ())
-  end handle PGIP msg => error (msg ^ "\n" ^ str);
+  end handle PgipTypes.PGIP msg => error (msg ^ "\n" ^ str);
 
 val _ =
   Outer_Syntax.improper_command
