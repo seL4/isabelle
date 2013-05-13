@@ -62,15 +62,13 @@ local
 
 fun invalid_pgip () = raise PgipTypes.PGIP "Invalid PGIP packet received";
 
+fun haspref ({name, descr, default, pgiptype, ...}: Preferences.preference) =
+  XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
+    [PgipTypes.pgiptype_to_xml pgiptype]);
+
 fun process_element_emacs (XML.Elem (("askprefs", _), _)) =
-      let
-        fun haspref {name, descr, default, pgiptype, get = _, set = _} =
-          PgipTypes.haspref {name = name, descr = SOME descr, default = SOME default,
-            pgiptype = pgiptype};
-      in
-        ! preferences |> List.app (fn (category, prefs) =>
-            output_pgip [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
-      end
+      ! preferences |> List.app (fn (category, prefs) =>
+          output_pgip [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
   | process_element_emacs (XML.Elem (("setpref", attrs), data)) =
       let
         val name =

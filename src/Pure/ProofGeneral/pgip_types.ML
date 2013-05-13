@@ -49,12 +49,6 @@ sig
                       column: int option,
                       char: int option,
                       length: int option }
-
-    (* Prover preference *)   
-    type preference = { name: string,
-                        descr: string option,
-                        default: string option,
-                        pgiptype: pgiptype }
 end
 
 signature PGIPTYPES_OPNS = 
@@ -88,8 +82,6 @@ sig
     val attrs_of_location : location -> XML.attributes
     val location_of_attrs : XML.attributes -> location (* raises PGIP *)
 
-    val haspref : preference -> XML.tree
-
     val pgipurl_of_url : Url.T -> pgipurl              (* raises PGIP *)
     val pgipurl_of_string : string -> pgipurl          (* raises PGIP *)
     val pgipurl_of_path : Path.T -> pgipurl
@@ -99,7 +91,6 @@ sig
     val pgipurl_of_attrs : XML.attributes -> pgipurl   (* raises PGIP *)
 
     (* XML utils, only for PGIP code *)
-    val has_attr       : string -> XML.attributes -> bool
     val attr           : string -> string -> XML.attributes
     val opt_attr       : string -> string option -> XML.attributes
     val opt_attr_map   : ('a -> string) -> string -> 'a option -> XML.attributes
@@ -113,8 +104,6 @@ struct
 exception PGIP of string
 
 (** XML utils **)
-
-fun has_attr attr attrs = Properties.defined attrs attr
 
 fun get_attr_opt attr attrs = Properties.get attrs attr
 
@@ -431,20 +420,6 @@ in
           {descr=descr, url=url, line=line, column=column, char=char, length=length}
       end
 end
-
-(** Preferences **)
-
-type preference = { name: string,
-                    descr: string option,
-                    default: string option,
-                    pgiptype: pgiptype }
-
-fun haspref ({ name, descr, default, pgiptype}:preference) = 
-    XML.Elem (("haspref",
-              attr "name" name @
-              opt_attr "descr" descr @
-              opt_attr "default" default),
-              [pgiptype_to_xml pgiptype])
 
 end
 
