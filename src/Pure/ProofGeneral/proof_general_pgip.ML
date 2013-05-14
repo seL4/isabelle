@@ -14,18 +14,28 @@ struct
 
 (* output PGIP packets *)
 
+fun get_attr attrs name =
+  (case Properties.get attrs name of
+    SOME value => value
+  | NONE => raise Fail ("Missing attribute: " ^ quote name));
+
+fun attr x y = [(x, y)] : XML.attributes;
+
+fun opt_attr _ NONE = []
+  | opt_attr name (SOME value) = attr name value;
+
 val pgip_id = "dummy";
 val pgip_serial = Synchronized.counter ();
 
 fun output_pgip refid refseq content =
   XML.Elem (("pgip",
-    PgipTypes.attr "tag" "Isabelle/Isar" @
-    PgipTypes.attr "id" pgip_id @
-    PgipTypes.opt_attr "destid" refid @
-    PgipTypes.attr "class" "pg" @
-    PgipTypes.opt_attr "refid" refid @
-    PgipTypes.attr "refseq" refseq @
-    PgipTypes.attr "seq" (string_of_int (pgip_serial ()))), content)
+    attr "tag" "Isabelle/Isar" @
+    attr "id" pgip_id @
+    opt_attr "destid" refid @
+    attr "class" "pg" @
+    opt_attr "refid" refid @
+    attr "refseq" refseq @
+    attr "seq" (string_of_int (pgip_serial ()))), content)
   |> XML.string_of
   |> Output.urgent_message;
 
@@ -47,7 +57,7 @@ fun set_preference pref value =
 
 local
 
-fun invalid_pgip () = raise PgipTypes.PGIP "Invalid PGIP packet received";
+fun invalid_pgip () = raise Fail "Invalid PGIP packet";
 
 fun haspref ({name, descr, default, pgiptype, ...}: Preferences.preference) =
   XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
@@ -71,17 +81,17 @@ fun process_pgip str =
   (case XML.parse str of
     XML.Elem (("pgip", attrs), pgips) =>
       let
-        val class = PgipTypes.get_attr attrs "class";
+        val class = get_attr attrs "class";
         val dest = Properties.get attrs "destid";
         val refid = Properties.get attrs "id";
-        val refseq = PgipTypes.get_attr attrs "seq";
+        val refseq = get_attr attrs "seq";
         val processit =
           (case dest of
             NONE => class = "pa"
           | SOME id => id = pgip_id);
        in if processit then List.app (process_element refid refseq) pgips else () end
   | _ => invalid_pgip ())
-  handle PgipTypes.PGIP msg => error (msg ^ "\n" ^ str);
+  handle Fail msg => raise Fail (msg ^ "\n" ^ str);
 
 in
 

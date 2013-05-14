@@ -298,8 +298,6 @@ use "Tools/legacy_xml_syntax.ML";
 
 (* configuration for Proof General *)
 
-use "ProofGeneral/pgip_types.ML";
-
 (use
   |> Unsynchronized.setmp Proofterm.proofs 0
   |> Unsynchronized.setmp Multithreading.max_threads 0)
