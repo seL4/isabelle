@@ -185,7 +185,12 @@ fun parse_real s =
     SOME x => x
   | NONE => raise Fail ("Bad real: " ^ quote s));
 
-val print_real = smart_string_of_real;
+fun print_real x =
+  let val s = signed_string_of_real x in
+    (case space_explode "." s of
+      [a, b] => if forall_string (fn c => c = "0") b then a else s
+    | _ => s)
+  end;
 
 
 (* basic markup *)

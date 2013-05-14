@@ -45,7 +45,7 @@ datatype value =
 fun print_value (Bool true) = "true"
   | print_value (Bool false) = "false"
   | print_value (Int i) = signed_string_of_int i
-  | print_value (Real x) = signed_string_of_real x
+  | print_value (Real x) = Markup.print_real x
   | print_value (String s) = quote s;
 
 fun print_type (Bool _) = "bool"

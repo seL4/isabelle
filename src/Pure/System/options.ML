@@ -103,7 +103,7 @@ val string = get stringT SOME;
 
 val put_bool = put boolT Markup.print_bool;
 val put_int = put intT Markup.print_int;
-val put_real = put realT signed_string_of_real;
+val put_real = put realT Markup.print_real;
 val put_string = put stringT I;
 
 

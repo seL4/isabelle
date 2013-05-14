@@ -157,7 +157,6 @@ sig
   (*reals*)
   val string_of_real: real -> string
   val signed_string_of_real: real -> string
-  val smart_string_of_real: real -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -777,15 +776,6 @@ val string_of_real = Real.fmt (StringCvt.GEN NONE);
 
 fun signed_string_of_real x =
   if x < 0.0 then "-" ^ string_of_real (~ x) else string_of_real x;
-
-fun smart_string_of_real x =
-  let
-    val s = signed_string_of_real x;
-  in
-    (case space_explode "." s of
-      [a, b] => if forall_string (fn c => c = "0") b then a else s
-    | _ => s)
-  end;
 
 
 

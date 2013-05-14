@@ -219,7 +219,7 @@ fun freshish_name () =
 
 fun encode_feature (name, weight) =
   encode_str name ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ smart_string_of_real weight)
+  (if Real.== (weight, 1.0) then "" else "=" ^ Markup.print_real weight)
 
 val encode_features = map encode_feature #> space_implode " "
 

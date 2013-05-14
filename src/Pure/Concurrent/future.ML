@@ -193,7 +193,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
       val active = count_workers Working;
       val waiting = count_workers Waiting;
       val stats =
-       [("now", signed_string_of_real (Time.toReal (Time.now ()))),
+       [("now", Markup.print_real (Time.toReal (Time.now ()))),
         ("tasks_proof", Markup.print_int (! forked_proofs)),
         ("tasks_ready", Markup.print_int ready),
         ("tasks_pending", Markup.print_int pending),
