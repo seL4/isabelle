@@ -67,9 +67,9 @@ val _ = Context.>> (Context.map_theory
 
   inline (Binding.name "make_string") (Scan.succeed ml_make_string) #>
 
-  value (Binding.name "option_default") (Scan.lift Args.name >> (fn name =>
-    let val typ = Options.default_typ name
-    in "fn () => Options.default_" ^ typ ^ " " ^ ML_Syntax.print_string name end)) #>
+  value (Binding.name "option") (Scan.lift (Parse.position Args.name) >> (fn (name, pos) =>
+    (Options.default_typ name handle ERROR msg => error (msg ^ Position.here pos);
+     ML_Syntax.print_string name))) #>
 
   value (Binding.name "binding")
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>

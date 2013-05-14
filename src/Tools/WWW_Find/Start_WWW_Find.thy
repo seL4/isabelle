@@ -5,7 +5,7 @@
 theory Start_WWW_Find imports WWW_Find begin
 
 ML {*
-  Options.default_put_bool "show_question_marks" false;
+  Options.default_put_bool @{option show_question_marks} false;
   YXML_Find_Theorems.init ();
   val port = Markup.parse_int (getenv "SCGIPORT");
   ScgiServer.server' 10 "/" port;
