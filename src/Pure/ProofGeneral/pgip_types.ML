@@ -18,18 +18,6 @@ sig
 
   exception PGIP of string
 
-  (* Values as XML strings *)
-  val read_pgipint       : (int option * int option) -> string -> int (* raises PGIP *)
-  val read_pgipnat       : string -> int                              (* raises PGIP *)
-  val read_pgipbool      : string -> bool                             (* raises PGIP *)
-  val read_pgipreal      : string -> real                             (* raises PGIP *)
-  val read_pgipstring    : string -> string                           (* raises PGIP *)
-  val real_to_pgstring   : real -> string
-  val int_to_pgstring    : int -> string
-  val bool_to_pgstring   : bool -> string
-  val string_to_pgstring : string -> string
-
-  (* PGIP datatypes *)
   val pgiptype_to_xml   : pgiptype -> XML.tree
 end
 
@@ -49,55 +37,6 @@ fun attr x y = [(x,y)] : XML.attributes
 
 fun opt_attr _ NONE = []
   | opt_attr name (SOME value) = attr name value;
-
-
-(** Types and values **)
-
-fun read_pgipbool s =
-    (case s of
-         "false" => false
-       | "true" => true
-       | _ => raise PGIP ("Invalid boolean value: " ^ quote s))
-
-local
-    fun int_in_range (NONE,NONE) (_: int) = true
-      | int_in_range (SOME min,NONE) i = min<= i
-      | int_in_range (NONE,SOME max) i = i<=max
-      | int_in_range (SOME min,SOME max) i = min<= i andalso i<=max
-in
-fun read_pgipint range s =
-    (case Int.fromString s of
-         SOME i => if int_in_range range i then i
-                   else raise PGIP ("Out of range integer value: " ^ quote s)
-       | NONE => raise PGIP ("Invalid integer value: " ^ quote s))
-end;
-
-fun read_pgipnat s =
-    (case Int.fromString s of
-         SOME i => if i >= 0 then i
-                   else raise PGIP ("Invalid natural number: " ^ quote s)
-       | NONE => raise PGIP ("Invalid natural number: " ^ quote s))
-
-fun read_pgipreal s =
-    (case Real.fromString s of
-         SOME x => x
-       | NONE => raise PGIP ("Invalid floating-point number: " ^ quote s))
-
-(* NB: we can maybe do without xml decode/encode here. *)
-fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
-    (case XML.parse_string s of
-         SOME s => s
-       | NONE => raise PGIP ("Expected a non-empty string: " ^ quote s))
-    handle _ => raise PGIP ("Invalid XML string syntax: " ^ quote s)  (* FIXME avoid handle _ *)
-
-val int_to_pgstring = signed_string_of_int
-
-val real_to_pgstring = Markup.print_real;
-
-
-fun string_to_pgstring s = XML.text s
-
-fun bool_to_pgstring b = if b then "true" else "false"
 
 
 (* PGIP datatypes.
@@ -150,7 +89,7 @@ fun pgipdtype_to_xml (desco,ty) =
                     | Pgipconst _ => "pgipconst"
                     | Pgipchoice _ => "pgipchoice"
 
-        fun range_attr r v = attr r (int_to_pgstring v)
+        fun range_attr r v = attr r (Markup.print_int v)
 
         val attrs = case ty of
                         Pgipint (SOME min,SOME max) => (range_attr "min" min)@(range_attr "max" max)

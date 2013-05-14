@@ -83,37 +83,34 @@ fun generic_pref read write typ r =
 
 val string_pref = generic_pref I I PgipTypes.Pgipstring;
 
-val real_pref =
-  generic_pref PgipTypes.real_to_pgstring PgipTypes.read_pgipreal PgipTypes.Pgipreal;
+val real_pref = generic_pref Markup.print_real Markup.parse_real PgipTypes.Pgipreal;
 
 val int_pref =
-  generic_pref PgipTypes.int_to_pgstring (PgipTypes.read_pgipint (NONE, NONE))
-    (PgipTypes.Pgipint (NONE, NONE));
+  generic_pref Markup.print_int Markup.parse_int (PgipTypes.Pgipint (NONE, NONE));
 
-val bool_pref =
-  generic_pref PgipTypes.bool_to_pgstring PgipTypes.read_pgipbool PgipTypes.Pgipbool;
+val bool_pref = generic_pref Markup.print_bool Markup.parse_bool PgipTypes.Pgipbool;
 
 
 (* preferences of Pure *)
 
 val proof_pref = Unsynchronized.setmp Proofterm.proofs 1 (fn () =>
   let
-    fun get () = PgipTypes.bool_to_pgstring (Proofterm.proofs_enabled ());
-    fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1);
+    fun get () = Markup.print_bool (Proofterm.proofs_enabled ());
+    fun set s = Proofterm.proofs := (if Markup.parse_bool s then 2 else 1);
   in mkpref get set PgipTypes.Pgipbool "full-proofs" "Record full proof objects internally" end) ();
 
 val parallel_proof_pref =
   let
-    fun get () = PgipTypes.bool_to_pgstring (! Goal.parallel_proofs >= 1);
-    fun set s = Goal.parallel_proofs := (if PgipTypes.read_pgipbool s then 1 else 0);
+    fun get () = Markup.print_bool (! Goal.parallel_proofs >= 1);
+    fun set s = Goal.parallel_proofs := (if Markup.parse_bool s then 1 else 0);
   in mkpref get set PgipTypes.Pgipbool "parallel-proofs" "Check proofs in parallel" end;
 
 val thm_depsN = "thm_deps";
 val thm_deps_pref =
   let
-    fun get () = PgipTypes.bool_to_pgstring (print_mode_active thm_depsN);
+    fun get () = Markup.print_bool (print_mode_active thm_depsN);
     fun set s =
-      if PgipTypes.read_pgipbool s
+      if Markup.parse_bool s
       then Unsynchronized.change print_mode (insert (op =) thm_depsN)
       else Unsynchronized.change print_mode (remove (op =) thm_depsN);
   in
@@ -123,8 +120,8 @@ val thm_deps_pref =
 
 val print_depth_pref =
   let
-    fun get () = PgipTypes.int_to_pgstring (get_print_depth ());
-    val set = print_depth o PgipTypes.read_pgipnat;
+    val get = Markup.print_int o get_print_depth;
+    val set = print_depth o Markup.parse_int;
   in mkpref get set PgipTypes.Pgipnat "print-depth" "Setting for the ML print depth" end;
 
 
