@@ -51,9 +51,9 @@ by auto
 text{* Disable L WHILE equation and reason only with L WHILE constraints *}
 declare L.simps(5)[simp del]
 
-subsection "Soundness"
+subsection "Correctness"
 
-theorem L_sound:
+theorem L_correct:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (c,t) \<Rightarrow> t' & s' = t' on X"
 proof (induction arbitrary: X t rule: big_step_induct)
@@ -114,11 +114,11 @@ fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = IF b THEN bury c\<^isub>1 X ELSE bury c\<^isub>2 X" |
 "bury (WHILE b DO c) X = WHILE b DO bury c (L (WHILE b DO c) X)"
 
-text{* We could prove the analogous lemma to @{thm[source]L_sound}, and the
+text{* We could prove the analogous lemma to @{thm[source]L_correct}, and the
 proof would be very similar. However, we phrase it as a semantics
 preservation property: *}
 
-theorem bury_sound:
+theorem bury_correct:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (bury c X,t) \<Rightarrow> t' & s' = t' on X"
 proof (induction arbitrary: X t rule: big_step_induct)
@@ -169,8 +169,8 @@ next
   with `bval b t1` `(bury c (L ?w X), t1) \<Rightarrow> t2` show ?case by auto
 qed
 
-corollary final_bury_sound: "(c,s) \<Rightarrow> s' \<Longrightarrow> (bury c UNIV,s) \<Rightarrow> s'"
-using bury_sound[of c s s' UNIV]
+corollary final_bury_correct: "(c,s) \<Rightarrow> s' \<Longrightarrow> (bury c UNIV,s) \<Rightarrow> s'"
+using bury_correct[of c s s' UNIV]
 by (auto simp: fun_eq_iff[symmetric])
 
 text{* Now the opposite direction. *}
@@ -195,7 +195,7 @@ lemma While_bury[simp]: "WHILE b DO bc' = bury c X \<longleftrightarrow>
   (EX c'. c = WHILE b DO c' & bc' = bury c' (L (WHILE b DO c') X))"
 by (cases c) auto
 
-theorem bury_sound2:
+theorem bury_correct2:
   "(bury c X,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (c,t) \<Rightarrow> t' & s' = t' on X"
 proof (induction "bury c X" s s' arbitrary: c X t rule: big_step_induct)
@@ -257,11 +257,11 @@ next
   with `bval b t1` `(c', t1) \<Rightarrow> t2` w show ?case by auto
 qed
 
-corollary final_bury_sound2: "(bury c UNIV,s) \<Rightarrow> s' \<Longrightarrow> (c,s) \<Rightarrow> s'"
-using bury_sound2[of c UNIV]
+corollary final_bury_correct2: "(bury c UNIV,s) \<Rightarrow> s' \<Longrightarrow> (c,s) \<Rightarrow> s'"
+using bury_correct2[of c UNIV]
 by (auto simp: fun_eq_iff[symmetric])
 
 corollary bury_sim: "bury c UNIV \<sim> c"
-by(metis final_bury_sound final_bury_sound2)
+by(metis final_bury_correct final_bury_correct2)
 
 end

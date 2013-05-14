@@ -50,9 +50,9 @@ text{* Disable L WHILE equation and reason only with L WHILE constraints *}
 declare L.simps(5)[simp del]
 
 
-subsection "Soundness"
+subsection "Correctness"
 
-theorem L_sound:
+theorem L_correct:
   "(c,s) \<Rightarrow> s'  \<Longrightarrow> s = t on L c X \<Longrightarrow>
   \<exists> t'. (c,t) \<Rightarrow> t' & s' = t' on X"
 proof (induction arbitrary: X t rule: big_step_induct)
