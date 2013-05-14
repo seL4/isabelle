@@ -113,36 +113,33 @@ object File
 
   /* write */
 
-  private def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
+  private def write_file(file: JFile, text: Iterable[CharSequence],
+    make_stream: OutputStream => OutputStream)
   {
     val stream = make_stream(new FileOutputStream(file))
     val writer = new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset))
-    try { writer.append(text) } finally { writer.close }
+    try { text.iterator.foreach(writer.append(_)) }
+    finally { writer.close }
   }
 
-  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, (s) => s)
-
+  def write(file: JFile, text: Iterable[CharSequence]): Unit = write_file(file, text, (s) => s)
+  def write(file: JFile, text: CharSequence): Unit = write(file, List(text))
+  def write(path: Path, text: Iterable[CharSequence]): Unit = write(path.file, text)
   def write(path: Path, text: CharSequence): Unit = write(path.file, text)
 
-  def write_gzip(file: JFile, text: CharSequence): Unit =
+  def write_gzip(file: JFile, text: Iterable[CharSequence]): Unit =
     write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
-
+  def write_gzip(file: JFile, text: CharSequence): Unit = write_gzip(file, List(text))
+  def write_gzip(path: Path, text: Iterable[CharSequence]): Unit = write_gzip(path.file, text)
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
 
-  def write_xz(file: JFile, text: CharSequence, preset: Int)
+  def write_xz(file: JFile, text: Iterable[CharSequence], preset: Int = 3)
   {
     val options = new LZMA2Options
     options.setPreset(preset)
     write_file(file, text, (s: OutputStream) =>
       new XZOutputStream(new BufferedOutputStream(s), options))
   }
-
-  def write_xz(file: JFile, text: CharSequence): Unit = write_xz(file, text, 3)
-
-  def write_xz(path: Path, text: CharSequence, preset: Int): Unit =
-    write_xz(path.file, text, preset)
-
-  def write_xz(path: Path, text: CharSequence): Unit = write_xz(path.file, text, 3)
 
 
   /* copy */
