@@ -21,11 +21,18 @@ object Command_Line
     def unapplySeq(list: List[String]): Option[List[List[String]]] = Some(chunks(list))
   }
 
+  var debug = false
+
   def tool(body: => Int): Nothing =
   {
     val rc =
       try { body }
-      catch { case exn: Throwable => java.lang.System.err.println(Exn.message(exn)); 2 }
+      catch {
+        case exn: Throwable =>
+          if (debug) exn.printStackTrace
+          java.lang.System.err.println(Exn.message(exn))
+          2
+      }
     sys.exit(rc)
   }
 }
