@@ -63,13 +63,13 @@ val empty = Options Symtab.empty;
 fun check_name (Options tab) name =
   let val opt = Symtab.lookup tab name in
     if is_some opt andalso #typ (the opt) <> unknownT then the opt
-    else error ("Unknown option " ^ quote name)
+    else error ("Unknown system option " ^ quote name)
   end;
 
 fun check_type options name typ =
   let val opt = check_name options name in
     if #typ opt = typ then opt
-    else error ("Ill-typed option " ^ quote name ^ " : " ^ #typ opt ^ " vs. " ^ typ)
+    else error ("Ill-typed system option " ^ quote name ^ " : " ^ #typ opt ^ " vs. " ^ typ)
   end;
 
 
@@ -89,7 +89,7 @@ fun get T parse options name =
     (case parse (#value opt) of
       SOME x => x
     | NONE =>
-        error ("Malformed value for option " ^ quote name ^
+        error ("Malformed value for system option " ^ quote name ^
           " : " ^ T ^ " =\n" ^ quote (#value opt)))
   end;
 
@@ -121,10 +121,10 @@ fun check_value options name =
 fun declare {name, typ, value} (Options tab) =
   let
     val options' = Options (Symtab.update_new (name, {typ = typ, value = value}) tab)
-      handle Symtab.DUP _ => error ("Duplicate declaration of option " ^ quote name);
+      handle Symtab.DUP _ => error ("Duplicate declaration of system option " ^ quote name);
     val _ =
       typ = boolT orelse typ = intT orelse typ = realT orelse typ = stringT orelse
-        error ("Unknown type for option " ^ quote name ^ " : " ^ quote typ);
+        error ("Unknown type for system option " ^ quote name ^ " : " ^ quote typ);
     val _ = check_value options' name;
   in options' end;
 
@@ -148,7 +148,7 @@ fun decode body =
 
 val global_default = Synchronized.var "Options.default" (NONE: T option);
 
-fun err_no_default () = error "No global default options";
+fun err_no_default () = error "Missing default for system options within Isabelle process";
 
 fun change_default f x y =
   Synchronized.change global_default
