@@ -7,7 +7,7 @@ struct
 
 fun get args name default_value =
   case AList.lookup (op =) args name of
-    SOME value => the (Real.fromString value)
+    SOME value => Markup.parse_real value
   | NONE => default_value
 
 fun extract_relevance_fudge args

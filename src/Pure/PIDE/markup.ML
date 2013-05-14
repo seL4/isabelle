@@ -10,6 +10,8 @@ sig
   val print_bool: bool -> string
   val parse_int: string -> int
   val print_int: int -> string
+  val parse_real: string -> real
+  val print_real: real -> string
   type T = string * Properties.T
   val empty: T
   val is_empty: T -> bool
@@ -161,16 +163,13 @@ struct
 
 (** markup elements **)
 
-(* booleans *)
+(* misc values *)
 
 fun parse_bool "true" = true
   | parse_bool "false" = false
   | parse_bool s = raise Fail ("Bad boolean: " ^ quote s);
 
 val print_bool = Bool.toString;
-
-
-(* integers *)
 
 fun parse_int s =
   let val i = Int.fromString s in
@@ -180,6 +179,13 @@ fun parse_int s =
   end;
 
 val print_int = signed_string_of_int;
+
+fun parse_real s =
+  (case Real.fromString s of
+    SOME x => x
+  | NONE => raise Fail ("Bad real: " ^ quote s));
+
+val print_real = smart_string_of_real;
 
 
 (* basic markup *)

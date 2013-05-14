@@ -98,7 +98,7 @@ fun get T parse options name =
 
 val bool = get boolT (try Markup.parse_bool);
 val int = get intT (try Markup.parse_int);
-val real = get realT Real.fromString;
+val real = get realT (try Markup.parse_real);
 val string = get stringT SOME;
 
 val put_bool = put boolT Markup.print_bool;
