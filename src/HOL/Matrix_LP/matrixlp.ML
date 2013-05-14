@@ -6,8 +6,6 @@ signature MATRIX_LP =
 sig
   val matrix_compute : cterm -> thm
   val matrix_simplify : thm -> thm
-  val prove_bound : string -> int -> thm
-  val float2real : string * string -> Real.real
 end
 
 structure MatrixLP : MATRIX_LP =
@@ -52,8 +50,5 @@ fun matrix_simplify th =
   end
 
 val prove_bound = matrix_simplify oo lp_dual_estimate_prt;
-
-val realFromStr = the o Real.fromString;
-fun float2real (x, y) = realFromStr x * Math.pow (2.0, realFromStr y);
 
 end
