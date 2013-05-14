@@ -208,9 +208,9 @@ by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
 by (induction C1 C2 rule: less_eq_acom.induct) (simp_all add:mono_gamma_o)
 
-text{* Soundness: *}
+text{* Correctness: *}
 
-lemma aval'_sound: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_correct: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_fun_def)
 
 lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(S(x := a))"
@@ -225,9 +225,9 @@ qed  (auto simp: mono_gamma_o assms)
 lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
-  (auto simp: aval'_sound in_gamma_update asem_def split: option.splits)
+  (auto simp: aval'_correct in_gamma_update asem_def split: option.splits)
 
-lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])

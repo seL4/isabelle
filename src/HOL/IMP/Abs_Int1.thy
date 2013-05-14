@@ -16,7 +16,7 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = fun S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-lemma aval'_sound: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_correct: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def)
 
 lemma gamma_Step_subcomm: fixes C1 C2 :: "'a::semilattice_sup acom"
@@ -48,14 +48,14 @@ lemma strip_step'[simp]: "strip(step' S C) = strip C"
 by(simp add: step'_def)
 
 
-text{* Soundness: *}
+text{* Correctness: *}
 
 lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
-  (auto simp: intro!: aval'_sound in_gamma_update split: option.splits)
+  (auto simp: intro!: aval'_correct in_gamma_update split: option.splits)
 
-lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])

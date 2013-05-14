@@ -254,7 +254,7 @@ begin
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
 "AI_wn c = pfp_wn (step' \<top>) (bot c)"
 
-lemma AI_wn_sound: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_wn_correct: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_wn_def)
   assume 1: "pfp_wn (step' \<top>) (bot c) = Some C"
   have 2: "strip C = c \<and> step' \<top> C \<le> C"
@@ -277,7 +277,7 @@ end
 interpretation Abs_Int2
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
+and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 defines AI_wn_ivl is AI_wn
 ..
 
@@ -557,7 +557,7 @@ by(auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamm
 interpretation Abs_Int2_measure
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
+and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 and m = m_ivl and n = n_ivl and h = 3
 proof
   case goal2 thus ?case by(rule m_ivl_anti_mono)

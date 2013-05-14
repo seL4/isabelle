@@ -265,8 +265,8 @@ instance ..
 end
 
 
-definition constrain_plus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl*ivl" where
-"constrain_plus_ivl iv iv1 iv2 = (iv1 \<sqinter> (iv - iv2), iv2 \<sqinter> (iv - iv1))"
+definition inv_plus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl*ivl" where
+"inv_plus_ivl iv iv1 iv2 = (iv1 \<sqinter> (iv - iv2), iv2 \<sqinter> (iv - iv1))"
 
 definition above_rep :: "eint2 \<Rightarrow> eint2" where
 "above_rep p = (if is_empty_rep p then empty_rep else let (l,h) = p in (l,\<infinity>))"
@@ -290,8 +290,8 @@ by transfer
    (auto simp add: below_rep_def \<gamma>_rep_cases is_empty_rep_def
          split: extended.splits)
 
-definition constrain_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
-"constrain_less_ivl res iv1 iv2 =
+definition inv_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
+"inv_less_ivl res iv1 iv2 =
   (if res
    then (iv1 \<sqinter> (below iv2 - [Fin 1,Fin 1]),
          iv2 \<sqinter> (above iv1 + [Fin 1,Fin 1]))
@@ -339,18 +339,18 @@ qed
 interpretation Val_abs1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
+and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 proof
   case goal1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
 next
   case goal2 thus ?case
-    unfolding constrain_plus_ivl_def minus_ivl_def
+    unfolding inv_plus_ivl_def minus_ivl_def
     apply(clarsimp simp add: \<gamma>_inf)
     using gamma_plus'[of "i1+i2" _ "-i1"] gamma_plus'[of "i1+i2" _ "-i2"]
     by(simp add:  \<gamma>_uminus)
 next
   case goal3 thus ?case
-    unfolding constrain_less_ivl_def minus_ivl_def
+    unfolding inv_less_ivl_def minus_ivl_def
     apply(clarsimp simp add: \<gamma>_inf split: if_splits)
     using gamma_plus'[of "i1+1" _ "-1"] gamma_plus'[of "i2 - 1" _ "1"]
     apply(simp add: \<gamma>_belowI[of i2] \<gamma>_aboveI[of i1]
@@ -362,9 +362,9 @@ qed
 interpretation Abs_Int1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
-defines aconstrain_ivl is aconstrain
-and bconstrain_ivl is bconstrain
+and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
+defines inv_aval_ivl is inv_aval''
+and inv_bval_ivl is inv_bval''
 and step_ivl is step'
 and AI_ivl is AI
 and aval_ivl' is aval''
@@ -396,16 +396,16 @@ by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 interpretation Abs_Int1_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
+and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
 proof
   case goal1 thus ?case by (rule mono_plus_ivl)
 next
   case goal2 thus ?case
-    unfolding constrain_plus_ivl_def minus_ivl_def less_eq_prod_def
+    unfolding inv_plus_ivl_def minus_ivl_def less_eq_prod_def
     by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_minus_ivl)
 next
   case goal3 thus ?case
-    unfolding less_eq_prod_def constrain_less_ivl_def minus_ivl_def
+    unfolding less_eq_prod_def inv_less_ivl_def minus_ivl_def
     by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_above mono_below)
 qed
 
