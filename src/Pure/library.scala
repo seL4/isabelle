@@ -77,6 +77,12 @@ object Library
 
   /* lines */
 
+  def terminate_lines(lines: Iterable[CharSequence]): Iterable[CharSequence] =
+    new Iterable[CharSequence] {
+      def iterator: Iterator[CharSequence] =
+        lines.iterator.map(line => new Line_Termination(line))
+    }
+
   def cat_lines(lines: TraversableOnce[String]): String = lines.mkString("\n")
 
   def split_lines(str: String): List[String] = space_explode('\n', str)
@@ -109,7 +115,7 @@ object Library
   def commas_quote(ss: Iterable[String]): String = ss.iterator.map(quote).mkString(", ")
 
 
-  /* reverse CharSequence */
+  /* CharSequence */
 
   class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
   {
@@ -131,6 +137,16 @@ object Library
         buf.append(charAt(i))
       buf.toString
     }
+  }
+
+  class Line_Termination(text: CharSequence) extends CharSequence
+  {
+    def length: Int = text.length + 1
+    def charAt(i: Int): Char = if (i == text.length) '\n' else text.charAt(i)
+    def subSequence(i: Int, j: Int): CharSequence =
+      if (j == text.length + 1) new Line_Termination(text.subSequence(i, j - 1))
+      else text.subSequence(i, j)
+    override def toString: String = text.toString + "\n"
   }
 
 

@@ -772,7 +772,7 @@ object Build
                 val sources = make_stamp(name)
                 val heap = heap_stamp(job.output_path)
                 File.write_gzip(output_dir + log_gz(name),
-                  sources + "\n" + parent_heap + "\n" + heap + "\n" + res.out)
+                  Library.terminate_lines(sources :: parent_heap :: heap :: res.out_lines))
 
                 heap
               }
@@ -780,7 +780,7 @@ object Build
                 (output_dir + Path.basic(name)).file.delete
                 (output_dir + log_gz(name)).file.delete
 
-                File.write(output_dir + log(name), res.out)
+                File.write(output_dir + log(name), Library.terminate_lines(res.out_lines))
                 progress.echo(name + " FAILED")
                 if (res.rc != 130) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
