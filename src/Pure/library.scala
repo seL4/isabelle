@@ -8,6 +8,8 @@ Basic library.
 package isabelle
 
 
+import scala.collection.mutable
+
 import java.util.Locale
 import java.util.concurrent.{Future => JFuture, TimeUnit}
 
@@ -32,10 +34,21 @@ object Library
   /* separated chunks */
 
   def separate[A](s: A, list: List[A]): List[A] =
-    list match {
-      case x :: xs if !xs.isEmpty => x :: s :: separate(s, xs)
-      case _ => list
+  {
+    val result = new mutable.ListBuffer[A]
+    var first = true
+    for (x <- list) {
+      if (first) {
+        first = false
+        result += x
+      }
+      else {
+        result += s
+        result += x
+      }
     }
+    result.toList
+  }
 
   def separated_chunks(sep: Char, source: CharSequence): Iterator[CharSequence] =
     new Iterator[CharSequence] {
