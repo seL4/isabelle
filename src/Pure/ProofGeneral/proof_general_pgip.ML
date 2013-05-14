@@ -51,7 +51,7 @@ fun invalid_pgip () = raise PgipTypes.PGIP "Invalid PGIP packet received";
 
 fun haspref ({name, descr, default, pgiptype, ...}: Preferences.preference) =
   XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
-    [PgipTypes.pgiptype_to_xml pgiptype]);
+    [XML.Elem ((pgiptype, []), [])]);
 
 fun process_element refid refseq (XML.Elem (("askprefs", _), _)) =
       ! preferences |> List.app (fn (category, prefs) =>

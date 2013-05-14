@@ -14,7 +14,7 @@ sig
    {name: string,
     descr: string,
     default: string,
-    pgiptype: PgipTypes.pgiptype,
+    pgiptype: string,
     get: unit -> string,
     set: string -> unit}
   val options_pref: string -> string -> string -> preference
@@ -45,9 +45,14 @@ type preference =
  {name: string,
   descr: string,
   default: string,
-  pgiptype: PgipTypes.pgiptype,
+  pgiptype: string,
   get: unit -> string,
   set: string -> unit};
+
+val pgipbool = "pgipbool";
+val pgipint = "pgipint";
+val pgipfloat = "pgipint";  (*NB: PG 3.7.x and 4.0 lack pgipfloat, but accept floats as pgipint*)
+val pgipstring = "pgipstring";
 
 
 (* options as preferences *)
@@ -56,10 +61,10 @@ fun options_pref option_name pgip_name descr : preference =
   let
     val typ = Options.default_typ option_name;
     val pgiptype =
-      if typ = Options.boolT then PgipTypes.Pgipbool
-      else if typ = Options.intT then PgipTypes.Pgipint (NONE, NONE)
-      else if typ = Options.realT then PgipTypes.Pgipreal
-      else PgipTypes.Pgipstring;
+      if typ = Options.boolT then pgipbool
+      else if typ = Options.intT then pgipint
+      else if typ = Options.realT then pgipfloat
+      else pgipstring;
   in
    {name = pgip_name,
     descr = descr,
@@ -81,14 +86,10 @@ fun mkpref raw_get raw_set typ name descr : preference =
 fun generic_pref read write typ r =
   mkpref (fn () => read (! r)) (fn x => r := write x) typ;
 
-val string_pref = generic_pref I I PgipTypes.Pgipstring;
-
-val real_pref = generic_pref Markup.print_real Markup.parse_real PgipTypes.Pgipreal;
-
-val int_pref =
-  generic_pref Markup.print_int Markup.parse_int (PgipTypes.Pgipint (NONE, NONE));
-
-val bool_pref = generic_pref Markup.print_bool Markup.parse_bool PgipTypes.Pgipbool;
+val bool_pref = generic_pref Markup.print_bool Markup.parse_bool pgipbool;
+val int_pref = generic_pref Markup.print_int Markup.parse_int pgipint;
+val real_pref = generic_pref Markup.print_real Markup.parse_real pgipfloat;
+val string_pref = generic_pref I I pgipstring;
 
 
 (* preferences of Pure *)
@@ -97,13 +98,13 @@ val proof_pref = Unsynchronized.setmp Proofterm.proofs 1 (fn () =>
   let
     fun get () = Markup.print_bool (Proofterm.proofs_enabled ());
     fun set s = Proofterm.proofs := (if Markup.parse_bool s then 2 else 1);
-  in mkpref get set PgipTypes.Pgipbool "full-proofs" "Record full proof objects internally" end) ();
+  in mkpref get set pgipbool "full-proofs" "Record full proof objects internally" end) ();
 
 val parallel_proof_pref =
   let
     fun get () = Markup.print_bool (! Goal.parallel_proofs >= 1);
     fun set s = Goal.parallel_proofs := (if Markup.parse_bool s then 1 else 0);
-  in mkpref get set PgipTypes.Pgipbool "parallel-proofs" "Check proofs in parallel" end;
+  in mkpref get set pgipbool "parallel-proofs" "Check proofs in parallel" end;
 
 val thm_depsN = "thm_deps";
 val thm_deps_pref =
@@ -114,7 +115,7 @@ val thm_deps_pref =
       then Unsynchronized.change print_mode (insert (op =) thm_depsN)
       else Unsynchronized.change print_mode (remove (op =) thm_depsN);
   in
-    mkpref get set PgipTypes.Pgipbool "theorem-dependencies"
+    mkpref get set pgipbool "theorem-dependencies"
       "Track theorem dependencies within Proof General"
   end;
 
@@ -122,7 +123,7 @@ val print_depth_pref =
   let
     val get = Markup.print_int o get_print_depth;
     val set = print_depth o Markup.parse_int;
-  in mkpref get set PgipTypes.Pgipnat "print-depth" "Setting for the ML print depth" end;
+  in mkpref get set pgipint "print-depth" "Setting for the ML print depth" end;
 
 
 val display_preferences =
