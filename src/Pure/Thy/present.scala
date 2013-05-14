@@ -40,7 +40,7 @@ object Present
 
     val sessions0 =
       try { read_sessions(dir) }
-      catch { case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
+      catch { case _: XML.Error => Nil }
 
     val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
 

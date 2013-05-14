@@ -199,8 +199,9 @@ object XML
 
   /** XML as data representation language **/
 
-  class XML_Atom(s: String) extends Exception(s)
-  class XML_Body(body: XML.Body) extends Exception
+  abstract class Error(s: String) extends Exception(s)
+  class XML_Atom(s: String) extends Error(s)
+  class XML_Body(body: XML.Body) extends Error("")
 
   object Encode
   {

@@ -21,8 +21,7 @@ object Protocol
       }
       catch {
         case ERROR(_) => None
-        case _: XML.XML_Atom => None
-        case _: XML.XML_Body => None
+        case _: XML.Error => None
       }
   }
 
@@ -35,8 +34,7 @@ object Protocol
       }
       catch {
         case ERROR(_) => None
-        case _: XML.XML_Atom => None
-        case _: XML.XML_Body => None
+        case _: XML.Error => None
       }
   }
 
