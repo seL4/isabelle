@@ -276,7 +276,8 @@ fun raw_label_for_name (num, ss) =
   | _ => (raw_prefix ^ ascii_of num, 0)
 
 fun label_of_clause [name] = raw_label_for_name name
-  | label_of_clause c = (space_implode "___" (map (fst o raw_label_for_name) c), 0)
+  | label_of_clause c =
+    (space_implode "___" (map (fst o raw_label_for_name) c), 0)
 
 fun add_fact_from_dependencies fact_names (names as [(_, ss)]) =
     if is_fact fact_names ss then
@@ -432,19 +433,21 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
     fun of_moreover ind = of_indent ind ^ "moreover\n"
     fun of_label l = if l = no_label then "" else string_for_label l ^ ": "
     fun of_obtain qs nr =
-      (if nr>1 orelse (nr=1 andalso member (op=) qs Then)
-        then "ultimately "
-      else if nr=1 orelse member (op=) qs Then
-        then "then "
-        else "") ^ "obtain"
-    fun of_show_have qs = if member (op=) qs Show then "show" else "have"
-    fun of_thus_hence qs = if member (op=) qs Show then "thus" else "hence"
+      (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
+         "ultimately "
+       else if nr=1 orelse member (op =) qs Then then
+         "then "
+       else
+         "") ^ "obtain"
+    fun of_show_have qs = if member (op =) qs Show then "show" else "have"
+    fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
     fun of_prove qs nr =
-      if nr>1 orelse (nr=1 andalso member (op=) qs Then)
-        then "ultimately " ^ of_show_have qs
-      else if nr=1 orelse member (op=) qs Then
-        then of_thus_hence qs
-        else of_show_have qs
+      if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
+        "ultimately " ^ of_show_have qs
+      else if nr=1 orelse member (op =) qs Then then
+        of_thus_hence qs
+      else
+        of_show_have qs
     fun add_term term (s, ctxt) =
       (s ^ (annotate_types ctxt term
             |> with_vanilla_print_mode (Syntax.string_of_term ctxt)
@@ -490,7 +493,7 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
       end
     and of_subproofs _ _ _ [] = ""
       | of_subproofs ind ctxt qs subproofs =
-        (if member (op=) qs Then then of_moreover ind else "") ^
+        (if member (op =) qs Then then of_moreover ind else "") ^
         space_implode (of_moreover ind) (map (of_subproof ind ctxt) subproofs)
     and add_step_pre ind qs subproofs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
@@ -726,7 +729,15 @@ fun isar_proof_text ctxt isar_proofs
             val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
             fun skolems_of t =
               Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
-            fun do_steps _ _ accum [] = rev accum
+            fun do_steps outer predecessor accum [] =
+                accum
+                |> (if tainted = [] then
+                      cons (Prove (if outer then [Show] else [], no_label,
+                                   concl_t,
+                                   By_Metis ([], ([the predecessor], []))))
+                    else
+                      I)
+                |> rev
               | do_steps outer _ accum (Have (gamma, c) :: infs) =
                 let
                   val l = label_of_clause c
@@ -736,8 +747,8 @@ fun isar_proof_text ctxt isar_proofs
                       (fold (add_fact_from_dependencies fact_names)
                             gamma no_facts))
                   fun prove by = Prove (maybe_show outer c [], l, t, by)
-                  fun do_rest lbl step =
-                    do_steps outer (SOME lbl) (step :: accum) infs
+                  fun do_rest l step =
+                    do_steps outer (SOME l) (step :: accum) infs
                 in
                   if is_clause_tainted c then
                     case gamma of
@@ -764,13 +775,14 @@ fun isar_proof_text ctxt isar_proofs
               | do_steps outer predecessor accum (Cases cases :: infs) =
                 let
                   fun do_case (c, infs) =
-                    do_proof false [] [(label_of_clause c, prop_of_clause c)] infs
+                    do_proof false [] [(label_of_clause c, prop_of_clause c)]
+                             infs
                   val c = succedent_of_cases cases
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val step =
-                    (Prove (maybe_show outer c [], l, t, By_Metis
-                      (map do_case cases, (the_list predecessor, []))))
+                    Prove (maybe_show outer c [], l, t,
+                      By_Metis (map do_case cases, (the_list predecessor, [])))
                 in
                   do_steps outer (SOME l) (step :: accum) infs
                 end
