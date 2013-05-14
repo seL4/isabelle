@@ -19,12 +19,13 @@ val pgip_serial = Synchronized.counter ();
 
 fun output_pgip refid refseq content =
   XML.Elem (("pgip",
-   [("tag", "Isabelle/Isar"), ("id", pgip_id)] @
+    PgipTypes.attr "tag" "Isabelle/Isar" @
+    PgipTypes.attr "id" pgip_id @
     PgipTypes.opt_attr "destid" refid @
-    [("class", "pg")] @
+    PgipTypes.attr "class" "pg" @
     PgipTypes.opt_attr "refid" refid @
-    [("refseq", refseq)] @
-    [("seq", string_of_int (pgip_serial ()))]), content)
+    PgipTypes.attr "refseq" refseq @
+    PgipTypes.attr "seq" (string_of_int (pgip_serial ()))), content)
   |> XML.string_of
   |> Output.urgent_message;
 
@@ -70,10 +71,10 @@ fun process_pgip str =
   (case XML.parse str of
     XML.Elem (("pgip", attrs), pgips) =>
       let
-        val class = PgipTypes.get_attr "class" attrs;
-        val dest = PgipTypes.get_attr_opt "destid" attrs;
-        val refid = PgipTypes.get_attr_opt "id" attrs;
-        val refseq = PgipTypes.get_attr "seq" attrs;
+        val class = PgipTypes.get_attr attrs "class";
+        val dest = Properties.get attrs "destid";
+        val refid = Properties.get attrs "id";
+        val refseq = PgipTypes.get_attr attrs "seq";
         val processit =
           (case dest of
             NONE => class = "pa"

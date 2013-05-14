@@ -1,42 +1,36 @@
 (*  Title:      Pure/ProofGeneral/pgip_types.ML
     Author:     David Aspinall
 
-PGIP abstraction: types and conversions.
+Some PGIP types and conversions.
 *)
 
 signature PGIPTYPES =
 sig
-    (* Types and values (used for preferences and dialogs) *)
+  val attr: string -> string -> XML.attributes
+  val opt_attr: string -> string option -> XML.attributes
+  val get_attr: XML.attributes -> string -> string           (* raises PGIP *)
 
-    datatype pgiptype =
-        Pgipnull | Pgipbool | Pgipint of int option * int option | Pgipnat | Pgipreal
-      | Pgipstring | Pgipconst of string | Pgipchoice of pgipdtype list
+  datatype pgiptype =
+      Pgipnull | Pgipbool | Pgipint of int option * int option | Pgipnat | Pgipreal
+    | Pgipstring | Pgipconst of string | Pgipchoice of pgipdtype list
 
-    and pgipdtype = Pgipdtype of string option * pgiptype  (* type with opt. description *)
+  and pgipdtype = Pgipdtype of string option * pgiptype  (* type with opt. description *)
 
-    exception PGIP of string
- 
-    (* Values as XML strings *)
-    val read_pgipint       : (int option * int option) -> string -> int (* raises PGIP *)
-    val read_pgipnat       : string -> int                              (* raises PGIP *)
-    val read_pgipbool      : string -> bool                             (* raises PGIP *)
-    val read_pgipreal      : string -> real                             (* raises PGIP *)
-    val read_pgipstring    : string -> string                           (* raises PGIP *)
-    val real_to_pgstring   : real -> string
-    val int_to_pgstring    : int -> string
-    val bool_to_pgstring   : bool -> string
-    val string_to_pgstring : string -> string
+  exception PGIP of string
 
-    (* PGIP datatypes *)
-    val pgiptype_to_xml   : pgiptype -> XML.tree
+  (* Values as XML strings *)
+  val read_pgipint       : (int option * int option) -> string -> int (* raises PGIP *)
+  val read_pgipnat       : string -> int                              (* raises PGIP *)
+  val read_pgipbool      : string -> bool                             (* raises PGIP *)
+  val read_pgipreal      : string -> real                             (* raises PGIP *)
+  val read_pgipstring    : string -> string                           (* raises PGIP *)
+  val real_to_pgstring   : real -> string
+  val int_to_pgstring    : int -> string
+  val bool_to_pgstring   : bool -> string
+  val string_to_pgstring : string -> string
 
-    (* XML utils, only for PGIP code *)
-    val attr           : string -> string -> XML.attributes
-    val opt_attr       : string -> string option -> XML.attributes
-    val opt_attr_map   : ('a -> string) -> string -> 'a option -> XML.attributes
-    val get_attr       : string -> XML.attributes -> string           (* raises PGIP *)
-    val get_attr_opt   : string -> XML.attributes -> string option
-    val get_attr_dflt  : string -> string -> XML.attributes -> string
+  (* PGIP datatypes *)
+  val pgiptype_to_xml   : pgiptype -> XML.tree
 end
 
 structure PgipTypes : PGIPTYPES =
@@ -46,34 +40,23 @@ exception PGIP of string
 
 (** XML utils **)
 
-fun get_attr_opt attr attrs = Properties.get attrs attr
-
-fun get_attr attr attrs =
-    (case get_attr_opt attr attrs of
-         SOME value => value
-       | NONE => raise PGIP ("Missing attribute: " ^ quote attr))
-
-fun get_attr_dflt attr dflt attrs = the_default dflt (get_attr_opt attr attrs)
+fun get_attr attrs name =
+  (case Properties.get attrs name of
+    SOME value => value
+  | NONE => raise PGIP ("Missing attribute: " ^ quote name));
 
 fun attr x y = [(x,y)] : XML.attributes
 
-fun opt_attr_map f attr_name opt_val = 
-    case opt_val of NONE => [] | SOME v => [(attr_name,f v)]
- (* or, if you've got function-itis: 
-    the_default [] (Option.map (single o (pair attr_name) o f) opt_val)
-  *)
-
-fun opt_attr attr_name = opt_attr_map I attr_name
+fun opt_attr _ NONE = []
+  | opt_attr name (SOME value) = attr name value;
 
 
 (** Types and values **)
 
-(* readers and writers for values represented in XML strings *)
-
 fun read_pgipbool s =
-    (case s of 
-         "false" => false 
-       | "true" => true 
+    (case s of
+         "false" => false
+       | "true" => true
        | _ => raise PGIP ("Invalid boolean value: " ^ quote s))
 
 local
@@ -83,14 +66,14 @@ local
       | int_in_range (SOME min,SOME max) i = min<= i andalso i<=max
 in
 fun read_pgipint range s =
-    (case Int.fromString s of 
+    (case Int.fromString s of
          SOME i => if int_in_range range i then i
                    else raise PGIP ("Out of range integer value: " ^ quote s)
        | NONE => raise PGIP ("Invalid integer value: " ^ quote s))
 end;
 
 fun read_pgipnat s =
-    (case Int.fromString s of 
+    (case Int.fromString s of
          SOME i => if i >= 0 then i
                    else raise PGIP ("Invalid natural number: " ^ quote s)
        | NONE => raise PGIP ("Invalid natural number: " ^ quote s))
@@ -118,7 +101,7 @@ fun bool_to_pgstring b = if b then "true" else "false"
 
 
 (* PGIP datatypes.
-   
+
    This is a reflection of the type structure of PGIP configuration,
    which is meant for setting up user dialogs and preference settings.
    These are configured declaratively in XML, using a syntax for types
@@ -129,11 +112,11 @@ fun bool_to_pgstring b = if b then "true" else "false"
    values, at least for the types it expects from the dialogs it
    configures.  Here we go further and construct a type-safe
    encapsulation of these values, which would be useful for more
-   advanced cases (e.g. generating and processing forms).  
+   advanced cases (e.g. generating and processing forms).
 *)
 
 
-datatype pgiptype = 
+datatype pgiptype =
          Pgipnull                            (* unit type: unique element is empty string *)
        | Pgipbool                            (* booleans: "true" or "false" *)
        | Pgipint of int option * int option  (* ranged integers, should be XSD canonical *)
@@ -153,7 +136,7 @@ datatype pgipuval =
 
 type pgipval = pgiptype * pgipuval      (* type-safe values *)
 
-fun pgipdtype_to_xml (desco,ty) = 
+fun pgipdtype_to_xml (desco,ty) =
     let
         val desc_attr = opt_attr "descr" desco
 
@@ -169,7 +152,7 @@ fun pgipdtype_to_xml (desco,ty) =
 
         fun range_attr r v = attr r (int_to_pgstring v)
 
-        val attrs = case ty of 
+        val attrs = case ty of
                         Pgipint (SOME min,SOME max) => (range_attr "min" min)@(range_attr "max" max)
                       | Pgipint (SOME min,NONE) => (range_attr "min" min)
                       | Pgipint (NONE,SOME max) => (range_attr "max" max)
@@ -182,7 +165,7 @@ fun pgipdtype_to_xml (desco,ty) =
         val typargs = case ty of
                           Pgipchoice ds => map destpgipdtype ds
                         | _ => []
-    in 
+    in
         XML.Elem ((elt, desc_attr @ attrs), map pgipdtype_to_xml typargs)
     end
 
