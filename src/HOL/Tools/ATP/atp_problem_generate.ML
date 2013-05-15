@@ -2356,16 +2356,18 @@ fun mononotonicity_info_of_facts ctxt type_enc completish facts =
        ? fold (add_fact_mononotonicity_info ctxt level) facts
   end
 
+fun fold_arg_types f (IApp (tm1, tm2)) =
+    fold_arg_types f tm1 #> fold_term_types f tm2
+  | fold_arg_types _ _ = I
+and fold_term_types f tm = f (ityp_of tm) #> fold_arg_types f tm
+
 fun add_iformula_monotonic_types ctxt mono type_enc =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
     val should_encode = should_encode_type ctxt mono level
     fun add_type T = not (should_encode T) ? insert_type thy I T
-    fun add_args (IApp (tm1, tm2)) = add_args tm1 #> add_term tm2
-      | add_args _ = I
-    and add_term tm = add_type (ityp_of tm) #> add_args tm
-  in formula_fold NONE (K add_term) end
+  in formula_fold NONE (K (fold_term_types add_type)) end
 
 fun add_fact_monotonic_types ctxt mono type_enc =
   ifact_lift (add_iformula_monotonic_types ctxt mono type_enc)
