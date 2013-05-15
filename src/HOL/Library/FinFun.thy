@@ -420,10 +420,6 @@ qed
 lift_definition finfun_default :: "'a \<Rightarrow>f 'b \<Rightarrow> 'b"
 is "finfun_default_aux" ..
 
-lemma finfun_apply_transfer [transfer_rule]: 
-  "(fun_rel cr_finfun (fun_rel op = op =)) (\<lambda>f. f) finfun_apply"
-unfolding Rel_def fun_rel_def cr_finfun_def by simp
-
 lemma finite_finfun_default: "finite {a. finfun_apply f a \<noteq> finfun_default f}"
 by transfer (erule finite_finfun_default_aux)
 
