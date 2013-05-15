@@ -784,8 +784,7 @@ fun declared_in_atp_problem problem =
 (** Nice names **)
 
 fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
-fun pool_map f xs =
-  pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
+fun pool_map f xs = pool_fold (fn x => fn ys => f x #>> (fn y => y :: ys)) xs []
 
 val no_qualifiers =
   let
@@ -890,6 +889,10 @@ fun nice_atp_problem readable_names format problem =
       | DFG _ => avoid_clash_with_dfg_keywords
       | _ => I
     val nice_name = nice_name avoid_clash
+    fun nice_bound_tvars xs =
+      pool_map nice_name (map fst xs)
+      ##>> pool_map (pool_map nice_name) (map snd xs)
+      #>> op ~~
     fun nice_type (AType (name, tys)) =
         nice_name name ##>> pool_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
@@ -923,12 +926,12 @@ fun nice_atp_problem readable_names format problem =
       | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
+      | nice_line (Datatype_Decl (ident, xs, ty, tms)) =
+        nice_bound_tvars xs ##>> nice_type ty ##>> pool_map nice_term tms
+        #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms))
       | nice_line (Class_Memb (ident, xs, ty, cl)) =
-        pool_map nice_name (map fst xs)
-        ##>> pool_map (pool_map nice_name) (map snd xs)
-        ##>> nice_type ty ##>> nice_name cl
-        #>> (fn (((tys, cls), ty), cl) =>
-                Class_Memb (ident, tys ~~ cls, ty, cl))
+        nice_bound_tvars xs ##>> nice_type ty ##>> nice_name cl
+        #>> (fn ((xs, ty), cl) => Class_Memb (ident, xs, ty, cl))
       | nice_line (Formula (ident, kind, phi, source, info)) =
         nice_formula phi
         #>> (fn phi => Formula (ident, kind, phi, source, info))

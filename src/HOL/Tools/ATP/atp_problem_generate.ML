@@ -2534,6 +2534,13 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
+fun decl_lines_of_datatypes (DFG Polymorphic) (type_enc as Native _) =
+    if is_type_enc_polymorphic type_enc then
+      [Datatype_Decl ("nat", [], AType (("naT", @{type_name nat}), []), [])] (*###*)
+    else
+      []
+  | decl_lines_of_datatypes _ _ = []
+
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
 fun do_uncurried_alias_lines_of_sym ctxt constrs mono type_enc sym_tab0 sym_tab
@@ -2630,6 +2637,7 @@ fun undeclared_in_problem problem =
     fun do_sym (name as (s, _)) value =
       if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
     fun do_class name = apfst (apfst (do_sym name ()))
+    val do_bound_tvars = fold do_class o snd
     fun do_type (AType (name, tys)) =
         apfst (apsnd (do_sym name (length tys))) #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
@@ -2650,8 +2658,10 @@ fun undeclared_in_problem problem =
     fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
       | do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
+      | do_line (Datatype_Decl (_, xs, ty, tms)) =
+        fold do_bound_tvars xs #> do_type ty #> fold (do_term false) tms
       | do_line (Class_Memb (_, xs, ty, cl)) =
-        fold (fold do_class o snd) xs #> do_type ty #> do_class cl
+        fold do_bound_tvars xs #> do_type ty #> do_class cl
       | do_line (Formula (_, _, phi, _, _)) = do_formula phi
     val ((cls, tys), syms) = declared_in_atp_problem problem
   in
@@ -2751,6 +2761,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_of_facts thy type_enc sym_tab
       |> lines_of_sym_decl_table ctxt mono type_enc mono_Ts
+    val datatype_decl_lines = decl_lines_of_datatypes format type_enc
+    val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
     val fact_lines =
       map (line_of_fact ctxt fact_prefix ascii_of I (not exporter)
@@ -2766,7 +2778,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val conj_lines = map (line_of_conjecture ctxt mono type_enc) conjs
     (* Reordering these might confuse the proof reconstruction code. *)
     val problem =
-      [(explicit_declsN, class_decl_lines @ sym_decl_lines),
+      [(explicit_declsN, decl_lines),
        (uncurried_alias_eqsN, uncurried_alias_eq_lines),
        (factsN, fact_lines),
        (subclassesN, subclass_lines),
