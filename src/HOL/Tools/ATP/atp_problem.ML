@@ -783,9 +783,6 @@ fun declared_in_atp_problem problem =
 
 (** Nice names **)
 
-fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
-fun pool_map f xs = pool_fold (fn x => fn ys => f x #>> (fn y => y :: ys)) xs []
-
 val no_qualifiers =
   let
     fun skip [] = []
@@ -890,36 +887,36 @@ fun nice_atp_problem readable_names format problem =
       | _ => I
     val nice_name = nice_name avoid_clash
     fun nice_bound_tvars xs =
-      pool_map nice_name (map fst xs)
-      ##>> pool_map (pool_map nice_name) (map snd xs)
+      fold_map nice_name (map fst xs)
+      ##>> fold_map (fold_map nice_name) (map snd xs)
       #>> op ~~
     fun nice_type (AType (name, tys)) =
-        nice_name name ##>> pool_map nice_type tys #>> AType
+        nice_name name ##>> fold_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
       | nice_type (APi (names, ty)) =
-        pool_map nice_name names ##>> nice_type ty #>> APi
+        fold_map nice_name names ##>> nice_type ty #>> APi
     fun nice_term (ATerm ((name, tys), ts)) =
-        nice_name name ##>> pool_map nice_type tys ##>> pool_map nice_term ts
+        nice_name name ##>> fold_map nice_type tys ##>> fold_map nice_term ts
         #>> ATerm
       | nice_term (AAbs (((name, ty), tm), args)) =
         nice_name name ##>> nice_type ty ##>> nice_term tm
-        ##>> pool_map nice_term args #>> AAbs
+        ##>> fold_map nice_term args #>> AAbs
     fun nice_formula (ATyQuant (q, xs, phi)) =
-        pool_map nice_type (map fst xs)
-        ##>> pool_map (pool_map nice_name) (map snd xs)
+        fold_map nice_type (map fst xs)
+        ##>> fold_map (fold_map nice_name) (map snd xs)
         ##>> nice_formula phi
         #>> (fn ((tys, cls), phi) => ATyQuant (q, tys ~~ cls, phi))
       | nice_formula (AQuant (q, xs, phi)) =
-        pool_map nice_name (map fst xs)
-        ##>> pool_map (fn NONE => pair NONE
+        fold_map nice_name (map fst xs)
+        ##>> fold_map (fn NONE => pair NONE
                         | SOME ty => nice_type ty #>> SOME) (map snd xs)
         ##>> nice_formula phi
         #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
       | nice_formula (AConn (c, phis)) =
-        pool_map nice_formula phis #>> curry AConn c
+        fold_map nice_formula phis #>> curry AConn c
       | nice_formula (AAtom tm) = nice_term tm #>> AAtom
     fun nice_line (Class_Decl (ident, cl, cls)) =
-        nice_name cl ##>> pool_map nice_name cls
+        nice_name cl ##>> fold_map nice_name cls
         #>> (fn (cl, cls) => Class_Decl (ident, cl, cls))
       | nice_line (Type_Decl (ident, ty, ary)) =
         nice_name ty #>> (fn ty => Type_Decl (ident, ty, ary))
@@ -927,7 +924,7 @@ fun nice_atp_problem readable_names format problem =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
       | nice_line (Datatype_Decl (ident, xs, ty, tms)) =
-        nice_bound_tvars xs ##>> nice_type ty ##>> pool_map nice_term tms
+        nice_bound_tvars xs ##>> nice_type ty ##>> fold_map nice_term tms
         #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms))
       | nice_line (Class_Memb (ident, xs, ty, cl)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> nice_name cl
@@ -936,8 +933,8 @@ fun nice_atp_problem readable_names format problem =
         nice_formula phi
         #>> (fn phi => Formula (ident, kind, phi, source, info))
     fun nice_problem problem =
-      pool_map (fn (heading, lines) =>
-                   pool_map nice_line lines #>> pair heading) problem
+      fold_map (fn (heading, lines) =>
+                   fold_map nice_line lines #>> pair heading) problem
   in nice_problem problem empty_pool end
 
 end;
