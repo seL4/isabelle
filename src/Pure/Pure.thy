@@ -98,6 +98,7 @@ begin
 ML_file "Isar/isar_syn.ML"
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
+ML_file "ProofGeneral/proof_general_pure.ML"
 
 
 section {* Further content for the Pure theory *}

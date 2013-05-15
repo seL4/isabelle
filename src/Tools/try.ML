@@ -34,11 +34,11 @@ val tryN = "try"
 
 val auto_time_limit = Unsynchronized.ref 4.0
 
-val auto_try_time_limitN = "auto-try-time-limit"
 val _ =
-  ProofGeneral.add_preference Preferences.category_tracing
-    (Preferences.real_pref auto_time_limit
-      auto_try_time_limitN "Time limit for automatically tried tools (in seconds).")
+  ProofGeneral.preference_real ProofGeneral.category_tracing
+    auto_time_limit
+    "auto-try-time-limit"
+    "Time limit for automatically tried tools (in seconds)"
 
 
 (* helpers *)

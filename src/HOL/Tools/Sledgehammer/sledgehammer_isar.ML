@@ -45,9 +45,8 @@ val refresh_tptpN = "refresh_tptp"
 val auto = Unsynchronized.ref false
 
 val _ =
-  ProofGeneral.add_preference Preferences.category_tracing
-      (Preferences.bool_pref auto "auto-sledgehammer"
-           "Run Sledgehammer automatically.")
+  ProofGeneral.preference_bool ProofGeneral.category_tracing
+    auto "auto-sledgehammer" "Run Sledgehammer automatically"
 
 (** Sledgehammer commands **)
 
@@ -66,16 +65,16 @@ val provers = Unsynchronized.ref ""
 val timeout = Unsynchronized.ref 30
 
 val _ =
-  ProofGeneral.add_preference Preferences.category_proof
-      (Preferences.string_pref provers
-          "Sledgehammer: Provers"
-          "Default automatic provers (separated by whitespace)")
+  ProofGeneral.preference_string ProofGeneral.category_proof
+    provers
+    "Sledgehammer: Provers"
+    "Default automatic provers (separated by whitespace)"
 
 val _ =
-  ProofGeneral.add_preference Preferences.category_proof
-      (Preferences.int_pref timeout
-          "Sledgehammer: Time Limit"
-          "ATPs will be interrupted after this time (in seconds)")
+  ProofGeneral.preference_int ProofGeneral.category_proof
+    timeout
+    "Sledgehammer: Time Limit"
+    "ATPs will be interrupted after this time (in seconds)"
 
 type raw_param = string * string list
 

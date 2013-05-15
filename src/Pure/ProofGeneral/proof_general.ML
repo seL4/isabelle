@@ -8,28 +8,127 @@ See also http://proofgeneral.inf.ed.ac.uk
 
 signature PROOF_GENERAL =
 sig
-  val add_preference: string -> Preferences.preference -> unit
-  val init: unit -> unit
+  type category = string
+  val category_display: category
+  val category_advanced_display: category
+  val category_tracing: category
+  val category_proof: category
+  type pgiptype = string
+  val pgipbool: pgiptype
+  val pgipint: pgiptype
+  val pgipfloat: pgiptype
+  val pgipstring: pgiptype
+  val preference_raw: category ->
+    (unit -> string) -> (string -> unit) -> string -> string -> string -> unit
+  val preference_bool: category -> bool Unsynchronized.ref -> string -> string -> unit
+  val preference_int: category -> int Unsynchronized.ref -> string -> string -> unit
+  val preference_real: category -> real Unsynchronized.ref -> string -> string -> unit
+  val preference_string: category -> string Unsynchronized.ref -> string -> string -> unit
+  val preference_option: category -> string -> string -> string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
+  val init: unit -> unit
+  val thm_depsN: string
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
 struct
 
-(* preferences *)
+(** preferences **)
 
-val preferences = Unsynchronized.ref Preferences.pure_preferences;
+(* type preference *)
 
-fun add_preference cat pref =
-  CRITICAL (fn () => Unsynchronized.change preferences (Preferences.add cat pref));
+type category = string;
+val category_display = "Display";
+val category_advanced_display = "Advanced Display";
+val category_tracing = "Tracing";
+val category_proof = "Proof";
 
-fun set_preference pref value =
-  (case AList.lookup (op =) (map (fn p => (#name p, p)) (maps snd (! preferences))) pref of
-    SOME {set, ...} => set value
-  | NONE => error ("Unknown prover preference: " ^ quote pref));
+type pgiptype = string;
+val pgipbool = "pgipbool";
+val pgipint = "pgipint";
+val pgipfloat = "pgipint";  (*NB: PG 3.7.x and 4.0 lack pgipfloat, but accept floats as pgipint*)
+val pgipstring = "pgipstring";
+
+type preference =
+ {name: string,
+  descr: string,
+  default: string,
+  pgiptype: pgiptype,
+  get: unit -> string,
+  set: string -> unit};
 
 
-(* process_pgip: minimal PGIP support for <askprefs>, <haspref>, <setpref> *)
+(* global preferences *)
+
+local
+  val preferences =
+    Synchronized.var "ProofGeneral.preferences"
+      ([(category_display, []),
+        (category_advanced_display, []),
+        (category_tracing, []),
+        (category_proof, [])]: (category * preference list) list);
+in
+
+fun add_preference category (pref: preference) =
+  Synchronized.change preferences (map (fn (cat, prefs) =>
+    if cat <> category then (cat, prefs)
+    else
+      if exists (fn {name, ...} => name = #name pref) prefs
+      then (warning ("Preference already exists: " ^ quote (#name pref)); (cat, prefs))
+      else (cat, prefs @ [pref])));
+
+fun get_preferences () = Synchronized.value preferences;
+
+end;
+
+fun set_preference name value =
+  let val prefs = map (`(#name)) (maps snd (get_preferences ())) in
+    (case AList.lookup (op =) prefs name of
+      SOME {set, ...} => set value
+    | NONE => error ("Unknown prover preference: " ^ quote name))
+  end;
+
+
+(* raw preferences *)
+
+fun preference_raw category raw_get raw_set typ name descr =
+  let
+    fun get () = CRITICAL raw_get;
+    fun set x = CRITICAL (fn () => raw_set x);
+    val pref = {name = name, descr = descr, pgiptype = typ, get = get, set = set, default = get ()};
+  in add_preference category pref end;
+
+fun preference_ref category read write typ r =
+  preference_raw category (fn () => read (! r)) (fn x => r := write x) typ;
+
+fun preference_bool category = preference_ref category Markup.print_bool Markup.parse_bool pgipbool;
+fun preference_int category = preference_ref category Markup.print_int Markup.parse_int pgipint;
+fun preference_real category = preference_ref category Markup.print_real Markup.parse_real pgipfloat;
+fun preference_string category = preference_ref category I I pgipstring;
+
+
+(* system options *)
+
+fun preference_option category option_name pgip_name descr =
+  let
+    val typ = Options.default_typ option_name;
+    val pgiptype =
+      if typ = Options.boolT then pgipbool
+      else if typ = Options.intT then pgipint
+      else if typ = Options.realT then pgipfloat
+      else pgipstring;
+  in
+    add_preference category
+     {name = pgip_name,
+      descr = descr,
+      default = Options.get_default option_name,
+      pgiptype = pgiptype,
+      get = fn () => Options.get_default option_name,
+      set = Options.put_default option_name}
+  end;
+
+
+(* minimal PGIP support for <askprefs>, <haspref>, <setpref> *)
 
 local
 
@@ -61,14 +160,14 @@ fun output_pgip refid refseq content =
 
 fun invalid_pgip () = raise Fail "Invalid PGIP packet";
 
-fun haspref ({name, descr, default, pgiptype, ...}: Preferences.preference) =
+fun haspref ({name, descr, default, pgiptype, ...}: preference) =
   XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
     [XML.Elem ((pgiptype, []), [])]);
 
 fun process_element refid refseq (XML.Elem (("askprefs", _), _)) =
-      ! preferences |> List.app (fn (category, prefs) =>
-          output_pgip refid refseq
-            [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
+      get_preferences () |> List.app (fn (category, prefs) =>
+        output_pgip refid refseq
+          [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
   | process_element _ _ (XML.Elem (("setpref", attrs), data)) =
       let
         val name =
@@ -99,6 +198,8 @@ fun process_pgip str =
 
 end;
 
+
+(** messages **)
 
 (* render markup *)
 
@@ -142,7 +243,7 @@ fun render text =
 end;
 
 
-(* messages *)
+(* hooks *)
 
 fun message bg en prfx text =
   (case render text of
@@ -177,7 +278,18 @@ fun tell_file_retracted path =
   emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
 
 
-(* theory loader actions *)
+
+(** theory loader **)
+
+(* fake old ThyLoad -- with new semantics *)
+
+structure ThyLoad =
+struct
+  val add_path = Thy_Load.set_master_path o Path.explode;
+end;
+
+
+(* actions *)
 
 local
 
@@ -226,7 +338,9 @@ fun restart () =
   welcome ());
 
 
-(* theorem dependencies *)
+(** theorem dependencies **)
+
+(* thm_deps *)
 
 local
 
@@ -253,7 +367,9 @@ fun thm_deps ths =
 end;
 
 
-(* report theorem dependencies *)
+(* report via hook *)
+
+val thm_depsN = "thm_deps";
 
 local
 
@@ -265,7 +381,7 @@ fun thm_deps_message (thms, deps) =
 in
 
 fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
-  if print_mode_active Preferences.thm_depsN andalso
+  if print_mode_active thm_depsN andalso
     can Toplevel.theory_of state andalso Toplevel.is_theory state'
   then
     let
@@ -281,7 +397,8 @@ fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
 end;
 
 
-(* additional outer syntax for Isar *)
+
+(** Isar command syntax **)
 
 val _ =
   Outer_Syntax.improper_command
@@ -321,7 +438,8 @@ val _ =
     (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_retracted file)));
 
 
-(* init *)
+
+(** init **)
 
 val proof_general_emacsN = "ProofGeneralEmacs";
 
@@ -344,12 +462,7 @@ fun init () =
    Isar.toplevel_loop TextIO.stdIn
     {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
-
-(* fake old ThyLoad -- with new semantics *)
-
-structure ThyLoad =
-struct
-  val add_path = Thy_Load.set_master_path o Path.explode;
 end;
 
-end;
+
+

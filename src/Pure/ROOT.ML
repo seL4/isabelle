@@ -297,12 +297,6 @@ use "Tools/legacy_xml_syntax.ML";
 
 
 (* configuration for Proof General *)
-
-(use
-  |> Unsynchronized.setmp Proofterm.proofs 0
-  |> Unsynchronized.setmp Multithreading.max_threads 0)
-  "ProofGeneral/preferences.ML";
-
 use "ProofGeneral/proof_general.ML";
 
 

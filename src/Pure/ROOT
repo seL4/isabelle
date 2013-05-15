@@ -160,7 +160,6 @@ session Pure =
     "Proof/proof_rewrite_rules.ML"
     "Proof/proof_syntax.ML"
     "Proof/reconstruct.ML"
-    "ProofGeneral/preferences.ML"
     "ProofGeneral/proof_general.ML"
     "ROOT.ML"
     "Syntax/ast.ML"

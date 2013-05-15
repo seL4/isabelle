@@ -37,11 +37,11 @@ val auto = Unsynchronized.ref false;
 val max_solutions = Unsynchronized.ref 5;
 
 val _ =
-  ProofGeneral.add_preference Preferences.category_tracing
-  (Unsynchronized.setmp auto true (fn () =>
-    Preferences.bool_pref auto
+  Unsynchronized.setmp auto true (fn () =>
+    ProofGeneral.preference_bool ProofGeneral.category_tracing
+      auto
       "auto-solve-direct"
-      ("Run " ^ quote solve_directN ^ " automatically.")) ());
+      ("Run " ^ quote solve_directN ^ " automatically")) ();
 
 
 (* solve_direct command *)
