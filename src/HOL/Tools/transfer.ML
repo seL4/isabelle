@@ -193,12 +193,7 @@ fun abstract_equalities_domain thm =
         val concl = HOLogic.dest_Trueprop (Logic.strip_imp_concl prop)
         val ((dom, x), y) = apfst Term.dest_comb (Term.dest_comb concl)
       in
-        (x $ y, fn comb' =>
-          let 
-            val (x', y') = dest_comb comb'
-          in
-            Logic.list_implies (prems, HOLogic.mk_Trueprop (dom $ x' $ y'))
-          end)
+        (x, fn x' => Logic.list_implies (prems, HOLogic.mk_Trueprop (dom $ x' $ y)))
       end
   in
     gen_abstract_equalities dest thm
