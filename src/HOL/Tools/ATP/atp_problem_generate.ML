@@ -59,6 +59,7 @@ sig
   val class_decl_prefix : string
   val type_decl_prefix : string
   val sym_decl_prefix : string
+  val datatype_decl_prefix : string
   val class_memb_prefix : string
   val guards_sym_formula_prefix : string
   val tags_sym_formula_prefix : string
@@ -229,7 +230,8 @@ val combinator_prefix = "COMB"
 val class_decl_prefix = "cl_"
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
-val class_memb_prefix = "clmb_"
+val datatype_decl_prefix = "dt_"
+val class_memb_prefix = "cm_"
 val guards_sym_formula_prefix = "gsy_"
 val tags_sym_formula_prefix = "tsy_"
 val uncurried_alias_eq_prefix = "unc_"
@@ -2180,6 +2182,7 @@ fun lines_of_subclass_pair type_enc (sub, supers) =
 
 fun line_of_tcon_clause type_enc (name, prems, (cl, T)) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
+    (* ### FIXME: is the list of type variables exhaustive? *)
     Class_Memb (class_memb_prefix ^ name,
                 map (fn (cls, T) =>
                         (T |> dest_TVar |> tvar_name, map (`make_class) cls))
@@ -2534,12 +2537,17 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
-fun decl_lines_of_datatypes (DFG Polymorphic) (type_enc as Native _) =
+fun datatypes_of_facts ctxt (DFG Polymorphic) (type_enc as Native _) facts =
     if is_type_enc_polymorphic type_enc then
-      [Datatype_Decl ("nat", [], AType (("naT", @{type_name nat}), []), [])] (*###*)
+      [(@{typ nat}, [@{term "0::nat"}, @{term Suc}], true)]
     else
       []
-  | decl_lines_of_datatypes _ _ = []
+  | datatypes_of_facts _ _ _ _ = []
+
+fun decl_line_of_datatype (_, [], _) = NONE
+  | decl_line_of_datatype (T as Type (s, _), ctrs, exhaust) =
+    SOME (Datatype_Decl (datatype_decl_prefix ^ ascii_of s, [],
+             AType (("naT", @{type_name nat}), []), [], exhaust)) (*###*)
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
@@ -2658,7 +2666,7 @@ fun undeclared_in_problem problem =
     fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
       | do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
-      | do_line (Datatype_Decl (_, xs, ty, tms)) =
+      | do_line (Datatype_Decl (_, xs, ty, tms, _)) =
         fold do_bound_tvars xs #> do_type ty #> fold (do_term false) tms
       | do_line (Class_Memb (_, xs, ty, cl)) =
         fold do_bound_tvars xs #> do_type ty #> do_class cl
@@ -2754,14 +2762,15 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val helpers =
       sym_tab |> helper_facts_of_sym_table ctxt format type_enc completish
               |> map (firstorderize true)
-    val mono_Ts =
-      helpers @ conjs @ facts |> monotonic_types_of_facts ctxt mono type_enc
+    val all_facts = helpers @ conjs @ facts
+    val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
+    val datatypes = datatypes_of_facts ctxt format type_enc all_facts
     val class_decl_lines = decl_lines_of_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_of_facts thy type_enc sym_tab
       |> lines_of_sym_decl_table ctxt mono type_enc mono_Ts
-    val datatype_decl_lines = decl_lines_of_datatypes format type_enc
+    val datatype_decl_lines = map_filter decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
     val fact_lines =
