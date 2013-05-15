@@ -133,7 +133,7 @@ val _ =
     "Skip over proofs";
 
 val _ =
-  Unsynchronized.setmp Proofterm.proofs 0 (fn () =>
+  Unsynchronized.setmp Proofterm.proofs 1 (fn () =>
     ProofGeneral.preference_raw ProofGeneral.category_proof
       (Markup.print_bool o Proofterm.proofs_enabled)
       (fn s => Proofterm.proofs := (if Markup.parse_bool s then 2 else 1))
