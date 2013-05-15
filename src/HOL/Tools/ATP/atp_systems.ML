@@ -646,7 +646,7 @@ fun get_remote_systems () =
           (output, 0) => split_lines output
         | (output, _) =>
           (warning (case extract_known_failure known_perl_failures output of
-                      SOME failure => string_for_failure failure
+                      SOME failure => string_of_failure failure
                     | NONE => trim_line output ^ "."); [])) ()
   handle TimeLimit.TimeOut => []
 

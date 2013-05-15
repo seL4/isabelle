@@ -41,7 +41,7 @@ sig
   type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
   val short_output : bool -> string -> string
-  val string_for_failure : failure -> string
+  val string_of_failure : failure -> string
   val extract_important_message : string -> string
   val extract_known_failure :
     (failure * string) list -> string -> failure option
@@ -105,27 +105,27 @@ fun involving [] = ""
     "involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss)) ^
     " "
 
-fun string_for_failure Unprovable = "The generated problem is unprovable."
-  | string_for_failure GaveUp = "The prover gave up."
-  | string_for_failure ProofMissing =
+fun string_of_failure Unprovable = "The generated problem is unprovable."
+  | string_of_failure GaveUp = "The prover gave up."
+  | string_of_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
-  | string_for_failure ProofIncomplete =
+  | string_of_failure ProofIncomplete =
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \(or unparsable) proof."
-  | string_for_failure (UnsoundProof (false, ss)) =
+  | string_of_failure (UnsoundProof (false, ss)) =
     "The prover found an unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Specify a sound type \
     \encoding or omit the \"type_enc\" option."
-  | string_for_failure (UnsoundProof (true, ss)) =
+  | string_of_failure (UnsoundProof (true, ss)) =
     "The prover found an unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Please report this to \
     \the Isabelle developers."
-  | string_for_failure CantConnect = "Cannot connect to remote server."
-  | string_for_failure TimedOut = "Timed out."
-  | string_for_failure Inappropriate =
+  | string_of_failure CantConnect = "Cannot connect to remote server."
+  | string_of_failure TimedOut = "Timed out."
+  | string_of_failure Inappropriate =
     "The generated problem lies outside the prover's scope."
-  | string_for_failure OutOfResources = "The prover ran out of resources."
-  | string_for_failure OldSPASS =
+  | string_of_failure OutOfResources = "The prover ran out of resources."
+  | string_of_failure OldSPASS =
     "The version of SPASS you are using is obsolete. Please upgrade to \
     \SPASS 3.8ds. To install it, download and extract the package \
     \\"http://www21.in.tum.de/~blanchet/spass-3.8ds.tar.gz\" and add the \
@@ -134,20 +134,20 @@ fun string_for_failure Unprovable = "The generated problem is unprovable."
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
     " on a line of its own."
-  | string_for_failure NoPerl = "Perl" ^ missing_message_tail
-  | string_for_failure NoLibwwwPerl =
+  | string_of_failure NoPerl = "Perl" ^ missing_message_tail
+  | string_of_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
-  | string_for_failure MalformedInput =
+  | string_of_failure MalformedInput =
     "The generated problem is malformed. Please report this to the Isabelle \
     \developers."
-  | string_for_failure MalformedOutput = "The prover output is malformed."
-  | string_for_failure Interrupted = "The prover was interrupted."
-  | string_for_failure Crashed = "The prover crashed."
-  | string_for_failure InternalError = "An internal prover error occurred."
-  | string_for_failure (UnknownError string) =
+  | string_of_failure MalformedOutput = "The prover output is malformed."
+  | string_of_failure Interrupted = "The prover was interrupted."
+  | string_of_failure Crashed = "The prover crashed."
+  | string_of_failure InternalError = "An internal prover error occurred."
+  | string_of_failure (UnknownError s) =
     "A prover error occurred" ^
-    (if string = "" then ". (Pass the \"verbose\" option for details.)"
-     else ":\n" ^ string)
+    (if s = "" then ". (Pass the \"verbose\" option for details.)"
+     else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =
   output |> first_field begin_delim |> the |> snd

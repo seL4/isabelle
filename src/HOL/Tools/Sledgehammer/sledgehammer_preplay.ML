@@ -69,7 +69,7 @@ fun take_time timeout tac arg =
 (* lookup facts in context *)
 fun resolve_fact_names ctxt names =
   (names
-    |>> map string_for_label
+    |>> map string_of_label
     |> op @
     |> maps (thms_of_name ctxt))
   handle ERROR msg => error ("preplay error: " ^ msg)

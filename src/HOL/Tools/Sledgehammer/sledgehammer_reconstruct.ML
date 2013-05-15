@@ -27,7 +27,7 @@ sig
     * (string * stature) list vector * int Symtab.table * string proof * thm
 
   val smtN : string
-  val string_for_reconstructor : reconstructor -> string
+  val string_of_reconstructor : reconstructor -> string
   val lam_trans_from_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_atp_proof :
@@ -78,9 +78,9 @@ datatype play =
 
 val smtN = "smt"
 
-fun string_for_reconstructor (Metis (type_enc, lam_trans)) =
+fun string_of_reconstructor (Metis (type_enc, lam_trans)) =
     metis_call type_enc lam_trans
-  | string_for_reconstructor SMT = smtN
+  | string_of_reconstructor SMT = smtN
 
 
 (** fact extraction from ATP proofs **)
@@ -207,7 +207,7 @@ fun apply_on_subgoal _ 1 = "by "
 
 fun using_labels [] = ""
   | using_labels ls =
-    "using " ^ space_implode " " (map string_for_label ls) ^ " "
+    "using " ^ space_implode " " (map string_of_label ls) ^ " "
 
 fun command_call name [] =
     name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
@@ -216,7 +216,7 @@ fun command_call name [] =
 fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
   (* unusing_chained_facts used_chaineds num_chained ^ *)
   using_labels ls ^ apply_on_subgoal i n ^
-  command_call (string_for_reconstructor reconstr) ss
+  command_call (string_of_reconstructor reconstr) ss
 
 fun try_command_line banner time command =
   banner ^ ": " ^ Active.sendback_markup command ^ show_time time ^ "."
@@ -270,14 +270,14 @@ val assume_prefix = "a"
 val have_prefix = "f"
 val raw_prefix = "x"
 
-fun raw_label_for_name (num, ss) =
+fun raw_label_of_name (num, ss) =
   case resolve_conjecture ss of
     [j] => (conjecture_prefix, j)
   | _ => (raw_prefix ^ ascii_of num, 0)
 
-fun label_of_clause [name] = raw_label_for_name name
+fun label_of_clause [name] = raw_label_of_name name
   | label_of_clause c =
-    (space_implode "___" (map (fst o raw_label_for_name) c), 0)
+    (space_implode "___" (map (fst o raw_label_of_name) c), 0)
 
 fun add_fact_from_dependencies fact_names (names as [(_, ss)]) =
     if is_fact fact_names ss then
@@ -425,13 +425,13 @@ fun add_desired_line fact_names frees (name as (_, ss), role, t, rule, deps)
 
 val indent_size = 2
 
-fun string_for_proof ctxt type_enc lam_trans i n proof =
+fun string_of_proof ctxt type_enc lam_trans i n proof =
   let
     val register_fixes = map Free #> fold Variable.auto_fixes
     fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
     fun of_indent ind = replicate_string (ind * indent_size) " "
     fun of_moreover ind = of_indent ind ^ "moreover\n"
-    fun of_label l = if l = no_label then "" else string_for_label l ^ ": "
+    fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
     fun of_obtain qs nr =
       (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
          "ultimately "
@@ -558,7 +558,7 @@ fun kill_useless_labels_in_proof proof =
           Proof (fix, do_assms assms, map do_step steps)
   in do_proof proof end
 
-fun prefix_for_depth n = replicate_string (n + 1)
+fun prefix_of_depth n = replicate_string (n + 1)
 
 val relabel_proof =
   let
@@ -566,7 +566,7 @@ val relabel_proof =
       if l = no_label then
         old
       else
-        let val l' = (prefix_for_depth depth prefix, next) in
+        let val l' = (prefix_of_depth depth prefix, next) in
           (l', (l, l') :: subst, next + 1)
         end
     fun do_facts subst =
@@ -677,7 +677,7 @@ fun isar_proof_text ctxt isar_proofs
                 (case resolve_conjecture ss of
                    [j] =>
                    if j = length hyp_ts then NONE
-                   else SOME (raw_label_for_name name, nth hyp_ts j)
+                   else SOME (raw_label_of_name name, nth hyp_ts j)
                  | _ => NONE)
               | _ => NONE)
         val bot = atp_proof |> List.last |> #1
@@ -808,8 +808,8 @@ fun isar_proof_text ctxt isar_proofs
                   (if isar_proofs = SOME true then isar_compress else 1000.0))
           |>> clean_up_labels_in_proof
         val isar_text =
-          string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
-                           isar_proof
+          string_of_proof ctxt type_enc lam_trans subgoal subgoal_count
+                          isar_proof
       in
         case isar_text of
           "" =>

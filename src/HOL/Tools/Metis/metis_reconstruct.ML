@@ -656,7 +656,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                          #> pairself (Envir.subst_term_types tyenv))
           val tysubst = tyenv |> Vartab.dest
         in (tysubst, tsubst) end
-      fun subst_info_for_prem subgoal_no prem =
+      fun subst_info_of_prem subgoal_no prem =
         case prem of
           _ $ (Const (@{const_name Meson.skolem}, _) $ (_ $ t $ num)) =>
           let val ax_no = HOLogic.dest_nat num in
@@ -675,7 +675,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             NONE
       fun clusters_in_term skolem t =
         Term.add_var_names t [] |> map_filter (cluster_of_var_name skolem o fst)
-      fun deps_for_term_subst (var, t) =
+      fun deps_of_term_subst (var, t) =
         case clusters_in_term false var of
           [] => NONE
         | [(ax_no, cluster_no)] =>
@@ -684,9 +684,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                 |> cluster_no > 1 ? cons (ax_no, cluster_no - 1))
         | _ => raise TERM ("discharge_skolem_premises: Expected Var", [var])
       val prems = Logic.strip_imp_prems (prop_of prems_imp_false)
-      val substs = prems |> map2 subst_info_for_prem (1 upto length prems)
+      val substs = prems |> map2 subst_info_of_prem (1 upto length prems)
                          |> sort (int_ord o pairself fst)
-      val depss = maps (map_filter deps_for_term_subst o snd o snd o snd) substs
+      val depss = maps (map_filter deps_of_term_subst o snd o snd o snd) substs
       val clusters = maps (op ::) depss
       val ordered_clusters =
         Int_Pair_Graph.empty
@@ -720,7 +720,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                          cluster_no = 0 andalso skolem)
            |> sort shuffle_ord |> map (fst o snd)
 (* for debugging only:
-      fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
+      fun string_of_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tysubst: " ^ @{make_string} tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
@@ -729,12 +729,12 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val _ = tracing ("AXIOM COUNTS: " ^ @{make_string} ax_counts)
       val _ = tracing ("OUTER PARAMS: " ^ @{make_string} outer_param_names)
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
-                       cat_lines (map string_for_subst_info substs))
+                       cat_lines (map string_of_subst_info substs))
 *)
       fun cut_and_ex_tac axiom =
         cut_tac axiom 1
         THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
-      fun rotation_for_subgoal i =
+      fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
     in
       Goal.prove ctxt [] [] @{prop False}
@@ -746,7 +746,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN match_tac [prems_imp_false] 1
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
-                       THEN rotate_tac (rotation_for_subgoal i) i
+                       THEN rotate_tac (rotation_of_subgoal i) i
                        THEN PRIMITIVE (unify_first_prem_with_concl thy i)
                        THEN assume_tac i
                        THEN flexflex_tac)))

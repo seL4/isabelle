@@ -246,7 +246,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
                           false false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
-                     cat_lines (lines_for_atp_problem CNF atp_problem))
+                     cat_lines (lines_of_atp_problem CNF atp_problem))
     *)
     (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =

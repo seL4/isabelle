@@ -28,7 +28,7 @@ sig
   val no_label : label
   val no_facts : facts
 
-  val string_for_label : label -> string
+  val string_of_label : label -> string
   val fix_of_proof : isar_proof -> fix
   val assms_of_proof : isar_proof -> assms
   val steps_of_proof : isar_proof -> isar_step list
@@ -63,7 +63,7 @@ and byline =
 val no_label = ("", ~1)
 val no_facts = ([],[])
 
-fun string_for_label (s, num) = s ^ string_of_int num
+fun string_of_label (s, num) = s ^ string_of_int num
 
 fun fix_of_proof (Proof (fix, _, _)) = fix
 fun assms_of_proof (Proof (_, assms, _)) = assms

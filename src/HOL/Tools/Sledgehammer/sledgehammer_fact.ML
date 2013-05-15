@@ -245,7 +245,7 @@ fun is_blacklisted_or_something ctxt ho_atp name =
   (not (Config.get ctxt ignore_no_atp) andalso is_package_def name) orelse
   exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
 
-fun hackish_string_for_term ctxt =
+fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
 
 (* This is a terrible hack. Free variables are sometimes coded as "M__" when
@@ -269,12 +269,8 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun backquote_term ctxt t =
-  t |> close_form
-    |> hackish_string_for_term ctxt
-    |> backquote
-
-fun backquote_thm ctxt th = backquote_term ctxt (prop_of th)
+fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
+fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
 fun clasimpset_rule_table_of ctxt =
   let
@@ -384,7 +380,7 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
     val p_inst =
       concl_prop |> map_aterms varify_noninducts |> close_form
                  |> lambda (Free ind_x)
-                 |> hackish_string_for_term ctxt
+                 |> hackish_string_of_term ctxt
   in
     ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
       stature), th |> read_instantiate ctxt [((p_name, 0), p_inst)])

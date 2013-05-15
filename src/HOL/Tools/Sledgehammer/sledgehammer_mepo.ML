@@ -50,11 +50,11 @@ fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
 datatype pattern = PVar | PApp of string * pattern list
 datatype ptype = PType of int * pattern list
 
-fun string_for_pattern PVar = "_"
-  | string_for_pattern (PApp (s, ps)) =
-    if null ps then s else s ^ string_for_patterns ps
-and string_for_patterns ps = "(" ^ commas (map string_for_pattern ps) ^ ")"
-fun string_for_ptype (PType (_, ps)) = string_for_patterns ps
+fun string_of_pattern PVar = "_"
+  | string_of_pattern (PApp (s, ps)) =
+    if null ps then s else s ^ string_of_patterns ps
+and string_of_patterns ps = "(" ^ commas (map string_of_pattern ps) ^ ")"
+fun string_of_ptype (PType (_, ps)) = string_of_patterns ps
 
 (*Is the second type an instance of the first one?*)
 fun match_pattern (PVar, _) = true
@@ -74,20 +74,20 @@ fun pconst_mem f consts (s, ps) =
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
 
-fun pattern_for_type (Type (s, Ts)) = PApp (s, map pattern_for_type Ts)
-  | pattern_for_type (TFree (s, _)) = PApp (s, [])
-  | pattern_for_type (TVar _) = PVar
+fun pattern_of_type (Type (s, Ts)) = PApp (s, map pattern_of_type Ts)
+  | pattern_of_type (TFree (s, _)) = PApp (s, [])
+  | pattern_of_type (TVar _) = PVar
 
 (* Pairs a constant with the list of its type instantiations. *)
 fun ptype thy const x =
-  (if const then map pattern_for_type (these (try (Sign.const_typargs thy) x))
+  (if const then map pattern_of_type (these (try (Sign.const_typargs thy) x))
    else [])
 fun rich_ptype thy const (s, T) =
   PType (order_of_type T, ptype thy const (s, T))
 fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
 
-fun string_for_hyper_pconst (s, ps) =
-  s ^ "{" ^ commas (map string_for_ptype ps) ^ "}"
+fun string_of_hyper_pconst (s, ps) =
+  s ^ "{" ^ commas (map string_of_ptype ps) ^ "}"
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
@@ -264,7 +264,7 @@ fun irrel_weight_for ({worse_irrel_freq, higher_order_irrel_weight, ...}
     * pow_int higher_order_irrel_weight (order - 1)
   end
 
-fun multiplier_for_const_name local_const_multiplier s =
+fun multiplier_of_const_name local_const_multiplier s =
   if String.isSubstring "." s then 1.0 else local_const_multiplier
 
 (* Computes a constant's weight, as determined by its frequency. *)
@@ -278,7 +278,7 @@ fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
   else if String.isSuffix theory_const_suffix s then
     theory_const_weight
   else
-    multiplier_for_const_name local_const_multiplier s
+    multiplier_of_const_name local_const_multiplier s
     * weight_for m (pconst_freq (match_ptype o f) const_tab c)
     |> (if chained_const_weight < 1.0 andalso
            pconst_hyper_mem I chained_const_tab c then
@@ -448,7 +448,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               trace_msg ctxt (fn () => "New or updated constants: " ^
                   commas (rel_const_tab' |> Symtab.dest
                           |> subtract (op =) (rel_const_tab |> Symtab.dest)
-                          |> map string_for_hyper_pconst));
+                          |> map string_of_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
                  []
@@ -477,7 +477,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               Real.toString thres ^ ", constants: " ^
               commas (rel_const_tab |> Symtab.dest
                       |> filter (curry (op <>) [] o snd)
-                      |> map string_for_hyper_pconst));
+                      |> map string_of_hyper_pconst));
           relevant [] [] hopeful
         end
     fun uses_const s t =
@@ -516,11 +516,11 @@ fun mepo_suggested_facts ctxt
   let
     val thy = Proof_Context.theory_of ctxt
     val is_built_in_const =
-      Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover
+      Sledgehammer_Provers.is_built_in_const_of_prover ctxt prover
     val fudge =
       case fudge of
         SOME fudge => fudge
-      | NONE => Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover
+      | NONE => Sledgehammer_Provers.relevance_fudge_of_prover ctxt prover
     val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0),
                           1.0 / Real.fromInt (max_facts + 1))
   in

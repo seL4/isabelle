@@ -115,14 +115,14 @@ sig
     Proof.context -> string -> string option
   val remotify_prover_if_not_installed :
     Proof.context -> string -> string option
-  val default_max_facts_for_prover : Proof.context -> bool -> string -> int
+  val default_max_facts_of_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
-  val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
-  val is_built_in_const_for_prover :
+  val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
+  val is_built_in_const_of_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
-  val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
+  val relevance_fudge_of_prover : Proof.context -> string -> relevance_fudge
   val weight_smt_fact :
     Proof.context -> int -> ((string * stature) * thm) * int
     -> (string * stature) * (int option * thm)
@@ -171,7 +171,7 @@ val select_smt_solver = Context.proof_map o SMT_Config.select_solver
 
 fun is_smt_prover ctxt = member (op =) (SMT_Solver.available_solvers_of ctxt)
 
-fun is_atp_for_format is_format ctxt name =
+fun is_atp_of_format is_format ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     case try (get_atp thy) name of
       SOME config =>
@@ -180,8 +180,8 @@ fun is_atp_for_format is_format ctxt name =
     | NONE => false
   end
 
-val is_unit_equational_atp = is_atp_for_format (curry (op =) CNF_UEQ)
-val is_ho_atp = is_atp_for_format is_format_higher_order
+val is_unit_equational_atp = is_atp_of_format (curry (op =) CNF_UEQ)
+val is_ho_atp = is_atp_of_format is_format_higher_order
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
@@ -213,7 +213,7 @@ val reconstructor_default_max_facts = 20
 
 fun slice_max_facts (_, (_, ( ((max_facts, _), _, _, _, _), _))) = max_facts
 
-fun default_max_facts_for_prover ctxt slice name =
+fun default_max_facts_of_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
@@ -243,10 +243,10 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
     is_good_unit_equality T t u
   | is_unit_equality _ = false
 
-fun is_appropriate_prop_for_prover ctxt name =
+fun is_appropriate_prop_of_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
-fun is_built_in_const_for_prover ctxt name =
+fun is_built_in_const_of_prover ctxt name =
   if is_smt_prover ctxt name then
     let val ctxt = ctxt |> select_smt_solver name in
       fn x => fn ts =>
@@ -304,7 +304,7 @@ val smt_relevance_fudge =
    threshold_divisor = #threshold_divisor atp_relevance_fudge,
    ridiculous_threshold = #ridiculous_threshold atp_relevance_fudge}
 
-fun relevance_fudge_for_prover ctxt name =
+fun relevance_fudge_of_prover ctxt name =
   if is_smt_prover ctxt name then smt_relevance_fudge else atp_relevance_fudge
 
 fun supported_provers ctxt =
@@ -445,7 +445,7 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
     (info, (smt_fact_weight ctxt j num_facts, th |> Thm.transfer thy))
   end
 
-fun overlord_file_location_for_prover prover =
+fun overlord_file_location_of_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
 
 fun proof_banner mode name =
@@ -490,14 +490,14 @@ fun timed_apply timeout tac state i =
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
   in time_limit timeout (try (Seq.pull o full_tac)) goal end
 
-fun tac_for_reconstructor (Metis (type_enc, lam_trans)) =
+fun tac_of_reconstructor (Metis (type_enc, lam_trans)) =
     metis_tac [type_enc] lam_trans
-  | tac_for_reconstructor SMT = SMT_Solver.smt_tac
+  | tac_of_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstr debug timeout ths =
   (Config.put Metis_Tactic.verbose debug
    #> Config.put SMT_Config.verbose debug
-   #> (fn ctxt => tac_for_reconstructor reconstr ctxt ths))
+   #> (fn ctxt => tac_of_reconstructor reconstr ctxt ths))
   |> timed_apply timeout
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
@@ -528,7 +528,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
             let
               val _ =
                 if verbose then
-                  "Trying \"" ^ string_for_reconstructor reconstr ^ "\"" ^
+                  "Trying \"" ^ string_of_reconstructor reconstr ^ "\"" ^
                   (case timeout of
                      SOME timeout => " for " ^ string_from_time timeout
                    | NONE => "") ^ "..."
@@ -553,8 +553,8 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
    clearly inconsistent facts such as X = a | X = b, though it by no means
    guarantees soundness. *)
 
-fun get_facts_for_filter _ [(_, facts)] = facts
-  | get_facts_for_filter fact_filter factss =
+fun get_facts_of_filter _ [(_, facts)] = facts
+  | get_facts_of_filter fact_filter factss =
     case AList.lookup (op =) factss fact_filter of
       SOME facts => facts
     | NONE => snd (hd factss)
@@ -647,12 +647,12 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Legacy_Monomorph.keep_partial_instances false
 
-fun suffix_for_mode Auto_Try = "_try"
-  | suffix_for_mode Try = "_try"
-  | suffix_for_mode Normal = ""
-  | suffix_for_mode MaSh = ""
-  | suffix_for_mode Auto_Minimize = "_min"
-  | suffix_for_mode Minimize = "_min"
+fun suffix_of_mode Auto_Try = "_try"
+  | suffix_of_mode Try = "_try"
+  | suffix_of_mode Normal = ""
+  | suffix_of_mode MaSh = ""
+  | suffix_of_mode Auto_Minimize = "_min"
+  | suffix_of_mode Minimize = "_min"
 
 (* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on
    Linux appears to be the only ATP that does not honor its time limit. *)
@@ -681,11 +681,11 @@ fun run_atp mode name
       else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val (dest_dir, problem_prefix) =
-      if overlord then overlord_file_location_for_prover name
+      if overlord then overlord_file_location_of_prover name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
-                  suffix_for_mode mode ^ "_" ^ string_of_int subgoal)
+                  suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
     val prob_path =
       if dest_dir = "" then
         File.tmp_path problem_file_name
@@ -763,7 +763,7 @@ fun run_atp mode name
           let
             val effective_fact_filter =
               fact_filter |> the_default best_fact_filter
-            val facts = get_facts_for_filter effective_fact_filter factss
+            val facts = get_facts_of_filter effective_fact_filter factss
             val num_facts =
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) +
               max_fact_factor_fudge
@@ -834,7 +834,7 @@ fun run_atp mode name
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
             val _ =
               atp_problem
-              |> lines_for_atp_problem format ord ord_info
+              |> lines_of_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n")
               |> File.write_list prob_path
             val ((output, run_time), used_from, (atp_proof, outcome)) =
@@ -864,7 +864,7 @@ fun run_atp mode name
                      val failure =
                        UnsoundProof (is_type_enc_sound type_enc, facts)
                    in
-                     if debug then (warning (string_for_failure failure); NONE)
+                     if debug then (warning (string_of_failure failure); NONE)
                      else SOME failure
                    end
                  | NONE => NONE)
@@ -966,7 +966,7 @@ fun run_atp mode name
         end
       | SOME failure =>
         ([], Lazy.value (Failed_to_Play plain_metis),
-         fn _ => string_for_failure failure, "")
+         fn _ => string_of_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
@@ -1024,7 +1024,7 @@ fun smt_filter_loop name
            |> Config.put SMT_Config.verbose debug
            |> (if overlord then
                  Config.put SMT_Config.debug_files
-                            (overlord_file_location_for_prover name
+                            (overlord_file_location_of_prover name
                              |> (fn (path, name) => path ^ "/" ^ name))
                else
                  I)
@@ -1112,7 +1112,7 @@ fun smt_filter_loop name
               if verbose andalso is_some outcome then
                 quote name ^ " invoked with " ^
                 num_of_facts fact_filter num_facts ^ ": " ^
-                string_for_failure (failure_from_smt_failure (the outcome)) ^
+                string_of_failure (failure_from_smt_failure (the outcome)) ^
                 " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
                 "..."
                 |> Output.urgent_message
@@ -1166,7 +1166,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
            "")
       | SOME failure =>
         (Lazy.value (Failed_to_Play plain_metis),
-         fn _ => string_for_failure failure, "")
+         fn _ => string_of_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
@@ -1212,7 +1212,7 @@ fun run_reconstructor mode name
       in
         {outcome = SOME failure, used_facts = [], used_from = [],
          run_time = Time.zeroTime, preplay = Lazy.value play,
-         message = fn _ => string_for_failure failure, message_tail = ""}
+         message = fn _ => string_of_failure failure, message_tail = ""}
       end
   end
 

@@ -33,15 +33,15 @@ datatype inference_policy =
 
 val fact_name_of = prefix fact_prefix o ascii_of
 
-fun atp_for_format (THF (Polymorphic, _, _, _)) = dummy_thfN
-  | atp_for_format (THF (Monomorphic, _, _, _)) = satallaxN
-  | atp_for_format (DFG Polymorphic) = spass_polyN
-  | atp_for_format (DFG Monomorphic) = spassN
-  | atp_for_format (TFF (Polymorphic, _)) = alt_ergoN
-  | atp_for_format (TFF (Monomorphic, _)) = vampireN
-  | atp_for_format FOF = eN
-  | atp_for_format CNF_UEQ = waldmeisterN
-  | atp_for_format CNF = eN
+fun atp_of_format (THF (Polymorphic, _, _, _)) = dummy_thfN
+  | atp_of_format (THF (Monomorphic, _, _, _)) = satallaxN
+  | atp_of_format (DFG Polymorphic) = spass_polyN
+  | atp_of_format (DFG Monomorphic) = spassN
+  | atp_of_format (TFF (Polymorphic, _)) = alt_ergoN
+  | atp_of_format (TFF (Monomorphic, _)) = vampireN
+  | atp_of_format FOF = eN
+  | atp_of_format CNF_UEQ = waldmeisterN
+  | atp_of_format CNF = eN
 
 val atp_timeout = seconds 0.5
 
@@ -49,11 +49,11 @@ fun run_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
-    val atp = atp_for_format format
+    val atp = atp_of_format format
     val {exec, arguments, proof_delims, known_failures, ...} =
       get_atp thy atp ()
     val ord = effective_term_order ctxt atp
-    val _ = problem |> lines_for_atp_problem format ord (K [])
+    val _ = problem |> lines_of_atp_problem format ord (K [])
                     |> File.write_list prob_file
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
@@ -70,7 +70,7 @@ fun run_atp ctxt format problem =
       tracing ("Ran ATP: " ^
                (case outcome of
                   NONE => "Success"
-                | SOME failure => string_for_failure failure))
+                | SOME failure => string_of_failure failure))
   in outcome end
 
 fun is_problem_line_reprovable ctxt format prelude axioms deps
@@ -138,22 +138,22 @@ val ground_types =
   [@{typ nat}, HOLogic.intT, HOLogic.realT, @{typ "nat => bool"}, @{typ bool},
    @{typ unit}]
 
-fun ground_type_for_tvar _ [] tvar =
-    raise TYPE ("ground_type_for_sorts", [TVar tvar], [])
-  | ground_type_for_tvar thy (T :: Ts) tvar =
+fun ground_type_of_tvar _ [] tvar =
+    raise TYPE ("ground_type_of_tvar", [TVar tvar], [])
+  | ground_type_of_tvar thy (T :: Ts) tvar =
     if can (Sign.typ_match thy (TVar tvar, T)) Vartab.empty then T
-    else ground_type_for_tvar thy Ts tvar
+    else ground_type_of_tvar thy Ts tvar
 
 fun monomorphize_term ctxt t =
   let val thy = Proof_Context.theory_of ctxt in
-    t |> map_types (map_type_tvar (ground_type_for_tvar thy ground_types))
+    t |> map_types (map_type_tvar (ground_type_of_tvar thy ground_types))
     handle TYPE _ => @{prop True}
   end
 
 fun heading_sort_key heading =
   if String.isPrefix "Relevant fact" heading then "_" ^ heading else heading
 
-fun problem_for_theory ctxt thy format infer_policy type_enc =
+fun problem_of_theory ctxt thy format infer_policy type_enc =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val type_enc =
@@ -214,8 +214,8 @@ fun problem_for_theory ctxt thy format infer_policy type_enc =
     |> order_problem_facts name_ord
   end
 
-fun lines_for_problem ctxt format =
-  lines_for_atp_problem format (effective_term_order ctxt eN (* dummy *)) (K [])
+fun lines_of_problem ctxt format =
+  lines_of_atp_problem format (effective_term_order ctxt eN (* dummy *)) (K [])
 
 fun write_lines path ss =
   let
@@ -226,8 +226,8 @@ fun write_lines path ss =
 fun generate_atp_inference_file_for_theory ctxt thy format infer_policy type_enc
                                            file_name =
   let
-    val problem = problem_for_theory ctxt thy format infer_policy type_enc
-    val ss = lines_for_problem ctxt format problem
+    val problem = problem_of_theory ctxt thy format infer_policy type_enc
+    val ss = lines_of_problem ctxt format problem
   in write_lines (Path.explode file_name) ss end
 
 fun ap dir = Path.append dir o Path.explode
@@ -296,20 +296,20 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
     val include_dir = ap problem_dir include_name
     val _ = Isabelle_System.mkdir include_dir
     val (prelude, groups) =
-      problem_for_theory ctxt thy format infer_policy type_enc
+      problem_of_theory ctxt thy format infer_policy type_enc
       |> split_last
       ||> (snd
            #> chop_maximal_groups (op = o pairself theory_name_of_fact)
            #> map (`(include_base_name_of_fact o hd)))
     fun write_prelude () =
-      let val ss = lines_for_problem ctxt format prelude in
+      let val ss = lines_of_problem ctxt format prelude in
         File.append file_order_path (prelude_base_name ^ "\n");
         write_lines (ap include_dir prelude_name) ss
       end
     fun write_include_file (base_name, facts) =
       let
         val name = base_name ^ include_suffix
-        val ss = lines_for_problem ctxt format [(factsN, facts)]
+        val ss = lines_of_problem ctxt format [(factsN, facts)]
       in
         File.append file_order_path (base_name ^ "\n");
         write_lines (ap include_dir name) ss
@@ -321,7 +321,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
         write_problem_files n (includes @ [include_line base_name]) [] groups
       | write_problem_files n includes seen
                             ((base_name, fact :: facts) :: groups) =
-        let val fact_s = tptp_string_for_line format fact in
+        let val fact_s = tptp_string_of_line format fact in
           (if should_generate_problem thy base_name fact then
              let
                val (name, conj) =
@@ -329,7 +329,7 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
                     Formula ((ident, alt), _, phi, _, _) =>
                     (problem_name_of base_name n (encode_meta alt),
                      Formula ((ident, alt), Conjecture, phi, NONE, [])))
-               val conj_s = tptp_string_for_line format conj
+               val conj_s = tptp_string_of_line format conj
              in
                File.append problem_order_path (name ^ "\n");
                write_lines (ap problem_dir name) (seen @ [conj_s])

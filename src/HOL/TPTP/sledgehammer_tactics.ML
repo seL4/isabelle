@@ -31,7 +31,7 @@ fun run_prover override_params fact_override i n ctxt goal =
       default_params ctxt override_params
     val name = hd provers
     val prover = get_prover ctxt mode name
-    val default_max_facts = default_max_facts_for_prover ctxt slice name
+    val default_max_facts = default_max_facts_of_prover ctxt slice name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val ho_atp = exists (is_ho_atp ctxt) provers
     val reserved = reserved_isar_keyword_table ()

@@ -74,7 +74,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts =
-      max_facts |> the_default (default_max_facts_for_prover ctxt slice name)
+      max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
     val num_facts = length facts |> not only ? Integer.min max_facts
     fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
@@ -219,7 +219,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
             case max_facts of
               SOME n => n
             | NONE =>
-              0 |> fold (Integer.max o default_max_facts_for_prover ctxt slice)
+              0 |> fold (Integer.max o default_max_facts_of_prover ctxt slice)
                         provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
         in

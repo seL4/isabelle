@@ -216,7 +216,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
         (* TODO: add Skolem variables to context? *)
         fun enrich_with_fact l t =
           Proof_Context.put_thms false
-            (string_for_label l, SOME [Skip_Proof.make_thm thy t])
+              (string_of_label l, SOME [Skip_Proof.make_thm thy t])
         fun enrich_with_step (Prove (_, l, t, _)) = enrich_with_fact l t
           | enrich_with_step (Obtain (_, _, l, t, _)) = enrich_with_fact l t
           | enrich_with_step _ = I

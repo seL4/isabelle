@@ -574,7 +574,7 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
     val thy = Proof_Context.theory_of ctxt
     fun is_built_in (x as (s, _)) args =
       if member (op =) logical_consts s then (true, args)
-      else is_built_in_const_for_prover ctxt prover x args
+      else is_built_in_const_of_prover ctxt prover x args
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
     fun add_classes @{sort type} = I
