@@ -622,11 +622,11 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
              | _ => NONE)
       |> flat |> commas |> maybe_enclose "predicates [" "]."
     val sorts =
-      filt (fn Type_Decl (_, ty, ary) => SOME (ty_ary ary ty) | _ => NONE) @
+      filt (try (fn Type_Decl (_, ty, ary) => ty_ary ary ty)) @
       [[ty_ary 0 dfg_individual_type]]
       |> flat |> commas |> maybe_enclose "sorts [" "]."
     val classes =
-      filt (fn Class_Decl (_, cl, _) => SOME cl | _ => NONE)
+      filt (try (fn Class_Decl (_, cl, _) => cl))
       |> flat |> commas |> maybe_enclose "classes [" "]."
     val ord_info = if gen_weights orelse gen_prec then ord_info () else []
     val do_term_order_weights =
@@ -644,15 +644,14 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
                else NONE
              | _ => NONE) |> flat
     val datatype_decls =
-      filt (fn Datatype_Decl (_, xs, ty, tms) => SOME (datatype_decl xs ty tms)
-             | _ => NONE) |> flat
+      filt (try (fn Datatype_Decl (_, xs, ty, tms) => datatype_decl xs ty tms))
+      |> flat
     val sort_decls =
-      filt (fn Class_Memb (_, xs, ty, cl) => SOME (sort_decl xs ty cl)
-             | _ => NONE) |> flat
+      filt (try (fn Class_Memb (_, xs, ty, cl) => sort_decl xs ty cl)) |> flat
     val subclass_decls =
-      filt (fn Class_Decl (_, sub, supers) =>
-               SOME (map (subclass_of sub) supers)
-             | _ => NONE) |> flat |> flat
+      filt (try (fn Class_Decl (_, sub, supers) =>
+                    map (subclass_of sub) supers))
+      |> flat |> flat
     val decls =
       func_decls @ pred_decls @ datatype_decls @ sort_decls @ subclass_decls
     val axioms =
