@@ -116,13 +116,13 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val params as {max_facts, slice, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val default_max_facts =
-           Sledgehammer_Provers.default_max_facts_for_prover ctxt slice prover
+           Sledgehammer_Provers.default_max_facts_of_prover ctxt slice prover
          val is_appropriate_prop =
-           Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt
+           Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt
                default_prover
          val relevance_fudge =
            extract_relevance_fudge args
-               (Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover)
+               (Sledgehammer_Provers.relevance_fudge_of_prover ctxt prover)
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
          val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover

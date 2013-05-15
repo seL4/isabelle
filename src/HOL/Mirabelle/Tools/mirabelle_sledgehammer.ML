@@ -451,9 +451,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
     val default_max_facts =
-      Sledgehammer_Provers.default_max_facts_for_prover ctxt slice prover_name
+      Sledgehammer_Provers.default_max_facts_of_prover ctxt slice prover_name
     val is_appropriate_prop =
-      Sledgehammer_Provers.is_appropriate_prop_for_prover ctxt prover_name
+      Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt prover_name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val time_limit =
       (case hard_timeout of
