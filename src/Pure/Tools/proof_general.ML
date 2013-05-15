@@ -27,7 +27,7 @@ sig
   val preference_option: category -> string -> string -> string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
   val init: unit -> unit
-  val thm_depsN: string
+  val thm_deps: bool Unsynchronized.ref
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -357,7 +357,7 @@ fun add_thm th =
 
 in
 
-fun thm_deps ths =
+fun get_thm_deps ths =
   let
     (* FIXME proper derivation names!? *)
     val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
@@ -369,7 +369,7 @@ end;
 
 (* report via hook *)
 
-val thm_depsN = "thm_deps";
+val thm_deps = Unsynchronized.ref false;
 
 local
 
@@ -381,13 +381,12 @@ fun thm_deps_message (thms, deps) =
 in
 
 fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
-  if print_mode_active thm_depsN andalso
-    can Toplevel.theory_of state andalso Toplevel.is_theory state'
+  if ! thm_deps andalso can Toplevel.theory_of state andalso Toplevel.is_theory state'
   then
     let
       val prev_facts = Global_Theory.facts_of (Toplevel.theory_of state);
       val facts = Global_Theory.facts_of (Toplevel.theory_of state');
-      val (names, deps) = thm_deps (maps #2 (Facts.dest_static [prev_facts] facts));
+      val (names, deps) = get_thm_deps (maps #2 (Facts.dest_static [prev_facts] facts));
     in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)

@@ -106,13 +106,8 @@ val _ =
     "Whether to enable debugging";
 
 val _ =
-  ProofGeneral.preference_raw ProofGeneral.category_tracing
-    (fn () => Markup.print_bool (print_mode_active ProofGeneral.thm_depsN))
-    (fn s =>
-      if Markup.parse_bool s
-      then Unsynchronized.change print_mode (insert (op =) ProofGeneral.thm_depsN)
-      else Unsynchronized.change print_mode (remove (op =) ProofGeneral.thm_depsN))
-    ProofGeneral.pgipbool
+  ProofGeneral.preference_bool ProofGeneral.category_tracing
+    ProofGeneral.thm_deps
     "theorem-dependencies"
     "Track theorem dependencies within Proof General";
 
