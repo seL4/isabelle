@@ -27,6 +27,7 @@ sig
   val preference_option: category -> string -> string -> string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
   val thm_deps: bool Unsynchronized.ref
+  val proof_generalN: string
   val init: unit -> unit
 end;
 
@@ -393,7 +394,7 @@ val welcome = Output.urgent_message o Session.welcome;
 
 (* init *)
 
-val proof_general_emacsN = "ProofGeneralEmacs";
+val proof_generalN = "ProofGeneral";
 
 val initialized = Unsynchronized.ref false;
 
@@ -401,15 +402,14 @@ fun init () =
   (if ! initialized then ()
    else
     (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
-     Output.add_mode proof_general_emacsN
-      Output.default_output Output.default_escape;
-     Markup.add_mode proof_general_emacsN YXML.output_markup;
+     Output.add_mode proof_generalN Output.default_output Output.default_escape;
+     Markup.add_mode proof_generalN YXML.output_markup;
      setup_messages ();
      setup_thy_loader ();
      setup_present_hook ();
      initialized := true);
    sync_thy_loader ();
-   Unsynchronized.change print_mode (update (op =) proof_general_emacsN);
+   Unsynchronized.change print_mode (update (op =) proof_generalN);
    Secure.PG_setup ();
    welcome ();
    Isar.toplevel_loop TextIO.stdIn
