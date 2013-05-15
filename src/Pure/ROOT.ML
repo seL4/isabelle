@@ -303,8 +303,7 @@ use "Tools/legacy_xml_syntax.ML";
   |> Unsynchronized.setmp Multithreading.max_threads 0)
   "ProofGeneral/preferences.ML";
 
-use "ProofGeneral/proof_general_pgip.ML";
-use "ProofGeneral/proof_general_emacs.ML";
+use "ProofGeneral/proof_general.ML";
 
 
 (* ML toplevel pretty printing *)

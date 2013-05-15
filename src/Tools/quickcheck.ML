@@ -97,7 +97,7 @@ val unknownN = "unknown"
 val auto = Unsynchronized.ref false;
 
 val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
+  ProofGeneral.add_preference Preferences.category_tracing
   (Unsynchronized.setmp auto true (fn () =>
     Preferences.bool_pref auto
       "auto-quickcheck"

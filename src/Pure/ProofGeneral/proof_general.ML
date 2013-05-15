@@ -1,18 +1,104 @@
-(*  Title:      Pure/ProofGeneral/proof_general_emacs.ML
-    Author:     David Aspinall and Markus Wenzel
+(*  Title:      Pure/ProofGeneral/proof_general.ML
+    Author:     David Aspinall
+    Author:     Makarius
 
-Isabelle/Isar configuration for Emacs Proof General.
+Isabelle/Isar configuration for Proof General / Emacs.
 See also http://proofgeneral.inf.ed.ac.uk
 *)
 
 signature PROOF_GENERAL =
 sig
+  val add_preference: string -> Preferences.preference -> unit
   val init: unit -> unit
   structure ThyLoad: sig val add_path: string -> unit end
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
 struct
+
+(* preferences *)
+
+val preferences = Unsynchronized.ref Preferences.pure_preferences;
+
+fun add_preference cat pref =
+  CRITICAL (fn () => Unsynchronized.change preferences (Preferences.add cat pref));
+
+fun set_preference pref value =
+  (case AList.lookup (op =) (map (fn p => (#name p, p)) (maps snd (! preferences))) pref of
+    SOME {set, ...} => set value
+  | NONE => error ("Unknown prover preference: " ^ quote pref));
+
+
+(* process_pgip: minimal PGIP support for <askprefs>, <haspref>, <setpref> *)
+
+local
+
+fun get_attr attrs name =
+  (case Properties.get attrs name of
+    SOME value => value
+  | NONE => raise Fail ("Missing attribute: " ^ quote name));
+
+fun attr x y = [(x, y)] : XML.attributes;
+
+fun opt_attr _ NONE = []
+  | opt_attr name (SOME value) = attr name value;
+
+val pgip_id = "dummy";
+val pgip_serial = Synchronized.counter ();
+
+fun output_pgip refid refseq content =
+  XML.Elem (("pgip",
+    attr "tag" "Isabelle/Isar" @
+    attr "id" pgip_id @
+    opt_attr "destid" refid @
+    attr "class" "pg" @
+    opt_attr "refid" refid @
+    attr "refseq" refseq @
+    attr "seq" (string_of_int (pgip_serial ()))), content)
+  |> XML.string_of
+  |> Output.urgent_message;
+
+
+fun invalid_pgip () = raise Fail "Invalid PGIP packet";
+
+fun haspref ({name, descr, default, pgiptype, ...}: Preferences.preference) =
+  XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
+    [XML.Elem ((pgiptype, []), [])]);
+
+fun process_element refid refseq (XML.Elem (("askprefs", _), _)) =
+      ! preferences |> List.app (fn (category, prefs) =>
+          output_pgip refid refseq
+            [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
+  | process_element _ _ (XML.Elem (("setpref", attrs), data)) =
+      let
+        val name =
+          (case Properties.get attrs "name" of
+            SOME name => name
+          | NONE => invalid_pgip ());
+        val value = XML.content_of data;
+      in set_preference name value end
+  | process_element _ _ _ = invalid_pgip ();
+
+in
+
+fun process_pgip str =
+  (case XML.parse str of
+    XML.Elem (("pgip", attrs), pgips) =>
+      let
+        val class = get_attr attrs "class";
+        val dest = Properties.get attrs "destid";
+        val refid = Properties.get attrs "id";
+        val refseq = get_attr attrs "seq";
+        val processit =
+          (case dest of
+            NONE => class = "pa"
+          | SOME id => id = pgip_id);
+       in if processit then List.app (process_element refid refseq) pgips else () end
+  | _ => invalid_pgip ())
+  handle Fail msg => raise Fail (msg ^ "\n" ^ str);
+
+end;
+
 
 (* render markup *)
 
@@ -196,6 +282,11 @@ end;
 
 
 (* additional outer syntax for Isar *)
+
+val _ =
+  Outer_Syntax.improper_command
+    (("ProofGeneral.process_pgip", Keyword.control), Position.none) "(internal)"
+    (Parse.text >> (fn str => Toplevel.imperative (fn () => process_pgip str)));
 
 val _ =
   Outer_Syntax.improper_command

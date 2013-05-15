@@ -36,7 +36,7 @@ val auto_time_limit = Unsynchronized.ref 4.0
 
 val auto_try_time_limitN = "auto-try-time-limit"
 val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
+  ProofGeneral.add_preference Preferences.category_tracing
     (Preferences.real_pref auto_time_limit
       auto_try_time_limitN "Time limit for automatically tried tools (in seconds).")
 

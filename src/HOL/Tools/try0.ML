@@ -27,7 +27,7 @@ val noneN = "none"
 val auto = Unsynchronized.ref false
 
 val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
+  ProofGeneral.add_preference Preferences.category_tracing
       (Preferences.bool_pref auto "auto-try0" "Try standard proof methods.")
 
 val default_timeout = seconds 5.0
