@@ -388,9 +388,6 @@ end;
 
 (** startup **)
 
-val welcome = Output.urgent_message o Session.welcome;
-
-
 (* init *)
 
 val proof_generalN = "ProofGeneral";
@@ -410,12 +407,13 @@ fun init () =
    sync_thy_loader ();
    Unsynchronized.change print_mode (update (op =) proof_generalN);
    Secure.PG_setup ();
-   welcome ();
    Isar.toplevel_loop TextIO.stdIn
-    {init = true, welcome = false, sync = true, secure = Secure.is_secure ()});
+    {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
 
 (* restart *)
+
+val welcome = Output.urgent_message o Session.welcome;
 
 fun restart () =
  (sync_thy_loader ();
