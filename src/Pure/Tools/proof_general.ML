@@ -18,8 +18,8 @@ sig
   val pgipint: pgiptype
   val pgipfloat: pgiptype
   val pgipstring: pgiptype
-  val preference_raw: category ->
-    (unit -> string) -> (string -> unit) -> string -> string -> string -> unit
+  val preference: category -> (unit -> string) -> (string -> unit) ->
+    string -> string -> string -> unit
   val preference_bool: category -> bool Unsynchronized.ref -> string -> string -> unit
   val preference_int: category -> int Unsynchronized.ref -> string -> string -> unit
   val preference_real: category -> real Unsynchronized.ref -> string -> string -> unit
@@ -89,17 +89,12 @@ end;
 
 (* raw preferences *)
 
-fun preference_raw category raw_get raw_set typ name descr =
-  let
-    fun get () = CRITICAL raw_get;
-    fun set x = CRITICAL (fn () => raw_set x);
-  in
-    add_preference name
-      {category = category, descr = descr, pgiptype = typ, get = get, set = set, default = get ()}
-  end;
+fun preference category get set typ name descr =
+  add_preference name
+    {category = category, descr = descr, pgiptype = typ, get = get, set = set, default = get ()};
 
 fun preference_ref category read write typ r =
-  preference_raw category (fn () => read (! r)) (fn x => r := write x) typ;
+  preference category (fn () => read (! r)) (fn x => r := write x) typ;
 
 fun preference_bool category = preference_ref category Markup.print_bool Markup.parse_bool pgipbool;
 fun preference_int category = preference_ref category Markup.print_int Markup.parse_int pgipint;

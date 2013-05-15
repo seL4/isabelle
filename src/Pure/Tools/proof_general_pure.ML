@@ -59,7 +59,7 @@ val _ =
     "Setting for maximum number of subgoals to be printed";
 
 val _ =
-  ProofGeneral.preference_raw ProofGeneral.category_advanced_display
+  ProofGeneral.preference ProofGeneral.category_advanced_display
     (Markup.print_int o get_print_depth)
     (print_depth o Markup.parse_int)
     ProofGeneral.pgipint
@@ -129,7 +129,7 @@ val _ =
 
 val _ =
   Unsynchronized.setmp Proofterm.proofs 1 (fn () =>
-    ProofGeneral.preference_raw ProofGeneral.category_proof
+    ProofGeneral.preference ProofGeneral.category_proof
       (Markup.print_bool o Proofterm.proofs_enabled)
       (fn s => Proofterm.proofs := (if Markup.parse_bool s then 2 else 1))
       ProofGeneral.pgipbool
@@ -144,7 +144,7 @@ val _ =
       "Maximum number of threads") ();
 
 val _ =
-  ProofGeneral.preference_raw ProofGeneral.category_proof
+  ProofGeneral.preference ProofGeneral.category_proof
     (fn () => Markup.print_bool (! Goal.parallel_proofs >= 1))
     (fn s => Goal.parallel_proofs := (if Markup.parse_bool s then 1 else 0))
     ProofGeneral.pgipbool
