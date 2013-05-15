@@ -53,18 +53,17 @@ done
 lemma reflp_set_rel[reflexivity_rule]: "reflp R \<Longrightarrow> reflp (set_rel R)"
   unfolding reflp_def set_rel_def by fast
 
-lemma left_total_set_rel[reflexivity_rule]:
-  assumes lt_R: "left_total R"
-  shows "left_total (set_rel R)"
-proof -
-  {
-    fix A
-    let ?B = "{y. \<exists>x \<in> A. R x y}"
-    have "(\<forall>x\<in>A. \<exists>y\<in>?B. R x y) \<and> (\<forall>y\<in>?B. \<exists>x\<in>A. R x y)" using lt_R by(elim left_totalE) blast
-  }
-  then have "\<And>A. \<exists>B. (\<forall>x\<in>A. \<exists>y\<in>B. R x y) \<and> (\<forall>y\<in>B. \<exists>x\<in>A. R x y)" by blast
-  then show ?thesis by (auto simp: set_rel_def intro: left_totalI)
-qed
+lemma left_total_set_rel[reflexivity_rule]: 
+  "left_total A \<Longrightarrow> left_total (set_rel A)"
+  unfolding left_total_def set_rel_def
+  apply safe
+  apply (rename_tac X, rule_tac x="{y. \<exists>x\<in>X. A x y}" in exI, fast)
+done
+
+lemma left_unique_set_rel[reflexivity_rule]: 
+  "left_unique A \<Longrightarrow> left_unique (set_rel A)"
+  unfolding left_unique_def set_rel_def
+  by fast
 
 lemma symp_set_rel: "symp R \<Longrightarrow> symp (set_rel R)"
   unfolding symp_def set_rel_def by fast

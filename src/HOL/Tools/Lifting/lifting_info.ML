@@ -23,8 +23,8 @@ sig
   val get_invariant_commute_rules: Proof.context -> thm list
   
   val get_reflexivity_rules: Proof.context -> thm list
+  val add_reflexivity_rule_raw_attribute: attribute
   val add_reflexivity_rule_attribute: attribute
-  val add_reflexivity_rule_attrib: Attrib.src
 
   type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
     pos_distr_rules: thm list, neg_distr_rules: thm list}
@@ -195,15 +195,51 @@ structure Invariant_Commute = Named_Thms
 
 fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.get ctxt)
 
-structure Reflp_Preserve = Named_Thms
+(* info about reflexivity rules *)
+
+structure Reflexivity_Rule = Generic_Data
 (
-  val name = @{binding reflexivity_rule}
-  val description = "theorems that a relator preserves a reflexivity property"
+  type T = thm Item_Net.T
+  val empty = Thm.full_rules
+  val extend = I
+  val merge = Item_Net.merge
 )
 
-val get_reflexivity_rules = Reflp_Preserve.get
-val add_reflexivity_rule_attribute = Reflp_Preserve.add
-val add_reflexivity_rule_attrib = Attrib.internal (K add_reflexivity_rule_attribute)
+fun get_reflexivity_rules ctxt = ctxt
+  |> (Item_Net.content o Reflexivity_Rule.get o Context.Proof)
+
+(* Conversion to create a reflp' variant of a reflexivity rule  *)
+fun safe_reflp_conv ct =
+  Conv.try_conv (HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm reflp'_def}))) ct
+
+fun prep_reflp_conv ct = (
+      Conv.implies_conv safe_reflp_conv prep_reflp_conv
+      else_conv
+      safe_reflp_conv
+      else_conv
+      Conv.all_conv) ct
+
+fun add_reflexivity_rule_raw thm = Reflexivity_Rule.map (Item_Net.update thm)
+val add_reflexivity_rule_raw_attribute = Thm.declaration_attribute add_reflexivity_rule_raw
+
+fun add_reflexivity_rule thm = add_reflexivity_rule_raw thm #>
+  add_reflexivity_rule_raw (Conv.fconv_rule prep_reflp_conv thm)
+val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule
+
+
+val relfexivity_rule_setup =
+  let
+    val name = @{binding reflexivity_rule}
+    fun del_thm_raw thm = Reflexivity_Rule.map (Item_Net.remove thm)
+    fun del_thm thm = del_thm_raw thm #>
+      del_thm_raw (Conv.fconv_rule prep_reflp_conv thm)
+    val del = Thm.declaration_attribute del_thm
+    val text = "rules that are used to prove that a relation is reflexive"
+    val content = Item_Net.content o Reflexivity_Rule.get
+  in
+    Attrib.setup name (Attrib.add_del add_reflexivity_rule_attribute del) text
+    #> Global_Theory.add_thms_dynamic (name, content)
+  end
 
 (* info about relator distributivity theorems *)
 type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
@@ -414,7 +450,7 @@ val setup =
   quot_map_attribute_setup
   #> quot_del_attribute_setup
   #> Invariant_Commute.setup
-  #> Reflp_Preserve.setup
+  #> relfexivity_rule_setup
   #> relator_distr_attribute_setup
 
 (* outer syntax commands *)

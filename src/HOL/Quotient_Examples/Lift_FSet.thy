@@ -35,8 +35,7 @@ quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
 
 subsection {* Lifted constant definitions *}
 
-lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric Nil_transfer
-  by simp
+lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric Nil_transfer .
 
 lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric Cons_transfer
   by simp

@@ -37,11 +37,9 @@ subsection {* Integers form a commutative ring *}
 instantiation int :: comm_ring_1
 begin
 
-lift_definition zero_int :: "int" is "(0, 0)"
-  by simp
+lift_definition zero_int :: "int" is "(0, 0)" .
 
-lift_definition one_int :: "int" is "(1, 0)"
-  by simp
+lift_definition one_int :: "int" is "(1, 0)" .
 
 lift_definition plus_int :: "int \<Rightarrow> int \<Rightarrow> int"
   is "\<lambda>(x, y) (u, v). (x + u, y + v)"

@@ -50,17 +50,22 @@ lemma Domainp_prod[relator_domain]:
   shows "Domainp (prod_rel T1 T2) = (prod_pred P1 P2)"
 using assms unfolding prod_rel_def prod_pred_def by blast
 
-lemma prod_reflp [reflexivity_rule]:
+lemma reflp_prod_rel [reflexivity_rule]:
   assumes "reflp R1"
   assumes "reflp R2"
   shows "reflp (prod_rel R1 R2)"
 using assms by (auto intro!: reflpI elim: reflpE)
 
-lemma prod_left_total [reflexivity_rule]:
+lemma left_total_prod_rel [reflexivity_rule]:
   assumes "left_total R1"
   assumes "left_total R2"
   shows "left_total (prod_rel R1 R2)"
-using assms by (auto intro!: left_totalI elim!: left_totalE)
+  using assms unfolding left_total_def prod_rel_def by auto
+
+lemma left_unique_prod_rel [reflexivity_rule]:
+  assumes "left_unique R1" and "left_unique R2"
+  shows "left_unique (prod_rel R1 R2)"
+  using assms unfolding left_unique_def prod_rel_def by auto
 
 lemma prod_equivp [quot_equiv]:
   assumes "equivp R1"

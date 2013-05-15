@@ -63,8 +63,7 @@ by(auto simp: eq_ivl_def is_empty_rep_def \<gamma>_rep_cases Icc_eq_Icc split: p
 
 definition empty_rep :: eint2 where "empty_rep = (Pinf,Minf)"
 
-lift_definition empty_ivl :: ivl is empty_rep
-by simp
+lift_definition empty_ivl :: ivl is empty_rep .
 
 lemma is_empty_empty_rep[simp]: "is_empty_rep empty_rep"
 by(auto simp add: is_empty_rep_def empty_rep_def)
@@ -105,8 +104,7 @@ definition sup_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
 lift_definition sup_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" is sup_rep
 by(auto simp: eq_ivl_iff sup_rep_def)
 
-lift_definition top_ivl :: ivl is "(Minf,Pinf)"
-by(auto simp: eq_ivl_def)
+lift_definition top_ivl :: ivl is "(Minf,Pinf)" .
 
 lemma is_empty_min_max:
   "\<not> is_empty_rep (l1,h1) \<Longrightarrow> \<not> is_empty_rep (l2, h2) \<Longrightarrow> \<not> is_empty_rep (min l1 l2, max h1 h2)"

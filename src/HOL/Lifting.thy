@@ -22,6 +22,23 @@ lemma map_fun_id:
   "(id ---> id) = id"
   by (simp add: fun_eq_iff)
 
+subsection {* Other predicates on relations *}
+
+definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
+
+lemma left_totalI:
+  "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"
+unfolding left_total_def by blast
+
+lemma left_totalE:
+  assumes "left_total R"
+  obtains "(\<And>x. \<exists>y. R x y)"
+using assms unfolding left_total_def by blast
+
+definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
 subsection {* Quotient Predicate *}
 
 definition
@@ -190,7 +207,7 @@ lemma Quotient_compose:
   assumes 1: "Quotient R1 Abs1 Rep1 T1"
   assumes 2: "Quotient R2 Abs2 Rep2 T2"
   shows "Quotient (T1 OO R2 OO conversep T1) (Abs2 \<circ> Abs1) (Rep1 \<circ> Rep2) (T1 OO T2)"
-  using assms unfolding Quotient_alt_def4 by (auto intro!: ext)
+  using assms unfolding Quotient_alt_def4 by fastforce
 
 lemma equivp_reflp2:
   "equivp R \<Longrightarrow> reflp R"
@@ -323,6 +340,10 @@ context
   assumes T_def: "T \<equiv> (\<lambda>(x::'a) (y::'b). x = Rep y)"
 begin
 
+lemma typedef_left_unique: "left_unique T"
+  unfolding left_unique_def T_def
+  by (simp add: type_definition.Rep_inject [OF type])
+
 lemma typedef_bi_unique: "bi_unique T"
   unfolding bi_unique_def T_def
   by (simp add: type_definition.Rep_inject [OF type])
@@ -352,17 +373,7 @@ lemma Quotient_to_transfer:
 
 text {* Proving reflexivity *}
 
-definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
-
-lemma left_totalI:
-  "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"
-unfolding left_total_def by blast
-
-lemma left_totalE:
-  assumes "left_total R"
-  obtains "(\<And>x. \<exists>y. R x y)"
-using assms unfolding left_total_def by blast
+definition reflp' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where "reflp' R \<equiv> reflp R"
 
 lemma Quotient_to_left_total:
   assumes q: "Quotient R Abs Rep T"
@@ -371,20 +382,30 @@ lemma Quotient_to_left_total:
 using r_R Quotient_cr_rel[OF q] unfolding left_total_def by (auto elim: reflpE)
 
 lemma reflp_Quotient_composition:
-  assumes lt_R1: "left_total R1"
-  and r_R2: "reflp R2"
-  shows "reflp (R1 OO R2 OO R1\<inverse>\<inverse>)"
-using assms
-proof -
-  {
-    fix x
-    from lt_R1 obtain y where "R1 x y" unfolding left_total_def by blast
-    moreover then have "R1\<inverse>\<inverse> y x" by simp
-    moreover have "R2 y y" using r_R2 by (auto elim: reflpE)
-    ultimately have "(R1 OO R2 OO R1\<inverse>\<inverse>) x x" by auto
-  }
-  then show ?thesis by (auto intro: reflpI)
-qed
+  assumes "left_total R"
+  assumes "reflp T"
+  shows "reflp (R OO T OO R\<inverse>\<inverse>)"
+using assms unfolding reflp_def left_total_def by fast
+
+lemma reflp_fun1:
+  assumes "is_equality R"
+  assumes "reflp' S"
+  shows "reflp (R ===> S)"
+using assms unfolding is_equality_def reflp'_def reflp_def fun_rel_def by blast
+
+lemma reflp_fun2:
+  assumes "is_equality R"
+  assumes "is_equality S"
+  shows "reflp (R ===> S)"
+using assms unfolding is_equality_def reflp_def fun_rel_def by blast
+
+lemma is_equality_Quotient_composition:
+  assumes "is_equality T"
+  assumes "left_total R"
+  assumes "left_unique R"
+  shows "is_equality (R OO T OO R\<inverse>\<inverse>)"
+using assms unfolding is_equality_def left_total_def left_unique_def OO_def conversep_iff
+by fastforce
 
 lemma reflp_equality: "reflp (op =)"
 by (auto intro: reflpI)
@@ -399,9 +420,6 @@ definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<
 
 definition  NEG :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
 "NEG A B \<equiv> B \<le> A"
-
-definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
 (*
   The following two rules are here because we don't have any proper
@@ -559,7 +577,18 @@ ML_file "Tools/Lifting/lifting_util.ML"
 ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
-lemmas [reflexivity_rule] = reflp_equality reflp_Quotient_composition
+lemmas [reflexivity_rule] = 
+  reflp_equality reflp_Quotient_composition is_equality_Quotient_composition
+
+text {* add @{thm reflp_fun1} and @{thm reflp_fun2} manually through ML
+  because we don't want to get reflp' variant of these theorems *}
+
+setup{*
+Context.theory_map 
+  (fold
+    (snd oo (Thm.apply_attribute Lifting_Info.add_reflexivity_rule_raw_attribute)) 
+      [@{thm reflp_fun1}, @{thm reflp_fun2}])
+*}
 
 (* setup for the function type *)
 declare fun_quotient[quot_map]
@@ -572,6 +601,6 @@ ML_file "Tools/Lifting/lifting_def.ML"
 
 ML_file "Tools/Lifting/lifting_setup.ML"
 
-hide_const (open) invariant POS NEG
+hide_const (open) invariant POS NEG reflp'
 
 end

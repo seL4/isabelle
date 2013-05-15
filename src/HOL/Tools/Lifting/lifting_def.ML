@@ -25,6 +25,31 @@ open Lifting_Util
 
 infix 0 MRSL
 
+(* Reflexivity prover *)
+
+fun refl_tac ctxt =
+  let
+    fun intro_reflp_tac (ct, i) = 
+    let
+      val rule = Thm.incr_indexes (#maxidx (rep_cterm ct) + 1) @{thm reflpD}
+      val concl_pat = Drule.strip_imp_concl (cprop_of rule)
+      val insts = Thm.first_order_match (concl_pat, ct)
+    in
+      rtac (Drule.instantiate_normalize insts rule) i
+    end
+    handle Pattern.MATCH => no_tac
+
+    val rules = @{thm is_equality_eq} ::
+      ((Transfer.get_relator_eq_raw ctxt) @ (Lifting_Info.get_reflexivity_rules ctxt))
+  in
+    EVERY' [CSUBGOAL intro_reflp_tac, 
+            REPEAT_ALL_NEW (resolve_tac rules)]
+  end
+    
+fun try_prove_reflexivity ctxt prop =
+  SOME (Goal.prove ctxt [] [] prop (fn {context, ...} => refl_tac context 1))
+    handle ERROR _ => NONE
+
 (* Generation of a transfer rule *)
 
 fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rule =
@@ -70,8 +95,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         Drule.cterm_instantiate subst relcomppI
       end
 
-    fun zip_transfer_rules ctxt thm = 
-      let
+    fun zip_transfer_rules ctxt thm =       let
         val thy = Proof_Context.theory_of ctxt
         fun mk_POS ty = Const (@{const_name POS}, ty --> ty --> HOLogic.boolT)
         val rel = (Thm.dest_fun2 o Thm.dest_arg o cprop_of) thm
@@ -268,30 +292,6 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
 
 fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
   let
-    fun refl_tac ctxt =
-      let
-        fun intro_reflp_tac (t, i) = 
-        let
-          val concl_pat = Drule.strip_imp_concl (cprop_of @{thm reflpD})
-          val insts = Thm.first_order_match (concl_pat, t)
-        in
-          rtac (Drule.instantiate_normalize insts @{thm reflpD}) i
-        end
-        handle Pattern.MATCH => no_tac
-        
-        val fun_rel_meta_eq = mk_meta_eq @{thm fun_rel_eq}
-        val conv = Conv.bottom_conv (K (Conv.try_conv (Conv.rewr_conv fun_rel_meta_eq))) ctxt
-        val rules = Lifting_Info.get_reflexivity_rules ctxt
-      in
-        EVERY' [CSUBGOAL intro_reflp_tac, 
-                CONVERSION conv,
-                REPEAT_ALL_NEW (resolve_tac rules)]
-      end
-    
-    fun try_prove_prem ctxt prop =
-      SOME (Goal.prove ctxt [] [] prop (fn {context, ...} => refl_tac context 1))
-        handle ERROR _ => NONE
-
     val abs_eq_with_assms =
       let
         val (rty, qty) = quot_thm_rty_qty quot_thm
@@ -319,7 +319,7 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
     
     val prems = prems_of abs_eq_with_assms
     val indexed_prems = map_index (apfst (fn x => x + 1)) prems
-    val indexed_assms = map (apsnd (try_prove_prem ctxt)) indexed_prems
+    val indexed_assms = map (apsnd (try_prove_reflexivity ctxt)) indexed_prems
     val proved_assms = map (apsnd the) (filter (is_some o snd) indexed_assms)
     val abs_eq = fold_rev (fn (i, assms) => fn thm => assms RSN (i, thm)) proved_assms abs_eq_with_assms
   in
@@ -414,7 +414,6 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
-    fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) lthy'
     val transfer_rule = generate_transfer_rule lthy quot_thm rsp_thm def_thm opt_par_thm
 
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
@@ -498,49 +497,37 @@ fun rename_to_tnames ctxt term =
 
 fun lift_def_cmd (raw_var, rhs_raw, opt_par_xthm) lthy =
   let
-    val ((binding, SOME qty, mx), lthy') = yield_singleton Proof_Context.read_vars raw_var lthy 
-    val rhs = (Syntax.check_term lthy' o Syntax.parse_term lthy') rhs_raw
- 
-    fun try_to_prove_refl thm = 
-      let
-        val lhs_eq =
-          thm
-          |> prop_of
-          |> Logic.dest_implies
-          |> fst
-          |> strip_all_body
-          |> try HOLogic.dest_Trueprop
-      in
-        case lhs_eq of
-          SOME (Const ("HOL.eq", _) $ _ $ _) => SOME (@{thm refl} RS thm)
-          | _ => NONE
-      end
-
-    val rsp_rel = Lifting_Term.equiv_relation lthy' (fastype_of rhs, qty)
+    val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
+    val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
+    val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
-    val forced_rhs = force_rty_type lthy' rty_forced rhs;
+    val forced_rhs = force_rty_type lthy rty_forced rhs;
     val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
-    val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy'
-    val opt_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
-    val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
-    val readable_rsp_tm_tnames = rename_to_tnames lthy' readable_rsp_tm
-    val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy')) opt_par_xthm
-
-    fun after_qed thm_list lthy = 
-      let
-        val internal_rsp_thm =
-          case thm_list of
-            [] => the opt_proven_rsp_thm
-          | [[thm]] => Goal.prove lthy [] [] internal_rsp_tm 
-            (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac [thm] 1)
-      in
-        add_lift_def (binding, mx) qty rhs internal_rsp_thm opt_par_thm lthy
-      end
+    val opt_proven_rsp_thm = try_prove_reflexivity lthy internal_rsp_tm
+    val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
+    
+    fun after_qed internal_rsp_thm lthy = 
+      add_lift_def (binding, mx) qty rhs internal_rsp_thm opt_par_thm lthy
 
   in
     case opt_proven_rsp_thm of
-      SOME _ => Proof.theorem NONE after_qed [] lthy'
-      | NONE =>  Proof.theorem NONE after_qed [[(readable_rsp_tm_tnames,[])]] lthy'
+      SOME thm => Proof.theorem NONE (K (after_qed thm)) [] lthy
+      | NONE =>  
+        let
+          val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
+          val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
+          val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
+      
+          fun after_qed' thm_list lthy = 
+            let
+              val internal_rsp_thm = Goal.prove lthy [] [] internal_rsp_tm 
+                  (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac (hd thm_list) 1)
+            in
+              after_qed internal_rsp_thm lthy
+            end
+        in
+          Proof.theorem NONE after_qed' [[(readable_rsp_tm_tnames,[])]] lthy
+        end 
   end
 
 fun quot_thm_err ctxt (rty, qty) pretty_msg =

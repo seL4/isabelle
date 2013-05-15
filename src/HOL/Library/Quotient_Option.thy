@@ -71,15 +71,17 @@ lemma Domainp_option[relator_domain]:
 using assms unfolding Domainp_iff[abs_def] option_rel_unfold[abs_def] option_pred_unfold[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
-lemma option_reflp[reflexivity_rule]:
+lemma reflp_option_rel[reflexivity_rule]:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
   unfolding reflp_def split_option_all by simp
 
-lemma option_left_total[reflexivity_rule]:
+lemma left_total_option_rel[reflexivity_rule]:
   "left_total R \<Longrightarrow> left_total (option_rel R)"
-  apply (intro left_totalI)
-  unfolding split_option_ex
-  by (case_tac x) (auto elim: left_totalE)
+  unfolding left_total_def split_option_all split_option_ex by simp
+
+lemma left_unique_option_rel [reflexivity_rule]:
+  "left_unique R \<Longrightarrow> left_unique (option_rel R)"
+  unfolding left_unique_def split_option_all by simp
 
 lemma option_symp:
   "symp R \<Longrightarrow> symp (option_rel R)"
@@ -91,7 +93,7 @@ lemma option_transp:
 
 lemma option_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (option_rel R)"
-  by (blast intro: equivpI option_reflp option_symp option_transp elim: equivpE)
+  by (blast intro: equivpI reflp_option_rel option_symp option_transp elim: equivpE)
 
 lemma right_total_option_rel [transfer_rule]:
   "right_total R \<Longrightarrow> right_total (option_rel R)"

@@ -73,15 +73,17 @@ lemma Domainp_sum[relator_domain]:
 using assms
 by (auto simp add: Domainp_iff split_sum_ex sum_pred_unfold iff: fun_eq_iff split: sum.split)
 
-lemma sum_reflp[reflexivity_rule]:
+lemma reflp_sum_rel[reflexivity_rule]:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
   unfolding reflp_def split_sum_all sum_rel.simps by fast
 
-lemma sum_left_total[reflexivity_rule]:
+lemma left_total_sum_rel[reflexivity_rule]:
   "left_total R1 \<Longrightarrow> left_total R2 \<Longrightarrow> left_total (sum_rel R1 R2)"
-  apply (intro left_totalI)
-  unfolding split_sum_ex 
-  by (case_tac x) (auto elim: left_totalE)
+  using assms unfolding left_total_def split_sum_all split_sum_ex by simp
+
+lemma left_unique_sum_rel [reflexivity_rule]:
+  "left_unique R1 \<Longrightarrow> left_unique R2 \<Longrightarrow> left_unique (sum_rel R1 R2)"
+  using assms unfolding left_unique_def split_sum_all by simp
 
 lemma sum_symp:
   "symp R1 \<Longrightarrow> symp R2 \<Longrightarrow> symp (sum_rel R1 R2)"
@@ -93,7 +95,7 @@ lemma sum_transp:
 
 lemma sum_equivp [quot_equiv]:
   "equivp R1 \<Longrightarrow> equivp R2 \<Longrightarrow> equivp (sum_rel R1 R2)"
-  by (blast intro: equivpI sum_reflp sum_symp sum_transp elim: equivpE)
+  by (blast intro: equivpI reflp_sum_rel sum_symp sum_transp elim: equivpE)
 
 lemma right_total_sum_rel [transfer_rule]:
   "right_total R1 \<Longrightarrow> right_total R2 \<Longrightarrow> right_total (sum_rel R1 R2)"

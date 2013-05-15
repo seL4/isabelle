@@ -206,11 +206,12 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
     val quotients = { quot_thm = quot_thm, pcrel_info = pcrel_info }
     val qty_full_name = (fst o dest_Type) qtyp  
     fun quot_info phi = Lifting_Info.transform_quotients phi quotients
+    val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
     val lthy = case opt_reflp_thm of
       SOME reflp_thm => lthy
-        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflexivity_rule_attrib]),
+        |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
               [reflp_thm])
-        |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflexivity_rule_attrib]),
+        |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_to_left_total}])
         |> define_code_constr gen_code quot_thm
       | NONE => lthy
@@ -591,13 +592,13 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
     val qty_full_name = (fst o dest_Type) qty
     val qty_name = (Binding.name o Long_Name.base_name) qty_full_name
     fun qualify suffix = Binding.qualified true suffix qty_name
-    val simplify = Raw_Simplifier.rewrite_rule [mk_meta_eq @{thm mem_Collect_eq}]
     val opt_reflp_thm = 
       case typedef_set of
         Const ("Orderings.top_class.top", _) => 
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
         | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
+    val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
 
     fun setup_transfer_rules_nonpar lthy =
       let
@@ -679,6 +680,8 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
     lthy
       |> (snd oo Local_Theory.note) ((Binding.prefix_name "Quotient_" qty_name, []), 
             [quot_thm])
+      |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
+           [[typedef_thm, T_def] MRSL @{thm typedef_left_unique}])
       |> setup_lifting_infr gen_code quot_thm opt_reflp_thm
       |> setup_transfer_rules
   end

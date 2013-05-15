@@ -57,7 +57,7 @@ proof -
   by (auto iff: fun_eq_iff)
 qed 
 
-lemma list_reflp[reflexivity_rule]:
+lemma reflp_list_all2[reflexivity_rule]:
   assumes "reflp R"
   shows "reflp (list_all2 R)"
 proof (rule reflpI)
@@ -67,16 +67,20 @@ proof (rule reflpI)
     by (induct xs) (simp_all add: *)
 qed
 
-lemma list_left_total[reflexivity_rule]:
-  assumes "left_total R"
-  shows "left_total (list_all2 R)"
-proof (rule left_totalI)
-  from assms have *: "\<And>xs. \<exists>ys. R xs ys" by (rule left_totalE)
-  fix xs
-  show "\<exists> ys. list_all2 R xs ys"
-    by (induct xs) (simp_all add: * list_all2_Cons1)
-qed
+lemma left_total_list_all2[reflexivity_rule]:
+  "left_total R \<Longrightarrow> left_total (list_all2 R)"
+  unfolding left_total_def
+  apply safe
+  apply (rename_tac xs, induct_tac xs, simp, simp add: list_all2_Cons1)
+done
 
+lemma left_unique_list_all2 [reflexivity_rule]:
+  "left_unique R \<Longrightarrow> left_unique (list_all2 R)"
+  unfolding left_unique_def
+  apply (subst (2) all_comm, subst (1) all_comm)
+  apply (rule allI, rename_tac zs, induct_tac zs)
+  apply (auto simp add: list_all2_Cons2)
+  done
 
 lemma list_symp:
   assumes "symp R"
@@ -102,7 +106,7 @@ qed
 
 lemma list_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (list_all2 R)"
-  by (blast intro: equivpI list_reflp list_symp list_transp elim: equivpE)
+  by (blast intro: equivpI reflp_list_all2 list_symp list_transp elim: equivpE)
 
 lemma right_total_list_all2 [transfer_rule]:
   "right_total R \<Longrightarrow> right_total (list_all2 R)"
