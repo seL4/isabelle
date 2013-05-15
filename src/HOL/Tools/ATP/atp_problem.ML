@@ -887,8 +887,8 @@ fun nice_atp_problem readable_names format problem =
       | _ => I
     val nice_name = nice_name avoid_clash
     fun nice_bound_tvars xs =
-      fold_map nice_name (map fst xs)
-      ##>> fold_map (fold_map nice_name) (map snd xs)
+      fold_map (nice_name o fst) xs
+      ##>> fold_map (fold_map nice_name o snd) xs
       #>> op ~~
     fun nice_type (AType (name, tys)) =
         nice_name name ##>> fold_map nice_type tys #>> AType
@@ -902,14 +902,14 @@ fun nice_atp_problem readable_names format problem =
         nice_name name ##>> nice_type ty ##>> nice_term tm
         ##>> fold_map nice_term args #>> AAbs
     fun nice_formula (ATyQuant (q, xs, phi)) =
-        fold_map nice_type (map fst xs)
-        ##>> fold_map (fold_map nice_name) (map snd xs)
+        fold_map (nice_type o fst) xs
+        ##>> fold_map (fold_map nice_name o snd) xs
         ##>> nice_formula phi
         #>> (fn ((tys, cls), phi) => ATyQuant (q, tys ~~ cls, phi))
       | nice_formula (AQuant (q, xs, phi)) =
-        fold_map nice_name (map fst xs)
-        ##>> fold_map (fn NONE => pair NONE
-                        | SOME ty => nice_type ty #>> SOME) (map snd xs)
+        fold_map (nice_name o fst) xs
+        ##>> fold_map (fn (_, NONE) => pair NONE
+                        | (_, SOME ty) => nice_type ty #>> SOME) xs
         ##>> nice_formula phi
         #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
       | nice_formula (AConn (c, phis)) =
