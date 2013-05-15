@@ -26,8 +26,8 @@ sig
   val preference_string: category -> string Unsynchronized.ref -> string -> string -> unit
   val preference_option: category -> string -> string -> string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
-  val init: unit -> unit
   val thm_deps: bool Unsynchronized.ref
+  val init: unit -> unit
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -326,17 +326,6 @@ fun inform_file_processed file =
   in () end;
 
 
-(* restart top-level loop (keeps most state information) *)
-
-val welcome = Output.urgent_message o Session.welcome;
-
-fun restart () =
- (sync_thy_loader ();
-  tell_clear_goals ();
-  tell_clear_response ();
-  Isar.init ();
-  welcome ());
-
 
 (** theorem dependencies **)
 
@@ -397,6 +386,47 @@ end;
 
 
 
+(** startup **)
+
+val welcome = Output.urgent_message o Session.welcome;
+
+
+(* init *)
+
+val proof_general_emacsN = "ProofGeneralEmacs";
+
+val initialized = Unsynchronized.ref false;
+
+fun init () =
+  (if ! initialized then ()
+   else
+    (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
+     Output.add_mode proof_general_emacsN
+      Output.default_output Output.default_escape;
+     Markup.add_mode proof_general_emacsN YXML.output_markup;
+     setup_messages ();
+     setup_thy_loader ();
+     setup_present_hook ();
+     initialized := true);
+   sync_thy_loader ();
+   Unsynchronized.change print_mode (update (op =) proof_general_emacsN);
+   Secure.PG_setup ();
+   welcome ();
+   Isar.toplevel_loop TextIO.stdIn
+    {init = true, welcome = false, sync = true, secure = Secure.is_secure ()});
+
+
+(* restart *)
+
+fun restart () =
+ (sync_thy_loader ();
+  tell_clear_goals ();
+  tell_clear_response ();
+  Isar.init ();
+  welcome ());
+
+
+
 (** Isar command syntax **)
 
 val _ =
@@ -436,32 +466,5 @@ val _ =
     (("ProofGeneral.inform_file_retracted", Keyword.control), Position.none) "(internal)"
     (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_retracted file)));
 
-
-
-(** init **)
-
-val proof_general_emacsN = "ProofGeneralEmacs";
-
-val initialized = Unsynchronized.ref false;
-
-fun init () =
-  (if ! initialized then ()
-   else
-    (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
-     Output.add_mode proof_general_emacsN
-      Output.default_output Output.default_escape;
-     Markup.add_mode proof_general_emacsN YXML.output_markup;
-     setup_messages ();
-     setup_thy_loader ();
-     setup_present_hook ();
-     initialized := true);
-   sync_thy_loader ();
-   Unsynchronized.change print_mode (update (op =) proof_general_emacsN);
-   Secure.PG_setup ();
-   Isar.toplevel_loop TextIO.stdIn
-    {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
-
 end;
-
-
 
