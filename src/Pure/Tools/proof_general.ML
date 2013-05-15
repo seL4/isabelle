@@ -51,7 +51,7 @@ val pgipfloat = "pgipint";  (*NB: PG 3.7.x and 4.0 lack pgipfloat, but accept fl
 val pgipstring = "pgipstring";
 
 type preference =
- {name: string,
+ {category: string,
   descr: string,
   default: string,
   pgiptype: pgiptype,
@@ -63,31 +63,28 @@ type preference =
 
 local
   val preferences =
-    Synchronized.var "ProofGeneral.preferences"
-      ([(category_display, []),
-        (category_advanced_display, []),
-        (category_tracing, []),
-        (category_proof, [])]: (category * preference list) list);
+    Synchronized.var "ProofGeneral.preferences" ([]: (string * preference) list);
 in
 
-fun add_preference category (pref: preference) =
-  Synchronized.change preferences (map (fn (cat, prefs) =>
-    if cat <> category then (cat, prefs)
-    else
-      if exists (fn {name, ...} => name = #name pref) prefs
-      then (warning ("Preference already exists: " ^ quote (#name pref)); (cat, prefs))
-      else (cat, prefs @ [pref])));
+fun add_preference name pref =
+  Synchronized.change preferences (fn prefs =>
+   (if not (AList.defined (op =) prefs name) then ()
+    else warning ("Redefining ProofGeneral preference: " ^ quote name);
+    AList.update (op =) (name, pref) prefs));
 
-fun get_preferences () = Synchronized.value preferences;
+fun set_preference name value =
+  (case AList.lookup (op =) (Synchronized.value preferences) name of
+    SOME {set, ...} => set value
+  | NONE => error ("Unknown ProofGeneral preference: " ^ quote name));
+
+fun all_preferences () =
+  rev (Synchronized.value preferences)
+  |> map (fn (name, {category, descr, default, pgiptype, ...}) =>
+    (category, {name = name, descr = descr, default = default, pgiptype = pgiptype}))
+  |> AList.group (op =);
 
 end;
 
-fun set_preference name value =
-  let val prefs = map (`(#name)) (maps snd (get_preferences ())) in
-    (case AList.lookup (op =) prefs name of
-      SOME {set, ...} => set value
-    | NONE => error ("Unknown prover preference: " ^ quote name))
-  end;
 
 
 (* raw preferences *)
@@ -96,8 +93,10 @@ fun preference_raw category raw_get raw_set typ name descr =
   let
     fun get () = CRITICAL raw_get;
     fun set x = CRITICAL (fn () => raw_set x);
-    val pref = {name = name, descr = descr, pgiptype = typ, get = get, set = set, default = get ()};
-  in add_preference category pref end;
+  in
+    add_preference name
+      {category = category, descr = descr, pgiptype = typ, get = get, set = set, default = get ()}
+  end;
 
 fun preference_ref category read write typ r =
   preference_raw category (fn () => read (! r)) (fn x => r := write x) typ;
@@ -119,8 +118,8 @@ fun preference_option category option_name pgip_name descr =
       else if typ = Options.realT then pgipfloat
       else pgipstring;
   in
-    add_preference category
-     {name = pgip_name,
+    add_preference pgip_name
+     {category = category,
       descr = descr,
       default = Options.get_default option_name,
       pgiptype = pgiptype,
@@ -161,12 +160,12 @@ fun output_pgip refid refseq content =
 
 fun invalid_pgip () = raise Fail "Invalid PGIP packet";
 
-fun haspref ({name, descr, default, pgiptype, ...}: preference) =
+fun haspref {name, descr, default, pgiptype} =
   XML.Elem (("haspref", [("name", name), ("descr", descr), ("default", default)]),
     [XML.Elem ((pgiptype, []), [])]);
 
 fun process_element refid refseq (XML.Elem (("askprefs", _), _)) =
-      get_preferences () |> List.app (fn (category, prefs) =>
+      all_preferences () |> List.app (fn (category, prefs) =>
         output_pgip refid refseq
           [XML.Elem (("hasprefs", [("prefcategory", category)]), map haspref prefs)])
   | process_element _ _ (XML.Elem (("setpref", attrs), data)) =
