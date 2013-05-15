@@ -97,11 +97,11 @@ val unknownN = "unknown"
 val auto = Unsynchronized.ref false;
 
 val _ =
-  Unsynchronized.setmp auto true (fn () =>
-    ProofGeneral.preference_bool ProofGeneral.category_tracing
-      auto
-      "auto-quickcheck"
-      "Run Quickcheck automatically") ()
+  ProofGeneral.preference_bool ProofGeneral.category_tracing
+    (SOME "true")
+    auto
+    "auto-quickcheck"
+    "Run Quickcheck automatically";
 
 
 (* quickcheck report *)

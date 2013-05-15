@@ -18,13 +18,17 @@ sig
   val pgipint: pgiptype
   val pgipfloat: pgiptype
   val pgipstring: pgiptype
-  val preference: category -> (unit -> string) -> (string -> unit) ->
-    string -> string -> string -> unit
-  val preference_bool: category -> bool Unsynchronized.ref -> string -> string -> unit
-  val preference_int: category -> int Unsynchronized.ref -> string -> string -> unit
-  val preference_real: category -> real Unsynchronized.ref -> string -> string -> unit
-  val preference_string: category -> string Unsynchronized.ref -> string -> string -> unit
-  val preference_option: category -> string -> string -> string -> unit
+  val preference: category -> string option ->
+    (unit -> string) -> (string -> unit) -> string -> string -> string -> unit
+  val preference_bool: category -> string option ->
+    bool Unsynchronized.ref -> string -> string -> unit
+  val preference_int: category -> string option ->
+    int Unsynchronized.ref -> string -> string -> unit
+  val preference_real: category -> string option ->
+    real Unsynchronized.ref -> string -> string -> unit
+  val preference_string: category -> string option ->
+    string Unsynchronized.ref -> string -> string -> unit
+  val preference_option: category -> string option -> string -> string -> string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
   val thm_deps: bool Unsynchronized.ref
   val proof_generalN: string
@@ -52,8 +56,8 @@ val pgipstring = "pgipstring";
 
 type preference =
  {category: string,
+  override: string option,
   descr: string,
-  default: string,
   pgiptype: pgiptype,
   get: unit -> string,
   set: string -> unit};
@@ -79,9 +83,13 @@ fun set_preference name value =
 
 fun all_preferences () =
   rev (Synchronized.value preferences)
-  |> map (fn (name, {category, descr, default, pgiptype, ...}) =>
-    (category, {name = name, descr = descr, default = default, pgiptype = pgiptype}))
+  |> map (fn (name, {category, descr, pgiptype, get, ...}) =>
+    (category, {name = name, descr = descr, default = get (), pgiptype = pgiptype}))
   |> AList.group (op =);
+
+fun init_preferences () =
+  Synchronized.value preferences
+  |> List.app (fn (_, {set, override = SOME value, ...}) => set value | _ => ());
 
 end;
 
@@ -89,22 +97,22 @@ end;
 
 (* raw preferences *)
 
-fun preference category get set typ name descr =
+fun preference category override get set typ name descr =
   add_preference name
-    {category = category, descr = descr, pgiptype = typ, get = get, set = set, default = get ()};
+    {category = category, override = override, descr = descr, pgiptype = typ, get = get, set = set};
 
-fun preference_ref category read write typ r =
-  preference category (fn () => read (! r)) (fn x => r := write x) typ;
+fun preference_ref category override read write typ r =
+  preference category override (fn () => read (! r)) (fn x => r := write x) typ;
 
-fun preference_bool category = preference_ref category Markup.print_bool Markup.parse_bool pgipbool;
-fun preference_int category = preference_ref category Markup.print_int Markup.parse_int pgipint;
-fun preference_real category = preference_ref category Markup.print_real Markup.parse_real pgipfloat;
-fun preference_string category = preference_ref category I I pgipstring;
+fun preference_bool x y = preference_ref x y Markup.print_bool Markup.parse_bool pgipbool;
+fun preference_int x y = preference_ref x y Markup.print_int Markup.parse_int pgipint;
+fun preference_real x y = preference_ref x y Markup.print_real Markup.parse_real pgipfloat;
+fun preference_string x y = preference_ref x y I I pgipstring;
 
 
 (* system options *)
 
-fun preference_option category option_name pgip_name descr =
+fun preference_option category override option_name pgip_name descr =
   let
     val typ = Options.default_typ option_name;
     val pgiptype =
@@ -115,8 +123,8 @@ fun preference_option category option_name pgip_name descr =
   in
     add_preference pgip_name
      {category = category,
+      override = override,
       descr = descr,
-      default = Options.get_default option_name,
       pgiptype = pgiptype,
       get = fn () => Options.get_default option_name,
       set = Options.put_default option_name}
@@ -399,6 +407,7 @@ fun init () =
      setup_thy_loader ();
      setup_present_hook ();
      initialized := true);
+   init_preferences ();
    sync_thy_loader ();
    Unsynchronized.change print_mode (update (op =) proof_generalN);
    Secure.PG_setup ();

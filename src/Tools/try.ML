@@ -36,6 +36,7 @@ val auto_time_limit = Unsynchronized.ref 4.0
 
 val _ =
   ProofGeneral.preference_real ProofGeneral.category_tracing
+    NONE
     auto_time_limit
     "auto-try-time-limit"
     "Time limit for automatically tried tools (in seconds)"

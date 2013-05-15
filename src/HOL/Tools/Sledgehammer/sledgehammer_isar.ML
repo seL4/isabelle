@@ -46,7 +46,10 @@ val auto = Unsynchronized.ref false
 
 val _ =
   ProofGeneral.preference_bool ProofGeneral.category_tracing
-    auto "auto-sledgehammer" "Run Sledgehammer automatically"
+    NONE
+    auto
+    "auto-sledgehammer"
+    "Run Sledgehammer automatically"
 
 (** Sledgehammer commands **)
 
@@ -66,12 +69,14 @@ val timeout = Unsynchronized.ref 30
 
 val _ =
   ProofGeneral.preference_string ProofGeneral.category_proof
+    NONE
     provers
     "Sledgehammer: Provers"
     "Default automatic provers (separated by whitespace)"
 
 val _ =
   ProofGeneral.preference_int ProofGeneral.category_proof
+    NONE
     timeout
     "Sledgehammer: Time Limit"
     "ATPs will be interrupted after this time (in seconds)"

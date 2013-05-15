@@ -28,7 +28,10 @@ val auto = Unsynchronized.ref false
 
 val _ =
   ProofGeneral.preference_bool ProofGeneral.category_tracing
-    auto "auto-try0" "Try standard proof methods"
+    NONE
+    auto
+    "auto-try0"
+    "Try standard proof methods"
 
 val default_timeout = seconds 5.0
 
