@@ -97,11 +97,11 @@ val unknownN = "unknown"
 val auto = Unsynchronized.ref false;
 
 val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
-  (Unsynchronized.setmp auto true (fn () =>
-    Preferences.bool_pref auto
-      "auto-quickcheck"
-      "Run Quickcheck automatically.") ());
+  ProofGeneral.preference_bool ProofGeneral.category_tracing
+    (SOME "true")
+    auto
+    "auto-quickcheck"
+    "Run Quickcheck automatically";
 
 
 (* quickcheck report *)

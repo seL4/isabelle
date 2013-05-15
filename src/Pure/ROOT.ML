@@ -293,18 +293,8 @@ use "System/isar.ML";
 
 use "Tools/build.ML";
 use "Tools/named_thms.ML";
+use "Tools/proof_general.ML";
 use "Tools/legacy_xml_syntax.ML";
-
-
-(* configuration for Proof General *)
-
-(use
-  |> Unsynchronized.setmp Proofterm.proofs 0
-  |> Unsynchronized.setmp Multithreading.max_threads 0)
-  "ProofGeneral/preferences.ML";
-
-use "ProofGeneral/proof_general_pgip.ML";
-use "ProofGeneral/proof_general_emacs.ML";
 
 
 (* ML toplevel pretty printing *)

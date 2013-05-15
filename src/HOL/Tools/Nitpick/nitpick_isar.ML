@@ -36,8 +36,11 @@ val auto = Unsynchronized.ref false
 val auto_try_max_scopes = 6
 
 val _ =
-  ProofGeneralPgip.add_preference Preferences.category_tracing
-      (Preferences.bool_pref auto "auto-nitpick" "Run Nitpick automatically.")
+  ProofGeneral.preference_bool ProofGeneral.category_tracing
+    NONE
+    auto
+    "auto-nitpick"
+    "Run Nitpick automatically"
 
 type raw_param = string * string list
 
