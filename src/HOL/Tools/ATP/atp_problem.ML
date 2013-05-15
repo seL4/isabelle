@@ -50,6 +50,8 @@ sig
     Class_Decl of string * 'a * 'a list |
     Type_Decl of string * 'a * int |
     Sym_Decl of string * 'a * 'a ho_type |
+    Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
+                     * ('a, 'a ho_type) ho_term list |
     Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
     Formula of (string * string) * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -190,6 +192,8 @@ datatype 'a problem_line =
   Class_Decl of string * 'a * 'a list |
   Type_Decl of string * 'a * int |
   Sym_Decl of string * 'a * 'a ho_type |
+  Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
+                   * ('a, 'a ho_type) ho_term list |
   Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
   Formula of (string * string) * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -512,6 +516,14 @@ fun string_of_arity (0, n) = string_of_int n
 
 val dfg_class_inter = space_implode " & "
 
+fun dfg_string_for_term (ATerm ((s, tys), tms)) =
+    s ^
+    (if null tys then ""
+     else "<" ^ commas (map (string_for_type (DFG Polymorphic)) tys) ^ ">") ^
+    (if null tms then ""
+     else "(" ^ commas (map dfg_string_for_term tms) ^ ")")
+  | dfg_string_for_term _ = raise Fail "unexpected atom in first-order format"
+
 fun dfg_string_for_formula poly gen_simp info =
   let
     val str_for_typ = string_for_type (DFG poly)
@@ -531,16 +543,15 @@ fun dfg_string_for_formula poly gen_simp info =
         | NONE => s
       else
         s
-    fun str_for_term top_level (ATerm ((s, tys), tms)) =
-        (if is_tptp_equal s then "equal" |> suffix_tag top_level
-         else if s = tptp_true then "true"
-         else if s = tptp_false then "false"
-         else s) ^
-        (if null tys then ""
-         else "<" ^ commas (map (string_for_type (DFG poly)) tys) ^ ">") ^
-        (if null tms then ""
-         else "(" ^ commas (map (str_for_term false) tms) ^ ")")
-      | str_for_term _ _ = raise Fail "unexpected term in first-order format"
+    fun str_for_atom top_level (ATerm ((s, tys), tms)) =
+        let
+          val s' =
+            if is_tptp_equal s then "equal" |> suffix_tag top_level
+            else if s = tptp_true then "true"
+            else if s = tptp_false then "false"
+            else s
+        in dfg_string_for_term (ATerm ((s', tys), tms)) end
+      | str_for_atom _ _ = raise Fail "unexpected atom in first-order format"
     fun str_for_quant AForall = "forall"
       | str_for_quant AExists = "exists"
     fun str_for_conn _ ANot = "not"
@@ -558,7 +569,7 @@ fun dfg_string_for_formula poly gen_simp info =
       | str_for_formula top_level (AConn (c, phis)) =
         str_for_conn top_level c ^ "(" ^
         commas (map (str_for_formula false) phis) ^ ")"
-      | str_for_formula top_level (AAtom tm) = str_for_term top_level tm
+      | str_for_formula top_level (AAtom tm) = str_for_atom top_level tm
   in str_for_formula true end
 
 fun maybe_enclose bef aft "" = "% " ^ bef ^ aft
@@ -566,25 +577,27 @@ fun maybe_enclose bef aft "" = "% " ^ bef ^ aft
 
 fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
   let
-    val str_for_typ = string_for_type (DFG poly)
+    val typ = string_for_type (DFG poly)
+    val term = dfg_string_for_term
     fun spair (s, s') = "(" ^ s ^ ", " ^ s' ^ ")"
     fun tm_ary sym ty = spair (sym, string_of_arity (arity_of_type ty))
     fun ty_ary 0 ty = ty
       | ty_ary n ty = "(" ^ ty ^ ", " ^ string_of_int n ^ ")"
-    fun fun_typ sym ty = "function(" ^ sym ^ ", " ^ str_for_typ ty ^ ")."
+    fun fun_typ sym ty = "function(" ^ sym ^ ", " ^ typ ty ^ ")."
     fun pred_typ sym ty =
       let
         val (ty_vars, tys) =
           strip_atype ty |> fst
           |>> (fn [] => [] | ty_vars => ["[" ^ commas ty_vars ^ "]"])
-      in "predicate(" ^ commas (sym :: ty_vars @ map str_for_typ tys) ^ ")." end
-    fun str_for_bound_tvar (ty, []) = ty
-      | str_for_bound_tvar (ty, cls) = ty ^ " : " ^ dfg_class_inter cls
-    fun sort_decl xs ty cl =
-      "sort(" ^
-      (if null xs then ""
-       else "[" ^ commas (map str_for_bound_tvar xs) ^ "], ") ^
-      str_for_typ ty ^ ", " ^ cl ^ ")."
+      in "predicate(" ^ commas (sym :: ty_vars @ map typ tys) ^ ")." end
+    fun bound_tvar (ty, []) = ty
+      | bound_tvar (ty, cls) = ty ^ " : " ^ dfg_class_inter cls
+    fun foo xs ty =
+      (if null xs then "" else "[" ^ commas (map bound_tvar xs) ^ "], ") ^
+      typ ty
+    fun sort_decl xs ty cl = "sort(" ^ foo xs ty ^ ", " ^ cl ^ ")."
+    fun datatype_decl xs ty tms =
+      "datatype(" ^ foo xs ty ^ ", " ^ commas (map term tms) ^ ")."
     fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
     fun formula pred (Formula ((ident, alt), kind, phi, _, info)) =
         if pred kind then
@@ -631,6 +644,9 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
                if is_nontrivial_predicate_atype ty then SOME (pred_typ sym ty)
                else NONE
              | _ => NONE) |> flat
+    val datatype_decls =
+      filt (fn Datatype_Decl (_, xs, ty, tms) => SOME (datatype_decl xs ty tms)
+             | _ => NONE) |> flat
     val sort_decls =
       filt (fn Class_Memb (_, xs, ty, cl) => SOME (sort_decl xs ty cl)
              | _ => NONE) |> flat
@@ -638,7 +654,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
       filt (fn Class_Decl (_, sub, supers) =>
                SOME (map (subclass_of sub) supers)
              | _ => NONE) |> flat |> flat
-    val decls = func_decls @ pred_decls @ sort_decls @ subclass_decls
+    val decls =
+      func_decls @ pred_decls @ datatype_decls @ sort_decls @ subclass_decls
     val axioms =
       filt (formula (curry (op <>) Conjecture)) |> separate [""] |> flat
     val conjs =
