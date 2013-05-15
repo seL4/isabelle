@@ -1,4 +1,4 @@
-(*  Title:      Pure/ProofGeneral/proof_general.ML
+(*  Title:      Pure/Tools/proof_general.ML
     Author:     David Aspinall
     Author:     Makarius
 

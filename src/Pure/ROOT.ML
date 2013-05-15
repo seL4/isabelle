@@ -293,11 +293,8 @@ use "System/isar.ML";
 
 use "Tools/build.ML";
 use "Tools/named_thms.ML";
+use "Tools/proof_general.ML";
 use "Tools/legacy_xml_syntax.ML";
-
-
-(* configuration for Proof General *)
-use "ProofGeneral/proof_general.ML";
 
 
 (* ML toplevel pretty printing *)
