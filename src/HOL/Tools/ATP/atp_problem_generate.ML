@@ -546,11 +546,8 @@ fun robust_const_type thy s =
     (* Old Skolems throw a "TYPE" exception here, which will be caught. *)
     s |> Sign.the_const_type thy
 
-val robust_const_ary =
-  let
-    fun ary (Type (@{type_name fun}, [_, T])) = 1 + ary T
-      | ary _ = 0
-  in ary oo robust_const_type end
+fun ary_of (Type (@{type_name fun}, [_, T])) = 1 + ary_of T
+  | ary_of _ = 0
 
 (* This function only makes sense if "T" is as general as possible. *)
 fun robust_const_type_args thy (s, T) =
@@ -1558,7 +1555,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                         SOME s =>
                         (if String.isSubstring uncurried_alias_sep s then
                            ary
-                         else case try (robust_const_ary thy
+                         else case try (ary_of o robust_const_type thy
                                         o unmangled_invert_const) s of
                            SOME ary0 => Int.min (ary0, ary)
                          | NONE => ary)
@@ -1645,7 +1642,7 @@ fun mk_app_op type_enc head arg =
       |> mangle_type_args_in_iterm type_enc
   in list_app app [head, arg] end
 
-fun firstorderize_fact thy ctrss type_enc sym_tab uncurried_aliases completish =
+fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
   let
     fun do_app arg head = mk_app_op type_enc head arg
     fun list_app_ops (head, args) = fold do_app args head
@@ -1660,15 +1657,16 @@ fun firstorderize_fact thy ctrss type_enc sym_tab uncurried_aliases completish =
                 let
                   val ary = length args
                   (* In polymorphic native type encodings, it is impossible to
-                     declare a fully polymorphic symbol that takes more arguments
-                     than its signature (even though such concrete instances, where
-                     a type variable is instantiated by a function type, are
-                     possible.) *)
+                     declare a fully polymorphic symbol that takes more
+                     arguments than its signature (even though such concrete
+                     instances, where a type variable is instantiated by a
+                     function type, are possible.) *)
                   val official_ary =
                     if is_type_enc_polymorphic type_enc then
                       case unprefix_and_unascii const_prefix s of
                         SOME s' =>
-                        (case try (robust_const_ary thy) (invert_const s') of
+                        (case try (ary_of o robust_const_type thy)
+                                  (invert_const s') of
                            SOME ary => ary
                          | NONE => min_ary)
                       | NONE => min_ary
@@ -2538,17 +2536,27 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   in mono_lines @ decl_lines end
 
 fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
-                           sym_tab =
+                           uncurried_aliases sym_tab =
     if is_type_enc_polymorphic type_enc then
       let
         val thy = Proof_Context.theory_of ctxt
         fun do_ctr (s, T) =
           let
             val s' = make_fixed_const (SOME type_enc) s
-            fun aterm _ =
-              mk_aterm type_enc (s', s) (robust_const_type_args thy (s, T)) []
-          in Symtab.lookup sym_tab s' |> Option.map aterm end
-
+            val ary = ary_of T
+            fun mk name =
+              mk_aterm type_enc name (robust_const_type_args thy (s, T)) []
+          in
+            case Symtab.lookup sym_tab s' of
+              NONE => NONE
+            | SOME ({min_ary, ...} : sym_info) =>
+              if ary = min_ary then
+                SOME (mk (s', s))
+              else if uncurried_aliases then
+                SOME (mk (aliased_uncurried ary (s', s)))
+              else
+                NONE
+          end
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
             (native_ho_type_of_typ type_enc false 0 (body_type T1),
@@ -2557,7 +2565,7 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
       in ctrss |> map datatype_of_ctrs |> filter_out (null o #2) end
     else
       []
-  | datatypes_of_sym_table _ _ _ _ _ = []
+  | datatypes_of_sym_table _ _ _ _ _ _ = []
 
 fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs, exhaust) =
   let val xs = map (fn AType (name, []) => name) ty_args in
@@ -2770,8 +2778,8 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes thy
     fun firstorderize in_helper =
-      firstorderize_fact thy ctrss type_enc sym_tab0
-          (uncurried_aliases andalso not in_helper) completish
+      firstorderize_fact thy ctrss type_enc
+          (uncurried_aliases andalso not in_helper) completish sym_tab0
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
@@ -2787,7 +2795,9 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
               |> map (firstorderize true)
     val all_facts = helpers @ conjs @ facts
     val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
-    val datatypes = datatypes_of_sym_table ctxt ctrss format type_enc sym_tab
+    val datatypes =
+      datatypes_of_sym_table ctxt ctrss format type_enc uncurried_aliases
+                             sym_tab
     val class_decl_lines = decl_lines_of_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
