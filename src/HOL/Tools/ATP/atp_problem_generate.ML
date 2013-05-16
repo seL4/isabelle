@@ -2182,7 +2182,6 @@ fun lines_of_subclass_pair type_enc (sub, supers) =
 
 fun line_of_tcon_clause type_enc (name, prems, (cl, T)) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
-    (* ### FIXME: is the list of type variables exhaustive? *)
     Class_Memb (class_memb_prefix ^ name,
                 map (fn (cls, T) =>
                         (T |> dest_TVar |> tvar_name, map (`make_class) cls))
@@ -2561,10 +2560,7 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
   | datatypes_of_sym_table _ _ _ _ _ = []
 
 fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs, exhaust) =
-  let
-    (* ### FIXME: Test datatypes with sort constraints *)
-    val xs = map (fn AType (name, []) => name) ty_args
-  in
+  let val xs = map (fn AType (name, []) => name) ty_args in
     Datatype_Decl (datatype_decl_prefix ^ ascii_of s', map (rpair []) xs, ty,
                    ctrs, exhaust)
   end
