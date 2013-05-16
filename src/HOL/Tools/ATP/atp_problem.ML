@@ -51,7 +51,7 @@ sig
     Type_Decl of string * 'a * int |
     Sym_Decl of string * 'a * 'a ho_type |
     Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                     * ('a, 'a ho_type) ho_term list |
+                     * ('a, 'a ho_type) ho_term list * bool |
     Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
     Formula of (string * string) * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -194,7 +194,7 @@ datatype 'a problem_line =
   Type_Decl of string * 'a * int |
   Sym_Decl of string * 'a * 'a ho_type |
   Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                   * ('a, 'a ho_type) ho_term list |
+                   * ('a, 'a ho_type) ho_term list * bool |
   Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
   Formula of (string * string) * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -601,8 +601,9 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
       (if null xs then "" else "[" ^ commas (map bound_tvar xs) ^ "], ") ^
       typ ty
     fun sort_decl xs ty cl = "sort(" ^ binder_typ xs ty ^ ", " ^ cl ^ ")."
-    fun datatype_decl xs ty tms =
-      "datatype(" ^ commas (binder_typ xs ty :: map term tms) ^ ")."
+    fun datatype_decl xs ty tms exhaust =
+      "datatype(" ^ commas (binder_typ xs ty :: map term tms @
+                            (if exhaust then [] else ["..."])) ^ ")."
     fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
     fun formula pred (Formula ((ident, alt), kind, phi, _, info)) =
         if pred kind then
@@ -650,8 +651,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
                else NONE
              | _ => NONE) |> flat
     val datatype_decls =
-      filt (try (fn Datatype_Decl (_, xs, ty, tms) => datatype_decl xs ty tms))
-      |> flat
+      filt (try (fn Datatype_Decl (_, xs, ty, tms, exhaust) =>
+                    datatype_decl xs ty tms exhaust)) |> flat
     val sort_decls =
       filt (try (fn Class_Memb (_, xs, ty, cl) => sort_decl xs ty cl)) |> flat
     val subclass_decls =
@@ -929,9 +930,9 @@ fun nice_atp_problem readable_names format problem =
       | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
-      | nice_line (Datatype_Decl (ident, xs, ty, tms)) =
+      | nice_line (Datatype_Decl (ident, xs, ty, tms, exhaust)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> fold_map nice_term tms
-        #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms))
+        #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms, exhaust))
       | nice_line (Class_Memb (ident, xs, ty, cl)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> nice_name cl
         #>> (fn ((xs, ty), cl) => Class_Memb (ident, xs, ty, cl))
