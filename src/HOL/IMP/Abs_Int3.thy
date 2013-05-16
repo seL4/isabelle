@@ -110,6 +110,11 @@ qed
 
 end
 
+definition map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom"
+where
+"map2_acom f C1 C2 = annotate (\<lambda>p. f (anno C1 p) (anno C2 p)) (strip C1)"
+
+(*
 text_raw{*\snip{maptwoacomdef}{2}{2}{% *}
 fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom"
 where
@@ -125,11 +130,11 @@ where
   ({a\<^isub>3} WHILE b' DO {q} D {a\<^isub>4})
   = ({f a\<^isub>1 a\<^isub>3} WHILE b DO {f p q} map2_acom f C D {f a\<^isub>2 a\<^isub>4})"
 text_raw{*}%endsnip*}
-
+*)(*
 lemma annos_map2_acom[simp]: "strip C2 = strip C1 \<Longrightarrow>
   annos(map2_acom f C1 C2) = map (%(x,y).f x y) (zip (annos C1) (annos C2))"
 by(induction f C1 C2 rule: map2_acom.induct)(simp_all add: size_annos_same2)
-
+*)
 instantiation acom :: (widen)widen
 begin
 definition "widen_acom = map2_acom (op \<nabla>)"
@@ -144,7 +149,8 @@ end
 
 lemma strip_map2_acom[simp]:
  "strip C1 = strip C2 \<Longrightarrow> strip(map2_acom f C1 C2) = strip C1"
-by(induct f C1 C2 rule: map2_acom.induct) simp_all
+by(simp add: map2_acom_def)
+(*by(induct f C1 C2 rule: map2_acom.induct) simp_all*)
 
 lemma strip_widen_acom[simp]:
   "strip C1 = strip C2 \<Longrightarrow> strip(C1 \<nabla> C2) = strip C1"
@@ -155,13 +161,13 @@ lemma strip_narrow_acom[simp]:
 by(simp add: narrow_acom_def)
 
 lemma narrow1_acom: "C2 \<le> C1 \<Longrightarrow> C2 \<le> C1 \<triangle> (C2::'a::WN acom)"
-by(induct C1 C2 rule: less_eq_acom.induct)(simp_all add: narrow_acom_def narrow1)
+by(simp add: narrow_acom_def narrow1 map2_acom_def less_eq_acom_def size_annos)
 
 lemma narrow2_acom: "C2 \<le> C1 \<Longrightarrow> C1 \<triangle> (C2::'a::WN acom) \<le> C1"
-by(induct C1 C2 rule: less_eq_acom.induct)(simp_all add: narrow_acom_def narrow2)
+by(simp add: narrow_acom_def narrow2 map2_acom_def less_eq_acom_def size_annos)
 
 
-subsubsection "Post-fixed point computation"
+subsubsection "Pre-fixpoint computation"
 
 definition iter_widen :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> ('a::{order,widen})option"
 where "iter_widen f = while_option (\<lambda>x. \<not> f x \<le> x) (\<lambda>x. x \<nabla> f x)"
@@ -327,6 +333,11 @@ apply(induct o1 o2 rule: narrow_option.induct)
 apply (auto)
 by transfer simp
 
+(* FIXME mk anno abbrv *)
+lemma annos_map2_acom[simp]: "strip C2 = strip C1 \<Longrightarrow>
+  annos(map2_acom f C1 C2) = map (%(x,y).f x y) (zip (annos C1) (annos C2))"
+by(simp add: map2_acom_def list_eq_iff_nth_eq size_annos anno_def[symmetric] size_annos_same[of C1 C2])
+
 lemma top_on_acom_widen:
   "\<lbrakk>top_on_acom C1 X; strip C1 = strip C2; top_on_acom C2 X\<rbrakk>
   \<Longrightarrow> top_on_acom (C1 \<nabla> C2 :: _ st option acom) X"
@@ -403,13 +414,13 @@ by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 lemma m_c_widen:
   "strip C1 = strip C2  \<Longrightarrow> top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2)
    \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
-apply(auto simp: m_c_def widen_acom_def listsum_setsum_nth)
+apply(auto simp: m_c_def widen_acom_def map2_acom_def size_annos[symmetric] anno_def[symmetric]listsum_setsum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
  prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
 apply(rule setsum_strict_mono_ex1)
- apply(auto simp add: m_o_anti_mono vars_acom_def top_on_acom_def top_on_opt_widen widen1 le_iff_le_annos listrel_iff_nth)
-apply(rule_tac x=i in bexI)
+ apply(auto simp add: m_o_anti_mono vars_acom_def anno_def top_on_acom_def top_on_opt_widen widen1 less_eq_acom_def listrel_iff_nth)
+apply(rule_tac x=p in bexI)
  apply (auto simp: vars_acom_def m_o_widen top_on_acom_def)
 done
 
