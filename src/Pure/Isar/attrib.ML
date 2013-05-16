@@ -57,8 +57,16 @@ sig
     (Context.generic -> string) -> string Config.T * (theory -> theory)
   val setup_config_bool: Binding.binding -> (Context.generic -> bool) -> bool Config.T
   val setup_config_int: Binding.binding -> (Context.generic -> int) -> int Config.T
-  val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
   val setup_config_real: Binding.binding -> (Context.generic -> real) -> real Config.T
+  val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
+  val option_bool: string -> bool Config.T * (theory -> theory)
+  val option_int: string -> int Config.T * (theory -> theory)
+  val option_real: string -> real Config.T * (theory -> theory)
+  val option_string: string -> string Config.T * (theory -> theory)
+  val setup_option_bool: string -> bool Config.T
+  val setup_option_int: string -> int Config.T
+  val setup_option_real: string -> real Config.T
+  val setup_option_string: string -> string Config.T
 end;
 
 structure Attrib: ATTRIB =
@@ -482,12 +490,12 @@ fun declare make coerce binding default =
 
 in
 
+fun register_config config = register (Binding.name (Config.name_of config)) config;
+
 val config_bool = declare Config.Bool Config.bool;
 val config_int = declare Config.Int Config.int;
 val config_real = declare Config.Real Config.real;
 val config_string = declare Config.String Config.string;
-
-fun register_config config = register (Binding.name (Config.name_of config)) config;
 
 end;
 
@@ -508,6 +516,36 @@ val setup_config_bool = setup_config config_bool;
 val setup_config_int = setup_config config_int;
 val setup_config_string = setup_config config_string;
 val setup_config_real = setup_config config_real;
+
+end;
+
+
+(* system options *)
+
+local
+
+fun declare_option coerce name =
+  let
+    val config = Config.declare_option name;
+  in (coerce config, register_config config) end;
+
+fun setup_option coerce name =
+  let
+    val config = Config.declare_option name;
+    val _ = Context.>> (Context.map_theory (register_config config));
+  in coerce config end;
+
+in
+
+val option_bool = declare_option Config.bool;
+val option_int = declare_option Config.int;
+val option_real = declare_option Config.real;
+val option_string = declare_option Config.string;
+
+val setup_option_bool = setup_option Config.bool;
+val setup_option_int = setup_option Config.int;
+val setup_option_real = setup_option Config.real;
+val setup_option_string = setup_option Config.string;
 
 end;
 
