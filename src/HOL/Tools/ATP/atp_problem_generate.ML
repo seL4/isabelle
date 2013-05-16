@@ -850,7 +850,7 @@ fun chop_fun 0 T = ([], T)
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ T = ([], T)
 
-fun filter_type_args thy ctrs type_enc s ary T_args =
+fun filter_type_args thy ctrss type_enc s ary T_args =
   let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then (* FIXME: why not "type_guard_name" as well? *)
       T_args
@@ -890,7 +890,7 @@ fun filter_type_args thy ctrs type_enc s ary T_args =
           | Tags _ => []
         else if level = Undercover_Types then
           noninfer_type_args T_args
-        else if member (op =) ctrs s andalso
+        else if exists (exists (curry (op =) s)) ctrss andalso
                 level <> Const_Types Without_Ctr_Optim then
           ctr_infer_type_args T_args
         else
@@ -1173,18 +1173,19 @@ fun mangle_type_args_in_iterm type_enc =
     I
 
 fun filter_type_args_in_const _ _ _ _ _ [] = []
-  | filter_type_args_in_const thy ctrs type_enc ary s T_args =
+  | filter_type_args_in_const thy ctrss type_enc ary s T_args =
     case unprefix_and_unascii const_prefix s of
       NONE =>
       if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
       else T_args
     | SOME s'' =>
-      filter_type_args thy ctrs type_enc (unmangled_invert_const s'') ary T_args
-fun filter_type_args_in_iterm thy ctrs type_enc =
+      filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary
+                       T_args
+fun filter_type_args_in_iterm thy ctrss type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
       | filt ary (IConst (name as (s, _), T, T_args)) =
-        filter_type_args_in_const thy ctrs type_enc ary s T_args
+        filter_type_args_in_const thy ctrss type_enc ary s T_args
         |> (fn T_args => IConst (name, T, T_args))
       | filt _ (IAbs (bound, tm)) = IAbs (bound, filt 0 tm)
       | filt _ tm = tm
@@ -1642,7 +1643,7 @@ fun mk_app_op type_enc head arg =
       |> mangle_type_args_in_iterm type_enc
   in list_app app [head, arg] end
 
-fun firstorderize_fact thy ctrs type_enc sym_tab uncurried_aliases completish =
+fun firstorderize_fact thy ctrss type_enc sym_tab uncurried_aliases completish =
   let
     fun do_app arg head = mk_app_op type_enc head arg
     fun list_app_ops (head, args) = fold do_app args head
@@ -1690,7 +1691,7 @@ fun firstorderize_fact thy ctrs type_enc sym_tab uncurried_aliases completish =
     val do_iterm =
       not (is_type_enc_higher_order type_enc)
       ? (introduce_app_ops #> introduce_predicators)
-      #> filter_type_args_in_iterm thy ctrs type_enc
+      #> filter_type_args_in_iterm thy ctrss type_enc
   in update_iformula (formula_map do_iterm) end
 
 (** Helper facts **)
@@ -2565,7 +2566,7 @@ fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs, exhaust) =
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
-fun do_uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
+fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
                                     base_s0 types in_conj =
   let
     fun do_alias ary =
@@ -2579,7 +2580,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
           mangle_type_args_in_const type_enc base_name T_args
         val base_ary = min_ary_of sym_tab0 base_s
         fun do_const name = IConst (name, T, T_args)
-        val filter_ty_args = filter_type_args_in_iterm thy ctrs type_enc
+        val filter_ty_args = filter_type_args_in_iterm thy ctrss type_enc
         val ho_term_of = ho_term_from_iterm ctxt mono type_enc (SOME true)
         val name1 as (s1, _) =
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
@@ -2610,7 +2611,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
-fun uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
+fun uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         (s, {min_ary, types, in_conj, ...} : sym_info) =
   case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
@@ -2618,19 +2619,19 @@ fun uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
       let
         val base_s0 = mangled_s |> unmangled_invert_const
       in
-        do_uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0 sym_tab
-                                        base_s0 types in_conj min_ary
+        do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0
+                                        sym_tab base_s0 types in_conj min_ary
       end
     else
       ([], [])
   | NONE => ([], [])
-fun uncurried_alias_lines_of_sym_table ctxt ctrs mono type_enc uncurried_aliases
-                                       sym_tab0 sym_tab =
+fun uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc
+                                       uncurried_aliases sym_tab0 sym_tab =
   ([], [])
   |> uncurried_aliases
      ? Symtab.fold_rev
            (pair_append
-            o uncurried_alias_lines_of_sym ctxt ctrs mono type_enc sym_tab0
+            o uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0
                                            sym_tab) sym_tab
 
 val implicit_declsN = "Should-be-implicit typings"
@@ -2716,11 +2717,9 @@ fun is_poly_ctr (Datatype.DtTFree _) = true
   | is_poly_ctr (Datatype.DtType (_, Us)) = exists is_poly_ctr Us
   | is_poly_ctr _ = false
 
-fun all_ctrs_of_polymorphic_datatypes thy =
-  Symtab.fold (snd #> #descr #> maps (#3 o snd)
-               #> (fn cs => exists (exists is_poly_ctr o snd) cs
-                            ? append (map fst cs)))
-               (Datatype.get_all thy) []
+fun all_ctrss_of_datatypes thy =
+  Symtab.fold (snd #> #descr #> map (snd #> #3 #> map fst) #> append)
+              (Datatype.get_all thy) []
 
 val app_op_and_predicator_threshold = 45
 
@@ -2759,15 +2758,15 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono =
       conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
-    val ctrs = all_ctrs_of_polymorphic_datatypes thy
+    val ctrss = all_ctrss_of_datatypes thy
     fun firstorderize in_helper =
-      firstorderize_fact thy ctrs type_enc sym_tab0
+      firstorderize_fact thy ctrss type_enc sym_tab0
           (uncurried_aliases andalso not in_helper) completish
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
-      uncurried_alias_lines_of_sym_table ctxt ctrs mono type_enc
+      uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc
                                          uncurried_aliases sym_tab0 sym_tab
     val (_, sym_tab) =
       (ho_stuff, sym_tab)
