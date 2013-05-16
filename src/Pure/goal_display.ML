@@ -9,10 +9,8 @@ signature GOAL_DISPLAY =
 sig
   val goals_limit_raw: Config.raw
   val goals_limit: int Config.T
-  val show_main_goal_default: bool Unsynchronized.ref
   val show_main_goal_raw: Config.raw
   val show_main_goal: bool Config.T
-  val show_consts_default: bool Unsynchronized.ref
   val show_consts_raw: Config.raw
   val show_consts: bool Config.T
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
@@ -28,13 +26,10 @@ struct
 val goals_limit_raw = Config.declare_option "goals_limit";
 val goals_limit = Config.int goals_limit_raw;
 
-val show_main_goal_default = Unsynchronized.ref false;
-val show_main_goal_raw =
-  Config.declare "show_main_goal" (fn _ => Config.Bool (! show_main_goal_default));
+val show_main_goal_raw = Config.declare_option "show_main_goal";
 val show_main_goal = Config.bool show_main_goal_raw;
 
-val show_consts_default = Unsynchronized.ref false;
-val show_consts_raw = Config.declare "show_consts" (fn _ => Config.Bool (! show_consts_default));
+val show_consts_raw = Config.declare_option "show_consts";
 val show_consts = Config.bool show_consts_raw;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block

@@ -8,23 +8,23 @@ Proof General preferences for Isabelle/Pure.
 (* display *)
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Printer.show_types_default
+    @{option show_types}
     "show-types"
     "Include types in display of Isabelle terms";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Printer.show_sorts_default
+    @{option show_sorts}
     "show-sorts"
-    "Include sorts in display of Isabelle terms";
+    "Include sorts in display of Isabelle types";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Goal_Display.show_consts_default
+    @{option show_consts}
     "show-consts"
     "Show types of consts in Isabelle goal display";
 
@@ -36,23 +36,23 @@ val _ =
     "Show fully qualified names in Isabelle terms";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Printer.show_brackets_default
+    @{option show_brackets}
     "show-brackets"
     "Show full bracketing in Isabelle terms";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Goal_Display.show_main_goal_default
+    @{option show_main_goal}
     "show-main-goal"
     "Show main goal in proof state display";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_display
+  ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    Syntax_Trans.eta_contract_default
+    @{option eta_contract}
     "eta-contract"
     "Print terms eta-contracted";
 

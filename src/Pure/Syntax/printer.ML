@@ -20,11 +20,8 @@ end;
 signature PRINTER =
 sig
   include BASIC_PRINTER
-  val show_brackets_default: bool Unsynchronized.ref
   val show_brackets_raw: Config.raw
-  val show_types_default: bool Unsynchronized.ref
   val show_types_raw: Config.raw
-  val show_sorts_default: bool Unsynchronized.ref
   val show_sorts_raw: Config.raw
   val show_markup_default: bool Unsynchronized.ref
   val show_markup_raw: Config.raw
@@ -53,17 +50,13 @@ struct
 
 (** options for printing **)
 
-val show_brackets_default = Unsynchronized.ref false;
-val show_brackets_raw =
-  Config.declare "show_brackets" (fn _ => Config.Bool (! show_brackets_default));
+val show_brackets_raw = Config.declare_option "show_brackets";
 val show_brackets = Config.bool show_brackets_raw;
 
-val show_types_default = Unsynchronized.ref false;
-val show_types_raw = Config.declare "show_types" (fn _ => Config.Bool (! show_types_default));
+val show_types_raw = Config.declare_option "show_types";
 val show_types = Config.bool show_types_raw;
 
-val show_sorts_default = Unsynchronized.ref false;
-val show_sorts_raw = Config.declare "show_sorts" (fn _ => Config.Bool (! show_sorts_default));
+val show_sorts_raw = Config.declare_option "show_sorts";
 val show_sorts = Config.bool show_sorts_raw;
 
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
