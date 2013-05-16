@@ -284,7 +284,7 @@ fun add_fact_of_dependencies fact_names (names as [(_, ss)]) =
       apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
     else
       apfst (insert (op =) (label_of_clause names))
-  | add_fact_of_dependencies fact_names names =
+  | add_fact_of_dependencies _ names =
     apfst (insert (op =) (label_of_clause names))
 
 fun repair_name "$true" = "c_True"

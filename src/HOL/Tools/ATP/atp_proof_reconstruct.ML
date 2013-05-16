@@ -78,7 +78,7 @@ fun metis_call type_enc lam_trans =
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
-  | term_name' t = ""
+  | term_name' _ = ""
 
 fun lambda' v = Term.lambda_name (term_name' v, v)
 

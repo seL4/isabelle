@@ -640,12 +640,19 @@ fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
       | _ => (maybe_isar_name, [])
   in minimize_command override_params min_name end
 
-fun repair_monomorph_context max_iters best_max_iters max_new_instances
-                             best_max_new_instances =
-  Config.put Legacy_Monomorph.max_rounds (max_iters |> the_default best_max_iters)
+fun repair_legacy_monomorph_context max_iters best_max_iters max_new_instances
+                                    best_max_new_instances =
+  Config.put Legacy_Monomorph.max_rounds
+      (max_iters |> the_default best_max_iters)
   #> Config.put Legacy_Monomorph.max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Legacy_Monomorph.keep_partial_instances false
+
+fun repair_monomorph_context max_iters best_max_iters max_new_instances
+                             best_max_new_instances =
+  Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
+  #> Config.put Monomorph.max_new_instances
+         (max_new_instances |> the_default best_max_new_instances)
 
 fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"
@@ -737,8 +744,9 @@ fun run_atp mode name
           let
             val ctxt =
               ctxt
-              |> repair_monomorph_context max_mono_iters best_max_mono_iters
-                      max_new_mono_instances best_max_new_mono_instances
+              |> repair_legacy_monomorph_context max_mono_iters
+                     best_max_mono_iters max_new_mono_instances
+                     best_max_new_mono_instances
             (* pseudo-theorem involving the same constants as the subgoal *)
             val subgoal_th =
               Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
@@ -837,7 +845,7 @@ fun run_atp mode name
               |> lines_of_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n")
               |> File.write_list prob_path
-            val ((output, run_time), used_from, (atp_proof, outcome)) =
+            val ((output, run_time), (atp_proof, outcome)) =
               time_limit generous_slice_timeout Isabelle_System.bash_output
                          command
               |>> (if overlord then
@@ -846,14 +854,14 @@ fun run_atp mode name
                      I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
-                     (accum, facts,
+                     (accum,
                       extract_tstplike_proof_and_outcome verbose proof_delims
                                                          known_failures output
                       |>> atp_proof_of_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () =>
                              ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut =>
-                     (("", the slice_timeout), [], ([], SOME TimedOut))
+                     (("", the slice_timeout), ([], SOME TimedOut))
             val outcome =
               case outcome of
                 NONE =>
@@ -1029,18 +1037,15 @@ fun smt_filter_loop name
                  I)
            |> Config.put SMT_Config.infer_triggers
                          (Config.get ctxt smt_triggers)
-    val ctxt = Proof.context_of state |> repair_context
-    val state = state |> Proof.map_context (K ctxt)
+           |> repair_monomorph_context max_mono_iters default_max_mono_iters
+                  max_new_mono_instances default_max_new_mono_instances
+    val state = Proof.map_context (repair_context) state
+    val ctxt = Proof.context_of state
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
     fun do_slice timeout slice outcome0 time_so_far
                  (weighted_factss as (fact_filter, weighted_facts) :: _) =
       let
         val timer = Timer.startRealTimer ()
-        val state =
-          state |> Proof.map_context
-                       (repair_monomorph_context max_mono_iters
-                            default_max_mono_iters max_new_mono_instances
-                            default_max_new_mono_instances)
         val slice_timeout =
           if slice < max_slices andalso timeout <> NONE then
             let val ms = timeout |> the |> Time.toMilliseconds in
