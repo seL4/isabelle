@@ -11,6 +11,7 @@ sig
   val indent: int Config.T
   val source: bool Config.T
   val break: bool Config.T
+  val modes: string Config.T
   val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
   val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
   val intern_command: theory -> xstring -> string
@@ -24,7 +25,6 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   datatype markup = Markup | MarkupEnv | Verbatim
-  val modes: string list Unsynchronized.ref
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val check_text: Symbol_Pos.text * Position.T -> Toplevel.state -> unit
@@ -43,13 +43,14 @@ end;
 structure Thy_Output: THY_OUTPUT =
 struct
 
-(** global options **)
+(** options **)
 
 val display = Attrib.setup_option_bool "thy_output_display";
 val break = Attrib.setup_option_bool "thy_output_break";
 val quotes = Attrib.setup_option_bool "thy_output_quotes";
 val indent = Attrib.setup_option_int "thy_output_indent";
 val source = Attrib.setup_option_bool "thy_output_source";
+val modes = Attrib.setup_option_string "thy_output_modes";
 
 
 structure Wrappers = Proof_Data
@@ -168,8 +169,6 @@ end;
 
 (* eval_antiquote *)
 
-val modes = Unsynchronized.ref ([]: string list);
-
 fun eval_antiq lex state (ss, (pos, _)) =
   let
     val (opts, src) = Token.read_antiq lex antiq (ss, pos);
@@ -177,7 +176,8 @@ fun eval_antiq lex state (ss, (pos, _)) =
     val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
     val _ = cmd preview_ctxt;
-  in Print_Mode.with_modes (! modes @ Latex.modes) (fn () => cmd print_ctxt) () end;
+    val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
+  in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
 
 fun eval_antiquote lex state (txt, pos) =
   let
