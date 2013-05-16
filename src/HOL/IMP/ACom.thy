@@ -15,15 +15,6 @@ datatype 'a acom =
   While 'a bexp 'a "('a acom)" 'a
     ("({_}//WHILE _//DO ({_}//_)//{_})"  [0, 0, 0, 61, 0] 61)
 
-text_raw{*\snip{postdef}{2}{1}{% *}
-fun post :: "'a acom \<Rightarrow>'a" where
-"post (SKIP {P}) = P" |
-"post (x ::= e {P}) = P" |
-"post (C\<^isub>1; C\<^isub>2) = post C\<^isub>2" |
-"post (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = Q" |
-"post ({I} WHILE b DO {P} C {Q}) = Q"
-text_raw{*}%endsnip*}
-
 text_raw{*\snip{stripdef}{1}{1}{% *}
 fun strip :: "'a acom \<Rightarrow> com" where
 "strip (SKIP {P}) = com.SKIP" |
@@ -34,15 +25,29 @@ fun strip :: "'a acom \<Rightarrow> com" where
 "strip ({I} WHILE b DO {P} C {Q}) = WHILE b DO strip C"
 text_raw{*}%endsnip*}
 
-text_raw{*\snip{annodef}{1}{1}{% *}
-fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
-"anno A com.SKIP = SKIP {A}" |
-"anno A (x ::= e) = x ::= e {A}" |
-"anno A (c\<^isub>1;c\<^isub>2) = anno A c\<^isub>1; anno A c\<^isub>2" |
-"anno A (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
-  IF b THEN {A} anno A c\<^isub>1 ELSE {A} anno A c\<^isub>2 {A}" |
-"anno A (WHILE b DO c) =
-  {A} WHILE b DO {A} anno A c {A}"
+text_raw{*\snip{asizedef}{1}{1}{% *}
+fun asize :: "com \<Rightarrow> nat" where
+"asize com.SKIP = 1" |
+"asize (x ::= e) = 1" |
+"asize (C\<^isub>1;C\<^isub>2) = asize C\<^isub>1 + asize C\<^isub>2" |
+"asize (IF b THEN C\<^isub>1 ELSE C\<^isub>2) = asize C\<^isub>1 + asize C\<^isub>2 + 3" |
+"asize (WHILE b DO C) = asize C + 3"
+text_raw{*}%endsnip*}
+
+text_raw{*\snip{annotatedef}{1}{1}{% *}
+definition shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a" where
+"shift f n = (\<lambda>p. f(p+n))"
+
+fun annotate :: "(nat \<Rightarrow> 'a) \<Rightarrow> com \<Rightarrow> 'a acom" where
+"annotate f com.SKIP = SKIP {f 0}" |
+"annotate f (x ::= e) = x ::= e {f 0}" |
+"annotate f (c\<^isub>1;c\<^isub>2) = annotate f c\<^isub>1; annotate (shift f (asize c\<^isub>1)) c\<^isub>2" |
+"annotate f (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
+  IF b THEN {f 0} annotate (shift f 1) c\<^isub>1
+  ELSE {f(asize c\<^isub>1 + 1)} annotate (shift f (asize c\<^isub>1 + 2)) c\<^isub>2
+  {f(asize c\<^isub>1 + asize c\<^isub>2 + 2)}" |
+"annotate f (WHILE b DO c) =
+  {f 0} WHILE b DO {f 1} annotate (shift f 2) c {f(asize c + 2)}"
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{annosdef}{1}{1}{% *}
@@ -51,9 +56,15 @@ fun annos :: "'a acom \<Rightarrow> 'a list" where
 "annos (x ::= e {P}) = [P]" |
 "annos (C\<^isub>1;C\<^isub>2) = annos C\<^isub>1 @ annos C\<^isub>2" |
 "annos (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) =
-  P\<^isub>1 # P\<^isub>2 # Q # annos C\<^isub>1 @ annos C\<^isub>2" |
-"annos ({I} WHILE b DO {P} C {Q}) = I # P # Q # annos C"
+  P\<^isub>1 # annos C\<^isub>1 @  P\<^isub>2 # annos C\<^isub>2 @ [Q]" |
+"annos ({I} WHILE b DO {P} C {Q}) = I # P # annos C @ [Q]"
 text_raw{*}%endsnip*}
+
+definition anno :: "'a acom \<Rightarrow> nat \<Rightarrow> 'a" where
+"anno C p = annos C ! p"
+
+definition post :: "'a acom \<Rightarrow>'a" where
+"post C = last(annos C)"
 
 text_raw{*\snip{mapacomdef}{1}{2}{% *}
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
@@ -68,39 +79,56 @@ fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b ac
 text_raw{*}%endsnip*}
 
 
-lemma post_map_acom[simp]: "post(map_acom f C) = f(post C)"
-by (induction C) simp_all
+lemma annos_ne: "annos C \<noteq> []"
+by(induction C) auto
 
-lemma strip_acom[simp]: "strip (map_acom f C) = strip C"
+lemma strip_annotate[simp]: "strip(annotate f c) = c"
+by(induction c arbitrary: f) auto
+
+lemma length_annos_annotate[simp]: "length (annos (annotate f c)) = asize c"
+by(induction c arbitrary: f) auto
+
+lemma size_annos: "size(annos C) = asize(strip C)"
+by(induction C)(auto)
+
+lemma size_annos_same: "strip C1 = strip C2 \<Longrightarrow> size(annos C1) = size(annos C2)"
+apply(induct C2 arbitrary: C1)
+apply(case_tac C1, simp_all)+
+done
+
+lemmas size_annos_same2 = eqTrueI[OF size_annos_same]
+
+lemma anno_annotate[simp]: "p < asize c \<Longrightarrow> anno (annotate f c) p = f p"
+apply(induction c arbitrary: f p)
+apply (auto simp: anno_def nth_append nth_Cons numeral_eq_Suc shift_def
+            split: nat.split)
+  apply (metis add_Suc_right add_diff_inverse nat_add_commute)
+ apply(rule_tac f=f in arg_cong)
+ apply arith
+apply (metis less_Suc_eq)
+done
+
+lemma eq_acom_iff_strip_annos:
+  "C1 = C2 \<longleftrightarrow> strip C1 = strip C2 \<and> annos C1 = annos C2"
+apply(induction C1 arbitrary: C2)
+apply(case_tac C2, auto simp: size_annos_same2)+
+done
+
+lemma eq_acom_iff_strip_anno:
+  "C1=C2 \<longleftrightarrow> strip C1 = strip C2 \<and> (\<forall>p<size(annos C1). anno C1 p = anno C2 p)"
+by(auto simp add: eq_acom_iff_strip_annos anno_def
+     list_eq_iff_nth_eq size_annos_same2)
+
+lemma post_map_acom[simp]: "post(map_acom f C) = f(post C)"
+by (induction C) (auto simp: post_def last_append annos_ne)
+
+lemma strip_map_acom[simp]: "strip (map_acom f C) = strip C"
 by (induction C) auto
 
-lemma map_acom_SKIP:
- "map_acom f C = SKIP {S'} \<longleftrightarrow> (\<exists>S. C = SKIP {S} \<and> S' = f S)"
-by (cases C) auto
-
-lemma map_acom_Assign:
- "map_acom f C = x ::= e {S'} \<longleftrightarrow> (\<exists>S. C = x::=e {S} \<and> S' = f S)"
-by (cases C) auto
-
-lemma map_acom_Seq:
- "map_acom f C = C1';C2' \<longleftrightarrow>
- (\<exists>C1 C2. C = C1;C2 \<and> map_acom f C1 = C1' \<and> map_acom f C2 = C2')"
-by (cases C) auto
-
-lemma map_acom_If:
- "map_acom f C = IF b THEN {P1'} C1' ELSE {P2'} C2' {Q'} \<longleftrightarrow>
- (\<exists>P1 P2 C1 C2 Q. C = IF b THEN {P1} C1 ELSE {P2} C2 {Q} \<and>
-     map_acom f C1 = C1' \<and> map_acom f C2 = C2' \<and> P1' = f P1 \<and> P2' = f P2 \<and> Q' = f Q)"
-by (cases C) auto
-
-lemma map_acom_While:
- "map_acom f w = {I'} WHILE b DO {p'} C' {P'} \<longleftrightarrow>
- (\<exists>I p P C. w = {I} WHILE b DO {p} C {P} \<and> map_acom f C = C' \<and> I' = f I \<and> p' = f p \<and> P' = f P)"
-by (cases w) auto
-
-
-lemma strip_anno[simp]: "strip (anno a c) = c"
-by(induct c) simp_all
+lemma anno_map_acom: "p < size(annos C) \<Longrightarrow> anno (map_acom f C) p = f(anno C p)"
+apply(induction C arbitrary: p)
+apply(auto simp: anno_def nth_append nth_Cons' size_annos)
+done
 
 lemma strip_eq_SKIP:
   "strip C = com.SKIP \<longleftrightarrow> (EX P. C = SKIP {P})"
@@ -124,17 +152,16 @@ lemma strip_eq_While:
   (EX I P C1 Q. C = {I} WHILE b DO {P} C1 {Q} & strip C1 = c1)"
 by (cases C) simp_all
 
-lemma set_annos_anno[simp]: "set (annos (anno a c)) = {a}"
-by(induction c)(auto)
+lemma [simp]: "shift (\<lambda>p. a) n = (\<lambda>p. a)"
+by(simp add:shift_def)
 
-lemma size_annos_same: "strip C1 = strip C2 \<Longrightarrow> size(annos C1) = size(annos C2)"
-apply(induct C2 arbitrary: C1)
-apply (auto simp: strip_eq_SKIP strip_eq_Assign strip_eq_Seq strip_eq_If strip_eq_While)
-done
-
-lemmas size_annos_same2 = eqTrueI[OF size_annos_same]
+lemma set_annos_anno[simp]: "set (annos (annotate (\<lambda>p. a) c)) = {a}"
+by(induction c) simp_all
 
 lemma post_in_annos: "post C \<in> set(annos C)"
-by(induction C) auto
+by(auto simp: post_def annos_ne)
+
+lemma post_anno_asize: "post C = anno C (size(annos C) - 1)"
+by(simp add: post_def last_conv_nth[OF annos_ne] anno_def)
 
 end

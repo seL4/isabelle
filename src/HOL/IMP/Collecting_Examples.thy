@@ -22,16 +22,16 @@ text{* In order to display commands annotated with state sets, states must be
 translated into a printable format as sets of variable-state pairs, for the
 variables in the command: *}
 
-definition show_acom ::
-  "state set acom \<Rightarrow> (vname*val)set set acom" where
-"show_acom C = map_acom (\<lambda>S. (\<lambda>s. (\<lambda>x. (x, s x)) ` (vars_acom C)) ` S) C"
+definition show_acom :: "state set acom \<Rightarrow> (vname*val)set set acom" where
+"show_acom C =
+   annotate (\<lambda>p. (\<lambda>s. (\<lambda>x. (x, s x)) ` (vars_acom C)) ` anno C p) (strip C)"
 
 
 subsection "Examples"
 
 definition "c0 = WHILE Less (V ''x'') (N 3)
                 DO ''x'' ::= Plus (V ''x'') (N 2)"
-definition C0 :: "state set acom" where "C0 = anno {} c0"
+definition C0 :: "state set acom" where "C0 = annotate (%p. {}) c0"
 
 text{* Collecting semantics: *}
 

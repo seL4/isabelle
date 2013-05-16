@@ -156,7 +156,7 @@ lemma mono_gamma_o:
 by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 
 lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
-by (induction C1 C2 rule: less_eq_acom.induct) (simp_all add:mono_gamma_o)
+by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_same[of C1 C2])
 
 lemma in_gamma_option_iff:
   "x : \<gamma>_option r u \<longleftrightarrow> (\<exists>u'. u = Some u' \<and> x : r u')"

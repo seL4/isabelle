@@ -93,10 +93,10 @@ end
 
 
 definition bot :: "com \<Rightarrow> 'a option acom" where
-"bot c = anno None c"
+"bot c = annotate (\<lambda>p. None) c"
 
 lemma bot_least: "strip C = c \<Longrightarrow> bot c \<le> C"
-by(induct C arbitrary: c)(auto simp: bot_def)
+by(auto simp: bot_def less_eq_acom_def)
 
 lemma strip_bot[simp]: "strip(bot c) = c"
 by(simp add: bot_def)
@@ -206,7 +206,7 @@ lemma mono_gamma_o:
 by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 
 lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
-by (induction C1 C2 rule: less_eq_acom.induct) (simp_all add:mono_gamma_o)
+by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_same[of C1 C2])
 
 text{* Correctness: *}
 
@@ -246,9 +246,6 @@ end
 
 
 subsubsection "Monotonicity"
-
-lemma mono_post: "C1 \<le> C2 \<Longrightarrow> post C1 \<le> post C2"
-by(induction C1 C2 rule: less_eq_acom.induct) (auto)
 
 locale Abs_Int_fun_mono = Abs_Int_fun +
 assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
@@ -307,6 +304,9 @@ next
     by (blast intro: I mono)
 qed
 
+lemma le_iff_le_annos: "C1 \<le> C2 \<longleftrightarrow>
+  strip C1 = strip C2 \<and> (\<forall> i<size(annos C1). annos C1 ! i \<le> annos C2 ! i)"
+by(simp add: less_eq_acom_def anno_def)
 
 locale Measure1_fun =
 fixes m :: "'av::top \<Rightarrow> nat"
@@ -343,15 +343,6 @@ proof-
 qed
 
 end
-
-
-lemma le_iff_le_annos_zip: "C1 \<le> C2 \<longleftrightarrow>
- (\<forall> (a1,a2) \<in> set(zip (annos C1) (annos C2)). a1 \<le> a2) \<and> strip C1 = strip C2"
-by(induct C1 C2 rule: less_eq_acom.induct) (auto simp: size_annos_same2)
-
-lemma le_iff_le_annos: "C1 \<le> C2 \<longleftrightarrow>
-  strip C1 = strip C2 \<and> (\<forall> i<size(annos C1). annos C1 ! i \<le> annos C2 ! i)"
-by(auto simp add: le_iff_le_annos_zip set_zip) (metis size_annos_same2)
 
 
 locale Measure_fun = Measure1_fun where m=m
