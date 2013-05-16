@@ -6,7 +6,7 @@ Higher-order Simplification.
 
 infix 4
   addsimps delsimps addsimprocs delsimprocs
-  setloop' setloop addloop addloop' delloop
+  setloop addloop delloop
   setSSolver addSSolver setSolver addSolver;
 
 signature BASIC_RAW_SIMPLIFIER =
@@ -49,10 +49,8 @@ sig
   val delsimps: Proof.context * thm list -> Proof.context
   val addsimprocs: Proof.context * simproc list -> Proof.context
   val delsimprocs: Proof.context * simproc list -> Proof.context
-  val setloop': Proof.context * (Proof.context -> int -> tactic) -> Proof.context
-  val setloop: Proof.context * (int -> tactic) -> Proof.context
-  val addloop': Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
-  val addloop: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val setloop: Proof.context * (Proof.context -> int -> tactic) -> Proof.context
+  val addloop: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
   val delloop: Proof.context * string -> Proof.context
   val setSSolver: Proof.context * solver -> Proof.context
   val addSSolver: Proof.context * solver -> Proof.context
@@ -821,18 +819,14 @@ fun set_subgoaler subgoal_tac =
   map_simpset2 (fn (congs, procs, mk_rews, termless, _, loop_tacs, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
-fun ctxt setloop' tac = ctxt |>
+fun ctxt setloop tac = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, _, solvers) =>
    (congs, procs, mk_rews, termless, subgoal_tac, [("", tac)], solvers));
 
-fun ctxt setloop tac = ctxt setloop' (K tac);
-
-fun ctxt addloop' (name, tac) = ctxt |>
+fun ctxt addloop (name, tac) = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
      AList.update (op =) (name, tac) loop_tacs, solvers));
-
-fun ctxt addloop (name, tac) = ctxt addloop' (name, K tac);
 
 fun ctxt delloop name = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>

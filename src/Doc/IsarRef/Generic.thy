@@ -1143,12 +1143,8 @@ subsubsection {* The looper *}
 text {*
   \begin{mldecls}
   @{index_ML_op setloop: "Proof.context *
-  (int -> tactic) -> Proof.context"} \\
-  @{index_ML_op setloop': "Proof.context *
   (Proof.context -> int -> tactic) -> Proof.context"} \\
   @{index_ML_op addloop: "Proof.context *
-  (string * (int -> tactic)) -> Proof.context"} \\
-  @{index_ML_op addloop': "Proof.context *
   (string * (Proof.context -> int -> tactic))
   -> Proof.context"} \\
   @{index_ML_op delloop: "Proof.context * string -> Proof.context"} \\
@@ -1169,15 +1165,13 @@ text {*
   \begin{description}
 
   \item @{text "ctxt setloop tac"} installs @{text "tac"} as the only
-  looper tactic of @{text "ctxt"}.  The variant @{text "setloop'"}
-  allows the tactic to depend on the running Simplifier context.
+  looper tactic of @{text "ctxt"}.
 
   \item @{text "ctxt addloop (name, tac)"} adds @{text "tac"} as an
   additional looper tactic with name @{text "name"}, which is
   significant for managing the collection of loopers.  The tactic will
   be tried after the looper tactics that had already been present in
-  @{text "ctxt"}.  The variant @{text "addloop'"} allows the tactic to
-  depend on the running Simplifier context.
+  @{text "ctxt"}.
 
   \item @{text "ctxt delloop name"} deletes the looper tactic that was
   associated with @{text "name"} from @{text "ctxt"}.

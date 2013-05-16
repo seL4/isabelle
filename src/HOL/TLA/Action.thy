@@ -260,7 +260,7 @@ ML {*
 *)
 fun action_simp_tac ss intros elims =
     asm_full_simp_tac
-         (ss setloop ((resolve_tac ((map action_use intros)
+         (ss setloop (fn _ => (resolve_tac ((map action_use intros)
                                     @ [refl,impI,conjI,@{thm actionI},@{thm intI},allI]))
                       ORELSE' (eresolve_tac ((map action_use elims)
                                              @ [conjE,disjE,exE]))));

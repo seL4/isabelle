@@ -756,7 +756,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
 
 
 lemma AVar_lemma1: "\<lbrakk>globs s (Inl a) = Some obj;tag obj=Arr ty i; 
@@ -925,7 +925,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
 
 
 subsection "accessibility"

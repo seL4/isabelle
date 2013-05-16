@@ -238,7 +238,7 @@ declare split_if     [split] split_if_asm     [split]
         option.split [split] option.split_asm [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop' ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
 
 lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w,s') \<Longrightarrow> case t of In1 ec \<Rightarrow>  
   (case ec of Inl e \<Rightarrow> (\<exists>v. w = In1 v) | Inr c \<Rightarrow> w = \<diamondsuit>)  

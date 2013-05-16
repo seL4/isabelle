@@ -430,7 +430,7 @@ fun add_split split ctxt =
   let
     val (name, asm) = split_thm_info split
     val tac = (if asm then split_asm_tac else split_tac) [split]
-  in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
+  in Simplifier.addloop (ctxt, (split_name name asm, K tac)) end;
 
 fun del_split split ctxt =
   let val (name, asm) = split_thm_info split

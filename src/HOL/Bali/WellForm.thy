@@ -2258,7 +2258,7 @@ proof -
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
 
 (* Tactical version *)
 (*
@@ -2427,7 +2427,7 @@ apply  (auto dest: accmethd_rT_is_type
 done
 declare split_paired_All [simp] split_paired_Ex [simp]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
 
 lemma ty_expr_is_type: 
 "\<lbrakk>E\<turnstile>e\<Colon>-T; wf_prog (prg E)\<rbrakk> \<Longrightarrow> is_type (prg E) T"

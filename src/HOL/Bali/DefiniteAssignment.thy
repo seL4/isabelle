@@ -884,7 +884,7 @@ inductive_cases da_elim_cases [cases set]:
 declare inj_term_sym_simps [simp del]
 declare assigns_if.simps [simp]
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac)) *}
 
 (* To be able to eliminate both the versions with the overloaded brackets: 
    (B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A) and with the explicit constructor (B \<guillemotright>In1r Skip\<guillemotright> A), 
