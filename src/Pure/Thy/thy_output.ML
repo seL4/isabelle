@@ -6,11 +6,6 @@ Theory document output with antiquotations.
 
 signature THY_OUTPUT =
 sig
-  val display_default: bool Unsynchronized.ref
-  val quotes_default: bool Unsynchronized.ref
-  val indent_default: int Unsynchronized.ref
-  val source_default: bool Unsynchronized.ref
-  val break_default: bool Unsynchronized.ref
   val display: bool Config.T
   val quotes: bool Config.T
   val indent: int Config.T
@@ -50,17 +45,11 @@ struct
 
 (** global options **)
 
-val display_default = Unsynchronized.ref false;
-val quotes_default = Unsynchronized.ref false;
-val indent_default = Unsynchronized.ref 0;
-val source_default = Unsynchronized.ref false;
-val break_default = Unsynchronized.ref false;
-
-val display = Attrib.setup_config_bool (Binding.name "thy_output_display") (fn _ => ! display_default);
-val quotes = Attrib.setup_config_bool (Binding.name "thy_output_quotes") (fn _ => ! quotes_default);
-val indent = Attrib.setup_config_int (Binding.name "thy_output_indent") (fn _ => ! indent_default);
-val source = Attrib.setup_config_bool (Binding.name "thy_output_source") (fn _ => ! source_default);
-val break = Attrib.setup_config_bool (Binding.name "thy_output_break") (fn _ => ! break_default);
+val display = Attrib.setup_option_bool "thy_output_display";
+val break = Attrib.setup_option_bool "thy_output_break";
+val quotes = Attrib.setup_option_bool "thy_output_quotes";
+val indent = Attrib.setup_option_int "thy_output_indent";
+val source = Attrib.setup_option_bool "thy_output_source";
 
 
 structure Wrappers = Proof_Data
