@@ -28,7 +28,6 @@ sig
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val eta_contract_default: bool Unsynchronized.ref
   val eta_contract_raw: Config.raw
   val mark_bound_abs: string * typ -> term
   val mark_bound_body: string * typ -> term
@@ -303,8 +302,7 @@ fun eta_abs (Abs (a, T, t)) =
       | t' => Abs (a, T, t'))
   | eta_abs t = t;
 
-val eta_contract_default = Unsynchronized.ref true;
-val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
+val eta_contract_raw = Config.declare_option "eta_contract";
 val eta_contract = Config.bool eta_contract_raw;
 
 fun eta_contr ctxt tm =

@@ -7,7 +7,6 @@ Printing of theorems, results etc.
 
 signature BASIC_DISPLAY =
 sig
-  val show_consts_default: bool Unsynchronized.ref
   val show_consts: bool Config.T
   val show_hyps_raw: Config.raw
   val show_hyps: bool Config.T
@@ -34,7 +33,6 @@ struct
 
 (** options **)
 
-val show_consts_default = Goal_Display.show_consts_default;
 val show_consts = Goal_Display.show_consts;
 
 val show_hyps_raw = Config.declare "show_hyps" (fn _ => Config.Bool false);
