@@ -850,7 +850,7 @@ fun chop_fun 0 T = ([], T)
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ T = ([], T)
 
-fun filter_type_args thy ctrss type_enc s ary T_args =
+fun filter_type_args thy ctrss type_enc s ary T T_args =
   let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then (* FIXME: why not "type_guard_name" as well? *)
       T_args
@@ -859,10 +859,10 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
     | Native (_, Type_Class_Polymorphic, _) => T_args
     | _ =>
       let
+        val U = if null T_args then T else robust_const_type thy s
         fun gen_type_args _ _ [] = []
           | gen_type_args keep strip_ty T_args =
             let
-              val U = robust_const_type thy s
               val (binder_Us, body_U) = strip_ty U
               val in_U_vars = fold Term.add_tvarsT binder_Us []
               val out_U_vars = Term.add_tvarsT body_U []
@@ -875,6 +875,7 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
               val U_args = (s, U) |> robust_const_type_args thy
             in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
             handle TYPE _ => T_args
+        fun is_always_ctr (s', T') = s' = s andalso type_equiv thy (T', U)
         val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
         val ctr_infer_type_args = gen_type_args fst strip_type
         val level = level_of_type_enc type_enc
@@ -890,7 +891,7 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
           | Tags _ => []
         else if level = Undercover_Types then
           noninfer_type_args T_args
-        else if exists (exists (curry (op =) s)) ctrss andalso
+        else if exists (exists is_always_ctr) ctrss andalso
                 level <> Const_Types Without_Ctr_Optim then
           ctr_infer_type_args T_args
         else
@@ -1172,20 +1173,21 @@ fun mangle_type_args_in_iterm type_enc =
   else
     I
 
-fun filter_type_args_in_const _ _ _ _ _ [] = []
-  | filter_type_args_in_const thy ctrss type_enc ary s T_args =
+fun filter_type_args_in_const _ _ _ _ _ _ [] = []
+  | filter_type_args_in_const thy ctrss type_enc ary s T T_args =
     case unprefix_and_unascii const_prefix s of
       NONE =>
       if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
       else T_args
     | SOME s'' =>
-      filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary
+      filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary T
                        T_args
+
 fun filter_type_args_in_iterm thy ctrss type_enc =
   let
     fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
       | filt ary (IConst (name as (s, _), T, T_args)) =
-        filter_type_args_in_const thy ctrss type_enc ary s T_args
+        filter_type_args_in_const thy ctrss type_enc ary s T T_args
         |> (fn T_args => IConst (name, T, T_args))
       | filt _ (IAbs (bound, tm)) = IAbs (bound, filt 0 tm)
       | filt _ tm = tm
@@ -2713,13 +2715,18 @@ fun declare_undeclared_in_problem heading problem =
                   syms []
   in (heading, decls) :: problem end
 
-fun is_poly_ctr (Datatype.DtTFree _) = true
-  | is_poly_ctr (Datatype.DtType (_, Us)) = exists is_poly_ctr Us
-  | is_poly_ctr _ = false
+val typ_of_dtyp = Logic.varifyT_global oo Datatype_Aux.typ_of_dtyp
+
+fun ctrs_of_datatype descr (_, (s, Ds, ctrs)) =
+  let val dataT = Type (s, map (typ_of_dtyp descr) Ds) in
+    map (fn (s, Ds) => (s, map (typ_of_dtyp descr) Ds ---> dataT)) ctrs
+  end
+
+fun ctrs_of_descr descr = map (ctrs_of_datatype descr) descr
 
 fun all_ctrss_of_datatypes thy =
-  Symtab.fold (snd #> #descr #> map (snd #> #3 #> map fst) #> append)
-              (Datatype.get_all thy) []
+  Symtab.fold (snd #> #descr #> ctrs_of_descr #> append) (Datatype.get_all thy)
+              []
 
 val app_op_and_predicator_threshold = 45
 
