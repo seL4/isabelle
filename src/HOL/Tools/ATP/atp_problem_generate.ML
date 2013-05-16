@@ -426,7 +426,7 @@ val add_schematic_consts_of =
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 val tvar_a_str = "'a"
-val tvar_a_z = ((tvar_a_str, 100 (* arbitrary *)), HOLogic.typeS)
+val tvar_a_z = ((tvar_a_str, 0), HOLogic.typeS)
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
@@ -2539,17 +2539,32 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
-fun datatypes_of_facts ctxt (DFG Polymorphic) (type_enc as Native _) facts =
-    if is_type_enc_polymorphic type_enc then
-      [(@{typ nat}, [@{term "0::nat"}, @{term Suc}], true)]
-    else
-      []
+fun datatypes_of_facts ctxt (DFG Polymorphic) (type_enc as Native (_, _, level))
+                       facts =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val mono = default_mono level false
+      val ho_term_from_term =
+        iterm_from_term thy type_enc []
+        #> fst #> ho_term_from_iterm ctxt mono type_enc NONE
+    in
+      if is_type_enc_polymorphic type_enc then
+        [(native_ho_type_from_typ type_enc false 0 @{typ nat},
+          map ho_term_from_term [@{term "0::nat"}, @{term Suc}]) (*,
+         (native_ho_type_from_typ type_enc false 0 (Logic.varifyT_global @{typ "'a list"}),
+          map (ho_term_from_term o Logic.varify_types_global) [@{term Nil}, @{term Cons}]) *)]
+      else
+        []
+    end
   | datatypes_of_facts _ _ _ _ = []
 
-fun decl_line_of_datatype (_, [], _) = NONE
-  | decl_line_of_datatype (T as Type (s, _), ctrs, exhaust) =
-    SOME (Datatype_Decl (datatype_decl_prefix ^ ascii_of s, [],
-             AType (("naT", @{type_name nat}), []), [], exhaust)) (*###*)
+fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs) =
+  let
+    val xs = map (fn AType (name, []) => name) ty_args
+  in
+    Datatype_Decl (datatype_decl_prefix ^ ascii_of s', map (rpair []) xs, ty,
+                   ctrs)
+  end
 
 fun pair_append (xs1, xs2) (ys1, ys2) = (xs1 @ ys1, xs2 @ ys2)
 
@@ -2668,7 +2683,7 @@ fun undeclared_in_problem problem =
     fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
       | do_line (Type_Decl _) = I
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
-      | do_line (Datatype_Decl (_, xs, ty, tms, _)) =
+      | do_line (Datatype_Decl (_, xs, ty, tms)) =
         fold do_bound_tvars xs #> do_type ty #> fold (do_term false) tms
       | do_line (Class_Memb (_, xs, ty, cl)) =
         fold do_bound_tvars xs #> do_type ty #> do_class cl
@@ -2772,7 +2787,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
       |> sym_decl_table_of_facts thy type_enc sym_tab
       |> lines_of_sym_decl_table ctxt mono type_enc mono_Ts
-    val datatype_decl_lines = map_filter decl_line_of_datatype datatypes
+    val datatype_decl_lines = map decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
     val fact_lines =

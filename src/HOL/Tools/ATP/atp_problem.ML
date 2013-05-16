@@ -51,7 +51,7 @@ sig
     Type_Decl of string * 'a * int |
     Sym_Decl of string * 'a * 'a ho_type |
     Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                     * ('a, 'a ho_type) ho_term list * bool |
+                     * ('a, 'a ho_type) ho_term list |
     Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
     Formula of (string * string) * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -125,6 +125,7 @@ sig
     -> 'e -> 'e
   val formula_map :
     ('c -> 'e) -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'e, 'd) formula
+  val strip_atype : 'a ho_type -> 'a list * ('a ho_type list * 'a ho_type)
   val is_format_higher_order : atp_format -> bool
   val tptp_string_of_line : atp_format -> string problem_line -> string
   val lines_of_atp_problem :
@@ -193,7 +194,7 @@ datatype 'a problem_line =
   Type_Decl of string * 'a * int |
   Sym_Decl of string * 'a * 'a ho_type |
   Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                   * ('a, 'a ho_type) ho_term list * bool |
+                   * ('a, 'a ho_type) ho_term list |
   Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
   Formula of (string * string) * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
@@ -315,11 +316,16 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun strip_atype (APi (tys, ty)) = strip_atype ty |>> apfst (append tys)
-  | strip_atype (AFun (ty1, ty2)) = strip_atype ty2 |>> apsnd (cons ty1)
-  | strip_atype ty = (([], []), ty)
+fun strip_api (APi (tys, ty)) = strip_api ty |>> append tys
+  | strip_api ty = ([], ty)
 
-fun is_function_atype ty = snd (strip_atype ty) <> AType (tptp_bool_type, [])
+fun strip_afun (AFun (ty1, ty2)) = strip_afun ty2 |>> cons ty1
+  | strip_afun ty = ([], ty)
+
+fun strip_atype ty = ty |> strip_api ||> strip_afun
+
+fun is_function_atype ty =
+  snd (snd (strip_atype ty)) <> AType (tptp_bool_type, [])
 fun is_predicate_atype ty = not (is_function_atype ty)
 fun is_nontrivial_predicate_atype (AType _) = false
   | is_nontrivial_predicate_atype ty = is_predicate_atype ty
@@ -347,15 +353,15 @@ fun tptp_string_of_app _ func [] = func
     else
       func ^ "(" ^ commas args ^ ")"
 
-fun flatten_type (APi (tys, ty)) = APi (tys, flatten_type ty)
-  | flatten_type (ty as AFun (ty1 as AType _, ty2)) =
-    (case flatten_type ty2 of
+fun uncurry_type (APi (tys, ty)) = APi (tys, uncurry_type ty)
+  | uncurry_type (ty as AFun (ty1 as AType _, ty2)) =
+    (case uncurry_type ty2 of
        AFun (ty' as AType (s, tys), ty) =>
        AFun (AType (tptp_product_type,
                     ty1 :: (if s = tptp_product_type then tys else [ty'])), ty)
      | _ => ty)
-  | flatten_type (ty as AType _) = ty
-  | flatten_type _ =
+  | uncurry_type (ty as AType _) = ty
+  | uncurry_type _ =
     raise Fail "unexpected higher-order type in first-order format"
 
 val dfg_individual_type = "iii" (* cannot clash *)
@@ -390,7 +396,7 @@ fun str_of_type format ty =
   in str true ty end
 
 fun string_of_type (format as THF _) ty = str_of_type format ty
-  | string_of_type format ty = str_of_type format (flatten_type ty)
+  | string_of_type format ty = str_of_type format (uncurry_type ty)
 
 fun tptp_string_of_quantifier AForall = tptp_forall
   | tptp_string_of_quantifier AExists = tptp_exists
@@ -585,9 +591,9 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
     fun fun_typ sym ty = "function(" ^ sym ^ ", " ^ typ ty ^ ")."
     fun pred_typ sym ty =
       let
-        val (ty_vars, tys) =
-          strip_atype ty |> fst
-          |>> (fn [] => [] | ty_vars => ["[" ^ commas ty_vars ^ "]"])
+        val (ty_vars, (tys, _)) =
+          strip_atype ty
+          |>> (fn [] => [] | xs => ["[" ^ commas xs ^ "]"])
       in "predicate(" ^ commas (sym :: ty_vars @ map typ tys) ^ ")." end
     fun bound_tvar (ty, []) = ty
       | bound_tvar (ty, cls) = ty ^ " : " ^ dfg_class_inter cls
@@ -595,9 +601,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
       (if null xs then "" else "[" ^ commas (map bound_tvar xs) ^ "], ") ^
       typ ty
     fun sort_decl xs ty cl = "sort(" ^ binder_typ xs ty ^ ", " ^ cl ^ ")."
-    fun datatype_decl xs ty tms exhaust =
-      "datatype(" ^ commas (binder_typ xs ty :: map term tms @
-                            (if exhaust then [] else ["..."])) ^ ")."
+    fun datatype_decl xs ty tms =
+      "datatype(" ^ commas (binder_typ xs ty :: map term tms) ^ ")."
     fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
     fun formula pred (Formula ((ident, alt), kind, phi, _, info)) =
         if pred kind then
@@ -645,8 +650,8 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
                else NONE
              | _ => NONE) |> flat
     val datatype_decls =
-      filt (try (fn Datatype_Decl (_, xs, ty, tms, exhaust) =>
-                    datatype_decl xs ty tms exhaust)) |> flat
+      filt (try (fn Datatype_Decl (_, xs, ty, tms) => datatype_decl xs ty tms))
+      |> flat
     val sort_decls =
       filt (try (fn Class_Memb (_, xs, ty, cl) => sort_decl xs ty cl)) |> flat
     val subclass_decls =
@@ -924,9 +929,9 @@ fun nice_atp_problem readable_names format problem =
       | nice_line (Sym_Decl (ident, sym, ty)) =
         nice_name sym ##>> nice_type ty
         #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
-      | nice_line (Datatype_Decl (ident, xs, ty, tms, exhaust)) =
+      | nice_line (Datatype_Decl (ident, xs, ty, tms)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> fold_map nice_term tms
-        #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms, exhaust))
+        #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms))
       | nice_line (Class_Memb (ident, xs, ty, cl)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> nice_name cl
         #>> (fn ((xs, ty), cl) => Class_Memb (ident, xs, ty, cl))
