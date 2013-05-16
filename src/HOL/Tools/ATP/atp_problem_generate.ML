@@ -859,10 +859,10 @@ fun filter_type_args thy ctrss type_enc s ary T T_args =
     | Native (_, Type_Class_Polymorphic, _) => T_args
     | _ =>
       let
-        val U = if null T_args then T else robust_const_type thy s
         fun gen_type_args _ _ [] = []
           | gen_type_args keep strip_ty T_args =
             let
+              val U = robust_const_type thy s
               val (binder_Us, body_U) = strip_ty U
               val in_U_vars = fold Term.add_tvarsT binder_Us []
               val out_U_vars = Term.add_tvarsT body_U []
@@ -875,7 +875,8 @@ fun filter_type_args thy ctrss type_enc s ary T T_args =
               val U_args = (s, U) |> robust_const_type_args thy
             in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
             handle TYPE _ => T_args
-        fun is_always_ctr (s', T') = s' = s andalso type_equiv thy (T', U)
+        fun is_always_ctr (s', T') =
+          s' = s andalso type_equiv thy (T', robust_const_type thy s')
         val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
         val ctr_infer_type_args = gen_type_args fst strip_type
         val level = level_of_type_enc type_enc
@@ -891,8 +892,8 @@ fun filter_type_args thy ctrss type_enc s ary T T_args =
           | Tags _ => []
         else if level = Undercover_Types then
           noninfer_type_args T_args
-        else if exists (exists is_always_ctr) ctrss andalso
-                level <> Const_Types Without_Ctr_Optim then
+        else if level <> Const_Types Without_Ctr_Optim andalso
+                exists (exists is_always_ctr) ctrss then
           ctr_infer_type_args T_args
         else
           T_args
@@ -2549,10 +2550,10 @@ fun datatypes_of_sym_table ctxt mono (DFG Polymorphic)
     in
       if is_type_enc_polymorphic type_enc then
         [(native_ho_type_from_typ type_enc false 0 @{typ nat},
-          map ho_term_from_term [@{term "0::nat"}, @{term Suc}], true),
+          map ho_term_from_term [@{term "0::nat"}, @{term Suc}], true) (*,
          (native_ho_type_from_typ type_enc false 0 (Logic.varifyT_global @{typ "'a list"}),
           map (ho_term_from_term o Logic.varify_types_global) [@{term Nil}, @{term Cons}],
-          true)]
+          true) *)]
       else
         []
     end
@@ -2969,8 +2970,8 @@ fun atp_problem_term_order_info problem =
         #> add_weights (next_weight weight)
                (fold (union (op =) o Graph.immediate_succs graph) syms [])
   in
-    (* Sorting is not just for aesthetics: It specifies the precedence order
-       for the term ordering (KBO or LPO), from smaller to larger values. *)
+    (* Sorting is not just for aesthetics: It specifies the precedence order for
+       the term ordering (KBO or LPO), from smaller to larger values. *)
     [] |> add_weights 1 (Graph.minimals graph) |> sort (int_ord o pairself snd)
   end
 
