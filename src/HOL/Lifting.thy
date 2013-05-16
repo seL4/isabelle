@@ -39,6 +39,29 @@ using assms unfolding left_total_def by blast
 definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
+lemma left_total_fun:
+  "\<lbrakk>left_unique A; left_total B\<rbrakk> \<Longrightarrow> left_total (A ===> B)"
+  unfolding left_total_def fun_rel_def
+  apply (rule allI, rename_tac f)
+  apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
+  apply clarify
+  apply (subgoal_tac "(THE x. A x y) = x", simp)
+  apply (rule someI_ex)
+  apply (simp)
+  apply (rule the_equality)
+  apply assumption
+  apply (simp add: left_unique_def)
+  done
+
+lemma left_unique_fun:
+  "\<lbrakk>left_total A; left_unique B\<rbrakk> \<Longrightarrow> left_unique (A ===> B)"
+  unfolding left_total_def left_unique_def fun_rel_def
+  by (clarify, rule ext, fast)
+
+lemma left_total_eq: "left_total op=" unfolding left_total_def by blast
+
+lemma left_unique_eq: "left_unique op=" unfolding left_unique_def by blast
+
 subsection {* Quotient Predicate *}
 
 definition
@@ -578,7 +601,8 @@ ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
 lemmas [reflexivity_rule] = 
-  reflp_equality reflp_Quotient_composition is_equality_Quotient_composition
+  reflp_equality reflp_Quotient_composition is_equality_Quotient_composition 
+  left_total_fun left_unique_fun left_total_eq left_unique_eq
 
 text {* add @{thm reflp_fun1} and @{thm reflp_fun2} manually through ML
   because we don't want to get reflp' variant of these theorems *}
