@@ -476,7 +476,7 @@ fun register binding config thy =
 fun declare make coerce binding default =
   let
     val name = Binding.name_of binding;
-    val config_value = Config.declare_generic {global = false} name (make o default);
+    val config_value = Config.declare name (make o default);
     val config = coerce config_value;
   in (config, register binding config_value) end;
 
