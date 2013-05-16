@@ -2538,24 +2538,17 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
-fun datatypes_of_sym_table ctxt ctrss mono (DFG Polymorphic)
-                           (type_enc as Native (_, _, level)) sym_tab =
+fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
+                           sym_tab =
     if is_type_enc_polymorphic type_enc then
       let
         val thy = Proof_Context.theory_of ctxt
         fun do_ctr (s, T) =
           let
-            (*### firstorderize *)
-            val ho_term_of_term =
-              iterm_of_term thy type_enc []
-              #> fst #> ho_term_of_iterm ctxt mono type_enc NONE
             val s' = make_fixed_const (SOME type_enc) s
-          in
-            case Symtab.lookup sym_tab s' of
-              SOME (_ : sym_info) =>
-              SOME (ho_term_of_term (Const (s, T))) (*###*)
-            | NONE => NONE
-          end
+            fun aterm _ =
+              mk_aterm type_enc (s', s) (robust_const_type_args thy (s, T)) []
+          in Symtab.lookup sym_tab s' |> Option.map aterm end
 
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
@@ -2565,7 +2558,7 @@ fun datatypes_of_sym_table ctxt ctrss mono (DFG Polymorphic)
       in ctrss |> map datatype_of_ctrs |> filter_out (null o #2) end
     else
       []
-  | datatypes_of_sym_table _ _ _ _ _ _ = []
+  | datatypes_of_sym_table _ _ _ _ _ = []
 
 fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs, exhaust) =
   let
@@ -2798,7 +2791,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
               |> map (firstorderize true)
     val all_facts = helpers @ conjs @ facts
     val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
-    val datatypes = datatypes_of_sym_table ctxt ctrss mono format type_enc sym_tab
+    val datatypes = datatypes_of_sym_table ctxt ctrss format type_enc sym_tab
     val class_decl_lines = decl_lines_of_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
