@@ -36,7 +36,7 @@ val some_preplay_time = (true, Time.zeroTime)  (* > 0 ms *)
 
 fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
 
-val string_of_preplay_time = ATP_Util.string_from_ext_time
+val string_of_preplay_time = ATP_Util.string_of_ext_time
 
 (* preplay tracing *)
 fun preplay_trace ctxt assms concl time =

@@ -159,7 +159,7 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
-val any_type_enc = type_enc_from_string Strict "erased"
+val any_type_enc = type_enc_of_string Strict "erased"
 
 (* "provers =", "type_enc =", "lam_trans =", "fact_filter =", and "max_facts ="
    can be omitted. For the last four, this is a secret feature. *)
@@ -171,9 +171,9 @@ fun normalize_raw_param ctxt =
          else if null value then
            if is_prover_list ctxt name then
              ("provers", [name])
-           else if can (type_enc_from_string Strict) name then
+           else if can (type_enc_of_string Strict) name then
              ("type_enc", [name])
-           else if can (trans_lams_from_string ctxt any_type_enc) name then
+           else if can (trans_lams_of_string ctxt any_type_enc) name then
              ("lam_trans", [name])
            else if member (op =) fact_filters name then
              ("fact_filter", [name])
@@ -295,7 +295,7 @@ fun extract_params mode default_params override_params =
         NONE
       else case lookup_string "type_enc" of
         "smart" => NONE
-      | s => (type_enc_from_string Strict s; SOME s)
+      | s => (type_enc_of_string Strict s; SOME s)
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"

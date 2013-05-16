@@ -530,7 +530,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
                 if verbose then
                   "Trying \"" ^ string_of_reconstructor reconstr ^ "\"" ^
                   (case timeout of
-                     SOME timeout => " for " ^ string_from_time timeout
+                     SOME timeout => " for " ^ string_of_time timeout
                    | NONE => "") ^ "..."
                   |> Output.urgent_message
                 else
@@ -616,7 +616,7 @@ val atp_important_message_keep_quotient = 25
 
 fun choose_type_enc soundness best_type_enc format =
   the_default best_type_enc
-  #> type_enc_from_string soundness
+  #> type_enc_of_string soundness
   #> adjust_type_enc format
 
 fun isar_proof_reconstructor ctxt name =
@@ -793,7 +793,7 @@ fun run_atp mode name
                 " with " ^ string_of_int num_facts ^ " fact" ^
                 plural_s num_facts ^
                 (case slice_timeout of
-                   SOME timeout => " for " ^ string_from_time timeout
+                   SOME timeout => " for " ^ string_of_time timeout
                  | NONE => "") ^ "..."
                 |> Output.urgent_message
               else
@@ -849,7 +849,7 @@ fun run_atp mode name
                      (accum, facts,
                       extract_tstplike_proof_and_outcome verbose proof_delims
                                                          known_failures output
-                      |>> atp_proof_from_tstplike_proof atp_problem
+                      |>> atp_proof_of_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () =>
                              ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut =>
@@ -921,7 +921,7 @@ fun run_atp mode name
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val reconstrs =
             bunch_of_reconstructors needs_full_types
-                (lam_trans_from_atp_proof atp_proof
+                (lam_trans_of_atp_proof atp_proof
                  o (fn desperate => if desperate then hide_lamsN
                                     else metis_default_lam_trans))
         in
@@ -955,7 +955,7 @@ fun run_atp mode name
                            one_line_params
               end,
            (if verbose then
-              "\nATP real CPU time: " ^ string_from_time run_time ^ "."
+              "\nATP real CPU time: " ^ string_of_time run_time ^ "."
             else
               "") ^
            (if important_message <> "" then
@@ -991,17 +991,16 @@ val unix_failures =
    (139, Crashed)]
 val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
-fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
+fun failure_of_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
     if is_real_cex then Unprovable else GaveUp
-  | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
-  | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
+  | failure_of_smt_failure SMT_Failure.Time_Out = TimedOut
+  | failure_of_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
        SOME failure => failure
      | NONE => UnknownError ("Abnormal termination with exit code " ^
                              string_of_int code ^ "."))
-  | failure_from_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
-  | failure_from_smt_failure (SMT_Failure.Other_Failure msg) =
-    UnknownError msg
+  | failure_of_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
+  | failure_of_smt_failure (SMT_Failure.Other_Failure s) = UnknownError s
 
 (* FUDGE *)
 val smt_max_slices =
@@ -1059,7 +1058,7 @@ fun smt_filter_loop name
             quote name ^ " slice " ^ string_of_int slice ^ " with " ^
             string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
             (case slice_timeout of
-               SOME timeout => " for " ^ string_from_time timeout
+               SOME timeout => " for " ^ string_of_time timeout
              | NONE => "") ^ "..."
             |> Output.urgent_message
           else
@@ -1112,7 +1111,7 @@ fun smt_filter_loop name
               if verbose andalso is_some outcome then
                 quote name ^ " invoked with " ^
                 num_of_facts fact_filter num_facts ^ ": " ^
-                string_of_failure (failure_from_smt_failure (the outcome)) ^
+                string_of_failure (failure_of_smt_failure (the outcome)) ^
                 " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
                 "..."
                 |> Output.urgent_message
@@ -1142,7 +1141,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val {outcome, used_facts = used_pairs, used_from, run_time} =
       smt_filter_loop name params state goal subgoal weighted_factss
     val used_facts = used_pairs |> map fst
-    val outcome = outcome |> Option.map failure_from_smt_failure
+    val outcome = outcome |> Option.map failure_of_smt_failure
     val (preplay, message, message_tail) =
       case outcome of
         NONE =>
@@ -1161,7 +1160,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
               val num_chained = length (#facts (Proof.goal state))
             in one_line_proof_text num_chained one_line_params end,
          if verbose then
-           "\nSMT solver real CPU time: " ^ string_from_time run_time ^ "."
+           "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
          else
            "")
       | SOME failure =>

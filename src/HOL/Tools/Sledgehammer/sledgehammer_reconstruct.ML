@@ -28,7 +28,7 @@ sig
 
   val smtN : string
   val string_of_reconstructor : reconstructor -> string
-  val lam_trans_from_atp_proof : string proof -> string -> string
+  val lam_trans_of_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_atp_proof :
     Proof.context -> (string * stature) list vector -> string proof ->
@@ -121,7 +121,7 @@ val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
-fun lam_trans_from_atp_proof atp_proof default =
+fun lam_trans_of_atp_proof atp_proof default =
   case (is_axiom_used_in_proof is_combinator_def atp_proof,
         is_axiom_used_in_proof is_lam_lifted atp_proof) of
     (false, false) => default
@@ -190,7 +190,7 @@ fun used_facts_in_unsound_atp_proof _ _ [] = NONE
 (** one-liner reconstructor proofs **)
 
 fun show_time NONE = ""
-  | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
+  | show_time (SOME ext_time) = " (" ^ string_of_ext_time ext_time ^ ")"
 
 (* FIXME: Various bugs, esp. with "unfolding"
 fun unusing_chained_facts _ 0 = ""
@@ -279,12 +279,12 @@ fun label_of_clause [name] = raw_label_of_name name
   | label_of_clause c =
     (space_implode "___" (map (fst o raw_label_of_name) c), 0)
 
-fun add_fact_from_dependencies fact_names (names as [(_, ss)]) =
+fun add_fact_of_dependencies fact_names (names as [(_, ss)]) =
     if is_fact fact_names ss then
       apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
     else
       apfst (insert (op =) (label_of_clause names))
-  | add_fact_from_dependencies fact_names names =
+  | add_fact_of_dependencies fact_names names =
     apfst (insert (op =) (label_of_clause names))
 
 fun repair_name "$true" = "c_True"
@@ -325,7 +325,7 @@ fun uncombine_term thy =
 fun decode_line sym_tab (name, role, u, rule, deps) ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
-    val t = u |> prop_from_atp ctxt true sym_tab
+    val t = u |> prop_of_atp ctxt true sym_tab
               |> uncombine_term thy |> infer_formula_types ctxt
   in
     ((name, role, t, rule, deps),
@@ -648,7 +648,7 @@ fun isar_proof_text ctxt isar_proofs
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
-    val lam_trans = lam_trans_from_atp_proof atp_proof metis_default_lam_trans
+    val lam_trans = lam_trans_of_atp_proof atp_proof metis_default_lam_trans
     val preplay = preplay_timeout <> SOME Time.zeroTime
 
     fun isar_proof_of () =
@@ -744,7 +744,7 @@ fun isar_proof_text ctxt isar_proofs
                   val t = prop_of_clause c
                   val by =
                     By_Metis ([],
-                      (fold (add_fact_from_dependencies fact_names)
+                      (fold (add_fact_of_dependencies fact_names)
                             gamma no_facts))
                   fun prove by = Prove (maybe_show outer c [], l, t, by)
                   fun do_rest l step =

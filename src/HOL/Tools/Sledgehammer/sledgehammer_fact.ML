@@ -21,7 +21,7 @@ sig
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
-  val fact_from_ref :
+  val fact_of_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
@@ -119,7 +119,7 @@ fun status_of_thm css name th =
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
 
-fun fact_from_ref ctxt reserved chained css (xthm as (xref, args)) =
+fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
@@ -502,7 +502,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
     in
       (if only then
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
-               o fact_from_ref ctxt reserved chained css) add
+               o fact_of_ref ctxt reserved chained css) add
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt false ho_atp reserved add chained css

@@ -47,9 +47,9 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". Type tag idempotence is also handled this way. *)
-fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth =
+fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_from_metis ctxt type_enc sym_tab concealed mth of
+    case hol_clause_of_metis ctxt type_enc sym_tab concealed mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       let
         val ct = cterm_of thy t
@@ -62,11 +62,11 @@ fun reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth =
   end
   |> Meson.make_meta_clause
 
-fun lam_lifted_from_metis ctxt type_enc sym_tab concealed mth =
+fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
     val thy = Proof_Context.theory_of ctxt
     val tac = rewrite_goals_tac @{thms lambda_def [abs_def]} THEN rtac refl 1
-    val t = hol_clause_from_metis ctxt type_enc sym_tab concealed mth
+    val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal [] ct (K tac) |> Meson.make_meta_clause end
 
@@ -158,13 +158,13 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
-      val type_enc = type_enc_from_string Strict type_enc
+      val type_enc = type_enc_of_string Strict type_enc
       val (sym_tab, axioms, ord_info, concealed) =
         prepare_metis_problem ctxt type_enc lam_trans cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
-          reflexive_or_trivial_from_metis ctxt type_enc sym_tab concealed mth
+          reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm mth Isa_Lambda_Lifted =
-          lam_lifted_from_metis ctxt type_enc sym_tab concealed mth
+          lam_lifted_of_metis ctxt type_enc sym_tab concealed mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "ISABELLE CLAUSES")

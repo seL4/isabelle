@@ -1024,7 +1024,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                "Learned " ^ string_of_int num_proofs ^ " " ^
                (if run_prover then "automatic" else "Isar") ^ " proof" ^
                plural_s num_proofs ^ " in the last " ^
-               string_from_time commit_timeout ^ "."
+               string_of_time commit_timeout ^ "."
                |> Output.urgent_message
              end
            else
@@ -1111,10 +1111,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
           (if run_prover then "automatic" else "Isar") ^ " proof" ^ plural_s n ^
-          (if verbose then
-             " in " ^ string_from_time (Timer.checkRealTimer timer)
-           else
-             "") ^ "."
+          (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer)
+           else "") ^ "."
         else
           ""
       end
@@ -1138,7 +1136,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
       ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
        plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^
        (case timeout of
-          SOME timeout => " timeout: " ^ string_from_time timeout
+          SOME timeout => " timeout: " ^ string_of_time timeout
         | NONE => "") ^ ").\n\nCollecting Isar proofs first..."
        |> Output.urgent_message;
        learn 1 false;

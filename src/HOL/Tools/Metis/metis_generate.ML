@@ -138,7 +138,7 @@ val proxy_defs = map (fst o snd o snd) proxy_table
 val prepare_helper =
   Meson.make_meta_clause #> rewrite_rule (map safe_mk_meta_eq proxy_defs)
 
-fun metis_term_from_atp type_enc (ATerm ((s, []), tms)) =
+fun metis_term_of_atp type_enc (ATerm ((s, []), tms)) =
   if is_tptp_variable s then
     Metis_Term.Var (Metis_Name.fromString s)
   else
@@ -147,24 +147,23 @@ fun metis_term_from_atp type_enc (ATerm ((s, []), tms)) =
      | NONE => (s, false))
     |> (fn (s, swap) =>
            Metis_Term.Fn (Metis_Name.fromString s,
-                          tms |> map (metis_term_from_atp type_enc)
+                          tms |> map (metis_term_of_atp type_enc)
                               |> swap ? rev))
-fun metis_atom_from_atp type_enc (AAtom tm) =
-    (case metis_term_from_atp type_enc tm of
+fun metis_atom_of_atp type_enc (AAtom tm) =
+    (case metis_term_of_atp type_enc tm of
        Metis_Term.Fn x => x
      | _ => raise Fail "non CNF -- expected function")
-  | metis_atom_from_atp _ _ = raise Fail "not CNF -- expected atom"
-fun metis_literal_from_atp type_enc (AConn (ANot, [phi])) =
-    (false, metis_atom_from_atp type_enc phi)
-  | metis_literal_from_atp type_enc phi =
-    (true, metis_atom_from_atp type_enc phi)
-fun metis_literals_from_atp type_enc (AConn (AOr, phis)) =
-    maps (metis_literals_from_atp type_enc) phis
-  | metis_literals_from_atp type_enc phi = [metis_literal_from_atp type_enc phi]
-fun metis_axiom_from_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
+  | metis_atom_of_atp _ _ = raise Fail "not CNF -- expected atom"
+fun metis_literal_of_atp type_enc (AConn (ANot, [phi])) =
+    (false, metis_atom_of_atp type_enc phi)
+  | metis_literal_of_atp type_enc phi = (true, metis_atom_of_atp type_enc phi)
+fun metis_literals_of_atp type_enc (AConn (AOr, phis)) =
+    maps (metis_literals_of_atp type_enc) phis
+  | metis_literals_of_atp type_enc phi = [metis_literal_of_atp type_enc phi]
+fun metis_axiom_of_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
     let
       fun some isa =
-        SOME (phi |> metis_literals_from_atp type_enc
+        SOME (phi |> metis_literals_of_atp type_enc
                   |> Metis_LiteralSet.fromList
                   |> Metis_Thm.axiom, isa)
     in
@@ -197,7 +196,7 @@ fun metis_axiom_from_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
         end
       | NONE => TrueI |> Isa_Raw |> some
     end
-  | metis_axiom_from_atp _ _ _ = raise Fail "not CNF -- expected formula"
+  | metis_axiom_of_atp _ _ _ = raise Fail "not CNF -- expected formula"
 
 fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) =
     eliminate_lam_wrappers t
@@ -251,7 +250,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =
       atp_problem
-      |> maps (map_filter (metis_axiom_from_atp type_enc clauses) o snd) |> rev
+      |> maps (map_filter (metis_axiom_of_atp type_enc clauses) o snd) |> rev
     fun ord_info () = atp_problem_term_order_info atp_problem
   in (sym_tab, axioms, ord_info, (lifted, old_skolems)) end
 

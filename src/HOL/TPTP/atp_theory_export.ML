@@ -157,7 +157,7 @@ fun problem_of_theory ctxt thy format infer_policy type_enc =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val type_enc =
-      type_enc |> type_enc_from_string Non_Strict
+      type_enc |> type_enc_of_string Non_Strict
                |> adjust_type_enc format
     val mono = not (is_type_enc_polymorphic type_enc)
     val facts =

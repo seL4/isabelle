@@ -219,7 +219,7 @@ fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_resu
 
 val timing = true;
 fun time timer msg = (if timing
-  then warning (msg ^ ": " ^ ATP_Util.string_from_time (Timer.checkRealTimer timer))
+  then warning (msg ^ ": " ^ ATP_Util.string_of_time (Timer.checkRealTimer timer))
   else (); Timer.startRealTimer ());
 
 val preN = "pre_"

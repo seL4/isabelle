@@ -65,7 +65,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
           "Testing " ^ n_facts (map fst facts) ^
           (if verbose then
              case timeout of
-               SOME timeout => " (timeout: " ^ string_from_time timeout ^ ")"
+               SOME timeout => " (timeout: " ^ string_of_time timeout ^ ")"
              | _ => ""
            else
              "") ^ "...")
@@ -96,7 +96,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                 "Found proof" ^
                  (if length used_facts = length facts then ""
                   else " with " ^ n_facts used_facts) ^
-                 " (" ^ string_from_time run_time ^ ").");
+                 " (" ^ string_of_time run_time ^ ").");
     result
   end
 
@@ -351,7 +351,7 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
     val css = clasimpset_rule_table_of ctxt
     val facts =
       refs |> maps (map (apsnd single)
-                    o fact_from_ref ctxt reserved chained_ths css)
+                    o fact_of_ref ctxt reserved chained_ths css)
   in
     case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"

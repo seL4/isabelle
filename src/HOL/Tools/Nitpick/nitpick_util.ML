@@ -52,7 +52,7 @@ sig
   val pretty_serial_commas : string -> Pretty.T list -> Pretty.T list
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
-  val string_from_time : Time.time -> string
+  val string_of_time : Time.time -> string
   val nat_subscript : int -> string
   val flip_polarity : polarity -> polarity
   val prop_T : typ
@@ -237,7 +237,7 @@ fun pretty_serial_commas _ [] = []
 
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
-val string_from_time = ATP_Util.string_from_time
+val string_of_time = ATP_Util.string_of_time
 
 val i_subscript = implode o map (prefix "\<^isub>") o Symbol.explode
 fun nat_subscript n =

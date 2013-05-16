@@ -13,7 +13,7 @@ sig
 
   exception METIS_RECONSTRUCT of string * string
 
-  val hol_clause_from_metis :
+  val hol_clause_of_metis :
     Proof.context -> type_enc -> int Symtab.table
     -> (string * term) list * (string * term) list -> Metis_Thm.thm -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
@@ -36,40 +36,40 @@ open Metis_Generate
 
 exception METIS_RECONSTRUCT of string * string
 
-fun atp_name_from_metis type_enc s =
+fun atp_name_of_metis type_enc s =
   case find_first (fn (_, (f, _)) => f type_enc = s) metis_name_table of
     SOME ((s, _), (_, swap)) => (s, swap)
   | _ => (s, false)
-fun atp_term_from_metis type_enc (Metis_Term.Fn (s, tms)) =
-    let val (s, swap) = atp_name_from_metis type_enc (Metis_Name.toString s) in
-      ATerm ((s, []), tms |> map (atp_term_from_metis type_enc) |> swap ? rev)
+fun atp_term_of_metis type_enc (Metis_Term.Fn (s, tms)) =
+    let val (s, swap) = atp_name_of_metis type_enc (Metis_Name.toString s) in
+      ATerm ((s, []), tms |> map (atp_term_of_metis type_enc) |> swap ? rev)
     end
-  | atp_term_from_metis _ (Metis_Term.Var s) =
+  | atp_term_of_metis _ (Metis_Term.Var s) =
     ATerm ((Metis_Name.toString s, []), [])
 
-fun hol_term_from_metis ctxt type_enc sym_tab =
-  atp_term_from_metis type_enc #> term_from_atp ctxt false sym_tab NONE
+fun hol_term_of_metis ctxt type_enc sym_tab =
+  atp_term_of_metis type_enc #> term_of_atp ctxt false sym_tab NONE
 
-fun atp_literal_from_metis type_enc (pos, atom) =
-  atom |> Metis_Term.Fn |> atp_term_from_metis type_enc
+fun atp_literal_of_metis type_enc (pos, atom) =
+  atom |> Metis_Term.Fn |> atp_term_of_metis type_enc
        |> AAtom |> not pos ? mk_anot
-fun atp_clause_from_metis _ [] = AAtom (ATerm ((tptp_false, []), []))
-  | atp_clause_from_metis type_enc lits =
-    lits |> map (atp_literal_from_metis type_enc) |> mk_aconns AOr
+fun atp_clause_of_metis _ [] = AAtom (ATerm ((tptp_false, []), []))
+  | atp_clause_of_metis type_enc lits =
+    lits |> map (atp_literal_of_metis type_enc) |> mk_aconns AOr
 
 fun polish_hol_terms ctxt (lifted, old_skolems) =
   map (reveal_lam_lifted lifted #> reveal_old_skolem_terms old_skolems)
   #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
 
-fun hol_clause_from_metis ctxt type_enc sym_tab concealed =
+fun hol_clause_of_metis ctxt type_enc sym_tab concealed =
   Metis_Thm.clause
   #> Metis_LiteralSet.toList
-  #> atp_clause_from_metis type_enc
-  #> prop_from_atp ctxt false sym_tab
+  #> atp_clause_of_metis type_enc
+  #> prop_of_atp ctxt false sym_tab
   #> singleton (polish_hol_terms ctxt concealed)
 
-fun hol_terms_from_metis ctxt type_enc concealed sym_tab fol_tms =
-  let val ts = map (hol_term_from_metis ctxt type_enc sym_tab) fol_tms
+fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
+  let val ts = map (hol_term_of_metis ctxt type_enc sym_tab) fol_tms
       val _ = trace_msg ctxt (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg ctxt
                                      (fn () => Syntax.string_of_term ctxt t)) ts
@@ -102,7 +102,7 @@ fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
 (* INFERENCE RULE: AXIOM *)
 
 (* This causes variables to have an index of 1 by default. See also
-   "term_from_atp" in "ATP_Proof_Reconstruct". *)
+   "term_of_atp" in "ATP_Proof_Reconstruct". *)
 val axiom_inference = Thm.incr_indexes 1 oo lookth
 
 (* INFERENCE RULE: ASSUME *)
@@ -118,7 +118,7 @@ fun inst_excluded_middle thy i_atom =
 fun assume_inference ctxt type_enc concealed sym_tab atom =
   inst_excluded_middle
       (Proof_Context.theory_of ctxt)
-      (singleton (hol_terms_from_metis ctxt type_enc concealed sym_tab)
+      (singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab)
                  (Metis_Term.Fn atom))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
@@ -134,14 +134,14 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
       fun subst_translation (x,y) =
         let val v = find_var x
             (* We call "polish_hol_terms" below. *)
-            val t = hol_term_from_metis ctxt type_enc sym_tab y
+            val t = hol_term_of_metis ctxt type_enc sym_tab y
         in  SOME (cterm_of thy (Var v), t)  end
         handle Option.Option =>
                (trace_msg ctxt (fn () => "\"find_var\" failed for " ^ x ^
                                          " in " ^ Display.string_of_thm ctxt i_th);
                 NONE)
              | TYPE _ =>
-               (trace_msg ctxt (fn () => "\"hol_term_from_metis\" failed for " ^ x ^
+               (trace_msg ctxt (fn () => "\"hol_term_of_metis\" failed for " ^ x ^
                                          " in " ^ Display.string_of_thm ctxt i_th);
                 NONE)
       fun remove_typeinst (a, t) =
@@ -275,7 +275,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
       let
         val thy = Proof_Context.theory_of ctxt
         val i_atom =
-          singleton (hol_terms_from_metis ctxt type_enc concealed sym_tab)
+          singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab)
                     (Metis_Term.Fn atom)
         val _ = trace_msg ctxt (fn () =>
                     "  atom: " ^ Syntax.string_of_term ctxt i_atom)
@@ -309,7 +309,7 @@ fun refl_inference ctxt type_enc concealed sym_tab t =
   let
     val thy = Proof_Context.theory_of ctxt
     val i_t =
-      singleton (hol_terms_from_metis ctxt type_enc concealed sym_tab) t
+      singleton (hol_terms_of_metis ctxt type_enc concealed sym_tab) t
     val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
     val c_t = cterm_incr_types thy refl_idx i_t
   in cterm_instantiate [(refl_x, c_t)] REFL_THM end
@@ -323,7 +323,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
   let val thy = Proof_Context.theory_of ctxt
       val m_tm = Metis_Term.Fn atom
       val [i_atom, i_tm] =
-        hol_terms_from_metis ctxt type_enc concealed sym_tab [m_tm, fr]
+        hol_terms_of_metis ctxt type_enc concealed sym_tab [m_tm, fr]
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Markup.print_bool pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls

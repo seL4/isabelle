@@ -87,7 +87,7 @@ sig
   val proxify_const : string -> (string * string) option
   val invert_const : string -> string
   val unproxify_const : string -> string
-  val new_skolem_var_name_from_const : string -> string
+  val new_skolem_var_name_of_const : string -> string
   val atp_logical_consts : string list
   val atp_irrelevant_consts : string list
   val atp_widely_irrelevant_consts : string list
@@ -96,7 +96,7 @@ sig
   val is_type_enc_polymorphic : type_enc -> bool
   val level_of_type_enc : type_enc -> type_level
   val is_type_enc_sound : type_enc -> bool
-  val type_enc_from_string : strictness -> string -> type_enc
+  val type_enc_of_string : strictness -> string -> type_enc
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val is_lambda_free : term -> bool
   val mk_aconns :
@@ -104,7 +104,7 @@ sig
   val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string list
   val helper_table : ((string * bool) * (status * thm) list) list
-  val trans_lams_from_string :
+  val trans_lams_of_string :
     Proof.context -> type_enc -> string -> term list -> term list * term list
   val string_of_status : status -> string
   val factsN : string
@@ -395,7 +395,7 @@ fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
 fun make_class clas = class_prefix ^ ascii_of clas
 
-fun new_skolem_var_name_from_const s =
+fun new_skolem_var_name_of_const s =
   let val ss = s |> space_explode Long_Name.separator in
     nth ss (length ss - 2)
   end
@@ -568,18 +568,18 @@ fun robust_const_type_args thy (s, T) =
 
 (* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
    Also accumulates sort infomation. *)
-fun iterm_from_term thy type_enc bs (P $ Q) =
+fun iterm_of_term thy type_enc bs (P $ Q) =
     let
-      val (P', P_atomics_Ts) = iterm_from_term thy type_enc bs P
-      val (Q', Q_atomics_Ts) = iterm_from_term thy type_enc bs Q
+      val (P', P_atomics_Ts) = iterm_of_term thy type_enc bs P
+      val (Q', Q_atomics_Ts) = iterm_of_term thy type_enc bs Q
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
-  | iterm_from_term thy type_enc _ (Const (c, T)) =
+  | iterm_of_term thy type_enc _ (Const (c, T)) =
     (IConst (`(make_fixed_const (SOME type_enc)) c, T,
              robust_const_type_args thy (c, T)),
      atomic_types_of T)
-  | iterm_from_term _ _ _ (Free (s, T)) =
+  | iterm_of_term _ _ _ (Free (s, T)) =
     (IConst (`make_fixed_var s, T, []), atomic_types_of T)
-  | iterm_from_term _ type_enc _ (Var (v as (s, _), T)) =
+  | iterm_of_term _ type_enc _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
          val Ts = T |> strip_type |> swap |> op ::
@@ -587,15 +587,14 @@ fun iterm_from_term thy type_enc bs (P $ Q) =
        in IConst (`(make_fixed_const (SOME type_enc)) s', T, Ts) end
      else
        IVar ((make_schematic_var v, s), T), atomic_types_of T)
-  | iterm_from_term _ _ bs (Bound j) =
+  | iterm_of_term _ _ bs (Bound j) =
     nth bs j |> (fn (_, (name, T)) => (IConst (name, T, []), atomic_types_of T))
-  | iterm_from_term thy type_enc bs (Abs (s, T, t)) =
+  | iterm_of_term thy type_enc bs (Abs (s, T, t)) =
     let
       fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
       val s = vary s
       val name = `make_bound_var s
-      val (tm, atomic_Ts) =
-        iterm_from_term thy type_enc ((s, (name, T)) :: bs) t
+      val (tm, atomic_Ts) = iterm_of_term thy type_enc ((s, (name, T)) :: bs) t
     in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
 
 (* "_query" and "_at" are for the ASCII-challenged Metis and Mirabelle. *)
@@ -605,7 +604,7 @@ val ats = ["@", "_at"]
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
-fun type_enc_from_string strictness s =
+fun type_enc_of_string strictness s =
   (case try (unprefix "tc_") s of
      SOME s => (SOME Type_Class_Polymorphic, s)
    | NONE =>
@@ -903,7 +902,7 @@ fun filter_type_args thy ctrss type_enc s ary T T_args =
 val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
 val fused_infinite_type = Type (fused_infinite_type_name, [])
 
-fun raw_ho_type_from_typ type_enc =
+fun raw_ho_type_of_typ type_enc =
   let
     fun term (Type (s, Ts)) =
       AType (case (is_type_enc_higher_order type_enc, s) of
@@ -919,11 +918,12 @@ fun raw_ho_type_from_typ type_enc =
     | term (TVar z) = AType (tvar_name z, [])
   in term end
 
-fun ho_term_from_ho_type (AType (name, tys)) = ATerm ((name, []), map ho_term_from_ho_type tys)
-  | ho_term_from_ho_type _ = raise Fail "unexpected type"
+fun ho_term_of_ho_type (AType (name, tys)) =
+    ATerm ((name, []), map ho_term_of_ho_type tys)
+  | ho_term_of_ho_type _ = raise Fail "unexpected type"
 
 fun ho_type_of_type_arg type_enc T =
-  if T = dummyT then NONE else SOME (raw_ho_type_from_typ type_enc T)
+  if T = dummyT then NONE else SOME (raw_ho_type_of_typ type_enc T)
 
 (* This shouldn't clash with anything else. *)
 val uncurried_alias_sep = "\000"
@@ -938,7 +938,7 @@ fun generic_mangled_type_name f (AType (name, [])) = f name
   | generic_mangled_type_name _ _ = raise Fail "unexpected type"
 
 fun mangled_type type_enc =
-  generic_mangled_type_name fst o raw_ho_type_from_typ type_enc
+  generic_mangled_type_name fst o raw_ho_type_of_typ type_enc
 
 fun make_native_type s =
   if s = tptp_bool_type orelse s = tptp_fun_type orelse
@@ -947,7 +947,7 @@ fun make_native_type s =
   else
     native_type_prefix ^ ascii_of s
 
-fun native_ho_type_from_raw_ho_type type_enc pred_sym ary =
+fun native_ho_type_of_raw_ho_type type_enc pred_sym ary =
   let
     fun to_mangled_atype ty =
       AType ((make_native_type (generic_mangled_type_name fst ty),
@@ -967,9 +967,9 @@ fun native_ho_type_from_raw_ho_type type_enc pred_sym ary =
       | to_ho _ = raise Fail "unexpected type"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
 
-fun native_ho_type_from_typ type_enc pred_sym ary =
-  native_ho_type_from_raw_ho_type type_enc pred_sym ary
-  o raw_ho_type_from_typ type_enc
+fun native_ho_type_of_typ type_enc pred_sym ary =
+  native_ho_type_of_raw_ho_type type_enc pred_sym ary
+  o raw_ho_type_of_typ type_enc
 
 (* Make atoms for sorted type variables. *)
 fun generic_add_sorts_on_type _ [] = I
@@ -983,9 +983,9 @@ fun add_sorts_on_tvar (T as TVar (_, S)) = generic_add_sorts_on_type T S
 
 fun process_type_args type_enc T_args =
   if is_type_enc_native type_enc then
-    (map (native_ho_type_from_typ type_enc false 0) T_args, [])
+    (map (native_ho_type_of_typ type_enc false 0) T_args, [])
   else
-    ([], map_filter (Option.map ho_term_from_ho_type
+    ([], map_filter (Option.map ho_term_of_ho_type
                      o ho_type_of_type_arg type_enc) T_args)
 
 fun class_atom type_enc (cl, T) =
@@ -1194,11 +1194,11 @@ fun filter_type_args_in_iterm thy ctrss type_enc =
       | filt _ tm = tm
   in filt 0 end
 
-fun iformula_from_prop ctxt type_enc iff_for_eq =
+fun iformula_of_prop ctxt type_enc iff_for_eq =
   let
     val thy = Proof_Context.theory_of ctxt
     fun do_term bs t atomic_Ts =
-      iterm_from_term thy type_enc bs (Envir.eta_contract t)
+      iterm_of_term thy type_enc bs (Envir.eta_contract t)
       |>> (introduce_proxies_in_iterm type_enc
            #> mangle_type_args_in_iterm type_enc #> AAtom)
       ||> union (op =) atomic_Ts
@@ -1297,8 +1297,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
   let
     val iff_for_eq = iff_for_eq andalso should_use_iff_for_eq format type_enc
     val (iformula, atomic_Ts) =
-      iformula_from_prop ctxt type_enc iff_for_eq (SOME (role <> Conjecture)) t
-                         []
+      iformula_of_prop ctxt type_enc iff_for_eq (SOME (role <> Conjecture)) t []
       |>> close_universally add_iterm_vars
   in
     {name = name, stature = stature, role = role, iformula = iformula,
@@ -1903,7 +1902,7 @@ fun extract_lambda_def (Const (@{const_name HOL.eq}, _) $ t $ u) =
     end
   | extract_lambda_def _ = raise Fail "malformed lifted lambda"
 
-fun trans_lams_from_string ctxt type_enc lam_trans =
+fun trans_lams_of_string ctxt type_enc lam_trans =
   if lam_trans = no_lamsN then
     rpair []
   else if lam_trans = hide_lamsN then
@@ -1955,7 +1954,7 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
                        concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val trans_lams = trans_lams_from_string ctxt type_enc lam_trans
+    val trans_lams = trans_lams_of_string ctxt type_enc lam_trans
     val fact_ts = facts |> map snd
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
@@ -2058,17 +2057,17 @@ fun mk_aterm type_enc name T_args args =
 fun do_bound_type ctxt mono type_enc =
   case type_enc of
     Native (_, _, level) =>
-    fused_type ctxt mono level 0 #> native_ho_type_from_typ type_enc false 0
+    fused_type ctxt mono level 0 #> native_ho_type_of_typ type_enc false 0
     #> SOME
   | _ => K NONE
 
 fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm type_enc
-  |> ho_term_from_iterm ctxt mono type_enc pos
+  |> ho_term_of_iterm ctxt mono type_enc pos
   |> (fn ATerm ((s, tys), tms) => ATerm ((s, tys), tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
-and ho_term_from_iterm ctxt mono type_enc pos =
+and ho_term_of_iterm ctxt mono type_enc pos =
   let
     fun term site u =
       let
@@ -2094,7 +2093,7 @@ and ho_term_from_iterm ctxt mono type_enc pos =
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
             if is_type_enc_higher_order type_enc then
-              AAbs (((name, native_ho_type_from_typ type_enc true 0 T), (* FIXME? why "true"? *)
+              AAbs (((name, native_ho_type_of_typ type_enc true 0 T), (* FIXME? why "true"? *)
                      term Elsewhere tm), map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
@@ -2102,11 +2101,11 @@ and ho_term_from_iterm ctxt mono type_enc pos =
         val tag = should_tag_with_type ctxt mono type_enc site u T
       in t |> tag ? tag_with_type ctxt mono type_enc pos T end
   in term (Top_Level pos) end
-and formula_from_iformula ctxt mono type_enc should_guard_var =
+and formula_of_iformula ctxt mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val do_term = ho_term_from_iterm ctxt mono type_enc
+    val do_term = ho_term_of_iterm ctxt mono type_enc
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_guard_type ctxt mono type_enc
              (fn () => should_guard_var thy level pos phi universal name) T then
@@ -2121,7 +2120,7 @@ and formula_from_iformula ctxt mono type_enc should_guard_var =
       else
         NONE
     fun do_formula pos (ATyQuant (q, xs, phi)) =
-        ATyQuant (q, map (apfst (native_ho_type_from_typ type_enc false 0)) xs,
+        ATyQuant (q, map (apfst (native_ho_type_of_typ type_enc false 0)) xs,
                   do_formula pos phi)
       | do_formula pos (AQuant (q, xs, phi)) =
         let
@@ -2161,7 +2160,7 @@ fun line_of_fact ctxt prefix encode alt freshen pos mono type_enc rank
             encode name, alt name),
            role,
            iformula
-           |> formula_from_iformula ctxt mono type_enc
+           |> formula_of_iformula ctxt mono type_enc
                   should_guard_var_in_formula (if pos then SOME true else NONE)
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types,
@@ -2188,7 +2187,7 @@ fun line_of_tcon_clause type_enc (name, prems, (cl, T)) =
                 map (fn (cls, T) =>
                         (T |> dest_TVar |> tvar_name, map (`make_class) cls))
                     prems,
-                native_ho_type_from_typ type_enc false 0 T, `make_class cl)
+                native_ho_type_of_typ type_enc false 0 T, `make_class cl)
   else
     Formula ((tcon_clause_prefix ^ name, ""), Axiom,
              mk_ahorn (maps (class_atoms type_enc) prems)
@@ -2200,7 +2199,7 @@ fun line_of_conjecture ctxt mono type_enc
                        ({name, role, iformula, atomic_types, ...} : ifact) =
   Formula ((conjecture_prefix ^ name, ""), role,
            iformula
-           |> formula_from_iformula ctxt mono type_enc
+           |> formula_of_iformula ctxt mono type_enc
                   should_guard_var_in_formula (SOME false)
            |> close_formula_universally
            |> bound_tvars type_enc true atomic_types, NONE, [])
@@ -2213,8 +2212,7 @@ fun lines_of_free_types type_enc (facts : ifact list) =
       fun line j (cl, T) =
         if type_classes then
           Class_Memb (class_memb_prefix ^ string_of_int j, [],
-                      native_ho_type_from_typ type_enc false 0 T,
-                      `make_class cl)
+                      native_ho_type_of_typ type_enc false 0 T, `make_class cl)
         else
           Formula ((tfree_clause_prefix ^ string_of_int j, ""), Hypothesis,
                    class_atom type_enc (cl, T), NONE, [])
@@ -2386,8 +2384,8 @@ fun line_of_guards_mono_type ctxt mono type_enc T =
            IConst (`make_bound_var "X", T, [])
            |> type_guard_iterm type_enc T
            |> AAtom
-           |> formula_from_iformula ctxt mono type_enc
-                                    always_guard_var_in_formula (SOME true)
+           |> formula_of_iformula ctxt mono type_enc always_guard_var_in_formula
+                                  (SOME true)
            |> close_formula_universally
            |> bound_tvars type_enc true (atomic_types_of T),
            NONE, isabelle_info inductiveN helper_rank)
@@ -2423,7 +2421,7 @@ fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
               T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
-                |> native_ho_type_from_typ type_enc pred_sym ary
+                |> native_ho_type_of_typ type_enc pred_sym ary
                 |> not (null T_args)
                    ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
@@ -2456,8 +2454,8 @@ fun line_of_guards_sym_decl ctxt mono type_enc n s j
              |> fold (curry (IApp o swap)) bounds
              |> type_guard_iterm type_enc res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_iformula ctxt mono type_enc
-                                      always_guard_var_in_formula (SOME true)
+             |> formula_of_iformula ctxt mono type_enc
+                                    always_guard_var_in_formula (SOME true)
              |> close_formula_universally
              |> bound_tvars type_enc (n > 1) (atomic_types_of T)
              |> maybe_negate,
@@ -2544,15 +2542,15 @@ fun datatypes_of_sym_table ctxt mono (DFG Polymorphic)
                            (type_enc as Native (_, _, level)) sym_tab =
     let
       val thy = Proof_Context.theory_of ctxt
-      val ho_term_from_term =
-        iterm_from_term thy type_enc []
-        #> fst #> ho_term_from_iterm ctxt mono type_enc NONE
+      val ho_term_of_term =
+        iterm_of_term thy type_enc []
+        #> fst #> ho_term_of_iterm ctxt mono type_enc NONE
     in
       if is_type_enc_polymorphic type_enc then
-        [(native_ho_type_from_typ type_enc false 0 @{typ nat},
-          map ho_term_from_term [@{term "0::nat"}, @{term Suc}], true) (*,
-         (native_ho_type_from_typ type_enc false 0 (Logic.varifyT_global @{typ "'a list"}),
-          map (ho_term_from_term o Logic.varify_types_global) [@{term Nil}, @{term Cons}],
+        [(native_ho_type_of_typ type_enc false 0 @{typ nat},
+          map ho_term_of_term [@{term "0::nat"}, @{term Suc}], true) (*,
+         (native_ho_type_of_typ type_enc false 0 (Logic.varifyT_global @{typ "'a list"}),
+          map (ho_term_of_term o Logic.varify_types_global) [@{term Nil}, @{term Cons}],
           true) *)]
       else
         []
@@ -2584,7 +2582,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         val base_ary = min_ary_of sym_tab0 base_s
         fun do_const name = IConst (name, T, T_args)
         val filter_ty_args = filter_type_args_in_iterm thy ctrss type_enc
-        val ho_term_of = ho_term_from_iterm ctxt mono type_enc (SOME true)
+        val ho_term_of = ho_term_of_iterm ctxt mono type_enc (SOME true)
         val name1 as (s1, _) =
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
         val name2 as (s2, _) = base_name |> aliased_uncurried ary

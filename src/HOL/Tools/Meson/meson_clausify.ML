@@ -191,7 +191,7 @@ fun c_variant_abs_multi (ct0, vars) =
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
-fun old_skolem_theorem_from_def thy rhs0 =
+fun old_skolem_theorem_of_def thy rhs0 =
   let
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
@@ -200,7 +200,7 @@ fun old_skolem_theorem_from_def thy rhs0 =
     val T =
       case hilbert of
         Const (_, Type (@{type_name fun}, [_, T])) => T
-      | _ => raise TERM ("old_skolem_theorem_from_def: expected \"Eps\"",
+      | _ => raise TERM ("old_skolem_theorem_of_def: expected \"Eps\"",
                          [hilbert])
     val cex = cterm_of thy (HOLogic.exists_const T)
     val ex_tm = Thm.apply cTrueprop (Thm.apply cex cabs)
@@ -372,7 +372,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
       nnf_axiom choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
       make_cnf (if new_skolem orelse null choice_ths then []
-                else map (old_skolem_theorem_from_def thy) (old_skolem_defs th))
+                else map (old_skolem_theorem_of_def thy) (old_skolem_defs th))
                th ctxt ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
     fun intr_imp ct th =

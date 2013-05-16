@@ -108,7 +108,7 @@ fun nitpick_tptp_file thy timeout file_name =
 
 fun refute_tptp_file thy timeout file_name =
   let
-    fun print_szs_from_outcome falsify s =
+    fun print_szs_of_outcome falsify s =
       "% SZS status " ^
       (if s = "genuine" then
          if falsify then "CounterSatisfiable" else "Satisfiable"
@@ -122,7 +122,7 @@ fun refute_tptp_file thy timeout file_name =
   in
     Refute.refute_term ctxt params (defs @ nondefs)
         (case conjs of conj :: _ => conj | [] => @{prop True})
-    |> print_szs_from_outcome (not (null conjs))
+    |> print_szs_of_outcome (not (null conjs))
   end
 
 
@@ -263,7 +263,7 @@ fun make_conj (defs, nondefs) conjs =
   Logic.list_implies (rev defs @ rev nondefs,
                       case conjs of conj :: _ => conj | [] => @{prop False})
 
-fun print_szs_from_success conjs success =
+fun print_szs_of_success conjs success =
   Output.urgent_message ("% SZS status " ^
                          (if success then
                             if null conjs then "Unsatisfiable" else "Theorem"
@@ -277,7 +277,7 @@ fun sledgehammer_tptp_file thy timeout file_name =
     val conj = make_conj assms conjs
   in
     can_tac ctxt (sledgehammer_tac true ctxt timeout 1) conj
-    |> print_szs_from_success conjs
+    |> print_szs_of_success conjs
   end
 
 fun generic_isabelle_tptp_file demo thy timeout file_name =
@@ -292,7 +292,7 @@ fun generic_isabelle_tptp_file demo thy timeout file_name =
      can_tac ctxt (sledgehammer_tac demo ctxt (timeout div 2) 1) conj orelse
      can_tac ctxt (SOLVE_TIMEOUT timeout (last_hope_atp ^ "(*)")
          (atp_tac ctxt last_hope_completeness [] timeout last_hope_atp 1)) conj)
-    |> print_szs_from_success conjs
+    |> print_szs_of_success conjs
   end
 
 val isabelle_tptp_file = generic_isabelle_tptp_file false

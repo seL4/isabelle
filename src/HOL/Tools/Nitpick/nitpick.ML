@@ -1051,7 +1051,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
              (print_nt (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then potentialN else unknownN)
     val _ = print_v (fn () =>
-                "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
+                "Total time: " ^ string_of_time (Timer.checkRealTimer timer) ^
                 ".")
   in (outcome_code, !state_ref) end
 

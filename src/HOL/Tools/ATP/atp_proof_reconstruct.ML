@@ -26,10 +26,10 @@ sig
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
   val unalias_type_enc : string -> string list
-  val term_from_atp :
+  val term_of_atp :
     Proof.context -> bool -> int Symtab.table -> typ option ->
     (string, string) ho_term -> term
-  val prop_from_atp :
+  val prop_of_atp :
     Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) ho_term, string) formula -> term
 end;
@@ -97,8 +97,8 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
    constrained by information from type literals, or by type inference. *)
-fun typ_from_atp ctxt (u as ATerm ((a, _), us)) =
-  let val Ts = map (typ_from_atp ctxt) us in
+fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
+  let val Ts = map (typ_of_atp ctxt) us in
     case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
@@ -117,8 +117,8 @@ fun typ_from_atp ctxt (u as ATerm ((a, _), us)) =
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_term ctxt (u as ATerm ((a, _), us)) =
-  case (unprefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
+fun type_constraint_of_term ctxt (u as ATerm ((a, _), us)) =
+  case (unprefix_and_unascii class_prefix a, map (typ_of_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise HO_TERM [u]
 
@@ -166,7 +166,7 @@ val vampire_skolem_prefix = "sK"
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun term_from_atp ctxt textual sym_tab =
+fun term_of_atp ctxt textual sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
     (* For Metis, we use 1 rather than 0 because variable references in clauses
@@ -198,7 +198,7 @@ fun term_from_atp ctxt textual sym_tab =
             if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
-                do_term extra_ts (SOME (typ_from_atp ctxt typ_u)) term_u
+                do_term extra_ts (SOME (typ_of_atp ctxt typ_u)) term_u
               | _ => raise HO_TERM us
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
@@ -223,7 +223,7 @@ fun term_from_atp ctxt textual sym_tab =
                 val T =
                   (if not (null type_us) andalso
                       num_type_args thy s' = length type_us then
-                     let val Ts = type_us |> map (typ_from_atp ctxt) in
+                     let val Ts = type_us |> map (typ_of_atp ctxt) in
                        if new_skolem then
                          SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
                        else if textual then
@@ -240,7 +240,7 @@ fun term_from_atp ctxt textual sym_tab =
                                   | NONE => HOLogic.typeT))
                 val t =
                   if new_skolem then
-                    Var ((new_skolem_var_name_from_const s'', var_index), T)
+                    Var ((new_skolem_var_name_of_const s'', var_index), T)
                   else
                     Const (unproxify_const s', T)
               in list_comb (t, term_ts @ extra_ts) end
@@ -277,12 +277,12 @@ fun term_from_atp ctxt textual sym_tab =
           in list_comb (t, ts) end
   in do_term [] end
 
-fun term_from_atom ctxt textual sym_tab pos (u as ATerm ((s, _), _)) =
+fun term_of_atom ctxt textual sym_tab pos (u as ATerm ((s, _), _)) =
   if String.isPrefix class_prefix s then
-    add_type_constraint pos (type_constraint_from_term ctxt u)
+    add_type_constraint pos (type_constraint_of_term ctxt u)
     #> pair @{const True}
   else
-    pair (term_from_atp ctxt textual sym_tab (SOME @{typ bool}) u)
+    pair (term_of_atp ctxt textual sym_tab (SOME @{typ bool}) u)
 
 (* Update schematic type variables with detected sort constraints. It's not
    totally clear whether this code is necessary. *)
@@ -308,7 +308,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_atp ctxt textual sym_tab phi =
+fun prop_of_atp ctxt textual sym_tab phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -329,7 +329,7 @@ fun prop_from_atp ctxt textual sym_tab phi =
              | AImplies => s_imp
              | AIff => s_iff
              | ANot => raise Fail "impossible connective")
-      | AAtom tm => term_from_atom ctxt textual sym_tab pos tm
+      | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 

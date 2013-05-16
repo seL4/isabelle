@@ -17,8 +17,8 @@ sig
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
-  val string_from_ext_time : bool * Time.time -> string
-  val string_from_time : Time.time -> string
+  val string_of_ext_time : bool * Time.time -> string
+  val string_of_time : Time.time -> string
   val type_instance : theory -> typ -> typ -> bool
   val type_generalization : theory -> typ -> typ -> bool
   val type_intersect : theory -> typ -> typ -> bool
@@ -134,7 +134,7 @@ fun maybe_quote y =
            Keyword.is_keyword s) ? quote
   end
 
-fun string_from_ext_time (plus, time) =
+fun string_of_ext_time (plus, time) =
   let val ms = Time.toMilliseconds time in
     (if plus then "> " else "") ^
     (if plus andalso ms mod 1000 = 0 then
@@ -145,7 +145,7 @@ fun string_from_ext_time (plus, time) =
        string_of_real (0.01 * Real.fromInt (ms div 10)) ^ " s")
   end
 
-val string_from_time = string_from_ext_time o pair false
+val string_of_time = string_of_ext_time o pair false
 
 fun type_instance thy T T' = Sign.typ_instance thy (T, T')
 fun type_generalization thy T T' = Sign.typ_instance thy (T', T)
