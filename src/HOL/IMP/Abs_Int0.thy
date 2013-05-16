@@ -480,6 +480,6 @@ done
 end
 
 text{* Problem: not executable because of the comparison of abstract states,
-i.e. functions, in the post-fixedpoint computation. *}
+i.e. functions, in the pre-fixpoint computation. *}
 
 end
