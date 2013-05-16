@@ -226,6 +226,13 @@ done
 lemma sim_while_cong: "c \<sim> c' \<Longrightarrow> WHILE b DO c \<sim> WHILE b DO c'"
 by (metis sim_while_cong_aux)
 
+text {* Command equivalence is an equivalence relation, i.e.\ it is
+reflexive, symmetric, and transitive. Because we used an abbreviation
+above, Isabelle derives this automatically. *}
+
+lemma sim_refl:  "c \<sim> c" by simp
+lemma sim_sym:   "(c \<sim> c') = (c' \<sim> c)" by auto
+lemma sim_trans: "c \<sim> c' \<Longrightarrow> c' \<sim> c'' \<Longrightarrow> c \<sim> c''" by auto
 
 subsection "Execution is deterministic"
 
