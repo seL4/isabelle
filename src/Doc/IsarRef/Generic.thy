@@ -31,7 +31,7 @@ text {* For historical reasons, some tools cannot take the full proof
   ``global'', which may not be changed within a local context.
 
   \begin{matharray}{rcll}
-    @{command_def "print_configs"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_options"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   @{rail "
@@ -40,7 +40,7 @@ text {* For historical reasons, some tools cannot take the full proof
 
   \begin{description}
   
-  \item @{command "print_configs"} prints the available configuration
+  \item @{command "print_options"} prints the available configuration
   options, with names, types, and current values.
   
   \item @{text "name = value"} as an attribute expression modifies the

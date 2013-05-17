@@ -762,9 +762,9 @@ val _ =
     (Scan.succeed (Toplevel.imperative Outer_Syntax.print_outer_syntax));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_configs"} "print configuration options"
+  Outer_Syntax.improper_command @{command_spec "print_options"} "print configuration options"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Attrib.print_configs o Toplevel.context_of)));
+      Toplevel.keep (Attrib.print_options o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_context"} "print main context"

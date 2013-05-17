@@ -74,7 +74,7 @@ theory Pure
   and "finally" "ultimately" :: prf_chain % "proof"
   and "back" :: prf_script % "proof"
   and "Isabelle.command" :: control
-  and "help" "print_commands" "print_configs"
+  and "help" "print_commands" "print_options"
     "print_context" "print_theory" "print_syntax" "print_abbrevs" "print_defn_rules"
     "print_theorems" "print_locales" "print_classes" "print_locale"
     "print_interps" "print_dependencies" "print_attributes"

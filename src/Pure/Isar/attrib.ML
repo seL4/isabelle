@@ -46,7 +46,7 @@ sig
     (binding * (thm list * Args.src list) list) list ->
     (binding * (thm list * Args.src list) list) list
   val internal: (morphism -> attribute) -> src
-  val print_configs: Proof.context -> unit
+  val print_options: Proof.context -> unit
   val config_bool: Binding.binding ->
     (Context.generic -> bool) -> bool Config.T * (theory -> theory)
   val config_int: Binding.binding ->
@@ -444,7 +444,7 @@ structure Configs = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-fun print_configs ctxt =
+fun print_options ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun prt (name, config) =
