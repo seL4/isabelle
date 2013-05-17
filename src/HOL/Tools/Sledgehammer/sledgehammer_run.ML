@@ -157,7 +157,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
         (outcome_code, state)
       end
     else
-      (Async_Manager.launch SledgehammerN birth_time death_time (desc ())
+      (Async_Manager.thread SledgehammerN birth_time death_time (desc ())
                             ((fn (outcome_code, message) =>
                                  (verbose orelse outcome_code = someN,
                                   message ())) o go);

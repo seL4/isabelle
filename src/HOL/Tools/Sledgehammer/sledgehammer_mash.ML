@@ -883,7 +883,7 @@ fun launch_thread timeout task =
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
     val desc = ("Machine learner for Sledgehammer", "")
-  in Async_Manager.launch MaShN birth_time death_time desc task end
+  in Async_Manager.thread MaShN birth_time death_time desc task end
 
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
                      used_ths =

@@ -9,7 +9,7 @@ Central manager for asynchronous diagnosis tool threads.
 signature ASYNC_MANAGER =
 sig
   val break_into_chunks : string -> string list
-  val launch :
+  val thread :
     string -> Time.time -> Time.time -> string * string
     -> (unit -> bool * string) -> unit
   val kill_threads : string -> string -> unit
@@ -180,7 +180,7 @@ fun register tool birth_time death_time desc thread =
   check_thread_manager ())
 
 
-fun launch tool birth_time death_time desc f =
+fun thread tool birth_time death_time desc f =
   (Toplevel.thread true
        (fn () =>
            let
