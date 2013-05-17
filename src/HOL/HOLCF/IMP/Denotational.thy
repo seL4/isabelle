@@ -17,7 +17,7 @@ primrec D :: "com => state discr -> state lift"
 where
   "D(SKIP) = (LAM s. Def(undiscr s))"
 | "D(X ::= a) = (LAM s. Def((undiscr s)(X := aval a (undiscr s))))"
-| "D(c0 ; c1) = (dlift(D c1) oo (D c0))"
+| "D(c0 ;; c1) = (dlift(D c1) oo (D c0))"
 | "D(IF b THEN c1 ELSE c2) =
         (LAM s. if bval b (undiscr s) then (D c1)\<cdot>s else (D c2)\<cdot>s)"
 | "D(WHILE b DO c) =
