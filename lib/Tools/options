@@ -34,7 +34,7 @@ function fail()
 
 ## process command line
 
-eval "declare -a BUILD_OPTIONS=()"
+declare -a BUILD_OPTIONS=()
 LIST_OPTIONS="false"
 EXPORT_FILE=""
 
@@ -42,7 +42,7 @@ while getopts "blx:" OPT
 do
   case "$OPT" in
     b)
-      BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)
+      eval "BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
       ;;
     l)
       LIST_OPTIONS="true"
