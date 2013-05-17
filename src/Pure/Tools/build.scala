@@ -558,8 +558,10 @@ object Build
       args_file.delete
       timer.map(_.cancel())
 
-      if (res.rc == 130)
-        res.add_err(if (timeout) "*** Timeout" else "*** Interrupt")
+      if (res.rc == 130) {
+        if (timeout) res.add_err("*** Timeout").set_rc(1)
+        else res.add_err("*** Interrupt")
+      }
       else res
     }
   }

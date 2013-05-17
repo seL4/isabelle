@@ -354,6 +354,7 @@ object Isabelle_System
     def out: String = cat_lines(out_lines)
     def err: String = cat_lines(err_lines)
     def add_err(s: String): Bash_Result = copy(err_lines = err_lines ::: List(s))
+    def set_rc(i: Int): Bash_Result = copy(rc = i)
   }
 
   def bash_env(cwd: JFile, env: Map[String, String], script: String,
