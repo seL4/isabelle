@@ -33,6 +33,7 @@ function usage()
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
   echo "    -w           reset write permissions on OUTPUT"
@@ -63,11 +64,12 @@ WRAPPER_SOCKET=""
 WRAPPER_FIFOS=""
 MLTEXT=""
 MODES=""
+declare -a SYSTEM_OPTIONS=()
 TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPST:W:e:m:qrw" OPT
+while getopts "IPST:W:e:m:o:qrw" OPT
 do
   case "$OPT" in
     I)
@@ -94,6 +96,9 @@ do
       else
         MODES="\"$OPTARG\", $MODES"
       fi
+      ;;
+    o)
+      SYSTEM_OPTIONS["${#SYSTEM_OPTIONS[@]}"]="$OPTARG"
       ;;
     q)
       TERMINATE=true
@@ -215,7 +220,8 @@ elif [ -n "$WRAPPER_FIFOS" ]; then
   MLTEXT="$MLTEXT; Isabelle_Process.init_fifos \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
 else
   ISABELLE_PROCESS_OPTIONS="$ISABELLE_TMP/options"
-  "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" || fail "Failed to retrieve options"
+  "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" -- "${SYSTEM_OPTIONS[@]}" || \
+    fail "Failed to retrieve Isabelle system options"
   if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
     MLTEXT="Options.load_default () handle _ => exit 2; $MLTEXT"
   fi

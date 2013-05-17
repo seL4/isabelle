@@ -275,8 +275,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -j INT       maximum number of parallel jobs (default 1)
     -l           list session source files
     -n           no build -- test dependencies only
-    -o OPTION    override session configuration OPTION
-                 (via NAME=VAL or NAME)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -s           system build mode: produce output in ISABELLE_HOME
     -v           verbose
 

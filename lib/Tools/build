@@ -36,7 +36,7 @@ function usage()
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -l           list session source files"
   echo "    -n           no build -- test dependencies only"
-  echo "    -o OPTION    override session configuration OPTION (via NAME=VAL or NAME)"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo "    -v           verbose"
   echo

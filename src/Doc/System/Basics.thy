@@ -379,6 +379,7 @@ Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
     -W IN:OUT    startup process wrapper, with input/output fifos
     -e MLTEXT    pass MLTEXT to the ML session
     -m MODE      add print mode for output
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -q           non-interactive session
     -r           open heap file read-only
     -w           reset write permissions on OUTPUT
@@ -437,6 +438,9 @@ text {*
   (after processing the @{verbatim "-e"} texts). The @{verbatim "-q"}
   option inhibits interaction, thus providing a pure batch mode
   facility.
+
+  \medskip Option @{verbatim "-s"} allows to override Isabelle system
+  options for this process, see also \secref{sec:system-options}.
 
   \medskip The @{verbatim "-I"} option makes Isabelle enter Isar
   interaction mode on startup, instead of the primitive ML top-level.
