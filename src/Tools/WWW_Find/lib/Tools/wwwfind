@@ -134,10 +134,10 @@ case "$COMMAND" in
     "$LIGHTTPD" -f "$WWWCONFIG"
     if [ "$LOGFILE" = true ]; then
       (cd "$WWWFINDDIR"; \
-       nohup "$ISABELLE_PROCESS" -r -e "$MLSTARTSERVER" "$INPUT") &
+       nohup "$ISABELLE_PROCESS" -r -o show_question_marks=false -e "$MLSTARTSERVER" "$INPUT") &
     else
       (cd "$WWWFINDDIR"; \
-       nohup "$ISABELLE_PROCESS" -r -e "$MLSTARTSERVER" \
+       nohup "$ISABELLE_PROCESS" -r -o show_question_marks=false -e "$MLSTARTSERVER" \
          "$INPUT" > /dev/null 2> /dev/null) &
     fi
     ;;
