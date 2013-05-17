@@ -256,12 +256,6 @@ text {*
   \item[@{setting_def ISABELLE_LINE_EDITOR}] specifies the default
   line editor for the @{tool_ref tty} interface.
 
-  \item[@{setting_def ISABELLE_USEDIR_OPTIONS}] is implicitly prefixed
-  to the command line of any @{tool_ref usedir} invocation. This
-  typically contains compilation options for object-logics --- @{tool
-  usedir} is the basic tool for managing logic sessions (cf.\ the
-  @{verbatim IsaMakefile}s in the distribution).
-
   \item[@{setting_def ISABELLE_LATEX}, @{setting_def
   ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}, @{setting_def
   ISABELLE_DVIPS}] refer to {\LaTeX} related tools for Isabelle

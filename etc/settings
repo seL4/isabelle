@@ -24,13 +24,9 @@ ISABELLE_LINE_EDITOR=""
 
 
 ###
-### Batch sessions
+### Batch sessions (cf. isabelle build)
 ###
 
-#cf. isabelle usedir
-ISABELLE_USEDIR_OPTIONS="-M max -p 1 -q 2 -v true -V outline=/proof,/ML"
-
-#cf. isabelle build
 ISABELLE_BUILD_OPTIONS=""
 ISABELLE_BUILD_JAVA_OPTIONS="-Xmx1024m -Xss1m"
 

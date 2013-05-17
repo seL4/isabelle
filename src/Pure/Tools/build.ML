@@ -43,6 +43,29 @@ fun lookup_timings timings tr =
   | NONE => NONE);
 
 
+(* session timing *)
+
+fun session_timing name verbose f x =
+  let
+    val start = Timing.start ();
+    val y = f x;
+    val timing = Timing.result start;
+
+    val threads = string_of_int (Multithreading.max_threads_value ());
+    val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
+      |> Real.fmt (StringCvt.FIX (SOME 2));
+
+    val timing_props =
+      [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
+    val _ = writeln ("\fTiming = " ^ YXML.string_of_body (XML.Encode.properties timing_props));
+    val _ =
+      if verbose then
+        Output.physical_stderr ("Timing " ^ name ^ " (" ^
+          threads ^ " threads, " ^ Timing.message timing ^ ", factor " ^ factor ^ ")\n")
+      else ();
+  in y end;
+
+
 (* protocol messages *)
 
 fun inline_message a args =
@@ -147,7 +170,7 @@ fun build args_file = Command_Line.tool (fn () =>
       val res1 =
         theories |>
           (List.app (use_theories_condition last_timing)
-            |> Session.with_timing name verbose
+            |> session_timing name verbose
             |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
             |> Exn.capture);

@@ -232,9 +232,8 @@ INCOMPATIBILITY, use @{context} instead.
 
 *** System ***
 
-* Discontinued "isabelle usedir" option -P (remote path) and -r (reset
-session path).  Note that usedir is legacy and superseded by "isabelle
-build" since Isabelle2013.
+* Discontinued obsolete isabelle usedir, mkdir, make -- superseded by
+"isabelle build" in Isabelle2013.  INCOMPATIBILITY.
 
 
 
