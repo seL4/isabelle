@@ -72,6 +72,8 @@ use "System/options.ML";
 
 (* concurrency within the ML runtime *)
 
+use "Concurrent/event_timer.ML";
+
 if ML_System.is_polyml
 then use "ML/exn_properties_polyml.ML"
 else use "ML/exn_properties_dummy.ML";

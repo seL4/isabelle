@@ -47,6 +47,7 @@ session Pure =
     "Concurrent/bash.ML"
     "Concurrent/bash_sequential.ML"
     "Concurrent/cache.ML"
+    "Concurrent/event_timer.ML"
     "Concurrent/future.ML"
     "Concurrent/lazy.ML"
     "Concurrent/lazy_sequential.ML"
