@@ -217,7 +217,6 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = Output.physical_stderr Symbol.STX;
 
     val _ = Printer.show_markup_default := true;
-    val _ = quick_and_dirty := false;
     val _ = Context.set_thread_data NONE;
     val _ =
       Unsynchronized.change print_mode
