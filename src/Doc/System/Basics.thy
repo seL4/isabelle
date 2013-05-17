@@ -439,7 +439,7 @@ text {*
   option inhibits interaction, thus providing a pure batch mode
   facility.
 
-  \medskip Option @{verbatim "-s"} allows to override Isabelle system
+  \medskip Option @{verbatim "-o"} allows to override Isabelle system
   options for this process, see also \secref{sec:system-options}.
 
   \medskip The @{verbatim "-I"} option makes Isabelle enter Isar
