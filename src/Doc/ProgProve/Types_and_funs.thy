@@ -114,17 +114,20 @@ Abbreviations are similar to definitions:
 *}
 
 abbreviation sq' :: "nat \<Rightarrow> nat" where
-"sq' n == n * n"
+"sq' n \<equiv> n * n"
 
 text{* The key difference is that @{const sq'} is only syntactic sugar:
-@{term"sq' t"} is replaced by \mbox{@{term"t*t"}} after parsing, and every
-occurrence of a term @{term"u*u"} is replaced by \mbox{@{term"sq' u"}} before
-printing.  Internally, @{const sq'} does not exist.  This is also the
+after parsing, @{term"sq' t"} is replaced by \mbox{@{term"t*t"}}, and
+before printing, every occurrence of @{term"u*u"} is replaced by
+\mbox{@{term"sq' u"}}.  Internally, @{const sq'} does not exist.
+This is the
 advantage of abbreviations over definitions: definitions need to be expanded
-explicitly (see \autoref{sec:rewr-defs}) whereas abbreviations are already
+explicitly (\autoref{sec:rewr-defs}) whereas abbreviations are already
 expanded upon parsing. However, abbreviations should be introduced sparingly:
 if abused, they can lead to a confusing discrepancy between the internal and
 external view of a term.
+
+The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
 
 \subsection{Recursive functions}
 \label{sec:recursive-funs}

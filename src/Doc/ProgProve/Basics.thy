@@ -29,6 +29,9 @@ denoted by @{text"\<Rightarrow>"}.
 \item[type variables,]
   denoted by @{typ 'a}, @{typ 'b} etc., just like in ML\@.
 \end{description}
+Note that @{typ"'a \<Rightarrow> 'b list"} means @{typ[source]"'a \<Rightarrow> ('b list)"},
+not @{typ"('a \<Rightarrow> 'b) list"}: postfix type constructors have precedence
+over @{text"\<Rightarrow>"}.
 
 \concept{Terms} are formed as in functional programming by
 applying functions to arguments. If @{text f} is a function of type
@@ -136,13 +139,6 @@ HOL-specific (terms and types) must be enclosed in quotation marks:
 single identifier can be dropped.  When Isabelle prints a syntax error
 message, it refers to the HOL syntax as the \concept{inner syntax} and the
 enclosing theory language as the \concept{outer syntax}.
-\sem
-\begin{warn}
-In the Isabelle part of the book we show all quotation marks.
-In the Semantics part we omit them for reasons of readability.
-\end{warn}
-\endsem
-%
 *}
 (*<*)
 end
