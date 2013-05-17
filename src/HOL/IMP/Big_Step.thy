@@ -11,7 +11,7 @@ where
 Skip:    "(SKIP,s) \<Rightarrow> s" |
 Assign:  "(x ::= a,s) \<Rightarrow> s(x := aval a s)" |
 Seq:     "\<lbrakk> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
-          (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
+          (c\<^isub>1;;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 IfTrue:  "\<lbrakk> bval b s;  (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
           (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
@@ -24,7 +24,7 @@ WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{BigStepEx}{1}{2}{% *}
-schematic_lemma ex: "(''x'' ::= N 5; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
+schematic_lemma ex: "(''x'' ::= N 5;; ''y'' ::= V ''x'', s) \<Rightarrow> ?t"
 apply(rule Seq)
 apply(rule Assign)
 apply simp
@@ -89,7 +89,7 @@ Similarly for the other commands: *}
 
 inductive_cases AssignE[elim!]: "(x ::= a,s) \<Rightarrow> t"
 thm AssignE
-inductive_cases SeqE[elim!]: "(c1;c2,s1) \<Rightarrow> s3"
+inductive_cases SeqE[elim!]: "(c1;;c2,s1) \<Rightarrow> s3"
 thm SeqE
 inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<Rightarrow> t"
 thm IfE
@@ -143,7 +143,7 @@ Warning: @{text"\<sim>"} is the symbol written \verb!\ < s i m >! (without space
   transformation on programs:
 *}
 lemma unfold_while:
-  "(WHILE b DO c) \<sim> (IF b THEN c; WHILE b DO c ELSE SKIP)" (is "?w \<sim> ?iw")
+  "(WHILE b DO c) \<sim> (IF b THEN c;; WHILE b DO c ELSE SKIP)" (is "?w \<sim> ?iw")
 proof -
   -- "to show the equivalence, we look at the derivation tree for"
   -- "each side and from that construct a derivation tree for the other side"
@@ -162,7 +162,7 @@ proof -
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
       -- "now we can build a derivation tree for the @{text IF}"
       -- "first, the body of the True-branch:"
-      hence "(c; ?w, s) \<Rightarrow> t" by (rule Seq)
+      hence "(c;; ?w, s) \<Rightarrow> t" by (rule Seq)
       -- "then the whole @{text IF}"
       with `bval b s` have "(?iw, s) \<Rightarrow> t" by (rule IfTrue)
     }
@@ -183,7 +183,7 @@ proof -
     -- "on the other hand, if @{text b} is @{text True} in state @{text s},"
     -- {* then this time only the @{text IfTrue} rule can have be used *}
     { assume "bval b s"
-      with `(?iw, s) \<Rightarrow> t` have "(c; ?w, s) \<Rightarrow> t" by auto
+      with `(?iw, s) \<Rightarrow> t` have "(c;; ?w, s) \<Rightarrow> t" by auto
       -- "and for this, only the Seq-rule is applicable:"
       then obtain s' where
         "(c, s) \<Rightarrow> s'" and "(?w, s') \<Rightarrow> t" by auto
@@ -203,7 +203,7 @@ text {* Luckily, such lengthy proofs are seldom necessary.  Isabelle can
 prove many such facts automatically.  *}
 
 lemma while_unfold:
-  "(WHILE b DO c) \<sim> (IF b THEN c; WHILE b DO c ELSE SKIP)"
+  "(WHILE b DO c) \<sim> (IF b THEN c;; WHILE b DO c ELSE SKIP)"
 by blast
 
 lemma triv_if:

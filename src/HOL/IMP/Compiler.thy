@@ -209,7 +209,7 @@ qed fastforce+
 fun ccomp :: "com \<Rightarrow> instr list" where
 "ccomp SKIP = []" |
 "ccomp (x ::= a) = acomp a @ [STORE x]" |
-"ccomp (c\<^isub>1;c\<^isub>2) = ccomp c\<^isub>1 @ ccomp c\<^isub>2" |
+"ccomp (c\<^isub>1;;c\<^isub>2) = ccomp c\<^isub>1 @ ccomp c\<^isub>2" |
 "ccomp (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
   (let cc\<^isub>1 = ccomp c\<^isub>1; cc\<^isub>2 = ccomp c\<^isub>2; cb = bcomp b False (size cc\<^isub>1 + 1)
    in cb @ cc\<^isub>1 @ JMP (size cc\<^isub>2) # cc\<^isub>2)" |

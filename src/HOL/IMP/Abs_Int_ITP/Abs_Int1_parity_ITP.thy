@@ -122,13 +122,13 @@ defines aval_parity is aval' and step_parity is step' and AI_parity is AI
 subsubsection "Tests"
 
 definition "test1_parity =
-  ''x'' ::= N 1;
+  ''x'' ::= N 1;;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 2)"
 
 value "show_acom_opt (AI_parity test1_parity)"
 
 definition "test2_parity =
-  ''x'' ::= N 1;
+  ''x'' ::= N 1;;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 3)"
 
 value "show_acom ((step_parity \<top> ^^1) (anno None test2_parity))"

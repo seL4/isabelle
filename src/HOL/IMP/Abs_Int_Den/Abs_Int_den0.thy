@@ -33,7 +33,7 @@ by (induct a) (auto simp: rep_num' rep_plus')
 fun AI :: "com \<Rightarrow> 'a astate \<Rightarrow> 'a astate" where
 "AI SKIP S = S" |
 "AI (x ::= a) S = update S x (aval' a S)" |
-"AI (c1;c2) S = AI c2 (AI c1 S)" |
+"AI (c1;;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S = (AI c1 S) \<squnion> (AI c2 S)" |
 "AI (WHILE b DO c) S = pfp (AI c) S"
 

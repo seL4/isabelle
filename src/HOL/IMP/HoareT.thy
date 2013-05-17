@@ -22,7 +22,7 @@ inductive
 where
 Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}" |
 Assign:  "\<turnstile>\<^sub>t {\<lambda>s. P(s[a/x])} x::=a {P}" |
-Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;c\<^isub>2 {P\<^isub>3}" |
+Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;;c\<^isub>2 {P\<^isub>3}" |
 If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
   \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}" |
 While:
@@ -56,9 +56,9 @@ text{* Our standard example: *}
 
 abbreviation "w n ==
   WHILE Less (V ''y'') (N n)
-  DO ( ''y'' ::= Plus (V ''y'') (N 1); ''x'' ::= Plus (V ''x'') (V ''y'') )"
+  DO ( ''y'' ::= Plus (V ''y'') (N 1);; ''x'' ::= Plus (V ''x'') (V ''y'') )"
 
-lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 \<le> n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum>{1..n}}"
+lemma "\<turnstile>\<^sub>t {\<lambda>s. 0 \<le> n} ''x'' ::= N 0;; ''y'' ::= N 0;; w n {\<lambda>s. s ''x'' = \<Sum>{1..n}}"
 apply(rule Seq)
 prefer 2
 apply(rule While'
@@ -112,7 +112,7 @@ by(auto intro!: ext simp: wpt_def)
 lemma [simp]: "wp\<^sub>t (x ::= e) Q = (\<lambda>s. Q(s(x := aval e s)))"
 by(auto intro!: ext simp: wpt_def)
 
-lemma [simp]: "wp\<^sub>t (c\<^isub>1;c\<^isub>2) Q = wp\<^sub>t c\<^isub>1 (wp\<^sub>t c\<^isub>2 Q)"
+lemma [simp]: "wp\<^sub>t (c\<^isub>1;;c\<^isub>2) Q = wp\<^sub>t c\<^isub>1 (wp\<^sub>t c\<^isub>2 Q)"
 unfolding wpt_def
 apply(rule ext)
 apply auto

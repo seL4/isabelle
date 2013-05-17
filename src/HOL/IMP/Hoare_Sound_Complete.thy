@@ -35,7 +35,7 @@ by (rule ext) (auto simp: wp_def)
 lemma wp_Ass[simp]: "wp (x::=a) Q = (\<lambda>s. Q(s[a/x]))"
 by (rule ext) (auto simp: wp_def)
 
-lemma wp_Seq[simp]: "wp (c\<^isub>1;c\<^isub>2) Q = wp c\<^isub>1 (wp c\<^isub>2 Q)"
+lemma wp_Seq[simp]: "wp (c\<^isub>1;;c\<^isub>2) Q = wp c\<^isub>1 (wp c\<^isub>2 Q)"
 by (rule ext) (auto simp: wp_def)
 
 lemma wp_If[simp]:
@@ -45,11 +45,11 @@ by (rule ext) (auto simp: wp_def)
 
 lemma wp_While_If:
  "wp (WHILE b DO c) Q s =
-  wp (IF b THEN c;WHILE b DO c ELSE SKIP) Q s"
+  wp (IF b THEN c;;WHILE b DO c ELSE SKIP) Q s"
 unfolding wp_def by (metis unfold_while)
 
 lemma wp_While_True[simp]: "bval b s \<Longrightarrow>
-  wp (WHILE b DO c) Q s = wp (c; WHILE b DO c) Q s"
+  wp (WHILE b DO c) Q s = wp (c;; WHILE b DO c) Q s"
 by(simp add: wp_While_If)
 
 lemma wp_While_False[simp]: "\<not> bval b s \<Longrightarrow> wp (WHILE b DO c) Q s = Q s"

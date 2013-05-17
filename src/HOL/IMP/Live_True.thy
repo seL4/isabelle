@@ -9,7 +9,7 @@ subsection "True Liveness Analysis"
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
 "L (x ::= a) X = (if x \<in> X then vars a \<union> (X - {x}) else X)" |
-"L (c\<^isub>1; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
+"L (c\<^isub>1;; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
 "L (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> L c\<^isub>1 X \<union> L c\<^isub>2 X" |
 "L (WHILE b DO c) X = lfp(\<lambda>Y. vars b \<union> X \<union> L c Y)"
 
@@ -154,7 +154,7 @@ lemmas [code] = L.simps(1-4) L_While_set
 text{* Sorry, this syntax is odd. *}
 
 text{* A test: *}
-lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x''; ''x'' ::= V ''z''
+lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x'';; ''x'' ::= V ''z''
   in L (WHILE b DO c) {''y''}) = {''x'', ''y'', ''z''}"
 by eval
 
@@ -173,12 +173,12 @@ in the WHILE case: *}
 fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb SKIP X = X" |
 "Lb (x ::= a) X = (if x \<in> X then X - {x} \<union> vars a else X)" |
-"Lb (c\<^isub>1; c\<^isub>2) X = (Lb c\<^isub>1 \<circ> Lb c\<^isub>2) X" |
+"Lb (c\<^isub>1;; c\<^isub>2) X = (Lb c\<^isub>1 \<circ> Lb c\<^isub>2) X" |
 "Lb (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> Lb c\<^isub>1 X \<union> Lb c\<^isub>2 X" |
 "Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> vars c \<union> X)"
 
 text{* @{const Lb} (and @{const iter}) is not monotone! *}
-lemma "let w = WHILE Bc False DO (''x'' ::= V ''y''; ''z'' ::= V ''x'')
+lemma "let w = WHILE Bc False DO (''x'' ::= V ''y'';; ''z'' ::= V ''x'')
   in \<not> (Lb w {''z''} \<subseteq> Lb w {''y'',''z''})"
 by eval
 

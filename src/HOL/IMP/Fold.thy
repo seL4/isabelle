@@ -33,7 +33,7 @@ definition
 primrec lnames :: "com \<Rightarrow> vname set" where
 "lnames SKIP = {}" |
 "lnames (x ::= a) = {x}" |
-"lnames (c1; c2) = lnames c1 \<union> lnames c2" |
+"lnames (c1;; c2) = lnames c1 \<union> lnames c2" |
 "lnames (IF b THEN c1 ELSE c2) = lnames c1 \<union> lnames c2" |
 "lnames (WHILE b DO c) = lnames c"
 
@@ -41,14 +41,14 @@ primrec "defs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
 "defs SKIP t = t" |
 "defs (x ::= a) t =
   (case afold a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
-"defs (c1;c2) t = (defs c2 o defs c1) t" |
+"defs (c1;;c2) t = (defs c2 o defs c1) t" |
 "defs (IF b THEN c1 ELSE c2) t = merge (defs c1 t) (defs c2 t)" |
 "defs (WHILE b DO c) t = t |` (-lnames c)"
 
 primrec fold where
 "fold SKIP _ = SKIP" |
 "fold (x ::= a) t = (x ::= (afold a t))" |
-"fold (c1;c2) t = (fold c1 t; fold c2 (defs c1 t))" |
+"fold (c1;;c2) t = (fold c1 t;; fold c2 (defs c1 t))" |
 "fold (IF b THEN c1 ELSE c2) t = IF b THEN fold c1 t ELSE fold c2 t" |
 "fold (WHILE b DO c) t = WHILE b DO fold c (t |` (-lnames c))"
 
@@ -259,7 +259,7 @@ primrec "bdefs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
 "bdefs SKIP t = t" |
 "bdefs (x ::= a) t =
   (case afold a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
-"bdefs (c1;c2) t = (bdefs c2 o bdefs c1) t" |
+"bdefs (c1;;c2) t = (bdefs c2 o bdefs c1) t" |
 "bdefs (IF b THEN c1 ELSE c2) t = (case bfold b t of
     Bc True \<Rightarrow> bdefs c1 t
   | Bc False \<Rightarrow> bdefs c2 t
@@ -270,7 +270,7 @@ primrec "bdefs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
 primrec fold' where
 "fold' SKIP _ = SKIP" |
 "fold' (x ::= a) t = (x ::= (afold a t))" |
-"fold' (c1;c2) t = (fold' c1 t; fold' c2 (bdefs c1 t))" |
+"fold' (c1;;c2) t = (fold' c1 t;; fold' c2 (bdefs c1 t))" |
 "fold' (IF b THEN c1 ELSE c2) t = (case bfold b t of
     Bc True \<Rightarrow> fold' c1 t
   | Bc False \<Rightarrow> fold' c2 t

@@ -68,8 +68,8 @@ proof qed (auto simp: iter'_pfp_above)
 
 text{* Straight line code: *}
 definition "test1_const =
- ''y'' ::= N 7;
- ''z'' ::= Plus (V ''y'') (N 2);
+ ''y'' ::= N 7;;
+ ''z'' ::= Plus (V ''y'') (N 2);;
  ''y'' ::= Plus (V ''x'') (N 0)"
 
 text{* Conditional: *}
@@ -78,27 +78,27 @@ definition "test2_const =
 
 text{* Conditional, test is ignored: *}
 definition "test3_const =
- ''x'' ::= N 42;
+ ''x'' ::= N 42;;
  IF Less (N 41) (V ''x'') THEN ''x'' ::= N 5 ELSE ''x'' ::= N 6"
 
 text{* While: *}
 definition "test4_const =
- ''x'' ::= N 0; WHILE Bc True DO ''x'' ::= N 0"
+ ''x'' ::= N 0;; WHILE Bc True DO ''x'' ::= N 0"
 
 text{* While, test is ignored: *}
 definition "test5_const =
- ''x'' ::= N 0; WHILE Less (V ''x'') (N 1) DO ''x'' ::= N 1"
+ ''x'' ::= N 0;; WHILE Less (V ''x'') (N 1) DO ''x'' ::= N 1"
 
 text{* Iteration is needed: *}
 definition "test6_const =
-  ''x'' ::= N 0; ''y'' ::= N 0; ''z'' ::= N 2;
-  WHILE Less (V ''x'') (N 1) DO (''x'' ::= V ''y''; ''y'' ::= V ''z'')"
+  ''x'' ::= N 0;; ''y'' ::= N 0;; ''z'' ::= N 2;;
+  WHILE Less (V ''x'') (N 1) DO (''x'' ::= V ''y'';; ''y'' ::= V ''z'')"
 
 text{* More iteration would be needed: *}
 definition "test7_const =
-  ''x'' ::= N 0; ''y'' ::= N 0; ''z'' ::= N 0; ''u'' ::= N 3;
+  ''x'' ::= N 0;; ''y'' ::= N 0;; ''z'' ::= N 0;; ''u'' ::= N 3;;
   WHILE Less (V ''x'') (N 1)
-  DO (''x'' ::= V ''y''; ''y'' ::= V ''z''; ''z'' ::= V ''u'')"
+  DO (''x'' ::= V ''y'';; ''y'' ::= V ''z'';; ''z'' ::= V ''u'')"
 
 value [code] "list (AI_const test1_const Top)"
 value [code] "list (AI_const test2_const Top)"

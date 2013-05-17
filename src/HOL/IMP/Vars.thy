@@ -72,9 +72,9 @@ instantiation com :: vars
 begin
 
 fun vars_com :: "com \<Rightarrow> vname set" where
-"vars com.SKIP = {}" |
+"vars SKIP = {}" |
 "vars (x::=e) = {x} \<union> vars e" |
-"vars (c1;c2) = vars c1 \<union> vars c2" |
+"vars (c1;;c2) = vars c1 \<union> vars c2" |
 "vars (IF b THEN c1 ELSE c2) = vars b \<union> vars c1 \<union> vars c2" |
 "vars (WHILE b DO c) = vars b \<union> vars c"
 

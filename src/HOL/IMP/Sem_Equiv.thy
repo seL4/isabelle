@@ -70,7 +70,7 @@ lemma bequiv_up_to_subst:
 lemma equiv_up_to_seq:
   "P \<Turnstile> c \<sim> c' \<Longrightarrow> Q \<Turnstile> d \<sim> d' \<Longrightarrow>
   (\<And>s s'. (c,s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> Q s') \<Longrightarrow>
-  P \<Turnstile> (c; d) \<sim> (c'; d')"
+  P \<Turnstile> (c;; d) \<sim> (c';; d')"
   by (clarsimp simp: equiv_up_to_def) blast
 
 lemma equiv_up_to_while_lemma:

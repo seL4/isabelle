@@ -33,7 +33,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
-"step' S (c1; c2) = step' S c1; step' (post c1) c2" |
+"step' S (c1;; c2) = step' S c1;; step' (post c1) c2" |
 "step' S (IF b THEN c1 ELSE c2 {P}) =
   (let c1' = step' S c1; c2' = step' S c2
    in IF b THEN c1' ELSE c2' {post c1 \<squnion> post c2})" |

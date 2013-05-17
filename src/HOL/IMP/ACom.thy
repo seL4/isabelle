@@ -9,7 +9,7 @@ subsection "Annotated Commands"
 datatype 'a acom =
   SKIP 'a                           ("SKIP {_}" 61) |
   Assign vname aexp 'a              ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
-  Seq "('a acom)" "('a acom)"       ("_;//_"  [60, 61] 60) |
+  Seq "('a acom)" "('a acom)"       ("_;;//_"  [60, 61] 60) |
   If bexp 'a "('a acom)" 'a "('a acom)" 'a
     ("(IF _/ THEN ({_}/ _)/ ELSE ({_}/ _)//{_})"  [0, 0, 0, 61, 0, 0] 61) |
   While 'a bexp 'a "('a acom)" 'a
@@ -19,7 +19,7 @@ text_raw{*\snip{stripdef}{1}{1}{% *}
 fun strip :: "'a acom \<Rightarrow> com" where
 "strip (SKIP {P}) = com.SKIP" |
 "strip (x ::= e {P}) = x ::= e" |
-"strip (C\<^isub>1;C\<^isub>2) = strip C\<^isub>1; strip C\<^isub>2" |
+"strip (C\<^isub>1;;C\<^isub>2) = strip C\<^isub>1;; strip C\<^isub>2" |
 "strip (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {P}) =
   IF b THEN strip C\<^isub>1 ELSE strip C\<^isub>2" |
 "strip ({I} WHILE b DO {P} C {Q}) = WHILE b DO strip C"
@@ -29,7 +29,7 @@ text_raw{*\snip{asizedef}{1}{1}{% *}
 fun asize :: "com \<Rightarrow> nat" where
 "asize com.SKIP = 1" |
 "asize (x ::= e) = 1" |
-"asize (C\<^isub>1;C\<^isub>2) = asize C\<^isub>1 + asize C\<^isub>2" |
+"asize (C\<^isub>1;;C\<^isub>2) = asize C\<^isub>1 + asize C\<^isub>2" |
 "asize (IF b THEN C\<^isub>1 ELSE C\<^isub>2) = asize C\<^isub>1 + asize C\<^isub>2 + 3" |
 "asize (WHILE b DO C) = asize C + 3"
 text_raw{*}%endsnip*}
@@ -41,7 +41,7 @@ definition shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> nat 
 fun annotate :: "(nat \<Rightarrow> 'a) \<Rightarrow> com \<Rightarrow> 'a acom" where
 "annotate f com.SKIP = SKIP {f 0}" |
 "annotate f (x ::= e) = x ::= e {f 0}" |
-"annotate f (c\<^isub>1;c\<^isub>2) = annotate f c\<^isub>1; annotate (shift f (asize c\<^isub>1)) c\<^isub>2" |
+"annotate f (c\<^isub>1;;c\<^isub>2) = annotate f c\<^isub>1;; annotate (shift f (asize c\<^isub>1)) c\<^isub>2" |
 "annotate f (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
   IF b THEN {f 0} annotate (shift f 1) c\<^isub>1
   ELSE {f(asize c\<^isub>1 + 1)} annotate (shift f (asize c\<^isub>1 + 2)) c\<^isub>2
@@ -54,7 +54,7 @@ text_raw{*\snip{annosdef}{1}{1}{% *}
 fun annos :: "'a acom \<Rightarrow> 'a list" where
 "annos (SKIP {P}) = [P]" |
 "annos (x ::= e {P}) = [P]" |
-"annos (C\<^isub>1;C\<^isub>2) = annos C\<^isub>1 @ annos C\<^isub>2" |
+"annos (C\<^isub>1;;C\<^isub>2) = annos C\<^isub>1 @ annos C\<^isub>2" |
 "annos (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) =
   P\<^isub>1 # annos C\<^isub>1 @  P\<^isub>2 # annos C\<^isub>2 @ [Q]" |
 "annos ({I} WHILE b DO {P} C {Q}) = I # P # annos C @ [Q]"
@@ -70,7 +70,7 @@ text_raw{*\snip{mapacomdef}{1}{2}{% *}
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
 "map_acom f (SKIP {P}) = SKIP {f P}" |
 "map_acom f (x ::= e {P}) = x ::= e {f P}" |
-"map_acom f (C\<^isub>1;C\<^isub>2) = map_acom f C\<^isub>1; map_acom f C\<^isub>2" |
+"map_acom f (C\<^isub>1;;C\<^isub>2) = map_acom f C\<^isub>1;; map_acom f C\<^isub>2" |
 "map_acom f (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) =
   IF b THEN {f P\<^isub>1} map_acom f C\<^isub>1 ELSE {f P\<^isub>2} map_acom f C\<^isub>2
   {f Q}" |
@@ -139,7 +139,7 @@ lemma strip_eq_Assign:
 by (cases C) simp_all
 
 lemma strip_eq_Seq:
-  "strip C = c1;c2 \<longleftrightarrow> (EX C1 C2. C = C1;C2 & strip C1 = c1 & strip C2 = c2)"
+  "strip C = c1;;c2 \<longleftrightarrow> (EX C1 C2. C = C1;;C2 & strip C1 = c1 & strip C2 = c2)"
 by (cases C) simp_all
 
 lemma strip_eq_If:

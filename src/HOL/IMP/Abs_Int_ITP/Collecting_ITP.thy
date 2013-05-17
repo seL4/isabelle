@@ -17,7 +17,7 @@ begin
 fun less_eq_acom :: "('a::order)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "(SKIP {S}) \<le> (SKIP {S'}) = (S \<le> S')" |
 "(x ::= e {S}) \<le> (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<le> S')" |
-"(c1;c2) \<le> (c1';c2') = (c1 \<le> c1' \<and> c2 \<le> c2')" |
+"(c1;;c2) \<le> (c1';;c2') = (c1 \<le> c1' \<and> c2 \<le> c2')" |
 "(IF b THEN c1 ELSE c2 {S}) \<le> (IF b' THEN c1' ELSE c2' {S'}) =
   (b=b' \<and> c1 \<le> c1' \<and> c2 \<le> c2' \<and> S \<le> S')" |
 "({Inv} WHILE b DO c {P}) \<le> ({Inv'} WHILE b' DO c' {P'}) =
@@ -30,7 +30,7 @@ by (cases c) auto
 lemma Assign_le: "x ::= e {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<le> S')"
 by (cases c) auto
 
-lemma Seq_le: "c1;c2 \<le> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<le> c1' \<and> c2 \<le> c2')"
+lemma Seq_le: "c1;;c2 \<le> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';;c2' \<and> c1 \<le> c1' \<and> c2 \<le> c2')"
 by (cases c) auto
 
 lemma If_le: "IF b THEN c1 ELSE c2 {S} \<le> c \<longleftrightarrow>
@@ -64,12 +64,12 @@ qed
 end
 
 fun sub\<^isub>1 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>1(c1;c2) = c1" |
+"sub\<^isub>1(c1;;c2) = c1" |
 "sub\<^isub>1(IF b THEN c1 ELSE c2 {S}) = c1" |
 "sub\<^isub>1({I} WHILE b DO c {P}) = c"
 
 fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>2(c1;c2) = c2" |
+"sub\<^isub>2(c1;;c2) = c2" |
 "sub\<^isub>2(IF b THEN c1 ELSE c2 {S}) = c2"
 
 fun invar :: "'a acom \<Rightarrow> 'a" where
@@ -79,8 +79,8 @@ fun lift :: "('a set \<Rightarrow> 'b) \<Rightarrow> com \<Rightarrow> 'a acom s
 where
 "lift F com.SKIP M = (SKIP {F (post ` M)})" |
 "lift F (x ::= a) M = (x ::= a {F (post ` M)})" |
-"lift F (c1;c2) M =
-  lift F c1 (sub\<^isub>1 ` M); lift F c2 (sub\<^isub>2 ` M)" |
+"lift F (c1;;c2) M =
+  lift F c1 (sub\<^isub>1 ` M);; lift F c2 (sub\<^isub>2 ` M)" |
 "lift F (IF b THEN c1 ELSE c2) M =
   IF b THEN lift F c1 (sub\<^isub>1 ` M) ELSE lift F c2 (sub\<^isub>2 ` M)
   {F (post ` M)}" |
@@ -142,7 +142,7 @@ fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
   (x ::= e {{s'. EX s:S. s' = s(x := aval e s)}})" |
-"step S (c1; c2) = step S c1; step (post c1) c2" |
+"step S (c1;; c2) = step S c1;; step (post c1) c2" |
 "step S (IF b THEN c1 ELSE c2 {P}) =
    IF b THEN step {s:S. bval b s} c1 ELSE step {s:S. \<not> bval b s} c2
    {post c1 \<union> post c2}" |

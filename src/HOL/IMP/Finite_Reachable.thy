@@ -43,14 +43,14 @@ lemma reachable_Assign: "reachable (x::=a) = {x::=a, SKIP}"
 by(auto simp: reachable_def dest:Assign_starD)
 
 
-lemma Seq_stepsnD: "(c1; c2, s) \<rightarrow>(n) (c', t) \<Longrightarrow>
-  (\<exists>c1' m. c' = c1'; c2 \<and> (c1, s) \<rightarrow>(m) (c1', t) \<and> m \<le> n) \<or>
+lemma Seq_stepsnD: "(c1;; c2, s) \<rightarrow>(n) (c', t) \<Longrightarrow>
+  (\<exists>c1' m. c' = c1';; c2 \<and> (c1, s) \<rightarrow>(m) (c1', t) \<and> m \<le> n) \<or>
   (\<exists>s2 m1 m2. (c1,s) \<rightarrow>(m1) (SKIP,s2) \<and> (c2, s2) \<rightarrow>(m2) (c', t) \<and> m1+m2 < n)"
 proof(induction n arbitrary: c1 c2 s)
   case 0 thus ?case by auto
 next
   case (Suc n)
-  from Suc.prems obtain s' c12' where "(c1;c2, s) \<rightarrow> (c12', s')"
+  from Suc.prems obtain s' c12' where "(c1;;c2, s) \<rightarrow> (c12', s')"
     and n: "(c12',s') \<rightarrow>(n) (c',t)" by auto
   from this(1) show ?case
   proof
@@ -59,14 +59,14 @@ next
       using n by auto
     thus ?case by blast
   next
-    fix c1' s'' assume 1: "(c12', s') = (c1'; c2, s'')" "(c1, s) \<rightarrow> (c1', s'')"
-    hence n': "(c1';c2,s') \<rightarrow>(n) (c',t)" using n by auto
+    fix c1' s'' assume 1: "(c12', s') = (c1';; c2, s'')" "(c1, s) \<rightarrow> (c1', s'')"
+    hence n': "(c1';;c2,s') \<rightarrow>(n) (c',t)" using n by auto
     from Suc.IH[OF n'] show ?case
     proof
-      assume "\<exists>c1'' m. c' = c1''; c2 \<and> (c1', s') \<rightarrow>(m) (c1'', t) \<and> m \<le> n"
+      assume "\<exists>c1'' m. c' = c1'';; c2 \<and> (c1', s') \<rightarrow>(m) (c1'', t) \<and> m \<le> n"
         (is "\<exists> a b. ?P a b")
       then obtain c1'' m where 2: "?P c1'' m" by blast
-      hence "c' = c1'';c2 \<and> (c1, s) \<rightarrow>(Suc m) (c1'',t) \<and> Suc m \<le> Suc n"
+      hence "c' = c1'';;c2 \<and> (c1, s) \<rightarrow>(Suc m) (c1'',t) \<and> Suc m \<le> Suc n"
         using 1 by auto
       thus ?case by blast
     next
@@ -80,13 +80,13 @@ next
   qed
 qed
 
-corollary Seq_starD: "(c1; c2, s) \<rightarrow>* (c', t) \<Longrightarrow>
-  (\<exists>c1'. c' = c1'; c2 \<and> (c1, s) \<rightarrow>* (c1', t)) \<or>
+corollary Seq_starD: "(c1;; c2, s) \<rightarrow>* (c', t) \<Longrightarrow>
+  (\<exists>c1'. c' = c1';; c2 \<and> (c1, s) \<rightarrow>* (c1', t)) \<or>
   (\<exists>s2. (c1,s) \<rightarrow>* (SKIP,s2) \<and> (c2, s2) \<rightarrow>* (c', t))"
 by(metis Seq_stepsnD star_if_stepsn stepsn_if_star)
 
-lemma reachable_Seq: "reachable (c1;c2) \<subseteq>
-  (\<lambda>c1'. c1';c2) ` reachable c1 \<union> reachable c2"
+lemma reachable_Seq: "reachable (c1;;c2) \<subseteq>
+  (\<lambda>c1'. c1';;c2) ` reachable c1 \<union> reachable c2"
 by(auto simp: reachable_def image_def dest!: Seq_starD)
 
 
@@ -100,8 +100,8 @@ by(auto simp: reachable_def dest!: If_starD)
 
 
 lemma While_stepsnD: "(WHILE b DO c, s) \<rightarrow>(n) (c2,t) \<Longrightarrow>
-  c2 \<in> {WHILE b DO c, IF b THEN c ; WHILE b DO c ELSE SKIP, SKIP}
-  \<or> (\<exists>c1. c2 = c1 ; WHILE b DO c \<and> (\<exists> s1 s2. (c,s1) \<rightarrow>* (c1,s2)))"
+  c2 \<in> {WHILE b DO c, IF b THEN c ;; WHILE b DO c ELSE SKIP, SKIP}
+  \<or> (\<exists>c1. c2 = c1 ;; WHILE b DO c \<and> (\<exists> s1 s2. (c,s1) \<rightarrow>* (c1,s2)))"
 proof(induction n arbitrary: s rule: less_induct)
   case (less n1)
   show ?case
@@ -110,7 +110,7 @@ proof(induction n arbitrary: s rule: less_induct)
   next
     case (Suc n2)
     let ?w = "WHILE b DO c"
-    let ?iw = "IF b THEN c ; ?w ELSE SKIP"
+    let ?iw = "IF b THEN c ;; ?w ELSE SKIP"
     from Suc less.prems have n2: "(?iw,s) \<rightarrow>(n2) (c2,t)" by(auto elim!: WhileE)
     show ?thesis
     proof(cases n2)
@@ -122,11 +122,11 @@ proof(induction n arbitrary: s rule: less_induct)
       from this(1)
       show ?thesis
       proof
-        assume "(iw', s') = (c; WHILE b DO c, s)"
-        with n3 have "(c;?w, s) \<rightarrow>(n3) (c2,t)" by auto
+        assume "(iw', s') = (c;; WHILE b DO c, s)"
+        with n3 have "(c;;?w, s) \<rightarrow>(n3) (c2,t)" by auto
         from Seq_stepsnD[OF this] show ?thesis
         proof
-          assume "\<exists>c1' m. c2 = c1'; ?w \<and> (c,s) \<rightarrow>(m) (c1', t) \<and> m \<le> n3"
+          assume "\<exists>c1' m. c2 = c1';; ?w \<and> (c,s) \<rightarrow>(m) (c1', t) \<and> m \<le> n3"
           thus ?thesis by (metis star_if_stepsn)
         next
           assume "\<exists>s2 m1 m2. (c, s) \<rightarrow>(m1) (SKIP, s2) \<and>
@@ -144,8 +144,8 @@ proof(induction n arbitrary: s rule: less_induct)
 qed
 
 lemma reachable_While: "reachable (WHILE b DO c) \<subseteq>
-  {WHILE b DO c, IF b THEN c ; WHILE b DO c ELSE SKIP, SKIP} \<union>
-  (\<lambda>c'. c' ; WHILE b DO c) ` reachable c"
+  {WHILE b DO c, IF b THEN c ;; WHILE b DO c ELSE SKIP, SKIP} \<union>
+  (\<lambda>c'. c' ;; WHILE b DO c) ` reachable c"
 apply(auto simp: reachable_def image_def)
 by (metis While_stepsnD insertE singletonE stepsn_if_star)
 

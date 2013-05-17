@@ -10,7 +10,7 @@ invariants. *}
 datatype acom =
   ASKIP |
   Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
-  Aseq   acom acom       ("_;/ _"  [60, 61] 60) |
+  Aseq   acom acom       ("_;;/ _"  [60, 61] 60) |
   Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
   Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
 
@@ -42,7 +42,7 @@ text{* Strip annotations: *}
 fun strip :: "acom \<Rightarrow> com" where
 "strip ASKIP = SKIP" |
 "strip (Aassign x a) = (x::=a)" |
-"strip (Aseq c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1; strip c\<^isub>2)" |
+"strip (Aseq c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1;; strip c\<^isub>2)" |
 "strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
 "strip (Awhile I b c) = (WHILE b DO strip c)"
 

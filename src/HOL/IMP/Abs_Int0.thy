@@ -378,7 +378,7 @@ by(simp add: top_on_acom_def post_in_annos)
 lemma top_on_acom_simps:
   "top_on_acom (SKIP {Q}) X = top_on_opt Q X"
   "top_on_acom (x ::= e {Q}) X = top_on_opt Q X"
-  "top_on_acom (C1;C2) X = (top_on_acom C1 X \<and> top_on_acom C2 X)"
+  "top_on_acom (C1;;C2) X = (top_on_acom C1 X \<and> top_on_acom C2 X)"
   "top_on_acom (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) X =
    (top_on_opt P1 X \<and> top_on_acom C1 X \<and> top_on_opt P2 X \<and> top_on_acom C2 X \<and> top_on_opt Q X)"
   "top_on_acom ({I} WHILE b DO {P} C {Q}) X =

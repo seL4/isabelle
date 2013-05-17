@@ -10,25 +10,25 @@ subsection "Liveness Analysis"
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
 "L (x ::= a) X = vars a \<union> (X - {x})" |
-"L (c\<^isub>1; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
+"L (c\<^isub>1;; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
 "L (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> L c\<^isub>1 X \<union> L c\<^isub>2 X" |
 "L (WHILE b DO c) X = vars b \<union> X \<union> L c X"
 
-value "show (L (''y'' ::= V ''z''; ''x'' ::= Plus (V ''y'') (V ''z'')) {''x''})"
+value "show (L (''y'' ::= V ''z'';; ''x'' ::= Plus (V ''y'') (V ''z'')) {''x''})"
 
 value "show (L (WHILE Less (V ''x'') (V ''x'') DO ''y'' ::= V ''z'') {''x''})"
 
 fun "kill" :: "com \<Rightarrow> vname set" where
 "kill SKIP = {}" |
 "kill (x ::= a) = {x}" |
-"kill (c\<^isub>1; c\<^isub>2) = kill c\<^isub>1 \<union> kill c\<^isub>2" |
+"kill (c\<^isub>1;; c\<^isub>2) = kill c\<^isub>1 \<union> kill c\<^isub>2" |
 "kill (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = kill c\<^isub>1 \<inter> kill c\<^isub>2" |
 "kill (WHILE b DO c) = {}"
 
 fun gen :: "com \<Rightarrow> vname set" where
 "gen SKIP = {}" |
 "gen (x ::= a) = vars a" |
-"gen (c\<^isub>1; c\<^isub>2) = gen c\<^isub>1 \<union> (gen c\<^isub>2 - kill c\<^isub>1)" |
+"gen (c\<^isub>1;; c\<^isub>2) = gen c\<^isub>1 \<union> (gen c\<^isub>2 - kill c\<^isub>1)" |
 "gen (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = vars b \<union> gen c\<^isub>1 \<union> gen c\<^isub>2" |
 "gen (WHILE b DO c) = vars b \<union> gen c"
 
@@ -110,7 +110,7 @@ text{* Burying assignments to dead variables: *}
 fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury SKIP X = SKIP" |
 "bury (x ::= a) X = (if x \<in> X then x ::= a else SKIP)" |
-"bury (c\<^isub>1; c\<^isub>2) X = (bury c\<^isub>1 (L c\<^isub>2 X); bury c\<^isub>2 X)" |
+"bury (c\<^isub>1;; c\<^isub>2) X = (bury c\<^isub>1 (L c\<^isub>2 X);; bury c\<^isub>2 X)" |
 "bury (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = IF b THEN bury c\<^isub>1 X ELSE bury c\<^isub>2 X" |
 "bury (WHILE b DO c) X = WHILE b DO bury c (L (WHILE b DO c) X)"
 
@@ -182,8 +182,8 @@ by (cases c) auto
 lemma Assign_bury[simp]: "x::=a = bury c X \<longleftrightarrow> c = x::=a & x : X"
 by (cases c) auto
 
-lemma Seq_bury[simp]: "bc\<^isub>1;bc\<^isub>2 = bury c X \<longleftrightarrow>
-  (EX c\<^isub>1 c\<^isub>2. c = c\<^isub>1;c\<^isub>2 & bc\<^isub>2 = bury c\<^isub>2 X & bc\<^isub>1 = bury c\<^isub>1 (L c\<^isub>2 X))"
+lemma Seq_bury[simp]: "bc\<^isub>1;;bc\<^isub>2 = bury c X \<longleftrightarrow>
+  (EX c\<^isub>1 c\<^isub>2. c = c\<^isub>1;;c\<^isub>2 & bc\<^isub>2 = bury c\<^isub>2 X & bc\<^isub>1 = bury c\<^isub>1 (L c\<^isub>2 X))"
 by (cases c) auto
 
 lemma If_bury[simp]: "IF b THEN bc1 ELSE bc2 = bury c X \<longleftrightarrow>
@@ -205,7 +205,7 @@ next
     by (auto simp: ball_Un)
 next
   case (Seq bc1 s1 s2 bc2 s3 c X t1)
-  then obtain c1 c2 where c: "c = c1;c2"
+  then obtain c1 c2 where c: "c = c1;;c2"
     and bc2: "bc2 = bury c2 X" and bc1: "bc1 = bury c1 (L c2 X)" by auto
   note IH = Seq.hyps(2,4)
   from IH(1)[OF bc1, of t1] Seq.prems c obtain t2 where

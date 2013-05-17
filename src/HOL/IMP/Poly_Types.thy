@@ -26,7 +26,7 @@ where
 inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix "\<turnstile>p" 50) where
 "\<Gamma> \<turnstile>p SKIP" |
 "\<Gamma> \<turnstile>p a : \<Gamma>(x) \<Longrightarrow> \<Gamma> \<turnstile>p x ::= a" |
-"\<Gamma> \<turnstile>p c1 \<Longrightarrow> \<Gamma> \<turnstile>p c2 \<Longrightarrow> \<Gamma> \<turnstile>p c1;c2" |
+"\<Gamma> \<turnstile>p c1 \<Longrightarrow> \<Gamma> \<turnstile>p c2 \<Longrightarrow> \<Gamma> \<turnstile>p c1;;c2" |
 "\<Gamma> \<turnstile>p b \<Longrightarrow> \<Gamma> \<turnstile>p c1 \<Longrightarrow> \<Gamma> \<turnstile>p c2 \<Longrightarrow> \<Gamma> \<turnstile>p IF b THEN c1 ELSE c2" |
 "\<Gamma> \<turnstile>p b \<Longrightarrow> \<Gamma> \<turnstile>p c \<Longrightarrow> \<Gamma> \<turnstile>p WHILE b DO c"
 

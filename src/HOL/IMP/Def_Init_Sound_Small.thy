@@ -40,7 +40,7 @@ proof (induction arbitrary: A rule: small_step_induct)
   then obtain A' where "vars b \<subseteq> dom s" "A = dom s" "D (dom s) c A'" by blast
   moreover
   then obtain A'' where "D A' c A''" by (metis D_incr D_mono)
-  ultimately have "D (dom s) (IF b THEN c; WHILE b DO c ELSE SKIP) (dom s)"
+  ultimately have "D (dom s) (IF b THEN c;; WHILE b DO c ELSE SKIP) (dom s)"
     by (metis D.If[OF `vars b \<subseteq> dom s` D.Seq[OF `D (dom s) c A'` D.While[OF _ `D A' c A''`]] D.Skip] D_incr Int_absorb1 subset_trans)
   thus ?case by (metis D_incr `A = dom s`)
 next

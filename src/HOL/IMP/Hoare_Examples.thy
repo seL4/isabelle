@@ -9,7 +9,7 @@ in variable @{text x}, the loop counter is variable @{text y}. *}
 
 abbreviation "w n ==
   WHILE Less (V ''y'') (N n)
-  DO ( ''y'' ::= Plus (V ''y'') (N 1); ''x'' ::= Plus (V ''x'') (V ''y'') )"
+  DO ( ''y'' ::= Plus (V ''y'') (N 1);; ''x'' ::= Plus (V ''x'') (V ''y'') )"
 
 text{* For this example we make use of some predefined functions.  Function
 @{const Setsum}, also written @{text"\<Sum>"}, sums up the elements of a set. The
@@ -37,7 +37,7 @@ elimination rules that decompose big-step premises.
 Now we prefix the loop with the necessary initialization: *}
 
 lemma sum_via_bigstep:
-assumes "(''x'' ::= N 0; ''y'' ::= N 0; w n, s) \<Rightarrow> t"
+assumes "(''x'' ::= N 0;; ''y'' ::= N 0;; w n, s) \<Rightarrow> t"
 shows "t ''x'' = \<Sum> {1 .. n}"
 proof -
   from assms have "(w n,s(''x'':=0,''y'':=0)) \<Rightarrow> t" by auto
@@ -50,7 +50,7 @@ subsubsection{* Proof by Hoare Logic *}
 text{* Note that we deal with sequences of commands from right to left,
 pulling back the postcondition towards the precondition. *}
 
-lemma "\<turnstile> {\<lambda>s. 0 <= n} ''x'' ::= N 0; ''y'' ::= N 0; w n {\<lambda>s. s ''x'' = \<Sum> {1 .. n}}"
+lemma "\<turnstile> {\<lambda>s. 0 <= n} ''x'' ::= N 0;; ''y'' ::= N 0;; w n {\<lambda>s. s ''x'' = \<Sum> {1 .. n}}"
 apply(rule hoare.Seq)
 prefer 2
 apply(rule While'

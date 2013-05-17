@@ -174,7 +174,7 @@ fun AI :: "com \<Rightarrow> 'a astate up \<Rightarrow> 'a astate up" where
 "AI SKIP S = S" |
 "AI (x ::= a) S =
   (case S of bot \<Rightarrow> bot | Up S \<Rightarrow> Up(update S x (aval' a (Up S))))" |
-"AI (c1;c2) S = AI c2 (AI c1 S)" |
+"AI (c1;;c2) S = AI c2 (AI c1 S)" |
 "AI (IF b THEN c1 ELSE c2) S =
   AI c1 (bfilter b True S) \<squnion> AI c2 (bfilter b False S)" |
 "AI (WHILE b DO c) S =

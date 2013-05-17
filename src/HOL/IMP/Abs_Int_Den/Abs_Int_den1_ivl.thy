@@ -232,7 +232,7 @@ value [code] "list_up(bfilter_ivl (Less (V ''x'') (Plus (N 10) (V ''y''))) True
   (Up(FunDom(Top(''x'':= I (Some 15) (Some 20),''y'':= I (Some 5) (Some 7)))[''x'', ''y''])))"
 
 definition "test_ivl1 =
- ''y'' ::= N 7;
+ ''y'' ::= N 7;;
  IF Less (V ''x'') (V ''y'')
  THEN ''y'' ::= Plus (V ''y'') (V ''x'')
  ELSE ''x'' ::= Plus (V ''x'') (V ''y'')"
@@ -245,25 +245,25 @@ value "list_up (AI_ivl test5_const Top)"
 value "list_up (AI_ivl test6_const Top)"
 
 definition "test2_ivl =
- ''y'' ::= N 7;
+ ''y'' ::= N 7;;
  WHILE Less (V ''x'') (N 100) DO ''y'' ::= Plus (V ''y'') (N 1)"
 value [code] "list_up(AI_ivl test2_ivl Top)"
 
 definition "test3_ivl =
- ''x'' ::= N 0; ''y'' ::= N 100; ''z'' ::= Plus (V ''x'') (V ''y'');
+ ''x'' ::= N 0;; ''y'' ::= N 100;; ''z'' ::= Plus (V ''x'') (V ''y'');;
  WHILE Less (V ''x'') (N 11)
- DO (''x'' ::= Plus (V ''x'') (N 1); ''y'' ::= Plus (V ''y'') (N -1))"
+ DO (''x'' ::= Plus (V ''x'') (N 1);; ''y'' ::= Plus (V ''y'') (N -1))"
 value [code] "list_up(AI_ivl test3_ivl Top)"
 
 definition "test4_ivl =
- ''x'' ::= N 0; ''y'' ::= N 0;
+ ''x'' ::= N 0;; ''y'' ::= N 0;;
  WHILE Less (V ''x'') (N 1001)
- DO (''y'' ::= V ''x''; ''x'' ::= Plus (V ''x'') (N 1))"
+ DO (''y'' ::= V ''x'';; ''x'' ::= Plus (V ''x'') (N 1))"
 value [code] "list_up(AI_ivl test4_ivl Top)"
 
 text{* Nontermination not detected: *}
 definition "test5_ivl =
- ''x'' ::= N 0;
+ ''x'' ::= N 0;;
  WHILE Less (V ''x'') (N 1) DO ''x'' ::= Plus (V ''x'') (N -1)"
 value [code] "list_up(AI_ivl test5_ivl Top)"
 

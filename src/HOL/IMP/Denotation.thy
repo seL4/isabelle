@@ -14,7 +14,7 @@ definition
 fun C :: "com \<Rightarrow> com_den" where
 "C SKIP   = Id" |
 "C (x ::= a) = {(s,t). t = s(x := aval a s)}" |
-"C (c0;c1)   = C(c0) O C(c1)" |
+"C (c0;;c1)   = C(c0) O C(c1)" |
 "C (IF b THEN c1 ELSE c2) = {(s,t). (s,t) \<in> C c1 \<and> bval b s} \<union>
                             {(s,t). (s,t) \<in> C c2 \<and> \<not>bval b s}" |
 "C(WHILE b DO c) = lfp (Gamma b (C c))"
@@ -23,7 +23,7 @@ fun C :: "com \<Rightarrow> com_den" where
 lemma Gamma_mono: "mono (Gamma b c)"
 by (unfold Gamma_def mono_def) fast
 
-lemma C_While_If: "C(WHILE b DO c) = C(IF b THEN c;WHILE b DO c ELSE SKIP)"
+lemma C_While_If: "C(WHILE b DO c) = C(IF b THEN c;;WHILE b DO c ELSE SKIP)"
 apply simp
 apply (subst lfp_unfold [OF Gamma_mono])  --{*lhs only*}
 apply (simp add: Gamma_def)

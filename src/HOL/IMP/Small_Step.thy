@@ -10,14 +10,14 @@ inductive
 where
 Assign:  "(x ::= a, s) \<rightarrow> (SKIP, s(x := aval a s))" |
 
-Seq1:    "(SKIP;c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
-Seq2:    "(c\<^isub>1,s) \<rightarrow> (c\<^isub>1',s') \<Longrightarrow> (c\<^isub>1;c\<^isub>2,s) \<rightarrow> (c\<^isub>1';c\<^isub>2,s')" |
+Seq1:    "(SKIP;;c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
+Seq2:    "(c\<^isub>1,s) \<rightarrow> (c\<^isub>1',s') \<Longrightarrow> (c\<^isub>1;;c\<^isub>2,s) \<rightarrow> (c\<^isub>1';;c\<^isub>2,s')" |
 
 IfTrue:  "bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>1,s)" |
 IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
 
 While:   "(WHILE b DO c,s) \<rightarrow>
-            (IF b THEN c; WHILE b DO c ELSE SKIP,s)"
+            (IF b THEN c;; WHILE b DO c ELSE SKIP,s)"
 text_raw{*}%endsnip*}
 
 
@@ -30,7 +30,7 @@ subsection{* Executability *}
 code_pred small_step .
 
 values "{(c',map t [''x'',''y'',''z'']) |c' t.
-   (''x'' ::= V ''z''; ''y'' ::= V ''x'',
+   (''x'' ::= V ''z'';; ''y'' ::= V ''x'',
     <''x'' := 3, ''y'' := 7, ''z'' := 5>) \<rightarrow>* (c',t)}"
 
 
@@ -56,7 +56,7 @@ inductive_cases SkipE[elim!]: "(SKIP,s) \<rightarrow> ct"
 thm SkipE
 inductive_cases AssignE[elim!]: "(x::=a,s) \<rightarrow> ct"
 thm AssignE
-inductive_cases SeqE[elim]: "(c1;c2,s) \<rightarrow> ct"
+inductive_cases SeqE[elim]: "(c1;;c2,s) \<rightarrow> ct"
 thm SeqE
 inductive_cases IfE[elim!]: "(IF b THEN c1 ELSE c2,s) \<rightarrow> ct"
 inductive_cases WhileE[elim]: "(WHILE b DO c, s) \<rightarrow> ct"
@@ -72,7 +72,7 @@ done
 
 subsection "Equivalence with big-step semantics"
 
-lemma star_seq2: "(c1,s) \<rightarrow>* (c1',s') \<Longrightarrow> (c1;c2,s) \<rightarrow>* (c1';c2,s')"
+lemma star_seq2: "(c1,s) \<rightarrow>* (c1',s') \<Longrightarrow> (c1;;c2,s) \<rightarrow>* (c1';;c2,s')"
 proof(induction rule: star_induct)
   case refl thus ?case by simp
 next
@@ -82,7 +82,7 @@ qed
 
 lemma seq_comp:
   "\<lbrakk> (c1,s1) \<rightarrow>* (SKIP,s2); (c2,s2) \<rightarrow>* (SKIP,s3) \<rbrakk>
-   \<Longrightarrow> (c1;c2, s1) \<rightarrow>* (SKIP,s3)"
+   \<Longrightarrow> (c1;;c2, s1) \<rightarrow>* (SKIP,s3)"
 by(blast intro: star.step star_seq2 star_trans)
 
 text{* The following proof corresponds to one on the board where one would
@@ -97,7 +97,7 @@ next
 next
   fix c1 c2 s1 s2 s3
   assume "(c1,s1) \<rightarrow>* (SKIP,s2)" and "(c2,s2) \<rightarrow>* (SKIP,s3)"
-  thus "(c1;c2, s1) \<rightarrow>* (SKIP,s3)" by (rule seq_comp)
+  thus "(c1;;c2, s1) \<rightarrow>* (SKIP,s3)" by (rule seq_comp)
 next
   fix s::state and b c0 c1 t
   assume "bval b s"
@@ -115,20 +115,20 @@ next
 next
   fix b c and s::state
   assume b: "\<not>bval b s"
-  let ?if = "IF b THEN c; WHILE b DO c ELSE SKIP"
+  let ?if = "IF b THEN c;; WHILE b DO c ELSE SKIP"
   have "(WHILE b DO c,s) \<rightarrow> (?if, s)" by blast
   moreover have "(?if,s) \<rightarrow> (SKIP, s)" by (simp add: b)
   ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,s)" by(metis star.refl star.step)
 next
   fix b c s s' t
   let ?w  = "WHILE b DO c"
-  let ?if = "IF b THEN c; ?w ELSE SKIP"
+  let ?if = "IF b THEN c;; ?w ELSE SKIP"
   assume w: "(?w,s') \<rightarrow>* (SKIP,t)"
   assume c: "(c,s) \<rightarrow>* (SKIP,s')"
   assume b: "bval b s"
   have "(?w,s) \<rightarrow> (?if, s)" by blast
-  moreover have "(?if, s) \<rightarrow> (c; ?w, s)" by (simp add: b)
-  moreover have "(c; ?w,s) \<rightarrow>* (SKIP,t)" by(rule seq_comp[OF c w])
+  moreover have "(?if, s) \<rightarrow> (c;; ?w, s)" by (simp add: b)
+  moreover have "(c;; ?w,s) \<rightarrow>* (SKIP,t)" by(rule seq_comp[OF c w])
   ultimately show "(WHILE b DO c,s) \<rightarrow>* (SKIP,t)" by (metis star.simps)
 qed
 

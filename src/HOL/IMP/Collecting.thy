@@ -19,7 +19,7 @@ fun Step :: "'a \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
 "Step S (SKIP {Q}) = (SKIP {S})" |
 "Step S (x ::= e {Q}) =
   x ::= e {f x e S}" |
-"Step S (C1; C2) = Step S C1; Step (post C1) C2" |
+"Step S (C1;; C2) = Step S C1;; Step (post C1) C2" |
 "Step S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
   IF b THEN {g b S} Step P1 C1 ELSE {g (Not b) S} Step P2 C2
   {post C1 \<squnion> post C2}" |
@@ -69,7 +69,7 @@ by (cases c) (auto simp:less_eq_acom_def anno_def)
 lemma Assign_le[simp]: "x ::= e {S} \<le> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<le> S')"
 by (cases c) (auto simp:less_eq_acom_def anno_def)
 
-lemma Seq_le[simp]: "C1;C2 \<le> C \<longleftrightarrow> (\<exists>C1' C2'. C = C1';C2' \<and> C1 \<le> C1' \<and> C2 \<le> C2')"
+lemma Seq_le[simp]: "C1;;C2 \<le> C \<longleftrightarrow> (\<exists>C1' C2'. C = C1';;C2' \<and> C1 \<le> C1' \<and> C2 \<le> C2')"
 apply (cases C)
 apply(auto simp: less_eq_acom_annos list_all2_append size_annos_same2)
 done

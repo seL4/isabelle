@@ -72,7 +72,7 @@ begin
 fun le_acom :: "('a::preord)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
 "le_acom (SKIP {S}) (SKIP {S'}) = (S \<sqsubseteq> S')" |
 "le_acom (x ::= e {S}) (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<sqsubseteq> S')" |
-"le_acom (c1;c2) (c1';c2') = (le_acom c1 c1' \<and> le_acom c2 c2')" |
+"le_acom (c1;;c2) (c1';;c2') = (le_acom c1 c1' \<and> le_acom c2 c2')" |
 "le_acom (IF b THEN c1 ELSE c2 {S}) (IF b' THEN c1' ELSE c2' {S'}) =
   (b=b' \<and> le_acom c1 c1' \<and> le_acom c2 c2' \<and> S \<sqsubseteq> S')" |
 "le_acom ({Inv} WHILE b DO c {P}) ({Inv'} WHILE b' DO c' {P'}) =
@@ -85,7 +85,7 @@ by (cases c) auto
 lemma [simp]: "x ::= e {S} \<sqsubseteq> c \<longleftrightarrow> (\<exists>S'. c = x ::= e {S'} \<and> S \<sqsubseteq> S')"
 by (cases c) auto
 
-lemma [simp]: "c1;c2 \<sqsubseteq> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';c2' \<and> c1 \<sqsubseteq> c1' \<and> c2 \<sqsubseteq> c2')"
+lemma [simp]: "c1;;c2 \<sqsubseteq> c \<longleftrightarrow> (\<exists>c1' c2'. c = c1';;c2' \<and> c1 \<sqsubseteq> c1' \<and> c2 \<sqsubseteq> c2')"
 by (cases c) auto
 
 lemma [simp]: "IF b THEN c1 ELSE c2 {S} \<sqsubseteq> c \<longleftrightarrow>
@@ -263,7 +263,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
 "step' S (SKIP {P}) = (SKIP {S})" |
 "step' S (x ::= e {P}) =
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
-"step' S (c1; c2) = step' S c1; step' (post c1) c2" |
+"step' S (c1;; c2) = step' S c1;; step' (post c1) c2" |
 "step' S (IF b THEN c1 ELSE c2 {P}) =
    IF b THEN step' S c1 ELSE step' S c2 {post c1 \<squnion> post c2}" |
 "step' S ({Inv} WHILE b DO c {P}) =
