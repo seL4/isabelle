@@ -28,9 +28,11 @@ fun timeLimit timeout f x =
         Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
 
       val was_timeout = not (Event_Timer.cancel request);
+      val test = Exn.capture Multithreading.interrupted ();
     in
-      if was_timeout andalso Exn.is_interrupt_exn result
+      if was_timeout andalso (Exn.is_interrupt_exn result orelse Exn.is_interrupt_exn test)
       then raise TimeOut
+      else if Exn.is_interrupt_exn test then Exn.interrupt ()
       else Exn.release result
     end);
 
