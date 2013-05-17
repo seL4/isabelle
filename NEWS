@@ -235,6 +235,9 @@ INCOMPATIBILITY, use @{context} instead.
 * Discontinued obsolete isabelle usedir, mkdir, make -- superseded by
 "isabelle build" in Isabelle2013.  INCOMPATIBILITY.
 
+* Discontinued obsolete isabelle-process options -f and -u (former
+administrative aliases of option -e).  Minor INCOMPATIBILITY.
+
 * Isabelle settings variable ISABELLE_BUILD_JAVA_OPTIONS allows to
 specify global resources of the JVM process run by isabelle build.
 

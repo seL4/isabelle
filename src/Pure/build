@@ -79,7 +79,8 @@ else
     "$ISABELLE_PROCESS" \
       -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => Posix.Process.exit 0w1;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
-      -f -q -w RAW_ML_SYSTEM "$OUTPUT"
+      -e "Command_Line.tool0 Session.finish;" \
+      -q -w RAW_ML_SYSTEM "$OUTPUT"
   fi
 fi
 

@@ -378,11 +378,9 @@ Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
     -T ADDR      startup process wrapper, with socket address
     -W IN:OUT    startup process wrapper, with input/output fifos
     -e MLTEXT    pass MLTEXT to the ML session
-    -f           pass 'Session.finish();' to the ML session
     -m MODE      add print mode for output
     -q           non-interactive session
     -r           open heap file read-only
-    -u           pass 'use"ROOT.ML";' to the ML session
     -w           reset write permissions on OUTPUT
 
   INPUT (default "\$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
@@ -429,12 +427,6 @@ text {*
   @{verbatim "-e"}'s are evaluated in the given order. Strange things
   may happen when errorneous ML code is provided. Also make sure that
   the ML commands are terminated properly by semicolon.
-
-  \medskip The @{verbatim "-u"} option is a shortcut for @{verbatim
-  "-e"} passing ``@{verbatim "use \"ROOT.ML\";"}'' to the ML session.
-  The @{verbatim "-f"} option passes ``@{verbatim
-  "Session.finish();"}'', which is intended mainly for administrative
-  purposes.
 
   \medskip The @{verbatim "-m"} option adds identifiers of print modes
   to be made active for this session. Typically, this is used by some

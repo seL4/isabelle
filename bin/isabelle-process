@@ -32,11 +32,9 @@ function usage()
   echo "    -T ADDR      startup process wrapper, with socket address"
   echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
-  echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
-  echo "    -u           pass 'use\"ROOT.ML\";' to the ML session"
   echo "    -w           reset write permissions on OUTPUT"
   echo
   echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
@@ -69,7 +67,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPST:W:e:fm:qruw" OPT
+while getopts "IPST:W:e:m:qrw" OPT
 do
   case "$OPT" in
     I)
@@ -90,9 +88,6 @@ do
     e)
       MLTEXT="$MLTEXT $OPTARG"
       ;;
-    f)
-      MLTEXT="$MLTEXT Command_Line.tool0 Session.finish;"
-      ;;
     m)
       if [ -z "$MODES" ]; then
         MODES="\"$OPTARG\""
@@ -105,9 +100,6 @@ do
       ;;
     r)
       READONLY=true
-      ;;
-    u)
-      MLTEXT="$MLTEXT use\"ROOT.ML\";"
       ;;
     w)
       NOWRITE=true
