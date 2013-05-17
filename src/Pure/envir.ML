@@ -128,8 +128,8 @@ fun update ((xi, T), t) (Envir {maxidx, tenv, tyenv}) =
 
 (*Determine if the least index updated exceeds lim*)
 fun above (Envir {tenv, tyenv, ...}) lim =
-  (case Vartab.min_key tenv of SOME (_, i) => i > lim | NONE => true) andalso
-  (case Vartab.min_key tyenv of SOME (_, i) => i > lim | NONE => true);
+  (case Vartab.min tenv of SOME ((_, i), _) => i > lim | NONE => true) andalso
+  (case Vartab.min tyenv of SOME ((_, i), _) => i > lim | NONE => true);
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
 fun vupdate (aU as (a, U), t) (env as Envir {tyenv, ...}) =

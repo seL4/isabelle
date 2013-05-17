@@ -263,11 +263,11 @@ fun v_elem_at v i = Inttab.lookup v i
 fun m_elem_at m i = Inttab.lookup m i
 
 fun v_only_elem v =
-    case Inttab.min_key v of
+    case Inttab.min v of
         NONE => NONE
-      | SOME vmin => (case Inttab.max_key v of
+      | SOME (vmin, _) => (case Inttab.max v of
                           NONE => SOME vmin
-                        | SOME vmax => if vmin = vmax then SOME vmin else NONE)
+                        | SOME (vmax, _) => if vmin = vmax then SOME vmin else NONE)
 
 fun v_fold f = Inttab.fold f;
 fun m_fold f = Inttab.fold f;

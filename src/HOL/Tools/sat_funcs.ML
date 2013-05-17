@@ -365,7 +365,7 @@ fun rawsat_thm ctxt clauses =
             (* [[c_1 && ... && c_n] |- c_1, ..., [c_1 && ... && c_n] |- c_n] *)
             val cnf_clauses = Conjunction.elim_balanced (length sorted_clauses) cnf_thm
             (* initialize the clause array with the given clauses *)
-            val max_idx = the (Inttab.max_key clause_table)
+            val max_idx = fst (the (Inttab.max clause_table))
             val clause_arr = Array.array (max_idx + 1, NO_CLAUSE)
             val _ =
               fold (fn thm => fn idx => (Array.update (clause_arr, idx, ORIG_CLAUSE thm); idx+1))

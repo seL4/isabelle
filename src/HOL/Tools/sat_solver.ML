@@ -856,8 +856,8 @@ let
               val _   = if !empty_id = ~1 then () else raise INVALID_PROOF ("File format error: \"VAR:\" disallowed after \"CONF:\".")
               (* set 'clause_offset' to the largest used clause ID *)
               val _   = if !clause_offset = ~1 then clause_offset :=
-                (case Inttab.max_key (!clause_table) of
-                  SOME id => id
+                (case Inttab.max (!clause_table) of
+                  SOME (id, _) => id
                 | NONE => cnf_number_of_clauses (Prop_Logic.defcnf fm) - 1  (* the first clause ID is 0, not 1 *))
                 else
                   ()
@@ -899,7 +899,7 @@ let
               (* for its literals to obtain the empty clause                *)
               val vids         = map (fn l => l div 2) ls
               val rs           = cid :: map (fn v => !clause_offset + v) vids
-              val new_empty_id = the_default (!clause_offset) (Inttab.max_key (!clause_table)) + 1
+              val new_empty_id = the_default (!clause_offset) (Option.map fst (Inttab.max (!clause_table))) + 1
             in
               (* update clause table and conflict id *)
               clause_table := Inttab.update_new (new_empty_id, rs) (!clause_table)

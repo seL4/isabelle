@@ -44,9 +44,10 @@ fun combine f z a b =
         in if z w then Tab.delete k t else Tab.update (k,w) t end;
   in Tab.fold h a b end;
 
-fun choose f = case Tab.min_key f of
-    SOME k => (k, the (Tab.lookup f k))
-  | NONE => error "FuncFun.choose : Completely empty function"
+fun choose f =
+  (case Tab.min f of
+    SOME entry => entry
+  | NONE => error "FuncFun.choose : Completely empty function")
 
 fun onefunc kv = update kv empty
 

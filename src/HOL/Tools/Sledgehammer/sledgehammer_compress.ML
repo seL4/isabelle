@@ -42,7 +42,7 @@ fun pop tab key =
   (let val v = hd (Inttab.lookup_list tab key) in
     (v, Inttab.remove_list (op =) (key, v) tab)
   end) handle List.Empty => raise Fail "sledgehammer_compress: pop"
-fun pop_max tab = pop tab (the (Inttab.max_key tab))
+fun pop_max tab = pop tab (fst (the (Inttab.max tab)))
   handle Option.Option => raise Fail "sledgehammer_compress: pop_max"
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
