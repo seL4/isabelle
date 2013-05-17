@@ -101,6 +101,7 @@ Usage: isabelle tty [OPTIONS]
   Options are:
     -l NAME      logic image name (default ISABELLE_LOGIC)
     -m MODE      add print mode for output
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NAME      line editor program name (default ISABELLE_LINE_EDITOR)
 
   Run Isabelle process with plain tty interaction and line editor.
@@ -111,6 +112,9 @@ Usage: isabelle tty [OPTIONS]
   @{verbatim "-p"} option specifies an alternative line editor (such
   as the @{executable_def rlwrap} wrapper for GNU readline); the
   fall-back is to use raw standard input.
+
+  \medskip Option @{verbatim "-o"} allows to override Isabelle system
+  options for this process, see also \secref{sec:system-options}.
 
   Regular interaction works via the standard Isabelle/Isar toplevel
   loop.  The Isar command @{command exit} drops out into the

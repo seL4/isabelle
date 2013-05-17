@@ -14,6 +14,7 @@ function usage()
   echo "  Options are:"
   echo "    -l NAME      logic image name (default ISABELLE_LOGIC=\"$ISABELLE_LOGIC\")"
   echo "    -m MODE      add print mode for output"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -p NAME      line editor program name"
   echo "                 (default ISABELLE_LINE_EDITOR=\"$ISABELLE_LINE_EDITOR\")"
   echo
@@ -33,18 +34,24 @@ function fail()
 
 # options
 
-ISABELLE_OPTIONS="-I"
+declare -a ISABELLE_OPTIONS=("-I")
+
 LOGIC=""
 LINE_EDITOR="$ISABELLE_LINE_EDITOR"
 
-while getopts "l:m:p:" OPT
+while getopts "l:m:p:o:" OPT
 do
   case "$OPT" in
     l)
       LOGIC="$OPTARG"
       ;;
     m)
-      ISABELLE_OPTIONS="$ISABELLE_OPTIONS -m $OPTARG"
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-m"
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
+      ;;
+    o)
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="-o"
+      ISABELLE_OPTIONS["${#ISABELLE_OPTIONS[@]}"]="$OPTARG"
       ;;
     p)
       LINE_EDITOR="$OPTARG"
@@ -66,7 +73,7 @@ shift $(($OPTIND - 1))
 ## main
 
 if [ -n "$LINE_EDITOR" ]; then
-  exec "$LINE_EDITOR" "$ISABELLE_PROCESS" $ISABELLE_OPTIONS "$LOGIC"
+  exec "$LINE_EDITOR" "$ISABELLE_PROCESS" "${ISABELLE_OPTIONS[@]}" -- "$LOGIC"
 else
-  exec "$ISABELLE_PROCESS" $ISABELLE_OPTIONS "$LOGIC"
+  exec "$ISABELLE_PROCESS" "${ISABELLE_OPTIONS[@]}" -- "$LOGIC"
 fi
