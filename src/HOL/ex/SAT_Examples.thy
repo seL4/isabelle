@@ -11,7 +11,7 @@ begin
 (* ML {* sat.solver := "zchaff_with_proofs"; *} *)
 (* ML {* sat.solver := "minisat_with_proofs"; *} *)
 ML {* sat.trace_sat := true; *}
-ML {* quick_and_dirty := true; *}
+declare [[quick_and_dirty]]
 
 lemma "True"
 by sat
@@ -78,7 +78,7 @@ lemma "(ALL x. P x) | ~ All P"
 by sat
 
 ML {* sat.trace_sat := false; *}
-ML {* quick_and_dirty := false; *}
+declare [[quick_and_dirty = false]]
 
 method_setup rawsat = {*
   Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac)
@@ -522,8 +522,9 @@ the number of resolution steps in the proof.
 (* ML {*
 sat.solver := "zchaff_with_proofs";
 sat.trace_sat := false;
-quick_and_dirty := false;
-*} *)
+*}
+declare [[quick_and_dirty = false]]
+*)
 
 ML {*
 fun benchmark dimacsfile =

@@ -168,7 +168,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       mk_comp_bd_cinfinite_tac (bd_cinfinite_of_bnf inner) (bd_cinfinite_of_bnf outer);
 
     val set_alt_thms =
-      if ! quick_and_dirty then
+      if Config.get lthy quick_and_dirty then
         []
       else
         map (fn goal =>
@@ -182,7 +182,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       mk_comp_map_cong0_tac set_alt_thms (map_cong0_of_bnf outer) (map map_cong0_of_bnf inners);
 
     val set_bd_tacs =
-      if ! quick_and_dirty then
+      if Config.get lthy quick_and_dirty then
         replicate ilive (K all_tac)
       else
         let
@@ -402,7 +402,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun map_cong0_tac {context = ctxt, prems = _} =
       rtac (map_cong0_of_bnf bnf) 1 THEN REPEAT_DETERM_N live (Goal.assume_rule_tac ctxt 1);
     val set_map_tacs =
-      if ! quick_and_dirty then
+      if Config.get lthy quick_and_dirty then
         replicate (n + live) (K all_tac)
       else
         replicate n (K empty_natural_tac) @
@@ -410,7 +410,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun bd_card_order_tac _ = rtac (bd_card_order_of_bnf bnf) 1;
     fun bd_cinfinite_tac _ = rtac (bd_cinfinite_of_bnf bnf) 1;
     val set_bd_tacs =
-      if ! quick_and_dirty then
+      if Config.get lthy quick_and_dirty then
         replicate (n + live) (K all_tac)
       else
         replicate n (K (mk_lift_set_bd_tac (bd_Card_order_of_bnf bnf))) @

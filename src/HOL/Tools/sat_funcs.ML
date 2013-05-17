@@ -41,8 +41,8 @@ Proof reconstruction from SAT solvers.
   dependent) configuration settings.  To replay SAT proofs in Isabelle, you
   must of course use a proof-producing SAT solver in the first place.
 
-  Proofs are replayed only if "!quick_and_dirty" is false.  If
-  "!quick_and_dirty" is true, the theorem (in case the SAT solver claims its
+  Proofs are replayed only if "quick_and_dirty" is false.  If
+  "quick_and_dirty" is true, the theorem (in case the SAT solver claims its
   negation to be unsatisfiable) is proved via an oracle.
 *)
 
@@ -351,7 +351,7 @@ fun rawsat_thm ctxt clauses =
               (Inttab.dest clause_table) ^ "\n" ^
             "empty clause: " ^ string_of_int empty_id)
         else ();
-        if !quick_and_dirty then
+        if Config.get ctxt quick_and_dirty then
           make_quick_and_dirty_thm ()
         else
           let
@@ -378,7 +378,7 @@ fun rawsat_thm ctxt clauses =
             Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm
           end)
     | SatSolver.UNSATISFIABLE NONE =>
-        if !quick_and_dirty then
+        if Config.get ctxt quick_and_dirty then
          (warning "SAT solver claims the formula to be unsatisfiable, but did not provide a proof";
           make_quick_and_dirty_thm ())
         else

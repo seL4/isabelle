@@ -20,7 +20,7 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val cheating: bool -> method
+  val cheating: Proof.context -> bool -> method
   val intro: thm list -> method
   val elim: thm list -> method
   val unfold: thm list -> Proof.context -> method
@@ -127,8 +127,8 @@ end;
 
 (* cheating *)
 
-fun cheating int = METHOD (fn _ => fn st =>
-  if int orelse ! quick_and_dirty then
+fun cheating ctxt int = METHOD (fn _ => fn st =>
+  if int orelse Config.get ctxt quick_and_dirty then
     ALLGOALS Skip_Proof.cheat_tac st
   else error "Cheating requires quick_and_dirty mode!");
 
@@ -296,7 +296,7 @@ val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
-fun sorry_text int = Basic (K (cheating int));
+fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
   | finish_text (SOME txt, immed) = Then [txt, Basic (finish immed)];

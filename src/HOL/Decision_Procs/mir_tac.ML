@@ -132,7 +132,7 @@ fun mir_tac ctxt q =
         Const ("==>", _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
     let val pth =
           (* If quick_and_dirty then run without proof generation as oracle*)
-             if !quick_and_dirty
+             if Config.get ctxt quick_and_dirty
              then mirfr_oracle (false, cterm_of thy (Pattern.eta_long [] t1))
              else mirfr_oracle (true, cterm_of thy (Pattern.eta_long [] t1))
     in 

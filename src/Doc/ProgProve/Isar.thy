@@ -2,7 +2,7 @@
 theory Isar
 imports LaTeXsugar
 begin
-ML{* quick_and_dirty := true *}
+declare [[quick_and_dirty]]
 (*>*)
 text{*
 Apply-scripts are unreadable and hard to maintain. The language of choice

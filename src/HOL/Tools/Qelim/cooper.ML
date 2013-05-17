@@ -850,7 +850,7 @@ end;
 fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
    let
     val cpth = 
-       if !quick_and_dirty 
+       if Config.get ctxt quick_and_dirty
        then oracle (ctxt, Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p
     val p' = Thm.rhs_of cpth

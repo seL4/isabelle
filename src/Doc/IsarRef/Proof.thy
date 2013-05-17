@@ -668,8 +668,8 @@ text {*
   
   \item @{command "sorry"} is a \emph{fake proof}\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
-  only works in interactive development, or if the @{ML
-  quick_and_dirty} flag is enabled (in ML).  Facts emerging from fake
+  only works in interactive development, or if the @{attribute
+  quick_and_dirty} is enabled.  Facts emerging from fake
   proofs are not the real thing.  Internally, the derivation object is
   tainted by an oracle invocation, which may be inspected via the
   theorem status \cite{isabelle-implementation}.

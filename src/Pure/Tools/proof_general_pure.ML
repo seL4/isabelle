@@ -131,9 +131,9 @@ val _ =
 (* proof *)
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_proof
+  ProofGeneral.preference_option ProofGeneral.category_proof
     (SOME "true")
-    quick_and_dirty
+    @{option quick_and_dirty}
     "quick-and-dirty"
     "Take a few short cuts";
 

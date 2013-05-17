@@ -116,7 +116,9 @@ val simp_thms3 =
 (** misc utilities **)
 
 fun message quiet_mode s = if quiet_mode then () else writeln s;
-fun clean_message quiet_mode s = if ! quick_and_dirty then () else message quiet_mode s;
+
+fun clean_message ctxt quiet_mode s =
+  if Config.get ctxt quick_and_dirty then () else message quiet_mode s;
 
 fun coind_prefix true = "co"
   | coind_prefix false = "";
@@ -361,7 +363,7 @@ end;
 (* prove monotonicity *)
 
 fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
- (message (quiet_mode orelse skip_mono andalso ! quick_and_dirty)
+ (message (quiet_mode orelse skip_mono andalso Config.get ctxt quick_and_dirty)
     "  Proving monotonicity ...";
   (if skip_mono then Goal.prove_sorry else Goal.prove_future) ctxt
     [] []
@@ -379,7 +381,7 @@ fun prove_mono quiet_mode skip_mono predT fp_fun monos ctxt =
 
 fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt' =
   let
-    val _ = clean_message quiet_mode "  Proving the introduction rules ...";
+    val _ = clean_message ctxt quiet_mode "  Proving the introduction rules ...";
 
     val unfold = funpow k (fn th => th RS fun_cong)
       (mono RS (fp_def RS
@@ -404,7 +406,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
 
 fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ctxt ctxt''' =
   let
-    val _ = clean_message quiet_mode "  Proving the elimination rules ...";
+    val _ = clean_message ctxt quiet_mode "  Proving the elimination rules ...";
 
     val ([pname], ctxt') = Variable.variant_fixes ["P"] ctxt;
     val P = HOLogic.mk_Trueprop (Free (pname, HOLogic.boolT));
@@ -453,7 +455,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
 fun prove_eqs quiet_mode cs params intr_ts intrs
     (elims: (thm * bstring list * int) list) ctxt ctxt'' =  (* FIXME ctxt'' ?? *)
   let
-    val _ = clean_message quiet_mode "  Proving the simplification rules ...";
+    val _ = clean_message ctxt quiet_mode "  Proving the simplification rules ...";
 
     fun dest_intr r =
       (the (dest_predicate cs params (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))),
@@ -640,7 +642,7 @@ val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
 fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     fp_def rec_preds_defs ctxt ctxt''' =  (* FIXME ctxt''' ?? *)
   let
-    val _ = clean_message quiet_mode "  Proving the induction rule ...";
+    val _ = clean_message ctxt quiet_mode "  Proving the induction rule ...";
 
     (* predicates for induction rule *)
 

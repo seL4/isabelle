@@ -6,9 +6,6 @@ struct
   val is_official = false;
 end;
 
-(*if true then some tools will OMIT some proofs*)
-val quick_and_dirty = Unsynchronized.ref false;
-
 print_depth 10;
 
 
@@ -117,6 +114,9 @@ use "term.ML";
 use "context.ML";
 use "context_position.ML";
 use "config.ML";
+
+val quick_and_dirty_raw = Config.declare_option "quick_and_dirty";
+val quick_and_dirty = Config.bool quick_and_dirty_raw;
 
 
 (* inner syntax *)
