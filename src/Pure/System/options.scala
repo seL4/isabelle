@@ -29,7 +29,7 @@ object Options
   case object String extends Type
   case object Unknown extends Type
 
-  case class Opt(name: String, typ: Type, value: String, default_value: String,
+  case class Opt(public: Boolean, name: String, typ: Type, value: String, default_value: String,
     description: String, section: String)
   {
     private def print(default: Boolean): String =
@@ -61,6 +61,7 @@ object Options
   /* parsing */
 
   private val SECTION = "section"
+  private val PUBLIC = "public"
   private val OPTION = "option"
   private val OPTIONS = Path.explode("etc/options")
   private val PREFS_DIR = Path.explode("$ISABELLE_HOME_USER/etc")
@@ -69,7 +70,7 @@ object Options
 
   lazy val options_syntax =
     Outer_Syntax.init() + ":" + "=" + "--" +
-      (SECTION, Keyword.THY_HEADING2) + (OPTION, Keyword.THY_DECL)
+      (SECTION, Keyword.THY_HEADING2) + (PUBLIC, Keyword.THY_DECL) + (OPTION, Keyword.THY_DECL)
 
   lazy val prefs_syntax = Outer_Syntax.init() + "="
 
@@ -86,9 +87,10 @@ object Options
     {
       command(SECTION) ~! text ^^
         { case _ ~ a => (options: Options) => options.set_section(a) } |
-      command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
+      opt(command(PUBLIC)) ~ command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case _ ~ (a ~ _ ~ b ~ _ ~ c ~ d) => (options: Options) => options.declare(a, b, c, d) }
+        { case a ~ _ ~ (b ~ _ ~ c ~ _ ~ d ~ e) =>
+            (options: Options) => options.declare(a.isDefined, b, c, d, e) }
     }
 
     val prefs_entry: Parser[Options => Options] =
@@ -250,7 +252,8 @@ final class Options private(
     }
   }
 
-  def declare(name: String, typ_name: String, value: String, description: String = ""): Options =
+  def declare(public: Boolean, name: String, typ_name: String, value: String, description: String)
+    : Options =
   {
     options.get(name) match {
       case Some(_) => error("Duplicate declaration of option " + quote(name))
@@ -263,7 +266,7 @@ final class Options private(
             case "string" => Options.String
             case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
           }
-        val opt = Options.Opt(name, typ, value, value, description, section)
+        val opt = Options.Opt(public, name, typ, value, value, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
@@ -273,7 +276,8 @@ final class Options private(
     if (options.isDefinedAt(name)) this + (name, value)
     else
       new Options(
-        options + (name -> Options.Opt(name, Options.Unknown, value, value, "", "")), section)
+        options +
+          (name -> Options.Opt(false, name, Options.Unknown, value, value, "", "")), section)
   }
 
   def + (name: String, value: String): Options =

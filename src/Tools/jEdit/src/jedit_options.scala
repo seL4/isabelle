@@ -25,6 +25,11 @@ trait Option_Component extends Component
   def save(): Unit
 }
 
+object JEdit_Options
+{
+  val RENDERING_SECTION = "Rendering of Document Content"
+}
+
 class JEdit_Options extends Options_Variable
 {
   def color_value(s: String): Color = Color_Value(string(s))

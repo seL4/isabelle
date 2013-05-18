@@ -65,15 +65,15 @@ option print_mode : string = ""
 
 section "Parallel Checking"
 
-option threads : int = 0
+public option threads : int = 0
   -- "maximum number of worker threads for prover process (0 = hardware max.)"
-option threads_trace : int = 0
+public option threads_trace : int = 0
   -- "level of tracing information for multithreading"
-option parallel_proofs : int = 2
+public option parallel_proofs : int = 2
   -- "level of parallel proof checking: 0, 1, 2"
-option parallel_subproofs_saturation : int = 100
+public option parallel_subproofs_saturation : int = 100
   -- "upper bound for forks of nested proofs (multiplied by worker threads)"
-option parallel_subproofs_threshold : real = 0.01
+public option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
 
 
@@ -104,26 +104,26 @@ option process_output_limit : int = 100
 
 section "Editor Reactivity"
 
-option editor_skip_proofs : bool = false
+public option editor_skip_proofs : bool = false
   -- "skip over proofs (implicit 'sorry')"
 
-option editor_load_delay : real = 0.5
+public option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
 
-option editor_input_delay : real = 0.3
+public option editor_input_delay : real = 0.3
   -- "delay for user input (text edits, cursor movement etc.)"
 
-option editor_output_delay : real = 0.1
+public option editor_output_delay : real = 0.1
   -- "delay for prover output (markup, common messages etc.)"
 
-option editor_update_delay : real = 0.5
+public option editor_update_delay : real = 0.5
   -- "delay for physical GUI updates"
 
-option editor_reparse_limit : int = 10000
+public option editor_reparse_limit : int = 10000
   -- "maximum amount of reparsed text outside perspective"
 
-option editor_tracing_messages : int = 1000
+public option editor_tracing_messages : int = 1000
   -- "initial number of tracing messages for each command transaction"
 
-option editor_chart_delay : real = 3.0
+public option editor_chart_delay : real = 3.0
   -- "delay for chart repainting"
