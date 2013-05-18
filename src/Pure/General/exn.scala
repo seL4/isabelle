@@ -47,23 +47,5 @@ object Exn
     user_message(exn) getOrElse
       (if (exn.isInstanceOf[InterruptedException]) "Interrupt"
        else exn.toString)
-
-
-  /* recover from spurious crash */
-
-  def recover[A](e: => A): A =
-  {
-    capture(e) match {
-      case Res(x) => x
-      case Exn(exn) =>
-        capture(e) match {
-          case Res(x) =>
-            java.lang.System.err.println("Recovered from spurious crash after retry!")
-            exn.printStackTrace()
-            x
-          case Exn(_) => throw exn
-        }
-    }
-  }
 }
 
