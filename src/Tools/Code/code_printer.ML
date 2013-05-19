@@ -339,7 +339,7 @@ datatype 'a mixfix =
   | String of string
   | Break;
 
-fun mk_mixfix prep_arg (fixity_this, mfx) =
+fun printer_of_mixfix prep_arg (fixity_this, mfx) =
   let
     fun is_arg (Arg _) = true
       | is_arg _ = false;
@@ -357,18 +357,18 @@ fun mk_mixfix prep_arg (fixity_this, mfx) =
       gen_brackify (fixity fixity_this fixity_ctxt) (fillin print mfx args))
   end;
 
-fun parse_infix prep_arg (x, i) s =
+fun read_infix (fixity_this, i) s =
   let
-    val l = case x of L => INFX (i, L) | _ => INFX (i, X);
-    val r = case x of R => INFX (i, R) | _ => INFX (i, X);
+    val l = case fixity_this of L => INFX (i, L) | _ => INFX (i, X);
+    val r = case fixity_this of R => INFX (i, R) | _ => INFX (i, X);
   in
-    mk_mixfix prep_arg (INFX (i, x), [Arg l, String " ", String s, Break, Arg r])
+    (INFX (i, fixity_this), [Arg l, String " ", String s, Break, Arg r])
   end;
 
-fun parse_mixfix mk_plain mk_complex prep_arg s =
+fun read_mixfix s =
   let
     val sym_any = Scan.one Symbol.is_regular;
-    val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
+    val parse = Scan.optional ($$ "!" >> K NOBR) BR -- Scan.repeat (
          ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
       || ($$ "_" >> K (Arg BR))
       || ($$ "/" |-- Scan.repeat ($$ " ") >> (K Break))
@@ -380,22 +380,26 @@ fun parse_mixfix mk_plain mk_complex prep_arg s =
       | err _ (_, SOME msg) = msg;
   in
     case Scan.finite Symbol.stopper parse (Symbol.explode s) of
-      ((false, [String s]), []) => mk_plain s
-    | ((_, p as [_]), []) => mk_complex (mk_mixfix prep_arg (NOBR, p))
-    | ((b, p as _ :: _ :: _), []) => mk_complex (mk_mixfix prep_arg (if b then NOBR else BR, p))
-    | _ => Scan.!! (err s) Scan.fail ()
+        (fixity_mixfix, []) => fixity_mixfix
+      | _ => Scan.!! (err s) Scan.fail ()
   end;
 
-fun parse_syntax mk_plain mk_complex prep_arg =
-  ((@{keyword "infix"} >> K X)
-    || (@{keyword "infixl"} >> K L)
-    || (@{keyword "infixr"} >> K R))
-    -- Parse.nat -- Parse.string
-    >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
-  || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s));
+val parse_fixity =
+  (@{keyword "infix"} >> K X) || (@{keyword "infixl"} >> K L) || (@{keyword "infixr"} >> K R)
 
-fun parse_tyco_syntax x = parse_syntax (fn s => (0, (K o K o K o str) s)) I I x;
+val parse_mixfix  =
+  Parse.string >> read_mixfix
+  || parse_fixity -- Parse.nat -- Parse.string
+     >> (fn ((fixity, i), s) => read_infix (fixity, i) s);
 
-val parse_const_syntax = parse_syntax plain_const_syntax simple_const_syntax fst;
+fun syntax_of_mixfix of_plain of_printer prep_arg (BR, [String s]) = of_plain s
+  | syntax_of_mixfix of_plain of_printer prep_arg (fixity, mfx) =
+      of_printer (printer_of_mixfix prep_arg (fixity, mfx));
+
+val parse_tyco_syntax =
+  parse_mixfix >> syntax_of_mixfix (fn s => (0, (K o K o K o str) s)) I I;
+
+val parse_const_syntax =
+  parse_mixfix >> syntax_of_mixfix plain_const_syntax simple_const_syntax fst;
 
 end; (*struct*)
