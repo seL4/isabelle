@@ -647,7 +647,7 @@ fun zip_list (x :: xs) f g =
 fun process_multi_syntax parse_thing parse_syntax change =
   (Parse.and_list1 parse_thing
   :|-- (fn things => Scan.repeat1 (@{keyword "("} |-- Parse.name --
-        (zip_list things parse_syntax @{keyword "and"}) --| @{keyword ")"})))
+        (zip_list things (Scan.option parse_syntax) @{keyword "and"}) --| @{keyword ")"})))
   >> (Toplevel.theory oo fold)
     (fn (target, syns) => fold (fn (raw_x, syn) => change target raw_x syn) syns);
 
@@ -689,24 +689,21 @@ val code_exprP =
 
 val _ =
   Outer_Syntax.command @{command_spec "code_class"} "define code syntax for class"
-    (process_multi_syntax Parse.xname (Scan.option Parse.string)
+    (process_multi_syntax Parse.xname Parse.string
       add_class_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_instance"} "define code syntax for instance"
-    (process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname)
-      (Scan.option (Parse.minus >> K ()))
+    (process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname) (Parse.minus >> K ())
       add_instance_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_type"} "define code syntax for type constructor"
-    (process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
-      add_tyco_syntax_cmd);
+    (process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax add_tyco_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_const"} "define code syntax for constant"
-    (process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
-      add_const_syntax_cmd);
+    (process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax add_const_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_reserved"}

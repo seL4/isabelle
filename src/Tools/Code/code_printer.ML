@@ -73,8 +73,8 @@ sig
   datatype activated_const_syntax = Plain_const_syntax of int * string
     | Complex_const_syntax of activated_complex_const_syntax
   val requires_args: const_syntax -> int
-  val parse_const_syntax: Token.T list -> const_syntax option * Token.T list
-  val parse_tyco_syntax: Token.T list -> tyco_syntax option * Token.T list
+  val parse_const_syntax: Token.T list -> const_syntax * Token.T list
+  val parse_tyco_syntax: Token.T list -> tyco_syntax * Token.T list
   val plain_const_syntax: string -> const_syntax
   val simple_const_syntax: simple_const_syntax -> const_syntax
   val complex_const_syntax: complex_const_syntax -> const_syntax
@@ -387,13 +387,12 @@ fun parse_mixfix mk_plain mk_complex prep_arg s =
   end;
 
 fun parse_syntax mk_plain mk_complex prep_arg =
-  Scan.option (
-      ((@{keyword "infix"} >> K X)
-        || (@{keyword "infixl"} >> K L)
-        || (@{keyword "infixr"} >> K R))
-        -- Parse.nat -- Parse.string
-        >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
-      || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s)));
+  ((@{keyword "infix"} >> K X)
+    || (@{keyword "infixl"} >> K L)
+    || (@{keyword "infixr"} >> K R))
+    -- Parse.nat -- Parse.string
+    >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
+  || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s));
 
 fun parse_tyco_syntax x = parse_syntax (fn s => (0, (K o K o K o str) s)) I I x;
 
