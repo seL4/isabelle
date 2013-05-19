@@ -65,13 +65,41 @@ sig
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
-  type tyco_syntax
+  datatype ('a, 'b, 'c, 'd, 'e) symbol_attr =
+    Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Instance of 'd | Module of 'e
+  val map_symbol_attr: ('a -> 'f) -> ('b -> 'g) -> ('c -> 'h) -> ('d -> 'i) -> ('e -> 'j)
+    -> ('a, 'b, 'c, 'd, 'e) symbol_attr -> ('f, 'g, 'h, 'i, 'j) symbol_attr
+  val maps_symbol_attr: ('a -> 'f list) -> ('b -> 'g list)
+    -> ('c -> 'h list) -> ('d -> 'i list) -> ('e -> 'j list)
+    -> ('a, 'b, 'c, 'd, 'e) symbol_attr -> ('f, 'g, 'h, 'i, 'j) symbol_attr list
+  val maps_symbol_attr': ('a -> ('k * 'f) list) -> ('b -> ('k * 'g) list)
+    -> ('c -> ('k * 'h) list) -> ('d -> ('k * 'i) list) -> ('e -> ('k * 'j) list)
+    -> ('a, 'b, 'c, 'd, 'e) symbol_attr -> ('k * ('f, 'g, 'h, 'i, 'j) symbol_attr) list
+  type ('a, 'b, 'c, 'd, 'e) symbol_data
+  val empty_symbol_data: ('a, 'b, 'c, 'd, 'e) symbol_data
+  val merge_symbol_data: ('a, 'b, 'c, 'd, 'e) symbol_data * ('a, 'b, 'c, 'd, 'e) symbol_data
+    -> ('a, 'b, 'c, 'd, 'e) symbol_data
+  val lookup_constant_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> string -> 'a option
+  val lookup_type_constructor_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> string -> 'b option
+  val lookup_type_class_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> string -> 'c option
+  val lookup_class_instance_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> string * string -> 'd option
+  val lookup_module_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> string -> 'e option
+  val dest_constant_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> (string * 'a) list
+  val dest_type_constructor_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> (string * 'b) list
+  val dest_type_class_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> (string * 'c) list
+  val dest_class_instance_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> ((string * string) * 'd) list
+  val dest_module_data: ('a, 'b, 'c, 'd, 'e) symbol_data -> (string * 'e) list
+  val set_symbol_data: (string * 'a option, string * 'b option, string * 'c option,
+      (string * string) * 'd option, string * 'e option) symbol_attr
+    -> ('a, 'b, 'c, 'd, 'e) symbol_data -> ('a, 'b, 'c, 'd, 'e) symbol_data
+
   type simple_const_syntax
   type complex_const_syntax
   type const_syntax
   type activated_complex_const_syntax
   datatype activated_const_syntax = Plain_const_syntax of int * string
     | Complex_const_syntax of activated_complex_const_syntax
+  type tyco_syntax
   val requires_args: const_syntax -> int
   val parse_const_syntax: Token.T list -> const_syntax * Token.T list
   val parse_tyco_syntax: Token.T list -> tyco_syntax * Token.T list
@@ -272,10 +300,80 @@ fun tuplify _ _ [] = NONE
   | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
 
 
-(* generic syntax *)
+(* data for symbols *)
 
-type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
-  -> fixity -> itype list -> Pretty.T);
+datatype ('a, 'b, 'c, 'd, 'e) symbol_attr =
+  Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Instance of 'd | Module of 'e;
+
+fun map_symbol_attr const tyco class inst module (Constant x) = Constant (const x)
+  | map_symbol_attr const tyco class inst module (Type_Constructor x) = Type_Constructor (tyco x)
+  | map_symbol_attr const tyco class inst module (Type_Class x) = Type_Class (class x)
+  | map_symbol_attr const tyco class inst module (Class_Instance x) = Class_Instance (inst x)
+  | map_symbol_attr const tyco class inst module (Module x) = Module (module x);
+
+fun maps_symbol_attr const tyco class inst module (Constant x) = map Constant (const x)
+  | maps_symbol_attr const tyco class inst module (Type_Constructor x) = map Type_Constructor (tyco x)
+  | maps_symbol_attr const tyco class inst module (Type_Class x) = map Type_Class (class x)
+  | maps_symbol_attr const tyco class inst module (Class_Instance x) = map Class_Instance (inst x)
+  | maps_symbol_attr const tyco class inst module (Module x) = map Module (module x);
+
+fun maps_symbol_attr' const tyco class inst module (Constant x) = (map o apsnd) Constant (const x)
+  | maps_symbol_attr' const tyco class inst module (Type_Constructor x) = (map o apsnd) Type_Constructor (tyco x)
+  | maps_symbol_attr' const tyco class inst module (Type_Class x) = (map o apsnd) Type_Class (class x)
+  | maps_symbol_attr' const tyco class inst module (Class_Instance x) = (map o apsnd) Class_Instance (inst x)
+  | maps_symbol_attr' const tyco class inst module (Module x) = (map o apsnd) Module (module x);
+
+datatype ('a, 'b, 'c, 'd, 'e) symbol_data =
+  Symbol_Data of { constant: 'a Symtab.table, type_constructor: 'b Symtab.table,
+    type_class: 'c Symtab.table, class_instance: 'd Symreltab.table, module: 'e Symtab.table };
+
+fun make_symbol_data constant type_constructor type_class class_instance module =
+  Symbol_Data { constant = constant, type_constructor = type_constructor,
+    type_class = type_class, class_instance = class_instance, module = module };
+fun dest_symbol_data (Symbol_Data x) = x;
+fun map_symbol_data map_constant map_type_constructor map_type_class map_class_instance map_module
+  (Symbol_Data { constant, type_constructor, type_class, class_instance, module }) =
+    Symbol_Data { constant = map_constant constant, type_constructor = map_type_constructor type_constructor,
+      type_class = map_type_class type_class, class_instance = map_class_instance class_instance,
+        module = map_module module };
+
+val empty_symbol_data = Symbol_Data { constant = Symtab.empty, type_constructor = Symtab.empty,
+  type_class = Symtab.empty, class_instance = Symreltab.empty, module = Symtab.empty };
+fun merge_symbol_data (Symbol_Data { constant = constant1, type_constructor = type_constructor1,
+    type_class = type_class1, class_instance = class_instance1, module = module1 },
+  Symbol_Data { constant = constant2, type_constructor = type_constructor2,
+    type_class = type_class2, class_instance = class_instance2, module = module2 }) =
+  make_symbol_data (Symtab.join (K snd) (constant1, constant2))
+    (Symtab.join (K snd) (type_constructor1, type_constructor2))
+    (Symtab.join (K snd) (type_class1, type_class2))
+    (Symreltab.join (K snd) (class_instance1, class_instance2))
+    (Symtab.join (K snd) (module1, module2)); (*prefer later entries: K snd*)
+
+fun lookup_constant_data x = (Symtab.lookup o #constant o dest_symbol_data) x;
+fun lookup_type_constructor_data x = (Symtab.lookup o #type_constructor o dest_symbol_data) x;
+fun lookup_type_class_data x = (Symtab.lookup o #type_class o dest_symbol_data) x;
+fun lookup_class_instance_data x = (Symreltab.lookup o #class_instance o dest_symbol_data) x;
+fun lookup_module_data x = (Symtab.lookup o #module o dest_symbol_data) x;
+
+fun dest_constant_data x = (Symtab.dest o #constant o dest_symbol_data) x;
+fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_symbol_data) x;
+fun dest_type_class_data x = (Symtab.dest o #type_class o dest_symbol_data) x;
+fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_symbol_data) x;
+fun dest_module_data x = (Symtab.dest o #module o dest_symbol_data) x;
+
+fun set_sym (sym, NONE) = Symtab.delete_safe sym
+  | set_sym (sym, SOME y) = Symtab.update (sym, y);
+fun set_symrel (symrel, NONE) = Symreltab.delete_safe symrel
+  | set_symrel (symrel, SOME y) = Symreltab.update (symrel, y);
+
+fun set_symbol_data (Constant x) = map_symbol_data (set_sym x) I I I I
+  | set_symbol_data (Type_Constructor x) = map_symbol_data I (set_sym x) I I I
+  | set_symbol_data (Type_Class x) = map_symbol_data I I (set_sym x) I I
+  | set_symbol_data (Class_Instance x) = map_symbol_data I I I (set_symrel x) I
+  | set_symbol_data (Module x) = map_symbol_data I I I I (set_sym x);
+
+
+(* generic syntax *)
 
 type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
@@ -330,6 +428,9 @@ fun gen_print_bind print_term thm (fxy : fixity) pat vars =
     val vs = Code_Thingol.fold_varnames (insert (op =)) pat [];
     val vars' = intro_vars vs vars;
   in (print_term thm vars' fxy pat, vars') end;
+
+type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
+  -> fixity -> itype list -> Pretty.T);
 
 
 (* mixfix syntax *)
