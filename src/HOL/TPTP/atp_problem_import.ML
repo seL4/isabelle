@@ -182,6 +182,7 @@ fun atp_tac ctxt completeness override_params timeout prover =
   let
     val ctxt =
       ctxt |> Config.put Sledgehammer_Provers.completish (completeness > 0)
+    fun ref_of th = (Facts.named (Thm.derivation_name th), [])
   in
     Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
         ([("debug", if debug then "true" else "false"),
@@ -190,13 +191,11 @@ fun atp_tac ctxt completeness override_params timeout prover =
           ("timeout", string_of_int timeout)] @
          (if completeness > 0 then
             [("type_enc",
-              if completeness = 1 then "mono_native" else "poly_guards??"),
-             ("slicing", "false")]
+              if completeness = 1 then "mono_native" else "poly_tags")]
           else
             []) @
          override_params)
-        {add = [(Facts.named (Thm.derivation_name ext), [])],
-         del = [], only = true}
+        {add = map ref_of [ext, @{thm someI}], del = [], only = true}
   end
 
 fun sledgehammer_tac demo ctxt timeout i =

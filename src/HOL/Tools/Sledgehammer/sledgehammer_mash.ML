@@ -657,7 +657,7 @@ val prover_default_max_facts = 50
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}
 (* Mysterious parts of the class machinery create lots of proofs that refer
-   exclusively to "someI_e" (and to some internal constructions). *)
+   exclusively to "someI_ex" (and to some internal constructions). *)
 val class_some_dep = nickname_of_thm @{thm someI_ex}
 
 val fundef_ths =

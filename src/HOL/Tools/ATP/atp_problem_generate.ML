@@ -1749,11 +1749,12 @@ val helper_table =
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 val completish_helper_table =
-  base_helper_table @
+  helper_table @
   [((predicator_name, true),
     @{thms True_or_False fTrue_ne_fFalse} |> map (pair General)),
    ((app_op_name, true),
-    [(General, @{lemma "EX x. ~ f x = g x | f = g" by blast})]),
+    [(General, @{lemma "EX x. ~ f x = g x | f = g" by blast}),
+     (General, @{lemma "EX p. (p x <-> p y) --> x = y" by blast})]),
    (("fconj", false),
     @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
    (("fdisj", false),
@@ -1806,6 +1807,7 @@ val type_tag = `(make_fixed_const NONE) type_tag_name
 fun could_specialize_helpers type_enc =
   not (is_type_enc_polymorphic type_enc) andalso
   level_of_type_enc type_enc <> No_Types
+
 fun should_specialize_helper type_enc t =
   could_specialize_helpers type_enc andalso
   not (null (Term.hidden_polymorphism t))
