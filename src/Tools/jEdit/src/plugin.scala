@@ -196,7 +196,7 @@ class Plugin extends EBPlugin
               }
 
             case Session.Ready =>
-              PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+              PIDE.session.update_options(PIDE.options.value)
               PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
               Swing_Thread.later { delay_load.invoke() }
 
@@ -270,7 +270,7 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
-          PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+          PIDE.session.update_options(PIDE.options.value)
 
         case _ =>
       }

@@ -177,6 +177,7 @@ class Session(val thy_load: Thy_Load)
     version: Document.Version)
   private case class Messages(msgs: List[Isabelle_Process.Message])
   private case class Finished_Scala(id: String, tag: Invoke_Scala.Tag.Value, result: String)
+  private case class Update_Options(options: Options)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -415,8 +416,10 @@ class Session(val thy_load: Thy_Load)
           receiver.cancel()
           reply(())
 
-        case Session.Global_Options(options) if prover.isDefined =>
+        case Update_Options(options) if prover.isDefined =>
           if (is_ready) prover.get.options(options)
+          global_options.event(Session.Global_Options(options))
+          reply(())
 
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
@@ -470,13 +473,11 @@ class Session(val thy_load: Thy_Load)
 
   def start(args: List[String])
   {
-    global_options += session_actor
     session_actor ! Start(args)
   }
 
   def stop()
   {
-    global_options -= session_actor
     commands_changed_buffer !? Stop
     change_parser !? Stop
     session_actor !? Stop
@@ -486,6 +487,9 @@ class Session(val thy_load: Thy_Load)
 
   def update(edits: List[Document.Edit_Text])
   { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(edits) }
+
+  def update_options(options: Options)
+  { session_actor !? Update_Options(options) }
 
   def dialog_result(id: Document.ID, serial: Long, result: String)
   { session_actor ! Session.Dialog_Result(id, serial, result) }
