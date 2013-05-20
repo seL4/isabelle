@@ -14,6 +14,7 @@ sig
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
   val elide_string : int -> string -> string
+  val find_enclosed : string -> string -> string -> string list
   val nat_subscript : int -> string
   val unquote_tvar : string -> string
   val unyxml : string -> string
@@ -120,6 +121,14 @@ fun elide_string threshold s =
     String.extract (s, size s - (threshold + 1) div 2 + 6, NONE)
   else
     s
+
+fun find_enclosed left right s =
+  case first_field left s of
+    SOME (_, s) =>
+    (case first_field right s of
+       SOME (enclosed, s) => enclosed :: find_enclosed left right s
+     | NONE => [])
+  | NONE => []
 
 val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =

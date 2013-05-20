@@ -162,10 +162,11 @@ fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
         dependencies in the TSTP proof. Remove the next line once this is
         fixed. *)
      add_non_rec_defs fact_names
-   else if rule = satallax_coreN then
+   else if rule = agsyhol_coreN orelse rule = satallax_coreN then
      (fn [] =>
-         (* Satallax doesn't include definitions in its unsatisfiable cores, so
-            we assume the worst and include them all here. *)
+         (* agsyHOL and Satallax don't include definitions in their
+            unsatisfiable cores, so we assume the worst and include them all
+            here. *)
          [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
        | facts => facts)
    else

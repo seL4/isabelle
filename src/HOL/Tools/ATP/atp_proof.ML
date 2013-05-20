@@ -473,6 +473,8 @@ val agsyhol_coreN = "__agsyhol_core" (* arbitrary *)
 val satallax_coreN = "__satallax_core" (* arbitrary *)
 val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
 
+fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
+
 (* Syntax: core(<name>,[<name>,...,<name>]). *)
 fun parse_z3_tptp_line x =
   (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
@@ -481,8 +483,7 @@ fun parse_z3_tptp_line x =
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
-  (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => ((s, [s]), Unknown, dummy_phi, satallax_coreN, []))) x
+  (scan_general_id --| Scan.option ($$ " ") >> core_inference satallax_coreN) x
 
 fun parse_line problem =
   parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
@@ -495,11 +496,21 @@ fun parse_proof problem =
                          (Scan.repeat1 (parse_line problem))))
   #> fst
 
+fun core_of_agsyhol_proof s =
+  case split_lines s of
+    "The transformed problem consists of the following conjectures:" :: conj ::
+    _ :: proof_term :: _ =>
+    SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
+  | _ => NONE
+
 fun atp_proof_of_tstplike_proof _ "" = []
   | atp_proof_of_tstplike_proof problem tstp =
-    tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-    |> parse_proof problem
-    |> sort (step_name_ord o pairself #1)
+    case core_of_agsyhol_proof tstp of
+      SOME facts => facts |> map (core_inference agsyhol_coreN)
+    | NONE =>
+      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
+      |> parse_proof problem
+      |> sort (step_name_ord o pairself #1)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
