@@ -872,6 +872,7 @@ local
   val less_iff_diff_less_0 = mk_meta_eq @{thm "less_iff_diff_less_0"}
   val le_iff_diff_le_0 = mk_meta_eq @{thm "le_iff_diff_le_0"}
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
+  val ss = simpset_of @{context}
 in
 fun field_isolate_conv phi ctxt vs ct = case term_of ct of
   Const(@{const_name Orderings.less},_)$a$b =>
@@ -880,7 +881,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val th = instantiate' [SOME T] [SOME ca, SOME cb] less_iff_diff_less_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | Const(@{const_name Orderings.less_eq},_)$a$b =>
@@ -889,7 +890,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val th = instantiate' [SOME T] [SOME ca, SOME cb] le_iff_diff_le_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 
@@ -899,7 +900,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val th = instantiate' [SOME T] [SOME ca, SOME cb] eq_iff_diff_eq_0
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
-              (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
+              (Semiring_Normalizer.semiring_normalize_ord_conv (put_simpset ss ctxt) (earlier vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | @{term "Not"} $(Const(@{const_name HOL.eq},_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
