@@ -72,7 +72,7 @@ Lawrence C. Paulson \\
 \setlength{\belowdisplayskip}{\parskip}
 \setlength{\belowdisplayshortskip}{.9\parskip}
 
-% General-purpose enum environment with correct spacing
+% general-purpose enum environment with correct spacing
 \newenvironment{enum}%
     {\begin{list}{}{%
         \setlength{\topsep}{.1\parskip}%
@@ -100,23 +100,25 @@ solvers parsing ATP syntaxes. There is also a strong technological connection
 between instantiation-based ATPs (such as iProver and iProver-Eq) and SMT
 solvers.}
 %
-The supported ATPs are E \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF
-\cite{tofof}, iProver \cite{korovin-2009}, iProver-Eq
-\cite{korovin-sticksel-2010}, LEO-II \cite{leo2}, Satallax \cite{satallax},
-SNARK \cite{snark}, SPASS \cite{weidenbach-et-al-2009}, Vampire
-\cite{riazanov-voronkov-2002}, and Waldmeister \cite{waldmeister}. The ATPs are
-run either locally or remotely via the System\-On\-TPTP web service
-\cite{sutcliffe-2000}. In addition to the ATPs, a selection of the SMT solvers
-CVC3 \cite{cvc3}, Yices \cite{yices}, and Z3 \cite{z3} are run by default, and
-you can tell Sledgehammer to try Alt-Ergo \cite{alt-ergo} as well; these are run
-either locally or (for CVC3 and Z3) on a server at the TU M\"unchen.
+The supported ATPs are agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
+\cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
+\cite{korovin-2009}, iProver-Eq \cite{korovin-sticksel-2010}, LEO-II
+\cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
+\cite{weidenbach-et-al-2009}, Vampire \cite{riazanov-voronkov-2002}, and
+Waldmeister \cite{waldmeister}. The ATPs are run either locally or remotely via
+the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs,
+a selection of the SMT solvers CVC3 \cite{cvc3}, Yices \cite{yices}, and Z3
+\cite{z3} are run by default; these are run either locally or (for CVC3 and Z3)
+on a server at the TU M\"unchen.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
-current theory context, filtered by relevance. Because jobs are run in the
-background, you can continue to work on your proof by other means. Provers can
-be run in parallel. Any reply (which may arrive half a minute later) will appear
-in the Proof General response buffer.
+current theory context, filtered by relevance.
+%Because jobs are run in the
+%background, you can continue to work on your proof by other means. Provers can
+%be run in parallel.
+%Any reply (which may arrive half a minute later) will appear
+%in the Proof General response buffer.
 
 The result of a successful proof search is some source text that usually (but
 not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
@@ -125,11 +127,11 @@ integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
 the kernel. Thus its results are correct by construction.
 
 In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
-Sledgehammer also provides an automatic mode that can be enabled via the ``Auto
-Sledgehammer'' option in Proof General's ``Isabelle'' menu. In this mode,
-Sledgehammer is run on every newly entered theorem. The time limit for Auto
-Sledgehammer and other automatic tools can be set using the ``Auto Tools Time
-Limit'' option.
+For Proof General users, Sledgehammer also provides an automatic mode that can
+be enabled via the ``Auto Sledgehammer'' option in the ``Isabelle'' menu. In
+this mode, Sledgehammer is run on every newly entered theorem. The time limit
+for Auto Sledgehammer and other automatic tools can be set using the ``Auto
+Tools Time Limit'' option.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
@@ -155,13 +157,13 @@ directed to the author at \authoremail.
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
-Among the ATPs, E, LEO-II, Satallax, SPASS, and Vampire can be run locally; in
-addition, E, E-SInE, E-ToFoF, iProver, iProver-Eq, LEO-II, Satallax, SNARK,
-Vampire, and Waldmeister are available remotely via System\-On\-TPTP
-\cite{sutcliffe-2000}. If you want better performance, you should at least
-install E and SPASS locally.
+Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
+be run locally; in addition, agsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
+LEO-II, Satallax, SNARK, Vampire, and Waldmeister are available remotely via
+System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
+should at least install E and SPASS locally.
 
-The SMT solvers Alt-Ergo, CVC3, Yices, and Z3 can be run locally, and CVC3 and
+The SMT solvers CVC3, Yices, and Z3 can be run locally, and CVC3 and
 Z3 can be run remotely on a TU M\"unchen server. If you want better performance
 and get the ability to replay proofs that rely on the \emph{smt} proof method
 without an Internet connection, you should at least have Z3 locally installed.
@@ -196,14 +198,18 @@ file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
 
 in it.
 
-\item[\labelitemi] If you prefer to build E, LEO-II, Satallax, or SPASS
-manually, or found a Vampire executable somewhere (e.g.,
-\url{http://www.vprover.org/}), set the environment variable \texttt{E\_HOME},
-\texttt{LEO2\_HOME}, \texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
+\item[\labelitemi] If you prefer to build agsyHOL, Alt-Ergo, E, LEO-II,
+Satallax, or SPASS manually, or found a Vampire executable somewhere (e.g.,
+\url{http://www.vprover.org/}), set the environment variable
+\texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
+\texttt{SATALLAX\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
-\texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable.
-Sledgehammer has been tested with E 1.0 to 1.4, LEO-II 1.3.4, Satallax 2.2, 2.3,
-and 2.4, SPASS 3.8ds, and Vampire 0.6 to 2.6.%
+\texttt{leo}, \texttt{satallax}, \texttt{SPASS}, or \texttt{vampire} executable;
+for Alt-Ergo, set the
+environment variable \texttt{WHY3\_HOME} to the directory that contains the
+\texttt{why3} executable.
+Sledgehammer has been tested with agsyHOL 1.0, Alt-Ergo 0.95.1, E 1.0 to 1.4,
+LEO-II 1.3.4, Satallax 2.2, 2.3, and 2.4, SPASS 3.8ds, and Vampire 0.6 to 2.6.%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, 1.8, and 2.6 are more
 recent than 9.0 or 11.5.}%
@@ -213,17 +219,14 @@ you should also set \texttt{E\_VERSION}, \texttt{LEO2\_VERSION},
 \texttt{SATALLAX\_VERSION}, \texttt{SPASS\_VERSION}, or
 \texttt{VAMPIRE\_VERSION} to the prover's version number (e.g., ``1.4'').
 
-Similarly, if you want to build Alt-Ergo or CVC3, or found a
+Similarly, if you want to build CVC3, or found a
 Yices or Z3 executable somewhere (e.g.,
 \url{http://yices.csl.sri.com/download.shtml} or
 \url{http://research.microsoft.com/en-us/um/redmond/projects/z3/download.html}),
 set the environment variable \texttt{CVC3\_\allowbreak SOLVER},
 \texttt{YICES\_SOLVER}, or \texttt{Z3\_SOLVER} to the complete path of
-the executable, \emph{including the file name};
-for Alt-Ergo, set the
-environment variable \texttt{WHY3\_HOME} to the directory that contains the
-\texttt{why3} executable.
-Sledgehammer has been tested with Alt-Ergo 0.95, CVC3 2.2 and 2.4.1,
+the executable, \emph{including the file name}.
+Sledgehammer has been tested with CVC3 2.2 and 2.4.1,
 Yices 1.0.28 and 1.0.33, and Z3 3.0 to 4.0. Since the SMT solvers' output
 formats are somewhat unstable, other versions of the solvers might not work well
 with Sledgehammer. Ideally, also set \texttt{CVC3\_VERSION},
@@ -266,10 +269,11 @@ attempt to prove a simple lemma:
 \textbf{sledgehammer}
 \postw
 
-Instead of issuing the \textbf{sledgehammer} command, you can also find
-Sledgehammer in the ``Commands'' submenu of the ``Isabelle'' menu in Proof
-General or press the Emacs key sequence C-c C-a C-s.
-Either way, Sledgehammer produces the following output after a few seconds:
+%Instead of issuing the \textbf{sledgehammer} command, you can also find
+%Sledgehammer in the ``Commands'' submenu of the ``Isabelle'' menu in Proof
+%General or press the Emacs key sequence C-c C-a C-s.
+%Either way,
+Sledgehammer produces the following output after a few seconds:
 
 \prew
 \slshape
@@ -646,8 +650,9 @@ follows:
 \textbf{sledgehammer} \qty{subcommand}$^?$ \qty{options}$^?$ \qty{facts\_override}$^?$ \qty{num}$^?$
 \postw
 
-For convenience, Sledgehammer is also available in the ``Commands'' submenu of
-the ``Isabelle'' menu in Proof General or by pressing the Emacs key sequence C-c
+For Proof General users,
+Sledgehammer is also available in the ``Commands'' submenu of
+the ``Isabelle'' menu or by pressing the Emacs key sequence C-c
 C-a C-s. This is equivalent to entering the \textbf{sledgehammer} command with
 no arguments in the theory text.
 
@@ -741,15 +746,16 @@ facts are used. It may also be of the form ``(\textit{add}:\ \qty{facts\/_{\math
 proceed as usual except that it should consider \qty{facts\/_{\mathrm{1}}}
 highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
 
-You can instruct Sledgehammer to run automatically on newly entered theorems by
-enabling the ``Auto Sledgehammer'' option in Proof General's ``Isabelle'' menu.
-For automatic runs, only the first prover set using \textit{provers}
-(\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slice} (\S\ref{mode-of-operation}) is disabled, \textit{strict}
-(\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
-and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
-(\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
-General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
+If you use Proof General, you can instruct Sledgehammer to run automatically on
+newly entered theorems by enabling the ``Auto Sledgehammer'' option in the
+``Isabelle'' menu. For automatic runs, only the first prover set using
+\textit{provers} (\S\ref{mode-of-operation}) is considered, fewer facts are
+passed to the prover, \textit{slice} (\S\ref{mode-of-operation}) is disabled,
+\textit{strict} (\S\ref{problem-encoding}) is enabled, \textit{verbose}
+(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
+and \textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Tools Time
+Limit'' in the ``Isabelle'' menu. Sledgehammer's output is also more
+concise.
 
 \subsection{Metis}
 
@@ -838,13 +844,19 @@ The following local provers are supported:
 
 \begin{sloppy}
 \begin{enum}
+\item[\labelitemi] \textbf{\textit{agsyHOL}:} agsyHOL is an automatic
+higher-order prover developed by Fredrik Lindblad \cite{agsyHOL},
+with support for the TPTP typed higher-order syntax (THF0). To use agsyHOL, set
+the environment variable \texttt{AGSYHOL\_HOME} to the directory that contains
+the \texttt{agsyHOL} executable. Sledgehammer has been tested with version 1.0.
+
 \item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
-SMT solver developed by Bobot et al.\ \cite{alt-ergo}.
+ATP developed by Bobot et al.\ \cite{alt-ergo}.
 It supports the TPTP polymorphic typed first-order format (TFF1) via Why3
 \cite{why3}. It is included for experimental purposes. To use Alt-Ergo, set the
 environment variable \texttt{WHY3\_HOME} to the directory that contains the
-\texttt{why3} executable. Sledgehammer has been tested with Alt-Ergo 0.95 and an
-unidentified development version of Why3.
+\texttt{why3} executable. Sledgehammer has been tested with Alt-Ergo 0.95.1 and
+an unidentified development version of Why3.
 
 \item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
@@ -936,6 +948,9 @@ and 4.0.
 The following remote provers are supported:
 
 \begin{enum}
+\item[\labelitemi] \textbf{\textit{remote\_agsyhol}:} The remote version of
+agsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
 \item[\labelitemi] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
 on servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
@@ -987,9 +1002,9 @@ point).
 
 By default, Sledgehammer runs a selection of CVC3, E, E-SInE, SPASS, Vampire,
 Yices, Z3, and (if appropriate) Waldmeister in parallel---either locally or
-remotely, depending on the number of processor cores available. For historical
+remotely, depending on the number of processor cores available. (For historical
 reasons, the default value of this option can be overridden using the option
-``Sledgehammer: Provers'' in Proof General's ``Isabelle'' menu.
+``Sledgehammer: Provers'' in Proof General's ``Isabelle'' menu.)
 
 It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the
@@ -1345,8 +1360,8 @@ is useful for regression testing.
 \opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
-For historical reasons, the default value of this option can be overridden using
-the option ``Sledgehammer: Time Limit'' in Proof General's ``Isabelle'' menu.
+(For historical reasons, the default value of this option can be overridden using
+the option ``Sledgehammer: Time Limit'' in Proof General's ``Isabelle'' menu.)
 
 \opdefault{preplay\_timeout}{float\_or\_none}{\upshape 3}
 Specifies the maximum number of seconds that \textit{metis} or \textit{smt}
