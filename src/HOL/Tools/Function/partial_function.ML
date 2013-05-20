@@ -255,11 +255,11 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val unfold =
       (cterm_instantiate' (map (SOME o cert) [uncurry, F, curry]) fixp_eq
         OF [mono_thm, f_def])
-      |> Tactic.rule_by_tactic lthy (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy) 1);
+      |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
     val mk_raw_induct =
       mk_curried_induct args args_ctxt (cert curry) (cert uncurry)
-      #> singleton (Variable.export args_ctxt lthy)
+      #> singleton (Variable.export args_ctxt lthy')
       #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [mono_thm, f_def])
       #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
 
