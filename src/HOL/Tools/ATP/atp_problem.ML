@@ -851,7 +851,7 @@ fun readable_name protect full_name s =
      s
    else
      s |> no_qualifiers
-       |> perhaps (try (unprefix "'"))
+       |> unquote_tvar
        |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
        |> (fn s =>
               if size s > max_readable_name_size then

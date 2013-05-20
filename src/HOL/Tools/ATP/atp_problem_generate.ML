@@ -216,6 +216,7 @@ val class_prefix = "cl_"
 (* Freshness almost guaranteed! *)
 val atp_prefix = "ATP" ^ Long_Name.separator
 val atp_weak_prefix = "ATP:"
+val atp_weak_suffix = ":ATP"
 
 val lam_lifted_prefix = atp_weak_prefix ^ "Lam"
 val lam_lifted_mono_prefix = lam_lifted_prefix ^ "m"
@@ -376,8 +377,8 @@ fun make_exist_bound_var x = exist_bound_var_prefix ^ ascii_of x
 fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
-fun make_tvar (s, i) = tvar_prefix ^ ascii_of_indexname (unprefix "'" s, i)
-fun make_tfree s = tfree_prefix ^ ascii_of (unprefix "'" s)
+fun make_tvar (s, i) = tvar_prefix ^ ascii_of_indexname (unquote_tvar s, i)
+fun make_tfree s = tfree_prefix ^ ascii_of (unquote_tvar s)
 fun tvar_name ((x as (s, _)), _) = (make_tvar x, s)
 
 (* "HOL.eq" and choice are mapped to the ATP's equivalents *)
@@ -1260,12 +1261,18 @@ fun preprocess_abstractions_in_terms trans_lams facts =
    same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
 fun freeze_term t =
   let
+    (* Freshness is desirable for completeness, but not for soundness. *)
+    fun indexed_name (s, i) = s ^ "_" ^ string_of_int i ^ atp_weak_suffix
     fun freeze (t $ u) = freeze t $ freeze u
       | freeze (Abs (s, T, t)) = Abs (s, T, freeze t)
-      | freeze (Var ((s, i), T)) =
-        Free (atp_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
+      | freeze (Var (x, T)) = Free (indexed_name x, T)
       | freeze t = t
-  in t |> exists_subterm is_Var t ? freeze end
+    fun freeze_tvar (x, S) = TFree (indexed_name x, S)
+  in
+    t |> exists_subterm is_Var t ? freeze
+      |> exists_type (exists_subtype is_TVar) t
+         ? map_types (map_type_tvar freeze_tvar)
+  end
 
 fun presimp_prop ctxt type_enc t =
   let

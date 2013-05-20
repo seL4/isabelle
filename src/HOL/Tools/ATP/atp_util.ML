@@ -15,6 +15,7 @@ sig
   val strip_spaces_except_between_idents : string -> string
   val elide_string : int -> string -> string
   val nat_subscript : int -> string
+  val unquote_tvar : string -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
   val string_of_ext_time : bool * Time.time -> string
@@ -124,13 +125,16 @@ val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol
 fun nat_subscript n =
   n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 
+val unquote_tvar = perhaps (try (unprefix "'"))
+val unquery_var = perhaps (try (unprefix "?"))
+
 val unyxml = XML.content_of o YXML.parse_body
 
 val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
 fun maybe_quote y =
   let val s = unyxml y in
-    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
-           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+    y |> ((not (is_long_identifier (unquote_tvar s)) andalso
+           not (is_long_identifier (unquery_var s))) orelse
            Keyword.is_keyword s) ? quote
   end
 
