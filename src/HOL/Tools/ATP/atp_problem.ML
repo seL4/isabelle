@@ -148,6 +148,8 @@ struct
 open ATP_Util
 
 
+val parens = enclose "(" ")"
+
 (** ATP problem **)
 
 datatype ('a, 'b) ho_term =
@@ -379,14 +381,14 @@ fun str_of_type format ty =
           if s = tptp_product_type then
             ss |> space_implode
                       (if dfg then ", " else " " ^ tptp_product_type ^ " ")
-               |> (not dfg andalso length ss > 1) ? enclose "(" ")"
+               |> (not dfg andalso length ss > 1) ? parens
           else
             tptp_string_of_app format s ss
         end
       | str rhs (AFun (ty1, ty2)) =
-        (str false ty1 |> dfg ? enclose "(" ")") ^ " " ^
+        (str false ty1 |> dfg ? parens) ^ " " ^
         (if dfg then "" else tptp_fun_type ^ " ") ^ str true ty2
-        |> not rhs ? enclose "(" ")"
+        |> not rhs ? parens
       | str _ (APi (ss, ty)) =
         if dfg then
           "[" ^ commas ss ^ "], " ^ str true ty
@@ -419,18 +421,18 @@ fun string_of_bound_var format (s, ty) =
 fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
   | tptp_string_of_term format (ATerm ((s, tys), ts)) =
     let
+      val of_type = string_of_type format
+      val of_term = tptp_string_of_term format
       fun app () =
         tptp_string_of_app format s
-            (map (string_of_type format) tys @
-             map (tptp_string_of_term format) ts)
+            (map of_type tys @ map of_term ts)
     in
       if s = tptp_empty_list then
         (* used for lists in the optional "source" field of a derivation *)
-        "[" ^ commas (map (tptp_string_of_term format) ts) ^ "]"
+        "[" ^ commas (map of_term ts) ^ "]"
       else if is_tptp_equal s then
-        space_implode (" " ^ tptp_equal ^ " ")
-                      (map (tptp_string_of_term format) ts)
-        |> is_format_higher_order format ? enclose "(" ")"
+        space_implode (" " ^ tptp_equal ^ " ") (map of_term ts)
+        |> is_format_higher_order format ? parens
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
         case ts of
           [AAbs (((s', ty), tm), [])] =>
@@ -446,10 +448,22 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
           (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is
              always applied to an abstraction. *)
           tptp_string_of_app format
-              (tptp_choice ^ "[" ^ s' ^ " : " ^ string_of_type format ty ^
-               "]: " ^ tptp_string_of_term format tm ^ ""
-               |> enclose "(" ")")
-              (map (tptp_string_of_term format) args)
+              (tptp_choice ^ "[" ^ s' ^ " : " ^ of_type ty ^
+               "]: " ^ of_term tm ^ ""
+               |> parens) (map of_term args)
+        | _ => app ()
+      else if s = tptp_not then
+        (* agsyHOL doesn't like negations applied like this: "~ @ t". *)
+        case ts of
+          [t] => s ^ " " ^ (of_term t |> parens) |> parens
+        | _ => s
+      else if member (op =) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff,
+                             tptp_not_iff, tptp_equal] s then
+        (* agsyHOL doesn't like connectives applied like this: "& @ t1 @ t2". *)
+        case ts of
+          [t1, t2] =>
+          (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens)
+          |> parens
         | _ => app ()
       else
         app ()
@@ -466,26 +480,26 @@ and tptp_string_of_formula format (ATyQuant (q, xs, phi)) =
     "[" ^
     commas (map (suffix_type_of_types o string_of_type format o fst) xs) ^
     "]: " ^ tptp_string_of_formula format phi
-    |> enclose "(" ")"
+    |> parens
   | tptp_string_of_formula format (AQuant (q, xs, phi)) =
     tptp_string_of_quantifier q ^
     "[" ^ commas (map (string_of_bound_var format) xs) ^ "]: " ^
     tptp_string_of_formula format phi
-    |> enclose "(" ")"
+    |> parens
   | tptp_string_of_formula format
         (AConn (ANot, [AAtom (ATerm (("=" (* tptp_equal *), []), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (tptp_string_of_term format) ts)
-    |> is_format_higher_order format ? enclose "(" ")"
+    |> is_format_higher_order format ? parens
   | tptp_string_of_formula format (AConn (c, [phi])) =
     tptp_string_of_connective c ^ " " ^
     (tptp_string_of_formula format phi
-     |> is_format_higher_order format ? enclose "(" ")")
-    |> enclose "(" ")"
+     |> is_format_higher_order format ? parens)
+    |> parens
   | tptp_string_of_formula format (AConn (c, phis)) =
     space_implode (" " ^ tptp_string_of_connective c ^ " ")
                   (map (tptp_string_of_formula format) phis)
-    |> enclose "(" ")"
+    |> parens
   | tptp_string_of_formula format (AAtom tm) = tptp_string_of_term format tm
 
 fun tptp_string_of_format CNF = tptp_cnf
