@@ -722,8 +722,8 @@ fun rename_client_map_tac ctxt =
                       @{thm rename_guarantees_eq_rename_inv},
                       @{thm bij_imp_bij_inv}, @{thm surj_rename},
                       @{thm inv_inv_eq}]) 1,
-    asm_simp_tac  (* FIXME ctxt !!? *)
-        (@{context} addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
+    asm_simp_tac
+        (ctxt addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
 *}
 
 method_setup rename_client_map = {*
