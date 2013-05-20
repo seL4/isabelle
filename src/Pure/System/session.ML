@@ -54,9 +54,9 @@ fun finish () =
   Present.finish ();
   Keyword.status ();
   Outer_Syntax.check_syntax ();
-  Options.reset_default ();
   Future.shutdown ();
   Event_Timer.shutdown ();
+  Options.reset_default ();
   session_finished := true);
 
 end;
