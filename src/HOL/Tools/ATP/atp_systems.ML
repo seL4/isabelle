@@ -48,6 +48,7 @@ sig
   val spass_H2NuVS0Red2 : string
   val spass_H2SOS : string
   val spass_extra_options : string Config.T
+  val agsyholN : string
   val alt_ergoN : string
   val dummy_thfN : string
   val eN : string
@@ -85,6 +86,7 @@ struct
 open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
+
 
 (* ATP configuration *)
 
@@ -127,6 +129,11 @@ val mepoN = "mepo"
 val mashN = "mash"
 val meshN = "mesh"
 
+val tstp_proof_delims =
+  [("% SZS output start CNFRefutation", "% SZS output end CNFRefutation"),
+   ("% SZS output start Refutation", "% SZS output end Refutation"),
+   ("% SZS output start Proof", "% SZS output end Proof")]
+
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
    (NoPerl, "env: perl"),
@@ -152,6 +159,7 @@ val known_says_failures = known_szs_failures (prefix " says ")
 
 (* named ATPs *)
 
+val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
 val dummy_thfN = "dummy_thf" (* for experiments *)
 val eN = "e"
@@ -200,6 +208,29 @@ val xsimpN = "_simp" (* SPASS-specific *)
 val term_order =
   Attrib.setup_config_string @{binding atp_term_order} (K smartN)
 
+
+(* agsyHOL *)
+
+val agsyhol_thf0 =
+  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
+
+val agsyhol_config : atp_config =
+  {exec = (["AGSYHOL_HOME"], ["agsyHOL"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+       "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^
+       file_name,
+   proof_delims = tstp_proof_delims,
+   known_failures = known_szs_status_failures,
+   prem_role = Hypothesis,
+   best_slices =
+     (* FUDGE *)
+     K [(1.0, (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), ""))],
+   best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
+   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+
+val agsyhol = (agsyholN, fn () => agsyhol_config)
+
+
 (* Alt-Ergo *)
 
 val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
@@ -228,10 +259,6 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 fun is_e_at_least_1_3 () = string_ord (getenv "E_VERSION", "1.3") <> LESS
 fun is_e_at_least_1_6 () = string_ord (getenv "E_VERSION", "1.6") <> LESS
-
-val tstp_proof_delims =
-  [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
-   ("% SZS output start CNFRefutation", "% SZS output end CNFRefutation")]
 
 val e_smartN = "smart"
 val e_autoN = "auto"
@@ -326,7 +353,9 @@ val e_config : atp_config =
        "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
        e_shell_level_argument full_proof ^ " " ^ file_name,
-   proof_delims = tstp_proof_delims,
+   proof_delims =
+     [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
+     tstp_proof_delims,
    known_failures =
      [(TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded")] @
@@ -526,6 +555,7 @@ val spass_config : atp_config =
 
 val spass = (spassN, fn () => spass_config)
 
+
 (* Vampire *)
 
 (* Vampire 1.8 has TFF support, but the support was buggy until revision
@@ -555,9 +585,8 @@ val vampire_config : atp_config =
        |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
-       "======= End of refutation ======="),
-      ("% SZS output start Refutation", "% SZS output end Refutation"),
-      ("% SZS output start Proof", "% SZS output end Proof")],
+       "======= End of refutation =======")] @
+     tstp_proof_delims,
    known_failures =
      [(GaveUp, "UNPROVABLE"),
       (GaveUp, "CANNOT PROVE"),
@@ -633,6 +662,7 @@ val spass_poly_format = DFG Polymorphic
 val spass_poly_config =
   dummy_config (#prem_role spass_config) spass_poly_format "tc_native" true
 val spass_poly = (spass_polyN, fn () => spass_poly_config)
+
 
 (* Remote ATP invocation via SystemOnTPTP *)
 
@@ -747,6 +777,7 @@ val remote_waldmeister =
       Hypothesis
       (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
 
+
 (* Setup *)
 
 fun add_atp (name, config) thy =
@@ -783,9 +814,9 @@ fun effective_term_order ctxt atp =
       end
   end
 
-val atps=
-  [alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass,
-   spass_poly, vampire, z3_tptp, dummy_thf, remote_e, remote_e_sine,
+val atps =
+  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax,
+   spass, spass_poly, vampire, z3_tptp, dummy_thf, remote_e, remote_e_sine,
    remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2,
    remote_satallax, remote_vampire, remote_snark, remote_waldmeister]
 

@@ -50,6 +50,7 @@ sig
     -> string * failure option
   val is_same_atp_step : step_name -> step_name -> bool
   val scan_general_id : string list -> string * string list
+  val agsyhol_coreN : string
   val satallax_coreN : string
   val z3_tptp_coreN : string
   val parse_formula :
@@ -468,6 +469,7 @@ fun parse_spass_line x =
    >> (fn ((((num, rule), deps), u), names) =>
           ((num, these names), Unknown, u, rule, map (rpair []) deps))) x
 
+val agsyhol_coreN = "__agsyhol_core" (* arbitrary *)
 val satallax_coreN = "__satallax_core" (* arbitrary *)
 val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
 
