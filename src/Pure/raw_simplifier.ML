@@ -578,7 +578,7 @@ fun mk_eq_True ctxt (thm, name) =
 
 (*create the rewrite rule and possibly also the eq_True variant,
   in case there are extra vars on the rhs*)
-fun rrule_eq_True (thm, name, lhs, elhs, rhs, ctxt, thm2) =
+fun rrule_eq_True ctxt thm name lhs elhs rhs thm2 =
   let val rrule = {thm = thm, name = name, lhs = lhs, elhs = elhs, perm = false} in
     if rewrite_rule_extra_vars [] lhs rhs then
       mk_eq_True ctxt (thm2, name) @ [rrule]
@@ -592,7 +592,7 @@ fun mk_rrule ctxt (thm, name) =
       (*weak test for loops*)
       if rewrite_rule_extra_vars prems lhs rhs orelse is_Var (term_of elhs)
       then mk_eq_True ctxt (thm, name)
-      else rrule_eq_True (thm, name, lhs, elhs, rhs, ctxt, thm)
+      else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
 fun orient_rrule ctxt (thm, name) =
@@ -609,8 +609,8 @@ fun orient_rrule ctxt (thm, name) =
           NONE => []
         | SOME thm' =>
             let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
-            in rrule_eq_True (thm', name, lhs', elhs', rhs', ctxt, thm) end)
-    else rrule_eq_True (thm, name, lhs, elhs, rhs, ctxt, thm)
+            in rrule_eq_True ctxt thm' name lhs' elhs' rhs' thm end)
+    else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
 fun extract_rews (ctxt, thms) =
