@@ -85,8 +85,9 @@ fun trace_goalno_tac tac i st =
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic ctxt tac rl =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val ctxt' = Variable.declare_thm rl ctxt;
-    val ((_, [st]), ctxt'') = Variable.import true [rl] ctxt';
+    val ((_, [st]), ctxt'') = Variable.import true [Thm.transfer thy rl] ctxt';
   in
     (case Seq.pull (tac st) of
       NONE => raise THM ("rule_by_tactic", 0, [rl])

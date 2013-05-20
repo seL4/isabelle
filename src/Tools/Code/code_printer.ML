@@ -101,8 +101,8 @@ sig
     | Complex_const_syntax of activated_complex_const_syntax
   type tyco_syntax
   val requires_args: const_syntax -> int
-  val parse_const_syntax: Token.T list -> const_syntax * Token.T list
-  val parse_tyco_syntax: Token.T list -> tyco_syntax * Token.T list
+  val parse_const_syntax: const_syntax parser
+  val parse_tyco_syntax: tyco_syntax parser
   val plain_const_syntax: string -> const_syntax
   val simple_const_syntax: simple_const_syntax -> const_syntax
   val complex_const_syntax: complex_const_syntax -> const_syntax

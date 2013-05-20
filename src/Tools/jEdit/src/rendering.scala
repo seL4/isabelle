@@ -481,17 +481,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
-              case (acc, Text.Info(_, elem @ XML.Elem(Markup(Markup.DIALOG, _), _))) =>
-                // FIXME pattern match problem in scala-2.9.2 (!??)
-                elem match {
-                  case Protocol.Dialog(_, serial, result) =>
-                    command_state.results.get(serial) match {
-                      case Some(Protocol.Dialog_Result(res)) if res == result =>
-                        (None, Some(active_result_color))
-                      case _ =>
-                        (None, Some(active_color))
-                    }
-                  case _ => acc
+              case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
+                command_state.results.get(serial) match {
+                  case Some(Protocol.Dialog_Result(res)) if res == result =>
+                    (None, Some(active_result_color))
+                  case _ =>
+                    (None, Some(active_color))
                 }
               case (_, Text.Info(_, XML.Elem(markup, _))) if active_include(markup.name) =>
                 (None, Some(active_color))

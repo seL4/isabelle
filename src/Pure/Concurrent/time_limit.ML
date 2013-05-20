@@ -32,8 +32,7 @@ fun timeLimit timeout f x =
     in
       if was_timeout andalso (Exn.is_interrupt_exn result orelse Exn.is_interrupt_exn test)
       then raise TimeOut
-      else if Exn.is_interrupt_exn test then Exn.interrupt ()
-      else Exn.release result
+      else (Exn.release test; Exn.release result)
     end);
 
 end;

@@ -80,6 +80,7 @@ else
       -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => Posix.Process.exit 0w1;" \
       -e "ml_prompts \"ML> \" \"ML# \";" \
       -e "Command_Line.tool0 Session.finish;" \
+      -e "Options.reset_default ();" \
       -q -w RAW_ML_SYSTEM "$OUTPUT"
   fi
 fi

@@ -2695,8 +2695,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val in_bd_tacs = map7 (fn i => fn isNode_hsets => fn carT_def =>
             fn card_of_carT => fn mor_image => fn Rep_inverse => fn mor_hsets =>
-          K (mk_in_bd_tac lthy (* FIXME proper context!? *)
-            (nth isNode_hsets (i - 1)) isNode_hsets carT_def
+          (fn {context = ctxt, prems = _} =>
+            mk_in_bd_tac ctxt (nth isNode_hsets (i - 1)) isNode_hsets carT_def
             card_of_carT mor_image Rep_inverse mor_hsets
             sbd_Cnotzero sbd_Card_order mor_Rep_thm coalgT_thm mor_T_final_thm tcoalg_thm))
           ks isNode_hset_thmss carT_defs card_of_carT_thms

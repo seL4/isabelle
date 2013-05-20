@@ -1002,6 +1002,8 @@ local
  | _=> raise CTERM ("ideal_tac - lhs",[t])
  fun exitac NONE = no_tac
    | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
+
+ val claset = claset_of @{context}
 in
 fun ideal_tac add_ths del_ths ctxt =
   presimplify ctxt add_ths del_ths
@@ -1023,10 +1025,10 @@ fun ideal_tac add_ths del_ths ctxt =
         THEN ring_tac add_ths del_ths ctxt 1
    end
   in
-     clarify_tac @{context} i
+     clarify_tac (put_claset claset ctxt) i
      THEN Object_Logic.full_atomize_tac i
      THEN asm_full_simp_tac (put_simpset (#poly_eq_ss thy) ctxt) i
-     THEN clarify_tac @{context} i
+     THEN clarify_tac (put_claset claset ctxt) i
      THEN (REPEAT (CONVERSION (#unwind_conv thy ctxt) i))
      THEN SUBPROOF poly_exists_tac ctxt i
   end

@@ -3487,7 +3487,7 @@ ML {*
                                      (@{cpat "?prec::nat"}, p),
                                      (@{cpat "?ss::nat list"}, s)])
               @{thm "approx_form"}) i
-          THEN simp_tac @{context} i) st
+          THEN simp_tac (put_simpset (simpset_of @{context}) ctxt) i) st
        end
 
      | SOME t => if length vs <> 1 then raise (TERM ("More than one variable used for taylor series expansion", [prop_of st]))
@@ -3531,7 +3531,7 @@ method_setup approximation = {*
       REPEAT (FIRST' [etac @{thm intervalE},
                       etac @{thm meta_eqE},
                       rtac @{thm impI}] i)
-      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) @{context} i
+      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
       THEN DETERM (TRY (filter_prems_tac (K false) i))
       THEN DETERM (Reflection.gen_reify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
@@ -3621,33 +3621,33 @@ ML {*
        |> HOLogic.dest_Trueprop
        |> HOLogic.dest_eq |> snd
 
-  fun apply_tactic context term tactic = cterm_of context term
+  fun apply_tactic ctxt term tactic =
+    cterm_of (Proof_Context.theory_of ctxt) term
     |> Goal.init
     |> SINGLE tactic
     |> the |> prems_of |> hd
 
-  fun prepare_form context term = apply_tactic context term (
+  fun prepare_form ctxt term = apply_tactic ctxt term (
       REPEAT (FIRST' [etac @{thm intervalE}, etac @{thm meta_eqE}, rtac @{thm impI}] 1)
-      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems 1) @{context} 1
+      THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems 1) ctxt 1
       THEN DETERM (TRY (filter_prems_tac (K false) 1)))
 
-  fun reify_form context term = apply_tactic context term
-     (Reflection.gen_reify_tac @{context} form_equations NONE 1)
+  fun reify_form ctxt term = apply_tactic ctxt term
+     (Reflection.gen_reify_tac ctxt form_equations NONE 1)
 
   fun approx_form prec ctxt t =
           realify t
-       |> prepare_form (Proof_Context.theory_of ctxt)
-       |> (fn arith_term =>
-          reify_form (Proof_Context.theory_of ctxt) arith_term
-       |> HOLogic.dest_Trueprop |> dest_interpret_form
-       |> (fn (data, xs) =>
-          mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
-            (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
-       |> approximate ctxt
-       |> HOLogic.dest_list
-       |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
-       |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
-       |> foldr1 HOLogic.mk_conj))
+       |> prepare_form ctxt
+       |> (fn arith_term => reify_form ctxt arith_term
+           |> HOLogic.dest_Trueprop |> dest_interpret_form
+           |> (fn (data, xs) =>
+              mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
+                (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
+           |> approximate ctxt
+           |> HOLogic.dest_list
+           |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
+           |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
+           |> foldr1 HOLogic.mk_conj))
 
   fun approx_arith prec ctxt t = realify t
        |> Reflection.gen_reify ctxt form_equations

@@ -252,15 +252,15 @@ let
   val dummy = writeln "  Proving the elimination rule...";
 
   (*Breaks down logical connectives in the monotonic function*)
-  val basic_elim_tac =
+  fun basic_elim_tac ctxt =
       REPEAT (SOMEGOAL (eresolve_tac (Ind_Syntax.elim_rls @ Su.free_SEs)
-                ORELSE' bound_hyp_subst_tac ctxt1))
+                ORELSE' bound_hyp_subst_tac ctxt))
       THEN prune_params_tac
           (*Mutual recursion: collapse references to Part(D,h)*)
       THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
-  val elim = rule_by_tactic (Proof_Context.init_global thy1) basic_elim_tac
+  val elim = rule_by_tactic (Proof_Context.init_global thy1) (basic_elim_tac ctxt1)
                  (unfold RS Ind_Syntax.equals_CollectD)
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
@@ -269,7 +269,7 @@ let
     Proposition A should have the form t:Si where Si is an inductive set*)
   fun make_cases ctxt A =
     rule_by_tactic ctxt
-      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ctxt) THEN basic_elim_tac)
+      (basic_elim_tac ctxt THEN ALLGOALS (asm_full_simp_tac ctxt) THEN basic_elim_tac ctxt)
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
 
