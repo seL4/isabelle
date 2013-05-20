@@ -418,33 +418,42 @@ fun string_of_bound_var format (s, ty) =
 
 fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
   | tptp_string_of_term format (ATerm ((s, tys), ts)) =
-    (if s = tptp_empty_list then
-       (* used for lists in the optional "source" field of a derivation *)
-       "[" ^ commas (map (tptp_string_of_term format) ts) ^ "]"
-     else if is_tptp_equal s then
-       space_implode (" " ^ tptp_equal ^ " ")
-                     (map (tptp_string_of_term format) ts)
-       |> is_format_higher_order format ? enclose "(" ")"
-     else case (s = tptp_ho_forall orelse s = tptp_ho_exists, s = tptp_choice,
-                ts) of
-       (true, _, [AAbs (((s', ty), tm), [])]) =>
-       (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
-          possible, to work around LEO-II 1.2.8 parser limitation. *)
-       tptp_string_of_formula format
-           (AQuant (if s = tptp_ho_forall then AForall else AExists,
-                    [(s', SOME ty)], AAtom tm))
-     | (_, true, [AAbs (((s', ty), tm), args)]) =>
-       (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is always
-          applied to an abstraction. *)
-       tptp_string_of_app format
-           (tptp_choice ^ "[" ^ s' ^ " : " ^ string_of_type format ty ^ "]: " ^
-            tptp_string_of_term format tm ^ ""
-            |> enclose "(" ")")
-           (map (tptp_string_of_term format) args)
-     | _ =>
-       tptp_string_of_app format s
-           (map (string_of_type format) tys
-            @ map (tptp_string_of_term format) ts))
+    let
+      fun app () =
+        tptp_string_of_app format s
+            (map (string_of_type format) tys @
+             map (tptp_string_of_term format) ts)
+    in
+      if s = tptp_empty_list then
+        (* used for lists in the optional "source" field of a derivation *)
+        "[" ^ commas (map (tptp_string_of_term format) ts) ^ "]"
+      else if is_tptp_equal s then
+        space_implode (" " ^ tptp_equal ^ " ")
+                      (map (tptp_string_of_term format) ts)
+        |> is_format_higher_order format ? enclose "(" ")"
+      else if s = tptp_ho_forall orelse s = tptp_ho_exists then
+        case ts of
+          [AAbs (((s', ty), tm), [])] =>
+          (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
+             possible, to work around LEO-II 1.2.8 parser limitation. *)
+          tptp_string_of_formula format
+              (AQuant (if s = tptp_ho_forall then AForall else AExists,
+                      [(s', SOME ty)], AAtom tm))
+        | _ => app ()
+      else if s = tptp_choice then
+        case ts of
+          [AAbs (((s', ty), tm), args)] =>
+          (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is
+             always applied to an abstraction. *)
+          tptp_string_of_app format
+              (tptp_choice ^ "[" ^ s' ^ " : " ^ string_of_type format ty ^
+               "]: " ^ tptp_string_of_term format tm ^ ""
+               |> enclose "(" ")")
+              (map (tptp_string_of_term format) args)
+        | _ => app ()
+      else
+        app ()
+    end
   | tptp_string_of_term (format as THF _) (AAbs (((s, ty), tm), args)) =
     tptp_string_of_app format
         ("(^[" ^ s ^ " : " ^ string_of_type format ty ^ "]: " ^
