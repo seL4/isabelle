@@ -77,14 +77,10 @@ object Active
                     else text_area.setSelectedText(text)
                 }
 
-              case _ =>
-                // FIXME pattern match problem in scala-2.9.2 (!??)
-                elem match {
-                  case Protocol.Dialog(id, serial, result) =>
-                    model.session.dialog_result(id, serial, result)
+              case Protocol.Dialog(id, serial, result) =>
+                model.session.dialog_result(id, serial, result)
 
-                  case _ =>
-                }
+              case _ =>
             }
           }
         }
