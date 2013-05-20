@@ -167,9 +167,9 @@ sig
 
   val standard_binding: binding
   val equal_binding: binding
-  val parse_binding: Token.T list -> binding * Token.T list
-  val parse_binding_colon: Token.T list -> binding * Token.T list
-  val parse_opt_binding_colon: Token.T list -> binding * Token.T list
+  val parse_binding: binding parser
+  val parse_binding_colon: binding parser
+  val parse_opt_binding_colon: binding parser
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
