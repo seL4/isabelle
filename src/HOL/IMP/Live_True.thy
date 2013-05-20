@@ -46,7 +46,7 @@ using L_While_unfold by blast
 lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
 using L_While_unfold by blast
 
-text{* Disable L WHILE equation and reason only with L WHILE constraints *}
+text{* Disable @{text "L WHILE"} equation and reason only with @{text "L WHILE"} constraints: *}
 declare L.simps(5)[simp del]
 
 
@@ -102,16 +102,14 @@ next
   with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
 qed
 
-(*declare L.simps(5)[simp]*)
-
 
 subsection "Executability"
 
-lemma L_subset_vars: "L c X \<subseteq> vars c \<union> X"
+lemma L_subset_vars: "L c X \<subseteq> rvars c \<union> X"
 proof(induction c arbitrary: X)
   case (While b c)
-  have "lfp(\<lambda>Y. vars b \<union> X \<union> L c Y) \<subseteq> vars b \<union> vars c \<union> X"
-    using While.IH[of "vars b \<union> vars c \<union> X"]
+  have "lfp(\<lambda>Y. vars b \<union> X \<union> L c Y) \<subseteq> vars b \<union> rvars c \<union> X"
+    using While.IH[of "vars b \<union> rvars c \<union> X"]
     by (auto intro!: lfp_lowerbound)
   thus ?case by (simp add: L.simps(5))
 qed auto
@@ -126,7 +124,7 @@ lemma L_While: fixes b c X
 assumes "finite X" defines "f == \<lambda>Y. vars b \<union> X \<union> L c Y"
 shows "L (WHILE b DO c) X = while (\<lambda>Y. f Y \<noteq> Y) f {}" (is "_ = ?r")
 proof -
-  let ?V = "vars b \<union> vars c \<union> X"
+  let ?V = "vars b \<union> rvars c \<union> X"
   have "lfp f = ?r"
   proof(rule lfp_while[where C = "?V"])
     show "mono f" by(simp add: f_def mono_union_L)
@@ -175,7 +173,7 @@ fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb (x ::= a) X = (if x \<in> X then X - {x} \<union> vars a else X)" |
 "Lb (c\<^isub>1;; c\<^isub>2) X = (Lb c\<^isub>1 \<circ> Lb c\<^isub>2) X" |
 "Lb (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> Lb c\<^isub>1 X \<union> Lb c\<^isub>2 X" |
-"Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> vars c \<union> X)"
+"Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> rvars c \<union> X)"
 
 text{* @{const Lb} (and @{const iter}) is not monotone! *}
 lemma "let w = WHILE Bc False DO (''x'' ::= V ''y'';; ''z'' ::= V ''x'')
@@ -198,8 +196,8 @@ proof(induction c arbitrary: X)
   show ?case
   proof (simp add: L.simps(5), rule lfp_subset_iter[OF mono_union_L])
     show "!!X. ?f X \<subseteq> ?fb X" using While.IH by blast
-    show "lfp ?f \<subseteq> vars b \<union> vars c \<union> X"
-      by (metis (full_types) L.simps(5) L_subset_vars vars_com.simps(5))
+    show "lfp ?f \<subseteq> vars b \<union> rvars c \<union> X"
+      by (metis (full_types) L.simps(5) L_subset_vars rvars.simps(5))
   qed
 next
   case Seq thus ?case by simp (metis (full_types) L_mono monoD subset_trans)

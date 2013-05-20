@@ -67,29 +67,50 @@ proof(induction b)
   thus ?case by simp
 qed simp_all
 
+fun lvars :: "com \<Rightarrow> vname set" where
+"lvars SKIP = {}" |
+"lvars (x::=e) = {x}" |
+"lvars (c1;;c2) = lvars c1 \<union> lvars c2" |
+"lvars (IF b THEN c1 ELSE c2) = lvars c1 \<union> lvars c2" |
+"lvars (WHILE b DO c) = lvars c"
+
+fun rvars :: "com \<Rightarrow> vname set" where
+"rvars SKIP = {}" |
+"rvars (x::=e) = vars e" |
+"rvars (c1;;c2) = rvars c1 \<union> rvars c2" |
+"rvars (IF b THEN c1 ELSE c2) = vars b \<union> rvars c1 \<union> rvars c2" |
+"rvars (WHILE b DO c) = vars b \<union> rvars c"
 
 instantiation com :: vars
 begin
 
-fun vars_com :: "com \<Rightarrow> vname set" where
-"vars SKIP = {}" |
-"vars (x::=e) = {x} \<union> vars e" |
-"vars (c1;;c2) = vars c1 \<union> vars c2" |
-"vars (IF b THEN c1 ELSE c2) = vars b \<union> vars c1 \<union> vars c2" |
-"vars (WHILE b DO c) = vars b \<union> vars c"
+definition "vars_com c = lvars c \<union> rvars c"
 
 instance ..
 
 end
 
+lemma vars_com_simps[simp]:
+  "vars SKIP = {}"
+  "vars (x::=e) = {x} \<union> vars e"
+  "vars (c1;;c2) = vars c1 \<union> vars c2"
+  "vars (IF b THEN c1 ELSE c2) = vars b \<union> vars c1 \<union> vars c2"
+  "vars (WHILE b DO c) = vars b \<union> vars c"
+by(auto simp: vars_com_def)
 
 lemma finite_avars[simp]: "finite(vars(a::aexp))"
 by(induction a) simp_all
 
 lemma finite_bvars[simp]: "finite(vars(b::bexp))"
-by(induction b) (simp_all add: finite_avars)
+by(induction b) simp_all
+
+lemma finite_lvars[simp]: "finite(lvars(c))"
+by(induction c) simp_all
+
+lemma finite_rvars[simp]: "finite(rvars(c))"
+by(induction c) simp_all
 
 lemma finite_cvars[simp]: "finite(vars(c::com))"
-by(induction c) (simp_all add: finite_avars finite_bvars)
+by(simp add: vars_com_def)
 
 end
