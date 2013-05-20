@@ -510,10 +510,6 @@ fun prems_of ctxt =
 fun add_prems ths =
   map_simpset1 (fn (rules, prems, bounds, depth) => (rules, ths @ prems, bounds, depth));
 
-fun activate_context thy ctxt = ctxt  (* FIXME ?? *)
-  |> Context.raw_transfer (Theory.merge (thy, Proof_Context.theory_of ctxt))
-  |> Context_Position.set_visible false;
-
 
 (* maintain simp rules *)
 
@@ -545,7 +541,6 @@ in
 
 fun decomp_simp thm =
   let
-    val thy = Thm.theory_of_thm thm;
     val prop = Thm.prop_of thm;
     val prems = Logic.strip_imp_prems prop;
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
@@ -557,12 +552,12 @@ fun decomp_simp thm =
       var_perm (term_of elhs, erhs) andalso
       not (term_of elhs aconv erhs) andalso
       not (is_Var (term_of elhs));
-  in (thy, prems, term_of lhs, elhs, term_of rhs, perm) end;
+  in (prems, term_of lhs, elhs, term_of rhs, perm) end;
 
 end;
 
 fun decomp_simp' thm =
-  let val (_, _, lhs, _, rhs, _) = decomp_simp thm in
+  let val (_, lhs, _, rhs, _) = decomp_simp thm in
     if Thm.nprems_of thm > 0 then raise SIMPLIFIER ("Bad conditional rewrite rule", thm)
     else (lhs, rhs)
   end;
@@ -572,7 +567,7 @@ fun mk_eq_True ctxt (thm, name) =
     (case mk_eq_True ctxt thm of
       NONE => []
     | SOME eq_True =>
-        let val (_, _, lhs, elhs, _, _) = decomp_simp eq_True;
+        let val (_, lhs, elhs, _, _) = decomp_simp eq_True;
         in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end)
   end;
 
@@ -586,7 +581,7 @@ fun rrule_eq_True ctxt thm name lhs elhs rhs thm2 =
   end;
 
 fun mk_rrule ctxt (thm, name) =
-  let val (_, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
+  let val (prems, lhs, elhs, rhs, perm) = decomp_simp thm in
     if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
     else
       (*weak test for loops*)
@@ -597,7 +592,7 @@ fun mk_rrule ctxt (thm, name) =
 
 fun orient_rrule ctxt (thm, name) =
   let
-    val (thy, prems, lhs, elhs, rhs, perm) = decomp_simp thm;
+    val (prems, lhs, elhs, rhs, perm) = decomp_simp thm;
     val Simpset (_, {mk_rews = {reorient, mk_sym, ...}, ...}) = simpset_of ctxt;
   in
     if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
@@ -608,7 +603,7 @@ fun orient_rrule ctxt (thm, name) =
         (case mk_sym ctxt thm of
           NONE => []
         | SOME thm' =>
-            let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
+            let val (_, lhs', elhs', rhs', _) = decomp_simp thm'
             in rrule_eq_True ctxt thm' name lhs' elhs' rhs' thm end)
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
@@ -886,7 +881,7 @@ fun check_conv ctxt msg thm thm' =
 (* mk_procrule *)
 
 fun mk_procrule ctxt thm =
-  let val (_, prems, lhs, elhs, rhs, _) = decomp_simp thm in
+  let val (prems, lhs, elhs, rhs, _) = decomp_simp thm in
     if rewrite_rule_extra_vars prems lhs rhs
     then (cond_warn_thm ctxt (fn () => "Extra vars on rhs:") thm; [])
     else [mk_rrule2 {thm = thm, name = "", lhs = lhs, elhs = elhs, perm = false}]
@@ -934,7 +929,7 @@ fun cond_skel (args as (_, (lhs, rhs))) =
   IMPORTANT: rewrite rules must not introduce new Vars or TVars!
 *)
 
-fun rewritec (prover, thyt, maxt) ctxt t =
+fun rewritec (prover, maxt) ctxt t =
   let
     val Simpset ({rules, ...}, {congs, procs, termless, ...}) = simpset_of ctxt;
     val eta_thm = Thm.eta_conversion t;
@@ -1007,7 +1002,7 @@ fun rewritec (prover, thyt, maxt) ctxt t =
 
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
-          if Pattern.matches thyt (Thm.term_of lhs, Thm.term_of t) then
+          if Pattern.matches (Proof_Context.theory_of ctxt) (Thm.term_of lhs, Thm.term_of t) then
             (debug_term ctxt false (fn () => "Trying procedure " ^ quote name ^ " on:") eta_t;
              case proc ctxt eta_t' of
                NONE => (debug ctxt false (fn () => "FAILED"); proc_rews ps)
@@ -1063,20 +1058,20 @@ fun transitive1 NONE NONE = NONE
 fun transitive2 thm = transitive1 (SOME thm);
 fun transitive3 thm = transitive1 thm o SOME;
 
-fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
+fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
   let
     fun botc skel ctxt t =
           if is_Var skel then NONE
           else
           (case subc skel ctxt t of
              some as SOME thm1 =>
-               (case rewritec (prover, thy, maxidx) ctxt (Thm.rhs_of thm1) of
+               (case rewritec (prover, maxidx) ctxt (Thm.rhs_of thm1) of
                   SOME (thm2, skel2) =>
                     transitive2 (Thm.transitive thm1 thm2)
                       (botc skel2 ctxt (Thm.rhs_of thm2))
                 | NONE => some)
            | NONE =>
-               (case rewritec (prover, thy, maxidx) ctxt t of
+               (case rewritec (prover, maxidx) ctxt t of
                   SOME (thm2, skel2) => transitive2 thm2
                     (botc skel2 ctxt (Thm.rhs_of thm2))
                 | NONE => NONE))
@@ -1197,7 +1192,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
               Drule.mk_implies (prem, the_default concl (Option.map Thm.rhs_of eq));
             val dprem = Option.map (disch false prem)
           in
-            (case rewritec (prover, thy, maxidx) ctxt' concl' of
+            (case rewritec (prover, maxidx) ctxt' concl' of
               NONE => rebuild prems concl' rrss asms ctxt (dprem eq)
             | SOME (eq', _) => transitive2 (fold (disch false)
                   prems (the (transitive3 (dprem eq) eq')))
@@ -1305,10 +1300,18 @@ fun check_bounds ctxt ct =
 
 fun rewrite_cterm mode prover raw_ctxt raw_ct =
   let
-    val thy = Thm.theory_of_cterm raw_ct;
+    val ctxt =
+      raw_ctxt
+      |> Context_Position.set_visible false
+      |> inc_simp_depth;
+    val thy = Proof_Context.theory_of ctxt;
+
     val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
     val {maxidx, ...} = Thm.rep_cterm ct;
-    val ctxt = inc_simp_depth (activate_context thy raw_ctxt);
+    val _ =
+      Theory.subthy (theory_of_cterm ct, thy) orelse
+        raise CTERM ("rewrite_cterm: bad background theory", [ct]);
+
     val depth = simp_depth ctxt;
     val _ =
       if depth mod 20 = 0 then
@@ -1316,7 +1319,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       else ();
     val _ = trace_cterm ctxt false (fn () => "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:") ct;
     val _ = check_bounds ctxt ct;
-  in bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ctxt ct end;
+  in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
 
 val simple_prover =
   SINGLE o (fn ctxt => ALLGOALS (resolve_tac (prems_of ctxt)));
