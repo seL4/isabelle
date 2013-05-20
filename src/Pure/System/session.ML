@@ -56,7 +56,6 @@ fun finish () =
   Outer_Syntax.check_syntax ();
   Future.shutdown ();
   Event_Timer.shutdown ();
-  Options.reset_default ();
   session_finished := true);
 
 end;
