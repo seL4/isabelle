@@ -39,6 +39,7 @@ sig
   val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
   val extern: theory -> string -> xstring
+  val pretty_name: Proof.context -> string -> Pretty.T
   val defined: theory -> string -> bool
   val params_of: theory -> string -> ((string * typ) * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
@@ -162,6 +163,10 @@ val intern = Name_Space.intern o #1 o Locales.get;
 fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
 
+fun pretty_name ctxt name =
+  Pretty.mark_str
+    (Name_Space.markup_extern ctxt (#1 (Locales.get (Proof_Context.theory_of ctxt))) name);
+
 val get_locale = Symtab.lookup o #2 o Locales.get;
 val defined = Symtab.defined o #2 o Locales.get;
 
@@ -212,7 +217,6 @@ fun identity_on thy name morph =
 fun pretty_reg ctxt export (name, morph) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val name' = extern thy name;
     val morph' = morph $> export;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
@@ -223,7 +227,7 @@ fun pretty_reg ctxt export (name, morph) =
         Pretty.brk 1, (Pretty.quote o Syntax.pretty_typ ctxt) (type_of t)]
       else prt_term t;
     fun prt_inst ts =
-      Pretty.block (Pretty.breaks (Pretty.str name' :: map prt_term' ts));
+      Pretty.block (Pretty.breaks (pretty_name ctxt name :: map prt_term' ts));
 
     val qs = Binding.name "x" |> Morphism.binding morph' |> Binding.prefix_of;
     val ts = instance_of thy name morph';
@@ -620,7 +624,7 @@ fun print_locales thy =
 
 fun pretty_locale thy show_facts name =
   let
-    val ctxt = init name thy;
+    val locale_ctxt = init name thy;
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
     val elems =
@@ -628,8 +632,8 @@ fun pretty_locale thy show_facts name =
       |> snd |> rev;
   in
     Pretty.block
-      (Pretty.command "locale" :: Pretty.brk 1 :: Pretty.str (extern thy name) ::
-        maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt ctxt elem)]) elems)
+      (Pretty.command "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
+        maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems)
   end;
 
 fun print_locale thy show_facts raw_name =

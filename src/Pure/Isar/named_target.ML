@@ -124,10 +124,9 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
 
 fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val target_name =
-      [Pretty.command (if is_class then "class" else "locale"),
-        Pretty.str (" " ^ Locale.extern thy target)];
+      [Pretty.command (if is_class then "class" else "locale"), Pretty.brk 1,
+        Locale.pretty_name ctxt target];
     val fixes =
       map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
         (#1 (Proof_Context.inferred_fixes ctxt));
