@@ -47,7 +47,7 @@ definition "test2_ivl =
  DO ''x'' ::= Plus (V ''x'') (N 1)"
 
 definition "test3_ivl =
- ''x'' ::= N 7;;
+ ''x'' ::= N 0;;
  WHILE Less (V ''x'') (N 100)
  DO ''x'' ::= Plus (V ''x'') (N 1)"
 
@@ -58,7 +58,7 @@ definition "test4_ivl =
 
 definition "test5_ivl =
  ''x'' ::= N 0;; ''y'' ::= N 0;;
- WHILE Less (V ''x'') (N 1000)
+ WHILE Less (V ''x'') (N 100)
  DO (''y'' ::= V ''x'';; ''x'' ::= Plus (V ''x'') (N 1))"
 
 definition "test6_ivl =
