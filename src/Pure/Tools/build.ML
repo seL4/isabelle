@@ -106,10 +106,6 @@ fun use_theories last_timing options =
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-    |> Unsynchronized.setmp Goal.parallel_subproofs_saturation
-        (Options.int options "parallel_subproofs_saturation")
-    |> Unsynchronized.setmp Goal.parallel_subproofs_threshold
-        (Options.real options "parallel_subproofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
     |> Unsynchronized.setmp Future.ML_statistics true

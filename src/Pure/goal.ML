@@ -8,8 +8,6 @@ signature BASIC_GOAL =
 sig
   val skip_proofs: bool Unsynchronized.ref
   val parallel_proofs: int Unsynchronized.ref
-  val parallel_subproofs_saturation: int Unsynchronized.ref
-  val parallel_subproofs_threshold: real Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -200,8 +198,6 @@ end;
 val skip_proofs = Unsynchronized.ref false;
 
 val parallel_proofs = Unsynchronized.ref 1;
-val parallel_subproofs_saturation = Unsynchronized.ref 100;
-val parallel_subproofs_threshold = Unsynchronized.ref 0.01;
 
 fun future_enabled_level n =
   Multithreading.enabled () andalso ! parallel_proofs >= n andalso
@@ -211,10 +207,12 @@ fun future_enabled () = future_enabled_level 1;
 
 fun future_enabled_nested n =
   future_enabled_level n andalso
-  forked_count () < ! parallel_subproofs_saturation * Multithreading.max_threads_value ();
+  forked_count () <
+    Options.default_int "parallel_subproofs_saturation" * Multithreading.max_threads_value ();
 
 fun future_enabled_timing t =
-  future_enabled () andalso Time.toReal t >= ! parallel_subproofs_threshold;
+  future_enabled () andalso
+    Time.toReal t >= Options.default_real "parallel_subproofs_threshold";
 
 
 (* future_result *)
