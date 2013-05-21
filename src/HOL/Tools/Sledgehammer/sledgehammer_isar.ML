@@ -108,7 +108,8 @@ val default_default_params =
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"])),
-   ("dont_compress_isar", ("isar_compress", ["0"]))]
+   ("dont_compress_isar", ("isar_compress", ["0"])),
+   ("isar_proof", ("isar_proofs", [])) (* legacy *)]
 val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
