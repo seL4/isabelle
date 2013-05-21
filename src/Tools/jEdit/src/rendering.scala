@@ -554,7 +554,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_STRING -> inner_quoted_color,
       Markup.ML_COMMENT -> inner_comment_color)
 
-  private val text_color_elements = Set.empty[String] ++ text_colors.keys
+  private val text_color_elements = text_colors.keySet
 
   def text_color(range: Text.Range, color: Color)
       : Stream[Text.Info[Color]] =
