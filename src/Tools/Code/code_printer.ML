@@ -488,17 +488,17 @@ fun read_mixfix s =
 val parse_fixity =
   (@{keyword "infix"} >> K X) || (@{keyword "infixl"} >> K L) || (@{keyword "infixr"} >> K R)
 
-val parse_mixfix  =
-  Parse.string >> read_mixfix
+fun parse_mixfix x =
+  (Parse.string >> read_mixfix
   || parse_fixity -- Parse.nat -- Parse.string
-     >> (fn ((fixity, i), s) => read_infix (fixity, i) s);
+     >> (fn ((fixity, i), s) => read_infix (fixity, i) s)) x;
 
 fun syntax_of_mixfix of_plain of_printer prep_arg (BR, [String s]) = of_plain s
   | syntax_of_mixfix of_plain of_printer prep_arg (fixity, mfx) =
       of_printer (printer_of_mixfix prep_arg (fixity, mfx));
 
-val parse_tyco_syntax =
-  parse_mixfix >> syntax_of_mixfix (fn s => (0, (K o K o K o str) s)) I I;
+fun parse_tyco_syntax x =
+  (parse_mixfix >> syntax_of_mixfix (fn s => (0, (K o K o K o str) s)) I I) x;
 
 val parse_const_syntax =
   parse_mixfix >> syntax_of_mixfix plain_const_syntax simple_const_syntax fst;
