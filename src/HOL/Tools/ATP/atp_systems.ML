@@ -485,8 +485,9 @@ val leo2 = (leo2N, fn () => leo2_config)
 
 (* Satallax *)
 
+(* Choice is disabled until there is proper reconstruction for it. *)
 val satallax_thf0 =
-  THF (Monomorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
+  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
   {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
