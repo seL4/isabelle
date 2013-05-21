@@ -1731,12 +1731,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ctors (0 upto n - 1) witss
           end;
 
-        fun wit_tac ctxt _ = mk_wit_tac ctxt n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
+        fun wit_tac {context = ctxt, prems = _} =
+          mk_wit_tac ctxt n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
               fn T => fn wits => fn lthy =>
-            bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac lthy) (SOME deads)
+            bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads)
               map_b rel_b set_bs
               (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
               lthy
