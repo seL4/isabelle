@@ -17,7 +17,6 @@ signature ISABELLE_PROCESS =
 sig
   val is_active: unit -> bool
   val protocol_command: string -> (string list -> unit) -> unit
-  val tracing_messages: int Unsynchronized.ref;
   val reset_tracing: unit -> unit
   val crashes: exn list Synchronized.var
   val init_fifos: string -> string -> unit
@@ -65,13 +64,11 @@ end;
 
 (* restricted tracing messages *)
 
-val tracing_messages = Unsynchronized.ref 100;
-
-val command_tracing_messages =
-  Synchronized.var "command_tracing_messages" (Inttab.empty: int Inttab.table);
+val tracing_messages =
+  Synchronized.var "tracing_messages" (Inttab.empty: int Inttab.table);
 
 fun reset_tracing () =
-  Synchronized.change command_tracing_messages (K Inttab.empty);
+  Synchronized.change tracing_messages (K Inttab.empty);
 
 fun update_tracing () =
   (case Position.parse_id (Position.thread_data ()) of
@@ -79,10 +76,10 @@ fun update_tracing () =
   | SOME id =>
       let
         val (n, ok) =
-          Synchronized.change_result command_tracing_messages (fn tab =>
+          Synchronized.change_result tracing_messages (fn tab =>
             let
               val n = the_default 0 (Inttab.lookup tab id) + 1;
-              val ok = n <= ! tracing_messages;
+              val ok = n <= Options.default_int "editor_tracing_messages";
             in ((n, ok), Inttab.update (id, n) tab) end);
       in
         if ok then ()
@@ -95,7 +92,7 @@ fun update_tracing () =
             val m = Markup.parse_int (Future.join promise)
               handle Fail _ => error "Stopped";
           in
-            Synchronized.change command_tracing_messages
+            Synchronized.change tracing_messages
               (Inttab.map_default (id, 0) (fn k => k - m))
           end
       end);
@@ -243,8 +240,7 @@ val _ =
         if Multithreading.max_threads_value () < 2
         then Multithreading.max_threads := 2 else ();
         Goal.skip_proofs := Options.bool options "editor_skip_proofs";
-        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0);
-        tracing_messages := Options.int options "editor_tracing_messages"
+        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
       end);
 
 end;
