@@ -1,0 +1,78 @@
+<HR><!------------------------------------------------------------------------>
+<H2>Nitrox 2013</H2>
+Jasmin C. Blanchette<sup>1</sup>, Emina Torlak<sup>2</sup><BR>
+<sup>1</sup>Technische Universit&auml;t M&uuml;nchen, Germany <BR>
+<sup>2</sup>University of California, Berkeley, USA <BR>
+
+<H3>Architecture</H3>
+
+Nitrox is the first-order version of Nitpick [<A HREF="#References">BN10</A>],
+an open source counterexample generator for Isabelle/HOL
+[<A HREF="#References">NPW13</A>]. It builds on Kodkod
+[<A HREF="#References">TJ07</A>], a highly optimized first-order relational
+model finder based on SAT. The name Nitrox is a portmanteau of <b><i>Nit</i></b>pick
+and Pa<b><i>r</i></b>ad<b><i>ox</i></b> (clever, eh?).
+
+<H3>Strategies</H3>
+
+<p>
+Nitrox employs Kodkod to find a finite model of the negated conjecture. It
+performs a few transformations on the input, such as pushing quantifiers inside,
+but 99% of the solving logic is in Kodkod and the underlying SAT solver.
+
+<p>
+The translation from HOL to Kodkod's first-order relational logic (FORL) is
+parameterized by the cardinalities of the atomic types occurring in it. Nitrox
+enumerates the possible cardinalities for the universe. If a formula has a
+finite counterexample, the tool eventually finds it, unless it runs out of
+resources.
+
+<p>
+Nitpick is optimized to work with higher-order logic (HOL) and its definitional
+principles (e.g., (co)inductive predicates, (co)inductive datatypes,
+(co)recursive functions). When invoked on untyped first-order problem, few of
+its optimizations come into play, and the problem handed to Kodkod is
+essentially a first-order relational logic (FORL) rendering of the TPTP FOF
+problem. There are two main exceptions:
+<ul>
+<li> Nested quantifiers are moved as far inside the formula as possible before
+Kodkod gets a chance to look at them [<A HREF="#References">BN10</A>].
+<li> Definitions invoked with fixed arguments are specialized.
+</ul>
+
+<H3>Implementation</H3>
+
+<p>
+Nitrox, like most of Isabelle/HOL, is written in Standard ML. Unlike Isabelle
+itself, which adheres to the LCF small-kernel discipline, Nitrox does not
+certify its results and must be trusted. Kodkod is written in Java. MiniSat 1.14
+is used as the SAT solver.
+
+<H3>Expected Competition Performance</H3>
+
+Since Nitpick was designed for HOL, it doesn't have any type inference &agrave;
+la Paradox. It also doesn't use the SAT solver incrementally, which penalizes it
+a bit (but not as much as the missing type inference). Kodkod itself is known to
+perform less well on FOF than Paradox, because it is designed and optimized for
+a somewhat different logic, FORL. On the other hand, Kodkod's symmetry breaking
+might be better calibrated than Paradox's. Hence, we expect Nitrox to end up in
+second or third place in the FNT category.
+
+<H3>References</H3>
+<DL>
+<DT> BN10
+<DD> Blanchette J. C., Nipkow T. (2010),
+     <STRONG>Nitpick: A Counterexample Generator for Higher-Order Logic Based on a Relational Model Finder</STRONG>,
+     ITP 2010, <EM>LNCS</EM> 6172, pp. 131&ndash;146, Springer.
+<DT> NPW13
+<DD> Nipkow T., Paulson L. C., Wenzel M. (2013),
+     <STRONG>Isabelle/HOL: A Proof Assistant for Higher-Order Logic</STRONG>,
+     <A HREF="http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf">http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf</a>.
+<DT> TJ07
+<DD> Torlak E., Jackson D. (2007),
+     <STRONG>Kodkod: A Relational Model Finder</STRONG>, TACAS 2007,
+	 <EM>LNCS</EM> 4424, pp. 632&ndash;647, Springer.
+</DL>
+<P>
+
+<HR><!------------------------------------------------------------------------>

@@ -1,0 +1,168 @@
+Isabelle/HOL 2013 at CASC-24
+
+Notes to Geoff:
+
+  Once you have open the archive, Isabelle and its tool are ready to go. The
+  various tools are invoked as follows:
+
+  	Isabelle, competition version:
+  		./bin/isabelle tptp_isabelle %d %s
+
+  	Isabelle, demo version:
+  		./bin/isabelle tptp_isabelle_hot %d %s
+
+  	Nitpick and Nitrox:
+  		./bin/isabelle tptp_nitpick %d %s
+
+  	Refute:
+  		./bin/isabelle tptp_refute %d %s
+
+  Here's an example:
+
+    ./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/SET/SET014^4.p
+
+  The output should look as follows:
+
+    > val it = (): unit
+    val commit = fn: unit -> bool
+    Loading theory "Scratch_tptp_isabelle_hot_29414_2568"
+    running nitpick for 7 s
+    FAILURE: nitpick
+    running simp for 15 s
+    SUCCESS: simp
+    % SZS status Theorem
+
+  Additional sanity tests:
+
+  	./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/CSR/CSR150^3.p
+  	./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/SYO/SYO304^5.p
+    ./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/PUZ/PUZ087^1.p
+
+  The first problem is unprovable; the second one is proved by Satallax; the
+  third one is proved by LEO-II.
+
+  All the tools accept CNF, FOF, TFF0, or THF0 problems and output SZS statuses
+  of the form
+
+  	% SZS status XXX
+
+  where XXX is in the set
+
+    {Unknown, TimedOut, Unsatisfiable, Theorem, Satisfiable, CounterSatisfiable}
+
+  Nitpick and Nitrox also output a model within "% SZS begin" and "% SZS end"
+  tags.
+
+  In 2011, there were some problems with Java (needed for Nitpick), because it
+  required so much memory at startup. I doubt there will be any problems this
+  year, because Isabelle now includes its own version of Java, but the solution
+  back then was to replace
+
+  	exec "$ISABELLE_TOOL" java
+
+  in the last line of the "contrib/kodkodi-1.5.2/bin/kodkodi" script with
+
+  	/usr/lib64/jvm/java-1.5.0-gcj-4.5-1.5.0.0/jre/bin/java
+
+  See the emails we exchanged on July 18, 2011, with the subject "No problem on
+  my Linux 64-bit".
+
+  Enjoy!
+
+
+Notes to myself:
+
+  I downloaded the official Isabelle2013 Linux package from
+
+    http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2013_linux.tar.gz
+
+  on a "macbroy" machine and renamed the directory "Isabelle2013-CASC". I built
+  a "HOL-TPTP" image:
+
+    ./bin/isabelle build -b HOL-TPTP
+
+  I copied the heaps over to "./heaps":
+
+    mv ~/.isabelle/Isabelle2013/heaps .
+
+  To use this image and suppress some scary output, I added
+
+    HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val it = (): unit"
+
+  to the next-to-last lines of "src/HOL/TPTP/lib/Tools/tptp_[inrs]*".
+
+  At this point I tested the "SYN044^4" mentioned above.
+
+  I renamed "README" to "README.orig" and copied this "ReadMe" over.
+
+  Next, I installed and enabled ATPs.
+
+  LEO-II (1.4.3):
+
+    I logged to a 32-bit Linux ("lxlabbroy") machine. I retrieved LEO-II from
+
+      http://www.ags.uni-sb.de/~leo/leo2_v1.4.3.tgz
+
+    I did "make opt". I copied
+    "bin/leo.opt" to "~/Isabelle2013-CASC/contrib/leo".
+
+    I added this line to "etc/settings":
+
+      LEO2_HOME=$ISABELLE_HOME/contrib
+
+  Satallax (2.7):
+
+    I logged to a 32-bit Linux ("lxlabbroy") machine. I retrieved Satallax from
+
+      http://www.ps.uni-saarland.de/~cebrown/satallax/downloads/satallax-2.7.tar.gz
+
+    I added E to the path so that it gets detected by Satallax's configure
+    script:
+
+      export PATH=$PATH:~/Isabelle2013-CASC/contrib/e-1.6-2/x86-linux
+
+    I followed the instructions in "satallax-2.7/INSTALL". I copied
+    "bin/satallax.opt" to "~/Isabelle2013-CASC/contrib/satallax".
+
+    I added this line to "etc/settings":
+
+      SATALLAX_HOME=$ISABELLE_HOME/contrib
+
+  Vampire (2.6):
+
+    I copied the file "vampire_rel.linux64" from the 2012 CASC archive to
+    "~/Isabelle2013-CASC/contrib/vampire".
+
+    I added these lines to "etc/settings":
+
+      VAMPIRE_HOME=$ISABELLE_HOME/contrib
+      VAMPIRE_VERSION=2.6
+
+  Z3 (3.2):
+
+    I uncommented the following line in "contrib/z3-3.2/etc/settings":
+
+      # Z3_NON_COMMERCIAL="yes"
+
+  To test that the examples actually worked, I did
+
+    ./bin/isabelle tty
+    theory T imports Main begin;
+    lemma "a = b ==> [b] = [a]";
+    sledgehammer [e leo2 satallax spass vampire z3 z3_tptp] ();
+
+  and I performed the aforementioned sanity tests.
+
+  Ideas for next year:
+
+    * Unfold definitions, esp. if it makes the problem more first-order (cf.
+      "SEU466^1").
+    * Detect and remove needless definitions.
+    * Expand "p b" to "(b & p True) | (~ b & p False)" (cf. "CSR148^3").
+    * Select subset of axioms (cf. "CSR148^3").
+
+  That's it.
+
+
+                Jasmin Blanchette
+                21 May 2013

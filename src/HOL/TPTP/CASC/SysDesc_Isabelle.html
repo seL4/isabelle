@@ -1,0 +1,183 @@
+<HR><!------------------------------------------------------------------------>
+<H2>Isabelle/HOL 2013</H2>
+Jasmin C. Blanchette<sup>1</sup>, Lawrence C. Paulson<sup>2</sup>,
+Tobias Nipkow<sup>1</sup>, Makarius Wenzel<sup>3</sup> <BR>
+<sup>1</sup>Technische Universit&auml;t M&uuml;nchen, Germany <BR>
+<sup>2</sup>University of Cambridge, United Kingdom <BR>
+<sup>3</sup>Universit&eacute; Paris Sud, France <BR>
+
+<H3>Architecture</H3>
+
+Isabelle/HOL 2013 [<A HREF="#References">NPW13</A>] is the higher-order 
+logic incarnation of the generic proof assistant 
+<A HREF="http://www.cl.cam.ac.uk/research/hvg/Isabelle/">Isabelle2013</A>.
+Isabelle/HOL provides several automatic proof tactics, notably an equational
+reasoner [<A HREF="#References">Nip89</A>], a classical reasoner [<A
+HREF="#References">Pau94</A>], and a tableau prover [<A
+HREF="#References">Pau99</A>]. It also integrates external first- and
+higher-order provers via its subsystem Sledgehammer [<A
+HREF="#References">PB10</A>, <A HREF="#References">BBP11</A>].
+
+<P>
+Isabelle includes a parser for the TPTP syntaxes CNF, FOF, TFF0, and THF0, due
+to Nik Sultana. It also includes TPTP versions of its popular tools, invokable
+on the command line as <tt>isabelle tptp_<em>tool</em> <em>max_secs</em>
+<em>file.p</em></tt>. For example:
+
+<blockquote><pre>
+isabelle tptp_isabelle_hot 100 SEU/SEU824^3.p
+</pre></blockquote>
+
+<P>
+Two versions of Isabelle participate this year. The <em>demo</em> (or HOT) version
+includes its competitors LEO-II [<A HREF="#References">BPTF08</A>] and Satallax
+[<A HREF="#References">Bro12</A>] as Sledgehammer backends, whereas the
+<em>competition</em> version leaves them out.
+
+<H3>Strategies</H3>
+
+The <em>Isabelle</em> tactic submitted to the competition simply tries the
+following tactics sequentially:
+
+<DL>
+<DT> <tt>sledgehammer</tt>
+<DD> Invokes the following sequence of provers as oracles via Sledgehammer:
+	<UL>
+	<LI> <tt>satallax</tt>&mdash;Satallax 2.4 [<A HREF="#References">Bro12</A>] (<em>demo only</em>);
+	<LI> <tt>leo2</tt>&mdash;LEO-II 1.3.2 [<A HREF="#References">BPTF08</A>] (<em>demo only</em>);
+	<LI> <tt>spass</tt>&mdash;SPASS 3.8ds [<A HREF="#References">BPWW12</A>];
+	<LI> <tt>vampire</tt>&mdash;Vampire 1.8 (revision 1435) [<A HREF="#References">RV02</A>];
+	<LI> <tt>e</tt>&mdash;E 1.4 [<A HREF="#References">Sch04</A>];
+	<LI> <tt>z3_tptp</tt>&mdash;Z3 3.2 with TPTP syntax [<A HREF="#References">dMB08</A>].
+	</UL>
+<DT> <tt>nitpick</tt>
+<DD> For problems involving only the type <tt>$o</tt> of Booleans, checks
+	 whether a finite model exists using Nitpick [<A HREF="#References">BN10</A>].
+<DT> <tt>simp</tt>
+<DD> Performs equational reasoning using rewrite rules [<A HREF="#References">Nip89</A>].
+<DT> <tt>blast</tt>
+<DD> Searches for a proof using a fast untyped tableau prover and then
+     attempts to reconstruct the proof using Isabelle tactics
+     [<A HREF="#References">Pau99</A>].
+<DT> <tt>auto+spass</tt>
+<DD> Combines simplification and classical reasoning
+	 [<A HREF="#References">Pau94</A>] under one roof; then invoke Sledgehammer
+     with SPASS on any subgoals that emerge.
+<DT> <tt>z3</tt>
+<DD> Invokes the SMT solver Z3 3.2 [<A HREF="#References">dMB08</A>].
+<DT> <tt>cvc3</tt>
+<DD> Invokes the SMT solver CVC3 2.2 [<A HREF="#References">BT07</A>].
+<DT> <tt>fast</tt>
+<DD> Searches for a proof using sequent-style reasoning, performing a
+     depth-first search [<A HREF="#References">Pau94</A>]. Unlike
+     <tt>blast</tt>, it construct proofs directly in Isabelle. That makes it
+     slower but enables it to work in the presence of the more unusual features
+     of HOL, such as type classes and function unknowns.
+<DT> <tt>best</tt>
+<DD> Similar to <tt>fast</tt>, except that it performs a best-first search.
+<DT> <tt>force</tt>
+<DD> Similar to <tt>auto</tt>, but more exhaustive.
+<DT> <tt>meson</tt>
+<DD> Implements Loveland's MESON procedure [<A HREF="#References">Lov78</A>].
+Constructs proofs directly in Isabelle.
+<DT> <tt>fastforce</tt>
+<DD> Combines <tt>fast</tt> and <tt>force</tt>.
+</DL>
+
+<H3>Implementation</H3>
+
+Isabelle is a generic theorem prover written in Standard ML. Its meta-logic,
+Isabelle/Pure, provides an intuitionistic fragment of higher-order logic. The
+HOL object logic extends pure with a more elaborate version of higher-order
+logic, complete with the familiar connectives and quantifiers. Other object
+logics are available, notably FOL (first-order logic) and ZF
+(Zermelo&ndash;Fraenkel set theory).
+<P>
+The implementation of Isabelle relies on a small LCF-style kernel, meaning that
+inferences are implemented as operations on an abstract <tt>theorem</tt>
+datatype. Assuming the kernel is correct, all values of type <tt>theorem</tt>
+are correct by construction.
+<P>
+Most of the code for Isabelle was written by the Isabelle teams at the
+University of Cambridge and the Technische Universit&auml;t M&uuml;nchen.
+Isabelle/HOL is available for all major platforms under a BSD-style license
+from
+<PRE>
+    <A HREF="http:////www.cl.cam.ac.uk/research/hvg/Isabelle/">http://www.cl.cam.ac.uk/research/hvg/Isabelle</A></PRE>
+
+<H3>Expected Competition Performance</H3>
+
+<P>
+Isabelle won last year by a thin margin. This year: first or second place.
+
+<H3>References</H3>
+<DL>
+
+<DT> BBP11
+<DD> Blanchette J. C., B&ouml;hme S., Paulson L. C. (2011),
+     <STRONG>Extending Sledgehammer with SMT Solvers</STRONG>,
+     CADE-23, LNAI 6803, pp. 116&ndash;130, Springer.
+<DT> BN10
+<DD> Blanchette J. C., Nipkow T. (2010),
+     <STRONG>Nitpick: A Counterexample Generator for Higher-Order Logic Based on a Relational Model Finder</STRONG>,
+     ITP 2010, <EM>LNCS</EM> 6172, pp. 131&ndash;146, Springer.
+<DT> BPTF08
+<DD> Benzm&uuml;ller C., Paulson L. C., Theiss F., Fietzke A. (2008),
+  	 <STRONG>LEO-II&mdash;A Cooperative Automatic Theorem Prover for Higher-Order Logic</STRONG>,
+  	 IJCAR 2008, <EM>LNAI</EM> 5195, pp. 162&ndash;170, Springer.
+<DT> BPWW12
+<DD> Blanchette J. C., Popescu A., Wand D., Weidenbach C. (2012),
+	 <STRONG>More SPASS with Isabelle</STRONG>,
+	 ITP 2012, Springer.
+<DT> Bro12
+<DD> Brown C. (2012),
+	 <STRONG>Satallax: An Automated Higher-Order Prover (System Description)</STRONG>,
+	 IJCAR 2012, Springer.
+<DT> BT07
+<DD> Barrett C., Tinelli C. (2007),
+	 <STRONG>CVC3 (System Description)</STRONG>,
+  	 CAV 2007, <EM>LNCS</EM> 4590, pp. 298&ndash;302, Springer.
+<DT> dMB08
+<DD> de Moura L. M., Bj&oslash;rner N. (2008),
+     <STRONG>Z3: An Efficient SMT Solver</STRONG>,
+	 TACAS 2008, <EM>LNCS</EM> 4963, pp. 337&ndash;340, Springer.
+<DT> Lov78
+<DD> Loveland D. W. (1978),
+     <STRONG>Automated Theorem Proving: A Logical Basis</STRONG>,
+     North-Holland Publishing Co.
+<DT> Nip89
+<DD> Nipkow T. (1989),
+     <STRONG>Equational Reasoning in Isabelle</STRONG>,
+     <EM>Sci. Comput. Program.</EM> 12(2),
+     pp. 123&ndash;149,
+     Elsevier.
+<DT> NPW13
+<DD> Nipkow T., Paulson L. C., Wenzel M. (2013),
+     <STRONG>Isabelle/HOL: A Proof Assistant for Higher-Order Logic</STRONG>,
+     <A HREF="http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf">http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf</a>.
+<DT> Pau94
+<DD> Paulson L. C. (1994),
+     <STRONG>Isabelle: A Generic Theorem Prover</STRONG>,
+     <EM>LNCS</EM> 828,
+     Springer.
+<DT> Pau99
+<DD> Paulson L. C. (1999),
+     <STRONG>A Generic Tableau Prover and Its Integration with Isabelle</STRONG>,
+     <EM>J. Univ. Comp. Sci.</EM> 5,
+     pp. 73&ndash;87.
+<DT> PB10
+<DD> Paulson L. C., Blanchette J. C. (2010),
+     <STRONG>Three Years of Experience with Sledgehammer, a Practical Link between Automatic and Interactive Theorem Provers</STRONG>,
+     IWIL-2010.
+<DT> RV02
+<DD> Riazanov A., Voronkov A. (2002),
+  	 <STRONG>The Design and Implementation of Vampire</STRONG>,
+  	 <EM>AI Comm.</EM> 15(2-3), 91&ndash;110.
+<DT> Sch04
+<DD> Schulz S. (2004),
+  	 <STRONG>System Description: E 0.81</STRONG>,
+  	 IJCAR 2004, <EM>LNAI</EM> 3097, pp. 223&ndash;228, Springer.
+</DL>
+<P>
+
+<HR><!------------------------------------------------------------------------>

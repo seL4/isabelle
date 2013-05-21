@@ -1,0 +1,55 @@
+<HR><!------------------------------------------------------------------------>
+<H2>Refute 2013</H2>
+Jasmin C. Blanchette<sup>1</sup>, Tjark Weber<sup>2</sup><BR>
+<sup>1</sup>Technische Universit&auml;t M&uuml;nchen, Germany <BR>
+<sup>2</sup>Uppsala Universitet, Sweden <BR>
+
+<H3>Architecture</H3>
+
+Refute [<A HREF="#References">Web08</A>] is an open source counterexample 
+generator for Isabelle/HOL [<A HREF="#References">NPW13</A>] based on a
+SAT solver, and Nitpick's [<A HREF="#References">BN10</A>] precursor.
+
+<H3>Strategies</H3>
+
+<p>
+Refute employs a SAT solver to find a finite model of the negated conjecture.
+The translation from HOL to propositional logic is parameterized by the
+cardinalities of the atomic types occurring in the conjecture. Refute enumerates
+the possible cardinalities for each atomic type. If a formula has a finite
+counterexample, the tool eventually finds it, unless it runs out of resources.
+
+<H3>Implementation</H3>
+
+<p>
+Refute, like most of Isabelle/HOL, is written in Standard ML. Unlike Isabelle
+itself, which adheres to the LCF small-kernel discipline, Refute does not
+certify its results and must be trusted.
+<P>
+Refute is available as part of Isabelle/HOL for all major platforms under a
+BSD-style license from
+<PRE>
+    <A HREF="http:////www.cl.cam.ac.uk/research/hvg/Isabelle/">http://www.cl.cam.ac.uk/research/hvg/Isabelle</A></PRE>
+
+<H3>Expected Competition Performance</H3>
+
+We expect that Refute will solve about 75% of the problems solved by Nitpick in
+the TNT category, and perhaps a few problems that Nitpick cannot solve.
+
+<H3>References</H3>
+<DL>
+<DT> BN10
+<DD> Blanchette J. C., Nipkow T. (2010),
+     <STRONG>Nitpick: A Counterexample Generator for Higher-Order Logic Based on a Relational Model Finder</STRONG>,
+     ITP 2010, <EM>LNCS</EM> 6172, pp. 131&ndash;146, Springer.
+<DT> NPW13
+<DD> Nipkow T., Paulson L. C., Wenzel M. (2013),
+     <STRONG>Isabelle/HOL: A Proof Assistant for Higher-Order Logic</STRONG>,
+     <A HREF="http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf">http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf</a>.
+<DT> Web08
+<DD> Weber T. (2008),
+     <STRONG>SAT-based Finite Model Generation for Higher-Order Logic</STRONG>, Ph.D. thesis.
+</DL>
+<P>
+
+<HR><!------------------------------------------------------------------------>

@@ -1,0 +1,82 @@
+<HR><!------------------------------------------------------------------------>
+<H2>Nitpick 2013</H2>
+Jasmin C. Blanchette<BR>
+Technische Universit&auml;t M&uuml;nchen, Germany <BR>
+
+<H3>Architecture</H3>
+
+Nitpick [<A HREF="#References">BN10</A>] is an open source counterexample 
+generator for Isabelle/HOL [<A HREF="#References">NPW13</A>]. It builds on
+Kodkod [<A HREF="#References">TJ07</A>], a highly optimized first-order
+relational model finder based on SAT. The name Nitpick is appropriated from a
+now retired Alloy precursor. In a case study, it was applied successfully to a
+formalization of the C++ memory model [<A HREF="#References">BWB+11</A>].
+
+<H3>Strategies</H3>
+
+<p>
+Nitpick employs Kodkod to find a finite model of the negated conjecture. The
+translation from HOL to Kodkod's first-order relational logic (FORL) is
+parameterized by the cardinalities of the atomic types occurring in it. Nitpick
+enumerates the possible cardinalities for each atomic type, exploiting
+monotonicity to prune the search space [<A HREF="#References">BK11</A>]. If a
+formula has a finite counterexample, the tool eventually finds it, unless it
+runs out of resources.
+
+<p>
+SAT solvers are particularly sensitive to the encoding of problems, so special
+care is needed when translating HOL formulas.
+As a rule, HOL scalars are mapped to FORL singletons and functions are mapped to
+FORL relations accompanied by a constraint. More specifically,
+an <i>n</i>-ary first-order function (curried or not) can be coded as an
+(<i>n</i> + 1)-ary relation accompanied by a constraint. However, if the return
+type is the type of Booleans, the function is more efficiently coded as an
+unconstrained <i>n</i>-ary relation.
+Higher-order quantification and functions bring complications of their own. A
+function from &sigma; to &tau; cannot be directly passed as an argument in FORL;
+Nitpick's workaround is to pass |&sigma;| arguments of type &tau; that encode a
+function table.
+
+<H3>Implementation</H3>
+
+<p>
+Nitpick, like most of Isabelle/HOL, is written in Standard ML. Unlike Isabelle
+itself, which adheres to the LCF small-kernel discipline, Nitpick does not
+certify its results and must be trusted.
+<P>
+Nitpick is available as part of Isabelle/HOL for all major platforms under a
+BSD-style license from
+<PRE>
+    <A HREF="http:////www.cl.cam.ac.uk/research/hvg/Isabelle/">http://www.cl.cam.ac.uk/research/hvg/Isabelle</A></PRE>
+
+<H3>Expected Competition Performance</H3>
+
+Thanks to Kodkod's amazing power, we expect that Nitpick will beat both Satallax
+and Refute with its hands tied behind its back in the TNT category.
+
+<H3>References</H3>
+<DL>
+<DT> BK11
+<DD> Blanchette J. C., Krauss A. (2011),
+     <STRONG>Monotonicity Inference for Higher-Order Formulas</STRONG>,
+     <EM>J. Autom. Reasoning</EM> 47(4), pp. 369&ndash;398, 2011.
+<DT> BN10
+<DD> Blanchette J. C., Nipkow T. (2010),
+     <STRONG>Nitpick: A Counterexample Generator for Higher-Order Logic Based on a Relational Model Finder</STRONG>,
+     ITP 2010, <EM>LNCS</EM> 6172, pp. 131&ndash;146, Springer.
+<DT> BWB+11
+<DD> Blanchette J. C., Weber T., Batty M., Owens S., Sarkar S. (2011),
+	 <STRONG>Nitpicking C++ Concurrency</STRONG>,
+	 PPDP 2011, pp. 113&ndash;124, ACM Press.
+<DT> NPW13
+<DD> Nipkow T., Paulson L. C., Wenzel M. (2013),
+     <STRONG>Isabelle/HOL: A Proof Assistant for Higher-Order Logic</STRONG>,
+     <A HREF="http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf">http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle/doc/tutorial.pdf</a>.
+<DT> TJ07
+<DD> Torlak E., Jackson D. (2007),
+     <STRONG>Kodkod: A Relational Model Finder</STRONG>, TACAS 2007,
+	 <EM>LNCS</EM> 4424, pp. 632&ndash;647, Springer.
+</DL>
+<P>
+
+<HR><!------------------------------------------------------------------------>
