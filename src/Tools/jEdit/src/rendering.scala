@@ -134,6 +134,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
   val quoted_color = color_value("quoted_color")
+  val antiquoted_color = color_value("antiquoted_color")
   val highlight_color = color_value("highlight_color")
   val hyperlink_color = color_value("hyperlink_color")
   val active_color = color_value("active_color")
@@ -151,7 +152,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val inner_numeral_color = color_value("inner_numeral_color")
   val inner_quoted_color = color_value("inner_quoted_color")
   val inner_comment_color = color_value("inner_comment_color")
-  val antiquotation_color = color_value("antiquotation_color")
   val dynamic_color = color_value("dynamic_color")
 
 
@@ -517,12 +517,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       })
 
 
+  private val foreground_elements =
+    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.ANTIQ)
+
   def foreground(range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM)), _ =>
+    snapshot.select_markup(range, Some(foreground_elements), _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.STRING, _), _)) => quoted_color
         case Text.Info(_, XML.Elem(Markup(Markup.ALTSTRING, _), _)) => quoted_color
         case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Markup.ANTIQ, _), _)) => antiquoted_color
       })
 
 
@@ -548,8 +552,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_NUMERAL -> inner_numeral_color,
       Markup.ML_CHAR -> inner_quoted_color,
       Markup.ML_STRING -> inner_quoted_color,
-      Markup.ML_COMMENT -> inner_comment_color,
-      Markup.ANTIQ -> antiquotation_color)
+      Markup.ML_COMMENT -> inner_comment_color)
 
   private val text_color_elements = Set.empty[String] ++ text_colors.keys
 
