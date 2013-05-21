@@ -24,17 +24,16 @@ object Path
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
-    error (msg + " path element specification: " + quote(s))
+    error (msg + " path element specification " + quote(s))
 
   private def check_elem(s: String): String =
     if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
-    else
-      s.iterator.filter(c =>
-          c == '/' || c == '\\' || c == '$' || c == ':' || c == '"' || c == '\'').toList match {
-        case Nil => s
-        case bads =>
-          err_elem ("Illegal character(s) " + commas_quote(bads.map(_.toString)) + " in", s)
-      }
+    else {
+      "/\\$:\"'".iterator.foreach(c =>
+        if (s.iterator.exists(_ == c))
+          err_elem("Illegal character " + quote(c.toString) + " in", s))
+      s
+    }
 
   private def root_elem(s: String): Elem = Root(check_elem(s))
   private def basic_elem(s: String): Elem = Basic(check_elem(s))
@@ -73,18 +72,18 @@ object Path
 
   /* explode */
 
-  private def explode_elem(s: String): Elem =
-    if (s == "..") Parent
-    else if (s == "~") Variable("USER_HOME")
-    else if (s == "~~") Variable("ISABELLE_HOME")
-    else if (s.startsWith("$")) variable_elem(s.substring(1))
-    else basic_elem(s)
-
-  private def explode_elems(ss: List[String]): List[Elem] =
-    ss.filterNot(s => s.isEmpty || s == ".").map(explode_elem).reverse
-
   def explode(str: String): Path =
   {
+    def explode_elem(s: String): Elem =
+      try {
+        if (s == "..") Parent
+        else if (s == "~") Variable("USER_HOME")
+        else if (s == "~~") Variable("ISABELLE_HOME")
+        else if (s.startsWith("$")) variable_elem(s.substring(1))
+        else basic_elem(s)
+      }
+      catch { case ERROR(msg) => cat_error(msg, "The error(s) above occurred in " + quote(str)) }
+  
     val ss = space_explode('/', str)
     val r = ss.takeWhile(_.isEmpty).length
     val es = ss.dropWhile(_.isEmpty)
@@ -93,7 +92,9 @@ object Path
       else if (r == 1) (List(Root("")), es)
       else if (es.isEmpty) (List(Root("")), Nil)
       else (List(root_elem(es.head)), es.tail)
-    new Path(norm_elems(explode_elems(raw_elems) ++ roots))
+    val elems = raw_elems.filterNot(s => s.isEmpty || s == ".").map(explode_elem)
+
+    new Path(norm_elems(elems.reverse ++ roots))
   }
 
   def is_ok(str: String): Boolean =

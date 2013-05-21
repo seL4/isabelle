@@ -45,21 +45,24 @@ datatype elem =
 
 local
 
-fun err_elem msg chs = error (msg ^ " path element specification: " ^ quote (implode chs));
+fun err_elem msg s = error (msg ^ " path element specification " ^ quote s);
 
-fun check_elem (chs as []) = err_elem "Illegal" chs
-  | check_elem (chs as ["~"]) = err_elem "Illegal" chs
-  | check_elem (chs as ["~", "~"]) = err_elem "Illegal" chs
-  | check_elem chs =
-      (case inter (op =) ["/", "\\", "$", ":", "\"", "'"] chs of
-        [] => chs
-      | bads => err_elem ("Illegal character(s) " ^ commas_quote bads ^ " in") chs);
+fun check_elem s =
+  if s = "" orelse s = "~" orelse s = "~~" then err_elem "Illegal" s
+  else
+    let
+      fun check c =
+        if exists_string (fn c' => c = c') s then
+          err_elem ("Illegal character " ^ quote c ^ " in") s
+        else ();
+      val _ = List.app check ["/", "\\", "$", ":", "\"", "'"];
+    in s end;
 
 in
 
-val root_elem = Root o implode o check_elem;
-val basic_elem = Basic o implode o check_elem;
-val variable_elem = Variable o implode o check_elem;
+val root_elem = Root o check_elem;
+val basic_elem = Basic o check_elem;
+val variable_elem = Variable o check_elem;
 
 end;
 
@@ -75,9 +78,9 @@ fun is_current (Path []) = true
 
 val current = Path [];
 val root = Path [Root ""];
-fun named_root s = Path [root_elem (raw_explode s)];
-fun basic s = Path [basic_elem (raw_explode s)];
-fun variable s = Path [variable_elem (raw_explode s)];
+fun named_root s = Path [root_elem s];
+fun basic s = Path [basic_elem s];
+fun variable s = Path [variable_elem s];
 val parent = Path [Parent];
 
 fun is_absolute (Path xs) =
@@ -124,31 +127,27 @@ end;
 
 (* explode *)
 
-local
-
-fun explode_elem ".." = Parent
-  | explode_elem "~" = Variable "USER_HOME"
-  | explode_elem "~~" = Variable "ISABELLE_HOME"
-  | explode_elem s =
-      (case raw_explode s of
-        "$" :: cs => variable_elem cs
-      | cs => basic_elem cs);
-
-val explode_elems =
-  rev o map explode_elem o filter_out (fn c => c = "" orelse c = ".");
-
-in
-
 fun explode_path str =
-  let val (roots, raw_elems) =
-    (case take_prefix (equal "") (space_explode "/" str) |>> length of
-      (0, es) => ([], es)
-    | (1, es) => ([Root ""], es)
-    | (_, []) => ([Root ""], [])
-    | (_, e :: es) => ([root_elem (raw_explode e)], es))
-  in Path (norm (explode_elems raw_elems @ roots)) end;
+  let
+    fun explode_elem s =
+     (if s = ".." then Parent
+      else if s = "~" then Variable "USER_HOME"
+      else if s = "~~" then Variable "ISABELLE_HOME"
+      else
+        (case try (unprefix "$") s of
+          SOME s' => variable_elem s'
+        | NONE => basic_elem s))
+      handle ERROR msg => cat_error msg ("The error(s) above occurred in " ^ quote str);
 
-end;
+    val (roots, raw_elems) =
+      (case take_prefix (equal "") (space_explode "/" str) |>> length of
+        (0, es) => ([], es)
+      | (1, es) => ([Root ""], es)
+      | (_, []) => ([Root ""], [])
+      | (_, e :: es) => ([root_elem e], es));
+    val elems = raw_elems |> filter_out (fn c => c = "" orelse c = ".") |> map explode_elem;
+
+  in Path (norm (rev elems @ roots)) end;
 
 
 (* print *)
