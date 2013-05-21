@@ -462,7 +462,7 @@ val leo2_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
 
 val leo2_config : atp_config =
-  {exec = (["LEO2_HOME"], ["leo"]),
+  {exec = (["LEO2_HOME"], ["leo.opt", "leo"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "--foatp e --atp e=\"$E_HOME\"/eprover \
        \--atp epclextract=\"$E_HOME\"/epclextract \
@@ -489,7 +489,7 @@ val satallax_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
-  {exec = (["SATALLAX_HOME"], ["satallax"]),
+  {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "-p hocore -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
