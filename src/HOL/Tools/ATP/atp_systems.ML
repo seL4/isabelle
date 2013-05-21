@@ -740,21 +740,24 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
 
 val explicit_tff0 = TFF (Monomorphic, TPTP_Explicit)
 
+val remote_agsyhol =
+  remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
+      (K (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_e =
-  remotify_atp e "EP" ["1.0", "1.1", "1.2"]
+  remotify_atp e "EP" ["1.7", "1.6", "1.5", "1"]
       (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
 val remote_iprover =
-  remotify_atp iprover "iProver" []
+  remotify_atp iprover "iProver" ["0.99"]
       (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_iprover_eq =
-  remotify_atp iprover_eq "iProver-Eq" []
+  remotify_atp iprover_eq "iProver-Eq" ["0.8"]
       (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
-  remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-      (K (((100, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
+  remotify_atp leo2 "LEO-II" ["1.5.0", "1.4", "1.3", "1.2", "1"]
+      (K (((40, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_satallax =
-  remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
-      (K (((100, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+  remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
+      (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["2.6", "2.5", "1.8"]
       (K (((250, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
@@ -762,7 +765,7 @@ val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
       (K (((500, ""), FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
 val remote_snark =
-  remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
+  remote_atp snarkN "SNARK" ["20120808r022", "20080805r029", "20080805r024"]
       [("refutation.", "end_refutation.")] [] Hypothesis
       (K (((100, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_e_tofof =
@@ -816,9 +819,10 @@ fun effective_term_order ctxt atp =
 
 val atps =
   [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax,
-   spass, spass_poly, vampire, z3_tptp, dummy_thf, remote_e, remote_e_sine,
-   remote_e_tofof, remote_iprover, remote_iprover_eq, remote_leo2,
-   remote_satallax, remote_vampire, remote_snark, remote_waldmeister]
+   spass, spass_poly, vampire, z3_tptp, dummy_thf, remote_agsyhol, remote_e,
+   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
+   remote_leo2, remote_satallax, remote_vampire, remote_snark,
+   remote_waldmeister]
 
 val setup = fold add_atp atps
 
