@@ -9,7 +9,7 @@ for dealing with Isar proof texts.
 signature SLEDGEHAMMER_PROOF =
 sig
   type label = string * int
-  type facts = label list * string list
+  type facts = label list * string list (* local & global *)
 
   datatype isar_qualifier = Show | Then
 
@@ -68,8 +68,6 @@ fun string_of_label (s, num) = s ^ string_of_int num
 fun fix_of_proof (Proof (fix, _, _)) = fix
 fun assms_of_proof (Proof (_, assms, _)) = assms
 fun steps_of_proof (Proof (_, _, steps)) = steps
-(*fun map_steps_of_proof f (Proof (fix, assms, steps)) =
-  Proof(fix, assms, f steps)*)
 
 fun label_of_step (Obtain (_, _, l, _, _)) = SOME l
   | label_of_step (Prove (_, l, _, _)) = SOME l
