@@ -98,6 +98,12 @@ object Session
           }
         case _ => false
       }
+
+    def stop(prover: Prover): Protocol_Handlers =
+    {
+      for ((_, handler) <- handlers) handler.stop(prover)
+      new Protocol_Handlers()
+    }
   }
 }
 
@@ -462,6 +468,7 @@ class Session(val thy_load: Thy_Load)
 
         case Stop =>
           if (phase == Session.Ready) {
+            protocol_handlers = protocol_handlers.stop(prover.get)
             global_state >> (_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
