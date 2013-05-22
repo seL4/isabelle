@@ -404,7 +404,7 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(progress: Build.Progress, inlined_files: Boolean,
+  def dependencies(progress: Progress, inlined_files: Boolean,
       verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
@@ -458,7 +458,7 @@ object Build
     val options = Options.init()
     val (_, tree) =
       find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, List(session))
-    dependencies(Build.Ignore_Progress, inlined_files, false, false, tree)(session)
+    dependencies(Ignore_Progress, inlined_files, false, false, tree)(session)
   }
 
   def outer_syntax(session: String): Outer_Syntax =
@@ -467,7 +467,7 @@ object Build
 
   /* jobs */
 
-  private class Job(progress: Build.Progress,
+  private class Job(progress: Progress,
     name: String, val info: Session_Info, output: Path, do_output: Boolean,
     verbose: Boolean, browser_info: Path, command_timings: List[Properties.T])
   {
@@ -648,10 +648,10 @@ object Build
     else None
 
 
-  /* build */
+  /* build_results */
 
-  def build(
-    progress: Build.Progress,
+  def build_results(
+    progress: Progress,
     options: Options,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
@@ -664,7 +664,7 @@ object Build
     no_build: Boolean = false,
     system_mode: Boolean = false,
     verbose: Boolean = false,
-    sessions: List[String] = Nil): Int =
+    sessions: List[String] = Nil): Map[String, Int] =
   {
     /* session tree and dependencies */
 
@@ -889,12 +889,39 @@ object Build
     }
 
 
-    /* return code */
+    /* results */
 
-    val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
+    results.map({ case (name, result) => (name, result.rc) })
+  }
+
+
+  /* build */
+
+  def build(
+    progress: Progress,
+    options: Options,
+    requirements: Boolean = false,
+    all_sessions: Boolean = false,
+    build_heap: Boolean = false,
+    clean_build: Boolean = false,
+    more_dirs: List[(Boolean, Path)] = Nil,
+    session_groups: List[String] = Nil,
+    max_jobs: Int = 1,
+    list_files: Boolean = false,
+    no_build: Boolean = false,
+    system_mode: Boolean = false,
+    verbose: Boolean = false,
+    sessions: List[String] = Nil): Int =
+  {
+    val results =
+      build_results(progress, options, requirements, all_sessions,
+        build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
+        system_mode, verbose, sessions)
+
+    val rc = (0 /: results)({ case (rc1, (_, rc2)) => rc1 max rc2 })
     if (rc != 0 && (verbose || !no_build)) {
       val unfinished =
-        (for ((name, res) <- results.iterator if res.rc != 0) yield name).toList.sorted
+        (for ((name, r) <- results.iterator if r != 0) yield name).toList.sorted
       progress.echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
@@ -919,13 +946,13 @@ object Build
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(select_dirs, include_dirs, session_groups, build_options, sessions) =>
             val options = (Options.init() /: build_options)(_ + _)
-            val dirs =
+            val more_dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            val progress = new Build.Console_Progress(verbose)
+            val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
               build(progress, options, requirements, all_sessions,
-                build_heap, clean_build, dirs, session_groups, max_jobs, list_files, no_build,
+                build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
                 system_mode, verbose, sessions)
             }
         case _ => error("Bad arguments:\n" + cat_lines(args))
