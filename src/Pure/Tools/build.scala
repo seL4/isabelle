@@ -651,8 +651,8 @@ object Build
   /* build_results */
 
   def build_results(
-    progress: Progress,
     options: Options,
+    progress: Progress = Ignore_Progress,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
@@ -898,8 +898,8 @@ object Build
   /* build */
 
   def build(
-    progress: Progress,
     options: Options,
+    progress: Progress = Ignore_Progress,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
@@ -914,7 +914,7 @@ object Build
     sessions: List[String] = Nil): Int =
   {
     val results =
-      build_results(progress, options, requirements, all_sessions,
+      build_results(options, progress, requirements, all_sessions,
         build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
         system_mode, verbose, sessions)
 
@@ -951,7 +951,7 @@ object Build
               include_dirs.map(d => (false, Path.explode(d)))
             val progress = new Console_Progress(verbose)
             progress.interrupt_handler {
-              build(progress, options, requirements, all_sessions,
+              build(options, progress, requirements, all_sessions,
                 build_heap, clean_build, more_dirs, session_groups, max_jobs, list_files, no_build,
                 system_mode, verbose, sessions)
             }
