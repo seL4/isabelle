@@ -305,8 +305,8 @@ object Isabelle_System
     private def kill(signal: String): Boolean =
     {
       try {
-        execute(true, "kill", "-" + signal, "-" + pid).waitFor
-        execute(true, "kill", "-0", "-" + pid).waitFor == 0
+        execute(true, "kill", "-" + signal, "--", "-" + pid).waitFor
+        execute(true, "kill", "-0", "--", "-" + pid).waitFor == 0
       }
       catch { case _: InterruptedException => true }
     }
