@@ -879,8 +879,10 @@ fun gen_interpretation prep_expr parse_prop prep_attr expression raw_eqns lthy =
     val is_theory = Option.map #target (Named_Target.peek lthy) = SOME ""
       andalso Local_Theory.level lthy = 1;
     val activate = if is_theory then add_registration else activate_local_theory;
+    val mark_brittle = if is_theory then I else Local_Theory.mark_brittle;
   in
     lthy
+    |> mark_brittle
     |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
         Local_Theory.notes_kind activate expression raw_eqns
   end;
