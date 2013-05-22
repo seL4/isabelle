@@ -221,6 +221,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
     val channel = rendezvous ();
     val _ = init_channels channel;
+    val _ = Session.init_protocol_handlers ();
   in loop channel end));
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);

@@ -6,16 +6,15 @@ JVM method invocation service via Isabelle/Scala.
 
 signature INVOKE_SCALA =
 sig
-  exception Null
   val method: string -> string -> string
   val promise_method: string -> string -> string future
-  val fulfill_method: string -> string -> string -> unit
+  exception Null
 end;
 
 structure Invoke_Scala: INVOKE_SCALA =
 struct
 
-exception Null;
+val _ = Session.protocol_handler "isabelle.Invoke_Scala";
 
 
 (* pending promises *)
@@ -40,9 +39,11 @@ fun promise_method name arg =
 fun method name arg = Future.join (promise_method name arg);
 
 
-(* fulfill method *)
+(* fulfill *)
 
-fun fulfill_method id tag res =
+exception Null;
+
+fun fulfill id tag res =
   let
     val result =
       (case tag of
@@ -57,6 +58,12 @@ fun fulfill_method id tag res =
         (fn tab => (the (Symtab.lookup tab id), Symtab.delete id tab));
     val _ = Future.fulfill_result promise result;
   in () end;
+
+val _ =
+  Isabelle_Process.protocol_command "Invoke_Scala.fulfill"
+    (fn [id, tag, res] =>
+      fulfill id tag res
+        handle exn => if Exn.is_interrupt exn then () else reraise exn);
 
 end;
 

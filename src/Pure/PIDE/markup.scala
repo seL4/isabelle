@@ -316,19 +316,31 @@ object Markup
   val Assign_Execs: Properties.T = List((FUNCTION, "assign_execs"))
   val Removed_Versions: Properties.T = List((FUNCTION, "removed_versions"))
 
+  object Protocol_Handler
+  {
+    def unapply(props: Properties.T): Option[(String)] =
+      props match {
+        case List((FUNCTION, "protocol_handler"), (NAME, name)) => Some(name)
+        case _ => None
+      }
+  }
+
+  val INVOKE_SCALA = "invoke_scala"
   object Invoke_Scala
   {
     def unapply(props: Properties.T): Option[(String, String)] =
       props match {
-        case List((FUNCTION, "invoke_scala"), (NAME, name), (ID, id)) => Some((name, id))
+        case List((FUNCTION, INVOKE_SCALA), (NAME, name), (ID, id)) => Some((name, id))
         case _ => None
       }
   }
+
+  val CANCEL_SCALA = "cancel_scala"
   object Cancel_Scala
   {
     def unapply(props: Properties.T): Option[String] =
       props match {
-        case List((FUNCTION, "cancel_scala"), (ID, id)) => Some(id)
+        case List((FUNCTION, CANCEL_SCALA), (ID, id)) => Some(id)
         case _ => None
       }
   }

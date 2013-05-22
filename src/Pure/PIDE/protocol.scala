@@ -364,12 +364,4 @@ trait Protocol extends Isabelle_Process
   {
     input("Document.dialog_result", Properties.Value.Long(serial), result)
   }
-
-
-  /* method invocation service */
-
-  def invoke_scala(id: String, tag: Invoke_Scala.Tag.Value, res: String)
-  {
-    input("Document.invoke_scala", id, tag.toString, res)
-  }
 }

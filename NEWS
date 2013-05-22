@@ -250,6 +250,9 @@ administrative aliases of option -e).  Minor INCOMPATIBILITY.
 * Isabelle settings variable ISABELLE_BUILD_JAVA_OPTIONS allows to
 specify global resources of the JVM process run by isabelle build.
 
+* Toplevel executable $ISABELLE_HOME/bin/isabelle_scala_script allows
+to run Isabelle/Scala source files as standalone programs.
+
 
 
 New in Isabelle2013 (February 2013)

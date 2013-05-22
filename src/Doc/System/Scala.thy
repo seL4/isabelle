@@ -48,6 +48,7 @@ text {* The @{tool_def scala} tool is a direct wrapper for the Scala
   scala> isabelle.Isabelle_System.getenv("ISABELLE_HOME")
   scala> val options = isabelle.Options.init()
   scala> options.bool("browser_info")
+  scala> options.string("document")
 \end{alltt}
 *}
 
@@ -68,5 +69,29 @@ text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
   Note that jEdit (\secref{sec:tool-jedit}) has its own mechanisms for
   adding plugin components, which needs special attention since
   it overrides the standard Java class loader.  *}
+
+
+section {* Scala script wrapper *}
+
+text {* The executable @{executable
+  "$ISABELLE_HOME/bin/isabelle_scala_script"} allows to run
+  Isabelle/Scala source files stand-alone programs, by using a
+  suitable ``hash-bang'' line and executable file permissions.
+
+  The subsequent example assumes that the main Isabelle binaries have
+  been installed in some directory that is included in @{setting PATH}
+  (see also @{tool "install"}):
+
+\begin{alltt}
+#!/usr/bin/env isabelle_scala_script
+
+val options = isabelle.Options.init()
+Console.println("browser_info = " + options.bool("browser_info"))
+Console.println("document = " + options.string("document"))
+\end{alltt}
+
+  Alternatively the full @{"file"
+  "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in
+  expanded form.  *}
 
 end

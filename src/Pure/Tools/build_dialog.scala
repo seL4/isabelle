@@ -33,7 +33,7 @@ object Build_Dialog
               Isabelle_System.default_logic(logic,
                 if (logic_option != "") options.string(logic_option) else "")
 
-            if (Build.build(Build.Ignore_Progress, options, build_heap = true, no_build = true,
+            if (Build.build(options = options, build_heap = true, no_build = true,
                 more_dirs = more_dirs, sessions = List(session)) == 0) sys.exit(0)
             else
               Swing_Thread.later {
@@ -167,7 +167,8 @@ object Build_Dialog
       val (out, rc) =
         try {
           ("",
-            Build.build(progress, options, build_heap = true, more_dirs = more_dirs,
+            Build.build(options = options, progress = progress,
+              build_heap = true, more_dirs = more_dirs,
               system_mode = system_mode, sessions = List(session)))
         }
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
