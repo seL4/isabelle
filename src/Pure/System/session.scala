@@ -37,6 +37,68 @@ object Session
   case object Ready extends Phase
   case object Shutdown extends Phase  // transient
   //}}}
+
+
+  /* protocol handlers */
+
+  type Prover = Isabelle_Process with Protocol
+
+  abstract class Protocol_Handler
+  {
+    def stop(prover: Prover): Unit = {}
+    val functions: Map[String, (Prover, Isabelle_Process.Output) => Boolean]
+  }
+
+  class Protocol_Handlers(
+    handlers: Map[String, Session.Protocol_Handler] = Map.empty,
+    functions: Map[String, Isabelle_Process.Output => Boolean] = Map.empty)
+  {
+    def add(prover: Prover, name: String): Protocol_Handlers =
+    {
+      val (handlers1, functions1) =
+        handlers.get(name) match {
+          case Some(old_handler) =>
+            System.err.println("Redefining protocol handler: " + name)
+            old_handler.stop(prover)
+            (handlers - name, functions -- old_handler.functions.keys)
+          case None => (handlers, functions)
+        }
+
+      val (handlers2, functions2) =
+        try {
+          val new_handler = Class.forName(name).newInstance.asInstanceOf[Protocol_Handler]
+          val new_functions =
+            for ((a, f) <- new_handler.functions.toList) yield
+              (a, (output: Isabelle_Process.Output) => f(prover, output))
+
+          val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
+          if (!dups.isEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
+
+          (handlers1 + (name -> new_handler), functions1 ++ new_functions)
+        }
+        catch {
+          case exn: Throwable =>
+            System.err.println("Failed to initialize protocol handler: " +
+              name + "\n" + Exn.message(exn))
+            (handlers1, functions1)
+        }
+
+      new Protocol_Handlers(handlers2, functions2)
+    }
+
+    def invoke(output: Isabelle_Process.Output): Boolean =
+      output.properties match {
+        case Markup.Function(a) if functions.isDefinedAt(a) =>
+          try { functions(a)(output) }
+          catch {
+            case exn: Throwable =>
+              System.err.println("Failed invocation of protocol function: " +
+                quote(a) + "\n" + Exn.message(exn))
+            false
+          }
+        case _ => false
+      }
+  }
 }
 
 
@@ -176,16 +238,15 @@ class Session(val thy_load: Thy_Load)
     previous: Document.Version,
     version: Document.Version)
   private case class Messages(msgs: List[Isabelle_Process.Message])
-  private case class Finished_Scala(id: String, tag: Invoke_Scala.Tag.Value, result: String)
   private case class Update_Options(options: Options)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     val this_actor = self
 
-    var prune_next = System.currentTimeMillis() + prune_delay.ms
+    var protocol_handlers = new Session.Protocol_Handlers()
 
-    var futures = Map.empty[String, java.util.concurrent.Future[Unit]]
+    var prune_next = System.currentTimeMillis() + prune_delay.ms
 
 
     /* buffered prover messages */
@@ -222,7 +283,7 @@ class Session(val thy_load: Thy_Load)
       def cancel() { timer.cancel() }
     }
 
-    var prover: Option[Isabelle_Process with Protocol] = None
+    var prover: Option[Session.Prover] = None
 
 
     /* delayed command changes */
@@ -318,73 +379,68 @@ class Session(val thy_load: Thy_Load)
         }
       }
 
-      output.properties match {
+      if (output.is_protocol) {
+        val handled = protocol_handlers.invoke(output)
+        if (!handled) {
+          output.properties match {
+            case Markup.Protocol_Handler(name) =>
+              protocol_handlers = protocol_handlers.add(prover.get, name)
 
-        case Position.Id(state_id) if !output.is_protocol =>
-          accumulate(state_id, output.message)
+            case Protocol.Command_Timing(state_id, timing) =>
+              val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
+              accumulate(state_id, prover.get.xml_cache.elem(message))
 
-        case Protocol.Command_Timing(state_id, timing) if output.is_protocol =>
-          val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
-          accumulate(state_id, prover.get.xml_cache.elem(message))
-
-        case Markup.Assign_Execs if output.is_protocol =>
-          XML.content(output.body) match {
-            case Protocol.Assign(id, assign) =>
-              try {
-                val cmds = global_state >>> (_.assign(id, assign))
-                delay_commands_changed.invoke(true, cmds)
+            case Markup.Assign_Execs =>
+              XML.content(output.body) match {
+                case Protocol.Assign(id, assign) =>
+                  try {
+                    val cmds = global_state >>> (_.assign(id, assign))
+                    delay_commands_changed.invoke(true, cmds)
+                  }
+                  catch { case _: Document.State.Fail => bad_output() }
+                case _ => bad_output()
               }
-              catch { case _: Document.State.Fail => bad_output() }
+              // FIXME separate timeout event/message!?
+              if (prover.isDefined && System.currentTimeMillis() > prune_next) {
+                val old_versions = global_state >>> (_.prune_history(prune_size))
+                if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
+                prune_next = System.currentTimeMillis() + prune_delay.ms
+              }
+
+            case Markup.Removed_Versions =>
+              XML.content(output.body) match {
+                case Protocol.Removed(removed) =>
+                  try {
+                    global_state >> (_.removed_versions(removed))
+                  }
+                  catch { case _: Document.State.Fail => bad_output() }
+                case _ => bad_output()
+              }
+
+            case Markup.ML_Statistics(props) =>
+              statistics.event(Session.Statistics(props))
+
+            case Markup.Task_Statistics(props) =>
+              // FIXME
+
             case _ => bad_output()
           }
-          // FIXME separate timeout event/message!?
-          if (prover.isDefined && System.currentTimeMillis() > prune_next) {
-            val old_versions = global_state >>> (_.prune_history(prune_size))
-            if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
-            prune_next = System.currentTimeMillis() + prune_delay.ms
-          }
+        }
+      }
+      else {
+        output.properties match {
+          case Position.Id(state_id) =>
+            accumulate(state_id, output.message)
 
-        case Markup.Removed_Versions if output.is_protocol =>
-          XML.content(output.body) match {
-            case Protocol.Removed(removed) =>
-              try {
-                global_state >> (_.removed_versions(removed))
-              }
-              catch { case _: Document.State.Fail => bad_output() }
-            case _ => bad_output()
-          }
+          case _ if output.is_init =>
+            phase = Session.Ready
 
-        case Markup.Invoke_Scala(name, id) if output.is_protocol =>
-          futures += (id ->
-            default_thread_pool.submit(() =>
-              {
-                val arg = XML.content(output.body)
-                val (tag, result) = Invoke_Scala.method(name, arg)
-                this_actor ! Finished_Scala(id, tag, result)
-              }))
+          case Markup.Return_Code(rc) if output.is_exit =>
+            if (rc == 0) phase = Session.Inactive
+            else phase = Session.Failed
 
-        case Markup.Cancel_Scala(id) if output.is_protocol =>
-          futures.get(id) match {
-            case Some(future) =>
-              future.cancel(true)
-              this_actor ! Finished_Scala(id, Invoke_Scala.Tag.INTERRUPT, "")
-            case None =>
-          }
-
-        case Markup.ML_Statistics(props) if output.is_protocol =>
-          statistics.event(Session.Statistics(props))
-
-        case Markup.Task_Statistics(props) if output.is_protocol =>
-          // FIXME
-
-        case _ if output.is_init =>
-          phase = Session.Ready
-
-        case Markup.Return_Code(rc) if output.is_exit =>
-          if (rc == 0) phase = Session.Inactive
-          else phase = Session.Failed
-
-        case _ => bad_output()
+          case _ => bad_output()
+        }
       }
     }
     //}}}
@@ -454,12 +510,6 @@ class Session(val thy_load: Thy_Load)
         case change: Change
         if prover.isDefined && global_state().is_assigned(change.previous) =>
           handle_change(change)
-
-        case Finished_Scala(id, tag, result) if prover.isDefined =>
-          if (futures.isDefinedAt(id)) {
-            prover.get.invoke_scala(id, tag, result)
-            futures -= id
-          }
 
         case bad if !bad.isInstanceOf[Change] =>
           System.err.println("session_actor: ignoring bad message " + bad)

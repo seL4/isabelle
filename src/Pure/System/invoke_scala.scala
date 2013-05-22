@@ -64,3 +64,69 @@ object Invoke_Scala
       case Exn.Exn(e) => (Tag.FAIL, Exn.message(e))
     }
 }
+
+
+/* protocol handler */
+
+class Invoke_Scala extends Session.Protocol_Handler
+{
+  private var futures = Map.empty[String, java.util.concurrent.Future[Unit]]
+
+  private def fulfill(prover: Session.Prover,
+    id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit = synchronized
+  {
+    if (futures.isDefinedAt(id)) {
+      prover.input("Invoke_Scala.fulfill", id, tag.toString, res)
+      futures -= id
+    }
+  }
+
+  private def cancel(prover: Session.Prover,
+    id: String, future: java.util.concurrent.Future[Unit])
+  {
+    future.cancel(true)
+    fulfill(prover, id, Invoke_Scala.Tag.INTERRUPT, "")
+  }
+
+  private def invoke_scala(
+    prover: Session.Prover, output: Isabelle_Process.Output): Boolean = synchronized
+  {
+    output.properties match {
+      case Markup.Invoke_Scala(name, id) =>
+        futures += (id ->
+          default_thread_pool.submit(() =>
+            {
+              val arg = XML.content(output.body)
+              val (tag, result) = Invoke_Scala.method(name, arg)
+              fulfill(prover, id, tag, result)
+            }))
+        true
+      case _ => false
+    }
+  }
+
+  private def cancel_scala(
+    prover: Session.Prover, output: Isabelle_Process.Output): Boolean = synchronized
+  {
+    output.properties match {
+      case Markup.Cancel_Scala(id) =>
+        futures.get(id) match {
+          case Some(future) => cancel(prover, id, future)
+          case None =>
+        }
+        true
+      case _ => false
+    }
+  }
+
+  override def stop(prover: Session.Prover): Unit = synchronized
+  {
+    for ((id, future) <- futures) cancel(prover, id, future)
+    futures = Map.empty
+  }
+
+  val functions = Map(
+    Markup.INVOKE_SCALA -> invoke_scala _,
+    Markup.CANCEL_SCALA -> cancel_scala _)
+}
+
