@@ -2,14 +2,11 @@
 
 theory Hoare_Examples imports Hoare begin
 
-subsection{* Example: Sums *}
+text{* Summing up the first @{text x} natural numbers in variable @{text y}. *}
 
-text{* Summing up the first @{text n} natural numbers. The sum is accumulated
-in variable @{text x}, the loop counter is variable @{text y}. *}
-
-abbreviation "w n ==
-  WHILE Less (V ''y'') (N n)
-  DO ( ''y'' ::= Plus (V ''y'') (N 1);; ''x'' ::= Plus (V ''x'') (V ''y'') )"
+abbreviation "wsum ==
+  WHILE Less (N 0) (V ''x'')
+  DO (''y'' ::= Plus (V ''y'') (V ''x'');; ''x'' ::= Plus (V ''x'') (N -1))"
 
 text{* For this example we make use of some predefined functions.  Function
 @{const Setsum}, also written @{text"\<Sum>"}, sums up the elements of a set. The
@@ -19,14 +16,16 @@ subsubsection{* Proof by Operational Semantics *}
 
 text{* The behaviour of the loop is proved by induction: *}
 
-lemma setsum_head_plus_1:
-  "m \<le> n \<Longrightarrow> setsum f {m..n} = f m + setsum f {m+1..n::int}"
-by (subst simp_from_to) simp
-  
+lemma set_ivl_lemma:
+  "i \<le> j \<Longrightarrow> {i..j} = insert j {i..j - (1::int)}"
+apply(simp add:atLeastAtMost_def atLeast_def atMost_def del: simp_from_to)
+apply(fastforce)
+done
+
 lemma while_sum:
-  "(w n, s) \<Rightarrow> t \<Longrightarrow> t ''x'' = s ''x'' + \<Sum> {s ''y'' + 1 .. n}"
-apply(induction "w n" s t rule: big_step_induct)
-apply(auto simp add: setsum_head_plus_1)
+  "(wsum, s) \<Rightarrow> t \<Longrightarrow> t ''y'' = s ''y'' + \<Sum> {1 .. s ''x''}"
+apply(induction wsum s t rule: big_step_induct)
+apply(auto simp add: set_ivl_lemma)
 done
 
 text{* We were lucky that the proof was practically automatic, except for the
@@ -37,10 +36,10 @@ elimination rules that decompose big-step premises.
 Now we prefix the loop with the necessary initialization: *}
 
 lemma sum_via_bigstep:
-assumes "(''x'' ::= N 0;; ''y'' ::= N 0;; w n, s) \<Rightarrow> t"
-shows "t ''x'' = \<Sum> {1 .. n}"
+assumes "(''y'' ::= N 0;; wsum, s) \<Rightarrow> t"
+shows "t ''y'' = \<Sum> {1 .. s ''x''}"
 proof -
-  from assms have "(w n,s(''x'':=0,''y'':=0)) \<Rightarrow> t" by auto
+  from assms have "(wsum,s(''y'':=0)) \<Rightarrow> t" by auto
   from while_sum[OF this] show ?thesis by simp
 qed
 
@@ -50,20 +49,18 @@ subsubsection{* Proof by Hoare Logic *}
 text{* Note that we deal with sequences of commands from right to left,
 pulling back the postcondition towards the precondition. *}
 
-lemma "\<turnstile> {\<lambda>s. 0 <= n} ''x'' ::= N 0;; ''y'' ::= N 0;; w n {\<lambda>s. s ''x'' = \<Sum> {1 .. n}}"
+lemma "\<turnstile> {\<lambda>s. s ''x'' = n} ''y'' ::= N 0;; wsum {\<lambda>s. s ''y'' = \<Sum> {1 .. n}}"
 apply(rule hoare.Seq)
 prefer 2
-apply(rule While'
-  [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 \<le> s ''y'' \<and> s ''y'' \<le> n"])
+apply(rule While' [where P = "\<lambda>s. (s ''y'' = \<Sum> {1..n} - \<Sum> {1 .. s ''x''})"])
 apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
-apply(fastforce simp: atLeastAtMostPlus1_int_conv algebra_simps)
-apply(fastforce)
-apply(rule Seq)
-prefer 2
-apply(rule Assign)
+apply simp
+apply(simp add: algebra_simps set_ivl_lemma minus_numeral_simps(1)[symmetric]
+  del: minus_numeral_simps)
+apply(simp)
 apply(rule Assign')
 apply simp
 done
