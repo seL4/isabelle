@@ -36,6 +36,7 @@ sig
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
+  val surface_target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val propagate_ml_env: generic_theory -> generic_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -230,6 +231,10 @@ fun target f lthy =
   in map_contexts (fn 0 => K ctxt' | _ => Proof_Context.transfer thy') lthy end;
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
+
+fun surface_target f =
+  map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
+    (naming, operations, after_close, brittle, f target));
 
 fun propagate_ml_env (context as Context.Proof lthy) =
       let val inherit = ML_Env.inherit context in

@@ -855,7 +855,7 @@ fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_r
   in setup_proof after_qed propss eqns goal_ctxt end;
 
 val activate_proof = Context.proof_map ooo Locale.add_registration;
-val activate_local_theory = Local_Theory.target ooo activate_proof;
+val activate_local_theory = Local_Theory.surface_target ooo activate_proof;
 val add_registration = Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
 fun add_dependency locale dep_morph mixin export =
   (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
