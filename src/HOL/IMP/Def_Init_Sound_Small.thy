@@ -49,7 +49,7 @@ qed (auto intro: D.intros)
 
 theorem D_sound:
   "(c,s) \<rightarrow>* (c',s') \<Longrightarrow> D (dom s) c A'
-   \<Longrightarrow> \<exists>cs''. (c',s') \<rightarrow> cs'' \<or>  c' = SKIP"
+   \<Longrightarrow> (\<exists>cs''. (c',s') \<rightarrow> cs'') \<or> c' = SKIP"
 apply(induction arbitrary: A' rule:star_induct)
 apply (metis progress)
 by (metis D_preservation)
