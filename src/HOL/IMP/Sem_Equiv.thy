@@ -9,12 +9,12 @@ type_synonym assn = "state \<Rightarrow> bool"
 definition
   equiv_up_to :: "assn \<Rightarrow> com \<Rightarrow> com \<Rightarrow> bool" ("_ \<Turnstile> _ \<sim> _" [50,0,10] 50)
 where
-  "P \<Turnstile> c \<sim> c' \<equiv> \<forall>s s'. P s \<longrightarrow> (c,s) \<Rightarrow> s' \<longleftrightarrow> (c',s) \<Rightarrow> s'"
+  "(P \<Turnstile> c \<sim> c') = (\<forall>s s'. P s \<longrightarrow> (c,s) \<Rightarrow> s' \<longleftrightarrow> (c',s) \<Rightarrow> s')"
 
 definition
   bequiv_up_to :: "assn \<Rightarrow> bexp \<Rightarrow> bexp \<Rightarrow> bool" ("_ \<Turnstile> _ <\<sim>> _" [50,0,10] 50)
 where
-  "P \<Turnstile> b <\<sim>> b' \<equiv> \<forall>s. P s \<longrightarrow> bval b s = bval b' s"
+  "(P \<Turnstile> b <\<sim>> b') = (\<forall>s. P s \<longrightarrow> bval b s = bval b' s)"
 
 lemma equiv_up_to_True:
   "((\<lambda>_. True) \<Turnstile> c \<sim> c') = (c \<sim> c')"
