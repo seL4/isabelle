@@ -4881,10 +4881,18 @@ lemma sorted_list_of_set_insert [simp]:
   shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
   using assms by (fact sorted_list_of_set.insert_remove)
 
+lemma sorted_list_of_set_eq_Nil_iff [simp]:
+  "finite A \<Longrightarrow> sorted_list_of_set A = [] \<longleftrightarrow> A = {}"
+  using assms by (auto simp: sorted_list_of_set.remove)
+
 lemma sorted_list_of_set [simp]:
   "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A) 
     \<and> distinct (sorted_list_of_set A)"
   by (induct A rule: finite_induct) (simp_all add: set_insort sorted_insort distinct_insort)
+
+lemma distinct_sorted_list_of_set:
+  "distinct (sorted_list_of_set A)"
+  using sorted_list_of_set by (cases "finite A") auto
 
 lemma sorted_list_of_set_sort_remdups [code]:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
