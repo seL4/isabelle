@@ -189,7 +189,7 @@ apply (rule hoare_derivs.conseq)
 apply fast
 done
 
-lemma constant: "[| C ==> G|-{P}.c.{Q} |] ==> G|-{%Z s. P Z s & C}.c.{Q}"
+lemma "constant": "[| C ==> G|-{P}.c.{Q} |] ==> G|-{%Z s. P Z s & C}.c.{Q}"
 apply (rule hoare_derivs.conseq)
 apply fast
 done
