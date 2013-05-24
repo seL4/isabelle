@@ -1,5 +1,7 @@
 (*  Title:      HOL/Library/Zorn.thy
-    Author:     Jacques D. Fleuriot, Tobias Nipkow
+    Author:     Jacques D. Fleuriot
+    Author:     Tobias Nipkow, TUM
+    Author:     Christian Sternagel, JAIST
 
 Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF).
 The well-ordering theorem.
@@ -11,501 +13,692 @@ theory Zorn
 imports Order_Relation
 begin
 
-(* Define globally? In Set.thy? *)
-definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^sub>\<subseteq>")
-where
-  "chain\<^sub>\<subseteq> C \<equiv> \<forall>A\<in>C.\<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
+subsection {* Zorn's Lemma for the Subset Relation *}
 
-text{*
-  The lemma and section numbers refer to an unpublished article
-  \cite{Abrial-Laffitte}.
-*}
+subsubsection {* Results that do not require an order *}
 
-definition chain :: "'a set set \<Rightarrow> 'a set set set"
-where
-  "chain S = {F. F \<subseteq> S \<and> chain\<^sub>\<subseteq> F}"
+text {*Let @{text P} be a binary predicate on the set @{text A}.*}
+locale pred_on =
+  fixes A :: "'a set"
+    and P :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubset>" 50)
+begin
 
-definition super :: "'a set set \<Rightarrow> 'a set set \<Rightarrow> 'a set set set"
-where
-  "super S c = {d. d \<in> chain S \<and> c \<subset> d}"
+abbreviation Peq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50) where
+  "x \<sqsubseteq> y \<equiv> P\<^sup>=\<^sup>= x y"
 
-definition maxchain  ::  "'a set set \<Rightarrow> 'a set set set"
-where
-  "maxchain S = {c. c \<in> chain S \<and> super S c = {}}"
+text {*A chain is a totally ordered subset of @{term A}.*}
+definition chain :: "'a set \<Rightarrow> bool" where
+  "chain C \<longleftrightarrow> C \<subseteq> A \<and> (\<forall>x\<in>C. \<forall>y\<in>C. x \<sqsubseteq> y \<or> y \<sqsubseteq> x)"
 
-definition succ :: "'a set set \<Rightarrow> 'a set set \<Rightarrow> 'a set set"
-where
-  "succ S c = (if c \<notin> chain S \<or> c \<in> maxchain S then c else SOME c'. c' \<in> super S c)"
+text {*We call a chain that is a proper superset of some set @{term X},
+but not necessarily a chain itself, a superchain of @{term X}.*}
+abbreviation superchain :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infix "<c" 50) where
+  "X <c C \<equiv> chain C \<and> X \<subset> C"
 
-inductive_set TFin :: "'a set set \<Rightarrow> 'a set set set"
-for S :: "'a set set"
-where
-  succI:      "x \<in> TFin S \<Longrightarrow> succ S x \<in> TFin S"
-| Pow_UnionI: "Y \<in> Pow (TFin S) \<Longrightarrow> \<Union>Y \<in> TFin S"
+text {*A maximal chain is a chain that does not have a superchain.*}
+definition maxchain :: "'a set \<Rightarrow> bool" where
+  "maxchain C \<longleftrightarrow> chain C \<and> \<not> (\<exists>S. C <c S)"
 
+text {*We define the successor of a set to be an arbitrary
+superchain, if such exists, or the set itself, otherwise.*}
+definition suc :: "'a set \<Rightarrow> 'a set" where
+  "suc C = (if \<not> chain C \<or> maxchain C then C else (SOME D. C <c D))"
 
-subsection{*Mathematical Preamble*}
+lemma chainI [Pure.intro?]:
+  "\<lbrakk>C \<subseteq> A; \<And>x y. \<lbrakk>x \<in> C; y \<in> C\<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> chain C"
+  unfolding chain_def by blast
 
-lemma Union_lemma0:
-    "(\<forall>x \<in> C. x \<subseteq> A | B \<subseteq> x) ==> Union(C) \<subseteq> A | B \<subseteq> Union(C)"
-  by blast
+lemma chain_total:
+  "chain C \<Longrightarrow> x \<in> C \<Longrightarrow> y \<in> C \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
+  by (simp add: chain_def)
 
+lemma not_chain_suc [simp]: "\<not> chain X \<Longrightarrow> suc X = X"
+  by (simp add: suc_def)
 
-text{*This is theorem @{text increasingD2} of ZF/Zorn.thy*}
+lemma maxchain_suc [simp]: "maxchain X \<Longrightarrow> suc X = X"
+  by (simp add: suc_def)
 
-lemma Abrial_axiom1: "x \<subseteq> succ S x"
-  apply (auto simp add: succ_def super_def maxchain_def)
-  apply (rule contrapos_np, assumption)
-  apply (rule someI2)
-  apply blast+
-  done
+lemma suc_subset: "X \<subseteq> suc X"
+  by (auto simp: suc_def maxchain_def intro: someI2)
 
-lemmas TFin_UnionI = TFin.Pow_UnionI [OF PowI]
+lemma chain_empty [simp]: "chain {}"
+  by (auto simp: chain_def)
 
-lemma TFin_induct:
-  assumes H: "n \<in> TFin S" and
-    I: "!!x. x \<in> TFin S ==> P x ==> P (succ S x)"
-      "!!Y. Y \<subseteq> TFin S ==> Ball Y P ==> P (Union Y)"
-  shows "P n"
-  using H by induct (blast intro: I)+
+lemma not_maxchain_Some:
+  "chain C \<Longrightarrow> \<not> maxchain C \<Longrightarrow> C <c (SOME D. C <c D)"
+  by (rule someI_ex) (auto simp: maxchain_def)
 
-lemma succ_trans: "x \<subseteq> y ==> x \<subseteq> succ S y"
-  apply (erule subset_trans)
-  apply (rule Abrial_axiom1)
-  done
+lemma suc_not_equals:
+  "chain C \<Longrightarrow> \<not> maxchain C \<Longrightarrow> suc C \<noteq> C"
+  by (auto simp: suc_def) (metis less_irrefl not_maxchain_Some)
 
-text{*Lemma 1 of section 3.1*}
-lemma TFin_linear_lemma1:
-     "[| n \<in> TFin S;  m \<in> TFin S;
-         \<forall>x \<in> TFin S. x \<subseteq> m --> x = m | succ S x \<subseteq> m
-      |] ==> n \<subseteq> m | succ S m \<subseteq> n"
-  apply (erule TFin_induct)
-   apply (erule_tac [2] Union_lemma0)
-  apply (blast del: subsetI intro: succ_trans)
-  done
+lemma subset_suc:
+  assumes "X \<subseteq> Y" shows "X \<subseteq> suc Y"
+  using assms by (rule subset_trans) (rule suc_subset)
 
-text{* Lemma 2 of section 3.2 *}
-lemma TFin_linear_lemma2:
-     "m \<in> TFin S ==> \<forall>n \<in> TFin S. n \<subseteq> m --> n=m | succ S n \<subseteq> m"
-  apply (erule TFin_induct)
-   apply (rule impI [THEN ballI])
-   txt{*case split using @{text TFin_linear_lemma1}*}
-   apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
-     assumption+)
-    apply (drule_tac x = n in bspec, assumption)
-    apply (blast del: subsetI intro: succ_trans, blast)
-  txt{*second induction step*}
-  apply (rule impI [THEN ballI])
-  apply (rule Union_lemma0 [THEN disjE])
-    apply (rule_tac [3] disjI2)
-    prefer 2 apply blast
-   apply (rule ballI)
-   apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
-     assumption+, auto)
-  apply (blast intro!: Abrial_axiom1 [THEN subsetD])
-  done
+text {*We build a set @{term \<C>} that is closed under applications
+of @{term suc} and contains the union of all its subsets.*}
+inductive_set suc_Union_closed ("\<C>") where
+  suc: "X \<in> \<C> \<Longrightarrow> suc X \<in> \<C>" |
+  Union [unfolded Pow_iff]: "X \<in> Pow \<C> \<Longrightarrow> \<Union>X \<in> \<C>"
 
-text{*Re-ordering the premises of Lemma 2*}
-lemma TFin_subsetD:
-     "[| n \<subseteq> m;  m \<in> TFin S;  n \<in> TFin S |] ==> n=m | succ S n \<subseteq> m"
-  by (rule TFin_linear_lemma2 [rule_format])
+text {*Since the empty set as well as the set itself is a subset of
+every set, @{term \<C>} contains at least @{term "{} \<in> \<C>"} and
+@{term "\<Union>\<C> \<in> \<C>"}.*}
+lemma
+  suc_Union_closed_empty: "{} \<in> \<C>" and
+  suc_Union_closed_Union: "\<Union>\<C> \<in> \<C>"
+  using Union [of "{}"] and Union [of "\<C>"] by simp+
+text {*Thus closure under @{term suc} will hit a maximal chain
+eventually, as is shown below.*}
 
-text{*Consequences from section 3.3 -- Property 3.2, the ordering is total*}
-lemma TFin_subset_linear: "[| m \<in> TFin S;  n \<in> TFin S|] ==> n \<subseteq> m | m \<subseteq> n"
-  apply (rule disjE)
-    apply (rule TFin_linear_lemma1 [OF _ _TFin_linear_lemma2])
-      apply (assumption+, erule disjI2)
-  apply (blast del: subsetI
-    intro: subsetI Abrial_axiom1 [THEN subset_trans])
-  done
+lemma suc_Union_closed_induct [consumes 1, case_names suc Union,
+  induct pred: suc_Union_closed]:
+  assumes "X \<in> \<C>"
+    and "\<And>X. \<lbrakk>X \<in> \<C>; Q X\<rbrakk> \<Longrightarrow> Q (suc X)"
+    and "\<And>X. \<lbrakk>X \<subseteq> \<C>; \<forall>x\<in>X. Q x\<rbrakk> \<Longrightarrow> Q (\<Union>X)"
+  shows "Q X"
+  using assms by (induct) blast+
 
-text{*Lemma 3 of section 3.3*}
-lemma eq_succ_upper: "[| n \<in> TFin S;  m \<in> TFin S;  m = succ S m |] ==> n \<subseteq> m"
-  apply (erule TFin_induct)
-   apply (drule TFin_subsetD)
-     apply (assumption+, force, blast)
-  done
+lemma suc_Union_closed_cases [consumes 1, case_names suc Union,
+  cases pred: suc_Union_closed]:
+  assumes "X \<in> \<C>"
+    and "\<And>Y. \<lbrakk>X = suc Y; Y \<in> \<C>\<rbrakk> \<Longrightarrow> Q"
+    and "\<And>Y. \<lbrakk>X = \<Union>Y; Y \<subseteq> \<C>\<rbrakk> \<Longrightarrow> Q"
+  shows "Q"
+  using assms by (cases) simp+
 
-text{*Property 3.3 of section 3.3*}
-lemma equal_succ_Union: "m \<in> TFin S ==> (m = succ S m) = (m = Union(TFin S))"
-  apply (rule iffI)
-   apply (rule Union_upper [THEN equalityI])
-    apply assumption
-   apply (rule eq_succ_upper [THEN Union_least], assumption+)
-  apply (erule ssubst)
-  apply (rule Abrial_axiom1 [THEN equalityI])
-  apply (blast del: subsetI intro: subsetI TFin_UnionI TFin.succI)
-  done
+text {*On chains, @{term suc} yields a chain.*}
+lemma chain_suc:
+  assumes "chain X" shows "chain (suc X)"
+  using assms
+  by (cases "\<not> chain X \<or> maxchain X")
+     (force simp: suc_def dest: not_maxchain_Some)+
 
-subsection{*Hausdorff's Theorem: Every Set Contains a Maximal Chain.*}
+lemma chain_sucD:
+  assumes "chain X" shows "suc X \<subseteq> A \<and> chain (suc X)"
+proof -
+  from `chain X` have "chain (suc X)" by (rule chain_suc)
+  moreover then have "suc X \<subseteq> A" unfolding chain_def by blast
+  ultimately show ?thesis by blast
+qed
 
-text{*NB: We assume the partial ordering is @{text "\<subseteq>"},
- the subset relation!*}
+lemma suc_Union_closed_total':
+  assumes "X \<in> \<C>" and "Y \<in> \<C>"
+    and *: "\<And>Z. Z \<in> \<C> \<Longrightarrow> Z \<subseteq> Y \<Longrightarrow> Z = Y \<or> suc Z \<subseteq> Y"
+  shows "X \<subseteq> Y \<or> suc Y \<subseteq> X"
+  using `X \<in> \<C>`
+proof (induct)
+  case (suc X)
+  with * show ?case by (blast del: subsetI intro: subset_suc)
+qed blast
 
-lemma empty_set_mem_chain: "({} :: 'a set set) \<in> chain S"
-  by (unfold chain_def chain_subset_def) simp
+lemma suc_Union_closed_subsetD:
+  assumes "Y \<subseteq> X" and "X \<in> \<C>" and "Y \<in> \<C>"
+  shows "X = Y \<or> suc Y \<subseteq> X"
+  using assms(2-, 1)
+proof (induct arbitrary: Y)
+  case (suc X)
+  note * = `\<And>Y. \<lbrakk>Y \<in> \<C>; Y \<subseteq> X\<rbrakk> \<Longrightarrow> X = Y \<or> suc Y \<subseteq> X`
+  with suc_Union_closed_total' [OF `Y \<in> \<C>` `X \<in> \<C>`]
+    have "Y \<subseteq> X \<or> suc X \<subseteq> Y" by blast
+  then show ?case
+  proof
+    assume "Y \<subseteq> X"
+    with * and `Y \<in> \<C>` have "X = Y \<or> suc Y \<subseteq> X" by blast
+    then show ?thesis
+    proof
+      assume "X = Y" then show ?thesis by simp
+    next
+      assume "suc Y \<subseteq> X"
+      then have "suc Y \<subseteq> suc X" by (rule subset_suc)
+      then show ?thesis by simp
+    qed
+  next
+    assume "suc X \<subseteq> Y"
+    with `Y \<subseteq> suc X` show ?thesis by blast
+  qed
+next
+  case (Union X)
+  show ?case
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    with `Y \<subseteq> \<Union>X` obtain x y z
+    where "\<not> suc Y \<subseteq> \<Union>X"
+      and "x \<in> X" and "y \<in> x" and "y \<notin> Y"
+      and "z \<in> suc Y" and "\<forall>x\<in>X. z \<notin> x" by blast
+    with `X \<subseteq> \<C>` have "x \<in> \<C>" by blast
+    from Union and `x \<in> X`
+      have *: "\<And>y. \<lbrakk>y \<in> \<C>; y \<subseteq> x\<rbrakk> \<Longrightarrow> x = y \<or> suc y \<subseteq> x" by blast
+    with suc_Union_closed_total' [OF `Y \<in> \<C>` `x \<in> \<C>`]
+      have "Y \<subseteq> x \<or> suc x \<subseteq> Y" by blast
+    then show False
+    proof
+      assume "Y \<subseteq> x"
+      with * [OF `Y \<in> \<C>`] have "x = Y \<or> suc Y \<subseteq> x" by blast
+      then show False
+      proof
+        assume "x = Y" with `y \<in> x` and `y \<notin> Y` show False by blast
+      next
+        assume "suc Y \<subseteq> x"
+        with `x \<in> X` have "suc Y \<subseteq> \<Union>X" by blast
+        with `\<not> suc Y \<subseteq> \<Union>X` show False by contradiction
+      qed
+    next
+      assume "suc x \<subseteq> Y"
+      moreover from suc_subset and `y \<in> x` have "y \<in> suc x" by blast
+      ultimately show False using `y \<notin> Y` by blast
+    qed
+  qed
+qed
 
-lemma super_subset_chain: "super S c \<subseteq> chain S"
-  by (unfold super_def) blast
+text {*The elements of @{term \<C>} are totally ordered by the subset relation.*}
+lemma suc_Union_closed_total:
+  assumes "X \<in> \<C>" and "Y \<in> \<C>"
+  shows "X \<subseteq> Y \<or> Y \<subseteq> X"
+proof (cases "\<forall>Z\<in>\<C>. Z \<subseteq> Y \<longrightarrow> Z = Y \<or> suc Z \<subseteq> Y")
+  case True
+  with suc_Union_closed_total' [OF assms]
+    have "X \<subseteq> Y \<or> suc Y \<subseteq> X" by blast
+  then show ?thesis using suc_subset [of Y] by blast
+next
+  case False
+  then obtain Z
+    where "Z \<in> \<C>" and "Z \<subseteq> Y" and "Z \<noteq> Y" and "\<not> suc Z \<subseteq> Y" by blast
+  with suc_Union_closed_subsetD and `Y \<in> \<C>` show ?thesis by blast
+qed
 
-lemma maxchain_subset_chain: "maxchain S \<subseteq> chain S"
-  by (unfold maxchain_def) blast
+text {*Once we hit a fixed point w.r.t. @{term suc}, all other elements
+of @{term \<C>} are subsets of this fixed point.*}
+lemma suc_Union_closed_suc:
+  assumes "X \<in> \<C>" and "Y \<in> \<C>" and "suc Y = Y"
+  shows "X \<subseteq> Y"
+using `X \<in> \<C>`
+proof (induct)
+  case (suc X)
+  with `Y \<in> \<C>` and suc_Union_closed_subsetD
+    have "X = Y \<or> suc X \<subseteq> Y" by blast
+  then show ?case by (auto simp: `suc Y = Y`)
+qed blast
 
-lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> EX d. d \<in> super S c"
-  by (unfold super_def maxchain_def) simp
+lemma eq_suc_Union:
+  assumes "X \<in> \<C>"
+  shows "suc X = X \<longleftrightarrow> X = \<Union>\<C>"
+proof
+  assume "suc X = X"
+  with suc_Union_closed_suc [OF suc_Union_closed_Union `X \<in> \<C>`]
+    have "\<Union>\<C> \<subseteq> X" .
+  with `X \<in> \<C>` show "X = \<Union>\<C>" by blast
+next
+  from `X \<in> \<C>` have "suc X \<in> \<C>" by (rule suc)
+  then have "suc X \<subseteq> \<Union>\<C>" by blast
+  moreover assume "X = \<Union>\<C>"
+  ultimately have "suc X \<subseteq> X" by simp
+  moreover have "X \<subseteq> suc X" by (rule suc_subset)
+  ultimately show "suc X = X" ..
+qed
 
-lemma select_super:
-     "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c): super S c"
-  apply (erule mem_super_Ex [THEN exE])
-  apply (rule someI2)
-  apply simp+
-  done
+lemma suc_in_carrier:
+  assumes "X \<subseteq> A"
+  shows "suc X \<subseteq> A"
+  using assms
+  by (cases "\<not> chain X \<or> maxchain X")
+     (auto dest: chain_sucD)
 
-lemma select_not_equals:
-     "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c) \<noteq> c"
-  apply (rule notI)
-  apply (drule select_super)
-  apply (simp add: super_def less_le)
-  done
+lemma suc_Union_closed_in_carrier:
+  assumes "X \<in> \<C>"
+  shows "X \<subseteq> A"
+  using assms
+  by (induct) (auto dest: suc_in_carrier)
 
-lemma succI3: "c \<in> chain S - maxchain S ==> succ S c = (\<some>c'. c': super S c)"
-  by (unfold succ_def) (blast intro!: if_not_P)
+text {*All elements of @{term \<C>} are chains.*}
+lemma suc_Union_closed_chain:
+  assumes "X \<in> \<C>"
+  shows "chain X"
+using assms
+proof (induct)
+  case (suc X) then show ?case by (simp add: suc_def) (metis not_maxchain_Some)
+next
+  case (Union X)
+  then have "\<Union>X \<subseteq> A" by (auto dest: suc_Union_closed_in_carrier)
+  moreover have "\<forall>x\<in>\<Union>X. \<forall>y\<in>\<Union>X. x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
+  proof (intro ballI)
+    fix x y
+    assume "x \<in> \<Union>X" and "y \<in> \<Union>X"
+    then obtain u v where "x \<in> u" and "u \<in> X" and "y \<in> v" and "v \<in> X" by blast
+    with Union have "u \<in> \<C>" and "v \<in> \<C>" and "chain u" and "chain v" by blast+
+    with suc_Union_closed_total have "u \<subseteq> v \<or> v \<subseteq> u" by blast
+    then show "x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
+    proof
+      assume "u \<subseteq> v"
+      from `chain v` show ?thesis
+      proof (rule chain_total)
+        show "y \<in> v" by fact
+        show "x \<in> v" using `u \<subseteq> v` and `x \<in> u` by blast
+      qed
+    next
+      assume "v \<subseteq> u"
+      from `chain u` show ?thesis
+      proof (rule chain_total)
+        show "x \<in> u" by fact
+        show "y \<in> u" using `v \<subseteq> u` and `y \<in> v` by blast
+      qed
+    qed
+  qed
+  ultimately show ?case unfolding chain_def ..
+qed
 
-lemma succ_not_equals: "c \<in> chain S - maxchain S ==> succ S c \<noteq> c"
-  apply (frule succI3)
-  apply (simp (no_asm_simp))
-  apply (rule select_not_equals, assumption)
-  done
+subsubsection {* Hausdorff's Maximum Principle *}
 
-lemma TFin_chain_lemma4: "c \<in> TFin S ==> (c :: 'a set set): chain S"
-  apply (erule TFin_induct)
-   apply (simp add: succ_def select_super [THEN super_subset_chain[THEN subsetD]])
-  apply (unfold chain_def chain_subset_def)
-  apply (rule CollectI, safe)
-   apply (drule bspec, assumption)
-   apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE])
-      apply blast+
-  done
+text {*There exists a maximal totally ordered subset of @{term A}. (Note that we do not
+require @{term A} to be partially ordered.)*}
 
-theorem Hausdorff: "\<exists>c. (c :: 'a set set): maxchain S"
-  apply (rule_tac x = "Union (TFin S)" in exI)
-  apply (rule classical)
-  apply (subgoal_tac "succ S (Union (TFin S)) = Union (TFin S) ")
-   prefer 2
-   apply (blast intro!: TFin_UnionI equal_succ_Union [THEN iffD2, symmetric])
-  apply (cut_tac subset_refl [THEN TFin_UnionI, THEN TFin_chain_lemma4])
-  apply (drule DiffI [THEN succ_not_equals], blast+)
-  done
+theorem Hausdorff: "\<exists>C. maxchain C"
+proof -
+  let ?M = "\<Union>\<C>"
+  have "maxchain ?M"
+  proof (rule ccontr)
+    assume "\<not> maxchain ?M"
+    then have "suc ?M \<noteq> ?M"
+      using suc_not_equals and
+      suc_Union_closed_chain [OF suc_Union_closed_Union] by simp
+    moreover have "suc ?M = ?M"
+      using eq_suc_Union [OF suc_Union_closed_Union] by simp
+    ultimately show False by contradiction
+  qed
+  then show ?thesis by blast
+qed
 
-
-subsection{*Zorn's Lemma: If All Chains Have Upper Bounds Then
-                               There Is  a Maximal Element*}
+text {*Make notation @{term \<C>} available again.*}
+no_notation suc_Union_closed ("\<C>")
 
 lemma chain_extend:
-  "[| c \<in> chain S; z \<in> S; \<forall>x \<in> c. x \<subseteq> (z:: 'a set) |] ==> {z} Un c \<in> chain S"
-  by (unfold chain_def chain_subset_def) blast
+  "chain C \<Longrightarrow> z \<in> A \<Longrightarrow> \<forall>x\<in>C. x \<sqsubseteq> z \<Longrightarrow> chain ({z} \<union> C)"
+  unfolding chain_def by blast
 
-lemma chain_Union_upper: "[| c \<in> chain S; x \<in> c |] ==> x \<subseteq> Union(c)"
-  by auto
+lemma maxchain_imp_chain:
+  "maxchain C \<Longrightarrow> chain C"
+  by (simp add: maxchain_def)
 
-lemma chain_ball_Union_upper: "c \<in> chain S ==> \<forall>x \<in> c. x \<subseteq> Union(c)"
-  by auto
+end
 
-lemma maxchain_Zorn:
-  "[| c \<in> maxchain S; u \<in> S; Union(c) \<subseteq> u |] ==> Union(c) = u"
-apply (rule ccontr)
-apply (simp add: maxchain_def)
-apply (erule conjE)
-apply (subgoal_tac "({u} Un c) \<in> super S c")
- apply simp
-apply (unfold super_def less_le)
-apply (blast intro: chain_extend dest: chain_Union_upper)
-done
+text {*Hide constant @{const pred_on.suc_Union_closed}, which was just needed
+for the proof of Hausforff's maximum principle.*}
+hide_const pred_on.suc_Union_closed
 
-theorem Zorn_Lemma:
-  "\<forall>c \<in> chain S. Union(c): S ==> \<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z --> y = z"
-apply (cut_tac Hausdorff maxchain_subset_chain)
-apply (erule exE)
-apply (drule subsetD, assumption)
-apply (drule bspec, assumption)
-apply (rule_tac x = "Union(c)" in bexI)
- apply (rule ballI, rule impI)
- apply (blast dest!: maxchain_Zorn, assumption)
-done
+lemma chain_mono:
+  assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> A; P x y\<rbrakk> \<Longrightarrow> Q x y"
+    and "pred_on.chain A P C"
+  shows "pred_on.chain A Q C"
+  using assms unfolding pred_on.chain_def by blast
 
-subsection{*Alternative version of Zorn's Lemma*}
+subsubsection {* Results for the proper subset relation *}
 
-lemma Zorn_Lemma2:
-  "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>x \<in> c. x \<subseteq> y
-    ==> \<exists>y \<in> S. \<forall>x \<in> S. (y :: 'a set) \<subseteq> x --> y = x"
-apply (cut_tac Hausdorff maxchain_subset_chain)
-apply (erule exE)
-apply (drule subsetD, assumption)
-apply (drule bspec, assumption, erule bexE)
-apply (rule_tac x = y in bexI)
- prefer 2 apply assumption
-apply clarify
-apply (rule ccontr)
-apply (frule_tac z = x in chain_extend)
-  apply (assumption, blast)
-apply (unfold maxchain_def super_def less_le)
-apply (blast elim!: equalityCE)
-done
+interpretation subset: pred_on "A" "op \<subset>" for A .
 
-text{*Various other lemmas*}
+lemma subset_maxchain_max:
+  assumes "subset.maxchain A C" and "X \<in> A" and "\<Union>C \<subseteq> X"
+  shows "\<Union>C = X"
+proof (rule ccontr)
+  let ?C = "{X} \<union> C"
+  from `subset.maxchain A C` have "subset.chain A C"
+    and *: "\<And>S. subset.chain A S \<Longrightarrow> \<not> C \<subset> S"
+    by (auto simp: subset.maxchain_def)
+  moreover have "\<forall>x\<in>C. x \<subseteq> X" using `\<Union>C \<subseteq> X` by auto
+  ultimately have "subset.chain A ?C"
+    using subset.chain_extend [of A C X] and `X \<in> A` by auto
+  moreover assume "\<Union>C \<noteq> X"
+  moreover then have "C \<subset> ?C" using `\<Union>C \<subseteq> X` by auto
+  ultimately show False using * by blast
+qed
 
-lemma chainD: "[| c \<in> chain S; x \<in> c; y \<in> c |] ==> x \<subseteq> y | y \<subseteq> x"
-by (unfold chain_def chain_subset_def) blast
+subsubsection {* Zorn's lemma *}
 
-lemma chainD2: "!!(c :: 'a set set). c \<in> chain S ==> c \<subseteq> S"
-by (unfold chain_def) blast
+text {*If every chain has an upper bound, then there is a maximal set.*}
+lemma subset_Zorn:
+  assumes "\<And>C. subset.chain A C \<Longrightarrow> \<exists>U\<in>A. \<forall>X\<in>C. X \<subseteq> U"
+  shows "\<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
+proof -
+  from subset.Hausdorff [of A] obtain M where "subset.maxchain A M" ..
+  then have "subset.chain A M" by (rule subset.maxchain_imp_chain)
+  with assms obtain Y where "Y \<in> A" and "\<forall>X\<in>M. X \<subseteq> Y" by blast
+  moreover have "\<forall>X\<in>A. Y \<subseteq> X \<longrightarrow> Y = X"
+  proof (intro ballI impI)
+    fix X
+    assume "X \<in> A" and "Y \<subseteq> X"
+    show "Y = X"
+    proof (rule ccontr)
+      assume "Y \<noteq> X"
+      with `Y \<subseteq> X` have "\<not> X \<subseteq> Y" by blast
+      from subset.chain_extend [OF `subset.chain A M` `X \<in> A`] and `\<forall>X\<in>M. X \<subseteq> Y`
+        have "subset.chain A ({X} \<union> M)" using `Y \<subseteq> X` by auto
+      moreover have "M \<subset> {X} \<union> M" using `\<forall>X\<in>M. X \<subseteq> Y` and `\<not> X \<subseteq> Y` by auto
+      ultimately show False
+        using `subset.maxchain A M` by (auto simp: subset.maxchain_def)
+    qed
+  qed
+  ultimately show ?thesis by blast
+qed
 
+text{*Alternative version of Zorn's lemma for the subset relation.*}
+lemma subset_Zorn':
+  assumes "\<And>C. subset.chain A C \<Longrightarrow> \<Union>C \<in> A"
+  shows "\<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
+proof -
+  from subset.Hausdorff [of A] obtain M where "subset.maxchain A M" ..
+  then have "subset.chain A M" by (rule subset.maxchain_imp_chain)
+  with assms have "\<Union>M \<in> A" .
+  moreover have "\<forall>Z\<in>A. \<Union>M \<subseteq> Z \<longrightarrow> \<Union>M = Z"
+  proof (intro ballI impI)
+    fix Z
+    assume "Z \<in> A" and "\<Union>M \<subseteq> Z"
+    with subset_maxchain_max [OF `subset.maxchain A M`]
+      show "\<Union>M = Z" .
+  qed
+  ultimately show ?thesis by blast
+qed
+
+
+subsection {* Zorn's Lemma for Partial Orders *}
+
+text {*Relate old to new definitions.*}
+
+(* Define globally? In Set.thy? *)
+definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^sub>\<subseteq>") where
+  "chain\<^sub>\<subseteq> C \<longleftrightarrow> (\<forall>A\<in>C. \<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A)"
+
+definition chains :: "'a set set \<Rightarrow> 'a set set set" where
+  "chains A = {C. C \<subseteq> A \<and> chain\<^sub>\<subseteq> C}"
 
 (* Define globally? In Relation.thy? *)
-definition Chain :: "('a*'a)set \<Rightarrow> 'a set set" where
-"Chain r \<equiv> {A. \<forall>a\<in>A.\<forall>b\<in>A. (a,b) : r \<or> (b,a) \<in> r}"
+definition Chains :: "('a \<times> 'a) set \<Rightarrow> 'a set set" where
+  "Chains r = {C. \<forall>a\<in>C. \<forall>b\<in>C. (a, b) \<in> r \<or> (b, a) \<in> r}"
 
-lemma mono_Chain: "r \<subseteq> s \<Longrightarrow> Chain r \<subseteq> Chain s"
-unfolding Chain_def by blast
+lemma mono_Chains: "r \<subseteq> s \<Longrightarrow> Chains r \<subseteq> Chains s"
+  unfolding Chains_def by blast
 
-text{* Zorn's lemma for partial orders: *}
+lemma chain_subset_alt_def: "chain\<^sub>\<subseteq> C = subset.chain UNIV C"
+  by (auto simp add: chain_subset_def subset.chain_def)
+
+lemma chains_alt_def: "chains A = {C. subset.chain A C}"
+  by (simp add: chains_def chain_subset_alt_def subset.chain_def)
+
+lemma Chains_subset:
+  "Chains r \<subseteq> {C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C}"
+  by (force simp add: Chains_def pred_on.chain_def)
+
+lemma Chains_subset':
+  assumes "refl r"
+  shows "{C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C} \<subseteq> Chains r"
+  using assms
+  by (auto simp add: Chains_def pred_on.chain_def refl_on_def)
+
+lemma Chains_alt_def:
+  assumes "refl r"
+  shows "Chains r = {C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C}"
+  using assms
+  by (metis Chains_subset Chains_subset' subset_antisym)
+
+lemma Zorn_Lemma:
+  "\<forall>C\<in>chains A. \<Union>C \<in> A \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
+  using subset_Zorn' [of A] by (auto simp: chains_alt_def)
+
+lemma Zorn_Lemma2:
+  "\<forall>C\<in>chains A. \<exists>U\<in>A. \<forall>X\<in>C. X \<subseteq> U \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
+  using subset_Zorn [of A] by (auto simp: chains_alt_def)
 
 lemma Zorns_po_lemma:
-assumes po: "Partial_order r" and u: "\<forall>C\<in>Chain r. \<exists>u\<in>Field r. \<forall>a\<in>C. (a,u):r"
-shows "\<exists>m\<in>Field r. \<forall>a\<in>Field r. (m,a):r \<longrightarrow> a=m"
-proof-
-  have "Preorder r" using po by(simp add:partial_order_on_def)
+  assumes po: "Partial_order r"
+    and u: "\<forall>C\<in>Chains r. \<exists>u\<in>Field r. \<forall>a\<in>C. (a, u) \<in> r"
+  shows "\<exists>m\<in>Field r. \<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m"
+proof -
+  have "Preorder r" using po by (simp add: partial_order_on_def)
 --{* Mirror r in the set of subsets below (wrt r) elements of A*}
-  let ?B = "%x. r^-1 `` {x}" let ?S = "?B ` Field r"
-  have "\<forall>C \<in> chain ?S. EX U:?S. ALL A:C. A\<subseteq>U"
-  proof (auto simp:chain_def chain_subset_def)
-    fix C assume 1: "C \<subseteq> ?S" and 2: "\<forall>A\<in>C.\<forall>B\<in>C. A\<subseteq>B | B\<subseteq>A"
+  let ?B = "%x. r\<inverse> `` {x}" let ?S = "?B ` Field r"
+  {
+    fix C assume 1: "C \<subseteq> ?S" and 2: "\<forall>A\<in>C. \<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
     let ?A = "{x\<in>Field r. \<exists>M\<in>C. M = ?B x}"
-    have "C = ?B ` ?A" using 1 by(auto simp: image_def)
-    have "?A\<in>Chain r"
-    proof (simp add:Chain_def, intro allI impI, elim conjE)
+    have "C = ?B ` ?A" using 1 by (auto simp: image_def)
+    have "?A \<in> Chains r"
+    proof (simp add: Chains_def, intro allI impI, elim conjE)
       fix a b
-      assume "a \<in> Field r" "?B a \<in> C" "b \<in> Field r" "?B b \<in> C"
-      hence "?B a \<subseteq> ?B b \<or> ?B b \<subseteq> ?B a" using 2 by simp
-      thus "(a, b) \<in> r \<or> (b, a) \<in> r" using `Preorder r` `a:Field r` `b:Field r`
+      assume "a \<in> Field r" and "?B a \<in> C" and "b \<in> Field r" and "?B b \<in> C"
+      hence "?B a \<subseteq> ?B b \<or> ?B b \<subseteq> ?B a" using 2 by auto
+      thus "(a, b) \<in> r \<or> (b, a) \<in> r"
+        using `Preorder r` and `a \<in> Field r` and `b \<in> Field r`
         by (simp add:subset_Image1_Image1_iff)
     qed
-    then obtain u where uA: "u:Field r" "\<forall>a\<in>?A. (a,u) : r" using u by auto
-    have "\<forall>A\<in>C. A \<subseteq> r^-1 `` {u}" (is "?P u")
+    then obtain u where uA: "u \<in> Field r" "\<forall>a\<in>?A. (a, u) \<in> r" using u by auto
+    have "\<forall>A\<in>C. A \<subseteq> r\<inverse> `` {u}" (is "?P u")
     proof auto
-      fix a B assume aB: "B:C" "a:B"
-      with 1 obtain x where "x:Field r" "B = r^-1 `` {x}" by auto
-      thus "(a,u) : r" using uA aB `Preorder r`
-        by (simp add: preorder_on_def refl_on_def) (rule transD, blast+)
+      fix a B assume aB: "B \<in> C" "a \<in> B"
+      with 1 obtain x where "x \<in> Field r" and "B = r\<inverse> `` {x}" by auto
+      thus "(a, u) \<in> r" using uA and aB and `Preorder r`
+        by (auto simp add: preorder_on_def refl_on_def) (metis transD)
     qed
-    thus "EX u:Field r. ?P u" using `u:Field r` by blast
-  qed
-  from Zorn_Lemma2[OF this]
-  obtain m B where "m:Field r" "B = r^-1 `` {m}"
-    "\<forall>x\<in>Field r. B \<subseteq> r^-1 `` {x} \<longrightarrow> B = r^-1 `` {x}"
+    then have "\<exists>u\<in>Field r. ?P u" using `u \<in> Field r` by blast
+  }
+  then have "\<forall>C\<in>chains ?S. \<exists>U\<in>?S. \<forall>A\<in>C. A \<subseteq> U"
+    by (auto simp: chains_def chain_subset_def)
+  from Zorn_Lemma2 [OF this]
+  obtain m B where "m \<in> Field r" and "B = r\<inverse> `` {m}"
+    and "\<forall>x\<in>Field r. B \<subseteq> r\<inverse> `` {x} \<longrightarrow> r\<inverse> `` {x} = B"
     by auto
-  hence "\<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m" using po `Preorder r` `m:Field r`
-    by(auto simp:subset_Image1_Image1_iff Partial_order_eq_Image1_Image1_iff)
-  thus ?thesis using `m:Field r` by blast
+  hence "\<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m"
+    using po and `Preorder r` and `m \<in> Field r`
+    by (auto simp: subset_Image1_Image1_iff Partial_order_eq_Image1_Image1_iff)
+  thus ?thesis using `m \<in> Field r` by blast
 qed
+
+
+subsection {* The Well Ordering Theorem *}
 
 (* The initial segment of a relation appears generally useful.
    Move to Relation.thy?
    Definition correct/most general?
    Naming?
 *)
-definition init_seg_of :: "(('a*'a)set * ('a*'a)set)set" where
-"init_seg_of == {(r,s). r \<subseteq> s \<and> (\<forall>a b c. (a,b):s \<and> (b,c):r \<longrightarrow> (a,b):r)}"
+definition init_seg_of :: "(('a \<times> 'a) set \<times> ('a \<times> 'a) set) set" where
+  "init_seg_of = {(r, s). r \<subseteq> s \<and> (\<forall>a b c. (a, b) \<in> s \<and> (b, c) \<in> r \<longrightarrow> (a, b) \<in> r)}"
 
-abbreviation initialSegmentOf :: "('a*'a)set \<Rightarrow> ('a*'a)set \<Rightarrow> bool"
-             (infix "initial'_segment'_of" 55) where
-"r initial_segment_of s == (r,s):init_seg_of"
+abbreviation
+  initialSegmentOf :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" (infix "initial'_segment'_of" 55)
+where
+  "r initial_segment_of s \<equiv> (r, s) \<in> init_seg_of"
 
-lemma refl_on_init_seg_of[simp]: "r initial_segment_of r"
-by(simp add:init_seg_of_def)
+lemma refl_on_init_seg_of [simp]: "r initial_segment_of r"
+  by (simp add: init_seg_of_def)
 
 lemma trans_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of t \<Longrightarrow> r initial_segment_of t"
-by (simp (no_asm_use) add: init_seg_of_def) (metis (no_types) in_mono order_trans)
+  by (simp (no_asm_use) add: init_seg_of_def)
+     (metis UnCI Un_absorb2 subset_trans)
 
 lemma antisym_init_seg_of:
-  "r initial_segment_of s \<Longrightarrow> s initial_segment_of r \<Longrightarrow> r=s"
-unfolding init_seg_of_def by safe
+  "r initial_segment_of s \<Longrightarrow> s initial_segment_of r \<Longrightarrow> r = s"
+  unfolding init_seg_of_def by safe
 
-lemma Chain_init_seg_of_Union:
-  "R \<in> Chain init_seg_of \<Longrightarrow> r\<in>R \<Longrightarrow> r initial_segment_of \<Union>R"
-by(simp add: init_seg_of_def Chain_def Ball_def) blast
+lemma Chains_init_seg_of_Union:
+  "R \<in> Chains init_seg_of \<Longrightarrow> r\<in>R \<Longrightarrow> r initial_segment_of \<Union>R"
+  by (auto simp: init_seg_of_def Ball_def Chains_def) blast
 
 lemma chain_subset_trans_Union:
-  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans(\<Union>R)"
-apply(simp add:chain_subset_def)
-apply(simp (no_asm_use) add:trans_def)
-by (metis subsetD)
+  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans (\<Union>R)"
+apply (auto simp add: chain_subset_def)
+apply (simp (no_asm_use) add: trans_def)
+apply (metis subsetD)
+done
 
 lemma chain_subset_antisym_Union:
-  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym(\<Union>R)"
-by (simp add:chain_subset_def antisym_def) (metis subsetD)
+  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym (\<Union>R)"
+apply (auto simp add: chain_subset_def antisym_def)
+apply (metis subsetD)
+done
 
 lemma chain_subset_Total_Union:
-assumes "chain\<^sub>\<subseteq> R" "\<forall>r\<in>R. Total r"
-shows "Total (\<Union>R)"
-proof (simp add: total_on_def Ball_def, auto del:disjCI)
-  fix r s a b assume A: "r:R" "s:R" "a:Field r" "b:Field s" "a\<noteq>b"
-  from `chain\<^sub>\<subseteq> R` `r:R` `s:R` have "r\<subseteq>s \<or> s\<subseteq>r"
-    by(simp add:chain_subset_def)
-  thus "(\<exists>r\<in>R. (a,b) \<in> r) \<or> (\<exists>r\<in>R. (b,a) \<in> r)"
+  assumes "chain\<^sub>\<subseteq> R" and "\<forall>r\<in>R. Total r"
+  shows "Total (\<Union>R)"
+proof (simp add: total_on_def Ball_def, auto del: disjCI)
+  fix r s a b assume A: "r \<in> R" "s \<in> R" "a \<in> Field r" "b \<in> Field s" "a \<noteq> b"
+  from `chain\<^sub>\<subseteq> R` and `r \<in> R` and `s \<in> R` have "r \<subseteq> s \<or> s \<subseteq> r"
+    by (auto simp add: chain_subset_def)
+  thus "(\<exists>r\<in>R. (a, b) \<in> r) \<or> (\<exists>r\<in>R. (b, a) \<in> r)"
   proof
-    assume "r\<subseteq>s" hence "(a,b):s \<or> (b,a):s" using assms(2) A
-      by(simp add:total_on_def)(metis mono_Field subsetD)
-    thus ?thesis using `s:R` by blast
+    assume "r \<subseteq> s" hence "(a, b) \<in> s \<or> (b, a) \<in> s" using assms(2) A
+      by (simp add: total_on_def) (metis mono_Field subsetD)
+    thus ?thesis using `s \<in> R` by blast
   next
-    assume "s\<subseteq>r" hence "(a,b):r \<or> (b,a):r" using assms(2) A
-      by(simp add:total_on_def)(metis mono_Field subsetD)
-    thus ?thesis using `r:R` by blast
+    assume "s \<subseteq> r" hence "(a, b) \<in> r \<or> (b, a) \<in> r" using assms(2) A
+      by (simp add: total_on_def) (metis mono_Field subsetD)
+    thus ?thesis using `r \<in> R` by blast
   qed
 qed
 
 lemma wf_Union_wf_init_segs:
-assumes "R \<in> Chain init_seg_of" and "\<forall>r\<in>R. wf r" shows "wf(\<Union>R)"
-proof(simp add:wf_iff_no_infinite_down_chain, rule ccontr, auto)
-  fix f assume 1: "\<forall>i. \<exists>r\<in>R. (f(Suc i), f i) \<in> r"
-  then obtain r where "r:R" and "(f(Suc 0), f 0) : r" by auto
-  { fix i have "(f(Suc i), f i) \<in> r"
-    proof(induct i)
+  assumes "R \<in> Chains init_seg_of" and "\<forall>r\<in>R. wf r"
+  shows "wf (\<Union>R)"
+proof(simp add: wf_iff_no_infinite_down_chain, rule ccontr, auto)
+  fix f assume 1: "\<forall>i. \<exists>r\<in>R. (f (Suc i), f i) \<in> r"
+  then obtain r where "r \<in> R" and "(f (Suc 0), f 0) \<in> r" by auto
+  { fix i have "(f (Suc i), f i) \<in> r"
+    proof (induct i)
       case 0 show ?case by fact
     next
       case (Suc i)
-      moreover obtain s where "s\<in>R" and "(f(Suc(Suc i)), f(Suc i)) \<in> s"
+      moreover obtain s where "s \<in> R" and "(f (Suc (Suc i)), f(Suc i)) \<in> s"
         using 1 by auto
       moreover hence "s initial_segment_of r \<or> r initial_segment_of s"
-        using assms(1) `r:R` by(simp add: Chain_def)
-      ultimately show ?case by(simp add:init_seg_of_def) blast
+        using assms(1) `r \<in> R` by (simp add: Chains_def)
+      ultimately show ?case by (simp add: init_seg_of_def) blast
     qed
   }
-  thus False using assms(2) `r:R`
-    by(simp add:wf_iff_no_infinite_down_chain) blast
+  thus False using assms(2) and `r \<in> R`
+    by (simp add: wf_iff_no_infinite_down_chain) blast
 qed
 
 lemma initial_segment_of_Diff:
   "p initial_segment_of q \<Longrightarrow> p - s initial_segment_of q - s"
-unfolding init_seg_of_def by blast
+  unfolding init_seg_of_def by blast
 
-lemma Chain_inits_DiffI:
-  "R \<in> Chain init_seg_of \<Longrightarrow> {r - s |r. r \<in> R} \<in> Chain init_seg_of"
-unfolding Chain_def by (blast intro: initial_segment_of_Diff)
+lemma Chains_inits_DiffI:
+  "R \<in> Chains init_seg_of \<Longrightarrow> {r - s |r. r \<in> R} \<in> Chains init_seg_of"
+  unfolding Chains_def by (blast intro: initial_segment_of_Diff)
 
-theorem well_ordering: "\<exists>r::('a*'a)set. Well_order r \<and> Field r = UNIV"
-proof-
+theorem well_ordering: "\<exists>r::'a rel. Well_order r \<and> Field r = UNIV"
+proof -
 -- {*The initial segment relation on well-orders: *}
-  let ?WO = "{r::('a*'a)set. Well_order r}"
+  let ?WO = "{r::'a rel. Well_order r}"
   def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
-  have I_init: "I \<subseteq> init_seg_of" by(simp add: I_def)
-  hence subch: "!!R. R : Chain I \<Longrightarrow> chain\<^sub>\<subseteq> R"
-    by(auto simp:init_seg_of_def chain_subset_def Chain_def)
-  have Chain_wo: "!!R r. R \<in> Chain I \<Longrightarrow> r \<in> R \<Longrightarrow> Well_order r"
-    by(simp add:Chain_def I_def) blast
-  have FI: "Field I = ?WO" by(auto simp add:I_def init_seg_of_def Field_def)
+  have I_init: "I \<subseteq> init_seg_of" by (auto simp: I_def)
+  hence subch: "\<And>R. R \<in> Chains I \<Longrightarrow> chain\<^sub>\<subseteq> R"
+    by (auto simp: init_seg_of_def chain_subset_def Chains_def)
+  have Chains_wo: "\<And>R r. R \<in> Chains I \<Longrightarrow> r \<in> R \<Longrightarrow> Well_order r"
+    by (simp add: Chains_def I_def) blast
+  have FI: "Field I = ?WO" by (auto simp add: I_def init_seg_of_def Field_def)
   hence 0: "Partial_order I"
-    by(auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def trans_def I_def elim!: trans_init_seg_of)
+    by (auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def
+      trans_def I_def elim!: trans_init_seg_of)
 -- {*I-chains have upper bounds in ?WO wrt I: their Union*}
-  { fix R assume "R \<in> Chain I"
-    hence Ris: "R \<in> Chain init_seg_of" using mono_Chain[OF I_init] by blast
-    have subch: "chain\<^sub>\<subseteq> R" using `R : Chain I` I_init
-      by(auto simp:init_seg_of_def chain_subset_def Chain_def)
-    have "\<forall>r\<in>R. Refl r" "\<forall>r\<in>R. trans r" "\<forall>r\<in>R. antisym r" "\<forall>r\<in>R. Total r"
-         "\<forall>r\<in>R. wf(r-Id)"
-      using Chain_wo[OF `R \<in> Chain I`] by(simp_all add:order_on_defs)
-    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by(auto simp:refl_on_def)
+  { fix R assume "R \<in> Chains I"
+    hence Ris: "R \<in> Chains init_seg_of" using mono_Chains [OF I_init] by blast
+    have subch: "chain\<^sub>\<subseteq> R" using `R : Chains I` I_init
+      by (auto simp: init_seg_of_def chain_subset_def Chains_def)
+    have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r"
+      and "\<forall>r\<in>R. Total r" and "\<forall>r\<in>R. wf (r - Id)"
+      using Chains_wo [OF `R \<in> Chains I`] by (simp_all add: order_on_defs)
+    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by (auto simp: refl_on_def)
     moreover have "trans (\<Union>R)"
-      by(rule chain_subset_trans_Union[OF subch `\<forall>r\<in>R. trans r`])
-    moreover have "antisym(\<Union>R)"
-      by(rule chain_subset_antisym_Union[OF subch `\<forall>r\<in>R. antisym r`])
+      by (rule chain_subset_trans_Union [OF subch `\<forall>r\<in>R. trans r`])
+    moreover have "antisym (\<Union>R)"
+      by (rule chain_subset_antisym_Union [OF subch `\<forall>r\<in>R. antisym r`])
     moreover have "Total (\<Union>R)"
-      by(rule chain_subset_Total_Union[OF subch `\<forall>r\<in>R. Total r`])
-    moreover have "wf((\<Union>R)-Id)"
-    proof-
-      have "(\<Union>R)-Id = \<Union>{r-Id|r. r \<in> R}" by blast
-      with `\<forall>r\<in>R. wf(r-Id)` wf_Union_wf_init_segs[OF Chain_inits_DiffI[OF Ris]]
+      by (rule chain_subset_Total_Union [OF subch `\<forall>r\<in>R. Total r`])
+    moreover have "wf ((\<Union>R) - Id)"
+    proof -
+      have "(\<Union>R) - Id = \<Union>{r - Id | r. r \<in> R}" by blast
+      with `\<forall>r\<in>R. wf (r - Id)` and wf_Union_wf_init_segs [OF Chains_inits_DiffI [OF Ris]]
       show ?thesis by (simp (no_asm_simp)) blast
     qed
     ultimately have "Well_order (\<Union>R)" by(simp add:order_on_defs)
     moreover have "\<forall>r \<in> R. r initial_segment_of \<Union>R" using Ris
-      by(simp add: Chain_init_seg_of_Union)
-    ultimately have "\<Union>R : ?WO \<and> (\<forall>r\<in>R. (r,\<Union>R) : I)"
-      using mono_Chain[OF I_init] `R \<in> Chain I`
-      by(simp (no_asm) add:I_def del:Field_Union)(metis Chain_wo)
+      by(simp add: Chains_init_seg_of_Union)
+    ultimately have "\<Union>R \<in> ?WO \<and> (\<forall>r\<in>R. (r, \<Union>R) \<in> I)"
+      using mono_Chains [OF I_init] and `R \<in> Chains I`
+      by (simp (no_asm) add: I_def del: Field_Union) (metis Chains_wo)
   }
-  hence 1: "\<forall>R \<in> Chain I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r,u) : I" by (subst FI) blast
+  hence 1: "\<forall>R \<in> Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" by (subst FI) blast
 --{*Zorn's Lemma yields a maximal well-order m:*}
-  then obtain m::"('a*'a)set" where "Well_order m" and
-    max: "\<forall>r. Well_order r \<and> (m,r):I \<longrightarrow> r=m"
+  then obtain m::"'a rel" where "Well_order m" and
+    max: "\<forall>r. Well_order r \<and> (m, r) \<in> I \<longrightarrow> r = m"
     using Zorns_po_lemma[OF 0 1] by (auto simp:FI)
 --{*Now show by contradiction that m covers the whole type:*}
   { fix x::'a assume "x \<notin> Field m"
 --{*We assume that x is not covered and extend m at the top with x*}
     have "m \<noteq> {}"
     proof
-      assume "m={}"
-      moreover have "Well_order {(x,x)}"
-        by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_unfold Domain_converse [symmetric])
+      assume "m = {}"
+      moreover have "Well_order {(x, x)}"
+        by (simp add: order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def)
       ultimately show False using max
-        by (auto simp:I_def init_seg_of_def simp del:Field_insert)
+        by (auto simp: I_def init_seg_of_def simp del: Field_insert)
     qed
     hence "Field m \<noteq> {}" by(auto simp:Field_def)
-    moreover have "wf(m-Id)" using `Well_order m`
-      by(simp add:well_order_on_def)
+    moreover have "wf (m - Id)" using `Well_order m`
+      by (simp add: well_order_on_def)
 --{*The extension of m by x:*}
-    let ?s = "{(a,x)|a. a : Field m}" let ?m = "insert (x,x) m Un ?s"
+    let ?s = "{(a, x) | a. a \<in> Field m}"
+    let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)"
-      unfolding Field_def by auto
-    have "Refl m" "trans m" "antisym m" "Total m" "wf(m-Id)"
-      using `Well_order m` by(simp_all add:order_on_defs)
+      by (auto simp: Field_def)
+    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
+      using `Well_order m` by (simp_all add: order_on_defs)
 --{*We show that the extension is a well-order*}
-    have "Refl ?m" using `Refl m` Fm by(auto simp:refl_on_def)
-    moreover have "trans ?m" using `trans m` `x \<notin> Field m`
-      unfolding trans_def Field_def Domain_unfold Domain_converse [symmetric] by blast
-    moreover have "antisym ?m" using `antisym m` `x \<notin> Field m`
-      unfolding antisym_def Field_def Domain_unfold Domain_converse [symmetric] by blast
-    moreover have "Total ?m" using `Total m` Fm by(auto simp: total_on_def)
-    moreover have "wf(?m-Id)"
-    proof-
+    have "Refl ?m" using `Refl m` Fm by (auto simp: refl_on_def)
+    moreover have "trans ?m" using `trans m` and `x \<notin> Field m`
+      unfolding trans_def Field_def by blast
+    moreover have "antisym ?m" using `antisym m` and `x \<notin> Field m`
+      unfolding antisym_def Field_def by blast
+    moreover have "Total ?m" using `Total m` and Fm by (auto simp: total_on_def)
+    moreover have "wf (?m - Id)"
+    proof -
       have "wf ?s" using `x \<notin> Field m`
-        by(simp add:wf_eq_minimal Field_def Domain_unfold Domain_converse [symmetric]) metis
-      thus ?thesis using `wf(m-Id)` `x \<notin> Field m`
-        wf_subset[OF `wf ?s` Diff_subset]
+        by (auto simp add: wf_eq_minimal Field_def) metis
+      thus ?thesis using `wf (m - Id)` and `x \<notin> Field m`
+        wf_subset [OF `wf ?s` Diff_subset]
         by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
     qed
-    ultimately have "Well_order ?m" by(simp add:order_on_defs)
+    ultimately have "Well_order ?m" by (simp add: order_on_defs)
 --{*We show that the extension is above m*}
-    moreover hence "(m,?m) : I" using `Well_order m` `x \<notin> Field m`
-      by(fastforce simp:I_def init_seg_of_def Field_def Domain_unfold Domain_converse [symmetric])
+    moreover hence "(m, ?m) \<in> I" using `Well_order m` and `x \<notin> Field m`
+      by (fastforce simp: I_def init_seg_of_def Field_def)
     ultimately
 --{*This contradicts maximality of m:*}
-    have False using max `x \<notin> Field m` unfolding Field_def by blast
+    have False using max and `x \<notin> Field m` unfolding Field_def by blast
   }
   hence "Field m = UNIV" by auto
   moreover with `Well_order m` have "Well_order m" by simp
   ultimately show ?thesis by blast
 qed
 
-corollary well_order_on: "\<exists>r::('a*'a)set. well_order_on A r"
+corollary well_order_on: "\<exists>r::'a rel. well_order_on A r"
 proof -
-  obtain r::"('a*'a)set" where wo: "Well_order r" and univ: "Field r = UNIV"
-    using well_ordering[where 'a = "'a"] by blast
-  let ?r = "{(x,y). x:A & y:A & (x,y):r}"
+  obtain r::"'a rel" where wo: "Well_order r" and univ: "Field r = UNIV"
+    using well_ordering [where 'a = "'a"] by blast
+  let ?r = "{(x, y). x \<in> A \<and> y \<in> A \<and> (x, y) \<in> r}"
   have 1: "Field ?r = A" using wo univ
-    by(fastforce simp: Field_def Domain_unfold Domain_converse [symmetric] order_on_defs refl_on_def)
-  have "Refl r" "trans r" "antisym r" "Total r" "wf(r-Id)"
-    using `Well_order r` by(simp_all add:order_on_defs)
-  have "Refl ?r" using `Refl r` by(auto simp:refl_on_def 1 univ)
+    by (fastforce simp: Field_def order_on_defs refl_on_def)
+  have "Refl r" and "trans r" and "antisym r" and "Total r" and "wf (r - Id)"
+    using `Well_order r` by (simp_all add: order_on_defs)
+  have "Refl ?r" using `Refl r` by (auto simp: refl_on_def 1 univ)
   moreover have "trans ?r" using `trans r`
     unfolding trans_def by blast
   moreover have "antisym ?r" using `antisym r`
     unfolding antisym_def by blast
-  moreover have "Total ?r" using `Total r` by(simp add:total_on_def 1 univ)
-  moreover have "wf(?r - Id)" by(rule wf_subset[OF `wf(r-Id)`]) blast
-  ultimately have "Well_order ?r" by(simp add:order_on_defs)
+  moreover have "Total ?r" using `Total r` by (simp add:total_on_def 1 univ)
+  moreover have "wf (?r - Id)" by (rule wf_subset [OF `wf (r - Id)`]) blast
+  ultimately have "Well_order ?r" by (simp add: order_on_defs)
   with 1 show ?thesis by metis
 qed
 
 end
+
