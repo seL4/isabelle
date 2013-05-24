@@ -207,14 +207,8 @@ exception CANTUNIFY;  (*Signals non-unifiability.  Does not signal errors!*)
 exception ASSIGN;  (*Raised if not an assignment*)
 
 
-fun unify_types thy (T, U) env =
-  if T = U then env
-  else
-    let
-      val Envir.Envir {maxidx, tenv, tyenv} = env;
-      val (tyenv', maxidx') = Sign.typ_unify thy (U, T) (tyenv, maxidx);
-    in Envir.Envir {maxidx = maxidx', tenv = tenv, tyenv = tyenv'} end
-    handle Type.TUNIFY => raise CANTUNIFY;
+fun unify_types thy TU env =
+  Pattern.unify_types thy TU env handle Pattern.Unif => raise CANTUNIFY;
 
 fun test_unify_types thy (T, U) env =
   let

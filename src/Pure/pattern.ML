@@ -24,6 +24,7 @@ sig
   val matchess: theory -> term list * term list -> bool
   val equiv: theory -> term * term -> bool
   val matches_subterm: theory -> term * term -> bool
+  val unify_types: theory -> typ * typ -> Envir.env -> Envir.env
   val unify: theory -> term * term -> Envir.env -> Envir.env
   val first_order: term -> bool
   val pattern: term -> bool
