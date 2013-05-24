@@ -148,7 +148,7 @@ fun repair_var_name s =
 (* The number of type arguments of a constant, zero if it's monomorphic. For
    (instances of) Skolem pseudoconstants, this information is encoded in the
    constant name. *)
-fun num_type_args thy s =
+fun robust_const_num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
     s |> Long_Name.explode |> List.last |> Int.fromString |> the
   else if String.isPrefix lam_lifted_prefix s then
@@ -222,7 +222,7 @@ fun term_of_atp ctxt textual sym_tab =
                 val term_ts = map (do_term [] NONE) term_us
                 val T =
                   (if not (null type_us) andalso
-                      num_type_args thy s' = length type_us then
+                      robust_const_num_type_args thy s' = length type_us then
                      let val Ts = type_us |> map (typ_of_atp ctxt) in
                        if new_skolem then
                          SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))

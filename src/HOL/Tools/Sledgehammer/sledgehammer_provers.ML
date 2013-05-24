@@ -686,7 +686,7 @@ fun run_atp mode name
     val atp_mode =
       if Config.get ctxt completish then Sledgehammer_Completish
       else Sledgehammer
-    val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
+    val ((_, hyp_ts, concl_t), ctxt') = strip_subgoal goal subgoal ctxt
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_of_prover name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)

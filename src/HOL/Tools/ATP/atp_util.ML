@@ -49,7 +49,8 @@ sig
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val strip_subgoal :
-    Proof.context -> thm -> int -> (string * typ) list * term list * term
+    thm -> int -> Proof.context
+    -> ((string * typ) list * term list * term) * Proof.context
 end;
 
 structure ATP_Util : ATP_UTIL =
@@ -429,13 +430,19 @@ fun specialize_type thy (s, T) t =
     | NONE => raise Type.TYPE_MATCH
   end
 
-fun strip_subgoal ctxt goal i =
+fun strip_subgoal goal i ctxt =
   let
-    val (t, (frees, params)) =
+    val (t, ((frees, params), ctxt)) =
       Logic.goal_params (prop_of goal) i
-      ||> (map dest_Free #> Variable.variant_frees ctxt [] #> `(map Free))
+      ||> map dest_Free
+      ||> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
+      ||> (fn fixes =>
+              ctxt |> Variable.set_body false
+                   |> Proof_Context.add_fixes fixes
+                   |>> map2 (fn (_, SOME T, _) => fn s => (s, T)) fixes)
+      ||> apfst (`(map Free))
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev params, hyp_ts, concl_t) end
+  in ((rev params, hyp_ts, concl_t), ctxt) end
 
 end;

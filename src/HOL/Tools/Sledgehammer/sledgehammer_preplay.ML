@@ -92,6 +92,7 @@ fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   end
 
 exception ZEROTIME
+
 fun try_metis debug trace type_enc lam_trans ctxt timeout step =
   let
     val (prop, subproofs, fact_names, obtain) =

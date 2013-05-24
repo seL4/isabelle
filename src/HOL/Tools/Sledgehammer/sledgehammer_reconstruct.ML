@@ -323,17 +323,14 @@ fun uncombine_term thy =
       | aux t = t
   in aux end
 
-fun decode_line sym_tab (name, role, u, rule, deps) ctxt =
+fun decode_line ctxt sym_tab (name, role, u, rule, deps) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val t = u |> prop_of_atp ctxt true sym_tab
-              |> uncombine_term thy |> infer_formula_types ctxt
-  in
-    ((name, role, t, rule, deps),
-     fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
-  end
-fun decode_lines ctxt sym_tab lines =
-  fst (fold_map (decode_line sym_tab) lines ctxt)
+    val t =
+      u |> prop_of_atp ctxt true sym_tab
+        |> uncombine_term thy
+        |> infer_formula_types ctxt
+  in (name, role, t, rule, deps) end
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
@@ -395,18 +392,13 @@ and delete_dependency name lines =
   fold_rev add_nontrivial_line
            (map (replace_dependencies_in_line (name, [])) lines) []
 
-(* ATPs sometimes reuse free variable names in the strangest ways. Removing
-   offending lines often does the trick. *)
-fun is_bad_free frees (Free x) = not (member (op =) frees x)
-  | is_bad_free _ _ = false
-
 val e_skolemize_rule = "skolemize"
 val vampire_skolemisation_rule = "skolemisation"
 
 val is_skolemize_rule =
   member (op =) [e_skolemize_rule, vampire_skolemisation_rule]
 
-fun add_desired_line fact_names frees (name as (_, ss), role, t, rule, deps)
+fun add_desired_line fact_names (name as (_, ss), role, t, rule, deps)
                      (j, lines) =
   (j + 1,
    if is_fact fact_names ss orelse
@@ -416,7 +408,6 @@ fun add_desired_line fact_names frees (name as (_, ss), role, t, rule, deps)
       j = 0 orelse
       (not (is_only_type_information t) andalso
        null (Term.add_tvars t []) andalso
-       not (exists_subterm (is_bad_free frees) t) andalso
        length deps >= 2 andalso
        (* kill next to last line, which usually results in a trivial step *)
        j <> 1) then
@@ -643,8 +634,7 @@ fun isar_proof_text ctxt isar_proofs
      fact_names, sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
-    val frees = fold Term.add_frees (concl_t :: hyp_ts) []
+    val ((params, hyp_ts, concl_t), ctxt) = strip_subgoal goal subgoal ctxt
     val one_line_proof = one_line_proof_text 0 one_line_params
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
@@ -659,12 +649,12 @@ fun isar_proof_text ctxt isar_proofs
           |> clean_up_atp_proof_dependencies
           |> nasty_atp_proof pool
           |> map_term_names_in_atp_proof repair_name
-          |> decode_lines ctxt sym_tab
+          |> map (decode_line ctxt sym_tab)
           |> repair_waldmeister_endgame
           |> rpair [] |-> fold_rev (add_line fact_names)
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
-          |-> fold_rev (add_desired_line fact_names frees)
+          |-> fold_rev (add_desired_line fact_names)
           |> snd
         val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
         val conjs =

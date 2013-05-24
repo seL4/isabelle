@@ -799,8 +799,8 @@ fun lift_lams_part_1 ctxt type_enc =
 
 fun lift_lams_part_2 ctxt (facts, lifted) =
   (facts, lifted)
-  (* Lambda-lifting sometimes leaves some lambdas around; we need some way to get rid
-     of them *)
+  (* Lambda-lifting sometimes leaves some lambdas around; we need some way to
+     get rid of them *)
   |> pairself (map (introduce_combinators ctxt))
   |> pairself (map constify_lifted)
   (* Requires bound variables not to clash with any schematic variables (as
