@@ -254,10 +254,11 @@ fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
           let
             val Us = binder_types (fastype_of1 (Ts, t));
             val i = length Us;
+            val long = eta_long (rev Us @ Ts);
           in
             fold_rev (Term.abs o pair "x") Us
-              (list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-                (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
+              (list_comb (incr_boundvars i u,
+                map (long o incr_boundvars i) ts @ map (long o Bound) (i - 1 downto 0)))
           end);
 
 
