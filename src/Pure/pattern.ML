@@ -149,11 +149,11 @@ fun type_of_G env (T, n, is) =
     val (Ts, U) = split_type (Envir.norm_type tyenv T, n, []);
   in map (nth Ts) is ---> U end;
 
-fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
+fun mk_hnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 
-fun mknewhnf(env,binders,is,F as (a,_),T,js) =
+fun mk_new_hnf(env,binders,is,F as (a,_),T,js) =
   let val (env',G) = Envir.genvar a (env,type_of_G env (T,length is,js))
-  in Envir.update ((F, T), mkhnf (binders, is, G, js)) env' end;
+  in Envir.update ((F, T), mk_hnf (binders, is, G, js)) env' end;
 
 
 (*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
@@ -190,7 +190,7 @@ fun proj(s,env,binders,is) =
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
-                            Envir.update ((F, Fty), mkhnf (binders, js, H, ks)) env'
+                            Envir.update ((F, Fty), mk_hnf (binders, js, H, ks)) env'
                       in (app(H,ls),env'') end
                  | _  => raise Pattern))
         and prs(s::ss,env,d,binders) =
@@ -214,7 +214,7 @@ fun mk_ff_list(is,js) =
 fun flexflex1(env,binders,F,Fty,is,js) =
   if is=js then env
   else let val ks = mk_ff_list(is,js)
-       in mknewhnf(env,binders,is,F,Fty,ks) end;
+       in mk_new_hnf(env,binders,is,F,Fty,ks) end;
 
 fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
