@@ -158,7 +158,7 @@ proof(cases "r \<le> Id")
   ultimately show ?thesis by blast
 next
   assume Case2: "\<not> r \<le> Id"
-  hence 1: "Field r = Field(r - Id)" using rel.Total_Id_Field LI
+  hence 1: "Field r = Field(r - Id)" using Total_Id_Field LI
   unfolding order_on_defs by blast
   show ?thesis
   proof

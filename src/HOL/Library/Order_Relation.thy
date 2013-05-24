@@ -87,6 +87,23 @@ lemma Partial_order_eq_Image1_Image1_iff:
   "\<lbrakk>Partial_order r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"
 by(auto simp:order_on_defs Refl_antisym_eq_Image1_Image1_iff)
 
+lemma Total_Id_Field:
+assumes TOT: "Total r" and NID: "\<not> (r <= Id)"
+shows "Field r = Field(r - Id)"
+using mono_Field[of "r - Id" r] Diff_subset[of r Id]
+proof(auto)
+  have "r \<noteq> {}" using NID by fast
+  then obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" using NID by fast
+  hence 1: "b \<noteq> c \<and> {b,c} \<le> Field r" by (auto simp: Field_def)
+  (*  *)
+  fix a assume *: "a \<in> Field r"
+  obtain d where 2: "d \<in> Field r" and 3: "d \<noteq> a"
+  using * 1 by auto
+  hence "(a,d) \<in> r \<or> (d,a) \<in> r" using * TOT
+  by (simp add: total_on_def)
+  thus "a \<in> Field(r - Id)" using 3 unfolding Field_def by blast
+qed
+
 
 subsection{* Orders on a type *}
 

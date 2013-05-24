@@ -52,24 +52,6 @@ lemma well_order_on_Well_order:
 using well_order_on_Field by simp
 
 
-lemma Total_Id_Field:
-assumes TOT: "Total r" and NID: "\<not> (r <= Id)"
-shows "Field r = Field(r - Id)"
-using mono_Field[of "r - Id" r] Diff_subset[of r Id]
-proof(auto)
-  have "r \<noteq> {}" using NID by fast
-  then obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" using NID by fast
-  hence 1: "b \<noteq> c \<and> {b,c} \<le> Field r" by (auto simp: Field_def)
-  (*  *)
-  fix a assume *: "a \<in> Field r"
-  obtain d where 2: "d \<in> Field r" and 3: "d \<noteq> a"
-  using * 1 by auto
-  hence "(a,d) \<in> r \<or> (d,a) \<in> r" using * TOT
-  by (simp add: total_on_def)
-  thus "a \<in> Field(r - Id)" using 3 unfolding Field_def by blast
-qed
-
-
 lemma Total_subset_Id:
 assumes TOT: "Total r" and SUB: "r \<le> Id"
 shows "r = {} \<or> (\<exists>a. r = {(a,a)})"
