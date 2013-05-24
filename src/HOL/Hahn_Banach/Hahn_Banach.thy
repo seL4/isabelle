@@ -71,7 +71,7 @@ proof -
   from E have F: "vectorspace F" ..
   note FE = `F \<unlhd> E`
   {
-    fix c assume cM: "c \<in> chain M" and ex: "\<exists>x. x \<in> c"
+    fix c assume cM: "c \<in> chains M" and ex: "\<exists>x. x \<in> c"
     have "\<Union>c \<in> M"
       -- {* Show that every non-empty chain @{text c} of @{text M} has an upper bound in @{text M}: *}
       -- {* @{text "\<Union>c"} is greater than any element of the chain @{text c}, so it suffices to show @{text "\<Union>c \<in> M"}. *}
@@ -103,7 +103,7 @@ proof -
           \<and> (\<forall>x \<in> H. h x \<le> p x)" by blast
     qed
   }
-  then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
+  then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> x = g"
   -- {* With Zorn's Lemma we can conclude that there is a maximal element in @{text M}. \skp *}
   proof (rule Zorn's_Lemma)
       -- {* We show that @{text M} is non-empty: *}

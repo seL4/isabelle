@@ -23,12 +23,12 @@ text {*
   of @{text c}.  Every element in @{text H} is member of one of the
   elements of the chain.
 *}
-lemmas [dest?] = chainD
-lemmas chainE2 [elim?] = chainD2 [elim_format]
+lemmas [dest?] = chainsD
+lemmas chainsE2 [elim?] = chainsD2 [elim_format]
 
 lemma some_H'h't:
   assumes M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and u: "graph H h = \<Union>c"
     and x: "x \<in> H"
   shows "\<exists>H' h'. graph H' h' \<in> c
@@ -63,7 +63,7 @@ text {*
 
 lemma some_H'h':
   assumes M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and u: "graph H h = \<Union>c"
     and x: "x \<in> H"
   shows "\<exists>H' h'. x \<in> H' \<and> graph H' h' \<subseteq> graph H h
@@ -77,8 +77,7 @@ proof -
       "graph F f \<subseteq> graph H' h'"  "\<forall>x \<in> H'. h' x \<le> p x"
     by (rule some_H'h't [elim_format]) blast
   from x_hx have "x \<in> H'" ..
-  moreover from cM u c have "graph H' h' \<subseteq> graph H h"
-    by (simp only: chain_ball_Union_upper)
+  moreover from cM u c have "graph H' h' \<subseteq> graph H h" by blast
   ultimately show ?thesis using * by blast
 qed
 
@@ -91,7 +90,7 @@ text {*
 
 lemma some_H'h'2:
   assumes M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and u: "graph H h = \<Union>c"
     and x: "x \<in> H"
     and y: "y \<in> H"
@@ -137,8 +136,7 @@ proof -
     finally have xh:"(x, h x) \<in> graph H' h'" .
     then have "x \<in> H'" ..
     moreover from y_hy have "y \<in> H'" ..
-    moreover from cM u and c' have "graph H' h' \<subseteq> graph H h"
-      by (simp only: chain_ball_Union_upper)
+    moreover from cM u and c' have "graph H' h' \<subseteq> graph H h" by blast
     ultimately show ?thesis using * by blast
   next
     assume ?case2
@@ -148,8 +146,7 @@ proof -
       also have "\<dots> \<subseteq> graph H'' h''" by fact
       finally have "(y, h y) \<in> graph H'' h''" .
     } then have "y \<in> H''" ..
-    moreover from cM u and c'' have "graph H'' h'' \<subseteq> graph H h"
-      by (simp only: chain_ball_Union_upper)
+    moreover from cM u and c'' have "graph H'' h'' \<subseteq> graph H h" by blast
     ultimately show ?thesis using ** by blast
   qed
 qed
@@ -161,7 +158,7 @@ text {*
 
 lemma sup_definite:
   assumes M_def: "M \<equiv> norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and xy: "(x, y) \<in> \<Union>c"
     and xz: "(x, z) \<in> \<Union>c"
   shows "z = y"
@@ -214,7 +211,7 @@ text {*
 
 lemma sup_lf:
   assumes M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and u: "graph H h = \<Union>c"
   shows "linearform H h"
 proof
@@ -268,7 +265,7 @@ text {*
 lemma sup_ext:
   assumes graph: "graph H h = \<Union>c"
     and M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and ex: "\<exists>x. x \<in> c"
   shows "graph F f \<subseteq> graph H h"
 proof -
@@ -294,7 +291,7 @@ text {*
 lemma sup_supF:
   assumes graph: "graph H h = \<Union>c"
     and M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and ex: "\<exists>x. x \<in> c"
     and FE: "F \<unlhd> E"
   shows "F \<unlhd> H"
@@ -317,7 +314,7 @@ text {*
 lemma sup_subE:
   assumes graph: "graph H h = \<Union>c"
     and M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
     and ex: "\<exists>x. x \<in> c"
     and FE: "F \<unlhd> E"
     and E: "vectorspace E"
@@ -373,7 +370,7 @@ text {*
 lemma sup_norm_pres:
   assumes graph: "graph H h = \<Union>c"
     and M: "M = norm_pres_extensions E p F f"
-    and cM: "c \<in> chain M"
+    and cM: "c \<in> chains M"
   shows "\<forall>x \<in> H. h x \<le> p x"
 proof
   fix x assume "x \<in> H"

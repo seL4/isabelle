@@ -441,7 +441,7 @@ proof-
      moreover
      {assume "a \<in> Field r \<and> a' \<in> Field r'"
       hence "a \<in> Field(r - Id) \<and> a' \<in> Field (r' - Id)"
-      using assms rel.Total_Id_Field by blast
+      using assms Total_Id_Field by blast
       hence ?thesis unfolding Osum_def by auto
      }
      ultimately show ?thesis using * unfolding Osum_def by blast

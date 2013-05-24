@@ -414,6 +414,10 @@ definition chains :: "'a set set \<Rightarrow> 'a set set set" where
 definition Chains :: "('a \<times> 'a) set \<Rightarrow> 'a set set" where
   "Chains r = {C. \<forall>a\<in>C. \<forall>b\<in>C. (a, b) \<in> r \<or> (b, a) \<in> r}"
 
+lemma chains_extend:
+  "[| c \<in> chains S; z \<in> S; \<forall>x \<in> c. x \<subseteq> (z:: 'a set) |] ==> {z} Un c \<in> chains S"
+  by (unfold chains_def chain_subset_def) blast
+
 lemma mono_Chains: "r \<subseteq> s \<Longrightarrow> Chains r \<subseteq> Chains s"
   unfolding Chains_def by blast
 
@@ -441,11 +445,19 @@ lemma Chains_alt_def:
 
 lemma Zorn_Lemma:
   "\<forall>C\<in>chains A. \<Union>C \<in> A \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
-  using subset_Zorn' [of A] by (auto simp: chains_alt_def)
+  using subset_Zorn' [of A] by (force simp: chains_alt_def)
 
 lemma Zorn_Lemma2:
   "\<forall>C\<in>chains A. \<exists>U\<in>A. \<forall>X\<in>C. X \<subseteq> U \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
   using subset_Zorn [of A] by (auto simp: chains_alt_def)
+
+text{*Various other lemmas*}
+
+lemma chainsD: "[| c \<in> chains S; x \<in> c; y \<in> c |] ==> x \<subseteq> y | y \<subseteq> x"
+by (unfold chains_def chain_subset_def) blast
+
+lemma chainsD2: "!!(c :: 'a set set). c \<in> chains S ==> c \<subseteq> S"
+by (unfold chains_def) blast
 
 lemma Zorns_po_lemma:
   assumes po: "Partial_order r"

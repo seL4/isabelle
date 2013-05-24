@@ -256,23 +256,23 @@ lemma frechet_in_superfrechet: "frechet \<in> superfrechet"
 by (rule superfrechetI [OF filter_frechet subset_refl])
 
 lemma lemma_mem_chain_filter:
-  "\<lbrakk>c \<in> chain superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> filter x"
-by (unfold chain_def superfrechet_def, blast)
+  "\<lbrakk>c \<in> chains superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> filter x"
+by (unfold chains_def superfrechet_def, blast)
 
 
 subsubsection {* Unions of chains of superfrechets *}
 
 text "In this section we prove that superfrechet is closed
 with respect to unions of non-empty chains. We must show
-  1) Union of a chain is a filter,
+  1) Union of a chain is afind_theorems name: Union_chain_UNIV filter,
   2) Union of a chain contains frechet.
 
 Number 2 is trivial, but 1 requires us to prove all the filter rules."
 
 lemma Union_chain_UNIV:
-  "\<lbrakk>c \<in> chain superfrechet; c \<noteq> {}\<rbrakk> \<Longrightarrow> UNIV \<in> \<Union>c"
+  "\<lbrakk>c \<in> chains superfrechet; c \<noteq> {}\<rbrakk> \<Longrightarrow> UNIV \<in> \<Union>c"
 proof -
-  assume 1: "c \<in> chain superfrechet" and 2: "c \<noteq> {}"
+  assume 1: "c \<in> chains superfrechet" and 2: "c \<noteq> {}"
   from 2 obtain x where 3: "x \<in> c" by blast
   from 1 3 have "filter x" by (rule lemma_mem_chain_filter)
   hence "UNIV \<in> x" by (rule filter.UNIV)
@@ -280,9 +280,9 @@ proof -
 qed
 
 lemma Union_chain_empty:
-  "c \<in> chain superfrechet \<Longrightarrow> {} \<notin> \<Union>c"
+  "c \<in> chains superfrechet \<Longrightarrow> {} \<notin> \<Union>c"
 proof
-  assume 1: "c \<in> chain superfrechet" and 2: "{} \<in> \<Union>c"
+  assume 1: "c \<in> chains superfrechet" and 2: "{} \<in> \<Union>c"
   from 2 obtain x where 3: "x \<in> c" and 4: "{} \<in> x" ..
   from 1 3 have "filter x" by (rule lemma_mem_chain_filter)
   hence "{} \<notin> x" by (rule filter.empty)
@@ -290,14 +290,14 @@ proof
 qed
 
 lemma Union_chain_Int:
-  "\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; v \<in> \<Union>c\<rbrakk> \<Longrightarrow> u \<inter> v \<in> \<Union>c"
+  "\<lbrakk>c \<in> chains superfrechet; u \<in> \<Union>c; v \<in> \<Union>c\<rbrakk> \<Longrightarrow> u \<inter> v \<in> \<Union>c"
 proof -
-  assume c: "c \<in> chain superfrechet"
+  assume c: "c \<in> chains superfrechet"
   assume "u \<in> \<Union>c"
     then obtain x where ux: "u \<in> x" and xc: "x \<in> c" ..
   assume "v \<in> \<Union>c"
     then obtain y where vy: "v \<in> y" and yc: "y \<in> c" ..
-  from c xc yc have "x \<subseteq> y \<or> y \<subseteq> x" by (rule chainD)
+  from c xc yc have "x \<subseteq> y \<or> y \<subseteq> x" using c unfolding chains_def chain_subset_def by auto
   with xc yc have xyc: "x \<union> y \<in> c"
     by (auto simp add: Un_absorb1 Un_absorb2)
   with c have fxy: "filter (x \<union> y)" by (rule lemma_mem_chain_filter)
@@ -308,9 +308,9 @@ proof -
 qed
 
 lemma Union_chain_subset:
-  "\<lbrakk>c \<in> chain superfrechet; u \<in> \<Union>c; u \<subseteq> v\<rbrakk> \<Longrightarrow> v \<in> \<Union>c"
+  "\<lbrakk>c \<in> chains superfrechet; u \<in> \<Union>c; u \<subseteq> v\<rbrakk> \<Longrightarrow> v \<in> \<Union>c"
 proof -
-  assume c: "c \<in> chain superfrechet"
+  assume c: "c \<in> chains superfrechet"
      and u: "u \<in> \<Union>c" and uv: "u \<subseteq> v"
   from u obtain x where ux: "u \<in> x" and xc: "x \<in> c" ..
   from c xc have fx: "filter x" by (rule lemma_mem_chain_filter)
@@ -319,8 +319,8 @@ proof -
 qed
 
 lemma Union_chain_filter:
-assumes chain: "c \<in> chain superfrechet" and nonempty: "c \<noteq> {}"
-shows "filter (\<Union>c)"
+assumes chain: "c \<in> chains superfrechet" and nonempty: "c \<noteq> {}"
+shows "filter (\<Union>c)" 
 proof (rule filter.intro)
   show "UNIV \<in> \<Union>c" using chain nonempty by (rule Union_chain_UNIV)
 next
@@ -334,13 +334,13 @@ next
 qed
 
 lemma lemma_mem_chain_frechet_subset:
-  "\<lbrakk>c \<in> chain superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> frechet \<subseteq> x"
-by (unfold superfrechet_def chain_def, blast)
+  "\<lbrakk>c \<in> chains superfrechet; x \<in> c\<rbrakk> \<Longrightarrow> frechet \<subseteq> x"
+by (unfold superfrechet_def chains_def, blast)
 
 lemma Union_chain_superfrechet:
-  "\<lbrakk>c \<noteq> {}; c \<in> chain superfrechet\<rbrakk> \<Longrightarrow> \<Union>c \<in> superfrechet"
+  "\<lbrakk>c \<noteq> {}; c \<in> chains superfrechet\<rbrakk> \<Longrightarrow> \<Union>c \<in> superfrechet"
 proof (rule superfrechetI)
-  assume 1: "c \<in> chain superfrechet" and 2: "c \<noteq> {}"
+  assume 1: "c \<in> chains superfrechet" and 2: "c \<noteq> {}"
   thus "filter (\<Union>c)" by (rule Union_chain_filter)
   from 2 obtain x where 3: "x \<in> c" by blast
   from 1 3 have "frechet \<subseteq> x" by (rule lemma_mem_chain_frechet_subset)
@@ -351,9 +351,9 @@ qed
 subsubsection {* Existence of free ultrafilter *}
 
 lemma max_cofinite_filter_Ex:
-  "\<exists>U\<in>superfrechet. \<forall>G\<in>superfrechet. U \<subseteq> G \<longrightarrow> U = G"
-proof (rule Zorn_Lemma2 [rule_format])
-  fix c assume c: "c \<in> chain superfrechet"
+  "\<exists>U\<in>superfrechet. \<forall>G\<in>superfrechet. U \<subseteq> G \<longrightarrow> G = U" 
+proof (rule Zorn_Lemma2, safe)
+  fix c assume c: "c \<in> chains superfrechet"
   show "\<exists>U\<in>superfrechet. \<forall>G\<in>c. G \<subseteq> U" (is "?U")
   proof (cases)
     assume "c = {}"
@@ -385,7 +385,7 @@ lemma freeultrafilter_Ex:
 proof -
   from max_cofinite_filter_Ex obtain U
     where U: "U \<in> superfrechet"
-      and max [rule_format]: "\<forall>G\<in>superfrechet. U \<subseteq> G \<longrightarrow> U = G" ..
+      and max [rule_format]: "\<forall>G\<in>superfrechet. U \<subseteq> G \<longrightarrow> G = U" ..
   from U have fil: "filter U" by (rule superfrechetD1)
   from U have fre: "frechet \<subseteq> U" by (rule superfrechetD2)
   have ultra: "ultrafilter_axioms U"
@@ -393,7 +393,7 @@ proof -
     fix G assume G: "filter G" and UG: "U \<subseteq> G"
     from fre UG have "frechet \<subseteq> G" by simp
     with G have "G \<in> superfrechet" by (rule superfrechetI)
-    from this UG show "U = G" by (rule max)
+    from this UG show "U = G" by (rule max[symmetric])
   qed
   have free: "freeultrafilter_axioms U"
   proof (rule freeultrafilter_axioms.intro)

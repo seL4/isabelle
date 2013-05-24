@@ -20,13 +20,13 @@ text {*
 *}
 
 theorem Zorn's_Lemma:
-  assumes r: "\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
+  assumes r: "\<And>c. c \<in> chains S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
     and aS: "a \<in> S"
-  shows "\<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
+  shows "\<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> z = y"
 proof (rule Zorn_Lemma2)
-  show "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
+  show "\<forall>c \<in> chains S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
   proof
-    fix c assume "c \<in> chain S"
+    fix c assume "c \<in> chains S"
     show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
     proof cases
 
@@ -47,7 +47,7 @@ proof (rule Zorn_Lemma2)
         show "\<Union>c \<in> S"
         proof (rule r)
           from `c \<noteq> {}` show "\<exists>x. x \<in> c" by fast
-          show "c \<in> chain S" by fact
+          show "c \<in> chains S" by fact
         qed
       qed
     qed
