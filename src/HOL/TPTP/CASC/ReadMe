@@ -5,17 +5,17 @@ Notes to Geoff:
   Once you have open the archive, Isabelle and its tool are ready to go. The
   various tools are invoked as follows:
 
-  	Isabelle, competition version:
-  		./bin/isabelle tptp_isabelle %d %s
+    Isabelle, competition version:
+      ./bin/isabelle tptp_isabelle %d %s
 
-  	Isabelle, demo version:
-  		./bin/isabelle tptp_isabelle_hot %d %s
+    Isabelle, demo version:
+      ./bin/isabelle tptp_isabelle_hot %d %s
 
-  	Nitpick and Nitrox:
-  		./bin/isabelle tptp_nitpick %d %s
+    Nitpick and Nitrox:
+      ./bin/isabelle tptp_nitpick %d %s
 
-  	Refute:
-  		./bin/isabelle tptp_refute %d %s
+    Refute:
+      ./bin/isabelle tptp_refute %d %s
 
   Here's an example:
 
@@ -34,8 +34,8 @@ Notes to Geoff:
 
   Additional sanity tests:
 
-  	./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/CSR/CSR150^3.p
-  	./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/SYO/SYO304^5.p
+    ./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/CSR/CSR150^3.p
+    ./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/SYO/SYO304^5.p
     ./bin/isabelle tptp_isabelle_hot 300 $TPTP/Problems/PUZ/PUZ087^1.p
 
   The first problem is unprovable; the second one is proved by Satallax; the
@@ -44,7 +44,7 @@ Notes to Geoff:
   All the tools accept CNF, FOF, TFF0, or THF0 problems and output SZS statuses
   of the form
 
-  	% SZS status XXX
+    % SZS status XXX
 
   where XXX is in the set
 
@@ -58,11 +58,11 @@ Notes to Geoff:
   year, because Isabelle now includes its own version of Java, but the solution
   back then was to replace
 
-  	exec "$ISABELLE_TOOL" java
+    exec "$ISABELLE_TOOL" java
 
   in the last line of the "contrib/kodkodi-1.5.2/bin/kodkodi" script with
 
-  	/usr/lib64/jvm/java-1.5.0-gcj-4.5-1.5.0.0/jre/bin/java
+    /usr/lib64/jvm/java-1.5.0-gcj-4.5-1.5.0.0/jre/bin/java
 
   See the emails we exchanged on July 18, 2011, with the subject "No problem on
   my Linux 64-bit".
