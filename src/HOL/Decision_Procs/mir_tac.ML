@@ -133,8 +133,8 @@ fun mir_tac ctxt q =
     let val pth =
           (* If quick_and_dirty then run without proof generation as oracle*)
              if Config.get ctxt quick_and_dirty
-             then mirfr_oracle (false, cterm_of thy (Pattern.eta_long [] t1))
-             else mirfr_oracle (true, cterm_of thy (Pattern.eta_long [] t1))
+             then mirfr_oracle (false, cterm_of thy (Envir.eta_long [] t1))
+             else mirfr_oracle (true, cterm_of thy (Envir.eta_long [] t1))
     in 
           (trace_msg ("calling procedure with term:\n" ^
              Syntax.string_of_term ctxt t1);

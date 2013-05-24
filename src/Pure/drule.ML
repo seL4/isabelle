@@ -470,7 +470,7 @@ end;
 fun eta_long_conversion ct =
   Thm.transitive
     (beta_eta_conversion ct)
-    (Thm.symmetric (beta_eta_conversion (cterm_fun (Pattern.eta_long []) ct)));
+    (Thm.symmetric (beta_eta_conversion (cterm_fun (Envir.eta_long []) ct)));
 
 (*Contract all eta-redexes in the theorem, lest they give rise to needless abstractions*)
 fun eta_contraction_rule th =

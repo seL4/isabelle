@@ -31,8 +31,13 @@ sig
   val norm_term: env -> term -> term
   val beta_norm: term -> term
   val head_norm: env -> term -> term
+  val eta_long: typ list -> term -> term
   val eta_contract: term -> term
   val beta_eta_contract: term -> term
+  val aeconv: term * term -> bool
+  val body_type: env -> int -> typ -> typ
+  val binder_types: env -> int -> typ -> typ list
+  val strip_type: env -> int -> typ -> typ list * typ
   val fastype: env -> typ list -> term -> typ
   val subst_type_same: Type.tyenv -> typ Same.operation
   val subst_term_types_same: Type.tyenv -> term Same.operation
@@ -221,7 +226,7 @@ fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
 end;
 
 
-(*Put a term into head normal form for unification.*)
+(* head normal form for unification *)
 
 fun head_norm env =
   let
@@ -239,7 +244,25 @@ fun head_norm env =
   in Same.commit norm end;
 
 
-(*Eta-contract a term (fully)*)
+(* eta-long beta-normal form *)
+
+fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
+  | eta_long Ts t =
+      (case strip_comb t of
+        (Abs _, _) => eta_long Ts (beta_norm t)
+      | (u, ts) =>
+          let
+            val Us = binder_types (fastype_of1 (Ts, t));
+            val i = length Us;
+            val long = eta_long (rev Us @ Ts);
+          in
+            fold_rev (Term.abs o pair "x") Us
+              (list_comb (incr_boundvars i u,
+                map (long o incr_boundvars i) ts @ map (long o Bound) (i - 1 downto 0)))
+          end);
+
+
+(* full eta contraction *)
 
 local
 
@@ -268,10 +291,30 @@ in
 fun eta_contract t =
   if Term.has_abs t then Same.commit eta t else t;
 
-val beta_eta_contract = eta_contract o beta_norm;
-
 end;
 
+val beta_eta_contract = eta_contract o beta_norm;
+
+fun aeconv (t, u) = t aconv u orelse eta_contract t aconv eta_contract u;
+
+
+fun body_type _ 0 T = T
+  | body_type env n (Type ("fun", [_, T])) = body_type env (n - 1) T
+  | body_type env n (T as TVar v) =
+      (case Type.lookup (type_env env) v of
+        NONE => T
+      | SOME T' => body_type env n T')
+  | body_type _ _ T = T;
+
+fun binder_types _ 0 _ = []
+  | binder_types env n (Type ("fun", [T, U])) = T :: binder_types env (n - 1) U
+  | binder_types env n (TVar v) =
+      (case Type.lookup (type_env env) v of
+        NONE => []
+      | SOME T' => binder_types env n T')
+  | binder_types _ _ _ = [];
+
+fun strip_type n env T = (binder_types n env T, body_type n env T);
 
 (*finds type of term without checking that combinations are consistent
   Ts holds types of bound variables*)
@@ -290,7 +333,6 @@ fun fastype (Envir {tyenv, ...}) =
       | fast Ts (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u;
   in fast end;
-
 
 
 (** plain substitution -- without variable chasing **)

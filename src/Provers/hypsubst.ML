@@ -224,7 +224,7 @@ fun all_imp_intr_tac hyps i =
               |> Logic.strip_assums_concl
               |> Data.dest_Trueprop |> Data.dest_imp;
             val (r', tac) =
-              if Pattern.aeconv (hyp, hyp')
+              if Envir.aeconv (hyp, hyp')
               then (r, imp_intr_tac i THEN rotate_tac ~1 i)
               else (*leave affected hyps at end*) (r + 1, imp_intr_tac i);
           in

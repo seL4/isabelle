@@ -3411,7 +3411,7 @@ let
         (term_of_float_float_option_list o float_float_option_list_of_term) t
     | _ => bad t;
 
-  val normalize = eval o Envir.beta_norm o Pattern.eta_long [];
+  val normalize = eval o Envir.beta_norm o Envir.eta_long [];
 
 in Thm.cterm_of thy (Logic.mk_equals (t, normalize t)) end
 *}

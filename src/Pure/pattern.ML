@@ -10,13 +10,9 @@ In Proceedings of the 8th IEEE Symposium Logic in Computer Science, 1993.
 TODO: optimize red by special-casing it
 *)
 
-infix aeconv;
-
 signature PATTERN =
 sig
   val trace_unify_fail: bool Unsynchronized.ref
-  val aeconv: term * term -> bool
-  val eta_long: typ list -> term -> term
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -24,6 +20,7 @@ sig
   val matchess: theory -> term list * term list -> bool
   val equiv: theory -> term * term -> bool
   val matches_subterm: theory -> term * term -> bool
+  val unify_types: theory -> typ * typ -> Envir.env -> Envir.env
   val unify: theory -> term * term -> Envir.env -> Envir.env
   val first_order: term -> bool
   val pattern: term -> bool
@@ -140,7 +137,7 @@ fun red (Abs(_,_,s)) (i::is) js = red s is (i::js)
 (* split_type ([T1,....,Tn]---> T,n,[]) = ([Tn,...,T1],T) *)
 fun split_type (T,0,Ts)                    = (Ts,T)
   | split_type (Type ("fun",[T1,T2]),n,Ts) = split_type (T2,n-1,T1::Ts)
-  | split_type _                           = error("split_type");
+  | split_type _                           = raise Fail "split_type";
 
 fun type_of_G env (T, n, is) =
   let
@@ -148,11 +145,11 @@ fun type_of_G env (T, n, is) =
     val (Ts, U) = split_type (Envir.norm_type tyenv T, n, []);
   in map (nth Ts) is ---> U end;
 
-fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
+fun mk_hnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 
-fun mknewhnf(env,binders,is,F as (a,_),T,js) =
+fun mk_new_hnf(env,binders,is,F as (a,_),T,js) =
   let val (env',G) = Envir.genvar a (env,type_of_G env (T,length is,js))
-  in Envir.update ((F, T), mkhnf (binders, is, G, js)) env' end;
+  in Envir.update ((F, T), mk_hnf (binders, is, G, js)) env' end;
 
 
 (*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
@@ -189,7 +186,7 @@ fun proj(s,env,binders,is) =
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
-                            Envir.update ((F, Fty), mkhnf (binders, js, H, ks)) env'
+                            Envir.update ((F, Fty), mk_hnf (binders, js, H, ks)) env'
                       in (app(H,ls),env'') end
                  | _  => raise Pattern))
         and prs(s::ss,env,d,binders) =
@@ -207,13 +204,13 @@ fun mk_ff_list(is,js) =
     let fun mk([],[],_)        = []
           | mk(i::is,j::js, k) = if (i:int) = j then k :: mk(is,js,k-1)
                                         else mk(is,js,k-1)
-          | mk _               = error"mk_ff_list"
+          | mk _               = raise Fail "mk_ff_list"
     in mk(is,js,length is-1) end;
 
 fun flexflex1(env,binders,F,Fty,is,js) =
   if is=js then env
   else let val ks = mk_ff_list(is,js)
-       in mknewhnf(env,binders,is,F,Fty,ks) end;
+       in mk_new_hnf(env,binders,is,F,Fty,ks) end;
 
 fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
@@ -238,7 +235,7 @@ fun unify_types thy (T, U) (env as Envir.Envir {maxidx, tenv, tyenv}) =
 fun unif thy binders (s,t) env = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
-         in unif thy ((name,Ts)::binders) (ts,tt) env end
+         in unif thy ((name,Ts)::binders) (ts,tt) (unify_types thy (Ts, Tt) env) end
     | (Abs(ns,Ts,ts),t) => unif thy ((ns,Ts)::binders) (ts,(incr t)$Bound(0)) env
     | (t,Abs(nt,Tt,tt)) => unif thy ((nt,Tt)::binders) ((incr t)$Bound(0),tt) env
     | p => cases thy (binders,env,p)
@@ -279,27 +276,6 @@ and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
 fun unify thy = unif thy [];
 
 
-(* put a term into eta long beta normal form *)
-fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
-  | eta_long Ts t =
-      (case strip_comb t of
-        (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-      | (u, ts) =>
-          let
-            val Us = binder_types (fastype_of1 (Ts, t));
-            val i = length Us;
-          in
-            fold_rev (Term.abs o pair "x") Us
-              (list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-                (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
-          end);
-
-
-(*Tests whether 2 terms are alpha/eta-convertible and have same type.
-  Note that Consts and Vars may have more than one type.*)
-fun t aeconv u = t aconv u orelse
-  Envir.eta_contract t aconv Envir.eta_contract u;
-
 
 (*** Matching ***)
 
@@ -322,7 +298,7 @@ fun first_order_match thy =
           else (case Envir.lookup1 insts (ixn, T) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
-                | SOME u => if t aeconv u then instsp else raise MATCH)
+                | SOME u => if Envir.aeconv (t, u) then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
           if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
@@ -376,7 +352,7 @@ let
            let val is = ints_of pargs
            in case Envir.lookup1 itms (ixn, T) of
                 NONE => (iTs,match_bind(itms,binders,ixn,T,is,obj))
-              | SOME u => if obj aeconv (red u is []) then env
+              | SOME u => if Envir.aeconv (obj, red u is []) then env
                           else raise MATCH
            end
        | _ =>

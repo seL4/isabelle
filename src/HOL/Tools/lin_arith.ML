@@ -125,9 +125,9 @@ fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
 
 fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
              (term * Rat.rat) list * Rat.rat =
-  case AList.lookup Pattern.aeconv p t of
+  case AList.lookup Envir.aeconv p t of
       NONE   => ((t, m) :: p, i)
-    | SOME n => (AList.update Pattern.aeconv (t, Rat.add n m) p, i);
+    | SOME n => (AList.update Envir.aeconv (t, Rat.add n m) p, i);
 
 (* decompose nested multiplications, bracketing them to the right and combining
    all their coefficients
@@ -320,7 +320,7 @@ fun is_split_thm ctxt thm =
 
 fun subst_term ([] : (term * term) list) (t : term) = t
   | subst_term pairs                     t          =
-      (case AList.lookup Pattern.aeconv pairs t of
+      (case AList.lookup Envir.aeconv pairs t of
         SOME new =>
           new
       | NONE     =>
@@ -672,7 +672,7 @@ fun filter_prems_tac_items (p : term -> bool) (terms : term list) : term list =
 fun negated_term_occurs_positively (terms : term list) : bool =
   List.exists
     (fn (Trueprop $ (Const (@{const_name Not}, _) $ t)) =>
-      member Pattern.aeconv terms (Trueprop $ t)
+      member Envir.aeconv terms (Trueprop $ t)
       | _ => false)
     terms;
 

@@ -458,8 +458,8 @@ fun trace_term ctxt msgs t =
 fun trace_msg ctxt msg =
   if Config.get ctxt LA_Data.trace then tracing msg else ();
 
-val union_term = union Pattern.aeconv;
-val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t'));
+val union_term = union Envir.aeconv;
+val union_bterm = union (fn ((b:bool, t), (b', t')) => b = b' andalso Envir.aeconv (t, t'));
 
 fun add_atoms (lhs, _, _, rhs, _, _) =
   union_term (map fst lhs) o union_term (map fst rhs);
@@ -572,7 +572,7 @@ fun mkthm ctxt asms (just: injust) =
 end;
 
 fun coeff poly atom =
-  AList.lookup Pattern.aeconv poly atom |> the_default 0;
+  AList.lookup Envir.aeconv poly atom |> the_default 0;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s

@@ -888,7 +888,7 @@ fun eta_long_conversion (Cterm {thy_ref, t, T = _, maxidx, sorts}) =
     shyps = sorts,
     hyps = [],
     tpairs = [],
-    prop = Logic.mk_equals (t, Pattern.eta_long [] t)});
+    prop = Logic.mk_equals (t, Envir.eta_long [] t)});
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
@@ -1384,7 +1384,7 @@ fun eq_assumption i state =
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     val (_, asms, concl) = Logic.assum_problems (~1, Bi);
   in
-    (case find_index (fn asm => Pattern.aeconv (asm, concl)) asms of
+    (case find_index (fn asm => Envir.aeconv (asm, concl)) asms of
       ~1 => raise THM ("eq_assumption", 0, [state])
     | n =>
         Thm (deriv_rule1 (Proofterm.assumption_proof Bs Bi (n + 1)) der,
