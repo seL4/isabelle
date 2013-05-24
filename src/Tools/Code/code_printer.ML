@@ -65,37 +65,6 @@ sig
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
-  datatype ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr =
-    Constant of 'a | Type_Constructor of 'b | Type_Class of 'c |
-    Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
-  val map_symbol_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
-    -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr -> ('g, 'h, 'i, 'j, 'k, 'l) symbol_attr
-  val maps_symbol_attr: ('a -> 'g list) -> ('b -> 'h list)
-    -> ('c -> 'i list) -> ('d -> 'j list) -> ('e -> 'k list) -> ('f -> 'l list)
-    -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr -> ('g, 'h, 'i, 'j, 'k, 'l) symbol_attr list
-  val maps_symbol_attr': ('a -> ('m * 'g) list) -> ('b -> ('m * 'h) list)
-    -> ('c -> ('m * 'i) list) -> ('d -> ('m * 'j) list) -> ('e -> ('m * 'k) list) -> ('f -> ('m * 'l) list)
-    -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr -> ('m * ('g, 'h, 'i, 'j, 'k, 'l) symbol_attr) list
-  type ('a, 'b, 'c, 'd, 'e, 'f) symbol_data
-  val empty_symbol_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data
-  val merge_symbol_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data * ('a, 'b, 'c, 'd, 'e, 'f) symbol_data
-    -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_data
-  val lookup_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string -> 'a option
-  val lookup_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string -> 'b option
-  val lookup_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string -> 'c option
-  val lookup_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string * string -> 'd option
-  val lookup_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string * string -> 'e option
-  val lookup_module_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> string -> 'f option
-  val dest_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> (string * 'a) list
-  val dest_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> (string * 'b) list
-  val dest_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> (string * 'c) list
-  val dest_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> ((string * string) * 'd) list
-  val dest_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> ((string * string) * 'e) list
-  val dest_module_data: ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> (string * 'f) list
-  val set_symbol_data: (string * 'a option, string * 'b option, string * 'c option,
-      (string * string) * 'd option, (string * string) * 'e option, string * 'f option) symbol_attr
-    -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_data -> ('a, 'b, 'c, 'd, 'e, 'f) symbol_data
-
   type simple_const_syntax
   type complex_const_syntax
   type const_syntax
@@ -301,87 +270,6 @@ fun applify opn = gen_applify false opn;
 fun tuplify _ _ [] = NONE
   | tuplify print fxy [x] = SOME (print fxy x)
   | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
-
-
-(* data for symbols *)
-
-datatype ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr =
-  Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Relation of 'd  | Class_Instance of 'e | Module of 'f;
-
-fun map_symbol_attr const tyco class classrel inst module (Constant x) = Constant (const x)
-  | map_symbol_attr const tyco class classrel inst module (Type_Constructor x) = Type_Constructor (tyco x)
-  | map_symbol_attr const tyco class classrel inst module (Type_Class x) = Type_Class (class x)
-  | map_symbol_attr const tyco class classrel inst module (Class_Relation x) = Class_Relation (classrel x)
-  | map_symbol_attr const tyco class classrel inst module (Class_Instance x) = Class_Instance (inst x)
-  | map_symbol_attr const tyco class classrel inst module (Module x) = Module (module x);
-
-fun maps_symbol_attr const tyco class classrel inst module (Constant x) = map Constant (const x)
-  | maps_symbol_attr const tyco class classrel inst module (Type_Constructor x) = map Type_Constructor (tyco x)
-  | maps_symbol_attr const tyco class classrel inst module (Type_Class x) = map Type_Class (class x)
-  | maps_symbol_attr const tyco class classrel inst module (Class_Relation x) = map Class_Relation (classrel x)
-  | maps_symbol_attr const tyco class classrel inst module (Class_Instance x) = map Class_Instance (inst x)
-  | maps_symbol_attr const tyco class classrel inst module (Module x) = map Module (module x);
-
-fun maps_symbol_attr' const tyco class classrel inst module (Constant x) = (map o apsnd) Constant (const x)
-  | maps_symbol_attr' const tyco class classrel inst module (Type_Constructor x) = (map o apsnd) Type_Constructor (tyco x)
-  | maps_symbol_attr' const tyco class classrel inst module (Type_Class x) = (map o apsnd) Type_Class (class x)
-  | maps_symbol_attr' const tyco class classrel inst module (Class_Relation x) = (map o apsnd) Class_Relation (classrel x)
-  | maps_symbol_attr' const tyco class classrel inst module (Class_Instance x) = (map o apsnd) Class_Instance (inst x)
-  | maps_symbol_attr' const tyco class classrel inst module (Module x) = (map o apsnd) Module (module x);
-
-datatype ('a, 'b, 'c, 'd, 'e, 'f) symbol_data =
-  Symbol_Data of { constant: 'a Symtab.table, type_constructor: 'b Symtab.table,
-    type_class: 'c Symtab.table, class_relation: 'd Symreltab.table, class_instance: 'e Symreltab.table,
-    module: 'f Symtab.table };
-
-fun make_symbol_data constant type_constructor type_class class_relation class_instance module =
-  Symbol_Data { constant = constant, type_constructor = type_constructor,
-    type_class = type_class, class_relation = class_relation, class_instance = class_instance, module = module };
-fun dest_symbol_data (Symbol_Data x) = x;
-fun map_symbol_data map_constant map_type_constructor map_type_class map_class_relation map_class_instance map_module
-  (Symbol_Data { constant, type_constructor, type_class, class_relation, class_instance, module }) =
-    Symbol_Data { constant = map_constant constant, type_constructor = map_type_constructor type_constructor,
-      type_class = map_type_class type_class, class_relation = map_class_relation class_relation,
-        class_instance = map_class_instance class_instance, module = map_module module };
-
-val empty_symbol_data = Symbol_Data { constant = Symtab.empty, type_constructor = Symtab.empty,
-  type_class = Symtab.empty, class_relation = Symreltab.empty, class_instance = Symreltab.empty, module = Symtab.empty };
-fun merge_symbol_data (Symbol_Data { constant = constant1, type_constructor = type_constructor1,
-    type_class = type_class1, class_instance = class_instance1, class_relation = class_relation1, module = module1 },
-  Symbol_Data { constant = constant2, type_constructor = type_constructor2,
-    type_class = type_class2, class_instance = class_instance2, class_relation = class_relation2, module = module2 }) =
-  make_symbol_data (Symtab.join (K snd) (constant1, constant2))
-    (Symtab.join (K snd) (type_constructor1, type_constructor2))
-    (Symtab.join (K snd) (type_class1, type_class2))
-    (Symreltab.join (K snd) (class_relation1, class_relation2))
-    (Symreltab.join (K snd) (class_instance1, class_instance2))
-    (Symtab.join (K snd) (module1, module2)); (*prefer later entries: K snd*)
-
-fun lookup_constant_data x = (Symtab.lookup o #constant o dest_symbol_data) x;
-fun lookup_type_constructor_data x = (Symtab.lookup o #type_constructor o dest_symbol_data) x;
-fun lookup_type_class_data x = (Symtab.lookup o #type_class o dest_symbol_data) x;
-fun lookup_class_relation_data x = (Symreltab.lookup o #class_relation o dest_symbol_data) x;
-fun lookup_class_instance_data x = (Symreltab.lookup o #class_instance o dest_symbol_data) x;
-fun lookup_module_data x = (Symtab.lookup o #module o dest_symbol_data) x;
-
-fun dest_constant_data x = (Symtab.dest o #constant o dest_symbol_data) x;
-fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_symbol_data) x;
-fun dest_type_class_data x = (Symtab.dest o #type_class o dest_symbol_data) x;
-fun dest_class_relation_data x = (Symreltab.dest o #class_relation o dest_symbol_data) x;
-fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_symbol_data) x;
-fun dest_module_data x = (Symtab.dest o #module o dest_symbol_data) x;
-
-fun set_sym (sym, NONE) = Symtab.delete_safe sym
-  | set_sym (sym, SOME y) = Symtab.update (sym, y);
-fun set_symrel (symrel, NONE) = Symreltab.delete_safe symrel
-  | set_symrel (symrel, SOME y) = Symreltab.update (symrel, y);
-
-fun set_symbol_data (Constant x) = map_symbol_data (set_sym x) I I I I I
-  | set_symbol_data (Type_Constructor x) = map_symbol_data I (set_sym x) I I I I
-  | set_symbol_data (Type_Class x) = map_symbol_data I I (set_sym x) I I I
-  | set_symbol_data (Class_Relation x) = map_symbol_data I I I (set_symrel x) I I
-  | set_symbol_data (Class_Instance x) = map_symbol_data I I I I (set_symrel x) I
-  | set_symbol_data (Module x) = map_symbol_data I I I I I (set_sym x);
 
 
 (* generic syntax *)

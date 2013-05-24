@@ -17,6 +17,7 @@ begin
 ML_file "~~/src/Tools/value.ML"
 ML_file "~~/src/Tools/cache_io.ML"
 ML_file "~~/src/Tools/Code/code_preproc.ML"
+ML_file "~~/src/Tools/Code/code_symbol.ML"
 ML_file "~~/src/Tools/Code/code_thingol.ML"
 ML_file "~~/src/Tools/Code/code_simp.ML"
 ML_file "~~/src/Tools/Code/code_printer.ML"
