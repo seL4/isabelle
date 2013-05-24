@@ -10,13 +10,9 @@ In Proceedings of the 8th IEEE Symposium Logic in Computer Science, 1993.
 TODO: optimize red by special-casing it
 *)
 
-infix aeconv;
-
 signature PATTERN =
 sig
   val trace_unify_fail: bool Unsynchronized.ref
-  val aeconv: term * term -> bool
-  val eta_long: typ list -> term -> term
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -280,27 +276,6 @@ and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
 fun unify thy = unif thy [];
 
 
-(* put a term into eta long beta normal form *)
-fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
-  | eta_long Ts t =
-      (case strip_comb t of
-        (Abs _, _) => eta_long Ts (Envir.beta_norm t)
-      | (u, ts) =>
-          let
-            val Us = binder_types (fastype_of1 (Ts, t));
-            val i = length Us;
-          in
-            fold_rev (Term.abs o pair "x") Us
-              (list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
-                (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
-          end);
-
-
-(*Tests whether 2 terms are alpha/eta-convertible and have same type.
-  Note that Consts and Vars may have more than one type.*)
-fun t aeconv u = t aconv u orelse
-  Envir.eta_contract t aconv Envir.eta_contract u;
-
 
 (*** Matching ***)
 
@@ -323,7 +298,7 @@ fun first_order_match thy =
           else (case Envir.lookup1 insts (ixn, T) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
-                | SOME u => if t aeconv u then instsp else raise MATCH)
+                | SOME u => if Envir.aeconv (t, u) then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
           if a=b then (typ_match thy (T,U) tyinsts, insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
@@ -377,7 +352,7 @@ let
            let val is = ints_of pargs
            in case Envir.lookup1 itms (ixn, T) of
                 NONE => (iTs,match_bind(itms,binders,ixn,T,is,obj))
-              | SOME u => if obj aeconv (red u is []) then env
+              | SOME u => if Envir.aeconv (obj, red u is []) then env
                           else raise MATCH
            end
        | _ =>

@@ -76,7 +76,7 @@ fun try_destruct_case thy names atom =
 fun flatten constname atom (defs, thy) =
   if is_compound atom then
     let
-      val atom = Envir.beta_norm (Pattern.eta_long [] atom)
+      val atom = Envir.beta_norm (Envir.eta_long [] atom)
       val constname = singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
         ((Long_Name.base_name constname) ^ "_aux")
       val full_constname = Sign.full_bname thy constname

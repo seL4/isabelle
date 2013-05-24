@@ -340,7 +340,7 @@ fun CHANGED_GOAL tac i st =
         fun diff st' =
             Thm.nprems_of st' - d <= 0   (*the subgoal no longer exists*)
             orelse
-             not (Pattern.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))))
+             not (Envir.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))))
     in  Seq.filter diff (tac i st)  end
     handle General.Subscript => Seq.empty  (*no subgoal i*);
 

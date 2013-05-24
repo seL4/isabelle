@@ -31,8 +31,10 @@ sig
   val norm_term: env -> term -> term
   val beta_norm: term -> term
   val head_norm: env -> term -> term
+  val eta_long: typ list -> term -> term
   val eta_contract: term -> term
   val beta_eta_contract: term -> term
+  val aeconv: term * term -> bool
   val body_type: env -> int -> typ -> typ
   val binder_types: env -> int -> typ -> typ list
   val strip_type: env -> int -> typ -> typ list * typ
@@ -224,7 +226,7 @@ fun beta_norm t = if Term.has_abs t then norm_term (empty 0) t else t;
 end;
 
 
-(*Put a term into head normal form for unification.*)
+(* head normal form for unification *)
 
 fun head_norm env =
   let
@@ -242,7 +244,24 @@ fun head_norm env =
   in Same.commit norm end;
 
 
-(*Eta-contract a term (fully)*)
+(* eta-long beta-normal form *)
+
+fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
+  | eta_long Ts t =
+      (case strip_comb t of
+        (Abs _, _) => eta_long Ts (beta_norm t)
+      | (u, ts) =>
+          let
+            val Us = binder_types (fastype_of1 (Ts, t));
+            val i = length Us;
+          in
+            fold_rev (Term.abs o pair "x") Us
+              (list_comb (incr_boundvars i u, map (eta_long (rev Us @ Ts))
+                (map (incr_boundvars i) ts @ map Bound (i - 1 downto 0))))
+          end);
+
+
+(* full eta contraction *)
 
 local
 
@@ -271,9 +290,11 @@ in
 fun eta_contract t =
   if Term.has_abs t then Same.commit eta t else t;
 
+end;
+
 val beta_eta_contract = eta_contract o beta_norm;
 
-end;
+fun aeconv (t, u) = t aconv u orelse eta_contract t aconv eta_contract u;
 
 
 fun body_type _ 0 T = T

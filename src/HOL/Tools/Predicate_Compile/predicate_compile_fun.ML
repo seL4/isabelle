@@ -196,7 +196,7 @@ fun flatten thy lookup_pred t (names, prems) =
       | NONE =>
           let
             val (f, args) = strip_comb t
-            val args = map (Pattern.eta_long []) args
+            val args = map (Envir.eta_long []) args
             val _ = @{assert} (fastype_of t = body_type (fastype_of t))
             val f' = lookup_pred f
             val Ts = case f' of
@@ -232,7 +232,7 @@ fun flatten thy lookup_pred t (names, prems) =
                   in (resvar, (resname :: names', prem :: prems')) end))
           end
   in
-    map (apfst Envir.eta_contract) (flatten' (Pattern.eta_long [] t) (names, prems))
+    map (apfst Envir.eta_contract) (flatten' (Envir.eta_long [] t) (names, prems))
   end;
 
 (* FIXME: create new predicate name -- does not avoid nameclashing *)

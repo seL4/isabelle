@@ -641,7 +641,7 @@ fun simproc ctxt redex =
       (case dest_case t of
         SOME (x, T, i, cont) =>
           let
-            val (vs, body) = strip_abs (Pattern.eta_long (map snd bound_vs) cont)
+            val (vs, body) = strip_abs (Envir.eta_long (map snd bound_vs) cont)
             val x' = incr_boundvars (length vs) x
             val eqs' = map (incr_boundvars (length vs)) eqs
             val (constr_name, _) = nth (the (Datatype.get_constrs thy (fst (dest_Type T)))) i
