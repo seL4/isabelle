@@ -33,6 +33,9 @@ sig
   val head_norm: env -> term -> term
   val eta_contract: term -> term
   val beta_eta_contract: term -> term
+  val body_type: env -> int -> typ -> typ
+  val binder_types: env -> int -> typ -> typ list
+  val strip_type: env -> int -> typ -> typ list * typ
   val fastype: env -> typ list -> term -> typ
   val subst_type_same: Type.tyenv -> typ Same.operation
   val subst_term_types_same: Type.tyenv -> term Same.operation
@@ -273,6 +276,24 @@ val beta_eta_contract = eta_contract o beta_norm;
 end;
 
 
+fun body_type _ 0 T = T
+  | body_type env n (Type ("fun", [_, T])) = body_type env (n - 1) T
+  | body_type env n (T as TVar v) =
+      (case Type.lookup (type_env env) v of
+        NONE => T
+      | SOME T' => body_type env n T')
+  | body_type _ _ T = T;
+
+fun binder_types _ 0 _ = []
+  | binder_types env n (Type ("fun", [T, U])) = T :: binder_types env (n - 1) U
+  | binder_types env n (TVar v) =
+      (case Type.lookup (type_env env) v of
+        NONE => []
+      | SOME T' => binder_types env n T')
+  | binder_types _ _ _ = [];
+
+fun strip_type n env T = (binder_types n env T, body_type n env T);
+
 (*finds type of term without checking that combinations are consistent
   Ts holds types of bound variables*)
 fun fastype (Envir {tyenv, ...}) =
@@ -290,7 +311,6 @@ fun fastype (Envir {tyenv, ...}) =
       | fast Ts (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u;
   in fast end;
-
 
 
 (** plain substitution -- without variable chasing **)

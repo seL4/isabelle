@@ -54,30 +54,6 @@ type binderlist = (string * typ) list;
 
 type dpair = binderlist * term * term;
 
-fun body_type env =
-  let
-    val tyenv = Envir.type_env env;
-    fun bT (Type ("fun", [_, T])) = bT T
-      | bT (T as TVar v) =
-          (case Type.lookup tyenv v of
-            NONE => T
-          | SOME T' => bT T')
-      | bT T = T;
-  in bT end;
-
-fun binder_types env =
-  let
-    val tyenv = Envir.type_env env;
-    fun bTs (Type ("fun", [T, U])) = T :: bTs U
-      | bTs (TVar v) =
-          (case Type.lookup tyenv v of
-            NONE => []
-          | SOME T' => bTs T')
-      | bTs _ = [];
-  in bTs end;
-
-fun strip_type env T = (binder_types env T, body_type env T);
-
 fun fastype env (Ts, t) = Envir.fastype env (map snd Ts) t;
 
 
@@ -234,7 +210,7 @@ fun assignment thy (rbinder, t, u) env =
   let val vT as (v,T) = get_eta_var (rbinder, 0, t) in
     (case rigid_occurs_term (Unsynchronized.ref [], env, v, u) of
       NoOcc =>
-        let val env = unify_types thy (body_type env T, fastype env (rbinder, u)) env
+        let val env = unify_types thy (Envir.body_type env ~1 T, fastype env (rbinder, u)) env
         in Envir.update (vT, Logic.rlist_abs (rbinder, u)) env end
     | Nonrigid => raise ASSIGN
     | Rigid => raise CANTUNIFY)
@@ -283,7 +259,7 @@ fun SIMPL0 thy dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair lis
     (case (head_of t, head_of u) of
       (Var (_, T), Var (_, U)) =>
         let
-          val T' = body_type env T and U' = body_type env U;
+          val T' = Envir.body_type env ~1 T and U' = Envir.body_type env ~1 U;
           val env = unify_types thy (T', U') env;
         in (env, dp :: flexflex, flexrigid) end
     | (Var _, _) =>
@@ -340,7 +316,7 @@ fun types_abs ([], u) = u
   | types_abs (T :: Ts, u) = Abs ("", T, types_abs (Ts, u));
 
 (*Abstraction over the binder of a type*)
-fun type_abs (env, T, t) = types_abs (binder_types env T, t);
+fun type_abs (env, T, t) = types_abs (Envir.binder_types env ~1 T, t);
 
 
 (*MATCH taking "big steps".
@@ -366,7 +342,7 @@ fun matchcopy thy vname =
         fun copyargs [] = Seq.cons ([], ed) Seq.empty
           | copyargs (uarg :: uargs) = Seq.maps (copycons uarg) (copyargs uargs);
         val (uhead, uargs) = strip_comb u;
-        val base = body_type env (fastype env (rbinder, uhead));
+        val base = Envir.body_type env ~1 (fastype env (rbinder, uhead));
         fun joinargs (uargs', ed') = (list_comb (uhead, uargs'), ed');
         (*attempt projection on argument with given typ*)
         val Ts = map (curry (fastype env) rbinder) targs;
@@ -395,7 +371,7 @@ fun matchcopy thy vname =
           | make_projs _ = raise TERM ("make_projs", u::targs);
         (*try projections and imitation*)
         fun matchfun ((bvar,T,targ)::projs) =
-             (projenv(bvar, strip_type env T, targ, matchfun projs))
+             (projenv(bvar, Envir.strip_type env ~1 T, targ, matchfun projs))
           | matchfun [] = (*imitation last of all*)
             (case uhead of
          Const _ => Seq.map joinargs (copyargs uargs)
@@ -422,7 +398,7 @@ fun matchcopy thy vname =
 fun MATCH thy (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.seq =
   let
     val (Var (vT as (v, T)), targs) = strip_comb t;
-    val Ts = binder_types env T;
+    val Ts = Envir.binder_types env ~1 T;
     fun new_dset (u', (env', dpairs')) =
       (*if v was updated to s, must unify s with u' *)
       (case Envir.lookup env' vT of
@@ -442,7 +418,7 @@ fun ff_assign thy (env, rbinder, t, u) : Envir.env =
   let val vT as (v, T) = get_eta_var (rbinder, 0, t) in
     if occurs_terms (Unsynchronized.ref [], env, v, [u]) then raise ASSIGN
     else
-      let val env = unify_types thy (body_type env T, fastype env (rbinder, u)) env
+      let val env = unify_types thy (Envir.body_type env ~1 T, fastype env (rbinder, u)) env
       in Envir.vupdate (vT, Logic.rlist_abs (rbinder, u)) env end
   end;
 
@@ -522,7 +498,7 @@ fun decreasing n ([]: flarg list) = (n = 0)
 fun clean_term banned (env,t) =
   let
     val (Var (v, T), ts) = strip_comb t;
-    val (Ts, U) = strip_type env T
+    val (Ts, U) = Envir.strip_type env ~1 T
     and js = length ts - 1  downto 0;
     val args = sort_args (fold_rev (change_arg banned) (flexargs (js, ts, Ts)) [])
     val ts' = map #t args;
@@ -664,7 +640,7 @@ fun smash_flexflex1 (t, u) env : Envir.env =
   let
     val vT as (v, T) = var_head_of (env, t)
     and wU as (w, U) = var_head_of (env, u);
-    val (env', var) = Envir.genvar (#1 v) (env, body_type env T);
+    val (env', var) = Envir.genvar (#1 v) (env, Envir.body_type env ~1 T);
     val env'' = Envir.vupdate (wU, type_abs (env', U, var)) env';
   in
     if vT = wU then env''  (*the other update would be identical*)
