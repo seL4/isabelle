@@ -137,7 +137,7 @@ fun red (Abs(_,_,s)) (i::is) js = red s is (i::js)
 (* split_type ([T1,....,Tn]---> T,n,[]) = ([Tn,...,T1],T) *)
 fun split_type (T,0,Ts)                    = (Ts,T)
   | split_type (Type ("fun",[T1,T2]),n,Ts) = split_type (T2,n-1,T1::Ts)
-  | split_type _                           = error("split_type");
+  | split_type _                           = raise Fail "split_type";
 
 fun type_of_G env (T, n, is) =
   let
@@ -204,7 +204,7 @@ fun mk_ff_list(is,js) =
     let fun mk([],[],_)        = []
           | mk(i::is,j::js, k) = if (i:int) = j then k :: mk(is,js,k-1)
                                         else mk(is,js,k-1)
-          | mk _               = error"mk_ff_list"
+          | mk _               = raise Fail "mk_ff_list"
     in mk(is,js,length is-1) end;
 
 fun flexflex1(env,binders,F,Fty,is,js) =
