@@ -281,7 +281,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           end;
   in print_stmt end;
 
-fun scala_program_of_program labelled_name reserved module_alias program =
+fun scala_program_of_program ctxt symbol_of module_name reserved identifiers program =
   let
     fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
       let
@@ -324,20 +324,20 @@ fun scala_program_of_program labelled_name reserved module_alias program =
       | modify_stmt (_, Code_Thingol.Classparam _) = NONE
       | modify_stmt (_, stmt) = SOME stmt;
   in
-    Code_Namespace.hierarchical_program labelled_name
-      { module_alias = module_alias, reserved = reserved,
+    Code_Namespace.hierarchical_program ctxt symbol_of
+      { module_name = module_name, reserved = reserved, identifiers = identifiers,
         empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module,
         namify_stmt = namify_stmt, cyclic_modules = true, empty_data = [],
         memorize_data = memorize_implicits, modify_stmts = map modify_stmt } program
   end;
 
-fun serialize_scala { labelled_name, reserved_syms, includes,
-    module_alias, class_syntax, tyco_syntax, const_syntax } program =
+fun serialize_scala ctxt { symbol_of, module_name, reserved_syms, identifiers,
+    includes, class_syntax, tyco_syntax, const_syntax } program =
   let
 
     (* build program *)
     val { deresolver, hierarchical_program = scala_program } =
-      scala_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
+      scala_program_of_program ctxt symbol_of module_name (Name.make_context reserved_syms) identifiers program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco

@@ -698,7 +698,7 @@ in Literals {
 
 (** SML/OCaml generic part **)
 
-fun ml_program_of_program labelled_name reserved module_alias program =
+fun ml_program_of_program ctxt symbol_of module_name reserved identifiers program =
   let
     fun namify_const upper base (nsp_const, nsp_type) =
       let
@@ -729,7 +729,8 @@ fun ml_program_of_program labelled_name reserved module_alias program =
       | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as { vs, ... })) =
           (ML_Instance (name, stmt), if forall (null o snd) vs then SOME (name, false) else NONE)
       | ml_binding_of_stmt (name, _) =
-          error ("Binding block containing illegal statement: " ^ labelled_name name)
+          error ("Binding block containing illegal statement: " ^ 
+            (Code_Symbol.quote_symbol ctxt o symbol_of) name)
     fun modify_fun (name, stmt) =
       let
         val (binding, some_value_name) = ml_binding_of_stmt (name, stmt);
@@ -769,21 +770,22 @@ fun ml_program_of_program labelled_name reserved module_alias program =
       | modify_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
           modify_funs stmts
       | modify_stmts stmts = error ("Illegal mutual dependencies: " ^
-          (Library.commas o map (labelled_name o fst)) stmts);
+          (Library.commas o map (Code_Symbol.quote_symbol ctxt o symbol_of o fst)) stmts);
   in
-    Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
+    Code_Namespace.hierarchical_program ctxt symbol_of {
+      module_name = module_name, reserved = reserved, identifiers = identifiers,
       empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
       cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
   end;
 
-fun serialize_ml print_ml_module print_ml_stmt with_signatures
-    { labelled_name, reserved_syms, includes, module_alias,
+fun serialize_ml print_ml_module print_ml_stmt with_signatures ctxt
+    { symbol_of, module_name, reserved_syms, identifiers, includes,
       class_syntax, tyco_syntax, const_syntax } program =
   let
 
     (* build program *)
     val { deresolver, hierarchical_program = ml_program } =
-      ml_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
+      ml_program_of_program ctxt symbol_of module_name (Name.make_context reserved_syms) identifiers program;
 
     (* print statements *)
     fun print_stmt prefix_fragments (_, stmt) = print_ml_stmt

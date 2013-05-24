@@ -10,6 +10,7 @@ sig
   datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
     Constant of 'a | Type_Constructor of 'b | Type_Class of 'c |
     Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
+  type symbol = (string, string, class, string * class, class * class, string) attr
   val map_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
     -> ('a, 'b, 'c, 'd, 'e, 'f) attr -> ('g, 'h, 'i, 'j, 'k, 'l) attr
   val maps_attr: ('a -> 'g list) -> ('b -> 'h list)
@@ -22,22 +23,23 @@ sig
   val empty_data: ('a, 'b, 'c, 'd, 'e, 'f) data
   val merge_data: ('a, 'b, 'c, 'd, 'e, 'f) data * ('a, 'b, 'c, 'd, 'e, 'f) data
     -> ('a, 'b, 'c, 'd, 'e, 'f) data
+  val set_data: (string * 'a option, string * 'b option, string * 'c option,
+      (class * class) * 'd option, (string * class) * 'e option, string * 'f option) attr
+    -> ('a, 'b, 'c, 'd, 'e, 'f) data -> ('a, 'b, 'c, 'd, 'e, 'f) data
   val lookup_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'a option
   val lookup_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'b option
   val lookup_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> class -> 'c option
   val lookup_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> class * class -> 'd option
   val lookup_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string * class -> 'e option
   val lookup_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'f option
+  val lookup: ('a, 'a, 'a, 'a, 'a, 'a) data -> symbol -> 'a option
   val dest_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'a) list
   val dest_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'b) list
   val dest_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (class * 'c) list
   val dest_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((class * class) * 'd) list
   val dest_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((string * class) * 'e) list
   val dest_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'f) list
-  val set_data: (string * 'a option, string * 'b option, string * 'c option,
-      (class * class) * 'd option, (string * class) * 'e option, string * 'f option) attr
-    -> ('a, 'b, 'c, 'd, 'e, 'f) data -> ('a, 'b, 'c, 'd, 'e, 'f) data
-  val quote_symbol: Proof.context -> (string, string, class, string * class, class * class, string) attr -> string
+  val quote_symbol: Proof.context -> symbol -> string
 end;
 
 structure Code_Symbol : CODE_SYMBOL =
@@ -47,6 +49,8 @@ struct
 
 datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
   Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Relation of 'd  | Class_Instance of 'e | Module of 'f;
+
+type symbol = (string, string, class, string * class, class * class, string) attr;
 
 fun map_attr const tyco class classrel inst module (Constant x) = Constant (const x)
   | map_attr const tyco class classrel inst module (Type_Constructor x) = Type_Constructor (tyco x)
@@ -97,20 +101,6 @@ fun merge_data (Data { constant = constant1, type_constructor = type_constructor
     (Symreltab.join (K snd) (class_instance1, class_instance2))
     (Symtab.join (K snd) (module1, module2)); (*prefer later entries: K snd*)
 
-fun lookup_constant_data x = (Symtab.lookup o #constant o dest_data) x;
-fun lookup_type_constructor_data x = (Symtab.lookup o #type_constructor o dest_data) x;
-fun lookup_type_class_data x = (Symtab.lookup o #type_class o dest_data) x;
-fun lookup_class_relation_data x = (Symreltab.lookup o #class_relation o dest_data) x;
-fun lookup_class_instance_data x = (Symreltab.lookup o #class_instance o dest_data) x;
-fun lookup_module_data x = (Symtab.lookup o #module o dest_data) x;
-
-fun dest_constant_data x = (Symtab.dest o #constant o dest_data) x;
-fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_data) x;
-fun dest_type_class_data x = (Symtab.dest o #type_class o dest_data) x;
-fun dest_class_relation_data x = (Symreltab.dest o #class_relation o dest_data) x;
-fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_data) x;
-fun dest_module_data x = (Symtab.dest o #module o dest_data) x;
-
 fun set_sym (sym, NONE) = Symtab.delete_safe sym
   | set_sym (sym, SOME y) = Symtab.update (sym, y);
 fun set_symrel (symrel, NONE) = Symreltab.delete_safe symrel
@@ -122,6 +112,27 @@ fun set_data (Constant x) = map_data (set_sym x) I I I I I
   | set_data (Class_Relation x) = map_data I I I (set_symrel x) I I
   | set_data (Class_Instance x) = map_data I I I I (set_symrel x) I
   | set_data (Module x) = map_data I I I I I (set_sym x);
+
+fun lookup_constant_data x = (Symtab.lookup o #constant o dest_data) x;
+fun lookup_type_constructor_data x = (Symtab.lookup o #type_constructor o dest_data) x;
+fun lookup_type_class_data x = (Symtab.lookup o #type_class o dest_data) x;
+fun lookup_class_relation_data x = (Symreltab.lookup o #class_relation o dest_data) x;
+fun lookup_class_instance_data x = (Symreltab.lookup o #class_instance o dest_data) x;
+fun lookup_module_data x = (Symtab.lookup o #module o dest_data) x;
+
+fun lookup data (Constant x) = lookup_constant_data data x
+  | lookup data (Type_Constructor x) = lookup_type_constructor_data data x
+  | lookup data (Type_Class x) = lookup_type_class_data data x
+  | lookup data (Class_Relation x) = lookup_class_relation_data data x
+  | lookup data (Class_Instance x) = lookup_class_instance_data data x
+  | lookup data (Module x) = lookup_module_data data x;
+
+fun dest_constant_data x = (Symtab.dest o #constant o dest_data) x;
+fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_data) x;
+fun dest_type_class_data x = (Symtab.dest o #type_class o dest_data) x;
+fun dest_class_relation_data x = (Symreltab.dest o #class_relation o dest_data) x;
+fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_data) x;
+fun dest_module_data x = (Symtab.dest o #module o dest_data) x;
 
 fun quote_symbol ctxt (Constant c) = quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
   | quote_symbol ctxt (Type_Constructor tyco) = "type " ^ quote (Proof_Context.extern_type ctxt tyco)

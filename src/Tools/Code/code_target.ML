@@ -51,6 +51,9 @@ sig
   val set_default_code_width: int -> theory -> theory
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
+  type identifier_data
+  val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
+    -> theory -> theory
   type const_syntax = Code_Printer.const_syntax
   type tyco_syntax = Code_Printer.tyco_syntax
   val set_printings: (const_syntax, tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
@@ -79,6 +82,7 @@ type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl =
     class * (string * 'c option) list, (class * class) * (string * 'd option) list,
     (class * string) * (string * 'e option) list,
     string * (string * 'f option) list) Code_Symbol.attr;
+type identifier_data = (string, string, string, string, string, string) Code_Symbol.data;
 
 type tyco_syntax = Code_Printer.tyco_syntax;
 type const_syntax = Code_Printer.const_syntax;
@@ -108,11 +112,13 @@ fun present stmt_names f = space_implode "\n\n" (map snd (fst (the (f (Present s
 (* serializers: functions producing serializations *)
 
 type serializer = Token.T list
+  -> Proof.context
   -> {
-    labelled_name: string -> string,
+    symbol_of: string -> Code_Symbol.symbol,
+    module_name: string,
     reserved_syms: string list,
+    identifiers: identifier_data,
     includes: (string * Pretty.T) list,
-    module_alias: string -> string option,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
     const_syntax: string -> Code_Printer.activated_const_syntax option }
@@ -134,32 +140,30 @@ datatype target = Target of {
   serial: serial,
   description: description,
   reserved: string list,
-  module_alias: string Symtab.table,
+  identifiers: identifier_data,
   printings: (Code_Printer.const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
     (Pretty.T * string list)) Code_Symbol.data
 };
 
-fun make_target ((serial, description), ((reserved, module_alias), printings)) =
+fun make_target ((serial, description), (reserved, (identifiers, printings))) =
   Target { serial = serial, description = description, reserved = reserved,
-    module_alias = module_alias, printings = printings };
-fun map_target f ( Target { serial, description, reserved, module_alias, printings } ) =
-  make_target (f ((serial, description), ((reserved, module_alias), printings)));
+    identifiers = identifiers, printings = printings };
+fun map_target f (Target { serial, description, reserved, identifiers, printings }) =
+  make_target (f ((serial, description), (reserved, (identifiers, printings))));
 fun merge_target strict target (Target { serial = serial1, description = description,
-  reserved = reserved1, module_alias = module_alias1, printings = printings1 },
+  reserved = reserved1, identifiers = identifiers1, printings = printings1 },
     Target { serial = serial2, description = _,
-      reserved = reserved2, module_alias = module_alias2, printings = printings2 }) =
+      reserved = reserved2, identifiers = identifiers2, printings = printings2 }) =
   if serial1 = serial2 orelse not strict then
-    make_target ((serial1, description),
-      ((merge (op =) (reserved1, reserved2),
-         Symtab.join (K snd) (module_alias1, module_alias2)),
-        (Code_Symbol.merge_data (printings1, printings2))
-    ))
+    make_target ((serial1, description), (merge (op =) (reserved1, reserved2),
+      (Code_Symbol.merge_data (identifiers1, identifiers2),
+        Code_Symbol.merge_data (printings1, printings2))))
   else
     error ("Incompatible targets: " ^ quote target);
 
 fun the_description (Target { description, ... }) = description;
 fun the_reserved (Target { reserved, ... }) = reserved;
-fun the_module_alias (Target { module_alias , ... }) = module_alias;
+fun the_identifiers (Target { identifiers , ... }) = identifiers;
 fun the_printings (Target { printings, ... }) = printings;
 
 structure Targets = Theory_Data
@@ -197,8 +201,8 @@ fun put_target (target, seri) thy =
   in
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
-          (target, make_target ((serial (), seri), (([], Symtab.empty),
-            Code_Symbol.empty_data)))
+        (target, make_target ((serial (), seri),
+          ([], (Code_Symbol.empty_data, Code_Symbol.empty_data))))
   end;
 
 fun add_target (target, seri) = put_target (target, Fundamental seri);
@@ -210,13 +214,13 @@ fun map_target_data target f thy =
     val _ = assert_target thy target;
   in
     thy
-    |> (Targets.map o apfst o apfst o Symtab.map_entry target o map_target) f
+    |> (Targets.map o apfst o apfst o Symtab.map_entry target o map_target o apsnd) f
   end;
 
 fun map_reserved target =
-  map_target_data target o apsnd o apfst o apfst;
-fun map_module_alias target =
-  map_target_data target o apsnd o apfst o apsnd;
+  map_target_data target o apfst;
+fun map_identifiers target =
+  map_target_data target o apsnd o apfst;
 fun map_printings target =
   map_target_data target o apsnd o apsnd;
 
@@ -311,7 +315,7 @@ fun project_program thy abortable names_hidden names1 program2 =
     val program4 = Graph.restrict (member (op =) names4) program3;
   in (names4, program4) end;
 
-fun prepare_serializer thy abortable (serializer : serializer) literals reserved module_alias
+fun prepare_serializer thy abortable (serializer : serializer) literals reserved identifiers
     printings module_name args naming proto_program names =
   let
     val (names_hidden, (const_syntax, tyco_syntax, class_syntax)) =
@@ -324,11 +328,12 @@ fun prepare_serializer thy abortable (serializer : serializer) literals reserved
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
   in
-    (serializer args {
-      labelled_name = Code_Thingol.labelled_name thy proto_program,
+    (serializer args (Proof_Context.init_global thy) {
+      symbol_of = Code_Thingol.symbol_of proto_program,
+      module_name = module_name,
       reserved_syms = reserved,
+      identifiers = identifiers,
       includes = includes,
-      module_alias = if module_name = "" then Symtab.lookup module_alias else K (SOME module_name),
       const_syntax = Symtab.lookup const_syntax,
       tyco_syntax = Symtab.lookup tyco_syntax,
       class_syntax = Symtab.lookup class_syntax },
@@ -340,11 +345,9 @@ fun mount_serializer thy target some_width module_name args naming program names
     val (default_width, abortable, data, modify) = activate_target thy target;
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
-    val reserved = the_reserved data;
-    val module_alias = the_module_alias data
-    val literals = the_literals thy target;
-    val (prepared_serializer, prepared_program) = prepare_serializer thy
-      abortable serializer literals reserved module_alias (the_printings data)
+    val (prepared_serializer, prepared_program) =
+      prepare_serializer thy abortable serializer (the_literals thy target)
+        (the_reserved data) (the_identifiers data) (the_printings data)
         module_name args naming (modify naming program) names
     val width = the_default default_width some_width;
   in (fn program => prepared_serializer program width, prepared_program) end;
@@ -355,7 +358,7 @@ fun invoke_serializer thy target some_width module_name args naming program name
       target some_width module_name args naming program names;
   in mounted_serializer prepared_program end;
 
-fun assert_module_name "" = error ("Empty module name not allowed.")
+fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
 fun using_master_directory thy =
@@ -522,6 +525,20 @@ end;
 
 (** serializer configuration **)
 
+(* reserved symbol names *)
+
+fun add_reserved target sym thy =
+  let
+    val (_, data) = collapse_hierarchy thy target;
+    val _ = if member (op =) (the_reserved data) sym
+      then error ("Reserved symbol " ^ quote sym ^ " already declared")
+      else ();
+  in
+    thy
+    |> map_reserved target (insert (op =) sym)
+  end;
+
+
 (* checking and parsing *)
 
 fun cert_const thy const =
@@ -563,6 +580,26 @@ fun read_syms thy =
   Code_Symbol.map_attr (apfst (Code.read_const thy)) (apfst (read_tyco thy))
     (apfst (read_class thy)) ((apfst o pairself) (read_class thy)) (apfst (read_inst thy)) I;
 
+fun check_name is_module s =
+  let
+    val _ = if s = "" then error "Bad empty code name" else ();
+    val xs = Long_Name.explode s;
+    val xs' = if is_module
+        then map (Name.desymbolize true) xs
+      else if length xs < 2
+        then error ("Bad code name without module component: " ^ quote s)
+      else
+        let
+          val (ys, y) = split_last xs;
+          val ys' = map (Name.desymbolize true) ys;
+          val y' = Name.desymbolize false y;
+        in ys' @ [y'] end;
+  in if xs' = xs
+    then s
+    else error ("Invalid code name: " ^ quote s ^ "\n"
+      ^ "better try " ^ quote (Long_Name.implode xs'))
+  end;
+
 fun check_const_syntax thy c syn =
   if Code_Printer.requires_args syn > Code.args_number thy c
   then error ("Too many arguments in syntax for constant " ^ quote c)
@@ -572,6 +609,36 @@ fun check_tyco_syntax thy tyco syn =
   if fst syn <> Sign.arity_number thy tyco
   then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
   else syn;
+
+
+(* custom symbol names *)
+
+val arrange_name_decls =
+  let
+    fun arrange is_module (sym, target_names) = map (fn (target, some_name) =>
+      (target, (sym, Option.map (check_name is_module) some_name))) target_names;
+  in
+    Code_Symbol.maps_attr' (arrange false) (arrange false) (arrange false)
+      (arrange false) (arrange false) (arrange true)
+  end;
+
+fun cert_name_decls thy = cert_syms thy #> arrange_name_decls;
+
+fun read_name_decls thy = read_syms thy #> arrange_name_decls;
+
+fun set_identifier (target, sym_name) = map_identifiers target (Code_Symbol.set_data sym_name);
+
+fun gen_set_identifiers prep_name_decl raw_name_decls thy =
+  fold set_identifier (prep_name_decl thy raw_name_decls) thy;
+
+val set_identifiers = gen_set_identifiers cert_name_decls;
+val set_identifiers_cmd = gen_set_identifiers read_name_decls;
+
+fun add_module_alias_cmd target = fold (fn (sym, name) =>
+  set_identifier (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name))));
+
+
+(* custom printings *)
 
 fun arrange_printings prep_const thy =
   let
@@ -588,35 +655,6 @@ fun arrange_printings prep_const thy =
 fun cert_printings thy = cert_syms thy #> arrange_printings cert_const thy;
 
 fun read_printings thy = read_syms thy #> arrange_printings Code.read_const thy;
-
-
-(* custom symbol names *)
-
-fun add_module_alias target (thyname, "") =
-      map_module_alias target (Symtab.delete thyname)
-  | add_module_alias target (thyname, modlname) =
-      let
-        val xs = Long_Name.explode modlname;
-        val xs' = map (Name.desymbolize true) xs;
-      in if xs' = xs
-        then map_module_alias target (Symtab.update (thyname, modlname))
-        else error ("Invalid module name: " ^ quote modlname ^ "\n"
-          ^ "perhaps try " ^ quote (Long_Name.implode xs'))
-      end;
-
-fun add_reserved target sym thy =
-  let
-    val (_, data) = collapse_hierarchy thy target;
-    val _ = if member (op =) (the_reserved data) sym
-      then error ("Reserved symbol " ^ quote sym ^ " already declared")
-      else ();
-  in
-    thy
-    |> map_reserved target (insert (op =) sym)
-  end;
-
-
-(* custom printings *)
 
 fun set_printing (target, sym_syn) = map_printings target (Code_Symbol.set_data sym_syn);
 
@@ -699,18 +737,6 @@ fun parse_args f args =
 
 (** Isar setup **)
 
-val code_expr_argsP = Scan.optional (@{keyword "("} |-- Args.parse --| @{keyword ")"}) [];
-
-val code_exprP =
-  Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
-    ((@{keyword "checking"} |-- Scan.repeat (Parse.name
-      -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
-      >> (fn seris => check_code_cmd raw_cs seris)
-    || Scan.repeat (@{keyword "in"} |-- Parse.name
-       -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
-       -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
-       -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
-
 fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
   parse_keyword |-- Parse.!!! parse_isa --| (@{keyword "\<rightharpoonup>"} || @{keyword "=>"})
     -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target));
@@ -732,6 +758,34 @@ fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_
 fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   Parse.enum1 "|" (Parse.group (fn () => "code symbol pragma")
     (parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module));
+
+val code_expr_argsP = Scan.optional (@{keyword "("} |-- Args.parse --| @{keyword ")"}) [];
+
+val code_exprP =
+  Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
+    ((@{keyword "checking"} |-- Scan.repeat (Parse.name
+      -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
+      >> (fn seris => check_code_cmd raw_cs seris)
+    || Scan.repeat (@{keyword "in"} |-- Parse.name
+       -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
+       -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
+       -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
+
+val _ =
+  Outer_Syntax.command @{command_spec "code_reserved"}
+    "declare words as reserved for target language"
+    (Parse.name -- Scan.repeat1 Parse.name
+      >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
+
+val _ =
+  Outer_Syntax.command @{command_spec "code_identifier"} "declare mandatory names for code symbols"
+    (parse_symbol_pragmas Parse.name Parse.name Parse.name Parse.name Parse.name Parse.name
+      >> (Toplevel.theory o fold set_identifiers_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_spec "code_modulename"} "alias module to other name"
+    (Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
+      >> (fn (target, modlnames) => (Toplevel.theory o add_module_alias_cmd target) modlnames));
 
 val _ =
   Outer_Syntax.command @{command_spec "code_printing"} "declare dedicated printing for code symbols"
@@ -761,12 +815,6 @@ val _ =
       add_instance_syntax_cmd);
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_reserved"}
-    "declare words as reserved for target language"
-    (Parse.name -- Scan.repeat1 Parse.name
-      >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
-
-val _ =
   Outer_Syntax.command @{command_spec "code_include"}
     "declare piece of code to be included in generated code"
     (Parse.name -- Parse.name -- (Parse.text :|--
@@ -774,11 +822,6 @@ val _ =
         | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
       >> (fn ((target, name), content_consts) =>
           (Toplevel.theory o add_include_cmd target) (name, content_consts)));
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_modulename"} "alias module to other name"
-    (Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
-      >> (fn (target, modlnames) => (Toplevel.theory o fold (add_module_alias target)) modlnames));
 
 val _ =
   Outer_Syntax.command @{command_spec "code_abort"}

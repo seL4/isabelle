@@ -269,7 +269,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
-fun haskell_program_of_program labelled_name module_alias module_prefix reserved =
+fun haskell_program_of_program ctxt symbol_of module_prefix module_name reserved identifiers =
   let
     fun namify_fun upper base (nsp_fun, nsp_typ) =
       let
@@ -297,9 +297,9 @@ fun haskell_program_of_program labelled_name module_alias module_prefix reserved
       | select_stmt (Code_Thingol.Classparam _) = false
       | select_stmt (Code_Thingol.Classinst _) = true;
   in
-    Code_Namespace.flat_program labelled_name
-      { module_alias = module_alias, module_prefix = module_prefix,
-        reserved = reserved, empty_nsp = (reserved, reserved), namify_stmt = namify_stmt,
+    Code_Namespace.flat_program ctxt symbol_of
+      { module_prefix = module_prefix, module_name = module_name, reserved = reserved,
+        identifiers = identifiers, empty_nsp = (reserved, reserved), namify_stmt = namify_stmt,
         modify_stmt = fn stmt => if select_stmt stmt then SOME stmt else NONE }
   end;
 
@@ -324,14 +324,14 @@ val prelude_import_unqualified_constr = [
   ("Maybe", ["Nothing", "Just"])
 ];
 
-fun serialize_haskell module_prefix string_classes { labelled_name, reserved_syms,
-    includes, module_alias, class_syntax, tyco_syntax, const_syntax } program =
+fun serialize_haskell module_prefix string_classes ctxt { symbol_of, module_name,
+    reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } program =
   let
 
     (* build program *)
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val { deresolver, flat_program = haskell_program } = haskell_program_of_program
-      labelled_name module_alias module_prefix (Name.make_context reserved) program;
+      ctxt symbol_of module_prefix module_name (Name.make_context reserved) identifiers program;
 
     (* print statements *)
     fun deriving_show tyco =

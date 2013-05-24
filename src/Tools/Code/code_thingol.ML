@@ -86,7 +86,7 @@ sig
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_constr: program -> string -> bool
   val is_case: stmt -> bool
-  val labelled_name: theory -> program -> string -> string
+  val symbol_of: program -> string -> Code_Symbol.symbol;
   val group_stmts: theory -> program
     -> ((string * stmt) list * (string * stmt) list
       * ((string * stmt) list * (string * stmt) list)) list
@@ -471,29 +471,30 @@ fun is_constr program name = case Graph.get_node program name
 fun is_case (Fun (_, (_, SOME _))) = true
   | is_case _ = false;
 
-fun labelled_name thy program name =
-  let val ctxt = Proof_Context.init_global thy in
-    case Graph.get_node program name of
-      Fun (c, _) => quote (Code.string_of_const thy c)
-    | Datatype (tyco, _) => "type " ^ quote (Proof_Context.extern_type ctxt tyco)
-    | Datatypecons (c, _) => quote (Code.string_of_const thy c)
-    | Class (class, _) => "class " ^ quote (Proof_Context.extern_class ctxt class)
-    | Classrel (sub, super) =>
-        let
-          val Class (sub, _) = Graph.get_node program sub;
-          val Class (super, _) = Graph.get_node program super;
-        in
-          quote (Proof_Context.extern_class ctxt sub ^ " < " ^ Proof_Context.extern_class ctxt super)
-        end
-    | Classparam (c, _) => quote (Code.string_of_const thy c)
-    | Classinst { class, tyco, ... } =>
-        let
-          val Class (class, _) = Graph.get_node program class;
-          val Datatype (tyco, _) = Graph.get_node program tyco;
-        in
-          quote (Proof_Context.extern_type ctxt tyco ^ " :: " ^ Proof_Context.extern_class ctxt class)
-        end
-  end;
+fun symbol_of program name = 
+  case try (Graph.get_node program) name of
+      NONE => Code_Symbol.Module "(unknown)"
+        (*FIXME: need to be liberal due to ad-hoc introduction of value for evaluation*)
+    | SOME stmt => case stmt of
+          Fun (c, _) => Code_Symbol.Constant c
+        | Datatype (tyco, _) => Code_Symbol.Type_Constructor tyco
+        | Datatypecons (c, _) => Code_Symbol.Constant c
+        | Class (class, _) => Code_Symbol.Type_Class class
+        | Classrel (sub, super) =>
+            let
+              val Class (sub, _) = Graph.get_node program sub;
+              val Class (super, _) = Graph.get_node program super;
+            in
+              Code_Symbol.Class_Relation (sub, super)
+            end
+        | Classparam (c, _) => Code_Symbol.Constant c
+        | Classinst { class, tyco, ... } =>
+            let
+              val Class (class, _) = Graph.get_node program class;
+              val Datatype (tyco, _) = Graph.get_node program tyco;
+            in
+              Code_Symbol.Class_Instance (tyco, class)
+            end;
 
 fun linear_stmts program =
   rev (Graph.strong_conn program)
@@ -515,8 +516,9 @@ fun group_stmts thy program =
       then ([], filter is_class stmts, ([], []))
       else if forall (is_fun orf is_classinst) stmts
       then ([], [], List.partition is_fun stmts)
-      else error ("Illegal mutual dependencies: " ^
-        (commas o map (labelled_name thy program o fst)) stmts)
+      else error ("Illegal mutual dependencies: " ^ (commas
+        o map (Code_Symbol.quote_symbol (Proof_Context.init_global thy)
+        o symbol_of program o fst)) stmts);
   in
     linear_stmts program
     |> map group
