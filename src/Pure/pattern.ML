@@ -239,7 +239,7 @@ fun unify_types thy (T, U) (env as Envir.Envir {maxidx, tenv, tyenv}) =
 fun unif thy binders (s,t) env = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
-         in unif thy ((name,Ts)::binders) (ts,tt) env end
+         in unif thy ((name,Ts)::binders) (ts,tt) (unify_types thy (Ts, Tt) env) end
     | (Abs(ns,Ts,ts),t) => unif thy ((ns,Ts)::binders) (ts,(incr t)$Bound(0)) env
     | (t,Abs(nt,Tt,tt)) => unif thy ((nt,Tt)::binders) ((incr t)$Bound(0),tt) env
     | p => cases thy (binders,env,p)
