@@ -519,7 +519,8 @@ print_translation {*
       | bit_tr' b _ = raise Match;
   in
    [(@{type_syntax bit0}, K (bit_tr' 0)),
-    (@{type_syntax bit1}, K (bit_tr' 1))] end;
+    (@{type_syntax bit1}, K (bit_tr' 1))]
+  end;
 *}
 
 subsection {* Examples *}
