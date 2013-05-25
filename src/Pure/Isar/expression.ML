@@ -810,29 +810,34 @@ end;
 
 local
 
-fun read_with_extended_syntax parse_prop deps ctxt props =
+(* reading *)
+
+fun read_with_extended_syntax prep_prop deps ctxt props =
   let
     val deps_ctxt = fold Locale.activate_declarations deps ctxt;
   in
-    map (parse_prop deps_ctxt o snd) props |> Syntax.check_terms deps_ctxt
+    map (prep_prop deps_ctxt o snd) props |> Syntax.check_terms deps_ctxt
       |> Variable.export_terms deps_ctxt ctxt
   end;
 
-fun read_interpretation prep_expr parse_prop prep_attr expression raw_eqns initial_ctxt =
+fun read_interpretation prep_expr prep_prop prep_attr expression raw_eqns initial_ctxt =
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt raw_eqns;
+    val eqns = read_with_extended_syntax prep_prop deps expr_ctxt raw_eqns;
     val attrss = map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
 
+
+(* generic interpretation machinery *)
+
 fun meta_rewrite eqns ctxt = (map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns), ctxt);
 
 fun note_eqns_register note activate deps witss eqns attrss export export' ctxt =
   let
-    val facts = 
-      (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
+    val facts = map2 (fn attrs => fn eqn =>
+      (attrs, [([Morphism.thm (export' $> export) eqn], [])])) attrss eqns;
     val (eqns', ctxt') = ctxt
       |> note Thm.lemmaK facts
       |-> meta_rewrite;
@@ -845,24 +850,22 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     |> fold activate' dep_morphs
   end;
 
-fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_registration
+fun generic_interpretation prep_expr prep_prop prep_attr setup_proof note activate
     expression raw_eqns initial_ctxt = 
   let
     val (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) = 
-      read_interpretation prep_expr parse_prop prep_attr expression raw_eqns initial_ctxt;
+      read_interpretation prep_expr prep_prop prep_attr expression raw_eqns initial_ctxt;
     fun after_qed witss eqns =
-      note_eqns_register note add_registration deps witss eqns attrss export export';
+      note_eqns_register note activate deps witss eqns attrss export export';
   in setup_proof after_qed propss eqns goal_ctxt end;
 
-val activate_proof = Context.proof_map ooo Locale.add_registration;
-val activate_local_theory = Local_Theory.surface_target ooo activate_proof;
-val add_registration = Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
-fun add_dependency locale dep_morph mixin export =
-  (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
-  #> activate_local_theory dep_morph mixin export;
-fun add_dependency_global locale = Proof_Context.background_theory ooo Locale.add_dependency locale;
 
-fun gen_interpret prep_expr parse_prop prep_attr expression raw_eqns int state =
+(* various flavours of interpretation *)
+
+fun assert_not_theory lthy = if Named_Target.is_theory lthy
+  then error "Not possible on level of global theory" else ();
+
+fun gen_interpret prep_expr prep_prop prep_attr expression raw_eqns int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -870,43 +873,40 @@ fun gen_interpret prep_expr parse_prop prep_attr expression raw_eqns int state =
     fun setup_proof after_qed propss eqns goal_ctxt = 
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret" propss eqns goal_ctxt int state;
   in
-    generic_interpretation prep_expr parse_prop prep_attr setup_proof
-      Attrib.local_notes activate_proof expression raw_eqns ctxt
+    generic_interpretation prep_expr prep_prop prep_attr setup_proof
+      Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt
   end;
 
-fun gen_interpretation prep_expr parse_prop prep_attr expression raw_eqns lthy =
-  let
-    val is_theory = Option.map #target (Named_Target.peek lthy) = SOME ""
-      andalso Local_Theory.level lthy = 1;
-    val activate = if is_theory then add_registration else activate_local_theory;
-    val mark_brittle = if is_theory then I else Local_Theory.mark_brittle;
-  in
+fun gen_interpretation prep_expr prep_prop prep_attr expression raw_eqns lthy =
+  if Named_Target.is_theory lthy
+  then 
     lthy
-    |> mark_brittle
-    |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind activate expression raw_eqns
-  end;
+    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind Local_Theory.add_registration expression raw_eqns
+  else
+    lthy
+    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind Local_Theory.activate expression raw_eqns;
 
-fun gen_sublocale prep_expr parse_prop prep_attr expression raw_eqns lthy =
+fun gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns lthy =
   let
-    val locale =
-      case Option.map #target (Named_Target.peek lthy) of
-          SOME locale => locale
-        | _ => error "Not in a locale target";
+    val _ = assert_not_theory lthy;
+    val locale = Named_Target.the_name lthy;
   in
     lthy
-    |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind (add_dependency locale) expression raw_eqns
+    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind (Local_Theory.add_dependency locale) expression raw_eqns
   end;
   
-fun gen_sublocale_global prep_expr prep_loc parse_prop prep_attr before_exit raw_locale expression raw_eqns thy =
+fun gen_sublocale_global prep_expr prep_loc prep_prop prep_attr before_exit raw_locale expression raw_eqns thy =
   let
     val locale = prep_loc thy raw_locale;
+    val add_dependency_global = Proof_Context.background_theory ooo Locale.add_dependency locale;
   in
     thy
     |> Named_Target.init before_exit locale
-    |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind (add_dependency_global locale) expression raw_eqns
+    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind add_dependency_global expression raw_eqns
   end;
 
 in
@@ -914,27 +914,22 @@ in
 fun permanent_interpretation expression raw_eqns lthy =
   let
     val _ = Local_Theory.assert_bottom true lthy;
-    val target = case Named_Target.peek lthy of
-          SOME { target, ... } => target
-        | NONE => error "Not in a named target";
-    val is_theory = (target = "");
-    val activate = if is_theory then add_registration else add_dependency target;
+    val target = Named_Target.the_name lthy;
+    val subscribe = if target = "" then Local_Theory.add_registration
+      else Local_Theory.add_dependency target;
   in
     lthy
     |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
-        Local_Theory.notes_kind activate expression raw_eqns
+        Local_Theory.notes_kind subscribe expression raw_eqns
   end;
 
 fun ephemeral_interpretation expression raw_eqns lthy =
   let
-    val _ = if Option.map #target (Named_Target.peek lthy) = SOME ""
-      andalso Local_Theory.level lthy = 1
-      then error "Not possible on level of global theory" else ();
+    val _ = assert_not_theory lthy;
   in
     lthy
-    |> Local_Theory.mark_brittle
     |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
-        Local_Theory.notes_kind activate_local_theory expression raw_eqns
+        Local_Theory.notes_kind Local_Theory.activate expression raw_eqns
   end;
 
 fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;

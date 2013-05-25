@@ -14,7 +14,6 @@ sig
   val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
-  val mark_brittle: local_theory -> local_theory
   val assert_nonbrittle: local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
     local_theory -> local_theory
@@ -36,7 +35,6 @@ sig
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
-  val surface_target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val propagate_ml_env: generic_theory -> generic_theory
   val operations_of: local_theory -> operations
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -58,6 +56,12 @@ sig
   val class_alias: binding -> class -> local_theory -> local_theory
   val type_alias: binding -> string -> local_theory -> local_theory
   val const_alias: binding -> string -> local_theory -> local_theory
+  val activate: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
+  val add_registration: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
+  val add_dependency: string -> string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
@@ -232,10 +236,6 @@ fun target f lthy =
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 
-fun surface_target f =
-  map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
-    (naming, operations, after_close, brittle, f target));
-
 fun propagate_ml_env (context as Context.Proof lthy) =
       let val inherit = ML_Env.inherit context in
         lthy
@@ -305,6 +305,22 @@ val class_alias = alias Sign.class_alias Proof_Context.class_alias;
 val type_alias = alias Sign.type_alias Proof_Context.type_alias;
 val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
+
+(* activation of locale fragments *)
+
+fun activate_surface dep_morph mixin export =
+  map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
+    (naming, operations, after_close, brittle,
+      (Context.proof_map ooo Locale.add_registration) dep_morph mixin export target));
+
+fun activate dep_morph mixin export =
+  mark_brittle #> activate_surface dep_morph mixin export;
+
+val add_registration = raw_theory o Context.theory_map ooo Locale.add_registration;
+
+fun add_dependency locale dep_morph mixin export =
+  (raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
+  #> activate_surface dep_morph mixin export;
 
 
 (** init and exit **)
