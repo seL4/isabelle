@@ -51,10 +51,8 @@ sig
   val pure_parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
   val pure_parse_translation: (string * (Proof.context -> term list -> term)) list
   val pure_print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
-  val struct_parse_translation: string list ->
-    (string * (Proof.context -> term list -> term)) list
-  val struct_print_ast_translation: string list ->
-    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
+  val struct_tr: string list -> string * (Proof.context -> term list -> term)
+  val struct_ast_tr': string list -> string * (Proof.context -> Ast.ast list -> Ast.ast)
 end;
 
 structure Syntax_Trans: SYNTAX_TRANS =
@@ -245,12 +243,13 @@ fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
 fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
-fun the_struct [] = error "Illegal reference to implicit structure"
-  | the_struct (x :: _) = x;
-
-fun struct_tr structs [Const ("_indexdefault", _)] =
-      Syntax.const (Lexicon.mark_fixed (the_struct structs))
-  | struct_tr _ ts = raise TERM ("struct_tr", ts);
+fun struct_tr structs =
+  ("_struct", fn _ =>
+    (fn [Const ("_indexdefault", _)] =>
+        (case structs of
+          x :: _ => Syntax.const (Lexicon.mark_fixed x)
+        | _ => error "Illegal reference to implicit structure")
+      | ts => raise TERM ("struct_tr", ts)));
 
 
 
@@ -492,10 +491,13 @@ end;
 fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
-fun struct_ast_tr' structs [Ast.Constant "_indexdefault"] =
-      Ast.Appl [Ast.Constant "_free",
-        Ast.Variable (the_struct structs handle ERROR _ => raise Match)]
-  | struct_ast_tr' _ _ = raise Match;
+fun struct_ast_tr' structs =
+  ("_struct", fn _ =>
+    (fn [Ast.Constant "_indexdefault"] =>
+        (case structs of
+          x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
+        | _ => raise Match)
+      | _ => raise Match));
 
 
 
@@ -534,9 +536,6 @@ val pure_print_ast_translation =
   ("_pttrns", fn _ => idtyp_ast_tr' "_pttrns"),
   ("\\<^const>==>", fn _ => impl_ast_tr'),
   ("_index", fn _ => index_ast_tr')];
-
-fun struct_parse_translation structs = [("_struct", fn _ => struct_tr structs)];
-fun struct_print_ast_translation structs = [("_struct", fn _ => struct_ast_tr' structs)];
 
 end;
 
