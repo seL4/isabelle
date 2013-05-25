@@ -24,7 +24,7 @@ lemma comp_single_set_bd:
   assumes fbd_Card_order: "Card_order fbd" and
     fset_bd: "\<And>x. |fset x| \<le>o fbd" and
     gset_bd: "\<And>x. |gset x| \<le>o gbd"
-  shows "|\<Union>fset ` gset x| \<le>o gbd *c fbd"
+  shows "|\<Union>(fset ` gset x)| \<le>o gbd *c fbd"
 apply (subst sym[OF SUP_def])
 apply (rule ordLeq_transitive)
 apply (rule card_of_UNION_Sigma)
@@ -42,10 +42,10 @@ apply (rule ordIso_refl)
 apply (rule Card_order_cprod)
 done
 
-lemma Union_image_insert: "\<Union>f ` insert a B = f a \<union> \<Union>f ` B"
+lemma Union_image_insert: "\<Union>(f ` insert a B) = f a \<union> \<Union>(f ` B)"
 by simp
 
-lemma Union_image_empty: "A \<union> \<Union>f ` {} = A"
+lemma Union_image_empty: "A \<union> \<Union>(f ` {}) = A"
 by simp
 
 lemma image_o_collect: "collect ((\<lambda>f. image g o f) ` F) = image g o collect F"
@@ -54,10 +54,10 @@ by (rule ext) (auto simp add: collect_def)
 lemma conj_subset_def: "A \<subseteq> {x. P x \<and> Q x} = (A \<subseteq> {x. P x} \<and> A \<subseteq> {x. Q x})"
 by blast
 
-lemma UN_image_subset: "\<Union>f ` g x \<subseteq> X = (g x \<subseteq> {x. f x \<subseteq> X})"
+lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f x \<subseteq> X})"
 by blast
 
-lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>(\<lambda>f. f x) ` X| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
+lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
 by (unfold o_apply collect_def SUP_def)
 
 lemma wpull_cong:

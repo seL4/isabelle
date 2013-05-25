@@ -571,9 +571,9 @@ proof -
     show "(SUP i. emeasure M (?O i)) \<le> ?a" unfolding SUP_def
     proof (safe intro!: Sup_mono, unfold bex_simps)
       fix i
-      have *: "(\<Union>Q' ` {..i}) = ?O i" by auto
+      have *: "(\<Union>(Q' ` {..i})) = ?O i" by auto
       then show "\<exists>x. (x \<in> sets M \<and> N x \<noteq> \<infinity>) \<and>
-        emeasure M (\<Union>Q' ` {..i}) \<le> emeasure M x"
+        emeasure M (\<Union>(Q' ` {..i})) \<le> emeasure M x"
         using O_in_G[of i] by (auto intro!: exI[of _ "?O i"])
     qed
   qed

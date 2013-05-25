@@ -707,9 +707,9 @@ lemma volume_finite_additive:
   assumes A: "\<And>i. i \<in> I \<Longrightarrow> A i \<in> M" "disjoint_family_on A I" "finite I" "UNION I A \<in> M"
   shows "f (UNION I A) = (\<Sum>i\<in>I. f (A i))"
 proof -
-  have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>A`I \<in> M"
+  have "A`I \<subseteq> M" "disjoint (A`I)" "finite (A`I)" "\<Union>(A`I) \<in> M"
     using A unfolding SUP_def by (auto simp: disjoint_family_on_disjoint_image)
-  with `volume M f` have "f (\<Union>A`I) = (\<Sum>a\<in>A`I. f a)"
+  with `volume M f` have "f (\<Union>(A`I)) = (\<Sum>a\<in>A`I. f a)"
     unfolding volume_def by blast
   also have "\<dots> = (\<Sum>i\<in>I. f (A i))"
   proof (subst setsum_reindex_nonzero)

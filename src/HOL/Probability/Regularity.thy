@@ -209,8 +209,8 @@ proof -
       from nat_approx_posE[OF this] guess n . note n = this
       let ?k = "from_nat_into X ` {0..k e (Suc n)}"
       have "finite ?k" by simp
-      moreover have "K \<subseteq> \<Union>(\<lambda>x. ball x e') ` ?k" unfolding K_def B_def using n by force
-      ultimately show "\<exists>k. finite k \<and> K \<subseteq> \<Union>(\<lambda>x. ball x e') ` k" by blast
+      moreover have "K \<subseteq> \<Union>((\<lambda>x. ball x e') ` ?k)" unfolding K_def B_def using n by force
+      ultimately show "\<exists>k. finite k \<and> K \<subseteq> \<Union>((\<lambda>x. ball x e') ` k)" by blast
     qed
     ultimately
     show "?thesis e " by (auto simp: sU)

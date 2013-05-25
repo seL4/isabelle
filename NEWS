@@ -57,6 +57,9 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Weaker precendence of syntax for big intersection and union on sets,
+in accordance with corresponding lattice operations.  INCOMPATIBILITY.
+
 * Nested case expressions are now translated in a separate check
   phase rather than during parsing. The data for case combinators
   is separated from the datatype package. The declaration attribute

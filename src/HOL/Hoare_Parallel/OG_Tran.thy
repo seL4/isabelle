@@ -90,13 +90,13 @@ definition ann_sem :: "'a ann_com \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "ann_sem c \<equiv> \<lambda>s. {t. (Some c, s) -*\<rightarrow> (None, t)}"
 
 definition ann_SEM :: "'a ann_com \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "ann_SEM c S \<equiv> \<Union>ann_sem c ` S"  
+  "ann_SEM c S \<equiv> \<Union>(ann_sem c ` S)"
 
 definition sem :: "'a com \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "sem c \<equiv> \<lambda>s. {t. \<exists>Ts. (c, s) -P*\<rightarrow> (Parallel Ts, t) \<and> All_None Ts}"
 
 definition SEM :: "'a com \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "SEM c S \<equiv> \<Union>sem c ` S "
+  "SEM c S \<equiv> \<Union>(sem c ` S)"
 
 abbreviation Omega :: "'a com"    ("\<Omega>" 63)
   where "\<Omega> \<equiv> While UNIV UNIV (Basic id)"

@@ -1015,7 +1015,7 @@ next
     apply (rule that[of "d \<union> p"])
   proof -
     have *: "\<And>s f t. s \<noteq> {} \<Longrightarrow> (\<forall>i\<in>s. f i \<union> i = t) \<Longrightarrow> t = \<Inter> (f ` s) \<union> (\<Union>s)" by auto
-    have *: "{a..b} = \<Inter> (\<lambda>i. \<Union>(q i - {i})) ` p \<union> \<Union>p"
+    have *: "{a..b} = \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p) \<union> \<Union>p"
       apply (rule *[OF False])
     proof
       fix i
@@ -1032,7 +1032,7 @@ next
       fix k
       assume k: "k\<in>p"
       have *: "\<And>u t s. u \<subseteq> s \<Longrightarrow> s \<inter> t = {} \<Longrightarrow> u \<inter> t = {}" by auto
-      show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<inter> interior k = {}"
+      show "interior (\<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)) \<inter> interior k = {}"
         apply (rule *[of _ "interior (\<Union>(q k - {k}))"])
         defer
         apply (subst Int_commute)
@@ -1044,7 +1044,7 @@ next
         show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}"
           using qk(5) using q(2)[OF k] by auto
         have *: "\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto
-        show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
+        show "interior (\<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)) \<subseteq> interior (\<Union>(q k - {k}))"
           apply (rule interior_mono *)+
           using k by auto
       qed
@@ -1131,7 +1131,7 @@ lemma division_of_unions: assumes "finite f"  "\<And>p. p\<in>f \<Longrightarrow
 lemma elementary_union_interval: assumes "p division_of \<Union>p"
   obtains q where "q division_of ({a..b::'a::ordered_euclidean_space} \<union> \<Union>p)" proof-
   note assm=division_ofD[OF assms]
-  have lem1:"\<And>f s. \<Union>\<Union> (f ` s) = \<Union>(\<lambda>x.\<Union>(f x)) ` s" by auto
+  have lem1:"\<And>f s. \<Union>\<Union> (f ` s) = \<Union>((\<lambda>x.\<Union>(f x)) ` s)" by auto
   have lem2:"\<And>f s. f \<noteq> {} \<Longrightarrow> \<Union>{s \<union> t |t. t \<in> f} = s \<union> \<Union>f" by auto
 { presume "p={} \<Longrightarrow> thesis" "{a..b} = {} \<Longrightarrow> thesis" "{a..b} \<noteq> {} \<Longrightarrow> interior {a..b} = {} \<Longrightarrow> thesis"
     "p\<noteq>{} \<Longrightarrow> interior {a..b}\<noteq>{} \<Longrightarrow> {a..b} \<noteq> {} \<Longrightarrow> thesis"
@@ -1282,7 +1282,7 @@ lemma tagged_division_ofD[dest]: assumes "s tagged_division_of i"
 
 lemma division_of_tagged_division: assumes"s tagged_division_of i"  shows "(snd ` s) division_of i"
 proof(rule division_ofI) note assm=tagged_division_ofD[OF assms]
-  show "\<Union>snd ` s = i" "finite (snd ` s)" using assm by auto
+  show "\<Union>(snd ` s) = i" "finite (snd ` s)" using assm by auto
   fix k assume k:"k \<in> snd ` s" then obtain xk where xk:"(xk, k) \<in> s" by auto
   thus  "k \<subseteq> i" "k \<noteq> {}" "\<exists>a b. k = {a..b}" using assm apply- by fastforce+
   fix k' assume k':"k' \<in> snd ` s" "k \<noteq> k'" from this(1) obtain xk' where xk':"(xk', k') \<in> s" by auto
@@ -1292,9 +1292,9 @@ qed
 lemma partial_division_of_tagged_division: assumes "s tagged_partial_division_of i"
   shows "(snd ` s) division_of \<Union>(snd ` s)"
 proof(rule division_ofI) note assm=tagged_partial_division_ofD[OF assms]
-  show "finite (snd ` s)" "\<Union>snd ` s = \<Union>snd ` s" using assm by auto
+  show "finite (snd ` s)" "\<Union>(snd ` s) = \<Union>(snd ` s)" using assm by auto
   fix k assume k:"k \<in> snd ` s" then obtain xk where xk:"(xk, k) \<in> s" by auto
-  thus "k\<noteq>{}" "\<exists>a b. k = {a..b}" "k \<subseteq> \<Union>snd ` s" using assm by auto
+  thus "k\<noteq>{}" "\<exists>a b. k = {a..b}" "k \<subseteq> \<Union>(snd ` s)" using assm by auto
   fix k' assume k':"k' \<in> snd ` s" "k \<noteq> k'" from this(1) obtain xk' where xk':"(xk', k') \<in> s" by auto
   thus "interior k \<inter> interior k' = {}" apply-apply(rule assm(5)) apply(rule xk xk')+ using k' by auto
 qed
@@ -1355,13 +1355,13 @@ lemma tagged_division_unions:
   shows "\<Union>(pfn ` iset) tagged_division_of (\<Union>iset)"
 proof(rule tagged_division_ofI)
   note assm = tagged_division_ofD[OF assms(2)[rule_format]]
-  show "finite (\<Union>pfn ` iset)" apply(rule finite_Union) using assms by auto
-  have "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>pfn ` iset} = \<Union>(\<lambda>i. \<Union>{k. \<exists>x. (x, k) \<in> pfn i}) ` iset" by blast 
+  show "finite (\<Union>(pfn ` iset))" apply(rule finite_Union) using assms by auto
+  have "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>(pfn ` iset)} = \<Union>((\<lambda>i. \<Union>{k. \<exists>x. (x, k) \<in> pfn i}) ` iset)" by blast 
   also have "\<dots> = \<Union>iset" using assm(6) by auto
-  finally show "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>pfn ` iset} = \<Union>iset" . 
-  fix x k assume xk:"(x,k)\<in>\<Union>pfn ` iset" then obtain i where i:"i \<in> iset" "(x, k) \<in> pfn i" by auto
+  finally show "\<Union>{k. \<exists>x. (x, k) \<in> \<Union>(pfn ` iset)} = \<Union>iset" . 
+  fix x k assume xk:"(x,k)\<in>\<Union>(pfn ` iset)" then obtain i where i:"i \<in> iset" "(x, k) \<in> pfn i" by auto
   show "x\<in>k" "\<exists>a b. k = {a..b}" "k \<subseteq> \<Union>iset" using assm(2-4)[OF i] using i(1) by auto
-  fix x' k' assume xk':"(x',k')\<in>\<Union>pfn ` iset" "(x, k) \<noteq> (x', k')" then obtain i' where i':"i' \<in> iset" "(x', k') \<in> pfn i'" by auto
+  fix x' k' assume xk':"(x',k')\<in>\<Union>(pfn ` iset)" "(x, k) \<noteq> (x', k')" then obtain i' where i':"i' \<in> iset" "(x', k') \<in> pfn i'" by auto
   have *:"\<And>a b. i\<noteq>i' \<Longrightarrow> a\<subseteq> i \<Longrightarrow> b\<subseteq> i' \<Longrightarrow> interior a \<inter> interior b = {}" using i(1) i'(1)
     using assms(3)[rule_format] interior_mono by blast
   show "interior k \<inter> interior k' = {}" apply(cases "i=i'")
@@ -4975,7 +4975,7 @@ lemma henstock_lemma_part1: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 
   shows "norm(setsum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e" (is "?x \<le> e")
 proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis by (blast intro: field_le_epsilon) }
   fix k::real assume k:"k>0" note p' = tagged_partial_division_ofD[OF p(1)]
-  have "\<Union>snd ` p \<subseteq> {a..b}" using p'(3) by fastforce
+  have "\<Union>(snd ` p) \<subseteq> {a..b}" using p'(3) by fastforce
   note partial_division_of_tagged_division[OF p(1)] this
   from partial_division_extend_interval[OF this] guess q . note q=this and q' = division_ofD[OF this(2)]
   def r \<equiv> "q - snd ` p" have "snd ` p \<inter> r = {}" unfolding r_def by auto
@@ -4994,11 +4994,11 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
     thus ?case apply(rule_tac x=qq in exI) using dd(2)[of qq] unfolding fine_inter uv by auto qed
   from bchoice[OF this] guess qq .. note qq=this[rule_format]
 
-  let ?p = "p \<union> \<Union>qq ` r" have "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - integral {a..b} f) < e"
+  let ?p = "p \<union> \<Union>(qq ` r)" have "norm ((\<Sum>(x, k)\<in>?p. content k *\<^sub>R f x) - integral {a..b} f) < e"
     apply(rule assms(4)[rule_format])
   proof show "d fine ?p" apply(rule fine_union,rule p) apply(rule fine_unions) using qq by auto 
     note * = tagged_partial_division_of_union_self[OF p(1)]
-    have "p \<union> \<Union>qq ` r tagged_division_of \<Union>snd ` p \<union> \<Union>r"
+    have "p \<union> \<Union>(qq ` r) tagged_division_of \<Union>(snd ` p) \<union> \<Union>r"
     proof(rule tagged_division_union[OF * tagged_division_unions])
       show "finite r" by fact case goal2 thus ?case using qq by auto
     next case goal3 thus ?case apply(rule,rule,rule) apply(rule q'(5)) unfolding r_def by auto
@@ -5006,11 +5006,11 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
         apply(rule,rule q') defer apply(rule,subst Int_commute) 
         apply(rule inter_interior_unions_intervals) apply(rule finite_imageI,rule p',rule) defer
         apply(rule,rule q') using q(1) p' unfolding r_def by auto qed
-    moreover have "\<Union>snd ` p \<union> \<Union>r = {a..b}" "{qq i |i. i \<in> r} = qq ` r"
+    moreover have "\<Union>(snd ` p) \<union> \<Union>r = {a..b}" "{qq i |i. i \<in> r} = qq ` r"
       unfolding Union_Un_distrib[THEN sym] r_def using q by auto
     ultimately show "?p tagged_division_of {a..b}" by fastforce qed
 
-  hence "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>\<Union>qq ` r. content k *\<^sub>R f x) -
+  hence "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>\<Union>(qq ` r). content k *\<^sub>R f x) -
     integral {a..b} f) < e" apply(subst setsum_Un_zero[THEN sym]) apply(rule p') prefer 3 
     apply assumption apply rule apply(rule finite_imageI,rule r) apply safe apply(drule qq)
   proof- fix x l k assume as:"(x,l)\<in>p" "(x,l)\<in>qq k" "k\<in>r"

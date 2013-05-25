@@ -4312,7 +4312,7 @@ next
   moreover have "\<And>i. i \<in>Collect (?k_list k) \<Longrightarrow> card (A - set i) = card A - k"
     by (simp add: card_Diff_subset distinct_card)
   moreover have "{xs. ?k_list (Suc k) xs} =
-      (\<lambda>(xs, n). n#xs) ` \<Union>(\<lambda>xs. {xs} \<times> (A - set xs)) ` {xs. ?k_list k xs}"
+      (\<lambda>(xs, n). n#xs) ` \<Union>((\<lambda>xs. {xs} \<times> (A - set xs)) ` {xs. ?k_list k xs})"
     by (auto simp: length_Suc_conv)
   moreover
   have "Suc (card A - Suc k) = card A - k" using Suc.prems by simp

@@ -751,7 +751,7 @@ abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
   "Inter S \<equiv> \<Sqinter>S"
   
 notation (xsymbols)
-  Inter  ("\<Inter>_" [90] 90)
+  Inter  ("\<Inter>_" [900] 900)
 
 lemma Inter_eq:
   "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
@@ -934,7 +934,7 @@ abbreviation Union :: "'a set set \<Rightarrow> 'a set" where
   "Union S \<equiv> \<Squnion>S"
 
 notation (xsymbols)
-  Union  ("\<Union>_" [90] 90)
+  Union  ("\<Union>_" [900] 900)
 
 lemma Union_eq:
   "\<Union>A = {x. \<exists>B \<in> A. x \<in> B}"

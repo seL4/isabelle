@@ -220,7 +220,7 @@ proof atomize_elim
     fix a assume "a \<in> A"
     thus "x \<in> a" "open a" using A'(4)[OF open_UNIV] by (auto simp: A_def intro: A' from_nat_into)
   next
-    let ?int = "\<lambda>N. \<Inter>from_nat_into A' ` N"
+    let ?int = "\<lambda>N. \<Inter>(from_nat_into A' ` N)"
     fix a b assume "a \<in> A" "b \<in> A"
     then obtain N M where "a = ?int N" "b = ?int M" "finite (N \<union> M)" by (auto simp: A_def)
     thus "a \<inter> b \<in> A" by (auto simp: A_def intro!: image_eqI[where x="N \<union> M"])
@@ -2617,7 +2617,7 @@ lemma compact_fip:
 proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
   fix A assume "compact U" and A: "\<forall>a\<in>A. closed a" "U \<inter> \<Inter>A = {}"
     and fi: "\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}"
-  from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>uminus`A"
+  from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>(uminus`A)"
     by auto
   with `compact U` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
     unfolding compact_eq_heine_borel by (metis subset_image_iff)
@@ -2627,7 +2627,7 @@ next
   fix A assume ?R and cover: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
   from cover have "U \<inter> \<Inter>(uminus`A) = {}" "\<forall>a\<in>uminus`A. closed a"
     by auto
-  with `?R` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>uminus`B = {}"
+  with `?R` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>(uminus`B) = {}"
     by (metis subset_image_iff)
   then show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
     by  (auto intro!: exI[of _ B] inj_setminus dest: finite_imageD)
@@ -3041,7 +3041,7 @@ lemma seq_compact_imp_totally_bounded:
   assumes "seq_compact s"
   shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))"
 proof(rule, rule, rule ccontr)
-  fix e::real assume "e>0" and assm:"\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k)"
+  fix e::real assume "e>0" and assm:"\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>((\<lambda>x. ball x e) ` k))"
   def x \<equiv> "helper_1 s e"
   { fix n
     have "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)"
@@ -4586,7 +4586,7 @@ proof (rule compactI)
     moreover with c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
       by (fastforce simp: subset_eq)
     ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
-      using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>a`D"] conjI) (auto intro!: open_INT)
+      using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
   qed
   then obtain a d where a: "\<forall>x\<in>s. open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
     and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>d x"
