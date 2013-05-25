@@ -103,11 +103,6 @@ sig
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val update_trfuns:
-    (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((term list -> term) * stamp)) list *
-    (string * ((typ -> term list -> term) * stamp)) list *
-    (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
-  val update_advanced_trfuns:
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
@@ -651,10 +646,7 @@ end;
 
 (** modify syntax **)
 
-fun ext_syntax f decls = update_syntax mode_default (f decls);
-
-val update_trfuns = ext_syntax Syntax_Ext.syn_ext_trfuns;
-val update_advanced_trfuns = ext_syntax Syntax_Ext.syn_ext_advanced_trfuns;
+val update_trfuns = update_syntax mode_default o Syntax_Ext.syn_ext_trfuns;
 
 fun update_type_gram add prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
@@ -662,7 +654,7 @@ fun update_type_gram add prmode decls =
 fun update_const_gram add is_logtype prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
-val update_trrules = ext_syntax Syntax_Ext.syn_ext_rules o check_rules;
+val update_trrules = update_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
 val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
 
 

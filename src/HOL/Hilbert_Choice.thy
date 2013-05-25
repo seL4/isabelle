@@ -25,7 +25,7 @@ translations
   "SOME x. P" == "CONST Eps (%x. P)"
 
 print_translation {*
-  [(@{const_syntax Eps}, fn [Abs abs] =>
+  [(@{const_syntax Eps}, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
 *} -- {* to avoid eta-contraction of body *}

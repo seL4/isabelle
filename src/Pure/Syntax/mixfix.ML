@@ -145,10 +145,10 @@ fun syn_ext_consts is_logtype const_decls =
     val mfix = maps mfix_of const_decls;
     val binders = map_filter binder const_decls;
     val binder_trs = binders
-      |> map (Syntax_Ext.stamp_trfun binder_stamp o apsnd K o Syntax_Trans.mk_binder_tr);
+      |> map (Syntax_Ext.stamp_trfun binder_stamp o Syntax_Trans.mk_binder_tr);
     val binder_trs' = binders
       |> map (Syntax_Ext.stamp_trfun binder_stamp o
-          apsnd (K o Syntax_Trans.non_typed_tr') o Syntax_Trans.mk_binder_tr' o swap);
+          apsnd Syntax_Trans.non_typed_tr' o Syntax_Trans.mk_binder_tr' o swap);
 
     val consts = binders @ map (fn (c, _, _) => (c, "")) const_decls;
   in

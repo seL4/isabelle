@@ -8,7 +8,7 @@ theory Pure
   keywords
     "!!" "!" "%" "(" ")" "+" "," "--" ":" "::" ";" "<" "<=" "=" "=="
     "=>" "?" "[" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>"
-    "\<rightleftharpoons>" "\<subseteq>" "]" "advanced" "and" "assumes"
+    "\<rightleftharpoons>" "\<subseteq>" "]" "and" "assumes"
     "attach" "begin" "binder" "constrains" "defines" "fixes" "for"
     "identifier" "if" "imports" "in" "includes" "infix" "infixl"
     "infixr" "is" "keywords" "notes" "obtains" "open" "output"

@@ -30,10 +30,10 @@ parse_ast_translation {*
           Ast.Appl [Ast.Constant @{syntax_const "_ofsort"}, Ast.Variable "'b", ast]
       | beta_ofsort_ast_tr asts = raise Ast.AST ("beta_ast_tr", asts);
   in
-   [(@{syntax_const "_alpha"}, alpha_ast_tr),
-    (@{syntax_const "_alpha_ofsort"}, alpha_ofsort_ast_tr),
-    (@{syntax_const "_beta"}, beta_ast_tr),
-    (@{syntax_const "_beta_ofsort"}, beta_ofsort_ast_tr)]
+   [(@{syntax_const "_alpha"}, K alpha_ast_tr),
+    (@{syntax_const "_alpha_ofsort"}, K alpha_ofsort_ast_tr),
+    (@{syntax_const "_beta"}, K beta_ast_tr),
+    (@{syntax_const "_beta_ofsort"}, K beta_ofsort_ast_tr)]
   end
 *}
 

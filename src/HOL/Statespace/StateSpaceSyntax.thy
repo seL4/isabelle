@@ -21,14 +21,14 @@ translations
   "s<x:=y>" == "_statespace_update s x y"
 
 
-parse_translation (advanced)
+parse_translation
 {*
  [(@{syntax_const "_statespace_lookup"}, StateSpace.lookup_tr),
   (@{syntax_const "_statespace_update"}, StateSpace.update_tr)]
 *}
 
 
-print_translation (advanced)
+print_translation
 {*
  [(@{const_syntax lookup}, StateSpace.lookup_tr'),
   (@{const_syntax update}, StateSpace.update_tr')]

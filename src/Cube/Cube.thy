@@ -63,7 +63,7 @@ syntax (xsymbols)
 
 print_translation {*
   [(@{const_syntax Prod},
-    Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
+    fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
 *}
 
 axiomatization where

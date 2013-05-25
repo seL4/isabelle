@@ -77,10 +77,10 @@ fun wand_tr [P, Q] = Syntax.const @{const_syntax wand} $
 *}
 
 parse_translation {*
- [(@{syntax_const "_emp"}, emp_tr),
-  (@{syntax_const "_singl"}, singl_tr),
-  (@{syntax_const "_star"}, star_tr),
-  (@{syntax_const "_wand"}, wand_tr)]
+ [(@{syntax_const "_emp"}, K emp_tr),
+  (@{syntax_const "_singl"}, K singl_tr),
+  (@{syntax_const "_star"}, K star_tr),
+  (@{syntax_const "_wand"}, K wand_tr)]
 *}
 
 text{* Now it looks much better: *}
@@ -128,10 +128,10 @@ end
 *}
 
 print_translation {*
- [(@{const_syntax is_empty}, is_empty_tr'),
-  (@{const_syntax singl}, singl_tr'),
-  (@{const_syntax star}, star_tr'),
-  (@{const_syntax wand}, wand_tr')]
+ [(@{const_syntax is_empty}, K is_empty_tr'),
+  (@{const_syntax singl}, K singl_tr'),
+  (@{const_syntax star}, K star_tr'),
+  (@{const_syntax wand}, K wand_tr')]
 *}
 
 text{* Now the intermediate proof states are also readable: *}

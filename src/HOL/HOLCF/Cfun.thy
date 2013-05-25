@@ -40,7 +40,7 @@ parse_translation {*
 *}
 
 print_translation {*
-  [(@{const_syntax Abs_cfun}, fn [Abs abs] =>
+  [(@{const_syntax Abs_cfun}, fn _ => fn [Abs abs] =>
       let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_cabs"} $ x $ t end)]
 *}  -- {* To avoid eta-contraction of body *}
@@ -61,7 +61,7 @@ parse_ast_translation {*
           Ast.fold_ast_p @{syntax_const "_cabs"}
             (Ast.unfold_ast @{syntax_const "_cargs"} (Ast.strip_positions pats), body)
       | Lambda_ast_tr asts = raise Ast.AST ("Lambda_ast_tr", asts);
-  in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
+  in [(@{syntax_const "_Lambda"}, K Lambda_ast_tr)] end;
 *}
 
 print_ast_translation {*
@@ -75,7 +75,7 @@ print_ast_translation {*
       | (xs, body) => Ast.Appl
           [Ast.Constant @{syntax_const "_Lambda"},
            Ast.fold_ast @{syntax_const "_cargs"} xs, body]);
-  in [(@{syntax_const "_cabs"}, cabs_ast_tr')] end
+  in [(@{syntax_const "_cabs"}, K cabs_ast_tr')] end
 *}
 
 text {* Dummy patterns for continuous abstraction *}

@@ -1469,7 +1469,7 @@ text {*
   @{rail "
   ( @@{command parse_ast_translation} | @@{command parse_translation} |
     @@{command print_translation} | @@{command typed_print_translation} |
-    @@{command print_ast_translation}) ('(' @'advanced' ')')? @{syntax text}
+    @@{command print_ast_translation}) @{syntax text}
   ;
   (@@{ML_antiquotation class_syntax} |
    @@{ML_antiquotation type_syntax} |
@@ -1486,30 +1486,30 @@ text {*
 
   \medskip
   {\footnotesize
-  \begin{tabular}{ll}
-  @{command parse_ast_translation} & : @{ML_type "(string * (Ast.ast list -> Ast.ast)) list"} \\
-  @{command parse_translation} & : @{ML_type "(string * (term list -> term)) list"} \\
-  @{command print_translation} & : @{ML_type "(string * (term list -> term)) list"} \\
-  @{command typed_print_translation} & : @{ML_type "(string * (typ -> term list -> term)) list"} \\
-  @{command print_ast_translation} & : @{ML_type "(string * (Ast.ast list -> Ast.ast)) list"} \\
+  \begin{tabular}{l}
+  @{command parse_ast_translation} : \\
+  \quad @{ML_type "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"} \\
+  @{command parse_translation} : \\
+  \quad @{ML_type "(string * (Proof.context -> term list -> term)) list"} \\
+  @{command print_translation} : \\
+  \quad @{ML_type "(string * (Proof.context -> term list -> term)) list"} \\
+  @{command typed_print_translation} : \\
+  \quad @{ML_type "(string * (Proof.context -> typ -> term list -> term)) list"} \\
+  @{command print_ast_translation} : \\
+  \quad @{ML_type "(string * (Proof.context -> Ast.ast list -> Ast.ast)) list"} \\
   \end{tabular}}
   \medskip
 
   The argument list consists of @{text "(c, tr)"} pairs, where @{text
   "c"} is the syntax name of the formal entity involved, and @{text
   "tr"} a function that translates a syntax form @{text "c args"} into
-  @{text "tr args"}.  The ML naming convention for parse translations
-  is @{text "c_tr"} and for print translations @{text "c_tr'"}.
+  @{text "tr ctxt args"} (depending on the context).  The ML naming
+  convention for parse translations is @{text "c_tr"} and for print
+  translations @{text "c_tr'"}.
 
   The @{command_ref print_syntax} command displays the sets of names
   associated with the translation functions of a theory under @{text
   "parse_ast_translation"} etc.
-
-  If the @{verbatim "("}@{keyword "advanced"}@{verbatim ")"} option is
-  given, the corresponding translation functions depend on the current
-  theory or proof context as additional argument.  This allows to
-  implement advanced syntax mechanisms, as translations functions may
-  refer to specific theory declarations or auxiliary proof data.
 
   \item @{text "@{class_syntax c}"}, @{text "@{type_syntax c}"},
   @{text "@{const_syntax c}"} inline the authentic syntax name of the

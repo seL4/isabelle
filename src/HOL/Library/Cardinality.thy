@@ -43,7 +43,7 @@ syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
 translations "CARD('t)" => "CONST card (CONST UNIV \<Colon> 't set)"
 
-typed_print_translation (advanced) {*
+typed_print_translation {*
   let
     fun card_univ_tr' ctxt _ [Const (@{const_syntax UNIV}, Type (_, [T]))] =
       Syntax.const @{syntax_const "_type_card"} $ Syntax_Phases.term_of_typ ctxt T

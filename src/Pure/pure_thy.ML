@@ -189,7 +189,9 @@ val _ = Context.>> (Context.map_theory
   #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
   #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
   #> Theory.add_deps_global Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
-  #> Sign.add_trfuns Syntax_Trans.pure_trfuns
+  #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
+  #> Sign.parse_translation Syntax_Trans.pure_parse_translation
+  #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
   #> Sign.local_path
   #> Sign.add_consts_i
    [(Binding.name "term", typ "'a => prop", NoSyn),

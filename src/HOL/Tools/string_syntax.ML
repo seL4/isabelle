@@ -87,8 +87,11 @@ fun list_ast_tr' [args] =
 (* theory setup *)
 
 val setup =
-  Sign.add_trfuns
-   ([(@{syntax_const "_Char"}, char_ast_tr), (@{syntax_const "_String"}, string_ast_tr)], [], [],
-    [(@{const_syntax Char}, char_ast_tr'), (@{syntax_const "_list"}, list_ast_tr')]);
+  Sign.parse_ast_translation
+   [(@{syntax_const "_Char"}, K char_ast_tr),
+    (@{syntax_const "_String"}, K string_ast_tr)] #>
+  Sign.print_ast_translation
+   [(@{const_syntax Char}, K char_ast_tr'),
+    (@{syntax_const "_list"}, K list_ast_tr')];
 
 end;

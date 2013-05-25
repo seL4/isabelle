@@ -370,7 +370,7 @@ let
             Syntax.const @{syntax_const "_qsetsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
           end
     | setsum_tr' _ = raise Match;
-in [(@{const_syntax setsum}, setsum_tr')] end
+in [(@{const_syntax setsum}, K setsum_tr')] end
 *}
 
 text {* TODO These are candidates for generalization *}

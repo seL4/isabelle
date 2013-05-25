@@ -18,7 +18,7 @@ parse_translation {*
   let
     fun quote_tr [t] = Syntax_Trans.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [(@{syntax_const "_quote"}, quote_tr)] end
+  in [(@{syntax_const "_quote"}, K quote_tr)] end
 *}
 
 end

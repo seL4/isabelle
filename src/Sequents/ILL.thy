@@ -36,15 +36,15 @@ syntax
   "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
 
 parse_translation {*
-  [(@{syntax_const "_Trueprop"}, single_tr @{const_syntax Trueprop}),
-   (@{syntax_const "_Context"}, two_seq_tr @{const_syntax Context}),
-   (@{syntax_const "_PromAux"}, three_seq_tr @{const_syntax PromAux})]
+  [(@{syntax_const "_Trueprop"}, K (single_tr @{const_syntax Trueprop})),
+   (@{syntax_const "_Context"}, K (two_seq_tr @{const_syntax Context})),
+   (@{syntax_const "_PromAux"}, K (three_seq_tr @{const_syntax PromAux}))]
 *}
 
 print_translation {*
-  [(@{const_syntax Trueprop}, single_tr' @{syntax_const "_Trueprop"}),
-   (@{const_syntax Context}, two_seq_tr' @{syntax_const "_Context"}),
-   (@{const_syntax PromAux}, three_seq_tr' @{syntax_const "_PromAux"})]
+  [(@{const_syntax Trueprop}, K (single_tr' @{syntax_const "_Trueprop"})),
+   (@{const_syntax Context}, K (two_seq_tr' @{syntax_const "_Context"})),
+   (@{const_syntax PromAux}, K (three_seq_tr' @{syntax_const "_PromAux"}))]
 *}
 
 defs

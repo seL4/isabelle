@@ -40,6 +40,10 @@ timing information.
 
 *** Pure ***
 
+* Syntax translation functions (print_translation etc.) always depend
+on Proof.context.  Discontinued former "(advanced)" option -- this is
+now the default.  Minor INCOMPATIBILITY.
+
 * Target-sensitive commands 'interpretation' and 'sublocale'.
 Particulary, 'interpretation' now allows for non-persistent
 interpretation within "context ... begin ... end" blocks.

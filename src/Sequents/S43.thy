@@ -21,7 +21,7 @@ parse_translation {*
     val tr  = seq_tr;
     fun s43pi_tr [s1, s2, s3, s4, s5, s6] =
       Const (@{const_syntax S43pi}, dummyT) $ tr s1 $ tr s2 $ tr s3 $ tr s4 $ tr s5 $ tr s6;
-  in [(@{syntax_const "_S43pi"}, s43pi_tr)] end
+  in [(@{syntax_const "_S43pi"}, K s43pi_tr)] end
 *}
 
 print_translation {*
@@ -29,7 +29,7 @@ let
   val tr' = seq_tr';
   fun s43pi_tr' [s1, s2, s3, s4, s5, s6] =
     Const(@{syntax_const "_S43pi"}, dummyT) $ tr' s1 $ tr' s2 $ tr' s3 $ tr' s4 $ tr' s5 $ tr' s6;
-in [(@{const_syntax S43pi}, s43pi_tr')] end
+in [(@{const_syntax S43pi}, K s43pi_tr')] end
 *}
 
 axiomatization where

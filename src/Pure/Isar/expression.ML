@@ -622,7 +622,7 @@ fun atomize_spec thy ts =
 fun aprop_tr' n c =
   let
     val c' = Lexicon.mark_const c;
-    fun tr' T args =
+    fun tr' (_: Proof.context) T args =
       if T <> dummyT andalso length args = n
       then Syntax.const "_aprop" $ Term.list_comb (Syntax.const c', args)
       else raise Match;
@@ -656,7 +656,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val ([pred_def], defs_thy) =
       thy
-      |> bodyT = propT ? Sign.add_trfunsT [aprop_tr' (length args) name]
+      |> bodyT = propT ? Sign.typed_print_translation [aprop_tr' (length args) name]
       |> Sign.declare_const_global ((Binding.conceal binding, predT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];

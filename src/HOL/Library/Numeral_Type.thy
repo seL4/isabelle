@@ -324,7 +324,7 @@ definition Num0 :: num0 where "Num0 = Abs_num0 0"
 code_datatype Num0
 
 instantiation num0 :: equal begin
-definition equal_num0 :: "num0 \<Rightarrow> num0 \<Rightarrow> bool" 
+definition equal_num0 :: "num0 \<Rightarrow> num0 \<Rightarrow> bool"
   where "equal_num0 = op ="
 instance by intro_classes (simp add: equal_num0_def)
 end
@@ -351,7 +351,7 @@ definition "enum_class.enum_all P = P (1 :: num1)"
 definition "enum_class.enum_ex P = P (1 :: num1)"
 instance
   by intro_classes
-     (auto simp add: enum_num1_def enum_all_num1_def enum_ex_num1_def num1_eq_iff Ball_def, 
+     (auto simp add: enum_num1_def enum_all_num1_def enum_ex_num1_def num1_eq_iff Ball_def,
       (metis (full_types) num1_eq_iff)+)
 end
 
@@ -477,47 +477,49 @@ translations
   (type) "0" == (type) "num0"
 
 parse_translation {*
-let
-  fun mk_bintype n =
-    let
-      fun mk_bit 0 = Syntax.const @{type_syntax bit0}
-        | mk_bit 1 = Syntax.const @{type_syntax bit1};
-      fun bin_of n =
-        if n = 1 then Syntax.const @{type_syntax num1}
-        else if n = 0 then Syntax.const @{type_syntax num0}
-        else if n = ~1 then raise TERM ("negative type numeral", [])
-        else
-          let val (q, r) = Integer.div_mod n 2;
-          in mk_bit r $ bin_of q end;
-    in bin_of n end;
+  let
+    fun mk_bintype n =
+      let
+        fun mk_bit 0 = Syntax.const @{type_syntax bit0}
+          | mk_bit 1 = Syntax.const @{type_syntax bit1};
+        fun bin_of n =
+          if n = 1 then Syntax.const @{type_syntax num1}
+          else if n = 0 then Syntax.const @{type_syntax num0}
+          else if n = ~1 then raise TERM ("negative type numeral", [])
+          else
+            let val (q, r) = Integer.div_mod n 2;
+            in mk_bit r $ bin_of q end;
+      in bin_of n end;
 
-  fun numeral_tr [Free (str, _)] = mk_bintype (the (Int.fromString str))
-    | numeral_tr ts = raise TERM ("numeral_tr", ts);
+    fun numeral_tr [Free (str, _)] = mk_bintype (the (Int.fromString str))
+      | numeral_tr ts = raise TERM ("numeral_tr", ts);
 
-in [(@{syntax_const "_NumeralType"}, numeral_tr)] end;
+  in [(@{syntax_const "_NumeralType"}, K numeral_tr)] end;
 *}
 
 print_translation {*
-let
-  fun int_of [] = 0
-    | int_of (b :: bs) = b + 2 * int_of bs;
+  let
+    fun int_of [] = 0
+      | int_of (b :: bs) = b + 2 * int_of bs;
 
-  fun bin_of (Const (@{type_syntax num0}, _)) = []
-    | bin_of (Const (@{type_syntax num1}, _)) = [1]
-    | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
-    | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
-    | bin_of t = raise TERM ("bin_of", [t]);
+    fun bin_of (Const (@{type_syntax num0}, _)) = []
+      | bin_of (Const (@{type_syntax num1}, _)) = [1]
+      | bin_of (Const (@{type_syntax bit0}, _) $ bs) = 0 :: bin_of bs
+      | bin_of (Const (@{type_syntax bit1}, _) $ bs) = 1 :: bin_of bs
+      | bin_of t = raise TERM ("bin_of", [t]);
 
-  fun bit_tr' b [t] =
-        let
-          val rev_digs = b :: bin_of t handle TERM _ => raise Match
-          val i = int_of rev_digs;
-          val num = string_of_int (abs i);
-        in
-          Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
-        end
-    | bit_tr' b _ = raise Match;
-in [(@{type_syntax bit0}, bit_tr' 0), (@{type_syntax bit1}, bit_tr' 1)] end;
+    fun bit_tr' b [t] =
+          let
+            val rev_digs = b :: bin_of t handle TERM _ => raise Match
+            val i = int_of rev_digs;
+            val num = string_of_int (abs i);
+          in
+            Syntax.const @{syntax_const "_NumeralType"} $ Syntax.free num
+          end
+      | bit_tr' b _ = raise Match;
+  in
+   [(@{type_syntax bit0}, K (bit_tr' 0)),
+    (@{type_syntax bit1}, K (bit_tr' 1))] end;
 *}
 
 subsection {* Examples *}

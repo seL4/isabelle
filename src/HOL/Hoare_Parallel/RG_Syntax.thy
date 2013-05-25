@@ -72,10 +72,10 @@ print_translation {*
             (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-   [(@{const_syntax Collect}, assert_tr'),
-    (@{const_syntax Basic}, assign_tr'),
-    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
-    (@{const_syntax While}, bexp_tr' @{syntax_const "_While"})]
+   [(@{const_syntax Collect}, K assert_tr'),
+    (@{const_syntax Basic}, K assign_tr'),
+    (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
+    (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While"}))]
   end
 *}
 

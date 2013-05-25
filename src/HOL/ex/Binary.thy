@@ -85,7 +85,7 @@ lemma binary_less_eq:
   shows "n \<equiv> m + k \<Longrightarrow> (m \<le> n) \<equiv> True"
     and "m \<equiv> n + k + 1 \<Longrightarrow> (m \<le> n) \<equiv> False"
   by simp_all
-  
+
 lemma binary_less:
   fixes n :: nat
   shows "m \<equiv> n + k \<Longrightarrow> (m < n) \<equiv> False"
@@ -191,19 +191,19 @@ syntax
   "_Binary" :: "num_const \<Rightarrow> 'a"    ("$_")
 
 parse_translation {*
-let
-  val syntax_consts =
-    map_aterms (fn Const (c, T) => Const (Lexicon.mark_const c, T) | a => a);
+  let
+    val syntax_consts =
+      map_aterms (fn Const (c, T) => Const (Lexicon.mark_const c, T) | a => a);
 
-  fun binary_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ binary_tr [t] $ u
-    | binary_tr [Const (num, _)] =
-        let
-          val {leading_zeros = z, value = n, ...} = Lexicon.read_xnum num;
-          val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
-        in syntax_consts (mk_binary n) end
-    | binary_tr ts = raise TERM ("binary_tr", ts);
+    fun binary_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] = c $ binary_tr [t] $ u
+      | binary_tr [Const (num, _)] =
+          let
+            val {leading_zeros = z, value = n, ...} = Lexicon.read_xnum num;
+            val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
+          in syntax_consts (mk_binary n) end
+      | binary_tr ts = raise TERM ("binary_tr", ts);
 
-in [(@{syntax_const "_Binary"}, binary_tr)] end
+  in [(@{syntax_const "_Binary"}, K binary_tr)] end
 *}
 
 

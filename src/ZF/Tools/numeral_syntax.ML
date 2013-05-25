@@ -79,6 +79,7 @@ fun int_tr' [t] = Syntax.const @{syntax_const "_Int"} $ Syntax.free (show_int t)
 
 
 val setup =
- Sign.add_trfuns ([], [(@{syntax_const "_Int"}, int_tr)], [(@{const_syntax integ_of}, int_tr')], []);
+ Sign.parse_translation [(@{syntax_const "_Int"}, K int_tr)] #>
+ Sign.print_translation [(@{const_syntax integ_of}, K int_tr')];
 
 end;

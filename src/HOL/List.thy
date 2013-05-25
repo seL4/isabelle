@@ -386,7 +386,7 @@ syntax (xsymbols)
 syntax (HTML output)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
 
-parse_translation (advanced) {*
+parse_translation {*
   let
     val NilC = Syntax.const @{const_syntax Nil};
     val ConsC = Syntax.const @{const_syntax Cons};

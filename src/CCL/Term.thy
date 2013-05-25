@@ -95,17 +95,17 @@ fun letrec3_tr' [Abs(x,T,Abs(y,U,Abs(z,V,Abs(f,S,a)))),Abs(ff,SS,b)] =
 *}
 
 parse_translation {*
- [(@{syntax_const "_let"}, let_tr),
-  (@{syntax_const "_letrec"}, letrec_tr),
-  (@{syntax_const "_letrec2"}, letrec2_tr),
-  (@{syntax_const "_letrec3"}, letrec3_tr)]
+ [(@{syntax_const "_let"}, K let_tr),
+  (@{syntax_const "_letrec"}, K letrec_tr),
+  (@{syntax_const "_letrec2"}, K letrec2_tr),
+  (@{syntax_const "_letrec3"}, K letrec3_tr)]
 *}
 
 print_translation {*
- [(@{const_syntax let}, let_tr'),
-  (@{const_syntax letrec}, letrec_tr'),
-  (@{const_syntax letrec2}, letrec2_tr'),
-  (@{const_syntax letrec3}, letrec3_tr')]
+ [(@{const_syntax let}, K let_tr'),
+  (@{const_syntax letrec}, K letrec_tr'),
+  (@{const_syntax letrec2}, K letrec2_tr'),
+  (@{const_syntax letrec3}, K letrec3_tr')]
 *}
 
 consts

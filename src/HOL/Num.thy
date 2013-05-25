@@ -291,50 +291,54 @@ syntax
   "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
 
 parse_translation {*
-let
-  fun num_of_int n = if n > 0 then case IntInf.quotRem (n, 2)
-     of (0, 1) => Syntax.const @{const_name One}
-      | (n, 0) => Syntax.const @{const_name Bit0} $ num_of_int n
-      | (n, 1) => Syntax.const @{const_name Bit1} $ num_of_int n
-    else raise Match;
-  val pos = Syntax.const @{const_name numeral}
-  val neg = Syntax.const @{const_name neg_numeral}
-  val one = Syntax.const @{const_name Groups.one}
-  val zero = Syntax.const @{const_name Groups.zero}
-  fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
-        c $ numeral_tr [t] $ u
-    | numeral_tr [Const (num, _)] =
-        let
-          val {value, ...} = Lexicon.read_xnum num;
-        in
-          if value = 0 then zero else
-          if value > 0
-          then pos $ num_of_int value
-          else neg $ num_of_int (~value)
-        end
-    | numeral_tr ts = raise TERM ("numeral_tr", ts);
-in [("_Numeral", numeral_tr)] end
+  let
+    fun num_of_int n =
+      if n > 0 then
+        (case IntInf.quotRem (n, 2) of
+          (0, 1) => Syntax.const @{const_name One}
+        | (n, 0) => Syntax.const @{const_name Bit0} $ num_of_int n
+        | (n, 1) => Syntax.const @{const_name Bit1} $ num_of_int n)
+      else raise Match
+    val pos = Syntax.const @{const_name numeral}
+    val neg = Syntax.const @{const_name neg_numeral}
+    val one = Syntax.const @{const_name Groups.one}
+    val zero = Syntax.const @{const_name Groups.zero}
+    fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
+          c $ numeral_tr [t] $ u
+      | numeral_tr [Const (num, _)] =
+          let
+            val {value, ...} = Lexicon.read_xnum num;
+          in
+            if value = 0 then zero else
+            if value > 0
+            then pos $ num_of_int value
+            else neg $ num_of_int (~value)
+          end
+      | numeral_tr ts = raise TERM ("numeral_tr", ts);
+  in [("_Numeral", K numeral_tr)] end
 *}
 
-typed_print_translation (advanced) {*
-let
-  fun dest_num (Const (@{const_syntax Bit0}, _) $ n) = 2 * dest_num n
-    | dest_num (Const (@{const_syntax Bit1}, _) $ n) = 2 * dest_num n + 1
-    | dest_num (Const (@{const_syntax One}, _)) = 1;
-  fun num_tr' sign ctxt T [n] =
-    let
-      val k = dest_num n;
-      val t' = Syntax.const @{syntax_const "_Numeral"} $
-        Syntax.free (sign ^ string_of_int k);
-    in
-      case T of
-        Type (@{type_name fun}, [_, T']) =>
-          if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
-          else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
-      | T' => if T' = dummyT then t' else raise Match
-    end;
-in [(@{const_syntax numeral}, num_tr' ""),
-    (@{const_syntax neg_numeral}, num_tr' "-")] end
+typed_print_translation {*
+  let
+    fun dest_num (Const (@{const_syntax Bit0}, _) $ n) = 2 * dest_num n
+      | dest_num (Const (@{const_syntax Bit1}, _) $ n) = 2 * dest_num n + 1
+      | dest_num (Const (@{const_syntax One}, _)) = 1;
+    fun num_tr' sign ctxt T [n] =
+      let
+        val k = dest_num n;
+        val t' = Syntax.const @{syntax_const "_Numeral"} $
+          Syntax.free (sign ^ string_of_int k);
+      in
+        (case T of
+          Type (@{type_name fun}, [_, T']) =>
+            if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
+            else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
+        | T' => if T' = dummyT then t' else raise Match)
+      end;
+  in
+   [(@{const_syntax numeral}, num_tr' ""),
+    (@{const_syntax neg_numeral}, num_tr' "-")]
+  end
 *}
 
 ML_file "Tools/numeral.ML"

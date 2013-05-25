@@ -47,7 +47,6 @@ end;
 
 (* theory setup *)
 
-val setup =
-  Sign.add_trfuns ([], [(@{syntax_const "_Float"}, float_tr)], [], []);
+val setup = Sign.parse_translation [(@{syntax_const "_Float"}, K float_tr)];
 
 end;
