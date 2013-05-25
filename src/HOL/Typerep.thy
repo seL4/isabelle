@@ -21,24 +21,24 @@ syntax
   "_TYPEREP" :: "type => logic"  ("(1TYPEREP/(1'(_')))")
 
 parse_translation {*
-let
-  fun typerep_tr (*"_TYPEREP"*) [ty] =
-        Syntax.const @{const_syntax typerep} $
-          (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax "TYPE"} $
-            (Syntax.const @{type_syntax itself} $ ty))
-    | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
-in [(@{syntax_const "_TYPEREP"}, typerep_tr)] end
+  let
+    fun typerep_tr (*"_TYPEREP"*) [ty] =
+          Syntax.const @{const_syntax typerep} $
+            (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax "TYPE"} $
+              (Syntax.const @{type_syntax itself} $ ty))
+      | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
+  in [(@{syntax_const "_TYPEREP"}, K typerep_tr)] end
 *}
 
-typed_print_translation (advanced) {*
-let
-  fun typerep_tr' ctxt (*"typerep"*)
-          (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
-          (Const (@{const_syntax TYPE}, _) :: ts) =
-        Term.list_comb
-          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
-    | typerep_tr' _ T ts = raise Match;
-in [(@{const_syntax typerep}, typerep_tr')] end
+typed_print_translation {*
+  let
+    fun typerep_tr' ctxt (*"typerep"*)
+            (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
+            (Const (@{const_syntax TYPE}, _) :: ts) =
+          Term.list_comb
+            (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
+      | typerep_tr' _ T ts = raise Match;
+  in [(@{const_syntax typerep}, typerep_tr')] end
 *}
 
 setup {*

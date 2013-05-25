@@ -277,42 +277,42 @@ syntax
   "_Numerals" :: "xnum_token \<Rightarrow> 'a"    ("_")
 
 parse_translation {*
-let
-  fun num_of_int n = if n > 0 then case IntInf.quotRem (n, 2)
-     of (0, 1) => Const (@{const_name One}, dummyT)
-      | (n, 0) => Const (@{const_name Dig0}, dummyT) $ num_of_int n
-      | (n, 1) => Const (@{const_name Dig1}, dummyT) $ num_of_int n
-    else raise Match;
-  fun numeral_tr [Free (num, _)] =
-        let
-          val {leading_zeros, value, ...} = Lexicon.read_xnum num;
-          val _ = leading_zeros = 0 andalso value > 0
-            orelse error ("Bad numeral: " ^ num);
-        in Const (@{const_name of_num}, @{typ num} --> dummyT) $ num_of_int value end
-    | numeral_tr ts = raise TERM ("numeral_tr", ts);
-in [(@{syntax_const "_Numerals"}, numeral_tr)] end
+  let
+    fun num_of_int n = if n > 0 then case IntInf.quotRem (n, 2)
+       of (0, 1) => Const (@{const_name One}, dummyT)
+        | (n, 0) => Const (@{const_name Dig0}, dummyT) $ num_of_int n
+        | (n, 1) => Const (@{const_name Dig1}, dummyT) $ num_of_int n
+      else raise Match;
+    fun numeral_tr [Free (num, _)] =
+          let
+            val {leading_zeros, value, ...} = Lexicon.read_xnum num;
+            val _ = leading_zeros = 0 andalso value > 0
+              orelse error ("Bad numeral: " ^ num);
+          in Const (@{const_name of_num}, @{typ num} --> dummyT) $ num_of_int value end
+      | numeral_tr ts = raise TERM ("numeral_tr", ts);
+  in [(@{syntax_const "_Numerals"}, K numeral_tr)] end
 *}
 
-typed_print_translation (advanced) {*
-let
-  fun dig b n = b + 2 * n; 
-  fun int_of_num' (Const (@{const_syntax Dig0}, _) $ n) =
-        dig 0 (int_of_num' n)
-    | int_of_num' (Const (@{const_syntax Dig1}, _) $ n) =
-        dig 1 (int_of_num' n)
-    | int_of_num' (Const (@{const_syntax One}, _)) = 1;
-  fun num_tr' ctxt T [n] =
-    let
-      val k = int_of_num' n;
-      val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
-    in
-      case T of
-        Type (@{type_name fun}, [_, T']) =>
-          if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
-          else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
-      | T' => if T' = dummyT then t' else raise Match
-    end;
-in [(@{const_syntax of_num}, num_tr')] end
+typed_print_translation {*
+  let
+    fun dig b n = b + 2 * n; 
+    fun int_of_num' (Const (@{const_syntax Dig0}, _) $ n) =
+          dig 0 (int_of_num' n)
+      | int_of_num' (Const (@{const_syntax Dig1}, _) $ n) =
+          dig 1 (int_of_num' n)
+      | int_of_num' (Const (@{const_syntax One}, _)) = 1;
+    fun num_tr' ctxt T [n] =
+      let
+        val k = int_of_num' n;
+        val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
+      in
+        case T of
+          Type (@{type_name fun}, [_, T']) =>
+            if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
+            else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
+        | T' => if T' = dummyT then t' else raise Match
+      end;
+  in [(@{const_syntax of_num}, num_tr')] end
 *}
 
 

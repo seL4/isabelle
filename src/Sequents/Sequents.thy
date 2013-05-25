@@ -139,7 +139,7 @@ fun four_seq_tr' c [s1, s2, s3, s4] =
 fun side_tr [s1] = seq_tr s1;
 *}
 
-parse_translation {* [(@{syntax_const "_Side"}, side_tr)] *}
+parse_translation {* [(@{syntax_const "_Side"}, K side_tr)] *}
 
 ML_file "prover.ML"
 

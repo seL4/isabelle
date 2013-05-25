@@ -256,35 +256,36 @@ translations
  "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
 print_translation {*
-let
-  val All_binder = Mixfix.binder_name @{const_syntax All};
-  val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
-  val impl = @{const_syntax HOL.implies};
-  val conj = @{const_syntax HOL.conj};
-  val sbset = @{const_syntax subset};
-  val sbset_eq = @{const_syntax subset_eq};
+  let
+    val All_binder = Mixfix.binder_name @{const_syntax All};
+    val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
+    val impl = @{const_syntax HOL.implies};
+    val conj = @{const_syntax HOL.conj};
+    val sbset = @{const_syntax subset};
+    val sbset_eq = @{const_syntax subset_eq};
 
-  val trans =
-   [((All_binder, impl, sbset), @{syntax_const "_setlessAll"}),
-    ((All_binder, impl, sbset_eq), @{syntax_const "_setleAll"}),
-    ((Ex_binder, conj, sbset), @{syntax_const "_setlessEx"}),
-    ((Ex_binder, conj, sbset_eq), @{syntax_const "_setleEx"})];
+    val trans =
+     [((All_binder, impl, sbset), @{syntax_const "_setlessAll"}),
+      ((All_binder, impl, sbset_eq), @{syntax_const "_setleAll"}),
+      ((Ex_binder, conj, sbset), @{syntax_const "_setlessEx"}),
+      ((Ex_binder, conj, sbset_eq), @{syntax_const "_setleEx"})];
 
-  fun mk v (v', T) c n P =
-    if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
-    then Syntax.const c $ Syntax_Trans.mark_bound_body (v', T) $ n $ P else raise Match;
+    fun mk v (v', T) c n P =
+      if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
+      then Syntax.const c $ Syntax_Trans.mark_bound_body (v', T) $ n $ P
+      else raise Match;
 
-  fun tr' q = (q,
-        fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
-            Const (c, _) $
-              (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', T)) $ n) $ P] =>
-            (case AList.lookup (op =) trans (q, c, d) of
-              NONE => raise Match
-            | SOME l => mk v (v', T) l n P)
-         | _ => raise Match);
-in
-  [tr' All_binder, tr' Ex_binder]
-end
+    fun tr' q = (q, fn _ =>
+      (fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
+          Const (c, _) $
+            (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', T)) $ n) $ P] =>
+          (case AList.lookup (op =) trans (q, c, d) of
+            NONE => raise Match
+          | SOME l => mk v (v', T) l n P)
+        | _ => raise Match));
+  in
+    [tr' All_binder, tr' Ex_binder]
+  end
 *}
 
 
@@ -304,11 +305,11 @@ parse_translation {*
     fun nvars (Const (@{syntax_const "_idts"}, _) $ _ $ idts) = nvars idts + 1
       | nvars _ = 1;
 
-    fun setcompr_tr [e, idts, b] =
+    fun setcompr_tr ctxt [e, idts, b] =
       let
         val eq = Syntax.const @{const_syntax HOL.eq} $ Bound (nvars idts) $ e;
         val P = Syntax.const @{const_syntax HOL.conj} $ eq $ b;
-        val exP = ex_tr [idts, P];
+        val exP = ex_tr ctxt [idts, P];
       in Syntax.const @{const_syntax Collect} $ absdummy dummyT exP end;
 
   in [(@{syntax_const "_Setcompr"}, setcompr_tr)] end;
@@ -323,7 +324,7 @@ print_translation {*
 let
   val ex_tr' = snd (Syntax_Trans.mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
 
-  fun setcompr_tr' [Abs (abs as (_, _, P))] =
+  fun setcompr_tr' ctxt [Abs (abs as (_, _, P))] =
     let
       fun check (Const (@{const_syntax Ex}, _) $ Abs (_, _, P), n) = check (P, n + 1)
         | check (Const (@{const_syntax HOL.conj}, _) $
@@ -333,7 +334,7 @@ let
         | check _ = false;
 
         fun tr' (_ $ abs) =
-          let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' [abs]
+          let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' ctxt [abs]
           in Syntax.const @{syntax_const "_Setcompr"} $ e $ idts $ Q end;
     in
       if check (P, 0) then tr' P
@@ -1004,7 +1005,7 @@ subsubsection {* The ``proper subset'' relation *}
 lemma psubsetI [intro!,no_atp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
   by (unfold less_le) blast
 
-lemma psubsetE [elim!,no_atp]: 
+lemma psubsetE [elim!,no_atp]:
     "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
   by (unfold less_le) blast
 
@@ -1758,10 +1759,10 @@ by blast
 lemma vimage_const [simp]: "((\<lambda>x. c) -` A) = (if c \<in> A then UNIV else {})"
   by auto
 
-lemma vimage_if [simp]: "((\<lambda>x. if x \<in> B then c else d) -` A) = 
+lemma vimage_if [simp]: "((\<lambda>x. if x \<in> B then c else d) -` A) =
    (if c \<in> A then (if d \<in> A then UNIV else B)
-    else if d \<in> A then -B else {})"  
-  by (auto simp add: vimage_def) 
+    else if d \<in> A then -B else {})"
+  by (auto simp add: vimage_def)
 
 lemma vimage_inter_cong:
   "(\<And> w. w \<in> S \<Longrightarrow> f w = g w) \<Longrightarrow> f -` y \<inter> S = g -` y \<inter> S"

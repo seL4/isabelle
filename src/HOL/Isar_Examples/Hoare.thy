@@ -216,7 +216,7 @@ parse_translation {*
   let
     fun quote_tr [t] = Syntax_Trans.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [(@{syntax_const "_quote"}, quote_tr)] end
+  in [(@{syntax_const "_quote"}, K quote_tr)] end
 *}
 
 text {* As usual in Isabelle syntax translations, the part for
@@ -241,10 +241,10 @@ print_translation {*
             (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
-   [(@{const_syntax Collect}, assert_tr'),
-    (@{const_syntax Basic}, assign_tr'),
-    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
-    (@{const_syntax While}, bexp_tr' @{syntax_const "_While_inv"})]
+   [(@{const_syntax Collect}, K assert_tr'),
+    (@{const_syntax Basic}, K assign_tr'),
+    (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
+    (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While_inv"}))]
   end
 *}
 

@@ -47,9 +47,9 @@ translations
 
 print_translation {*
  [(@{const_syntax Pi},
-    Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
+    fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
   (@{const_syntax Sigma},
-    Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
+    fn _ => Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
 *}
 
 defs

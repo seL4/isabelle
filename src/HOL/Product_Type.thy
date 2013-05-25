@@ -196,71 +196,71 @@ translations
 (*reconstruct pattern from (nested) splits, avoiding eta-contraction of body;
   works best with enclosing "let", if "let" does not avoid eta-contraction*)
 print_translation {*
-let
-  fun split_tr' [Abs (x, T, t as (Abs abs))] =
-        (* split (%x y. t) => %(x,y) t *)
-        let
-          val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
-          val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
-        in
-          Syntax.const @{syntax_const "_abs"} $
-            (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-        end
-    | split_tr' [Abs (x, T, (s as Const (@{const_syntax prod_case}, _) $ t))] =
-        (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
-        let
-          val Const (@{syntax_const "_abs"}, _) $
-            (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
-          val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
-        in
-          Syntax.const @{syntax_const "_abs"} $
-            (Syntax.const @{syntax_const "_pattern"} $ x' $
-              (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
-        end
-    | split_tr' [Const (@{const_syntax prod_case}, _) $ t] =
-        (* split (split (%x y z. t)) => %((x, y), z). t *)
-        split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
-    | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
-        (* split (%pttrn z. t) => %(pttrn,z). t *)
-        let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
-          Syntax.const @{syntax_const "_abs"} $
-            (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
-        end
-    | split_tr' _ = raise Match;
-in [(@{const_syntax prod_case}, split_tr')] end
+  let
+    fun split_tr' [Abs (x, T, t as (Abs abs))] =
+          (* split (%x y. t) => %(x,y) t *)
+          let
+            val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+          end
+      | split_tr' [Abs (x, T, (s as Const (@{const_syntax prod_case}, _) $ t))] =
+          (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
+          let
+            val Const (@{syntax_const "_abs"}, _) $
+              (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+          in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x' $
+                (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
+          end
+      | split_tr' [Const (@{const_syntax prod_case}, _) $ t] =
+          (* split (split (%x y z. t)) => %((x, y), z). t *)
+          split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
+      | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
+          (* split (%pttrn z. t) => %(pttrn,z). t *)
+          let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
+            Syntax.const @{syntax_const "_abs"} $
+              (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
+          end
+      | split_tr' _ = raise Match;
+  in [(@{const_syntax prod_case}, K split_tr')] end
 *}
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation {*
-let
-  fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
-    | split_guess_names_tr' T [Abs (x, xT, t)] =
-        (case (head_of t) of
-          Const (@{const_syntax prod_case}, _) => raise Match
-        | _ =>
-          let 
-            val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-            val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
-          in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-          end)
-    | split_guess_names_tr' T [t] =
-        (case head_of t of
-          Const (@{const_syntax prod_case}, _) => raise Match
-        | _ =>
-          let
-            val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-            val (y, t') =
-              Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
-          in
-            Syntax.const @{syntax_const "_abs"} $
-              (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
-          end)
-    | split_guess_names_tr' _ _ = raise Match;
-in [(@{const_syntax prod_case}, split_guess_names_tr')] end
+  let
+    fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
+      | split_guess_names_tr' T [Abs (x, xT, t)] =
+          (case (head_of t) of
+            Const (@{const_syntax prod_case}, _) => raise Match
+          | _ =>
+            let 
+              val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+              val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
+              val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
+            in
+              Syntax.const @{syntax_const "_abs"} $
+                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+            end)
+      | split_guess_names_tr' T [t] =
+          (case head_of t of
+            Const (@{const_syntax prod_case}, _) => raise Match
+          | _ =>
+            let
+              val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
+              val (y, t') =
+                Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
+              val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
+            in
+              Syntax.const @{syntax_const "_abs"} $
+                (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
+            end)
+      | split_guess_names_tr' _ _ = raise Match;
+  in [(@{const_syntax prod_case}, K split_guess_names_tr')] end
 *}
 
 (* Force eta-contraction for terms of the form "Q A (%p. prod_case P p)"
@@ -270,19 +270,20 @@ in [(@{const_syntax prod_case}, split_guess_names_tr')] end
    Otherwise prevent eta-contraction.
 *)
 print_translation {*
-let
-  fun contract Q f ts =
-    case ts of
-      [A, Abs(_, _, (s as Const (@{const_syntax prod_case},_) $ t) $ Bound 0)]
-      => if Term.is_dependent t then f ts else Syntax.const Q $ A $ s
-    | _ => f ts;
-  fun contract2 (Q,f) = (Q, contract Q f);
-  val pairs =
+  let
+    fun contract Q tr ctxt ts =
+      (case ts of
+        [A, Abs (_, _, (s as Const (@{const_syntax prod_case},_) $ t) $ Bound 0)] =>
+          if Term.is_dependent t then tr ctxt ts
+          else Syntax.const Q $ A $ s
+      | _ => tr ctxt ts);
+  in
     [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
      Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"},
      Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
      Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
-in map contract2 pairs end
+    |> map (fn (Q, tr) => (Q, contract Q tr))
+  end
 *}
 
 subsubsection {* Code generator setup *}

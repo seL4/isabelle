@@ -19,12 +19,13 @@ sig
   val no_type_bracketsN: string
   val no_type_brackets: unit -> bool
   val abs_tr: term list -> term
-  val mk_binder_tr: string * string -> string * (term list -> term)
+  val mk_binder_tr: string * string -> string * (Proof.context -> term list -> term)
   val antiquote_tr: string -> term -> term
   val quote_tr: string -> term -> term
-  val quote_antiquote_tr: string -> string -> string -> string * (term list -> term)
-  val non_typed_tr': (term list -> term) -> typ -> term list -> term
-  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
+  val quote_antiquote_tr: string -> string -> string ->
+    string * (Proof.context -> term list -> term)
+  val non_typed_tr': (Proof.context -> term list -> term) ->
+    Proof.context -> typ -> term list -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
@@ -35,27 +36,23 @@ sig
   val abs_tr': Proof.context -> term -> term
   val atomic_abs_tr': string * typ * term -> term * term
   val const_abs_tr': term -> term
-  val mk_binder_tr': string * string -> string * (term list -> term)
-  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
+  val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
+  val preserve_binder_abs_tr': string -> string -> string * (Proof.context -> term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (Proof.context -> term list -> term)
   val prop_tr': term -> term
   val variant_abs: string * typ * term -> string * term
   val variant_abs': string * typ * term -> string * term
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
-  val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
+  val quote_antiquote_tr': string -> string -> string ->
+    string * (Proof.context -> term list -> term)
   val update_name_tr': term -> term
-  val pure_trfuns:
-    (string * (Ast.ast list -> Ast.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
-    (string * (Ast.ast list -> Ast.ast)) list
-  val struct_trfuns: string list ->
-    (string * (Ast.ast list -> Ast.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (typ -> term list -> term)) list *
-    (string * (Ast.ast list -> Ast.ast)) list
+  val pure_parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
+  val pure_parse_translation: (string * (Proof.context -> term list -> term)) list
+  val pure_print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
+  val struct_tr: string list -> string * (Proof.context -> term list -> term)
+  val struct_ast_tr': string list -> string * (Proof.context -> Ast.ast list -> Ast.ast)
 end;
 
 structure Syntax_Trans: SYNTAX_TRANS =
@@ -152,7 +149,7 @@ fun mk_binder_tr (syn, name) =
           let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
           in Syntax.const name $ abs end
       | binder_tr ts = err ts;
-  in (syn, binder_tr) end;
+  in (syn, fn _ => binder_tr) end;
 
 
 (* type propositions *)
@@ -214,7 +211,7 @@ fun quote_antiquote_tr quoteN antiquoteN name =
   let
     fun tr [t] = Syntax.const name $ quote_tr antiquoteN t
       | tr ts = raise TERM ("quote_tr", ts);
-  in (quoteN, tr) end;
+  in (quoteN, fn _ => tr) end;
 
 
 (* corresponding updates *)
@@ -246,12 +243,13 @@ fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
 fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
-fun the_struct [] = error "Illegal reference to implicit structure"
-  | the_struct (x :: _) = x;
-
-fun struct_tr structs [Const ("_indexdefault", _)] =
-      Syntax.const (Lexicon.mark_fixed (the_struct structs))
-  | struct_tr _ ts = raise TERM ("struct_tr", ts);
+fun struct_tr structs =
+  ("_struct", fn _ =>
+    (fn [Const ("_indexdefault", _)] =>
+        (case structs of
+          x :: _ => Syntax.const (Lexicon.mark_fixed x)
+        | _ => error "Illegal reference to implicit structure")
+      | ts => raise TERM ("struct_tr", ts)));
 
 
 
@@ -259,8 +257,7 @@ fun struct_tr structs [Const ("_indexdefault", _)] =
 
 (* types *)
 
-fun non_typed_tr' f _ ts = f ts;
-fun non_typed_tr'' f x _ ts = f x ts;
+fun non_typed_tr' f ctxt _ ts = f ctxt ts;
 
 
 (* type syntax *)
@@ -366,13 +363,13 @@ fun mk_binder_tr' (name, syn) =
 
     fun binder_tr' (t :: ts) = Term.list_comb (tr' (Syntax.const name $ t), ts)
       | binder_tr' [] = raise Match;
-  in (name, binder_tr') end;
+  in (name, fn _ => binder_tr') end;
 
-fun preserve_binder_abs_tr' name syn = (name, fn Abs abs :: ts =>
+fun preserve_binder_abs_tr' name syn = (name, fn _ => fn Abs abs :: ts =>
   let val (x, t) = atomic_abs_tr' abs
   in list_comb (Syntax.const syn $ x $ t, ts) end);
 
-fun preserve_binder_abs2_tr' name syn = (name, fn A :: Abs abs :: ts =>
+fun preserve_binder_abs2_tr' name syn = (name, fn _ => fn A :: Abs abs :: ts =>
   let val (x, t) = atomic_abs_tr' abs
   in list_comb (Syntax.const syn $ x $ A $ t, ts) end);
 
@@ -464,7 +461,7 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
   let
     fun tr' (t :: ts) = Term.list_comb (Syntax.const quoteN $ quote_tr' antiquoteN t, ts)
       | tr' _ = raise Match;
-  in (name, tr') end;
+  in (name, fn _ => tr') end;
 
 
 (* corresponding updates *)
@@ -494,48 +491,51 @@ end;
 fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
-fun struct_ast_tr' structs [Ast.Constant "_indexdefault"] =
-      Ast.Appl [Ast.Constant "_free",
-        Ast.Variable (the_struct structs handle ERROR _ => raise Match)]
-  | struct_ast_tr' _ _ = raise Match;
+fun struct_ast_tr' structs =
+  ("_struct", fn _ =>
+    (fn [Ast.Constant "_indexdefault"] =>
+        (case structs of
+          x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
+        | _ => raise Match)
+      | _ => raise Match));
 
 
 
 (** Pure translations **)
 
-val pure_trfuns =
-  ([("_strip_positions", strip_positions_ast_tr),
-    ("_constify", constify_ast_tr),
-    ("_tapp", tapp_ast_tr),
-    ("_tappl", tappl_ast_tr),
-    ("_bracket", bracket_ast_tr),
-    ("_appl", appl_ast_tr),
-    ("_applC", applC_ast_tr),
-    ("_lambda", lambda_ast_tr),
-    ("_idtyp", idtyp_ast_tr),
-    ("_idtypdummy", idtypdummy_ast_tr),
-    ("_bigimpl", bigimpl_ast_tr),
-    ("_indexdefault", indexdefault_ast_tr),
-    ("_indexvar", indexvar_ast_tr),
-    ("_struct", struct_ast_tr)],
-   [("_abs", abs_tr),
-    ("_aprop", aprop_tr),
-    ("_ofclass", ofclass_tr),
-    ("_sort_constraint", sort_constraint_tr),
-    ("_TYPE", type_tr),
-    ("_DDDOT", dddot_tr),
-    ("_update_name", update_name_tr),
-    ("_index", index_tr)],
-   ([]: (string * (term list -> term)) list),
-   [("\\<^type>fun", fun_ast_tr'),
-    ("_abs", abs_ast_tr'),
-    ("_idts", idtyp_ast_tr' "_idts"),
-    ("_pttrns", idtyp_ast_tr' "_pttrns"),
-    ("\\<^const>==>", impl_ast_tr'),
-    ("_index", index_ast_tr')]);
+val pure_parse_ast_translation =
+ [("_strip_positions", fn _ => strip_positions_ast_tr),
+  ("_constify", fn _ => constify_ast_tr),
+  ("_tapp", fn _ => tapp_ast_tr),
+  ("_tappl", fn _ => tappl_ast_tr),
+  ("_bracket", fn _ => bracket_ast_tr),
+  ("_appl", fn _ => appl_ast_tr),
+  ("_applC", fn _ => applC_ast_tr),
+  ("_lambda", fn _ => lambda_ast_tr),
+  ("_idtyp", fn _ => idtyp_ast_tr),
+  ("_idtypdummy", fn _ => idtypdummy_ast_tr),
+  ("_bigimpl", fn _ => bigimpl_ast_tr),
+  ("_indexdefault", fn _ => indexdefault_ast_tr),
+  ("_indexvar", fn _ => indexvar_ast_tr),
+  ("_struct", fn _ => struct_ast_tr)];
 
-fun struct_trfuns structs =
-  ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
+val pure_parse_translation =
+ [("_abs", fn _ => abs_tr),
+  ("_aprop", fn _ => aprop_tr),
+  ("_ofclass", fn _ => ofclass_tr),
+  ("_sort_constraint", fn _ => sort_constraint_tr),
+  ("_TYPE", fn _ => type_tr),
+  ("_DDDOT", fn _ => dddot_tr),
+  ("_update_name", fn _ => update_name_tr),
+  ("_index", fn _ => index_tr)];
+
+val pure_print_ast_translation =
+ [("\\<^type>fun", fn _ => fun_ast_tr'),
+  ("_abs", fn _ => abs_ast_tr'),
+  ("_idts", fn _ => idtyp_ast_tr' "_idts"),
+  ("_pttrns", fn _ => idtyp_ast_tr' "_pttrns"),
+  ("\\<^const>==>", fn _ => impl_ast_tr'),
+  ("_index", fn _ => index_ast_tr')];
 
 end;
 

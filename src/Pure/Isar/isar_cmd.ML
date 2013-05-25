@@ -8,11 +8,11 @@ signature ISAR_CMD =
 sig
   val global_setup: Symbol_Pos.text * Position.T -> theory -> theory
   val local_setup: Symbol_Pos.text * Position.T -> Proof.context -> Proof.context
-  val parse_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
-  val parse_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
-  val print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
-  val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
-  val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val parse_ast_translation: Symbol_Pos.text * Position.T -> theory -> theory
+  val parse_translation: Symbol_Pos.text * Position.T -> theory -> theory
+  val print_translation: Symbol_Pos.text * Position.T -> theory -> theory
+  val typed_print_translation: Symbol_Pos.text * Position.T -> theory -> theory
+  val print_ast_translation: Symbol_Pos.text * Position.T -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
@@ -85,56 +85,40 @@ fun local_setup (txt, pos) =
 
 (* translation functions *)
 
-local
-
-fun advancedT false = ""
-  | advancedT true = "Proof.context -> ";
-
-fun advancedN false = ""
-  | advancedN true = "advanced_";
-
-in
-
-fun parse_ast_translation (a, (txt, pos)) =
+fun parse_ast_translation (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val parse_ast_translation: (string * (" ^ advancedT a ^
-      "Ast.ast list -> Ast.ast)) list")
-    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
+    "val parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
+    "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
   |> Context.theory_map;
 
-fun parse_translation (a, (txt, pos)) =
+fun parse_translation (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val parse_translation: (string * (" ^ advancedT a ^
-      "term list -> term)) list")
-    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], []))")
+    "val parse_translation: (string * (Proof.context -> term list -> term)) list"
+    "Context.map_theory (Sign.parse_translation parse_translation)"
   |> Context.theory_map;
 
-fun print_translation (a, (txt, pos)) =
+fun print_translation (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val print_translation: (string * (" ^ advancedT a ^
-      "term list -> term)) list")
-    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, []))")
+    "val print_translation: (string * (Proof.context -> term list -> term)) list"
+    "Context.map_theory (Sign.print_translation print_translation)"
   |> Context.theory_map;
 
-fun print_ast_translation (a, (txt, pos)) =
+fun typed_print_translation (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val print_ast_translation: (string * (" ^ advancedT a ^
-      "Ast.ast list -> Ast.ast)) list")
-    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
+    "val typed_print_translation: (string * (Proof.context -> typ -> term list -> term)) list"
+    "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
   |> Context.theory_map;
 
-fun typed_print_translation (a, (txt, pos)) =
+fun print_ast_translation (txt, pos) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val typed_print_translation: (string * (" ^ advancedT a ^ "typ -> term list -> term)) list")
-    ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
+    "val print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
+    "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
   |> Context.theory_map;
-
-end;
 
 
 (* translation rules *)

@@ -148,10 +148,7 @@ fun case_tr err ctxt [t, u] =
       end
   | case_tr _ _ _ = case_error "case_tr";
 
-val trfun_setup =
-  Sign.add_advanced_trfuns ([],
-    [(@{syntax_const "_case_syntax"}, case_tr true)],
-    [], []);
+val trfun_setup = Sign.parse_translation [(@{syntax_const "_case_syntax"}, case_tr true)];
 
 
 (* print translation *)
@@ -176,8 +173,7 @@ fun case_tr' (_ :: x :: t :: ts) =
             (mk_clauses t), ts)
       end;
 
-val trfun_setup' = Sign.add_trfuns
-  ([], [], [(@{const_syntax "case_guard"}, case_tr')], []);
+val trfun_setup' = Sign.print_translation [(@{const_syntax "case_guard"}, K case_tr')];
 
 
 (* declarations *)

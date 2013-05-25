@@ -121,7 +121,7 @@ setup {*
 simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
 simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 
-typed_print_translation (advanced) {*
+typed_print_translation {*
   let
     fun tr' c = (c, fn ctxt => fn T => fn ts =>
       if not (null ts) orelse T = dummyT orelse

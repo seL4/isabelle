@@ -260,8 +260,8 @@ let
       THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
-  val elim = rule_by_tactic (Proof_Context.init_global thy1) (basic_elim_tac ctxt1)
-                 (unfold RS Ind_Syntax.equals_CollectD)
+  val elim =
+    rule_by_tactic ctxt1 (basic_elim_tac ctxt1) (unfold RS Ind_Syntax.equals_CollectD)
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
       the given defs.  Cannot simply use the local con_defs because

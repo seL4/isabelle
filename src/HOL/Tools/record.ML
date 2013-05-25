@@ -735,10 +735,8 @@ fun record_update_tr [t, u] = fold (curry op $) (field_updates_tr u) t
 in
 
 val parse_translation =
- [(@{syntax_const "_record_update"}, record_update_tr)];
-
-val advanced_parse_translation =
- [(@{syntax_const "_record"}, record_tr),
+ [(@{syntax_const "_record_update"}, K record_update_tr),
+  (@{syntax_const "_record"}, record_tr),
   (@{syntax_const "_record_scheme"}, record_scheme_tr),
   (@{syntax_const "_record_type"}, record_type_tr),
   (@{syntax_const "_record_type_scheme"}, record_type_scheme_tr)];
@@ -1896,7 +1894,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         val trnames = if parent_len > 0 then [extension_name] else [];
       in map record_ext_type_tr' trnames end;
 
-    val advanced_print_translation =
+    val print_translation =
       map field_update_tr' (full_moreN :: names) @ [record_ext_tr' extension_name] @
       record_ext_type_tr's @ record_ext_type_abbr_tr's;
 
@@ -1995,7 +1993,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       timeit_msg ctxt "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
         (fn () =>
           ext_thy
-          |> Sign.add_advanced_trfuns ([], [], advanced_print_translation, [])
+          |> Sign.print_translation print_translation
           |> Sign.restore_naming thy
           |> Typedecl.abbrev_global (binding, map #1 alphas, NoSyn) recT0 |> snd
           |> Typedecl.abbrev_global
@@ -2316,8 +2314,7 @@ end;
 (* setup theory *)
 
 val setup =
-  Sign.add_trfuns ([], parse_translation, [], []) #>
-  Sign.add_advanced_trfuns ([], advanced_parse_translation, [], []) #>
+  Sign.parse_translation parse_translation #>
   map_theory_simpset (fn ctxt => ctxt addsimprocs [simproc, upd_simproc, eq_simproc]);
 
 

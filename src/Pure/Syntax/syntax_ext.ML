@@ -45,11 +45,6 @@ sig
     (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_trfuns:
-    (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
-    (string * ((term list -> term) * stamp)) list *
-    (string * ((typ -> term list -> term) * stamp)) list *
-    (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
-  val syn_ext_advanced_trfuns:
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
@@ -319,12 +314,7 @@ fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
 val syn_ext = syn_ext' (K false);
 
 fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
-fun syn_ext_advanced_trfuns trfuns = syn_ext [] [] trfuns ([], []);
-
-fun syn_ext_trfuns (atrs, trs, tr's, atr's) =
-  let fun simple (name, (f, s)) = (name, (K f, s)) in
-    syn_ext_advanced_trfuns (map simple atrs, map simple trs, map simple tr's, map simple atr's)
-  end;
+fun syn_ext_trfuns trfuns = syn_ext [] [] trfuns ([], []);
 
 fun stamp_trfun s (c, f) = (c, (f, s));
 fun mk_trfun tr = stamp_trfun (stamp ()) tr;

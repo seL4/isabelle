@@ -323,32 +323,30 @@ val _ =
 
 (* translation functions *)
 
-val trfun = Parse.opt_keyword "advanced" -- Parse.ML_source;
-
 val _ =
   Outer_Syntax.command @{command_spec "parse_ast_translation"}
     "install parse ast translation functions"
-    (trfun >> (Toplevel.theory o Isar_Cmd.parse_ast_translation));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.parse_ast_translation));
 
 val _ =
   Outer_Syntax.command @{command_spec "parse_translation"}
     "install parse translation functions"
-    (trfun >> (Toplevel.theory o Isar_Cmd.parse_translation));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.parse_translation));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_translation"}
     "install print translation functions"
-    (trfun >> (Toplevel.theory o Isar_Cmd.print_translation));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.print_translation));
 
 val _ =
   Outer_Syntax.command @{command_spec "typed_print_translation"}
     "install typed print translation functions"
-    (trfun >> (Toplevel.theory o Isar_Cmd.typed_print_translation));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.typed_print_translation));
 
 val _ =
   Outer_Syntax.command @{command_spec "print_ast_translation"}
     "install print ast translation functions"
-    (trfun >> (Toplevel.theory o Isar_Cmd.print_ast_translation));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.print_ast_translation));
 
 
 (* oracles *)

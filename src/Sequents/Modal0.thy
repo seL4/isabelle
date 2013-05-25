@@ -27,13 +27,13 @@ ML {*
 *}
 
 parse_translation {*
- [(@{syntax_const "_Lstar"}, star_tr @{const_syntax Lstar}),
-  (@{syntax_const "_Rstar"}, star_tr @{const_syntax Rstar})]
+ [(@{syntax_const "_Lstar"}, K (star_tr @{const_syntax Lstar})),
+  (@{syntax_const "_Rstar"}, K (star_tr @{const_syntax Rstar}))]
 *}
 
 print_translation {*
- [(@{const_syntax Lstar}, star_tr' @{syntax_const "_Lstar"}),
-  (@{const_syntax Rstar}, star_tr' @{syntax_const "_Rstar"})]
+ [(@{const_syntax Lstar}, K (star_tr' @{syntax_const "_Lstar"})),
+  (@{const_syntax Rstar}, K (star_tr' @{syntax_const "_Rstar"}))]
 *}
 
 defs

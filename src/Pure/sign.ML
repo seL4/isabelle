@@ -87,19 +87,16 @@ sig
   val primitive_class: binding * class list -> theory -> theory
   val primitive_classrel: class * class -> theory -> theory
   val primitive_arity: arity -> theory -> theory
-  val add_trfuns:
-    (string * (Ast.ast list -> Ast.ast)) list *
-    (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
-    (string * (Ast.ast list -> Ast.ast)) list -> theory -> theory
-  val add_trfunsT: (string * (typ -> term list -> term)) list -> theory -> theory
-  val add_advanced_trfuns:
-    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list *
-    (string * (Proof.context -> term list -> term)) list *
-    (string * (Proof.context -> term list -> term)) list *
+  val parse_ast_translation:
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
-  val add_advanced_trfunsT:
+  val parse_translation:
+    (string * (Proof.context -> term list -> term)) list -> theory -> theory
+  val print_translation:
+    (string * (Proof.context -> term list -> term)) list -> theory -> theory
+  val typed_print_translation:
     (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
+  val print_ast_translation:
+    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val new_group: theory -> theory
@@ -466,17 +463,14 @@ local
 
 fun mk trs = map Syntax_Ext.mk_trfun trs;
 
-fun gen_add_trfuns ext non_typed (atrs, trs, tr's, atr's) =
-  map_syn (ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's));
-
-fun gen_add_trfunsT ext tr's = map_syn (ext ([], [], mk tr's, []));
-
 in
 
-val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax_Trans.non_typed_tr';
-val add_trfunsT = gen_add_trfunsT Syntax.update_trfuns;
-val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax_Trans.non_typed_tr'';
-val add_advanced_trfunsT = gen_add_trfunsT Syntax.update_advanced_trfuns;
+fun parse_ast_translation atrs = map_syn (Syntax.update_trfuns (mk atrs, [], [], []));
+fun parse_translation trs = map_syn (Syntax.update_trfuns ([], mk trs, [], []));
+fun print_translation tr's =
+  map_syn (Syntax.update_trfuns ([], [], mk (map (apsnd Syntax_Trans.non_typed_tr') tr's), []));
+fun typed_print_translation tr's = map_syn (Syntax.update_trfuns ([], [], mk tr's, []));
+fun print_ast_translation atr's = map_syn (Syntax.update_trfuns ([], [], [], mk atr's));
 
 end;
 

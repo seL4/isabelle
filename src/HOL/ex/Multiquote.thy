@@ -32,7 +32,7 @@ parse_translation {*
 
     fun quote_tr [t] = Abs ("s", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
       | quote_tr ts = raise TERM ("quote_tr", ts);
-  in [(@{syntax_const "_quote"}, quote_tr)] end
+  in [(@{syntax_const "_quote"}, K quote_tr)] end
 *}
 
 text {* basic examples *}

@@ -209,8 +209,7 @@
     "}"))
 
 (defconst isar-keywords-minor
-  '("advanced"
-    "and"
+  '("and"
     "assumes"
     "attach"
     "begin"

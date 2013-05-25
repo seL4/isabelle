@@ -144,15 +144,15 @@ code_reserved Eval HOLogic
 subsubsection {* Obfuscation *}
 
 print_translation {*
-let
-  val term = Const ("<TERM>", dummyT);
-  fun tr1' [_, _] = term;
-  fun tr2' [] = term;
-in
-  [(@{const_syntax Const}, tr1'),
+  let
+    val term = Const ("<TERM>", dummyT);
+    fun tr1' _ [_, _] = term;
+    fun tr2' _ [] = term;
+  in
+   [(@{const_syntax Const}, tr1'),
     (@{const_syntax App}, tr1'),
     (@{const_syntax dummy_term}, tr2')]
-end
+  end
 *}
 
 

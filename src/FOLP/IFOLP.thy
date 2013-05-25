@@ -66,13 +66,13 @@ syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
 parse_translation {*
   let fun proof_tr [p, P] = Const (@{const_syntax Proof}, dummyT) $ P $ p
-  in [(@{syntax_const "_Proof"}, proof_tr)] end
+  in [(@{syntax_const "_Proof"}, K proof_tr)] end
 *}
 
 (*show_proofs = true displays the proof terms -- they are ENORMOUS*)
 ML {* val show_proofs = Attrib.setup_config_bool @{binding show_proofs} (K false) *}
 
-print_translation (advanced) {*
+print_translation {*
   let
     fun proof_tr' ctxt [P, p] =
       if Config.get ctxt show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P

@@ -34,8 +34,8 @@ consts
 syntax
  "_Trueprop"    :: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
 
-parse_translation {* [(@{syntax_const "_Trueprop"}, two_seq_tr @{const_syntax Trueprop})] *}
-print_translation {* [(@{const_syntax Trueprop}, two_seq_tr' @{syntax_const "_Trueprop"})] *}
+parse_translation {* [(@{syntax_const "_Trueprop"}, K (two_seq_tr @{const_syntax Trueprop}))] *}
+print_translation {* [(@{const_syntax Trueprop}, K (two_seq_tr' @{syntax_const "_Trueprop"}))] *}
 
 abbreviation
   not_equal  (infixl "~=" 50) where

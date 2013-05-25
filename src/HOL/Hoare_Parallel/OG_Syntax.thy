@@ -113,15 +113,15 @@ print_translation {*
 
     fun Parallel_tr' ts = Syntax.const @{syntax_const "_PAR"} $ Parallel_PAR ts;
   in
-   [(@{const_syntax Collect}, assert_tr'),
-    (@{const_syntax Basic}, assign_tr'),
-    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
-    (@{const_syntax While}, bexp_tr' @{syntax_const "_While_inv"}),
-    (@{const_syntax AnnBasic}, annassign_tr'),
-    (@{const_syntax AnnWhile}, annbexp_tr' @{syntax_const "_AnnWhile"}),
-    (@{const_syntax AnnAwait}, annbexp_tr' @{syntax_const "_AnnAwait"}),
-    (@{const_syntax AnnCond1}, annbexp_tr' @{syntax_const "_AnnCond1"}),
-    (@{const_syntax AnnCond2}, annbexp_tr' @{syntax_const "_AnnCond2"})]
+   [(@{const_syntax Collect}, K assert_tr'),
+    (@{const_syntax Basic}, K assign_tr'),
+    (@{const_syntax Cond}, K (bexp_tr' @{syntax_const "_Cond"})),
+    (@{const_syntax While}, K (bexp_tr' @{syntax_const "_While_inv"})),
+    (@{const_syntax AnnBasic}, K annassign_tr'),
+    (@{const_syntax AnnWhile}, K (annbexp_tr' @{syntax_const "_AnnWhile"})),
+    (@{const_syntax AnnAwait}, K (annbexp_tr' @{syntax_const "_AnnAwait"})),
+    (@{const_syntax AnnCond1}, K (annbexp_tr' @{syntax_const "_AnnCond1"})),
+    (@{const_syntax AnnCond2}, K (annbexp_tr' @{syntax_const "_AnnCond2"}))]
   end;
 *}
 
