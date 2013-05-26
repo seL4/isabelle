@@ -159,24 +159,26 @@ val trfun_setup = Sign.parse_translation [(@{syntax_const "_case_syntax"}, case_
 (* print translation *)
 
 fun case_tr' (_ :: x :: t :: ts) =
-  let
-    fun mk_clause (Const (@{const_syntax case_abs}, _) $ Abs (s, T, t)) xs used =
-          let val (s', used') = Name.variant s used
-          in mk_clause t ((s', T) :: xs) used' end
-      | mk_clause (Const (@{const_syntax case_elem}, _) $ pat $ rhs) xs _ =
-          Syntax.const @{syntax_const "_case1"} $
-            subst_bounds (map Syntax_Trans.mark_bound_abs xs, pat) $
-            subst_bounds (map Syntax_Trans.mark_bound_body xs, rhs);
+      let
+        fun mk_clause (Const (@{const_syntax case_abs}, _) $ Abs (s, T, t)) xs used =
+              let val (s', used') = Name.variant s used
+              in mk_clause t ((s', T) :: xs) used' end
+          | mk_clause (Const (@{const_syntax case_elem}, _) $ pat $ rhs) xs _ =
+              Syntax.const @{syntax_const "_case1"} $
+                subst_bounds (map Syntax_Trans.mark_bound_abs xs, pat) $
+                subst_bounds (map Syntax_Trans.mark_bound_body xs, rhs)
+          | mk_clause _ _ _ = raise Match;
 
-    fun mk_clauses (Const (@{const_syntax case_nil}, _)) = []
-      | mk_clauses (Const (@{const_syntax case_cons}, _) $ t $ u) =
-          mk_clause t [] (Term.declare_term_frees t Name.context) ::
-          mk_clauses u
-  in
-    list_comb (Syntax.const @{syntax_const "_case_syntax"} $ x $
-      foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
-        (mk_clauses t), ts)
-  end;
+        fun mk_clauses (Const (@{const_syntax case_nil}, _)) = []
+          | mk_clauses (Const (@{const_syntax case_cons}, _) $ t $ u) =
+              mk_clause t [] (Term.declare_term_frees t Name.context) :: mk_clauses u
+          | mk_clauses _ = raise Match;
+      in
+        list_comb (Syntax.const @{syntax_const "_case_syntax"} $ x $
+          foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
+            (mk_clauses t), ts)
+      end
+  | case_tr' _ = raise Match;
 
 val trfun_setup' = Sign.print_translation [(@{const_syntax "case_guard"}, K case_tr')];
 
@@ -212,7 +214,7 @@ exception CASE_ERROR of string * int;
   came from. i = ~1 indicates that the clause was added by pattern
   completion.*)
 
-fun add_row_used ((prfx, pats), (tm, tag)) =
+fun add_row_used ((prfx, pats), (tm, _)) =
   fold Term.declare_term_frees (tm :: pats @ map Free prfx);
 
 (*try to preserve names given by user*)
@@ -298,7 +300,7 @@ fun mk_case ctxt used range_ty =
   let
     val get_info = lookup_by_constr_permissive ctxt;
 
-    fun expand constructors used ty ((_, []), _) = raise CASE_ERROR ("mk_case: expand", ~1)
+    fun expand _ _ _ ((_, []), _) = raise CASE_ERROR ("mk_case: expand", ~1)
       | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
           if is_Free p then
             let
@@ -313,7 +315,7 @@ fun mk_case ctxt used range_ty =
 
     fun mk _ [] = raise CASE_ERROR ("no rows", ~1)
       | mk [] (((_, []), (tm, tag)) :: _) = ([tag], tm) (* Done *)
-      | mk path (rows as ((row as ((_, [Free _]), _)) :: _ :: _)) = mk path [row]
+      | mk path ((row as ((_, [Free _]), _)) :: _ :: _) = mk path [row]
       | mk (u :: us) (rows as ((_, _ :: _), _) :: _) =
           let val col0 = map (fn ((_, p :: _), (_, i)) => (p, i)) rows in
             (case Option.map (apfst head_of) (find_first (not o is_Free o fst) col0) of
