@@ -28,7 +28,6 @@ sig
   val set_defsort: sort -> Proof.context -> Proof.context
   val default_sort: Proof.context -> indexname -> sort
   val consts_of: Proof.context -> Consts.T
-  val the_const_constraint: Proof.context -> string -> typ
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
@@ -264,8 +263,6 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_data;
-val the_const_constraint = Consts.the_constraint o consts_of;
-
 val facts_of = #facts o rep_data;
 val cases_of = #cases o rep_data;
 
