@@ -91,8 +91,6 @@ sig
   val mode_input: mode
   val empty_syntax: syntax
   val merge_syntax: syntax * syntax -> syntax
-  val token_markers: string list
-  val basic_nonterms: string list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
@@ -526,20 +524,6 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
       print_ast_trtab = merge_tr'tabs print_ast_trtab1 print_ast_trtab2,
       prtabs = Printer.merge_prtabs prtabs1 prtabs2}, stamp ())
   end;
-
-
-(* basic syntax *)
-
-val token_markers =
-  ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
-
-val basic_nonterms =
-  Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
-    "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
-    "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
-    "float_position", "xnum_position", "index", "struct", "tid_position",
-    "tvar_position", "id_position", "longid_position", "var_position", "str_position",
-    "type_name", "class_name"];
 
 
 

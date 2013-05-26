@@ -8,6 +8,7 @@ signature PURE_THY =
 sig
   val old_appl_syntax: theory -> bool
   val old_appl_syntax_setup: theory -> theory
+  val token_markers: string list
 end;
 
 structure Pure_Thy: PURE_THY =
@@ -52,6 +53,9 @@ val old_appl_syntax_setup =
 
 (* main content *)
 
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
+
 val _ = Context.>> (Context.map_theory
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
    Old_Appl_Syntax.put false #>
@@ -60,8 +64,15 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "prop", 0, NoSyn),
     (Binding.name "itself", 1, NoSyn),
     (Binding.name "dummy", 0, NoSyn)]
-  #> Sign.add_nonterminals_global (map Binding.name Syntax.basic_nonterms)
-  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) Syntax.token_markers)
+  #> Sign.add_nonterminals_global
+    (map Binding.name
+      (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
+        "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
+        "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
+        "float_position", "xnum_position", "index", "struct", "tid_position",
+        "tvar_position", "id_position", "longid_position", "var_position", "str_position",
+        "type_name", "class_name"]))
+  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) token_markers)
   #> Sign.add_syntax_i
    [("",            typ "prop' => prop",               Delimfix "_"),
     ("",            typ "logic => any",                Delimfix "_"),
