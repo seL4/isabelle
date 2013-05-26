@@ -104,13 +104,12 @@ fun constrain_Abs tT t = Syntax.const @{syntax_const "_constrainAbs"} $ t $ tT;
 
 fun case_tr err ctxt [t, u] =
       let
-        val thy = Proof_Context.theory_of ctxt;
+        val consts = Proof_Context.consts_of ctxt;
+        fun is_const s = can (Consts.the_constraint consts) (Consts.intern consts s);
 
-        fun is_const s =
-          Sign.declared_const thy (Proof_Context.intern_const ctxt s);
-
-        fun abs p tTs t = Syntax.const @{const_syntax case_abs} $
-          fold constrain_Abs tTs (absfree p t);
+        fun abs p tTs t =
+          Syntax.const @{const_syntax case_abs} $
+            fold constrain_Abs tTs (absfree p t);
 
         fun abs_pat (Const (@{syntax_const "_constrain"}, _) $ t $ tT) tTs =
               abs_pat t (tT :: tTs)
