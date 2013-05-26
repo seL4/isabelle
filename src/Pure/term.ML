@@ -159,7 +159,6 @@ sig
   val maxidx_term: term -> int -> int
   val has_abs: term -> bool
   val dest_abs: string * typ * term -> string * term
-  val dummy_patternN: string
   val dummy_pattern: typ -> term
   val dummy: term
   val dummy_prop: term
@@ -925,9 +924,7 @@ fun dest_abs (x, T, body) =
 
 (* dummy patterns *)
 
-val dummy_patternN = "dummy_pattern";
-
-fun dummy_pattern T = Const (dummy_patternN, T);
+fun dummy_pattern T = Const ("dummy_pattern", T);
 val dummy = dummy_pattern dummyT;
 val dummy_prop = dummy_pattern propT;
 

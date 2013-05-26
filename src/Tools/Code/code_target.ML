@@ -419,7 +419,7 @@ fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
     val value_name = "Value.value.value"
     val program = prepared_program
       |> Graph.new_node (value_name,
-          Code_Thingol.Fun (Term.dummy_patternN, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
+          Code_Thingol.Fun (@{const_name dummy_pattern}, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
       |> fold (curry (perhaps o try o Graph.add_edge) value_name) consts;
     val (program_code, deresolve) = produce (mounted_serializer program);
     val value_name' = the (deresolve value_name);
