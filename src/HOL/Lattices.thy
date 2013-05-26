@@ -49,9 +49,7 @@ lemma orderE:
   obtains "a = a * b"
   using assms by (unfold order_iff)
 
-end
-
-sublocale semilattice_order < ordering less_eq less
+sublocale ordering less_eq less
 proof
   fix a b
   show "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
@@ -78,9 +76,6 @@ next
   with `a = a * b` [symmetric] have "a = a * c" by simp
   then show "a \<preceq> c" by (rule orderI)
 qed
-
-context semilattice_order
-begin
 
 lemma cobounded1 [simp]:
   "a * b \<preceq> a"
@@ -132,9 +127,12 @@ lemma absorb2: "b \<preceq> a \<Longrightarrow> a * b = b"
 end
 
 locale semilattice_neutr_order = semilattice_neutr + semilattice_order
+begin
 
-sublocale semilattice_neutr_order < ordering_top less_eq less 1
+sublocale ordering_top less_eq less 1
   by default (simp add: order_iff)
+
+end
 
 notation times (infixl "*" 70)
 notation Groups.one ("1")
@@ -255,7 +253,10 @@ end
 
 subsubsection {* Equational laws *}
 
-sublocale semilattice_inf < inf!: semilattice inf
+context semilattice_inf
+begin
+
+sublocale inf!: semilattice inf
 proof
   fix a b c
   show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
@@ -266,25 +267,8 @@ proof
     by (rule antisym) auto
 qed
 
-sublocale semilattice_sup < sup!: semilattice sup
-proof
-  fix a b c
-  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
-    by (rule antisym) (auto intro: le_supI1 le_supI2)
-  show "a \<squnion> b = b \<squnion> a"
-    by (rule antisym) auto
-  show "a \<squnion> a = a"
-    by (rule antisym) auto
-qed
-
-sublocale semilattice_inf < inf!: semilattice_order inf less_eq less
+sublocale inf!: semilattice_order inf less_eq less
   by default (auto simp add: le_iff_inf less_le)
-
-sublocale semilattice_sup < sup!: semilattice_order sup greater_eq greater
-  by default (auto simp add: le_iff_sup sup.commute less_le)
-
-context semilattice_inf
-begin
 
 lemma inf_assoc: "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
   by (fact inf.assoc)
@@ -316,6 +300,20 @@ end
 
 context semilattice_sup
 begin
+
+sublocale sup!: semilattice sup
+proof
+  fix a b c
+  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
+    by (rule antisym) (auto intro: le_supI1 le_supI2)
+  show "a \<squnion> b = b \<squnion> a"
+    by (rule antisym) auto
+  show "a \<squnion> a = a"
+    by (rule antisym) auto
+qed
+
+sublocale sup!: semilattice_order sup greater_eq greater
+  by default (auto simp add: le_iff_sup sup.commute less_le)
 
 lemma sup_assoc: "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
   by (fact sup.assoc)
@@ -469,8 +467,9 @@ end
 subsection {* Bounded lattices and boolean algebras *}
 
 class bounded_semilattice_inf_top = semilattice_inf + top
+begin
 
-sublocale bounded_semilattice_inf_top < inf_top!: semilattice_neutr inf top
+sublocale inf_top!: semilattice_neutr inf top
   + inf_top!: semilattice_neutr_order inf top less_eq less
 proof
   fix x
@@ -478,15 +477,20 @@ proof
     by (rule inf_absorb1) simp
 qed
 
-class bounded_semilattice_sup_bot = semilattice_sup + bot
+end
 
-sublocale bounded_semilattice_sup_bot < sup_bot!: semilattice_neutr sup bot
+class bounded_semilattice_sup_bot = semilattice_sup + bot
+begin
+
+sublocale sup_bot!: semilattice_neutr sup bot
   + sup_bot!: semilattice_neutr_order sup bot greater_eq greater
 proof
   fix x
   show "x \<squnion> \<bottom> = x"
     by (rule sup_absorb1) simp
 qed
+
+end
 
 class bounded_lattice_bot = lattice + bot
 begin
