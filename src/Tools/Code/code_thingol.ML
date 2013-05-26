@@ -938,24 +938,24 @@ fun ensure_value thy algbr eqngr t =
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
-    val t' = annotate thy algbr eqngr (Term.dummy_patternN, ty) [] t;
+    val t' = annotate thy algbr eqngr (@{const_name dummy_pattern}, ty) [] t;
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr false) vs
       ##>> translate_typ thy algbr eqngr false ty
       ##>> translate_term thy algbr eqngr false NONE (t', NONE)
       #>> (fn ((vs, ty), t) => Fun
-        (Term.dummy_patternN, (((vs, ty), [(([], t), (NONE, true))]), NONE)));
+        (@{const_name dummy_pattern}, (((vs, ty), [(([], t), (NONE, true))]), NONE)));
     fun term_value (dep, (naming, program1)) =
       let
         val Fun (_, ((vs_ty, [(([], t), _)]), _)) =
-          Graph.get_node program1 Term.dummy_patternN;
-        val deps = Graph.immediate_succs program1 Term.dummy_patternN;
-        val program2 = Graph.del_node Term.dummy_patternN program1;
+          Graph.get_node program1 @{const_name dummy_pattern};
+        val deps = Graph.immediate_succs program1 @{const_name dummy_pattern};
+        val program2 = Graph.del_node @{const_name dummy_pattern} program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.restrict (member (op =) deps_all) program2;
       in (((naming, program3), ((vs_ty, t), deps)), (dep, (naming, program2))) end;
   in
-    ensure_stmt ((K o K) NONE) pair stmt_value Term.dummy_patternN
+    ensure_stmt ((K o K) NONE) pair stmt_value @{const_name dummy_pattern}
     #> snd
     #> term_value
   end;

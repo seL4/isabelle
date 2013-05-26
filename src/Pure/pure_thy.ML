@@ -8,6 +8,7 @@ signature PURE_THY =
 sig
   val old_appl_syntax: theory -> bool
   val old_appl_syntax_setup: theory -> theory
+  val token_markers: string list
 end;
 
 structure Pure_Thy: PURE_THY =
@@ -52,6 +53,9 @@ val old_appl_syntax_setup =
 
 (* main content *)
 
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
+
 val _ = Context.>> (Context.map_theory
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
    Old_Appl_Syntax.put false #>
@@ -60,8 +64,15 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "prop", 0, NoSyn),
     (Binding.name "itself", 1, NoSyn),
     (Binding.name "dummy", 0, NoSyn)]
-  #> Sign.add_nonterminals_global (map Binding.name Syntax.basic_nonterms)
-  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) Syntax.token_markers)
+  #> Sign.add_nonterminals_global
+    (map Binding.name
+      (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
+        "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
+        "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
+        "float_position", "xnum_position", "index", "struct", "tid_position",
+        "tvar_position", "id_position", "longid_position", "var_position", "str_position",
+        "type_name", "class_name"]))
+  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) token_markers)
   #> Sign.add_syntax_i
    [("",            typ "prop' => prop",               Delimfix "_"),
     ("",            typ "logic => any",                Delimfix "_"),
@@ -153,7 +164,7 @@ val _ = Context.>> (Context.map_theory
     ("_context_xconst", typ "longid_position => logic", Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => aprop", Delimfix "XCONST _"),
     (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
-    (const Term.dummy_patternN, typ "aprop",           Delimfix "'_"),
+    (const "dummy_pattern", typ "aprop",               Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
     (const "Pure.conjunction", typ "prop => prop => prop", Infixr ("&&&", 2))]
@@ -183,12 +194,12 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),
     (Binding.name "TYPE", typ "'a itself", NoSyn),
-    (Binding.name Term.dummy_patternN, typ "'a", Delimfix "'_")]
+    (Binding.name "dummy_pattern", typ "'a", Delimfix "'_")]
   #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
   #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
   #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
   #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
-  #> Theory.add_deps_global Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
+  #> Theory.add_deps_global "dummy_pattern" ("dummy_pattern", typ "'a") []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation

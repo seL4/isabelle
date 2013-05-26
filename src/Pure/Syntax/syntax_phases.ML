@@ -151,11 +151,16 @@ fun parsetree_to_ast ctxt raw trf parsetree =
       then [Ast.Variable (Lexicon.str_of_token tok)]
       else [];
 
+    fun ast_of_position tok =
+      Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok));
+
+    fun ast_of_dummy a tok =
+      if raw then Ast.Constant a
+      else Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
+
     fun asts_of_position c tok =
       if raw then asts_of_token tok
-      else
-        [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok),
-          Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+      else [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
     and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
@@ -174,6 +179,12 @@ fun parsetree_to_ast ctxt raw trf parsetree =
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
       | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
+      | asts_of (Parser.Node (a as "\\<^const>dummy_pattern", [Parser.Tip tok])) =
+          [ast_of_dummy a tok]
+      | asts_of (Parser.Node (a as "_idtdummy", [Parser.Tip tok])) =
+          [ast_of_dummy a tok]
+      | asts_of (Parser.Node ("_idtypdummy", pts as [Parser.Tip tok, _, _])) =
+          [Ast.Appl (Ast.Constant "_constrain" :: ast_of_dummy "_idtdummy" tok :: maps asts_of pts)]
       | asts_of (Parser.Node (a, pts)) =
           let
             val _ = pts |> List.app
@@ -517,7 +528,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, _)) $ u) =
-          if member (op =) Syntax.token_markers c
+          if member (op =) Pure_Thy.token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)

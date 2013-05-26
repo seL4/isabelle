@@ -121,9 +121,6 @@ fun applC_ast_tr [f, args] = Ast.Appl (f :: Ast.unfold_ast "_cargs" args)
 fun idtyp_ast_tr [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, ty]
   | idtyp_ast_tr asts = raise Ast.AST ("idtyp_ast_tr", asts);
 
-fun idtypdummy_ast_tr [ty] = Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
-  | idtypdummy_ast_tr asts = raise Ast.AST ("idtyp_ast_tr", asts);
-
 fun lambda_ast_tr [pats, body] = Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr asts = raise Ast.AST ("lambda_ast_tr", asts);
 
@@ -513,7 +510,6 @@ val pure_parse_ast_translation =
   ("_applC", fn _ => applC_ast_tr),
   ("_lambda", fn _ => lambda_ast_tr),
   ("_idtyp", fn _ => idtyp_ast_tr),
-  ("_idtypdummy", fn _ => idtypdummy_ast_tr),
   ("_bigimpl", fn _ => bigimpl_ast_tr),
   ("_indexdefault", fn _ => indexdefault_ast_tr),
   ("_indexvar", fn _ => indexvar_ast_tr),
