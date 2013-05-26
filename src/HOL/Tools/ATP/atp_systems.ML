@@ -521,11 +521,11 @@ val spass_extra_options =
 (* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
   {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
-   arguments =
-     fn _ => fn _ => fn extra_options => fn timeout => fn file_name => fn _ =>
-         "-Isabelle=1 -TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^
-         file_name
-         |> extra_options <> "" ? prefix (extra_options ^ " "),
+   arguments = fn _ => fn full_proofs => fn extra_options => fn timeout =>
+       fn file_name => fn _ =>
+       "-Isabelle=1 " ^ (if full_proofs then "-Splits=0 " else "") ^
+       "-TimeLimit=" ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name
+       |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(OldSPASS, "Unrecognized option Isabelle"),
@@ -711,12 +711,12 @@ val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 fun remote_config system_name system_versions proof_delims known_failures
                   prem_role best_slice : atp_config =
   {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
-   arguments =
-     fn _ => fn _ => fn command => fn timeout => fn file_name => fn _ =>
-         (if command <> "" then "-c " ^ quote command ^ " " else "") ^
-         "-s " ^ the_remote_system system_name system_versions ^ " " ^
-         "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
-         " " ^ file_name,
+   arguments = fn _ => fn _ => fn command => fn timeout => fn file_name =>
+       fn _ =>
+       (if command <> "" then "-c " ^ quote command ^ " " else "") ^
+       "-s " ^ the_remote_system system_name system_versions ^ " " ^
+       "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
+       " " ^ file_name,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    prem_role = prem_role,
