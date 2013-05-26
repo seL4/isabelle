@@ -882,7 +882,7 @@ fun gen_interpretation prep_expr prep_prop prep_attr expression raw_eqns lthy =
   then 
     lthy
     |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind Local_Theory.add_registration expression raw_eqns
+        Local_Theory.notes_kind Generic_Target.theory_registration expression raw_eqns
   else
     lthy
     |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
@@ -895,7 +895,7 @@ fun gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns lthy =
   in
     lthy
     |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind (Local_Theory.add_dependency locale) expression raw_eqns
+        Local_Theory.notes_kind (Generic_Target.locale_dependency locale) expression raw_eqns
   end;
   
 fun gen_sublocale_global prep_expr prep_loc prep_prop prep_attr before_exit raw_locale expression raw_eqns thy =
@@ -915,8 +915,8 @@ fun permanent_interpretation expression raw_eqns lthy =
   let
     val _ = Local_Theory.assert_bottom true lthy;
     val target = Named_Target.the_name lthy;
-    val subscribe = if target = "" then Local_Theory.add_registration
-      else Local_Theory.add_dependency target;
+    val subscribe = if target = "" then Generic_Target.theory_registration
+      else Generic_Target.locale_dependency target;
   in
     lthy
     |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs

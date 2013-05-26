@@ -58,9 +58,7 @@ sig
   val const_alias: binding -> string -> local_theory -> local_theory
   val activate: string * morphism -> (morphism * bool) option -> morphism ->
     local_theory -> local_theory
-  val add_registration: string * morphism -> (morphism * bool) option -> morphism ->
-    local_theory -> local_theory
-  val add_dependency: string -> string * morphism -> (morphism * bool) option -> morphism ->
+  val activate_nonbrittle: string * morphism -> (morphism * bool) option -> morphism ->
     local_theory -> local_theory
   val init: Name_Space.naming -> operations -> Proof.context -> local_theory
   val exit: local_theory -> Proof.context
@@ -308,19 +306,13 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
 (* activation of locale fragments *)
 
-fun activate_surface dep_morph mixin export =
+fun activate_nonbrittle dep_morph mixin export =
   map_first_lthy (fn (naming, operations, after_close, brittle, target) =>
     (naming, operations, after_close, brittle,
       (Context.proof_map ooo Locale.add_registration) dep_morph mixin export target));
 
 fun activate dep_morph mixin export =
-  mark_brittle #> activate_surface dep_morph mixin export;
-
-val add_registration = raw_theory o Context.theory_map ooo Locale.add_registration;
-
-fun add_dependency locale dep_morph mixin export =
-  (raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
-  #> activate_surface dep_morph mixin export;
+  mark_brittle #> activate_nonbrittle dep_morph mixin export;
 
 
 (** init and exit **)

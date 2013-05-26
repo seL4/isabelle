@@ -41,6 +41,10 @@ sig
   val theory_abbrev: Syntax.mode -> (binding * mixfix) -> term * term -> term list ->
     local_theory -> local_theory
   val theory_declaration: declaration -> local_theory -> local_theory
+  val theory_registration: string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
+  val locale_dependency: string -> string * morphism -> (morphism * bool) option -> morphism ->
+    local_theory -> local_theory
 end
 
 structure Generic_Target: GENERIC_TARGET =
@@ -269,6 +273,16 @@ fun const_declaration pred prmode ((b, mx), rhs) =
       val rhs' = Morphism.term phi rhs;
       val same_shape = Term.aconv_untyped (rhs, rhs');
     in generic_const same_shape prmode ((b', mx), rhs') end);
+
+
+(* registrations and dependencies *)
+
+val theory_registration =
+  Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
+
+fun locale_dependency locale dep_morph mixin export =
+  (Local_Theory.raw_theory ooo Locale.add_dependency locale) dep_morph mixin export
+  #> Local_Theory.activate_nonbrittle dep_morph mixin export;
 
 
 
