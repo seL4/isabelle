@@ -912,7 +912,7 @@ fun run_atp mode name
     fun export (_, (output, _, _, _, _)) =
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
-    val ((_, (_, pool, fact_names, _, sym_tab)),
+    val ((_, (_, pool, fact_names, lifted, sym_tab)),
          (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
     val important_message =
@@ -951,7 +951,7 @@ fun run_atp mode name
                     ()
                 val isar_params =
                   (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
-                   pool, fact_names, sym_tab, atp_proof, goal)
+                   pool, fact_names, lifted, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command ctxt params minimize_command name

@@ -111,14 +111,14 @@ fun reveal_old_skolem_terms old_skolems =
                    t
                | t => t)
 
-fun reveal_lam_lifted lambdas =
+fun reveal_lam_lifted lifted =
   map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix lam_lifted_prefix s then
-                   case AList.lookup (op =) lambdas s of
+                   case AList.lookup (op =) lifted s of
                      SOME t =>
                      Const (@{const_name Metis.lambda}, dummyT)
                      $ map_types (map_type_tvar (K dummyT))
-                                 (reveal_lam_lifted lambdas t)
+                                 (reveal_lam_lifted lifted t)
                    | NONE => t
                  else
                    t

@@ -24,7 +24,8 @@ sig
     play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
     bool * bool * Time.time option * bool * real * string Symtab.table
-    * (string * stature) list vector * int Symtab.table * string proof * thm
+    * (string * stature) list vector * (string * term) list * int Symtab.table
+    * string proof * thm
 
   val smtN : string
   val string_of_reconstructor : reconstructor -> string
@@ -323,12 +324,25 @@ fun uncombine_term thy =
       | aux t = t
   in aux end
 
-fun decode_line ctxt sym_tab (name, role, u, rule, deps) =
+fun unlift_term lifted =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix lam_lifted_prefix s then
+                   case AList.lookup (op =) lifted s of
+                     SOME t =>
+                     (* FIXME: do something about the types *)
+                     unlift_term lifted t
+                   | NONE => t
+                 else
+                   t
+               | t => t)
+
+fun decode_line ctxt lifted sym_tab (name, role, u, rule, deps) =
   let
     val thy = Proof_Context.theory_of ctxt
     val t =
       u |> prop_of_atp ctxt true sym_tab
         |> uncombine_term thy
+        |> unlift_term lifted
         |> infer_formula_types ctxt
   in (name, role, t, rule, deps) end
 
@@ -627,11 +641,12 @@ val chain_direct_proof =
 
 type isar_params =
   bool * bool * Time.time option * bool * real * string Symtab.table
-  * (string * stature) list vector * int Symtab.table * string proof * thm
+  * (string * stature) list vector * (string * term) list * int Symtab.table
+  * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
     (debug, verbose, preplay_timeout, preplay_trace, isar_compress, pool,
-     fact_names, sym_tab, atp_proof, goal)
+     fact_names, lifted, sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val ((params, hyp_ts, concl_t), ctxt) = strip_subgoal goal subgoal ctxt
@@ -649,7 +664,7 @@ fun isar_proof_text ctxt isar_proofs
           |> clean_up_atp_proof_dependencies
           |> nasty_atp_proof pool
           |> map_term_names_in_atp_proof repair_name
-          |> map (decode_line ctxt sym_tab)
+          |> map (decode_line ctxt lifted sym_tab)
           |> repair_waldmeister_endgame
           |> rpair [] |-> fold_rev (add_line fact_names)
           |> rpair [] |-> fold_rev add_nontrivial_line
