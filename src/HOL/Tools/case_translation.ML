@@ -107,6 +107,10 @@ fun case_tr err ctxt [t, u] =
         val consts = Proof_Context.consts_of ctxt;
         fun is_const s = can (Consts.the_constraint consts) (Consts.intern consts s);
 
+        fun variant_free x used =
+          let val (x', used') = Name.variant x used
+          in if is_const x' then variant_free x' used' else (x', used') end;
+
         fun abs p tTs t =
           Syntax.const @{const_syntax case_abs} $
             fold constrain_Abs tTs (absfree p t);
@@ -120,7 +124,7 @@ fun case_tr err ctxt [t, u] =
 
         (* replace occurrences of dummy_pattern by distinct variables *)
         fun replace_dummies (Const (@{const_syntax dummy_pattern}, T)) used =
-              let val (x, used') = Name.variant "x" used
+              let val (x, used') = variant_free "x" used
               in (Free (x, T), used') end
           | replace_dummies (t $ u) used =
               let
