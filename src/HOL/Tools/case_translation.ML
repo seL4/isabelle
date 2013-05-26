@@ -577,17 +577,25 @@ val setup =
 
 fun print_case_translations ctxt =
   let
-    val cases = Symtab.dest (cases_of ctxt);
-    fun show_case (_, data as (comb, ctrs)) =
-      (Pretty.block o Pretty.fbreaks)
-        [Pretty.block [Pretty.str (Tname_of_data data), Pretty.str ":"],
-         Pretty.block [Pretty.brk 3, Pretty.block
-          [Pretty.str "combinator:", Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt comb)]],
-         Pretty.block [Pretty.brk 3, Pretty.block
-          [Pretty.str "constructors:", Pretty.brk 1,
-            Pretty.block (Pretty.commas (map (Pretty.quote o Syntax.pretty_term ctxt) ctrs))]]];
+    val cases = map snd (Symtab.dest (cases_of ctxt));
+    val type_space = Proof_Context.type_space ctxt;
+
+    val pretty_term = Syntax.pretty_term ctxt;
+
+    fun pretty_data (data as (comb, ctrs)) =
+      let
+        val name = Tname_of_data data;
+        val xname = Name_Space.extern ctxt type_space name;
+        val markup = Name_Space.markup type_space name;
+        val prt =
+          (Pretty.block o Pretty.fbreaks)
+           [Pretty.block [Pretty.mark_str (markup, xname), Pretty.str ":"],
+            Pretty.block [Pretty.str "combinator:", Pretty.brk 1, pretty_term comb],
+            Pretty.block (Pretty.str "constructors:" :: Pretty.brk 1 ::
+              Pretty.commas (map pretty_term ctrs))];
+      in (xname, prt) end;
   in
-    Pretty.big_list "case translations:" (map show_case cases)
+    Pretty.big_list "case translations:" (map #2 (sort_wrt #1 (map pretty_data cases)))
     |> Pretty.writeln
   end;
 
