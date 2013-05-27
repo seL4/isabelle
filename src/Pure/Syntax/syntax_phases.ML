@@ -545,12 +545,9 @@ in
 
 fun term_to_ast idents is_syntax_const ctxt trf tm =
   let
-    val show_types =
-      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
-      Config.get ctxt show_all_types;
+    val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
-    val show_all_types = Config.get ctxt show_all_types;
     val show_markup = Config.get ctxt show_markup;
 
     val {structs, fixes} = idents;
@@ -610,10 +607,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) =>
-          if show_all_types
-          then Ast.mk_appl (constrain const T) (map ast_of ts)
-          else trans c T ts
+      | (const as Const (c, T), ts) => trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)
@@ -666,9 +660,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
-    val show_types =
-      Config.get ctxt show_types orelse show_sorts orelse
-      Config.get ctxt show_all_types;
+    val show_types = Config.get ctxt show_types orelse show_sorts;
 
     val syn = Proof_Context.syn_of ctxt;
     val prtabs = Syntax.prtabs syn;

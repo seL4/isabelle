@@ -71,10 +71,7 @@ fun pretty_goals ctxt0 state =
   let
     val ctxt = ctxt0
       |> Config.put show_free_types false
-      |> Config.put show_types
-       (Config.get ctxt0 show_types orelse
-        Config.get ctxt0 show_sorts orelse
-        Config.get ctxt0 show_all_types)
+      |> Config.put show_types (Config.get ctxt0 show_types orelse Config.get ctxt0 show_sorts)
       |> Config.put show_sorts false;
 
     val show_sorts0 = Config.get ctxt0 show_sorts;
