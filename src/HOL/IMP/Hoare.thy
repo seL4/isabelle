@@ -10,7 +10,7 @@ type_synonym assn = "state \<Rightarrow> bool"
 
 definition
 hoare_valid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" 50) where
-"\<Turnstile> {P}c{Q} = (\<forall>s t. (c,s) \<Rightarrow> t  \<longrightarrow>  P s \<longrightarrow>  Q t)"
+"\<Turnstile> {P}c{Q} = (\<forall>s t. P s \<and> (c,s) \<Rightarrow> t  \<longrightarrow>  Q t)"
 
 abbreviation state_subst :: "state \<Rightarrow> aexp \<Rightarrow> vname \<Rightarrow> state"
   ("_[_'/_]" [1000,0,0] 999)
