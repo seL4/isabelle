@@ -45,14 +45,13 @@ sig
     (typ list * typ list) list list list
   val define_fold_rec: (term list list * typ list list * term list list list)
       * (term list list * typ list list * term list list list) -> (string -> binding) -> typ list ->
-    typ list -> typ list -> term -> term -> Proof.context ->
-    (term * term * thm * thm) * Proof.context
+    typ list -> term -> term -> Proof.context -> (term * term * thm * thm) * Proof.context
   val define_unfold_corec: term list * term list list
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list))
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list)) ->
-    (string -> binding) -> typ list -> typ list -> typ list -> term -> term -> Proof.context ->
+    (string -> binding) -> typ list -> typ list -> term -> term -> Proof.context ->
     (term * term * thm * thm) * Proof.context
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
@@ -485,7 +484,7 @@ fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
     Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_rec lthy0 =
+fun define_fold_rec (fold_only, rec_only) mk_binding fpTs Cs ctor_fold ctor_rec lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -520,7 +519,7 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_r
     ((foldx, recx, fold_def, rec_def), lthy')
   end;
 
-fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As Cs dtor_unfold
+fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs Cs dtor_unfold
     dtor_corec lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
@@ -555,7 +554,7 @@ fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As C
     val [unfold, corec] = map (mk_co_iter thy false fpT Cs o Morphism.term phi) csts;
   in
     ((unfold, corec, unfold_def, corec_def), lthy')
-  end;
+  end ;
 
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_induct ctor_fold_thms
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs ctrss ctr_defss folds recs fold_defs rec_defs
@@ -1330,8 +1329,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
         (wrap_ctrs
          #> derive_maps_sets_rels
          ##>> (if lfp then define_fold_rec (the fold_rec_args_types)
-           else define_unfold_corec (the unfold_corec_args_types))
-             mk_binding fpTs As Cs fp_fold fp_rec
+           else define_unfold_corec (the unfold_corec_args_types)) mk_binding fpTs Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
 
