@@ -220,7 +220,7 @@ fun mk_ctor_or_dtor get_T Ts t =
 val mk_ctor = mk_ctor_or_dtor range_type;
 val mk_dtor = mk_ctor_or_dtor domain_type;
 
-fun mk_co_iter lfp Ts Us t =
+fun mk_co_iter thy lfp Ts Us t =
   let
     val (bindings, body) = strip_type (fastype_of t);
     val (f_Us, prebody) = split_last bindings;
@@ -230,11 +230,8 @@ fun mk_co_iter lfp Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
-
-fun mk_fp_iters ctxt lfp fpTs Cs fp_iters0 =
+fun mk_co_iter_new thy lfp fpTs Cs fp_iters0 =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val nn = length fpTs;
     val (fpTs0, Cs0) =
       map ((not lfp ? swap) o dest_funT o snd o strip_typeN nn o fastype_of) fp_iters0
@@ -242,8 +239,14 @@ fun mk_fp_iters ctxt lfp fpTs Cs fp_iters0 =
     val rho = tvar_subst thy (fpTs0 @ Cs0) (fpTs @ Cs);
     val subst = Term.subst_TVars rho;
   in
-    map subst fp_iters0 |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)))
+    map subst fp_iters0
   end;
+
+val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
+
+fun mk_fp_iters thy lfp fpTs Cs fp_iters0 =
+  mk_co_iter_new thy lfp fpTs Cs fp_iters0
+  |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
 
 fun unzip_recT fpTs T =
   let
@@ -351,8 +354,10 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
 
 fun mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
   let
-    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_folds0;
-    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_recs0;
+    val thy = Proof_Context.theory_of lthy;
+
+    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iters thy lfp fpTs Cs fp_folds0;
+    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iters thy lfp fpTs Cs fp_recs0;
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if lfp then
@@ -552,6 +557,8 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs ctrss ctr_defss folds recs fold_defs rec_defs
     lthy =
   let
+    val thy = Proof_Context.theory_of lthy;
+
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
 
     val nn = length pre_bnfs;
@@ -567,8 +574,8 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val (_, ctor_fold_fun_Ts) = mk_fp_iters lthy true fpTs Cs ctor_folds0;
-    val (_, ctor_rec_fun_Ts) = mk_fp_iters lthy true fpTs Cs ctor_recs0;
+    val (_, ctor_fold_fun_Ts) = mk_fp_iters thy true fpTs Cs ctor_folds0;
+    val (_, ctor_rec_fun_Ts) = mk_fp_iters thy true fpTs Cs ctor_recs0;
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
       mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
@@ -710,6 +717,8 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
     dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
     As kss mss ns ctr_defss ctr_sugars unfolds corecs unfold_defs corec_defs lthy =
   let
+    val thy = Proof_Context.theory_of lthy;
+
     val nn = length pre_bnfs;
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
@@ -722,8 +731,8 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val (_, dtor_unfold_fun_Ts) = mk_fp_iters lthy false fpTs Cs dtor_unfolds0;
-    val (_, dtor_corec_fun_Ts) = mk_fp_iters lthy false fpTs Cs dtor_corecs0;
+    val (_, dtor_unfold_fun_Ts) = mk_fp_iters thy false fpTs Cs dtor_unfolds0;
+    val (_, dtor_corec_fun_Ts) = mk_fp_iters thy false fpTs Cs dtor_corecs0;
 
     val ctrss = map (map (mk_ctr As) o #ctrs) ctr_sugars;
     val discss = map (map (mk_disc_or_sel As) o #discs) ctr_sugars;
