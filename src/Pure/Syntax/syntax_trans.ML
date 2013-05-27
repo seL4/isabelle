@@ -39,7 +39,6 @@ sig
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs_tr': string -> string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs2_tr': string -> string -> string * (Proof.context -> term list -> term)
-  val prop_tr': term -> term
   val variant_abs: string * typ * term -> string * term
   val variant_abs': string * typ * term -> string * term
   val dependent_tr': string * string -> term list -> term
@@ -376,37 +375,6 @@ fun preserve_binder_abs2_tr' name syn = (name, fn _ => fn A :: Abs abs :: ts =>
 fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
       Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
   | idtyp_ast_tr' _ _ = raise Match;
-
-
-(* meta propositions *)
-
-fun prop_tr' tm =
-  let
-    fun aprop t = Syntax.const "_aprop" $ t;
-
-    fun is_prop Ts t =
-      fastype_of1 (Ts, t) = propT handle TERM _ => false;
-
-    fun is_term (Const ("Pure.term", _) $ _) = true
-      | is_term _ = false;
-
-    fun tr' _ (t as Const _) = t
-      | tr' Ts (t as Const ("_bound", _) $ u) =
-          if is_prop Ts u then aprop t else t
-      | tr' _ (t as Free (x, T)) =
-          if T = propT then aprop (Syntax.free x) else t
-      | tr' _ (t as Var (xi, T)) =
-          if T = propT then aprop (Syntax.var xi) else t
-      | tr' Ts (t as Bound _) =
-          if is_prop Ts t then aprop t else t
-      | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
-      | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
-          if is_prop Ts t andalso not (is_term t) then Const ("_type_prop", T) $ tr' Ts t1
-          else tr' Ts t1 $ tr' Ts t2
-      | tr' Ts (t as t1 $ t2) =
-          (if is_Const (Term.head_of t) orelse not (is_prop Ts t)
-            then I else aprop) (tr' Ts t1 $ tr' Ts t2);
-  in tr' [] tm end;
 
 
 (* meta implication *)
