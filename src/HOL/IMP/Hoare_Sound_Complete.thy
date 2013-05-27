@@ -4,10 +4,6 @@ theory Hoare_Sound_Complete imports Hoare begin
 
 subsection "Soundness"
 
-definition
-hoare_valid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" 50) where
-"\<Turnstile> {P}c{Q} = (\<forall>s t. (c,s) \<Rightarrow> t  \<longrightarrow>  P s \<longrightarrow>  Q t)"
-
 lemma hoare_sound: "\<turnstile> {P}c{Q}  \<Longrightarrow>  \<Turnstile> {P}c{Q}"
 proof(induction rule: hoare.induct)
   case (While P b c)
