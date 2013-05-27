@@ -136,7 +136,7 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
-fun parsetree_to_ast ctxt raw trf parsetree =
+fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report list);
     fun report pos = Position.store_reports reports [pos];
@@ -155,12 +155,10 @@ fun parsetree_to_ast ctxt raw trf parsetree =
       Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok));
 
     fun ast_of_dummy a tok =
-      if raw then Ast.Constant a
-      else Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
+      Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
 
     fun asts_of_position c tok =
-      if raw then asts_of_token tok
-      else [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
+      [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
     and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
@@ -322,7 +320,7 @@ fun parse_asts ctxt raw root (syms, pos) =
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))];
 
-  in (ambig_msgs, map (parsetree_to_ast ctxt raw ast_tr) pts) end;
+  in (ambig_msgs, map (parsetree_to_ast ctxt ast_tr) pts) end;
 
 fun parse_tree ctxt root input =
   let
@@ -421,19 +419,32 @@ fun parse_ast_pattern ctxt (root, str) =
   let
     val syn = Proof_Context.syn_of ctxt;
 
-    fun constify (ast as Ast.Constant _) = ast
-      | constify (ast as Ast.Variable x) =
+    val reports = Unsynchronized.ref ([]: Position.report list);
+    fun report ps = Position.store_reports reports ps;
+
+    fun decode_const ps c = (report ps (markup_entity ctxt) c; Ast.Constant c);
+    fun decode_var ps x = (report ps (fn () => [Markup.name x Markup.free]) (); Ast.Variable x);
+    fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
+    and decode ps (Ast.Constant c) = decode_const ps c
+      | decode ps (Ast.Variable x) =
           if is_some (Syntax.lookup_const syn x) orelse Long_Name.is_qualified x
-          then Ast.Constant x
-          else ast
-      | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
+          then decode_const ps x
+          else decode_var ps x
+      | decode ps (Ast.Appl (asts as (Ast.Constant c :: ast :: Ast.Variable x :: args))) =
+          if member (op =) Term_Position.markers c then
+            (case Term_Position.decode x of
+              SOME p => Ast.mk_appl (decode (p :: ps) ast) (map (decode ps) args)
+            | NONE => decode_appl ps asts)
+          else decode_appl ps asts
+      | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
     val (syms, pos) = Syntax.read_token str;
-  in
-    parse_asts ctxt true root (syms, pos)
-    |> uncurry (report_result ctxt pos)
-    |> constify
-  end;
+    val ast =
+      parse_asts ctxt true root (syms, pos)
+      |> uncurry (report_result ctxt pos)
+      |> decode [];
+    val _ = Context_Position.reports ctxt (! reports);
+  in ast end;
 
 
 
@@ -541,48 +552,43 @@ fun mark_aprop tm =
             (mark Ts t1 $ mark Ts t2);
   in mark [] tm end;
 
-in
-
-fun term_to_ast idents is_syntax_const ctxt trf tm =
+fun prune_types ctxt tm =
   let
-    val show_types =
-      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
-      Config.get ctxt show_all_types;
-    val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
-    val show_all_types = Config.get ctxt show_all_types;
-    val show_markup = Config.get ctxt show_markup;
 
-    val {structs, fixes} = idents;
-
-    fun prune_typs (t_seen as (Const _, _)) = t_seen
-      | prune_typs (t as Free (x, ty), seen) =
+    fun prune (t_seen as (Const _, _)) = t_seen
+      | prune (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
           else if not show_free_types orelse member (op aconv) seen t then (Syntax.free x, seen)
           else (t, t :: seen)
-      | prune_typs (t as Var (xi, ty), seen) =
+      | prune (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
           else if not show_free_types orelse member (op aconv) seen t then (Syntax.var xi, seen)
           else (t, t :: seen)
-      | prune_typs (t_seen as (Bound _, _)) = t_seen
-      | prune_typs (Abs (x, ty, t), seen) =
-          let val (t', seen') = prune_typs (t, seen);
+      | prune (t_seen as (Bound _, _)) = t_seen
+      | prune (Abs (x, ty, t), seen) =
+          let val (t', seen') = prune (t, seen);
           in (Abs (x, ty, t'), seen') end
-      | prune_typs (t1 $ t2, seen) =
+      | prune (t1 $ t2, seen) =
           let
-            val (t1', seen') = prune_typs (t1, seen);
-            val (t2', seen'') = prune_typs (t2, seen');
+            val (t1', seen') = prune (t1, seen);
+            val (t2', seen'') = prune (t2, seen');
           in (t1' $ t2', seen'') end;
+  in #1 (prune (tm, [])) end;
 
-    fun mark_atoms ((t as Const (c, _)) $ u) =
+fun mark_atoms {structs, fixes} is_syntax_const ctxt tm =
+  let
+    val show_structs = Config.get ctxt show_structs;
+
+    fun mark ((t as Const (c, _)) $ u) =
           if member (op =) Pure_Thy.token_markers c
-          then t $ u else mark_atoms t $ mark_atoms u
-      | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
-      | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
-      | mark_atoms (t as Const (c, T)) =
+          then t $ u else mark t $ mark u
+      | mark (t $ u) = mark t $ mark u
+      | mark (Abs (x, T, t)) = Abs (x, T, mark t)
+      | mark (t as Const (c, T)) =
           if is_syntax_const c then t
           else Const (Lexicon.mark_const c, T)
-      | mark_atoms (t as Free (x, T)) =
+      | mark (t as Free (x, T)) =
           let val i = find_index (fn s => s = x) structs + 1 in
             if i = 0 andalso member (op =) fixes x then
               Const (Lexicon.mark_fixed x, T)
@@ -590,10 +596,18 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
               Syntax.const "_struct" $ Syntax.const "_indexdefault"
             else Syntax.const "_free" $ t
           end
-      | mark_atoms (t as Var (xi, T)) =
+      | mark (t as Var (xi, T)) =
           if xi = Syntax_Ext.dddot_indexname then Const ("_DDDOT", T)
           else Syntax.const "_var" $ t
-      | mark_atoms a = a;
+      | mark a = a;
+  in mark tm end;
+
+in
+
+fun term_to_ast idents is_syntax_const ctxt trf tm =
+  let
+    val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
+    val show_markup = Config.get ctxt show_markup;
 
     fun ast_of tm =
       (case strip_comb tm of
@@ -610,10 +624,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) =>
-          if show_all_types
-          then Ast.mk_appl (constrain const T) (map ast_of ts)
-          else trans c T ts
+      | (const as Const (c, T), ts) => trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)
@@ -627,8 +638,8 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
   in
     tm
     |> mark_aprop
-    |> show_types ? (#1 o prune_typs o rpair [])
-    |> mark_atoms
+    |> show_types ? prune_types ctxt
+    |> mark_atoms idents is_syntax_const ctxt
     |> ast_of
   end;
 
@@ -666,9 +677,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
-    val show_types =
-      Config.get ctxt show_types orelse show_sorts orelse
-      Config.get ctxt show_all_types;
+    val show_types = Config.get ctxt show_types orelse show_sorts;
 
     val syn = Proof_Context.syn_of ctxt;
     val prtabs = Syntax.prtabs syn;

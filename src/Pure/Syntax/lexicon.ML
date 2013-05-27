@@ -169,7 +169,9 @@ val is_terminal = member (op =) terminals;
 (* markup *)
 
 fun literal_markup s =
-  if Symbol.is_ascii_identifier s then Markup.literal else Markup.delimiter;
+  if Symbol.is_ascii_identifier s orelse exists Symbol.is_letter (Symbol.explode s)
+  then Markup.literal
+  else Markup.delimiter;
 
 val token_kind_markup =
  fn TFreeSy => Markup.tfree

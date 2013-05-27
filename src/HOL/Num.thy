@@ -326,14 +326,15 @@ typed_print_translation {*
     fun num_tr' sign ctxt T [n] =
       let
         val k = dest_num n;
-        val t' = Syntax.const @{syntax_const "_Numeral"} $
-          Syntax.free (sign ^ string_of_int k);
+        val t' =
+          Syntax.const @{syntax_const "_Numeral"} $
+            Syntax.free (sign ^ string_of_int k);
       in
         (case T of
           Type (@{type_name fun}, [_, T']) =>
             if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
             else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
-        | T' => if T' = dummyT then t' else raise Match)
+        | _ => if T = dummyT then t' else raise Match)
       end;
   in
    [(@{const_syntax numeral}, num_tr' ""),

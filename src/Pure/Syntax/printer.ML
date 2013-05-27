@@ -10,7 +10,6 @@ sig
   val show_types: bool Config.T
   val show_sorts: bool Config.T
   val show_free_types: bool Config.T
-  val show_all_types: bool Config.T
   val show_markup: bool Config.T
   val show_structs: bool Config.T
   val show_question_marks: bool Config.T
@@ -60,7 +59,6 @@ val show_sorts_raw = Config.declare_option "show_sorts";
 val show_sorts = Config.bool show_sorts_raw;
 
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
-val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
 
 val show_markup_default = Unsynchronized.ref false;
 val show_markup_raw = Config.declare "show_markup" (fn _ => Config.Bool (! show_markup_default));
