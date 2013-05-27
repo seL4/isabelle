@@ -406,10 +406,17 @@ fun flexflex_first_order th =
       [] => th
     | pairs =>
         let val thy = theory_of_thm th
-            val (_, tenv) =
+            val cert = cterm_of thy
+            val certT = ctyp_of thy
+            val (tyenv, tenv) =
               fold (Pattern.first_order_match thy) pairs (Vartab.empty, Vartab.empty)
-            val t_pairs = map Meson.term_pair_of (Vartab.dest tenv)
-            val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
+            fun mkT (v, (S, T)) = (certT (TVar (v, S)), certT T)
+            fun mk (v, (T, t)) =
+              let val T' = Envir.subst_type tyenv T
+              in (cert (Var (v, T')), cert t) end
+            val instsT = Vartab.fold (cons o mkT) tyenv []
+            val insts = Vartab.fold (cons o mk) tenv []
+            val th' = Thm.instantiate (instsT, insts) th
         in  th'  end
         handle THM _ => th;
 

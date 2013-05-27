@@ -186,6 +186,9 @@ exception ASSIGN;  (*Raised if not an assignment*)
 fun unify_types thy TU env =
   Pattern.unify_types thy TU env handle Pattern.Unif => raise CANTUNIFY;
 
+fun unify_types_of thy (rbinder, t, u) env =
+  unify_types thy (fastype env (rbinder, t), fastype env (rbinder, u)) env;
+
 fun test_unify_types thy (T, U) env =
   let
     val str_of = Syntax.string_of_typ_global thy;
@@ -196,47 +199,42 @@ fun test_unify_types thy (T, U) env =
 (*Is the term eta-convertible to a single variable with the given rbinder?
   Examples: ?a   ?f(B.0)   ?g(B.1,B.0)
   Result is var a for use in SIMPL. *)
-fun get_eta_var ([], _, Var vT) = vT
-  | get_eta_var (_::rbinder, n, f $ Bound i) =
-      if n = i then get_eta_var (rbinder, n + 1, f)
+fun get_eta_var [] n (Var vT) = (n, vT)
+  | get_eta_var (_ :: rbinder) n (f $ Bound i) =
+      if n = i then get_eta_var rbinder (n + 1) f
       else raise ASSIGN
-  | get_eta_var _ = raise ASSIGN;
+  | get_eta_var _ _ _ = raise ASSIGN;
 
 
 (*Solve v=u by assignment -- "fixedpoint" to Huet -- if v not in u.
   If v occurs rigidly then nonunifiable.
   If v occurs nonrigidly then must use full algorithm. *)
 fun assignment thy (rbinder, t, u) env =
-  let val vT as (v,T) = get_eta_var (rbinder, 0, t) in
+  let val (n, (v, T)) = get_eta_var rbinder 0 t in
     (case rigid_occurs_term (Unsynchronized.ref [], env, v, u) of
       NoOcc =>
-        let val env = unify_types thy (Envir.body_type env ~1 T, fastype env (rbinder, u)) env
-        in Envir.update (vT, Logic.rlist_abs (rbinder, u)) env end
+        let val env = unify_types thy (Envir.body_type env n T, fastype env (rbinder, u)) env
+        in Envir.update ((v, T), Logic.rlist_abs (rbinder, u)) env end
     | Nonrigid => raise ASSIGN
     | Rigid => raise CANTUNIFY)
   end;
 
 
 (*Extends an rbinder with a new disagreement pair, if both are abstractions.
-  Tries to unify types of the bound variables!
   Checks that binders have same length, since terms should be eta-normal;
     if not, raises TERM, probably indicating type mismatch.
   Uses variable a (unless the null string) to preserve user's naming.*)
 fun new_dpair thy (rbinder, Abs (a, T, body1), Abs (b, U, body2)) env =
-      let
-        val env' = unify_types thy (T, U) env;
-        val c = if a = "" then b else a;
-      in new_dpair thy ((c,T) :: rbinder, body1, body2) env' end
+      let val c = if a = "" then b else a
+      in new_dpair thy ((c, T) :: rbinder, body1, body2) env end
   | new_dpair _ (_, Abs _, _) _ = raise TERM ("new_dpair", [])
   | new_dpair _ (_, _, Abs _) _ = raise TERM ("new_dpair", [])
   | new_dpair _ (rbinder, t1, t2) env = ((rbinder, t1, t2), env);
-
 
 fun head_norm_dpair thy (env, (rbinder, t, u)) : dpair * Envir.env =
   new_dpair thy (rbinder,
     eta_norm env (rbinder, Envir.head_norm env t),
     eta_norm env (rbinder, Envir.head_norm env u)) env;
-
 
 
 (*flexflex: the flex-flex pairs,  flexrigid: the flex-rigid pairs
@@ -247,7 +245,8 @@ fun head_norm_dpair thy (env, (rbinder, t, u)) : dpair * Envir.env =
 *)
 fun SIMPL0 thy dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair list =
   let
-    val (dp as (rbinder, t, u), env) = head_norm_dpair thy (env, dp0);
+    val (dp as (rbinder, t, u), env) =
+      head_norm_dpair thy (unify_types_of thy dp0 env, dp0);
     fun SIMRANDS (f $ t, g $ u, env) =
           SIMPL0 thy (rbinder, t, u) (SIMRANDS (f, g, env))
       | SIMRANDS (t as _$_, _, _) =
@@ -257,11 +256,9 @@ fun SIMPL0 thy dp0 (env,flexflex,flexrigid) : Envir.env * dpair list * dpair lis
       | SIMRANDS (_, _, env) = (env, flexflex, flexrigid);
   in
     (case (head_of t, head_of u) of
-      (Var (_, T), Var (_, U)) =>
-        let
-          val T' = Envir.body_type env ~1 T and U' = Envir.body_type env ~1 U;
-          val env = unify_types thy (T', U') env;
-        in (env, dp :: flexflex, flexrigid) end
+      (Var (v, T), Var (w, U)) =>
+        let val env' = if v = w then unify_types thy (T, U) env else env
+        in (env', dp :: flexflex, flexrigid) end
     | (Var _, _) =>
         ((assignment thy (rbinder,t,u) env, flexflex, flexrigid)
           handle ASSIGN => (env, flexflex, dp :: flexrigid))
@@ -415,11 +412,11 @@ fun MATCH thy (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.seq 
 (*At end of unification, do flex-flex assignments like ?a -> ?f(?b)
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign thy (env, rbinder, t, u) : Envir.env =
-  let val vT as (v, T) = get_eta_var (rbinder, 0, t) in
+  let val (n, (v, T)) = get_eta_var rbinder 0 t in
     if occurs_terms (Unsynchronized.ref [], env, v, [u]) then raise ASSIGN
     else
-      let val env = unify_types thy (Envir.body_type env ~1 T, fastype env (rbinder, u)) env
-      in Envir.vupdate (vT, Logic.rlist_abs (rbinder, u)) env end
+      let val env = unify_types thy (Envir.body_type env n T, fastype env (rbinder, u)) env
+      in Envir.vupdate ((v, T), Logic.rlist_abs (rbinder, u)) env end
   end;
 
 
