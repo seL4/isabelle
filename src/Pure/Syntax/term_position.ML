@@ -14,6 +14,7 @@ sig
   val decode_positionS: sort -> Position.T list * sort
   val is_position: term -> bool
   val is_positionT: typ -> bool
+  val markers: string list
   val strip_positions: term -> term
 end;
 
@@ -58,8 +59,10 @@ fun decode_positionS cs =
 val is_position = is_some o decode_position;
 val is_positionT = is_some o decode_positionT;
 
+val markers = ["_constrain", "_constrainAbs", "_ofsort"];
+
 fun strip_positions ((t as Const (c, _)) $ u $ v) =
-      if (c = "_constrain" orelse c = "_constrainAbs" orelse c = "_ofsort") andalso is_position v
+      if member (op =) markers c andalso is_position v
       then strip_positions u
       else t $ strip_positions u $ strip_positions v
   | strip_positions (t $ u) = strip_positions t $ strip_positions u

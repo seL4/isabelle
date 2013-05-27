@@ -70,7 +70,7 @@ fun pretty_rule (lhs, rhs) =
 (* strip_positions *)
 
 fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts)) =
-      if (c = "_constrain" orelse c = "_constrainAbs") andalso is_some (Term_Position.decode x)
+      if member (op =) Term_Position.markers c andalso is_some (Term_Position.decode x)
       then mk_appl (strip_positions u) (map strip_positions asts)
       else Appl (map strip_positions (t :: u :: v :: asts))
   | strip_positions (Appl asts) = Appl (map strip_positions asts)
