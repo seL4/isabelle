@@ -243,10 +243,6 @@ fun mk_co_iters thy lfp fpTs Cs ts0 =
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
-fun mk_fp_iters thy lfp fpTs Cs fp_iters0 =
-  mk_co_iters thy lfp fpTs Cs fp_iters0
-  |> `(mk_fp_iter_fun_types o hd);
-
 fun unzip_recT fpTs T =
   let
     fun project_recT proj =
@@ -355,8 +351,10 @@ fun mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val (fp_fold_fun_Ts, fp_folds) = mk_fp_iters thy lfp fpTs Cs fp_folds0;
-    val (fp_rec_fun_Ts, fp_recs) = mk_fp_iters thy lfp fpTs Cs fp_recs0;
+    val (fp_fold_fun_Ts, fp_folds) = mk_co_iters thy lfp fpTs Cs fp_folds0
+      |> `(mk_fp_iter_fun_types o hd);
+    val (fp_rec_fun_Ts, fp_recs) = mk_co_iters thy lfp fpTs Cs fp_recs0
+      |> `(mk_fp_iter_fun_types o hd);
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if lfp then
