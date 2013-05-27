@@ -136,7 +136,7 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
-fun parsetree_to_ast ctxt raw trf parsetree =
+fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report list);
     fun report pos = Position.store_reports reports [pos];
@@ -155,12 +155,10 @@ fun parsetree_to_ast ctxt raw trf parsetree =
       Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok));
 
     fun ast_of_dummy a tok =
-      if raw then Ast.Constant a
-      else Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
+      Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
 
     fun asts_of_position c tok =
-      if raw then asts_of_token tok
-      else [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
+      [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
     and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
@@ -322,7 +320,7 @@ fun parse_asts ctxt raw root (syms, pos) =
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))];
 
-  in (ambig_msgs, map (parsetree_to_ast ctxt raw ast_tr) pts) end;
+  in (ambig_msgs, map (parsetree_to_ast ctxt ast_tr) pts) end;
 
 fun parse_tree ctxt root input =
   let
@@ -421,19 +419,32 @@ fun parse_ast_pattern ctxt (root, str) =
   let
     val syn = Proof_Context.syn_of ctxt;
 
-    fun constify (ast as Ast.Constant _) = ast
-      | constify (ast as Ast.Variable x) =
+    val reports = Unsynchronized.ref ([]: Position.report list);
+    fun report ps = Position.store_reports reports ps;
+
+    fun decode_const ps c = (report ps (markup_entity ctxt) c; Ast.Constant c);
+    fun decode_var ps x = (report ps (fn () => [Markup.name x Markup.free]) (); Ast.Variable x);
+    fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
+    and decode ps (Ast.Constant c) = decode_const ps c
+      | decode ps (Ast.Variable x) =
           if is_some (Syntax.lookup_const syn x) orelse Long_Name.is_qualified x
-          then Ast.Constant x
-          else ast
-      | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
+          then decode_const ps x
+          else decode_var ps x
+      | decode ps (Ast.Appl (asts as (Ast.Constant c :: ast :: Ast.Variable x :: args))) =
+          if member (op =) Term_Position.markers c then
+            (case Term_Position.decode x of
+              SOME p => Ast.mk_appl (decode (p :: ps) ast) (map (decode ps) args)
+            | NONE => decode_appl ps asts)
+          else decode_appl ps asts
+      | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
     val (syms, pos) = Syntax.read_token str;
-  in
-    parse_asts ctxt true root (syms, pos)
-    |> uncurry (report_result ctxt pos)
-    |> constify
-  end;
+    val ast =
+      parse_asts ctxt true root (syms, pos)
+      |> uncurry (report_result ctxt pos)
+      |> decode [];
+    val _ = Context_Position.reports ctxt (! reports);
+  in ast end;
 
 
 
