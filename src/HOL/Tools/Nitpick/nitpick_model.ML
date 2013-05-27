@@ -943,8 +943,8 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
                                    T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
-            [Syntax.pretty_term (set_show_all_types ctxt) t1,
-             Pretty.str oper, Syntax.pretty_term ctxt t2])
+            [Syntax.pretty_term ctxt t1, Pretty.str oper,
+             Syntax.pretty_term ctxt t2])
       end
     fun pretty_for_datatype ({typ, card, complete, ...} : datatype_spec) =
       Pretty.block (Pretty.breaks

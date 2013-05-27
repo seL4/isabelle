@@ -72,7 +72,6 @@ sig
   val eta_expand : typ list -> term -> int -> term
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
-  val set_show_all_types : Proof.context -> Proof.context
   val indent_size : int
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
@@ -287,11 +286,6 @@ val time_limit = Sledgehammer_Util.time_limit
 
 fun DETERM_TIMEOUT delay tac st =
   Seq.of_list (the_list (time_limit delay (fn () => SINGLE tac st) ()))
-
-fun set_show_all_types ctxt =
-  Config.put show_all_types
-    (Config.get ctxt show_types orelse Config.get ctxt show_sorts
-      orelse Config.get ctxt show_all_types) ctxt
 
 val indent_size = 2
 

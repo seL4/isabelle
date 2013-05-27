@@ -142,10 +142,9 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
 fun quintuple_for_scope code_type code_term code_string
-        ({hol_ctxt = {ctxt = ctxt0, stds, ...}, card_assigns, bits, bisim_depth,
+        ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
-    val ctxt = set_show_all_types ctxt0
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
                      @{typ bisim_iterator}]
     val (iter_assigns, card_assigns) =
