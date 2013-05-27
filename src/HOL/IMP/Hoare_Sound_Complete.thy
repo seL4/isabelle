@@ -8,12 +8,12 @@ lemma hoare_sound: "\<turnstile> {P}c{Q}  \<Longrightarrow>  \<Turnstile> {P}c{Q
 proof(induction rule: hoare.induct)
   case (While P b c)
   { fix s t
-    have "(WHILE b DO c,s) \<Rightarrow> t  \<Longrightarrow>  P s \<longrightarrow> P t \<and> \<not> bval b t"
+    have "(WHILE b DO c,s) \<Rightarrow> t  \<Longrightarrow>  P s  \<Longrightarrow>  P t \<and> \<not> bval b t"
     proof(induction "WHILE b DO c" s t rule: big_step_induct)
       case WhileFalse thus ?case by blast
     next
       case WhileTrue thus ?case
-        using While(2) unfolding hoare_valid_def by blast
+        using While.IH unfolding hoare_valid_def by blast
     qed
   }
   thus ?case unfolding hoare_valid_def by blast
