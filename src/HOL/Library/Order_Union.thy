@@ -14,8 +14,7 @@ begin
 definition Osum :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel"  (infix "Osum" 60) where
   "r Osum r' = r \<union> r' \<union> {(a, a'). a \<in> Field r \<and> a' \<in> Field r'}"
 
-abbreviation Osum2 :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel" (infix "\<union>o" 60) where
-  "r \<union>o r' \<equiv> r Osum r'"
+notation Osum  (infix "\<union>o" 60)
 
 lemma Field_Osum: "Field (r \<union>o r') = Field r \<union> Field r'"
   unfolding Osum_def Field_def by blast
