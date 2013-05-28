@@ -245,6 +245,9 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
+fun meta_unzip_rec getT proj1 proj2 fpTs y =
+  if exists_subtype_in fpTs (getT y) then ([proj1 y], [proj2 y]) else ([y], []);
+
 fun unzip_recT fpTs T =
   let
     fun project_recT proj =
@@ -255,7 +258,7 @@ fun unzip_recT fpTs T =
           | project T = T;
       in project end;
   in
-    if exists_subtype_in fpTs T then ([project_recT fst T], [project_recT snd T]) else ([T], [])
+    meta_unzip_rec I (project_recT fst) (project_recT snd) fpTs T
   end;
 
 fun mk_fold_fun_typess y_Tsss Cs = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
@@ -452,12 +455,10 @@ fun mk_iter_body lthy fpTs ctor_iter fss xsss =
       | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
       | mk_U _ T = T;
 
-    fun unzip_rec (x as Free (_, T)) =
-      if exists_subtype_in fpTs T then
-        ([build_prod_proj fst_const (T, mk_U fst T) $ x],
-         [build_prod_proj snd_const (T, mk_U snd T) $ x])
-      else
-        ([x], []);
+    val unzip_rec =
+      meta_unzip_rec (snd o dest_Free)
+        (fn x as Free (_, T) => build_prod_proj fst_const (T, mk_U fst T) $ x)
+        (fn x as Free (_, T) => build_prod_proj snd_const (T, mk_U snd T) $ x) fpTs;
 
     fun mk_iter_arg f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f (flat_rec unzip_rec xs);
   in
@@ -683,14 +684,14 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
 
         val mk_U = typ_subst_nonatomic (map2 pair fpTs Cs);
 
-        fun unzip_iters fiters combine (x as Free (_, T)) =
-          if exists_subtype_in fpTs T then
-            combine (x, build_map lthy (indexify_fst fpTs (K o nth fiters)) (T, mk_U T) $ x)
-          else
-            ([x], []);
+        fun unzip_iters fiters =
+          meta_unzip_rec (snd o dest_Free) I
+            (fn x as Free (_, T) => build_map lthy (indexify_fst fpTs (K o nth fiters))
+              (T, mk_U T) $ x) fpTs;
 
-        val gxsss = map (map (flat_rec (unzip_iters gfolds (fn (_, t) => ([t], []))))) xsss;
-        val hxsss = map (map (flat_rec (unzip_iters hrecs (pairself single)))) xsss;
+        val gxsss = map (map (flat_rec ((fn (ts, ts') => ([hd (ts' @ ts)], [])) o
+          unzip_iters gfolds))) xsss;
+        val hxsss = map (map (flat_rec (unzip_iters hrecs))) xsss;
 
         val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
         val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
