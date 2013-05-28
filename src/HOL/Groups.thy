@@ -124,12 +124,10 @@ simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 typed_print_translation {*
   let
     fun tr' c = (c, fn ctxt => fn T => fn ts =>
-      if not (null ts) orelse T = dummyT orelse
-        not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T
-      then raise Match
-      else
+      if null ts andalso Printer.type_emphasis ctxt T then
         Syntax.const @{syntax_const "_constrain"} $ Syntax.const c $
-          Syntax_Phases.term_of_typ ctxt T);
+          Syntax_Phases.term_of_typ ctxt T
+      else raise Match);
   in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
 *} -- {* show types that are presumably too general *}
 

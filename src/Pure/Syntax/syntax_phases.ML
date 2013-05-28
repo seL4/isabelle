@@ -470,10 +470,10 @@ fun term_of_sort S =
 
 fun term_of_typ ctxt ty =
   let
-    val show_sort_constraint = Printer.show_sort_constraint ctxt;
+    val show_sorts = Config.get ctxt show_sorts orelse Config.get ctxt show_markup;
 
     fun ofsort t raw_S =
-      if show_sort_constraint then
+      if show_sorts then
         let val S = #2 (Term_Position.decode_positionS raw_S)
         in if S = dummyS then t else Syntax.const "_ofsort" $ t $ term_of_sort S end
       else t;
