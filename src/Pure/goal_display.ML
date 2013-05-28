@@ -70,7 +70,6 @@ in
 fun pretty_goals ctxt0 state =
   let
     val ctxt = ctxt0
-      |> Config.put show_free_types false
       |> Config.put show_types (Config.get ctxt0 show_types orelse Config.get ctxt0 show_sorts)
       |> Config.put show_sorts false;
 
@@ -82,7 +81,7 @@ fun pretty_goals ctxt0 state =
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
-    val prt_term = Syntax.pretty_term ctxt;
+    val prt_term = Syntax.pretty_term ctxt o Type_Annotation.ignore_free_types;
 
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",

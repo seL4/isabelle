@@ -9,7 +9,6 @@ sig
   val show_brackets: bool Config.T
   val show_types: bool Config.T
   val show_sorts: bool Config.T
-  val show_free_types: bool Config.T
   val show_markup: bool Config.T
   val show_structs: bool Config.T
   val show_question_marks: bool Config.T
@@ -26,8 +25,8 @@ sig
   val show_markup_raw: Config.raw
   val show_structs_raw: Config.raw
   val show_question_marks_raw: Config.raw
-  val show_type_constraint: Proof.context -> bool
-  val show_sort_constraint: Proof.context -> bool
+  val show_type_emphasis: bool Config.T
+  val type_emphasis: Proof.context -> typ -> bool
   type prtabs
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -58,8 +57,6 @@ val show_types = Config.bool show_types_raw;
 val show_sorts_raw = Config.declare_option "show_sorts";
 val show_sorts = Config.bool show_sorts_raw;
 
-val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
-
 val show_markup_default = Unsynchronized.ref false;
 val show_markup_raw = Config.declare "show_markup" (fn _ => Config.Bool (! show_markup_default));
 val show_markup = Config.bool show_markup_raw;
@@ -70,8 +67,13 @@ val show_structs = Config.bool show_structs_raw;
 val show_question_marks_raw = Config.declare_option "show_question_marks";
 val show_question_marks = Config.bool show_question_marks_raw;
 
-fun show_type_constraint ctxt = Config.get ctxt show_types orelse Config.get ctxt show_markup;
-fun show_sort_constraint ctxt = Config.get ctxt show_sorts orelse Config.get ctxt show_markup;
+val show_type_emphasis =
+  Config.bool (Config.declare "show_type_emphasis" (fn _ => Config.Bool true));
+
+fun type_emphasis ctxt T =
+  T <> dummyT andalso
+    (Config.get ctxt show_types orelse Config.get ctxt show_markup orelse
+      Config.get ctxt show_type_emphasis andalso not (can dest_Type T));
 
 
 

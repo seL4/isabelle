@@ -306,11 +306,13 @@ typed_print_translation {*
         val k = int_of_num' n;
         val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
       in
-        case T of
+        (case T of
           Type (@{type_name fun}, [_, T']) =>
-            if not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T' then t'
-            else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
-        | T' => if T' = dummyT then t' else raise Match
+            if Printer.type_emphasis ctxt T' then
+              Syntax.const @{syntax_const "_constrain"} $ t' $
+                Syntax_Phases.term_of_typ ctxt T'
+            else t'
+        | T' => if T' = dummyT then t' else raise Match)
       end;
   in [(@{const_syntax of_num}, num_tr')] end
 *}

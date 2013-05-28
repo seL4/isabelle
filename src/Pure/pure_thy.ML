@@ -81,6 +81,7 @@ val _ = Context.>> (Context.map_theory
     ("",            typ "prop' => prop'",              Delimfix "'(_')"),
     ("_constrain",  typ "logic => type => logic",      Mixfix ("_::_", [4, 0], 3)),
     ("_constrain",  typ "prop' => type => prop'",      Mixfix ("_::_", [4, 0], 3)),
+    ("_ignore_type", typ "'a",                         NoSyn),
     ("",            typ "tid_position => type",        Delimfix "_"),
     ("",            typ "tvar_position => type",       Delimfix "_"),
     ("",            typ "type_name => type",           Delimfix "_"),
