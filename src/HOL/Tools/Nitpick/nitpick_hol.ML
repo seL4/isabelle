@@ -311,7 +311,6 @@ val name_sep = "$"
 val numeral_prefix = nitpick_prefix ^ "num" ^ name_sep
 val sel_prefix = nitpick_prefix ^ "sel"
 val discr_prefix = nitpick_prefix ^ "is" ^ name_sep
-val set_prefix = nitpick_prefix ^ "set" ^ name_sep
 val lfp_iterator_prefix = nitpick_prefix ^ "lfpit" ^ name_sep
 val gfp_iterator_prefix = nitpick_prefix ^ "gfpit" ^ name_sep
 val unrolled_prefix = nitpick_prefix ^ "unroll" ^ name_sep
@@ -560,7 +559,8 @@ fun dest_n_tuple 1 t = [t]
 
 type typedef_info =
   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-   prop_of_Rep: thm, set_name: string, Abs_inverse: thm option, Rep_inverse: thm option}
+   prop_of_Rep: thm, set_name: string option, Abs_inverse: thm option,
+   Rep_inverse: thm option}
 
 fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
@@ -569,8 +569,7 @@ fun typedef_info ctxt s =
           Rep_name = @{const_name Nitpick.Rep_Frac},
           prop_of_Rep = @{prop "Nitpick.Rep_Frac x \<in> Collect Nitpick.Frac"}
                         |> Logic.varify_global,
-          set_name = @{const_name Nitpick.Frac}, Abs_inverse = NONE,
-          Rep_inverse = NONE}
+          Abs_inverse = NONE, Rep_inverse = NONE}
   else case Typedef.get_info ctxt s of
     (* When several entries are returned, it shouldn't matter much which one
        we take (according to Florian Haftmann). *)
@@ -582,8 +581,7 @@ fun typedef_info ctxt s =
     SOME {abs_type = Logic.varifyT_global abs_type,
           rep_type = Logic.varifyT_global rep_type, Abs_name = Abs_name,
           Rep_name = Rep_name, prop_of_Rep = prop_of Rep,
-          set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
-          Rep_inverse = SOME Rep_inverse}
+          Abs_inverse = SOME Abs_inverse, Rep_inverse = SOME Rep_inverse}
   | _ => NONE
 
 val is_typedef = is_some oo typedef_info
@@ -1954,20 +1952,18 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
     if is_univ_typedef ctxt abs_T then
       []
     else case typedef_info ctxt abs_s of
-      SOME {abs_type, rep_type, Rep_name, prop_of_Rep, set_name, ...} =>
+      SOME {abs_type, rep_type, Rep_name, prop_of_Rep, ...} =>
       let
         val rep_T = varify_and_instantiate_type ctxt abs_type abs_T rep_type
         val rep_t = Const (Rep_name, abs_T --> rep_T)
-        val set_t = Const (set_name, HOLogic.mk_setT rep_T)
-        val set_t' =
+        val set_t =
           prop_of_Rep |> HOLogic.dest_Trueprop
                       |> specialize_type thy (dest_Const rep_t)
                       |> HOLogic.dest_mem |> snd
       in
         [HOLogic.all_const abs_T
-         $ Abs (Name.uu, abs_T, HOLogic.mk_mem (rep_t $ Bound 0, set_t))]
-        |> set_t <> set_t' ? cons (HOLogic.mk_eq (set_t, set_t'))
-        |> map HOLogic.mk_Trueprop
+             $ Abs (Name.uu, abs_T, HOLogic.mk_mem (rep_t $ Bound 0, set_t))
+         |> HOLogic.mk_Trueprop]
       end
     | NONE => []
   end
