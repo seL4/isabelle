@@ -1,8 +1,7 @@
 (*  Title:      HOL/Library/Order_Union.thy
     Author:     Andrei Popescu, TU Muenchen
 
-Subset of Constructions_on_Wellorders that provides the ordinal sum but does
-not rely on the ~/HOL/Library/Zorn.thy.
+The ordinal-like sum of two orders with disjoint fields
 *)
 
 header {* Order Union *}
