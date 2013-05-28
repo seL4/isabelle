@@ -27,6 +27,7 @@ sig
 
   val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
   val exists_subtype_in: typ list -> typ -> bool
+  val mk_co_iter: theory -> bool -> typ -> typ list -> term -> term
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
   val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> int list -> int list list ->
@@ -219,13 +220,13 @@ fun mk_ctor_or_dtor get_T Ts t =
 val mk_ctor = mk_ctor_or_dtor range_type;
 val mk_dtor = mk_ctor_or_dtor domain_type;
 
-fun mk_co_iter thy lfp fpT Us t =
+fun mk_co_iter thy lfp fpT Cs t =
   let
     val (bindings, body) = strip_type (fastype_of t);
-    val (f_Us, prebody) = split_last bindings;
+    val (f_Cs, prebody) = split_last bindings;
     val fpT0 = if lfp then prebody else body;
-    val Us0 = distinct (op =) (map (if lfp then body_type else domain_type) f_Us);
-    val rho = tvar_subst thy (fpT0 :: Us0) (fpT :: Us);
+    val Cs0 = distinct (op =) (map (if lfp then body_type else domain_type) f_Cs);
+    val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
   in
     Term.subst_TVars rho t
   end;
