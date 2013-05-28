@@ -8,7 +8,7 @@ text{* Annotated commands: commands where loops are annotated with
 invariants. *}
 
 datatype acom =
-  ASKIP |
+  Askip                  ("SKIP") |
   Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
   Aseq   acom acom       ("_;;/ _"  [60, 61] 60) |
   Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
@@ -17,7 +17,7 @@ datatype acom =
 text{* Weakest precondition from annotated commands: *}
 
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"pre ASKIP Q = Q" |
+"pre Askip Q = Q" |
 "pre (Aassign x a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
 "pre (Aseq c\<^isub>1 c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
 "pre (Aif b c\<^isub>1 c\<^isub>2) Q =
@@ -28,7 +28,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 text{* Verification condition: *}
 
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"vc ASKIP Q = (\<lambda>s. True)" |
+"vc Askip Q = (\<lambda>s. True)" |
 "vc (Aassign x a) Q = (\<lambda>s. True)" |
 "vc (Aseq c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
 "vc (Aif b c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
@@ -40,7 +40,7 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 text{* Strip annotations: *}
 
 fun strip :: "acom \<Rightarrow> com" where
-"strip ASKIP = SKIP" |
+"strip Askip = com.SKIP" |
 "strip (Aassign x a) = (x::=a)" |
 "strip (Aseq c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1;; strip c\<^isub>2)" |
 "strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
@@ -88,7 +88,7 @@ lemma vc_complete:
 proof (induction rule: hoare.induct)
   case Skip
   show ?case (is "\<exists>ac. ?C ac")
-  proof show "?C ASKIP" by simp qed
+  proof show "?C Askip" by simp qed
 next
   case (Assign P a x)
   show ?case (is "\<exists>ac. ?C ac")
@@ -125,7 +125,7 @@ qed
 text{* An Optimization: *}
 
 fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
-"vcpre ASKIP Q = (\<lambda>s. True, Q)" |
+"vcpre Askip Q = (\<lambda>s. True, Q)" |
 "vcpre (Aassign x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[a/x]))" |
 "vcpre (Aseq c\<^isub>1 c\<^isub>2) Q =
   (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;

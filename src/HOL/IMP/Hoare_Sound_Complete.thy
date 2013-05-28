@@ -63,26 +63,23 @@ next
   show ?case
   proof(rule hoare.If)
     show "\<turnstile> {\<lambda>s. wp ?If Q s \<and> bval b s} c1 {Q}"
-    proof(rule strengthen_pre[OF _ If(1)])
+    proof(rule strengthen_pre[OF _ If.IH(1)])
       show "\<forall>s. wp ?If Q s \<and> bval b s \<longrightarrow> wp c1 Q s" by auto
     qed
     show "\<turnstile> {\<lambda>s. wp ?If Q s \<and> \<not> bval b s} c2 {Q}"
-    proof(rule strengthen_pre[OF _ If(2)])
+    proof(rule strengthen_pre[OF _ If.IH(2)])
       show "\<forall>s. wp ?If Q s \<and> \<not> bval b s \<longrightarrow> wp c2 Q s" by auto
     qed
   qed
 next
   case (While b c)
   let ?w = "WHILE b DO c"
-  have "\<turnstile> {wp ?w Q} ?w {\<lambda>s. wp ?w Q s \<and> \<not> bval b s}"
-  proof(rule hoare.While)
+  show "\<turnstile> {wp ?w Q} ?w {Q}"
+  proof(rule While')
     show "\<turnstile> {\<lambda>s. wp ?w Q s \<and> bval b s} c {wp ?w Q}"
-    proof(rule strengthen_pre[OF _ While(1)])
+    proof(rule strengthen_pre[OF _ While.IH])
       show "\<forall>s. wp ?w Q s \<and> bval b s \<longrightarrow> wp c (wp ?w Q) s" by auto
     qed
-  qed
-  thus ?case
-  proof(rule weaken_post)
     show "\<forall>s. wp ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s" by auto
   qed
 qed auto
