@@ -248,18 +248,18 @@ val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 fun meta_unzip_rec getT proj1 proj2 fpTs y =
   if exists_subtype_in fpTs (getT y) then ([proj1 y], [proj2 y]) else ([y], []);
 
-fun unzip_recT fpTs T =
+fun project_co_recT special_Tname fpTs proj =
   let
-    fun project_recT proj =
-      let
-        fun project (Type (s as @{type_name prod}, Ts as [T, U])) =
-            if member (op =) fpTs T then proj (T, U) else Type (s, map project Ts)
-          | project (Type (s, Ts)) = Type (s, map project Ts)
-          | project T = T;
-      in project end;
-  in
-    meta_unzip_rec I (project_recT fst) (project_recT snd) fpTs T
-  end;
+    fun project (Type (s, Ts as T :: Ts')) =
+        if s = special_Tname andalso member (op =) fpTs T then proj (hd Ts, hd Ts')
+        else Type (s, map project Ts)
+      | project T = T;
+  in project end;
+
+val project_recT = project_co_recT @{type_name prod};
+val project_corecT = project_co_recT @{type_name sum};
+
+fun unzip_recT fpTs = meta_unzip_rec I (project_recT fpTs fst) (project_recT fpTs snd) fpTs;
 
 fun mk_fold_fun_typess y_Tsss Cs = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
 val mk_rec_fun_typess = mk_fold_fun_typess oo map o map o flat_rec o unzip_recT;
@@ -296,16 +296,9 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
     fun repair_arity [0] = [1]
       | repair_arity ms = ms;
 
-    fun project_corecT proj =
-      let
-        fun project (Type (s as @{type_name sum}, Ts as [T, U])) =
-            if member (op =) fpTs T then proj (T, U) else Type (s, map project Ts)
-          | project (Type (s, Ts)) = Type (s, map project Ts)
-          | project T = T;
-      in project end;
-
     fun unzip_corecT T =
-      if exists_subtype_in fpTs T then [project_corecT fst T, project_corecT snd T] else [T];
+      if exists_subtype_in fpTs T then [project_corecT fpTs fst T, project_corecT fpTs snd T]
+      else [T];
 
     val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
@@ -447,18 +440,12 @@ fun build_map lthy build_simple =
 
 fun mk_iter_body lthy fpTs ctor_iter fss xsss =
   let
-    fun build_prod_proj mk_proj = build_map lthy (mk_proj o fst);
+    fun build_proj sel sel_const (x as Free (_, T)) =
+      build_map lthy (sel_const o fst) (T, project_recT fpTs sel T) $ x;
 
     (* TODO: Avoid these complications; cf. corec case *)
-    fun mk_U proj (Type (s as @{type_name prod}, Ts as [T', U])) =
-        if member (op =) fpTs T' then proj (T', U) else Type (s, map (mk_U proj) Ts)
-      | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
-      | mk_U _ T = T;
-
-    val unzip_rec =
-      meta_unzip_rec (snd o dest_Free)
-        (fn x as Free (_, T) => build_prod_proj fst_const (T, mk_U fst T) $ x)
-        (fn x as Free (_, T) => build_prod_proj snd_const (T, mk_U snd T) $ x) fpTs;
+    val unzip_rec = meta_unzip_rec (snd o dest_Free) (build_proj fst fst_const)
+      (build_proj snd snd_const) fpTs;
 
     fun mk_iter_arg f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f (flat_rec unzip_rec xs);
   in
