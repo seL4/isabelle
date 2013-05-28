@@ -121,6 +121,7 @@ val quick_and_dirty = Config.bool quick_and_dirty_raw;
 
 (* inner syntax *)
 
+use "Syntax/type_annotation.ML";
 use "Syntax/term_position.ML";
 use "Syntax/lexicon.ML";
 use "Syntax/ast.ML";

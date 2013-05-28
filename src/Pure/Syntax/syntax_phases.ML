@@ -533,7 +533,7 @@ fun mark_aprop tm =
     fun aprop t = Syntax.const "_aprop" $ t;
 
     fun is_prop Ts t =
-      fastype_of1 (Ts, t) = propT handle TERM _ => false;
+      Type_Annotation.fastype_of Ts t = propT handle TERM _ => false;
 
     fun is_term (Const ("Pure.term", _) $ _) = true
       | is_term _ = false;
@@ -554,21 +554,18 @@ fun mark_aprop tm =
 
 fun prune_types ctxt tm =
   let
-    val show_free_types = Config.get ctxt show_free_types;
+    fun regard t t' seen =
+      if Type_Annotation.is_omitted (Type_Annotation.fastype_of [] t) then (t, seen)
+      else if member (op aconv) seen t then (t', seen)
+      else (t, t :: seen);
 
-    fun prune (t_seen as (Const _, _)) = t_seen
-      | prune (t as Free (x, ty), seen) =
-          if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Syntax.free x, seen)
-          else (t, t :: seen)
-      | prune (t as Var (xi, ty), seen) =
-          if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Syntax.var xi, seen)
-          else (t, t :: seen)
-      | prune (t_seen as (Bound _, _)) = t_seen
-      | prune (Abs (x, ty, t), seen) =
+    fun prune (t as Const _, seen) = (t, seen)
+      | prune (t as Free (x, T), seen) = regard t (Free (x, Type_Annotation.ignore_type T)) seen
+      | prune (t as Var (xi, T), seen) = regard t (Var (xi, Type_Annotation.ignore_type T)) seen
+      | prune (t as Bound _, seen) = (t, seen)
+      | prune (Abs (x, T, t), seen) =
           let val (t', seen') = prune (t, seen);
-          in (Abs (x, ty, t'), seen') end
+          in (Abs (x, T, t'), seen') end
       | prune (t1 $ t2, seen) =
           let
             val (t1', seen') = prune (t1, seen);
@@ -624,17 +621,19 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) => trans c T ts
+      | (const as Const (c, T), ts) => trans c (Type_Annotation.clean T) ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)
       handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
-    and constrain t T =
-      if (show_types orelse show_markup) andalso T <> dummyT then
-        Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
-          ast_of_termT ctxt trf (term_of_typ ctxt T)]
-      else simple_ast_of ctxt t;
+    and constrain t T0 =
+      let val T = Type_Annotation.smash T0 in
+        if (show_types orelse show_markup) andalso T <> dummyT then
+          Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
+            ast_of_termT ctxt trf (term_of_typ ctxt T)]
+        else simple_ast_of ctxt t
+      end;
   in
     tm
     |> mark_aprop
