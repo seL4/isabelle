@@ -264,7 +264,7 @@ subsubsection {* Unions of chains of superfrechets *}
 
 text "In this section we prove that superfrechet is closed
 with respect to unions of non-empty chains. We must show
-  1) Union of a chain is afind_theorems name: Union_chain_UNIV filter,
+  1) Union of a chain is a filter,
   2) Union of a chain contains frechet.
 
 Number 2 is trivial, but 1 requires us to prove all the filter rules."
