@@ -9,7 +9,7 @@ signature BNF_FP_DEF_SUGAR =
 sig
   type fp_sugar =
     {T: typ,
-     lfp: bool,
+     fp: BNF_FP_Util.fp_kind,
      index: int,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP_Util.fp_result,
@@ -27,11 +27,11 @@ sig
 
   val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
   val exists_subtype_in: typ list -> typ -> bool
-  val mk_co_iter: theory -> bool -> typ -> typ list -> term -> term
+  val mk_co_iter: theory -> BNF_FP_Util.fp_kind -> typ -> typ list -> term -> term
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
-  val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> int list -> int list list ->
-    term list -> term list -> Proof.context ->
+  val mk_un_fold_co_rec_prelims: BNF_FP_Util.fp_kind -> typ list -> typ list -> int list ->
+    int list list -> term list -> term list -> Proof.context ->
     (term list * term list * ((term list list * typ list list * term list list list)
        * (term list list * typ list list * term list list list)) option
      * (term list * term list list
@@ -71,14 +71,14 @@ sig
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
 
-  val co_datatypes: bool -> (mixfix list -> binding list -> binding list -> binding list list ->
-      binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-      local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+  val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
+      binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
+      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
-  val parse_co_datatype_cmd: bool -> (mixfix list -> binding list -> binding list ->
+  val parse_co_datatype_cmd: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
@@ -97,7 +97,7 @@ val EqN = "Eq_";
 
 type fp_sugar =
   {T: typ,
-   lfp: bool,
+   fp: fp_kind,
    index: int,
    pre_bnfs: bnf list,
    fp_res: fp_result,
@@ -110,14 +110,15 @@ type fp_sugar =
    un_fold_thmss: thm list list,
    co_rec_thmss: thm list list};
 
-fun eq_fp_sugar ({T = T1, lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
-    {T = T2, lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
-  T1 = T2 andalso lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
+fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
+    {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
+  T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {T, lfp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, un_folds, co_recs,
-    co_induct, strong_co_induct, un_fold_thmss, co_rec_thmss} =
-  {T = Morphism.typ phi T, lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
-   fp_res = morph_fp_result phi fp_res, ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
+fun morph_fp_sugar phi {T, fp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, un_folds,
+    co_recs, co_induct, strong_co_induct, un_fold_thmss, co_rec_thmss} =
+  {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi)
+   pre_bnfs, fp_res = morph_fp_result phi fp_res,
+   ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
    ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars, un_folds = map (Morphism.term phi) un_folds,
    co_recs = map (Morphism.term phi) co_recs, co_induct = Morphism.thm phi co_induct,
    strong_co_induct = Morphism.thm phi strong_co_induct,
@@ -138,11 +139,11 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars lfp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars un_folds co_recs
+fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars un_folds co_recs
     co_induct strong_co_induct un_fold_thmss co_rec_thmss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar s {T = T, lfp = lfp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
+    register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
       ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, un_folds = un_folds, co_recs = co_recs,
       co_induct = co_induct, strong_co_induct = strong_co_induct, un_fold_thmss = un_fold_thmss,
       co_rec_thmss = co_rec_thmss} lthy)) Ts
@@ -220,22 +221,22 @@ fun mk_ctor_or_dtor get_T Ts t =
 val mk_ctor = mk_ctor_or_dtor range_type;
 val mk_dtor = mk_ctor_or_dtor domain_type;
 
-fun mk_co_iter thy lfp fpT Cs t =
+fun mk_co_iter thy fp fpT Cs t =
   let
     val (bindings, body) = strip_type (fastype_of t);
     val (f_Cs, prebody) = split_last bindings;
-    val fpT0 = if lfp then prebody else body;
-    val Cs0 = distinct (op =) (map (if lfp then body_type else domain_type) f_Cs);
+    val fpT0 = if fp = Least_FP then prebody else body;
+    val Cs0 = distinct (op =) (map (if fp = Least_FP then body_type else domain_type) f_Cs);
     val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
   in
     Term.subst_TVars rho t
   end;
 
-fun mk_co_iters thy lfp fpTs Cs ts0 =
+fun mk_co_iters thy fp fpTs Cs ts0 =
   let
     val nn = length fpTs;
     val (fpTs0, Cs0) =
-      map ((not lfp ? swap) o dest_funT o snd o strip_typeN nn o fastype_of) ts0
+      map ((fp = Greatest_FP ? swap) o dest_funT o snd o strip_typeN nn o fastype_of) ts0
       |> split_list;
     val rho = tvar_subst thy (fpTs0 @ Cs0) (fpTs @ Cs);
   in
@@ -348,17 +349,17 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
     ((cs, cpss, (unfold_args, unfold_types), (corec_args, corec_types)), lthy)
   end;
 
-fun mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
+fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val (fp_fold_fun_Ts, fp_folds) = mk_co_iters thy lfp fpTs Cs fp_folds0
+    val (fp_fold_fun_Ts, fp_folds) = mk_co_iters thy fp fpTs Cs fp_folds0
       |> `(mk_fp_iter_fun_types o hd);
-    val (fp_rec_fun_Ts, fp_recs) = mk_co_iters thy lfp fpTs Cs fp_recs0
+    val (fp_rec_fun_Ts, fp_recs) = mk_co_iters thy fp fpTs Cs fp_recs0
       |> `(mk_fp_iter_fun_types o hd);
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
-      if lfp then
+      if fp = Least_FP then
         mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
@@ -513,11 +514,12 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs Cs ctor_fold ctor_rec 
 
     val [fold_def, rec_def] = map (Morphism.thm phi) defs;
 
-    val [foldx, recx] = map (mk_co_iter thy true fpT Cs o Morphism.term phi) csts;
+    val [foldx, recx] = map (mk_co_iter thy Least_FP fpT Cs o Morphism.term phi) csts;
   in
     ((foldx, recx, fold_def, rec_def), lthy')
   end;
 
+(* TODO: merge with above function? *)
 fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs Cs dtor_unfold
     dtor_corec lthy0 =
   let
@@ -550,7 +552,7 @@ fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs Cs d
 
     val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
 
-    val [unfold, corec] = map (mk_co_iter thy false fpT Cs o Morphism.term phi) csts;
+    val [unfold, corec] = map (mk_co_iter thy Greatest_FP fpT Cs o Morphism.term phi) csts;
   in
     ((unfold, corec, unfold_def, corec_def), lthy')
   end ;
@@ -984,13 +986,15 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds dtor_corec
      (sel_unfold_thmss, sel_corec_thmss, simp_attrs))
   end;
 
-fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construct_fp
+fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
     (wrap_opts as (no_dests, rep_compat), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
-    val _ = if not lfp andalso no_dests then error "Cannot define destructor-less codatatypes"
-      else ();
+    val _ = if fp = Greatest_FP andalso no_dests then
+        error "Cannot define destructor-less codatatypes"
+      else
+        ();
 
     fun qualify mandatory fp_b_name =
       Binding.qualify mandatory fp_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
@@ -1134,7 +1138,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
     val mss = map (map length) ctr_Tsss;
 
     val ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy) =
-      mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy;
+      mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy;
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
             fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1244,7 +1248,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
               val nones = replicate live NONE;
 
               val ctor_cong =
-                if lfp then
+                if fp = Least_FP then
                   Drule.dummy_thm
                 else
                   let val ctor' = mk_ctor Bs ctor in
@@ -1252,7 +1256,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
                   end;
 
               fun mk_cIn ify =
-                certify lthy o (not lfp ? curry (op $) (map_types ify ctor)) oo
+                certify lthy o (fp = Greatest_FP ? curry (op $) (map_types ify ctor)) oo
                 mk_InN_balanced (ify ctr_sum_prod_T) n;
 
               val cxIns = map2 (mk_cIn I) tuple_xs ks;
@@ -1261,15 +1265,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
               fun mk_map_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_map_def ::
-                       (if lfp then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
+                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
                      (cterm_instantiate_pos (nones @ [SOME cxIn])
-                        (if lfp then fp_map_thm else fp_map_thm RS ctor_cong)))
+                        (if fp = Least_FP then fp_map_thm else fp_map_thm RS ctor_cong)))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ nested_set_map's @ nesting_set_map's @
-                       (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_set)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
@@ -1283,7 +1287,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
               fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
                 fold_thms lthy ctr_defs'
                    (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
-                        (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_rel)
+                        (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel)
                       (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
                 |> postproc
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1326,7 +1330,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       in
         (wrap_ctrs
          #> derive_maps_sets_rels
-         ##>> (if lfp then define_fold_rec (the fold_rec_args_types)
+         ##>> (if fp = Least_FP then define_fold_rec (the fold_rec_args_types)
            else define_unfold_corec (the unfold_corec_args_types)) mk_binding fpTs Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
@@ -1370,7 +1374,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars true pre_bnfs fp_res ctr_defss ctr_sugars folds recs induct_thm
+        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars folds recs induct_thm
           induct_thm fold_thmss rec_thmss
       end;
 
@@ -1429,8 +1433,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars false pre_bnfs fp_res ctr_defss ctr_sugars unfolds corecs coinduct_thm
-          strong_coinduct_thm unfold_thmss corec_thmss
+        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars unfolds corecs
+          coinduct_thm strong_coinduct_thm unfold_thmss corec_thmss
       end;
 
     val lthy' = lthy
@@ -1440,11 +1444,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
         mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~
         raw_sel_defaultsss)
       |> wrap_types_etc
-      |> (if lfp then derive_and_note_induct_fold_rec_thms_for_types
+      |> (if fp = Least_FP then derive_and_note_induct_fold_rec_thms_for_types
           else derive_and_note_coinduct_unfold_corec_thms_for_types);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
-      datatype_word lfp));
+      datatype_word fp));
   in
     timer; lthy'
   end;
@@ -1496,6 +1500,6 @@ val parse_spec =
 
 val parse_co_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
 
-fun parse_co_datatype_cmd lfp construct_fp = parse_co_datatype >> co_datatype_cmd lfp construct_fp;
+fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 
 end;
