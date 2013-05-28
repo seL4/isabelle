@@ -198,7 +198,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val {facts = chained, goal, ...} = Proof.goal state
-      val ((_, hyp_ts, concl_t), _) = strip_subgoal goal i ctxt
+      val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
       val ho_atp = exists (is_ho_atp ctxt) provers
       val reserved = reserved_isar_keyword_table ()
       val css = clasimpset_rule_table_of ctxt

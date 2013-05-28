@@ -649,7 +649,13 @@ fun isar_proof_text ctxt isar_proofs
      fact_names, lifted, sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val ((params, hyp_ts, concl_t), ctxt) = strip_subgoal goal subgoal ctxt
+    val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
+    val (_, ctxt) =
+      params
+      |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
+      |> (fn fixes =>
+             ctxt |> Variable.set_body false
+                  |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN

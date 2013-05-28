@@ -707,7 +707,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
     let
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
-      val ((_, hyp_ts, concl_t), _) = ATP_Util.strip_subgoal goal 1 ctxt
+      val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
       val facts = facts |> filter (fn (_, th') => thm_less (th', th))
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep

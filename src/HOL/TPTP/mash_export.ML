@@ -207,7 +207,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
           val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
-          val ((_, hyp_ts, concl_t), _) = ATP_Util.strip_subgoal goal 1 ctxt
+          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
           val isar_deps = isar_dependencies_of name_tabs th
         in
           if is_bad_query ctxt ho_atp step j th isar_deps then
