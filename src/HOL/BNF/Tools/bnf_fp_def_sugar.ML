@@ -1018,9 +1018,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       ||>> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
 
-    (* TODO: cleaner handling of fake contexts, without "background_theory" *)
-    (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a
-      locale and shadows an existing global type*)
+    (* TODO: Cleaner handling of fake contexts, without "background_theory". The case where the new
+       type is defined in a locale and shadows an existing global type is currently not handled. *)
 
     fun add_fake_type spec =
       Sign.add_type no_defs_lthy (type_binding_of spec,

@@ -99,10 +99,9 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
   unfold_thms_tac ctxt [ctr_def] THEN rtac (ctor_inject RS ssubst) 1 THEN
   unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
-(*TODO: Try "sum_prod_thms_map" here, enriched with a few theorems*)
 val iter_unfold_thms =
-  @{thms comp_def convol_def fst_conv id_def map_pair_simp prod_case_Pair_iden snd_conv split_conv
-      sum.simps(5,6) sum_map.simps unit_case_Unity};
+  @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
+      split_conv unit_case_Unity} @ sum_prod_thms_map;
 
 fun mk_iter_tac pre_map_defs map_comp's map_ids'' iter_defs ctor_iter ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_comp's @
