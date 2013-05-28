@@ -108,7 +108,6 @@ fun mk_iter_tac pre_map_defs map_comp's map_ids'' iter_defs ctor_iter ctr_def ct
   unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_comp's @
     map_ids'' @ iter_unfold_thms) THEN rtac refl 1;
 
-(*TODO: sum_case_if needed?*)
 val coiter_unfold_thms =
   @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
 
