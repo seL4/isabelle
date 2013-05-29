@@ -35,9 +35,9 @@ sig
   val eta_contract: term -> term
   val beta_eta_contract: term -> term
   val aeconv: term * term -> bool
-  val body_type: env -> int -> typ -> typ
-  val binder_types: env -> int -> typ -> typ list
-  val strip_type: env -> int -> typ -> typ list * typ
+  val body_type: env -> typ -> typ
+  val binder_types: env -> typ -> typ list
+  val strip_type: env -> typ -> typ list * typ
   val fastype: env -> typ list -> term -> typ
   val subst_type_same: Type.tyenv -> typ Same.operation
   val subst_term_types_same: Type.tyenv -> term Same.operation
@@ -298,23 +298,21 @@ val beta_eta_contract = eta_contract o beta_norm;
 fun aeconv (t, u) = t aconv u orelse eta_contract t aconv eta_contract u;
 
 
-fun body_type _ 0 T = T
-  | body_type env n (Type ("fun", [_, T])) = body_type env (n - 1) T
-  | body_type env n (T as TVar v) =
+fun body_type env (Type ("fun", [_, T])) = body_type env T
+  | body_type env (T as TVar v) =
       (case Type.lookup (type_env env) v of
         NONE => T
-      | SOME T' => body_type env n T')
-  | body_type _ _ T = T;
+      | SOME T' => body_type env T')
+  | body_type _ T = T;
 
-fun binder_types _ 0 _ = []
-  | binder_types env n (Type ("fun", [T, U])) = T :: binder_types env (n - 1) U
-  | binder_types env n (TVar v) =
+fun binder_types env (Type ("fun", [T, U])) = T :: binder_types env U
+  | binder_types env (TVar v) =
       (case Type.lookup (type_env env) v of
         NONE => []
-      | SOME T' => binder_types env n T')
-  | binder_types _ _ _ = [];
+      | SOME T' => binder_types env T')
+  | binder_types _ _ = [];
 
-fun strip_type n env T = (binder_types n env T, body_type n env T);
+fun strip_type env T = (binder_types env T, body_type env T);
 
 (*finds type of term without checking that combinations are consistent
   Ts holds types of bound variables*)
