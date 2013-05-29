@@ -869,9 +869,17 @@ end;
 
 (* fact_tac *)
 
+local
+
+fun comp_hhf_tac th i st =
+  PRIMSEQ (Thm.bicompose {flatten = true, match = false, incremented = true}
+    (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
+
 fun comp_incr_tac [] _ = no_tac
   | comp_incr_tac (th :: ths) i =
-      (fn st => Goal.compose_hhf_tac (Drule.incr_indexes st th) i st) APPEND comp_incr_tac ths i;
+      (fn st => comp_hhf_tac (Drule.incr_indexes st th) i st) APPEND comp_incr_tac ths i;
+
+in
 
 fun fact_tac facts = Goal.norm_hhf_tac THEN' comp_incr_tac facts;
 
@@ -879,6 +887,8 @@ fun potential_facts ctxt prop =
   Facts.could_unify (facts_of ctxt) (Term.strip_all_body prop);
 
 fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac (potential_facts ctxt goal) i);
+
+end;
 
 
 (* get_thm(s) *)

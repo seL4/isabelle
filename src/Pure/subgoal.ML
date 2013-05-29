@@ -125,7 +125,10 @@ fun retrofit ctxt1 ctxt0 params asms i st1 st0 =
       |> fold (Thm.forall_elim o #2) subgoal_inst
       |> Thm.adjust_maxidx_thm idx
       |> singleton (Variable.export ctxt2 ctxt0);
-  in Thm.bicompose false (false, result, Thm.nprems_of st1) i st0 end;
+  in
+    Thm.bicompose {flatten = true, match = false, incremented = false}
+      (false, result, Thm.nprems_of st1) i st0
+  end;
 
 
 (* tacticals *)

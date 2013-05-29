@@ -365,12 +365,6 @@ fun apply_subst_in_asm ctxt i th rule ((cfvs, j, ngoalprems, pth),m) =
       (* ~j because new asm starts at back, thus we subtract 1 *)
       Seq.map (Thm.rotate_rule (~j) ((Thm.nprems_of rule) + i))
       (Tactic.dtac preelimrule i th2)
-
-      (* (Thm.bicompose
-                 false (* use unification *)
-                 (true, (* elim resolution *)
-                  elimrule, (2 + (Thm.nprems_of rule)) - ngoalprems)
-                 i th2) *)
     end;
 
 

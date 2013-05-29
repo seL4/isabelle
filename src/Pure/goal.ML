@@ -56,7 +56,6 @@ sig
   val precise_conjunction_tac: int -> int -> tactic
   val recover_conjunction_tac: tactic
   val norm_hhf_tac: int -> tactic
-  val compose_hhf_tac: thm -> int -> tactic
   val assume_rule_tac: Proof.context -> int -> tactic
 end;
 
@@ -359,7 +358,8 @@ fun extract i n st =
 fun retrofit i n st' st =
   (if n = 1 then st
    else st |> Drule.with_subgoal i (Conjunction.uncurry_balanced n))
-  |> Thm.compose_no_flatten false (conclude st', Thm.nprems_of st') i;
+  |> Thm.bicompose {flatten = false, match = false, incremented = false}
+      (false, conclude st', Thm.nprems_of st') i;
 
 fun SELECT_GOAL tac i st =
   if Thm.nprems_of st = 1 andalso i = 1 then tac st
@@ -402,9 +402,6 @@ val norm_hhf_tac =
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
     else rewrite_goal_tac Drule.norm_hhf_eqs i);
-
-fun compose_hhf_tac th i st =
-  PRIMSEQ (Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
 
 
 (* non-atomic goal assumptions *)

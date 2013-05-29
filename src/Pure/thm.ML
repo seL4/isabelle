@@ -144,8 +144,8 @@ sig
   val permute_prems: int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
-  val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
-  val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
+  val bicompose: {flatten: bool, match: bool, incremented: bool} ->
+    bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
   val extern_oracles: Proof.context -> (Markup.T * xstring) list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
@@ -1615,7 +1615,7 @@ fun unify_var_types thy (th1, th2) env =
 *)
 local exception COMPOSE
 in
-fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
+fun bicompose_aux {flatten, match, incremented} (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
  let val Thm (sder, {maxidx=smax, shyps=sshyps, hyps=shyps, ...}) = state
      and Thm (rder, {maxidx=rmax, shyps=rshyps, hyps=rhyps,
@@ -1705,17 +1705,14 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
 
      val env0 = Envir.empty (Int.max (rmax, smax));
  in
-   (case if lifted then SOME env0 else unify_var_types thy (state, orule) env0 of
+   (case if incremented then SOME env0 else unify_var_types thy (state, orule) env0 of
      NONE => Seq.empty
    | SOME env => if eres_flg then eres env (rev rAs) else res env)
  end;
 end;
 
-fun compose_no_flatten match (orule, nsubgoal) i state =
-  bicompose_aux false match (state, dest_state (state, i), false) (false, orule, nsubgoal);
-
-fun bicompose match arg i state =
-  bicompose_aux true match (state, dest_state (state,i), false) arg;
+fun bicompose flags arg i state =
+  bicompose_aux flags (state, dest_state (state,i), false) arg;
 
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
@@ -1733,7 +1730,9 @@ fun biresolution match brules i state =
         val lift = lift_rule (cprem_of state i);
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
-        val compose = bicompose_aux true match (state, (stpairs, Bs, Bi, C), true);
+        val compose =
+          bicompose_aux {flatten = true, match = match, incremented = true}
+            (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
               if !Pattern.trace_unify_fail orelse

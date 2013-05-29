@@ -111,7 +111,8 @@ fun eq_assume_tac i = PRIMITIVE (Thm.eq_assumption i);
 
 (*The composition rule/state: no lifting or var renaming.
   The arg = (bires_flg, orule, m);  see Thm.bicompose for explanation.*)
-fun compose_tac arg i = PRIMSEQ (Thm.bicompose false arg i);
+fun compose_tac arg i =
+  PRIMSEQ (Thm.bicompose {flatten = true, match = false, incremented = false} arg i);
 
 (*Converts a "destruct" rule like P&Q==>P to an "elimination" rule
   like [| P&Q; P==>R |] ==> R *)

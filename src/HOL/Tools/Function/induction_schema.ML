@@ -385,7 +385,8 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     val nbranches = length branches
     val npres = length pres
   in
-    Thm.compose_no_flatten false (res, length newgoals) i
+    Thm.bicompose {flatten = false, match = false, incremented = false}
+      (false, res, length newgoals) i
     THEN term_tac (i + nbranches + npres)
     THEN (EVERY (map (TRY o pres_tac) ((i + nbranches + npres - 1) downto (i + nbranches))))
     THEN (EVERY (map (TRY o comp_tac) ((i + nbranches - 1) downto i)))

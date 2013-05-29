@@ -359,7 +359,9 @@ fun rls MRS bottom_rl = bottom_rl OF rls;
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
-  distinct Thm.eq_thm (Seq.list_of (Thm.bicompose false (false,tha,0) i thb));
+  distinct Thm.eq_thm
+    (Seq.list_of
+      (Thm.bicompose {flatten = true, match = false, incremented = false} (false, tha, 0) i thb));
 
 fun compose_single (tha,i,thb) =
   (case compose (tha,i,thb) of
@@ -743,7 +745,8 @@ fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
 
 fun comp_no_flatten (th, n) i rule =
   (case distinct Thm.eq_thm (Seq.list_of
-      (Thm.compose_no_flatten false (th, n) i (incr_indexes th rule))) of
+      (Thm.bicompose {flatten = false, match = false, incremented = true}
+        (false, th, n) i (incr_indexes th rule))) of
     [th'] => th'
   | [] => raise THM ("comp_no_flatten", i, [th, rule])
   | _ => raise THM ("comp_no_flatten: unique result expected", i, [th, rule]));
