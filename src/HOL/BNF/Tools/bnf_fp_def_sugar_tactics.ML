@@ -24,8 +24,7 @@ sig
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
-  val mk_iter_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> Proof.context
-    -> tactic
+  val mk_iter_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
 
 structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
@@ -103,9 +102,9 @@ val iter_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
       split_conv unit_case_Unity} @ sum_prod_thms_map;
 
-fun mk_iter_tac pre_map_defs map_comp's map_ids'' iter_defs ctor_iter ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_comp's @
-    map_ids'' @ iter_unfold_thms) THEN rtac refl 1;
+fun mk_iter_tac pre_map_defs map_ids'' iter_defs ctor_iter ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_ids'' @
+    iter_unfold_thms) THEN rtac refl 1;
 
 val coiter_unfold_thms =
   @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
