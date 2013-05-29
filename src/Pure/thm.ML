@@ -1593,6 +1593,18 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
   | norm_term_skip _ _ _ = error "norm_term_skip: too few assumptions??";
 
 
+(*unify types of schematic variables (non-lifted case)*)
+fun unify_var_types thy (th1, th2) env =
+  let
+    fun unify_vars (T :: Us) = fold (fn U => Pattern.unify_types thy (T, U)) Us
+      | unify_vars _ = I;
+    val add_vars =
+      full_prop_of #>
+      fold_aterms (fn Var v => Vartab.insert_list (op =) v | _ => I);
+    val vars = Vartab.empty |> add_vars th1 |> add_vars th2;
+  in SOME (Vartab.fold (unify_vars o #2) vars env) end
+  handle Pattern.Unif => NONE;
+
 (*Composition of object rule r=(A1...Am/B) with proof state s=(B1...Bn/C)
   Unifies B with Bi, replacing subgoal i    (1 <= i <= n)
   If match then forbid instantiations in proof state
@@ -1659,13 +1671,12 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
           handle TERM _ =>
           raise THM("bicompose: 1st premise", 0, [orule])
        end;
-     val env = Envir.empty(Int.max(rmax,smax));
      val BBi = if lifted then strip_assums2(B,Bi) else (B,Bi);
      val dpairs = BBi :: (rtpairs@stpairs);
 
      (*elim-resolution: try each assumption in turn*)
-     fun eres [] = raise THM ("bicompose: no premises", 0, [orule, state])
-       | eres (A1 :: As) =
+     fun eres _ [] = raise THM ("bicompose: no premises", 0, [orule, state])
+       | eres env (A1 :: As) =
            let
              val A = SOME A1;
              val (close, asms, concl) = Logic.assum_problems (nlift + 1, A1);
@@ -1685,14 +1696,18 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
            in tryasms asms 1 end;
 
      (*ordinary resolution*)
-     fun res () =
+     fun res env =
        (case Seq.pull (Unify.unifiers (thy, env, dpairs)) of
          NONE => Seq.empty
        | cell as SOME ((_, tpairs), _) =>
            Seq.it_right (addth NONE (newAs (rev rAs, 0, [BBi], tpairs)))
              (Seq.make (fn () => cell), Seq.empty));
+
+     val env0 = Envir.empty (Int.max (rmax, smax));
  in
-   if eres_flg then eres (rev rAs) else res ()
+   (case if lifted then SOME env0 else unify_var_types thy (state, orule) env0 of
+     NONE => Seq.empty
+   | SOME env => if eres_flg then eres env (rev rAs) else res env)
  end;
 end;
 
