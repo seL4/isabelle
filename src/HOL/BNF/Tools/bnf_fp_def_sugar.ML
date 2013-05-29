@@ -681,30 +681,15 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
 
         val mk_U = typ_subst_nonatomic (map2 pair fpTs Cs);
 
-        (* ### *)
-        fun typ_subst inst (T as Type (s, Ts)) =
-            (case AList.lookup (op =) inst T of
-              NONE => Type (s, map (typ_subst inst) Ts)
-            | SOME T' => T')
-          | typ_subst inst T = the_default T (AList.lookup (op =) inst T);
-
-        fun mk_U' maybe_mk_prodT =
-          typ_subst (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
-
-        (* ### *)
-        fun build_rec_like fiters maybe_tick (T, U) =
-          if T = U then
-            id_const T
-          else
-            (case find_index (curry (op =) T) fpTs of
-              ~1 => build_map lthy (build_rec_like fiters maybe_tick) (T, U)
-            | kk => maybe_tick (nth us kk) (nth fiters kk));
+        fun mk_nested_U maybe_mk_prodT =
+          typ_subst_nonatomic (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
 
         fun unzip_iters fiters maybe_tick maybe_mk_prodT =
           meta_unzip_rec (snd o dest_Free) I
             (fn x as Free (_, T) => build_map lthy (indexify_fst fpTs (K o nth fiters))
               (T, mk_U T) $ x)
-            (fn x as Free (_, T) => build_rec_like fiters maybe_tick (T, mk_U' maybe_mk_prodT T) $ x)
+            (fn x as Free (_, T) => build_map lthy (indexify_fst fpTs (fn kk => fn _ =>
+              maybe_tick (nth us kk) (nth fiters kk))) (T, mk_nested_U maybe_mk_prodT T) $ x)
             fpTs;
 
         fun tick u f = Term.lambda u (HOLogic.mk_prod (u, f $ u));
