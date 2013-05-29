@@ -42,8 +42,8 @@ sig
     * Proof.context
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
-  val mk_iter_fun_arg_types_pairsss: typ list -> int list -> int list list -> term ->
-    (typ list * typ list) list list list
+  val mk_iter_fun_arg_typessss: typ list -> int list -> int list list -> term ->
+    typ list list list list
   val define_fold_rec: (term list list * typ list list * term list list list list)
       * (term list list * typ list list * term list list list list) -> (string -> binding) ->
     typ list -> typ list -> term -> term -> Proof.context ->
@@ -187,10 +187,10 @@ fun flat_rec unzipf xs =
   let val ps = map unzipf xs in
     (* The first line below gives the preferred order. The second line is for compatibility with the
        old datatype package: *)
-    maps (op @) ps
-(* ###
-    maps fst ps @ maps snd ps
+(*
+    flat ps
 *)
+    map hd ps @ maps tl ps
   end;
 
 fun flat_predss_getterss qss fss = maps (op @) (qss ~~ fss);
@@ -202,7 +202,7 @@ fun flat_preds_predsss_gettersss [] [qss] [fss] = flat_predss_getterss qss fss
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
-  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
+  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat_rec I xss);
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
@@ -250,9 +250,9 @@ val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
 fun meta_unzip_rec getT left right nested fpTs y =
   let val T = getT y in
-    if member (op =) fpTs T then ([left y], [right y])
-    else if exists_subtype_in fpTs T then ([nested y], [])
-    else ([y], [])
+    if member (op =) fpTs T then [left y, right y]
+    else if exists_subtype_in fpTs T then [nested y]
+    else [y]
   end;
 
 fun project_co_recT special_Tname fpTs proj =
@@ -270,12 +270,12 @@ fun unzip_recT fpTs = meta_unzip_rec I (project_recT fpTs fst) (project_recT fpT
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
-fun mk_iter_fun_arg_types_pairsss fpTs ns mss =
+fun mk_iter_fun_arg_typessss fpTs ns mss =
   mk_fp_iter_fun_types
   #> map3 mk_fun_arg_typess ns mss
   #> map (map (map (unzip_recT fpTs)));
 
-fun mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
     val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
@@ -297,18 +297,15 @@ fun mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy 
         dest_sumTN_balanced n o domain_type) ns mss ctor_rec_fun_Ts;
 
     val z_Tsss = map3 mk_fun_arg_typess ns mss ctor_rec_fun_Ts;
-    val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
+    val z_Tsss' = map (map (flat_rec I)) z_Tssss;
+    val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
 
     val hss = map2 (map2 retype_free) h_Tss gss;
-    val zsss = map2 (map2 (map2 retype_free)) z_Tsss ysss;
     val zssss_hd = map2 (map2 (map2 (retype_free o hd))) z_Tssss ysss;
     val (zssss_tl, lthy) =
       lthy
       |> mk_Freessss "y" (map (map (map tl)) z_Tssss);
     val zssss = map2 (map2 (map2 cons)) zssss_hd zssss_tl;
-
-val _ = tracing (" *** OLD:  " ^ PolyML.makestring (ysss, zsss)) (*###*)
-val _ = tracing ("  *** NEW: " ^ PolyML.makestring (yssss, zssss)) (*###*)
   in
     (((gss, g_Tss, yssss), (hss, h_Tss, zssss)), lthy)
   end;
@@ -379,7 +376,7 @@ fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if fp = Least_FP then
-        mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
         mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
@@ -584,7 +581,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
     val ctor_rec_fun_Ts = mk_fp_iter_fun_types (hd ctor_recs);
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
-      mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+      mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
       names_lthy0
@@ -715,8 +712,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
 
         fun tick u f = Term.lambda u (HOLogic.mk_prod (u, f $ u));
 
-        val gxsss = map (map (flat_rec ((fn (ts, ts') => ([hd (ts' @ ts)], [])) o
-          unzip_iters gfolds (K I) (K I)))) xsss;
+        val gxsss = map (map (flat_rec (single o List.last o unzip_iters gfolds (K I) (K I)))) xsss;
         val hxsss = map (map (flat_rec (unzip_iters hrecs tick (curry HOLogic.mk_prodT)))) xsss;
 
         val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
