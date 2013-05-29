@@ -506,7 +506,6 @@ session "HOL-ex" in ex = HOL +
     Higher_Order_Logic
     Abstract_NAT
     Guess
-    Binary
     Fundefs
     Induction_Schema
     LocaleTest2
