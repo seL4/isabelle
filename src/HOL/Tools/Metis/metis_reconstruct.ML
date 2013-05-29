@@ -185,7 +185,7 @@ fun resolve_inc_tyvars thy tha i thb =
   let
     val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun aux (tha, thb) =
-      case Thm.bicompose {flatten = true, match = false, incremented = false}
+      case Thm.bicompose {flatten = true, match = false, incremented = true}
             (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
@@ -193,7 +193,7 @@ fun resolve_inc_tyvars thy tha i thb =
                         [tha, thb])
   in
     aux (tha, thb)
-    handle TERM z =>  (* FIXME obsolete!? *)
+    handle TERM z =>
            (* The unifier, which is invoked from "Thm.bicompose", will sometimes
               refuse to unify "?a::?'a" with "?a::?'b" or "?a::nat" and throw a
               "TERM" exception (with "add_ffpair" as first argument). We then
