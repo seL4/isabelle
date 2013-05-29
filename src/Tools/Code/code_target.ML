@@ -613,13 +613,13 @@ fun check_tyco_syntax thy tyco syn =
 
 (* custom symbol names *)
 
-val arrange_name_decls =
+fun arrange_name_decls x =
   let
     fun arrange is_module (sym, target_names) = map (fn (target, some_name) =>
       (target, (sym, Option.map (check_name is_module) some_name))) target_names;
   in
     Code_Symbol.maps_attr' (arrange false) (arrange false) (arrange false)
-      (arrange false) (arrange false) (arrange true)
+      (arrange false) (arrange false) (arrange true) x
   end;
 
 fun cert_name_decls thy = cert_syms thy #> arrange_name_decls;
