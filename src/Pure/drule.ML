@@ -368,12 +368,6 @@ fun compose_single (tha,i,thb) =
     [th] => th
   | _ => raise THM ("compose: unique result expected", i, [tha,thb]));
 
-(*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
-fun tha COMP thb =
-  (case compose(tha, 1, thb) of
-    [th] => th
-  | _ => raise THM ("COMP", 1, [tha, thb]));
-
 
 (** theorem equality **)
 
@@ -740,8 +734,21 @@ fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 fun incr_indexes2 th1 th2 =
   Thm.incr_indexes (Int.max (Thm.maxidx_of th1, Thm.maxidx_of th2) + 1);
 
-fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
-fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
+local
+
+(*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
+fun comp incremented th1 th2 =
+  Thm.bicompose {flatten = true, match = false, incremented = incremented} (false, th1, 0) 1 th2
+  |> Seq.list_of |> distinct Thm.eq_thm
+  |> (fn [th] => th | _ => raise THM ("COMP", 1, [th1, th2]));
+
+in
+
+fun th1 COMP th2 = comp false th1 th2;
+fun th1 INCR_COMP th2 = comp true (incr_indexes th2 th1) th2;
+fun th1 COMP_INCR th2 = comp true th1 (incr_indexes th1 th2);
+
+end;
 
 fun comp_no_flatten (th, n) i rule =
   (case distinct Thm.eq_thm (Seq.list_of
