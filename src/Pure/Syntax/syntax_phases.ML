@@ -621,7 +621,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) => trans c (Type_Annotation.clean T) ts
+      | (const as Const (c, T), ts) => trans c (Type_Annotation.smash T) ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)

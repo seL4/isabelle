@@ -10,7 +10,6 @@ sig
   val ignore_free_types: term -> term
   val is_ignored: typ -> bool
   val is_omitted: typ -> bool
-  val clean: typ -> typ
   val smash: typ -> typ
   val fastype_of: typ list -> term -> typ
 end;
@@ -28,10 +27,6 @@ fun is_ignored (Type ("_ignore_type", _)) = true
   | is_ignored _ = false;
 
 fun is_omitted T = is_ignored T orelse T = dummyT;
-
-fun clean (Type ("_ignore_type", [T])) = clean T
-  | clean (Type (a, Ts)) = Type (a, map clean Ts)
-  | clean T = T;
 
 fun smash (Type ("_ignore_type", [_])) = dummyT
   | smash (Type (a, Ts)) = Type (a, map smash Ts)
