@@ -266,7 +266,9 @@ fun project_co_recT special_Tname fpTs proj =
 val project_recT = project_co_recT @{type_name prod};
 val project_corecT = project_co_recT @{type_name sum};
 
-fun unzip_recT fpTs = meta_unzip_rec I (project_recT fpTs fst) (project_recT fpTs snd) I fpTs;
+fun unzip_recT fpTs (T as Type (@{type_name prod}, Ts as [T', _])) =
+    if member (op =) fpTs T' then Ts else [T]
+  | unzip_recT _ T = [T];
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
@@ -275,7 +277,7 @@ fun mk_iter_fun_arg_typessss fpTs ns mss =
   #> map3 mk_fun_arg_typess ns mss
   #> map (map (map (unzip_recT fpTs)));
 
-fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+fun mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
     val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
@@ -287,13 +289,8 @@ fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
       ||>> mk_Freesss "x" y_Tsss;
     val yssss = map (map (map single)) ysss;
 
-    (* ### *)
-    fun dest_rec_prodT (T as Type (@{type_name prod}, Us as [_, U])) =
-        if member (op =) Cs U then Us else [T]
-      | dest_rec_prodT T = [T];
-
     val z_Tssss =
-      map3 (fn n => fn ms => map2 (map dest_rec_prodT oo dest_tupleT) ms o
+      map3 (fn n => fn ms => map2 (map (unzip_recT fpTs) oo dest_tupleT) ms o
         dest_sumTN_balanced n o domain_type) ns mss ctor_rec_fun_Ts;
 
     val z_Tsss = map3 mk_fun_arg_typess ns mss ctor_rec_fun_Ts;
@@ -376,7 +373,7 @@ fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if fp = Least_FP then
-        mk_fold_rec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
         mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
@@ -581,7 +578,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
     val ctor_rec_fun_Ts = mk_fp_iter_fun_types (hd ctor_recs);
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
-      mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+      mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
       names_lthy0
