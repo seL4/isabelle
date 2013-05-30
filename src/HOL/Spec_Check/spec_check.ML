@@ -188,5 +188,5 @@ val check_property_f = gen_check_property_f Gen_Construction.build_check
 
 end;
 
-val check_property = Spec_Check.check_property;
+fun check_property s = Spec_Check.check_property (ML_Context.the_local_context ()) s;
 

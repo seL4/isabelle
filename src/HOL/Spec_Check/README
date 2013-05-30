@@ -9,8 +9,8 @@ Quick Usage
 
   - Import Spec_Check.thy in your development
   - Look at examples in Examples.thy
-  - write specifications with the ML function
-      Spec_Check.check_property @{context} "ALL x. P x"
+  - write specifications with the ML invocation
+      check_property "ALL x. P x"
 
 Notes
 
