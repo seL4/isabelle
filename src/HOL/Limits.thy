@@ -1,4 +1,4 @@
-(*  Title:      Limits.thy
+(*  Title:      HOL/Limits.thy
     Author:     Brian Huffman
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson

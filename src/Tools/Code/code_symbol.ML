@@ -1,4 +1,4 @@
-(*  Title:      Tools/Code/ML
+(*  Title:      Tools/Code/code_symbol.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Data related to symbols in programs: constants, type constructors, classes,

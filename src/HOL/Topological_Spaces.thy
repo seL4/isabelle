@@ -1,4 +1,4 @@
-(*  Title:      HOL/Basic_Topology.thy
+(*  Title:      HOL/Topological_Spaces.thy
     Author:     Brian Huffman
     Author:     Johannes Hölzl
 *)

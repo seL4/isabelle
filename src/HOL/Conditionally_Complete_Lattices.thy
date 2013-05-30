@@ -1,4 +1,4 @@
-(*  Title:      HOL/Conditional_Complete_Lattices.thy
+(*  Title:      HOL/Conditionally_Complete_Lattices.thy
     Author:     Amine Chaieb and L C Paulson, University of Cambridge
     Author:     Johannes Hölzl, TU München
 *)
