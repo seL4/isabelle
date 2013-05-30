@@ -82,7 +82,7 @@ fun skipto_skipseq m s =
     fun skip_occs n sq =
       (case Seq.pull sq of
         NONE => SkipMore n
-      | SOME (h,t) =>
+      | SOME (h, t) =>
         (case Seq.pull h of
           NONE => skip_occs n t
         | SOME _ => if n <= 1 then SkipSeq (Seq.cons h t) else skip_occs (n - 1) t))
@@ -318,10 +318,6 @@ fun eqsubst_tac ctxt occL thms i st =
   end;
 
 
-(* inthms are the given arguments in Isar, and treated as eqstep with
-   the first one, then the second etc *)
-fun eqsubst_meth ctxt occL inthms = SIMPLE_METHOD' (eqsubst_tac ctxt occL inthms);
-
 (* apply a substitution inside assumption j, keeps asm in the same place *)
 fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
   let
@@ -416,11 +412,6 @@ fun eqsubst_asm_tac ctxt occL thms i st =
       end
   end;
 
-(* inthms are the given arguments in Isar, and treated as eqstep with
-   the first one, then the second etc *)
-fun eqsubst_asm_meth ctxt occL inthms =
-  SIMPLE_METHOD' (eqsubst_asm_tac ctxt occL inthms);
-
 (* combination method that takes a flag (true indicates that subst
    should be done to an assumption, false = apply to the conclusion of
    the goal) as well as the theorems to use *)
@@ -429,7 +420,7 @@ val setup =
     (Args.mode "asm" -- Scan.lift (Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
         Attrib.thms >>
       (fn ((asm, occL), inthms) => fn ctxt =>
-        (if asm then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms))
+        SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occL inthms)))
     "single-step substitution";
 
 end;
