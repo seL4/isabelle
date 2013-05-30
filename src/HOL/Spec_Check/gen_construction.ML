@@ -9,8 +9,8 @@ signature GEN_CONSTRUCTION =
 sig
   val register : string * (string * string) -> theory -> theory
   type mltype
-  val parse_pred : string -> string * mltype;
-  val build_check : theory -> string -> mltype * string -> string
+  val parse_pred : string -> string * mltype
+  val build_check : Proof.context -> string -> mltype * string -> string
   (*val safe_check : string -> mltype * string -> string*)
   val string_of_bool : bool -> string
   val string_of_ref : ('a -> string) -> 'a Unsynchronized.ref -> string
@@ -111,8 +111,8 @@ structure Data = Theory_Data
   fun merge data : T = Symtab.merge (K true) data
 )
 
-fun data_of thy tycon =
-  (case Symtab.lookup (Data.get thy) tycon of
+fun data_of ctxt tycon =
+  (case Symtab.lookup (Data.get (Proof_Context.theory_of ctxt)) tycon of
     SOME data => data
   | NONE => error ("No generator and printer defined for ML type constructor " ^ quote tycon))
 
@@ -129,44 +129,50 @@ fun combine dict [] = dict
   | combine dict dicts = enclose "(" ")" dict ^ " " ^ enclose "(" ")" (commas dicts)
 
 fun compose_generator _ Var = "Generator.int"
-  | compose_generator thy (Con (s, types)) =
-      combine (generator_of thy s) (map (compose_generator thy) types)
-  | compose_generator thy (Tuple t) =
-    let
-      fun tuple_body t = space_implode ""
-        (map (fn (ty, n) => "val (x" ^ string_of_int n ^ ", r" ^ string_of_int n ^ ") = " ^
-        compose_generator thy ty ^ " r" ^ string_of_int (n - 1) ^ " ") (t ~~ (1 upto (length t))))
-      fun tuple_ret a = commas (map (fn n => "x" ^ string_of_int n) (1 upto a))
-    in "fn r0 => let " ^ tuple_body t ^
-      "in ((" ^ tuple_ret (length t) ^ "), r" ^ string_of_int (length t) ^ ") end" end;
+  | compose_generator ctxt (Con (s, types)) =
+      combine (generator_of ctxt s) (map (compose_generator ctxt) types)
+  | compose_generator ctxt (Tuple t) =
+      let
+        fun tuple_body t = space_implode ""
+          (map (fn (ty, n) => "val (x" ^ string_of_int n ^ ", r" ^ string_of_int n ^ ") = " ^
+          compose_generator ctxt ty ^ " r" ^ string_of_int (n - 1) ^ " ") (t ~~ (1 upto (length t))))
+        fun tuple_ret a = commas (map (fn n => "x" ^ string_of_int n) (1 upto a))
+      in
+        "fn r0 => let " ^ tuple_body t ^
+        "in ((" ^ tuple_ret (length t) ^ "), r" ^ string_of_int (length t) ^ ") end"
+      end;
 
 fun compose_printer _ Var = "Int.toString"
-  | compose_printer thy (Con (s, types)) =
-      combine (printer_of thy s) (map (compose_printer thy) types)
-  | compose_printer thy (Tuple t) =
-    let
-      fun tuple_head a = commas (map (fn n => "x" ^ string_of_int n) (1 upto a))
-      fun tuple_body t = space_implode " ^ \", \" ^ "
-        (map (fn (ty, n) => "(" ^ compose_printer thy ty ^ ") x" ^ string_of_int n)
-        (t ~~ (1 upto (length t))))
-    in "fn (" ^ tuple_head (length t) ^ ") => \"(\" ^ " ^ tuple_body t ^ " ^ \")\"" end;
+  | compose_printer ctxt (Con (s, types)) =
+      combine (printer_of ctxt s) (map (compose_printer ctxt) types)
+  | compose_printer ctxt (Tuple t) =
+      let
+        fun tuple_head a = commas (map (fn n => "x" ^ string_of_int n) (1 upto a))
+        fun tuple_body t = space_implode " ^ \", \" ^ "
+          (map (fn (ty, n) => "(" ^ compose_printer ctxt ty ^ ") x" ^ string_of_int n)
+          (t ~~ (1 upto (length t))))
+      in "fn (" ^ tuple_head (length t) ^ ") => \"(\" ^ " ^ tuple_body t ^ " ^ \")\"" end;
 
 (*produce compilable string*)
-fun build_check thy name (ty, spec) = "Spec_Check.checkGen (ML_Context.the_generic_context ()) ("
-  ^ compose_generator thy ty ^ ", SOME (" ^ compose_printer thy ty ^ ")) (\""
+fun build_check ctxt name (ty, spec) =
+  "Spec_Check.checkGen (ML_Context.the_local_context ()) ("
+  ^ compose_generator ctxt ty ^ ", SOME (" ^ compose_printer ctxt ty ^ ")) (\""
   ^ name ^ "\", Property.pred (" ^ spec ^ "));";
 
 (*produce compilable string - non-eqtype functions*)
 (*
 fun safe_check name (ty, spec) =
   let
-    val default = case AList.lookup (op =) (!gen_table) "->"
-      of NONE => ("gen_function_rand", "fn (_, _) => fn _ => \"fn\"")
-      | SOME entry => entry
-  in (gen_table := AList.update (op =) ("->", ("gen_function_safe", "fn (_, _) => fn _ => \"fn\""))
-   (!gen_table);
+    val default =
+      (case AList.lookup (op =) (!gen_table) "->" of
+        NONE => ("gen_function_rand", "fn (_, _) => fn _ => \"fn\"")
+      | SOME entry => entry)
+  in
+   (gen_table :=
+     AList.update (op =) ("->", ("gen_function_safe", "fn (_, _) => fn _ => \"fn\"")) (!gen_table);
     build_check name (ty, spec) before
-    gen_table := AList.update (op =) ("->", default) (!gen_table)) end;
+    gen_table := AList.update (op =) ("->", default) (!gen_table))
+  end;
 *)
 
 end;

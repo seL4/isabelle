@@ -74,12 +74,12 @@ fun charByType p = filter p char
 val string = vector CharVector.tabulate
 
 fun substring gen r =
-    let val (s, r') = gen r
-        val (i, r'') = range (0, String.size s) r'
-        val (j, r''') = range (0, String.size s - i) r''
-    in
-      (Substring.substring (s, i, j), r''')
-    end
+  let val (s, r') = gen r
+      val (i, r'') = range (0, String.size s) r'
+      val (j, r''') = range (0, String.size s - i) r''
+  in
+    (Substring.substring (s, i, j), r''')
+  end
 
 fun cochar c =
   if Char.ord c = 0 then variant 0
@@ -179,8 +179,12 @@ fun function_lazy (gen1, gen2) r =
         val _ =  seed := new_seed
         val _ = table := AList.update (op =) (k, new_val) (!table)
       in new_val end
-  in (fn v1 => case AList.lookup (op =) (!table) v1 of
-    NONE => new_entry v1 | SOME v2 => v2, r') end;
+  in
+    (fn v1 =>
+      case AList.lookup (op =) (!table) v1 of
+        NONE => new_entry v1
+      | SOME v2 => v2, r')
+  end;
 
 (* unit *)
 

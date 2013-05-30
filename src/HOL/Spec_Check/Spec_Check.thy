@@ -9,7 +9,6 @@ ML_file "generator.ML"
 ML_file "gen_construction.ML"
 ML_file "spec_check.ML"
 ML_file "output_style.ML"
-
-setup {* Perl_Style.setup #> CMStyle.setup *}
+setup Output_Style.setup
 
 end

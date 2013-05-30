@@ -15,13 +15,13 @@ sig
   val column_width : int Config.T
   val style : string Config.T
 
-  type output_style = Context.generic -> string ->
+  type output_style = Proof.context -> string ->
     {status : string option * Property.result * (Property.stats  * string option list) -> unit,
      finish: Property.stats * string option list -> unit}
 
   val register_style : (string * output_style) -> theory -> theory
 
-  val checkGen : Context.generic ->
+  val checkGen : Proof.context ->
     'a Generator.gen * ('a -> string) option -> string * 'a Property.prop -> unit
 
   val check_property : Proof.context -> string -> unit
@@ -46,11 +46,11 @@ open Property
 type ('a, 'b) reader = 'b -> ('a * 'b) option
 type 'a rep = ('a -> string) option
 
-type output_style = Context.generic -> string ->
+type output_style = Proof.context -> string ->
   {status: string option * Property.result * (Property.stats * string option list) -> unit,
    finish: Property.stats * string option list -> unit}
 
-fun limit context gen = Generator.limit (Config.get_generic context gen_max) gen
+fun limit ctxt gen = Generator.limit (Config.get ctxt gen_max) gen
 
 structure Style = Theory_Data
 (
@@ -60,11 +60,11 @@ structure Style = Theory_Data
   fun merge data : T = Symtab.merge (K true) data
 )
 
-fun get_style context =
-  let val name = Config.get_generic context style
-  in case Symtab.lookup (Style.get (Context.theory_of context)) name of
-      SOME style => style context
-    | NONE => error ("No style called " ^ quote name ^ " found")
+fun get_style ctxt =
+  let val name = Config.get ctxt style in
+    (case Symtab.lookup (Style.get (Proof_Context.theory_of ctxt)) name of
+      SOME style => style ctxt
+    | NONE => error ("No style called " ^ quote name ^ " found"))
   end
 
 fun register_style (name, style) = Style.map (Symtab.update (name, style))
@@ -72,11 +72,11 @@ fun register_style (name, style) = Style.map (Symtab.update (name, style))
 
 (* testing functions *)
 
-fun cpsCheck context s0 shrink (next, show) (tag, prop) =
+fun cpsCheck ctxt s0 shrink (next, show) (tag, prop) =
   let
     val apply_show = case show of NONE => (fn _ => NONE) | SOME f => SOME o f
 
-    val {status, finish} = get_style context tag
+    val {status, finish} = get_style ctxt tag
     fun status' (obj, result, (stats, badobjs)) =
       let
         val badobjs' = if Property.failure result then obj :: badobjs else badobjs
@@ -96,7 +96,7 @@ fun cpsCheck context s0 shrink (next, show) (tag, prop) =
 
     fun iter (NONE, (stats, badobjs)) = finish (stats, map apply_show badobjs)
       | iter (SOME (obj, stream), (stats, badobjs)) =
-        if #count stats >= Config.get_generic context gen_target then
+        if #count stats >= Config.get ctxt gen_target then
           finish (stats, map apply_show badobjs)
         else
           let
@@ -110,19 +110,20 @@ fun cpsCheck context s0 shrink (next, show) (tag, prop) =
     fn stream => iter (next stream, (s0, []))
   end
 
-fun check' context s0 = cpsCheck context s0 (fn _ => [])
-fun check context = check' context Property.stats
-fun checks context = cpsCheck context Property.stats
+fun check' ctxt s0 = cpsCheck ctxt s0 (fn _ => [])
+fun check ctxt = check' ctxt Property.stats
+fun checks ctxt = cpsCheck ctxt Property.stats
 
-fun checkGen context (gen, show) (tag, prop) =
-  check' context {count=0, tags=[("__GEN", 0)]} (limit context gen, show) (tag, prop) Generator.stream
+fun checkGen ctxt (gen, show) (tag, prop) =
+  check' ctxt {count = 0, tags = [("__GEN", 0)]}
+    (limit ctxt gen, show) (tag, prop) Generator.stream
 
-fun checkGenShrink context shrink (gen, show) (tag, prop) =
-  cpsCheck context {count=0, tags=[("__GEN", 0)]} shrink
-    (limit context gen, show) (tag, prop) Generator.stream
+fun checkGenShrink ctxt shrink (gen, show) (tag, prop) =
+  cpsCheck ctxt {count=0, tags=[("__GEN", 0)]} shrink
+    (limit ctxt gen, show) (tag, prop) Generator.stream
 
-fun checkOne context show (tag, prop) obj =
-  check context (List.getItem, show) (tag, prop) [obj]
+fun checkOne ctxt show (tag, prop) obj =
+  check ctxt (List.getItem, show) (tag, prop) [obj]
 
 (*call the compiler and pass resulting type string to the parser*)
 fun determine_type ctxt s =
@@ -156,7 +157,8 @@ fun input_split s =
     fun dot c = c = #"."
     fun space c = c = #" "
     val (head, code) = Substring.splitl (not o dot) (Substring.full s)
-  in (String.tokens space (Substring.string head),
+  in
+   (String.tokens space (Substring.string head),
     Substring.string (Substring.dropl dot code))
   end;
 
@@ -176,7 +178,7 @@ fun gen_check_property check ctxt s =
   let
     val func = make_fun s
     val (_, ty) = determine_type ctxt func
-  in run_test ctxt (check (Proof_Context.theory_of ctxt) "Check" (ty, func)) end;
+  in run_test ctxt (check ctxt "Check" (ty, func)) end;
 
 val check_property = gen_check_property Gen_Construction.build_check
 (*val check_property_safe = gen_check_property Gen_Construction.safe_check*)
@@ -185,7 +187,7 @@ val check_property = gen_check_property Gen_Construction.build_check
 fun gen_check_property_f check ctxt s =
   let
     val (name, ty) = determine_type ctxt s
-  in run_test ctxt (check (Proof_Context.theory_of ctxt) name (ty, s)) end;
+  in run_test ctxt (check ctxt name (ty, s)) end;
 
 val check_property_f = gen_check_property_f Gen_Construction.build_check
 (*val check_property_safe_f_ = gen_check_property_f Gen_Construction.safe_check*)

@@ -5,20 +5,27 @@
 Output styles for presenting Spec_Check's results.
 *)
 
-structure Perl_Style =
+signature OUTPUT_STYLE =
+sig
+  val setup: theory -> theory
+end
+
+structure Output_Style: OUTPUT_STYLE =
 struct
+
+(* perl style *)
 
 local
 
 open StringCvt
 
-fun new context tag =
+fun new ctxt tag =
   let
-    val target = Config.get_generic context Spec_Check.gen_target
-    val namew = Config.get_generic context Spec_Check.column_width
-    val sort_examples = Config.get_generic context Spec_Check.sort_examples
-    val show_stats = Config.get_generic context Spec_Check.show_stats
-    val limit = Config.get_generic context Spec_Check.examples
+    val target = Config.get ctxt Spec_Check.gen_target
+    val namew = Config.get ctxt Spec_Check.column_width
+    val sort_examples = Config.get ctxt Spec_Check.sort_examples
+    val show_stats = Config.get ctxt Spec_Check.show_stats
+    val limit = Config.get ctxt Spec_Check.examples
 
     val resultw = 8
     val countw = 20
@@ -73,27 +80,23 @@ fun new context tag =
       if null badobjs then writeln (update (stats, badobjs) true ^ prtags stats)
       else (writeln (update (stats, badobjs) true); err badobjs)
   in
-    {status=status, finish=finish}
+    {status = status, finish = finish}
   end
 
 in
-  val setup = Spec_Check.register_style ("Perl", new)
+  val perl_style = Spec_Check.register_style ("Perl", new)
 end
 
-end
 
 (* CM style: meshes with CM output; highlighted in sml-mode *)
-
-structure CMStyle =
-struct
 
 local
 
 fun pad wd = StringCvt.padLeft #"0" wd o Int.toString
 
-fun new context tag =
+fun new ctxt tag =
   let
-    val gen_target = Config.get_generic context Spec_Check.gen_target
+    val gen_target = Config.get ctxt Spec_Check.gen_target
     val _ = writeln ("[testing " ^ tag ^ "... ")
     fun finish ({count, ...}, badobjs) =
       (case (count, badobjs) of
@@ -114,7 +117,12 @@ fun new context tag =
   end
 
 in
-  val setup = Spec_Check.register_style ("CM", new)
+  val cm_style = Spec_Check.register_style ("CM", new)
 end
+
+
+(* setup *)
+
+val setup = perl_style #> cm_style
 
 end
