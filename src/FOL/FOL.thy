@@ -349,6 +349,8 @@ setup {* map_theory_simpset (put_simpset FOL_ss) *}
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup clasimp_setup
+
+ML_file "~~/src/Tools/eqsubst.ML"
 setup EqSubst.setup
 
 
