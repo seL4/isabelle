@@ -143,7 +143,7 @@ fun determine_type ctxt s =
 (*call the compiler and run the test*)
 fun run_test ctxt s =
   Context.setmp_thread_data (SOME (Context.Proof ctxt))
-    (fn () => Secure.use_text ML_Env.local_context (0, "generated code") true s) ();
+    (fn () => Secure.use_text ML_Env.local_context (0, "generated code") false s) ();
 
 (*split input into tokens*)
 fun input_split s =
