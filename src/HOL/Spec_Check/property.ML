@@ -56,9 +56,13 @@ fun wrap trans p (x,s) =
 
 fun classify' f =
   wrap (fn (x, result, {tags, count}) =>
-    { tags = if is_some result then
-        case f x of NONE => tags | SOME tag => AList.map_default (op =) (tag, 0) (fn c => c + 1) tags
-      else tags, count = count })
+    { tags =
+        if is_some result then
+          (case f x of
+            NONE => tags
+          | SOME tag => AList.map_default (op =) (tag, 0) (fn c => c + 1) tags)
+        else tags,
+     count = count })
 
 fun classify p tag = classify' (fn x => if p x then SOME tag else NONE)
 

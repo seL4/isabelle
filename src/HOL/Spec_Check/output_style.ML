@@ -28,16 +28,18 @@ fun new ctxt tag =
 
     fun result ({count=0,...}, _) _ = "dubious"
       | result (_ : Property.stats, badobjs) false = if null badobjs then "ok" else "FAILED"
-      | result ({count,tags,...}, badobjs) true = if not (null badobjs) then "FAILED"
-          else if AList.defined (op =) tags "__GEN" andalso count < target then "dubious" else "ok"
+      | result ({count,tags,...}, badobjs) true =
+          if not (null badobjs) then "FAILED"
+          else if AList.defined (op =) tags "__GEN" andalso count < target then "dubious"
+          else "ok"
 
     fun ratio (0, _) = "(0/0 passed)"
       | ratio (count, 0) = "(" ^ string_of_int count ^ " passed)"
       | ratio (count, n) = "(" ^ string_of_int (count - n) ^ "/" ^ string_of_int count ^  " passed)"
 
     fun update (stats, badobjs) donep =
-      "\r" ^ (padRight #"." namew tag) ^ "." ^ (padRight #" " resultw (result (stats, badobjs) donep))
-      ^ (padRight #" " countw (ratio (#count stats, length badobjs)))
+      "\r" ^ padRight #"." namew tag ^ "." ^ padRight #" " resultw (result (stats, badobjs) donep)
+      ^ padRight #" " countw (ratio (#count stats, length badobjs))
 
     fun status (_, result, (stats, badobjs)) =
       if Property.failure result then writeln (update (stats, badobjs) false) else ()
@@ -93,7 +95,8 @@ fun new ctxt tag =
   let
     val gen_target = Config.get_generic ctxt Spec_Check.gen_target
     val _ = writeln ("[testing " ^ tag ^ "... ")
-    fun finish ({count, ...}, badobjs) = case (count, badobjs) of
+    fun finish ({count, ...}, badobjs) =
+      (case (count, badobjs) of
         (0, []) => writeln ("no valid cases generated]")
       | (n, []) => writeln (
             if n >= gen_target then "ok]"
@@ -105,7 +108,7 @@ fun new ctxt tag =
             | each (SOME e, i) = writeln (tag ^ ":" ^ pad wd i ^ ".0 Error: " ^ e)
          in
            (writeln "FAILED]"; map each (es ~~ (1 upto (length es))); ())
-         end
+         end)
   in
     {status = K (), finish = finish}
   end

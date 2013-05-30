@@ -7,7 +7,6 @@ Specification-based testing of ML programs with random values.
 
 signature SPEC_CHECK =
 sig
-
   val gen_target : int Config.T
   val gen_max : int Config.T
   val examples : int Config.T
@@ -17,11 +16,13 @@ sig
   val style : string Config.T
 
   type output_style = Context.generic -> string ->
-    {status : string option * Property.result * (Property.stats  * string option list) -> unit, finish: Property.stats * string option list -> unit}
+    {status : string option * Property.result * (Property.stats  * string option list) -> unit,
+     finish: Property.stats * string option list -> unit}
 
   val register_style : (string * output_style) -> theory -> theory
 
-  val checkGen : Context.generic -> 'a Generator.gen * ('a -> string) option -> string * 'a Property.prop -> unit
+  val checkGen : Context.generic ->
+    'a Generator.gen * ('a -> string) option -> string * 'a Property.prop -> unit
 
   val check_property : Proof.context -> string -> unit
 end;
@@ -46,7 +47,8 @@ type ('a, 'b) reader = 'b -> ('a * 'b) option
 type 'a rep = ('a -> string) option
 
 type output_style = Context.generic -> string ->
-  {status: string option * Property.result * (Property.stats * string option list) -> unit, finish: Property.stats * string option list -> unit}
+  {status: string option * Property.result * (Property.stats * string option list) -> unit,
+   finish: Property.stats * string option list -> unit}
 
 fun limit ctxt gen = Generator.limit (Config.get_generic ctxt gen_max) gen
 
@@ -112,13 +114,14 @@ fun check ctxt = check' ctxt Property.stats
 fun checks ctxt = cpsCheck ctxt Property.stats
 
 fun checkGen ctxt (gen, show) (tag, prop) =
-    check' ctxt {count=0, tags=[("__GEN", 0)]} (limit ctxt gen, show) (tag, prop) Generator.stream
+  check' ctxt {count=0, tags=[("__GEN", 0)]} (limit ctxt gen, show) (tag, prop) Generator.stream
 
 fun checkGenShrink ctxt shrink (gen, show) (tag, prop) =
-    cpsCheck ctxt {count=0, tags=[("__GEN", 0)]} shrink
-           (limit ctxt gen, show) (tag, prop) Generator.stream
+  cpsCheck ctxt {count=0, tags=[("__GEN", 0)]} shrink
+    (limit ctxt gen, show) (tag, prop) Generator.stream
 
-fun checkOne ctxt show (tag, prop) obj = check ctxt (List.getItem, show) (tag, prop) [obj]
+fun checkOne ctxt show (tag, prop) obj =
+  check ctxt (List.getItem, show) (tag, prop) [obj]
 
 (*calls the compiler and passes resulting type string to the parser*)
 fun determine_type context s =
@@ -140,7 +143,8 @@ fun determine_type context s =
 (*calls the compiler and runs the test*)
 fun run_test context s =
   let
-    val _ = Context.proof_map
+    val _ =
+      Context.proof_map
         (ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code")
         true s)) context
   in () end;
@@ -152,7 +156,8 @@ fun input_split s =
     fun space c = c = #" "
     val (head, code) = Substring.splitl (not o dot) (Substring.full s)
   in (String.tokens space (Substring.string head),
-    Substring.string (Substring.dropl dot code)) end;
+    Substring.string (Substring.dropl dot code))
+  end;
 
 (*create the function from the input*)
 fun make_fun s =
