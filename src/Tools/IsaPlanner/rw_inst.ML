@@ -7,11 +7,6 @@ schematic variable instantiation.
 
 signature RW_INST =
 sig
-
-  val beta_eta_contract : thm -> thm
-
-  (* Rewrite: give it instantiation infromation, a rule, and the
-  target thm, and it will return the rewritten target thm *)
   val rw : Proof.context ->
       ((indexname * (sort * typ)) list *  (* type var instantiations *)
        (indexname * (typ * term)) list)  (* schematic var instantiations *)
@@ -27,15 +22,6 @@ end;
 
 structure RWInst : RW_INST =
 struct
-
-
-(* beta-eta contract the theorem *)
-fun beta_eta_contract thm =
-    let
-      val thm2 = Thm.equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
-      val thm3 = Thm.equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
-    in thm3 end;
-
 
 (* Given a list of variables that were bound, and a that has been
 instantiated with free variable placeholders for the bound vars, it
@@ -234,7 +220,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
           rule_inst |> Thm.instantiate ([], cterm_renamings)
                     |> mk_abstractedrule ctxt FakeTs_tyinst Ts_tyinst;
       val specific_tgt_rule =
-          beta_eta_contract
+          Conv.fconv_rule Drule.beta_eta_conversion
             (Thm.combination couter_inst abstract_rule_inst);
 
       (* create an instantiated version of the target thm *)
@@ -245,7 +231,7 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
       val (vars,frees_of_fixed_vars) = Library.split_list cterm_renamings;
 
     in
-      (beta_eta_contract tgt_th_inst)
+      Conv.fconv_rule Drule.beta_eta_conversion tgt_th_inst
         |> Thm.equal_elim specific_tgt_rule
         |> Drule.implies_intr_list cprems
         |> Drule.forall_intr_list frees_of_fixed_vars

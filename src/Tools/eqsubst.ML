@@ -247,7 +247,7 @@ val searchf_bt_unify_valid = searchf_unify_gen (search_bt_valid valid_match_star
 fun apply_subst_in_concl ctxt i st (cfvs, conclthm) rule m =
   RWInst.rw ctxt m rule conclthm
   |> IsaND.unfix_frees cfvs
-  |> RWInst.beta_eta_contract
+  |> Conv.fconv_rule Drule.beta_eta_conversion
   |> (fn r => Tactic.rtac r i st);
 
 (* substitute within the conclusion of goal i of gth, using a meta
@@ -327,7 +327,7 @@ fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
       |> (Seq.hd o prune_params_tac)
       |> Thm.permute_prems 0 ~1 (* put old asm first *)
       |> IsaND.unfix_frees cfvs (* unfix any global params *)
-      |> RWInst.beta_eta_contract; (* normal form *)
+      |> Conv.fconv_rule Drule.beta_eta_conversion; (* normal form *)
   in
     (* ~j because new asm starts at back, thus we subtract 1 *)
     Seq.map (Thm.rotate_rule (~ j) (Thm.nprems_of rule + i))
