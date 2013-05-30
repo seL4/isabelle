@@ -17,8 +17,6 @@ struct
 
 local
 
-open StringCvt
-
 fun new ctxt tag =
   let
     val target = Config.get ctxt Spec_Check.gen_target
@@ -45,8 +43,9 @@ fun new ctxt tag =
       | ratio (count, n) = "(" ^ string_of_int (count - n) ^ "/" ^ string_of_int count ^  " passed)"
 
     fun update (stats, badobjs) donep =
-      "\r" ^ padRight #"." namew tag ^ "." ^ padRight #" " resultw (result (stats, badobjs) donep)
-      ^ padRight #" " countw (ratio (#count stats, length badobjs))
+      "\r" ^ StringCvt.padRight #"." namew tag ^ "." ^
+      StringCvt.padRight #" " resultw (result (stats, badobjs) donep) ^
+      StringCvt.padRight #" " countw (ratio (#count stats, length badobjs))
 
     fun status (_, result, (stats, badobjs)) =
       if Property.failure result then writeln (update (stats, badobjs) false) else ()
@@ -57,8 +56,8 @@ fun new ctxt tag =
          let
            val ratio = round ((real n / real count) * 100.0)
          in
-           (((if first then "" else padRight #" " allw "\n") ^
-             padLeft #" " 3 (string_of_int ratio) ^ "% " ^ tag),
+           (((if first then "" else StringCvt.padRight #" " allw "\n") ^
+             StringCvt.padLeft #" " 3 (string_of_int ratio) ^ "% " ^ tag),
            false)
          end
 
@@ -69,8 +68,8 @@ fun new ctxt tag =
       let
         fun iter [] _ = ()
           | iter (e :: es) k =
-              (writeln (padLeft #" " namew (if k > 0 then "" else "counter-examples")
-                ^ padRight #" " resultw (if k > 0 then "" else ":") ^ e);
+              (writeln (StringCvt.padLeft #" " namew (if k > 0 then "" else "counter-examples") ^
+                StringCvt.padRight #" " resultw (if k > 0 then "" else ":") ^ e);
               iter es (k + 1))
       in
         iter (maybe_sort (take limit (map_filter I badobjs))) 0

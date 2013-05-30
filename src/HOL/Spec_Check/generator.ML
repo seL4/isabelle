@@ -57,7 +57,6 @@ type ('a, 'b) co = 'a -> 'b gen -> 'b gen
 
 (* text *)
 
-open Text
 type char = Char.char
 type string = String.string
 type substring = Substring.substring
@@ -74,9 +73,10 @@ fun charByType p = filter p char
 val string = vector CharVector.tabulate
 
 fun substring gen r =
-  let val (s, r') = gen r
-      val (i, r'') = range (0, String.size s) r'
-      val (j, r''') = range (0, String.size s - i) r''
+  let
+    val (s, r') = gen r
+    val (i, r'') = range (0, String.size s) r'
+    val (j, r''') = range (0, String.size s - i) r''
   in
     (Substring.substring (s, i, j), r''')
   end

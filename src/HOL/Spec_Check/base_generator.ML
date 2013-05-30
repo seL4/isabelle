@@ -91,15 +91,15 @@ type ('a, 'b) reader = 'b -> ('a * 'b) option
 
 fun lift obj r = (obj, r)
 
-local open Vector (* Isabelle does not use vectors? *)
-      fun explode ((freq, gen), acc) =
-          List.tabulate (freq, fn _ => gen) @ acc
-in fun choose v r =
-       let val (i, r) = range(0, length v - 1) r
-        in sub (v, i) r
-       end
-   fun choose' v = choose (fromList (foldr explode nil v))
-   fun select v = choose (map lift v)
+local (* Isabelle does not use vectors? *)
+  fun explode ((freq, gen), acc) =
+    List.tabulate (freq, fn _ => gen) @ acc
+in
+  fun choose v r =
+    let val (i, r) = range(0, Vector.length v - 1) r
+    in Vector.sub (v, i) r end
+  fun choose' v = choose (Vector.fromList (Vector.foldr explode nil v))
+  fun select v = choose (Vector.map lift v)
 end
 
 fun chooseL l = choose (Vector.fromList l)

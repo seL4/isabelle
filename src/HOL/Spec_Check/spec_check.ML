@@ -41,8 +41,6 @@ val show_stats = Attrib.setup_config_bool @{binding spec_check_show_stats} (K tr
 val column_width = Attrib.setup_config_int @{binding spec_check_column_width} (K 22)
 val style = Attrib.setup_config_string @{binding spec_check_style} (K "Perl")
 
-open Property
-
 type ('a, 'b) reader = 'b -> ('a * 'b) option
 type 'a rep = ('a -> string) option
 
