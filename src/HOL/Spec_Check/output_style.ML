@@ -92,7 +92,7 @@ fun pad wd = StringCvt.padLeft #"0" wd o Int.toString
 fun new ctxt tag =
   let
     val gen_target = Config.get_generic ctxt Spec_Check.gen_target
-    val _ = writeln ("[testing " ^ tag ^ "... ") (* TODO: Output without line break *)
+    val _ = writeln ("[testing " ^ tag ^ "... ")
     fun finish ({count, ...}, badobjs) = case (count, badobjs) of
         (0, []) => writeln ("no valid cases generated]")
       | (n, []) => writeln (
