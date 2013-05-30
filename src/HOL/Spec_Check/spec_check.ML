@@ -19,7 +19,7 @@ sig
     {status : string option * Property.result * (Property.stats  * string option list) -> unit,
      finish: Property.stats * string option list -> unit}
 
-  val register_style : (string * output_style) -> theory -> theory
+  val register_style : string -> output_style -> theory -> theory
 
   val checkGen : Proof.context ->
     'a Generator.gen * ('a -> string) option -> string * 'a Property.prop -> unit
@@ -65,7 +65,7 @@ fun get_style ctxt =
     | NONE => error ("No style called " ^ quote name ^ " found"))
   end
 
-fun register_style (name, style) = Style.map (Symtab.update (name, style))
+fun register_style name style = Style.map (Symtab.update (name, style))
 
 
 (* testing functions *)
