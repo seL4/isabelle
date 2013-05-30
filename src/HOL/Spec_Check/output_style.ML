@@ -40,7 +40,8 @@ val perl_style =
 
         fun ratio (0, _) = "(0/0 passed)"
           | ratio (count, 0) = "(" ^ string_of_int count ^ " passed)"
-          | ratio (count, n) = "(" ^ string_of_int (count - n) ^ "/" ^ string_of_int count ^  " passed)"
+          | ratio (count, n) =
+              "(" ^ string_of_int (count - n) ^ "/" ^ string_of_int count ^  " passed)"
 
         fun update (stats, badobjs) donep =
           "\r" ^ StringCvt.padRight #"." namew tag ^ "." ^
