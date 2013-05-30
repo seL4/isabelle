@@ -42,7 +42,7 @@ fun success (SOME true) = true
 fun failure (SOME false) = true
   | failure _ = false
 
-fun apply f x = SOME (f x) handle _ => SOME false (* TODO: do not catch all exceptions! *)
+fun apply f x = (case try f x of NONE => SOME false | some => some)
 fun pred f (x,s) = (apply f x, s)
 fun pred2 f z = pred (fn x => f (x, z))
 
