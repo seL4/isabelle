@@ -28,18 +28,12 @@ sig
   (* meta level fixed params (i.e. !! vars) *)
   val fix_alls_term: Proof.context -> int -> term -> term * term list
 
-  val unfix_frees: cterm list -> thm -> thm
-
   (* assumptions/subgoals *)
   val fixed_subgoal_thms: Proof.context -> thm -> thm list * (thm list -> thm)
 end
 
 structure IsaND : ISA_ND =
 struct
-
-(* make free vars into schematic vars with index zero *)
-fun unfix_frees frees =
-   fold (K (Thm.forall_elim_var 0)) frees o Drule.forall_intr_list frees;
 
 (* datatype to capture an exported result, ie a fix or assume. *)
 datatype export =

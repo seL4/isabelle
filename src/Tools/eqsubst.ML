@@ -56,6 +56,10 @@ struct
 fun prep_meta_eq ctxt =
   Simplifier.mksimps ctxt #> map Drule.zero_var_indexes;
 
+(* make free vars into schematic vars with index zero *)
+fun unfix_frees frees =
+   fold (K (Thm.forall_elim_var 0)) frees o Drule.forall_intr_list frees;
+
 
 type match =
   ((indexname * (sort * typ)) list (* type instantiations *)
@@ -246,7 +250,7 @@ val searchf_bt_unify_valid = searchf_unify_gen (search_bt_valid valid_match_star
 (* rule is the equation for substitution *)
 fun apply_subst_in_concl ctxt i st (cfvs, conclthm) rule m =
   RW_Inst.rw ctxt m rule conclthm
-  |> IsaND.unfix_frees cfvs
+  |> unfix_frees cfvs
   |> Conv.fconv_rule Drule.beta_eta_conversion
   |> (fn r => Tactic.rtac r i st);
 
@@ -326,7 +330,7 @@ fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
       RW_Inst.rw ctxt m rule pth
       |> (Seq.hd o prune_params_tac)
       |> Thm.permute_prems 0 ~1 (* put old asm first *)
-      |> IsaND.unfix_frees cfvs (* unfix any global params *)
+      |> unfix_frees cfvs (* unfix any global params *)
       |> Conv.fconv_rule Drule.beta_eta_conversion; (* normal form *)
   in
     (* ~j because new asm starts at back, thus we subtract 1 *)
