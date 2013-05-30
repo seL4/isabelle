@@ -224,7 +224,6 @@ lemma iffI: "[| P ==> Q; Q ==> P |] ==> P<->Q"
   done
 
 
-(*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
 lemma iffE:
   assumes major: "P <-> Q"
     and r: "P-->Q ==> Q-->P ==> R"

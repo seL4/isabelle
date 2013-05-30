@@ -292,8 +292,6 @@ schematic_lemma iffI:
   done
 
 
-(*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
-  
 schematic_lemma iffE:
   assumes "p:P <-> Q"
     and "!!x y.[| x:P-->Q; y:Q-->P |] ==> q(x,y):R"

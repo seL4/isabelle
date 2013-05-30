@@ -671,8 +671,7 @@ fun def_pred binding parms defs ts norm_ts thy =
         Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
-      (Drule.equal_elim_rule2 OF [body_eq,
-        Raw_Simplifier.rewrite_rule [pred_def] (Thm.assume (cert statement))])
+      (Drule.equal_elim_rule2 OF [body_eq, rewrite_rule [pred_def] (Thm.assume (cert statement))])
       |> Conjunction.elim_balanced (length ts);
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness defs_ctxt t

@@ -292,8 +292,8 @@ fun inst_thms thy =
 
 fun get_inst_tyco consts = try (#1 o dest_Type o the_single o Consts.typargs consts);
 
-fun unoverload thy = Raw_Simplifier.simplify true (inst_thms thy);
-fun overload thy = Raw_Simplifier.simplify true (map Thm.symmetric (inst_thms thy));
+fun unoverload thy = rewrite_rule (inst_thms thy);
+fun overload thy = rewrite_rule (map Thm.symmetric (inst_thms thy));
 
 fun unoverload_conv thy = Raw_Simplifier.rewrite true (inst_thms thy);
 fun overload_conv thy = Raw_Simplifier.rewrite true (map Thm.symmetric (inst_thms thy));

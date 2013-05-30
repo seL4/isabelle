@@ -51,7 +51,7 @@ fun mk_case_cert thy tyco =
   in
     thms
     |> Conjunction.intr_balanced
-    |> Raw_Simplifier.rewrite_rule [Thm.symmetric (Thm.assume asm)]
+    |> rewrite_rule [Thm.symmetric (Thm.assume asm)]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
     |> Axclass.unoverload thy

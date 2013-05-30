@@ -466,7 +466,7 @@ fun eq_morphism _ [] = NONE
        {binding = [],
         typ = [],
         term = [Raw_Simplifier.rewrite_term thy thms []],
-        fact = [map (Raw_Simplifier.rewrite_rule thms)]});
+        fact = [map (rewrite_rule thms)]});
 
 
 (* transfer to theory using closure *)

@@ -554,7 +554,7 @@ val presimplified_consts =
 fun presimplify ctxt =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)
   #> simplify (put_simpset nnf_ss ctxt)
-  #> Raw_Simplifier.rewrite_rule @{thms Let_def [abs_def]}
+  #> rewrite_rule @{thms Let_def [abs_def]}
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify ctxt |> make_nnf1 ctxt

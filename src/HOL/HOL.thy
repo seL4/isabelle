@@ -1499,8 +1499,7 @@ setup {*
                 in if is_conj P then SOME @{thm induct_conj_curry} else NONE end
               | _ => NONE))]
     |> Simplifier.set_mksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
-      map (Simplifier.rewrite_rule (map Thm.symmetric
-        @{thms induct_rulify_fallback})))))
+      map (rewrite_rule (map Thm.symmetric @{thms induct_rulify_fallback})))))
 *}
 
 text {* Pre-simplification of induction and cases rules *}

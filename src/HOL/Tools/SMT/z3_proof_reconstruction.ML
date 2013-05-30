@@ -38,8 +38,7 @@ local
     val merge = Net.merge eq
   )
 
-  val prep =
-    `Thm.prop_of o Simplifier.rewrite_rule [Z3_Proof_Literals.rewrite_true]
+  val prep = `Thm.prop_of o rewrite_rule [Z3_Proof_Literals.rewrite_true]
 
   fun ins thm net = Net.insert_term eq (prep thm) net handle Net.INSERT => net
   fun del thm net = Net.delete_term eq (prep thm) net handle Net.DELETE => net
