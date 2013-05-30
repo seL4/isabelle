@@ -123,7 +123,7 @@ fun fakefree_badbounds Ts t =
 (* before matching we need to fake the bound vars that are missing an
    abstraction. In this function we additionally construct the
    abstraction environment, and an outer context term (with the focus
-   abstracted out) for use in rewriting with RWInst.rw *)
+   abstracted out) for use in rewriting with RW_Inst.rw *)
 fun prep_zipper_match z =
   let
     val t = Zipper.trm z
@@ -245,7 +245,7 @@ val searchf_bt_unify_valid = searchf_unify_gen (search_bt_valid valid_match_star
 (* m is instantiation/match information *)
 (* rule is the equation for substitution *)
 fun apply_subst_in_concl ctxt i st (cfvs, conclthm) rule m =
-  RWInst.rw ctxt m rule conclthm
+  RW_Inst.rw ctxt m rule conclthm
   |> IsaND.unfix_frees cfvs
   |> Conv.fconv_rule Drule.beta_eta_conversion
   |> (fn r => Tactic.rtac r i st);
@@ -323,7 +323,7 @@ fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
   let
     val st2 = Thm.rotate_rule (j - 1) i st; (* put premice first *)
     val preelimrule =
-      RWInst.rw ctxt m rule pth
+      RW_Inst.rw ctxt m rule pth
       |> (Seq.hd o prune_params_tac)
       |> Thm.permute_prems 0 ~1 (* put old asm first *)
       |> IsaND.unfix_frees cfvs (* unfix any global params *)
