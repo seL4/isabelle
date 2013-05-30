@@ -26,8 +26,8 @@ Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<tur
 If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
   \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}" |
 While:
-  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> f s = n} c {\<lambda>s. P s \<and> f s < n}\<rbrakk>
-   \<Longrightarrow> \<turnstile>\<^sub>t {P} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}" |
+  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T n s} c {\<lambda>s. P s \<and> (\<exists>n'. T n' s \<and> n' < n)} \<rbrakk>
+   \<Longrightarrow> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T n s)} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}" |
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
@@ -47,10 +47,15 @@ lemma Assign': "\<forall>s. P s \<longrightarrow> Q(s[a/x]) \<Longrightarrow> \<
 by (simp add: strengthen_pre[OF _ Assign])
 
 lemma While':
-assumes "\<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> f s = n} c {\<lambda>s. P s \<and> f s < n}"
+assumes "\<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T n s} c {\<lambda>s. P s \<and> (\<exists>n'. T n' s \<and> n' < n)}"
     and "\<forall>s. P s \<and> \<not> bval b s \<longrightarrow> Q s"
-shows "\<turnstile>\<^sub>t {P} WHILE b DO c {Q}"
+shows "\<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T n s)} WHILE b DO c {Q}"
 by(blast intro: assms(1) weaken_post[OF While assms(2)])
+
+lemma While_fun:
+  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> f s = n} c {\<lambda>s. P s \<and> f s < n}\<rbrakk>
+   \<Longrightarrow> \<turnstile>\<^sub>t {P} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"
+  by (rule While [where T="\<lambda>n s. f s = n", simplified])
 
 text{* Our standard example: *}
 
@@ -63,14 +68,13 @@ apply(rule Seq)
 prefer 2
 apply(rule While'
   [where P = "\<lambda>s. s ''x'' = \<Sum> {1..s ''y''} \<and> 0 \<le> s ''y'' \<and> s ''y'' \<le> n"
-   and f = "\<lambda>s. nat (n - s ''y'')"])
+   and T = "\<lambda>n' s. n' = nat (n - s ''y'')"])
 apply(rule Seq)
 prefer 2
 apply(rule Assign)
 apply(rule Assign')
 apply (simp add: atLeastAtMostPlus1_int_conv algebra_simps)
 apply clarsimp
-apply fastforce
 apply(rule Seq)
 prefer 2
 apply(rule Assign)
@@ -83,16 +87,16 @@ text{* The soundness theorem: *}
 
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
 proof(unfold hoare_tvalid_def, induct rule: hoaret.induct)
-  case (While P b f c)
-  show ?case
-  proof
-    fix s
-    show "P s \<longrightarrow> (\<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t)"
-    proof(induction "f s" arbitrary: s rule: less_induct)
+  case (While P b T c)
+  {
+    fix s n
+    have "\<lbrakk> P s; T n s \<rbrakk> \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t"
+    proof(induction "n" arbitrary: s rule: less_induct)
       case (less n)
       thus ?case by (metis While(2) WhileFalse WhileTrue)
     qed
-  qed
+  }
+  thus ?case by auto
 next
   case If thus ?case by auto blast
 qed fastforce+
@@ -138,23 +142,9 @@ text{* The relation is in fact a function: *}
 
 lemma Its_fun: "Its b c s n \<Longrightarrow> Its b c s n' \<Longrightarrow> n=n'"
 proof(induction arbitrary: n' rule:Its.induct)
-(* new release:
   case Its_0 thus ?case by(metis Its.cases)
 next
   case Its_Suc thus ?case by(metis Its.cases big_step_determ)
-qed
-*)
-  case Its_0
-  from this(1) Its.cases[OF this(2)] show ?case by metis
-next
-  case (Its_Suc b s c s' n n')
-  note C = this
-  from this(5) show ?case
-  proof cases
-    case Its_0 with Its_Suc(1) show ?thesis by blast
-  next
-    case Its_Suc with C show ?thesis by(metis big_step_determ)
-  qed
 qed
 
 text{* For all terminating loops, @{const Its} yields a result: *}
@@ -165,18 +155,6 @@ proof(induction "WHILE b DO c" s t rule: big_step_induct)
 next
   case WhileTrue thus ?case by (metis Its_Suc)
 qed
-
-text{* Now the relation is turned into a function with the help of
-the description operator @{text THE}: *}
-
-definition its :: "bexp \<Rightarrow> com \<Rightarrow> state \<Rightarrow> nat" where
-"its b c s = (THE n. Its b c s n)"
-
-text{* The key property: every loop iteration increases @{const its} by 1. *}
-
-lemma its_Suc: "\<lbrakk> bval b s; (c, s) \<Rightarrow> s'; (WHILE b DO c, s') \<Rightarrow> t\<rbrakk>
-       \<Longrightarrow> its b c s = Suc(its b c s')"
-by (metis its_def WHILE_Its Its.intros(2) Its_fun the_equality)
 
 lemma wpt_is_pre: "\<turnstile>\<^sub>t {wp\<^sub>t c Q} c {Q}"
 proof (induction c arbitrary: Q)
@@ -190,18 +168,35 @@ next
 next
   case (While b c)
   let ?w = "WHILE b DO c"
+  let ?T = "\<lambda>n s. Its b c s n"
+  have "\<forall>s. wp\<^sub>t (WHILE b DO c) Q s \<longrightarrow> wp\<^sub>t (WHILE b DO c) Q s \<and> (\<exists>n. Its b c s n)"
+    unfolding wpt_def by (metis WHILE_Its)
+  moreover
   { fix n
-    have "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> its b c s = n \<longrightarrow>
-              wp\<^sub>t c (\<lambda>s'. wp\<^sub>t ?w Q s' \<and> its b c s' < n) s"
-      unfolding wpt_def by (metis WhileE its_Suc lessI)
+    { fix s t
+      assume "bval b s" "?T n s" "(?w, s) \<Rightarrow> t" "Q t"
+      from `bval b s` `(?w, s) \<Rightarrow> t` obtain s' where
+        "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto      
+      from `(?w, s') \<Rightarrow> t` obtain n'' where "?T n'' s'" by (blast dest: WHILE_Its)
+      with `bval b s` `(c, s) \<Rightarrow> s'`
+      have "?T (Suc n'') s" by (rule Its_Suc)
+      with `?T n s` have "n = Suc n''" by (rule Its_fun)
+      with `(c,s) \<Rightarrow> s'` `(?w,s') \<Rightarrow> t` `Q t` `?T n'' s'`
+      have "wp\<^sub>t c (\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T n' s' \<and> n' < n)) s"
+        by (auto simp: wpt_def)
+    } 
+    hence "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> ?T n s \<longrightarrow>
+              wp\<^sub>t c (\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T n' s' \<and> n' < n)) s"
+      unfolding wpt_def by auto
+      (* by (metis WhileE Its_Suc Its_fun WHILE_Its lessI) *) 
     note strengthen_pre[OF this While]
   } note hoaret.While[OF this]
   moreover have "\<forall>s. wp\<^sub>t ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s" by (auto simp add:wpt_def)
-  ultimately show ?case by(rule weaken_post)
+  ultimately show ?case by (rule conseq) 
 qed
 
 
-text{*\noindent In the @{term While}-case, @{const its} provides the obvious
+text{*\noindent In the @{term While}-case, @{const Its} provides the obvious
 termination argument.
 
 The actual completeness theorem follows directly, in the same manner
