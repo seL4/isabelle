@@ -126,28 +126,24 @@ fun checkOne ctxt show (tag, prop) obj =
 (*call the compiler and pass resulting type string to the parser*)
 fun determine_type ctxt s =
   let
-    val ret = Unsynchronized.ref "return"
-    val use_context : use_context = {
-      tune_source = ML_Parse.fix_ints,
+    val return = Unsynchronized.ref "return"
+    val use_context : use_context =
+     {tune_source = ML_Parse.fix_ints,
       name_space = ML_Env.name_space,
       str_of_pos = Position.here oo Position.line_file,
-      print = fn r => ret := r,
-      error = error
-      }
-    val _ = ctxt |> Context.proof_map
-      (ML_Context.exec (fn () => Secure.use_text use_context (0, "generated code") true s))
+      print = fn r => return := r,
+      error = error}
+    val _ =
+      Context.setmp_thread_data (SOME (Context.Proof ctxt))
+        (fn () => Secure.use_text use_context (0, "generated code") true s) ()
   in
-    Gen_Construction.parse_pred (!ret)
+    Gen_Construction.parse_pred (! return)
   end;
 
 (*call the compiler and run the test*)
 fun run_test ctxt s =
-  let
-    val _ =
-      Context.proof_map
-        (ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code")
-        true s)) ctxt
-  in () end;
+  Context.setmp_thread_data (SOME (Context.Proof ctxt))
+    (fn () => Secure.use_text ML_Env.local_context (0, "generated code") true s) ();
 
 (*split input into tokens*)
 fun input_split s =
