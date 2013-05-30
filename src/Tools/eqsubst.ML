@@ -296,12 +296,12 @@ fun skip_first_occs_search occ srchf sinfo lhs =
     SkipMore _ => Seq.empty
   | SkipSeq ss => Seq.flat ss);
 
-(* The occL is a list of integers indicating which occurence
+(* The "occs" argument is a list of integers indicating which occurence
 w.r.t. the search order, to rewrite. Backtracking will also find later
 occurences, but all earlier ones are skipped. Thus you can use [0] to
 just find all rewrites. *)
 
-fun eqsubst_tac ctxt occL thms i st =
+fun eqsubst_tac ctxt occs thms i st =
   let val nprems = Thm.nprems_of st in
     if nprems < i then Seq.empty else
     let
@@ -311,9 +311,9 @@ fun eqsubst_tac ctxt occL thms i st =
           eqsubst_tac' ctxt
             (skip_first_occs_search occ searchf_lr_unify_valid) r
             (i + (Thm.nprems_of st - nprems)) st);
-      val sortedoccL = Library.sort (rev_order o int_ord) occL;
+      val sorted_occs = Library.sort (rev_order o int_ord) occs;
     in
-      Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sortedoccL) st)
+      Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sorted_occs) st)
     end
   end;
 
@@ -395,20 +395,20 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i st =
 fun skip_first_asm_occs_search searchf sinfo occ lhs =
   skipto_skipseq occ (searchf sinfo lhs);
 
-fun eqsubst_asm_tac ctxt occL thms i st =
+fun eqsubst_asm_tac ctxt occs thms i st =
   let val nprems = Thm.nprems_of st in
     if nprems < i then Seq.empty
     else
       let
         val thmseq = Seq.of_list thms;
-        fun apply_occ occK st =
+        fun apply_occ occ st =
           thmseq |> Seq.maps (fn r =>
             eqsubst_asm_tac' ctxt
-              (skip_first_asm_occs_search searchf_lr_unify_valid) occK r
+              (skip_first_asm_occs_search searchf_lr_unify_valid) occ r
               (i + (Thm.nprems_of st - nprems)) st);
-        val sortedoccs = Library.sort (rev_order o int_ord) occL;
+        val sorted_occs = Library.sort (rev_order o int_ord) occs;
       in
-        Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sortedoccs) st)
+        Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sorted_occs) st)
       end
   end;
 
@@ -419,8 +419,8 @@ val setup =
   Method.setup @{binding subst}
     (Args.mode "asm" -- Scan.lift (Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
         Attrib.thms >>
-      (fn ((asm, occL), inthms) => fn ctxt =>
-        SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occL inthms)))
+      (fn ((asm, occs), inthms) => fn ctxt =>
+        SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))
     "single-step substitution";
 
 end;
