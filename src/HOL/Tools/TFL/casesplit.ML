@@ -13,13 +13,6 @@ end;
 structure CaseSplit: CASE_SPLIT =
 struct
 
-(* beta-eta contract the theorem *)
-fun beta_eta_contract thm =
-    let
-      val thm2 = Thm.equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
-      val thm3 = Thm.equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
-    in thm3 end;
-
 (* make a casethm from an induction thm *)
 val cases_thm_of_induct_thm =
      Seq.hd o (ALLGOALS (fn i => REPEAT (etac Drule.thin_rl i)));
@@ -62,10 +55,10 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val cPv = ctermify (Envir.subst_term_types type_insts Pv);
       val cDv = ctermify (Envir.subst_term_types type_insts Dv);
     in
-      (beta_eta_contract
+      Conv.fconv_rule Drule.beta_eta_conversion
          (case_thm
             |> Thm.instantiate (type_cinsts, [])
-            |> Thm.instantiate ([], [(cPv, abs_ct), (cDv, free_ct)])))
+            |> Thm.instantiate ([], [(cPv, abs_ct), (cDv, free_ct)]))
     end;
 
 
