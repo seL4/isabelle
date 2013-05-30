@@ -392,7 +392,7 @@ val literals = let
     in if k < 32 orelse k > 126 then "\\" ^ radixstring (8, "0", k) else c end
   fun numeral_scala k = if k < 0
     then if k > ~ 2147483647 then "- " ^ string_of_int (~ k)
-      else quote ("- " ^ string_of_int (~ k))
+      else quote ("-" ^ string_of_int (~ k))
     else if k <= 2147483647 then string_of_int k
       else quote (string_of_int k)
 in Literals {
