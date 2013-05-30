@@ -50,7 +50,7 @@ type output_style = Context.generic -> string ->
   {status: string option * Property.result * (Property.stats * string option list) -> unit,
    finish: Property.stats * string option list -> unit}
 
-fun limit ctxt gen = Generator.limit (Config.get_generic ctxt gen_max) gen
+fun limit context gen = Generator.limit (Config.get_generic context gen_max) gen
 
 structure Style = Theory_Data
 (
@@ -60,22 +60,23 @@ structure Style = Theory_Data
   fun merge data : T = Symtab.merge (K true) data
 )
 
-fun get_style ctxt =
-  let val name = Config.get_generic ctxt style
-  in case Symtab.lookup (Style.get (Context.theory_of ctxt)) name of
-      SOME style => style ctxt
+fun get_style context =
+  let val name = Config.get_generic context style
+  in case Symtab.lookup (Style.get (Context.theory_of context)) name of
+      SOME style => style context
     | NONE => error ("No style called " ^ quote name ^ " found")
   end
 
 fun register_style (name, style) = Style.map (Symtab.update (name, style))
 
+
 (* testing functions *)
 
-fun cpsCheck ctxt s0 shrink (next, show) (tag, prop) =
+fun cpsCheck context s0 shrink (next, show) (tag, prop) =
   let
     val apply_show = case show of NONE => (fn _ => NONE) | SOME f => SOME o f
 
-    val {status, finish} = get_style ctxt tag
+    val {status, finish} = get_style context tag
     fun status' (obj, result, (stats, badobjs)) =
       let
         val badobjs' = if Property.failure result then obj :: badobjs else badobjs
@@ -95,7 +96,7 @@ fun cpsCheck ctxt s0 shrink (next, show) (tag, prop) =
 
     fun iter (NONE, (stats, badobjs)) = finish (stats, map apply_show badobjs)
       | iter (SOME (obj, stream), (stats, badobjs)) =
-        if #count stats >= Config.get_generic ctxt gen_target then
+        if #count stats >= Config.get_generic context gen_target then
           finish (stats, map apply_show badobjs)
         else
           let
@@ -109,44 +110,44 @@ fun cpsCheck ctxt s0 shrink (next, show) (tag, prop) =
     fn stream => iter (next stream, (s0, []))
   end
 
-fun check' ctxt s0 = cpsCheck ctxt s0 (fn _ => [])
-fun check ctxt = check' ctxt Property.stats
-fun checks ctxt = cpsCheck ctxt Property.stats
+fun check' context s0 = cpsCheck context s0 (fn _ => [])
+fun check context = check' context Property.stats
+fun checks context = cpsCheck context Property.stats
 
-fun checkGen ctxt (gen, show) (tag, prop) =
-  check' ctxt {count=0, tags=[("__GEN", 0)]} (limit ctxt gen, show) (tag, prop) Generator.stream
+fun checkGen context (gen, show) (tag, prop) =
+  check' context {count=0, tags=[("__GEN", 0)]} (limit context gen, show) (tag, prop) Generator.stream
 
-fun checkGenShrink ctxt shrink (gen, show) (tag, prop) =
-  cpsCheck ctxt {count=0, tags=[("__GEN", 0)]} shrink
-    (limit ctxt gen, show) (tag, prop) Generator.stream
+fun checkGenShrink context shrink (gen, show) (tag, prop) =
+  cpsCheck context {count=0, tags=[("__GEN", 0)]} shrink
+    (limit context gen, show) (tag, prop) Generator.stream
 
-fun checkOne ctxt show (tag, prop) obj =
-  check ctxt (List.getItem, show) (tag, prop) [obj]
+fun checkOne context show (tag, prop) obj =
+  check context (List.getItem, show) (tag, prop) [obj]
 
-(*calls the compiler and passes resulting type string to the parser*)
-fun determine_type context s =
+(*call the compiler and pass resulting type string to the parser*)
+fun determine_type ctxt s =
   let
     val ret = Unsynchronized.ref "return"
-    val ctx : use_context = {
+    val use_context : use_context = {
       tune_source = ML_Parse.fix_ints,
       name_space = ML_Env.name_space,
       str_of_pos = Position.here oo Position.line_file,
       print = fn r => ret := r,
       error = error
       }
-    val _ = context |> Context.proof_map
-      (ML_Context.exec (fn () => Secure.use_text ctx (0, "generated code") true s))
+    val _ = ctxt |> Context.proof_map
+      (ML_Context.exec (fn () => Secure.use_text use_context (0, "generated code") true s))
   in
     Gen_Construction.parse_pred (!ret)
   end;
 
-(*calls the compiler and runs the test*)
-fun run_test context s =
+(*call the compiler and run the test*)
+fun run_test ctxt s =
   let
     val _ =
       Context.proof_map
         (ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code")
-        true s)) context
+        true s)) ctxt
   in () end;
 
 (*split input into tokens*)
@@ -170,21 +171,21 @@ fun make_fun s =
     val (params, _) = Scan.finite stop p split
   in "fn (" ^ commas params ^ ") => " ^ code end;
 
-(*reads input and performs the test*)
-fun gen_check_property check context s =
+(*read input and perform the test*)
+fun gen_check_property check ctxt s =
   let
     val func = make_fun s
-    val (_, ty) = determine_type context func
-  in run_test context (check (Proof_Context.theory_of context) "Check" (ty, func)) end;
+    val (_, ty) = determine_type ctxt func
+  in run_test ctxt (check (Proof_Context.theory_of ctxt) "Check" (ty, func)) end;
 
 val check_property = gen_check_property Gen_Construction.build_check
 (*val check_property_safe = gen_check_property Gen_Construction.safe_check*)
 
-(*performs test for specification function*)
-fun gen_check_property_f check context s =
+(*perform test for specification function*)
+fun gen_check_property_f check ctxt s =
   let
-    val (name, ty) = determine_type context s
-  in run_test context (check (Proof_Context.theory_of context) name (ty, s)) end;
+    val (name, ty) = determine_type ctxt s
+  in run_test ctxt (check (Proof_Context.theory_of ctxt) name (ty, s)) end;
 
 val check_property_f = gen_check_property_f Gen_Construction.build_check
 (*val check_property_safe_f_ = gen_check_property_f Gen_Construction.safe_check*)

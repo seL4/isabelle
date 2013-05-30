@@ -68,7 +68,7 @@ and parse_fun s = (parse_type_arg -- $$ "->" -- parse_type >> (fn ((a, f), r) =>
 and parse_tuple s = (parse_type_single -- Scan.repeat1 ($$ "*" |-- parse_type_single)
   >> (fn (t, tl) => Tuple (t :: tl))) s;
 
-(*Parses entire type + name*)
+(*Parse entire type + name*)
 fun parse_function s =
   let
     val p = $$ "val" |-- scan_name --| ($$ "=" -- $$ "fn" -- $$ ":")
@@ -77,7 +77,7 @@ fun parse_function s =
     val (typ, _) = Scan.finite stop parse_type ty
   in (name, typ) end;
 
-(*Creates desired output*)
+(*Create desired output*)
 fun parse_pred s =
   let
     val (name, Con ("->", t :: _)) = parse_function s
@@ -111,8 +111,10 @@ structure Data = Theory_Data
   fun merge data : T = Symtab.merge (K true) data
 )
 
-fun data_of thy tycon = case Symtab.lookup (Data.get thy) tycon of SOME data => data
-  | NONE => error ("No generator and printer defined for ML type constructor " ^ quote tycon)
+fun data_of thy tycon =
+  (case Symtab.lookup (Data.get thy) tycon of
+    SOME data => data
+  | NONE => error ("No generator and printer defined for ML type constructor " ^ quote tycon))
 
 val generator_of = fst oo data_of
 val printer_of = snd oo data_of
@@ -149,12 +151,12 @@ fun compose_printer _ Var = "Int.toString"
         (t ~~ (1 upto (length t))))
     in "fn (" ^ tuple_head (length t) ^ ") => \"(\" ^ " ^ tuple_body t ^ " ^ \")\"" end;
 
-(*produces compilable string*)
+(*produce compilable string*)
 fun build_check thy name (ty, spec) = "Spec_Check.checkGen (ML_Context.the_generic_context ()) ("
   ^ compose_generator thy ty ^ ", SOME (" ^ compose_printer thy ty ^ ")) (\""
   ^ name ^ "\", Property.pred (" ^ spec ^ "));";
 
-(*produces compilable string - non-eqtype functions*)
+(*produce compilable string - non-eqtype functions*)
 (*
 fun safe_check name (ty, spec) =
   let

@@ -12,13 +12,13 @@ local
 
 open StringCvt
 
-fun new ctxt tag =
+fun new context tag =
   let
-    val target = Config.get_generic ctxt Spec_Check.gen_target
-    val namew = Config.get_generic ctxt Spec_Check.column_width
-    val sort_examples = Config.get_generic ctxt Spec_Check.sort_examples
-    val show_stats = Config.get_generic ctxt Spec_Check.show_stats
-    val limit = Config.get_generic ctxt Spec_Check.examples
+    val target = Config.get_generic context Spec_Check.gen_target
+    val namew = Config.get_generic context Spec_Check.column_width
+    val sort_examples = Config.get_generic context Spec_Check.sort_examples
+    val show_stats = Config.get_generic context Spec_Check.show_stats
+    val limit = Config.get_generic context Spec_Check.examples
 
     val resultw = 8
     val countw = 20
@@ -91,9 +91,9 @@ local
 
 fun pad wd = StringCvt.padLeft #"0" wd o Int.toString
 
-fun new ctxt tag =
+fun new context tag =
   let
-    val gen_target = Config.get_generic ctxt Spec_Check.gen_target
+    val gen_target = Config.get_generic context Spec_Check.gen_target
     val _ = writeln ("[testing " ^ tag ^ "... ")
     fun finish ({count, ...}, badobjs) =
       (case (count, badobjs) of
@@ -102,13 +102,13 @@ fun new ctxt tag =
             if n >= gen_target then "ok]"
             else "ok on " ^ string_of_int n ^ "; " ^ string_of_int gen_target ^ " required]")
       | (_, es) =>
-        let
-          val wd = size (string_of_int (length es))
-          fun each (NONE, _) = ()
-            | each (SOME e, i) = writeln (tag ^ ":" ^ pad wd i ^ ".0 Error: " ^ e)
-         in
-           (writeln "FAILED]"; map each (es ~~ (1 upto (length es))); ())
-         end)
+          let
+            val wd = size (string_of_int (length es))
+            fun each (NONE, _) = ()
+              | each (SOME e, i) = writeln (tag ^ ":" ^ pad wd i ^ ".0 Error: " ^ e)
+          in
+            (writeln "FAILED]"; map each (es ~~ (1 upto (length es))); ())
+          end)
   in
     {status = K (), finish = finish}
   end
