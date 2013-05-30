@@ -239,16 +239,16 @@ val searchf_lr_unify_valid = searchf_unify_gen (search_lr_valid valid_match_star
 
 val searchf_bt_unify_valid = searchf_unify_gen (search_bt_valid valid_match_start);
 
-(* apply a substitution in the conclusion of the theorem th *)
+(* apply a substitution in the conclusion of the theorem *)
 (* cfvs are certified free var placeholders for goal params *)
 (* conclthm is a theorem of for just the conclusion *)
 (* m is instantiation/match information *)
 (* rule is the equation for substitution *)
-fun apply_subst_in_concl ctxt i th (cfvs, conclthm) rule m =
+fun apply_subst_in_concl ctxt i st (cfvs, conclthm) rule m =
   RWInst.rw ctxt m rule conclthm
   |> IsaND.unfix_frees cfvs
   |> RWInst.beta_eta_contract
-  |> (fn r => Tactic.rtac r i th);
+  |> (fn r => Tactic.rtac r i st);
 
 (* substitute within the conclusion of goal i of gth, using a meta
 equation rule. Note that we assume rule has var indicies zero'd *)
@@ -276,27 +276,23 @@ fun prep_concl_subst ctxt i gth =
   end;
 
 (* substitute using an object or meta level equality *)
-fun eqsubst_tac' ctxt searchf instepthm i th =
+fun eqsubst_tac' ctxt searchf instepthm i st =
   let
-    val (cvfsconclthm, searchinfo) = prep_concl_subst ctxt i th;
+    val (cvfsconclthm, searchinfo) = prep_concl_subst ctxt i st;
     val stepthms = Seq.of_list (prep_meta_eq ctxt instepthm);
     fun rewrite_with_thm r =
       let val (lhs,_) = Logic.dest_equals (Thm.concl_of r) in
         searchf searchinfo lhs
-        |> Seq.maps (apply_subst_in_concl ctxt i th cvfsconclthm r)
+        |> Seq.maps (apply_subst_in_concl ctxt i st cvfsconclthm r)
       end;
   in stepthms |> Seq.maps rewrite_with_thm end;
-
-
-(* distinct subgoals *)
-fun distinct_subgoals th = the_default th (SINGLE distinct_subgoals_tac th);
 
 
 (* General substitution of multiple occurances using one of
    the given theorems *)
 
 fun skip_first_occs_search occ srchf sinfo lhs =
-  (case (skipto_skipseq occ (srchf sinfo lhs)) of
+  (case skipto_skipseq occ (srchf sinfo lhs) of
     SkipMore _ => Seq.empty
   | SkipSeq ss => Seq.flat ss);
 
@@ -305,19 +301,19 @@ w.r.t. the search order, to rewrite. Backtracking will also find later
 occurences, but all earlier ones are skipped. Thus you can use [0] to
 just find all rewrites. *)
 
-fun eqsubst_tac ctxt occL thms i th =
-  let val nprems = Thm.nprems_of th in
+fun eqsubst_tac ctxt occL thms i st =
+  let val nprems = Thm.nprems_of st in
     if nprems < i then Seq.empty else
     let
-      val thmseq = (Seq.of_list thms);
-      fun apply_occ occ th =
+      val thmseq = Seq.of_list thms;
+      fun apply_occ occ st =
         thmseq |> Seq.maps (fn r =>
           eqsubst_tac' ctxt
             (skip_first_occs_search occ searchf_lr_unify_valid) r
-            (i + (Thm.nprems_of th - nprems)) th);
+            (i + (Thm.nprems_of st - nprems)) st);
       val sortedoccL = Library.sort (rev_order o int_ord) occL;
     in
-      Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccL) th)
+      Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sortedoccL) st)
     end
   end;
 
@@ -327,9 +323,9 @@ fun eqsubst_tac ctxt occL thms i th =
 fun eqsubst_meth ctxt occL inthms = SIMPLE_METHOD' (eqsubst_tac ctxt occL inthms);
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
-fun apply_subst_in_asm ctxt i th rule ((cfvs, j, _, pth),m) =
+fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
   let
-    val th2 = Thm.rotate_rule (j - 1) i th; (* put premice first *)
+    val st2 = Thm.rotate_rule (j - 1) i st; (* put premice first *)
     val preelimrule =
       RWInst.rw ctxt m rule pth
       |> (Seq.hd o prune_params_tac)
@@ -339,7 +335,7 @@ fun apply_subst_in_asm ctxt i th rule ((cfvs, j, _, pth),m) =
   in
     (* ~j because new asm starts at back, thus we subtract 1 *)
     Seq.map (Thm.rotate_rule (~ j) (Thm.nprems_of rule + i))
-      (Tactic.dtac preelimrule i th2)
+      (Tactic.dtac preelimrule i st2)
   end;
 
 
@@ -380,9 +376,9 @@ fun prep_subst_in_asms ctxt i gth =
 
 
 (* substitute in an assumption using an object or meta level equality *)
-fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
+fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i st =
   let
-    val asmpreps = prep_subst_in_asms ctxt i th;
+    val asmpreps = prep_subst_in_asms ctxt i st;
     val stepthms = Seq.of_list (prep_meta_eq ctxt instepthm);
     fun rewrite_with_thm r =
       let
@@ -395,7 +391,7 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
                   Seq.append (Seq.map (Library.pair asminfo) (Seq.flat ss))
                     (occ_search 1 moreasms)) (* find later substs also *)
       in
-        occ_search skipocc asmpreps |> Seq.maps (apply_subst_in_asm ctxt i th r)
+        occ_search skipocc asmpreps |> Seq.maps (apply_subst_in_asm ctxt i st r)
       end;
   in stepthms |> Seq.maps rewrite_with_thm end;
 
@@ -403,20 +399,20 @@ fun eqsubst_asm_tac' ctxt searchf skipocc instepthm i th =
 fun skip_first_asm_occs_search searchf sinfo occ lhs =
   skipto_skipseq occ (searchf sinfo lhs);
 
-fun eqsubst_asm_tac ctxt occL thms i th =
-  let val nprems = Thm.nprems_of th in
+fun eqsubst_asm_tac ctxt occL thms i st =
+  let val nprems = Thm.nprems_of st in
     if nprems < i then Seq.empty
     else
       let
         val thmseq = Seq.of_list thms;
-        fun apply_occ occK th =
+        fun apply_occ occK st =
           thmseq |> Seq.maps (fn r =>
             eqsubst_asm_tac' ctxt
               (skip_first_asm_occs_search searchf_lr_unify_valid) occK r
-              (i + (Thm.nprems_of th - nprems)) th);
+              (i + (Thm.nprems_of st - nprems)) st);
         val sortedoccs = Library.sort (rev_order o int_ord) occL;
       in
-        Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccs) th)
+        Seq.maps distinct_subgoals_tac (Seq.EVERY (map apply_occ sortedoccs) st)
       end
   end;
 
