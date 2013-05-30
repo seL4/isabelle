@@ -740,6 +740,10 @@ session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
   options [document = false]
   theories WordExamples
 
+session "HOL-Spec_Check" in Spec_Check = HOL +
+  theories
+    Examples
+
 session "HOL-Statespace" in Statespace = HOL +
   theories [skip_proofs = false]
     StateSpaceEx
