@@ -1,7 +1,7 @@
 (*  Title:      Tools/eqsubst.ML
     Author:     Lucas Dixon, University of Edinburgh
 
-A proof method to perform a substiution using an equation.
+Perform a substitution using an equation.
 *)
 
 signature EQSUBST =
@@ -58,16 +58,16 @@ fun prep_meta_eq ctxt =
 
 
 type match =
-     ((indexname * (sort * typ)) list (* type instantiations *)
-      * (indexname * (typ * term)) list) (* term instantiations *)
-     * (string * typ) list (* fake named type abs env *)
-     * (string * typ) list (* type abs env *)
-     * term; (* outer term *)
+  ((indexname * (sort * typ)) list (* type instantiations *)
+   * (indexname * (typ * term)) list) (* term instantiations *)
+  * (string * typ) list (* fake named type abs env *)
+  * (string * typ) list (* type abs env *)
+  * term; (* outer term *)
 
 type searchinfo =
-     theory
-     * int (* maxidx *)
-     * Zipper.T; (* focusterm to search under *)
+  theory
+  * int (* maxidx *)
+  * Zipper.T; (* focusterm to search under *)
 
 
 (* skipping non-empty sub-sequences but when we reach the end
@@ -97,10 +97,10 @@ fun skipto_skipseq m s =
 fun mk_foo_match mkuptermfunc Ts t =
   let
     val ty = Term.type_of t
-    val bigtype = (rev (map snd Ts)) ---> ty
+    val bigtype = rev (map snd Ts) ---> ty
     fun mk_foo 0 t = t
       | mk_foo i t = mk_foo (i - 1) (t $ (Bound (i - 1)))
-    val num_of_bnds = (length Ts)
+    val num_of_bnds = length Ts
     (* foo_term = "fooabs y0 ... yn" where y's are local bounds *)
     val foo_term = mk_foo num_of_bnds (Bound num_of_bnds)
   in Abs ("fooabs", bigtype, mkuptermfunc foo_term) end;
@@ -121,9 +121,9 @@ fun fakefree_badbounds Ts t =
   in (FakeTs, Ts, Term.subst_bounds (map Free FakeTs, t)) end;
 
 (* before matching we need to fake the bound vars that are missing an
-abstraction. In this function we additionally construct the
-abstraction environment, and an outer context term (with the focus
-abstracted out) for use in rewriting with RWInst.rw *)
+   abstraction. In this function we additionally construct the
+   abstraction environment, and an outer context term (with the focus
+   abstracted out) for use in rewriting with RWInst.rw *)
 fun prep_zipper_match z =
   let
     val t = Zipper.trm z
@@ -137,16 +137,16 @@ fun prep_zipper_match z =
 
 (* Unification with exception handled *)
 (* given theory, max var index, pat, tgt; returns Seq of instantiations *)
-fun clean_unify thry ix (a as (pat, tgt)) =
+fun clean_unify thy ix (a as (pat, tgt)) =
   let
     (* type info will be re-derived, maybe this can be cached
        for efficiency? *)
     val pat_ty = Term.type_of pat;
     val tgt_ty = Term.type_of tgt;
-    (* is it OK to ignore the type instantiation info?
+    (* FIXME is it OK to ignore the type instantiation info?
        or should I be using it? *)
     val typs_unify =
-      SOME (Sign.typ_unify thry (pat_ty, tgt_ty) (Vartab.empty, ix))
+      SOME (Sign.typ_unify thy (pat_ty, tgt_ty) (Vartab.empty, ix))
         handle Type.TUNIFY => NONE;
   in
     (case typs_unify of
@@ -159,7 +159,7 @@ fun clean_unify thry ix (a as (pat, tgt)) =
              Vartab.dest (Envir.term_env env));
           val initenv =
             Envir.Envir {maxidx = ix2, tenv = Vartab.empty, tyenv = typinsttab};
-          val useq = Unify.smash_unifiers thry [a] initenv
+          val useq = Unify.smash_unifiers thy [a] initenv
             handle ListPair.UnequalLengths => Seq.empty
               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
@@ -176,14 +176,13 @@ fun clean_unify thry ix (a as (pat, tgt)) =
 
 (* Unification for zippers *)
 (* Note: Ts is a modified version of the original names of the outer
-bound variables. New names have been introduced to make sure they are
-unique w.r.t all names in the term and each other. usednames' is
-oldnames + new names. *)
-(* ix = max var index *)
-fun clean_unify_z sgn ix pat z =
-  let val (t, (FakeTs, Ts,absterm)) = prep_zipper_match z in
+   bound variables. New names have been introduced to make sure they are
+   unique w.r.t all names in the term and each other. usednames' is
+   oldnames + new names. *)
+fun clean_unify_z thy maxidx pat z =
+  let val (t, (FakeTs, Ts, absterm)) = prep_zipper_match z in
     Seq.map (fn insts => (insts, FakeTs, Ts, absterm))
-      (clean_unify sgn ix (t, pat))
+      (clean_unify thy maxidx (t, pat))
   end;
 
 
@@ -229,8 +228,8 @@ fun search_bt_valid validf =
       end;
   in Zipper.lzy_search sf_valid_td_lr end;
 
-fun searchf_unify_gen f (sgn, maxidx, z) lhs =
-  Seq.map (clean_unify_z sgn maxidx lhs) (Zipper.limit_apply f z);
+fun searchf_unify_gen f (thy, maxidx, z) lhs =
+  Seq.map (clean_unify_z thy maxidx lhs) (Zipper.limit_apply f z);
 
 (* search all unifications *)
 val searchf_lr_unify_all = searchf_unify_gen search_lr_all;
@@ -258,15 +257,14 @@ fun prep_concl_subst ctxt i gth =
     val th = Thm.incr_indexes 1 gth;
     val tgt_term = Thm.prop_of th;
 
-    val sgn = Thm.theory_of_thm th;
-    val ctermify = Thm.cterm_of sgn;
-    val trivify = Thm.trivial o ctermify;
+    val thy = Thm.theory_of_thm th;
+    val cert = Thm.cterm_of thy;
 
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
-    val cfvs = rev (map ctermify fvs);
+    val cfvs = rev (map cert fvs);
 
     val conclterm = Logic.strip_imp_concl fixedbody;
-    val conclthm = trivify conclterm;
+    val conclthm = Thm.trivial (cert conclterm);
     val maxidx = Thm.maxidx_of th;
     val ft =
       (Zipper.move_down_right (* ==> *)
@@ -274,7 +272,7 @@ fun prep_concl_subst ctxt i gth =
        o Zipper.mktop
        o Thm.prop_of) conclthm
   in
-    ((cfvs, conclthm), (sgn, maxidx, ft))
+    ((cfvs, conclthm), (thy, maxidx, ft))
   end;
 
 (* substitute using an object or meta level equality *)
@@ -295,7 +293,7 @@ fun distinct_subgoals th = the_default th (SINGLE distinct_subgoals_tac th);
 
 
 (* General substitution of multiple occurances using one of
-   the given theorems*)
+   the given theorems *)
 
 fun skip_first_occs_search occ srchf sinfo lhs =
   (case (skipto_skipseq occ (srchf sinfo lhs)) of
@@ -316,7 +314,7 @@ fun eqsubst_tac ctxt occL thms i th =
         thmseq |> Seq.maps (fn r =>
           eqsubst_tac' ctxt
             (skip_first_occs_search occ searchf_lr_unify_valid) r
-            (i + ((Thm.nprems_of th) - nprems)) th);
+            (i + (Thm.nprems_of th - nprems)) th);
       val sortedoccL = Library.sort (rev_order o int_ord) occL;
     in
       Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccL) th)
@@ -340,7 +338,7 @@ fun apply_subst_in_asm ctxt i th rule ((cfvs, j, _, pth),m) =
       |> RWInst.beta_eta_contract; (* normal form *)
   in
     (* ~j because new asm starts at back, thus we subtract 1 *)
-    Seq.map (Thm.rotate_rule (~ j) ((Thm.nprems_of rule) + i))
+    Seq.map (Thm.rotate_rule (~ j) (Thm.nprems_of rule + i))
       (Tactic.dtac preelimrule i th2)
   end;
 
@@ -356,24 +354,23 @@ fun prep_subst_in_asm ctxt i gth j =
     val th = Thm.incr_indexes 1 gth;
     val tgt_term = Thm.prop_of th;
 
-    val sgn = Thm.theory_of_thm th;
-    val ctermify = Thm.cterm_of sgn;
-    val trivify = Thm.trivial o ctermify;
+    val thy = Thm.theory_of_thm th;
+    val cert = Thm.cterm_of thy;
 
     val (fixedbody, fvs) = IsaND.fix_alls_term ctxt i tgt_term;
-    val cfvs = rev (map ctermify fvs);
+    val cfvs = rev (map cert fvs);
 
     val asmt = nth (Logic.strip_imp_prems fixedbody) (j - 1);
     val asm_nprems = length (Logic.strip_imp_prems asmt);
 
-    val pth = trivify asmt;
+    val pth = Thm.trivial (cert asmt);
     val maxidx = Thm.maxidx_of th;
 
     val ft =
       (Zipper.move_down_right (* trueprop *)
          o Zipper.mktop
          o Thm.prop_of) pth
-  in ((cfvs, j, asm_nprems, pth), (sgn, maxidx, ft)) end;
+  in ((cfvs, j, asm_nprems, pth), (thy, maxidx, ft)) end;
 
 (* prepare subst in every possible assumption *)
 fun prep_subst_in_asms ctxt i gth =
@@ -416,7 +413,7 @@ fun eqsubst_asm_tac ctxt occL thms i th =
           thmseq |> Seq.maps (fn r =>
             eqsubst_asm_tac' ctxt
               (skip_first_asm_occs_search searchf_lr_unify_valid) occK r
-              (i + ((Thm.nprems_of th) - nprems)) th);
+              (i + (Thm.nprems_of th - nprems)) th);
         val sortedoccs = Library.sort (rev_order o int_ord) occL;
       in
         Seq.map distinct_subgoals (Seq.EVERY (map apply_occ sortedoccs) th)
