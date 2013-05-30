@@ -14,7 +14,6 @@ ML_file "~~/src/Provers/hypsubst.ML"
 ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
 ML_file "~~/src/Tools/IsaPlanner/isand.ML"
 ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
-ML_file "~~/src/Tools/eqsubst.ML"
 ML_file "~~/src/Provers/quantifier1.ML"
 ML_file "~~/src/Tools/intuitionistic.ML"
 ML_file "~~/src/Tools/project_rule.ML"
@@ -224,7 +223,6 @@ lemma iffI: "[| P ==> Q; Q ==> P |] ==> P<->Q"
   done
 
 
-(*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
 lemma iffE:
   assumes major: "P <-> Q"
     and r: "P-->Q ==> Q-->P ==> R"

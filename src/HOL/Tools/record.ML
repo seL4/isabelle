@@ -1748,8 +1748,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
         THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
         THEN ALLGOALS (rtac @{thm refl});
       fun mk_eq thy eq_def =
-        Simplifier.rewrite_rule
-          [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
+        rewrite_rule [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate

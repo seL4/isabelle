@@ -1025,7 +1025,7 @@ fun remove_pointless_clauses intro =
 fun peephole_optimisation thy intro =
   let
     val process =
-      Raw_Simplifier.rewrite_rule (Predicate_Compile_Simps.get (Proof_Context.init_global thy))
+      rewrite_rule (Predicate_Compile_Simps.get (Proof_Context.init_global thy))
     fun process_False intro_t =
       if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"} then NONE else SOME intro_t
     fun process_True intro_t =

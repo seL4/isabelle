@@ -129,7 +129,6 @@ sig
   val generic_rewrite_goal_tac: bool * bool * bool ->
     (Proof.context -> tactic) -> Proof.context -> int -> tactic
   val rewrite: bool -> thm list -> conv
-  val simplify: bool -> thm list -> thm -> thm
 end;
 
 structure Raw_Simplifier: RAW_SIMPLIFIER =
@@ -1329,8 +1328,7 @@ fun rewrite _ [] ct = Thm.reflexive ct
       rewrite_cterm (full, false, false) simple_prover
         (global_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
-fun simplify full thms = Conv.fconv_rule (rewrite full thms);
-val rewrite_rule = simplify true;
+val rewrite_rule = Conv.fconv_rule o rewrite true;
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
