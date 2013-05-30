@@ -201,7 +201,7 @@ fun rulify_term thy = Raw_Simplifier.rewrite_term thy (get_rulify thy) [];
 fun rulify_tac i st = rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
 
 fun gen_rulify full thm =
-  Raw_Simplifier.simplify full (get_rulify (Thm.theory_of_thm thm)) thm
+  Conv.fconv_rule (Raw_Simplifier.rewrite full (get_rulify (Thm.theory_of_thm thm))) thm
   |> Drule.gen_all |> Thm.strip_shyps |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
