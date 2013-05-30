@@ -110,14 +110,14 @@ fun mk_foo_match mkuptermfunc Ts t =
 fun mk_fake_bound_name n = ":b_" ^ n;
 fun fakefree_badbounds Ts t =
   let val (FakeTs, Ts, newnames) =
-    List.foldr (fn ((n, ty), (FakeTs, Ts, usednames)) =>
+    fold_rev (fn (n, ty) => fn (FakeTs, Ts, usednames) =>
       let
         val newname = singleton (Name.variant_list usednames) n
       in
         ((mk_fake_bound_name newname, ty) :: FakeTs,
           (newname, ty) :: Ts,
           newname :: usednames)
-      end) ([], [], []) Ts
+      end) Ts ([], [], [])
   in (FakeTs, Ts, Term.subst_bounds (map Free FakeTs, t)) end;
 
 (* before matching we need to fake the bound vars that are missing an

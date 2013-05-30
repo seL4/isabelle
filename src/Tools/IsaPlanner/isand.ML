@@ -53,17 +53,15 @@ fun allify_conditions ctermify Ts th =
     let
       val premts = Thm.prems_of th;
 
-      fun allify_prem_var (vt as (n,ty),t)  =
+      fun allify_prem_var (vt as (n,ty)) t =
           (Logic.all_const ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
 
-      fun allify_prem Ts p = List.foldr allify_prem_var p Ts
+      val allify_prem = fold_rev allify_prem_var
 
       val cTs = map (ctermify o Free) Ts
       val cterm_asms = map (ctermify o allify_prem Ts) premts
       val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms
-    in
-      (Library.foldl (fn (x,y) => y COMP x) (th, allifyied_asm_thms), cterm_asms)
-    end;
+    in (fold (curry op COMP) allifyied_asm_thms th, cterm_asms) end;
 
 (* make free vars into schematic vars with index zero *)
 fun unfix_frees frees =

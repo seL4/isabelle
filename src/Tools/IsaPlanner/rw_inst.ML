@@ -67,8 +67,8 @@ fun mk_abstractedrule ctxt TsFake Ts rule =
     (* using these names create lambda-abstracted version of the rule *)
     val abstractions = rev (Ts' ~~ tonames);
     val abstract_rule =
-      Library.foldl (fn (th,((n,ty),ct)) => Thm.abstract_rule n ct th)
-        (uncond_rule, abstractions);
+      fold (fn ((n, ty), ct) => Thm.abstract_rule n ct)
+        abstractions uncond_rule;
   in (cprems, abstract_rule) end;
 
 
@@ -83,17 +83,16 @@ fun mk_renamings ctxt tgt rule_inst =
   let
     val rule_conds = Thm.prems_of rule_inst;
     val (_, cond_vs) =
-      Library.foldl (fn ((tyvs, vs), t) =>
-                (union (op =) (Misc_Legacy.term_tvars t) tyvs,
-                 union (op =) (map Term.dest_Var (Misc_Legacy.term_vars t)) vs))
-            (([], []), rule_conds);
+      fold (fn t => fn (tyvs, vs) =>
+        (union (op =) (Misc_Legacy.term_tvars t) tyvs,
+         union (op =) (map Term.dest_Var (Misc_Legacy.term_vars t)) vs)) rule_conds ([], []);
     val termvars = map Term.dest_Var (Misc_Legacy.term_vars tgt);
     val vars_to_fix = union (op =) termvars cond_vs;
     val ys = IsaND.variant_names ctxt (tgt :: rule_conds) (map (fst o fst) vars_to_fix);
   in map2 (fn (xi, T) => fn y => ((xi, T), Free (y, T))) vars_to_fix ys end;
 
 (* make a new fresh typefree instantiation for the given tvar *)
-fun new_tfree (tv as (ix,sort), (pairs,used)) =
+fun new_tfree (tv as (ix,sort)) (pairs, used) =
   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
   in ((ix,(sort,TFree(v,sort)))::pairs, v::used) end;
 
@@ -104,11 +103,11 @@ fun mk_fixtvar_tyinsts ignore_insts ts =
   let
     val ignore_ixs = map fst ignore_insts;
     val (tvars, tfrees) =
-      List.foldr (fn (t, (varixs, tfrees)) =>
+      fold_rev (fn t => fn (varixs, tfrees) =>
         (Misc_Legacy.add_term_tvars (t,varixs),
-         Misc_Legacy.add_term_tfrees (t,tfrees))) ([],[]) ts;
+         Misc_Legacy.add_term_tfrees (t,tfrees))) ts ([], []);
     val unfixed_tvars = filter (fn (ix,s) => not (member (op =) ignore_ixs ix)) tvars;
-    val (fixtyinsts, _) = List.foldr new_tfree ([], map fst tfrees) unfixed_tvars
+    val (fixtyinsts, _) = fold_rev new_tfree unfixed_tvars ([], map fst tfrees)
   in (fixtyinsts, tfrees) end;
 
 
@@ -176,10 +175,9 @@ fun rw ctxt ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule targe
 
     (* type-instantiate the var instantiations *)
     val insts_tyinst =
-      List.foldr (fn ((ix,(ty,t)),insts_tyinst) =>
+      fold_rev (fn (ix, (ty, t)) => fn insts_tyinst =>
         (ix, (Term.typ_subst_TVars term_typ_inst ty, Term.subst_TVars term_typ_inst t))
-          :: insts_tyinst)
-        [] unprepinsts;
+          :: insts_tyinst) unprepinsts [];
 
     (* cross-instantiate *)
     val insts_tyinst_inst = cross_inst insts_tyinst;
