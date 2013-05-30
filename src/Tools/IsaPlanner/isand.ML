@@ -23,9 +23,6 @@ extra free vars?
 
 signature ISA_ND =
 sig
-  (* inserting meta level params for frees in the conditions *)
-  val allify_conditions: (term -> cterm) -> (string * typ) list -> thm -> thm * cterm list
-
   val variant_names: Proof.context -> term list -> string list -> string list
 
   (* meta level fixed params (i.e. !! vars) *)
@@ -39,29 +36,6 @@ end
 
 structure IsaND : ISA_ND =
 struct
-
-(* Given ctertmify function, (string,type) pairs capturing the free
-vars that need to be allified in the assumption, and a theorem with
-assumptions possibly containing the free vars, then we give back the
-assumptions allified as hidden hyps.
-
-Given: x
-th: A vs ==> B vs
-Results in: "B vs" [!!x. A x]
-*)
-fun allify_conditions ctermify Ts th =
-  let
-    val premts = Thm.prems_of th;
-
-    fun allify_prem_var (vt as (n, ty)) t =
-      Logic.all_const ty $ Abs (n, ty, Term.abstract_over (Free vt, t))
-
-    val allify_prem = fold_rev allify_prem_var
-
-    val cTs = map (ctermify o Free) Ts
-    val cterm_asms = map (ctermify o allify_prem Ts) premts
-    val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms
-  in (fold (curry op COMP) allifyied_asm_thms th, cterm_asms) end;
 
 (* make free vars into schematic vars with index zero *)
 fun unfix_frees frees =

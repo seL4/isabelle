@@ -21,6 +21,28 @@ end;
 structure RW_Inst: RW_INST =
 struct
 
+(* Given (string,type) pairs capturing the free vars that need to be
+allified in the assumption, and a theorem with assumptions possibly
+containing the free vars, then we give back the assumptions allified
+as hidden hyps.
+
+Given: x
+th: A vs ==> B vs
+Results in: "B vs" [!!x. A x]
+*)
+fun allify_conditions Ts th =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_thm th);
+
+    fun allify (x, T) t =
+      Logic.all_const T $ Abs (x, T, Term.abstract_over (Free (x, T), t));
+
+    val cTs = map (cert o Free) Ts;
+    val cterm_asms = map (cert o fold_rev allify Ts) (Thm.prems_of th);
+    val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms;
+  in (fold (curry op COMP) allifyied_asm_thms th, cterm_asms) end;
+
+
 (* Given a list of variables that were bound, and a that has been
 instantiated with free variable placeholders for the bound vars, it
 creates an abstracted version of the theorem, with local bound vars as
@@ -62,7 +84,7 @@ fun mk_abstractedrule ctxt TsFake Ts rule =
       |> Drule.forall_elim_list tonames;
 
     (* make unconditional rule and prems *)
-    val (uncond_rule, cprems) = IsaND.allify_conditions cert (rev Ts') rule';
+    val (uncond_rule, cprems) = allify_conditions (rev Ts') rule';
 
     (* using these names create lambda-abstracted version of the rule *)
     val abstractions = rev (Ts' ~~ tonames);
