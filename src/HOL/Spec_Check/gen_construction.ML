@@ -38,7 +38,7 @@ fun split s =
 val scan_name = Scan.one (fn s => not (String.isSubstring s "(),*->;"));
 
 (*Turn a type list into a nested Con*)
-fun make_con nil = raise Empty
+fun make_con [] = raise Empty
   | make_con [c] = c
   | make_con (Con (s, _) :: cl) = Con (s, [make_con cl]);
 
@@ -61,7 +61,7 @@ and parse_con s = ((parse_con_nest
   || parse_list -- parse_con_nest >> (fn (l, Con (t, _) :: tl) => Con (t, l) :: tl))
   >> (make_con o rev)) s
 
-and parse_con_nest s = Scan.unless parse_var (Scan.repeat1 (scan_name >> (fn t => Con (t, nil)))) s
+and parse_con_nest s = Scan.unless parse_var (Scan.repeat1 (scan_name >> (fn t => Con (t, [])))) s
 
 and parse_fun s = (parse_type_arg -- $$ "->" -- parse_type >> (fn ((a, f), r) => Con (f, [a, r]))) s
 

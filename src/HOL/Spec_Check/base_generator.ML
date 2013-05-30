@@ -98,7 +98,7 @@ in
   fun choose v r =
     let val (i, r) = range(0, Vector.length v - 1) r
     in Vector.sub (v, i) r end
-  fun choose' v = choose (Vector.fromList (Vector.foldr explode nil v))
+  fun choose' v = choose (Vector.fromList (Vector.foldr explode [] v))
   fun select v = choose (Vector.map lift v)
 end
 
@@ -132,7 +132,7 @@ fun flip' (p, q) = chooseL' [(p, lift true), (q, lift false)]
 
 fun list flip g r =
   case flip r of
-      (true, r) => (nil, r)
+      (true, r) => ([], r)
     | (false, r) =>
       let
         val (x,r) = g r
