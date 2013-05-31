@@ -43,8 +43,7 @@ fun mk_congeq ctxt fs th =
   let
     val Const (fN, _) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
       |> fst |> strip_comb |> fst;
-    val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'));
     fun add_fterms (t as t1 $ t2) =
@@ -103,7 +102,7 @@ fun reify ctxt eqs t =
         val tt = HOLogic.listT (fastype_of t);
       in
         (case AList.lookup Type.could_unify bds tt of
-            NONE => error "index_of : type not found in environements!"
+            NONE => error "index_of: type not found in environements!"
           | SOME (tbs, tats) =>
               let
                 val i = find_index (fn t' => t' = t) tats;
@@ -130,13 +129,14 @@ fun reify ctxt eqs t =
       let
         val thy = Proof_Context.theory_of ctxt;
         val cert = cterm_of thy;
+        val certT = ctyp_of thy;
         fun tryabsdecomp (s, ctxt) bds =
           (case s of
             Abs (_, xT, ta) =>
               let
                 val ([raw_xn], ctxt') = Variable.variant_fixes ["x"] ctxt;
                 val (xn, ta) = Syntax_Trans.variant_abs (raw_xn, xT, ta);  (* FIXME !? *)
-                val x = Free(xn, xT);
+                val x = Free (xn, xT);
                 val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT) of
                     NONE => error "tryabsdecomp: Type not found in the Environement"
                   | SOME (bsT, atsT) => AList.update Type.could_unify (HOLogic.listT xT, (x :: bsT, atsT)) bds);
@@ -156,8 +156,6 @@ fun reify ctxt eqs t =
           [] => tryabsdecomp (t, ctxt) bds
         | ((vns, cong) :: congs) =>
             (let
-              val cert = cterm_of thy;
-              val certy = ctyp_of thy;
               val (tyenv, tmenv) =
                 Pattern.match thy
                   ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
@@ -166,7 +164,7 @@ fun reify ctxt eqs t =
               val (fts, its) =
                 (map (snd o snd) fnvs,
                  map (fn ((vn, vi), (tT, t)) => (cert (Var ((vn, vi), tT)), cert t)) invs);
-              val ctyenv = map (fn ((vn, vi), (s, ty)) => (certy (TVar((vn, vi), s)), certy ty)) (Vartab.dest tyenv);
+              val ctyenv = map (fn ((vn, vi), (s, ty)) => (certT (TVar((vn, vi), s)), certT ty)) (Vartab.dest tyenv);
             in
               ((fts ~~ replicate (length fts) ctxt,
                  apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
@@ -254,15 +252,15 @@ fun reify ctxt eqs t =
           |> fst)) eqs [];
         val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl)) fs [];
         val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt;
-        val thy = Proof_Context.theory_of ctxt';
-        val cert = cterm_of thy;
-        val vstys = map (fn (t, v) => (t, SOME (cert (Free (v, t))))) (tys ~~ vs);
+        val cert = cterm_of (Proof_Context.theory_of ctxt');
+        val subst =
+          the o AList.lookup (op =) (map2 (fn T => fn v => (T, cert (Free (v, T)))) tys vs);
         fun prep_eq eq =
           let
             val (_, _ :: vs) = eq |> prop_of |> HOLogic.dest_Trueprop
               |> HOLogic.dest_eq |> fst |> strip_comb;
-            val subst = map (fn (v as Var (_, t)) =>
-              (cert v, (the o the) (AList.lookup (op =) vstys t))) (filter is_Var vs);
+            val subst = map_filter (fn (v as Var (_, T)) => SOME (cert v, subst T)
+              | _ => NONE) vs;
           in Thm.instantiate ([], subst) eq end;
         val (ps, congs) = map_split (mk_congeq ctxt' fs o prep_eq) eqs;
         val bds = AList.make (K ([], [])) tys;
@@ -271,10 +269,10 @@ fun reify ctxt eqs t =
     val (congs, bds) = mk_congs ctxt eqs;
     val congs = rearrange congs;
     val (th, bds) = divide_and_conquer' (decomp_reify (mk_decompatom eqs) congs) (t,ctxt) bds;
-    fun is_listVar (Var (_, t)) = can dest_listT t
-      | is_listVar _ = false;
+    fun is_list_var (Var (_, t)) = can dest_listT t
+      | is_list_var _ = false;
     val vars = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
-      |> strip_comb |> snd |> filter is_listVar;
+      |> strip_comb |> snd |> filter is_list_var;
     val cert = cterm_of (Proof_Context.theory_of ctxt);
     val cvs = map (fn (v as Var(_, t)) => (cert v,
       the (AList.lookup Type.could_unify bds t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars;
@@ -282,13 +280,13 @@ fun reify ctxt eqs t =
     val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th';
     val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
       (fn _ => simp_tac ctxt 1)
-  in FWD trans [th'',th'] end;
+  in FWD trans [th'', th'] end;
 
 fun reflect ctxt conv corr_thms eqs t =
   let
     val reify_thm = reify ctxt eqs t;
-    fun try_corr thm =
-      SOME (FWD trans [reify_thm, thm RS sym]) handle THM _ => NONE;
+    fun try_corr corr_thm =
+      SOME (FWD trans [reify_thm, corr_thm RS sym]) handle THM _ => NONE;
     val thm = case get_first try_corr corr_thms
      of NONE => error "No suitable correctness theorem found"
       | SOME thm => thm;
