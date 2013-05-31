@@ -49,7 +49,7 @@ sig
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
-  val unsort: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
+  val sort_like: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
   val pad_list: 'a -> int -> 'a list -> 'a list
 
@@ -676,7 +676,7 @@ fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
   | transpose xss = map hd xss :: transpose (map tl xss);
 
-fun unsort eq ys zs = map (fn x => nth zs (find_index (curry eq x) ys));
+fun sort_like eq xs ys = map (fn x => nth ys (find_index (curry eq x) xs));
 
 fun seq_conds f n k xs =
   if k = n then
