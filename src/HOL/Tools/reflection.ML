@@ -6,9 +6,11 @@ A trial for automatical reification.
 
 signature REFLECTION =
 sig
-  val gen_reify: Proof.context -> thm list -> term -> thm
-  val gen_reify_tac: Proof.context -> thm list -> term option -> int -> tactic
-  val gen_reflection_tac: Proof.context -> (cterm -> thm)
+  val reify: Proof.context -> thm list -> term -> thm
+  val reify_tac: Proof.context -> thm list -> term option -> int -> tactic
+  val reflect: Proof.context -> (cterm -> thm)
+    -> thm list -> thm list -> term -> thm
+  val reflection_tac: Proof.context -> (cterm -> thm)
     -> thm list -> thm list -> term option -> int -> tactic
   val get_default: Proof.context -> { reification_eqs: thm list, correctness_thms: thm list }
   val add_reification_eq: attribute
@@ -94,7 +96,7 @@ fun rearrange congs =
     val (yes, no) = List.partition P congs;
   in no @ yes end;
 
-fun gen_reify ctxt eqs t =
+fun reify ctxt eqs t =
   let
     fun index_of t bds =
       let
@@ -124,7 +126,7 @@ fun gen_reify ctxt eqs t =
     (* da is the decomposition for atoms, ie. it returns ([],g) where g
        returns the right instance f (AtC n) = t , where AtC is the Atoms
        constructor and n is the number of the atom corresponding to t *)
-    fun decomp_genreif da cgns (t, ctxt) bds =
+    fun decomp_reify da cgns (t, ctxt) bds =
       let
         val thy = Proof_Context.theory_of ctxt;
         val cert = cterm_of thy;
@@ -168,7 +170,7 @@ fun gen_reify ctxt eqs t =
             in
               ((fts ~~ replicate (length fts) ctxt,
                  apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
-            end handle Pattern.MATCH => decomp_genreif da congs (t,ctxt) bds))
+            end handle Pattern.MATCH => decomp_reify da congs (t,ctxt) bds))
       end;
 
  (* looks for the atoms equation and instantiates it with the right number *)
@@ -268,7 +270,7 @@ fun gen_reify ctxt eqs t =
 
     val (congs, bds) = mk_congs ctxt eqs;
     val congs = rearrange congs;
-    val (th, bds) = divide_and_conquer' (decomp_genreif (mk_decompatom eqs) congs) (t,ctxt) bds;
+    val (th, bds) = divide_and_conquer' (decomp_reify (mk_decompatom eqs) congs) (t,ctxt) bds;
     fun is_listVar (Var (_, t)) = can dest_listT t
       | is_listVar _ = false;
     val vars = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
@@ -282,9 +284,9 @@ fun gen_reify ctxt eqs t =
       (fn _ => simp_tac ctxt 1)
   in FWD trans [th'',th'] end;
 
-fun gen_reflect ctxt conv corr_thms eqs t =
+fun reflect ctxt conv corr_thms eqs t =
   let
-    val reify_thm = gen_reify ctxt eqs t;
+    val reify_thm = reify ctxt eqs t;
     fun try_corr thm =
       SOME (FWD trans [reify_thm, thm RS sym]) handle THM _ => NONE;
     val thm = case get_first try_corr corr_thms
@@ -304,11 +306,11 @@ fun tac_of_thm mk_thm to = SUBGOAL (fn (goal, i) =>
     val thm = mk_thm t RS ssubst;
   in rtac thm i end);
  
-fun gen_reify_tac ctxt eqs = tac_of_thm (gen_reify ctxt eqs);
+fun reify_tac ctxt eqs = tac_of_thm (reify ctxt eqs);
 
 (*Reflection calls reification and uses the correctness theorem assumed to be the head of the list*)
-fun gen_reflection_tac ctxt conv corr_thms eqs =
-  tac_of_thm (gen_reflect ctxt conv corr_thms eqs);
+fun reflection_tac ctxt conv corr_thms eqs =
+  tac_of_thm (reflect ctxt conv corr_thms eqs);
 
 structure Data = Generic_Data
 (
@@ -340,7 +342,7 @@ fun default_reify_tac ctxt user_eqs =
     val { reification_eqs = default_eqs, correctness_thms = _ } =
       get_default ctxt;
     val eqs = fold Thm.add_thm user_eqs default_eqs;
-  in gen_reify_tac ctxt eqs end;
+  in reify_tac ctxt eqs end;
 
 fun default_reflection_tac ctxt user_thms user_eqs =
   let
@@ -350,7 +352,7 @@ fun default_reflection_tac ctxt user_thms user_eqs =
     val eqs = fold Thm.add_thm user_eqs default_eqs; 
     val conv = Code_Evaluation.dynamic_conv (Proof_Context.theory_of ctxt);
       (*FIXME why Code_Evaluation.dynamic_conv? very specific*)
-  in gen_reflection_tac ctxt conv corr_thms eqs end;
+  in reflection_tac ctxt conv corr_thms eqs end;
 
 
 end

@@ -3533,7 +3533,7 @@ method_setup approximation = {*
                       rtac @{thm impI}] i)
       THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
       THEN DETERM (TRY (filter_prems_tac (K false) i))
-      THEN DETERM (Reflection.gen_reify_tac ctxt form_equations NONE i)
+      THEN DETERM (Reflection.reify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
       THEN gen_eval_tac (approximation_conv ctxt) ctxt i))
  *} "real number approximation"
@@ -3633,7 +3633,7 @@ ML {*
       THEN DETERM (TRY (filter_prems_tac (K false) 1)))
 
   fun reify_form ctxt term = apply_tactic ctxt term
-     (Reflection.gen_reify_tac ctxt form_equations NONE 1)
+     (Reflection.reify_tac ctxt form_equations NONE 1)
 
   fun approx_form prec ctxt t =
           realify t
@@ -3650,7 +3650,7 @@ ML {*
            |> foldr1 HOLogic.mk_conj))
 
   fun approx_arith prec ctxt t = realify t
-       |> Reflection.gen_reify ctxt form_equations
+       |> Reflection.reify ctxt form_equations
        |> prop_of
        |> HOLogic.dest_Trueprop
        |> HOLogic.dest_eq |> snd
