@@ -287,14 +287,16 @@ fun reflect ctxt conv corr_thms eqs t =
     val reify_thm = reify ctxt eqs t;
     fun try_corr corr_thm =
       SOME (FWD trans [reify_thm, corr_thm RS sym]) handle THM _ => NONE;
-    val thm = case get_first try_corr corr_thms
+    val refl_thm = case get_first try_corr corr_thms
      of NONE => error "No suitable correctness theorem found"
       | SOME thm => thm;
-    val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) thm;
-    val rth = conv ft;
+    val rhs = (Thm.dest_arg o Thm.dest_arg o cprop_of) refl_thm;
+    val number_of_args = (length o snd o strip_comb o term_of) rhs;
+    val reified = Thm.dest_arg (fold_range (K Thm.dest_fun) (number_of_args - 1) rhs);
+    val evaluated = conv reified;
   in
-    thm
-    |> simplify (put_simpset HOL_basic_ss ctxt addsimps [rth])
+    refl_thm
+    |> simplify (put_simpset HOL_basic_ss ctxt addsimps [evaluated])
     |> simplify (put_simpset HOL_basic_ss ctxt addsimps eqs addsimps @{thms nth_Cons_0 nth_Cons_Suc})
   end;
 
