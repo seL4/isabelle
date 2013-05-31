@@ -85,6 +85,15 @@ struct
 end;
 
 
+(* CharVector *)
+
+structure CharVector =
+struct
+  open CharVector;
+  fun tabulate (a, b) = CharVector.tabulate (dest_int a, b o mk_int);
+end;
+
+
 (* Word8VectorSlice *)
 
 structure Word8VectorSlice =
@@ -157,6 +166,8 @@ struct
     | GEN (SOME b) => StringCvt.GEN (SOME (dest_int b))
     | SCI NONE => StringCvt.SCI NONE
     | SCI (SOME b) => StringCvt.SCI (SOME (dest_int b)));
+  fun padRight a b c = StringCvt.padRight a (dest_int b) c;
+  fun padLeft a b c = StringCvt.padLeft a (dest_int b) c;
 end;
 
 

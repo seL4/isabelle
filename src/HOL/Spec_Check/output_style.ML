@@ -31,9 +31,9 @@ val perl_style =
 
         val maybe_sort = if sort_examples then sort (int_ord o pairself size) else I
 
-        fun result ({count=0,...}, _) _ = "dubious"
+        fun result ({count = 0, ...}, _) _ = "dubious"
           | result (_ : Property.stats, badobjs) false = if null badobjs then "ok" else "FAILED"
-          | result ({count,tags,...}, badobjs) true =
+          | result ({count, tags}, badobjs) true =
               if not (null badobjs) then "FAILED"
               else if AList.defined (op =) tags "__GEN" andalso count < target then "dubious"
               else "ok"
@@ -62,7 +62,7 @@ val perl_style =
                false)
              end
 
-        fun prtags ({count, tags, ...} : Property.stats) =
+        fun prtags ({count, tags} : Property.stats) =
           if show_stats then cat_lines (fst (fold_map (prtag count) tags true)) else ""
 
         fun err badobjs =
@@ -93,7 +93,7 @@ val cm_style =
         fun pad wd = StringCvt.padLeft #"0" wd o Int.toString
         val gen_target = Config.get ctxt Spec_Check.gen_target
         val _ = writeln ("[testing " ^ tag ^ "... ")
-        fun finish ({count, ...}, badobjs) =
+        fun finish ({count, ...} : Property.stats, badobjs) =
           (case (count, badobjs) of
             (0, []) => warning ("no valid cases generated]")
           | (n, []) => writeln (
