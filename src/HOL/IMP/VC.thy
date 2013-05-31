@@ -14,37 +14,39 @@ datatype acom =
   Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
   Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
 
-text{* Weakest precondition from annotated commands: *}
-
-fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"pre Askip Q = Q" |
-"pre (Aassign x a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
-"pre (Aseq c\<^isub>1 c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
-"pre (Aif b c\<^isub>1 c\<^isub>2) Q =
-  (\<lambda>s. (bval b s \<longrightarrow> pre c\<^isub>1 Q s) \<and>
-       (\<not> bval b s \<longrightarrow> pre c\<^isub>2 Q s))" |
-"pre (Awhile I b c) Q = I"
-
-text{* Verification condition: *}
-
-fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"vc Askip Q = (\<lambda>s. True)" |
-"vc (Aassign x a) Q = (\<lambda>s. True)" |
-"vc (Aseq c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
-"vc (Aif b c\<^isub>1 c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
-"vc (Awhile I b c) Q =
-  (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
-       (I s \<and> bval b s \<longrightarrow> pre c I s) \<and>
-       vc c I s)"
 
 text{* Strip annotations: *}
 
 fun strip :: "acom \<Rightarrow> com" where
-"strip Askip = com.SKIP" |
-"strip (Aassign x a) = (x::=a)" |
-"strip (Aseq c\<^isub>1 c\<^isub>2) = (strip c\<^isub>1;; strip c\<^isub>2)" |
-"strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
-"strip (Awhile I b c) = (WHILE b DO strip c)"
+"strip SKIP = com.SKIP" |
+"strip (x ::= a) = (x ::= a)" |
+"strip (c\<^isub>1;; c\<^isub>2) = (strip c\<^isub>1;; strip c\<^isub>2)" |
+"strip (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
+"strip ({_} WHILE b DO c) = (WHILE b DO strip c)"
+
+text{* Weakest precondition from annotated commands: *}
+
+fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
+"pre SKIP Q = Q" |
+"pre (x ::= a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
+"pre (c\<^isub>1;; c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
+"pre (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q =
+  (\<lambda>s. (bval b s \<longrightarrow> pre c\<^isub>1 Q s) \<and>
+       (\<not> bval b s \<longrightarrow> pre c\<^isub>2 Q s))" |
+"pre ({I} WHILE b DO c) Q = I"
+
+text{* Verification condition: *}
+
+fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
+"vc SKIP Q = (\<lambda>s. True)" |
+"vc (x ::= a) Q = (\<lambda>s. True)" |
+"vc (c\<^isub>1;; c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 (pre c\<^isub>2 Q) s \<and> vc c\<^isub>2 Q s)" |
+"vc (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q = (\<lambda>s. vc c\<^isub>1 Q s \<and> vc c\<^isub>2 Q s)" |
+"vc ({I} WHILE b DO c) Q =
+  (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
+       (I s \<and> bval b s \<longrightarrow> pre c I s) \<and>
+       vc c I s)"
+
 
 text {* Soundness: *}
 
@@ -120,27 +122,5 @@ next
 next
   case conseq thus ?case by(fast elim!: pre_mono vc_mono)
 qed
-
-
-text{* An Optimization: *}
-
-fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
-"vcpre Askip Q = (\<lambda>s. True, Q)" |
-"vcpre (Aassign x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[a/x]))" |
-"vcpre (Aseq c\<^isub>1 c\<^isub>2) Q =
-  (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;
-       (vc\<^isub>1,wp\<^isub>1) = vcpre c\<^isub>1 wp\<^isub>2
-   in (\<lambda>s. vc\<^isub>1 s \<and> vc\<^isub>2 s, wp\<^isub>1))" |
-"vcpre (Aif b c\<^isub>1 c\<^isub>2) Q =
-  (let (vc\<^isub>2,wp\<^isub>2) = vcpre c\<^isub>2 Q;
-       (vc\<^isub>1,wp\<^isub>1) = vcpre c\<^isub>1 Q
-   in (\<lambda>s. vc\<^isub>1 s \<and> vc\<^isub>2 s, \<lambda>s. (bval b s \<longrightarrow> wp\<^isub>1 s) \<and> (\<not>bval b s \<longrightarrow> wp\<^isub>2 s)))" |
-"vcpre (Awhile I b c) Q =
-  (let (vcc,wpc) = vcpre c I
-   in (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
-           (I s \<and> bval b s \<longrightarrow> wpc s) \<and> vcc s, I))"
-
-lemma vcpre_vc_pre: "vcpre c Q = (vc c Q, pre c Q)"
-by (induct c arbitrary: Q) (simp_all add: Let_def)
 
 end
