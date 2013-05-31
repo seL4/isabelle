@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-theory VC imports Hoare begin
+theory VCG imports Hoare begin
 
 subsection "Verification Conditions"
 
