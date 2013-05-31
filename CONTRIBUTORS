@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2013: Lukas Bulwahn and Nicolai Schaffroth, TUM
+  HOL-Spec_Check: A Quickcheck tool for Isabelle's ML environment.
+
 * April 2013: Stefan Berghofer, secunet Security Networks AG
   Dmitriy Traytel, TUM
   Makarius Wenzel, Université Paris-Sud / LRI

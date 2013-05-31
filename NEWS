@@ -210,6 +210,13 @@ INCOMPATIBILITY.
   - Renamed option:
       isar_shrink ~> isar_compress
 
+* HOL-Spec_Check: a Quickcheck tool for Isabelle's ML environment.
+  
+  With HOL-Spec_Check, ML developers can check specifications with the
+  ML function check_property. The specifications must be of the form
+  "ALL x1 ... xn. Prop x1 ... xn". Simple examples are in
+  src/HOL/Spec_Check/Examples.thy.
+
 
 *** HOL-Algebra ***
 
