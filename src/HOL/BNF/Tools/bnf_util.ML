@@ -70,6 +70,7 @@ sig
   val retype_free: typ -> term -> term
   val nonzero_string_of_int: int -> string
 
+  val num_binder_types: typ -> int
   val strip_typeN: int -> typ -> typ list * typ
 
   val mk_predT: typ list -> typ
@@ -386,6 +387,11 @@ fun retype_free T (Free (s, _)) = Free (s, T)
 
 
 (** Types **)
+
+(*stolen from ~~/src/HOL/Tools/Nitpick/nitpick_hol.ML*)
+fun num_binder_types (Type (@{type_name fun}, [_, T2])) =
+    1 + num_binder_types T2
+  | num_binder_types _ = 0
 
 fun strip_typeN 0 T = ([], T)
   | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T

@@ -176,7 +176,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
 
     val case0T = fastype_of case0;
     val Type (dataT_name, As0) =
-      domain_type (snd (strip_typeN (length (binder_types case0T) - 1) case0T));
+      domain_type (snd (strip_typeN (num_binder_types case0T - 1) case0T));
     val data_b = Binding.qualified_name dataT_name;
     val data_b_name = Binding.name_of data_b;
 
