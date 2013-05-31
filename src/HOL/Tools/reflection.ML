@@ -8,8 +8,10 @@ signature REFLECTION =
 sig
   val reify: Proof.context -> thm list -> conv
   val reify_tac: Proof.context -> thm list -> term option -> int -> tactic
-  val reflect: Proof.context -> thm list -> thm list -> conv -> conv
-  val reflection_tac: Proof.context -> thm list -> thm list -> conv -> term option -> int -> tactic
+  val reflect: Proof.context -> thm list -> thm list -> conv
+  val reflection_tac: Proof.context -> thm list -> thm list -> term option -> int -> tactic
+  val reflect_with_eval: Proof.context -> thm list -> thm list -> conv -> conv
+  val reflection_with_eval_tac: Proof.context -> thm list -> thm list -> conv -> term option -> int -> tactic
   val get_default: Proof.context -> { reification_eqs: thm list, correctness_thms: thm list }
   val add_reification_eq: attribute
   val del_reification_eq: attribute
@@ -30,7 +32,7 @@ fun rewrite_with ctxt eqs = Simplifier.rewrite (put_simpset HOL_basic_ss ctxt ad
 
 val pure_subst = @{lemma "x == y ==> PROP P y ==> PROP P x" by simp}
 
-fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { context, concl, ... } =>
+fun lift_conv ctxt conv some_t = Subgoal.FOCUS (fn { concl, ... } =>
   let
     val ct = case some_t
      of NONE => Thm.dest_arg concl
@@ -208,7 +210,7 @@ fun reify ctxt eqs ct =
           | get_nths (Abs (_, _, t')) = get_nths t'
           | get_nths _ = I;
 
-        fun tryeqs [] bds = error "Can not find the atoms equation"
+        fun tryeqs [] bds = error "Cannot find the atoms equation"
           | tryeqs (eq :: eqs) bds = ((
               let
                 val rhs = eq |> prop_of |> HOLogic.dest_Trueprop  |> HOLogic.dest_eq |> snd;
@@ -297,9 +299,18 @@ fun reify ctxt eqs ct =
     val th'' = Thm.symmetric (dereify ctxt [] (Thm.lhs_of th'));
   in Thm.transitive th'' th' end;
 
+fun reify_tac ctxt eqs =
+  lift_conv ctxt (reify ctxt eqs);
+
 fun subst_correctness corr_thms ct =
   Conv.rewrs_conv (map (Thm.symmetric o mk_eq) corr_thms) ct
     handle CTERM _ => error "No suitable correctness theorem found";
+
+fun reflect ctxt corr_thms eqs =
+  (reify ctxt eqs) then_conv (subst_correctness corr_thms)
+
+fun reflection_tac ctxt corr_thms eqs =
+  lift_conv ctxt (reflect ctxt corr_thms eqs);
 
 fun first_arg_conv conv =
   let
@@ -309,14 +320,11 @@ fun first_arg_conv conv =
       else Conv.combination_conv Conv.all_conv conv ct;
   in conv' end;
 
-fun reflect ctxt corr_thms eqs conv =
-  (reify ctxt eqs) then_conv (subst_correctness corr_thms)
-  then_conv (first_arg_conv conv) then_conv (dereify ctxt eqs);
+fun reflect_with_eval ctxt corr_thms eqs conv =
+  (reflect ctxt corr_thms eqs) then_conv (first_arg_conv conv) then_conv (dereify ctxt eqs);
 
-fun reify_tac ctxt eqs = lift_conv ctxt (reify ctxt eqs);
-
-fun reflection_tac ctxt corr_thms eqs conv =
-  lift_conv ctxt (reflect ctxt corr_thms eqs conv);
+fun reflection_with_eval_tac ctxt corr_thms eqs conv =
+  lift_conv ctxt (reflect_with_eval ctxt corr_thms eqs conv);
 
 structure Data = Generic_Data
 (
@@ -356,9 +364,6 @@ fun default_reflection_tac ctxt user_thms user_eqs =
       get_default ctxt;
     val corr_thms = fold Thm.add_thm user_thms default_thms;
     val eqs = fold Thm.add_thm user_eqs default_eqs; 
-    val conv = Code_Evaluation.dynamic_conv (Proof_Context.theory_of ctxt);
-      (*FIXME why Code_Evaluation.dynamic_conv? very specific*)
-  in reflection_tac ctxt corr_thms eqs conv end;
+  in reflection_tac ctxt corr_thms eqs end;
 
-
-end
+end;
