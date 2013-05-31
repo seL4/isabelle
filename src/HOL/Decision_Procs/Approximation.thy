@@ -3650,10 +3650,10 @@ ML {*
            |> foldr1 HOLogic.mk_conj))
 
   fun approx_arith prec ctxt t = realify t
+       |> Thm.cterm_of (Proof_Context.theory_of ctxt)
        |> Reflection.reify ctxt form_equations
        |> prop_of
-       |> HOLogic.dest_Trueprop
-       |> HOLogic.dest_eq |> snd
+       |> Logic.dest_equals |> snd
        |> dest_interpret |> fst
        |> mk_approx' prec
        |> approximate ctxt
