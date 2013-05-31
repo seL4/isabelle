@@ -128,11 +128,11 @@ fun determine_type ctxt s =
   let
     val return = Unsynchronized.ref "return"
     val use_context : use_context =
-     {tune_source = ML_Parse.fix_ints,
-      name_space = ML_Env.name_space,
-      str_of_pos = Position.here oo Position.line_file,
+     {tune_source = #tune_source ML_Env.local_context,
+      name_space = #name_space ML_Env.local_context,
+      str_of_pos = #str_of_pos ML_Env.local_context,
       print = fn r => return := r,
-      error = error}
+      error = #error ML_Env.local_context}
     val _ =
       Context.setmp_thread_data (SOME (Context.Proof ctxt))
         (fn () => Secure.use_text use_context (0, "generated code") true s) ()
