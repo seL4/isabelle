@@ -9,7 +9,7 @@ works if execution is deterministic (which it is in our case). *}
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
   ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
-"\<Turnstile>\<^sub>t {P}c{Q}  \<equiv>  \<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
+"\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t))"
 
 text{* Provability of Hoare triples in the proof system for total
 correctness is written @{text"\<turnstile>\<^sub>t {P}c{Q}"} and defined
@@ -20,20 +20,35 @@ inductively. The rules for @{text"\<turnstile>\<^sub>t"} differ from those for
 inductive
   hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
 where
-Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}" |
-Assign:  "\<turnstile>\<^sub>t {\<lambda>s. P(s[a/x])} x::=a {P}" |
-Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;;c\<^isub>2 {P\<^isub>3}" |
+
+Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}"  |
+
+Assign:  "\<turnstile>\<^sub>t {\<lambda>s. P(s[a/x])} x::=a {P}"  |
+
+Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;;c\<^isub>2 {P\<^isub>3}"  |
+
 If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
-  \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}" |
+  \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}"  |
+
 While:
-  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T s n} c {\<lambda>s. P s \<and> (\<exists>n'. T s n' \<and> n' < n)} \<rbrakk>
-   \<Longrightarrow> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T s n)} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}" |
+  "(\<And>n::nat.
+    \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T s n} c {\<lambda>s. P s \<and> (\<exists>n'. T s n' \<and> n' < n)})
+   \<Longrightarrow> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T s n)} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"  |
+
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
            \<turnstile>\<^sub>t {P'}c{Q'}"
 
 text{* The @{term While}-rule is like the one for partial correctness but it
 requires additionally that with every execution of the loop body some measure
-function @{term[source]"f :: state \<Rightarrow> nat"} decreases. *}
+relation @{term[source]"T :: state \<Rightarrow> nat \<Rightarrow> bool"} decreases.
+The following functional version is more intuitive: *}
+
+lemma While_fun:
+  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> n = f s} c {\<lambda>s. P s \<and> f s < n}\<rbrakk>
+   \<Longrightarrow> \<turnstile>\<^sub>t {P} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"
+  by (rule While [where T="\<lambda>s n. n = f s", simplified])
+
+text{* Building in the consequence rule: *}
 
 lemma strengthen_pre:
   "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s;  \<turnstile>\<^sub>t {P} c {Q} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P'} c {Q}"
@@ -46,24 +61,20 @@ by (metis conseq)
 lemma Assign': "\<forall>s. P s \<longrightarrow> Q(s[a/x]) \<Longrightarrow> \<turnstile>\<^sub>t {P} x ::= a {Q}"
 by (simp add: strengthen_pre[OF _ Assign])
 
-lemma While':
-assumes "\<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T s n} c {\<lambda>s. P s \<and> (\<exists>n'. T s n' \<and> n' < n)}"
+lemma While_fun':
+assumes "\<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> n = f s} c {\<lambda>s. P s \<and> f s < n}"
     and "\<forall>s. P s \<and> \<not> bval b s \<longrightarrow> Q s"
-shows "\<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T s n)} WHILE b DO c {Q}"
-by(blast intro: assms(1) weaken_post[OF While assms(2)])
+shows "\<turnstile>\<^sub>t {P} WHILE b DO c {Q}"
+by(blast intro: assms(1) weaken_post[OF While_fun assms(2)])
 
-lemma While_fun:
-  "\<lbrakk> \<And>n::nat. \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> f s = n} c {\<lambda>s. P s \<and> f s < n}\<rbrakk>
-   \<Longrightarrow> \<turnstile>\<^sub>t {P} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"
-  by (rule While [where T="\<lambda>s n. f s = n", simplified])
 
 text{* Our standard example: *}
 
 lemma "\<turnstile>\<^sub>t {\<lambda>s. s ''x'' = i} ''y'' ::= N 0;; wsum {\<lambda>s. s ''y'' = sum i}"
 apply(rule Seq)
  prefer 2
- apply(rule While' [where P = "\<lambda>s. (s ''y'' = sum i - sum(s ''x''))"
-    and T = "\<lambda>s n. n = nat(s ''x'')"])
+ apply(rule While_fun' [where P = "\<lambda>s. (s ''y'' = sum i - sum(s ''x''))"
+    and f = "\<lambda>s. nat(s ''x'')"])
    apply(rule Seq)
    prefer 2
    apply(rule Assign)
