@@ -559,7 +559,9 @@ fun strip_case_full ctxt d t =
 val show_cases = Attrib.setup_config_bool @{binding show_cases} (K true);
 
 fun uncheck_case ctxt ts =
-  if Config.get ctxt show_cases then map (strip_case_full ctxt true) ts else ts;
+  if Config.get ctxt show_cases
+  then map (fn t => if can Term.type_of t then strip_case_full ctxt true t else t) ts
+  else ts;
 
 val term_uncheck_setup =
   Context.theory_map (Syntax_Phases.term_uncheck 1 "case" uncheck_case);
