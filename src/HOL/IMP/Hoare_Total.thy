@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-theory HoareT imports Hoare_Sound_Complete Hoare_Examples begin
+theory Hoare_Total imports Hoare_Sound_Complete Hoare_Examples begin
 
 subsection "Hoare Logic for Total Correctness"
 
@@ -90,14 +90,14 @@ done
 text{* The soundness theorem: *}
 
 theorem hoaret_sound: "\<turnstile>\<^sub>t {P}c{Q}  \<Longrightarrow>  \<Turnstile>\<^sub>t {P}c{Q}"
-proof(unfold hoare_tvalid_def, induct rule: hoaret.induct)
+proof(unfold hoare_tvalid_def, induction rule: hoaret.induct)
   case (While P b T c)
   {
     fix s n
     have "\<lbrakk> P s; T s n \<rbrakk> \<Longrightarrow> \<exists>t. (WHILE b DO c, s) \<Rightarrow> t \<and> P t \<and> \<not> bval b t"
     proof(induction "n" arbitrary: s rule: less_induct)
       case (less n)
-      thus ?case by (metis While(2) WhileFalse WhileTrue)
+      thus ?case by (metis While.IH WhileFalse WhileTrue)
     qed
   }
   thus ?case by auto
