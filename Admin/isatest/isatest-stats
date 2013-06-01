@@ -38,7 +38,6 @@ ISABELLE_SESSIONS="
   HOL-Matrix_LP
   HOL-Metis_Examples
   HOL-MicroJava
-  HOL-MicroJava-skip_proofs
   HOL-Mirabelle
   HOL-Mirabelle-ex
   HOL-Multivariate_Analysis
@@ -66,6 +65,7 @@ ISABELLE_SESSIONS="
   HOL-SPARK
   HOL-SPARK-Examples
   HOL-SPARK-Manual
+  HOL-Spec_Check
   HOL-Statespace
   HOL-TLA
   HOL-TLA-Buffer
@@ -90,6 +90,7 @@ ISABELLE_SESSIONS="
   IOA-NTP
   IOA-Storage
   IOA-ex
+  Pure
   ZF
   ZF-AC
   ZF-Coind
@@ -125,6 +126,7 @@ AFP_SESSIONS="
   Collections
   Compiling-Exceptions-Correctly
   Completeness
+  Containers
   CoreC++
   DPT-SAT-Solver
   DataRefinementIBP
@@ -152,6 +154,7 @@ AFP_SESSIONS="
   General-Triangle
   Girth_Chromatic
   GraphMarkingIBP
+  Graph_Theory
   Group-Ring-Module
   HRB-Slicing
   Heard_Of
@@ -159,8 +162,7 @@ AFP_SESSIONS="
   Huffman
   Impossible_Geometry
   Inductive_Confidentiality
-  InformationFlowSlicing_Inter
-  InformationFlowSlicing_Intra
+  InformationFlowSlicing
   Integration
   Jinja
   JinjaThreads
@@ -169,6 +171,7 @@ AFP_SESSIONS="
   Kleene_Algebra
   Lam-ml-Normalization
   LatticeProperties
+  Launchbury
   Lazy-Lists-II
   LightweightJava
   LinearQuantifierElim
@@ -185,6 +188,7 @@ AFP_SESSIONS="
   MuchAdoAboutTwo
   Myhill-Nerode
   Nat-Interval-Logic
+  Nominal2
   NormByEval
   Open_Induction
   Ordinal
@@ -207,6 +211,7 @@ AFP_SESSIONS="
   Recursion-Theory-I
   Refine_Monadic
   Regular-Sets
+  Ribbon_Proofs
   Robbins-Conjecture
   SATSolverVerification
   SIFPL
@@ -215,6 +220,7 @@ AFP_SESSIONS="
   Separation_Logic_Imperative_HOL
   SequentInvertibility
   Shivers-CFA
+  ShortestPath
   Simpl
   Slicing
   Sqrt_Babylonian
