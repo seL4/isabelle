@@ -81,7 +81,10 @@ fun pretty_goals ctxt0 state =
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
-    val prt_term = Syntax.pretty_term ctxt o Type_Annotation.ignore_free_types;
+    val prt_term =
+      singleton (Syntax.uncheck_terms ctxt) #>
+      Type_Annotation.ignore_free_types #>
+      Syntax.unparse_term ctxt;
 
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
