@@ -7,7 +7,6 @@ theory Approximation
 imports
   Complex_Main
   "~~/src/HOL/Library/Float"
-  "~~/src/HOL/Library/Reflection"
   Dense_Linear_Order
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
@@ -3533,7 +3532,7 @@ method_setup approximation = {*
                       rtac @{thm impI}] i)
       THEN Subgoal.FOCUS (fn {prems, ...} => reorder_bounds_tac prems i) ctxt i
       THEN DETERM (TRY (filter_prems_tac (K false) i))
-      THEN DETERM (Reflection.reify_tac ctxt form_equations NONE i)
+      THEN DETERM (Reification.tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
       THEN gen_eval_tac (approximation_conv ctxt) ctxt i))
  *} "real number approximation"
@@ -3633,7 +3632,7 @@ ML {*
       THEN DETERM (TRY (filter_prems_tac (K false) 1)))
 
   fun reify_form ctxt term = apply_tactic ctxt term
-     (Reflection.reify_tac ctxt form_equations NONE 1)
+     (Reification.tac ctxt form_equations NONE 1)
 
   fun approx_form prec ctxt t =
           realify t
@@ -3651,7 +3650,7 @@ ML {*
 
   fun approx_arith prec ctxt t = realify t
        |> Thm.cterm_of (Proof_Context.theory_of ctxt)
-       |> Reflection.reify ctxt form_equations
+       |> Reification.conv ctxt form_equations
        |> prop_of
        |> Logic.dest_equals |> snd
        |> dest_interpret |> fst

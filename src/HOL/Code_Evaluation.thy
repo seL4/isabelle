@@ -165,6 +165,11 @@ code_const "tracing :: String.literal => 'a => 'a"
   (Eval "Code'_Evaluation.tracing")
 
 
+subsection {* Generic reification *}
+
+ML_file "~~/src/HOL/Tools/reification.ML"
+
+
 hide_const dummy_term valapp
 hide_const (open) Const App Abs Free termify valtermify term_of tracing
 

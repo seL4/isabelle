@@ -61,6 +61,12 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Reification and reflection:
+  * Reification is now directly available in HOL-Main in structure "Reification".
+  * Reflection now handles multiple lists with variables also.
+  * The whole reflection stack has been decomposed into conversions.
+INCOMPATIBILITY.
+
 * Weaker precendence of syntax for big intersection and union on sets,
 in accordance with corresponding lattice operations.  INCOMPATIBILITY.
 
