@@ -658,6 +658,68 @@ lemma min_add_distrib_right:
 
 end
 
+class ordered_cancel_comm_monoid_diff = comm_monoid_diff + ordered_ab_semigroup_add_imp_le +
+  assumes le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists>c. b = a + c)"
+begin
+
+context
+  fixes a b
+  assumes "a \<le> b"
+begin
+
+lemma add_diff_inverse:
+  "a + (b - a) = b"
+  using `a \<le> b` by (auto simp add: le_iff_add)
+
+lemma add_diff_assoc:
+  "c + (b - a) = c + b - a"
+  using `a \<le> b` by (auto simp add: le_iff_add add_left_commute [of c])
+
+lemma add_diff_assoc2:
+  "b - a + c = b + c - a"
+  using `a \<le> b` by (auto simp add: le_iff_add add_assoc)
+
+lemma diff_add_assoc:
+  "c + b - a = c + (b - a)"
+  using `a \<le> b` by (simp add: add_commute add_diff_assoc)
+
+lemma diff_add_assoc2:
+  "b + c - a = b - a + c"
+  using `a \<le> b`by (simp add: add_commute add_diff_assoc)
+
+lemma diff_diff_right:
+  "c - (b - a) = c + a - b"
+  by (simp add: add_diff_inverse add_diff_cancel_left [of a c "b - a", symmetric] add_commute)
+
+lemma diff_add:
+  "b - a + a = b"
+  by (simp add: add_commute add_diff_inverse)
+
+lemma le_add_diff:
+  "c \<le> b + c - a"
+  by (auto simp add: add_commute diff_add_assoc2 le_iff_add)
+
+lemma le_imp_diff_is_add:
+  "a \<le> b \<Longrightarrow> b - a = c \<longleftrightarrow> b = c + a"
+  by (auto simp add: add_commute add_diff_inverse)
+
+lemma le_diff_conv2:
+  "c \<le> b - a \<longleftrightarrow> c + a \<le> b" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then have "c + a \<le> b - a + a" by (rule add_right_mono)
+  then show ?Q by (simp add: add_diff_inverse add_commute)
+next
+  assume ?Q
+  then have "a + c \<le> a + (b - a)" by (simp add: add_diff_inverse add_commute)
+  then show ?P by simp
+qed
+
+end
+
+end
+
+
 subsection {* Support for reasoning about signs *}
 
 class ordered_comm_monoid_add =

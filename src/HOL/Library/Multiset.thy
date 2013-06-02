@@ -137,17 +137,25 @@ lemma count_diff [simp]: "count (M - N) a = count M a - count N a"
   by (simp add: minus_multiset.rep_eq)
 
 lemma diff_empty [simp]: "M - {#} = M \<and> {#} - M = {#}"
-by(simp add: multiset_eq_iff)
+  by rule (fact Groups.diff_zero, fact Groups.zero_diff)
 
 lemma diff_cancel[simp]: "A - A = {#}"
-by (rule multiset_eqI) simp
+  by (fact Groups.diff_cancel)
 
 lemma diff_union_cancelR [simp]: "M + N - N = (M::'a multiset)"
-by(simp add: multiset_eq_iff)
+  by (fact add_diff_cancel_right')
 
 lemma diff_union_cancelL [simp]: "N + M - N = (M::'a multiset)"
-by(simp add: multiset_eq_iff)
+  by (fact add_diff_cancel_left')
 
+lemma diff_right_commute:
+  "(M::'a multiset) - N - Q = M - Q - N"
+  by (fact diff_right_commute)
+
+lemma diff_add:
+  "(M::'a multiset) - (N + Q) = M - N - Q"
+  by (rule sym) (fact diff_diff_add)
+  
 lemma insert_DiffM:
   "x \<in># M \<Longrightarrow> {#x#} + (M - {#x#}) = M"
   by (clarsimp simp: multiset_eq_iff)
@@ -155,14 +163,6 @@ lemma insert_DiffM:
 lemma insert_DiffM2 [simp]:
   "x \<in># M \<Longrightarrow> M - {#x#} + {#x#} = M"
   by (clarsimp simp: multiset_eq_iff)
-
-lemma diff_right_commute:
-  "(M::'a multiset) - N - Q = M - Q - N"
-  by (auto simp add: multiset_eq_iff)
-
-lemma diff_add:
-  "(M::'a multiset) - (N + Q) = M - N - Q"
-by (simp add: multiset_eq_iff)
 
 lemma diff_union_swap:
   "a \<noteq> b \<Longrightarrow> M - {#a#} + {#b#} = M + {#b#} - {#a#}"
@@ -288,6 +288,9 @@ lemma mset_le_exists_conv:
 apply (unfold mset_le_def, rule iffI, rule_tac x = "B - A" in exI)
 apply (auto intro: multiset_eq_iff [THEN iffD2])
 done
+
+instance multiset :: (type) ordered_cancel_comm_monoid_diff
+  by default (simp, fact mset_le_exists_conv)
 
 lemma mset_le_mono_add_right_cancel [simp]:
   "(A::'a multiset) + C \<le> B + C \<longleftrightarrow> A \<le> B"

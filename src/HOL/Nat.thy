@@ -456,7 +456,8 @@ qed (simp add: bot_nat_def)
 end
 
 instance nat :: no_top
-  by default (auto intro: less_Suc_eq_le[THEN iffD2])
+  by default (auto intro: less_Suc_eq_le [THEN iffD2])
+
 
 subsubsection {* Introduction properties *}
 
@@ -714,10 +715,9 @@ done
 text{*The naturals form an ordered @{text comm_semiring_1_cancel}*}
 instance nat :: linordered_semidom
 proof
-  fix i j k :: nat
   show "0 < (1::nat)" by simp
-  show "i \<le> j ==> k + i \<le> k + j" by simp
-  show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: mult_less_mono2)
+  show "\<And>m n q :: nat. m \<le> n \<Longrightarrow> q + m \<le> q + n" by simp
+  show "\<And>m n q :: nat. m < n \<Longrightarrow> 0 < q \<Longrightarrow> q * m < q * n" by (simp add: mult_less_mono2)
 qed
 
 instance nat :: no_zero_divisors
@@ -1066,6 +1066,11 @@ by (induct m n rule: diff_induct) (simp_all add: le_SucI)
 
 lemma le_iff_add: "(m::nat) \<le> n = (\<exists>k. n = m + k)"
   by (auto simp: le_add1 dest!: le_add_diff_inverse sym [of _ n])
+
+instance nat :: ordered_cancel_comm_monoid_diff
+proof
+  show "\<And>m n :: nat. m \<le> n \<longleftrightarrow> (\<exists>q. n = m + q)" by (fact le_iff_add)
+qed
 
 lemma less_imp_diff_less: "(j::nat) < k ==> j - n < k"
 by (rule le_less_trans, rule diff_le_self)
