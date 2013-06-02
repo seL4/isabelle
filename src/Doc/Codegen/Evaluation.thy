@@ -192,6 +192,56 @@ text {*
 *}
 
 
+subsection {* Preprocessing HOL terms into evaluable shape *}
+
+text {*
+  When integration decision procedures developed inside HOL into HOL itself,
+  it is necessary to somehow get from the Isabelle/ML representation to
+  the representation used by the decision procedure itself (``reification'').
+  One option is to hardcode it using code antiquotations (see \secref{sec:code_antiq}).
+  Another option is to use pre-existing infrastructure in HOL:
+  @{ML "Reification.conv"} and @{ML "Reification.tac"}
+
+  An simplistic example:
+*}
+
+datatype %quote form_ord = T | F | Less nat nat
+  | And form_ord form_ord | Or form_ord form_ord | Neg form_ord
+
+primrec %quote interp :: "form_ord \<Rightarrow> 'a::order list \<Rightarrow> bool"
+where
+  "interp T vs \<longleftrightarrow> True"
+| "interp F vs \<longleftrightarrow> False"
+| "interp (Less i j) vs \<longleftrightarrow> vs ! i < vs ! j"
+| "interp (And f1 f2) vs \<longleftrightarrow> interp f1 vs \<and> interp f2 vs"
+| "interp (Or f1 f2) vs \<longleftrightarrow> interp f1 vs \<or> interp f2 vs"
+| "interp (Neg f) vs \<longleftrightarrow> \<not> interp f vs"
+
+text {*
+  The datatype @{type form_ord} represents formulae whose semantics is given by
+  @{const interp}.  Note that values are represented by variable indices (@{typ nat})
+  whose concrete values are given in list @{term vs}.
+*}
+
+ML (*<*) {* *}
+schematic_lemma "thm": fixes x y z :: "'a::order" shows "x < y \<and> x < z \<equiv> ?P"
+ML_prf 
+(*>*) {* val thm =
+  Reification.conv @{context} @{thms interp.simps} @{cterm "x < y \<and> x < z"} *} (*<*)
+by (tactic {* ALLGOALS (rtac thm) *})
+(*>*) 
+
+text {*
+  By virtue of @{fact interp.simps}, @{ML "Reification.conv"} provides a conversion
+  which, for this concrete example, yields @{thm thm [no_vars]}.  Note that the argument
+  to @{const interp} does not contain any free variables and can this be evaluated
+  using evaluation.
+
+  A less meager example can be found in the AFP, session @{text "Regular-Sets"},
+  theory @{text Regexp_Method}.
+*}
+
+
 subsection {* Intimate connection between logic and system runtime *}
 
 text {*
@@ -201,7 +251,7 @@ text {*
 *}
 
 
-subsubsection {* Static embedding of generated code into system runtime -- the @{text code} antiquotation *}
+subsubsection {* Static embedding of generated code into system runtime -- the @{text code} antiquotation \label{sec:code_antiq} *}
 
 text {*
   The @{text code} antiquotation allows to include constants from
