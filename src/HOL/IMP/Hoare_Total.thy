@@ -112,7 +112,7 @@ correctness. First we have to strengthen our notion of weakest precondition
 to take termination into account: *}
 
 definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" ("wp\<^sub>t") where
-"wp\<^sub>t c Q  \<equiv>  \<lambda>s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q t"
+"wp\<^sub>t c Q  =  (\<lambda>s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
 
 lemma [simp]: "wp\<^sub>t SKIP Q = Q"
 by(auto intro!: ext simp: wpt_def)
@@ -173,30 +173,29 @@ next
   case (While b c)
   let ?w = "WHILE b DO c"
   let ?T = "Its b c"
-  have "\<forall>s. wp\<^sub>t (WHILE b DO c) Q s \<longrightarrow> wp\<^sub>t (WHILE b DO c) Q s \<and> (\<exists>n. Its b c s n)"
+  have "\<forall>s. wp\<^sub>t ?w Q s \<longrightarrow> wp\<^sub>t ?w Q s \<and> (\<exists>n. Its b c s n)"
     unfolding wpt_def by (metis WHILE_Its)
   moreover
   { fix n
-    { fix s t
-      assume "bval b s" "?T s n" "(?w, s) \<Rightarrow> t" "Q t"
-      from `bval b s` `(?w, s) \<Rightarrow> t` obtain s' where
-        "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto      
-      from `(?w, s') \<Rightarrow> t` obtain n'' where "?T s' n''" by (blast dest: WHILE_Its)
-      with `bval b s` `(c, s) \<Rightarrow> s'`
-      have "?T s (Suc n'')" by (rule Its_Suc)
-      with `?T s n` have "n = Suc n''" by (rule Its_fun)
-      with `(c,s) \<Rightarrow> s'` `(?w,s') \<Rightarrow> t` `Q t` `?T s' n''`
-      have "wp\<^sub>t c (\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T s' n' \<and> n' < n)) s"
-        by (auto simp: wpt_def)
-    } 
-    hence "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> ?T s n \<longrightarrow>
-              wp\<^sub>t c (\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T s' n' \<and> n' < n)) s"
+    let ?R = "\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T s' n' \<and> n' < n)"
+    { fix s t assume "bval b s" and "?T s n" and "(?w, s) \<Rightarrow> t" and "Q t"
+      from `bval b s` and `(?w, s) \<Rightarrow> t` obtain s' where
+        "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto
+      from `(?w, s') \<Rightarrow> t` obtain n' where "?T s' n'"
+        by (blast dest: WHILE_Its)
+      with `bval b s` and `(c, s) \<Rightarrow> s'` have "?T s (Suc n')" by (rule Its_Suc)
+      with `?T s n` have "n = Suc n'" by (rule Its_fun)
+      with `(c,s) \<Rightarrow> s'` and `(?w,s') \<Rightarrow> t` and `Q t` and `?T s' n'`
+      have "wp\<^sub>t c ?R s" by (auto simp: wpt_def)
+    }
+    hence "\<forall>s. wp\<^sub>t ?w Q s \<and> bval b s \<and> ?T s n \<longrightarrow> wp\<^sub>t c ?R s"
       unfolding wpt_def by auto
       (* by (metis WhileE Its_Suc Its_fun WHILE_Its lessI) *) 
-    note strengthen_pre[OF this While]
+    note strengthen_pre[OF this While.IH]
   } note hoaret.While[OF this]
-  moreover have "\<forall>s. wp\<^sub>t ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s" by (auto simp add:wpt_def)
-  ultimately show ?case by (rule conseq) 
+  moreover have "\<forall>s. wp\<^sub>t ?w Q s \<and> \<not> bval b s \<longrightarrow> Q s"
+    by (auto simp add:wpt_def)
+  ultimately show ?case by (rule conseq)
 qed
 
 
@@ -208,7 +207,7 @@ as for partial correctness: *}
 
 theorem hoaret_complete: "\<Turnstile>\<^sub>t {P}c{Q} \<Longrightarrow> \<turnstile>\<^sub>t {P}c{Q}"
 apply(rule strengthen_pre[OF _ wpt_is_pre])
-apply(auto simp: hoare_tvalid_def hoare_valid_def wpt_def)
+apply(auto simp: hoare_tvalid_def wpt_def)
 done
 
 end
