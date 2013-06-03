@@ -84,7 +84,7 @@ next
   qed
 qed auto
 
-lemma hoare_relative_complete: assumes "\<Turnstile> {P}c{Q}" shows "\<turnstile> {P}c{Q}"
+lemma hoare_complete: assumes "\<Turnstile> {P}c{Q}" shows "\<turnstile> {P}c{Q}"
 proof(rule strengthen_pre)
   show "\<forall>s. P s \<longrightarrow> wp c Q s" using assms
     by (auto simp: hoare_valid_def wp_def)
