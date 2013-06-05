@@ -24,6 +24,7 @@ sig
      un_fold_thmss: thm list list,
      co_rec_thmss: thm list list};
 
+  val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
@@ -116,6 +117,8 @@ type fp_sugar =
    strong_co_induct: thm,
    un_fold_thmss: thm list list,
    co_rec_thmss: thm list list};
+
+fun of_fp_sugar f (fp_sugar as {index, ...}) = nth (f fp_sugar) index;
 
 fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
