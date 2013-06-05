@@ -571,7 +571,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
     val ctor_fold_fun_Ts = mk_fp_iter_fun_types (hd ctor_folds);
     val ctor_rec_fun_Ts = mk_fp_iter_fun_types (hd ctor_recs);
 
-    val (((_, y_Tssss, gss, _), (_, z_Tssss, hss, _)), names_lthy0) =
+    val ((fold_only, rec_only), names_lthy0) =
       mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
@@ -666,7 +666,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
 
     val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
 
-    fun mk_iter_thmss x_Tssss fss iters iter_defs ctor_iter_thms =
+    fun mk_iter_thmss (_, x_Tssss, fss, _) iters iter_defs ctor_iter_thms =
       let
         val fiters = map (lists_bmoc fss) iters;
 
@@ -687,7 +687,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
 
         val fxsss = map2 (map2 (flat_rec oo map2 unzip_iters)) xsss x_Tssss;
 
-        val goalss = map5 (map4 o mk_goal gss) fiters xctrss fss xsss fxsss;
+        val goalss = map5 (map4 o mk_goal fss) fiters xctrss fss xsss fxsss;
 
         val tacss =
           map2 (map o mk_iter_tac pre_map_defs (nested_map_ids'' @ nesting_map_ids'') iter_defs)
@@ -700,8 +700,8 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
         map2 (map2 prove) goalss tacss
       end;
 
-    val fold_thmss = mk_iter_thmss y_Tssss gss folds fold_defs ctor_fold_thms;
-    val rec_thmss = mk_iter_thmss z_Tssss hss recs rec_defs ctor_rec_thms;
+    val fold_thmss = mk_iter_thmss fold_only folds fold_defs ctor_fold_thms;
+    val rec_thmss = mk_iter_thmss rec_only recs rec_defs ctor_rec_thms;
   in
     ((induct_thm, induct_thms, [induct_case_names_attr]),
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
