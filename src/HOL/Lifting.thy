@@ -430,6 +430,12 @@ lemma is_equality_Quotient_composition:
 using assms unfolding is_equality_def left_total_def left_unique_def OO_def conversep_iff
 by fastforce
 
+lemma left_total_composition: "left_total R \<Longrightarrow> left_total S \<Longrightarrow> left_total (R OO S)"
+unfolding left_total_def OO_def by fast
+
+lemma left_unique_composition: "left_unique R \<Longrightarrow> left_unique S \<Longrightarrow> left_unique (R OO S)"
+unfolding left_unique_def OO_def by fast
+
 lemma reflp_equality: "reflp (op =)"
 by (auto intro: reflpI)
 
@@ -602,7 +608,8 @@ setup Lifting_Info.setup
 
 lemmas [reflexivity_rule] = 
   reflp_equality reflp_Quotient_composition is_equality_Quotient_composition 
-  left_total_fun left_unique_fun left_total_eq left_unique_eq
+  left_total_fun left_unique_fun left_total_eq left_unique_eq left_total_composition
+  left_unique_composition
 
 text {* add @{thm reflp_fun1} and @{thm reflp_fun2} manually through ML
   because we don't want to get reflp' variant of these theorems *}
