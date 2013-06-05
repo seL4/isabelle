@@ -277,18 +277,18 @@ fun project_co_recT special_Tname fpTs proj =
 val project_recT = project_co_recT @{type_name prod};
 val project_corecT = project_co_recT @{type_name sum};
 
-fun unzip_recT fpTs (T as Type (@{type_name prod}, Ts as [T', _])) =
-    if member (op =) fpTs T' then Ts else [T]
+fun unzip_recT Cs (T as Type (@{type_name prod}, Ts as [_, U])) =
+    if member (op =) Cs U then Ts else [T]
   | unzip_recT _ T = [T];
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
-fun mk_iter_fun_arg_typessss fpTs ns mss =
+fun mk_iter_fun_arg_typessss Cs ns mss =
   mk_fp_iter_fun_types
   #> map3 mk_fun_arg_typess ns mss
-  #> map (map (map (unzip_recT fpTs)));
+  #> map (map (map (unzip_recT Cs)));
 
-fun mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
     val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
@@ -301,7 +301,7 @@ fun mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy 
     val yssss = map (map (map single)) ysss;
 
     val z_Tssss =
-      map3 (fn n => fn ms => map2 (map (unzip_recT fpTs) oo dest_tupleT) ms o
+      map3 (fn n => fn ms => map2 (map (unzip_recT Cs) oo dest_tupleT) ms o
         dest_sumTN_balanced n o domain_type) ns mss ctor_rec_fun_Ts;
 
     val z_Tsss = map3 mk_fun_arg_typess ns mss ctor_rec_fun_Ts;
@@ -324,6 +324,7 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
     fun repair_arity [0] = [1]
       | repair_arity ms = ms;
 
+    (* FIXME: Can use "Cs" instead? *)
     fun unzip_corecT T =
       if exists_subtype_in fpTs T then [project_corecT fpTs fst T, project_corecT fpTs snd T]
       else [T];
@@ -384,7 +385,7 @@ fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if fp = Least_FP then
-        mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
         mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
@@ -589,7 +590,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
     val ctor_rec_fun_Ts = mk_fp_iter_fun_types (hd ctor_recs);
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
-      mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+      mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
       names_lthy0
