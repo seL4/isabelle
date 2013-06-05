@@ -41,6 +41,7 @@ sig
         * ((term list list * term list list list list * term list list list list)
            * (typ list * typ list list list * typ list list))) option)
     * Proof.context
+  val mk_map: int -> typ list -> typ list -> term -> term
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
   val mk_iter_fun_arg_typessss: typ list -> int list -> int list list -> term ->
