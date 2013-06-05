@@ -266,11 +266,12 @@ fun meta_unzip_rec getT left right nested fpTs y =
     else [y]
   end;
 
-fun project_co_recT special_Tname fpTs proj =
+fun project_co_recT special_Tname Cs proj =
   let
-    fun project (Type (s, Ts as T :: Ts')) =
-        if s = special_Tname andalso member (op =) fpTs T then proj (hd Ts, hd Ts')
+    fun project (Type (s, Ts as [T, U])) =
+        if s = special_Tname andalso member (op =) Cs U then proj (T, U)
         else Type (s, map project Ts)
+      | project (Type (s, Ts)) = Type (s, map project Ts)
       | project T = T;
   in project end;
 
@@ -318,15 +319,14 @@ fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
     (((gss, g_Tss, yssss), (hss, h_Tss, zssss)), lthy)
   end;
 
-fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
+fun mk_unfold_corec_args_types Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
       | repair_arity ms = ms;
 
-    (* FIXME: Can use "Cs" instead? *)
     fun unzip_corecT T =
-      if exists_subtype_in fpTs T then [project_corecT fpTs fst T, project_corecT fpTs snd T]
+      if exists_subtype_in Cs T then [project_corecT Cs fst T, project_corecT Cs snd T]
       else [T];
 
     val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
@@ -388,7 +388,7 @@ fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
         mk_fold_rec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
-        mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_unfold_corec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> (pair NONE o SOME)
   in
     ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy')
@@ -467,10 +467,10 @@ fun build_map lthy build_simple =
         | _ => build_simple TU);
   in build end;
 
-fun mk_iter_body lthy fpTs ctor_iter fss xssss =
+fun mk_iter_body lthy Cs ctor_iter fss xssss =
   let
     fun build_proj sel sel_const (x as Free (_, T)) =
-      build_map lthy (sel_const o fst) (T, project_recT fpTs sel T) $ x;
+      build_map lthy (sel_const o fst) (T, project_recT Cs sel T) $ x;
   in
     Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss)
   end;
@@ -509,7 +509,7 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs Cs ctor_fold ctor_rec 
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-            mk_iter_body lthy0 fpTs ctor_iter fss xssss);
+            mk_iter_body lthy0 Cs ctor_iter fss xssss);
       in (binding, spec) end;
 
     val binding_specs =
@@ -760,7 +760,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds dtor_corec
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
     val ((cs, cpss, ((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)), names_lthy0) =
-      mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
+      mk_unfold_corec_args_types Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
 
     val (((rs, us'), vs'), names_lthy) =
       names_lthy0
