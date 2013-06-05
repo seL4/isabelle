@@ -333,6 +333,13 @@ lemma splice_transfer [transfer_rule]:
   apply (erule_tac xs=x in list_all2_induct, simp, simp add: fun_rel_def)
   done
 
+lemma listsum_transfer[transfer_rule]:
+  assumes [transfer_rule]: "A 0 0"
+  assumes [transfer_rule]: "(A ===> A ===> A) op + op +"
+  shows "(list_all2 A ===> A) listsum listsum"
+  unfolding listsum_def[abs_def]
+  by transfer_prover
+
 subsection {* Setup for lifting package *}
 
 lemma Quotient_list[quot_map]:
