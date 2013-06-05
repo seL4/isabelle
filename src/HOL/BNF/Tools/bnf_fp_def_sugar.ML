@@ -11,6 +11,8 @@ sig
     {T: typ,
      fp: BNF_FP_Util.fp_kind,
      index: int,
+     Xs: typ list,
+     ctr_TsssXs : typ list list list,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP_Util.fp_result,
      ctr_defss: thm list list,
@@ -102,6 +104,8 @@ type fp_sugar =
   {T: typ,
    fp: fp_kind,
    index: int,
+   Xs: typ list,
+   ctr_TsssXs : typ list list list,
    pre_bnfs: bnf list,
    fp_res: fp_result,
    ctr_defss: thm list list,
@@ -117,10 +121,11 @@ fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_
     {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {T, fp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, un_folds,
-    co_recs, co_induct, strong_co_induct, un_fold_thmss, co_rec_thmss} =
-  {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi)
-   pre_bnfs, fp_res = morph_fp_result phi fp_res,
+(* There is no point in morphing the low-level fields "Xs" and "ctr_TsssXs". *)
+fun morph_fp_sugar phi {T, fp, index, Xs, ctr_TsssXs, pre_bnfs, fp_res, ctr_defss, ctr_sugars,
+    un_folds, co_recs, co_induct, strong_co_induct, un_fold_thmss, co_rec_thmss} =
+  {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
+   Xs = Xs, ctr_TsssXs = ctr_TsssXs, fp_res = morph_fp_result phi fp_res,
    ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
    ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars, un_folds = map (Morphism.term phi) un_folds,
    co_recs = map (Morphism.term phi) co_recs, co_induct = Morphism.thm phi co_induct,
@@ -142,13 +147,14 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars un_folds co_recs
-    co_induct strong_co_induct un_fold_thmss co_rec_thmss lthy =
+fun register_fp_sugars fp Xs ctr_TsssXs pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars un_folds
+    co_recs co_induct strong_co_induct un_fold_thmss co_rec_thmss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
-      ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, un_folds = un_folds, co_recs = co_recs,
-      co_induct = co_induct, strong_co_induct = strong_co_induct, un_fold_thmss = un_fold_thmss,
+    register_fp_sugar s {T = T, fp = fp, index = kk, Xs = Xs, ctr_TsssXs = ctr_TsssXs,
+      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_defss = ctr_defss, ctr_sugars = ctr_sugars,
+      un_folds = un_folds, co_recs = co_recs, co_induct = co_induct,
+      strong_co_induct = strong_co_induct, un_fold_thmss = un_fold_thmss,
       co_rec_thmss = co_rec_thmss} lthy)) Ts
   |> snd;
 
@@ -1381,8 +1387,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars folds recs induct_thm
-          induct_thm fold_thmss rec_thmss
+        |> register_fp_sugars Least_FP Xs ctr_TsssXs pre_bnfs fp_res ctr_defss ctr_sugars folds recs
+          induct_thm induct_thm fold_thmss rec_thmss
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
@@ -1440,8 +1446,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars unfolds corecs
-          coinduct_thm strong_coinduct_thm unfold_thmss corec_thmss
+        |> register_fp_sugars Greatest_FP Xs ctr_TsssXs pre_bnfs fp_res ctr_defss ctr_sugars unfolds
+          corecs coinduct_thm strong_coinduct_thm unfold_thmss corec_thmss
       end;
 
     val lthy' = lthy
