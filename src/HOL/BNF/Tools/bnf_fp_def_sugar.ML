@@ -253,13 +253,6 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
-fun meta_unzip_rec getT left right nested fpTs y =
-  let val T = getT y in
-    if member (op =) fpTs T then [left y, right y]
-    else if exists_subtype_in fpTs T then [nested y]
-    else [y]
-  end;
-
 fun project_co_recT special_Tname Cs proj =
   let
     fun project (Type (s, Ts as [T, U])) =
@@ -683,13 +676,16 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
         fun mk_nested_U maybe_mk_prodT =
           typ_subst_nonatomic (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
 
-        fun unzip_iters fiters maybe_tick maybe_mk_prodT =
-          meta_unzip_rec (snd o dest_Free) I
-            (fn x as Free (_, T) => build_map lthy (indexify_fst fpTs (K o nth fiters))
-              (T, mk_U T) $ x)
-            (fn x as Free (_, T) => build_map lthy (indexify_fst fpTs (fn kk => fn _ =>
-              maybe_tick (nth us kk) (nth fiters kk))) (T, mk_nested_U maybe_mk_prodT T) $ x)
-            fpTs;
+        fun unzip_iters fiters maybe_tick maybe_mk_prodT x =
+          let val Free (_, T) = x in
+            if member (op =) fpTs T then
+              [x, build_map lthy (indexify_fst fpTs (K o nth fiters)) (T, mk_U T) $ x]
+            else if exists_subtype_in fpTs T then
+              [build_map lthy (indexify_fst fpTs (fn kk => fn _ =>
+                 maybe_tick (nth us kk) (nth fiters kk))) (T, mk_nested_U maybe_mk_prodT T) $ x]
+            else
+              [x]
+          end;
 
         fun tick u f = Term.lambda u (HOLogic.mk_prod (u, f $ u));
 
