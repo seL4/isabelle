@@ -113,7 +113,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val s'Ts = map2 (fn T => fn U => T --> U) activeBs FTsBs;
     val s''Ts = map2 (fn T => fn U => T --> U) activeCs FTsCs;
     val fTs = map2 (fn T => fn U => T --> U) activeAs activeBs;
-    val all_fTs = map2 (fn T => fn U => T --> U) allAs allBs;
     val self_fTs = map (fn T => T --> T) activeAs;
     val gTs = map2 (fn T => fn U => T --> U) activeBs activeCs;
     val all_gTs = map2 (fn T => fn U => T --> U) allBs allCs';
@@ -154,11 +153,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val hrecTs = map fastype_of Zeros;
     val hsetTs = map (fn hrecT => Library.foldr (op -->) (sTs, HOLogic.natT --> hrecT)) hrecTs;
 
-    val (((((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
+    val (((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
       z's), As), As_copy), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
-      self_fs), all_fs), gs), all_gs), xFs), xFs_copy), yFs), yFs_copy), RFs), (Rtuple, Rtuple')),
-      (hrecs, hrecs')), (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), Kss),
-      names_lthy) = lthy
+      self_fs), gs), all_gs), xFs), yFs), yFs_copy), RFs), (Rtuple, Rtuple')), (hrecs, hrecs')),
+      (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), Kss), names_lthy) = lthy
       |> mk_Frees' "b" activeAs
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "b" activeAs
@@ -176,10 +174,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       ||>> mk_Frees "f" fTs
       ||>> mk_Frees "f" fTs
       ||>> mk_Frees "f" self_fTs
-      ||>> mk_Frees "f" all_fTs
       ||>> mk_Frees "g" gTs
       ||>> mk_Frees "g" all_gTs
-      ||>> mk_Frees "x" FTsAs
       ||>> mk_Frees "x" FTsAs
       ||>> mk_Frees "y" FTsBs
       ||>> mk_Frees "y" FTsBs

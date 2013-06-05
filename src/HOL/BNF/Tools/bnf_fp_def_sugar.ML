@@ -275,7 +275,6 @@ fun project_co_recT special_Tname Cs proj =
       | project T = T;
   in project end;
 
-val project_recT = project_co_recT @{type_name prod};
 val project_corecT = project_co_recT @{type_name sum};
 
 fun unzip_recT Cs (T as Type (@{type_name prod}, Ts as [_, U])) =
@@ -305,7 +304,6 @@ fun mk_fold_rec_args_types Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
       map3 (fn n => fn ms => map2 (map (unzip_recT Cs) oo dest_tupleT) ms o
         dest_sumTN_balanced n o domain_type) ns mss ctor_rec_fun_Ts;
 
-    val z_Tsss = map3 mk_fun_arg_typess ns mss ctor_rec_fun_Ts;
     val z_Tsss' = map (map (flat_rec I)) z_Tssss;
     val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
 
@@ -467,13 +465,8 @@ fun build_map lthy build_simple =
         | _ => build_simple TU);
   in build end;
 
-fun mk_iter_body lthy Cs ctor_iter fss xssss =
-  let
-    fun build_proj sel sel_const (x as Free (_, T)) =
-      build_map lthy (sel_const o fst) (T, project_recT Cs sel T) $ x;
-  in
-    Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss)
-  end;
+fun mk_iter_body ctor_iter fss xssss =
+  Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss);
 
 fun mk_preds_getterss_join c cps sum_prod_T cqfss =
   let val n = length cqfss in
@@ -509,7 +502,7 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs Cs ctor_fold ctor_rec 
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-            mk_iter_body lthy0 Cs ctor_iter fss xssss);
+            mk_iter_body ctor_iter fss xssss);
       in (binding, spec) end;
 
     val binding_specs =
