@@ -662,12 +662,13 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
       end;
 
     val induct_cases = quasi_unambiguous_case_names (maps (map name_of_ctr) ctrss);
+    val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
 
-    val (fold_thmss, rec_thmss) =
+    val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
+
+    fun mk_iter_thmss x_Tssss fss iters iter_defs ctor_iter_thms =
       let
-        val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
-        val gfolds = map (lists_bmoc gss) folds;
-        val hrecs = map (lists_bmoc hss) recs;
+        val fiters = map (lists_bmoc fss) iters;
 
         fun mk_goal fss fiter xctr f xs fxs =
           fold_rev (fold_rev Logic.all) (xs :: fss)
@@ -679,32 +680,28 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
           else
             f;
 
-        fun unzip_iters fiters (x as Free (_, T)) =
+        fun unzip_iters (x as Free (_, T)) =
           map (fn U => if U = T then x else
             build_map lthy (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
-              (fn kk => fn TU => nth fiters kk |> maybe_tick TU (nth us kk))) (T, U) $ x);
+              (fn kk => fn TU => maybe_tick TU (nth us kk) (nth fiters kk))) (T, U) $ x);
 
-        val gxsss = map2 (map2 (flat_rec oo map2 (unzip_iters gfolds))) xsss y_Tssss;
-        val hxsss = map2 (map2 (flat_rec oo map2 (unzip_iters hrecs))) xsss z_Tssss;
+        val fxsss = map2 (map2 (flat_rec oo map2 unzip_iters)) xsss x_Tssss;
 
-        val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
-        val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
+        val goalss = map5 (map4 o mk_goal gss) fiters xctrss fss xsss fxsss;
 
-        val fold_tacss =
-          map2 (map o mk_iter_tac pre_map_defs nesting_map_ids'' fold_defs)
-            ctor_fold_thms ctr_defss;
-        val rec_tacss =
-          map2 (map o mk_iter_tac pre_map_defs (nested_map_ids'' @ nesting_map_ids'') rec_defs)
-            ctor_rec_thms ctr_defss;
+        val tacss =
+          map2 (map o mk_iter_tac pre_map_defs (nested_map_ids'' @ nesting_map_ids'') iter_defs)
+            ctor_iter_thms ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
           |> Thm.close_derivation;
       in
-        (map2 (map2 prove) fold_goalss fold_tacss, map2 (map2 prove) rec_goalss rec_tacss)
+        map2 (map2 prove) goalss tacss
       end;
 
-    val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
+    val fold_thmss = mk_iter_thmss y_Tssss gss folds fold_defs ctor_fold_thms;
+    val rec_thmss = mk_iter_thmss z_Tssss hss recs rec_defs ctor_rec_thms;
   in
     ((induct_thm, induct_thms, [induct_case_names_attr]),
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
