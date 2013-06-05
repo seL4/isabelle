@@ -679,13 +679,13 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds ctor_recs ctor_ind
           else
             f;
 
-        fun unzip_iters tick fiters (x as Free (_, T)) =
+        fun unzip_iters fiters (x as Free (_, T)) =
           map (fn U => if U = T then x else
             build_map lthy (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
               (fn kk => fn TU => nth fiters kk |> maybe_tick TU (nth us kk))) (T, U) $ x);
 
-        val gxsss = map2 (map2 (flat_rec oo map2 (unzip_iters false gfolds))) xsss y_Tssss;
-        val hxsss = map2 (map2 (flat_rec oo map2 (unzip_iters true hrecs))) xsss z_Tssss;
+        val gxsss = map2 (map2 (flat_rec oo map2 (unzip_iters gfolds))) xsss y_Tssss;
+        val hxsss = map2 (map2 (flat_rec oo map2 (unzip_iters hrecs))) xsss z_Tssss;
 
         val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
         val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
