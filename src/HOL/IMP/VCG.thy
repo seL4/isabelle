@@ -31,8 +31,7 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre (x ::= a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
 "pre (c\<^isub>1;; c\<^isub>2) Q = pre c\<^isub>1 (pre c\<^isub>2 Q)" |
 "pre (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q =
-  (\<lambda>s. (bval b s \<longrightarrow> pre c\<^isub>1 Q s) \<and>
-       (\<not> bval b s \<longrightarrow> pre c\<^isub>2 Q s))" |
+  (\<lambda>s. if bval b s then pre c\<^isub>1 Q s else pre c\<^isub>2 Q s)" |
 "pre ({I} WHILE b DO c) Q = I"
 
 text{* Verification condition: *}
