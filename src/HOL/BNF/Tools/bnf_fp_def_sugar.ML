@@ -49,14 +49,14 @@ sig
     typ list list list list
   val define_fold_rec:
     (typ list list * typ list list list list * term list list * term list list list list) list ->
-    (string -> binding) -> typ list -> typ list -> term -> term -> Proof.context ->
+    (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
     (term * term * thm * thm) * Proof.context
   val define_unfold_corec: term list * term list list
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list))
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list)) ->
-    (string -> binding) -> typ list -> typ list -> term -> term -> Proof.context ->
+    (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
     (term * term * thm * thm) * Proof.context
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
@@ -473,7 +473,8 @@ fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
     Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs ctor_fold ctor_rec lthy0 =
+fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs [ctor_fold, ctor_rec]
+    lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -510,7 +511,7 @@ fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs ctor_fo
 
 (* TODO: merge with above function? *)
 fun define_unfold_corec (cs, cpss, unfold_args_types, corec_args_types) mk_binding fpTs Cs
-    dtor_unfold dtor_corec lthy0 =
+    [dtor_unfold, dtor_corec] lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -1319,7 +1320,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
          ##>>
            (if fp = Least_FP then define_fold_rec (the fold_rec_args_types)
             else define_unfold_corec (the unfold_corec_args_types))
-             mk_binding fpTs Cs xtor_un_fold xtor_co_rec
+             mk_binding fpTs Cs [xtor_un_fold, xtor_co_rec]
          #> massage_res, lthy')
       end;
 
