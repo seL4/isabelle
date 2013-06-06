@@ -361,24 +361,24 @@ fun mk_unfold_corec_args_types Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lt
     ((cs, cpss, (unfold_args, unfold_types), (corec_args, corec_types)), lthy)
   end;
 
-fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
+fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_un_folds0 xtor_co_recs0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val (fp_fold_fun_Ts, fp_folds) = mk_co_iters thy fp fpTs Cs fp_folds0
+    val (xtor_un_fold_fun_Ts, xtor_un_folds) = mk_co_iters thy fp fpTs Cs xtor_un_folds0
       |> `(mk_fp_iter_fun_types o hd);
-    val (fp_rec_fun_Ts, fp_recs) = mk_co_iters thy fp fpTs Cs fp_recs0
+    val (xtor_co_rec_fun_Ts, xtor_co_recs) = mk_co_iters thy fp fpTs Cs xtor_co_recs0
       |> `(mk_fp_iter_fun_types o hd);
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if fp = Least_FP then
-        mk_fold_rec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_args_types Cs ns mss xtor_un_fold_fun_Ts xtor_co_rec_fun_Ts lthy
         |>> (rpair NONE o SOME)
       else
-        mk_unfold_corec_args_types Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_unfold_corec_args_types Cs ns mss xtor_un_fold_fun_Ts xtor_co_rec_fun_Ts lthy
         |>> (pair NONE o SOME)
   in
-    ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy')
+    ((xtor_un_folds, xtor_co_recs, fold_rec_args_types, unfold_corec_args_types), lthy')
   end;
 
 fun mk_map live Ts Us t =
@@ -1079,10 +1079,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_sum_prod_Ts;
 
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
-           xtor_un_folds = fp_folds0, xtor_co_recs = fp_recs0, xtor_co_induct = fp_induct,
-           xtor_strong_co_induct = fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects,
-           map_thms = fp_map_thms, set_thmss = fp_set_thmss, rel_thms = fp_rel_thms,
-           xtor_un_fold_thms = fp_fold_thms, xtor_co_rec_thms = fp_rec_thms, ...}, lthy)) =
+           xtor_un_folds = xtor_un_folds0, xtor_co_recs = xtor_co_recs0, xtor_co_induct,
+           xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms,
+           set_thmss = fp_set_thmss, rel_thms = fp_rel_thms, xtor_un_fold_thms, xtor_co_rec_thms =
+           xtor_co_rec_thms, ...}, lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
@@ -1129,13 +1129,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy) =
-      mk_un_fold_co_rec_prelims fp fpTs Cs ns mss fp_folds0 fp_recs0 lthy;
+    val ((xtor_un_folds, xtor_co_recs, fold_rec_args_types, unfold_corec_args_types), lthy) =
+      mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_un_folds0 xtor_co_recs0 lthy;
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
-            fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
-          pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
-        ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
+              xtor_un_fold), xtor_co_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def),
+            pre_set_defs), pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms),
+          ctr_bindings), ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss)
+        no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
@@ -1322,8 +1323,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         (wrap_ctrs
          #> derive_maps_sets_rels
-         ##>> (if fp = Least_FP then define_fold_rec (the fold_rec_args_types)
-           else define_unfold_corec (the unfold_corec_args_types)) mk_binding fpTs Cs fp_fold fp_rec
+         ##>>
+           (if fp = Least_FP then define_fold_rec (the fold_rec_args_types)
+            else define_unfold_corec (the unfold_corec_args_types))
+             mk_binding fpTs Cs xtor_un_fold xtor_co_rec
          #> massage_res, lthy')
       end;
 
@@ -1344,9 +1347,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       let
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
-          derive_induct_fold_rec_thms_for_types pre_bnfs [fp_folds, fp_recs] fp_induct
-            [fp_fold_thms, fp_rec_thms] nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
-            ctr_defss [folds, recs] [fold_defs, rec_defs] lthy;
+          derive_induct_fold_rec_thms_for_types pre_bnfs [xtor_un_folds, xtor_co_recs]
+            xtor_co_induct [xtor_un_fold_thms, xtor_co_rec_thms] nesting_bnfs nested_bnfs fpTs Cs Xs
+            ctrXs_Tsss ctrss ctr_defss [folds, recs] [fold_defs, rec_defs] lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1381,9 +1384,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_thmss, disc_corec_thmss, disc_coiter_attrs),
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
-          derive_coinduct_unfold_corec_thms_for_types pre_bnfs fp_folds fp_recs fp_induct
-            fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As
-            kss mss ns ctr_defss ctr_sugars unfolds corecs unfold_defs corec_defs lthy;
+          derive_coinduct_unfold_corec_thms_for_types pre_bnfs xtor_un_folds xtor_co_recs
+            xtor_co_induct xtor_strong_co_induct dtor_ctors xtor_un_fold_thms xtor_co_rec_thms
+            nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars unfolds corecs
+            unfold_defs corec_defs lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1431,7 +1435,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val lthy' = lthy
       |> fold_map define_ctrs_case_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~
-        fp_folds ~~ fp_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
+        xtor_un_folds ~~ xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
         pre_set_defss ~~ pre_rel_defs ~~ fp_map_thms ~~ fp_set_thmss ~~ fp_rel_thms ~~ ns ~~ kss ~~
         mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~
         raw_sel_defaultsss)
