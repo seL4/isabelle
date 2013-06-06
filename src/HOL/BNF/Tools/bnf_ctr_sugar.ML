@@ -207,7 +207,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
 
-    val standard_disc_binding = qualify false o Binding.name o prefix isN o base_name_of_ctr;
+    val standard_disc_binding = Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_bindings =
       raw_disc_bindings'
