@@ -73,30 +73,30 @@ val inst_as_projs_tac = PRIMITIVE oo inst_as_projs;
 
 fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
   unfold_thms_tac ctxt [case_def, ctr_def, dtor_ctor] THEN
-  (rtac (mk_sum_casesN_balanced n k RS ssubst) THEN'
-   REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
-   rtac refl) 1;
+  HEADGOAL (rtac (mk_sum_casesN_balanced n k RS ssubst) THEN'
+    REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
+    rtac refl);
 
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
-  unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN rtac sumEN' 1 THEN
+  unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN
   unfold_thms_tac ctxt @{thms all_prod_eq} THEN
-  EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k, REPEAT_DETERM o dtac meta_spec,
-    etac meta_mp, atac]) (1 upto n)) 1;
+  HEADGOAL (EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k,
+    REPEAT_DETERM o dtac meta_spec, etac meta_mp, atac]) (1 upto n)));
 
 fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
-  (rtac iffI THEN'
-   EVERY' (map3 (fn cTs => fn cx => fn th =>
-     dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
-     SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
-     atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor])) 1;
+  HEADGOAL (rtac iffI THEN'
+    EVERY' (map3 (fn cTs => fn cx => fn th =>
+      dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
+      SELECT_GOAL (unfold_thms_tac ctxt [th]) THEN'
+      atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor]));
 
 fun mk_half_distinct_tac ctxt ctor_inject ctr_defs =
   unfold_thms_tac ctxt (ctor_inject :: @{thms sum.inject} @ ctr_defs) THEN
-  rtac @{thm sum.distinct(1)} 1;
+  HEADGOAL (rtac @{thm sum.distinct(1)});
 
 fun mk_inject_tac ctxt ctr_def ctor_inject =
-  unfold_thms_tac ctxt [ctr_def] THEN rtac (ctor_inject RS ssubst) 1 THEN
-  unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
+  unfold_thms_tac ctxt [ctr_def] THEN HEADGOAL (rtac (ctor_inject RS ssubst)) THEN
+  unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN HEADGOAL (rtac refl);
 
 val iter_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
@@ -104,7 +104,7 @@ val iter_unfold_thms =
 
 fun mk_iter_tac pre_map_defs map_ids'' iter_defs ctor_iter ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_ids'' @
-    iter_unfold_thms) THEN rtac refl 1;
+    iter_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val coiter_unfold_thms =
   @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
@@ -112,17 +112,17 @@ val coiter_unfold_thms =
 fun mk_coiter_tac coiter_defs map_comps'' map_comp's map_ids'' map_if_distribs
     ctor_dtor_coiter pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
-  (rtac (ctor_dtor_coiter RS trans) THEN'
-    asm_simp_tac (put_simpset ss_if_True_False ctxt)) 1 THEN_MAYBE
+  HEADGOAL (rtac (ctor_dtor_coiter RS trans) THEN'
+    asm_simp_tac (put_simpset ss_if_True_False ctxt)) THEN_MAYBE
   (unfold_thms_tac ctxt (pre_map_def :: map_comp's @ map_comps'' @ map_ids'' @ map_if_distribs @
     coiter_unfold_thms) THEN
-   (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1);
+   HEADGOAL (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)));
 
 fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =
   EVERY (map3 (fn case_split_tac => fn coiter_thm => fn disc =>
-      case_split_tac 1 THEN unfold_thms_tac ctxt [coiter_thm] THEN
-      asm_simp_tac (ss_only basic_simp_thms ctxt) 1 THEN
-      (if is_refl disc then all_tac else rtac disc 1))
+      HEADGOAL case_split_tac THEN unfold_thms_tac ctxt [coiter_thm] THEN
+      HEADGOAL (asm_simp_tac (ss_only basic_simp_thms ctxt)) THEN
+      (if is_refl disc then all_tac else HEADGOAL (rtac disc)))
     (map rtac case_splits' @ [K all_tac]) coiters discs);
 
 fun solve_prem_prem_tac ctxt =
@@ -131,23 +131,24 @@ fun solve_prem_prem_tac ctxt =
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs =
-  EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_map's @ sum_prod_thms_set0)),
-     solve_prem_prem_tac ctxt]) (rev kks)) 1;
+  HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
+    SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_map's @ sum_prod_thms_set0)),
+    solve_prem_prem_tac ctxt]) (rev kks)));
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_map's pre_set_defs m k kks =
   let val r = length kks in
-    EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac ctxt,
-      REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
+    HEADGOAL (EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac ctxt,
+      REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)]) THEN
     EVERY [REPEAT_DETERM_N r
-        (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
-      if r > 0 then ALLGOALS Goal.norm_hhf_tac else all_tac, atac 1,
+        (HEADGOAL (rotate_tac ~1 THEN' dtac meta_mp THEN' rotate_tac 1) THEN prefer_tac 2),
+      if r > 0 then ALLGOALS Goal.norm_hhf_tac else all_tac, HEADGOAL atac,
       mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs]
   end;
 
 fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_map's pre_set_defss =
   let val n = Integer.sum ns in
-    unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_as_projs_tac ctxt 1 THEN
+    unfold_thms_tac ctxt ctr_defs THEN
+    HEADGOAL (rtac ctor_induct' THEN' inst_as_projs_tac ctxt) THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_map's) pre_set_defss
       mss (unflat mss (1 upto n)) kkss)
   end;
@@ -160,9 +161,9 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels @ sum_prod_thms_rel)) THEN'
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
-       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN_MAYBE'
-     (REPEAT o etac conjE THEN' REPEAT o hyp_subst_tac ctxt) THEN'
-     REPEAT o rtac conjI THEN' REPEAT o rtac refl);
+       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN'
+     REPEAT o etac conjE THEN_MAYBE' REPEAT o hyp_subst_tac ctxt THEN' REPEAT o rtac conjI THEN'
+     REPEAT o rtac refl);
 
 fun mk_coinduct_distinct_ctrs ctxt discs discs' =
   hyp_subst_tac ctxt THEN' REPEAT o etac conjE THEN'
@@ -172,7 +173,7 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor e
     discss selss =
   let val ks = 1 upto n in
     EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk, dtac
-        meta_spec, dtac meta_mp, atac, rtac exhaust, K (inst_as_projs_tac ctxt 1),
+        meta_spec, dtac meta_mp, atac, rtac exhaust, K (HEADGOAL (inst_as_projs_tac ctxt)),
         hyp_subst_tac ctxt] @
       map4 (fn k => fn ctr_def => fn discs => fn sels =>
         EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
@@ -185,8 +186,8 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor e
 
 fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs dtor_ctors exhausts ctr_defss
     discsss selsss =
-  (rtac dtor_coinduct' THEN'
-   EVERY' (map8 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
-     (1 upto nn) ns pre_rel_defs dtor_ctors exhausts ctr_defss discsss selsss)) 1;
+  HEADGOAL (rtac dtor_coinduct' THEN'
+    EVERY' (map8 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
+      (1 upto nn) ns pre_rel_defs dtor_ctors exhausts ctr_defss discsss selsss));
 
 end;
