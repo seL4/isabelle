@@ -47,17 +47,17 @@ sig
 
   val mk_iter_fun_arg_typessss: typ list -> int list -> int list list -> term ->
     typ list list list list
-  val define_fold_rec:
+  val define_iters: string list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
-    (term * term * thm * thm) * Proof.context
-  val define_unfold_corec: term list * term list list
+    (term list * thm list) * Proof.context
+  val define_coiters: term list * term list list
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list))
       * ((term list list * term list list list list * term list list list list)
          * (typ list * typ list list list * typ list list)) ->
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
-    (term * term * thm * thm) * Proof.context
+    (term list * thm list) * Proof.context
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     thm -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
@@ -68,8 +68,8 @@ sig
   val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.bnf list -> term list -> term list ->
     thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list ->
     typ list -> typ list -> typ list -> int list list -> int list list -> int list ->
-    thm list list -> BNF_Ctr_Sugar.ctr_sugar list -> term list -> term list -> thm list ->
-    thm list -> local_theory ->
+    thm list list -> BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list ->
+    local_theory ->
     (thm * thm list * thm * thm list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
@@ -146,8 +146,8 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars un_folds co_recs
-    co_induct strong_co_induct un_fold_thmss co_rec_thmss lthy =
+fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars [un_folds, co_recs]
+    co_induct strong_co_induct [un_fold_thmss, co_rec_thmss] lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
     register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
@@ -473,16 +473,15 @@ fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
     Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs [ctor_fold, ctor_rec]
-    lthy0 =
+fun define_iters iterNs iter_args_typess mk_binding fpTs Cs ctor_iters lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
     val nn = length fpTs;
 
-    val fpT_to_C as Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of ctor_fold));
+    val fpT_to_C as Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of (hd ctor_iters)));
 
-    fun generate_iter (suf, ctor_iter, (f_Tss, _, fss, xssss)) =
+    fun generate_iter suf (f_Tss, _, fss, xssss) ctor_iter =
       let
         val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
         val b = mk_binding suf;
@@ -491,8 +490,7 @@ fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs [ctor_f
             mk_iter_body ctor_iter fss xssss);
       in (b, spec) end;
 
-    val binding_specs =
-      map generate_iter [(foldN, ctor_fold, fold_args_types), (recN, ctor_rec, rec_args_types)];
+    val binding_specs = map3 generate_iter iterNs iter_args_typess ctor_iters;
 
     val ((csts, defs), (lthy', lthy)) = lthy0
       |> apfst split_list o fold_map (fn (b, spec) =>
@@ -502,15 +500,15 @@ fun define_fold_rec [fold_args_types, rec_args_types] mk_binding fpTs Cs [ctor_f
 
     val phi = Proof_Context.export_morphism lthy lthy';
 
-    val [fold_def, rec_def] = map (Morphism.thm phi) defs;
+    val iter_defs = map (Morphism.thm phi) defs;
 
-    val [foldx, recx] = map (mk_co_iter thy Least_FP fpT Cs o Morphism.term phi) csts;
+    val iters = map (mk_co_iter thy Least_FP fpT Cs o Morphism.term phi) csts;
   in
-    ((foldx, recx, fold_def, rec_def), lthy')
+    ((iters, iter_defs), lthy')
   end;
 
 (* TODO: merge with above function? *)
-fun define_unfold_corec (cs, cpss, unfold_args_types, corec_args_types) mk_binding fpTs Cs
+fun define_coiters (cs, cpss, unfold_args_types, corec_args_types) mk_binding fpTs Cs
     [dtor_unfold, dtor_corec] lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
@@ -541,12 +539,12 @@ fun define_unfold_corec (cs, cpss, unfold_args_types, corec_args_types) mk_bindi
 
     val phi = Proof_Context.export_morphism lthy lthy';
 
-    val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
+    val coiter_defs = map (Morphism.thm phi) defs;
 
-    val [unfold, corec] = map (mk_co_iter thy Greatest_FP fpT Cs o Morphism.term phi) csts;
+    val coiters = map (mk_co_iter thy Greatest_FP fpT Cs o Morphism.term phi) csts;
   in
-    ((unfold, corec, unfold_def, corec_def), lthy')
-  end ;
+    ((coiters, coiter_defs), lthy')
+  end;
 
 fun derive_induct_fold_rec_thms_for_types pre_bnfs [ctor_folds, ctor_recs]
     [fold_args_types, rec_args_types] ctor_induct [ctor_fold_thms, ctor_rec_thms] nesting_bnfs
@@ -704,7 +702,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs [ctor_folds, ctor_recs]
 
 fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds dtor_corecs dtor_coinduct
     dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
-    As kss mss ns ctr_defss ctr_sugars unfolds corecs unfold_defs corec_defs lthy =
+    As kss mss ns ctr_defss ctr_sugars [unfolds, corecs] [unfold_defs, corec_defs] lthy =
   let
     val nn = length pre_bnfs;
 
@@ -1318,16 +1316,16 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (wrap_ctrs
          #> derive_maps_sets_rels
          ##>>
-           (if fp = Least_FP then define_fold_rec (the fold_rec_args_types)
-            else define_unfold_corec (the unfold_corec_args_types))
+           (if fp = Least_FP then define_iters [foldN, recN] (the fold_rec_args_types)
+            else define_coiters (the unfold_corec_args_types))
              mk_binding fpTs Cs [xtor_un_fold, xtor_co_rec]
          #> massage_res, lthy')
       end;
 
     fun wrap_types_etc (wrap_types_etcs, lthy) =
       fold_map I wrap_types_etcs lthy
-      |>> apsnd split_list4 o apfst (apsnd split_list4 o apfst split_list4 o split_list)
-        o split_list;
+      |>> apsnd (apsnd transpose o apfst transpose o split_list)
+        o apfst (apsnd split_list4 o apfst split_list4 o split_list) o split_list;
 
     val mk_simp_thmss =
       map7 (fn {injects, distincts, case_thms, ...} => fn un_folds => fn co_recs =>
@@ -1337,14 +1335,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     fun derive_and_note_induct_fold_rec_thms_for_types
         ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
-          (folds, recs, fold_defs, rec_defs)), lthy) =
+          (iterss, iter_defss)), lthy) =
       let
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_fold_rec_thms_for_types pre_bnfs [xtor_un_folds, xtor_co_recs]
             (the fold_rec_args_types) xtor_co_induct [xtor_un_fold_thms, xtor_co_rec_thms]
-            nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss [folds, recs]
-            [fold_defs, rec_defs] lthy;
+            nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss iterss iter_defss lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1364,13 +1361,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars folds recs induct_thm
-          induct_thm fold_thmss rec_thmss
+        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars iterss induct_thm
+          induct_thm [fold_thmss, rec_thmss]
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
         ((((mapsx, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
-          (unfolds, corecs, unfold_defs, corec_defs)), lthy) =
+          (coiterss, coiter_defss)), lthy) =
       let
         val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,
               coinduct_attrs),
@@ -1381,8 +1378,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
           derive_coinduct_unfold_corec_thms_for_types pre_bnfs xtor_un_folds xtor_co_recs
             xtor_co_induct xtor_strong_co_induct dtor_ctors xtor_un_fold_thms xtor_co_rec_thms
-            nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars unfolds corecs
-            unfold_defs corec_defs lthy;
+            nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars coiterss
+            coiter_defss lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1424,8 +1421,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars unfolds corecs
-          coinduct_thm strong_coinduct_thm unfold_thmss corec_thmss
+        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars coiterss coinduct_thm
+          strong_coinduct_thm [unfold_thmss, corec_thmss]
       end;
 
     val lthy' = lthy
