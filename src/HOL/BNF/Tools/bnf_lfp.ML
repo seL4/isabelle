@@ -1856,11 +1856,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           bs thmss)
   in
     timer;
-    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, un_folds = folds, co_recs = recs,
-      co_induct = ctor_induct_thm, strong_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
+    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_un_folds = folds,
+      xtor_co_recs = recs, xtor_co_induct = ctor_induct_thm,
+      xtor_strong_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, map_thms = folded_ctor_map_thms,
-      set_thmss = folded_ctor_set_thmss', rel_thms = ctor_Irel_thms, un_fold_thms = ctor_fold_thms,
-      co_rec_thms = ctor_rec_thms},
+      set_thmss = folded_ctor_set_thmss', rel_thms = ctor_Irel_thms,
+      xtor_un_fold_thms = ctor_fold_thms, xtor_co_rec_thms = ctor_rec_thms},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

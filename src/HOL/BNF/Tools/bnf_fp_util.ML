@@ -15,18 +15,18 @@ sig
      bnfs: BNF_Def.bnf list,
      ctors: term list,
      dtors: term list,
-     un_folds: term list,
-     co_recs: term list,
-     co_induct: thm,
-     strong_co_induct: thm,
+     xtor_un_folds: term list,
+     xtor_co_recs: term list,
+     xtor_co_induct: thm,
+     xtor_strong_co_induct: thm,
      dtor_ctors: thm list,
      ctor_dtors: thm list,
      ctor_injects: thm list,
      map_thms: thm list,
      set_thmss: thm list list,
      rel_thms: thm list,
-     un_fold_thms: thm list,
-     co_rec_thms: thm list}
+     xtor_un_fold_thms: thm list,
+     xtor_co_rec_thms: thm list}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
@@ -185,38 +185,38 @@ type fp_result =
    bnfs: BNF_Def.bnf list,
    ctors: term list,
    dtors: term list,
-   un_folds: term list,
-   co_recs: term list,
-   co_induct: thm,
-   strong_co_induct: thm,
+   xtor_un_folds: term list,
+   xtor_co_recs: term list,
+   xtor_co_induct: thm,
+   xtor_strong_co_induct: thm,
    dtor_ctors: thm list,
    ctor_dtors: thm list,
    ctor_injects: thm list,
    map_thms: thm list,
    set_thmss: thm list list,
    rel_thms: thm list,
-   un_fold_thms: thm list,
-   co_rec_thms: thm list};
+   xtor_un_fold_thms: thm list,
+   xtor_co_rec_thms: thm list};
 
-fun morph_fp_result phi {Ts, bnfs, ctors, dtors, un_folds, co_recs, co_induct, strong_co_induct,
-    dtor_ctors, ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms, un_fold_thms,
-    co_rec_thms} =
+fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xtor_co_induct,
+    xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms,
+    xtor_un_fold_thms, xtor_co_rec_thms} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
-   un_folds = map (Morphism.term phi) un_folds,
-   co_recs = map (Morphism.term phi) co_recs,
-   co_induct = Morphism.thm phi co_induct,
-   strong_co_induct = Morphism.thm phi strong_co_induct,
+   xtor_un_folds = map (Morphism.term phi) xtor_un_folds,
+   xtor_co_recs = map (Morphism.term phi) xtor_co_recs,
+   xtor_co_induct = Morphism.thm phi xtor_co_induct,
+   xtor_strong_co_induct = Morphism.thm phi xtor_strong_co_induct,
    dtor_ctors = map (Morphism.thm phi) dtor_ctors,
    ctor_dtors = map (Morphism.thm phi) ctor_dtors,
    ctor_injects = map (Morphism.thm phi) ctor_injects,
    map_thms = map (Morphism.thm phi) map_thms,
    set_thmss = map (map (Morphism.thm phi)) set_thmss,
    rel_thms = map (Morphism.thm phi) rel_thms,
-   un_fold_thms = map (Morphism.thm phi) un_fold_thms,
-   co_rec_thms = map (Morphism.thm phi) co_rec_thms};
+   xtor_un_fold_thms = map (Morphism.thm phi) xtor_un_fold_thms,
+   xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms};
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
