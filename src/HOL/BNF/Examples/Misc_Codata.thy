@@ -1,7 +1,8 @@
 (*  Title:      HOL/BNF/Examples/Misc_Codata.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013
 
 Miscellaneous codatatype declarations.
 *)
@@ -15,6 +16,8 @@ begin
 codatatype simple = X1 | X2 | X3 | X4
 
 codatatype simple' = X1' unit | X2' unit | X3' unit | X4' unit
+
+codatatype simple'' = X1'' nat int | X2''
 
 codatatype 'a stream = Stream 'a "'a stream"
 

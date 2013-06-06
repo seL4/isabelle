@@ -17,6 +17,8 @@ datatype_new simple = X1 | X2 | X3 | X4
 
 datatype_new simple' = X1' unit | X2' unit | X3' unit | X4' unit
 
+datatype_new simple'' = X1'' nat int | X2''
+
 datatype_new 'a mylist = MyNil | MyCons 'a "'a mylist"
 
 datatype_new ('b, 'c, 'd, 'e) some_passive =

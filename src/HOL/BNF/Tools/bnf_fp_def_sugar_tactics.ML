@@ -161,7 +161,8 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
        (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN_MAYBE'
-     REPEAT o hyp_subst_tac ctxt THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
+     (REPEAT o etac conjE THEN' REPEAT o hyp_subst_tac ctxt) THEN'
+     REPEAT o rtac conjI THEN' REPEAT o rtac refl);
 
 fun mk_coinduct_distinct_ctrs ctxt discs discs' =
   hyp_subst_tac ctxt THEN' REPEAT o etac conjE THEN'
