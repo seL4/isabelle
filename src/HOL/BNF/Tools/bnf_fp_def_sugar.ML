@@ -231,8 +231,8 @@ val mk_dtor = mk_ctor_or_dtor domain_type;
 
 fun mk_co_iter thy fp fpT Cs t =
   let
-    val (bindings, body) = strip_type (fastype_of t);
-    val (f_Cs, prebody) = split_last bindings;
+    val (binders, body) = strip_type (fastype_of t);
+    val (f_Cs, prebody) = split_last binders;
     val fpT0 = if fp = Least_FP then prebody else body;
     val Cs0 = distinct (op =) (map (if fp = Least_FP then body_type else domain_type) f_Cs);
     val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
@@ -488,11 +488,11 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs Cs ctor_fold ctor_rec 
     fun generate_iter (suf, ctor_iter, (f_Tss, _, fss, xssss)) =
       let
         val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
-        val binding = mk_binding suf;
+        val b = mk_binding suf;
         val spec =
-          mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
+          mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of b, res_T)),
             mk_iter_body ctor_iter fss xssss);
-      in (binding, spec) end;
+      in (b, spec) end;
 
     val binding_specs =
       map generate_iter [(foldN, ctor_fold, fold_only), (recN, ctor_rec, rec_only)];
@@ -526,11 +526,11 @@ fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs Cs d
         (f_sum_prod_Ts, f_Tsss, pf_Tss))) =
       let
         val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
-        val binding = mk_binding suf;
+        val b = mk_binding suf;
         val spec =
-          mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
+          mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
             mk_coiter_body lthy0 cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
-      in (binding, spec) end;
+      in (b, spec) end;
 
     val binding_specs =
       map generate_coiter [(unfoldN, dtor_unfold, unfold_only), (corecN, dtor_corec, corec_only)];
