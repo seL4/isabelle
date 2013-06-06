@@ -36,7 +36,7 @@ by (rule ext) (auto simp: wp_def)
 
 lemma wp_If[simp]:
  "wp (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q =
- (\<lambda>s. (bval b s \<longrightarrow> wp c\<^isub>1 Q s) \<and>  (\<not> bval b s \<longrightarrow> wp c\<^isub>2 Q s))"
+ (\<lambda>s. if bval b s then wp c\<^isub>1 Q s else wp c\<^isub>2 Q s)"
 by (rule ext) (auto simp: wp_def)
 
 lemma wp_While_If:
