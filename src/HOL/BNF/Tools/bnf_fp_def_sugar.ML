@@ -360,24 +360,21 @@ fun mk_unfold_corec_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts]
     ((cs, cpss, (unfold_args, unfold_types), (corec_args, corec_types)), lthy)
   end;
 
-fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss [xtor_un_folds0, xtor_co_recs0] lthy =
+fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val (xtor_un_fold_fun_Ts, xtor_un_folds) = mk_co_iters thy fp fpTs Cs xtor_un_folds0
-      |> `(mk_fp_iter_fun_types o hd);
-    val (xtor_co_rec_fun_Ts, xtor_co_recs) = mk_co_iters thy fp fpTs Cs xtor_co_recs0
-      |> `(mk_fp_iter_fun_types o hd);
+    val (xtor_co_iter_fun_Tss, xtor_co_iterss) =
+      map (mk_co_iters thy fp fpTs Cs #> `(mk_fp_iter_fun_types o hd)) xtor_co_iterss0
+      |> split_list;
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if fp = Least_FP then
-        mk_fold_rec_args_types Cs ns mss [xtor_un_fold_fun_Ts, xtor_co_rec_fun_Ts] lthy
-        |>> (rpair NONE o SOME)
+        mk_fold_rec_args_types Cs ns mss xtor_co_iter_fun_Tss lthy |>> (rpair NONE o SOME)
       else
-        mk_unfold_corec_args_types Cs ns mss [xtor_un_fold_fun_Ts, xtor_co_rec_fun_Ts] lthy
-        |>> (pair NONE o SOME)
+        mk_unfold_corec_args_types Cs ns mss xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME)
   in
-    (([xtor_un_folds, xtor_co_recs], fold_rec_args_types, unfold_corec_args_types), lthy')
+    ((xtor_co_iterss, fold_rec_args_types, unfold_corec_args_types), lthy')
   end;
 
 fun mk_map live Ts Us t =
