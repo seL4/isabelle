@@ -468,10 +468,26 @@ fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
     Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy0 =
+fun define_co_iters fp fpT Cs binding_specs lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
+    val ((csts, defs), (lthy', lthy)) = lthy0
+      |> apfst split_list o fold_map (fn (b, spec) =>
+        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
+        #>> apsnd snd) binding_specs
+      ||> `Local_Theory.restore;
+
+    val phi = Proof_Context.export_morphism lthy lthy';
+
+    val csts' = map (mk_co_iter thy fp fpT Cs o Morphism.term phi) csts;
+    val defs' = map (Morphism.thm phi) defs;
+  in
+    ((csts', defs'), lthy')
+  end;
+
+fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
+  let
     val nn = length fpTs;
 
     val fpT_to_C as Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of (hd ctor_iters)));
@@ -484,29 +500,12 @@ fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy0 =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of b, res_T)),
             mk_iter_body ctor_iter fss xssss);
       in (b, spec) end;
-
-    val binding_specs = map3 generate_iter iterNs iter_args_typess' ctor_iters;
-
-    val ((csts, defs), (lthy', lthy)) = lthy0
-      |> apfst split_list o fold_map (fn (b, spec) =>
-        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-        #>> apsnd snd) binding_specs
-      ||> `Local_Theory.restore;
-
-    val phi = Proof_Context.export_morphism lthy lthy';
-
-    val iter_defs = map (Morphism.thm phi) defs;
-
-    val iters = map (mk_co_iter thy Least_FP fpT Cs o Morphism.term phi) csts;
   in
-    ((iters, iter_defs), lthy')
+    define_co_iters Least_FP fpT Cs (map3 generate_iter iterNs iter_args_typess' ctor_iters) lthy
   end;
 
-(* TODO: merge with above function? *)
-fun define_coiters coiterNs (cs, cpss, coiter_args_typess') mk_binding fpTs Cs dtor_coiters lthy0 =
+fun define_coiters coiterNs (cs, cpss, coiter_args_typess') mk_binding fpTs Cs dtor_coiters lthy =
   let
-    val thy = Proof_Context.theory_of lthy0;
-
     val nn = length fpTs;
 
     val C_to_fpT as Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
@@ -517,24 +516,11 @@ fun define_coiters coiterNs (cs, cpss, coiter_args_typess') mk_binding fpTs Cs d
         val b = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
-            mk_coiter_body lthy0 cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
+            mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
       in (b, spec) end;
-
-    val binding_specs = map3 generate_coiter coiterNs coiter_args_typess' dtor_coiters;
-
-    val ((csts, defs), (lthy', lthy)) = lthy0
-      |> apfst split_list o fold_map (fn (b, spec) =>
-        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-        #>> apsnd snd) binding_specs
-      ||> `Local_Theory.restore;
-
-    val phi = Proof_Context.export_morphism lthy lthy';
-
-    val coiter_defs = map (Morphism.thm phi) defs;
-
-    val coiters = map (mk_co_iter thy Greatest_FP fpT Cs o Morphism.term phi) csts;
   in
-    ((coiters, coiter_defs), lthy')
+    define_co_iters Greatest_FP fpT Cs
+      (map3 generate_coiter coiterNs coiter_args_typess' dtor_coiters) lthy
   end;
 
 fun derive_induct_fold_rec_thms_for_types pre_bnfs [ctor_folds, ctor_recs]
