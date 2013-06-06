@@ -1080,9 +1080,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            xtor_un_folds = xtor_un_folds0, xtor_co_recs = xtor_co_recs0, xtor_co_induct,
-           xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms,
-           set_thmss = fp_set_thmss, rel_thms = fp_rel_thms, xtor_un_fold_thms, xtor_co_rec_thms =
-           xtor_co_rec_thms, ...}, lthy)) =
+           xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, xtor_map_thms,
+           xtor_set_thmss, xtor_rel_thms, xtor_un_fold_thms, xtor_co_rec_thms, ...}, lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
@@ -1436,9 +1435,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val lthy' = lthy
       |> fold_map define_ctrs_case_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~
         xtor_un_folds ~~ xtor_co_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
-        pre_set_defss ~~ pre_rel_defs ~~ fp_map_thms ~~ fp_set_thmss ~~ fp_rel_thms ~~ ns ~~ kss ~~
-        mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~
-        raw_sel_defaultsss)
+        pre_set_defss ~~ pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~
+        kss ~~ mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~
+        sel_bindingsss ~~ raw_sel_defaultsss)
       |> wrap_types_etc
       |> (if fp = Least_FP then derive_and_note_induct_fold_rec_thms_for_types
           else derive_and_note_coinduct_unfold_corec_thms_for_types);

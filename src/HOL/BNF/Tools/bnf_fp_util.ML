@@ -22,9 +22,9 @@ sig
      dtor_ctors: thm list,
      ctor_dtors: thm list,
      ctor_injects: thm list,
-     map_thms: thm list,
-     set_thmss: thm list list,
-     rel_thms: thm list,
+     xtor_map_thms: thm list,
+     xtor_set_thmss: thm list list,
+     xtor_rel_thms: thm list,
      xtor_un_fold_thms: thm list,
      xtor_co_rec_thms: thm list}
 
@@ -192,15 +192,15 @@ type fp_result =
    dtor_ctors: thm list,
    ctor_dtors: thm list,
    ctor_injects: thm list,
-   map_thms: thm list,
-   set_thmss: thm list list,
-   rel_thms: thm list,
+   xtor_map_thms: thm list,
+   xtor_set_thmss: thm list list,
+   xtor_rel_thms: thm list,
    xtor_un_fold_thms: thm list,
    xtor_co_rec_thms: thm list};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xtor_co_induct,
-    xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms,
-    xtor_un_fold_thms, xtor_co_rec_thms} =
+    xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss,
+    xtor_rel_thms, xtor_un_fold_thms, xtor_co_rec_thms} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -212,9 +212,9 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xt
    dtor_ctors = map (Morphism.thm phi) dtor_ctors,
    ctor_dtors = map (Morphism.thm phi) ctor_dtors,
    ctor_injects = map (Morphism.thm phi) ctor_injects,
-   map_thms = map (Morphism.thm phi) map_thms,
-   set_thmss = map (map (Morphism.thm phi)) set_thmss,
-   rel_thms = map (Morphism.thm phi) rel_thms,
+   xtor_map_thms = map (Morphism.thm phi) xtor_map_thms,
+   xtor_set_thmss = map (map (Morphism.thm phi)) xtor_set_thmss,
+   xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
    xtor_un_fold_thms = map (Morphism.thm phi) xtor_un_fold_thms,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms};
 
