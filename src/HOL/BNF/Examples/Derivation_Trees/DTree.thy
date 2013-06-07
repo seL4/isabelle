@@ -23,10 +23,10 @@ subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{tex
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"
 definition "unfold rt ct \<equiv> dtree_unfold rt (the_inv fset o ct)"
-definition "corec rt qt ct dt \<equiv> dtree_corec rt qt (the_inv fset o ct) (the_inv fset o dt)"
+definition "corec rt ct \<equiv> dtree_corec rt (the_inv fset o ct)"
 
 lemma finite_cont[simp]: "finite (cont tr)"
-  unfolding cont_def o_apply by (cases tr, clarsimp) (transfer, simp) 
+  unfolding cont_def o_apply by (cases tr, clarsimp) (transfer, simp)
 
 lemma Node_root_cont[simp]:
   "Node (root tr) (cont tr) = tr"
@@ -83,12 +83,9 @@ unfolding cont_def comp_def
 by simp
 
 lemma corec:
-"root (corec rt qt ct dt b) = rt b"
-"\<lbrakk>finite (ct b); finite (dt b)\<rbrakk> \<Longrightarrow>
- cont (corec rt qt ct dt b) =
- (if qt b then ct b else image (id \<oplus> corec rt qt ct dt) (dt b))"
-using dtree.sel_corec[of rt qt "the_inv fset \<circ> ct" "the_inv fset \<circ> dt" b]
-unfolding corec_def
+"root (corec rt ct b) = rt b"
+"finite (ct b) \<Longrightarrow> cont (corec rt ct b) = image (id \<oplus> ([[id, corec rt ct]])) (ct b)"
+using dtree.sel_corec[of rt "the_inv fset \<circ> ct" b] unfolding corec_def
 apply -
 apply simp
 unfolding cont_def comp_def id_def
