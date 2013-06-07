@@ -31,7 +31,7 @@ sig
   val flat_rec: 'a list list -> 'a list
   val mk_co_iter: theory -> BNF_FP_Util.fp_kind -> typ -> typ list -> term -> term
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
-  val mk_un_fold_co_rec_prelims: BNF_FP_Util.fp_kind -> typ list -> typ list -> int list ->
+  val mk_co_iters_prelims: BNF_FP_Util.fp_kind -> typ list -> typ list -> int list ->
     int list list -> term list list -> Proof.context ->
     (term list list
      * (typ list list * typ list list list list * term list list
@@ -355,7 +355,7 @@ fun mk_coiters_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts] lthy
     ((cs, cpss, [(unfold_args, unfold_types), (corec_args, corec_types)]), lthy)
   end;
 
-fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy =
+fun mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -369,7 +369,7 @@ fun mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy =
       else
         mk_coiters_args_types Cs ns mss xtor_co_iter_fun_Tss' lthy |>> (pair NONE o SOME)
   in
-    ((xtor_co_iterss', iters_args_types, coiters_args_types), lthy')
+    ((transpose xtor_co_iterss', iters_args_types, coiters_args_types), lthy')
   end;
 
 fun mk_map live Ts Us t =
@@ -1099,9 +1099,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val ((xtor_co_iterss', iters_args_types, coiters_args_types), lthy) =
-      mk_un_fold_co_rec_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
-    val xtor_co_iterss = transpose xtor_co_iterss';
+    val ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy) =
+      mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
 
     fun define_ctrs_case_for_type ((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
               xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
