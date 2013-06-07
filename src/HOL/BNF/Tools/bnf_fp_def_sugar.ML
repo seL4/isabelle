@@ -1310,8 +1310,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     fun wrap_types_etc (wrap_types_etcs, lthy) =
       fold_map I wrap_types_etcs lthy
-      |>> apsnd (apsnd transpose o apfst transpose o split_list)
-        o apfst (apsnd split_list4 o apfst split_list4 o split_list) o split_list;
+      |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list4 o split_list)
+        o split_list;
 
     val mk_simp_thmss =
       map7 (fn {injects, distincts, case_thms, ...} => fn un_folds => fn co_recs =>
@@ -1321,13 +1321,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     fun derive_and_note_induct_iters_thms_for_types
         ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
-          (iterss', iter_defss')), lthy) =
+          (iterss, iter_defss)), lthy) =
       let
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs xtor_co_iterss (the iters_args_types)
             xtor_co_induct xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
-            ctr_defss (transpose iterss') (transpose iter_defss') lthy;
+            ctr_defss iterss iter_defss lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1347,13 +1347,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars (transpose iterss')
-          induct_thm induct_thm (transpose [fold_thmss, rec_thmss])
+        |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars iterss induct_thm
+          induct_thm (transpose [fold_thmss, rec_thmss])
       end;
 
     fun derive_and_note_coinduct_coiters_thms_for_types
         ((((mapsx, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
-          (coiterss', coiter_defss')), lthy) =
+          (coiterss, coiter_defss)), lthy) =
       let
         val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,
               coinduct_attrs),
@@ -1365,7 +1365,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           derive_coinduct_coiters_thms_for_types pre_bnfs xtor_co_iterss
             (the coiters_args_types) xtor_co_induct xtor_strong_co_induct dtor_ctors
             xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars
-            (transpose coiterss') (transpose coiter_defss') lthy;
+            coiterss coiter_defss lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1407,8 +1407,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars (transpose coiterss')
-          coinduct_thm strong_coinduct_thm (transpose [unfold_thmss, corec_thmss])
+        |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars coiterss coinduct_thm
+          strong_coinduct_thm (transpose [unfold_thmss, corec_thmss])
       end;
 
     val lthy' = lthy
