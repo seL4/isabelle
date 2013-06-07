@@ -520,9 +520,15 @@ fun define_coiters coiterNs (cs, cpss, coiter_args_typess') mk_binding fpTs Cs d
   end;
 
 fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_types, rec_args_types]
-    ctor_induct [ctor_fold_thms, ctor_rec_thms] nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
-    ctr_defss [folds, recs] [fold_defs, rec_defs] lthy =
+    ctor_induct ctor_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
+    iterss iter_defss lthy =
   let
+    val iterss' = transpose iterss;
+    val iter_defss' = transpose iter_defss;
+
+    val [folds, recs] = iterss';
+    val [fold_defs, rec_defs] = iter_defss';
+
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
 
     val nn = length pre_bnfs;
@@ -666,16 +672,16 @@ fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_ty
         map2 (map2 prove) goalss tacss
       end;
 
-    val fold_thmss = mk_iter_thmss fold_args_types folds fold_defs ctor_fold_thms;
-    val rec_thmss = mk_iter_thmss rec_args_types recs rec_defs ctor_rec_thms;
+    val fold_thmss = mk_iter_thmss fold_args_types folds fold_defs (map un_fold_of ctor_iter_thmss);
+    val rec_thmss = mk_iter_thmss rec_args_types recs rec_defs (map co_rec_of ctor_iter_thmss);
   in
     ((induct_thm, induct_thms, [induct_case_names_attr]),
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
   end;
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_coinduct
-    dtor_strong_induct dtor_ctors [dtor_unfold_thms, dtor_corec_thms] nesting_bnfs nested_bnfs fpTs
-    Cs As kss mss ns ctr_defss ctr_sugars coiterss coiter_defss lthy =
+    dtor_strong_induct dtor_ctors dtor_coiter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns
+    ctr_defss ctr_sugars coiterss coiter_defss lthy =
   let
     val coiterss' = transpose coiterss;
     val coiter_defss' = transpose coiter_defss;
@@ -857,11 +863,11 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
 
         val unfold_tacss =
           map3 (map oo mk_coiter_tac unfold_defs [] [] nesting_map_ids'' [])
-            dtor_unfold_thms pre_map_defs ctr_defss;
+            (map un_fold_of dtor_coiter_thmss) pre_map_defs ctr_defss;
         val corec_tacss =
           map3 (map oo mk_coiter_tac corec_defs nested_map_comps'' nested_map_comp's
               (nested_map_ids'' @ nesting_map_ids'') nested_map_if_distribs)
-            dtor_corec_thms pre_map_defs ctr_defss;
+            (map co_rec_of dtor_coiter_thmss) pre_map_defs ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -1321,8 +1327,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs xtor_co_iterss (the iters_args_types)
-            xtor_co_induct (transpose xtor_co_iter_thmss) nesting_bnfs nested_bnfs fpTs Cs Xs
-            ctrXs_Tsss ctrss ctr_defss iterss' iter_defss' lthy;
+            xtor_co_induct xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
+            ctr_defss (transpose iterss') (transpose iter_defss') lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1358,9 +1364,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs xtor_co_iterss xtor_co_induct
-            xtor_strong_co_induct dtor_ctors (transpose xtor_co_iter_thmss) nesting_bnfs nested_bnfs
-            fpTs Cs As kss mss ns ctr_defss ctr_sugars (transpose coiterss')
-            (transpose coiter_defss') lthy;
+            xtor_strong_co_induct dtor_ctors xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As
+            kss mss ns ctr_defss ctr_sugars (transpose coiterss') (transpose coiter_defss') lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
