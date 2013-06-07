@@ -15,8 +15,7 @@ sig
      fp_res: BNF_FP_Util.fp_result,
      ctr_defss: thm list list,
      ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
-     un_folds: term list,
-     co_recs: term list,
+     co_iterss: term list list,
      co_induct: thm,
      strong_co_induct: thm,
      un_fold_thmss: thm list list,
@@ -103,8 +102,7 @@ type fp_sugar =
    fp_res: fp_result,
    ctr_defss: thm list list,
    ctr_sugars: ctr_sugar list,
-   un_folds: term list,
-   co_recs: term list,
+   co_iterss: term list list,
    co_induct: thm,
    strong_co_induct: thm,
    un_fold_thmss: thm list list,
@@ -116,13 +114,13 @@ fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_
     {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {T, fp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, un_folds,
-    co_recs, co_induct, strong_co_induct, un_fold_thmss, co_rec_thmss} =
+fun morph_fp_sugar phi {T, fp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, co_iterss, co_induct,
+    strong_co_induct, un_fold_thmss, co_rec_thmss} =
   {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi)
    pre_bnfs, fp_res = morph_fp_result phi fp_res,
    ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
-   ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars, un_folds = map (Morphism.term phi) un_folds,
-   co_recs = map (Morphism.term phi) co_recs, co_induct = Morphism.thm phi co_induct,
+   ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
+   co_iterss = map (map (Morphism.term phi)) co_iterss, co_induct = Morphism.thm phi co_induct,
    strong_co_induct = Morphism.thm phi strong_co_induct,
    un_fold_thmss = map (map (Morphism.thm phi)) un_fold_thmss,
    co_rec_thmss = map (map (Morphism.thm phi)) co_rec_thmss};
@@ -141,12 +139,12 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars [un_folds, co_recs]
+fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars co_iterss'
     co_induct strong_co_induct [un_fold_thmss, co_rec_thmss] lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
     register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
-      ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, un_folds = un_folds, co_recs = co_recs,
+      ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, co_iterss = transpose co_iterss',
       co_induct = co_induct, strong_co_induct = strong_co_induct, un_fold_thmss = un_fold_thmss,
       co_rec_thmss = co_rec_thmss} lthy)) Ts
   |> snd;
