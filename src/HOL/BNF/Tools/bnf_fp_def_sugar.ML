@@ -269,10 +269,10 @@ fun mk_iter_fun_arg_typessss Cs ns mss =
   #> map3 mk_fun_arg_typess ns mss
   #> map (map (map (unzip_recT Cs)));
 
-fun mk_iters_args_types Cs ns mss [ctor_fold_fun_Ts, ctor_rec_fun_Ts] lthy =
+fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
   let
     val Css = map2 replicate ns Cs;
-    val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
+    val y_Tsss = map3 mk_fun_arg_typess ns mss (map un_fold_of ctor_iter_fun_Tss);
     val g_Tss = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
 
     val ((gss, ysss), lthy) =
@@ -285,7 +285,7 @@ fun mk_iters_args_types Cs ns mss [ctor_fold_fun_Ts, ctor_rec_fun_Ts] lthy =
 
     val z_Tssss =
       map3 (fn n => fn ms => map2 (map (unzip_recT Cs) oo dest_tupleT) ms o
-        dest_sumTN_balanced n o domain_type) ns mss ctor_rec_fun_Ts;
+        dest_sumTN_balanced n o domain_type o co_rec_of) ns mss ctor_iter_fun_Tss;
 
     val z_Tsss' = map (map flat_rec) z_Tssss;
     val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
@@ -300,7 +300,7 @@ fun mk_iters_args_types Cs ns mss [ctor_fold_fun_Ts, ctor_rec_fun_Ts] lthy =
     ([(g_Tss, y_Tssss, gss, yssss), (h_Tss, z_Tssss, hss, zssss)], lthy)
   end;
 
-fun mk_coiters_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts] lthy =
+fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
@@ -312,8 +312,9 @@ fun mk_coiters_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts] lthy
 
     val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
-    fun mk_types maybe_unzipT fun_Ts =
+    fun mk_types maybe_unzipT get_Ts =
       let
+        val fun_Ts = map get_Ts dtor_coiter_fun_Tss;
         val f_sum_prod_Ts = map range_type fun_Ts;
         val f_prod_Tss = map2 dest_sumTN_balanced ns f_sum_prod_Ts;
         val f_Tsss = map2 (map2 dest_tupleT o repair_arity) mss f_prod_Tss;
@@ -323,8 +324,8 @@ fun mk_coiters_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts] lthy
         val pf_Tss = map3 flat_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
       in (q_Tssss, f_Tssss, (f_sum_prod_Ts, f_Tsss, pf_Tss)) end;
 
-    val (r_Tssss, g_Tssss, unfold_types) = mk_types single dtor_unfold_fun_Ts;
-    val (s_Tssss, h_Tssss, corec_types) = mk_types unzip_corecT dtor_corec_fun_Ts;
+    val (r_Tssss, g_Tssss, unfold_types) = mk_types single un_fold_of;
+    val (s_Tssss, h_Tssss, corec_types) = mk_types unzip_corecT co_rec_of;
 
     val (((cs, pss), gssss), lthy) =
       lthy
@@ -359,17 +360,17 @@ fun mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val (xtor_co_iter_fun_Tss', xtor_co_iterss') =
+    val (xtor_co_iter_fun_Tss, xtor_co_iterss) =
       map (mk_co_iters thy fp fpTs Cs #> `(mk_fp_iter_fun_types o hd)) (transpose xtor_co_iterss0)
-      |> split_list;
+      |> apsnd transpose o apfst transpose o split_list;
 
     val ((iters_args_types, coiters_args_types), lthy') =
       if fp = Least_FP then
-        mk_iters_args_types Cs ns mss xtor_co_iter_fun_Tss' lthy |>> (rpair NONE o SOME)
+        mk_iters_args_types Cs ns mss xtor_co_iter_fun_Tss lthy |>> (rpair NONE o SOME)
       else
-        mk_coiters_args_types Cs ns mss xtor_co_iter_fun_Tss' lthy |>> (pair NONE o SOME)
+        mk_coiters_args_types Cs ns mss xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME)
   in
-    ((transpose xtor_co_iterss', iters_args_types, coiters_args_types), lthy')
+    ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy')
   end;
 
 fun mk_map live Ts Us t =
@@ -704,8 +705,9 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
     val discIss = map #discIs ctr_sugars;
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
+    (* TODO: avoid duplication *)
     val ((cs, cpss, [((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)]), names_lthy0) =
-      mk_coiters_args_types Cs ns mss [dtor_unfold_fun_Ts, dtor_corec_fun_Ts] lthy;
+      mk_coiters_args_types Cs ns mss (transpose [dtor_unfold_fun_Ts, dtor_corec_fun_Ts]) lthy;
 
     val (((rs, us'), vs'), names_lthy) =
       names_lthy0
