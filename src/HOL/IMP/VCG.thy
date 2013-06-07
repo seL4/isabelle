@@ -65,7 +65,7 @@ proof(induction c arbitrary: Q)
 qed (auto intro: hoare.conseq)
 
 corollary vc_sound':
-  "(\<forall>s. vc c Q s) \<and> (\<forall>s. P s \<longrightarrow> pre c Q s) \<Longrightarrow> \<turnstile> {P} strip c {Q}"
+  "\<lbrakk> \<forall>s. vc c Q s; \<forall>s. P s \<longrightarrow> pre c Q s \<rbrakk> \<Longrightarrow> \<turnstile> {P} strip c {Q}"
 by (metis strengthen_pre vc_sound)
 
 
