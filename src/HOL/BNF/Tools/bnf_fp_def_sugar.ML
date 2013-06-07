@@ -18,8 +18,7 @@ sig
      co_iterss: term list list,
      co_induct: thm,
      strong_co_induct: thm,
-     un_fold_thmss: thm list list,
-     co_rec_thmss: thm list list};
+     co_iter_thmsss: thm list list list};
 
   val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
@@ -105,8 +104,7 @@ type fp_sugar =
    co_iterss: term list list,
    co_induct: thm,
    strong_co_induct: thm,
-   un_fold_thmss: thm list list,
-   co_rec_thmss: thm list list};
+   co_iter_thmsss: thm list list list};
 
 fun of_fp_sugar f (fp_sugar as {index, ...}) = nth (f fp_sugar) index;
 
@@ -115,15 +113,14 @@ fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_
   T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
 fun morph_fp_sugar phi {T, fp, index, pre_bnfs, fp_res, ctr_defss, ctr_sugars, co_iterss, co_induct,
-    strong_co_induct, un_fold_thmss, co_rec_thmss} =
+    strong_co_induct, co_iter_thmsss} =
   {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi)
    pre_bnfs, fp_res = morph_fp_result phi fp_res,
    ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
    ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
    co_iterss = map (map (Morphism.term phi)) co_iterss, co_induct = Morphism.thm phi co_induct,
    strong_co_induct = Morphism.thm phi strong_co_induct,
-   un_fold_thmss = map (map (Morphism.thm phi)) un_fold_thmss,
-   co_rec_thmss = map (map (Morphism.thm phi)) co_rec_thmss};
+   co_iter_thmsss = map (map (map (Morphism.thm phi))) co_iter_thmsss};
 
 structure Data = Generic_Data
 (
@@ -140,13 +137,13 @@ fun register_fp_sugar key fp_sugar =
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars fp pre_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars co_iterss'
-    co_induct strong_co_induct [un_fold_thmss, co_rec_thmss] lthy =
+    co_induct strong_co_induct co_iter_thmsss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
     register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
-      ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, co_iterss = transpose co_iterss',
-      co_induct = co_induct, strong_co_induct = strong_co_induct, un_fold_thmss = un_fold_thmss,
-      co_rec_thmss = co_rec_thmss} lthy)) Ts
+        ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, co_iterss = transpose co_iterss',
+        co_induct = co_induct, strong_co_induct = strong_co_induct, co_iter_thmsss = co_iter_thmsss}
+      lthy)) Ts
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -1339,7 +1336,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Least_FP pre_bnfs fp_res ctr_defss ctr_sugars iterss' induct_thm
-          induct_thm [fold_thmss, rec_thmss]
+          induct_thm (transpose [fold_thmss, rec_thmss])
       end;
 
     fun derive_and_note_coinduct_coiters_thms_for_types
@@ -1398,7 +1395,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
         |> register_fp_sugars Greatest_FP pre_bnfs fp_res ctr_defss ctr_sugars coiterss'
-          coinduct_thm strong_coinduct_thm [unfold_thmss, corec_thmss]
+          coinduct_thm strong_coinduct_thm (transpose [unfold_thmss, corec_thmss])
       end;
 
     val lthy' = lthy
