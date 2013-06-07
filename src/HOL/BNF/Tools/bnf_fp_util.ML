@@ -28,6 +28,8 @@ sig
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
+  val weak_co_induct_of: 'a list -> 'a
+  val strong_co_induct_of: 'a list -> 'a
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
 
@@ -216,6 +218,9 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
+
+fun weak_co_induct_of [w, _] = w;
+fun strong_co_induct_of [_, s] = s;
 
 fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;
