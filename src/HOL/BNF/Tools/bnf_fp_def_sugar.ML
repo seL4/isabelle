@@ -58,7 +58,7 @@ sig
     * (thm list list * Args.src list)
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list ->
     string * term list * term list list * ((term list list * term list list list)
-      * (typ list * typ list list list * typ list list)) list ->
+      * (typ list * typ list list)) list ->
     thm list -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
     typ list -> typ list -> int list list -> int list list -> int list -> thm list list ->
     BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> local_theory ->
@@ -826,21 +826,9 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
               cqf
           end;
 
-        val crgsss' =
-          (fn fcoiters => fn (_, cqfsss) =>
-              map (map (map (intr_coiters fcoiters (K I) (K I)))) cqfsss)
-            (un_fold_of fcoiterss') unfold_args;
-        val cshsss' =
-          (fn fcoiters => fn (_, cqfsss) =>
-              map (map (map (intr_coiters fcoiters (curry mk_sumT) (tack z)))) cqfsss)
-            (co_rec_of fcoiterss') corec_args;
-
-(*###
-        val [crgsss', cshsss'] =
-          map2 (fn fcoiters => fn (_, cqssss, cfssss) =>
-              map2 (map2 (map2 (intr_coiters fcoiters))) cqssss cfssss)
-            fcoiterss' [unfold_args, corec_args];
-*)
+        val crgsss' = map (map (map (intr_coiters (un_fold_of fcoiterss') (K I) (K I)))) crgsss;
+        val cshsss' = map (map (map (intr_coiters (co_rec_of fcoiterss') (curry mk_sumT) (tack z))))
+          cshsss;
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss';
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
