@@ -105,9 +105,6 @@ lemma sum_case_o_inj:
 "sum_case f g \<circ> Inr = g"
 by auto
 
-lemma ident_o_ident: "(\<lambda>x. x) \<circ> (\<lambda>x. x) = (\<lambda>x. x)"
-by (rule o_def)
-
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
 by blast
 

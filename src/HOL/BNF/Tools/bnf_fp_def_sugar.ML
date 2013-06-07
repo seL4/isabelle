@@ -1,6 +1,6 @@
 (*  Title:      HOL/BNF/Tools/bnf_fp_def_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
 Sugared datatype and codatatype constructions.
 *)
@@ -36,8 +36,7 @@ sig
      * (typ list list * typ list list list list * term list list
         * term list list list list) list option
      * (string * term list * term list list
-        * ((term list list * term list list list)
-           * (typ list * typ list list list * typ list list)) list) option)
+        * ((term list list * term list list list) * (typ list * typ list list)) list) option)
     * Proof.context
 
   val mk_iter_fun_arg_typessss: typ list -> int list -> int list list -> term ->
@@ -47,8 +46,7 @@ sig
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
     (term list * thm list) * Proof.context
   val define_coiters: string list -> string * term list * term list list
-    * ((term list list * term list list list)
-       * (typ list * typ list list list * typ list list)) list ->
+    * ((term list list * term list list list) * (typ list * typ list list)) list ->
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
     (term list * thm list) * Proof.context
   val derive_induct_iters_thms_for_types: BNF_Def.bnf list ->
@@ -379,10 +377,10 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
         val q_Tssss =
           map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
         val pf_Tss = map3 flat_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
-      in (q_Tssss, f_Tssss, (f_sum_prod_Ts, f_Tsss, pf_Tss)) end;
+      in (q_Tssss, f_Tsss, f_Tssss, (f_sum_prod_Ts, pf_Tss)) end;
 
-    val (r_Tssss, g_Tssss, unfold_types) = mk_types single un_fold_of;
-    val (s_Tssss, h_Tssss, corec_types) = mk_types unzip_corecT co_rec_of;
+    val (r_Tssss, g_Tsss, g_Tssss, unfold_types) = mk_types single un_fold_of;
+    val (s_Tssss, h_Tsss, h_Tssss, corec_types) = mk_types unzip_corecT co_rec_of;
 
     val ((((Free (z, _), cs), pss), gssss), lthy) =
       lthy
@@ -408,7 +406,7 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
         mk_If cq (build_sum_inj Inl_const (fastype_of cf, T) $ cf)
           (build_sum_inj Inr_const (fastype_of cf', T) $ cf');
 
-    fun mk_args qssss fssss (_, f_Tsss, _) =
+    fun mk_args qssss fssss f_Tsss =
       let
         val pfss = map3 flat_preds_predsss_gettersss pss qssss fssss;
         val cqssss = map2 (map o map o map o rapp) cs qssss;
@@ -416,8 +414,8 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
         val cqfsss = map3 (map3 (map3 build_dtor_coiter_arg)) f_Tsss cqssss cfssss;
       in (pfss, cqfsss) end;
 
-    val unfold_args = mk_args rssss gssss unfold_types;
-    val corec_args = mk_args sssss hssss corec_types;
+    val unfold_args = mk_args rssss gssss g_Tsss;
+    val corec_args = mk_args sssss hssss h_Tsss;
   in
     ((z, cs, cpss, [(unfold_args, unfold_types), (corec_args, corec_types)]), lthy)
   end;
@@ -494,7 +492,7 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
 
     val C_to_fpT as Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
 
-    fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, _, pf_Tss)) dtor_coiter =
+    fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, pf_Tss)) dtor_coiter =
       let
         val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
         val b = mk_binding suf;
@@ -862,11 +860,10 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         val nested_map_if_distribs = map mk_map_if_distrib nested_bnfs;
 
         val unfold_tacss =
-          map3 (map oo mk_coiter_tac unfold_defs [] nesting_map_ids'' [])
+          map3 (map oo mk_coiter_tac unfold_defs nesting_map_ids'')
             (map un_fold_of dtor_coiter_thmss) pre_map_defs ctr_defss;
         val corec_tacss =
-          map3 (map oo mk_coiter_tac corec_defs nested_map_comp's
-              (nested_map_ids'' @ nesting_map_ids'') nested_map_if_distribs)
+          map3 (map oo mk_coiter_tac corec_defs nesting_map_ids'')
             (map co_rec_of dtor_coiter_thmss) pre_map_defs ctr_defss;
 
         fun prove goal tac =

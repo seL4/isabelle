@@ -14,8 +14,7 @@ sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list list -> thm list list list -> thm list list list -> tactic
-  val mk_coiter_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> thm ->
-    Proof.context -> tactic
+  val mk_coiter_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_disc_coiter_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
@@ -106,16 +105,13 @@ fun mk_iter_tac pre_map_defs map_ids'' iter_defs ctor_iter ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_ids'' @
     iter_unfold_thms) THEN HEADGOAL (rtac refl);
 
-val coiter_unfold_thms =
-  @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
+val coiter_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
 
-fun mk_coiter_tac coiter_defs map_comp's map_ids'' map_if_distribs
-    ctor_dtor_coiter pre_map_def ctr_def ctxt =
+fun mk_coiter_tac coiter_defs map_ids'' ctor_dtor_coiter pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
   HEADGOAL (rtac (ctor_dtor_coiter RS trans) THEN'
     asm_simp_tac (put_simpset ss_if_True_False ctxt)) THEN_MAYBE
-  (unfold_thms_tac ctxt (pre_map_def :: map_comp's @ map_ids'' @ map_if_distribs @
-     coiter_unfold_thms) THEN
+  (unfold_thms_tac ctxt (pre_map_def :: map_ids'' @ coiter_unfold_thms) THEN
    HEADGOAL (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)));
 
 fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =
