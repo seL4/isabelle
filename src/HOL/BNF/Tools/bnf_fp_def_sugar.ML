@@ -53,7 +53,7 @@ sig
     (term list * thm list) * Proof.context
   val derive_induct_iters_thms_for_types: BNF_Def.bnf list -> term list list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
-    thm -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
+    thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> term list list -> thm list list -> term list list ->
     thm list list -> local_theory ->
     (thm * thm list * Args.src list) * (thm list list * Args.src list)
@@ -61,7 +61,7 @@ sig
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list -> term list list ->
     term list * term list list
     * ((term list list * term list list list list * term list list list list) * 'a) list ->
-    thm -> thm -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
+    thm list -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
     typ list -> typ list -> int list list -> int list list -> int list -> thm list list ->
     BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> local_theory ->
     (thm * thm list * thm * thm list * Args.src list)
@@ -520,7 +520,7 @@ fun define_coiters coiterNs (cs, cpss, coiter_args_typess') mk_binding fpTs Cs d
   end;
 
 fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_types, rec_args_types]
-    ctor_induct ctor_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
+    [ctor_induct] ctor_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
     iterss iter_defss lthy =
   let
     val iterss' = transpose iterss;
@@ -682,8 +682,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_ty
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
     (cs, cpss,
      [(unfold_args as (pgss, crssss, cgssss), _), (corec_args as (phss, csssss, chssss), _)])
-    dtor_coinduct dtor_strong_induct dtor_ctors dtor_coiter_thmss nesting_bnfs nested_bnfs fpTs Cs
-    As kss mss ns ctr_defss ctr_sugars coiterss coiter_defss lthy =
+    dtor_coinducts dtor_ctors dtor_coiter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns
+    ctr_defss ctr_sugars coiterss coiter_defss lthy =
   let
     val coiterss' = transpose coiterss;
     val coiter_defss' = transpose coiter_defss;
@@ -794,7 +794,8 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
           |> Drule.zero_var_indexes
           |> `(conj_dests nn);
       in
-        (postproc nn (prove dtor_coinduct goal), postproc nn (prove dtor_strong_induct strong_goal))
+        (postproc nn (prove (co_induct_of dtor_coinducts) goal),
+         postproc nn (prove (strong_co_induct_of dtor_coinducts) strong_goal))
       end;
 
     fun mk_coinduct_concls ms discs ctrs =
@@ -1057,9 +1058,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_sum_prod_Ts;
 
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
-           xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, xtor_strong_co_induct, dtor_ctors,
-           ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
-           xtor_co_iter_thmss, ...}, lthy)) =
+           xtor_co_iterss = xtor_co_iterss0, xtor_co_inducts, dtor_ctors, ctor_dtors, ctor_injects,
+           xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...}, lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
@@ -1324,7 +1324,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs xtor_co_iterss (the iters_args_types)
-            xtor_co_induct xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
+            xtor_co_inducts xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
             ctr_defss iterss iter_defss lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
@@ -1360,10 +1360,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_thmss, disc_corec_thmss, disc_coiter_attrs),
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
-          derive_coinduct_coiters_thms_for_types pre_bnfs xtor_co_iterss
-            (the coiters_args_types) xtor_co_induct xtor_strong_co_induct dtor_ctors
-            xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars
-            coiterss coiter_defss lthy;
+          derive_coinduct_coiters_thms_for_types pre_bnfs xtor_co_iterss (the coiters_args_types)
+            xtor_co_inducts dtor_ctors xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss
+            mss ns ctr_defss ctr_sugars coiterss coiter_defss lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 

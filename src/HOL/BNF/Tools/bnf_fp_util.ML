@@ -16,8 +16,7 @@ sig
      ctors: term list,
      dtors: term list,
      xtor_co_iterss: term list list,
-     xtor_co_induct: thm,
-     xtor_strong_co_induct: thm,
+     xtor_co_inducts: thm list,
      dtor_ctors: thm list,
      ctor_dtors: thm list,
      ctor_injects: thm list,
@@ -28,7 +27,7 @@ sig
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
-  val weak_co_induct_of: 'a list -> 'a
+  val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
@@ -188,8 +187,7 @@ type fp_result =
    ctors: term list,
    dtors: term list,
    xtor_co_iterss: term list list,
-   xtor_co_induct: thm,
-   xtor_strong_co_induct: thm,
+   xtor_co_inducts: thm list,
    dtor_ctors: thm list,
    ctor_dtors: thm list,
    ctor_injects: thm list,
@@ -198,16 +196,14 @@ type fp_result =
    xtor_rel_thms: thm list,
    xtor_co_iter_thmss: thm list list};
 
-fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
-    xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss,
-    xtor_rel_thms, xtor_co_iter_thmss} =
+fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts, dtor_ctors,
+    ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
    xtor_co_iterss = map (map (Morphism.term phi)) xtor_co_iterss,
-   xtor_co_induct = Morphism.thm phi xtor_co_induct,
-   xtor_strong_co_induct = Morphism.thm phi xtor_strong_co_induct,
+   xtor_co_inducts = map (Morphism.thm phi) xtor_co_inducts,
    dtor_ctors = map (Morphism.thm phi) dtor_ctors,
    ctor_dtors = map (Morphism.thm phi) ctor_dtors,
    ctor_injects = map (Morphism.thm phi) ctor_injects,
@@ -219,7 +215,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
 
-fun weak_co_induct_of [w, _] = w;
+fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
 
 fun un_fold_of [f, _] = f;

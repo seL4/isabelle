@@ -3108,8 +3108,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
   in
     timer;
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors,
-      xtor_co_iterss = transpose [unfolds, corecs], xtor_co_induct = dtor_coinduct_thm,
-      xtor_strong_co_induct = dtor_strong_coinduct_thm, dtor_ctors = dtor_ctor_thms,
+      xtor_co_iterss = transpose [unfolds, corecs],
+      xtor_co_inducts = [dtor_coinduct_thm, dtor_strong_coinduct_thm], dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       xtor_map_thms = folded_dtor_map_thms, xtor_set_thmss = folded_dtor_set_thmss',
       xtor_rel_thms = dtor_Jrel_thms,
