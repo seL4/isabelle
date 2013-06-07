@@ -15,8 +15,7 @@ sig
      bnfs: BNF_Def.bnf list,
      ctors: term list,
      dtors: term list,
-     xtor_un_folds: term list,
-     xtor_co_recs: term list,
+     xtor_co_iterss: term list list,
      xtor_co_induct: thm,
      xtor_strong_co_induct: thm,
      dtor_ctors: thm list,
@@ -25,8 +24,7 @@ sig
      xtor_map_thms: thm list,
      xtor_set_thmss: thm list list,
      xtor_rel_thms: thm list,
-     xtor_un_fold_thms: thm list,
-     xtor_co_rec_thms: thm list}
+     xtor_co_iter_thmss: thm list list}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
@@ -185,8 +183,7 @@ type fp_result =
    bnfs: BNF_Def.bnf list,
    ctors: term list,
    dtors: term list,
-   xtor_un_folds: term list,
-   xtor_co_recs: term list,
+   xtor_co_iterss: term list list,
    xtor_co_induct: thm,
    xtor_strong_co_induct: thm,
    dtor_ctors: thm list,
@@ -195,18 +192,16 @@ type fp_result =
    xtor_map_thms: thm list,
    xtor_set_thmss: thm list list,
    xtor_rel_thms: thm list,
-   xtor_un_fold_thms: thm list,
-   xtor_co_rec_thms: thm list};
+   xtor_co_iter_thmss: thm list list};
 
-fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xtor_co_induct,
+fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
     xtor_strong_co_induct, dtor_ctors, ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss,
-    xtor_rel_thms, xtor_un_fold_thms, xtor_co_rec_thms} =
+    xtor_rel_thms, xtor_co_iter_thmss} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
-   xtor_un_folds = map (Morphism.term phi) xtor_un_folds,
-   xtor_co_recs = map (Morphism.term phi) xtor_co_recs,
+   xtor_co_iterss = map (map (Morphism.term phi)) xtor_co_iterss,
    xtor_co_induct = Morphism.thm phi xtor_co_induct,
    xtor_strong_co_induct = Morphism.thm phi xtor_strong_co_induct,
    dtor_ctors = map (Morphism.thm phi) dtor_ctors,
@@ -215,8 +210,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_un_folds, xtor_co_recs, xt
    xtor_map_thms = map (Morphism.thm phi) xtor_map_thms,
    xtor_set_thmss = map (map (Morphism.thm phi)) xtor_set_thmss,
    xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
-   xtor_un_fold_thms = map (Morphism.thm phi) xtor_un_fold_thms,
-   xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms};
+   xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss};
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
