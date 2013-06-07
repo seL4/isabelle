@@ -675,10 +675,13 @@ fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_ty
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_coinduct
     dtor_strong_induct dtor_ctors [dtor_unfold_thms, dtor_corec_thms] nesting_bnfs nested_bnfs fpTs
-    Cs As kss mss ns ctr_defss ctr_sugars iterss iter_defss lthy =
+    Cs As kss mss ns ctr_defss ctr_sugars coiterss coiter_defss lthy =
   let
-    val [unfolds, corecs] = transpose iterss;
-    val [unfold_defs, corec_defs] = transpose iter_defss;
+    val coiterss' = transpose coiterss;
+    val coiter_defss' = transpose coiter_defss;
+
+    val [unfolds, corecs] = coiterss';
+    val [unfold_defs, corec_defs] = coiter_defss';
 
     val nn = length pre_bnfs;
 
@@ -692,8 +695,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val dtor_unfold_fun_Ts = mk_fp_iter_fun_types (un_fold_of dtor_coiters1);
-    val dtor_corec_fun_Ts = mk_fp_iter_fun_types (co_rec_of dtor_coiters1);
+    val dtor_iter_fun_Tss' = map mk_fp_iter_fun_types dtor_coiters1;
 
     val ctrss = map (map (mk_ctr As) o #ctrs) ctr_sugars;
     val discss = map (map (mk_disc_or_sel As) o #discs) ctr_sugars;
@@ -704,8 +706,9 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
     (* TODO: avoid duplication *)
-    val ((cs, cpss, [((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)]), names_lthy0) =
-      mk_coiters_args_types Cs ns mss (transpose [dtor_unfold_fun_Ts, dtor_corec_fun_Ts]) lthy;
+    val ((cs, cpss, [(unfold_args as (pgss, crssss, cgssss), _),
+           (corec_args as (phss, csssss, chssss), _)]), names_lthy0) =
+      mk_coiters_args_types Cs ns mss (transpose dtor_iter_fun_Tss') lthy;
 
     val (((rs, us'), vs'), names_lthy) =
       names_lthy0
@@ -808,8 +811,8 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
-    val gunfolds = map (lists_bmoc pgss) unfolds;
-    val hcorecs = map (lists_bmoc phss) corecs;
+    val fcoiterss' as [gunfolds, hcorecs] =
+      map2 (fn (pfss, _, _) => map (lists_bmoc pfss)) [unfold_args, corec_args] coiterss';
 
     val (unfold_thmss, corec_thmss, safe_unfold_thmss, safe_corec_thmss) =
       let
@@ -818,21 +821,22 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _) dtor_co
             (Logic.list_implies (seq_conds (HOLogic.mk_Trueprop oo mk_maybe_not) n k cps,
                mk_Trueprop_eq (fcoiter $ c, Term.list_comb (ctr, take m cfs'))));
 
-        (* TODO: get rid of "mk_U" *)
-        val mk_U = typ_subst_nonatomic (map2 pair Cs fpTs);
+        val substC = typ_subst_nonatomic (map2 pair Cs fpTs);
 
         fun intr_coiters fcoiters [] [cf] =
             let val T = fastype_of cf in
               if exists_subtype_in Cs T then
-                build_map lthy (indexify fst Cs (K o nth fcoiters)) (T, mk_U T) $ cf
+                build_map lthy (indexify fst Cs (K o nth fcoiters)) (T, substC T) $ cf
               else
                 cf
             end
           | intr_coiters fcoiters [cq] [cf, cf'] =
             mk_If cq (intr_coiters fcoiters [] [cf]) (intr_coiters fcoiters [] [cf']);
 
-        val crgsss = map2 (map2 (map2 (intr_coiters gunfolds))) crssss cgssss;
-        val cshsss = map2 (map2 (map2 (intr_coiters hcorecs))) csssss chssss;
+        val [crgsss, cshsss] =
+          map2 (fn fcoiters => fn (_, cqssss, cfssss) =>
+              map2 (map2 (map2 (intr_coiters fcoiters))) cqssss cfssss)
+            fcoiterss' [unfold_args, corec_args];
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss;
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss;
