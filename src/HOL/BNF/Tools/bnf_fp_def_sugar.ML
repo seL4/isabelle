@@ -59,7 +59,8 @@ sig
     (thm list * thm * Args.src list) * (thm list list * Args.src list)
     * (thm list list * Args.src list)
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list ->
-    string * term list * term list list * ((term list list * term list list list) * 'a) list ->
+    string * term list * term list list * ((term list list * term list list list)
+      * (typ list * typ list list list * typ list list)) list ->
     thm list -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
     typ list -> typ list -> int list list -> int list list -> int list -> thm list list ->
     BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> local_theory ->
@@ -240,17 +241,6 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
   end;
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
-
-fun project_co_recT special_Tname Cs proj =
-  let
-    fun project (Type (s, Ts as [T, U])) =
-        if s = special_Tname andalso member (op =) Cs U then proj (T, U)
-        else Type (s, map project Ts)
-      | project (Type (s, Ts)) = Type (s, map project Ts)
-      | project T = T;
-  in project end;
-
-val project_corecT = project_co_recT @{type_name sum};
 
 fun unzip_recT Cs (T as Type (@{type_name prod}, Ts as [_, U])) =
     if member (op =) Cs U then Ts else [T]
@@ -458,7 +448,7 @@ fun mk_preds_getterss_join c cps sum_prod_T cqfss =
       (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)))
   end;
 
-fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqfsss dtor_coiter =
+fun mk_coiter_body cs cpss f_sum_prod_Ts cqfsss dtor_coiter =
   Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss);
 
 fun define_co_iters fp fpT Cs binding_specs lthy0 =
@@ -504,13 +494,13 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
 
     val C_to_fpT as Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
 
-    fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, f_Tsss, pf_Tss)) dtor_coiter =
+    fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, _, pf_Tss)) dtor_coiter =
       let
         val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
         val b = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
-            mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqfsss dtor_coiter);
+            mk_coiter_body cs cpss f_sum_prod_Ts cqfsss dtor_coiter);
       in (b, spec) end;
   in
     define_co_iters Greatest_FP fpT Cs
@@ -884,8 +874,6 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
           |> Thm.close_derivation;
 
         val unfold_thmss = map2 (map2 prove) unfold_goalss unfold_tacss;
-        val corec_thmss = map2 (map2 prove) corec_goalss corec_tacss;
-
         val corec_thmss =
           map2 (map2 prove) corec_goalss corec_tacss
           |> map (map (unfold_thms lthy @{thms sum_case_if}));
