@@ -56,7 +56,7 @@ sig
     thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> term list list -> thm list list -> term list list ->
     thm list list -> local_theory ->
-    (thm * thm list * Args.src list) * (thm list list * Args.src list)
+    (thm list * thm * Args.src list) * (thm list list * Args.src list)
     * (thm list list * Args.src list)
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list -> term list list ->
     term list * term list list
@@ -64,7 +64,7 @@ sig
     thm list -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
     typ list -> typ list -> int list list -> int list list -> int list -> thm list list ->
     BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> local_theory ->
-    (thm * thm list * thm * thm list * Args.src list)
+    ((thm list * thm) list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
@@ -675,7 +675,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs (ctor_iters1 :: _) [fold_args_ty
     val fold_thmss = mk_iter_thmss fold_args_types folds fold_defs (map un_fold_of ctor_iter_thmss);
     val rec_thmss = mk_iter_thmss rec_args_types recs rec_defs (map co_rec_of ctor_iter_thmss);
   in
-    ((induct_thm, induct_thms, [induct_case_names_attr]),
+    ((induct_thms, induct_thm, [induct_case_names_attr]),
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
   end;
 
@@ -727,7 +727,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
     val vdiscss = map2 (map o rapp) vs discss;
     val vselsss = map2 (map o map o rapp) vs selsss;
 
-    val ((coinduct_thms, coinduct_thm), (strong_coinduct_thms, strong_coinduct_thm)) =
+    val coinduct_thms_pairs =
       let
         val uvrs = map3 (fn r => fn u => fn v => r $ u $ v) rs us vs;
         val uv_eqs = map2 (curry HOLogic.mk_eq) us vs;
@@ -778,8 +778,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
           Logic.list_implies (map8 (mk_prem rs') uvrs us vs ns udiscss uselsss vdiscss vselsss,
             concl);
 
-        val goal = mk_goal rs;
-        val strong_goal = mk_goal strong_rs;
+        val goals = map mk_goal [rs, strong_rs];
 
         fun prove dtor_coinduct' goal =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
@@ -794,8 +793,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
           |> Drule.zero_var_indexes
           |> `(conj_dests nn);
       in
-        (postproc nn (prove (co_induct_of dtor_coinducts) goal),
-         postproc nn (prove (strong_co_induct_of dtor_coinducts) strong_goal))
+        map2 (postproc nn oo prove) dtor_coinducts goals
       end;
 
     fun mk_coinduct_concls ms discs ctrs =
@@ -949,7 +947,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (dtor_coiters1 :: _)
     val coinduct_case_attrs =
       coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
-    ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms, coinduct_case_attrs),
+    ((coinduct_thms_pairs, coinduct_case_attrs),
      (unfold_thmss, corec_thmss, []),
      (safe_unfold_thmss, safe_corec_thmss),
      (disc_unfold_thmss, disc_corec_thmss, simp_attrs),
@@ -1110,9 +1108,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
 
     fun define_ctrs_case_for_type ((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
-              xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
-            pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
-          ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
+            xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
+          pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
+        ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
@@ -1321,7 +1319,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (iterss, iter_defss)), lthy) =
       let
-        val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
+        val ((induct_thms, induct_thm, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs xtor_co_iterss (the iters_args_types)
             xtor_co_inducts xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss
@@ -1353,7 +1351,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ((((mapsx, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
           (coiterss, coiter_defss)), lthy) =
       let
-        val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,
+        val (([(coinduct_thms, coinduct_thm), (strong_coinduct_thms, strong_coinduct_thm)],
               coinduct_attrs),
              (unfold_thmss, corec_thmss, coiter_attrs),
              (safe_unfold_thmss, safe_corec_thmss),
