@@ -32,7 +32,7 @@ If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1
 
 While:
   "(\<And>n::nat.
-    \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T s n} c {\<lambda>s. P s \<and> (\<exists>n'. T s n' \<and> n' < n)})
+    \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s \<and> T s n} c {\<lambda>s. P s \<and> (\<exists>n'<n. T s n')})
    \<Longrightarrow> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> (\<exists>n. T s n)} WHILE b DO c {\<lambda>s. P s \<and> \<not>bval b s}"  |
 
 conseq: "\<lbrakk> \<forall>s. P' s \<longrightarrow> P s; \<turnstile>\<^sub>t {P}c{Q}; \<forall>s. Q s \<longrightarrow> Q' s  \<rbrakk> \<Longrightarrow>
@@ -177,7 +177,7 @@ next
     unfolding wpt_def by (metis WHILE_Its)
   moreover
   { fix n
-    let ?R = "\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'. ?T s' n' \<and> n' < n)"
+    let ?R = "\<lambda>s'. wp\<^sub>t ?w Q s' \<and> (\<exists>n'<n. ?T s' n')"
     { fix s t assume "bval b s" and "?T s n" and "(?w, s) \<Rightarrow> t" and "Q t"
       from `bval b s` and `(?w, s) \<Rightarrow> t` obtain s' where
         "(c,s) \<Rightarrow> s'" "(?w,s') \<Rightarrow> t" by auto
