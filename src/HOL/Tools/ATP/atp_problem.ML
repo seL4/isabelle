@@ -899,8 +899,7 @@ fun avoid_clash_with_dfg_keywords s =
        String.isSubstring "_" s then
       s
     else if is_tptp_variable s then
-      (* "DL" appears to be a SPASS 3.7 keyword *)
-      if s = "DL" then s ^ "_" else s
+      s ^ "_"
     else
       String.substring (s, 0, n - 1) ^
       String.str (Char.toUpper (String.sub (s, n - 1)))
