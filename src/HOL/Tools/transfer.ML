@@ -15,11 +15,14 @@ sig
   val get_relator_domain: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
+  val transferred_attribute: thm list -> attribute
   val transfer_domain_add: attribute
   val transfer_domain_del: attribute
-  val transfer_rule_of_term: Proof.context -> term -> thm
+  val transfer_rule_of_term: Proof.context -> bool -> term -> thm
+  val transfer_rule_of_lhs: Proof.context -> term -> thm
   val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
+  val gen_frees_tac: (string * typ) list -> Proof.context -> int -> tactic
   val setup: theory -> theory
 end
 
@@ -33,13 +36,15 @@ structure Data = Generic_Data
   type T =
     { transfer_raw : thm Item_Net.T,
       known_frees : (string * typ) list,
+      compound_lhs : unit Net.net,
       compound_rhs : unit Net.net,
       relator_eq : thm Item_Net.T,
       relator_eq_raw : thm Item_Net.T,
       relator_domain : thm Item_Net.T }
   val empty =
-    { transfer_raw = Thm.full_rules,
+    { transfer_raw = Thm.intro_rules,
       known_frees = [],
+      compound_lhs = Net.empty,
       compound_rhs = Net.empty,
       relator_eq = Thm.full_rules,
       relator_eq_raw = Thm.full_rules,
@@ -47,13 +52,16 @@ structure Data = Generic_Data
   val extend = I
   fun merge
     ( { transfer_raw = t1, known_frees = k1,
+        compound_lhs = l1,
         compound_rhs = c1, relator_eq = r1,
         relator_eq_raw = rw1, relator_domain = rd1 },
       { transfer_raw = t2, known_frees = k2,
+        compound_lhs = l2,
         compound_rhs = c2, relator_eq = r2,
         relator_eq_raw = rw2, relator_domain = rd2 } ) =
     { transfer_raw = Item_Net.merge (t1, t2),
       known_frees = Library.merge (op =) (k1, k2),
+      compound_lhs = Net.merge (K true) (l1, l2),
       compound_rhs = Net.merge (K true) (c1, c2),
       relator_eq = Item_Net.merge (r1, r2),
       relator_eq_raw = Item_Net.merge (rw1, rw2),
@@ -65,6 +73,9 @@ fun get_transfer_raw ctxt = ctxt
 
 fun get_known_frees ctxt = ctxt
   |> (#known_frees o Data.get o Context.Proof)
+
+fun get_compound_lhs ctxt = ctxt
+  |> (#compound_lhs o Data.get o Context.Proof)
 
 fun get_compound_rhs ctxt = ctxt
   |> (#compound_rhs o Data.get o Context.Proof)
@@ -83,27 +94,36 @@ fun get_relator_eq_raw ctxt = ctxt
 fun get_relator_domain ctxt = ctxt
   |> (Item_Net.content o #relator_domain o Data.get o Context.Proof)
 
-fun map_data f1 f2 f3 f4 f5 f6
-  { transfer_raw, known_frees, compound_rhs, relator_eq, relator_eq_raw, relator_domain } =
+fun map_data f1 f2 f3 f4 f5 f6 f7
+  { transfer_raw, known_frees, compound_lhs, compound_rhs,
+    relator_eq, relator_eq_raw, relator_domain } =
   { transfer_raw = f1 transfer_raw,
     known_frees = f2 known_frees,
-    compound_rhs = f3 compound_rhs,
-    relator_eq = f4 relator_eq,
-    relator_eq_raw = f5 relator_eq_raw,
-    relator_domain = f6 relator_domain }
+    compound_lhs = f3 compound_lhs,
+    compound_rhs = f4 compound_rhs,
+    relator_eq = f5 relator_eq,
+    relator_eq_raw = f6 relator_eq_raw,
+    relator_domain = f7 relator_domain }
 
-fun map_transfer_raw f = map_data f I I I I I
-fun map_known_frees f = map_data I f I I I I
-fun map_compound_rhs f = map_data I I f I I I
-fun map_relator_eq f = map_data I I I f I I
-fun map_relator_eq_raw f = map_data I I I I f I
-fun map_relator_domain f = map_data I I I I I f
+fun map_transfer_raw   f = map_data f I I I I I I
+fun map_known_frees    f = map_data I f I I I I I
+fun map_compound_lhs   f = map_data I I f I I I I
+fun map_compound_rhs   f = map_data I I I f I I I
+fun map_relator_eq     f = map_data I I I I f I I
+fun map_relator_eq_raw f = map_data I I I I I f I
+fun map_relator_domain f = map_data I I I I I I f
 
 fun add_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.update thm) o
+   map_compound_lhs
+     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+        Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
+          Net.insert_term_safe (K true) (lhs, ())
+      | _ => I) o
    map_compound_rhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        (Const (@{const_name Rel}, _)) $ _ $ _ $ (rhs as (_ $ _)) => Net.insert_term (K true) (rhs, ())
+        Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
+          Net.insert_term_safe (K true) (rhs, ())
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
@@ -148,8 +168,11 @@ fun gen_abstract_equalities (dest : term -> term * (term -> term)) thm =
     val thy = Thm.theory_of_thm thm
     val prop = Thm.prop_of thm
     val (t, mk_prop') = dest prop
-    val add_eqs = Term.fold_aterms
-      (fn t as Const (@{const_name HOL.eq}, _) => insert (op =) t | _ => I)
+    (* Only consider "op =" at non-base types *)
+    fun is_eq (Const (@{const_name HOL.eq}, Type ("fun", [T, _]))) =
+        (case T of Type (_, []) => false | _ => true)
+      | is_eq _ = false
+    val add_eqs = Term.fold_aterms (fn t => if is_eq t then insert (op =) t else I)
     val eq_consts = rev (add_eqs t [])
     val eqTs = map (snd o dest_Const) eq_consts
     val used = Term.add_free_names prop []
@@ -308,13 +331,11 @@ fun mk_Rel t =
   let val T = fastype_of t
   in Const (@{const_name Transfer.Rel}, T --> T) $ t end
 
-fun transfer_rule_of_terms ctxt tab t u =
+fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
   let
     val thy = Proof_Context.theory_of ctxt
-    (* precondition: T must consist of only TFrees and function space *)
-    fun rel (T as TFree (a, _)) U =
-          Free (the (AList.lookup (op =) tab a), mk_relT (T, U))
-      | rel (T as Type ("fun", [T1, T2])) (U as Type ("fun", [U1, U2])) =
+    (* precondition: prj(T,U) must consist of only TFrees and type "fun" *)
+    fun rel (T as Type ("fun", [T1, T2])) (U as Type ("fun", [U1, U2])) =
         let
           val r1 = rel T1 U1
           val r2 = rel T2 U2
@@ -322,7 +343,12 @@ fun transfer_rule_of_terms ctxt tab t u =
         in
           Const (@{const_name fun_rel}, rT) $ r1 $ r2
         end
-      | rel T U = raise TYPE ("rel", [T, U], [])
+      | rel T U =
+        let
+          val (a, _) = dest_TFree (prj (T, U))
+        in
+          Free (the (AList.lookup (op =) tab a), mk_relT (T, U))
+        end
     fun zip _ thms (Bound i) (Bound _) = (nth thms i, [])
       | zip ctxt thms (Abs (x, T, t)) (Abs (y, U, u)) =
         let
@@ -349,15 +375,15 @@ fun transfer_rule_of_terms ctxt tab t u =
         in
           (thm2 RS (thm1 RS @{thm Rel_app}), hyps1 @ hyps2)
         end
-      | zip _ _ (t as Free (_, T)) u =
+      | zip _ _ t u =
         let
+          val T = fastype_of t
           val U = fastype_of u
           val prop = mk_Rel (rel T U) $ t $ u
           val cprop = Thm.cterm_of thy (HOLogic.mk_Trueprop prop)
         in
           (Thm.assume cprop, [cprop])
         end
-      | zip _ _ t u = raise TERM ("zip_relterm", [t, u])
     val r = mk_Rel (rel (fastype_of t) (fastype_of u))
     val goal = HOLogic.mk_Trueprop (r $ t $ u)
     val rename = Thm.trivial (cterm_of thy goal)
@@ -366,42 +392,136 @@ fun transfer_rule_of_terms ctxt tab t u =
     Drule.implies_intr_list hyps (thm RS rename)
   end
 
-fun transfer_rule_of_term ctxt t =
+(* create a lambda term of the same shape as the given term *)
+fun skeleton (is_atom : term -> bool) ctxt t =
   let
-    val compound_rhs = get_compound_rhs ctxt
-    val is_rhs = not o null o Net.unify_term compound_rhs
     fun dummy ctxt =
       let
         val (c, ctxt) = yield_singleton Variable.variant_fixes "a" ctxt
       in
         (Free (c, dummyT), ctxt)
       end
-    (* create a lambda term of the same shape as the given term *)
-    fun skeleton (Bound i) ctxt = (Bound i, ctxt)
-      | skeleton (Abs (x, _, t)) ctxt =
+    fun go (Bound i) ctxt = (Bound i, ctxt)
+      | go (Abs (x, _, t)) ctxt =
         let
-          val (t', ctxt) = skeleton t ctxt
+          val (t', ctxt) = go t ctxt
         in
           (Abs (x, dummyT, t'), ctxt)
         end
-      | skeleton (tu as (t $ u)) ctxt =
-        if is_rhs tu andalso not (Term.is_open tu) then dummy ctxt else
+      | go (tu as (t $ u)) ctxt =
+        if is_atom tu andalso not (Term.is_open tu) then dummy ctxt else
         let
-          val (t', ctxt) = skeleton t ctxt
-          val (u', ctxt) = skeleton u ctxt
+          val (t', ctxt) = go t ctxt
+          val (u', ctxt) = go u ctxt
         in
           (t' $ u', ctxt)
         end
-      | skeleton _ ctxt = dummy ctxt
-    val s = skeleton t ctxt |> fst |> Syntax.check_term ctxt |>
+      | go _ ctxt = dummy ctxt
+  in
+    go t ctxt |> fst |> Syntax.check_term ctxt |>
       map_types (map_type_tfree (fn (a, _) => TFree (a, HOLogic.typeS)))
+  end
+
+(** Monotonicity analysis **)
+
+(* TODO: Put extensible table in theory data *)
+val monotab =
+  Symtab.make
+    [(@{const_name transfer_implies}, [~1, 1]),
+     (@{const_name transfer_forall}, [1])(*,
+     (@{const_name implies}, [~1, 1]),
+     (@{const_name All}, [1])*)]
+
+(*
+Function bool_insts determines the set of boolean-relation variables
+that can be instantiated to implies, rev_implies, or iff.
+
+Invariants: bool_insts p (t, u) requires that
+  u :: _ => _ => ... => bool, and
+  t is a skeleton of u
+*)
+fun bool_insts p (t, u) =
+  let
+    fun strip2 (t1 $ t2, u1 $ u2, tus) =
+        strip2 (t1, u1, (t2, u2) :: tus)
+      | strip2 x = x
+    fun or3 ((a, b, c), (x, y, z)) = (a orelse x, b orelse y, c orelse z)
+    fun go Ts p (Abs (_, T, t), Abs (_, _, u)) tab = go (T :: Ts) p (t, u) tab
+      | go Ts p (t, u) tab =
+        let
+          val (a, _) = dest_TFree (Term.body_type (Term.fastype_of1 (Ts, t)))
+          val (_, tf, tus) = strip2 (t, u, [])
+          val ps_opt = case tf of Const (c, _) => Symtab.lookup monotab c | _ => NONE
+          val tab1 =
+            case ps_opt of
+              SOME ps =>
+              let
+                val ps' = map (fn x => p * x) (take (length tus) ps)
+              in
+                fold I (map2 (go Ts) ps' tus) tab
+              end
+            | NONE => tab
+          val tab2 = Symtab.make [(a, (p >= 0, p <= 0, is_none ps_opt))]
+        in
+          Symtab.join (K or3) (tab1, tab2)
+        end
+    val tab = go [] p (t, u) Symtab.empty
+    fun f (a, (true, false, false)) = SOME (a, @{const implies})
+      | f (a, (false, true, false)) = SOME (a, @{const rev_implies})
+      | f (a, (true, true, _))      = SOME (a, HOLogic.eq_const HOLogic.boolT)
+      | f _                         = NONE
+  in
+    map_filter f (Symtab.dest tab)
+  end
+
+fun transfer_rule_of_term ctxt equiv t : thm =
+  let
+    val compound_rhs = get_compound_rhs ctxt
+    val is_rhs = not o null o Net.unify_term compound_rhs
+    val s = skeleton is_rhs ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
     fun prep a = "R" ^ Library.unprefix "'" a
     val (rnames, ctxt') = Variable.variant_fixes (map prep tfrees) ctxt
-    val thm = transfer_rule_of_terms ctxt' (tfrees ~~ rnames) s t
+    val tab = tfrees ~~ rnames
+    fun prep a = the (AList.lookup (op =) tab a)
+    val thm = transfer_rule_of_terms fst ctxt' tab s t
+    val binsts = bool_insts (if equiv then 0 else 1) (s, t)
+    val cbool = @{ctyp bool}
+    val relT = @{typ "bool => bool => bool"}
+    val idx = Thm.maxidx_of thm + 1
+    val thy = Proof_Context.theory_of ctxt
+    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), HOLogic.typeS)), cbool)
+    fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
   in
-    Thm.generalize (tfrees, rnames @ frees) (Thm.maxidx_of thm + 1) thm
+    thm
+      |> Thm.generalize (tfrees, rnames @ frees) idx
+      |> Thm.instantiate (map tinst binsts, map inst binsts)
+  end
+
+fun transfer_rule_of_lhs ctxt t : thm =
+  let
+    val compound_lhs = get_compound_lhs ctxt
+    val is_lhs = not o null o Net.unify_term compound_lhs
+    val s = skeleton is_lhs ctxt t
+    val frees = map fst (Term.add_frees s [])
+    val tfrees = map fst (Term.add_tfrees s [])
+    fun prep a = "R" ^ Library.unprefix "'" a
+    val (rnames, ctxt') = Variable.variant_fixes (map prep tfrees) ctxt
+    val tab = tfrees ~~ rnames
+    fun prep a = the (AList.lookup (op =) tab a)
+    val thm = transfer_rule_of_terms snd ctxt' tab t s
+    val binsts = bool_insts 1 (s, t)
+    val cbool = @{ctyp bool}
+    val relT = @{typ "bool => bool => bool"}
+    val idx = Thm.maxidx_of thm + 1
+    val thy = Proof_Context.theory_of ctxt
+    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), HOLogic.typeS)), cbool)
+    fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
+  in
+    thm
+      |> Thm.generalize (tfrees, rnames @ frees) idx
+      |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
 fun eq_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) THEN_ALL_NEW rtac @{thm is_equality_eq}
@@ -409,7 +529,7 @@ fun eq_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) THEN_ALL_NEW r
 fun transfer_tac equiv ctxt i =
   let
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
-    val start_rule = 
+    val start_rule =
       if equiv then @{thm transfer_start} else @{thm transfer_start'}
     val rules = get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
@@ -418,7 +538,7 @@ fun transfer_tac equiv ctxt i =
     val err_msg = "Transfer failed to convert goal to an object-logic formula"
     fun main_tac (t, i) =
       rtac start_rule i THEN
-      (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
+      (rtac (transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t))
         THEN_ALL_NEW
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))
             ORELSE' end_tac)) (i + 1)
@@ -429,13 +549,13 @@ fun transfer_tac equiv ctxt i =
        SUBGOAL main_tac i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
-       rtac @{thm _} i]
+       Goal.norm_hhf_tac i]
   end
 
 fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val rhs = (snd o Term.dest_comb o HOLogic.dest_Trueprop) t
-    val rule1 = transfer_rule_of_term ctxt rhs
+    val rule1 = transfer_rule_of_term ctxt false rhs
     val rules = get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
   in
@@ -446,6 +566,45 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
          (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))) (i+1),
        rtac @{thm refl} i]
   end)
+
+(** Transfer attribute **)
+
+fun transferred ctxt extra_rules thm =
+  let
+    val start_rule = @{thm transfer_start}
+    val start_rule' = @{thm transfer_start'}
+    val rules = extra_rules @ get_transfer_raw ctxt
+    val eq_rules = get_relator_eq_raw ctxt
+    val err_msg = "Transfer failed to convert goal to an object-logic formula"
+    val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
+    val thm1 = Drule.forall_intr_vars thm
+    val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
+                |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
+    val thm2 = thm1
+      |> Thm.certify_instantiate (instT, [])
+      |> Raw_Simplifier.rewrite_rule pre_simps
+    val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
+    val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
+    val rule = transfer_rule_of_lhs ctxt' t
+    val tac =
+      resolve_tac [thm2 RS start_rule', thm2 RS start_rule] 1 THEN
+      (rtac rule
+        THEN_ALL_NEW
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
+            THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
+        handle TERM (_, ts) => raise TERM (err_msg, ts)
+    val thm3 = Goal.prove_internal [] @{cpat "Trueprop ?P"} (K tac)
+    val tnames = map (fst o dest_TFree o snd) instT
+  in
+    thm3
+      |> Raw_Simplifier.rewrite_rule post_simps
+      |> Raw_Simplifier.norm_hhf
+      |> Drule.generalize (tnames, [])
+      |> Drule.zero_var_indexes
+  end
+(*
+    handle THM _ => thm
+*)
 
 (** Methods and attributes **)
 
@@ -483,6 +642,14 @@ val transfer_domain_del = Thm.declaration_attribute del_transfer_domain_thm
 
 val transfer_domain_attribute =
   Attrib.add_del transfer_domain_add transfer_domain_del
+
+(* Attributes for transferred rules *)
+
+fun transferred_attribute thms = Thm.rule_attribute
+  (fn context => transferred (Context.proof_of context) thms)
+
+val transferred_attribute_parser =
+  Attrib.thms >> transferred_attribute
 
 (* Theory setup *)
 
@@ -528,6 +695,8 @@ val setup =
      (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
   #> Attrib.setup @{binding transfer_domain_rule} transfer_domain_attribute
      "transfer domain rule for transfer method"
+  #> Attrib.setup @{binding transferred} transferred_attribute_parser
+     "raw theorem transferred to abstract theorem using transfer rules"
   #> Global_Theory.add_thms_dynamic
      (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
   #> Method.setup @{binding transfer} (transfer_method true)

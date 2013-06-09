@@ -136,34 +136,22 @@ text {* The @{text "transfer'"} variant can replace equality on @{text
   but sometimes more convenient. *}
 
 lemma "fmap f (fmap g xs) = fmap (f \<circ> g) xs"
-  apply transfer'
-  apply (rule map_map)
-  done
+  using map_map [Transfer.transferred] .
 
 lemma "ffilter p (fmap f xs) = fmap f (ffilter (p \<circ> f) xs)"
-  apply transfer'
-  apply (rule filter_map)
-  done
+  using filter_map [Transfer.transferred] .
 
 lemma "ffilter p (ffilter q xs) = ffilter (\<lambda>x. q x \<and> p x) xs"
-  apply transfer'
-  apply (rule filter_filter)
-  done
+  using filter_filter [Transfer.transferred] .
 
 lemma "fset (fcons x xs) = insert x (fset xs)"
-  apply transfer
-  apply (rule set.simps)
-  done
+  using set.simps(2) [Transfer.transferred] .
 
 lemma "fset (fappend xs ys) = fset xs \<union> fset ys"
-  apply transfer
-  apply (rule set_append)
-  done
+  using set_append [Transfer.transferred] .
 
 lemma "fset (fconcat xss) = (\<Union>xs\<in>fset xss. fset xs)"
-  apply transfer
-  apply (rule set_concat)
-  done
+  using set_concat [Transfer.transferred] .
 
 lemma "\<forall>x\<in>fset xs. f x = g x \<Longrightarrow> fmap f xs = fmap g xs"
   apply transfer
@@ -176,7 +164,7 @@ lemma "fnil = fconcat xss \<longleftrightarrow> (\<forall>xs\<in>fset xss. xs = 
   done
 
 lemma "fconcat (fmap (\<lambda>x. fcons x fnil) xs) = xs"
-  apply transfer'
+  apply transfer
   apply simp
   done
 
@@ -184,8 +172,6 @@ lemma concat_map_concat: "concat (map concat xsss) = concat (concat xsss)"
   by (induct xsss, simp_all)
 
 lemma "fconcat (fmap fconcat xss) = fconcat (fconcat xss)"
-  apply transfer'
-  apply (rule concat_map_concat)
-  done
+  using concat_map_concat [Transfer.transferred] .
 
 end

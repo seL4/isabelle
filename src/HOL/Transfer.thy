@@ -61,6 +61,11 @@ definition is_equality :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow
 lemma is_equality_eq: "is_equality (op =)"
   unfolding is_equality_def by simp
 
+text {* Reverse implication for monotonicity rules *}
+
+definition rev_implies where
+  "rev_implies x y \<longleftrightarrow> (y \<longrightarrow> x)"
+
 text {* Handling of meta-logic connectives *}
 
 definition transfer_forall where
@@ -252,13 +257,30 @@ subsection {* Transfer rules *}
 
 text {* Transfer rules using implication instead of equality on booleans. *}
 
+lemma transfer_forall_transfer [transfer_rule]:
+  "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
+  "right_total A \<Longrightarrow> ((A ===> op =) ===> implies) transfer_forall transfer_forall"
+  "right_total A \<Longrightarrow> ((A ===> implies) ===> implies) transfer_forall transfer_forall"
+  "bi_total A \<Longrightarrow> ((A ===> op =) ===> rev_implies) transfer_forall transfer_forall"
+  "bi_total A \<Longrightarrow> ((A ===> rev_implies) ===> rev_implies) transfer_forall transfer_forall"
+  unfolding transfer_forall_def rev_implies_def fun_rel_def right_total_def bi_total_def
+  by metis+
+
+lemma transfer_implies_transfer [transfer_rule]:
+  "(op =        ===> op =        ===> op =       ) transfer_implies transfer_implies"
+  "(rev_implies ===> implies     ===> implies    ) transfer_implies transfer_implies"
+  "(rev_implies ===> op =        ===> implies    ) transfer_implies transfer_implies"
+  "(op =        ===> implies     ===> implies    ) transfer_implies transfer_implies"
+  "(op =        ===> op =        ===> implies    ) transfer_implies transfer_implies"
+  "(implies     ===> rev_implies ===> rev_implies) transfer_implies transfer_implies"
+  "(implies     ===> op =        ===> rev_implies) transfer_implies transfer_implies"
+  "(op =        ===> rev_implies ===> rev_implies) transfer_implies transfer_implies"
+  "(op =        ===> op =        ===> rev_implies) transfer_implies transfer_implies"
+  unfolding transfer_implies_def rev_implies_def fun_rel_def by auto
+
 lemma eq_imp_transfer [transfer_rule]:
   "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
   unfolding right_unique_alt_def .
-
-lemma forall_imp_transfer [transfer_rule]:
-  "right_total A \<Longrightarrow> ((A ===> op \<longrightarrow>) ===> op \<longrightarrow>) transfer_forall transfer_forall"
-  unfolding right_total_alt_def transfer_forall_def .
 
 lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"
