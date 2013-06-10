@@ -502,7 +502,6 @@ session "HOL-ex" in ex = HOL +
   theories
     Iff_Oracle
     Coercion_Examples
-    Numeral_Representation
     Higher_Order_Logic
     Abstract_NAT
     Guess
