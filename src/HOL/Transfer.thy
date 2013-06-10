@@ -96,6 +96,9 @@ lemma transfer_start': "\<lbrakk>P; Rel (op \<longrightarrow>) P Q\<rbrakk> \<Lo
 lemma transfer_prover_start: "\<lbrakk>x = x'; Rel R x' y\<rbrakk> \<Longrightarrow> Rel R x y"
   by simp
 
+lemma untransfer_start: "\<lbrakk>Q; Rel (op =) P Q\<rbrakk> \<Longrightarrow> P"
+  unfolding Rel_def by simp
+
 lemma Rel_eq_refl: "Rel (op =) x x"
   unfolding Rel_def ..
 

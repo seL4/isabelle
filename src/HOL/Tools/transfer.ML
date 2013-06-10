@@ -16,6 +16,7 @@ sig
   val transfer_add: attribute
   val transfer_del: attribute
   val transferred_attribute: thm list -> attribute
+  val untransferred_attribute: thm list -> attribute
   val transfer_domain_add: attribute
   val transfer_domain_del: attribute
   val transfer_rule_of_term: Proof.context -> bool -> term -> thm
@@ -606,6 +607,39 @@ fun transferred ctxt extra_rules thm =
     handle THM _ => thm
 *)
 
+fun untransferred ctxt extra_rules thm =
+  let
+    val start_rule = @{thm untransfer_start}
+    val rules = extra_rules @ get_transfer_raw ctxt
+    val eq_rules = get_relator_eq_raw ctxt
+    val err_msg = "Transfer failed to convert goal to an object-logic formula"
+    val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
+    val thm1 = Drule.forall_intr_vars thm
+    val instT = rev (Term.add_tvars (Thm.full_prop_of thm1) [])
+                |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
+    val thm2 = thm1
+      |> Thm.certify_instantiate (instT, [])
+      |> Raw_Simplifier.rewrite_rule pre_simps
+    val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
+    val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
+    val rule = transfer_rule_of_term ctxt' true t
+    val tac =
+      rtac (thm2 RS start_rule) 1 THEN
+      (rtac rule
+        THEN_ALL_NEW
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
+            THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
+        handle TERM (_, ts) => raise TERM (err_msg, ts)
+    val thm3 = Goal.prove_internal [] @{cpat "Trueprop ?P"} (K tac)
+    val tnames = map (fst o dest_TFree o snd) instT
+  in
+    thm3
+      |> Raw_Simplifier.rewrite_rule post_simps
+      |> Raw_Simplifier.norm_hhf
+      |> Drule.generalize (tnames, [])
+      |> Drule.zero_var_indexes
+  end
+
 (** Methods and attributes **)
 
 val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
@@ -648,8 +682,14 @@ val transfer_domain_attribute =
 fun transferred_attribute thms = Thm.rule_attribute
   (fn context => transferred (Context.proof_of context) thms)
 
+fun untransferred_attribute thms = Thm.rule_attribute
+  (fn context => untransferred (Context.proof_of context) thms)
+
 val transferred_attribute_parser =
   Attrib.thms >> transferred_attribute
+
+val untransferred_attribute_parser =
+  Attrib.thms >> untransferred_attribute
 
 (* Theory setup *)
 
@@ -697,6 +737,8 @@ val setup =
      "transfer domain rule for transfer method"
   #> Attrib.setup @{binding transferred} transferred_attribute_parser
      "raw theorem transferred to abstract theorem using transfer rules"
+  #> Attrib.setup @{binding untransferred} untransferred_attribute_parser
+     "abstract theorem transferred to raw theorem using transfer rules"
   #> Global_Theory.add_thms_dynamic
      (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
   #> Method.setup @{binding transfer} (transfer_method true)
