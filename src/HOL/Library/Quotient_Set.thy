@@ -217,32 +217,48 @@ lemma filter_transfer [transfer_rule]:
   shows "((A ===> op=) ===> set_rel A ===> set_rel A) Set.filter Set.filter"
   unfolding Set.filter_def[abs_def] fun_rel_def set_rel_def by blast
 
+lemma bi_unique_set_rel_lemma:
+  assumes "bi_unique R" and "set_rel R X Y"
+  obtains f where "Y = image f X" and "inj_on f X" and "\<forall>x\<in>X. R x (f x)"
+proof
+  let ?f = "\<lambda>x. THE y. R x y"
+  from assms show f: "\<forall>x\<in>X. R x (?f x)"
+    apply (clarsimp simp add: set_rel_def)
+    apply (drule (1) bspec, clarify)
+    apply (rule theI2, assumption)
+    apply (simp add: bi_unique_def)
+    apply assumption
+    done
+  from assms show "Y = image ?f X"
+    apply safe
+    apply (clarsimp simp add: set_rel_def)
+    apply (drule (1) bspec, clarify)
+    apply (rule image_eqI)
+    apply (rule the_equality [symmetric], assumption)
+    apply (simp add: bi_unique_def)
+    apply assumption
+    apply (clarsimp simp add: set_rel_def)
+    apply (frule (1) bspec, clarify)
+    apply (rule theI2, assumption)
+    apply (clarsimp simp add: bi_unique_def)
+    apply (simp add: bi_unique_def, metis)
+    done
+  show "inj_on ?f X"
+    apply (rule inj_onI)
+    apply (drule f [rule_format])
+    apply (drule f [rule_format])
+    apply (simp add: assms(1) [unfolded bi_unique_def])
+    done
+qed
+
 lemma finite_transfer [transfer_rule]:
-  assumes "bi_unique A"
-  shows "(set_rel A ===> op =) finite finite"
-  apply (rule fun_relI, rename_tac X Y)
-  apply (rule iffI)
-  apply (subgoal_tac "Y \<subseteq> (\<lambda>x. THE y. A x y) ` X")
-  apply (erule finite_subset, erule finite_imageI)
-  apply (rule subsetI, rename_tac y)
-  apply (clarsimp simp add: set_rel_def)
-  apply (drule (1) bspec, clarify)
-  apply (rule image_eqI)
-  apply (rule the_equality [symmetric])
-  apply assumption
-  apply (simp add: assms [unfolded bi_unique_def])
-  apply assumption
-  apply (subgoal_tac "X \<subseteq> (\<lambda>y. THE x. A x y) ` Y")
-  apply (erule finite_subset, erule finite_imageI)
-  apply (rule subsetI, rename_tac x)
-  apply (clarsimp simp add: set_rel_def)
-  apply (drule (1) bspec, clarify)
-  apply (rule image_eqI)
-  apply (rule the_equality [symmetric])
-  apply assumption
-  apply (simp add: assms [unfolded bi_unique_def])
-  apply assumption
-  done
+  "bi_unique A \<Longrightarrow> (set_rel A ===> op =) finite finite"
+  by (rule fun_relI, erule (1) bi_unique_set_rel_lemma,
+    auto dest: finite_imageD)
+
+lemma card_transfer [transfer_rule]:
+  "bi_unique A \<Longrightarrow> (set_rel A ===> op =) card card"
+  by (rule fun_relI, erule (1) bi_unique_set_rel_lemma, simp add: card_image)
 
 subsection {* Setup for lifting package *}
 
