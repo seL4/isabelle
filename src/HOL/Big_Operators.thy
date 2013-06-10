@@ -1707,7 +1707,7 @@ where
   and "semilattice_set.F max = Max"
 proof -
   show "semilattice_order_set min less_eq less" by default (auto simp add: min_def)
-  then interpret Min!: semilattice_order_set min less_eq less.
+  then interpret Min!: semilattice_order_set min less_eq less .
   show "semilattice_order_set max greater_eq greater" by default (auto simp add: max_def)
   then interpret Max!: semilattice_order_set max greater_eq greater .
   from Min_def show "semilattice_set.F min = Min" by rule
@@ -1754,7 +1754,7 @@ where
   "semilattice_set.F inf = Inf_fin"
 proof -
   show "semilattice_order_set inf less_eq less" ..
-  then interpret Inf_fin!: semilattice_order_set inf less_eq less.
+  then interpret Inf_fin!: semilattice_order_set inf less_eq less .
   from Inf_fin_def show "semilattice_set.F inf = Inf_fin" by rule
 qed
 
