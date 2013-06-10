@@ -109,7 +109,7 @@ interchangeably for propositions that have been proved.
   overloaded.
 \end{warn}
 
-\subsubsection{An informal proof}
+\subsubsection{An Informal Proof}
 
 Above we gave some terse informal explanation of the proof of
 @{prop"add m 0 = m"}. A more detailed informal exposition of the lemma
@@ -335,7 +335,7 @@ text{*
 Finally the proofs of @{thm[source] rev_app} and @{thm[source] rev_rev}
 succeed, too.
 
-\subsubsection{Another informal proof}
+\subsubsection{Another Informal Proof}
 
 Here is the informal proof of associativity of @{const app}
 corresponding to the Isabelle proof above.
@@ -377,7 +377,7 @@ works well for a functional programming context like ours. In the base case
 @{text s} is @{term"app (app Nil ys) zs"}, @{text t} is @{term"app Nil (app
 ys zs)"}, and @{text u} is @{term"app ys zs"}.
 
-\subsection{Predefined lists}
+\subsection{Predefined Lists}
 \label{sec:predeflists}
 
 Isabelle's predefined lists are the same as the ones above, but with

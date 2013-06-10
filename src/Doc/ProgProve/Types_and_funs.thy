@@ -5,7 +5,7 @@ begin
 (*>*)
 text{*
 \vspace{-5ex}
-\section{Type and function definitions}
+\section{Type and Function Definitions}
 
 Type synonyms are abbreviations for existing types, for example
 *}
@@ -129,7 +129,7 @@ external view of a term.
 
 The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
 
-\subsection{Recursive functions}
+\subsection{Recursive Functions}
 \label{sec:recursive-funs}
 
 Recursive functions are defined with \isacom{fun} by pattern matching
@@ -200,7 +200,7 @@ where typically there is a call @{text"f x\<^isub>1 \<dots> x\<^isub>n"} in the 
 But note that the induction rule does not mention @{text f} at all,
 except in its name, and is applicable independently of @{text f}.
 
-\section{Induction heuristics}
+\section{Induction Heuristics}
 
 We have already noted that theorems about recursive functions are proved by
 induction. In case the function has more than one argument, we have followed
@@ -345,7 +345,7 @@ as follows:
 Simplification is often also called \concept{rewriting}
 and simplification rules \concept{rewrite rules}.
 
-\subsection{Simplification rules}
+\subsection{Simplification Rules}
 
 The attribute @{text"simp"} declares theorems to be simplification rules,
 which the simplifier will use automatically. In addition,
@@ -363,7 +363,7 @@ should only be used in specific proof steps (see \S\ref{sec:simp} below).
 Distributivity laws, for example, alter the structure of terms
 and can produce an exponential blow-up.
 
-\subsection{Conditional simplification rules}
+\subsection{Conditional Simplification Rules}
 
 Simplification rules can be conditional.  Before applying such a rule, the
 simplifier will first try to prove the preconditions, again by
@@ -401,7 +401,7 @@ are simpler than \mbox{@{prop"n < Suc m"}}. But
 leads to nontermination: when trying to rewrite @{prop"n<m"} to @{const True}
 one first has to prove \mbox{@{prop"Suc n < m"}}, which can be rewritten to @{const True} provided @{prop"Suc(Suc n) < m"}, \emph{ad infinitum}.
 
-\subsection{The @{text simp} proof method}
+\subsection{The @{text simp} Proof Method}
 \label{sec:simp}
 
 So far we have only used the proof method @{text auto}.  Method @{text simp}
@@ -436,7 +436,7 @@ Note that @{text simp} acts only on subgoal 1, @{text auto} acts on all
 subgoals. There is also @{text simp_all}, which applies @{text simp} to
 all subgoals.
 
-\subsection{Rewriting with definitions}
+\subsection{Rewriting With Definitions}
 \label{sec:rewr-defs}
 
 Definitions introduced by the command \isacom{definition}
@@ -457,7 +457,7 @@ and can be added to a call of @{text simp} just like any other theorem:
 In particular, let-expressions can be unfolded by
 making @{thm[source] Let_def} a simplification rule.
 
-\subsection{Case splitting with @{text simp}}
+\subsection{Case Splitting With @{text simp}}
 
 Goals containing if-expressions are automatically split into two cases by
 @{text simp} using the rule
