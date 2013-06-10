@@ -84,7 +84,7 @@ recursion equations defining @{text f}. Individual facts can be selected by
 writing @{text"f.simps(2)"}, whole sublists by @{text"f.simps(2-4)"}.
 
 
-\section{Isar by example}
+\section{Isar by Example}
 
 We show a number of proofs of Cantor's theorem that a function from a set to
 its powerset cannot be surjective, illustrating various features of Isar. The
@@ -175,7 +175,7 @@ There are two further linguistic variations:
 \noindent The \isacom{using} idiom de-emphasizes the used facts by moving them
 behind the proposition.
 
-\subsection{Structured lemma statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
+\subsection{Structured Lemma Statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
 
 Lemmas can also be stated in a more structured fashion. To demonstrate this
 feature with Cantor's theorem, we rephrase @{prop"\<not> surj f"}
@@ -221,7 +221,7 @@ name @{text assms} that stands for the list of all assumptions. You can refer
 to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"} etc,
 thus obviating the need to name them individually.
 
-\section{Proof patterns}
+\section{Proof Patterns}
 
 We show a number of important basic proof patterns. Many of them arise from
 the rules of natural deduction that are applied by \isacom{proof} by
@@ -428,9 +428,9 @@ text_raw {* }
 \end{minipage}
 \end{tabular}
 \begin{isamarkuptext}%
-\section{Streamlining proofs}
+\section{Streamlining Proofs}
 
-\subsection{Pattern matching and quotations}
+\subsection{Pattern Matching and Quotations}
 
 In the proof patterns shown above, formulas are often duplicated.
 This can make the text harder to read, write and maintain. Pattern matching
@@ -544,7 +544,7 @@ text_raw {* }
 The \isacom{moreover} version is no shorter but expresses the structure more
 clearly and avoids new names.
 
-\subsection{Raw proof blocks}
+\subsection{Raw Proof Blocks}
 
 Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
@@ -590,9 +590,9 @@ This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
-\section{Case analysis and induction}
+\section{Case Analysis and Induction}
 
-\subsection{Datatype case analysis}
+\subsection{Datatype Case Analysis}
 
 We have seen case analysis on formulas. Now we want to distinguish
 which form some term takes: is it @{text 0} or of the form @{term"Suc n"},
@@ -642,7 +642,7 @@ for @{text"[]"} and @{text"#"}. The names of the assumptions
 are not used because they are directly piped (via \isacom{thus})
 into the proof of the claim.
 
-\subsection{Structural induction}
+\subsection{Structural Induction}
 
 We illustrate structural induction with an example based on natural numbers:
 the sum (@{text"\<Sum>"}) of the first @{text n} natural numbers
@@ -768,7 +768,7 @@ performs the following steps:
 \item \isacom{let} @{text"?case = \"P(C x\<^isub>1 \<dots> x\<^isub>n)\""}
 \end{enumerate}
 
-\subsection{Rule induction}
+\subsection{Rule Induction}
 
 Recall the inductive and recursive definitions of even numbers in
 \autoref{sec:inductive-defs}:
@@ -893,7 +893,7 @@ One can provide explicit variable names by writing
 free variables in rule @{text i} to @{text"x\<^isub>1 \<dots> x\<^isub>k"},
 going through rule @{text i} from left to right.
 
-\subsection{Assumption naming}
+\subsection{Assumption Naming}
 \label{sec:assm-naming}
 
 In any induction, \isacom{case}~@{text name} sets up a list of assumptions
@@ -919,7 +919,8 @@ often need to refer to specific assumptions---just @{text name} or even
 This is where the indexing of fact lists comes in handy, e.g.\
 @{text"name.IH(2)"} or @{text"name.prems(1-2)"}.
 
-\subsection{Rule inversion}
+\subsection{Rule Inversion}
+\label{sec:rule-inversion}
 
 Rule inversion is case analysis of which rule could have been used to
 derive some fact. The name \concept{rule inversion} emphasizes that we are
@@ -980,7 +981,7 @@ qed
 text{* Normally not all cases will be impossible. As a simple exercise,
 prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
 
-\subsection{Advanced rule induction}
+\subsection{Advanced Rule Induction}
 \label{sec:advanced-rule-induction}
 
 So far, rule induction was always applied to goals of the form @{text"I x y z \<Longrightarrow> \<dots>"}

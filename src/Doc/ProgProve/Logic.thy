@@ -119,7 +119,7 @@ Some more frequently useful functions on sets:
 See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
 @{theory Main}.
 
-\section{Proof automation}
+\section{Proof Automation}
 
 So far we have only seen @{text simp} and @{text auto}: Both perform
 rewriting, both can also prove linear arithmetic facts (no multiplication),
@@ -258,7 +258,7 @@ of further operators like @{const min} and @{const max}. On @{typ nat} and
 but we will not enlarge on that here.
 
 
-\subsection{Trying them all}
+\subsection{Trying Them All}
 
 If you want to try all of the above automatic proof methods you simply type
 \begin{isabelle}
@@ -271,7 +271,7 @@ You can also add specific simplification and introduction rules:
 There is also a lightweight variant \isacom{try0} that does not call
 sledgehammer.
 
-\section{Single step proofs}
+\section{Single Step Proofs}
 
 Although automation is nice, it often fails, at least initially, and you need
 to find out why. When @{text fastforce} or @{text blast} simply fail, you have
@@ -284,7 +284,7 @@ be achieved by applying \emph{conjunction introduction}
 \]
 to the proof state. We will now examine the details of this process.
 
-\subsection{Instantiating unknowns}
+\subsection{Instantiating Unknowns}
 
 We had briefly mentioned earlier that after proving some theorem,
 Isabelle replaces all free variables @{text x} by so called \concept{unknowns}
@@ -312,7 +312,7 @@ Unknowns can also be instantiated by name, for example
 @{text "conjI[where ?P = \"a=b\" and ?Q = \"False\"]"}.
 
 
-\subsection{Rule application}
+\subsection{Rule Application}
 
 \concept{Rule application} means applying a rule backwards to a proof state.
 For example, applying rule @{thm[source]conjI} to a proof state
@@ -338,7 +338,7 @@ This is the command to apply rule @{text xyz}:
 \end{quote}
 This is also called \concept{backchaining} with rule @{text xyz}.
 
-\subsection{Introduction rules}
+\subsection{Introduction Rules}
 
 Conjunction introduction (@{thm[source] conjI}) is one example of a whole
 class of rules known as \concept{introduction rules}. They explain under which
@@ -388,7 +388,7 @@ by(blast intro: le_trans)
 text{*
 Of course this is just an example and could be proved by @{text arith}, too.
 
-\subsection{Forward proof}
+\subsection{Forward Proof}
 \label{sec:forward-proof}
 
 Forward proof means deriving new theorems from old theorems. We have already
@@ -437,7 +437,7 @@ by(blast dest: Suc_leD)
 text{* In this particular example we could have backchained with
 @{thm[source] Suc_leD}, too, but because the premise is more complicated than the conclusion this can easily lead to nontermination.
 
-\subsection{Finding theorems}
+\subsection{Finding Theorems}
 
 Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
 theory. Search criteria include pattern matching on terms and on names.
@@ -450,7 +450,7 @@ in front of unknowns from now on.
 \end{warn}
 
 
-\section{Inductive definitions}
+\section{Inductive Definitions}
 \label{sec:inductive-defs}
 
 Inductive definitions are the third important definition facility, after
@@ -460,7 +460,7 @@ In fact, they are the key construct in the
 definition of operational semantics in the second part of the book.
 \endsem
 
-\subsection{An example: even numbers}
+\subsection{An Example: Even Numbers}
 \label{sec:Logic:even}
 
 Here is a simple example of an inductively defined predicate:
@@ -486,7 +486,7 @@ How do we prove that some number is even, e.g.\ @{prop "ev 4"}? Simply by combin
 @{text "ev 0 \<Longrightarrow> ev (0 + 2) \<Longrightarrow> ev((0 + 2) + 2) = ev 4"}
 \end{quote}
 
-\subsubsection{Rule induction}
+\subsubsection{Rule Induction}
 
 Showing that all even numbers have some property is more complicated.  For
 example, let us prove that the inductive definition of even numbers agrees
@@ -617,7 +617,7 @@ text{* The rules of an inductive definition are not simplification rules by
 default because, in contrast to recursive functions, there is no termination
 requirement for inductive definitions.
 
-\subsubsection{Inductive versus recursive}
+\subsubsection{Inductive Versus Recursive}
 
 We have seen two definitions of the notion of evenness, an inductive and a
 recursive one. Which one is better? Much of the time, the recursive one is
@@ -642,7 +642,7 @@ an interpreter for a programming language). Even if there is a recursive
 definition, if we are only interested in the positive information, the
 inductive definition may be much simpler.
 
-\subsection{The reflexive transitive closure}
+\subsection{The Reflexive Transitive Closure}
 \label{sec:star}
 
 Evenness is really more conveniently expressed recursively than inductively.
@@ -709,7 +709,7 @@ done
 
 text{*
 
-\subsection{The general case}
+\subsection{The General Case}
 
 Inductive definitions have approximately the following general form:
 \begin{quote}

@@ -9,7 +9,7 @@ how to prove properties of functional programs by induction.
 
 \section{Basics}
 
-\subsection{Types, Terms and Formulae}
+\subsection{Types, Terms and Formulas}
 \label{sec:TypesTermsForms}
 
 HOL is a typed logic whose type system resembles that of functional
@@ -58,7 +58,7 @@ if they occur inside other constructs.
 Terms may also contain @{text "\<lambda>"}-abstractions. For example,
 @{term "\<lambda>x. x"} is the identity function.
 
-\concept{Formulae} are terms of type @{text bool}.
+\concept{Formulas} are terms of type @{text bool}.
 There are the basic constants @{term True} and @{term False} and
 the usual logical connectives (in decreasing order of precedence):
 @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"}.
@@ -133,7 +133,7 @@ that everybody can contribute to.
 
 The textual definition of a theory follows a fixed syntax with keywords like
 \isacommand{begin} and \isacommand{datatype}.  Embedded in this syntax are
-the types and formulae of HOL.  To distinguish the two levels, everything
+the types and formulas of HOL.  To distinguish the two levels, everything
 HOL-specific (terms and types) must be enclosed in quotation marks:
 \texttt{"}\dots\texttt{"}. To lessen this burden, quotation marks around a
 single identifier can be dropped.  When Isabelle prints a syntax error
