@@ -639,12 +639,14 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
           else
             f;
 
-        fun unzip_iters (x as Free (_, T)) =
-          map (fn U => if U = T then x else
+        fun build_iter (x as Free (_, T)) U =
+          if T = U then
+            x
+          else
             build_map lthy (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
-              (fn kk => fn TU => maybe_tick TU (nth us kk) (nth fiters kk))) (T, U) $ x);
+              (fn kk => fn TU => maybe_tick TU (nth us kk) (nth fiters kk))) (T, U) $ x;
 
-        val fxsss = map2 (map2 (flat_rec oo map2 unzip_iters)) xsss x_Tssss;
+        val fxsss = map2 (map2 (flat_rec oo map2 (map o build_iter))) xsss x_Tssss;
 
         val goalss = map5 (map4 o mk_goal fss) fiters xctrss fss xsss fxsss;
 
@@ -806,14 +808,6 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
             (Logic.list_implies (seq_conds (HOLogic.mk_Trueprop oo mk_maybe_not) n k cps,
                mk_Trueprop_eq (fcoiter $ c, Term.list_comb (ctr, take m cfs'))));
 
-        fun build_coiter fcoiters maybe_tack (T, U) =
-          if T = U then
-             id_const T
-          else
-            (case find_index (curry (op =) U) fpTs of
-              ~1 => build_map lthy (build_coiter fcoiters maybe_tack) (T, U)
-            | kk => maybe_tack (nth cs kk, nth us kk) (nth fcoiters kk));
- 
         fun mk_U maybe_mk_sumT =
           typ_subst_nonatomic (map2 (fn C => fn fpT => (maybe_mk_sumT fpT C, fpT)) Cs fpTs);
 
@@ -822,16 +816,19 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
             Term.lambda z (mk_sum_case (Term.lambda u u, Term.lambda c (f $ c)) $ z)
           end;
 
-        fun intr_coiters fcoiters maybe_mk_sumT maybe_tack cqf =
+        fun build_coiter fcoiters maybe_mk_sumT maybe_tack cqf =
           let val T = fastype_of cqf in
             if exists_subtype_in Cs T then
-              build_coiter fcoiters maybe_tack (T, mk_U maybe_mk_sumT T) $ cqf
+              let val U = mk_U maybe_mk_sumT T in
+                build_map lthy (indexify snd fpTs (fn kk => fn TU =>
+                  maybe_tack (nth cs kk, nth us kk) (nth fcoiters kk))) (T, U) $ cqf
+              end
             else
               cqf
           end;
 
-        val crgsss' = map (map (map (intr_coiters (un_fold_of fcoiterss') (K I) (K I)))) crgsss;
-        val cshsss' = map (map (map (intr_coiters (co_rec_of fcoiterss') (curry mk_sumT) (tack z))))
+        val crgsss' = map (map (map (build_coiter (un_fold_of fcoiterss') (K I) (K I)))) crgsss;
+        val cshsss' = map (map (map (build_coiter (co_rec_of fcoiterss') (curry mk_sumT) (tack z))))
           cshsss;
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss';
