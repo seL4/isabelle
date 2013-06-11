@@ -382,6 +382,11 @@ qed (auto simp add: equal_literal_def explode_inject)
 
 end
 
+lemma [code nbe]:
+  fixes s :: "String.literal"
+  shows "HOL.equal s s \<longleftrightarrow> True"
+  by (simp add: equal)
+
 lemma STR_inject' [simp]:
   "STR xs = STR ys \<longleftrightarrow> xs = ys"
   by (simp add: STR_inject)
