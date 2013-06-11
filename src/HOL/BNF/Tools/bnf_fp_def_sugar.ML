@@ -1103,11 +1103,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    (* FIXME: names (lthyX, lthyY) *)
-    val lthyX = lthy;
-    val ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy) =
+    val ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy') =
       mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
-    val lthyY = lthy;
 
     fun define_ctrs_case_for_type ((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
             xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1362,7 +1359,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_inducts
             dtor_ctors xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss
-            ctr_sugars coiterss coiter_defss (Proof_Context.export lthyY lthyX) lthy;
+            ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy)
+            lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1408,7 +1406,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           [coinduct_thm, strong_coinduct_thm] (transpose [unfold_thmss, corec_thmss])
       end;
 
-    val lthy' = lthy
+    val lthy'' = lthy'
       |> fold_map define_ctrs_case_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~
         xtor_co_iterss ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
         pre_set_defss ~~ pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~
@@ -1421,7 +1419,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       datatype_word fp));
   in
-    timer; lthy'
+    timer; lthy''
   end;
 
 val co_datatypes = define_co_datatypes (K I) (K I) (K I);
