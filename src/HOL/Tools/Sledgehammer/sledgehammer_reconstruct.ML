@@ -463,8 +463,10 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       else
         of_show_have qs
     fun add_term term (s, ctxt) =
-      (s ^ (annotate_types ctxt term
-            |> with_vanilla_print_mode (Syntax.string_of_term ctxt)
+      (s ^ (term
+            |> singleton (Syntax.uncheck_terms ctxt)
+            |> annotate_types ctxt
+            |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
             |> maybe_quote),
        ctxt |> Variable.auto_fixes term)

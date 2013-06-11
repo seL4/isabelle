@@ -2,8 +2,16 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Supplement term with explicit type constraints that show up as
-type annotations when printing the term.
+Supplements term with a locally minmal, complete set of type constraints.
+Complete: The constraints suffice to infer the term's types.
+Minimal: Reducing the set of constraints further will make it incomplete.
+
+When configuring the pretty printer appropriately, the constraints will show up
+as type annotations when printing the term. This allows the term to be reparsed
+without a change of types.
+
+NOTE: Terms should be unchecked before calling annotate_types to avoid awkward
+syntax.
 *)
 
 signature SLEDGEHAMMER_ANNOTATE =
@@ -42,9 +50,14 @@ structure Var_Set_Tab = Table(
 
 (* (1) Generalize types *)
 fun generalize_types ctxt t =
-  t |> map_types (fn _ => dummyT)
-    |> Syntax.check_term
-         (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
+  let
+    val erase_types = map_types (fn _ => dummyT)
+    (* use schematic type variables *)
+    val ctxt = ctxt |> Proof_Context.set_mode Proof_Context.mode_pattern
+    val infer_types = singleton (Type_Infer_Context.infer_types ctxt)
+  in
+     t |> erase_types |> infer_types
+  end
 
 (* (2) Typing-spot table *)
 local
