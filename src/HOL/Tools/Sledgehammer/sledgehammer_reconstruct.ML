@@ -433,6 +433,14 @@ val indent_size = 2
 
 fun string_of_proof ctxt type_enc lam_trans i n proof =
   let
+    val ctxt =
+      (* make sure type constraint are actually printed *)
+      ctxt |> Config.put show_markup false
+      (* make sure only type constraints inserted by sh_annotate are printed *)
+           |> Config.put Printer.show_type_emphasis false
+           |> Config.put show_types false
+           |> Config.put show_sorts false
+           |> Config.put show_consts false
     val register_fixes = map Free #> fold Variable.auto_fixes
     fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
     fun of_indent ind = replicate_string (ind * indent_size) " "

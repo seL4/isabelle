@@ -34,19 +34,6 @@ fun post_traverse_term_type f s t =
 fun post_fold_term_type f s t =
   post_traverse_term_type (fn t => fn T => fn s => (t, f t T s)) s t |> snd
 
-local
-fun natify_numeral' (t as Const (s, T)) =
-    (case s of
-      "Groups.zero_class.zero" => Const (s, @{typ "nat"})
-    | "Groups.one_class.one" => Const (s, @{typ "nat"})
-    | "Num.numeral_class.numeral" => Const(s, @{typ "num"} --> @{typ "nat"})
-    | "Num.numeral_class.neg_numeral" => Const(s, @{typ "num"} --> @{typ "nat"})
-    | _ => t)
-  | natify_numeral' t = t
-in
-val natify_numerals = Term.map_aterms natify_numeral'
-end
-
 (* Data structures, orders *)
 val cost_ord = prod_ord int_ord (prod_ord int_ord int_ord)
 structure Var_Set_Tab = Table(
@@ -157,9 +144,7 @@ fun introduce_annotations ctxt spots t t' =
         else (Type.constraint T t, (cp + 1, annots'))
       | post2 t _ x = (t, x)
   in
-    t |> natify_numerals (* typing all numerals as "nat"s prevents the pretty
-         printer from inserting additional, unwanted type annotations *)
-      |> post_traverse_term_type post2 (0, rev annots)
+    t |> post_traverse_term_type post2 (0, rev annots)
       |> fst
   end
 
