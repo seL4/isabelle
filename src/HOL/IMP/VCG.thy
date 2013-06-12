@@ -42,8 +42,8 @@ fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "vc (C\<^isub>1;; C\<^isub>2) Q = (\<lambda>s. vc C\<^isub>1 (pre C\<^isub>2 Q) s \<and> vc C\<^isub>2 Q s)" |
 "vc (IF b THEN C\<^isub>1 ELSE C\<^isub>2) Q = (\<lambda>s. vc C\<^isub>1 Q s \<and> vc C\<^isub>2 Q s)" |
 "vc ({I} WHILE b DO C) Q =
-  (\<lambda>s. (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
-       (I s \<and> bval b s \<longrightarrow> pre C I s) \<and>
+  (\<lambda>s. (I s \<and> bval b s \<longrightarrow> pre C I s) \<and>
+       (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
        vc C I s)"
 
 
