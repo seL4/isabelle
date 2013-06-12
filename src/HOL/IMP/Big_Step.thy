@@ -4,6 +4,12 @@ theory Big_Step imports Com begin
 
 subsection "Big-Step Semantics of Commands"
 
+text {*
+The big-step semantics is a straight-forward inductive definition
+with concrete syntax. Note that the first paramenter is a tuple,
+so the syntax becomes @{text "(c,s) \<Rightarrow> s'"}.
+*}
+
 text_raw{*\snip{BigStepdef}{0}{1}{% *}
 inductive
   big_step :: "com \<times> state \<Rightarrow> state \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
@@ -57,6 +63,10 @@ values "{map t [''x'',''y''] |t.
 
 text{* Proof automation: *}
 
+text {* The introduction rules are good for automatically
+construction small program executions. The recursive cases
+may require backtracking, so we declare the set as unsafe
+intro rules. *}
 declare big_step.intros [intro]
 
 text{* The standard induction rule 
@@ -64,8 +74,13 @@ text{* The standard induction rule
 
 thm big_step.induct
 
-text{* A customized induction rule for (c,s) pairs: *}
-
+text{*
+This induction schema is almost perfect for our purposes, but
+our trick for reusing the tuple syntax means that the induction
+schema has two parameters instead of the @{text c}, @{text s},
+and @{text s'} that we are likely to encounter. Splitting
+the tuple parameter fixes this:
+*}
 lemmas big_step_induct = big_step.induct[split_format(complete)]
 thm big_step_induct
 text {*
