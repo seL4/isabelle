@@ -9,12 +9,18 @@ signature BNF_CTR_SUGAR =
 sig
   type ctr_sugar =
     {ctrs: term list,
+     casex: term,
      discs: term list,
      selss: term list list,
      exhaust: thm,
+     nchotomy: thm,
      injects: thm list,
      distincts: thm list,
      case_thms: thm list,
+     case_cong: thm,
+     weak_case_cong: thm,
+     split: thm,
+     split_asm: thm,
      disc_thmss: thm list list,
      discIs: thm list,
      sel_thmss: thm list list};
@@ -48,25 +54,37 @@ open BNF_Ctr_Sugar_Tactics
 
 type ctr_sugar =
   {ctrs: term list,
+   casex: term,
    discs: term list,
    selss: term list list,
    exhaust: thm,
+   nchotomy: thm,
    injects: thm list,
    distincts: thm list,
    case_thms: thm list,
+   case_cong: thm,
+   weak_case_cong: thm,
+   split: thm,
+   split_asm: thm,
    disc_thmss: thm list list,
    discIs: thm list,
    sel_thmss: thm list list};
 
-fun morph_ctr_sugar phi {ctrs, discs, selss, exhaust, injects, distincts, case_thms, disc_thmss,
-    discIs, sel_thmss} =
+fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
+    case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss} =
   {ctrs = map (Morphism.term phi) ctrs,
+   casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
    selss = map (map (Morphism.term phi)) selss,
    exhaust = Morphism.thm phi exhaust,
+   nchotomy = Morphism.thm phi nchotomy,
    injects = map (Morphism.thm phi) injects,
    distincts = map (Morphism.thm phi) distincts,
    case_thms = map (Morphism.thm phi) case_thms,
+   case_cong = Morphism.thm phi case_cong,
+   weak_case_cong = Morphism.thm phi weak_case_cong,
+   split = Morphism.thm phi split,
+   split_asm = Morphism.thm phi split_asm,
    disc_thmss = map (map (Morphism.thm phi)) disc_thmss,
    discIs = map (Morphism.thm phi) discIs,
    sel_thmss = map (map (Morphism.thm phi)) sel_thmss};
@@ -702,8 +720,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ({ctrs = ctrs, discs = discs, selss = selss, exhaust = exhaust_thm, injects = inject_thms,
-          distincts = distinct_thms, case_thms = case_thms, disc_thmss = disc_thmss,
+        ({ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
+          nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
+          case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
+          split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
           discIs = discI_thms, sel_thmss = sel_thmss},
          lthy
          |> not rep_compat ?
