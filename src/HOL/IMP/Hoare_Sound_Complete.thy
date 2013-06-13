@@ -56,21 +56,7 @@ subsection "Completeness"
 
 lemma wp_is_pre: "\<turnstile> {wp c Q} c {Q}"
 proof(induction c arbitrary: Q)
-  case Seq thus ?case by(auto intro: Seq)
-next
-  case (If b c1 c2)
-  let ?If = "IF b THEN c1 ELSE c2"
-  show ?case
-  proof(rule hoare.If)
-    show "\<turnstile> {\<lambda>s. wp ?If Q s \<and> bval b s} c1 {Q}"
-    proof(rule strengthen_pre[OF _ If.IH(1)])
-      show "\<forall>s. wp ?If Q s \<and> bval b s \<longrightarrow> wp c1 Q s" by auto
-    qed
-    show "\<turnstile> {\<lambda>s. wp ?If Q s \<and> \<not> bval b s} c2 {Q}"
-    proof(rule strengthen_pre[OF _ If.IH(2)])
-      show "\<forall>s. wp ?If Q s \<and> \<not> bval b s \<longrightarrow> wp c2 Q s" by auto
-    qed
-  qed
+  case If thus ?case by(auto intro: conseq)
 next
   case (While b c)
   let ?w = "WHILE b DO c"

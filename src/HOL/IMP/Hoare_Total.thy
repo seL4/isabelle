@@ -162,13 +162,13 @@ qed
 
 lemma wpt_is_pre: "\<turnstile>\<^sub>t {wp\<^sub>t c Q} c {Q}"
 proof (induction c arbitrary: Q)
-  case SKIP show ?case by simp (blast intro:hoaret.Skip)
+  case SKIP show ?case by (auto intro:hoaret.Skip)
 next
-  case Assign show ?case by simp (blast intro:hoaret.Assign)
+  case Assign show ?case by (auto intro:hoaret.Assign)
 next
-  case Seq thus ?case by simp (blast intro:hoaret.Seq)
+  case Seq thus ?case by (auto intro:hoaret.Seq)
 next
-  case If thus ?case by simp (blast intro:hoaret.If hoaret.conseq)
+  case If thus ?case by (auto intro:hoaret.If hoaret.conseq)
 next
   case (While b c)
   let ?w = "WHILE b DO c"
