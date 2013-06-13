@@ -148,7 +148,7 @@ text {*
 text_raw{*\snip{BigStepEquiv}{0}{1}{% *}
 abbreviation
   equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix "\<sim>" 50) where
-  "c \<sim> c' == (\<forall>s t. (c,s) \<Rightarrow> t  =  (c',s) \<Rightarrow> t)"
+  "c \<sim> c' \<equiv> (\<forall>s t. (c,s) \<Rightarrow> t  =  (c',s) \<Rightarrow> t)"
 text_raw{*}%endsnip*}
 
 text {*
