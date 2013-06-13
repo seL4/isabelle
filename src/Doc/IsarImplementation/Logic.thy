@@ -932,6 +932,72 @@ text %mlref {*
 *}
 
 
+subsection {* Sort hypotheses *}
+
+text {* Type variables are decorated with sorts, as explained in
+  \secref{sec:types}.  This constrains type instantiation to certain
+  ranges of types: variable @{text "\<alpha>\<^sub>s"} may only be assigned to types
+  @{text "\<tau>"} that belong to sort @{text "s"}.  Within the logic, sort
+  constraints act like implicit preconditions on the result @{text
+  "\<lparr>\<alpha>\<^sub>1 : s\<^sub>1\<rparr>, \<dots>, \<lparr>\<alpha>\<^sub>n : s\<^sub>n\<rparr>, \<Gamma> \<turnstile> \<phi>"} where the type variables @{text
+  "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} cover the propositions @{text "\<Gamma>"}, @{text "\<phi>"}, as
+  well as the proof of @{text "\<Gamma> \<turnstile> \<phi>"}.
+
+  These \emph{sort hypothesis} of a theorem are passed monotonically
+  through further derivations.  They are redundant, as long as the
+  statement of a theorem still contains the type variables that are
+  accounted here.  The logical significance of sort hypotheses is
+  limited to the boundary case where type variables disappear from the
+  proposition, e.g.\ @{text "\<lparr>\<alpha>\<^sub>s : s\<rparr> \<turnstile> \<phi>"}.  Since such dangling type
+  variables can be renamed arbitrarily without changing the
+  proposition @{text "\<phi>"}, the inference kernel maintains sort
+  hypotheses in anonymous form @{text "s \<turnstile> \<phi>"}.
+
+  In most practical situations, such extra sort hypotheses may be
+  stripped in a final bookkeeping step, e.g.\ at the end of a proof:
+  they are typically left over from intermediate reasoning with type
+  classes that can be satisfied by some concrete type @{text "\<tau>"} of
+  sort @{text "s"} to replace the hypothetical type variable @{text
+  "\<alpha>\<^sub>s"}.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Thm.extra_shyps: "thm -> sort list"} \\
+  @{index_ML Thm.strip_shyps: "thm -> thm"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML Thm.extra_shyps}~@{text "thm"} determines the extraneous
+  sort hypotheses of the given theorem, i.e.\ the sorts that are not
+  present within type variables of the statement.
+
+  \item @{ML Thm.strip_shyps}~@{text "thm"} removes any extraneous
+  sort hypotheses that can be witnessed from the type signature.
+
+  \end{description}
+*}
+
+text %mlex {* The following artificial example demonstrates the
+  derivation of @{prop False} with a pending sort hypothesis involving
+  a logically empty sort.  *}
+
+class empty =
+  assumes bad: "\<And>(x::'a) y. x \<noteq> y"
+
+theorem (in empty) false: False
+  using bad by blast
+
+ML {*
+  @{assert} (Thm.extra_shyps @{thm false} = [@{sort empty}])
+*}
+
+text {* Thanks to the inference kernel managing sort hypothesis
+  according to their logical significance, this example is merely an
+  instance of \emph{ex falso quodlibet consequitur} --- not a collapse
+  of the logical framework! *}
+
+
 section {* Object-level rules \label{sec:obj-rules} *}
 
 text {*

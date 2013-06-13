@@ -1,51 +1,6 @@
 
 \chapter{Theorems and Forward Proof}
 
-\section{*Sort hypotheses} \label{sec:sort-hyps}
-
-\begin{ttbox} 
-strip_shyps         : thm -> thm
-strip_shyps_warning : thm -> thm
-\end{ttbox}
-
-Isabelle's type variables are decorated with sorts, constraining them to
-certain ranges of types.  This has little impact when sorts only serve for
-syntactic classification of types --- for example, FOL distinguishes between
-terms and other types.  But when type classes are introduced through axioms,
-this may result in some sorts becoming {\em empty\/}: where one cannot exhibit
-a type belonging to it because certain sets of axioms are unsatisfiable.
-
-If a theorem contains a type variable that is constrained by an empty
-sort, then that theorem has no instances.  It is basically an instance
-of {\em ex falso quodlibet}.  But what if it is used to prove another
-theorem that no longer involves that sort?  The latter theorem holds
-only if under an additional non-emptiness assumption.
-
-Therefore, Isabelle's theorems carry around sort hypotheses.  The {\tt
-shyps} field is a list of sorts occurring in type variables in the current
-{\tt prop} and {\tt hyps} fields.  It may also includes sorts used in the
-theorem's proof that no longer appear in the {\tt prop} or {\tt hyps}
-fields --- so-called {\em dangling\/} sort constraints.  These are the
-critical ones, asserting non-emptiness of the corresponding sorts.
- 
-Isabelle automatically removes extraneous sorts from the {\tt shyps} field at
-the end of a proof, provided that non-emptiness can be established by looking
-at the theorem's signature: from the {\tt classes} and {\tt arities}
-information.  This operation is performed by \texttt{strip_shyps} and
-\texttt{strip_shyps_warning}.
-
-\begin{ttdescription}
-  
-\item[\ttindexbold{strip_shyps} $thm$] removes any extraneous sort hypotheses
-  that can be witnessed from the type signature.
-  
-\item[\ttindexbold{strip_shyps_warning}] is like \texttt{strip_shyps}, but
-  issues a warning message of any pending sort hypotheses that do not have a
-  (syntactic) witness.
-
-\end{ttdescription}
-
-
 \section{Proof terms}\label{sec:proofObjects}
 \index{proof terms|(} Isabelle can record the full meta-level proof of each
 theorem.  The proof term contains all logical inferences in detail.
