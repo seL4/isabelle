@@ -5,7 +5,7 @@
 Isar proof reconstruction from ATP proofs.
 *)
 
-signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
+signature SLEDGEHAMMER_RECONSTRUCT =
 sig
   type 'a proof = 'a ATP_Proof.proof
   type stature = ATP_Problem_Generate.stature
@@ -45,7 +45,7 @@ sig
     -> string
 end;
 
-structure Sledgehammer_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
+structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
 struct
 
 open ATP_Util
