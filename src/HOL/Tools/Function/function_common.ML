@@ -20,7 +20,8 @@ type info =
   pinducts: thm list,
   simps : thm list option,
   inducts : thm list option,
-  termination: thm}
+  termination : thm,
+  cases : thm}
 
 end
 
@@ -40,7 +41,8 @@ type info =
   pinducts: thm list,
   simps : thm list option,
   inducts : thm list option,
-  termination: thm}
+  termination : thm,
+  cases : thm}
 
 end
 
@@ -145,7 +147,7 @@ datatype function_result = FunctionResult of
   domintros : thm list option}
 
 fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
-  simps, inducts, termination, defname, is_partial} : info) phi =
+  simps, inducts, termination, defname, is_partial, cases} : info) phi =
     let
       val term = Morphism.term phi
       val thm = Morphism.thm phi
@@ -156,7 +158,7 @@ fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
         fs = map term fs, R = term R, psimps = fact psimps,
         pinducts = fact pinducts, simps = Option.map fact simps,
         inducts = Option.map fact inducts, termination = thm termination,
-        defname = name defname, is_partial=is_partial }
+        defname = name defname, is_partial=is_partial, cases = thm cases }
     end
 
 (* FIXME just one data slot (record) per program unit *)
