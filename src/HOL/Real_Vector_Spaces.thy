@@ -807,7 +807,7 @@ begin
 definition dist_real_def:
   "dist x y = \<bar>x - y\<bar>"
 
-definition open_real_def:
+definition open_real_def [code del]:
   "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
 
 definition real_norm_def [simp]:
@@ -825,6 +825,8 @@ apply (rule abs_mult)
 done
 
 end
+
+code_abort "open :: real set \<Rightarrow> bool"
 
 instance real :: linorder_topology
 proof
@@ -1543,3 +1545,4 @@ proof (rule tendstoI)
 qed
 
 end
+
