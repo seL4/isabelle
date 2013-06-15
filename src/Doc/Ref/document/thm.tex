@@ -3,11 +3,6 @@
 
 \section{Proof terms}\label{sec:proofObjects}
 
-Note that there are no separate constructors
-for abstraction and application on the level of {\em types}, since
-instantiation of type variables is accomplished via the type assignments
-attached to {\tt Thm}, {\tt Axm} and {\tt Oracle}.
-
 Each theorem's derivation is stored as the {\tt der} field of its internal
 record: 
 \begin{ttbox} 
@@ -27,23 +22,6 @@ will not work for proofs constructed with {\tt proofs} set to
 {\tt 0} or {\tt 1}.
 Theorems involving oracles will be printed with a
 suffixed \verb|[!]| to point out the different quality of confidence achieved.
-
-\medskip
-
-The dependencies of theorems can be viewed using the function
-\ttindexbold{thm_deps}\index{theorems!dependencies}:
-\begin{ttbox}
-thm_deps [\(thm@1\), \(\ldots\), \(thm@n\)];
-\end{ttbox}
-generates the dependency graph of the theorems $thm@1$, $\ldots$, $thm@n$ and
-displays it using Isabelle's graph browser. For this to work properly,
-the theorems in question have to be proved with {\tt proofs} set to a value
-greater than {\tt 0}. You can use
-\begin{ttbox}
-ThmDeps.enable : unit -> unit
-ThmDeps.disable : unit -> unit
-\end{ttbox}
-to set \texttt{proofs} appropriately.
 
 \subsection{Reconstructing and checking proof terms}\label{sec:reconstruct_proofs}
 \index{proof terms!reconstructing}
