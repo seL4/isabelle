@@ -5,8 +5,9 @@
 header {* The sieve of Eratosthenes *}
 
 theory Eratosthenes
-imports Primes
+imports Main Primes
 begin
+
 
 subsection {* Preliminary: strict divisibility *}
 
@@ -50,6 +51,11 @@ lemma numbers_of_marks_replicate_True [simp]:
 lemma in_numbers_of_marks_eq:
   "m \<in> numbers_of_marks n bs \<longleftrightarrow> m \<in> {n..<n + length bs} \<and> bs ! (m - n)"
   by (simp add: numbers_of_marks_def in_set_enumerate_eq image_iff add_commute)
+
+lemma sorted_list_of_set_numbers_of_marks:
+  "sorted_list_of_set (numbers_of_marks n bs) = map fst (filter snd (enumerate n bs))"
+  by (auto simp add: numbers_of_marks_def distinct_map
+    intro!: sorted_filter distinct_filter inj_onI sorted_distinct_set_unique)
 
 
 text {* Marking out multiples in a sieve  *}
@@ -228,22 +234,30 @@ next
 qed
 
 
-text {* Relation the sieve algorithm to actual primes *}
+text {* Relation of the sieve algorithm to actual primes *}
 
-definition primes_upto :: "nat \<Rightarrow> nat set"
+definition primes_upto :: "nat \<Rightarrow> nat list"
 where
-  "primes_upto n = {m. m \<le> n \<and> prime m}"
+  "primes_upto n = sorted_list_of_set {m. m \<le> n \<and> prime m}"
 
-lemma in_primes_upto:
-  "m \<in> primes_upto n \<longleftrightarrow> m \<le> n \<and> prime m"
+lemma set_primes_upto:
+  "set (primes_upto n) = {m. m \<le> n \<and> prime m}"
   by (simp add: primes_upto_def)
 
-lemma primes_upto_sieve [code]:
-  "primes_upto n = numbers_of_marks 2 (sieve 1 (replicate (n - 1) True))"
+lemma sorted_primes_upto [iff]:
+  "sorted (primes_upto n)"
+  by (simp add: primes_upto_def)
+
+lemma distinct_primes_upto [iff]:
+  "distinct (primes_upto n)"
+  by (simp add: primes_upto_def)
+
+lemma set_primes_upto_sieve:
+  "set (primes_upto n) = numbers_of_marks 2 (sieve 1 (replicate (n - 1) True))"
 proof (cases "n > 1")
   case False then have "n = 0 \<or> n = 1" by arith
   then show ?thesis
-    by (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 primes_upto_def dest: prime_gt_Suc_0_nat)
+    by (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
 next
   { fix m q
     assume "Suc (Suc 0) \<le> q"
@@ -266,11 +280,98 @@ next
     \<forall>m\<in>{Suc (Suc 0)..<Suc n}. m dvd q \<longrightarrow> q dvd m \<Longrightarrow>
     m dvd q \<Longrightarrow> m \<noteq> q \<Longrightarrow> m = 1" by auto
   case True then show ?thesis
-    apply (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 primes_upto_def dest: prime_gt_Suc_0_nat)
+    apply (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
     apply (simp add: prime_nat_def dvd_def)
     apply (auto simp add: prime_nat_def aux)
     done
 qed
+
+lemma primes_upto_sieve [code]:
+  "primes_upto n = map fst (filter snd (enumerate 2 (sieve 1 (replicate (n - 1) True))))"
+proof -
+  have "primes_upto n = sorted_list_of_set (numbers_of_marks 2 (sieve 1 (replicate (n - 1) True)))"
+    apply (rule sorted_distinct_set_unique)
+    apply (simp_all only: set_primes_upto_sieve numbers_of_marks_def)
+    apply auto
+    done
+  then show ?thesis by (simp add: sorted_list_of_set_numbers_of_marks)
+qed
+
+lemma prime_in_primes_upto:
+  "prime n \<longleftrightarrow> n \<in> set (primes_upto n)"
+  by (simp add: set_primes_upto)
+
+
+subsection {* Application: smallest prime beyond a certain number *}
+
+definition smallest_prime_beyond :: "nat \<Rightarrow> nat"
+where
+  "smallest_prime_beyond n = (LEAST p. prime p \<and> p \<ge> n)"
+
+lemma
+  prime_smallest_prime_beyond [iff]: "prime (smallest_prime_beyond n)" (is ?P)
+  and smallest_prime_beyond_le [iff]: "smallest_prime_beyond n \<ge> n" (is ?Q)
+proof -
+  let ?least = "LEAST p. prime p \<and> p \<ge> n"
+  from primes_infinite obtain q where "prime q \<and> q \<ge> n"
+    by (metis finite_nat_set_iff_bounded_le mem_Collect_eq nat_le_linear)
+  then have "prime ?least \<and> ?least \<ge> n" by (rule LeastI)
+  then show ?P and ?Q by (simp_all add: smallest_prime_beyond_def)
+qed
+
+lemma smallest_prime_beyond_smallest:
+  "prime p \<Longrightarrow> p \<ge> n \<Longrightarrow> smallest_prime_beyond n \<le> p"
+  by (simp only: smallest_prime_beyond_def) (auto intro: Least_le)
+
+lemma smallest_prime_beyond_eq:
+  "prime p \<Longrightarrow> p \<ge> n \<Longrightarrow> (\<And>q. prime q \<Longrightarrow> q \<ge> n \<Longrightarrow> q \<ge> p) \<Longrightarrow> smallest_prime_beyond n = p"
+  by (simp only: smallest_prime_beyond_def) (auto intro: Least_equality)
+
+definition smallest_prime_between :: "nat \<Rightarrow> nat \<Rightarrow> nat option"
+where
+  "smallest_prime_between m n =
+    (if (\<exists>p. prime p \<and> m \<le> p \<and> p \<le> n) then Some (smallest_prime_beyond m) else None)"
+
+lemma smallest_prime_between_None:
+  "smallest_prime_between m n = None \<longleftrightarrow> (\<forall>q. m \<le> q \<and> q \<le> n \<longrightarrow> \<not> prime q)"
+  by (auto simp add: smallest_prime_between_def)
+
+lemma smallest_prime_betwen_Some:
+  "smallest_prime_between m n = Some p \<longleftrightarrow> smallest_prime_beyond m = p \<and> p \<le> n"
+  by (auto simp add: smallest_prime_between_def dest: smallest_prime_beyond_smallest [of _ m])
+
+lemma [code]:
+  "smallest_prime_between m n = List.find (\<lambda>p. p \<ge> m) (primes_upto n)"
+proof -
+  { fix p
+    def A \<equiv> "{p. p \<le> n \<and> prime p \<and> m \<le> p}"
+    assume assms: "m \<le> p" "prime p" "p \<le> n"
+    then have "smallest_prime_beyond m \<le> p" by (auto intro: smallest_prime_beyond_smallest)
+    from this `p \<le> n` have *: "smallest_prime_beyond m \<le> n" by (rule order_trans)
+    from assms have ex: "\<exists>p\<le>n. prime p \<and> m \<le> p" by auto
+    then have "finite A" by (auto simp add: A_def)
+    with * have "Min A = smallest_prime_beyond m"
+      by (auto simp add: A_def intro: Min_eqI smallest_prime_beyond_smallest)
+    with ex sorted_primes_upto have "List.find (\<lambda>p. p \<ge> m) (primes_upto n) = Some (smallest_prime_beyond m)"
+      by (auto simp add: set_primes_upto sorted_find_Min A_def)
+  } then show ?thesis  
+  by (auto simp add: smallest_prime_between_def find_None_iff set_primes_upto intro!: sym [of _ None])
+qed
+
+definition smallest_prime_beyond_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "smallest_prime_beyond_aux k n = smallest_prime_beyond n"
+
+lemma [code]:
+  "smallest_prime_beyond_aux k n =
+    (case smallest_prime_between n (k * n)
+     of Some p \<Rightarrow> p
+      | None \<Rightarrow> smallest_prime_beyond_aux (Suc k) n)"
+  by (simp add: smallest_prime_beyond_aux_def smallest_prime_betwen_Some split: option.split)
+
+lemma [code]:
+  "smallest_prime_beyond n = smallest_prime_beyond_aux 2 n"
+  by (simp add: smallest_prime_beyond_aux_def)
 
 end
 

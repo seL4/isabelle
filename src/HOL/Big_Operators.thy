@@ -2107,6 +2107,24 @@ lemma finite_linorder_min_induct [consumes 1, case_names empty insert]:
   "\<lbrakk>finite A; P {}; \<And>b A. \<lbrakk>finite A; \<forall>a\<in>A. b < a; P A\<rbrakk> \<Longrightarrow> P (insert b A)\<rbrakk> \<Longrightarrow> P A"
   by (rule linorder.finite_linorder_max_induct [OF dual_linorder])
 
+lemma Least_Min:
+  assumes "finite {a. P a}" and "\<exists>a. P a"
+  shows "(LEAST a. P a) = Min {a. P a}"
+proof -
+  { fix A :: "'a set"
+    assume A: "finite A" "A \<noteq> {}"
+    have "(LEAST a. a \<in> A) = Min A"
+    using A proof (induct A rule: finite_ne_induct)
+      case singleton show ?case by (rule Least_equality) simp_all
+    next
+      case (insert a A)
+      have "(LEAST b. b = a \<or> b \<in> A) = min a (LEAST a. a \<in> A)"
+        by (auto intro!: Least_equality simp add: min_def not_le Min_le_iff insert.hyps dest!: less_imp_le)
+      with insert show ?case by simp
+    qed
+  } from this [of "{a. P a}"] assms show ?thesis by simp
+qed
+
 end
 
 context linordered_ab_semigroup_add
@@ -2177,4 +2195,3 @@ qed
 end
 
 end
-

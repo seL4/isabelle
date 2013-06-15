@@ -3515,6 +3515,12 @@ next
   thus ?thesis using Some by auto
 qed
 
+lemma find_dropWhile:
+  "List.find P xs = (case dropWhile (Not \<circ> P) xs
+   of [] \<Rightarrow> None
+    | x # _ \<Rightarrow> Some x)"
+  by (induct xs) simp_all
+
 
 subsubsection {* @{const remove1} *}
 
@@ -3863,6 +3869,10 @@ lemma enumerate_Suc_eq:
   "enumerate (Suc n) xs = map (apfst Suc) (enumerate n xs)"
   by (rule pair_list_eqI)
     (simp_all add: not_le, simp del: map_map [simp del] add: map_Suc_upt map_map [symmetric])
+
+lemma distinct_enumerate [simp]:
+  "distinct (enumerate n xs)"
+  by (simp add: enumerate_eq_zip distinct_zipI1)
 
 
 subsubsection {* @{const rotate1} and @{const rotate} *}
@@ -4692,6 +4702,22 @@ apply(induct i j rule:upto.induct)
 apply(subst upto.simps)
 apply(simp add:sorted_Cons)
 done
+
+lemma sorted_find_Min:
+  assumes "sorted xs"
+  assumes "\<exists>x \<in> set xs. P x"
+  shows "List.find P xs = Some (Min {x\<in>set xs. P x})"
+using assms proof (induct xs rule: sorted.induct)
+  case Nil then show ?case by simp
+next
+  case (Cons xs x) show ?case proof (cases "P x")
+    case True with Cons show ?thesis by (auto intro: Min_eqI [symmetric])
+  next
+    case False then have "{y. (y = x \<or> y \<in> set xs) \<and> P y} = {y \<in> set xs. P y}"
+      by auto
+    with Cons False show ?thesis by simp_all
+  qed
+qed
 
 
 subsubsection {* @{const transpose} on sorted lists *}
