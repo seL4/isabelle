@@ -25,8 +25,8 @@ IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^isub>2,s) \<Rightarrow> t \<rbrakk> \<
           (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
 
 WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s" |
-WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
-                (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> 
+              \<Longrightarrow> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{BigStepEx}{1}{2}{% *}
@@ -136,6 +136,26 @@ qed
 lemma assign_simp:
   "(x ::= a,s) \<Rightarrow> s' \<longleftrightarrow> (s' = s(x := aval a s))"
   by auto
+
+text {* An example combining rule inversion and derivations *}
+lemma Semi_assoc:
+  "(c1;; c2;; c3, s) \<Rightarrow> s' \<longleftrightarrow> (c1;; (c2;; c3), s) \<Rightarrow> s'"
+proof
+  assume "(c1;; c2;; c3, s) \<Rightarrow> s'"
+  then obtain s1 s2 where
+    c1: "(c1, s) \<Rightarrow> s1" and
+    c2: "(c2, s1) \<Rightarrow> s2" and
+    c3: "(c3, s2) \<Rightarrow> s'" by auto
+  from c2 c3
+  have "(c2;; c3, s1) \<Rightarrow> s'" by (rule Seq)
+  with c1
+  show "(c1;; (c2;; c3), s) \<Rightarrow> s'" by (rule Seq)
+next
+  -- "The other direction is analogous"
+  assume "(c1;; (c2;; c3), s) \<Rightarrow> s'"
+  thus "(c1;; c2;; c3, s) \<Rightarrow> s'" by auto
+qed
+
 
 subsection "Command Equivalence"
 
