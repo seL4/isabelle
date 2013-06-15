@@ -88,6 +88,69 @@ type tyco_syntax = Code_Printer.tyco_syntax;
 type const_syntax = Code_Printer.const_syntax;
 
 
+(** checking and parsing of symbols **)
+
+fun cert_const thy const =
+  let
+    val _ = if Sign.declared_const thy const then ()
+      else error ("No such constant: " ^ quote const);
+  in const end;
+
+fun cert_tyco thy tyco =
+  let
+    val _ = if Sign.declared_tyname thy tyco then ()
+      else error ("No such type constructor: " ^ quote tyco);
+  in tyco end;
+
+fun read_tyco thy = #1 o dest_Type
+  o Proof_Context.read_type_name_proper (Proof_Context.init_global thy) true;
+
+fun cert_class thy class =
+  let
+    val _ = Axclass.get_info thy class;
+  in class end;
+
+fun read_class thy = Proof_Context.read_class (Proof_Context.init_global thy);
+
+val parse_classrel_ident = Parse.class --| @{keyword "<"} -- Parse.class;
+
+fun cert_inst thy (class, tyco) =
+  (cert_class thy class, cert_tyco thy tyco);
+
+fun read_inst thy (raw_tyco, raw_class) =
+  (read_class thy raw_class, read_tyco thy raw_tyco);
+
+val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
+
+fun cert_syms thy =
+  Code_Symbol.map_attr (apfst (cert_const thy)) (apfst (cert_tyco thy))
+    (apfst (cert_class thy)) ((apfst o pairself) (cert_class thy)) (apfst (cert_inst thy)) I;
+
+fun read_syms thy =
+  Code_Symbol.map_attr (apfst (Code.read_const thy)) (apfst (read_tyco thy))
+    (apfst (read_class thy)) ((apfst o pairself) (read_class thy)) (apfst (read_inst thy)) I;
+
+fun check_name is_module s =
+  let
+    val _ = if s = "" then error "Bad empty code name" else ();
+    val xs = Long_Name.explode s;
+    val xs' = if is_module
+        then map (Name.desymbolize true) xs
+      else if length xs < 2
+        then error ("Bad code name without module component: " ^ quote s)
+      else
+        let
+          val (ys, y) = split_last xs;
+          val ys' = map (Name.desymbolize true) ys;
+          val y' = Name.desymbolize false y;
+        in ys' @ [y'] end;
+  in if xs' = xs
+    then s
+    else error ("Invalid code name: " ^ quote s ^ "\n"
+      ^ "better try " ^ quote (Long_Name.implode xs'))
+  end;
+
+
 (** serializations and serializer **)
 
 (* serialization: abstract nonsense to cover different destinies for generated code *)
@@ -494,7 +557,7 @@ fun parse_names category parse internalize lookup =
   >> (fn xs => fn thy => fn naming => map_filter (lookup naming o internalize thy) xs);
 
 val parse_consts = parse_names "consts" Args.term
-  Code.check_const Code_Thingol.lookup_const ;
+  Code.check_const Code_Thingol.lookup_const;
 
 val parse_types = parse_names "types" (Scan.lift Args.name)
   Sign.intern_type Code_Thingol.lookup_tyco;
@@ -539,66 +602,7 @@ fun add_reserved target sym thy =
   end;
 
 
-(* checking and parsing *)
-
-fun cert_const thy const =
-  let
-    val _ = if Sign.declared_const thy const then ()
-      else error ("No such constant: " ^ quote const);
-  in const end;
-
-fun cert_tyco thy tyco =
-  let
-    val _ = if Sign.declared_tyname thy tyco then ()
-      else error ("No such type constructor: " ^ quote tyco);
-  in tyco end;
-
-fun read_tyco thy = cert_tyco thy o Sign.intern_type thy;
-
-fun cert_class thy class =
-  let
-    val _ = Axclass.get_info thy class;
-  in class end;
-
-fun read_class thy = cert_class thy o Sign.intern_class thy;
-
-val parse_classrel_ident = Parse.class --| @{keyword "<"} -- Parse.class;
-
-fun cert_inst thy (class, tyco) =
-  (cert_class thy class, cert_tyco thy tyco);
-
-fun read_inst thy (raw_tyco, raw_class) =
-  (read_class thy raw_class, read_tyco thy raw_tyco);
-
-val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
-
-fun cert_syms thy =
-  Code_Symbol.map_attr (apfst (cert_const thy)) (apfst (cert_tyco thy))
-    (apfst (cert_class thy)) ((apfst o pairself) (cert_class thy)) (apfst (cert_inst thy)) I;
-
-fun read_syms thy =
-  Code_Symbol.map_attr (apfst (Code.read_const thy)) (apfst (read_tyco thy))
-    (apfst (read_class thy)) ((apfst o pairself) (read_class thy)) (apfst (read_inst thy)) I;
-
-fun check_name is_module s =
-  let
-    val _ = if s = "" then error "Bad empty code name" else ();
-    val xs = Long_Name.explode s;
-    val xs' = if is_module
-        then map (Name.desymbolize true) xs
-      else if length xs < 2
-        then error ("Bad code name without module component: " ^ quote s)
-      else
-        let
-          val (ys, y) = split_last xs;
-          val ys' = map (Name.desymbolize true) ys;
-          val y' = Name.desymbolize false y;
-        in ys' @ [y'] end;
-  in if xs' = xs
-    then s
-    else error ("Invalid code name: " ^ quote s ^ "\n"
-      ^ "better try " ^ quote (Long_Name.implode xs'))
-  end;
+(* checking of syntax *)
 
 fun check_const_syntax thy c syn =
   if Code_Printer.requires_args syn > Code.args_number thy c
@@ -744,9 +748,9 @@ fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   parse_single_symbol_pragma @{keyword "constant"} Parse.term_group parse_const
     >> Code_Symbol.Constant
-  || parse_single_symbol_pragma @{keyword "type_constructor"} Parse.xname parse_tyco
+  || parse_single_symbol_pragma @{keyword "type_constructor"} Parse.type_const parse_tyco
     >> Code_Symbol.Type_Constructor
-  || parse_single_symbol_pragma @{keyword "type_class"} Parse.xname parse_class
+  || parse_single_symbol_pragma @{keyword "type_class"} Parse.class parse_class
     >> Code_Symbol.Type_Class
   || parse_single_symbol_pragma @{keyword "class_relation"} parse_classrel_ident parse_classrel
     >> Code_Symbol.Class_Relation
@@ -801,17 +805,17 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "code_type"} "define code syntax for type constructor"
-    (process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
+    (process_multi_syntax Parse.type_const Code_Printer.parse_tyco_syntax
       add_tyco_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_class"} "define code syntax for class"
-    (process_multi_syntax Parse.xname Parse.string
+    (process_multi_syntax Parse.class Parse.string
       add_class_syntax_cmd);
 
 val _ =
   Outer_Syntax.command @{command_spec "code_instance"} "define code syntax for instance"
-    (process_multi_syntax (Parse.xname --| @{keyword "::"} -- Parse.xname) (Parse.minus >> K ())
+    (process_multi_syntax parse_inst_ident (Parse.minus >> K ())
       add_instance_syntax_cmd);
 
 val _ =
