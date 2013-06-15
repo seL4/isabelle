@@ -2,58 +2,7 @@
 \chapter{Theorems and Forward Proof}
 
 \section{Proof terms}\label{sec:proofObjects}
-\begin{ttbox}
-infix 8 % %%;
 
-datatype proof =
-   PBound of int
- | Abst of string * typ option * proof
- | AbsP of string * term option * proof
- | op % of proof * term option
- | op %% of proof * proof
- | Hyp of term
- | PThm of (string * (string * string list) list) *
-           proof * term * typ list option
- | PAxm of string * term * typ list option
- | Oracle of string * term * typ list option
- | MinProof of proof list;
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{Abst} ($a$, $\tau$, $prf$)] is the abstraction over
-a {\it term variable} of type $\tau$ in the body $prf$. Logically, this
-corresponds to $\bigwedge$ introduction. The name $a$ is used only for
-parsing and printing.
-\item[\ttindexbold{AbsP} ($a$, $\varphi$, $prf$)] is the abstraction
-over a {\it proof variable} standing for a proof of proposition $\varphi$
-in the body $prf$. This corresponds to $\Longrightarrow$ introduction.
-\item[$prf$ \% $t$] \index{\%@{\tt\%}|bold}
-is the application of proof $prf$ to term $t$
-which corresponds to $\bigwedge$ elimination.
-\item[$prf@1$ \%\% $prf@2$] \index{\%\%@{\tt\%\%}|bold}
-is the application of proof $prf@1$ to
-proof $prf@2$ which corresponds to $\Longrightarrow$ elimination.
-\item[\ttindexbold{PBound} $i$] is a {\em proof variable} with de Bruijn
-\cite{debruijn72} index $i$.
-\item[\ttindexbold{Hyp} $\varphi$] corresponds to the use of a meta level
-hypothesis $\varphi$.
-\item[\ttindexbold{PThm} (($name$, $tags$), $prf$, $\varphi$, $\overline{\tau}$)]
-stands for a pre-proved theorem, where $name$ is the name of the theorem,
-$prf$ is its actual proof, $\varphi$ is the proven proposition,
-and $\overline{\tau}$ is
-a type assignment for the type variables occurring in the proposition.
-\item[\ttindexbold{PAxm} ($name$, $\varphi$, $\overline{\tau}$)]
-corresponds to the use of an axiom with name $name$ and proposition
-$\varphi$, where $\overline{\tau}$ is a type assignment for the type
-variables occurring in the proposition.
-\item[\ttindexbold{Oracle} ($name$, $\varphi$, $\overline{\tau}$)]
-denotes the invocation of an oracle with name $name$ which produced
-a proposition $\varphi$, where $\overline{\tau}$ is a type assignment
-for the type variables occurring in the proposition.
-\item[\ttindexbold{MinProof} $prfs$]
-represents a {\em minimal proof} where $prfs$ is a list of theorems,
-axioms or oracles.
-\end{ttdescription}
 Note that there are no separate constructors
 for abstraction and application on the level of {\em types}, since
 instantiation of type variables is accomplished via the type assignments
@@ -73,15 +22,6 @@ This proof term identifies a labelled theorem, {\tt conjI} of theory
 The theorem is applied to two (implicit) term arguments, which correspond
 to the two variables occurring in its proposition.
 
-Isabelle's inference kernel can produce proof objects with different
-levels of detail. This is controlled via the global reference variable
-\ttindexbold{proofs}:
-\begin{ttdescription}
-\item[proofs := 0;] only record uses of oracles
-\item[proofs := 1;] record uses of oracles as well as dependencies
-  on other theorems and axioms
-\item[proofs := 2;] record inferences in full detail
-\end{ttdescription}
 Reconstruction and checking of proofs as described in \S\ref{sec:reconstruct_proofs}
 will not work for proofs constructed with {\tt proofs} set to
 {\tt 0} or {\tt 1}.

@@ -378,8 +378,9 @@ text %mlref {*
 
   \item Type @{ML_type term} represents de-Bruijn terms, with comments
   in abstractions, and explicitly named free variables and constants;
-  this is a datatype with constructors @{ML Bound}, @{ML Free}, @{ML
-  Var}, @{ML Const}, @{ML Abs}, @{ML_op "$"}.
+  this is a datatype with constructors @{index_ML Bound}, @{index_ML
+  Free}, @{index_ML Var}, @{index_ML Const}, @{index_ML Abs},
+  @{index_ML_op "$"}.
 
   \item @{text "t"}~@{ML_text aconv}~@{text "u"} checks @{text
   "\<alpha>"}-equivalence of two terms.  This is the basic equality relation
@@ -554,10 +555,10 @@ text {*
   "\<lambda>"}-terms representing the underlying proof objects.  Proof terms
   are irrelevant in the Pure logic, though; they cannot occur within
   propositions.  The system provides a runtime option to record
-  explicit proof terms for primitive inferences.  Thus all three
-  levels of @{text "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for
-  terms, and @{text "\<And>/\<Longrightarrow>"} for proofs (cf.\
-  \cite{Berghofer-Nipkow:2000:TPHOL}).
+  explicit proof terms for primitive inferences, see also
+  \secref{sec:proof-terms}.  Thus all three levels of @{text
+  "\<lambda>"}-calculus become explicit: @{text "\<Rightarrow>"} for terms, and @{text
+  "\<And>/\<Longrightarrow>"} for proofs (cf.\ \cite{Berghofer-Nipkow:2000:TPHOL}).
 
   Observe that locally fixed parameters (as in @{text
   "\<And>\<hyphen>intro"}) need not be recorded in the hypotheses, because
@@ -647,7 +648,6 @@ text %mlref {*
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type thm} \\
-  @{index_ML proofs: "int Unsynchronized.ref"} \\
   @{index_ML Thm.peek_status: "thm -> {oracle: bool, unfinished: bool, failed: bool}"} \\
   @{index_ML Thm.transfer: "theory -> thm -> thm"} \\
   @{index_ML Thm.assume: "cterm -> thm"} \\
@@ -720,12 +720,6 @@ text %mlref {*
   constructed by basic principles of the @{ML_struct Thm} module.
   Every @{ML_type thm} value contains a sliding back-reference to the
   enclosing theory, cf.\ \secref{sec:context-theory}.
-
-  \item @{ML proofs} specifies the detail of proof recording within
-  @{ML_type thm} values: @{ML 0} records only the names of oracles,
-  @{ML 1} records oracle names and propositions, @{ML 2} additionally
-  records full proof terms.  Officially named theorems that contribute
-  to a result are recorded in any case.
 
   \item @{ML Thm.transfer}~@{text "thy thm"} transfers the given
   theorem to a \emph{larger} theory, see also \secref{sec:context}.
@@ -1277,6 +1271,47 @@ text {* The Isabelle/Pure inference kernel can record the proof of
   digest about oracles and promises occurring in the original proof.
   This allows the inference kernel to manage this critical information
   without the full overhead of explicit proof terms.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type proof} \\
+  @{index_ML_type proof_body} \\
+  @{index_ML proofs: "int Unsynchronized.ref"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type @{ML_type proof} represents proof terms; this is a
+  datatype with constructors @{index_ML Abst}, @{index_ML AbsP},
+  @{index_ML_op "%"}, @{index_ML_op "%%"}, @{index_ML PBound},
+  @{index_ML MinProof}, @{index_ML Hyp}, @{index_ML PAxm}, @{index_ML
+  Oracle}, @{index_ML Promise}, @{index_ML PThm} as explained above.
+
+  \item Type @{ML_type proof_body} represents the nested proof
+  information of a named theorem, consisting of a digest of oracles
+  and named theorem over some proof term.  The digest only covers the
+  directly visible part of the proof: in order to get the full
+  information, the implicit graph of nested theorems needs to be
+  traversed (e.g.\ using @{ML Proofterm.fold_body_thms}).
+
+  \item @{ML Thm.proof_of}~@{text "thm"} and @{ML
+  Thm.proof_body_of}~@{text "thm"} produce the proof term or proof
+  body (with digest of oracles and theorems) from a given theorem.
+  Note that this involves a full join of internal futures that fulfill
+  pending proof promises, and thus disrupts the natural bottom-up
+  construction of proofs by introducing dynamic ad-hoc dependencies.
+  Parallel performance may suffer by inspecting proof terms at
+  run-time.
+
+  \item @{ML proofs} specifies the detail of proof recording within
+  @{ML_type thm} values produced by the inference kernel: @{ML 0}
+  records only the names of oracles, @{ML 1} records oracle names and
+  propositions, @{ML 2} additionally records full proof terms.
+  Officially named theorems that contribute to a result are recorded
+  in any case.
+
+  \end{description}
 *}
 
 end
