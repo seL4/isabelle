@@ -2308,6 +2308,14 @@ lemma dropWhile_cong [fundef_cong]:
   ==> dropWhile P l = dropWhile Q k"
 by (induct k arbitrary: l, simp_all)
 
+lemma takeWhile_idem [simp]:
+  "takeWhile P (takeWhile P xs) = takeWhile P xs"
+  by (induct xs) auto
+
+lemma dropWhile_idem [simp]:
+  "dropWhile P (dropWhile P xs) = dropWhile P xs"
+  by (induct xs) auto
+
 
 subsubsection {* @{const zip} *}
 
@@ -2946,6 +2954,10 @@ apply (induct n m  arbitrary: i rule: diff_induct)
 prefer 3 apply (subst map_Suc_upt[symmetric])
 apply (auto simp add: less_diff_conv)
 done
+
+lemma map_decr_upt:
+  "map (\<lambda>n. n - Suc 0) [Suc m..<Suc n] = [m..<n]"
+  by (induct n) simp_all
 
 lemma nth_take_lemma:
   "k <= length xs ==> k <= length ys ==>
@@ -3703,7 +3715,6 @@ apply (case_tac i)
 apply clarsimp
 done
 
-
 lemma set_replicate_Suc: "set (replicate (Suc n) x) = {x}"
 by (induct n) auto
 
@@ -3818,6 +3829,22 @@ proof -
     by (auto simp: replicate_add)
   then show ?thesis by blast
 qed
+
+lemma Cons_replicate_eq:
+  "x # xs = replicate n y \<longleftrightarrow> x = y \<and> n > 0 \<and> xs = replicate (n - 1) x"
+  by (induct n) auto
+
+lemma replicate_length_same:
+  "(\<forall>y\<in>set xs. y = x) \<Longrightarrow> replicate (length xs) x = xs"
+  by (induct xs) simp_all
+
+lemma foldr_replicate [simp]:
+  "foldr f (replicate n x) = f x ^^ n"
+  by (induct n) (simp_all)
+
+lemma fold_replicate [simp]:
+  "fold f (replicate n x) = f x ^^ n"
+  by (subst foldr_fold [symmetric]) simp_all
 
 
 subsubsection {* @{const enumerate} *}

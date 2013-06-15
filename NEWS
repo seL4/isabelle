@@ -61,6 +61,17 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Library/Polynomial.thy:
+  * Use lifting for primitive definitions.
+  * Explicit conversions from and to lists of coefficients, used for generated code.
+  * Replaced recursion operator poly_rec by fold_coeffs.
+  * Prefer pre-existing gcd operation for gcd.
+  * Fact renames:
+    poly_eq_iff ~> poly_eq_poly_eq_iff
+    poly_ext ~> poly_eqI
+    expand_poly_eq ~> poly_eq_iff
+IMCOMPATIBILTIY.
+
 * Reification and reflection:
   * Reification is now directly available in HOL-Main in structure "Reification".
   * Reflection now handles multiple lists with variables also.

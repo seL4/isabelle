@@ -93,16 +93,17 @@ qed
 
 text{* Offsetting the variable in a polynomial gives another of same degree *}
 
-definition
-  "offset_poly p h = poly_rec 0 (\<lambda>a p q. smult h q + pCons a q) p"
+definition offset_poly :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly"
+where
+  "offset_poly p h = fold_coeffs (\<lambda>a q. smult h q + pCons a q) p 0"
 
 lemma offset_poly_0: "offset_poly 0 h = 0"
-  unfolding offset_poly_def by (simp add: poly_rec_0)
+  by (simp add: offset_poly_def)
 
 lemma offset_poly_pCons:
   "offset_poly (pCons a p) h =
     smult h (offset_poly p h) + pCons a (offset_poly p h)"
-  unfolding offset_poly_def by (simp add: poly_rec_pCons)
+  by (cases "p = 0 \<and> a = 0") (auto simp add: offset_poly_def)
 
 lemma offset_poly_single: "offset_poly [:a:] h = [:a:]"
 by (simp add: offset_poly_pCons offset_poly_0)
@@ -644,7 +645,7 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
     let ?r = "smult (inverse ?a0) q"
     have lgqr: "psize q = psize ?r"
       using a00 unfolding psize_def degree_def
-      by (simp add: expand_poly_eq)
+      by (simp add: poly_eq_iff)
     {assume h: "\<And>x y. poly ?r x = poly ?r y"
       {fix x y
         from qr[rule_format, of x]
@@ -887,9 +888,7 @@ lemma nullstellensatz_univariate:
 proof-
   {assume pe: "p = 0"
     hence eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> q = 0"
-      apply auto
-      apply (rule poly_zero [THEN iffD1])
-      by (rule ext, simp)
+      by (auto simp add: poly_all_0_iff_0)
     {assume "p dvd (q ^ (degree p))"
       then obtain r where r: "q ^ (degree p) = p * r" ..
       from r pe have False by simp}
@@ -927,7 +926,7 @@ proof
   assume l: ?lhs
   from l[unfolded constant_def, rule_format, of _ "0"]
   have th: "poly p = poly [:poly p 0:]" apply - by (rule ext, simp)
-  then have "p = [:poly p 0:]" by (simp add: poly_eq_iff)
+  then have "p = [:poly p 0:]" by (simp add: poly_eq_poly_eq_iff)
   then have "degree p = degree [:poly p 0:]" by simp
   then show ?rhs by simp
 next
@@ -1050,7 +1049,7 @@ qed
 lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> (p \<noteq> 0)"
 proof-
   have "p = 0 \<longleftrightarrow> poly p = poly 0"
-    by (simp add: poly_zero)
+    by (simp add: poly_eq_poly_eq_iff)
   also have "\<dots> \<longleftrightarrow> (\<not> (\<exists>x. poly p x \<noteq> 0))" by auto
   finally show "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> p \<noteq> 0"
     by - (atomize (full), blast)
@@ -1074,7 +1073,7 @@ lemma basic_cqe_conv4:
   shows "p dvd (q ^ n) \<equiv> p dvd r"
 proof-
   from h have "poly (q ^ n) = poly r" by auto
-  then have "(q ^ n) = r" by (simp add: poly_eq_iff)
+  then have "(q ^ n) = r" by (simp add: poly_eq_poly_eq_iff)
   thus "p dvd (q ^ n) \<equiv> p dvd r" by simp
 qed
 

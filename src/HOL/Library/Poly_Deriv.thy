@@ -11,26 +11,41 @@ begin
 
 subsection {* Derivatives of univariate polynomials *}
 
-definition
-  pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly" where
-  "pderiv = poly_rec 0 (\<lambda>a p p'. p + pCons 0 p')"
+function pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly"
+where
+  [simp del]: "pderiv (pCons a p) = (if p = 0 then 0 else p + pCons 0 (pderiv p))"
+  by (auto intro: pCons_cases)
 
-lemma pderiv_0 [simp]: "pderiv 0 = 0"
-  unfolding pderiv_def by (simp add: poly_rec_0)
+termination pderiv
+  by (relation "measure degree") simp_all
 
-lemma pderiv_pCons: "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
-  unfolding pderiv_def by (simp add: poly_rec_pCons)
+lemma pderiv_0 [simp]:
+  "pderiv 0 = 0"
+  using pderiv.simps [of 0 0] by simp
+
+lemma pderiv_pCons:
+  "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
+  by (simp add: pderiv.simps)
 
 lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
   apply (induct p arbitrary: n, simp)
   apply (simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
   done
 
+primrec pderiv_coeffs :: "'a::comm_monoid_add list \<Rightarrow> 'a list"
+where
+  "pderiv_coeffs [] = []"
+| "pderiv_coeffs (x # xs) = plus_coeffs xs (cCons 0 (pderiv_coeffs xs))"
+
+lemma coeffs_pderiv [code abstract]:
+  "coeffs (pderiv p) = pderiv_coeffs (coeffs p)"
+  by (rule sym, induct p) (simp_all add: pderiv_pCons coeffs_plus_eq_plus_coeffs cCons_def)
+
 lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
   apply (rule iffI)
   apply (cases p, simp)
-  apply (simp add: expand_poly_eq coeff_pderiv del: of_nat_Suc)
-  apply (simp add: expand_poly_eq coeff_pderiv coeff_eq_0)
+  apply (simp add: poly_eq_iff coeff_pderiv del: of_nat_Suc)
+  apply (simp add: poly_eq_iff coeff_pderiv coeff_eq_0)
   done
 
 lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
@@ -47,16 +62,16 @@ lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
 by (simp add: pderiv_pCons)
 
 lemma pderiv_add: "pderiv (p + q) = pderiv p + pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
+by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_minus: "pderiv (- p) = - pderiv p"
-by (rule poly_ext, simp add: coeff_pderiv)
+by (rule poly_eqI, simp add: coeff_pderiv)
 
 lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
+by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
+by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
 apply (induct p)
@@ -74,6 +89,7 @@ apply (erule ssubst)
 apply (simp only: of_nat_Suc smult_add_left smult_1_left)
 apply (simp add: algebra_simps) (* FIXME *)
 done
+
 
 lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
 by (simp add: DERIV_cmult mult_commute [of _ c])

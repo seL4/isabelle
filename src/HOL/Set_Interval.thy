@@ -1438,6 +1438,26 @@ apply(cases k)apply simp
 apply(simp add:setsum_head_upt_Suc)
 done
 
+lemma setsum_atMost_Suc_shift:
+  fixes f :: "nat \<Rightarrow> 'a::comm_monoid_add"
+  shows "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) note IH = this
+  have "(\<Sum>i\<le>Suc (Suc n). f i) = (\<Sum>i\<le>Suc n. f i) + f (Suc (Suc n))"
+    by (rule setsum_atMost_Suc)
+  also have "(\<Sum>i\<le>Suc n. f i) = f 0 + (\<Sum>i\<le>n. f (Suc i))"
+    by (rule IH)
+  also have "f 0 + (\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) =
+             f 0 + ((\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)))"
+    by (rule add_assoc)
+  also have "(\<Sum>i\<le>n. f (Suc i)) + f (Suc (Suc n)) = (\<Sum>i\<le>Suc n. f (Suc i))"
+    by (rule setsum_atMost_Suc [symmetric])
+  finally show ?case .
+qed
+
+
 subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
