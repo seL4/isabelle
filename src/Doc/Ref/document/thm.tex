@@ -2,20 +2,6 @@
 \chapter{Theorems and Forward Proof}
 
 \section{Proof terms}\label{sec:proofObjects}
-\index{proof terms|(} Isabelle can record the full meta-level proof of each
-theorem.  The proof term contains all logical inferences in detail.
-%while
-%omitting bookkeeping steps that have no logical meaning to an outside
-%observer.  Rewriting steps are recorded in similar detail as the output of
-%simplifier tracing. 
-Resolution and rewriting steps are broken down to primitive rules of the
-meta-logic. The proof term can be inspected by a separate proof-checker,
-for example.
-
-According to the well-known {\em Curry-Howard isomorphism}, a proof can
-be viewed as a $\lambda$-term. Following this idea, proofs
-in Isabelle are internally represented by a datatype similar to the one for
-terms described in \S\ref{sec:terms}.
 \begin{ttbox}
 infix 8 % %%;
 

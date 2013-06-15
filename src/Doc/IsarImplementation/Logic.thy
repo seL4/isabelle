@@ -523,9 +523,9 @@ text {*
   \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
   \]
   \[
-  \infer[@{text "(\<And>\<hyphen>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[@{text "(\<And>\<hyphen>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. B[x]"}}{@{text "\<Gamma> \<turnstile> B[x]"} & @{text "x \<notin> \<Gamma>"}}
   \qquad
-  \infer[@{text "(\<And>\<hyphen>elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
+  \infer[@{text "(\<And>\<hyphen>elim)"}]{@{text "\<Gamma> \<turnstile> B[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. B[x]"}}
   \]
   \[
   \infer[@{text "(\<Longrightarrow>\<hyphen>intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
@@ -1208,6 +1208,75 @@ text %mlref {*
   source language.
 
   \end{description}
+*}
+
+
+section {* Proof terms \label{sec:proof-terms} *}
+
+text {* The Isabelle/Pure inference kernel can record the proof of
+  each theorem as a proof term that contains all logical inferences in
+  detail.  Rule composition by resolution (\secref{sec:obj-rules}) and
+  type-class reasoning is broken down to primitive rules of the
+  logical framework.  The proof term can be inspected by a separate
+  proof-checker, for example.
+
+  According to the well-known \emph{Curry-Howard isomorphism}, a proof
+  can be viewed as a @{text "\<lambda>"}-term. Following this idea, proofs in
+  Isabelle are internally represented by a datatype similar to the one
+  for terms described in \secref{sec:terms}.  On top of these
+  syntactic terms, two more layers of @{text "\<lambda>"}-calculus are added,
+  which correspond to @{text "\<And>x :: \<alpha>. B x"} and @{text "A \<Longrightarrow> B"}
+  according to the propositions-as-types principle.  The resulting
+  3-level @{text "\<lambda>"}-calculus resembles ``@{text "\<lambda>HOL"}'' in the
+  more abstract setting of Pure Type Systems (PTS)
+  \cite{Barendregt-Geuvers:2001}, if some fine points like schematic
+  polymorphism and type classes are ignored.
+
+  \medskip\emph{Proof abstractions} of the form @{text "\<^bold>\<lambda>x :: \<alpha>. prf"}
+  or @{text "\<^bold>\<lambda>p : A. prf"} correspond to introduction of @{text
+  "\<And>"}/@{text "\<Longrightarrow>"}, and \emph{proof applications} of the form @{text
+  "p \<cdot> t"} or @{text "p \<bullet> q"} correspond to elimination of @{text
+  "\<And>"}/@{text "\<Longrightarrow>"}.  Actual types @{text "\<alpha>"}, propositions @{text
+  "A"}, and terms @{text "t"} might be suppressed and reconstructed
+  from the overall proof term.
+
+  \medskip Various atomic proofs indicate special situations within
+  the proof construction as follows.
+
+  A \emph{bound proof variable} is a natural number @{text "b"} that
+  acts as de-Bruijn index for proof term abstractions.
+
+  A \emph{minimal proof} ``@{text "?"}'' is a dummy proof term.  This
+  indicates some unrecorded part of the proof.
+
+  @{text "Hyp A"} refers to some pending hypothesis by giving its
+  proposition.  This indicates an open context of implicit hypotheses,
+  similar to loose bound variables or free variables within a term
+  (\secref{sec:terms}).
+
+  An \emph{axiom} or \emph{oracle} @{text "a : A[\<^vec>\<tau>]"} refers
+  some postulated @{text "proof constant"}, which is subject to
+  schematic polymorphism of theory content, and the particular type
+  instantiation may be given explicitly.  The vector of types @{text
+  "\<^vec>\<tau>"} refers to the schematic type variables in the generic
+  proposition @{text "A"} in canonical order.
+
+  A \emph{proof promise} @{text "a : A[\<^vec>\<tau>]"} is a placeholder
+  for some proof of polymorphic proposition @{text "A"}, with explicit
+  type instantiation as given by the vector @{text "\<^vec>\<tau>"}, as
+  above.  Unlike axioms or oracles, proof promises may be
+  \emph{fulfilled} eventually, by substituting @{text "a"} by some
+  particular proof @{text "q"} at the corresponding type instance.
+  This acts like Hindley-Milner @{text "let"}-polymorphism: a generic
+  local proof definition may get used at different type instances, and
+  is replaced by the concrete instance eventually.
+
+  A \emph{named theorem} wraps up some concrete proof as a closed
+  formal entity, in the manner of constant definitions for proof
+  terms.  The \emph{proof body} of such boxed theorems involves some
+  digest about oracles and promises occurring in the original proof.
+  This allows the inference kernel to manage this critical information
+  without the full overhead of explicit proof terms.
 *}
 
 end
