@@ -2207,14 +2207,16 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_printing"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_const"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_type"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_class"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_instance"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_identifier"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_pred"} & : & @{text "theory \<rightarrow> proof(prove)"}
   \end{matharray}
@@ -2237,7 +2239,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     class: @{syntax nameref}
     ;
 
-    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala'
+    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
 
     @@{attribute (HOL) code} ( 'del' | 'abstype' | 'abstract' )?
@@ -2264,6 +2266,59 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @@{command (HOL) code_deps} ( constexpr + ) ?
     ;
 
+    @@{command (HOL) code_reserved} target ( @{syntax string} + )
+    ;
+
+    symbol_const: ( @'constant' const )
+    ;
+
+    symbol_typeconstructor: ( @'type_constructor' typeconstructor )
+    ;
+
+    symbol_class: ( @'type_class' class )
+    ;
+
+    symbol_class_relation: ( @'class_relation' class ( '<' | '\<subseteq>' ) class )
+    ;
+
+    symbol_class_instance: ( @'class_instance' typeconstructor @'::' class )
+    ;
+
+    symbol_module: ( @'code_module' name )
+    ;
+
+    syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
+    ;
+
+    printing_const: symbol_const ( '\<rightharpoonup>' | '=>' ) \\
+      ( '(' target ')' syntax ? + @'and' )
+    ;
+
+    printing_typeconstructor: symbol_typeconstructor ( '\<rightharpoonup>' | '=>' ) \\
+      ( '(' target ')' syntax ? + @'and' )
+    ;
+
+    printing_class: symbol_class ( '\<rightharpoonup>' | '=>' )  \\
+      ( '(' target ')' @{syntax string} ? + @'and' )
+    ;
+
+    printing_class_relation: symbol_class_relation ( '\<rightharpoonup>' | '=>' )  \\
+      ( '(' target ')' @{syntax string} ? + @'and' )
+    ;
+
+    printing_class_instance: symbol_class_instance ( '\<rightharpoonup>' | '=>' )  \\
+      ( '(' target ')' '-' ? + @'and' )
+    ;
+
+    printing_module: symbol_module ( '\<rightharpoonup>' | '=>' )  \\
+      ( '(' target ')' ( @{syntax string} ( @'attach' ( const + ) ) ? ) ? + @'and' )
+    ;
+
+    @@{command (HOL) code_printing} ( ( printing_const | printing_typeconstructor
+      | printing_class | printing_class_relation | printing_class_instance
+      | printing_module ) + '|' )
+    ;
+
     @@{command (HOL) code_const} (const + @'and') \\
       ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
     ;
@@ -2280,16 +2335,19 @@ text {* For validation purposes, it is often useful to \emph{execute}
       ( ( '(' target ( '-' ? + @'and' ) ')' ) + )
     ;
 
-    @@{command (HOL) code_reserved} target ( @{syntax string} + )
-    ;
-
-    @@{command (HOL) code_monad} const const target
-    ;
-
     @@{command (HOL) code_include} target ( @{syntax string} ( @{syntax string} | '-') )
     ;
 
+    @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
+      | symbol_class | symbol_class_relation | symbol_class_instance
+      | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \\
+      ( '(' target ')' @{syntax string} ? + @'and' ) + '|' )
+    ;
+
     @@{command (HOL) code_modulename} target ( ( @{syntax string} @{syntax string} ) + )
+    ;
+
+    @@{command (HOL) code_monad} const const target
     ;
 
     @@{command (HOL) code_reflect} @{syntax string} \\
@@ -2298,9 +2356,6 @@ text {* For validation purposes, it is often useful to \emph{execute}
     ;
 
     @@{command (HOL) code_pred} \\( '(' @'modes' ':' modedecl ')')? \\ const
-    ;
-
-    syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
     ;
 
     modedecl: (modes | ((const ':' modes) \\
@@ -2384,37 +2439,27 @@ text {* For validation purposes, it is often useful to \emph{execute}
   theorems representing the corresponding program containing all given
   constants after preprocessing.
 
-  \item @{command (HOL) "code_const"} associates a list of constants
-  with target-specific serializations; omitting a serialization
-  deletes an existing serialization.
-
-  \item @{command (HOL) "code_type"} associates a list of type
-  constructors with target-specific serializations; omitting a
-  serialization deletes an existing serialization.
-
-  \item @{command (HOL) "code_class"} associates a list of classes
-  with target-specific class names; omitting a serialization deletes
-  an existing serialization.  This applies only to \emph{Haskell}.
-
-  \item @{command (HOL) "code_instance"} declares a list of type
-  constructor / class instance relations as ``already present'' for a
-  given target.  Omitting a ``@{text "-"}'' deletes an existing
-  ``already present'' declaration.  This applies only to
-  \emph{Haskell}.
-
   \item @{command (HOL) "code_reserved"} declares a list of names as
   reserved for a given target, preventing it to be shadowed by any
   generated code.
 
+  \item @{command (HOL) "code_printing"} associates a series of symbols
+  (constants, type constructors, classes, class relations, instances,
+  module names) with target-specific serializations; omitting a serialization
+  deletes an existing serialization.  Legacy variants of this are
+  @{command (HOL) "code_const"}, @{command (HOL) "code_type"},
+  @{command (HOL) "code_class"}, @{command (HOL) "code_instance"},
+  @{command (HOL) "code_include"}.
+
   \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
   to generate monadic code for Haskell.
 
-  \item @{command (HOL) "code_include"} adds arbitrary named content
-  (``include'') to generated code.  A ``@{text "-"}'' as last argument
-  will remove an already added ``include''.
-
-  \item @{command (HOL) "code_modulename"} declares aliasings from one
-  module name onto another.
+  \item @{command (HOL) "code_identifier"} associates a a series of symbols
+  (constants, type constructors, classes, class relations, instances,
+  module names) with target-specific hints how these symbols shall be named.
+  \emph{Warning:} These hints are still subject to name disambiguation.
+  @{command (HOL) "code_modulename"} is a legacy variant for
+  @{command (HOL) "code_identifier"} on module names.
 
   \item @{command (HOL) "code_reflect"} without a ``@{text "file"}''
   argument compiles code into the system runtime environment and

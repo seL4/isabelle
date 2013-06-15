@@ -124,10 +124,10 @@ text {*
   and \emph{C}.  Then, by stating
 *}
 
-code_modulename %quote SML
-  A ABC
-  B ABC
-  C ABC
+code_identifier %quote
+  code_module A \<rightharpoonup> (SML) ABC
+| code_module B \<rightharpoonup> (SML) ABC
+| code_module C \<rightharpoonup> (SML) ABC
 
 text {*
   \noindent we explicitly map all those modules on \emph{ABC},

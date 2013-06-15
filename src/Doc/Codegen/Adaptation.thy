@@ -177,10 +177,12 @@ text {*
 primrec %quote in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
 (*<*)
-code_type %invisible bool
-  (SML)
-code_const %invisible True and False and "op \<and>" and Not
-  (SML and and and)
+code_printing %invisible
+  type_constructor bool \<rightharpoonup> (SML)
+| constant True \<rightharpoonup> (SML)
+| constant False \<rightharpoonup> (SML)
+| constant HOL.conj \<rightharpoonup> (SML)
+| constant Not \<rightharpoonup> (SML)
 (*>*)
 text %quotetypewriter {*
   @{code_stmts in_interval (SML)}
@@ -197,20 +199,21 @@ text {*
   "bool"}, we may use \qn{custom serialisations}:
 *}
 
-code_type %quotett bool
-  (SML "bool")
-code_const %quotett True and False and "op \<and>"
-  (SML "true" and "false" and "_ andalso _")
+code_printing %quotett
+  type_constructor bool \<rightharpoonup> (SML) "bool"
+| constant True \<rightharpoonup> (SML) "true"
+| constant False \<rightharpoonup> (SML) "false"
+| constant HOL.conj \<rightharpoonup> (SML) "_ andalso _"
 
 text {*
-  \noindent The @{command_def code_type} command takes a type constructor
-  as arguments together with a list of custom serialisations.  Each
+  \noindent The @{command_def code_printing} command takes a series
+  of symbols (contants, type constructor, \ldots)
+  together with target-specific custom serialisations.  Each
   custom serialisation starts with a target language identifier
   followed by an expression, which during code serialisation is
-  inserted whenever the type constructor would occur.  For constants,
-  @{command_def code_const} implements the corresponding mechanism.  Each
+  inserted whenever the type constructor would occur.  Each
   ``@{verbatim "_"}'' in a serialisation expression is treated as a
-  placeholder for the type constructor's (the constant's) arguments.
+  placeholder for the constant's or the type constructor's arguments.
 *}
 
 text %quotetypewriter {*
@@ -225,8 +228,8 @@ text {*
   precedences which may be used here:
 *}
 
-code_const %quotett "op \<and>"
-  (SML infixl 1 "andalso")
+code_printing %quotett
+  constant HOL.conj \<rightharpoonup> (SML) infixl 1 "andalso"
 
 text %quotetypewriter {*
   @{code_stmts in_interval (SML)}
@@ -249,15 +252,13 @@ text {*
   infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
 (*<*)
-code_type %invisible prod
-  (SML)
-code_const %invisible Pair
-  (SML)
+code_printing %invisible
+  type_constructor prod \<rightharpoonup> (SML)
+| constant Pair \<rightharpoonup> (SML)
 (*>*)
-code_type %quotett prod
-  (SML infix 2 "*")
-code_const %quotett Pair
-  (SML "!((_),/ (_))")
+code_printing %quotett
+  type_constructor prod \<rightharpoonup> (SML) infix 2 "*"
+| constant Pair \<rightharpoonup> (SML) "!((_),/ (_))"
 
 text {*
   \noindent The initial bang ``@{verbatim "!"}'' tells the serialiser
@@ -286,15 +287,13 @@ subsection {* @{text Haskell} serialisation *}
 text {*
   For convenience, the default @{text HOL} setup for @{text Haskell}
   maps the @{class equal} class to its counterpart in @{text Haskell},
-  giving custom serialisations for the class @{class equal} (by command
-  @{command_def code_class}) and its operation @{const [source] HOL.equal}
+  giving custom serialisations for the class @{class equal}
+  and its operation @{const [source] HOL.equal}.
 *}
 
-code_class %quotett equal
-  (Haskell "Eq")
-
-code_const %quotett "HOL.equal"
-  (Haskell infixl 4 "==")
+code_printing %quotett
+  type_class equal \<rightharpoonup> (Haskell) "Eq"
+| constant HOL.equal \<rightharpoonup> (Haskell) infixl 4 "=="
 
 text {*
   \noindent A problem now occurs whenever a type which is an instance
@@ -314,36 +313,36 @@ instance %quote by default (simp add: equal_bar_def)
 
 end %quote (*<*)
 
-(*>*) code_type %quotett bar
-  (Haskell "Integer")
+(*>*) code_printing %quotett
+  type_constructor bar \<rightharpoonup> (Haskell) "Integer"
 
 text {*
   \noindent The code generator would produce an additional instance,
   which of course is rejected by the @{text Haskell} compiler.  To
-  suppress this additional instance, use @{command_def "code_instance"}:
+  suppress this additional instance:
 *}
 
-code_instance %quotett bar :: equal
-  (Haskell -)
+code_printing %quotett
+  class_instance bar :: "HOL.equal" \<rightharpoonup> (Haskell) -
 
 
 subsection {* Enhancing the target language context \label{sec:include} *}
 
 text {*
   In rare cases it is necessary to \emph{enrich} the context of a
-  target language; this is accomplished using the @{command_def
-  "code_include"} command:
+  target language; this can also be accomplished using the @{command
+  "code_printing"} command:
 *}
 
-code_include %quotett Haskell "Errno"
-{*errno i = error ("Error number: " ++ show i)*}
+code_printing %quotett
+  code_module "Errno" \<rightharpoonup> (Haskell) {*errno i = error ("Error number: " ++ show i)*}
 
 code_reserved %quotett Haskell Errno
 
 text {*
-  \noindent Such named @{text include}s are then prepended to every
+  \noindent Such named modules are then prepended to every
   generated code.  Inspect such code in order to find out how
-  @{command "code_include"} behaves with respect to a particular
+  this behaves with respect to a particular
   target language.
 *}
 
