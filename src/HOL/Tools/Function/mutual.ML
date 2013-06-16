@@ -252,7 +252,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
   let
     val result = inner_cont proof
     val FunctionResult {G, R, cases, psimps, simple_pinducts=[simple_pinduct],
-      termination, domintros, ...} = result
+      termination, domintros, dom, ...} = result
 
     val (all_f_defs, fs) =
       map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
@@ -272,7 +272,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
     val mtermination = full_simplify rew_simpset termination
     val mdomintros = Option.map (map (full_simplify rew_simpset)) domintros
   in
-    FunctionResult { fs=fs, G=G, R=R,
+    FunctionResult { fs=fs, G=G, R=R, dom=dom,
       psimps=mpsimps, simple_pinducts=minducts,
       cases=cases, termination=mtermination,
       domintros=mdomintros}

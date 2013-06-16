@@ -16,6 +16,7 @@ type info =
   case_names : string list,
   fs : term list,
   R : term,
+  dom: term,
   psimps: thm list,
   pinducts: thm list,
   simps : thm list option,
@@ -37,6 +38,7 @@ type info =
   case_names : string list,
   fs : term list,
   R : term,
+  dom: term,
   psimps: thm list,
   pinducts: thm list,
   simps : thm list option,
@@ -61,6 +63,7 @@ sig
    {fs: term list,
     G: term,
     R: term,
+    dom: term,
     psimps : thm list,
     simple_pinducts : thm list,
     cases : thm,
@@ -140,13 +143,14 @@ datatype function_result = FunctionResult of
  {fs: term list,
   G: term,
   R: term,
+  dom: term,
   psimps : thm list,
   simple_pinducts : thm list,
   cases : thm,
   termination : thm,
   domintros : thm list option}
 
-fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
+fun transform_function_data ({add_simps, case_names, fs, R, dom, psimps, pinducts,
   simps, inducts, termination, defname, is_partial, cases} : info) phi =
     let
       val term = Morphism.term phi
@@ -155,7 +159,7 @@ fun transform_function_data ({add_simps, case_names, fs, R, psimps, pinducts,
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
       { add_simps = add_simps, case_names = case_names,
-        fs = map term fs, R = term R, psimps = fact psimps,
+        fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
         pinducts = fact pinducts, simps = Option.map fact simps,
         inducts = Option.map fact inducts, termination = thm termination,
         defname = name defname, is_partial=is_partial, cases = thm cases }

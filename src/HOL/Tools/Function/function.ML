@@ -94,7 +94,7 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
 
     fun afterqed [[proof]] lthy =
       let
-        val FunctionResult {fs, R, psimps, simple_pinducts,
+        val FunctionResult {fs, R, dom, psimps, simple_pinducts,
           termination, domintros, cases, ...} =
           cont (Thm.close_derivation proof)
 
@@ -122,7 +122,7 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
 
         val info = { add_simps=addsmps, case_names=cnames, psimps=psimps',
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination',
-          fs=fs, R=R, defname=defname, is_partial=true, cases=cases'}
+          fs=fs, R=R, dom=dom, defname=defname, is_partial=true, cases=cases'}
 
         val _ = Proof_Display.print_consts do_print lthy (K false) (map fst fixes)
       in
@@ -180,7 +180,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
           | NONE => error "Not a function"))
 
     val { termination, fs, R, add_simps, case_names, psimps,
-      pinducts, defname, cases, ...} = info
+      pinducts, defname, cases, dom, ...} = info
     val domT = domain_type (fastype_of R)
     val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     fun afterqed [[totality]] lthy =
@@ -203,7 +203,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
             tinduct)
         |-> (fn (simps, (_, inducts)) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, add_simps=add_simps,
-            case_names=case_names, fs=fs, R=R, psimps=psimps, pinducts=pinducts,
+            case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
             simps=SOME simps, inducts=SOME inducts, termination=termination, cases=cases }
           in
             (info',

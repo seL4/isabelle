@@ -863,8 +863,9 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT abstract_qglrs clauses RCss) lthy
 
+    val dom = mk_acc domT R
     val (_, lthy) =
-      Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy
+      Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), dom) lthy
 
     val newthy = Proof_Context.theory_of lthy
     val clauses = map (transfer_clause_ctx newthy) clauses
@@ -914,7 +915,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
              (map (mk_domain_intro lthy globals R R_elim)) xclauses)
            else NONE
       in
-        FunctionResult {fs=[f], G=G, R=R, cases=complete_thm,
+        FunctionResult {fs=[f], G=G, R=R, dom=dom, cases=complete_thm,
           psimps=psimps, simple_pinducts=[simple_pinduct],
           termination=total_intro, domintros=dom_intros}
       end
