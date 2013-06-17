@@ -88,7 +88,7 @@ next
   case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfTrue.prems(2) by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
@@ -100,16 +100,16 @@ next
     assume "\<not> sec b \<le> l"
     have 1: "sec b \<turnstile> IF b THEN c1 ELSE c2"
       by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c1` `sec b \<turnstile> c2`)
-    from confinement[OF IfTrue.hyps(2) `sec b \<turnstile> c1`] `\<not> sec b \<le> l`
+    from confinement[OF `(c1, s) \<Rightarrow> s'` `sec b \<turnstile> c1`] `\<not> sec b \<le> l`
     have "s = s' (\<le> l)" by auto
     moreover
-    from confinement[OF IfTrue.prems(1) 1] `\<not> sec b \<le> l`
+    from confinement[OF `(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately show "s' = t' (\<le> l)" using `s = t (\<le> l)` by auto
   qed
 next
   case (IfFalse b s c2 s' c1)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfFalse.prems(2) by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
@@ -124,7 +124,7 @@ next
     from confinement[OF big_step.IfFalse[OF IfFalse(1,2)] 1] `\<not> sec b \<le> l`
     have "s = s' (\<le> l)" by auto
     moreover
-    from confinement[OF IfFalse.prems(1) 1] `\<not> sec b \<le> l`
+    from confinement[OF `(IF b THEN c1 ELSE c2, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately show "s' = t' (\<le> l)" using `s = t (\<le> l)` by auto
   qed
@@ -141,14 +141,14 @@ next
     assume "\<not> sec b \<le> l"
     have 1: "sec b \<turnstile> WHILE b DO c"
       by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c`)
-    from confinement[OF WhileFalse.prems(1) 1] `\<not> sec b \<le> l`
+    from confinement[OF `(WHILE b DO c, t) \<Rightarrow> t'` 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     thus "s = t' (\<le> l)" using `s = t (\<le> l)` by auto
   qed
 next
   case (WhileTrue b s1 c s2 s3 t1 t3)
   let ?w = "WHILE b DO c"
-  have "sec b \<turnstile> c" using WhileTrue.prems(2) by auto
+  have "sec b \<turnstile> c" using `0 \<turnstile> WHILE b DO c` by auto
   show ?case
   proof cases
     assume "sec b \<le> l"
@@ -167,7 +167,7 @@ next
     from confinement[OF big_step.WhileTrue[OF WhileTrue.hyps] 1] `\<not> sec b \<le> l`
     have "s1 = s3 (\<le> l)" by auto
     moreover
-    from confinement[OF WhileTrue.prems(1) 1] `\<not> sec b \<le> l`
+    from confinement[OF `(WHILE b DO c, t1) \<Rightarrow> t3` 1] `\<not> sec b \<le> l`
     have "t1 = t3 (\<le> l)" by auto
     ultimately show "s3 = t3 (\<le> l)" using `s1 = t1 (\<le> l)` by auto
   qed
