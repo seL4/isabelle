@@ -89,9 +89,9 @@ next
   case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfTrue.prems by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
   obtain t' where t': "(c1, t) \<Rightarrow> t'" "s' = t' (\<le> l)"
-    using IfTrue(3)[OF anti_mono[OF `sec b \<turnstile> c1`] IfTrue.prems(2)] by blast
+    using IfTrue.IH[OF anti_mono[OF `sec b \<turnstile> c1`] `s = t (\<le> l)`] by blast
   show ?case
   proof cases
     assume "sec b \<le> l"
@@ -116,9 +116,9 @@ next
   qed
 next
   case (IfFalse b s c2 s' c1)
-  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfFalse.prems by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using `0 \<turnstile> IF b THEN c1 ELSE c2` by auto
   obtain t' where t': "(c2, t) \<Rightarrow> t'" "s' = t' (\<le> l)"
-    using IfFalse(3)[OF anti_mono[OF `sec b \<turnstile> c2`] IfFalse.prems(2)] by blast
+    using IfFalse.IH[OF anti_mono[OF `sec b \<turnstile> c2`] `s = t (\<le> l)`] by blast
   show ?case
   proof cases
     assume "sec b \<le> l"
@@ -151,8 +151,8 @@ next
   case (WhileTrue b s c s'' s')
   let ?w = "WHILE b DO c"
   from `0 \<turnstile> ?w` have [simp]: "sec b = 0" by auto
-  have "0 \<turnstile> c" using WhileTrue.prems(1) by auto
-  from WhileTrue.IH(1)[OF this WhileTrue.prems(2)]
+  have "0 \<turnstile> c" using `0 \<turnstile> WHILE b DO c` by auto
+  from WhileTrue.IH(1)[OF this `s = t (\<le> l)`]
   obtain t'' where "(c,t) \<Rightarrow> t''" and "s'' = t'' (\<le>l)" by blast
   from WhileTrue.IH(2)[OF `0 \<turnstile> ?w` this(2)]
   obtain t' where "(?w,t'') \<Rightarrow> t'" and "s' = t' (\<le>l)" by blast
