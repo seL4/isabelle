@@ -1273,11 +1273,35 @@ text {* The Isabelle/Pure inference kernel can record the proof of
   without the full overhead of explicit proof terms.
 *}
 
+
+subsection {* Reconstructing and checking proof terms *}
+
+text {* Fully explicit proof terms can be large, but most of this
+  information is redundant and can be reconstructed from the context.
+  Therefore, the Isabelle/Pure inference kernel records only
+  \emph{implicit} proof terms, by omitting all typing information in
+  terms, all term and type labels of proof abstractions, and some
+  argument terms of applications @{text "p \<cdot> t"} (if possible).
+
+  There are separate operations to reconstruct the full proof term
+  later on, using \emph{higher-order pattern unification}
+  \cite{nipkow-patterns,Berghofer-Nipkow:2000:TPHOL}.
+
+  The \emph{proof checker} expects a fully reconstructed proof term,
+  and can turn it into a theorem by replaying its primitive inferences
+  within the kernel.  *}
+
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type proof} \\
   @{index_ML_type proof_body} \\
   @{index_ML proofs: "int Unsynchronized.ref"} \\
+  @{index_ML Reconstruct.reconstruct_proof:
+  "theory -> term -> proof -> proof"} \\
+  @{index_ML Reconstruct.expand_proof: "theory ->
+  (string * term option) list -> proof -> proof"} \\
+  @{index_ML Proof_Checker.thm_of_proof:
+  "theory -> proof -> thm"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1310,6 +1334,25 @@ text %mlref {*
   propositions, @{ML 2} additionally records full proof terms.
   Officially named theorems that contribute to a result are recorded
   in any case.
+
+  \item @{ML Reconstruct.reconstruct_proof}~@{text "thy prop prf"}
+  turns the implicit proof term @{text "prf"} into a full proof of the
+  given proposition.
+
+  Reconstruction may fail if @{text "prf"} is not a proof of @{text
+  "prop"}, or if it does not contain sufficient information for
+  reconstruction.  Failure may only happen for proofs that are
+  constructed manually, but not for those produced automatically by
+  the inference kernel.
+
+  \item @{ML Reconstruct.expand_proof}~@{text "thy [thm\<^sub>1, \<dots>, thm\<^sub>n]
+  prf"} expands and reconstructs the proofs of all specified theorems,
+  with the given (full) proof.  Theorems that are not unique specified
+  via their name may be disambiguated by giving their proposition.
+
+  \item @{ML Proof_Checker.thm_of_proof}~@{text "thy prf"} turns the
+  given (full) proof into a theorem, by replaying it using only
+  primitive rules of the inference kernel.
 
   \end{description}
 *}

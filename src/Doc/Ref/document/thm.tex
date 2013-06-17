@@ -3,49 +3,6 @@
 
 \section{Proof terms}\label{sec:proofObjects}
 
-\subsection{Reconstructing and checking proof terms}\label{sec:reconstruct_proofs}
-\index{proof terms!reconstructing}
-\index{proof terms!checking}
-
-When looking at the above datatype of proofs more closely, one notices that
-some arguments of constructors are {\it optional}. The reason for this is that
-keeping a full proof term for each theorem would result in enormous memory
-requirements. Fortunately, typical proof terms usually contain quite a lot of
-redundant information that can be reconstructed from the context. Therefore,
-Isabelle's inference kernel creates only {\em partial} (or {\em implicit})
-\index{proof terms!partial} proof terms, in which
-all typing information in terms, all term and type labels of abstractions
-{\tt AbsP} and {\tt Abst}, and (if possible) some argument terms of
-\verb!%! are omitted. The following functions are available for
-reconstructing and checking proof terms:
-\begin{ttbox}
-Reconstruct.reconstruct_proof :
-  Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
-Reconstruct.expand_proof :
-  Sign.sg -> string list -> Proofterm.proof -> Proofterm.proof
-ProofChecker.thm_of_proof : theory -> Proofterm.proof -> thm
-\end{ttbox}
-
-\begin{ttdescription}
-\item[Reconstruct.reconstruct_proof $sg$ $t$ $prf$]
-turns the partial proof $prf$ into a full proof of the
-proposition denoted by $t$, with respect to signature $sg$.
-Reconstruction will fail with an error message if $prf$
-is not a proof of $t$, is ill-formed, or does not contain
-sufficient information for reconstruction by
-{\em higher order pattern unification}
-\cite{nipkow-patterns, Berghofer-Nipkow:2000:TPHOL}.
-The latter may only happen for proofs
-built up ``by hand'' but not for those produced automatically
-by Isabelle's inference kernel.
-\item[Reconstruct.expand_proof $sg$
-  \ttlbrack$name@1$, $\ldots$, $name@n${\ttrbrack} $prf$]
-expands and reconstructs the proofs of all theorems with names
-$name@1$, $\ldots$, $name@n$ in the (full) proof $prf$.
-\item[ProofChecker.thm_of_proof $thy$ $prf$] turns the (full) proof
-$prf$ into a theorem with respect to theory $thy$ by replaying
-it using only primitive rules from Isabelle's inference kernel.
-\end{ttdescription}
 
 \subsection{Parsing and printing proof terms}
 \index{proof terms!parsing}
