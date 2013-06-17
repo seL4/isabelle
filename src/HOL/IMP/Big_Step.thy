@@ -287,19 +287,19 @@ theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
   -- "the only interesting case, @{text WhileTrue}:"
-  fix b c s s1 t t'
+  fix b c s s\<^isub>1 t t'
   -- "The assumptions of the rule:"
-  assume "bval b s" and "(c,s) \<Rightarrow> s1" and "(WHILE b DO c,s1) \<Rightarrow> t"
+  assume "bval b s" and "(c,s) \<Rightarrow> s\<^isub>1" and "(WHILE b DO c,s\<^isub>1) \<Rightarrow> t"
   -- {* Ind.Hyp; note the @{text"\<And>"} because of arbitrary: *}
-  assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s1"
-  assume IHw: "\<And>t'. (WHILE b DO c,s1) \<Rightarrow> t' \<Longrightarrow> t' = t"
+  assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s\<^isub>1"
+  assume IHw: "\<And>t'. (WHILE b DO c,s\<^isub>1) \<Rightarrow> t' \<Longrightarrow> t' = t"
   -- "Premise of implication:"
   assume "(WHILE b DO c,s) \<Rightarrow> t'"
-  with `bval b s` obtain s1' where
-      c: "(c,s) \<Rightarrow> s1'" and
-      w: "(WHILE b DO c,s1') \<Rightarrow> t'"
+  with `bval b s` obtain s\<^isub>1' where
+      c: "(c,s) \<Rightarrow> s\<^isub>1'" and
+      w: "(WHILE b DO c,s\<^isub>1') \<Rightarrow> t'"
     by auto
-  from c IHc have "s1' = s1" by blast
+  from c IHc have "s\<^isub>1' = s\<^isub>1" by blast
   with w IHw show "t' = t" by blast
 qed blast+ -- "prove the rest automatically"
 text_raw{*}%endsnip*}
