@@ -1291,6 +1291,46 @@ text {* Fully explicit proof terms can be large, but most of this
   and can turn it into a theorem by replaying its primitive inferences
   within the kernel.  *}
 
+
+subsection {* Concrete syntax of proof terms *}
+
+text {* The concrete syntax of proof terms is a slight extension of
+  the regular inner syntax of Isabelle/Pure \cite{isabelle-isar-ref}.
+  Its main syntactic category @{syntax (inner) proof} is defined as
+  follows:
+
+  \begin{center}
+  \begin{supertabular}{rclr}
+
+  @{syntax_def (inner) proof} & = & @{verbatim Lam} @{text params} @{verbatim "."} @{text proof} \\
+    & @{text "|"} & @{text "\<Lambda>"} @{text "params"} @{verbatim "."} @{text proof} \\
+    & @{text "|"} & @{text proof} @{verbatim "%"} @{text any} \\
+    & @{text "|"} & @{text proof} @{text "\<cdot>"} @{text any} \\
+    & @{text "|"} & @{text proof} @{verbatim "%%"} @{text proof} \\
+    & @{text "|"} & @{text proof} @{text "\<bullet>"} @{text proof} \\
+    & @{text "|"} & @{text "id  |  longid"} \\
+  \\
+
+  @{text param} & = & @{text idt} \\
+    & @{text "|"} & @{text idt} @{verbatim ":"} @{text prop} \\
+    & @{text "|"} & @{verbatim "("} @{text param} @{verbatim ")"} \\
+  \\
+
+  @{text params} & = & @{text param} \\
+    & @{text "|"} & @{text param} @{text params} \\
+
+  \end{supertabular}
+  \end{center}
+
+  Implicit term arguments in partial proofs are indicated by ``@{text
+  "_"}''.  Type arguments for theorems and axioms may be specified
+  using @{text "p \<cdot> TYPE(type)"} (they must appear before any other
+  term argument of a theorem or axiom, but may be omitted altogether).
+
+  \medskip There are separate read and print operations for proof
+  terms, in order to avoid conflicts with the regular term language.
+*}
+
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type proof} \\
@@ -1300,8 +1340,9 @@ text %mlref {*
   "theory -> term -> proof -> proof"} \\
   @{index_ML Reconstruct.expand_proof: "theory ->
   (string * term option) list -> proof -> proof"} \\
-  @{index_ML Proof_Checker.thm_of_proof:
-  "theory -> proof -> thm"} \\
+  @{index_ML Proof_Checker.thm_of_proof: "theory -> proof -> thm"} \\
+  @{index_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
+  @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1353,6 +1394,14 @@ text %mlref {*
   \item @{ML Proof_Checker.thm_of_proof}~@{text "thy prf"} turns the
   given (full) proof into a theorem, by replaying it using only
   primitive rules of the inference kernel.
+
+  \item @{ML Proof_Syntax.read_proof}~@{text "thy b\<^sub>1 b\<^sub>2 s"} reads in a
+  proof term. The Boolean flags indicate the use of sort and type
+  information.  Usually, typing information is left implicit and is
+  inferred during proof reconstruction.  %FIXME eliminate flags!?
+
+  \item @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
+  pretty-prints the given proof term.
 
   \end{description}
 *}
@@ -1434,12 +1483,11 @@ ML {*
          pretty_item "full proof:"
           (Proof_Syntax.pretty_proof ctxt full_prf)]
         |> Pretty.chunks |> Pretty.writeln;
-
+    in
       (*rechecked theorem*)
-      val thm' =
-        Proof_Checker.thm_of_proof thy full_prf
-        |> singleton (Proof_Context.export ctxt ctxt0);
-    in thm' end;
+      Proof_Checker.thm_of_proof thy full_prf
+      |> singleton (Proof_Context.export ctxt ctxt0)
+    end;
 *}
 
 text {* As anticipated, the rechecked theorem establishes the same
