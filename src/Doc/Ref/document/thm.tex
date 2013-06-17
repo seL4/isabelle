@@ -3,26 +3,6 @@
 
 \section{Proof terms}\label{sec:proofObjects}
 
-Each theorem's derivation is stored as the {\tt der} field of its internal
-record: 
-\begin{ttbox} 
-#2 (#der (rep_thm conjI));
-{\out PThm (("HOL.conjI", []),}
-{\out   AbsP ("H", None, AbsP ("H", None, \dots)), \dots, None) %}
-{\out     None % None : Proofterm.proof}
-\end{ttbox}
-This proof term identifies a labelled theorem, {\tt conjI} of theory
-\texttt{HOL}, whose underlying proof is
-{\tt AbsP ("H", None, AbsP ("H", None, $\dots$))}. 
-The theorem is applied to two (implicit) term arguments, which correspond
-to the two variables occurring in its proposition.
-
-Reconstruction and checking of proofs as described in \S\ref{sec:reconstruct_proofs}
-will not work for proofs constructed with {\tt proofs} set to
-{\tt 0} or {\tt 1}.
-Theorems involving oracles will be printed with a
-suffixed \verb|[!]| to point out the different quality of confidence achieved.
-
 \subsection{Reconstructing and checking proof terms}\label{sec:reconstruct_proofs}
 \index{proof terms!reconstructing}
 \index{proof terms!checking}
@@ -114,45 +94,6 @@ is inferred during proof reconstruction. The pretty printing
 functions operating on theorems take a boolean flag as an
 argument which indicates whether the proof term should
 be reconstructed before printing.
-
-The following example (based on Isabelle/HOL) illustrates how
-to parse and check proof terms. We start by parsing a partial
-proof term
-\begin{ttbox}
-val prf = ProofSyntax.read_proof Main.thy false
-  "impI % _ % _ %% (Lam H : _. conjE % _ % _ % _ %% H %%
-     (Lam (H1 : _) H2 : _. conjI % _ % _ %% H2 %% H1))";
-{\out val prf = PThm (("HOL.impI", []), \dots, \dots, None) % None % None %%}
-{\out   AbsP ("H", None, PThm (("HOL.conjE", []), \dots, \dots, None) %}
-{\out     None % None % None %% PBound 0 %%}
-{\out     AbsP ("H1", None, AbsP ("H2", None, \dots))) : Proofterm.proof}
-\end{ttbox}
-The statement to be established by this proof is
-\begin{ttbox}
-val t = term_of
-  (read_cterm (sign_of Main.thy) ("A & B --> B & A", propT));
-{\out val t = Const ("Trueprop", "bool => prop") $}
-{\out   (Const ("op -->", "[bool, bool] => bool") $}
-{\out     \dots $ \dots : Term.term}
-\end{ttbox}
-Using {\tt t} we can reconstruct the full proof
-\begin{ttbox}
-val prf' = Reconstruct.reconstruct_proof (sign_of Main.thy) t prf;
-{\out val prf' = PThm (("HOL.impI", []), \dots, \dots, Some []) %}
-{\out   Some (Const ("op &", \dots) $ Free ("A", \dots) $ Free ("B", \dots)) %}
-{\out   Some (Const ("op &", \dots) $ Free ("B", \dots) $ Free ("A", \dots)) %%}
-{\out   AbsP ("H", Some (Const ("Trueprop", \dots) $ \dots), \dots)}
-{\out     : Proofterm.proof}
-\end{ttbox}
-This proof can finally be turned into a theorem
-\begin{ttbox}
-val thm = ProofChecker.thm_of_proof Main.thy prf';
-{\out val thm = "A & B --> B & A" : Thm.thm}
-\end{ttbox}
-
-\index{proof terms|)}
-\index{theorems|)}
-
 
 %%% Local Variables: 
 %%% mode: latex

@@ -1314,4 +1314,107 @@ text %mlref {*
   \end{description}
 *}
 
+text %mlex {* Detailed proof information of a theorem may be retrieved
+  as follows: *}
+
+lemma ex: "A \<and> B \<longrightarrow> B \<and> A"
+proof
+  assume "A \<and> B"
+  then obtain B and A ..
+  then show "B \<and> A" ..
+qed
+
+ML_val {*
+  (*proof body with digest*)
+  val body = Proofterm.strip_thm (Thm.proof_body_of @{thm ex});
+
+  (*proof term only*)
+  val prf = Proofterm.proof_of body;
+  Pretty.writeln (Proof_Syntax.pretty_proof @{context} prf);
+
+  (*all theorems used in the graph of nested proofs*)
+  val all_thms =
+    Proofterm.fold_body_thms
+      (fn (name, _, _) => insert (op =) name) [body] [];
+*}
+
+text {* The result refers to various basic facts of Isabelle/HOL:
+  @{thm [source] HOL.impI}, @{thm [source] HOL.conjE}, @{thm [source]
+  HOL.conjI} etc.  The combinator @{ML Proofterm.fold_body_thms}
+  recursively explores the graph of the proofs of all theorems being
+  used here.
+
+  \medskip Alternatively, we may produce a proof term manually, and
+  turn it into a theorem as follows: *}
+
+ML_val {*
+  val thy = @{theory};
+  val prf =
+    Proof_Syntax.read_proof thy true false
+      "impI \<cdot> _ \<cdot> _ \<bullet> \
+      \   (Lam H: _. \
+      \     conjE \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> H \<bullet> \
+      \       (Lam (H: _) Ha: _. conjI \<cdot> _ \<cdot> _ \<bullet> Ha \<bullet> H))";
+  val thm =
+    prf
+    |> Reconstruct.reconstruct_proof thy @{prop "A \<and> B \<longrightarrow> B \<and> A"}
+    |> Proof_Checker.thm_of_proof thy
+    |> Drule.export_without_context;
+*}
+
+text {* \medskip The subsequent example illustrates the use of various
+  key operations on proof terms: the proof term of an existing theorem
+  is reconstructed and turned again into a theorem using the proof
+  checker; some informative output is printed as well.  *}
+
+ML {*
+  fun recheck ctxt0 thm0 =
+    let
+      (*formal transfer and import -- avoid schematic variables*)
+      val thy = Proof_Context.theory_of ctxt0;
+      val ((_, [thm]), ctxt) =
+        Variable.import true [Thm.transfer thy thm0] ctxt0;
+
+      (*main proof information*)
+      val prop = Thm.prop_of thm;
+      val prf =
+        Proofterm.proof_of
+          (Proofterm.strip_thm (Thm.proof_body_of thm));
+      val full_prf = Reconstruct.reconstruct_proof thy prop prf;
+
+      (*informative output*)
+      fun pretty_item name prt =
+        Pretty.block [Pretty.str name, Pretty.brk 1, prt];
+      val _ =
+        [pretty_item "proposition:" (Syntax.pretty_term ctxt prop),
+         pretty_item "proof:" (Proof_Syntax.pretty_proof ctxt prf),
+         pretty_item "full proof:"
+          (Proof_Syntax.pretty_proof ctxt full_prf)]
+        |> Pretty.chunks |> Pretty.writeln;
+
+      (*rechecked theorem*)
+      val thm' =
+        Proof_Checker.thm_of_proof thy full_prf
+        |> singleton (Proof_Context.export ctxt ctxt0);
+    in thm' end;
+*}
+
+text {* As anticipated, the rechecked theorem establishes the same
+  proposition: *}
+
+ML_val {*
+  val thm = @{thm ex};
+  val thm' = recheck @{context} thm;
+  @{assert} (Thm.eq_thm_prop (thm, thm'));
+*}
+
+text {* More precise theorem equality is achieved by adjusting a few
+  accidental details of the theorems involved here: *}
+
+ML_val {*
+  val thm = Thm.map_tags (K []) @{thm ex};
+  val thm' = Thm.strip_shyps (recheck @{context} thm);
+  @{assert} (Thm.eq_thm (thm, thm'));
+*}
+
 end

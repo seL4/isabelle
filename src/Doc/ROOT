@@ -69,19 +69,20 @@ session Intro (doc) in "Intro" = Pure +
     "document/build"
     "document/root.tex"
 
-session IsarImplementation (doc) in "IsarImplementation" = HOL +
+session IsarImplementation (doc) in "IsarImplementation" = "HOL-Proofs" +
   options [document_variants = "implementation"]
   theories
     Eq
     Integration
     Isar
     Local_Theory
-    Logic
     ML
     Prelim
     Proof
     Syntax
     Tactic
+  theories [proofs = 2, parallel_proofs = 0]
+    Logic
   files
     "../prepare_document"
     "../pdfsetup.sty"
