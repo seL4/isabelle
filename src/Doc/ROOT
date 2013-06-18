@@ -257,7 +257,6 @@ session Ref (doc) in "Ref" = Pure +
     "../manual.bib"
     "document/build"
     "document/root.tex"
-    "document/syntax.tex"
 
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
   options [document_variants = "sledgehammer"]

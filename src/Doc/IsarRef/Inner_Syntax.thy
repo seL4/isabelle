@@ -1579,4 +1579,131 @@ text {* The different kinds of translation functions are invoked during
   are explicitly known from the given term in its fully internal form.
 *}
 
+
+subsection {* Built-in syntax transformations *}
+
+text {*
+  Here are some further details of the main syntax transformation
+  phases of \figref{fig:parse-print}.
+*}
+
+
+subsubsection {* Transforming parse trees to ASTs *}
+
+text {* The parse tree is the raw output of the parser.  It is
+  transformed into an AST according to some basic scheme that may be
+  augmented by AST translation functions as explained in
+  \secref{sec:tr-funs}.
+
+  The parse tree is constructed by nesting the right-hand sides of the
+  productions used to recognize the input.  Such parse trees are
+  simply lists of tokens and constituent parse trees, the latter
+  representing the nonterminals of the productions.  Ignoring AST
+  translation functions, parse trees are transformed to ASTs by
+  stripping out delimiters and copy productions, while retaining some
+  source position information from input tokens.
+
+  The Pure syntax provides predefined AST translations to make the
+  basic @{text "\<lambda>"}-term structure more apparent within the
+  (first-order) AST representation, and thus facilitate the use of
+  @{command translations} (see also \secref{sec:syn-trans}).  This
+  covers ordinary term application, type application, nested
+  abstraction, iterated meta implications and function types.  The
+  effect is illustrated on some representative input strings is as
+  follows:
+
+  \begin{center}
+  \begin{tabular}{ll}
+  input source & AST \\
+  \hline
+  @{text "f x y z"} & @{verbatim "(f x y z)"} \\
+  @{text "'a ty"} & @{verbatim "(ty 'a)"} \\
+  @{text "('a, 'b)ty"} & @{verbatim "(ty 'a 'b)"} \\
+  @{text "\<lambda>x y z. t"} & @{verbatim "(\"_abs\" x (\"_abs\" y (\"_abs\" z t)))"} \\
+  @{text "\<lambda>x :: 'a. t"} & @{verbatim "(\"_abs\" (\"_constrain\" x 'a) t)"} \\
+  @{text "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"} & @{verbatim "(\"==>\" P (\"==>\" Q (\"==>\" R S)))"} \\
+   @{text "['a, 'b, 'c] \<Rightarrow> 'd"} & @{verbatim "(\"fun\" 'a (\"fun\" 'b (\"fun\" 'c 'd)))"} \\
+  \end{tabular}
+  \end{center}
+
+  Note that type and sort constraints may occur in further places ---
+  translations need to be ready to cope with them.  The built-in
+  syntax transformation from parse trees to ASTs insert additional
+  constraints that represent source positions.
+*}
+
+
+subsubsection {* Transforming ASTs to terms *}
+
+text {* After application of macros (\secref{sec:syn-trans}), the AST
+  is transformed into a term.  This term still lacks proper type
+  information, but it might contain some constraints consisting of
+  applications with head @{verbatim "_constrain"}, where the second
+  argument is a type encoded as a pre-term within the syntax.  Type
+  inference later introduces correct types, or indicates type errors
+  in the input.
+
+  Ignoring parse translations, ASTs are transformed to terms by
+  mapping AST constants to term constants, AST variables to term
+  variables or constants (according to the name space), and AST
+  applications to iterated term applications.
+
+  The outcome is still a first-order term.  Proper abstractions and
+  bound variables are introduced by parse translations associated with
+  certain syntax constants.  Thus @{verbatim "(_abs x x)"} eventually
+  becomes a de-Bruijn term @{verbatim "Abs (\"x\", _, Bound 0)"}.
+*}
+
+
+subsubsection {* Printing of terms *}
+
+text {* The output phase is essentially the inverse of the input
+  phase.  Terms are translated via abstract syntax trees into
+  pretty-printed text.
+
+  Ignoring print translations, the transformation maps term constants,
+  variables and applications to the corresponding constructs on ASTs.
+  Abstractions are mapped to applications of the special constant
+  @{verbatim "_abs"} as seen before.  Type constraints are represented
+  via special @{verbatim "_constrain"} forms, according to various
+  policies of type annotation determined elsewhere.  Sort constraints
+  of type variables are handled in a similar fashion.
+
+  After application of macros (\secref{sec:syn-trans}), the AST is
+  finally pretty-printed.  The built-in print AST translations reverse
+  the corresponding parse AST translations.
+
+  \medskip For the actual printing process, the priority grammar
+  (\secref{sec:priority-grammar}) plays a vital role: productions are
+  used as templates for pretty printing, with argument slots stemming
+  from nonterminals, and syntactic sugar stemming from literal tokens.
+
+  Each AST application with constant head @{text "c"} and arguments
+  @{text "t\<^sub>1"}, \dots, @{text "t\<^sub>n"} (for @{text "n = 0"} the AST is
+  just the constant @{text "c"} itself) is printed according to the
+  first grammar production of result name @{text "c"}.  The required
+  syntax priority of the argument slot is given by its nonterminal
+  @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  The argument @{text "t\<^sub>i"} that corresponds to the
+  position of @{text "A\<^sup>(\<^sup>p\<^sup>)"} is printed recursively, and then put in
+  parentheses \emph{if} its priority @{text "p"} requires this.  The
+  resulting output is concatenated with the syntactic sugar according
+  to the grammar production.
+
+  If an AST application @{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} has more arguments than
+  the corresponding production, it is first split into @{text "((c x\<^sub>1
+  \<dots> x\<^sub>n) x\<^sub>n\<^sub>+\<^sub>1 \<dots> x\<^sub>m)"} and then printed recursively as above.
+
+  Applications with too few arguments or with non-constant head or
+  without a corresponding production are printed in prefix-form like
+  @{text "f t\<^sub>1 \<dots> t\<^sub>n"} for terms.
+
+  Multiple productions associated with some name @{text "c"} are tried
+  in order of appearance within the grammar.  An occurrence of some
+  AST variable @{text "x"} is printed as @{text "x"} outright.
+
+  \medskip White space is \emph{not} inserted automatically.  If
+  blanks (or breaks) are required to separate tokens, they need to be
+  specified in the mixfix declaration (\secref{sec:mixfix}).
+*}
+
 end
