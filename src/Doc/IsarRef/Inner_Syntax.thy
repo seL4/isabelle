@@ -1029,7 +1029,7 @@ text {*
 section {* Syntax transformations \label{sec:syntax-transformations} *}
 
 text {* The inner syntax engine of Isabelle provides separate
-  mechanisms to transform parse trees either as rewrite systems on
+  mechanisms to transform parse trees either via rewrite systems on
   first-order ASTs (\secref{sec:syn-trans}), or ML functions on ASTs
   or syntactic @{text "\<lambda>"}-terms (\secref{sec:tr-funs}).  This works
   both for parsing and printing, as outlined in
@@ -1138,32 +1138,31 @@ text {* Depending on the situation --- input syntax, output syntax,
   variables (free or schematic) into @{ML Ast.Variable}.  This
   information is precise when printing fully formal @{text "\<lambda>"}-terms.
 
-  In AST translation patterns (\secref{sec:syn-trans}) the system
-  guesses from the current theory context which atoms should be
-  treated as constant versus variable for the matching process.
-  Sometimes this needs to be indicated more explicitly using @{text
-  "CONST c"} inside the term language.  It is also possible to use
-  @{command syntax} declarations (without mixfix annotation) to
-  enforce that certain unqualified names are always treated as
-  constant within the syntax machinery.
+  \medskip AST translation patterns (\secref{sec:syn-trans}) that
+  represent terms cannot distinguish constants and variables
+  syntactically.  Explicit indication of @{text "CONST c"} inside the
+  term language is required, unless @{text "c"} is known as special
+  \emph{syntax constant} (see also @{command syntax}).  It is also
+  possible to use @{command syntax} declarations (without mixfix
+  annotation) to enforce that certain unqualified names are always
+  treated as constant within the syntax machinery.
 
-  \medskip For ASTs that represent the language of types or sorts, the
-  situation is much simpler, since the concrete syntax already
-  distinguishes type variables from type constants (constructors).  So
-  @{text "('a, 'b) foo"} corresponds to an AST application of some
-  constant for @{text foo} and variable arguments for @{text "'a"} and
-  @{text "'b"}.  Note that the postfix application is merely a feature
-  of the concrete syntax, while in the AST the constructor occurs in
-  head position.  *}
+  The situation is simpler for ASTs that represent types or sorts,
+  since the concrete syntax already distinguishes type variables from
+  type constants (constructors).  So @{text "('a, 'b) foo"}
+  corresponds to an AST application of some constant for @{text foo}
+  and variable arguments for @{text "'a"} and @{text "'b"}.  Note that
+  the postfix application is merely a feature of the concrete syntax,
+  while in the AST the constructor occurs in head position.  *}
 
 
 subsubsection {* Authentic syntax names *}
 
 text {* Naming constant entities within ASTs is another delicate
-  issue.  Unqualified names are looked up in the name space tables in
+  issue.  Unqualified names are resolved in the name space tables in
   the last stage of parsing, after all translations have been applied.
   Since syntax transformations do not know about this later name
-  resolution yet, there can be surprises in boundary cases.
+  resolution, there can be surprises in boundary cases.
 
   \emph{Authentic syntax names} for @{ML Ast.Constant} avoid this
   problem: the fully-qualified constant name with a special prefix for
@@ -1193,8 +1192,7 @@ text {* Naming constant entities within ASTs is another delicate
   In other words, syntax transformations that operate on input terms
   written as prefix applications are difficult to make robust.
   Luckily, this case rarely occurs in practice, because syntax forms
-  to be translated usually correspond to some bits of concrete
-  notation. *}
+  to be translated usually correspond to some concrete notation. *}
 
 
 subsection {* Raw syntax and translations \label{sec:syn-trans} *}
@@ -1482,7 +1480,7 @@ text {*
   \item @{command parse_translation} etc. declare syntax translation
   functions to the theory.  Any of these commands have a single
   @{syntax text} argument that refers to an ML expression of
-  appropriate type, which are as follows by default:
+  appropriate type as follows:
 
   \medskip
   {\footnotesize
@@ -1503,9 +1501,9 @@ text {*
   The argument list consists of @{text "(c, tr)"} pairs, where @{text
   "c"} is the syntax name of the formal entity involved, and @{text
   "tr"} a function that translates a syntax form @{text "c args"} into
-  @{text "tr ctxt args"} (depending on the context).  The ML naming
-  convention for parse translations is @{text "c_tr"} and for print
-  translations @{text "c_tr'"}.
+  @{text "tr ctxt args"} (depending on the context).  The Isabelle/ML
+  naming convention for parse translations is @{text "c_tr"} and for
+  print translations @{text "c_tr'"}.
 
   The @{command_ref print_syntax} command displays the sets of names
   associated with the translation functions of a theory under @{text
@@ -1546,8 +1544,8 @@ text {* The different kinds of translation functions are invoked during
   $ x\<^sub>1 $ \<dots> $ x\<^sub>n"}.  Terms allow more sophisticated transformations
   than ASTs do, typically involving abstractions and bound
   variables. \emph{Typed} print translations may even peek at the type
-  @{text "\<tau>"} of the constant they are invoked on, although that information
-  may be inaccurate.
+  @{text "\<tau>"} of the constant they are invoked on, although some
+  information might have been suppressed for term output already.
 
   Regardless of whether they act on ASTs or terms, translation
   functions called during the parsing process differ from those for
