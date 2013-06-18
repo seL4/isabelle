@@ -556,12 +556,12 @@ code_datatype raise' -- {* avoid @{const "Heap"} formally *}
 
 subsubsection {* SML and OCaml *}
 
-code_type Heap (SML "unit/ ->/ _")
+code_type Heap (SML "(unit/ ->/ _)")
 code_const bind (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
 code_const return (SML "!(fn/ ()/ =>/ _)")
 code_const Heap_Monad.raise' (SML "!(raise/ Fail/ _)")
 
-code_type Heap (OCaml "unit/ ->/ _")
+code_type Heap (OCaml "(unit/ ->/ _)")
 code_const bind (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
 code_const Heap_Monad.raise' (OCaml "failwith")
@@ -653,7 +653,7 @@ object Array {
 
 code_reserved Scala Heap Ref Array
 
-code_type Heap (Scala "Unit/ =>/ _")
+code_type Heap (Scala "(Unit/ =>/ _)")
 code_const bind (Scala "Heap.bind")
 code_const return (Scala "('_: Unit)/ =>/ _")
 code_const Heap_Monad.raise' (Scala "!sys.error((_))")
