@@ -245,19 +245,6 @@ session ProgProve (doc) in "ProgProve" = HOL +
     "document/root.tex"
     "document/svmono.cls"
 
-session Ref (doc) in "Ref" = Pure +
-  options [document_variants = "ref"]
-  theories
-  files
-    "../prepare_document"
-    "../pdfsetup.sty"
-    "../iman.sty"
-    "../extra.sty"
-    "../ttbox.sty"
-    "../manual.bib"
-    "document/build"
-    "document/root.tex"
-
 session Sledgehammer (doc) in "Sledgehammer" = Pure +
   options [document_variants = "sledgehammer"]
   theories

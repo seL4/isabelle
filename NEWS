@@ -29,6 +29,9 @@ dependencies.  Minor INCOMPATIBILITY.
 * Discontinued redundant 'use' command, which was superseded by
 'ML_file' in Isabelle2013.  Minor INCOMPATIBILITY.
 
+* Updated and extended "isar-ref" and "implementation" manual,
+eliminated old "ref" manual.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
