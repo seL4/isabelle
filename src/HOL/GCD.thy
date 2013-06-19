@@ -714,6 +714,14 @@ lemma coprime_mul_eq_int: "coprime (d::int) (a * b) \<longleftrightarrow>
     coprime_mult_int[of d a b]
   by blast
 
+lemma coprime_power_int:
+  assumes "0 < n" shows "coprime (a :: int) (b ^ n) \<longleftrightarrow> coprime a b"
+  using assms
+proof (induct n)
+  case (Suc n) then show ?case
+    by (cases n) (simp_all add: coprime_mul_eq_int)
+qed simp
+
 lemma gcd_coprime_exists_nat:
     assumes nz: "gcd (a::nat) b \<noteq> 0"
     shows "\<exists>a' b'. a = a' * gcd a b \<and> b = b' * gcd a b \<and> coprime a' b'"
