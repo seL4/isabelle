@@ -1007,6 +1007,13 @@ lemma div_mod_equality': "(m::nat) div n * n = m - m mod n"
   using mod_div_equality [of m n] by arith
 (* FIXME: very similar to mult_div_cancel *)
 
+lemma div_eq_dividend_iff: "a \<noteq> 0 \<Longrightarrow> (a :: nat) div b = a \<longleftrightarrow> b = 1"
+  apply rule
+  apply (cases "b = 0")
+  apply simp_all
+  apply (metis (full_types) One_nat_def Suc_lessI div_less_dividend less_not_refl3)
+  done
+
 
 subsubsection {* An ``induction'' law for modulus arithmetic. *}
 
