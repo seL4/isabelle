@@ -416,6 +416,9 @@ lemma single_valuedD:
   "single_valued r ==> (x, y) : r ==> (x, z) : r ==> y = z"
   by (simp add: single_valued_def)
 
+lemma simgle_valued_empty[simp]: "single_valued {}"
+by(simp add: single_valued_def)
+
 lemma single_valued_subset:
   "r \<subseteq> s ==> single_valued s ==> single_valued r"
   by (unfold single_valued_def) blast

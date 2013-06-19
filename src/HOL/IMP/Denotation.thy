@@ -121,11 +121,8 @@ qed
 lemma cont_W: "cont(W b r)"
 by(auto simp: cont_def W_def)
 
-subsection{*The denotational semantics is deterministic*}
 
-(* FIXME mv *)
-lemma simgle_valued_empty[simp]: "single_valued {}"
-by(simp add: single_valued_def)
+subsection{*The denotational semantics is deterministic*}
 
 lemma single_valued_UN_chain:
   assumes "chain S" "(\<And>n. single_valued (S n))"
