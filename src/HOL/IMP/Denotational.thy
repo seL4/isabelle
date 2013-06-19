@@ -2,7 +2,7 @@
 
 header "Denotational Semantics of Commands"
 
-theory Denotation imports Big_Step begin
+theory Denotational imports Big_Step begin
 
 type_synonym com_den = "(state \<times> state) set"
 

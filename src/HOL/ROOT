@@ -119,7 +119,7 @@ session "HOL-IMP" in IMP = HOL +
     BExp
     ASM
     Finite_Reachable
-    Denotation
+    Denotational
     Comp_Rev
     Poly_Types
     Sec_Typing
