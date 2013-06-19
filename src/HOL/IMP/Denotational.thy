@@ -6,8 +6,8 @@ theory Denotational imports Big_Step begin
 
 type_synonym com_den = "(state \<times> state) set"
 
-definition W :: "bexp \<Rightarrow> com_den \<Rightarrow> (com_den \<Rightarrow> com_den)" where
-"W b rc = (\<lambda>rw. {(s,t). if bval b s then (s,t) \<in> rc O rw else s=t})"
+definition W :: "(state \<Rightarrow> bool) \<Rightarrow> com_den \<Rightarrow> (com_den \<Rightarrow> com_den)" where
+"W db dc = (\<lambda>dw. {(s,t). if db s then (s,t) \<in> dc O dw else s=t})"
 
 fun D :: "com \<Rightarrow> com_den" where
 "D SKIP   = Id" |
@@ -15,7 +15,7 @@ fun D :: "com \<Rightarrow> com_den" where
 "D (c1;;c2)  = D(c1) O D(c2)" |
 "D (IF b THEN c1 ELSE c2)
  = {(s,t). if bval b s then (s,t) \<in> D c1 else (s,t) \<in> D c2}" |
-"D (WHILE b DO c) = lfp (W b (D c))"
+"D (WHILE b DO c) = lfp (W (bval b) (D c))"
 
 lemma W_mono: "mono (W b r)"
 by (unfold W_def mono_def) auto
@@ -23,9 +23,9 @@ by (unfold W_def mono_def) auto
 lemma D_While_If:
   "D(WHILE b DO c) = D(IF b THEN c;;WHILE b DO c ELSE SKIP)"
 proof-
-  let ?w = "WHILE b DO c"
-  have "D ?w = lfp (W b (D c))" by simp
-  also have "\<dots> = W b (D c) (lfp (W b (D c)))" by(rule lfp_unfold [OF W_mono])
+  let ?w = "WHILE b DO c" let ?f = "W (bval b) (D c)"
+  have "D ?w = lfp ?f" by simp
+  also have "\<dots> = ?f (lfp ?f)" by(rule lfp_unfold [OF W_mono])
   also have "\<dots> = D(IF b THEN c;;?w ELSE SKIP)" by (simp add: W_def)
   finally show ?thesis .
 qed
@@ -49,9 +49,9 @@ proof (induction c arbitrary: s t)
   case Seq thus ?case by fastforce
 next
   case (While b c)
-  let ?B = "Big_step (WHILE b DO c)"
-  have "W b (D c) ?B <= ?B" using While.IH by (auto simp: W_def)
-  from lfp_lowerbound[where ?f = "W b (D c)", OF this] While.prems
+  let ?B = "Big_step (WHILE b DO c)" let ?f = "W (bval b) (D c)"
+  have "?f ?B \<subseteq> ?B" using While.IH by (auto simp: W_def)
+  from lfp_lowerbound[where ?f = "?f", OF this] While.prems
   show ?case by auto
 qed (auto split: if_splits)
 
@@ -77,7 +77,8 @@ proof
   fix a b :: "'a set" assume "a \<subseteq> b"
   let ?S = "\<lambda>n::nat. if n=0 then a else b"
   have "chain ?S" using `a \<subseteq> b` by(auto simp: chain_def)
-  hence "f(UN n. ?S n) = (UN n. f(?S n))" using assms by(simp add: cont_def)
+  hence "f(UN n. ?S n) = (UN n. f(?S n))"
+    using assms by(simp add: cont_def)
   moreover have "(UN n. ?S n) = b" using `a \<subseteq> b` by (auto split: if_splits)
   moreover have "(UN n. f(?S n)) = f a \<union> f b" by (auto split: if_splits)
   ultimately show "f a \<subseteq> f b" by (metis Un_upper1)
@@ -147,9 +148,10 @@ proof(induction c)
   case Seq thus ?case by(simp add: single_valued_relcomp)
 next
   case (While b c)
-  have "single_valued (lfp (W b (D c)))"
+  let ?f = "W (bval b) (D c)"
+  have "single_valued (lfp ?f)"
   proof(rule single_valued_lfp[OF cont_W])
-    show "!!r. single_valued r \<Longrightarrow> single_valued (W b (D c) r)"
+    show "\<And>r. single_valued r \<Longrightarrow> single_valued (?f r)"
       using While.IH by(force simp: single_valued_def W_def)
   qed
   thus ?case by simp
