@@ -12,7 +12,7 @@ definition W :: "bexp \<Rightarrow> com_den \<Rightarrow> (com_den \<Rightarrow>
 fun D :: "com \<Rightarrow> com_den" where
 "D SKIP   = Id" |
 "D (x ::= a) = {(s,t). t = s(x := aval a s)}" |
-"D (c0;;c1)  = D(c0) O D(c1)" |
+"D (c1;;c2)  = D(c1) O D(c2)" |
 "D (IF b THEN c1 ELSE c2)
  = {(s,t). if bval b s then (s,t) \<in> D c1 else (s,t) \<in> D c2}" |
 "D (WHILE b DO c) = lfp (W b (D c))"
