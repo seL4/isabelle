@@ -811,9 +811,9 @@ text {* Standard ML is a language in the tradition of @{text
   This can be avoided by \emph{canonical argument order}, which
   observes certain standard patterns and minimizes adhoc permutations
   in their application.  In Isabelle/ML, large portions of text can be
-  written without ever using @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times> \<alpha>"}, or the
-  combinator @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"} that is not even
-  defined in our library.
+  written without auxiliary operations like @{text "swap: \<alpha> \<times> \<beta> \<rightarrow> \<beta> \<times>
+  \<alpha>"} or @{text "C: (\<alpha> \<rightarrow> \<beta> \<rightarrow> \<gamma>) \<rightarrow> (\<beta> \<rightarrow> \<alpha> \<rightarrow> \<gamma>)"} (the latter not
+  present in the Isabelle/ML library).
 
   \medskip The basic idea is that arguments that vary less are moved
   further to the left than those that vary more.  Two particularly
@@ -825,13 +825,13 @@ text {* Standard ML is a language in the tradition of @{text
   the names and types of the associated operations are canonical for
   Isabelle/ML.
 
-  \medskip
+  \begin{center}
   \begin{tabular}{ll}
   kind & canonical name and type \\\hline
   selector & @{text "member: \<beta> \<rightarrow> \<alpha> \<rightarrow> bool"} \\
   update & @{text "insert: \<alpha> \<rightarrow> \<beta> \<rightarrow> \<beta>"} \\
   \end{tabular}
-  \medskip
+  \end{center}
 
   Given a container @{text "B: \<beta>"}, the partially applied @{text
   "member B"} is a predicate over elements @{text "\<alpha> \<rightarrow> bool"}, and
@@ -894,8 +894,6 @@ text %mlref {*
   @{index_ML_op "#> ": "('a -> 'b) * ('b -> 'c) -> 'a -> 'c"} \\
   @{index_ML_op "#-> ": "('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd"} \\
   \end{mldecls}
-
-  %FIXME description!?
 *}
 
 
@@ -954,8 +952,9 @@ text %mlref {*
   provides its own variations as @{ML List.foldl} and @{ML
   List.foldr}, while the classic Isabelle library also has the
   historic @{ML Library.foldl} and @{ML Library.foldr}.  To avoid
-  further confusion, all of this should be ignored, and @{ML fold} (or
-  @{ML fold_rev}) used exclusively.
+  unnecessary complication and confusion, all these historical
+  versions should be ignored, and @{ML fold} (or @{ML fold_rev}) used
+  exclusively.
   \end{warn}
 *}
 
@@ -977,8 +976,8 @@ ML {*
 text {* Note how @{ML "fold (Buffer.add o string_of_int)"} above saves
   an extra @{ML "map"} over the given list.  This kind of peephole
   optimization reduces both the code size and the tree structures in
-  memory (``deforestation''), but requires some practice to read and
-  write it fluently.
+  memory (``deforestation''), but it requires some practice to read
+  and write fluently.
 
   \medskip The next example elaborates the idea of canonical
   iteration, demonstrating fast accumulation of tree content using a
@@ -1092,7 +1091,7 @@ text %mlref {*
   The actual error channel is accessed via @{ML Output.error_msg}, but
   the old interaction protocol of Proof~General \emph{crashes} if that
   function is used in regular ML code: error output and toplevel
-  command failure always need to coincide.
+  command failure always need to coincide in classic TTY interaction.
   \end{warn}
 
   \end{description}
