@@ -608,7 +608,7 @@ ML_command {* writeln (string_of_int (factorial 100)) *}
 
 notepad
 begin
-  ML_val {* factorial 100 *}  (* FIXME check/fix indentation *)
+  ML_val {* factorial 100 *}
   ML_command {* writeln (string_of_int (factorial 100)) *}
 end
 
@@ -1228,7 +1228,7 @@ text %mlref {*
   \emph{not} handled here, i.e.\ this form serves as safe replacement
   for the \emph{unsafe} version @{ML_text "(SOME"}~@{text "f
   x"}~@{ML_text "handle _ => NONE)"} that is occasionally seen in
-  books about SML.
+  books about SML97, not Isabelle/ML.
 
   \item @{ML can} is similar to @{ML try} with more abstract result.
 
@@ -1322,7 +1322,7 @@ text %mlref {*
   SML/NJ).
 
   Literal integers in ML text are forced to be of this one true
-  integer type --- overloading of SML97 is disabled.
+  integer type --- adhoc overloading of SML97 is disabled.
 
   Structure @{ML_struct IntInf} of SML97 is obsolete and superseded by
   @{ML_struct Int}.  Structure @{ML_struct Integer} in @{file
@@ -1349,9 +1349,9 @@ text %mlref {*
 
   \item @{ML seconds}~@{text "s"} turns the concrete scalar @{text
   "s"} (measured in seconds) into an abstract time value.  Floating
-  point numbers are easy to use as context parameters (e.g.\ via
-  configuration options, see \secref{sec:config-options}) or
-  preferences that are maintained by external tools as well.
+  point numbers are easy to use as configuration options in the
+  context (see \secref{sec:config-options}) or system preferences that
+  are maintained externally.
 
   \end{description}
 *}
@@ -1371,10 +1371,10 @@ text %mlref {*
   \end{mldecls}
 *}
 
-text {* Apart from @{ML Option.map} most operations defined in
-  structure @{ML_struct Option} are alien to Isabelle/ML.  The
-  operations shown above are defined in @{file
-  "~~/src/Pure/General/basics.ML"}, among others.  *}
+text {* Apart from @{ML Option.map} most other operations defined in
+  structure @{ML_struct Option} are alien to Isabelle/ML an never
+  used.  The operations shown above are defined in @{file
+  "~~/src/Pure/General/basics.ML"}.  *}
 
 
 subsection {* Lists *}
@@ -1412,14 +1412,13 @@ text %mlref {*
   the latest entry is always put in front.  The latter discipline is
   often more appropriate in declarations of context data
   (\secref{sec:context-data}) that are issued by the user in Isar
-  source: more recent declarations normally take precedence over
-  earlier ones.
+  source: later declarations take precedence over earlier ones.
 
   \end{description}
 *}
 
-text %mlex {* Using canonical @{ML fold} together with @{ML cons}, or
-  similar standard operations, alternates the orientation of data.
+text %mlex {* Using canonical @{ML fold} together with @{ML cons} (or
+  similar standard operations) alternates the orientation of data.
   The is quite natural and should not be altered forcible by inserting
   extra applications of @{ML rev}.  The alternative @{ML fold_rev} can
   be used in the few situations, where alternation should be
