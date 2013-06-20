@@ -134,7 +134,7 @@ lemma assign_simp:
   by auto
 
 text {* An example combining rule inversion and derivations *}
-lemma Semi_assoc:
+lemma Seq_assoc:
   "(c1;; c2;; c3, s) \<Rightarrow> s' \<longleftrightarrow> (c1;; (c2;; c3), s) \<Rightarrow> s'"
 proof
   assume "(c1;; c2;; c3, s) \<Rightarrow> s'"
