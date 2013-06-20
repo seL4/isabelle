@@ -59,6 +59,9 @@ theorem denotational_is_big_step:
   "(s,t) \<in> D(c)  =  ((c,s) \<Rightarrow> t)"
 by (metis D_if_big_step Big_step_if_D[simplified])
 
+corollary equiv_c_iff_equal_D: "(c1 \<sim> c2) \<longleftrightarrow> D c1 = D c2"
+by(simp add: denotational_is_big_step[symmetric] set_eq_iff)
+
 
 subsection "Continuity"
 
