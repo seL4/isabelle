@@ -1,6 +1,6 @@
 (* Author: Gerwin Klein *)
 
-theory Comp_Rev
+theory Compiler2
 imports Compiler
 begin
 

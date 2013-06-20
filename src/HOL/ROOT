@@ -120,7 +120,7 @@ session "HOL-IMP" in IMP = HOL +
     ASM
     Finite_Reachable
     Denotational
-    Comp_Rev
+    Compiler2
     Poly_Types
     Sec_Typing
     Sec_TypingT
