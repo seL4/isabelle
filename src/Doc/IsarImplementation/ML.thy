@@ -1863,7 +1863,6 @@ text %mlref {*
   @{index_ML Exn.release: "'a Exn.result -> 'a"} \\
   @{index_ML Par_Exn.release_all: "'a Exn.result list -> 'a list"} \\
   @{index_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
-
   \end{mldecls}
 
   \begin{description}
@@ -1900,6 +1899,88 @@ text %mlref {*
   means in SML.
 
   \end{description}
+*}
+
+
+subsection {* Parallel skeletons \label{sec:parlist} *}
+
+text {*
+  Algorithmic skeletons are combinators that operate on lists in
+  parallel, in the manner of well-known @{text map}, @{text exists},
+  @{text forall} etc.  Management of futures (\secref{sec:futures})
+  and their results as reified exceptions is wrapped up into simple
+  programming interfaces that resemble the sequential versions.
+
+  What remains is the application-specific problem to present
+  expressions with suitable \emph{granularity}: each list element
+  corresponds to one evaluation task.  If the granularity is too
+  coarse, the available CPUs are not saturated.  If it is too
+  fine-grained, CPU cycles are wasted due to the overhead of
+  organizing parallel processing.  In the worst case, parallel
+  performance will be less than the sequential counterpart!
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Par_List.map: "('a -> 'b) -> 'a list -> 'b list"} \\
+  @{index_ML Par_List.get_some: "('a -> 'b option) -> 'a list -> 'b option"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML Par_List.map}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} is like @{ML
+  "map"}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"}, but the evaluation of @{text "f x\<^sub>i"}
+  for @{text "i = 1, \<dots>, n"} is performed in parallel.
+
+  An exception in any @{text "f x\<^sub>i"} cancels the overall evaluation
+  process.  The final result is produced via @{ML
+  Par_Exn.release_first} as explained above, which means the first
+  program exception that happened to occur in the parallel evaluation
+  is propagated, and all other failures are ignored.
+
+  \item @{ML Par_List.get_some}~@{text "f [x\<^sub>1, \<dots>, x\<^sub>n]"} produces some
+  @{text "f x\<^sub>i"} that is of the form @{text "SOME y\<^sub>i"}, if that
+  exists, otherwise @{text "NONE"}.  Thus it is similar to @{ML
+  Library.get_first}, but subject to a non-deterministic parallel
+  choice process.  The first successful result cancels the overall
+  evaluation process; other exceptions are propagated as for @{ML
+  Par_List.map}.
+
+  This generic parallel choice combinator is the basis for derived
+  forms, such as @{ML Par_List.find_some}, @{ML Par_List.exists}, @{ML
+  Par_List.forall}.
+
+  \end{description}
+*}
+
+text %mlex {* Subsequently, the Ackermann function is evaluated in
+  parallel for some ranges of arguments. *}
+
+ML_val {*
+  fun ackermann 0 n = n + 1
+    | ackermann m 0 = ackermann (m - 1) 1
+    | ackermann m n = ackermann (m - 1) (ackermann m (n - 1));
+
+  Par_List.map (ackermann 2) (500 upto 1000);
+  Par_List.map (ackermann 3) (5 upto 10);
+*}
+
+
+subsection {* Lazy evaluation *}
+
+text {*
+  %FIXME
+
+  See also @{"file" "~~/src/Pure/Concurrent/lazy.ML"}.
+*}
+
+
+subsection {* Future values \label{sec:futures} *}
+
+text {*
+  %FIXME
+
+  See also @{"file" "~~/src/Pure/Concurrent/future.ML"}.
 *}
 
 
