@@ -1562,14 +1562,9 @@ text {* Multiple threads help to organize advanced operations of the
   to support \emph{implicit parallelism} to a large extent.  LCF-style
   theorem provides almost ideal conditions for that, see also
   \cite{Wenzel:2009}.  This means, significant parts of theory and
-  proof checking is parallelized by default.  A maximum speedup-factor
-  of 3.0 on 4 cores and 5.0 on 8 cores can be
-  expected.\footnote{Further scalability is limited due to garbage
-  collection, which is still sequential in Poly/ML 5.2/5.3/5.4.  It
-  helps to provide initial heap space generously, using the
-  \texttt{-H} option.  Initial heap size needs to be scaled-up
-  together with the number of CPU cores: approximately 1--2\,GB per
-  core..}
+  proof checking is parallelized by default.  In Isabelle2013, a
+  maximum speedup-factor of 3.5 on 4 cores and 6.5 on 8 cores can be
+  expected.
 
   \medskip ML threads lack the memory protection of separate
   processes, and operate concurrently on shared heap memory.  This has
@@ -1753,9 +1748,8 @@ text %mlref {*
   continue.  The @{text "name"} argument is used for tracing and might
   help to spot sources of congestion.
 
-  Entering the critical section without contention is very fast, and
-  several basic system operations do so frequently.  Each thread
-  should stay within the critical section quickly only very briefly,
+  Entering the critical section without contention is very fast.  Each
+  thread should stay within the critical section only very briefly,
   otherwise parallel performance may degrade.
 
   \item @{ML CRITICAL} is the same as @{ML NAMED_CRITICAL} with empty
