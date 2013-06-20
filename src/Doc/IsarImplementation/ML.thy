@@ -1806,4 +1806,101 @@ text {* \medskip See @{file "~~/src/Pure/Concurrent/mailbox.ML"} how
   to implement a mailbox as synchronized variable over a purely
   functional queue. *}
 
+
+section {* Managed evaluation *}
+
+text {* Execution of Standard ML follows the model of strict
+  functional evaluation with optional exceptions.  Evaluation happens
+  whenever some function is applied to (sufficiently many)
+  arguments. The result is either an explicit value or an implicit
+  exception.
+
+  \emph{Managed evaluation} in Isabelle/ML organizes expressions and
+  results to control certain physical side-conditions, to say more
+  specifically when and how evaluation happens.  For example, the
+  Isabelle/ML library supports lazy evaluation with memoing, parallel
+  evaluation via futures, asynchronous evaluation via promises,
+  evaluation with time limit etc.
+
+  \medskip An \emph{unevaluated expression} is represented either as
+  unit abstraction @{verbatim "fn () => a"} of type
+  @{verbatim "unit -> 'a"} or as regular function
+  @{verbatim "fn a => b"} of type @{verbatim "'a -> 'b"}.  Both forms
+  occur routinely, and special care is required to tell them apart ---
+  the static type-system of SML is only of limited help here.
+
+  The first form is more intuitive: some combinator @{text "(unit ->
+  'a) -> 'a"} applies the given function to @{text "()"} to initiate
+  the postponed evaluation process.  The second form is more flexible:
+  some combinator @{text "('a -> 'b) -> 'a -> 'b"} acts like a
+  modified form of function application; several such combinators may
+  be cascaded to modify a given function, before it is ultimately
+  applied to some argument.
+
+  \medskip \emph{Reified results} make the disjoint sum of regular
+  values versions exceptional situations explicit as ML datatype:
+  @{text "'a result = Res of 'a | Exn of exn"}.  This is typically
+  used for administrative purposes, to store the overall outcome of an
+  evaluation process.
+
+  \emph{Parallel exceptions} aggregate reified results, such that
+  multiple exceptions are digested as a collection in canonical form
+  that identifies exceptions according to their original occurrence.
+  This is particular important for parallel evaluation via futures
+  \secref{sec:futures}, which are organized as acyclic graph of
+  evaluations that depend on other evaluations: exceptions stemming
+  from shared sub-graphs are exposed exactly once and in the order of
+  their original occurrence (e.g.\ when printed at the toplevel).
+  Interrupt counts as neutral element here: it is treated as minimal
+  information about some canceled evaluation process, and is absorbed
+  by the presence of regular program exceptions.  *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type "'a Exn.result"} \\
+  @{index_ML Exn.capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
+  @{index_ML Exn.interruptible_capture: "('a -> 'b) -> 'a -> 'b Exn.result"} \\
+  @{index_ML Exn.release: "'a Exn.result -> 'a"} \\
+  @{index_ML Par_Exn.release_all: "'a Exn.result list -> 'a list"} \\
+  @{index_ML Par_Exn.release_first: "'a Exn.result list -> 'a list"} \\
+
+  \end{mldecls}
+
+  \begin{description}
+
+  \item Type @{ML_type "'a Exn.result"} represents the disjoint sum of
+  ML results explicitly, with constructor @{ML Exn.Res} for regular
+  values and @{ML "Exn.Exn"} for exceptions.
+
+  \item @{ML Exn.capture}~@{text "f x"} manages the evaluation of
+  @{text "f x"} such that exceptions are made explicit as @{ML
+  "Exn.Exn"}.  Note that this includes physical interrupts (see also
+  \secref{sec:exceptions}), so the same precautions apply to user
+  code: interrupts must not be absorbed accidentally!
+
+  \item @{ML Exn.interruptible_capture} is similar to @{ML
+  Exn.capture}, but interrupts are immediately re-raised as required
+  for user code.
+
+  \item @{ML Exn.release}~@{text "result"} releases the original
+  runtime result, exposing its regular value or raising the reified
+  exception.
+
+  \item @{ML Par_Exn.release_all}~@{text "results"} combines results
+  that were produced independently (e.g.\ by parallel evaluation).  If
+  all results are regular values, that list is returned.  Otherwise,
+  the collection of all exceptions is raised, wrapped-up as collective
+  parallel exception.  Note that the latter prevents access to
+  individual exceptions by conventional @{verbatim "handle"} of SML.
+
+  \item @{ML Par_Exn.release_first} is similar to @{ML
+  Par_Exn.release_all}, but only the first exception that has occurred
+  in the original evaluation process is raised again, the others are
+  ignored.  That single exception may get handled by conventional
+  means in SML.
+
+  \end{description}
+*}
+
+
 end
