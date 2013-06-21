@@ -2,6 +2,9 @@ header "A Typed Language"
 
 theory Types imports Star Complex_Main begin
 
+text {* We build on @{theory Complex_Main} instead of @{theory Main} to access
+the real numbers. *}
+
 subsection "Arithmetic Expressions"
 
 datatype val = Iv int | Rv real
