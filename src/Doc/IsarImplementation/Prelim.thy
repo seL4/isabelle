@@ -681,7 +681,7 @@ text {* In principle, a name is just a string, but there are various
   qualifier @{text "Foo.bar"} and base name @{text "baz"}.  The
   individual constituents of a name may have further substructure,
   e.g.\ the string ``\verb,\,\verb,<alpha>,'' encodes as a single
-  symbol.
+  symbol (\secref{sec:symbols}).
 
   \medskip Subsequently, we shall introduce specific categories of
   names.  Roughly speaking these correspond to logical entities as
@@ -700,120 +700,6 @@ text {* In principle, a name is just a string, but there are various
 
   \end{itemize}
 *}
-
-
-subsection {* Strings of symbols \label{sec:symbols} *}
-
-text {* A \emph{symbol} constitutes the smallest textual unit in
-  Isabelle --- raw ML characters are normally not encountered at all!
-  Isabelle strings consist of a sequence of symbols, represented as a
-  packed string or an exploded list of strings.  Each symbol is in
-  itself a small string, which has either one of the following forms:
-
-  \begin{enumerate}
-
-  \item a single ASCII character ``@{text "c"}'', for example
-  ``\verb,a,'',
-
-  \item a codepoint according to UTF8 (non-ASCII byte sequence),
-
-  \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
-  for example ``\verb,\,\verb,<alpha>,'',
-
-  \item a control symbol ``\verb,\,\verb,<^,@{text "ident"}\verb,>,'',
-  for example ``\verb,\,\verb,<^bold>,'',
-
-  \item a raw symbol ``\verb,\,\verb,<^raw:,@{text text}\verb,>,''
-  where @{text text} consists of printable characters excluding
-  ``\verb,.,'' and ``\verb,>,'', for example
-  ``\verb,\,\verb,<^raw:$\sum_{i = 1}^n$>,'',
-
-  \item a numbered raw control symbol ``\verb,\,\verb,<^raw,@{text
-  n}\verb,>, where @{text n} consists of digits, for example
-  ``\verb,\,\verb,<^raw42>,''.
-
-  \end{enumerate}
-
-  The @{text "ident"} syntax for symbol names is @{text "letter
-  (letter | digit)\<^sup>*"}, where @{text "letter = A..Za..z"} and @{text
-  "digit = 0..9"}.  There are infinitely many regular symbols and
-  control symbols, but a fixed collection of standard symbols is
-  treated specifically.  For example, ``\verb,\,\verb,<alpha>,'' is
-  classified as a letter, which means it may occur within regular
-  Isabelle identifiers.
-
-  The character set underlying Isabelle symbols is 7-bit ASCII, but
-  8-bit character sequences are passed-through unchanged.  Unicode/UCS
-  data in UTF-8 encoding is processed in a non-strict fashion, such
-  that well-formed code sequences are recognized
-  accordingly.\footnote{Note that ISO-Latin-1 differs from UTF-8 only
-  in some special punctuation characters that even have replacements
-  within the standard collection of Isabelle symbols.  Text consisting
-  of ASCII plus accented letters can be processed in either encoding.}
-  Unicode provides its own collection of mathematical symbols, but
-  within the core Isabelle/ML world there is no link to the standard
-  collection of Isabelle regular symbols.
-
-  \medskip Output of Isabelle symbols depends on the print mode
-  (\cite{isabelle-isar-ref}).  For example, the standard {\LaTeX}
-  setup of the Isabelle document preparation system would present
-  ``\verb,\,\verb,<alpha>,'' as @{text "\<alpha>"}, and
-  ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text "\<^bold>\<alpha>"}.
-  On-screen rendering usually works by mapping a finite subset of
-  Isabelle symbols to suitable Unicode characters.
-*}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML_type "Symbol.symbol": string} \\
-  @{index_ML Symbol.explode: "string -> Symbol.symbol list"} \\
-  @{index_ML Symbol.is_letter: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_digit: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_quasi: "Symbol.symbol -> bool"} \\
-  @{index_ML Symbol.is_blank: "Symbol.symbol -> bool"} \\
-  \end{mldecls}
-  \begin{mldecls}
-  @{index_ML_type "Symbol.sym"} \\
-  @{index_ML Symbol.decode: "Symbol.symbol -> Symbol.sym"} \\
-  \end{mldecls}
-
-  \begin{description}
-
-  \item Type @{ML_type "Symbol.symbol"} represents individual Isabelle
-  symbols.
-
-  \item @{ML "Symbol.explode"}~@{text "str"} produces a symbol list
-  from the packed form.  This function supersedes @{ML
-  "String.explode"} for virtually all purposes of manipulating text in
-  Isabelle!\footnote{The runtime overhead for exploded strings is
-  mainly that of the list structure: individual symbols that happen to
-  be a singleton string do not require extra memory in Poly/ML.}
-
-  \item @{ML "Symbol.is_letter"}, @{ML "Symbol.is_digit"}, @{ML
-  "Symbol.is_quasi"}, @{ML "Symbol.is_blank"} classify standard
-  symbols according to fixed syntactic conventions of Isabelle, cf.\
-  \cite{isabelle-isar-ref}.
-
-  \item Type @{ML_type "Symbol.sym"} is a concrete datatype that
-  represents the different kinds of symbols explicitly, with
-  constructors @{ML "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML
-  "Symbol.UTF8"}, @{ML "Symbol.Ctrl"}, @{ML "Symbol.Raw"}.
-
-  \item @{ML "Symbol.decode"} converts the string representation of a
-  symbol into the datatype version.
-
-  \end{description}
-
-  \paragraph{Historical note.} In the original SML90 standard the
-  primitive ML type @{ML_type char} did not exists, and the @{ML_text
-  "explode: string -> string list"} operation would produce a list of
-  singleton strings as does @{ML "raw_explode: string -> string list"}
-  in Isabelle/ML today.  When SML97 came out, Isabelle did not adopt
-  its slightly anachronistic 8-bit characters, but the idea of
-  exploding a string into a list of small strings was extended to
-  ``symbols'' as explained above.  Thus Isabelle sources can refer to
-  an infinite store of user-defined symbols, without having to worry
-  about the multitude of Unicode encodings.  *}
 
 
 subsection {* Basic names \label{sec:basic-name} *}
