@@ -41,7 +41,9 @@ precedence as @{text"\<longrightarrow>"}. Hence @{text"A \<and> B \<longleftrigh
 Quantifiers need to be enclosed in parentheses if they are nested within
 other constructs (just like @{text "if"}, @{text case} and @{text let}).
 \end{warn}
-The most frequent logical symbols have the following ASCII representations:
+The most frequent logical symbols and their ASCII representations are shown
+in Fig.~\ref{fig:log-symbols}.
+\begin{figure}
 \begin{center}
 \begin{tabular}{l@ {\qquad}l@ {\qquad}l}
 @{text "\<forall>"} & \xsymbol{forall} & \texttt{ALL}\\
@@ -55,9 +57,16 @@ The most frequent logical symbols have the following ASCII representations:
 @{text "\<noteq>"} & \xsymbol{noteq} & \texttt{\char`~=}
 \end{tabular}
 \end{center}
-The first column shows the symbols, the second column ASCII representations
-that Isabelle interfaces convert into the corresponding symbol,
-and the third column shows ASCII representations that stay fixed.
+\caption{Logical symbols and their ASCII forms}
+\label{fig:log-symbols}
+\end{figure}
+The first column shows the symbols, the other columns ASCII representations.
+The \texttt{\char`\\}\texttt{<...>} form is always converted into the symbolic form
+by the Isabelle interfaces, the treatment of the other ASCII forms
+depends on the interface. The ASCII forms \texttt{/\char`\\} and
+\texttt{\char`\\/}
+are special in that they are merely keyboard shortcuts for the interface and
+not logical symbols by themselves.
 \begin{warn}
 The implication @{text"\<Longrightarrow>"} is part of the Isabelle framework. It structures
 theorems and proof states, separating assumptions from conclusions.
@@ -105,9 +114,23 @@ Here are the ASCII representations of the mathematical symbols:
 Sets also allow bounded quantifications @{prop"ALL x : A. P"} and
 @{prop"EX x : A. P"}.
 
-Some more frequently useful functions on sets:
+For the more ambitious, there are also @{text"\<Union>"} and @{text"\<Inter>"}:
 \begin{center}
-\begin{tabular}{ll}
+@{thm Union_eq} \qquad @{thm Inter_eq}
+\end{center}
+The ASCII forms of @{text"\<Union>"} are \texttt{\char`\\\char`\<Union>} and \texttt{Union},
+those of @{text"\<Inter>"} are \texttt{\char`\\\char`\<Inter>} and \texttt{Inter}.
+There are also indexed unions and intersections:
+\begin{center}
+@{thm UNION_eq} \\ @{thm INTER_eq}
+\end{center}
+The ASCII forms are \ \texttt{UN x:A.~B} \ and \ \texttt{INT x:A. B} \
+where \texttt{x} may occur in \texttt{B}.
+If \texttt{A} is \texttt{UNIV} you can just write \ \texttt{UN x.~B} \ and \ \texttt{INT x. B}.
+
+Some other frequently useful functions on sets are the following:
+\begin{center}
+\begin{tabular}{l@ {\quad}l}
 @{const_typ set} & converts a list to the set of its elements\\
 @{const_typ finite} & is true iff its argument is finite\\
 @{const_typ card} & is the cardinality of a finite set\\
@@ -115,7 +138,6 @@ Some more frequently useful functions on sets:
 @{thm image_def} & is the image of a function over a set
 \end{tabular}
 \end{center}
-
 See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
 @{theory Main}.
 
