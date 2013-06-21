@@ -71,10 +71,10 @@ definition chain :: "(nat \<Rightarrow> 'a set) \<Rightarrow> bool" where
 lemma chain_total: "chain S \<Longrightarrow> S i \<le> S j \<or> S j \<le> S i"
 by (metis chain_def le_cases lift_Suc_mono_le)
 
-definition cont :: "('a set \<Rightarrow> 'a set) \<Rightarrow> bool" where
+definition cont :: "('a set \<Rightarrow> 'b set) \<Rightarrow> bool" where
 "cont f = (\<forall>S. chain S \<longrightarrow> f(UN n. S n) = (UN n. f(S n)))"
 
-lemma mono_if_cont: fixes f :: "'a set \<Rightarrow> 'a set"
+lemma mono_if_cont: fixes f :: "'a set \<Rightarrow> 'b set"
   assumes "cont f" shows "mono f"
 proof
   fix a b :: "'a set" assume "a \<subseteq> b"
