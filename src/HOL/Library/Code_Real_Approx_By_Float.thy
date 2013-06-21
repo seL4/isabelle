@@ -151,6 +151,50 @@ lemma [code_unfold del]:
 
 hide_const (open) real_of_int
 
+code_const Ratreal (SML)
+
+definition Realfract :: "int => int => real"
+where
+  "Realfract p q = of_int p / of_int q"
+
+code_datatype Realfract
+
+code_const Realfract
+  (SML "Real.fromInt _/ '// Real.fromInt _")
+
+lemma [code]:
+  "Ratreal r = split Realfract (quotient_of r)"
+  by (cases r) (simp add: Realfract_def quotient_of_Fract of_rat_rat)
+
+lemma [code, code del]:
+  "(HOL.equal :: real=>real=>bool) = (HOL.equal :: real => real => bool) "
+  ..
+
+lemma [code, code del]:
+  "(plus :: real => real => real) = plus"
+  ..
+
+lemma [code, code del]:
+  "(uminus :: real => real) = uminus"
+  ..
+
+lemma [code, code del]:
+  "(minus :: real => real => real) = minus"
+  ..
+
+lemma [code, code del]:
+  "(times :: real => real => real) = times"
+  ..
+
+lemma [code, code del]:
+  "(divide :: real => real => real) = divide"
+  ..
+
+lemma [code]:
+  fixes r :: real
+  shows "inverse r = 1 / r"
+  by (fact inverse_eq_divide)
+
 notepad
 begin
   have "cos (pi/2) = 0" by (rule cos_pi_half)
