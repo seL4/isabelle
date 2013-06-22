@@ -159,9 +159,10 @@ text %mlref {*
 
 section {* Morphisms and declarations \label{sec:morphisms} *}
 
-text {* FIXME
+text {*
+  %FIXME
 
-  \medskip See also \cite{Chaieb-Wenzel:2007}.
+  See also \cite{Chaieb-Wenzel:2007}.
 *}
 
 end

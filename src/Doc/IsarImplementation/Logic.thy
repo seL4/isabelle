@@ -1148,7 +1148,7 @@ text {*
   {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
   \]
 
-  FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
+  %FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
 *}
 
 text %mlref {*

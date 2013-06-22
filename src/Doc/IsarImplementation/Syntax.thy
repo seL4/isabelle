@@ -69,11 +69,7 @@ text %mlref {*
   @{index_ML Syntax.pretty_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item FIXME
-
-  \end{description}
+  %FIXME description
 *}
 
 
@@ -106,11 +102,7 @@ text %mlref {*
   @{index_ML Syntax.unparse_term: "Proof.context -> term -> Pretty.T"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item FIXME
-
-  \end{description}
+  %FIXME description
 *}
 
 
@@ -153,11 +145,7 @@ text %mlref {*
   @{index_ML Syntax.uncheck_terms: "Proof.context -> term list -> term list"} \\
   \end{mldecls}
 
-  \begin{description}
-
-  \item FIXME
-
-  \end{description}
+  %FIXME description
 *}
 
 end

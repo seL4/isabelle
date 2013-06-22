@@ -73,7 +73,7 @@ text %mlref {*
 section {* Conversions \label{sec:conv} *}
 
 text {*
-  FIXME
+  %FIXME
 
   The classic article that introduces the concept of conversion (for
   Cambridge LCF) is \cite{paulson:1983}.
