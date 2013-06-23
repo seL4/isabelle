@@ -123,14 +123,9 @@ lemma [code abstract]:
   "integer_of_nat (nat k) = max 0 (integer_of_int k)"
   by transfer auto
 
-code_modulename SML
-  Code_Target_Nat Arith
-
-code_modulename OCaml
-  Code_Target_Nat Arith
-
-code_modulename Haskell
-  Code_Target_Nat Arith
+code_identifier
+  code_module Code_Target_Nat \<rightharpoonup>
+    (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
 

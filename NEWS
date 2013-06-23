@@ -68,6 +68,12 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Code generator:
+  * 'code_printing' unifies 'code_const' / 'code_type' / 'code_class' / 'code_instance'.
+  * 'code_identifier' declares name hints for arbitrary identifiers in generated code,
+    subsuming 'code_modulename'.
+  See the Isar reference manual for syntax diagrams, and the HOL theories for examples.
+
 * Library/Polynomial.thy:
   * Use lifting for primitive definitions.
   * Explicit conversions from and to lists of coefficients, used for generated code.

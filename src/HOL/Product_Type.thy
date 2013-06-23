@@ -34,11 +34,9 @@ setup {*
   Code.add_case @{thm If_case_cert}
 *}
 
-code_const "HOL.equal \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
-  (Haskell infix 4 "==")
-
-code_instance bool :: equal
-  (Haskell -)
+code_printing
+  constant "HOL.equal :: bool \<Rightarrow> bool \<Rightarrow> bool" \<rightharpoonup> (Haskell) infix 4 "=="
+| class_instance "bool" :: "equal" \<rightharpoonup> (Haskell) -
 
 
 subsection {* The @{text unit} type *}
@@ -95,23 +93,21 @@ end
 lemma [code]:
   "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
 
-code_type unit
-  (SML "unit")
-  (OCaml "unit")
-  (Haskell "()")
-  (Scala "Unit")
-
-code_const Unity
-  (SML "()")
-  (OCaml "()")
-  (Haskell "()")
-  (Scala "()")
-
-code_instance unit :: equal
-  (Haskell -)
-
-code_const "HOL.equal \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-  (Haskell infix 4 "==")
+code_printing
+  type_constructor unit \<rightharpoonup>
+    (SML) "unit"
+    and (OCaml) "unit"
+    and (Haskell) "()"
+    and (Scala) "Unit"
+| constant Unity \<rightharpoonup>
+    (SML) "()"
+    and (OCaml) "()"
+    and (Haskell) "()"
+    and (Scala) "()"
+| class_instance unit :: equal \<rightharpoonup>
+    (Haskell) -
+| constant "HOL.equal :: unit \<Rightarrow> unit \<Rightarrow> bool" \<rightharpoonup>
+    (Haskell) infix 4 "=="
 
 code_reserved SML
   unit
@@ -288,23 +284,21 @@ print_translation {*
 
 subsubsection {* Code generator setup *}
 
-code_type prod
-  (SML infix 2 "*")
-  (OCaml infix 2 "*")
-  (Haskell "!((_),/ (_))")
-  (Scala "((_),/ (_))")
-
-code_const Pair
-  (SML "!((_),/ (_))")
-  (OCaml "!((_),/ (_))")
-  (Haskell "!((_),/ (_))")
-  (Scala "!((_),/ (_))")
-
-code_instance prod :: equal
-  (Haskell -)
-
-code_const "HOL.equal \<Colon> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (Haskell infix 4 "==")
+code_printing
+  type_constructor prod \<rightharpoonup>
+    (SML) infix 2 "*"
+    and (OCaml) infix 2 "*"
+    and (Haskell) "!((_),/ (_))"
+    and (Scala) "((_),/ (_))"
+| constant Pair \<rightharpoonup>
+    (SML) "!((_),/ (_))"
+    and (OCaml) "!((_),/ (_))"
+    and (Haskell) "!((_),/ (_))"
+    and (Scala) "!((_),/ (_))"
+| class_instance  prod :: equal \<rightharpoonup>
+    (Haskell) -
+| constant "HOL.equal :: 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool" \<rightharpoonup>
+    (Haskell) infix 4 "=="
 
 
 subsubsection {* Fundamental operations and properties *}
@@ -330,8 +324,9 @@ lemma fst_conv [simp, code]: "fst (a, b) = a"
 lemma snd_conv [simp, code]: "snd (a, b) = b"
   unfolding snd_def by simp
 
-code_const fst and snd
-  (Haskell "fst" and "snd")
+code_printing
+  constant fst \<rightharpoonup> (Haskell) "fst"
+| constant snd \<rightharpoonup> (Haskell) "snd"
 
 lemma prod_case_unfold [nitpick_unfold]: "prod_case = (%c p. c (fst p) (snd p))"
   by (simp add: fun_eq_iff split: prod.split)
@@ -764,8 +759,8 @@ lemma scomp_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarro
 lemma fcomp_scomp: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
   by (simp add: fun_eq_iff scomp_unfold)
 
-code_const scomp
-  (Eval infixl 3 "#->")
+code_printing
+  constant scomp \<rightharpoonup> (Eval) infixl 3 "#->"
 
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)

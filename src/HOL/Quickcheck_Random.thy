@@ -15,8 +15,8 @@ subsection {* Catching Match exceptions *}
 
 axiomatization catch_match :: "'a => 'a => 'a"
 
-code_const catch_match 
-  (Quickcheck "((_) handle Match => _)")
+code_printing
+  constant catch_match \<rightharpoonup> (Quickcheck) "((_) handle Match => _)"
 
 subsection {* The @{text random} class *}
 
@@ -212,7 +212,8 @@ setup Random_Generators.setup
 
 subsection {* Code setup *}
 
-code_const random_fun_aux (Quickcheck "Random'_Generators.random'_fun")
+code_printing
+  constant random_fun_aux \<rightharpoonup> (Quickcheck) "Random'_Generators.random'_fun"
   -- {* With enough criminal energy this can be abused to derive @{prop False};
   for this reason we use a distinguished target @{text Quickcheck}
   not spoiling the regular trusted code generation *}

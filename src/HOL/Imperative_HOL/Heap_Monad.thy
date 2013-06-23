@@ -556,15 +556,15 @@ code_datatype raise' -- {* avoid @{const "Heap"} formally *}
 
 subsubsection {* SML and OCaml *}
 
-code_type Heap (SML "(unit/ ->/ _)")
-code_const bind (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
-code_const return (SML "!(fn/ ()/ =>/ _)")
-code_const Heap_Monad.raise' (SML "!(raise/ Fail/ _)")
+code_printing type_constructor Heap \<rightharpoonup> (SML) "(unit/ ->/ _)"
+code_printing constant bind \<rightharpoonup> (SML) "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())"
+code_printing constant return \<rightharpoonup> (SML) "!(fn/ ()/ =>/ _)"
+code_printing constant Heap_Monad.raise' \<rightharpoonup> (SML) "!(raise/ Fail/ _)"
 
-code_type Heap (OCaml "(unit/ ->/ _)")
-code_const bind (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
-code_const return (OCaml "!(fun/ ()/ ->/ _)")
-code_const Heap_Monad.raise' (OCaml "failwith")
+code_printing type_constructor Heap \<rightharpoonup> (OCaml) "(unit/ ->/ _)"
+code_printing constant bind \<rightharpoonup> (OCaml) "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())"
+code_printing constant return \<rightharpoonup> (OCaml) "!(fun/ ()/ ->/ _)"
+code_printing constant Heap_Monad.raise' \<rightharpoonup> (OCaml) "failwith"
 
 
 subsubsection {* Haskell *}
@@ -608,10 +608,10 @@ code_reserved Haskell Heap
 
 text {* Monad *}
 
-code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
+code_printing type_constructor Heap \<rightharpoonup> (Haskell) "Heap.ST/ Heap.RealWorld/ _"
 code_monad bind Haskell
-code_const return (Haskell "return")
-code_const Heap_Monad.raise' (Haskell "error")
+code_printing constant return \<rightharpoonup> (Haskell) "return"
+code_printing constant Heap_Monad.raise' \<rightharpoonup> (Haskell) "error"
 
 
 subsubsection {* Scala *}
@@ -653,10 +653,10 @@ object Array {
 
 code_reserved Scala Heap Ref Array
 
-code_type Heap (Scala "(Unit/ =>/ _)")
-code_const bind (Scala "Heap.bind")
-code_const return (Scala "('_: Unit)/ =>/ _")
-code_const Heap_Monad.raise' (Scala "!sys.error((_))")
+code_printing type_constructor Heap \<rightharpoonup> (Scala) "(Unit/ =>/ _)"
+code_printing constant bind \<rightharpoonup> (Scala) "Heap.bind"
+code_printing constant return \<rightharpoonup> (Scala) "('_: Unit)/ =>/ _"
+code_printing constant Heap_Monad.raise' \<rightharpoonup> (Scala) "!sys.error((_))"
 
 
 subsubsection {* Target variants with less units *}

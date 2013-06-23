@@ -219,13 +219,7 @@ hide_fact (open) normalizing_comm_ring_1_axioms
 
 hide_fact (open) normalizing_field_axioms normalizing_field_ops normalizing_field_rules
 
-code_modulename SML
-  Semiring_Normalization Arith
-
-code_modulename OCaml
-  Semiring_Normalization Arith
-
-code_modulename Haskell
-  Semiring_Normalization Arith
+code_identifier
+  code_module Semiring_Normalization \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end

@@ -465,8 +465,8 @@ fun add_monad target' raw_c_bind thy =
     val c_bind = Code.read_const thy raw_c_bind;
   in if target = target' then
     thy
-    |> Code_Target.add_const_syntax target c_bind
-        (SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))
+    |> Code_Target.set_printings (Code_Symbol.Constant (c_bind, [(target,
+      SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))]))
   else error "Only Haskell target allows for monad syntax" end;
 
 
@@ -484,12 +484,13 @@ val setup =
         make_command = fn module_name =>
           "\"$ISABELLE_GHC\" " ^ language_params  ^ " -odir build -hidir build -stubdir build -e \"\" " ^
             module_name ^ ".hs" } })
-  #> Code_Target.add_tyco_syntax target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
+  #> Code_Target.set_printings (Code_Symbol.Type_Constructor ("fun",
+    [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
         print_typ (INFX (1, R)) ty2
-      )))
+      )))]))
   #> fold (Code_Target.add_reserved target) [
       "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
       "import", "default", "forall", "let", "in", "class", "qualified", "data",

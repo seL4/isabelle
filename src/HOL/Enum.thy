@@ -117,7 +117,9 @@ proof -
 qed
 
 code_abort enum_the
-code_const enum_the (Eval "(fn p => raise Match)")
+
+code_printing
+  constant enum_the \<rightharpoonup> (Eval) "(fn '_ => raise Match)"
 
 
 subsubsection {* Equality and order on functions *}

@@ -1911,14 +1911,8 @@ class size =
 
 subsection {* code module namespace *}
 
-code_modulename SML
-  Nat Arith
-
-code_modulename OCaml
-  Nat Arith
-
-code_modulename Haskell
-  Nat Arith
+code_identifier
+  code_module Nat \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 hide_const (open) of_nat_aux
 

@@ -434,8 +434,8 @@ qed
 
 definition some_elem :: "'a set \<Rightarrow> 'a" where [code del]:
   "some_elem = (%S. SOME x. x : S)"
-code_const some_elem
-  (SML "(case/ _ of/ Set/ xs/ =>/ hd/ xs)")
+code_printing
+  constant some_elem \<rightharpoonup> (SML) "(case/ _ of/ Set/ xs/ =>/ hd/ xs)"
 
 text {* This code setup is just a demonstration and \emph{not} sound! *}
 

@@ -518,10 +518,11 @@ class fast_exhaustive = term_of +
 axiomatization throw_Counterexample :: "term list => unit"
 axiomatization catch_Counterexample :: "unit => term list option"
 
-code_const throw_Counterexample
-  (Quickcheck "raise (Exhaustive'_Generators.Counterexample _)")
-code_const catch_Counterexample
-  (Quickcheck "(((_); NONE) handle Exhaustive'_Generators.Counterexample ts => SOME ts)")
+code_printing
+  constant throw_Counterexample \<rightharpoonup>
+    (Quickcheck) "raise (Exhaustive'_Generators.Counterexample _)"
+| constant catch_Counterexample \<rightharpoonup>
+    (Quickcheck) "(((_); NONE) handle Exhaustive'_Generators.Counterexample ts => SOME ts)"
 
 subsection {* Continuation passing style functions as plus monad *}
   

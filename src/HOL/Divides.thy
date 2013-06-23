@@ -2381,13 +2381,8 @@ proof -
   then show ?thesis by (simp add: divmod_int_pdivmod)
 qed
 
-code_modulename SML
-  Divides Arith
-
-code_modulename OCaml
-  Divides Arith
-
-code_modulename Haskell
-  Divides Arith
+code_identifier
+  code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
+

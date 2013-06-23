@@ -29,11 +29,12 @@ lemma [code, code_unfold]:
 definition timing :: "String.literal \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
   [simp]: "timing s f x = f x"
 
-code_const trace and flush and timing
-  (* FIXME proper @{make_string} instead of PolyML.makestring?!?! *)
-  (Eval "Output.tracing" and "Output.tracing/ (PolyML.makestring _)" and "Timing.timeap'_msg")
+code_printing
+  constant trace \<rightharpoonup> (Eval) "Output.tracing"
+| constant flush \<rightharpoonup> (Eval) "Output.tracing/ (@{make'_string} _)" -- {* note indirection via antiquotation *}
+| constant timing \<rightharpoonup> (Eval) "Timing.timeap'_msg"
 
-code_reserved Eval Output PolyML Timing
+code_reserved Eval Output Timing
 
 hide_const (open) trace tracing flush flushing timing
 

@@ -40,11 +40,9 @@ subsection "Code Generation"
 
 code_reserved SML Vector
 
-code_type iarray
-  (SML "_ Vector.vector")
-
-code_const IArray
-  (SML "Vector.fromList")
+code_printing
+  type_constructor iarray \<rightharpoonup> (SML) "_ Vector.vector"
+| constant IArray \<rightharpoonup> (SML) "Vector.fromList"
 
 lemma [code]:
 "size (as :: 'a iarray) = 0"
@@ -74,8 +72,8 @@ lemma [code]:
 "IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
 by simp 
 
-code_const IArray.tabulate
-  (SML "Vector.tabulate")
+code_printing
+  constant IArray.tabulate \<rightharpoonup> (SML) "Vector.tabulate"
 
 primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
 "sub' (as, n) = IArray.list_of as ! nat_of_integer n"
@@ -85,8 +83,8 @@ lemma [code]:
 "as !! n = IArray.sub' (as, integer_of_nat n)"
 by simp
 
-code_const IArray.sub'
-  (SML "Vector.sub")
+code_printing
+  constant IArray.sub' \<rightharpoonup> (SML) "Vector.sub"
 
 definition length' :: "'a iarray \<Rightarrow> integer" where
 [simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
@@ -96,8 +94,8 @@ lemma [code]:
 "IArray.length as = nat_of_integer (IArray.length' as)"
 by simp
 
-code_const IArray.length'
-  (SML "Vector.length")
+code_printing
+  constant IArray.length' \<rightharpoonup> (SML) "Vector.length"
 
 end
 

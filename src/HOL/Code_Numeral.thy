@@ -519,21 +519,22 @@ subsection {* Serializer setup for target language integers *}
 
 code_reserved Eval int Integer abs
 
-code_type integer
-  (SML "IntInf.int")
-  (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
-  (Scala "BigInt")
-  (Eval "int")
+code_printing
+  type_constructor integer \<rightharpoonup>
+    (SML) "IntInf.int"
+    and (OCaml) "Big'_int.big'_int"
+    and (Haskell) "Integer"
+    and (Scala) "BigInt"
+    and (Eval) "int"
+| class_instance integer :: equal \<rightharpoonup>
+    (Haskell) -
 
-code_instance integer :: equal
-  (Haskell -)
-
-code_const "0::integer"
-  (SML "0")
-  (OCaml "Big'_int.zero'_big'_int")
-  (Haskell "0")
-  (Scala "BigInt(0)")
+code_printing
+  constant "0::integer" \<rightharpoonup>
+    (SML) "0"
+    and (OCaml) "Big'_int.zero'_big'_int"
+    and (Haskell) "0"
+    and (Scala) "BigInt(0)"
 
 setup {*
   fold (Numeral.add_code @{const_name Code_Numeral.Pos}
@@ -545,83 +546,69 @@ setup {*
     true Code_Printer.literal_numeral) ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
-code_const "plus :: integer \<Rightarrow> _ \<Rightarrow> _"
-  (SML "IntInf.+ ((_), (_))")
-  (OCaml "Big'_int.add'_big'_int")
-  (Haskell infixl 6 "+")
-  (Scala infixl 7 "+")
-  (Eval infixl 8 "+")
+code_printing
+  constant "plus :: integer \<Rightarrow> _ \<Rightarrow> _" \<rightharpoonup>
+    (SML) "IntInf.+ ((_), (_))"
+    and (OCaml) "Big'_int.add'_big'_int"
+    and (Haskell) infixl 6 "+"
+    and (Scala) infixl 7 "+"
+    and (Eval) infixl 8 "+"
+| constant "uminus :: integer \<Rightarrow> _" \<rightharpoonup>
+    (SML) "IntInf.~"
+    and (OCaml) "Big'_int.minus'_big'_int"
+    and (Haskell) "negate"
+    and (Scala) "!(- _)"
+    and (Eval) "~/ _"
+| constant "minus :: integer \<Rightarrow> _" \<rightharpoonup>
+    (SML) "IntInf.- ((_), (_))"
+    and (OCaml) "Big'_int.sub'_big'_int"
+    and (Haskell) infixl 6 "-"
+    and (Scala) infixl 7 "-"
+    and (Eval) infixl 8 "-"
+| constant Code_Numeral.dup \<rightharpoonup>
+    (SML) "IntInf.*/ (2,/ (_))"
+    and (OCaml) "Big'_int.mult'_big'_int/ (Big'_int.big'_int'_of'_int/ 2)"
+    and (Haskell) "!(2 * _)"
+    and (Scala) "!(2 * _)"
+    and (Eval) "!(2 * _)"
+| constant Code_Numeral.sub \<rightharpoonup>
+    (SML) "!(raise/ Fail/ \"sub\")"
+    and (OCaml) "failwith/ \"sub\""
+    and (Haskell) "error/ \"sub\""
+    and (Scala) "!sys.error(\"sub\")"
+| constant "times :: integer \<Rightarrow> _ \<Rightarrow> _" \<rightharpoonup>
+    (SML) "IntInf.* ((_), (_))"
+    and (OCaml) "Big'_int.mult'_big'_int"
+    and (Haskell) infixl 7 "*"
+    and (Scala) infixl 8 "*"
+    and (Eval) infixl 9 "*"
+| constant Code_Numeral.divmod_abs \<rightharpoonup>
+    (SML) "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)"
+    and (OCaml) "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)"
+    and (Haskell) "divMod/ (abs _)/ (abs _)"
+    and (Scala) "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))"
+    and (Eval) "Integer.div'_mod/ (abs _)/ (abs _)"
+| constant "HOL.equal :: integer \<Rightarrow> _ \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : IntInf.int) = _)"
+    and (OCaml) "Big'_int.eq'_big'_int"
+    and (Haskell) infix 4 "=="
+    and (Scala) infixl 5 "=="
+    and (Eval) infixl 6 "="
+| constant "less_eq :: integer \<Rightarrow> _ \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "IntInf.<= ((_), (_))"
+    and (OCaml) "Big'_int.le'_big'_int"
+    and (Haskell) infix 4 "<="
+    and (Scala) infixl 4 "<="
+    and (Eval) infixl 6 "<="
+| constant "less :: integer \<Rightarrow> _ \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "IntInf.< ((_), (_))"
+    and (OCaml) "Big'_int.lt'_big'_int"
+    and (Haskell) infix 4 "<"
+    and (Scala) infixl 4 "<"
+    and (Eval) infixl 6 "<"
 
-code_const "uminus :: integer \<Rightarrow> _"
-  (SML "IntInf.~")
-  (OCaml "Big'_int.minus'_big'_int")
-  (Haskell "negate")
-  (Scala "!(- _)")
-  (Eval "~/ _")
-
-code_const "minus :: integer \<Rightarrow> _"
-  (SML "IntInf.- ((_), (_))")
-  (OCaml "Big'_int.sub'_big'_int")
-  (Haskell infixl 6 "-")
-  (Scala infixl 7 "-")
-  (Eval infixl 8 "-")
-
-code_const Code_Numeral.dup
-  (SML "IntInf.*/ (2,/ (_))")
-  (OCaml "Big'_int.mult'_big'_int/ (Big'_int.big'_int'_of'_int/ 2)")
-  (Haskell "!(2 * _)")
-  (Scala "!(2 * _)")
-  (Eval "!(2 * _)")
-
-code_const Code_Numeral.sub
-  (SML "!(raise/ Fail/ \"sub\")")
-  (OCaml "failwith/ \"sub\"")
-  (Haskell "error/ \"sub\"")
-  (Scala "!sys.error(\"sub\")")
-
-code_const "times :: integer \<Rightarrow> _ \<Rightarrow> _"
-  (SML "IntInf.* ((_), (_))")
-  (OCaml "Big'_int.mult'_big'_int")
-  (Haskell infixl 7 "*")
-  (Scala infixl 8 "*")
-  (Eval infixl 9 "*")
-
-code_const Code_Numeral.divmod_abs
-  (SML "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)")
-  (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
-  (Haskell "divMod/ (abs _)/ (abs _)")
-  (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
-  (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
-
-code_const "HOL.equal :: integer \<Rightarrow> _ \<Rightarrow> bool"
-  (SML "!((_ : IntInf.int) = _)")
-  (OCaml "Big'_int.eq'_big'_int")
-  (Haskell infix 4 "==")
-  (Scala infixl 5 "==")
-  (Eval infixl 6 "=")
-
-code_const "less_eq :: integer \<Rightarrow> _ \<Rightarrow> bool"
-  (SML "IntInf.<= ((_), (_))")
-  (OCaml "Big'_int.le'_big'_int")
-  (Haskell infix 4 "<=")
-  (Scala infixl 4 "<=")
-  (Eval infixl 6 "<=")
-
-code_const "less :: integer \<Rightarrow> _ \<Rightarrow> bool"
-  (SML "IntInf.< ((_), (_))")
-  (OCaml "Big'_int.lt'_big'_int")
-  (Haskell infix 4 "<")
-  (Scala infixl 4 "<")
-  (Eval infixl 6 "<")
-
-code_modulename SML
-  Code_Numeral Arith
-
-code_modulename OCaml
-  Code_Numeral Arith
-
-code_modulename Haskell
-  Code_Numeral Arith
+code_identifier
+  code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 
 subsection {* Type of target language naturals *}

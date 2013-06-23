@@ -2224,7 +2224,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
   @{rail "
     @@{command (HOL) export_code} ( constexpr + ) \\
        ( ( @'in' target ( @'module_name' @{syntax string} ) ? \\
-        ( @'file' ( @{syntax string} | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+        ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
     const: @{syntax term}

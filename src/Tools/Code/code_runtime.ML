@@ -53,10 +53,10 @@ datatype truth = Holds;
 
 val _ = Context.>> (Context.map_theory
   (Code_Target.extend_target (target, (Code_ML.target_SML, K I))
-  #> Code_Target.add_tyco_syntax target @{type_name prop}
-       (SOME (0, (K o K o K) (Code_Printer.str s_truth)))
-  #> Code_Target.add_const_syntax target @{const_name Code_Generator.holds}
-       (SOME (Code_Printer.plain_const_syntax s_Holds))
+  #> Code_Target.set_printings (Code_Symbol.Type_Constructor (@{type_name prop},
+    [(target, SOME (0, (K o K o K) (Code_Printer.str s_truth)))]))
+  #> Code_Target.set_printings (Code_Symbol.Constant (@{const_name Code_Generator.holds},
+    [(target, SOME (Code_Printer.plain_const_syntax s_Holds))]))
   #> Code_Target.add_reserved target this
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]));
        (*avoid further pervasive infix names*)
@@ -287,7 +287,7 @@ fun add_eval_tyco (tyco, tyco') thy =
           Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
-    |> Code_Target.add_tyco_syntax target tyco (SOME (k, pr))
+    |> Code_Target.set_printings (Code_Symbol.Type_Constructor (tyco, [(target, SOME (k, pr))]))
   end;
 
 fun add_eval_constr (const, const') thy =
@@ -297,11 +297,12 @@ fun add_eval_constr (const, const') thy =
       (const' :: the_list (Code_Printer.tuplify pr' Code_Printer.BR (map fst ts)));
   in
     thy
-    |> Code_Target.add_const_syntax target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
+    |> Code_Target.set_printings (Code_Symbol.Constant (const,
+      [(target, SOME (Code_Printer.simple_const_syntax (k, pr)))]))
   end;
 
-fun add_eval_const (const, const') = Code_Target.add_const_syntax target
-  const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
+fun add_eval_const (const, const') = Code_Target.set_printings (Code_Symbol.Constant
+  (const, [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')))]));
 
 fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name NONE thy =
       thy
@@ -431,8 +432,8 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |> Code_Target.add_reserved target ml_name
   |> Specification.axiomatization [(b, SOME T, NoSyn)] []
   |-> (fn ([Const (const, _)], _) =>
-     Code_Target.add_const_syntax target const
-       (SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))
+    Code_Target.set_printings (Code_Symbol.Constant (const,
+      [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
   #> tap (fn thy => Code_Target.produce_code thy [const] target NONE structure_generated []));
 
 fun process_file filepath (definienda, thy) =

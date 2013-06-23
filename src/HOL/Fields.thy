@@ -1176,13 +1176,7 @@ qed
 
 end
 
-code_modulename SML
-  Fields Arith
-
-code_modulename OCaml
-  Fields Arith
-
-code_modulename Haskell
-  Fields Arith
+code_identifier
+  code_module Fields \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end

@@ -1830,61 +1830,67 @@ subsubsection {* Generic code generator target languages *}
 
 text {* type @{typ bool} *}
 
-code_type bool
-  (SML "bool")
-  (OCaml "bool")
-  (Haskell "Bool")
-  (Scala "Boolean")
-
-code_const True and False and Not and HOL.conj and HOL.disj and HOL.implies and If 
-  (SML "true" and "false" and "not"
-    and infixl 1 "andalso" and infixl 0 "orelse"
-    and "!(if (_)/ then (_)/ else true)"
-    and "!(if (_)/ then (_)/ else (_))")
-  (OCaml "true" and "false" and "not"
-    and infixl 3 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else true)"
-    and "!(if (_)/ then (_)/ else (_))")
-  (Haskell "True" and "False" and "not"
-    and infixr 3 "&&" and infixr 2 "||"
-    and "!(if (_)/ then (_)/ else True)"
-    and "!(if (_)/ then (_)/ else (_))")
-  (Scala "true" and "false" and "'! _"
-    and infixl 3 "&&" and infixl 1 "||"
-    and "!(if ((_))/ (_)/ else true)"
-    and "!(if ((_))/ (_)/ else (_))")
+code_printing
+  type_constructor bool \<rightharpoonup>
+    (SML) "bool" and (OCaml) "bool" and (Haskell) "Bool" and (Scala) "Boolean"
+| constant True \<rightharpoonup>
+    (SML) "true" and (OCaml) "true" and (Haskell) "True" and (Scala) "true"
+| constant False \<rightharpoonup>
+    (SML) "false" and (OCaml) "false" and (Haskell) "False" and (Scala) "false" 
 
 code_reserved SML
-  bool true false not
+  bool true false
 
 code_reserved OCaml
-  bool not
+  bool
 
 code_reserved Scala
   Boolean
 
-code_modulename SML Pure HOL
-code_modulename OCaml Pure HOL
-code_modulename Haskell Pure HOL
+code_printing
+  constant Not \<rightharpoonup>
+    (SML) "not" and (OCaml) "not" and (Haskell) "not" and (Scala) "'! _"
+| constant HOL.conj \<rightharpoonup>
+    (SML) infixl 1 "andalso" and (OCaml) infixl 3 "&&" and (Haskell) infixr 3 "&&" and (Scala) infixl 3 "&&"
+| constant HOL.disj \<rightharpoonup>
+    (SML) infixl 0 "orelse" and (OCaml) infixl 2 "||" and (Haskell) infixl 2 "||" and (Scala) infixl 1 "||"
+| constant HOL.implies \<rightharpoonup>
+    (SML) "!(if (_)/ then (_)/ else true)"
+    and (OCaml) "!(if (_)/ then (_)/ else true)"
+    and (Haskell) "!(if (_)/ then (_)/ else True)"
+    and (Scala) "!(if ((_))/ (_)/ else true)"
+| constant If \<rightharpoonup>
+    (SML) "!(if (_)/ then (_)/ else (_))"
+    and (OCaml) "!(if (_)/ then (_)/ else (_))"
+    and (Haskell) "!(if (_)/ then (_)/ else (_))"
+    and (Scala) "!(if ((_))/ (_)/ else (_))"
+
+code_reserved SML
+  not
+
+code_reserved OCaml
+  not
+
+code_identifier
+  code_module Pure \<rightharpoonup>
+    (SML) HOL and (OCaml) HOL and (Haskell) HOL and (Scala) HOL
 
 text {* using built-in Haskell equality *}
 
-code_class equal
-  (Haskell "Eq")
-
-code_const "HOL.equal"
-  (Haskell infix 4 "==")
-
-code_const HOL.eq
-  (Haskell infix 4 "==")
+code_printing
+  type_class equal \<rightharpoonup> (Haskell) "Eq"
+| constant HOL.equal \<rightharpoonup> (Haskell) infix 4 "=="
+| constant HOL.eq \<rightharpoonup> (Haskell) infix 4 "=="
 
 text {* undefined *}
 
-code_const undefined
-  (SML "!(raise/ Fail/ \"undefined\")")
-  (OCaml "failwith/ \"undefined\"")
-  (Haskell "error/ \"undefined\"")
-  (Scala "!sys.error(\"undefined\")")
+code_printing
+  constant undefined \<rightharpoonup>
+    (SML) "!(raise/ Fail/ \"undefined\")"
+    and (OCaml) "failwith/ \"undefined\""
+    and (Haskell) "error/ \"undefined\""
+    and (Scala) "!sys.error(\"undefined\")"
+
 
 subsubsection {* Evaluation and normalization by evaluation *}
 

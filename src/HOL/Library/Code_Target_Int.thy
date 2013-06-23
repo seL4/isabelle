@@ -109,14 +109,9 @@ lemma [code]:
   "nat = nat_of_integer \<circ> of_int"
   by transfer (simp add: fun_eq_iff)
 
-code_modulename SML
-  Code_Target_Int Arith
-
-code_modulename OCaml
-  Code_Target_Int Arith
-
-code_modulename Haskell
-  Code_Target_Int Arith
+code_identifier
+  code_module Code_Target_Int \<rightharpoonup>
+    (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
 

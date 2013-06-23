@@ -275,48 +275,49 @@ lemma [code]:
 
 text {* SML / Eval *}
 
-code_type ref (SML "_/ ref")
-code_type ref (Eval "_/ Unsynchronized.ref")
-code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
-code_const ref' (SML "(fn/ ()/ =>/ ref/ _)")
-code_const ref' (Eval "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
-code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
-code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
-code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (SML infixl 6 "=")
+code_printing type_constructor ref \<rightharpoonup> (SML) "_/ ref"
+code_printing type_constructor ref \<rightharpoonup> (Eval) "_/ Unsynchronized.ref"
+code_printing constant Ref \<rightharpoonup> (SML) "raise/ (Fail/ \"bare Ref\")"
+code_printing constant ref' \<rightharpoonup> (SML) "(fn/ ()/ =>/ ref/ _)"
+code_printing constant ref' \<rightharpoonup> (Eval) "(fn/ ()/ =>/ Unsynchronized.ref/ _)"
+code_printing constant Ref.lookup \<rightharpoonup> (SML) "(fn/ ()/ =>/ !/ _)"
+code_printing constant Ref.update \<rightharpoonup> (SML) "(fn/ ()/ =>/ _/ :=/ _)"
+code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" \<rightharpoonup> (SML) infixl 6 "="
 
 code_reserved Eval Unsynchronized
 
 
 text {* OCaml *}
 
-code_type ref (OCaml "_/ ref")
-code_const Ref (OCaml "failwith/ \"bare Ref\"")
-code_const ref' (OCaml "(fun/ ()/ ->/ ref/ _)")
-code_const Ref.lookup (OCaml "(fun/ ()/ ->/ !/ _)")
-code_const Ref.update (OCaml "(fun/ ()/ ->/ _/ :=/ _)")
-code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (OCaml infixl 4 "=")
+code_printing type_constructor ref \<rightharpoonup> (OCaml) "_/ ref"
+code_printing constant Ref \<rightharpoonup> (OCaml) "failwith/ \"bare Ref\""
+code_printing constant ref' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ ref/ _)"
+code_printing constant Ref.lookup \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ !/ _)"
+code_printing constant Ref.update \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ _/ :=/ _)"
+code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" \<rightharpoonup> (OCaml) infixl 4 "="
 
 code_reserved OCaml ref
 
 
 text {* Haskell *}
 
-code_type ref (Haskell "Heap.STRef/ Heap.RealWorld/ _")
-code_const Ref (Haskell "error/ \"bare Ref\"")
-code_const ref' (Haskell "Heap.newSTRef")
-code_const Ref.lookup (Haskell "Heap.readSTRef")
-code_const Ref.update (Haskell "Heap.writeSTRef")
-code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (Haskell infix 4 "==")
-code_instance ref :: HOL.equal (Haskell -)
+code_printing type_constructor ref \<rightharpoonup> (Haskell) "Heap.STRef/ Heap.RealWorld/ _"
+code_printing constant Ref \<rightharpoonup> (Haskell) "error/ \"bare Ref\""
+code_printing constant ref' \<rightharpoonup> (Haskell) "Heap.newSTRef"
+code_printing constant Ref.lookup \<rightharpoonup> (Haskell) "Heap.readSTRef"
+code_printing constant Ref.update \<rightharpoonup> (Haskell) "Heap.writeSTRef"
+code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" \<rightharpoonup> (Haskell) infix 4 "=="
+code_printing class_instance ref :: HOL.equal \<rightharpoonup> (Haskell) -
 
 
 text {* Scala *}
 
-code_type ref (Scala "!Ref[_]")
-code_const Ref (Scala "!sys.error(\"bare Ref\")")
-code_const ref' (Scala "('_: Unit)/ =>/ Ref((_))")
-code_const Ref.lookup (Scala "('_: Unit)/ =>/ Ref.lookup((_))")
-code_const Ref.update (Scala "('_: Unit)/ =>/ Ref.update((_), (_))")
-code_const "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" (Scala infixl 5 "==")
+code_printing type_constructor ref \<rightharpoonup> (Scala) "!Ref[_]"
+code_printing constant Ref \<rightharpoonup> (Scala) "!sys.error(\"bare Ref\")"
+code_printing constant ref' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Ref((_))"
+code_printing constant Ref.lookup \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Ref.lookup((_))"
+code_printing constant Ref.update \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Ref.update((_), (_))"
+code_printing constant "HOL.equal :: 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" \<rightharpoonup> (Scala) infixl 5 "=="
 
 end
+

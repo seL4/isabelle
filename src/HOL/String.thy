@@ -400,24 +400,25 @@ code_reserved SML string
 code_reserved OCaml string
 code_reserved Scala string
 
-code_type literal
-  (SML "string")
-  (OCaml "string")
-  (Haskell "String")
-  (Scala "String")
+code_printing
+  type_constructor literal \<rightharpoonup>
+    (SML) "string"
+    and (OCaml) "string"
+    and (Haskell) "String"
+    and (Scala) "String"
 
 setup {*
   fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
-code_instance literal :: equal
-  (Haskell -)
-
-code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
-  (SML "!((_ : string) = _)")
-  (OCaml "!((_ : string) = _)")
-  (Haskell infix 4 "==")
-  (Scala infixl 5 "==")
+code_printing
+  class_instance literal :: equal \<rightharpoonup>
+    (Haskell) -
+| constant "HOL.equal :: literal \<Rightarrow> literal \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : string) = _)"
+    and (OCaml) "!((_ : string) = _)"
+    and (Haskell) infix 4 "=="
+    and (Scala) infixl 5 "=="
 
 hide_type (open) literal
 

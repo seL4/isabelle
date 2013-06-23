@@ -1359,14 +1359,8 @@ lemma add_mono_thms_linordered_field [no_atp]:
 by (auto intro: add_strict_right_mono add_strict_left_mono
   add_less_le_mono add_le_less_mono add_strict_mono)
 
-code_modulename SML
-  Groups Arith
-
-code_modulename OCaml
-  Groups Arith
-
-code_modulename Haskell
-  Groups Arith
+code_identifier
+  code_module Groups \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 
 text {* Legacy *}

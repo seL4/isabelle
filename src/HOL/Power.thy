@@ -742,14 +742,8 @@ lemma power_power_power [code]:
 
 declare power.power.simps [code]
 
-code_modulename SML
-  Power Arith
-
-code_modulename OCaml
-  Power Arith
-
-code_modulename Haskell
-  Power Arith
+code_identifier
+  code_module Power \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
 

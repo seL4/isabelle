@@ -515,7 +515,7 @@ fun read_const_exprs thy cs =
   in union (op =) cs3 cs1 end;
 
 fun prep_destination "" = NONE
-  | prep_destination "-" = NONE
+  | prep_destination "-" = (legacy_feature "drop \"file\" argument entirely instead of \"-\""; NONE)
   | prep_destination s = SOME (Path.explode s);
 
 fun export_code thy cs seris =
@@ -638,8 +638,13 @@ fun gen_set_identifiers prep_name_decl raw_name_decls thy =
 val set_identifiers = gen_set_identifiers cert_name_decls;
 val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
-fun add_module_alias_cmd target = fold (fn (sym, name) =>
-  set_identifier (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name))));
+fun add_module_alias_cmd target aliasses =
+  let
+    val _ = legacy_feature "prefer \"code_identifier\" over \"code_modulename\"";
+  in
+    fold (fn (sym, name) => set_identifier
+      (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name)))) aliasses
+  end;
 
 
 (* custom printings *)
@@ -670,6 +675,7 @@ val set_printings_cmd = gen_set_printings read_printings;
 
 fun gen_add_syntax Symbol prep_x prep_syn target raw_x some_raw_syn thy =
   let
+    val _ = legacy_feature "prefer \"code_printing\" for custom serialisations"
     val x = prep_x thy raw_x;
   in set_printing (target, Symbol (x, Option.map (prep_syn thy x) some_raw_syn)) thy end;
 

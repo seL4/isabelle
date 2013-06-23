@@ -81,9 +81,9 @@ fun add_code number_of negative print target thy =
     fun pretty literals [one', bit0', bit1'] _ thm _ _ [(t, _)] =
       (Code_Printer.str o print literals o dest_numeral one' bit0' bit1' thm) t;
   in
-    thy |> Code_Target.add_const_syntax target number_of
-      (SOME (Code_Printer.complex_const_syntax (1, ([@{const_name Num.One},
-        @{const_name Num.Bit0}, @{const_name Num.Bit1}], pretty))))
+    thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,
+      [(target, SOME (Code_Printer.complex_const_syntax
+        (1, ([@{const_name Num.One}, @{const_name Num.Bit0}, @{const_name Num.Bit1}], pretty))))]))
   end;
 
 end; (*local*)

@@ -1614,14 +1614,8 @@ lemma (in ring_1) of_int_code [code]:
 
 text {* Serializer setup *}
 
-code_modulename SML
-  Int Arith
-
-code_modulename OCaml
-  Int Arith
-
-code_modulename Haskell
-  Int Arith
+code_identifier
+  code_module Int \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 quickcheck_params [default_type = int]
 

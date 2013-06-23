@@ -1149,13 +1149,8 @@ lemma abs_diff_less_iff:
 
 end
 
-code_modulename SML
-  Rings Arith
-
-code_modulename OCaml
-  Rings Arith
-
-code_modulename Haskell
-  Rings Arith
+code_identifier
+  code_module Rings \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
+

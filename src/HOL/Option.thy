@@ -186,23 +186,26 @@ lemma [code_unfold]:
 
 hide_const (open) is_none
 
-code_type option
-  (SML "_ option")
-  (OCaml "_ option")
-  (Haskell "Maybe _")
-  (Scala "!Option[(_)]")
-
-code_const None and Some
-  (SML "NONE" and "SOME")
-  (OCaml "None" and "Some _")
-  (Haskell "Nothing" and "Just")
-  (Scala "!None" and "Some")
-
-code_instance option :: equal
-  (Haskell -)
-
-code_const "HOL.equal \<Colon> 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
-  (Haskell infix 4 "==")
+code_printing
+  type_constructor option \<rightharpoonup>
+    (SML) "_ option"
+    and (OCaml) "_ option"
+    and (Haskell) "Maybe _"
+    and (Scala) "!Option[(_)]"
+| constant None \<rightharpoonup>
+    (SML) "NONE"
+    and (OCaml) "None"
+    and (Haskell) "Nothing"
+    and (Scala) "!None"
+| constant Some \<rightharpoonup>
+    (SML) "SOME"
+    and (OCaml) "Some _"
+    and (Haskell) "Just"
+    and (Scala) "Some"
+| class_instance option :: equal \<rightharpoonup>
+    (Haskell) -
+| constant "HOL.equal :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool" \<rightharpoonup>
+    (Haskell) infix 4 "=="
 
 code_reserved SML
   option NONE SOME

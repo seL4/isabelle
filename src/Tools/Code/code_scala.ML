@@ -413,13 +413,13 @@ val setup =
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn _ =>
           "env JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' \"$SCALA_HOME/bin/scalac\" ROOT.scala" } })
-  #> Code_Target.add_tyco_syntax target "fun"
-     (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-        brackify_infix (1, R) fxy (
-          print_typ BR ty1 (*product type vs. tupled arguments!*),
-          str "=>",
-          print_typ (INFX (1, R)) ty2
-        )))
+  #> Code_Target.set_printings (Code_Symbol.Type_Constructor ("fun",
+    [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
+      brackify_infix (1, R) fxy (
+        print_typ BR ty1 (*product type vs. tupled arguments!*),
+        str "=>",
+        print_typ (INFX (1, R)) ty2
+      )))]))
   #> fold (Code_Target.add_reserved target) [
       "abstract", "case", "catch", "class", "def", "do", "else", "extends", "false",
       "final", "finally", "for", "forSome", "if", "implicit", "import", "lazy",

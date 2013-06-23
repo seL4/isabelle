@@ -823,6 +823,13 @@ val serializer_ocaml : Code_Target.serializer =
 
 (** Isar setup **)
 
+fun fun_syntax print_typ fxy [ty1, ty2] =
+  brackify_infix (1, R) fxy (
+    print_typ (INFX (1, X)) ty1,
+    str "->",
+    print_typ (INFX (1, R)) ty2
+  );
+
 val setup =
   Code_Target.add_target
     (target_SML, { serializer = serializer_sml, literals = literals_sml,
@@ -835,18 +842,8 @@ val setup =
       check = { env_var = "ISABELLE_OCAML",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
         make_command = fn _ => "\"$ISABELLE_OCAML\" -w pu nums.cma ROOT.ocaml" } })
-  #> Code_Target.add_tyco_syntax target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-      brackify_infix (1, R) fxy (
-        print_typ (INFX (1, X)) ty1,
-        str "->",
-        print_typ (INFX (1, R)) ty2
-      )))
-  #> Code_Target.add_tyco_syntax target_OCaml "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-      brackify_infix (1, R) fxy (
-        print_typ (INFX (1, X)) ty1,
-        str "->",
-        print_typ (INFX (1, R)) ty2
-      )))
+  #> Code_Target.set_printings (Code_Symbol.Type_Constructor ("fun",
+    [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))
   #> fold (Code_Target.add_reserved target_SML) ML_Syntax.reserved_names
   #> fold (Code_Target.add_reserved target_SML)
       ["ref" (*rebinding is illegal*), "o" (*dictionary projections use it already*),

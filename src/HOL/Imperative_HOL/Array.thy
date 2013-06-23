@@ -445,60 +445,60 @@ hide_const (open) new' make' len' nth' upd'
 
 text {* SML *}
 
-code_type array (SML "_/ array")
-code_const Array (SML "raise/ (Fail/ \"bare Array\")")
-code_const Array.new' (SML "(fn/ ()/ =>/ Array.array/ ((_),/ (_)))")
-code_const Array.of_list (SML "(fn/ ()/ =>/ Array.fromList/ _)")
-code_const Array.make' (SML "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))")
-code_const Array.len' (SML "(fn/ ()/ =>/ Array.length/ _)")
-code_const Array.nth' (SML "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))")
-code_const Array.upd' (SML "(fn/ ()/ =>/ Array.update/ ((_),/ (_),/ (_)))")
-code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (SML infixl 6 "=")
+code_printing type_constructor array \<rightharpoonup> (SML) "_/ array"
+code_printing constant Array \<rightharpoonup> (SML) "raise/ (Fail/ \"bare Array\")"
+code_printing constant Array.new' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.array/ ((_),/ (_)))"
+code_printing constant Array.of_list \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.fromList/ _)"
+code_printing constant Array.make' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))"
+code_printing constant Array.len' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.length/ _)"
+code_printing constant Array.nth' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))"
+code_printing constant Array.upd' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.update/ ((_),/ (_),/ (_)))"
+code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (SML) infixl 6 "="
 
 code_reserved SML Array
 
 
 text {* OCaml *}
 
-code_type array (OCaml "_/ array")
-code_const Array (OCaml "failwith/ \"bare Array\"")
-code_const Array.new' (OCaml "(fun/ ()/ ->/ Array.make/ (Big'_int.int'_of'_big'_int/ _)/ _)")
-code_const Array.of_list (OCaml "(fun/ ()/ ->/ Array.of'_list/ _)")
-code_const Array.make' (OCaml "(fun/ ()/ ->/ Array.init/ (Big'_int.int'_of'_big'_int/ _)/
-  (fun k'_ ->/ _/ (Big'_int.big'_int'_of'_int/ k'_)))")
-code_const Array.len' (OCaml "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))")
-code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))")
-code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)")
-code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (OCaml infixl 4 "=")
+code_printing type_constructor array \<rightharpoonup> (OCaml) "_/ array"
+code_printing constant Array \<rightharpoonup> (OCaml) "failwith/ \"bare Array\""
+code_printing constant Array.new' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.make/ (Big'_int.int'_of'_big'_int/ _)/ _)"
+code_printing constant Array.of_list \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.of'_list/ _)"
+code_printing constant Array.make' \<rightharpoonup> (OCaml)
+  "(fun/ ()/ ->/ Array.init/ (Big'_int.int'_of'_big'_int/ _)/ (fun k'_ ->/ _/ (Big'_int.big'_int'_of'_int/ k'_)))"
+code_printing constant Array.len' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))"
+code_printing constant Array.nth' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))"
+code_printing constant Array.upd' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)"
+code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (OCaml) infixl 4 "="
 
 code_reserved OCaml Array
 
 
 text {* Haskell *}
 
-code_type array (Haskell "Heap.STArray/ Heap.RealWorld/ _")
-code_const Array (Haskell "error/ \"bare Array\"")
-code_const Array.new' (Haskell "Heap.newArray")
-code_const Array.of_list (Haskell "Heap.newListArray")
-code_const Array.make' (Haskell "Heap.newFunArray")
-code_const Array.len' (Haskell "Heap.lengthArray")
-code_const Array.nth' (Haskell "Heap.readArray")
-code_const Array.upd' (Haskell "Heap.writeArray")
-code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (Haskell infix 4 "==")
-code_instance array :: HOL.equal (Haskell -)
+code_printing type_constructor array \<rightharpoonup> (Haskell) "Heap.STArray/ Heap.RealWorld/ _"
+code_printing constant Array \<rightharpoonup> (Haskell) "error/ \"bare Array\""
+code_printing constant Array.new' \<rightharpoonup> (Haskell) "Heap.newArray"
+code_printing constant Array.of_list \<rightharpoonup> (Haskell) "Heap.newListArray"
+code_printing constant Array.make' \<rightharpoonup> (Haskell) "Heap.newFunArray"
+code_printing constant Array.len' \<rightharpoonup> (Haskell) "Heap.lengthArray"
+code_printing constant Array.nth' \<rightharpoonup> (Haskell) "Heap.readArray"
+code_printing constant Array.upd' \<rightharpoonup> (Haskell) "Heap.writeArray"
+code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (Haskell) infix 4 "=="
+code_printing class_instance array :: HOL.equal \<rightharpoonup> (Haskell) -
 
 
 text {* Scala *}
 
-code_type array (Scala "!collection.mutable.ArraySeq[_]")
-code_const Array (Scala "!sys.error(\"bare Array\")")
-code_const Array.new' (Scala "('_: Unit)/ => / Array.alloc((_))((_))")
-code_const Array.make' (Scala "('_: Unit)/ =>/ Array.make((_))((_))")
-code_const Array.len' (Scala "('_: Unit)/ =>/ Array.len((_))")
-code_const Array.nth' (Scala "('_: Unit)/ =>/ Array.nth((_), (_))")
-code_const Array.upd' (Scala "('_: Unit)/ =>/ Array.upd((_), (_), (_))")
-code_const Array.freeze (Scala "('_: Unit)/ =>/ Array.freeze((_))")
-code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (Scala infixl 5 "==")
+code_printing type_constructor array \<rightharpoonup> (Scala) "!collection.mutable.ArraySeq[_]"
+code_printing constant Array \<rightharpoonup> (Scala) "!sys.error(\"bare Array\")"
+code_printing constant Array.new' \<rightharpoonup> (Scala) "('_: Unit)/ => / Array.alloc((_))((_))"
+code_printing constant Array.make' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.make((_))((_))"
+code_printing constant Array.len' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.len((_))"
+code_printing constant Array.nth' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.nth((_), (_))"
+code_printing constant Array.upd' \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.upd((_), (_), (_))"
+code_printing constant Array.freeze \<rightharpoonup> (Scala) "('_: Unit)/ =>/ Array.freeze((_))"
+code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (Scala) infixl 5 "=="
 
 end
 

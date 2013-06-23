@@ -29,6 +29,9 @@ lemma image_id [simp]: "image id = id"
 lemma vimage_id [simp]: "vimage id = id"
   by (simp add: id_def fun_eq_iff)
 
+code_printing
+  constant id \<rightharpoonup> (Haskell) "id"
+
 
 subsection {* The Composition Operator @{text "f \<circ> g"} *}
 
@@ -77,6 +80,9 @@ lemma SUP_comp:
   "SUPR A (g \<circ> f) = SUPR (f ` A) g"
   by (simp add: SUP_def image_comp)
 
+code_printing
+  constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
+
 
 subsection {* The Forward Composition Operator @{text fcomp} *}
 
@@ -95,8 +101,8 @@ lemma id_fcomp [simp]: "id \<circ>> g = g"
 lemma fcomp_id [simp]: "f \<circ>> id = f"
   by (simp add: fcomp_def)
 
-code_const fcomp
-  (Eval infixl 1 "#>")
+code_printing
+  constant fcomp \<rightharpoonup> (Eval) infixl 1 "#>"
 
 no_notation fcomp (infixl "\<circ>>" 60)
 
@@ -812,16 +818,6 @@ let
     end
 in proc end
 *}
-
-
-subsubsection {* Code generator *}
-
-code_const "op \<circ>"
-  (SML infixl 5 "o")
-  (Haskell infixr 9 ".")
-
-code_const "id"
-  (Haskell "id")
 
 
 subsubsection {* Functorial structure of types *}

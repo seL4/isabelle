@@ -142,14 +142,9 @@ lemma of_nat_code [code]:
   by (simp_all add: nat_of_num_numeral)
 
 
-code_modulename SML
-  Code_Binary_Nat Arith
-
-code_modulename OCaml
-  Code_Binary_Nat Arith
-
-code_modulename Haskell
-  Code_Binary_Nat Arith
+code_identifier
+  code_module Code_Binary_Nat \<rightharpoonup>
+    (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 hide_const (open) dup sub
 

@@ -18,14 +18,10 @@ lemma future_eqI [intro!]:
   shows "f = g"
   using assms by (cases f, cases g) (simp add: ext)
 
-code_type future
-  (Eval "_ future")
-
-code_const fork
-  (Eval "Future.fork")
-
-code_const join
-  (Eval "Future.join")
+code_printing
+  type_constructor future \<rightharpoonup> (Eval) "_ future"
+| constant fork \<rightharpoonup> (Eval) "Future.fork"
+| constant join \<rightharpoonup> (Eval) "Future.join"
 
 code_reserved Eval Future future
 
@@ -49,14 +45,10 @@ lemma exists_ex [simp]:
   "exists P xs \<longleftrightarrow> (\<exists>x\<in>set xs. P x)"
   by (simp add: exists_def list_ex_iff)
 
-code_const map
-  (Eval "Par'_List.map")
-
-code_const forall
-  (Eval "Par'_List.forall")
-
-code_const exists
-  (Eval "Par'_List.exists")
+code_printing
+  constant map \<rightharpoonup> (Eval) "Par'_List.map"
+| constant forall \<rightharpoonup> (Eval) "Par'_List.forall"
+| constant exists \<rightharpoonup> (Eval) "Par'_List.exists"
 
 code_reserved Eval Par_List
 

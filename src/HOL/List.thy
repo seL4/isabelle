@@ -6042,30 +6042,31 @@ fun add_literal_list target =
             Code_Printer.literal_list literals (map (pr vars Code_Printer.NOBR) ts)
         | NONE =>
             default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
-  in Code_Target.add_const_syntax target @{const_name Cons}
-    (SOME (Code_Printer.complex_const_syntax (2, ([@{const_name Nil}, @{const_name Cons}], pretty))))
+  in
+    Code_Target.set_printings (Code_Symbol.Constant (@{const_name Cons},
+      [(target, SOME (Code_Printer.complex_const_syntax (2, ([@{const_name Nil}, @{const_name Cons}], pretty))))]))
   end
 
 end;
 *}
 
-code_type list
-  (SML "_ list")
-  (OCaml "_ list")
-  (Haskell "![(_)]")
-  (Scala "List[(_)]")
+code_printing
+  type_constructor list \<rightharpoonup>
+    (SML) "_ list"
+    and (OCaml) "_ list"
+    and (Haskell) "![(_)]"
+    and (Scala) "List[(_)]"
+| constant Nil \<rightharpoonup>
+    (SML) "[]"
+    and (OCaml) "[]"
+    and (Haskell) "[]"
+    and (Scala) "!Nil"
+| class_instance list :: equal \<rightharpoonup>
+    (Haskell) -
+| constant "HOL.equal :: 'a list \<Rightarrow> 'a list \<Rightarrow> bool" \<rightharpoonup>
+    (Haskell) infix 4 "=="
 
-code_const Nil
-  (SML "[]")
-  (OCaml "[]")
-  (Haskell "[]")
-  (Scala "!Nil")
-
-code_instance list :: equal
-  (Haskell -)
-
-code_const "HOL.equal \<Colon> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  (Haskell infix 4 "==")
+setup {* fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"] *}
 
 code_reserved SML
   list
@@ -6073,49 +6074,37 @@ code_reserved SML
 code_reserved OCaml
   list
 
-setup {* fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"] *}
-
 
 subsubsection {* Use convenient predefined operations *}
 
-code_const "op @"
-  (SML infixr 7 "@")
-  (OCaml infixr 6 "@")
-  (Haskell infixr 5 "++")
-  (Scala infixl 7 "++")
-
-code_const map
-  (Haskell "map")
-
-code_const filter
-  (Haskell "filter")
-
-code_const concat
-  (Haskell "concat")
-
-code_const List.maps
-  (Haskell "concatMap")
-
-code_const rev
-  (Haskell "reverse")
-
-code_const zip
-  (Haskell "zip")
-
-code_const List.null
-  (Haskell "null")
-
-code_const takeWhile
-  (Haskell "takeWhile")
-
-code_const dropWhile
-  (Haskell "dropWhile")
-
-code_const list_all
-  (Haskell "all")
-
-code_const list_ex
-  (Haskell "any")
+code_printing
+  constant "op @" \<rightharpoonup>
+    (SML) infixr 7 "@"
+    and (OCaml) infixr 6 "@"
+    and (Haskell) infixr 5 "++"
+    and (Scala) infixl 7 "++"
+| constant map \<rightharpoonup>
+    (Haskell) "map"
+| constant filter \<rightharpoonup>
+    (Haskell) "filter"
+| constant concat \<rightharpoonup>
+    (Haskell) "concat"
+| constant List.maps \<rightharpoonup>
+    (Haskell) "concatMap"
+| constant rev \<rightharpoonup>
+    (Haskell) "reverse"
+| constant zip \<rightharpoonup>
+    (Haskell) "zip"
+| constant List.null \<rightharpoonup>
+    (Haskell) "null"
+| constant takeWhile \<rightharpoonup>
+    (Haskell) "takeWhile"
+| constant dropWhile \<rightharpoonup>
+    (Haskell) "dropWhile"
+| constant list_all \<rightharpoonup>
+    (Haskell) "all"
+| constant list_ex \<rightharpoonup>
+    (Haskell) "any"
 
 
 subsubsection {* Implementation of sets by lists *}

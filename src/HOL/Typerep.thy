@@ -87,11 +87,9 @@ lemma [code nbe]:
   "HOL.equal (x :: typerep) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
-code_type typerep
-  (Eval "Term.typ")
-
-code_const Typerep
-  (Eval "Term.Type/ (_, _)")
+code_printing
+  type_constructor typerep \<rightharpoonup> (Eval) "Term.typ"
+| constant Typerep \<rightharpoonup> (Eval) "Term.Type/ (_, _)"
 
 code_reserved Eval Term
 

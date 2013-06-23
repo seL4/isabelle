@@ -13,14 +13,10 @@ subsubsection {* Code generation setup *}
 
 setup {* Code_Target.extend_target ("Haskell_Quickcheck", (Code_Haskell.target, K I)) *}
 
-code_type typerep
-  (Haskell_Quickcheck "Typerep")
-
-code_const Typerep.Typerep
-  (Haskell_Quickcheck "Typerep")
-
-code_type integer
-  (Haskell_Quickcheck "Prelude.Int")
+code_printing
+  type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep"
+| constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep"
+| type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"
 
 code_reserved Haskell_Quickcheck Typerep
 
@@ -47,19 +43,19 @@ subsubsection {* Auxilary functions for Narrowing *}
 
 consts nth :: "'a list => integer => 'a"
 
-code_const nth (Haskell_Quickcheck infixl 9  "!!")
+code_printing constant nth \<rightharpoonup> (Haskell_Quickcheck) infixl 9 "!!"
 
 consts error :: "char list => 'a"
 
-code_const error (Haskell_Quickcheck "error")
+code_printing constant error \<rightharpoonup> (Haskell_Quickcheck) "error"
 
 consts toEnum :: "integer => char"
 
-code_const toEnum (Haskell_Quickcheck "Prelude.toEnum")
+code_printing constant toEnum \<rightharpoonup> (Haskell_Quickcheck) "Prelude.toEnum"
 
 consts marker :: "char"
 
-code_const marker (Haskell_Quickcheck "''\\0'")
+code_printing constant marker \<rightharpoonup> (Haskell_Quickcheck) "''\\0'"
 
 subsubsection {* Narrowing's basic operations *}
 

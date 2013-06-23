@@ -125,18 +125,14 @@ lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def
       (Code_Evaluation.term_of x)) (Code_Evaluation.term_of y))"
   by (subst term_of_anything) rule 
 
-code_type "term"
-  (Eval "Term.term")
-
-code_const Const and App and Abs and Free
-  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))" and "Term.Abs/ ((_), (_), (_))"
-     and "Term.Free/ ((_), (_))")
-
-code_const "term_of \<Colon> integer \<Rightarrow> term"
-  (Eval "HOLogic.mk'_number/ HOLogic.code'_integerT")
-  
-code_const "term_of \<Colon> String.literal \<Rightarrow> term"
-  (Eval "HOLogic.mk'_literal")
+code_printing
+  type_constructor "term" \<rightharpoonup> (Eval) "Term.term"
+| constant Const \<rightharpoonup> (Eval) "Term.Const/ ((_), (_))"
+| constant App \<rightharpoonup> (Eval) "Term.$/ ((_), (_))"
+| constant Abs \<rightharpoonup> (Eval) "Term.Abs/ ((_), (_), (_))"
+| constant Free \<rightharpoonup> (Eval) "Term.Free/ ((_), (_))"
+| constant "term_of \<Colon> integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
+| constant "term_of \<Colon> String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"
 
 code_reserved Eval HOLogic
 
@@ -161,8 +157,8 @@ subsection {* Diagnostic *}
 definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code del]: "tracing s x = x"
 
-code_const "tracing :: String.literal => 'a => 'a"
-  (Eval "Code'_Evaluation.tracing")
+code_printing
+  constant "tracing :: String.literal => 'a => 'a" \<rightharpoonup> (Eval) "Code'_Evaluation.tracing"
 
 
 subsection {* Generic reification *}
