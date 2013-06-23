@@ -233,11 +233,11 @@ fun fixity_lrx L L = false
 
 fun fixity NOBR _ = false
   | fixity _ NOBR = false
-  | fixity (INFX (pr, lr)) (INFX (print_ctxt, lr_ctxt)) =
-      pr < print_ctxt
-      orelse pr = print_ctxt
+  | fixity (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
+      pr < pr_ctxt
+      orelse pr = pr_ctxt
         andalso fixity_lrx lr lr_ctxt
-      orelse print_ctxt = ~1
+      orelse pr_ctxt = ~1
   | fixity BR (INFX _) = false
   | fixity _ _ = true;
 
