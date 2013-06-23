@@ -742,8 +742,8 @@ fun parse_args f args =
 (** Isar setup **)
 
 fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
-  parse_keyword |-- Parse.!!! parse_isa --| (@{keyword "\<rightharpoonup>"} || @{keyword "=>"})
-    -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target));
+  parse_keyword |-- Parse.!!! (parse_isa --| (@{keyword "\<rightharpoonup>"} || @{keyword "=>"})
+    -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target)));
 
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   parse_single_symbol_pragma @{keyword "constant"} Parse.term_group parse_const
@@ -765,15 +765,21 @@ fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse
 
 val code_expr_argsP = Scan.optional (@{keyword "("} |-- Args.parse --| @{keyword ")"}) [];
 
-val code_exprP =
-  Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
-    ((@{keyword "checking"} |-- Scan.repeat (Parse.name
-      -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
-      >> (fn seris => check_code_cmd raw_cs seris)
-    || Scan.repeat (@{keyword "in"} |-- Parse.name
-       -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
-       -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
-       -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
+fun code_expr_inP raw_cs =
+  Scan.repeat (@{keyword "in"} |-- Parse.!!! (Parse.name
+    -- Scan.optional (@{keyword "module_name"} |-- Parse.name) ""
+    -- Scan.optional (@{keyword "file"} |-- Parse.name) ""
+    -- code_expr_argsP))
+      >> (fn seri_args => export_code_cmd raw_cs seri_args);
+
+fun code_expr_checkingP raw_cs =
+  (@{keyword "checking"} |-- Parse.!!!
+    (Scan.repeat (Parse.name -- ((@{keyword "?"} |-- Scan.succeed false) || Scan.succeed true)
+    -- code_expr_argsP)))
+      >> (fn seri_args => check_code_cmd raw_cs seri_args);
+
+val code_exprP = Scan.repeat1 Parse.term_group
+  :|-- (fn raw_cs => (code_expr_checkingP raw_cs || code_expr_inP raw_cs));
 
 val _ =
   Outer_Syntax.command @{command_spec "code_reserved"}
