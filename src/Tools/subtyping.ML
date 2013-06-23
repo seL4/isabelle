@@ -10,7 +10,6 @@ sig
   val add_type_map: term -> Context.generic -> Context.generic
   val add_coercion: term -> Context.generic -> Context.generic
   val print_coercions: Proof.context -> unit
-  val print_coercion_maps: Proof.context -> unit
   val setup: theory -> theory
 end;
 
@@ -26,7 +25,7 @@ datatype data = Data of
   {coes: (term * ((typ list * typ list) * term list)) Symreltab.table,  (*coercions table*)
    (*full coercions graph - only used at coercion declaration/deletion*)
    full_graph: int Graph.T,
-   (*coercions graph restricted to base types - for efficiency reasons strored in the context*)
+   (*coercions graph restricted to base types - for efficiency reasons stored in the context*)
    coes_graph: int Graph.T,
    tmaps: (term * variance list) Symtab.table,  (*map functions*)
    coerce_args: coerce_arg list Symtab.table  (*special constants with non-coercible arguments*)};
@@ -326,7 +325,7 @@ fun generate_constraints ctxt err =
             val tye_idx'' = strong_unify ctxt (U --> V, T) (tye, idx + 2)
               handle NO_UNIFIER (msg, _) => error (gen_msg err msg);
             val error_pack = (bs, t $ u, U, V, U');
-          in 
+          in
             if coerce'
             then (V, tye_idx'', ((U', U), error_pack) :: cs'')
             else (V,
@@ -820,7 +819,7 @@ fun coercion_infer_types ctxt raw_ts =
                     (if coerce' then "\nLocal coercion insertion on the operand failed:\n"
                     else "\nLocal coercion insertion on the operand disallowed:\n");
                   val (u'', U', tye_idx') =
-                    if coerce' then 
+                    if coerce' then
                       let val co = gen_coercion ctxt err' tye' (U, W);
                       in inf coerce' bs (if is_identity co then u else co $ u) (tye', idx') end
                     else (u, U, (tye', idx'));
@@ -1030,32 +1029,33 @@ fun delete_coercion raw_t context =
 fun print_coercions ctxt =
   let
     fun separate _ [] = ([], [])
-      | separate P (x::xs) = (if P x then apfst else apsnd) (cons x) (separate P xs);
+      | separate P (x :: xs) = (if P x then apfst else apsnd) (cons x) (separate P xs);
     val (simple, complex) =
       separate (fn (_, (_, ((Ts, Us), _))) => null Ts andalso null Us)
         (Symreltab.dest (coes_of ctxt));
-    fun show_coercion ((a, b), (t, ((Ts, Us), _))) = Pretty.block [
-      Syntax.pretty_typ ctxt (Type (a, Ts)),
-      Pretty.brk 1, Pretty.str "<:", Pretty.brk 1,
-      Syntax.pretty_typ ctxt (Type (b, Us)),
-      Pretty.brk 3, Pretty.block [Pretty.str "using", Pretty.brk 1,
-      Pretty.quote (Syntax.pretty_term ctxt t)]];
-  in
-    Pretty.big_list "Coercions:"
-    [Pretty.big_list "between base types:" (map show_coercion simple),
-     Pretty.big_list "other:" (map show_coercion complex)]
-    |> Pretty.writeln
-  end;
+    fun show_coercion ((a, b), (t, ((Ts, Us), _))) =
+      Pretty.item [Pretty.block
+       [Syntax.pretty_typ ctxt (Type (a, Ts)), Pretty.brk 1,
+        Pretty.str "<:", Pretty.brk 1,
+        Syntax.pretty_typ ctxt (Type (b, Us)), Pretty.brk 3,
+        Pretty.block
+         [Pretty.keyword "using", Pretty.brk 1,
+          Pretty.quote (Syntax.pretty_term ctxt t)]]];
 
-fun print_coercion_maps ctxt =
-  let
-    fun show_map (x, (t, _)) = Pretty.block [
-      Pretty.str x, Pretty.str ":", Pretty.brk 1,
-      Pretty.quote (Syntax.pretty_term ctxt t)];
+    val type_space = Proof_Context.type_space ctxt;
+    val tmaps =
+      sort (Name_Space.extern_ord ctxt type_space o pairself #1)
+        (Symtab.dest (tmaps_of ctxt));
+    fun show_map (x, (t, _)) =
+      Pretty.block
+       [Pretty.mark_str (Name_Space.markup_extern ctxt type_space x), Pretty.str ":",
+        Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt t)];
   in
-    Pretty.big_list "Coercion maps:" (map show_map (Symtab.dest (tmaps_of ctxt)))
-    |> Pretty.writeln
-  end;
+   [Pretty.big_list "coercions between base types:" (map show_coercion simple),
+    Pretty.big_list "other coercions:" (map show_coercion complex),
+    Pretty.big_list "coercion maps:" (map show_map tmaps)]
+  end |> Pretty.chunks |> Pretty.writeln;
+
 
 (* theory setup *)
 
@@ -1082,10 +1082,8 @@ val setup =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_coercions"} "print all coercions"
-    (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)))
-val _ =
-  Outer_Syntax.improper_command @{command_spec "print_coercion_maps"} "print all coercion maps"
-    (Scan.succeed (Toplevel.keep (print_coercion_maps o Toplevel.context_of)))
+  Outer_Syntax.improper_command @{command_spec "print_coercions"}
+    "print information about coercions"
+    (Scan.succeed (Toplevel.keep (print_coercions o Toplevel.context_of)));
 
 end;
