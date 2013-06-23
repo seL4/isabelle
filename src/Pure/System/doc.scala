@@ -60,7 +60,8 @@ object Doc
       } yield (dir, doc)
     docs match {
       case (dir, doc) :: _ =>
-        Isabelle_System.bash_env(dir.file, null, "\"$ISABELLE_TOOL\" display " + quote(doc) + " &")
+        Isabelle_System.bash_env(dir.file, null,
+          "\"$ISABELLE_TOOL\" display " + quote(doc) + " >/dev/null 2>/dev/null &")
       case Nil => error("Missing Isabelle documentation: " + quote(name))
     }
   }
