@@ -218,8 +218,8 @@ fun pretty_reg ctxt export (name, morph) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val morph' = morph $> export;
-    fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
-    fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
+    fun print_qual (qual, mandatory) = qual ^ (if mandatory then "!" else "?");
+    fun prt_quals qs = Pretty.str (space_implode "." (map print_qual qs));
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
     fun prt_term' t =
       if Config.get ctxt show_types
