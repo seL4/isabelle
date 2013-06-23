@@ -969,7 +969,14 @@ val _ =
     "print raw source files with symbols"
     (Scan.repeat1 Parse.path >> Isar_Cmd.print_drafts);
 
-val _ =  (* FIXME tty only *)
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_state"}
+    "print current proof state (if present)"
+    (opt_modes >> (fn modes =>
+      Toplevel.keep (fn state =>
+        Print_Mode.with_modes modes (Toplevel.print_state true) state)));
+
+val _ = (*historical, e.g. for ProofGeneral-3.7.x*)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
       Toplevel.keep (fn state =>

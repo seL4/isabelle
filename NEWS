@@ -32,6 +32,10 @@ dependencies.  Minor INCOMPATIBILITY.
 * Updated and extended "isar-ref" and "implementation" manual,
 eliminated old "ref" manual.
 
+* Proper diagnostic command 'print_state'.  Old 'pr' (with its
+implicit change of some global references) is retained for now as
+control command, e.g. for ProofGeneral 3.7.x.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

@@ -98,7 +98,7 @@ subsection {* Diagnostic commands *}
 
 text {*
   \begin{tabular}{ll}
-    @{command "pr"} & print current state \\
+    @{command "print_state"} & print current state \\
     @{command "thm"}~@{text a} & print fact \\
     @{command "prop"}~@{text \<phi>} & print proposition \\
     @{command "term"}~@{text t} & print term \\

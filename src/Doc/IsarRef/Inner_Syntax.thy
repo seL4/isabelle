@@ -40,7 +40,7 @@ text {*
     @{command_def "thm"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "full_prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "pr"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "print_state"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development by printing
@@ -57,7 +57,7 @@ text {*
     ;
     ( @@{command prf} | @@{command full_prf} ) @{syntax modes}? @{syntax thmrefs}?
     ;
-    @@{command pr} @{syntax modes}? @{syntax nat}?
+    @@{command print_state} @{syntax modes}?
     ;
 
     @{syntax_def modes}: '(' (@{syntax name} + ) ')'
@@ -99,11 +99,8 @@ text {*
   compact proof term, which is denoted by ``@{text _}'' placeholders
   there.
 
-  \item @{command "pr"}~@{text "goals"} prints the current proof state
-  (if present), including current facts and goals.  The optional limit
-  arguments affect the number of goals to be displayed, which is
-  initially 10.  Omitting limit value leaves the current setting
-  unchanged.
+  \item @{command "print_state"} prints the current proof state (if
+  present), including current facts and goals.
 
   \end{description}
 
@@ -111,8 +108,8 @@ text {*
   to be specified, which is appended to the current print mode; see
   also \secref{sec:print-modes}.  Thus the output behavior may be
   modified according particular print mode features.  For example,
-  @{command "pr"}~@{text "(latex xsymbols)"} would print the current
-  proof state with mathematical symbols and special characters
+  @{command "print_state"}~@{text "(latex xsymbols)"} prints the
+  current proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
   \cite{isabelle-sys}.
 
