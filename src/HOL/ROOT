@@ -357,7 +357,9 @@ session "HOL-Decision_Procs" in Decision_Procs = HOL +
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   options [document = false, proofs = 2, skip_proofs = false, parallel_proofs = 0]
-  theories Hilbert_Classical
+  theories
+    Hilbert_Classical
+    XML_Data
 
 session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {*

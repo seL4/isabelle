@@ -50,6 +50,13 @@ sig
   val unions_thms: pthm Ord_List.T list -> pthm Ord_List.T
   val all_oracles_of: proof_body -> oracle Ord_List.T
   val approximate_proof_body: proof -> proof_body
+  val no_proof_body: proof_body
+  val no_thm_proofs: proof -> proof
+
+  val encode: proof XML.Encode.T
+  val encode_body: proof_body XML.Encode.T
+  val decode: proof XML.Decode.T
+  val decode_body: proof_body XML.Decode.T
 
   (** primitive operations **)
   val proofs_enabled: unit -> bool
@@ -264,6 +271,87 @@ fun approximate_proof_body prf =
       thms = Ord_List.make thm_ord thms,
       proof = prf}
   end;
+
+val no_proof_body = PBody {oracles = [], thms = [], proof = MinProof};
+val no_body = Future.value no_proof_body;
+
+fun no_thm_proofs (PThm (i, (a, _))) = PThm (i, (a, no_body))
+  | no_thm_proofs (Abst (x, T, prf)) = Abst (x, T, no_thm_proofs prf)
+  | no_thm_proofs (AbsP (x, t, prf)) = AbsP (x, t, no_thm_proofs prf)
+  | no_thm_proofs (prf % t) = no_thm_proofs prf % t
+  | no_thm_proofs (prf1 %% prf2) = no_thm_proofs prf1 %% no_thm_proofs prf2
+  | no_thm_proofs a = a;
+
+
+(***** XML data representation *****)
+
+(* encode *)
+
+local
+
+open XML.Encode Term_XML.Encode;
+
+fun proof prf = prf |> variant
+ [fn MinProof => ([], []),
+  fn PBound a => ([int_atom a], []),
+  fn Abst (a, b, c) => ([a], pair (option typ) proof (b, c)),
+  fn AbsP (a, b, c) => ([a], pair (option term) proof (b, c)),
+  fn a % b => ([], pair proof (option term) (a, b)),
+  fn a %% b => ([], pair proof proof (a, b)),
+  fn Hyp a => ([], term a),
+  fn PAxm (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
+  fn OfClass (a, b) => ([b], typ a),
+  fn Oracle (a, b, c) => ([a], pair term (option (list typ)) (b, c)),
+  fn Promise (a, b, c) => ([int_atom a], pair term (list typ) (b, c)),
+  fn PThm (a, ((b, c, d), body)) =>
+    ([int_atom a, b], triple term (option (list typ)) proof_body (c, d, Future.join body))]
+and proof_body (PBody {oracles, thms, proof = prf}) =
+  triple (list (pair string term)) (list pthm) proof (oracles, thms, prf)
+and pthm (a, (b, c, body)) =
+  pair int (triple string term proof_body) (a, (b, c, Future.join body));
+
+in
+
+val encode = proof;
+val encode_body = proof_body;
+
+end;
+
+
+(* decode *)
+
+local
+
+open XML.Decode Term_XML.Decode;
+
+fun proof prf = prf |> variant
+ [fn ([], []) => MinProof,
+  fn ([a], []) => PBound (int_atom a),
+  fn ([a], b) => let val (c, d) = pair (option typ) proof b in Abst (a, c, d) end,
+  fn ([a], b) => let val (c, d) = pair (option term) proof b in AbsP (a, c, d) end,
+  fn ([], a) => op % (pair proof (option term) a),
+  fn ([], a) => op %% (pair proof proof a),
+  fn ([], a) => Hyp (term a),
+  fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in PAxm (a, c, d) end,
+  fn ([b], a) => OfClass (typ a, b),
+  fn ([a], b) => let val (c, d) = pair term (option (list typ)) b in Oracle (a, c, d) end,
+  fn ([a], b) => let val (c, d) = pair term (list typ) b in Promise (int_atom a, c, d) end,
+  fn ([a, b], c) =>
+    let val (d, e, f) = triple term (option (list typ)) proof_body c
+    in PThm (int_atom a, ((b, d, e), Future.value f)) end]
+and proof_body x =
+  let val (a, b, c) = triple (list (pair string term)) (list pthm) proof x
+  in PBody {oracles = a, thms = b, proof = c} end
+and pthm x =
+  let val (a, (b, c, d)) = pair int (triple string term proof_body) x
+  in (a, (b, c, Future.value d)) end;
+
+in
+
+val decode = proof;
+val decode_body = proof_body;
+
+end;
 
 
 (***** proof objects with different levels of detail *****)
