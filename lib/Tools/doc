@@ -39,18 +39,18 @@ splitarray ":" "$ISABELLE_DOCS"; DOCS=("${SPLITARRAY[@]}")
 if [ -z "$DOC" ]; then
   for DIR in "${DOCS[@]}"
   do
-    [ -d "$DIR" ] || fail "Bad document directory: $DIR"
-    [ -f "$DIR/Contents" ] && grep -v "^>>" "$DIR/Contents"
+    [ -d "$DIR" ] || fail "Bad documentation directory: \"$DIR\""
+    [ -f "$DIR/Contents" ] && cat "$DIR/Contents"
   done
 else
   for DIR in "${DOCS[@]}"
   do
-    [ -d "$DIR" ] || fail "Bad document directory: $DIR"
+    [ -d "$DIR" ] || fail "Bad documentation directory: \"$DIR\""
     for FMT in "$ISABELLE_DOC_FORMAT" dvi
     do
       [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISABELLE_TOOL" display "$DOC.$FMT"; }
     done
   done
-  fail "Unknown Isabelle document: $DOC"  
+  fail "Missing Isabelle documentation: \"$DOC\""
 fi
 
