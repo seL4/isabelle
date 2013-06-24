@@ -980,7 +980,8 @@ val _ = (*historical, e.g. for ProofGeneral-3.7.x*)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
       Toplevel.keep (fn state =>
-       (case limit of NONE => () | SOME n => Options.default_put_int @{option goals_limit} n;
+       (if Isabelle_Process.is_active () then error "Illegal TTY command" else ();
+        case limit of NONE => () | SOME n => Options.default_put_int @{option goals_limit} n;
         Toplevel.quiet := false;
         Print_Mode.with_modes modes (Toplevel.print_state true) state))));
 
