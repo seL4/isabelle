@@ -29,10 +29,16 @@ sig
   val preference_string: category -> string option ->
     string Unsynchronized.ref -> string -> string -> unit
   val preference_option: category -> string option -> string -> string -> string -> unit
+  val process_pgip: string -> unit
+  val tell_clear_goals: unit -> unit
+  val tell_clear_response: unit -> unit
+  val inform_file_processed: string -> unit
+  val inform_file_retracted: string -> unit
   structure ThyLoad: sig val add_path: string -> unit end
   val thm_deps: bool Unsynchronized.ref
   val proof_generalN: string
   val init: unit -> unit
+  val restart: unit -> unit
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -425,47 +431,6 @@ fun restart () =
   tell_clear_response ();
   Isar.init ();
   welcome ());
-
-
-
-(** Isar command syntax **)
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.process_pgip", Keyword.control), Position.none) "(internal)"
-    (Parse.text >> (fn str => Toplevel.imperative (fn () => process_pgip str)));
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.pr", Keyword.diag), Position.none) "print state (internal)"
-    (Scan.succeed (Toplevel.keep (fn state =>
-      if Toplevel.is_toplevel state orelse Toplevel.is_theory state then tell_clear_goals ()
-      else (Toplevel.quiet := false; Toplevel.print_state true state))));
-
-val _ = (*undo without output -- historical*)
-  Outer_Syntax.improper_command
-    (("ProofGeneral.undo", Keyword.control), Position.none) "(internal)"
-    (Scan.succeed (Toplevel.imperative (fn () => Isar.undo 1)));
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.restart", Keyword.control), Position.none) "(internal)"
-    (Parse.opt_unit >> (K (Toplevel.imperative restart)));
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.kill_proof", Keyword.control), Position.none) "(internal)"
-    (Scan.succeed (Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.inform_file_processed", Keyword.control), Position.none) "(internal)"
-    (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_processed file)));
-
-val _ =
-  Outer_Syntax.improper_command
-    (("ProofGeneral.inform_file_retracted", Keyword.control), Position.none) "(internal)"
-    (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_retracted file)));
 
 end;
 

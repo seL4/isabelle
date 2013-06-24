@@ -2,8 +2,13 @@
     Author:     David Aspinall
     Author:     Makarius
 
-Proof General preferences for Isabelle/Pure.
+Proof General setup within theory Pure.
 *)
+
+structure ProofGeneral_Pure: sig end =
+struct
+
+(** preferences **)
 
 (* display *)
 
@@ -168,4 +173,51 @@ val _ =
     ProofGeneral.pgipbool
     "parallel-proofs"
     "Check proofs in parallel";
+
+
+
+(** command syntax **)
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.process_pgip"} "(internal)"
+    (Parse.text >> (fn str => Toplevel.imperative (fn () => ProofGeneral.process_pgip str)));
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.pr"} "(internal)"
+    (Scan.succeed (Toplevel.keep (fn state =>
+      if Toplevel.is_toplevel state orelse Toplevel.is_theory state
+      then ProofGeneral.tell_clear_goals ()
+      else (Toplevel.quiet := false; Toplevel.print_state true state))));
+
+val _ = (*undo without output -- historical*)
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.undo"} "(internal)"
+    (Scan.succeed (Toplevel.imperative (fn () => Isar.undo 1)));
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.restart"} "(internal)"
+    (Parse.opt_unit >> (K (Toplevel.imperative ProofGeneral.restart)));
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.kill_proof"} "(internal)"
+    (Scan.succeed (Toplevel.imperative (fn () =>
+      (Isar.kill_proof (); ProofGeneral.tell_clear_goals ()))));
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.inform_file_processed"} "(internal)"
+    (Parse.name >> (fn file => Toplevel.imperative (fn () =>
+      ProofGeneral.inform_file_processed file)));
+
+val _ =
+  Outer_Syntax.improper_command
+    @{command_spec "ProofGeneral.inform_file_retracted"} "(internal)"
+    (Parse.name >> (fn file => Toplevel.imperative (fn () =>
+      ProofGeneral.inform_file_retracted file)));
+
+end;
 

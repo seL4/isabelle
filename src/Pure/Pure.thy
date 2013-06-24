@@ -93,6 +93,9 @@ theory Pure
   and "end" :: thy_end % "theory"
   and "realizers" "realizability" "extract_type" "extract" :: thy_decl
   and "find_theorems" "find_consts" :: diag
+  and "ProofGeneral.process_pgip" "ProofGeneral.pr" "ProofGeneral.undo"
+    "ProofGeneral.restart" "ProofGeneral.kill_proof" "ProofGeneral.inform_file_processed"
+    "ProofGeneral.inform_file_retracted" :: control
 begin
 
 ML_file "Isar/isar_syn.ML"
