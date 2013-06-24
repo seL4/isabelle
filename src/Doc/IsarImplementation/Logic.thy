@@ -1352,6 +1352,7 @@ text %mlref {*
   @{index_ML_op "%"}, @{index_ML_op "%%"}, @{index_ML PBound},
   @{index_ML MinProof}, @{index_ML Hyp}, @{index_ML PAxm}, @{index_ML
   Oracle}, @{index_ML Promise}, @{index_ML PThm} as explained above.
+  %FIXME OfClass (!?)
 
   \item Type @{ML_type proof_body} represents the nested proof
   information of a named theorem, consisting of a digest of oracles
