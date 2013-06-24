@@ -37,9 +37,6 @@ object Outer_Syntax
   val empty: Outer_Syntax = new Outer_Syntax()
 
   def init(): Outer_Syntax = new Outer_Syntax(completion = Completion.init())
-
-  def init_pure(): Outer_Syntax =
-    init() + ("theory", Keyword.THY_BEGIN) + ("ML_file", Keyword.THY_LOAD)
 }
 
 final class Outer_Syntax private(
@@ -76,11 +73,11 @@ final class Outer_Syntax private(
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, ((name, Some((kind, _)), replace))) =>
+      case (syntax, (name, Some((kind, _)), replace)) =>
         syntax +
           (Symbol.decode(name), kind, replace) +
           (Symbol.encode(name), kind, replace)
-      case (syntax, ((name, None, replace))) =>
+      case (syntax, (name, None, replace)) =>
         syntax +
           (Symbol.decode(name), replace) +
           (Symbol.encode(name), replace)

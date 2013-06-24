@@ -297,6 +297,10 @@ specify global resources of the JVM process run by isabelle build.
 * Toplevel executable $ISABELLE_HOME/bin/isabelle_scala_script allows
 to run Isabelle/Scala source files as standalone programs.
 
+* Improved "isabelle keywords" tool (for old-style ProofGeneral
+keyword tables): use Isabelle/Scala operations, which inspect outer
+syntax without requiring to build sessions first.
+
 
 
 New in Isabelle2013 (February 2013)

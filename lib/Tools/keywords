@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: generate outer syntax keyword files from session logs
+# DESCRIPTION: generate keyword files for Emacs Proof General
 
 
 ## diagnostics
@@ -12,13 +12,13 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] [LOGS ...]"
+  echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
   echo
   echo "  Options are:"
+  echo "    -d DIR       include session directory"
   echo "    -k NAME      specific name of keywords collection (default: empty)"
   echo
-  echo "  Generate outer syntax keyword files from (compressed) session LOGS."
-  echo "  Targets Emacs Proof General."
+  echo "  Generate keyword files for Emacs Proof General from Isabelle sessions."
   echo
   exit 1
 }
@@ -28,11 +28,15 @@ function usage()
 
 # options
 
+declare -a DIRS=()
 KEYWORDS_NAME=""
 
-while getopts "k:" OPT
+while getopts "d:k:" OPT
 do
   case "$OPT" in
+    d)
+      DIRS["${#DIRS[@]}"]="$OPTARG"
+      ;;
     k)
       KEYWORDS_NAME="$OPTARG"
       ;;
@@ -47,23 +51,10 @@ shift $(($OPTIND - 1))
 
 ## main
 
-SESSIONS=""
-for LOG in "$@"
-do
-  NAME="$(basename "$LOG" .gz)"
-  if [ -z "$SESSIONS" ]; then
-    SESSIONS="$NAME"
-  else
-    SESSIONS="$SESSIONS + $NAME"
-  fi
-done
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-for LOG in "$@"
-do
-  if [ "${LOG%.gz}" = "$LOG" ]; then
-    cat "$LOG"
-  else
-    gzip -dc "$LOG"
-  fi
-  echo
-done | "$ISABELLE_HOME/lib/scripts/keywords" "$KEYWORDS_NAME" "$SESSIONS"
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
+
+"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Keywords keywords \
+  "$KEYWORDS_NAME" "${DIRS[@]}" $'\n' "$@"
+

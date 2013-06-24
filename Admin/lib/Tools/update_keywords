@@ -4,13 +4,11 @@
 #
 # DESCRIPTION: update standard keyword files for Emacs Proof General
 
-LOG="$ISABELLE_OUTPUT/log"
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
 cd "$ISABELLE_HOME/etc"
 
-"$ISABELLE_TOOL" keywords \
-  "$LOG/HOLCF.gz" "$LOG/HOL-BNF.gz" "$LOG/HOL-Boogie.gz" "$LOG/HOL-Library.gz" "$LOG/HOL-Nominal.gz" \
-  "$LOG/HOL-Statespace.gz" "$LOG/HOL-SPARK.gz" "$LOG/HOL-TPTP.gz" "$LOG/HOL-Import.gz"
-
-"$ISABELLE_TOOL" keywords -k ZF "$LOG/ZF.gz"
+"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Keywords update_keywords
 

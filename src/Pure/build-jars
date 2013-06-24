@@ -68,6 +68,7 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/build.scala
   Tools/build_dialog.scala
+  Tools/keywords.scala
   Tools/main.scala
   Tools/ml_statistics.scala
   Tools/task_statistics.scala

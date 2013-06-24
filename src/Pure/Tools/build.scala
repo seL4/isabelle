@@ -394,6 +394,7 @@ object Build
 
   sealed case class Session_Content(
     loaded_theories: Set[String],
+    keywords: Thy_Header.Keywords,
     syntax: Outer_Syntax,
     sources: List[(Path, SHA1.Digest)])
 
@@ -411,7 +412,7 @@ object Build
           val (preloaded, parent_syntax) =
             info.parent match {
               case None =>
-                (Set.empty[String], Outer_Syntax.init_pure())
+                (Set.empty[String], Outer_Syntax.init())
               case Some(parent_name) =>
                 val parent = deps(parent_name)
                 (parent.loaded_theories, parent.syntax)
@@ -431,6 +432,7 @@ object Build
                 map(thy => Thy_Load.path_node_name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = thy_deps.loaded_theories
+          val keywords = thy_deps.keywords
           val syntax = thy_deps.syntax
 
           val body_files = if (inlined_files) thy_deps.load_files else Nil
@@ -450,19 +452,31 @@ object Build
                   quote(name) + Position.here(info.pos))
             }
 
-          deps + (name -> Session_Content(loaded_theories, syntax, sources))
+          deps + (name -> Session_Content(loaded_theories, keywords, syntax, sources))
       }))
 
-  def session_content(inlined_files: Boolean, dirs: List[Path], session: String): Session_Content =
+  def session_dependencies(
+    options: Options,
+    inlined_files: Boolean,
+    dirs: List[Path],
+    sessions: List[String]): Deps =
   {
-    val options = Options.init()
     val (_, tree) =
-      find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, List(session))
-    dependencies(Ignore_Progress, inlined_files, false, false, tree)(session)
+      find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, sessions)
+    dependencies(Ignore_Progress, inlined_files, false, false, tree)
   }
 
-  def outer_syntax(session: String): Outer_Syntax =
-    session_content(false, Nil, session).syntax
+  def session_content(
+    options: Options,
+    inlined_files: Boolean,
+    dirs: List[Path],
+    session: String): Session_Content =
+  {
+    session_dependencies(options, inlined_files, dirs, List(session))(session)
+  }
+
+  def outer_syntax(options: Options, session: String): Outer_Syntax =
+    session_content(options, false, Nil, session).syntax
 
 
   /* jobs */

@@ -17,8 +17,6 @@ Checklist for official releases
 
 - check file positions within logic images (hyperlinks etc.);
 
-- isabelle update_keywords;
-
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
 - check funny base directory, e.g. "Test 中国";

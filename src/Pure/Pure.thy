@@ -13,6 +13,8 @@ theory Pure
     "identifier" "if" "imports" "in" "includes" "infix" "infixl"
     "infixr" "is" "keywords" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
+  and "theory" :: thy_begin
+  and "ML_file" :: thy_load
   and "header" :: diag
   and "chapter" :: thy_heading1
   and "section" :: thy_heading2
