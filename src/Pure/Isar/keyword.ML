@@ -52,7 +52,6 @@ sig
   val command_files: string -> string list
   val command_tags: string -> string list
   val dest: unit -> string list * string list
-  val status: unit -> unit
   val define: string * T option -> unit
   val is_diag: string -> bool
   val is_control: string -> bool
@@ -197,18 +196,6 @@ val command_files = these o Option.map (#2 o kind_files_of) o command_keyword;
 val command_tags = these o Option.map tags_of o command_keyword;
 
 fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());
-
-
-(* status *)
-
-fun status () =
-  let
-    val Keywords {lexicons = (minor, _), commands} = get_keywords ();
-    val _ = sort_strings (Scan.dest_lexicon minor) |> List.app (fn name =>
-      writeln ("\fOuter syntax keyword " ^ quote name));
-    val _ = sort_wrt #1 (Symtab.dest commands) |> List.app (fn (name, kind) =>
-      writeln ("\fOuter syntax keyword " ^ quote name ^ " :: " ^ kind_of kind));
-  in () end;
 
 
 (* define *)

@@ -54,7 +54,6 @@ fun finish () =
  (Goal.shutdown_futures ();
   Thy_Info.finish ();
   Present.finish ();
-  Keyword.status ();
   Outer_Syntax.check_syntax ();
   Future.shutdown ();
   Event_Timer.shutdown ();
