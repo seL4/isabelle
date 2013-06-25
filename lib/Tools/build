@@ -128,7 +128,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+isabelle_admin_build jars || exit $?
 
 if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"

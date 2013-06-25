@@ -51,7 +51,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+isabelle_admin_build jars || exit $?
 
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 

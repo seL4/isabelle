@@ -70,7 +70,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+isabelle_admin_build jars || exit $?
 
 "$ISABELLE_TOOL" java isabelle.Build_Dialog \
   "$LOGIC_OPTION" "$LOGIC" "$SYSTEM_MODE" "${INCLUDE_DIRS[@]}"

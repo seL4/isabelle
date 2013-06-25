@@ -63,7 +63,7 @@ shift $(($OPTIND - 1))
 
 ## main
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+isabelle_admin_build jars || exit $?
 
 exec "$ISABELLE_TOOL" java isabelle.Options "$EXPORT_FILE" "${BUILD_OPTIONS[@]}" "$@"
 

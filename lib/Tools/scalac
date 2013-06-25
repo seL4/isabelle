@@ -4,7 +4,7 @@
 #
 # DESCRIPTION: invoke Scala compiler within the Isabelle environment
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+isabelle_admin_build jars || exit $?
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 isabelle_scala scalac -Dfile.encoding=UTF-8 \

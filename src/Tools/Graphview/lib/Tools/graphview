@@ -90,8 +90,7 @@ GRAPH_FILE=""
 
 ## build
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && \
-  { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+isabelle_admin_build "$BUILD_JARS" || exit $?
 
 pushd "$GRAPHVIEW_HOME" >/dev/null || failed
 

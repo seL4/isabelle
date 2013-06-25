@@ -60,7 +60,8 @@ unset ENV
 unset BASH_ENV
 
 #shared library convenience
-function librarypath () {
+function librarypath ()
+{
   for X in "$@"
   do
     case "$ISABELLE_PLATFORM" in
@@ -85,7 +86,8 @@ function librarypath () {
 }
 
 #robust invocation via ISABELLE_JDK_HOME
-function isabelle_jdk () {
+function isabelle_jdk ()
+{
   if [ -z "$ISABELLE_JDK_HOME" ]; then
     echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
     return 127
@@ -96,7 +98,8 @@ function isabelle_jdk () {
 }
 
 #robust invocation via SCALA_HOME
-function isabelle_scala () {
+function isabelle_scala ()
+{
   if [ -z "$ISABELLE_JDK_HOME" ]; then
     echo "Unknown ISABELLE_JDK_HOME -- Java tools unavailable" >&2
     return 127
@@ -109,8 +112,19 @@ function isabelle_scala () {
   fi
 }
 
+#administrative build
+if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+  function isabelle_admin_build ()
+  {
+    "$ISABELLE_HOME/Admin/build" "$@"
+  }
+else
+  function isabelle_admin_build () { return 0; }
+fi
+
 #CLASSPATH convenience
-function classpath () {
+function classpath ()
+{
   for X in "$@"
   do
     if [ -z "$CLASSPATH" ]; then
