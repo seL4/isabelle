@@ -53,19 +53,12 @@ object Doc
 
   def view(name: String)
   {
-    val formats = List(Isabelle_System.getenv_strict("ISABELLE_DOC_FORMAT"), "dvi")
-    val docs =
-      for {
-        dir <- dirs()
-        fmt <- formats
-        doc = name + "." + fmt
-        if (dir + Path.basic(doc)).is_file
-      } yield (dir, doc)
-    docs match {
-      case (dir, doc) :: _ =>
+    val doc = name + "." + Isabelle_System.getenv_strict("ISABELLE_DOC_FORMAT")
+    dirs().find(dir => (dir + Path.basic(doc)).is_file) match {
+      case Some(dir) =>
         Isabelle_System.bash_env(dir.file, null,
           "\"$ISABELLE_TOOL\" display " + quote(doc) + " >/dev/null 2>/dev/null &")
-      case Nil => error("Missing Isabelle documentation: " + quote(name))
+      case None => error("Missing Isabelle documentation file: " + quote(doc))
     }
   }
 
