@@ -101,7 +101,7 @@ case "$ISABELLE_PLATFORM_FAMILY" in
     PDF_VIEWER="xdg-open"
     ;;
   macos)
-    PDF_VIEWER="open -W -n"
+    PDF_VIEWER="open -W -n -a Safari"
     ;;
   windows)
     PDF_VIEWER="cygstart"
