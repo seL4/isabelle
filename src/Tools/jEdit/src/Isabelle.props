@@ -30,6 +30,7 @@ options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
+  isabelle.documentation-panel \
   isabelle.monitor-panel \
   isabelle.output-panel \
   isabelle.protocol-panel \
@@ -39,6 +40,7 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.syslog-panel \
   isabelle.theories-panel \
   isabelle.timing-panel
+isabelle.documentation-panel.label=Documentation panel
 isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
@@ -56,6 +58,7 @@ isabelle-monitor.title=Monitor
 isabelle-output.title=Output
 isabelle-protocol.title=Protocol
 isabelle-raw-output.title=Raw Output
+isabelle-documentation.title=Documentation
 isabelle-readme.title=README
 isabelle-symbols.title=Symbols
 isabelle-syslog.title=Syslog

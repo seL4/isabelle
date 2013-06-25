@@ -39,6 +39,9 @@ control command, e.g. for ProofGeneral 3.7.x.
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Dockable window "Documentation" provides access to Isabelle
+documentation.
+
 * Dockable window "Timing" provides an overview of relevant command
 timing information.
 
