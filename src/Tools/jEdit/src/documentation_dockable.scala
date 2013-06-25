@@ -49,7 +49,14 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
         tree.getLastSelectedPathComponent match {
           case node: DefaultMutableTreeNode =>
             node.getUserObject match {
-              case Documentation(name, _) => Doc.view(name)
+              case Documentation(name, _) =>
+                default_thread_pool.submit(() =>
+                  try { Doc.view(name) }
+                  catch {
+                    case exn: Throwable =>
+                      GUI.error_dialog(view,
+                        "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+                  })
               case _ =>
             }
           case _ =>
