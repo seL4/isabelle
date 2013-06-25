@@ -84,7 +84,7 @@ lemma trace_add: "trace ((A::'a::comm_semiring_1^'n^'n) + B) = trace A + trace B
 lemma trace_sub: "trace ((A::'a::comm_ring_1^'n^'n) - B) = trace A - trace B"
   by (simp add: trace_def setsum_subtractf)
 
-lemma trace_mul_sym:"trace ((A::'a::comm_semiring_1^'n^'n) ** B) = trace (B**A)"
+lemma trace_mul_sym:"trace ((A::'a::comm_semiring_1^'n^'m) ** B) = trace (B**A)"
   apply (simp add: trace_def matrix_matrix_mult_def)
   apply (subst setsum_commute)
   by (simp add: mult_commute)
