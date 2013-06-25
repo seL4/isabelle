@@ -41,7 +41,6 @@ declare -a SOURCES=(
   PIDE/yxml.scala
   System/color_value.scala
   System/command_line.scala
-  System/doc.scala
   System/event_bus.scala
   System/gui.scala
   System/gui_setup.scala
@@ -68,6 +67,7 @@ declare -a SOURCES=(
   Thy/thy_syntax.scala
   Tools/build.scala
   Tools/build_dialog.scala
+  Tools/doc.scala
   Tools/keywords.scala
   Tools/main.scala
   Tools/ml_statistics.scala

@@ -10,9 +10,9 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [DOC]"
+  echo "Usage: isabelle $PRG [DOC ...]"
   echo
-  echo "  View Isabelle documentation DOC, or show list of available documents."
+  echo "  View Isabelle documentation."
   echo
   exit 1
 }
@@ -26,31 +26,12 @@ function fail()
 
 ## args
 
-DOC=""
-[ "$#" -ge 1 ] && { DOC="$1"; shift; }
-
-[ "$#" -ne 0 -o "$DOC" = "-?" ] && usage
+[ "$#" -eq 1 -a "$1" = "-?" ] && usage
 
 
 ## main
 
-splitarray ":" "$ISABELLE_DOCS"; DOCS=("${SPLITARRAY[@]}")
+isabelle_admin_build jars || exit $?
 
-if [ -z "$DOC" ]; then
-  for DIR in "${DOCS[@]}"
-  do
-    [ -d "$DIR" ] || fail "Bad documentation directory: \"$DIR\""
-    [ -f "$DIR/Contents" ] && cat "$DIR/Contents"
-  done
-else
-  for DIR in "${DOCS[@]}"
-  do
-    [ -d "$DIR" ] || fail "Bad documentation directory: \"$DIR\""
-    for FMT in "$ISABELLE_DOC_FORMAT" dvi
-    do
-      [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISABELLE_TOOL" display "$DOC.$FMT"; }
-    done
-  done
-  fail "Missing Isabelle documentation: \"$DOC\""
-fi
+"$ISABELLE_TOOL" java isabelle.Doc "$@"
 

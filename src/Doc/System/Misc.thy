@@ -60,7 +60,7 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 *}
 
 
-section {* Displaying documents *}
+section {* Displaying documents \label{sec:tool-display} *}
 
 text {* The @{tool_def display} tool displays documents in DVI or PDF
   format:
@@ -70,33 +70,35 @@ Usage: isabelle display [OPTIONS] FILE
   Options are:
     -c           cleanup -- remove FILE after use
 
-  Display document FILE (in DVI format).
+  Display document FILE (in DVI or PDF format).
 \end{ttbox}
 
   \medskip The @{verbatim "-c"} option causes the input file to be
-  removed after use.  The program for viewing @{verbatim dvi} files is
-  determined by the @{setting DVI_VIEWER} setting.
+  removed after use.
+
+  \medskip The settings @{setting DVI_VIEWER} and @{setting
+  PDF_VIEWER} determine the programs for viewing the corresponding
+  file formats.
 *}
 
 
 section {* Viewing documentation \label{sec:tool-doc} *}
 
 text {*
-  The @{tool_def doc} tool displays online documentation:
+  The @{tool_def doc} tool displays Isabelle documentation:
 \begin{ttbox}
-Usage: isabelle doc [DOC]
+Usage: isabelle doc [DOC ...]
 
-  View Isabelle documentation DOC, or show list of available documents.
+  View Isabelle documentation.
 \end{ttbox}
   If called without arguments, it lists all available documents. Each
   line starts with an identifier, followed by a short description. Any
-  of these identifiers may be specified as the first argument in order
-  to have the corresponding document displayed.
+  of these identifiers may be specified as arguments, in order to
+  display the corresponding document (see also
+  \secref{sec:tool-display}).
 
   \medskip The @{setting ISABELLE_DOCS} setting specifies the list of
   directories (separated by colons) to be scanned for documentations.
-  The program for viewing @{verbatim dvi} files is determined by the
-  @{setting DVI_VIEWER} setting.
 *}
 
 

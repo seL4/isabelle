@@ -1,7 +1,7 @@
-/*  Title:      Pure/System/doc.scala
+/*  Title:      Pure/Tools/doc.scala
     Author:     Makarius
 
-View Isabelle documentation (see also "isabelle doc").
+View Isabelle documentation.
 */
 
 package isabelle
@@ -22,20 +22,24 @@ object Doc
 
   /* contents */
 
-  sealed abstract class Entry
-  case class Section(text: String) extends Entry
-  case class Doc(name: String, title: String) extends Entry
-
-  def contents(): List[Entry] =
-  {
-    val Section_Entry = new Regex("""^(\S.*)\s*$""")
-    val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
-
+  private def contents_lines(): List[String] =
     for {
       dir <- dirs()
       catalog = dir + Path.basic("Contents")
       if catalog.is_file
-      line <- split_lines(File.read(catalog))
+      line <- split_lines(Library.trim_line(File.read(catalog)))
+    } yield line
+
+  sealed abstract class Entry
+  case class Section(text: String) extends Entry
+  case class Doc(name: String, title: String) extends Entry
+
+  private val Section_Entry = new Regex("""^(\S.*)\s*$""")
+  private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
+
+  def contents(): List[Entry] =
+    for {
+      line <- contents_lines()
       entry <-
         line match {
           case Section_Entry(text) => Some(Section(text))
@@ -43,7 +47,6 @@ object Doc
           case _ => None
         }
     } yield entry
-  }
 
 
   /* view */
@@ -63,6 +66,18 @@ object Doc
         Isabelle_System.bash_env(dir.file, null,
           "\"$ISABELLE_TOOL\" display " + quote(doc) + " >/dev/null 2>/dev/null &")
       case Nil => error("Missing Isabelle documentation: " + quote(name))
+    }
+  }
+
+
+  /* command line entry point */
+
+  def main(args: Array[String])
+  {
+    Command_Line.tool {
+      if (args.isEmpty) Console.println(cat_lines(contents_lines()))
+      else args.foreach(view)
+      0
     }
   }
 }
