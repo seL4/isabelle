@@ -1,5 +1,6 @@
 ;;
-;; Generated keyword classification tables for Isabelle/Isar.
+;; Keyword classification tables for Isabelle/Isar.
+;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Boogie + HOL-Decision_Procs + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 

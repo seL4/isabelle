@@ -14,7 +14,7 @@ object Keywords
 {
   /* keywords */
 
-  private val convert_kinds = Map(
+  private val convert = Map(
     "thy_begin" -> "theory-begin",
     "thy_end" -> "theory-end",
     "thy_heading1" -> "theory-heading",
@@ -73,39 +73,53 @@ object Keywords
     dirs: List[Path] = Nil,
     sessions: List[String] = Nil)
   {
-    val deps = Build.session_dependencies(options, false, dirs, sessions).deps
-    val keywords =
-    {
-      var keywords = Map.empty[String, String]
+    val relevant_sessions =
       for {
-        (_, dep) <- deps
-        (name, kind_spec, _) <- dep.keywords
-        kind = kind_spec match { case Some(((kind, _), _)) => kind case None => "minor" }
-        k = convert_kinds(kind)
-      } {
-        keywords.get(name) match {
-          case Some(k1) if k1 != k && k1 != "minor" && k != "minor" =>
-            error("Inconsistent declaration of keyword " + quote(name) + ": " + k1 + " vs " + k)
-          case _ =>
-        }
-        keywords += (name -> k)
+        (name, content) <-
+          Build.session_dependencies(options, false, dirs, sessions).deps.toList
+        keywords = content.keywords
+        if !keywords.isEmpty
+      } yield (name, keywords)
+
+    val keywords_raw =
+      (Map.empty[String, Set[String]].withDefaultValue(Set.empty) /: relevant_sessions) {
+        case (map, (_, ks)) =>
+          (map /: ks) {
+            case (m, (name, Some(((kind, _), _)), _)) =>
+              m + (name -> (m(name) + convert(kind)))
+            case (m, (name, None, _)) =>
+              m + (name -> (m(name) + "minor"))
+          }
       }
-      keywords
-    }
+
+    val keywords_unique =
+      for ((name, kinds) <- keywords_raw) yield {
+        kinds.toList match {
+          case List(kind) => (name, kind)
+          case _ =>
+            (kinds - "minor").toList match {
+              case List(kind) => (name, kind)
+              case _ =>
+                error("Inconsistent declaration of keyword " + quote(name) + ": " +
+                  kinds.toList.sorted.mkString(" vs "))
+            }
+        }
+      }
 
     val output =
     {
       val out = new mutable.StringBuilder
 
       out ++= ";;\n"
-      out ++= ";; Generated keyword classification tables for Isabelle/Isar.\n"
+      out ++= ";; Keyword classification tables for Isabelle/Isar.\n"
+      out ++= ";; Generated from " + relevant_sessions.map(_._1).sorted.mkString(" + ") + ".\n"
       out ++= ";; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***\n"
       out ++= ";;\n"
 
       for (kind <- emacs_kinds) {
         val names =
           (for {
-            (name, k) <- keywords.iterator
+            (name, k) <- keywords_unique.iterator
             if (if (kind == "major") k != "minor" else k == kind)
             if kind != "minor" || Symbol.is_ascii_identifier(name)
           } yield name).toList.sorted

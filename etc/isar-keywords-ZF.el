@@ -1,5 +1,6 @@
 ;;
-;; Generated keyword classification tables for Isabelle/Isar.
+;; Keyword classification tables for Isabelle/Isar.
+;; Generated from Pure + ZF.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
