@@ -79,7 +79,7 @@ fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
 fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   let
     val concl = (case try List.last steps of
-                  SOME (Prove (_, Fix [], _, t, _)) => t
+                  SOME (Prove (_, Fix [], _, t, _, _)) => t
                 | _ => raise Fail "preplay error: malformed subproof")
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var((x, var_idx), T)
@@ -93,7 +93,7 @@ fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
 
 fun try_metis _ _ _ _ _ _ (Let _) = K zero_preplay_time
   | try_metis debug trace type_enc lam_trans ctxt timeout
-      (Prove (_, Fix xs, _, t, By_Metis (subproofs, fact_names))) =
+      (Prove (_, Fix xs, _, t, subproofs, By_Metis fact_names)) =
   let
     val (prop, obtain) =
       (case xs of
