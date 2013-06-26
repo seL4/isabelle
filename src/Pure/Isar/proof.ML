@@ -402,10 +402,10 @@ fun select_goals n meth state =
   ALLGOALS Goal.conjunction_tac (#2 (#2 (get_goal state)))
   |> Seq.maps (fn goal =>
     state
-    |> Seq.lift provide_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
+    |> Seq.lift provide_goal ((PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1) goal)
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
-      |> Seq.lift provide_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
+      |> Seq.lift provide_goal (PRIMITIVE (Goal.unrestrict 1) (#2 (#2 (get_goal state')))))
     |> Seq.maps (apply_method true (K Method.succeed)));
 
 fun apply_text cc text state =
@@ -1133,8 +1133,7 @@ fun future_proof fork_proof state =
 
     val prop' = Logic.protect prop;
     val statement' = (kind, [[], [prop']], prop');
-    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
-      (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
+    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal) (Goal.protect (Thm.nprems_of goal) goal);
     val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
 
     val result_ctxt =

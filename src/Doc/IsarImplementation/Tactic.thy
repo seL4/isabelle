@@ -53,8 +53,10 @@ text {*
   with protected propositions:
 
   \[
-  \infer[@{text "(protect)"}]{@{text "#C"}}{@{text "C"}} \qquad
-  \infer[@{text "(conclude)"}]{@{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}}{@{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> #C"}}
+  \infer[@{text "(protect n)"}]{@{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> #C"}}{@{text "A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> C"}}
+  \]
+  \[
+  \infer[@{text "(conclude)"}]{@{text "A \<Longrightarrow> \<dots> \<Longrightarrow> C"}}{@{text "A \<Longrightarrow> \<dots> \<Longrightarrow> #C"}}
   \]
 *}
 
@@ -62,7 +64,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Goal.init: "cterm -> thm"} \\
   @{index_ML Goal.finish: "Proof.context -> thm -> thm"} \\
-  @{index_ML Goal.protect: "thm -> thm"} \\
+  @{index_ML Goal.protect: "int -> thm -> thm"} \\
   @{index_ML Goal.conclude: "thm -> thm"} \\
   \end{mldecls}
 
@@ -76,8 +78,9 @@ text %mlref {*
   result by removing the goal protection.  The context is only
   required for printing error messages.
 
-  \item @{ML "Goal.protect"}~@{text "thm"} protects the full statement
-  of theorem @{text "thm"}.
+  \item @{ML "Goal.protect"}~@{text "n thm"} protects the statement
+  of theorem @{text "thm"}.  The parameter @{text n} indicates the
+  number of premises to be retained.
 
   \item @{ML "Goal.conclude"}~@{text "thm"} removes the goal
   protection, even if there are pending subgoals.

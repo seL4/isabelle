@@ -9,6 +9,7 @@ sig
   val skip_proofs: bool Unsynchronized.ref
   val parallel_proofs: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
+  val PREFER_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
   val PARALLEL_CHOICE: tactic list -> tactic
@@ -19,7 +20,7 @@ signature GOAL =
 sig
   include BASIC_GOAL
   val init: cterm -> thm
-  val protect: thm -> thm
+  val protect: int -> thm -> thm
   val conclude: thm -> thm
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
@@ -52,6 +53,8 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
+  val restrict: int -> int -> thm -> thm
+  val unrestrict: int -> thm -> thm
   val conjunction_tac: int -> tactic
   val precise_conjunction_tac: int -> int -> tactic
   val recover_conjunction_tac: tactic
@@ -73,11 +76,11 @@ val init =
   in fn C => Thm.instantiate ([], [(A, C)]) Drule.protectI end;
 
 (*
-   C
-  --- (protect)
-  #C
+  A1 ==> ... ==> An ==> C
+  ------------------------ (protect n)
+  A1 ==> ... ==> An ==> #C
 *)
-fun protect th = Drule.comp_no_flatten (th, 0) 1 Drule.protectI;
+fun protect n th = Drule.comp_no_flatten (th, n) 1 Drule.protectI;
 
 (*
   A ==> ... ==> #C
@@ -361,9 +364,25 @@ fun retrofit i n st' st =
   |> Thm.bicompose {flatten = false, match = false, incremented = false}
       (false, conclude st', Thm.nprems_of st') i;
 
+
+(* rearrange subgoals *)
+
+fun restrict i n st =
+  if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st
+  then raise THM ("Goal.restrict", i, [st])
+  else rotate_prems (i - 1) st |> protect n;
+
+fun unrestrict i = conclude #> rotate_prems (1 - i);
+
+(*with structural marker*)
 fun SELECT_GOAL tac i st =
   if Thm.nprems_of st = 1 andalso i = 1 then tac st
-  else Seq.lifts (retrofit i 1) (Seq.maps tac (extract i 1 st)) st;
+  else (PRIMITIVE (restrict i 1) THEN tac THEN PRIMITIVE (unrestrict i)) st;
+
+(*without structural marker*)
+fun PREFER_GOAL tac i st =
+  if i < 1 orelse i > Thm.nprems_of st then Seq.empty
+  else (PRIMITIVE (rotate_prems (i - 1)) THEN tac THEN PRIMITIVE (rotate_prems (1 - i))) st;
 
 
 (* multiple goals *)
