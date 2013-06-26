@@ -519,23 +519,25 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (Prove (qs, l, t, By_Metis (subproofs, facts))) =
-        add_step_pre ind qs subproofs
-        #> add_suffix (of_prove qs (length subproofs) ^ " ")
-        #> add_step_post ind l t facts ""
-      | add_step ind (Obtain (qs, Fix xs, l, t, By_Metis (subproofs, facts))) =
-        add_step_pre ind qs subproofs
-        #> add_suffix (of_obtain qs (length subproofs) ^ " ")
-        #> add_frees xs
-        #> add_suffix " where "
-        (* The new skolemizer puts the arguments in the same order as the ATPs
-           (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
-           Vampire). *)
-        #> add_step_post ind l t facts
-               (if exists (fn (_, T) => length (binder_types T) > 1) xs then
-                  "using [[metis_new_skolem]] "
-                else
-                  "")
+      | add_step ind (Prove (qs, Fix xs, l, t, By_Metis (subproofs, facts))) =
+        (case xs of
+          [] => (* have *)
+            add_step_pre ind qs subproofs
+            #> add_suffix (of_prove qs (length subproofs) ^ " ")
+            #> add_step_post ind l t facts ""
+        | _ => (* obtain *)
+            add_step_pre ind qs subproofs
+            #> add_suffix (of_obtain qs (length subproofs) ^ " ")
+            #> add_frees xs
+            #> add_suffix " where "
+            (* The new skolemizer puts the arguments in the same order as the
+               ATPs (E and Vampire -- but see also "atp_proof_reconstruct.ML"
+               regarding Vampire). *)
+            #> add_step_post ind l t facts
+                 (if exists (fn (_, T) => length (binder_types T) > 1) xs then
+                    "using [[metis_new_skolem]] "
+                  else
+                    ""))
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
       ("", ctxt)
@@ -547,7 +549,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
     case proof of
-      Proof (Fix [], Assume [], [Prove (_, _, _, By_Metis ([], _))]) => ""
+      Proof (Fix [], Assume [], [Prove (_, Fix [], _, _, By_Metis ([], _))]) => ""
     | _ => (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
             of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
             of_indent 0 ^ (if n <> 1 then "next" else "qed")
@@ -565,10 +567,8 @@ fun kill_useless_labels_in_proof proof =
     val used_ls = add_labels_of_proof proof []
     fun do_label l = if member (op =) used_ls l then l else no_label
     fun do_assms (Assume assms) = Assume (map (apfst do_label) assms)
-    fun do_step (Obtain (qs, xs, l, t, By_Metis (subproofs, facts))) =
-          Obtain (qs, xs, do_label l, t, By_Metis (map do_proof subproofs, facts))
-      | do_step (Prove (qs, l, t, By_Metis (subproofs, facts))) =
-          Prove (qs, do_label l, t, By_Metis (map do_proof subproofs, facts))
+    fun do_step (Prove (qs, xs, l, t, By_Metis (subproofs, facts))) =
+          Prove (qs, xs, do_label l, t, By_Metis (map do_proof subproofs, facts))
       | do_step step = step
     and do_proof (Proof (fix, assms, steps)) =
           Proof (fix, do_assms assms, map do_step steps)
@@ -599,18 +599,12 @@ val relabel_proof =
       |> apfst Assume
       |> apsnd fst
     fun do_steps _ _ _ [] = []
-      | do_steps subst depth next (Obtain (qs, xs, l, t, by) :: steps) =
+      | do_steps subst depth next (Prove (qs, xs, l, t, by) :: steps) =
         let
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val by = by |> do_byline subst depth
-        in Obtain (qs, xs, l, t, by) :: do_steps subst depth next steps end
-      | do_steps subst depth next (Prove (qs, l, t, by) :: steps) =
-        let
-          val (l, subst, next) =
-            (l, subst, next) |> fresh_label depth have_prefix
-          val by = by |> do_byline subst depth
-        in Prove (qs, l, t, by) :: do_steps subst depth next steps end
+        in Prove (qs, xs, l, t, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (step :: steps) =
         step :: do_steps subst depth next steps
     and do_proof subst depth (Proof (fix, assms, steps)) =
@@ -628,16 +622,12 @@ val chain_direct_proof =
       | do_qs_lfs (SOME l0) lfs =
         if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0)
         else ([], lfs)
-    fun chain_step lbl (Obtain (qs, xs, l, t,
+    fun chain_step lbl (Prove (qs, xs, l, t,
                                 By_Metis (subproofs, (lfs, gfs)))) =
-        let val (qs', lfs) = do_qs_lfs lbl lfs in
-          Obtain (qs' @ qs, xs, l, t,
-            By_Metis (chain_proofs subproofs, (lfs, gfs)))
-        end
-      | chain_step lbl (Prove (qs, l, t, By_Metis (subproofs, (lfs, gfs)))) =
-        let val (qs', lfs) = do_qs_lfs lbl lfs in
-          Prove (qs' @ qs, l, t, By_Metis (chain_proofs subproofs, (lfs, gfs)))
-        end
+          let val (qs', lfs) = do_qs_lfs lbl lfs in
+            Prove (qs' @ qs, xs, l, t,
+              By_Metis (chain_proofs subproofs, (lfs, gfs)))
+          end
       | chain_step _ step = step
     and chain_steps _ [] = []
       | chain_steps (prev as SOME _) (i :: is) =
@@ -754,8 +744,8 @@ fun isar_proof_text ctxt isar_proofs
             fun do_steps outer predecessor accum [] =
                 accum
                 |> (if tainted = [] then
-                      cons (Prove (if outer then [Show] else [], no_label,
-                                   concl_t,
+                      cons (Prove (if outer then [Show] else [],
+                                   Fix [], no_label, concl_t,
                                    By_Metis ([], ([the predecessor], []))))
                     else
                       I)
@@ -768,7 +758,7 @@ fun isar_proof_text ctxt isar_proofs
                     By_Metis ([],
                       (fold (add_fact_of_dependencies fact_names)
                             gamma no_facts))
-                  fun prove by = Prove (maybe_show outer c [], l, t, by)
+                  fun prove by = Prove (maybe_show outer c [], Fix [], l, t, by)
                   fun do_rest l step =
                     do_steps outer (SOME l) (step :: accum) infs
                 in
@@ -790,7 +780,7 @@ fun isar_proof_text ctxt isar_proofs
                     | _ => do_rest l (prove by)
                   else
                     if is_clause_skolemize_rule c then
-                      do_rest l (Obtain ([], Fix (skolems_of t), l, t, by))
+                      do_rest l (Prove ([], Fix (skolems_of t), l, t, by))
                     else
                       do_rest l (prove by)
                 end
@@ -803,7 +793,7 @@ fun isar_proof_text ctxt isar_proofs
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val step =
-                    Prove (maybe_show outer c [], l, t,
+                    Prove (maybe_show outer c [], Fix [], l, t,
                       By_Metis (map do_case cases, (the_list predecessor, [])))
                 in
                   do_steps outer (SOME l) (step :: accum) infs

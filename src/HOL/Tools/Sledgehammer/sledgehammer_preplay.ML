@@ -79,7 +79,7 @@ fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
 fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   let
     val concl = (case try List.last steps of
-                  SOME (Prove (_, _, t, _)) => t
+                  SOME (Prove (_, Fix [], _, t, _)) => t
                 | _ => raise Fail "preplay error: malformed subproof")
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var((x, var_idx), T)
@@ -91,16 +91,15 @@ fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
       |> thm_of_term ctxt
   end
 
-exception ZEROTIME
-
-fun try_metis debug trace type_enc lam_trans ctxt timeout step =
+fun try_metis _ _ _ _ _ _ (Let _) = K zero_preplay_time
+  | try_metis debug trace type_enc lam_trans ctxt timeout
+      (Prove (_, Fix xs, _, t, By_Metis (subproofs, fact_names))) =
   let
-    val (prop, subproofs, fact_names, obtain) =
-      (case step of
-        Prove (_, _, t, By_Metis (subproofs, fact_names)) =>
-            (t, subproofs, fact_names, false)
-      | Obtain (_, Fix xs, _, t, By_Metis (subproofs, fact_names)) =>
-        (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
+    val (prop, obtain) =
+      (case xs of
+        [] => (t, false)
+      | _ =>
+      (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
            (see ~~/src/Pure/Isar/obtain.ML) *)
         let
           val thesis = Term.Free ("thesis", HOLogic.boolT)
@@ -115,9 +114,8 @@ fun try_metis debug trace type_enc lam_trans ctxt timeout step =
           val prop =
             Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
         in
-          (prop, subproofs, fact_names, true)
-        end
-      | _ => raise ZEROTIME)
+          (prop, true)
+        end)
     val facts =
       map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
@@ -138,7 +136,6 @@ fun try_metis debug trace type_enc lam_trans ctxt timeout step =
         preplay_time
       end
   end
-  handle ZEROTIME => K zero_preplay_time
 
 (* this version treats exceptions like timeouts *)
 fun try_metis_quietly debug trace type_enc lam_trans ctxt timeout =

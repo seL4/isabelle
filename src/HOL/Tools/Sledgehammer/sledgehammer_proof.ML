@@ -20,8 +20,8 @@ sig
     Proof of fix * assms * isar_step list
   and isar_step =
     Let of term * term |
-    Prove of isar_qualifier list * label * term * byline |
-    Obtain of isar_qualifier list * fix * label * term * byline
+    (* for |fix|>0, this is an obtain step *)
+    Prove of isar_qualifier list * fix * label * term * byline
   and byline =
     By_Metis of isar_proof list * facts
 
@@ -55,8 +55,8 @@ datatype isar_proof =
   Proof of fix * assms * isar_step list
 and isar_step =
   Let of term * term |
-  Prove of isar_qualifier list * label * term * byline |
-  Obtain of isar_qualifier list * fix * label * term * byline
+  (* for |fix|>0, this is an obtain step *)
+  Prove of isar_qualifier list * fix * label * term * byline
 and byline =
   By_Metis of isar_proof list * facts
 
@@ -69,12 +69,10 @@ fun fix_of_proof (Proof (fix, _, _)) = fix
 fun assms_of_proof (Proof (_, assms, _)) = assms
 fun steps_of_proof (Proof (_, _, steps)) = steps
 
-fun label_of_step (Obtain (_, _, l, _, _)) = SOME l
-  | label_of_step (Prove (_, l, _, _)) = SOME l
+fun label_of_step (Prove (_, _, l, _, _)) = SOME l
   | label_of_step _ = NONE
 
-fun byline_of_step (Obtain (_, _, _, _, byline)) = SOME byline
-  | byline_of_step (Prove (_, _, _, byline)) = SOME byline
+fun byline_of_step (Prove (_, _, _, _, byline)) = SOME byline
   | byline_of_step _ = NONE
 
 val add_metis_steps_top_level =

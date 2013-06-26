@@ -77,8 +77,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
       val target_n_metis = Real.fromInt n_metis / isar_compress |> Real.round
 
       (* table for mapping from (top-level-)label to step_vect position *)
-      fun update_table (i, Prove (_, l, _, _)) = Label_Table.update_new (l, i)
-        | update_table (i, Obtain (_, _, l, _, _)) = Label_Table.update_new (l, i)
+      fun update_table (i, Prove (_, _, l, _, _)) = Label_Table.update_new (l, i)
         | update_table _ = I
       val label_index_table = fold_index update_table steps Label_Table.empty
       val lookup_indices = map_filter (Label_Table.lookup label_index_table)
@@ -98,9 +97,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
          algorithm) *)
       fun add_if_cand step_vect (i, [j]) =
           ((case (the (get i step_vect), the (get j step_vect)) of
-            (Prove (_, _, t, By_Metis _), Prove (_, _, _, By_Metis _)) =>
-              cons (Term.size_of_term t, i)
-          | (Prove (_, _, t, By_Metis _), Obtain (_, _, _, _, By_Metis _)) =>
+            (Prove (_, Fix [], _, t, By_Metis _), Prove (_, _, _, _, By_Metis _)) =>
               cons (Term.size_of_term t, i)
           | _ => I)
             handle Option.Option => raise Fail "sledgehammer_compress: add_if_cand")
@@ -128,19 +125,14 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
           zero_preplay_time lazy_time_vector
 
       (* Merging *)
-      fun merge (Prove (_, lbl1, _, By_Metis (subproofs1, (lfs1, gfs1)))) step2 =
-          let
-            val (step_constructor, (subproofs2, (lfs2, gfs2))) =
-              (case step2 of
-                Prove (qs2, lbl2, t, By_Metis x) =>
-                  (fn by => Prove (qs2, lbl2, t, by), x)
-              | Obtain (qs2, xs, lbl2, t, By_Metis x) =>
-                  (fn by => Obtain (qs2, xs, lbl2, t, by), x)
-              | _ => raise Fail "sledgehammer_compress: unmergeable Isar steps" )
-            val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
-            val gfs = union (op =) gfs1 gfs2
-            val subproofs = subproofs1 @ subproofs2
-          in step_constructor (By_Metis (subproofs, (lfs, gfs))) end
+      fun merge
+          (Prove (_, Fix [], lbl1, _, By_Metis (subproofs1, (lfs1, gfs1))))
+          (Prove (qs2, fix, lbl2, t, By_Metis (subproofs2, (lfs2, gfs2)))) =
+            let
+              val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
+              val gfs = union (op =) gfs1 gfs2
+              val subproofs = subproofs1 @ subproofs2
+            in Prove (qs2, fix, lbl2, t, By_Metis (subproofs, (lfs, gfs))) end
         | merge _ _ = raise Fail "sledgehammer_compress: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
@@ -217,8 +209,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
         fun enrich_with_fact l t =
           Proof_Context.put_thms false
               (string_of_label l, SOME [Skip_Proof.make_thm thy t])
-        fun enrich_with_step (Prove (_, l, t, _)) = enrich_with_fact l t
-          | enrich_with_step (Obtain (_, _, l, t, _)) = enrich_with_fact l t
+        fun enrich_with_step (Prove (_, _, l, t, _)) = enrich_with_fact l t
           | enrich_with_step _ = I
         val enrich_with_steps = fold enrich_with_step
         val enrich_with_assms = fold (uncurry enrich_with_fact)
@@ -243,9 +234,9 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
           in fold_map f_m subproofs zero_preplay_time end
         val compress_subproofs =
           compress_each_and_collect_time (do_proof false ctxt)
-        fun compress (Prove (qs, l, t, By_Metis(subproofs, facts))) =
+        fun compress (Prove (qs, fix, l, t, By_Metis(subproofs, facts))) =
               let val (subproofs, time) = compress_subproofs subproofs
-              in (Prove (qs, l, t, By_Metis(subproofs, facts)), time) end
+              in (Prove (qs, fix, l, t, By_Metis(subproofs, facts)), time) end
           | compress atomic_step = (atomic_step, zero_preplay_time)
       in
         compress_each_and_collect_time compress subproofs
