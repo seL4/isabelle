@@ -9,7 +9,8 @@ struct
 
 val _ =
   Outer_Syntax.command
-    (("theory", Keyword.tag_theory Keyword.thy_begin), Position.none) "begin theory context"
+    (("theory", Keyword.tag_theory Keyword.thy_begin), Position.file "pure_syn.ML")
+    "begin theory context"
     (Thy_Header.args >> (fn header =>
       Toplevel.print o
         Toplevel.init_theory
@@ -17,7 +18,8 @@ val _ =
 
 val _ =
   Outer_Syntax.command
-    (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.none) "ML text from file"
+    (("ML_file", Keyword.tag_ml Keyword.thy_load), Position.file "pure_syn.ML")
+    "ML text from file"
     (Thy_Load.parse_files "ML_file" >> (fn files => Toplevel.generic_theory (fn gthy =>
         let
           val [{src_path, text, pos}] = files (Context.theory_of gthy);
