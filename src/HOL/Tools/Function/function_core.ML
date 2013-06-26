@@ -425,7 +425,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
 
     val goalstate =  Conjunction.intr graph_is_function complete
       |> Thm.close_derivation
-      |> Goal.protect
+      |> Goal.protect 0
       |> fold_rev (Thm.implies_intr o cprop_of) compat
       |> Thm.implies_intr (cprop_of complete)
   in

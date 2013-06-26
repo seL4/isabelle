@@ -19,7 +19,7 @@ signature GOAL =
 sig
   include BASIC_GOAL
   val init: cterm -> thm
-  val protect: thm -> thm
+  val protect: int -> thm -> thm
   val conclude: thm -> thm
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
@@ -73,11 +73,11 @@ val init =
   in fn C => Thm.instantiate ([], [(A, C)]) Drule.protectI end;
 
 (*
-   C
-  --- (protect)
-  #C
+  A1 ==> ... ==> An ==> C
+  ------------------------ (protect n)
+  A1 ==> ... ==> An ==> #C
 *)
-fun protect th = Drule.comp_no_flatten (th, 0) 1 Drule.protectI;
+fun protect n th = Drule.comp_no_flatten (th, n) 1 Drule.protectI;
 
 (*
   A ==> ... ==> #C

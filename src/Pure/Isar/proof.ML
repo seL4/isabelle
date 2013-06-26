@@ -1133,8 +1133,7 @@ fun future_proof fork_proof state =
 
     val prop' = Logic.protect prop;
     val statement' = (kind, [[], [prop']], prop');
-    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
-      (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
+    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal) (Goal.protect (Thm.nprems_of goal) goal);
     val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
 
     val result_ctxt =
