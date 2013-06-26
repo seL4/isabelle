@@ -9,7 +9,7 @@ BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use IntPr.fast_tac ...
 Completeness (for propositional logic) is proved in 
 
 Roy Dyckhoff.
-Contraction-Free Sequent Calculi for IntPruitionistic Logic.
+Contraction-Free Sequent Calculi for Intuitionistic Logic.
 J. Symbolic Logic (in press)
 *)
 
