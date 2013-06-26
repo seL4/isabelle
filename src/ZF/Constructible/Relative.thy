@@ -753,8 +753,6 @@ lemma (in M_trivial) RepFun_closed:
      "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A,f))"
 apply (simp add: RepFun_def)
-apply (rule strong_replacement_closed)
-apply (auto dest: transM  simp add: univalent_def)
 done
 
 lemma Replace_conj_eq: "{y . x \<in> A, x\<in>A & y=f(x)} = {y . x\<in>A, y=f(x)}"

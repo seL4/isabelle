@@ -402,10 +402,10 @@ fun select_goals n meth state =
   ALLGOALS Goal.conjunction_tac (#2 (#2 (get_goal state)))
   |> Seq.maps (fn goal =>
     state
-    |> Seq.lift provide_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
+    |> Seq.lift provide_goal ((PRIMITIVE (Goal.restrict 1 n) THEN Goal.conjunction_tac 1) goal)
     |> Seq.maps meth
     |> Seq.maps (fn state' => state'
-      |> Seq.lift provide_goal (Goal.retrofit 1 n (#2 (#2 (get_goal state'))) goal))
+      |> Seq.lift provide_goal (PRIMITIVE (Goal.unrestrict 1) (#2 (#2 (get_goal state')))))
     |> Seq.maps (apply_method true (K Method.succeed)));
 
 fun apply_text cc text state =
