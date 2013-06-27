@@ -491,7 +491,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML compose_tac: "(bool * thm * int) -> int -> tactic"} \\
-  @{index_ML compose: "thm * int * thm -> thm list"} \\
+  @{index_ML Drule.compose: "thm * int * thm -> thm list"} \\
   @{index_ML_op COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
@@ -505,14 +505,14 @@ text %mlref {*
   performs elim-resolution --- it solves the first premise of @{text
   "rule"} by assumption and deletes that assumption.
 
-  \item @{ML compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
+  \item @{ML Drule.compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
   regarded as an atomic formula, to solve premise @{text "i"} of
   @{text "thm\<^sub>2"}.  Let @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} be @{text
   "\<psi>"} and @{text "\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>"}.  For each @{text "s"} that unifies
   @{text "\<psi>"} and @{text "\<phi>"}, the result list contains the theorem
   @{text "(\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>i\<^sub>-\<^sub>1 \<Longrightarrow> \<phi>\<^sub>i\<^sub>+\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>)s"}.
 
-  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} calls @{text "compose (thm\<^sub>1, 1,
+  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} calls @{text "Drule.compose (thm\<^sub>1, 1,
   thm\<^sub>2)"} and returns the result, if unique; otherwise, it raises
   exception @{ML THM}.
 
