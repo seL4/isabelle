@@ -179,6 +179,8 @@ text %mlref {*
   @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
   @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
   @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
+  @{index_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
+  @{index_ML PREFER_GOAL: "tactic -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -217,6 +219,16 @@ text %mlref {*
   subgoal as @{ML_type cterm} instead of raw @{ML_type term}.  This
   avoids expensive re-certification in situations where the subgoal is
   used directly for primitive inferences.
+
+  \item @{ML SELECT_GOAL}~@{text "tac i"} confines a tactic to the
+  specified subgoal @{text "i"}.  This rearranges subgoals and the
+  main goal protection (\secref{sec:tactical-goals}), while retaining
+  the syntactic context of the overall goal state (concerning
+  schematic variables etc.).
+
+  \item @{ML PREFER_GOAL}~@{text "tac i"} rearranges subgoals to put
+  @{text "i"} in front.  This is similar to @{ML SELECT_GOAL}, but
+  without changing the main goal protection.
 
   \end{description}
 *}
