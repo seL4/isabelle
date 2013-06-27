@@ -420,7 +420,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
       |> Thm.implies_intr (ihyp)
       |> Thm.implies_intr (cterm_of thy (HOLogic.mk_Trueprop (mk_acc domT R $ x)))
       |> Thm.forall_intr (cterm_of thy x)
-      |> (fn it => Drule.compose_single (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
+      |> (fn it => Drule.compose (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
       |> (fn it => fold (Thm.forall_intr o cterm_of thy o Var) (Term.add_vars (prop_of it) []) it)
 
     val goalstate =  Conjunction.intr graph_is_function complete
@@ -810,7 +810,7 @@ fun mk_nest_term_rule ctxt globals R R_cases clauses =
     |> (fn it => it COMP accI)
     |> Thm.implies_intr ihyp
     |> Thm.forall_intr (cterm_of thy x)
-    |> (fn it => Drule.compose_single(it,2,wf_induct_rule))
+    |> (fn it => Drule.compose (it, 2, wf_induct_rule))
     |> curry op RS (Thm.assume wfR')
     |> forall_intr_vars
     |> (fn it => it COMP allI)

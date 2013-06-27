@@ -328,7 +328,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
       |> split_list |> apsnd flat
 
     val istep = sum_split_rule
-      |> fold (fn b => fn th => Drule.compose_single (b, 1, th)) branches
+      |> fold (fn b => fn th => Drule.compose (b, 1, th)) branches
       |> Thm.implies_intr ihyp
       |> Thm.forall_intr (cert x) (* "!!x. (!!y<x. P y) ==> P x" *)
 

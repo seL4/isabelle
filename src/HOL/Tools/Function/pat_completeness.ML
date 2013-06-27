@@ -152,7 +152,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     val complete_thm = prove_completeness ctxt xs thesis qss patss
       |> fold_rev (Thm.forall_intr o cterm_of thy) vs
     in
-      PRIMITIVE (fn st => Drule.compose_single(complete_thm, i, st))
+      PRIMITIVE (fn st => Drule.compose (complete_thm, i, st))
   end
   handle COMPLETENESS => no_tac)
 

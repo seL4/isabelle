@@ -388,9 +388,9 @@ fun grobner_strong vars pols pol =
 fun refute_disj rfn tm =
  case term_of tm of
   Const(@{const_name HOL.disj},_)$l$r =>
-   Drule.compose_single
+   Drule.compose
     (refute_disj rfn (Thm.dest_arg tm), 2,
-      Drule.compose_single (refute_disj rfn (Thm.dest_arg1 tm), 2, disjE))
+      Drule.compose (refute_disj rfn (Thm.dest_arg1 tm), 2, disjE))
   | _ => rfn tm ;
 
 val notnotD = @{thm notnotD};

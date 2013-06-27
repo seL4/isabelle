@@ -68,8 +68,7 @@ sig
   val store_standard_thm_open: binding -> thm -> thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
-  val compose: thm * int * thm -> thm list
-  val compose_single: thm * int * thm -> thm
+  val compose: thm * int * thm -> thm
   val equals_cong: thm
   val imp_cong: thm
   val swap_prems_eq: thm
@@ -358,15 +357,10 @@ fun rls MRS bottom_rl = bottom_rl OF rls;
 (*compose Q and [...,Qi,Q(i+1),...]==>R to [...,Q(i+1),...]==>R
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
-fun compose(tha,i,thb) =
-  distinct Thm.eq_thm
-    (Seq.list_of
-      (Thm.bicompose {flatten = true, match = false, incremented = false} (false, tha, 0) i thb));
-
-fun compose_single (tha,i,thb) =
-  (case compose (tha,i,thb) of
-    [th] => th
-  | _ => raise THM ("compose: unique result expected", i, [tha,thb]));
+fun compose (tha, i, thb) =
+  Thm.bicompose {flatten = true, match = false, incremented = false} (false, tha, 0) i thb
+  |> Seq.list_of |> distinct Thm.eq_thm
+  |> (fn [th] => th | _ => raise THM ("compose: unique result expected", i, [tha, thb]));
 
 
 (** theorem equality **)

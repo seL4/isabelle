@@ -50,7 +50,7 @@ fun export_solution (Export {fixes = cfvs, assumes = hcprems, sgid = i, gth = gt
     val solth' = solth
       |> Drule.implies_intr_list hcprems
       |> Drule.forall_intr_list cfvs;
-  in Drule.compose_single (solth', i, gth) end;
+  in Drule.compose (solth', i, gth) end;
 
 fun variant_names ctxt ts xs =
   let
