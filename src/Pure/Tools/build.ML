@@ -102,7 +102,6 @@ fun no_document options =
 
 fun use_theories last_timing options =
   Thy_Info.use_theories {last_timing = last_timing, master_dir = Path.current}
-    |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
