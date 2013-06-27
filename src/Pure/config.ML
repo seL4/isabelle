@@ -24,9 +24,10 @@ sig
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
-  val declare_global: string -> (Context.generic -> value) -> raw
   val declare: string -> (Context.generic -> value) -> raw
+  val declare_global: string -> (Context.generic -> value) -> raw
   val declare_option: string -> raw
+  val declare_option_global: string -> raw
   val name_of: 'a T -> string
 end;
 
@@ -109,6 +110,8 @@ structure Value = Generic_Data
   fun merge data = Inttab.merge (K true) data;
 );
 
+local
+
 fun declare_generic global name default =
   let
     val id = serial ();
@@ -135,10 +138,7 @@ fun declare_generic global name default =
       | map_value f context = update_value f context;
   in Config {name = name, get_value = get_value, map_value = map_value} end;
 
-val declare_global = declare_generic true;
-val declare = declare_generic false;
-
-fun declare_option name =
+fun declare_option_generic global name =
   let
     val typ = Options.default_typ name;
     val default =
@@ -147,7 +147,16 @@ fun declare_option name =
       else if typ = Options.realT then fn _ => Real (Options.default_real name)
       else if typ = Options.stringT then fn _ => String (Options.default_string name)
       else error ("Unknown type for option " ^ quote name ^ " : " ^ quote typ);
-  in declare name default end;
+  in declare_generic global name default end;
+
+in
+
+val declare = declare_generic false;
+val declare_global = declare_generic true;
+val declare_option = declare_option_generic false;
+val declare_option_global = declare_option_generic true;
+
+end;
 
 fun name_of (Config {name, ...}) = name;
 
