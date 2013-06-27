@@ -16,7 +16,7 @@ text_raw{*\snip{AExpavaldef}{1}{2}{% *}
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (N n) s = n" |
 "aval (V x) s = s x" |
-"aval (Plus a1 a2) s = aval a1 s + aval a2 s"
+"aval (Plus a\<^isub>1 a\<^isub>2) s = aval a\<^isub>1 s + aval a\<^isub>2 s"
 text_raw{*}%endsnip*}
 
 
