@@ -179,6 +179,8 @@ text %mlref {*
   @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
   @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
   @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
+  @{index_ML SELECT_GOAL: "tactic -> int -> tactic"} \\
+  @{index_ML PREFER_GOAL: "tactic -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -217,6 +219,16 @@ text %mlref {*
   subgoal as @{ML_type cterm} instead of raw @{ML_type term}.  This
   avoids expensive re-certification in situations where the subgoal is
   used directly for primitive inferences.
+
+  \item @{ML SELECT_GOAL}~@{text "tac i"} confines a tactic to the
+  specified subgoal @{text "i"}.  This rearranges subgoals and the
+  main goal protection (\secref{sec:tactical-goals}), while retaining
+  the syntactic context of the overall goal state (concerning
+  schematic variables etc.).
+
+  \item @{ML PREFER_GOAL}~@{text "tac i"} rearranges subgoals to put
+  @{text "i"} in front.  This is similar to @{ML SELECT_GOAL}, but
+  without changing the main goal protection.
 
   \end{description}
 *}
@@ -479,7 +491,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML compose_tac: "(bool * thm * int) -> int -> tactic"} \\
-  @{index_ML compose: "thm * int * thm -> thm list"} \\
+  @{index_ML Drule.compose: "thm * int * thm -> thm list"} \\
   @{index_ML_op COMP: "thm * thm -> thm"} \\
   \end{mldecls}
 
@@ -493,14 +505,14 @@ text %mlref {*
   performs elim-resolution --- it solves the first premise of @{text
   "rule"} by assumption and deletes that assumption.
 
-  \item @{ML compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
+  \item @{ML Drule.compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
   regarded as an atomic formula, to solve premise @{text "i"} of
   @{text "thm\<^sub>2"}.  Let @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} be @{text
   "\<psi>"} and @{text "\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>"}.  For each @{text "s"} that unifies
   @{text "\<psi>"} and @{text "\<phi>"}, the result list contains the theorem
   @{text "(\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>i\<^sub>-\<^sub>1 \<Longrightarrow> \<phi>\<^sub>i\<^sub>+\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>)s"}.
 
-  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} calls @{text "compose (thm\<^sub>1, 1,
+  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} calls @{text "Drule.compose (thm\<^sub>1, 1,
   thm\<^sub>2)"} and returns the result, if unique; otherwise, it raises
   exception @{ML THM}.
 

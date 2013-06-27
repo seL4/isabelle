@@ -51,8 +51,6 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_sorry_global: theory -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
-  val extract: int -> int -> thm -> thm Seq.seq
-  val retrofit: int -> int -> thm -> thm -> thm Seq.seq
   val restrict: int -> int -> thm -> thm
   val unrestrict: int -> thm -> thm
   val conjunction_tac: int -> tactic
@@ -349,22 +347,6 @@ fun prove_sorry_global thy xs asms prop tac =
 
 (** goal structure **)
 
-(* nested goals *)
-
-fun extract i n st =
-  (if i < 1 orelse n < 1 orelse i + n - 1 > Thm.nprems_of st then Seq.empty
-   else if n = 1 then Seq.single (Thm.cprem_of st i)
-   else
-     Seq.single (Conjunction.mk_conjunction_balanced (map (Thm.cprem_of st) (i upto i + n - 1))))
-  |> Seq.map (Thm.adjust_maxidx_cterm ~1 #> init);
-
-fun retrofit i n st' st =
-  (if n = 1 then st
-   else st |> Drule.with_subgoal i (Conjunction.uncurry_balanced n))
-  |> Thm.bicompose {flatten = false, match = false, incremented = false}
-      (false, conclude st', Thm.nprems_of st') i;
-
-
 (* rearrange subgoals *)
 
 fun restrict i n st =
@@ -439,16 +421,30 @@ fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 
-(* parallel tacticals *)
 
-(*parallel choice of single results*)
+(** parallel tacticals **)
+
+(* parallel choice of single results *)
+
 fun PARALLEL_CHOICE tacs st =
   (case Par_List.get_some (fn tac => SINGLE tac st) tacs of
     NONE => Seq.empty
   | SOME st' => Seq.single st');
 
-(*parallel refinement of non-schematic goal by single results*)
+
+(* parallel refinement of non-schematic goal by single results *)
+
+local
+
 exception FAILED of unit;
+
+fun retrofit st' =
+  rotate_prems ~1 #>
+  Thm.bicompose {flatten = false, match = false, incremented = false}
+      (false, conclude st', Thm.nprems_of st') 1;
+
+in
+
 fun PARALLEL_GOALS tac =
   Thm.adjust_maxidx_thm ~1 #>
   (fn st =>
@@ -463,8 +459,10 @@ fun PARALLEL_GOALS tac =
 
         val goals = Drule.strip_imp_prems (Thm.cprop_of st);
         val results = Par_List.map (try_tac o init) goals;
-      in ALLGOALS (fn i => retrofit i 1 (nth results (i - 1))) st end
+      in EVERY (map retrofit (rev results)) st end
       handle FAILED () => Seq.empty);
+
+end;
 
 end;
 

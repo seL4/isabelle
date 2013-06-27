@@ -34,7 +34,6 @@ sig
   val RL: thm list * thm list -> thm list
   val MRS: thm list * thm -> thm
   val OF: thm * thm list -> thm
-  val compose: thm * int * thm -> thm list
   val COMP: thm * thm -> thm
   val INCR_COMP: thm * thm -> thm
   val COMP_INCR: thm * thm -> thm
@@ -69,6 +68,7 @@ sig
   val store_standard_thm_open: binding -> thm -> thm
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
+  val compose: thm * int * thm -> thm list
   val compose_single: thm * int * thm -> thm
   val equals_cong: thm
   val imp_cong: thm

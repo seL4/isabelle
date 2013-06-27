@@ -533,15 +533,16 @@ fun mark_aprop tm =
     fun aprop t = Syntax.const "_aprop" $ t;
 
     fun is_prop Ts t =
-      Type_Annotation.fastype_of Ts t = propT handle TERM _ => false;
+      Type_Annotation.clean (Type_Annotation.fastype_of Ts t) = propT
+        handle TERM _ => false;
 
     fun is_term (Const ("Pure.term", _) $ _) = true
       | is_term _ = false;
 
     fun mark _ (t as Const _) = t
       | mark Ts (t as Const ("_bound", _) $ u) = if is_prop Ts u then aprop t else t
-      | mark _ (t as Free (x, T)) = if T = propT then aprop (Syntax.free x) else t
-      | mark _ (t as Var (xi, T)) = if T = propT then aprop (Syntax.var xi) else t
+      | mark Ts (t as Free _) = if is_prop Ts t then aprop t else t
+      | mark Ts (t as Var _) = if is_prop Ts t then aprop t else t
       | mark Ts (t as Bound _) = if is_prop Ts t then aprop t else t
       | mark Ts (Abs (x, T, t)) = Abs (x, T, mark (T :: Ts) t)
       | mark Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
@@ -628,7 +629,12 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T0 =
-      let val T = Type_Annotation.smash T0 in
+      let
+        val T =
+          if show_markup andalso not show_types
+          then Type_Annotation.clean T0
+          else Type_Annotation.smash T0;
+      in
         if (show_types orelse show_markup) andalso T <> dummyT then
           Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
             ast_of_termT ctxt trf (term_of_typ ctxt T)]

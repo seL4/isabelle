@@ -802,13 +802,13 @@ val weight_ASTAR = 5;
 fun astar_tac ctxt =
   Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + weight_ASTAR * lev)
+    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (step_tac ctxt 1));
 
 fun slow_astar_tac ctxt =
   Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + weight_ASTAR * lev)
+    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (slow_step_tac ctxt 1));
 
 
