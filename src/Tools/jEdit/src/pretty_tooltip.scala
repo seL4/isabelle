@@ -142,14 +142,14 @@ class Pretty_Tooltip private(view: View) extends JDialog
   /* controls */
 
   private val close = new Label {
-    icon = Rendering.tooltip_close_icon
+    icon = current_rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
     reactions += { case _: MouseClicked => window.dismiss }
   }
 
   private val detach = new Label {
-    icon = Rendering.tooltip_detach_icon
+    icon = current_rendering.tooltip_detach_icon
     tooltip = "Detach tooltip window"
     listenTo(mouse.clicks)
     reactions += {

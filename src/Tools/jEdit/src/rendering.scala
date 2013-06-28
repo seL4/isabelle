@@ -56,14 +56,6 @@ object Rendering
     else icon
   }
 
-  private val gutter_icons = Map(
-    warning_pri -> load_icon("16x16/status/dialog-information.png"),
-    legacy_pri -> load_icon("16x16/status/dialog-warning.png"),
-    error_pri -> load_icon("16x16/status/dialog-error.png"))
-
-  val tooltip_close_icon = load_icon("16x16/actions/document-close.png")
-  val tooltip_detach_icon = load_icon("16x16/actions/window-new.png")
-
 
   /* jEdit font */
 
@@ -386,6 +378,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val tooltip_margin: Int = options.int("jedit_tooltip_margin")
   val tooltip_bounds: Double = (options.real("jedit_tooltip_bounds") max 0.2) min 0.8
 
+  lazy val tooltip_close_icon = Rendering.load_icon(options.string("tooltip_close_icon"))
+  lazy val tooltip_detach_icon = Rendering.load_icon(options.string("tooltip_detach_icon"))
+
+
+  private lazy val gutter_icons = Map(
+    Rendering.warning_pri -> Rendering.load_icon(options.string("gutter_warning_icon")),
+    Rendering.legacy_pri -> Rendering.load_icon(options.string("gutter_legacy_icon")),
+    Rendering.error_pri -> Rendering.load_icon(options.string("gutter_error_icon")))
 
   def gutter_message(range: Text.Range): Option[Icon] =
   {
@@ -402,7 +402,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             pri max Rendering.error_pri
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
-    Rendering.gutter_icons.get(pri)
+    gutter_icons.get(pri)
   }
 
 
