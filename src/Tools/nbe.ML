@@ -133,12 +133,13 @@ fun lift_triv_classes_rew thy rew t =
     val algebra = Sign.classes_of thy;
     val triv_classes = get_triv_classes thy;
     val vs = Term.add_tfrees t [];
-  in t
+  in
+    t
     |> (map_types o map_type_tfree)
         (fn (v, sort) => TFree (v, Sorts.inter_sort algebra (sort, triv_classes)))
     |> rew
     |> (map_types o map_type_tfree)
-        (fn (v, _) => TFree (v, the (AList.lookup (op =) vs v)))
+        (fn (v, sort) => TFree (v, the_default sort (AList.lookup (op =) vs v)))
   end;
 
 end;
