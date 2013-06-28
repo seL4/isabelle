@@ -502,6 +502,13 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
     val _ = if not (is_abstr thy c) then ()
       else bad_thm "Abstractor as head in equation";
     val _ = check_decl_ty thy (c, ty);
+    val _ = case strip_type ty
+     of (Type (tyco, _) :: _, _) => (case get_type_entry thy tyco
+       of SOME (_, Abstractor (_, (proj, _))) => if c = proj
+            then bad_thm "Projection as head in equation"
+            else ()
+        | _ => ())
+      | _ => ();
   in () end;
 
 fun gen_assert_eqn thy check_patterns (thm, proper) =
