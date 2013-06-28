@@ -356,7 +356,7 @@ fun assemble_eqnss idx_of deps eqnss =
         val default_rhs = nbe_apps_local (i+1) c (dicts @ default_args);
         val match_cont = if is_eval then NONE else SOME default_rhs;
         val assemble_arg = assemble_iterm
-          (fn c => fn _ => fn ts => nbe_apps_constr idx_of c ts) NONE;
+          (fn c => fn dss => fn ts => nbe_apps_constr idx_of c ((maps o map) (K "_") dss @ ts)) NONE;
         val assemble_rhs = assemble_iterm assemble_constapp match_cont;
         val (samepairs, args') = subst_nonlin_vars args;
         val s_args = map assemble_arg args';
