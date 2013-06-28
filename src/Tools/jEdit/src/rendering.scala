@@ -42,9 +42,16 @@ object Rendering
 
   /* icons */
 
-  private def load_icon(name: String): Icon =
+  def load_icon(name: String): Icon =
   {
-    val icon = GUIUtilities.loadIcon(name)
+    val name1 =
+      if (name.startsWith("idea-icons/")) {
+        val file =
+          Isabelle_System.platform_file_url(Path.explode("$JEDIT_HOME/dist/jars/idea-icons.jar"))
+        "jar:" + file + "!/" + name
+      }
+      else name
+    val icon = GUIUtilities.loadIcon(name1)
     if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
     else icon
   }
