@@ -19,6 +19,8 @@ object Swing_Thread
   def assert() = Predef.assert(SwingUtilities.isEventDispatchThread())
   def require() = Predef.require(SwingUtilities.isEventDispatchThread())
 
+  def required[A](body: => A): A = { require(); body }
+
 
   /* main dispatch queue */
 
