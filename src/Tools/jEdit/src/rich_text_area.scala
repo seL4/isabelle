@@ -155,7 +155,9 @@ class Rich_Text_Area(
     override def mouseClicked(e: MouseEvent) {
       robust_body(()) {
         hyperlink_area.info match {
-          case Some(Text.Info(_, link)) => link.follow(view)
+          case Some(Text.Info(_, link)) =>
+            Pretty_Tooltip.dismiss_all()
+            link.follow(view)
           case None =>
         }
         active_area.text_info match {
