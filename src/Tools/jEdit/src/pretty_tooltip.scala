@@ -179,7 +179,6 @@ class Pretty_Tooltip private(
 
   pretty_text_area.resize(Rendering.font_family(),
     Rendering.font_size("jedit_tooltip_font_scale").round)
-  pretty_text_area.update(rendering.snapshot, results, body)
 
 
   /* main content */
@@ -226,7 +225,7 @@ class Pretty_Tooltip private(
 
   popup.show
   pretty_text_area.requestFocus
-  pretty_text_area.refresh()
+  pretty_text_area.update(rendering.snapshot, results, body)
 
   private def hide_popup: Unit = popup.hide
 }
