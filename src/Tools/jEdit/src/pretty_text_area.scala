@@ -170,9 +170,6 @@ class Pretty_Text_Area(
         if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
           Registers.copy(text_area, '$')
           evt.consume
-        case KeyEvent.VK_ESCAPE =>
-          Pretty_Tooltip.dismiss_all()
-          evt.consume
         case _ =>
       }
       if (propagate_keys && !evt.isConsumed)
@@ -181,6 +178,8 @@ class Pretty_Text_Area(
 
     override def keyTyped(evt: KeyEvent)
     {
+      if (evt.getKeyChar == 27) Pretty_Tooltip.dismiss_all()
+
       if (propagate_keys && !evt.isConsumed)
         view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
     }

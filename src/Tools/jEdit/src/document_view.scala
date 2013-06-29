@@ -17,13 +17,14 @@ import scala.actors.Actor._
 import java.lang.System
 import java.text.BreakIterator
 import java.awt.{Color, Graphics2D, Point}
+import java.awt.event.{KeyEvent, KeyAdapter}
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.{jEdit, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.{SyntaxStyle}
+import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 
 object Document_View
@@ -146,6 +147,16 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
+  /* key listener */
+
+  private val key_listener = new KeyAdapter {
+    override def keyTyped(evt: KeyEvent)
+    {
+      if (evt.getKeyChar == 27) Pretty_Tooltip.dismiss_all()
+    }
+  }
+
+
   /* caret handling */
 
   private val delay_caret_update =
@@ -227,6 +238,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
     rich_text_area.activate()
     text_area.getGutter.addExtension(gutter_painter)
+    text_area.addKeyListener(key_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
     session.raw_edits += main_actor
@@ -239,8 +251,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
     session.raw_edits -= main_actor
     session.commands_changed -= main_actor
-    text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
+    text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
+    text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
     rich_text_area.deactivate()
     painter.removeExtension(update_perspective)
