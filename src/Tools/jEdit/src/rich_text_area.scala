@@ -224,7 +224,7 @@ class Rich_Text_Area(
                     val painter = text_area.getPainter
                     val y1 = y + painter.getFontMetrics.getHeight / 2
                     val results = rendering.command_results(range)
-                    Pretty_Tooltip(view, painter, rendering, x, y1, results, tip.range, tip.info)
+                    Pretty_Tooltip(view, painter, rendering, x, y1, results, tip.info)
                 }
             }
           }

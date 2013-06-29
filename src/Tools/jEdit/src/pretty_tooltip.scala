@@ -42,7 +42,6 @@ object Pretty_Tooltip
     rendering: Rendering,
     mouse_x: Int, mouse_y: Int,
     results: Command.Results,
-    range: Text.Range,
     body: XML.Body): Pretty_Tooltip =
   {
     Swing_Thread.require()
@@ -54,7 +53,7 @@ object Pretty_Tooltip
       }
     old.foreach(_.hide_popup)
 
-    val tip = new Pretty_Tooltip(view, rendering, parent, mouse_x, mouse_y, results, range, body)
+    val tip = new Pretty_Tooltip(view, rendering, parent, mouse_x, mouse_y, results, body)
     stack = tip :: rest
     tip
   }
@@ -129,7 +128,6 @@ class Pretty_Tooltip private(
   parent: JComponent,
   mouse_x: Int, mouse_y: Int,
   results: Command.Results,
-  range: Text.Range,
   body: XML.Body) extends JPanel(new BorderLayout)
 {
   tip =>
