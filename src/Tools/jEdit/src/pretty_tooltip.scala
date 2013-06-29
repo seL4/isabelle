@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Dimension}
 import java.awt.event.{FocusAdapter, FocusEvent}
-import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, PopupFactory}
+import javax.swing.{JWindow, JPanel, JComponent, PopupFactory}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -40,7 +40,7 @@ object Pretty_Tooltip
     view: View,
     parent: JComponent,
     rendering: Rendering,
-    mouse_x: Int, mouse_y: Int,
+    screen_point: Point,
     results: Command.Results,
     body: XML.Body): Pretty_Tooltip =
   {
@@ -53,7 +53,7 @@ object Pretty_Tooltip
       }
     old.foreach(_.hide_popup)
 
-    val tip = new Pretty_Tooltip(view, rendering, parent, mouse_x, mouse_y, results, body)
+    val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, body)
     stack = tip :: rest
     tip
   }
@@ -126,7 +126,7 @@ class Pretty_Tooltip private(
   view: View,
   rendering: Rendering,
   parent: JComponent,
-  mouse_x: Int, mouse_y: Int,
+  screen_point: Point,
   results: Command.Results,
   body: XML.Body) extends JPanel(new BorderLayout)
 {
@@ -194,8 +194,6 @@ class Pretty_Tooltip private(
 
   private val popup =
   {
-    val screen_point = new Point(mouse_x, mouse_y)
-    SwingUtilities.convertPointToScreen(screen_point, parent)
     val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
     val painter = pretty_text_area.getPainter
