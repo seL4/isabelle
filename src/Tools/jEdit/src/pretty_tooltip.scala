@@ -55,6 +55,7 @@ object Pretty_Tooltip
 
     val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, body)
     stack = tip :: rest
+    tip.show_popup
     tip
   }
 
@@ -221,9 +222,12 @@ class Pretty_Tooltip private(
     PopupFactory.getSharedInstance.getPopup(parent, tip, x, y)
   }
 
-  popup.show
-  pretty_text_area.requestFocus
-  pretty_text_area.update(rendering.snapshot, results, body)
+  private def show_popup
+  {
+    popup.show
+    pretty_text_area.requestFocus
+    pretty_text_area.update(rendering.snapshot, results, body)
+  }
 
   private def hide_popup: Unit = popup.hide
 }
