@@ -54,7 +54,7 @@ object JEdit_Lib
   }
 
   def parent_window(component: Component): Option[Window] =
-    ancestors(component).find(_.isInstanceOf[Window]).map(_.asInstanceOf[Window])
+    ancestors(component).collectFirst({ case x: Window => x })
 
 
   /* basic tooltips, with multi-line support */

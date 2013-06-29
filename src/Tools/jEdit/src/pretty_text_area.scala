@@ -171,7 +171,7 @@ class Pretty_Text_Area(
           Registers.copy(text_area, '$')
           evt.consume
         case KeyEvent.VK_ESCAPE =>
-          Pretty_Tooltip.windows().foreach(_.dismiss)
+          Pretty_Tooltip.dismiss_all()
           evt.consume
         case _ =>
       }
