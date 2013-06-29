@@ -2459,7 +2459,9 @@ text {* For validation purposes, it is often useful to \emph{execute}
   module names) with target-specific hints how these symbols shall be named.
   \emph{Warning:} These hints are still subject to name disambiguation.
   @{command (HOL) "code_modulename"} is a legacy variant for
-  @{command (HOL) "code_identifier"} on module names.
+  @{command (HOL) "code_identifier"} on module names.  It is at the discretion
+  of the user to ensure that name prefixes of identifiers in compound
+  statements like type classes or datatypes are still the same.
 
   \item @{command (HOL) "code_reflect"} without a ``@{text "file"}''
   argument compiles code into the system runtime environment and
