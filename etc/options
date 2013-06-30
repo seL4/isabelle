@@ -77,7 +77,7 @@ public option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
 
 
-section "Detail of Proof Recording"
+section "Detail of Proof Checking"
 
 option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
