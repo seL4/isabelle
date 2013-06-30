@@ -13,7 +13,7 @@ begin
 
 ML_file "sledgehammer_tactics.ML"
 
-declare [[proofs = 0]]
+ML {* Proofterm.proofs := 0 *}
 
 declare [[show_consts]] (* for Refute *)
 declare [[smt_oracle]]

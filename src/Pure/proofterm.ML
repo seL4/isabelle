@@ -8,6 +8,8 @@ infix 8 % %% %>;
 
 signature BASIC_PROOFTERM =
 sig
+  val proofs: int Unsynchronized.ref
+
   datatype proof =
      MinProof
    | PBound of int
@@ -33,10 +35,6 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
-  val proofs_raw: Config.raw
-  val proofs: int Config.T
-  val proofs_enabled: theory -> bool
-
   type oracle = string * term
   type pthm = serial * (string * term * proof_body future)
   val proof_of: proof_body -> proof
@@ -61,6 +59,7 @@ sig
   val decode_body: proof_body XML.Decode.T
 
   (** primitive operations **)
+  val proofs_enabled: unit -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
   val proof_combP: proof * proof list -> proof
@@ -130,12 +129,11 @@ sig
    {classrel_proof: theory -> class * class -> proof,
     arity_proof: theory -> string * sort list * class -> proof} -> unit
   val axm_proof: string -> term -> proof
-  val oracle_proof: theory -> string -> term -> oracle * proof
+  val oracle_proof: string -> term -> oracle * proof
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
-  val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) ->
-    theory -> theory
+  val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val no_skel: proof
   val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
@@ -156,16 +154,6 @@ end
 
 structure Proofterm : PROOFTERM =
 struct
-
-(***** options *****)
-
-val proofs_raw = Config.declare_option_global "proofs";
-val proofs = Config.int proofs_raw;
-
-fun proofs_enabled thy = Config.get_global thy proofs >= 2;
-
-val _ = Options.put_default "proofs" "2";  (*compile-time value for Pure*)
-
 
 (***** datatype proof *****)
 
@@ -1082,6 +1070,9 @@ end;
 
 (***** axioms and theorems *****)
 
+val proofs = Unsynchronized.ref 2;
+fun proofs_enabled () = ! proofs >= 2;
+
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
 
@@ -1148,9 +1139,8 @@ fun gen_axm_proof c name prop =
 
 val axm_proof = gen_axm_proof PAxm;
 
-fun oracle_proof thy name prop =
-  if Config.get_global thy proofs = 0
-  then ((name, Term.dummy), Oracle (name, Term.dummy, NONE))
+fun oracle_proof name prop =
+  if ! proofs = 0 then ((name, Term.dummy), Oracle (name, Term.dummy, NONE))
   else ((name, prop), gen_axm_proof Oracle name prop);
 
 fun shrink_proof thy =
@@ -1561,7 +1551,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
-      if not (proofs_enabled thy) then Future.value (make_body0 MinProof)
+      if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
       else if Context.is_draft thy then Future.value (make_body0 (full_proof0 ()))
       else
         (singleton o Future.cond_forks)

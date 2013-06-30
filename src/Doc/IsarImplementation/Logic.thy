@@ -1335,6 +1335,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type proof} \\
   @{index_ML_type proof_body} \\
+  @{index_ML proofs: "int Unsynchronized.ref"} \\
   @{index_ML Reconstruct.reconstruct_proof:
   "theory -> term -> proof -> proof"} \\
   @{index_ML Reconstruct.expand_proof: "theory ->
@@ -1343,10 +1344,6 @@ text %mlref {*
   @{index_ML Proof_Syntax.read_proof: "theory -> bool -> bool -> string -> proof"} \\
   @{index_ML Proof_Syntax.pretty_proof: "Proof.context -> proof -> Pretty.T"} \\
   \end{mldecls}
-
-  \begin{tabular}{rcll}
-  @{attribute_def proofs} & : & @{text attribute} & default @{text 1} \\
-  \end{tabular}
 
   \begin{description}
 
@@ -1372,6 +1369,13 @@ text %mlref {*
   construction of proofs by introducing dynamic ad-hoc dependencies.
   Parallel performance may suffer by inspecting proof terms at
   run-time.
+
+  \item @{ML proofs} specifies the detail of proof recording within
+  @{ML_type thm} values produced by the inference kernel: @{ML 0}
+  records only the names of oracles, @{ML 1} records oracle names and
+  propositions, @{ML 2} additionally records full proof terms.
+  Officially named theorems that contribute to a result are recorded
+  in any case.
 
   \item @{ML Reconstruct.reconstruct_proof}~@{text "thy prop prf"}
   turns the implicit proof term @{text "prf"} into a full proof of the
@@ -1399,13 +1403,6 @@ text %mlref {*
 
   \item @{ML Proof_Syntax.pretty_proof}~@{text "ctxt prf"}
   pretty-prints the given proof term.
-
-  \item @{attribute proofs} specifies the detail of proof recording within
-  @{ML_type thm} values produced by the inference kernel: @{text 0}
-  records only the names of oracles, @{text 1} records oracle names and
-  propositions, @{text 2} additionally records full proof terms.
-  Officially named theorems that contribute to a result are recorded
-  in any case.  %FIXME move to IsarRef
 
   \end{description}
 *}

@@ -341,5 +341,6 @@ val use_thy = use_thys o single;
 
 val cd = File.cd o Path.explode;
 
+Proofterm.proofs := 0;
 Multithreading.max_threads := 0;
 
