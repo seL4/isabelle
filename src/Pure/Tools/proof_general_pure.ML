@@ -153,7 +153,7 @@ val _ =
   ProofGeneral.preference ProofGeneral.category_proof
     NONE
     (Markup.print_bool o Proofterm.proofs_enabled)
-    (fn s => Proofterm.proofs := (if Markup.parse_bool s then 2 else 1))
+    (fn s => Proofterm.proofs := (if Markup.parse_bool s then 2 else 0))
     ProofGeneral.pgipbool
     "full-proofs"
     "Record full proof objects internally";
