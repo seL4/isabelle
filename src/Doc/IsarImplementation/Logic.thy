@@ -1303,7 +1303,7 @@ text {* The concrete syntax of proof terms is a slight extension of
   \begin{supertabular}{rclr}
 
   @{syntax_def (inner) proof} & = & @{verbatim Lam} @{text params} @{verbatim "."} @{text proof} \\
-    & @{text "|"} & @{text "\<Lambda>"} @{text "params"} @{verbatim "."} @{text proof} \\
+    & @{text "|"} & @{text "\<^bold>\<lambda>"} @{text "params"} @{verbatim "."} @{text proof} \\
     & @{text "|"} & @{text proof} @{verbatim "%"} @{text any} \\
     & @{text "|"} & @{text proof} @{text "\<cdot>"} @{text any} \\
     & @{text "|"} & @{text proof} @{verbatim "%%"} @{text proof} \\
@@ -1448,9 +1448,9 @@ ML_val {*
   val prf =
     Proof_Syntax.read_proof thy true false
       "impI \<cdot> _ \<cdot> _ \<bullet> \
-      \   (Lam H: _. \
+      \   (\<^bold>\<lambda>H: _. \
       \     conjE \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> H \<bullet> \
-      \       (Lam (H: _) Ha: _. conjI \<cdot> _ \<cdot> _ \<bullet> Ha \<bullet> H))";
+      \       (\<^bold>\<lambda>(H: _) Ha: _. conjI \<cdot> _ \<cdot> _ \<bullet> Ha \<bullet> H))";
   val thm =
     prf
     |> Reconstruct.reconstruct_proof thy @{prop "A \<and> B \<longrightarrow> B \<and> A"}
