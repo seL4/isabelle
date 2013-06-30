@@ -50,6 +50,11 @@ timing information.
 
 *** Pure ***
 
+* System option "proofs" has been discontinued.  Instead the global
+state of Proofterm.proofs is persistently compiled into logic images
+as required, notably HOL-Proofs.  Users no longer need to change
+Proofterm.proofs dynamically.  Minor INCOMPATIBILITY.
+
 * Syntax translation functions (print_translation etc.) always depend
 on Proof.context.  Discontinued former "(advanced)" option -- this is
 now the default.  Minor INCOMPATIBILITY.

@@ -81,7 +81,7 @@ session IsarImplementation (doc) in "IsarImplementation" = "HOL-Proofs" +
     Proof
     Syntax
     Tactic
-  theories [proofs = 2, skip_proofs = false, parallel_proofs = 0]
+  theories [skip_proofs = false, parallel_proofs = 0]
     Logic
   files
     "../prepare_document"
