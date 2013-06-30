@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2013: Florian Haftmann, TUM
+  Ephemeral interpretation in local theories.
+
 * May 2013: Lukas Bulwahn and Nicolai Schaffroth, TUM
   HOL-Spec_Check: A Quickcheck tool for Isabelle's ML environment.
 
