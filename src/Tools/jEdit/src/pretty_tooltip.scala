@@ -207,22 +207,34 @@ class Pretty_Tooltip private(
   {
     val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
-    val painter = pretty_text_area.getPainter
-    val metric = JEdit_Lib.pretty_metric(painter)
-    val margin = rendering.tooltip_margin * metric.average
-    val lines =
-      XML.traverse_text(Pretty.formatted(body, margin, metric))(0)(
-        (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+    val (w, h) =
+    {
+      val painter = pretty_text_area.getPainter
+      val metric = JEdit_Lib.pretty_metric(painter)
+      val margin = rendering.tooltip_margin * metric.average
 
-    val (deco_width, deco_height) = Pretty_Tooltip.decoration_size(tip)
+      val formatted = Pretty.formatted(body, margin, metric)
+      val lines =
+        XML.traverse_text(formatted)(0)(
+          (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-    val bounds = rendering.tooltip_bounds
-    val w =
-      ((metric.unit * (margin + metric.average)).round.toInt + deco_width) min
-      (screen_bounds.width * bounds).toInt
-    val h =
-      (painter.getFontMetrics.getHeight * (lines + 1) + deco_height) min
-      (screen_bounds.height * bounds).toInt
+      val (deco_width, deco_height) = Pretty_Tooltip.decoration_size(tip)
+      val bounds = rendering.tooltip_bounds
+
+      val h1 = painter.getFontMetrics.getHeight * (lines + 1) + deco_height
+      val h2 = (screen_bounds.height * bounds).toInt
+      val h = h1 min h2
+
+      val margin1 =
+        if (h1 <= h2)
+          (0.0 /: split_lines(XML.content(formatted)))({ case (m, line) => m max metric(line) })
+        else margin
+      val w =
+        ((metric.unit * (margin1 + metric.average)).round.toInt + deco_width) min
+        (screen_bounds.width * bounds).toInt
+
+      (w, h)
+    }
 
     tip.setSize(new Dimension(w, h))
     tip.setPreferredSize(new Dimension(w, h))
