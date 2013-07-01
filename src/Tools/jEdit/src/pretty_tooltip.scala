@@ -42,26 +42,24 @@ object Pretty_Tooltip
     rendering: Rendering,
     screen_point: Point,
     results: Command.Results,
-    info: Text.Info[XML.Body])
+    info: Text.Info[XML.Body]): Pretty_Tooltip =
   {
     Swing_Thread.require()
 
-    val same =
-      stack match {
-        case top :: _ => top.results == results && top.info == info
-        case Nil => false
-      }
-    if (!same) {
-      val (old, rest) =
-        JEdit_Lib.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
-          case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
-          case None => (stack, Nil)
-        }
-      old.foreach(_.hide_popup)
-  
-      val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, info)
-      stack = tip :: rest
-      tip.show_popup
+    stack match {
+      case top :: _ if top.results == results && top.info == info => top
+      case _ =>
+        val (old, rest) =
+          JEdit_Lib.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
+            case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
+            case None => (stack, Nil)
+          }
+        old.foreach(_.hide_popup)
+
+        val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, info)
+        stack = tip :: rest
+        tip.show_popup
+        tip
     }
   }
 
