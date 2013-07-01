@@ -109,6 +109,10 @@ object Pretty_Tooltip
         old.foreach(_.hide_popup)
         tip.hide_popup
         stack = rest
+        rest match {
+          case top :: _ => top.request_focus
+          case Nil =>
+        }
       case _ =>
     }
   }
@@ -273,5 +277,7 @@ class Pretty_Tooltip private(
   }
 
   private def hide_popup: Unit = popup.hide
+
+  private def request_focus: Unit = pretty_text_area.requestFocus
 }
 
