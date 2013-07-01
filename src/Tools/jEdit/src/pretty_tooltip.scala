@@ -169,11 +169,15 @@ class Pretty_Tooltip private(
     }
 
   pretty_text_area.addFocusListener(new FocusAdapter {
+    override def focusGained(e: FocusEvent)
+    {
+      tip_border(3)
+    }
     override def focusLost(e: FocusEvent)
     {
       Pretty_Tooltip.hierarchy(tip) match {
         case Some((Nil, _)) => Pretty_Tooltip.dismiss(tip)
-        case _ =>
+        case _ => tip_border(1)
       }
     }
   })
@@ -184,8 +188,14 @@ class Pretty_Tooltip private(
 
   /* main content */
 
+  def tip_border(thickness: Int = 1)
+  {
+    tip.setBorder(new LineBorder(Color.BLACK, thickness))
+    tip.repaint()
+  }
+  tip_border(1)
+
   override def getFocusTraversalKeysEnabled = false
-  tip.setBorder(new LineBorder(Color.BLACK))
   tip.setBackground(rendering.tooltip_color)
   tip.add(controls.peer, BorderLayout.NORTH)
   tip.add(pretty_text_area)
