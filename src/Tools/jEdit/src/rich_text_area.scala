@@ -194,7 +194,7 @@ class Rich_Text_Area(
 
         if (e.getSource == text_area.getPainter) {
           Pretty_Tooltip.invoke(() =>
-            {
+            robust_body(()) {
               val rendering = get_rendering()
               val snapshot = rendering.snapshot
               if (!snapshot.is_outdated) {
@@ -217,7 +217,7 @@ class Rich_Text_Area(
                     }
                 }
               }
-            })
+          })
         }
       }
     }
