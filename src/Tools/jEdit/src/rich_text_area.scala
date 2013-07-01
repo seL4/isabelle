@@ -192,49 +192,36 @@ class Rich_Text_Area(
         }
         else active_reset()
 
-        if (Pretty_Tooltip.is_active) {
-          tooltip_event = Some(e)
-          tooltip_delay.invoke()
+        if (e.getSource == text_area.getPainter) {
+          Pretty_Tooltip.invoke(() =>
+            {
+              val rendering = get_rendering()
+              val snapshot = rendering.snapshot
+              if (!snapshot.is_outdated) {
+                val x = e.getX
+                val y = e.getY
+                JEdit_Lib.pixel_range(text_area, x, y) match {
+                  case None =>
+                  case Some(range) =>
+                    val result =
+                      if (control) rendering.tooltip(range)
+                      else rendering.tooltip_message(range)
+                    result match {
+                      case None =>
+                      case Some(tip) =>
+                        val painter = text_area.getPainter
+                        val screen_point = e.getLocationOnScreen
+                        screen_point.translate(0, painter.getFontMetrics.getHeight / 2)
+                        val results = rendering.command_results(range)
+                        Pretty_Tooltip(view, painter, rendering, screen_point, results, tip.info)
+                    }
+                }
+              }
+            })
         }
       }
     }
   }
-
-
-  /* tooltips */
-
-  private var tooltip_event: Option[MouseEvent] = None
-
-  private val tooltip_delay =
-    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
-      tooltip_event match {
-        case Some(e) if e.getSource == text_area.getPainter =>
-          val rendering = get_rendering()
-          val snapshot = rendering.snapshot
-          if (!snapshot.is_outdated) {
-            val x = e.getX
-            val y = e.getY
-            JEdit_Lib.pixel_range(text_area, x, y) match {
-              case None =>
-              case Some(range) =>
-                val result =
-                  if (control) rendering.tooltip(range)
-                  else rendering.tooltip_message(range)
-                result match {
-                  case None =>
-                  case Some(tip) =>
-                    val painter = text_area.getPainter
-                    val screen_point = e.getLocationOnScreen
-                    screen_point.translate(0, painter.getFontMetrics.getHeight / 2)
-                    val results = rendering.command_results(range)
-                    Pretty_Tooltip(view, painter, rendering, screen_point, results, tip.info)
-                }
-            }
-          }
-          tooltip_event = None
-        case _ =>
-      }
-    }
 
 
   /* text background */

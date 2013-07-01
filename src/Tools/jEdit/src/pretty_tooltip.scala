@@ -60,29 +60,46 @@ object Pretty_Tooltip
   }
 
 
-  /* dismiss -- with global delay */
+  /* pending event and active state */  // owned by Swing thread
 
-  // owned by Swing thread
+  private var pending: Option[() => Unit] = None
   private var active = true
-  def is_active: Boolean = Swing_Thread.required { active }
 
-  // owned by Swing thread
+  private val pending_delay =
+    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+      pending match {
+        case Some(body) => pending = None; body()
+        case None =>
+      }
+    }
+
+  def invoke(body: () => Unit): Unit =
+    Swing_Thread.required {
+      if (active) {
+        pending = Some(body)
+        pending_delay.invoke()
+      }
+    }
+
   private lazy val reactivate_delay =
     Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
       active = true
     }
 
-  private def dismissing()
-  {
-    Swing_Thread.require()
+  private def deactivate(): Unit =
+    Swing_Thread.required {
+      pending = None
+      active = false
+      pending_delay.revoke()
+      reactivate_delay.invoke()
+    }
 
-    active = false
-    reactivate_delay.invoke()
-  }
+
+  /* dismiss */
 
   def dismiss(tip: Pretty_Tooltip)
   {
-    dismissing()
+    deactivate()
     hierarchy(tip) match {
       case Some((old, _ :: rest)) =>
         old.foreach(_.hide_popup)
@@ -94,7 +111,7 @@ object Pretty_Tooltip
 
   def dismiss_all()
   {
-    dismissing()
+    deactivate()
     stack.foreach(_.hide_popup)
     stack = Nil
   }

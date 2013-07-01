@@ -65,10 +65,13 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
         new isabelle.graphview.Main_Panel(proper_graph) {
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
           {
-            val rendering = Rendering(snapshot, PIDE.options.value)
-            val screen_point = new Point(x, y)
-            SwingUtilities.convertPointToScreen(screen_point, parent)
-            Pretty_Tooltip(view, parent, rendering, screen_point, Command.Results.empty, body)
+            Pretty_Tooltip.invoke(() =>
+              {
+                val rendering = Rendering(snapshot, PIDE.options.value)
+                val screen_point = new Point(x, y)
+                SwingUtilities.convertPointToScreen(screen_point, parent)
+                Pretty_Tooltip(view, parent, rendering, screen_point, Command.Results.empty, body)
+              })
             null
           }
         }
