@@ -42,21 +42,27 @@ object Pretty_Tooltip
     rendering: Rendering,
     screen_point: Point,
     results: Command.Results,
-    body: XML.Body): Pretty_Tooltip =
+    info: Text.Info[XML.Body])
   {
     Swing_Thread.require()
 
-    val (old, rest) =
-      JEdit_Lib.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
-        case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
-        case None => (stack, Nil)
+    val same =
+      stack match {
+        case top :: _ => top.results == results && top.info == info
+        case Nil => false
       }
-    old.foreach(_.hide_popup)
-
-    val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, body)
-    stack = tip :: rest
-    tip.show_popup
-    tip
+    if (!same) {
+      val (old, rest) =
+        JEdit_Lib.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
+          case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
+          case None => (stack, Nil)
+        }
+      old.foreach(_.hide_popup)
+  
+      val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, info)
+      stack = tip :: rest
+      tip.show_popup
+    }
   }
 
 
@@ -145,8 +151,8 @@ class Pretty_Tooltip private(
   rendering: Rendering,
   parent: JComponent,
   screen_point: Point,
-  results: Command.Results,
-  body: XML.Body) extends JPanel(new BorderLayout)
+  private val results: Command.Results,
+  private val info: Text.Info[XML.Body]) extends JPanel(new BorderLayout)
 {
   tip =>
 
@@ -168,7 +174,7 @@ class Pretty_Tooltip private(
     listenTo(mouse.clicks)
     reactions += {
       case _: MouseClicked =>
-        Info_Dockable(view, rendering.snapshot, results, body)
+        Info_Dockable(view, rendering.snapshot, results, info.info)
         Pretty_Tooltip.dismiss(tip)
     }
   }
@@ -230,7 +236,7 @@ class Pretty_Tooltip private(
       val metric = JEdit_Lib.pretty_metric(painter)
       val margin = rendering.tooltip_margin * metric.average
 
-      val formatted = Pretty.formatted(body, margin, metric)
+      val formatted = Pretty.formatted(info.info, margin, metric)
       val lines =
         XML.traverse_text(formatted)(0)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
@@ -265,7 +271,7 @@ class Pretty_Tooltip private(
   {
     popup.show
     pretty_text_area.requestFocus
-    pretty_text_area.update(rendering.snapshot, results, body)
+    pretty_text_area.update(rendering.snapshot, results, info.info)
   }
 
   private def hide_popup: Unit = popup.hide

@@ -70,7 +70,8 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
                 val rendering = Rendering(snapshot, PIDE.options.value)
                 val screen_point = new Point(x, y)
                 SwingUtilities.convertPointToScreen(screen_point, parent)
-                Pretty_Tooltip(view, parent, rendering, screen_point, Command.Results.empty, body)
+                val info = Text.Info(Text.Range(~1), body)
+                Pretty_Tooltip(view, parent, rendering, screen_point, Command.Results.empty, info)
               })
             null
           }
