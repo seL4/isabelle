@@ -30,6 +30,7 @@ sig
   val peek_futures: serial -> unit future list
   val reset_futures: unit -> Future.group list
   val shutdown_futures: unit -> unit
+  val skip_proofs_enabled: unit -> bool
   val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
   val future_enabled_nested: int -> bool
@@ -197,6 +198,13 @@ end;
 
 val skip_proofs = Unsynchronized.ref false;
 
+fun skip_proofs_enabled () =
+  let val skip = ! skip_proofs in
+    if Proofterm.proofs_enabled () andalso skip then
+      (warning "Proof terms enabled -- cannot skip proofs"; false)
+    else skip
+  end;
+
 val parallel_proofs = Unsynchronized.ref 1;
 
 fun future_enabled_level n =
@@ -277,7 +285,7 @@ fun prove_common immediate ctxt xs asms props tac =
 
     val schematic = exists is_schematic props;
     val future = future_enabled ();
-    val skip = not immediate andalso not schematic andalso future andalso ! skip_proofs;
+    val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
     val pos = Position.thread_data ();
     fun err msg = cat_error msg

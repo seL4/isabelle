@@ -517,7 +517,7 @@ fun begin_proof init = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val (finish, prf) = init int gthy;
-      val skip = ! Goal.skip_proofs;
+      val skip = Goal.skip_proofs_enabled ();
       val (is_goal, no_skip) =
         (true, Proof.schematic_goal prf) handle ERROR _ => (false, true);
       val _ =
