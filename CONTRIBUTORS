@@ -24,11 +24,11 @@ Contributions to this Isabelle version
 * March 2013: Florian Haftmann, TUM
   Algebraic locale hierarchy for orderings and (semi)lattices.
 
-* Feb. 2013: Florian Haftmann, TUM
-  Reworking and consolidation of code generation for target
-  language numerals.
+* February 2013: Florian Haftmann, TUM
+  Reworking and consolidation of code generation for target language
+  numerals.
 
-* Feb. 2013: Florian Haftmann, TUM
+* February 2013: Florian Haftmann, TUM
   Sieve of Eratosthenes.
 
 
