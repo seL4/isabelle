@@ -1,7 +1,9 @@
 ;!@Install@!UTF-8!
 GUIFlags="64"
 InstallPath="%UserDesktop%"
-ExtractTitle="Unpacking %%T\Isabelle2013 ..."
+BeginPrompt="Unpack Isabelle2013?"
+ExtractPathText="Target directory"
+ExtractTitle="Unpacking Isabelle2013 ..."
 Shortcut="Du,{%%T\Isabelle2013\Isabelle2013.exe},{},{},{},{Isabelle2013},{%%T\Isabelle2013}"
 RunProgram="\"%%T\Isabelle2013\contrib\cygwin\isabelle\init.bat\""
 ;!@InstallEnd@!
