@@ -98,14 +98,29 @@ do
 done
 
 
+# purge other platforms
+
+function purge_contrib
+{
+  (
+    cd "$ISABELLE_TARGET"
+    for DIR in $(eval find contrib "$@" | sort)
+    do
+      echo "removing $DIR"
+      rm -rf "$DIR"
+    done
+  )
+}
+
+
 # platform-specific patches
 
 case "$PLATFORM_FAMILY" in
   linux)
-    OTHER_PLATFORMS='-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    purge_contrib '-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
     ;;
   macos)
-    OTHER_PLATFORMS='-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
@@ -113,7 +128,7 @@ case "$PLATFORM_FAMILY" in
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
-    OTHER_PLATFORMS='-name "x86*-linux" -o -name "x86*-darwin"'
+    purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
@@ -123,11 +138,28 @@ case "$PLATFORM_FAMILY" in
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Latex-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
 
-    for NAME in init.bat postinstall rebaseall
-    do
-      cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" \
-        "$ISABELLE_TARGET/contrib/cygwin/isabelle/."
-    done
+    (
+      cd "$ISABELLE_TARGET"
+
+      for NAME in init.bat postinstall rebaseall
+      do
+        cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" \
+          "contrib/cygwin/isabelle/."
+      done
+
+      find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 | \
+        sort > "contrib/cygwin/isabelle/executables"
+
+      cat >> "contrib/cygwin/isabelle/postinstall" <<EOF
+
+find -type d -exec chmod 755 '{}' +
+find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
+find -type f -not -name '*.exe' -not -name '*.dll' -exec chmod 644 '{}' +
+xargs < contrib/cygwin/isabelle/executables chmod 755
+
+EOF
+
+    )
 
     perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
       "$ISABELLE_TARGET/contrib/cygwin/etc/postinstall/autorebase.bat.done"
@@ -154,18 +186,6 @@ case "$PLATFORM_FAMILY" in
   *)
     ;;
 esac
-
-
-# purge other platforms
-
-(
-  cd "$ISABELLE_TARGET"
-  for DIR in $(eval find contrib $OTHER_PLATFORMS | sort)
-  do
-    echo "removing $DIR"
-    rm -rf "$DIR"
-  done
-)
 
 
 # archive
