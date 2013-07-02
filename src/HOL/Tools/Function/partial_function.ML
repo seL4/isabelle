@@ -180,9 +180,10 @@ fun mk_curried_induct args ctxt ccurry cuncurry rule =
     val inst_rule =
       cterm_instantiate' [SOME cuncurry, NONE, SOME ccurry] rule
 
-    val P_rangeT =
+    val (P_var, x_var) =
        Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
-      |> Term.head_of |> Term.dest_Var |> snd |> range_type
+      |> strip_comb |> apsnd hd
+    val P_rangeT = range_type (snd (Term.dest_Var P_var))
     val PT = map (snd o dest_Free) args ---> P_rangeT
     val x_inst = cert (foldl1 HOLogic.mk_prod args)
     val P_inst = cert (uncurry_n (length args) (Free (P, PT)))
@@ -193,7 +194,7 @@ fun mk_curried_induct args ctxt ccurry cuncurry rule =
          THEN Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3
          THEN CONVERSION (split_params_conv ctxt
            then_conv (Conv.forall_conv (K split_paired_all_conv) ctxt)) 3)
-      |> Drule.instantiate' [] [NONE, NONE, SOME P_inst, SOME x_inst]
+      |> Thm.instantiate ([], [(cert P_var, P_inst), (cert x_var, x_inst)]) 
       |> Simplifier.full_simplify (put_simpset split_conv_ss ctxt)
       |> singleton (Variable.export ctxt' ctxt)
   in
