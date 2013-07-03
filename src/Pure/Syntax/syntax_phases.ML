@@ -318,7 +318,8 @@ fun parse_asts ctxt raw root (syms, pos) =
           (("Ambiguous input" ^ Position.here (Position.reset_range pos) ^
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))];
+            map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)
+              (take limit pts))];
 
   in (ambig_msgs, map (parsetree_to_ast ctxt ast_tr) pts) end;
 
@@ -389,7 +390,7 @@ fun parse_term is_prop ctxt =
           val checked = map snd (proper_results results');
           val checked_len = length checked;
 
-          val show_term = Syntax.string_of_term (Config.put Printer.show_brackets true ctxt);
+          val pretty_term = Syntax.pretty_term (Config.put Printer.show_brackets true ctxt);
         in
           if checked_len = 0 then
             report_result ctxt pos []
@@ -408,7 +409,8 @@ fun parse_term is_prop ctxt =
                 (("Ambiguous input\n" ^ string_of_int checked_len ^ " terms are type correct" ^
                   (if checked_len <= limit then ""
                    else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-                  map show_term (take limit checked))))))]
+                  map (Pretty.string_of o Pretty.item o single o pretty_term)
+                    (take limit checked))))))]
         end handle ERROR msg => parse_failed ctxt pos msg kind)
   end;
 

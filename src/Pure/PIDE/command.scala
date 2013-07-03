@@ -217,7 +217,7 @@ final class Command private(
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
 
 
-  /* source text */
+  /* source */
 
   def length: Int = source.length
   val range: Text.Range = Text.Range(0, length)
@@ -227,7 +227,7 @@ final class Command private(
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
-  lazy val symbol_index = new Symbol.Index(source)
+  lazy val symbol_index = Symbol.Index(source)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
   def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
 

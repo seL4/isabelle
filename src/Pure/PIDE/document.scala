@@ -278,9 +278,14 @@ object Document
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range
     def eq_content(other: Snapshot): Boolean
-    def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
+    def cumulate_markup[A](
+      range: Text.Range,
+      info: A,
+      elements: Option[Set[String]],
       result: Command.State => PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
-    def select_markup[A](range: Text.Range, elements: Option[Set[String]],
+    def select_markup[A](
+      range: Text.Range,
+      elements: Option[Set[String]],
       result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
