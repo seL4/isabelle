@@ -14,6 +14,7 @@ sig
   val memo_value: 'a -> 'a memo
   val memo_eval: 'a memo -> 'a
   val memo_result: 'a memo -> 'a
+  val read: span -> Toplevel.transition
   val eval: span -> Toplevel.transition ->
     Toplevel.state * {malformed: bool} -> {failed: bool} * (Toplevel.state * {malformed: bool})
   val no_print: unit lazy
@@ -62,27 +63,33 @@ fun memo_result (Memo v) =
 end;
 
 
-(* side-comments *)
+(* read *)
 
-local
+fun read span =
+  let
+    val outer_syntax = #2 (Outer_Syntax.get_syntax ());
+    val command_reports = Outer_Syntax.command_reports outer_syntax;
 
-fun cmts (t1 :: t2 :: toks) =
-      if Token.keyword_with (fn s => s = "--") t1 then t2 :: cmts toks
-      else cmts (t2 :: toks)
-  | cmts _ = [];
+    val proper_range = Position.set_range (proper_range span);
+    val pos =
+      (case find_first Token.is_command span of
+        SOME tok => Token.position_of tok
+      | NONE => proper_range);
 
-val span_cmts = filter Token.is_proper #> cmts;
-
-in
-
-fun check_cmts span tr st' =
-  Toplevel.setmp_thread_position tr
-    (fn () =>
-      span_cmts span |> maps (fn cmt =>
-        (Thy_Output.check_text (Token.source_position_of cmt) st'; [])
-          handle exn => ML_Compiler.exn_messages_ids exn)) ();
-
-end;
+    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens span;
+    val _ = Position.reports_text (token_reports @ maps command_reports span);
+  in
+    if is_malformed then Toplevel.malformed pos "Malformed command syntax"
+    else
+      (case Outer_Syntax.read_spans outer_syntax span of
+        [tr] =>
+          if Keyword.is_control (Toplevel.name_of tr) then
+            Toplevel.malformed pos "Illegal control command"
+          else tr
+      | [] => Toplevel.ignored (Position.set_range (range span))
+      | _ => Toplevel.malformed proper_range "Exactly one command expected")
+      handle ERROR msg => Toplevel.malformed proper_range msg
+  end;
 
 
 (* eval *)
@@ -94,6 +101,13 @@ fun run int tr st =
     (Goal.fork_params {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
+
+fun check_cmts span tr st' =
+  Toplevel.setmp_thread_position tr
+    (fn () =>
+      Outer_Syntax.side_comments span |> maps (fn cmt =>
+        (Thy_Output.check_text (Token.source_position_of cmt) st'; [])
+          handle exn => ML_Compiler.exn_messages_ids exn)) ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of

@@ -34,7 +34,9 @@ sig
   val parse: Position.T -> string -> Toplevel.transition list
   type isar
   val isar: TextIO.instream -> bool -> isar
-  val read_span: outer_syntax -> Token.T list -> Toplevel.transition
+  val side_comments: Token.T list -> Token.T list
+  val command_reports: outer_syntax -> Token.T -> (Position.report * string) list
+  val read_spans: outer_syntax -> Token.T list -> Toplevel.transition list
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -276,41 +278,31 @@ fun isar in_stream term : isar =
   |> toplevel_source term (SOME true) lookup_commands_dynamic;
 
 
-(* read command span -- fail-safe *)
+(* side-comments *)
 
-fun read_span outer_syntax toks =
-  let
-    val commands = lookup_commands outer_syntax;
+fun cmts (t1 :: t2 :: toks) =
+      if Token.keyword_with (fn s => s = "--") t1 then t2 :: cmts toks
+      else cmts (t2 :: toks)
+  | cmts _ = [];
 
-    val proper_range = Position.set_range (Command.proper_range toks);
-    val pos =
-      (case find_first Token.is_command toks of
-        SOME tok => Token.position_of tok
-      | NONE => proper_range);
+val side_comments = filter Token.is_proper #> cmts;
 
-    fun command_reports tok =
-      if Token.is_command tok then
-        let val name = Token.content_of tok in
-          (case commands name of
-            NONE => []
-          | SOME cmd => [((Token.position_of tok, command_markup false (name, cmd)), "")])
-        end
-      else [];
 
-    val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens toks;
-    val _ = Position.reports_text (token_reports @ maps command_reports toks);
-  in
-    if is_malformed then Toplevel.malformed pos "Malformed command syntax"
-    else
-      (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
-        [tr] =>
-          if Keyword.is_control (Toplevel.name_of tr) then
-            Toplevel.malformed pos "Illegal control command"
-          else tr
-      | [] => Toplevel.ignored (Position.set_range (Command.range toks))
-      | _ => Toplevel.malformed proper_range "Exactly one command expected")
-      handle ERROR msg => Toplevel.malformed proper_range msg
-  end;
+(* read commands *)
+
+fun command_reports outer_syntax tok =
+  if Token.is_command tok then
+    let val name = Token.content_of tok in
+      (case lookup_commands outer_syntax name of
+        NONE => []
+      | SOME cmd => [((Token.position_of tok, command_markup false (name, cmd)), "")])
+    end
+  else [];
+
+fun read_spans outer_syntax toks =
+  Source.of_list toks
+  |> toplevel_source false NONE (K (lookup_commands outer_syntax))
+  |> Source.exhaust;
 
 end;
 

@@ -450,7 +450,7 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
       val read =
         Position.setmp_thread_data (Position.id_only exec_id'_string)
           (fn () =>
-            Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span
+            Command.read span
             |> modify_init
             |> Toplevel.put_id exec_id'_string);
       val exec' =
