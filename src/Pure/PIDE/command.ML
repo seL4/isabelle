@@ -165,14 +165,21 @@ local
 val print_functions =
   Synchronized.var "Command.print_functions" ([]: (string * (int * print_function)) list);
 
+fun output_error tr exn =
+  List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
+
+fun print_error tr f x =
+  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) f x
+    handle exn => output_error tr exn;
+
 in
 
 fun print st tr st' =
   rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, f)) =>
-    (case f {old_state = st, tr = tr, state = st'} of
-      SOME pr =>
-        SOME {name = name, pri = pri, pr = (Lazy.lazy o Toplevel.setmp_thread_position tr) pr}
-    | NONE => NONE));
+    (case Exn.capture (Runtime.controlled_execution f) {old_state = st, tr = tr, state = st'} of
+      Exn.Res NONE => NONE
+    | Exn.Res (SOME pr) => SOME {name = name, pri = pri, pr = (Lazy.lazy o print_error tr) pr}
+    | Exn.Exn exn => SOME {name = name, pri = pri, pr = Lazy.lazy (fn () => output_error tr exn)}));
 
 fun print_function name pri f =
   Synchronized.change print_functions (fn funs =>
