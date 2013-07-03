@@ -128,7 +128,7 @@ by transfer (auto simp add: less_eq_st_rep_def)
 lemma mono_fun: "S1 \<le> S2 \<Longrightarrow> fun S1 x \<le> fun S2 x"
 by transfer (simp add: less_eq_st_rep_iff)
 
-locale Gamma = Val_abs where \<gamma>=\<gamma>
+locale Gamma_semilattice = Val_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 

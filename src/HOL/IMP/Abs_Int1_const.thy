@@ -53,7 +53,7 @@ qed
 end
 
 
-interpretation Val_abs
+interpretation Val_semilattice
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case

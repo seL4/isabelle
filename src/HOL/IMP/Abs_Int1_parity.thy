@@ -102,7 +102,7 @@ fun plus_parity :: "parity \<Rightarrow> parity \<Rightarrow> parity" where
 text{* First we instantiate the abstract value interface and prove that the
 functions on type @{typ parity} have all the necessary properties: *}
 
-interpretation Val_abs
+interpretation Val_semilattice
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof txt{* of the locale axioms *}
   fix a b :: parity

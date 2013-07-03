@@ -28,7 +28,7 @@ subsection "Backward Analysis of Expressions"
 
 subclass (in bounded_lattice) semilattice_sup_top ..
 
-locale Val_abs1_gamma = Gamma where \<gamma> = \<gamma>
+locale Val_lattice_gamma = Gamma_semilattice where \<gamma> = \<gamma>
   for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_inf:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
@@ -45,7 +45,7 @@ by(rule equalityI[OF _ inter_gamma_subset_gamma_inf])
 end
 
 
-locale Val_abs1 = Val_abs1_gamma where \<gamma> = \<gamma>
+locale Val_inv = Val_lattice_gamma where \<gamma> = \<gamma>
    for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and inv_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
@@ -57,7 +57,7 @@ and inv_less': "inv_less' (i1<i2) a1 a2 = (a\<^isub>1',a\<^isub>2') \<Longrighta
   i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> a\<^isub>1' \<and> i2 : \<gamma> a\<^isub>2'"
 
 
-locale Abs_Int1 = Val_abs1 where \<gamma> = \<gamma>
+locale Abs_Int_inv = Val_inv where \<gamma> = \<gamma>
   for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set"
 begin
 
@@ -184,7 +184,7 @@ end
 
 subsubsection "Monotonicity"
 
-locale Abs_Int1_mono = Abs_Int1 +
+locale Abs_Int_inv_mono = Abs_Int_inv +
 assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
 and mono_inv_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> r \<le> r' \<Longrightarrow>
   inv_plus' r a1 a2 \<le> inv_plus' r' b1 b2"

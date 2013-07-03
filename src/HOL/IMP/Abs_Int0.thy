@@ -148,7 +148,7 @@ fun \<gamma>_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Righ
 
 text{* The interface for abstract values: *}
 
-locale Val_abs =
+locale Val_semilattice =
 fixes \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
   assumes mono_gamma: "a \<le> b \<Longrightarrow> \<gamma> a \<le> \<gamma> b"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
@@ -163,7 +163,7 @@ text{* The for-clause (here and elsewhere) only serves the purpose of fixing
 the name of the type parameter @{typ 'av} which would otherwise be renamed to
 @{typ 'a}. *}
 
-locale Abs_Int_fun = Val_abs where \<gamma>=\<gamma>
+locale Abs_Int_fun = Val_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 

@@ -8,7 +8,7 @@ subsection "Computable Abstract Interpretation"
 
 text{* Abstract interpretation over type @{text st} instead of functions. *}
 
-context Gamma
+context Gamma_semilattice
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
@@ -32,7 +32,7 @@ by(simp add: \<gamma>_st_def)
 end
 
 
-locale Abs_Int = Gamma where \<gamma>=\<gamma>
+locale Abs_Int = Gamma_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 

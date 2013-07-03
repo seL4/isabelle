@@ -13,7 +13,7 @@ fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)
 class narrow =
 fixes narrow :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<triangle>" 65)
 
-class WN = widen + narrow + order +
+class wn = widen + narrow + order +
 assumes widen1: "x \<le> x \<nabla> y"
 assumes widen2: "y \<le> x \<nabla> y"
 assumes narrow1: "y \<le> x \<Longrightarrow> y \<le> x \<triangle> y"
@@ -25,10 +25,10 @@ by (metis eq_iff narrow1 narrow2)
 
 end
 
-lemma top_widen_top[simp]: "\<top> \<nabla> \<top> = (\<top>::_::{WN,top})"
+lemma top_widen_top[simp]: "\<top> \<nabla> \<top> = (\<top>::_::{wn,top})"
 by (metis eq_iff top_greatest widen2)
 
-instantiation ivl :: WN
+instantiation ivl :: wn
 begin
 
 definition "widen_rep p1 p2 =
@@ -53,7 +53,7 @@ qed (transfer, auto simp: widen_rep_def narrow_rep_def le_iff_subset \<gamma>_re
 
 end
 
-instantiation st :: ("{top,WN}")WN
+instantiation st :: ("{top,wn}")wn
 begin
 
 lift_definition widen_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<nabla>)"
@@ -80,7 +80,7 @@ qed
 end
 
 
-instantiation option :: (WN)WN
+instantiation option :: (wn)wn
 begin
 
 fun widen_option where
@@ -114,27 +114,7 @@ definition map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a
 where
 "map2_acom f C1 C2 = annotate (\<lambda>p. f (anno C1 p) (anno C2 p)) (strip C1)"
 
-(*
-text_raw{*\snip{maptwoacomdef}{2}{2}{% *}
-fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \<Rightarrow> 'a acom \<Rightarrow> 'a acom"
-where
-"map2_acom f (SKIP {a\<^isub>1}) (SKIP {a\<^isub>2}) = (SKIP {f a\<^isub>1 a\<^isub>2})" |
-"map2_acom f (x ::= e {a\<^isub>1}) (x' ::= e' {a\<^isub>2}) = (x ::= e {f a\<^isub>1 a\<^isub>2})" |
-"map2_acom f (C\<^isub>1;C\<^isub>2) (D\<^isub>1;D\<^isub>2)
-  = (map2_acom f C\<^isub>1 D\<^isub>1; map2_acom f C\<^isub>2 D\<^isub>2)" |
-"map2_acom f (IF b THEN {p\<^isub>1} C\<^isub>1 ELSE {p\<^isub>2} C\<^isub>2 {a\<^isub>1})
-  (IF b' THEN {q\<^isub>1} D\<^isub>1 ELSE {q\<^isub>2} D\<^isub>2 {a\<^isub>2})
-  = (IF b THEN {f p\<^isub>1 q\<^isub>1} map2_acom f C\<^isub>1 D\<^isub>1
-     ELSE {f p\<^isub>2 q\<^isub>2} map2_acom f C\<^isub>2 D\<^isub>2 {f a\<^isub>1 a\<^isub>2})" |
-"map2_acom f ({a\<^isub>1} WHILE b DO {p} C {a\<^isub>2})
-  ({a\<^isub>3} WHILE b' DO {q} D {a\<^isub>4})
-  = ({f a\<^isub>1 a\<^isub>3} WHILE b DO {f p q} map2_acom f C D {f a\<^isub>2 a\<^isub>4})"
-text_raw{*}%endsnip*}
-*)(*
-lemma annos_map2_acom[simp]: "strip C2 = strip C1 \<Longrightarrow>
-  annos(map2_acom f C1 C2) = map (%(x,y).f x y) (zip (annos C1) (annos C2))"
-by(induction f C1 C2 rule: map2_acom.induct)(simp_all add: size_annos_same2)
-*)
+
 instantiation acom :: (widen)widen
 begin
 definition "widen_acom = map2_acom (op \<nabla>)"
@@ -160,10 +140,10 @@ lemma strip_narrow_acom[simp]:
   "strip C1 = strip C2 \<Longrightarrow> strip(C1 \<triangle> C2) = strip C1"
 by(simp add: narrow_acom_def)
 
-lemma narrow1_acom: "C2 \<le> C1 \<Longrightarrow> C2 \<le> C1 \<triangle> (C2::'a::WN acom)"
+lemma narrow1_acom: "C2 \<le> C1 \<Longrightarrow> C2 \<le> C1 \<triangle> (C2::'a::wn acom)"
 by(simp add: narrow_acom_def narrow1 map2_acom_def less_eq_acom_def size_annos)
 
-lemma narrow2_acom: "C2 \<le> C1 \<Longrightarrow> C1 \<triangle> (C2::'a::WN acom) \<le> C1"
+lemma narrow2_acom: "C2 \<le> C1 \<Longrightarrow> C1 \<triangle> (C2::'a::wn acom) \<le> C1"
 by(simp add: narrow_acom_def narrow2 map2_acom_def less_eq_acom_def size_annos)
 
 
@@ -205,7 +185,7 @@ proof-
 qed
 
 lemma iter_narrow_pfp:
-assumes mono: "!!x1 x2::_::WN acom. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<le> x2 \<Longrightarrow> f x1 \<le> f x2"
+assumes mono: "!!x1 x2::_::wn acom. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<le> x2 \<Longrightarrow> f x1 \<le> f x2"
 and Pinv: "!!x. P x \<Longrightarrow> P(f x)" "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)"
 and "P p0" and "f p0 \<le> p0" and "iter_narrow f p0 = Some p"
 shows "P p \<and> f p \<le> p"
@@ -232,7 +212,7 @@ proof-
 qed
 
 lemma pfp_wn_pfp:
-assumes mono: "!!x1 x2::_::WN acom. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<le> x2 \<Longrightarrow> f x1 \<le> f x2"
+assumes mono: "!!x1 x2::_::wn acom. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<le> x2 \<Longrightarrow> f x1 \<le> f x2"
 and Pinv: "P x"  "!!x. P x \<Longrightarrow> P(f x)"
   "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<nabla> x2)"
   "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)"
@@ -253,8 +233,8 @@ by(auto simp add: pfp_wn_def iter_narrow_def split: option.splits)
   (metis (mono_tags) strip_iter_widen strip_narrow_acom strip_while)
 
 
-locale Abs_Int2 = Abs_Int1_mono where \<gamma>=\<gamma>
-  for \<gamma> :: "'av::{WN,bounded_lattice} \<Rightarrow> val set"
+locale Abs_Int_wn = Abs_Int_inv_mono where \<gamma>=\<gamma>
+  for \<gamma> :: "'av::{wn,bounded_lattice} \<Rightarrow> val set"
 begin
 
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
@@ -280,7 +260,7 @@ qed
 
 end
 
-interpretation Abs_Int2
+interpretation Abs_Int_wn
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
@@ -354,8 +334,8 @@ iterate), but during widening there is no such invariant, there we only have
 that not yet @{prop"y \<le> x"}. This complicates the termination proof for
 widening. *}
 
-locale Measure_WN = Measure1 where m=m
-  for m :: "'av::{top,WN} \<Rightarrow> nat" +
+locale Measure_wn = Measure1 where m=m
+  for m :: "'av::{top,wn} \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
 assumes m_anti_mono: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<le> x \<Longrightarrow> m(x \<nabla> y) < m x"
@@ -380,7 +360,7 @@ lemma m_s_widen_rep: assumes "finite X" "S1 = S2 on -X" "\<not> S2 x \<le> S1 x"
   shows "(\<Sum>x\<in>X. m (S1 x \<nabla> S2 x)) < (\<Sum>x\<in>X. m (S1 x))"
 proof-
   have 1: "\<forall>x\<in>X. m(S1 x) \<ge> m(S1 x \<nabla> S2 x)"
-    by (metis m_anti_mono WN_class.widen1)
+    by (metis m_anti_mono wn_class.widen1)
   have "x \<in> X" using assms(2,3)
     by(auto simp add: Ball_def)
   hence 2: "\<exists>x\<in>X. m(S1 x) > m(S1 x \<nabla> S2 x)"
@@ -488,7 +468,7 @@ end
 
 
 lemma iter_widen_termination:
-fixes m :: "'a::WN acom \<Rightarrow> nat"
+fixes m :: "'a::wn acom \<Rightarrow> nat"
 assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<nabla> C2)"
 and m_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> ~ C2 \<le> C1 \<Longrightarrow> m(C1 \<nabla> C2) < m C1"
@@ -502,7 +482,7 @@ next
 qed
 
 lemma iter_narrow_termination:
-fixes n :: "'a::WN acom \<Rightarrow> nat"
+fixes n :: "'a::wn acom \<Rightarrow> nat"
 assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<triangle> C2)"
 and mono: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> f C1 \<le> f C2"
@@ -521,8 +501,8 @@ next
     by blast
 qed
 
-locale Abs_Int2_measure = Abs_Int2 where \<gamma>=\<gamma> + Measure_WN where m=m
-  for \<gamma> :: "'av::{WN,bounded_lattice} \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
+locale Abs_Int_wn_measure = Abs_Int_wn where \<gamma>=\<gamma> + Measure_wn where m=m
+  for \<gamma> :: "'av::{wn,bounded_lattice} \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 
 
 subsubsection "Termination: Intervals"
@@ -565,7 +545,7 @@ by(auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamm
          split: prod.splits if_splits extended.split)
 
 
-interpretation Abs_Int2_measure
+interpretation Abs_Int_wn_measure
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
@@ -614,7 +594,7 @@ subsubsection "Counterexamples"
 text{* Widening is increasing by assumption, but @{prop"x \<le> f x"} is not an invariant of widening.
 It can already be lost after the first step: *}
 
-lemma assumes "!!x y::'a::WN. x \<le> y \<Longrightarrow> f x \<le> f y"
+lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" shows "x \<nabla> f x \<le> f(x \<nabla> f x)"
 nitpick[card = 3, expect = genuine, show_consts]
 (*
@@ -630,7 +610,7 @@ oops
 text{* Widening terminates but may converge more slowly than Kleene iteration.
 In the following model, Kleene iteration goes from 0 to the least pfp
 in one step but widening takes 2 steps to reach a strictly larger pfp: *}
-lemma assumes "!!x y::'a::WN. x \<le> y \<Longrightarrow> f x \<le> f y"
+lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" and "f(f x) \<le> f x"
 shows "f(x \<nabla> f x) \<le> x \<nabla> f x"
 nitpick[card = 4, expect = genuine, show_consts]
