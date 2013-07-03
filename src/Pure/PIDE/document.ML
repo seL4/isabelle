@@ -437,13 +437,12 @@ fun last_common state last_visible node0 node =
     else (common, flags)
   end;
 
-fun illegal_init _ = error "Illegal theory header after end of theory";
-
 fun new_exec state proper_init command_id' (execs, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
       val (name, span) = the_command state command_id' ||> Lazy.force;
+      fun illegal_init _ = error "Illegal theory header after end of theory";
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
@@ -488,7 +487,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
               let
                 val imports = map (apsnd Future.join) deps;
                 val updated_imports = exists (is_some o #3 o #1 o #2) imports;
-                val required = is_required name;
+                val node_required = is_required name;
               in
                 if updated_imports orelse AList.defined (op =) edits name orelse
                   not (stable_entries node) orelse not (finished_theory node)
@@ -501,17 +500,17 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                     val last_visible = visible_last node;
-                    val (common, (visible, initial)) =
+                    val (common, (still_visible, initial)) =
                       if updated_imports then (NONE, (true, true))
                       else last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
                     val (new_execs, (command_id', (_, exec')), _) =
                       ([], common_command_exec, if initial then SOME init else NONE) |>
-                      (visible orelse required) ?
+                      (still_visible orelse node_required) ?
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
-                            if not required andalso prev = last_visible then NONE
+                            if not node_required andalso prev = last_visible then NONE
                             else new_exec state proper_init id res) node;
 
                     val no_execs =
