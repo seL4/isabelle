@@ -472,7 +472,6 @@ in
 fun update (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
-    val _ = Time.now ();  (* FIXME odd workaround for polyml-5.4.0/x86_64 *)
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
