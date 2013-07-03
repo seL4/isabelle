@@ -17,8 +17,9 @@ sig
   val read: span -> Toplevel.transition
   val eval: span -> Toplevel.transition ->
     Toplevel.state * {malformed: bool} -> {failed: bool} * (Toplevel.state * {malformed: bool})
-  val no_print: unit lazy
-  val print: Toplevel.transition -> Toplevel.state -> unit lazy
+  val print: Toplevel.transition -> Toplevel.state -> (string * unit lazy) list
+  val print_function: string ->
+    ({tr: Toplevel.transition, state: Toplevel.state} -> (unit -> unit) option) -> unit
 end;
 
 structure Command: COMMAND =
@@ -150,21 +151,38 @@ end;
 
 (* print *)
 
-val no_print = Lazy.value ();
+local
+
+type print_function =
+  {tr: Toplevel.transition, state: Toplevel.state} -> (unit -> unit) option;
+
+val print_functions =
+  Synchronized.var "Command.print_functions" ([]: (string * print_function) list);
+
+in
 
 fun print tr st' =
+  rev (Synchronized.value print_functions) |> map_filter (fn (name, f) =>
+    (case f {tr = tr, state = st'} of
+      SOME pr => SOME (name, (Lazy.lazy o Toplevel.setmp_thread_position tr) pr)
+    | NONE => NONE));
+
+fun print_function name f =
+  Synchronized.change print_functions (fn funs =>
+   (if not (AList.defined (op =) funs name) then ()
+    else warning ("Redefining command print function: " ^ quote name);
+    AList.update (op =) (name, f) funs));
+
+end;
+
+val _ = print_function "print_state" (fn {tr, state} =>
   let
     val is_init = Toplevel.is_init tr;
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
     val do_print =
       not is_init andalso
-        (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-  in
-    if do_print then
-      (Lazy.lazy o Toplevel.setmp_thread_position tr)
-        (fn () => Toplevel.print_state false st')
-    else no_print
-  end;
+        (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof state));
+  in if do_print then SOME (fn () => Toplevel.print_state false state) else NONE end);
 
 end;
 

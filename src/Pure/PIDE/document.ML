@@ -63,8 +63,9 @@ type node_header = string * Thy_Header.header * string list;
 type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type exec = ((Toplevel.state * {malformed: bool}) * unit lazy) Command.memo;  (*eval/print process*)
-val no_exec = Command.memo_value ((Toplevel.toplevel, {malformed = false}), Lazy.value ());
+type print = string * unit lazy;
+type exec = ((Toplevel.state * {malformed: bool}) * print list) Command.memo; (*eval/print process*)
+val no_exec = Command.memo_value ((Toplevel.toplevel, {malformed = false}), []);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
@@ -327,8 +328,10 @@ fun start_execution state =
       let
         val (_, print) = Command.memo_eval exec;
         val _ =
-          if visible_command node command_id
-          then ignore (Lazy.future Future.default_params print)
+          if visible_command node command_id then
+            print |> List.app (fn (a, pr) =>
+              ignore
+                (Lazy.future {name = a, group = NONE, deps = [], pri = 0, interrupts = true} pr))
           else ();
       in () end;
 
@@ -459,7 +462,7 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
             val (st, _) = Command.memo_result (snd (snd command_exec));
             val tr = read ();
             val ({failed}, (st', malformed')) = Command.eval span tr st;
-            val print = if failed then Command.no_print else Command.print tr st';
+            val print = if failed then [] else Command.print tr st';
           in ((st', malformed'), print) end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
