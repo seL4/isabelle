@@ -459,9 +459,9 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
       val exec' =
         Command.memo (fn () =>
           let
-            val (st, _) = Command.memo_result (snd (snd command_exec));
+            val (st_malformed, _) = Command.memo_result (snd (snd command_exec));
             val tr = read ();
-            val ({failed}, (st', malformed')) = Command.eval span tr st;
+            val ({failed}, (st', malformed')) = Command.eval span tr st_malformed;
             val print = if failed then [] else Command.print tr st';
           in ((st', malformed'), print) end);
       val command_exec' = (command_id', (exec_id', exec'));
