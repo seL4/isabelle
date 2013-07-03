@@ -63,8 +63,8 @@ type node_header = string * Thy_Header.header * string list;
 type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type print = string * unit lazy;
-type exec = ((Toplevel.state * {malformed: bool}) * print list) Command.memo; (*eval/print process*)
+type exec = ((Toplevel.state * {malformed: bool}) * Command.print list) Command.memo;
+  (*eval/print process*)
 val no_exec = Command.memo_value ((Toplevel.toplevel, {malformed = false}), []);
 
 abstype node = Node of
@@ -324,16 +324,12 @@ val terminate_execution = execution_of #> (fn (_, group, _) => Future.terminate 
 
 fun start_execution state =
   let
-    fun run node command_id exec =
-      let
-        val (_, print) = Command.memo_eval exec;
-        val _ =
-          if visible_command node command_id then
-            print |> List.app (fn (a, pr) =>
-              ignore
-                (Lazy.future {name = a, group = NONE, deps = [], pri = 0, interrupts = true} pr))
-          else ();
-      in () end;
+    fun execute exec =
+      Command.memo_eval exec
+      |> (fn (_, print) =>
+        print |> List.app (fn {name, pri, pr} =>
+          Lazy.future {name = name, group = NONE, deps = [], pri = pri, interrupts = true} pr
+          |> ignore));
 
     val (version_id, group, running) = execution_of state;
 
@@ -351,9 +347,9 @@ fun start_execution state =
                   {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
                     deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
                   (fn () =>
-                    iterate_entries (fn ((_, id), opt_exec) => fn () =>
+                    iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
-                        SOME (_, exec) => if ! running then SOME (run node id exec) else NONE
+                        SOME (_, exec) => if ! running then SOME (execute exec) else NONE
                       | NONE => NONE)) node ()))));
   in () end;
 
@@ -437,7 +433,7 @@ fun last_common state last_visible node0 node =
     else (common, flags)
   end;
 
-fun new_exec state proper_init command_id' (execs, command_exec, init) =
+fun new_exec state proper_init command_visible command_id' (execs, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
@@ -458,10 +454,10 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
       val exec' =
         Command.memo (fn () =>
           let
-            val (st_malformed, _) = Command.memo_result (snd (snd command_exec));
+            val ((st, malformed), _) = Command.memo_result (snd (snd command_exec));
             val tr = read ();
-            val ({failed}, (st', malformed')) = Command.eval span tr st_malformed;
-            val print = if failed then [] else Command.print tr st';
+            val ({failed}, (st', malformed')) = Command.eval span tr (st, malformed);
+            val print = if failed orelse not command_visible then [] else Command.print st tr st';
           in ((st', malformed'), print) end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
@@ -511,7 +507,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not node_required andalso prev = last_visible then NONE
-                            else new_exec state proper_init id res) node;
+                            else new_exec state proper_init (visible_command node id) id res) node;
 
                     val no_execs =
                       iterate_entries_after common

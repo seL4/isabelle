@@ -17,9 +17,12 @@ sig
   val read: span -> Toplevel.transition
   val eval: span -> Toplevel.transition ->
     Toplevel.state * {malformed: bool} -> {failed: bool} * (Toplevel.state * {malformed: bool})
-  val print: Toplevel.transition -> Toplevel.state -> (string * unit lazy) list
-  val print_function: string ->
-    ({tr: Toplevel.transition, state: Toplevel.state} -> (unit -> unit) option) -> unit
+  type print = {name: string, pri: int, pr: unit lazy}
+  val print: Toplevel.state -> Toplevel.transition -> Toplevel.state -> print list
+  type print_function =
+    {old_state: Toplevel.state, tr: Toplevel.transition, state: Toplevel.state} ->
+      (unit -> unit) option
+  val print_function: string -> int -> print_function -> unit
 end;
 
 structure Command: COMMAND =
@@ -151,31 +154,35 @@ end;
 
 (* print *)
 
+type print_function =
+  {old_state: Toplevel.state, tr: Toplevel.transition, state: Toplevel.state} ->
+    (unit -> unit) option;
+
+type print = {name: string, pri: int, pr: unit lazy};
+
 local
 
-type print_function =
-  {tr: Toplevel.transition, state: Toplevel.state} -> (unit -> unit) option;
-
 val print_functions =
-  Synchronized.var "Command.print_functions" ([]: (string * print_function) list);
+  Synchronized.var "Command.print_functions" ([]: (string * (int * print_function)) list);
 
 in
 
-fun print tr st' =
-  rev (Synchronized.value print_functions) |> map_filter (fn (name, f) =>
-    (case f {tr = tr, state = st'} of
-      SOME pr => SOME (name, (Lazy.lazy o Toplevel.setmp_thread_position tr) pr)
+fun print st tr st' =
+  rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, f)) =>
+    (case f {old_state = st, tr = tr, state = st'} of
+      SOME pr =>
+        SOME {name = name, pri = pri, pr = (Lazy.lazy o Toplevel.setmp_thread_position tr) pr}
     | NONE => NONE));
 
-fun print_function name f =
+fun print_function name pri f =
   Synchronized.change print_functions (fn funs =>
    (if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
-    AList.update (op =) (name, f) funs));
+    AList.update (op =) (name, (pri, f)) funs));
 
 end;
 
-val _ = print_function "print_state" (fn {tr, state} =>
+val _ = print_function "print_state" 0 (fn {tr, state, ...} =>
   let
     val is_init = Toplevel.is_init tr;
     val is_proof = Keyword.is_proof (Toplevel.name_of tr);
