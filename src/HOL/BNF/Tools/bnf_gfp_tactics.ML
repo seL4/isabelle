@@ -103,7 +103,7 @@ sig
   val mk_raw_coind_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
     thm list -> thm list -> thm -> thm list -> tactic
   val mk_rel_coinduct_tac: thm list -> thm list -> thm list list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+    {prems: thm list, context: Proof.context} -> tactic
   val mk_rel_coinduct_coind_tac: int -> thm -> int list -> thm list -> thm list -> thm list ->
     thm list list -> thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_rel_coinduct_ind_tac: int -> int list -> thm list -> thm list list -> int -> thm ->
@@ -1634,9 +1634,10 @@ fun mk_rel_coinduct_ind_tac m ks unfolds set_mapss j set_induct {context = ctxt,
   end;
 
 fun mk_rel_coinduct_tac in_rels in_Jrels helper_indss helper_coind1s helper_coind2s
-  {context = ctxt, prems = _} =
+  {context = ctxt, prems = CIHs} =
   let val n = length in_rels;
   in
+    Method.insert_tac CIHs 1 THEN
     unfold_thms_tac ctxt (@{thm choice_iff} :: @{thm ex_simps(6)[symmetric]} :: in_rels) THEN
     REPEAT_DETERM (etac exE 1) THEN
     CONJ_WRAP' (fn (in_Jrel, (helper_inds, (helper_coind1, helper_coind2))) =>

@@ -480,8 +480,7 @@ fun mk_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac l
     val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
       (map2 (flip mk_leq) relphis pre_phis));
   in
-    Goal.prove_sorry lthy [] []
-      (fold_rev Logic.all (phis @ pre_phis) (Logic.list_implies (prems, concl))) tac
+    Goal.prove_sorry lthy (map (fst o dest_Free) (phis @ pre_phis)) prems concl tac
     |> Thm.close_derivation
     |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
   end;

@@ -65,7 +65,7 @@ sig
     thm list -> tactic
   val mk_mor_str_tac: 'a list -> thm -> tactic
   val mk_rel_induct_tac: int -> thm -> int list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+    {prems: thm list, context: Proof.context} -> tactic
   val mk_rec_tac: thm list -> thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_rec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
     tactic
@@ -846,19 +846,19 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp map_cong0 ctor_map ctor_sets
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
   end;
 
-fun mk_rel_induct_tac m ctor_induct2 ks ctor_rels rel_mono_strongs {context = ctxt, prems = _} =
+fun mk_rel_induct_tac m ctor_induct2 ks ctor_rels rel_mono_strongs {context = ctxt, prems = IHs} =
   let val n = length ks;
   in
     unfold_tac @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} ctxt THEN
     EVERY' [REPEAT_DETERM o rtac allI, rtac ctor_induct2,
-      EVERY' (map3 (fn i => fn ctor_rel => fn rel_mono_strong =>
-        EVERY' [rtac impI, dtac (ctor_rel RS iffD1), select_prem_tac n (dtac @{thm spec2}) i,
-          etac mp, etac rel_mono_strong,
+      EVERY' (map3 (fn IH => fn ctor_rel => fn rel_mono_strong =>
+        EVERY' [rtac impI, dtac (ctor_rel RS iffD1), rtac (IH RS @{thm spec2} RS mp),
+          etac rel_mono_strong,
           REPEAT_DETERM_N m o rtac @{thm ballI[OF ballI[OF imp_refl]]},
           EVERY' (map (fn j =>
             EVERY' [select_prem_tac n (dtac asm_rl) j, rtac @{thm ballI[OF ballI]},
               Goal.assume_rule_tac ctxt]) ks)])
-      ks ctor_rels rel_mono_strongs)] 1
+      IHs ctor_rels rel_mono_strongs)] 1
   end;
 
 end;
