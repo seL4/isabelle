@@ -166,6 +166,10 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
+  val mk_rel_co_induct_thm: fp_kind -> term list -> term list -> term list -> term list ->
+    term list -> term list -> term list -> term list ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
+
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> ((string * sort) * typ) list -> local_theory ->
@@ -458,6 +462,29 @@ fun mk_sum_casesN_balanced 1 1 = refl
   | mk_sum_casesN_balanced n k =
     Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm sum_case_step(1)},
       right = mk_sum_step @{thm sum.cases(2)} @{thm sum_case_step(2)}, init = refl} n k;
+
+fun mk_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
+  let
+    val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_phis)) pre_rels;
+    val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
+    fun mk_xtor fp' xtor x = if fp = fp' then xtor $ x else x;
+    val dtor = mk_xtor Greatest_FP;
+    val ctor = mk_xtor Least_FP;
+    fun flip f x y = if fp = Greatest_FP then f y x else f x y;
+
+    fun mk_prem pre_relphi phi x y xtor xtor' =
+      HOLogic.mk_Trueprop (list_all_free [x, y] (flip (curry HOLogic.mk_imp)
+        (pre_relphi $ (dtor xtor x) $ (dtor xtor' y)) (phi $ (ctor xtor x) $ (ctor xtor' y))));
+    val prems = map6 mk_prem pre_relphis pre_phis xs ys xtors xtor's;
+
+    val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+      (map2 (flip mk_leq) relphis pre_phis));
+  in
+    Goal.prove_sorry lthy [] []
+      (fold_rev Logic.all (phis @ pre_phis) (Logic.list_implies (prems, concl))) tac
+    |> Thm.close_derivation
+    |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
+  end;
 
 fun fp_bnf construct_fp bs resBs eqs lthy =
   let

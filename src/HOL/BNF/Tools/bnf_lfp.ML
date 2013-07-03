@@ -1808,26 +1808,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
       end;
 
+      val Irels = if m = 0 then map HOLogic.eq_const Ts
+        else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
       val Irel_induct_thm =
-        let
-          val relphis = map (fn rel => Term.list_comb (rel, Iphis @ activeIphis)) rels;
-          fun mk_prem relphi phi x y ctor ctor' =
-            fold_rev Logic.all [x, y] (Logic.mk_implies (HOLogic.mk_Trueprop (relphi $ x $ y),
-              HOLogic.mk_Trueprop (phi $ (ctor $ x) $ (ctor' $ y))));
-          val prems = map6 mk_prem relphis activeIphis xFs yFs ctors ctor's;
-
-          val Irels = if m = 0 then map HOLogic.eq_const Ts
-            else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
-          val Irelphis = map (fn Irel => Term.list_comb (Irel, Iphis)) Irels;
-          val concl =
-            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq Irelphis activeIphis));
-        in
-          Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all (Iphis @ activeIphis) (Logic.list_implies (prems, concl)))
-            (mk_rel_induct_tac m ctor_induct2_thm ks ctor_Irel_thms
-               (map rel_mono_strong_of_bnf bnfs))
-          |> Thm.close_derivation
-        end;
+        mk_rel_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
+          (mk_rel_induct_tac m ctor_induct2_thm ks ctor_Irel_thms (map rel_mono_strong_of_bnf bnfs))
+          lthy;
 
       val timer = time (timer "relator induction");
 

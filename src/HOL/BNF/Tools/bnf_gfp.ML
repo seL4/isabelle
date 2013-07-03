@@ -2995,7 +2995,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         |> transpose;
       val in_Jrels = map in_rel_of_bnf Jbnfs;
 
-      val Jrel_coinduct_thm =
+      val Jrel_coinduct_tac =
         let
           fun mk_helper_prem phi in_phi zip x y map map' dtor dtor' =
             let
@@ -3031,20 +3031,20 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             |> split_conj_thm;
           val helper_coind1_thms = mk_helper_coind_thms (Jzs @ Jzs_copy) helper_coind1_concl;
           val helper_coind2_thms = mk_helper_coind_thms (Jz's @ Jz's_copy) helper_coind2_concl;
-
+  
           fun mk_helper_ind_concl phi ab' ab fst snd z active_phi x y zip_unfold set =
             mk_Ball (set $ z) (Term.absfree ab' (list_all_free [x, y] (HOLogic.mk_imp
               (HOLogic.mk_conj (active_phi $ x $ y,
                  HOLogic.mk_eq (z, zip_unfold $ HOLogic.mk_prod (x, y))),
               phi $ (fst $ ab) $ (snd $ ab)))));
-
+  
           val mk_helper_ind_concls =
             map6 (fn Jphi => fn ab' => fn ab => fn fst => fn snd => fn zip_sets =>
               map6 (mk_helper_ind_concl Jphi ab' ab fst snd)
               zip_zs activeJphis Jzs Jz's zip_unfolds zip_sets)
             Jphis abs' abs fstABs sndABs zip_setss
             |> map (HOLogic.mk_Trueprop o Library.foldr1 HOLogic.mk_conj);
-
+  
           val helper_ind_thmss = if m = 0 then replicate n [] else
             map3 (fn concl => fn j => fn set_induct =>
               Goal.prove_sorry lthy [] []
@@ -3055,26 +3055,16 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               |> split_conj_thm)
             mk_helper_ind_concls ls dtor_set_induct_thms
             |> transpose;
-
-          val relphis = map (fn rel => Term.list_comb (rel, Jphis @ activeJphis)) rels;
-          fun mk_prem relphi phi x y dtor dtor' =
-            HOLogic.mk_Trueprop (list_all_free [x, y]
-              (HOLogic.mk_imp (phi $ x $ y, relphi $ (dtor $ x) $ (dtor' $ y))));
-          val prems = map6 mk_prem relphis activeJphis Jzs Jz's dtors dtor's;
-
-          val Jrels = if m = 0 then map HOLogic.eq_const Ts
-            else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
-          val Jrelphis = map (fn Jrel => Term.list_comb (Jrel, Jphis)) Jrels;
-          val concl =
-            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_leq activeJphis Jrelphis));
         in
-          Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all (Jphis @ activeJphis) (Logic.list_implies (prems, concl)))
-            (mk_rel_coinduct_tac in_rels in_Jrels
-               helper_ind_thmss helper_coind1_thms helper_coind2_thms)
-          |> Thm.close_derivation
-          |> (fn thm => thm OF (replicate n @{thm allI[OF allI[OF impI]]}))
+          mk_rel_coinduct_tac in_rels in_Jrels
+            helper_ind_thmss helper_coind1_thms helper_coind2_thms
         end;
+      
+      val Jrels = if m = 0 then map HOLogic.eq_const Ts
+        else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
+      val Jrel_coinduct_thm =
+        mk_rel_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
+          Jrel_coinduct_tac lthy;
 
       val timer = time (timer "relator coinduction");
 

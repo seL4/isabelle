@@ -139,6 +139,9 @@ lemma sum_rel_simps:
 "sum_rel P Q (Inr y) (Inl x') \<longleftrightarrow> False"
 unfolding sum_rel_def by simp+
 
+lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
+by blast
+
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"

@@ -338,9 +338,6 @@ by simp
 lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
 by auto
 
-lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
-by blast
-
 ML_file "Tools/bnf_gfp_util.ML"
 ML_file "Tools/bnf_gfp_tactics.ML"
 ML_file "Tools/bnf_gfp.ML"
