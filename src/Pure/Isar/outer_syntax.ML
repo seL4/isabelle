@@ -34,7 +34,6 @@ sig
   val parse: Position.T -> string -> Toplevel.transition list
   type isar
   val isar: TextIO.instream -> bool -> isar
-  val span_cmts: Token.T list -> Token.T list
   val read_span: outer_syntax -> Token.T list -> Toplevel.transition
 end;
 
@@ -275,22 +274,6 @@ fun isar in_stream term : isar =
   |> Symbol.source
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) lookup_commands_dynamic;
-
-
-(* side-comments *)
-
-local
-
-fun cmts (t1 :: t2 :: toks) =
-      if Token.keyword_with (fn s => s = "--") t1 then t2 :: cmts toks
-      else cmts (t2 :: toks)
-  | cmts _ = [];
-
-in
-
-val span_cmts = filter Token.is_proper #> cmts;
-
-end;
 
 
 (* read command span -- fail-safe *)

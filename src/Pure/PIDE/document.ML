@@ -63,8 +63,8 @@ type node_header = string * Thy_Header.header * string list;
 type perspective = (command_id -> bool) * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
-type exec = ((Toplevel.state * bool) * unit lazy) Command.memo;  (*eval/print process*)
-val no_exec = Command.memo_value ((Toplevel.toplevel, false), Lazy.value ());
+type exec = ((Toplevel.state * {malformed: bool}) * unit lazy) Command.memo;  (*eval/print process*)
+val no_exec = Command.memo_value ((Toplevel.toplevel, {malformed = false}), Lazy.value ());
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
@@ -447,19 +447,20 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
         else (I, init);
       val exec_id' = new_id ();
       val exec_id'_string = print_id exec_id';
-      val cmd =
+      val read =
         Position.setmp_thread_data (Position.id_only exec_id'_string)
           (fn () =>
-            let
-              val tr =
-                Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span
-                |> modify_init
-                |> Toplevel.put_id exec_id'_string;
-              val cmts = Outer_Syntax.span_cmts span;
-            in (tr, cmts) end);
+            Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span
+            |> modify_init
+            |> Toplevel.put_id exec_id'_string);
       val exec' =
         Command.memo (fn () =>
-          Command.run_command (cmd ()) (fst (Command.memo_result (snd (snd command_exec)))));
+          let
+            val (st, _) = Command.memo_result (snd (snd command_exec));
+            val tr = read ();
+            val ({failed}, (st', malformed')) = Command.eval span tr st;
+            val print = if failed then Command.no_print else Command.print tr st';
+          in ((st', malformed'), print) end);
       val command_exec' = (command_id', (exec_id', exec'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 

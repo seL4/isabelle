@@ -217,7 +217,7 @@ final class Command private(
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
 
 
-  /* source text */
+  /* source */
 
   def length: Int = source.length
   val range: Text.Range = Text.Range(0, length)
