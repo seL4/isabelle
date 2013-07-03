@@ -111,7 +111,12 @@ object Symbol
 
   /* decoding offsets */
 
-  class Index(text: CharSequence)
+  object Index
+  {
+    def apply(text: CharSequence): Index = new Index(text)
+  }
+
+  final class Index private(text: CharSequence)
   {
     sealed case class Entry(chr: Int, sym: Int)
     val index: Array[Entry] =
