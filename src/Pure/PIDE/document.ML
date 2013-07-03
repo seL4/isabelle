@@ -68,7 +68,7 @@ val no_exec = Command.memo_value ((Toplevel.toplevel, false), Lazy.value ());
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
-  perspective: perspective,  (*visible commands, last*)
+  perspective: perspective,  (*visible commands, last visible command*)
   entries: (exec_id * exec) option Entries.T * bool,  (*command entries with excecutions, stable*)
   result: exec option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
@@ -336,7 +336,7 @@ fun start_execution state =
 
     val _ =
       (singleton o Future.forks)
-        {name = "execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
+        {name = "Document.execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
         (fn () =>
          (OS.Process.sleep (seconds 0.02);
           nodes_of (the_version state version_id) |> String_Graph.schedule
@@ -551,7 +551,7 @@ end;
 
 (** global state **)
 
-val global_state = Synchronized.var "Document" init_state;
+val global_state = Synchronized.var "Document.global_state" init_state;
 
 fun state () = Synchronized.value global_state;
 val change_state = Synchronized.change global_state;
