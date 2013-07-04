@@ -65,7 +65,8 @@ structure Entries = Linear_Set(type key = command_id val ord = int_ord);
 
 type exec = ((Toplevel.state * {malformed: bool}) * Command.print list) Command.memo;
   (*eval/print process*)
-val no_exec = Command.memo_value ((Toplevel.toplevel, {malformed = false}), []);
+val no_exec =
+  Command.memo_value ((Toplevel.toplevel, {malformed = false}), []: Command.print list);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
