@@ -228,7 +228,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
              of NONE => NONE
               | SOME (Code_Printer.Plain_const_syntax _) => SOME 0
               | SOME (Code_Printer.Complex_const_syntax (k,_ )) => SOME k;
-            fun print_classparam_instance ((classparam, const), (thm, _)) =
+            fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               case requires_args classparam
                of NONE => semicolon [
                       (str o Long_Name.base_name o deresolve) classparam,

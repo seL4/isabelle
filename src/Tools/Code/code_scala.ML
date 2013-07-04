@@ -260,7 +260,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           let
             val tyvars = intro_tyvars vs reserved;
             val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
-            fun print_classparam_instance ((classparam, const as { dom, ... }), (thm, _)) =
+            fun print_classparam_instance ((classparam, (const as { dom, ... }, _)), (thm, _)) =
               let
                 val aux_dom = Name.invent_names (snd reserved) "a" dom;
                 val auxs = map fst aux_dom;

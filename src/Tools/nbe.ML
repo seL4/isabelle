@@ -439,7 +439,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
   | eqns_of_stmt (inst, Code_Thingol.Classinst { class, vs, superinsts, inst_params, ... }) =
       [(inst, (vs, [([], dummy_const class [] `$$
         map (fn (_, (_, (inst, dss))) => dummy_const inst dss) superinsts
-        @ map (IConst o snd o fst) inst_params)]))];
+        @ map (IConst o fst o snd o fst) inst_params)]))];
 
 
 (* compile whole programs *)

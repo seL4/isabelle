@@ -78,8 +78,8 @@ sig
     | Classparam of string * class
     | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
         superinsts: (class * (string * (string * dict list list))) list,
-        inst_params: ((string * const) * (thm * bool)) list,
-        superinst_params: ((string * const) * (thm * bool)) list };
+        inst_params: ((string * (const * int)) * (thm * bool)) list,
+        superinst_params: ((string * (const * int)) * (thm * bool)) list };
   type program = stmt Graph.T
   val empty_funs: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
@@ -428,8 +428,8 @@ datatype stmt =
   | Classparam of string * class
   | Classinst of { class: string, tyco: string, vs: (vname * sort) list,
       superinsts: (class * (string * (string * dict list list))) list,
-      inst_params: ((string * const) * (thm * bool)) list,
-      superinst_params: ((string * const) * (thm * bool)) list };
+      inst_params: ((string * (const * int)) * (thm * bool)) list,
+      superinst_params: ((string * (const * int)) * (thm * bool)) list };
 
 type program = stmt Graph.T;
 
@@ -448,7 +448,7 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         primitive = map_terms_bottom_up f t0 });
 
 fun map_classparam_instances_as_term f =
-  (map o apfst o apsnd) (fn const => case f (IConst const) of IConst const' => const')
+  (map o apfst o apsnd o apfst) (fn const => case f (IConst const) of IConst const' => const')
 
 fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (Fun (c, ((tysm, eqs), case_cong))) = Fun (c, ((tysm, (map o apfst)
@@ -708,13 +708,14 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
     fun translate_classparam_instance (c, ty) =
       let
         val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
+        val dom_length = length (fst (strip_type ty))
         val thm = Axclass.unoverload_conv thy (Thm.cterm_of thy raw_const);
         val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const thy algbr eqngr permissive c
         ##>> translate_const thy algbr eqngr permissive (SOME thm) (const, NONE)
-        #>> (fn (c, IConst const') => ((c, const'), (thm, true)))
+        #>> (fn (c, IConst const') => ((c, (const', dom_length)), (thm, true)))
       end;
     val stmt_inst =
       ensure_class thy algbr eqngr permissive class
