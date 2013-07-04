@@ -132,8 +132,12 @@ object Command
 
   type Span = List[Token]
 
-  def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span,
-    results: Results = Results.empty, markup: Markup_Tree = Markup_Tree.empty): Command =
+  def apply(
+    id: Document.Command_ID,
+    node_name: Document.Node.Name,
+    span: Span,
+    results: Results = Results.empty,
+    markup: Markup_Tree = Markup_Tree.empty): Command =
   {
     val source: String =
       span match {
