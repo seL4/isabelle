@@ -13,16 +13,19 @@ sig
   val memo: (unit -> 'a) -> 'a memo
   val memo_value: 'a -> 'a memo
   val memo_eval: 'a memo -> 'a
+  val memo_fork: Future.params -> 'a memo -> unit
   val memo_result: 'a memo -> 'a
+  val memo_stable: 'a memo -> bool
   val read: span -> Toplevel.transition
-  val eval: span -> Toplevel.transition ->
-    Toplevel.state * {malformed: bool} -> {failed: bool} * (Toplevel.state * {malformed: bool})
-  type print = {name: string, pri: int, pr: unit lazy}
-  val print: Toplevel.state -> Toplevel.transition -> Toplevel.state -> print list
-  type print_function =
-    {old_state: Toplevel.state, tr: Toplevel.transition, state: Toplevel.state} ->
-      (unit -> unit) option
-  val print_function: string -> int -> print_function -> unit
+  type eval_state =
+    {failed: bool, malformed: bool, command: Toplevel.transition, state: Toplevel.state}
+  type eval = eval_state memo
+  val no_eval: eval
+  val eval: span -> Toplevel.transition -> eval_state -> eval_state
+  type print_fn = Toplevel.transition -> Toplevel.state -> unit
+  type print = {name: string, pri: int, print: unit memo}
+  val print: string -> eval -> print list
+  val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
 end;
 
 structure Command: COMMAND =
@@ -59,10 +62,20 @@ fun memo_eval (Memo v) =
               in SOME (res, Result res) end))
   |> Exn.release;
 
+fun memo_fork params (Memo v) =
+  (case Synchronized.value v of
+    Result _ => ()
+  | _ => ignore ((singleton o Future.forks) params (fn () => memo_eval (Memo v))));
+
 fun memo_result (Memo v) =
   (case Synchronized.value v of
     Result res => Exn.release res
   | _ => raise Fail "Unfinished memo result");
+
+fun memo_stable (Memo v) =
+  (case Synchronized.value v of
+    Expr _ => true
+  | Result res => not (Exn.is_interrupt_exn res));
 
 end;
 
@@ -98,6 +111,14 @@ fun read span =
 
 (* eval *)
 
+type eval_state =
+  {failed: bool, malformed: bool, command: Toplevel.transition, state: Toplevel.state};
+val no_eval_state: eval_state =
+  {failed = false, malformed = false, command = Toplevel.empty, state = Toplevel.toplevel};
+
+type eval = eval_state memo;
+val no_eval = memo_value no_eval_state;
+
 local
 
 fun run int tr st =
@@ -120,9 +141,9 @@ fun proof_status tr st =
 
 in
 
-fun eval span tr (st, {malformed}) =
+fun eval span tr ({malformed, state = st, ...}: eval_state) =
   if malformed then
-    ({failed = true}, (Toplevel.toplevel, {malformed = malformed}))
+    {failed = true, malformed = malformed, command = tr, state = Toplevel.toplevel}
   else
     let
       val malformed' = Toplevel.is_malformed tr;
@@ -142,11 +163,11 @@ fun eval span tr (st, {malformed}) =
           let
             val _ = if null errs then Exn.interrupt () else ();
             val _ = Toplevel.status tr Markup.failed;
-          in ({failed = true}, (st, {malformed = malformed'})) end
+          in {failed = true, malformed = malformed', command = tr, state = st} end
       | SOME st' =>
           let
             val _ = proof_status tr st';
-          in ({failed = false}, (st', {malformed = malformed'})) end)
+          in {failed = false, malformed = malformed', command = tr, state = st'} end)
     end;
 
 end;
@@ -154,16 +175,13 @@ end;
 
 (* print *)
 
-type print_function =
-  {old_state: Toplevel.state, tr: Toplevel.transition, state: Toplevel.state} ->
-    (unit -> unit) option;
-
-type print = {name: string, pri: int, pr: unit lazy};
+type print = {name: string, pri: int, print: unit memo};
+type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 local
 
-val print_functions =
-  Synchronized.var "Command.print_functions" ([]: (string * (int * print_function)) list);
+type print_function = string * (int * (string -> print_fn option));
+val print_functions = Synchronized.var "Command.print_functions" ([]: print_function list);
 
 fun output_error tr exn =
   List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
@@ -174,14 +192,20 @@ fun print_error tr f x =
 
 in
 
-fun print st tr st' =
-  rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, f)) =>
-    (case Exn.capture (Runtime.controlled_execution f) {old_state = st, tr = tr, state = st'} of
+fun print command_name eval =
+  rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, get_print_fn)) =>
+    (case Exn.capture (Runtime.controlled_execution get_print_fn) command_name of
       Exn.Res NONE => NONE
-    | Exn.Res (SOME pr) => SOME {name = name, pri = pri, pr = (Lazy.lazy o print_error tr) pr}
-    | Exn.Exn exn => SOME {name = name, pri = pri, pr = Lazy.lazy (fn () => output_error tr exn)}));
+    | Exn.Res (SOME print_fn) =>
+        SOME {name = name, pri = pri,
+          print = memo (fn () =>
+            let val {failed, command = tr, state = st', ...} = memo_result eval
+            in if failed then () else print_error tr (fn () => print_fn tr st') () end)}
+    | Exn.Exn exn =>
+        SOME {name = name, pri = pri,
+          print = memo (fn () => output_error (#command (memo_result eval)) exn)}));
 
-fun print_function name pri f =
+fun print_function {name, pri} f =
   Synchronized.change print_functions (fn funs =>
    (if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
@@ -189,14 +213,15 @@ fun print_function name pri f =
 
 end;
 
-val _ = print_function "print_state" 0 (fn {tr, state, ...} =>
-  let
-    val is_init = Toplevel.is_init tr;
-    val is_proof = Keyword.is_proof (Toplevel.name_of tr);
-    val do_print =
-      not is_init andalso
-        (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof state));
-  in if do_print then SOME (fn () => Toplevel.print_state false state) else NONE end);
+val _ =
+  print_function {name = "print_state", pri = 0} (fn command_name => SOME (fn tr => fn st' =>
+    let
+      val is_init = Keyword.is_theory_begin command_name;
+      val is_proof = Keyword.is_proof command_name;
+      val do_print =
+        not is_init andalso
+          (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+    in if do_print then Toplevel.print_state false st' else () end));
 
 end;
 

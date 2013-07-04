@@ -56,23 +56,31 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ print_id id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 
+(* command execution *)
+
+type exec = exec_id * (Command.eval * Command.print list);  (*eval/print process*)
+val no_exec: exec = (no_id, (Command.no_eval, []));
+
+fun exec_result ((_, (eval, _)): exec) = Command.memo_result eval;
+
+fun exec_run ((_, (eval, prints)): exec) =
+ (Command.memo_eval eval;
+  prints |> List.app (fn {name, pri, print} =>
+    Command.memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print));
+
+
 
 (** document structure **)
 
 type node_header = string * Thy_Header.header * string list;
-type perspective = (command_id -> bool) * command_id option;
+type perspective = Inttab.set * command_id option;
 structure Entries = Linear_Set(type key = command_id val ord = int_ord);
-
-type exec = ((Toplevel.state * {malformed: bool}) * Command.print list) Command.memo;
-  (*eval/print process*)
-val no_exec =
-  Command.memo_value ((Toplevel.toplevel, {malformed = false}), []: Command.print list);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last visible command*)
-  entries: (exec_id * exec) option Entries.T * bool,  (*command entries with excecutions, stable*)
-  result: exec option}  (*result of last execution*)
+  entries: exec option Entries.T * bool,  (*command entries with excecutions, stable*)
+  result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
 
@@ -83,7 +91,7 @@ fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
 fun make_perspective command_ids : perspective =
-  (Inttab.defined (Inttab.make (map (rpair ()) command_ids)), try List.last command_ids);
+  (Inttab.make_set command_ids, try List.last command_ids);
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
@@ -112,7 +120,8 @@ fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =
   map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
 
-val visible_command = #1 o get_perspective;
+val visible_commands = #1 o get_perspective;
+val visible_command = Inttab.defined o visible_commands;
 val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
@@ -164,8 +173,8 @@ fun the_entry node id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = (id, the_default (no_id, no_exec) (the_entry node id))
-  | the_default_entry _ NONE = (no_id, (no_id, no_exec));
+fun the_default_entry node (SOME id) = (id, the_default no_exec (the_entry node id))
+  | the_default_entry _ NONE = (no_id, no_exec);
 
 fun update_entry id exec =
   map_entries (Entries.update (id, exec));
@@ -304,15 +313,14 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
 
 (* consolidated states *)
 
-fun stable_command (exec_id, exec) =
+fun stable_command ((exec_id, (eval, prints)): exec) =
   not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id))) andalso
-    (case Exn.capture Command.memo_result exec of
-      Exn.Exn exn => not (Exn.is_interrupt exn)
-    | Exn.Res _ => true);
+  Command.memo_stable eval andalso
+  forall (Command.memo_stable o #print) prints;
 
 fun finished_theory node =
   (case Exn.capture (Command.memo_result o the) (get_result node) of
-    Exn.Res ((st, _), _) => can (Toplevel.end_theory Position.none) st
+    Exn.Res {state = st, ...} => can (Toplevel.end_theory Position.none) st
   | _ => false);
 
 
@@ -325,15 +333,7 @@ val terminate_execution = execution_of #> (fn (_, group, _) => Future.terminate 
 
 fun start_execution state =
   let
-    fun execute exec =
-      Command.memo_eval exec
-      |> (fn (_, print) =>
-        print |> List.app (fn {name, pri, pr} =>
-          Lazy.future {name = name, group = NONE, deps = [], pri = pri, interrupts = true} pr
-          |> ignore));
-
     val (version_id, group, running) = execution_of state;
-
     val _ =
       (singleton o Future.forks)
         {name = "Document.execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
@@ -350,7 +350,7 @@ fun start_execution state =
                   (fn () =>
                     iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
-                        SOME (_, exec) => if ! running then SOME (execute exec) else NONE
+                        SOME exec => if ! running then SOME (exec_run exec) else NONE
                       | NONE => NONE)) node ()))));
   in () end;
 
@@ -391,10 +391,10 @@ fun init_theory deps node span =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (fst (fst
+              (#state
                 (Command.memo_result
-                  (the_default no_exec
-                    (get_result (snd (the (AList.lookup (op =) deps import))))))))));
+                  (the_default Command.no_eval
+                    (get_result (snd (the (AList.lookup (op =) deps import)))))))));
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
   in Thy_Load.begin_theory master_dir header parents end;
 
@@ -439,28 +439,28 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
   else
     let
       val (name, span) = the_command state command_id' ||> Lazy.force;
+
       fun illegal_init _ = error "Illegal theory header after end of theory";
       val (modify_init, init') =
         if Keyword.is_theory_begin name then
           (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
         else (I, init);
+
       val exec_id' = new_id ();
-      val exec_id'_string = print_id exec_id';
-      val read =
-        Position.setmp_thread_data (Position.id_only exec_id'_string)
-          (fn () =>
-            Command.read span
-            |> modify_init
-            |> Toplevel.put_id exec_id'_string);
-      val exec' =
+      val eval' =
         Command.memo (fn () =>
           let
-            val ((st, malformed), _) = Command.memo_result (snd (snd command_exec));
-            val tr = read ();
-            val ({failed}, (st', malformed')) = Command.eval span tr (st, malformed);
-            val print = if failed orelse not command_visible then [] else Command.print st tr st';
-          in ((st', malformed'), print) end);
-      val command_exec' = (command_id', (exec_id', exec'));
+            val eval_state = exec_result (snd command_exec);
+            val tr =
+              Position.setmp_thread_data (Position.id_only (print_id exec_id'))
+                (fn () =>
+                  Command.read span
+                  |> modify_init
+                  |> Toplevel.put_id (print_id exec_id')) ();
+          in Command.eval span tr eval_state end);
+      val prints' = if command_visible then Command.print name eval' else [];
+
+      val command_exec' = (command_id', (exec_id', (eval', prints')));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
 in
@@ -502,7 +502,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       else last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
-                    val (new_execs, (command_id', (_, exec')), _) =
+                    val (new_execs, (command_id', (_, (eval', _))), _) =
                       ([], common_command_exec, if initial then SOME init else NONE) |>
                       (still_visible orelse node_required) ?
                         iterate_entries_after common
@@ -514,13 +514,14 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       iterate_entries_after common
                         (fn ((_, id0), exec0) => fn res =>
                           if is_none exec0 then NONE
-                          else if exists (fn (_, (id, _)) => id0 = id) new_execs then SOME res
+                          else if exists (fn (_, (id, _)) => id0 = id) new_execs
+                          then SOME res
                           else SOME (id0 :: res)) node0 [];
 
                     val last_exec = if command_id' = no_id then NONE else SOME command_id';
                     val result =
                       if is_some (after_entry node last_exec) then NONE
-                      else SOME exec';
+                      else SOME eval';
 
                     val node' = node
                       |> fold reset_entry no_execs
