@@ -30,8 +30,8 @@ datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | ML_Instance of string * { class: string, tyco: string, vs: (vname * sort) list,
         superinsts: (class * (string * (string * dict list list))) list,
-        inst_params: ((string * const) * (thm * bool)) list,
-        superinst_params: ((string * const) * (thm * bool)) list };
+        inst_params: ((string * (const * int)) * (thm * bool)) list,
+        superinst_params: ((string * (const * int)) * (thm * bool)) list };
 
 datatype ml_stmt =
     ML_Exc of string * (typscheme * int)
@@ -215,7 +215,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 str "=",
                 print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const x))
               ];
-            fun print_classparam_instance ((classparam, const), (thm, _)) =
+            fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               concat [
                 (str o Long_Name.base_name o deresolve) classparam,
                 str "=",
@@ -552,7 +552,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 str "=",
                 print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const x))
               ];
-            fun print_classparam_instance ((classparam, const), (thm, _)) =
+            fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               concat [
                 (str o deresolve) classparam,
                 str "=",

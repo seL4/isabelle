@@ -260,17 +260,21 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           let
             val tyvars = intro_tyvars vs reserved;
             val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
-            fun print_classparam_instance ((classparam, const as { dom, ... }), (thm, _)) =
+            fun print_classparam_instance ((classparam, (const as { dom, ... }, dom_length)), (thm, _)) =
               let
                 val aux_dom = Name.invent_names (snd reserved) "a" dom;
                 val auxs = map fst aux_dom;
                 val vars = intro_vars auxs reserved;
-                val aux_abstr = if null auxs then [] else [enum "," "(" ")"
-                  (map (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
-                  (print_typ tyvars NOBR ty)) aux_dom), str "=>"];
+                val (aux_dom1, aux_dom2) = chop dom_length aux_dom;
+                fun abstract_using [] = []
+                  | abstract_using aux_dom = [enum "," "(" ")"
+                      (map (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
+                      (print_typ tyvars NOBR ty)) aux_dom), str "=>"];
+                val aux_abstr1 = abstract_using aux_dom1;
+                val aux_abstr2 = abstract_using aux_dom2;
               in
                 concat ([str "val", print_method classparam, str "="]
-                  @ aux_abstr @| print_app tyvars false (SOME thm) vars NOBR
+                  @ aux_abstr1 @ aux_abstr2 @| print_app tyvars false (SOME thm) vars NOBR
                     (const, map (IVar o SOME) auxs))
               end;
           in
