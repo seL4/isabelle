@@ -31,7 +31,7 @@ sig
   val start_execution: state -> unit
   val timing: bool Unsynchronized.ref
   val update: version_id -> version_id -> edit list -> state ->
-    (command_id * exec_id option) list * state
+    (command_id * exec_id list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -61,11 +61,13 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 type exec = exec_id * (Command.eval * Command.print list);  (*eval/print process*)
 val no_exec: exec = (no_id, (Command.no_eval, []));
 
+fun exec_ids_of ((exec_id, (_, prints)): exec) = exec_id :: map #exec_id prints;
+
 fun exec_result ((_, (eval, _)): exec) = Command.memo_result eval;
 
 fun exec_run ((_, (eval, prints)): exec) =
  (Command.memo_eval eval;
-  prints |> List.app (fn {name, pri, print} =>
+  prints |> List.app (fn {name, pri, print, ...} =>
     Command.memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print));
 
 
@@ -121,7 +123,6 @@ fun set_perspective ids =
   map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
 
 val visible_commands = #1 o get_perspective;
-val visible_command = Inttab.defined o visible_commands;
 val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
@@ -313,10 +314,14 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
 
 (* consolidated states *)
 
-fun stable_command ((exec_id, (eval, prints)): exec) =
-  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id))) andalso
-  Command.memo_stable eval andalso
-  forall (Command.memo_stable o #print) prints;
+fun stable_goals exec_id =
+  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
+
+fun stable_eval ((exec_id, (eval, _)): exec) =
+  stable_goals exec_id andalso Command.memo_stable eval;
+
+fun stable_print ({exec_id, print, ...}: Command.print) =
+  stable_goals exec_id andalso Command.memo_stable print;
 
 fun finished_theory node =
   (case Exn.capture (Command.memo_result o the) (get_result node) of
@@ -422,7 +427,7 @@ fun last_common state last_visible node0 node =
             | SOME (exec_id, exec) =>
                 (case lookup_entry node0 id of
                   NONE => false
-                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_command (exec_id, exec)));
+                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_eval (exec_id, exec)));
         in SOME (same', (prev, flags')) end
       else NONE;
     val (same, (common, flags)) =
@@ -438,11 +443,11 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
   if not proper_init andalso is_none init then NONE
   else
     let
-      val (name, span) = the_command state command_id' ||> Lazy.force;
+      val (command_name, span) = the_command state command_id' ||> Lazy.force;
 
       fun illegal_init _ = error "Illegal theory header after end of theory";
       val (modify_init, init') =
-        if Keyword.is_theory_begin name then
+        if Keyword.is_theory_begin command_name then
           (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
         else (I, init);
 
@@ -456,12 +461,28 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
                 (fn () =>
                   Command.read span
                   |> modify_init
-                  |> Toplevel.put_id (print_id exec_id')) ();
+                  |> Toplevel.put_id exec_id') ();
           in Command.eval span tr eval_state end);
-      val prints' = if command_visible then Command.print name eval' else [];
-
+      val prints' = if command_visible then Command.print new_id command_name eval' else [];
       val command_exec' = (command_id', (exec_id', (eval', prints')));
     in SOME (command_exec' :: execs, command_exec', init') end;
+
+fun update_prints state node command_id =
+  (case the_entry node command_id of
+    SOME (exec_id, (eval, prints)) =>
+      let
+        val (command_name, _) = the_command state command_id;
+        val new_prints = Command.print new_id command_name eval;
+        val prints' =
+          new_prints |> map (fn new_print =>
+            (case find_first (fn {name, ...} => name = #name new_print) prints of
+              SOME print => if stable_print print then print else new_print
+            | NONE => new_print));
+      in
+        if eq_list (op = o pairself #exec_id) (prints, prints') then NONE
+        else SOME (command_id, (exec_id, (eval, prints')))
+      end
+  | NONE => NONE);
 
 in
 
@@ -483,10 +504,10 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
             (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
-                val updated_imports = exists (is_some o #3 o #1 o #2) imports;
+                val changed_imports = exists (#4 o #1 o #2) imports;
                 val node_required = is_required name;
               in
-                if updated_imports orelse AList.defined (op =) edits name orelse
+                if changed_imports orelse AList.defined (op =) edits name orelse
                   not (stable_entries node) orelse not (finished_theory node)
                 then
                   let
@@ -496,9 +517,12 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                       check_theory false name node andalso
                       forall (fn (name, (_, node)) => check_theory true name node) imports;
 
+                    val visible_commands = visible_commands node;
+                    val visible_command = Inttab.defined visible_commands;
                     val last_visible = visible_last node;
+
                     val (common, (still_visible, initial)) =
-                      if updated_imports then (NONE, (true, true))
+                      if changed_imports then (NONE, (true, true))
                       else last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
@@ -508,13 +532,18 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not node_required andalso prev = last_visible then NONE
-                            else new_exec state proper_init (visible_command node id) id res) node;
+                            else new_exec state proper_init (visible_command id) id res) node;
+
+                    val updated_execs =
+                      (visible_commands, new_execs) |-> Inttab.fold (fn (id, ()) =>
+                        if exists (fn (_, (id', _)) => id = id') new_execs then I
+                        else append (the_list (update_prints state node id)));
 
                     val no_execs =
                       iterate_entries_after common
                         (fn ((_, id0), exec0) => fn res =>
                           if is_none exec0 then NONE
-                          else if exists (fn (_, (id, _)) => id0 = id) new_execs
+                          else if exists (fn (_, (id, _)) => id0 = id) updated_execs
                           then SOME res
                           else SOME (id0 :: res)) node0 [];
 
@@ -525,20 +554,21 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
                     val node' = node
                       |> fold reset_entry no_execs
-                      |> fold (fn (id, exec) => update_entry id (SOME exec)) new_execs
-                      |> entries_stable (null new_execs)
+                      |> fold (fn (id, exec) => update_entry id (SOME exec)) updated_execs
+                      |> entries_stable (null updated_execs)
                       |> set_result result;
                     val updated_node =
-                      if null no_execs andalso null new_execs then NONE
+                      if null no_execs andalso null updated_execs then NONE
                       else SOME (name, node');
-                  in ((no_execs, new_execs, updated_node), node') end
-                else (([], [], NONE), node)
+                    val changed_result = not (null no_execs) orelse not (null new_execs);
+                  in ((no_execs, updated_execs, updated_node, changed_result), node') end
+                else (([], [], NONE, false), node)
               end))
       |> Future.joins |> map #1);
 
     val command_execs =
-      map (rpair NONE) (maps #1 updated) @
-      map (fn (command_id, (exec_id, _)) => (command_id, SOME exec_id)) (maps #2 updated);
+      map (rpair []) (maps #1 updated) @
+      map (fn (command_id, exec) => (command_id, exec_ids_of exec)) (maps #2 updated);
     val updated_nodes = map_filter #3 updated;
 
     val state' = state

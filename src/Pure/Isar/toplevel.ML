@@ -81,8 +81,7 @@ sig
   val actual_proof: (Proof_Node.T -> Proof_Node.T) -> transition -> transition
   val skip_proof: (int -> int) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
-  val get_id: transition -> string option
-  val put_id: string -> transition -> transition
+  val put_id: int -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
@@ -584,13 +583,10 @@ fun skip_proof_to_theory pred = transaction (fn _ =>
 
 (** toplevel transactions **)
 
-(* identification *)
+(* runtime position *)
 
-fun get_id (Transition {pos, ...}) = Position.get_id pos;
-fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) tr;
-
-
-(* thread position *)
+fun put_id id (tr as Transition {pos, ...}) =
+  position (Position.put_id (Markup.print_int id) pos) tr;
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;

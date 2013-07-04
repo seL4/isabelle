@@ -53,7 +53,7 @@ val _ =
           Output.protocol_message Markup.assign_execs
             ((new_id, assignment) |>
               let open XML.Encode
-              in pair int (list (pair int (option int))) end
+              in pair int (list (pair int (list int))) end
               |> YXML.string_of_body);
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
