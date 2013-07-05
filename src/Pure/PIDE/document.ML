@@ -31,22 +31,6 @@ end;
 structure Document: DOCUMENT =
 struct
 
-(* command execution *)
-
-type exec = Document_ID.exec * (Command.eval * Command.print list);  (*eval/print process*)
-val no_exec: exec = (Document_ID.none, (Command.no_eval, []));
-
-fun exec_ids_of ((exec_id, (_, prints)): exec) = exec_id :: map #exec_id prints;
-
-fun exec_result ((_, (eval, _)): exec) = Command.memo_result eval;
-
-fun exec_run ((_, (eval, prints)): exec) =
- (Command.memo_eval eval;
-  prints |> List.app (fn {name, pri, print, ...} =>
-    Command.memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print));
-
-
-
 (** document structure **)
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
@@ -59,7 +43,7 @@ structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord)
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last visible command*)
-  entries: exec option Entries.T * bool,  (*command entries with excecutions, stable*)
+  entries: Command.exec option Entries.T * bool,  (*command entries with excecutions, stable*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
@@ -152,8 +136,8 @@ fun the_entry node id =
     NONE => err_undef "command entry" id
   | SOME (exec, _) => exec);
 
-fun the_default_entry node (SOME id) = (id, the_default no_exec (the_entry node id))
-  | the_default_entry _ NONE = (Document_ID.none, no_exec);
+fun the_default_entry node (SOME id) = (id, the_default Command.no_exec (the_entry node id))
+  | the_default_entry _ NONE = (Document_ID.none, Command.no_exec);
 
 fun update_entry id exec =
   map_entries (Entries.update (id, exec));
@@ -291,17 +275,6 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
   in (versions', commands', execution) end);
 
 
-(* consolidated states *)
-
-fun stable_goals exec_id =
-  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
-
-fun stable_eval ((exec_id, (eval, _)): exec) =
-  stable_goals exec_id andalso Command.memo_stable eval;
-
-fun stable_print ({exec_id, print, ...}: Command.print) =
-  stable_goals exec_id andalso Command.memo_stable print;
-
 fun finished_theory node =
   (case Exn.capture (Command.memo_result o the) (get_result node) of
     Exn.Res {state = st, ...} => can (Toplevel.end_theory Position.none) st
@@ -334,7 +307,7 @@ fun start_execution state =
                   (fn () =>
                     iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
-                        SOME exec => if ! running then SOME (exec_run exec) else NONE
+                        SOME exec => if ! running then SOME (Command.exec_run exec) else NONE
                       | NONE => NONE)) node ()))));
   in () end;
 
@@ -406,7 +379,8 @@ fun last_common state last_visible node0 node =
             | SOME (exec_id, exec) =>
                 (case lookup_entry node0 id of
                   NONE => false
-                | SOME (exec_id0, _) => exec_id = exec_id0 andalso stable_eval (exec_id, exec)));
+                | SOME (exec_id0, _) =>
+                    exec_id = exec_id0 andalso Command.stable_eval (exec_id, exec)));
         in SOME (same', (prev, flags')) end
       else NONE;
     val (same, (common, flags)) =
@@ -434,7 +408,7 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
       val eval' =
         Command.memo (fn () =>
           let
-            val eval_state = exec_result (snd command_exec);
+            val eval_state = Command.exec_result (snd command_exec);
             val tr =
               Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id'))
                 (fn () =>
@@ -455,7 +429,7 @@ fun update_prints state node command_id =
         val prints' =
           new_prints |> map (fn new_print =>
             (case find_first (fn {name, ...} => name = #name new_print) prints of
-              SOME print => if stable_print print then print else new_print
+              SOME print => if Command.stable_print print then print else new_print
             | NONE => new_print));
       in
         if eq_list (op = o pairself #exec_id) (prints, prints') then NONE
@@ -548,7 +522,7 @@ fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits sta
 
     val command_execs =
       map (rpair []) (maps #1 updated) @
-      map (fn (command_id, exec) => (command_id, exec_ids_of exec)) (maps #2 updated);
+      map (fn (command_id, exec) => (command_id, Command.exec_ids exec)) (maps #2 updated);
     val updated_nodes = map_filter #3 updated;
 
     val state' = state

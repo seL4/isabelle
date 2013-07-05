@@ -26,6 +26,13 @@ sig
   type print = {name: string, pri: int, exec_id: Document_ID.exec, print: unit memo}
   val print: string -> eval -> print list
   val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
+  type exec = Document_ID.exec * (eval * print list)
+  val no_exec: exec
+  val exec_ids: exec -> Document_ID.exec list
+  val exec_result: exec -> eval_state
+  val exec_run: exec -> unit
+  val stable_eval: exec -> bool
+  val stable_print: print -> bool
 end;
 
 structure Command: COMMAND =
@@ -79,6 +86,8 @@ fun memo_stable (Memo v) =
 
 end;
 
+
+(** main phases: read -- eval -- print **)
 
 (* read *)
 
@@ -232,6 +241,36 @@ val _ =
         not is_init andalso
           (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
     in if do_print then Toplevel.print_state false st' else () end));
+
+
+
+(** managed evaluation with potential interrupts **)
+
+(* execution *)
+
+type exec = Document_ID.exec * (eval * print list);
+val no_exec: exec = (Document_ID.none, (no_eval, []));
+
+fun exec_ids ((exec_id, (_, prints)): exec) = exec_id :: map #exec_id prints;
+
+fun exec_result ((_, (eval, _)): exec) = memo_result eval;
+
+fun exec_run ((_, (eval, prints)): exec) =
+ (memo_eval eval;
+  prints |> List.app (fn {name, pri, print, ...} =>
+    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print));
+
+
+(* stable situations *)
+
+fun stable_goals exec_id =
+  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
+
+fun stable_eval ((exec_id, (eval, _)): exec) =
+  stable_goals exec_id andalso memo_stable eval;
+
+fun stable_print ({exec_id, print, ...}: print) =
+  stable_goals exec_id andalso memo_stable print;
 
 end;
 
