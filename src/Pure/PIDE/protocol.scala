@@ -13,7 +13,7 @@ object Protocol
 
   object Assign
   {
-    def unapply(text: String): Option[(Document.Version_ID, Document.Assign)] =
+    def unapply(text: String): Option[(Document_ID.Version, Document.Assign)] =
       try {
         import XML.Decode._
         val body = YXML.parse_body(text)
@@ -27,7 +27,7 @@ object Protocol
 
   object Removed
   {
-    def unapply(text: String): Option[List[Document.Version_ID]] =
+    def unapply(text: String): Option[List[Document_ID.Version]] =
       try {
         import XML.Decode._
         Some(list(long)(YXML.parse_body(text)))
@@ -86,7 +86,7 @@ object Protocol
 
   object Command_Timing
   {
-    def unapply(props: Properties.T): Option[(Document.ID, isabelle.Timing)] =
+    def unapply(props: Properties.T): Option[(Document_ID.ID, isabelle.Timing)] =
       props match {
         case (Markup.FUNCTION, Markup.COMMAND_TIMING) :: args =>
           (args, args) match {
@@ -233,7 +233,7 @@ object Protocol
 
   object Dialog_Args
   {
-    def unapply(props: Properties.T): Option[(Document.ID, Long, String)] =
+    def unapply(props: Properties.T): Option[(Document_ID.ID, Long, String)] =
       (props, props, props) match {
         case (Position.Id(id), Markup.Serial(serial), Markup.Result(result)) =>
           Some((id, serial, result))
@@ -243,7 +243,7 @@ object Protocol
 
   object Dialog
   {
-    def unapply(tree: XML.Tree): Option[(Document.ID, Long, String)] =
+    def unapply(tree: XML.Tree): Option[(Document_ID.ID, Long, String)] =
       tree match {
         case XML.Elem(Markup(Markup.DIALOG, Dialog_Args(id, serial, result)), _) =>
           Some((id, serial, result))
@@ -253,7 +253,7 @@ object Protocol
 
   object Dialog_Result
   {
-    def apply(id: Document.ID, serial: Long, result: String): XML.Elem =
+    def apply(id: Document_ID.ID, serial: Long, result: String): XML.Elem =
     {
       val props = Position.Id(id) ::: Markup.Serial(serial)
       XML.Elem(Markup(Markup.RESULT, props), List(XML.Text(result)))
@@ -309,7 +309,7 @@ trait Protocol extends Isabelle_Process
 
   def define_command(command: Command): Unit =
     input("Document.define_command",
-      Document.ID(command.id), encode(command.name), encode(command.source))
+      Document_ID.ID(command.id), encode(command.name), encode(command.source))
 
 
   /* document versions */
@@ -318,7 +318,7 @@ trait Protocol extends Isabelle_Process
 
   def cancel_execution() { input("Document.cancel_execution") }
 
-  def update(old_id: Document.Version_ID, new_id: Document.Version_ID,
+  def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
     edits: List[Document.Edit_Command])
   {
     val edits_yxml =
@@ -346,7 +346,7 @@ trait Protocol extends Isabelle_Process
         pair(string, encode_edit(name))(name.node, edit)
       })
       YXML.string_of_body(encode_edits(edits)) }
-    input("Document.update", Document.ID(old_id), Document.ID(new_id), edits_yxml)
+    input("Document.update", Document_ID.ID(old_id), Document_ID.ID(new_id), edits_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])

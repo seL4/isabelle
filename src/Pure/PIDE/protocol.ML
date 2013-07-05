@@ -10,7 +10,7 @@ struct
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
     (fn [id, name, text] =>
-      Document.change_state (Document.define_command (Document.parse_id id) name text));
+      Document.change_state (Document.define_command (Document_ID.parse id) name text));
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
@@ -26,8 +26,8 @@ val _ =
       let
         val _ = Document.cancel_execution state;
 
-        val old_id = Document.parse_id old_id_string;
-        val new_id = Document.parse_id new_id_string;
+        val old_id = Document_ID.parse old_id_string;
+        val new_id = Document_ID.parse new_id_string;
         val edits =
           YXML.parse_body edits_yxml |>
             let open XML.Decode in

@@ -26,7 +26,7 @@ object Session
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
-  case class Dialog_Result(id: Document.ID, serial: Long, result: String)
+  case class Dialog_Result(id: Document_ID.ID, serial: Long, result: String)
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -374,7 +374,7 @@ class Session(val thy_load: Thy_Load)
           System.err.println("Ignoring prover output: " + output.message.toString)
       }
 
-      def accumulate(state_id: Document.ID, message: XML.Elem)
+      def accumulate(state_id: Document_ID.ID, message: XML.Elem)
       {
         try {
           val st = global_state >>> (_.accumulate(state_id, message))
@@ -548,6 +548,6 @@ class Session(val thy_load: Thy_Load)
   def update_options(options: Options)
   { session_actor !? Update_Options(options) }
 
-  def dialog_result(id: Document.ID, serial: Long, result: String)
+  def dialog_result(id: Document_ID.ID, serial: Long, result: String)
   { session_actor ! Session.Dialog_Result(id, serial, result) }
 }

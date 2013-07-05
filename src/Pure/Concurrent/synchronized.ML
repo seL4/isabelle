@@ -69,6 +69,7 @@ end;
 
 (* unique identifiers > 0 *)
 
+(*NB: ML ticks forwards, JVM ticks backwards*)
 fun counter () =
   let
     val counter = var "counter" (0: int);

@@ -13,20 +13,6 @@ import scala.collection.mutable
 
 object Document
 {
-  /* formal identifiers */
-
-  type ID = Long
-  val ID = Properties.Value.Long
-
-  type Version_ID = ID
-  type Command_ID = ID
-  type Exec_ID = ID
-
-  val no_id: ID = 0
-  val new_id = Counter()
-
-
-
   /** document structure **/
 
   /* individual nodes */
@@ -202,15 +188,15 @@ object Document
     val init: Version = new Version()
 
     def make(syntax: Outer_Syntax, nodes: Nodes): Version =
-      new Version(new_id(), syntax, nodes)
+      new Version(Document_ID.make(), syntax, nodes)
   }
 
   final class Version private(
-    val id: Version_ID = no_id,
+    val id: Document_ID.Version = Document_ID.none,
     val syntax: Outer_Syntax = Outer_Syntax.empty,
     val nodes: Nodes = Nodes.empty)
   {
-    def is_init: Boolean = id == no_id
+    def is_init: Boolean = id == Document_ID.none
   }
 
 
@@ -289,7 +275,7 @@ object Document
       result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
-  type Assign = List[(Document.Command_ID, List[Document.Exec_ID])]  // exec state assignment
+  type Assign = List[(Document_ID.Command, List[Document_ID.Exec])]  // exec state assignment
 
   object State
   {
@@ -301,13 +287,14 @@ object Document
     }
 
     final class Assignment private(
-      val command_execs: Map[Command_ID, List[Exec_ID]] = Map.empty,
+      val command_execs: Map[Document_ID.Command, List[Document_ID.Exec]] = Map.empty,
       val is_finished: Boolean = false)
     {
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(add_command_execs: List[(Command_ID, List[Exec_ID])]): Assignment =
+      def assign(
+        add_command_execs: List[(Document_ID.Command, List[Document_ID.Exec])]): Assignment =
       {
         require(!is_finished)
         val command_execs1 =
@@ -324,10 +311,10 @@ object Document
   }
 
   final case class State private(
-    val versions: Map[Version_ID, Version] = Map.empty,
-    val commands: Map[Command_ID, Command.State] = Map.empty,  // static markup from define_command
-    val execs: Map[Exec_ID, Command.State] = Map.empty,  // dynamic markup from execution
-    val assignments: Map[Version_ID, State.Assignment] = Map.empty,
+    val versions: Map[Document_ID.Version, Version] = Map.empty,
+    val commands: Map[Document_ID.Command, Command.State] = Map.empty,  // static markup from define_command
+    val execs: Map[Document_ID.Exec, Command.State] = Map.empty,  // dynamic markup from execution
+    val assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
     val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
@@ -345,9 +332,9 @@ object Document
       copy(commands = commands + (id -> command.init_state))
     }
 
-    def defined_command(id: Command_ID): Boolean = commands.isDefinedAt(id)
+    def defined_command(id: Document_ID.Command): Boolean = commands.isDefinedAt(id)
 
-    def find_command(version: Version, id: ID): Option[(Node, Command)] =
+    def find_command(version: Version, id: Document_ID.ID): Option[(Node, Command)] =
       commands.get(id) orElse execs.get(id) match {
         case None => None
         case Some(st) =>
@@ -356,13 +343,13 @@ object Document
           Some((node, command))
       }
 
-    def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
-    def the_read_state(id: Command_ID): Command.State = commands.getOrElse(id, fail)
-    def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
+    def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
+    def the_read_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
+    def the_exec_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
 
-    def accumulate(id: ID, message: XML.Elem): (Command.State, State) =
+    def accumulate(id: Document_ID.ID, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some(st) =>
           val new_st = st + (id, message)
@@ -376,7 +363,7 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, command_execs: Assign = Nil): (List[Command], State) =
+    def assign(id: Document_ID.Version, command_execs: Assign = Nil): (List[Command], State) =
     {
       val version = the_version(id)
 
@@ -437,12 +424,12 @@ object Document
       }
     }
 
-    def removed_versions(removed: List[Version_ID]): State =
+    def removed_versions(removed: List[Document_ID.Version]): State =
     {
       val versions1 = versions -- removed
       val assignments1 = assignments -- removed
-      var commands1 = Map.empty[Command_ID, Command.State]
-      var execs1 = Map.empty[Exec_ID, Command.State]
+      var commands1 = Map.empty[Document_ID.Command, Command.State]
+      var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {
         (version_id, version) <- versions1.iterator
         command_execs = assignments1(version_id).command_execs

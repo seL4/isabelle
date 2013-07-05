@@ -7,31 +7,23 @@ list of commands, with asynchronous read/eval/print processes.
 
 signature DOCUMENT =
 sig
-  type id = int
-  type version_id = id
-  type command_id = id
-  type exec_id = id
-  val no_id: id
-  val new_id: unit -> id
-  val parse_id: string -> id
-  val print_id: id -> string
   type node_header = string * Thy_Header.header * string list
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
-    Edits of (command_id option * command_id option) list |
+    Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
-    Perspective of command_id list
+    Perspective of Document_ID.command list
   type edit = string * node_edit
   type state
   val init_state: state
-  val define_command: command_id -> string -> string -> state -> state
-  val remove_versions: version_id list -> state -> state
+  val define_command: Document_ID.command -> string -> string -> state -> state
+  val remove_versions: Document_ID.version list -> state -> state
   val discontinue_execution: state -> unit
   val cancel_execution: state -> unit
   val start_execution: state -> unit
   val timing: bool Unsynchronized.ref
-  val update: version_id -> version_id -> edit list -> state ->
-    (command_id * exec_id list) list * state
+  val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
+    (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
   val change_state: (state -> state) -> unit
 end;
@@ -39,27 +31,10 @@ end;
 structure Document: DOCUMENT =
 struct
 
-(* unique identifiers *)
-
-type id = int;
-type version_id = id;
-type command_id = id;
-type exec_id = id;
-
-val no_id = 0;
-val new_id = Synchronized.counter ();
-
-val parse_id = Markup.parse_int;
-val print_id = Markup.print_int;
-
-fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ print_id id);
-fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
-
-
 (* command execution *)
 
-type exec = exec_id * (Command.eval * Command.print list);  (*eval/print process*)
-val no_exec: exec = (no_id, (Command.no_eval, []));
+type exec = Document_ID.exec * (Command.eval * Command.print list);  (*eval/print process*)
+val no_exec: exec = (Document_ID.none, (Command.no_eval, []));
 
 fun exec_ids_of ((exec_id, (_, prints)): exec) = exec_id :: map #exec_id prints;
 
@@ -74,9 +49,12 @@ fun exec_run ((_, (eval, prints)): exec) =
 
 (** document structure **)
 
+fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
+fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document_ID.print id);
+
 type node_header = string * Thy_Header.header * string list;
-type perspective = Inttab.set * command_id option;
-structure Entries = Linear_Set(type key = command_id val ord = int_ord);
+type perspective = Inttab.set * Document_ID.command option;
+structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
@@ -156,9 +134,9 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 datatype node_edit =
   Clear |
-  Edits of (command_id option * command_id option) list |
+  Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
-  Perspective of command_id list;
+  Perspective of Document_ID.command list;
 
 type edit = string * node_edit;
 
@@ -175,7 +153,7 @@ fun the_entry node id =
   | SOME (exec, _) => exec);
 
 fun the_default_entry node (SOME id) = (id, the_default no_exec (the_entry node id))
-  | the_default_entry _ NONE = (no_id, no_exec);
+  | the_default_entry _ NONE = (Document_ID.none, no_exec);
 
 fun update_entry id exec =
   map_entries (Entries.update (id, exec));
@@ -237,7 +215,8 @@ end;
 abstype state = State of
  {versions: version Inttab.table,  (*version_id -> document content*)
   commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> named span*)
-  execution: version_id * Future.group * bool Unsynchronized.ref}  (*current execution process*)
+  execution:
+    Document_ID.version * Future.group * bool Unsynchronized.ref}  (*current execution process*)
 with
 
 fun make_state (versions, commands, execution) =
@@ -247,15 +226,15 @@ fun map_state f (State {versions, commands, execution}) =
   make_state (f (versions, commands, execution));
 
 val init_state =
-  make_state (Inttab.make [(no_id, empty_version)], Inttab.empty,
-    (no_id, Future.new_group NONE, Unsynchronized.ref false));
+  make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty,
+    (Document_ID.none, Future.new_group NONE, Unsynchronized.ref false));
 
 fun execution_of (State {execution, ...}) = execution;
 
 
 (* document versions *)
 
-fun define_version (id: version_id) version =
+fun define_version (id: Document_ID.version) version =
   map_state (fn (versions, commands, _) =>
     let
       val versions' = Inttab.update_new (id, version) versions
@@ -263,21 +242,21 @@ fun define_version (id: version_id) version =
       val execution' = (id, Future.new_group NONE, Unsynchronized.ref true);
     in (versions', commands, execution') end);
 
-fun the_version (State {versions, ...}) (id: version_id) =
+fun the_version (State {versions, ...}) (id: Document_ID.version) =
   (case Inttab.lookup versions id of
     NONE => err_undef "document version" id
   | SOME version => version);
 
-fun delete_version (id: version_id) versions = Inttab.delete id versions
+fun delete_version (id: Document_ID.version) versions = Inttab.delete id versions
   handle Inttab.UNDEF _ => err_undef "document version" id;
 
 
 (* commands *)
 
-fun define_command (id: command_id) name text =
+fun define_command (id: Document_ID.command) name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val id_string = print_id id;
+      val id_string = Document_ID.print id;
       val span = Lazy.lazy (fn () =>
         Position.setmp_thread_data (Position.id_only id_string)
           (fn () => Thy_Syntax.parse_tokens (Keyword.get_lexicons ()) (Position.id id_string) text)
@@ -290,7 +269,7 @@ fun define_command (id: command_id) name text =
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, commands', execution) end);
 
-fun the_command (State {commands, ...}) (id: command_id) =
+fun the_command (State {commands, ...}) (id: Document_ID.command) =
   (case Inttab.lookup commands id of
     NONE => err_undef "command" id
   | SOME command => command);
@@ -300,7 +279,7 @@ end;
 fun remove_versions ids state = state |> map_state (fn (versions, _, execution) =>
   let
     val _ = member (op =) ids (#1 execution) andalso
-      error ("Attempt to remove execution version " ^ print_id (#1 execution));
+      error ("Attempt to remove execution version " ^ Document_ID.print (#1 execution));
 
     val versions' = fold delete_version ids versions;
     val commands' =
@@ -451,19 +430,19 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
           (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
         else (I, init);
 
-      val exec_id' = new_id ();
+      val exec_id' = Document_ID.make ();
       val eval' =
         Command.memo (fn () =>
           let
             val eval_state = exec_result (snd command_exec);
             val tr =
-              Position.setmp_thread_data (Position.id_only (print_id exec_id'))
+              Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id'))
                 (fn () =>
                   Command.read span
                   |> modify_init
                   |> Toplevel.put_id exec_id') ();
           in Command.eval span tr eval_state end);
-      val prints' = if command_visible then Command.print new_id command_name eval' else [];
+      val prints' = if command_visible then Command.print command_name eval' else [];
       val command_exec' = (command_id', (exec_id', (eval', prints')));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
@@ -472,7 +451,7 @@ fun update_prints state node command_id =
     SOME (exec_id, (eval, prints)) =>
       let
         val (command_name, _) = the_command state command_id;
-        val new_prints = Command.print new_id command_name eval;
+        val new_prints = Command.print command_name eval;
         val prints' =
           new_prints |> map (fn new_print =>
             (case find_first (fn {name, ...} => name = #name new_print) prints of
@@ -486,7 +465,7 @@ fun update_prints state node command_id =
 
 in
 
-fun update (old_id: version_id) (new_id: version_id) edits state =
+fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits state =
   let
     val old_version = the_version state old_id;
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
@@ -547,7 +526,8 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
                           then SOME res
                           else SOME (id0 :: res)) node0 [];
 
-                    val last_exec = if command_id' = no_id then NONE else SOME command_id';
+                    val last_exec =
+                      if command_id' = Document_ID.none then NONE else SOME command_id';
                     val result =
                       if is_some (after_entry node last_exec) then NONE
                       else SOME eval';

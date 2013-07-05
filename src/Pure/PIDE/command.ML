@@ -23,8 +23,8 @@ sig
   val no_eval: eval
   val eval: span -> Toplevel.transition -> eval_state -> eval_state
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
-  type print = {name: string, pri: int, exec_id: int, print: unit memo}
-  val print: (unit -> int) -> string -> eval -> print list
+  type print = {name: string, pri: int, exec_id: Document_ID.exec, print: unit memo}
+  val print: string -> eval -> print list
   val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
 end;
 
@@ -175,7 +175,7 @@ end;
 
 (* print *)
 
-type print = {name: string, pri: int, exec_id: int, print: unit memo};
+type print = {name: string, pri: int, exec_id: Document_ID.exec, print: unit memo};
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 local
@@ -192,13 +192,13 @@ fun print_error tr f x =
 
 in
 
-fun print new_id command_name eval =
+fun print command_name eval =
   rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, get_print_fn)) =>
     (case Exn.capture (Runtime.controlled_execution get_print_fn) command_name of
       Exn.Res NONE => NONE
     | Exn.Res (SOME print_fn) =>
         let
-          val exec_id = new_id ();
+          val exec_id = Document_ID.make ();
           fun body () =
             let
               val {failed, command, state = st', ...} = memo_result eval;
@@ -207,7 +207,7 @@ fun print new_id command_name eval =
         in SOME {name = name, pri = pri, exec_id = exec_id, print = memo body} end
     | Exn.Exn exn =>
         let
-          val exec_id = new_id ();
+          val exec_id = Document_ID.make ();
           fun body () =
             let
               val {command, ...} = memo_result eval;

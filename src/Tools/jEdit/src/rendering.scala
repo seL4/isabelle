@@ -290,7 +290,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
           case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
           if !body.isEmpty =>
-            val entry: Command.Results.Entry = (Document.new_id(), msg)
+            val entry: Command.Results.Entry = (Document_ID.make(), msg)
             Text.Info(snapshot.convert(info_range), entry) :: msgs
         }).toList.flatMap(_.info)
     if (results.isEmpty) None
