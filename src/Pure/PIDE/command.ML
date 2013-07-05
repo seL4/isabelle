@@ -6,16 +6,15 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type span
   type eval_process
   type eval = {exec_id: Document_ID.exec, eval_process: eval_process}
   type print_process
   type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process}
   type exec = eval * print list
-  val read: (unit -> theory) -> span -> Toplevel.transition
+  val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   val no_eval: eval
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> span -> eval -> eval
+  val eval: (unit -> theory) -> Token.T list -> eval -> eval
   val print: string -> eval -> print list
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
@@ -72,8 +71,6 @@ end;
 
 
 (** main phases **)
-
-type span = Token.T list
 
 type eval_state =
   {failed: bool, malformed: bool, command: Toplevel.transition, state: Toplevel.state};

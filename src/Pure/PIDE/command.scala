@@ -202,7 +202,7 @@ object Command
 final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
-    val span: Command.Span,
+    val span: List[Token],
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)

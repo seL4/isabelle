@@ -77,9 +77,9 @@ object Thy_Syntax
 
   /** parse spans **/
 
-  def parse_spans(toks: List[Token]): List[Command.Span] =
+  def parse_spans(toks: List[Token]): List[List[Token]] =
   {
-    val result = new mutable.ListBuffer[Command.Span]
+    val result = new mutable.ListBuffer[List[Token]]
     val span = new mutable.ListBuffer[Token]
 
     def flush() { if (!span.isEmpty) { result += span.toList; span.clear } }
@@ -198,7 +198,7 @@ object Thy_Syntax
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
-      cmds: List[Command], spans: List[Command.Span]): (List[Command], List[Command.Span]) =
+      cmds: List[Command], spans: List[List[Token]]): (List[Command], List[List[Token]]) =
     (cmds, spans) match {
       case (c :: cs, s :: ss) if c.span == s => chop_common(cs, ss)
       case _ => (cmds, spans)
