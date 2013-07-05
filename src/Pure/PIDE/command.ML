@@ -8,19 +8,18 @@ signature COMMAND =
 sig
   type eval_process
   type eval = {exec_id: Document_ID.exec, eval_process: eval_process}
+  val eval_result_state: eval -> Toplevel.state
   type print_process
   type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process}
   type exec = eval * print list
+  val no_exec: exec
+  val exec_ids: exec -> Document_ID.exec list
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
-  val no_eval: eval
-  val eval_result_state: eval -> Toplevel.state
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   val print: string -> eval -> print list
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
-  val no_exec: exec
-  val exec_ids: exec -> Document_ID.exec list
-  val exec_run: exec -> unit
+  val execute: exec -> unit
   val stable_eval: eval -> bool
   val stable_print: print -> bool
 end;
@@ -70,15 +69,28 @@ end;
 
 
 
-(** main phases **)
+(** main phases of execution **)
+
+(* basic type definitions *)
 
 type eval_state =
   {failed: bool, malformed: bool, command: Toplevel.transition, state: Toplevel.state};
+val init_eval_state =
+  {failed = false, malformed = false, command = Toplevel.empty, state = Toplevel.toplevel};
+
 type eval_process = eval_state memo;
 type eval = {exec_id: Document_ID.exec, eval_process: eval_process};
 
+fun eval_result ({eval_process, ...}: eval) = memo_result eval_process;
+val eval_result_state = #state o eval_result;
+
 type print_process = unit memo;
 type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process};
+
+type exec = eval * print list;
+val no_exec: exec = ({exec_id = Document_ID.none, eval_process = memo_value init_eval_state}, []);
+
+fun exec_ids (({exec_id, ...}, prints): exec) = exec_id :: map #exec_id prints;
 
 
 (* read *)
@@ -112,14 +124,6 @@ fun read init span =
 
 
 (* eval *)
-
-val no_eval_state: eval_state =
-  {failed = false, malformed = false, command = Toplevel.empty, state = Toplevel.toplevel};
-
-val no_eval: eval = {exec_id = Document_ID.none, eval_process = memo_value no_eval_state};
-
-fun eval_result ({eval_process, ...}: eval) = memo_result eval_process;
-val eval_result_state = #state o eval_result;
 
 local
 
@@ -179,7 +183,7 @@ fun eval init span eval0 =
       let
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read init span |> Toplevel.put_id exec_id) ();
+            (fn () => read init span |> Toplevel.exec_id exec_id) ();
       in eval_state span tr (eval_result eval0) end;
   in {exec_id = exec_id, eval_process = memo process} end;
 
@@ -214,7 +218,7 @@ fun print command_name eval =
           fun process () =
             let
               val {failed, command, state = st', ...} = eval_result eval;
-              val tr = Toplevel.put_id exec_id command;
+              val tr = Toplevel.exec_id exec_id command;
             in if failed then () else print_error tr (fn () => print_fn tr st') () end;
         in SOME {name = name, pri = pri, exec_id = exec_id, print_process = memo process} end
     | Exn.Exn exn =>
@@ -223,7 +227,7 @@ fun print command_name eval =
           fun process () =
             let
               val {command, ...} = eval_result eval;
-              val tr = Toplevel.put_id exec_id command;
+              val tr = Toplevel.exec_id exec_id command;
             in output_error tr exn end;
         in SOME {name = name, pri = pri, exec_id = exec_id, print_process = memo process} end));
 
@@ -246,23 +250,12 @@ val _ =
     in if do_print then Toplevel.print_state false st' else () end));
 
 
+(* overall execution process *)
 
-(** managed evaluation **)
-
-(* execution *)
-
-type exec = eval * print list;
-val no_exec: exec = (no_eval, []);
-
-fun exec_ids (({exec_id, ...}, prints): exec) = exec_id :: map #exec_id prints;
-
-fun exec_run (({eval_process, ...}, prints): exec) =
+fun execute (({eval_process, ...}, prints): exec) =
  (memo_eval eval_process;
   prints |> List.app (fn {name, pri, print_process, ...} =>
     memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print_process));
-
-
-(* stable situations after cancellation *)
 
 fun stable_goals exec_id =
   not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));

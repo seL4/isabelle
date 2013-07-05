@@ -256,6 +256,7 @@ use "ML/ml_thms.ML";
 
 (*toplevel transactions*)
 use "Isar/proof_node.ML";
+use "PIDE/document_id.ML";
 use "Isar/toplevel.ML";
 
 (*theory documents*)
@@ -265,7 +266,6 @@ use "Thy/thy_output.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";
 use "Thy/present.ML";
-use "PIDE/document_id.ML";
 use "PIDE/command.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";

@@ -2,12 +2,11 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Prover commands with semantic state.
+Prover commands with accumulated results from execution.
 */
 
 package isabelle
 
-import java.lang.System
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
@@ -84,7 +83,9 @@ object Command
                 state.add_status(markup)
                   .add_markup(Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
 
-              case _ => System.err.println("Ignored status message: " + msg); state
+              case _ =>
+                java.lang.System.err.println("Ignored status message: " + msg)
+                state
             })
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
@@ -104,7 +105,7 @@ object Command
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ =>
-                // FIXME System.err.println("Ignored report message: " + msg)
+                // FIXME java.lang.System.err.println("Ignored report message: " + msg)
                 state
             })
         case XML.Elem(Markup(name, atts), body) =>
@@ -122,7 +123,9 @@ object Command
                 else st0
 
               st1
-            case _ => System.err.println("Ignored message without serial number: " + message); this
+            case _ =>
+              java.lang.System.err.println("Ignored message without serial number: " + message)
+              this
           }
       }
 

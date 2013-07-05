@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Document as collection of named nodes, each consisting of an editable
-list of commands, with asynchronous read/eval/print processes.
+list of commands, associated with asynchronous execution process.
 *)
 
 signature DOCUMENT =
@@ -201,11 +201,20 @@ end;
 
 (** main state -- document structure and execution process **)
 
+type execution =
+ {version_id: Document_ID.version,
+  group: Future.group,
+  running: bool Unsynchronized.ref};
+
+val no_execution =
+ {version_id = Document_ID.none,
+  group = Future.new_group NONE,
+  running = Unsynchronized.ref false};
+
 abstype state = State of
- {versions: version Inttab.table,  (*version_id -> document content*)
-  commands: (string * Token.T list lazy) Inttab.table,  (*command_id -> named span*)
-  execution:
-    Document_ID.version * Future.group * bool Unsynchronized.ref}  (*current execution process*)
+ {versions: version Inttab.table,  (*version id -> document content*)
+  commands: (string * Token.T list lazy) Inttab.table,  (*command id -> named span*)
+  execution: execution}  (*current execution process*)
 with
 
 fun make_state (versions, commands, execution) =
@@ -215,81 +224,85 @@ fun map_state f (State {versions, commands, execution}) =
   make_state (f (versions, commands, execution));
 
 val init_state =
-  make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty,
-    (Document_ID.none, Future.new_group NONE, Unsynchronized.ref false));
+  make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty, no_execution);
 
 fun execution_of (State {execution, ...}) = execution;
 
 
 (* document versions *)
 
-fun define_version (id: Document_ID.version) version =
+fun define_version version_id version =
   map_state (fn (versions, commands, _) =>
     let
-      val versions' = Inttab.update_new (id, version) versions
+      val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = (id, Future.new_group NONE, Unsynchronized.ref true);
+      val execution' =
+       {version_id = version_id,
+        group = Future.new_group NONE,
+        running = Unsynchronized.ref true};
     in (versions', commands, execution') end);
 
-fun the_version (State {versions, ...}) (id: Document_ID.version) =
-  (case Inttab.lookup versions id of
-    NONE => err_undef "document version" id
+fun the_version (State {versions, ...}) version_id =
+  (case Inttab.lookup versions version_id of
+    NONE => err_undef "document version" version_id
   | SOME version => version);
 
-fun delete_version (id: Document_ID.version) versions = Inttab.delete id versions
-  handle Inttab.UNDEF _ => err_undef "document version" id;
+fun delete_version version_id versions =
+  Inttab.delete version_id versions
+    handle Inttab.UNDEF _ => err_undef "document version" version_id;
 
 
 (* commands *)
 
-fun define_command (id: Document_ID.command) name text =
+fun define_command command_id name text =
   map_state (fn (versions, commands, execution) =>
     let
-      val id_string = Document_ID.print id;
-      val span = Lazy.lazy (fn () =>
-        Position.setmp_thread_data (Position.id_only id_string)
-          (fn () => Thy_Syntax.parse_tokens (Keyword.get_lexicons ()) (Position.id id_string) text)
-            ());
+      val id = Document_ID.print command_id;
+      val span =
+        Lazy.lazy (fn () =>
+          Position.setmp_thread_data (Position.id_only id)
+            (fn () => Thy_Syntax.parse_tokens (Keyword.get_lexicons ()) (Position.id id) text) ());
       val _ =
-        Position.setmp_thread_data (Position.id_only id_string)
+        Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
       val commands' =
-        Inttab.update_new (id, (name, span)) commands
+        Inttab.update_new (command_id, (name, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, commands', execution) end);
 
-fun the_command (State {commands, ...}) (id: Document_ID.command) =
-  (case Inttab.lookup commands id of
-    NONE => err_undef "command" id
+fun the_command (State {commands, ...}) command_id =
+  (case Inttab.lookup commands command_id of
+    NONE => err_undef "command" command_id
   | SOME command => command);
 
 end;
 
-fun remove_versions ids state = state |> map_state (fn (versions, _, execution) =>
+fun remove_versions version_ids state = state |> map_state (fn (versions, _, execution) =>
   let
-    val _ = member (op =) ids (#1 execution) andalso
-      error ("Attempt to remove execution version " ^ Document_ID.print (#1 execution));
+    val _ =
+      member (op =) version_ids (#version_id execution) andalso
+        error ("Attempt to remove execution version " ^ Document_ID.print (#version_id execution));
 
-    val versions' = fold delete_version ids versions;
+    val versions' = fold delete_version version_ids versions;
     val commands' =
       (versions', Inttab.empty) |->
         Inttab.fold (fn (_, version) => nodes_of version |>
           String_Graph.fold (fn (_, (node, _)) => node |>
-            iterate_entries (fn ((_, id), _) =>
-              SOME o Inttab.insert (K true) (id, the_command state id))));
+            iterate_entries (fn ((_, command_id), _) =>
+              SOME o Inttab.insert (K true) (command_id, the_command state command_id))));
   in (versions', commands', execution) end);
 
 
 
 (** document execution **)
 
-val discontinue_execution = execution_of #> (fn (_, _, running) => running := false);
-val cancel_execution = execution_of #> (fn (_, group, _) => Future.cancel_group group);
-val terminate_execution = execution_of #> (fn (_, group, _) => Future.terminate group);
+val discontinue_execution = execution_of #> (fn {running, ...} => running := false);
+val cancel_execution = execution_of #> (fn {group, ...} => Future.cancel_group group);
+val terminate_execution = execution_of #> (fn {group, ...} => Future.terminate group);
 
 fun start_execution state =
   let
-    val (version_id, group, running) = execution_of state;
+    val {version_id, group, running} = execution_of state;
     val _ =
       (singleton o Future.forks)
         {name = "Document.execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
@@ -306,7 +319,7 @@ fun start_execution state =
                   (fn () =>
                     iterate_entries (fn (_, opt_exec) => fn () =>
                       (case opt_exec of
-                        SOME exec => if ! running then SOME (Command.exec_run exec) else NONE
+                        SOME exec => if ! running then SOME (Command.execute exec) else NONE
                       | NONE => NONE)) node ()))));
   in () end;
 
@@ -347,9 +360,9 @@ fun init_theory deps node span =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (Command.eval_result_state
-                (the_default Command.no_eval
-                  (get_result (snd (the (AList.lookup (op =) deps import))))))));
+              (case get_result (snd (the (AList.lookup (op =) deps import))) of
+                NONE => Toplevel.toplevel
+              | SOME eval => Command.eval_result_state eval)));
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
   in Thy_Load.begin_theory master_dir header parents end;
 
@@ -423,9 +436,9 @@ fun update_prints state node command_id =
 
 in
 
-fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits state =
+fun update old_version_id new_version_id edits state =
   let
-    val old_version = the_version state old_id;
+    val old_version = the_version state old_version_id;
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
@@ -510,7 +523,7 @@ fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits sta
     val updated_nodes = map_filter #3 updated;
 
     val state' = state
-      |> define_version new_id (fold put_node updated_nodes new_version);
+      |> define_version new_version_id (fold put_node updated_nodes new_version);
   in (command_execs, state') end;
 
 end;
