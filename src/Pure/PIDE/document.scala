@@ -334,7 +334,7 @@ object Document
 
     def defined_command(id: Document_ID.Command): Boolean = commands.isDefinedAt(id)
 
-    def find_command(version: Version, id: Document_ID.ID): Option[(Node, Command)] =
+    def find_command(version: Version, id: Document_ID.Generic): Option[(Node, Command)] =
       commands.get(id) orElse execs.get(id) match {
         case None => None
         case Some(st) =>
@@ -349,7 +349,7 @@ object Document
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
 
-    def accumulate(id: Document_ID.ID, message: XML.Elem): (Command.State, State) =
+    def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some(st) =>
           val new_st = st + (id, message)

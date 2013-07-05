@@ -86,7 +86,7 @@ object Protocol
 
   object Command_Timing
   {
-    def unapply(props: Properties.T): Option[(Document_ID.ID, isabelle.Timing)] =
+    def unapply(props: Properties.T): Option[(Document_ID.Generic, isabelle.Timing)] =
       props match {
         case (Markup.FUNCTION, Markup.COMMAND_TIMING) :: args =>
           (args, args) match {
@@ -233,7 +233,7 @@ object Protocol
 
   object Dialog_Args
   {
-    def unapply(props: Properties.T): Option[(Document_ID.ID, Long, String)] =
+    def unapply(props: Properties.T): Option[(Document_ID.Generic, Long, String)] =
       (props, props, props) match {
         case (Position.Id(id), Markup.Serial(serial), Markup.Result(result)) =>
           Some((id, serial, result))
@@ -243,7 +243,7 @@ object Protocol
 
   object Dialog
   {
-    def unapply(tree: XML.Tree): Option[(Document_ID.ID, Long, String)] =
+    def unapply(tree: XML.Tree): Option[(Document_ID.Generic, Long, String)] =
       tree match {
         case XML.Elem(Markup(Markup.DIALOG, Dialog_Args(id, serial, result)), _) =>
           Some((id, serial, result))
@@ -253,7 +253,7 @@ object Protocol
 
   object Dialog_Result
   {
-    def apply(id: Document_ID.ID, serial: Long, result: String): XML.Elem =
+    def apply(id: Document_ID.Generic, serial: Long, result: String): XML.Elem =
     {
       val props = Position.Id(id) ::: Markup.Serial(serial)
       XML.Elem(Markup(Markup.RESULT, props), List(XML.Text(result)))
@@ -309,7 +309,7 @@ trait Protocol extends Isabelle_Process
 
   def define_command(command: Command): Unit =
     input("Document.define_command",
-      Document_ID.ID(command.id), encode(command.name), encode(command.source))
+      Document_ID(command.id), encode(command.name), encode(command.source))
 
 
   /* document versions */
@@ -346,7 +346,7 @@ trait Protocol extends Isabelle_Process
         pair(string, encode_edit(name))(name.node, edit)
       })
       YXML.string_of_body(encode_edits(edits)) }
-    input("Document.update", Document_ID.ID(old_id), Document_ID.ID(new_id), edits_yxml)
+    input("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])

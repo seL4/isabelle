@@ -75,7 +75,7 @@ object Command
     private def add_status(st: Markup): State = copy(status = st :: status)
     private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
 
-    def + (alt_id: Document_ID.ID, message: XML.Elem): State =
+    def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>

@@ -8,23 +8,23 @@ NB: ML ticks forwards > 0, JVM ticks backwards < 0.
 
 signature DOCUMENT_ID =
 sig
-  type id = int
-  type version = id
-  type command = id
-  type exec = id
-  val none: id
-  val make: unit -> id
-  val parse: string -> id
-  val print: id -> string
+  type generic = int
+  type version = generic
+  type command = generic
+  type exec = generic
+  val none: generic
+  val make: unit -> generic
+  val parse: string -> generic
+  val print: generic -> string
 end;
 
 structure Document_ID: DOCUMENT_ID =
 struct
 
-type id = int;
-type version = id;
-type command = id;
-type exec = id;
+type generic = int;
+type version = generic;
+type command = generic;
+type exec = generic;
 
 val none = 0;
 val make = Synchronized.counter ();

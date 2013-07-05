@@ -26,7 +26,7 @@ object Active
           val buffer = model.buffer
           val snapshot = model.snapshot()
 
-          def try_replace_command(exec_id: Document_ID.ID, s: String)
+          def try_replace_command(exec_id: Document_ID.Exec, s: String)
           {
             snapshot.state.execs.get(exec_id).map(_.command) match {
               case Some(command) =>
