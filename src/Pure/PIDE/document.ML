@@ -109,8 +109,8 @@ fun set_result result =
   map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
 
 fun finished_theory node =
-  (case Exn.capture (Command.eval_result o the) (get_result node) of
-    Exn.Res {state = st, ...} => can (Toplevel.end_theory Position.none) st
+  (case Exn.capture (Command.eval_result_state o the) (get_result node) of
+    Exn.Res st => can (Toplevel.end_theory Position.none) st
   | _ => false);
 
 fun get_node nodes name = String_Graph.get_node nodes name
@@ -347,10 +347,9 @@ fun init_theory deps node span =
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
-              (#state
-                (Command.eval_result
-                  (the_default Command.no_eval
-                    (get_result (snd (the (AList.lookup (op =) deps import)))))))));
+              (Command.eval_result_state
+                (the_default Command.no_eval
+                  (get_result (snd (the (AList.lookup (op =) deps import))))))));
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
   in Thy_Load.begin_theory master_dir header parents end;
 
@@ -391,31 +390,16 @@ fun last_common state last_visible node0 node =
     else (common, flags)
   end;
 
+fun illegal_init _ = error "Illegal theory header after end of theory";
+
 fun new_exec state proper_init command_visible command_id' (execs, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
+      val (_, (eval, _)) = command_exec;
       val (command_name, span) = the_command state command_id' ||> Lazy.force;
-
-      fun illegal_init _ = error "Illegal theory header after end of theory";
-      val (modify_init, init') =
-        if Keyword.is_theory_begin command_name then
-          (Toplevel.modify_init (fn () => the_default illegal_init init span), NONE)
-        else (I, init);
-
-      val exec_id' = Document_ID.make ();
-      val eval_body' =
-        Command.memo (fn () =>
-          let
-            val eval_state = Command.exec_result (snd command_exec);
-            val tr =
-              Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id'))
-                (fn () =>
-                  Command.read span
-                  |> modify_init
-                  |> Toplevel.put_id exec_id') ();
-          in Command.eval span tr eval_state end);
-      val eval' = {exec_id = exec_id', eval = eval_body'};
+      val init' = if Keyword.is_theory_begin command_name then NONE else init;
+      val eval' = Command.eval (fn () => the_default illegal_init init span) span eval;
       val prints' = if command_visible then Command.print command_name eval' else [];
       val command_exec' = (command_id', (eval', prints'));
     in SOME (command_exec' :: execs, command_exec', init') end;
