@@ -108,6 +108,11 @@ fun get_result (Node {result, ...}) = result;
 fun set_result result =
   map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
 
+fun finished_theory node =
+  (case Exn.capture (Command.eval_result o the) (get_result node) of
+    Exn.Res {state = st, ...} => can (Toplevel.end_theory Position.none) st
+  | _ => false);
+
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
 fun default_node name = String_Graph.default_node (name, empty_node);
@@ -275,12 +280,6 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
   in (versions', commands', execution) end);
 
 
-fun finished_theory node =
-  (case Exn.capture (Command.memo_result o the) (get_result node) of
-    Exn.Res {state = st, ...} => can (Toplevel.end_theory Position.none) st
-  | _ => false);
-
-
 
 (** document execution **)
 
@@ -349,7 +348,7 @@ fun init_theory deps node span =
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
               (#state
-                (Command.memo_result
+                (Command.eval_result
                   (the_default Command.no_eval
                     (get_result (snd (the (AList.lookup (op =) deps import)))))))));
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
@@ -376,11 +375,11 @@ fun last_common state last_visible node0 node =
           val same' =
             (case opt_exec of
               NONE => false
-            | SOME (exec_id, exec) =>
+            | SOME (eval, _) =>
                 (case lookup_entry node0 id of
                   NONE => false
-                | SOME (exec_id0, _) =>
-                    exec_id = exec_id0 andalso Command.stable_eval (exec_id, exec)));
+                | SOME (eval0, _) =>
+                    #exec_id eval = #exec_id eval0 andalso Command.stable_eval eval));
         in SOME (same', (prev, flags')) end
       else NONE;
     val (same, (common, flags)) =
@@ -405,7 +404,7 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
         else (I, init);
 
       val exec_id' = Document_ID.make ();
-      val eval' =
+      val eval_body' =
         Command.memo (fn () =>
           let
             val eval_state = Command.exec_result (snd command_exec);
@@ -416,13 +415,14 @@ fun new_exec state proper_init command_visible command_id' (execs, command_exec,
                   |> modify_init
                   |> Toplevel.put_id exec_id') ();
           in Command.eval span tr eval_state end);
+      val eval' = {exec_id = exec_id', eval = eval_body'};
       val prints' = if command_visible then Command.print command_name eval' else [];
-      val command_exec' = (command_id', (exec_id', (eval', prints')));
+      val command_exec' = (command_id', (eval', prints'));
     in SOME (command_exec' :: execs, command_exec', init') end;
 
 fun update_prints state node command_id =
   (case the_entry node command_id of
-    SOME (exec_id, (eval, prints)) =>
+    SOME (eval, prints) =>
       let
         val (command_name, _) = the_command state command_id;
         val new_prints = Command.print command_name eval;
@@ -433,7 +433,7 @@ fun update_prints state node command_id =
             | NONE => new_print));
       in
         if eq_list (op = o pairself #exec_id) (prints, prints') then NONE
-        else SOME (command_id, (exec_id, (eval, prints')))
+        else SOME (command_id, (eval, prints'))
       end
   | NONE => NONE);
 
@@ -479,7 +479,7 @@ fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits sta
                       else last_common state last_visible node0 node;
                     val common_command_exec = the_default_entry node common;
 
-                    val (new_execs, (command_id', (_, (eval', _))), _) =
+                    val (new_execs, (command_id', (eval', _)), _) =
                       ([], common_command_exec, if initial then SOME init else NONE) |>
                       (still_visible orelse node_required) ?
                         iterate_entries_after common
@@ -489,14 +489,14 @@ fun update (old_id: Document_ID.version) (new_id: Document_ID.version) edits sta
 
                     val updated_execs =
                       (visible_commands, new_execs) |-> Inttab.fold (fn (id, ()) =>
-                        if exists (fn (_, (id', _)) => id = id') new_execs then I
+                        if exists (fn (_, ({exec_id = id', ...}, _)) => id = id') new_execs then I
                         else append (the_list (update_prints state node id)));
 
                     val no_execs =
                       iterate_entries_after common
                         (fn ((_, id0), exec0) => fn res =>
                           if is_none exec0 then NONE
-                          else if exists (fn (_, (id, _)) => id0 = id) updated_execs
+                          else if exists (fn (_, ({exec_id = id, ...}, _)) => id0 = id) updated_execs
                           then SOME res
                           else SOME (id0 :: res)) node0 [];
 
