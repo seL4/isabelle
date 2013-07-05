@@ -997,7 +997,7 @@ using assms unfolding relChain_def by auto
 lemma infinite_card_of_diff_singl:
 assumes "infinite A"
 shows "|A - {a}| =o |A|"
-by (metis assms card_of_infinite_diff_finitte finite.emptyI finite_insert)
+by (metis assms card_of_infinite_diff_finite finite.emptyI finite_insert)
 
 lemma card_of_vimage:
 assumes "B \<subseteq> range f"
@@ -1066,7 +1066,7 @@ proof-
   moreover
   {have 2: "infinite (Bpow r A)" using infinite_Bpow[OF rc r A] .
    have "|Bpow r A| =o |Bpow r A - {{}}|"
-   using card_of_infinite_diff_finitte
+   using card_of_infinite_diff_finite
    by (metis Pow_empty 2 finite_Pow_iff infinite_imp_nonempty ordIso_symmetric)
   }
   ultimately show ?thesis by (metis ordIso_ordLeq_trans)

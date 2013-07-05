@@ -391,7 +391,7 @@ proof(cases "finite A")
 next
   case False
   hence "|{X. X \<subseteq> A \<and> countable X}| =o |{X. X \<subseteq> A \<and> countable X} - {{}}|"
-  by (intro card_of_infinite_diff_finitte finite.emptyI finite.insertI ordIso_symmetric)
+  by (intro card_of_infinite_diff_finite finite.emptyI finite.insertI ordIso_symmetric)
      (unfold finite_countable_subset)
   also have "|{X. X \<subseteq> A \<and> countable X} - {{}}| \<le>o |A| ^c natLeq"
   using card_of_countable_sets_Func[of A] unfolding set_diff_eq by auto

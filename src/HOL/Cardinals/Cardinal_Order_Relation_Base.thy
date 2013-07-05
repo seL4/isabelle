@@ -2199,8 +2199,7 @@ qed
 
 subsection {* Others *}
 
-(* FIXME: finitte ~> finite? *)
-lemma card_of_infinite_diff_finitte:
+lemma card_of_infinite_diff_finite:
 assumes "infinite A" and "finite B"
 shows "|A - B| =o |A|"
 by (metis assms card_of_Un_diff_infinite finite_ordLess_infinite2)
@@ -2294,8 +2293,7 @@ proof
   qed
 qed
 
-(* FIXME: betwe ~> betw? *)
-lemma bij_betwe_curr:
+lemma bij_betw_curr:
 "bij_betw (curr A) (Func (A <*> B) C) (Func A (Func B C))"
 unfolding bij_betw_def inj_on_def image_def
 using curr_in curr_inj curr_surj by blast
@@ -2303,7 +2301,7 @@ using curr_in curr_inj curr_surj by blast
 lemma card_of_Func_Times:
 "|Func (A <*> B) C| =o |Func A (Func B C)|"
 unfolding card_of_ordIso[symmetric]
-using bij_betwe_curr by blast
+using bij_betw_curr by blast
 
 definition Func_map where
 "Func_map B2 f1 f2 g b2 \<equiv>
