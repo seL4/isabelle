@@ -75,7 +75,7 @@ object Command
     private def add_status(st: Markup): State = copy(status = st :: status)
     private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
 
-    def + (alt_id: Document.ID, message: XML.Elem): Command.State =
+    def + (alt_id: Document.ID, message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -125,6 +125,9 @@ object Command
             case _ => System.err.println("Ignored message without serial number: " + message); this
           }
       }
+
+    def ++ (other: State): State =
+      copy(results = results ++ other.results)  // FIXME merge more content!?
   }
 
 
@@ -240,4 +243,6 @@ final class Command private(
 
   val init_state: Command.State =
     Command.State(this, results = init_results, markup = init_markup)
+
+  val empty_state: Command.State = Command.State(this)
 }

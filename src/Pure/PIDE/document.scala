@@ -289,7 +289,7 @@ object Document
       result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
-  type Assign = List[(Document.Command_ID, Option[Document.Exec_ID])]  // exec state assignment
+  type Assign = List[(Document.Command_ID, List[Document.Exec_ID])]  // exec state assignment
 
   object State
   {
@@ -301,19 +301,19 @@ object Document
     }
 
     final class Assignment private(
-      val command_execs: Map[Command_ID, Exec_ID] = Map.empty,
+      val command_execs: Map[Command_ID, List[Exec_ID]] = Map.empty,
       val is_finished: Boolean = false)
     {
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(add_command_execs: List[(Command_ID, Option[Exec_ID])]): Assignment =
+      def assign(add_command_execs: List[(Command_ID, List[Exec_ID])]): Assignment =
       {
         require(!is_finished)
         val command_execs1 =
           (command_execs /: add_command_execs) {
-            case (res, (command_id, None)) => res - command_id
-            case (res, (command_id, Some(exec_id))) => res + (command_id -> exec_id)
+            case (res, (command_id, Nil)) => res - command_id
+            case (res, assign) => res + assign
           }
         new Assignment(command_execs1, true)
       }
@@ -357,8 +357,8 @@ object Document
       }
 
     def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
-    def the_command_state(id: Command_ID): Command.State = commands.getOrElse(id, fail)
-    def the_exec(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
+    def the_read_state(id: Command_ID): Command.State = commands.getOrElse(id, fail)
+    def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment =
       assignments.getOrElse(version.id, fail)
 
@@ -383,12 +383,17 @@ object Document
       val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: command_execs) {
           case ((commands1, execs1), (cmd_id, exec)) =>
-            val st = the_command_state(cmd_id)
-            val commands2 = st.command :: commands1
+            val st1 = the_read_state(cmd_id)
+            val command = st1.command
+            val st0 = command.empty_state
+
+            val commands2 = command :: commands1
             val execs2 =
               exec match {
-                case None => execs1
-                case Some(exec_id) => execs1 + (exec_id -> st)
+                case Nil => execs1
+                case eval_id :: print_ids =>
+                  execs1 + (eval_id -> execs.getOrElse(eval_id, st1)) ++
+                    print_ids.iterator.map(id => id -> execs.getOrElse(id, st0))
               }
             (commands2, execs2)
         }
@@ -445,12 +450,11 @@ object Document
         command <- node.commands.iterator
       } {
         val id = command.id
-        if (!commands1.isDefinedAt(id) && commands.isDefinedAt(id))
-          commands1 += (id -> commands(id))
-        if (command_execs.isDefinedAt(id)) {
-          val exec_id = command_execs(id)
-          if (!execs1.isDefinedAt(exec_id) && execs.isDefinedAt(exec_id))
-            execs1 += (exec_id -> execs(exec_id))
+        if (!commands1.isDefinedAt(id))
+          commands.get(id).foreach(st => commands1 += (id -> st))
+        for (exec_id <- command_execs.getOrElse(id, Nil)) {
+          if (!execs1.isDefinedAt(exec_id))
+            execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
       }
       copy(versions = versions1, commands = commands1, execs = execs1, assignments = assignments1)
@@ -460,12 +464,15 @@ object Document
     {
       require(is_assigned(version))
       try {
-        the_exec(the_assignment(version).check_finished.command_execs
-          .getOrElse(command.id, fail))
+        the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
+          .map(the_exec_state(_)) match {
+            case eval_state :: print_states => (eval_state /: print_states)(_ ++ _)
+            case Nil => fail
+          }
       }
       catch {
         case _: State.Fail =>
-          try { the_command_state(command.id) }
+          try { the_read_state(command.id) }
           catch { case _: State.Fail => command.init_state }
       }
     }
