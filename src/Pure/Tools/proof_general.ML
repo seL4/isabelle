@@ -152,7 +152,7 @@ fun opt_attr _ NONE = []
   | opt_attr name (SOME value) = attr name value;
 
 val pgip_id = "dummy";
-val pgip_serial = Synchronized.counter ();
+val pgip_serial = Counter.make ();
 
 fun output_pgip refid refseq content =
   XML.Elem (("pgip",

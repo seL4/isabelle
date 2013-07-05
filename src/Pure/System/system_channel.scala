@@ -31,7 +31,7 @@ abstract class System_Channel
 
 private object Fifo_Channel
 {
-  private val next_fifo = Counter()
+  private val next_fifo = Counter.make()
 }
 
 private class Fifo_Channel extends System_Channel

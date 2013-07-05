@@ -22,6 +22,7 @@ use "Concurrent/simple_thread.ML";
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
+use "Concurrent/counter.ML";
 
 use "General/properties.ML";
 use "General/output.ML";

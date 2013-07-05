@@ -27,7 +27,7 @@ type command = generic;
 type exec = generic;
 
 val none = 0;
-val make = Synchronized.counter ();
+val make = Counter.make ();
 
 val parse = Markup.parse_int;
 val print = Markup.print_int;

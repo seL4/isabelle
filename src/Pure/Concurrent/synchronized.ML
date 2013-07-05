@@ -13,7 +13,6 @@ sig
   val guarded_access: 'a var -> ('a -> ('b * 'a) option) -> 'b
   val change_result: 'a var -> ('a -> 'b * 'a) -> 'b
   val change: 'a var -> ('a -> 'a) -> unit
-  val counter: unit -> unit -> int
 end;
 
 structure Synchronized: SYNCHRONIZED =
@@ -65,19 +64,5 @@ fun change_result var f = guarded_access var (SOME o f);
 fun change var f = change_result var (fn x => ((), f x));
 
 end;
-
-
-(* unique identifiers > 0 *)
-
-(*NB: ML ticks forwards, JVM ticks backwards*)
-fun counter () =
-  let
-    val counter = var "counter" (0: int);
-    fun next () =
-      change_result counter
-        (fn i =>
-          let val j = i + (1: int)
-          in (j, j) end);
-  in next end;
 
 end;

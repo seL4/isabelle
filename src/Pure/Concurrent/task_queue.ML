@@ -47,7 +47,7 @@ end;
 structure Task_Queue: TASK_QUEUE =
 struct
 
-val new_id = Synchronized.counter ();
+val new_id = Counter.make ();
 
 
 (** nested groups of tasks **)

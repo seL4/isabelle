@@ -13,7 +13,7 @@ package isabelle
 object Counter
 {
   type ID = Long
-  def apply(): Counter = new Counter
+  def make(): Counter = new Counter
 }
 
 final class Counter private

@@ -26,7 +26,7 @@ type event = unit -> unit;
 
 (* type request *)
 
-val request_counter = Synchronized.counter ();
+val request_counter = Counter.make ();
 datatype request = Request of int;
 fun new_request () = Request (request_counter ());
 
