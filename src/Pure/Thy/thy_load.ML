@@ -217,8 +217,7 @@ fun excursion last_timing init elements =
   let
     fun prepare_span span =
       Thy_Syntax.span_content span
-      |> Command.read
-      |> Toplevel.modify_init init
+      |> Command.read init
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =

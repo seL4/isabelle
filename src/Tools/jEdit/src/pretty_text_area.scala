@@ -24,7 +24,7 @@ object Pretty_Text_Area
   private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
     formatted_body: XML.Body): (String, Document.State) =
   {
-    val command = Command.rich_text(Document.new_id(), base_results, formatted_body)
+    val command = Command.rich_text(Document_ID.make(), base_results, formatted_body)
     val node_name = command.node_name
     val edits: List[Document.Edit_Text] =
       List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
@@ -38,7 +38,7 @@ object Pretty_Text_Area
     val state1 =
       state0.continue_history(Future.value(version0), edits, Future.value(version1))._2
         .define_version(version1, state0.the_assignment(version0))
-        .assign(version1.id, List(command.id -> List(Document.new_id())))._2
+        .assign(version1.id, List(command.id -> List(Document_ID.make())))._2
 
     (command.source, state1)
   }

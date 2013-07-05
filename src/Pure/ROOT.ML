@@ -22,6 +22,7 @@ use "Concurrent/simple_thread.ML";
 use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
+use "Concurrent/counter.ML";
 
 use "General/properties.ML";
 use "General/output.ML";
@@ -256,6 +257,7 @@ use "ML/ml_thms.ML";
 
 (*toplevel transactions*)
 use "Isar/proof_node.ML";
+use "PIDE/document_id.ML";
 use "Isar/toplevel.ML";
 
 (*theory documents*)

@@ -2,12 +2,11 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Prover commands with semantic state.
+Prover commands with accumulated results from execution.
 */
 
 package isabelle
 
-import java.lang.System
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedMap
@@ -75,7 +74,7 @@ object Command
     private def add_status(st: Markup): State = copy(status = st :: status)
     private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
 
-    def + (alt_id: Document.ID, message: XML.Elem): State =
+    def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -84,7 +83,9 @@ object Command
                 state.add_status(markup)
                   .add_markup(Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
 
-              case _ => System.err.println("Ignored status message: " + msg); state
+              case _ =>
+                java.lang.System.err.println("Ignored status message: " + msg)
+                state
             })
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
@@ -104,7 +105,7 @@ object Command
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ =>
-                // FIXME System.err.println("Ignored report message: " + msg)
+                // FIXME java.lang.System.err.println("Ignored report message: " + msg)
                 state
             })
         case XML.Elem(Markup(name, atts), body) =>
@@ -122,7 +123,9 @@ object Command
                 else st0
 
               st1
-            case _ => System.err.println("Ignored message without serial number: " + message); this
+            case _ =>
+              java.lang.System.err.println("Ignored message without serial number: " + message)
+              this
           }
       }
 
@@ -136,7 +139,7 @@ object Command
   type Span = List[Token]
 
   def apply(
-    id: Document.Command_ID,
+    id: Document_ID.Command,
     node_name: Document.Node.Name,
     span: Span,
     results: Results = Results.empty,
@@ -160,16 +163,16 @@ object Command
     new Command(id, node_name, span1.toList, source, results, markup)
   }
 
-  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil)
+  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil)
 
-  def unparsed(id: Document.Command_ID, source: String, results: Results, markup: Markup_Tree)
+  def unparsed(id: Document_ID.Command, source: String, results: Results, markup: Markup_Tree)
       : Command =
     Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), results, markup)
 
   def unparsed(source: String): Command =
-    unparsed(Document.no_id, source, Results.empty, Markup_Tree.empty)
+    unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
 
-  def rich_text(id: Document.Command_ID, results: Results, body: XML.Body): Command =
+  def rich_text(id: Document_ID.Command, results: Results, body: XML.Body): Command =
   {
     val text = XML.content(body)
     val markup = Markup_Tree.from_XML(body)
@@ -200,16 +203,16 @@ object Command
 
 
 final class Command private(
-    val id: Document.Command_ID,
+    val id: Document_ID.Command,
     val node_name: Document.Node.Name,
-    val span: Command.Span,
+    val span: List[Token],
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
   /* classification */
 
-  def is_undefined: Boolean = id == Document.no_id
+  def is_undefined: Boolean = id == Document_ID.none
   val is_unparsed: Boolean = span.exists(_.is_unparsed)
   val is_unfinished: Boolean = span.exists(_.is_unfinished)
 

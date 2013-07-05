@@ -152,6 +152,7 @@ session Pure =
     "PIDE/active.ML"
     "PIDE/command.ML"
     "PIDE/document.ML"
+    "PIDE/document_id.ML"
     "PIDE/markup.ML"
     "PIDE/protocol.ML"
     "PIDE/xml.ML"

@@ -19,7 +19,7 @@ val _ = Session.protocol_handler "isabelle.Invoke_Scala";
 
 (* pending promises *)
 
-val new_id = string_of_int o Synchronized.counter ();
+val new_id = string_of_int o Counter.make ();
 
 val promises =
   Synchronized.var "Invoke_Scala.promises" (Symtab.empty: string future Symtab.table);
