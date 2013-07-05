@@ -80,7 +80,6 @@ apply(rule Seq)
    apply(rule Assign)
   apply(rule Assign')
   apply simp
-  apply(simp add: minus_numeral_simps(1)[symmetric] del: minus_numeral_simps)
  apply(simp)
 apply(rule Assign')
 apply simp

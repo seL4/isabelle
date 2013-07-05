@@ -2,6 +2,24 @@
 
 theory Hoare_Examples imports Hoare begin
 
+text{* The following lemmas improve proof automation and should be included
+(globally?) when dealing with negative numerals. *}
+
+lemma add_neg1R[simp]:
+  "x + -1 = x - (1 :: 'a :: neg_numeral)"
+unfolding minus_one[symmetric] by (rule diff_minus[symmetric])
+lemma add_neg1L[simp]:
+  "-1 + x = x - (1 :: 'a :: {neg_numeral, ab_group_add})"
+unfolding minus_one[symmetric] by simp
+
+lemma add_neg_numeralL[simp]:
+  "x + neg_numeral n = (x::'a::neg_numeral) - numeral(n)"
+by (simp only: diff_minus_eq_add[symmetric] minus_neg_numeral)
+lemma add_neg_numeralR[simp]:
+  "neg_numeral n + x = (x::'a::{neg_numeral,ab_group_add}) - numeral(n)"
+by simp
+
+
 text{* Summing up the first @{text x} natural numbers in variable @{text y}. *}
 
 fun sum :: "int \<Rightarrow> int" where
@@ -57,7 +75,6 @@ apply(rule Seq)
    apply(rule Assign)
   apply(rule Assign')
   apply simp
-  apply(simp add: minus_numeral_simps(1)[symmetric] del: minus_numeral_simps)
  apply(simp)
 apply(rule Assign')
 apply simp
