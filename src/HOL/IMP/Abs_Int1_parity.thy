@@ -116,8 +116,7 @@ next
   txt{* Warning: this subproof refers to the names @{text a1} and @{text a2}
   from the statement of the axiom. *}
   case goal4 thus ?case
-  proof(cases a1 a2 rule: parity.exhaust[case_product parity.exhaust])
-  qed (auto simp add:mod_add_eq)
+    by (induction a1 a2 rule: plus_parity.induct) (auto simp add:mod_add_eq)
 qed
 
 text{* Instantiating the abstract interpretation locale requires no more
@@ -159,9 +158,8 @@ interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof
   case goal1 thus ?case
-  proof(cases a1 a2 b1 b2
-   rule: parity.exhaust[case_product parity.exhaust[case_product parity.exhaust[case_product parity.exhaust]]]) (* FIXME - UGLY! *)
-  qed (auto simp add:less_eq_parity_def)
+    by(induction a1 a2 rule: plus_parity.induct)
+      (auto simp add:less_eq_parity_def)
 qed
 
 definition m_parity :: "parity \<Rightarrow> nat" where
