@@ -53,6 +53,10 @@ declare -a RESOURCES=(
   "src/Isabelle.props"
   "src/jEdit.props"
   "src/services.xml"
+  "src/modes/isabelle-news.xml"
+  "src/modes/isabelle-options.xml"
+  "src/modes/isabelle-root.xml"
+  "src/modes/isabelle.xml"
 )
 
 
