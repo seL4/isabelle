@@ -10536,4 +10536,4 @@ have been removed;
 * 'subtype' facility in HOL for introducing new types as subsets of existing
 types;
 
-:mode=text:wrap=hard:maxLineLen=72:
+:mode=isabelle-news:wrap=hard:maxLineLen=72:

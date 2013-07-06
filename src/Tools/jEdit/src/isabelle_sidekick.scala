@@ -12,6 +12,7 @@ import isabelle._
 
 import scala.collection.Set
 import scala.collection.immutable.TreeSet
+import scala.util.matching.Regex
 
 import java.awt.Component
 import javax.swing.tree.DefaultMutableTreeNode
@@ -227,5 +228,36 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_r
       case None => false
     }
   }
+}
+
+
+class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news", Some(Outer_Syntax.empty))
+{
+  private val Heading1 = new Regex("""^New in (.*)\w*$""")
+  private val Heading2 = new Regex("""^\*\*\*\w*(.*)\w*\*\*\*\w*$""")
+
+  private def make_node(s: String, start: Text.Offset, stop: Text.Offset): DefaultMutableTreeNode =
+    new DefaultMutableTreeNode(new Isabelle_Sidekick.Asset(s, start, stop))
+
+  override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
+  {
+    var offset = 0
+
+    for (line <- split_lines(JEdit_Lib.buffer_text(buffer)) if !stopped) {
+      line match {
+        case Heading1(s) =>
+          data.root.add(make_node(Library.capitalize(s), offset, offset + line.length))
+        case Heading2(s) =>
+          data.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+            .add(make_node(s, offset, offset + line.length))
+        case _ =>
+      }
+      offset += line.length + 1
+    }
+
+    true
+  }
+
+  override def supportsCompletion = false
 }
 

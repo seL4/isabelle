@@ -66,6 +66,8 @@ isabelle-theories.title=Theories
 isabelle-timing.title=Timing
 
 #SideKick
+mode.isabelle-news.folding=none
+mode.isabelle-news.sidekick.parser=isabelle-news
 mode.isabelle-options.folding=sidekick
 mode.isabelle-options.sidekick.parser=isabelle-options
 mode.isabelle-root.folding=sidekick
