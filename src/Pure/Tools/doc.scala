@@ -18,7 +18,7 @@ object Doc
     Path.split(Isabelle_System.getenv("ISABELLE_DOCS")).map(dir =>
       if (dir.is_dir) dir
       else error("Bad documentation directory: " + dir))
-
+    
 
   /* contents */
 
@@ -33,12 +33,21 @@ object Doc
   sealed abstract class Entry
   case class Section(text: String) extends Entry
   case class Doc(name: String, title: String) extends Entry
+  case class Text_File(path: Path) extends Entry
 
   private val Section_Entry = new Regex("""^(\S.*)\s*$""")
   private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
 
+  private val release_notes =
+    List(Section("Release notes"),
+      Text_File(Path.explode("~~/ANNOUNCE")),
+      Text_File(Path.explode("~~/README")),
+      Text_File(Path.explode("~~/NEWS")),
+      Text_File(Path.explode("~~/COPYRIGHT")),
+      Text_File(Path.explode("~~/CONTRIBUTORS")))
+
   def contents(): List[Entry] =
-    for {
+    (for {
       line <- contents_lines()
       entry <-
         line match {
@@ -46,7 +55,7 @@ object Doc
           case Doc_Entry(name, title) => Some(Doc(name, title))
           case _ => None
         }
-    } yield entry
+    } yield entry) ::: release_notes
 
 
   /* view */

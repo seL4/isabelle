@@ -29,6 +29,11 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       "<html><b>" + HTML.encode(name) + "</b>:  " + HTML.encode(title) + "</html>"
   }
 
+  private case class Text_File(path: Path)
+  {
+    override def toString = path.base.implode
+  }
+
   private val root = new DefaultMutableTreeNode
   docs foreach {
     case Doc.Section(text) =>
@@ -36,6 +41,13 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     case Doc.Doc(name, title) =>
       root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
         .add(new DefaultMutableTreeNode(Documentation(name, title)))
+    case Doc.Text_File(path: Path) =>
+      root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+        .add(new DefaultMutableTreeNode(Text_File(path.expand)))
+  }
+
+  private def documentation_error(exn: Throwable) {
+    GUI.error_dialog(view, "Documentation error", GUI.scrollable_text(Exn.message(exn)))
   }
 
   private val tree = new JTree(root)
@@ -52,11 +64,10 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
               case Documentation(name, _) =>
                 default_thread_pool.submit(() =>
                   try { Doc.view(name) }
-                  catch {
-                    case exn: Throwable =>
-                      GUI.error_dialog(view,
-                        "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-                  })
+                  catch { case exn: Throwable => documentation_error(exn) })
+              case Text_File(path) =>
+                  try { Hyperlink(Isabelle_System.platform_path(path)).follow(view) }
+                  catch { case exn: Throwable => documentation_error(exn) }
               case _ =>
             }
           case _ =>
