@@ -46,10 +46,6 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
         .add(new DefaultMutableTreeNode(Text_File(name, path.expand)))
   }
 
-  private def documentation_error(exn: Throwable) {
-    GUI.error_dialog(view, "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-  }
-
   private val tree = new JTree(root)
   if (!OperatingSystem.isMacOSLF)
     tree.putClientProperty("JTree.lineStyle", "Angled")
@@ -64,10 +60,13 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
               case Documentation(name, _) =>
                 default_thread_pool.submit(() =>
                   try { Doc.view(name) }
-                  catch { case exn: Throwable => documentation_error(exn) })
+                  catch {
+                    case exn: Throwable =>
+                      GUI.error_dialog(view,
+                        "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+                  })
               case Text_File(_, path) =>
-                  try { Hyperlink(Isabelle_System.platform_path(path)).follow(view) }
-                  catch { case exn: Throwable => documentation_error(exn) }
+                Hyperlink(Isabelle_System.platform_path(path)).follow(view)
               case _ =>
             }
           case _ =>
