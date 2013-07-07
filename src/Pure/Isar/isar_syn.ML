@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/isar_syn.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Isar/Pure outer syntax.
+Outer syntax for Isabelle/Pure.
 *)
 
 structure Isar_Syn: sig end =

@@ -1,7 +1,7 @@
 (*  Title:      Pure/pure_syn.ML
     Author:     Makarius
 
-Minimal outer syntax for bootstrapping Pure.
+Minimal outer syntax for bootstrapping Isabelle/Pure.
 *)
 
 structure Pure_Syn: sig end =
