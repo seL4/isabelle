@@ -4,15 +4,10 @@
 Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 *)
 
-signature BASIC_PRESENT =
-sig
-  val no_document: ('a -> 'b) -> 'a -> 'b  (*not thread-safe!*)
-end;
-
 signature PRESENT =
 sig
-  include BASIC_PRESENT
   val session_name: theory -> string
+  val no_document: ('a -> 'b) -> 'a -> 'b  (*not thread-safe!*)
   val read_variant: string -> string * string
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     string * string -> bool * string -> bool -> theory list -> unit  (*not thread-safe!*)
@@ -497,5 +492,3 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
 
 end;
 
-structure Basic_Present: BASIC_PRESENT = Present;
-open Basic_Present;
