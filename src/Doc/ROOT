@@ -167,22 +167,14 @@ session Logics (doc) in "Logics" = Pure +
     "../extra.sty"
     "../ttbox.sty"
     "../manual.bib"
+    "document/CTT.tex"
+    "document/HOL.tex"
+    "document/LK.tex"
+    "document/Sequents.tex"
     "document/build"
+    "document/preface.tex"
     "document/root.tex"
-
-session "Logics-HOL" (doc) in "HOL" = Pure +
-  options [document_variants = "logics-HOL"]
-  theories
-  files
-    "../prepare_document"
-    "../pdfsetup.sty"
-    "../iman.sty"
-    "../extra.sty"
-    "../ttbox.sty"
-    "../manual.bib"
-    "../Logics/document/syntax.tex"
-    "document/build"
-    "document/root.tex"
+    "document/syntax.tex"
 
 session "Logics-ZF" (doc) in "ZF" = ZF +
   options [document_variants = "logics-ZF", print_mode = "brackets",

@@ -1,4 +1,5 @@
 \documentclass[12pt,a4paper]{report}
+\usepackage{isabelle,isabellesym}
 \usepackage{graphicx,iman,extra,ttbox,proof,latexsym,pdfsetup}
 
 %%%STILL NEEDS MODAL, LCF
@@ -26,6 +27,8 @@
   \hrule\bigskip}
 \newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
 
+\newcommand\bs{\char '134 }  % A backslash character for \tt font
+
 \makeindex
 
 \underscoreoff
@@ -41,6 +44,7 @@
 \pagenumbering{roman} \tableofcontents \clearfirst
 \input{preface}
 \input{syntax}
+\input{HOL}
 \input{LK}
 \input{Sequents}
 %%\input{Modal}
