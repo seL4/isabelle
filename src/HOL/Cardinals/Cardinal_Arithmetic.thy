@@ -369,19 +369,12 @@ subsection {* Exponentiation *}
 definition cexp (infixr "^c" 90) where
   "r1 ^c r2 \<equiv> |Func (Field r2) (Field r1)|"
 
-definition ccexp (infixr "^^c" 90) where
-  "r1 ^^c r2 \<equiv> |Pfunc (Field r2) (Field r1)|"
-
-lemma cexp_ordLeq_ccexp: "r1 ^c r2 \<le>o r1 ^^c r2"
-unfolding cexp_def ccexp_def by (rule card_of_mono1) (rule Func_Pfunc)
-
-lemma card_order_ccexp:
+lemma card_order_cexp:
   assumes "card_order r1" "card_order r2"
-  shows "card_order (r1 ^^c r2)"
+  shows "card_order (r1 ^c r2)"
 proof -
   have "Field r1 = UNIV" "Field r2 = UNIV" using assms card_order_on_Card_order by auto
-  thus ?thesis unfolding ccexp_def Pfunc_def
-    by (auto simp: card_of_card_order_on split: option.split)
+  thus ?thesis unfolding cexp_def Func_def by (simp add: card_of_card_order_on)
 qed
 
 lemma Card_order_cexp: "Card_order (r1 ^c r2)"
@@ -393,11 +386,12 @@ lemma cexp_mono':
   shows "p1 ^c p2 \<le>o r1 ^c r2"
 proof(cases "Field p1 = {}")
   case True
-  hence "|Field (p1 ^c p2)| \<le>o cone"
-    unfolding czero_def cone_def cexp_def Field_card_of
+  hence "|Field |Func (Field p2) (Field p1)|| \<le>o cone"
+    unfolding cone_def Field_card_of
     by (cases "Field p2 = {}", auto intro: card_of_ordLeqI2 simp: Func_empty)
        (metis Func_is_emp card_of_empty ex_in_conv)
-  hence "p1 ^c p2 \<le>o cone" by (simp add: Field_card_of cexp_def)
+  hence "|Func (Field p2) (Field p1)| \<le>o cone" by (simp add: Field_card_of cexp_def)
+  hence "p1 ^c p2 \<le>o cone" unfolding cexp_def .
   thus ?thesis
   proof (cases "Field p2 = {}")
     case True
@@ -406,7 +400,7 @@ proof(cases "Field p1 = {}")
     thus ?thesis using `p1 ^c p2 \<le>o cone` ordLeq_transitive by auto
   next
     case False with True have "|Field (p1 ^c p2)| =o czero"
-      unfolding card_of_ordIso_czero_iff_empty cexp_def Func_is_emp Field_card_of by blast
+      unfolding card_of_ordIso_czero_iff_empty cexp_def Field_card_of Func_def by auto
     thus ?thesis unfolding cexp_def card_of_ordIso_czero_iff_empty Field_card_of
       by (simp add: card_of_empty)
   qed
@@ -490,7 +484,7 @@ proof -
   have "r ^c cone =o |Field r|"
     unfolding cexp_def cone_def Field_card_of Func_empty
       card_of_ordIso[symmetric] bij_betw_def Func_def inj_on_def image_def
-    by (rule exI[of _ "\<lambda>f. case f () of Some a \<Rightarrow> a"]) auto
+    by (rule exI[of _ "\<lambda>f. f ()"]) auto
   also have "|Field r| =o r" by (rule card_of_Field_ordIso[OF assms])
   finally show ?thesis .
 qed
@@ -624,9 +618,6 @@ by (rule conjI, rule infinite_Func, auto, rule card_of_card_order_on)
 lemma cinfinite_cexp: "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> cinfinite (q ^c r)"
 by (metis assms cinfinite_mono ordLeq_cexp2)
 
-lemma cinfinite_ccexp: "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> cinfinite (q ^^c r)"
-by (rule cinfinite_mono[OF cexp_ordLeq_ccexp cinfinite_cexp])
-
 lemma Cinfinite_cexp:
   "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> Cinfinite (q ^c r)"
 by (simp add: cinfinite_cexp Card_order_cexp)
@@ -754,7 +745,7 @@ lemma cprod_csum_cexp:
   "r1 *c r2 \<le>o (r1 +c r2) ^c ctwo"
 unfolding cprod_def csum_def cexp_def ctwo_def Field_card_of
 proof -
-  let ?f = "\<lambda>(a, b). %x. if x then Some (Inl a) else Some (Inr b)"
+  let ?f = "\<lambda>(a, b). %x. if x then Inl a else Inr b"
   have "inj_on ?f (Field r1 \<times> Field r2)" (is "inj_on _ ?LHS")
     by (auto simp: inj_on_def fun_eq_iff split: bool.split)
   moreover

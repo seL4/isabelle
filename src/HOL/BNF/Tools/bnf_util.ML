@@ -76,7 +76,6 @@ sig
   val mk_predT: typ list -> typ
   val mk_pred1T: typ -> typ
   val mk_pred2T: typ -> typ -> typ
-  val mk_optionT: typ -> typ
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
   val dest_pred2T: typ -> typ * typ
@@ -100,7 +99,6 @@ sig
   val mk_card_binop: string -> (typ * typ -> typ) -> term -> term -> term
   val mk_card_of: term -> term
   val mk_card_order: term -> term
-  val mk_ccexp: term -> term -> term
   val mk_cexp: term -> term -> term
   val mk_cinfinite: term -> term
   val mk_collect: term list -> typ -> term
@@ -400,12 +398,10 @@ fun strip_typeN 0 T = ([], T)
 fun mk_predT Ts = Ts ---> HOLogic.boolT;
 fun mk_pred1T T = mk_predT [T];
 fun mk_pred2T T U = mk_predT [T, U];
-fun mk_optionT T = Type (@{type_name option}, [T]);
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
 val dest_pred2T = apsnd Term.domain_type o Term.dest_funT;
 fun mk_sumT (LT, RT) = Type (@{type_name Sum_Type.sum}, [LT, RT]);
-fun mk_partial_funT (ranT, domT) = domT --> mk_optionT ranT;
 
 
 (** Constants **)
@@ -576,8 +572,7 @@ fun mk_card_binop binop typop t1 t2 =
 
 val mk_csum = mk_card_binop @{const_name csum} mk_sumT;
 val mk_cprod = mk_card_binop @{const_name cprod} HOLogic.mk_prodT;
-val mk_cexp = mk_card_binop @{const_name cexp} mk_partial_funT;
-val mk_ccexp = mk_card_binop @{const_name ccexp} mk_partial_funT;
+val mk_cexp = mk_card_binop @{const_name cexp} (op --> o swap);
 val ctwo = @{term ctwo};
 
 fun mk_collect xs defT =

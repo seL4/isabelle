@@ -58,7 +58,7 @@ sig
   val mk_hset_rec_minimal_tac: int -> cterm option list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_in_bd_tac: Proof.context -> thm -> thm list -> thm -> thm -> thm -> thm -> thm list ->
-    thm -> thm -> thm -> thm -> thm -> thm -> tactic
+    thm -> thm -> thm -> thm -> tactic
   val mk_incl_lsbis_tac: int -> int -> thm -> tactic
   val mk_isNode_hset_tac: int -> thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_length_Lev'_tac: thm -> tactic
@@ -480,8 +480,7 @@ fun mk_card_of_carT_tac ctxt m isNode_defs sbd_sbd
       rtac sbd_Cinfinite,
       if m = 0 then rtac @{thm Card_order_ctwo} else rtac @{thm Card_order_csum},
       rtac @{thm Cnotzero_clists},
-      rtac ballI, rtac ordIso_ordLeq_trans, rtac @{thm card_of_Func_Ffunc},
-      rtac ordIso_ordLeq_trans, rtac @{thm Func_cexp},
+      rtac ballI, rtac ordIso_ordLeq_trans, rtac @{thm Func_cexp},
       rtac ctrans, rtac @{thm cexp_mono},
       rtac @{thm ordLeq_ordIso_trans},
       CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1
@@ -530,7 +529,7 @@ fun mk_card_of_carT_tac ctxt m isNode_defs sbd_sbd
       rtac @{thm SigmaI}, rtac @{thm DiffI}, rtac set_mp, rtac equalityD2,
       rtac (@{thm cpow_def} RS arg_cong RS trans), rtac (@{thm Pow_def} RS arg_cong RS trans),
       rtac @{thm Field_card_of}, rtac CollectI, atac, rtac notI, etac @{thm singletonE},
-      hyp_subst_tac ctxt, etac @{thm emptyE}, rtac (@{thm Ffunc_def} RS equalityD2 RS set_mp),
+      hyp_subst_tac ctxt, etac @{thm emptyE}, rtac (@{thm Func_def} RS equalityD2 RS set_mp),
       rtac CollectI, rtac conjI, rtac ballI, dtac bspec, etac thin_rl, atac, dtac conjunct1,
       CONJ_WRAP_GEN' (etac disjE) (fn (i, def) => EVERY'
         [rtac (mk_UnIN n i), dtac (def RS iffD1),
@@ -1324,10 +1323,10 @@ fun mk_set_bd_tac sbd_Cinfinite hset_def col_bd =
   EVERY' (map rtac [ordIso_ordLeq_trans, @{thm card_of_ordIso_subst}, hset_def,
     ctrans, @{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
     @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite,
-    ctrans, @{thm infinite_ordLeq_cexp}, sbd_Cinfinite, @{thm cexp_ordLeq_ccexp}]) 1;
+    @{thm infinite_ordLeq_cexp}, sbd_Cinfinite]) 1;
 
 fun mk_in_bd_tac ctxt isNode_hset isNode_hsets carT_def card_of_carT mor_image Rep_inverse mor_hsets
-  sbd_Cnotzero sbd_Card_order mor_Rep coalgT mor_T_final tcoalg =
+  mor_Rep coalgT mor_T_final tcoalg =
   let
     val n = length isNode_hsets;
     val in_hin_tac = rtac CollectI THEN'
@@ -1339,9 +1338,7 @@ fun mk_in_bd_tac ctxt isNode_hset isNode_hsets carT_def card_of_carT mor_image R
     EVERY' [rtac (Thm.permute_prems 0 1 @{thm ordLeq_transitive}), rtac ctrans,
       rtac @{thm card_of_image}, rtac ordIso_ordLeq_trans,
       rtac @{thm card_of_ordIso_subst}, rtac @{thm sym[OF proj_image]}, rtac ctrans,
-      rtac @{thm card_of_image}, rtac ctrans, rtac card_of_carT, rtac @{thm cexp_mono2_Cnotzero},
-      rtac @{thm cexp_ordLeq_ccexp}, rtac @{thm Card_order_csum},
-      rtac @{thm Cnotzero_cexp}, rtac sbd_Cnotzero, rtac sbd_Card_order,
+      rtac @{thm card_of_image}, rtac card_of_carT,
       rtac @{thm card_of_mono1}, rtac subsetI, rtac @{thm image_eqI}, rtac sym,
       rtac Rep_inverse, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
       rtac set_mp, rtac equalityD2, rtac @{thm sym[OF proj_image]}, rtac imageE,
@@ -1363,10 +1360,10 @@ fun mk_in_bd_tac ctxt isNode_hset isNode_hsets carT_def card_of_carT mor_image R
   end;
 
 fun mk_bd_card_order_tac sbd_card_order =
-  EVERY' (map rtac [@{thm card_order_ccexp}, sbd_card_order, sbd_card_order]) 1;
+  EVERY' (map rtac [@{thm card_order_cexp}, sbd_card_order, sbd_card_order]) 1;
 
 fun mk_bd_cinfinite_tac sbd_Cinfinite =
-  EVERY' (map rtac [@{thm cinfinite_ccexp}, @{thm ctwo_ordLeq_Cinfinite},
+  EVERY' (map rtac [@{thm cinfinite_cexp}, @{thm ctwo_ordLeq_Cinfinite},
     sbd_Cinfinite, sbd_Cinfinite]) 1;
 
 fun mk_pickWP_assms_tac set_incl_hsets set_incl_hins map_eq =

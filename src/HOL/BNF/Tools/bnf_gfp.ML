@@ -2443,7 +2443,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val timer = time (timer "map functions for the new codatatypes");
 
-        val bd = mk_ccexp sbd sbd;
+        val bd = mk_cexp sbd sbd;
 
         val timer = time (timer "bounds for the new codatatypes");
 
@@ -2694,7 +2694,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           (fn {context = ctxt, prems = _} =>
             mk_in_bd_tac ctxt (nth isNode_hsets (i - 1)) isNode_hsets carT_def
             card_of_carT mor_image Rep_inverse mor_hsets
-            sbd_Cnotzero sbd_Card_order mor_Rep_thm coalgT_thm mor_T_final_thm tcoalg_thm))
+            mor_Rep_thm coalgT_thm mor_T_final_thm tcoalg_thm))
           ks isNode_hset_thmss carT_defs card_of_carT_thms
           mor_image'_thms Rep_inverses (transpose mor_hset_thmss);
 

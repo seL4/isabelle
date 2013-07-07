@@ -317,7 +317,7 @@ qed
 lemma card_of_bounded_range:
   "|{f :: 'd \<Rightarrow> 'a. range f \<subseteq> B}| \<le>o |Func (UNIV :: 'd set) B|" (is "|?LHS| \<le>o |?RHS|")
 proof -
-  let ?f = "\<lambda>f. %x. if f x \<in> B then Some (f x) else None"
+  let ?f = "\<lambda>f. %x. if f x \<in> B then f x else undefined"
   have "inj_on ?f ?LHS" unfolding inj_on_def
   proof (unfold fun_eq_iff, safe)
     fix g :: "'d \<Rightarrow> 'a" and f :: "'d \<Rightarrow> 'a" and x

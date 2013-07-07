@@ -75,7 +75,6 @@ declare
   card_of_Plus_ordLeq_infinite_Field[simp]
   curr_in[intro, simp]
   Func_empty[simp]
-  Func_map_empty[simp]
   Func_is_emp[simp]
 
 
@@ -1045,18 +1044,103 @@ shows "infinite (Bpow r A)"
 using ordLeq_card_Bpow[OF rc r]
 by (metis A card_of_ordLeq_infinite)
 
+definition Func_option where
+ "Func_option A B \<equiv>
+  {f. (\<forall> a. f a \<noteq> None \<longleftrightarrow> a \<in> A) \<and> (\<forall> a \<in> A. case f a of Some b \<Rightarrow> b \<in> B |None \<Rightarrow> True)}"
+
+lemma card_of_Func_option_Func:
+"|Func_option A B| =o |Func A B|"
+proof (rule ordIso_symmetric, unfold card_of_ordIso[symmetric], intro exI)
+  let ?F = "\<lambda> f a. if a \<in> A then Some (f a) else None"
+  show "bij_betw ?F (Func A B) (Func_option A B)"
+  unfolding bij_betw_def unfolding inj_on_def proof(intro conjI ballI impI)
+    fix f g assume f: "f \<in> Func A B" and g: "g \<in> Func A B" and eq: "?F f = ?F g"
+    show "f = g"
+    proof(rule ext)
+      fix a
+      show "f a = g a"
+      proof(cases "a \<in> A")
+        case True
+        have "Some (f a) = ?F f a" using True by auto
+        also have "... = ?F g a" using eq unfolding fun_eq_iff by(rule allE)
+        also have "... = Some (g a)" using True by auto
+        finally have "Some (f a) = Some (g a)" .
+        thus ?thesis by simp
+      qed(insert f g, unfold Func_def, auto)
+    qed
+  next
+    show "?F ` Func A B = Func_option A B"
+    proof safe
+      fix f assume f: "f \<in> Func_option A B"
+      def g \<equiv> "\<lambda> a. case f a of Some b \<Rightarrow> b | None \<Rightarrow> undefined"
+      have "g \<in> Func A B"
+      using f unfolding g_def Func_def Func_option_def by force+
+      moreover have "f = ?F g"
+      proof(rule ext)
+        fix a show "f a = ?F g a"
+        using f unfolding Func_option_def g_def by (cases "a \<in> A") force+
+      qed
+      ultimately show "f \<in> ?F ` (Func A B)" by blast
+    qed(unfold Func_def Func_option_def, auto)
+  qed
+qed
+
+(* partial-function space: *)
+definition Pfunc where
+"Pfunc A B \<equiv>
+ {f. (\<forall>a. f a \<noteq> None \<longrightarrow> a \<in> A) \<and>
+     (\<forall>a. case f a of None \<Rightarrow> True | Some b \<Rightarrow> b \<in> B)}"
+
+lemma Func_Pfunc:
+"Func_option A B \<subseteq> Pfunc A B"
+unfolding Func_option_def Pfunc_def by auto
+
+lemma Pfunc_Func_option:
+"Pfunc A B = (\<Union> A' \<in> Pow A. Func_option A' B)"
+proof safe
+  fix f assume f: "f \<in> Pfunc A B"
+  show "f \<in> (\<Union>A'\<in>Pow A. Func_option A' B)"
+  proof (intro UN_I)
+    let ?A' = "{a. f a \<noteq> None}"
+    show "?A' \<in> Pow A" using f unfolding Pow_def Pfunc_def by auto
+    show "f \<in> Func_option ?A' B" using f unfolding Func_option_def Pfunc_def by auto
+  qed
+next
+  fix f A' assume "f \<in> Func_option A' B" and "A' \<subseteq> A"
+  thus "f \<in> Pfunc A B" unfolding Func_option_def Pfunc_def by auto
+qed
+
+lemma card_of_Func_option_mono:
+fixes A1 A2 :: "'a set" and B :: "'b set"
+assumes A12: "A1 \<subseteq> A2" and B: "B \<noteq> {}"
+shows "|Func_option A1 B| \<le>o |Func_option A2 B|"
+by (metis card_of_Func_mono[OF A12 B] card_of_Func_option_Func
+  ordIso_ordLeq_trans ordLeq_ordIso_trans ordIso_symmetric)
+
+lemma card_of_Pfunc_Pow_Func_option:
+assumes "B \<noteq> {}"
+shows "|Pfunc A B| \<le>o |Pow A <*> Func_option A B|"
+proof-
+  have "|Pfunc A B| =o |\<Union> A' \<in> Pow A. Func_option A' B|" (is "_ =o ?K")
+    unfolding Pfunc_Func_option by(rule card_of_refl)
+  also have "?K \<le>o |Sigma (Pow A) (\<lambda> A'. Func_option A' B)|" using card_of_UNION_Sigma .
+  also have "|Sigma (Pow A) (\<lambda> A'. Func_option A' B)| \<le>o |Pow A <*> Func_option A B|"
+    apply(rule card_of_Sigma_mono1) using card_of_Func_option_mono[OF _ assms] by auto
+  finally show ?thesis .
+qed
+
 lemma Bpow_ordLeq_Func_Field:
 assumes rc: "Card_order r" and r: "Field r \<noteq> {}" and A: "infinite A"
 shows "|Bpow r A| \<le>o |Func (Field r) A|"
 proof-
-  let ?F = "\<lambda> f. {x | x a. f a = Some x}"
+  let ?F = "\<lambda> f. {x | x a. f a = x \<and> a \<in> Field r}"
   {fix X assume "X \<in> Bpow r A - {{}}"
    hence XA: "X \<subseteq> A" and "|X| \<le>o r"
    and X: "X \<noteq> {}" unfolding Bpow_def by auto
    hence "|X| \<le>o |Field r|" by (metis Field_card_of card_of_mono2)
    then obtain F where 1: "X = F ` (Field r)"
    using card_of_ordLeq2[OF X] by metis
-   def f \<equiv> "\<lambda> i. if i \<in> Field r then Some (F i) else None"
+   def f \<equiv> "\<lambda> i. if i \<in> Field r then F i else undefined"
    have "\<exists> f \<in> Func (Field r) A. X = ?F f"
    apply (intro bexI[of _ f]) using 1 XA unfolding Func_def f_def by auto
   }
@@ -1075,7 +1159,7 @@ qed
 lemma Func_emp2[simp]: "A \<noteq> {} \<Longrightarrow> Func A {} = {}" by auto
 
 lemma empty_in_Func[simp]:
-"B \<noteq> {} \<Longrightarrow> empty \<in> Func {} B"
+"B \<noteq> {} \<Longrightarrow> (\<lambda>x. undefined) \<in> Func {} B"
 unfolding Func_def by auto
 
 lemma Func_mono[simp]:
