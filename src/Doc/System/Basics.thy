@@ -277,9 +277,6 @@ text {*
   \item[@{setting_def DVI_VIEWER}] specifies the command-line to be
   used for displaying @{verbatim dvi} files.
   
-  \item[@{setting_def PRINT_COMMAND}] specifies the standard printer
-  spool command, which is expected to accept @{verbatim ps} files.
-  
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle-process"}
   derives an individual directory for temporary files.  The default is

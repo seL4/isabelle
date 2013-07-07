@@ -238,25 +238,6 @@ Usage: isabelle logo [OPTIONS] XYZ
   using this template.  *}
 
 
-section {* Printing documents *}
-
-text {*
-  The @{tool_def print} tool prints documents:
-\begin{ttbox}
-Usage: isabelle print [OPTIONS] FILE
-
-  Options are:
-    -c           cleanup -- remove FILE after use
-
-  Print document FILE.
-\end{ttbox}
-
-  The @{verbatim "-c"} option causes the input file to be removed
-  after use.  The printer spool command is determined by the @{setting
-  PRINT_COMMAND} setting.
-*}
-
-
 section {* Remove awkward symbol names from theory sources *}
 
 text {*

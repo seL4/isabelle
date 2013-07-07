@@ -116,10 +116,6 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 
-# Printer spool command for PS files
-PRINT_COMMAND=lp
-
-
 ###
 ### Rendering information
 ###
