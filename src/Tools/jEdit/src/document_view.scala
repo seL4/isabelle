@@ -152,7 +152,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val key_listener = new KeyAdapter {
     override def keyTyped(evt: KeyEvent)
     {
-      if (evt.getKeyChar == 27) Pretty_Tooltip.dismiss_all()
+      if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
+        evt.consume
     }
   }
 

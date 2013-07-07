@@ -117,12 +117,14 @@ object Pretty_Tooltip
     }
   }
 
-  def dismiss_all()
-  {
-    deactivate()
-    stack.foreach(_.hide_popup)
-    stack = Nil
-  }
+  def dismissed_all(): Boolean =
+    if (stack.isEmpty) false
+    else {
+      deactivate()
+      stack.foreach(_.hide_popup)
+      stack = Nil
+      true
+    }
 
 
   /* auxiliary geometry measurement */

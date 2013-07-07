@@ -178,7 +178,8 @@ class Pretty_Text_Area(
 
     override def keyTyped(evt: KeyEvent)
     {
-      if (evt.getKeyChar == 27) Pretty_Tooltip.dismiss_all()
+      if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
+        evt.consume
 
       if (propagate_keys && !evt.isConsumed)
         view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
