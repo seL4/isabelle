@@ -554,21 +554,19 @@ section {* Draft presentation *}
 text {*
   \begin{matharray}{rcl}
     @{command_def "display_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-    @{command_def "print_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
   @{rail "
-    (@@{command display_drafts} | @@{command print_drafts}) (@{syntax name} +)
+    @@{command display_drafts} (@{syntax name} +)
 
   "}
 
   \begin{description}
 
-  \item @{command "display_drafts"}~@{text paths} and @{command
-  "print_drafts"}~@{text paths} perform simple output of a given list
-  of raw source files.  Only those symbols that do not require
-  additional {\LaTeX} packages are displayed properly, everything else
-  is left verbatim.
+  \item @{command "display_drafts"}~@{text paths} performs simple output of a
+  given list of raw source files. Only those symbols that do not require
+  additional {\LaTeX} packages are displayed properly, everything else is left
+  verbatim.
 
   \end{description}
 *}

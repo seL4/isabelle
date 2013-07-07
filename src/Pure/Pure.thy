@@ -88,7 +88,7 @@ theory Pure
   and "cd" :: control
   and "pwd" :: diag
   and "use_thy" "remove_thy" "kill_thy" :: control
-  and "display_drafts" "print_drafts" "print_state" "pr" :: diag
+  and "display_drafts" "print_state" "pr" :: diag
   and "pretty_setmargin" "disable_pr" "enable_pr" "commit" "quit" "exit" :: control
   and "welcome" :: diag
   and "init_toplevel" "linear_undo" "undo" "undos_proof" "cannot_undo" "kill" :: control

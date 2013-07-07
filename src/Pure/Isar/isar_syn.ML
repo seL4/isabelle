@@ -962,12 +962,8 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "display_drafts"}
     "display raw source files with symbols"
-    (Scan.repeat1 Parse.path >> Isar_Cmd.display_drafts);
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "print_drafts"}
-    "print raw source files with symbols"
-    (Scan.repeat1 Parse.path >> Isar_Cmd.print_drafts);
+    (Scan.repeat1 Parse.path >> (fn names =>
+      Toplevel.imperative (fn () => ignore (Present.display_drafts (map Path.explode names)))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_state"}

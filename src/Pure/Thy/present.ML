@@ -21,7 +21,7 @@ sig
   val theory_source: string -> (unit -> HTML.text) -> unit
   val theory_output: string -> string -> unit
   val begin_theory: int -> Path.T -> theory -> theory
-  val drafts: string -> Path.T list -> Path.T
+  val display_drafts: Path.T list -> int
 end;
 
 structure Present: PRESENT =
@@ -450,8 +450,10 @@ fun begin_theory update_time dir thy =
 
 (** draft document output **)
 
-fun drafts doc_format src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
+fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
   let
+    val doc_format = getenv "ISABELLE_DOC_FORMAT";
+
     fun prep_draft path i =
       let
         val base = Path.base path;
@@ -487,9 +489,11 @@ fun drafts doc_format src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir 
 
     val result =
       isabelle_document {verbose = false, purge = true} doc_format documentN "" doc_path;
-    val result' = Isabelle_System.create_tmp_path documentN doc_format;
-    val _ = File.copy result result';
-  in result' end);
+    val detachable_result = Isabelle_System.create_tmp_path documentN doc_format;
+    val _ = File.copy result detachable_result;
+  in
+    Isabelle_System.isabelle_tool "display" ("-c " ^ File.shell_path detachable_result ^ " &")
+  end);
 
 end;
 

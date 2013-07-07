@@ -36,6 +36,10 @@ eliminated old "ref" manual.
 implicit change of some global references) is retained for now as
 control command, e.g. for ProofGeneral 3.7.x.
 
+* Discontinued 'print_drafts' command with its old-fashioned PS output
+and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
+'display_drafts' instead and print via the regular document viewer.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
