@@ -75,12 +75,12 @@ fun update_tracing () =
     NONE => ()
   | SOME id =>
       let
-        val (n, ok) =
+        val ok =
           Synchronized.change_result tracing_messages (fn tab =>
             let
               val n = the_default 0 (Inttab.lookup tab id) + 1;
               val ok = n <= Options.default_int "editor_tracing_messages";
-            in ((n, ok), Inttab.update (id, n) tab) end);
+            in (ok, Inttab.update (id, n) tab) end);
       in
         if ok then ()
         else
