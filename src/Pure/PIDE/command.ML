@@ -252,10 +252,13 @@ val _ =
 
 (* overall execution process *)
 
+fun run_print ({name, pri, print_process, ...}: print) =
+  (if Multithreading.enabled () then
+    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true}
+  else memo_eval) print_process;
+
 fun execute (({eval_process, ...}, prints): exec) =
- (memo_eval eval_process;
-  prints |> List.app (fn {name, pri, print_process, ...} =>
-    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print_process));
+  (memo_eval eval_process; List.app run_print prints);
 
 fun stable_goals exec_id =
   not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
