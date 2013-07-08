@@ -17,6 +17,7 @@ sig
   val str_of_groups: group -> string
   type task
   val dummy_task: task
+  val new_task: group -> string -> int option -> task
   val group_of_task: task -> group
   val name_of_task: task -> string
   val pri_of_task: task -> int
