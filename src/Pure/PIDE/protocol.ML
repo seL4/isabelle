@@ -50,7 +50,7 @@ val _ =
 
         val (assignment, state') = Document.update old_id new_id edits state;
         val _ =
-          Output.protocol_message Markup.assign_execs
+          Output.protocol_message Markup.assign_update
             ((new_id, assignment) |>
               let open XML.Encode
               in pair int (list (pair int (list int))) end

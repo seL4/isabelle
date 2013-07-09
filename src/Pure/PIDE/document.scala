@@ -275,7 +275,8 @@ object Document
       result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
-  type Assign = List[(Document_ID.Command, List[Document_ID.Exec])]  // exec state assignment
+  type Assign_Update =
+    List[(Document_ID.Command, List[Document_ID.Exec])]  // update of exec state assignment
 
   object State
   {
@@ -293,21 +294,21 @@ object Document
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(
-        add_command_execs: List[(Document_ID.Command, List[Document_ID.Exec])]): Assignment =
+      def assign(update: Assign_Update): Assignment =
       {
         require(!is_finished)
         val command_execs1 =
-          (command_execs /: add_command_execs) {
-            case (res, (command_id, Nil)) => res - command_id
-            case (res, assign) => res + assign
+          (command_execs /: update) {
+            case (res, (command_id, exec_ids)) =>
+              if (exec_ids.isEmpty) res - command_id
+              else res + (command_id -> exec_ids)
           }
         new Assignment(command_execs1, true)
       }
     }
 
     val init: State =
-      State().define_version(Version.init, Assignment.init).assign(Version.init.id)._2
+      State().define_version(Version.init, Assignment.init).assign(Version.init.id, Nil)._2
   }
 
   final case class State private(
@@ -346,8 +347,7 @@ object Document
     def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
     def the_read_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
     def the_exec_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
-    def the_assignment(version: Version): State.Assignment =
-      assignments.getOrElse(version.id, fail)
+    def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
@@ -363,12 +363,12 @@ object Document
           }
       }
 
-    def assign(id: Document_ID.Version, command_execs: Assign = Nil): (List[Command], State) =
+    def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
     {
       val version = the_version(id)
 
       val (changed_commands, new_execs) =
-        ((Nil: List[Command], execs) /: command_execs) {
+        ((Nil: List[Command], execs) /: update) {
           case ((commands1, execs1), (cmd_id, exec)) =>
             val st1 = the_read_state(cmd_id)
             val command = st1.command
@@ -384,7 +384,7 @@ object Document
               }
             (commands2, execs2)
         }
-      val new_assignment = the_assignment(version).assign(command_execs)
+      val new_assignment = the_assignment(version).assign(update)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
 
       (changed_commands, new_state)

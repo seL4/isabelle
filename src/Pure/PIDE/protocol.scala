@@ -11,9 +11,9 @@ object Protocol
 {
   /* document editing */
 
-  object Assign
+  object Assign_Update
   {
-    def unapply(text: String): Option[(Document_ID.Version, Document.Assign)] =
+    def unapply(text: String): Option[(Document_ID.Version, Document.Assign_Update)] =
       try {
         import XML.Decode._
         val body = YXML.parse_body(text)

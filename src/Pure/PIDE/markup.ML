@@ -140,7 +140,7 @@ sig
   val padding_line: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
   val functionN: string
-  val assign_execs: Properties.T
+  val assign_update: Properties.T
   val removed_versions: Properties.T
   val protocol_handler: string -> Properties.T
   val invoke_scala: string -> string -> Properties.T
@@ -459,7 +459,7 @@ fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
 
 val functionN = "function"
 
-val assign_execs = [(functionN, "assign_execs")];
+val assign_update = [(functionN, "assign_update")];
 val removed_versions = [(functionN, "removed_versions")];
 
 fun protocol_handler name = [(functionN, "protocol_handler"), (nameN, name)];
