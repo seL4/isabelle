@@ -36,6 +36,7 @@ fun post_traverse_term_type' f _ (t as Const (_, T)) s = f t T s
       val ((u', s'), Type (_, [_, T])) = post_traverse_term_type' f env u s
       val ((v', s''), _) = post_traverse_term_type' f env v s'
     in f (u' $ v') T s'' end
+    handle Bind => raise Fail "Sledgehammer_Annotate: post_traverse_term_type'"
 
 fun post_traverse_term_type f s t =
   post_traverse_term_type' (fn t => fn T => fn s => (f t T s, T)) [] t s |> fst

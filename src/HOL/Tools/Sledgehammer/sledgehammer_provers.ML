@@ -12,9 +12,9 @@ sig
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
   type fact = Sledgehammer_Fact.fact
-  type reconstructor = Sledgehammer_Reconstruct.reconstructor
-  type play = Sledgehammer_Reconstruct.play
-  type minimize_command = Sledgehammer_Reconstruct.minimize_command
+  type reconstructor = Sledgehammer_Reconstructor.reconstructor
+  type play = Sledgehammer_Reconstructor.play
+  type minimize_command = Sledgehammer_Reconstructor.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
@@ -150,6 +150,8 @@ open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_Reconstructor
+open Sledgehammer_Print
 open Sledgehammer_Reconstruct
 
 

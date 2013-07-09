@@ -10,7 +10,7 @@ signature SLEDGEHAMMER_RUN =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type minimize_command = Sledgehammer_Reconstruct.minimize_command
+  type minimize_command = Sledgehammer_Reconstructor.minimize_command
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
 

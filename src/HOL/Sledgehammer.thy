@@ -14,9 +14,11 @@ begin
 
 ML_file "Tools/Sledgehammer/async_manager.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_util.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_proof.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_annotate.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_reconstructor.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_proof.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_print.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_preplay.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_compress.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_reconstruct.ML"

@@ -9,26 +9,13 @@ signature SLEDGEHAMMER_RECONSTRUCT =
 sig
   type 'a proof = 'a ATP_Proof.proof
   type stature = ATP_Problem_Generate.stature
+  type one_line_params = Sledgehammer_Print.one_line_params
 
-  datatype reconstructor =
-    Metis of string * string |
-    SMT
-
-  datatype play =
-    Played of reconstructor * Time.time |
-    Trust_Playable of reconstructor * Time.time option |
-    Failed_to_Play of reconstructor
-
-  type minimize_command = string list -> string
-  type one_line_params =
-    play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
     bool * bool * Time.time option * bool * real * string Symtab.table
     * (string * stature) list vector * (string * term) list * int Symtab.table
     * string proof * thm
 
-  val smtN : string
-  val string_of_reconstructor : reconstructor -> string
   val lam_trans_of_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_atp_proof :
@@ -37,7 +24,6 @@ sig
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * stature) list vector -> 'a proof ->
     string list option
-  val one_line_proof_text : int -> one_line_params -> string
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
@@ -54,8 +40,10 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
+open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 open Sledgehammer_Annotate
+open Sledgehammer_Print
 open Sledgehammer_Compress
 
 structure String_Redirect = ATP_Proof_Redirect(
@@ -64,25 +52,6 @@ structure String_Redirect = ATP_Proof_Redirect(
   val string_of = fst)
 
 open String_Redirect
-
-
-(** reconstructors **)
-
-datatype reconstructor =
-  Metis of string * string |
-  SMT
-
-datatype play =
-  Played of reconstructor * Time.time |
-  Trust_Playable of reconstructor * Time.time option |
-  Failed_to_Play of reconstructor
-
-val smtN = "smt"
-
-fun string_of_reconstructor (Metis (type_enc, lam_trans)) =
-    metis_call type_enc lam_trans
-  | string_of_reconstructor SMT = smtN
-
 
 (** fact extraction from ATP proofs **)
 
@@ -187,83 +156,6 @@ fun used_facts_in_unsound_atp_proof _ _ [] = NONE
       else
         NONE
     end
-
-
-(** one-liner reconstructor proofs **)
-
-fun show_time NONE = ""
-  | show_time (SOME ext_time) = " (" ^ string_of_ext_time ext_time ^ ")"
-
-(* FIXME: Various bugs, esp. with "unfolding"
-fun unusing_chained_facts _ 0 = ""
-  | unusing_chained_facts used_chaineds num_chained =
-    if length used_chaineds = num_chained then ""
-    else if null used_chaineds then "(* using no facts *) "
-    else "(* using only " ^ space_implode " " used_chaineds ^ " *) "
-*)
-
-fun apply_on_subgoal _ 1 = "by "
-  | apply_on_subgoal 1 _ = "apply "
-  | apply_on_subgoal i n =
-    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
-
-fun using_labels [] = ""
-  | using_labels ls =
-    "using " ^ space_implode " " (map string_of_label ls) ^ " "
-
-fun command_call name [] =
-    name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
-  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
-
-fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
-  (* unusing_chained_facts used_chaineds num_chained ^ *)
-  using_labels ls ^ apply_on_subgoal i n ^
-  command_call (string_of_reconstructor reconstr) ss
-
-fun try_command_line banner time command =
-  banner ^ ": " ^ Active.sendback_markup command ^ show_time time ^ "."
-
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    case minimize_command ss of
-      "" => ""
-    | command =>
-      "\nTo minimize: " ^ Active.sendback_markup command ^ "."
-
-fun split_used_facts facts =
-  facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
-        |> pairself (sort_distinct (string_ord o pairself fst))
-
-type minimize_command = string list -> string
-type one_line_params =
-  play * string * (string * stature) list * minimize_command * int * int
-
-fun one_line_proof_text num_chained
-        (preplay, banner, used_facts, minimize_command, subgoal,
-         subgoal_count) =
-  let
-    val (chained, extra) = split_used_facts used_facts
-    val (failed, reconstr, ext_time) =
-      case preplay of
-        Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
-      | Trust_Playable (reconstr, time) =>
-        (false, reconstr,
-         case time of
-           NONE => NONE
-         | SOME time =>
-           if time = Time.zeroTime then NONE else SOME (true, time))
-      | Failed_to_Play reconstr => (true, reconstr, NONE)
-    val try_line =
-      ([], map fst extra)
-      |> reconstructor_command reconstr subgoal subgoal_count (map fst chained)
-                               num_chained
-      |> (if failed then
-            enclose "One-line proof reconstruction failed: "
-                     ".\n(Invoking \"sledgehammer\" with \"[strict]\" might \
-                     \solve this.)"
-          else
-            try_command_line banner ext_time)
-  in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 
 (** Isar proof construction and manipulation **)
@@ -429,131 +321,6 @@ fun add_desired_line fact_names (name as (_, ss), role, t, rule, deps)
    else
      map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
-val indent_size = 2
-
-fun string_of_proof ctxt type_enc lam_trans i n proof =
-  let
-    val ctxt =
-      (* make sure type constraint are actually printed *)
-      ctxt |> Config.put show_markup false
-      (* make sure only type constraints inserted by sh_annotate are printed *)
-           |> Config.put Printer.show_type_emphasis false
-           |> Config.put show_types false
-           |> Config.put show_sorts false
-           |> Config.put show_consts false
-    val register_fixes = map Free #> fold Variable.auto_fixes
-    fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
-    fun of_indent ind = replicate_string (ind * indent_size) " "
-    fun of_moreover ind = of_indent ind ^ "moreover\n"
-    fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
-    fun of_obtain qs nr =
-      (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
-         "ultimately "
-       else if nr=1 orelse member (op =) qs Then then
-         "then "
-       else
-         "") ^ "obtain"
-    fun of_show_have qs = if member (op =) qs Show then "show" else "have"
-    fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
-    fun of_prove qs nr =
-      if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
-        "ultimately " ^ of_show_have qs
-      else if nr=1 orelse member (op =) qs Then then
-        of_thus_hence qs
-      else
-        of_show_have qs
-    fun add_term term (s, ctxt) =
-      (s ^ (term
-            |> singleton (Syntax.uncheck_terms ctxt)
-            |> annotate_types ctxt
-            |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
-            |> simplify_spaces
-            |> maybe_quote),
-       ctxt |> Variable.auto_fixes term)
-    val reconstr = Metis (type_enc, lam_trans)
-    fun of_metis ind options (ls, ss) =
-      "\n" ^ of_indent (ind + 1) ^ options ^
-      reconstructor_command reconstr 1 1 [] 0
-          (ls |> sort_distinct (prod_ord string_ord int_ord),
-           ss |> sort_distinct string_ord)
-    fun of_free (s, T) =
-      maybe_quote s ^ " :: " ^
-      maybe_quote (simplify_spaces (with_vanilla_print_mode
-        (Syntax.string_of_typ ctxt) T))
-    fun add_frees xs (s, ctxt) =
-      (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
-    fun add_fix _ [] = I
-      | add_fix ind xs = add_suffix (of_indent ind ^ "fix ")
-                        #> add_frees xs
-                        #> add_suffix "\n"
-    fun add_assm ind (l, t) =
-      add_suffix (of_indent ind ^ "assume " ^ of_label l)
-      #> add_term t
-      #> add_suffix "\n"
-    fun add_assms ind assms = fold (add_assm ind) assms
-    fun add_step_post ind l t facts options =
-      add_suffix (of_label l)
-      #> add_term t
-      #> add_suffix (of_metis ind options facts ^ "\n")
-    fun of_subproof ind ctxt proof =
-      let
-        val ind = ind + 1
-        val s = of_proof ind ctxt proof
-        val prefix = "{ "
-        val suffix = " }"
-      in
-        replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
-        String.extract (s, ind * indent_size,
-                        SOME (size s - ind * indent_size - 1)) ^
-        suffix ^ "\n"
-      end
-    and of_subproofs _ _ _ [] = ""
-      | of_subproofs ind ctxt qs subproofs =
-        (if member (op =) qs Then then of_moreover ind else "") ^
-        space_implode (of_moreover ind) (map (of_subproof ind ctxt) subproofs)
-    and add_step_pre ind qs subproofs (s, ctxt) =
-      (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
-    and add_step ind (Let (t1, t2)) =
-        add_suffix (of_indent ind ^ "let ")
-        #> add_term t1
-        #> add_suffix " = "
-        #> add_term t2
-        #> add_suffix "\n"
-      | add_step ind (Prove (qs, Fix xs, l, t, subproofs, By_Metis facts)) =
-        (case xs of
-          [] => (* have *)
-            add_step_pre ind qs subproofs
-            #> add_suffix (of_prove qs (length subproofs) ^ " ")
-            #> add_step_post ind l t facts ""
-        | _ => (* obtain *)
-            add_step_pre ind qs subproofs
-            #> add_suffix (of_obtain qs (length subproofs) ^ " ")
-            #> add_frees xs
-            #> add_suffix " where "
-            (* The new skolemizer puts the arguments in the same order as the
-               ATPs (E and Vampire -- but see also "atp_proof_reconstruct.ML"
-               regarding Vampire). *)
-            #> add_step_post ind l t facts
-                 (if exists (fn (_, T) => length (binder_types T) > 1) xs then
-                    "using [[metis_new_skolem]] "
-                  else
-                    ""))
-    and add_steps ind = fold (add_step ind)
-    and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
-      ("", ctxt)
-      |> add_fix ind xs
-      |> add_assms ind assms
-      |> add_steps ind steps
-      |> fst
-  in
-    (* One-step proofs are pointless; better use the Metis one-liner
-       directly. *)
-    case proof of
-      Proof (Fix [], Assume [], [Prove (_, Fix [], _, _, [], _)]) => ""
-    | _ => (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-            of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
-            of_indent 0 ^ (if n <> 1 then "next" else "qed")
-  end
 
 val add_labels_of_proof =
   steps_of_proof #> fold_isar_steps
