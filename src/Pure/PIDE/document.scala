@@ -345,8 +345,8 @@ object Document
       }
 
     def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
-    def the_read_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
-    def the_exec_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
+    def the_static_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
+    def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
@@ -370,7 +370,7 @@ object Document
       val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: update) {
           case ((commands1, execs1), (cmd_id, exec)) =>
-            val st1 = the_read_state(cmd_id)
+            val st1 = the_static_state(cmd_id)
             val command = st1.command
             val st0 = command.empty_state
 
@@ -452,14 +452,14 @@ object Document
       require(is_assigned(version))
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
-          .map(the_exec_state(_)) match {
+          .map(the_dynamic_state(_)) match {
             case eval_state :: print_states => (eval_state /: print_states)(_ ++ _)
             case Nil => fail
           }
       }
       catch {
         case _: State.Fail =>
-          try { the_read_state(command.id) }
+          try { the_static_state(command.id) }
           catch { case _: State.Fail => command.init_state }
       }
     }
