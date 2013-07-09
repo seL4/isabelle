@@ -167,9 +167,7 @@ done
 
 lemma Example2_lemma2_aux2: 
   "j\<le> s \<Longrightarrow> (\<Sum>i::nat=0..<j. (b (s:=t)) i) = (\<Sum>i=0..<j. b i)"
-apply(induct j)
- apply (simp_all cong:setsum_cong)
-done
+  by (induct j) simp_all
 
 lemma Example2_lemma2: 
  "\<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat=0..<n. b i)=(\<Sum>i=0..<n. (b (j := Suc 0)) i)"
@@ -212,7 +210,7 @@ apply force
 apply(force)
 apply clarify
 apply simp
-apply(simp cong:setsum_ivl_cong)
+apply simp
 apply clarify
 apply simp
 apply(rule Await)
@@ -228,7 +226,7 @@ apply simp
 apply clarify
 apply simp
 apply(simp add:Example2_lemma2_Suc0 cong:if_cong)
-apply simp+
+apply simp_all
 done
 
 subsection {* Find Least Element *}
