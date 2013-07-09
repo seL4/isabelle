@@ -26,6 +26,11 @@ sig
   val one_year : Time.time
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
+
+  (** extrema **)
+  val max : ('a * 'a -> order) -> 'a -> 'a -> 'a
+  val max_option : ('a * 'a -> order) -> 'a option -> 'a option -> 'a option
+  val max_list : ('a * 'a -> order) -> 'a list -> 'a option
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -151,5 +156,13 @@ fun time_limit NONE = I
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                            (print_mode_value ())) f x
+
+(** extrema **)
+
+fun max ord x y = case ord(x,y) of LESS => y | _ => x
+
+fun max_option ord = max (option_ord ord)
+
+fun max_list ord xs = fold (SOME #> max_option ord) xs NONE
 
 end;

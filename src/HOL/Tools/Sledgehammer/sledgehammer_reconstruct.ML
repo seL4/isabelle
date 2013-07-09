@@ -12,9 +12,9 @@ sig
   type one_line_params = Sledgehammer_Print.one_line_params
 
   type isar_params =
-    bool * bool * Time.time option * bool * real * string Symtab.table
-    * (string * stature) list vector * (string * term) list * int Symtab.table
-    * string proof * thm
+    bool * bool * Time.time option * bool * real * int * real
+    * string Symtab.table * (string * stature) list vector
+    * (string * term) list * int Symtab.table * string proof * thm
 
   val lam_trans_of_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
@@ -44,6 +44,7 @@ open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 open Sledgehammer_Annotate
 open Sledgehammer_Print
+open Sledgehammer_Preplay
 open Sledgehammer_Compress
 
 structure String_Redirect = ATP_Proof_Redirect(
@@ -405,13 +406,14 @@ val chain_direct_proof =
   in chain_proof end
 
 type isar_params =
-  bool * bool * Time.time option * bool * real * string Symtab.table
-  * (string * stature) list vector * (string * term) list * int Symtab.table
-  * string proof * thm
+  bool * bool * Time.time option * bool * real * int * real
+  * string Symtab.table * (string * stature) list vector
+  * (string * term) list * int Symtab.table * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, preplay_trace, isar_compress, pool,
-     fact_names, lifted, sym_tab, atp_proof, goal)
+    (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
+     isar_compress_degree, merge_timeout_slack, pool, fact_names, lifted,
+     sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -426,7 +428,7 @@ fun isar_proof_text ctxt isar_proofs
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
     val lam_trans = lam_trans_of_atp_proof atp_proof metis_default_lam_trans
-    val preplay = preplay_timeout <> SOME Time.zeroTime
+    val do_preplay = preplay_timeout <> SOME Time.zeroTime
 
     fun isar_proof_of () =
       let
@@ -573,20 +575,24 @@ fun isar_proof_text ctxt isar_proofs
           chain_direct_proof
           #> kill_useless_labels_in_proof
           #> relabel_proof
-        val (isar_proof, (preplay_fail, preplay_time)) =
+        val (preplay_interface as { overall_preplay_stats, ... }, isar_proof) =
           refute_graph
           |> redirect_graph axioms tainted bot
           |> isar_proof_of_direct_proof
-          |> (if not preplay andalso isar_compress <= 1.0 then
-                rpair (false, (true, seconds 0.0))
-              else
-                compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
-                  preplay_timeout preplay_trace
-                  (if isar_proofs = SOME true then isar_compress else 1000.0))
-          |>> clean_up_labels_in_proof
+          |> relabel_proof_canonically
+          |> `(proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
+               preplay_timeout preplay_trace)
+        val isar_proof =
+          isar_proof
+          |> compress_proof
+               (if isar_proofs = SOME true then isar_compress else 1000.0)
+               (if isar_proofs = SOME true then isar_compress_degree else 100)
+               merge_timeout_slack preplay_interface
+          |> clean_up_labels_in_proof
         val isar_text =
           string_of_proof ctxt type_enc lam_trans subgoal subgoal_count
                           isar_proof
+        val (preplay_time, preplay_fail) = overall_preplay_stats ()
       in
         case isar_text of
           "" =>
@@ -603,9 +609,9 @@ fun isar_proof_text ctxt isar_proofs
                 in [string_of_int num_steps ^ " step" ^ plural_s num_steps] end
                else
                  []) @
-              (if preplay then
+              (if do_preplay then
                 [(if preplay_fail then "may fail, " else "") ^
-                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
+                   string_of_preplay_time preplay_time]
                else
                  [])
           in

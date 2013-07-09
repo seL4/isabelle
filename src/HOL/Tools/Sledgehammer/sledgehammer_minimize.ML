@@ -58,6 +58,7 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
                  uncurried_aliases, isar_proofs, isar_compress,
+                 isar_compress_degree, merge_timeout_slack,
                  preplay_timeout, preplay_trace, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -80,6 +81,8 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances,
        isar_proofs = isar_proofs, isar_compress = isar_compress,
+       isar_compress_degree = isar_compress_degree,
+       merge_timeout_slack = merge_timeout_slack,
        slice = false, minimize = SOME false, timeout = timeout,
        preplay_timeout = preplay_timeout, preplay_trace = preplay_trace,
        expect = ""}
@@ -252,8 +255,8 @@ fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
          fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
-         isar_compress, slice, minimize, timeout, preplay_timeout,
-         preplay_trace, expect} : params) =
+         isar_compress, isar_compress_degree, merge_timeout_slack, slice,
+         minimize, timeout, preplay_timeout, preplay_trace, expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -270,8 +273,9 @@ fun adjust_reconstructor_params override_params
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout,
+     isar_compress = isar_compress, isar_compress_degree = isar_compress_degree,
+     merge_timeout_slack = merge_timeout_slack, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      preplay_trace = preplay_trace, expect = expect}
   end
 

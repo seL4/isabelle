@@ -100,6 +100,8 @@ val default_default_params =
    ("max_new_mono_instances", "smart"),
    ("isar_proofs", "smart"),
    ("isar_compress", "10"),
+   ("isar_compress_degree", "2"), (* TODO: document; right value?? *)
+   ("merge_timeout_slack", "1.2"), (* TODO: document *)
    ("slice", "true"),
    ("minimize", "smart"),
    ("preplay_timeout", "3"),
@@ -127,7 +129,7 @@ val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
    "learn", "isar_proofs", "isar_compress", "timeout", "preplay_timeout"]
-(* TODO: add preplay_trace? *)
+(* TODO: add isar_compress_degree, merge_timeout_slack,  preplay_trace? *)
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -309,6 +311,8 @@ fun extract_params mode default_params override_params =
       lookup_option lookup_int "max_new_mono_instances"
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
+    val isar_compress_degree = Int.max (1, lookup_int "isar_compress_degree")
+    val merge_timeout_slack = Real.max (1.0, lookup_real "merge_timeout_slack")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =
       if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
@@ -325,8 +329,9 @@ fun extract_params mode default_params override_params =
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout,
+     isar_compress = isar_compress, isar_compress_degree = isar_compress_degree,
+     merge_timeout_slack = merge_timeout_slack, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      preplay_trace = preplay_trace, expect = expect}
   end
 

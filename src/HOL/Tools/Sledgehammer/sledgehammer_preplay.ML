@@ -7,16 +7,29 @@ Preplaying of isar proofs.
 
 signature SLEDGEHAMMER_PREPLAY =
 sig
+  type isar_proof = Sledgehammer_Proof.isar_proof
   type isar_step = Sledgehammer_Proof.isar_step
+  type label = Sledgehammer_Proof.label
+
   eqtype preplay_time
   val zero_preplay_time : preplay_time
   val some_preplay_time : preplay_time
   val add_preplay_time : preplay_time -> preplay_time -> preplay_time
   val string_of_preplay_time : preplay_time -> string
-  val try_metis : bool -> bool -> string -> string -> Proof.context ->
-    Time.time -> isar_step -> unit -> preplay_time
-  val try_metis_quietly : bool -> bool -> string -> string -> Proof.context ->
-    Time.time -> isar_step -> unit -> preplay_time
+  val preplay : bool -> bool -> string -> string -> Proof.context ->
+    Time.time -> isar_step -> preplay_time
+
+  type preplay_interface =
+  { get_time : label -> preplay_time,
+    set_time : label -> preplay_time -> unit,
+    preplay_quietly : Time.time -> isar_step -> preplay_time,
+    preplay_fail : unit -> bool,
+    overall_preplay_stats : unit -> preplay_time * bool }
+
+  val proof_preplay_interface :
+    bool -> Proof.context -> string -> string -> bool -> Time.time option
+    -> bool -> isar_proof -> preplay_interface
+
 end
 
 structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
@@ -91,8 +104,10 @@ fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
       |> thm_of_term ctxt
   end
 
-fun try_metis _ _ _ _ _ _ (Let _) = K zero_preplay_time
-  | try_metis debug trace type_enc lam_trans ctxt timeout
+
+(* main function for preplaying isar_steps *)
+fun preplay _ _ _ _ _ _ (Let _) = zero_preplay_time
+  | preplay debug trace type_enc lam_trans ctxt timeout
       (Prove (_, Fix xs, _, t, subproofs, By_Metis fact_names)) =
   let
     val (prop, obtain) =
@@ -126,20 +141,132 @@ fun try_metis _ _ _ _ _ _ (Let _) = K zero_preplay_time
       Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
     fun run_tac () = goal tac
       handle ERROR msg => error ("preplay error: " ^ msg)
+    val preplay_time = take_time timeout run_tac ()
   in
-    fn () =>
-      let
-        val preplay_time = take_time timeout run_tac ()
-        (* tracing *)
-        val _ = if trace then preplay_trace ctxt facts prop preplay_time else ()
-      in
-        preplay_time
-      end
+    (* tracing *)
+    (if trace then preplay_trace ctxt facts prop preplay_time else () ;
+     preplay_time)
   end
 
-(* this version treats exceptions like timeouts *)
-fun try_metis_quietly debug trace type_enc lam_trans ctxt timeout =
-  the_default (true, timeout) oo try
-  o try_metis debug trace type_enc lam_trans ctxt timeout
+
+
+(*** proof preplay interface ***)
+
+type preplay_interface =
+  { get_time : label -> preplay_time,
+    set_time : label -> preplay_time -> unit,
+    preplay_quietly : Time.time -> isar_step -> preplay_time,
+    preplay_fail : unit -> bool,
+    overall_preplay_stats : unit -> preplay_time * bool }
+
+
+(* enriches context with local proof facts *)
+fun enrich_context proof ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+
+    fun enrich_with_fact l t =
+      Proof_Context.put_thms false
+        (string_of_label l, SOME [Skip_Proof.make_thm thy t])
+
+    val enrich_with_assms = fold (uncurry enrich_with_fact)
+
+    fun enrich_with_proof (Proof (_, Assume assms, isar_steps)) =
+      enrich_with_assms assms #> fold enrich_with_step isar_steps
+
+    and enrich_with_step (Let _) = I
+      | enrich_with_step (Prove (_, _, l, t, subproofs, _)) =
+          enrich_with_fact l t #> fold enrich_with_proof subproofs
+  in
+    enrich_with_proof proof ctxt
+  end
+
+
+(* Given a proof, produces an imperative preplay interface with a shared state.
+   The preplay times are caluclated lazyly and cached to avoid repeated
+   calculation.
+
+   PRE CONDITION: the proof must be labeled canocially, see
+   Slegehammer_Proof.relabel_proof_canonically
+*)
+fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
+      preplay_timeout preplay_trace proof : preplay_interface =
+  if not do_preplay then
+    (* the dont_preplay option pretends that everything works just fine *)
+    { get_time = K zero_preplay_time,
+      set_time = K (K ()),
+      preplay_quietly = K (K zero_preplay_time),
+      preplay_fail = K false,
+      overall_preplay_stats = K (zero_preplay_time, false)}
+  else
+    let
+
+      (* 60 seconds seems like a good interpreation of "no timeout" *)
+      val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
+
+      (* add local proof facts to context *)
+      val ctxt = enrich_context proof ctxt
+
+      val fail = Unsynchronized.ref false
+      fun preplay_fail () = !fail
+
+      fun preplay' timeout step =
+        (* after preplay has failed once, exact preplay times are pointless *)
+        if preplay_fail () then some_preplay_time
+          else preplay debug preplay_trace type_enc lam_trans ctxt timeout step
+
+      (* preplay steps without registering preplay_fails, treating exceptions
+         like timeouts *)
+      fun preplay_quietly timeout step =
+        try (preplay' timeout) step
+        |> the_default (true, timeout)
+
+      val preplay_time_tab =
+        let
+          fun add_step_to_tab step tab =
+            case label_of_step step of
+              NONE => tab
+            | SOME l =>
+                Canonical_Lbl_Tab.update_new
+                  (l, (fn () => preplay' preplay_timeout step) |> Lazy.lazy)
+                  tab
+            handle (exn as Canonical_Lbl_Tab.DUP _) =>
+              raise Fail ("Sledgehammer_Preplay: preplay time table - "
+                          ^ PolyML.makestring exn)
+        in
+          Canonical_Lbl_Tab.empty
+          |> fold_isar_steps add_step_to_tab (steps_of_proof proof)
+          |> Unsynchronized.ref
+        end
+
+      fun register_preplay_fail lazy_time = Lazy.force lazy_time
+        handle exn =>
+          if Exn.is_interrupt exn orelse debug then reraise exn
+          else (fail := true; some_preplay_time)
+
+      fun get_time lbl =
+        register_preplay_fail
+          (Canonical_Lbl_Tab.lookup (!preplay_time_tab) lbl |> the)
+        handle
+          Option.Option =>
+            raise Fail "Sledgehammer_Preplay: preplay time table"
+
+      fun set_time lbl time =
+        preplay_time_tab :=
+          Canonical_Lbl_Tab.update (lbl, Lazy.value time) (!preplay_time_tab)
+
+      fun total_preplay_time () =
+        Canonical_Lbl_Tab.fold
+          (snd #> register_preplay_fail #> add_preplay_time)
+          (!preplay_time_tab) zero_preplay_time
+
+      fun overall_preplay_stats () = (total_preplay_time (), preplay_fail ())
+    in
+      { get_time = get_time,
+        set_time = set_time,
+        preplay_quietly = preplay_quietly,
+        preplay_fail = preplay_fail,
+        overall_preplay_stats = overall_preplay_stats}
+    end
 
 end
