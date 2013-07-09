@@ -438,10 +438,9 @@ object Document
         (_, node) <- version.nodes.entries
         command <- node.commands.iterator
       } {
-        val id = command.id
-        if (!commands1.isDefinedAt(id))
-          commands.get(id).foreach(st => commands1 += (id -> st))
-        for (exec_id <- command_execs.getOrElse(id, Nil)) {
+        if (!commands1.isDefinedAt(command.id))
+          commands.get(command.id).foreach(st => commands1 += (command.id -> st))
+        for (exec_id <- command_execs.getOrElse(command.id, Nil)) {
           if (!execs1.isDefinedAt(exec_id))
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
