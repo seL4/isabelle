@@ -13,7 +13,7 @@ sig
   type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process}
   type exec = eval * print list
   val no_exec: exec
-  val exec_ids: exec -> Document_ID.exec list
+  val exec_ids: exec option -> Document_ID.exec list
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   val print: string -> eval -> print list
@@ -90,7 +90,8 @@ type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: 
 type exec = eval * print list;
 val no_exec: exec = ({exec_id = Document_ID.none, eval_process = memo_value init_eval_state}, []);
 
-fun exec_ids (({exec_id, ...}, prints): exec) = exec_id :: map #exec_id prints;
+fun exec_ids (NONE: exec option) = []
+  | exec_ids (SOME ({exec_id, ...}, prints)) = exec_id :: map #exec_id prints;
 
 
 (* read *)

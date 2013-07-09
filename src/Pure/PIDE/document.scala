@@ -367,20 +367,22 @@ object Document
     {
       val version = the_version(id)
 
+      def upd(exec_id: Document_ID.Exec, st: Command.State)
+          : Option[(Document_ID.Exec, Command.State)] =
+        if (execs.isDefinedAt(exec_id)) None else Some(exec_id -> st)
+
       val (changed_commands, new_execs) =
         ((Nil: List[Command], execs) /: update) {
-          case ((commands1, execs1), (cmd_id, exec)) =>
-            val st1 = the_static_state(cmd_id)
-            val command = st1.command
-            val st0 = command.empty_state
-
+          case ((commands1, execs1), (command_id, exec)) =>
+            val st = the_static_state(command_id)
+            val command = st.command
             val commands2 = command :: commands1
             val execs2 =
               exec match {
                 case Nil => execs1
                 case eval_id :: print_ids =>
-                  execs1 + (eval_id -> execs.getOrElse(eval_id, st1)) ++
-                    print_ids.iterator.map(id => id -> execs.getOrElse(id, st0))
+                  execs1 ++ upd(eval_id, st) ++
+                    (for (id <- print_ids; up <- upd(id, command.empty_state)) yield up)
               }
             (commands2, execs2)
         }
