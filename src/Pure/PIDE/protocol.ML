@@ -59,7 +59,7 @@ val _ =
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
         val _ = Isabelle_Process.reset_tracing ();
         val _ =
-          Event_Timer.request (Time.now () + seconds 0.02)
+          Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
             (fn () => Document.start_execution state');
       in state' end));
 
