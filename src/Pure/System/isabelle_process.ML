@@ -103,30 +103,32 @@ fun update_tracing () =
 local
 
 fun chunk s = [string_of_int (size s), "\n", s];
+fun flush channel = ignore (try System_Channel.flush channel);
 
-fun message do_flush mbox name raw_props body =
+datatype target =
+  Channel of System_Channel.T |
+  Mailbox of (string list * bool) Mailbox.T;
+
+fun message do_flush target name raw_props body =
   let
     val robust_props = map (pairself YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((name, robust_props), []));
-  in Mailbox.send mbox (chunk header @ chunk body, do_flush) end;
-
-fun standard_message mbox opt_serial name body =
-  if body = "" then ()
-  else
-    message false mbox name
-      ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
-        (Position.properties_of (Position.thread_data ()))) body;
+    val msg = chunk header @ chunk body;
+  in
+    (case target of
+      Channel channel => (List.app (fn s => System_Channel.output channel s) msg; flush channel)
+    | Mailbox mbox => Mailbox.send mbox (msg, do_flush))
+  end;
 
 fun message_output mbox channel =
   let
-    fun flush () = ignore (try System_Channel.flush channel);
     fun loop receive =
       (case receive mbox of
         SOME (msg, do_flush) =>
          (List.app (fn s => System_Channel.output channel s) msg;
-          if do_flush then flush () else ();
+          if do_flush then flush channel else ();
           loop (Mailbox.receive_timeout (seconds 0.02)))
-      | NONE => (flush (); loop (SOME o Mailbox.receive)));
+      | NONE => (flush channel; loop (SOME o Mailbox.receive)));
   in fn () => loop (SOME o Mailbox.receive) end;
 
 in
@@ -136,25 +138,36 @@ fun init_channels channel =
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
 
-    val mbox = Mailbox.create () : (string list * bool) Mailbox.T;
-    val _ = Simple_Thread.fork false (message_output mbox channel);
+    val target =
+      if Multithreading.available then
+        let
+          val mbox = Mailbox.create ();
+          val _ = Simple_Thread.fork false (message_output mbox channel);
+        in Mailbox mbox end
+      else Channel channel;
+
+    fun standard_message opt_serial name body =
+      if body = "" then ()
+      else
+        message false target name
+          ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
+            (Position.properties_of (Position.thread_data ()))) body;
   in
-    Output.Private_Hooks.status_fn := standard_message mbox NONE Markup.statusN;
-    Output.Private_Hooks.report_fn := standard_message mbox NONE Markup.reportN;
-    Output.Private_Hooks.result_fn :=
-      (fn (i, s) => standard_message mbox (SOME i) Markup.resultN s);
+    Output.Private_Hooks.status_fn := standard_message NONE Markup.statusN;
+    Output.Private_Hooks.report_fn := standard_message NONE Markup.reportN;
+    Output.Private_Hooks.result_fn := (fn (i, s) => standard_message (SOME i) Markup.resultN s);
     Output.Private_Hooks.writeln_fn :=
-      (fn s => standard_message mbox (SOME (serial ())) Markup.writelnN s);
+      (fn s => standard_message (SOME (serial ())) Markup.writelnN s);
     Output.Private_Hooks.tracing_fn :=
-      (fn s => (update_tracing (); standard_message mbox (SOME (serial ())) Markup.tracingN s));
+      (fn s => (update_tracing (); standard_message (SOME (serial ())) Markup.tracingN s));
     Output.Private_Hooks.warning_fn :=
-      (fn s => standard_message mbox (SOME (serial ())) Markup.warningN s);
+      (fn s => standard_message (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
-      (fn (i, s) => standard_message mbox (SOME i) Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message true mbox Markup.protocolN;
+      (fn (i, s) => standard_message (SOME i) Markup.errorN s);
+    Output.Private_Hooks.protocol_message_fn := message true target Markup.protocolN;
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message true mbox Markup.initN [] (Session.welcome ())
+    message true target Markup.initN [] (Session.welcome ())
   end;
 
 end;
