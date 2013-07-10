@@ -8,6 +8,9 @@ structure Protocol: sig end =
 struct
 
 val _ =
+  Isabelle_Process.protocol_command "echo" (fn args => List.app writeln args);
+
+val _ =
   Isabelle_Process.protocol_command "Document.define_command"
     (fn [id, name, text] =>
       Document.change_state (Document.define_command (Document_ID.parse id) name text));
