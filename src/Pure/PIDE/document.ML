@@ -398,22 +398,6 @@ fun check_theory full name node =
   is_some (Thy_Info.lookup_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
-fun check_prints prints (prints': Command.print list) =
-  if eq_list (op = o pairself #exec_id) (prints, prints') then NONE
-  else SOME prints';
-
-fun update_prints command_visible command_name eval prints =
-  if command_visible then
-    let
-      val new_prints = Command.print command_name eval;
-      val prints' =
-        new_prints |> map (fn new_print =>
-          (case find_first (fn {name, ...} => name = #name new_print) prints of
-            SOME print => if Command.stable_print print then print else new_print
-          | NONE => new_print));
-    in check_prints prints prints' end
-  else check_prints prints (filter Command.stable_print prints);
-
 fun last_common state node0 node =
   let
     fun update_flags prev (visible, initial) =
@@ -444,7 +428,7 @@ fun last_common state node0 node =
                   val command_visible = visible_command node command_id;
                   val command_name = the_command_name state command_id;
                 in
-                  (case update_prints command_visible command_name eval prints of
+                  (case Command.print command_visible command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -470,13 +454,12 @@ fun new_exec state proper_init command_visible command_id' (assign_update, comma
       val (command_name, span) = the_command state command_id' ||> Lazy.force;
 
       val eval' = Command.eval (fn () => the_default illegal_init init span) span eval;
-      val prints' = perhaps (update_prints command_visible command_name eval') [];
+      val prints' = perhaps (Command.print command_visible command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
       val init' = if Keyword.is_theory_begin command_name then NONE else init;
     in SOME (assign_update', (command_id', (eval', prints')), init') end;
-
 in
 
 fun update old_version_id new_version_id edits state =
