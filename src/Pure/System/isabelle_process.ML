@@ -211,9 +211,8 @@ val default_modes1 =
   [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN, Graph_Display.active_graphN];
 val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
-fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
+val init = uninterruptible (fn _ => fn rendezvous =>
   let
-    val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.physical_stderr Symbol.STX;
 
     val _ = Printer.show_markup_default := true;
@@ -225,7 +224,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val channel = rendezvous ();
     val _ = init_channels channel;
     val _ = Session.init_protocol_handlers ();
-  in loop channel end));
+  in loop channel end);
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
 fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
