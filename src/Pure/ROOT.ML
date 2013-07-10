@@ -288,6 +288,7 @@ use "Proof/extraction.ML";
 use "System/session.ML";
 use "System/command_line.ML";
 use "System/system_channel.ML";
+use "System/message_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
 use "PIDE/protocol.ML";

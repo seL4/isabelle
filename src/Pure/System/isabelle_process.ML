@@ -103,45 +103,13 @@ fun update_tracing () =
 local
 
 fun chunk s = [string_of_int (size s), "\n", s];
-fun flush channel = ignore (try System_Channel.flush channel);
 
-datatype target =
-  Sync of {send: string list -> unit} |
-  Async of {send: string list -> bool -> unit, shutdown: unit -> unit};
-
-fun message do_flush target name raw_props body =
+fun message do_flush msg_channel name raw_props body =
   let
     val robust_props = map (pairself YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((name, robust_props), []));
     val msg = chunk header @ chunk body;
-  in (case target of Sync {send} => send msg | Async {send, ...} => send msg do_flush) end;
-
-fun message_output mbox channel =
-  let
-    fun loop receive =
-      (case receive mbox of
-        SOME NONE => flush channel
-      | SOME (SOME (msg, do_flush)) =>
-         (List.app (fn s => System_Channel.output channel s) msg;
-          if do_flush then flush channel else ();
-          loop (Mailbox.receive_timeout (seconds 0.02)))
-      | NONE => (flush channel; loop (SOME o Mailbox.receive)));
-  in fn () => loop (SOME o Mailbox.receive) end;
-
-fun make_target channel =
-  if Multithreading.available then
-    let
-      val mbox = Mailbox.create ();
-      val thread = Simple_Thread.fork false (message_output mbox channel);
-    in
-      Async {
-        send = fn msg => fn do_flush => Mailbox.send mbox (SOME (msg, do_flush)),
-        shutdown = fn () =>
-          (Mailbox.send mbox NONE; Mailbox.await_empty mbox; Simple_Thread.join thread)
-      }
-    end
-  else
-    Sync {send = fn msg => (List.app (fn s => System_Channel.output channel s) msg; flush channel)};
+  in Message_Channel.send msg_channel msg do_flush end;
 
 in
 
@@ -150,12 +118,12 @@ fun init_channels channel =
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdErr, IO.LINE_BUF);
 
-    val target = make_target channel;
+    val msg_channel = Message_Channel.make channel;
 
     fun standard_message opt_serial name body =
       if body = "" then ()
       else
-        message false target name
+        message false msg_channel name
           ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
             (Position.properties_of (Position.thread_data ()))) body;
   in
@@ -170,11 +138,11 @@ fun init_channels channel =
       (fn s => standard_message (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
       (fn (i, s) => standard_message (SOME i) Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message true target Markup.protocolN;
+    Output.Private_Hooks.protocol_message_fn := message true msg_channel Markup.protocolN;
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message true target Markup.initN [] (Session.welcome ());
-    (case target of Async {shutdown, ...} => shutdown | _ => fn () => ())
+    message true msg_channel Markup.initN [] (Session.welcome ());
+    msg_channel
   end;
 
 end;
@@ -242,10 +210,10 @@ val init = uninterruptible (fn _ => fn rendezvous =>
         (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
 
     val channel = rendezvous ();
-    val shutdown_channels = init_channels channel;
+    val msg_channel = init_channels channel;
     val _ = Session.init_protocol_handlers ();
     val _ = loop channel;
-  in shutdown_channels () end);
+  in Message_Channel.shutdown msg_channel end);
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
 fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);

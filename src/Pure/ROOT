@@ -181,6 +181,7 @@ session Pure =
     "System/isabelle_process.ML"
     "System/isabelle_system.ML"
     "System/isar.ML"
+    "System/message_channel.ML"
     "System/options.ML"
     "System/session.ML"
     "System/system_channel.ML"
