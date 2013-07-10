@@ -313,23 +313,21 @@ fun start_execution state =
   let
     val {version_id, group, running} = execution_of state;
     val _ =
-      (singleton o Future.forks)
-        {name = "Document.execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
-        (fn () =>
-         (OS.Process.sleep (seconds 0.02);
-          nodes_of (the_version state version_id) |> String_Graph.schedule
-            (fn deps => fn (name, node) =>
-              if not (visible_node node) andalso finished_theory node then
-                Future.value ()
-              else
-                (singleton o Future.forks)
-                  {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
-                    deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
-                  (fn () =>
-                    iterate_entries (fn (_, opt_exec) => fn () =>
-                      (case opt_exec of
-                        SOME exec => if ! running then SOME (Command.execute exec) else NONE
-                      | NONE => NONE)) node ()))));
+      if not (! running) orelse Task_Queue.is_canceled group then []
+      else
+        nodes_of (the_version state version_id) |> String_Graph.schedule
+          (fn deps => fn (name, node) =>
+            if not (visible_node node) andalso finished_theory node then
+              Future.value ()
+            else
+              (singleton o Future.forks)
+                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                  deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
+                (fn () =>
+                  iterate_entries (fn (_, opt_exec) => fn () =>
+                    (case opt_exec of
+                      SOME exec => if ! running then SOME (Command.execute exec) else NONE
+                    | NONE => NONE)) node ()));
   in () end;
 
 
