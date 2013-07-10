@@ -12,6 +12,7 @@ sig
   val send: 'a T -> 'a -> unit
   val receive: 'a T -> 'a
   val receive_timeout: Time.time -> 'a T -> 'a option
+  val await_empty: 'a T -> unit
 end;
 
 structure Mailbox: MAILBOX =
@@ -30,5 +31,9 @@ fun receive (Mailbox mailbox) =
 fun receive_timeout timeout (Mailbox mailbox) =
   Synchronized.timed_access mailbox
     (fn _ => SOME (Time.+ (Time.now (), timeout))) (try Queue.dequeue);
+
+fun await_empty (Mailbox mailbox) =
+  Synchronized.guarded_access mailbox
+    (fn queue => if Queue.is_empty queue then SOME ((), queue) else NONE);
 
 end;
