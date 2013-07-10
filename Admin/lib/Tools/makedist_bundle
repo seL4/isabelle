@@ -147,15 +147,15 @@ case "$PLATFORM_FAMILY" in
           "contrib/cygwin/isabelle/."
       done
 
-      find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 | \
-        sort > "contrib/cygwin/isabelle/executables"
+      find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 \
+        -print0 > "contrib/cygwin/isabelle/executables"
 
       cat >> "contrib/cygwin/isabelle/postinstall" <<EOF
 
 find -type d -exec chmod 755 '{}' +
 find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
 find -type f -not -name '*.exe' -not -name '*.dll' -exec chmod 644 '{}' +
-xargs < contrib/cygwin/isabelle/executables chmod 755
+xargs -0 < contrib/cygwin/isabelle/executables chmod 755
 
 EOF
 

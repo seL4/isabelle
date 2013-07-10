@@ -75,12 +75,12 @@ fun update_tracing () =
     NONE => ()
   | SOME id =>
       let
-        val (n, ok) =
+        val ok =
           Synchronized.change_result tracing_messages (fn tab =>
             let
               val n = the_default 0 (Inttab.lookup tab id) + 1;
               val ok = n <= Options.default_int "editor_tracing_messages";
-            in ((n, ok), Inttab.update (id, n) tab) end);
+            in (ok, Inttab.update (id, n) tab) end);
       in
         if ok then ()
         else
@@ -188,13 +188,16 @@ fun read_command channel =
     NONE => raise Runtime.TERMINATE
   | SOME line => map (read_chunk channel) (space_explode "," line));
 
+fun worker_guest e =
+  Future.worker_guest "Isabelle_Process.loop" (Future.new_group NONE) e ();
+
 in
 
 fun loop channel =
   let val continue =
     (case read_command channel of
       [] => (Output.error_msg "Isabelle process: no input"; true)
-    | name :: args => (run_command name args; true))
+    | name :: args => (worker_guest (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
       | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
   in if continue then loop channel else () end;
@@ -238,8 +241,6 @@ val _ =
         Future.ML_statistics := true;
         Multithreading.trace := Options.int options "threads_trace";
         Multithreading.max_threads := Options.int options "threads";
-        if Multithreading.max_threads_value () < 2
-        then Multithreading.max_threads := 2 else ();
         Goal.skip_proofs := Options.bool options "editor_skip_proofs";
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
       end);

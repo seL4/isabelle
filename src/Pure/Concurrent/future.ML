@@ -47,6 +47,7 @@ sig
   val worker_task: unit -> task option
   val worker_group: unit -> group option
   val worker_subgroup: unit -> group
+  val worker_guest: string -> group -> ('a -> 'b) -> 'a -> 'b
   type 'a future
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
@@ -99,6 +100,11 @@ end;
 
 val worker_group = Option.map Task_Queue.group_of_task o worker_task;
 fun worker_subgroup () = new_group (worker_group ());
+
+fun worker_guest name group f x =
+  if is_some (worker_task ()) then
+    raise Fail "Already running as worker thread"
+  else setmp_worker_task (Task_Queue.new_task group name NONE) f x;
 
 fun worker_joining e =
   (case worker_task () of
@@ -266,15 +272,12 @@ fun worker_exec (task, jobs) =
   in () end;
 
 fun worker_wait active cond = (*requires SYNCHRONIZED*)
-  let
-    val state =
-      (case AList.lookup Thread.equal (! workers) (Thread.self ()) of
-        SOME state => state
-      | NONE => raise Fail "Unregistered worker thread");
-    val _ = state := (if active then Waiting else Sleeping);
-    val _ = wait cond;
-    val _ = state := Working;
-  in () end;
+  (case AList.lookup Thread.equal (! workers) (Thread.self ()) of
+    SOME state =>
+     (state := (if active then Waiting else Sleeping);
+      wait cond;
+      state := Working)
+  | NONE => ignore (wait cond));
 
 fun worker_next () = (*requires SYNCHRONIZED*)
   if length (! workers) > ! max_workers then

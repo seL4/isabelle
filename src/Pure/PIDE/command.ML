@@ -10,18 +10,22 @@ sig
   type eval = {exec_id: Document_ID.exec, eval_process: eval_process}
   val eval_result_state: eval -> Toplevel.state
   type print_process
-  type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process}
+  type print =
+   {name: string, pri: int, persistent: bool,
+    exec_id: Document_ID.exec, print_process: print_process}
   type exec = eval * print list
   val no_exec: exec
-  val exec_ids: exec -> Document_ID.exec list
-  val read: (unit -> theory) -> Token.T list -> Toplevel.transition
-  val eval: (unit -> theory) -> Token.T list -> eval -> eval
-  val print: string -> eval -> print list
-  type print_fn = Toplevel.transition -> Toplevel.state -> unit
-  val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
-  val execute: exec -> unit
+  val exec_ids: exec option -> Document_ID.exec list
   val stable_eval: eval -> bool
   val stable_print: print -> bool
+  val read: (unit -> theory) -> Token.T list -> Toplevel.transition
+  val eval: (unit -> theory) -> Token.T list -> eval -> eval
+  val print: bool -> string -> eval -> print list -> print list option
+  type print_fn = Toplevel.transition -> Toplevel.state -> unit
+  val print_function: {name: string, pri: int, persistent: bool} ->
+    ({command_name: string} -> print_fn option) -> unit
+  val no_print_function: string -> unit
+  val execute: exec -> unit
 end;
 
 structure Command: COMMAND =
@@ -85,12 +89,27 @@ fun eval_result ({eval_process, ...}: eval) = memo_result eval_process;
 val eval_result_state = #state o eval_result;
 
 type print_process = unit memo;
-type print = {name: string, pri: int, exec_id: Document_ID.exec, print_process: print_process};
+type print =
+ {name: string, pri: int, persistent: bool,
+  exec_id: Document_ID.exec, print_process: print_process};
 
 type exec = eval * print list;
 val no_exec: exec = ({exec_id = Document_ID.none, eval_process = memo_value init_eval_state}, []);
 
-fun exec_ids (({exec_id, ...}, prints): exec) = exec_id :: map #exec_id prints;
+fun exec_ids (NONE: exec option) = []
+  | exec_ids (SOME ({exec_id, ...}, prints)) = exec_id :: map #exec_id prints;
+
+
+(* stable results *)
+
+fun stable_goals exec_id =
+  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
+
+fun stable_eval ({exec_id, eval_process}: eval) =
+  stable_goals exec_id andalso memo_stable eval_process;
+
+fun stable_print ({exec_id, print_process, ...}: print) =
+  stable_goals exec_id andalso memo_stable print_process;
 
 
 (* read *)
@@ -196,75 +215,85 @@ type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 local
 
-type print_function = string * (int * (string -> print_fn option));
+type print_function = string * (int * bool * ({command_name: string} -> print_fn option));
 val print_functions = Synchronized.var "Command.print_functions" ([]: print_function list);
 
-fun output_error tr exn =
-  List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
-
-fun print_error tr f x =
-  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) f x
-    handle exn => output_error tr exn;
+fun print_error tr e =
+  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) e () handle exn =>
+    List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
 
 in
 
-fun print command_name eval =
-  rev (Synchronized.value print_functions) |> map_filter (fn (name, (pri, get_print_fn)) =>
-    (case Exn.capture (Runtime.controlled_execution get_print_fn) command_name of
-      Exn.Res NONE => NONE
-    | Exn.Res (SOME print_fn) =>
-        let
-          val exec_id = Document_ID.make ();
-          fun process () =
-            let
-              val {failed, command, state = st', ...} = eval_result eval;
-              val tr = Toplevel.exec_id exec_id command;
-            in if failed then () else print_error tr (fn () => print_fn tr st') () end;
-        in SOME {name = name, pri = pri, exec_id = exec_id, print_process = memo process} end
-    | Exn.Exn exn =>
-        let
-          val exec_id = Document_ID.make ();
-          fun process () =
-            let
-              val {command, ...} = eval_result eval;
-              val tr = Toplevel.exec_id exec_id command;
-            in output_error tr exn end;
-        in SOME {name = name, pri = pri, exec_id = exec_id, print_process = memo process} end));
+fun print command_visible command_name eval old_prints =
+  let
+    fun new_print (name, (pri, persistent, get_fn)) =
+      let
+        fun make_print strict print_fn =
+          let
+            val exec_id = Document_ID.make ();
+            fun process () =
+              let
+                val {failed, command, state = st', ...} = eval_result eval;
+                val tr = Toplevel.exec_id exec_id command;
+              in
+                if failed andalso not strict then ()
+                else print_error tr (fn () => print_fn tr st')
+              end;
+          in
+           {name = name, pri = pri, persistent = persistent,
+            exec_id = exec_id, print_process = memo process}
+          end;
+      in
+        (case Exn.capture (Runtime.controlled_execution get_fn) {command_name = command_name} of
+          Exn.Res NONE => NONE
+        | Exn.Res (SOME print_fn) => SOME (make_print false print_fn)
+        | Exn.Exn exn => SOME (make_print true (fn _ => fn _ => reraise exn)))
+      end;
 
-fun print_function {name, pri} f =
+    val new_prints =
+      if command_visible then
+        rev (Synchronized.value print_functions) |> map_filter (fn pr =>
+          (case find_first (equal (fst pr) o #name) old_prints of
+            SOME print => if stable_print print then SOME print else new_print pr
+          | NONE => new_print pr))
+      else filter (fn print => #persistent print andalso stable_print print) old_prints;
+  in
+    if eq_list (op = o pairself #exec_id) (old_prints, new_prints) then NONE
+    else SOME new_prints
+  end;
+
+fun print_function {name, pri, persistent} f =
   Synchronized.change print_functions (fn funs =>
    (if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
-    AList.update (op =) (name, (pri, f)) funs));
+    AList.update (op =) (name, (pri, persistent, f)) funs));
+
+fun no_print_function name =
+  Synchronized.change print_functions (filter_out (equal name o #1));
 
 end;
 
 val _ =
-  print_function {name = "print_state", pri = 0} (fn command_name => SOME (fn tr => fn st' =>
-    let
-      val is_init = Keyword.is_theory_begin command_name;
-      val is_proof = Keyword.is_proof command_name;
-      val do_print =
-        not is_init andalso
-          (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-    in if do_print then Toplevel.print_state false st' else () end));
+  print_function {name = "print_state", pri = 0, persistent = true}
+    (fn {command_name} => SOME (fn tr => fn st' =>
+      let
+        val is_init = Keyword.is_theory_begin command_name;
+        val is_proof = Keyword.is_proof command_name;
+        val do_print =
+          not is_init andalso
+            (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+      in if do_print then Toplevel.print_state false st' else () end));
 
 
 (* overall execution process *)
 
+fun run_print ({name, pri, print_process, ...}: print) =
+  (if Multithreading.enabled () then
+    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true}
+  else memo_eval) print_process;
+
 fun execute (({eval_process, ...}, prints): exec) =
- (memo_eval eval_process;
-  prints |> List.app (fn {name, pri, print_process, ...} =>
-    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true} print_process));
-
-fun stable_goals exec_id =
-  not (Par_Exn.is_interrupted (Future.join_results (Goal.peek_futures exec_id)));
-
-fun stable_eval ({exec_id, eval_process}: eval) =
-  stable_goals exec_id andalso memo_stable eval_process;
-
-fun stable_print ({exec_id, print_process, ...}: print) =
-  stable_goals exec_id andalso memo_stable print_process;
+  (memo_eval eval_process; List.app run_print prints);
 
 end;
 

@@ -396,11 +396,11 @@ class Session(val thy_load: Thy_Load)
               val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
               accumulate(state_id, prover.get.xml_cache.elem(message))
 
-            case Markup.Assign_Execs =>
+            case Markup.Assign_Update =>
               XML.content(output.body) match {
-                case Protocol.Assign(id, assign) =>
+                case Protocol.Assign_Update(id, update) =>
                   try {
-                    val cmds = global_state >>> (_.assign(id, assign))
+                    val cmds = global_state >>> (_.assign(id, update))
                     delay_commands_changed.invoke(true, cmds)
                   }
                   catch { case _: Document.State.Fail => bad_output() }

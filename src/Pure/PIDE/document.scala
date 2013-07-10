@@ -275,7 +275,8 @@ object Document
       result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
-  type Assign = List[(Document_ID.Command, List[Document_ID.Exec])]  // exec state assignment
+  type Assign_Update =
+    List[(Document_ID.Command, List[Document_ID.Exec])]  // update of exec state assignment
 
   object State
   {
@@ -293,21 +294,21 @@ object Document
       def check_finished: Assignment = { require(is_finished); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
 
-      def assign(
-        add_command_execs: List[(Document_ID.Command, List[Document_ID.Exec])]): Assignment =
+      def assign(update: Assign_Update): Assignment =
       {
         require(!is_finished)
         val command_execs1 =
-          (command_execs /: add_command_execs) {
-            case (res, (command_id, Nil)) => res - command_id
-            case (res, assign) => res + assign
+          (command_execs /: update) {
+            case (res, (command_id, exec_ids)) =>
+              if (exec_ids.isEmpty) res - command_id
+              else res + (command_id -> exec_ids)
           }
         new Assignment(command_execs1, true)
       }
     }
 
     val init: State =
-      State().define_version(Version.init, Assignment.init).assign(Version.init.id)._2
+      State().define_version(Version.init, Assignment.init).assign(Version.init.id, Nil)._2
   }
 
   final case class State private(
@@ -344,10 +345,9 @@ object Document
       }
 
     def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
-    def the_read_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
-    def the_exec_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
-    def the_assignment(version: Version): State.Assignment =
-      assignments.getOrElse(version.id, fail)
+    def the_static_state(id: Document_ID.Command): Command.State = commands.getOrElse(id, fail)
+    def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
+    def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
@@ -363,28 +363,30 @@ object Document
           }
       }
 
-    def assign(id: Document_ID.Version, command_execs: Assign = Nil): (List[Command], State) =
+    def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
     {
       val version = the_version(id)
 
-      val (changed_commands, new_execs) =
-        ((Nil: List[Command], execs) /: command_execs) {
-          case ((commands1, execs1), (cmd_id, exec)) =>
-            val st1 = the_read_state(cmd_id)
-            val command = st1.command
-            val st0 = command.empty_state
+      def upd(exec_id: Document_ID.Exec, st: Command.State)
+          : Option[(Document_ID.Exec, Command.State)] =
+        if (execs.isDefinedAt(exec_id)) None else Some(exec_id -> st)
 
+      val (changed_commands, new_execs) =
+        ((Nil: List[Command], execs) /: update) {
+          case ((commands1, execs1), (command_id, exec)) =>
+            val st = the_static_state(command_id)
+            val command = st.command
             val commands2 = command :: commands1
             val execs2 =
               exec match {
                 case Nil => execs1
                 case eval_id :: print_ids =>
-                  execs1 + (eval_id -> execs.getOrElse(eval_id, st1)) ++
-                    print_ids.iterator.map(id => id -> execs.getOrElse(id, st0))
+                  execs1 ++ upd(eval_id, st) ++
+                    (for (id <- print_ids; up <- upd(id, command.empty_state)) yield up)
               }
             (commands2, execs2)
         }
-      val new_assignment = the_assignment(version).assign(command_execs)
+      val new_assignment = the_assignment(version).assign(update)
       val new_state = copy(assignments = assignments + (id -> new_assignment), execs = new_execs)
 
       (changed_commands, new_state)
@@ -436,10 +438,9 @@ object Document
         (_, node) <- version.nodes.entries
         command <- node.commands.iterator
       } {
-        val id = command.id
-        if (!commands1.isDefinedAt(id))
-          commands.get(id).foreach(st => commands1 += (id -> st))
-        for (exec_id <- command_execs.getOrElse(id, Nil)) {
+        if (!commands1.isDefinedAt(command.id))
+          commands.get(command.id).foreach(st => commands1 += (command.id -> st))
+        for (exec_id <- command_execs.getOrElse(command.id, Nil)) {
           if (!execs1.isDefinedAt(exec_id))
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
@@ -452,14 +453,14 @@ object Document
       require(is_assigned(version))
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
-          .map(the_exec_state(_)) match {
+          .map(the_dynamic_state(_)) match {
             case eval_state :: print_states => (eval_state /: print_states)(_ ++ _)
             case Nil => fail
           }
       }
       catch {
         case _: State.Fail =>
-          try { the_read_state(command.id) }
+          try { the_static_state(command.id) }
           catch { case _: State.Fail => command.init_state }
       }
     }

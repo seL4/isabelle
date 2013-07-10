@@ -154,7 +154,9 @@ fun level (State (NONE, _)) = 0
   | level (State (SOME (Proof (prf, _)), _)) = Proof.level (Proof_Node.current prf)
   | level (State (SOME (Skipped_Proof (d, _)), _)) = d + 1;   (*different notion of proof depth!*)
 
-fun str_of_state (State (NONE, _)) = "at top level"
+fun str_of_state (State (NONE, SOME (Theory (Context.Theory thy, _)))) =
+      "at top level, result theory " ^ quote (Context.theory_name thy)
+  | str_of_state (State (NONE, _)) = "at top level"
   | str_of_state (State (SOME (Theory (Context.Theory _, _)), _)) = "in theory mode"
   | str_of_state (State (SOME (Theory (Context.Proof _, _)), _)) = "in local theory mode"
   | str_of_state (State (SOME (Proof _), _)) = "in proof mode"
