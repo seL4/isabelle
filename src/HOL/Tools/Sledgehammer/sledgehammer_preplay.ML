@@ -231,8 +231,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
                   (l, (fn () => preplay' preplay_timeout step) |> Lazy.lazy)
                   tab
             handle (exn as Canonical_Lbl_Tab.DUP _) =>
-              raise Fail ("Sledgehammer_Preplay: preplay time table - "
-                          ^ PolyML.makestring exn)
+              raise Fail "Sledgehammer_Preplay: preplay time table"
         in
           Canonical_Lbl_Tab.empty
           |> fold_isar_steps add_step_to_tab (steps_of_proof proof)
