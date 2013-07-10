@@ -354,15 +354,15 @@ class Isabelle_Process(
 
   /** main methods **/
 
-  def input_bytes(name: String, args: Array[Byte]*): Unit =
+  def protocol_command_raw(name: String, args: Array[Byte]*): Unit =
     command_input._2 ! Input_Chunks(UTF8.string_bytes(name) :: args.toList)
 
-  def input(name: String, args: String*)
+  def protocol_command(name: String, args: String*)
   {
     receiver(new Input(name, args.toList))
-    input_bytes(name, args.map(UTF8.string_bytes): _*)
+    protocol_command_raw(name, args.map(UTF8.string_bytes): _*)
   }
 
   def options(opts: Options): Unit =
-    input("Isabelle_Process.options", YXML.string_of_body(opts.encode))
+    protocol_command("Isabelle_Process.options", YXML.string_of_body(opts.encode))
 }

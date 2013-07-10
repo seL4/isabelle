@@ -48,15 +48,15 @@ in
 fun protocol_command name cmd =
   Synchronized.change commands (fn cmds =>
    (if not (Symtab.defined cmds name) then ()
-    else warning ("Redefining Isabelle process command " ^ quote name);
+    else warning ("Redefining Isabelle protocol command " ^ quote name);
     Symtab.update (name, cmd) cmds));
 
 fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
-    NONE => error ("Undefined Isabelle process command " ^ quote name)
+    NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
       (Runtime.debugging cmd args handle exn =>
-        error ("Isabelle process protocol failure: " ^ quote name ^ "\n" ^
+        error ("Isabelle protocol command failure: " ^ quote name ^ "\n" ^
           ML_Compiler.exn_message exn)));
 
 end;

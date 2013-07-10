@@ -76,7 +76,7 @@ class Invoke_Scala extends Session.Protocol_Handler
     id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit = synchronized
   {
     if (futures.isDefinedAt(id)) {
-      prover.input("Invoke_Scala.fulfill", id, tag.toString, res)
+      prover.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
       futures -= id
     }
   }

@@ -308,15 +308,15 @@ trait Protocol extends Isabelle_Process
   /* commands */
 
   def define_command(command: Command): Unit =
-    input("Document.define_command",
+    protocol_command("Document.define_command",
       Document_ID(command.id), encode(command.name), encode(command.source))
 
 
   /* document versions */
 
-  def discontinue_execution() { input("Document.discontinue_execution") }
+  def discontinue_execution() { protocol_command("Document.discontinue_execution") }
 
-  def cancel_execution() { input("Document.cancel_execution") }
+  def cancel_execution() { protocol_command("Document.cancel_execution") }
 
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
     edits: List[Document.Edit_Command])
@@ -346,7 +346,7 @@ trait Protocol extends Isabelle_Process
         pair(string, encode_edit(name))(name.node, edit)
       })
       YXML.string_of_body(encode_edits(edits)) }
-    input("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
+    protocol_command("Document.update", Document_ID(old_id), Document_ID(new_id), edits_yxml)
   }
 
   def remove_versions(versions: List[Document.Version])
@@ -354,7 +354,7 @@ trait Protocol extends Isabelle_Process
     val versions_yxml =
       { import XML.Encode._
         YXML.string_of_body(list(long)(versions.map(_.id))) }
-    input("Document.remove_versions", versions_yxml)
+    protocol_command("Document.remove_versions", versions_yxml)
   }
 
 
@@ -362,6 +362,6 @@ trait Protocol extends Isabelle_Process
 
   def dialog_result(serial: Long, result: String)
   {
-    input("Document.dialog_result", Properties.Value.Long(serial), result)
+    protocol_command("Document.dialog_result", Properties.Value.Long(serial), result)
   }
 }
