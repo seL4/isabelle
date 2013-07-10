@@ -108,9 +108,8 @@ class Isabelle_Process(
   }
 
 
-  /* input actors */
+  /* command input actor */
 
-  private case class Input_Text(text: String)
   private case class Input_Chunks(chunks: List[Array[Byte]])
 
   private case object Close
@@ -122,7 +121,6 @@ class Isabelle_Process(
     }
   }
 
-  @volatile private var standard_input: (Thread, Actor) = null
   @volatile private var command_input: (Thread, Actor) = null
 
 
@@ -169,9 +167,9 @@ class Isabelle_Process(
     }
     if (startup_errors != "") system_output(startup_errors)
 
+    process.stdin.close
     if (startup_failed) {
       exit_message(127)
-      process.stdin.close
       Thread.sleep(300)
       terminate_process()
       process_result.join
@@ -179,7 +177,6 @@ class Isabelle_Process(
     else {
       val (command_stream, message_stream) = system_channel.rendezvous()
 
-      standard_input = stdin_actor()
       val stdout = physical_output_actor(false)
       val stderr = physical_output_actor(true)
       command_input = input_actor(command_stream)
@@ -187,8 +184,8 @@ class Isabelle_Process(
 
       val rc = process_result.join
       system_output("process terminated")
-      close_input()
-      for ((thread, _) <- List(standard_input, stdout, stderr, command_input, message))
+      close(command_input)
+      for ((thread, _) <- List(stdout, stderr, command_input, message))
         thread.join
       system_output("process_manager terminated")
       exit_message(rc)
@@ -203,7 +200,7 @@ class Isabelle_Process(
 
   def terminate()
   {
-    close_input()
+    close(command_input)
     system_output("Terminating Isabelle process")
     terminate_process()
   }
@@ -211,34 +208,6 @@ class Isabelle_Process(
 
 
   /** stream actors **/
-
-  /* physical stdin */
-
-  private def stdin_actor(): (Thread, Actor) =
-  {
-    val name = "standard_input"
-    Simple_Thread.actor(name) {
-      try {
-        var finished = false
-        while (!finished) {
-          //{{{
-          receive {
-            case Input_Text(text) =>
-              process.stdin.write(text)
-              process.stdin.flush
-            case Close =>
-              process.stdin.close
-              finished = true
-            case bad => System.err.println(name + ": ignoring bad message " + bad)
-          }
-          //}}}
-        }
-      }
-      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
-      system_output(name + " terminated")
-    }
-  }
-
 
   /* physical output */
 
@@ -385,8 +354,6 @@ class Isabelle_Process(
 
   /** main methods **/
 
-  def input_raw(text: String): Unit = standard_input._2 ! Input_Text(text)
-
   def input_bytes(name: String, args: Array[Byte]*): Unit =
     command_input._2 ! Input_Chunks(UTF8.string_bytes(name) :: args.toList)
 
@@ -398,10 +365,4 @@ class Isabelle_Process(
 
   def options(opts: Options): Unit =
     input("Isabelle_Process.options", YXML.string_of_body(opts.encode))
-
-  def close_input()
-  {
-    close(command_input)
-    close(standard_input)
-  }
 }
