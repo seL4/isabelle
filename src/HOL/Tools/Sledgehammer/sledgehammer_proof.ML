@@ -114,7 +114,7 @@ val add_metis_steps =
 
 (** canonical proof labels: 1, 2, 3, ... in post traversal order **)
 
-val canonical_label_ord = pairself snd #> int_ord
+fun canonical_label_ord (((_, i1), (_, i2)) : label * label) = int_ord (i1, i2)
 
 structure Canonical_Lbl_Tab = Table(
   type key = label
