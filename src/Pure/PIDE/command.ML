@@ -14,14 +14,15 @@ sig
   type exec = eval * print list
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
+  val stable_eval: eval -> bool
+  val stable_print: print -> bool
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   val print: bool -> string -> eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print_function: {name: string, pri: int} -> (string -> print_fn option) -> unit
+  val no_print_function: string -> unit
   val execute: exec -> unit
-  val stable_eval: eval -> bool
-  val stable_print: print -> bool
 end;
 
 structure Command: COMMAND =
@@ -258,6 +259,9 @@ fun print_function {name, pri} f =
    (if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
     AList.update (op =) (name, (pri, f)) funs));
+
+fun no_print_function name =
+  Synchronized.change print_functions (filter_out (equal name o #1));
 
 end;
 
