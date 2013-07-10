@@ -980,6 +980,7 @@ fun string_of_vname (x, i) =
       (case rev (Symbol.explode x) of
         _ :: "\\<^sub>" :: _ => false
       | _ :: "\\<^isub>" :: _ => false
+      | _ :: "\\<^sup>" :: _ => false
       | _ :: "\\<^isup>" :: _ => false
       | c :: _ => Symbol.is_digit c
       | _ => true);
