@@ -334,7 +334,7 @@ fun start_execution state =
                 (fn () =>
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
-                      SOME exec => if running () then SOME (Command.execute exec) else NONE
+                      SOME exec => if running () then SOME (Command.exec exec) else NONE
                     | NONE => NONE)) node ()));
   in () end;
 
