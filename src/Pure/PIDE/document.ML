@@ -202,18 +202,26 @@ fun put_node (name, node) (Version nodes) =
 end;
 
 
-
-(** main state -- document structure and execution process **)
+(* associated execution *)
 
 type execution =
  {version_id: Document_ID.version,
   group: Future.group,
-  running: bool Unsynchronized.ref};
+  continue: bool Synchronized.var};
 
 val no_execution =
  {version_id = Document_ID.none,
   group = Future.new_group NONE,
-  running = Unsynchronized.ref false};
+  continue = Synchronized.var "continue" false};
+
+fun make_execution version_id =
+ {version_id = version_id,
+  group = Future.new_group NONE,
+  continue = Synchronized.var "continue" true};
+
+
+
+(** main state -- document structure and execution process **)
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -240,10 +248,7 @@ fun define_version version_id version =
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' =
-       {version_id = version_id,
-        group = Future.new_group NONE,
-        running = Unsynchronized.ref true};
+      val execution' = make_execution version_id;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -305,15 +310,18 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 
 (** document execution **)
 
-val discontinue_execution = execution_of #> (fn {running, ...} => running := false);
+val discontinue_execution =
+  execution_of #> (fn {continue, ...} => Synchronized.change continue (K false));
+
 val cancel_execution = execution_of #> (fn {group, ...} => Future.cancel_group group);
 val terminate_execution = execution_of #> (fn {group, ...} => Future.terminate group);
 
 fun start_execution state =
   let
-    val {version_id, group, running} = execution_of state;
+    val {version_id, group, continue} = execution_of state;
+    fun running () = Synchronized.guarded_access continue (fn x => SOME (x, x));
     val _ =
-      if not (! running) orelse Task_Queue.is_canceled group then []
+      if not (running ()) orelse Task_Queue.is_canceled group then []
       else
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
@@ -326,7 +334,7 @@ fun start_execution state =
                 (fn () =>
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
-                      SOME exec => if ! running then SOME (Command.execute exec) else NONE
+                      SOME exec => if running () then SOME (Command.execute exec) else NONE
                     | NONE => NONE)) node ()));
   in () end;
 
