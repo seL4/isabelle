@@ -201,7 +201,7 @@ fun mk_mor_str_tac ks mor_UNIV =
   (stac mor_UNIV THEN' CONJ_WRAP' (K (rtac refl)) ks) 1;
 
 fun mk_mor_sum_case_tac ks mor_UNIV =
-  (stac mor_UNIV THEN' CONJ_WRAP' (K (rtac @{thm sum_case_comp_Inl[symmetric]})) ks) 1;
+  (stac mor_UNIV THEN' CONJ_WRAP' (K (rtac @{thm sum_case_o_inj(1)[symmetric]})) ks) 1;
 
 fun mk_set_incl_hset_tac def rec_Suc =
   EVERY' (stac def ::

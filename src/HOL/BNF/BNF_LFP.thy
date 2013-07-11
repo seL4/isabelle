@@ -215,6 +215,16 @@ qed
 lemma insert_subsetI: "\<lbrakk>x \<in> A; X \<subseteq> A\<rbrakk> \<Longrightarrow> insert x X \<subseteq> A"
 by auto
 
+lemma If_the_inv_into_in_Func:
+  "\<lbrakk>inj_on g C; g ` C \<subseteq> A; C \<subseteq> B \<union> {x}\<rbrakk> \<Longrightarrow>
+  (\<lambda>i. if i \<in> A then if i \<in> g ` C then the_inv_into C g i else x else undefined) \<in> Func A (B \<union> {x})"
+unfolding Func_def by (auto dest: the_inv_into_into)
+
+lemma If_the_inv_into_f_f:
+  "\<lbrakk>inj_on g C; g ` C \<subseteq> A; i \<in> C\<rbrakk> \<Longrightarrow>
+  ((\<lambda>i. if i \<in> A then if i \<in> g ` C then the_inv_into C g i else x else undefined) o g) i = id i"
+unfolding Func_def by (auto elim: the_inv_into_f_f)
+
 (*helps resolution*)
 lemma well_order_induct_imp:
   "wo_rel r \<Longrightarrow> (\<And>x. \<forall>y. y \<noteq> x \<and> (y, x) \<in> r \<longrightarrow> y \<in> Field r \<longrightarrow> P y \<Longrightarrow> x \<in> Field r \<longrightarrow> P x) \<Longrightarrow>

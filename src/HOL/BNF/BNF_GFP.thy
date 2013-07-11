@@ -16,14 +16,11 @@ begin
 lemma o_sum_case: "h o sum_case f g = sum_case (h o f) (h o g)"
 unfolding o_def by (auto split: sum.splits)
 
-lemma sum_case_comp_Inl: "sum_case f g \<circ> Inl = f"
-unfolding comp_def by simp
-
 lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"
 by (auto split: sum.splits)
 
 lemma sum_case_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> sum_case g h = f"
-by (metis sum_case_comp_Inl sum_case_o_inj(2) surjective_sum)
+by (metis sum_case_o_inj(1,2) surjective_sum)
 
 lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
 by auto
