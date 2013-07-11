@@ -421,7 +421,7 @@ fun last_common state node0 node =
           val flags' = update_flags prev flags;
           val same' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) => Command.same_eval (eval0, eval)
+              (SOME (eval0, _), SOME (eval, _)) => Command.eval_same (eval0, eval)
             | _ => false);
           val assign_update' = assign_update |> same' ?
             (case opt_exec of

@@ -60,6 +60,7 @@ val _ =
               |> YXML.string_of_body);
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
+        val _ = Exec.purge_unstable ();
         val _ = Isabelle_Process.reset_tracing ();
         val _ =
           Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
