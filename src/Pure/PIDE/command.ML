@@ -45,13 +45,13 @@ fun memo_value a = Memo (Synchronized.var "Command.memo" (Result (Exn.Res a)));
 fun memo_result (Memo v) =
   (case Synchronized.value v of
     Result res => Exn.release res
-  | _ => raise Fail "Unfinished memo result");
+  | Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id));
 
 fun memo_exec (Memo v) =
   (case Synchronized.value v of
     Result res => res
-  | _ =>
-      Synchronized.guarded_access v
+  | Expr (exec_id, _) =>
+      Synchronized.timed_access v (fn _ => SOME Time.zeroTime)
         (fn Result res => SOME (res, Result res)
           | Expr (exec_id, e) =>
               uninterruptible (fn restore_attributes => fn () =>
@@ -62,7 +62,9 @@ fun memo_exec (Memo v) =
                     if Exn.is_interrupt_exn res
                     then Exec.canceled exec_id
                     else Exec.finished exec_id;
-                in SOME (res, Result res) end) ()))
+                in SOME (res, Result res) end) ())
+      |> (fn NONE => error ("Concurrent execution attempt: " ^ Document_ID.print exec_id)
+           | SOME res => res))
   |> Exn.release;
 
 fun memo_fork params (Memo v) =
