@@ -110,7 +110,7 @@ fun set_result result =
 
 fun changed_result node node' =
   (case (get_result node, get_result node') of
-    (SOME eval, SOME eval') => #exec_id eval <> #exec_id eval'
+    (SOME eval, SOME eval') => not (Command.eval_same (eval, eval'))
   | (NONE, NONE) => false
   | _ => true);
 
