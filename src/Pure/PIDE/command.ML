@@ -18,6 +18,7 @@ sig
   val exec_ids: exec option -> Document_ID.exec list
   val stable_eval: eval -> bool
   val stable_print: print -> bool
+  val same_eval: eval * eval -> bool
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   val print: bool -> string -> eval -> print list -> print list option
@@ -110,6 +111,9 @@ fun stable_eval ({exec_id, eval_process}: eval) =
 
 fun stable_print ({exec_id, print_process, ...}: print) =
   stable_goals exec_id andalso memo_stable print_process;
+
+fun same_eval (eval: eval, eval': eval) =
+  #exec_id eval = #exec_id eval' andalso stable_eval eval';
 
 
 (* read *)
