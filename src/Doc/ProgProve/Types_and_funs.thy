@@ -481,6 +481,32 @@ can be instructed to do so:
 splits all case-expressions over natural numbers. For an arbitrary
 datatype @{text t} it is @{text "t.split"} instead of @{thm[source] nat.split}.
 Method @{text auto} can be modified in exactly the same way.
+
+
+\section*{Exercises}
+
+\exercise
+Define arithmetic expressions in one variable over integers (type @{typ int})
+as a data type:
+*}
+
+datatype exp = Var | Const int | Add exp exp | Mult exp exp
+
+text{*
+Define a function \noquotes{@{term [source]"eval :: exp \<Rightarrow> int \<Rightarrow> int"}}
+such that @{term"eval e x"} evaluates @{text e} at the value
+@{text x}.
+
+A polynomial can be represented as a list of coefficients, starting with
+the constant. For example, @{term "[4, 2, -1, 3::int]"} represents the
+polynomial $4 + 2x - x^2 + 3x^3$.
+Define a function \noquotes{@{term [source] "evalp :: int list \<Rightarrow> int \<Rightarrow> int"}}
+that evaluates a polynomial at the given value.
+Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list"}}
+that transforms an expression into a polynomial. This may require auxiliary
+functions. Prove that @{text coeffs} preserves the value of the expression:
+\mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
+\endexercise
 *}
 (*<*)
 end

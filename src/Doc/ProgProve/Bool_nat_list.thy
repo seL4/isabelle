@@ -414,6 +414,19 @@ but we do now know what the result is. That is, @{term"hd []"} is not undefined
 but underdefined.
 \endsem
 %
+
+\subsection{Exercises}
+
+\begin{exercise}
+Define your own addition, multiplication, and exponentiation functions on type
+@{typ nat}. Prove as many of the standard equational rules as possible, e.g.\
+associativity, commutativity and distributivity.
+\end{exercise}
+\begin{exercise}
+Define your own sorting function on the predefined lists.
+Prove that the result is sorted and that every element occurs as many times
+in the output as in the input.
+\end{exercise}
 *}
 (*<*)
 end
