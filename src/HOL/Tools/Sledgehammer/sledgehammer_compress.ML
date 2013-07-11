@@ -3,6 +3,7 @@
     Author:     Steffen Juilf Smolka, TU Muenchen
 
 Compression of isar proofs.
+Only proof steps using the MetisM proof_method are compressed.
 
 PRE CONDITION: the proof must be labeled canocially, see
 Slegehammer_Proof.relabel_proof_canonically
@@ -102,13 +103,13 @@ fun update_steps steps updates =
 
 (* tries merging the first step into the second step *)
 fun try_merge
-  (Prove (_, Fix [], lbl1, _, [], By_Metis (lfs1, gfs1)))
-  (Prove (qs2, fix, lbl2, t, subproofs, By_Metis (lfs2, gfs2))) =
+  (Prove (_, Fix [], lbl1, _, [], By ((lfs1, gfs1), MetisM)))
+  (Prove (qs2, fix, lbl2, t, subproofs, By ((lfs2, gfs2), MetisM))) =
       let
         val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
         val gfs = union (op =) gfs1 gfs2
       in
-        SOME (Prove (qs2, fix, lbl2, t, subproofs, By_Metis (lfs, gfs)))
+        SOME (Prove (qs2, fix, lbl2, t, subproofs, By ((lfs, gfs), MetisM)))
       end
   | try_merge _ _ = NONE
 
@@ -129,7 +130,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
     val (compress_further : unit -> bool,
          decrement_step_count : unit -> unit) =
       let
-        val number_of_steps = add_metis_steps (steps_of_proof proof) 0
+        val number_of_steps = add_proof_steps (steps_of_proof proof) 0
         val target_number_of_steps =
           Real.fromInt number_of_steps / isar_compress
           |> Real.round
@@ -147,7 +148,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
       let
 
         fun add_refs (Let _) tab = tab
-          | add_refs (Prove (_, _, l as v, _, _, By_Metis (lfs, _))) tab =
+          | add_refs (Prove (_, _, l as v, _, _, By ((lfs, _), _))) tab =
               fold (fn lf as key => Canonical_Lbl_Tab.cons_list (key, v)) lfs tab
 
         val tab =
@@ -170,21 +171,22 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
       end
 
 
+
     (** elimination of trivial, one-step subproofs **)
 
     fun elim_subproofs' time qs fix l t lfs gfs subs nontriv_subs =
       if null subs orelse not (compress_further ()) then
         (set_time l (false, time);
          Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs),
-                By_Metis (lfs, gfs) ))
+                By_Metis (lfs, gfs)) )
       else
         case subs of
           ((sub as Proof(_, Assume assms, sub_steps)) :: subs) =>
             (let
 
               (* trivial subproofs have exactly one Prove step *)
-              val SOME (Prove (_, Fix [], l', _, [], By_Metis(lfs', gfs'))) =
-                (try the_single) sub_steps
+              val SOME (Prove (_, Fix [], l', _, [],
+                By ((lfs', gfs'), MetisM))) = (try the_single) sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
               val (false, time') = get_time l'
@@ -215,7 +217,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
 
     fun elim_subproofs (step as Let _) = step
       | elim_subproofs
-        (step as Prove (qs, fix, l, t, subproofs, By_Metis(lfs, gfs))) =
+        (step as Prove (qs, fix, l, t, subproofs, By ((lfs, gfs), MetisM))) =
           if subproofs = [] then step else
             case get_time l of
               (true, _) => step (* timeout *)
@@ -271,8 +273,8 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
               map (curry Time.+ timeslice #> time_mult merge_timeout_slack)
                 succ_times
 
-            val ((cand as Prove (_, _, l, _, _, By_Metis(lfs, _))) :: steps') =
-              drop i steps
+            val ((cand as Prove (_, _, l, _, _,
+              By ((lfs, _), MetisM))) :: steps') = drop i steps
 
             (* FIXME: debugging *)
             val _ = (if (label_of_step cand |> the) <> l then

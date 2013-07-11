@@ -121,6 +121,7 @@ val indent_size = 2
 
 fun string_of_proof ctxt type_enc lam_trans i n proof =
   let
+
     val ctxt =
       (* make sure type constraint are actually printed *)
       ctxt |> Config.put show_markup false
@@ -129,11 +130,17 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
            |> Config.put show_types false
            |> Config.put show_sorts false
            |> Config.put show_consts false
+
     val register_fixes = map Free #> fold Variable.auto_fixes
+
     fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
+
     fun of_indent ind = replicate_string (ind * indent_size) " "
+
     fun of_moreover ind = of_indent ind ^ "moreover\n"
+
     fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
+
     fun of_obtain qs nr =
       (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
          "ultimately "
@@ -141,8 +148,11 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
          "then "
        else
          "") ^ "obtain"
+
     fun of_show_have qs = if member (op =) qs Show then "show" else "have"
+
     fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
+
     fun of_prove qs nr =
       if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
         "ultimately " ^ of_show_have qs
@@ -150,6 +160,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         of_thus_hence qs
       else
         of_show_have qs
+
     fun add_term term (s, ctxt) =
       (s ^ (term
             |> singleton (Syntax.uncheck_terms ctxt)
@@ -158,31 +169,57 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
             |> simplify_spaces
             |> maybe_quote),
        ctxt |> Variable.auto_fixes term)
-    val reconstr = Metis (type_enc, lam_trans)
-    fun of_metis ind options (ls, ss) =
-      "\n" ^ of_indent (ind + 1) ^ options ^
-      reconstructor_command reconstr 1 1 [] 0
-          (ls |> sort_distinct (prod_ord string_ord int_ord),
-           ss |> sort_distinct string_ord)
+
+    fun by_method method = "by " ^
+      (case method of
+        SimpM => "simp"
+      | AutoM => "auto"
+      | FastforceM => "fastforce"
+      | ArithM => "arith"
+      | _ => raise Fail "Sledgehammer_Print: by_method")
+
+    fun using_facts [] [] = ""
+      | using_facts ls ss =
+          "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
+
+    fun of_method ls ss MetisM =
+          reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
+      | of_method ls ss method =
+          using_facts ls ss ^ by_method method
+
+    fun of_byline ind options (ls, ss) method =
+      let
+        val ls = ls |> sort_distinct label_ord
+        val ss = ss |> sort_distinct string_ord
+      in
+        "\n" ^ of_indent (ind + 1) ^ options ^ of_method ls ss method
+      end
+
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (simplify_spaces (with_vanilla_print_mode
         (Syntax.string_of_typ ctxt) T))
+
     fun add_frees xs (s, ctxt) =
       (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
+
     fun add_fix _ [] = I
       | add_fix ind xs = add_suffix (of_indent ind ^ "fix ")
                         #> add_frees xs
                         #> add_suffix "\n"
+
     fun add_assm ind (l, t) =
       add_suffix (of_indent ind ^ "assume " ^ of_label l)
       #> add_term t
       #> add_suffix "\n"
+
     fun add_assms ind assms = fold (add_assm ind) assms
-    fun add_step_post ind l t facts options =
+
+    fun add_step_post ind l t facts method options =
       add_suffix (of_label l)
       #> add_term t
-      #> add_suffix (of_metis ind options facts ^ "\n")
+      #> add_suffix (of_byline ind options facts method ^ "\n")
+
     fun of_subproof ind ctxt proof =
       let
         val ind = ind + 1
@@ -195,24 +232,27 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
                         SOME (size s - ind * indent_size - 1)) ^
         suffix ^ "\n"
       end
+
     and of_subproofs _ _ _ [] = ""
       | of_subproofs ind ctxt qs subproofs =
         (if member (op =) qs Then then of_moreover ind else "") ^
         space_implode (of_moreover ind) (map (of_subproof ind ctxt) subproofs)
+
     and add_step_pre ind qs subproofs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
+
     and add_step ind (Let (t1, t2)) =
         add_suffix (of_indent ind ^ "let ")
         #> add_term t1
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (Prove (qs, Fix xs, l, t, subproofs, By_Metis facts)) =
+      | add_step ind (Prove (qs, Fix xs, l, t, subproofs, By (facts, method))) =
         (case xs of
           [] => (* have *)
             add_step_pre ind qs subproofs
             #> add_suffix (of_prove qs (length subproofs) ^ " ")
-            #> add_step_post ind l t facts ""
+            #> add_step_post ind l t facts method ""
         | _ => (* obtain *)
             add_step_pre ind qs subproofs
             #> add_suffix (of_obtain qs (length subproofs) ^ " ")
@@ -221,26 +261,32 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
             (* The new skolemizer puts the arguments in the same order as the
                ATPs (E and Vampire -- but see also "atp_proof_reconstruct.ML"
                regarding Vampire). *)
-            #> add_step_post ind l t facts
-                 (if exists (fn (_, T) => length (binder_types T) > 1) xs then
+            #> add_step_post ind l t facts method
+                 (if exists (fn (_, T) => length (binder_types T) > 1) xs
+                  andalso method = MetisM then
                     "using [[metis_new_skolem]] "
                   else
                     ""))
+
     and add_steps ind = fold (add_step ind)
+
     and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
       ("", ctxt)
       |> add_fix ind xs
       |> add_assms ind assms
       |> add_steps ind steps
       |> fst
+
   in
+    (* FIXME: sh_try0 might produce one-step proofs that are better than the
+       Metis one-liners *)
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
-    case proof of
+    (*case proof of
       Proof (Fix [], Assume [], [Prove (_, Fix [], _, _, [], _)]) => ""
-    | _ => (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
+    | _ =>*) (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
             of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
             of_indent 0 ^ (if n <> 1 then "next" else "qed")
   end
 
-  end
+end

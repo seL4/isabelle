@@ -46,6 +46,7 @@ open Sledgehammer_Annotate
 open Sledgehammer_Print
 open Sledgehammer_Preplay
 open Sledgehammer_Compress
+open Sledgehammer_Try0
 
 structure String_Redirect = ATP_Proof_Redirect(
   type key = step_name
@@ -325,7 +326,7 @@ fun add_desired_line fact_names (name as (_, ss), role, t, rule, deps)
 
 val add_labels_of_proof =
   steps_of_proof #> fold_isar_steps
-    (byline_of_step #> (fn SOME (By_Metis (ls, _)) => union (op =) ls
+    (byline_of_step #> (fn SOME (By ((ls, _), _)) => union (op =) ls
                          | _ => I))
 
 fun kill_useless_labels_in_proof proof =
@@ -378,8 +379,8 @@ val relabel_proof =
       let val (assms, subst) = do_assms subst depth assms in
         Proof (fix, assms, do_steps subst depth 1 steps)
       end
-    and do_byline subst depth (By_Metis facts) =
-      By_Metis (do_facts subst facts)
+    and do_byline subst depth byline =
+      map_facts_of_byline (do_facts subst) byline
     and do_proofs subst depth = map (do_proof subst (depth + 1))
   in do_proof [] 0 end
 
@@ -389,10 +390,11 @@ val chain_direct_proof =
       | do_qs_lfs (SOME l0) lfs =
         if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0)
         else ([], lfs)
-    fun chain_step lbl (Prove (qs, xs, l, t, subproofs, By_Metis (lfs, gfs))) =
+    fun chain_step lbl
+      (Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), method))) =
           let val (qs', lfs) = do_qs_lfs lbl lfs in
             Prove (qs' @ qs, xs, l, t, chain_proofs subproofs,
-                   By_Metis (lfs, gfs))
+                   By ((lfs, gfs), method))
           end
       | chain_step _ step = step
     and chain_steps _ [] = []
@@ -571,6 +573,9 @@ fun isar_proof_text ctxt isar_proofs
             do_proof true params assms infs
           end
 
+        (* 60 seconds seems like a good interpreation of "no timeout" *)
+        val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
+
         val clean_up_labels_in_proof =
           chain_direct_proof
           #> kill_useless_labels_in_proof
@@ -588,6 +593,7 @@ fun isar_proof_text ctxt isar_proofs
                (if isar_proofs = SOME true then isar_compress else 1000.0)
                (if isar_proofs = SOME true then isar_compress_degree else 100)
                merge_timeout_slack preplay_interface
+          |> try0 preplay_timeout preplay_interface
           |> clean_up_labels_in_proof
         val isar_text =
           string_of_proof ctxt type_enc lam_trans subgoal subgoal_count
@@ -605,7 +611,7 @@ fun isar_proof_text ctxt isar_proofs
             val msg =
               (if verbose then
                 let
-                  val num_steps = add_metis_steps (steps_of_proof isar_proof) 0
+                  val num_steps = add_proof_steps (steps_of_proof isar_proof) 0
                 in [string_of_int num_steps ^ " step" ^ plural_s num_steps] end
                else
                  []) @

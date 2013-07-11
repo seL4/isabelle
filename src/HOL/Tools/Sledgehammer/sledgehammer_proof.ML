@@ -23,16 +23,26 @@ sig
     (* for |fix|>0, this is an obtain step; step may contain subproofs *)
     Prove of isar_qualifier list * fix * label * term * isar_proof list * byline
   and byline =
-    By_Metis of facts
+    By of facts * proof_method
+  and proof_method =
+    MetisM |
+    SimpM |
+    AutoM |
+    FastforceM |
+    ArithM
+
+  (* legacy *)
+  val By_Metis : facts -> byline
 
   val no_label : label
   val no_facts : facts
 
-  (*val label_ord : label * label -> order*)
+  val label_ord : label * label -> order
 
   val dummy_isar_step : isar_step
 
   val string_of_label : label -> string
+
   val fix_of_proof : isar_proof -> fix
   val assms_of_proof : isar_proof -> assms
   val steps_of_proof : isar_proof -> isar_step list
@@ -40,13 +50,17 @@ sig
   val label_of_step : isar_step -> label option
   val subproofs_of_step : isar_step -> isar_proof list option
   val byline_of_step : isar_step -> byline option
+  val proof_method_of_step : isar_step -> proof_method option
 
   val fold_isar_step : (isar_step -> 'a -> 'a) -> isar_step -> 'a -> 'a
   val fold_isar_steps :
     (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
 
-  val add_metis_steps_top_level : isar_step list -> int -> int
-  val add_metis_steps : isar_step list -> int -> int
+  val map_isar_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
+
+  val map_facts_of_byline : (facts -> facts) -> byline -> byline
+
+  val add_proof_steps : isar_step list -> int -> int
 
   (** canonical proof labels: 1, 2, 3, ... in post traversal order **)
   val canonical_label_ord : (label * label) -> order
@@ -74,12 +88,21 @@ and isar_step =
   (* for |fix|>0, this is an obtain step; step may contain subproofs *)
   Prove of isar_qualifier list * fix * label * term * isar_proof list * byline
 and byline =
-  By_Metis of facts
+  By of facts * proof_method
+and proof_method =
+  MetisM |
+  SimpM |
+  AutoM |
+  FastforceM |
+  ArithM
+
+(* legacy *)
+fun By_Metis facts = By (facts, MetisM)
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
 
-(*val label_ord = pairself swap #> prod_ord int_ord fast_string_ord*)
+val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
 val dummy_isar_step = Let (Term.dummy, Term.dummy)
 
@@ -98,18 +121,35 @@ fun subproofs_of_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
 fun byline_of_step (Prove (_, _, _, _, _, byline)) = SOME byline
   | byline_of_step _ = NONE
 
+fun proof_method_of_step (Prove (_, _, _, _, _, By(_, method))) = SOME method
+  | proof_method_of_step _ = NONE
+
 fun fold_isar_steps f = fold (fold_isar_step f)
 and fold_isar_step f step s =
   fold (steps_of_proof #> fold_isar_steps f)
        (these (subproofs_of_step step)) s
     |> f step
 
-val add_metis_steps_top_level =
-  fold (byline_of_step #> (fn SOME (By_Metis _) => Integer.add 1 | _ => I))
+fun map_isar_steps f proof =
+  let
+    fun do_proof (Proof (fix, assms, steps)) =
+      Proof (fix, assms, map do_step steps)
 
-val add_metis_steps =
-  fold_isar_steps
-    (byline_of_step #> (fn SOME (By_Metis _) => Integer.add 1 | _ => I))
+    and do_step (step as Let _) = f step
+      | do_step (Prove (qs, xs, l, t, subproofs, by)) =
+          let
+            val subproofs = map do_proof subproofs
+            val step = Prove (qs, xs, l, t, subproofs, by)
+          in
+            f step
+          end
+  in
+    do_proof proof
+  end
+
+fun map_facts_of_byline f (By (facts, method)) = By (f facts, method)
+
+val add_proof_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)
 
 
 (** canonical proof labels: 1, 2, 3, ... in post traversal order **)
@@ -127,8 +167,8 @@ fun relabel_proof_canonically proof =
     fun next_label l (next, subst) =
       (lbl next, (next + 1, (l, lbl next) :: subst))
 
-    fun do_byline (By_Metis (lfs, gfs)) (_, subst) =
-      By_Metis (map (AList.lookup (op =) subst #> the) lfs, gfs)
+    fun do_byline by (_, subst) =
+      by |> map_facts_of_byline (apfst (map (AList.lookup (op =) subst #> the)))
     handle Option.Option =>
       raise Fail "Sledgehammer_Compress: relabel_proof_canonically"
 
