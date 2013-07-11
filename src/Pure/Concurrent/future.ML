@@ -46,6 +46,7 @@ sig
   val new_group: group option -> group
   val worker_task: unit -> task option
   val worker_group: unit -> group option
+  val the_worker_group: unit -> group
   val worker_subgroup: unit -> group
   val worker_guest: string -> group -> ('a -> 'b) -> 'a -> 'b
   type 'a future
@@ -99,6 +100,12 @@ in
 end;
 
 val worker_group = Option.map Task_Queue.group_of_task o worker_task;
+
+fun the_worker_group () =
+  (case worker_group () of
+    SOME group => group
+  | NONE => raise Fail "Missing worker thread context");
+
 fun worker_subgroup () = new_group (worker_group ());
 
 fun worker_guest name group f x =
@@ -556,7 +563,7 @@ fun join_results xs =
     val _ =
       if forall is_finished xs then ()
       else if Multithreading.self_critical () then
-        error "Cannot join future values within critical section"
+        raise Fail "Cannot join future values within critical section"
       else if is_some (worker_task ()) then join_work (map task_of xs)
       else List.app (ignore o Single_Assignment.await o result_of) xs;
   in map get_result xs end;
