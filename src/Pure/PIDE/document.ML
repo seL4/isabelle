@@ -217,7 +217,7 @@ val no_execution =
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
-  commands: (string * Token.T list lazy) Inttab.table,  (*command id -> named span*)
+  commands: (string * Token.T list lazy) Inttab.table,  (*command id -> named command span*)
   execution: execution}  (*current execution process*)
 with
 
@@ -517,8 +517,7 @@ fun update old_version_id new_version_id edits state =
                       |> assign_update_apply assigned_execs
                       |> entries_stable (assign_update_null updated_execs)
                       |> set_result result;
-                    val assigned_node =
-                      if assign_update_null assigned_execs then NONE else SOME (name, node');
+                    val assigned_node = SOME (name, node');
                     val result_changed = changed_result node0 node';
                   in
                     ((assign_update_result assigned_execs, assigned_node, result_changed), node')
