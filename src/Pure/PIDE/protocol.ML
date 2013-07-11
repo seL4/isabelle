@@ -51,17 +51,18 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-        val (assignment, state') = Document.update old_id new_id edits state;
-        val _ =
-          Output.protocol_message Markup.assign_update
-            ((new_id, assignment) |>
-              let open XML.Encode
-              in pair int (list (pair int (list int))) end
-              |> YXML.string_of_body);
+        val (assign_update, state') = Document.update old_id new_id edits state;
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
         val _ = Exec.purge_unstable ();
         val _ = Isabelle_Process.reset_tracing ();
+
+        val _ =
+          Output.protocol_message Markup.assign_update
+            ((new_id, assign_update) |>
+              let open XML.Encode
+              in pair int (list (pair int (list int))) end
+              |> YXML.string_of_body);
         val _ =
           Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
             (fn () => Document.start_execution state');
