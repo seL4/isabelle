@@ -202,26 +202,13 @@ fun put_node (name, node) (Version nodes) =
 end;
 
 
-(* associated execution *)
-
-type execution =
- {version_id: Document_ID.version,
-  group: Future.group,
-  continue: bool Synchronized.var};
-
-val no_execution =
- {version_id = Document_ID.none,
-  group = Future.new_group NONE,
-  continue = Synchronized.var "continue" false};
-
-fun make_execution version_id =
- {version_id = version_id,
-  group = Future.new_group NONE,
-  continue = Synchronized.var "continue" true};
-
-
 
 (** main state -- document structure and execution process **)
+
+type execution = {version_id: Document_ID.version, context: Exec.context};
+
+val no_execution = {version_id = Document_ID.none, context = Exec.no_context};
+fun make_execution version_id = {version_id = version_id, context = Exec.fresh_context ()};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -307,34 +294,35 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
   in (versions', commands', execution) end);
 
 
+(* document execution *)
 
-(** document execution **)
+fun discontinue_execution state =
+  Exec.drop_context (#context (execution_of state));
 
-val discontinue_execution =
-  execution_of #> (fn {continue, ...} => Synchronized.change continue (K false));
-
-val cancel_execution = execution_of #> (fn {group, ...} => Future.cancel_group group);
+fun cancel_execution state =
+  (Exec.drop_context (#context (execution_of state)); Exec.terminate_all ());
 
 fun start_execution state =
   let
-    val {version_id, group, continue} = execution_of state;
-    fun running () = Synchronized.guarded_access continue (fn x => SOME (x, x));
+    val {version_id, context} = execution_of state;
     val _ =
-      if not (running ()) orelse Task_Queue.is_canceled group then []
-      else
+      if Exec.is_running context then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if not (visible_node node) andalso finished_theory node then
               Future.value ()
             else
               (singleton o Future.forks)
-                {name = "theory:" ^ name, group = SOME (Future.new_group (SOME group)),
+                {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
                   deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
                 (fn () =>
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
-                      SOME exec => if running () then SOME (Command.exec exec) else NONE
-                    | NONE => NONE)) node ()));
+                      SOME exec =>
+                        if Exec.is_running context then SOME (Command.exec context exec)
+                        else NONE
+                    | NONE => NONE)) node ()))
+      else [];
   in () end;
 
 

@@ -54,7 +54,7 @@ val _ =
         val (assign_update, state') = Document.update old_id new_id edits state;
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
-        val _ = Exec.purge_unstable ();
+        val _ = Exec.purge_canceled ();
         val _ = Isabelle_Process.reset_tracing ();
 
         val _ =

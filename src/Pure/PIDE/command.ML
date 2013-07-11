@@ -20,7 +20,7 @@ sig
   type exec = eval * print list
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
-  val exec: exec -> unit
+  val exec: Exec.context -> exec -> unit
 end;
 
 structure Command: COMMAND =
@@ -43,30 +43,29 @@ fun memo_result (Memo v) =
     Result res => Exn.release res
   | Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id));
 
-fun memo_exec (Memo v) =
+fun memo_exec context (Memo v) =
   (case Synchronized.value v of
     Result res => res
-  | Expr (exec_id, _) =>
+  | Expr _ =>
       Synchronized.timed_access v (fn _ => SOME Time.zeroTime)
         (fn Result res => SOME (res, Result res)
-          | Expr (exec_id, e) =>
+          | expr as Expr (exec_id, e) =>
               uninterruptible (fn restore_attributes => fn () =>
-                let
-                  val _ = Exec.running exec_id;
-                  val res = Exn.capture (restore_attributes e) ();
-                  val _ = Exec.finished exec_id (not (Exn.is_interrupt_exn res));
-                in SOME (res, Result res) end) ())
-      |> (fn NONE => error ("Concurrent execution attempt: " ^ Document_ID.print exec_id)
-           | SOME res => res))
-  |> Exn.release;
+                if Exec.running context exec_id then
+                  let
+                    val res = Exn.capture (restore_attributes e) ();
+                    val _ = Exec.finished exec_id (not (Exn.is_interrupt_exn res));
+                  in SOME (res, Result res) end
+                else SOME (Exn.interrupt_exn, expr)) ())
+      |> (fn NONE => error "Concurrent execution attempt" | SOME res => res))
+  |> Exn.release |> ignore;
 
-fun memo_fork params (Memo v) =
+fun memo_fork params context (Memo v) =
   (case Synchronized.value v of
     Result _ => ()
-  | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec (Memo v))));
+  | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec context (Memo v))));
 
 end;
-
 
 
 (** main phases of execution **)
@@ -277,15 +276,15 @@ fun exec_ids NONE = []
 
 local
 
-fun run_print (Print {name, pri, print_process, ...}) =
+fun run_print context (Print {name, pri, print_process, ...}) =
   (if Multithreading.enabled () then
     memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true}
-  else memo_exec) print_process;
+  else memo_exec) context print_process;
 
 in
 
-fun exec (Eval {eval_process, ...}, prints) =
-  (memo_exec eval_process; List.app run_print prints);
+fun exec context (Eval {eval_process, ...}, prints) =
+  (memo_exec context eval_process; List.app (run_print context) prints);
 
 end;
 
