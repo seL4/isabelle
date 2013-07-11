@@ -54,10 +54,7 @@ fun memo_exec (Memo v) =
                 let
                   val _ = Exec.running exec_id;
                   val res = Exn.capture (restore_attributes e) ();
-                  val _ =
-                    if Exn.is_interrupt_exn res
-                    then Exec.canceled exec_id
-                    else Exec.finished exec_id;
+                  val _ = Exec.finished exec_id (not (Exn.is_interrupt_exn res));
                 in SOME (res, Result res) end) ())
       |> (fn NONE => error ("Concurrent execution attempt: " ^ Document_ID.print exec_id)
            | SOME res => res))

@@ -314,7 +314,6 @@ val discontinue_execution =
   execution_of #> (fn {continue, ...} => Synchronized.change continue (K false));
 
 val cancel_execution = execution_of #> (fn {group, ...} => Future.cancel_group group);
-val terminate_execution = execution_of #> (fn {group, ...} => Future.terminate group);
 
 fun start_execution state =
   let
@@ -462,6 +461,11 @@ fun new_exec state proper_init command_visible command_id' (assign_update, comma
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
       val init' = if Keyword.is_theory_begin command_name then NONE else init;
     in SOME (assign_update', (command_id', (eval', prints')), init') end;
+
+fun cancel_old_execs node0 (command_id, exec_ids) =
+  subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id))
+  |> map_filter (Exec.peek_running #> Option.map (tap Future.cancel_group));
+
 in
 
 fun update old_version_id new_version_id edits state =
@@ -472,7 +476,6 @@ fun update old_version_id new_version_id edits state =
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
 
-    val _ = timeit "Document.terminate_execution" (fn () => terminate_execution state);
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule
         (fn deps => fn (name, node) =>
@@ -482,7 +485,7 @@ fun update old_version_id new_version_id edits state =
             (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
-                val imports_changed = exists (#3 o #1 o #2) imports;
+                val imports_changed = exists (#4 o #1 o #2) imports;
                 val node_required = is_required name;
               in
                 if imports_changed orelse AList.defined (op =) edits name orelse
@@ -521,22 +524,29 @@ fun update old_version_id new_version_id edits state =
                       if is_none last_exec orelse is_some (after_entry node last_exec) then NONE
                       else SOME eval';
 
+                    val assign_update = assign_update_result assigned_execs;
+                    val old_groups = maps (cancel_old_execs node0) assign_update;
+
                     val node' = node
                       |> assign_update_apply assigned_execs
                       |> entries_stable (assign_update_null updated_execs)
                       |> set_result result;
                     val assigned_node = SOME (name, node');
                     val result_changed = changed_result node0 node';
-                  in
-                    ((assign_update_result assigned_execs, assigned_node, result_changed), node')
-                  end
-                else (([], NONE, false), node)
+                  in ((assign_update, old_groups, assigned_node, result_changed), node') end
+                else (([], [], NONE, false), node)
               end))
       |> Future.joins |> map #1);
 
+    val assign_update = maps #1 updated;
+    val old_groups = maps #2 updated;
+    val assigned_nodes = map_filter #3 updated;
+
     val state' = state
-      |> define_version new_version_id (fold put_node (map_filter #2 updated) new_version);
-  in (maps #1 updated, state') end;
+      |> define_version new_version_id (fold put_node assigned_nodes new_version);
+
+    val _ = timeit "Document.terminate" (fn () => List.app Future.terminate old_groups);
+  in (assign_update, state') end;
 
 end;
 

@@ -27,7 +27,7 @@ val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
-        val _ = Document.cancel_execution state;
+        val _ = Document.discontinue_execution state;
 
         val old_id = Document_ID.parse old_id_string;
         val new_id = Document_ID.parse new_id_string;
