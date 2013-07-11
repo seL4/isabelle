@@ -115,8 +115,8 @@ fun request time event =
 fun cancel req =
   Synchronized.change_result state (fn (requests, manager) =>
     let
-      val (cancelled, requests') = del_request req requests;
-    in (cancelled, (requests', manager)) end);
+      val (canceled, requests') = del_request req requests;
+    in (canceled, (requests', manager)) end);
 
 fun shutdown () =
   Synchronized.guarded_access state (fn (requests, manager) =>
