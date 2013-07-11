@@ -20,8 +20,8 @@ sig
     Proof of fix * assms * isar_step list
   and isar_step =
     Let of term * term |
-  (* for |fix|>0, this is an obtain step; step may contain subproofs *)
-  Prove of isar_qualifier list * fix * label * term * isar_proof list * byline
+    (* for |fix|>0, this is an obtain step; step may contain subproofs *)
+    Prove of isar_qualifier list * fix * label * term * isar_proof list * byline
   and byline =
     By_Metis of facts
 

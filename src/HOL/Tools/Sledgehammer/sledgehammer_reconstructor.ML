@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstruct.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstructor.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
