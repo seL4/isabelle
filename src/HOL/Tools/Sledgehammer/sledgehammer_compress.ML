@@ -119,7 +119,8 @@ fun try_merge
 (* PRE CONDITION: the proof must be labeled canocially, see
    Slegehammer_Proof.relabel_proof_canonically *)
 fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
-  { get_time, set_time, preplay_quietly, preplay_fail, ... } proof =
+  ({get_time, set_time, preplay_quietly, preplay_fail, ...} : preplay_interface)
+  proof =
   if isar_compress <= 1.0 then
     proof
   else
