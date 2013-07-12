@@ -7,11 +7,9 @@ Manager for tools that should be tried on conjectures.
 signature TRY =
 sig
   type tool =
-    string * (int * bool Unsynchronized.ref
-              * (bool -> Proof.state -> bool * (string * Proof.state)))
+    string * (int * string * (bool -> Proof.state -> bool * (string * Proof.state)))
 
   val tryN : string
-  val auto_time_limit: real Unsynchronized.ref
 
   val serial_commas : string -> string list -> string list
   val subgoal_count : Proof.state -> int
@@ -24,20 +22,17 @@ structure Try : TRY =
 struct
 
 type tool =
-  string * (int * bool Unsynchronized.ref
-            * (bool -> Proof.state -> bool * (string * Proof.state)))
+  string * (int * string * (bool -> Proof.state -> bool * (string * Proof.state)))
 
 val tryN = "try"
 
 
 (* preferences *)
 
-val auto_time_limit = Unsynchronized.ref 4.0
-
 val _ =
-  ProofGeneral.preference_real ProofGeneral.category_tracing
+  ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    auto_time_limit
+    @{option auto_time_limit}
     "auto-try-time-limit"
     "Time limit for automatically tried tools (in seconds)"
 
@@ -98,7 +93,7 @@ val _ =
 
 fun auto_try state =
   get_tools (Proof.theory_of state)
-  |> map_filter (fn (_, (_, auto, tool)) => if !auto then SOME tool else NONE)
+  |> map_filter (fn (_, (_, auto, tool)) => if Options.default_bool auto then SOME tool else NONE)
   |> Par_List.get_some (fn tool =>
                            case try (tool true) state of
                              SOME (true, (_, state)) => SOME state
@@ -106,10 +101,14 @@ fun auto_try state =
   |> the_default state
 
 val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
-  if interact andalso not (!Toplevel.quiet) andalso !auto_time_limit > 0.0 then
-    TimeLimit.timeLimit (seconds (!auto_time_limit)) auto_try state
-    handle TimeLimit.TimeOut => state
-  else
-    state))
+  let
+    val auto_time_limit = Options.default_real @{option auto_time_limit}
+  in
+    if interact andalso not (!Toplevel.quiet) andalso auto_time_limit > 0.0 then
+      TimeLimit.timeLimit (seconds auto_time_limit) auto_try state
+      handle TimeLimit.TimeOut => state
+    else
+      state
+  end))
 
 end;

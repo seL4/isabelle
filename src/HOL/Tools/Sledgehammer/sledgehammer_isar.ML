@@ -8,7 +8,6 @@ signature SLEDGEHAMMER_ISAR =
 sig
   type params = Sledgehammer_Provers.params
 
-  val auto : bool Unsynchronized.ref
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
   val default_params : Proof.context -> (string * string) list -> params
@@ -42,12 +41,10 @@ val running_proversN = "running_provers"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
 
-val auto = Unsynchronized.ref false
-
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
+  ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    auto
+    @{option auto_sledgehammer}
     "auto-sledgehammer"
     "Run Sledgehammer automatically"
 
@@ -489,6 +486,6 @@ fun try_sledgehammer auto state =
                      (minimize_command [] i) state
   end
 
-val setup = Try.register_tool (sledgehammerN, (40, auto, try_sledgehammer))
+val setup = Try.register_tool (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
 
 end;

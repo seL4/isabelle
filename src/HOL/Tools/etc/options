@@ -1,0 +1,22 @@
+(* :mode=isabelle-options: *)
+
+section {* Isabelle/HOL proof tools *}
+
+public option auto_time_limit : real = 4.0
+  -- "time limit for automatically tried tools (seconds > 0)"
+
+public option auto_nitpick : bool = false
+  -- "run Nitpick automatically"
+
+public option auto_sledgehammer : bool = false
+  -- "run Sledgehammer automatically"
+
+public option auto_try0 : bool = false
+  -- "try standard proof methods automatically"
+
+public option auto_quickcheck : bool = false
+  -- "run Quickcheck automatically"
+
+public option auto_solve_direct : bool = false
+  -- "run solve_direct automatically"
+
