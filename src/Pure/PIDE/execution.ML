@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Global management of execution.  Unique running execution serves as
-barrier for further exploration of exec particles.
+barrier for further exploration of exec fragments.
 *)
 
 signature EXECUTION =
@@ -55,9 +55,8 @@ fun running execution_id exec_id =
 fun finished exec_id =
   Synchronized.change state
     (apsnd (fn execs =>
-      Inttab.delete exec_id execs
-        handle Inttab.UNDEF bad =>
-          error ("Attempt to finish unknown execution: " ^ Document_ID.print bad)));
+      Inttab.delete exec_id execs handle Inttab.UNDEF bad =>
+        error ("Attempt to finish unknown execution " ^ Document_ID.print bad)));
 
 fun peek exec_id =
   Inttab.lookup (snd (Synchronized.value state)) exec_id;
