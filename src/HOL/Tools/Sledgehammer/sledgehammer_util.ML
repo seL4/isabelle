@@ -4,8 +4,6 @@
 General-purpose functions used by the Sledgehammer modules.
 *)
 
-infix 1 |>! #>!
-
 signature SLEDGEHAMMER_UTIL =
 sig
   val sledgehammerN : string
@@ -33,12 +31,6 @@ sig
   val max : ('a * 'a -> order) -> 'a -> 'a -> 'a
   val max_option : ('a * 'a -> order) -> 'a option -> 'a option -> 'a option
   val max_list : ('a * 'a -> order) -> 'a list -> 'a option
-
-  (** debugging **)
-  val print_timing : ('a -> 'b) -> 'a -> 'b
-  (* infix versions of print_timing; meant to replace '|>' and '#>' *)
-  val |>! : 'a * ('a -> 'b) -> 'b
-  val #>! : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -172,15 +164,5 @@ fun max ord x y = case ord(x,y) of LESS => y | _ => x
 fun max_option ord = max (option_ord ord)
 
 fun max_list ord xs = fold (SOME #> max_option ord) xs NONE
-
-(** debugging **)
-fun print_timing f x =
-  Timing.timing f x
-  |>> Timing.message
-  |>> warning
-  |> snd
-
-fun x |>! f = print_timing f x
-fun (f #>! g) x = x |> f |>! g
 
 end;
