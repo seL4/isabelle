@@ -10,7 +10,7 @@ sig
   type preplay_interface = Sledgehammer_Preplay.preplay_interface
   type isar_proof = Sledgehammer_Proof.isar_proof
   val minimize_dependencies_and_remove_unrefed_steps :
-    preplay_interface -> isar_proof -> isar_proof
+    bool -> preplay_interface -> isar_proof -> isar_proof
 end
 
 
@@ -50,7 +50,8 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
       mk_step_lfs_gfs min_lfs min_gfs
     end)
 
-fun minimize_dependencies_and_remove_unrefed_steps preplay_interface proof =
+fun minimize_dependencies_and_remove_unrefed_steps
+  isar_minimize preplay_interface proof =
   let
     fun cons_to xs x = x :: xs
 
@@ -85,7 +86,8 @@ fun minimize_dependencies_and_remove_unrefed_steps preplay_interface proof =
             (refed, accu)
 
     and do_refed_step step =
-      min_deps_of_step preplay_interface step
+      step
+      |> isar_minimize ? min_deps_of_step preplay_interface
       |> do_refed_step'
 
     and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"

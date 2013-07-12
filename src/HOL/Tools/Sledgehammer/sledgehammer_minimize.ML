@@ -59,6 +59,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
                  uncurried_aliases, isar_proofs, isar_compress,
                  isar_compress_degree, merge_timeout_slack,
+                 isar_try0, isar_minimize,
                  preplay_timeout, preplay_trace, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -83,6 +84,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        isar_proofs = isar_proofs, isar_compress = isar_compress,
        isar_compress_degree = isar_compress_degree,
        merge_timeout_slack = merge_timeout_slack,
+       isar_try0 = isar_try0, isar_minimize = isar_minimize,
        slice = false, minimize = SOME false, timeout = timeout,
        preplay_timeout = preplay_timeout, preplay_trace = preplay_trace,
        expect = ""}
@@ -255,7 +257,8 @@ fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
          fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
-         isar_compress, isar_compress_degree, merge_timeout_slack, slice,
+         isar_compress, isar_compress_degree, merge_timeout_slack, isar_try0,
+         isar_minimize, slice,
          minimize, timeout, preplay_timeout, preplay_trace, expect} : params) =
   let
     fun lookup_override name default_value =
@@ -274,7 +277,8 @@ fun adjust_reconstructor_params override_params
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
      isar_compress = isar_compress, isar_compress_degree = isar_compress_degree,
-     merge_timeout_slack = merge_timeout_slack, slice = slice,
+     merge_timeout_slack = merge_timeout_slack,
+     isar_try0 = isar_try0, isar_minimize = isar_minimize, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      preplay_trace = preplay_trace, expect = expect}
   end

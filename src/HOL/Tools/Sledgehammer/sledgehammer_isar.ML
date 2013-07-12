@@ -102,6 +102,8 @@ val default_default_params =
    ("isar_compress", "10"),
    ("isar_compress_degree", "2"), (* TODO: document; right value?? *)
    ("merge_timeout_slack", "1.2"), (* TODO: document *)
+   ("isar_try0", "true"), (* TODO: document *)
+   ("isar_minimize", "true"), (* TODO: document *)
    ("slice", "true"),
    ("minimize", "smart"),
    ("preplay_timeout", "3"),
@@ -123,13 +125,16 @@ val negated_alias_params =
    ("no_isar_proofs", "isar_proofs"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize"),
+   ("dont_try0_isar", "isar_try0"),
+   ("dont_minimize_isar", "isar_minimize"),
    ("no_preplay_trace", "preplay_trace")] (* TODO: document *)
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
    "learn", "isar_proofs", "isar_compress", "timeout", "preplay_timeout"]
-(* TODO: add isar_compress_degree, merge_timeout_slack,  preplay_trace? *)
+(* TODO: add isar_compress_degree, merge_timeout_slack,  preplay_trace,
+   isar_try0, isar_minimize? *)
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -313,6 +318,8 @@ fun extract_params mode default_params override_params =
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val isar_compress_degree = Int.max (1, lookup_int "isar_compress_degree")
     val merge_timeout_slack = Real.max (1.0, lookup_real "merge_timeout_slack")
+    val isar_try0 = lookup_bool "isar_try0"
+    val isar_minimize = lookup_bool "isar_minimize"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =
       if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
@@ -330,7 +337,8 @@ fun extract_params mode default_params override_params =
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
      isar_compress = isar_compress, isar_compress_degree = isar_compress_degree,
-     merge_timeout_slack = merge_timeout_slack, slice = slice,
+     merge_timeout_slack = merge_timeout_slack, isar_try0 = isar_try0,
+     isar_minimize = isar_minimize, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      preplay_trace = preplay_trace, expect = expect}
   end
