@@ -135,7 +135,9 @@ fun check_cmts span tr st' =
     (fn () =>
       Outer_Syntax.side_comments span |> maps (fn cmt =>
         (Thy_Output.check_text (Token.source_position_of cmt) st'; [])
-          handle exn => ML_Compiler.exn_messages_ids exn)) ();
+          handle exn =>
+            if Exn.is_interrupt exn then reraise exn
+            else ML_Compiler.exn_messages_ids exn)) ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
@@ -201,8 +203,10 @@ type print_function = string * (int * bool * ({command_name: string} -> print_fn
 val print_functions = Synchronized.var "Command.print_functions" ([]: print_function list);
 
 fun print_error tr e =
-  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) e () handle exn =>
-    List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
+  (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) e ()
+    handle exn =>
+      if Exn.is_interrupt exn then reraise exn
+      else List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
 
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 

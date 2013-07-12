@@ -347,9 +347,7 @@ object Symbol
       "\\<tau>", "\\<upsilon>", "\\<phi>", "\\<chi>", "\\<psi>",
       "\\<omega>", "\\<Gamma>", "\\<Delta>", "\\<Theta>", "\\<Lambda>",
       "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
-      "\\<Psi>", "\\<Omega>",
-
-      "\\<^isub>", "\\<^isup>")
+      "\\<Psi>", "\\<Omega>")
 
     val blanks = recode_set(" ", "\t", "\n", "\u000B", "\f", "\r", "\r\n", "\\<^newline>")
 

@@ -301,21 +301,19 @@ lemma jvm_prog_lift:
  
   shows 
   "wf_prog (\<lambda>G C bd. Q G C bd) G"
-proof -
-  from wf show ?thesis
-    apply (unfold wf_prog_def wf_cdecl_def)
-    apply clarsimp
-    apply (drule bspec, assumption)
-    apply (unfold wf_cdecl_mdecl_def)
-    apply clarsimp
-    apply (drule bspec, assumption)
-    apply (frule methd [OF wf [THEN wf_prog_ws_prog]], assumption+)
-    apply (frule is_type_pTs [OF wf], assumption+)
-    apply clarify
-    apply (drule rule [OF wf], assumption+)
-    apply (rule HOL.refl)
-    apply assumption+
-    done
-qed
+  using wf
+  apply (unfold wf_prog_def wf_cdecl_def)
+  apply clarsimp
+  apply (drule bspec, assumption)
+  apply (unfold wf_cdecl_mdecl_def)
+  apply clarsimp
+  apply (drule bspec, assumption)
+  apply (frule methd [OF wf [THEN wf_prog_ws_prog]], assumption+)
+  apply (frule is_type_pTs [OF wf], assumption+)
+  apply clarify
+  apply (drule rule [OF wf], assumption+)
+  apply (rule HOL.refl)
+  apply assumption+
+  done
 
 end

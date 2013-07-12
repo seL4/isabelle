@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+#
+# Author: Makarius
+#
+# update_sub_sup - update sub/sup control symbols
+
+use warnings;
+use strict;
+
+sub update_sub_sup {
+    my ($file) = @_;
+
+    open (FILE, $file) || die $!;
+    undef $/; my $text = <FILE>; $/ = "\n";         # slurp whole file
+    close FILE || die $!;
+
+    $_ = $text;
+
+    s/\Q\<^isub>\E/\\<^sub>/g;
+    s/\Q\<^isup>\E/\\<^sup>/g;
+
+    my $result = $_;
+
+    if ($text ne $result) {
+        print STDERR "changing $file\n";
+        if (! -f "$file~~") {
+            rename $file, "$file~~" || die $!;
+        }
+        open (FILE, "> $file") || die $!;
+        print FILE $result;
+        close FILE || die $!;
+    }
+}
+
+
+## main
+
+foreach my $file (@ARGV) {
+  eval { &update_sub_sup($file); };
+  if ($@) { print STDERR "*** update_sub_sup $file: ", $@, "\n"; }
+}

@@ -348,7 +348,18 @@ object Scan
     private def other_token(is_command: String => Boolean)
       : Parser[Token] =
     {
-      val id = one(Symbol.is_letter) ~ many(Symbol.is_letdig) ^^ { case x ~ y => x + y }
+      val letdigs1 = many1(Symbol.is_letdig)
+      val sub_sup =
+        one(s =>
+          s == Symbol.sub_decoded || s == "\\<^sub>" ||
+          s == Symbol.isub_decoded || s == "\\<^isub>" ||
+          s == Symbol.sup_decoded || s == "\\<^sup>" ||
+          s == Symbol.isup_decoded || s == "\\<^isup>")
+      val id =
+        one(Symbol.is_letter) ~
+          (rep(letdigs1 | (sub_sup ~ letdigs1 ^^ { case x ~ y => x + y })) ^^ (_.mkString)) ^^
+        { case x ~ y => x + y }
+
       val nat = many1(Symbol.is_digit)
       val natdot = nat ~ "." ~ nat ^^ { case x ~ y ~ z => x + y + z }
       val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
