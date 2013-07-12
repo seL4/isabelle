@@ -1455,58 +1455,9 @@ ML_val {*
     |> Drule.export_without_context;
 *}
 
-text {* \medskip The subsequent example illustrates the use of various
-  key operations on proof terms: the proof term of an existing theorem
-  is reconstructed and turned again into a theorem using the proof
-  checker; some informative output is printed as well.  *}
-
-ML {*
-  fun recheck ctxt0 thm0 =
-    let
-      (*formal transfer and import -- avoid schematic variables*)
-      val thy = Proof_Context.theory_of ctxt0;
-      val ((_, [thm]), ctxt) =
-        Variable.import true [Thm.transfer thy thm0] ctxt0;
-
-      (*main proof information*)
-      val prop = Thm.prop_of thm;
-      val prf =
-        Proofterm.proof_of
-          (Proofterm.strip_thm (Thm.proof_body_of thm));
-      val full_prf = Reconstruct.reconstruct_proof thy prop prf;
-
-      (*informative output*)
-      fun pretty_item name prt =
-        Pretty.block [Pretty.str name, Pretty.brk 1, prt];
-      val _ =
-        [pretty_item "proposition:" (Syntax.pretty_term ctxt prop),
-         pretty_item "proof:" (Proof_Syntax.pretty_proof ctxt prf),
-         pretty_item "full proof:"
-          (Proof_Syntax.pretty_proof ctxt full_prf)]
-        |> Pretty.chunks |> Pretty.writeln;
-    in
-      (*rechecked theorem*)
-      Proof_Checker.thm_of_proof thy full_prf
-      |> singleton (Proof_Context.export ctxt ctxt0)
-    end;
-*}
-
-text {* As anticipated, the rechecked theorem establishes the same
-  proposition: *}
-
-ML_val {*
-  val thm = @{thm ex};
-  val thm' = recheck @{context} thm;
-  @{assert} (Thm.eq_thm_prop (thm, thm'));
-*}
-
-text {* More precise theorem equality is achieved by adjusting a few
-  accidental details of the theorems involved here: *}
-
-ML_val {*
-  val thm = Thm.map_tags (K []) @{thm ex};
-  val thm' = Thm.strip_shyps (recheck @{context} thm);
-  @{assert} (Thm.eq_thm (thm, thm'));
+text {* \medskip See also @{file "~~/src/HOL/Proofs/ex/XML_Data.thy"}
+  for further examples, with export and import of proof terms via
+  XML/ML data representation.
 *}
 
 end
