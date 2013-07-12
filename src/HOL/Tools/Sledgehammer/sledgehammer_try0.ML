@@ -35,15 +35,15 @@ fun variants (Let _) = raise Fail "Sledgehammer_Try0: variants"
       end
 
 fun try0_step _ _ (step as Let _) = step
-  | try0_step preplay_timeout ({preplay_quietly, get_time, set_time,
-    set_preplay_fail, ...} : preplay_interface)
+  | try0_step preplay_timeout ({preplay_quietly, get_preplay_time,
+    set_preplay_time, ...} : preplay_interface)
     (step as Prove (_, _, l, _, _, _)) =
       let
 
-        val (preplay_fail, timeout) =
-          case get_time l of
-            (true, _) => (true, preplay_timeout)
-          | (false, t) => (false, t)
+        val timeout =
+          case get_preplay_time l of
+            (true, _) => preplay_timeout
+          | (false, t) => t
 
         fun try_variant variant =
            case preplay_quietly timeout variant of
@@ -52,13 +52,11 @@ fun try0_step _ _ (step as Let _) = step
 
       in
         case Par_List.get_some try_variant (variants step) of
-          SOME (step, time) => (set_time l time; step)
-        | NONE => (if preplay_fail then set_preplay_fail true else (); step)
+          SOME (step, time) => (set_preplay_time l time; step)
+        | NONE => step
       end
 
-fun try0 preplay_timeout
-  (preplay_interface as {set_preplay_fail, ...} : preplay_interface) proof =
-    (set_preplay_fail false; (* failure might be fixed *)
-     map_isar_steps (try0_step preplay_timeout preplay_interface) proof)
+fun try0 preplay_timeout preplay_interface proof =
+     map_isar_steps (try0_step preplay_timeout preplay_interface) proof
 
 end

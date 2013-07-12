@@ -24,11 +24,11 @@ open Sledgehammer_Preplay
 val slack = 1.3
 
 fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
-  | min_deps_of_step {get_time, set_time, preplay_quietly, set_preplay_fail, ...}
+  | min_deps_of_step {get_preplay_time, set_preplay_time, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), method))) =
-  (case get_time l of
-    (* don't touch steps that time out *)
-    (true, _) => (set_preplay_fail true; step)
+  (case get_preplay_time l of
+    (* don't touch steps that time out or fail; minimizing won't help *)
+    (true, _) => step
   | (false, time) =>
     let
       fun mk_step_lfs_gfs lfs gfs =
@@ -46,12 +46,11 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
       val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
 
     in
-      set_time l (false, time);
+      set_preplay_time l (false, time);
       mk_step_lfs_gfs min_lfs min_gfs
     end)
 
-fun minimize_dependencies_and_remove_unrefed_steps (preplay_interface as
-  {set_time, set_preplay_fail, ...} : preplay_interface) proof =
+fun minimize_dependencies_and_remove_unrefed_steps preplay_interface proof =
   let
     fun cons_to xs x = x :: xs
 
@@ -83,8 +82,7 @@ fun minimize_dependencies_and_remove_unrefed_steps (preplay_interface as
             |>> Ord_List.union label_ord refed
             ||> cons_to accu
           else
-            (set_time l zero_preplay_time; (* remove unrefed step! *)
-             (refed, accu))
+            (refed, accu)
 
     and do_refed_step step =
       min_deps_of_step preplay_interface step
@@ -104,7 +102,6 @@ fun minimize_dependencies_and_remove_unrefed_steps (preplay_interface as
         end
 
   in
-    set_preplay_fail false; (* step(s) causing the failure may be removed *)
     snd (do_proof proof)
   end
 

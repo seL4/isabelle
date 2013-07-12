@@ -372,7 +372,7 @@ val relabel_proof =
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val sub = do_proofs subst depth sub
-          val by = by |> do_byline subst depth
+          val by = by |> do_byline subst
         in Prove (qs, xs, l, t, sub, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (step :: steps) =
         step :: do_steps subst depth next steps
@@ -380,7 +380,7 @@ val relabel_proof =
       let val (assms, subst) = do_assms subst depth assms in
         Proof (fix, assms, do_steps subst depth 1 steps)
       end
-    and do_byline subst depth byline =
+    and do_byline subst byline =
       map_facts_of_byline (do_facts subst) byline
     and do_proofs subst depth = map (do_proof subst (depth + 1))
   in do_proof [] 0 end
@@ -588,7 +588,7 @@ fun isar_proof_text ctxt isar_proofs
           |> relabel_proof_canonically
           |> `(proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
                preplay_timeout preplay_trace)
-        val isar_proof =
+        val ((preplay_time, preplay_fail), isar_proof) =
           isar_proof
           |> compress_proof
                (if isar_proofs = SOME true then isar_compress else 1000.0)
@@ -596,11 +596,10 @@ fun isar_proof_text ctxt isar_proofs
                merge_timeout_slack preplay_interface
           |> try0 preplay_timeout preplay_interface
           |> minimize_dependencies_and_remove_unrefed_steps preplay_interface
-          |> clean_up_labels_in_proof
-        val isar_text =
-          string_of_proof ctxt type_enc lam_trans subgoal subgoal_count
-                          isar_proof
-        val (preplay_time, preplay_fail) = overall_preplay_stats ()
+          |> `overall_preplay_stats
+          ||> clean_up_labels_in_proof
+        val isar_text = string_of_proof ctxt type_enc lam_trans subgoal
+          subgoal_count isar_proof
       in
         case isar_text of
           "" =>

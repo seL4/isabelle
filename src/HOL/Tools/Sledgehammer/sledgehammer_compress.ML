@@ -120,7 +120,7 @@ fun try_merge
 (* PRE CONDITION: the proof must be labeled canocially, see
    Slegehammer_Proof.relabel_proof_canonically *)
 fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
-  ({get_time, set_time, preplay_quietly, preplay_fail, ...} : preplay_interface)
+  ({get_preplay_time, set_preplay_time, preplay_quietly, ...} : preplay_interface)
   proof =
   if isar_compress <= 1.0 then
     proof
@@ -176,7 +176,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
 
     fun elim_subproofs' time qs fix l t lfs gfs subs nontriv_subs =
       if null subs orelse not (compress_further ()) then
-        (set_time l (false, time);
+        (set_preplay_time l (false, time);
          Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs),
                 By_Metis (lfs, gfs)) )
       else
@@ -189,7 +189,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
                 By ((lfs', gfs'), MetisM))) = (try the_single) sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val (false, time') = get_time l'
+              val (false, time') = get_preplay_time l'
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
@@ -205,9 +205,8 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
               val (false, time'') = preplay_quietly timeout step''
 
             in
-              set_time l' zero_preplay_time; (* l' successfully eliminated! *)
+              decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
-              decrement_step_count ();
               elim_subproofs' time'' qs fix l t lfs'' gfs'' subs nontriv_subs
             end
             handle Bind =>
@@ -219,8 +218,8 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
       | elim_subproofs
         (step as Prove (qs, fix, l, t, subproofs, By ((lfs, gfs), MetisM))) =
           if subproofs = [] then step else
-            case get_time l of
-              (true, _) => step (* timeout *)
+            case get_preplay_time l of
+              (true, _) => step (* timeout or fail *)
             | (false, time) =>
                 elim_subproofs' time qs fix l t lfs gfs subproofs []
 
@@ -262,9 +261,10 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
         fun try_eliminate (cand as (i, l, _)) succ_lbls steps =
           let
             (* only touch steps that can be preplayed successfully *)
-            val (false, time) = get_time l
+            val (false, time) = get_preplay_time l
 
-            val succ_times = map (get_time #> (fn (false, t) => t)) succ_lbls
+            val succ_times =
+              map (get_preplay_time #> (fn (false, t) => t)) succ_lbls
 
             val timeslice =
               time_mult (1.0 / (Real.fromInt (length succ_lbls))) time
@@ -296,9 +296,8 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
             val steps2 = update_steps steps2 succs'
 
           in
-            set_time l zero_preplay_time; (* candidate successfully eliminated *)
-            decrement_step_count ();
-            map (uncurry set_time) (succ_lbls ~~ preplay_times);
+            decrement_step_count (); (* candidate successfully eliminated *)
+            map (uncurry set_preplay_time) (succ_lbls ~~ preplay_times);
             map (replace_successor l succ_lbls) lfs;
             (* removing the step would mess up the indices
                -> replace with dummy step instead *)
