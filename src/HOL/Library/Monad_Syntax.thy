@@ -69,12 +69,7 @@ translations
   "_do_block (_do_final e)" => "e"
   "(m >> n)" => "(m >>= (\<lambda>_. n))"
 
-setup {*
-  Adhoc_Overloading.add_overloaded @{const_name bind}
-  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Set.bind}
-  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Predicate.bind}
-  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Option.bind}
-  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name List.bind}
-*}
+adhoc_overloading
+  bind Set.bind Predicate.bind Option.bind List.bind
 
 end

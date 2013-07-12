@@ -274,10 +274,8 @@ definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarro
                   Some (x, h') \<Rightarrow> execute (g x) h'
                 | None \<Rightarrow> None)"
 
-setup {*
-  Adhoc_Overloading.add_variant 
-    @{const_name Monad_Syntax.bind} @{const_name Heap_Monad.bind}
-*}
+adhoc_overloading
+  Monad_Syntax.bind Heap_Monad.bind
 
 lemma execute_bind [execute_simps]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"

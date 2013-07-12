@@ -6,10 +6,10 @@ header {* Ad-hoc overloading of constants based on their types *}
 
 theory Adhoc_Overloading
 imports Pure
+keywords "adhoc_overloading" :: thy_decl and  "no_adhoc_overloading" :: thy_decl
 begin
 
 ML_file "adhoc_overloading.ML"
-setup Adhoc_Overloading.setup
 
 end
 
