@@ -17,17 +17,23 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
-    (fn [] => Document.discontinue_execution (Document.state ()));
+    (fn [] => Execution.discontinue ());
 
 val _ =
   Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => Document.cancel_execution (Document.state ()));
+    (fn [] =>
+      let
+        val _ = Execution.discontinue ();
+        val groups = Execution.snapshot ();
+        val _ = List.app Future.cancel_group groups;
+        val _ = List.app Future.terminate groups;
+      in () end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
-        val _ = Document.cancel_execution state;
+        val _ = Execution.discontinue ();
 
         val old_id = Document_ID.parse old_id_string;
         val new_id = Document_ID.parse new_id_string;
@@ -51,16 +57,17 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-        val (assignment, state') = Document.update old_id new_id edits state;
-        val _ =
-          Output.protocol_message Markup.assign_update
-            ((new_id, assignment) |>
-              let open XML.Encode
-              in pair int (list (pair int (list int))) end
-              |> YXML.string_of_body);
+        val (assign_update, state') = Document.update old_id new_id edits state;
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
         val _ = Isabelle_Process.reset_tracing ();
+
+        val _ =
+          Output.protocol_message Markup.assign_update
+            ((new_id, assign_update) |>
+              let open XML.Encode
+              in pair int (list (pair int (list int))) end
+              |> YXML.string_of_body);
         val _ =
           Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
             (fn () => Document.start_execution state');

@@ -5,7 +5,6 @@ theory RG_Hoare imports RG_Tran begin
 subsection {* Proof System for Component Programs *}
 
 declare Un_subset_iff [simp del] le_sup_iff [simp del]
-declare Cons_eq_map_conv [iff]
 
 definition stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" where  
   "stable \<equiv> \<lambda>f g. (\<forall>x y. x \<in> f \<longrightarrow> (x, y) \<in> g \<longrightarrow> y \<in> f)" 
@@ -478,7 +477,7 @@ apply clarify
 apply(frule_tac i="length x - 1" in exists_ctran_Await_None,force)
   apply (case_tac x,simp+)
  apply(rule last_fst_esp,simp add:last_length)
- apply(case_tac x, (simp add:cptn_not_empty)+)
+ apply(case_tac x, simp+)
 apply clarify
 apply(simp add:assum_def)
 apply clarify
@@ -592,7 +591,6 @@ apply(subgoal_tac "length xs<length (x # xs)")
 apply simp
 done
 
-declare map_eq_Cons_conv [simp del] Cons_eq_map_conv [simp del]
 lemma Seq_sound1 [rule_format]: 
   "x\<in> cptn_mod \<Longrightarrow> \<forall>s P. x !0=(Some (Seq P Q), s) \<longrightarrow> 
   (\<forall>i<length x. fst(x!i)\<noteq>Some Q) \<longrightarrow> 
@@ -620,7 +618,6 @@ apply(subgoal_tac "length xs < length ((Some P, sa) # xs)")
  apply(simp add:lift_def)
 apply simp
 done
-declare map_eq_Cons_conv [simp del] Cons_eq_map_conv [simp del]
 
 lemma Seq_sound2 [rule_format]: 
   "x \<in> cptn \<Longrightarrow> \<forall>s P i. x!0=(Some (Seq P Q), s) \<longrightarrow> i<length x 
@@ -842,7 +839,7 @@ lemma last_append[rule_format]:
 apply(induct ys)
  apply simp
 apply clarify
-apply (simp add:nth_append length_append)
+apply (simp add:nth_append)
 done
 
 lemma assum_after_body: 
@@ -1108,7 +1105,7 @@ lemma two:
 apply(unfold par_cp_def)
 apply (rule ccontr) 
 --{* By contradiction: *}
-apply (simp del: Un_subset_iff)
+apply simp
 apply(erule exE)
 --{* the first c-tran that does not satisfy the guarantee-condition is from @{text "\<sigma>_i"} at step @{text "m"}. *}
 apply(drule_tac n=j and P="\<lambda>j. \<exists>i. ?H i j" in Ex_first_occurrence)
@@ -1128,7 +1125,7 @@ apply(subgoal_tac "take (Suc (Suc m)) (clist!i) \<in> assum(Pre(xs!i), Rely(xs!i
  apply clarify
  apply(erule_tac x=m and P="\<lambda>j. ?I j \<and> ?J j \<longrightarrow> ?H j" in allE)
  apply (simp add:conjoin_def same_length_def)
-apply(simp add:assum_def del: Un_subset_iff)
+apply(simp add:assum_def)
 apply(rule conjI)
  apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow>  ?I j \<in>cp (?K j) (?J j)" in allE)
  apply(simp add:cp_def par_assum_def)
@@ -1136,7 +1133,7 @@ apply(rule conjI)
  apply simp
 apply clarify
 apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> ?M \<union> UNION (?S j) (?T j) \<subseteq>  (?L j)" in allE)
-apply(simp del: Un_subset_iff)
+apply simp
 apply(erule subsetD)
 apply simp
 apply(simp add:conjoin_def compat_label_def)
@@ -1206,14 +1203,14 @@ lemma four:
    x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); Suc i < length x; 
    x ! i -pc\<rightarrow> x ! Suc i\<rbrakk>
   \<Longrightarrow> (snd (x ! i), snd (x ! Suc i)) \<in> guar"
-apply(simp add: ParallelCom_def del: Un_subset_iff)
+apply(simp add: ParallelCom_def)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
  prefer 2
  apply simp
 apply(frule rev_subsetD)
  apply(erule one [THEN equalityD1])
 apply(erule subsetD)
-apply (simp del: Un_subset_iff)
+apply simp
 apply clarify
 apply(drule_tac pre=pre and rely=rely and  x=x and s=s and xs=xs and clist=clist in two)
 apply(assumption+)
@@ -1256,14 +1253,14 @@ lemma five:
     \<Turnstile> Com (xs ! i) sat [Pre (xs ! i), Rely (xs ! i), Guar (xs ! i), Post (xs ! i)];
     x \<in> par_cp (ParallelCom xs) s; x \<in> par_assum (pre, rely); 
    All_None (fst (last x)) \<rbrakk> \<Longrightarrow> snd (last x) \<in> post"
-apply(simp add: ParallelCom_def del: Un_subset_iff)
+apply(simp add: ParallelCom_def)
 apply(subgoal_tac "(map (Some \<circ> fst) xs)\<noteq>[]")
  prefer 2
  apply simp
 apply(frule rev_subsetD)
  apply(erule one [THEN equalityD1])
 apply(erule subsetD)
-apply(simp del: Un_subset_iff)
+apply simp
 apply clarify
 apply(subgoal_tac "\<forall>i<length clist. clist!i\<in>assum(Pre(xs!i), Rely(xs!i))")
  apply(erule_tac x=i and P="\<lambda>i. ?H i \<longrightarrow> \<Turnstile> (?J i) sat [?I i,?K i,?M i,?N i]" in allE,erule impE,assumption)
