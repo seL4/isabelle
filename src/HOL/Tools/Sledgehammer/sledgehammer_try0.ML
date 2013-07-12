@@ -20,13 +20,13 @@ struct
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-fun variants (step as Let _) = raise Fail "Sledgehammer_Try0: variants"
-  | variants (Prove (qs, xs, l, t, subproofs, By (facts, method))) =
+fun variants (Let _) = raise Fail "Sledgehammer_Try0: variants"
+  | variants (Prove (qs, xs, l, t, subproofs, By (facts, _))) =
       let
         val methods = [SimpM, AutoM, FastforceM, ArithM]
         fun step method = Prove (qs, xs, l, t, subproofs, By (facts, method))
-        fun step_without_facts method =
-          Prove (qs, xs, l, t, subproofs, By (no_facts, method))
+        (*fun step_without_facts method =
+          Prove (qs, xs, l, t, subproofs, By (no_facts, method))*)
       in
         (* FIXME *)
         (* There seems to be a bias for methods earlier in the list, so we put
@@ -34,7 +34,7 @@ fun variants (step as Let _) = raise Fail "Sledgehammer_Try0: variants"
         (*map step_without_facts methods @*) map step methods
       end
 
-fun try0_step preplay_timeout preplay_interface (step as Let _) = step
+fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout ({preplay_quietly, get_time, set_time,
     set_preplay_fail, ...} : preplay_interface)
     (step as Prove (_, _, l, _, _, _)) =
