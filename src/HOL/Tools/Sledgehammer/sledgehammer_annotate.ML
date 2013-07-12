@@ -7,8 +7,8 @@ Complete: The constraints suffice to infer the term's types.
 Minimal: Reducing the set of constraints further will make it incomplete.
 
 When configuring the pretty printer appropriately, the constraints will show up
-as type annotations when printing the term. This allows the term to be reparsed
-without a change of types.
+as type annotations when printing the term. This allows the term to be printed
+and reparsed without a change of types.
 
 NOTE: Terms should be unchecked before calling annotate_types to avoid awkward
 syntax.
@@ -87,6 +87,7 @@ fun match_types ctxt t1 t2 =
     val get_types = post_fold_term_type (K cons) []
   in
     fold (Sign.typ_match thy) (get_types t1 ~~ get_types t2) Vartab.empty
+    handle Type.TYPE_MATCH => raise Fail "Sledgehammer_Annotate: match_types"
   end
 
 

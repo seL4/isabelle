@@ -170,7 +170,7 @@ fun relabel_proof_canonically proof =
     fun do_byline by (_, subst) =
       by |> map_facts_of_byline (apfst (map (AList.lookup (op =) subst #> the)))
     handle Option.Option =>
-      raise Fail "Sledgehammer_Compress: relabel_proof_canonically"
+      raise Fail "Sledgehammer_Proof: relabel_proof_canonically"
 
     fun do_assm (l, t) state =
       let

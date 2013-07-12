@@ -164,7 +164,7 @@ fun preplay_raw _ _ _ _ _ _ (Let _) = zero_preplay_time
     fun tac {context = ctxt, prems = _} =
       HEADGOAL (tac_of_method proof_method type_enc lam_trans ctxt facts)
     fun run_tac () = goal tac
-      handle ERROR msg => error ("preplay error: " ^ msg)
+      handle ERROR msg => error ("Preplay error: " ^ msg)
     val preplay_time = take_time timeout run_tac ()
   in
     (* tracing *)
@@ -234,16 +234,22 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
       (* add local proof facts to context *)
       val ctxt = enrich_context proof ctxt
 
-      fun preplay timeout step =
+      fun preplay quietly timeout step =
         preplay_raw debug preplay_trace type_enc lam_trans ctxt timeout step
         |> PplSucc
         handle exn =>
-          if Exn.is_interrupt exn orelse debug then reraise exn
-          else PplFail exn
+          if Exn.is_interrupt exn then
+            reraise exn
+          else if not quietly andalso debug then
+            (warning ("Preplay failure:\n  " ^ @{make_string} step ^ "\n  "
+                      ^ @{make_string} exn);
+             PplFail exn)
+          else
+            PplFail exn
 
       (* preplay steps treating exceptions like timeouts *)
       fun preplay_quietly timeout step =
-        case preplay timeout step of
+        case preplay true timeout step of
           PplSucc preplay_time => preplay_time
         | PplFail _ => (true, timeout)
 
@@ -254,7 +260,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
               NONE => tab
             | SOME l =>
                 Canonical_Lbl_Tab.update_new
-                  (l, (fn () => preplay preplay_timeout step) |> Lazy.lazy)
+                  (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy)
                   tab
             handle Canonical_Lbl_Tab.DUP _ =>
               raise Fail "Sledgehammer_Preplay: preplay time table"
