@@ -20,58 +20,6 @@ struct
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-
-fun reachable_labels proof =
-  let
-    val refs_of_step =
-      byline_of_step #> (fn SOME (By ((lfs, _), _)) => lfs | NONE => [])
-
-    val union = fold (Ord_List.insert label_ord)
-
-    fun do_proof proof reachable =
-      let
-        val (steps, concl) = split_last (steps_of_proof proof)
-        val reachable =
-          union (refs_of_step concl) reachable
-          |> union (the_list (label_of_step concl))
-      in
-        fold_rev do_step steps reachable
-      end
-
-    and do_step (Let _) reachable = reachable
-      | do_step (Prove (_, _, l, _, subproofs, By ((lfs, _), _))) reachable =
-        if Ord_List.member label_ord reachable l
-          then fold do_proof subproofs (union lfs reachable)
-          else reachable
-
-  in
-    do_proof proof []
-  end
-
-(** removes steps not referenced by the final proof step or any of its
-    predecessors **)
-fun remove_unreachable_steps ({set_time, ...} : preplay_interface) proof =
-  let
-
-    val reachable = reachable_labels proof
-
-    fun do_proof (Proof (fix, assms, steps)) =
-      Proof (fix, assms, do_steps steps)
-
-    and do_steps steps =
-      uncurry (fold_rev do_step) (split_last steps ||> single)
-
-    and do_step (step as Let _) accu = step :: accu
-      | do_step (Prove (qs, xs, l, t, subproofs, by)) accu =
-          if Ord_List.member label_ord reachable l
-            then Prove (qs, xs, l, t, map do_proof subproofs, by) :: accu
-            else (set_time l zero_preplay_time; accu)
-
-  in
-    do_proof proof
-  end
-
-
 fun variants (step as Let _) = raise Fail "Sledgehammer_Try0: variants"
   | variants (Prove (qs, xs, l, t, subproofs, By (facts, method))) =
       let
@@ -80,9 +28,10 @@ fun variants (step as Let _) = raise Fail "Sledgehammer_Try0: variants"
         fun step_without_facts method =
           Prove (qs, xs, l, t, subproofs, By (no_facts, method))
       in
+        (* FIXME *)
         (* There seems to be a bias for methods earlier in the list, so we put
            the variants using no facts first. *)
-        map step_without_facts methods @ map step methods
+        (*map step_without_facts methods @*) map step methods
       end
 
 fun try0_step preplay_timeout preplay_interface (step as Let _) = step
@@ -109,8 +58,7 @@ fun try0_step preplay_timeout preplay_interface (step as Let _) = step
 
 fun try0 preplay_timeout
   (preplay_interface as {set_preplay_fail, ...} : preplay_interface) proof =
-    (set_preplay_fail false; (* reset preplay fail *)
-     map_isar_steps (try0_step preplay_timeout preplay_interface) proof
-     |> remove_unreachable_steps preplay_interface)
+    (set_preplay_fail false; (* failure might be fixed *)
+     map_isar_steps (try0_step preplay_timeout preplay_interface) proof)
 
 end

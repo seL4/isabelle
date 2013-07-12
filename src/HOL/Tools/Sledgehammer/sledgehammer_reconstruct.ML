@@ -47,6 +47,7 @@ open Sledgehammer_Print
 open Sledgehammer_Preplay
 open Sledgehammer_Compress
 open Sledgehammer_Try0
+open Sledgehammer_Minimize_Isar
 
 structure String_Redirect = ATP_Proof_Redirect(
   type key = step_name
@@ -594,6 +595,7 @@ fun isar_proof_text ctxt isar_proofs
                (if isar_proofs = SOME true then isar_compress_degree else 100)
                merge_timeout_slack preplay_interface
           |> try0 preplay_timeout preplay_interface
+          |> minimize_dependencies_and_remove_unrefed_steps preplay_interface
           |> clean_up_labels_in_proof
         val isar_text =
           string_of_proof ctxt type_enc lam_trans subgoal subgoal_count
