@@ -29,7 +29,9 @@ sig
     SimpM |
     AutoM |
     FastforceM |
-    ArithM
+    ForceM |
+    ArithM |
+    BlastM
 
   (* legacy *)
   val By_Metis : facts -> byline
@@ -94,7 +96,9 @@ and proof_method =
   SimpM |
   AutoM |
   FastforceM |
-  ArithM
+  ForceM |
+  ArithM |
+  BlastM
 
 (* legacy *)
 fun By_Metis facts = By (facts, MetisM)

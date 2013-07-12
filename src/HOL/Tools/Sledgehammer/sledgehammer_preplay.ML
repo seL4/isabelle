@@ -125,7 +125,9 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
               SimpM => Simplifier.asm_full_simp_tac
             | AutoM => (fn ctxt => K (Clasimp.auto_tac ctxt))
             | FastforceM => Clasimp.fast_force_tac
+            | ForceM => Clasimp.force_tac
             | ArithM => Arith_Data.arith_tac
+            | BlastM => blast_tac
             | _ => raise Fail "Sledgehammer_Preplay: tac_of_method") ctxt
 
 

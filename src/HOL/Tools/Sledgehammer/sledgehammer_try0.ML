@@ -23,7 +23,7 @@ open Sledgehammer_Preplay
 fun variants (Let _) = raise Fail "Sledgehammer_Try0: variants"
   | variants (Prove (qs, xs, l, t, subproofs, By (facts, _))) =
       let
-        val methods = [SimpM, AutoM, FastforceM, ArithM]
+        val methods = [SimpM, FastforceM, AutoM, ArithM, ForceM, BlastM]
         fun step method = Prove (qs, xs, l, t, subproofs, By (facts, method))
         (*fun step_without_facts method =
           Prove (qs, xs, l, t, subproofs, By (no_facts, method))*)
