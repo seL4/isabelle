@@ -1,4 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-ISABELLE_PREDICATE_COMPILE="$COMPONENT"
-
