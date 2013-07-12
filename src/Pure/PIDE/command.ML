@@ -20,7 +20,7 @@ sig
   type exec = eval * print list
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
-  val exec: Exec.context -> exec -> unit
+  val exec: Execution.context -> exec -> unit
 end;
 
 structure Command: COMMAND =
@@ -51,10 +51,10 @@ fun memo_exec context (Memo v) =
         (fn Result res => SOME (res, Result res)
           | expr as Expr (exec_id, e) =>
               uninterruptible (fn restore_attributes => fn () =>
-                if Exec.running context exec_id then
+                if Execution.running context exec_id then
                   let
                     val res = Exn.capture (restore_attributes e) ();
-                    val _ = Exec.finished exec_id (not (Exn.is_interrupt_exn res));
+                    val _ = Execution.finished exec_id (not (Exn.is_interrupt_exn res));
                   in SOME (res, Result res) end
                 else SOME (Exn.interrupt_exn, expr)) ())
       |> (fn NONE => error "Concurrent execution attempt" | SOME res => res))
@@ -113,7 +113,7 @@ fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
 val eval_result_state = #state o eval_result;
 
 fun eval_same (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) =
-  exec_id = exec_id' andalso Exec.is_stable exec_id;
+  exec_id = exec_id' andalso Execution.is_stable exec_id;
 
 local
 
@@ -198,7 +198,7 @@ fun print_error tr e =
     List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
 
 fun print_persistent (Print {persistent, ...}) = persistent;
-fun print_stable (Print {exec_id, ...}) = Exec.is_stable exec_id;
+fun print_stable (Print {exec_id, ...}) = Execution.is_stable exec_id;
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 
 in

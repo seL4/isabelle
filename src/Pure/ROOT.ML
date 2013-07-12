@@ -267,7 +267,7 @@ use "Thy/thy_output.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";
 use "Thy/present.ML";
-use "PIDE/exec.ML";
+use "PIDE/execution.ML";
 use "PIDE/command.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";

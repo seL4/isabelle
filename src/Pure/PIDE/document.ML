@@ -205,10 +205,10 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type execution = {version_id: Document_ID.version, context: Exec.context};
+type execution = {version_id: Document_ID.version, context: Execution.context};
 
-val no_execution = {version_id = Document_ID.none, context = Exec.no_context};
-fun make_execution version_id = {version_id = version_id, context = Exec.fresh_context ()};
+val no_execution = {version_id = Document_ID.none, context = Execution.no_context};
+fun make_execution version_id = {version_id = version_id, context = Execution.fresh_context ()};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -297,16 +297,16 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 (* document execution *)
 
 fun discontinue_execution state =
-  Exec.drop_context (#context (execution_of state));
+  Execution.drop_context (#context (execution_of state));
 
 fun cancel_execution state =
-  (Exec.drop_context (#context (execution_of state)); Exec.terminate_all ());
+  (Execution.drop_context (#context (execution_of state)); Execution.terminate_all ());
 
 fun start_execution state =
   let
     val {version_id, context} = execution_of state;
     val _ =
-      if Exec.is_running context then
+      if Execution.is_running context then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if not (visible_node node) andalso finished_theory node then
@@ -319,7 +319,7 @@ fun start_execution state =
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
                       SOME exec =>
-                        if Exec.is_running context then SOME (Command.exec context exec)
+                        if Execution.is_running context then SOME (Command.exec context exec)
                         else NONE
                     | NONE => NONE)) node ()))
       else [];
@@ -452,7 +452,7 @@ fun new_exec state proper_init command_visible command_id' (assign_update, comma
 
 fun cancel_old_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id))
-  |> map_filter (Exec.peek_running #> Option.map (tap Future.cancel_group));
+  |> map_filter (Execution.peek_running #> Option.map (tap Future.cancel_group));
 
 in
 

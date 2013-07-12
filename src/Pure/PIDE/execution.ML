@@ -1,10 +1,10 @@
-(*  Title:      Pure/PIDE/exec.ML
+(*  Title:      Pure/PIDE/execution.ML
     Author:     Makarius
 
 Global management of command execution fragments.
 *)
 
-signature EXEC =
+signature EXECUTION =
 sig
   type context
   val no_context: context
@@ -19,7 +19,7 @@ sig
   val terminate_all: unit -> unit
 end;
 
-structure Exec: EXEC =
+structure Execution: EXECUTION =
 struct
 
 (* global state *)
@@ -28,7 +28,7 @@ datatype context = Context of Document_ID.generic;
 val no_context = Context Document_ID.none;
 
 type status = Future.group option;  (*SOME group: running, NONE: canceled*)
-val state = Synchronized.var "Exec.state" (no_context, Inttab.empty: status Inttab.table);
+val state = Synchronized.var "Execution.state" (no_context, Inttab.empty: status Inttab.table);
 
 
 (* unique execution context *)
