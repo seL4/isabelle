@@ -50,20 +50,18 @@ fun memo_stable (Memo v) =
  | Result res => not (Exn.is_interrupt_exn res));
 
 fun memo_exec execution_id (Memo v) =
-  (case Synchronized.value v of
-    Result res => res
-  | Expr _ =>
-      Synchronized.timed_access v (fn _ => SOME Time.zeroTime)
-        (fn Result res => SOME (res, Result res)
-          | expr as Expr (exec_id, e) =>
-              uninterruptible (fn restore_attributes => fn () =>
-                if Execution.running execution_id exec_id then
-                  let
-                    val res = Exn.capture (restore_attributes e) ();
-                    val _ = Execution.finished exec_id;
-                  in SOME (res, Result res) end
-                else SOME (Exn.interrupt_exn, expr)) ())
-      |> (fn NONE => error "Concurrent execution attempt" | SOME res => res))
+  Synchronized.guarded_access v
+    (fn expr =>
+      (case expr of
+        Result res => SOME (res, expr)
+      | Expr (exec_id, e) =>
+          uninterruptible (fn restore_attributes => fn () =>
+            if Execution.running execution_id exec_id then
+              let
+                val res = Exn.capture (restore_attributes e) ();
+                val _ = Execution.finished exec_id;
+              in SOME (res, Result res) end
+            else SOME (Exn.interrupt_exn, expr)) ()))
   |> Exn.release |> ignore;
 
 fun memo_fork params execution_id (Memo v) =
