@@ -5736,24 +5736,30 @@ proof(rule ccontr)
   have "open ?A" "open ?B" using open_halfspace_lt and open_halfspace_gt by auto
   moreover have "?A \<inter> ?B = {}" by auto
   moreover have "s \<subseteq> ?A \<union> ?B" using as by auto
-  ultimately show False using assms(1)[unfolded connected_def not_ex, THEN spec[where x="?A"], THEN spec[where x="?B"]] and assms(2-5) by auto
+  ultimately show False
+    using assms(1)[unfolded connected_def not_ex, THEN spec[where x="?A"], THEN spec[where x="?B"]] and assms(2-5)
+    by auto
 qed
 
-lemma connected_ivt_component: fixes x::"'a::euclidean_space" shows
- "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>s.  z\<bullet>k = a)"
-  using connected_ivt_hyperplane[of s x y "k::'a" a] by (auto simp: inner_commute)
+lemma connected_ivt_component:
+  fixes x::"'a::euclidean_space"
+  shows "connected s \<Longrightarrow>
+    x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow>
+    x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>s.  z\<bullet>k = a)"
+  using connected_ivt_hyperplane[of s x y "k::'a" a]
+  by (auto simp: inner_commute)
 
 
 subsection {* Homeomorphisms *}
 
-definition "homeomorphism s t f g \<equiv>
-     (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
-     (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
+definition "homeomorphism s t f g \<longleftrightarrow>
+  (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
+  (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
 definition
   homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60) where
-  homeomorphic_def: "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
+  "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
 lemma homeomorphic_refl: "s homeomorphic s"
   unfolding homeomorphic_def
@@ -5761,44 +5767,81 @@ lemma homeomorphic_refl: "s homeomorphic s"
   using continuous_on_id
   apply(rule_tac x = "(\<lambda>x. x)" in exI)
   apply(rule_tac x = "(\<lambda>x. x)" in exI)
-  by blast
+  apply blast
+  done
 
-lemma homeomorphic_sym:
- "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
-unfolding homeomorphic_def
-unfolding homeomorphism_def
-by blast 
+lemma homeomorphic_sym: "s homeomorphic t \<longleftrightarrow> t homeomorphic s"
+  unfolding homeomorphic_def
+  unfolding homeomorphism_def
+  by blast 
 
 lemma homeomorphic_trans:
-  assumes "s homeomorphic t" "t homeomorphic u" shows "s homeomorphic u"
+  assumes "s homeomorphic t" "t homeomorphic u"
+  shows "s homeomorphic u"
 proof-
-  obtain f1 g1 where fg1:"\<forall>x\<in>s. g1 (f1 x) = x"  "f1 ` s = t" "continuous_on s f1" "\<forall>y\<in>t. f1 (g1 y) = y" "g1 ` t = s" "continuous_on t g1"
+  obtain f1 g1 where fg1:"\<forall>x\<in>s. g1 (f1 x) = x"  "f1 ` s = t"
+      "continuous_on s f1" "\<forall>y\<in>t. f1 (g1 y) = y" "g1 ` t = s" "continuous_on t g1"
     using assms(1) unfolding homeomorphic_def homeomorphism_def by auto
-  obtain f2 g2 where fg2:"\<forall>x\<in>t. g2 (f2 x) = x"  "f2 ` t = u" "continuous_on t f2" "\<forall>y\<in>u. f2 (g2 y) = y" "g2 ` u = t" "continuous_on u g2"
+  obtain f2 g2 where fg2:"\<forall>x\<in>t. g2 (f2 x) = x"  "f2 ` t = u" "continuous_on t f2"
+      "\<forall>y\<in>u. f2 (g2 y) = y" "g2 ` u = t" "continuous_on u g2"
     using assms(2) unfolding homeomorphic_def homeomorphism_def by auto
 
-  { fix x assume "x\<in>s" hence "(g1 \<circ> g2) ((f2 \<circ> f1) x) = x" using fg1(1)[THEN bspec[where x=x]] and fg2(1)[THEN bspec[where x="f1 x"]] and fg1(2) by auto }
-  moreover have "(f2 \<circ> f1) ` s = u" using fg1(2) fg2(2) by auto
-  moreover have "continuous_on s (f2 \<circ> f1)" using continuous_on_compose[OF fg1(3)] and fg2(3) unfolding fg1(2) by auto
-  moreover { fix y assume "y\<in>u" hence "(f2 \<circ> f1) ((g1 \<circ> g2) y) = y" using fg2(4)[THEN bspec[where x=y]] and fg1(4)[THEN bspec[where x="g2 y"]] and fg2(5) by auto }
+  {
+    fix x
+    assume "x\<in>s"
+    hence "(g1 \<circ> g2) ((f2 \<circ> f1) x) = x"
+      using fg1(1)[THEN bspec[where x=x]] and fg2(1)[THEN bspec[where x="f1 x"]] and fg1(2)
+      by auto
+  }
+  moreover have "(f2 \<circ> f1) ` s = u"
+    using fg1(2) fg2(2) by auto
+  moreover have "continuous_on s (f2 \<circ> f1)"
+    using continuous_on_compose[OF fg1(3)] and fg2(3) unfolding fg1(2) by auto
+  moreover {
+    fix y
+    assume "y\<in>u"
+    hence "(f2 \<circ> f1) ((g1 \<circ> g2) y) = y"
+      using fg2(4)[THEN bspec[where x=y]] and fg1(4)[THEN bspec[where x="g2 y"]] and fg2(5)
+      by auto
+  }
   moreover have "(g1 \<circ> g2) ` u = s" using fg1(5) fg2(5) by auto
-  moreover have "continuous_on u (g1 \<circ> g2)" using continuous_on_compose[OF fg2(6)] and fg1(6)  unfolding fg2(5) by auto
-  ultimately show ?thesis unfolding homeomorphic_def homeomorphism_def apply(rule_tac x="f2 \<circ> f1" in exI) apply(rule_tac x="g1 \<circ> g2" in exI) by auto
+  moreover have "continuous_on u (g1 \<circ> g2)"
+    using continuous_on_compose[OF fg2(6)] and fg1(6)
+    unfolding fg2(5)
+    by auto
+  ultimately show ?thesis
+    unfolding homeomorphic_def homeomorphism_def
+    apply (rule_tac x="f2 \<circ> f1" in exI)
+    apply (rule_tac x="g1 \<circ> g2" in exI)
+    apply auto
+    done
 qed
 
 lemma homeomorphic_minimal:
- "s homeomorphic t \<longleftrightarrow>
+  "s homeomorphic t \<longleftrightarrow>
     (\<exists>f g. (\<forall>x\<in>s. f(x) \<in> t \<and> (g(f(x)) = x)) \<and>
            (\<forall>y\<in>t. g(y) \<in> s \<and> (f(g(y)) = y)) \<and>
            continuous_on s f \<and> continuous_on t g)"
-unfolding homeomorphic_def homeomorphism_def
-apply auto apply (rule_tac x=f in exI) apply (rule_tac x=g in exI)
-apply auto apply (rule_tac x=f in exI) apply (rule_tac x=g in exI) apply auto
-unfolding image_iff
-apply(erule_tac x="g x" in ballE) apply(erule_tac x="x" in ballE)
-apply auto apply(rule_tac x="g x" in bexI) apply auto
-apply(erule_tac x="f x" in ballE) apply(erule_tac x="x" in ballE)
-apply auto apply(rule_tac x="f x" in bexI) by auto
+  unfolding homeomorphic_def homeomorphism_def
+  apply auto
+  apply (rule_tac x=f in exI)
+  apply (rule_tac x=g in exI)
+  apply auto
+  apply (rule_tac x=f in exI)
+  apply (rule_tac x=g in exI)
+  apply auto
+  unfolding image_iff
+  apply (erule_tac x="g x" in ballE)
+  apply (erule_tac x="x" in ballE)
+  apply auto
+  apply (rule_tac x="g x" in bexI)
+  apply auto
+  apply (erule_tac x="f x" in ballE)
+  apply (erule_tac x="x" in ballE)
+  apply auto
+  apply (rule_tac x="f x" in bexI)
+  apply auto
+  done
 
 text {* Relatively weak hypotheses if a set is compact. *}
 
@@ -5808,25 +5851,44 @@ lemma homeomorphism_compact:
   shows "\<exists>g. homeomorphism s t f g"
 proof-
   def g \<equiv> "\<lambda>x. SOME y. y\<in>s \<and> f y = x"
-  have g:"\<forall>x\<in>s. g (f x) = x" using assms(3) assms(4)[unfolded inj_on_def] unfolding g_def by auto
-  { fix y assume "y\<in>t"
+  have g: "\<forall>x\<in>s. g (f x) = x"
+    using assms(3) assms(4)[unfolded inj_on_def] unfolding g_def by auto
+  {
+    fix y assume "y\<in>t"
     then obtain x where x:"f x = y" "x\<in>s" using assms(3) by auto
     hence "g (f x) = x" using g by auto
-    hence "f (g y) = y" unfolding x(1)[THEN sym] by auto  }
+    hence "f (g y) = y" unfolding x(1)[THEN sym] by auto
+  }
   hence g':"\<forall>x\<in>t. f (g x) = x" by auto
   moreover
-  { fix x
-    have "x\<in>s \<Longrightarrow> x \<in> g ` t" using g[THEN bspec[where x=x]] unfolding image_iff using assms(3) by(auto intro!: bexI[where x="f x"])
+  {
+    fix x
+    have "x\<in>s \<Longrightarrow> x \<in> g ` t"
+      using g[THEN bspec[where x=x]]
+      unfolding image_iff
+      using assms(3)
+      by (auto intro!: bexI[where x="f x"])
     moreover
-    { assume "x\<in>g ` t"
+    {
+      assume "x\<in>g ` t"
       then obtain y where y:"y\<in>t" "g y = x" by auto
-      then obtain x' where x':"x'\<in>s" "f x' = y" using assms(3) by auto
-      hence "x \<in> s" unfolding g_def using someI2[of "\<lambda>b. b\<in>s \<and> f b = y" x' "\<lambda>x. x\<in>s"] unfolding y(2)[THEN sym] and g_def by auto }
-    ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" ..  }
+      then obtain x' where x':"x'\<in>s" "f x' = y"
+        using assms(3) by auto
+      hence "x \<in> s"
+        unfolding g_def
+        using someI2[of "\<lambda>b. b\<in>s \<and> f b = y" x' "\<lambda>x. x\<in>s"]
+        unfolding y(2)[THEN sym] and g_def
+        by auto
+    }
+    ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" ..
+  }
   hence "g ` t = s" by auto
-  ultimately
-  show ?thesis unfolding homeomorphism_def homeomorphic_def
-    apply(rule_tac x=g in exI) using g and assms(3) and continuous_on_inv[OF assms(2,1), of g, unfolded assms(3)] and assms(2) by auto
+  ultimately show ?thesis
+    unfolding homeomorphism_def homeomorphic_def
+    apply (rule_tac x=g in exI)
+    using g and assms(3) and continuous_on_inv[OF assms(2,1), of g, unfolded assms(3)] and assms(2)
+    apply auto
+    done
 qed
 
 lemma homeomorphic_compact:
@@ -5837,10 +5899,9 @@ lemma homeomorphic_compact:
 
 text{* Preservation of topological properties.                                   *}
 
-lemma homeomorphic_compactness:
- "s homeomorphic t ==> (compact s \<longleftrightarrow> compact t)"
-unfolding homeomorphic_def homeomorphism_def
-by (metis compact_continuous_image)
+lemma homeomorphic_compactness: "s homeomorphic t \<Longrightarrow> (compact s \<longleftrightarrow> compact t)"
+  unfolding homeomorphic_def homeomorphism_def
+  by (metis compact_continuous_image)
 
 text{* Results on translation, scaling etc.                                      *}
 
@@ -5848,27 +5909,34 @@ lemma homeomorphic_scaling:
   fixes s :: "'a::real_normed_vector set"
   assumes "c \<noteq> 0"  shows "s homeomorphic ((\<lambda>x. c *\<^sub>R x) ` s)"
   unfolding homeomorphic_minimal
-  apply(rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
-  apply(rule_tac x="\<lambda>x. (1 / c) *\<^sub>R x" in exI)
-  using assms by (auto simp add: continuous_on_intros)
+  apply (rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
+  apply (rule_tac x="\<lambda>x. (1 / c) *\<^sub>R x" in exI)
+  using assms
+  apply (auto simp add: continuous_on_intros)
+  done
 
 lemma homeomorphic_translation:
   fixes s :: "'a::real_normed_vector set"
   shows "s homeomorphic ((\<lambda>x. a + x) ` s)"
   unfolding homeomorphic_minimal
-  apply(rule_tac x="\<lambda>x. a + x" in exI)
-  apply(rule_tac x="\<lambda>x. -a + x" in exI)
-  using continuous_on_add[OF continuous_on_const continuous_on_id] by auto
+  apply (rule_tac x="\<lambda>x. a + x" in exI)
+  apply (rule_tac x="\<lambda>x. -a + x" in exI)
+  using continuous_on_add[OF continuous_on_const continuous_on_id]
+  apply auto
+  done
 
 lemma homeomorphic_affinity:
   fixes s :: "'a::real_normed_vector set"
-  assumes "c \<noteq> 0"  shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
+  assumes "c \<noteq> 0"
+  shows "s homeomorphic ((\<lambda>x. a + c *\<^sub>R x) ` s)"
 proof-
-  have *:"op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
+  have *: "op + a ` op *\<^sub>R c ` s = (\<lambda>x. a + c *\<^sub>R x) ` s" by auto
   show ?thesis
     using homeomorphic_trans
     using homeomorphic_scaling[OF assms, of s]
-    using homeomorphic_translation[of "(\<lambda>x. c *\<^sub>R x) ` s" a] unfolding * by auto
+    using homeomorphic_translation[of "(\<lambda>x. c *\<^sub>R x) ` s" a]
+    unfolding *
+    by auto
 qed
 
 lemma homeomorphic_balls:
@@ -5882,7 +5950,7 @@ proof-
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms
     apply (auto intro!: continuous_on_intros
-                simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
+      simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
     done
 next
   show ?cth unfolding homeomorphic_minimal
@@ -5890,7 +5958,7 @@ next
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms
     apply (auto intro!: continuous_on_intros
-                simp: dist_commute dist_norm pos_divide_le_eq mult_strict_left_mono)
+      simp: dist_commute dist_norm pos_divide_le_eq mult_strict_left_mono)
     done
 qed
 
@@ -5898,30 +5966,49 @@ text{* "Isometry" (up to constant bounds) of injective linear map etc.          
 
 lemma cauchy_isometric:
   fixes x :: "nat \<Rightarrow> 'a::euclidean_space"
-  assumes e:"0 < e" and s:"subspace s" and f:"bounded_linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"Cauchy(f o x)"
+  assumes e: "0 < e"
+    and s: "subspace s"
+    and f: "bounded_linear f"
+    and normf: "\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)"
+    and xs: "\<forall>n::nat. x n \<in> s"
+    and cf: "Cauchy(f o x)"
   shows "Cauchy x"
-proof-
+proof -
   interpret f: bounded_linear f by fact
-  { fix d::real assume "d>0"
+  {
+    fix d::real assume "d>0"
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
-      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] and e and mult_pos_pos[of e d] by auto
-    { fix n assume "n\<ge>N"
+      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] and e and mult_pos_pos[of e d]
+      by auto
+    {
+      fix n
+      assume "n\<ge>N"
       have "e * norm (x n - x N) \<le> norm (f (x n - x N))"
-        using subspace_sub[OF s, of "x n" "x N"] using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
-        using normf[THEN bspec[where x="x n - x N"]] by auto
+        using subspace_sub[OF s, of "x n" "x N"]
+        using xs[THEN spec[where x=N]] and xs[THEN spec[where x=n]]
+        using normf[THEN bspec[where x="x n - x N"]]
+        by auto
       also have "norm (f (x n - x N)) < e * d"
         using `N \<le> n` N unfolding f.diff[THEN sym] by auto
-      finally have "norm (x n - x N) < d" using `e>0` by simp }
-    hence "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" by auto }
+      finally have "norm (x n - x N) < d" using `e>0` by simp
+    }
+    hence "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" by auto
+  }
   thus ?thesis unfolding cauchy and dist_norm by auto
 qed
 
 lemma complete_isometric_image:
   fixes f :: "'a::euclidean_space => 'b::euclidean_space"
-  assumes "0 < e" and s:"subspace s" and f:"bounded_linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and cs:"complete s"
+  assumes "0 < e"
+    and s: "subspace s"
+    and f: "bounded_linear f"
+    and normf: "\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)"
+    and cs: "complete s"
   shows "complete(f ` s)"
-proof-
-  { fix g assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g"
+proof -
+  {
+    fix g
+    assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g"
     then obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)" 
       using choice[of "\<lambda> n xa. xa \<in> s \<and> g n = f xa"] by auto
     hence x:"\<forall>n. x n \<in> s"  "\<forall>n. g n = f (x n)" by auto
@@ -5931,19 +6018,25 @@ proof-
       using cauchy_isometric[OF `0<e` s f normf] and cfg and x(1) by auto
     hence "\<exists>l\<in>f ` s. (g ---> l) sequentially"
       using linear_continuous_at[OF f, unfolded continuous_at_sequentially, THEN spec[where x=x], of l]
-      unfolding `f \<circ> x = g` by auto  }
+      unfolding `f \<circ> x = g` by auto
+  }
   thus ?thesis unfolding complete_def by auto
 qed
 
-lemma injective_imp_isometric: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes s:"closed s"  "subspace s"  and f:"bounded_linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
+lemma injective_imp_isometric:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes s: "closed s" "subspace s"
+    and f: "bounded_linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm(x)"
-proof(cases "s \<subseteq> {0::'a}")
+proof (cases "s \<subseteq> {0::'a}")
   case True
-  { fix x assume "x \<in> s"
+  {
+    fix x
+    assume "x \<in> s"
     hence "x = 0" using True by auto
-    hence "norm x \<le> norm (f x)" by auto  }
-  thus ?thesis by(auto intro!: exI[where x=1])
+    hence "norm x \<le> norm (f x)" by auto
+  }
+  thus ?thesis by (auto intro!: exI[where x=1])
 next
   interpret f: bounded_linear f by fact
   case False
@@ -5953,37 +6046,58 @@ next
   let ?S' = "{x::'a. x\<in>s \<and> norm x = norm a}"
   let ?S'' = "{x::'a. norm x = norm a}"
 
-  have "?S'' = frontier(cball 0 (norm a))" unfolding frontier_cball and dist_norm by auto
-  hence "compact ?S''" using compact_frontier[OF compact_cball, of 0 "norm a"] by auto
+  have "?S'' = frontier(cball 0 (norm a))"
+    unfolding frontier_cball and dist_norm by auto
+  hence "compact ?S''"
+    using compact_frontier[OF compact_cball, of 0 "norm a"] by auto
   moreover have "?S' = s \<inter> ?S''" by auto
-  ultimately have "compact ?S'" using closed_inter_compact[of s ?S''] using s(1) by auto
+  ultimately have "compact ?S'"
+    using closed_inter_compact[of s ?S''] using s(1) by auto
   moreover have *:"f ` ?S' = ?S" by auto
-  ultimately have "compact ?S" using compact_continuous_image[OF linear_continuous_on[OF f(1)], of ?S'] by auto
+  ultimately have "compact ?S"
+    using compact_continuous_image[OF linear_continuous_on[OF f(1)], of ?S'] by auto
   hence "closed ?S" using compact_imp_closed by auto
   moreover have "?S \<noteq> {}" using a by auto
-  ultimately obtain b' where "b'\<in>?S" "\<forall>y\<in>?S. norm b' \<le> norm y" using distance_attains_inf[of ?S 0] unfolding dist_0_norm by auto
-  then obtain b where "b\<in>s" and ba:"norm b = norm a" and b:"\<forall>x\<in>{x \<in> s. norm x = norm a}. norm (f b) \<le> norm (f x)" unfolding *[THEN sym] unfolding image_iff by auto
+  ultimately obtain b' where "b'\<in>?S" "\<forall>y\<in>?S. norm b' \<le> norm y"
+    using distance_attains_inf[of ?S 0] unfolding dist_0_norm by auto
+  then obtain b where "b\<in>s" and ba:"norm b = norm a"
+      and b:"\<forall>x\<in>{x \<in> s. norm x = norm a}. norm (f b) \<le> norm (f x)"
+    unfolding *[THEN sym] unfolding image_iff by auto
 
   let ?e = "norm (f b) / norm b"
   have "norm b > 0" using ba and a and norm_ge_zero by auto
-  moreover have "norm (f b) > 0" using f(2)[THEN bspec[where x=b], OF `b\<in>s`] using `norm b >0` unfolding zero_less_norm_iff by auto
-  ultimately have "0 < norm (f b) / norm b" by(simp only: divide_pos_pos)
+  moreover have "norm (f b) > 0"
+    using f(2)[THEN bspec[where x=b], OF `b\<in>s`]
+    using `norm b >0`
+    unfolding zero_less_norm_iff
+    by auto
+  ultimately have "0 < norm (f b) / norm b"
+    by (simp only: divide_pos_pos)
   moreover
-  { fix x assume "x\<in>s"
+  {
+    fix x
+    assume "x\<in>s"
     hence "norm (f b) / norm b * norm x \<le> norm (f x)"
-    proof(cases "x=0")
-      case True thus "norm (f b) / norm b * norm x \<le> norm (f x)" by auto
+    proof (cases "x=0")
+      case True
+      thus "norm (f b) / norm b * norm x \<le> norm (f x)" by auto
     next
       case False
-      hence *:"0 < norm a / norm x" using `a\<noteq>0` unfolding zero_less_norm_iff[THEN sym] by(simp only: divide_pos_pos)
-      have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s" using s[unfolded subspace_def] by auto
-      hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}" using `x\<in>s` and `x\<noteq>0` by auto
-      thus "norm (f b) / norm b * norm x \<le> norm (f x)" using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
+      hence *:"0 < norm a / norm x"
+        using `a\<noteq>0`
+        unfolding zero_less_norm_iff[THEN sym]
+        by (simp only: divide_pos_pos)
+      have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s"
+        using s[unfolded subspace_def] by auto
+      hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}"
+        using `x\<in>s` and `x\<noteq>0` by auto
+      thus "norm (f b) / norm b * norm x \<le> norm (f x)"
+        using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
         unfolding f.scaleR and ba using `x\<noteq>0` `a\<noteq>0`
         by (auto simp add: mult_commute pos_le_divide_eq pos_divide_le_eq)
-    qed }
-  ultimately
-  show ?thesis by auto
+    qed
+  }
+  ultimately show ?thesis by auto
 qed
 
 lemma closed_injective_image_subspace:
@@ -5991,8 +6105,10 @@ lemma closed_injective_image_subspace:
   assumes "subspace s" "bounded_linear f" "\<forall>x\<in>s. f x = 0 --> x = 0" "closed s"
   shows "closed(f ` s)"
 proof-
-  obtain e where "e>0" and e:"\<forall>x\<in>s. e * norm x \<le> norm (f x)" using injective_imp_isometric[OF assms(4,1,2,3)] by auto
-  show ?thesis using complete_isometric_image[OF `e>0` assms(1,2) e] and assms(4)
+  obtain e where "e>0" and e:"\<forall>x\<in>s. e * norm x \<le> norm (f x)"
+    using injective_imp_isometric[OF assms(4,1,2,3)] by auto
+  show ?thesis
+    using complete_isometric_image[OF `e>0` assms(1,2) e] and assms(4)
     unfolding complete_eq_closed[THEN sym] by auto
 qed
 
@@ -6004,8 +6120,8 @@ lemma subspace_substandard:
   unfolding subspace_def by (auto simp: inner_add_left)
 
 lemma closed_substandard:
- "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i --> x\<bullet>i = 0}" (is "closed ?A")
-proof-
+  "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i --> x\<bullet>i = 0}" (is "closed ?A")
+proof -
   let ?D = "{i\<in>Basis. P i}"
   have "closed (\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0})"
     by (simp add: closed_INT closed_Collect_eq)
@@ -6014,18 +6130,25 @@ proof-
   finally show "closed ?A" .
 qed
 
-lemma dim_substandard: assumes d: "d \<subseteq> Basis"
+lemma dim_substandard:
+  assumes d: "d \<subseteq> Basis"
   shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
-proof-
+proof -
   let ?D = "Basis :: 'a set"
   have "d \<subseteq> ?A" using d by (auto simp: inner_Basis)
   moreover
-  { fix x::"'a" assume "x \<in> ?A"
+  {
+    fix x::"'a" assume "x \<in> ?A"
     hence "finite d" "x \<in> ?A" using assms by(auto intro: finite_subset[OF _ finite_Basis])
     from this d have "x \<in> span d"
-    proof(induct d arbitrary: x)
-      case empty hence "x=0" apply(rule_tac euclidean_eqI) by auto
-      thus ?case using subspace_0[OF subspace_span[of "{}"]] by auto
+    proof (induct d arbitrary: x)
+      case empty
+      hence "x=0"
+        apply (rule_tac euclidean_eqI)
+        apply auto
+        done
+      thus ?case
+        using subspace_0[OF subspace_span[of "{}"]] by auto
     next
       case (insert k F)
       hence *:"\<forall>i\<in>Basis. i \<notin> insert k F \<longrightarrow> x \<bullet> i = 0" by auto
@@ -6050,8 +6173,13 @@ proof-
   }
   hence "?A \<subseteq> span d" by auto
   moreover
-  { fix x assume "x \<in> d" hence "x \<in> ?D" using assms by auto  }
-  hence "independent d" using independent_mono[OF independent_Basis, of d] and assms by auto
+  {
+    fix x
+    assume "x \<in> d"
+    hence "x \<in> ?D" using assms by auto
+  }
+  hence "independent d"
+    using independent_mono[OF independent_Basis, of d] and assms by auto
   moreover
   have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
   ultimately show ?thesis using dim_unique[of d ?A] by auto
@@ -6069,41 +6197,55 @@ proof cases
     by (auto simp: bij_betw_def card_image)
   then show ?thesis by blast
 next
-  assume "\<not> finite A" with `n \<le> card A` show ?thesis by force
+  assume "\<not> finite A"
+  with `n \<le> card A` show ?thesis by force
 qed
 
-lemma closed_subspace: fixes s::"('a::euclidean_space) set"
-  assumes "subspace s" shows "closed s"
-proof-
-  have "dim s \<le> card (Basis :: 'a set)" using dim_subset_UNIV by auto
-  with ex_card[OF this] obtain d :: "'a set" where t: "card d = dim s" and d: "d \<subseteq> Basis" by auto
+lemma closed_subspace:
+  fixes s::"('a::euclidean_space) set"
+  assumes "subspace s"
+  shows "closed s"
+proof -
+  have "dim s \<le> card (Basis :: 'a set)"
+    using dim_subset_UNIV by auto
+  with ex_card[OF this] obtain d :: "'a set" where t: "card d = dim s" and d: "d \<subseteq> Basis"
+    by auto
   let ?t = "{x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
   have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s \<and>
       inj_on f {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
     using dim_substandard[of d] t d assms
     by (intro subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]]) (auto simp: inner_Basis)
   then guess f by (elim exE conjE) note f = this
-  interpret f: bounded_linear f using f unfolding linear_conv_bounded_linear by auto
-  { fix x have "x\<in>?t \<Longrightarrow> f x = 0 \<Longrightarrow> x = 0" using f.zero d f(3)[THEN inj_onD, of x 0] by auto }
+  interpret f: bounded_linear f
+    using f unfolding linear_conv_bounded_linear by auto
+  {
+    fix x
+    have "x\<in>?t \<Longrightarrow> f x = 0 \<Longrightarrow> x = 0"
+      using f.zero d f(3)[THEN inj_onD, of x 0] by auto
+  }
   moreover have "closed ?t" using closed_substandard .
   moreover have "subspace ?t" using subspace_substandard .
-  ultimately show ?thesis using closed_injective_image_subspace[of ?t f]
+  ultimately show ?thesis
+    using closed_injective_image_subspace[of ?t f]
     unfolding f(2) using f(1) unfolding linear_conv_bounded_linear by auto
 qed
 
 lemma complete_subspace:
-  fixes s :: "('a::euclidean_space) set" shows "subspace s ==> complete s"
-  using complete_eq_closed closed_subspace
-  by auto
+  fixes s :: "('a::euclidean_space) set"
+  shows "subspace s \<Longrightarrow> complete s"
+  using complete_eq_closed closed_subspace by auto
 
 lemma dim_closure:
   fixes s :: "('a::euclidean_space) set"
   shows "dim(closure s) = dim s" (is "?dc = ?d")
-proof-
+proof -
   have "?dc \<le> ?d" using closure_minimal[OF span_inc, of s]
     using closed_subspace[OF subspace_span, of s]
-    using dim_subset[of "closure s" "span s"] unfolding dim_span by auto
-  thus ?thesis using dim_subset[OF closure_subset, of s] by auto
+    using dim_subset[of "closure s" "span s"]
+    unfolding dim_span
+    by auto
+  thus ?thesis using dim_subset[OF closure_subset, of s]
+    by auto
 qed
 
 
@@ -6189,34 +6331,46 @@ proof-
   def z \<equiv> "\<lambda>n. (f ^^ n) z0"
   { fix n::nat
     have "z n \<in> s" unfolding z_def
-    proof(induct n) case 0 thus ?case using `z0 \<in>s` by auto
-    next case Suc thus ?case using f by auto qed }
-  note z_in_s = this
+    proof (induct n)
+      case 0
+      thus ?case using `z0 \<in>s` by auto
+    next
+      case Suc
+      thus ?case using f by auto qed
+  } note z_in_s = this
 
   def d \<equiv> "dist (z 0) (z 1)"
 
   have fzn:"\<And>n. f (z n) = z (Suc n)" unfolding z_def by auto
-  { fix n::nat
+  {
+    fix n::nat
     have "dist (z n) (z (Suc n)) \<le> (c ^ n) * d"
-    proof(induct n)
-      case 0 thus ?case unfolding d_def by auto
+    proof (induct n)
+      case 0 thus ?case
+        unfolding d_def by auto
     next
       case (Suc m)
       hence "c * dist (z m) (z (Suc m)) \<le> c ^ Suc m * d"
-        using `0 \<le> c` using mult_left_mono[of "dist (z m) (z (Suc m))" "c ^ m * d" c] by auto
-      thus ?case using lipschitz[THEN bspec[where x="z m"], OF z_in_s, THEN bspec[where x="z (Suc m)"], OF z_in_s]
-        unfolding fzn and mult_le_cancel_left by auto
+        using `0 \<le> c`
+        using mult_left_mono[of "dist (z m) (z (Suc m))" "c ^ m * d" c]
+        by auto
+      thus ?case
+        using lipschitz[THEN bspec[where x="z m"], OF z_in_s, THEN bspec[where x="z (Suc m)"], OF z_in_s]
+        unfolding fzn and mult_le_cancel_left
+        by auto
     qed
   } note cf_z = this
 
-  { fix n m::nat
+  {
+    fix n m::nat
     have "(1 - c) * dist (z m) (z (m+n)) \<le> (c ^ m) * d * (1 - c ^ n)"
-    proof(induct n)
+    proof (induct n)
       case 0 show ?case by auto
     next
       case (Suc k)
-      have "(1 - c) * dist (z m) (z (m + Suc k)) \<le> (1 - c) * (dist (z m) (z (m + k)) + dist (z (m + k)) (z (Suc (m + k))))"
-        using dist_triangle and c by(auto simp add: dist_triangle)
+      have "(1 - c) * dist (z m) (z (m + Suc k)) \<le>
+          (1 - c) * (dist (z m) (z (m + k)) + dist (z (m + k)) (z (Suc (m + k))))"
+        using dist_triangle and c by (auto simp add: dist_triangle)
       also have "\<dots> \<le> (1 - c) * (dist (z m) (z (m + k)) + c ^ (m + k) * d)"
         using cf_z[of "m + k"] and c by auto
       also have "\<dots> \<le> c ^ m * d * (1 - c ^ k) + (1 - c) * c ^ (m + k) * d"
@@ -6228,9 +6382,11 @@ proof-
       finally show ?case by auto
     qed
   } note cf_z2 = this
-  { fix e::real assume "e>0"
+  {
+    fix e::real
+    assume "e>0"
     hence "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (z m) (z n) < e"
-    proof(cases "d = 0")
+    proof (cases "d = 0")
       case True
       have *: "\<And>x. ((1 - c) * x \<le> 0) = (x \<le> 0)" using `1 - c > 0`
         by (metis mult_zero_left mult_commute real_mult_le_cancel_iff1)
@@ -6238,21 +6394,31 @@ proof-
         by (simp add: *)
       thus ?thesis using `e>0` by auto
     next
-      case False hence "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
+      case False
+      hence "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
         by (metis False d_def less_le)
-      hence "0 < e * (1 - c) / d" using `e>0` and `1-c>0`
-        using divide_pos_pos[of "e * (1 - c)" d] and mult_pos_pos[of e "1 - c"] by auto
-      then obtain N where N:"c ^ N < e * (1 - c) / d" using real_arch_pow_inv[of "e * (1 - c) / d" c] and c by auto
-      { fix m n::nat assume "m>n" and as:"m\<ge>N" "n\<ge>N"
-        have *:"c ^ n \<le> c ^ N" using `n\<ge>N` and c using power_decreasing[OF `n\<ge>N`, of c] by auto
-        have "1 - c ^ (m - n) > 0" using c and power_strict_mono[of c 1 "m - n"] using `m>n` by auto
+      hence "0 < e * (1 - c) / d"
+        using `e>0` and `1-c>0`
+        using divide_pos_pos[of "e * (1 - c)" d] and mult_pos_pos[of e "1 - c"]
+        by auto
+      then obtain N where N:"c ^ N < e * (1 - c) / d"
+        using real_arch_pow_inv[of "e * (1 - c) / d" c] and c by auto
+      {
+        fix m n::nat
+        assume "m>n" and as:"m\<ge>N" "n\<ge>N"
+        have *:"c ^ n \<le> c ^ N" using `n\<ge>N` and c
+          using power_decreasing[OF `n\<ge>N`, of c] by auto
+        have "1 - c ^ (m - n) > 0"
+          using c and power_strict_mono[of c 1 "m - n"] using `m>n` by auto
         hence **:"d * (1 - c ^ (m - n)) / (1 - c) > 0"
           using mult_pos_pos[OF `d>0`, of "1 - c ^ (m - n)"]
           using divide_pos_pos[of "d * (1 - c ^ (m - n))" "1 - c"]
-          using `0 < 1 - c` by auto
+          using `0 < 1 - c`
+          by auto
 
         have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
-          using cf_z2[of n "m - n"] and `m>n` unfolding pos_le_divide_eq[OF `1-c>0`]
+          using cf_z2[of n "m - n"] and `m>n`
+          unfolding pos_le_divide_eq[OF `1-c>0`]
           by (auto simp add: mult_commute dist_commute)
         also have "\<dots> \<le> c ^ N * d * (1 - c ^ (m - n)) / (1 - c)"
           using mult_right_mono[OF * order_less_imp_le[OF **]]
@@ -6263,44 +6429,66 @@ proof-
         also have "\<dots> \<le> e" using c and `1 - c ^ (m - n) > 0` and `e>0` using mult_right_le_one_le[of e "1 - c ^ (m - n)"] by auto
         finally have  "dist (z m) (z n) < e" by auto
       } note * = this
-      { fix m n::nat assume as:"N\<le>m" "N\<le>n"
+      {
+        fix m n::nat
+        assume as:"N\<le>m" "N\<le>n"
         hence "dist (z n) (z m) < e"
-        proof(cases "n = m")
-          case True thus ?thesis using `e>0` by auto
+        proof (cases "n = m")
+          case True
+          thus ?thesis using `e>0` by auto
         next
-          case False thus ?thesis using as and *[of n m] *[of m n] unfolding nat_neq_iff by (auto simp add: dist_commute)
-        qed }
+          case False
+          thus ?thesis using as and *[of n m] *[of m n]
+            unfolding nat_neq_iff by (auto simp add: dist_commute)
+        qed
+      }
       thus ?thesis by auto
     qed
   }
   hence "Cauchy z" unfolding cauchy_def by auto
-  then obtain x where "x\<in>s" and x:"(z ---> x) sequentially" using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
+  then obtain x where "x\<in>s" and x:"(z ---> x) sequentially"
+    using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
 
   def e \<equiv> "dist (f x) x"
-  have "e = 0" proof(rule ccontr)
-    assume "e \<noteq> 0" hence "e>0" unfolding e_def using zero_le_dist[of "f x" x]
+  have "e = 0"
+  proof (rule ccontr)
+    assume "e \<noteq> 0"
+    hence "e>0" unfolding e_def using zero_le_dist[of "f x" x]
       by (metis dist_eq_0_iff dist_nz e_def)
     then obtain N where N:"\<forall>n\<ge>N. dist (z n) x < e / 2"
       using x[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
     hence N':"dist (z N) x < e / 2" by auto
 
-    have *:"c * dist (z N) x \<le> dist (z N) x" unfolding mult_le_cancel_right2
+    have *:"c * dist (z N) x \<le> dist (z N) x"
+      unfolding mult_le_cancel_right2
       using zero_le_dist[of "z N" x] and c
       by (metis dist_eq_0_iff dist_nz order_less_asym less_le)
-    have "dist (f (z N)) (f x) \<le> c * dist (z N) x" using lipschitz[THEN bspec[where x="z N"], THEN bspec[where x=x]]
-      using z_in_s[of N] `x\<in>s` using c by auto
-    also have "\<dots> < e / 2" using N' and c using * by auto
-    finally show False unfolding fzn
+    have "dist (f (z N)) (f x) \<le> c * dist (z N) x"
+      using lipschitz[THEN bspec[where x="z N"], THEN bspec[where x=x]]
+      using z_in_s[of N] `x\<in>s`
+      using c
+      by auto
+    also have "\<dots> < e / 2"
+      using N' and c using * by auto
+    finally show False
+      unfolding fzn
       using N[THEN spec[where x="Suc N"]] and dist_triangle_half_r[of "z (Suc N)" "f x" e x]
-      unfolding e_def by auto
+      unfolding e_def
+      by auto
   qed
   hence "f x = x" unfolding e_def by auto
   moreover
-  { fix y assume "f y = y" "y\<in>s"
-    hence "dist x y \<le> c * dist x y" using lipschitz[THEN bspec[where x=x], THEN bspec[where x=y]]
-      using `x\<in>s` and `f x = x` by auto
-    hence "dist x y = 0" unfolding mult_le_cancel_right1
-      using c and zero_le_dist[of x y] by auto
+  {
+    fix y
+    assume "f y = y" "y\<in>s"
+    hence "dist x y \<le> c * dist x y"
+      using lipschitz[THEN bspec[where x=x], THEN bspec[where x=y]]
+      using `x\<in>s` and `f x = x`
+      by auto
+    hence "dist x y = 0"
+      unfolding mult_le_cancel_right1
+      using c and zero_le_dist[of x y]
+      by auto
     hence "y = x" by auto
   }
   ultimately show ?thesis using `x\<in>s` by blast+
@@ -6310,8 +6498,9 @@ subsection {* Edelstein fixed point theorem *}
 
 lemma edelstein_fix:
   fixes s :: "'a::metric_space set"
-  assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
-      and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
+  assumes s: "compact s" "s \<noteq> {}"
+    and gs: "(g ` s) \<subseteq> s"
+    and dist: "\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>!x\<in>s. g x = x"
 proof -
   let ?D = "(\<lambda>x. (x, x)) ` s"
