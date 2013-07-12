@@ -225,15 +225,12 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
 
       fun set_preplay_fail b = fail := b
 
-      fun preplay' timeout step =
-        (* after preplay has failed once, exact preplay times are pointless *)
-        if preplay_fail () then some_preplay_time
-          else preplay debug preplay_trace type_enc lam_trans ctxt timeout step
+      val preplay = preplay debug preplay_trace type_enc lam_trans ctxt
 
       (* preplay steps without registering preplay_fails, treating exceptions
          like timeouts *)
       fun preplay_quietly timeout step =
-        try (preplay' timeout) step
+        try (preplay timeout) step
         |> the_default (true, timeout)
 
       val preplay_time_tab =
@@ -243,7 +240,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
               NONE => tab
             | SOME l =>
                 Canonical_Lbl_Tab.update_new
-                  (l, (fn () => preplay' preplay_timeout step) |> Lazy.lazy)
+                  (l, (fn () => preplay preplay_timeout step) |> Lazy.lazy)
                   tab
             handle Canonical_Lbl_Tab.DUP _ =>
               raise Fail "Sledgehammer_Preplay: preplay time table"
