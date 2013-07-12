@@ -138,7 +138,7 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
         val delta =
           number_of_steps - target_number_of_steps |> Unsynchronized.ref
       in
-        (fn () => not (preplay_fail ()) andalso !delta > 0,
+        (fn () => !delta > 0,
          fn () => delta := !delta - 1)
       end
 
