@@ -10,7 +10,6 @@ sig
   val genuineN: string
   val noneN: string
   val unknownN: string
-  val setup: theory -> theory
   (*configuration*)
   val batch_tester : string Config.T
   val size : int Config.T
@@ -564,7 +563,7 @@ fun try_quickcheck auto state =
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN);
 
-val setup = Try.register_tool (quickcheckN, (20, @{option auto_quickcheck}, try_quickcheck));
+val _ = Try.tool_setup (quickcheckN, (20, @{option auto_quickcheck}, try_quickcheck));
 
 end;
 

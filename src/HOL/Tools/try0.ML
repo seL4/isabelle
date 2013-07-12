@@ -11,7 +11,6 @@ sig
   val try0 :
     Time.time option -> string list * string list * string list * string list
     -> Proof.state -> bool
-  val setup : theory -> theory
 end;
 
 structure Try0 : TRY0 =
@@ -193,6 +192,6 @@ val _ =
 fun try_try0 auto =
   do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])
 
-val setup = Try.register_tool (try0N, (30, @{option auto_try0}, try_try0))
+val _ = Try.tool_setup (try0N, (30, @{option auto_try0}, try_try0))
 
 end;

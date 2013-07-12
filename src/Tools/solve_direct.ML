@@ -16,7 +16,6 @@ sig
   val unknownN: string
   val max_solutions: int Unsynchronized.ref
   val solve_direct: Proof.state -> bool * (string * Proof.state)
-  val setup: theory -> theory
 end;
 
 structure Solve_Direct: SOLVE_DIRECT =
@@ -115,6 +114,6 @@ val _ =
 
 fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
 
-val setup = Try.register_tool (solve_directN, (10, @{option auto_solve_direct}, try_solve_direct));
+val _ = Try.tool_setup (solve_directN, (10, @{option auto_solve_direct}, try_solve_direct));
 
 end;

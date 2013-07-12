@@ -11,7 +11,6 @@ sig
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
   val default_params : Proof.context -> (string * string) list -> params
-  val setup : theory -> theory
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -486,6 +485,6 @@ fun try_sledgehammer auto state =
                      (minimize_command [] i) state
   end
 
-val setup = Try.register_tool (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
+val _ = Try.tool_setup (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
 
 end;

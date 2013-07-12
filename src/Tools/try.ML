@@ -13,9 +13,9 @@ sig
 
   val serial_commas : string -> string list -> string list
   val subgoal_count : Proof.state -> int
-  val register_tool : tool -> theory -> theory
   val get_tools : theory -> tool list
   val try_tools : Proof.state -> (string * string) option
+  val tool_setup : tool -> unit
 end;
 
 structure Try : TRY =
@@ -65,6 +65,7 @@ val get_tools = Data.get
 
 val register_tool = Data.map o Ord_List.insert tool_ord
 
+
 (* try command *)
 
 fun try_tools state =
@@ -89,7 +90,7 @@ val _ =
     (Scan.succeed (Toplevel.unknown_proof o Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
 
 
-(* automatic try *)
+(* automatic try (TTY) *)
 
 fun auto_try state =
   get_tools (Proof.theory_of state)
@@ -110,5 +111,36 @@ val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
     else
       state
   end))
+
+
+(* asynchronous print function (PIDE) *)
+
+fun print_function ((name, (weight, auto, tool)): tool) =
+  Command.print_function {name = name, pri = ~ weight, persistent = true}
+    (fn {command_name} =>
+      if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
+        SOME (fn _ => fn st =>
+          let
+            val auto_time_limit = Options.default_real @{option auto_time_limit}
+          in
+            if auto_time_limit > 0.0 then
+              (case try Toplevel.proof_of st of
+                SOME state =>
+                  (case
+                    (try o TimeLimit.timeLimit (seconds auto_time_limit))
+                      (fn () => tool true state) () of
+                    SOME (true, (_, state')) =>
+                      Pretty.writeln (Pretty.chunks (Proof.pretty_goal_messages state'))
+                  | _ => ())
+              | NONE => ())
+            else ()
+          end)
+      else NONE);
+
+
+(* hybrid tool setup *)
+
+fun tool_setup tool =
+  (Context.>> (Context.map_theory (register_tool tool)); print_function tool);
 
 end;

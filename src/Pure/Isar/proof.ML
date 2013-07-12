@@ -32,6 +32,7 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
+  val pretty_goal_messages: state -> Pretty.T list
   val pretty_state: int -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
@@ -335,6 +336,11 @@ fun get_goal state =
 
 
 (** pretty_state **)
+
+fun pretty_goal_messages state =
+  (case try find_goal state of
+    SOME (_, (_, {messages, ...})) => map (fn msg => msg ()) (rev messages)
+  | NONE => []);
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts ctxt s (SOME ths) = [Proof_Display.pretty_goal_facts ctxt s ths, Pretty.str ""];

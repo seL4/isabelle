@@ -13,7 +13,6 @@ sig
   val nitpickN : string
   val nitpick_paramsN : string
   val default_params : theory -> (string * string) list -> params
-  val setup : theory -> theory
 end;
 
 structure Nitpick_Isar : NITPICK_ISAR =
@@ -399,6 +398,6 @@ val _ =
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
-val setup = Try.register_tool (nitpickN, (50, @{option auto_nitpick}, try_nitpick))
+val _ = Try.tool_setup (nitpickN, (50, @{option auto_nitpick}, try_nitpick))
 
 end;
