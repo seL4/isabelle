@@ -14,11 +14,13 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [FILES|DIRS...]"
   echo
-  echo "  Recursively find .thy/.ML files, removing unreadable symbol names."
+  echo "  Recursively find .thy/.ML files and remove symbols that are unreadably"
+  echo "  in plain text (e.g. \<Longrightarrow>)."
+  echo
   echo "  Note: this is an ad-hoc script; there is no systematic way to replace"
   echo "  symbols independently of the inner syntax of a theory!"
   echo
-  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo "  Old versions of files are preserved by appending \"~~\"."
   echo
   exit 1
 }
@@ -33,5 +35,5 @@ SPECS="$@"; shift "$#"
 
 ## main
 
-find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
-  xargs "$ISABELLE_HOME/lib/scripts/unsymbolize"
+find $SPECS \( -name \*.ML -o -name \*.thy \) -print0 | \
+  xargs -0 "$ISABELLE_HOME/lib/scripts/unsymbolize"
