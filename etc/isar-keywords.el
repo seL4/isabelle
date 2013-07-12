@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Boogie + HOL-Decision_Procs + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Boogie + HOL-Decision_Procs + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -21,6 +21,7 @@
     "ProofGeneral\\.restart"
     "ProofGeneral\\.undo"
     "abbreviation"
+    "adhoc_overloading"
     "also"
     "apply"
     "apply_end"
@@ -144,6 +145,7 @@
     "next"
     "nitpick"
     "nitpick_params"
+    "no_adhoc_overloading"
     "no_notation"
     "no_syntax"
     "no_translations"
@@ -477,6 +479,7 @@
   '("ML"
     "ML_file"
     "abbreviation"
+    "adhoc_overloading"
     "arities"
     "atom_decl"
     "attribute_setup"
@@ -539,6 +542,7 @@
     "locale"
     "method_setup"
     "nitpick_params"
+    "no_adhoc_overloading"
     "no_notation"
     "no_syntax"
     "no_translations"
