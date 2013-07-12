@@ -1,17 +1,16 @@
 (*  Title:      Pure/PIDE/execution.ML
     Author:     Makarius
 
-Global management of command execution fragments.
+Global management of execution.  Unique running execution serves as
+barrier for further exploration of exec particles.
 *)
 
 signature EXECUTION =
 sig
-  type context
-  val no_context: context
-  val drop_context: context -> unit
-  val fresh_context: unit -> context
-  val is_running: context -> bool
-  val running: context -> Document_ID.exec -> bool
+  val start: unit -> Document_ID.execution
+  val discontinue: unit -> unit
+  val is_running: Document_ID.execution -> bool
+  val running: Document_ID.execution -> Document_ID.exec -> bool
   val finished: Document_ID.exec -> bool -> unit
   val is_stable: Document_ID.exec -> bool
   val peek_running: Document_ID.exec -> Future.group option
@@ -22,43 +21,37 @@ end;
 structure Execution: EXECUTION =
 struct
 
-(* global state *)
-
-datatype context = Context of Document_ID.generic;
-val no_context = Context Document_ID.none;
-
 type status = Future.group option;  (*SOME group: running, NONE: canceled*)
-val state = Synchronized.var "Execution.state" (no_context, Inttab.empty: status Inttab.table);
+val state = Synchronized.var "Execution.state" (Document_ID.none, Inttab.empty: status Inttab.table);
 
 
-(* unique execution context *)
+(* unique running execution *)
 
-fun drop_context context =
-  Synchronized.change state
-    (apfst (fn context' => if context = context' then no_context else context'));
-
-fun fresh_context () =
+fun start () =
   let
-    val context = Context (Document_ID.make ());
-    val _ = Synchronized.change state (apfst (K context));
-  in context end;
+    val execution_id = Document_ID.make ();
+    val _ = Synchronized.change state (apfst (K execution_id));
+  in execution_id end;
 
-fun is_running context = context = fst (Synchronized.value state);
+fun discontinue () =
+  Synchronized.change state (apfst (K Document_ID.none));
+
+fun is_running execution_id = execution_id = fst (Synchronized.value state);
 
 
 (* registered execs *)
 
-fun running context exec_id =
+fun running execution_id exec_id =
   Synchronized.guarded_access state
-    (fn (current_context, execs) =>
+    (fn (execution_id', execs) =>
       let
-        val cont = context = current_context;
+        val continue = execution_id = execution_id';
         val execs' =
-          if cont then
+          if continue then
             Inttab.update_new (exec_id, SOME (Future.the_worker_group ())) execs
               handle Inttab.DUP dup => error ("Duplicate execution " ^ Document_ID.print dup)
           else execs;
-      in SOME (cont, (current_context, execs')) end);
+      in SOME (continue, (execution_id', execs')) end);
 
 fun finished exec_id stable =
   Synchronized.change state
@@ -81,11 +74,11 @@ fun peek_running exec_id =
 
 fun purge_canceled () =
   Synchronized.guarded_access state
-    (fn (context, execs) =>
+    (fn (execution_id, execs) =>
       let
         val canceled = Inttab.fold (fn (exec_id, NONE) => cons exec_id | _ => I) execs [];
         val execs' = fold Inttab.delete canceled execs;
-      in SOME ((), (context, execs')) end);
+      in SOME ((), (execution_id, execs')) end);
 
 fun terminate_all () =
   let

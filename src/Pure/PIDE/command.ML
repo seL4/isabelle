@@ -20,7 +20,7 @@ sig
   type exec = eval * print list
   val no_exec: exec
   val exec_ids: exec option -> Document_ID.exec list
-  val exec: Execution.context -> exec -> unit
+  val exec: Document_ID.execution -> exec -> unit
 end;
 
 structure Command: COMMAND =

@@ -17,17 +17,17 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
-    (fn [] => Document.discontinue_execution (Document.state ()));
+    (fn [] => Execution.discontinue ());
 
 val _ =
   Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => Document.cancel_execution (Document.state ()));
+    (fn [] => (Execution.discontinue (); Execution.terminate_all ()));
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
-        val _ = Document.discontinue_execution state;
+        val _ = Execution.discontinue ();
 
         val old_id = Document_ID.parse old_id_string;
         val new_id = Document_ID.parse new_id_string;

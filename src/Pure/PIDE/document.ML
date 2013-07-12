@@ -18,8 +18,6 @@ sig
   val init_state: state
   val define_command: Document_ID.command -> string -> string -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
-  val discontinue_execution: state -> unit
-  val cancel_execution: state -> unit
   val start_execution: state -> unit
   val timing: bool Unsynchronized.ref
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
@@ -205,10 +203,10 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type execution = {version_id: Document_ID.version, context: Execution.context};
+type execution = {version_id: Document_ID.version, execution_id: Document_ID.execution};
 
-val no_execution = {version_id = Document_ID.none, context = Execution.no_context};
-fun make_execution version_id = {version_id = version_id, context = Execution.fresh_context ()};
+val no_execution = {version_id = Document_ID.none, execution_id = Document_ID.none};
+fun next_execution version_id = {version_id = version_id, execution_id = Execution.start ()};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -235,7 +233,7 @@ fun define_version version_id version =
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = make_execution version_id;
+      val execution' = next_execution version_id;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -296,17 +294,11 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 
 (* document execution *)
 
-fun discontinue_execution state =
-  Execution.drop_context (#context (execution_of state));
-
-fun cancel_execution state =
-  (Execution.drop_context (#context (execution_of state)); Execution.terminate_all ());
-
 fun start_execution state =
   let
-    val {version_id, context} = execution_of state;
+    val {version_id, execution_id} = execution_of state;
     val _ =
-      if Execution.is_running context then
+      if Execution.is_running execution_id then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if not (visible_node node) andalso finished_theory node then
@@ -319,7 +311,8 @@ fun start_execution state =
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
                       SOME exec =>
-                        if Execution.is_running context then SOME (Command.exec context exec)
+                        if Execution.is_running execution_id
+                        then SOME (Command.exec execution_id exec)
                         else NONE
                     | NONE => NONE)) node ()))
       else [];

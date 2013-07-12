@@ -12,6 +12,7 @@ sig
   type version = generic
   type command = generic
   type exec = generic
+  type execution = generic
   val none: generic
   val make: unit -> generic
   val parse: string -> generic
@@ -25,6 +26,7 @@ type generic = int;
 type version = generic;
 type command = generic;
 type exec = generic;
+type execution = generic;
 
 val none = 0;
 val make = Counter.make ();
