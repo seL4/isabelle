@@ -27,7 +27,8 @@ sig
   val norm_result: thm -> thm
   val fork_params: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
   val fork: int -> (unit -> 'a) -> 'a future
-  val peek_futures: serial -> unit future list
+  val peek_futures: int -> unit future list
+  val stable_futures: int-> bool
   val reset_futures: unit -> Future.group list
   val shutdown_futures: unit -> unit
   val skip_proofs_enabled: unit -> bool
@@ -180,6 +181,9 @@ fun forked_count () = #1 (Synchronized.value forked_proofs);
 
 fun peek_futures id =
   Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
+
+fun stable_futures id =
+  not (Par_Exn.is_interrupted (Future.join_results (peek_futures id)));
 
 fun reset_futures () =
   Synchronized.change_result forked_proofs (fn (_, groups, _) =>

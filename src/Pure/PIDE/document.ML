@@ -108,7 +108,7 @@ fun set_result result =
 
 fun changed_result node node' =
   (case (get_result node, get_result node') of
-    (SOME eval, SOME eval') => not (Command.eval_same (eval, eval'))
+    (SOME eval, SOME eval') => not (Command.eval_eq (eval, eval'))
   | (NONE, NONE) => false
   | _ => true);
 
@@ -401,7 +401,8 @@ fun last_common state node0 node =
           val flags' = update_flags prev flags;
           val same' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) => Command.eval_same (eval0, eval)
+              (SOME (eval0, _), SOME (eval, _)) =>
+                Command.eval_eq (eval0, eval) andalso Command.eval_stable eval
             | _ => false);
           val assign_update' = assign_update |> same' ?
             (case opt_exec of
@@ -445,7 +446,7 @@ fun new_exec state proper_init command_visible command_id' (assign_update, comma
 
 fun cancel_old_execs node0 (command_id, exec_ids) =
   subtract (op =) exec_ids (Command.exec_ids (lookup_entry node0 command_id))
-  |> map_filter (Execution.peek_running #> Option.map (tap Future.cancel_group));
+  |> map_filter (Execution.peek #> Option.map (tap Future.cancel_group));
 
 in
 

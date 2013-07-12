@@ -8,8 +8,9 @@ signature COMMAND =
 sig
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   type eval
+  val eval_eq: eval * eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval_same: eval * eval -> bool
+  val eval_stable: eval -> bool
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   type print
   val print: bool -> string -> eval -> print list -> print list option
@@ -40,10 +41,15 @@ fun memo_value a = Memo (Synchronized.var "Command.memo" (Result (Exn.Res a)));
 
 fun memo_result (Memo v) =
   (case Synchronized.value v of
-    Result res => Exn.release res
-  | Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id));
+    Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id)
+  | Result res => Exn.release res);
 
-fun memo_exec context (Memo v) =
+fun memo_stable (Memo v) =
+  (case Synchronized.value v of
+   Expr _ => true
+ | Result res => not (Exn.is_interrupt_exn res));
+
+fun memo_exec execution_id (Memo v) =
   (case Synchronized.value v of
     Result res => res
   | Expr _ =>
@@ -51,21 +57,22 @@ fun memo_exec context (Memo v) =
         (fn Result res => SOME (res, Result res)
           | expr as Expr (exec_id, e) =>
               uninterruptible (fn restore_attributes => fn () =>
-                if Execution.running context exec_id then
+                if Execution.running execution_id exec_id then
                   let
                     val res = Exn.capture (restore_attributes e) ();
-                    val _ = Execution.finished exec_id (not (Exn.is_interrupt_exn res));
+                    val _ = Execution.finished exec_id;
                   in SOME (res, Result res) end
                 else SOME (Exn.interrupt_exn, expr)) ())
       |> (fn NONE => error "Concurrent execution attempt" | SOME res => res))
   |> Exn.release |> ignore;
 
-fun memo_fork params context (Memo v) =
+fun memo_fork params execution_id (Memo v) =
   (case Synchronized.value v of
     Result _ => ()
-  | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec context (Memo v))));
+  | _ => ignore ((singleton o Future.forks) params (fn () => memo_exec execution_id (Memo v))));
 
 end;
+
 
 
 (** main phases of execution **)
@@ -109,11 +116,13 @@ val init_eval_state =
 
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state memo};
 
+fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = exec_id';
+
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
 val eval_result_state = #state o eval_result;
 
-fun eval_same (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) =
-  exec_id = exec_id' andalso Execution.is_stable exec_id;
+fun eval_stable (Eval {exec_id, eval_process}) =
+  Goal.stable_futures exec_id andalso memo_stable eval_process;
 
 local
 
@@ -197,9 +206,12 @@ fun print_error tr e =
   (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) e () handle exn =>
     List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
 
-fun print_persistent (Print {persistent, ...}) = persistent;
-fun print_stable (Print {exec_id, ...}) = Execution.is_stable exec_id;
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
+
+fun print_stable (Print {exec_id, print_process, ...}) =
+  Goal.stable_futures exec_id andalso memo_stable print_process;
+
+fun print_persistent (Print {persistent, ...}) = persistent;
 
 in
 
@@ -276,15 +288,15 @@ fun exec_ids NONE = []
 
 local
 
-fun run_print context (Print {name, pri, print_process, ...}) =
+fun run_print execution_id (Print {name, pri, print_process, ...}) =
   (if Multithreading.enabled () then
     memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true}
-  else memo_exec) context print_process;
+  else memo_exec) execution_id print_process;
 
 in
 
-fun exec context (Eval {eval_process, ...}, prints) =
-  (memo_exec context eval_process; List.app (run_print context) prints);
+fun exec execution_id (Eval {eval_process, ...}, prints) =
+  (memo_exec execution_id eval_process; List.app (run_print execution_id) prints);
 
 end;
 

@@ -21,7 +21,13 @@ val _ =
 
 val _ =
   Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] => (Execution.discontinue (); Execution.terminate_all ()));
+    (fn [] =>
+      let
+        val _ = Execution.discontinue ();
+        val groups = Execution.snapshot ();
+        val _ = List.app Future.cancel_group groups;
+        val _ = List.app Future.terminate groups;
+      in () end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.update"
@@ -54,7 +60,6 @@ val _ =
         val (assign_update, state') = Document.update old_id new_id edits state;
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
-        val _ = Execution.purge_canceled ();
         val _ = Isabelle_Process.reset_tracing ();
 
         val _ =
