@@ -31,7 +31,7 @@ val tryN = "try"
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
-    NONE
+    (SOME "4.0")
     @{option auto_time_limit}
     "auto-try-time-limit"
     "Time limit for automatically tried tools (in seconds)"

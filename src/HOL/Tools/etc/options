@@ -2,7 +2,7 @@
 
 section {* Isabelle/HOL proof tools *}
 
-public option auto_time_limit : real = 4.0
+public option auto_time_limit : real = 2.0
   -- "time limit for automatically tried tools (seconds > 0)"
 
 public option auto_nitpick : bool = false
@@ -14,9 +14,9 @@ public option auto_sledgehammer : bool = false
 public option auto_try0 : bool = false
   -- "try standard proof methods automatically"
 
-public option auto_quickcheck : bool = false
+public option auto_quickcheck : bool = true
   -- "run Quickcheck automatically"
 
-public option auto_solve_direct : bool = false
+public option auto_solve_direct : bool = true
   -- "run solve_direct automatically"
 

@@ -94,7 +94,7 @@ val unknownN = "unknown"
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
-    (SOME "true")
+    NONE
     @{option auto_quickcheck}
     "auto-quickcheck"
     "Run Quickcheck automatically";
