@@ -121,26 +121,22 @@ fun print_function ((name, (weight, auto, tool)): tool) =
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
         SOME {pri = ~ weight, persistent = true, print_fn = fn _ => fn st =>
           let
+            val state = Toplevel.proof_of st
             val auto_time_limit = Options.default_real @{option auto_time_limit}
           in
             if auto_time_limit > 0.0 then
-              (case try Toplevel.proof_of st of
-                SOME state =>
-                  (case
-                    (try o TimeLimit.timeLimit (seconds auto_time_limit))
-                      (fn () => tool true state) () of
-                    SOME (true, (_, state')) =>
-                      List.app Pretty.writeln (Proof.pretty_goal_messages state')
-                  | _ => ())
-              | NONE => ())
+              (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
+                (true, (_, state')) =>
+                  List.app Pretty.writeln (Proof.pretty_goal_messages state')
+              | _ => ())
             else ()
-          end}
-      else NONE);
+          end handle exn => if Exn.is_interrupt exn then reraise exn else ()}
+      else NONE)
 
 
 (* hybrid tool setup *)
 
 fun tool_setup tool =
-  (Context.>> (Context.map_theory (register_tool tool)); print_function tool);
+  (Context.>> (Context.map_theory (register_tool tool)); print_function tool)
 
 end;
