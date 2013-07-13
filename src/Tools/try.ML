@@ -116,10 +116,10 @@ val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
 (* asynchronous print function (PIDE) *)
 
 fun print_function ((name, (weight, auto, tool)): tool) =
-  Command.print_function {name = name, pri = ~ weight, persistent = true}
+  Command.print_function name
     (fn {command_name} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
-        SOME (fn _ => fn st =>
+        SOME {pri = ~ weight, persistent = true, print_fn = fn _ => fn st =>
           let
             val auto_time_limit = Options.default_real @{option auto_time_limit}
           in
@@ -134,7 +134,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
                   | _ => ())
               | NONE => ())
             else ()
-          end)
+          end}
       else NONE);
 
 
