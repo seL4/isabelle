@@ -1994,8 +1994,12 @@ in
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
 end;
 
-fun nnf_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms nnf_simps});
+local
+  val nnf_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms nnf_simps});
+in
+  fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
+end
 *}
 
 hide_const (open) eq equal
