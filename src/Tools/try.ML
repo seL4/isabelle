@@ -119,18 +119,22 @@ fun print_function ((name, (weight, auto, tool)): tool) =
   Command.print_function name
     (fn {command_name} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
-        SOME {pri = ~ weight, persistent = true, print_fn = fn _ => fn st =>
-          let
-            val state = Toplevel.proof_of st
-            val auto_time_limit = Options.default_real @{option auto_time_limit}
-          in
-            if auto_time_limit > 0.0 then
-              (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
-                (true, (_, state')) =>
-                  List.app Pretty.writeln (Proof.pretty_goal_messages state')
-              | _ => ())
-            else ()
-          end handle exn => if Exn.is_interrupt exn then reraise exn else ()}
+        SOME
+         {delay = seconds (Options.default_real @{option auto_time_start}),
+          pri = ~ weight,
+          persistent = true,
+          print_fn = fn _ => fn st =>
+            let
+              val state = Toplevel.proof_of st
+              val auto_time_limit = Options.default_real @{option auto_time_limit}
+            in
+              if auto_time_limit > 0.0 then
+                (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of
+                  (true, (_, state')) =>
+                    List.app Pretty.writeln (Proof.pretty_goal_messages state')
+                | _ => ())
+              else ()
+            end handle exn => if Exn.is_interrupt exn then reraise exn else ()}
       else NONE)
 
 
