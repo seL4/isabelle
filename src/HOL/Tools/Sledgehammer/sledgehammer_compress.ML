@@ -2,8 +2,8 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Compression of isar proofs.
-Only proof steps using the MetisM proof_method are compressed.
+Compression of isar proofs by merging steps.
+Only proof steps using the MetisM proof_method are merged.
 
 PRE CONDITION: the proof must be labeled canocially, see
 Slegehammer_Proof.relabel_proof_canonically

@@ -115,7 +115,7 @@ fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
       |> thm_of_term ctxt
   end
 
-(* mapping of proof methods to tactics *)
+(* mapping from proof methods to tactics *)
 fun tac_of_method method type_enc lam_trans ctxt facts =
   case method of
     MetisM => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
@@ -123,7 +123,7 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
       Method.insert_tac facts
       THEN' (case method of
               SimpM => Simplifier.asm_full_simp_tac
-            | AutoM => (fn ctxt => K (Clasimp.auto_tac ctxt))
+            | AutoM => Clasimp.auto_tac #> K
             | FastforceM => Clasimp.fast_force_tac
             | ForceM => Clasimp.force_tac
             | ArithM => Arith_Data.arith_tac
