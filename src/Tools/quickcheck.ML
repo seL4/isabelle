@@ -553,8 +553,7 @@ fun try_quickcheck auto state =
             (genuineN,
              state
              |> (if auto then
-                   Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-                       Pretty.mark Markup.intensify msg]))
+                   Proof.goal_message (K (Pretty.mark Markup.information msg))
                  else
                    tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
           else

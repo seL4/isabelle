@@ -85,8 +85,7 @@ fun do_solve_direct mode state =
             (if mode = Auto_Try then
                Proof.goal_message
                  (fn () =>
-                   Pretty.chunks
-                    [Pretty.str "", Pretty.markup Markup.intensify (message results)])
+                   Pretty.markup Markup.information (message results))
              else
                tap (fn _ =>
                  Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))

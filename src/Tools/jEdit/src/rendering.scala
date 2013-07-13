@@ -132,6 +132,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val error_message_color = color_value("error_message_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
+  val information_color = color_value("information_color")
   val quoted_color = color_value("quoted_color")
   val antiquoted_color = color_value("antiquoted_color")
   val highlight_color = color_value("highlight_color")
@@ -469,8 +470,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val background1_include =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
-      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
-      active_include
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
+      Markup.INFORMATION ++ active_include
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -488,6 +489,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.INFORMATION, _), _))) =>
+                (None, Some(information_color))
               case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                 command_state.results.get(serial) match {
                   case Some(Protocol.Dialog_Result(res)) if res == result =>

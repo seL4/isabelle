@@ -140,13 +140,12 @@ fun do_try0 mode timeout_opt quad st =
           Active.sendback_markup
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
-          "\n(" ^ space_implode "; " (map time_string xs) ^ ").\n"
+          "\n(" ^ space_implode "; " (map time_string xs) ^ ")."
       in
         (true, (s, st |> (if mode = Auto_Try then
                             Proof.goal_message
-                                (fn () => Pretty.chunks [Pretty.str "",
-                                          Pretty.markup Markup.intensify
-                                                        [Pretty.str message]])
+                                (fn () => Pretty.markup Markup.information
+                                                        [Pretty.str message])
                           else
                             tap (fn _ => Output.urgent_message message))))
       end

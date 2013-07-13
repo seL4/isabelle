@@ -133,6 +133,7 @@ sig
   val no_reportN: string val no_report: T
   val badN: string val bad: T
   val intensifyN: string val intensify: T
+  val informationN: string val information: T
   val browserN: string
   val graphviewN: string
   val sendbackN: string
@@ -440,6 +441,7 @@ val (no_reportN, no_report) = markup_elem "no_report";
 val (badN, bad) = markup_elem "bad";
 
 val (intensifyN, intensify) = markup_elem "intensify";
+val (informationN, information) = markup_elem "information";
 
 
 (* active areas *)
