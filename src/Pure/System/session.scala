@@ -335,6 +335,23 @@ class Session(val thy_load: Thy_Load)
     }
 
 
+    /* raw edits */
+
+    def handle_raw_edits(edits: List[Document.Edit_Text])
+    //{{{
+    {
+      prover.get.discontinue_execution()
+
+      val previous = global_state().history.tip.version
+      val version = Future.promise[Document.Version]
+      val change = global_state >>> (_.continue_history(previous, edits, version))
+
+      raw_edits.event(Session.Raw_Edits(edits))
+      change_parser ! Text_Edits(previous, edits, version)
+    }
+    //}}}
+
+
     /* resulting changes */
 
     def handle_change(change: Change)
@@ -480,22 +497,18 @@ class Session(val thy_load: Thy_Load)
           reply(())
 
         case Update_Options(options) if prover.isDefined =>
-          if (is_ready) prover.get.options(options)
+          if (is_ready) {
+            prover.get.options(options)
+            handle_raw_edits(Nil)
+          }
           global_options.event(Session.Global_Options(options))
           reply(())
 
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
 
-        case raw @ Session.Raw_Edits(edits) if prover.isDefined =>
-          prover.get.discontinue_execution()
-
-          val previous = global_state().history.tip.version
-          val version = Future.promise[Document.Version]
-          val change = global_state >>> (_.continue_history(previous, edits, version))
-          raw_edits.event(raw)
-          change_parser ! Text_Edits(previous, edits, version)
-
+        case Session.Raw_Edits(edits) if prover.isDefined =>
+          handle_raw_edits(edits)
           reply(())
 
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
