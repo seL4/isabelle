@@ -37,8 +37,6 @@ ML_file "~~/src/Tools/case_product.ML"
 
 setup {*
   Intuitionistic.method_setup @{binding iprover}
-  #> Quickcheck.setup
-  #> Solve_Direct.setup
   #> Subtyping.setup
   #> Case_Product.setup
 *}

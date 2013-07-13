@@ -42,10 +42,12 @@ option light_color : string = "F0F0F064"
 option bullet_color : string = "000000FF"
 option tooltip_color : string = "FFFFE9FF"
 option writeln_color : string = "C0C0C0FF"
+option information_color : string = "C1DFEEFF"
 option warning_color : string = "FF8C00FF"
 option error_color : string = "B22222FF"
 option error1_color : string = "B2222232"
 option writeln_message_color : string = "F0F0F0FF"
+option information_message_color : string = "C1DFEE32"
 option tracing_message_color : string = "F0F8FFFF"
 option warning_message_color : string = "EEE8AAFF"
 option error_message_color : string = "FFC1C1FF"
@@ -75,18 +77,9 @@ option dynamic_color : string = "7BA428FF"
 
 section "Icons"
 
-(* jEdit/Tango *)
-(*
-option tooltip_close_icon : string = "16x16/actions/document-close.png"
-option tooltip_detach_icon : string = "16x16/actions/window-new.png"
-option gutter_warning_icon : string = "16x16/status/dialog-information.png"
-option gutter_legacy_icon : string = "16x16/status/dialog-warning.png"
-option gutter_error_icon : string = "16x16/status/dialog-error.png"
-*)
-
-(* IntelliJ IDEA *)
 option tooltip_close_icon : string = "idea-icons/actions/closeHovered.png"
 option tooltip_detach_icon : string = "idea-icons/actions/nextfile.png"
+option gutter_information_icon : string = "idea-icons/general/balloonInformation.png"
 option gutter_warning_icon : string = "idea-icons/runConfigurations/testFailed.png"
 option gutter_legacy_icon : string = "idea-icons/general/balloonWarning.png"
 option gutter_error_icon : string = "idea-icons/runConfigurations/testError.png"

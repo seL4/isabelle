@@ -205,14 +205,17 @@ object Protocol
       case _ => false
     }
 
-  def is_state(msg: XML.Tree): Boolean =
+  def is_writeln_markup(msg: XML.Tree, name: String): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.WRITELN, _),
-        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+        List(XML.Elem(markup, _))) => markup.name == name
       case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _),
-        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+        List(XML.Elem(markup, _))) => markup.name == name
       case _ => false
     }
+
+  def is_state(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.STATE)
+  def is_information(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.INFORMATION)
 
   def is_warning(msg: XML.Tree): Boolean =
     msg match {

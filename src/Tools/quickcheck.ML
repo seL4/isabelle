@@ -10,9 +10,7 @@ sig
   val genuineN: string
   val noneN: string
   val unknownN: string
-  val setup: theory -> theory
   (*configuration*)
-  val auto: bool Unsynchronized.ref
   val batch_tester : string Config.T
   val size : int Config.T
   val iterations : int Config.T
@@ -94,12 +92,10 @@ val unknownN = "unknown"
 
 (* preferences *)
 
-val auto = Unsynchronized.ref false;
-
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
-    (SOME "true")
-    auto
+  ProofGeneral.preference_option ProofGeneral.category_tracing
+    NONE
+    @{option auto_quickcheck}
     "auto-quickcheck"
     "Run Quickcheck automatically";
 
@@ -557,8 +553,7 @@ fun try_quickcheck auto state =
             (genuineN,
              state
              |> (if auto then
-                   Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-                       Pretty.mark Markup.intensify msg]))
+                   Proof.goal_message (K (Pretty.mark Markup.information msg))
                  else
                    tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
           else
@@ -567,8 +562,7 @@ fun try_quickcheck auto state =
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN);
 
-val setup = Try.register_tool (quickcheckN, (20, auto, try_quickcheck));
+val _ = Try.tool_setup (quickcheckN, (20, @{option auto_quickcheck}, try_quickcheck));
 
 end;
 
-val auto_quickcheck = Quickcheck.auto;

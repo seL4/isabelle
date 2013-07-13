@@ -293,6 +293,7 @@ object Markup
   val BAD = "bad"
 
   val INTENSIFY = "intensify"
+  val INFORMATION = "information"
 
 
   /* active areas */

@@ -130,7 +130,10 @@ object Command
       }
 
     def ++ (other: State): State =
-      copy(results = results ++ other.results)  // FIXME merge more content!?
+      copy(
+        status = other.status ::: status,
+        results = results ++ other.results,
+        markup = markup ++ other.markup)
   }
 
 

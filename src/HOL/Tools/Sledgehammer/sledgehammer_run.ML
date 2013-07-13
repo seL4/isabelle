@@ -140,9 +140,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
          state
          |> outcome_code = someN
             ? Proof.goal_message (fn () =>
-                  [Pretty.str "",
-                   Pretty.mark Markup.intensify (Pretty.str (message ()))]
-                  |> Pretty.chunks))
+                  Pretty.mark Markup.information (Pretty.str (message ()))))
       end
     else if blocking then
       let

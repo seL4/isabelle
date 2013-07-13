@@ -43,6 +43,16 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Strictly monotonic document update, without premature cancelation of
+running transactions that are still needed: avoid reset/restart of
+such command executions while editing.
+
+* Support for asynchronous print functions, as overlay to existing
+document content.
+
+* Support for automatic tools in HOL, which try to prove or disprove
+toplevel theorem statements.
+
 * Dockable window "Documentation" provides access to Isabelle
 documentation.
 

@@ -230,6 +230,7 @@ and render_tree t =
               else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
               else if name = Markup.sendbackN then (special "W", special "X")
               else if name = Markup.intensifyN then (special "0", special "1")
+              else if name = Markup.informationN then ("\n" ^ special "0", special "1")
               else if name = Markup.tfreeN then (special "C", special "A")
               else if name = Markup.tvarN then (special "D", special "A")
               else if name = Markup.freeN then (special "E", special "A")

@@ -214,7 +214,6 @@ ML_file "Tools/Nitpick/nitpick_isar.ML"
 ML_file "Tools/Nitpick/nitpick_tests.ML"
 
 setup {*
-  Nitpick_Isar.setup #>
   Nitpick_HOL.register_ersatz_global
     [(@{const_name card}, @{const_name card'}),
      (@{const_name setsum}, @{const_name setsum'}),

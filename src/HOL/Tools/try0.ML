@@ -8,11 +8,9 @@ signature TRY0 =
 sig
   val try0N : string
   val noneN : string
-  val auto : bool Unsynchronized.ref
   val try0 :
     Time.time option -> string list * string list * string list * string list
     -> Proof.state -> bool
-  val setup : theory -> theory
 end;
 
 structure Try0 : TRY0 =
@@ -24,12 +22,10 @@ val try0N = "try0"
 
 val noneN = "none"
 
-val auto = Unsynchronized.ref false
-
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
+  ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    auto
+    @{option auto_try0}
     "auto-try0"
     "Try standard proof methods"
 
@@ -144,13 +140,12 @@ fun do_try0 mode timeout_opt quad st =
           Active.sendback_markup
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
-          "\n(" ^ space_implode "; " (map time_string xs) ^ ").\n"
+          "\n(" ^ space_implode "; " (map time_string xs) ^ ")."
       in
         (true, (s, st |> (if mode = Auto_Try then
                             Proof.goal_message
-                                (fn () => Pretty.chunks [Pretty.str "",
-                                          Pretty.markup Markup.intensify
-                                                        [Pretty.str message]])
+                                (fn () => Pretty.markup Markup.information
+                                                        [Pretty.str message])
                           else
                             tap (fn _ => Output.urgent_message message))))
       end
@@ -196,6 +191,6 @@ val _ =
 fun try_try0 auto =
   do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])
 
-val setup = Try.register_tool (try0N, (30, auto, try_try0))
+val _ = Try.tool_setup (try0N, (30, @{option auto_try0}, try_try0))
 
 end;

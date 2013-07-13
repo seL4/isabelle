@@ -1,0 +1,25 @@
+(* :mode=isabelle-options: *)
+
+section {* Automatically tried tools *}
+
+public option auto_time_start : real = 1.0
+  -- "initial delay for automatically tried tools (seconds)"
+
+public option auto_time_limit : real = 2.0
+  -- "time limit for automatically tried tools (seconds > 0)"
+
+public option auto_nitpick : bool = false
+  -- "run Nitpick automatically"
+
+public option auto_sledgehammer : bool = false
+  -- "run Sledgehammer automatically"
+
+public option auto_try0 : bool = false
+  -- "try standard proof methods automatically"
+
+public option auto_quickcheck : bool = true
+  -- "run Quickcheck automatically"
+
+public option auto_solve_direct : bool = true
+  -- "run solve_direct automatically"
+

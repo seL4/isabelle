@@ -15,8 +15,9 @@ sig
   type print
   val print: bool -> string -> eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
-  val print_function: {name: string, pri: int, persistent: bool} ->
-    ({command_name: string} -> print_fn option) -> unit
+  val print_function: string ->
+    ({command_name: string} ->
+      {delay: Time.time, pri: int, persistent: bool, print_fn: print_fn} option) -> unit
   val no_print_function: string -> unit
   type exec = eval * print list
   val no_exec: exec
@@ -192,15 +193,19 @@ end;
 (* print *)
 
 datatype print = Print of
- {name: string, pri: int, persistent: bool,
+ {name: string, delay: Time.time, pri: int, persistent: bool,
   exec_id: Document_ID.exec, print_process: unit memo};
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
+type print_function =
+  {command_name: string} ->
+    {delay: Time.time, pri: int, persistent: bool, print_fn: print_fn} option;
+
 local
 
-type print_function = string * (int * bool * ({command_name: string} -> print_fn option));
-val print_functions = Synchronized.var "Command.print_functions" ([]: print_function list);
+val print_functions =
+  Synchronized.var "Command.print_functions" ([]: (string * print_function) list);
 
 fun print_error tr e =
   (Toplevel.setmp_thread_position tr o Runtime.controlled_execution) e ()
@@ -219,9 +224,9 @@ in
 
 fun print command_visible command_name eval old_prints =
   let
-    fun new_print (name, (pri, persistent, get_fn)) =
+    fun new_print (name, get_pr) =
       let
-        fun make_print strict print_fn =
+        fun make_print strict {delay, pri, persistent, print_fn} =
           let
             val exec_id = Document_ID.make ();
             fun process () =
@@ -234,14 +239,17 @@ fun print command_visible command_name eval old_prints =
               end;
           in
            Print {
-             name = name, pri = pri, persistent = persistent,
+             name = name, delay = delay, pri = pri, persistent = persistent,
              exec_id = exec_id, print_process = memo exec_id process}
           end;
       in
-        (case Exn.capture (Runtime.controlled_execution get_fn) {command_name = command_name} of
+        (case Exn.capture (Runtime.controlled_execution get_pr) {command_name = command_name} of
           Exn.Res NONE => NONE
-        | Exn.Res (SOME print_fn) => SOME (make_print false print_fn)
-        | Exn.Exn exn => SOME (make_print true (fn _ => fn _ => reraise exn)))
+        | Exn.Res (SOME pr) => SOME (make_print false pr)
+        | Exn.Exn exn =>
+            SOME (make_print true
+              {delay = Time.zeroTime, pri = 0, persistent = false,
+                print_fn = fn _ => fn _ => reraise exn}))
       end;
 
     val new_prints =
@@ -255,11 +263,11 @@ fun print command_visible command_name eval old_prints =
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
   end;
 
-fun print_function {name, pri, persistent} f =
+fun print_function name f =
   Synchronized.change print_functions (fn funs =>
    (if not (AList.defined (op =) funs name) then ()
     else warning ("Redefining command print function: " ^ quote name);
-    AList.update (op =) (name, (pri, persistent, f)) funs));
+    AList.update (op =) (name, f) funs));
 
 fun no_print_function name =
   Synchronized.change print_functions (filter_out (equal name o #1));
@@ -267,15 +275,17 @@ fun no_print_function name =
 end;
 
 val _ =
-  print_function {name = "print_state", pri = 0, persistent = true}
-    (fn {command_name} => SOME (fn tr => fn st' =>
-      let
-        val is_init = Keyword.is_theory_begin command_name;
-        val is_proof = Keyword.is_proof command_name;
-        val do_print =
-          not is_init andalso
-            (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
-      in if do_print then Toplevel.print_state false st' else () end));
+  print_function "print_state"
+    (fn {command_name} =>
+      SOME {delay = Time.zeroTime, pri = 0, persistent = true,
+        print_fn = fn tr => fn st' =>
+          let
+            val is_init = Keyword.is_theory_begin command_name;
+            val is_proof = Keyword.is_proof command_name;
+            val do_print =
+              not is_init andalso
+                (Toplevel.print_of tr orelse (is_proof andalso Toplevel.is_proof st'));
+          in if do_print then Toplevel.print_state false st' else () end});
 
 
 (* combined execution *)
@@ -290,10 +300,18 @@ fun exec_ids NONE = []
 
 local
 
-fun run_print execution_id (Print {name, pri, print_process, ...}) =
-  (if Multithreading.enabled () then
-    memo_fork {name = name, group = NONE, deps = [], pri = pri, interrupts = true}
-  else memo_exec) execution_id print_process;
+fun run_print execution_id (Print {name, delay, pri, print_process, ...}) =
+  if Multithreading.enabled () then
+    let
+      val group = Future.worker_subgroup ();
+      fun fork () =
+        memo_fork {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
+          execution_id print_process;
+    in
+      if delay = Time.zeroTime then fork ()
+      else ignore (Event_Timer.request (Time.+ (Time.now (), delay)) fork)
+    end
+  else memo_exec execution_id print_process;
 
 in
 

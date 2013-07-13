@@ -28,10 +28,11 @@ object Rendering
   /* message priorities */
 
   private val writeln_pri = 1
-  private val tracing_pri = 2
-  private val warning_pri = 3
-  private val legacy_pri = 4
-  private val error_pri = 5
+  private val information_pri = 2
+  private val tracing_pri = 3
+  private val warning_pri = 4
+  private val legacy_pri = 5
+  private val error_pri = 6
 
   private val message_pri = Map(
     Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
@@ -123,10 +124,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val bullet_color = color_value("bullet_color")
   val tooltip_color = color_value("tooltip_color")
   val writeln_color = color_value("writeln_color")
+  val information_color = color_value("information_color")
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
   val error1_color = color_value("error1_color")
   val writeln_message_color = color_value("writeln_message_color")
+  val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
   val error_message_color = color_value("error_message_color")
@@ -383,15 +386,21 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private lazy val gutter_icons = Map(
+    Rendering.information_pri -> Rendering.load_icon(options.string("gutter_information_icon")),
     Rendering.warning_pri -> Rendering.load_icon(options.string("gutter_warning_icon")),
     Rendering.legacy_pri -> Rendering.load_icon(options.string("gutter_legacy_icon")),
     Rendering.error_pri -> Rendering.load_icon(options.string("gutter_error_icon")))
 
+  private val gutter_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(Set(Markup.WARNING, Markup.ERROR)), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(gutter_elements), _ =>
         {
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _),
+              List(XML.Elem(Markup(Markup.INFORMATION, _), _))))) =>
+            pri max Rendering.information_pri
           case (pri, Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body))) =>
             body match {
               case List(XML.Elem(Markup(Markup.LEGACY, _), _)) =>
@@ -408,19 +417,23 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val squiggly_colors = Map(
     Rendering.writeln_pri -> writeln_color,
+    Rendering.information_pri -> information_color,
     Rendering.warning_pri -> warning_color,
     Rendering.error_pri -> error_color)
+
+  private val squiggly_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   def squiggly_underline(range: Text.Range): Stream[Text.Info[Color]] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(squiggly_elements), _ =>
         {
-          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
+          case (pri, Text.Info(_, msg @ XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN ||
             name == Markup.WARNING ||
-            name == Markup.ERROR => pri max Rendering.message_pri(name)
+            name == Markup.ERROR =>
+              if (Protocol.is_information(msg)) pri max Rendering.information_pri
+              else pri max Rendering.message_pri(name)
         })
     for {
       Text.Info(r, pri) <- results
@@ -429,20 +442,24 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val messages_include =
-    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE)
-
   private val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
+    Rendering.information_pri -> information_message_color,
     Rendering.tracing_pri -> tracing_message_color,
     Rendering.warning_pri -> warning_message_color,
     Rendering.error_pri -> error_message_color)
 
+  private val line_background_elements =
+    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE,
+      Markup.ERROR_MESSAGE, Markup.INFORMATION)
+
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(messages_include), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(line_background_elements), _ =>
         {
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.INFORMATION, _), _))) =>
+            pri max Rendering.information_pri
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN_MESSAGE ||
             name == Markup.TRACING_MESSAGE ||

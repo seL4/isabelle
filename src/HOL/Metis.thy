@@ -56,6 +56,5 @@ hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select
 subsection {* Try0 *}
 
 ML_file "Tools/try0.ML"
-setup {* Try0.setup *}
 
 end

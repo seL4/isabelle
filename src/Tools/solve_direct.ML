@@ -14,10 +14,8 @@ sig
   val someN: string
   val noneN: string
   val unknownN: string
-  val auto: bool Unsynchronized.ref
   val max_solutions: int Unsynchronized.ref
   val solve_direct: Proof.state -> bool * (string * Proof.state)
-  val setup: theory -> theory
 end;
 
 structure Solve_Direct: SOLVE_DIRECT =
@@ -33,13 +31,12 @@ val unknownN = "none";
 
 (* preferences *)
 
-val auto = Unsynchronized.ref false;
 val max_solutions = Unsynchronized.ref 5;
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
-    (SOME "true")
-    auto
+  ProofGeneral.preference_option ProofGeneral.category_tracing
+    NONE
+    @{option auto_solve_direct}
     "auto-solve-direct"
     ("Run " ^ quote solve_directN ^ " automatically");
 
@@ -88,8 +85,7 @@ fun do_solve_direct mode state =
             (if mode = Auto_Try then
                Proof.goal_message
                  (fn () =>
-                   Pretty.chunks
-                    [Pretty.str "", Pretty.markup Markup.intensify (message results)])
+                   Pretty.markup Markup.information (message results))
              else
                tap (fn _ =>
                  Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))
@@ -117,6 +113,6 @@ val _ =
 
 fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
 
-val setup = Try.register_tool (solve_directN, (10, auto, try_solve_direct));
+val _ = Try.tool_setup (solve_directN, (10, @{option auto_solve_direct}, try_solve_direct));
 
 end;

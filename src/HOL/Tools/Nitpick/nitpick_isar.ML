@@ -12,9 +12,7 @@ sig
 
   val nitpickN : string
   val nitpick_paramsN : string
-  val auto : bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
-  val setup : theory -> theory
 end;
 
 structure Nitpick_Isar : NITPICK_ISAR =
@@ -29,16 +27,14 @@ open Nitpick
 val nitpickN = "nitpick"
 val nitpick_paramsN = "nitpick_params"
 
-val auto = Unsynchronized.ref false
-
 (* Maximum number of scopes for Auto Nitpick. Be frugal since it has to share
    its time slot with several other automatic tools. *)
 val auto_try_max_scopes = 6
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
+  ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    auto
+    @{option auto_nitpick}
     "auto-nitpick"
     "Run Nitpick automatically"
 
@@ -402,6 +398,6 @@ val _ =
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
-val setup = Try.register_tool (nitpickN, (50, auto, try_nitpick))
+val _ = Try.tool_setup (nitpickN, (50, @{option auto_nitpick}, try_nitpick))
 
 end;
