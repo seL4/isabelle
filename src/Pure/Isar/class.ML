@@ -211,13 +211,13 @@ fun print_classes ctxt =
 (* updaters *)
 
 fun register class sups params base_sort base_morph export_morph
-    axiom assm_intro of_class thy =
+    some_axiom some_assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o pairself) fst params, base_sort,
-          base_morph, export_morph, assm_intro, of_class, axiom), ([], operations)))
+          base_morph, export_morph, some_assm_intro, of_class, some_axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) sups;
   in Class_Data.map add_class thy end;
 
@@ -245,10 +245,10 @@ fun register_operation class (c, (t, some_def)) thy =
     |> activate_defs class (the_list some_def)
   end;
 
-fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
+fun register_subclass (sub, sup) some_dep_morph some_witn export thy =
   let
     val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_wit,
+      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_witn,
         (fst o rules thy) sub];
     val classrel =
       Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
@@ -259,7 +259,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val add_dependency =
       (case some_dep_morph of
         SOME dep_morph => Locale.add_dependency sub
-          (sup, dep_morph $> Element.satisfy_morphism (the_list some_wit)) NONE export
+          (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)) NONE export
       | NONE => I);
   in
     thy

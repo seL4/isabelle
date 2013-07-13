@@ -49,8 +49,8 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         locale.ML / expression.ML would be desirable*)
 
     (* witness for canonical interpretation *)
-    val prop = try the_single props;
-    val wit = Option.map (fn prop =>
+    val some_prop = try the_single props;
+    val some_witn = Option.map (fn prop =>
       let
         val sup_axioms = map_filter (fst o Class.rules thy) sups;
         val loc_intro_tac =
@@ -59,13 +59,13 @@ fun calculate thy class sups base_sort param_map assm_axiom =
           | (_, SOME intro) => ALLGOALS (Tactic.rtac intro));
         val tac = loc_intro_tac
           THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom));
-      in Element.prove_witness empty_ctxt prop tac end) prop;
-    val axiom = Option.map Element.conclude_witness wit;
+      in Element.prove_witness empty_ctxt prop tac end) some_prop;
+    val some_axiom = Option.map Element.conclude_witness some_witn;
 
     (* canonical interpretation *)
     val base_morph = inst_morph
       $> Morphism.binding_morphism (Binding.prefix false (Class.class_prefix class))
-      $> Element.satisfy_morphism (the_list wit);
+      $> Element.satisfy_morphism (the_list some_witn);
     val eq_morph = Element.eq_morphism thy (Class.these_defs thy sups);
 
     (* assm_intro *)
@@ -79,12 +79,12 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val thm'' = Morphism.thm const_eq_morph thm';
         val tac = ALLGOALS (Proof_Context.fact_tac [thm'']);
       in Goal.prove_sorry_global thy [] [] (Thm.prop_of thm'') (K tac) end;
-    val assm_intro = Option.map prove_assm_intro (fst (Locale.intros_of thy class));
+    val some_assm_intro = Option.map prove_assm_intro (fst (Locale.intros_of thy class));
 
     (* of_class *)
     val of_class_prop_concl = Logic.mk_of_class (aT, class);
     val of_class_prop =
-      (case prop of
+      (case some_prop of
         NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
           ((map_types o map_atyps) (K aT) prop), of_class_prop_concl));
@@ -98,7 +98,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
           ORELSE' Tactic.assume_tac));
     val of_class = Goal.prove_sorry_global thy [] [] of_class_prop (K tac);
 
-  in (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) end;
+  in (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) end;
 
 
 (* reading and processing class specifications *)
@@ -317,10 +317,10 @@ fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
-    #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
+    #-> (fn (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) =>
        Context.theory_map (Locale.add_registration (class, base_morph)
          (Option.map (rpair true) eq_morph) export_morph)
-    #> Class.register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
+    #> Class.register class sups params base_sort base_morph export_morph some_axiom some_assm_intro of_class))
     |> Named_Target.init before_exit class
     |> pair class
   end;
