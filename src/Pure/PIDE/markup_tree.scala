@@ -184,6 +184,10 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
+  def ++ (other: Markup_Tree): Markup_Tree =
+    (this /: other.branches)({ case (tree, (range, entry)) =>
+      ((tree ++ entry.subtree) /: entry.markup)({ case (t, elem) => t + Text.Info(range, elem) }) })
+
   def to_XML(root_range: Text.Range, text: CharSequence, filter: XML.Elem => Boolean): XML.Body =
   {
     def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
