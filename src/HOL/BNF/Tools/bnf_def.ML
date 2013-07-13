@@ -80,7 +80,7 @@ sig
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: bnf -> nonemptiness_witness list
 
-  val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
+  val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy = Dont_Note | Note_Some | Note_All
@@ -114,14 +114,13 @@ type axioms = {
   bd_card_order: thm,
   bd_cinfinite: thm,
   set_bd: thm list,
-  in_bd: thm,
   map_wpull: thm,
   rel_OO_Grp: thm
 };
 
-fun mk_axioms' (((((((((id, comp), cong), nat), c_o), cinf), set_bd), in_bd), wpull), rel) =
+fun mk_axioms' ((((((((id, comp), cong), nat), c_o), cinf), set_bd), wpull), rel) =
   {map_id = id, map_comp = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
-   bd_cinfinite = cinf, set_bd = set_bd, in_bd = in_bd, map_wpull = wpull, rel_OO_Grp = rel};
+   bd_cinfinite = cinf, set_bd = set_bd, map_wpull = wpull, rel_OO_Grp = rel};
 
 fun dest_cons [] = raise List.Empty
   | dest_cons (x :: xs) = (x, xs);
@@ -136,20 +135,19 @@ fun mk_axioms n thms = thms
   ||>> dest_cons
   ||>> chop n
   ||>> dest_cons
-  ||>> dest_cons
   ||> the_single
   |> mk_axioms';
 
-fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
-  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, rel];
+fun zip_axioms mid mcomp mcong snat bdco bdinf sbd wpull rel =
+  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [wpull, rel];
 
-fun dest_axioms {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd, in_bd,
+fun dest_axioms {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
   map_wpull, rel_OO_Grp} =
-  zip_axioms map_id map_comp map_cong0 set_map bd_card_order bd_cinfinite set_bd in_bd map_wpull
+  zip_axioms map_id map_comp map_cong0 set_map bd_card_order bd_cinfinite set_bd map_wpull
     rel_OO_Grp;
 
 fun map_axioms f {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
-  in_bd, map_wpull, rel_OO_Grp} =
+  map_wpull, rel_OO_Grp} =
   {map_id = f map_id,
     map_comp = f map_comp,
     map_cong0 = f map_cong0,
@@ -157,7 +155,6 @@ fun map_axioms f {map_id, map_comp, map_cong0, set_map, bd_card_order, bd_cinfin
     bd_card_order = f bd_card_order,
     bd_cinfinite = f bd_cinfinite,
     set_bd = map f set_bd,
-    in_bd = f in_bd,
     map_wpull = f map_wpull,
     rel_OO_Grp = f rel_OO_Grp};
 
@@ -181,6 +178,7 @@ type facts = {
   bd_Cinfinite: thm,
   bd_Cnotzero: thm,
   collect_set_map: thm lazy,
+  in_bd: thm lazy,
   in_cong: thm lazy,
   in_mono: thm lazy,
   in_rel: thm lazy,
@@ -199,13 +197,14 @@ type facts = {
   rel_OO: thm lazy
 };
 
-fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_cong in_mono in_rel
+fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong in_mono in_rel
     map_comp' map_cong map_id' map_wppull rel_eq rel_flip set_map' rel_cong rel_mono rel_mono_strong
     rel_Grp rel_conversep rel_OO = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
   collect_set_map = collect_set_map,
+  in_bd = in_bd,
   in_cong = in_cong,
   in_mono = in_mono,
   in_rel = in_rel,
@@ -228,6 +227,7 @@ fun map_facts f {
   bd_Cinfinite,
   bd_Cnotzero,
   collect_set_map,
+  in_bd,
   in_cong,
   in_mono,
   in_rel,
@@ -248,6 +248,7 @@ fun map_facts f {
     bd_Cinfinite = f bd_Cinfinite,
     bd_Cnotzero = f bd_Cnotzero,
     collect_set_map = Lazy.map f collect_set_map,
+    in_bd = Lazy.map f in_bd,
     in_cong = Lazy.map f in_cong,
     in_mono = Lazy.map f in_mono,
     in_rel = Lazy.map f in_rel,
@@ -355,7 +356,7 @@ val bd_Card_order_of_bnf = #bd_Card_order o #facts o rep_bnf;
 val bd_Cinfinite_of_bnf = #bd_Cinfinite o #facts o rep_bnf;
 val bd_Cnotzero_of_bnf = #bd_Cnotzero o #facts o rep_bnf;
 val collect_set_map_of_bnf = Lazy.force o #collect_set_map o #facts o rep_bnf;
-val in_bd_of_bnf = #in_bd o #axioms o rep_bnf;
+val in_bd_of_bnf = Lazy.force o #in_bd o #facts o rep_bnf;
 val in_cong_of_bnf = Lazy.force o #in_cong o #facts o rep_bnf;
 val in_mono_of_bnf = Lazy.force o #in_mono o #facts o rep_bnf;
 val in_rel_of_bnf = Lazy.force o #in_rel o #facts o rep_bnf;
@@ -806,17 +807,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         map mk_goal bnf_sets_As
       end;
 
-    val in_bd_goal =
-      let
-        val bd = mk_cexp
-          (if live = 0 then ctwo
-            else mk_csum (Library.foldr1 (uncurry mk_csum) (map mk_card_of As)) ctwo)
-          bnf_bd_As;
-      in
-        fold_rev Logic.all As
-          (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd))
-      end;
-
     val map_wpull_goal =
       let
         val prems = map HOLogic.mk_Trueprop
@@ -843,7 +833,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val rel_OO_Grp_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), OO_Grp));
 
     val goals = zip_axioms map_id_goal map_comp_goal map_cong0_goal set_maps_goal card_order_bd_goal
-      cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_OO_Grp_goal;
+      cinfinite_bd_goal set_bds_goal map_wpull_goal rel_OO_Grp_goal;
 
     fun mk_wit_goals (I, wit) =
       let
@@ -939,6 +929,26 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         val map_cong = Lazy.lazy mk_map_cong;
 
         val set_map' = map (fn thm => Lazy.lazy (fn () => mk_set_map' thm)) (#set_map axioms);
+
+        fun mk_in_bd () =
+          let
+            val bd = mk_cexp
+              (if live = 0 then ctwo
+                else mk_csum (Library.foldr1 (uncurry mk_csum) (map mk_card_of As)) ctwo)
+              (mk_csum bnf_bd_As (mk_card_of (HOLogic.mk_UNIV
+                (mk_bnf_T (replicate live (fst (dest_relT (fastype_of bnf_bd_As)))) CA))));
+            val in_bd_goal =
+              fold_rev Logic.all As
+                (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd));
+          in
+            Goal.prove_sorry lthy [] [] in_bd_goal
+              (mk_in_bd_tac live (Lazy.force map_comp') (Lazy.force map_id') (#map_cong0 axioms)
+                (map Lazy.force set_map') (#set_bd axioms) (#bd_card_order axioms)
+                bd_Card_order bd_Cinfinite bd_Cnotzero)
+            |> Thm.close_derivation
+          end;
+
+        val in_bd = Lazy.lazy mk_in_bd;
 
         fun mk_map_wppull () =
           let
@@ -1122,8 +1132,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def;
 
-        val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_cong in_mono
-          in_rel map_comp' map_cong map_id' map_wppull rel_eq rel_flip set_map'
+        val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
+          in_mono in_rel map_comp' map_cong map_id' map_wppull rel_eq rel_flip set_map'
           rel_cong rel_mono rel_mono_strong rel_Grp rel_conversep rel_OO;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
@@ -1145,7 +1155,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
                     (bd_CinfiniteN, [#bd_Cinfinite facts]),
                     (bd_CnotzeroN, [#bd_Cnotzero facts]),
                     (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
-                    (in_bdN, [#in_bd axioms]),
+                    (in_bdN, [Lazy.force (#in_bd facts)]),
                     (in_monoN, [Lazy.force (#in_mono facts)]),
                     (in_relN, [Lazy.force (#in_rel facts)]),
                     (map_compN, [#map_comp axioms]),

@@ -27,9 +27,6 @@ sig
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_ex_copy_alg_tac: int -> thm -> thm -> tactic
-  val mk_in_bd_tac: thm -> thm -> thm -> thm -> tactic
-  val mk_incl_min_alg_tac: (int -> tactic) -> thm list list list -> thm list -> thm ->
-    {prems: 'a, context: Proof.context} -> tactic
   val mk_init_ex_mor_tac: thm -> thm -> thm -> thm list -> thm -> thm -> thm ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_init_induct_tac: int -> thm -> thm -> thm list -> thm list -> tactic
@@ -666,22 +663,6 @@ fun mk_mcong_tac induct_tac set_setsss map_cong0s ctor_maps {context = ctxt, pre
     (induct_tac THEN' EVERY' (map3 mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
   end;
 
-fun mk_incl_min_alg_tac induct_tac set_setsss alg_sets alg_min_alg {context = ctxt, prems = _} =
-  let
-    fun use_asm thm = etac (thm RS subset_trans);
-
-    fun useIH set_sets = EVERY' [rtac subsetI, rtac mp, Goal.assume_rule_tac ctxt,
-      rtac CollectI, CONJ_WRAP' (fn thm => EVERY' [etac (thm RS subset_trans), atac]) set_sets];
-
-    fun mk_incl alg_set set_setss =
-      EVERY' [rtac impI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
-        rtac (alg_min_alg RS alg_set),
-        EVERY' (map use_asm (map hd set_setss)),
-        EVERY' (map useIH (transpose (map tl set_setss)))];
-  in
-    (induct_tac THEN' EVERY' (map2 mk_incl alg_sets set_setsss)) 1
-  end;
-
 fun mk_lfp_map_wpull_tac ctxt m induct_tac wpulls ctor_maps ctor_setss set_setsss ctor_injects =
   let
     val n = length wpulls;
@@ -750,12 +731,6 @@ fun mk_map_comp_tac map_comps ctor_maps unique iplus1 =
 
 fun mk_set_map_tac set_nat =
   EVERY' (map rtac [ext, trans, o_apply, sym, trans, o_apply, set_nat]) 1;
-
-fun mk_in_bd_tac sum_Card_order sucbd_Cnotzero incl card_of_min_alg =
-  EVERY' [rtac ctrans, rtac @{thm card_of_mono1}, rtac subsetI, etac rev_mp,
-    rtac incl, rtac ctrans, rtac card_of_min_alg, rtac @{thm cexp_mono2_Cnotzero},
-    rtac @{thm cardSuc_ordLeq_cpow}, rtac sum_Card_order, rtac @{thm Card_order_csum},
-    rtac sucbd_Cnotzero] 1;
 
 fun mk_bd_card_order_tac bd_card_orders =
   (rtac @{thm card_order_cpow} THEN'

@@ -35,34 +35,13 @@ bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lamb
 apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
 apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
-apply (rule ordLeq_transitive)
-apply (rule ordLeq_cexp1[of natLeq])
-apply (rule Cinfinite_Cnotzero)
-apply (rule conjI)
-apply (rule natLeq_cinfinite)
-apply (rule natLeq_Card_order)
-apply (rule card_of_Card_order)
-apply (rule cexp_mono1)
-apply (rule ordLeq_csum1)
-apply (rule card_of_Card_order)
-apply (rule natLeq_Card_order)
 done
 
 bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
   "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-apply (auto simp add: wpull_Grp_def Grp_def
+by (auto simp add: wpull_Grp_def Grp_def
   card_order_csum natLeq_card_order card_of_card_order_on
   cinfinite_csum natLeq_cinfinite)
-apply (rule ordLess_imp_ordLeq)
-apply (rule ordLess_ordLeq_trans)
-apply (rule ordLess_ctwo_cexp)
-apply (rule card_of_Card_order)
-apply (rule cexp_mono2'')
-apply (rule ordLeq_csum2)
-apply (rule card_of_Card_order)
-apply (rule ctwo_Cnotzero)
-apply (rule card_of_Card_order)
-done
 
 definition setl :: "'a + 'b \<Rightarrow> 'a set" where
 "setl x = (case x of Inl z => {z} | _ => {})"
@@ -119,32 +98,6 @@ next
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
     by (simp add: setr_def split: sum.split)
 next
-  fix A1 :: "'a set" and A2 :: "'b set"
-  have in_alt: "{x. (case x of Inl z => {z} | _ => {}) \<subseteq> A1 \<and>
-    (case x of Inr z => {z} | _ => {}) \<subseteq> A2} = A1 <+> A2" (is "?L = ?R")
-  proof safe
-    fix x :: "'a + 'b"
-    assume "(case x of Inl z \<Rightarrow> {z} | _ \<Rightarrow> {}) \<subseteq> A1" "(case x of Inr z \<Rightarrow> {z} | _ \<Rightarrow> {}) \<subseteq> A2"
-    hence "x \<in> Inl ` A1 \<or> x \<in> Inr ` A2" by (cases x) simp+
-    thus "x \<in> A1 <+> A2" by blast
-  qed (auto split: sum.split)
-  show "|{x. setl x \<subseteq> A1 \<and> setr x \<subseteq> A2}| \<le>o
-    (( |A1| +c |A2| ) +c ctwo) ^c natLeq"
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule card_of_ordIso_subst)
-    apply (unfold sum_set_defs)
-    apply (rule in_alt)
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule Plus_csum)
-    apply (rule ordLeq_transitive)
-    apply (rule ordLeq_csum1)
-    apply (rule Card_order_csum)
-    apply (rule ordLeq_cexp1)
-    apply (rule conjI)
-    using Field_natLeq UNIV_not_empty czeroE apply fast
-    apply (rule natLeq_Card_order)
-    by (rule Card_order_csum)
-next
   fix A1 A2 B11 B12 B21 B22 f11 f12 f21 f22 p11 p12 p21 p22
   assume "wpull A1 B11 B21 f11 f21 p11 p21" "wpull A2 B12 B22 f12 f22 p12 p22"
   hence
@@ -195,16 +148,6 @@ next
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)
 
-lemma singleton_ordLeq_ctwo_natLeq: "|{x}| \<le>o ctwo *c natLeq"
-  apply (rule ordLeq_transitive)
-  apply (rule ordLeq_cprod2)
-  apply (rule ctwo_Cnotzero)
-  apply (auto simp: Field_card_of intro: card_of_card_order_on)
-  apply (rule cprod_mono2)
-  apply (rule ordLess_imp_ordLeq)
-  apply (unfold finite_iff_ordLess_natLeq[symmetric])
-  by simp
-
 definition fsts :: "'a \<times> 'b \<Rightarrow> 'a set" where
 "fsts x = {fst x}"
 
@@ -216,7 +159,7 @@ lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 definition prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" where
 "prod_rel \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> \<phi> a1 a2 \<and> \<psi> b1 b2)"
 
-bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel
+bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. natLeq" [Pair] prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -236,48 +179,17 @@ next
   show "(\<lambda>x. {snd x}) o map_pair f1 f2 = image f2 o (\<lambda>x. {snd x})"
     by (rule ext, unfold o_apply) simp
 next
-  show "card_order (ctwo *c natLeq)"
-    apply (rule card_order_cprod)
-    apply (rule ctwo_card_order)
-    by (rule natLeq_card_order)
+  show "card_order natLeq" by (rule natLeq_card_order)
 next
-  show "cinfinite (ctwo *c natLeq)"
-    apply (rule cinfinite_cprod2)
-    apply (rule ctwo_Cnotzero)
-    apply (rule conjI[OF _ natLeq_Card_order])
-    by (rule natLeq_cinfinite)
+  show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
   fix x
-  show "|{fst x}| \<le>o ctwo *c natLeq"
-    by (rule singleton_ordLeq_ctwo_natLeq)
+  show "|{fst x}| \<le>o natLeq"
+    by (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite.emptyI finite_insert)
 next
   fix x
-  show "|{snd x}| \<le>o ctwo *c natLeq"
-    by (rule singleton_ordLeq_ctwo_natLeq)
-next
-  fix A1 :: "'a set" and A2 :: "'b set"
-  have in_alt: "{x. {fst x} \<subseteq> A1 \<and> {snd x} \<subseteq> A2} = A1 \<times> A2" by auto
-  show "|{x. {fst x} \<subseteq> A1 \<and> {snd x} \<subseteq> A2}| \<le>o
-    ( ( |A1| +c |A2| ) +c ctwo) ^c (ctwo *c natLeq)"
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule card_of_ordIso_subst)
-    apply (rule in_alt)
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule Times_cprod)
-    apply (rule ordLeq_transitive)
-    apply (rule cprod_csum_cexp)
-    apply (rule cexp_mono)
-    apply (rule ordLeq_csum1)
-    apply (rule Card_order_csum)
-    apply (rule ordLeq_cprod1)
-    apply (rule Card_order_ctwo)
-    apply (rule Cinfinite_Cnotzero)
-    apply (rule conjI[OF _ natLeq_Card_order])
-    apply (rule natLeq_cinfinite)
-    apply (rule notE)
-    apply (rule ctwo_not_czero)
-    apply assumption
-    by (rule Card_order_ctwo)
+  show "|{snd x}| \<le>o natLeq"
+    by (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite.emptyI finite_insert)
 next
   fix A1 A2 B11 B12 B21 B22 f11 f12 f21 f22 p11 p12 p21 p22
   assume "wpull A1 B11 B21 f11 f21 p11 p21" "wpull A2 B12 B22 f12 f22 p12 p22"
@@ -359,22 +271,6 @@ next
   have "|range f| \<le>o | (UNIV::'d set) |" (is "_ \<le>o ?U") by (rule card_of_image)
   also have "?U \<le>o natLeq +c ?U"  by (rule ordLeq_csum2) (rule card_of_Card_order)
   finally show "|range f| \<le>o natLeq +c ?U" .
-next
-  fix B :: "'a set"
-  have "|{f::'d => 'a. range f \<subseteq> B}| \<le>o |Func (UNIV :: 'd set) B|" by (rule card_of_bounded_range)
-  also have "|Func (UNIV :: 'd set) B| =o |B| ^c |UNIV :: 'd set|"
-    unfolding cexp_def Field_card_of by (rule card_of_refl)
-  also have "|B| ^c |UNIV :: 'd set| \<le>o
-             ( |B| +c ctwo) ^c (natLeq +c |UNIV :: 'd set| )"
-    apply (rule cexp_mono)
-     apply (rule ordLeq_csum1) apply (rule card_of_Card_order)
-     apply (rule ordLeq_csum2) apply (rule card_of_Card_order)
-     apply (rule notE) apply (rule conjunct1) apply (rule Cnotzero_UNIV) apply blast
-     apply (rule card_of_Card_order)
-  done
-  finally
-  show "|{f::'d => 'a. range f \<subseteq> B}| \<le>o
-        ( |B| +c ctwo) ^c (natLeq +c |UNIV :: 'd set| )" .
 next
   fix A B1 B2 f1 f2 p1 p2 assume p: "wpull A B1 B2 f1 f2 p1 p2"
   show "wpull {h. range h \<subseteq> A} {g1. range g1 \<subseteq> B1} {g2. range g2 \<subseteq> B2}

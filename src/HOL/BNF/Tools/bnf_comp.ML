@@ -211,10 +211,6 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         |> Thm.close_derivation
       end;
 
-    fun in_bd_tac _ =
-      mk_comp_in_bd_tac in_alt_thm (map in_bd_of_bnf inners) (in_bd_of_bnf outer)
-        (map bd_Cinfinite_of_bnf inners) (bd_Card_order_of_bnf outer);
-
     fun map_wpull_tac _ =
       mk_map_wpull_tac in_alt_thm (map map_wpull_of_bnf inners) (map_wpull_of_bnf outer);
 
@@ -235,7 +231,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       end;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong0_tac set_map_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_OO_Grp_tac;
+      bd_cinfinite_tac set_bd_tacs map_wpull_tac rel_OO_Grp_tac;
 
     val outer_wits = mk_wits_of_bnf (replicate onwits oDs) (replicate onwits CAs) outer;
 
@@ -323,9 +319,6 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         Goal.prove_sorry lthy [] [] goal (K kill_in_alt_tac) |> Thm.close_derivation
       end;
 
-    fun in_bd_tac _ =
-      mk_kill_in_bd_tac n (live > n) in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf)
-        (bd_Cinfinite_of_bnf bnf) (bd_Cnotzero_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
     fun rel_OO_Grp_tac _ =
@@ -345,7 +338,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
       end;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong0_tac set_map_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_OO_Grp_tac;
+      bd_cinfinite_tac set_bd_tacs map_wpull_tac rel_OO_Grp_tac;
 
     val bnf_wits = mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf;
 
@@ -425,13 +418,12 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         Goal.prove_sorry lthy [] [] goal (K lift_in_alt_tac) |> Thm.close_derivation
       end;
 
-    fun in_bd_tac _ = mk_lift_in_bd_tac n in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
     fun rel_OO_Grp_tac _ = mk_simple_rel_OO_Grp_tac (rel_OO_Grp_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong0_tac set_map_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_OO_Grp_tac;
+      bd_cinfinite_tac set_bd_tacs map_wpull_tac rel_OO_Grp_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -500,14 +492,12 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
         |> Thm.close_derivation
       end;
 
-    fun in_bd_tac _ =
-      mk_permute_in_bd_tac src dest in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
     fun rel_OO_Grp_tac _ = mk_simple_rel_OO_Grp_tac (rel_OO_Grp_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong0_tac set_map_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_OO_Grp_tac;
+      bd_cinfinite_tac set_bd_tacs map_wpull_tac rel_OO_Grp_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -634,11 +624,6 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
 
     val set_bds =
       map (fn thm => @{thm ordLeq_ordIso_trans} OF [thm, bd_ordIso]) (set_bd_of_bnf bnf);
-    val in_bd =
-      @{thm ordLeq_ordIso_trans} OF [in_bd_of_bnf bnf,
-        @{thm cexp_cong2} OF [bd_ordIso, if live = 0 then
-          @{thm Card_order_ctwo} else @{thm Card_order_csum},
-            bd_Card_order_of_bnf bnf]];
 
     fun mk_tac thm {context = ctxt, prems = _} =
       (rtac (unfold_all thm) THEN'
@@ -646,7 +631,7 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
 
     val tacs = zip_axioms (mk_tac (map_id_of_bnf bnf)) (mk_tac (map_comp_of_bnf bnf))
       (mk_tac (map_cong0_of_bnf bnf)) (map mk_tac (set_map_of_bnf bnf))
-      (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1)) (map mk_tac set_bds) (mk_tac in_bd)
+      (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1)) (map mk_tac set_bds)
       (mk_tac (map_wpull_of_bnf bnf))
       (mk_tac (rel_OO_Grp_of_bnf bnf));
 

@@ -11,7 +11,6 @@ sig
   val mk_comp_bd_card_order_tac: thm list -> thm -> tactic
   val mk_comp_bd_cinfinite_tac: thm -> thm -> tactic
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
-  val mk_comp_in_bd_tac: thm -> thm list -> thm -> thm list -> thm -> tactic
   val mk_comp_map_comp_tac: thm -> thm -> thm list -> tactic
   val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
   val mk_comp_map_id_tac: thm -> thm -> thm list -> tactic
@@ -23,17 +22,14 @@ sig
   val mk_kill_bd_card_order_tac: int -> thm -> tactic
   val mk_kill_bd_cinfinite_tac: thm -> tactic
   val kill_in_alt_tac: tactic
-  val mk_kill_in_bd_tac: int -> bool -> thm -> thm -> thm -> thm -> thm -> tactic
   val mk_kill_map_cong0_tac: Proof.context -> int -> int -> thm -> tactic
   val mk_kill_set_bd_tac: thm -> thm -> tactic
 
   val empty_natural_tac: tactic
   val lift_in_alt_tac: tactic
-  val mk_lift_in_bd_tac: int -> thm -> thm -> thm -> tactic
   val mk_lift_set_bd_tac: thm -> tactic
 
   val mk_permute_in_alt_tac: ''a list -> ''a list -> tactic
-  val mk_permute_in_bd_tac: ''a list -> ''a list -> thm -> thm -> thm -> tactic
 
   val mk_map_wpull_tac: thm -> thm list -> thm -> tactic
   val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
@@ -46,15 +42,10 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-val Card_order_csum = @{thm Card_order_csum};
-val Card_order_ctwo = @{thm Card_order_ctwo};
 val Cnotzero_UNIV = @{thm Cnotzero_UNIV};
 val arg_cong_Union = @{thm arg_cong[of _ _ Union]};
-val card_of_Card_order = @{thm card_of_Card_order};
 val csum_Cnotzero1 = @{thm csum_Cnotzero1};
 val o_eq_dest_lhs = @{thm o_eq_dest_lhs};
-val ordIso_transitive = @{thm ordIso_transitive};
-val ordLeq_csum2 = @{thm ordLeq_csum2};
 val trans_image_cong_o_apply = @{thm trans[OF image_cong[OF o_apply refl]]};
 val trans_o_apply = @{thm trans[OF o_apply]};
 
@@ -167,47 +158,6 @@ fun mk_comp_in_alt_tac ctxt comp_set_alts =
        atac ORELSE'
        (rtac subset_UNIV)) 1)) ORELSE rtac subset_UNIV 1));
 
-fun mk_comp_in_bd_tac comp_in_alt Fin_bds Gin_bd Fbd_Cinfs Gbd_Card_order =
-  let
-    val (bds, last_bd) = split_last Fin_bds;
-    val (Cinfs, _) = split_last Fbd_Cinfs;
-    fun gen_before (bd, _) = rtac ctrans THEN' rtac @{thm csum_mono} THEN' rtac bd;
-    fun gen_after (_, (bd_Cinf, next_bd_Cinf)) =
-      TRY o (rtac @{thm csum_cexp} THEN'
-        rtac bd_Cinf THEN'
-        (TRY o (rtac @{thm Cinfinite_csum} THEN' rtac disjI1) THEN' rtac next_bd_Cinf ORELSE'
-           rtac next_bd_Cinf) THEN'
-        ((rtac Card_order_csum THEN' rtac ordLeq_csum2) ORELSE'
-          (rtac Card_order_ctwo THEN' rtac @{thm ordLeq_refl})) THEN'
-        rtac Card_order_ctwo);
-  in
-    (rtac @{thm ordIso_ordLeq_trans} THEN'
-     rtac @{thm card_of_ordIso_subst} THEN'
-     rtac comp_in_alt THEN'
-     rtac ctrans THEN'
-     rtac Gin_bd THEN'
-     rtac @{thm ordLeq_ordIso_trans} THEN'
-     rtac @{thm cexp_mono1} THEN'
-     rtac @{thm ordLeq_ordIso_trans} THEN'
-     rtac @{thm csum_mono1} THEN'
-     WRAP' gen_before gen_after (bds ~~ (Cinfs ~~ tl Fbd_Cinfs)) (rtac last_bd) THEN'
-     rtac @{thm csum_absorb1} THEN'
-     rtac @{thm Cinfinite_cexp} THEN'
-     (rtac ordLeq_csum2 ORELSE' rtac @{thm ordLeq_refl}) THEN'
-     rtac Card_order_ctwo THEN'
-     (TRY o (rtac @{thm Cinfinite_csum} THEN' rtac disjI1) THEN' rtac (hd Fbd_Cinfs) ORELSE'
-       rtac (hd Fbd_Cinfs)) THEN'
-     rtac @{thm ctwo_ordLeq_Cinfinite} THEN'
-     rtac @{thm Cinfinite_cexp} THEN'
-     (rtac ordLeq_csum2 ORELSE' rtac @{thm ordLeq_refl}) THEN'
-     rtac Card_order_ctwo THEN'
-     (TRY o (rtac @{thm Cinfinite_csum} THEN' rtac disjI1) THEN' rtac (hd Fbd_Cinfs) ORELSE'
-       rtac (hd Fbd_Cinfs)) THEN'
-     rtac Gbd_Card_order THEN'
-     rtac @{thm cexp_cprod} THEN'
-     rtac @{thm Card_order_csum}) 1
-  end;
-
 val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def SUP_def
   Union_image_insert Union_image_empty};
 
@@ -264,64 +214,6 @@ val kill_in_alt_tac =
   ((rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac subset_UNIV 1));
 
-fun mk_kill_in_bd_tac n nontrivial_kill_in in_alt in_bd bd_Card_order bd_Cinfinite bd_Cnotzero =
-  (rtac @{thm ordIso_ordLeq_trans} THEN'
-  rtac @{thm card_of_ordIso_subst} THEN'
-  rtac in_alt THEN'
-  rtac ctrans THEN'
-  rtac in_bd THEN'
-  rtac @{thm ordIso_ordLeq_trans} THEN'
-  rtac @{thm cexp_cong1}) 1 THEN
-  (if nontrivial_kill_in then
-    rtac ordIso_transitive 1 THEN
-    REPEAT_DETERM_N (n - 1)
-      ((rtac @{thm csum_cong1} THEN'
-      rtac @{thm ordIso_symmetric} THEN'
-      rtac @{thm csum_assoc} THEN'
-      rtac ordIso_transitive) 1) THEN
-    (rtac @{thm ordIso_refl} THEN'
-    rtac Card_order_csum THEN'
-    rtac ordIso_transitive THEN'
-    rtac @{thm csum_assoc} THEN'
-    rtac ordIso_transitive THEN'
-    rtac @{thm csum_cong1} THEN'
-    K (mk_flatten_assoc_tac
-      (rtac @{thm ordIso_refl} THEN'
-        FIRST' [rtac card_of_Card_order, rtac Card_order_csum])
-      ordIso_transitive @{thm csum_assoc} @{thm csum_cong}) THEN'
-    rtac @{thm ordIso_refl} THEN'
-    (rtac card_of_Card_order ORELSE' rtac Card_order_csum)) 1
-  else all_tac) THEN
-  (rtac @{thm csum_com} THEN'
-  rtac bd_Card_order THEN'
-  rtac @{thm ordLeq_ordIso_trans} THEN'
-  rtac @{thm cexp_mono1} THEN'
-  rtac ctrans THEN'
-  rtac @{thm csum_mono2} THEN'
-  rtac @{thm ordLeq_cprod1} THEN'
-  (rtac card_of_Card_order ORELSE' rtac Card_order_csum) THEN'
-  rtac bd_Cnotzero THEN'
-  rtac @{thm csum_cexp'} THEN'
-  rtac @{thm Cinfinite_cprod2} THEN'
-  TRY o rtac csum_Cnotzero1 THEN'
-  rtac Cnotzero_UNIV THEN'
-  rtac bd_Cinfinite THEN'
-  ((rtac Card_order_ctwo THEN' rtac @{thm ordLeq_refl}) ORELSE'
-    (rtac Card_order_csum THEN' rtac ordLeq_csum2)) THEN'
-  rtac Card_order_ctwo THEN'
-  rtac bd_Card_order THEN'
-  rtac @{thm cexp_cprod_ordLeq} THEN'
-  resolve_tac @{thms Card_order_csum Card_order_ctwo} THEN'
-  rtac @{thm Cinfinite_cprod2} THEN'
-  TRY o rtac csum_Cnotzero1 THEN'
-  rtac Cnotzero_UNIV THEN'
-  rtac bd_Cinfinite THEN'
-  rtac bd_Cnotzero THEN'
-  rtac @{thm ordLeq_cprod2} THEN'
-  TRY o rtac csum_Cnotzero1 THEN'
-  rtac Cnotzero_UNIV THEN'
-  rtac bd_Card_order) 1;
-
 
 
 (* Lift operation *)
@@ -341,23 +233,6 @@ val lift_in_alt_tac =
   ((rtac sym THEN' rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac @{thm empty_subsetI} 1));
 
-fun mk_lift_in_bd_tac n in_alt in_bd bd_Card_order =
-  (rtac @{thm ordIso_ordLeq_trans} THEN'
-  rtac @{thm card_of_ordIso_subst} THEN'
-  rtac in_alt THEN'
-  rtac ctrans THEN'
-  rtac in_bd THEN'
-  rtac @{thm cexp_mono1}) 1 THEN
-  ((rtac @{thm csum_mono1} 1 THEN
-  REPEAT_DETERM_N (n - 1)
-    ((rtac ctrans THEN'
-    rtac ordLeq_csum2 THEN'
-    (rtac Card_order_csum ORELSE' rtac card_of_Card_order)) 1) THEN
-  (rtac ordLeq_csum2 THEN'
-  (rtac Card_order_csum ORELSE' rtac card_of_Card_order)) 1) ORELSE
-  (rtac ordLeq_csum2 THEN' rtac Card_order_ctwo) 1) THEN
-  (rtac bd_Card_order) 1;
-
 
 
 (* Permute operation *)
@@ -366,21 +241,6 @@ fun mk_permute_in_alt_tac src dest =
   (rtac @{thm Collect_cong} THEN'
   mk_rotate_eq_tac (rtac refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
     dest src) 1;
-
-fun mk_permute_in_bd_tac src dest in_alt in_bd bd_Card_order =
-  (rtac @{thm ordIso_ordLeq_trans} THEN'
-  rtac @{thm card_of_ordIso_subst} THEN'
-  rtac in_alt THEN'
-  rtac @{thm ordLeq_ordIso_trans} THEN'
-  rtac in_bd THEN'
-  rtac @{thm cexp_cong1} THEN'
-  rtac @{thm csum_cong1} THEN'
-  mk_rotate_eq_tac
-    (rtac @{thm ordIso_refl} THEN'
-      FIRST' [rtac card_of_Card_order, rtac Card_order_csum])
-    ordIso_transitive @{thm csum_assoc} @{thm csum_com} @{thm csum_cong}
-    src dest THEN'
-  rtac bd_Card_order) 1;
 
 fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
   (rtac (@{thm wpull_cong} OF (replicate 3 comp_in_alt)) THEN' rtac outer_map_wpull) 1 THEN

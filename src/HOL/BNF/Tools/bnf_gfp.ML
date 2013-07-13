@@ -153,15 +153,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val hrecTs = map fastype_of Zeros;
     val hsetTs = map (fn hrecT => Library.foldr (op -->) (sTs, HOLogic.natT --> hrecT)) hrecTs;
 
-    val (((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
-      z's), As), As_copy), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
+    val ((((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2),
+      z's), As), Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
       self_fs), gs), all_gs), xFs), yFs), yFs_copy), RFs), (Rtuple, Rtuple')), (hrecs, hrecs')),
       (nat, nat')), Rs), Rs_copy), R's), sRs), (idx, idx')), Idx), Ris), Kss), names_lthy) = lthy
       |> mk_Frees' "b" activeAs
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "b" activeAs
       ||>> mk_Frees "b" activeBs
-      ||>> mk_Frees "A" ATs
       ||>> mk_Frees "A" ATs
       ||>> mk_Frees "B" BTs
       ||>> mk_Frees "B" BTs
@@ -209,9 +208,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val bd_Card_order = hd bd_Card_orders;
     val bd_Cinfinites = map bd_Cinfinite_of_bnf bnfs;
     val bd_Cinfinite = hd bd_Cinfinites;
-    val bd_Cnotzeros = map bd_Cnotzero_of_bnf bnfs;
-    val bd_Cnotzero = hd bd_Cnotzeros;
-    val in_bds = map in_bd_of_bnf bnfs;
     val in_monos = map in_mono_of_bnf bnfs;
     val map_comps = map map_comp_of_bnf bnfs;
     val sym_map_comps = map (fn thm => thm RS sym) map_comps;
@@ -347,8 +343,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         map (fn goals => map (fn goal => Goal.prove_sorry lthy [] [] goal
           (K (mk_coalg_set_tac coalg_def)) |> Thm.close_derivation) goals) goalss
       end;
-
-    val coalg_set_thmss' = transpose coalg_set_thmss;
 
     fun mk_tcoalg ATs BTs = mk_coalg (map HOLogic.mk_UNIV ATs) (map HOLogic.mk_UNIV BTs);
 
@@ -655,7 +649,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val set_incl_hset_thmss' = transpose set_incl_hset_thmss;
     val set_hset_incl_hset_thmsss' = transpose (map transpose set_hset_incl_hset_thmsss);
-    val set_hset_incl_hset_thmsss'' = map transpose set_hset_incl_hset_thmsss';
     val set_hset_thmss = map (map (fn thm => thm RS @{thm set_mp})) set_incl_hset_thmss;
     val set_hset_hset_thmsss = map (map (map (fn thm => thm RS @{thm set_mp})))
       set_hset_incl_hset_thmsss;
@@ -731,53 +724,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             (mk_hset_minimal_tac n hset_defs hset_rec_minimal)
           |> Thm.close_derivation)
         goals hset_defss' hset_rec_minimal_thms
-      end;
-
-    val mor_hset_thmss =
-      let
-        val mor_hset_rec_thms =
-          let
-            fun mk_conjunct j T i f x B =
-              HOLogic.mk_imp (HOLogic.mk_mem (x, B), HOLogic.mk_eq
-               (mk_hset_rec s's nat i j T $ (f $ x), mk_hset_rec ss nat i j T $ x));
-
-            fun mk_concl j T = list_all_free zs
-              (Library.foldr1 HOLogic.mk_conj (map4 (mk_conjunct j T) ks fs zs Bs));
-            val concls = map2 mk_concl ls passiveAs;
-
-            val ctss =
-              map (fn phi => map (SOME o certify lthy) [Term.absfree nat' phi, nat]) concls;
-
-            val goals = map (fn concl =>
-              Logic.list_implies ([coalg_prem, mor_prem], HOLogic.mk_Trueprop concl)) concls;
-          in
-            map5 (fn j => fn goal => fn cts => fn hset_rec_0s => fn hset_rec_Sucs =>
-              singleton (Proof_Context.export names_lthy lthy)
-                (Goal.prove_sorry lthy [] [] goal
-                  (K (mk_mor_hset_rec_tac m n cts j hset_rec_0s hset_rec_Sucs
-                    morE_thms set_map'ss coalg_set_thmss)))
-              |> Thm.close_derivation)
-            ls goals ctss hset_rec_0ss' hset_rec_Sucss'
-          end;
-
-        val mor_hset_rec_thmss = map (fn thm => map (fn i =>
-          mk_specN n thm RS mk_conjunctN n i RS mp) ks) mor_hset_rec_thms;
-
-        fun mk_prem x B = HOLogic.mk_Trueprop (HOLogic.mk_mem (x, B));
-
-        fun mk_concl j T i f x =
-          mk_Trueprop_eq (mk_hset s's i j T $ (f $ x), mk_hset ss i j T $ x);
-
-        val goalss = map2 (fn j => fn T => map4 (fn i => fn f => fn x => fn B =>
-          fold_rev Logic.all (x :: As @ Bs @ ss @ B's @ s's @ fs)
-            (Logic.list_implies ([coalg_prem, mor_prem,
-              mk_prem x B], mk_concl j T i f x))) ks fs zs Bs) ls passiveAs;
-      in
-        map3 (map3 (fn goal => fn hset_def => fn mor_hset_rec =>
-          Goal.prove_sorry lthy [] [] goal
-            (K (mk_mor_hset_tac hset_def mor_hset_rec))
-          |> Thm.close_derivation))
-        goalss hset_defss' mor_hset_rec_thmss
       end;
 
     val timer = time (timer "Hereditary sets");
@@ -1009,10 +955,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     (* bounds *)
 
     val (lthy, sbd, sbdT,
-      sbd_card_order, sbd_Cinfinite, sbd_Cnotzero, sbd_Card_order, set_sbdss, in_sbds) =
+      sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss) =
       if n = 1
-      then (lthy, sum_bd, sum_bdT,
-        bd_card_order, bd_Cinfinite, bd_Cnotzero, bd_Card_order, set_bdss, in_bds)
+      then (lthy, sum_bd, sum_bdT, bd_card_order, bd_Cinfinite, bd_Card_order, set_bdss)
       else
         let
           val sbdT_bind = Binding.suffix_name ("_" ^ sum_bdTN) b;
@@ -1062,30 +1007,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           val sbd_card_order =  fold_thms lthy [sbd_def]
             (@{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]);
           val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
-          val sbd_Cnotzero = sbd_Cinfinite RS @{thm Cinfinite_Cnotzero};
           val sbd_Card_order = sbd_Cinfinite RS conjunct2;
 
           fun mk_set_sbd i bd_Card_order bds =
             map (fn thm => @{thm ordLeq_ordIso_trans} OF
               [bd_Card_order RS mk_ordLeq_csum n i thm, sbd_ordIso]) bds;
           val set_sbdss = map3 mk_set_sbd ks bd_Card_orders set_bdss;
-
-          fun mk_in_sbd i Co Cnz bd =
-            Cnz RS ((@{thm ordLeq_ordIso_trans} OF
-              [(Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl})), sbd_ordIso]) RS
-              (bd RS @{thm ordLeq_transitive[OF _
-                cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
-          val in_sbds = map4 mk_in_sbd ks bd_Card_orders bd_Cnotzeros in_bds;
        in
-         (lthy, sbd, sbdT,
-           sbd_card_order, sbd_Cinfinite, sbd_Cnotzero, sbd_Card_order, set_sbdss, in_sbds)
+         (lthy, sbd, sbdT, sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss)
        end;
-
-    fun mk_sbd_sbd 1 = sbd_Card_order RS @{thm ordIso_refl}
-      | mk_sbd_sbd n = @{thm csum_absorb1} OF
-          [sbd_Cinfinite, mk_sbd_sbd (n - 1) RS @{thm ordIso_imp_ordLeq}];
-
-    val sbd_sbd_thm = mk_sbd_sbd n;
 
     val sbdTs = replicate n sbdT;
     val sum_sbd = Library.foldr1 (uncurry mk_csum) (replicate n sbd);
@@ -1103,7 +1033,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val treeFTs = mk_FTs treeTs;
     val tree_maps = map4 mk_map_of_bnf Dss (replicate n bdTs) (replicate n treeTs) bnfs;
     val final_maps = map4 mk_map_of_bnf Dss (replicate n treeTs) (replicate n treeQTs) bnfs;
-    val tree_setss = mk_setss treeTs;
     val isNode_setss = mk_setss (passiveAs @ replicate n sbdT);
 
     val root = HOLogic.mk_set sum_sbd_listT [HOLogic.mk_list sum_sbdT []];
@@ -1269,131 +1198,13 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     fun mk_strT FT i = Const (nth strTs (i - 1), treeT --> FT);
 
     val carTAs = map (mk_carT As) ks;
-    val carTAs_copy = map (mk_carT As_copy) ks;
     val strTAs = map2 mk_strT treeFTs ks;
-    val hset_strTss = map (fn i => map2 (mk_hset strTAs i) ls passiveAs) ks;
 
     val coalgT_thm =
       Goal.prove_sorry lthy [] []
         (fold_rev Logic.all As (HOLogic.mk_Trueprop (mk_coalg As carTAs strTAs)))
         (mk_coalgT_tac m (coalg_def :: isNode_defs @ carT_defs) strT_defs set_map'ss)
       |> Thm.close_derivation;
-
-    val card_of_carT_thms =
-      let
-        val lhs = mk_card_of
-          (HOLogic.mk_Collect (fst Kl_lab', snd Kl_lab', list_exists_free [Kl, lab]
-            (HOLogic.mk_conj (HOLogic.mk_eq (Kl_lab, HOLogic.mk_prod (Kl, lab)), isTree))));
-        val rhs = mk_cexp
-          (if m = 0 then ctwo else
-            (mk_csum (Library.foldr1 (uncurry mk_csum) (map mk_card_of As)) ctwo))
-            (mk_cexp sbd sbd);
-        val card_of_carT =
-          Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all As (HOLogic.mk_Trueprop (mk_ordLeq lhs rhs)))
-            (K (mk_card_of_carT_tac lthy m isNode_defs sbd_sbd_thm
-              sbd_card_order sbd_Card_order sbd_Cinfinite sbd_Cnotzero in_sbds))
-          |> Thm.close_derivation
-      in
-        map (fn def => @{thm ordLeq_transitive[OF
-          card_of_mono1[OF ord_eq_le_trans[OF _ Collect_restrict']]]} OF [def, card_of_carT])
-        carT_defs
-      end;
-
-    val carT_set_thmss =
-      let
-        val Kl_lab = HOLogic.mk_prod (Kl, lab);
-        fun mk_goal carT strT set k i =
-          fold_rev Logic.all (sumx :: Kl :: lab :: k :: kl :: As)
-            (Logic.list_implies (map HOLogic.mk_Trueprop
-              [HOLogic.mk_mem (Kl_lab, carT), HOLogic.mk_mem (mk_Cons sumx kl, Kl),
-              HOLogic.mk_eq (sumx, mk_InN sbdTs k i)],
-            HOLogic.mk_Trueprop (HOLogic.mk_mem
-              (HOLogic.mk_prod (mk_Shift Kl sumx, mk_shift lab sumx),
-              set $ (strT $ Kl_lab)))));
-
-        val goalss = map3 (fn carT => fn strT => fn sets =>
-          map3 (mk_goal carT strT) (drop m sets) kks ks) carTAs strTAs tree_setss;
-      in
-        map6 (fn i => fn goals => fn carT_def => fn strT_def => fn isNode_def => fn set_maps =>
-          map2 (fn goal => fn set_map =>
-            Goal.prove_sorry lthy [] [] goal
-              (mk_carT_set_tac n i carT_def strT_def isNode_def set_map)
-            |> Thm.close_derivation)
-          goals (drop m set_maps))
-        ks goalss carT_defs strT_defs isNode_defs set_map'ss
-      end;
-
-    val carT_set_thmss' = transpose carT_set_thmss;
-
-    val isNode_hset_thmss =
-      let
-        val Kl_lab = HOLogic.mk_prod (Kl, lab);
-        fun mk_Kl_lab carT = HOLogic.mk_mem (Kl_lab, carT);
-
-        val strT_hset_thmsss =
-          let
-            val strT_hset_thms =
-              let
-                fun mk_lab_kl i x = HOLogic.mk_eq (lab $ kl, mk_InN bdFTs x i);
-
-                fun mk_inner_conjunct j T i x set i' carT =
-                  HOLogic.mk_imp (HOLogic.mk_conj (mk_Kl_lab carT, mk_lab_kl i x),
-                    mk_leq (set $ x) (mk_hset strTAs i' j T $ Kl_lab));
-
-                fun mk_conjunct j T i x set =
-                  Library.foldr1 HOLogic.mk_conj (map2 (mk_inner_conjunct j T i x set) ks carTAs);
-
-                fun mk_concl j T = list_all_free (Kl :: lab :: xs @ As)
-                  (HOLogic.mk_imp (HOLogic.mk_mem (kl, Kl),
-                    Library.foldr1 HOLogic.mk_conj (map3 (mk_conjunct j T)
-                      ks xs (map (fn xs => nth xs (j - 1)) isNode_setss))));
-                val concls = map2 mk_concl ls passiveAs;
-
-                val cTs = [SOME (certifyT lthy sum_sbdT)];
-                val arg_cong_cTs = map (SOME o certifyT lthy) treeFTs;
-                val ctss =
-                  map (fn phi => map (SOME o certify lthy) [Term.absfree kl' phi, kl]) concls;
-
-                val goals = map HOLogic.mk_Trueprop concls;
-              in
-                map5 (fn j => fn goal => fn cts => fn set_incl_hsets => fn set_hset_incl_hsetss =>
-                  singleton (Proof_Context.export names_lthy lthy)
-                    (Goal.prove_sorry lthy [] [] goal
-                      (K (mk_strT_hset_tac lthy n m j arg_cong_cTs cTs cts
-                        carT_defs strT_defs isNode_defs
-                        set_incl_hsets set_hset_incl_hsetss coalg_set_thmss' carT_set_thmss'
-                        coalgT_thm set_map'ss)))
-                  |> Thm.close_derivation)
-                ls goals ctss set_incl_hset_thmss' set_hset_incl_hset_thmsss''
-              end;
-
-            val strT_hset'_thms = map (fn thm => mk_specN (2 + n + m) thm RS mp) strT_hset_thms;
-          in
-            map (fn thm => map (fn i => map (fn i' =>
-              thm RS mk_conjunctN n i RS mk_conjunctN n i' RS mp) ks) ks) strT_hset'_thms
-          end;
-
-        val carT_prems = map (fn carT =>
-          HOLogic.mk_Trueprop (HOLogic.mk_mem (Kl_lab, carT))) carTAs_copy;
-        val prem = HOLogic.mk_Trueprop (HOLogic.mk_mem (kl, Kl));
-        val in_prems = map (fn hsets =>
-          HOLogic.mk_Trueprop (HOLogic.mk_mem (Kl_lab, mk_in As hsets treeT))) hset_strTss;
-        val isNode_premss = replicate n (map (HOLogic.mk_Trueprop o mk_isNode As_copy kl) ks);
-        val conclss = replicate n (map (HOLogic.mk_Trueprop o mk_isNode As kl) ks);
-      in
-        map5 (fn carT_prem => fn isNode_prems => fn in_prem => fn concls => fn strT_hset_thmss =>
-          map4 (fn isNode_prem => fn concl => fn isNode_def => fn strT_hset_thms =>
-            Goal.prove_sorry lthy [] []
-              (fold_rev Logic.all (Kl :: lab :: kl :: As @ As_copy)
-                (Logic.list_implies ([carT_prem, prem, isNode_prem, in_prem], concl)))
-              (mk_isNode_hset_tac n isNode_def strT_hset_thms)
-            |> Thm.close_derivation)
-          isNode_prems concls isNode_defs
-          (if m = 0 then replicate n [] else transpose strT_hset_thmss))
-        carT_prems isNode_premss in_prems conclss
-        (if m = 0 then replicate n [] else transpose (map transpose strT_hset_thmsss))
-      end;
 
     val timer = time (timer "Tree coalgebra");
 
@@ -1831,7 +1642,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val Reps = map #Rep T_loc_infos;
     val Rep_injects = map #Rep_inject T_loc_infos;
-    val Rep_inverses = map #Rep_inverse T_loc_infos;
     val Abs_inverses = map #Abs_inverse T_loc_infos;
 
     val timer = time (timer "THE TYPEDEFs & Rep/Abs thms");
@@ -2689,23 +2499,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val set_bd_tacss =
           map2 (map2 (K oo mk_set_bd_tac sbd_Cinfinite)) hset_defss (transpose col_bd_thmss);
 
-        val in_bd_tacs = map7 (fn i => fn isNode_hsets => fn carT_def =>
-            fn card_of_carT => fn mor_image => fn Rep_inverse => fn mor_hsets =>
-          (fn {context = ctxt, prems = _} =>
-            mk_in_bd_tac ctxt (nth isNode_hsets (i - 1)) isNode_hsets carT_def
-            card_of_carT mor_image Rep_inverse mor_hsets
-            mor_Rep_thm coalgT_thm mor_T_final_thm tcoalg_thm))
-          ks isNode_hset_thmss carT_defs card_of_carT_thms
-          mor_image'_thms Rep_inverses (transpose mor_hset_thmss);
-
         val map_wpull_tacs =
           map3 (K ooo mk_wpull_tac m coalg_thePull_thm mor_thePull_fst_thm mor_thePull_snd_thm
             mor_thePull_pick_thm) unique_mor_thms (transpose pick_col_thmss) hset_defss;
 
         val rel_OO_Grp_tacs = replicate n (K (rtac refl 1));
 
-        val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_OO_Grp_tacs;
+        val tacss = map9 zip_axioms map_id_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
+          bd_co_tacs bd_cinf_tacs set_bd_tacss map_wpull_tacs rel_OO_Grp_tacs;
 
         val (hset_dtor_incl_thmss, hset_hset_dtor_incl_thmsss, dtor_hset_induct_thms) =
           let

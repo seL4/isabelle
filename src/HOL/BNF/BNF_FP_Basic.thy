@@ -100,11 +100,6 @@ lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
-lemma sum_case_o_inj:
-"sum_case f g \<circ> Inl = f"
-"sum_case f g \<circ> Inr = g"
-by auto
-
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
 by blast
 

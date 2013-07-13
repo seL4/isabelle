@@ -47,24 +47,6 @@ next
   show "|Option.set x| \<le>o natLeq"
     by (cases x) (simp_all add: ordLess_imp_ordLeq finite_iff_ordLess_natLeq[symmetric])
 next
-  fix A
-  have unfold: "{x. Option.set x \<subseteq> A} = Some ` A \<union> {None}"
-    by (auto simp add: option_rec_conv_option_case Option.set_def split: option.split_asm)
-  show "|{x. Option.set x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq"
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule card_of_ordIso_subst[OF unfold])
-    apply (rule ordLeq_transitive)
-    apply (rule Un_csum)
-    apply (rule ordLeq_transitive)
-    apply (rule csum_mono)
-    apply (rule card_of_image)
-    apply (rule ordIso_ordLeq_trans)
-    apply (rule single_cone)
-    apply (rule cone_ordLeq_ctwo)
-    apply (rule ordLeq_cexp1)
-    apply (simp_all add: natLeq_cinfinite natLeq_Card_order cinfinite_not_czero Card_order_csum)
-    done
-next
   fix A B1 B2 f1 f2 p1 p2
   assume wpull: "wpull A B1 B2 f1 f2 p1 p2"
   show "wpull {x. Option.set x \<subseteq> A} {x. Option.set x \<subseteq> B1} {x. Option.set x \<subseteq> B2}
@@ -119,68 +101,6 @@ lemma not_emp_czero_notIn_ordIso_Card_order:
   apply (metis Field_card_of czeroE)
   by (rule card_of_Card_order)
 
-lemma list_in_bd: "|{x. set x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq"
-proof -
-  fix A :: "'a set"
-  show "|{x. set x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq"
-  proof (cases "A = {}")
-    case False thus ?thesis
-      apply -
-      apply (rule ordLeq_transitive)
-      apply (rule card_of_list_in)
-      apply (rule ordLeq_transitive)
-      apply (erule card_of_Pfunc_Pow_Func_option)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule Times_cprod)
-      apply (rule cprod_cinfinite_bound)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule Pow_cexp_ctwo)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule cexp_cong2)
-      apply (rule card_of_nat)
-      apply (rule Card_order_ctwo)
-      apply (rule card_of_Card_order)
-      apply (rule cexp_mono1)
-      apply (rule ordLeq_csum2)
-      apply (rule Card_order_ctwo)
-      apply (rule natLeq_Card_order)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule card_of_Func_option_Func)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule card_of_Func)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule cexp_cong2)
-      apply (rule card_of_nat)
-      apply (rule card_of_Card_order)
-      apply (rule card_of_Card_order)
-      apply (rule cexp_mono1)
-      apply (rule ordLeq_csum1)
-      apply (rule card_of_Card_order)
-      apply (rule natLeq_Card_order)
-      apply (rule card_of_Card_order)
-      apply (rule card_of_Card_order)
-      apply (rule Cinfinite_cexp)
-      apply (rule ordLeq_csum2)
-      apply (rule Card_order_ctwo)
-      apply (rule conjI)
-      apply (rule natLeq_cinfinite)
-      by (rule natLeq_Card_order)
-  next
-    case True thus ?thesis
-      apply -
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule card_of_ordIso_subst)
-      apply (erule list_in_empty)
-      apply (rule ordIso_ordLeq_trans)
-      apply (rule single_cone)
-      apply (rule cone_ordLeq_cexp)
-      apply (rule ordLeq_transitive)
-      apply (rule cone_ordLeq_ctwo)
-      apply (rule ordLeq_csum2)
-      by (rule Card_order_ctwo)
-  qed
-qed
-
 lemma wpull_map:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull {x. set x \<subseteq> A} {x. set x \<subseteq> B1} {x. set x \<subseteq> B2} (map f1) (map f2) (map p1) (map p2)"
@@ -226,9 +146,6 @@ next
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_ordLess_infinite[OF _ natLeq_Well_order])
     unfolding Field_natLeq Field_card_of by (auto simp: card_of_well_order_on)
-next
-  fix A :: "'a set"
-  show "|{x. set x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" by (rule list_in_bd)
 qed (simp add: wpull_map)+
 
 (* Finite sets *)
@@ -339,8 +256,6 @@ apply -
       apply (rule natLeq_card_order)
      apply (rule natLeq_cinfinite)
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite_set)
-   apply (rule ordLeq_transitive[OF surj_imp_ordLeq[of _ abs_fset] list_in_bd])
-   apply (auto simp: fset_def intro!: image_eqI[of _ abs_fset]) []
   apply (erule wpull_fmap)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_def fset_rel_aux) 
 apply transfer apply simp
@@ -379,30 +294,6 @@ apply default
 apply (rule finite_Collect_conjI)
 apply (rule disjI1)
 by (erule finite_Collect_subsets)
-
-lemma card_of_countable_sets:
-"|{X. X \<subseteq> A \<and> countable X}| \<le>o ( |A| +c ctwo) ^c natLeq"
-(is "|?L| \<le>o _")
-proof(cases "finite A")
-  let ?R = "Func (UNIV::nat set) (A <+> (UNIV::bool set))"
-  case True hence "finite ?L" by simp
-  moreover have "infinite ?R"
-  apply(rule infinite_Func[of _ "Inr True" "Inr False"]) by auto
-  ultimately show ?thesis unfolding cexp_def csum_def ctwo_def Field_natLeq Field_card_of
-  apply(intro ordLess_imp_ordLeq) by (rule finite_ordLess_infinite2)
-next
-  case False
-  hence "|{X. X \<subseteq> A \<and> countable X}| =o |{X. X \<subseteq> A \<and> countable X} - {{}}|"
-  by (intro card_of_infinite_diff_finite finite.emptyI finite.insertI ordIso_symmetric)
-     (unfold finite_countable_subset)
-  also have "|{X. X \<subseteq> A \<and> countable X} - {{}}| \<le>o |A| ^c natLeq"
-  using card_of_countable_sets_Func[of A] unfolding set_diff_eq by auto
-  also have "|A| ^c natLeq \<le>o ( |A| +c ctwo) ^c natLeq"
-  apply(rule cexp_mono1)
-    apply(rule ordLeq_csum1, rule card_of_Card_order)
-    by (rule natLeq_Card_order)
-  finally show ?thesis .
-qed
 
 lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
 apply (rule f_the_inv_into_f)
@@ -468,22 +359,6 @@ next
   show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
   fix C show "|rcset C| \<le>o natLeq" using rcset unfolding countable_card_le_natLeq .
-next
-  fix A :: "'a set"
-  have "|{Z. rcset Z \<subseteq> A}| \<le>o |acset ` {X. X \<subseteq> A \<and> countable X}|"
-  apply(rule card_of_mono1) unfolding Pow_def image_def
-  proof (rule Collect_mono, clarsimp)
-    fix x
-    assume "rcset x \<subseteq> A"
-    hence "rcset x \<subseteq> A \<and> countable (rcset x) \<and> x = acset (rcset x)"
-    using acset_rcset[of x] rcset[of x] by force
-    thus "\<exists>y \<subseteq> A. countable y \<and> x = acset y" by blast
-  qed
-  also have "|acset ` {X. X \<subseteq> A \<and> countable X}| \<le>o |{X. X \<subseteq> A \<and> countable X}|"
-  using card_of_image .
-  also have "|{X. X \<subseteq> A \<and> countable X}| \<le>o ( |A| +c ctwo) ^c natLeq"
-  using card_of_countable_sets .
-  finally show "|{Z. rcset Z \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" .
 next
   fix A B1 B2 f1 f2 p1 p2
   assume wp: "wpull A B1 B2 f1 f2 p1 p2"
@@ -1104,12 +979,6 @@ next
   fix M show "|set_of M| \<le>o natLeq"
   apply(rule ordLess_imp_ordLeq)
   unfolding finite_iff_ordLess_natLeq[symmetric] using finite_set_of .
-next
-  fix A :: "'a set"
-  have "|{M. set_of M \<subseteq> A}| \<le>o |{as. set as \<subseteq> A}|" using card_of_set_of .
-  also have "|{as. set as \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq"
-  by (rule list_in_bd)
-  finally show "|{M. set_of M \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" .
 next
   fix A B1 B2 f1 f2 p1 p2
   let ?map = "\<lambda> f. Abs_multiset \<circ> mmap f \<circ> count"

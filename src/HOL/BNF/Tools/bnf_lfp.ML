@@ -98,7 +98,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     fun mk_setss Ts = map3 mk_sets_of_bnf (map (replicate live) Dss)
       (map (replicate live) (replicate n Ts)) bnfs;
     val setssAs = mk_setss allAs;
-    val bds = map3 mk_bd_of_bnf Dss Ass bnfs;
+    val bd0s = map3 mk_bd_of_bnf Dss Ass bnfs;
+    val bds =
+      map3 (fn bd0 => fn Ds => fn bnf => mk_csum bd0
+        (mk_card_of (HOLogic.mk_UNIV
+          (mk_T_of_bnf Ds (replicate live (fst (dest_relT (fastype_of bd0)))) bnf))))
+      bd0s Dss bnfs;
     val witss = map wits_of_bnf bnfs;
 
     val (((((((((((((((((((zs, zs'), As), Bs), Bs_copy), B's), B''s), ss), prod_ss), s's), s''s),
@@ -131,12 +136,23 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val fsts = map fst_const prodBsAs;
 
     (* thms *)
-    val bd_card_orders = map bd_card_order_of_bnf bnfs;
-    val bd_Card_orders = map bd_Card_order_of_bnf bnfs;
-    val bd_Card_order = hd bd_Card_orders;
-    val bd_Cinfinite = bd_Cinfinite_of_bnf (hd bnfs);
-    val bd_Cnotzeros = map bd_Cnotzero_of_bnf bnfs;
+    val bd0_card_orders = map bd_card_order_of_bnf bnfs;
+    val bd0_Card_orders = map bd_Card_order_of_bnf bnfs;
+    val bd0_Cinfinites = map bd_Cinfinite_of_bnf bnfs;
+    val set_bd0ss = map set_bd_of_bnf bnfs;
+
+    val bd_card_orders =
+      map (fn thm => @{thm card_order_csum} OF [thm, @{thm card_of_card_order_on}]) bd0_card_orders;
+    val bd_Card_order = @{thm Card_order_csum};
+    val bd_Card_orders = replicate n bd_Card_order;
+    val bd_Cinfinites = map (fn thm => thm RS @{thm Cinfinite_csum1}) bd0_Cinfinites;
+    val bd_Cnotzeros = map (fn thm => thm RS @{thm Cinfinite_Cnotzero}) bd_Cinfinites;
+    val bd_Cinfinite = hd bd_Cinfinites;
     val bd_Cnotzero = hd bd_Cnotzeros;
+    val set_bdss =
+      map2 (fn set_bd0s => fn bd0_Card_order =>
+        map (fn thm => ctrans OF [thm, bd0_Card_order RS @{thm ordLeq_csum1}]) set_bd0s)
+      set_bd0ss bd0_Card_orders;
     val in_bds = map in_bd_of_bnf bnfs;
     val sym_map_comps = map (fn bnf => map_comp_of_bnf bnf RS sym) bnfs;
     val map_comp's = map map_comp'_of_bnf bnfs;
@@ -144,7 +160,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val map_ids = map map_id_of_bnf bnfs;
     val map_id's = map map_id'_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
-    val set_bdss = map set_bd_of_bnf bnfs;
     val set_map'ss = map set_map'_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
@@ -1617,33 +1632,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             split_conj_thm thm
           end;
 
-        val in_incl_min_alg_thms =
-          let
-            fun mk_prem z sets =
-              HOLogic.mk_mem (z, mk_in As sets (fastype_of z));
-
-            fun mk_incl z sets i =
-              HOLogic.mk_imp (mk_prem z sets, HOLogic.mk_mem (z, mk_min_alg As ctors i));
-
-            fun mk_cphi z sets i =
-              certify lthy (Term.absfree (dest_Free z) (mk_incl z sets i));
-
-            val cphis = map3 mk_cphi Izs setss_by_bnf ks;
-
-            val induct = Drule.instantiate' cTs (map SOME cphis @ cxs) ctor_induct_thm;
-
-            val goal =
-              HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-                (map3 mk_incl Izs setss_by_bnf ks));
-
-            val thm = singleton (Proof_Context.export names_lthy lthy)
-              (Goal.prove_sorry lthy [] [] goal
-              (mk_incl_min_alg_tac (rtac induct) Fset_set_thmsss alg_set_thms alg_min_alg_thm))
-              |> Thm.close_derivation;
-          in
-            split_conj_thm thm
-          end;
-
         val Xsetss = map (map (Term.subst_atomic_types (passiveAs ~~ passiveXs))) setss_by_bnf;
 
         val map_wpull_thms =
@@ -1697,14 +1685,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
         val bd_cinf_tacs = replicate n (K (rtac (bd_Cinfinite RS conjunct1) 1));
         val set_bd_tacss = map (map (fn thm => K (rtac thm 1))) (transpose set_bd_thmss);
-        val in_bd_tacs = map2 (K oo mk_in_bd_tac sum_Card_order suc_bd_Cnotzero)
-          in_incl_min_alg_thms card_of_min_alg_thms;
         val map_wpull_tacs = map (K o mk_wpull_tac) map_wpull_thms;
 
         val rel_OO_Grp_tacs = replicate n (K (rtac refl 1));
 
-        val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_OO_Grp_tacs;
+        val tacss = map9 zip_axioms map_id_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
+          bd_co_tacs bd_cinf_tacs set_bd_tacss map_wpull_tacs rel_OO_Grp_tacs;
 
         val ctor_witss =
           let

@@ -185,6 +185,25 @@ lemma Collect_split_mono_strong:
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
 by metis
 
+lemma sum_case_o_inj:
+"sum_case f g \<circ> Inl = f"
+"sum_case f g \<circ> Inr = g"
+by auto
+
+lemma card_order_csum_cone_cexp_def:
+  "card_order r \<Longrightarrow> ( |A1| +c cone) ^c r = |Func UNIV (Inl ` A1 \<union> {Inr ()})|"
+  unfolding cexp_def cone_def Field_csum Field_card_of by (auto dest: Field_card_order)
+
+lemma If_the_inv_into_in_Func:
+  "\<lbrakk>inj_on g C; C \<subseteq> B \<union> {x}\<rbrakk> \<Longrightarrow>
+  (\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<in> Func UNIV (B \<union> {x})"
+unfolding Func_def by (auto dest: the_inv_into_into)
+
+lemma If_the_inv_into_f_f:
+  "\<lbrakk>i \<in> C; inj_on g C\<rbrakk> \<Longrightarrow>
+  ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) o g) i = id i"
+unfolding Func_def by (auto elim: the_inv_into_f_f)
+
 ML_file "Tools/bnf_def_tactics.ML"
 ML_file "Tools/bnf_def.ML"
 
