@@ -126,6 +126,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
           print_fn = fn _ => fn st =>
             let
               val state = Toplevel.proof_of st
+                |> Proof.map_context (Context_Position.set_visible false)
               val auto_time_limit = Options.default_real @{option auto_time_limit}
             in
               if auto_time_limit > 0.0 then
