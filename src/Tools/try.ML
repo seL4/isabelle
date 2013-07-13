@@ -130,7 +130,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
                     (try o TimeLimit.timeLimit (seconds auto_time_limit))
                       (fn () => tool true state) () of
                     SOME (true, (_, state')) =>
-                      Pretty.writeln (Pretty.chunks (Proof.pretty_goal_messages state'))
+                      List.app Pretty.writeln (Proof.pretty_goal_messages state')
                   | _ => ())
               | NONE => ())
             else ()

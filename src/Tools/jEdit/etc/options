@@ -76,18 +76,9 @@ option dynamic_color : string = "7BA428FF"
 
 section "Icons"
 
-(* jEdit/Tango *)
-(*
-option tooltip_close_icon : string = "16x16/actions/document-close.png"
-option tooltip_detach_icon : string = "16x16/actions/window-new.png"
-option gutter_warning_icon : string = "16x16/status/dialog-information.png"
-option gutter_legacy_icon : string = "16x16/status/dialog-warning.png"
-option gutter_error_icon : string = "16x16/status/dialog-error.png"
-*)
-
-(* IntelliJ IDEA *)
 option tooltip_close_icon : string = "idea-icons/actions/closeHovered.png"
 option tooltip_detach_icon : string = "idea-icons/actions/nextfile.png"
+option gutter_information_icon : string = "idea-icons/general/balloonInformation.png"
 option gutter_warning_icon : string = "idea-icons/runConfigurations/testFailed.png"
 option gutter_legacy_icon : string = "idea-icons/general/balloonWarning.png"
 option gutter_error_icon : string = "idea-icons/runConfigurations/testError.png"

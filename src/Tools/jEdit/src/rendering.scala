@@ -28,10 +28,11 @@ object Rendering
   /* message priorities */
 
   private val writeln_pri = 1
-  private val tracing_pri = 2
-  private val warning_pri = 3
-  private val legacy_pri = 4
-  private val error_pri = 5
+  private val information_pri = 2
+  private val tracing_pri = 3
+  private val warning_pri = 4
+  private val legacy_pri = 5
+  private val error_pri = 6
 
   private val message_pri = Map(
     Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
@@ -384,15 +385,21 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private lazy val gutter_icons = Map(
+    Rendering.information_pri -> Rendering.load_icon(options.string("gutter_information_icon")),
     Rendering.warning_pri -> Rendering.load_icon(options.string("gutter_warning_icon")),
     Rendering.legacy_pri -> Rendering.load_icon(options.string("gutter_legacy_icon")),
     Rendering.error_pri -> Rendering.load_icon(options.string("gutter_error_icon")))
 
+  private val gutter_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(Set(Markup.WARNING, Markup.ERROR)), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(gutter_elements), _ =>
         {
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _),
+              List(XML.Elem(Markup(Markup.INFORMATION, _), _))))) =>
+            pri max Rendering.information_pri
           case (pri, Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body))) =>
             body match {
               case List(XML.Elem(Markup(Markup.LEGACY, _), _)) =>
@@ -412,11 +419,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.warning_pri -> warning_color,
     Rendering.error_pri -> error_color)
 
+  private val squiggly_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+
   def squiggly_underline(range: Text.Range): Stream[Text.Info[Color]] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(squiggly_elements), _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN ||

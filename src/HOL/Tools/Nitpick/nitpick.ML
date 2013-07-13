@@ -240,7 +240,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     fun pprint print =
       if mode = Auto_Try then
         Unsynchronized.change state_ref o Proof.goal_message o K
-        o Pretty.chunks o single
         o Pretty.mark Markup.information
       else
         print o Pretty.string_of
