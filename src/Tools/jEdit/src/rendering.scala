@@ -124,16 +124,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val bullet_color = color_value("bullet_color")
   val tooltip_color = color_value("tooltip_color")
   val writeln_color = color_value("writeln_color")
+  val information_color = color_value("information_color")
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
   val error1_color = color_value("error1_color")
   val writeln_message_color = color_value("writeln_message_color")
+  val information_message_color = color_value("information_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
   val error_message_color = color_value("error_message_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
-  val information_color = color_value("information_color")
   val quoted_color = color_value("quoted_color")
   val antiquoted_color = color_value("antiquoted_color")
   val highlight_color = color_value("highlight_color")
@@ -416,6 +417,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val squiggly_colors = Map(
     Rendering.writeln_pri -> writeln_color,
+    Rendering.information_pri -> information_color,
     Rendering.warning_pri -> warning_color,
     Rendering.error_pri -> error_color)
 
@@ -426,10 +428,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val results =
       snapshot.cumulate_markup[Int](range, 0, Some(squiggly_elements), _ =>
         {
-          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
+          case (pri, Text.Info(_, msg @ XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN ||
             name == Markup.WARNING ||
-            name == Markup.ERROR => pri max Rendering.message_pri(name)
+            name == Markup.ERROR =>
+              if (Protocol.is_information(msg)) pri max Rendering.information_pri
+              else pri max Rendering.message_pri(name)
         })
     for {
       Text.Info(r, pri) <- results
@@ -438,20 +442,24 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val messages_include =
-    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE)
-
   private val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
+    Rendering.information_pri -> information_message_color,
     Rendering.tracing_pri -> tracing_message_color,
     Rendering.warning_pri -> warning_message_color,
     Rendering.error_pri -> error_message_color)
 
+  private val line_background_elements =
+    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE,
+      Markup.ERROR_MESSAGE, Markup.INFORMATION)
+
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(messages_include), _ =>
+      snapshot.cumulate_markup[Int](range, 0, Some(line_background_elements), _ =>
         {
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.INFORMATION, _), _))) =>
+            pri max Rendering.information_pri
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN_MESSAGE ||
             name == Markup.TRACING_MESSAGE ||
@@ -478,8 +486,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val background1_include =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
-      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
-      Markup.INFORMATION ++ active_include
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
+      active_include
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -497,8 +505,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.INFORMATION, _), _))) =>
-                (None, Some(information_color))
               case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                 command_state.results.get(serial) match {
                   case Some(Protocol.Dialog_Result(res)) if res == result =>
