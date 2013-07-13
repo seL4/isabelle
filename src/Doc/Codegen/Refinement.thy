@@ -236,7 +236,7 @@ text {*
   \noindent This we have to prove indirectly as follows:
 *}
 
-lemma %quote [code abstract]:
+lemma %quote [code]:
   "list_of_dlist Dlist.empty = []"
   by (fact list_of_dlist_empty)
 
@@ -247,11 +247,11 @@ text {*
   similar:
 *}
 
-lemma %quote [code abstract]:
+lemma %quote [code]:
   "list_of_dlist (Dlist.insert x dxs) = List.insert x (list_of_dlist dxs)"
   by (fact list_of_dlist_insert)
 
-lemma %quote [code abstract]:
+lemma %quote [code]:
   "list_of_dlist (Dlist.remove x dxs) = remove1 x (list_of_dlist dxs)"
   by (fact list_of_dlist_remove)
 
@@ -261,7 +261,7 @@ text {*
 
 text %quotetypewriter {*
   @{code_stmts Dlist.empty Dlist.insert Dlist.remove list_of_dlist (Haskell)}
-*} (*(types) dlist (consts) dempty dinsert dremove list_of List.member insert remove *)
+*}
 
 text {*
   Typical data structures implemented by representations involving

@@ -22,7 +22,6 @@ sig
 
   (*code equations and certificates*)
   val mk_eqn: theory -> thm * bool -> thm * bool
-  val mk_eqn_warning: theory -> thm -> (thm * bool) option
   val mk_eqn_liberal: theory -> thm -> (thm * bool) option
   val assert_eqn: theory -> thm * bool -> thm * bool
   val const_typ_eqn: theory -> thm -> string * typ
@@ -535,7 +534,9 @@ fun assert_abs_eqn thy some_tyco thm =
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
           else bad_thm ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
       | NONE => ();
-    val (vs', (_, (rep', _))) = get_abstype_spec thy tyco;
+    val (vs', (_, (rep', _))) = case try (get_abstype_spec thy) tyco
+     of SOME data => data
+      | NONE => bad_thm ("Not an abstract type: " ^ tyco);
     val _ = if rep_const = rep' then ()
       else bad_thm ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
     val _ = check_eqn thy { allow_nonlinear = false,
@@ -551,11 +552,18 @@ fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global t
 fun mk_eqn thy = error_thm (gen_assert_eqn thy false) thy o
   apfst (meta_rewrite thy);
 
-fun mk_eqn_warning thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o warning_thm (gen_assert_eqn thy false) thy o rpair false o meta_rewrite thy;
-
 fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
   o try_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
+
+fun mk_eqn_maybe_abs thy raw_thm =
+  let
+    val thm = meta_rewrite thy raw_thm;
+    val some_abs_thm = try_thm (assert_abs_eqn thy NONE) thm;
+  in case some_abs_thm
+   of SOME (thm, tyco) => SOME ((thm, true), SOME tyco)
+    | NONE => (Option.map (fn (thm, _) => ((thm, is_linear thm), NONE))
+        o warning_thm (gen_assert_eqn thy false) thy) (thm, false)
+  end;
 
 fun mk_abs_eqn thy = error_abs_thm (assert_abs_eqn thy NONE) thy o meta_rewrite thy;
 
@@ -1060,13 +1068,14 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec false c (add_eqn' default) thy end;
 
+fun gen_add_abs_eqn raw_thm thy =
+  let
+    val (abs_thm, tyco) = apfst Thm.close_derivation raw_thm;
+    val c = const_abs_eqn thy abs_thm;
+  in change_fun_spec false c (K (Abstr (abs_thm, tyco))) thy end;
+
 fun add_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, true)) thy;
-
-fun add_warning_eqn thm thy =
-  case mk_eqn_warning thy thm
-   of SOME eqn => gen_add_eqn false eqn thy
-    | NONE => thy;
 
 fun add_nbe_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, false)) thy;
@@ -1087,11 +1096,13 @@ val add_nbe_default_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_nbe_default_eqn thm) I);
 val add_nbe_default_eqn_attrib = Attrib.internal (K add_nbe_default_eqn_attribute);
 
-fun add_abs_eqn raw_thm thy =
-  let
-    val (abs_thm, tyco) = (apfst Thm.close_derivation o mk_abs_eqn thy) raw_thm;
-    val c = const_abs_eqn thy abs_thm;
-  in change_fun_spec false c (K (Abstr (abs_thm, tyco))) thy end;
+fun add_abs_eqn raw_thm thy = gen_add_abs_eqn (mk_abs_eqn thy raw_thm) thy;
+
+fun add_eqn_maybe_abs thm thy =
+  case mk_eqn_maybe_abs thy thm
+   of SOME (eqn, NONE) => gen_add_eqn false eqn thy
+    | SOME ((thm, _), SOME tyco) => gen_add_abs_eqn (thm, tyco) thy
+    | NONE => thy;
 
 fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => let
@@ -1226,10 +1237,11 @@ val _ = Context.>> (Context.map_theory
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     val code_attribute_parser =
       Args.del |-- Scan.succeed (mk_attribute del_eqn)
+      || Args.$$$ "equation" |-- Scan.succeed (mk_attribute add_eqn)
       || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
       || Args.$$$ "abstype" |-- Scan.succeed (mk_attribute add_abstype)
       || Args.$$$ "abstract" |-- Scan.succeed (mk_attribute add_abs_eqn)
-      || Scan.succeed (mk_attribute add_warning_eqn);
+      || Scan.succeed (mk_attribute add_eqn_maybe_abs);
   in
     Datatype_Interpretation.init
     #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)

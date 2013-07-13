@@ -84,6 +84,9 @@ situations.
 
 *** HOL ***
 
+* Attibute 'code': 'code' now declares concrete and abstract code equations uniformly.
+Use explicit 'code equation' and 'code abstract' to distinguish both when desired.
+
 * Code generator:
   * 'code_printing' unifies 'code_const' / 'code_type' / 'code_class' / 'code_instance'.
   * 'code_identifier' declares name hints for arbitrary identifiers in generated code,

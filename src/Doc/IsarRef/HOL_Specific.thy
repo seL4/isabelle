@@ -2242,7 +2242,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
 
-    @@{attribute (HOL) code} ( 'del' | 'abstype' | 'abstract' )?
+    @@{attribute (HOL) code} ( 'del' | 'equation' | 'abstype' | 'abstract' )?
     ;
 
     @@{command (HOL) code_abort} ( const + )
@@ -2397,12 +2397,18 @@ text {* For validation purposes, it is often useful to \emph{execute}
   ``@{verbatim "deriving (Read, Show)"}'' clause to each appropriate
   datatype declaration.
 
-  \item @{attribute (HOL) code} explicitly selects (or with option
-  ``@{text "del"}'' deselects) a code equation for code generation.
-  Usually packages introducing code equations provide a reasonable
-  default setup for selection.  Variants @{text "code abstype"} and
+  \item @{attribute (HOL) code} declare code equations for code
+  generation.  Variant @{text "code equation"} declares a conventional
+  equation as code equation.  Variants @{text "code abstype"} and
   @{text "code abstract"} declare abstract datatype certificates or
   code equations on abstract datatype representations respectively.
+  Vanilla @{text "code"} falls back to @{text "code equation"}
+  or @{text "code abstype"} depending on the syntactic shape
+  of the underlying equation.  Variant @{text "code del"}
+  deselects a code equation for code generation.
+
+  Usually packages introducing code equations provide a reasonable
+  default setup for selection.  
 
   \item @{command (HOL) "code_abort"} declares constants which are not
   required to have a definition by means of code equations; if needed
