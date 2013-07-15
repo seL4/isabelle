@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/cygwin_init.scala
     Author:     Makarius
 
-Initialize Isabelle distribution after download.
+Initialize Isabelle distribution after extracting via 7zip.
 */
 
 package isabelle
@@ -13,6 +13,7 @@ import java.nio.file.{Paths, Files}
 import java.awt.{GraphicsEnvironment, Point, Font}
 import javax.swing.ImageIcon
 
+import scala.annotation.tailrec
 import scala.swing.{ScrollPane, Button, FlowPanel,
   BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
@@ -20,22 +21,6 @@ import scala.swing.event.ButtonClicked
 
 object Cygwin_Init
 {
-  /* symlinks */
-
-  def write_symlink(file: JFile, content: String)
-  {
-    require(Platform.is_windows)
-
-    val path = file.toPath
-
-    val writer = Files.newBufferedWriter(path, UTF8.charset)
-    try { writer.write("!<symlink>" + content + "\0") }
-    finally { writer.close }
-
-    Files.setAttribute(path, "dos:system", true)
-  }
-
-
   /* command-line entry point */
 
   def main(args: Array[String]) =
@@ -138,6 +123,33 @@ object Cygwin_Init
     if (!(new JFile(cygwin_root)).isDirectory)
       error("Bad Isabelle Cygwin directory: " + quote(cygwin_root))
 
+    echo("Initializing Cygwin ...")
+
+    echo("symlinks ...")
+    val symlinks =
+    {
+      val path = (new JFile(cygwin_root, "isabelle\\symlinks")).toPath
+      Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
+    }
+    @tailrec def recover_symlinks(list: List[String]): Unit =
+    {
+      list match {
+        case Nil | List("") =>
+        case link :: content :: rest =>
+          val path = (new JFile(isabelle_home, link)).toPath
+
+          val writer = Files.newBufferedWriter(path, UTF8.charset)
+          try { writer.write("!<symlink>" + content + "\0") }
+          finally { writer.close }
+
+          Files.setAttribute(path, "dos:system", true)
+
+          recover_symlinks(rest)
+        case _ => error("Unbalanced symlinks list")
+      }
+    }
+    recover_symlinks(symlinks)
+
 
     val execute_cwd = new JFile(isabelle_home)
     val execute_env = Map("CYGWIN" -> "nodosfilewarning")
@@ -160,8 +172,10 @@ object Cygwin_Init
       proc.waitFor
     }
 
-    echo("Initializing Cygwin ...")
+    echo("rebaseall ...")
     execute("contrib\\cygwin\\bin\\dash", "/isabelle/rebaseall")
+
+    echo("postinstall ...")
     execute("contrib\\cygwin\\bin\\bash", "/isabelle/postinstall")
   }
 }
