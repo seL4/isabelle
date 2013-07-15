@@ -57,10 +57,9 @@ val _ =
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 
-        val (assign_update, state') = Document.update old_id new_id edits state;
-
-        val _ = List.app Future.cancel_group (Goal.reset_futures ());
-        val _ = Isabelle_Process.reset_tracing ();
+        val (removed, assign_update, state') = Document.update old_id new_id edits state;
+        val _ = List.app Execution.terminate removed;
+        val _ = List.app Isabelle_Process.reset_tracing removed;
 
         val _ =
           Output.protocol_message Markup.assign_update
