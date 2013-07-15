@@ -271,7 +271,7 @@ proof (induct n arbitrary: P rule: nat_less_induct)
       with 1 have "\<And>P. Ipol ls (pow l P) = Ipol ls P ^ l" by simp
       moreover
       note Suc `even l` even_nat_plus_one_div_two
-      ultimately show ?thesis by (auto simp add: mul_ci power_Suc even_pow)
+      ultimately show ?thesis by (auto simp add: mul_ci even_pow)
     next
       assume "odd l"
       {
@@ -286,7 +286,7 @@ proof (induct n arbitrary: P rule: nat_less_induct)
           have two_times: "2 * (w div 2) = w"
             by (simp only: numerals even_nat_div_two_times_two [OF `even w`])
           have "Ipol ls P * Ipol ls P = Ipol ls P ^ Suc (Suc 0)"
-            by (simp add: power_Suc)
+            by simp
           then have "Ipol ls P * Ipol ls P = Ipol ls P ^ 2"
             by (simp add: numerals)
           with Suc show ?thesis
