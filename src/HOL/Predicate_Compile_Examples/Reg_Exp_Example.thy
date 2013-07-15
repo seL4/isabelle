@@ -85,7 +85,8 @@ where
  
 fun prop_regex :: "Nat * Nat * RE * RE * Sym list \<Rightarrow> bool"
 where
-  "prop_regex (n, (k, (p, (q, s)))) = ((accepts (repInt n k (And p q)) s) = (accepts (And (repInt n k p) (repInt n k q)) s))"
+  "prop_regex (n, (k, (p, (q, s)))) =
+    ((accepts (repInt n k (And p q)) s) = (accepts (And (repInt n k p) (repInt n k q)) s))"
 
 
 
@@ -97,7 +98,10 @@ quickcheck[tester = predicate_compile_ff_fs]*)
 oops
 
 
-setup {* Context.theory_map (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals))) *}
+setup {*
+  Context.theory_map
+    (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
+*}
 
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,

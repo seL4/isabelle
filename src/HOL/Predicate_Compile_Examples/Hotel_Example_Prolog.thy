@@ -31,7 +31,9 @@ where
 
 lemma [code_pred_def]:
   "cardsp [] g k = False"
-  "cardsp (e # s) g k = (let C = cardsp s g in case e of Check_in g' r c => if g' = g then k = c \<or> C k else C k | _ => C k)"
+  "cardsp (e # s) g k =
+    (let C = cardsp s g
+     in case e of Check_in g' r c => if g' = g then k = c \<or> C k else C k | _ => C k)"
 unfolding cardsp_def [abs_def] cards.simps by (auto simp add: Let_def split: event.split)
 
 definition
@@ -79,7 +81,10 @@ setup {* Code_Prolog.map_code_options (K
 
 values 40 "{s. hotel s}"
 
-setup {* Context.theory_map (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals))) *}
+setup {*
+  Context.theory_map
+    (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
+*}
 
 lemma "\<lbrakk> hotel s; isinp s r g \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[tester = prolog, iterations = 1, expect = counterexample]
