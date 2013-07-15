@@ -85,6 +85,12 @@ object Pretty_Tooltip
       }
     }
 
+  def revoke(): Unit =
+    Swing_Thread.required {
+      pending = None
+      pending_delay.revoke()
+    }
+
   private lazy val reactivate_delay =
     Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
       active = true
@@ -92,9 +98,8 @@ object Pretty_Tooltip
 
   private def deactivate(): Unit =
     Swing_Thread.required {
-      pending = None
+      revoke()
       active = false
-      pending_delay.revoke()
       reactivate_delay.invoke()
     }
 
@@ -118,13 +123,15 @@ object Pretty_Tooltip
   }
 
   def dismissed_all(): Boolean =
+  {
+    deactivate()
     if (stack.isEmpty) false
     else {
-      deactivate()
       stack.foreach(_.hide_popup)
       stack = Nil
       true
     }
+  }
 
 
   /* auxiliary geometry measurement */
