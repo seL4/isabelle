@@ -426,7 +426,7 @@ fun split_conj_prems limit th =
 fun mk_sumEN 1 = @{thm one_pointE}
   | mk_sumEN 2 = @{thm sumE}
   | mk_sumEN n =
-    (fold (fn i => fn thm => @{thm obj_sum_step} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
+    (fold (fn i => fn thm => @{thm obj_sumE_f} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
       replicate n (impI RS allI);
 
 fun mk_obj_sumEN_balanced n =

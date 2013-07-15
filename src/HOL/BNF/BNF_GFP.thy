@@ -174,9 +174,6 @@ by simp
 lemma snd_diag_id: "(snd \<circ> (%x. (x, x))) z = id z"
 by simp
 
-lemma Collect_restrict': "{(x, y) | x y. phi x y \<and> P x y} \<subseteq> {(x, y) | x y. phi x y}"
-by auto
-
 lemma image_convolD: "\<lbrakk>(a, b) \<in> <f, g> ` X\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> X \<and> a = f x \<and> b = g x"
 unfolding convol_def by auto
 
@@ -213,14 +210,6 @@ qed
 lemma not_in_Shift: "kl \<notin> Shift Kl x \<Longrightarrow> x # kl \<notin> Kl"
 unfolding Shift_def by simp
 
-lemma prefCl_Succ: "\<lbrakk>prefCl Kl; k # kl \<in> Kl\<rbrakk> \<Longrightarrow> k \<in> Succ Kl []"
-unfolding Succ_def proof
-  assume "prefCl Kl" "k # kl \<in> Kl"
-  moreover have "prefixeq (k # []) (k # kl)" by auto
-  ultimately have "k # [] \<in> Kl" unfolding prefCl_def by blast
-  thus "[] @ [k] \<in> Kl" by simp
-qed
-
 lemma SuccD: "k \<in> Succ Kl kl \<Longrightarrow> kl @ [k] \<in> Kl"
 unfolding Succ_def by simp
 
@@ -234,18 +223,6 @@ unfolding Shift_def by simp
 
 lemma Succ_Shift: "Succ (Shift Kl k) kl = Succ Kl (k # kl)"
 unfolding Succ_def Shift_def by auto
-
-lemma ShiftI: "k # kl \<in> Kl \<Longrightarrow> kl \<in> Shift Kl k"
-unfolding Shift_def by simp
-
-lemma Func_cexp: "|Func A B| =o |B| ^c |A|"
-unfolding cexp_def Field_card_of by (simp only: card_of_refl)
-
-lemma clists_bound: "A \<in> Field (cpow (clists r)) - {{}} \<Longrightarrow> |A| \<le>o clists r"
-unfolding cpow_def clists_def Field_card_of by (auto simp: card_of_mono1)
-
-lemma cpow_clists_czero: "\<lbrakk>A \<in> Field (cpow (clists r)) - {{}}; |A| =o czero\<rbrakk> \<Longrightarrow> False"
-unfolding cpow_def clists_def card_of_ordIso_czero_iff_empty by auto
 
 lemma Nil_clists: "{[]} \<subseteq> Field (clists r)"
 unfolding clists_def Field_card_of by auto

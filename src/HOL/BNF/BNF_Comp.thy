@@ -64,15 +64,6 @@ lemma wpull_cong:
 "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
 by simp
 
-lemma Id_def': "Id = {(a,b). a = b}"
-by auto
-
-lemma Gr_fst_snd: "(Gr R fst)^-1 O Gr R snd = R"
-unfolding Gr_def by auto
-
-lemma O_Gr_cong: "A = B \<Longrightarrow> (Gr A f)^-1 O Gr A g = (Gr B f)^-1 O Gr B g"
-by simp
-
 lemma Grp_fst_snd: "(Grp (Collect (split R)) fst)^--1 OO Grp (Collect (split R)) snd = R"
 unfolding Grp_def fun_eq_iff relcompp.simps by auto
 

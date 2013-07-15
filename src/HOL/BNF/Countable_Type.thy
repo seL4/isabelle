@@ -53,16 +53,6 @@ assumes AB: "|A| <o |B|" and B: "countable B"
 shows "countable A"
 using countable_ordLeq[OF ordLess_imp_ordLeq[OF AB] B] .
 
-lemma ordLeq_countable:
-assumes "|A| \<le>o |B|" and "countable B"
-shows "countable A"
-using assms unfolding countable_card_of_nat by(rule ordLeq_transitive)
-
-lemma ordLess_countable:
-assumes A: "|A| <o |B|" and B: "countable B"
-shows "countable A"
-by (rule ordLeq_countable[OF ordLess_imp_ordLeq[OF A] B])
-
 subsection{*  The type of countable sets *}
 
 typedef 'a cset = "{A :: 'a set. countable A}"

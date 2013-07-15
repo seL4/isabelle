@@ -331,8 +331,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
                 rel_conversep_of_bnf bnf RS sym], rel_Grp],
               trans OF [rel_OO_of_bnf bnf RS sym, rel_cong_of_bnf bnf OF
                 (replicate n @{thm trans[OF Grp_UNIV_id[OF refl] eq_alt[symmetric]]} @
-                 replicate (live - n) @{thm Grp_fst_snd})]]] RS sym)
-          (*|> unfold_thms lthy (rel_def_of_bnf bnf :: @{thms Id_def' mem_Collect_eq split_conv})*);
+                 replicate (live - n) @{thm Grp_fst_snd})]]] RS sym);
       in
         rtac thm 1
       end;

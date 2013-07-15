@@ -24,9 +24,6 @@ using Card_order_ctwo by (unfold ctwo_def Field_card_of)
 lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 
-lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
-  unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
-
 lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
   unfolding wpull_def Grp_def by auto
 

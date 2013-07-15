@@ -73,34 +73,6 @@ next
            split: option.splits)
 qed
 
-lemma card_of_list_in:
-  "|{xs. set xs \<subseteq> A}| \<le>o |Pfunc (UNIV :: nat set) A|" (is "|?LHS| \<le>o |?RHS|")
-proof -
-  let ?f = "%xs. %i. if i < length xs \<and> set xs \<subseteq> A then Some (nth xs i) else None"
-  have "inj_on ?f ?LHS" unfolding inj_on_def fun_eq_iff
-  proof safe
-    fix xs :: "'a list" and ys :: "'a list"
-    assume su: "set xs \<subseteq> A" "set ys \<subseteq> A" and eq: "\<forall>i. ?f xs i = ?f ys i"
-    hence *: "length xs = length ys"
-    by (metis linorder_cases option.simps(2) order_less_irrefl)
-    thus "xs = ys" by (rule nth_equalityI) (metis * eq su option.inject)
-  qed
-  moreover have "?f ` ?LHS \<subseteq> ?RHS" unfolding Pfunc_def by fastforce
-  ultimately show ?thesis using card_of_ordLeq by blast
-qed
-
-lemma list_in_empty: "A = {} \<Longrightarrow> {x. set x \<subseteq> A} = {[]}"
-by simp
-
-lemma card_of_Func: "|Func A B| =o |B| ^c |A|"
-unfolding cexp_def Field_card_of by (rule card_of_refl)
-
-lemma not_emp_czero_notIn_ordIso_Card_order:
-"A \<noteq> {} \<Longrightarrow> ( |A|, czero) \<notin> ordIso \<and> Card_order |A|"
-  apply (rule conjI)
-  apply (metis Field_card_of czeroE)
-  by (rule card_of_Card_order)
-
 lemma wpull_map:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull {x. set x \<subseteq> A} {x. set x \<subseteq> B1} {x. set x \<subseteq> B2} (map f1) (map f2) (map p1) (map p2)"
@@ -143,9 +115,7 @@ next
 next
   fix x
   show "|set x| \<le>o natLeq"
-    apply (rule ordLess_imp_ordLeq)
-    apply (rule finite_ordLess_infinite[OF _ natLeq_Well_order])
-    unfolding Field_natLeq Field_card_of by (auto simp: card_of_well_order_on)
+    by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
 qed (simp add: wpull_map)+
 
 (* Finite sets *)
@@ -185,9 +155,6 @@ next
   apply (transfer, clarsimp, metis snd_conv)
   by (transfer, clarsimp, metis fst_conv)
 qed
-
-lemma abs_fset_rep_fset[simp]: "abs_fset (rep_fset x) = x"
-  by (rule Quotient_fset[unfolded Quotient_def, THEN conjunct1, rule_format])
 
 lemma wpull_image:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
