@@ -2219,7 +2219,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
                 |> Thm.close_derivation)
               goals cTs dtor_unfold_thms map_comp's map_cong0s;
           in
-            map_split (fn thm => (thm RS @{thm pointfreeE}, thm)) maps
+            map_split (fn thm => (thm RS @{thm comp_eq_dest}, thm)) maps
           end;
 
         val map_comp_thms =

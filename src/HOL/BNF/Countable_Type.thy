@@ -92,10 +92,6 @@ lemma rcset[simp]:
 "countable (rcset C)"
 using Rep_cset by simp
 
-lemma rcset_inj[simp]:
-"rcset C = rcset D \<longleftrightarrow> C = D"
-by (metis acset_rcset)
-
 lemma rcset_surj:
 assumes "countable A"
 shows "\<exists> C. rcset C = A"

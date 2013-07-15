@@ -78,7 +78,7 @@ fun mk_comp_set_map_tac Gmap_comp Gmap_cong0 Gset_map set_maps =
      [rtac (Gset_map RS o_eq_dest_lhs), rtac sym, rtac trans_o_apply,
      rtac trans_image_cong_o_apply, rtac trans_image_cong_o_apply,
      rtac (@{thm image_cong} OF [Gset_map RS o_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
-     rtac @{thm trans[OF pointfreeE[OF Union_natural[symmetric]]]}, rtac arg_cong_Union,
+     rtac @{thm trans[OF comp_eq_dest[OF Union_natural[symmetric]]]}, rtac arg_cong_Union,
      rtac @{thm trans[OF o_eq_dest_lhs[OF image_o_collect[symmetric]]]},
      rtac @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
      [REPEAT_DETERM_N (length set_maps) o EVERY' [rtac @{thm trans[OF image_insert]},

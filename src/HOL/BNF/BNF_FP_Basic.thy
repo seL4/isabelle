@@ -35,18 +35,6 @@ by clarify
 lemma prod_all_impI_step: "(\<And>x. \<forall>y. P (x, y) \<longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
 by auto
 
-lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()"
-by simp
-
-lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))"
-by clarsimp
-
-lemma rev_bspec: "a \<in> A \<Longrightarrow> \<forall>z \<in> A. P z \<Longrightarrow> P a"
-by simp
-
-lemma Un_cong: "\<lbrakk>A = B; C = D\<rbrakk> \<Longrightarrow> A \<union> C = B \<union> D"
-by simp
-
 lemma pointfree_idE: "f \<circ> g = id \<Longrightarrow> f (g x) = x"
 unfolding o_def fun_eq_iff by simp
 

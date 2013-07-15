@@ -140,12 +140,14 @@ val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
 val snd_convol_fun_cong_sym = @{thm snd_convol} RS fun_cong RS sym;
 val sum_case_weak_cong = @{thm sum_case_weak_cong};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
-val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]}
+val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]};
+val rev_bspec = Drule.rotate_prems 1 bspec;
+val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]}
 
 fun mk_coalg_set_tac coalg_def =
   dtac (coalg_def RS iffD1) 1 THEN
   REPEAT_DETERM (etac conjE 1) THEN
-  EVERY' [dtac @{thm rev_bspec}, atac] 1 THEN
+  EVERY' [dtac rev_bspec, atac] 1 THEN
   REPEAT_DETERM (eresolve_tac [CollectE, conjE] 1) THEN atac 1;
 
 fun mk_mor_elim_tac mor_def =
@@ -183,7 +185,7 @@ fun mk_mor_UNIV_tac morEs mor_def =
     EVERY' [rtac iffI, CONJ_WRAP' mor_tac morEs,
     stac mor_def, rtac conjI, CONJ_WRAP' (K (rtac ballI THEN' rtac UNIV_I)) morEs,
     CONJ_WRAP' (fn i =>
-      EVERY' [dtac (mk_conjunctN n i), rtac ballI, etac @{thm pointfreeE}]) (1 upto n)] 1
+      EVERY' [dtac (mk_conjunctN n i), rtac ballI, etac @{thm comp_eq_dest}]) (1 upto n)] 1
   end;
 
 fun mk_mor_str_tac ks mor_UNIV =
@@ -194,7 +196,7 @@ fun mk_mor_sum_case_tac ks mor_UNIV =
 
 fun mk_set_incl_hset_tac def rec_Suc =
   EVERY' (stac def ::
-    map rtac [@{thm incl_UNION_I}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1},
+    map rtac [@{thm SUP_upper2}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1},
       sym, rec_Suc]) 1;
 
 fun mk_set_hset_incl_hset_tac n defs rec_Suc i =
@@ -238,10 +240,10 @@ fun mk_mor_hset_rec_tac m n cts j rec_0s rec_Sucs morEs set_mapss coalg_setss =
       (fn (rec_Suc, (morE, ((passive_set_maps, active_set_maps), coalg_sets))) =>
         EVERY' [rtac impI, rtac (rec_Suc RS trans), rtac (rec_Suc RS trans RS sym),
           if m = 0 then K all_tac
-          else EVERY' [rtac @{thm Un_cong}, rtac box_equals,
+          else EVERY' [rtac Un_cong, rtac box_equals,
             rtac (nth passive_set_maps (j - 1) RS sym),
             rtac trans_fun_cong_image_id_id_apply, etac (morE RS arg_cong), atac],
-          CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_cong}))
+          CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 Un_cong))
             (fn (i, (set_map, coalg_set)) =>
               EVERY' [rtac sym, rtac trans, rtac (refl RSN (2, @{thm UN_cong})),
                 etac (morE RS sym RS arg_cong RS trans), atac, rtac set_map,
@@ -360,7 +362,7 @@ fun mk_bis_Union_tac bis_def in_monos {context = ctxt, prems = _} =
         EVERY' [rtac allI, rtac allI, rtac impI, etac @{thm UN_E}, dtac bspec, atac,
           dtac conjunct2, dtac (mk_conjunctN n i), etac allE, etac allE, dtac mp,
           atac, etac bexE, rtac bexI, atac, rtac in_mono,
-          REPEAT_DETERM_N n o etac @{thm incl_UNION_I[OF _ subset_refl]},
+          REPEAT_DETERM_N n o etac @{thm SUP_upper2[OF _ subset_refl]},
           atac]) (ks ~~ in_monos)] 1
   end;
 
@@ -374,7 +376,7 @@ fun mk_sbis_lsbis_tac ctxt lsbis_defs bis_Union bis_cong =
   end;
 
 fun mk_incl_lsbis_tac n i lsbis_def =
-  EVERY' [rtac @{thm xt1(3)}, rtac lsbis_def, rtac @{thm incl_UNION_I}, rtac CollectI,
+  EVERY' [rtac @{thm xt1(3)}, rtac lsbis_def, rtac @{thm SUP_upper2}, rtac CollectI,
     REPEAT_DETERM_N n o rtac exI, rtac conjI, rtac refl, atac, rtac equalityD2,
     rtac (mk_nth_conv n i)] 1;
 
@@ -1122,8 +1124,8 @@ fun mk_col_natural_tac cts rec_0s rec_Sucs dtor_maps set_mapss
       CONJ_WRAP' (fn (rec_Suc, (dtor_map, set_nats)) => EVERY'
         [SELECT_GOAL (unfold_thms_tac ctxt
           (rec_Suc :: dtor_map :: set_nats @ @{thms image_Un image_UN UN_simps(10)})),
-        rtac @{thm Un_cong}, rtac refl,
-        CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_cong}))
+        rtac Un_cong, rtac refl,
+        CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 Un_cong))
           (fn i => EVERY' [rtac @{thm UN_cong[OF refl]},
             REPEAT_DETERM o etac allE, etac (mk_conjunctN n i)]) (n downto 1)])
       (rec_Sucs ~~ (dtor_maps ~~ set_mapss))] 1

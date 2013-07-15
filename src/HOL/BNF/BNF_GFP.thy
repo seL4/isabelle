@@ -247,11 +247,6 @@ unfolding cpow_def clists_def Field_card_of by (auto simp: card_of_mono1)
 lemma cpow_clists_czero: "\<lbrakk>A \<in> Field (cpow (clists r)) - {{}}; |A| =o czero\<rbrakk> \<Longrightarrow> False"
 unfolding cpow_def clists_def card_of_ordIso_czero_iff_empty by auto
 
-lemma incl_UNION_I:
-assumes "i \<in> I" and "A \<subseteq> F i"
-shows "A \<subseteq> UNION I F"
-using assms by auto
-
 lemma Nil_clists: "{[]} \<subseteq> Field (clists r)"
 unfolding clists_def Field_card_of by auto
 

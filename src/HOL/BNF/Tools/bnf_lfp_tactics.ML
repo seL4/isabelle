@@ -87,6 +87,8 @@ val fst_snd_convs = @{thms fst_conv snd_conv};
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
 val subset_trans = @{thm subset_trans};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
+val rev_bspec = Drule.rotate_prems 1 bspec;
+val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]}
 
 fun mk_alg_set_tac alg_def =
   dtac (alg_def RS iffD1) 1 THEN
@@ -123,7 +125,7 @@ fun mk_mor_comp_tac mor_def set_map's map_comp_ids =
     val fbetw_tac = EVERY' [rtac ballI, stac o_apply, etac bspec, etac bspec, atac];
     fun mor_tac (set_map', map_comp_id) =
       EVERY' [rtac ballI, stac o_apply, rtac trans,
-        rtac trans, dtac @{thm rev_bspec}, atac, etac arg_cong,
+        rtac trans, dtac rev_bspec, atac, etac arg_cong,
          REPEAT o eresolve_tac [CollectE, conjE], etac bspec, rtac CollectI] THEN'
       CONJ_WRAP' (fn thm =>
         FIRST' [rtac subset_UNIV,
@@ -147,7 +149,7 @@ fun mk_mor_inv_tac alg_def mor_def set_map's morEs map_comp_ids map_cong0Ls =
           (EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans,
             etac @{thm image_mono}, atac])]) set_map';
     fun mor_tac (set_map', ((morE, map_comp_id), map_cong0L)) =
-      EVERY' [rtac ballI, ftac @{thm rev_bspec}, atac,
+      EVERY' [rtac ballI, ftac rev_bspec, atac,
          REPEAT o eresolve_tac [CollectE, conjE], rtac sym, rtac trans, rtac sym,
          etac @{thm inverE}, etac bspec, rtac CollectI, Collect_tac set_map',
          rtac trans, etac (morE RS arg_cong), rtac CollectI, Collect_tac set_map',
@@ -270,7 +272,7 @@ fun mk_min_algs_tac worel in_congs =
   let
     val minG_tac = EVERY' [rtac @{thm UN_cong}, rtac refl, dtac bspec, atac, etac arg_cong];
     fun minH_tac thm =
-      EVERY' [rtac @{thm Un_cong}, minG_tac, rtac @{thm image_cong}, rtac thm,
+      EVERY' [rtac Un_cong, minG_tac, rtac @{thm image_cong}, rtac thm,
         REPEAT_DETERM_N (length in_congs) o minG_tac, rtac refl];
   in
     (rtac (worel RS (@{thm wo_rel.worec_fixpoint} RS fun_cong)) THEN' rtac ssubst THEN'
@@ -391,7 +393,7 @@ fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_sel
   let
     val n = length alg_sets;
     val fbetw_tac =
-      CONJ_WRAP' (K (EVERY' [rtac ballI, etac @{thm rev_bspec}, etac CollectE, atac])) alg_sets;
+      CONJ_WRAP' (K (EVERY' [rtac ballI, etac rev_bspec, etac CollectE, atac])) alg_sets;
     val mor_tac =
       CONJ_WRAP' (fn thm => EVERY' [rtac ballI, rtac thm]) str_init_defs;
     fun alg_epi_tac ((alg_set, str_init_def), set_map') =
@@ -583,7 +585,7 @@ fun mk_map_tac m n foldx map_comp_id map_cong0 =
 fun mk_ctor_map_unique_tac m mor_def fold_unique_mor map_comp_ids map_cong0s =
   let
     val n = length map_cong0s;
-    fun mk_mor (comp_id, cong) = EVERY' [rtac ballI, rtac trans, etac @{thm pointfreeE},
+    fun mk_mor (comp_id, cong) = EVERY' [rtac ballI, rtac trans, etac @{thm comp_eq_dest},
       rtac sym, rtac trans, rtac o_apply, rtac trans, rtac (comp_id RS arg_cong),
       rtac (cong RS arg_cong),
       REPEAT_DETERM_N m o rtac refl,
@@ -603,9 +605,9 @@ fun mk_ctor_set_tac set set_map' set_map's =
     fun mk_UN thm = rtac (thm RS @{thm arg_cong[of _ _ Union]} RS trans) THEN'
       rtac @{thm Union_image_eq};
   in
-    EVERY' [rtac (set RS @{thm pointfreeE} RS trans), rtac @{thm Un_cong},
+    EVERY' [rtac (set RS @{thm comp_eq_dest} RS trans), rtac Un_cong,
       rtac (trans OF [set_map', trans_fun_cong_image_id_id_apply]),
-      REPEAT_DETERM_N (n - 1) o rtac @{thm Un_cong},
+      REPEAT_DETERM_N (n - 1) o rtac Un_cong,
       EVERY' (map mk_UN set_map's)] 1
   end;
 
@@ -621,9 +623,9 @@ fun mk_set_nat_tac m induct_tac set_map'ss
     fun mk_set_nat cset ctor_map ctor_set set_nats =
       EVERY' [rtac trans, rtac @{thm image_cong}, rtac ctor_set, rtac refl,
         rtac sym, rtac (trans OF [ctor_map RS HOL_arg_cong cset, ctor_set RS trans]),
-        rtac sym, EVERY' (map rtac (trans :: @{thms image_Un Un_cong})),
+        rtac sym, EVERY' (map rtac [trans, @{thm image_Un}, Un_cong]),
         rtac sym, rtac (nth set_nats (i - 1)),
-        REPEAT_DETERM_N (n - 1) o EVERY' (map rtac (trans :: @{thms image_Un Un_cong})),
+        REPEAT_DETERM_N (n - 1) o EVERY' (map rtac [trans, @{thm image_Un}, Un_cong]),
         EVERY' (map useIH (drop m set_nats))];
   in
     (induct_tac THEN' EVERY' (map4 mk_set_nat csets ctor_maps ctor_sets set_map'ss)) 1

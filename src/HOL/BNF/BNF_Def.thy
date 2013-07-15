@@ -171,9 +171,6 @@ by (simp split: prod.split)
 lemma flip_pred: "A \<subseteq> Collect (split (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (split R)"
 by auto
 
-lemma pointfreeE: "f o g = f' o g' \<Longrightarrow> f (g x) = f' (g' x)"
-unfolding o_def fun_eq_iff by simp
-
 lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (split A) \<subseteq> Collect (split B)"
   by auto
 

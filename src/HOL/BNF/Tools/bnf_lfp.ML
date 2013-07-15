@@ -1451,7 +1451,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
                 |> Thm.close_derivation)
               goals ctor_fold_thms map_comp_id_thms map_cong0s;
           in
-            map (fn thm => thm RS @{thm pointfreeE}) maps
+            map (fn thm => thm RS @{thm comp_eq_dest}) maps
           end;
 
         val (ctor_map_unique_thms, ctor_map_unique_thm) =

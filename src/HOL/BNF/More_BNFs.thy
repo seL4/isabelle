@@ -297,7 +297,7 @@ by (erule finite_Collect_subsets)
 
 lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
 apply (rule f_the_inv_into_f)
-unfolding inj_on_def rcset_inj using rcset_surj by auto
+unfolding inj_on_def Rep_cset_inject using rcset_surj by auto
 
 lemma Collect_Int_Times:
 "{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"

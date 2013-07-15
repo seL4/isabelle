@@ -45,7 +45,7 @@ fun mk_map_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac cong0 THEN'
    REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
-fun mk_set_map' set_map = set_map RS @{thm pointfreeE};
+fun mk_set_map' set_map = set_map RS @{thm comp_eq_dest};
 fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   else (rtac subsetI THEN'
   rtac CollectI) 1 THEN

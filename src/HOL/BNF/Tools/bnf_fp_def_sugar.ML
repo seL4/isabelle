@@ -1174,7 +1174,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                   end;
 
                 val sumEN_thm' =
-                  unfold_thms lthy @{thms all_unit_eq}
+                  unfold_thms lthy @{thms unit_all_eq1}
                     (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) []
                        (mk_sumEN_balanced n))
                   |> Morphism.thm phi;

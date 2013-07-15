@@ -78,7 +78,7 @@ fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
 
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
   unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN
-  unfold_thms_tac ctxt @{thms all_prod_eq} THEN
+  unfold_thms_tac ctxt @{thms split_paired_all} THEN
   HEADGOAL (EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k,
     REPEAT_DETERM o dtac meta_spec, etac meta_mp, atac]) (1 upto n)));
 
