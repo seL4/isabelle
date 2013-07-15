@@ -230,8 +230,7 @@ object Isabelle_System
 
   /* raw execute for bootstrapping */
 
-  private def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
-    : Process =
+  def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline = new java.util.LinkedList[String]
     for (s <- args) cmdline.add(s)
