@@ -50,6 +50,11 @@ fun memo_stable (Memo v) =
    Expr _ => true
  | Result res => not (Exn.is_interrupt_exn res));
 
+fun memo_finished (Memo v) =
+  (case Synchronized.value v of
+   Expr _ => false
+ | Result res => not (Exn.is_interrupt_exn res));
+
 fun memo_exec execution_id (Memo v) =
   Synchronized.guarded_access v
     (fn expr =>
@@ -218,6 +223,9 @@ fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id =
 fun print_stable (Print {exec_id, print_process, ...}) =
   Goal.stable_futures exec_id andalso memo_stable print_process;
 
+fun print_finished (Print {exec_id, print_process, ...}) =
+  Goal.stable_futures exec_id andalso memo_finished print_process;
+
 fun print_persistent (Print {persistent, ...}) = persistent;
 
 in
@@ -258,7 +266,7 @@ fun print command_visible command_name eval old_prints =
           (case find_first (fn Print {name, ...} => name = fst pr) old_prints of
             SOME print => if print_stable print then SOME print else new_print pr
           | NONE => new_print pr))
-      else filter (fn print => print_persistent print andalso print_stable print) old_prints;
+      else filter (fn print => print_finished print andalso print_persistent print) old_prints;
   in
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
   end;
