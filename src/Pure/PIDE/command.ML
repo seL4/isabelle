@@ -59,16 +59,16 @@ fun memo_exec execution_id (Memo v) =
   Synchronized.guarded_access v
     (fn expr =>
       (case expr of
-        Result res => SOME (res, expr)
-      | Expr (exec_id, e) =>
+        Expr (exec_id, e) =>
           uninterruptible (fn restore_attributes => fn () =>
             if Execution.running execution_id exec_id then
               let
                 val res = Exn.capture (restore_attributes e) ();
                 val _ = Execution.finished exec_id;
-              in SOME (res, Result res) end
-            else SOME (Exn.interrupt_exn, expr)) ()))
-  |> Exn.release |> ignore;
+              in SOME (Exn.is_interrupt_exn res, Result res) end
+            else SOME (true, expr)) ()
+      | Result _ => SOME (false, expr)))
+  |> (fn true => Exn.interrupt () | false => ());
 
 fun memo_fork params execution_id (Memo v) =
   (case Synchronized.value v of
