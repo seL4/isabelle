@@ -5,5 +5,5 @@ BeginPrompt="Unpack {ISABELLE_NAME}?"
 ExtractPathText="Target directory"
 ExtractTitle="Unpacking {ISABELLE_NAME} ..."
 Shortcut="Du,{%%T\{ISABELLE_NAME}\{ISABELLE_NAME}.exe},{},{},{},{{ISABELLE_NAME}},{%%T\{ISABELLE_NAME}}"
-RunProgram="\"%%T\{ISABELLE_NAME}\contrib\jdk-7u21\x86-cygwin\jdk1.7.0_21\bin\java.exe\" -classpath \"%%T\{ISABELLE_NAME}\lib\classes\ext\Pure.jar;%%T\{ISABELLE_NAME}\lib\classes\ext\scala-library.jar;%%T\{ISABELLE_NAME}\lib\classes\ext\scala-swing.jar\" -D \"isabelle.home=\%%T\{ISABELLE_NAME}\""
+RunProgram="\"%%T\{ISABELLE_NAME}\contrib\jdk-7u21\x86-cygwin\jdk1.7.0_21\bin\javaw.exe\" -classpath \"%%T\{ISABELLE_NAME}\lib\classes\ext\Pure.jar;%%T\{ISABELLE_NAME}\lib\classes\ext\scala-library.jar;%%T\{ISABELLE_NAME}\lib\classes\ext\scala-swing.jar\" -D \"isabelle.home=\%%T\{ISABELLE_NAME}\""
 ;!@InstallEnd@!
