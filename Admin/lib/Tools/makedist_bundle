@@ -182,14 +182,14 @@ then
     (
       cd "$TMP"
       rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
-      7z -y -bd a "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
+      7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
 
       echo "application for $PLATFORM_FAMILY"
       (
         cat "windows_app/7zsd_All.sfx"
         cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
           perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
-        cat "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
+        cat "$TMP/${ISABELLE_NAME}.7z"
       ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
       chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
     )
