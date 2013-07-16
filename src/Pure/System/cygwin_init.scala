@@ -63,8 +63,8 @@ object Cygwin_Init
     val text_area = new TextArea {
       font = new Font("SansSerif", Font.PLAIN, GUI.resolution_scale(10) max 14)
       editable = false
-      columns = 80
-      rows = 24
+      columns = 50
+      rows = 15
     }
 
     layout_panel.layout(new ScrollPane(text_area)) = BorderPanel.Position.Center
@@ -123,7 +123,27 @@ object Cygwin_Init
     if (!(new JFile(cygwin_root)).isDirectory)
       error("Bad Isabelle Cygwin directory: " + quote(cygwin_root))
 
-    echo("Initializing Cygwin ...")
+    def execute(args: String*): Int =
+    {
+      val cwd = new JFile(isabelle_home)
+      val env = Map("CYGWIN" -> "nodosfilewarning")
+      val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
+      proc.getOutputStream.close
+
+      val stdout = new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
+      try {
+        var line = stdout.readLine
+        while (line != null) {
+          echo(line)
+          line = stdout.readLine
+        }
+      }
+      finally { stdout.close }
+
+      proc.waitFor
+    }
+
+    echo("Initializing Cygwin:")
 
     echo("symlinks ...")
     val symlinks =
@@ -150,33 +170,16 @@ object Cygwin_Init
     }
     recover_symlinks(symlinks)
 
-
-    val execute_cwd = new JFile(isabelle_home)
-    val execute_env = Map("CYGWIN" -> "nodosfilewarning")
-
-    def execute(args: String*): Int =
-    {
-      val proc = Isabelle_System.raw_execute(execute_cwd, execute_env, true, args: _*)
-      proc.getOutputStream.close
-
-      val stdout = new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
-      try {
-        var line = stdout.readLine
-        while (line != null) {
-          echo(line)
-          line = stdout.readLine
-        }
-      }
-      finally { stdout.close }
-
-      proc.waitFor
-    }
-
     echo("rebaseall ...")
-    execute("contrib\\cygwin\\bin\\dash", "/isabelle/rebaseall")
+    execute(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
 
     echo("postinstall ...")
-    execute("contrib\\cygwin\\bin\\bash", "/isabelle/postinstall")
+    execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
+
+    echo("init ...")
+    System.setProperty("cygwin.root", cygwin_root)
+    Isabelle_System.init()
+    echo("OK")
   }
 }
 

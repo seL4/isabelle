@@ -154,16 +154,6 @@ case "$PLATFORM_FAMILY" in
 
       find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" \
         > "contrib/cygwin/isabelle/symlinks"
-
-      cat >> "contrib/cygwin/isabelle/postinstall" <<EOF
-
-find -type d -exec chmod 755 '{}' +
-find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
-find -type f -not -name '*.exe' -not -name '*.dll' -exec chmod 644 '{}' +
-xargs -0 < contrib/cygwin/isabelle/executables chmod 755
-
-EOF
-
     )
 
     perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
