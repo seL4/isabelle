@@ -590,6 +590,17 @@ This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
+\exercise
+Give a readable, structured proof of the following lemma:
+*}
+lemma assumes T: "\<forall> x y. T x y \<or> T y x"
+  and A: "\<forall> x y. A x y \<and> A y x \<longrightarrow> x = y"
+  and TA: "\<forall> x y. T x y \<longrightarrow> A x y" and "A x y"
+shows "T x y"
+(*<*)oops(*>*)
+text{*
+\endexercise
+
 \section{Case Analysis and Induction}
 
 \subsection{Datatype Case Analysis}
