@@ -211,6 +211,7 @@ then
         mv "$ISABELLE_NAME" "$APP/Contents/Resources/."
         ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
 
+        rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
         hdiutil create -srcfolder "$APP" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
       )
       ;;
