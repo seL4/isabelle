@@ -231,7 +231,7 @@ done
 lemmas [simp] = fset.map_comp' fset.map_id' fset.set_map'
 
 lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
-  unfolding fset_rel_def set_rel_def by auto 
+  unfolding fset_rel_def set_rel_def by auto
 
 (* Countable sets *)
 
@@ -263,15 +263,14 @@ apply (rule disjI1)
 by (erule finite_Collect_subsets)
 
 lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
-apply (rule f_the_inv_into_f)
-unfolding inj_on_def Rep_cset_inject using rcset_surj by auto
+  apply (rule f_the_inv_into_f[unfolded inj_on_def image_iff])
+   apply transfer' apply simp
+  apply transfer' apply simp
+  done
 
 lemma Collect_Int_Times:
 "{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
 by auto
-
-lemma rcset_map': "rcset (cIm f x) = f ` rcset x"
-unfolding cIm_def[abs_def] by simp
 
 definition cset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a cset \<Rightarrow> 'b cset \<Rightarrow> bool" where
 "cset_rel R a b \<longleftrightarrow>
@@ -280,68 +279,55 @@ definition cset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> '
 
 lemma cset_rel_aux:
 "(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
- ((Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cIm fst))\<inverse>\<inverse> OO
-          Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cIm snd)) a b" (is "?L = ?R")
+ ((Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage fst))\<inverse>\<inverse> OO
+          Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage snd)) a b" (is "?L = ?R")
 proof
   assume ?L
   def R' \<equiv> "the_inv rcset (Collect (split R) \<inter> (rcset a \<times> rcset b))"
   (is "the_inv rcset ?L'")
-  have "countable ?L'" by auto
+  have L: "countable ?L'" by auto
   hence *: "rcset R' = ?L'" unfolding R'_def using fset_to_fset by (intro rcset_to_rcset)
-  show ?R unfolding Grp_def relcompp.simps conversep.simps
+  thus ?R unfolding Grp_def relcompp.simps conversep.simps
   proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
-    have "rcset a = fst ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?A")
-    using conjunct1[OF `?L`] unfolding image_def by (auto simp add: Collect_Int_Times)
-    hence "a = acset ?A" by (metis acset_rcset)
-    thus "a = cIm fst R'" unfolding cIm_def * by auto
-    have "rcset b = snd ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?B")
-    using conjunct2[OF `?L`] unfolding image_def by (auto simp add: Collect_Int_Times)
-    hence "b = acset ?B" by (metis acset_rcset)
-    thus "b = cIm snd R'" unfolding cIm_def * by auto
-  qed (auto simp add: *)
+    from * `?L` show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)
+  next
+    from * `?L` show "b = cimage snd R'" by transfer (auto simp: image_def Collect_Int_Times)
+  qed simp_all
 next
   assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (clarsimp, metis (lifting, no_types) rcset_map' image_iff surjective_pairing)
-  apply (clarsimp)
-  by (metis Domain.intros Range.simps rcset_map' fst_eq_Domain snd_eq_Range)
+    by transfer force
 qed
 
-bnf cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"] cset_rel
+bnf cimage [rcset] "\<lambda>_::'a cset. natLeq" ["cempty"] cset_rel
 proof -
-  show "cIm id = id" unfolding cIm_def[abs_def] id_def by auto
+  show "cimage id = id" by transfer' simp
 next
-  fix f g show "cIm (g \<circ> f) = cIm g \<circ> cIm f"
-  unfolding cIm_def[abs_def] apply(rule ext) unfolding comp_def by auto
+  fix f g show "cimage (g \<circ> f) = cimage g \<circ> cimage f" by transfer' fastforce
 next
   fix C f g assume eq: "\<And>a. a \<in> rcset C \<Longrightarrow> f a = g a"
-  thus "cIm f C = cIm g C"
-  unfolding cIm_def[abs_def] unfolding image_def by auto
+  thus "cimage f C = cimage g C" by transfer force
 next
-  fix f show "rcset \<circ> cIm f = op ` f \<circ> rcset" unfolding cIm_def[abs_def] by auto
+  fix f show "rcset \<circ> cimage f = op ` f \<circ> rcset" by transfer' fastforce
 next
   show "card_order natLeq" by (rule natLeq_card_order)
 next
   show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
-  fix C show "|rcset C| \<le>o natLeq" using rcset unfolding countable_card_le_natLeq .
+  fix C show "|rcset C| \<le>o natLeq" by transfer (unfold countable_card_le_natLeq)
 next
   fix A B1 B2 f1 f2 p1 p2
   assume wp: "wpull A B1 B2 f1 f2 p1 p2"
   show "wpull {x. rcset x \<subseteq> A} {x. rcset x \<subseteq> B1} {x. rcset x \<subseteq> B2}
-              (cIm f1) (cIm f2) (cIm p1) (cIm p2)"
+              (cimage f1) (cimage f2) (cimage p1) (cimage p2)"
   unfolding wpull_def proof safe
     fix y1 y2
     assume Y1: "rcset y1 \<subseteq> B1" and Y2: "rcset y2 \<subseteq> B2"
-    assume "cIm f1 y1 = cIm f2 y2"
-    hence EQ: "f1 ` (rcset y1) = f2 ` (rcset y2)"
-    unfolding cIm_def by auto
+    assume "cimage f1 y1 = cimage f2 y2"
+    hence EQ: "f1 ` (rcset y1) = f2 ` (rcset y2)" by transfer
     with Y1 Y2 obtain X where X: "X \<subseteq> A"
     and Y1: "p1 ` X = rcset y1" and Y2: "p2 ` X = rcset y2"
-    using wpull_image[OF wp] unfolding wpull_def Pow_def
-    unfolding Bex_def mem_Collect_eq apply -
-    apply(erule allE[of _ "rcset y1"], erule allE[of _ "rcset y2"]) by auto
+    using wpull_image[OF wp] unfolding wpull_def Pow_def Bex_def mem_Collect_eq
+      by (auto elim!: allE[of _ "rcset y1"] allE[of _ "rcset y2"])
     have "\<forall> y1' \<in> rcset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
     then obtain q1 where q1: "\<forall> y1' \<in> rcset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
     have "\<forall> y2' \<in> rcset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
@@ -350,16 +336,17 @@ next
     have X': "X' \<subseteq> A" and Y1: "p1 ` X' = rcset y1" and Y2: "p2 ` X' = rcset y2"
     using X Y1 Y2 q1 q2 unfolding X'_def by fast+
     have fX': "countable X'" unfolding X'_def by simp
-    then obtain x where X'eq: "X' = rcset x" by (metis rcset_acset)
-    show "\<exists>x\<in>{x. rcset x \<subseteq> A}. cIm p1 x = y1 \<and> cIm p2 x = y2"
-    apply(intro bexI[of _ "x"]) using X' Y1 Y2 unfolding X'eq cIm_def by auto
+    then obtain x where X'eq: "X' = rcset x" by transfer blast
+    show "\<exists>x\<in>{x. rcset x \<subseteq> A}. cimage p1 x = y1 \<and> cimage p2 x = y2"
+      using X' Y1 Y2 unfolding X'eq by (intro bexI[of _ "x"]) (transfer, auto)
   qed
 next
   fix R
   show "cset_rel R =
-        (Grp {x. rcset x \<subseteq> Collect (split R)} (cIm fst))\<inverse>\<inverse> OO Grp {x. rcset x \<subseteq> Collect (split R)} (cIm snd)"
+        (Grp {x. rcset x \<subseteq> Collect (split R)} (cimage fst))\<inverse>\<inverse> OO
+         Grp {x. rcset x \<subseteq> Collect (split R)} (cimage snd)"
   unfolding cset_rel_def[abs_def] cset_rel_aux by simp
-qed (unfold cEmp_def, auto)
+qed (transfer, simp)
 
 
 (* Multisets *)
@@ -375,108 +362,76 @@ proof-
   finally show ?thesis .
 qed
 
-(*   *)
-definition mmap :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'b \<Rightarrow> nat" where
-"mmap h f b = setsum f {a. h a = b \<and> f a > 0}"
-
-lemma mmap_id: "mmap id = id"
-proof (rule ext)+
-  fix f a show "mmap id f a = id f a"
-  proof(cases "f a = 0")
-    case False
-    hence 1: "{aa. aa = a \<and> 0 < f aa} = {a}" by auto
-    show ?thesis by (simp add: mmap_def id_apply 1)
-  qed(unfold mmap_def, auto)
-qed
-
-lemma inj_on_setsum_inv:
-assumes f: "f \<in> multiset"
-and 1: "(0::nat) < setsum f {a. h a = b' \<and> 0 < f a}" (is "0 < setsum f ?A'")
-and 2: "{a. h a = b \<and> 0 < f a} = {a. h a = b' \<and> 0 < f a}" (is "?A = ?A'")
-shows "b = b'"
-proof-
-  have "finite ?A'" using f unfolding multiset_def by auto
-  hence "?A' \<noteq> {}" using 1 by (auto simp add: setsum_gt_0_iff)
-  thus ?thesis using 2 by auto
-qed
-
-lemma mmap_comp:
-fixes h1 :: "'a \<Rightarrow> 'b" and h2 :: "'b \<Rightarrow> 'c"
-assumes f: "f \<in> multiset"
-shows "mmap (h2 o h1) f = (mmap h2 o mmap h1) f"
-unfolding mmap_def[abs_def] comp_def proof(rule ext)+
-  fix c :: 'c
-  let ?A = "{a. h2 (h1 a) = c \<and> 0 < f a}"
-  let ?As = "\<lambda> b. {a. h1 a = b \<and> 0 < f a}"
-  let ?B = "{b. h2 b = c \<and> 0 < setsum f (?As b)}"
-  have 0: "{?As b | b.  b \<in> ?B} = ?As ` ?B" by auto
-  have "\<And> b. finite (?As b)" using f unfolding multiset_def by simp
-  hence "?B = {b. h2 b = c \<and> ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
-  hence A: "?A = \<Union> {?As b | b.  b \<in> ?B}" by auto
-  have "setsum f ?A = setsum (setsum f) {?As b | b.  b \<in> ?B}"
-  unfolding A apply(rule setsum_Union_disjoint)
-  using f unfolding multiset_def by auto
-  also have "... = setsum (setsum f) (?As ` ?B)" unfolding 0 ..
-  also have "... = setsum (setsum f o ?As) ?B" apply(rule setsum_reindex)
-  unfolding inj_on_def apply auto using inj_on_setsum_inv[OF f, of h1] by blast
-  also have "... = setsum (\<lambda> b. setsum f (?As b)) ?B" unfolding comp_def ..
-  finally show "setsum f ?A = setsum (\<lambda> b. setsum f (?As b)) ?B" .
-qed
-
-lemma mmap_comp1:
-fixes h1 :: "'a \<Rightarrow> 'b" and h2 :: "'b \<Rightarrow> 'c"
-assumes "f \<in> multiset"
-shows "mmap (\<lambda> a. h2 (h1 a)) f = mmap h2 (mmap h1 f)"
-using mmap_comp[OF assms] unfolding comp_def by auto
-
-lemma mmap:
-assumes "f \<in> multiset"
-shows "mmap h f \<in> multiset"
-using assms unfolding mmap_def[abs_def] multiset_def proof safe
+lift_definition mmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" is
+  "\<lambda>h f b. setsum f {a. h a = b \<and> f a > 0} :: nat"
+unfolding multiset_def proof safe
+  fix h :: "'a \<Rightarrow> 'b" and f :: "'a \<Rightarrow> nat"
   assume fin: "finite {a. 0 < f a}"  (is "finite ?A")
   show "finite {b. 0 < setsum f {a. h a = b \<and> 0 < f a}}"
   (is "finite {b. 0 < setsum f (?As b)}")
   proof- let ?B = "{b. 0 < setsum f (?As b)}"
-    have "\<And> b. finite (?As b)" using assms unfolding multiset_def by simp
+    have "\<And> b. finite (?As b)" using fin by simp
     hence B: "?B = {b. ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
     hence "?B \<subseteq> h ` ?A" by auto
     thus ?thesis using finite_surj[OF fin] by auto
   qed
 qed
 
-lemma mmap_cong:
-assumes "\<And>a. a \<in># M \<Longrightarrow> f a = g a"
-shows "mmap f (count M) = mmap g (count M)"
-using assms unfolding mmap_def[abs_def] by (intro ext, intro setsum_cong) auto
-
-abbreviation supp where "supp f \<equiv> {a. f a > 0}"
-
-lemma mmap_image_comp:
-assumes f: "f \<in> multiset"
-shows "(supp o mmap h) f = (image h o supp) f"
-unfolding mmap_def[abs_def] comp_def proof-
-  have "\<And> b. finite {a. h a = b \<and> 0 < f a}" (is "\<And> b. finite (?As b)")
-  using f unfolding multiset_def by auto
-  thus "{b. 0 < setsum f (?As b)} = h ` {a. 0 < f a}"
-  by (auto simp add:  setsum_gt_0_iff)
+lemma mmap_id: "mmap id = id"
+proof (intro ext multiset_eqI)
+  fix f a show "count (mmap id f) a = count (id f) a"
+  proof (cases "count f a = 0")
+    case False
+    hence 1: "{aa. aa = a \<and> aa \<in># f} = {a}" by auto
+    thus ?thesis by transfer auto
+  qed (transfer, simp)
 qed
 
-lemma mmap_image:
-assumes f: "f \<in> multiset"
-shows "supp (mmap h f) = h ` (supp f)"
-using mmap_image_comp[OF assms] unfolding comp_def .
+lemma inj_on_setsum_inv:
+assumes 1: "(0::nat) < setsum (count f) {a. h a = b' \<and> a \<in># f}" (is "0 < setsum (count f) ?A'")
+and     2: "{a. h a = b \<and> a \<in># f} = {a. h a = b' \<and> a \<in># f}" (is "?A = ?A'")
+shows "b = b'"
+using assms by (auto simp add: setsum_gt_0_iff)
 
-lemma set_of_Abs_multiset:
-assumes f: "f \<in> multiset"
-shows "set_of (Abs_multiset f) = supp f"
-using assms unfolding set_of_def by (auto simp: Abs_multiset_inverse)
+lemma mmap_comp:
+fixes h1 :: "'a \<Rightarrow> 'b" and h2 :: "'b \<Rightarrow> 'c"
+shows "mmap (h2 o h1) = mmap h2 o mmap h1"
+proof (intro ext multiset_eqI)
+  fix f :: "'a multiset" fix c :: 'c
+  let ?A = "{a. h2 (h1 a) = c \<and> a \<in># f}"
+  let ?As = "\<lambda> b. {a. h1 a = b \<and> a \<in># f}"
+  let ?B = "{b. h2 b = c \<and> 0 < setsum (count f) (?As b)}"
+  have 0: "{?As b | b.  b \<in> ?B} = ?As ` ?B" by auto
+  have "\<And> b. finite (?As b)" by transfer (simp add: multiset_def)
+  hence "?B = {b. h2 b = c \<and> ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
+  hence A: "?A = \<Union> {?As b | b.  b \<in> ?B}" by auto
+  have "setsum (count f) ?A = setsum (setsum (count f)) {?As b | b.  b \<in> ?B}"
+    unfolding A by transfer (intro setsum_Union_disjoint, auto simp: multiset_def)
+  also have "... = setsum (setsum (count f)) (?As ` ?B)" unfolding 0 ..
+  also have "... = setsum (setsum (count f) o ?As) ?B"
+    by(intro setsum_reindex) (auto simp add: setsum_gt_0_iff inj_on_def)
+  also have "... = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" unfolding comp_def ..
+  finally have "setsum (count f) ?A = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" .
+  thus "count (mmap (h2 \<circ> h1) f) c = count ((mmap h2 \<circ> mmap h1) f) c"
+    by transfer (unfold o_apply, blast)
+qed
 
-lemma supp_count:
-"supp (count M) = set_of M"
-using assms unfolding set_of_def by auto
+lemma mmap_cong:
+assumes "\<And>a. a \<in># M \<Longrightarrow> f a = g a"
+shows "mmap f M = mmap g M"
+using assms by transfer (auto intro!: setsum_cong)
+
+lemma set_of_transfer[transfer_rule]: "(pcr_multiset op = ===> op =) (\<lambda>f. {a. 0 < f a}) set_of"
+  unfolding set_of_def pcr_multiset_def cr_multiset_def fun_rel_def by auto
+
+lemma set_of_mmap: "set_of o mmap h = image h o set_of"
+proof (rule ext, unfold o_apply)
+  fix M show "set_of (mmap h M) = h ` set_of M"
+    by transfer (auto simp add: multiset_def setsum_gt_0_iff)
+qed
 
 lemma multiset_of_surj:
-"multiset_of ` {as. set as \<subseteq> A} = {M. set_of M \<subseteq> A}"
+  "multiset_of ` {as. set as \<subseteq> A} = {M. set_of M \<subseteq> A}"
 proof safe
   fix M assume M: "set_of M \<subseteq> A"
   obtain as where eq: "M = multiset_of as" using surj_multiset_of unfolding surj_def by auto
@@ -666,18 +621,11 @@ proof-
   qed
 qed
 
-lemma supp_vimage_mmap:
-assumes "M \<in> multiset"
-shows "supp M \<subseteq> f -` (supp (mmap f M))"
-using assms by (auto simp: mmap_image)
+lemma supp_vimage_mmap: "set_of M \<subseteq> f -` (set_of (mmap f M))"
+  by transfer (auto simp: multiset_def setsum_gt_0_iff)
 
-lemma mmap_ge_0:
-assumes "M \<in> multiset"
-shows "0 < mmap f M b \<longleftrightarrow> (\<exists>a. 0 < M a \<and> f a = b)"
-proof-
-  have f: "finite {a. f a = b \<and> 0 < M a}" using assms unfolding multiset_def by auto
-  show ?thesis unfolding mmap_def setsum_gt_0_iff[OF f] by auto
-qed
+lemma mmap_ge_0: "b \<in># mmap f M \<longleftrightarrow> (\<exists>a. a \<in># M \<and> f a = b)"
+  by transfer (auto simp: multiset_def setsum_gt_0_iff)
 
 lemma finite_twosets:
 assumes "finite B1" and "finite B2"
@@ -687,74 +635,71 @@ proof-
   show ?thesis unfolding A using finite_cartesian_product[OF assms] by auto
 qed
 
-lemma wp_mmap:
+lemma wpull_mmap:
 fixes A :: "'a set" and B1 :: "'b1 set" and B2 :: "'b2 set"
 assumes wp: "wpull A B1 B2 f1 f2 p1 p2"
 shows
-"wpull {M. M \<in> multiset \<and> supp M \<subseteq> A}
-       {N1. N1 \<in> multiset \<and> supp N1 \<subseteq> B1} {N2. N2 \<in> multiset \<and> supp N2 \<subseteq> B2}
+"wpull {M. set_of M \<subseteq> A}
+       {N1. set_of N1 \<subseteq> B1} {N2. set_of N2 \<subseteq> B2}
        (mmap f1) (mmap f2) (mmap p1) (mmap p2)"
 unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
-  fix N1 :: "'b1 \<Rightarrow> nat" and N2 :: "'b2 \<Rightarrow> nat"
+  fix N1 :: "'b1 multiset" and N2 :: "'b2 multiset"
   assume mmap': "mmap f1 N1 = mmap f2 N2"
-  and N1[simp]: "N1 \<in> multiset" "supp N1 \<subseteq> B1"
-  and N2[simp]: "N2 \<in> multiset" "supp N2 \<subseteq> B2"
-  have mN1[simp]: "mmap f1 N1 \<in> multiset" using N1 by (auto simp: mmap)
-  have mN2[simp]: "mmap f2 N2 \<in> multiset" using N2 by (auto simp: mmap)
+  and N1[simp]: "set_of N1 \<subseteq> B1"
+  and N2[simp]: "set_of N2 \<subseteq> B2"
   def P \<equiv> "mmap f1 N1"
   have P1: "P = mmap f1 N1" and P2: "P = mmap f2 N2" unfolding P_def using mmap' by auto
   note P = P1 P2
-  have P_mult[simp]: "P \<in> multiset" unfolding P_def using N1 by auto
-  have fin_N1[simp]: "finite (supp N1)" using N1(1) unfolding multiset_def by auto
-  have fin_N2[simp]: "finite (supp N2)" using N2(1) unfolding multiset_def by auto
-  have fin_P[simp]: "finite (supp P)" using P_mult unfolding multiset_def by auto
+  have fin_N1[simp]: "finite (set_of N1)"
+   and fin_N2[simp]: "finite (set_of N2)"
+   and fin_P[simp]: "finite (set_of P)" by auto
   (*  *)
-  def set1 \<equiv> "\<lambda> c. {b1 \<in> supp N1. f1 b1 = c}"
+  def set1 \<equiv> "\<lambda> c. {b1 \<in> set_of N1. f1 b1 = c}"
   have set1[simp]: "\<And> c b1. b1 \<in> set1 c \<Longrightarrow> f1 b1 = c" unfolding set1_def by auto
-  have fin_set1: "\<And> c. c \<in> supp P \<Longrightarrow> finite (set1 c)"
-  using N1(1) unfolding set1_def multiset_def by auto
-  have set1_NE: "\<And> c. c \<in> supp P \<Longrightarrow> set1 c \<noteq> {}"
-  unfolding set1_def P1 mmap_ge_0[OF N1(1)] by auto
-  have supp_N1_set1: "supp N1 = (\<Union> c \<in> supp P. set1 c)"
-  using supp_vimage_mmap[OF N1(1), of f1] unfolding set1_def P1 by auto
-  hence set1_inclN1: "\<And>c. c \<in> supp P \<Longrightarrow> set1 c \<subseteq> supp N1" by auto
-  hence set1_incl: "\<And> c. c \<in> supp P \<Longrightarrow> set1 c \<subseteq> B1" using N1(2) by blast
+  have fin_set1: "\<And> c. c \<in> set_of P \<Longrightarrow> finite (set1 c)"
+    using N1(1) unfolding set1_def multiset_def by auto
+  have set1_NE: "\<And> c. c \<in> set_of P \<Longrightarrow> set1 c \<noteq> {}"
+   unfolding set1_def set_of_def P mmap_ge_0 by auto
+  have supp_N1_set1: "set_of N1 = (\<Union> c \<in> set_of P. set1 c)"
+    using supp_vimage_mmap[of N1 f1] unfolding set1_def P1 by auto
+  hence set1_inclN1: "\<And>c. c \<in> set_of P \<Longrightarrow> set1 c \<subseteq> set_of N1" by auto
+  hence set1_incl: "\<And> c. c \<in> set_of P \<Longrightarrow> set1 c \<subseteq> B1" using N1 by blast
   have set1_disj: "\<And> c c'. c \<noteq> c' \<Longrightarrow> set1 c \<inter> set1 c' = {}"
-  unfolding set1_def by auto
-  have setsum_set1: "\<And> c. setsum N1 (set1 c) = P c"
-  unfolding P1 set1_def mmap_def apply(rule setsum_cong) by auto
+    unfolding set1_def by auto
+  have setsum_set1: "\<And> c. setsum (count N1) (set1 c) = count P c"
+    unfolding P1 set1_def by transfer (auto intro: setsum_cong)
   (*  *)
-  def set2 \<equiv> "\<lambda> c. {b2 \<in> supp N2. f2 b2 = c}"
+  def set2 \<equiv> "\<lambda> c. {b2 \<in> set_of N2. f2 b2 = c}"
   have set2[simp]: "\<And> c b2. b2 \<in> set2 c \<Longrightarrow> f2 b2 = c" unfolding set2_def by auto
-  have fin_set2: "\<And> c. c \<in> supp P \<Longrightarrow> finite (set2 c)"
+  have fin_set2: "\<And> c. c \<in> set_of P \<Longrightarrow> finite (set2 c)"
   using N2(1) unfolding set2_def multiset_def by auto
-  have set2_NE: "\<And> c. c \<in> supp P \<Longrightarrow> set2 c \<noteq> {}"
-  unfolding set2_def P2 mmap_ge_0[OF N2(1)] by auto
-  have supp_N2_set2: "supp N2 = (\<Union> c \<in> supp P. set2 c)"
-  using supp_vimage_mmap[OF N2(1), of f2] unfolding set2_def P2 by auto
-  hence set2_inclN2: "\<And>c. c \<in> supp P \<Longrightarrow> set2 c \<subseteq> supp N2" by auto
-  hence set2_incl: "\<And> c. c \<in> supp P \<Longrightarrow> set2 c \<subseteq> B2" using N2(2) by blast
+  have set2_NE: "\<And> c. c \<in> set_of P \<Longrightarrow> set2 c \<noteq> {}"
+    unfolding set2_def P2 mmap_ge_0 set_of_def by auto
+  have supp_N2_set2: "set_of N2 = (\<Union> c \<in> set_of P. set2 c)"
+    using supp_vimage_mmap[of N2 f2] unfolding set2_def P2 by auto
+  hence set2_inclN2: "\<And>c. c \<in> set_of P \<Longrightarrow> set2 c \<subseteq> set_of N2" by auto
+  hence set2_incl: "\<And> c. c \<in> set_of P \<Longrightarrow> set2 c \<subseteq> B2" using N2 by blast
   have set2_disj: "\<And> c c'. c \<noteq> c' \<Longrightarrow> set2 c \<inter> set2 c' = {}"
-  unfolding set2_def by auto
-  have setsum_set2: "\<And> c. setsum N2 (set2 c) = P c"
-  unfolding P2 set2_def mmap_def apply(rule setsum_cong) by auto
+    unfolding set2_def by auto
+  have setsum_set2: "\<And> c. setsum (count N2) (set2 c) = count P c"
+    unfolding P2 set2_def by transfer (auto intro: setsum_cong)
   (*  *)
-  have ss: "\<And> c. c \<in> supp P \<Longrightarrow> setsum N1 (set1 c) = setsum N2 (set2 c)"
-  unfolding setsum_set1 setsum_set2 ..
-  have "\<forall> c \<in> supp P. \<forall> b1b2 \<in> (set1 c) \<times> (set2 c).
+  have ss: "\<And> c. c \<in> set_of P \<Longrightarrow> setsum (count N1) (set1 c) = setsum (count N2) (set2 c)"
+    unfolding setsum_set1 setsum_set2 ..
+  have "\<forall> c \<in> set_of P. \<forall> b1b2 \<in> (set1 c) \<times> (set2 c).
           \<exists> a \<in> A. p1 a = fst b1b2 \<and> p2 a = snd b1b2"
-  using wp set1_incl set2_incl unfolding wpull_def Ball_def mem_Collect_eq
-  by simp (metis set1 set2 set_rev_mp)
+    using wp set1_incl set2_incl unfolding wpull_def Ball_def mem_Collect_eq
+    by simp (metis set1 set2 set_rev_mp)
   then obtain uu where uu:
-  "\<forall> c \<in> supp P. \<forall> b1b2 \<in> (set1 c) \<times> (set2 c).
+  "\<forall> c \<in> set_of P. \<forall> b1b2 \<in> (set1 c) \<times> (set2 c).
      uu c b1b2 \<in> A \<and> p1 (uu c b1b2) = fst b1b2 \<and> p2 (uu c b1b2) = snd b1b2" by metis
   def u \<equiv> "\<lambda> c b1 b2. uu c (b1,b2)"
   have u[simp]:
-  "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> u c b1 b2 \<in> A"
-  "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> p1 (u c b1 b2) = b1"
-  "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> p2 (u c b1 b2) = b2"
-  using uu unfolding u_def by auto
-  {fix c assume c: "c \<in> supp P"
+  "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> u c b1 b2 \<in> A"
+  "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> p1 (u c b1 b2) = b1"
+  "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> p2 (u c b1 b2) = b2"
+    using uu unfolding u_def by auto
+  {fix c assume c: "c \<in> set_of P"
    have "inj2 (u c) (set1 c) (set2 c)" unfolding inj2_def proof clarify
      fix b1 b1' b2 b2'
      assume "{b1, b1'} \<subseteq> set1 c" "{b2, b2'} \<subseteq> set2 c" and 0: "u c b1 b2 = u c b1' b2'"
@@ -765,10 +710,10 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
    qed
   } note inj = this
   def sset \<equiv> "\<lambda> c. {u c b1 b2 | b1 b2. b1 \<in> set1 c \<and> b2 \<in> set2 c}"
-  have fin_sset[simp]: "\<And> c. c \<in> supp P \<Longrightarrow> finite (sset c)" unfolding sset_def
-  using fin_set1 fin_set2 finite_twosets by blast
-  have sset_A: "\<And> c. c \<in> supp P \<Longrightarrow> sset c \<subseteq> A" unfolding sset_def by auto
-  {fix c a assume c: "c \<in> supp P" and ac: "a \<in> sset c"
+  have fin_sset[simp]: "\<And> c. c \<in> set_of P \<Longrightarrow> finite (sset c)" unfolding sset_def
+    using fin_set1 fin_set2 finite_twosets by blast
+  have sset_A: "\<And> c. c \<in> set_of P \<Longrightarrow> sset c \<subseteq> A" unfolding sset_def by auto
+  {fix c a assume c: "c \<in> set_of P" and ac: "a \<in> sset c"
    then obtain b1 b2 where b1: "b1 \<in> set1 c" and b2: "b2 \<in> set2 c"
    and a: "a = u c b1 b2" unfolding sset_def by auto
    have "p1 a \<in> set1 c" and p2a: "p2 a \<in> set2 c"
@@ -776,260 +721,198 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
    hence "u c (p1 a) (p2 a) = a" unfolding a using b1 b2 inj[OF c]
    unfolding inj2_def by (metis c u(2) u(3))
   } note u_p12[simp] = this
-  {fix c a assume c: "c \<in> supp P" and ac: "a \<in> sset c"
+  {fix c a assume c: "c \<in> set_of P" and ac: "a \<in> sset c"
    hence "p1 a \<in> set1 c" unfolding sset_def by auto
   }note p1[simp] = this
-  {fix c a assume c: "c \<in> supp P" and ac: "a \<in> sset c"
+  {fix c a assume c: "c \<in> set_of P" and ac: "a \<in> sset c"
    hence "p2 a \<in> set2 c" unfolding sset_def by auto
   }note p2[simp] = this
   (*  *)
-  {fix c assume c: "c \<in> supp P"
-   hence "\<exists> M. (\<forall> b1 \<in> set1 c. setsum (\<lambda> b2. M (u c b1 b2)) (set2 c) = N1 b1) \<and>
-               (\<forall> b2 \<in> set2 c. setsum (\<lambda> b1. M (u c b1 b2)) (set1 c) = N2 b2)"
+  {fix c assume c: "c \<in> set_of P"
+   hence "\<exists> M. (\<forall> b1 \<in> set1 c. setsum (\<lambda> b2. M (u c b1 b2)) (set2 c) = count N1 b1) \<and>
+               (\<forall> b2 \<in> set2 c. setsum (\<lambda> b1. M (u c b1 b2)) (set1 c) = count N2 b2)"
    unfolding sset_def
    using matrix_setsum_finite[OF set1_NE[OF c] fin_set1[OF c]
                                  set2_NE[OF c] fin_set2[OF c] inj[OF c] ss[OF c]] by auto
   }
   then obtain Ms where
-  ss1: "\<And> c b1. \<lbrakk>c \<in> supp P; b1 \<in> set1 c\<rbrakk> \<Longrightarrow>
-                   setsum (\<lambda> b2. Ms c (u c b1 b2)) (set2 c) = N1 b1" and
-  ss2: "\<And> c b2. \<lbrakk>c \<in> supp P; b2 \<in> set2 c\<rbrakk> \<Longrightarrow>
-                   setsum (\<lambda> b1. Ms c (u c b1 b2)) (set1 c) = N2 b2"
+  ss1: "\<And> c b1. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c\<rbrakk> \<Longrightarrow>
+                   setsum (\<lambda> b2. Ms c (u c b1 b2)) (set2 c) = count N1 b1" and
+  ss2: "\<And> c b2. \<lbrakk>c \<in> set_of P; b2 \<in> set2 c\<rbrakk> \<Longrightarrow>
+                   setsum (\<lambda> b1. Ms c (u c b1 b2)) (set1 c) = count N2 b2"
   by metis
-  def SET \<equiv> "\<Union> c \<in> supp P. sset c"
+  def SET \<equiv> "\<Union> c \<in> set_of P. sset c"
   have fin_SET[simp]: "finite SET" unfolding SET_def apply(rule finite_UN_I) by auto
-  have SET_A: "SET \<subseteq> A" unfolding SET_def using sset_A by auto
-  have u_SET[simp]: "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> u c b1 b2 \<in> SET"
-  unfolding SET_def sset_def by blast
-  {fix c a assume c: "c \<in> supp P" and a: "a \<in> SET" and p1a: "p1 a \<in> set1 c"
-   then obtain c' where c': "c' \<in> supp P" and ac': "a \<in> sset c'"
-   unfolding SET_def by auto
+  have SET_A: "SET \<subseteq> A" unfolding SET_def using sset_A by blast
+  have u_SET[simp]: "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk> \<Longrightarrow> u c b1 b2 \<in> SET"
+    unfolding SET_def sset_def by blast
+  {fix c a assume c: "c \<in> set_of P" and a: "a \<in> SET" and p1a: "p1 a \<in> set1 c"
+   then obtain c' where c': "c' \<in> set_of P" and ac': "a \<in> sset c'"
+    unfolding SET_def by auto
    hence "p1 a \<in> set1 c'" unfolding sset_def by auto
    hence eq: "c = c'" using p1a c c' set1_disj by auto
    hence "a \<in> sset c" using ac' by simp
   } note p1_rev = this
-  {fix c a assume c: "c \<in> supp P" and a: "a \<in> SET" and p2a: "p2 a \<in> set2 c"
-   then obtain c' where c': "c' \<in> supp P" and ac': "a \<in> sset c'"
+  {fix c a assume c: "c \<in> set_of P" and a: "a \<in> SET" and p2a: "p2 a \<in> set2 c"
+   then obtain c' where c': "c' \<in> set_of P" and ac': "a \<in> sset c'"
    unfolding SET_def by auto
    hence "p2 a \<in> set2 c'" unfolding sset_def by auto
    hence eq: "c = c'" using p2a c c' set2_disj by auto
    hence "a \<in> sset c" using ac' by simp
   } note p2_rev = this
   (*  *)
-  have "\<forall> a \<in> SET. \<exists> c \<in> supp P. a \<in> sset c" unfolding SET_def by auto
-  then obtain h where h: "\<forall> a \<in> SET. h a \<in> supp P \<and> a \<in> sset (h a)" by metis
-  have h_u[simp]: "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
+  have "\<forall> a \<in> SET. \<exists> c \<in> set_of P. a \<in> sset c" unfolding SET_def by auto
+  then obtain h where h: "\<forall> a \<in> SET. h a \<in> set_of P \<and> a \<in> sset (h a)" by metis
+  have h_u[simp]: "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
                       \<Longrightarrow> h (u c b1 b2) = c"
   by (metis h p2 set2 u(3) u_SET)
-  have h_u1: "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
+  have h_u1: "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
                       \<Longrightarrow> h (u c b1 b2) = f1 b1"
   using h unfolding sset_def by auto
-  have h_u2: "\<And> c b1 b2. \<lbrakk>c \<in> supp P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
+  have h_u2: "\<And> c b1 b2. \<lbrakk>c \<in> set_of P; b1 \<in> set1 c; b2 \<in> set2 c\<rbrakk>
                       \<Longrightarrow> h (u c b1 b2) = f2 b2"
   using h unfolding sset_def by auto
-  def M \<equiv> "\<lambda> a. if a \<in> SET \<and> p1 a \<in> supp N1 \<and> p2 a \<in> supp N2 then Ms (h a) a else 0"
-  have sM: "supp M \<subseteq> SET" "supp M \<subseteq> p1 -` (supp N1)" "supp M \<subseteq> p2 -` (supp N2)"
-  unfolding M_def by auto
-  show "\<exists>M. (M \<in> multiset \<and> supp M \<subseteq> A) \<and> mmap p1 M = N1 \<and> mmap p2 M = N2"
+  def M \<equiv>
+    "Abs_multiset (\<lambda> a. if a \<in> SET \<and> p1 a \<in> set_of N1 \<and> p2 a \<in> set_of N2 then Ms (h a) a else 0)"
+  have "(\<lambda> a. if a \<in> SET \<and> p1 a \<in> set_of N1 \<and> p2 a \<in> set_of N2 then Ms (h a) a else 0) \<in> multiset"
+    unfolding multiset_def by auto
+  hence [transfer_rule]: "pcr_multiset op = (\<lambda> a. if a \<in> SET \<and> p1 a \<in> set_of N1 \<and> p2 a \<in> set_of N2 then Ms (h a) a else 0) M"
+    unfolding M_def pcr_multiset_def cr_multiset_def by (auto simp: Abs_multiset_inverse)
+  have sM: "set_of M \<subseteq> SET" "set_of M \<subseteq> p1 -` (set_of N1)" "set_of M \<subseteq> p2 -` set_of N2"
+    by (transfer, auto split: split_if_asm)+
+  show "\<exists>M. set_of M \<subseteq> A \<and> mmap p1 M = N1 \<and> mmap p2 M = N2"
   proof(rule exI[of _ M], safe)
-    show "M \<in> multiset"
-    unfolding multiset_def using finite_subset[OF sM(1) fin_SET] by simp
-  next
-    fix a assume "0 < M a"
-    thus "a \<in> A" unfolding M_def using SET_A by (cases "a \<in> SET") auto
+    fix a assume *: "a \<in> set_of M"
+    from SET_A show "a \<in> A"
+    proof (cases "a \<in> SET")
+      case False thus ?thesis using * by transfer' auto
+    qed blast
   next
     show "mmap p1 M = N1"
-    unfolding mmap_def[abs_def] proof(rule ext)
+    proof(intro multiset_eqI)
       fix b1
-      let ?K = "{a. p1 a = b1 \<and> 0 < M a}"
-      show "setsum M ?K = N1 b1"
-      proof(cases "b1 \<in> supp N1")
+      let ?K = "{a. p1 a = b1 \<and> a \<in># M}"
+      have "setsum (count M) ?K = count N1 b1"
+      proof(cases "b1 \<in> set_of N1")
         case False
         hence "?K = {}" using sM(2) by auto
         thus ?thesis using False by auto
       next
         case True
         def c \<equiv> "f1 b1"
-        have c: "c \<in> supp P" and b1: "b1 \<in> set1 c"
-        unfolding set1_def c_def P1 using True by (auto simp: mmap_image)
-        have "setsum M ?K = setsum M {a. p1 a = b1 \<and> a \<in> SET}"
-        apply(rule setsum_mono_zero_cong_left) unfolding M_def by auto
-        also have "... = setsum M ((\<lambda> b2. u c b1 b2) ` (set2 c))"
-        apply(rule setsum_cong) using c b1 proof safe
-          fix a assume p1a: "p1 a \<in> set1 c" and "0 < P c" and "a \<in> SET"
+        have c: "c \<in> set_of P" and b1: "b1 \<in> set1 c"
+          unfolding set1_def c_def P1 using True by (auto simp: o_eq_dest[OF set_of_mmap])
+        with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p1 a = b1 \<and> a \<in> SET}"
+          by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
+        also have "... = setsum (count M) ((\<lambda> b2. u c b1 b2) ` (set2 c))"
+          apply(rule setsum_cong) using c b1 proof safe
+          fix a assume p1a: "p1 a \<in> set1 c" and "c \<in> set_of P" and "a \<in> SET"
           hence ac: "a \<in> sset c" using p1_rev by auto
           hence "a = u c (p1 a) (p2 a)" using c by auto
           moreover have "p2 a \<in> set2 c" using ac c by auto
           ultimately show "a \<in> u c (p1 a) ` set2 c" by auto
-        next
-          fix b2 assume b1: "b1 \<in> set1 c" and b2: "b2 \<in> set2 c"
-          hence "u c b1 b2 \<in> SET" using c by auto
         qed auto
-        also have "... = setsum (\<lambda> b2. M (u c b1 b2)) (set2 c)"
-        unfolding comp_def[symmetric] apply(rule setsum_reindex)
-        using inj unfolding inj_on_def inj2_def using b1 c u(3) by blast
-        also have "... = N1 b1" unfolding ss1[OF c b1, symmetric]
-          apply(rule setsum_cong[OF refl]) unfolding M_def
+        also have "... = setsum (\<lambda> b2. count M (u c b1 b2)) (set2 c)"
+          unfolding comp_def[symmetric] apply(rule setsum_reindex)
+          using inj unfolding inj_on_def inj2_def using b1 c u(3) by blast
+        also have "... = count N1 b1" unfolding ss1[OF c b1, symmetric]
+          apply(rule setsum_cong[OF refl]) apply (transfer fixing: Ms u c b1 set2)
           using True h_u[OF c b1] set2_def u(2,3)[OF c b1] u_SET[OF c b1] by fastforce
         finally show ?thesis .
       qed
+      thus "count (mmap p1 M) b1 = count N1 b1" by transfer
     qed
   next
+next
     show "mmap p2 M = N2"
-    unfolding mmap_def[abs_def] proof(rule ext)
+    proof(intro multiset_eqI)
       fix b2
-      let ?K = "{a. p2 a = b2 \<and> 0 < M a}"
-      show "setsum M ?K = N2 b2"
-      proof(cases "b2 \<in> supp N2")
+      let ?K = "{a. p2 a = b2 \<and> a \<in># M}"
+      have "setsum (count M) ?K = count N2 b2"
+      proof(cases "b2 \<in> set_of N2")
         case False
         hence "?K = {}" using sM(3) by auto
         thus ?thesis using False by auto
       next
         case True
         def c \<equiv> "f2 b2"
-        have c: "c \<in> supp P" and b2: "b2 \<in> set2 c"
-        unfolding set2_def c_def P2 using True by (auto simp: mmap_image)
-        have "setsum M ?K = setsum M {a. p2 a = b2 \<and> a \<in> SET}"
-        apply(rule setsum_mono_zero_cong_left) unfolding M_def by auto
-        also have "... = setsum M ((\<lambda> b1. u c b1 b2) ` (set1 c))"
-        apply(rule setsum_cong) using c b2 proof safe
-          fix a assume p2a: "p2 a \<in> set2 c" and "0 < P c" and "a \<in> SET"
+        have c: "c \<in> set_of P" and b2: "b2 \<in> set2 c"
+          unfolding set2_def c_def P2 using True by (auto simp: o_eq_dest[OF set_of_mmap])
+        with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p2 a = b2 \<and> a \<in> SET}"
+          by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
+        also have "... = setsum (count M) ((\<lambda> b1. u c b1 b2) ` (set1 c))"
+          apply(rule setsum_cong) using c b2 proof safe
+          fix a assume p2a: "p2 a \<in> set2 c" and "c \<in> set_of P" and "a \<in> SET"
           hence ac: "a \<in> sset c" using p2_rev by auto
           hence "a = u c (p1 a) (p2 a)" using c by auto
           moreover have "p1 a \<in> set1 c" using ac c by auto
-          ultimately show "a \<in> (\<lambda>b1. u c b1 (p2 a)) ` set1 c" by auto
-        next
-          fix b2 assume b1: "b1 \<in> set1 c" and b2: "b2 \<in> set2 c"
-          hence "u c b1 b2 \<in> SET" using c by auto
+          ultimately show "a \<in> (\<lambda>x. u c x (p2 a)) ` set1 c" by auto
         qed auto
-        also have "... = setsum (M o (\<lambda> b1. u c b1 b2)) (set1 c)"
-        apply(rule setsum_reindex)
-        using inj unfolding inj_on_def inj2_def using b2 c u(2) by blast
-        also have "... = setsum (\<lambda> b1. M (u c b1 b2)) (set1 c)"
-        unfolding comp_def[symmetric] by simp
-        also have "... = N2 b2" unfolding ss2[OF c b2, symmetric]
-          apply(rule setsum_cong[OF refl]) unfolding M_def set2_def
-          using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2]
-          unfolding set1_def by fastforce
+        also have "... = setsum (count M o (\<lambda> b1. u c b1 b2)) (set1 c)"
+          apply(rule setsum_reindex)
+          using inj unfolding inj_on_def inj2_def using b2 c u(2) by blast
+        also have "... = setsum (\<lambda> b1. count M (u c b1 b2)) (set1 c)" by simp
+        also have "... = count N2 b2" unfolding ss2[OF c b2, symmetric] o_def
+          apply(rule setsum_cong[OF refl]) apply (transfer fixing: Ms u c b2 set1)
+          using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2] set1_def by fastforce
         finally show ?thesis .
       qed
+      thus "count (mmap p2 M) b2 = count N2 b2" by transfer
     qed
   qed
 qed
 
-definition multiset_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
-"multiset_map h = Abs_multiset \<circ> mmap h \<circ> count"
+lemma set_of_bd: "|set_of x| \<le>o natLeq"
+  by transfer
+    (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
 
-bnf multiset_map [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
-unfolding multiset_map_def
-proof -
-  show "Abs_multiset \<circ> mmap id \<circ> count = id" unfolding mmap_id by (auto simp: count_inverse)
-next
-  fix f g
-  show "Abs_multiset \<circ> mmap (g \<circ> f) \<circ> count =
-        Abs_multiset \<circ> mmap g \<circ> count \<circ> (Abs_multiset \<circ> mmap f \<circ> count)"
-  unfolding comp_def apply(rule ext)
-  by (auto simp: Abs_multiset_inverse count mmap_comp1 mmap)
-next
-  fix M f g assume eq: "\<And>a. a \<in> set_of M \<Longrightarrow> f a = g a"
-  thus "(Abs_multiset \<circ> mmap f \<circ> count) M = (Abs_multiset \<circ> mmap g \<circ> count) M" apply auto
-  unfolding cIm_def[abs_def] image_def
-  by (auto intro!: mmap_cong simp: Abs_multiset_inject count mmap)
-next
-  fix f show "set_of \<circ> (Abs_multiset \<circ> mmap f \<circ> count) = op ` f \<circ> set_of"
-  by (auto simp: count mmap mmap_image set_of_Abs_multiset supp_count)
-next
-  show "card_order natLeq" by (rule natLeq_card_order)
-next
-  show "cinfinite natLeq" by (rule natLeq_cinfinite)
-next
-  fix M show "|set_of M| \<le>o natLeq"
-  apply(rule ordLess_imp_ordLeq)
-  unfolding finite_iff_ordLess_natLeq[symmetric] using finite_set_of .
-next
-  fix A B1 B2 f1 f2 p1 p2
-  let ?map = "\<lambda> f. Abs_multiset \<circ> mmap f \<circ> count"
-  assume wp: "wpull A B1 B2 f1 f2 p1 p2"
-  show "wpull {x. set_of x \<subseteq> A} {x. set_of x \<subseteq> B1} {x. set_of x \<subseteq> B2}
-              (?map f1) (?map f2) (?map p1) (?map p2)"
-  unfolding wpull_def proof safe
-    fix y1 y2
-    assume y1: "set_of y1 \<subseteq> B1" and y2: "set_of y2 \<subseteq> B2"
-    and m: "?map f1 y1 = ?map f2 y2"
-    def N1 \<equiv> "count y1"  def N2 \<equiv> "count y2"
-    have "N1 \<in> multiset \<and> supp N1 \<subseteq> B1" and "N2 \<in> multiset \<and> supp N2 \<subseteq> B2"
-    and "mmap f1 N1 = mmap f2 N2"
-    using y1 y2 m unfolding N1_def N2_def
-    by (auto simp: Abs_multiset_inject count mmap)
-    then obtain M where M: "M \<in> multiset \<and> supp M \<subseteq> A"
-    and N1: "mmap p1 M = N1" and N2: "mmap p2 M = N2"
-    using wp_mmap[OF wp] unfolding wpull_def by auto
-    def x \<equiv> "Abs_multiset M"
-    show "\<exists>x\<in>{x. set_of x \<subseteq> A}. ?map p1 x = y1 \<and> ?map p2 x = y2"
-    apply(intro bexI[of _ x]) using M N1 N2 unfolding N1_def N2_def x_def
-    by (auto simp: count_inverse Abs_multiset_inverse)
-  qed
-qed (unfold set_of_empty, auto)
+bnf mmap [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
+by (auto simp add: mmap_id mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
+  intro: mmap_cong wpull_mmap)
 
 inductive multiset_rel' where
 Zero: "multiset_rel' R {#} {#}"
 |
 Plus: "\<lbrakk>R a b; multiset_rel' R M N\<rbrakk> \<Longrightarrow> multiset_rel' R (M + {#a#}) (N + {#b#})"
 
-lemma multiset_map_Zero_iff[simp]: "multiset_map f M = {#} \<longleftrightarrow> M = {#}"
+lemma multiset_map_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
 by (metis image_is_empty multiset.set_map' set_of_eq_empty_iff)
 
-lemma multiset_map_Zero[simp]: "multiset_map f {#} = {#}" by simp
+lemma multiset_map_Zero[simp]: "mmap f {#} = {#}" by simp
 
 lemma multiset_rel_Zero: "multiset_rel R {#} {#}"
 unfolding multiset_rel_def Grp_def by auto
 
 declare multiset.count[simp]
-declare mmap[simp]
 declare Abs_multiset_inverse[simp]
 declare multiset.count_inverse[simp]
 declare union_preserves_multiset[simp]
 
-lemma mmap_Plus[simp]:
-assumes "K \<in> multiset" and "L \<in> multiset"
-shows "mmap f (\<lambda>a. K a + L a) a = mmap f K a + mmap f L a"
-proof-
-  have "{aa. f aa = a \<and> (0 < K aa \<or> 0 < L aa)} \<subseteq>
-        {aa. 0 < K aa} \<union> {aa. 0 < L aa}" (is "?C \<subseteq> ?A \<union> ?B") by auto
-  moreover have "finite (?A \<union> ?B)" apply(rule finite_UnI)
-  using assms unfolding multiset_def by auto
-  ultimately have C: "finite ?C" using finite_subset by blast
-  have "setsum K {aa. f aa = a \<and> 0 < K aa} = setsum K {aa. f aa = a \<and> 0 < K aa + L aa}"
-  apply(rule setsum_mono_zero_cong_left) using C by auto
+
+lemma multiset_map_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
+proof (intro multiset_eqI, transfer fixing: f)
+  fix x :: 'a and M1 M2 :: "'b \<Rightarrow> nat"
+  assume "M1 \<in> multiset" "M2 \<in> multiset"
   moreover
-  have "setsum L {aa. f aa = a \<and> 0 < L aa} = setsum L {aa. f aa = a \<and> 0 < K aa + L aa}"
-  apply(rule setsum_mono_zero_cong_left) using C by auto
-  ultimately show ?thesis
-  unfolding mmap_def by (auto simp add: setsum.distrib)
+  hence "setsum M1 {a. f a = x \<and> 0 < M1 a} = setsum M1 {a. f a = x \<and> 0 < M1 a + M2 a}"
+        "setsum M2 {a. f a = x \<and> 0 < M2 a} = setsum M2 {a. f a = x \<and> 0 < M1 a + M2 a}"
+    by (auto simp: multiset_def intro!: setsum_mono_zero_cong_left)
+  ultimately show "(\<Sum>a | f a = x \<and> 0 < M1 a + M2 a. M1 a + M2 a) =
+       setsum M1 {a. f a = x \<and> 0 < M1 a} +
+       setsum M2 {a. f a = x \<and> 0 < M2 a}"
+    by (auto simp: setsum.distrib[symmetric])
 qed
 
-lemma multiset_map_Plus[simp]:
-"multiset_map f (M1 + M2) = multiset_map f M1 + multiset_map f M2"
-unfolding multiset_map_def
-apply(subst multiset.count_inject[symmetric])
-unfolding plus_multiset.rep_eq comp_def by auto
-
-lemma multiset_map_singl[simp]: "multiset_map f {#a#} = {#f a#}"
-proof-
-  have 0: "\<And> b. card {aa. a = aa \<and> (a = aa \<longrightarrow> f aa = b)} =
-                (if b = f a then 1 else 0)" by auto
-  thus ?thesis
-  unfolding multiset_map_def comp_def mmap_def[abs_def] map_fun_def
-  by (simp, simp add: single_def)
-qed
+lemma multiset_map_singl[simp]: "mmap f {#a#} = {#f a#}"
+  by transfer auto
 
 lemma multiset_rel_Plus:
 assumes ab: "R a b" and MN: "multiset_rel R M N"
 shows "multiset_rel R (M + {#a#}) (N + {#b#})"
 proof-
   {fix y assume "R a b" and "set_of y \<subseteq> {(x, y). R x y}"
-   hence "\<exists>ya. multiset_map fst y + {#a#} = multiset_map fst ya \<and>
-               multiset_map snd y + {#b#} = multiset_map snd ya \<and>
+   hence "\<exists>ya. mmap fst y + {#a#} = mmap fst ya \<and>
+               mmap snd y + {#b#} = mmap snd ya \<and>
                set_of ya \<subseteq> {(x, y). R x y}"
    apply(intro exI[of _ "y + {#(a,b)#}"]) by auto
   }
@@ -1043,7 +926,7 @@ lemma multiset_rel'_imp_multiset_rel:
 apply(induct rule: multiset_rel'.induct)
 using multiset_rel_Zero multiset_rel_Plus by auto
 
-lemma mcard_multiset_map[simp]: "mcard (multiset_map f M) = mcard M"
+lemma mcard_mmap[simp]: "mcard (mmap f M) = mcard M"
 proof -
   def A \<equiv> "\<lambda> b. {a. f a = b \<and> a \<in># M}"
   let ?B = "{b. 0 < setsum (count M) (A b)}"
@@ -1067,11 +950,11 @@ proof -
   also have "... = setsum (count M) (\<Union>x\<in>A ` {b. 0 < setsum (count M) (A b)}. x)"
   (is "_ = setsum (count M) ?J")
   apply(rule setsum.UNION_disjoint[symmetric])
-  using 0 fin unfolding A_def by (auto intro!: finite_imageI)
+  using 0 fin unfolding A_def by auto
   also have "?J = {a. a \<in># M}" unfolding AB unfolding A_def by auto
   finally have "setsum (\<lambda> x. setsum (count M) (A x)) ?B =
                 setsum (count M) {a. a \<in># M}" .
-  then show ?thesis by (simp add: A_def mcard_unfold_setsum multiset_map_def set_of_def mmap_def)
+  then show ?thesis unfolding mcard_unfold_setsum A_def by transfer
 qed
 
 lemma multiset_rel_mcard:
@@ -1109,25 +992,25 @@ using c proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
 qed
 
 lemma msed_map_invL:
-assumes "multiset_map f (M + {#a#}) = N"
-shows "\<exists> N1. N = N1 + {#f a#} \<and> multiset_map f M = N1"
+assumes "mmap f (M + {#a#}) = N"
+shows "\<exists> N1. N = N1 + {#f a#} \<and> mmap f M = N1"
 proof-
   have "f a \<in># N"
   using assms multiset.set_map'[of f "M + {#a#}"] by auto
   then obtain N1 where N: "N = N1 + {#f a#}" using multi_member_split by metis
-  have "multiset_map f M = N1" using assms unfolding N by simp
+  have "mmap f M = N1" using assms unfolding N by simp
   thus ?thesis using N by blast
 qed
 
 lemma msed_map_invR:
-assumes "multiset_map f M = N + {#b#}"
-shows "\<exists> M1 a. M = M1 + {#a#} \<and> f a = b \<and> multiset_map f M1 = N"
+assumes "mmap f M = N + {#b#}"
+shows "\<exists> M1 a. M = M1 + {#a#} \<and> f a = b \<and> mmap f M1 = N"
 proof-
   obtain a where a: "a \<in># M" and fa: "f a = b"
   using multiset.set_map'[of f M] unfolding assms
   by (metis image_iff mem_set_of_iff union_single_eq_member)
   then obtain M1 where M: "M = M1 + {#a#}" using multi_member_split by metis
-  have "multiset_map f M1 = N" using assms unfolding M fa[symmetric] by simp
+  have "mmap f M1 = N" using assms unfolding M fa[symmetric] by simp
   thus ?thesis using M fa by blast
 qed
 
@@ -1135,13 +1018,13 @@ lemma msed_rel_invL:
 assumes "multiset_rel R (M + {#a#}) N"
 shows "\<exists> N1 b. N = N1 + {#b#} \<and> R a b \<and> multiset_rel R M N1"
 proof-
-  obtain K where KM: "multiset_map fst K = M + {#a#}"
-  and KN: "multiset_map snd K = N" and sK: "set_of K \<subseteq> {(a, b). R a b}"
+  obtain K where KM: "mmap fst K = M + {#a#}"
+  and KN: "mmap snd K = N" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
   unfolding multiset_rel_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and a: "fst ab = a"
-  and K1M: "multiset_map fst K1 = M" using msed_map_invR[OF KM] by auto
-  obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "multiset_map snd K1 = N1"
+  and K1M: "mmap fst K1 = M" using msed_map_invR[OF KM] by auto
+  obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "mmap snd K1 = N1"
   using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
   have "multiset_rel R M N1" using sK K1M K1N1
@@ -1153,13 +1036,13 @@ lemma msed_rel_invR:
 assumes "multiset_rel R M (N + {#b#})"
 shows "\<exists> M1 a. M = M1 + {#a#} \<and> R a b \<and> multiset_rel R M1 N"
 proof-
-  obtain K where KN: "multiset_map snd K = N + {#b#}"
-  and KM: "multiset_map fst K = M" and sK: "set_of K \<subseteq> {(a, b). R a b}"
+  obtain K where KN: "mmap snd K = N + {#b#}"
+  and KM: "mmap fst K = M" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
   unfolding multiset_rel_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and b: "snd ab = b"
-  and K1N: "multiset_map snd K1 = N" using msed_map_invR[OF KN] by auto
-  obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "multiset_map fst K1 = M1"
+  and K1N: "mmap snd K1 = N" using msed_map_invR[OF KN] by auto
+  obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "mmap fst K1 = M1"
   using msed_map_invL[OF KM[unfolded K]] by auto
   have Rab: "R (fst ab) b" using sK b unfolding K by auto
   have "multiset_rel R M1 N" using sK K1N K1M1

@@ -8,7 +8,10 @@
 header {* (At Most) Countable Sets *}
 
 theory Countable_Type
-imports "../Cardinals/Cardinals" "~~/src/HOL/Library/Countable_Set"
+imports
+  "~~/src/HOL/Cardinals/Cardinals"
+  "~~/src/HOL/Library/Countable_Set"
+  "~~/src/HOL/Library/Quotient_Set"
 begin
 
 subsection{* Cardinal stuff *}
@@ -23,9 +26,12 @@ lemma countable_or_card_of:
 assumes "countable A"
 shows "(finite A \<and> |A| <o |UNIV::nat set| ) \<or>
        (infinite A  \<and> |A| =o |UNIV::nat set| )"
-apply (cases "finite A")
-  apply(metis finite_iff_cardOf_nat)
-  by (metis assms countable_card_of_nat infinite_iff_card_of_nat ordIso_iff_ordLeq)
+proof (cases "finite A")
+  case True thus ?thesis by (metis finite_iff_cardOf_nat)
+next
+  case False with assms show ?thesis
+    by (metis countable_card_of_nat infinite_iff_card_of_nat ordIso_iff_ordLeq)
+qed
 
 lemma countable_cases_card_of[elim]:
   assumes "countable A"
@@ -35,7 +41,7 @@ lemma countable_cases_card_of[elim]:
 
 lemma countable_or:
   "countable A \<Longrightarrow> (\<exists> f::'a\<Rightarrow>nat. finite A \<and> inj_on f A) \<or> (\<exists> f::'a\<Rightarrow>nat. infinite A \<and> bij_betw f A UNIV)"
-  by (auto elim: countable_enum_cases)
+  by (elim countable_enum_cases) fastforce+
 
 lemma countable_cases[elim]:
   assumes "countable A"
@@ -55,48 +61,32 @@ using countable_ordLeq[OF ordLess_imp_ordLeq[OF AB] B] .
 
 subsection{*  The type of countable sets *}
 
-typedef 'a cset = "{A :: 'a set. countable A}"
-apply(rule exI[of _ "{}"]) by simp
+typedef 'a cset = "{A :: 'a set. countable A}" morphisms rcset acset
+  by (rule exI[of _ "{}"]) simp
 
-abbreviation rcset where "rcset \<equiv> Rep_cset"
-abbreviation acset where "acset \<equiv> Abs_cset"
+setup_lifting type_definition_cset
 
-lemmas acset_rcset = Rep_cset_inverse
-declare acset_rcset[simp]
+declare
+  rcset_inverse[simp]
+  acset_inverse[Transfer.transferred, unfolded mem_Collect_eq, simp]
+  acset_inject[Transfer.transferred, unfolded mem_Collect_eq, simp]
+  rcset[Transfer.transferred, unfolded mem_Collect_eq, simp]
 
-lemma acset_surj:
-"\<exists> A. countable A \<and> acset A = C"
-apply(cases rule: Abs_cset_cases[of C]) by auto
-
-lemma rcset_acset[simp]:
-assumes "countable A"
-shows "rcset (acset A) = A"
-using Abs_cset_inverse assms by auto
-
-lemma acset_inj[simp]:
-assumes "countable A" and "countable B"
-shows "acset A = acset B \<longleftrightarrow> A = B"
-using assms Abs_cset_inject by auto
-
-lemma rcset[simp]:
-"countable (rcset C)"
-using Rep_cset by simp
-
-lemma rcset_surj:
-assumes "countable A"
-shows "\<exists> C. rcset C = A"
-apply(cases rule: Rep_cset_cases[of A])
-using assms by auto
-
-definition "cIn a C \<equiv> (a \<in> rcset C)"
-definition "cEmp \<equiv> acset {}"
-definition "cIns a C \<equiv> acset (insert a (rcset C))"
-abbreviation cSingl where "cSingl a \<equiv> cIns a cEmp"
-definition "cUn C D \<equiv> acset (rcset C \<union> rcset D)"
-definition "cInt C D \<equiv> acset (rcset C \<inter> rcset D)"
-definition "cDif C D \<equiv> acset (rcset C - rcset D)"
-definition "cIm f C \<equiv> acset (f ` rcset C)"
-definition "cVim f D \<equiv> acset (f -` rcset D)"
-(* TODO eventually: nice setup for these operations, copied from the set setup *)
+lift_definition cin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" is "op \<in>" parametric member_transfer
+  ..
+lift_definition cempty :: "'a cset" is "{}" parametric empty_transfer
+  by (rule countable_empty)
+lift_definition cinsert :: "'a \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is insert parametric insert_transfer
+  by (rule countable_insert)
+lift_definition csingle :: "'a \<Rightarrow> 'a cset" is "\<lambda>x. {x}"
+  by (rule countable_insert[OF countable_empty])
+lift_definition cUn :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is "op \<union>" parametric union_transfer
+  by (rule countable_Un)
+lift_definition cInt :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is "op \<inter>" parametric inter_transfer
+  by (rule countable_Int1)
+lift_definition cDiff :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is "op -" parametric Diff_transfer
+  by (rule countable_Diff)
+lift_definition cimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a cset \<Rightarrow> 'b cset" is "op `" parametric image_transfer
+  by (rule countable_image)
 
 end
