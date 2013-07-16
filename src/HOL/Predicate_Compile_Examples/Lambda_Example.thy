@@ -79,7 +79,10 @@ by simp
 
 section {* Manual setup to find counterexample *}
 
-setup {* Context.theory_map (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals))) *}
+setup {*
+  Context.theory_map
+    (Quickcheck.add_tester ("prolog", (Code_Prolog.active, Code_Prolog.test_goals)))
+*}
 
 setup {* Code_Prolog.map_code_options (K 
   { ensure_groundness = true,

@@ -121,6 +121,7 @@ case "$PLATFORM_FAMILY" in
     ;;
   macos)
     purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    mv "$ISABELLE_TARGET/contrib/macos_app" "$TMP/."
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
@@ -129,11 +130,12 @@ case "$PLATFORM_FAMILY" in
     ;;
   windows)
     purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
+    mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
 
-    cp "$ISABELLE_HOME/Admin/Windows/launch4j/Isabelle.exe" "$ISABELLE_TARGET/Isabelle2013.exe"
+    cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Latex-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
@@ -141,7 +143,7 @@ case "$PLATFORM_FAMILY" in
     (
       cd "$ISABELLE_TARGET"
 
-      for NAME in init.bat postinstall rebaseall
+      for NAME in postinstall rebaseall
       do
         cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" \
           "contrib/cygwin/isabelle/."
@@ -150,15 +152,8 @@ case "$PLATFORM_FAMILY" in
       find . -type f -not -name '*.exe' -not -name '*.dll' -perm +100 \
         -print0 > "contrib/cygwin/isabelle/executables"
 
-      cat >> "contrib/cygwin/isabelle/postinstall" <<EOF
-
-find -type d -exec chmod 755 '{}' +
-find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
-find -type f -not -name '*.exe' -not -name '*.dll' -exec chmod 644 '{}' +
-xargs -0 < contrib/cygwin/isabelle/executables chmod 755
-
-EOF
-
+      find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" \
+        > "contrib/cygwin/isabelle/symlinks"
     )
 
     perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
@@ -176,6 +171,72 @@ BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_${PLATFORM_FAMILY}.tar.gz"
 
 echo "packaging $(basename "$BUNDLE_ARCHIVE")"
 tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
+
+
+# application
+
+if [ "$ISABELLE_PLATFORM_FAMILY" = linux -a "$PLATFORM_FAMILY" != macos -o "$ISABELLE_PLATFORM_FAMILY" = macos ]
+then
+  case "$PLATFORM_FAMILY" in
+    macos)
+      echo "application for $PLATFORM_FAMILY"
+      (
+        cd "$TMP"
+
+        APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS/App3"
+        APP="${ISABELLE_NAME}.app"
+
+        for NAME in Java MacOS PlugIns Resources
+        do
+          mkdir -p "$APP/Contents/$NAME"
+        done
+
+        cat "$APP_TEMPLATE/Info.plist" | \
+          perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
+
+        for NAME in Pure.jar scala-library.jar scala-swing.jar
+        do
+          ln -sf "../Resources/${ISABELLE_NAME}/lib/classes/ext/$NAME" "$APP/Contents/Java"
+        done
+
+        cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
+        cp "$APP_TEMPLATE/../isabelle.icns" "$APP/Contents/Resources/."
+
+        ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk-7u21/x86_64-darwin/jdk1.7.0_21.jdk" \
+          "$APP/Contents/PlugIns/jdk"
+
+        cp macos_app/JavaAppLauncher "$APP/Contents/MacOS/." && \
+          chmod +x "$APP/Contents/MacOS/JavaAppLauncher"
+
+        mv "$ISABELLE_NAME" "$APP/Contents/Resources/."
+        ln -sf "Contents/Resources/$ISABELLE_NAME" "$APP/Isabelle"
+
+        rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+        hdiutil create -srcfolder "$APP" "${ARCHIVE_DIR}/${ISABELLE_NAME}.dmg"
+      )
+      ;;
+    windows)
+      (
+        cd "$TMP"
+        rm -f "${ARCHIVE_DIR}/${ISABELLE_NAME}.7z"
+        7z -y -bd a "$TMP/${ISABELLE_NAME}.7z" "$ISABELLE_NAME" || exit 2
+
+        echo "application for $PLATFORM_FAMILY"
+        (
+          cat "windows_app/7zsd_All.sfx"
+          cat "$ISABELLE_HOME/Admin/Windows/Installer/sfx.txt" | \
+            perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;"
+          cat "$TMP/${ISABELLE_NAME}.7z"
+        ) > "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
+        chmod +x "${ARCHIVE_DIR}/${ISABELLE_NAME}.exe"
+      )
+      ;;
+    *)
+      ;;
+  esac
+else
+  echo "### Cannot build application for $PLATFORM_FAMILY on $ISABELLE_PLATFORM_FAMILY"
+fi
 
 
 # clean up

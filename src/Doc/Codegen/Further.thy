@@ -222,7 +222,7 @@ text %quotetypewriter {*
 subsection {* Parallel computation *}
 
 text {*
-  Theory @{text Parallel} in @{text "HOL/Library"} contains
+  Theory @{text Parallel} in @{file "~~/src/HOL/Library"} contains
   operations to exploit parallelism inside the Isabelle/ML
   runtime engine.
 *}

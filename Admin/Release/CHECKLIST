@@ -50,9 +50,9 @@ Checklist for official releases
 Packaging
 =========
 
-- hg up -r DISTNAME && Admin/Release/build -r DISTNAME /home/isabelle/dist
+- fully-automated packaging (requires Mac OS X):
 
-- manual packaging of .app (Mac OS) and .exe (Windows)
+  hg up -r DISTNAME && Admin/Release/build -r DISTNAME /home/isabelle/dist
 
 
 Final release stage

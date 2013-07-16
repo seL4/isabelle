@@ -29,7 +29,8 @@ where
                          (s1 @ rhs @ s2) = rsl \<and>
                          (rule lhs rhs) \<in> fst g }"
 
-definition derivesp :: "(('nts, 'ts) rule => bool) * 'nts => ('nts, 'ts) symbol list => ('nts, 'ts) symbol list => bool"
+definition derivesp ::
+  "(('nts, 'ts) rule => bool) * 'nts => ('nts, 'ts) symbol list => ('nts, 'ts) symbol list => bool"
 where
   "derivesp g = (\<lambda> lhs rhs. (lhs, rhs) \<in> derives (Collect (fst g), snd g))"
  
@@ -252,7 +253,8 @@ inductive eval_var ::
 where
   irconst: "eval_var (IrConst i) conf (IntVal i)"
 | objaddr: "\<lbrakk> Env conf n = i \<rbrakk> \<Longrightarrow> eval_var (ObjAddr n) conf (IntVal i)"
-| plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow> eval_var (Add l r) conf (IntVal (vl+vr))"
+| plus: "\<lbrakk> eval_var l conf (IntVal vl); eval_var r conf (IntVal vr) \<rbrakk> \<Longrightarrow>
+    eval_var (Add l r) conf (IntVal (vl+vr))"
 
 
 code_pred eval_var .

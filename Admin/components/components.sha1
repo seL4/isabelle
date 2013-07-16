@@ -2,6 +2,7 @@
 842d9526f37b928cf9e22f141884365129990d63  cygwin-20130110.tar.gz
 cb3b0706d208f104b800267697204f6d82f7b48a  cygwin-20130114.tar.gz
 3b44cca04855016d5f8cfb5101b2e0579ab80197  cygwin-20130117.tar.gz
+1fde9ddf0fa4f398965113d0c0c4f0e97c78d008  cygwin-20130716.tar.gz
 0fe549949a025d65d52d6deca30554de8fca3b6e  e-1.5.tar.gz
 2e293256a134eb8e5b1a283361b15eb812fbfbf1  e-1.6-1.tar.gz
 e1919e72416cbd7ac8de5455caba8901acc7b44d  e-1.6-2.tar.gz
@@ -32,6 +33,7 @@ c85c0829b8170f25aa65ec6852f505ce2a50639b  jedit_build-20130628.tar.gz
 8122526f1fc362ddae1a328bdbc2152853186fee  jfreechart-1.0.14.tar.gz
 6c737137cc597fc920943783382e928ea79e3feb  kodkodi-1.2.16.tar.gz
 5f95c96bb99927f3a026050f85bd056f37a9189e  kodkodi-1.5.2.tar.gz
+0aab4f73ff7f5e36f33276547e10897e1e56fb1d  macos_app-20130716.tar.gz
 1c8cb6a8f4cbeaedce2d6d1ba8fc7e2ab3663aeb  polyml-5.4.1.tar.gz
 a3f9c159a0ee9a63b7a5d0c835ed9c2c908f8b56  polyml-5.5.0-1.tar.gz
 7d604a99355efbfc1459d80db3279ffa7ade3e39  polyml-5.5.0-2.tar.gz
@@ -48,6 +50,7 @@ b447017e81600cc5e30dd61b5d4962f6da01aa80  scala-2.8.1.final.tar.gz
 43b5afbcad575ab6817d2289756ca22fd2ef43a9  spass-3.8ds.tar.gz
 1f4a2053cc1f34fa36c4d9d2ac906ad4ebc863fd  sumatra_pdf-2.1.1.tar.gz
 869ea6d8ea35c8ba68d7fcb028f16b2b7064c5fd  vampire-1.0.tar.gz
+81d21dfd0ea5c58f375301f5166be9dbf8921a7a  windows_app-20130716.tar.gz
 2ae13aa17d0dc95ce254a52f1dba10929763a10d  xz-java-1.2.tar.gz
 4530a1aa6f4498ee3d78d6000fa71a3f63bd077f  yices-1.0.28.tar.gz
 12ae71acde43bd7bed1e005c43034b208c0cba4c  z3-3.2.tar.gz

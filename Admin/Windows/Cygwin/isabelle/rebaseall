@@ -1,6 +1,6 @@
 #!/bin/dash
 
-PATH=/bin
+export PATH=/bin
 
 FILE_LIST="$(mktemp)"
 

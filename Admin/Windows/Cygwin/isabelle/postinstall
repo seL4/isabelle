@@ -1,9 +1,14 @@
 #!/bin/bash
 
-PATH=/bin
+export PATH=/bin
 
 bash /etc/postinstall/base-files-mketc.sh.done
 
 mkpasswd -l >/etc/passwd
 mkgroup -l >/etc/group
+
+find -type d -exec chmod 755 '{}' +
+find -type f \( -name '*.exe' -o -name '*.dll' \) -exec chmod 755 '{}' +
+find -type f -not -name '*.exe' -not -name '*.dll' -exec chmod 644 '{}' +
+xargs -0 < contrib/cygwin/isabelle/executables chmod 755
 

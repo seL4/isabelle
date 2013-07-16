@@ -14,8 +14,6 @@ import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import scala.collection.mutable
 
-import org.tukaani.xz.{LZMA2Options, XZInputStream, XZOutputStream}
-
 
 object File
 {
@@ -77,11 +75,6 @@ object File
 
   def read_gzip(path: Path): String = read_gzip(path.file)
 
-  def read_xz(file: JFile): String =
-    read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
-
-  def read_xz(path: Path): String = read_xz(path.file)
-
 
   /* read lines */
 
@@ -113,7 +106,7 @@ object File
 
   /* write */
 
-  private def write_file(file: JFile, text: Iterable[CharSequence],
+  def write_file(file: JFile, text: Iterable[CharSequence],
     make_stream: OutputStream => OutputStream)
   {
     val stream = make_stream(new FileOutputStream(file))
@@ -132,14 +125,6 @@ object File
   def write_gzip(file: JFile, text: CharSequence): Unit = write_gzip(file, List(text))
   def write_gzip(path: Path, text: Iterable[CharSequence]): Unit = write_gzip(path.file, text)
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
-
-  def write_xz(file: JFile, text: Iterable[CharSequence], preset: Int = 3)
-  {
-    val options = new LZMA2Options
-    options.setPreset(preset)
-    write_file(file, text, (s: OutputStream) =>
-      new XZOutputStream(new BufferedOutputStream(s), options))
-  }
 
 
   /* copy */

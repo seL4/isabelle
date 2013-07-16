@@ -27,6 +27,7 @@ declare -a SOURCES=(
   General/symbol.scala
   General/time.scala
   General/timing.scala
+  General/xz_file.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
@@ -42,7 +43,7 @@ declare -a SOURCES=(
   PIDE/yxml.scala
   System/color_value.scala
   System/command_line.scala
-  System/cygwin.scala
+  System/cygwin_init.scala
   System/event_bus.scala
   System/gui.scala
   System/gui_setup.scala
