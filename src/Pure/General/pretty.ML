@@ -39,6 +39,7 @@ sig
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
   val item: T list -> T
+  val text_fold: T list -> T
   val command: string -> T
   val keyword: string -> T
   val text: string -> T list
@@ -159,6 +160,7 @@ fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
 
 val item = markup Markup.item;
+val text_fold = markup Markup.text_fold;
 
 fun command name = mark_str (Markup.keyword1, name);
 fun keyword name = mark_str (Markup.keyword2, name);
@@ -167,16 +169,14 @@ val text = breaks o map str o Symbol.explode_words;
 val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
-fun markup_chunks m prts = markup m (fbreaks (map (mark Markup.text_fold) prts));
+fun markup_chunks m prts = markup m (fbreaks (map (text_fold o single) prts));
 val chunks = markup_chunks Markup.empty;
 
 fun chunks2 prts =
   (case try split_last prts of
     NONE => blk (0, [])
   | SOME (prefix, last) =>
-      blk (0,
-        maps (fn prt => [markup Markup.text_fold [prt, fbrk], fbrk]) prefix @
-        [mark Markup.text_fold last]));
+      blk (0, maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 
