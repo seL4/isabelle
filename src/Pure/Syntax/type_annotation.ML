@@ -51,12 +51,12 @@ in
 fun fastype_of Ts (t $ u) =
       (case dest_fun false (fastype_of Ts t) of
         SOME T => T
-      | NONE => raise TERM ("fasfastype_of: expected function type", [t $ u]))
+      | NONE => raise TERM ("fastype_of: expected function type", [t $ u]))
   | fastype_of _ (Const (_, T)) = T
   | fastype_of _ (Free (_, T)) = T
   | fastype_of _ (Var (_, T)) = T
   | fastype_of Ts (Bound i) =
-      (nth Ts i handle General.Subscript => raise TERM ("fasfastype_of: Bound", [Bound i]))
+      (nth Ts i handle General.Subscript => raise TERM ("fastype_of: Bound", [Bound i]))
   | fastype_of Ts (Abs (_, T, u)) = T --> fastype_of (T :: Ts) u;
 
 end;
