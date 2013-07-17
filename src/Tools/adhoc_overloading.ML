@@ -137,9 +137,12 @@ fun unifiable_with thy T1 (t, T2) =
     handle Type.TUNIFY => NONE
   end;
 
+fun get_instances ctxt (c, T) =
+  Same.function (get_variants ctxt) c
+  |> map_filter (unifiable_with (Proof_Context.theory_of ctxt) T);
+
 fun insert_variants_same ctxt t (Const (c, T)) =
-      (case map_filter (unifiable_with (Proof_Context.theory_of ctxt) T)
-         (Same.function (get_variants ctxt) c) of
+      (case get_instances ctxt (c, T) of
         [] => unresolved_overloading_error ctxt (c, T) t "no instances"
       | [variant] => variant
       | _ => raise Same.SAME)
