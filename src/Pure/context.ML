@@ -495,7 +495,7 @@ in
 fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
   let
     val thy = deref thy_ref;
-    val _ = subthy (thy, thy') orelse error "transfer proof context: not a super theory";
+    val _ = subthy (thy, thy') orelse error "Cannot transfer proof context: not a super theory";
     val _ = check_thy thy;
     val data' = init_new_data data thy';
     val thy_ref' = check_thy thy';
@@ -518,9 +518,9 @@ fun declare init =
   in k end;
 
 fun get k dest prf =
-  dest (case Datatab.lookup (data_of_proof prf) k of
+  (case Datatab.lookup (data_of_proof prf) k of
     SOME x => x
-  | NONE => invoke_init k (Proof_Context.theory_of prf));   (*adhoc value*)
+  | NONE => invoke_init k (Proof_Context.theory_of prf)) |> dest;  (*adhoc value for old theories*)
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
