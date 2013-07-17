@@ -398,17 +398,20 @@ fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck";
 fun pretty_counterex ctxt auto NONE =
     Pretty.str (tool_name auto ^ " found no counterexample." ^ Config.get ctxt tag)
   | pretty_counterex ctxt auto (SOME ((genuine, cex), eval_terms)) =
-      Pretty.chunks ((Pretty.str (tool_name auto ^ " found a " ^
-        (if genuine then "counterexample:"
-          else "potentially spurious counterexample due to underspecified functions:")
-          ^ Config.get ctxt tag ^ "\n") ::
-        map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex))
-        @ (if null eval_terms then []
-           else (Pretty.fbrk :: Pretty.str ("Evaluated terms:") ::
-             map (fn (t, u) =>
-               Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1,
-                 Syntax.pretty_term ctxt u]) (rev eval_terms))));
+      (Pretty.text_fold o Pretty.fbreaks)
+        (Pretty.str (tool_name auto ^ " found a " ^
+         (if genuine then "counterexample:"
+          else "potentially spurious counterexample due to underspecified functions:") ^
+         Config.get ctxt tag) ::
+         Pretty.str "" ::
+         map (fn (s, t) =>
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex) @
+         (if null eval_terms then []
+          else
+           Pretty.str "" :: Pretty.str "Evaluated terms:" ::
+           map (fn (t, u) =>
+            Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1,
+             Syntax.pretty_term ctxt u]) (rev eval_terms)));
 
 
 (* Isar commands *)
