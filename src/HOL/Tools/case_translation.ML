@@ -384,9 +384,11 @@ fun make_case ctxt config used x clauses =
       (case subtract (op =) tags (map (snd o snd) rows) of
         [] => ()
       | is =>
-          (case config of Error => case_error | Warning => warning | Quiet => fn _ => ())
-            ("The following clauses are redundant (covered by preceding clauses):\n" ^
-              cat_lines (map (string_of_clause o nth clauses) is)));
+          if config = Quiet then ()
+          else
+            (if config = Error then case_error else warning)
+              ("The following clauses are redundant (covered by preceding clauses):\n" ^
+                cat_lines (map (string_of_clause o nth clauses) is)));
   in
     case_tm
   end;
