@@ -77,25 +77,20 @@ qed
 
 lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l"
 proof -
-  have "\<And>i n0. (f o seqseq i) i = f (diagseq i)" unfolding diagseq_def by simp
-  from reducer_reduces obtain l where l: "(\<lambda>i. ((f \<circ> seqseq (Suc n)) i)\<^isub>F n) ----> l"
-    unfolding seqseq_reducer
-  by auto
-  have "(\<lambda>i. (f (diagseq (i + Suc n)))\<^isub>F n) =
-    (\<lambda>i. ((f o (diagseq o (op + (Suc n)))) i)\<^isub>F n)" by (simp add: add_commute)
-  also have "\<dots> =
-    (\<lambda>i. ((f o ((seqseq (Suc n) o (\<lambda>x. fold_reduce (Suc n) x (Suc n + x))))) i)\<^isub>F n)"
-    unfolding diagseq_seqseq by simp
-  also have "\<dots> = (\<lambda>i. ((f o ((seqseq (Suc n)))) i)\<^isub>F n) o (\<lambda>x. fold_reduce (Suc n) x (Suc n + x))"
-    by (simp add: o_def)
-  also have "\<dots> ----> l"
-  proof (rule LIMSEQ_subseq_LIMSEQ[OF _ subseq_diagonal_rest], rule tendstoI)
-    fix e::real assume "0 < e"
-    from tendstoD[OF l `0 < e`]
-    show "eventually (\<lambda>x. dist (((f \<circ> seqseq (Suc n)) x)\<^isub>F n) l < e)
-      sequentially" .
+  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^isub>F n) ----> l"
+  proof (atomize_elim, rule diagseq_holds)
+    fix r s n
+    assume "subseq r"
+    assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^isub>F n) ----> l"
+    then obtain l where "((\<lambda>i. (f i)\<^isub>F n) o s) ----> l"
+      by (auto simp: o_def)
+    hence "((\<lambda>i. (f i)\<^isub>F n) o s o r) ----> l" using `subseq r`
+      by (rule LIMSEQ_subseq_LIMSEQ)
+    thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^isub>F n) ----> l" by (auto simp add: o_def)
   qed
-  finally show ?thesis by (intro exI) (rule LIMSEQ_offset)
+  hence "(\<lambda>i. ((f (diagseq (i + Suc n))))\<^isub>F n) ----> l" by (simp add: ac_simps)
+  hence "(\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l" by (rule LIMSEQ_offset)
+  thus ?thesis ..
 qed
 
 subsection {* Daniell-Kolmogorov Theorem *}
