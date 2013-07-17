@@ -162,8 +162,7 @@ fun mk_swap_rrule ctxt ct =
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
-  Simplifier.simproc_global
-    (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
+  Simplifier.simproc_global Pure.thy "rearrange_eqs" ["all t"]
     (fn ctxt => fn t => mk_swap_rrule ctxt (cterm_of (Proof_Context.theory_of ctxt) t));
 
 

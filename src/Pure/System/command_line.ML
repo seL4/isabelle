@@ -17,7 +17,11 @@ fun tool body =
   uninterruptible (fn restore_attributes => fn () =>
     let val rc =
       restore_attributes body () handle exn =>
-        (Output.error_msg (ML_Compiler.exn_message exn); if Exn.is_interrupt exn then 130 else 1);
+        let
+          val _ =
+            Output.error_msg (ML_Compiler.exn_message exn)
+              handle _ => Output.error_msg "Exception raised, but failed to print details!";
+        in if Exn.is_interrupt exn then 130 else 1 end;
     in if rc = 0 then () else exit rc end) ();
 
 fun tool0 body = tool (fn () => (body (); 0));

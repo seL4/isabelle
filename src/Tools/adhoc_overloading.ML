@@ -32,10 +32,18 @@ fun not_a_variant_error oconst =
 fun not_overloaded_error oconst =
   error ("Constant " ^ quote oconst ^ " is not declared as overloaded");
 
-fun unresolved_overloading_error ctxt (c, T) t reason =
-  error ("Unresolved overloading of " ^ quote c ^ " :: " ^
-    quote (Syntax.string_of_typ ctxt T) ^ " in " ^
-    quote (Syntax.string_of_term ctxt t) ^ " (" ^ reason ^ ")");
+fun unresolved_overloading_error ctxt (c, T) t instances =
+  let val ctxt' = Config.put show_variants true ctxt
+  in
+    cat_lines (
+      "Unresolved overloading of constant" ::
+      quote c ^ " :: " ^ quote (Syntax.string_of_typ ctxt' T) ::
+      "in term " ::
+      quote (Syntax.string_of_term ctxt' t) ::
+      (if null instances then "no instances" else "multiple instances:") ::
+    map (Syntax.string_of_term ctxt') instances)
+    |> error
+  end;
 
 (* generic data *)
 
@@ -137,10 +145,13 @@ fun unifiable_with thy T1 (t, T2) =
     handle Type.TUNIFY => NONE
   end;
 
+fun get_instances ctxt (c, T) =
+  Same.function (get_variants ctxt) c
+  |> map_filter (unifiable_with (Proof_Context.theory_of ctxt) T);
+
 fun insert_variants_same ctxt t (Const (c, T)) =
-      (case map_filter (unifiable_with (Proof_Context.theory_of ctxt) T)
-         (Same.function (get_variants ctxt) c) of
-        [] => unresolved_overloading_error ctxt (c, T) t "no instances"
+      (case get_instances ctxt (c, T) of
+        [] => unresolved_overloading_error ctxt (c, T) t []
       | [variant] => variant
       | _ => raise Same.SAME)
   | insert_variants_same _ _ _ = raise Same.SAME;
@@ -173,7 +184,7 @@ fun reject_unresolved ts ctxt =
     fun check_unresolved t =
       (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
         [] => ()
-      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t "multiple instances");
+      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t (get_instances ctxt (c, T)));
     val _ = map check_unresolved ts;
   in NONE end;
 

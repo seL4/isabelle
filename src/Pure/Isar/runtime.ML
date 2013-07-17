@@ -50,8 +50,15 @@ type error = ((serial * string) * string option);
 
 local
 
-fun if_context NONE _ _ = []
-  | if_context (SOME ctxt) f xs = map (f ctxt) xs;
+fun robust f x =
+  (case try f x of
+    SOME s => s
+  | NONE => Markup.markup Markup.intensify "<malformed>");
+
+fun robust2 f x y = robust (fn () => f x y) ();
+
+fun robust_context NONE _ _ = []
+  | robust_context (SOME ctxt) f xs = map (robust2 f ctxt) xs;
 
 fun identify exn =
   let
@@ -96,22 +103,22 @@ fun exn_messages_ids {exn_position, pretty_exn} e =
             | ERROR msg => msg
             | Fail msg => raised exn "Fail" [msg]
             | THEORY (msg, thys) =>
-                raised exn "THEORY" (msg :: map Context.str_of_thy thys)
+                raised exn "THEORY" (msg :: map (robust Context.str_of_thy) thys)
             | Ast.AST (msg, asts) =>
-                raised exn "AST" (msg :: map (Pretty.string_of o Ast.pretty_ast) asts)
+                raised exn "AST" (msg :: map (robust (Pretty.string_of o Ast.pretty_ast)) asts)
             | TYPE (msg, Ts, ts) =>
                 raised exn "TYPE" (msg ::
-                  (if_context context Syntax.string_of_typ Ts @
-                    if_context context Syntax.string_of_term ts))
+                  (robust_context context Syntax.string_of_typ Ts @
+                    robust_context context Syntax.string_of_term ts))
             | TERM (msg, ts) =>
-                raised exn "TERM" (msg :: if_context context Syntax.string_of_term ts)
+                raised exn "TERM" (msg :: robust_context context Syntax.string_of_term ts)
             | CTERM (msg, cts) =>
                 raised exn "CTERM"
-                  (msg :: if_context context Syntax.string_of_term (map term_of cts))
+                  (msg :: robust_context context Syntax.string_of_term (map term_of cts))
             | THM (msg, i, thms) =>
                 raised exn ("THM " ^ string_of_int i)
-                  (msg :: if_context context Display.string_of_thm thms)
-            | _ => raised exn (Pretty.string_of (pretty_exn exn)) []);
+                  (msg :: robust_context context Display.string_of_thm thms)
+            | _ => raised exn (robust (Pretty.string_of o pretty_exn) exn) []);
         in [((i, msg), id)] end)
       and sorted_msgs context exn =
         sort_distinct (int_ord o pairself (fst o fst)) (maps exn_msgs (flatten context exn));
