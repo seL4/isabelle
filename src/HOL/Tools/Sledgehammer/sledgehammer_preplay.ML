@@ -160,6 +160,7 @@ fun preplay_raw _ _ _ _ _ _ (Let _) = zero_preplay_time
     val facts =
       map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
+                    |> Config.put Lin_Arith.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
     val goal =
       Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] prop

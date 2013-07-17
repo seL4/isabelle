@@ -284,6 +284,8 @@ fun compress_proof isar_compress isar_compress_degree merge_timeout_slack
             val succs = collect_successors steps' succ_lbls
             val succs' = map (try_merge cand #> the) succs
 
+            (* TODO: should be lazy: stop preplaying as soon as one step
+               fails/times out *)
             val preplay_times =
               map (uncurry preplay_quietly) (timeouts ~~ succs')
 
