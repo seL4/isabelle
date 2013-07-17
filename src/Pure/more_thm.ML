@@ -39,6 +39,7 @@ sig
   val eq_thm: thm * thm -> bool
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
+  val eq_thm_strict: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
   val class_triv: theory -> class -> thm
   val of_sort: ctyp * sort -> thm list
@@ -191,6 +192,11 @@ fun eq_thm ths =
 
 val eq_thm_thy = Theory.eq_thy o pairself Thm.theory_of_thm;
 val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
+
+fun eq_thm_strict ths =
+  eq_thm_thy ths andalso eq_thm ths andalso
+    let val (rep1, rep2) = pairself Thm.rep_thm ths
+    in #maxidx rep1 = #maxidx rep2 andalso #tags rep1 = #tags rep2 end;
 
 
 (* pattern equivalence *)

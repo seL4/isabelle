@@ -252,8 +252,6 @@ end;
 
 local
 
-val strict_eq_thm = op = o pairself Thm.rep_thm;
-
 fun apply_att src (context, th) =
   let
     val src1 = Args.assignable src;
@@ -275,7 +273,7 @@ fun eval src ((th, dyn), (decls, context)) =
           (case decls of
             [] => [(th, [src'])]
           | (th2, srcs2) :: rest =>
-              if strict_eq_thm (th, th2)
+              if Thm.eq_thm_strict (th, th2)
               then ((th2, src' :: srcs2) :: rest)
               else (th, [src']) :: (th2, srcs2) :: rest);
       in ((th, NONE), (decls', context')) end
@@ -308,7 +306,7 @@ fun partial_evaluation ctxt facts =
           |>> flat;
         val decls' = rev (map (apsnd rev) decls);
         val facts' =
-          if eq_list (eq_fst strict_eq_thm) (decls', fact') then
+          if eq_list (eq_fst Thm.eq_thm_strict) (decls', fact') then
             [((b, []), map2 (fn (th, atts1) => fn (_, atts2) => (th, atts1 @ atts2)) decls' fact')]
           else if null decls' then [((b, []), fact')]
           else [(empty_binding, decls'), ((b, []), fact')];
