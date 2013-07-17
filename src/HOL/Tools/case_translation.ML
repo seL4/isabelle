@@ -366,7 +366,12 @@ fun no_repeat_vars ctxt pat = fold_aterms
 fun make_case ctxt config used x clauses =
   let
     fun string_of_clause (pat, rhs) =
-      Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs);
+      (case try (fn () => (* FIXME may crash!? *)
+        Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs)) ()
+       of
+        SOME s => s
+      | NONE => Markup.markup Markup.intensify "<malformed>");
+
     val _ = map (no_repeat_vars ctxt o fst) clauses;
     val rows = map_index (fn (i, (pat, rhs)) => (([], [pat]), (rhs, i))) clauses;
     val rangeT =
@@ -386,7 +391,7 @@ fun make_case ctxt config used x clauses =
       | is =>
           if config = Quiet then ()
           else
-            (if config = Error then case_error else warning)
+            (if config = Error then case_error else warning (*FIXME lack of syntactic context!?*))
               ("The following clauses are redundant (covered by preceding clauses):\n" ^
                 cat_lines (map (string_of_clause o nth clauses) is)));
   in
