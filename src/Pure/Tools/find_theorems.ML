@@ -588,7 +588,7 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
      else
       [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
         grouped 10 Par_List.map (pretty_theorem ctxt) theorems)
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.fbreaks |> curry Pretty.blk 0 |> Pretty.writeln;
 
 fun print_theorems ctxt =
   gen_print_theorems (filter_theorems ctxt (map Internal (all_facts_of ctxt))) ctxt;

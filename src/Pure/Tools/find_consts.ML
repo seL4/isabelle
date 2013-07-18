@@ -121,7 +121,7 @@ fun find_consts ctxt raw_criteria =
       else "found " ^ string_of_int (length matches) ^ " constant(s):") ::
     Pretty.str "" ::
     map (pretty_const ctxt) matches
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.fbreaks |> curry Pretty.blk 0 |> Pretty.writeln;
 
 
 (* command syntax *)
