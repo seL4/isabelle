@@ -189,7 +189,10 @@ fun unify_types thy TU env =
 fun test_unify_types thy (T, U) env =
   let
     val str_of = Syntax.string_of_typ_global thy;
-    fun warn () = tracing ("Potential loss of completeness: " ^ str_of U ^ " = " ^ str_of T);
+    fun warn () =
+      if Context_Position.is_visible_global thy then
+        tracing ("Potential loss of completeness: " ^ str_of U ^ " = " ^ str_of T)
+      else ();
     val env' = unify_types thy (T, U) env;
   in if is_TVar T orelse is_TVar U then warn () else (); env' end;
 
@@ -572,14 +575,16 @@ fun add_ffpair thy (rbinder,t0,u0) (env,tpairs) : Envir.env * (term * term) list
   In t==u print u first because it may be rigid or flexible --
     t is always flexible.*)
 fun print_dpairs thy msg (env, dpairs) =
-  let
-    fun pdp (rbinder, t, u) =
-      let
-        fun termT t =
-          Syntax.pretty_term_global thy (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
-        val bsymbs = [termT u, Pretty.str " =?=", Pretty.brk 1, termT t];
-      in tracing (Pretty.string_of (Pretty.blk (0, bsymbs))) end;
-  in tracing msg; List.app pdp dpairs end;
+  if Context_Position.is_visible_global thy then
+    let
+      fun pdp (rbinder, t, u) =
+        let
+          fun termT t =
+            Syntax.pretty_term_global thy (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
+          val bsymbs = [termT u, Pretty.str " =?=", Pretty.brk 1, termT t];
+        in tracing (Pretty.string_of (Pretty.blk (0, bsymbs))) end;
+    in tracing msg; List.app pdp dpairs end
+  else ();
 
 
 (*Unify the dpairs in the environment.
@@ -602,7 +607,8 @@ fun hounifiers (thy, env, tus : (term * term) list) : (Envir.env * (term * term)
             [] => SOME (fold_rev (add_ffpair thy) flexflex (env', []), reseq)
           | dp :: frigid' =>
               if tdepth > search_bound then
-                (warning "Unification bound exceeded"; Seq.pull reseq)
+                (Context_Position.if_visible_global thy warning "Unification bound exceeded";
+                 Seq.pull reseq)
               else
                (if tdepth > trace_bound then
                   print_dpairs thy "Enter MATCH" (env',flexrigid@flexflex)
@@ -611,8 +617,8 @@ fun hounifiers (thy, env, tus : (term * term) list) : (Envir.env * (term * term)
                     (add_unify (tdepth + 1)) (MATCH thy (env',dp, frigid'@flexflex), reseq))))
         end
         handle CANTUNIFY =>
-         (if tdepth > trace_bound then tracing "Failure node" else ();
-          Seq.pull reseq));
+         (if tdepth > trace_bound then Context_Position.if_visible_global thy tracing "Failure node"
+          else (); Seq.pull reseq));
     val dps = map (fn (t, u) => ([], t, u)) tus;
   in add_unify 1 ((env, dps), Seq.empty) end;
 

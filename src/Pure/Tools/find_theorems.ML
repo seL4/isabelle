@@ -631,8 +631,18 @@ val _ =
         Toplevel.keep (fn state =>
           let
             val ctxt = Toplevel.context_of state;
+            val thy' =
+              Proof_Context.theory_of ctxt
+              |> Theory.copy
+              |> Context_Position.set_visible_global (Context_Position.is_visible ctxt)
+              |> Theory.checkpoint;
+
             val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
+            val (ctxt', opt_goal') =
+              (case opt_goal of
+                NONE => (ctxt, NONE)
+              | SOME th => (Proof_Context.transfer thy' ctxt, SOME (Thm.transfer thy' th)));
+          in print_theorems ctxt' opt_goal' opt_lim rem_dups spec end)));
 
 end;
 

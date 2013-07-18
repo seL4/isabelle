@@ -29,6 +29,7 @@ val someN = "some";
 val noneN = "none";
 val unknownN = "none";
 
+
 (* preferences *)
 
 val max_solutions = Unsynchronized.ref 5;
@@ -46,10 +47,11 @@ val _ =
 fun do_solve_direct mode state =
   let
     val ctxt = Proof.context_of state;
+    val find_ctxt = if mode = Auto_Try then Context_Position.set_visible false ctxt else ctxt;
 
     val crits = [(true, Find_Theorems.Solves)];
     fun find g =
-      snd (Find_Theorems.find_theorems ctxt (SOME g) (SOME (! max_solutions)) false crits);
+      snd (Find_Theorems.find_theorems find_ctxt (SOME g) (SOME (! max_solutions)) false crits);
 
     fun prt_result (goal, results) =
       let
