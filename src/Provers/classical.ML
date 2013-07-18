@@ -302,10 +302,10 @@ fun make_elim context th =
     error ("Ill-formed destruction rule\n" ^ string_of_thm context th)
   else Tactic.make_elim th;
 
-fun warn_thm opt_context msg th =
-  if (case opt_context of SOME context => Context_Position.is_visible_proof context | NONE => false)
-  then warning (msg ^ string_of_thm opt_context th)
-  else ();
+fun warn_thm (SOME (Context.Proof ctxt)) msg th =
+      if Context_Position.is_visible ctxt
+      then warning (msg ^ Display.string_of_thm ctxt th) else ()
+  | warn_thm _ _ _ = ();
 
 fun warn_rules context msg rules th =
   Item_Net.member rules th andalso (warn_thm context msg th; true);

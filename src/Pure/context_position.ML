@@ -10,8 +10,6 @@ sig
   val set_visible: bool -> Proof.context -> Proof.context
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val if_visible: Proof.context -> ('a -> unit) -> 'a -> unit
-  val is_visible_proof: Context.generic -> bool
-  val if_visible_proof: Context.generic -> ('a -> unit) -> 'a -> unit
   val report_generic: Context.generic -> Position.T -> Markup.T -> unit
   val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
   val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
@@ -37,11 +35,6 @@ val set_visible = Context.proof_map o Data.put o SOME;
 val restore_visible = set_visible o is_visible;
 
 fun if_visible ctxt f x = if is_visible ctxt then f x else ();
-
-fun is_visible_proof (Context.Proof ctxt) = is_visible ctxt
-  | is_visible_proof _ = false;
-
-fun if_visible_proof context f x = if is_visible_proof context then f x else ();
 
 fun report_generic context pos markup =
   if is_visible_generic context then
