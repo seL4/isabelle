@@ -26,15 +26,27 @@ object Active
           val buffer = model.buffer
           val snapshot = model.snapshot()
 
-          def try_replace_command(exec_id: Document_ID.Exec, s: String)
+          def try_replace_command(padding: Boolean, exec_id: Document_ID.Exec, s: String)
           {
             snapshot.state.execs.get(exec_id).map(_.command) match {
               case Some(command) =>
                 snapshot.node.command_start(command) match {
                   case Some(start) =>
                     JEdit_Lib.buffer_edit(buffer) {
-                      buffer.remove(start, command.proper_range.length)
-                      buffer.insert(start, s)
+                      val range = command.proper_range + start
+                      if (padding) {
+                        val pad =
+                          JEdit_Lib.try_get_text(buffer, Text.Range(range.length - 1, range.length))
+                            match {
+                              case None => ""
+                              case Some(s) => if (Symbol.is_blank(s)) "" else " "
+                            }
+                        buffer.insert(start + range.length, pad + s)
+                      }
+                      else {
+                        buffer.remove(start, range.length)
+                        buffer.insert(start, s)
+                      }
                     }
                   case None =>
                 }
@@ -70,7 +82,7 @@ object Active
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
                 props match {
                   case Position.Id(exec_id) =>
-                    try_replace_command(exec_id, text)
+                    try_replace_command(props.exists(_ == Markup.PADDING_COMMAND), exec_id, text)
                   case _ =>
                     if (props.exists(_ == Markup.PADDING_LINE))
                       Isabelle.insert_line_padding(text_area, text)

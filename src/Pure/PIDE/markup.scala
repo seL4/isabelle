@@ -303,7 +303,8 @@ object Markup
 
   val SENDBACK = "sendback"
   val PADDING = "padding"
-  val PADDING_LINE = (PADDING, LINE)
+  val PADDING_LINE = (PADDING, "line")
+  val PADDING_COMMAND = (PADDING, "command")
 
   val DIALOG = "dialog"
   val Result = new Properties.String(RESULT)

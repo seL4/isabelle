@@ -973,7 +973,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt isar_proofs isar_params num_chained
+                proof_text ctxt (mode = Auto_Try) isar_proofs isar_params num_chained
                            one_line_params
               end,
            (if verbose then
@@ -1177,7 +1177,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                                          preplay,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
-            in one_line_proof_text num_chained one_line_params end,
+            in one_line_proof_text (mode = Auto_Try) num_chained one_line_params end,
          if verbose then
            "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
          else
@@ -1222,7 +1222,7 @@ fun run_reconstructor mode name
                  minimize_command override_params name, subgoal,
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
-            in one_line_proof_text num_chained one_line_params end,
+            in one_line_proof_text (mode = Auto_Try) num_chained one_line_params end,
        message_tail = ""}
     | play =>
       let

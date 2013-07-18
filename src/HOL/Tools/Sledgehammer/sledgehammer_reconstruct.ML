@@ -25,9 +25,9 @@ sig
     Proof.context -> (string * stature) list vector -> 'a proof ->
     string list option
   val isar_proof_text :
-    Proof.context -> bool option -> isar_params -> one_line_params -> string
+    Proof.context -> bool -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool option -> isar_params -> int -> one_line_params
+    Proof.context -> bool -> bool option -> isar_params -> int -> one_line_params
     -> string
 end;
 
@@ -413,7 +413,7 @@ type isar_params =
   * string Symtab.table * (string * stature) list vector
   * (string * term) list * int Symtab.table * string proof * thm
 
-fun isar_proof_text ctxt isar_proofs
+fun isar_proof_text ctxt auto isar_proofs
     (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
      isar_compress_degree, merge_timeout_slack, isar_try0, isar_minimize, pool,
      fact_names, lifted, sym_tab, atp_proof, goal)
@@ -426,7 +426,7 @@ fun isar_proof_text ctxt isar_proofs
       |> (fn fixes =>
              ctxt |> Variable.set_body false
                   |> Proof_Context.add_fixes fixes)
-    val one_line_proof = one_line_proof_text 0 one_line_params
+    val one_line_proof = one_line_proof_text auto 0 one_line_params
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
@@ -625,7 +625,8 @@ fun isar_proof_text ctxt isar_proofs
           in
             "\n\nStructured proof"
               ^ (commas msg |> not (null msg) ? enclose " (" ")")
-              ^ ":\n" ^ Active.sendback_markup isar_text
+              ^ ":\n" ^
+              Active.sendback_markup (if auto then [Markup.padding_command] else []) isar_text
           end
       end
     val isar_proof =
@@ -645,12 +646,12 @@ fun isar_proof_would_be_a_good_idea preplay =
   | Trust_Playable _ => true
   | Failed_to_Play _ => true
 
-fun proof_text ctxt isar_proofs isar_params num_chained
+fun proof_text ctxt auto isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
-     isar_proof_text ctxt isar_proofs isar_params
+     isar_proof_text ctxt auto isar_proofs isar_params
    else
-     one_line_proof_text num_chained) one_line_params
+     one_line_proof_text auto num_chained) one_line_params
 
 end;

@@ -139,6 +139,7 @@ sig
   val sendbackN: string
   val paddingN: string
   val padding_line: Properties.entry
+  val padding_command: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
   val functionN: string
   val assign_update: Properties.T
@@ -451,7 +452,8 @@ val graphviewN = "graphview";
 
 val sendbackN = "sendback";
 val paddingN = "padding";
-val padding_line = (paddingN, lineN);
+val padding_line = (paddingN, "line");
+val padding_command = (paddingN, "command");
 
 val dialogN = "dialog";
 fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);

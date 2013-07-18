@@ -955,7 +955,8 @@ fun attach_parents_to_facts _ [] = []
       |> drop (length old_facts)
     end
 
-fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
+fun sendback sub =
+  Active.sendback_markup [Markup.padding_command] (sledgehammerN ^ " " ^ sub)
 
 val commit_timeout = seconds 30.0
 
