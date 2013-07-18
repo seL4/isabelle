@@ -125,3 +125,13 @@ public option editor_tracing_messages : int = 1000
 
 public option editor_chart_delay : real = 3.0
   -- "delay for chart repainting"
+
+
+section "Miscellaneous Tools"
+
+public option find_theorems_limit : int = 40
+  -- "limit of displayed results"
+
+public option find_theorems_tac_limit : int = 5
+  -- "limit of tactic search for 'solves' criterion"
+

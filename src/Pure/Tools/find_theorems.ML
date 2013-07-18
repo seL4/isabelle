@@ -20,9 +20,6 @@ sig
     criteria: (bool * 'term criterion) list
   }
 
-  val tac_limit: int Unsynchronized.ref
-  val limit: int Unsynchronized.ref
-
   val read_criterion: Proof.context -> string criterion -> term criterion
   val query_parser: (bool * string criterion) list parser
 
@@ -314,11 +311,10 @@ fun filter_elim ctxt goal theorem =
     end
   else NONE;
 
-val tac_limit = Unsynchronized.ref 5;
-
 fun filter_solves ctxt goal =
   let
-    fun etacn thm i = Seq.take (! tac_limit) o etac thm i;
+    fun etacn thm i =
+      Seq.take (Options.default_int @{option find_theorems_tac_limit}) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal
       else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
@@ -507,8 +503,6 @@ fun all_facts_of ctxt =
       visible_facts (Proof_Context.facts_of ctxt))
   end;
 
-val limit = Unsynchronized.ref 40;
-
 fun filter_theorems ctxt theorems query =
   let
     val {goal = opt_goal, limit = opt_limit, rem_dups, criteria} = query;
@@ -524,7 +518,7 @@ fun filter_theorems ctxt theorems query =
           else raw_matches;
 
         val len = length matches;
-        val lim = the_default (! limit) opt_limit;
+        val lim = the_default (Options.default_int @{option find_theorems_limit}) opt_limit;
       in (SOME len, drop (Int.max (len - lim, 0)) matches) end;
 
     val find =
