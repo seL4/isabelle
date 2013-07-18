@@ -94,7 +94,7 @@ type atom_pool = ((string * int) * int list) list
 fun add_wacky_syntax ctxt =
   let
     val name_of = fst o dest_Const
-    val thy = Proof_Context.theory_of ctxt |> Context.reject_draft
+    val thy = Proof_Context.theory_of ctxt
     val (maybe_t, thy) =
       Sign.declare_const_global ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
                           Mixfix (maybe_mixfix (), [1000], 1000)) thy

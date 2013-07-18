@@ -64,8 +64,8 @@ val merge_refs = Context.merge_refs;
 fun merge_list [] = raise THEORY ("Empty merge of theories", [])
   | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
 
-val checkpoint = Context.checkpoint_thy;
-val copy = Context.copy_thy;
+val checkpoint : theory -> theory = I;  (* FIXME dummy *)
+val copy : theory -> theory = I;  (* FIXME dummy *)
 
 fun requires thy name what =
   if exists (fn thy' => Context.theory_name thy' = name) (nodes_of thy) then ()

@@ -232,7 +232,6 @@ fun future_enabled_timing t =
 fun future_result ctxt result prop =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val _ = Context.reject_draft thy;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
 

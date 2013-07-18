@@ -255,14 +255,6 @@ local
 fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
   | reset_presentation node = node;
 
-fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gthy)
-  | is_draft_theory _ = false;
-
-fun is_stale state = Context.is_stale (theory_of state) handle Runtime.UNDEF => false;
-
-fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful execution!")
-  | stale_error some = some;
-
 fun map_theory f (Theory (gthy, ctxt)) =
       Theory (Context.mapping f (Local_Theory.raw_theory f) gthy, ctxt)
   | map_theory _ node = node;
@@ -271,9 +263,7 @@ in
 
 fun apply_transaction f g node =
   let
-    val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
     val cont_node = reset_presentation node;
-    val back_node = map_theory (Theory.checkpoint o Theory.copy) cont_node;
     fun state_error e nd = (State (SOME nd, SOME node), e);
 
     val (result, err) =
@@ -282,14 +272,10 @@ fun apply_transaction f g node =
       |> map_theory Theory.checkpoint
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
-
-    val (result', err') =
-      if is_stale result then state_error (stale_error err) back_node
-      else (result, err);
   in
-    (case err' of
-      NONE => tap g result'
-    | SOME exn => raise FAILURE (result', exn))
+    (case err of
+      NONE => tap g result
+    | SOME exn => raise FAILURE (result, exn))
   end;
 
 val exit_transaction =

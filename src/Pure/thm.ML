@@ -569,7 +569,7 @@ fun future_result i orig_thy orig_shyps orig_prop thm =
 fun future future_thm ct =
   let
     val Cterm {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = ct;
-    val thy = Context.reject_draft (Theory.deref thy_ref);
+    val thy = Theory.deref thy_ref;
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
     val i = serial ();
