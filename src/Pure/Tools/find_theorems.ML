@@ -313,11 +313,18 @@ fun filter_elim ctxt goal theorem =
 
 fun filter_solves ctxt goal =
   let
+    val thy' =
+      Proof_Context.theory_of ctxt
+      |> Context_Position.set_visible_global (Context_Position.is_visible ctxt)
+      |> Theory.checkpoint;
+    val ctxt' = Proof_Context.transfer thy' ctxt;
+    val goal' = Thm.transfer thy' goal;
+
     fun etacn thm i =
       Seq.take (Options.default_int @{option find_theorems_tac_limit}) o etac thm i;
     fun try_thm thm =
-      if Thm.no_prems thm then rtac thm 1 goal
-      else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
+      if Thm.no_prems thm then rtac thm 1 goal'
+      else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt')) 1 goal';
   in
     fn Internal (_, thm) =>
         if is_some (Seq.pull (try_thm thm))
@@ -625,18 +632,8 @@ val _ =
         Toplevel.keep (fn state =>
           let
             val ctxt = Toplevel.context_of state;
-            val thy' =
-              Proof_Context.theory_of ctxt
-              |> Theory.copy
-              |> Context_Position.set_visible_global (Context_Position.is_visible ctxt)
-              |> Theory.checkpoint;
-
             val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-            val (ctxt', opt_goal') =
-              (case opt_goal of
-                NONE => (ctxt, NONE)
-              | SOME th => (Proof_Context.transfer thy' ctxt, SOME (Thm.transfer thy' th)));
-          in print_theorems ctxt' opt_goal' opt_lim rem_dups spec end)));
+          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
 
 end;
 
