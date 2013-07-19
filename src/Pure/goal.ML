@@ -6,7 +6,6 @@ Goals in tactical theorem proving, with support for forked proofs.
 
 signature BASIC_GOAL =
 sig
-  val skip_proofs: bool Unsynchronized.ref
   val parallel_proofs: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val PREFER_GOAL: tactic -> int -> tactic
@@ -200,10 +199,8 @@ end;
 
 (* scheduling parameters *)
 
-val skip_proofs = Unsynchronized.ref false;
-
 fun skip_proofs_enabled () =
-  let val skip = ! skip_proofs in
+  let val skip = Options.default_bool "skip_proofs" in
     if Proofterm.proofs_enabled () andalso skip then
       (warning "Proof terms enabled -- cannot skip proofs"; false)
     else skip

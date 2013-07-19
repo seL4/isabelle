@@ -102,9 +102,6 @@ option process_output_limit : int = 100
 
 section "Editor Reactivity"
 
-public option editor_skip_proofs : bool = false
-  -- "skip over proofs (implicit 'sorry')"
-
 public option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
 

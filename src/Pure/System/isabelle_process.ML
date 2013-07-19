@@ -229,7 +229,6 @@ val _ =
         Future.ML_statistics := true;
         Multithreading.trace := Options.int options "threads_trace";
         Multithreading.max_threads := Options.int options "threads";
-        Goal.skip_proofs := Options.bool options "editor_skip_proofs";
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
       end);
 

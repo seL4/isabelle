@@ -143,9 +143,9 @@ val _ =
     "Take a few short cuts";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_proof
+  ProofGeneral.preference_option ProofGeneral.category_proof
     NONE
-    Goal.skip_proofs
+    @{option skip_proofs}
     "skip-proofs"
     "Skip over proofs";
 
