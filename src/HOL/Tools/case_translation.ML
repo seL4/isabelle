@@ -366,11 +366,10 @@ fun no_repeat_vars ctxt pat = fold_aterms
 fun make_case ctxt config used x clauses =
   let
     fun string_of_clause (pat, rhs) =
-      (case try (fn () => (* FIXME may crash!? *)
-        Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs)) ()
-       of
-        SOME s => s
-      | NONE => Markup.markup Markup.intensify "<malformed>");
+      Syntax.unparse_term ctxt
+        (Term.list_comb (Syntax.const @{syntax_const "_case1"},
+          Syntax.uncheck_terms ctxt [pat, rhs]))
+      |> Pretty.string_of;
 
     val _ = map (no_repeat_vars ctxt o fst) clauses;
     val rows = map_index (fn (i, (pat, rhs)) => (([], [pat]), (rhs, i))) clauses;
