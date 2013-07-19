@@ -16,6 +16,7 @@ session RAW =
     "ML-Systems/proper_int.ML"
     "ML-Systems/single_assignment.ML"
     "ML-Systems/single_assignment_polyml.ML"
+    "ML-Systems/share_common_data_polyml-5.3.0.ML"
     "ML-Systems/smlnj.ML"
     "ML-Systems/thread_dummy.ML"
     "ML-Systems/universal.ML"

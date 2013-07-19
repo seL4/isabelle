@@ -58,6 +58,10 @@ fun quit () = exit 0;
 
 use "ML-Systems/ml_system.ML";
 
+if ML_System.name = "polyml-5.3.0"
+then use "ML-Systems/share_common_data_polyml-5.3.0.ML"
+else ();
+
 structure ML_System =
 struct
 
