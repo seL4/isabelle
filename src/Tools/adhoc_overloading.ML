@@ -176,7 +176,7 @@ fun check ts ctxt = gen_check_uncheck (fn t =>
   Term_Subst.map_aterms_same (insert_variants_same ctxt t) t) ts ctxt;
 
 fun uncheck ts ctxt =
-  if Config.get ctxt show_variants then NONE
+  if Config.get ctxt show_variants orelse exists (is_none o try Term.type_of) ts then NONE
   else gen_check_uncheck (insert_overloaded_same ctxt) ts ctxt;
 
 fun reject_unresolved ts ctxt =
