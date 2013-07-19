@@ -590,6 +590,8 @@ This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
+\subsection{Exercises}
+
 \exercise
 Give a readable, structured proof of the following lemma:
 *}
@@ -599,6 +601,19 @@ lemma assumes T: "\<forall> x y. T x y \<or> T y x"
 shows "T x y"
 (*<*)oops(*>*)
 text{*
+\endexercise
+
+\exercise
+Give a readable, structured proof of the following lemma:
+*}
+lemma "(\<exists>ys zs. xs = ys @ zs \<and> length ys = length zs)
+      \<or> (\<exists>ys zs. xs = ys @ zs \<and> length ys = length zs + 1)"
+(*<*)oops(*>*)
+text{*
+Hint: There are predefined functions @{const_typ take} and @{const_typ drop}
+such that @{text"take k [x\<^sub>1,\<dots>] = [x\<^sub>1,\<dots>,x\<^sub>k]"} and
+@{text"drop k [x\<^sub>1,\<dots>] = [x\<^bsub>k+1\<^esub>,\<dots>]"}. Let @{text simp} and especially
+sledgehammer find and apply the relevant @{const take} and @{const drop} lemmas for you.
 \endexercise
 
 \section{Case Analysis and Induction}
