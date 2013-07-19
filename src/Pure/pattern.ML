@@ -12,7 +12,9 @@ TODO: optimize red by special-casing it
 
 signature PATTERN =
 sig
-  val trace_unify_fail: bool Unsynchronized.ref
+  val unify_trace_failure_default: bool Unsynchronized.ref
+  val unify_trace_failure_raw: Config.raw
+  val unify_trace_failure: bool Config.T
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -38,7 +40,10 @@ struct
 exception Unif;
 exception Pattern;
 
-val trace_unify_fail = Unsynchronized.ref false;
+val unify_trace_failure_default = Unsynchronized.ref false;
+val unify_trace_failure_raw =
+  Config.declare_global "unify_trace_failure" (fn _ => Config.Bool (! unify_trace_failure_default));
+val unify_trace_failure = Config.bool unify_trace_failure_raw;
 
 fun string_of_term thy env binders t =
   Syntax.string_of_term_global thy
@@ -48,28 +53,30 @@ fun bname binders i = fst (nth binders i);
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
 fun typ_clash thy (tye,T,U) =
-  if !trace_unify_fail
+  if Config.get_global thy unify_trace_failure
   then let val t = Syntax.string_of_typ_global thy (Envir.norm_type tye T)
            and u = Syntax.string_of_typ_global thy (Envir.norm_type tye U)
        in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
   else ()
 
-fun clash a b =
-  if !trace_unify_fail then tracing("Clash: " ^ a ^ " =/= " ^ b) else ()
+fun clash thy a b =
+  if Config.get_global thy unify_trace_failure then tracing("Clash: " ^ a ^ " =/= " ^ b) else ()
 
 fun boundVar binders i =
   "bound variable " ^ bname binders i ^ " (depth " ^ string_of_int i ^ ")";
 
-fun clashBB binders i j =
-  if !trace_unify_fail then clash (boundVar binders i) (boundVar binders j)
+fun clashBB thy binders i j =
+  if Config.get_global thy unify_trace_failure
+  then clash thy (boundVar binders i) (boundVar binders j)
   else ()
 
-fun clashB binders i s =
-  if !trace_unify_fail then clash (boundVar binders i) s
+fun clashB thy binders i s =
+  if Config.get_global thy unify_trace_failure
+  then clash thy (boundVar binders i) s
   else ()
 
 fun proj_fail thy (env,binders,F,_,is,t) =
-  if !trace_unify_fail
+  if Config.get_global thy unify_trace_failure
   then let val f = Term.string_of_vname F
            val xs = bnames binders is
            val u = string_of_term thy env binders t
@@ -81,7 +88,7 @@ fun proj_fail thy (env,binders,F,_,is,t) =
   else ()
 
 fun ocheck_fail thy (F,t,binders,env) =
-  if !trace_unify_fail
+  if Config.get_global thy unify_trace_failure
   then let val f = Term.string_of_vname F
            val u = string_of_term thy env binders t
        in tracing("Variable " ^ f ^ " occurs in term\n" ^ u ^
@@ -251,20 +258,20 @@ and cases thy (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
       | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB thy (env,binders,i,j,ss,ts)
       | ((Abs(_),_),_)                => raise Pattern
       | (_,(Abs(_),_))                => raise Pattern
-      | ((Const(c,_),_),(Free(f,_),_)) => (clash c f; raise Unif)
-      | ((Const(c,_),_),(Bound i,_))   => (clashB binders i c; raise Unif)
-      | ((Free(f,_),_),(Const(c,_),_)) => (clash f c; raise Unif)
-      | ((Free(f,_),_),(Bound i,_))    => (clashB binders i f; raise Unif)
-      | ((Bound i,_),(Const(c,_),_))   => (clashB binders i c; raise Unif)
-      | ((Bound i,_),(Free(f,_),_))    => (clashB binders i f; raise Unif)
+      | ((Const(c,_),_),(Free(f,_),_)) => (clash thy c f; raise Unif)
+      | ((Const(c,_),_),(Bound i,_))   => (clashB thy binders i c; raise Unif)
+      | ((Free(f,_),_),(Const(c,_),_)) => (clash thy f c; raise Unif)
+      | ((Free(f,_),_),(Bound i,_))    => (clashB thy binders i f; raise Unif)
+      | ((Bound i,_),(Const(c,_),_))   => (clashB thy binders i c; raise Unif)
+      | ((Bound i,_),(Free(f,_),_))    => (clashB thy binders i f; raise Unif)
 
 
 and rigidrigid thy (env,binders,(a,Ta),(b,Tb),ss,ts) =
-      if a<>b then (clash a b; raise Unif)
+      if a<>b then (clash thy a b; raise Unif)
       else env |> unify_types thy (Ta,Tb) |> fold (unif thy binders) (ss~~ts)
 
 and rigidrigidB thy (env,binders,i,j,ss,ts) =
-     if i <> j then (clashBB binders i j; raise Unif)
+     if i <> j then (clashBB thy binders i j; raise Unif)
      else fold (unif thy binders) (ss~~ts) env
 
 and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
@@ -480,4 +487,3 @@ val rewrite_term_top = gen_rewrite_term false;
 
 end;
 
-val trace_unify_fail = Pattern.trace_unify_fail;

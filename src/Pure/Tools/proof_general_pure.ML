@@ -107,7 +107,7 @@ val _ =
 val _ =
   ProofGeneral.preference_bool ProofGeneral.category_tracing
     NONE
-    Pattern.trace_unify_fail
+    Pattern.unify_trace_failure_default
     "trace-unification"
     "Output error diagnostics during unification";
 

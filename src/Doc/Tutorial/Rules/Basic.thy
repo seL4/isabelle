@@ -187,7 +187,7 @@ oops
 
 text{*unification failure trace *}
 
-ML "trace_unify_fail := true"
+declare [[unify_trace_failure = true]]
 
 lemma "P(a, f(b, g(e,a), b), a) \<Longrightarrow> P(a, f(b, g(c,a), b), a)"
 txt{*
@@ -212,7 +212,7 @@ Clash: == =/= Trueprop
 *}
 oops
 
-ML "trace_unify_fail := false"
+declare [[unify_trace_failure = false]]
 
 
 text{*Quantifiers*}

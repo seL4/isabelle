@@ -1735,7 +1735,7 @@ fun biresolution match brules i state =
             (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
-              if !Pattern.trace_unify_fail orelse
+              if Config.get_global (theory_of_thm state) Pattern.unify_trace_failure orelse
                  could_bires (Hs, B, eres_flg, rule)
               then Seq.make (*delay processing remainder till needed*)
                   (fn()=> SOME(compose (eres_flg, lift rule, nprems_of rule),
