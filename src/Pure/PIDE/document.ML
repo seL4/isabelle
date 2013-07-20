@@ -463,7 +463,7 @@ fun update old_version_id new_version_id edits state =
         (fn deps => fn (name, node) =>
           (singleton o Future.forks)
             {name = "Document.update", group = NONE,
-              deps = map (Future.task_of o #2) deps, pri = 0, interrupts = false}
+              deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
             (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
