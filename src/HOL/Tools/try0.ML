@@ -25,7 +25,7 @@ val noneN = "none"
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_try0}
+    @{option auto_methods}
     "auto-try0"
     "Try standard proof methods"
 
@@ -191,6 +191,6 @@ val _ =
 fun try_try0 auto =
   do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])
 
-val _ = Try.tool_setup (try0N, (30, @{option auto_try0}, try_try0))
+val _ = Try.tool_setup (try0N, (30, @{option auto_methods}, try_try0))
 
 end;

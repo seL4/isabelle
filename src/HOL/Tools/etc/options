@@ -14,7 +14,7 @@ public option auto_nitpick : bool = false
 public option auto_sledgehammer : bool = false
   -- "run Sledgehammer automatically"
 
-public option auto_try0 : bool = false
+public option auto_methods : bool = false
   -- "try standard proof methods automatically"
 
 public option auto_quickcheck : bool = true
