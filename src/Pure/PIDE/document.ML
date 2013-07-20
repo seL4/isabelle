@@ -297,6 +297,7 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 fun start_execution state =
   let
     val {version_id, execution_id} = execution_of state;
+    val pri = Options.default_int "editor_execution_priority";
     val _ =
       if Execution.is_running execution_id then
         nodes_of (the_version state version_id) |> String_Graph.schedule
@@ -306,7 +307,7 @@ fun start_execution state =
             else
               (singleton o Future.forks)
                 {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                  deps = map (Future.task_of o #2) deps, pri = ~2, interrupts = false}
+                  deps = map (Future.task_of o #2) deps, pri = pri, interrupts = false}
                 (fn () =>
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
