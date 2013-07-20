@@ -285,7 +285,7 @@ end;
 val _ =
   print_function "print_state"
     (fn {command_name} =>
-      SOME {delay = Time.zeroTime, pri = 0, persistent = true,
+      SOME {delay = Time.zeroTime, pri = 1, persistent = true,
         print_fn = fn tr => fn st' =>
           let
             val is_init = Keyword.is_theory_begin command_name;
