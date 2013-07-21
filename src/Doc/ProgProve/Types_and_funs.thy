@@ -483,7 +483,7 @@ datatype @{text t} it is @{text "t.split"} instead of @{thm[source] nat.split}.
 Method @{text auto} can be modified in exactly the same way.
 
 
-\section*{Exercises}
+\subsection{Exercises}
 
 \exercise
 Define arithmetic expressions in one variable over integers (type @{typ int})
@@ -506,6 +506,8 @@ Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list
 that transforms an expression into a polynomial. This may require auxiliary
 functions. Prove that @{text coeffs} preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
+Hint: simplifying with @{thm[source] algebra_simps} takes care of
+common algebraic properties of @{text "+"} and @{text "*"}.
 \endexercise
 *}
 (*<*)

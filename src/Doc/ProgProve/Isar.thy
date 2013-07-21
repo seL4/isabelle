@@ -1075,7 +1075,7 @@ the induction hypotheses are instead found under the name @{text hyps}, like for
 @{text induct} method.
 \end{warn}
 
-\section*{Exercises}
+\subsection{Exercises}
 
 \begin{exercise}
 Define a recursive function @{text "elems ::"} @{typ"'a list \<Rightarrow> 'a set"}
