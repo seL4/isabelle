@@ -28,6 +28,9 @@ sig
   val mk_rel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
   val mk_rel_mono_strong_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
 
+  val mk_map_transfer_tac: thm -> thm -> thm list -> thm -> thm ->
+    {prems: thm list, context: Proof.context} -> tactic
+
   val mk_in_bd_tac: int -> thm -> thm -> thm -> thm list -> thm list -> thm -> thm -> thm -> thm ->
     {prems: 'a, context: Proof.context} -> tactic
 end;
@@ -207,6 +210,25 @@ fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
     unfold_tac set_maps ctxt THEN
     EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
       CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_maps] 1;
+
+fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp'
+  {context = ctxt, prems = _} =
+  let
+    val n = length set_map's;
+  in
+    unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimagep} THEN
+    HEADGOAL (EVERY' [rtac @{thm order_trans}, rtac rel_mono, REPEAT_DETERM_N n o atac,
+      rtac @{thm predicate2I}, dtac (in_rel RS iffD1),
+      REPEAT_DETERM o eresolve_tac [exE, CollectE, conjE], hyp_subst_tac ctxt,
+      rtac @{thm vimagepI}, rtac (in_rel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
+      CONJ_WRAP' (fn thm =>
+        etac (thm RS @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimagep]]}))
+      set_map's,
+      rtac conjI,
+      EVERY' (map (fn convol =>
+        rtac (box_equals OF [map_cong0, map_comp' RS sym, map_comp' RS sym]) THEN'
+        REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
+  end;
 
 fun mk_in_bd_tac live map_comp' map_id' map_cong0 set_map's set_bds
   bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero {context = ctxt, prems = _} =

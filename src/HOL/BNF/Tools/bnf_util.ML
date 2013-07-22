@@ -107,6 +107,7 @@ sig
   val mk_cprod: term -> term -> term
   val mk_csum: term -> term -> term
   val mk_dir_image: term -> term -> term
+  val mk_fun_rel: term -> term -> term
   val mk_image: term -> term
   val mk_in: term list -> term list -> typ -> term
   val mk_leq: term -> term -> term
@@ -511,6 +512,12 @@ fun mk_card_of A =
 fun mk_dir_image r f =
   let val (T, U) = dest_funT (fastype_of f);
   in Const (@{const_name dir_image}, mk_relT (T, T) --> (T --> U) --> mk_relT (U, U)) $ r $ f end;
+
+fun mk_fun_rel R S =
+  let
+    val ((RA, RB), RT) = `dest_pred2T (fastype_of R);
+    val ((SA, SB), ST) = `dest_pred2T (fastype_of S);
+  in Const (@{const_name fun_rel}, RT --> ST --> mk_pred2T (RA --> SA) (RB --> SB)) $ R $ S end;
 
 (*FIXME: "x"?*)
 (*(nth sets i) must be of type "T --> 'ai set"*)
