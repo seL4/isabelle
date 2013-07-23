@@ -430,7 +430,9 @@ structure Data = Generic_Data
   val merge = Symtab.merge eq_bnf;
 );
 
-val bnf_of = Symtab.lookup o Data.get o Context.Proof;
+fun bnf_of ctxt str =
+  Symtab.lookup (Data.get (Context.Proof ctxt)) str
+  |> Option.map (morph_bnf (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
 
 
 
