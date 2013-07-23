@@ -775,30 +775,18 @@ session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
 session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   options [document = false, quick_and_dirty]
   theories
+    Boogie
     SMT_Examples
     SMT_Word_Examples
   theories [condition = ISABELLE_FULL_TEST]
     SMT_Tests
   files
-    "SMT_Examples.certs"
-    "SMT_Word_Examples.certs"
-
-session "HOL-Boogie" in "Boogie" = "HOL-Word" +
-  options [document = false]
-  theories Boogie
-
-session "HOL-Boogie-Examples" in "Boogie/Examples" = "HOL-Boogie" +
-  options [document = false]
-  theories
-    Boogie_Max_Stepwise
-    Boogie_Max
-    Boogie_Dijkstra
-    VCC_Max
-  files
     "Boogie_Dijkstra.b2i"
     "Boogie_Dijkstra.certs"
     "Boogie_Max.b2i"
     "Boogie_Max.certs"
+    "SMT_Examples.certs"
+    "SMT_Word_Examples.certs"
     "VCC_Max.b2i"
     "VCC_Max.certs"
 
