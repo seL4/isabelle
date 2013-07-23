@@ -268,6 +268,9 @@ fun mk_pair_compr (T, qs, l, r, conds) =
       |> fold_rev (fn v => fn t => HOLogic.exists_const (fastype_of v) $ lambda v t) qs))
   end
 
+val Un_aci_simps =
+  map mk_meta_eq @{thms Un_ac Un_absorb}
+
 in
 
 fun wf_union_tac ctxt st =
@@ -300,8 +303,9 @@ fun wf_union_tac ctxt st =
           THEN' (blast_tac ctxt)))    (* Solve rest of context... not very elegant *)
       ) i
   in
-    ((PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
-     THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i))) st
+    (PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
+     THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
+     THEN Raw_Simplifier.rewrite_goal_tac Un_aci_simps 1) st  (* eliminate duplicates *)
   end
 
 end
