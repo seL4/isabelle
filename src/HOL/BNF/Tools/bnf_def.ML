@@ -88,6 +88,8 @@ sig
 
   val bnf_note_all: bool Config.T
   val user_policy: fact_policy -> Proof.context -> fact_policy
+  val note_bnf_thms: fact_policy -> (binding -> binding) -> binding -> bnf -> Proof.context ->
+    Proof.context
 
   val print_bnfs: Proof.context -> unit
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
@@ -521,6 +523,67 @@ val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
 fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else policy;
 
 val smart_max_inline_size = 25; (*FUDGE*)
+
+fun note_bnf_thms fact_policy qualify b bnf =
+  let
+    val axioms = axioms_of_bnf bnf;
+    val facts = facts_of_bnf bnf;
+    val wits = wits_of_bnf bnf;
+  in
+    (if fact_policy = Note_All then
+      let
+        val witNs = if length wits = 1 then [witN] else map mk_witN (1 upto length wits);
+        val notes =
+          [(bd_card_orderN, [#bd_card_order axioms]),
+            (bd_cinfiniteN, [#bd_cinfinite axioms]),
+            (bd_Card_orderN, [#bd_Card_order facts]),
+            (bd_CinfiniteN, [#bd_Cinfinite facts]),
+            (bd_CnotzeroN, [#bd_Cnotzero facts]),
+            (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
+            (in_bdN, [Lazy.force (#in_bd facts)]),
+            (in_monoN, [Lazy.force (#in_mono facts)]),
+            (in_relN, [Lazy.force (#in_rel facts)]),
+            (map_compN, [#map_comp axioms]),
+            (map_idN, [#map_id axioms]),
+            (map_transferN, [Lazy.force (#map_transfer facts)]),
+            (map_wpullN, [#map_wpull axioms]),
+            (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)]),
+            (set_mapN, #set_map axioms),
+            (set_bdN, #set_bd axioms)] @
+            (witNs ~~ wit_thmss_of_bnf bnf)
+            |> map (fn (thmN, thms) =>
+              ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
+              [(thms, [])]));
+        in
+          Local_Theory.notes notes #> snd
+        end
+      else
+        I)
+    #> (if fact_policy <> Dont_Note then
+        let
+          val notes =
+            [(map_comp'N, [Lazy.force (#map_comp' facts)], []),
+            (map_cong0N, [#map_cong0 axioms], []),
+            (map_congN, [Lazy.force (#map_cong facts)], fundef_cong_attrs),
+            (map_id'N, [Lazy.force (#map_id' facts)], []),
+            (rel_eqN, [Lazy.force (#rel_eq facts)], []),
+            (rel_flipN, [Lazy.force (#rel_flip facts)], []),
+            (set_map'N, map Lazy.force (#set_map' facts), []),
+            (rel_OO_GrpN, no_refl [#rel_OO_Grp axioms], []),
+            (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
+            (rel_conversepN, [Lazy.force (#rel_conversep facts)], []),
+            (rel_monoN, [Lazy.force (#rel_mono facts)], []),
+            (rel_OON, [Lazy.force (#rel_OO facts)], [])]
+            |> filter_out (null o #2)
+            |> map (fn (thmN, thms, attrs) =>
+              ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)),
+                attrs), [(thms, [])]));
+        in
+          Local_Theory.notes notes #> snd
+        end
+      else
+        I)
+  end;
 
 
 (* Define new BNFs *)
@@ -1173,60 +1236,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         val bnf = mk_bnf b CA live alphas betas dead deads bnf_map bnf_sets bnf_bd axioms defs facts
           wits bnf_rel;
       in
-        (bnf, lthy
-          |> (if fact_policy = Note_All then
-                let
-                  val witNs = if length wits = 1 then [witN] else map mk_witN (1 upto length wits);
-                  val notes =
-                    [(bd_card_orderN, [#bd_card_order axioms]),
-                    (bd_cinfiniteN, [#bd_cinfinite axioms]),
-                    (bd_Card_orderN, [#bd_Card_order facts]),
-                    (bd_CinfiniteN, [#bd_Cinfinite facts]),
-                    (bd_CnotzeroN, [#bd_Cnotzero facts]),
-                    (collect_set_mapN, [Lazy.force (#collect_set_map facts)]),
-                    (in_bdN, [Lazy.force (#in_bd facts)]),
-                    (in_monoN, [Lazy.force (#in_mono facts)]),
-                    (in_relN, [Lazy.force (#in_rel facts)]),
-                    (map_compN, [#map_comp axioms]),
-                    (map_idN, [#map_id axioms]),
-                    (map_transferN, [Lazy.force (#map_transfer facts)]),
-                    (map_wpullN, [#map_wpull axioms]),
-                    (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)]),
-                    (set_mapN, #set_map axioms),
-                    (set_bdN, #set_bd axioms)] @
-                    (witNs ~~ wit_thms)
-                    |> map (fn (thmN, thms) =>
-                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
-                      [(thms, [])]));
-                in
-                  Local_Theory.notes notes #> snd
-                end
-              else
-                I)
-          |> (if fact_policy <> Dont_Note then
-                let
-                  val notes =
-                    [(map_comp'N, [Lazy.force (#map_comp' facts)], []),
-                    (map_cong0N, [#map_cong0 axioms], []),
-                    (map_congN, [Lazy.force (#map_cong facts)], fundef_cong_attrs),
-                    (map_id'N, [Lazy.force (#map_id' facts)], []),
-                    (rel_eqN, [Lazy.force (#rel_eq facts)], []),
-                    (rel_flipN, [Lazy.force (#rel_flip facts)], []),
-                    (set_map'N, map Lazy.force (#set_map' facts), []),
-                    (rel_OO_GrpN, rel_OO_Grps, []),
-                    (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
-                    (rel_conversepN, [Lazy.force (#rel_conversep facts)], []),
-                    (rel_monoN, [Lazy.force (#rel_mono facts)], []),
-                    (rel_OON, [Lazy.force (#rel_OO facts)], [])]
-                    |> filter_out (null o #2)
-                    |> map (fn (thmN, thms, attrs) =>
-                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)),
-                        attrs), [(thms, [])]));
-                in
-                  Local_Theory.notes notes #> snd
-                end
-              else
-                I))
+        (bnf, lthy |> note_bnf_thms fact_policy qualify b bnf)
       end;
 
     val one_step_defs =
