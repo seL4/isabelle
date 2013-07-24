@@ -757,11 +757,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
     val pre_names_lthy = lthy;
-    val ((((((((((((((((((((((((((fs, f_transfers), gs), hs), x), y), (z, z')), zs), ys), As),
+    val (((((((((((((((((((((((((fs, gs), hs), x), y), (z, z')), zs), ys), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
       transfer_domRs), transfer_ranRs), names_lthy) = pre_names_lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
-      ||>> mk_Frees "g" (map2 (curry (op -->)) B1Ts B2Ts)
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
       ||>> mk_Frees "h" (map2 (curry (op -->)) As' Ts)
       ||>> yield_singleton (mk_Frees "x") CA'
@@ -1206,17 +1205,15 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         fun mk_map_transfer () =
           let
-            fun mk_prem R S f g = HOLogic.mk_Trueprop (mk_fun_rel R S $ f $ g);
-            val prems = map4 mk_prem transfer_domRs transfer_ranRs fs f_transfers;
-            val relA = Term.list_comb (mk_bnf_rel transfer_domRTs CA' CB1, transfer_domRs);
-            val relB = Term.list_comb (mk_bnf_rel transfer_ranRTs CB' CB2, transfer_ranRs);
-            val mapf = Term.list_comb (bnf_map_AsBs, fs);
-            val mapg = Term.list_comb (mk_bnf_map B1Ts B2Ts, f_transfers);
-            val concl = HOLogic.mk_Trueprop (mk_fun_rel relA relB $ mapf $ mapg);
+            val rels = map2 mk_fun_rel transfer_domRs transfer_ranRs;
+            val rel = mk_fun_rel
+              (Term.list_comb (mk_bnf_rel transfer_domRTs CA' CB1, transfer_domRs))
+              (Term.list_comb (mk_bnf_rel transfer_ranRTs CB' CB2, transfer_ranRs));
+            val concl = HOLogic.mk_Trueprop
+              (fold_rev mk_fun_rel rels rel $ bnf_map_AsBs $ mk_bnf_map B1Ts B2Ts);
           in
             Goal.prove_sorry lthy [] []
-              (fold_rev Logic.all (fs @ f_transfers @ transfer_domRs @ transfer_ranRs)
-                (Logic.list_implies (prems, concl)))
+              (fold_rev Logic.all (transfer_domRs @ transfer_ranRs) concl)
               (mk_map_transfer_tac (Lazy.force rel_mono) (Lazy.force in_rel)
                 (map Lazy.force set_map') (#map_cong0 axioms) (Lazy.force map_comp'))
             |> Thm.close_derivation

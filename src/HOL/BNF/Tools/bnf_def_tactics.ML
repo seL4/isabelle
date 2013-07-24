@@ -216,6 +216,7 @@ fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp'
   let
     val n = length set_map's;
   in
+    REPEAT_DETERM_N n (HEADGOAL (rtac @{thm fun_relI})) THEN
     unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimagep} THEN
     HEADGOAL (EVERY' [rtac @{thm order_trans}, rtac rel_mono, REPEAT_DETERM_N n o atac,
       rtac @{thm predicate2I}, dtac (in_rel RS iffD1),
