@@ -390,11 +390,11 @@ lemma fixp_induct_option:
   by blast
 
 declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
-  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} 
+  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}
   (SOME @{thm fixp_induct_tailrec}) *}
 
 declaration {* Partial_Function.init "option" @{term option.fixp_fun}
-  @{term option.mono_body} @{thm option.fixp_rule_uc} 
+  @{term option.mono_body} @{thm option.fixp_rule_uc} @{thm option.fixp_induct_uc}
   (SOME @{thm fixp_induct_option}) *}
 
 hide_const (open) chain

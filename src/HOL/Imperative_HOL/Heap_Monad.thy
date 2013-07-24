@@ -476,7 +476,8 @@ lemma fixp_induct_heap:
   by blast
 
 declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
-  @{term heap.mono_body} @{thm heap.fixp_rule_uc} (SOME @{thm fixp_induct_heap}) *}
+  @{term heap.mono_body} @{thm heap.fixp_rule_uc} @{thm heap.fixp_induct_uc}
+  (SOME @{thm fixp_induct_heap}) *}
 
 
 abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"

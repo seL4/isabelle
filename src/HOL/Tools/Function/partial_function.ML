@@ -7,7 +7,7 @@ Partial function definitions based on least fixed points in ccpos.
 signature PARTIAL_FUNCTION =
 sig
   val setup: theory -> theory
-  val init: string -> term -> term -> thm -> thm option -> declaration
+  val init: string -> term -> term -> thm -> thm -> thm option -> declaration
 
   val mono_tac: Proof.context -> int -> tactic
 
@@ -28,7 +28,8 @@ datatype setup_data = Setup_Data of
  {fixp: term,
   mono: term,
   fixp_eq: thm,
-  fixp_induct: thm option};
+  fixp_induct: thm,
+  fixp_induct_user: thm option};
 
 structure Modes = Generic_Data
 (
@@ -38,13 +39,13 @@ structure Modes = Generic_Data
   fun merge data = Symtab.merge (K true) data;
 )
 
-fun init mode fixp mono fixp_eq fixp_induct phi =
+fun init mode fixp mono fixp_eq fixp_induct fixp_induct_user phi =
   let
     val term = Morphism.term phi;
     val thm = Morphism.thm phi;
     val data' = Setup_Data 
       {fixp=term fixp, mono=term mono, fixp_eq=thm fixp_eq,
-       fixp_induct=Option.map thm fixp_induct};
+       fixp_induct=thm fixp_induct, fixp_induct_user=Option.map thm fixp_induct_user};
   in
     Modes.map (Symtab.update (mode, data'))
   end
@@ -167,6 +168,26 @@ val split_conv_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps [@{thm Product_Type.split_conv}]);
 
+
+(* instantiate generic fixpoint induction and eliminate the canonical assumptions;
+  curry induction predicate *)
+fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rule =
+  let
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
+    val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
+    val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
+  in 
+    rule
+    |> cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry), NONE, SOME (cert P_inst)]
+    |> Tactic.rule_by_tactic ctxt
+      (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3 (* discharge U (C f) = f *)
+       THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 4) (* simplify induction step *)
+    |> (fn thm => thm OF [mono_thm, f_def])
+    |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
+         (Raw_Simplifier.rewrite false [mk_meta_eq @{thm Product_Type.curry_split}])) 
+    |> singleton (Variable.export ctxt' ctxt)
+  end
+
 fun mk_curried_induct args ctxt inst_rule =
   let
     val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
@@ -208,7 +229,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val setup_data = the (lookup_mode lthy mode)
       handle Option.Option => error (cat_lines ["Unknown mode " ^ quote mode ^ ".",
         "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
-    val Setup_Data {fixp, mono, fixp_eq, fixp_induct} = setup_data;
+    val Setup_Data {fixp, mono, fixp_eq, fixp_induct, fixp_induct_user} = setup_data;
 
     val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [eqn_raw] lthy;
     val ((_, plain_eqn), args_ctxt) = Variable.focus eqn lthy;
@@ -257,6 +278,10 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
         OF [inst_mono_thm, f_def])
       |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
+    val specialized_fixp_induct = 
+      specialize_fixp_induct lthy' args fT fT_uc F curry uncurry inst_mono_thm f_def fixp_induct
+      |> Drule.rename_bvars' (map SOME (fname :: fname :: argnames));
+
     val mk_raw_induct =
       cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry)]
       #> mk_curried_induct args args_ctxt
@@ -264,7 +289,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [inst_mono_thm, f_def])
       #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
 
-    val raw_induct = Option.map mk_raw_induct fixp_induct
+    val raw_induct = Option.map mk_raw_induct fixp_induct_user
     val rec_rule = let open Conv in
       Goal.prove lthy' (map (fst o dest_Free) args) [] eqn (fn _ =>
         CONVERSION ((arg_conv o arg1_conv o head_conv o rewr_conv) (mk_meta_eq unfold)) 1
@@ -278,6 +303,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "mono"), []), [mono_thm]) #> snd) 
     |> (case raw_induct of NONE => I | SOME thm =>
          Local_Theory.note ((Binding.qualify true fname (Binding.name "raw_induct"), []), [thm]) #> snd)
+    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "fixp_induct"), []), [specialized_fixp_induct]) #> snd) 
   end;
 
 val add_partial_function = gen_add_partial_function Specification.check_spec;
