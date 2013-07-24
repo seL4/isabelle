@@ -125,8 +125,9 @@ session "HOL-IMP" in IMP = HOL +
     Poly_Types
     Sec_Typing
     Sec_TypingT
-    Def_Init_Sound_Big
-    Def_Init_Sound_Small
+    Def_Init_Big
+    Def_Init_Small
+    Fold
     Live
     Live_True
     Hoare_Examples
@@ -147,7 +148,6 @@ session "HOL-IMP" in IMP = HOL +
     Procs_Stat_Vars_Stat
     C_like
     OO
-    Fold
   files "document/root.bib" "document/root.tex"
 
 session "HOL-IMPP" in IMPP = HOL +
