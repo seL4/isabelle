@@ -9,6 +9,8 @@ sig
   val setup: theory -> theory
   val init: string -> term -> term -> thm -> thm option -> declaration
 
+  val mono_tac: Proof.context -> int -> tactic
+
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
     Attrib.binding * term -> local_theory -> local_theory
 
@@ -165,7 +167,7 @@ val split_conv_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps [@{thm Product_Type.split_conv}]);
 
-fun mk_curried_induct args ctxt ccurry cuncurry rule =
+fun mk_curried_induct args ctxt inst_rule =
   let
     val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
@@ -176,9 +178,6 @@ fun mk_curried_induct args ctxt ccurry cuncurry rule =
     val split_params_conv = 
       Conv.params_conv ~1 (fn ctxt' =>
         Conv.implies_conv split_paired_all_conv Conv.all_conv)
-
-    val inst_rule =
-      cterm_instantiate' [SOME cuncurry, NONE, SOME ccurry] rule
 
     val (P_var, x_var) =
        Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
@@ -242,7 +241,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 
     val mono_thm = Goal.prove_internal [] (cert mono_goal)
         (K (mono_tac lthy 1))
-      |> Thm.forall_elim (cert x_uc);
+    val inst_mono_thm = Thm.forall_elim (cert x_uc) mono_thm
 
     val f_def_rhs = curry_n arity (apply_inst lthy fixp F_uc);
     val f_def_binding = Binding.conceal (Binding.name (Thm.def_name fname));
@@ -255,13 +254,14 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
 
     val unfold =
       (cterm_instantiate' (map (SOME o cert) [uncurry, F, curry]) fixp_eq
-        OF [mono_thm, f_def])
+        OF [inst_mono_thm, f_def])
       |> Tactic.rule_by_tactic lthy' (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy') 1);
 
     val mk_raw_induct =
-      mk_curried_induct args args_ctxt (cert curry) (cert uncurry)
+      cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry)]
+      #> mk_curried_induct args args_ctxt
       #> singleton (Variable.export args_ctxt lthy')
-      #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [mono_thm, f_def])
+      #> (fn thm => cterm_instantiate' [SOME (cert F)] thm OF [inst_mono_thm, f_def])
       #> Drule.rename_bvars' (map SOME (fname :: argnames @ argnames))
 
     val raw_induct = Option.map mk_raw_induct fixp_induct
@@ -275,6 +275,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     |-> (fn (_, rec') =>
       Spec_Rules.add Spec_Rules.Equational ([f], rec')
       #> Local_Theory.note ((Binding.qualify true fname (Binding.name "simps"), []), rec') #> snd)
+    |> (Local_Theory.note ((Binding.qualify true fname (Binding.name "mono"), []), [mono_thm]) #> snd) 
     |> (case raw_induct of NONE => I | SOME thm =>
          Local_Theory.note ((Binding.qualify true fname (Binding.name "raw_induct"), []), [thm]) #> snd)
   end;
