@@ -73,7 +73,7 @@ qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
 instance option :: (linorder) linorder proof
 qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
 
-instantiation option :: (order) bot
+instantiation option :: (order) order_bot
 begin
 
 definition bot_option where
@@ -84,7 +84,7 @@ qed (simp add: bot_option_def)
 
 end
 
-instantiation option :: (top) top
+instantiation option :: (order_top) order_top
 begin
 
 definition top_option where
@@ -272,6 +272,12 @@ next
     then have "\<Squnion>Option.these A \<le> y" by (rule Sup_least)
     with Some show ?thesis by (simp add: Sup_option_def)
   qed
+next
+  show "\<Squnion>{} = (\<bottom>::'a option)"
+  by (auto simp: bot_option_def)
+next
+  show "\<Sqinter>{} = (\<top>::'a option)"
+  by (auto simp: top_option_def Inf_option_def)
 qed
 
 end

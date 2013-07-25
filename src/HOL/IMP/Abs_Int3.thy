@@ -25,7 +25,7 @@ by (metis eq_iff narrow1 narrow2)
 
 end
 
-lemma top_widen_top[simp]: "\<top> \<nabla> \<top> = (\<top>::_::{wn,top})"
+lemma top_widen_top[simp]: "\<top> \<nabla> \<top> = (\<top>::_::{wn,order_top})"
 by (metis eq_iff top_greatest widen2)
 
 instantiation ivl :: wn
@@ -53,7 +53,7 @@ qed (transfer, auto simp: widen_rep_def narrow_rep_def le_iff_subset \<gamma>_re
 
 end
 
-instantiation st :: ("{top,wn}")wn
+instantiation st :: ("{order_top,wn}")wn
 begin
 
 lift_definition widen_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<nabla>)"
@@ -335,7 +335,7 @@ that not yet @{prop"y \<le> x"}. This complicates the termination proof for
 widening. *}
 
 locale Measure_wn = Measure1 where m=m
-  for m :: "'av::{top,wn} \<Rightarrow> nat" +
+  for m :: "'av::{order_top,wn} \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
 assumes m_anti_mono: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<le> x \<Longrightarrow> m(x \<nabla> y) < m x"

@@ -108,6 +108,10 @@ begin
 definition
   "top = (top, top)"
 
+instance ..
+
+end
+
 lemma fst_top [simp]: "fst top = top"
   unfolding top_prod_def by simp
 
@@ -117,16 +121,18 @@ lemma snd_top [simp]: "snd top = top"
 lemma Pair_top_top: "(top, top) = top"
   unfolding top_prod_def by simp
 
-instance
+instance prod :: (order_top, order_top) order_top
   by default (auto simp add: top_prod_def)
-
-end
 
 instantiation prod :: (bot, bot) bot
 begin
 
 definition
   "bot = (bot, bot)"
+
+instance ..
+
+end
 
 lemma fst_bot [simp]: "fst bot = bot"
   unfolding bot_prod_def by simp
@@ -137,10 +143,8 @@ lemma snd_bot [simp]: "snd bot = bot"
 lemma Pair_bot_bot: "(bot, bot) = bot"
   unfolding bot_prod_def by simp
 
-instance
+instance prod :: (order_bot, order_bot) order_bot
   by default (auto simp add: bot_prod_def)
-
-end
 
 instance prod :: (bounded_lattice, bounded_lattice) bounded_lattice ..
 
@@ -161,7 +165,7 @@ definition
 
 instance
   by default (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
-    INF_lower SUP_upper le_INF_iff SUP_le_iff)
+    INF_lower SUP_upper le_INF_iff SUP_le_iff bot_prod_def top_prod_def)
 
 end
 

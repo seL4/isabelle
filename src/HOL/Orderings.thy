@@ -1167,14 +1167,16 @@ by (simp add: max_def)
 
 subsection {* (Unique) top and bottom elements *}
 
-class bot = order +
+class bot =
   fixes bot :: 'a ("\<bottom>")
+
+class order_bot = order + bot +
   assumes bot_least: "\<bottom> \<le> a"
 
-sublocale bot < bot!: ordering_top greater_eq greater bot
+sublocale order_bot < bot!: ordering_top greater_eq greater bot
   by default (fact bot_least)
 
-context bot
+context order_bot
 begin
 
 lemma le_bot:
@@ -1195,14 +1197,16 @@ lemma bot_less:
 
 end
 
-class top = order +
+class top =
   fixes top :: 'a ("\<top>")
+
+class order_top = order + top +
   assumes top_greatest: "a \<le> \<top>"
 
-sublocale top < top!: ordering_top less_eq less top
+sublocale order_top < top!: ordering_top less_eq less top
   by default (fact top_greatest)
 
-context top
+context order_top
 begin
 
 lemma top_le:
@@ -1380,7 +1384,7 @@ end
 
 subsection {* Order on @{typ bool} *}
 
-instantiation bool :: "{bot, top, linorder}"
+instantiation bool :: "{order_bot, order_top, linorder}"
 begin
 
 definition
@@ -1454,6 +1458,13 @@ begin
 definition
   "\<bottom> = (\<lambda>x. \<bottom>)"
 
+instance ..
+
+end
+
+instantiation "fun" :: (type, order_bot) order_bot
+begin
+
 lemma bot_apply [simp, code]:
   "\<bottom> x = \<bottom>"
   by (simp add: bot_fun_def)
@@ -1468,6 +1479,13 @@ begin
 
 definition
   [no_atp]: "\<top> = (\<lambda>x. \<top>)"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, order_top) order_top
+begin
 
 lemma top_apply [simp, code]:
   "\<top> x = \<top>"

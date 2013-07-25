@@ -91,7 +91,7 @@ lemma Nil_le_Cons [simp]: "[] \<le> x"
 lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
   by (unfold list_le_def) auto
 
-instantiation list :: (order) bot
+instantiation list :: (order) order_bot
 begin
 
 definition

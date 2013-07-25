@@ -471,27 +471,28 @@ instance proof
     unfolding le_filter_def by simp }
   { assume "F \<le> F'" and "F' \<le> F" thus "F = F'"
     unfolding le_filter_def filter_eq_iff by fast }
-  { show "F \<le> top"
-    unfolding le_filter_def eventually_top by (simp add: always_eventually) }
-  { show "bot \<le> F"
-    unfolding le_filter_def by simp }
-  { show "F \<le> sup F F'" and "F' \<le> sup F F'"
-    unfolding le_filter_def eventually_sup by simp_all }
-  { assume "F \<le> F''" and "F' \<le> F''" thus "sup F F' \<le> F''"
-    unfolding le_filter_def eventually_sup by simp }
   { show "inf F F' \<le> F" and "inf F F' \<le> F'"
     unfolding le_filter_def eventually_inf by (auto intro: eventually_True) }
   { assume "F \<le> F'" and "F \<le> F''" thus "F \<le> inf F' F''"
     unfolding le_filter_def eventually_inf
     by (auto elim!: eventually_mono intro: eventually_conj) }
-  { assume "F \<in> S" thus "F \<le> Sup S"
-    unfolding le_filter_def eventually_Sup by simp }
-  { assume "\<And>F. F \<in> S \<Longrightarrow> F \<le> F'" thus "Sup S \<le> F'"
-    unfolding le_filter_def eventually_Sup by simp }
+  { show "F \<le> sup F F'" and "F' \<le> sup F F'"
+    unfolding le_filter_def eventually_sup by simp_all }
+  { assume "F \<le> F''" and "F' \<le> F''" thus "sup F F' \<le> F''"
+    unfolding le_filter_def eventually_sup by simp }
   { assume "F'' \<in> S" thus "Inf S \<le> F''"
     unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp }
   { assume "\<And>F'. F' \<in> S \<Longrightarrow> F \<le> F'" thus "F \<le> Inf S"
     unfolding le_filter_def Inf_filter_def eventually_Sup Ball_def by simp }
+  { assume "F \<in> S" thus "F \<le> Sup S"
+    unfolding le_filter_def eventually_Sup by simp }
+  { assume "\<And>F. F \<in> S \<Longrightarrow> F \<le> F'" thus "Sup S \<le> F'"
+    unfolding le_filter_def eventually_Sup by simp }
+  { show "Inf {} = (top::'a filter)"
+    by (auto simp: top_filter_def Inf_filter_def Sup_filter_def)
+      (metis (full_types) Topological_Spaces.top_filter_def always_eventually eventually_top) }
+  { show "Sup {} = (bot::'a filter)"
+    by (auto simp: bot_filter_def Sup_filter_def) }
 qed
 
 end

@@ -6,11 +6,11 @@ begin
 
 subsection "Orderings"
 
-text{* The basic type classes @{class order}, @{class semilattice_sup} and @{class top} are
+text{* The basic type classes @{class order}, @{class semilattice_sup} and @{class order_top} are
 defined in @{theory Main}, more precisely in theories @{theory Orderings} and @{theory Lattices}.
 If you view this theory with jedit, just click on the names to get there. *}
 
-class semilattice_sup_top = semilattice_sup + top
+class semilattice_sup_top = semilattice_sup + order_top
 
 
 instance "fun" :: (type, semilattice_sup_top) semilattice_sup_top ..
@@ -78,7 +78,7 @@ end
 lemma [simp]: "(Some x < Some y) = (x < y)"
 by(auto simp: less_le)
 
-instantiation option :: (order)bot
+instantiation option :: (order)order_bot
 begin
 
 definition bot_option :: "'a option" where

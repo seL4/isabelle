@@ -1144,8 +1144,22 @@ lemma ereal_complete_Inf:
   using ereal_complete_Sup[of "uminus ` S"] unfolding ereal_complete_uminus_eq by auto
 
 instance
-  by default (auto intro: someI2_ex ereal_complete_Sup ereal_complete_Inf
-                   simp: Sup_ereal_def Inf_ereal_def bot_ereal_def top_ereal_def)
+proof
+  show "Sup {} = (bot::ereal)"
+  apply (auto simp: bot_ereal_def Sup_ereal_def)
+  apply (rule some1_equality)
+  apply (metis ereal_bot ereal_less_eq(2))
+  apply (metis ereal_less_eq(2))
+  done
+next
+  show "Inf {} = (top::ereal)"
+  apply (auto simp: top_ereal_def Inf_ereal_def)
+  apply (rule some1_equality)
+  apply (metis ereal_top ereal_less_eq(1))
+  apply (metis ereal_less_eq(1))
+  done
+qed (auto intro: someI2_ex ereal_complete_Sup ereal_complete_Inf
+  simp: Sup_ereal_def Inf_ereal_def bot_ereal_def top_ereal_def)
 
 end
 

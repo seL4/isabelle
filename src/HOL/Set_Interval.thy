@@ -197,8 +197,8 @@ lemma atLeastAtMost_iff [simp,no_atp]:
 by (simp add: atLeastAtMost_def)
 
 text {* The above four lemmas could be declared as iffs. Unfortunately this
-breaks many proofs. Since it only helps blast, it is better to leave well
-alone *}
+breaks many proofs. Since it only helps blast, it is better to leave them
+alone. *}
 
 lemma greaterThanLessThan_eq: "{ a <..< b} = { a <..} \<inter> {..< b }"
   by auto
@@ -452,10 +452,10 @@ lemma atLeastLessThan_eq_iff:
   shows "{a ..< b} = {c ..< d} \<longleftrightarrow> a = c \<and> b = d"
   using atLeastLessThan_inj assms by auto
 
-lemma (in bot) atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
+lemma (in order_bot) atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
 by (auto simp: set_eq_iff intro: le_bot)
 
-lemma (in top) atMost_eq_UNIV_iff: "{..x} = UNIV \<longleftrightarrow> x = top"
+lemma (in order_top) atMost_eq_UNIV_iff: "{..x} = UNIV \<longleftrightarrow> x = top"
 by (auto simp: set_eq_iff intro: top_le)
 
 lemma (in bounded_lattice) atLeastAtMost_eq_UNIV_iff:

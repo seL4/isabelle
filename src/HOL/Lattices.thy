@@ -466,7 +466,7 @@ end
 
 subsection {* Bounded lattices and boolean algebras *}
 
-class bounded_semilattice_inf_top = semilattice_inf + top
+class bounded_semilattice_inf_top = semilattice_inf + order_top
 begin
 
 sublocale inf_top!: semilattice_neutr inf top
@@ -479,7 +479,7 @@ qed
 
 end
 
-class bounded_semilattice_sup_bot = semilattice_sup + bot
+class bounded_semilattice_sup_bot = semilattice_sup + order_bot
 begin
 
 sublocale sup_bot!: semilattice_neutr sup bot
@@ -492,7 +492,7 @@ qed
 
 end
 
-class bounded_lattice_bot = lattice + bot
+class bounded_lattice_bot = lattice + order_bot
 begin
 
 subclass bounded_semilattice_sup_bot ..
@@ -523,7 +523,7 @@ lemma bot_eq_sup_iff [simp]:
 
 end
 
-class bounded_lattice_top = lattice + top
+class bounded_lattice_top = lattice + order_top
 begin
 
 subclass bounded_semilattice_inf_top ..
@@ -550,7 +550,7 @@ lemma inf_eq_top_iff [simp]:
 
 end
 
-class bounded_lattice = lattice + bot + top
+class bounded_lattice = lattice + order_bot + order_top
 begin
 
 subclass bounded_lattice_bot ..

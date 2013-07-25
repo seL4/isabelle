@@ -20,7 +20,7 @@ definition prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 interpretation prefix_order: order prefixeq prefix
   by default (auto simp: prefixeq_def prefix_def)
 
-interpretation prefix_bot: bot prefixeq prefix Nil
+interpretation prefix_bot: order_bot Nil prefixeq prefix
   by default (simp add: prefixeq_def)
 
 lemma prefixeqI [intro?]: "ys = xs @ zs \<Longrightarrow> prefixeq xs ys"

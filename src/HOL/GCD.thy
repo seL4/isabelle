@@ -1560,17 +1560,17 @@ where
 proof -
   show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
   proof
-    case goal1 show ?case by simp
+    case goal1 thus ?case by (simp add: Gcd_nat_def)
   next
-    case goal2 show ?case by simp
+    case goal2 thus ?case by (simp add: Gcd_nat_def)
   next
-    case goal5 thus ?case by (rule dvd_Lcm_nat)
+    case goal5 show ?case by (simp add: Gcd_nat_def Lcm_nat_infinite)
   next
-    case goal6 thus ?case by simp
+    case goal6 show ?case by (simp add: Lcm_nat_empty)
   next
-    case goal3 thus ?case by (simp add: Gcd_nat_def)
+    case goal3 thus ?case by simp
   next
-    case goal4 thus ?case by (simp add: Gcd_nat_def)
+    case goal4 thus ?case by simp
   qed
   then interpret gcd_lcm_complete_lattice_nat:
     complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .

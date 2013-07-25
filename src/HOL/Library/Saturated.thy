@@ -263,6 +263,12 @@ next
   note finite
   moreover assume z: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
   ultimately show "Sup A \<le> z" by (induct A) auto
+next
+  show "Inf {} = (top::'a sat)"
+    by (auto simp: top_sat_def)
+next
+  show "Sup {} = (bot::'a sat)"
+    by (auto simp: bot_sat_def)
 qed
 
 hide_const (open) sat_of_nat

@@ -65,10 +65,12 @@ begin
 definition
   "bot = (bot, bot)"
 
-instance
-  by default (auto simp add: bot_prod_def)
+instance ..
 
 end
+
+instance prod :: (order_bot, order_bot) order_bot
+  by default (auto simp add: bot_prod_def)
 
 instantiation prod :: (top, top) top
 begin
@@ -76,10 +78,12 @@ begin
 definition
   "top = (top, top)"
 
-instance
-  by default (auto simp add: top_prod_def)
+instance ..
 
 end
+
+instance prod :: (order_top, order_top) order_top
+  by default (auto simp add: top_prod_def)
 
 instance prod :: (wellorder, wellorder) wellorder
 proof

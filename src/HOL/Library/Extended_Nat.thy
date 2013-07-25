@@ -452,7 +452,7 @@ apply (rule exI)
 apply (erule (1) le_less_trans)
 done
 
-instantiation enat :: "{bot, top}"
+instantiation enat :: "{order_bot, order_top}"
 begin
 
 definition bot_enat :: enat where
@@ -623,7 +623,8 @@ instance proof
       unfolding Sup_enat_def by (cases "finite A") auto }
   { assume "\<And>y. y \<in> A \<Longrightarrow> y \<le> x" then show "Sup A \<le> x"
       unfolding Sup_enat_def using finite_enat_bounded by auto }
-qed (simp_all add: inf_enat_def sup_enat_def)
+qed (simp_all add:
+ inf_enat_def sup_enat_def bot_enat_def top_enat_def Inf_enat_def Sup_enat_def)
 end
 
 instance enat :: complete_linorder ..

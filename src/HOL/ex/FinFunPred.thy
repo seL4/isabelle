@@ -31,7 +31,7 @@ instance "finfun" :: (type, preorder) preorder
 instance "finfun" :: (type, order) order
 by(intro_classes)(auto simp add: le_finfun_def order_antisym_conv intro: finfun_ext)
 
-instantiation "finfun" :: (type, bot) bot begin
+instantiation "finfun" :: (type, order_bot) order_bot begin
 definition "bot = finfun_const bot"
 instance by(intro_classes)(simp add: bot_finfun_def le_finfun_def)
 end
@@ -39,7 +39,7 @@ end
 lemma bot_finfun_apply [simp]: "op $ bot = (\<lambda>_. bot)"
 by(auto simp add: bot_finfun_def)
 
-instantiation "finfun" :: (type, top) top begin
+instantiation "finfun" :: (type, order_top) order_top begin
 definition "top = finfun_const top"
 instance by(intro_classes)(simp add: top_finfun_def le_finfun_def)
 end

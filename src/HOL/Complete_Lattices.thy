@@ -22,17 +22,31 @@ class Sup =
 
 subsection {* Abstract complete lattices *}
 
-class complete_lattice = bounded_lattice + Inf + Sup +
+text {* A complete lattice always has a bottom and a top,
+so we include them into the following type class,
+along with assumptions that define bottom and top
+in terms of infimum and supremum. *}
+
+class complete_lattice = lattice + Inf + Sup + bot + top +
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
      and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
   assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
      and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
+  assumes Inf_empty [simp]: "\<Sqinter>{} = \<top>"
+  assumes Sup_empty [simp]: "\<Squnion>{} = \<bottom>"
 begin
+
+subclass bounded_lattice
+proof
+  fix a
+  show "\<bottom> \<le> a" by (auto intro: Sup_least simp only: Sup_empty [symmetric])
+  show "a \<le> \<top>" by (auto intro: Inf_greatest simp only: Inf_empty [symmetric])
+qed
 
 lemma dual_complete_lattice:
   "class.complete_lattice Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
-  by (auto intro!: class.complete_lattice.intro dual_bounded_lattice)
-    (unfold_locales, (fact bot_least top_greatest
+  by (auto intro!: class.complete_lattice.intro dual_lattice)
+    (unfold_locales, (fact Inf_empty Sup_empty
         Sup_upper Sup_least Inf_lower Inf_greatest)+)
 
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
@@ -141,28 +155,6 @@ lemma Sup_le_iff: "\<Squnion>A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a
 lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow> (\<forall>i\<in>A. f i \<sqsubseteq> u)"
   by (auto simp add: SUP_def Sup_le_iff)
 
-lemma Inf_empty [simp]:
-  "\<Sqinter>{} = \<top>"
-  by (auto intro: antisym Inf_greatest)
-
-lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
-  by (simp add: INF_def)
-
-lemma Sup_empty [simp]:
-  "\<Squnion>{} = \<bottom>"
-  by (auto intro: antisym Sup_least)
-
-lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
-  by (simp add: SUP_def)
-
-lemma Inf_UNIV [simp]:
-  "\<Sqinter>UNIV = \<bottom>"
-  by (auto intro!: antisym Inf_lower)
-
-lemma Sup_UNIV [simp]:
-  "\<Squnion>UNIV = \<top>"
-  by (auto intro!: antisym Sup_upper)
-
 lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
@@ -174,6 +166,20 @@ lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
 
 lemma SUP_insert: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPR A f"
   by (simp add: SUP_def)
+
+lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
+  by (simp add: INF_def)
+
+lemma SUP_empty [simp]: "(\<Squnion>x\<in>{}. f x) = \<bottom>"
+  by (simp add: SUP_def)
+
+lemma Inf_UNIV [simp]:
+  "\<Sqinter>UNIV = \<bottom>"
+  by (auto intro!: antisym Inf_lower)
+
+lemma Sup_UNIV [simp]:
+  "\<Squnion>UNIV = \<top>"
+  by (auto intro!: antisym Sup_upper)
 
 lemma INF_image [simp]: "(\<Sqinter>x\<in>f`A. g x) = (\<Sqinter>x\<in>A. g (f x))"
   by (simp add: INF_def image_image)

@@ -444,7 +444,7 @@ qed
 
 end
 
-instantiation nat :: bot
+instantiation nat :: order_bot
 begin
 
 definition bot_nat :: nat where
@@ -1318,7 +1318,8 @@ lemma comp_funpow:
 
 subsection {* Kleene iteration *}
 
-lemma Kleene_iter_lpfp: assumes "mono f" and "f p \<le> p" shows "(f^^k) bot \<le> p"
+lemma Kleene_iter_lpfp:
+assumes "mono f" and "f p \<le> p" shows "(f^^k) (bot::'a::order_bot) \<le> p"
 proof(induction k)
   case 0 show ?case by simp
 next
