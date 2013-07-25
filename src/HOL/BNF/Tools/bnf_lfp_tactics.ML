@@ -34,6 +34,8 @@ sig
     thm list -> tactic
   val mk_iso_alt_tac: thm list -> thm -> tactic
   val mk_fold_unique_mor_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> tactic
+  val mk_fold_transfer_tac: int -> thm -> thm list -> thm list ->
+    {prems: thm list, context: Proof.context} -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
   val mk_lfp_map_wpull_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list ->
     thm list list -> thm list list list -> thm list -> tactic
@@ -836,6 +838,26 @@ fun mk_rel_induct_tac m ctor_induct2 ks ctor_rels rel_mono_strongs {context = ct
             EVERY' [select_prem_tac n (dtac asm_rl) j, rtac @{thm ballI[OF ballI]},
               Goal.assume_rule_tac ctxt]) ks)])
       IHs ctor_rels rel_mono_strongs)] 1
+  end;
+
+fun mk_fold_transfer_tac m rel_induct map_transfers folds {context = ctxt, prems = _} =
+  let
+    val n = length map_transfers;
+  in
+    unfold_thms_tac ctxt
+      @{thms fun_rel_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
+    unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
+    HEADGOAL (EVERY'
+      [REPEAT_DETERM o resolve_tac [allI, impI], rtac rel_induct,
+      EVERY' (map (fn map_transfer => EVERY'
+        [REPEAT_DETERM o resolve_tac [allI, impI, @{thm vimage2pI}],
+        SELECT_GOAL (unfold_thms_tac ctxt folds),
+        etac @{thm predicate2D_vimage2p},
+        rtac (funpow (m + n + 1) (fn thm => thm RS @{thm fun_relD}) map_transfer),
+        REPEAT_DETERM_N m o rtac @{thm id_transfer},
+        REPEAT_DETERM_N n o rtac @{thm vimage2p_fun_rel},
+        atac])
+      map_transfers)])
   end;
 
 end;

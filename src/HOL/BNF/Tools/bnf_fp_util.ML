@@ -54,6 +54,7 @@ sig
   val ctor_injectN: string
   val ctor_foldN: string
   val ctor_fold_uniqueN: string
+  val ctor_fold_transferN: string
   val ctor_mapN: string
   val ctor_map_uniqueN: string
   val ctor_recN: string
@@ -82,6 +83,7 @@ sig
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
   val dtor_unfold_uniqueN: string
+  val dtor_unfold_transferN: string
   val exhaustN: string
   val foldN: string
   val hsetN: string
@@ -169,6 +171,9 @@ sig
   val mk_rel_co_induct_thm: fp_kind -> term list -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
+  val mk_un_fold_transfer_thms: fp_kind -> term list -> term list -> term list -> term list ->
+    term list -> term list -> ({prems: thm list, context: Proof.context} -> tactic) ->
+    Proof.context -> thm list
 
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> 'a) ->
@@ -240,6 +245,7 @@ val IITN = "IITN"
 val foldN = "fold"
 val unfoldN = unN ^ foldN
 val uniqueN = "_unique"
+val transferN = "_transfer"
 val simpsN = "simps"
 val ctorN = "ctor"
 val dtorN = "dtor"
@@ -247,6 +253,8 @@ val ctor_foldN = ctorN ^ "_" ^ foldN
 val dtor_unfoldN = dtorN ^ "_" ^ unfoldN
 val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
 val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
+val ctor_fold_transferN = ctor_foldN ^ transferN
+val dtor_unfold_transferN = dtor_unfoldN ^ transferN
 val ctor_dtor_unfoldN = ctorN ^ "_" ^ dtor_unfoldN
 val ctor_mapN = ctorN ^ "_" ^ mapN
 val dtor_mapN = dtorN ^ "_" ^ mapN
@@ -483,6 +491,25 @@ fun mk_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac l
     Goal.prove_sorry lthy (map (fst o dest_Free) (phis @ pre_phis)) prems concl tac
     |> Thm.close_derivation
     |> (fn thm => thm OF (replicate (length pre_rels) @{thm allI[OF allI[OF impI]]}))
+  end;
+
+fun mk_un_fold_transfer_thms fp pre_rels pre_phis rels phis un_folds un_folds' tac lthy =
+  let
+    val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_phis)) pre_rels;
+    val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
+    fun flip f x y = if fp = Greatest_FP then f y x else f x y;
+
+    val arg_rels = map2 (flip mk_fun_rel) pre_relphis pre_phis;
+    fun mk_transfer relphi pre_phi un_fold un_fold' =
+      fold_rev mk_fun_rel arg_rels (flip mk_fun_rel relphi pre_phi) $ un_fold $ un_fold';
+    val transfers = map4 mk_transfer relphis pre_phis un_folds un_folds';
+
+    val goal = fold_rev Logic.all (phis @ pre_phis)
+      (HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj transfers));
+  in
+    Goal.prove_sorry lthy [] [] goal tac
+    |> Thm.close_derivation
+    |> split_conj_thm
   end;
 
 fun fp_bnf construct_fp bs resBs eqs lthy =

@@ -307,6 +307,27 @@ by simp
 lemma Collect_splitD: "x \<in> Collect (split A) \<Longrightarrow> A (fst x) (snd x)"
 by auto
 
+definition image2p where
+  "image2p f g R = (\<lambda>x y. \<exists>x' y'. R x' y' \<and> f x' = x \<and> g y' = y)"
+
+lemma image2pI: "R x y \<Longrightarrow> (image2p f g R) (f x) (g y)"
+  unfolding image2p_def by blast
+
+lemma image2p_eqI: "\<lbrakk>fx = f x; gy = g y; R x y\<rbrakk> \<Longrightarrow> (image2p f g R) fx gy"
+  unfolding image2p_def by blast
+
+lemma image2pE: "\<lbrakk>(image2p f g R) fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
+  unfolding image2p_def by blast
+
+lemma fun_rel_iff_geq_image2p: "(fun_rel R S) f g = (image2p f g R \<le> S)"
+  unfolding fun_rel_def image2p_def by auto
+
+lemma convol_image_image2p: "<f o fst, g o snd> ` Collect (split R) \<subseteq> Collect (split (image2p f g R))"
+  unfolding convol_def image2p_def by fastforce
+
+lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
+  unfolding fun_rel_def image2p_def by auto
+
 ML_file "Tools/bnf_gfp_util.ML"
 ML_file "Tools/bnf_gfp_tactics.ML"
 ML_file "Tools/bnf_gfp.ML"

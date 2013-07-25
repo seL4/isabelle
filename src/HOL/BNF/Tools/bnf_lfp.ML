@@ -42,12 +42,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val names_lthy = fold Variable.declare_typ deads lthy;
 
     (* tvars *)
-    val (((((((passiveAs, activeAs), allAs)), (passiveBs, activeBs)),
+    val (((((((passiveAs, activeAs), allAs)), ((passiveBs, activeBs), allBs')),
       activeCs), passiveXs), passiveYs) = names_lthy
       |> mk_TFrees live
       |> apfst (`(chop m))
       ||> mk_TFrees live
-      ||>> apfst (chop m)
+      ||>> apfst (`(chop m))
       ||>> mk_TFrees n
       ||>> mk_TFrees m
       ||> fst o mk_TFrees m;
@@ -1091,6 +1091,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val folds = map (Morphism.term phi) fold_frees;
     val fold_names = map (fst o dest_Const) folds;
+    fun mk_folds passives actives =
+      map3 (fn name => fn T => fn active =>
+        Const (name, Library.foldr (op -->)
+          (map2 (curry (op -->)) (mk_FTs (passives @ actives)) actives, T --> active)))
+      fold_names (mk_Ts passives) actives;
     fun mk_fold Ts ss i = Term.list_comb (Const (nth fold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
     val fold_defs = map (Morphism.thm phi) fold_def_frees;
@@ -1382,9 +1387,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       trans OF [ctor_inject, rel_eq_of_bnf bnf RS @{thm predicate2_eqD} RS sym];
 
     val IphiTs = map2 mk_pred2T passiveAs passiveBs;
+    val activephiTs = map2 mk_pred2T activeAs activeBs;
     val activeIphiTs = map2 mk_pred2T Ts Ts';
-    val ((Iphis, activeIphis), names_lthy) = names_lthy
+    val (((Iphis, activephis), activeIphis), names_lthy) = names_lthy
       |> mk_Frees "R" IphiTs
+      ||>> mk_Frees "S" activephiTs
       ||>> mk_Frees "IR" activeIphiTs;
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
 
@@ -1801,12 +1808,20 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           (mk_rel_induct_tac m ctor_induct2_thm ks ctor_Irel_thms (map rel_mono_strong_of_bnf bnfs))
           lthy;
 
+      val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
+      val ctor_fold_transfer_thms =
+        mk_un_fold_transfer_thms Least_FP rels activephis Irels Iphis
+          (mk_folds passiveAs activeAs) (mk_folds passiveBs activeBs)
+          (mk_fold_transfer_tac m Irel_induct_thm (map map_transfer_of_bnf bnfs) ctor_fold_thms)
+          lthy;
+
       val timer = time (timer "relator induction");
 
       val common_notes =
         [(ctor_inductN, [ctor_induct_thm]),
         (ctor_induct2N, [ctor_induct2_thm]),
-        (rel_inductN, [Irel_induct_thm])]
+        (rel_inductN, [Irel_induct_thm]),
+        (ctor_fold_transferN, ctor_fold_transfer_thms)]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 

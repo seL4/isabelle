@@ -113,6 +113,10 @@ unfolding sum_rel_def by simp+
 lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
 by blast
 
+lemma fun_rel_def_butlast:
+  "(fun_rel R (fun_rel S T)) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"
+  unfolding fun_rel_def ..
+
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"

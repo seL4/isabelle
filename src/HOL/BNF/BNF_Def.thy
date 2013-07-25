@@ -193,20 +193,20 @@ lemma If_the_inv_into_f_f:
   ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) o g) i = id i"
 unfolding Func_def by (auto elim: the_inv_into_f_f)
 
-definition vimagep where
-  "vimagep f g R = (\<lambda>x y. R (f x) (g y))"
+definition vimage2p where
+  "vimage2p f g R = (\<lambda>x y. R (f x) (g y))"
 
-lemma vimagepI: "R (f x) (g y) \<Longrightarrow> vimagep f g R x y"
-  unfolding vimagep_def by -
+lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
+  unfolding vimage2p_def by -
 
-lemma vimagepD: "vimagep f g R x y \<Longrightarrow> R (f x) (g y)"
-  unfolding vimagep_def by -
+lemma vimage2pD: "vimage2p f g R x y \<Longrightarrow> R (f x) (g y)"
+  unfolding vimage2p_def by -
 
-lemma fun_rel_iff_leq_vimagep: "(fun_rel R S) f g = (R \<le> vimagep f g S)"
-  unfolding fun_rel_def vimagep_def by auto
+lemma fun_rel_iff_leq_vimage2p: "(fun_rel R S) f g = (R \<le> vimage2p f g S)"
+  unfolding fun_rel_def vimage2p_def by auto
 
-lemma convol_image_vimagep: "<f o fst, g o snd> ` Collect (split (vimagep f g R)) \<subseteq> Collect (split R)"
-  unfolding vimagep_def convol_def by auto
+lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
+  unfolding vimage2p_def convol_def by auto
 
 ML_file "Tools/bnf_def_tactics.ML"
 ML_file "Tools/bnf_def.ML"

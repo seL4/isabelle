@@ -115,6 +115,8 @@ sig
   val mk_set_rv_Lev_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list -> tactic
   val mk_unfold_unique_mor_tac: thm list -> thm -> thm -> thm list -> tactic
+  val mk_unfold_transfer_tac: int -> thm -> thm list -> thm list ->
+    {prems: thm list, context: Proof.context} -> tactic
   val mk_unique_mor_tac: thm list -> thm -> tactic
   val mk_wit_tac: int -> thm list -> thm list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
@@ -1456,6 +1458,25 @@ fun mk_rel_coinduct_tac in_rels in_Jrels helper_indss helper_coind1s helper_coin
         rtac (helper_coind2 RS rev_mp), REPEAT_DETERM_N n o atac, REPEAT_DETERM_N n o etac thin_rl,
         rtac impI, etac mp, rtac exI, etac (refl RSN (2, conjI))])
     (in_Jrels ~~ (helper_indss ~~ (helper_coind1s ~~ helper_coind2s))) 1
+  end;
+
+fun mk_unfold_transfer_tac m rel_coinduct map_transfers unfolds {context = ctxt, prems = _} =
+  let
+    val n = length map_transfers;
+  in
+    unfold_thms_tac ctxt
+      @{thms fun_rel_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
+    unfold_thms_tac ctxt @{thms fun_rel_iff_geq_image2p} THEN
+    HEADGOAL (EVERY'
+      [REPEAT_DETERM o resolve_tac [allI, impI], rtac rel_coinduct,
+      EVERY' (map (fn map_transfer => EVERY'
+        [REPEAT_DETERM o resolve_tac [allI, impI], etac @{thm image2pE}, hyp_subst_tac ctxt,
+        SELECT_GOAL (unfold_thms_tac ctxt unfolds),
+        rtac (funpow (m + n + 1) (fn thm => thm RS @{thm fun_relD}) map_transfer),
+        REPEAT_DETERM_N m o rtac @{thm id_transfer},
+        REPEAT_DETERM_N n o rtac @{thm fun_rel_image2p},
+        etac @{thm predicate2D}, etac @{thm image2pI}])
+      map_transfers)])
   end;
 
 end;

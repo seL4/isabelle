@@ -72,12 +72,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val names_lthy = fold Variable.declare_typ deads lthy;
 
     (* tvars *)
-    val ((((((((passiveAs, activeAs), allAs)), (passiveBs, activeBs)),
+    val ((((((((passiveAs, activeAs), allAs)), ((passiveBs, activeBs), allBs')),
       (passiveCs, activeCs)), passiveXs), passiveYs), idxT) = names_lthy
       |> mk_TFrees live
       |> apfst (`(chop m))
       ||> mk_TFrees live
-      ||>> apfst (chop m)
+      ||>> apfst (`(chop m))
       ||> mk_TFrees live
       ||>> apfst (chop m)
       ||>> mk_TFrees m
@@ -1762,6 +1762,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val unfolds = map (Morphism.term phi) unfold_frees;
     val unfold_names = map (fst o dest_Const) unfolds;
+    fun mk_unfolds passives actives =
+      map3 (fn name => fn T => fn active =>
+        Const (name, Library.foldr (op -->)
+          (map2 (curry (op -->)) actives (mk_FTs (passives @ actives)), active --> T)))
+      unfold_names (mk_Ts passives) actives;
     fun mk_unfold Ts ss i = Term.list_comb (Const (nth unfold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
     val unfold_defs = map ((fn thm => thm RS fun_cong) o Morphism.thm phi) unfold_def_frees;
@@ -2116,9 +2121,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val prodTsTs' = map2 (curry HOLogic.mk_prodT) Ts Ts';
     val fstsTsTs' = map fst_const prodTsTs';
     val sndsTsTs' = map snd_const prodTsTs';
+    val activephiTs = map2 mk_pred2T activeAs activeBs;
     val activeJphiTs = map2 mk_pred2T Ts Ts';
-    val ((Jphis, activeJphis), names_lthy) = names_lthy
+    val (((Jphis, activephis), activeJphis), names_lthy) = names_lthy
       |> mk_Frees "R" JphiTs
+      ||>> mk_Frees "S" activephiTs
       ||>> mk_Frees "JR" activeJphiTs;
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
     val in_rels = map in_rel_of_bnf bnfs;
@@ -2867,6 +2874,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         mk_rel_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
           Jrel_coinduct_tac lthy;
 
+      val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
+      val dtor_unfold_transfer_thms =
+        mk_un_fold_transfer_thms Greatest_FP rels activephis Jrels Jphis
+          (mk_unfolds passiveAs activeAs) (mk_unfolds passiveBs activeBs)
+          (mk_unfold_transfer_tac m Jrel_coinduct_thm (map map_transfer_of_bnf bnfs)
+            dtor_unfold_thms)
+          lthy;
+
       val timer = time (timer "relator coinduction");
 
       val common_notes =
@@ -2874,7 +2889,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         (dtor_map_coinductN, [dtor_map_coinduct_thm]),
         (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
         (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
-        (rel_coinductN, [Jrel_coinduct_thm])]
+        (rel_coinductN, [Jrel_coinduct_thm]),
+        (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
