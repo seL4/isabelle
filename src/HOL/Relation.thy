@@ -131,7 +131,6 @@ lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UN
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
 
-
 subsection {* Properties of relations *}
 
 subsubsection {* Reflexivity *}
@@ -705,6 +704,12 @@ lemma converse_INTER: "(INTER S r)^-1 = (INT x:S. (r x)^-1)"
 
 lemma converse_UNION: "(UNION S r)^-1 = (UN x:S. (r x)^-1)"
   by blast
+
+lemma converse_mono: "r^-1 \<subseteq> s ^-1 \<longleftrightarrow> r \<subseteq> s"
+  by auto
+
+lemma conversep_mono: "r^--1 \<le> s ^--1 \<longleftrightarrow> r \<le> s"
+  by (fact converse_mono[to_pred])
 
 lemma converse_Id [simp]: "Id^-1 = Id"
   by blast

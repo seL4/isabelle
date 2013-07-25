@@ -17,10 +17,6 @@ begin
 lemma collect_o: "collect F o g = collect ((\<lambda>f. f o g) ` F)"
 by (rule ext) (auto simp only: o_apply collect_def)
 
-lemma conversep_mono:
-"R1 ^--1 \<le> R2 ^--1 \<longleftrightarrow> R1 \<le> R2"
-unfolding conversep.simps by auto
-
 lemma converse_shift:
 "R1 \<subseteq> R2 ^-1 \<Longrightarrow> R1 ^-1 \<subseteq> R2"
 unfolding converse_def by auto
