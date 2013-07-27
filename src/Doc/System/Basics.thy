@@ -257,9 +257,9 @@ text {*
   line editor for the @{tool_ref tty} interface.
 
   \item[@{setting_def ISABELLE_LATEX}, @{setting_def
-  ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}, @{setting_def
-  ISABELLE_DVIPS}] refer to {\LaTeX} related tools for Isabelle
-  document preparation (see also \secref{sec:tool-latex}).
+  ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}] refer to {\LaTeX}
+  related tools for Isabelle document preparation (see also
+  \secref{sec:tool-latex}).
   
   \item[@{setting_def ISABELLE_TOOLS}] is a colon separated list of
   directories that are scanned by @{executable isabelle} for external

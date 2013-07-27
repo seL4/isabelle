@@ -168,8 +168,7 @@ Usage: isabelle document [OPTIONS] [DIR]
   Options are:
     -c           cleanup -- be aggressive in removing old stuff
     -n NAME      specify document name (default 'document')
-    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf
+    -o FORMAT    specify output format: pdf (default), dvi
     -t TAGS      specify tagged region markup
 
   Prepare the theory session document in DIR (default 'document')
@@ -276,8 +275,8 @@ text {* The @{tool_def latex} tool provides the basic interface for
 Usage: isabelle latex [OPTIONS] [FILE]
 
   Options are:
-    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf, bbl, idx, sty, syms
+    -o FORMAT    specify output format: pdf (default), dvi,
+                 bbl, idx, sty, syms
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.

@@ -15,7 +15,7 @@ function usage()
   echo "  Options are:"
   echo "    -c           cleanup -- be aggressive in removing old stuff"
   echo "    -n NAME      specify document name (default 'document')"
-  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
+  echo "    -o FORMAT    specify output format: pdf (default), dvi"
   echo "    -t TAGS      specify tagged region markup"
   echo
   echo "  Prepare the theory session document in DIR (default 'document')"
@@ -37,7 +37,7 @@ function fail()
 
 CLEAN=""
 NAME="document"
-OUTFORMAT=dvi
+OUTFORMAT=pdf
 declare -a TAGS=()
 
 while getopts "cn:o:t:" OPT
@@ -77,7 +77,7 @@ DIR="document"
 # check format
 
 case "$OUTFORMAT" in
-  dvi | dvi.gz | ps | ps.gz | pdf)
+  pdf | dvi)
     ;;
   *)
     fail "Bad output format '$OUTFORMAT'"

@@ -13,8 +13,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [FILE]"
   echo
   echo "  Options are:"
-  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
-  echo "                 pdf, bbl, idx, sty, syms"
+  echo "    -o FORMAT    specify output format: pdf (default), dvi, bbl, idx, sty, syms"
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
   echo "  producing the specified output format."
@@ -33,7 +32,7 @@ function fail()
 
 # options
 
-OUTFORMAT=dvi
+OUTFORMAT=pdf
 
 while getopts "o:" OPT
 do
@@ -75,7 +74,6 @@ function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
 function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
-function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function copy_styles ()
 {
   for STYLEFILE in "$ISABELLE_HOME/lib/texinputs"/*.sty
@@ -96,33 +94,14 @@ function extract_syms ()
 }
 
 case "$OUTFORMAT" in
-  dvi)
-    check_root && \
-    run_latex
-    RC="$?"
-    ;;
-  dvi.gz)
-    check_root && \
-    run_latex && \
-    gzip -f "$FILEBASE.dvi"
-    RC="$?"
-    ;;
-  ps)
-    check_root && \
-    run_latex && \
-    run_dvips
-    RC="$?"
-    ;;
-  ps.gz)
-    check_root && \
-    run_latex && \
-    run_dvips && \
-    gzip -f "$FILEBASE.ps"
-    RC="$?"
-    ;;
   pdf)
     check_root && \
     run_pdflatex
+    RC="$?"
+    ;;
+  dvi)
+    check_root && \
+    run_latex
     RC="$?"
     ;;
   bbl)
