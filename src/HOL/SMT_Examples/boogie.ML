@@ -1,7 +1,7 @@
 (*  Title:      HOL/SMT_Examples/boogie.ML
     Author:     Sascha Boehme, TU Muenchen
 
-Proving Boogie-generated verficiation conditions.
+Proving Boogie-generated verification conditions.
 *)
 
 signature BOOGIE =
