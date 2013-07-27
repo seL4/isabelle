@@ -137,11 +137,14 @@ object Options
   {
     Command_Line.tool {
       args.toList match {
-        case export_file :: more_options =>
+        case get_option :: export_file :: more_options =>
           val options = (Options.init() /: more_options)(_ + _)
 
-          if (export_file == "") java.lang.System.out.println(options.print)
-          else File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+          if (get_option != "")
+            java.lang.System.out.println(options.check_name(get_option).value)
+          else if (export_file != "")
+            File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
+          else java.lang.System.out.println(options.print)
 
           0
         case _ => error("Bad arguments:\n" + cat_lines(args))

@@ -16,6 +16,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -b           include \$ISABELLE_BUILD_OPTIONS"
+  echo "    -g OPTION    get value of OPTION"
   echo "    -l           list options"
   echo "    -x FILE      export options to FILE in YXML format"
   echo
@@ -35,14 +36,18 @@ function fail()
 ## process command line
 
 declare -a BUILD_OPTIONS=()
+GET_OPTION=""
 LIST_OPTIONS="false"
 EXPORT_FILE=""
 
-while getopts "blx:" OPT
+while getopts "bg:lx:" OPT
 do
   case "$OPT" in
     b)
       eval "BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)"
+      ;;
+    g)
+      GET_OPTION="$OPTARG"
       ;;
     l)
       LIST_OPTIONS="true"
@@ -58,12 +63,13 @@ done
 
 shift $(($OPTIND - 1))
 
-[ "$LIST_OPTIONS" = "false" -a -z "$EXPORT_FILE" ] && usage
+[ -z "$GET_OPTION" -a "$LIST_OPTIONS" = "false" -a -z "$EXPORT_FILE" ] && usage
 
 
 ## main
 
 isabelle_admin_build jars || exit $?
 
-exec "$ISABELLE_TOOL" java isabelle.Options "$EXPORT_FILE" "${BUILD_OPTIONS[@]}" "$@"
+exec "$ISABELLE_TOOL" java isabelle.Options \
+  "$GET_OPTION" "$EXPORT_FILE" "${BUILD_OPTIONS[@]}" "$@"
 

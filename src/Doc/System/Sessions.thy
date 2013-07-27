@@ -232,6 +232,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
     -b           include $ISABELLE_BUILD_OPTIONS
+    -g OPTION    get value of OPTION
     -l           list options
     -x FILE      export to FILE in YXML format
 
@@ -246,6 +247,8 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
   Option @{verbatim "-b"} augments the implicit environment of system
   options by the ones of @{setting ISABELLE_BUILD_OPTIONS}, cf.\
   \secref{sec:tool-build}.
+
+  Option @{verbatim "-g"} prints the value of the given option.
 
   Option @{verbatim "-x"} specifies a file to export the result in
   YXML format, instead of printing it in human-readable form.
