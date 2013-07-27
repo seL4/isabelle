@@ -56,7 +56,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val loc_intro_tac =
           (case Locale.intros_of thy class of
             (_, NONE) => all_tac
-          | (_, SOME intro) => ALLGOALS (Tactic.rtac intro));
+          | (_, SOME intro) => ALLGOALS (rtac intro));
         val tac = loc_intro_tac
           THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness empty_ctxt prop tac end) some_prop;
@@ -94,8 +94,8 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
     val tac =
       REPEAT (SOMEGOAL
-        (Tactic.match_tac (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
-          ORELSE' Tactic.assume_tac));
+        (match_tac (axclass_intro :: sup_of_classes @ loc_axiom_intros @ base_sort_trivs)
+          ORELSE' assume_tac));
     val of_class = Goal.prove_sorry_global thy [] [] of_class_prop (K tac);
 
   in (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) end;

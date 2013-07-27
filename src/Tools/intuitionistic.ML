@@ -20,7 +20,7 @@ local
 val remdups_tac = SUBGOAL (fn (g, i) =>
   let val prems = Logic.strip_assums_hyp g in
     REPEAT_DETERM_N (length prems - length (distinct op aconv prems))
-    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
+    (ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
   end);
 
 fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;

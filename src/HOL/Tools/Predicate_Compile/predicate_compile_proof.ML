@@ -83,8 +83,7 @@ fun prove_param options ctxt nargs t deriv =
         let
           val prems' = maps dest_conjunct_prem (take nargs prems)
         in
-          Simplifier.rewrite_goal_tac
-            (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+          rewrite_goal_tac (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
         end) ctxt 1
     | Abs _ => raise Fail "prove_param: No valid parameter term"
   in
@@ -169,7 +168,7 @@ fun prove_match options ctxt nargs out_ts =
                 let
                   val prems' = maps dest_conjunct_prem (take nargs prems)
                 in
-                  Simplifier.rewrite_goal_tac
+                  rewrite_goal_tac
                     (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
                 end
              THEN REPEAT_DETERM (rtac @{thm refl} 1))
@@ -210,8 +209,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               let
                 val prems' = maps dest_conjunct_prem (take nargs prems)
               in
-                Simplifier.rewrite_goal_tac
-                  (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+                rewrite_goal_tac (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
               end) ctxt 1
       THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)
     | prove_prems out_ts ((p, deriv) :: ps) =

@@ -33,7 +33,7 @@ fun pull_ites_conv ct =
 val prove_ite =
   Z3_Proof_Tools.by_tac (
     CONVERSION (Conv.arg_conv (Conv.arg1_conv pull_ites_conv))
-    THEN' Tactic.rtac @{thm refl})
+    THEN' rtac @{thm refl})
 
 
 
@@ -71,7 +71,7 @@ fun prove_inj_prop ctxt def lhs =
     val rule = disjE OF [Object_Logic.rulify (Thm.assume lhs)]
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
-    |> apply (Tactic.rtac @{thm injI})
+    |> apply (rtac @{thm injI})
     |> apply (Tactic.solve_tac [rule, rule RS @{thm sym}])
     |> Goal.norm_result o Goal.finish ctxt'
     |> singleton (Variable.export ctxt' ctxt)
@@ -80,8 +80,8 @@ fun prove_inj_prop ctxt def lhs =
 fun prove_rhs ctxt def lhs =
   Z3_Proof_Tools.by_tac (
     CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
-    THEN' REPEAT_ALL_NEW (Tactic.match_tac @{thms allI})
-    THEN' Tactic.rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
+    THEN' REPEAT_ALL_NEW (match_tac @{thms allI})
+    THEN' rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
 
 
 fun expand thm ct =
@@ -142,7 +142,7 @@ in
 fun prove_injectivity ctxt =
   Z3_Proof_Tools.by_tac (
     CONVERSION (SMT_Utils.prop_conv (norm_conv ctxt))
-    THEN' CSUBGOAL (uncurry (Tactic.rtac o prove_inj_eq ctxt)))
+    THEN' CSUBGOAL (uncurry (rtac o prove_inj_eq ctxt)))
 
 end
 

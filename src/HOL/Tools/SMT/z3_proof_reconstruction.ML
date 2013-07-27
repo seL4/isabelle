@@ -415,9 +415,9 @@ local
     @{lemma "(!!x. ~P x == Q x) ==> ~(EX x. P x) == ALL x. Q x" by simp}])
 
   fun nnf_quant_tac thm (qs as (qs1, qs2)) i st = (
-    Tactic.rtac thm ORELSE'
-    (Tactic.match_tac qs1 THEN' nnf_quant_tac thm qs) ORELSE'
-    (Tactic.match_tac qs2 THEN' nnf_quant_tac thm qs)) i st
+    rtac thm ORELSE'
+    (match_tac qs1 THEN' nnf_quant_tac thm qs) ORELSE'
+    (match_tac qs2 THEN' nnf_quant_tac thm qs)) i st
 
   fun nnf_quant_tac_varified vars eq =
     nnf_quant_tac (Z3_Proof_Tools.varify vars eq)
@@ -557,7 +557,7 @@ fun quant_intro vars p ct =
     val thm = meta_eq_of p
     val rules' = Z3_Proof_Tools.varify vars thm :: rules
     val cu = Z3_Proof_Tools.as_meta_eq ct
-    val tac = REPEAT_ALL_NEW (Tactic.match_tac rules')
+    val tac = REPEAT_ALL_NEW (match_tac rules')
   in MetaEq (Z3_Proof_Tools.by_tac tac cu) end
 end
 
@@ -580,10 +580,10 @@ local
   val elim_ex = @{lemma "P = Q ==> (EX x. P) = Q" by fast}
 
   fun elim_unused_tac i st = (
-    Tactic.match_tac [@{thm refl}]
-    ORELSE' (Tactic.match_tac [elim_all, elim_ex] THEN' elim_unused_tac)
+    match_tac [@{thm refl}]
+    ORELSE' (match_tac [elim_all, elim_ex] THEN' elim_unused_tac)
     ORELSE' (
-      Tactic.match_tac [@{thm iff_allI}, @{thm iff_exI}]
+      match_tac [@{thm iff_allI}, @{thm iff_exI}]
       THEN' elim_unused_tac)) i st
 in
 
@@ -603,8 +603,8 @@ local
   val rule = @{lemma "~ P x | Q ==> ~(ALL x. P x) | Q" by fast}
 in
 val quant_inst = Thm o Z3_Proof_Tools.by_tac (
-  REPEAT_ALL_NEW (Tactic.match_tac [rule])
-  THEN' Tactic.rtac @{thm excluded_middle})
+  REPEAT_ALL_NEW (match_tac [rule])
+  THEN' rtac @{thm excluded_middle})
 end
 
 
@@ -639,10 +639,10 @@ fun skolemize vars =
   apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
 
 fun discharge_sk_tac i st = (
-  Tactic.rtac @{thm trans} i
-  THEN Tactic.resolve_tac sk_rules i
-  THEN (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
-  THEN Tactic.rtac @{thm refl} i) st
+  rtac @{thm trans} i
+  THEN resolve_tac sk_rules i
+  THEN (rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
+  THEN rtac @{thm refl} i) st
 
 end
 
@@ -720,14 +720,14 @@ fun rewrite simpset ths ct ctxt =
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
+        (rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
+        (rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
@@ -736,7 +736,7 @@ fun rewrite simpset ths ct ctxt =
     Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
       (fn ctxt' =>
         Z3_Proof_Tools.by_tac (
-          (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
+          (rtac @{thm iff_allI} ORELSE' K all_tac)
           THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
           THEN_ALL_NEW (
             NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')
@@ -856,8 +856,7 @@ local
     @{thm reflexive}, Z3_Proof_Literals.true_thm]
 
   fun discharge_assms_tac rules =
-    REPEAT (HEADGOAL (
-      Tactic.resolve_tac rules ORELSE' SOLVED' discharge_sk_tac))
+    REPEAT (HEADGOAL (resolve_tac rules ORELSE' SOLVED' discharge_sk_tac))
     
   fun discharge_assms rules thm =
     if Thm.nprems_of thm = 0 then Goal.norm_result thm

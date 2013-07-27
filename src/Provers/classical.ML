@@ -158,7 +158,7 @@ fun classical_rule rule =
       val rule'' =
         rule' |> ALLGOALS (SUBGOAL (fn (goal, i) =>
           if i = 1 orelse redundant_hyp goal
-          then Tactic.etac thin_rl i
+          then etac thin_rl i
           else all_tac))
         |> Seq.hd
         |> Drule.zero_var_indexes;
@@ -897,9 +897,9 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
     val rules3 = Context_Rules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves facts rules;
+    val _ = Method.trace ctxt rules;
   in
-    Method.trace ctxt rules;
-    fn st => Seq.maps (fn rule => Tactic.rtac rule i st) ruleq
+    fn st => Seq.maps (fn rule => rtac rule i st) ruleq
   end)
   THEN_ALL_NEW Goal.norm_hhf_tac;
 

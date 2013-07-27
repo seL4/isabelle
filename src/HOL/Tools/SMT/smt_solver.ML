@@ -354,12 +354,12 @@ local
   fun tag_rules thms = map_index (apsnd (pair NONE)) thms
   fun tag_prems thms = map (pair ~1 o pair NONE) thms
 
-  fun resolve (SOME thm) = Tactic.rtac thm 1
+  fun resolve (SOME thm) = rtac thm 1
     | resolve NONE = no_tac
 
   fun tac prove ctxt rules =
     CONVERSION (SMT_Normalize.atomize_conv ctxt)
-    THEN' Tactic.rtac @{thm ccontr}
+    THEN' rtac @{thm ccontr}
     THEN' SUBPROOF (fn {context, prems, ...} =>
       resolve (prove context (tag_rules rules @ tag_prems prems))) ctxt
 in

@@ -105,7 +105,7 @@ fun introduce_lam_wrappers ctxt th =
          so that "Thm.equal_elim" works below. *)
       val t0 $ _ $ t2 = prop_of eq_th
       val eq_ct = t0 $ prop_of th $ t2 |> cterm_of thy
-      val eq_th' = Goal.prove_internal [] eq_ct (K (Tactic.rtac eq_th 1))
+      val eq_th' = Goal.prove_internal [] eq_ct (K (rtac eq_th 1))
     in Thm.equal_elim eq_th' th end
 
 fun clause_params ordering =

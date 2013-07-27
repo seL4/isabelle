@@ -534,10 +534,10 @@ fun atomize_term thy =
 
 val atomize_cterm = Raw_Simplifier.rewrite true Induct_Args.atomize;
 
-val atomize_tac = Simplifier.rewrite_goal_tac Induct_Args.atomize;
+val atomize_tac = rewrite_goal_tac Induct_Args.atomize;
 
 val inner_atomize_tac =
-  Simplifier.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
+  rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
 
 
 (* rulify *)
@@ -554,10 +554,10 @@ fun rulified_term thm =
   in (thy, Logic.list_implies (map rulify As, rulify B)) end;
 
 val rulify_tac =
-  Simplifier.rewrite_goal_tac (Induct_Args.rulify @ conjunction_congs) THEN'
-  Simplifier.rewrite_goal_tac Induct_Args.rulify_fallback THEN'
+  rewrite_goal_tac (Induct_Args.rulify @ conjunction_congs) THEN'
+  rewrite_goal_tac Induct_Args.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
-  (Simplifier.rewrite_goal_tac [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac);
+  (rewrite_goal_tac [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac);
 
 
 (* prepare rule *)

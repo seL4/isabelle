@@ -533,7 +533,7 @@ local
 val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
   (fn _ => assume_tac 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
-val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
+val elim_tac = REPEAT o eresolve_tac elim_rls;
 
 fun simp_case_tac ctxt i =
   EVERY' [elim_tac, asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac ctxt] i;

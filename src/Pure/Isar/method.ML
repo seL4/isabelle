@@ -108,7 +108,7 @@ val succeed = METHOD (K all_tac);
 local
 
 fun cut_rule_tac rule =
-  Tactic.rtac (Drule.forall_intr_vars rule COMP_INCR revcut_rl);
+  rtac (Drule.forall_intr_vars rule COMP_INCR revcut_rl);
 
 in
 
@@ -135,8 +135,8 @@ fun cheating ctxt int = METHOD (fn _ => fn st =>
 
 (* unfold intro/elim rules *)
 
-fun intro ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.match_tac ths));
-fun elim ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (Tactic.ematch_tac ths));
+fun intro ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (match_tac ths));
+fun elim ths = SIMPLE_METHOD' (CHANGED_PROP o REPEAT_ALL_NEW (ematch_tac ths));
 
 
 (* unfold/fold definitions *)
@@ -153,7 +153,7 @@ fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_ta
 
 (* this -- resolve facts directly *)
 
-val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
+val this = METHOD (EVERY o map (HEADGOAL o rtac));
 
 
 (* fact -- composition by facts from context *)
@@ -168,7 +168,7 @@ local
 
 fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
-  then Tactic.rtac rule i else no_tac);
+  then rtac rule i else no_tac);
 
 in
 
@@ -215,7 +215,7 @@ fun gen_rule_tac tac rules facts =
   THEN_ALL_NEW Goal.norm_hhf_tac;
 
 fun gen_arule_tac tac j rules facts =
-  EVERY' (gen_rule_tac tac rules facts :: replicate j Tactic.assume_tac);
+  EVERY' (gen_rule_tac tac rules facts :: replicate j assume_tac);
 
 fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
@@ -229,14 +229,14 @@ fun meth' tac x y = METHOD (HEADGOAL o tac x y);
 
 in
 
-val rule_tac = gen_rule_tac Tactic.resolve_tac;
+val rule_tac = gen_rule_tac resolve_tac;
 val rule = meth rule_tac;
 val some_rule_tac = gen_some_rule_tac rule_tac;
 val some_rule = meth' some_rule_tac;
 
-val erule = meth' (gen_arule_tac Tactic.eresolve_tac);
-val drule = meth' (gen_arule_tac Tactic.dresolve_tac);
-val frule = meth' (gen_arule_tac Tactic.forward_tac);
+val erule = meth' (gen_arule_tac eresolve_tac);
+val drule = meth' (gen_arule_tac dresolve_tac);
+val frule = meth' (gen_arule_tac forward_tac);
 
 end;
 
@@ -461,10 +461,10 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "assumption") (Scan.succeed assumption)
     "proof by assumption, preferring facts" #>
   setup (Binding.name "rename_tac") (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
-    (fn (quant, xs) => K (SIMPLE_METHOD'' quant (Tactic.rename_tac xs))))
+    (fn (quant, xs) => K (SIMPLE_METHOD'' quant (rename_tac xs))))
     "rename parameters of goal" #>
   setup (Binding.name "rotate_tac") (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
-    (fn (quant, i) => K (SIMPLE_METHOD'' quant (Tactic.rotate_tac i))))
+    (fn (quant, i) => K (SIMPLE_METHOD'' quant (rotate_tac i))))
       "rotate assumptions of goal" #>
   setup (Binding.name "tactic") (Scan.lift Args.name_source_position >> tactic)
     "ML tactic as proof method" #>

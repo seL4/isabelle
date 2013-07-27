@@ -252,7 +252,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export thy =
         (fst o rules thy) sub];
     val classrel =
       Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
-        (K (EVERY (map (TRYALL o Tactic.rtac) intros)));
+        (K (EVERY (map (TRYALL o rtac) intros)));
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub])
       |> filter (is_class thy);

@@ -73,7 +73,7 @@ fun prove_cpo
     val cpo_thms = map (Thm.transfer thy) [type_definition, below_def, admissible]
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
-    val tac = Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1
+    val tac = rtac (@{thm typedef_cpo} OF cpo_thms) 1
     val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) (K tac) thy
     (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy) cpo_thms
@@ -112,7 +112,7 @@ fun prove_pcpo
     val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, bottom_mem]
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
-    val tac = Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1
+    val tac = rtac (@{thm typedef_pcpo} OF pcpo_thms) 1
     val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) (K tac) thy
     val pcpo_thms' = map (Thm.transfer thy) pcpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF pcpo_thms')
@@ -184,7 +184,7 @@ fun add_podef typ set opt_morphs tac thy =
     val below_def = singleton (Proof_Context.export lthy ctxt_thy) below_ldef
     val thy = lthy
       |> Class.prove_instantiation_exit
-          (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
+          (K (rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
   in ((info, below_def), thy) end
 
 fun prepare_cpodef
@@ -207,7 +207,7 @@ fun prepare_cpodef
     fun cpodef_result nonempty admissible thy =
       let
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
-          |> add_podef typ set opt_morphs (Tactic.rtac nonempty 1)
+          |> add_podef typ set opt_morphs (rtac nonempty 1)
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition below_def admissible
       in
@@ -239,7 +239,7 @@ fun prepare_pcpodef
 
     fun pcpodef_result bottom_mem admissible thy =
       let
-        val tac = Tactic.rtac exI 1 THEN Tactic.rtac bottom_mem 1
+        val tac = rtac exI 1 THEN rtac bottom_mem 1
         val ((info as (_, {type_definition, ...}), below_def), thy) = thy
           |> add_podef typ set opt_morphs tac
         val (cpo_info, thy) = thy

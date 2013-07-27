@@ -446,12 +446,12 @@ fun finish_tac 0 = K all_tac
       Goal.norm_hhf_tac THEN'
       SUBGOAL (fn (goal, i) =>
         if can Logic.unprotect (Logic.strip_assums_concl goal) then
-          Tactic.etac Drule.protectI i THEN finish_tac (n - 1) i
+          etac Drule.protectI i THEN finish_tac (n - 1) i
         else finish_tac (n - 1) (i + 1));
 
 fun goal_tac rule =
   Goal.norm_hhf_tac THEN'
-  Tactic.rtac rule THEN'
+  rtac rule THEN'
   finish_tac (Thm.nprems_of rule);
 
 fun FINDGOAL tac st =

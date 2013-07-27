@@ -332,11 +332,11 @@ fun method inst_tac tac =
         [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
-val res_inst_meth = method res_inst_tac (K Tactic.resolve_tac);
-val eres_inst_meth = method eres_inst_tac (K Tactic.eresolve_tac);
-val cut_inst_meth = method cut_inst_tac (K Tactic.cut_rules_tac);
-val dres_inst_meth = method dres_inst_tac (K Tactic.dresolve_tac);
-val forw_inst_meth = method forw_inst_tac (K Tactic.forward_tac);
+val res_inst_meth = method res_inst_tac (K resolve_tac);
+val eres_inst_meth = method eres_inst_tac (K eresolve_tac);
+val cut_inst_meth = method cut_inst_tac (K cut_rules_tac);
+val dres_inst_meth = method dres_inst_tac (K dresolve_tac);
+val forw_inst_meth = method forw_inst_tac (K forward_tac);
 
 
 (* setup *)

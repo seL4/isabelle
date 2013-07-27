@@ -18,7 +18,7 @@ val as_int = fst o read_int o raw_explode
 
 
 val isabelle_name =
-  let 
+  let
     fun purge s = if Symbol.is_letter s orelse Symbol.is_digit s then s else
       (case s of
         "." => "_o_"
@@ -303,7 +303,7 @@ fun boogie_prove file_name thy =
   let
     val (text, thy') = Thy_Load.use_file (Path.explode file_name) thy
     val lines = explode_lines text
-    
+
     val ((axioms, vc), ctxt) =
       empty_context
       |> parse_lines lines
@@ -312,7 +312,7 @@ fun boogie_prove file_name thy =
 
     val _ = Goal.prove ctxt [] axioms vc (fn {prems, context} =>
       boogie_tac context prems)
-    val _ = Output.writeln "Verification condition proved successfully"
+    val _ = writeln "Verification condition proved successfully"
 
   in thy' end
 

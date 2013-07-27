@@ -167,7 +167,7 @@ fun gen_add_domaindef
       liftemb_def, liftprj_def, liftdefl_def]
     val thy = lthy
       |> Class.prove_instantiation_instance
-          (K (Tactic.rtac (@{thm typedef_domain_class} OF typedef_thms) 1))
+          (K (rtac (@{thm typedef_domain_class} OF typedef_thms) 1))
       |> Local_Theory.exit_global
 
     (*other theorems*)
