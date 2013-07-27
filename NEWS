@@ -136,7 +136,7 @@ in accordance with corresponding lattice operations.  INCOMPATIBILITY.
   - Only one fundamental fold combinator on finite set remains:
     Finite_Set.fold :: ('a => 'b => 'b) => 'b => 'a set => 'b
     This is now identity on infinite sets.
-  - Locales (»mini packages«) for fundamental definitions with
+  - Locales ("mini packages") for fundamental definitions with
     Finite_Set.fold: folding, folding_idem.
   - Locales comm_monoid_set, semilattice_order_set and
     semilattice_neutr_order_set for big operators on sets.
