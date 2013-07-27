@@ -288,7 +288,7 @@ Usage: isabelle latex [OPTIONS] [FILE]
   @{executable pdflatex}, @{executable dvips}, @{executable bibtex}
   (for @{verbatim bbl}), and @{executable makeindex} (for @{verbatim
   idx}).  The actual commands are determined from the settings
-  environment (@{setting ISABELLE_LATEX} etc.).
+  environment (@{setting ISABELLE_PDFLATEX} etc.).
 
   The @{verbatim sty} output format causes the Isabelle style files to
   be updated from the distribution.  This is useful in special
