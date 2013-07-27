@@ -18,7 +18,7 @@ object Doc
     Path.split(Isabelle_System.getenv("ISABELLE_DOCS")).map(dir =>
       if (dir.is_dir) dir
       else error("Bad documentation directory: " + dir))
-    
+
 
   /* contents */
 
@@ -69,7 +69,7 @@ object Doc
 
   def view(name: String)
   {
-    val doc = name + "." + Isabelle_System.getenv_strict("ISABELLE_DOC_FORMAT")
+    val doc = name + ".pdf"
     dirs().find(dir => (dir + Path.basic(doc)).is_file) match {
       case Some(dir) =>
         Isabelle_System.bash_env(dir.file, null,

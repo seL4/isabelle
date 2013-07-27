@@ -17,7 +17,6 @@ function usage()
   echo "  Options are:"
   echo "    -a           select all doc sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
-  echo "    -p           build only pdf documents"
   echo
   echo "  Build Isabelle documentation from (doc) sessions."
   echo
@@ -42,9 +41,8 @@ function check_number()
 
 ALL_DOCS="false"
 JOBS=""
-PDF_ONLY=""
 
-while getopts "aj:p" OPT
+while getopts "aj:" OPT
 do
   case "$OPT" in
     a)
@@ -53,9 +51,6 @@ do
     j)
       check_number "$OPTARG"
       JOBS="-j $OPTARG"
-      ;;
-    p)
-      PDF_ONLY="true"
       ;;
     \?)
       usage
@@ -91,32 +86,14 @@ mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
 "$ISABELLE_TOOL" build -R -b $JOBS "${BUILD_ARGS[@]}"
 RC=$?
 
-if [ "$PDF_ONLY" = true ]; then
-  FORMATS="pdf"
-else
-  FORMATS="dvi pdf"
+if [ "$RC" = 0 ]; then
+  "$ISABELLE_TOOL" build -o browser_info=false -o "document=pdf" \
+    -o "document_output=$OUTPUT" -c $JOBS "${BUILD_ARGS[@]}"
+  RC=$?
 fi
 
-for FORMAT in $FORMATS
-do
-  if [ "$RC" = 0 ]; then
-    echo "Document format: $FORMAT"
-    "$ISABELLE_TOOL" build -o browser_info=false -o "document=$FORMAT" \
-      -o "document_output=$OUTPUT" -c $JOBS "${BUILD_ARGS[@]}"
-    RC=$?
-  fi
-done
-
 if [ "$RC" = 0 ]; then
-  for FILE in $(find "$OUTPUT" -name "*.eps" -o -name "*.ps")
-  do
-    cp -f "$FILE" "$ISABELLE_HOME/doc"
-  done
-  if [ "$PDF_ONLY" = true ]; then
-    cp -f "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
-  else
-    cp -f "$OUTPUT"/*.dvi "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
-  fi
+  cp -f "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
 fi
 
 rm -rf "$OUTPUT"
