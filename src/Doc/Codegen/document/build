@@ -12,12 +12,5 @@ cp "$ISABELLE_HOME/src/Doc/extra.sty" .
 cp "$ISABELLE_HOME/src/Doc/isar.sty" .
 cp "$ISABELLE_HOME/src/Doc/manual.bib" .
 
-for NAME in architecture adapt
-do
-  latex "$NAME"
-  $ISABELLE_DVIPS -E -o "$NAME.eps" "$NAME.dvi"
-  $ISABELLE_EPSTOPDF "$NAME.eps"
-done
-
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 

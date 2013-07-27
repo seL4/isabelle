@@ -33,8 +33,6 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     "../extra.sty"
     "../isar.sty"
     "../manual.bib"
-    "document/adapt.tex"
-    "document/architecture.tex"
     "document/build"
     "document/root.tex"
     "document/style.sty"
