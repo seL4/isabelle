@@ -447,8 +447,6 @@ fun begin_theory update_time dir thy =
 
 fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
   let
-    val doc_format = getenv "ISABELLE_DOC_FORMAT";
-
     fun prep_draft path i =
       let
         val base = Path.base path;
@@ -483,8 +481,8 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val _ = write_tex_index tex_index doc_path;
 
     val result =
-      isabelle_document {verbose = false, purge = true} doc_format documentN "" doc_path;
-    val detachable_result = Isabelle_System.create_tmp_path documentN doc_format;
+      isabelle_document {verbose = false, purge = true} "pdf" documentN "" doc_path;
+    val detachable_result = Isabelle_System.create_tmp_path documentN "pdf";
     val _ = File.copy result detachable_result;
   in
     Isabelle_System.isabelle_tool "display" ("-c " ^ File.shell_path detachable_result ^ " &")

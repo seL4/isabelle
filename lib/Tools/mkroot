@@ -89,7 +89,7 @@ echo "  creating $DIR/ROOT"
 if [ "$DOC" = true ]; then
   cat > "$DIR/ROOT" <<EOF
 session "$NAME" = "$ISABELLE_LOGIC" +
-  options [document = $ISABELLE_DOC_FORMAT, document_output = "output"]
+  options [document = pdf, document_output = "output"]
   theories [document = false]
     (* Foo Bar *)
   theories

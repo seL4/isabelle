@@ -323,6 +323,9 @@ administrative aliases of option -e).  Minor INCOMPATIBILITY.
 * Discontinued obsolete isabelle print tool, and PRINT_COMMAND
 settings variable.
 
+* Discontinued ISABELLE_DOC_FORMAT settings variable -- the preferred
+document format is always pdf.
+
 * Isabelle settings variable ISABELLE_BUILD_JAVA_OPTIONS allows to
 specify global resources of the JVM process run by isabelle build.
 

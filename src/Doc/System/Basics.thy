@@ -268,9 +268,6 @@ text {*
   \item[@{setting_def ISABELLE_DOCS}] is a colon separated list of
   directories with documentation files.
   
-  \item[@{setting_def ISABELLE_DOC_FORMAT}] specifies the preferred
-  document format, typically @{verbatim pdf} or @{verbatim dvi}.
-
   \item[@{setting_def PDF_VIEWER}] specifies the command-line to be
   used for displaying @{verbatim pdf} files.
 
