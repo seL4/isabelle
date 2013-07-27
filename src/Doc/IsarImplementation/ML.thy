@@ -251,7 +251,7 @@ text {* Since ML is the primary medium to express the meaning of the
   T}, with variants as for types
 
   \item certified terms are called @{ML_text ct}, rarely @{ML_text
-  t}, with variants as for terms
+  t}, with variants as for terms (never @{ML_text ctrm})
 
   \item theorems are called @{ML_text th}, or @{ML_text thm}
 
