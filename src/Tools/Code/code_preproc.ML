@@ -143,11 +143,13 @@ fun term_of_conv_resubst thy conv t =
     val resubst = curry (Term.betapplys o swap) all_vars;
   in (resubst, term_of_conv thy conv (fold_rev lambda all_vars t)) end;
 
+fun lift_ss_conv f ss ct = f (Simplifier.put_simpset ss (Proof_Context.init_global (theory_of_cterm ct))) ct;
+
 fun preprocess_conv thy =
   let
-    val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
+    val pre = (#pre o the_thmproc) thy;
   in
-    Simplifier.rewrite pre
+    lift_ss_conv Simplifier.rewrite pre
     #> trans_conv_rule (Axclass.unoverload_conv thy)
   end;
 
@@ -155,10 +157,10 @@ fun preprocess_term thy = term_of_conv_resubst thy (preprocess_conv thy);
 
 fun postprocess_conv thy =
   let
-    val post = (Simplifier.global_context thy o #post o the_thmproc) thy;
+    val post = (#post o the_thmproc) thy;
   in
     Axclass.overload_conv thy
-    #> trans_conv_rule (Simplifier.rewrite post)
+    #> trans_conv_rule (lift_ss_conv Simplifier.rewrite post)
   end;
 
 fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
@@ -484,11 +486,12 @@ fun static_value thy postproc consts evaluator =
   let
     val (algebra, eqngr) = obtain true thy consts [];
     val evaluator' = evaluator algebra eqngr;
+    val postproc' = postprocess_term thy;
   in 
     preprocess_term thy
     #-> (fn resubst => fn t => t
       |> evaluator' (Term.add_tfrees t [])
-      |> postproc (postprocess_term thy o resubst))
+      |> postproc (postproc' o resubst))
   end;
 
 
