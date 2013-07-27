@@ -182,7 +182,7 @@ fun peek_futures id =
   Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
 
 fun stable_futures id =
-  not (Par_Exn.is_interrupted (Future.join_results (peek_futures id)));
+  not (Par_Exn.is_interrupted (map_filter Future.peek (peek_futures id)));
 
 fun reset_futures () =
   Synchronized.change_result forked_proofs (fn (_, groups, _) =>
