@@ -142,9 +142,12 @@ object Options
 
           if (get_option != "")
             java.lang.System.out.println(options.check_name(get_option).value)
-          else if (export_file != "")
+
+          if (export_file != "")
             File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
-          else java.lang.System.out.println(options.print)
+
+          if (get_option == "" && export_file == "")
+            java.lang.System.out.println(options.print)
 
           0
         case _ => error("Bad arguments:\n" + cat_lines(args))
