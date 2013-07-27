@@ -120,7 +120,7 @@ function prep_tags ()
 (
   cd "$DIR" || fail "Bad directory '$DIR'"
 
-  [ -n "$CLEAN" ] && rm -f "../$NAME.$OUTFORMAT"
+  [ -n "$CLEAN" ] && rm -f "../$NAME.$OUTFORMAT" *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log
 
   prep_tags
 
@@ -128,7 +128,6 @@ function prep_tags ()
     ./build "$OUTFORMAT" "$NAME"
     RC="$?"
   else
-    [ -n "$CLEAN" ] && rm -f *.aux *.out *.ind *.idx *.ilg *.bbl *.blg *.log
     "$ISABELLE_TOOL" latex -o sty "$ROOT_NAME.tex" && \
     "$ISABELLE_TOOL" latex -o "$OUTFORMAT" "$ROOT_NAME.tex" && \
     { [ ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
