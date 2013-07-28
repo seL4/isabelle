@@ -705,11 +705,23 @@ lemma converse_INTER: "(INTER S r)^-1 = (INT x:S. (r x)^-1)"
 lemma converse_UNION: "(UNION S r)^-1 = (UN x:S. (r x)^-1)"
   by blast
 
-lemma converse_mono: "r^-1 \<subseteq> s ^-1 \<longleftrightarrow> r \<subseteq> s"
+lemma converse_mono[simp]: "r^-1 \<subseteq> s ^-1 \<longleftrightarrow> r \<subseteq> s"
   by auto
 
-lemma conversep_mono: "r^--1 \<le> s ^--1 \<longleftrightarrow> r \<le> s"
+lemma conversep_mono[simp]: "r^--1 \<le> s ^--1 \<longleftrightarrow> r \<le> s"
   by (fact converse_mono[to_pred])
+
+lemma converse_inject[simp]: "r^-1 = s ^-1 \<longleftrightarrow> r = s"
+  by auto
+
+lemma conversep_inject[simp]: "r^--1 = s ^--1 \<longleftrightarrow> r = s"
+  by (fact converse_inject[to_pred])
+
+lemma converse_subset_swap: "r \<subseteq> s ^-1 = (r ^-1 \<subseteq> s)"
+  by auto
+
+lemma conversep_le_swap: "r \<le> s ^--1 = (r ^--1 \<le> s)"
+  by (fact converse_subset_swap[to_pred])
 
 lemma converse_Id [simp]: "Id^-1 = Id"
   by blast
@@ -741,18 +753,8 @@ lemma sym_Int_converse: "sym (r \<inter> r^-1)"
 lemma total_on_converse [simp]: "total_on A (r^-1) = total_on A r"
   by (auto simp: total_on_def)
 
-lemma finite_converse [iff]: "finite (r^-1) = finite r"
-  apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
-   apply simp
-   apply (rule iffI)
-    apply (erule finite_imageD [unfolded inj_on_def])
-    apply (simp split add: split_split)
-   apply (erule finite_imageI)
-  apply (simp add: set_eq_iff image_def, auto)
-  apply (rule bexI)
-   prefer 2 apply assumption
-  apply simp
-  done
+lemma finite_converse [iff]: "finite (r^-1) = finite r"  
+  unfolding converse_def conversep_iff by (auto elim: finite_imageD simp: inj_on_def)
 
 lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
   by (auto simp add: fun_eq_iff)
@@ -1075,7 +1077,7 @@ proof -
   interpret comp_fun_commute "(\<lambda>(x,y) A. if x \<in> S then Set.insert y A else A)" 
     by (rule comp_fun_commute_Image_fold)
   have *: "\<And>x F. Set.insert x F `` S = (if fst x \<in> S then Set.insert (snd x) (F `` S) else (F `` S))"
-    by (auto intro: rev_ImageI)
+    by (force intro: rev_ImageI)
   show ?thesis using assms by (induct R) (auto simp: *)
 qed
 
@@ -1119,11 +1121,9 @@ lemma relcomp_fold:
   assumes "finite S"
   shows "R O S = Finite_Set.fold 
     (\<lambda>(x,y) A. Finite_Set.fold (\<lambda>(w,z) A'. if y = w then Set.insert (x,z) A' else A') A S) {} R"
-proof -
-  show ?thesis using assms by (induct R) 
-    (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold 
+  using assms by (induct R)
+    (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold
       cong: if_cong)
-qed
 
 
 

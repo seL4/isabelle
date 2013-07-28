@@ -42,6 +42,7 @@ open BNF_Util
 open BNF_Tactics
 
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
+val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
 fun mk_map_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
@@ -146,7 +147,7 @@ fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
   end;
 
 fun mk_rel_conversep_tac le_conversep rel_mono =
-  EVERY' [rtac @{thm antisym}, rtac le_conversep, rtac @{thm xt1(6)}, rtac @{thm conversep_shift},
+  EVERY' [rtac @{thm antisym}, rtac le_conversep, rtac @{thm xt1(6)}, rtac conversep_shift,
     rtac le_conversep, rtac @{thm iffD2[OF conversep_mono]}, rtac rel_mono,
     REPEAT_DETERM o rtac @{thm eq_refl[OF sym[OF conversep_conversep]]}] 1;
 

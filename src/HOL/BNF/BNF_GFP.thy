@@ -106,14 +106,8 @@ by auto
 lemma conversep_in_rel: "(in_rel R)\<inverse>\<inverse> = in_rel (R\<inverse>)"
 unfolding fun_eq_iff by auto
 
-lemmas conversep_in_rel_Id_on =
-  trans[OF conversep_in_rel arg_cong[of _ _ in_rel, OF converse_Id_on]]
-
 lemma relcompp_in_rel: "in_rel R OO in_rel S = in_rel (R O S)"
 unfolding fun_eq_iff by auto
-
-lemmas relcompp_in_rel_Id_on =
-  trans[OF relcompp_in_rel arg_cong[of _ _ in_rel, OF Id_on_Comp[symmetric]]]
 
 lemma in_rel_Gr: "in_rel (Gr A f) = Grp A f"
 unfolding Gr_def Grp_def fun_eq_iff by auto

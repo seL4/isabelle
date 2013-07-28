@@ -144,7 +144,12 @@ val sum_case_weak_cong = @{thm sum_case_weak_cong};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 val Collect_splitD_set_mp = @{thm Collect_splitD[OF set_mp]};
 val rev_bspec = Drule.rotate_prems 1 bspec;
-val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]}
+val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]};
+val conversep_in_rel_Id_on =
+   @{thm trans[OF conversep_in_rel arg_cong[of _ _ in_rel, OF converse_Id_on]]};
+val relcompp_in_rel_Id_on =
+   @{thm   trans[OF relcompp_in_rel arg_cong[of _ _ in_rel, OF Id_on_Comp[symmetric]]]};
+val converse_shift = @{thm converse_subset_swap} RS iffD1;
 
 fun mk_coalg_set_tac coalg_def =
   dtac (coalg_def RS iffD1) 1 THEN
@@ -313,12 +318,12 @@ fun mk_bis_rel_tac ctxt m bis_def rel_OO_Grps map_comps map_cong0s set_mapss =
 fun mk_bis_converse_tac m bis_rel rel_congs rel_converseps =
   EVERY' [stac bis_rel, dtac (bis_rel RS iffD1),
     REPEAT_DETERM o etac conjE, rtac conjI,
-    CONJ_WRAP' (K (EVERY' [rtac @{thm converse_shift}, etac subset_trans,
+    CONJ_WRAP' (K (EVERY' [rtac converse_shift, etac subset_trans,
       rtac equalityD2, rtac @{thm converse_Times}])) rel_congs,
     CONJ_WRAP' (fn (rel_cong, rel_conversep) =>
       EVERY' [rtac allI, rtac allI, rtac impI,
         rtac (rel_cong RS @{thm eq_refl} RS @{thm predicate2D}),
-        REPEAT_DETERM_N m o rtac @{thm conversep_in_rel_Id_on},
+        REPEAT_DETERM_N m o rtac conversep_in_rel_Id_on,
         REPEAT_DETERM_N (length rel_congs) o rtac @{thm conversep_in_rel},
         rtac (rel_conversep RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
         REPEAT_DETERM o etac allE,
@@ -331,7 +336,7 @@ fun mk_bis_O_tac ctxt m bis_rel rel_congs rel_OOs =
     CONJ_WRAP' (fn (rel_cong, rel_OO) =>
       EVERY' [rtac allI, rtac allI, rtac impI,
         rtac (rel_cong RS @{thm eq_refl} RS @{thm predicate2D}),
-        REPEAT_DETERM_N m o rtac @{thm relcompp_in_rel_Id_on},
+        REPEAT_DETERM_N m o rtac relcompp_in_rel_Id_on,
         REPEAT_DETERM_N (length rel_congs) o rtac @{thm relcompp_in_rel},
         rtac (rel_OO RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
         etac @{thm relcompE},
