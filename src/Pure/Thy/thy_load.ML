@@ -287,7 +287,11 @@ val _ =
           if File.exists path then ()
           else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
         val _ = Position.report pos (Markup.path name);
-      in Thy_Output.verb_text name end)));
+      in
+        space_explode "/" name
+        |> map Thy_Output.verb_text
+        |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
+      end)));
 
 
 (* global master path *)
