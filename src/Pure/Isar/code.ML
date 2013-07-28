@@ -1039,7 +1039,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
   let
     val thm = Thm.close_derivation raw_thm;
     val c = const_eqn thy thm;
-    fun update_subsume thy (thm, proper) eqns = 
+    fun update_subsume thy verbose (thm, proper) eqns = 
       let
         val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
           o map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
@@ -1054,17 +1054,17 @@ fun gen_add_eqn default (raw_thm, proper) thy =
           end;
         fun drop (thm', proper') = if (proper orelse not proper')
           andalso matches_args (args_of thm') then 
-            (warning ("Code generator: dropping subsumed code equation\n" ^
-                Display.string_of_thm_global thy thm'); true)
+            (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
+                Display.string_of_thm_global thy thm') else (); true)
           else false;
       in (thm, proper) :: filter_out drop eqns end;
     fun natural_order thy_ref eqns =
-      (eqns, Lazy.lazy (fn () => fold (update_subsume (Theory.deref thy_ref)) eqns []))
+      (eqns, Lazy.lazy (fn () => fold (update_subsume (Theory.deref thy_ref) false) eqns []))
     fun add_eqn' true (Default (eqns, _)) =
           Default (natural_order (Theory.check_thy thy) ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
       | add_eqn' true fun_spec = fun_spec
-      | add_eqn' false (Eqns eqns) = Eqns (update_subsume thy (thm, proper) eqns)
+      | add_eqn' false (Eqns eqns) = Eqns (update_subsume thy true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec false c (add_eqn' default) thy end;
 
