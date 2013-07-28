@@ -28,5 +28,5 @@ ISABELLE_BUILD_OPTIONS="browser_info=true document=pdf"
 
 ISABELLE_GHC="/usr/bin/ghc"
 ISABELLE_OCAML="/usr/bin/ocaml"
-ISABELLE_SWIPL="/home/isabelle/contrib_devel/swipl/bin/swipl"
+ISABELLE_SWIPL="/usr/bin/swipl"
 
