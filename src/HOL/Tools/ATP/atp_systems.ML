@@ -14,7 +14,7 @@ sig
 
   type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
-    {exec : string list * string list,
+    {exec : unit -> string list * string list,
      arguments :
        Proof.context -> bool -> string -> Time.time -> string
        -> term_order * (unit -> (string * int) list)
@@ -96,7 +96,7 @@ val default_max_new_mono_instances = 200 (* FUDGE *)
 type slice_spec = (int * string) * atp_format * string * string * bool
 
 type atp_config =
-  {exec : string list * string list,
+  {exec : unit -> string list * string list,
    arguments :
      Proof.context -> bool -> string -> Time.time -> string
      -> term_order * (unit -> (string * int) list)
@@ -215,7 +215,7 @@ val agsyhol_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
 
 val agsyhol_config : atp_config =
-  {exec = (["AGSYHOL_HOME"], ["agsyHOL"]),
+  {exec = K (["AGSYHOL_HOME"], ["agsyHOL"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "--proof --time-out " ^ string_of_int (to_secs 1 timeout) ^ " " ^
        file_name,
@@ -236,7 +236,7 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
 
 val alt_ergo_config : atp_config =
-  {exec = (["WHY3_HOME"], ["why3"]),
+  {exec = K (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "--format tptp --prover 'Alt-Ergo,0.95,' --timelimit " ^
        string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
@@ -259,6 +259,7 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 fun is_e_at_least_1_3 () = string_ord (getenv "E_VERSION", "1.3") <> LESS
 fun is_e_at_least_1_6 () = string_ord (getenv "E_VERSION", "1.6") <> LESS
+fun is_e_at_least_1_8 () = string_ord (getenv "E_VERSION", "1.8") <> LESS
 
 val e_smartN = "smart"
 val e_autoN = "auto"
@@ -330,12 +331,6 @@ fun e_term_order_info_arguments false false _ = ""
        else "")
     end
 
-fun e_shell_level_argument full_proof =
-  if is_e_at_least_1_6 () then
-    " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
-  else
-    ""
-
 fun effective_e_selection_heuristic ctxt =
   if is_e_at_least_1_3 () then Config.get ctxt e_selection_heuristic
   else e_autoN
@@ -343,16 +338,25 @@ fun effective_e_selection_heuristic ctxt =
 fun e_kbo () = if is_e_at_least_1_3 () then "KBO6" else "KBO"
 
 val e_config : atp_config =
-  {exec = (["E_HOME"], ["eproof_ram", "eproof"]),
+  {exec = (fn () => (["E_HOME"],
+       if is_e_at_least_1_8 () then ["eprover"] else ["eproof_ram", "eproof"])),
    arguments = fn ctxt => fn full_proof => fn heuristic => fn timeout =>
        fn file_name =>
        fn ({is_lpo, gen_weights, gen_prec, ...}, ord_info, sel_weights) =>
-       "--tstp-in --tstp-out --output-level=5 --silent " ^
+       "--tstp-in --tstp-out --silent " ^
        e_selection_weight_arguments ctxt heuristic sel_weights ^ " " ^
        e_term_order_info_arguments gen_weights gen_prec ord_info ^ " " ^
        "--term-ordering=" ^ (if is_lpo then "LPO4" else e_kbo ()) ^ " " ^
        "--cpu-limit=" ^ string_of_int (to_secs 2 timeout) ^
-       e_shell_level_argument full_proof ^ " " ^ file_name,
+       (if is_e_at_least_1_8 () then
+          " --proof-object=1"
+        else
+          " --output-level=5" ^
+          (if is_e_at_least_1_6 () then
+             " --pcl-shell-level=" ^ (if full_proof then "0" else "2")
+           else
+             "")) ^
+       " " ^ file_name,
    proof_delims =
      [("# SZS output start CNFRefutation", "# SZS output end CNFRefutation")] @
      tstp_proof_delims,
@@ -383,7 +387,7 @@ val e = (eN, fn () => e_config)
 (* E-MaLeS *)
 
 val e_males_config : atp_config =
-  {exec = (["E_MALES_HOME"], ["emales.py"]),
+  {exec = K (["E_MALES_HOME"], ["emales.py"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "-t " ^ string_of_int (to_secs 1 timeout) ^ " -p " ^ file_name,
    proof_delims = tstp_proof_delims,
@@ -404,7 +408,7 @@ val e_males = (e_malesN, fn () => e_males_config)
 (* E-Par *)
 
 val e_par_config : atp_config =
-  {exec = (["E_HOME"], ["runepar.pl"]),
+  {exec = K (["E_HOME"], ["runepar.pl"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        string_of_int (to_secs 1 timeout) ^ " 1 " (* SInE *) ^ file_name ^
        " 2" (* proofs *),
@@ -421,7 +425,7 @@ val e_par = (e_parN, fn () => e_par_config)
 (* iProver *)
 
 val iprover_config : atp_config =
-  {exec = (["IPROVER_HOME"], ["iprover"]),
+  {exec = K (["IPROVER_HOME"], ["iprover"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "--clausifier \"$IPROVER_HOME\"/vclausify_rel --time_out_real " ^
        string_of_real (Time.toReal timeout) ^ " " ^ file_name,
@@ -442,7 +446,7 @@ val iprover = (iproverN, fn () => iprover_config)
 (* iProver-Eq *)
 
 val iprover_eq_config : atp_config =
-  {exec = (["IPROVER_EQ_HOME"], ["iprover-eq"]),
+  {exec = K (["IPROVER_EQ_HOME"], ["iprover-eq"]),
    arguments = #arguments iprover_config,
    proof_delims = #proof_delims iprover_config,
    known_failures = #known_failures iprover_config,
@@ -462,7 +466,7 @@ val leo2_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
 
 val leo2_config : atp_config =
-  {exec = (["LEO2_HOME"], ["leo.opt", "leo"]),
+  {exec = K (["LEO2_HOME"], ["leo.opt", "leo"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "--foatp e --atp e=\"$E_HOME\"/eprover \
        \--atp epclextract=\"$E_HOME\"/epclextract \
@@ -490,7 +494,7 @@ val satallax_thf0 =
   THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
-  {exec = (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
+  {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "-p hocore -t " ^ string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims =
@@ -520,7 +524,7 @@ val spass_extra_options =
 
 (* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
-  {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
+  {exec = K (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout =>
        fn file_name => fn _ =>
        "-Isabelle=1 " ^ (if full_proofs then "-Splits=0 " else "") ^
@@ -567,7 +571,7 @@ fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GR
 val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val vampire_config : atp_config =
-  {exec = (["VAMPIRE_HOME"], ["vampire"]),
+  {exec = K (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn full_proof => fn sos => fn timeout => fn file_name =>
        fn _ =>
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
@@ -619,7 +623,7 @@ val vampire = (vampireN, fn () => vampire_config)
 val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val z3_tptp_config : atp_config =
-  {exec = (["Z3_HOME"], ["z3"]),
+  {exec = K (["Z3_HOME"], ["z3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
        "MBQI=true DISPLAY_UNSAT_CORE=true -tptp -t:" ^
        string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
@@ -641,7 +645,7 @@ val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 (* Not really a prover: Experimental Polymorphic THF and DFG output *)
 
 fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
-  {exec = (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
+  {exec = K (["ISABELLE_ATP"], ["scripts/dummy_atp"]),
    arguments = K (K (K (K (K (K ""))))),
    proof_delims = [],
    known_failures = known_szs_status_failures,
@@ -710,7 +714,7 @@ val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
                   prem_role best_slice : atp_config =
-  {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
+  {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
    arguments = fn _ => fn _ => fn command => fn timeout => fn file_name =>
        fn _ =>
        (if command <> "" then "-c " ^ quote command ^ " " else "") ^
@@ -796,7 +800,7 @@ val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
   let val {exec, ...} = get_atp thy name () in
-    exists (fn var => getenv var <> "") (fst exec)
+    exists (fn var => getenv var <> "") (fst (exec ()))
   end
 
 fun refresh_systems_on_tptp () =

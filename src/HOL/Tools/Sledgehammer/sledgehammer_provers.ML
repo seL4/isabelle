@@ -712,6 +712,7 @@ fun run_atp mode name
         Path.append (Path.explode dest_dir) problem_file_name
       else
         error ("No such directory: " ^ quote dest_dir ^ ".")
+    val exec = exec ()
     val command0 =
       case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
@@ -769,7 +770,8 @@ fun run_atp mode name
                     |> op @
                     |> cons (0, subgoal_th)
           in
-            Legacy_Monomorph.monomorph atp_schematic_consts_of rths ctxt |> fst |> tl
+            Legacy_Monomorph.monomorph atp_schematic_consts_of rths ctxt
+            |> fst |> tl
             |> curry ListPair.zip (map fst facts)
             |> maps (fn (name, rths) =>
                         map (pair name o zero_var_indexes o snd) rths)
@@ -962,8 +964,8 @@ fun run_atp mode name
                   else
                     ()
                 val isar_params =
-                  (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
-                   isar_compress_degree, merge_timeout_slack,
+                  (debug, verbose, preplay_timeout, preplay_trace,
+                   isar_compress, isar_compress_degree, merge_timeout_slack,
                    isar_try0,isar_minimize,
                    pool, fact_names, lifted, sym_tab, atp_proof, goal)
                 val one_line_params =
@@ -973,8 +975,8 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt (mode = Auto_Try) isar_proofs isar_params num_chained
-                           one_line_params
+                proof_text ctxt (mode = Auto_Try) isar_proofs isar_params
+                           num_chained one_line_params
               end,
            (if verbose then
               "\nATP real CPU time: " ^ string_of_time run_time ^ "."
@@ -1177,7 +1179,9 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                                          preplay,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
-            in one_line_proof_text (mode = Auto_Try) num_chained one_line_params end,
+            in
+              one_line_proof_text (mode = Auto_Try) num_chained one_line_params
+            end,
          if verbose then
            "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
          else
@@ -1222,7 +1226,9 @@ fun run_reconstructor mode name
                  minimize_command override_params name, subgoal,
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
-            in one_line_proof_text (mode = Auto_Try) num_chained one_line_params end,
+            in
+              one_line_proof_text (mode = Auto_Try) num_chained one_line_params
+            end,
        message_tail = ""}
     | play =>
       let
