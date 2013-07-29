@@ -362,7 +362,7 @@ fun make_required nodes =
       Symtab.fold (fn (a, ()) =>
         exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
           Symtab.update (a, ())) all_visible Symtab.empty;
-  in Symtab.defined required end;
+  in required end;
 
 fun init_theory deps node span =
   let
@@ -459,7 +459,8 @@ fun update old_version_id new_version_id edits state =
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
-    val is_required = make_required nodes;
+    val required = make_required nodes;
+    val required0 = make_required (nodes_of old_version);
     val edited = fold (fn (name, _) => Symtab.update (name, ())) edits Symtab.empty;
 
     val updated = timeit "Document.update" (fn () =>
@@ -472,9 +473,10 @@ fun update old_version_id new_version_id edits state =
               let
                 val imports = map (apsnd Future.join) deps;
                 val imports_result_changed = exists (#4 o #1 o #2) imports;
-                val node_required = is_required name;
+                val node_required = Symtab.defined required name;
               in
-                if Symtab.defined edited name orelse visible_node node orelse imports_result_changed
+                if Symtab.defined edited name orelse visible_node node orelse
+                  imports_result_changed orelse Symtab.defined required0 name <> node_required
                 then
                   let
                     val node0 = node_of old_version name;
