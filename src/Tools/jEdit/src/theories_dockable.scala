@@ -56,14 +56,16 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val execution_range = new BoxPanel(Orientation.Horizontal) {
-    private def button(range: PIDE.Execution_Range.Value): RadioButton =
+    private def button(range: PIDE.Execution_Range.Value, tip: String): RadioButton =
       new RadioButton(range.toString) {
+        tooltip = tip
         reactions += { case ButtonClicked(_) => PIDE.update_execution_range(range) }
       }
-    private val label = new Label("Range:") { tooltip = "range of continuous document processing" }
-    private val b1 = button(PIDE.Execution_Range.ALL)
-    private val b2 = button(PIDE.Execution_Range.NONE)
-    private val b3 = button(PIDE.Execution_Range.VISIBLE)
+    private val label =
+      new Label("Range:") { tooltip = "Execution range of continuous document processing" }
+    private val b1 = button(PIDE.Execution_Range.ALL, "Check all theories")
+    private val b2 = button(PIDE.Execution_Range.NONE, "Check nothing")
+    private val b3 = button(PIDE.Execution_Range.VISIBLE, "Check visible parts of theories")
     private val group = new ButtonGroup(b1, b2, b3)
     contents ++= List(label, b1, b2, b3)
     border = new LineBorder(Color.GRAY)

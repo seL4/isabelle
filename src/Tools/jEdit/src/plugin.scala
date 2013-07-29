@@ -139,7 +139,7 @@ object PIDE
 
     if (options.string("editor_execution_range") != range.toString) {
       options.string("editor_execution_range") = range.toString
-      PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+      PIDE.session.global_options.event(Session.Global_Options(options.value))
 
       PIDE.session.update(
         (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
