@@ -477,10 +477,10 @@ in front of unknowns from now on.
 
 Inductive definitions are the third important definition facility, after
 datatypes and recursive function.
-\sem
+\ifsem
 In fact, they are the key construct in the
 definition of operational semantics in the second part of the book.
-\endsem
+\fi
 
 \subsection{An Example: Even Numbers}
 \label{sec:Logic:even}
@@ -670,10 +670,10 @@ inductive definition may be much simpler.
 Evenness is really more conveniently expressed recursively than inductively.
 As a second and very typical example of an inductive definition we define the
 reflexive transitive closure.
-\sem
+\ifsem
 It will also be an important building block for
 some of the semantics considered in the second part of the book.
-\endsem
+\fi
 
 The reflexive transitive closure, called @{text star} below, is a function
 that maps a binary predicate to another binary predicate: if @{text r} is of
