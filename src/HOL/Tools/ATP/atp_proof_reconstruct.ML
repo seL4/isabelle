@@ -303,8 +303,13 @@ fun repair_tvar_sorts (t, tvar_tab) =
 fun quantify_over_var quant_of var_s t =
   let
     val vars = [] |> Term.add_vars t |> filter (fn ((s, _), _) => s = var_s)
-                  |> map Var
-  in fold_rev quant_of vars t end
+    val normTs = vars |> AList.group (op =) |> map (apsnd hd)
+    fun norm_var_types (Var (x, T)) =
+        Var (x, case AList.lookup (op =) normTs x of
+                  NONE => T
+                | SOME T' => T')
+      | norm_var_types t = t
+  in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
