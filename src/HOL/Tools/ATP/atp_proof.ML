@@ -196,15 +196,13 @@ fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
 
 val vampire_fact_prefix = "f"
 
-fun step_name_ord p =
+fun vampire_step_name_ord p =
   let val q = pairself fst p in
-    (* The "unprefix" part is to cope with remote Vampire's output. *)
+    (* The "unprefix" part is to cope with Vampire's output. *)
     case pairself (Int.fromString
                    o perhaps (try (unprefix vampire_fact_prefix))) q of
-      (NONE, NONE) => string_ord q
-    | (NONE, SOME _) => LESS
-    | (SOME _, NONE) => GREATER
-    | (SOME i, SOME j) => int_ord (i, j)
+      (SOME i, SOME j) => int_ord (i, j)
+    | _ => raise Fail "not Vampire"
   end
 
 type 'a step = step_name * formula_role * 'a * string * step_name list
@@ -510,7 +508,7 @@ fun atp_proof_of_tstplike_proof _ "" = []
     | NONE =>
       tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof problem
-      |> sort (step_name_ord o pairself #1)
+      |> perhaps (try (sort (vampire_step_name_ord o pairself #1)))
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
