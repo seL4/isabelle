@@ -10,7 +10,6 @@ sig
   type eval
   val eval_eq: eval * eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval_stable: eval -> bool
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   type print
   val print: bool -> string -> eval -> print list -> print list option
@@ -28,7 +27,7 @@ end;
 structure Command: COMMAND =
 struct
 
-(** memo results -- including physical interrupts! **)
+(** memo results -- including physical interrupts **)
 
 datatype 'a expr =
   Expr of Document_ID.exec * (unit -> 'a) |
@@ -44,11 +43,6 @@ fun memo_result (Memo v) =
   (case Synchronized.value v of
     Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id)
   | Result res => Exn.release res);
-
-fun memo_stable (Memo v) =
-  (case Synchronized.value v of
-   Expr _ => true
- | Result res => not (Exn.is_interrupt_exn res));
 
 fun memo_finished (Memo v) =
   (case Synchronized.value v of
@@ -124,9 +118,6 @@ fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = ex
 
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
 val eval_result_state = #state o eval_result;
-
-fun eval_stable (Eval {exec_id, eval_process}) =
-  Goal.stable_futures exec_id andalso memo_stable eval_process;
 
 local
 
@@ -220,11 +211,7 @@ fun print_error tr e =
 
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 
-fun print_stable (Print {exec_id, print_process, ...}) =
-  Goal.stable_futures exec_id andalso memo_stable print_process;
-
-fun print_finished (Print {exec_id, print_process, ...}) =
-  Goal.stable_futures exec_id andalso memo_finished print_process;
+fun print_finished (Print {exec_id, print_process, ...}) = memo_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 
@@ -264,8 +251,8 @@ fun print command_visible command_name eval old_prints =
       if command_visible then
         rev (Synchronized.value print_functions) |> map_filter (fn pr =>
           (case find_first (fn Print {name, ...} => name = fst pr) old_prints of
-            SOME print => if print_stable print then SOME print else new_print pr
-          | NONE => new_print pr))
+            NONE => new_print pr
+          | some => some))
       else filter (fn print => print_finished print andalso print_persistent print) old_prints;
   in
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints

@@ -41,7 +41,7 @@ structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord)
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last visible command*)
-  entries: Command.exec option Entries.T * bool,  (*command entries with excecutions, stable*)
+  entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
@@ -58,9 +58,8 @@ fun make_perspective command_ids : perspective =
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
-val empty_node = make_node (no_header, no_perspective, (Entries.empty, true), NONE);
-val clear_node =
-  map_node (fn (header, _, _, _) => (header, no_perspective, (Entries.empty, true), NONE));
+val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
+val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
 
 
 (* basic components *)
@@ -87,17 +86,11 @@ val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
-  map_node (fn (header, perspective, (entries, stable), result) =>
-    (header, perspective, (f entries, stable), result));
-fun get_entries (Node {entries = (entries, _), ...}) = entries;
-
-fun entries_stable stable =
-  map_node (fn (header, perspective, (entries, _), result) =>
-    (header, perspective, (entries, stable), result));
-fun stable_entries (Node {entries = (_, stable), ...}) = stable;
+  map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
+fun get_entries (Node {entries, ...}) = entries;
 
 fun iterate_entries f = Entries.iterate NONE f o get_entries;
-fun iterate_entries_after start f (Node {entries = (entries, _), ...}) =
+fun iterate_entries_after start f (Node {entries, ...}) =
   (case Entries.get_after entries start of
     NONE => I
   | SOME id => Entries.iterate (SOME id) f entries);
@@ -328,7 +321,6 @@ fun start_execution state =
 type assign_update = Command.exec option Inttab.table;  (*command id -> exec*)
 
 val assign_update_empty: assign_update = Inttab.empty;
-fun assign_update_null (tab: assign_update) = Inttab.is_empty tab;
 fun assign_update_defined (tab: assign_update) command_id = Inttab.defined tab command_id;
 fun assign_update_apply (tab: assign_update) node = Inttab.fold assign_entry tab node;
 
@@ -402,8 +394,7 @@ fun last_common state node0 node =
           val flags' = update_flags prev flags;
           val same' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) =>
-                Command.eval_eq (eval0, eval) andalso Command.eval_stable eval
+              (SOME (eval0, _), SOME (eval, _)) => Command.eval_eq (eval0, eval)
             | _ => false);
           val assign_update' = assign_update |> same' ?
             (case opt_exec of
@@ -471,7 +462,7 @@ fun update old_version_id new_version_id edits state =
                 val node_required = is_required name;
               in
                 if imports_changed orelse AList.defined (op =) edits name orelse
-                  not (stable_entries node) orelse not (finished_theory node)
+                  not (finished_theory node)
                 then
                   let
                     val node0 = node_of old_version name;
@@ -512,7 +503,6 @@ fun update old_version_id new_version_id edits state =
 
                     val node' = node
                       |> assign_update_apply assigned_execs
-                      |> entries_stable (assign_update_null updated_execs)
                       |> set_result result;
                     val assigned_node = SOME (name, node');
                     val result_changed = changed_result node0 node';
