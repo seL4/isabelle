@@ -49,6 +49,7 @@ val _ =
 
         val (removed, assign_update, state') = Document.update old_id new_id edits state;
         val _ = List.app Execution.terminate removed;
+        val _ = Goal.purge_futures removed;
         val _ = List.app Isabelle_Process.reset_tracing removed;
 
         val _ =
