@@ -9,6 +9,7 @@ sig
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
+  val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   type print
@@ -115,6 +116,8 @@ val init_eval_state =
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state memo};
 
 fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = exec_id';
+
+fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
 
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
 val eval_result_state = #state o eval_result;

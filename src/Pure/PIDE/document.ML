@@ -105,10 +105,10 @@ fun changed_result node node' =
   | (NONE, NONE) => false
   | _ => true);
 
-fun finished_theory node =
-  (case Exn.capture (Command.eval_result_state o the) (get_result node) of
-    Exn.Res st => can (Toplevel.end_theory Position.none) st
-  | _ => false);
+fun pending_result node =
+  (case get_result node of
+    SOME eval => not (Command.eval_finished eval)
+  | NONE => false);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -295,9 +295,7 @@ fun start_execution state =
       if Execution.is_running execution_id then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
-            if not (visible_node node) andalso finished_theory node then
-              Future.value ()
-            else
+            if visible_node node orelse pending_result node then
               (singleton o Future.forks)
                 {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
                   deps = map (Future.task_of o #2) deps, pri = pri, interrupts = false}
@@ -308,7 +306,8 @@ fun start_execution state =
                         if Execution.is_running execution_id
                         then SOME (Command.exec execution_id exec)
                         else NONE
-                    | NONE => NONE)) node ()))
+                    | NONE => NONE)) node ())
+            else Future.value ())
       else [];
   in () end;
 
@@ -448,6 +447,7 @@ fun update old_version_id new_version_id edits state =
 
     val nodes = nodes_of new_version;
     val is_required = make_required nodes;
+    val edited = fold (fn (name, _) => Symtab.update (name, ())) edits Symtab.empty;
 
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule
@@ -458,11 +458,10 @@ fun update old_version_id new_version_id edits state =
             (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
-                val imports_changed = exists (#4 o #1 o #2) imports;
+                val imports_result_changed = exists (#4 o #1 o #2) imports;
                 val node_required = is_required name;
               in
-                if imports_changed orelse AList.defined (op =) edits name orelse
-                  not (finished_theory node)
+                if Symtab.defined edited name orelse visible_node node orelse imports_result_changed
                 then
                   let
                     val node0 = node_of old_version name;
@@ -472,7 +471,7 @@ fun update old_version_id new_version_id edits state =
                       forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                     val (print_execs, common, (still_visible, initial)) =
-                      if imports_changed then (assign_update_empty, NONE, (true, true))
+                      if imports_result_changed then (assign_update_empty, NONE, (true, true))
                       else last_common state node0 node;
                     val common_command_exec = the_default_entry node common;
 
