@@ -118,21 +118,21 @@ local
 
 val forked_proofs =
   Synchronized.var "forked_proofs"
-    (0, []: Future.group list, Inttab.empty: unit future list Inttab.table);
+    (0, Inttab.empty: (Future.group * unit future) list Inttab.table);
 
 fun count_forked i =
-  Synchronized.change forked_proofs (fn (m, groups, tab) =>
+  Synchronized.change forked_proofs (fn (m, tab) =>
     let
       val n = m + i;
       val _ = Future.forked_proofs := n;
-    in (n, groups, tab) end);
+    in (n, tab) end);
 
 fun register_forked id future =
-  Synchronized.change forked_proofs (fn (m, groups, tab) =>
+  Synchronized.change forked_proofs (fn (m, tab) =>
     let
-      val groups' = Task_Queue.group_of_task (Future.task_of future) :: groups;
-      val tab' = Inttab.cons_list (id, Future.map (K ()) future) tab;
-    in (m, groups', tab') end);
+      val group = Task_Queue.group_of_task (Future.task_of future);
+      val tab' = Inttab.cons_list (id, (group, Future.map (K ()) future)) tab;
+    in (m, tab') end);
 
 fun status task markups =
   let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
@@ -178,11 +178,14 @@ fun fork pri e =
 fun forked_count () = #1 (Synchronized.value forked_proofs);
 
 fun peek_futures id =
-  Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
+  map #2 (Inttab.lookup_list (#2 (Synchronized.value forked_proofs)) id);
 
 fun reset_futures () =
-  Synchronized.change_result forked_proofs (fn (_, groups, _) =>
-    (Future.forked_proofs := 0; (groups, (0, [], Inttab.empty))));
+  Synchronized.change_result forked_proofs (fn (_, tab) =>
+    let
+      val groups = Inttab.fold (fold (cons o #1) o #2) tab [];
+      val _ = Future.forked_proofs := 0;
+    in (groups, (0, Inttab.empty)) end);
 
 fun shutdown_futures () =
   (Future.shutdown ();
