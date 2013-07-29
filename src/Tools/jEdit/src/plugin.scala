@@ -141,7 +141,7 @@ object PIDE
       options.string("editor_execution_range") = range.toString
       PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
 
-      val edits =
+      PIDE.session.update(
         (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
           case (edits, buffer) =>
             JEdit_Lib.buffer_lock(buffer) {
@@ -150,8 +150,8 @@ object PIDE
                 case None => edits
               }
             }
-          }
-      PIDE.session.update(edits)
+        }
+      )
     }
   }
 }
