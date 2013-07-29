@@ -20,16 +20,6 @@ val _ =
     (fn [] => Execution.discontinue ());
 
 val _ =
-  Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] =>
-      let
-        val _ = Execution.discontinue ();
-        val groups = Execution.snapshot ();
-        val _ = List.app Future.cancel_group groups;
-        val _ = List.app Future.terminate groups;
-      in () end);
-
-val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
@@ -59,6 +49,7 @@ val _ =
 
         val (removed, assign_update, state') = Document.update old_id new_id edits state;
         val _ = List.app Execution.terminate removed;
+        val _ = Goal.purge_futures removed;
         val _ = List.app Isabelle_Process.reset_tracing removed;
 
         val _ =
@@ -67,10 +58,7 @@ val _ =
               let open XML.Encode
               in pair int (list (pair int (list int))) end
               |> YXML.string_of_body);
-        val _ =
-          Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
-            (fn () => Document.start_execution state');
-      in state' end));
+      in Document.start_execution state' end));
 
 val _ =
   Isabelle_Process.protocol_command "Document.remove_versions"
@@ -87,7 +75,7 @@ val _ =
   Isabelle_Process.protocol_command "Document.dialog_result"
     (fn [serial, result] =>
       Active.dialog_result (Markup.parse_int serial) result
-        handle exn => if Exn.is_interrupt exn then () else reraise exn);
+        handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn);
 
 end;
 

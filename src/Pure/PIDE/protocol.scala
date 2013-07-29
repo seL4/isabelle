@@ -319,8 +319,6 @@ trait Protocol extends Isabelle_Process
 
   def discontinue_execution() { protocol_command("Document.discontinue_execution") }
 
-  def cancel_execution() { protocol_command("Document.cancel_execution") }
-
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
     edits: List[Document.Edit_Command])
   {

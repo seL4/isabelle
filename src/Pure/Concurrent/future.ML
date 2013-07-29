@@ -48,6 +48,7 @@ sig
   val worker_group: unit -> group option
   val the_worker_group: unit -> group
   val worker_subgroup: unit -> group
+  val worker_nest: string -> ('a -> 'b) -> 'a -> 'b
   val worker_guest: string -> group -> ('a -> 'b) -> 'a -> 'b
   type 'a future
   val task_of: 'a future -> task
@@ -107,6 +108,9 @@ fun the_worker_group () =
   | NONE => raise Fail "Missing worker thread context");
 
 fun worker_subgroup () = new_group (worker_group ());
+
+fun worker_nest name f x =
+  setmp_worker_task (Task_Queue.new_task (the_worker_group ()) name NONE) f x;
 
 fun worker_guest name group f x =
   if is_some (worker_task ()) then

@@ -52,14 +52,14 @@
 			wm.addDockableWindow("isabelle-symbols");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.check-buffer">
+	<ACTION NAME="isabelle.execution-range-none">
 	  <CODE>
-	    isabelle.jedit.PIDE.check_buffer(buffer);
+	    isabelle.jedit.PIDE.execution_range_none();
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.cancel-execution">
+	<ACTION NAME="isabelle.execution-range-visible">
 	  <CODE>
-	    isabelle.jedit.PIDE.cancel_execution();
+	    isabelle.jedit.PIDE.execution_range_visible();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size">

@@ -18,7 +18,7 @@ sig
   val init_state: state
   val define_command: Document_ID.command -> string -> string -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
-  val start_execution: state -> unit
+  val start_execution: state -> state
   val timing: bool Unsynchronized.ref
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
@@ -41,7 +41,7 @@ structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord)
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
   perspective: perspective,  (*visible commands, last visible command*)
-  entries: Command.exec option Entries.T * bool,  (*command entries with excecutions, stable*)
+  entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
@@ -58,9 +58,8 @@ fun make_perspective command_ids : perspective =
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
-val empty_node = make_node (no_header, no_perspective, (Entries.empty, true), NONE);
-val clear_node =
-  map_node (fn (header, _, _, _) => (header, no_perspective, (Entries.empty, true), NONE));
+val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
+val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
 
 
 (* basic components *)
@@ -87,17 +86,11 @@ val visible_last = #2 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
-  map_node (fn (header, perspective, (entries, stable), result) =>
-    (header, perspective, (f entries, stable), result));
-fun get_entries (Node {entries = (entries, _), ...}) = entries;
-
-fun entries_stable stable =
-  map_node (fn (header, perspective, (entries, _), result) =>
-    (header, perspective, (entries, stable), result));
-fun stable_entries (Node {entries = (_, stable), ...}) = stable;
+  map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
+fun get_entries (Node {entries, ...}) = entries;
 
 fun iterate_entries f = Entries.iterate NONE f o get_entries;
-fun iterate_entries_after start f (Node {entries = (entries, _), ...}) =
+fun iterate_entries_after start f (Node {entries, ...}) =
   (case Entries.get_after entries start of
     NONE => I
   | SOME id => Entries.iterate (SOME id) f entries);
@@ -112,10 +105,10 @@ fun changed_result node node' =
   | (NONE, NONE) => false
   | _ => true);
 
-fun finished_theory node =
-  (case Exn.capture (Command.eval_result_state o the) (get_result node) of
-    Exn.Res st => can (Toplevel.end_theory Position.none) st
-  | _ => false);
+fun pending_result node =
+  (case get_result node of
+    SOME eval => not (Command.eval_finished eval)
+  | NONE => false);
 
 fun get_node nodes name = String_Graph.get_node nodes name
   handle String_Graph.UNDEF _ => empty_node;
@@ -203,10 +196,16 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type execution = {version_id: Document_ID.version, execution_id: Document_ID.execution};
+type execution =
+ {version_id: Document_ID.version,  (*static version id*)
+  execution_id: Document_ID.execution,  (*dynamic execution id*)
+  frontier: Future.task Symtab.table};  (*node name -> running execution task*)
 
-val no_execution = {version_id = Document_ID.none, execution_id = Document_ID.none};
-fun next_execution version_id = {version_id = version_id, execution_id = Execution.start ()};
+val no_execution: execution =
+  {version_id = Document_ID.none, execution_id = Document_ID.none, frontier = Symtab.empty};
+
+fun new_execution version_id frontier : execution =
+  {version_id = version_id, execution_id = Execution.start (), frontier = frontier};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -223,17 +222,15 @@ fun map_state f (State {versions, commands, execution}) =
 val init_state =
   make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty, no_execution);
 
-fun execution_of (State {execution, ...}) = execution;
-
 
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, commands, _) =>
+  map_state (fn (versions, commands, {frontier, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = next_execution version_id;
+      val execution' = new_execution version_id frontier;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -294,30 +291,38 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 
 (* document execution *)
 
-fun start_execution state =
+fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
   let
-    val {version_id, execution_id} = execution_of state;
+    val {version_id, execution_id, frontier} = execution;
     val pri = Options.default_int "editor_execution_priority";
-    val _ =
+
+    val new_tasks =
       if Execution.is_running execution_id then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
-            if not (visible_node node) andalso finished_theory node then
-              Future.value ()
-            else
-              (singleton o Future.forks)
-                {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                  deps = map (Future.task_of o #2) deps, pri = pri, interrupts = false}
-                (fn () =>
+            if visible_node node orelse pending_result node then
+              let
+                val former_task = Symtab.lookup frontier name;
+                fun body () =
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
                       SOME exec =>
                         if Execution.is_running execution_id
                         then SOME (Command.exec execution_id exec)
                         else NONE
-                    | NONE => NONE)) node ()))
+                    | NONE => NONE)) node ()
+                  handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn;
+                val future =
+                  (singleton o Future.forks)
+                    {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
+                      deps = the_list former_task @ map #2 (maps #2 deps),
+                      pri = pri, interrupts = false} body;
+              in [(name, Future.task_of future)] end
+            else [])
       else [];
-  in () end;
+    val frontier' = (fold o fold) Symtab.update new_tasks frontier;
+    val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
+  in (versions, commands, execution') end);
 
 
 
@@ -328,7 +333,6 @@ fun start_execution state =
 type assign_update = Command.exec option Inttab.table;  (*command id -> exec*)
 
 val assign_update_empty: assign_update = Inttab.empty;
-fun assign_update_null (tab: assign_update) = Inttab.is_empty tab;
 fun assign_update_defined (tab: assign_update) command_id = Inttab.defined tab command_id;
 fun assign_update_apply (tab: assign_update) node = Inttab.fold assign_entry tab node;
 
@@ -358,7 +362,7 @@ fun make_required nodes =
       Symtab.fold (fn (a, ()) =>
         exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
           Symtab.update (a, ())) all_visible Symtab.empty;
-  in Symtab.defined required end;
+  in required end;
 
 fun init_theory deps node span =
   let
@@ -402,8 +406,7 @@ fun last_common state node0 node =
           val flags' = update_flags prev flags;
           val same' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) =>
-                Command.eval_eq (eval0, eval) andalso Command.eval_stable eval
+              (SOME (eval0, _), SOME (eval, _)) => Command.eval_eq (eval0, eval)
             | _ => false);
           val assign_update' = assign_update |> same' ?
             (case opt_exec of
@@ -456,7 +459,9 @@ fun update old_version_id new_version_id edits state =
     val new_version = timeit "Document.edit_nodes" (fn () => fold edit_nodes edits old_version);
 
     val nodes = nodes_of new_version;
-    val is_required = make_required nodes;
+    val required = make_required nodes;
+    val required0 = make_required (nodes_of old_version);
+    val edited = fold (fn (name, _) => Symtab.update (name, ())) edits Symtab.empty;
 
     val updated = timeit "Document.update" (fn () =>
       nodes |> String_Graph.schedule
@@ -467,11 +472,11 @@ fun update old_version_id new_version_id edits state =
             (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
-                val imports_changed = exists (#4 o #1 o #2) imports;
-                val node_required = is_required name;
+                val imports_result_changed = exists (#4 o #1 o #2) imports;
+                val node_required = Symtab.defined required name;
               in
-                if imports_changed orelse AList.defined (op =) edits name orelse
-                  not (stable_entries node) orelse not (finished_theory node)
+                if Symtab.defined edited name orelse visible_node node orelse
+                  imports_result_changed orelse Symtab.defined required0 name <> node_required
                 then
                   let
                     val node0 = node_of old_version name;
@@ -481,7 +486,7 @@ fun update old_version_id new_version_id edits state =
                       forall (fn (name, (_, node)) => check_theory true name node) imports;
 
                     val (print_execs, common, (still_visible, initial)) =
-                      if imports_changed then (assign_update_empty, NONE, (true, true))
+                      if imports_result_changed then (assign_update_empty, NONE, (true, true))
                       else last_common state node0 node;
                     val common_command_exec = the_default_entry node common;
 
@@ -512,7 +517,6 @@ fun update old_version_id new_version_id edits state =
 
                     val node' = node
                       |> assign_update_apply assigned_execs
-                      |> entries_stable (assign_update_null updated_execs)
                       |> set_result result;
                     val assigned_node = SOME (name, node');
                     val result_changed = changed_result node0 node';

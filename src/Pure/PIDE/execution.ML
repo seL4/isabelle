@@ -11,10 +11,8 @@ sig
   val discontinue: unit -> unit
   val is_running: Document_ID.execution -> bool
   val running: Document_ID.execution -> Document_ID.exec -> bool
-  val finished: Document_ID.exec -> unit
   val cancel: Document_ID.exec -> unit
   val terminate: Document_ID.exec -> unit
-  val snapshot: unit -> Future.group list
 end;
 
 structure Execution: EXECUTION =
@@ -53,20 +51,11 @@ fun running execution_id exec_id =
           else execs;
       in SOME (continue, (execution_id', execs')) end);
 
-fun finished exec_id =
-  Synchronized.change state
-    (apsnd (fn execs =>
-      Inttab.delete exec_id execs handle Inttab.UNDEF bad =>
-        error ("Attempt to finish unknown execution " ^ Document_ID.print bad)));
-
 fun peek_list exec_id =
   the_list (Inttab.lookup (snd (Synchronized.value state)) exec_id);
 
 fun cancel exec_id = List.app Future.cancel_group (peek_list exec_id);
 fun terminate exec_id = List.app Future.terminate (peek_list exec_id);
-
-fun snapshot () =
-  Inttab.fold (cons o #2) (snd (Synchronized.value state)) [];
 
 end;
 

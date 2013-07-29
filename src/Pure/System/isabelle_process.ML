@@ -188,7 +188,10 @@ fun loop channel =
     | name :: args => (worker_guest (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
       | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
-  in if continue then loop channel else Future.shutdown () end;
+  in
+    if continue then loop channel
+    else (Future.shutdown (); Goal.reset_futures (); ())
+  end;
 
 end;
 

@@ -9,15 +9,15 @@ sig
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
+  val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval_stable: eval -> bool
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   type print
   val print: bool -> string -> eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print_function: string ->
     ({command_name: string} ->
-      {delay: Time.time, pri: int, persistent: bool, print_fn: print_fn} option) -> unit
+      {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option) -> unit
   val no_print_function: string -> unit
   type exec = eval * print list
   val no_exec: exec
@@ -28,7 +28,7 @@ end;
 structure Command: COMMAND =
 struct
 
-(** memo results -- including physical interrupts! **)
+(** memo results **)
 
 datatype 'a expr =
   Expr of Document_ID.exec * (unit -> 'a) |
@@ -45,30 +45,28 @@ fun memo_result (Memo v) =
     Expr (exec_id, _) => error ("Unfinished execution result: " ^ Document_ID.print exec_id)
   | Result res => Exn.release res);
 
-fun memo_stable (Memo v) =
-  (case Synchronized.value v of
-   Expr _ => true
- | Result res => not (Exn.is_interrupt_exn res));
-
 fun memo_finished (Memo v) =
   (case Synchronized.value v of
    Expr _ => false
- | Result res => not (Exn.is_interrupt_exn res));
+ | Result _ => true);
 
 fun memo_exec execution_id (Memo v) =
-  Synchronized.guarded_access v
+  Synchronized.timed_access v (K (SOME Time.zeroTime))
     (fn expr =>
       (case expr of
-        Expr (exec_id, e) =>
+        Expr (exec_id, body) =>
           uninterruptible (fn restore_attributes => fn () =>
             if Execution.running execution_id exec_id then
               let
-                val res = Exn.capture (restore_attributes e) ();
-                val _ = Execution.finished exec_id;
-              in SOME (Exn.is_interrupt_exn res, Result res) end
-            else SOME (true, expr)) ()
-      | Result _ => SOME (false, expr)))
-  |> (fn true => Exn.interrupt () | false => ());
+                val res =
+                  (body
+                    |> restore_attributes
+                    |> Future.worker_nest "Command.memo_exec"
+                    |> Exn.interruptible_capture) ();
+              in SOME ((), Result res) end
+            else SOME ((), expr)) ()
+      | Result _ => SOME ((), expr)))
+  |> (fn NONE => error "Conflicting command execution" | _ => ());
 
 fun memo_fork params execution_id (Memo v) =
   (case Synchronized.value v of
@@ -122,11 +120,10 @@ datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state mem
 
 fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = exec_id';
 
+fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
+
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
 val eval_result_state = #state o eval_result;
-
-fun eval_stable (Eval {exec_id, eval_process}) =
-  Goal.stable_futures exec_id andalso memo_stable eval_process;
 
 local
 
@@ -198,14 +195,14 @@ end;
 (* print *)
 
 datatype print = Print of
- {name: string, delay: Time.time, pri: int, persistent: bool,
+ {name: string, delay: Time.time option, pri: int, persistent: bool,
   exec_id: Document_ID.exec, print_process: unit memo};
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 type print_function =
   {command_name: string} ->
-    {delay: Time.time, pri: int, persistent: bool, print_fn: print_fn} option;
+    {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option;
 
 local
 
@@ -220,11 +217,7 @@ fun print_error tr e =
 
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 
-fun print_stable (Print {exec_id, print_process, ...}) =
-  Goal.stable_futures exec_id andalso memo_stable print_process;
-
-fun print_finished (Print {exec_id, print_process, ...}) =
-  Goal.stable_futures exec_id andalso memo_finished print_process;
+fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 
@@ -256,16 +249,15 @@ fun print command_visible command_name eval old_prints =
         | Exn.Res (SOME pr) => SOME (make_print false pr)
         | Exn.Exn exn =>
             SOME (make_print true
-              {delay = Time.zeroTime, pri = 0, persistent = false,
-                print_fn = fn _ => fn _ => reraise exn}))
+              {delay = NONE, pri = 0, persistent = false, print_fn = fn _ => fn _ => reraise exn}))
       end;
 
     val new_prints =
       if command_visible then
         rev (Synchronized.value print_functions) |> map_filter (fn pr =>
           (case find_first (fn Print {name, ...} => name = fst pr) old_prints of
-            SOME print => if print_stable print then SOME print else new_print pr
-          | NONE => new_print pr))
+            NONE => new_print pr
+          | some => some))
       else filter (fn print => print_finished print andalso print_persistent print) old_prints;
   in
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
@@ -285,7 +277,7 @@ end;
 val _ =
   print_function "print_state"
     (fn {command_name} =>
-      SOME {delay = Time.zeroTime, pri = 1, persistent = true,
+      SOME {delay = NONE, pri = 1, persistent = true,
         print_fn = fn tr => fn st' =>
           let
             val is_init = Keyword.is_theory_begin command_name;
@@ -316,8 +308,9 @@ fun run_print execution_id (Print {name, delay, pri, print_process, ...}) =
         memo_fork {name = name, group = SOME group, deps = [], pri = pri, interrupts = true}
           execution_id print_process;
     in
-      if delay = Time.zeroTime then fork ()
-      else ignore (Event_Timer.request (Time.+ (Time.now (), delay)) fork)
+      (case delay of
+        NONE => fork ()
+      | SOME d => ignore (Event_Timer.request (Time.+ (Time.now (), d)) fork))
     end
   else memo_exec execution_id print_process;
 
