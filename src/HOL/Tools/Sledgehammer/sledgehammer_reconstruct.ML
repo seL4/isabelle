@@ -327,8 +327,7 @@ fun add_desired_line fact_names (name as (_, ss), role, t, rule, deps)
 
 val add_labels_of_proof =
   steps_of_proof #> fold_isar_steps
-    (byline_of_step #> (fn SOME (By ((ls, _), _)) => union (op =) ls
-                         | _ => I))
+    (byline_of_step #> (fn SOME (By ((ls, _), _)) => union (op =) ls | _ => I))
 
 fun kill_useless_labels_in_proof proof =
   let

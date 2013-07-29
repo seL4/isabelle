@@ -260,7 +260,7 @@ and parse_source x =
   (parse_file_source >> File_Source
    || parse_inference_source >> Inference_Source
    || skip_introduced >> K dummy_inference (* for Vampire *)
-   || scan_nat >> (fn s => Inference_Source ("", [s])) (* for E *)
+   || scan_general_id >> (fn s => Inference_Source ("", [s])) (* for E *)
    || skip_term >> K dummy_inference) x
 
 fun list_app (f, args) =
@@ -506,7 +506,7 @@ fun atp_proof_of_tstplike_proof _ "" = []
     case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_coreN)
     | NONE =>
-      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
+      tstp ^ "$"  (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof problem
       |> perhaps (try (sort (vampire_step_name_ord o pairself #1)))
 
