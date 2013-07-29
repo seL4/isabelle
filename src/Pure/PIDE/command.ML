@@ -51,7 +51,7 @@ fun memo_finished (Memo v) =
  | Result res => not (Exn.is_interrupt_exn res));
 
 fun memo_exec execution_id (Memo v) =
-  Synchronized.guarded_access v
+  Synchronized.timed_access v (K (SOME Time.zeroTime))
     (fn expr =>
       (case expr of
         Expr (exec_id, e) =>
@@ -63,7 +63,9 @@ fun memo_exec execution_id (Memo v) =
               in SOME (Exn.is_interrupt_exn res, Result res) end
             else SOME (true, expr)) ()
       | Result _ => SOME (false, expr)))
-  |> (fn true => Exn.interrupt () | false => ());
+  |> (fn SOME false => ()
+       | SOME true => Exn.interrupt ()
+       | NONE => error "Conflicting command execution");
 
 fun memo_fork params execution_id (Memo v) =
   (case Synchronized.value v of

@@ -18,7 +18,7 @@ sig
   val init_state: state
   val define_command: Document_ID.command -> string -> string -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
-  val start_execution: state -> unit
+  val start_execution: state -> state
   val timing: bool Unsynchronized.ref
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
@@ -196,10 +196,16 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type execution = {version_id: Document_ID.version, execution_id: Document_ID.execution};
+type execution =
+ {version_id: Document_ID.version,  (*static version id*)
+  execution_id: Document_ID.execution,  (*dynamic execution id*)
+  frontier: Future.task Symtab.table};  (*node name -> running execution task*)
 
-val no_execution = {version_id = Document_ID.none, execution_id = Document_ID.none};
-fun new_execution version_id = {version_id = version_id, execution_id = Execution.start ()};
+val no_execution: execution =
+  {version_id = Document_ID.none, execution_id = Document_ID.none, frontier = Symtab.empty};
+
+fun new_execution version_id frontier : execution =
+  {version_id = version_id, execution_id = Execution.start (), frontier = frontier};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -216,17 +222,15 @@ fun map_state f (State {versions, commands, execution}) =
 val init_state =
   make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty, no_execution);
 
-fun execution_of (State {execution, ...}) = execution;
-
 
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, commands, _) =>
+  map_state (fn (versions, commands, {frontier, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = new_execution version_id;
+      val execution' = new_execution version_id frontier;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -287,29 +291,37 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 
 (* document execution *)
 
-fun start_execution state =
+fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
   let
-    val {version_id, execution_id} = execution_of state;
+    val {version_id, execution_id, frontier} = execution;
     val pri = Options.default_int "editor_execution_priority";
-    val _ =
+
+    val new_tasks =
       if Execution.is_running execution_id then
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
-              (singleton o Future.forks)
-                {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                  deps = map (Future.task_of o #2) deps, pri = pri, interrupts = false}
-                (fn () =>
-                  iterate_entries (fn (_, opt_exec) => fn () =>
-                    (case opt_exec of
-                      SOME exec =>
-                        if Execution.is_running execution_id
-                        then SOME (Command.exec execution_id exec)
-                        else NONE
-                    | NONE => NONE)) node ())
-            else Future.value ())
+              let
+                val former_task = Symtab.lookup frontier name;
+                val future =
+                  (singleton o Future.forks)
+                    {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
+                      deps = the_list former_task @ map #2 (maps #2 deps),
+                      pri = pri, interrupts = false}
+                    (fn () =>
+                      iterate_entries (fn (_, opt_exec) => fn () =>
+                        (case opt_exec of
+                          SOME exec =>
+                            if Execution.is_running execution_id
+                            then SOME (Command.exec execution_id exec)
+                            else NONE
+                        | NONE => NONE)) node ());
+              in [(name, Future.task_of future)] end
+            else [])
       else [];
-  in () end;
+    val frontier' = (fold o fold) Symtab.update new_tasks frontier;
+    val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
+  in (versions, commands, execution') end);
 
 
 

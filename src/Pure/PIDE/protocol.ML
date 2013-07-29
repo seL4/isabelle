@@ -58,10 +58,7 @@ val _ =
               let open XML.Encode
               in pair int (list (pair int (list int))) end
               |> YXML.string_of_body);
-        val _ =
-          Event_Timer.request (Time.+ (Time.now (), seconds 0.02))
-            (fn () => Document.start_execution state');
-      in state' end));
+      in Document.start_execution state' end));
 
 val _ =
   Isabelle_Process.protocol_command "Document.remove_versions"
