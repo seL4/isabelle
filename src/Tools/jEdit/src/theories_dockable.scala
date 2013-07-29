@@ -63,7 +63,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     private val label =
       new Label("Range:") { tooltip = "Execution range of continuous document processing" }
-    private val b1 = button(PIDE.Execution_Range.ALL, "Check all theories")
+    private val b1 = button(PIDE.Execution_Range.ALL, "Check all theories (potentially slow)")
     private val b2 = button(PIDE.Execution_Range.NONE, "Check nothing")
     private val b3 = button(PIDE.Execution_Range.VISIBLE, "Check visible parts of theories")
     private val group = new ButtonGroup(b1, b2, b3)

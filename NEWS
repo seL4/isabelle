@@ -43,6 +43,12 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Execution range of continuous document processing may be set to
+"all", "none", "visible".  See also dockable window "Theories" or
+keyboard shortcuts "C-e BACK_SPACE" for "none", and "C-e SPACE" for
+"visible".  These declarative options supersede the old-style action
+buttons "Cancel" and "Check".
+
 * Strictly monotonic document update, without premature cancelation of
 running transactions that are still needed: avoid reset/restart of
 such command executions while editing.
