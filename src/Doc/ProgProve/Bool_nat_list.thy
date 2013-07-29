@@ -397,7 +397,8 @@ and the map function that applies a function to all elements of a list:
 @{text"\""}@{thm map.simps(1)}@{text"\" |"}\\
 @{text"\""}@{thm map.simps(2)}@{text"\""}
 \end{isabelle}
-\sem
+
+\ifsem
 Also useful are the \concept{head} of a list, its first element,
 and the \concept{tail}, the rest of the list:
 \begin{isabelle}
@@ -412,7 +413,7 @@ and the \concept{tail}, the rest of the list:
 Note that since HOL is a logic of total functions, @{term"hd []"} is defined,
 but we do now know what the result is. That is, @{term"hd []"} is not undefined
 but underdefined.
-\endsem
+\fi
 %
 
 \subsection{Exercises}

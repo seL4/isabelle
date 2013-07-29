@@ -3,17 +3,22 @@ implementing logical formalisms, and Isabelle/HOL is the specialization
 of Isabelle for HOL, which abbreviates Higher-Order Logic. We introduce
 HOL step by step following the equation
 \[ \mbox{HOL} = \mbox{Functional Programming} + \mbox{Logic}. \]
-We assume that the reader is familiar with the basic concepts of functional
-programming and is used to logical and set theoretic notation.
+We assume that the reader is used to logical and set theoretic notation
+and is familiar with the basic concepts of functional programming.
+\ifsem
+Open-minded readers have been known to pick up functional
+programming through the wealth of examples in \autoref{sec:FP}
+and \autoref{sec:CaseStudyExp}.
+\fi
 
 \autoref{sec:FP} introduces HOL as a functional programming language and
 explains how to write simple inductive proofs of mostly equational properties
 of recursive functions.
-\sem
+\ifsem
 \autoref{sec:CaseStudyExp} contains a
 little case study: arithmetic and boolean expressions, their evaluation,
 optimization and compilation.
-\endsem
+\fi
 \autoref{ch:Logic} introduces the rest of HOL: the
 language of formulas beyond equality, automatic proof tools, single
 step proofs, and inductive definitions, an essential specification construct.
@@ -32,16 +37,33 @@ proofs.
 This introduction to the core of Isabelle is intentionally concrete and
 example-based: we concentrate on examples that illustrate the typical cases;
 we do not explain the general case if it can be inferred from the examples.
+We cover the essentials (from a functional programming point of view) as
+quickly and compactly as possible.
+\ifsem
+After all, this book is primarily about semantics.
+\fi
+
 For a comprehensive treatment of all things Isabelle we recommend the
 \emph{Isabelle/Isar Reference Manual}~\cite{IsarRef}, which comes with the
 Isabelle distribution.
 The tutorial by Nipkow, Paulson and Wenzel~\cite{LNCS2283} (in its updated version that comes with the Isabelle distribution) is still recommended for the wealth of examples and material, but its proof style is outdated. In particular it fails to cover the structured proof language Isar.
 
-This introduction has grown out of many years of teaching Isabelle courses.
-It tries to cover the essentials (from a functional programming point of
-view) as quickly and compactly as possible. There is also an accompanying
-set of \LaTeX-based slides available from the author on request.
+%This introduction to Isabelle has grown out of many years of teaching
+%Isabelle courses. 
+
+\ifsem\else
+If you want to apply what you have learned about Isabelle we recommend you
+donwload and read the book
+\href{http://www.in.tum.de/~nipkow/Concrete/}{Concrete
+Semantics}~\cite{ConcreteSemantics}, a guided tour of the wonderful world of
+programming langage semantics formalised in Isabelle.  In fact,
+\emph{Programming and Proving in Isabelle/HOL} constitutes part~I of
+\href{http://www.in.tum.de/~nipkow/Concrete/}{Concrete Semantics}.  The web
+pages for \href{http://www.in.tum.de/~nipkow/Concrete/}{Concrete Semantics}
+also provide a set of \LaTeX-based slides for teaching \emph{Programming and
+Proving in Isabelle/HOL}.
+\fi
 
 \paragraph{Acknowledgements}
-I wish to thank the following people for their comments on this text:
+\ifsem We \else I \fi wish to thank the following people for their comments:
 Florian Haftmann, Ren\'{e} Thiemann and Christian Sternagel.
