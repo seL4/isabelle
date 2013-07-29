@@ -148,7 +148,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
     def flush(): Unit = session.update(flushed_edits())
 
-    private val delay_flush =
+    val delay_flush =
       Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
 
     def +=(edit: Text.Edit)
@@ -172,7 +172,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   }
 
   def flushed_edits(): List[Document.Edit_Text] = pending_edits.flushed_edits()
-  def flush(): Unit = pending_edits.flush()
+
+  def update_perspective(): Unit = pending_edits.delay_flush.invoke()
 
 
   /* snapshot */
