@@ -199,7 +199,7 @@ end;
 type execution = {version_id: Document_ID.version, execution_id: Document_ID.execution};
 
 val no_execution = {version_id = Document_ID.none, execution_id = Document_ID.none};
-fun next_execution version_id = {version_id = version_id, execution_id = Execution.start ()};
+fun new_execution version_id = {version_id = version_id, execution_id = Execution.start ()};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -226,7 +226,7 @@ fun define_version version_id version =
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = next_execution version_id;
+      val execution' = new_execution version_id;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
