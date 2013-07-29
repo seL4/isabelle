@@ -29,8 +29,10 @@ class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, p
     loop {
       react {
         case output: Isabelle_Process.Output =>
-          if (output.is_stdout || output.is_stderr)
-            Swing_Thread.later { text_area.append(XML.content(output.message)) }
+          Swing_Thread.later {
+            text_area.append(XML.content(output.message))
+            if (!output.is_stdout && !output.is_stderr) text_area.append("\n")
+          }
 
         case bad => System.err.println("Raw_Output_Dockable: ignoring bad message " + bad)
       }

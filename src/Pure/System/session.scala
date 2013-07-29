@@ -461,7 +461,7 @@ class Session(val thy_load: Thy_Load)
             if (rc == 0) phase = Session.Inactive
             else phase = Session.Failed
 
-          case _ => bad_output()
+          case _ => raw_output_messages.event(output)
         }
       }
     }
