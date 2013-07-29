@@ -20,16 +20,6 @@ val _ =
     (fn [] => Execution.discontinue ());
 
 val _ =
-  Isabelle_Process.protocol_command "Document.cancel_execution"
-    (fn [] =>
-      let
-        val _ = Execution.discontinue ();
-        val groups = Execution.snapshot ();
-        val _ = List.app Future.cancel_group groups;
-        val _ = List.app Future.terminate groups;
-      in () end);
-
-val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let
