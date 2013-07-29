@@ -120,7 +120,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
     (fn {command_name} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
         SOME
-         {delay = seconds (Options.default_real @{option auto_time_start}),
+         {delay = SOME (seconds (Options.default_real @{option auto_time_start})),
           pri = ~ weight,
           persistent = true,
           print_fn = fn _ => fn st =>
