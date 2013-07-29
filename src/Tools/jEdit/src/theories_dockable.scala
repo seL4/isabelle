@@ -76,6 +76,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
         case PIDE.Execution_Range.VISIBLE => group.select(b3)
       }
     }
+    load()
   }
 
   private val logic = Isabelle_Logic.logic_selector(true)
