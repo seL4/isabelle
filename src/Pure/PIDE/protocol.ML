@@ -75,7 +75,7 @@ val _ =
   Isabelle_Process.protocol_command "Document.dialog_result"
     (fn [serial, result] =>
       Active.dialog_result (Markup.parse_int serial) result
-        handle exn => if Exn.is_interrupt exn then () else reraise exn);
+        handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn);
 
 end;
 

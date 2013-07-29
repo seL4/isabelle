@@ -28,7 +28,7 @@ end;
 structure Command: COMMAND =
 struct
 
-(** memo results -- including physical interrupts **)
+(** memo results **)
 
 datatype 'a expr =
   Expr of Document_ID.exec * (unit -> 'a) |
@@ -48,24 +48,25 @@ fun memo_result (Memo v) =
 fun memo_finished (Memo v) =
   (case Synchronized.value v of
    Expr _ => false
- | Result res => not (Exn.is_interrupt_exn res));
+ | Result _ => true);
 
 fun memo_exec execution_id (Memo v) =
   Synchronized.timed_access v (K (SOME Time.zeroTime))
     (fn expr =>
       (case expr of
-        Expr (exec_id, e) =>
+        Expr (exec_id, body) =>
           uninterruptible (fn restore_attributes => fn () =>
             if Execution.running execution_id exec_id then
               let
-                val res = Exn.capture (restore_attributes e) ();
-                val _ = Execution.finished exec_id;
-              in SOME (Exn.is_interrupt_exn res, Result res) end
-            else SOME (true, expr)) ()
-      | Result _ => SOME (false, expr)))
-  |> (fn SOME false => ()
-       | SOME true => Exn.interrupt ()
-       | NONE => error "Conflicting command execution");
+                val res =
+                  (body
+                    |> restore_attributes
+                    |> Future.worker_nest "Command.memo_exec"
+                    |> Exn.interruptible_capture) ();
+              in SOME ((), Result res) end
+            else SOME ((), expr)) ()
+      | Result _ => SOME ((), expr)))
+  |> (fn NONE => error "Conflicting command execution" | _ => ());
 
 fun memo_fork params execution_id (Memo v) =
   (case Synchronized.value v of
@@ -216,7 +217,7 @@ fun print_error tr e =
 
 fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 
-fun print_finished (Print {exec_id, print_process, ...}) = memo_finished print_process;
+fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 

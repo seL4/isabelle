@@ -181,11 +181,18 @@ fun forked_count () = #1 (Synchronized.value forked_proofs);
 fun peek_futures id =
   map #2 (Inttab.lookup_list (#2 (Synchronized.value forked_proofs)) id);
 
+fun check_canceled id group =
+  if Task_Queue.is_canceled group then ()
+  else raise Fail ("Attempt to purge valid execution " ^ string_of_int id);
+
 fun purge_futures ids =
   Synchronized.change forked_proofs (fn (_, tab) =>
     let
       val tab' = fold Inttab.delete_safe ids tab;
-      val n' = Inttab.fold (Integer.add o length o #2) tab' 0;
+      val n' =
+        Inttab.fold (fn (id, futures) => fn m =>
+          if Inttab.defined tab' id then m + length futures
+          else (List.app (check_canceled id o #1) futures; m)) tab 0;
       val _ = Future.forked_proofs := n';
     in (n', tab') end);
 

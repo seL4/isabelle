@@ -303,19 +303,20 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
             if visible_node node orelse pending_result node then
               let
                 val former_task = Symtab.lookup frontier name;
+                fun body () =
+                  iterate_entries (fn (_, opt_exec) => fn () =>
+                    (case opt_exec of
+                      SOME exec =>
+                        if Execution.is_running execution_id
+                        then SOME (Command.exec execution_id exec)
+                        else NONE
+                    | NONE => NONE)) node ()
+                  handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn;
                 val future =
                   (singleton o Future.forks)
                     {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
                       deps = the_list former_task @ map #2 (maps #2 deps),
-                      pri = pri, interrupts = false}
-                    (fn () =>
-                      iterate_entries (fn (_, opt_exec) => fn () =>
-                        (case opt_exec of
-                          SOME exec =>
-                            if Execution.is_running execution_id
-                            then SOME (Command.exec execution_id exec)
-                            else NONE
-                        | NONE => NONE)) node ());
+                      pri = pri, interrupts = false} body;
               in [(name, Future.task_of future)] end
             else [])
       else [];
