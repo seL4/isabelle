@@ -117,17 +117,43 @@ object PIDE
   }
 
 
-  /* full checking */
+  /* execution range */
 
-  def check_buffer(buffer: Buffer)
-  {
-    document_model(buffer) match {
-      case Some(model) => model.full_perspective()
-      case None =>
-    }
+  object Execution_Range extends Enumeration {
+    val ALL = Value("all")
+    val NONE = Value("none")
+    val VISIBLE = Value("visible")
   }
 
-  def cancel_execution() { PIDE.session.cancel_execution() }
+  def execution_range(): Execution_Range.Value =
+    options.string("editor_execution_range") match {
+      case "all" => Execution_Range.ALL
+      case "none" => Execution_Range.NONE
+      case "visible" => Execution_Range.VISIBLE
+      case s => error("Bad value for option \"editor_execution_range\": " + quote(s))
+    }
+
+  def update_execution_range(range: Execution_Range.Value)
+  {
+    Swing_Thread.require()
+
+    if (options.string("editor_execution_range") != range.toString) {
+      options.string("editor_execution_range") = range.toString
+      PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+
+      val edits =
+        (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
+          case (edits, buffer) =>
+            JEdit_Lib.buffer_lock(buffer) {
+              document_model(buffer) match {
+                case Some(model) => model.flushed_edits() ::: edits
+                case None => edits
+              }
+            }
+          }
+      PIDE.session.update(edits)
+    }
+  }
 }
 
 

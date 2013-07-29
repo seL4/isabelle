@@ -126,6 +126,9 @@ public option editor_chart_delay : real = 3.0
 public option editor_execution_priority : int = -2
   -- "execution priority of main document structure (e.g. 0, -1, -2)"
 
+option editor_execution_range : string = "visible"
+  -- "range of continuous document processing: all, none, visible"
+
 
 section "Miscellaneous Tools"
 

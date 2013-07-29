@@ -82,11 +82,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def node_perspective(): Text.Perspective =
   {
     Swing_Thread.require()
-    Text.Perspective(
-      for {
-        doc_view <- PIDE.document_views(buffer)
-        range <- doc_view.perspective().ranges
-      } yield range)
+
+    PIDE.execution_range() match {
+      case PIDE.Execution_Range.ALL => Text.Perspective.full
+      case PIDE.Execution_Range.NONE => Text.Perspective.empty
+      case PIDE.Execution_Range.VISIBLE =>
+        Text.Perspective(
+          for {
+            doc_view <- PIDE.document_views(buffer)
+            range <- doc_view.perspective().ranges
+          } yield range)
+    }
   }
 
 
@@ -126,7 +132,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
     def snapshot(): List[Text.Edit] = pending.toList
 
-    def flush()
+    def flushed_edits(): List[Document.Edit_Text] =
     {
       Swing_Thread.require()
 
@@ -135,9 +141,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
       if (!edits.isEmpty || last_perspective != new_perspective) {
         pending.clear
         last_perspective = new_perspective
-        session.update(node_edits(new_perspective, edits))
+        node_edits(new_perspective, edits)
       }
+      else Nil
     }
+
+    def flush(): Unit = session.update(flushed_edits())
 
     private val delay_flush =
       Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
@@ -146,11 +155,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     {
       Swing_Thread.require()
       pending += edit
-      delay_flush.invoke()
-    }
-
-    def update_perspective()
-    {
       delay_flush.invoke()
     }
 
@@ -167,17 +171,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     }
   }
 
-  def update_perspective()
-  {
-    Swing_Thread.require()
-    pending_edits.update_perspective()
-  }
-
-  def full_perspective()
-  {
-    pending_edits.flush()
-    session.update(node_edits(Text.Perspective(List(JEdit_Lib.buffer_range(buffer))), Nil))
-  }
+  def flushed_edits(): List[Document.Edit_Text] = pending_edits.flushed_edits()
+  def flush(): Unit = pending_edits.flush()
 
 
   /* snapshot */
