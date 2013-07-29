@@ -154,6 +154,9 @@ object PIDE
       )
     }
   }
+
+  def execution_range_none(): Unit = update_execution_range(Execution_Range.NONE)
+  def execution_range_visible(): Unit = update_execution_range(Execution_Range.VISIBLE)
 }
 
 
