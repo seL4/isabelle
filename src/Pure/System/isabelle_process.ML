@@ -155,12 +155,14 @@ fun read_chunk channel len =
     val n =
       (case Int.fromString len of
         SOME n => n
-      | NONE => error ("Isabelle process: malformed chunk header " ^ quote len));
+      | NONE => error ("Isabelle process: malformed header " ^ quote len));
     val chunk = System_Channel.inputN channel n;
-    val m = size chunk;
+    val i = size chunk;
   in
-    if m = n then chunk
-    else error ("Isabelle process: bad chunk (" ^ string_of_int m ^ " vs. " ^ string_of_int n ^ ")")
+    if i <> n then
+      error ("Isabelle process: bad chunk (unexpected EOF after " ^
+        string_of_int i ^ " of " ^ string_of_int n ^ " bytes)")
+    else chunk
   end;
 
 fun read_command channel =
