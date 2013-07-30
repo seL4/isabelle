@@ -389,7 +389,7 @@ fun check_theory full name node =
   is_some (Thy_Info.lookup_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
-fun last_common state node0 node =
+fun last_common state node_required node0 node =
   let
     fun update_flags prev (visible, initial) =
       let
@@ -400,15 +400,17 @@ fun last_common state node0 node =
           | SOME command_id => not (Keyword.is_theory_begin (the_command_name state command_id)));
       in (visible', initial') end;
 
-    fun get_common ((prev, command_id), opt_exec) (_, same, flags, assign_update) =
-      if same then
+    fun get_common ((prev, command_id), opt_exec) (_, ok, flags, assign_update) =
+      if ok then
         let
-          val flags' = update_flags prev flags;
-          val same' =
+          val flags' as (visible', _) = update_flags prev flags;
+          val ok' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) => Command.eval_eq (eval0, eval)
+              (SOME (eval0, _), SOME (eval, _)) =>
+                Command.eval_eq (eval0, eval) andalso
+                  (visible' orelse node_required orelse Command.eval_running eval)
             | _ => false);
-          val assign_update' = assign_update |> same' ?
+          val assign_update' = assign_update |> ok' ?
             (case opt_exec of
               SOME (eval, prints) =>
                 let
@@ -420,12 +422,12 @@ fun last_common state node0 node =
                   | NONE => I)
                 end
             | NONE => I);
-        in SOME (prev, same', flags', assign_update') end
+        in SOME (prev, ok', flags', assign_update') end
       else NONE;
-    val (common, same, flags, assign_update') =
+    val (common, ok, flags, assign_update') =
       iterate_entries get_common node (NONE, true, (true, true), assign_update_empty);
     val (common', flags') =
-      if same then
+      if ok then
         let val last = Entries.get_after (get_entries node) common
         in (last, update_flags last flags) end
       else (common, flags);
@@ -487,7 +489,7 @@ fun update old_version_id new_version_id edits state =
 
                     val (print_execs, common, (still_visible, initial)) =
                       if imports_result_changed then (assign_update_empty, NONE, (true, true))
-                      else last_common state node0 node;
+                      else last_common state node_required node0 node;
                     val common_command_exec = the_default_entry node common;
 
                     val (updated_execs, (command_id', (eval', _)), _) =

@@ -10,6 +10,7 @@ sig
   val start: unit -> Document_ID.execution
   val discontinue: unit -> unit
   val is_running: Document_ID.execution -> bool
+  val is_running_exec: Document_ID.exec -> bool
   val running: Document_ID.execution -> Document_ID.exec -> bool
   val cancel: Document_ID.exec -> unit
   val terminate: Document_ID.exec -> unit
@@ -38,6 +39,9 @@ fun is_running execution_id = execution_id = fst (Synchronized.value state);
 
 
 (* registered execs *)
+
+fun is_running_exec exec_id =
+  Inttab.defined (snd (Synchronized.value state)) exec_id;
 
 fun running execution_id exec_id =
   Synchronized.guarded_access state
