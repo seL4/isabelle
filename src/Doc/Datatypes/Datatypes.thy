@@ -106,14 +106,6 @@ interaction with other tools
   * Nitpick
 *}
 
-section {* Registering Bounded Natural Functors *}
-
-subsection {* Introductory Example *}
-
-subsection {* General Syntax *}
-
-section {* Generating Free Constructor Theorems *}
-
 section {* Defining Datatypes *}
 
 subsection {* Introductory Examples *}
