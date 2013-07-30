@@ -181,8 +181,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
            coind = false, no_elim = true, no_ind = false, skip_mono = true}
           (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
           (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
-      ||> Sign.restore_naming thy1
-      ||> Theory.checkpoint;
+      ||> Sign.restore_naming thy1;
 
     (********************************* typedef ********************************)
 
@@ -349,7 +348,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               Logic.mk_equals (Const (iso_name, T --> Univ_elT),
                 list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
         val (def_thms, thy') =
-          apsnd Theory.checkpoint ((Global_Theory.add_defs false o map Thm.no_attributes) defs thy);
+          (Global_Theory.add_defs false o map Thm.no_attributes) defs thy;
 
         (* prove characteristic equations *)
 
@@ -361,7 +360,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       in (thy', char_thms' @ char_thms) end;
 
     val (thy5, iso_char_thms) =
-      apfst Theory.checkpoint (fold_rev make_iso_defs (tl descr) (Sign.add_path big_name thy4, []));
+      fold_rev make_iso_defs (tl descr) (Sign.add_path big_name thy4, []);
 
     (* prove isomorphism properties *)
 
@@ -647,9 +646,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       thy6
       |> Global_Theory.note_thmss ""
         [((Binding.qualify true big_name (Binding.name "induct"), [case_names_induct]),
-          [([dt_induct], [])])]
-      ||> Theory.checkpoint;
-
+          [([dt_induct], [])])];
   in
     ((constr_inject', distinct_thms', dt_induct'), thy7)
   end;
@@ -690,7 +687,6 @@ fun check_specs ctxt (specs: spec list) =
 fun prep_specs parse raw_specs thy =
   let
     val ctxt = thy
-      |> Theory.copy
       |> Sign.add_types_global (map (fn ((b, args, mx), _) => (b, length args, mx)) raw_specs)
       |> Proof_Context.init_global
       |> fold (fn ((_, args, _), _) => fold (fn (a, _) =>

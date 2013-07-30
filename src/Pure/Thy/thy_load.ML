@@ -210,8 +210,7 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
   |> put_deps master_dir imports
-  |> fold Thy_Header.declare_keyword keywords
-  |> Theory.checkpoint;
+  |> fold Thy_Header.declare_keyword keywords;
 
 fun excursion last_timing init elements =
   let

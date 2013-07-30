@@ -169,10 +169,10 @@ type naming = int -> string
 fun default_naming i = "v_" ^ string_of_int i
 
 datatype computer = Computer of
-  (theory_ref * Encode.encoding * term list * unit Sorttab.table * prog * unit Unsynchronized.ref * naming)
+  (theory * Encode.encoding * term list * unit Sorttab.table * prog * unit Unsynchronized.ref * naming)
     option Unsynchronized.ref
 
-fun theory_of (Computer (Unsynchronized.ref (SOME (rthy,_,_,_,_,_,_)))) = Theory.deref rthy
+fun theory_of (Computer (Unsynchronized.ref (SOME (thy,_,_,_,_,_,_)))) = thy
 fun hyps_of (Computer (Unsynchronized.ref (SOME (_,_,hyps,_,_,_,_)))) = hyps
 fun shyps_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = Sorttab.keys (shyptable)
 fun shyptab_of (Computer (Unsynchronized.ref (SOME (_,_,_,shyptable,_,_,_)))) = shyptable
@@ -304,7 +304,7 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
 
         val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
 
-    in (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
+    in (thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
 
 fun make_with_cache machine thy cache_patterns raw_thms =
   Computer (Unsynchronized.ref (SOME (make_internal machine thy (Unsynchronized.ref ()) Encode.empty cache_patterns raw_thms)))
@@ -388,7 +388,7 @@ fun rewrite computer ct =
 
 datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
               | Prem of AbstractMachine.term
-datatype theorem = Theorem of theory_ref * unit Unsynchronized.ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
+datatype theorem = Theorem of theory * unit Unsynchronized.ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
                * prem list * AbstractMachine.term * term list * sort list
 
 
@@ -446,13 +446,12 @@ let
     val (encoding, concl) = remove_types encoding (Logic.strip_imp_concl prop)
     val _ = set_encoding computer encoding
 in
-    Theorem (Theory.check_thy (theory_of_thm th), stamp_of computer, vartab, varsubst, 
+    Theorem (theory_of_thm th, stamp_of computer, vartab, varsubst, 
              prems, concl, hyps, shyps)
 end
     
-fun theory_of_theorem (Theorem (rthy,_,_,_,_,_,_,_)) = Theory.deref rthy
-fun update_theory thy (Theorem (_,p0,p1,p2,p3,p4,p5,p6)) =
-    Theorem (Theory.check_thy thy,p0,p1,p2,p3,p4,p5,p6)
+fun theory_of_theorem (Theorem (thy,_,_,_,_,_,_,_)) = thy
+fun update_theory thy (Theorem (_,p0,p1,p2,p3,p4,p5,p6)) = Theorem (thy,p0,p1,p2,p3,p4,p5,p6)
 fun stamp_of_theorem (Theorem (_,s, _, _, _, _, _, _)) = s     
 fun vartab_of_theorem (Theorem (_,_,vt,_,_,_,_,_)) = vt
 fun varsubst_of_theorem (Theorem (_,_,_,vs,_,_,_,_)) = vs 

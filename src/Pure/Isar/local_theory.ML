@@ -205,15 +205,12 @@ fun raw_theory_result f lthy =
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 
-val checkpoint = raw_theory Theory.checkpoint;
-
 fun background_theory_result f lthy =
   lthy |> raw_theory_result (fn thy =>
     thy
     |> Sign.map_naming (K (naming_of lthy))
     |> f
-    ||> Sign.restore_naming thy
-    ||> Theory.checkpoint);
+    ||> Sign.restore_naming thy);
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
 
@@ -256,11 +253,11 @@ fun operation f lthy = f (operations_of lthy) lthy;
 fun operation2 f x y = operation (fn ops => f ops x y);
 
 val pretty = operation #pretty;
-val abbrev = apsnd checkpoint ooo operation2 #abbrev;
-val define = apsnd checkpoint oo operation2 #define false;
-val define_internal = apsnd checkpoint oo operation2 #define true;
-val notes_kind = apsnd checkpoint ooo operation2 #notes;
-val declaration = checkpoint ooo operation2 #declaration;
+val abbrev = operation2 #abbrev;
+val define = operation2 #define false;
+val define_internal = operation2 #define true;
+val notes_kind = operation2 #notes;
+val declaration = operation2 #declaration;
 
 
 (* basic derived operations *)
@@ -322,13 +319,12 @@ fun activate dep_morph mixin export =
 fun init naming operations target =
   target |> Data.map
     (fn [] => [make_lthy (naming, operations, I, false, target)]
-      | _ => error "Local theory already initialized")
-  |> checkpoint;
+      | _ => error "Local theory already initialized");
 
 
 (* exit *)
 
-val exit = Proof_Context.background_theory Theory.checkpoint o operation #exit;
+val exit = operation #exit;
 val exit_global = Proof_Context.theory_of o exit;
 
 fun exit_result f (x, lthy) =

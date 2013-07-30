@@ -97,8 +97,7 @@ fun store_thmss_atts name tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
     Global_Theory.note_thmss ""
       [((Binding.qualify true tname (Binding.name name), atts), [(thms, [])])]
-    #-> (fn [(_, res)] => pair res)) (tnames ~~ attss ~~ thmss)
-  ##> Theory.checkpoint;
+    #-> (fn [(_, res)] => pair res)) (tnames ~~ attss ~~ thmss);
 
 fun store_thmss name tnames = store_thmss_atts name tnames (replicate (length tnames) []);
 
@@ -106,8 +105,7 @@ fun store_thms_atts name tnames attss thms =
   fold_map (fn ((tname, atts), thm) =>
     Global_Theory.note_thmss ""
       [((Binding.qualify true tname (Binding.name name), atts), [([thm], [])])]
-    #-> (fn [(_, [res])] => pair res)) (tnames ~~ attss ~~ thms)
-  ##> Theory.checkpoint;
+    #-> (fn [(_, [res])] => pair res)) (tnames ~~ attss ~~ thms);
 
 fun store_thms name tnames = store_thms_atts name tnames (replicate (length tnames) []);
 

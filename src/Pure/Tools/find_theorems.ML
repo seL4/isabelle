@@ -315,8 +315,7 @@ fun filter_solves ctxt goal =
   let
     val thy' =
       Proof_Context.theory_of ctxt
-      |> Context_Position.set_visible_global (Context_Position.is_visible ctxt)
-      |> Theory.checkpoint;
+      |> Context_Position.set_visible_global (Context_Position.is_visible ctxt);
     val ctxt' = Proof_Context.transfer thy' ctxt;
     val goal' = Thm.transfer thy' goal;
 

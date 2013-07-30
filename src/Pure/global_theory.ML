@@ -75,7 +75,6 @@ fun get_fact context thy xthmref =
         "_" => "Pure.asm_rl"
       | name => name);
     val res = Facts.lookup context facts name;
-    val _ = Theory.check_thy thy;
   in
     (case res of
       NONE => error ("Unknown fact " ^ quote name ^ Position.here pos)

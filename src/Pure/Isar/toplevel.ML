@@ -269,7 +269,6 @@ fun apply_transaction f g node =
     val (result, err) =
       cont_node
       |> Runtime.controlled_execution f
-      |> map_theory Theory.checkpoint
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
   in
@@ -298,8 +297,7 @@ datatype trans =
 local
 
 fun apply_tr _ (Init f) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory
-          (Theory.checkpoint (Runtime.controlled_execution f ())), NONE)), NONE)
+      State (SOME (Theory (Context.Theory (Runtime.controlled_execution f ()), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
@@ -421,7 +419,6 @@ fun theory' f = transaction (fn int =>
   (fn Theory (Context.Theory thy, _) =>
       let val thy' = thy
         |> Sign.new_group
-        |> Theory.checkpoint
         |> f int
         |> Sign.reset_group;
       in Theory (Context.Theory thy', NONE) end
@@ -529,9 +526,9 @@ fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>
-    (Context.Theory o Theory.checkpoint o Sign.reset_group o Proof_Context.theory_of,
+    (Context.Theory o Sign.reset_group o Proof_Context.theory_of,
       (case gthy of
-        Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy))
+        Context.Theory thy => f (Sign.new_group thy)
       | _ => raise UNDEF)));
 
 end;

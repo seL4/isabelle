@@ -233,7 +233,7 @@ datatype theorem = MonoThm of thm | PolyThm of thm * Linker.instances * thm list
 datatype pattern = MonoPattern of term | PolyPattern of term * Linker.instances * term list
 
 datatype pcomputer =
-  PComputer of theory_ref * Compute.computer * theorem list Unsynchronized.ref *
+  PComputer of theory * Compute.computer * theorem list Unsynchronized.ref *
     pattern list Unsynchronized.ref 
 
 (*fun collect_consts (Var x) = []
@@ -410,14 +410,13 @@ fun make_with_cache machine thy pats ths cs =
         val (_, (pats, ths)) = add_monos thy monocs pats ths
         val computer = create_computer machine thy pats ths
     in
-        PComputer (Theory.check_thy thy, computer, Unsynchronized.ref ths, Unsynchronized.ref pats)
+        PComputer (thy, computer, Unsynchronized.ref ths, Unsynchronized.ref pats)
     end
 
 fun make machine thy ths cs = make_with_cache machine thy [] ths cs
 
-fun add_instances (PComputer (thyref, computer, rths, rpats)) cs = 
+fun add_instances (PComputer (thy, computer, rths, rpats)) cs = 
     let
-        val thy = Theory.deref thyref
         val (changed, (pats, ths)) = add_monos thy cs (!rpats) (!rths)
     in
         if changed then

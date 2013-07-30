@@ -320,7 +320,7 @@ fun cert_classrel thy raw_rel =
   let
     val string_of_sort = Syntax.string_of_sort_global thy;
     val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
-    val _ = Sign.primitive_classrel (c1, c2) (Theory.copy thy);
+    val _ = Sign.primitive_classrel (c1, c2) thy;
     val _ =
       (case subtract (op =) (all_params_of thy [c1]) (all_params_of thy [c2]) of
         [] => ()

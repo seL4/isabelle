@@ -70,6 +70,12 @@ timing information.
 
 *** Pure ***
 
+* Type theory is now immutable, without any special treatment of
+drafts or linear updates (which could lead to "stale theory" errors in
+the past).  Discontinued obsolete operations like Theory.copy,
+Theory.checkpoint, and the auxiliary type theory_ref.  Minor
+INCOMPATIBILITY.
+
 * System option "proofs" has been discontinued.  Instead the global
 state of Proofterm.proofs is persistently compiled into logic images
 as required, notably HOL-Proofs.  Users no longer need to change

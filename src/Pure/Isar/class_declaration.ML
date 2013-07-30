@@ -314,7 +314,6 @@ fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
     |> Expression.add_locale I b (Binding.qualify true "class" b) supexpr elems
     |> snd |> Local_Theory.exit_global
     |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
-    ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, some_axiom, some_assm_intro, of_class) =>

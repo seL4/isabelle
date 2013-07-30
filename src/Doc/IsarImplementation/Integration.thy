@@ -22,13 +22,7 @@ text {* The Isar toplevel may be considered the central hub of the
 
   \medskip The toplevel maintains an implicit state, which is
   transformed by a sequence of transitions -- either interactively or
-  in batch-mode.  In interactive mode, Isar state transitions are
-  encapsulated as safe transactions, such that both failure and undo
-  are handled conveniently without destroying the underlying draft
-  theory (cf.~\secref{sec:context-theory}).  In batch mode,
-  transitions operate in a linear (destructive) fashion, such that
-  error conditions abort the present attempt to construct a theory or
-  proof altogether.
+  in batch-mode.
 
   The toplevel state is a disjoint sum of empty @{text toplevel}, or
   @{text theory}, or @{text proof}.  On entering the main Isar loop we

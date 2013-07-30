@@ -995,7 +995,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       Sign.add_type no_defs_lthy (type_binding_of spec,
         length (type_args_named_constrained_of spec), mixfix_of spec);
 
-    val fake_thy = Theory.copy #> fold add_fake_type specs;
+    val fake_thy = fold add_fake_type specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
 
     fun mk_fake_T b =

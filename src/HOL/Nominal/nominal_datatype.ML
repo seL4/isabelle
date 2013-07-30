@@ -198,8 +198,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
 
-    val (full_new_type_names',thy1) = Datatype.add_datatype config dts'' thy
-      ||> Theory.checkpoint;
+    val (full_new_type_names',thy1) = Datatype.add_datatype config dts'' thy;
 
     val {descr, induct, ...} = Datatype.the_info thy1 (hd full_new_type_names');
     fun nth_dtyp i = Datatype_Aux.typ_of_dtyp descr (Datatype.DtRec i);
@@ -256,8 +255,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       Primrec.add_primrec_overloaded
         (map (fn (s, sT) => (s, sT, false))
            (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
-        (map (fn s => (Binding.name s, NONE, NoSyn)) perm_names') perm_eqs thy1
-      ||> Theory.checkpoint;
+        (map (fn s => (Binding.name s, NONE, NoSyn)) perm_names') perm_eqs thy1;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
@@ -429,7 +427,6 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (s, map (inter_sort thy sort o snd) tvs, [cp_class])
             (fn _ => Class.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
           (full_new_type_names' ~~ tyvars) thy
-        |> Theory.checkpoint
       end;
 
     val (perm_thmss,thy3) = thy2 |>
@@ -454,8 +451,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
          ((Binding.name (space_implode "_" new_type_names ^ "_perm_append"),
           perm_append_thms), [Simplifier.simp_add]),
          ((Binding.name (space_implode "_" new_type_names ^ "_perm_eq"),
-          perm_eq_thms), [Simplifier.simp_add])] ||>
-      Theory.checkpoint;
+          perm_eq_thms), [Simplifier.simp_add])];
 
     (**** Define representing sets ****)
 
@@ -535,8 +531,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
           [] (map (fn x => (Attrib.empty_binding, x)) intr_ts) []
-      ||> Sign.restore_naming thy3
-      ||> Theory.checkpoint;
+      ||> Sign.restore_naming thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -598,8 +593,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                    (Const (Sign.intern_const thy ("Rep_" ^ Binding.name_of name), T --> U) $
                      Free ("x", T))))), [])] thy)
         end))
-        (types_syntax ~~ tyvars ~~ List.take (rep_set_names'' ~~ recTs', length new_type_names))
-      ||> Theory.checkpoint;
+        (types_syntax ~~ tyvars ~~ List.take (rep_set_names'' ~~ recTs', length new_type_names));
 
     val perm_defs = map snd typedefs;
     val Abs_inverse_thms = map (collect_simp o #Abs_inverse o snd o fst) typedefs;
@@ -628,7 +622,6 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 [Rep RS perm_closed RS Abs_inverse]) 1,
               asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Global_Theory.get_thm thy
                 ("pt_" ^ Long_Name.base_name atom ^ "3")]) 1]) thy
-            |> Theory.checkpoint
           end)
         (Abs_inverse_thms ~~ Rep_inverse_thms ~~ Rep_thms ~~ perm_defs ~~
            new_type_names ~~ tyvars ~~ perm_closed_thms);
@@ -667,7 +660,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val thy7 = fold (fn x => fn thy => thy |>
       pt_instance x |>
       fold (cp_instance x) (atoms ~~ perm_closed_thmss))
-        (atoms ~~ perm_closed_thmss) thy6 |> Theory.checkpoint;
+        (atoms ~~ perm_closed_thmss) thy6;
 
     (**** constructors ****)
 
@@ -767,8 +760,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val def_name = (Long_Name.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
           Sign.add_consts_i [(cname', constrT, mx)] |>
-          (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)] ||>
-          Theory.checkpoint;
+          (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)];
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
     fun dt_constr_defs ((((((_, (_, _, constrs)),
@@ -782,7 +774,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val (thy', defs', eqns') = fold (make_constr_def tname T T')
           (constrs ~~ constrs' ~~ constr_syntax) (Sign.add_path tname thy, defs, [])
       in
-        (Theory.checkpoint (Sign.parent_path thy'), defs', eqns @ [eqns'], dist_lemmas @ [dist])
+        (Sign.parent_path thy', defs', eqns @ [eqns'], dist_lemmas @ [dist])
       end;
 
     val (thy8, constr_defs, constr_rep_eqns, dist_lemmas) = fold dt_constr_defs
@@ -1112,8 +1104,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         in fold (fn Type (s, Ts) => Axclass.prove_arity
           (s, map (inter_sort thy sort o snd o dest_TFree) Ts, [class])
           (fn _ => Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
-        end) (atoms ~~ finite_supp_thms) ||>
-      Theory.checkpoint;
+        end) (atoms ~~ finite_supp_thms);
 
     (**** strong induction theorem ****)
 
@@ -1395,8 +1386,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       Sign.add_path big_name |>
       Global_Theory.add_thms [((Binding.name "strong_induct'", induct_aux), [])] ||>>
       Global_Theory.add_thms [((Binding.name "strong_induct", induct), [case_names_induct])] ||>>
-      Global_Theory.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])] ||>
-      Theory.checkpoint;
+      Global_Theory.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])];
 
     (**** recursion combinator ****)
 
@@ -1504,8 +1494,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (map dest_Free rec_fns)
           (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
       ||> Global_Theory.hide_fact true (Long_Name.append (Sign.full_bname thy10 big_rec_name) "induct")
-      ||> Sign.restore_naming thy10
-      ||> Theory.checkpoint;
+      ||> Sign.restore_naming thy10;
 
     (** equivariance **)
 
@@ -2009,8 +1998,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T)
            (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
              (set $ Free ("x", T) $ Free ("y", T'))))))
-               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
-      ||> Theory.checkpoint;
+               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
 
     (* prove characteristic equations for primrec combinators *)
 
@@ -2051,9 +2039,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
          ((Binding.name "rec_unique", map Drule.export_without_context rec_unique_thms), []),
          ((Binding.name "recs", rec_thms), [])] ||>
       Sign.parent_path ||>
-      map_nominal_datatypes (fold Symtab.update dt_infos) ||>
-      Theory.checkpoint;
-
+      map_nominal_datatypes (fold Symtab.update dt_infos);
   in
     thy13
   end;

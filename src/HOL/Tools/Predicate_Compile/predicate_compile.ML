@@ -99,7 +99,6 @@ fun preprocess_strong_conn_constnames options gr ts thy =
             | NONE => ([], thy)
           else Predicate_Compile_Fun.define_predicates (get_specs funnames) thy
         else ([], thy))
-        (*||> Theory.checkpoint*)
       val _ = print_specs options thy1 fun_pred_specs
       val specs = (get_specs prednames) @ fun_pred_specs
       val (intross3, thy2) = process_specification options specs thy1

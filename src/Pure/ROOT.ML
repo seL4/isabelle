@@ -315,7 +315,6 @@ toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm";
 toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm";
 toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp";
 toplevel_pp ["Context", "theory"] "Context.pretty_thy";
-toplevel_pp ["Context", "theory_ref"] "Context.pretty_thy o Theory.deref";
 toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
 toplevel_pp ["Ast", "ast"] "Ast.pretty_ast";
 toplevel_pp ["Path", "T"] "Path.pretty";

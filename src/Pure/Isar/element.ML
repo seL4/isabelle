@@ -50,7 +50,6 @@ sig
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
   val satisfy_morphism: witness list -> morphism
   val eq_morphism: theory -> thm list -> morphism option
-  val transfer_morphism: theory -> morphism
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
@@ -392,13 +391,11 @@ fun instT_thm thy env th =
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
 fun instT_morphism thy env =
-  let val thy_ref = Theory.check_thy thy in
-    Morphism.morphism
-     {binding = [],
-      typ = [instT_type env],
-      term = [instT_term env],
-      fact = [map (fn th => instT_thm (Theory.deref thy_ref) env th)]}
-  end;
+  Morphism.morphism
+   {binding = [],
+    typ = [instT_type env],
+    term = [instT_term env],
+    fact = [map (fn th => instT_thm thy env th)]};
 
 
 (* instantiate types and terms *)
@@ -437,13 +434,11 @@ fun inst_thm thy (envT, env) th =
     end;
 
 fun inst_morphism thy (envT, env) =
-  let val thy_ref = Theory.check_thy thy in
-    Morphism.morphism
-     {binding = [],
-      typ = [instT_type envT],
-      term = [inst_term (envT, env)],
-      fact = [map (fn th => inst_thm (Theory.deref thy_ref) (envT, env) th)]}
-  end;
+  Morphism.morphism
+   {binding = [],
+    typ = [instT_type envT],
+    term = [inst_term (envT, env)],
+    fact = [map (fn th => inst_thm thy (envT, env) th)]};
 
 
 (* satisfy hypotheses *)
@@ -466,13 +461,6 @@ fun eq_morphism _ [] = NONE
         typ = [],
         term = [Raw_Simplifier.rewrite_term thy thms []],
         fact = [map (rewrite_rule thms)]});
-
-
-(* transfer to theory using closure *)
-
-fun transfer_morphism thy =
-  let val thy_ref = Theory.check_thy thy
-  in Morphism.thm_morphism (fn th => Thm.transfer (Theory.deref thy_ref) th) end;
 
 
 

@@ -14,7 +14,6 @@ Firm naming conventions:
 signature BASIC_CONTEXT =
 sig
   type theory
-  type theory_ref
   exception THEORY of string * theory list
   structure Proof: sig type context end
   structure Proof_Context:
@@ -42,13 +41,10 @@ sig
   val str_of_thy: theory -> string
   val get_theory: theory -> string -> theory
   val this_theory: theory -> string -> theory
-  val deref: theory_ref -> theory
-  val check_thy: theory -> theory_ref
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
   val joinable: theory * theory -> bool
   val merge: theory * theory -> theory
-  val merge_refs: theory_ref * theory_ref -> theory_ref
   val finish_thy: theory -> theory
   val begin_thy: (theory -> pretty) -> string -> theory list -> theory
   (*proof context*)
@@ -229,14 +225,6 @@ fun this_theory thy name =
   else get_theory thy name;
 
 
-(* theory references *)  (* FIXME dummy *)
-
-datatype theory_ref = Theory_Ref of theory;
-
-fun deref (Theory_Ref thy) = thy;
-fun check_thy thy = Theory_Ref thy;
-
-
 (* build ids *)
 
 fun insert_id id ids = Inttab.update (id, ()) ids;
@@ -284,8 +272,6 @@ fun merge (thy1, thy2) =
   else if proper_subthy (thy1, thy2) then thy2
   else error (cat_lines ["Attempt to perform non-trivial merge of theories:",
     str_of_thy thy1, str_of_thy thy2]);
-
-fun merge_refs (ref1, ref2) = check_thy (merge (deref ref1, deref ref2));
 
 
 
@@ -379,12 +365,12 @@ end;
 
 structure Proof =
 struct
-  datatype context = Context of Any.T Datatab.table * theory_ref;
+  datatype context = Context of Any.T Datatab.table * theory;
 end;
 
-fun theory_of_proof (Proof.Context (_, thy_ref)) = deref thy_ref;
+fun theory_of_proof (Proof.Context (_, thy)) = thy;
 fun data_of_proof (Proof.Context (data, _)) = data;
-fun map_prf f (Proof.Context (data, thy_ref)) = Proof.Context (f data, thy_ref);
+fun map_prf f (Proof.Context (data, thy)) = Proof.Context (f data, thy);
 
 
 (* proof data kinds *)
@@ -406,19 +392,16 @@ fun init_new_data data thy =
 
 in
 
-fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
+fun raw_transfer thy' (Proof.Context (data, thy)) =
   let
-    val thy = deref thy_ref;
     val _ = subthy (thy, thy') orelse error "Cannot transfer proof context: not a super theory";
-    val _ = check_thy thy;
     val data' = init_new_data data thy';
-    val thy_ref' = check_thy thy';
-  in Proof.Context (data', thy_ref') end;
+  in Proof.Context (data', thy') end;
 
 structure Proof_Context =
 struct
   val theory_of = theory_of_proof;
-  fun init_global thy = Proof.Context (init_data thy, check_thy thy);
+  fun init_global thy = Proof.Context (init_data thy, thy);
   fun get_global thy name = init_global (get_theory thy name);
 end;
 

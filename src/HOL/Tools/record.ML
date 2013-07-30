@@ -1555,8 +1555,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val ([ext_def], defs_thy) = timeit_msg ctxt "record extension constructor def:" (fn () =>
       typ_thy
       |> Sign.declare_const_global ((ext_binding, ext_type), NoSyn) |> snd
-      |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
-      ||> Theory.checkpoint);
+      |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]);
 
 
     (* prepare propositions *)
@@ -2009,8 +2008,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                 map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
                 map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
-            [make_spec, fields_spec, extend_spec, truncate_spec]
-          ||> Theory.checkpoint);
+            [make_spec, fields_spec, extend_spec, truncate_spec]);
 
     (* prepare propositions *)
     val _ = timing_msg ctxt "record preparing propositions";
