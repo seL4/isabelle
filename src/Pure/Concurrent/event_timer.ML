@@ -14,6 +14,7 @@ sig
   val request: Time.time -> event -> request
   val cancel: request -> bool
   val shutdown: unit -> unit
+  val future: Time.time -> unit future
 end;
 
 structure Event_Timer: EVENT_TIMER =
@@ -124,6 +125,17 @@ fun shutdown () =
     then raise Fail "Cannot shutdown event timer: pending requests"
     else if is_none manager then SOME ((), init_state)
     else NONE);
+
+
+(* future *)
+
+val future = uninterruptible (fn _ => fn time =>
+  let
+    val req: request Single_Assignment.var = Single_Assignment.var "request";
+    fun abort () = ignore (cancel (Single_Assignment.await req));
+    val promise: unit future = Future.promise abort;
+    val _ = Single_Assignment.assign req (request time (Future.fulfill promise));
+  in promise end);
 
 end;
 

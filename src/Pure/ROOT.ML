@@ -70,8 +70,6 @@ use "System/options.ML";
 
 (* concurrency within the ML runtime *)
 
-use "Concurrent/event_timer.ML";
-
 if ML_System.is_polyml
 then use "ML/exn_properties_polyml.ML"
 else use "ML/exn_properties_dummy.ML";
@@ -84,8 +82,6 @@ use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()
 else use "Concurrent/single_assignment_sequential.ML";
 
-if ML_System.is_polyml then use "Concurrent/time_limit.ML" else ();
-
 if Multithreading.available
 then use "Concurrent/bash.ML"
 else use "Concurrent/bash_sequential.ML";
@@ -93,6 +89,9 @@ else use "Concurrent/bash_sequential.ML";
 use "Concurrent/par_exn.ML";
 use "Concurrent/task_queue.ML";
 use "Concurrent/future.ML";
+use "Concurrent/event_timer.ML";
+
+if ML_System.is_polyml then use "Concurrent/time_limit.ML" else ();
 
 use "Concurrent/lazy.ML";
 if Multithreading.available then ()

@@ -204,13 +204,16 @@ end;
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
   execution_id: Document_ID.execution,  (*dynamic execution id*)
+  delay_request: unit future,  (*pending event timer request*)
   frontier: Future.task Symtab.table};  (*node name -> running execution task*)
 
 val no_execution: execution =
-  {version_id = Document_ID.none, execution_id = Document_ID.none, frontier = Symtab.empty};
+  {version_id = Document_ID.none, execution_id = Document_ID.none,
+   delay_request = Future.value (), frontier = Symtab.empty};
 
-fun new_execution version_id frontier : execution =
-  {version_id = version_id, execution_id = Execution.start (), frontier = frontier};
+fun new_execution version_id delay_request frontier : execution =
+  {version_id = version_id, execution_id = Execution.start (),
+   delay_request = delay_request, frontier = frontier};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -231,11 +234,11 @@ val init_state =
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, commands, {frontier, ...}) =>
+  map_state (fn (versions, commands, {delay_request, frontier, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = new_execution version_id frontier;
+      val execution' = new_execution version_id delay_request frontier;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -299,15 +302,21 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
   timeit "Document.start_execution" (fn () =>
     let
-      val {version_id, execution_id, frontier} = execution;
+      val {version_id, execution_id, delay_request, frontier} = execution;
+
+      val delay = seconds (Options.default_real "editor_execution_delay");
       val pri = Options.default_int "editor_execution_priority";
+
+      val _ = Future.cancel delay_request;
+      val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
 
       val new_tasks =
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
               let
-                val former_task = Symtab.lookup frontier name;
+                val more_deps =
+                  Future.task_of delay_request' :: the_list (Symtab.lookup frontier name);
                 fun body () =
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
@@ -320,12 +329,14 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
                 val future =
                   (singleton o Future.forks)
                     {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                      deps = the_list former_task @ map #2 (maps #2 deps),
+                      deps = more_deps @ map #2 (maps #2 deps),
                       pri = pri, interrupts = false} body;
               in [(name, Future.task_of future)] end
             else []);
       val frontier' = (fold o fold) Symtab.update new_tasks frontier;
-      val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
+      val execution' =
+        {version_id = version_id, execution_id = execution_id,
+         delay_request = delay_request', frontier = frontier'};
     in (versions, commands, execution') end));
 
 
