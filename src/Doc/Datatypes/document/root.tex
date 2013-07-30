@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,fleqn]{article}
+\documentclass[12pt,a4paper]{article} % fleqn
 \usepackage{latexsym}
 \usepackage{graphicx}
 \usepackage{iman}
@@ -10,6 +10,9 @@
 \usepackage{pdfsetup}
 
 \newcommand{\cmd}[1]{\isacommand{#1}}
+
+\renewcommand{\isacharunderscore}{\mbox{\_}}
+\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
 
 \hyphenation{isa-belle}
 
@@ -27,12 +30,14 @@ Jasmin Christian Blanchette, Andrei Popescu, and Dmitriy Traytel \\
 
 \begin{abstract}
 \noindent
-This tutorial describes how to use the new package for defining
-datatypes and codatatypes in Isabelle/HOL. The package provides four
-main user-level commands: \cmd{datatype\_new}, \cmd{codatatype}, \cmd{primrec\_new}, and
-\cmd{primcorec}. The \cmd{\_new} commands are designed to subsume, and eventually
+This tutorial describes how to use the new package for defining datatypes and
+codatatypes in Isabelle/HOL. The package provides four main user-level commands:
+\cmd{datatype\_new}, \cmd{codatatype}, \cmd{primrec\_new}, and \cmd{primcorec}.
+The commands suffixed by \cmd{\_new} are intended to subsume, and eventually
 replace, the corresponding commands from the old datatype package.
 \end{abstract}
+
+\tableofcontents
 
 \input{Datatypes.tex}
 
