@@ -7,6 +7,7 @@ list of commands, associated with asynchronous execution process.
 
 signature DOCUMENT =
 sig
+  val timing: bool Unsynchronized.ref
   type node_header = string * Thy_Header.header * string list
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
@@ -19,7 +20,6 @@ sig
   val define_command: Document_ID.command -> string -> string -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
-  val timing: bool Unsynchronized.ref
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
@@ -28,6 +28,11 @@ end;
 
 structure Document: DOCUMENT =
 struct
+
+val timing = Unsynchronized.ref false;
+fun timeit msg e = cond_timeit (! timing) msg e;
+
+
 
 (** document structure **)
 
@@ -292,12 +297,12 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 (* document execution *)
 
 fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
-  let
-    val {version_id, execution_id, frontier} = execution;
-    val pri = Options.default_int "editor_execution_priority";
+  timeit "Document.start_execution" (fn () =>
+    let
+      val {version_id, execution_id, frontier} = execution;
+      val pri = Options.default_int "editor_execution_priority";
 
-    val new_tasks =
-      if Execution.is_running execution_id then
+      val new_tasks =
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
@@ -318,11 +323,10 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
                       deps = the_list former_task @ map #2 (maps #2 deps),
                       pri = pri, interrupts = false} body;
               in [(name, Future.task_of future)] end
-            else [])
-      else [];
-    val frontier' = (fold o fold) Symtab.update new_tasks frontier;
-    val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
-  in (versions, commands, execution') end);
+            else []);
+      val frontier' = (fold o fold) Symtab.update new_tasks frontier;
+      val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
+    in (versions, commands, execution') end));
 
 
 
@@ -345,9 +349,6 @@ fun assign_update_result (tab: assign_update) =
 
 
 (* update *)
-
-val timing = Unsynchronized.ref false;
-fun timeit msg e = cond_timeit (! timing) msg e;
 
 local
 
