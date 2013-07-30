@@ -37,6 +37,20 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     "document/root.tex"
     "document/style.sty"
 
+session Datatypes (doc) in "Datatypes" = "HOL-BNF" +
+  options [document_variants = "datatypes"]
+  theories Datatypes
+  files
+    "../prepare_document"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+    "document/style.sty"
+
 session Functions (doc) in "Functions" = HOL +
   options [document_variants = "functions", skip_proofs = false]
   theories Functions

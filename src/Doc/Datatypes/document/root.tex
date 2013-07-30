@@ -1,0 +1,43 @@
+\documentclass[12pt,a4paper,fleqn]{article}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\usepackage{iman}
+\usepackage{extra}
+\usepackage{isar}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\newcommand{\cmd}[1]{\isacommand{#1}}
+
+\hyphenation{isa-belle}
+
+\isadroptag{theory}
+
+\title{%\includegraphics[scale=0.5]{isabelle_hol} \\[4ex]
+Defining (Co)datatypes in Isabelle/HOL}
+\author{\hbox{} \\
+Jasmin Christian Blanchette, Andrei Popescu, and Dmitriy Traytel \\
+{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
+\hbox{}}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+This tutorial describes how to use the new package for defining
+datatypes and codatatypes in Isabelle/HOL. The package provides four
+main user-level commands: \cmd{datatype\_new}, \cmd{codatatype}, \cmd{primrec\_new}, and
+\cmd{primcorec}. The \cmd{\_new} commands are designed to subsume, and eventually
+replace, the corresponding commands from the old datatype package.
+\end{abstract}
+
+\input{Datatypes.tex}
+
+\let\em=\sl
+\bibliography{manual}{}
+\bibliographystyle{abbrv}
+
+\end{document}
