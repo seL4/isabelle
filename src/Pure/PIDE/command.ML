@@ -47,9 +47,7 @@ fun memo_result (Memo v) =
   | Result res => Exn.release res);
 
 fun memo_finished (Memo v) =
-  (case Synchronized.value v of
-   Expr _ => false
- | Result _ => true);
+  (case Synchronized.value v of Expr _ => false | Result _ => true);
 
 fun memo_exec execution_id (Memo v) =
   Synchronized.timed_access v (K (SOME Time.zeroTime))
