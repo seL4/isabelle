@@ -289,10 +289,9 @@ class Isabelle_Process(
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
-      def read_chunk(do_decode: Boolean): XML.Body =
+      def read_int(): Int =
+      //{{{
       {
-        //{{{
-        // chunk size
         var n = 0
         c = stream.read
         if (c == -1) throw new EOF
@@ -300,9 +299,16 @@ class Isabelle_Process(
           n = 10 * n + (c - 48)
           c = stream.read
         }
-        if (c != 10) throw new Protocol_Error("bad message chunk header")
+        if (c != 10)
+          throw new Protocol_Error("malformed header: expected integer followed by newline")
+        else n
+      }
+      //}}}
 
-        // chunk content
+      def read_chunk(do_decode: Boolean): XML.Body =
+      //{{{
+      {
+        val n = read_int()
         val buf =
           if (n <= default_buffer.size) default_buffer
           else new Array[Byte](n)
@@ -312,20 +318,21 @@ class Isabelle_Process(
         do {
           m = stream.read(buf, i, n - i)
           if (m != -1) i += m
-        } while (m != -1 && n > i)
+        }
+        while (m != -1 && n > i)
 
-        if (i != n) throw new Protocol_Error("bad message chunk content")
+        if (i != n)
+          throw new Protocol_Error("bad chunk (unexpected EOF after " + i + " of " + n + " bytes)")
 
         if (do_decode)
           YXML.parse_body_failsafe(UTF8.decode_chars(decode, buf, 0, n))
         else List(XML.Text(UTF8.decode_chars(s => s, buf, 0, n).toString))
-        //}}}
       }
+      //}}}
 
       try {
         do {
           try {
-            //{{{
             val header = read_chunk(true)
             header match {
               case List(XML.Elem(Markup(name, props), Nil)) =>
@@ -336,10 +343,10 @@ class Isabelle_Process(
                 read_chunk(false)
                 throw new Protocol_Error("bad header: " + header.toString)
             }
-            //}}}
           }
           catch { case _: EOF => }
-        } while (c != -1)
+        }
+        while (c != -1)
       }
       catch {
         case e: IOException => system_output("Cannot read message:\n" + e.getMessage)

@@ -15,9 +15,9 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, Scr
 import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D, Insets, Color}
+import java.awt.{BorderLayout, Graphics2D, Insets}
 import javax.swing.{JList, BorderFactory}
-import javax.swing.border.{BevelBorder, SoftBevelBorder, LineBorder}
+import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
 
@@ -68,7 +68,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     private val b3 = button(PIDE.Execution_Range.VISIBLE, "Check visible parts of theories")
     private val group = new ButtonGroup(b1, b2, b3)
     contents ++= List(label, b1, b2, b3)
-    border = new LineBorder(Color.GRAY)
+    border = new SoftBevelBorder(BevelBorder.LOWERED)
 
     def load()
     {
