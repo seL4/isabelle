@@ -7,6 +7,7 @@ barrier for further exploration of exec fragments.
 
 signature EXECUTION =
 sig
+  val reset: unit -> unit
   val start: unit -> Document_ID.execution
   val discontinue: unit -> unit
   val is_running: Document_ID.execution -> bool
@@ -19,12 +20,17 @@ end;
 structure Execution: EXECUTION =
 struct
 
-val state =
-  Synchronized.var "Execution.state"
-    (Document_ID.none, Inttab.empty: Future.group Inttab.table);
+(* global state *)
+
+type state = Document_ID.execution * Future.group Inttab.table;
+
+val init_state: state = (Document_ID.none, Inttab.empty);
+val state = Synchronized.var "Execution.state" init_state;
 
 
 (* unique running execution *)
+
+fun reset () = Synchronized.change state (K init_state);
 
 fun start () =
   let
