@@ -978,7 +978,7 @@ fun equal_elim th1 th2 =
             tpairs = union_tpairs tpairs1 tpairs2,
             prop = B})
         else err "not equal"
-     | _ =>  err"major premise")
+     | _ =>  err "major premise")
   end;
 
 

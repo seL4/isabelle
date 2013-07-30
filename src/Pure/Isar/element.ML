@@ -395,7 +395,7 @@ fun instT_morphism thy env =
    {binding = [],
     typ = [instT_type env],
     term = [instT_term env],
-    fact = [map (fn th => instT_thm thy env th)]};
+    fact = [map (instT_thm thy env)]};
 
 
 (* instantiate types and terms *)
@@ -438,7 +438,7 @@ fun inst_morphism thy (envT, env) =
    {binding = [],
     typ = [instT_type envT],
     term = [inst_term (envT, env)],
-    fact = [map (fn th => inst_thm thy (envT, env) th)]};
+    fact = [map (inst_thm thy (envT, env))]};
 
 
 (* satisfy hypotheses *)
