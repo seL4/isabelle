@@ -33,7 +33,8 @@ val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 local
 
 val commands =
-  Synchronized.var "Isabelle_Process.commands" (Symtab.empty: (string list -> unit) Symtab.table);
+  Synchronized.var "Isabelle_Process.commands"
+    (Symtab.empty: (string list -> unit) Symtab.table);
 
 in
 
@@ -90,20 +91,7 @@ fun update_tracing () =
       end);
 
 
-(* message channels *)
-
-local
-
-fun chunk s = [string_of_int (size s), "\n", s];
-
-fun message do_flush msg_channel name raw_props body =
-  let
-    val robust_props = map (pairself YXML.embed_controls) raw_props;
-    val header = YXML.string_of (XML.Elem ((name, robust_props), []));
-    val msg = chunk header @ chunk body;
-  in Message_Channel.send msg_channel msg do_flush end;
-
-in
+(* output channels *)
 
 fun init_channels channel =
   let
@@ -112,10 +100,13 @@ fun init_channels channel =
 
     val msg_channel = Message_Channel.make channel;
 
+    fun message name props body =
+      Message_Channel.send msg_channel (Message_Channel.message name props body);
+
     fun standard_message opt_serial name body =
       if body = "" then ()
       else
-        message false msg_channel name
+        message name
           ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
             (Position.properties_of (Position.thread_data ()))) body;
   in
@@ -130,14 +121,12 @@ fun init_channels channel =
       (fn s => standard_message (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
       (fn (i, s) => standard_message (SOME i) Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message true msg_channel Markup.protocolN;
+    Output.Private_Hooks.protocol_message_fn := message Markup.protocolN;
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message true msg_channel Markup.initN [] (Session.welcome ());
+    message Markup.initN [] (Session.welcome ());
     msg_channel
   end;
-
-end;
 
 
 (* protocol loop -- uninterruptible *)
