@@ -1018,10 +1018,16 @@ fun read_const_exprs thy =
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
-    fun read_const_expr "_" = ([], consts_of thy)
-      | read_const_expr s = if String.isSuffix "._" s
+
+    val ctxt = Proof_Context.init_global thy;
+    fun read_const_expr str =
+      (case Syntax.parse_token ctxt (K NONE) Markup.empty (SOME o Symbol_Pos.implode o #1) str of
+        SOME "_" => ([], consts_of thy)
+      | SOME s =>
+          if String.isSuffix "._" s
           then ([], consts_of_select (Context.this_theory thy (unsuffix "._" s)))
-          else ([Code.read_const thy s], []);
+          else ([Code.read_const thy str], [])
+      | NONE => ([Code.read_const thy str], []));
   in pairself flat o split_list o map read_const_expr end;
 
 fun code_depgr thy consts =
@@ -1061,14 +1067,14 @@ in
 val _ =
   Outer_Syntax.improper_command @{command_spec "code_thms"}
     "print system of code equations for code"
-    (Scan.repeat1 Parse.term_group >> (fn cs =>
+    (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_theory o
       Toplevel.keep (fn state => code_thms_cmd (Toplevel.theory_of state) cs)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "code_deps"}
     "visualize dependencies of code equations for code"
-    (Scan.repeat1 Parse.term_group >> (fn cs =>
+    (Scan.repeat1 Parse.term >> (fn cs =>
       Toplevel.unknown_theory o
       Toplevel.keep (fn state => code_deps_cmd (Toplevel.theory_of state) cs)));
 

@@ -272,7 +272,7 @@ val value_options =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "code_pred"}
     "prove equations for predicate specified by intro/elim rules"
-    (opt_expected_modes -- opt_modes -- scan_options -- Parse.term_group >> code_pred_cmd)
+    (opt_expected_modes -- opt_modes -- scan_options -- Parse.term >> code_pred_cmd)
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "values"}

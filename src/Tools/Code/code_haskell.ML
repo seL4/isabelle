@@ -463,19 +463,21 @@ fun pretty_haskell_monad c_bind =
 fun add_monad target' raw_c_bind thy =
   let
     val c_bind = Code.read_const thy raw_c_bind;
-  in if target = target' then
-    thy
-    |> Code_Target.set_printings (Code_Symbol.Constant (c_bind, [(target,
-      SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))]))
-  else error "Only Haskell target allows for monad syntax" end;
+  in
+    if target = target' then
+      thy
+      |> Code_Target.set_printings (Code_Symbol.Constant (c_bind, [(target,
+        SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))]))
+    else error "Only Haskell target allows for monad syntax"
+  end;
 
 
 (** Isar setup **)
 
 val _ =
   Outer_Syntax.command @{command_spec "code_monad"} "define code syntax for monads"
-    (Parse.term_group -- Parse.name >> (fn (raw_bind, target) =>
-      Toplevel.theory  (add_monad target raw_bind)));
+    (Parse.term -- Parse.name >> (fn (raw_bind, target) =>
+      Toplevel.theory (add_monad target raw_bind)));
 
 val setup =
   Code_Target.add_target
