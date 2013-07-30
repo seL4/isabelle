@@ -3,14 +3,6 @@
 
 Isabelle process wrapper, based on private fifos for maximum
 robustness and performance, or local socket for maximum portability.
-
-Startup phases:
-  - raw Posix process startup with uncontrolled output on stdout/stderr
-  - stderr \002: ML running
-  - stdin/stdout/stderr freely available (raw ML loop)
-  - protocol thread initialization
-  - rendezvous on system channel
-  - message INIT: channels ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -220,20 +212,6 @@ val init = uninterruptible (fn _ => fn rendezvous =>
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
 fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
-
-
-(* options *)
-
-val _ =
-  protocol_command "Isabelle_Process.options"
-    (fn [options_yxml] =>
-      let val options = Options.decode (YXML.parse_body options_yxml) in
-        Options.set_default options;
-        Future.ML_statistics := true;
-        Multithreading.trace := Options.int options "threads_trace";
-        Multithreading.max_threads := Options.int options "threads";
-        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
-      end);
 
 end;
 
