@@ -472,7 +472,7 @@ fun update old_version_id new_version_id edits state =
           (singleton o Future.forks)
             {name = "Document.update", group = NONE,
               deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
-            (fn () =>
+            (fn () => timeit ("Document.update " ^ name) (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
                 val imports_result_changed = exists (#4 o #1 o #2) imports;
@@ -525,7 +525,7 @@ fun update old_version_id new_version_id edits state =
                     val result_changed = changed_result node0 node';
                   in ((removed, assign_update, assigned_node, result_changed), node') end
                 else (([], [], NONE, false), node)
-              end))
+              end)))
       |> Future.joins |> map #1);
 
     val removed = maps #1 updated;
