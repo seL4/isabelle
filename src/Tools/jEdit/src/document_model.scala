@@ -83,16 +83,14 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   {
     Swing_Thread.require()
 
-    PIDE.execution_range() match {
-      case PIDE.Execution_Range.ALL => Text.Perspective.full
-      case PIDE.Execution_Range.NONE => Text.Perspective.empty
-      case PIDE.Execution_Range.VISIBLE =>
-        Text.Perspective(
-          for {
-            doc_view <- PIDE.document_views(buffer)
-            range <- doc_view.perspective().ranges
-          } yield range)
+    if (PIDE.continuous_checking) {
+      Text.Perspective(
+        for {
+          doc_view <- PIDE.document_views(buffer)
+          range <- doc_view.perspective().ranges
+        } yield range)
     }
+    else Text.Perspective.empty
   }
 
 

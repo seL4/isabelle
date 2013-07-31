@@ -10,8 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, ScrollPane, Component,
-  BoxPanel, Orientation, RadioButton, ButtonGroup}
+import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
+  ScrollPane, Component, CheckBox}
 import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
@@ -55,36 +55,17 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     Swing_Thread.later { session_phase.text = " " + phase_text(phase) + " " }
   }
 
-  private val execution_range = new BoxPanel(Orientation.Horizontal) {
-    private def button(range: PIDE.Execution_Range.Value, tip: String): RadioButton =
-      new RadioButton(range.toString) {
-        tooltip = tip
-        reactions += { case ButtonClicked(_) => PIDE.update_execution_range(range) }
-      }
-    private val label =
-      new Label("Range:") { tooltip = "Execution range of continuous document processing" }
-    private val b1 = button(PIDE.Execution_Range.ALL, "Check all theories (potentially slow)")
-    private val b2 = button(PIDE.Execution_Range.NONE, "Check nothing")
-    private val b3 = button(PIDE.Execution_Range.VISIBLE, "Check visible parts of theories")
-    private val group = new ButtonGroup(b1, b2, b3)
-    contents ++= List(label, b1, b2, b3)
-    border = new SoftBevelBorder(BevelBorder.LOWERED)
-
-    def load()
-    {
-      PIDE.execution_range() match {
-        case PIDE.Execution_Range.ALL => group.select(b1)
-        case PIDE.Execution_Range.NONE => group.select(b2)
-        case PIDE.Execution_Range.VISIBLE => group.select(b3)
-      }
-    }
+  private val continuous_checking = new CheckBox("Continuous checking") {
+    tooltip = "Continuous checking of proof document (visible and required parts)"
+    reactions += { case ButtonClicked(_) => PIDE.continuous_checking = selected }
+    def load() { selected = PIDE.continuous_checking }
     load()
   }
 
   private val logic = Isabelle_Logic.logic_selector(true)
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(execution_range, session_phase, logic)
+    new FlowPanel(FlowPanel.Alignment.Right)(continuous_checking, session_phase, logic)
   add(controls.peer, BorderLayout.NORTH)
 
 
@@ -175,7 +156,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
         case _: Session.Global_Options =>
           Swing_Thread.later {
-            execution_range.load()
+            continuous_checking.load()
             logic.load ()
           }
 

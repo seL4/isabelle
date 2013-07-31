@@ -117,28 +117,18 @@ object PIDE
   }
 
 
-  /* execution range */
+  /* continuous checking */
 
-  object Execution_Range extends Enumeration {
-    val ALL = Value("all")
-    val NONE = Value("none")
-    val VISIBLE = Value("visible")
-  }
+  private val CONTINUOUS_CHECKING = "editor_continuous_checking"
 
-  def execution_range(): Execution_Range.Value =
-    options.string("editor_execution_range") match {
-      case "all" => Execution_Range.ALL
-      case "none" => Execution_Range.NONE
-      case "visible" => Execution_Range.VISIBLE
-      case s => error("Bad value for option \"editor_execution_range\": " + quote(s))
-    }
+  def continuous_checking: Boolean = options.bool(CONTINUOUS_CHECKING)
 
-  def update_execution_range(range: Execution_Range.Value)
+  def continuous_checking_=(b: Boolean)
   {
     Swing_Thread.require()
 
-    if (options.string("editor_execution_range") != range.toString) {
-      options.string("editor_execution_range") = range.toString
+    if (continuous_checking != b) {
+      options.bool(CONTINUOUS_CHECKING) = b
       PIDE.session.global_options.event(Session.Global_Options(options.value))
 
       PIDE.session.update(
@@ -155,8 +145,9 @@ object PIDE
     }
   }
 
-  def execution_range_none(): Unit = update_execution_range(Execution_Range.NONE)
-  def execution_range_visible(): Unit = update_execution_range(Execution_Range.VISIBLE)
+  def set_continuous_checking() { continuous_checking = true }
+  def reset_continuous_checking() { continuous_checking = false }
+  def toggle_continuous_checking() { continuous_checking = !continuous_checking }
 }
 
 

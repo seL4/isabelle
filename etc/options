@@ -123,14 +123,14 @@ public option editor_tracing_messages : int = 1000
 public option editor_chart_delay : real = 3.0
   -- "delay for chart repainting"
 
+public option editor_continuous_checking : bool = true
+  -- "continuous checking of proof document (visible and required parts)"
+
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 
 option editor_execution_priority : int = -1
   -- "execution priority of main document structure (e.g. 0, -1, -2)"
-
-option editor_execution_range : string = "visible"
-  -- "execution range of continuous document processing: all, none, visible"
 
 
 section "Miscellaneous Tools"

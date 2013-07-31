@@ -52,14 +52,19 @@
 			wm.addDockableWindow("isabelle-symbols");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.execution-range-none">
+	<ACTION NAME="isabelle.set-continuous-checking">
 	  <CODE>
-	    isabelle.jedit.PIDE.execution_range_none();
+	    isabelle.jedit.PIDE.set_continuous_checking();
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.execution-range-visible">
+	<ACTION NAME="isabelle.reset-continuous-checking">
 	  <CODE>
-	    isabelle.jedit.PIDE.execution_range_visible();
+	    isabelle.jedit.PIDE.reset_continuous_checking();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.toggle-continuous-checking">
+	  <CODE>
+	    isabelle.jedit.PIDE.toggle_continuous_checking();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size">
