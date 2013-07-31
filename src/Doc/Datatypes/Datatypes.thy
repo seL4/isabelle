@@ -72,11 +72,14 @@ Compare the following four examples:
 
 text {*
 To use the package, it is necessary to import the @{theory BNF} theory, which
-can be precompiled as the \textit{HOL-BNF} image:
+can be precompiled as the \textit{HOL-BNF} image. The following commands show
+how to launch jEdit/PIDE with the image loaded and how to build the image
+without launching jEdit:
 *}
 
 text {*
 \noindent
+\ \ \ \ \texttt{isabelle jedit -l HOL-BNF} \\
 \ \ \ \ \texttt{isabelle build -b HOL-BNF}
 *}
 
@@ -200,7 +203,7 @@ More complex, and more realistic, example:
 *}
 
     datatype_new ('a, 'b) expr =
-      Term "('a, 'b) term" | Sum "('a, 'b) term" "('a, 'b) expr"
+      Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) expr"
     and ('a, 'b) trm =
       Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
     and ('a, 'b) factor =
@@ -226,6 +229,18 @@ Recursion may not be arbitrary; e.g. impossible to define
 (*
     datatype_new 'a foo = Foo (*<*) datatype_new 'a bar = Bar  "'a foo \<Rightarrow> 'a foo"
 *)
+
+    datatype_new 'a evil = Evil (*<*)'a
+    typ (*>*)"'a evil \<Rightarrow> 'a evil"
+
+text {*
+Issue: => allows recursion only on its right-hand side.
+This issue is inherited by polymorphic datatypes (and codatatypes)
+defined in terms of =>.
+In general, type constructors "('a1, ..., 'an) k" allow recursion on a subset
+of their type arguments.
+*}
+
 
 subsubsection {* Auxiliary Constants and Syntaxes *}
 
@@ -318,6 +333,9 @@ subsection {* Introductory Example *}
 text {*
 More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
 \verb|~~/src/HOL/BNF/More_BNFs.thy|.
+
+Mention distinction between live and dead type arguments;
+mention =>.
 *}
 
 subsection {* General Syntax *}
@@ -378,7 +396,15 @@ This section lists known open issues of the package.
 *}
 
 text {*
+* primrec\_new and primcorec are vaporware
+
 * slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
+
+* issues with HOL-Proofs?
+
+* partial documentation
+
+* too much output by commands like "datatype_new" and "codatatype"
 *}
 
 end
