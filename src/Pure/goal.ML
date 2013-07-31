@@ -293,7 +293,7 @@ fun is_schematic t =
   Term.exists_subterm Term.is_Var t orelse
   Term.exists_type (Term.exists_subtype Term.is_TVar) t;
 
-fun prove_common immediate ctxt xs asms props tac =
+fun prove_common immediate pri ctxt xs asms props tac =
   let
     val thy = Proof_Context.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
@@ -337,7 +337,7 @@ fun prove_common immediate ctxt xs asms props tac =
     val res =
       if immediate orelse schematic orelse not future orelse skip
       then result ()
-      else future_result ctxt' (fork ~1 result) (Thm.term_of stmt);
+      else future_result ctxt' (fork pri result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)
@@ -345,11 +345,14 @@ fun prove_common immediate ctxt xs asms props tac =
     |> map Drule.zero_var_indexes
   end;
 
-val prove_multi = prove_common true;
+val prove_multi = prove_common true 0;
 
-fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
+fun prove_future_pri pri ctxt xs asms prop tac =
+  hd (prove_common false pri ctxt xs asms [prop] tac);
 
-fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
+val prove_future = prove_future_pri ~1;
+
+fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
 
 fun prove_global_future thy xs asms prop tac =
   Drule.export_without_context (prove_future (Proof_Context.init_global thy) xs asms prop tac);
@@ -360,7 +363,7 @@ fun prove_global thy xs asms prop tac =
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
     prove ctxt xs asms prop (fn _ => ALLGOALS Skip_Proof.cheat_tac)
-  else (if future_enabled () then prove_future else prove) ctxt xs asms prop tac;
+  else (if future_enabled () then prove_future_pri ~2 else prove) ctxt xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =
   Drule.export_without_context
