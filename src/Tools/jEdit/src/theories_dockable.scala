@@ -82,6 +82,11 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     var node_name = Document.Node.Name.empty
     override def paintComponent(gfx: Graphics2D)
     {
+      val size = peer.getSize()
+      val insets = border.getBorderInsets(peer)
+      val w = size.width - insets.left - insets.right
+      val h = size.height - insets.top - insets.bottom
+
       nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
           val colors = List(
@@ -90,12 +95,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             (st.warned, PIDE.options.color_value("warning_color")),
             (st.failed, PIDE.options.color_value("error_color")))
 
-          val size = peer.getSize()
-          val insets = border.getBorderInsets(peer)
-          val w = size.width - insets.left - insets.right
-          val h = size.height - insets.top - insets.bottom
           var end = size.width - insets.right
-
           for { (n, color) <- colors }
           {
             gfx.setColor(color)
@@ -104,6 +104,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             end = end - v - 1
           }
         case _ =>
+          gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
+          gfx.fillRect(insets.left, insets.top, w, h)
       }
       super.paintComponent(gfx)
     }
