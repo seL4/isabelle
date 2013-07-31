@@ -113,12 +113,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private object Node_Renderer_Component extends BorderPanel
   {
     opaque = false
-    border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
 
     var checkbox_geometry: Option[(Point, Dimension)] = None
     val checkbox = new CheckBox {
+      opaque = false
       override def paintComponent(gfx: Graphics2D)
       {
         super.paintComponent(gfx)
@@ -133,6 +133,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
       override def paintComponent(gfx: Graphics2D)
       {
+        border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
         val size = peer.getSize()
         val insets = border.getBorderInsets(peer)
         val w = size.width - insets.left - insets.right
