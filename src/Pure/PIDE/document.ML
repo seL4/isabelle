@@ -13,7 +13,7 @@ sig
     Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
-    Perspective of Document_ID.command list
+    Perspective of bool * Document_ID.command list
   type edit = string * node_edit
   type state
   val init_state: state
@@ -40,12 +40,12 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document_ID.print id);
 
 type node_header = string * Thy_Header.header * string list;
-type perspective = Inttab.set * Document_ID.command option;
+type perspective = bool * Inttab.set * Document_ID.command option;
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
-  perspective: perspective,  (*visible commands, last visible command*)
+  perspective: perspective,  (*required node, visible commands, last visible command*)
   entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
@@ -57,11 +57,11 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
-fun make_perspective command_ids : perspective =
-  (Inttab.make_set command_ids, try List.last command_ids);
+fun make_perspective (required, command_ids) : perspective =
+  (required, Inttab.make_set command_ids, try List.last command_ids);
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
-val no_perspective = make_perspective [];
+val no_perspective = make_perspective (false, []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
 val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
@@ -83,11 +83,12 @@ fun read_header node span =
   in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords) end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
-fun set_perspective ids =
-  map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
+fun set_perspective args =
+  map_node (fn (header, _, entries, result) => (header, make_perspective args, entries, result));
 
-val visible_command = Inttab.defined o #1 o get_perspective;
-val visible_last = #2 o get_perspective;
+val required_node = #1 o get_perspective;
+val visible_command = Inttab.defined o #2 o get_perspective;
+val visible_last = #3 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
@@ -127,7 +128,7 @@ datatype node_edit =
   Clear |
   Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
-  Perspective of Document_ID.command list;
+  Perspective of bool * Document_ID.command list;
 
 type edit = string * node_edit;
 
@@ -365,16 +366,18 @@ local
 
 fun make_required nodes =
   let
-    val all_visible =
-      String_Graph.fold (fn (a, (node, _)) => visible_node node ? cons a) nodes []
+    fun all_preds P =
+      String_Graph.fold (fn (a, (node, _)) => P node ? cons a) nodes []
       |> String_Graph.all_preds nodes
-      |> map (rpair ()) |> Symtab.make;
+      |> Symtab.make_set;
 
-    val required =
-      Symtab.fold (fn (a, ()) =>
-        exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
-          Symtab.update (a, ())) all_visible Symtab.empty;
-  in required end;
+    val all_visible = all_preds visible_node;
+    val all_required = all_preds required_node;
+  in
+    Symtab.fold (fn (a, ()) =>
+      exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
+        Symtab.update (a, ())) all_visible all_required
+  end;
 
 fun init_theory deps node span =
   let

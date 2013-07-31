@@ -340,7 +340,8 @@ trait Protocol extends Isabelle_Process
                     option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   list(Encode.string)))))(
                 (dir, (name.theory, (imports, (keywords, header.errors)))))) },
-          { case Document.Node.Perspective(a) => (a.commands.map(c => long_atom(c.id)), Nil) }))
+          { case Document.Node.Perspective(a, b) =>
+              (bool_atom(a) :: b.commands.map(c => long_atom(c.id)), Nil) }))
       def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
         val (name, edit) = node_edit
