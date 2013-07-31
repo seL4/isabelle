@@ -43,8 +43,11 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Continuous checking of proof document (visible and required parts)
-may be controlled explicitly, using check box or "C+e ENTER" shortcut.
+* Improved "Theories" panel: Continuous checking of proof document
+(visible and required parts) may be controlled explicitly, using check
+box or shortcut "C+e ENTER".  Individual theory nodes may be marked
+explicitly as required and checked in full, using check box or
+shortcut "C+e SPACE".
 
 * Strictly monotonic document update, without premature cancelation of
 running transactions that are still needed: avoid reset/restart of
