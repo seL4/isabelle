@@ -54,17 +54,32 @@
 	</ACTION>
 	<ACTION NAME="isabelle.set-continuous-checking">
 	  <CODE>
-	    isabelle.jedit.PIDE.set_continuous_checking();
+	    isabelle.jedit.Isabelle.set_continuous_checking();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.reset-continuous-checking">
 	  <CODE>
-	    isabelle.jedit.PIDE.reset_continuous_checking();
+	    isabelle.jedit.Isabelle.reset_continuous_checking();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.toggle-continuous-checking">
 	  <CODE>
-	    isabelle.jedit.PIDE.toggle_continuous_checking();
+	    isabelle.jedit.Isabelle.toggle_continuous_checking();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.set-node-required">
+	  <CODE>
+	    isabelle.jedit.Isabelle.set_node_required(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.reset-node-required">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reset_node_required(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.toggle-node-required">
+	  <CODE>
+	    isabelle.jedit.Isabelle.toggle_node_required(view);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size">

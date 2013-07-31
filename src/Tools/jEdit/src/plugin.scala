@@ -35,6 +35,8 @@ object PIDE
   @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
 
+  def options_changed() { session.global_options.event(Session.Global_Options(options.value)) }
+
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
 
@@ -115,39 +117,6 @@ object PIDE
       Document_View.exit(text_area)
     }
   }
-
-
-  /* continuous checking */
-
-  private val CONTINUOUS_CHECKING = "editor_continuous_checking"
-
-  def continuous_checking: Boolean = options.bool(CONTINUOUS_CHECKING)
-
-  def continuous_checking_=(b: Boolean)
-  {
-    Swing_Thread.require()
-
-    if (continuous_checking != b) {
-      options.bool(CONTINUOUS_CHECKING) = b
-      PIDE.session.global_options.event(Session.Global_Options(options.value))
-
-      PIDE.session.update(
-        (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
-          case (edits, buffer) =>
-            JEdit_Lib.buffer_lock(buffer) {
-              document_model(buffer) match {
-                case Some(model) => model.flushed_edits() ::: edits
-                case None => edits
-              }
-            }
-        }
-      )
-    }
-  }
-
-  def set_continuous_checking() { continuous_checking = true }
-  def reset_continuous_checking() { continuous_checking = false }
-  def toggle_continuous_checking() { continuous_checking = !continuous_checking }
 }
 
 

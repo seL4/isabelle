@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
-  ScrollPane, Component, CheckBox}
+  ScrollPane, Component, CheckBox, BorderPanel}
 import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
@@ -57,8 +57,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val continuous_checking = new CheckBox("Continuous checking") {
     tooltip = "Continuous checking of proof document (visible and required parts)"
-    reactions += { case ButtonClicked(_) => PIDE.continuous_checking = selected }
-    def load() { selected = PIDE.continuous_checking }
+    reactions += { case ButtonClicked(_) => Isabelle.continuous_checking = selected }
+    def load() { selected = Isabelle.continuous_checking }
     load()
   }
 
@@ -72,43 +72,63 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   /* component state -- owned by Swing thread */
 
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
+  private var nodes_required: Set[Document.Node.Name] = Set.empty
 
-  private object Node_Renderer_Component extends Label
+  private def update_nodes_required()
+  {
+    nodes_required = Set.empty
+    for {
+      buffer <- JEdit_Lib.jedit_buffers
+      model <- PIDE.document_model(buffer)
+      if model.node_required
+    } nodes_required += model.name
+  }
+
+  private object Node_Renderer_Component extends BorderPanel
   {
     opaque = false
-    xAlignment = Alignment.Leading
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
-    override def paintComponent(gfx: Graphics2D)
-    {
-      val size = peer.getSize()
-      val insets = border.getBorderInsets(peer)
-      val w = size.width - insets.left - insets.right
-      val h = size.height - insets.top - insets.bottom
+    val required = new CheckBox
 
-      nodes_status.get(node_name) match {
-        case Some(st) if st.total > 0 =>
-          val colors = List(
-            (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
-            (st.running, PIDE.options.color_value("running_color")),
-            (st.warned, PIDE.options.color_value("warning_color")),
-            (st.failed, PIDE.options.color_value("error_color")))
+    val label = new Label {
+      opaque = false
+      xAlignment = Alignment.Leading
 
-          var end = size.width - insets.right
-          for { (n, color) <- colors }
-          {
-            gfx.setColor(color)
-            val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
-            gfx.fillRect(end - v, insets.top, v, h)
-            end = end - v - 1
-          }
-        case _ =>
-          gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
-          gfx.fillRect(insets.left, insets.top, w, h)
+      override def paintComponent(gfx: Graphics2D)
+      {
+        val size = peer.getSize()
+        val insets = border.getBorderInsets(peer)
+        val w = size.width - insets.left - insets.right
+        val h = size.height - insets.top - insets.bottom
+
+        nodes_status.get(node_name) match {
+          case Some(st) if st.total > 0 =>
+            val colors = List(
+              (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+              (st.running, PIDE.options.color_value("running_color")),
+              (st.warned, PIDE.options.color_value("warning_color")),
+              (st.failed, PIDE.options.color_value("error_color")))
+
+            var end = size.width - insets.right
+            for { (n, color) <- colors }
+            {
+              gfx.setColor(color)
+              val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
+              gfx.fillRect(end - v, insets.top, v, h)
+              end = end - v - 1
+            }
+          case _ =>
+            gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
+            gfx.fillRect(insets.left, insets.top, w, h)
+        }
+        super.paintComponent(gfx)
       }
-      super.paintComponent(gfx)
     }
+
+    layout(required) = BorderPanel.Position.West
+    layout(label) = BorderPanel.Position.Center
   }
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
@@ -118,7 +138,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     {
       val component = Node_Renderer_Component
       component.node_name = name
-      component.text = name.theory
+      component.required.selected = nodes_required.contains(name)
+      component.label.text = name.theory
       component
     }
   }
@@ -160,6 +181,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           Swing_Thread.later {
             continuous_checking.load()
             logic.load ()
+            update_nodes_required()
+            status.repaint()
           }
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))

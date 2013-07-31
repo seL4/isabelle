@@ -57,6 +57,60 @@ object Isabelle
     }
 
 
+  /* continuous checking */
+
+  private val CONTINUOUS_CHECKING = "editor_continuous_checking"
+
+  def continuous_checking: Boolean = PIDE.options.bool(CONTINUOUS_CHECKING)
+
+  def continuous_checking_=(b: Boolean)
+  {
+    Swing_Thread.require()
+
+    if (continuous_checking != b) {
+      PIDE.options.bool(CONTINUOUS_CHECKING) = b
+      PIDE.options_changed()
+
+      PIDE.session.update(
+        (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
+          case (edits, buffer) =>
+            JEdit_Lib.buffer_lock(buffer) {
+              PIDE.document_model(buffer) match {
+                case Some(model) => model.flushed_edits() ::: edits
+                case None => edits
+              }
+            }
+        }
+      )
+    }
+  }
+
+  def set_continuous_checking() { continuous_checking = true }
+  def reset_continuous_checking() { continuous_checking = false }
+  def toggle_continuous_checking() { continuous_checking = !continuous_checking }
+
+
+  /* required document nodes */
+
+  private def node_required_update(view: View, toggle: Boolean = false, set: Boolean = false)
+  {
+    Swing_Thread.require()
+    PIDE.document_model(view.getBuffer) match {
+      case Some(model) =>
+        val b = if (toggle) !model.node_required else set
+        if (model.node_required != b) {
+          model.node_required = b
+          PIDE.options_changed()
+        }
+      case None =>
+    }
+  }
+
+  def set_node_required(view: View) { node_required_update(view, set = true) }
+  def reset_node_required(view: View) { node_required_update(view, set = false) }
+  def toggle_node_required(view: View) { node_required_update(view, toggle = true) }
+
+
   /* font size */
 
   def change_font_size(view: View, change: Int => Int)

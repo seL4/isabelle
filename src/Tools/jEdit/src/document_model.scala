@@ -79,15 +79,15 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* perspective */
 
-  var required_node = false
+  var node_required = false
 
   def node_perspective(): Document.Node.Perspective_Text =
   {
     Swing_Thread.require()
 
     val perspective =
-      if (PIDE.continuous_checking) {
-        (required_node, Text.Perspective(
+      if (Isabelle.continuous_checking) {
+        (node_required, Text.Perspective(
           for {
             doc_view <- PIDE.document_views(buffer)
             range <- doc_view.perspective().ranges
@@ -104,6 +104,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def init_edits(): List[Document.Edit_Text] =
   {
     Swing_Thread.require()
+
     val header = node_header()
     val text = JEdit_Lib.buffer_text(buffer)
     val perspective = node_perspective()
@@ -118,6 +119,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     : List[Document.Edit_Text] =
   {
     Swing_Thread.require()
+
     val header = node_header()
 
     List(session.header_edit(name, header),
@@ -132,7 +134,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective: Document.Node.Perspective_Text =
-      Document.Node.Perspective(required_node, Text.Perspective.empty)
+      Document.Node.Perspective(node_required, Text.Perspective.empty)
 
     def snapshot(): List[Text.Edit] = pending.toList
 
