@@ -70,18 +70,7 @@ object Isabelle
     if (continuous_checking != b) {
       PIDE.options.bool(CONTINUOUS_CHECKING) = b
       PIDE.options_changed()
-
-      PIDE.session.update(
-        (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
-          case (edits, buffer) =>
-            JEdit_Lib.buffer_lock(buffer) {
-              PIDE.document_model(buffer) match {
-                case Some(model) => model.flushed_edits() ::: edits
-                case None => edits
-              }
-            }
-        }
-      )
+      PIDE.flush_buffers()
     }
   }
 
@@ -97,11 +86,7 @@ object Isabelle
     Swing_Thread.require()
     PIDE.document_model(view.getBuffer) match {
       case Some(model) =>
-        val b = if (toggle) !model.node_required else set
-        if (model.node_required != b) {
-          model.node_required = b
-          PIDE.options_changed()
-        }
+        model.node_required = (if (toggle) !model.node_required else set)
       case None =>
     }
   }

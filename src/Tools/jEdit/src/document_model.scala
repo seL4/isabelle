@@ -79,7 +79,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* perspective */
 
-  var node_required = false
+  private var _node_required = false
+  def node_required: Boolean = _node_required
+  def node_required_=(b: Boolean)
+  {
+    Swing_Thread.require()
+    if (_node_required != b) {
+      _node_required = b
+      PIDE.options_changed()
+      PIDE.flush_buffers()
+    }
+  }
 
   def node_perspective(): Document.Node.Perspective_Text =
   {

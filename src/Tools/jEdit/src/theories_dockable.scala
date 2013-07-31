@@ -15,7 +15,7 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
 import scala.swing.event.{ButtonClicked, MouseClicked}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D, Insets}
+import java.awt.{BorderLayout, Graphics2D, Insets, Point, Dimension}
 import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
@@ -29,9 +29,29 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
+      case MouseClicked(_, point, _, clicks, _) =>
         val index = peer.locationToIndex(point)
-        if (index >= 0) Hyperlink(listData(index).node).follow(view)
+        if (index >= 0 && Node_Renderer_Component != null) {
+          Node_Renderer_Component.checkbox_geometry match {
+            case Some((loc, size)) =>
+              val loc0 = peer.indexToLocation(index)
+              val in_checkbox =
+                loc0.x + loc.x <= point.x && point.x < loc0.x + size.width &&
+                loc0.y + loc.y <= point.y && point.y < loc0.y + size.height
+
+              if (clicks == 1 && in_checkbox) {
+                for {
+                  buffer <- JEdit_Lib.jedit_buffer(listData(index).node)
+                  model <- PIDE.document_model(buffer)
+                } model.node_required = !model.node_required
+              }
+
+              if (clicks == 2 && !in_checkbox)
+                Hyperlink(listData(index).node).follow(view)
+
+            case None =>
+          }
+        }
     }
   }
   status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
@@ -90,7 +110,16 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
-    val required = new CheckBox
+
+    var checkbox_geometry: Option[(Point, Dimension)] = None
+    val checkbox = new CheckBox {
+      override def paintComponent(gfx: Graphics2D)
+      {
+        super.paintComponent(gfx)
+        if (location != null && size != null)
+          checkbox_geometry = Some((location, size))
+      }
+    }
 
     val label = new Label {
       opaque = false
@@ -127,7 +156,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
-    layout(required) = BorderPanel.Position.West
+    layout(checkbox) = BorderPanel.Position.West
     layout(label) = BorderPanel.Position.Center
   }
 
@@ -138,7 +167,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     {
       val component = Node_Renderer_Component
       component.node_name = name
-      component.required.selected = nodes_required.contains(name)
+      component.checkbox.selected = nodes_required.contains(name)
       component.label.text = name.theory
       component
     }

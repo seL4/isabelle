@@ -117,6 +117,23 @@ object PIDE
       Document_View.exit(text_area)
     }
   }
+
+  def flush_buffers()
+  {
+    Swing_Thread.require()
+
+    session.update(
+      (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
+        case (edits, buffer) =>
+          JEdit_Lib.buffer_lock(buffer) {
+            document_model(buffer) match {
+              case Some(model) => model.flushed_edits() ::: edits
+              case None => edits
+            }
+          }
+      }
+    )
+  }
 }
 
 
