@@ -12,7 +12,7 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
   ScrollPane, Component, CheckBox, BorderPanel}
-import scala.swing.event.{ButtonClicked, MouseClicked}
+import scala.swing.event.{ButtonClicked, MouseClicked, MouseMoved}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets, Point, Dimension}
@@ -28,30 +28,27 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
+    listenTo(mouse.moves)
     reactions += {
       case MouseClicked(_, point, _, clicks, _) =>
         val index = peer.locationToIndex(point)
-        if (index >= 0 && Node_Renderer_Component != null) {
-          Node_Renderer_Component.checkbox_geometry match {
-            case Some((loc, size)) =>
-              val loc0 = peer.indexToLocation(index)
-              val in_checkbox =
-                loc0.x + loc.x <= point.x && point.x < loc0.x + size.width &&
-                loc0.y + loc.y <= point.y && point.y < loc0.y + size.height
-
-              if (clicks == 1 && in_checkbox) {
-                for {
-                  buffer <- JEdit_Lib.jedit_buffer(listData(index).node)
-                  model <- PIDE.document_model(buffer)
-                } model.node_required = !model.node_required
-              }
-
-              if (clicks == 2 && !in_checkbox)
-                Hyperlink(listData(index).node).follow(view)
-
-            case None =>
+        if (index >= 0) {
+          if (in_checkbox(peer.indexToLocation(index), point)) {
+            if (clicks == 1) {
+              for {
+                buffer <- JEdit_Lib.jedit_buffer(listData(index).node)
+                model <- PIDE.document_model(buffer)
+              } model.node_required = !model.node_required
+            }
           }
+          else if (clicks == 2) Hyperlink(listData(index).node).follow(view)
         }
+      case MouseMoved(_, point, _) =>
+        val index = peer.locationToIndex(point)
+        if (index >= 0 && in_checkbox(peer.indexToLocation(index), point))
+          tooltip = "Mark as required for continuous checking"
+        else
+          tooltip = null
     }
   }
   status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
@@ -103,6 +100,15 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       if model.node_required
     } nodes_required += model.name
   }
+
+  private def in_checkbox(loc0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null &&
+      (Node_Renderer_Component.checkbox_geometry match {
+        case Some((loc, size)) =>
+          loc0.x + loc.x <= p.x && p.x < loc0.x + size.width &&
+          loc0.y + loc.y <= p.y && p.y < loc0.y + size.height
+        case None => false
+      })
 
   private object Node_Renderer_Component extends BorderPanel
   {
