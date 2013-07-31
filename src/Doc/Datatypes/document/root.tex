@@ -1,4 +1,6 @@
 \documentclass[12pt,a4paper]{article} % fleqn
+\usepackage{cite}
+\usepackage{enumitem}
 \usepackage{latexsym}
 \usepackage{graphicx}
 \usepackage{iman}
@@ -9,10 +11,17 @@
 \usepackage{style}
 \usepackage{pdfsetup}
 
+\newbox\boxA
+\setbox\boxA=\hbox{\ }
+\parindent=4\wd\boxA
+
 \newcommand{\cmd}[1]{\isacommand{#1}}
 
 \renewcommand{\isacharunderscore}{\mbox{\_}}
 \renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
+\renewcommand{\isachardoublequote}{\mbox{\upshape{``}}}
+\renewcommand{\isachardoublequoteopen}{\mbox{\upshape{``}}}
+\renewcommand{\isachardoublequoteclose}{\mbox{\upshape{''}}}
 
 \hyphenation{isa-belle}
 
@@ -21,7 +30,9 @@
 \title{%\includegraphics[scale=0.5]{isabelle_hol} \\[4ex]
 Defining (Co)datatypes in Isabelle/HOL}
 \author{\hbox{} \\
-Jasmin Christian Blanchette, Andrei Popescu, and Dmitriy Traytel \\
+Jasmin Christian Blanchette \\
+Andrei Popescu \\
+Dmitriy Traytel \\
 {\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
 \hbox{}}
 \begin{document}

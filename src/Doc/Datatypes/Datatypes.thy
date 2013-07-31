@@ -20,17 +20,17 @@ attractive is that it supports definitions with recursion through a large class
 of non-datatypes, notably finite sets:
 *}
 
-datatype_new 'a tree = Node 'a "('a tree fset)"
+    datatype_new 'a treeFS = TreeFS 'a "'a treeFS fset"
 
 text {*
 \noindent
 Another advantage of the new package is that it supports local definitions:
 *}
 
-context linorder
-begin
-  datatype_new flag = Less | Eq | Greater
-end
+    context linorder
+    begin
+      datatype_new flag = Less | Eq | Greater
+    end
 
 text {*
 \noindent
@@ -39,25 +39,25 @@ generated destructors. For example, the command
 *}
 
 (*<*)hide_const Nil Cons hd tl(*>*)
-datatype_new 'a list = null: Nil | Cons (hd: 'a) (tl: "'a list")
+    datatype_new 'a list = null: Nil | Cons (hd: 'a) (tl: "'a list")
 
 text {*
 \noindent
 introduces a discriminator @{const null} and a pair of selectors @{const hd} and
 @{const tl} characterized as follows:
-
-@{thm [display] list.collapse[no_vars]}
+%
+\[@{thm list.collapse(1)[no_vars]}\qquad @{thm list.collapse(2)[no_vars]}\]
 
 The command \cmd{datatype\_new} is expected to displace \cmd{datatype} in a future
 release. Authors of new theories are encouraged to use \cmd{datatype\_new}, and
-maintainers of older theories might want to consider upgrading now.
+maintainers of older theories may want to consider upgrading in the coming months.
 
 The package also provides codatatypes (or ``coinductive datatypes''), which may
-have infinite values. The following command introduces a type of infinite
+have infinite values. The following command introduces a codatatype of infinite
 streams:
 *}
 
-codatatype 'a stream = Stream 'a "('a stream)"
+    codatatype 'a stream = Stream 'a "'a stream"
 
 text {*
 \noindent
@@ -65,60 +65,174 @@ Mixed inductive--coinductive recursion is possible via nesting.
 Compare the following four examples:
 *}
 
-datatype_new 'a treeFF = TreeFF 'a "('a treeFF list)"
-datatype_new 'a treeFI = TreeFI 'a "('a treeFF stream)"
-codatatype 'a treeIF = TreeIF 'a "('a treeFF list)"
-codatatype 'a treeII = TreeII 'a "('a treeFF stream)"
+    datatype_new 'a treeFF = TreeFF 'a "'a treeFF list"
+    datatype_new 'a treeFI = TreeFI 'a "'a treeFF stream"
+    codatatype 'a treeIF = TreeIF 'a "'a treeFF list"
+    codatatype 'a treeII = TreeII 'a "'a treeFF stream"
 
 text {*
 To use the package, it is necessary to import the @{theory BNF} theory, which
-can be precompiled as the \textit{HOL-BNF}:
+can be precompiled as the \textit{HOL-BNF} image:
 *}
 
 text {*
 \noindent
-\texttt{isabelle build -b HOL-BNF}
+\ \ \ \ \texttt{isabelle build -b HOL-BNF}
 *}
 
 text {*
-  * TODO: LCF tradition
-  * internals: LICS paper
+The package, like its predecessor, fully adheres to the LCF philosophy
+\cite{mgordon79}: The characteristic theorems associated with the specified
+(co)datatypes are derived rather than introduced axiomatically.%
+\footnote{Nonetheless, if the \textit{quick\_and\_dirty} option is enabled, some
+of the internal constructions and most of the internal proof obligations are
+skipped.}
+The package's metatheory is described in a pair of papers
+\cite{traytel-et-al-2012,blanchette-et-al-wit}.
 *}
 
 text {*
 This tutorial is organized as follows:
 
-  * datatypes
-  * primitive recursive functions
-  * codatatypes
-  * primitive corecursive functions
+\begin{itemize}
+\item Section \ref{sec:defining-datatypes}, ``Defining Datatypes,''
+describes how to specify datatypes using the \cmd{datatype\_new} command.
 
-the following sections focus on more technical aspects:
-how to register bounded natural functors (BNFs), i.e., type
-constructors via which (co)datatypes can (co)recurse,
-and how to derive convenience theorems for free constructors,
-as performed internally by \cmd{datatype\_new} and \cmd{codatatype}.
+\item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive 
+Functions,'' describes how to specify recursive functions using
+\cmd{primrec\_new}, \cmd{fun}, and \cmd{function}.
 
-then: Standard ML interface
+\item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
+describes how to specify codatatypes using the \cmd{codatatype} command.
 
-interaction with other tools
-  * code generator (and Quickcheck)
-  * Nitpick
+\item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive 
+Functions,'' describes how to specify corecursive functions using the
+\cmd{primcorec} command.
+
+\item Section \ref{sec:registering-bounded-natural-functors}, ``Registering 
+Bounded Natural Functors,'' explains how to set up the (co)datatype package to
+allow nested recursion through custom well-behaved type constructors.
+
+\item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free 
+Constructor Theorems,'' explains how to derive convenience theorems for free
+constructors, as performed internally by \cmd{datatype\_new} and
+\cmd{codatatype}.
+
+\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
+describes the package's programmatic interface.
+
+\item Section \ref{sec:interoperability}, ``Interoperability,''
+is concerned with the packages' interaction with other Isabelle packages and
+tools, such as the code generator and the counterexample generators.
+
+\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and 
+Limitations,'' concludes with open issues.
+\end{itemize}
 *}
 
-section {* Defining Datatypes *}
+section {* Defining Datatypes%
+  \label{sec:defining-datatypes} *}
+
+text {*
+This section describes how to specify datatypes using the \cmd{datatype\_new}
+command. The command is first illustrated through concrete examples featuring
+different flavors of recursion. More examples are available in
+\verb|~~/src/HOL/BNF/Examples|. The syntax is largely modeled after that of the
+existing \cmd{datatype} command.
+*}
 
 subsection {* Introductory Examples *}
 
 subsubsection {* Nonrecursive Types *}
 
+text {*
+enumeration type:
+*}
+
+    datatype_new trool = Truue | Faalse | Maaybe
+
+text {*
+Haskell-style option type:
+*}
+
+    datatype_new 'a maybe = Nothing | Just 'a
+
+text {*
+triple:
+*}
+
+    datatype_new ('a, 'b, 'c) triple = Triple 'a 'b 'c
+
 subsubsection {* Simple Recursion *}
+
+text {*
+simplest recursive type: natural numbers
+*}
+
+    datatype_new nat = Zero | Suc nat
+
+text {*
+lists were shown in the introduction
+
+terminated lists are a variant:
+*}
+
+    datatype_new ('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
+
+text {*
+On the right-hand side of the equal sign, the usual Isabelle conventions apply:
+Nonatomic types must be enclosed in double quotes.
+*}
 
 subsubsection {* Mutual Recursion *}
 
+text {*
+Mutual recursion = Define several types simultaneously, referring to each other.
+
+Simple example: distinction between even and odd natural numbers:
+*}
+
+    datatype_new even_nat = Zero | Even_Suc odd_nat
+    and odd_nat = Odd_Suc even_nat
+
+text {*
+More complex, and more realistic, example:
+*}
+
+    datatype_new ('a, 'b) expr =
+      Term "('a, 'b) term" | Sum "('a, 'b) term" "('a, 'b) expr"
+    and ('a, 'b) trm =
+      Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
+    and ('a, 'b) factor =
+      Const 'a | Var 'b | Sub_Expr "('a, 'b) expr"
+
 subsubsection {* Nested Recursion *}
 
-subsubsection {* Auxiliary Constants *}
+text {*
+Nested recursion = Have recursion through a type constructor.
+
+The introduction showed some examples of trees with nesting through lists.
+
+More complex example, which reuses our maybe and triple types:
+*}
+
+    datatype_new 'a triple_tree =
+      Triple_Tree "('a triple_tree maybe, bool, 'a triple_tree maybe) triple"
+
+text {*
+Recursion may not be arbitrary; e.g. impossible to define
+*}
+
+(*
+    datatype_new 'a foo = Foo (*<*) datatype_new 'a bar = Bar  "'a foo \<Rightarrow> 'a foo"
+*)
+
+subsubsection {* Auxiliary Constants and Syntaxes *}
+
+text {*
+* destructors
+* also mention special syntaxes
+*}
 
 subsection {* General Syntax *}
 
@@ -127,9 +241,23 @@ subsection {* Characteristic Theorems *}
 subsection {* Compatibility Issues *}
 
 
-section {* Defining Primitive Recursive Functions *}
+section {* Defining Recursive Functions%
+  \label{sec:defining-recursive-functions} *}
+
+text {*
+This describes how to specify recursive functions over datatypes
+specified using \cmd{datatype\_new}. The focus in on the \cmd{primrec\_new}
+command, which supports primitive recursion. A few examples feature the
+\cmd{fun} and \cmd{function} commands, described in a separate tutorial  
+\cite{isabelle-function}.
+%%% TODO: partial_function?
+*}
 
 subsection {* Introductory Examples *}
+
+text {*
+More examples in \verb|~~/src/HOL/BNF/Examples|.
+*}
 
 subsection {* General Syntax *}
 
@@ -138,44 +266,98 @@ subsection {* Characteristic Theorems *}
 subsection {* Compatibility Issues *}
 
 
-section {* Defining Codatatypes *}
+section {* Defining Codatatypes%
+  \label{sec:defining-codatatypes} *}
+
+text {*
+This section describes how to specify codatatypes using the \cmd{codatatype}
+command.
+*}
 
 subsection {* Introductory Examples *}
+
+text {*
+More examples in \verb|~~/src/HOL/BNF/Examples|.
+*}
 
 subsection {* General Syntax *}
 
 subsection {* Characteristic Theorems *}
 
 
-section {* Defining Primitive Corecursive Functions *}
+section {* Defining Corecursive Functions%
+  \label{sec:defining-corecursive-functions} *}
+
+text {*
+This section describes how to specify corecursive functions using the
+\cmd{primcorec} command.
+*}
 
 subsection {* Introductory Examples *}
+
+text {*
+More examples in \verb|~~/src/HOL/BNF/Examples|.
+*}
 
 subsection {* General Syntax *}
 
 subsection {* Characteristic Theorems *}
 
-subsection {* Compatibility Issues *}
+
+section {* Registering Bounded Natural Functors%
+  \label{sec:registering-bounded-natural-functors} *}
+
+text {*
+This section explains how to set up the (co)datatype package to allow nested
+recursion through custom well-behaved type constructors. The key concept is that
+of a bounded natural functor (BNF).
+*}
+
+subsection {* Introductory Example *}
+
+text {*
+More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
+\verb|~~/src/HOL/BNF/More_BNFs.thy|.
+*}
+
+subsection {* General Syntax *}
 
 
-section {* Registering Bounded Natural Functors *}
+section {* Generating Free Constructor Theorems%
+  \label{sec:generating-free-constructor-theorems} *}
+
+text {*
+This section explains how to derive convenience theorems for free constructors,
+as performed internally by \cmd{datatype\_new} and \cmd{codatatype}.
+
+  * need for this is rare but may arise if you want e.g. to add destructors to
+    a type not introduced by ...
+
+  * also useful for compatibility with old package, e.g. add destructors to
+    old \cmd{datatype}
+*}
 
 subsection {* Introductory Example *}
 
 subsection {* General Syntax *}
 
 
-section {* Generating Free Constructor Theorems *}
+section {* Standard ML Interface%
+  \label{sec:standard-ml-interface} *}
 
-subsection {* Introductory Example *}
+text {*
+This section describes the package's programmatic interface.
+*}
 
-subsection {* General Syntax *}
 
-section {* Registering Bounded Natural Functors *}
+section {* Interoperability%
+  \label{sec:interoperability} *}
 
-section {* Standard ML Interface *}
-
-section {* Interoperability Issues *}
+text {*
+This section is concerned with the packages' interaction with other Isabelle
+packages and tools, such as the code generator and the counterexample
+generators.
+*}
 
 subsection {* Transfer and Lifting *}
 
@@ -187,7 +369,13 @@ subsection {* Nitpick *}
 
 subsection {* Nominal Isabelle *}
 
-section {* Known Bugs and Limitations *}
+
+section {* Known Bugs and Limitations%
+  \label{sec:known-bugs-and-limitations} *}
+
+text {*
+This section lists known open issues of the package.
+*}
 
 text {*
 * slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
