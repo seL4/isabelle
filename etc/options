@@ -129,9 +129,6 @@ public option editor_continuous_checking : bool = true
 option editor_execution_delay : real = 0.02
   -- "delay for start of execution process after document update (seconds)"
 
-option editor_execution_priority : int = -1
-  -- "execution priority of main document structure (e.g. 0, -1, -2)"
-
 
 section "Miscellaneous Tools"
 

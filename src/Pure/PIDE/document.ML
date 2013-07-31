@@ -306,7 +306,6 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
       val {version_id, execution_id, delay_request, frontier} = execution;
 
       val delay = seconds (Options.default_real "editor_execution_delay");
-      val pri = Options.default_int "editor_execution_priority";
 
       val _ = Future.cancel delay_request;
       val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
@@ -331,7 +330,7 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
                   (singleton o Future.forks)
                     {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
                       deps = more_deps @ map #2 (maps #2 deps),
-                      pri = pri, interrupts = false} body;
+                      pri = 0, interrupts = false} body;
               in [(name, Future.task_of future)] end
             else []);
       val frontier' = (fold o fold) Symtab.update new_tasks frontier;
