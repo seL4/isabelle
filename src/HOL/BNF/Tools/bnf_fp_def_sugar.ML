@@ -1464,7 +1464,7 @@ val parse_spec =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
   Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
 
-val parse_co_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
+val parse_co_datatype = parse_wrap_free_constructors_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 
