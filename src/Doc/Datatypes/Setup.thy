@@ -1,5 +1,5 @@
 theory Setup
-imports Main
+imports BNF
 begin
 
 ML_file "../antiquote_setup.ML"

@@ -17,7 +17,7 @@
 \setbox\boxA=\hbox{\ }
 \parindent=4\wd\boxA
 
-\newcommand{\cmd}[1]{\isacommand{#1}}
+\newcommand{\keyw}[1]{\isacommand{#1}}
 
 \renewcommand{\isacharprime}{\isamath{{'}\mskip-2mu}}
 \renewcommand{\isacharunderscore}{\mbox{\_}}
@@ -46,8 +46,8 @@ Dmitriy Traytel \\
 \noindent
 This tutorial describes how to use the new package for defining datatypes and
 codatatypes in Isabelle/HOL. The package provides four main user-level commands:
-\cmd{datatype\_new}, \cmd{codatatype}, \cmd{primrec\_new}, and \cmd{primcorec}.
-The commands suffixed by \cmd{\_new} are intended to subsume, and eventually
+\keyw{datatype\_new}, \keyw{codatatype}, \keyw{primrec\_new}, and \keyw{primcorec}.
+The commands suffixed by \keyw{\_new} are intended to subsume, and eventually
 replace, the corresponding commands from the old datatype package.
 \end{abstract}
 
