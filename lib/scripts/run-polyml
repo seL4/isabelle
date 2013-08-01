@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# Poly/ML 5.1/5.2 startup script.
+# Startup script for Poly/ML 5.1 ... 5.5.
 
 export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 
@@ -33,13 +33,8 @@ function check_file()
 POLY="$ML_HOME/poly"
 check_file "$POLY"
 
-if [ "$(basename "$ML_HOME")" = bin ]; then
-  POLYLIB="$(cd "$ML_HOME"; cd "$(pwd -P)"; cd ../lib; pwd)"
-else
-  POLYLIB="$ML_HOME"
-fi
+librarypath "$ML_HOME"
 
-librarypath "$POLYLIB"
 
 
 ## prepare databases
