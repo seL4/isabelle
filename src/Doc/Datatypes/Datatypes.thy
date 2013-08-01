@@ -705,6 +705,9 @@ text {*
 This section explains how to set up the (co)datatype package to allow nested
 recursion through custom well-behaved type constructors. The key concept is that
 of a bounded natural functor (BNF).
+
+    * @{command bnf}
+    * @{command print_bnfs}
 *}
 
 
@@ -736,6 +739,9 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
 
   * also useful for compatibility with old package, e.g. add destructors to
     old @{command datatype}
+
+  * @{command wrap_free_constructors}
+    * \keyw{no\_dests}, \keyw{rep\_compat}
 *}
 
 
@@ -816,13 +822,13 @@ section {* Acknowledgments
   \label{sec:acknowledgments} *}
 
 text {*
-Tobias Nipkow and Makarius Wenzel have made this work possible. Andreas
-Lochbihler has provided lots of comments on earlier versions of the package,
-especially for the coinductive part. Brian Huffman suggested major
-simplifications to the internal constructions, much of which has yet to be
-implemented. Stefan Milius and Lutz Schr\"oder suggested an elegant prove to
-eliminate one of the BNF assumptions. Florian Haftmann and Christian Urban gave
-advice on Isabelle and package writing.
+Tobias Nipkow and Makarius Wenzel made this work possible. Andreas Lochbihler
+provided lots of comments on earlier versions of the package, especially for the
+coinductive part. Brian Huffman suggested major simplifications to the internal
+constructions, much of which has yet to be implemented. Florian Haftmann and
+Christian Urban provided general advice advice on Isabelle and package writing.
+Stefan Milius and Lutz Schr\"oder suggested an elegant prove to eliminate one of
+the BNF assumptions.
 *}
 
 end
