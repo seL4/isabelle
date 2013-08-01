@@ -64,7 +64,8 @@ fi
 MLTEXT="$INIT $EXIT $COMMIT $MLTEXT"
 
 if [ -n "$TERMINATE" -a -z "$MLEXIT" ]; then
-  "$POLY" -q -i $ML_OPTIONS --eval "$MLTEXT" --error-exit </dev/null
+  "$POLY" -q -i $ML_OPTIONS --eval "$(perl "$ISABELLE_HOME/lib/scripts/recode.pl" "$MLTEXT")" \
+    --error-exit </dev/null
   RC="$?"
 else
   if [ -z "$TERMINATE" ]; then
