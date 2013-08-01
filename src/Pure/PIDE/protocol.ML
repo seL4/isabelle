@@ -8,7 +8,19 @@ structure Protocol: sig end =
 struct
 
 val _ =
-  Isabelle_Process.protocol_command "echo" (fn args => List.app writeln args);
+  Isabelle_Process.protocol_command "Isabelle_Process.echo"
+    (fn args => List.app writeln args);
+
+val _ =
+  Isabelle_Process.protocol_command "Isabelle_Process.options"
+    (fn [options_yxml] =>
+      let val options = Options.decode (YXML.parse_body options_yxml) in
+        Options.set_default options;
+        Future.ML_statistics := true;
+        Multithreading.trace := Options.int options "threads_trace";
+        Multithreading.max_threads := Options.int options "threads";
+        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
+      end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.define_command"
@@ -44,7 +56,7 @@ val _ =
                       val imports' = map (rpair Position.none) imports;
                       val header = Thy_Header.make (name, Position.none) imports' keywords;
                     in Document.Deps (master, header, errors) end,
-                  fn (a, []) => Document.Perspective (map int_atom a)]))
+                  fn (a :: b, []) => Document.Perspective (bool_atom a, map int_atom b)]))
             end;
 
         val (removed, assign_update, state') = Document.update old_id new_id edits state;

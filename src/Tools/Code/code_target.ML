@@ -752,7 +752,7 @@ fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
     -- Parse.and_list1 (@{keyword "("} |-- (Parse.name --| @{keyword ")"} -- Scan.option parse_target)));
 
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
-  parse_single_symbol_pragma @{keyword "constant"} Parse.term_group parse_const
+  parse_single_symbol_pragma @{keyword "constant"} Parse.term parse_const
     >> Code_Symbol.Constant
   || parse_single_symbol_pragma @{keyword "type_constructor"} Parse.type_const parse_tyco
     >> Code_Symbol.Type_Constructor
@@ -784,7 +784,7 @@ fun code_expr_checkingP raw_cs =
     -- code_expr_argsP)))
       >> (fn seri_args => check_code_cmd raw_cs seri_args);
 
-val code_exprP = Scan.repeat1 Parse.term_group
+val code_exprP = Scan.repeat1 Parse.term
   :|-- (fn raw_cs => (code_expr_checkingP raw_cs || code_expr_inP raw_cs));
 
 val _ =
@@ -812,7 +812,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "code_const"} "define code syntax for constant"
-    (process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
+    (process_multi_syntax Parse.term Code_Printer.parse_const_syntax
       add_const_syntax_cmd);
 
 val _ =
@@ -842,7 +842,7 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "code_abort"}
     "permit constant to be implemented as program abort"
-    (Scan.repeat1 Parse.term_group >> (Toplevel.theory o fold allow_abort_cmd));
+    (Scan.repeat1 Parse.term >> (Toplevel.theory o fold allow_abort_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"

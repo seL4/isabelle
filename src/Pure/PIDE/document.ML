@@ -7,19 +7,19 @@ list of commands, associated with asynchronous execution process.
 
 signature DOCUMENT =
 sig
+  val timing: bool Unsynchronized.ref
   type node_header = string * Thy_Header.header * string list
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
-    Perspective of Document_ID.command list
+    Perspective of bool * Document_ID.command list
   type edit = string * node_edit
   type state
   val init_state: state
   val define_command: Document_ID.command -> string -> string -> state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
-  val timing: bool Unsynchronized.ref
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
     Document_ID.exec list * (Document_ID.command * Document_ID.exec list) list * state
   val state: unit -> state
@@ -29,18 +29,23 @@ end;
 structure Document: DOCUMENT =
 struct
 
+val timing = Unsynchronized.ref false;
+fun timeit msg e = cond_timeit (! timing) msg e;
+
+
+
 (** document structure **)
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document_ID.print id);
 
 type node_header = string * Thy_Header.header * string list;
-type perspective = Inttab.set * Document_ID.command option;
+type perspective = bool * Inttab.set * Document_ID.command option;
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
-  perspective: perspective,  (*visible commands, last visible command*)
+  perspective: perspective,  (*required node, visible commands, last visible command*)
   entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
@@ -52,11 +57,11 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
-fun make_perspective command_ids : perspective =
-  (Inttab.make_set command_ids, try List.last command_ids);
+fun make_perspective (required, command_ids) : perspective =
+  (required, Inttab.make_set command_ids, try List.last command_ids);
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
-val no_perspective = make_perspective [];
+val no_perspective = make_perspective (false, []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
 val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
@@ -78,11 +83,12 @@ fun read_header node span =
   in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords) end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
-fun set_perspective ids =
-  map_node (fn (header, _, entries, result) => (header, make_perspective ids, entries, result));
+fun set_perspective args =
+  map_node (fn (header, _, entries, result) => (header, make_perspective args, entries, result));
 
-val visible_command = Inttab.defined o #1 o get_perspective;
-val visible_last = #2 o get_perspective;
+val required_node = #1 o get_perspective;
+val visible_command = Inttab.defined o #2 o get_perspective;
+val visible_last = #3 o get_perspective;
 val visible_node = is_some o visible_last
 
 fun map_entries f =
@@ -122,7 +128,7 @@ datatype node_edit =
   Clear |
   Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
-  Perspective of Document_ID.command list;
+  Perspective of bool * Document_ID.command list;
 
 type edit = string * node_edit;
 
@@ -199,13 +205,16 @@ end;
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
   execution_id: Document_ID.execution,  (*dynamic execution id*)
+  delay_request: unit future,  (*pending event timer request*)
   frontier: Future.task Symtab.table};  (*node name -> running execution task*)
 
 val no_execution: execution =
-  {version_id = Document_ID.none, execution_id = Document_ID.none, frontier = Symtab.empty};
+  {version_id = Document_ID.none, execution_id = Document_ID.none,
+   delay_request = Future.value (), frontier = Symtab.empty};
 
-fun new_execution version_id frontier : execution =
-  {version_id = version_id, execution_id = Execution.start (), frontier = frontier};
+fun new_execution version_id delay_request frontier : execution =
+  {version_id = version_id, execution_id = Execution.start (),
+   delay_request = delay_request, frontier = frontier};
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
@@ -226,11 +235,11 @@ val init_state =
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, commands, {frontier, ...}) =>
+  map_state (fn (versions, commands, {delay_request, frontier, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
-      val execution' = new_execution version_id frontier;
+      val execution' = new_execution version_id delay_request frontier;
     in (versions', commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
@@ -292,17 +301,22 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
 (* document execution *)
 
 fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
-  let
-    val {version_id, execution_id, frontier} = execution;
-    val pri = Options.default_int "editor_execution_priority";
+  timeit "Document.start_execution" (fn () =>
+    let
+      val {version_id, execution_id, delay_request, frontier} = execution;
 
-    val new_tasks =
-      if Execution.is_running execution_id then
+      val delay = seconds (Options.default_real "editor_execution_delay");
+
+      val _ = Future.cancel delay_request;
+      val delay_request' = Event_Timer.future (Time.+ (Time.now (), delay));
+
+      val new_tasks =
         nodes_of (the_version state version_id) |> String_Graph.schedule
           (fn deps => fn (name, node) =>
             if visible_node node orelse pending_result node then
               let
-                val former_task = Symtab.lookup frontier name;
+                val more_deps =
+                  Future.task_of delay_request' :: the_list (Symtab.lookup frontier name);
                 fun body () =
                   iterate_entries (fn (_, opt_exec) => fn () =>
                     (case opt_exec of
@@ -315,14 +329,15 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
                 val future =
                   (singleton o Future.forks)
                     {name = "theory:" ^ name, group = SOME (Future.new_group NONE),
-                      deps = the_list former_task @ map #2 (maps #2 deps),
-                      pri = pri, interrupts = false} body;
+                      deps = more_deps @ map #2 (maps #2 deps),
+                      pri = 0, interrupts = false} body;
               in [(name, Future.task_of future)] end
-            else [])
-      else [];
-    val frontier' = (fold o fold) Symtab.update new_tasks frontier;
-    val execution' = {version_id = version_id, execution_id = execution_id, frontier = frontier'};
-  in (versions, commands, execution') end);
+            else []);
+      val frontier' = (fold o fold) Symtab.update new_tasks frontier;
+      val execution' =
+        {version_id = version_id, execution_id = execution_id,
+         delay_request = delay_request', frontier = frontier'};
+    in (versions, commands, execution') end));
 
 
 
@@ -346,23 +361,22 @@ fun assign_update_result (tab: assign_update) =
 
 (* update *)
 
-val timing = Unsynchronized.ref false;
-fun timeit msg e = cond_timeit (! timing) msg e;
-
 local
 
 fun make_required nodes =
   let
-    val all_visible =
-      String_Graph.fold (fn (a, (node, _)) => visible_node node ? cons a) nodes []
+    fun all_preds P =
+      String_Graph.fold (fn (a, (node, _)) => P node ? cons a) nodes []
       |> String_Graph.all_preds nodes
-      |> map (rpair ()) |> Symtab.make;
+      |> Symtab.make_set;
 
-    val required =
-      Symtab.fold (fn (a, ()) =>
-        exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
-          Symtab.update (a, ())) all_visible Symtab.empty;
-  in required end;
+    val all_visible = all_preds visible_node;
+    val all_required = all_preds required_node;
+  in
+    Symtab.fold (fn (a, ()) =>
+      exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
+        Symtab.update (a, ())) all_visible all_required
+  end;
 
 fun init_theory deps node span =
   let
@@ -389,7 +403,7 @@ fun check_theory full name node =
   is_some (Thy_Info.lookup_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
-fun last_common state node0 node =
+fun last_common state node_required node0 node =
   let
     fun update_flags prev (visible, initial) =
       let
@@ -400,15 +414,17 @@ fun last_common state node0 node =
           | SOME command_id => not (Keyword.is_theory_begin (the_command_name state command_id)));
       in (visible', initial') end;
 
-    fun get_common ((prev, command_id), opt_exec) (_, same, flags, assign_update) =
-      if same then
+    fun get_common ((prev, command_id), opt_exec) (_, ok, flags, assign_update) =
+      if ok then
         let
-          val flags' = update_flags prev flags;
-          val same' =
+          val flags' as (visible', _) = update_flags prev flags;
+          val ok' =
             (case (lookup_entry node0 command_id, opt_exec) of
-              (SOME (eval0, _), SOME (eval, _)) => Command.eval_eq (eval0, eval)
+              (SOME (eval0, _), SOME (eval, _)) =>
+                Command.eval_eq (eval0, eval) andalso
+                  (visible' orelse node_required orelse Command.eval_running eval)
             | _ => false);
-          val assign_update' = assign_update |> same' ?
+          val assign_update' = assign_update |> ok' ?
             (case opt_exec of
               SOME (eval, prints) =>
                 let
@@ -420,12 +436,12 @@ fun last_common state node0 node =
                   | NONE => I)
                 end
             | NONE => I);
-        in SOME (prev, same', flags', assign_update') end
+        in SOME (prev, ok', flags', assign_update') end
       else NONE;
-    val (common, same, flags, assign_update') =
+    val (common, ok, flags, assign_update') =
       iterate_entries get_common node (NONE, true, (true, true), assign_update_empty);
     val (common', flags') =
-      if same then
+      if ok then
         let val last = Entries.get_after (get_entries node) common
         in (last, update_flags last flags) end
       else (common, flags);
@@ -469,7 +485,7 @@ fun update old_version_id new_version_id edits state =
           (singleton o Future.forks)
             {name = "Document.update", group = NONE,
               deps = map (Future.task_of o #2) deps, pri = 1, interrupts = false}
-            (fn () =>
+            (fn () => timeit ("Document.update " ^ name) (fn () =>
               let
                 val imports = map (apsnd Future.join) deps;
                 val imports_result_changed = exists (#4 o #1 o #2) imports;
@@ -487,7 +503,7 @@ fun update old_version_id new_version_id edits state =
 
                     val (print_execs, common, (still_visible, initial)) =
                       if imports_result_changed then (assign_update_empty, NONE, (true, true))
-                      else last_common state node0 node;
+                      else last_common state node_required node0 node;
                     val common_command_exec = the_default_entry node common;
 
                     val (updated_execs, (command_id', (eval', _)), _) =
@@ -522,7 +538,7 @@ fun update old_version_id new_version_id edits state =
                     val result_changed = changed_result node0 node';
                   in ((removed, assign_update, assigned_node, result_changed), node') end
                 else (([], [], NONE, false), node)
-              end))
+              end)))
       |> Future.joins |> map #1);
 
     val removed = maps #1 updated;

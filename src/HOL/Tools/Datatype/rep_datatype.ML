@@ -149,8 +149,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) []
-      ||> Sign.restore_naming thy0
-      ||> Theory.checkpoint;
+      ||> Sign.restore_naming thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
@@ -238,8 +237,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
                  (Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
                    (set $ Free ("x", T) $ Free ("y", T')))))))
             (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
-      ||> Sign.parent_path
-      ||> Theory.checkpoint;
+      ||> Sign.parent_path;
 
 
     (* prove characteristic equations for primrec combinators *)
@@ -262,7 +260,6 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
     |> Global_Theory.note_thmss ""
       [((Binding.name "recs", [Nitpick_Simps.add]), [(rec_thms, [])])]
     ||> Sign.parent_path
-    ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, maps #2 thms))
   end;
 
@@ -325,8 +322,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
               |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
 
           in (defs @ [def_thm], thy') end)
-        (hd descr ~~ newTs ~~ case_names ~~ take (length newTs) reccomb_names) ([], thy1)
-      ||> Theory.checkpoint;
+        (hd descr ~~ newTs ~~ case_names ~~ take (length newTs) reccomb_names) ([], thy1);
 
     val case_thms =
       (map o map) (fn t =>
@@ -479,9 +475,8 @@ fun make_dt_info descr induct inducts rec_names rec_rewrites
 
 in
 
-fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
+fun derive_datatype_props config dt_names descr induct inject distinct thy2 =
   let
-    val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
     val new_type_names = map Long_Name.base_name dt_names;
     val _ =

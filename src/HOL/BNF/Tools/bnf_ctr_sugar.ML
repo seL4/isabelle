@@ -42,7 +42,7 @@ sig
     (((bool * bool) * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_options: (bool * bool) parser
+  val parse_wrap_free_constructors_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -753,7 +753,7 @@ val parse_bound_term = (parse_binding --| @{keyword ":"}) -- Parse.term;
 val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
-val parse_wrap_options =
+val parse_wrap_free_constructors_options =
   Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_dests"} >> K (true, false)) ||
       (@{keyword "rep_compat"} >> K (false, true))) --| @{keyword ")"}
     >> (pairself (exists I) o split_list)) (false, false);
@@ -761,7 +761,8 @@ val parse_wrap_options =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}
     "wrap an existing freely generated type's constructors"
-    ((parse_wrap_options -- (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) --
+    ((parse_wrap_free_constructors_options -- (@{keyword "["} |-- Parse.list Parse.term --|
+        @{keyword "]"}) --
       Parse.term -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
         Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))
      >> wrap_free_constructors_cmd);

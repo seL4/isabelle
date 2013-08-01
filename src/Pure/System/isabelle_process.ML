@@ -3,14 +3,6 @@
 
 Isabelle process wrapper, based on private fifos for maximum
 robustness and performance, or local socket for maximum portability.
-
-Startup phases:
-  - raw Posix process startup with uncontrolled output on stdout/stderr
-  - stderr \002: ML running
-  - stdin/stdout/stderr freely available (raw ML loop)
-  - protocol thread initialization
-  - rendezvous on system channel
-  - message INIT: channels ready
 *)
 
 signature ISABELLE_PROCESS =
@@ -41,7 +33,8 @@ val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 local
 
 val commands =
-  Synchronized.var "Isabelle_Process.commands" (Symtab.empty: (string list -> unit) Symtab.table);
+  Synchronized.var "Isabelle_Process.commands"
+    (Symtab.empty: (string list -> unit) Symtab.table);
 
 in
 
@@ -98,20 +91,7 @@ fun update_tracing () =
       end);
 
 
-(* message channels *)
-
-local
-
-fun chunk s = [string_of_int (size s), "\n", s];
-
-fun message do_flush msg_channel name raw_props body =
-  let
-    val robust_props = map (pairself YXML.embed_controls) raw_props;
-    val header = YXML.string_of (XML.Elem ((name, robust_props), []));
-    val msg = chunk header @ chunk body;
-  in Message_Channel.send msg_channel msg do_flush end;
-
-in
+(* output channels *)
 
 fun init_channels channel =
   let
@@ -120,10 +100,13 @@ fun init_channels channel =
 
     val msg_channel = Message_Channel.make channel;
 
+    fun message name props body =
+      Message_Channel.send msg_channel (Message_Channel.message name props body);
+
     fun standard_message opt_serial name body =
       if body = "" then ()
       else
-        message false msg_channel name
+        message name
           ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
             (Position.properties_of (Position.thread_data ()))) body;
   in
@@ -138,14 +121,12 @@ fun init_channels channel =
       (fn s => standard_message (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
       (fn (i, s) => standard_message (SOME i) Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message true msg_channel Markup.protocolN;
+    Output.Private_Hooks.protocol_message_fn := message Markup.protocolN;
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message true msg_channel Markup.initN [] (Session.welcome ());
+    message Markup.initN [] (Session.welcome ());
     msg_channel
   end;
-
-end;
 
 
 (* protocol loop -- uninterruptible *)
@@ -163,12 +144,14 @@ fun read_chunk channel len =
     val n =
       (case Int.fromString len of
         SOME n => n
-      | NONE => error ("Isabelle process: malformed chunk header " ^ quote len));
+      | NONE => error ("Isabelle process: malformed header " ^ quote len));
     val chunk = System_Channel.inputN channel n;
-    val m = size chunk;
+    val i = size chunk;
   in
-    if m = n then chunk
-    else error ("Isabelle process: bad chunk (" ^ string_of_int m ^ " vs. " ^ string_of_int n ^ ")")
+    if i <> n then
+      error ("Isabelle process: bad chunk (unexpected EOF after " ^
+        string_of_int i ^ " of " ^ string_of_int n ^ " bytes)")
+    else chunk
   end;
 
 fun read_command channel =
@@ -190,7 +173,7 @@ fun loop channel =
       | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
   in
     if continue then loop channel
-    else (Future.shutdown (); Goal.reset_futures (); ())
+    else (Future.shutdown (); Goal.reset_futures (); Execution.reset ())
   end;
 
 end;
@@ -220,20 +203,6 @@ val init = uninterruptible (fn _ => fn rendezvous =>
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
 fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
-
-
-(* options *)
-
-val _ =
-  protocol_command "Isabelle_Process.options"
-    (fn [options_yxml] =>
-      let val options = Options.decode (YXML.parse_body options_yxml) in
-        Options.set_default options;
-        Future.ML_statistics := true;
-        Multithreading.trace := Options.int options "threads_trace";
-        Multithreading.max_threads := Options.int options "threads";
-        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0)
-      end);
 
 end;
 

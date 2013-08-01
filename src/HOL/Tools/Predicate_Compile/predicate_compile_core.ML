@@ -1118,12 +1118,12 @@ fun create_definitions options preds (name, modes) thy =
         val ctxt' = Proof_Context.init_global thy'
         val rules as ((intro, elim), _) =
           create_intro_elim_rule ctxt' mode definition mode_cname funT (Const (name, T))
-        in thy'
+        in
+          thy'
           |> set_function_name Pred name mode mode_cname
           |> add_predfun_data name mode (definition, rules)
           |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "I"), intro) |> snd
           |> Global_Theory.store_thm (Binding.name (mode_cbasename ^ "E"), elim)  |> snd
-          |> Theory.checkpoint
         end;
   in
     thy |> defined_function_of Pred name |> fold create_definition modes
@@ -1366,8 +1366,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val _ = print_step options "Defining executable functions..."
     val thy'' =
       cond_timeit (Config.get ctxt Quickcheck.timing) "Defining executable functions..."
-      (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy'
-      |> Theory.checkpoint)
+      (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy')
     val ctxt'' = Proof_Context.init_global thy''
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
@@ -1388,7 +1387,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       fold (fn (name, result_thms) => fn thy => snd (Global_Theory.add_thmss
       [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
         [attrib])] thy))
-      result_thms' thy'' |> Theory.checkpoint)
+      result_thms' thy'')
   in
     thy'''
   end
@@ -1397,7 +1396,7 @@ fun gen_add_equations steps options names thy =
   let
     fun dest_steps (Steps s) = s
     val defined = defined_functions (Comp_Mod.compilation (#comp_modifiers (dest_steps steps)))
-    val thy' = extend_intro_graph names thy |> Theory.checkpoint;
+    val thy' = extend_intro_graph names thy;
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.restrict (member (op =) (Graph.all_succs gr keys)) gr)
     val scc = strong_conn_of (PredData.get thy') names
@@ -1414,7 +1413,7 @@ fun gen_add_equations steps options names thy =
             add_equations_of steps mode_analysis_options options preds thy
           end
         else thy)
-      scc thy'' |> Theory.checkpoint
+      scc thy''
   in thy''' end
 
 val add_equations = gen_add_equations

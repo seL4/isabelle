@@ -10,14 +10,14 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment, ScrollPane, Component,
-  BoxPanel, Orientation, RadioButton, ButtonGroup}
-import scala.swing.event.{ButtonClicked, MouseClicked}
+import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
+  ScrollPane, Component, CheckBox, BorderPanel}
+import scala.swing.event.{ButtonClicked, MouseClicked, MouseMoved}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D, Insets, Color}
+import java.awt.{BorderLayout, Graphics2D, Insets, Point, Dimension}
 import javax.swing.{JList, BorderFactory}
-import javax.swing.border.{BevelBorder, SoftBevelBorder, LineBorder}
+import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
 
@@ -28,10 +28,27 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val status = new ListView(Nil: List[Document.Node.Name]) {
     listenTo(mouse.clicks)
+    listenTo(mouse.moves)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
+      case MouseClicked(_, point, _, clicks, _) =>
         val index = peer.locationToIndex(point)
-        if (index >= 0) Hyperlink(listData(index).node).follow(view)
+        if (index >= 0) {
+          if (in_checkbox(peer.indexToLocation(index), point)) {
+            if (clicks == 1) {
+              for {
+                buffer <- JEdit_Lib.jedit_buffer(listData(index).node)
+                model <- PIDE.document_model(buffer)
+              } model.node_required = !model.node_required
+            }
+          }
+          else if (clicks == 2) Hyperlink(listData(index).node).follow(view)
+        }
+      case MouseMoved(_, point, _) =>
+        val index = peer.locationToIndex(point)
+        if (index >= 0 && in_checkbox(peer.indexToLocation(index), point))
+          tooltip = "Mark as required for continuous checking"
+        else
+          tooltip = null
     }
   }
   status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
@@ -55,77 +72,99 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     Swing_Thread.later { session_phase.text = " " + phase_text(phase) + " " }
   }
 
-  private val execution_range = new BoxPanel(Orientation.Horizontal) {
-    private def button(range: PIDE.Execution_Range.Value, tip: String): RadioButton =
-      new RadioButton(range.toString) {
-        tooltip = tip
-        reactions += { case ButtonClicked(_) => PIDE.update_execution_range(range) }
-      }
-    private val label =
-      new Label("Range:") { tooltip = "Execution range of continuous document processing" }
-    private val b1 = button(PIDE.Execution_Range.ALL, "Check all theories (potentially slow)")
-    private val b2 = button(PIDE.Execution_Range.NONE, "Check nothing")
-    private val b3 = button(PIDE.Execution_Range.VISIBLE, "Check visible parts of theories")
-    private val group = new ButtonGroup(b1, b2, b3)
-    contents ++= List(label, b1, b2, b3)
-    border = new LineBorder(Color.GRAY)
-
-    def load()
-    {
-      PIDE.execution_range() match {
-        case PIDE.Execution_Range.ALL => group.select(b1)
-        case PIDE.Execution_Range.NONE => group.select(b2)
-        case PIDE.Execution_Range.VISIBLE => group.select(b3)
-      }
-    }
+  private val continuous_checking = new CheckBox("Continuous checking") {
+    tooltip = "Continuous checking of proof document (visible and required parts)"
+    reactions += { case ButtonClicked(_) => Isabelle.continuous_checking = selected }
+    def load() { selected = Isabelle.continuous_checking }
     load()
   }
 
   private val logic = Isabelle_Logic.logic_selector(true)
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(execution_range, session_phase, logic)
+    new FlowPanel(FlowPanel.Alignment.Right)(continuous_checking, session_phase, logic)
   add(controls.peer, BorderLayout.NORTH)
 
 
   /* component state -- owned by Swing thread */
 
   private var nodes_status: Map[Document.Node.Name, Protocol.Node_Status] = Map.empty
+  private var nodes_required: Set[Document.Node.Name] = Set.empty
 
-  private object Node_Renderer_Component extends Label
+  private def update_nodes_required()
+  {
+    nodes_required = Set.empty
+    for {
+      buffer <- JEdit_Lib.jedit_buffers
+      model <- PIDE.document_model(buffer)
+      if model.node_required
+    } nodes_required += model.name
+  }
+
+  private def in_checkbox(loc0: Point, p: Point): Boolean =
+    Node_Renderer_Component != null &&
+      (Node_Renderer_Component.checkbox_geometry match {
+        case Some((loc, size)) =>
+          loc0.x + loc.x <= p.x && p.x < loc0.x + size.width &&
+          loc0.y + loc.y <= p.y && p.y < loc0.y + size.height
+        case None => false
+      })
+
+  private object Node_Renderer_Component extends BorderPanel
   {
     opaque = false
-    xAlignment = Alignment.Leading
-    border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
-    override def paintComponent(gfx: Graphics2D)
-    {
-      nodes_status.get(node_name) match {
-        case Some(st) if st.total > 0 =>
-          val colors = List(
-            (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
-            (st.running, PIDE.options.color_value("running_color")),
-            (st.warned, PIDE.options.color_value("warning_color")),
-            (st.failed, PIDE.options.color_value("error_color")))
 
-          val size = peer.getSize()
-          val insets = border.getBorderInsets(peer)
-          val w = size.width - insets.left - insets.right
-          val h = size.height - insets.top - insets.bottom
-          var end = size.width - insets.right
-
-          for { (n, color) <- colors }
-          {
-            gfx.setColor(color)
-            val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
-            gfx.fillRect(end - v, insets.top, v, h)
-            end = end - v - 1
-          }
-        case _ =>
+    var checkbox_geometry: Option[(Point, Dimension)] = None
+    val checkbox = new CheckBox {
+      opaque = false
+      override def paintComponent(gfx: Graphics2D)
+      {
+        super.paintComponent(gfx)
+        if (location != null && size != null)
+          checkbox_geometry = Some((location, size))
       }
-      super.paintComponent(gfx)
     }
+
+    val label = new Label {
+      opaque = false
+      xAlignment = Alignment.Leading
+
+      override def paintComponent(gfx: Graphics2D)
+      {
+        border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
+        val size = peer.getSize()
+        val insets = border.getBorderInsets(peer)
+        val w = size.width - insets.left - insets.right
+        val h = size.height - insets.top - insets.bottom
+
+        nodes_status.get(node_name) match {
+          case Some(st) if st.total > 0 =>
+            val colors = List(
+              (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+              (st.running, PIDE.options.color_value("running_color")),
+              (st.warned, PIDE.options.color_value("warning_color")),
+              (st.failed, PIDE.options.color_value("error_color")))
+
+            var end = size.width - insets.right
+            for { (n, color) <- colors }
+            {
+              gfx.setColor(color)
+              val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
+              gfx.fillRect(end - v, insets.top, v, h)
+              end = end - v - 1
+            }
+          case _ =>
+            gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
+            gfx.fillRect(insets.left, insets.top, w, h)
+        }
+        super.paintComponent(gfx)
+      }
+    }
+
+    layout(checkbox) = BorderPanel.Position.West
+    layout(label) = BorderPanel.Position.Center
   }
 
   private class Node_Renderer extends ListView.Renderer[Document.Node.Name]
@@ -135,7 +174,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     {
       val component = Node_Renderer_Component
       component.node_name = name
-      component.text = name.theory
+      component.checkbox.selected = nodes_required.contains(name)
+      component.label.text = name.theory
       component
     }
   }
@@ -175,8 +215,10 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
         case _: Session.Global_Options =>
           Swing_Thread.later {
-            execution_range.load()
+            continuous_checking.load()
             logic.load ()
+            update_nodes_required()
+            status.repaint()
           }
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))

@@ -119,7 +119,7 @@ class Session(val thy_load: Thy_Load)
   /* tuning parameters */
 
   def output_delay: Time = Time.seconds(0.1)  // prover output (markup, common messages)
-  def message_delay: Time = Time.seconds(0.01)  // incoming prover messages
+  def message_delay: Time = Time.seconds(0.1)  // prover input/output messages
   def prune_delay: Time = Time.seconds(60.0)  // prune history -- delete old versions
   def prune_size: Int = 0  // size of retained history
   def syslog_limit: Int = 100
@@ -260,7 +260,7 @@ class Session(val thy_load: Thy_Load)
     {
       private var buffer = new mutable.ListBuffer[Isabelle_Process.Message]
 
-      def flush(): Unit = synchronized {
+      private def flush(): Unit = synchronized {
         if (!buffer.isEmpty) {
           val msgs = buffer.toList
           this_actor ! Messages(msgs)
@@ -268,17 +268,20 @@ class Session(val thy_load: Thy_Load)
         }
       }
       def invoke(msg: Isabelle_Process.Message): Unit = synchronized {
-        buffer += msg
         msg match {
+          case _: Isabelle_Process.Input =>
+            buffer += msg
           case output: Isabelle_Process.Output =>
-            if (output.is_syslog)
-              syslog >> (queue =>
-                {
-                  val queue1 = queue.enqueue(output.message)
-                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-                })
-            if (output.is_protocol) flush()
-          case _ =>
+            if (output.is_protocol && output.properties == Markup.Flush) flush()
+            else {
+              buffer += msg
+              if (output.is_syslog)
+                syslog >> (queue =>
+                  {
+                    val queue1 = queue.enqueue(output.message)
+                    if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+                  })
+            }
         }
       }
 

@@ -311,17 +311,17 @@ object Thy_Syntax
       case (name, Document.Node.Edits(text_edits)) =>
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
-        val commands2 = recover_spans(syntax, name, node.perspective, commands1)
+        val commands2 = recover_spans(syntax, name, node.perspective._2, commands1)
         node.update_commands(commands2)
 
       case (_, Document.Node.Deps(_)) => node
 
-      case (name, Document.Node.Perspective(text_perspective)) =>
-        val perspective = command_perspective(node, text_perspective)
-        if (node.perspective same perspective) node
+      case (name, Document.Node.Perspective(required, text_perspective)) =>
+        val perspective = (required, command_perspective(node, text_perspective))
+        if (node.same_perspective(perspective)) node
         else
           node.update_perspective(perspective).update_commands(
-            consolidate_spans(syntax, reparse_limit, name, perspective, node.commands))
+            consolidate_spans(syntax, reparse_limit, name, perspective._2, node.commands))
     }
   }
 
@@ -353,8 +353,9 @@ object Thy_Syntax
           else node
         val node2 = (node1 /: edits)(text_edit(syntax, reparse_limit, _, _))
 
-        if (!(node.perspective same node2.perspective))
-          doc_edits += (name -> Document.Node.Perspective(node2.perspective))
+        if (!(node.same_perspective(node2.perspective)))
+          doc_edits +=
+            (name -> Document.Node.Perspective(node2.perspective._1, node2.perspective._2))
 
         doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
 

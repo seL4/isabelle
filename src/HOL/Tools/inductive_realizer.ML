@@ -298,7 +298,6 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       (map (fn (s, rs) => mk_realizes_eqn (not (member (op =) rsets s)) vs nparms rs) rss);
 
     val thy1' = thy1 |>
-      Theory.copy |>
       Sign.add_types_global
         (map (fn s => (Binding.name (Long_Name.base_name s), ar, NoSyn)) tnames) |>
       Extraction.add_typeof_eqns_i ty_eqs;

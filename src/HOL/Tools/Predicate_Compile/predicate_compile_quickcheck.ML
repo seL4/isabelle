@@ -224,7 +224,7 @@ fun cpu_time description e =
 fun compile_term compilation options ctxt t =
   let
     val t' = fold_rev absfree (Term.add_frees t []) t
-    val thy = Theory.copy (Proof_Context.theory_of ctxt)
+    val thy = Proof_Context.theory_of ctxt
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1

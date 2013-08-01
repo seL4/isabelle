@@ -35,8 +35,7 @@ struct
 val typ = Simple_Syntax.read_typ;
 
 val add_syntax =
-  Theory.copy
-  #> Sign.root_path
+  Sign.root_path
   #> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
   #> Sign.add_consts_i
       [(Binding.name "typeof", typ "'b => Type", NoSyn),

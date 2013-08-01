@@ -31,8 +31,8 @@ sig
   val mk_map_transfer_tac: thm -> thm -> thm list -> thm -> thm ->
     {prems: thm list, context: Proof.context} -> tactic
 
-  val mk_in_bd_tac: int -> thm -> thm -> thm -> thm list -> thm list -> thm -> thm -> thm -> thm ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_in_bd_tac: int -> thm -> thm -> thm -> thm -> thm list -> thm list -> thm -> thm -> thm ->
+    thm -> {prems: 'a, context: Proof.context} -> tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -232,7 +232,7 @@ fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp'
         REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
   end;
 
-fun mk_in_bd_tac live map_comp' map_id' map_cong0 set_map's set_bds
+fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp' map_id' map_cong0 set_map's set_bds
   bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero {context = ctxt, prems = _} =
   if live = 0 then
     rtac @{thm ordLeq_transitive[OF ordLeq_csum2[OF card_of_Card_order]
@@ -269,7 +269,7 @@ fun mk_in_bd_tac live map_comp' map_id' map_cong0 set_map's set_bds
         rtac @{thm ordLeq_refl[OF Card_order_cexp]}] 1 THEN
       unfold_thms_tac ctxt [bd_card_order RS @{thm card_order_csum_cone_cexp_def}] THEN
       unfold_thms_tac ctxt @{thms cprod_def Field_card_of} THEN
-      EVERY' [rtac (Drule.rotate_prems 1 ctrans), rtac @{thm surj_imp_ordLeq}, rtac subsetI,
+      EVERY' [rtac (Drule.rotate_prems 1 ctrans), rtac surj_imp_ordLeq_inst, rtac subsetI,
         Method.insert_tac inserts, REPEAT_DETERM o dtac meta_spec,
         REPEAT_DETERM o eresolve_tac [exE, Tactic.make_elim conjunct1], etac CollectE,
         if live = 1 then K all_tac
@@ -284,13 +284,14 @@ fun mk_in_bd_tac live map_comp' map_id' map_cong0 set_map's set_bds
         REPEAT_DETERM_N (2 * live) o atac,
         REPEAT_DETERM_N live o rtac (@{thm prod.cases} RS trans),
         rtac refl,
-        rtac @{thm surj_imp_ordLeq}, rtac subsetI, rtac @{thm image_eqI}, rtac sym,
-        rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
-           map_comp' RS sym, map_id']),
+        rtac @{thm surj_imp_ordLeq}, rtac subsetI, rtac (Drule.rotate_prems 1 @{thm image_eqI}),
         REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
         CONJ_WRAP' (fn thm =>
           rtac (thm RS ord_eq_le_trans) THEN' etac @{thm subset_trans[OF image_mono Un_upper1]})
-        set_map's] 1
+        set_map's,
+        rtac sym,
+        rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
+           map_comp' RS sym, map_id'])] 1
   end;
 
 end;

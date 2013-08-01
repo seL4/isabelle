@@ -276,11 +276,11 @@ end; (*local*)
 local
 
 type data = Any.T Datatab.table;
-fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory_ref) option);
+fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory) option);
 
 structure Code_Data = Theory_Data
 (
-  type T = spec * (data * theory_ref) option Synchronized.var;
+  type T = spec * (data * theory) option Synchronized.var;
   val empty = (make_spec (false, (Symtab.empty,
     (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
   val extend : T -> T = apsnd (K (empty_dataref ()));
@@ -320,7 +320,9 @@ fun conclude_history thy = if (history_concluded o the_exec) thy
         #> map_history_concluded (K true))
     |> SOME;
 
-val _ = Context.>> (Context.map_theory (Theory.at_begin continue_history #> Theory.at_end conclude_history));
+val _ =
+  Context.>> (Context.map_theory
+    (Theory.at_begin continue_history #> Theory.at_end conclude_history));
 
 
 (* access to data dependent on abstract executable code *)
@@ -328,17 +330,18 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin continue_history #> Theo
 fun change_yield_data (kind, mk, dest) theory f =
   let
     val dataref = (snd o Code_Data.get) theory;
-    val (datatab, thy_ref) = case Synchronized.value dataref
-     of SOME (datatab, thy_ref) => if Theory.eq_thy (theory, Theory.deref thy_ref)
-          then (datatab, thy_ref)
-          else (Datatab.empty, Theory.check_thy theory)
-      | NONE => (Datatab.empty, Theory.check_thy theory)
+    val (datatab, thy) = case Synchronized.value dataref
+     of SOME (datatab, thy) =>
+        if Theory.eq_thy (theory, thy)
+          then (datatab, thy)
+          else (Datatab.empty, theory)
+      | NONE => (Datatab.empty, theory)
     val data = case Datatab.lookup datatab kind
      of SOME data => data
       | NONE => invoke_init kind;
     val result as (_, data') = f (dest data);
     val _ = Synchronized.change dataref
-      ((K o SOME) (Datatab.update (kind, mk data') datatab, thy_ref));
+      ((K o SOME) (Datatab.update (kind, mk data') datatab, thy));
   in result end;
 
 end; (*local*)
@@ -1039,7 +1042,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
   let
     val thm = Thm.close_derivation raw_thm;
     val c = const_eqn thy thm;
-    fun update_subsume thy verbose (thm, proper) eqns = 
+    fun update_subsume verbose (thm, proper) eqns = 
       let
         val args_of = snd o take_prefix is_Var o rev o snd o strip_comb
           o map_types Type.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of;
@@ -1058,13 +1061,12 @@ fun gen_add_eqn default (raw_thm, proper) thy =
                 Display.string_of_thm_global thy thm') else (); true)
           else false;
       in (thm, proper) :: filter_out drop eqns end;
-    fun natural_order thy_ref eqns =
-      (eqns, Lazy.lazy (fn () => fold (update_subsume (Theory.deref thy_ref) false) eqns []))
-    fun add_eqn' true (Default (eqns, _)) =
-          Default (natural_order (Theory.check_thy thy) ((thm, proper) :: eqns))
+    fun natural_order eqns =
+      (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
+    fun add_eqn' true (Default (eqns, _)) = Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
       | add_eqn' true fun_spec = fun_spec
-      | add_eqn' false (Eqns eqns) = Eqns (update_subsume thy true (thm, proper) eqns)
+      | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec false c (add_eqn' default) thy end;
 
@@ -1152,7 +1154,6 @@ fun add_case thm thy =
       (K ((map o apsnd o apsnd) register_for_constructors));
   in
     thy
-    |> Theory.checkpoint
     |> `(fn thy => case_cong thy case_const entry)
     |-> (fn cong => map_exec_purge (register_case cong #> register_type))
   end;

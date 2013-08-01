@@ -408,7 +408,6 @@ fun gen_domain_isomorphism
 
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
-      Theory.copy |>
       Sign.add_types_global (map (fn (tvs, tbind, mx, _, _) =>
         (tbind, length tvs, mx)) doms_raw)
 

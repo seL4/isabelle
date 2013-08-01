@@ -3,6 +3,7 @@ Tutorials
   tutorial        Tutorial on Isabelle/HOL
   locales         Tutorial on Locales
   classes         Tutorial on Type Classes
+  datatypes       Tutorial on (Co)datatype Definitions
   functions       Tutorial on Function Definitions
   codegen         Tutorial on Code Generation
   nitpick         User's Guide to Nitpick

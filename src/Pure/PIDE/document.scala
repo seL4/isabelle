@@ -66,7 +66,8 @@ object Document
     case class Clear[A, B]() extends Edit[A, B]
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
-    case class Perspective[A, B](perspective: B) extends Edit[A, B]
+    case class Perspective[A, B](required: Boolean, perspective: B) extends Edit[A, B]
+    type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -86,7 +87,7 @@ object Document
 
   final class Node private(
     val header: Node.Header = Node.bad_header("Bad theory header"),
-    val perspective: Command.Perspective = Command.Perspective.empty,
+    val perspective: (Boolean, Command.Perspective) = (false, Command.Perspective.empty),
     val commands: Linear_Set[Command] = Linear_Set.empty)
   {
     def clear: Node = new Node(header = header)
@@ -94,8 +95,11 @@ object Document
     def update_header(new_header: Node.Header): Node =
       new Node(new_header, perspective, commands)
 
-    def update_perspective(new_perspective: Command.Perspective): Node =
+    def update_perspective(new_perspective: (Boolean, Command.Perspective)): Node =
       new Node(header, new_perspective, commands)
+
+    def same_perspective(other: (Boolean, Command.Perspective)): Boolean =
+      perspective._1 == other._1 && (perspective._2 same other._2)
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       new Node(header, perspective, new_commands)

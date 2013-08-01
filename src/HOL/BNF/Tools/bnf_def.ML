@@ -1009,17 +1009,34 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         fun mk_in_bd () =
           let
+            val bdT = fst (dest_relT (fastype_of bnf_bd_As));
+            val bdTs = replicate live bdT;
+            val bd_bnfT = mk_bnf_T bdTs CA;
+            val surj_imp_ordLeq_inst = (if live = 0 then TrueI else
+              let
+                val ranTs = map (fn AT => mk_sumT (AT, HOLogic.unitT)) As';
+                val funTs = map (fn T => bdT --> T) ranTs;
+                val ran_bnfT = mk_bnf_T ranTs CA;
+                val (revTs, Ts) = `rev (bd_bnfT :: funTs);
+                val cTs = map (SOME o certifyT lthy) [ran_bnfT, Library.foldr1 HOLogic.mk_prodT Ts];
+                val tinst = fold (fn T => fn t => HOLogic.mk_split (Term.absdummy T t)) (tl revTs)
+                  (Term.absdummy (hd revTs) (Term.list_comb (mk_bnf_map bdTs ranTs,
+                    map Bound (live - 1 downto 0)) $ Bound live));
+                val cts = [NONE, SOME (certify lthy tinst)];
+              in
+                Drule.instantiate' cTs cts @{thm surj_imp_ordLeq}
+              end);
             val bd = mk_cexp
               (if live = 0 then ctwo
                 else mk_csum (Library.foldr1 (uncurry mk_csum) (map mk_card_of As)) ctwo)
-              (mk_csum bnf_bd_As (mk_card_of (HOLogic.mk_UNIV
-                (mk_bnf_T (replicate live (fst (dest_relT (fastype_of bnf_bd_As)))) CA))));
+              (mk_csum bnf_bd_As (mk_card_of (HOLogic.mk_UNIV bd_bnfT)));
             val in_bd_goal =
               fold_rev Logic.all As
                 (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd));
           in
             Goal.prove_sorry lthy [] [] in_bd_goal
-              (mk_in_bd_tac live (Lazy.force map_comp') (Lazy.force map_id') (#map_cong0 axioms)
+              (mk_in_bd_tac live surj_imp_ordLeq_inst
+                (Lazy.force map_comp') (Lazy.force map_id') (#map_cong0 axioms)
                 (map Lazy.force set_map') (#set_bd axioms) (#bd_card_order axioms)
                 bd_Card_order bd_Cinfinite bd_Cnotzero)
             |> Thm.close_derivation

@@ -41,7 +41,6 @@ fun add_proof_atom_consts names thy =
 
 fun add_proof_syntax thy =
   thy
-  |> Theory.copy
   |> Sign.root_path
   |> Sign.set_defsort []
   |> Sign.add_types_global [(Binding.name "proof", 0, NoSyn)]

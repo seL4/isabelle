@@ -566,7 +566,6 @@ fun instantiation (tycos, vs, sort) thy =
       | NONE => NONE);
   in
     thy
-    |> Theory.checkpoint
     |> Proof_Context.init_global
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs

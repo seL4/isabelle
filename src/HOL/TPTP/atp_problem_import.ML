@@ -57,7 +57,7 @@ fun read_tptp_file thy postproc file_name =
               ||> List.partition (has_role TPTP_Syntax.Role_Definition)
   in
     (map get_prop conjs, pairself (map get_prop) defs_and_nondefs,
-     thy |> Theory.checkpoint |> Proof_Context.init_global)
+     thy |> Proof_Context.init_global)
   end
 
 

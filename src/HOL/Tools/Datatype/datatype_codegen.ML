@@ -109,8 +109,7 @@ fun add_equality vs tycos thy =
     fun prefix tyco =
       Binding.qualify true (Long_Name.base_name tyco) o Binding.qualify true "eq" o Binding.name;
     fun add_eq_thms tyco =
-      Theory.checkpoint
-      #> `(fn thy => mk_eq_eqns thy tyco)
+      `(fn thy => mk_eq_eqns thy tyco)
       #-> (fn (thms, thm) =>
         Global_Theory.note_thmss Thm.lemmaK
           [((prefix tyco "refl", [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),

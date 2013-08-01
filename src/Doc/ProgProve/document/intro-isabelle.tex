@@ -51,7 +51,29 @@ The tutorial by Nipkow, Paulson and Wenzel~\cite{LNCS2283} (in its updated versi
 %This introduction to Isabelle has grown out of many years of teaching
 %Isabelle courses. 
 
-\ifsem\else
+\ifsem
+\subsection*{Getting Started with Isabelle}
+
+If you have not done so already, download and install Isabelle
+from \url{http://isabelle.in.tum.de}. You can start it by clicking
+on the application icon. This will launch Isabelle's
+user interface based on the text editor \concept{jedit}. Below you see
+a typical example snapshot of a jedit session. At this point we merely explain
+the layout of the window, not its contents.
+
+\begin{center}
+\includegraphics[width=\textwidth]{jedit.png}
+\end{center}
+The upper part of the window shows the input typed by the user, i.e.\ the
+gradually growing Isabelle text of definitions, theorems, proofs, etc.  The
+interface processes the user input automatically while it is typed, just like
+modern Java IDEs.  Isabelle's response to the user input is shown in the
+lower part of the window. You can examine the response to any input phrase
+by clicking on that phrase or by hovering over underlined text.
+
+This should suffice to get started with the jedit interface.
+Now you need to learn what to type into it.
+\else
 If you want to apply what you have learned about Isabelle we recommend you
 donwload and read the book
 \href{http://www.in.tum.de/~nipkow/Concrete/}{Concrete
@@ -64,6 +86,9 @@ also provide a set of \LaTeX-based slides for teaching \emph{Programming and
 Proving in Isabelle/HOL}.
 \fi
 
+\ifsem\else
 \paragraph{Acknowledgements}
-\ifsem We \else I \fi wish to thank the following people for their comments:
+I wish to thank the following people for their comments
+on this document:
 Florian Haftmann, Ren\'{e} Thiemann and Christian Sternagel.
+\fi

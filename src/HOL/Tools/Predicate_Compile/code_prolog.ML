@@ -941,7 +941,7 @@ fun values ctxt soln t_compr =
     val T = Sign.the_const_type (Proof_Context.theory_of ctxt) name
     val t = Const (name, T)
     val thy' =
-      Theory.copy (Proof_Context.theory_of ctxt)
+      Proof_Context.theory_of ctxt
       |> Predicate_Compile.preprocess preprocess_options t
     val ctxt' = Proof_Context.init_global thy'
     val _ = tracing "Generating prolog program..."
@@ -1020,7 +1020,7 @@ fun test_term ctxt (t, eval_terms) =
   let
     val t' = fold_rev absfree (Term.add_frees t []) t
     val options = code_options_of (Proof_Context.theory_of ctxt)
-    val thy = Theory.copy (Proof_Context.theory_of ctxt)
+    val thy = Proof_Context.theory_of ctxt
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1

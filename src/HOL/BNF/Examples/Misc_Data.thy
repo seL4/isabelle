@@ -150,6 +150,8 @@ and s7 = S71 s8 | S72 s5
 and s8 = S8 nat
 *)
 
+datatype_new 'a deadbar = DeadBar "'a \<Rightarrow> 'a"
+datatype_new 'a deadbar_option = DeadBarOption "'a option \<Rightarrow> 'a option"
 datatype_new ('a, 'b) bar = Bar "'b \<Rightarrow> 'a"
 datatype_new ('a, 'b, 'c, 'd) foo = Foo "'d + 'b \<Rightarrow> 'c + 'a"
 

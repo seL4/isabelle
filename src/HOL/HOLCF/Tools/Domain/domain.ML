@@ -68,7 +68,6 @@ fun gen_add_domain
 
     (* this theory is used just for parsing and error checking *)
     val tmp_thy = thy
-      |> Theory.copy
       |> fold (add_arity o thy_arity) dtnvs
 
     val dbinds : binding list =

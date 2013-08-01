@@ -35,6 +35,8 @@ object PIDE
   @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
 
+  def options_changed() { session.global_options.event(Session.Global_Options(options.value)) }
+
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
 
@@ -116,47 +118,22 @@ object PIDE
     }
   }
 
-
-  /* execution range */
-
-  object Execution_Range extends Enumeration {
-    val ALL = Value("all")
-    val NONE = Value("none")
-    val VISIBLE = Value("visible")
-  }
-
-  def execution_range(): Execution_Range.Value =
-    options.string("editor_execution_range") match {
-      case "all" => Execution_Range.ALL
-      case "none" => Execution_Range.NONE
-      case "visible" => Execution_Range.VISIBLE
-      case s => error("Bad value for option \"editor_execution_range\": " + quote(s))
-    }
-
-  def update_execution_range(range: Execution_Range.Value)
+  def flush_buffers()
   {
     Swing_Thread.require()
 
-    if (options.string("editor_execution_range") != range.toString) {
-      options.string("editor_execution_range") = range.toString
-      PIDE.session.global_options.event(Session.Global_Options(options.value))
-
-      PIDE.session.update(
-        (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
-          case (edits, buffer) =>
-            JEdit_Lib.buffer_lock(buffer) {
-              document_model(buffer) match {
-                case Some(model) => model.flushed_edits() ::: edits
-                case None => edits
-              }
+    session.update(
+      (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
+        case (edits, buffer) =>
+          JEdit_Lib.buffer_lock(buffer) {
+            document_model(buffer) match {
+              case Some(model) => model.flushed_edits() ::: edits
+              case None => edits
             }
-        }
-      )
-    }
+          }
+      }
+    )
   }
-
-  def execution_range_none(): Unit = update_execution_range(Execution_Range.NONE)
-  def execution_range_visible(): Unit = update_execution_range(Execution_Range.VISIBLE)
 }
 
 

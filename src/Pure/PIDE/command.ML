@@ -9,6 +9,7 @@ sig
   val read: (unit -> theory) -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
+  val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
@@ -46,9 +47,7 @@ fun memo_result (Memo v) =
   | Result res => Exn.release res);
 
 fun memo_finished (Memo v) =
-  (case Synchronized.value v of
-   Expr _ => false
- | Result _ => true);
+  (case Synchronized.value v of Expr _ => false | Result _ => true);
 
 fun memo_exec execution_id (Memo v) =
   Synchronized.timed_access v (K (SOME Time.zeroTime))
@@ -120,6 +119,7 @@ datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state mem
 
 fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = exec_id';
 
+fun eval_running (Eval {exec_id, ...}) = Execution.is_running_exec exec_id;
 fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
 
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;

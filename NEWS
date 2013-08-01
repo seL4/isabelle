@@ -43,11 +43,11 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* Execution range of continuous document processing may be set to
-"all", "none", "visible".  See also dockable window "Theories" or
-keyboard shortcuts "C-e BACK_SPACE" for "none", and "C-e SPACE" for
-"visible".  These declarative options supersede the old-style action
-buttons "Cancel" and "Check".
+* Improved "Theories" panel: Continuous checking of proof document
+(visible and required parts) may be controlled explicitly, using check
+box or shortcut "C+e ENTER".  Individual theory nodes may be marked
+explicitly as required and checked in full, using check box or
+shortcut "C+e SPACE".
 
 * Strictly monotonic document update, without premature cancelation of
 running transactions that are still needed: avoid reset/restart of
@@ -69,6 +69,12 @@ timing information.
 
 
 *** Pure ***
+
+* Type theory is now immutable, without any special treatment of
+drafts or linear updates (which could lead to "stale theory" errors in
+the past).  Discontinued obsolete operations like Theory.copy,
+Theory.checkpoint, and the auxiliary type theory_ref.  Minor
+INCOMPATIBILITY.
 
 * System option "proofs" has been discontinued.  Instead the global
 state of Proofterm.proofs is persistently compiled into logic images

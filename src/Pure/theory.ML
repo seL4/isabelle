@@ -12,13 +12,8 @@ sig
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val nodes_of: theory -> theory list
-  val check_thy: theory -> theory_ref
-  val deref: theory_ref -> theory
   val merge: theory * theory -> theory
-  val merge_refs: theory_ref * theory_ref -> theory_ref
   val merge_list: theory list -> theory
-  val checkpoint: theory -> theory
-  val copy: theory -> theory
   val requires: theory -> string -> string -> unit
   val get_markup: theory -> Markup.T
   val axiom_space: theory -> Name_Space.T
@@ -55,17 +50,10 @@ val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
 fun nodes_of thy = thy :: ancestors_of thy;
 
-val check_thy = Context.check_thy;
-val deref = Context.deref;
-
 val merge = Context.merge;
-val merge_refs = Context.merge_refs;
 
 fun merge_list [] = raise THEORY ("Empty merge of theories", [])
   | merge_list (thy :: thys) = Library.foldl merge (thy, thys);
-
-val checkpoint : theory -> theory = I;  (* FIXME dummy *)
-val copy : theory -> theory = I;  (* FIXME dummy *)
 
 fun requires thy name what =
   if exists (fn thy' => Context.theory_name thy' = name) (nodes_of thy) then ()

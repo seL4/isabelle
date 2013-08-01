@@ -8,7 +8,7 @@
 #   * DO NOT COPY this file into your ~/.isabelle directory!
 
 ###
-### JVM components (Scala or Java)
+### Isabelle/Scala
 ###
 
 ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5 -Xmax-classfile-name 130"
@@ -40,9 +40,6 @@ ISABELLE_PDFLATEX="pdflatex"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_MAKEINDEX="makeindex"
 ISABELLE_EPSTOPDF="epstopdf"
-
-# Paranoia setting for strange latex installations ...
-#unset TEXMF
 
 
 ###
@@ -106,10 +103,6 @@ esac
 
 # DVI file viewer (command-line to eval)
 DVI_VIEWER=xdvi
-#DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
-#DVI_VIEWER="xdvi -geometry 711x1005 -expert -s 7"
-#DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
-#DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 
 ###

@@ -80,24 +80,6 @@ text {* A \emph{theory} is a data container with explicit name and
   ancestor theories.  To this end, the system maintains a set of
   symbolic ``identification stamps'' within each theory.
 
-  In order to avoid the full-scale overhead of explicit sub-theory
-  identification of arbitrary intermediate stages, a theory is
-  switched into @{text "draft"} mode under certain circumstances.  A
-  draft theory acts like a linear type, where updates invalidate
-  earlier versions.  An invalidated draft is called \emph{stale}.
-
-  The @{text "checkpoint"} operation produces a safe stepping stone
-  that will survive the next update without becoming stale: both the
-  old and the new theory remain valid and are related by the
-  sub-theory relation.  Checkpointing essentially recovers purely
-  functional theory values, at the expense of some extra internal
-  bookkeeping.
-
-  The @{text "copy"} operation produces an auxiliary version that has
-  the same data content, but is unrelated to the original: updates of
-  the copy do not affect the original, neither does the sub-theory
-  relation hold.
-
   The @{text "merge"} operation produces the least upper bound of two
   theories, which actually degenerates into absorption of one theory
   into the other (according to the nominal sub-theory relation).
@@ -110,10 +92,8 @@ text {* A \emph{theory} is a data container with explicit name and
   \medskip The example in \figref{fig:ex-theory} below shows a theory
   graph derived from @{text "Pure"}, with theory @{text "Length"}
   importing @{text "Nat"} and @{text "List"}.  The body of @{text
-  "Length"} consists of a sequence of updates, working mostly on
-  drafts internally, while transaction boundaries of Isar top-level
-  commands (\secref{sec:isar-toplevel}) are guaranteed to be safe
-  checkpoints.
+  "Length"} consists of a sequence of updates, resulting in locally a
+  linear sub-theory relation for each intermediate step.
 
   \begin{figure}[htb]
   \begin{center}
@@ -125,12 +105,7 @@ text {* A \emph{theory} is a data container with explicit name and
   @{text "Nat"} &    &              &            & @{text "List"} \\
         & $\searrow$ &              & $\swarrow$ \\
         &            & @{text "Length"} \\
-        &            & \multicolumn{3}{l}{~~@{keyword "imports"}} \\
         &            & \multicolumn{3}{l}{~~@{keyword "begin"}} \\
-        &            & $\vdots$~~ \\
-        &            & @{text "\<bullet>"}~~ \\
-        &            & $\vdots$~~ \\
-        &            & @{text "\<bullet>"}~~ \\
         &            & $\vdots$~~ \\
         &            & \multicolumn{3}{l}{~~@{command "end"}} \\
   \end{tabular}
@@ -138,43 +113,25 @@ text {* A \emph{theory} is a data container with explicit name and
   \end{center}
   \end{figure}
 
-  \medskip There is a separate notion of \emph{theory reference} for
-  maintaining a live link to an evolving theory context: updates on
-  drafts are propagated automatically.  Dynamic updating stops when
-  the next @{text "checkpoint"} is reached.
-
-  Derived entities may store a theory reference in order to indicate
-  the formal context from which they are derived.  This implicitly
-  assumes monotonic reasoning, because the referenced context may
-  become larger without further notice.
-*}
+  \medskip Derived formal entities may retain a reference to the
+  background theory in order to indicate the formal context from which
+  they were produced.  This provides an immutable certificate of the
+  background theory.  *}
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type theory} \\
   @{index_ML Theory.eq_thy: "theory * theory -> bool"} \\
   @{index_ML Theory.subthy: "theory * theory -> bool"} \\
-  @{index_ML Theory.checkpoint: "theory -> theory"} \\
-  @{index_ML Theory.copy: "theory -> theory"} \\
   @{index_ML Theory.merge: "theory * theory -> theory"} \\
   @{index_ML Theory.begin_theory: "string * Position.T -> theory list -> theory"} \\
   @{index_ML Theory.parents_of: "theory -> theory list"} \\
   @{index_ML Theory.ancestors_of: "theory -> theory list"} \\
   \end{mldecls}
-  \begin{mldecls}
-  @{index_ML_type theory_ref} \\
-  @{index_ML Theory.deref: "theory_ref -> theory"} \\
-  @{index_ML Theory.check_thy: "theory -> theory_ref"} \\
-  \end{mldecls}
 
   \begin{description}
 
-  \item Type @{ML_type theory} represents theory contexts.  This is
-  essentially a linear type, with explicit runtime checking.
-  Primitive theory operations destroy the original version, which then
-  becomes ``stale''.  This can be prevented by explicit checkpointing,
-  which the system does at least at the boundary of toplevel command
-  transactions \secref{sec:isar-toplevel}.
+  \item Type @{ML_type theory} represents theory contexts.
 
   \item @{ML "Theory.eq_thy"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} check strict
   identity of two theories.
@@ -185,18 +142,9 @@ text %mlref {*
   (@{text "\<subseteq>"}) of the corresponding content (according to the
   semantics of the ML modules that implement the data).
 
-  \item @{ML "Theory.checkpoint"}~@{text "thy"} produces a safe
-  stepping stone in the linear development of @{text "thy"}.  This
-  changes the old theory, but the next update will result in two
-  related, valid theories.
-
-  \item @{ML "Theory.copy"}~@{text "thy"} produces a variant of @{text
-  "thy"} with the same data.  The copy is not related to the original,
-  but the original is unchanged.
-
   \item @{ML "Theory.merge"}~@{text "(thy\<^sub>1, thy\<^sub>2)"} absorbs one theory
-  into the other, without changing @{text "thy\<^sub>1"} or @{text "thy\<^sub>2"}.
-  This version of ad-hoc theory merge fails for unrelated theories!
+  into the other.  This version of ad-hoc theory merge fails for
+  unrelated theories!
 
   \item @{ML "Theory.begin_theory"}~@{text "name parents"} constructs
   a new theory based on the given parents.  This ML function is
@@ -207,18 +155,6 @@ text %mlref {*
 
   \item @{ML "Theory.ancestors_of"}~@{text "thy"} returns all
   ancestors of @{text thy} (not including @{text thy} itself).
-
-  \item Type @{ML_type theory_ref} represents a sliding reference to
-  an always valid theory; updates on the original are propagated
-  automatically.
-
-  \item @{ML "Theory.deref"}~@{text "thy_ref"} turns a @{ML_type
-  "theory_ref"} into an @{ML_type "theory"} value.  As the referenced
-  theory evolves monotonically over time, later invocations of @{ML
-  "Theory.deref"} may refer to a larger context.
-
-  \item @{ML "Theory.check_thy"}~@{text "thy"} produces a @{ML_type
-  "theory_ref"} from a valid @{ML_type "theory"} value.
 
   \end{description}
 *}
@@ -254,13 +190,11 @@ text %mlantiq {*
 
 subsection {* Proof context \label{sec:context-proof} *}
 
-text {* A proof context is a container for pure data with a
-  back-reference to the theory from which it is derived.  The @{text
-  "init"} operation creates a proof context from a given theory.
-  Modifications to draft theories are propagated to the proof context
-  as usual, but there is also an explicit @{text "transfer"} operation
-  to force resynchronization with more substantial updates to the
-  underlying theory.
+text {* A proof context is a container for pure data that refers to
+  the theory from which it is derived. The @{text "init"} operation
+  creates a proof context from a given theory. There is an explicit
+  @{text "transfer"} operation to force resynchronization with updates
+  to the background theory -- this is rarely required in practice.
 
   Entities derived in a proof context need to record logical
   requirements explicitly, since there is no separate context
@@ -293,15 +227,12 @@ text %mlref {*
   \begin{description}
 
   \item Type @{ML_type Proof.context} represents proof contexts.
-  Elements of this type are essentially pure values, with a sliding
-  reference to the background theory.
 
-  \item @{ML Proof_Context.init_global}~@{text "thy"} produces a proof context
-  derived from @{text "thy"}, initializing all data.
+  \item @{ML Proof_Context.init_global}~@{text "thy"} produces a proof
+  context derived from @{text "thy"}, initializing all data.
 
   \item @{ML Proof_Context.theory_of}~@{text "ctxt"} selects the
-  background theory from @{text "ctxt"}, dereferencing its internal
-  @{ML_type theory_ref}.
+  background theory from @{text "ctxt"}.
 
   \item @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
   background theory of @{text "ctxt"} to the super theory @{text

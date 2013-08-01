@@ -135,7 +135,7 @@ val fp_sugar_of = Symtab.lookup o Data.get o Context.Proof;
 
 fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
+    (fn phi => Data.map (Symtab.default (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars fp pre_bnfs nested_bnfs (fp_res as {Ts, ...}) ctr_defss ctr_sugars co_iterss
     co_inducts co_iter_thmsss lthy =
@@ -995,7 +995,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       Sign.add_type no_defs_lthy (type_binding_of spec,
         length (type_args_named_constrained_of spec), mixfix_of spec);
 
-    val fake_thy = Theory.copy #> fold add_fake_type specs;
+    val fake_thy = fold add_fake_type specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
 
     fun mk_fake_T b =
@@ -1464,7 +1464,7 @@ val parse_spec =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
   Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
 
-val parse_co_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
+val parse_co_datatype = parse_wrap_free_constructors_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 

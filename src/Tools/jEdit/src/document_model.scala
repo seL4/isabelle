@@ -79,20 +79,33 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* perspective */
 
-  def node_perspective(): Text.Perspective =
+  private var _node_required = false
+  def node_required: Boolean = _node_required
+  def node_required_=(b: Boolean)
+  {
+    Swing_Thread.require()
+    if (_node_required != b) {
+      _node_required = b
+      PIDE.options_changed()
+      PIDE.flush_buffers()
+    }
+  }
+
+  def node_perspective(): Document.Node.Perspective_Text =
   {
     Swing_Thread.require()
 
-    PIDE.execution_range() match {
-      case PIDE.Execution_Range.ALL => Text.Perspective.full
-      case PIDE.Execution_Range.NONE => Text.Perspective.empty
-      case PIDE.Execution_Range.VISIBLE =>
-        Text.Perspective(
+    val perspective =
+      if (Isabelle.continuous_checking) {
+        (node_required, Text.Perspective(
           for {
             doc_view <- PIDE.document_views(buffer)
             range <- doc_view.perspective().ranges
-          } yield range)
-    }
+          } yield range))
+      }
+      else (false, Text.Perspective.empty)
+
+    Document.Node.Perspective(perspective._1, perspective._2)
   }
 
 
@@ -101,6 +114,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def init_edits(): List[Document.Edit_Text] =
   {
     Swing_Thread.require()
+
     val header = node_header()
     val text = JEdit_Lib.buffer_text(buffer)
     val perspective = node_perspective()
@@ -108,18 +122,19 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     List(session.header_edit(name, header),
       name -> Document.Node.Clear(),
       name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
-      name -> Document.Node.Perspective(perspective))
+      name -> perspective)
   }
 
-  def node_edits(perspective: Text.Perspective, text_edits: List[Text.Edit])
+  def node_edits(perspective: Document.Node.Perspective_Text, text_edits: List[Text.Edit])
     : List[Document.Edit_Text] =
   {
     Swing_Thread.require()
+
     val header = node_header()
 
     List(session.header_edit(name, header),
       name -> Document.Node.Edits(text_edits),
-      name -> Document.Node.Perspective(perspective))
+      name -> perspective)
   }
 
 
@@ -128,7 +143,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var last_perspective: Text.Perspective = Text.Perspective.empty
+    private var last_perspective: Document.Node.Perspective_Text =
+      Document.Node.Perspective(node_required, Text.Perspective.empty)
 
     def snapshot(): List[Text.Edit] = pending.toList
 
