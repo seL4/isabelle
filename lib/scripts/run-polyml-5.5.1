@@ -71,6 +71,7 @@ else
     FEEDER_OPTS=""
   else
     FEEDER_OPTS="-q"
+    ML_OPTIONS="$ML_OPTIONS --error-exit"
   fi
   "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
     { read FPID; "$POLY" -q -i $ML_OPTIONS; RC="$?"; kill -TERM "$FPID"; exit "$RC"; }
