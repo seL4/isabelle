@@ -7,7 +7,6 @@ subsection "Simple folding of arithmetic expressions"
 type_synonym
   tab = "vname \<Rightarrow> val option"
 
-(* maybe better as the composition of substitution and the existing simp_const(0) *)
 fun afold :: "aexp \<Rightarrow> tab \<Rightarrow> aexp" where
 "afold (N n) _ = N n" |
 "afold (V x) t = (case t x of None \<Rightarrow> V x | Some k \<Rightarrow> N k)" |
@@ -198,14 +197,11 @@ lemma approx_empty [simp]:
   "approx empty = (\<lambda>_. True)"
   by (auto simp: approx_def)
 
-lemma equiv_sym:
-  "c \<sim> c' \<longleftrightarrow> c' \<sim> c"
-  by (auto simp add: equiv_def)
 
 theorem constant_folding_equiv:
   "fold c empty \<sim> c"
   using approx_eq [of empty c]
-  by (simp add: equiv_up_to_True equiv_sym)
+  by (simp add: equiv_up_to_True sim_sym)
 
 
 
@@ -386,7 +382,7 @@ qed
 theorem constant_folding_equiv':
   "fold' c empty \<sim> c"
   using fold'_equiv [of empty c]
-  by (simp add: equiv_up_to_True equiv_sym)
+  by (simp add: equiv_up_to_True sim_sym)
 
 
 end
