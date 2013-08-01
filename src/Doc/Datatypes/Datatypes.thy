@@ -69,6 +69,7 @@ without launching jEdit:
 text {*
 \noindent
 \ \ \ \ \texttt{isabelle jedit -l HOL-BNF} \\
+\noindent
 \ \ \ \ \texttt{isabelle build -b HOL-BNF}
 *}
 
@@ -142,12 +143,13 @@ the tool or the manual should be directed to the authors at
 \begin{framed}
 \noindent
 \textbf{Warning:} This document is under heavy construction. Please apologise
-for its appearance and come back in a few months.
+for its appearance and come back in a few months. If you have ideas regarding
+material that should be included, please let the authors know.
 \end{framed}
 
 *}
 
-section {* Defining Datatypes%
+section {* Defining Datatypes
   \label{sec:defining-datatypes} *}
 
 text {*
@@ -264,14 +266,14 @@ subsubsection {* Auxiliary Constants and Syntaxes *}
 text {*
 The @{command datatype_new} command introduces various constants in addition to the
 constructors. Given a type @{text "('a1,\<dots>,'aM) t"} with constructors
-@{text t.C1}, \ldots, @{text t.C}$\!M,$ the following auxiliary constants are
-introduced (among others):
+@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>m"}, the following auxiliary
+constants are introduced (among others):
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \emph{Set functions} (\emph{natural transformations}): @{text t_set1},
-\ldots, @{text t_set}$M$
+\item \emph{Set functions} (\emph{natural transformations}):
+@{text t_set1}, \ldots, @{text t_setM}
 
 \item \emph{Map function} (\emph{functorial action}): @{text t_map}
 
@@ -281,15 +283,16 @@ introduced (among others):
 
 \item \emph{Recursor}: @{text t_rec}
 
-\item \emph{Discriminators}: @{text t.is_C1}, \ldots, @{text t.is_C}$\!M$
+\item \emph{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
+@{text "t.is_C\<^sub>m"}
 
 \item \emph{Selectors}:
-@{text t.un_C11}, \ldots, @{text t.un_C1}$k_1$, \ldots,
-@{text t.un_C}$\!M$@{text 1}, \ldots, @{text t.un_C}$\!Mk_M$
+@{text t.un_C}$_{11}$, \ldots, @{text t.un_C}$_{1n_1}$, \ldots,
+@{text t.un_C}$_{m1}$, \ldots, @{text t.un_C}$_{mn_m}$
 \end{itemize}
 
-The discriminators and selectors are collectively called \emph{destructors}.
-The @{text "t."} prefix is optional.
+The discriminators and selectors are collectively called \emph{destructors}. The
+@{text "t."} prefix is an optional component of the name and is normally hidden.
 
 The set functions, map function, relator, discriminators, and selectors can be
 given custom names, as in the example below:
@@ -339,21 +342,18 @@ The usual mixfix syntaxes are available for both types and constructors. For exa
     | Cons (hd: 'a) (tl: "'a list_") (infixr "#" 65)
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{datatype-general-syntax} *}
 
 text {*
 Datatype definitions have the following general syntax:
 
 @{rail "
-  @@{command datatype_new} ('(' (@{syntax dt_option} + ',') ')')? \\
+  @@{command datatype_new} ('(' ((@'no_dests' | @'rep_compat') + ',') ')')? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
 "}
 
-Two options are supported:
-
-@{rail "
-  @{syntax_def dt_option}: @'no_dests' | @'rep_compat'
-"}
+Two general options are supported:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -369,54 +369,71 @@ components to prevent clashes with a later call to @{command rep_datatype}. See
 Section~\ref{ssec:datatype-compatibility-issues} for details.
 \end{itemize}
 
-Left-hand sides specify the name of the type to define, its type parameters,
-and more:
+The left-hand sides of the datatype equations specify the name of the type to
+define, its type parameters, and optional additional information:
 
 @{rail "
-  @{syntax_def dt_name}: @{syntax type_params}? @{syntax name} \\
+  @{syntax_def dt_name}: @{syntax tyargs}? @{syntax name}
     @{syntax map_rel}? @{syntax mixfix}?
   ;
-  @{syntax_def type_params}: @{syntax typefree} | '(' ((@{syntax name} ':')? @{syntax typefree} + ',') ')'
+  @{syntax_def tyargs}: @{syntax typefree} | '(' ((@{syntax name} ':')? @{syntax typefree} + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' @{syntax name}) +) ')'
 "}
 
-@{syntax name} specifies the type name ...
+\noindent
+The syntactic quantity @{syntax name} denotes an identifier, @{syntax typefree}
+denotes fixed type variable (@{typ 'a}, @{typ 'b}, \ldots), and @{syntax
+mixfix} denotes the usual parenthesized mixfix notation. They are documented in
+the Isar reference manual \cite{isabelle-isar-ref}.
 
-@{syntax typefree} is type variable ('a, 'b, \ldots)
-The names are for the set functions.
-
-Additional constraint: All mutually recursive datatypes defined together must
-specify the same type variables in the same order.
-
-@{syntax mixfix} is the usual parenthesized mixfix notation, documented in the
-Isar reference manual \cite{isabelle-isar-ref}.
+The optional names preceding the type variables allow to override the default
+names of the set functions (@{text t_set1}, \ldots, @{text t_setM}).
+Inside a mutually recursive datatype specification, all defined datatypes must
+specify exactly the same type variables in the same order.
 
 @{rail "
   @{syntax_def ctor}: (@{syntax name} ':')? @{syntax name} (@{syntax ctor_arg} *) \\
     @{syntax sel_defaults}? @{syntax mixfix}?
 "}
 
-
-First, optional name: discriminator. Second, mandatory name: name of
-constructor. Default names for discriminators are generated.
+\noindent
+The main constituents of a constructor specification is the name of the
+constructor and the list of its argument types. An optional discriminator name
+can be supplied at the front to override the default name
+(@{text t.un_C}$_{ij}$).
 
 @{rail "
   @{syntax_def ctor_arg}: @{syntax type} | '(' (@{syntax name} ':')? @{syntax type} ')'
-  ;
+"}
+
+\noindent
+In addition to the type of a constructor argument, it is possible to specify a
+name for the corresponding selector to override the default name
+(@{text t.un_C}$_{ij}$). The same selector names can be reused for several
+constructors as long as they have the same type.
+
+@{rail "
   @{syntax_def sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} *) ')'
 "}
-*}
 
+\noindent
+Given a constructor
+@{text "C \<Colon> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<sigma>"},
+default values can be specified for any selector
+@{text "un_D \<Colon> \<sigma> \<Rightarrow> \<tau>"}
+associated with other constructors. The specified default value must have type
+@{text "\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
+(i.e., it may dependend on @{text C}'s arguments).
+*}
 
 subsection {* Characteristic Theorems *}
 
-
-subsection {* Compatibility Issues%
+subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
 
 
-section {* Defining Recursive Functions%
+section {* Defining Recursive Functions
   \label{sec:defining-recursive-functions} *}
 
 text {*
@@ -436,16 +453,80 @@ More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{primrec-general-syntax} *}
 
 
 subsection {* Characteristic Theorems *}
 
 
+subsection {* Recursive Default Values
+  \label{ssec:recursive-default-values} *}
+
+text {*
+A datatype selector @{text un_D} can have a default value for each constructor
+on which it is not otherwise specified. Occasionally, it is useful to have the
+default value be defined recursively. This produces a chicken-and-egg situation
+that appears unsolvable, because the datatype is not introduced yet at the
+moment when the selectors are introduced. Of course, we can always define the
+selectors manually afterward, but we then have to state and prove all the
+characteristic theorems ourselves instead of letting the package do it.
+
+Fortunately, there is a fairly elegant workaround that relies on overloading and
+that avoids the tedium of manual derivations:
+
+\begin{enumerate}
+\setlength{\itemsep}{0pt}
+
+\item
+Introduce a fully unspecified constant @{text "un_D\<^sub>0 \<Colon> 'a"} using
+@{keyword consts}.
+
+\item
+Define the datatype, specifying @{text "un_D\<^sub>0"} as the selector's default value.
+
+\item
+Define the behavior of @{text "un_D\<^sub>0"} on values of the newly introduced datatype
+using the @{command overloading} command.
+
+\item
+Derive the desired equation on @{text un_D} from the characteristic equations
+for @{text "un_D\<^sub>0"}.
+\end{enumerate}
+
+The following example illustrates this procedure:
+*}
+
+    consts termi\<^sub>0 :: 'a
+
+    datatype_new (*<*)(rep_compat) (*>*)('a, 'b) tlist_ =
+      TNil (termi: 'b) (defaults ttl: TNil)
+    | TCons (thd: 'a) (ttl : "('a, 'b) tlist_") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
+
+(*<*)
+    rep_datatype TNil TCons
+    by (erule tlist_.induct, assumption) auto
+(*>*)
+
+    overloading
+      termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist_ \<Rightarrow> 'b"
+    begin
+
+(*<*)(*FIXME: use primrec_new and avoid rep_datatype*)(*>*)
+    fun termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
+    "termi\<^sub>0 (TNil y) = y" |
+    "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
+
+    end
+
+    lemma terminal_TCons[simp]: "termi (TCons x xs) = termi xs"
+    by (cases xs) auto
+
+
 subsection {* Compatibility Issues *}
 
 
-section {* Defining Codatatypes%
+section {* Defining Codatatypes
   \label{sec:defining-codatatypes} *}
 
 text {*
@@ -461,16 +542,25 @@ More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{codatatype-general-syntax} *}
 
 text {*
-\keyw{no\_dests} is not available.
+Definitions of codatatypes have almost exactly the same syntax as for datatypes
+(Section \ref{ssec:datatype-general-syntax}), with two exceptions: The command
+is called @{command codatatype}; the \keyw{no\_dests} option is not
+available, because destructors are a central notion for codatatypes.
+
+@{rail "
+  @@{command codatatype} ('(' (@'rep_compat' + ',') ')')? \\
+    (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
+"}
 *}
 
 subsection {* Characteristic Theorems *}
 
 
-section {* Defining Corecursive Functions%
+section {* Defining Corecursive Functions
   \label{sec:defining-corecursive-functions} *}
 
 text {*
@@ -483,16 +573,20 @@ subsection {* Introductory Examples *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
+
+Also, for default values, the same trick as for datatypes is possible for
+codatatypes (Section~\ref{ssec:recursive-default-values}).
 *}
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{primcorec-general-syntax} *}
 
 
 subsection {* Characteristic Theorems *}
 
 
-section {* Registering Bounded Natural Functors%
+section {* Registering Bounded Natural Functors
   \label{sec:registering-bounded-natural-functors} *}
 
 text {*
@@ -513,10 +607,11 @@ mention =>.
 *}
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{bnf-general-syntax} *}
 
 
-section {* Generating Free Constructor Theorems%
+section {* Generating Free Constructor Theorems
   \label{sec:generating-free-constructor-theorems} *}
 
 text {*
@@ -534,10 +629,11 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
 subsection {* Introductory Example *}
 
 
-subsection {* General Syntax *}
+subsection {* General Syntax
+  \label{ctors-general-syntax} *}
 
 
-section {* Standard ML Interface%
+section {* Standard ML Interface
   \label{sec:standard-ml-interface} *}
 
 text {*
@@ -545,7 +641,7 @@ This section describes the package's programmatic interface.
 *}
 
 
-section {* Interoperability%
+section {* Interoperability
   \label{sec:interoperability} *}
 
 text {*
@@ -570,7 +666,7 @@ subsection {* Nitpick *}
 subsection {* Nominal Isabelle *}
 
 
-section {* Known Bugs and Limitations%
+section {* Known Bugs and Limitations
   \label{sec:known-bugs-and-limitations} *}
 
 text {*
@@ -593,18 +689,17 @@ text {*
 *}
 
 
-section {* Acknowledgments%
+section {* Acknowledgments
   \label{sec:acknowledgments} *}
 
 text {*
-  * same people as usual
-    * Tobias Nipkow
-    * Makarius Wenzel
-    * Andreas Lochbihler
-    * Brian Huffman
-  * also:
-    * Stefan Milius
-    * Lutz Schr\"oder
+Tobias Nipkow and Makarius Wenzel have made this work possible. Andreas
+Lochbihler has provided lots of comments on earlier versions of the package,
+especially for the coinductive part. Brian Huffman suggested major
+simplifications to the internal constructions, much of which has yet to be
+implemented. Stefan Milius and Lutz Schr\"oder suggested an elegant prove to
+eliminate one of the BNF assumptions. Florian Haftmann and Christian Urban gave
+advice on Isabelle and package writing.
 *}
 
 end
