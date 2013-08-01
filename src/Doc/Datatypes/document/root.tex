@@ -10,6 +10,8 @@
 \usepackage{isabellesym}
 \usepackage{style}
 \usepackage{pdfsetup}
+\usepackage{railsetup}
+\usepackage{framed}
 
 \newbox\boxA
 \setbox\boxA=\hbox{\ }
@@ -17,7 +19,7 @@
 
 \newcommand{\cmd}[1]{\isacommand{#1}}
 
-\def\isacharprime{\isamath{{'}\mskip-2mu}}
+\renewcommand{\isacharprime}{\isamath{{'}\mskip-2mu}}
 \renewcommand{\isacharunderscore}{\mbox{\_}}
 \renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
 \renewcommand{\isachardoublequote}{\mbox{\upshape{``}}}

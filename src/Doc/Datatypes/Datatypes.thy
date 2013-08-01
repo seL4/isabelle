@@ -5,8 +5,9 @@ Tutorial for (co)datatype definitions with the new package.
 *)
 
 theory Datatypes
-imports BNF
+imports Setup BNF
 begin
+
 
 section {* Introduction *}
 
@@ -14,7 +15,7 @@ text {*
 The 2013 edition of Isabelle introduced new definitional package for datatypes
 and codatatypes. The datatype support is similar to that provided by the earlier
 package due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL};
-indeed, replacing \cmd{datatype} by \cmd{datatype\_new} is usually sufficient
+indeed, replacing @{command datatype} by @{command datatype_new} is usually sufficient
 to port existing specifications to the new package. What makes the new package
 attractive is that it supports definitions with recursion through a large class
 of non-datatypes, notably finite sets:
@@ -35,21 +36,10 @@ Another advantage of the new package is that it supports local definitions:
 text {*
 \noindent
 Finally, the package also provides some convenience, notably automatically
-generated destructors. For example, the command
-*}
+generated destructors.
 
-(*<*)hide_const Nil Cons hd tl(*>*)
-    datatype_new 'a list = null: Nil | Cons (hd: 'a) (tl: "'a list")
-
-text {*
-\noindent
-introduces a discriminator @{const null} and a pair of selectors @{const hd} and
-@{const tl} characterized as follows:
-%
-\[@{thm list.collapse(1)[no_vars]}\qquad @{thm list.collapse(2)[no_vars]}\]
-
-The command \cmd{datatype\_new} is expected to displace \cmd{datatype} in a future
-release. Authors of new theories are encouraged to use \cmd{datatype\_new}, and
+The command @{command datatype_new} is expected to displace @{command datatype} in a future
+release. Authors of new theories are encouraged to use @{command datatype_new}, and
 maintainers of older theories may want to consider upgrading in the coming months.
 
 The package also provides codatatypes (or ``coinductive datatypes''), which may
@@ -98,15 +88,17 @@ text {*
 This tutorial is organized as follows:
 
 \begin{itemize}
+\setlength{\itemsep}{0pt}
+
 \item Section \ref{sec:defining-datatypes}, ``Defining Datatypes,''
-describes how to specify datatypes using the \cmd{datatype\_new} command.
+describes how to specify datatypes using the @{command datatype_new} command.
 
 \item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive 
 Functions,'' describes how to specify recursive functions using
-\cmd{primrec\_new}, \cmd{fun}, and \cmd{function}.
+\cmd{primrec\_new}, @{command fun}, and @{command function}.
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
-describes how to specify codatatypes using the \cmd{codatatype} command.
+describes how to specify codatatypes using the @{command codatatype} command.
 
 \item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive 
 Functions,'' describes how to specify corecursive functions using the
@@ -118,8 +110,8 @@ allow nested recursion through custom well-behaved type constructors.
 
 \item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free 
 Constructor Theorems,'' explains how to derive convenience theorems for free
-constructors, as performed internally by \cmd{datatype\_new} and
-\cmd{codatatype}.
+constructors, as performed internally by @{command datatype_new} and
+@{command codatatype}.
 
 \item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
 describes the package's programmatic interface.
@@ -129,19 +121,41 @@ is concerned with the packages' interaction with other Isabelle packages and
 tools, such as the code generator and the counterexample generators.
 
 \item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and 
-Limitations,'' concludes with open issues.
+Limitations,'' concludes with known open issues at the time of writing.
 \end{itemize}
+
+
+\newbox\boxA
+\setbox\boxA=\hbox{\texttt{nospam}}
+
+\newcommand\authoremaili{\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremailii{\texttt{pope{\color{white}nospam}\kern-\wd\boxA{}scua@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+\newcommand\authoremailiii{\texttt{tray{\color{white}nospam}\kern-\wd\boxA{}tel@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+
+\noindent
+Comments and bug reports concerning either
+the tool or the manual should be directed to the authors at
+\authoremaili, \authoremailii, and \authoremailiii.
+
+\begin{framed}
+\noindent
+\textbf{Warning:} This document is under heavy construction. Please apologise
+for its appearance and come back in a few months.
+\end{framed}
+
 *}
 
 section {* Defining Datatypes%
   \label{sec:defining-datatypes} *}
 
 text {*
-This section describes how to specify datatypes using the \cmd{datatype\_new}
+This section describes how to specify datatypes using the @{command datatype_new}
 command. The command is first illustrated through concrete examples featuring
-different flavors of recursion. More examples are available in
-\verb|~~/src/HOL/BNF/Examples|. The syntax is largely modeled after that of the
-existing \cmd{datatype} command.
+different flavors of recursion. More examples can be found in the directory
+\verb|~~/src/HOL/BNF/Examples|.
 *}
 
 subsection {* Introductory Examples *}
@@ -245,11 +259,151 @@ of their type arguments.
 subsubsection {* Auxiliary Constants and Syntaxes *}
 
 text {*
-* destructors
-* also mention special syntaxes
+The @{command datatype_new} command introduces various constants in addition to the
+constructors. Given a type @{text "('a1,\<dots>,'aM) t"} with constructors
+@{text t.C1}, \ldots, @{text t.C}$\!M,$ the following auxiliary constants are
+introduced (among others):
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item \emph{Set functions} (\emph{natural transformations}): @{text t_set1},
+\ldots, @{text t_set}$M$
+
+\item \emph{Map function} (\emph{functorial action}): @{text t_map}
+
+\item \emph{Relator}: @{text t_rel}
+
+\item \emph{Iterator}: @{text t_fold}
+
+\item \emph{Recursor}: @{text t_rec}
+
+\item \emph{Discriminators}: @{text t.is_C1}, \ldots, @{text t.is_C}$\!M$
+
+\item \emph{Selectors}:
+@{text t.un_C11}, \ldots, @{text t.un_C1}$k_1$, \ldots,
+@{text t.un_C}$\!M$@{text 1}, \ldots, @{text t.un_C}$\!Mk_M$
+\end{itemize}
+
+The discriminators and selectors are collectively called \emph{destructors}.
+The @{text "t."} prefix is optional.
+
+The set functions, map function, relator, discriminators, and selectors can be
+given custom names, as in the example below:
 *}
 
+(*<*)hide_const Nil Cons hd tl(*>*)
+    datatype_new (set: 'a) list (map: map rel: list_all2) =
+      null: Nil (defaults tl: Nil)
+    | Cons (hd: 'a) (tl: "'a list")
+
+text {*
+\noindent
+The command introduces a discriminator @{const null} and a pair of selectors
+@{const hd} and @{const tl} characterized as follows:
+%
+\[@{thm list.collapse(1)[of xs, no_vars]}
+  \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
+%
+For two-constructor datatypes, a single discriminator constant suffices. The
+discriminator associated with @{const Cons} is simply @{text "\<not> null"}.
+
+The \cmd{defaults} keyword following the @{const Nil} constructor specifies a
+default value for selectors associated with other constructors. Here, it is
+used to specify that the tail of the empty list is the empty list (instead of
+being unspecified).
+
+Because @{const Nil} is a nullary constructor, it is also possible to use @{text
+"= Nil"} as a discriminator. This is specified by specifying @{text "="} instead
+of the identifier @{const null} in the declaration above. Although this may look
+appealing, the mixture of constructors and selectors in the resulting
+characteristic theorems can lead Isabelle's automation to switch between the
+constructor and the destructor view in surprising ways.
+*}
+
+text {*
+The usual mixfix syntaxes are available for both types and constructors. For example:
+
+%%% FIXME: remove trailing underscore and use locale trick instead once this is
+%%% supported.
+*}
+
+    datatype_new ('a, 'b) prod (infixr "*" 20) =
+      Pair 'a 'b
+
+    datatype_new (set_: 'a) list_ =
+      null: Nil ("[]")
+    | Cons (hd: 'a) (tl: "'a list_") (infixr "#" 65)
+
 subsection {* General Syntax *}
+
+text {*
+Datatype definitions have the following general syntax:
+
+@{rail
+  "@@{command datatype_new} @{syntax flags}?"
+ }
+
+\noindent
+\ \ \ \ @{command datatype_new} [<flags>] @{text "\<langle>lhs\<rangle>"} @{text "="} @{text "\<langle>rhs\<rangle>"} \\
+\noindent
+\ \ \ \ \cmd{and} @{text "\<langle>lhs\<rangle>"} @{text "="} @{text "\<langle>rhs\<rangle>"} \\
+\noindent
+\ \ \ \ \quad$\vdots$ \\
+\noindent
+\ \ \ \ \cmd{and} @{text "\<langle>lhs\<rangle>"} @{text "="} @{text "\<langle>rhs\<rangle>"}
+
+<flags> ::= (<flag>, ..., <flag>) \\
+<flag> ::= no_dests | rep_compat
+
+Left-hand sides:
+
+<lhs> ::= [<type_params>] <name> [<map_rel>] [<mixfix>] \\
+
+<name> specifies the type name
+
+<type_params> ::= ([<name>:] <type_var>, \ldots, [<name>:] <type_var>)
+<type_params> ::= <type_var> \\
+
+The names are for the set functions.
+
+<type_var> is type variable ('a, 'b, \ldots)
+
+<map_rel> ::= ([map: <map_name>] [rel: <rel_name>])
+
+<mixfix> is the usual parenthesized mixfix notation
+
+Additional constraint: All mutually recursive datatypes defined together must
+specify the same type variables in the same order.
+
+<rhs> ::= <ctor> | ... | <ctor>
+
+<ctor> :: [<name>:] <name> <ctor_arg> [<defaults>] [<mixfix>]
+
+First, optional name: discriminator. Second, mandatory name: name of
+constructor. Default names for discriminators are generated.
+
+<ctor_arg> ::= ([<name>:] <type>) \\
+<ctor_arg> ::= <type>
+
+<defaults> ::= defaults (<name>: <term>)*
+
+\noindent
+Each left-hand side @{text "\<langle>lhsJ\<rangle>"} is of the form
+
+\noindent
+
+'a
+([set1:] 'a1, ..., [setM:] 'aN)
+
+
+Each right-hand side @{text "\<langle>rhsJ\<rangle>"} is of the form
+
+\ \ \ \ \cmd{and} (@{text 'a1}, \ldots, @{text 'aM}) @{text t1} @{text "="} @{text "\<langle>rhs1\<rangle>"}
+
+(@{text 'a1}, \ldots, @{text 'aM}) @{text t1}
+*}
+
 
 subsection {* Characteristic Theorems *}
 
@@ -261,10 +415,10 @@ section {* Defining Recursive Functions%
 
 text {*
 This describes how to specify recursive functions over datatypes
-specified using \cmd{datatype\_new}. The focus in on the \cmd{primrec\_new}
+specified using @{command datatype_new}. The focus in on the \cmd{primrec\_new}
 command, which supports primitive recursion. A few examples feature the
-\cmd{fun} and \cmd{function} commands, described in a separate tutorial  
-\cite{isabelle-function}.
+@{command fun} and @{command function} commands, described in a separate
+tutorial \cite{isabelle-function}.
 %%% TODO: partial_function?
 *}
 
@@ -285,7 +439,7 @@ section {* Defining Codatatypes%
   \label{sec:defining-codatatypes} *}
 
 text {*
-This section describes how to specify codatatypes using the \cmd{codatatype}
+This section describes how to specify codatatypes using the @{command codatatype}
 command.
 *}
 
@@ -346,13 +500,13 @@ section {* Generating Free Constructor Theorems%
 
 text {*
 This section explains how to derive convenience theorems for free constructors,
-as performed internally by \cmd{datatype\_new} and \cmd{codatatype}.
+as performed internally by @{command datatype_new} and @{command codatatype}.
 
   * need for this is rare but may arise if you want e.g. to add destructors to
     a type not introduced by ...
 
   * also useful for compatibility with old package, e.g. add destructors to
-    old \cmd{datatype}
+    old @{command datatype}
 *}
 
 subsection {* Introductory Example *}
@@ -405,6 +559,19 @@ text {*
 * partial documentation
 
 * too much output by commands like "datatype_new" and "codatatype"
+
+* no direct way to define recursive functions for default values -- but show trick
+  based on overloading
+*}
+
+
+section {* Acknowledgments%
+  \label{sec:acknowledgments} *}
+
+text {*
+  * same people as usual
+    * Brian Huffman
+  * Lutz Schr\"oder and Stefan Milius 
 *}
 
 end

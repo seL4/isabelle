@@ -39,6 +39,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
 
 session Datatypes (doc) in "Datatypes" = "HOL-BNF" +
   options [document_variants = "datatypes"]
+  theories [document = false] Setup
   theories Datatypes
   files
     "../prepare_document"
