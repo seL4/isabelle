@@ -8,16 +8,26 @@ theory Datatypes
 imports Setup
 begin
 
-section {* Introduction *}
+(*
+text {*
+
+  primrec_new <fixes>
+
+*}
+*)
+
+section {* Introduction
+  \label{sec:introduction} *}
 
 text {*
 The 2013 edition of Isabelle introduced new definitional package for datatypes
 and codatatypes. The datatype support is similar to that provided by the earlier
-package due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL};
-indeed, replacing @{command datatype} by @{command datatype_new} is usually sufficient
-to port existing specifications to the new package. What makes the new package
-attractive is that it supports definitions with recursion through a large class
-of non-datatypes, notably finite sets:
+package due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL},
+documented in the Isar reference manual \cite{isabelle-isar-ref};
+indeed, replacing @{command datatype} by @{command datatype_new} is usually
+sufficient to port existing specifications to the new package. What makes the
+new package attractive is that it supports definitions with recursion through a
+large class of non-datatypes, notably finite sets:
 *}
 
     datatype_new 'a treeFS = TreeFS 'a "'a treeFS fset"
@@ -70,7 +80,7 @@ text {*
 \noindent
 \ \ \ \ \texttt{isabelle jedit -l HOL-BNF} \\
 \noindent
-\ \ \ \ \texttt{isabelle build -b HOL-BNF}
+\hbox{}\ \ \ \ \texttt{isabelle build -b HOL-BNF}
 *}
 
 text {*
@@ -160,7 +170,8 @@ different flavors of recursion. More examples can be found in the directory
 *}
 
 
-subsection {* Introductory Examples *}
+subsection {* Introductory Examples
+  \label{ssec:datatype-introductory-examples} *}
 
 subsubsection {* Nonrecursive Types *}
 
@@ -168,7 +179,7 @@ text {*
 enumeration type:
 *}
 
-    datatype_new trool = Truue | Faalse | Maaybe
+    datatype_new trool = Truue | Faalse | Perhaaps
 
 text {*
 Haskell-style option type:
@@ -223,8 +234,8 @@ More complex, and more realistic, example:
     datatype_new ('a, 'b) expr =
       Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) expr"
     and ('a, 'b) trm =
-      Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
-    and ('a, 'b) factor =
+      Factor "('a, 'b) fact" | Prod "('a, 'b) fact" "('a, 'b) trm"
+    and ('a, 'b) fact =
       Const 'a | Var 'b | Sub_Expr "('a, 'b) expr"
 
 
@@ -343,17 +354,23 @@ The usual mixfix syntaxes are available for both types and constructors. For exa
 
 
 subsection {* General Syntax
-  \label{datatype-general-syntax} *}
+  \label{ssec:datatype-general-syntax} *}
 
 text {*
 Datatype definitions have the following general syntax:
 
 @{rail "
-  @@{command datatype_new} ('(' ((@'no_dests' | @'rep_compat') + ',') ')')? \\
+  @@{command datatype_new} @{syntax target}? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
+  ;
+  @{syntax_def dt_options}: '(' ((@'no_dests' | @'rep_compat') + ',') ')'
 "}
 
-Two general options are supported:
+The syntactic quantity @{syntax target} can be used to specify a local context
+(e.g., @{text "(in linorder)"}). It is documented in the Isar reference manual
+\cite{isabelle-isar-ref}.
+
+The optional target is followed by optional options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -404,7 +421,7 @@ can be supplied at the front to override the default name
 (@{text t.un_C}$_{ij}$).
 
 @{rail "
-  @{syntax_def ctor_arg}: @{syntax type} | '(' (@{syntax name} ':')? @{syntax type} ')'
+  @{syntax_def ctor_arg}: @{syntax type} | '(' @{syntax name} ':' @{syntax type} ')'
 "}
 
 \noindent
@@ -414,7 +431,7 @@ name for the corresponding selector to override the default name
 constructors as long as they have the same type.
 
 @{rail "
-  @{syntax_def sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} *) ')'
+  @{syntax_def sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} +) ')'
 "}
 
 \noindent
@@ -423,14 +440,67 @@ Given a constructor
 default values can be specified for any selector
 @{text "un_D \<Colon> \<sigma> \<Rightarrow> \<tau>"}
 associated with other constructors. The specified default value must have type
-@{text "\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
+@{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
 (i.e., it may dependend on @{text C}'s arguments).
 *}
 
-subsection {* Characteristic Theorems *}
+subsection {* Characteristic Theorems
+  \label{ssec:datatype-characteristic-theorems} *}
+
+text {*
+  * free ctor theorems
+    * case syntax
+
+  * per-type theorems
+    * sets, map, rel
+    * induct, fold, rec
+    * simps
+
+  * multi-type (``common'') theorems
+    * induct
+
+  * mention what is registered with which attribute
+    * and also nameless safes
+*}
+
 
 subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
+
+text {*
+  * main incompabilities between two packages
+    * differences in theorem names (e.g. singular vs. plural for some props?)
+    * differences in "simps"?
+    * different recursor/induction in nested case
+        * discussed in Section~\ref{sec:defining-recursive-functions}
+    * different ML interfaces / extension mechanisms
+
+  * register new datatype as old datatype
+    * motivation:
+      * do recursion through new datatype in old datatype
+        (e.g. useful when porting to the new package one type at a time)
+      * use old primrec
+      * use fun
+      * use extensions like size (needed for fun), the AFP order, Quickcheck,
+        Nitpick
+      * provide exactly the same theorems with the same names (compatibility)
+    * option 1
+      * \keyw{rep\_compat}
+      * \keyw{rep\_datatype}
+      * has some limitations
+        * mutually recursive datatypes? (fails with rep\_datatype?)
+        * nested datatypes? (fails with datatype\_new?)
+    * option 2
+      * \keyw{datatype\_compat}
+      * not fully implemented yet?
+
+  * register old datatype as new datatype
+    * no clean way yet
+    * if the goal is to do recursion through old datatypes, can register it as
+      a BNF (Section XXX)
+    * can also derive destructors etc. using @{command wrap_free_constructors}
+      (Section XXX)
+*}
 
 
 section {* Defining Recursive Functions
@@ -442,23 +512,52 @@ specified using @{command datatype_new}. The focus in on the \keyw{primrec\_new}
 command, which supports primitive recursion. A few examples feature the
 @{command fun} and @{command function} commands, described in a separate
 tutorial \cite{isabelle-function}.
+
 %%% TODO: partial_function?
 *}
-
-
-subsection {* Introductory Examples *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
+subsection {* Introductory Examples
+  \label{ssec:primrec-introductory-examples} *}
+
+subsubsection {* Nonrecursive Types *}
+
+
+subsubsection {* Simple Recursion *}
+
+
+subsubsection {* Mutual Recursion *}
+
+
+subsubsection {* Nested Recursion *}
+
+
+subsubsection {* Nested-as-Mutual Recursion *}
+
 
 subsection {* General Syntax
-  \label{primrec-general-syntax} *}
+  \label{ssec:primrec-general-syntax} *}
 
+text {*
 
-subsection {* Characteristic Theorems *}
+*}
 
+subsection {* Characteristic Theorems
+  \label{ssec:primrec-characteristic-theorems} *}
+
+text {*
+  * synthesized nonrecursive definition
+  * user specification is rederived from it, exactly as entered
+
+  * induct
+    * mutualized
+    * without some needless induction hypotheses if not used
+  * fold, rec
+    * mutualized
+*}
 
 subsection {* Recursive Default Values
   \label{ssec:recursive-default-values} *}
@@ -523,7 +622,18 @@ The following example illustrates this procedure:
     by (cases xs) auto
 
 
-subsection {* Compatibility Issues *}
+subsection {* Compatibility Issues
+  \label{ssec:datatype-compatibility-issues} *}
+
+text {*
+  * different induction in nested case
+    * solution: define nested-as-mutual functions with primrec,
+      and look at .induct
+
+  * different induction and recursor in nested case
+    * only matters to low-level users; they can define a dummy function to force
+      generation of mutualized recursor
+*}
 
 
 section {* Defining Codatatypes
@@ -535,7 +645,8 @@ command.
 *}
 
 
-subsection {* Introductory Examples *}
+subsection {* Introductory Examples
+  \label{ssec:codatatype-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
@@ -543,21 +654,17 @@ More examples in \verb|~~/src/HOL/BNF/Examples|.
 
 
 subsection {* General Syntax
-  \label{codatatype-general-syntax} *}
+  \label{ssec:codatatype-general-syntax} *}
 
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section \ref{ssec:datatype-general-syntax}), with two exceptions: The command
+(Section~\ref{ssec:datatype-general-syntax}), with two exceptions: The command
 is called @{command codatatype}; the \keyw{no\_dests} option is not
 available, because destructors are a central notion for codatatypes.
-
-@{rail "
-  @@{command codatatype} ('(' (@'rep_compat' + ',') ')')? \\
-    (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
-"}
 *}
 
-subsection {* Characteristic Theorems *}
+subsection {* Characteristic Theorems
+  \label{ssec:codatatype-characteristic-theorems} *}
 
 
 section {* Defining Corecursive Functions
@@ -566,10 +673,14 @@ section {* Defining Corecursive Functions
 text {*
 This section describes how to specify corecursive functions using the
 \keyw{primcorec} command.
+
+%%% TODO: partial_function? E.g. for defining tail recursive function on lazy
+%%% lists (cf. terminal0 in TLList.thy)
 *}
 
 
-subsection {* Introductory Examples *}
+subsection {* Introductory Examples
+  \label{ssec:primcorec-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
@@ -580,10 +691,11 @@ codatatypes (Section~\ref{ssec:recursive-default-values}).
 
 
 subsection {* General Syntax
-  \label{primcorec-general-syntax} *}
+  \label{ssec:primcorec-general-syntax} *}
 
 
-subsection {* Characteristic Theorems *}
+subsection {* Characteristic Theorems
+  \label{ssec:primcorec-characteristic-theorems} *}
 
 
 section {* Registering Bounded Natural Functors
@@ -596,7 +708,8 @@ of a bounded natural functor (BNF).
 *}
 
 
-subsection {* Introductory Example *}
+subsection {* Introductory Example
+  \label{ssec:bnf-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
@@ -608,7 +721,7 @@ mention =>.
 
 
 subsection {* General Syntax
-  \label{bnf-general-syntax} *}
+  \label{ssec:bnf-general-syntax} *}
 
 
 section {* Generating Free Constructor Theorems
@@ -626,11 +739,16 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
 *}
 
 
-subsection {* Introductory Example *}
+subsection {* Introductory Example
+  \label{ssec:ctors-introductory-examples} *}
 
 
 subsection {* General Syntax
-  \label{ctors-general-syntax} *}
+  \label{ssec:ctors-general-syntax} *}
+
+
+subsection {* Characteristic Theorems
+  \label{ssec:ctors-characteristic-theorems} *}
 
 
 section {* Standard ML Interface
@@ -651,19 +769,24 @@ generators.
 *}
 
 
-subsection {* Transfer and Lifting *}
+subsection {* Transfer and Lifting
+  \label{ssec:transfer-and-lifting} *}
 
 
-subsection {* Code Generator *}
+subsection {* Code Generator
+  \label{ssec:code-generator} *}
 
 
-subsection {* Quickcheck *}
+subsection {* Quickcheck
+  \label{ssec:quickcheck} *}
 
 
-subsection {* Nitpick *}
+subsection {* Nitpick
+  \label{ssec:nitpick} *}
 
 
-subsection {* Nominal Isabelle *}
+subsection {* Nominal Isabelle
+  \label{ssec:nominal-isabelle} *}
 
 
 section {* Known Bugs and Limitations
