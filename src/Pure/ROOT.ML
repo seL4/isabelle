@@ -183,6 +183,7 @@ use "ML/ml_env.ML";
 use "Isar/runtime.ML";
 use "ML/ml_compiler.ML";
 if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
+if ML_System.name = "polyml-5.5.1" then use "ML/exn_trace_polyml-5.5.1.ML" else ();
 
 use "skip_proof.ML";
 use "goal.ML";
