@@ -1107,7 +1107,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
-              (mk_rel_mono_tac rel_OO_Grps (Lazy.force in_mono))
+              (K (mk_rel_mono_tac rel_OO_Grps (Lazy.force in_mono)))
             |> Thm.close_derivation
           end;
 

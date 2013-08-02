@@ -25,7 +25,7 @@ sig
   val mk_rel_conversep_tac: thm -> thm -> tactic
   val mk_rel_conversep_le_tac: thm list -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_rel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_mono_tac: thm list -> thm -> tactic
   val mk_rel_mono_strong_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
 
   val mk_map_transfer_tac: thm -> thm -> thm list -> thm -> thm ->
@@ -42,6 +42,7 @@ open BNF_Util
 open BNF_Tactics
 
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
+val ord_le_eq_trans = @{thm ord_le_eq_trans};
 val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
@@ -85,12 +86,13 @@ fun mk_rel_Grp_tac rel_OO_Grps map_id map_cong0 map_id' map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
+    val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac else rtac (hd rel_OO_Grps RS trans);
   in
     if null set_maps then
       unfold_thms_tac ctxt ((map_id RS @{thm Grp_UNIV_id}) :: rel_OO_Grps) THEN
       rtac @{thm Grp_UNIV_idI[OF refl]} 1
-    else unfold_thms_tac ctxt rel_OO_Grps THEN
-      EVERY' [rtac @{thm antisym}, rtac @{thm predicate2I},
+    else
+      EVERY' [rel_OO_Grps_tac, rtac @{thm antisym}, rtac @{thm predicate2I},
         REPEAT_DETERM o
           eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
         hyp_subst_tac ctxt, rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
@@ -122,20 +124,28 @@ fun mk_rel_eq_tac n rel_Grp rel_cong map_id =
     rtac @{thm equalityI}, rtac subset_UNIV, rtac subsetI, rtac CollectI,
     CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac map_id])) 1;
 
-fun mk_rel_mono_tac rel_OO_Grps in_mono {context = ctxt, prems = _} =
-  unfold_thms_tac ctxt rel_OO_Grps THEN
-    EVERY' [rtac @{thm relcompp_mono}, rtac @{thm iffD2[OF conversep_mono]},
+fun mk_rel_mono_tac rel_OO_Grps in_mono =
+  let
+    val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac
+      else rtac (hd rel_OO_Grps RS ord_eq_le_trans) THEN'
+        rtac (hd rel_OO_Grps RS sym RSN (2, ord_le_eq_trans));
+  in
+    EVERY' [rel_OO_Grps_tac, rtac @{thm relcompp_mono}, rtac @{thm iffD2[OF conversep_mono]},
       rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono},
-      rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono}] 1;
+      rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono}] 1
+  end;
 
 fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
+    val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac
+      else rtac (hd rel_OO_Grps RS ord_eq_le_trans) THEN'
+        rtac (hd rel_OO_Grps RS sym RS @{thm arg_cong[of _ _ conversep]} RSN (2, ord_le_eq_trans));
   in
     if null set_maps then rtac (rel_eq RS @{thm leq_conversepI}) 1
-    else unfold_thms_tac ctxt (rel_OO_Grps) THEN
-      EVERY' [rtac @{thm predicate2I},
+    else
+      EVERY' [rel_OO_Grps_tac, rtac @{thm predicate2I},
         REPEAT_DETERM o
           eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
         hyp_subst_tac ctxt, rtac @{thm conversepI}, rtac @{thm relcomppI}, rtac @{thm conversepI},
@@ -151,17 +161,21 @@ fun mk_rel_conversep_tac le_conversep rel_mono =
     rtac le_conversep, rtac @{thm iffD2[OF conversep_mono]}, rtac rel_mono,
     REPEAT_DETERM o rtac @{thm eq_refl[OF sym[OF conversep_conversep]]}] 1;
 
-fun mk_rel_OO_tac rel_OO_Grs rel_eq map_cong0 map_wppull map_comp set_maps
+fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
     fun in_tac nthO_in = rtac CollectI THEN'
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS ord_eq_le_trans),
           rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_maps;
+    val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac
+      else rtac (hd rel_OO_Grps RS trans) THEN'
+        rtac (@{thm arg_cong2[of _ _ _ _ "op OO"]} OF (replicate 2 (hd rel_OO_Grps RS sym)) RSN
+          (2, trans));
   in
     if null set_maps then rtac (rel_eq RS @{thm eq_OOI}) 1
-    else unfold_thms_tac ctxt rel_OO_Grs THEN
-      EVERY' [rtac @{thm antisym}, rtac @{thm predicate2I},
+    else
+      EVERY' [rel_OO_Grps_tac, rtac @{thm antisym}, rtac @{thm predicate2I},
         REPEAT_DETERM o
           eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
         hyp_subst_tac ctxt,

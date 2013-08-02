@@ -154,6 +154,7 @@ datatype_new 'a deadbar = DeadBar "'a \<Rightarrow> 'a"
 datatype_new 'a deadbar_option = DeadBarOption "'a option \<Rightarrow> 'a option"
 datatype_new ('a, 'b) bar = Bar "'b \<Rightarrow> 'a"
 datatype_new ('a, 'b, 'c, 'd) foo = Foo "'d + 'b \<Rightarrow> 'c + 'a"
+datatype_new 'a deadfoo = C "'a \<Rightarrow> 'a + 'a"
 
 datatype_new 'a dead_foo = A
 datatype_new ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
