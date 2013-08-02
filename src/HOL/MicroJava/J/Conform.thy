@@ -137,13 +137,10 @@ apply (unfold conf_def)
 apply auto
 done
 
-lemma conf_RefTD [rule_format (no_asm)]: 
- "G,h\<turnstile>a'::\<preceq>RefT T --> a' = Null |   
+lemma conf_RefTD [rule_format]: 
+ "G,h\<turnstile>a'::\<preceq>RefT T \<Longrightarrow> a' = Null \<or>
   (\<exists>a obj T'. a' = Addr a \<and>  h a = Some obj \<and>  obj_ty obj = T' \<and>  G\<turnstile>T'\<preceq>RefT T)"
-apply (unfold conf_def)
-apply(induct_tac "a'")
-apply(auto)
-done
+unfolding conf_def by (induct a') auto
 
 lemma conf_NullTD: "G,h\<turnstile>a'::\<preceq>RefT NullT ==> a' = Null"
 apply (drule conf_RefTD)
@@ -318,7 +315,7 @@ by (simp add: xconf_def preallocated_def hext_def)
 
 lemma conforms_hext: "[|(x,(h,l))::\<preceq>(G,lT); h\<le>|h'; G\<turnstile>h h'\<surd> |] 
   ==> (x,(h',l))::\<preceq>(G,lT)"
-by( fast dest: conforms_localD conforms_xcptD elim!: conformsI xconf_hext)
+by (fast dest: conforms_localD conforms_xcptD elim!: conformsI xconf_hext)
 
 
 lemma conforms_upd_obj: 

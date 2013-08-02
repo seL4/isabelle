@@ -9,11 +9,12 @@ signature DOCUMENT =
 sig
   val timing: bool Unsynchronized.ref
   type node_header = string * Thy_Header.header * string list
+  type overlay = Document_ID.command * string * string list
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
-    Perspective of bool * Document_ID.command list
+    Perspective of bool * Document_ID.command list * overlay list
   type edit = string * node_edit
   type state
   val init_state: state
@@ -40,12 +41,18 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document_ID.print id);
 
 type node_header = string * Thy_Header.header * string list;
-type perspective = bool * Inttab.set * Document_ID.command option;
+
+type perspective =
+ {required: bool,  (*required node*)
+  visible: Inttab.set,  (*visible commands*)
+  visible_last: Document_ID.command option,  (*last visible command*)
+  overlays: (string * string list) list Inttab.table};  (*command id -> print function with args*)
+
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
-  perspective: perspective,  (*required node, visible commands, last visible command*)
+  perspective: perspective,  (*command perspective*)
   entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
@@ -57,11 +64,14 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
-fun make_perspective (required, command_ids) : perspective =
-  (required, Inttab.make_set command_ids, try List.last command_ids);
+fun make_perspective (required, command_ids, overlays) : perspective =
+ {required = required,
+  visible = Inttab.make_set command_ids,
+  visible_last = try List.last command_ids,
+  overlays = Inttab.make_list (map (fn (x, y, z) => (x, (y, z))) overlays)};
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
-val no_perspective = make_perspective (false, []);
+val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
 val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
@@ -86,10 +96,11 @@ fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective args =
   map_node (fn (header, _, entries, result) => (header, make_perspective args, entries, result));
 
-val required_node = #1 o get_perspective;
-val visible_command = Inttab.defined o #2 o get_perspective;
-val visible_last = #3 o get_perspective;
+val required_node = #required o get_perspective;
+val visible_command = Inttab.defined o #visible o get_perspective;
+val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
+val overlays = Inttab.lookup_list o #overlays o get_perspective;
 
 fun map_entries f =
   map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
@@ -124,11 +135,13 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 (* node edits and associated executions *)
 
+type overlay = Document_ID.command * string * string list;
+
 datatype node_edit =
   Clear |
   Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
-  Perspective of bool * Document_ID.command list;
+  Perspective of bool * Document_ID.command list * overlay list;
 
 type edit = string * node_edit;
 
@@ -429,9 +442,10 @@ fun last_common state node_required node0 node =
               SOME (eval, prints) =>
                 let
                   val command_visible = visible_command node command_id;
+                  val command_overlays = overlays node command_id;
                   val command_name = the_command_name state command_id;
                 in
-                  (case Command.print command_visible command_name eval prints of
+                  (case Command.print command_visible command_overlays command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -449,15 +463,18 @@ fun last_common state node_required node0 node =
 
 fun illegal_init _ = error "Illegal theory header after end of theory";
 
-fun new_exec state proper_init command_visible command_id' (assign_update, command_exec, init) =
+fun new_exec state node proper_init command_id' (assign_update, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
       val (_, (eval, _)) = command_exec;
+
+      val command_visible = visible_command node command_id';
+      val command_overlays = overlays node command_id';
       val (command_name, span) = the_command state command_id' ||> Lazy.force;
 
       val eval' = Command.eval (fn () => the_default illegal_init init span) span eval;
-      val prints' = perhaps (Command.print command_visible command_name eval') [];
+      val prints' = perhaps (Command.print command_visible command_overlays command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
@@ -512,7 +529,7 @@ fun update old_version_id new_version_id edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not node_required andalso prev = visible_last node then NONE
-                            else new_exec state proper_init (visible_command node id) id res) node;
+                            else new_exec state node proper_init id res) node;
 
                     val assigned_execs =
                       (node0, updated_execs) |-> iterate_entries_after common

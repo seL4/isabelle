@@ -14,10 +14,11 @@ sig
   val eval_result_state: eval -> Toplevel.state
   val eval: (unit -> theory) -> Token.T list -> eval -> eval
   type print
-  val print: bool -> string -> eval -> print list -> print list option
+  val print: bool -> (string * string list) list -> string ->
+    eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   val print_function: string ->
-    ({command_name: string} ->
+    ({command_name: string, args: string list} ->
       {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option) -> unit
   val no_print_function: string -> unit
   type exec = eval * print list
@@ -195,13 +196,13 @@ end;
 (* print *)
 
 datatype print = Print of
- {name: string, delay: Time.time option, pri: int, persistent: bool,
+ {name: string, args: string list, delay: Time.time option, pri: int, persistent: bool,
   exec_id: Document_ID.exec, print_process: unit memo};
 
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 type print_function =
-  {command_name: string} ->
+  {command_name: string, args: string list} ->
     {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option;
 
 local
@@ -221,11 +222,15 @@ fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 
+val overlay_ord = prod_ord string_ord (list_ord string_ord);
+
 in
 
-fun print command_visible command_name eval old_prints =
+fun print command_visible command_overlays command_name eval old_prints =
   let
-    fun new_print (name, get_pr) =
+    val print_functions = Synchronized.value print_functions;
+
+    fun new_print name args get_pr =
       let
         fun make_print strict {delay, pri, persistent, print_fn} =
           let
@@ -240,11 +245,12 @@ fun print command_visible command_name eval old_prints =
               end;
           in
            Print {
-             name = name, delay = delay, pri = pri, persistent = persistent,
+             name = name, args = args, delay = delay, pri = pri, persistent = persistent,
              exec_id = exec_id, print_process = memo exec_id process}
           end;
+        val params = {command_name = command_name, args = args};
       in
-        (case Exn.capture (Runtime.controlled_execution get_pr) {command_name = command_name} of
+        (case Exn.capture (Runtime.controlled_execution get_pr) params of
           Exn.Res NONE => NONE
         | Exn.Res (SOME pr) => SOME (make_print false pr)
         | Exn.Exn exn =>
@@ -252,12 +258,19 @@ fun print command_visible command_name eval old_prints =
               {delay = NONE, pri = 0, persistent = false, print_fn = fn _ => fn _ => reraise exn}))
       end;
 
+    fun get_print (a, b) =
+      (case find_first (fn Print {name, args, ...} => name = a andalso args = b) old_prints of
+        NONE =>
+          (case AList.lookup (op =) print_functions a of
+            NONE => NONE
+          | SOME get_pr => new_print a b get_pr)
+      | some => some);
+
     val new_prints =
       if command_visible then
-        rev (Synchronized.value print_functions) |> map_filter (fn pr =>
-          (case find_first (fn Print {name, ...} => name = fst pr) old_prints of
-            NONE => new_print pr
-          | some => some))
+        fold (fn (a, _) => cons (a, [])) print_functions command_overlays
+        |> sort_distinct overlay_ord
+        |> map_filter get_print
       else filter (fn print => print_finished print andalso print_persistent print) old_prints;
   in
     if eq_list print_eq (old_prints, new_prints) then NONE else SOME new_prints
@@ -276,7 +289,7 @@ end;
 
 val _ =
   print_function "print_state"
-    (fn {command_name} =>
+    (fn {command_name, ...} =>
       SOME {delay = NONE, pri = 1, persistent = true,
         print_fn = fn tr => fn st' =>
           let

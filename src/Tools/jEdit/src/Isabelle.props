@@ -31,6 +31,7 @@ options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
   isabelle.documentation-panel \
+  isabelle.find-panel \
   isabelle.monitor-panel \
   isabelle.output-panel \
   isabelle.protocol-panel \
@@ -41,6 +42,7 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.theories-panel \
   isabelle.timing-panel
 isabelle.documentation-panel.label=Documentation panel
+isabelle.find-panel.label=Find panel
 isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
@@ -52,6 +54,7 @@ isabelle.theories-panel.label=Theories panel
 isabelle.timing-panel.label=Timing panel
 
 #dockables
+isabelle-find.title=Find
 isabelle-graphview.title=Graphview
 isabelle-info.title=Info
 isabelle-monitor.title=Monitor

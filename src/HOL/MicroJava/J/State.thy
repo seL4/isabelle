@@ -105,10 +105,7 @@ done
 
 lemma raise_if_Some2 [simp]: 
   "raise_if c z (if x = None then Some y else x) \<noteq> None"
-apply (unfold raise_if_def)
-apply(induct_tac "x")
-apply auto
-done
+unfolding raise_if_def by (induct x) auto
 
 lemma raise_if_SomeD [rule_format (no_asm)]: 
   "raise_if c x y = Some z \<longrightarrow> c \<and>  Some z = Some (Addr (XcptRef x)) |  y = Some z"

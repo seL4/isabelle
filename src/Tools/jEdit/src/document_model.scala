@@ -77,8 +77,28 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   }
 
 
+  /* overlays */
+
+  private var overlays = Document.Overlays.empty
+
+  def add_overlay(command: Command, name: String, args: List[String])
+  {
+    Swing_Thread.required()
+    overlays += ((command, name, args))
+    PIDE.flush_buffers()
+  }
+
+  def remove_overlay(command: Command, name: String, args: List[String])
+  {
+    Swing_Thread.required()
+    overlays -= ((command, name, args))
+    PIDE.flush_buffers()
+  }
+
+
   /* perspective */
 
+  // owned by Swing thread
   private var _node_required = false
   def node_required: Boolean = _node_required
   def node_required_=(b: Boolean)
@@ -91,21 +111,21 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     }
   }
 
+  val empty_perspective: Document.Node.Perspective_Text =
+    Document.Node.Perspective(false, Text.Perspective.empty, Document.Overlays.empty)
+
   def node_perspective(): Document.Node.Perspective_Text =
   {
     Swing_Thread.require()
 
-    val perspective =
-      if (Isabelle.continuous_checking) {
-        (node_required, Text.Perspective(
-          for {
-            doc_view <- PIDE.document_views(buffer)
-            range <- doc_view.perspective().ranges
-          } yield range))
-      }
-      else (false, Text.Perspective.empty)
-
-    Document.Node.Perspective(perspective._1, perspective._2)
+    if (Isabelle.continuous_checking) {
+      Document.Node.Perspective(node_required, Text.Perspective(
+        for {
+          doc_view <- PIDE.document_views(buffer)
+          range <- doc_view.perspective().ranges
+        } yield range), overlays)
+    }
+    else empty_perspective
   }
 
 
@@ -143,8 +163,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
-    private var last_perspective: Document.Node.Perspective_Text =
-      Document.Node.Perspective(node_required, Text.Perspective.empty)
+    private var last_perspective = empty_perspective
 
     def snapshot(): List[Text.Edit] = pending.toList
 

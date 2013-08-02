@@ -21,7 +21,7 @@ sig
   }
 
   val read_criterion: Proof.context -> string criterion -> term criterion
-  val query_parser: (bool * string criterion) list parser
+  val parse_query: string -> (bool * string criterion) list
 
   val xml_of_query: term query -> XML.tree
   val query_of_xml: XML.tree -> term query
@@ -496,7 +496,7 @@ fun rem_thm_dups nicer xs =
 end;
 
 
-(* print_theorems *)
+(* pretty_theorems *)
 
 fun all_facts_of ctxt =
   let
@@ -572,11 +572,12 @@ fun pretty_theorem ctxt (Internal (thmref, thm)) =
 
 fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm));
 
-fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val (foundo, theorems) = find
-      {goal = opt_goal, limit = opt_limit, rem_dups = rem_dups, criteria = criteria};
+    val (foundo, theorems) =
+      filter_theorems ctxt (map Internal (all_facts_of ctxt))
+        {goal = opt_goal, limit = opt_limit, rem_dups = rem_dups, criteria = criteria};
     val returned = length theorems;
 
     val tally_msg =
@@ -594,10 +595,13 @@ fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
      else
       [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
         grouped 10 Par_List.map (pretty_theorem ctxt) theorems)
-  end |> Pretty.fbreaks |> curry Pretty.blk 0 |> Pretty.writeln;
+  end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
-fun print_theorems ctxt =
-  gen_print_theorems (filter_theorems ctxt (map Internal (all_facts_of ctxt))) ctxt;
+fun pretty_theorems_cmd state opt_lim rem_dups spec =
+  let
+    val ctxt = Toplevel.context_of state;
+    val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
+  in pretty_theorems ctxt opt_goal opt_lim rem_dups spec end;
 
 
 
@@ -619,21 +623,47 @@ val options =
     (Parse.$$$ "(" |--
       Parse.!!! (Scan.option Parse.nat -- Scan.optional (Parse.reserved "with_dups" >> K false) true
         --| Parse.$$$ ")")) (NONE, true);
-in
 
 val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
+
+in
+
+(* FIXME proper wrapper for parser combinator *)
+fun parse_query str =
+  (str ^ ";")
+  |> Outer_Syntax.scan Position.start
+  |> filter Token.is_proper
+  |> Scan.error query_parser
+  |> fst;
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_theorems"}
     "find theorems meeting specified criteria"
-    (options -- query_parser
-      >> (fn ((opt_lim, rem_dups), spec) =>
-        Toplevel.keep (fn state =>
-          let
-            val ctxt = Toplevel.context_of state;
-            val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
+    (options -- query_parser >> (fn ((opt_lim, rem_dups), spec) =>
+      Toplevel.keep (fn state =>
+        Pretty.writeln (pretty_theorems_cmd state opt_lim rem_dups spec))));
 
 end;
+
+
+
+(** print function **)
+
+val find_theoremsN = "find_theorems";
+
+val _ = Command.print_function find_theoremsN
+  (fn {args, ...} =>
+    (case args of
+      [instance, query] =>
+      SOME {delay = NONE, pri = 0, persistent = false,
+        print_fn = fn _ => fn state =>
+          let
+            val msg =
+              Pretty.string_of (pretty_theorems_cmd state NONE false (parse_query query))
+                handle exn =>
+                  if Exn.is_interrupt exn then reraise exn
+                  else ML_Compiler.exn_message exn;  (* FIXME error markup!? *)
+          in Output.result [(Markup.kindN, find_theoremsN), (Markup.instanceN, instance)] msg end}
+    | _ => NONE));
 
 end;

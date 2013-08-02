@@ -261,14 +261,14 @@ fun message bg en prfx text =
   | s => Output.physical_writeln (enclose bg en (prefix_lines prfx s)));
 
 fun setup_messages () =
- (Output.Private_Hooks.writeln_fn := message "" "" "";
-  Output.Private_Hooks.status_fn := (fn _ => ());
-  Output.Private_Hooks.report_fn := (fn _ => ());
-  Output.Private_Hooks.urgent_message_fn := message (special "I") (special "J") "";
-  Output.Private_Hooks.tracing_fn := message (special "I" ^ special "V") (special "J") "";
-  Output.Private_Hooks.warning_fn := message (special "K") (special "L") "### ";
-  Output.Private_Hooks.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
-  Output.Private_Hooks.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
+ (Output.Internal.writeln_fn := message "" "" "";
+  Output.Internal.status_fn := (fn _ => ());
+  Output.Internal.report_fn := (fn _ => ());
+  Output.Internal.urgent_message_fn := message (special "I") (special "J") "";
+  Output.Internal.tracing_fn := message (special "I" ^ special "V") (special "J") "";
+  Output.Internal.warning_fn := message (special "K") (special "L") "### ";
+  Output.Internal.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
+  Output.Internal.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
 
 
 (* notification *)

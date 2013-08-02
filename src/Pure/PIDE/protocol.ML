@@ -56,7 +56,9 @@ val _ =
                       val imports' = map (rpair Position.none) imports;
                       val header = Thy_Header.make (name, Position.none) imports' keywords;
                     in Document.Deps (master, header, errors) end,
-                  fn (a :: b, []) => Document.Perspective (bool_atom a, map int_atom b)]))
+                  fn (a :: b, c) =>
+                    Document.Perspective (bool_atom a, map int_atom b,
+                      list (triple int string (list string)) c)]))
             end;
 
         val (removed, assign_update, state') = Document.update old_id new_id edits state;

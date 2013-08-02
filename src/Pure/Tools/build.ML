@@ -164,7 +164,7 @@ fun build args_file = Command_Line.tool (fn () =>
         theories |>
           (List.app (use_theories_condition last_timing)
             |> session_timing name verbose
-            |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
+            |> Unsynchronized.setmp Output.Internal.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
             |> Exn.capture);
       val res2 = Exn.capture Session.finish ();

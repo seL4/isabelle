@@ -117,7 +117,7 @@ val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
 
 fun print_function ((name, (weight, auto, tool)): tool) =
   Command.print_function name
-    (fn {command_name} =>
+    (fn {command_name, ...} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
         SOME
          {delay = SOME (seconds (Options.default_real @{option auto_time_start})),

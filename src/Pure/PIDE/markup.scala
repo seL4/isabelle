@@ -18,6 +18,9 @@ object Markup
   val KIND = "kind"
   val Kind = new Properties.String(KIND)
 
+  val INSTANCE = "instance"
+  val Instance = new Properties.String(INSTANCE)
+
 
   /* basic markup */
 

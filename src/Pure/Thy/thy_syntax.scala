@@ -293,7 +293,7 @@ object Thy_Syntax
   /* main */
 
   def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
-    : List[(Option[Command], Option[Command])] =
+    : List[Command.Edit] =
   {
     val removed = old_cmds.iterator.filter(!new_cmds.contains(_)).toList
     val inserted = new_cmds.iterator.filter(!old_cmds.contains(_)).toList
@@ -311,17 +311,18 @@ object Thy_Syntax
       case (name, Document.Node.Edits(text_edits)) =>
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
-        val commands2 = recover_spans(syntax, name, node.perspective._2, commands1)
+        val commands2 = recover_spans(syntax, name, node.perspective.visible, commands1)
         node.update_commands(commands2)
 
       case (_, Document.Node.Deps(_)) => node
 
-      case (name, Document.Node.Perspective(required, text_perspective)) =>
-        val perspective = (required, command_perspective(node, text_perspective))
+      case (name, Document.Node.Perspective(required, text_perspective, overlays)) =>
+        val perspective: Document.Node.Perspective_Command =
+          Document.Node.Perspective(required, command_perspective(node, text_perspective), overlays)
         if (node.same_perspective(perspective)) node
         else
           node.update_perspective(perspective).update_commands(
-            consolidate_spans(syntax, reparse_limit, name, perspective._2, node.commands))
+            consolidate_spans(syntax, reparse_limit, name, perspective.visible, node.commands))
     }
   }
 
@@ -354,8 +355,7 @@ object Thy_Syntax
         val node2 = (node1 /: edits)(text_edit(syntax, reparse_limit, _, _))
 
         if (!(node.same_perspective(node2.perspective)))
-          doc_edits +=
-            (name -> Document.Node.Perspective(node2.perspective._1, node2.perspective._2))
+          doc_edits += (name -> node2.perspective)
 
         doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
 
