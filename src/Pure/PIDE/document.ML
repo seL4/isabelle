@@ -9,11 +9,12 @@ signature DOCUMENT =
 sig
   val timing: bool Unsynchronized.ref
   type node_header = string * Thy_Header.header * string list
+  type overlay = Document_ID.command * string * string list
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
-    Perspective of bool * Document_ID.command list
+    Perspective of bool * Document_ID.command list * overlay list
   type edit = string * node_edit
   type state
   val init_state: state
@@ -40,12 +41,18 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document_ID.print id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document_ID.print id);
 
 type node_header = string * Thy_Header.header * string list;
-type perspective = bool * Inttab.set * Document_ID.command option;
+
+type perspective =
+ {required: bool,  (*required node*)
+  visible: Inttab.set,  (*visible commands*)
+  visible_last: Document_ID.command option,  (*last visible command*)
+  overlays: (string * string list) list Inttab.table};  (*command id -> print function with args*)
+
 structure Entries = Linear_Set(type key = Document_ID.command val ord = int_ord);
 
 abstype node = Node of
  {header: node_header,  (*master directory, theory header, errors*)
-  perspective: perspective,  (*required node, visible commands, last visible command*)
+  perspective: perspective,  (*command perspective*)
   entries: Command.exec option Entries.T,  (*command entries with excecutions*)
   result: Command.eval option}  (*result of last execution*)
 and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
@@ -57,11 +64,14 @@ fun make_node (header, perspective, entries, result) =
 fun map_node f (Node {header, perspective, entries, result}) =
   make_node (f (header, perspective, entries, result));
 
-fun make_perspective (required, command_ids) : perspective =
-  (required, Inttab.make_set command_ids, try List.last command_ids);
+fun make_perspective (required, command_ids, overlays) : perspective =
+ {required = required,
+  visible = Inttab.make_set command_ids,
+  visible_last = try List.last command_ids,
+  overlays = Inttab.make_list (map (fn (x, y, z) => (x, (y, z))) overlays)};
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
-val no_perspective = make_perspective (false, []);
+val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
 val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
@@ -86,10 +96,11 @@ fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective args =
   map_node (fn (header, _, entries, result) => (header, make_perspective args, entries, result));
 
-val required_node = #1 o get_perspective;
-val visible_command = Inttab.defined o #2 o get_perspective;
-val visible_last = #3 o get_perspective;
+val required_node = #required o get_perspective;
+val visible_command = Inttab.defined o #visible o get_perspective;
+val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
+val overlays = #overlays o get_perspective;
 
 fun map_entries f =
   map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
@@ -124,11 +135,13 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 (* node edits and associated executions *)
 
+type overlay = Document_ID.command * string * string list;
+
 datatype node_edit =
   Clear |
   Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
-  Perspective of bool * Document_ID.command list;
+  Perspective of bool * Document_ID.command list * overlay list;
 
 type edit = string * node_edit;
 

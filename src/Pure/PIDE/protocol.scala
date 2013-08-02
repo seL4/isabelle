@@ -326,7 +326,7 @@ trait Protocol extends Isabelle_Process
     { import XML.Encode._
       def id: T[Command] = (cmd => long(cmd.id))
       def encode_edit(name: Document.Node.Name)
-          : T[Document.Node.Edit[(Option[Command], Option[Command]), Command.Perspective]] =
+          : T[Document.Node.Edit[Command.Edit, Command.Perspective]] =
         variant(List(
           { case Document.Node.Clear() => (Nil, Nil) },  // FIXME unused !?
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
@@ -340,8 +340,9 @@ trait Protocol extends Isabelle_Process
                     option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   list(Encode.string)))))(
                 (dir, (name.theory, (imports, (keywords, header.errors)))))) },
-          { case Document.Node.Perspective(a, b) =>
-              (bool_atom(a) :: b.commands.map(c => long_atom(c.id)), Nil) }))
+          { case Document.Node.Perspective(a, b, c) =>
+              (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
+                list(triple(id, Encode.string, list(Encode.string)))(c.dest)) }))
       def encode_edits: T[List[Document.Edit_Command]] = list((node_edit: Document.Edit_Command) =>
       {
         val (name, edit) = node_edit

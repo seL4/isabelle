@@ -14,6 +14,9 @@ import scala.collection.immutable.SortedMap
 
 object Command
 {
+  type Edit = (Option[Command], Option[Command])
+
+
   /** accumulated results from prover **/
 
   /* results */

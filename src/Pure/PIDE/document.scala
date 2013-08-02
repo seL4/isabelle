@@ -15,11 +15,28 @@ object Document
 {
   /** document structure **/
 
+  /* overlays -- print functions with arguments */
+
+  type Overlay = (Command, String, List[String])
+
+  object Overlays
+  {
+    val empty = new Overlays(Set.empty)
+  }
+
+  final class Overlays private(rep: Set[Overlay])
+  {
+    def + (o: Overlay) = new Overlays(rep + o)
+    def - (o: Overlay) = new Overlays(rep - o)
+    def dest: List[Overlay] = rep.toList
+  }
+
+
   /* individual nodes */
 
   type Edit[A, B] = (Node.Name, Node.Edit[A, B])
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
-  type Edit_Command = Edit[(Option[Command], Option[Command]), Command.Perspective]
+  type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
   object Node
   {
@@ -66,8 +83,9 @@ object Document
     case class Clear[A, B]() extends Edit[A, B]
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
-    case class Perspective[A, B](required: Boolean, perspective: B) extends Edit[A, B]
+    case class Perspective[A, B](required: Boolean, visible: B, overlays: Overlays) extends Edit[A, B]
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
+    type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
@@ -87,7 +105,8 @@ object Document
 
   final class Node private(
     val header: Node.Header = Node.bad_header("Bad theory header"),
-    val perspective: (Boolean, Command.Perspective) = (false, Command.Perspective.empty),
+    val perspective: Node.Perspective_Command =
+      Node.Perspective(false, Command.Perspective.empty, Overlays.empty),
     val commands: Linear_Set[Command] = Linear_Set.empty)
   {
     def clear: Node = new Node(header = header)
@@ -95,11 +114,13 @@ object Document
     def update_header(new_header: Node.Header): Node =
       new Node(new_header, perspective, commands)
 
-    def update_perspective(new_perspective: (Boolean, Command.Perspective)): Node =
+    def update_perspective(new_perspective: Node.Perspective_Command): Node =
       new Node(header, new_perspective, commands)
 
-    def same_perspective(other: (Boolean, Command.Perspective)): Boolean =
-      perspective._1 == other._1 && (perspective._2 same other._2)
+    def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
+      perspective.required == other_perspective.required &&
+      perspective.visible.same(other_perspective.visible) &&
+      perspective.overlays == other_perspective.overlays
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       new Node(header, perspective, new_commands)
