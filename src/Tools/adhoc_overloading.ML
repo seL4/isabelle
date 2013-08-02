@@ -1,7 +1,7 @@
 (* Author: Alexander Krauss, TU Muenchen
    Author: Christian Sternagel, University of Innsbruck
 
-Ad-hoc overloading of constants based on their types.
+Adhoc overloading of constants based on their types.
 *)
 
 signature ADHOC_OVERLOADING =
@@ -227,12 +227,12 @@ fun adhoc_overloading_cmd add raw_args lthy =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "adhoc_overloading"}
-    "add ad-hoc overloading for constants / fixed variables"
+    "add adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd true);
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "no_adhoc_overloading"}
-    "add ad-hoc overloading for constants / fixed variables"
+    "add adhoc overloading for constants / fixed variables"
     (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
 
 end;
