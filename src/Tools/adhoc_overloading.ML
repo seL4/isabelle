@@ -41,7 +41,7 @@ fun unresolved_overloading_error ctxt (c, T) t instances =
       "in term " ::
       quote (Syntax.string_of_term ctxt' t) ::
       (if null instances then "no instances" else "multiple instances:") ::
-    map (Syntax.string_of_term ctxt') instances)
+    map (Markup.markup Markup.item o Syntax.string_of_term ctxt') instances)
     |> error
   end;
 
