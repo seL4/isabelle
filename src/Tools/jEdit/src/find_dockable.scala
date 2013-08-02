@@ -28,16 +28,15 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* component state -- owned by Swing thread */
 
-  private val identification = Document_ID.make().toString
+  private val FIND_THEOREMS = "find_theorems"
+  private val instance = Document_ID.make().toString
 
   private var zoom_factor = 100
+  private var current_location: Option[Command] = None
+  private var current_query: String = ""
   private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
-  private var current_location: Option[Command] = None
-  private var current_query: String = ""
-
-  private val FIND_THEOREMS = "find_theorems"
 
 
   /* pretty text area */
@@ -54,9 +53,39 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       (Rendering.font_size("jedit_font_scale") * zoom_factor / 100).round)
   }
 
-  private def handle_output()
+  private def handle_update()
   {
     Swing_Thread.require()
+
+    val (new_snapshot, new_state) =
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) =>
+          val snapshot = doc_view.model.snapshot()
+          if (!snapshot.is_outdated) {
+            current_location match {
+              case Some(cmd) =>
+                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
+              case None =>
+                (Document.State.init.snapshot(), Command.empty.init_state)
+            }
+          }
+          else (current_snapshot, current_state)
+        case None => (current_snapshot, current_state)
+      }
+
+    val new_output =
+      (for {
+        (_, XML.Elem(Markup(Markup.RESULT, props), body)) <- new_state.results.entries
+        if props.contains((Markup.KIND, FIND_THEOREMS))
+        if props.contains((Markup.INSTANCE, instance))
+      } yield XML.Elem(Markup(Markup.WRITELN_MESSAGE, Nil), body)).toList
+
+    if (new_output != current_output)
+      pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
+
+    current_snapshot = new_snapshot
+    current_state = new_state
+    current_output = new_output
   }
 
   private def clear_overlay()
@@ -67,7 +96,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       command <- current_location
       buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
       model <- PIDE.document_model(buffer)
-    } model.remove_overlay(command, FIND_THEOREMS, List(identification, current_query))
+    } model.remove_overlay(command, FIND_THEOREMS, List(instance, current_query))
 
     current_location = None
     current_query = ""
@@ -85,7 +114,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
           case Some(command) =>
             current_location = Some(command)
             current_query = query
-            doc_view.model.add_overlay(command, FIND_THEOREMS, List(identification, query))
+            doc_view.model.add_overlay(command, FIND_THEOREMS, List(instance, query))
           case None =>
         }
       case None =>
@@ -120,7 +149,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
         case changed: Session.Commands_Changed =>
           current_location match {
             case Some(command) if changed.commands.contains(command) =>
-              Swing_Thread.later { handle_output() }
+              Swing_Thread.later { handle_update() }
             case _ =>
           }
         case bad =>

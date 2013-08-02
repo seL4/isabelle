@@ -19,6 +19,7 @@ sig
   val nameN: string
   val name: string -> T -> T
   val kindN: string
+  val instanceN: string
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -118,6 +119,7 @@ sig
   val finishedN: string val finished: T
   val failedN: string val failed: T
   val serialN: string
+  val serial_properties: int -> Properties.T
   val exec_idN: string
   val initN: string
   val statusN: string
@@ -221,6 +223,8 @@ val nameN = "name";
 fun name a = properties [(nameN, a)];
 
 val kindN = "kind";
+
+val instanceN = "instance";
 
 
 (* formal entities *)
@@ -423,6 +427,8 @@ val (failedN, failed) = markup_elem "failed";
 (* messages *)
 
 val serialN = "serial";
+fun serial_properties i = [(serialN, print_int i)];
+
 val exec_idN = "exec_id";
 
 val initN = "init";

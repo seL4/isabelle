@@ -35,7 +35,7 @@ sig
     val prompt_fn: (output -> unit) Unsynchronized.ref
     val status_fn: (output -> unit) Unsynchronized.ref
     val report_fn: (output -> unit) Unsynchronized.ref
-    val result_fn: (serial * output -> unit) Unsynchronized.ref
+    val result_fn: (Properties.T -> output -> unit) Unsynchronized.ref
     val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
   end
   val urgent_message: string -> unit
@@ -44,7 +44,7 @@ sig
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
-  val result: serial * string -> unit
+  val result: Properties.T -> string -> unit
   val protocol_message: Properties.T -> string -> unit
   val try_protocol_message: Properties.T -> string -> unit
 end;
@@ -102,7 +102,7 @@ struct
   val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
-  val result_fn = Unsynchronized.ref (fn _: serial * output => ());
+  val result_fn = Unsynchronized.ref (fn _: Properties.T => fn _: output => ());
   val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
     Unsynchronized.ref (fn props => fn _ => raise Protocol_Message props);
 end;
@@ -116,7 +116,7 @@ fun error_msg s = error_msg' (serial (), s);
 fun prompt s = ! Internal.prompt_fn (output s);
 fun status s = ! Internal.status_fn (output s);
 fun report s = ! Internal.report_fn (output s);
-fun result (i, s) = ! Internal.result_fn (i, output s);
+fun result props s = ! Internal.result_fn props (output s);
 fun protocol_message props s = ! Internal.protocol_message_fn props (output s);
 fun try_protocol_message props s = protocol_message props s handle Protocol_Message _ => ();
 

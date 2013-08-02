@@ -93,6 +93,8 @@ fun update_tracing () =
 
 (* output channels *)
 
+val serial_props = Markup.serial_properties o serial;
+
 fun init_channels channel =
   let
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream TextIO.stdOut, IO.LINE_BUF);
@@ -103,21 +105,22 @@ fun init_channels channel =
     fun message name props body =
       Message_Channel.send msg_channel (Message_Channel.message name props body);
 
-    fun standard_message opt_serial name body =
+    fun standard_message props name body =
       if body = "" then ()
       else
         message name
-          ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
-            (Position.properties_of (Position.thread_data ()))) body;
+          (fold_rev Properties.put props (Position.properties_of (Position.thread_data ()))) body;
   in
-    Output.Internal.status_fn := standard_message NONE Markup.statusN;
-    Output.Internal.report_fn := standard_message NONE Markup.reportN;
-    Output.Internal.result_fn := (fn (i, s) => standard_message (SOME i) Markup.resultN s);
-    Output.Internal.writeln_fn := (fn s => standard_message (SOME (serial ())) Markup.writelnN s);
+    Output.Internal.status_fn := standard_message [] Markup.statusN;
+    Output.Internal.report_fn := standard_message [] Markup.reportN;
+    Output.Internal.result_fn :=
+      (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s);
+    Output.Internal.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
     Output.Internal.tracing_fn :=
-      (fn s => (update_tracing (); standard_message (SOME (serial ())) Markup.tracingN s));
-    Output.Internal.warning_fn := (fn s => standard_message (SOME (serial ())) Markup.warningN s);
-    Output.Internal.error_fn := (fn (i, s) => standard_message (SOME i) Markup.errorN s);
+      (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
+    Output.Internal.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
+    Output.Internal.error_fn :=
+      (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Output.Internal.protocol_message_fn := message Markup.protocolN;
     Output.Internal.urgent_message_fn := ! Output.Internal.writeln_fn;
     Output.Internal.prompt_fn := ignore;

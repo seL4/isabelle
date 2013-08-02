@@ -640,12 +640,15 @@ end;
 
 (** print function **)
 
-val _ = Command.print_function "find_theorems"
+val find_theoremsN = "find_theorems";
+
+val _ = Command.print_function find_theoremsN
   (fn {args, ...} =>
-    if null args then NONE
-    else
+    (case args of
+      [instance, query] =>
       SOME {delay = NONE, pri = 0, persistent = false,
         print_fn = fn _ => fn st =>
-          writeln (cat_lines ("find_theorems" :: args))});
+          Output.result [(Markup.kindN, find_theoremsN), (Markup.instanceN, instance)] query}
+    | _ => NONE));
 
 end;
