@@ -23,7 +23,8 @@ sig
      xtor_map_thms: thm list,
      xtor_set_thmss: thm list list,
      xtor_rel_thms: thm list,
-     xtor_co_iter_thmss: thm list list}
+     xtor_co_iter_thmss: thm list list,
+     rel_co_induct_thm: thm}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
@@ -203,10 +204,12 @@ type fp_result =
    xtor_map_thms: thm list,
    xtor_set_thmss: thm list list,
    xtor_rel_thms: thm list,
-   xtor_co_iter_thmss: thm list list};
+   xtor_co_iter_thmss: thm list list,
+   rel_co_induct_thm: thm};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts, dtor_ctors,
-    ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss} =
+    ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss,
+    rel_co_induct_thm} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -219,7 +222,8 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts
    xtor_map_thms = map (Morphism.thm phi) xtor_map_thms,
    xtor_set_thmss = map (map (Morphism.thm phi)) xtor_set_thmss,
    xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
-   xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss};
+   xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss,
+   rel_co_induct_thm = Morphism.thm phi rel_co_induct_thm};
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);

@@ -1847,7 +1847,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_co_inducts = [ctor_induct_thm], dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms,
       ctor_injects = ctor_inject_thms, xtor_map_thms = folded_ctor_map_thms,
       xtor_set_thmss = folded_ctor_set_thmss', xtor_rel_thms = ctor_Irel_thms,
-      xtor_co_iter_thmss = transpose [ctor_fold_thms, ctor_rec_thms]},
+      xtor_co_iter_thmss = transpose [ctor_fold_thms, ctor_rec_thms],
+      rel_co_induct_thm = Irel_induct_thm},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

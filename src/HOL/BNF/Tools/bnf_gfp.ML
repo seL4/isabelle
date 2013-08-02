@@ -2920,7 +2920,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       xtor_map_thms = folded_dtor_map_thms, xtor_set_thmss = folded_dtor_set_thmss',
       xtor_rel_thms = dtor_Jrel_thms,
-      xtor_co_iter_thmss = transpose [ctor_dtor_unfold_thms, ctor_dtor_corec_thms]},
+      xtor_co_iter_thmss = transpose [ctor_dtor_unfold_thms, ctor_dtor_corec_thms],
+      rel_co_induct_thm = Jrel_coinduct_thm},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
