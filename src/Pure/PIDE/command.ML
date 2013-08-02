@@ -222,6 +222,8 @@ fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 
 fun print_persistent (Print {persistent, ...}) = persistent;
 
+val overlay_ord = prod_ord string_ord (list_ord string_ord);
+
 in
 
 fun print command_visible command_overlays command_name eval old_prints =
@@ -266,7 +268,8 @@ fun print command_visible command_overlays command_name eval old_prints =
 
     val new_prints =
       if command_visible then
-        distinct (op =) (fold (fn (a, _) => cons (a, [])) print_functions command_overlays)
+        fold (fn (a, _) => cons (a, [])) print_functions command_overlays
+        |> sort_distinct overlay_ord
         |> map_filter get_print
       else filter (fn print => print_finished print andalso print_persistent print) old_prints;
   in
