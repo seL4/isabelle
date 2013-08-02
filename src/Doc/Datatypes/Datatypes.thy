@@ -59,27 +59,29 @@ destructors (discriminators and selectors).
 
 In addition to plain inductive datatypes, the package supports coinductive
 datatypes, or \emph{codatatypes}, which may have infinite values. For example,
-the following command introduces a codatatype of infinite streams:
+the following command introduces the type of lazy lists:
 *}
 
-    codatatype 'a stream = Stream 'a "'a stream"
+    codatatype 'a llist = LNil | LCons 'a "'a llist"
 
 text {*
 \noindent
 Mixed inductive--coinductive recursion is possible via nesting. Compare the
 following four examples:
+
+%%% TODO: Avoid 0
 *}
 
-    datatype_new 'a treeFF = NodeFF 'a "'a treeFF list"
-    datatype_new 'a treeFI = NodeFI 'a "'a treeFF stream"
-    codatatype 'a treeIF = NodeIF 'a "'a treeFF list"
-    codatatype 'a treeII = NodeII 'a "'a treeFF stream"
+    datatype_new 'a treeFF0 = NodeFF 'a "'a treeFF0 list"
+    datatype_new 'a treeFI0 = NodeFI 'a "'a treeFI0 llist"
+    codatatype 'a treeIF0 = NodeIF 'a "'a treeIF0 list"
+    codatatype 'a treeII0 = NodeII 'a "'a treeII0 llist"
 
 text {*
 The first two tree types allow only finite branches, whereas the last two allow
 infinite branches. Orthogonally, the nodes in the first and third types have
-finite branching, whereas those of the second and fourth have infinitely many
-direct subtrees.
+finite branching, whereas those of the second and fourth may have infinitely
+many direct subtrees.
 
 To use the package, it is necessary to import the @{theory BNF} theory, which
 can be precompiled as the \textit{HOL-BNF} image. The following commands show
@@ -178,6 +180,10 @@ This section describes how to specify datatypes using the @{command datatype_new
 command. The command is first illustrated through concrete examples featuring
 different flavors of recursion. More examples can be found in the directory
 \verb|~~/src/HOL/BNF/Examples|.
+
+  * libraries include many useful datatypes, e.g. list, option, etc., as well
+    as operations on these;
+    see e.g. ``What's in Main'' \cite{xxx}
 *}
 
 
@@ -267,19 +273,15 @@ Nested recursion = Have recursion through a type constructor.
 
 The introduction showed some examples of trees with nesting through lists.
 
-More complex example, which reuses our maybe and triple types:
+More complex example, which reuses our maybe:
 *}
 
-    datatype_new 'a triple_tree =
-      Triple_Node "('a triple_tree maybe, bool, 'a triple_tree maybe) triple"
+    datatype_new 'a btree =
+      BNode 'a "'a btree maybe" "'a btree maybe"
 
 text {*
 Recursion may not be arbitrary; e.g. impossible to define
 *}
-
-(*
-    datatype_new 'a foo = Foo (*<*) datatype_new 'a bar = Bar  "'a foo \<Rightarrow> 'a foo"
-*)
 
     datatype_new 'a evil = Evil (*<*)'a
     typ (*>*)"'a evil \<Rightarrow> 'a evil"
@@ -588,9 +590,13 @@ text {*
 More examples:
 *}
 
-    primrec_new list_of_maybe :: "'a maybe => 'a list" where
+    primrec_new list_of_maybe :: "'a maybe \<Rightarrow> 'a list" where
       "list_of_maybe Nothing = []" |
       "list_of_maybe (Just a) = [a]"
+
+    primrec_new maybe_def :: "'a \<Rightarrow> 'a maybe \<Rightarrow> 'a" where
+      "maybe_def d Nothing = d" |
+      "maybe_def _ (Just a) = a"
 
     primrec_new mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
@@ -606,6 +612,16 @@ to call a function recursively on an argument to a constructor:
     primrec_new replicate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
       "rep 0 _ = []" |
       "rep (Suc n) a = a # rep n a"
+
+text {*
+we don't like the confusing name @{const nth}:
+*}
+
+    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+      "at (a # as) j =
+         (case j of
+            0 \<Rightarrow> a
+          | Suc j' \<Rightarrow> at as j')"
 
     primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil b) = b" |
@@ -660,8 +676,81 @@ More elaborate:
 
 subsubsection {* Nested Recursion *}
 
+(*<*)
+    datatype_new 'a treeFF = NodeFF 'a "'a treeFF list"
+    datatype_new 'a treeFI = NodeFI 'a "'a treeFI llist"
+(*>*)
+    primrec_new atFF0 :: "'a treeFF \<Rightarrow> nat list \<Rightarrow> 'a" where
+      "atFF0 (NodeFF a ts) js =
+         (case js of
+            [] \<Rightarrow> a
+          | j # js' \<Rightarrow> at (map (\<lambda>t. atFF0 t js') ts) j)"
+
+    primrec_new atFI :: "'a treeFI \<Rightarrow> nat list \<Rightarrow> 'a" where
+      "atFF (NodeFI a ts) js =
+         (case js of
+            [] \<Rightarrow> a
+          | j # js' \<Rightarrow> at (llist_map (\<lambda>t. atFF t js') ts) j)"
+
+    primrec_new sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" where
+      "sum_btree (BNode a lt rt) =
+         a + maybe_def 0 (maybe_map sum_btree lt) +
+           maybe_def 0 (maybe_map sum_btree rt)"
+
 
 subsubsection {* Nested-as-Mutual Recursion *}
+
+text {*
+  * can pretend a nested type is mutually recursive
+  * avoids the higher-order map
+  * e.g.
+*}
+
+    primrec_new
+      at_treeFF :: "'a treeFF \<Rightarrow> nat list \<Rightarrow> 'a" and
+      at_treesFF :: "'a treeFF list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
+    where
+      "at_treeFF (NodeFF a ts) js =
+         (case js of
+            [] \<Rightarrow> a
+          | j # js' \<Rightarrow> at_treesFF ts j js')" |
+      "at_treesFF (t # ts) j =
+         (case j of
+            0 \<Rightarrow> at_treeFF t
+          | Suc j' \<Rightarrow> at_treesFF ts j')"
+
+    primrec_new
+      sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" and
+      sum_btree_maybe :: "('a\<Colon>plus) btree maybe \<Rightarrow> 'a"
+    where
+      "sum_btree (BNode a lt rt) =
+         a + sum_btree_maybe lt + sum_btree_maybe rt" |
+      "sum_btree_maybe Nothing = 0" |
+      "sum_btree_maybe (Just t) = sum_btree t"
+
+text {*
+  * this can always be avoided;
+     * e.g. in our previous example, we first mapped the recursive
+       calls, then we used a generic at function to retrieve the result
+
+  * there's no hard-and-fast rule of when to use one or the other,
+    just like there's no rule when to use fold and when to use
+    primrec_new
+
+  * higher-order approach, considering nesting as nesting, is more
+    compositional -- e.g. we saw how we could reuse an existing polymorphic
+    at or maybe_def, whereas at_treesFF is much more specific
+
+  * but:
+     * is perhaps less intuitive, because it requires higher-order thinking
+     * may seem inefficient, and indeed with the code generator the
+       mutually recursive version might be nicer
+     * is somewhat indirect -- must apply a map first, then compute a result
+       (cannot mix)
+     * the auxiliary functions like at_treesFF are sometimes useful in own right
+
+  * impact on automation unclear
+*}
 
 
 subsection {* Syntax
@@ -737,19 +826,22 @@ The following example illustrates this procedure:
     | TCons (thd: 'a) (ttl : "('a, 'b) tlist_") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
 
 (*<*)
+    (* FIXME: remove hack once "primrec_new" is in place *)
     rep_datatype TNil TCons
     by (erule tlist_.induct, assumption) auto
 (*>*)
-
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist_ \<Rightarrow> 'b"
     begin
-
-(*<*)(*FIXME: use primrec_new and avoid rep_datatype*)(*>*)
+(*<*)
+    (* FIXME: remove hack once "primrec_new" is in place *)
     fun termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
     "termi\<^sub>0 (TNil y) = y" |
     "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
-
+(*>*)
+    primrec_new termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
+    "termi\<^sub>0 (TNil y) = y" |
+    "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
 
     lemma terminal_TCons[simp]: "termi (TCons x xs) = termi xs"
@@ -776,6 +868,9 @@ section {* Defining Codatatypes
 text {*
 This section describes how to specify codatatypes using the @{command codatatype}
 command.
+
+  * libraries include some useful codatatypes, notably lazy lists;
+    see the ``Coinductive'' AFP entry \cite{xxx} for an elaborate library
 *}
 
 
