@@ -67,9 +67,8 @@ qed
 
 (** merges **)
 
-lemma length_merges [rule_format, simp]:
-  "\<forall>ss. size(merges f ps ss) = size ss"
-  by (induct_tac ps, auto)
+lemma length_merges [simp]: "size(merges f ps ss) = size ss"
+  by (induct ps arbitrary: ss) auto
 
 
 lemma (in Semilat) merges_preserves_type_lemma:
