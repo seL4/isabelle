@@ -57,11 +57,30 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   private def apply_query(text: String)
   {
     Swing_Thread.require()
+
+    Document_View(view.getTextArea) match {
+      case Some(doc_view) =>
+        val snapshot = doc_view.model.snapshot()
+        current_location = snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1)
+      case None =>
+    }
   }
 
   private def locate_query()
   {
     Swing_Thread.require()
+
+    current_location match {
+      case Some(command) =>
+        val snapshot = PIDE.session.snapshot(command.node_name)
+        val commands = snapshot.node.commands
+        if (commands.contains(command)) {
+          val sources = commands.iterator.takeWhile(_ != command).map(_.source)
+          val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
+          Hyperlink(command.node_name.node, line, column).follow(view)
+        }
+      case None =>
+    }
   }
 
 
@@ -90,7 +109,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
     PIDE.session.global_options += main_actor
     PIDE.session.commands_changed += main_actor
-    handle_output()
+    handle_resize()
   }
 
   override def exit()
