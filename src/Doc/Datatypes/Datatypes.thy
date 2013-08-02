@@ -6,15 +6,24 @@ Tutorial for (co)datatype definitions with the new package.
 
 theory Datatypes
 imports Setup
+keywords
+  "primrec_new" :: thy_decl and
+  "primcorec" :: thy_decl
 begin
 
-(*
-text {*
+(*<*)
+(* FIXME: Evil setup until "primrec_new" and "primcorec" are in place. *)
+ML_command {*
+fun add_dummy_cmd _ _ lthy = lthy;
 
-  primrec_new <fixes>
+val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"} ""
+  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 
+val _ = Outer_Syntax.local_theory @{command_spec "primcorec"} ""
+  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 *}
-*)
+(*>*)
+
 
 section {* Introduction
   \label{sec:introduction} *}
@@ -24,17 +33,18 @@ The 2013 edition of Isabelle introduced new definitional package for datatypes
 and codatatypes. The datatype support is similar to that provided by the earlier
 package due to Berghofer and Wenzel \cite{Berghofer-Wenzel:1999:TPHOL},
 documented in the Isar reference manual \cite{isabelle-isar-ref};
-indeed, replacing @{command datatype} by @{command datatype_new} is usually
-sufficient to port existing specifications to the new package. What makes the
-new package attractive is that it supports definitions with recursion through a
-large class of non-datatypes, notably finite sets:
+indeed, replacing the keyword @{command datatype} by @{command datatype_new} is
+usually all that is needed to port existing theories to use the new package.
+
+Perhaps the main advantage of the new package is that it supports definitions
+with recursion through a large class of non-datatypes, notably finite sets:
 *}
 
-    datatype_new 'a treeFS = TreeFS 'a "'a treeFS fset"
+    datatype_new 'a treeFS = NodeFS 'a "'a treeFS fset"
 
 text {*
 \noindent
-Another advantage of the new package is that it supports local definitions:
+Another strong point is that the package supports local definitions:
 *}
 
     context linorder
@@ -44,32 +54,38 @@ Another advantage of the new package is that it supports local definitions:
 
 text {*
 \noindent
-Finally, the package also provides some convenience, notably automatically
-generated destructors.
+The package also provides some convenience, notably automatically generated
+destructors.
 
-The command @{command datatype_new} is expected to displace @{command datatype} in a future
-release. Authors of new theories are encouraged to use @{command datatype_new}, and
-maintainers of older theories may want to consider upgrading in the coming months.
+The command @{command datatype_new} is expected to displace @{command datatype}
+in a future release. Authors of new theories are encouraged to use
+@{command datatype_new}, and maintainers of older theories may want to consider
+upgrading in the coming months.
 
-The package also provides codatatypes (or ``coinductive datatypes''), which may
-have infinite values. The following command introduces a codatatype of infinite
-streams:
+In addition to plain inductive datatypes, the package supports coinductive
+datatypes, or \emph{codatatypes}, which may have infinite values. For example,
+the following command introduces a codatatype of infinite streams:
 *}
 
     codatatype 'a stream = Stream 'a "'a stream"
 
 text {*
 \noindent
-Mixed inductive--coinductive recursion is possible via nesting.
-Compare the following four examples:
+Mixed inductive--coinductive recursion is possible via nesting. Compare the
+following four examples:
 *}
 
-    datatype_new 'a treeFF = TreeFF 'a "'a treeFF list"
-    datatype_new 'a treeFI = TreeFI 'a "'a treeFF stream"
-    codatatype 'a treeIF = TreeIF 'a "'a treeFF list"
-    codatatype 'a treeII = TreeII 'a "'a treeFF stream"
+    datatype_new 'a treeFF = NodeFF 'a "'a treeFF list"
+    datatype_new 'a treeFI = NodeFI 'a "'a treeFF stream"
+    codatatype 'a treeIF = NodeIF 'a "'a treeFF list"
+    codatatype 'a treeII = NodeII 'a "'a treeFF stream"
 
 text {*
+The first two tree types allow only finite branches, whereas the last two allow
+infinite branches. Orthogonally, the nodes in the first and third types have
+finite branching, whereas those of the second and fourth have infinitely many
+direct subtrees.
+
 To use the package, it is necessary to import the @{theory BNF} theory, which
 can be precompiled as the \textit{HOL-BNF} image. The following commands show
 how to launch jEdit/PIDE with the image loaded and how to build the image
@@ -170,8 +186,8 @@ different flavors of recursion. More examples can be found in the directory
 *}
 
 
-subsection {* Introductory Examples
-  \label{ssec:datatype-introductory-examples} *}
+subsection {* Examples
+  \label{ssec:datatype-examples} *}
 
 subsubsection {* Nonrecursive Types *}
 
@@ -250,7 +266,7 @@ More complex example, which reuses our maybe and triple types:
 *}
 
     datatype_new 'a triple_tree =
-      Triple_Tree "('a triple_tree maybe, bool, 'a triple_tree maybe) triple"
+      Triple_Node "('a triple_tree maybe, bool, 'a triple_tree maybe) triple"
 
 text {*
 Recursion may not be arbitrary; e.g. impossible to define
@@ -353,8 +369,8 @@ The usual mixfix syntaxes are available for both types and constructors. For exa
     | Cons (hd: 'a) (tl: "'a list_") (infixr "#" 65)
 
 
-subsection {* General Syntax
-  \label{ssec:datatype-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:datatype-syntax} *}
 
 text {*
 Datatype definitions have the following general syntax:
@@ -410,7 +426,7 @@ Inside a mutually recursive datatype specification, all defined datatypes must
 specify exactly the same type variables in the same order.
 
 @{rail "
-  @{syntax_def ctor}: (@{syntax name} ':')? @{syntax name} (@{syntax ctor_arg} *) \\
+  @{syntax_def ctor}: (@{syntax name} ':')? @{syntax name} (@{syntax ctor_arg} * ) \\
     @{syntax sel_defaults}? @{syntax mixfix}?
 "}
 
@@ -444,8 +460,8 @@ associated with other constructors. The specified default value must have type
 (i.e., it may dependend on @{text C}'s arguments).
 *}
 
-subsection {* Characteristic Theorems
-  \label{ssec:datatype-characteristic-theorems} *}
+subsection {* Generated Theorems
+  \label{ssec:datatype-generated-theorems} *}
 
 text {*
   * free ctor theorems
@@ -520,8 +536,8 @@ text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
-subsection {* Introductory Examples
-  \label{ssec:primrec-introductory-examples} *}
+subsection {* Examples
+  \label{ssec:primrec-examples} *}
 
 subsubsection {* Nonrecursive Types *}
 
@@ -538,15 +554,23 @@ subsubsection {* Nested Recursion *}
 subsubsection {* Nested-as-Mutual Recursion *}
 
 
-subsection {* General Syntax
-  \label{ssec:primrec-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:primrec-syntax} *}
 
 text {*
+Primitive recursive functions have the following general syntax:
 
+@{rail "
+  @@{command primrec_new} @{syntax target}? @{syntax \"fixes\"} \\ @'where'
+    (@{syntax primrec_equation} + '|')
+  ;
+  @{syntax_def primrec_equation}: @{syntax thmdecl}? @{syntax prop}
+"}
 *}
 
-subsection {* Characteristic Theorems
-  \label{ssec:primrec-characteristic-theorems} *}
+
+subsection {* Generated Theorems
+  \label{ssec:primrec-generated-theorems} *}
 
 text {*
   * synthesized nonrecursive definition
@@ -559,8 +583,8 @@ text {*
     * mutualized
 *}
 
-subsection {* Recursive Default Values
-  \label{ssec:recursive-default-values} *}
+subsection {* Recursive Default Values for Selectors
+  \label{ssec:recursive-default-values-for-selectors} *}
 
 text {*
 A datatype selector @{text un_D} can have a default value for each constructor
@@ -645,26 +669,26 @@ command.
 *}
 
 
-subsection {* Introductory Examples
-  \label{ssec:codatatype-introductory-examples} *}
+subsection {* Examples
+  \label{ssec:codatatype-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
-subsection {* General Syntax
-  \label{ssec:codatatype-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:codatatype-syntax} *}
 
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section~\ref{ssec:datatype-general-syntax}), with two exceptions: The command
-is called @{command codatatype}; the \keyw{no\_dests} option is not
-available, because destructors are a central notion for codatatypes.
+(Section~\ref{ssec:datatype-syntax}), with two exceptions: The command is called
+@{command codatatype}; the \keyw{no\_dests} option is not available, because
+destructors are a central notion for codatatypes.
 *}
 
-subsection {* Characteristic Theorems
-  \label{ssec:codatatype-characteristic-theorems} *}
+subsection {* Generated Theorems
+  \label{ssec:codatatype-generated-theorems} *}
 
 
 section {* Defining Corecursive Functions
@@ -679,23 +703,35 @@ This section describes how to specify corecursive functions using the
 *}
 
 
-subsection {* Introductory Examples
-  \label{ssec:primcorec-introductory-examples} *}
+subsection {* Examples
+  \label{ssec:primcorec-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 
 Also, for default values, the same trick as for datatypes is possible for
-codatatypes (Section~\ref{ssec:recursive-default-values}).
+codatatypes (Section~\ref{ssec:recursive-default-values-for-selectors}).
 *}
 
 
-subsection {* General Syntax
-  \label{ssec:primcorec-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:primcorec-syntax} *}
+
+text {*
+Primitive corecrusvie definitions have the following general syntax:
+
+@{rail "
+  @@{command primcorec} @{syntax target}? @{syntax \"fixes\"} \\ @'where'
+    (@{syntax primcorec_formula} + '|')
+  ;
+  @{syntax_def primcorec_formula}: @{syntax thmdecl}? @{syntax prop}
+    (@'of' (@{syntax term} * ))?
+"}
+*}
 
 
-subsection {* Characteristic Theorems
-  \label{ssec:primcorec-characteristic-theorems} *}
+subsection {* Generated Theorems
+  \label{ssec:primcorec-generated-theorems} *}
 
 
 section {* Registering Bounded Natural Functors
@@ -711,8 +747,8 @@ of a bounded natural functor (BNF).
 *}
 
 
-subsection {* Introductory Example
-  \label{ssec:bnf-introductory-examples} *}
+subsection {* Example
+  \label{ssec:bnf-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
@@ -723,8 +759,8 @@ mention =>.
 *}
 
 
-subsection {* General Syntax
-  \label{ssec:bnf-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:bnf-syntax} *}
 
 
 section {* Generating Free Constructor Theorems
@@ -745,16 +781,16 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
 *}
 
 
-subsection {* Introductory Example
-  \label{ssec:ctors-introductory-examples} *}
+subsection {* Example
+  \label{ssec:ctors-examples} *}
 
 
-subsection {* General Syntax
-  \label{ssec:ctors-general-syntax} *}
+subsection {* Syntax
+  \label{ssec:ctors-syntax} *}
 
 
-subsection {* Characteristic Theorems
-  \label{ssec:ctors-characteristic-theorems} *}
+subsection {* Generated Theorems
+  \label{ssec:ctors-generated-theorems} *}
 
 
 section {* Standard ML Interface
