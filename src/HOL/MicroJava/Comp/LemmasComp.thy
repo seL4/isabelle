@@ -34,11 +34,11 @@ lemma gl_c_hupd [simp]: "(gl (c_hupd h xs)) = (gl xs)"
 by (simp add: gl_def c_hupd_def split_pairs)
 
 lemma c_hupd_xcpt_invariant [simp]: "gx (c_hupd h' (xo, st)) = xo"
-by (case_tac st, simp only: c_hupd_conv gx_conv)
+by (cases st) (simp only: c_hupd_conv gx_conv)
 
 (* not added to simpset because of interference with c_hupd_conv *)
 lemma c_hupd_hp_invariant: "gh (c_hupd hp (None, st)) = hp"
-by (case_tac st, simp add: c_hupd_conv gh_def)
+by (cases st) (simp add: c_hupd_conv gh_def)
 
 
 lemma unique_map_fst [rule_format]: "(\<forall> x \<in> set xs. (fst x = fst (f x) )) \<longrightarrow>
@@ -99,15 +99,22 @@ apply (simp add: image_compose [THEN sym] o_def split_beta)
 done
 
 lemma comp_is_class: "is_class (comp G) C = is_class G C"
-by (case_tac "class G C", auto simp: is_class_def comp_class_None dest: comp_class_imp)
+by (cases "class G C") (auto simp: is_class_def comp_class_None dest: comp_class_imp)
 
 
 lemma comp_is_type: "is_type (comp G) T = is_type G T"
-  by ((cases T),simp,(induct G)) ((simp),(simp only: comp_is_class),(simp add: comp_is_class),(simp only: comp_is_class))
+  apply (cases T)
+  apply simp
+  apply (induct G)
+  apply simp
+  apply (simp only: comp_is_class)
+  apply (simp add: comp_is_class)
+  apply (simp only: comp_is_class)
+  done
 
 lemma comp_classname: "is_class G C 
   \<Longrightarrow> fst (the (class G C)) = fst (the (class (comp G) C))"
-by (case_tac "class G C", auto simp: is_class_def dest: comp_class_imp)
+by (cases "class G C") (auto simp: is_class_def dest: comp_class_imp)
 
 lemma comp_subcls1: "subcls1 (comp G) = subcls1 G"
 by (auto simp add: subcls1_def2 comp_classname comp_is_class)
@@ -146,7 +153,7 @@ lemma compClass_fst_snd_snd [simp]: "(fst (snd (snd (compClass G C)))) = (fst (s
 by (simp add: compClass_def split_beta)
 
 lemma comp_wf_fdecl [simp]: "wf_fdecl (comp G) fd = wf_fdecl G fd"
-by (case_tac fd, simp add: wf_fdecl_def comp_is_type)
+by (cases fd) (simp add: wf_fdecl_def comp_is_type)
 
 
 lemma compClass_forall [simp]: "
