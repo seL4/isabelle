@@ -416,18 +416,31 @@ but underdefined.
 \fi
 %
 
+From now on lists are always the predefined lists.
+
+
 \subsection{Exercises}
 
 \begin{exercise}
-Define your own addition, multiplication, and exponentiation functions on type
-@{typ nat}. Prove as many of the standard equational laws as possible, e.g.\
-associativity, commutativity and distributivity.
+Start from the definition of @{const add} given above.
+Prove it is associative (@{prop"add (add m n) p = add m (add n p)"})
+and commutative (@{prop"add m n = add n m"}). Define a recursive function
+@{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"} and prove that @{prop"double m = add m m"}.
 \end{exercise}
 
 \begin{exercise}
-Define your own sorting function on the predefined lists.
-Prove that the result is sorted and that every element occurs as many times
-in the output as in the input.
+Define a function @{text"count ::"} @{typ"'a \<Rightarrow> 'a list \<Rightarrow> nat"}
+that counts the number of occurrences of an element in a list. Prove
+@{prop"count x xs \<le> length xs"}.
+\end{exercise}
+
+\begin{exercise}
+Define a recursive function @{text "snoc ::"} @{typ"'a list \<Rightarrow> 'a \<Rightarrow> 'a list"}
+that appends an element to the end of a list. Do not use the predefined append
+operator @{text"@"}. With the help of @{text snoc} define a recursive function
+@{text "reverse ::"} @{typ"'a list \<Rightarrow> 'a list"} that reverses a list. Do not
+use the predefined function @{const rev}.
+Prove @{prop"reverse(reverse xs) = xs"}.
 \end{exercise}
 *}
 (*<*)
