@@ -636,4 +636,16 @@ val _ =
 
 end;
 
+
+
+(** print function **)
+
+val _ = Command.print_function "find_theorems"
+  (fn {args, ...} =>
+    if null args then NONE
+    else
+      SOME {delay = NONE, pri = 0, persistent = false,
+        print_fn = fn _ => fn st =>
+          writeln (cat_lines ("find_theorems" :: args))});
+
 end;

@@ -28,11 +28,16 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* component state -- owned by Swing thread */
 
+  private val identification = Document_ID.make().toString
+
   private var zoom_factor = 100
   private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
   private var current_location: Option[Command] = None
+  private var current_query: String = ""
+
+  private val FIND_THEOREMS = "find_theorems"
 
 
   /* pretty text area */
@@ -54,14 +59,35 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     Swing_Thread.require()
   }
 
-  private def apply_query(text: String)
+  private def clear_overlay()
   {
     Swing_Thread.require()
 
+    for {
+      command <- current_location
+      buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
+      model <- PIDE.document_model(buffer)
+    } model.remove_overlay(command, FIND_THEOREMS, List(identification, current_query))
+
+    current_location = None
+    current_query = ""
+  }
+
+  private def apply_query(query: String)
+  {
+    Swing_Thread.require()
+
+    clear_overlay()
     Document_View(view.getTextArea) match {
       case Some(doc_view) =>
         val snapshot = doc_view.model.snapshot()
-        current_location = snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1)
+        snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
+          case Some(command) =>
+            current_location = Some(command)
+            current_query = query
+            doc_view.model.add_overlay(command, FIND_THEOREMS, List(identification, query))
+          case None =>
+        }
       case None =>
     }
   }
