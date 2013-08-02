@@ -36,8 +36,8 @@ documented in the Isar reference manual \cite{isabelle-isar-ref};
 indeed, replacing the keyword @{command datatype} by @{command datatype_new} is
 usually all that is needed to port existing theories to use the new package.
 
-Perhaps the main advantage of the new package is that it supports definitions
-with recursion through a large class of non-datatypes, notably finite sets:
+Perhaps the main advantage of the new package is that it supports recursion
+through a large class of non-datatypes, comprising finite sets:
 *}
 
     datatype_new 'a treeFS = NodeFS 'a "'a treeFS fset"
@@ -49,18 +49,13 @@ Another strong point is that the package supports local definitions:
 
     context linorder
     begin
-      datatype_new flag = Less | Eq | Greater
+    datatype_new flag = Less | Eq | Greater
     end
 
 text {*
 \noindent
 The package also provides some convenience, notably automatically generated
-destructors.
-
-The command @{command datatype_new} is expected to displace @{command datatype}
-in a future release. Authors of new theories are encouraged to use
-@{command datatype_new}, and maintainers of older theories may want to consider
-upgrading in the coming months.
+destructors (discriminators and selectors).
 
 In addition to plain inductive datatypes, the package supports coinductive
 datatypes, or \emph{codatatypes}, which may have infinite values. For example,
@@ -103,14 +98,11 @@ text {*
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
-\footnote{Nonetheless, if the \textit{quick\_and\_dirty} option is enabled, some
-of the internal constructions and most of the internal proof obligations are
-skipped.}
+\footnote{If the \textit{quick\_and\_dirty} option is enabled, some of the
+internal constructions and most of the internal proof obligations are skipped.}
 The package's metatheory is described in a pair of papers
 \cite{traytel-et-al-2012,blanchette-et-al-wit}.
-*}
 
-text {*
 This tutorial is organized as follows:
 
 \begin{itemize}
@@ -161,14 +153,17 @@ in.\allowbreak tum.\allowbreak de}}
 \newcommand\authoremailiii{\texttt{tray{\color{white}nospam}\kern-\wd\boxA{}tel@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
 
-\noindent
-Comments and bug reports concerning either
-the tool or the manual should be directed to the authors at
-\authoremaili, \authoremailii, and \authoremailiii.
+The command @{command datatype_new} is expected to displace @{command datatype}
+in a future release. Authors of new theories are encouraged to use
+@{command datatype_new}, and maintainers of older theories may want to consider
+upgrading in the coming months.
+
+Comments and bug reports concerning either the tool or this tutorial should be
+directed to the authors at \authoremaili, \authoremailii, and \authoremailiii.
 
 \begin{framed}
 \noindent
-\textbf{Warning:} This document is under heavy construction. Please apologise
+\textbf{Warning:} This tutorial is under heavy construction. Please apologise
 for its appearance and come back in a few months. If you have ideas regarding
 material that should be included, please let the authors know.
 \end{framed}
@@ -219,6 +214,16 @@ simplest recursive type: natural numbers
     datatype_new nat = Zero | Suc nat
 
 text {*
+Setup to be able to write @{term 0} instead of @{const Zero}:
+*}
+
+    instantiation nat :: zero
+    begin
+    definition "0 = Zero"
+    instance ..
+    end
+
+text {*
 lists were shown in the introduction
 
 terminated lists are a variant:
@@ -240,19 +245,19 @@ Mutual recursion = Define several types simultaneously, referring to each other.
 Simple example: distinction between even and odd natural numbers:
 *}
 
-    datatype_new even_nat = Zero | Even_Suc odd_nat
-    and odd_nat = Odd_Suc even_nat
+    datatype_new enat = EZero | ESuc onat
+    and onat = OSuc enat
 
 text {*
 More complex, and more realistic, example:
 *}
 
-    datatype_new ('a, 'b) expr =
-      Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) expr"
+    datatype_new ('a, 'b) exp =
+      Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
     and ('a, 'b) trm =
-      Factor "('a, 'b) fact" | Prod "('a, 'b) fact" "('a, 'b) trm"
-    and ('a, 'b) fact =
-      Const 'a | Var 'b | Sub_Expr "('a, 'b) expr"
+      Factor "('a, 'b) fct" | Prod "('a, 'b) fct" "('a, 'b) trm"
+    and ('a, 'b) fct =
+      Const 'a | Var 'b | Expr "('a, 'b) exp"
 
 
 subsubsection {* Nested Recursion *}
@@ -323,20 +328,32 @@ The discriminators and selectors are collectively called \emph{destructors}. The
 
 The set functions, map function, relator, discriminators, and selectors can be
 given custom names, as in the example below:
+
+%%% FIXME: get rid of 0 below
 *}
 
-(*<*)hide_const Nil Cons hd tl(*>*)
-    datatype_new (set: 'a) list (map: map rel: list_all2) =
+(*<*)
+    no_translations
+      "[x, xs]" == "x # [xs]"
+      "[x]" == "x # []"
+
+    no_notation
+      Nil ("[]") and
+      Cons (infixr "#" 65)
+
+    hide_const Nil Cons hd tl map
+(*>*)
+    datatype_new (set0: 'a) list0 (map: map0 rel: list0_all2) =
       null: Nil (defaults tl: Nil)
-    | Cons (hd: 'a) (tl: "'a list")
+    | Cons (hd: 'a) (tl: "'a list0")
 
 text {*
 \noindent
 The command introduces a discriminator @{const null} and a pair of selectors
 @{const hd} and @{const tl} characterized as follows:
 %
-\[@{thm list.collapse(1)[of xs, no_vars]}
-  \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
+\[@{thm list0.collapse(1)[of xs, no_vars]}
+  \qquad @{thm list0.collapse(2)[of xs, no_vars]}\]
 %
 For two-constructor datatypes, a single discriminator constant suffices. The
 discriminator associated with @{const Cons} is simply @{text "\<not> null"}.
@@ -364,9 +381,22 @@ The usual mixfix syntaxes are available for both types and constructors. For exa
     datatype_new ('a, 'b) prod (infixr "*" 20) =
       Pair 'a 'b
 
-    datatype_new (set_: 'a) list_ =
+(*<*)
+    hide_const Nil Cons hd tl
+(*>*)
+    datatype_new (set: 'a) list (map: map rel: list_all2) =
       null: Nil ("[]")
-    | Cons (hd: 'a) (tl: "'a list_") (infixr "#" 65)
+    | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
+
+text {*
+Incidentally, this is how the traditional syntaxes are set up in @{theory List}:
+*}
+
+    syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
+
+    translations
+      "[x, xs]" == "x # [xs]"
+      "[x]" == "x # []"
 
 
 subsection {* Syntax
@@ -541,11 +571,91 @@ subsection {* Examples
 
 subsubsection {* Nonrecursive Types *}
 
+text {*
+  * simple (depth 1) pattern matching on the left-hand side
+*}
+
+    primrec_new bool_of_trool :: "trool \<Rightarrow> bool" where
+      "real_of_trool Faalse = False" |
+      "real_of_trool Truue = True"
+
+text {*
+  * OK to specify the cases in a different order
+  * OK to leave out some case (but get a warning -- maybe we need a "quiet"
+    or "silent" flag?)
+    * case is then unspecified
+
+More examples:
+*}
+
+    primrec_new list_of_maybe :: "'a maybe => 'a list" where
+      "list_of_maybe Nothing = []" |
+      "list_of_maybe (Just a) = [a]"
+
+    primrec_new mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
+      "mirrror (Triple a b c) = Triple c b a"
+
 
 subsubsection {* Simple Recursion *}
 
+text {*
+again, simple pattern matching on left-hand side, but possibility
+to call a function recursively on an argument to a constructor:
+*}
+
+    primrec_new replicate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+      "rep 0 _ = []" |
+      "rep (Suc n) a = a # rep n a"
+
+    primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
+      "tfold _ (TNil b) = b" |
+      "tfold f (TCons a as) = f a (tfold f as)"
+
 
 subsubsection {* Mutual Recursion *}
+
+text {*
+E.g., converting even/odd naturals to plain old naturals:
+*}
+
+    primrec_new
+      nat_of_enat :: "enat \<Rightarrow> nat" and
+      nat_of_onat :: "onat => nat"
+    where
+      "nat_of_enat EZero = 0" |
+      "nat_of_enat (ESuc n) = Suc (nat_of_onat n)" |
+      "nat_of_onat (OSuc n) = Suc (nat_of_enat n)"
+
+text {*
+Mutual recursion is even possible within a single type, an innovation over the
+old package:
+*}
+
+    primrec_new
+      even :: "nat \<Rightarrow> bool" and
+      odd :: "nat \<Rightarrow> bool"
+    where
+      "even 0 = True" |
+      "even (Suc n) = odd n" |
+      "odd 0 = False" |
+      "odd (Suc n) = even n"
+
+text {*
+More elaborate:
+*}
+
+    primrec_new
+      eval\<^sub>e :: "('a, 'b) exp \<Rightarrow> real" and
+      eval\<^sub>t :: "('a, 'b) trm \<Rightarrow> real" and
+      eval\<^sub>f :: "('a, 'b) fct \<Rightarrow> real"
+    where
+      "eval\<^sub>e \<gamma> \<xi> (Term t) = eval\<^sub>t \<gamma> \<xi> t" |
+      "eval\<^sub>e \<gamma> \<xi> (Sum t e) = eval\<^sub>t \<gamma> \<xi> t + eval\<^sub>e \<gamma> \<xi> e" |
+      "eval\<^sub>t \<gamma> \<xi> (Factor f) = eval\<^sub>f \<gamma> \<xi> f)" |
+      "eval\<^sub>t \<gamma> \<xi> (Prod f t) = eval\<^sub>f \<gamma> \<xi> f + eval\<^sub>t \<gamma> \<xi> t" |
+      "eval\<^sub>f \<gamma> _ (Const a) = \<gamma> a" |
+      "eval\<^sub>f _ \<xi> (Var b) = \<xi> b" |
+      "eval\<^sub>f \<gamma> \<xi> (Expr e) = eval\<^sub>e \<gamma> \<xi> e"
 
 
 subsubsection {* Nested Recursion *}
