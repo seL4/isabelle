@@ -13,6 +13,7 @@ declare -a SOURCES=(
   "src/document_model.scala"
   "src/document_view.scala"
   "src/documentation_dockable.scala"
+  "src/find_dockable.scala"
   "src/fold_handling.scala"
   "src/graphview_dockable.scala"
   "src/html_panel.scala"

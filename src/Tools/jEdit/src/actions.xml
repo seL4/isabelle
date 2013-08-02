@@ -27,6 +27,11 @@
 			wm.addDockableWindow("isabelle-readme");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.find-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-find");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");
