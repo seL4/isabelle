@@ -25,7 +25,7 @@ sig
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
   exception Protocol_Message of Properties.T
-  structure Private_Hooks:
+  structure Internal:
   sig
     val writeln_fn: (output -> unit) Unsynchronized.ref
     val urgent_message_fn: (output -> unit) Unsynchronized.ref
@@ -92,7 +92,7 @@ fun physical_writeln "" = ()
 
 exception Protocol_Message of Properties.T;
 
-structure Private_Hooks =
+structure Internal =
 struct
   val writeln_fn = Unsynchronized.ref physical_writeln;
   val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
@@ -107,17 +107,17 @@ struct
     Unsynchronized.ref (fn props => fn _ => raise Protocol_Message props);
 end;
 
-fun writeln s = ! Private_Hooks.writeln_fn (output s);
-fun urgent_message s = ! Private_Hooks.urgent_message_fn (output s);
-fun tracing s = ! Private_Hooks.tracing_fn (output s);
-fun warning s = ! Private_Hooks.warning_fn (output s);
-fun error_msg' (i, s) = ! Private_Hooks.error_fn (i, output s);
+fun writeln s = ! Internal.writeln_fn (output s);
+fun urgent_message s = ! Internal.urgent_message_fn (output s);
+fun tracing s = ! Internal.tracing_fn (output s);
+fun warning s = ! Internal.warning_fn (output s);
+fun error_msg' (i, s) = ! Internal.error_fn (i, output s);
 fun error_msg s = error_msg' (serial (), s);
-fun prompt s = ! Private_Hooks.prompt_fn (output s);
-fun status s = ! Private_Hooks.status_fn (output s);
-fun report s = ! Private_Hooks.report_fn (output s);
-fun result (i, s) = ! Private_Hooks.result_fn (i, output s);
-fun protocol_message props s = ! Private_Hooks.protocol_message_fn props (output s);
+fun prompt s = ! Internal.prompt_fn (output s);
+fun status s = ! Internal.status_fn (output s);
+fun report s = ! Internal.report_fn (output s);
+fun result (i, s) = ! Internal.result_fn (i, output s);
+fun protocol_message props s = ! Internal.protocol_message_fn props (output s);
 fun try_protocol_message props s = protocol_message props s handle Protocol_Message _ => ();
 
 end;

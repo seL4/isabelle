@@ -110,20 +110,17 @@ fun init_channels channel =
           ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
             (Position.properties_of (Position.thread_data ()))) body;
   in
-    Output.Private_Hooks.status_fn := standard_message NONE Markup.statusN;
-    Output.Private_Hooks.report_fn := standard_message NONE Markup.reportN;
-    Output.Private_Hooks.result_fn := (fn (i, s) => standard_message (SOME i) Markup.resultN s);
-    Output.Private_Hooks.writeln_fn :=
-      (fn s => standard_message (SOME (serial ())) Markup.writelnN s);
-    Output.Private_Hooks.tracing_fn :=
+    Output.Internal.status_fn := standard_message NONE Markup.statusN;
+    Output.Internal.report_fn := standard_message NONE Markup.reportN;
+    Output.Internal.result_fn := (fn (i, s) => standard_message (SOME i) Markup.resultN s);
+    Output.Internal.writeln_fn := (fn s => standard_message (SOME (serial ())) Markup.writelnN s);
+    Output.Internal.tracing_fn :=
       (fn s => (update_tracing (); standard_message (SOME (serial ())) Markup.tracingN s));
-    Output.Private_Hooks.warning_fn :=
-      (fn s => standard_message (SOME (serial ())) Markup.warningN s);
-    Output.Private_Hooks.error_fn :=
-      (fn (i, s) => standard_message (SOME i) Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message Markup.protocolN;
-    Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
-    Output.Private_Hooks.prompt_fn := ignore;
+    Output.Internal.warning_fn := (fn s => standard_message (SOME (serial ())) Markup.warningN s);
+    Output.Internal.error_fn := (fn (i, s) => standard_message (SOME i) Markup.errorN s);
+    Output.Internal.protocol_message_fn := message Markup.protocolN;
+    Output.Internal.urgent_message_fn := ! Output.Internal.writeln_fn;
+    Output.Internal.prompt_fn := ignore;
     message Markup.initN [] (Session.welcome ());
     msg_channel
   end;
