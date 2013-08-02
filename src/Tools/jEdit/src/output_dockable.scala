@@ -135,30 +135,31 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
-  zoom.tooltip = "Zoom factor for basic font size"
+  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() }) {
+    tooltip = "Zoom factor for output font size"
+  }
 
   private val auto_update = new CheckBox("Auto update") {
+    tooltip = "Indicate automatic update following cursor movement"
     reactions += {
       case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
+    selected = do_update
   }
-  auto_update.selected = do_update
-  auto_update.tooltip = "Indicate automatic update following cursor movement"
 
   private val update = new Button("Update") {
+    tooltip = "Update display according to the command at cursor position"
     reactions += { case ButtonClicked(_) => handle_update(true, None) }
   }
-  update.tooltip = "Update display according to the command at cursor position"
 
   private val detach = new Button("Detach") {
+    tooltip = "Detach window with static copy of current output"
     reactions += {
       case ButtonClicked(_) =>
         Info_Dockable(view, current_snapshot,
           current_state.results, Pretty.separate(current_output))
     }
   }
-  detach.tooltip = "Detach window with static copy of current output"
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, auto_update, update, detach)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(auto_update, update, detach, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
