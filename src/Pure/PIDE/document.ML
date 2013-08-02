@@ -100,7 +100,7 @@ val required_node = #required o get_perspective;
 val visible_command = Inttab.defined o #visible o get_perspective;
 val visible_last = #visible_last o get_perspective;
 val visible_node = is_some o visible_last
-val overlays = #overlays o get_perspective;
+val overlays = Inttab.lookup_list o #overlays o get_perspective;
 
 fun map_entries f =
   map_node (fn (header, perspective, entries, result) => (header, perspective, f entries, result));
@@ -442,9 +442,10 @@ fun last_common state node_required node0 node =
               SOME (eval, prints) =>
                 let
                   val command_visible = visible_command node command_id;
+                  val command_overlays = overlays node command_id;
                   val command_name = the_command_name state command_id;
                 in
-                  (case Command.print command_visible command_name eval prints of
+                  (case Command.print command_visible command_overlays command_name eval prints of
                     SOME prints' => assign_update_new (command_id, SOME (eval, prints'))
                   | NONE => I)
                 end
@@ -462,15 +463,18 @@ fun last_common state node_required node0 node =
 
 fun illegal_init _ = error "Illegal theory header after end of theory";
 
-fun new_exec state proper_init command_visible command_id' (assign_update, command_exec, init) =
+fun new_exec state node proper_init command_id' (assign_update, command_exec, init) =
   if not proper_init andalso is_none init then NONE
   else
     let
       val (_, (eval, _)) = command_exec;
+
+      val command_visible = visible_command node command_id';
+      val command_overlays = overlays node command_id';
       val (command_name, span) = the_command state command_id' ||> Lazy.force;
 
       val eval' = Command.eval (fn () => the_default illegal_init init span) span eval;
-      val prints' = perhaps (Command.print command_visible command_name eval') [];
+      val prints' = perhaps (Command.print command_visible command_overlays command_name eval') [];
       val exec' = (eval', prints');
 
       val assign_update' = assign_update_new (command_id', SOME exec') assign_update;
@@ -525,7 +529,7 @@ fun update old_version_id new_version_id edits state =
                         iterate_entries_after common
                           (fn ((prev, id), _) => fn res =>
                             if not node_required andalso prev = visible_last node then NONE
-                            else new_exec state proper_init (visible_command node id) id res) node;
+                            else new_exec state node proper_init id res) node;
 
                     val assigned_execs =
                       (node0, updated_execs) |-> iterate_entries_after common
