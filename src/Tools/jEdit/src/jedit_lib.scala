@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
-import javax.swing.Icon
+import javax.swing.{Icon, ImageIcon}
 
 import scala.annotation.tailrec
 
@@ -240,5 +240,11 @@ object JEdit_Lib
     if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
     else icon
   }
+
+  def load_image_icon(name: String): ImageIcon =
+    load_icon(name) match {
+      case icon: ImageIcon => icon
+      case _ => error("Bad image icon: " + name)
+    }
 }
 

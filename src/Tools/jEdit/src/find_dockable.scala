@@ -114,6 +114,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(query_wrapped, find, locate, zoom)
+    new FlowPanel(FlowPanel.Alignment.Right)(
+      query_wrapped, find_theorems.animation, find, locate, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
