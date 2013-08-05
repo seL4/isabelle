@@ -78,7 +78,7 @@ object Pretty_Tooltip
     }
 
   def invoke(body: () => Unit): Unit =
-    Swing_Thread.required {
+    Swing_Thread.require {
       if (active) {
         pending = Some(body)
         pending_delay.invoke()
@@ -86,7 +86,7 @@ object Pretty_Tooltip
     }
 
   def revoke(): Unit =
-    Swing_Thread.required {
+    Swing_Thread.require {
       pending = None
       pending_delay.revoke()
     }
@@ -97,7 +97,7 @@ object Pretty_Tooltip
     }
 
   private def deactivate(): Unit =
-    Swing_Thread.required {
+    Swing_Thread.require {
       revoke()
       active = false
       reactivate_delay.invoke()

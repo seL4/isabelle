@@ -16,10 +16,17 @@ object Swing_Thread
 {
   /* checks */
 
-  def assert() = Predef.assert(SwingUtilities.isEventDispatchThread())
-  def require() = Predef.require(SwingUtilities.isEventDispatchThread())
+  def assert[A](body: => A) =
+  {
+    Predef.assert(SwingUtilities.isEventDispatchThread())
+    body
+  }
 
-  def required[A](body: => A): A = { require(); body }
+  def require[A](body: => A) =
+  {
+    Predef.require(SwingUtilities.isEventDispatchThread())
+    body
+  }
 
 
   /* main dispatch queue */
