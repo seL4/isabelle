@@ -14,7 +14,7 @@ import java.awt.Color
 import javax.swing.Icon
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
-import org.gjt.sp.jedit.{jEdit, GUIUtilities}
+import org.gjt.sp.jedit.jEdit
 
 import scala.collection.immutable.SortedMap
 
@@ -39,23 +39,6 @@ object Rendering
     Markup.TRACING -> tracing_pri, Markup.TRACING_MESSAGE -> tracing_pri,
     Markup.WARNING -> warning_pri, Markup.WARNING_MESSAGE -> warning_pri,
     Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
-
-
-  /* icons */
-
-  def load_icon(name: String): Icon =
-  {
-    val name1 =
-      if (name.startsWith("idea-icons/")) {
-        val file =
-          Isabelle_System.platform_file_url(Path.explode("$JEDIT_HOME/dist/jars/idea-icons.jar"))
-        "jar:" + file + "!/" + name
-      }
-      else name
-    val icon = GUIUtilities.loadIcon(name1)
-    if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
-    else icon
-  }
 
 
   /* jEdit font */
@@ -381,15 +364,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val tooltip_margin: Int = options.int("jedit_tooltip_margin")
   val tooltip_bounds: Double = (options.real("jedit_tooltip_bounds") max 0.2) min 0.8
 
-  lazy val tooltip_close_icon = Rendering.load_icon(options.string("tooltip_close_icon"))
-  lazy val tooltip_detach_icon = Rendering.load_icon(options.string("tooltip_detach_icon"))
+  lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
+  lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 
 
   private lazy val gutter_icons = Map(
-    Rendering.information_pri -> Rendering.load_icon(options.string("gutter_information_icon")),
-    Rendering.warning_pri -> Rendering.load_icon(options.string("gutter_warning_icon")),
-    Rendering.legacy_pri -> Rendering.load_icon(options.string("gutter_legacy_icon")),
-    Rendering.error_pri -> Rendering.load_icon(options.string("gutter_error_icon")))
+    Rendering.information_pri -> JEdit_Lib.load_icon(options.string("gutter_information_icon")),
+    Rendering.warning_pri -> JEdit_Lib.load_icon(options.string("gutter_warning_icon")),
+    Rendering.legacy_pri -> JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
+    Rendering.error_pri -> JEdit_Lib.load_icon(options.string("gutter_error_icon")))
 
   private val gutter_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
