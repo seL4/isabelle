@@ -119,6 +119,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
         }
       case None =>
     }
+
+    PIDE.flush_buffers()
   }
 
   private def locate_query()

@@ -81,19 +81,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   private var overlays = Document.Overlays.empty
 
-  def add_overlay(command: Command, name: String, args: List[String])
-  {
-    Swing_Thread.required()
-    overlays += ((command, name, args))
-    PIDE.flush_buffers()
-  }
+  def add_overlay(command: Command, name: String, args: List[String]): Unit =
+    Swing_Thread.required { overlays += ((command, name, args)) }
 
-  def remove_overlay(command: Command, name: String, args: List[String])
-  {
-    Swing_Thread.required()
-    overlays -= ((command, name, args))
-    PIDE.flush_buffers()
-  }
+  def remove_overlay(command: Command, name: String, args: List[String]): Unit =
+    Swing_Thread.required { overlays -= ((command, name, args)) }
 
 
   /* perspective */
