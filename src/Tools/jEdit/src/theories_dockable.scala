@@ -100,6 +100,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       if model.node_required
     } nodes_required += model.name
   }
+  update_nodes_required()
 
   private def in_checkbox(loc0: Point, p: Point): Boolean =
     Node_Renderer_Component != null &&
