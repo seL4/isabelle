@@ -659,11 +659,16 @@ val _ = Command.print_function find_theoremsN
         print_fn = fn _ => fn state =>
           let
             val msg =
-              Pretty.string_of (pretty_theorems_cmd state NONE false (parse_query query))
-                handle exn =>
-                  if Exn.is_interrupt exn then reraise exn
-                  else ML_Compiler.exn_message exn;  (* FIXME error markup!? *)
-          in Output.result [(Markup.kindN, find_theoremsN), (Markup.instanceN, instance)] msg end}
+              XML.Elem ((Markup.writelnN, []),
+                [XML.Text
+                  (Pretty.string_of (pretty_theorems_cmd state NONE false (parse_query query)))])
+              handle exn =>
+                if Exn.is_interrupt exn then reraise exn
+                else XML.Elem ((Markup.errorN, []), [XML.Text (ML_Compiler.exn_message exn)]);
+          in
+            Output.result [(Markup.kindN, find_theoremsN), (Markup.instanceN, instance)]
+              (YXML.string_of msg)
+          end}
     | _ => NONE));
 
 end;

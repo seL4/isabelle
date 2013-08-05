@@ -75,10 +75,11 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
     val new_output =
       (for {
-        (_, XML.Elem(Markup(Markup.RESULT, props), body)) <- new_state.results.entries
+        (_, XML.Elem(Markup(Markup.RESULT, props), List(XML.Elem(markup, body)))) <-
+          new_state.results.entries
         if props.contains((Markup.KIND, FIND_THEOREMS))
         if props.contains((Markup.INSTANCE, instance))
-      } yield XML.Elem(Markup(Markup.WRITELN_MESSAGE, Nil), body)).toList
+      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)).toList
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
