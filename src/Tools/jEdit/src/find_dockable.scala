@@ -34,6 +34,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   private var zoom_factor = 100
   private var current_location: Option[Command] = None
   private var current_query: String = ""
+  private var current_result = false
   private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
@@ -51,6 +52,17 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
     pretty_text_area.resize(Rendering.font_family(),
       (Rendering.font_size("jedit_font_scale") * zoom_factor / 100).round)
+  }
+
+  private def remove_overlay()
+  {
+    Swing_Thread.require()
+
+    for {
+      command <- current_location
+      buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
+      model <- PIDE.document_model(buffer)
+    } model.remove_overlay(command, FIND_THEOREMS, List(instance, current_query))
   }
 
   private def handle_update()
@@ -84,33 +96,28 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
 
+    if (!new_output.isEmpty) {
+      current_result = true
+      remove_overlay()
+      PIDE.flush_buffers()
+    }
+
     current_snapshot = new_snapshot
     current_state = new_state
     current_output = new_output
-  }
-
-  private def clear_overlay()
-  {
-    Swing_Thread.require()
-
-    for {
-      command <- current_location
-      buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
-      model <- PIDE.document_model(buffer)
-    } model.remove_overlay(command, FIND_THEOREMS, List(instance, current_query))
-
-    current_location = None
-    current_query = ""
   }
 
   private def apply_query(query: String)
   {
     Swing_Thread.require()
 
-    clear_overlay()
     Document_View(view.getTextArea) match {
       case Some(doc_view) =>
         val snapshot = doc_view.model.snapshot()
+        remove_overlay()
+        current_location = None
+        current_query = ""
+        current_result = false
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
@@ -118,10 +125,9 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
             doc_view.model.insert_overlay(command, FIND_THEOREMS, List(instance, query))
           case None =>
         }
+        PIDE.flush_buffers()
       case None =>
     }
-
-    PIDE.flush_buffers()
   }
 
   private def locate_query()
@@ -151,7 +157,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
           Swing_Thread.later { handle_resize() }
         case changed: Session.Commands_Changed =>
           current_location match {
-            case Some(command) if changed.commands.contains(command) =>
+            case Some(command) if !current_result && changed.commands.contains(command) =>
               Swing_Thread.later { handle_update() }
             case _ =>
           }
