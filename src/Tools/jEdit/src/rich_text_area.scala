@@ -156,7 +156,6 @@ class Rich_Text_Area(
       robust_body(()) {
         hyperlink_area.info match {
           case Some(Text.Info(_, link)) =>
-            Pretty_Tooltip.dismissed_all()
             link.follow(view)
           case None =>
         }

@@ -272,7 +272,10 @@ class Plugin extends EBPlugin
               if (PIDE.session.is_ready)
                 PIDE.init_view(buffer, text_area)
             }
-            else PIDE.exit_view(buffer, text_area)
+            else {
+              Pretty_Tooltip.dismissed_all()
+              PIDE.exit_view(buffer, text_area)
+            }
           }
 
         case msg: PropertiesChanged =>
