@@ -605,7 +605,7 @@ fun pretty_theorems_cmd state opt_lim rem_dups spec =
 
 
 
-(** command syntax **)
+(** Isar command syntax **)
 
 local
 
@@ -647,28 +647,10 @@ end;
 
 
 
-(** print function **)
+(** PIDE query operation **)
 
-val find_theoremsN = "find_theorems";
-
-val _ = Command.print_function find_theoremsN
-  (fn {args, ...} =>
-    (case args of
-      [instance, query] =>
-      SOME {delay = NONE, pri = 0, persistent = false,
-        print_fn = fn _ => fn state =>
-          let
-            val msg =
-              XML.Elem ((Markup.writelnN, []),
-                [XML.Text
-                  (Pretty.string_of (pretty_theorems_cmd state NONE false (parse_query query)))])
-              handle exn =>
-                if Exn.is_interrupt exn then reraise exn
-                else XML.Elem ((Markup.errorN, []), [XML.Text (ML_Compiler.exn_message exn)]);
-          in
-            Output.result [(Markup.kindN, find_theoremsN), (Markup.instanceN, instance)]
-              (YXML.string_of msg)
-          end}
-    | _ => NONE));
+val _ =
+  Query_Operation.register "find_theorems" (fn state => fn query =>
+    Pretty.string_of (pretty_theorems_cmd state NONE false (maps parse_query query)));
 
 end;

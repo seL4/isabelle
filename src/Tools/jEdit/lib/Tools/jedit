@@ -35,6 +35,7 @@ declare -a SOURCES=(
   "src/pretty_text_area.scala"
   "src/pretty_tooltip.scala"
   "src/protocol_dockable.scala"
+  "src/query_operation.scala"
   "src/raw_output_dockable.scala"
   "src/readme_dockable.scala"
   "src/rendering.scala"

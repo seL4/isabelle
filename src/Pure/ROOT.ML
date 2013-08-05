@@ -269,6 +269,7 @@ use "General/graph_display.ML";
 use "Thy/present.ML";
 use "PIDE/execution.ML";
 use "PIDE/command.ML";
+use "PIDE/query_operation.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
 use "PIDE/document.ML";

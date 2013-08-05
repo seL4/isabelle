@@ -158,6 +158,7 @@ session Pure =
     "PIDE/execution.ML"
     "PIDE/markup.ML"
     "PIDE/protocol.ML"
+    "PIDE/query_operation.ML"
     "PIDE/xml.ML"
     "PIDE/yxml.ML"
     "Proof/extraction.ML"
