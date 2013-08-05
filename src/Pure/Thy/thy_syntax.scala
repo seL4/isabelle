@@ -92,11 +92,17 @@ object Thy_Syntax
 
   /** perspective **/
 
-  def command_perspective(node: Document.Node, perspective: Text.Perspective): Command.Perspective =
+  def command_perspective(
+      node: Document.Node,
+      perspective: Text.Perspective,
+      overlays: Document.Overlays): (Command.Perspective, Command.Perspective) =
   {
-    if (perspective.is_empty) Command.Perspective.empty
+    if (perspective.is_empty && overlays.is_empty)
+      (Command.Perspective.empty, Command.Perspective.empty)
     else {
-      val result = new mutable.ListBuffer[Command]
+      val has_overlay = overlays.commands
+      val visible = new mutable.ListBuffer[Command]
+      val visible_overlay = new mutable.ListBuffer[Command]
       @tailrec
       def check_ranges(ranges: List[Text.Range], commands: Stream[(Command, Text.Offset)])
       {
@@ -104,17 +110,31 @@ object Thy_Syntax
           case (range :: more_ranges, (command, offset) #:: more_commands) =>
             val command_range = command.range + offset
             range compare command_range match {
-              case -1 => check_ranges(more_ranges, commands)
               case 0 =>
-                result += command
+                visible += command
+                visible_overlay += command
                 check_ranges(ranges, more_commands)
-              case 1 => check_ranges(ranges, more_commands)
+              case c =>
+                if (has_overlay(command)) visible_overlay += command
+
+                if (c < 0) check_ranges(more_ranges, commands)
+                else check_ranges(ranges, more_commands)
             }
+
+          case (Nil, (command, _) #:: more_commands) =>
+            if (has_overlay(command)) visible_overlay += command
+
+            check_ranges(Nil, more_commands)
+
           case _ =>
         }
       }
-      check_ranges(perspective.ranges, node.command_range(perspective.range).toStream)
-      Command.Perspective(result.toList)
+
+      val commands =
+        if (overlays.is_empty) node.command_range(perspective.range)
+        else node.command_range()
+      check_ranges(perspective.ranges, commands.toStream)
+      (Command.Perspective(visible.toList), Command.Perspective(visible_overlay.toList))
     }
   }
 
@@ -317,12 +337,13 @@ object Thy_Syntax
       case (_, Document.Node.Deps(_)) => node
 
       case (name, Document.Node.Perspective(required, text_perspective, overlays)) =>
+        val (visible, visible_overlay) = command_perspective(node, text_perspective, overlays)
         val perspective: Document.Node.Perspective_Command =
-          Document.Node.Perspective(required, command_perspective(node, text_perspective), overlays)
+          Document.Node.Perspective(required, visible_overlay, overlays)
         if (node.same_perspective(perspective)) node
         else
           node.update_perspective(perspective).update_commands(
-            consolidate_spans(syntax, reparse_limit, name, perspective.visible, node.commands))
+            consolidate_spans(syntax, reparse_limit, name, visible, node.commands))
     }
   }
 

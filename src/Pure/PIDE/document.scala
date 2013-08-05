@@ -28,7 +28,9 @@ object Document
   {
     def + (o: Overlay) = new Overlays(rep + o)
     def - (o: Overlay) = new Overlays(rep - o)
+    def is_empty: Boolean = rep.isEmpty
     def dest: List[Overlay] = rep.toList
+    def commands: Set[Command] = rep.iterator.map(x => x._1).toSet
   }
 
 
