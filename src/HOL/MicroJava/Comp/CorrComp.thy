@@ -16,7 +16,7 @@ lemma eval_evals_exec_xcpt:
  "(G \<turnstile> xs -ex\<succ>val-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
   (G \<turnstile> xs -exs[\<succ>]vals-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None) \<and>
   (G \<turnstile> xs -st-> xs' \<longrightarrow> gx xs' = None \<longrightarrow> gx xs = None)"
-by (induct rule: eval_evals_exec.induct, auto)
+by (induct rule: eval_evals_exec.induct) auto
 
 
 (* instance of eval_evals_exec_xcpt for eval *)

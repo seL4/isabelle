@@ -15,20 +15,20 @@ begin
 
 
 
-lemma app_nth_greater_len [rule_format (no_asm), simp]:
- "\<forall> ind. length pre \<le> ind \<longrightarrow> (pre @ a # post) ! (Suc ind) = (pre @ post) ! ind"
-apply (induct "pre")
+lemma app_nth_greater_len [simp]:
+ "length pre \<le> ind \<Longrightarrow> (pre @ a # post) ! (Suc ind) = (pre @ post) ! ind"
+apply (induct pre arbitrary: ind)
 apply auto
 apply (case_tac ind)
 apply auto
 done
 
 lemma length_takeWhile: "v \<in> set xs \<Longrightarrow> length (takeWhile (%z. z~=v) xs) < length xs"
-by (induct xs, auto)
+by (induct xs) auto
 
 lemma nth_length_takeWhile [simp]: 
   "v \<in> set xs \<Longrightarrow> xs ! (length (takeWhile (%z. z~=v) xs)) = v"
-by (induct xs, auto)
+by (induct xs) auto
 
 
 lemma map_list_update [simp]:

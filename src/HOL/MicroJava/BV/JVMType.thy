@@ -95,7 +95,7 @@ lemma zip_map [rule_format]:
    apply simp
   apply clarsimp
   apply (case_tac aa)
-  apply simp+
+  apply simp_all
   done
 
 lemma [simp]: "Err.le r (OK a) (OK b) = r a b"

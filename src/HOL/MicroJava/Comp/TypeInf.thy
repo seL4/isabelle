@@ -15,67 +15,85 @@ begin
 (*** Inversion of typing rules -- to be moved into WellType.thy
      Also modify the wtpd_expr_\<dots> proofs in CorrComp.thy ***)
 
-lemma NewC_invers: "E\<turnstile>NewC C::T 
-  \<Longrightarrow> T = Class C \<and> is_class (prg E) C"
-by (erule ty_expr.cases, auto)
+lemma NewC_invers:
+  assumes "E\<turnstile>NewC C::T"
+  shows "T = Class C \<and> is_class (prg E) C"
+  using assms by cases auto
 
-lemma Cast_invers: "E\<turnstile>Cast D e::T
-  \<Longrightarrow> \<exists> C. T = Class D \<and> E\<turnstile>e::C \<and> is_class (prg E) D \<and> prg E\<turnstile>C\<preceq>? Class D"
-by (erule ty_expr.cases, auto)
+lemma Cast_invers:
+  assumes "E\<turnstile>Cast D e::T"
+  shows "\<exists>C. T = Class D \<and> E\<turnstile>e::C \<and> is_class (prg E) D \<and> prg E\<turnstile>C\<preceq>? Class D"
+  using assms by cases auto
 
-lemma Lit_invers: "E\<turnstile>Lit x::T
-  \<Longrightarrow> typeof (\<lambda>v. None) x = Some T"
-by (erule ty_expr.cases, auto)
+lemma Lit_invers:
+  assumes "E\<turnstile>Lit x::T"
+  shows "typeof (\<lambda>v. None) x = Some T"
+  using assms by cases auto
 
-lemma LAcc_invers: "E\<turnstile>LAcc v::T
-  \<Longrightarrow> localT E v = Some T \<and> is_type (prg E) T"
-by (erule ty_expr.cases, auto)
+lemma LAcc_invers:
+  assumes "E\<turnstile>LAcc v::T"
+  shows "localT E v = Some T \<and> is_type (prg E) T"
+  using assms by cases auto
 
-lemma BinOp_invers: "E\<turnstile>BinOp bop e1 e2::T'
-  \<Longrightarrow> \<exists> T. E\<turnstile>e1::T \<and> E\<turnstile>e2::T \<and> 
+lemma BinOp_invers:
+  assumes "E\<turnstile>BinOp bop e1 e2::T'"
+  shows "\<exists>T. E\<turnstile>e1::T \<and> E\<turnstile>e2::T \<and>
             (if bop = Eq then T' = PrimT Boolean
                         else T' = T \<and> T = PrimT Integer)"
-by (erule ty_expr.cases, auto)
+  using assms by cases auto
 
-lemma LAss_invers: "E\<turnstile>v::=e::T'
-  \<Longrightarrow> \<exists> T. v ~= This \<and> E\<turnstile>LAcc v::T \<and> E\<turnstile>e::T' \<and> prg E\<turnstile>T'\<preceq>T"
-by (erule ty_expr.cases, auto)
+lemma LAss_invers:
+  assumes  "E\<turnstile>v::=e::T'"
+  shows "\<exists>T. v ~= This \<and> E\<turnstile>LAcc v::T \<and> E\<turnstile>e::T' \<and> prg E\<turnstile>T'\<preceq>T"
+  using assms by cases auto
 
-lemma FAcc_invers: "E\<turnstile>{fd}a..fn::fT
-  \<Longrightarrow> \<exists> C. E\<turnstile>a::Class C \<and> field (prg E,C) fn = Some (fd,fT)"
-by (erule ty_expr.cases, auto)
+lemma FAcc_invers:
+  assumes "E\<turnstile>{fd}a..fn::fT"
+  shows "\<exists>C. E\<turnstile>a::Class C \<and> field (prg E,C) fn = Some (fd, fT)"
+  using assms by cases auto
 
-lemma FAss_invers: "E\<turnstile>{fd}a..fn:=v::T' 
-\<Longrightarrow> \<exists> T. E\<turnstile>{fd}a..fn::T \<and> E\<turnstile>v ::T' \<and> prg E\<turnstile>T'\<preceq>T"
-by (erule ty_expr.cases, auto)
+lemma FAss_invers:
+  assumes "E\<turnstile>{fd}a..fn:=v::T'"
+  shows "\<exists>T. E\<turnstile>{fd}a..fn::T \<and> E\<turnstile>v ::T' \<and> prg E\<turnstile>T'\<preceq>T"
+  using assms by cases auto
 
-lemma Call_invers: "E\<turnstile>{C}a..mn({pTs'}ps)::rT
-  \<Longrightarrow> \<exists> pTs md. 
-  E\<turnstile>a::Class C \<and> E\<turnstile>ps[::]pTs \<and> max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')}"
-by (erule ty_expr.cases, auto)
-
-
-lemma Nil_invers: "E\<turnstile>[] [::] Ts \<Longrightarrow> Ts = []"
-by (erule ty_exprs.cases, auto)
-
-lemma Cons_invers: "E\<turnstile>e#es[::]Ts \<Longrightarrow> 
-  \<exists> T Ts'. Ts = T#Ts' \<and> E \<turnstile>e::T \<and> E \<turnstile>es[::]Ts'"
-by (erule ty_exprs.cases, auto)
+lemma Call_invers:
+  assumes "E\<turnstile>{C}a..mn({pTs'}ps)::rT"
+  shows "\<exists>pTs md.
+    E\<turnstile>a::Class C \<and> E\<turnstile>ps[::]pTs \<and> max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')}"
+  using assms by cases auto
 
 
-lemma Expr_invers: "E\<turnstile>Expr e\<surd> \<Longrightarrow> \<exists> T. E\<turnstile>e::T"
-by (erule wt_stmt.cases, auto)
+lemma Nil_invers:
+  assumes "E\<turnstile>[] [::] Ts"
+  shows "Ts = []"
+  using assms by cases auto
 
-lemma Comp_invers: "E\<turnstile>s1;; s2\<surd> \<Longrightarrow> E\<turnstile>s1\<surd> \<and> E\<turnstile>s2\<surd>"
-by (erule wt_stmt.cases, auto)
+lemma Cons_invers:
+  assumes "E\<turnstile>e#es[::]Ts"
+  shows "\<exists>T Ts'. Ts = T#Ts' \<and> E \<turnstile>e::T \<and> E \<turnstile>es[::]Ts'"
+  using assms by cases auto
 
-lemma Cond_invers: "E\<turnstile>If(e) s1 Else s2\<surd> 
-  \<Longrightarrow> E\<turnstile>e::PrimT Boolean \<and> E\<turnstile>s1\<surd> \<and> E\<turnstile>s2\<surd>"
-by (erule wt_stmt.cases, auto)
 
-lemma Loop_invers: "E\<turnstile>While(e) s\<surd>
-  \<Longrightarrow> E\<turnstile>e::PrimT Boolean \<and> E\<turnstile>s\<surd>"
-by (erule wt_stmt.cases, auto)
+lemma Expr_invers:
+  assumes "E\<turnstile>Expr e\<surd>"
+  shows "\<exists> T. E\<turnstile>e::T"
+  using assms by cases auto
+
+lemma Comp_invers:
+  assumes "E\<turnstile>s1;; s2\<surd>"
+  shows "E\<turnstile>s1\<surd> \<and> E\<turnstile>s2\<surd>"
+  using assms by cases auto
+
+lemma Cond_invers:
+  assumes "E\<turnstile>If(e) s1 Else s2\<surd>"
+  shows "E\<turnstile>e::PrimT Boolean \<and> E\<turnstile>s1\<surd> \<and> E\<turnstile>s2\<surd>"
+  using assms by cases auto
+
+lemma Loop_invers:
+  assumes "E\<turnstile>While(e) s\<surd>"
+  shows "E\<turnstile>e::PrimT Boolean \<and> E\<turnstile>s\<surd>"
+  using assms by cases auto
 
 
 (**********************************************************************)

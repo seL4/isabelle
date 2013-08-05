@@ -422,7 +422,7 @@ proof -
     apply (rule subsetI)
     apply (erule UN_E)
     apply (case_tac "\<not> stable r step ss p")
-    apply simp+
+    apply simp_all
     done
   also have "\<And>f. (UN p:{..<size ss}. f p) = Union (set (map f [0..<size ss]))" by auto
   also note Sup_set_fold also note fold_map
