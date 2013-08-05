@@ -114,7 +114,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
           case Some(command) =>
             current_location = Some(command)
             current_query = query
-            doc_view.model.add_overlay(command, FIND_THEOREMS, List(instance, query))
+            doc_view.model.insert_overlay(command, FIND_THEOREMS, List(instance, query))
           case None =>
         }
       case None =>

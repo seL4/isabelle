@@ -9,7 +9,7 @@ signature DOCUMENT =
 sig
   val timing: bool Unsynchronized.ref
   type node_header = string * Thy_Header.header * string list
-  type overlay = Document_ID.command * string * string list
+  type overlay = Document_ID.command * (string * string list)
   datatype node_edit =
     Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
@@ -68,7 +68,7 @@ fun make_perspective (required, command_ids, overlays) : perspective =
  {required = required,
   visible = Inttab.make_set command_ids,
   visible_last = try List.last command_ids,
-  overlays = Inttab.make_list (map (fn (x, y, z) => (x, (y, z))) overlays)};
+  overlays = Inttab.make_list overlays};
 
 val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
 val no_perspective = make_perspective (false, [], []);
@@ -135,7 +135,7 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 (* node edits and associated executions *)
 
-type overlay = Document_ID.command * string * string list;
+type overlay = Document_ID.command * (string * string list);
 
 datatype node_edit =
   Clear |

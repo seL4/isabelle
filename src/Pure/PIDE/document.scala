@@ -17,20 +17,43 @@ object Document
 
   /* overlays -- print functions with arguments */
 
-  type Overlay = (Command, String, List[String])
+  type Overlay = (Command, (String, List[String]))
 
   object Overlays
   {
-    val empty = new Overlays(Set.empty)
+    val empty = new Overlays(Map.empty)
   }
 
-  final class Overlays private(rep: Set[Overlay])
+  final class Overlays private(rep: Map[Command, List[(String, List[String])]])
   {
-    def + (o: Overlay) = new Overlays(rep + o)
-    def - (o: Overlay) = new Overlays(rep - o)
+    def commands: Set[Command] = rep.keySet
     def is_empty: Boolean = rep.isEmpty
-    def dest: List[Overlay] = rep.toList
-    def commands: Set[Command] = rep.iterator.map(x => x._1).toSet
+
+    def insert(cmd: Command, fn: (String, List[String])): Overlays =
+    {
+      val fns = rep.get(cmd) getOrElse Nil
+      if (fns.contains(fn)) this
+      else new Overlays(rep + (cmd -> (fn :: fns)))
+    }
+
+    def remove(cmd: Command, fn: (String, List[String])): Overlays =
+      rep.get(cmd) match {
+        case Some(fns) =>
+          if (fns.contains(fn)) {
+            fns.filterNot(_ == fn) match {
+              case Nil => new Overlays(rep - cmd)
+              case fns1 => new Overlays(rep + (cmd -> fns1))
+            }
+          }
+          else this
+        case None => this
+      }
+
+    def dest: List[Overlay] =
+      (for {
+        (cmd, fns) <- rep.iterator
+        fn <- fns
+      } yield (cmd, fn)).toList
   }
 
 

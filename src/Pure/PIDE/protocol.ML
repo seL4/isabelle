@@ -58,7 +58,7 @@ val _ =
                     in Document.Deps (master, header, errors) end,
                   fn (a :: b, c) =>
                     Document.Perspective (bool_atom a, map int_atom b,
-                      list (triple int string (list string)) c)]))
+                      list (pair int (pair string (list string))) c)]))
             end;
 
         val (removed, assign_update, state') = Document.update old_id new_id edits state;
