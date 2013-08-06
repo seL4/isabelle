@@ -26,7 +26,9 @@ sig
 
   val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
   val exists_subtype_in: typ list -> typ -> bool
-  val flat_rec: 'a list list -> 'a list
+  val flat_rec_arg_args: 'a list list -> 'a list
+  val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
+    'a list
   val mk_co_iter: theory -> BNF_FP_Util.fp_kind -> typ -> typ list -> term -> term
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val mk_map: int -> typ list -> typ list -> term -> term
@@ -181,24 +183,24 @@ fun typ_subst_nonatomic inst (T as Type (s, Ts)) =
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
-fun flat_rec xss =
-  (* The first line below gives the preferred order. The second line is for compatibility with the
-     old datatype package: *)
+fun flat_rec_arg_args xss =
+  (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
+     order. The second line is for compatibility with the old datatype package. *)
 (*
   flat xss
 *)
   map hd xss @ maps tl xss;
 
-fun flat_predss_getterss qss fss = maps (op @) (qss ~~ fss);
+fun flat_corec_predss_getterss qss fss = maps (op @) (qss ~~ fss);
 
-fun flat_preds_predsss_gettersss [] [qss] [fss] = flat_predss_getterss qss fss
-  | flat_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
-    p :: flat_predss_getterss qss fss @ flat_preds_predsss_gettersss ps qsss fsss;
+fun flat_corec_preds_predsss_gettersss [] [qss] [fss] = flat_corec_predss_getterss qss fss
+  | flat_corec_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
+    p :: flat_corec_predss_getterss qss fss @ flat_corec_preds_predsss_gettersss ps qsss fsss;
 
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
-  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat_rec xss);
+  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat_rec_arg_args xss);
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
@@ -346,7 +348,7 @@ fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
       map3 (fn n => fn ms => map2 (map (unzip_recT Cs) oo dest_tupleT) ms o
         dest_sumTN_balanced n o domain_type o co_rec_of) ns mss ctor_iter_fun_Tss;
 
-    val z_Tsss' = map (map flat_rec) z_Tssss;
+    val z_Tsss' = map (map flat_rec_arg_args) z_Tssss;
     val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
 
     val hss = map2 (map2 retype_free) h_Tss gss;
@@ -380,7 +382,7 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
         val f_Tssss = map2 (fn C => map (map (map (curry (op -->) C) o maybe_unzipT))) Cs f_Tsss;
         val q_Tssss =
           map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
-        val pf_Tss = map3 flat_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
+        val pf_Tss = map3 flat_corec_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
       in (q_Tssss, f_Tsss, f_Tssss, (f_sum_prod_Ts, pf_Tss)) end;
 
     val (r_Tssss, g_Tsss, g_Tssss, unfold_types) = mk_types single un_fold_of;
@@ -412,7 +414,7 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
 
     fun mk_args qssss fssss f_Tsss =
       let
-        val pfss = map3 flat_preds_predsss_gettersss pss qssss fssss;
+        val pfss = map3 flat_corec_preds_predsss_gettersss pss qssss fssss;
         val cqssss = map2 (map o map o map o rapp) cs qssss;
         val cfssss = map2 (map o map o map o rapp) cs fssss;
         val cqfsss = map3 (map3 (map3 build_dtor_coiter_arg)) f_Tsss cqssss cfssss;
@@ -646,7 +648,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
             build_map lthy (indexify (perhaps (try (snd o HOLogic.dest_prodT)) o snd) Cs
               (fn kk => fn TU => maybe_tick TU (nth us kk) (nth fiters kk))) (T, U) $ x;
 
-        val fxsss = map2 (map2 (flat_rec oo map2 (map o build_iter))) xsss x_Tssss;
+        val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_iter))) xsss x_Tssss;
 
         val goalss = map5 (map4 o mk_goal fss) fiters xctrss fss xsss fxsss;
 

@@ -220,7 +220,7 @@ simplest recursive type: natural numbers
     datatype_new nat = Zero | Suc nat
 
 text {*
-Setup to be able to write @{term 0} instead of @{const Zero}:
+Setup to be able to write @{text 0} instead of @{const Zero}:
 *}
 
     instantiation nat :: zero
