@@ -50,6 +50,20 @@ object PIDE
 
   /* document model and view */
 
+  def document_snapshot(name: Document.Node.Name): Document.Snapshot =
+  {
+    Swing_Thread.require()
+
+    JEdit_Lib.jedit_buffer(name.node) match {
+      case Some(buffer) =>
+        document_model(buffer) match {
+          case Some(model) => model.snapshot
+          case None => session.snapshot(name)
+        }
+      case None => session.snapshot(name)
+    }
+  }
+
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
   def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
 

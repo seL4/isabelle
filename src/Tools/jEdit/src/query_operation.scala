@@ -11,8 +11,10 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
+import scala.swing.Label
 
 import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.gui.AnimatedIcon
 
 
 object Query_Operation
@@ -34,12 +36,27 @@ final class Query_Operation private(
 
   /* implicit state -- owned by Swing thread */
 
+  private object Status extends Enumeration
+  {
+    val WAITING = Value("waiting")
+    val RUNNING = Value("running")
+    val FINISHED = Value("finished")
+  }
+
   private var current_location: Option[Command] = None
   private var current_query: List[String] = Nil
-  private var current_result = false
-  private var current_snapshot = Document.State.init.snapshot()
-  private var current_state = Command.empty.init_state
+  private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
+  private var current_status = Status.FINISHED
+
+  private def reset_state()
+  {
+    current_location = None
+    current_query = Nil
+    current_update_pending = false
+    current_output = Nil
+    current_status = Status.FINISHED
+  }
 
   private def remove_overlay()
   {
@@ -52,43 +69,111 @@ final class Query_Operation private(
     } model.remove_overlay(command, operation_name, instance :: current_query)
   }
 
-  private def handle_result()
+
+  /* animation */
+
+  val animation = new Label
+
+  private val passive_icon =
+    JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
+  private val active_icons =
+    space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
+      JEdit_Lib.load_image_icon(name).getImage)
+
+  private val animation_icon =
+    new AnimatedIcon(passive_icon, active_icons.toArray, 5, animation.peer)
+  animation.icon = animation_icon
+
+  private def animation_update()
+  {
+    animation_icon.stop
+    current_status match {
+      case Status.WAITING =>
+        animation.tooltip = "Waiting for evaluation of query context ..."
+        animation_icon.setRate(5)
+        animation_icon.start
+      case Status.RUNNING =>
+        animation.tooltip = "Running query operation ..."
+        animation_icon.setRate(15)
+        animation_icon.start
+      case Status.FINISHED =>
+        animation.tooltip = null
+    }
+  }
+
+
+  /* content update */
+
+  private def content_update()
   {
     Swing_Thread.require()
 
-    val (new_snapshot, new_state) =
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val snapshot = doc_view.model.snapshot()
-          current_location match {
-            case Some(cmd) =>
-              (snapshot, snapshot.state.command_state(snapshot.version, cmd))
-            case None =>
-              (Document.State.init.snapshot(), Command.empty.init_state)
-          }
-        case None => (current_snapshot, current_state)
+
+    /* snapshot */
+
+    val (snapshot, state) =
+      current_location match {
+        case Some(cmd) =>
+          val snapshot = PIDE.document_snapshot(cmd.node_name)
+          val state = snapshot.state.command_state(snapshot.version, cmd)
+          (snapshot, state)
+        case None =>
+          (Document.State.init.snapshot(), Command.empty.init_state)
       }
 
-    val new_output =
+    val results =
       (for {
-        (_, XML.Elem(Markup(Markup.RESULT, props), List(XML.Elem(markup, body)))) <-
-          new_state.results.entries
+        (_, XML.Elem(Markup(Markup.RESULT, props), body)) <- state.results.entries
         if props.contains((Markup.INSTANCE, instance))
-      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)).toList
+      } yield body).toList
 
-    if (new_output != current_output)
-      consume_result(new_snapshot, new_state.results, new_output)
 
-    if (!new_output.isEmpty) {
-      current_result = true
-      remove_overlay()
-      PIDE.flush_buffers()
+    /* output */
+
+    val new_output =
+      for {
+        List(XML.Elem(markup, body)) <- results
+        if Markup.messages.contains(markup.name)
+      }
+      yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
+
+
+    /* status */
+
+    def get_status(name: String, status: Status.Value): Option[Status.Value] =
+      results.collectFirst({ case List(XML.Elem(m, _)) if m.name == name => status })
+
+    val new_status =
+      get_status(Markup.FINISHED, Status.FINISHED) orElse
+      get_status(Markup.RUNNING, Status.RUNNING) getOrElse
+      Status.WAITING
+
+
+    /* state update */
+
+    if (current_output != new_output || current_status != new_status) {
+      if (snapshot.is_outdated)
+        current_update_pending = true
+      else {
+        current_update_pending = false
+        if (current_output != new_output) {
+          current_output = new_output
+          consume_result(snapshot, state.results, new_output)
+        }
+        if (current_status != new_status) {
+          current_status = new_status
+          animation_update()
+          if (new_status == Status.FINISHED) {
+            remove_overlay()
+            PIDE.flush_buffers()
+          }
+        }
+      }
     }
-
-    current_snapshot = new_snapshot
-    current_state = new_state
-    current_output = new_output
   }
+
+
+  /* apply query */
 
   def apply_query(query: List[String])
   {
@@ -98,20 +183,23 @@ final class Query_Operation private(
       case Some(doc_view) =>
         val snapshot = doc_view.model.snapshot()
         remove_overlay()
-        current_location = None
-        current_query = Nil
-        current_result = false
+        reset_state()
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
             current_query = query
+            current_status = Status.WAITING
             doc_view.model.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
+        animation_update()
         PIDE.flush_buffers()
       case None =>
     }
   }
+
+
+  /* locate query */
 
   def locate_query()
   {
@@ -119,9 +207,10 @@ final class Query_Operation private(
 
     current_location match {
       case Some(command) =>
-        val snapshot = PIDE.session.snapshot(command.node_name)
+        val snapshot = PIDE.document_snapshot(command.node_name)
         val commands = snapshot.node.commands
         if (commands.contains(command)) {
+          // FIXME revert offset (!?)
           val sources = commands.iterator.takeWhile(_ != command).map(_.source)
           val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
           Hyperlink(command.node_name.node, line, column).follow(view)
@@ -138,8 +227,10 @@ final class Query_Operation private(
       react {
         case changed: Session.Commands_Changed =>
           current_location match {
-            case Some(command) if !current_result && changed.commands.contains(command) =>
-              Swing_Thread.later { handle_result() }
+            case Some(command)
+            if current_update_pending ||
+              (current_status != Status.FINISHED && changed.commands.contains(command)) =>
+              Swing_Thread.later { content_update() }
             case _ =>
           }
         case bad =>

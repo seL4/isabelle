@@ -10,10 +10,11 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
+import javax.swing.{Icon, ImageIcon}
 
 import scala.annotation.tailrec
 
-import org.gjt.sp.jedit.{jEdit, Buffer, View}
+import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
@@ -221,6 +222,29 @@ object JEdit_Lib
       val unit = string_width(Pretty.space)
       val average = string_width("mix") / (3 * unit)
       def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
+    }
+
+
+  /* icons */
+
+  def load_icon(name: String): Icon =
+  {
+    val name1 =
+      if (name.startsWith("idea-icons/")) {
+        val file =
+          Isabelle_System.platform_file_url(Path.explode("$JEDIT_HOME/dist/jars/idea-icons.jar"))
+        "jar:" + file + "!/" + name
+      }
+      else name
+    val icon = GUIUtilities.loadIcon(name1)
+    if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
+    else icon
+  }
+
+  def load_image_icon(name: String): ImageIcon =
+    load_icon(name) match {
+      case icon: ImageIcon => icon
+      case _ => error("Bad image icon: " + name)
     }
 }
 

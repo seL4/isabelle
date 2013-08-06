@@ -99,12 +99,12 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val query_wrapped = Component.wrap(query)
 
-  private val find = new Button("Find") {
+  private val apply_query = new Button("Apply") {
     tooltip = "Find theorems meeting specified criteria"
     reactions += { case ButtonClicked(_) => find_theorems.apply_query(List(query.getText)) }
   }
 
-  private val locate = new Button("Locate") {
+  private val locate_query = new Button("Locate") {
     tooltip = "Locate context of current query within source text"
     reactions += { case ButtonClicked(_) => find_theorems.locate_query() }
   }
@@ -114,6 +114,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(query_wrapped, find, locate, zoom)
+    new FlowPanel(FlowPanel.Alignment.Right)(
+      query_wrapped, find_theorems.animation, apply_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
