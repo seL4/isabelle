@@ -34,36 +34,20 @@ final class Query_Operation private(
   private val instance = Document_ID.make().toString
 
 
-  /* animation */
-
-  private val passive_icon =
-    JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
-  private val active_icons =
-    space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
-      JEdit_Lib.load_image_icon(name).getImage)
-
-  val animation = new Label
-  private val animation_icon =
-    new AnimatedIcon(passive_icon, active_icons.toArray, 5, animation.peer)
-  animation.icon = animation_icon
-
-  private def animation_rate(rate: Int)
-  {
-    animation_icon.stop
-    if (rate > 0) {
-      animation_icon.setRate(rate)
-      animation_icon.start
-    }
-  }
-
-
   /* implicit state -- owned by Swing thread */
+
+  private object Status extends Enumeration
+  {
+    val WAITING = Value("waiting")
+    val RUNNING = Value("running")
+    val FINISHED = Value("finished")
+  }
 
   private var current_location: Option[Command] = None
   private var current_query: List[String] = Nil
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
-  private var current_status = Markup.FINISHED
+  private var current_status = Status.FINISHED
 
   private def reset_state()
   {
@@ -71,7 +55,7 @@ final class Query_Operation private(
     current_query = Nil
     current_update_pending = false
     current_output = Nil
-    current_status = Markup.FINISHED
+    current_status = Status.FINISHED
   }
 
   private def remove_overlay()
@@ -85,7 +69,34 @@ final class Query_Operation private(
     } model.remove_overlay(command, operation_name, instance :: current_query)
   }
 
-  private def handle_update()
+
+  /* animation */
+
+  val animation = new Label
+
+  private val passive_icon =
+    JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
+  private val active_icons =
+    space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
+      JEdit_Lib.load_image_icon(name).getImage)
+
+  private val animation_icon =
+    new AnimatedIcon(passive_icon, active_icons.toArray, 5, animation.peer)
+  animation.icon = animation_icon
+
+  private def animation_update()
+  {
+    animation_icon.stop
+    if (current_status != Status.FINISHED) {
+      animation_icon.setRate(if (current_status == Status.RUNNING) 15 else 5)
+      animation_icon.start
+    }
+  }
+
+
+  /* content update */
+
+  private def content_update()
   {
     Swing_Thread.require()
 
@@ -121,11 +132,13 @@ final class Query_Operation private(
 
     /* status */
 
-    def status(name: String): Option[String] =
-      results.collectFirst({ case List(XML.Elem(m, _)) if m.name == name => name })
+    def get_status(name: String, status: Status.Value): Option[Status.Value] =
+      results.collectFirst({ case List(XML.Elem(m, _)) if m.name == name => status })
 
     val new_status =
-      status(Markup.FINISHED) orElse status(Markup.RUNNING) getOrElse Markup.WAITING
+      get_status(Markup.FINISHED, Status.FINISHED) orElse
+      get_status(Markup.RUNNING, Status.RUNNING) getOrElse
+      Status.WAITING
 
 
     /* state update */
@@ -134,24 +147,25 @@ final class Query_Operation private(
       if (snapshot.is_outdated)
         current_update_pending = true
       else {
-        if (current_output != new_output)
-          consume_result(snapshot, state.results, new_output)
-        if (current_status != new_status)
-          new_status match {
-            case Markup.WAITING => animation_rate(5)
-            case Markup.RUNNING => animation_rate(15)
-            case Markup.FINISHED =>
-              animation_rate(0)
-              remove_overlay()
-              PIDE.flush_buffers()
-            case _ =>
-          }
-        current_output = new_output
-        current_status = new_status
         current_update_pending = false
+        if (current_output != new_output) {
+          current_output = new_output
+          consume_result(snapshot, state.results, new_output)
+        }
+        if (current_status != new_status) {
+          current_status = new_status
+          animation_update()
+          if (new_status == Status.FINISHED) {
+            remove_overlay()
+            PIDE.flush_buffers()
+          }
+        }
       }
     }
   }
+
+
+  /* apply query */
 
   def apply_query(query: List[String])
   {
@@ -162,20 +176,22 @@ final class Query_Operation private(
         val snapshot = doc_view.model.snapshot()
         remove_overlay()
         reset_state()
-        animation_rate(0)
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
             current_query = query
-            current_status = Markup.WAITING
-            animation_rate(5)
+            current_status = Status.WAITING
             doc_view.model.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
+        animation_update()
         PIDE.flush_buffers()
       case None =>
     }
   }
+
+
+  /* locate query */
 
   def locate_query()
   {
@@ -205,8 +221,8 @@ final class Query_Operation private(
           current_location match {
             case Some(command)
             if current_update_pending ||
-              (current_status != Markup.FINISHED && changed.commands.contains(command)) =>
-              Swing_Thread.later { handle_update() }
+              (current_status != Status.FINISHED && changed.commands.contains(command)) =>
+              Swing_Thread.later { content_update() }
             case _ =>
           }
         case bad =>

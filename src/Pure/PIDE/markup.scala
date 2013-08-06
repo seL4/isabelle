@@ -245,8 +245,6 @@ object Markup
   val FINISHED = "finished"
   val FAILED = "failed"
 
-  val WAITING = "waiting"
-
 
   /* interactive documents */
 
