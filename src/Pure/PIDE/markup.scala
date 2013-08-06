@@ -245,6 +245,8 @@ object Markup
   val FINISHED = "finished"
   val FAILED = "failed"
 
+  val WAITING = "waiting"
+
 
   /* interactive documents */
 
@@ -283,9 +285,10 @@ object Markup
   val WARNING_MESSAGE = "warning_message"
   val ERROR_MESSAGE = "error_message"
 
-  val message: String => String =
+  val messages =
     Map(WRITELN -> WRITELN_MESSAGE, TRACING -> TRACING_MESSAGE,
-        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE).withDefault((s: String) => s)
+        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE)
+  val message: String => String = messages.withDefault((s: String) => s)
 
   val Return_Code = new Properties.Int("return_code")
 
