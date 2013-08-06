@@ -34,7 +34,7 @@ final class Query_Operation private(
   private val instance = Document_ID.make().toString
 
 
-  /* status animation */
+  /* animation */
 
   private val passive_icon =
     JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
@@ -43,8 +43,18 @@ final class Query_Operation private(
       JEdit_Lib.load_image_icon(name).getImage)
 
   val animation = new Label
-  val animation_icon = new AnimatedIcon(passive_icon, active_icons.toArray, 10, animation.peer)
+  private val animation_icon =
+    new AnimatedIcon(passive_icon, active_icons.toArray, 10, animation.peer)
   animation.icon = animation_icon
+
+  private def animation_rate(rate: Int)
+  {
+    animation_icon.stop
+    if (rate > 0) {
+      animation_icon.setRate(rate)
+      animation_icon.start
+    }
+  }
 
 
   /* implicit state -- owned by Swing thread */
@@ -96,7 +106,7 @@ final class Query_Operation private(
 
     if (!new_output.isEmpty) {
       current_result = true
-      animation_icon.stop
+      animation_rate(0)
       remove_overlay()
       PIDE.flush_buffers()
     }
@@ -117,7 +127,7 @@ final class Query_Operation private(
         current_location = None
         current_query = Nil
         current_result = false
-        animation_icon.start
+        animation_rate(10)
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
