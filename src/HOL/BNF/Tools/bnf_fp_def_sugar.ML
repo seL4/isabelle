@@ -671,7 +671,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
   end;
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
-      [(unfold_args as (pgss, crgsss), _), (corec_args as (phss, cshsss), _)])
+      coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
     dtor_coinducts dtor_ctors dtor_coiter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns
     ctr_defss ctr_sugars coiterss coiter_defss export_args lthy =
   let
@@ -801,7 +801,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
     val fcoiterss' as [gunfolds, hcorecs] =
-      map2 (fn (pfss, _) => map (lists_bmoc pfss)) [unfold_args, corec_args] coiterss';
+      map2 (fn (pfss, _) => map (lists_bmoc pfss)) (map fst coiters_args_types) coiterss';
 
     val (unfold_thmss, corec_thmss, safe_unfold_thmss, safe_corec_thmss) =
       let
