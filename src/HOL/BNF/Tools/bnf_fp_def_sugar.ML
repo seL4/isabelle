@@ -42,8 +42,10 @@ sig
         * ((term list list * term list list list) * (typ list * typ list list)) list) option)
     * Proof.context
 
-  val mk_iter_fun_arg_typessss: typ list -> int list -> int list list -> term ->
+  val mk_iter_fun_arg_types: typ list -> int list -> int list list -> term ->
     typ list list list list
+  val mk_coiter_fun_arg_types: typ list -> int list -> int list list -> term ->
+    typ list list list list * typ list list list * typ list list list list * typ list
   val define_iters: string list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
@@ -327,17 +329,17 @@ fun nesty_bnfs ctxt ctr_Tsss Us =
 
 fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
 
-fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
+fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
-fun mk_iter_fun_arg_typessss Cs ns mss =
+fun mk_iter_fun_arg_types Cs ns mss =
   mk_fp_iter_fun_types
-  #> map3 mk_fun_arg_typess ns mss
+  #> map3 mk_iter_fun_arg_types0 ns mss
   #> map (map (map (unzip_recT Cs)));
 
 fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
   let
     val Css = map2 replicate ns Cs;
-    val y_Tsss = map3 mk_fun_arg_typess ns mss (map un_fold_of ctor_iter_fun_Tss);
+    val y_Tsss = map3 mk_iter_fun_arg_types0 ns mss (map un_fold_of ctor_iter_fun_Tss);
     val g_Tss = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
 
     val ((gss, ysss), lthy) =
@@ -365,7 +367,7 @@ fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
     ([(g_Tss, y_Tssss, gss, yssss), (h_Tss, z_Tssss, hss, zssss)], lthy)
   end;
 
-fun mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss fun_Ts =
+fun mk_coiter_fun_arg_types0 Cs ns mss fun_Ts =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
@@ -380,6 +382,10 @@ fun mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss fun_Ts =
     (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
   end;
 
+fun mk_coiter_fun_arg_types Cs ns mss =
+  mk_fp_iter_fun_types
+  #> mk_coiter_fun_arg_types0 Cs ns mss;
+
 fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
   let
     val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
@@ -387,8 +393,7 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
     fun mk_types get_Ts =
       let
         val fun_Ts = map get_Ts dtor_coiter_fun_Tss;
-        val (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts) =
-          mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss fun_Ts;
+        val (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts) = mk_coiter_fun_arg_types0 Cs ns mss fun_Ts;
         val pf_Tss = map3 flat_corec_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
       in
         (q_Tssss, f_Tsss, f_Tssss, (f_sum_prod_Ts, pf_Tss))
