@@ -87,9 +87,17 @@ final class Query_Operation private(
   private def animation_update()
   {
     animation_icon.stop
-    if (current_status != Status.FINISHED) {
-      animation_icon.setRate(if (current_status == Status.RUNNING) 15 else 5)
-      animation_icon.start
+    current_status match {
+      case Status.WAITING =>
+        animation.tooltip = "Waiting for evaluation of query context ..."
+        animation_icon.setRate(5)
+        animation_icon.start
+      case Status.RUNNING =>
+        animation.tooltip = "Running query operation ..."
+        animation_icon.setRate(15)
+        animation_icon.start
+      case Status.FINISHED =>
+        animation.tooltip = null
     }
   }
 
