@@ -250,6 +250,10 @@ fun unzip_recT Cs (T as Type (@{type_name prod}, Ts as [_, U])) =
     if member (op =) Cs U then Ts else [T]
   | unzip_recT _ T = [T];
 
+fun unzip_corecT Cs (T as Type (@{type_name sum}, Ts as [_, U])) =
+    if member (op =) Cs U then Ts else [T]
+  | unzip_corecT _ T = [T];
+
 fun mk_map live Ts Us t =
   let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last in
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
@@ -361,11 +365,7 @@ fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
     ([(g_Tss, y_Tssss, gss, yssss), (h_Tss, z_Tssss, hss, zssss)], lthy)
   end;
 
-fun unzip_corecT Cs (T as Type (@{type_name sum}, Ts as [_, U])) =
-    if member (op =) Cs U then Ts else [T]
-  | unzip_corecT _ T = [T];
-
-fun mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss maybe_unzipT fun_Ts =
+fun mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss fun_Ts =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
@@ -374,9 +374,8 @@ fun mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss maybe_unzipT fun_Ts =
     val f_sum_prod_Ts = map range_type fun_Ts;
     val f_prod_Tss = map2 dest_sumTN_balanced ns f_sum_prod_Ts;
     val f_Tsss = map2 (map2 dest_tupleT o repair_arity) mss f_prod_Tss;
-    val f_Tssss = map2 (fn C => map (map (map (curry (op -->) C) o maybe_unzipT))) Cs f_Tsss;
-    val q_Tssss =
-      map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
+    val f_Tssss = map2 (fn C => map (map (map (curry (op -->) C) o unzip_corecT Cs))) Cs f_Tsss;
+    val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
   in
     (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
   end;
@@ -385,18 +384,18 @@ fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
   let
     val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
-    fun mk_types maybe_unzipT get_Ts =
+    fun mk_types get_Ts =
       let
         val fun_Ts = map get_Ts dtor_coiter_fun_Tss;
         val (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts) =
-          mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss maybe_unzipT fun_Ts;
+          mk_coiter_fun_arg_typessss_typesss_typessss Cs ns mss fun_Ts;
         val pf_Tss = map3 flat_corec_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
       in
         (q_Tssss, f_Tsss, f_Tssss, (f_sum_prod_Ts, pf_Tss))
       end;
 
-    val (r_Tssss, g_Tsss, g_Tssss, unfold_types) = mk_types single un_fold_of;
-    val (s_Tssss, h_Tsss, h_Tssss, corec_types) = mk_types (unzip_corecT Cs) co_rec_of;
+    val (r_Tssss, g_Tsss, g_Tssss, unfold_types) = mk_types un_fold_of;
+    val (s_Tssss, h_Tsss, h_Tssss, corec_types) = mk_types co_rec_of;
 
     val ((((Free (z, _), cs), pss), gssss), lthy) =
       lthy
