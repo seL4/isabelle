@@ -193,7 +193,7 @@ object Thy_Syntax
   {
     eds match {
       case e :: es =>
-        Document.Node.command_starts(commands.iterator).find {
+        Document.Node.Commands.starts(commands.iterator).find {
           case (cmd, cmd_start) =>
             e.can_edit(cmd.source, cmd_start) ||
               e.is_insert && e.start == cmd_start + cmd.length

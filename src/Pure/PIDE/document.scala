@@ -124,71 +124,83 @@ object Document
 
     /* commands */
 
-    def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
-      : Iterator[(Command, Text.Offset)] =
+    object Commands
     {
-      var i = offset
-      for (command <- commands) yield {
-        val start = i
-        i += command.length
-        (command, start)
+      def apply(commands: Linear_Set[Command]): Commands = new Commands(commands)
+      val empty: Commands = apply(Linear_Set.empty)
+
+      def starts(commands: Iterator[Command], offset: Text.Offset = 0)
+        : Iterator[(Command, Text.Offset)] =
+      {
+        var i = offset
+        for (command <- commands) yield {
+          val start = i
+          i += command.length
+          (command, start)
+        }
       }
+
+      private val block_size = 1024
     }
 
-    private val block_size = 1024
+    final class Commands private(val commands: Linear_Set[Command])
+    {
+      private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
+      {
+        val blocks = new mutable.ListBuffer[(Command, Text.Offset)]
+        var next_block = 0
+        var last_stop = 0
+        for ((command, start) <- Commands.starts(commands.iterator)) {
+          last_stop = start + command.length
+          while (last_stop + 1 > next_block) {
+            blocks += (command -> start)
+            next_block += Commands.block_size
+          }
+        }
+        (blocks.toArray, Text.Range(0, last_stop))
+      }
+
+      private def full_range: Text.Range = full_index._2
+
+      def range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
+      {
+        if (!commands.isEmpty && full_range.contains(i)) {
+          val (cmd0, start0) = full_index._1(i / Commands.block_size)
+          Node.Commands.starts(commands.iterator(cmd0), start0) dropWhile {
+            case (cmd, start) => start + cmd.length <= i }
+        }
+        else Iterator.empty
+      }
+    }
   }
 
   final class Node private(
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
-    val commands: Linear_Set[Command] = Linear_Set.empty)
+    _commands: Node.Commands = Node.Commands.empty)
   {
     def clear: Node = new Node(header = header)
 
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, commands)
+      new Node(new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(header, new_perspective, commands)
+      new Node(header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
       perspective.overlays == other_perspective.overlays
 
+    def commands: Linear_Set[Command] = _commands.commands
+
     def update_commands(new_commands: Linear_Set[Command]): Node =
-      new Node(header, perspective, new_commands)
-
-
-    /* commands */
-
-    private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
-    {
-      val blocks = new mutable.ListBuffer[(Command, Text.Offset)]
-      var next_block = 0
-      var last_stop = 0
-      for ((command, start) <- Node.command_starts(commands.iterator)) {
-        last_stop = start + command.length
-        while (last_stop + 1 > next_block) {
-          blocks += (command -> start)
-          next_block += Node.block_size
-        }
-      }
-      (blocks.toArray, Text.Range(0, last_stop))
-    }
-
-    def full_range: Text.Range = full_index._2
+      if (new_commands eq _commands) this
+      else new Node(header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
-    {
-      if (!commands.isEmpty && full_range.contains(i)) {
-        val (cmd0, start0) = full_index._1(i / Node.block_size)
-        Node.command_starts(commands.iterator(cmd0), start0) dropWhile {
-          case (cmd, start) => start + cmd.length <= i }
-      }
-      else Iterator.empty
-    }
+      _commands.range(i)
 
     def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
       command_range(range.start) takeWhile { case (_, start) => start < range.stop }
@@ -200,7 +212,7 @@ object Document
     }
 
     def command_start(cmd: Command): Option[Text.Offset] =
-      Node.command_starts(commands.iterator).find(_._1 == cmd).map(_._2)
+      Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
   }
 
 
