@@ -95,7 +95,7 @@ object Thy_Syntax
   def command_perspective(
       node: Document.Node,
       perspective: Text.Perspective,
-      overlays: Document.Overlays): (Command.Perspective, Command.Perspective) =
+      overlays: Document.Node.Overlays): (Command.Perspective, Command.Perspective) =
   {
     if (perspective.is_empty && overlays.is_empty)
       (Command.Perspective.empty, Command.Perspective.empty)
