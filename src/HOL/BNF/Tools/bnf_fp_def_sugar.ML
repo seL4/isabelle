@@ -1433,7 +1433,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           else derive_and_note_coinduct_coiters_thms_for_types);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
-      datatype_word fp));
+      co_prefix fp ^ "datatype"));
   in
     timer; lthy''
   end;

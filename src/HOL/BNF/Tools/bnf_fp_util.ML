@@ -124,7 +124,7 @@ sig
   val mk_dtor_set_inductN: int -> string
   val mk_set_inductN: int -> string
 
-  val datatype_word: fp_kind -> string
+  val co_prefix: fp_kind -> string
 
   val base_name_of_typ: typ -> string
   val mk_common_name: string list -> string
@@ -338,7 +338,7 @@ val selN = "sel"
 val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
 
-fun datatype_word fp = (if fp = Greatest_FP then "co" else "") ^ "datatype";
+fun co_prefix fp = (if fp = Greatest_FP then "co" else "");
 
 fun add_components_of_typ (Type (s, Ts)) =
     fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
