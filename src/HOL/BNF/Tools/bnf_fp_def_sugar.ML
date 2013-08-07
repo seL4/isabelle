@@ -45,7 +45,8 @@ sig
   val mk_iter_fun_arg_types: typ list -> int list -> int list list -> term ->
     typ list list list list
   val mk_coiter_fun_arg_types: typ list -> int list -> int list list -> term ->
-    typ list list list list * typ list list list * typ list list list list * typ list
+    typ list list
+    * (typ list list list list * typ list list list * typ list list list list * typ list)
   val define_iters: string list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
@@ -382,13 +383,15 @@ fun mk_coiter_fun_arg_types0 Cs ns mss fun_Ts =
     (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
   end;
 
-fun mk_coiter_fun_arg_types Cs ns mss =
-  mk_fp_iter_fun_types
-  #> mk_coiter_fun_arg_types0 Cs ns mss;
+fun mk_coiter_p_pred_types Cs ns = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
+
+fun mk_coiter_fun_arg_types Cs ns mss dtor_coiter =
+  (mk_coiter_p_pred_types Cs ns,
+   mk_fp_iter_fun_types dtor_coiter |> mk_coiter_fun_arg_types0 Cs ns mss);
 
 fun mk_coiters_args_types Cs ns mss dtor_coiter_fun_Tss lthy =
   let
-    val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
+    val p_Tss = mk_coiter_p_pred_types Cs ns;
 
     fun mk_types get_Ts =
       let
