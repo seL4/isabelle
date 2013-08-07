@@ -6,6 +6,10 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Summer 2013: Christian Sternagel, JAIST
+  Improved support for adhoc overloading of constants, including
+  documentation and examples.
+
 * May 2013: Florian Haftmann, TUM
   Ephemeral interpretation in local theories.
 
