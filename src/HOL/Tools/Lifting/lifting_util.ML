@@ -26,7 +26,6 @@ sig
   val is_Type: typ -> bool
   val is_fun_rel: term -> bool
   val relation_types: typ -> typ * typ
-  val bottom_rewr_conv: thm list -> conv
   val mk_HOL_eq: thm -> thm
   val safe_HOL_meta_eq: thm -> thm
 end;
@@ -106,8 +105,6 @@ fun relation_types typ =
   case strip_type typ of
     ([typ1, typ2], @{typ bool}) => (typ1, typ2)
     | _ => error "relation_types: not a relation"
-
-fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
 
 fun mk_HOL_eq r = r RS @{thm meta_eq_to_obj_eq}
 

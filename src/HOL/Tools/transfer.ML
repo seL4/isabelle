@@ -7,6 +7,9 @@ Generic theorem transfer method.
 
 signature TRANSFER =
 sig
+  val bottom_rewr_conv: thm list -> conv
+  val top_rewr_conv: thm list -> conv
+
   val prep_conv: conv
   val get_transfer_raw: Proof.context -> thm list
   val get_relator_eq: Proof.context -> thm list
@@ -131,6 +134,12 @@ fun add_transfer_thm thm = Data.map
 fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
 
 (** Conversions **)
+
+fun bottom_rewr_conv rewrs = Conv.bottom_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) @{context}
+
+fun transfer_rel_conv conv = 
+  Conv.concl_conv ~1 (HOLogic.Trueprop_conv (Conv.fun2_conv (Conv.arg_conv conv)))
 
 val Rel_rule = Thm.symmetric @{thm Rel_def}
 
@@ -559,11 +568,13 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
     val rule1 = transfer_rule_of_term ctxt false rhs
     val rules = get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
+    val expand_eq_in_rel = transfer_rel_conv (top_rewr_conv [@{thm fun_rel_eq[symmetric,THEN eq_reflection]}])
   in
     EVERY
       [CONVERSION prep_conv i,
        rtac @{thm transfer_prover_start} i,
-       (rtac rule1 THEN_ALL_NEW
+       ((rtac rule1 ORELSE' (CONVERSION expand_eq_in_rel THEN' rtac rule1))
+        THEN_ALL_NEW
          (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))) (i+1),
        rtac @{thm refl} i]
   end)

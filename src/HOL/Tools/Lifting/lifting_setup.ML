@@ -115,7 +115,8 @@ in
       val pcr_cr_eq = 
         pcr_rel_def
         |> Drule.cterm_instantiate args_inst    
-        |> Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (bottom_rewr_conv (Transfer.get_relator_eq lthy))))
+        |> Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv 
+          (Transfer.bottom_rewr_conv (Transfer.get_relator_eq lthy))))
   in
     case (term_of o Thm.rhs_of) pcr_cr_eq of
       Const (@{const_name "relcompp"}, _) $ Const ("HOL.eq", _) $ _ => 
