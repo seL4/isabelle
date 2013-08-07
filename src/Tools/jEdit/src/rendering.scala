@@ -193,7 +193,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             if (highlight_include(elem.name))
               Some(Text.Info(snapshot.convert(info_range), highlight_color))
             else None
-        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
+        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
   }
 
 
@@ -244,7 +244,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             }
 
           case _ => None
-        }) match { case Text.Info(_, info :: _) #:: _ => Some(info) case _ => None }
+        }) match { case Text.Info(_, info :: _) :: _ => Some(info) case _ => None }
   }
 
 
@@ -263,7 +263,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 elem.name == Markup.SENDBACK)
               Some(Text.Info(snapshot.convert(info_range), elem))
             else None
-        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
+        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
 
 
   def command_results(range: Text.Range): Command.Results =
@@ -293,7 +293,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(Text.Info(snapshot.convert(info_range), entry) :: msgs)
 
           case _ => None
-        }).toList.flatMap(_.info)
+        }).flatMap(_.info)
     if (results.isEmpty) None
     else {
       val r = Text.Range(results.head.range.start, results.last.range.stop)
@@ -366,7 +366,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             if (tooltips.isDefinedAt(name))
               Some(add(prev, r, (true, XML.Text(tooltips(name)))))
             else None
-        }).toList.map(_.info)
+        }).map(_.info)
 
     results.map(_.info).flatMap(_._2) match {
       case Nil => None
@@ -424,7 +424,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val squiggly_include = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
-  def squiggly_underline(range: Text.Range): Stream[Text.Info[Color]] =
+  def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
     val results =
       snapshot.cumulate_markup[Int](range, 0, Some(squiggly_include), _ =>
@@ -482,9 +482,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def output_messages(st: Command.State): List[XML.Tree] =
-  {
     st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
-  }
 
 
   private val background1_include =
@@ -492,9 +490,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
       active_include
 
-  def background1(range: Text.Range): Stream[Text.Info[Color]] =
+  def background1(range: Text.Range): List[Text.Info[Color]] =
   {
-    if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
+    if (snapshot.is_outdated) List(Text.Info(range, outdated_color))
     else
       for {
         Text.Info(r, result) <-
@@ -531,7 +529,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  def background2(range: Text.Range): Stream[Text.Info[Color]] =
+  def background2(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)), _ =>
       {
         case Text.Info(_, elem) =>
@@ -539,7 +537,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       })
 
 
-  def bullet(range: Text.Range): Stream[Text.Info[Color]] =
+  def bullet(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Some(Set(Markup.BULLET)), _ =>
       {
         case Text.Info(_, elem) =>
@@ -550,7 +548,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   private val foreground_include =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.ANTIQ)
 
-  def foreground(range: Text.Range): Stream[Text.Info[Color]] =
+  def foreground(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Some(foreground_include), _ =>
       {
         case Text.Info(_, elem) =>
@@ -586,10 +584,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val text_color_elements = text_colors.keySet
 
-  def text_color(range: Text.Range, color: Color)
-      : Stream[Text.Info[Color]] =
+  def text_color(range: Text.Range, color: Color): List[Text.Info[Color]] =
   {
-    if (color == Token_Markup.hidden_color) Stream(Text.Info(range, color))
+    if (color == Token_Markup.hidden_color) List(Text.Info(range, color))
     else
       snapshot.cumulate_markup(range, color, Some(text_color_elements), _ =>
         {
@@ -602,7 +599,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val fold_depth_include = Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 
-  def fold_depth(range: Text.Range): Stream[Text.Info[Int]] =
+  def fold_depth(range: Text.Range): List[Text.Info[Int]] =
     snapshot.cumulate_markup[Int](range, 0, Some(fold_depth_include), _ =>
       {
         case (depth, Text.Info(_, elem)) =>

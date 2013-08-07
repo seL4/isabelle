@@ -328,11 +328,11 @@ object Document
       range: Text.Range,
       info: A,
       elements: Option[Set[String]],
-      result: Command.State => (A, Text.Markup) => Option[A]): Stream[Text.Info[A]]
+      result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]]
     def select_markup[A](
       range: Text.Range,
       elements: Option[Set[String]],
-      result: Command.State => Text.Markup => Option[A]): Stream[Text.Info[A]]
+      result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]]
   }
 
   type Assign_Update =
@@ -564,21 +564,22 @@ object Document
             })
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
-          result: Command.State => (A, Text.Markup) => Option[A]): Stream[Text.Info[A]] =
+          result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          for {
-            (command, command_start) <- node.command_range(former_range).toStream
+          (for {
+            (command, command_start) <- node.command_range(former_range)
             st = state.command_state(version, command)
             res = result(st)
             Text.Info(r0, a) <- st.markup.cumulate[A](
               (former_range - command_start).restrict(command.range), info, elements,
-              { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) })
-          } yield Text.Info(convert(r0 + command_start), a)
+              { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) }
+            ).iterator
+          } yield Text.Info(convert(r0 + command_start), a)).toList
         }
 
         def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-          result: Command.State => Text.Markup => Option[A]): Stream[Text.Info[A]] =
+          result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
         {
           def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
           {

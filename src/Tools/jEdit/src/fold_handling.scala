@@ -31,7 +31,7 @@ object Fold_Handling
         if (i < 0) 0
         else {
           rendering.fold_depth(Text.Range(i, i + 1)).map(_.info) match {
-            case d #:: _ => d
+            case d :: _ => d
             case _ => 0
           }
         }

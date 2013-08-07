@@ -223,7 +223,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
   def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
-    result: (A, Text.Markup) => Option[A]): Stream[Text.Info[A]] =
+    result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
   {
     val notable: Elements => Boolean =
       result_elements match {
@@ -242,42 +242,42 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       if (changed) Some(y) else None
     }
 
-    def stream(
+    def traverse(
       last: Text.Offset,
-      stack: List[(Text.Info[A], Stream[(Text.Range, Entry)])]): Stream[Text.Info[A]] =
+      stack: List[(Text.Info[A], List[(Text.Range, Entry)])]): List[Text.Info[A]] =
     {
       stack match {
-        case (parent, (range, entry) #:: more) :: rest =>
+        case (parent, (range, entry) :: more) :: rest =>
           val subrange = range.restrict(root_range)
           val subtree =
             if (notable(entry.subtree_elements))
-              entry.subtree.overlapping(subrange).toStream
-            else Stream.empty
+              entry.subtree.overlapping(subrange).toList
+            else Nil
           val start = subrange.start
 
           (if (notable(entry.elements)) results(parent.info, entry) else None) match {
             case Some(res) =>
               val next = Text.Info(subrange, res)
-              val nexts = stream(start, (next, subtree) :: (parent, more) :: rest)
-              if (last < start) parent.restrict(Text.Range(last, start)) #:: nexts
+              val nexts = traverse(start, (next, subtree) :: (parent, more) :: rest)
+              if (last < start) parent.restrict(Text.Range(last, start)) :: nexts
               else nexts
-            case None => stream(last, (parent, subtree #::: more) :: rest)
+            case None => traverse(last, (parent, subtree ::: more) :: rest)
           }
 
-        case (parent, Stream.Empty) :: rest =>
+        case (parent, Nil) :: rest =>
           val stop = parent.range.stop
-          val nexts = stream(stop, rest)
-          if (last < stop) parent.restrict(Text.Range(last, stop)) #:: nexts
+          val nexts = traverse(stop, rest)
+          if (last < stop) parent.restrict(Text.Range(last, stop)) :: nexts
           else nexts
 
         case Nil =>
           val stop = root_range.stop
-          if (last < stop) Stream(Text.Info(Text.Range(last, stop), root_info))
-          else Stream.empty
+          if (last < stop) List(Text.Info(Text.Range(last, stop), root_info))
+          else Nil
       }
     }
-    stream(root_range.start,
-      List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
+    traverse(root_range.start,
+      List((Text.Info(root_range, root_info), overlapping(root_range).toList)))
   }
 }
 
