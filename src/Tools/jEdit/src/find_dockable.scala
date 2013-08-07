@@ -18,7 +18,7 @@ import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.HistoryTextArea
+import org.gjt.sp.jedit.gui.HistoryTextField
 
 
 class Find_Dockable(view: View, position: String) extends Dockable(view, position)
@@ -91,10 +91,9 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* controls */
 
-  private val query = new HistoryTextArea("isabelle-find-theorems") {
+  private val query = new HistoryTextField("isabelle-find-theorems") {
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
-    setColumns(25)
-    setRows(1)
+    setColumns(40)
   }
 
   private val query_wrapped = Component.wrap(query)
