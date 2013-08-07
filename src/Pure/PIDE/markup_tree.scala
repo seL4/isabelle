@@ -223,7 +223,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
   def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
-    result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
+    result: (A, Text.Markup) => Option[A]): Stream[Text.Info[A]] =
   {
     val notable: Elements => Boolean =
       result_elements match {
@@ -233,15 +233,12 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
 
     def results(x: A, entry: Entry): Option[A] =
     {
-      val (y, changed) =
-        // FIXME proper cumulation order (including status markup) (!?)
-        ((x, false) /: entry.rev_markup)((res, info) =>
-          {
-            val (y, changed) = res
-            val arg = (y, Text.Info(entry.range, info))
-            if (result.isDefinedAt(arg)) (result(arg), true)
-            else res
-          })
+      var y = x
+      var changed = false
+      for {
+        info <- entry.rev_markup // FIXME proper cumulation order (including status markup) (!?)
+        y1 <- result(y, Text.Info(entry.range, info))
+      } { y = y1; changed = true }
       if (changed) Some(y) else None
     }
 
