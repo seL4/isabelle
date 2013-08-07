@@ -193,7 +193,7 @@ object Symbol
         if (min <= c && c <= max) {
           matcher.region(i, len).lookingAt
           val x = matcher.group
-          result.append(table.get(x) getOrElse x)
+          result.append(table.getOrElse(x, x))
           i = matcher.end
         }
         else { result.append(c); i += 1 }
@@ -255,7 +255,7 @@ object Symbol
     }
 
     val groups: List[(String, List[Symbol])] =
-      symbols.map({ case (sym, props) => (sym, props.get("group") getOrElse "unsorted") })
+      symbols.map({ case (sym, props) => (sym, props.getOrElse("group", "unsorted")) })
         .groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
         .sortBy(_._1)
 
