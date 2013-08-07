@@ -85,7 +85,7 @@ final class ML_Statistics private(val name: String, val stats: List[Properties.T
       // rising edges -- relative speed
       val speeds =
         for ((key, value) <- props; a <- Library.try_unprefix("time", key)) yield {
-          val (x0, y0, s0) = last_edge.get(a) getOrElse (0.0, 0.0, 0.0)
+          val (x0, y0, s0) = last_edge.getOrElse(a, (0.0, 0.0, 0.0))
 
           val x1 = time
           val y1 = java.lang.Double.parseDouble(value)

@@ -167,7 +167,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         case None => Document.Node.Name.empty
         case Some(doc_view) => doc_view.model.name
       }
-    val timing = nodes_timing.get(name) getOrElse Protocol.empty_node_timing
+    val timing = nodes_timing.getOrElse(name, Protocol.empty_node_timing)
 
     val theories =
       (for ((node_name, node_timing) <- nodes_timing.toList if !node_timing.commands.isEmpty)

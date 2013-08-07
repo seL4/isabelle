@@ -106,6 +106,9 @@ situations.
 
 *** HOL ***
 
+* Improved support for adhoc overloading of constants (see also
+isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).
+
 * Attibute 'code': 'code' now declares concrete and abstract code equations uniformly.
 Use explicit 'code equation' and 'code abstract' to distinguish both when desired.
 

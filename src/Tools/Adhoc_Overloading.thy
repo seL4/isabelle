@@ -2,7 +2,7 @@
    Author: Christian Sternagel, University of Innsbruck
 *)
 
-header {* Ad-hoc overloading of constants based on their types *}
+header {* Adhoc overloading of constants based on their types *}
 
 theory Adhoc_Overloading
 imports Pure

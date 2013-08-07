@@ -15,48 +15,6 @@ object Document
 {
   /** document structure **/
 
-  /* overlays -- print functions with arguments */
-
-  type Overlay = (Command, (String, List[String]))
-
-  object Overlays
-  {
-    val empty = new Overlays(Map.empty)
-  }
-
-  final class Overlays private(rep: Map[Command, List[(String, List[String])]])
-  {
-    def commands: Set[Command] = rep.keySet
-    def is_empty: Boolean = rep.isEmpty
-
-    def insert(cmd: Command, fn: (String, List[String])): Overlays =
-    {
-      val fns = rep.get(cmd) getOrElse Nil
-      if (fns.contains(fn)) this
-      else new Overlays(rep + (cmd -> (fn :: fns)))
-    }
-
-    def remove(cmd: Command, fn: (String, List[String])): Overlays =
-      rep.get(cmd) match {
-        case Some(fns) =>
-          if (fns.contains(fn)) {
-            fns.filterNot(_ == fn) match {
-              case Nil => new Overlays(rep - cmd)
-              case fns1 => new Overlays(rep + (cmd -> fns1))
-            }
-          }
-          else this
-        case None => this
-      }
-
-    def dest: List[Overlay] =
-      (for {
-        (cmd, fns) <- rep.iterator
-        fn <- fns
-      } yield (cmd, fn)).toList
-  }
-
-
   /* individual nodes */
 
   type Edit[A, B] = (Node.Name, Node.Edit[A, B])
@@ -65,6 +23,11 @@ object Document
 
   object Node
   {
+    val empty: Node = new Node()
+
+
+    /* header and name */
+
     sealed case class Header(
       imports: List[Name],
       keywords: Thy_Header.Keywords,
@@ -84,6 +47,7 @@ object Document
         def compare(name1: Name, name2: Name): Int = name1.node compare name2.node
       }
     }
+
     sealed case class Name(node: String, dir: String, theory: String)
     {
       override def hashCode: Int = node.hashCode
@@ -94,6 +58,51 @@ object Document
         }
       override def toString: String = theory
     }
+
+
+    /* overlays -- print functions with arguments */
+
+    type Overlay = (Command, (String, List[String]))
+
+    object Overlays
+    {
+      val empty = new Overlays(Map.empty)
+    }
+
+    final class Overlays private(rep: Map[Command, List[(String, List[String])]])
+    {
+      def commands: Set[Command] = rep.keySet
+      def is_empty: Boolean = rep.isEmpty
+
+      def insert(cmd: Command, over: (String, List[String])): Overlays =
+      {
+        val overs = rep.getOrElse(cmd, Nil)
+        if (overs.contains(over)) this
+        else new Overlays(rep + (cmd -> (over :: overs)))
+      }
+
+      def remove(cmd: Command, over: (String, List[String])): Overlays =
+        rep.get(cmd) match {
+          case Some(overs) =>
+            if (overs.contains(over)) {
+              overs.filterNot(_ == over) match {
+                case Nil => new Overlays(rep - cmd)
+                case overs1 => new Overlays(rep + (cmd -> overs1))
+              }
+            }
+            else this
+          case None => this
+        }
+
+      def dest: List[Overlay] =
+        (for {
+          (cmd, overs) <- rep.iterator
+          over <- overs
+        } yield (cmd, over)).toList
+    }
+
+
+    /* edits */
 
     sealed abstract class Edit[A, B]
     {
@@ -112,6 +121,9 @@ object Document
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 
+
+    /* commands */
+
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
     {
@@ -124,14 +136,12 @@ object Document
     }
 
     private val block_size = 1024
-
-    val empty: Node = new Node()
   }
 
   final class Node private(
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
-      Node.Perspective(false, Command.Perspective.empty, Overlays.empty),
+      Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
     val commands: Linear_Set[Command] = Linear_Set.empty)
   {
     def clear: Node = new Node(header = header)
@@ -310,19 +320,19 @@ object Document
     val node: Node
     val is_outdated: Boolean
     def convert(i: Text.Offset): Text.Offset
-    def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
+    def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
     def eq_content(other: Snapshot): Boolean
     def cumulate_markup[A](
       range: Text.Range,
       info: A,
       elements: Option[Set[String]],
-      result: Command.State => PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
+      result: Command.State => (A, Text.Markup) => Option[A]): Stream[Text.Info[A]]
     def select_markup[A](
       range: Text.Range,
       elements: Option[Set[String]],
-      result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
+      result: Command.State => Text.Markup => Option[A]): Stream[Text.Info[A]]
   }
 
   type Assign_Update =
@@ -554,33 +564,30 @@ object Document
             })
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
-          result: Command.State => PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
+          result: Command.State => (A, Text.Markup) => Option[A]): Stream[Text.Info[A]] =
         {
           val former_range = revert(range)
           for {
             (command, command_start) <- node.command_range(former_range).toStream
             st = state.command_state(version, command)
             res = result(st)
-            Text.Info(r0, a) <- st.markup.
-              cumulate[A]((former_range - command_start).restrict(command.range), info, elements,
-                {
-                  case (a, Text.Info(r0, b))
-                  if res.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
-                    res((a, Text.Info(convert(r0 + command_start), b)))
-                })
+            Text.Info(r0, a) <- st.markup.cumulate[A](
+              (former_range - command_start).restrict(command.range), info, elements,
+              { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) })
           } yield Text.Info(convert(r0 + command_start), a)
         }
 
         def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-          result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]] =
+          result: Command.State => Text.Markup => Option[A]): Stream[Text.Info[A]] =
         {
-          def result1(st: Command.State) =
+          def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
           {
             val res = result(st)
-            new PartialFunction[(Option[A], Text.Markup), Option[A]] {
-              def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = res.isDefinedAt(arg._2)
-              def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(res(arg._2))
-            }
+            (_: Option[A], x: Text.Markup) =>
+              res(x) match {
+                case None => None
+                case some => Some(some)
+              }
           }
           for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1))
             yield Text.Info(r, x)

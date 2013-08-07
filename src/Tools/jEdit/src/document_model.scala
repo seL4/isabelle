@@ -79,7 +79,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* overlays */
 
-  private var overlays = Document.Overlays.empty
+  private var overlays = Document.Node.Overlays.empty
 
   def insert_overlay(command: Command, name: String, args: List[String]): Unit =
     Swing_Thread.require { overlays = overlays.insert(command, (name, args)) }
@@ -104,7 +104,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   }
 
   val empty_perspective: Document.Node.Perspective_Text =
-    Document.Node.Perspective(false, Text.Perspective.empty, Document.Overlays.empty)
+    Document.Node.Perspective(false, Text.Perspective.empty, Document.Node.Overlays.empty)
 
   def node_perspective(): Document.Node.Perspective_Text =
   {
