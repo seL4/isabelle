@@ -141,7 +141,7 @@ final class Query_Operation private(
     /* status */
 
     def get_status(name: String, status: Status.Value): Option[Status.Value] =
-      results.collectFirst({ case List(XML.Elem(m, _)) if m.name == name => status })
+      results.collectFirst({ case List(elem: XML.Elem) if elem.name == name => status })
 
     val new_status =
       get_status(Markup.FINISHED, Status.FINISHED) orElse
