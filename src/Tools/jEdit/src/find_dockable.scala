@@ -15,7 +15,7 @@ import scala.swing.{FlowPanel, Button, Component}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter}
+import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.HistoryTextField
@@ -91,7 +91,14 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* controls */
 
+  private def clicked { find_theorems.apply_query(List(query.getText)) }
+
   private val query = new HistoryTextField("isabelle-find-theorems") {
+    override def processKeyEvent(evt: KeyEvent)
+    {
+      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
+      super.processKeyEvent(evt)
+    }
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
   }
@@ -100,7 +107,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val apply_query = new Button("Apply") {
     tooltip = "Find theorems meeting specified criteria"
-    reactions += { case ButtonClicked(_) => find_theorems.apply_query(List(query.getText)) }
+    reactions += { case ButtonClicked(_) => clicked }
   }
 
   private val locate_query = new Button("Locate") {
