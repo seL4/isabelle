@@ -21,7 +21,7 @@ sig
   }
 
   val read_criterion: Proof.context -> string criterion -> term criterion
-  val parse_query: string -> (bool * string criterion) list
+  val read_query: Position.T -> string -> (bool * string criterion) list
 
   val xml_of_query: term query -> XML.tree
   val query_of_xml: XML.tree -> term query
@@ -624,22 +624,20 @@ val options =
       Parse.!!! (Scan.option Parse.nat -- Scan.optional (Parse.reserved "with_dups" >> K false) true
         --| Parse.$$$ ")")) (NONE, true);
 
-val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
+val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
 in
 
-(* FIXME proper wrapper for parser combinator *)
-fun parse_query str =
-  (str ^ ";")
-  |> Outer_Syntax.scan Position.start
+fun read_query pos str =
+  Outer_Syntax.scan pos str
   |> filter Token.is_proper
-  |> Scan.error query_parser
-  |> fst;
+  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
+  |> #1;
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_theorems"}
     "find theorems meeting specified criteria"
-    (options -- query_parser >> (fn ((opt_lim, rem_dups), spec) =>
+    (options -- query >> (fn ((opt_lim, rem_dups), spec) =>
       Toplevel.keep (fn state =>
         Pretty.writeln (pretty_theorems_cmd state opt_lim rem_dups spec))));
 
@@ -650,7 +648,7 @@ end;
 (** PIDE query operation **)
 
 val _ =
-  Query_Operation.register "find_theorems" (fn state => fn query =>
-    Pretty.string_of (pretty_theorems_cmd state NONE false (maps parse_query query)));
+  Query_Operation.register "find_theorems" (fn st => fn args =>
+    Pretty.string_of (pretty_theorems_cmd st NONE false (maps (read_query Position.none) args)));
 
 end;
