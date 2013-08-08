@@ -495,4 +495,43 @@ fun try_sledgehammer auto state =
 
 val _ = Try.tool_setup (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
 
+val _ =
+  Query_Operation.register_parallel sledgehammerN
+    (fn st => fn [provers_arg, timeout_arg, subgoal_arg, isar_proofs_arg] =>
+      (case try Toplevel.proof_of st of
+        SOME state =>
+          let
+            val ctxt = Proof.context_of state
+
+            val {debug, verbose, overlord, isar_proofs, ...} = get_params Normal ctxt []
+            val override_params =
+              ([("timeout", [timeout_arg]),
+                ("blocking", ["true"])] @
+              (if Option.map Bool.toString isar_proofs <> SOME isar_proofs_arg
+               then [("isar_proofs", [isar_proofs_arg])] else []) @
+              (if debug then [("debug", ["false"])] else []) @
+              (if verbose then [("verbose", ["false"])] else []) @
+              (if overlord then [("overlord", ["false"])] else []))
+              |> map (normalize_raw_param ctxt)
+
+            val i = the_default 1 (Int.fromString subgoal_arg)
+
+            val {provers, ...} =
+              get_params Normal ctxt
+                (if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)])
+
+            fun run prover =
+              let
+                val prover_params = ("provers", [prover]) :: override_params
+                val sledgehammer_params = get_params Normal ctxt prover_params
+                val minimize = minimize_command prover_params i
+                val (_, (_, state')) =
+                  state
+                  |> Proof.map_context (Config.put sledgehammer_result_request true)
+                  |> run_sledgehammer sledgehammer_params Try i no_fact_override minimize
+              in Config.get (Proof.context_of state') sledgehammer_result end
+
+          in map (fn prover => fn () => run prover) provers end
+      | NONE => error "Unknown proof context"));
+
 end;
