@@ -217,14 +217,11 @@ local
 
 val letter = Scan.one (symbol #> Symbol.is_letter);
 val letdigs1 = Scan.many1 (symbol #> Symbol.is_letdig);
-val sub_sup =
-  Scan.one (symbol #>
-    (fn s => s = "\\<^sub>" orelse s = "\\<^isub>" orelse s = "\\<^sup>" orelse s = "\\<^isup>"));
+val sub = Scan.one (symbol #> (fn s => s = "\\<^sub>" orelse s = "\\<^isub>"));
 
 in
 
-val scan_ident =
-  letter ::: (Scan.repeat (letdigs1 || sub_sup ::: letdigs1) >> flat);
+val scan_ident = letter ::: (Scan.repeat (letdigs1 || sub ::: letdigs1) >> flat);
 
 end;
 

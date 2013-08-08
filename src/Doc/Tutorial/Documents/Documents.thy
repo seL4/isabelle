@@ -121,17 +121,16 @@ text {*
   @{text "\<alpha>"} (\verb+\+\verb+<alpha>+), @{text "\<beta>"}
   (\verb+\+\verb+<beta>+), etc. (excluding @{text "\<lambda>"}),
   special letters like @{text "\<A>"} (\verb+\+\verb+<A>+) and @{text
-  "\<AA>"} (\verb+\+\verb+<AA>+), and the control symbols
-  \verb+\+\verb+<^isub>+ and \verb+\+\verb+<^isup>+ for single letter
-  sub and super scripts. This means that the input
+  "\<AA>"} (\verb+\+\verb+<AA>+).  Moreover the control symbol
+  \verb+\+\verb+<^sub>+ may be used to subscript a single letter or digit
+  in the trailing part of an identifier. This means that the input
 
   \medskip
-  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.,~\verb,\,\verb,<alpha>\<^isub>1 = \,\verb,<Pi>\<^isup>\<A>,}
+  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.,~\verb,\,\verb,<alpha>\<^isub>1 = \,\verb,<Pi>\<^isub>\<A>,}
 
   \medskip
-  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^isub>1. \<alpha>\<^isub>1 = \<Pi>\<^isup>\<A>"} 
-  by Isabelle. Note that @{text "\<Pi>\<^isup>\<A>"} is a single
-  syntactic entity, not an exponentiation.
+  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^isub>1. \<alpha>\<^isub>1 = \<Pi>\<^isub>\<A>"} 
+  by Isabelle.
 
   Replacing our previous definition of @{text xor} by the
   following specifies an Isabelle symbol for the new operator:

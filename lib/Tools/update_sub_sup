@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: update sub/sup control symbols
+# DESCRIPTION: update Isabelle symbols involving sub/superscripts
 
 
 ## diagnostics
@@ -14,7 +14,7 @@ function usage()
   echo
   echo "Usage: isabelle $PRG [FILES|DIRS...]"
   echo
-  echo "  Recursively find .thy/.ML files and update control symbols for"
+  echo "  Recursively find .thy/.ML files and update Isabelle symbols involving"
   echo "  sub- and superscript."
   echo
   echo "  Old versions of files are preserved by appending \"~~\"."
