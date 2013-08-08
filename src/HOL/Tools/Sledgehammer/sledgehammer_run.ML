@@ -19,6 +19,8 @@ sig
   val timeoutN : string
   val unknownN : string
   val string_of_factss : (string * fact list) list -> string
+  val sledgehammer_result_request : bool Config.T
+  val sledgehammer_result : string Config.T
   val run_sledgehammer :
     params -> mode -> int -> fact_override
     -> ((string * string list) list -> string -> minimize_command)
@@ -63,6 +65,11 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
    (if blocking then "."
     else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
+
+val sledgehammer_result_request =
+  Config.bool (Config.declare "sledgehammer_result_request" (fn _ => Config.Bool false));
+val sledgehammer_result =
+  Config.string (Config.declare "sledgehammer_result" (fn _ => Config.String ""));
 
 fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                               timeout, expect, ...})
@@ -145,15 +152,19 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     else if blocking then
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
-      in
-        (if outcome_code = someN orelse mode = Normal then
-           quote name ^ ": " ^ message ()
-         else
-           "")
-        |> Async_Manager.break_into_chunks
-        |> List.app Output.urgent_message;
-        (outcome_code, state)
-      end
+        val state' =
+          if Config.get ctxt sledgehammer_result_request then
+            state |> Proof.map_context
+              (Config.put sledgehammer_result (quote name ^ ": " ^ message ()))
+          else
+            ((if outcome_code = someN orelse mode = Normal then
+               quote name ^ ": " ^ message ()
+             else
+               "")
+              |> Async_Manager.break_into_chunks
+              |> List.app Output.urgent_message;
+             state)
+      in (outcome_code, state') end
     else
       (Async_Manager.thread SledgehammerN birth_time death_time (desc ())
                             ((fn (outcome_code, message) =>
@@ -187,7 +198,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
-    0 => (Output.urgent_message "No subgoal!"; (false, (noneN, state)))
+    0 =>
+      ((if blocking then error else Output.urgent_message) "No subgoal!"; (false, (noneN, state)))
   | n =>
     let
       val _ = Proof.assert_backward state
@@ -245,7 +257,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
             mash_learn_proof ctxt params prover (prop_of goal) all_facts
           val launch = launch_prover params mode minimize_command only learn
         in
-          if mode = Auto_Try then
+          if mode = Auto_Try orelse
+            Config.get (Proof.context_of state) sledgehammer_result_request
+          then
             (unknownN, state)
             |> fold (fn prover => fn accum as (outcome_code, _) =>
                         if outcome_code = someN then accum
