@@ -519,7 +519,7 @@ fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     (if null theorems then [Pretty.str "nothing found"]
      else
       [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
-        grouped 10 Par_List.map (pretty_theorem ctxt) theorems)
+        grouped 10 Par_List.map (Pretty.item o single o pretty_theorem ctxt) theorems)
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
 fun pretty_theorems_cmd state opt_lim rem_dups spec =
