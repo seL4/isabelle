@@ -296,8 +296,6 @@ val scan_vname =
     fun chop_idx [] ds = idxname [] ds
       | chop_idx (cs as (_ :: "\\<^sub>" :: _)) ds = idxname cs ds
       | chop_idx (cs as (_ :: "\\<^isub>" :: _)) ds = idxname cs ds
-      | chop_idx (cs as (_ :: "\\<^sup>" :: _)) ds = idxname cs ds
-      | chop_idx (cs as (_ :: "\\<^isup>" :: _)) ds = idxname cs ds
       | chop_idx (c :: cs) ds =
           if Symbol.is_digit c then chop_idx cs (c :: ds)
           else idxname (c :: cs) ds;
