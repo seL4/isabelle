@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# update_sub_sup - update sub/sup control symbols
+# update_sub_sup - update Isabelle symbols involving sub/superscripts
 
 use warnings;
 use strict;
@@ -18,6 +18,9 @@ sub update_sub_sup {
 
     s/\Q\<^isub>\E/\\<^sub>/g;
     s/\Q\<^isup>\E/\\<^sup>/g;
+    s/\Q\<onesuperior>\E/\\<^sup>1/g;
+    s/\Q\<twosuperior>\E/\\<^sup>2/g;
+    s/\Q\<threesuperior>\E/\\<^sup>3/g;
 
     my $result = $_;
 
