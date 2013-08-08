@@ -574,6 +574,8 @@ end;
 
 val _ =
   Query_Operation.register "find_theorems" (fn st => fn args =>
-    Pretty.string_of (pretty_theorems_cmd st NONE false (maps (read_query Position.none) args)));
+    if can Toplevel.theory_of st then
+      Pretty.string_of (pretty_theorems_cmd st NONE false (maps (read_query Position.none) args))
+    else error "Unknown theory context");
 
 end;
