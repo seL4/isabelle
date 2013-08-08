@@ -210,7 +210,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val bd_Cinfinite = hd bd_Cinfinites;
     val in_monos = map in_mono_of_bnf bnfs;
     val map_comps = map map_comp_of_bnf bnfs;
-    val sym_map_comps = map (fn thm => thm RS sym) map_comps;
+    val sym_map_comps = map mk_sym map_comps;
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_cong0s = map map_cong0_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;
@@ -2003,8 +2003,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           |> Thm.close_derivation
       end;
 
-    val dtor_corec_unique_thms =
-      split_conj_thm (split_conj_prems n
+    val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
+      `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
         |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_o_inj(1)} @
            map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
@@ -2131,10 +2131,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val in_rels = map in_rel_of_bnf bnfs;
 
     (*register new codatatypes as BNFs*)
-    val (timer, Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_set_induct_thms,
-      dtor_Jrel_thms, lthy) =
+    val (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
+      dtor_set_induct_thms, dtor_Jrel_thms, lthy) =
       if m = 0 then
-        (timer, replicate n DEADID_bnf, map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_id's,
+        (timer, replicate n DEADID_bnf,
+        map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_id's),
         replicate n [], [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
@@ -2254,7 +2255,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (mk_dtor_map_unique_tac dtor_unfold_unique_thm map_comps)
+              (mk_dtor_map_unique_tac dtor_unfold_unique_thm sym_map_comps)
               |> Thm.close_derivation
           end;
 
@@ -2725,6 +2726,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val in_Jrels = map in_rel_of_bnf Jbnfs;
 
         val folded_dtor_map_thms = map fold_maps dtor_map_thms;
+        val folded_dtor_map_o_thms = map fold_maps map_thms;
         val folded_dtor_set_thmss = map (map fold_sets) dtor_set_thmss;
         val folded_dtor_set_thmss' = transpose folded_dtor_set_thmss;
 
@@ -2767,9 +2769,17 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-       (timer, Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_set_induct_thms,
-          dtor_Jrel_thms, lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
+       (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
+         dtor_set_induct_thms, dtor_Jrel_thms,
+         lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
       end;
+
+      val dtor_unfold_o_map_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
+        dtor_unfold_unique_thm folded_dtor_map_o_thms (map (mk_pointfree lthy) dtor_unfold_thms)
+        sym_map_comps map_cong0s;
+      val dtor_corec_o_map_thms = mk_xtor_un_fold_o_map_thms Greatest_FP true m
+        dtor_corec_unique_thm folded_dtor_map_o_thms (map (mk_pointfree lthy) dtor_corec_thms)
+        sym_map_comps map_cong0s;
 
       val passiveABs = map2 (curry HOLogic.mk_prodT) passiveAs passiveBs;
       val zip_ranTs = passiveABs @ prodTsTs';
@@ -2906,7 +2916,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         (dtor_injectN, dtor_inject_thms),
         (dtor_unfoldN, dtor_unfold_thms),
         (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
-        (dtor_corec_uniqueN, dtor_corec_unique_thms)]
+        (dtor_corec_uniqueN, dtor_corec_unique_thms),
+        (dtor_unfold_o_mapN, dtor_unfold_o_map_thms),
+        (dtor_corec_o_mapN, dtor_corec_o_map_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>

@@ -19,6 +19,8 @@ sig
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
     int -> tactic
 
+  val mk_pointfree: Proof.context -> thm -> thm
+
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
@@ -52,6 +54,16 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
 fun unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
+
+(*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
+fun mk_pointfree ctxt thm = thm
+  |> Thm.prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
+  |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
+  |> mk_Trueprop_eq
+  |> (fn goal => Goal.prove_sorry ctxt [] [] goal
+     (fn {context=ctxt, prems = _} =>
+       unfold_thms_tac ctxt [@{thm o_def}, mk_sym thm] THEN rtac refl 1))
+  |> Thm.close_derivation;
 
 
 (* Theorems for open typedefs with UNIV as representing set *)

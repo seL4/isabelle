@@ -2,7 +2,7 @@
 
 header "Compiler for IMP"
 
-theory Compiler imports Big_Step 
+theory Compiler imports Big_Step Star
 begin
 
 subsection "List setup"
@@ -63,24 +63,25 @@ where
   "P \<turnstile> c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < size P)"
 
+(*
 declare exec1_def [simp]
+*)
 
 lemma exec1I [intro, code_pred_intro]:
   "c' = iexec (P!!i) (i,s,stk) \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < size P
   \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
-by simp
+by (simp add: exec1_def)
 
-inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
-   ("(_/ \<turnstile> (_ \<rightarrow>*/ _))" 50)
+abbreviation 
+  exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("(_/ \<turnstile> (_ \<rightarrow>*/ _))" 50)
 where
-refl: "P \<turnstile> c \<rightarrow>* c" |
-step: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
+  "exec P \<equiv> star (exec1 P)"
 
-declare refl[intro] step[intro]
+declare star.step[intro]
 
-lemmas exec_induct = exec.induct[split_format(complete)]
+lemmas exec_induct = star.induct [of "exec1 P", split_format(complete)]
 
-code_pred exec by fastforce
+code_pred exec1 by (metis exec1_def)
 
 values
   "{(i,map t [''x'',''y''],stk) | i t stk.
@@ -89,9 +90,6 @@ values
 
 
 subsection{* Verification infrastructure *}
-
-lemma exec_trans: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
-by (induction rule: exec.induct) fastforce+
 
 text{* Below we need to argue about the execution of code that is embedded in
 larger programs. For this purpose we show that execution is preserved by
@@ -102,16 +100,17 @@ lemma iexec_shift [simp]:
 by(auto split:instr.split)
 
 lemma exec1_appendR: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow> c'"
-by auto
+by (auto simp: exec1_def)
 
 lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
-by (induction rule: exec.induct) (fastforce intro: exec1_appendR)+
+by (induction rule: star.induct) (fastforce intro: exec1_appendR)+
 
 lemma exec1_appendL:
   fixes i i' :: int 
   shows
   "P \<turnstile> (i,s,stk) \<rightarrow> (i',s',stk') \<Longrightarrow>
    P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow> (size(P')+i',s',stk')"
+  unfolding exec1_def
   by (auto split: instr.split)
 
 lemma exec_appendL:
@@ -154,7 +153,7 @@ lemma exec_append_trans[intro]:
  j'' = size P + i''
  \<Longrightarrow>
  P @ P' \<turnstile> (0,s,stk) \<rightarrow>* (j'',s'',stk'')"
-by(metis exec_trans[OF exec_appendR exec_appendL_if])
+by(metis star_trans[OF exec_appendR exec_appendL_if])
 
 
 declare Let_def[simp]
@@ -237,7 +236,7 @@ next
   moreover
   have "?cc1 @ ?cc2 \<turnstile> (size ?cc1,s2,stk) \<rightarrow>* (size(?cc1 @ ?cc2),s3,stk)"
     using Seq.IH(2) by fastforce
-  ultimately show ?case by simp (blast intro: exec_trans)
+  ultimately show ?case by simp (blast intro: star_trans)
 next
   case (WhileTrue b s1 c s2 s3)
   let ?cc = "ccomp c"
@@ -253,7 +252,7 @@ next
     by fastforce
   moreover
   have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (size ?cw,s3,stk)" by(rule WhileTrue.IH(2))
-  ultimately show ?case by(blast intro: exec_trans)
+  ultimately show ?case by(blast intro: star_trans)
 qed fastforce+
 
 end

@@ -1061,7 +1061,7 @@ fun mk_dtor_set_tac n set_le set_incl_hset set_hset_incl_hsets =
     EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_hset_incl_hsets)] 1;
 
 fun mk_map_id_tac maps unfold_unique unfold_dtor =
-  EVERY' [rtac (unfold_unique RS trans), EVERY' (map (fn thm => rtac (thm RS sym)) maps),
+  EVERY' [rtac (unfold_unique RS trans), EVERY' (map (rtac o mk_sym) maps),
     rtac unfold_dtor] 1;
 
 fun mk_map_comp_tac m n maps map_comps map_cong0s unfold_unique =
@@ -1114,9 +1114,9 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comp's dtor_maps map_cong0s set_mapss s
            rtac conjI, rtac refl, rtac refl]) ks]) 1
   end
 
-fun mk_dtor_map_unique_tac unfold_unique map_comps {context = ctxt, prems = _} =
+fun mk_dtor_map_unique_tac unfold_unique sym_map_comps {context = ctxt, prems = _} =
   rtac unfold_unique 1 THEN
-  unfold_thms_tac ctxt (map (fn thm => thm RS sym) map_comps @ @{thms o_assoc id_o o_id}) THEN
+  unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc id_o o_id}) THEN
   ALLGOALS (etac sym);
 
 fun mk_col_natural_tac cts rec_0s rec_Sucs dtor_maps set_mapss

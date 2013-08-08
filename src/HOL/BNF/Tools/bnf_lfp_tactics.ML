@@ -42,7 +42,7 @@ sig
   val mk_map_comp_tac: thm list -> thm list -> thm -> int -> tactic
   val mk_map_id_tac: thm list -> thm -> tactic
   val mk_map_tac: int -> int -> thm -> thm -> thm -> tactic
-  val mk_ctor_map_unique_tac: int -> thm -> thm -> thm list -> thm list -> tactic
+  val mk_ctor_map_unique_tac: thm -> thm list -> {prems: thm list, context: Proof.context} -> tactic
   val mk_mcong_tac: (int -> tactic) -> thm list list list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_min_algs_card_of_tac: ctyp -> cterm -> int -> thm -> thm list -> thm list -> thm -> thm ->
@@ -584,19 +584,10 @@ fun mk_map_tac m n foldx map_comp_id map_cong0 =
     REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply])),
     rtac sym, rtac o_apply] 1;
 
-fun mk_ctor_map_unique_tac m mor_def fold_unique_mor map_comp_ids map_cong0s =
-  let
-    val n = length map_cong0s;
-    fun mk_mor (comp_id, cong) = EVERY' [rtac ballI, rtac trans, etac @{thm comp_eq_dest},
-      rtac sym, rtac trans, rtac o_apply, rtac trans, rtac (comp_id RS arg_cong),
-      rtac (cong RS arg_cong),
-      REPEAT_DETERM_N m o rtac refl,
-      REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply]))];
-  in
-    EVERY' [rtac fold_unique_mor, rtac ssubst, rtac mor_def, rtac conjI,
-      CONJ_WRAP' (K (EVERY' [rtac ballI, rtac UNIV_I])) map_cong0s,
-      CONJ_WRAP' mk_mor (map_comp_ids ~~ map_cong0s)] 1
-  end;
+fun mk_ctor_map_unique_tac fold_unique sym_map_comps {context = ctxt, prems = _} =
+  rtac fold_unique 1 THEN
+  unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc[symmetric] id_o o_id}) THEN
+  ALLGOALS atac;
 
 fun mk_set_tac foldx = EVERY' [rtac ext, rtac trans, rtac o_apply,
   rtac trans, rtac foldx, rtac sym, rtac o_apply] 1;

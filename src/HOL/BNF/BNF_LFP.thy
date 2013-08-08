@@ -44,9 +44,6 @@ using fst_convol unfolding convol_def by simp
 lemma snd_convol': "snd (<f, g> x) = g x"
 using snd_convol unfolding convol_def by simp
 
-lemma convol_o: "<f, g> o h = <f o h, g o h>"
-  unfolding convol_def by auto
-
 lemma convol_expand_snd: "fst o f = g \<Longrightarrow>  <g, snd o f> = f"
 unfolding convol_def by auto
 

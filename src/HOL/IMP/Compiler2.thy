@@ -50,7 +50,7 @@ lemma exec_Suc:
 
 lemma exec_exec_n:
   "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> \<exists>n. P \<turnstile> c \<rightarrow>^n c'"
-  by (induct rule: exec.induct) (auto simp del: exec1_def intro: exec_Suc)
+  by (induct rule: star.induct) (auto intro: exec_Suc)
     
 lemma exec_eq_exec_n:
   "(P \<turnstile> c \<rightarrow>* c') = (\<exists>n. P \<turnstile> c \<rightarrow>^n c')"
@@ -58,7 +58,7 @@ lemma exec_eq_exec_n:
 
 lemma exec_n_Nil [simp]:
   "[] \<turnstile> c \<rightarrow>^k c' = (c' = c \<and> k = 0)"
-  by (induct k) auto
+  by (induct k) (auto simp: exec1_def)
 
 lemma exec1_exec_n [intro!]:
   "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P \<turnstile> c \<rightarrow>^1 c'"
@@ -75,7 +75,7 @@ lemma exec_n_step:
 
 lemma exec1_end:
   "size P <= fst c \<Longrightarrow> \<not> P \<turnstile> c \<rightarrow> c'"
-  by auto
+  by (auto simp: exec1_def)
 
 lemma exec_n_end:
   "size P <= (n::int) \<Longrightarrow> 
@@ -262,7 +262,7 @@ lemma exec1_split:
   shows
   "P @ c @ P' \<turnstile> (size P + i, s) \<rightarrow> (j,s') \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < size c \<Longrightarrow> 
   c \<turnstile> (i,s) \<rightarrow> (j - size P, s')"
-  by (auto split: instr.splits)
+  by (auto split: instr.splits simp: exec1_def)
 
 lemma exec_n_split:
   fixes i j :: int
@@ -304,7 +304,7 @@ next
     assume "j0 \<notin> {0 ..< size c}"
     moreover
     from c j0 have "j0 \<in> succs c 0"
-      by (auto dest: succs_iexec1 simp del: iexec.simps)
+      by (auto dest: succs_iexec1 simp: exec1_def simp del: iexec.simps)
     ultimately
     have "j0 \<in> exits c" by (simp add: exits_def)
     with c j0 rest
@@ -343,7 +343,8 @@ proof -
   have "n = size P1 + (n - size P1)" by simp 
   then obtain n' :: int where "n = size P1 + n'" ..
   ultimately 
-  show ?thesis using assms by (clarsimp simp del: iexec.simps)
+  show ?thesis using assms 
+    by (clarsimp simp: exec1_def simp del: iexec.simps)
 qed
 
 lemma exec_n_drop_left:
@@ -365,7 +366,7 @@ next
     by (rule exec1_drop_left)
   moreover
   then have "i' - size P \<in> succs P' 0"
-    by (fastforce dest!: succs_iexec1 simp del: iexec.simps)
+    by (fastforce dest!: succs_iexec1 simp: exec1_def simp del: iexec.simps)
   with `exits P' \<subseteq> {0..}`
   have "size P \<le> i'" by (auto simp: exits_def)
   from rest this `exits P' \<subseteq> {0..}`     
@@ -438,8 +439,8 @@ proof (induction a arbitrary: n s' stk stk')
        "[ADD] \<turnstile> (0,s2,stk2) \<rightarrow>^n3 (1, s', stk')"
     by (auto dest!: exec_n_split_full)
 
-  thus ?case by (fastforce dest: Plus.IH simp: exec_n_simps)
-qed (auto simp: exec_n_simps)
+  thus ?case by (fastforce dest: Plus.IH simp: exec_n_simps exec1_def)
+qed (auto simp: exec_n_simps exec1_def)
 
 lemma bcomp_split:
   fixes i j :: int
@@ -460,7 +461,7 @@ lemma bcomp_exec_n [dest]:
          s' = s \<and> stk' = stk"
 using assms proof (induction b arbitrary: c j i n s' stk')
   case Bc thus ?case 
-    by (simp split: split_if_asm add: exec_n_simps)
+    by (simp split: split_if_asm add: exec_n_simps exec1_def)
 next
   case (Not b) 
   from Not.prems show ?case
@@ -488,7 +489,7 @@ next
     by (fastforce dest!: And.IH simp: exec_n_end split: split_if_asm)
 next
   case Less
-  thus ?case by (auto dest!: exec_n_split_full simp: exec_n_simps) (* takes time *) 
+  thus ?case by (auto dest!: exec_n_split_full simp: exec_n_simps exec1_def) (* takes time *) 
 qed
 
 lemma ccomp_empty [elim!]:
@@ -506,7 +507,7 @@ proof (induction c arbitrary: s t stk stk' n)
 next
   case (Assign x a)
   thus ?case
-    by simp (fastforce dest!: exec_n_split_full simp: exec_n_simps)
+    by simp (fastforce dest!: exec_n_split_full simp: exec_n_simps exec1_def)
 next
   case (Seq c1 c2)
   thus ?case by (fastforce dest!: exec_n_split_full)
@@ -542,7 +543,8 @@ next
     show ?thesis
       by simp
          (fastforce dest: exec_n_drop_right 
-                   split: split_if_asm simp: exec_n_simps)
+                   split: split_if_asm
+                   simp: exec_n_simps exec1_def)
   next
     case False with cs'
     show ?thesis
@@ -583,7 +585,7 @@ next
         obtain m where
           "?cs \<turnstile> (0,s,stk) \<rightarrow>^m (size (ccomp ?c0), t, stk')"
           "m < n"
-          by (auto simp: exec_n_step [where k=k])
+          by (auto simp: exec_n_step [where k=k] exec1_def)
         with "1.IH"
         show ?case by blast
       next
@@ -603,7 +605,7 @@ next
         obtain k' where
           "?cs \<turnstile> (0, s'', stk) \<rightarrow>^k' (size ?cs, t, stk')"
           "k' < n"
-          by (auto simp: exec_n_step [where k=m])
+          by (auto simp: exec_n_step [where k=m] exec1_def)
         with "1.IH"
         have "(?c0, s'') \<Rightarrow> t \<and> stk' = stk" by blast
         ultimately
