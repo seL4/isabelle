@@ -326,7 +326,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val coalg_prem = HOLogic.mk_Trueprop (mk_coalg As Bs ss);
 
     val coalg_in_thms = map (fn i =>
-      coalg_def RS @{thm subst[of _ _ "%x. x"]} RS mk_conjunctN n i RS bspec) ks
+      coalg_def RS iffD1 RS mk_conjunctN n i RS bspec) ks
 
     val coalg_set_thmss =
       let
@@ -922,9 +922,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       |> Thm.close_derivation;
 
     val lsbis_incl_thms = map (fn i => sbis_lsbis_thm RS
-      (bis_def RS @{thm subst[of _ _ "%x. x"]} RS conjunct1 RS mk_conjunctN n i)) ks;
+      (bis_def RS iffD1 RS conjunct1 RS mk_conjunctN n i)) ks;
     val lsbisE_thms = map (fn i => (mk_specN 2 (sbis_lsbis_thm RS
-      (bis_def RS @{thm subst[of _ _ "%x. x"]} RS conjunct2 RS mk_conjunctN n i))) RS mp) ks;
+      (bis_def RS iffD1 RS conjunct2 RS mk_conjunctN n i))) RS mp) ks;
 
     val incl_lsbis_thms =
       let
@@ -1482,8 +1482,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         map (fn i => map (fn i' =>
           split_conj_thm (if n = 1 then set_rv_Lev' RS mk_conjunctN n i RS mp
             else set_rv_Lev' RS mk_conjunctN n i RS mp RSN
-              (2, @{thm sum_case_weak_cong} RS @{thm subst[of _ _ "%x. x"]}) RS
-              (mk_sum_casesN n i' RS @{thm subst[of _ _ "%x. x"]}))) ks) ks
+              (2, @{thm sum_case_weak_cong} RS iffD1) RS
+              (mk_sum_casesN n i' RS iffD1))) ks) ks
       end;
 
     val set_Lev_thmsss =
@@ -1838,7 +1838,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       end;
 
     val (dtor_unfold_unique_thms, dtor_unfold_unique_thm) = `split_conj_thm (split_conj_prems n
-      (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS unfold_unique_mor_thm));
+      (mor_UNIV_thm RS iffD2 RS unfold_unique_mor_thm));
 
     val unfold_dtor_thms = map (fn thm => mor_id_thm RS thm RS sym) unfold_unique_mor_thms;
 
@@ -2005,7 +2005,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val dtor_corec_unique_thms =
       split_conj_thm (split_conj_prems n
-        (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS corec_unique_mor_thm)
+        (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
         |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_o_inj(1)} @
            map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
 

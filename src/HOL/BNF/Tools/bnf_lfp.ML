@@ -1135,7 +1135,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val ctor_fold_unique_thms =
       split_conj_thm (mk_conjIN n RS
-        (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS fold_unique_mor_thm))
+        (mor_UNIV_thm RS iffD2 RS fold_unique_mor_thm))
 
     val fold_ctor_thms =
       map (fn thm => (mor_incl_thm OF replicate n @{thm subset_UNIV}) RS thm RS sym)
@@ -1296,7 +1296,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val ctor_rec_unique_thms =
       split_conj_thm (split_conj_prems n
-        (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS rec_unique_mor_thm)
+        (mor_UNIV_thm RS iffD2 RS rec_unique_mor_thm)
         |> Local_Defs.unfold lthy (@{thms convol_o o_id id_o o_assoc[symmetric] fst_convol} @
            map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ convol, OF refl]});
 

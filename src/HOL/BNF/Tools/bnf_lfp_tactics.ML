@@ -245,7 +245,7 @@ fun mk_copy_alg_tac set_map's alg_sets mor_def iso_alt copy_str =
           REPEAT_DETERM o rtac subset_UNIV, REPEAT_DETERM_N n o (set_tac thms)])
       (set_map's ~~ alg_sets);
   in
-    (rtac (iso_alt RS @{thm ssubst[of _ _ "%x. x"]}) THEN'
+    (rtac (iso_alt RS iffD2) THEN'
     etac copy_str THEN' REPEAT_DETERM o atac THEN'
     rtac conjI THEN' stac mor_def THEN' rtac conjI THEN' fbetw_tac THEN' mor_tac THEN'
     CONJ_WRAP' (K atac) alg_sets) 1
@@ -372,7 +372,7 @@ fun mk_alg_min_alg_tac m alg_def min_alg_defs bd_limit bd_Cinfinite
             etac @{thm underS_I}, atac, atac]]))
           set_bds];
   in
-    (rtac (alg_def RS @{thm ssubst[of _ _ "%x. x"]}) THEN'
+    (rtac (alg_def RS iffD2) THEN'
     CONJ_WRAP' mk_conjunct_tac (set_bdss ~~ (min_algs ~~ min_alg_defs))) 1
   end;
 
