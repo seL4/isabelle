@@ -196,7 +196,7 @@ object Document
     def commands: Linear_Set[Command] = _commands.commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
-      if (new_commands eq _commands) this
+      if (new_commands eq _commands.commands) this
       else new Node(header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
