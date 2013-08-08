@@ -9,6 +9,7 @@ Shared library for the datatype and codatatype constructions.
 signature BNF_FP_UTIL =
 sig
   datatype fp_kind = Least_FP | Greatest_FP
+  val fp_case: fp_kind -> 'a -> 'a -> 'a
 
   type fp_result =
     {Ts: typ list,
@@ -54,11 +55,13 @@ sig
   val ctor_inductN: string
   val ctor_injectN: string
   val ctor_foldN: string
-  val ctor_fold_uniqueN: string
+  val ctor_fold_o_mapN: string
   val ctor_fold_transferN: string
+  val ctor_fold_uniqueN: string
   val ctor_mapN: string
   val ctor_map_uniqueN: string
   val ctor_recN: string
+  val ctor_rec_o_mapN: string
   val ctor_rec_uniqueN: string
   val ctor_relN: string
   val ctor_set_inclN: string
@@ -70,6 +73,7 @@ sig
   val dtorN: string
   val dtor_coinductN: string
   val dtor_corecN: string
+  val dtor_corec_o_mapN: string
   val dtor_corec_uniqueN: string
   val dtor_ctorN: string
   val dtor_exhaustN: string
@@ -83,8 +87,9 @@ sig
   val dtor_set_set_inclN: string
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
-  val dtor_unfold_uniqueN: string
+  val dtor_unfold_o_mapN: string
   val dtor_unfold_transferN: string
+  val dtor_unfold_uniqueN: string
   val exhaustN: string
   val foldN: string
   val hsetN: string
@@ -175,6 +180,8 @@ sig
   val mk_un_fold_transfer_thms: fp_kind -> term list -> term list -> term list -> term list ->
     term list -> term list -> ({prems: thm list, context: Proof.context} -> tactic) ->
     Proof.context -> thm list
+  val mk_xtor_un_fold_o_map_thms: fp_kind -> bool -> int -> thm -> thm list -> thm list ->
+    thm list -> thm list -> thm list
 
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> 'a) ->
@@ -190,6 +197,8 @@ open BNF_Def
 open BNF_Util
 
 datatype fp_kind = Least_FP | Greatest_FP;
+fun fp_case Least_FP f1 _ = f1
+  | fp_case Greatest_FP _ f2 = f2;
 
 type fp_result =
   {Ts: typ list,
@@ -256,7 +265,9 @@ val dtorN = "dtor"
 val ctor_foldN = ctorN ^ "_" ^ foldN
 val dtor_unfoldN = dtorN ^ "_" ^ unfoldN
 val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
+val ctor_fold_o_mapN = ctor_foldN ^ "_o_" ^ mapN
 val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
+val dtor_unfold_o_mapN = dtor_unfoldN ^ "_o_" ^ mapN
 val ctor_fold_transferN = ctor_foldN ^ transferN
 val dtor_unfold_transferN = dtor_unfoldN ^ transferN
 val ctor_dtor_unfoldN = ctorN ^ "_" ^ dtor_unfoldN
@@ -287,8 +298,10 @@ val str_initN = "str_init"
 val recN = "rec"
 val corecN = coN ^ recN
 val ctor_recN = ctorN ^ "_" ^ recN
+val ctor_rec_o_mapN = ctor_recN ^ "_o_" ^ mapN
 val ctor_rec_uniqueN = ctor_recN ^ uniqueN
 val dtor_corecN = dtorN ^ "_" ^ corecN
+val dtor_corec_o_mapN = dtor_corecN ^ "_o_" ^ mapN
 val dtor_corec_uniqueN = dtor_corecN ^ uniqueN
 val ctor_dtor_corecN = ctorN ^ "_" ^ dtor_corecN
 
@@ -514,6 +527,37 @@ fun mk_un_fold_transfer_thms fp pre_rels pre_phis rels phis un_folds un_folds' t
     Goal.prove_sorry lthy [] [] goal tac
     |> Thm.close_derivation
     |> split_conj_thm
+  end;
+
+fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_folds sym_map_comps
+    map_cong0s =
+  let
+    val n = length sym_map_comps;
+    val rewrite_comp_comp2 = fp_case fp @{thm rewriteR_comp_comp2} @{thm rewriteL_comp_comp2};
+    val rewrite_comp_comp = fp_case fp @{thm rewriteR_comp_comp} @{thm rewriteL_comp_comp};
+    val map_cong_passive_args1 = replicate m (fp_case fp @{thm id_o} @{thm o_id} RS fun_cong);
+    val map_cong_active_args1 = replicate n (if is_rec
+      then fp_case fp @{thm convol_o} @{thm o_sum_case} RS fun_cong
+      else refl);
+    val map_cong_passive_args2 = replicate m (fp_case fp @{thm o_id} @{thm id_o} RS fun_cong);
+    val map_cong_active_args2 = replicate n (if is_rec
+      then fp_case fp @{thm map_pair_o_convol_id} @{thm sum_case_o_sum_map_id}
+      else fp_case fp @{thm id_o} @{thm o_id} RS fun_cong);
+    fun mk_map_congs passive active = map (fn thm => thm OF (passive @ active) RS ext) map_cong0s;
+    val map_cong1s = mk_map_congs map_cong_passive_args1 map_cong_active_args1;
+    val map_cong2s = mk_map_congs map_cong_passive_args2 map_cong_active_args2;
+    
+    fun mk_rewrites map_congs = map2 (fn sym_map_comp => fn map_cong =>
+      mk_trans sym_map_comp map_cong RS rewrite_comp_comp) sym_map_comps map_congs;
+    val rewrite1s = mk_rewrites map_cong1s;
+    val rewrite2s = mk_rewrites map_cong2s;
+    val unique_prems =
+      map4 (fn xtor_map => fn un_fold => fn rewrite1 => fn rewrite2 =>
+        mk_trans (rewrite_comp_comp2 OF [xtor_map, un_fold])
+          (mk_trans rewrite1 (mk_sym rewrite2)))
+      xtor_maps xtor_un_folds rewrite1s rewrite2s;
+  in
+    split_conj_thm (un_fold_unique OF map (fp_case fp I mk_sym) unique_prems)
   end;
 
 fun fp_bnf construct_fp bs resBs eqs lthy =

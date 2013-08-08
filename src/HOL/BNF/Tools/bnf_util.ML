@@ -604,7 +604,7 @@ fun find_indices xs ys = map_filter I
   (map_index (fn (i, y) => if member (op =) xs y then SOME i else NONE) ys);
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
-fun mk_sym thm = sym OF [thm];
+fun mk_sym thm = thm RS sym;
 
 (*TODO: antiquote heavily used theorems once*)
 val Pair_eqD = @{thm iffD1[OF Pair_eq]};

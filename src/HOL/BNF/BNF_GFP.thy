@@ -13,9 +13,6 @@ keywords
   "codatatype" :: thy_decl
 begin
 
-lemma o_sum_case: "h o sum_case f g = sum_case (h o f) (h o g)"
-unfolding o_def by (auto split: sum.splits)
-
 lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"
 by (auto split: sum.splits)
 
