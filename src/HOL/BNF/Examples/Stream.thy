@@ -239,6 +239,17 @@ proof -
   qed (metis comp_apply sdrop.simps(1) sdrop_while.simps snth.simps(1))
 qed
 
+definition "sfilter P = stream_unfold (shd o sdrop_while (Not o P)) (stl o sdrop_while (Not o P))"
+
+lemma sfilter_Stream: "sfilter P (x ## s) = (if P x then x ## sfilter P s else sfilter P s)"
+proof (cases "P x")
+  case True thus ?thesis unfolding sfilter_def
+    by (subst stream.unfold) (simp add: sdrop_while_Stream)
+next
+  case False thus ?thesis unfolding sfilter_def
+    by (subst (1 2) stream.unfold) (simp add: sdrop_while_Stream)
+qed
+
 
 subsection {* unary predicates lifted to streams *}
 
