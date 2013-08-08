@@ -201,7 +201,6 @@ session Pure =
     "Thy/thy_output.ML"
     "Thy/thy_syntax.ML"
     "Tools/build.ML"
-    "Tools/legacy_xml_syntax.ML"
     "Tools/named_thms.ML"
     "Tools/proof_general.ML"
     "assumption.ML"
