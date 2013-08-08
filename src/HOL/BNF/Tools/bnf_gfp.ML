@@ -210,7 +210,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val bd_Cinfinite = hd bd_Cinfinites;
     val in_monos = map in_mono_of_bnf bnfs;
     val map_comps = map map_comp_of_bnf bnfs;
-    val sym_map_comps = map (fn thm => thm RS sym) map_comps;
+    val sym_map_comps = map mk_sym map_comps;
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_cong0s = map map_cong0_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;

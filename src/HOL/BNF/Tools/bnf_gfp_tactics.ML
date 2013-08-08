@@ -1061,7 +1061,7 @@ fun mk_dtor_set_tac n set_le set_incl_hset set_hset_incl_hsets =
     EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_hset_incl_hsets)] 1;
 
 fun mk_map_id_tac maps unfold_unique unfold_dtor =
-  EVERY' [rtac (unfold_unique RS trans), EVERY' (map (fn thm => rtac (thm RS sym)) maps),
+  EVERY' [rtac (unfold_unique RS trans), EVERY' (map (rtac o mk_sym) maps),
     rtac unfold_dtor] 1;
 
 fun mk_map_comp_tac m n maps map_comps map_cong0s unfold_unique =
