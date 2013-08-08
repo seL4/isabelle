@@ -34,14 +34,11 @@ by (induction xs arbitrary: n) (auto simp: algebra_simps)
 
 subsection "Instructions and Stack Machine"
 
+text_raw{*\snip{instrdef}{0}{1}{% *}
 datatype instr = 
-  LOADI int |
-  LOAD vname |
-  ADD |
-  STORE vname |
-  JMP int |
-  JMPLESS int |
-  JMPGE int
+  LOADI int | LOAD vname | ADD | STORE vname |
+  JMP int | JMPLESS int | JMPGE int
+text_raw{*}%endsnip*}
 
 type_synonym stack = "val list"
 type_synonym config = "int \<times> state \<times> stack"
