@@ -2254,7 +2254,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (mk_dtor_map_unique_tac dtor_unfold_unique_thm map_comps)
+              (mk_dtor_map_unique_tac dtor_unfold_unique_thm sym_map_comps)
               |> Thm.close_derivation
           end;
 

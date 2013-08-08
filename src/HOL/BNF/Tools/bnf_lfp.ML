@@ -1133,8 +1133,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         `split_conj_thm unique_mor
       end;
 
-    val ctor_fold_unique_thms =
-      split_conj_thm (mk_conjIN n RS
+    val (ctor_fold_unique_thms, ctor_fold_unique_thm) =
+      `split_conj_thm (mk_conjIN n RS
         (mor_UNIV_thm RS iffD2 RS fold_unique_mor_thm))
 
     val fold_ctor_thms =
@@ -1472,7 +1472,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
                 (map2 (curry HOLogic.mk_eq) us fs_maps));
             val unique = Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (K (mk_ctor_map_unique_tac m mor_def fold_unique_mor_thm map_comp_id_thms map_cong0s))
+              (mk_ctor_map_unique_tac ctor_fold_unique_thm sym_map_comps)
               |> Thm.close_derivation;
           in
             `split_conj_thm unique

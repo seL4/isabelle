@@ -1114,9 +1114,9 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comp's dtor_maps map_cong0s set_mapss s
            rtac conjI, rtac refl, rtac refl]) ks]) 1
   end
 
-fun mk_dtor_map_unique_tac unfold_unique map_comps {context = ctxt, prems = _} =
+fun mk_dtor_map_unique_tac unfold_unique sym_map_comps {context = ctxt, prems = _} =
   rtac unfold_unique 1 THEN
-  unfold_thms_tac ctxt (map (fn thm => thm RS sym) map_comps @ @{thms o_assoc id_o o_id}) THEN
+  unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc id_o o_id}) THEN
   ALLGOALS (etac sym);
 
 fun mk_col_natural_tac cts rec_0s rec_Sucs dtor_maps set_mapss
