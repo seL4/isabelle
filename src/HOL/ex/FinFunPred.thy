@@ -133,11 +133,11 @@ definition finfun_Ball_except :: "'a list \<Rightarrow> 'a pred\<^isub>f \<Right
 where [code del]: "finfun_Ball_except xs A P = (\<forall>a. A $ a \<longrightarrow> a \<in> set xs \<or> P a)"
 
 lemma finfun_Ball_except_const:
-  "finfun_Ball_except xs (K$ b) P \<longleftrightarrow> \<not> b \<or> set xs = UNIV \<or> FinFun.code_abort (\<lambda>u. finfun_Ball_except xs (K$ b) P)"
+  "finfun_Ball_except xs (K$ b) P \<longleftrightarrow> \<not> b \<or> set xs = UNIV \<or> Code.abort (STR ''finfun_ball_except'') (\<lambda>u. finfun_Ball_except xs (K$ b) P)"
 by(auto simp add: finfun_Ball_except_def)
 
 lemma finfun_Ball_except_const_finfun_UNIV_code [code]:
-  "finfun_Ball_except xs (K$ b) P \<longleftrightarrow> \<not> b \<or> is_list_UNIV xs \<or> FinFun.code_abort (\<lambda>u. finfun_Ball_except xs (K$ b) P)"
+  "finfun_Ball_except xs (K$ b) P \<longleftrightarrow> \<not> b \<or> is_list_UNIV xs \<or> Code.abort (STR ''finfun_ball_except'') (\<lambda>u. finfun_Ball_except xs (K$ b) P)"
 by(auto simp add: finfun_Ball_except_def is_list_UNIV_iff)
 
 lemma finfun_Ball_except_update:
@@ -160,11 +160,11 @@ definition finfun_Bex_except :: "'a list \<Rightarrow> 'a pred\<^isub>f \<Righta
 where [code del]: "finfun_Bex_except xs A P = (\<exists>a. A $ a \<and> a \<notin> set xs \<and> P a)"
 
 lemma finfun_Bex_except_const:
-  "finfun_Bex_except xs (K$ b) P \<longleftrightarrow> b \<and> set xs \<noteq> UNIV \<and> FinFun.code_abort (\<lambda>u. finfun_Bex_except xs (K$ b) P)"
+  "finfun_Bex_except xs (K$ b) P \<longleftrightarrow> b \<and> set xs \<noteq> UNIV \<and> Code.abort (STR ''finfun_Bex_except'') (\<lambda>u. finfun_Bex_except xs (K$ b) P)"
 by(auto simp add: finfun_Bex_except_def)
 
 lemma finfun_Bex_except_const_finfun_UNIV_code [code]:
-  "finfun_Bex_except xs (K$ b) P \<longleftrightarrow> b \<and> \<not> is_list_UNIV xs \<and> FinFun.code_abort (\<lambda>u. finfun_Bex_except xs (K$ b) P)"
+  "finfun_Bex_except xs (K$ b) P \<longleftrightarrow> b \<and> \<not> is_list_UNIV xs \<and> Code.abort (STR ''finfun_Bex_except'') (\<lambda>u. finfun_Bex_except xs (K$ b) P)"
 by(auto simp add: finfun_Bex_except_def is_list_UNIV_iff)
 
 lemma finfun_Bex_except_update: 

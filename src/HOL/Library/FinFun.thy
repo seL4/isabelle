@@ -17,13 +17,6 @@ text {*
 *}
 
 
-definition "code_abort" :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a"
-where [simp, code del]: "code_abort f = f ()"
-
-code_abort "code_abort"
-
-hide_const (open) "code_abort"
-
 subsection {* The @{text "map_default"} operation *}
 
 definition map_default :: "'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
@@ -1284,7 +1277,7 @@ text {*
 
 lemma finfun_dom_const_code [code]:
   "finfun_dom ((K$ c) :: ('a :: card_UNIV) \<Rightarrow>f 'b) = 
-   (if CARD('a) = 0 then (K$ False) else FinFun.code_abort (\<lambda>_. finfun_dom (K$ c)))"
+   (if CARD('a) = 0 then (K$ False) else Code.abort (STR ''finfun_dom called on finite type'') (\<lambda>_. finfun_dom (K$ c)))"
 by(simp add: finfun_dom_const card_UNIV card_eq_0_iff)
 
 lemma finfun_dom_finfunI: "(\<lambda>a. f $ a \<noteq> finfun_default f) \<in> finfun"
@@ -1347,7 +1340,7 @@ by(auto simp add: finfun_to_list_def finfun_const_False_conv_bot finfun_const_Tr
 
 lemma finfun_to_list_const_code [code]:
   "finfun_to_list ((K$ c) :: ('a :: {linorder, card_UNIV} \<Rightarrow>f 'b)) =
-   (if CARD('a) = 0 then [] else FinFun.code_abort (\<lambda>_. finfun_to_list ((K$ c) :: ('a \<Rightarrow>f 'b))))"
+   (if CARD('a) = 0 then [] else Code.abort (STR ''finfun_to_list called on finite type'') (\<lambda>_. finfun_to_list ((K$ c) :: ('a \<Rightarrow>f 'b))))"
 by(auto simp add: finfun_to_list_const card_UNIV card_eq_0_iff)
 
 lemma remove1_insort_insert_same:
