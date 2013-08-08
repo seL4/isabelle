@@ -420,6 +420,19 @@ code_printing
     and (Haskell) infix 4 "=="
     and (Scala) infixl 5 "=="
 
+setup {* Sign.map_naming (Name_Space.mandatory_path "Code") *}
+
+definition abort :: "literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
+where [simp, code del]: "abort _ f = f ()"
+
+setup {* Sign.map_naming Name_Space.parent_path *}
+
+code_printing constant Code.abort \<rightharpoonup>
+    (SML) "!(raise/ Fail/ _)"
+    and (OCaml) "failwith"
+    and (Haskell) "error"
+    and (Scala) "!{/ sys.error((_));/  ((_)).apply(())/ }"
+
 hide_type (open) literal
 
 end

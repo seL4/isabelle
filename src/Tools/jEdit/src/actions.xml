@@ -32,6 +32,11 @@
 			wm.addDockableWindow("isabelle-find");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.sledgehammer-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-sledgehammer");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.output-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-output");

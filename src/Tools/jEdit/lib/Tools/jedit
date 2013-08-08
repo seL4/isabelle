@@ -41,6 +41,7 @@ declare -a SOURCES=(
   "src/rendering.scala"
   "src/rich_text_area.scala"
   "src/scala_console.scala"
+  "src/sledgehammer_dockable.scala"
   "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"
