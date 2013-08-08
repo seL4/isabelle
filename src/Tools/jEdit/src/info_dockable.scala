@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, CheckBox}
+import scala.swing.{FlowPanel, Button}
 import scala.swing.event.ButtonClicked
 
 import java.lang.System
