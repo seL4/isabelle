@@ -72,19 +72,21 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val names_lthy = fold Variable.declare_typ deads lthy;
 
     (* tvars *)
-    val ((((((((passiveAs, activeAs), allAs)), ((passiveBs, activeBs), allBs')),
-      (passiveCs, activeCs)), passiveXs), passiveYs), idxT) = names_lthy
-      |> mk_TFrees live
-      |> apfst (`(chop m))
-      ||> mk_TFrees live
-      ||>> apfst (`(chop m))
-      ||> mk_TFrees live
-      ||>> apfst (chop m)
+    val ((((((((passiveAs, activeAs), passiveBs), activeBs), passiveCs), activeCs), passiveXs),
+        passiveYs), idxT) = names_lthy
+      |> mk_TFrees m
+      ||>> mk_TFrees n
+      ||>> mk_TFrees m
+      ||>> mk_TFrees n
+      ||>> mk_TFrees m
+      ||>> mk_TFrees n
       ||>> mk_TFrees m
       ||>> mk_TFrees m
       ||> fst o mk_TFrees 1
       ||> the_single;
 
+    val allAs = passiveAs @ activeAs;
+    val allBs' = passiveBs @ activeBs;
     val Ass = replicate n allAs;
     val allBs = passiveAs @ activeBs;
     val Bss = replicate n allBs;
