@@ -102,7 +102,7 @@ local
     let
       val ctxt = Context.proof_of context;
       val _ = if is_overloaded ctxt oconst then () else not_overloaded_error oconst;
-      val T = t |> singleton (Variable.polymorphic ctxt) |> fastype_of;
+      val T = t |> fastype_of;
       val t' = Term.map_types (K dummyT) t;
     in
       if add then
@@ -214,10 +214,11 @@ fun adhoc_overloading_cmd' add args phi =
 fun adhoc_overloading_cmd add raw_args lthy =
   let
     fun const_name ctxt = fst o dest_Const o Proof_Context.read_const ctxt false dummyT;
+    fun read_term ctxt = singleton (Variable.polymorphic ctxt) o Syntax.read_term ctxt;
     val args =
       raw_args
       |> map (apfst (const_name lthy))
-      |> map (apsnd (map (Syntax.read_term lthy)));
+      |> map (apsnd (map (read_term lthy)));
   in
     Local_Theory.declaration {syntax = true, pervasive = false}
       (adhoc_overloading_cmd' add args) lthy
