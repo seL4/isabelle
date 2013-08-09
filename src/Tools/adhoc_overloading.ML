@@ -142,13 +142,13 @@ fun unifiable_with thy T1 T2 =
     val maxidx2 = Term.maxidx_typ T2' maxidx1;
   in can (Sign.typ_unify thy (T1, T2')) (Vartab.empty, maxidx2) end;
 
-fun get_instances ctxt (c, T) =
+fun get_candidates ctxt (c, T) =
   Same.function (get_variants ctxt) c
   |> map_filter (fn (t, T') =>
     if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t else NONE);
 
 fun insert_variants_same ctxt t (Const (c, T)) =
-      (case get_instances ctxt (c, T) of
+      (case get_candidates ctxt (c, T) of
         [] => unresolved_overloading_error ctxt (c, T) t []
       | [variant] => variant
       | _ => raise Same.SAME)
@@ -182,7 +182,7 @@ fun reject_unresolved ts ctxt =
     fun check_unresolved t =
       (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
         [] => ()
-      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t (get_instances ctxt (c, T)));
+      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t (get_candidates ctxt (c, T)));
     val _ = map check_unresolved ts;
   in NONE end;
 
