@@ -59,6 +59,9 @@ document content.
 * Support for automatic tools in HOL, which try to prove or disprove
 toplevel theorem statements.
 
+* Dockable window "Find" provides query operations for formal entities
+(GUI front-end to 'find_theorems' command).
+
 * Dockable window "Documentation" provides access to Isabelle
 documentation.
 
