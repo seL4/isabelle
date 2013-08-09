@@ -151,11 +151,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     reactions += { case ButtonClicked(_) => clicked }
   }
 
-  private val locate_query = new Button("Locate") {
-    tooltip = "Locate context of current query within source text"
-    reactions += { case ButtonClicked(_) => find_theorems.locate_query() }
-  }
-
   private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() }) {
     tooltip = "Zoom factor for output font size"
   }
@@ -163,6 +158,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
       query_label, Component.wrap(query), context, limit, allow_dups,
-      process_indicator.component, apply_query, locate_query, zoom)
+      process_indicator.component, apply_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
