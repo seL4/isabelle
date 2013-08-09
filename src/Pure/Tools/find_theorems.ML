@@ -576,10 +576,13 @@ end;
 (** PIDE query operation **)
 
 val _ =
-  Query_Operation.register "find_theorems" (fn st => fn args =>
+  Query_Operation.register "find_theorems" (fn st => fn [limit_arg, allow_dups_arg, query_arg] =>
     if can Toplevel.context_of st then
-      Pretty.string_of
-        (pretty_theorems (proof_state st) NONE false (maps (read_query Position.none) args))
+      let
+        val opt_limit = Int.fromString limit_arg;
+        val rem_dups = allow_dups_arg = "false";
+        val criteria = read_query Position.none query_arg;
+      in Pretty.string_of (pretty_theorems (proof_state st) opt_limit rem_dups criteria) end
     else error "Unknown context");
 
 end;

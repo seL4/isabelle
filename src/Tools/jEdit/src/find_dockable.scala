@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, Component}
+import scala.swing.{FlowPanel, Button, Component, TextField, CheckBox, Label}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -105,7 +105,11 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* controls */
 
-  private def clicked { find_theorems.apply_query(List(query.getText)) }
+  private def clicked {
+    find_theorems.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
+  }
+
+  private val query_label = new Label("Search criteria:")
 
   private val query = new HistoryTextField("isabelle-find-theorems") {
     override def processKeyEvent(evt: KeyEvent)
@@ -117,7 +121,16 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     setColumns(40)
   }
 
-  private val query_wrapped = Component.wrap(query)
+  private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
+    tooltip = "Limit of displayed results"
+    verifier = (s: String) =>
+      s match { case Properties.Value.Int(x) => x >= 0 case _ => false }
+  }
+
+  private val allow_dups = new CheckBox("Duplicates") {
+    tooltip = "Allow duplicates in result (faster for large theories)"
+    selected = false
+  }
 
   private val apply_query = new Button("Apply") {
     tooltip = "Find theorems meeting specified criteria"
@@ -135,6 +148,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
-      query_wrapped, process_indicator.component, apply_query, locate_query, zoom)
+      query_label, Component.wrap(query), limit, allow_dups,
+      process_indicator.component, apply_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
