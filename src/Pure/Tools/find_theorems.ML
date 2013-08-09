@@ -164,7 +164,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
       is_nontrivial thy pat andalso
       Pattern.matches thy (if po then (pat, obj) else (obj, pat));
 
-    fun substsize pat =
+    fun subst_size pat =
       let val (_, subst) =
         Pattern.match thy (if po then (pat, obj) else (obj, pat)) (Vartab.empty, Vartab.empty)
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
@@ -174,7 +174,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
     val match_thm = matches o refine_term;
   in
-    map (substsize o refine_term) (filter match_thm (extract_terms term_src))
+    map (subst_size o refine_term) (filter match_thm (extract_terms term_src))
     |> bestmatch
   end;
 
@@ -275,16 +275,13 @@ fun filter_simp ctxt t (Internal (_, thm)) =
 
 fun get_names t = Term.add_const_names t (Term.add_free_names t []);
 
-(*Including all constants and frees is only sound because
-  matching uses higher-order patterns. If full matching
-  were used, then constants that may be subject to
-  beta-reduction after substitution of frees should
-  not be included for LHS set because they could be
-  thrown away by the substituted function.
-  e.g. for (?F 1 2) do not include 1 or 2, if it were
-       possible for ?F to be (% x y. 3)
-  The largest possible set should always be included on
-  the RHS.*)
+(*Including all constants and frees is only sound because matching
+  uses higher-order patterns. If full matching were used, then
+  constants that may be subject to beta-reduction after substitution
+  of frees should not be included for LHS set because they could be
+  thrown away by the substituted function.  E.g. for (?F 1 2) do not
+  include 1 or 2, if it were possible for ?F to be (%x y. 3).  The
+  largest possible set should always be included on the RHS.*)
 
 fun filter_pattern ctxt pat =
   let
@@ -305,16 +302,14 @@ local
 fun err_no_goal c =
   error ("Current goal required for " ^ c ^ " search criterion");
 
-val fix_goal = Thm.prop_of;
-
 fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Intro = err_no_goal "intro"
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
   | filter_crit _ NONE Solves = err_no_goal "solves"
-  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (Thm.prop_of goal))
+  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (Thm.prop_of goal))
+  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (Thm.prop_of goal))
   | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
@@ -365,7 +360,7 @@ fun lazy_filter filters =
 end;
 
 
-(* removing duplicates, preferring nicer names, roughly n log n *)
+(* removing duplicates, preferring nicer names, roughly O(n log n) *)
 
 local
 
@@ -412,7 +407,7 @@ fun nicer_shortest ctxt =
   in nicer end;
 
 fun rem_thm_dups nicer xs =
-  xs ~~ (1 upto length xs)
+  (xs ~~ (1 upto length xs))
   |> sort (Term_Ord.fast_term_ord o pairself (prop_of o #1))
   |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
@@ -500,13 +495,13 @@ fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm))
 fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val (foundo, theorems) =
+    val (opt_found, theorems) =
       filter_theorems ctxt (map Internal (all_facts_of ctxt))
         {goal = opt_goal, limit = opt_limit, rem_dups = rem_dups, criteria = criteria};
     val returned = length theorems;
 
     val tally_msg =
-      (case foundo of
+      (case opt_found of
         NONE => "displaying " ^ string_of_int returned ^ " theorem(s)"
       | SOME found =>
           "found " ^ string_of_int found ^ " theorem(s)" ^
