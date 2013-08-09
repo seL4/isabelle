@@ -11,10 +11,9 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.Label
+import scala.swing.Component
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.AnimatedIcon
 
 
 object Query_Operation
@@ -72,34 +71,20 @@ final class Query_Operation private(
   }
 
 
-  /* animation */
+  /* process indicator */
 
-  val animation = new Label
+  private val process_indicator = new Process_Indicator
+  val animation: Component = process_indicator.component
 
-  private val passive_icon =
-    JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
-  private val active_icons =
-    space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
-      JEdit_Lib.load_image_icon(name).getImage)
-
-  private val animation_icon =
-    new AnimatedIcon(passive_icon, active_icons.toArray, 5, animation.peer)
-  animation.icon = animation_icon
-
-  private def animation_update()
+  private def update_process_indicator()
   {
-    animation_icon.stop
     current_status match {
       case Status.WAITING =>
-        animation.tooltip = "Waiting for evaluation of query context ..."
-        animation_icon.setRate(5)
-        animation_icon.start
+        process_indicator.update("Waiting for evaluation of query context ...", 5)
       case Status.RUNNING =>
-        animation.tooltip = "Running query operation ..."
-        animation_icon.setRate(15)
-        animation_icon.start
+        process_indicator.update("Running query operation ...", 15)
       case Status.FINISHED =>
-        animation.tooltip = null
+        process_indicator.update(null, 0)
     }
   }
 
@@ -173,7 +158,7 @@ final class Query_Operation private(
         }
         if (current_status != new_status) {
           current_status = new_status
-          animation_update()
+          update_process_indicator()
           if (new_status == Status.FINISHED) {
             remove_overlay()
             PIDE.flush_buffers()
@@ -207,7 +192,7 @@ final class Query_Operation private(
             doc_view.model.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
-        animation_update()
+        update_process_indicator()
         PIDE.flush_buffers()
       case None =>
     }

@@ -34,6 +34,7 @@ declare -a SOURCES=(
   "src/plugin.scala"
   "src/pretty_text_area.scala"
   "src/pretty_tooltip.scala"
+  "src/process_indicator.scala"
   "src/protocol_dockable.scala"
   "src/query_operation.scala"
   "src/raw_output_dockable.scala"
