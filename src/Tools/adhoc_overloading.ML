@@ -143,55 +143,47 @@ fun unifiable_with thy T1 T2 =
   in can (Sign.typ_unify thy (T1, T2')) (Vartab.empty, maxidx2) end;
 
 fun get_candidates ctxt (c, T) =
-  Same.function (get_variants ctxt) c
-  |> map_filter (fn (t, T') =>
-    if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t else NONE);
+  get_variants ctxt c
+  |> Option.map (map_filter (fn (t, T') =>
+    if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t
+    else NONE));
 
-fun insert_variants_same ctxt t (Const (c, T)) =
+fun insert_variants ctxt t (oconst as Const (c, T)) =
       (case get_candidates ctxt (c, T) of
-        [] => unresolved_overloading_error ctxt (c, T) t []
-      | [variant] => variant
-      | _ => raise Same.SAME)
-  | insert_variants_same _ _ _ = raise Same.SAME;
+        SOME [] => unresolved_overloading_error ctxt (c, T) t []
+      | SOME [variant] => variant
+      | _ => oconst)
+  | insert_variants _ _ oconst = oconst;
 
-fun insert_overloaded_same ctxt variant =
+fun insert_overloaded ctxt variant =
+  (case try Term.type_of variant of
+    NONE => variant
+  | SOME T =>
+    Pattern.rewrite_term (Proof_Context.theory_of ctxt) []
+      [Option.map (Const o rpair T) o get_overloaded ctxt o Term.map_types (K dummyT)] variant);
+
+fun check ctxt =
+  map (fn t => Term.map_aterms (insert_variants ctxt t) t);
+
+fun uncheck ctxt =
+  if Config.get ctxt show_variants then I
+  else map (insert_overloaded ctxt);
+
+fun reject_unresolved ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val t = Pattern.rewrite_term thy [] [fn t =>
-      Term.map_types (K dummyT) t
-      |> get_overloaded ctxt
-      |> Option.map (Const o rpair (fastype_of variant))] variant;
-  in
-    if Term.aconv_untyped (variant, t) then raise Same.SAME
-    else t
-  end;
-
-fun gen_check_uncheck replace ts ctxt =
-  Same.capture (Same.map replace) ts
-  |> Option.map (rpair ctxt);
-
-fun check ts ctxt = gen_check_uncheck (fn t =>
-  Term_Subst.map_aterms_same (insert_variants_same ctxt t) t) ts ctxt;
-
-fun uncheck ts ctxt =
-  if Config.get ctxt show_variants orelse exists (is_none o try Term.type_of) ts then NONE
-  else gen_check_uncheck (insert_overloaded_same ctxt) ts ctxt;
-
-fun reject_unresolved ts ctxt =
-  let
+    val the_candidates = the o get_candidates ctxt;
     fun check_unresolved t =
       (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
-        [] => ()
-      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t (get_candidates ctxt (c, T)));
-    val _ = map check_unresolved ts;
-  in NONE end;
+        [] => t
+      | (cT :: _) => unresolved_overloading_error ctxt cT t (the_candidates cT));
+  in map check_unresolved end;
 
 (* setup *)
 
 val _ = Context.>>
-  (Syntax_Phases.term_check' 0 "adhoc_overloading" check
-   #> Syntax_Phases.term_check' 1 "adhoc_overloading_unresolved_check" reject_unresolved
-   #> Syntax_Phases.term_uncheck' 0 "adhoc_overloading" uncheck);
+  (Syntax_Phases.term_check 0 "adhoc_overloading" check
+   #> Syntax_Phases.term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
+   #> Syntax_Phases.term_uncheck 0 "adhoc_overloading" uncheck);
 
 (* commands *)
 
