@@ -63,10 +63,6 @@ where
   "P \<turnstile> c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < size P)"
 
-(*
-declare exec1_def [simp]
-*)
-
 lemma exec1I [intro, code_pred_intro]:
   "c' = iexec (P!!i) (i,s,stk) \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < size P
   \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
