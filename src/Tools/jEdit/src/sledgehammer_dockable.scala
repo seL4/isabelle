@@ -101,6 +101,11 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
+    override def processKeyEvent(evt: KeyEvent)
+    {
+      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
+      super.processKeyEvent(evt)
+    }
     setToolTipText(provers_label.tooltip)
     setColumns(20)
   }
