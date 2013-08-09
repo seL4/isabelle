@@ -127,6 +127,11 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     reactions += { case ButtonClicked(_) => clicked }
   }
 
+  private val cancel_query = new Button("Cancel") {
+    tooltip = "Interrupt unfinished query process"
+    reactions += { case ButtonClicked(_) => sledgehammer.cancel_query() }
+  }
+
   private val locate_query = new Button("Locate") {
     tooltip = "Locate context of current query within source text"
     reactions += { case ButtonClicked(_) => sledgehammer.locate_query() }
@@ -139,6 +144,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
       provers_label, Component.wrap(provers), timeout, subgoal, isar_proofs,
-      sledgehammer.animation, apply_query, locate_query, zoom)
+      sledgehammer.animation, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }

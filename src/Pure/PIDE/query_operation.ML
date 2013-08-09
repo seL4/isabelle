@@ -18,7 +18,7 @@ fun register_parallel name f =
   Command.print_function name
     (fn {args = instance :: args, ...} =>
         SOME {delay = NONE, pri = 0, persistent = false,
-          print_fn = fn _ => fn state =>
+          print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
             let
               fun result s = Output.result [(Markup.instanceN, instance)] s;
               fun status m = result (Markup.markup_only m);
@@ -26,13 +26,15 @@ fun register_parallel name f =
                 result (Markup.markup (Markup.errorN, []) (ML_Compiler.exn_message exn));
 
               val _ = status Markup.running;
-              val outputs = f state args handle exn (*sic!*) => (toplevel_error exn; []);
+              val outputs =
+                Multithreading.interruptible (fn () => f state args) ()
+                  handle exn (*sic!*) => (toplevel_error exn; []);
               val _ = outputs |> Par_List.map (fn out =>
-                (case Exn.capture out () (*sic!*) of
+                (case Exn.capture (restore_attributes out) () (*sic!*) of
                   Exn.Res s => result (Markup.markup (Markup.writelnN, []) s)
                 | Exn.Exn exn => toplevel_error exn));
               val _ = status Markup.finished;
-            in () end}
+            in () end)}
       | _ => NONE);
 
 fun register name f =

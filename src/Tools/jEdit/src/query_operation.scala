@@ -48,6 +48,7 @@ final class Query_Operation private(
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
   private var current_status = Status.FINISHED
+  private var current_exec_id = Document_ID.none
 
   private def reset_state()
   {
@@ -56,6 +57,7 @@ final class Query_Operation private(
     current_update_pending = false
     current_output = Nil
     current_status = Status.FINISHED
+    current_exec_id = Document_ID.none
   }
 
   private def remove_overlay()
@@ -123,30 +125,36 @@ final class Query_Operation private(
 
     val results =
       (for {
-        (_, XML.Elem(Markup(Markup.RESULT, props), body)) <- state.results.entries
+        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- state.results.entries
         if props.contains((Markup.INSTANCE, instance))
-      } yield body).toList
+      } yield elem).toList
 
 
     /* output */
 
     val new_output =
       for {
-        List(XML.Elem(markup, body)) <- results
+        XML.Elem(_, List(XML.Elem(markup, body))) <- results
         if Markup.messages.contains(markup.name)
-      }
-      yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
+      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
 
 
     /* status */
 
     def get_status(name: String, status: Status.Value): Option[Status.Value] =
-      results.collectFirst({ case List(elem: XML.Elem) if elem.name == name => status })
+      results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
       get_status(Markup.FINISHED, Status.FINISHED) orElse
       get_status(Markup.RUNNING, Status.RUNNING) getOrElse
       Status.WAITING
+
+    if (new_status == Status.RUNNING)
+      results.collectFirst(
+      {
+        case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
+        if elem.name == Markup.RUNNING => id
+      }).foreach(id => current_exec_id = id)
 
 
     /* state update */
@@ -173,7 +181,10 @@ final class Query_Operation private(
   }
 
 
-  /* apply query */
+  /* query operations */
+
+  def cancel_query(): Unit =
+    Swing_Thread.require { PIDE.session.cancel_exec(current_exec_id) }
 
   def apply_query(query: List[String])
   {
@@ -197,9 +208,6 @@ final class Query_Operation private(
       case None =>
     }
   }
-
-
-  /* locate query */
 
   def locate_query()
   {
