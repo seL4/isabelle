@@ -2,7 +2,7 @@
     Author:     Makarius
 
 One-shot query operations via asynchronous print functions and temporary
-document overlay.
+document overlays.
 */
 
 package isabelle.jedit
@@ -21,15 +21,15 @@ object Query_Operation
 {
   def apply(
       view: View,
-      name: String,
-      consume: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
-    new Query_Operation(view, name, consume)
+      operation_name: String,
+      consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
+    new Query_Operation(view, operation_name, consume_output)
 }
 
 final class Query_Operation private(
   view: View,
   operation_name: String,
-  consume_result: (Document.Snapshot, Command.Results, XML.Body) => Unit)
+  consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
 {
   private val instance = Document_ID.make().toString
 
@@ -113,14 +113,15 @@ final class Query_Operation private(
 
     /* snapshot */
 
-    val (snapshot, state) =
+    val (snapshot, state, removed) =
       current_location match {
         case Some(cmd) =>
           val snapshot = PIDE.document_snapshot(cmd.node_name)
           val state = snapshot.state.command_state(snapshot.version, cmd)
-          (snapshot, state)
+          val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
+          (snapshot, state, removed)
         case None =>
-          (Document.State.init.snapshot(), Command.empty.init_state)
+          (Document.State.init.snapshot(), Command.empty.init_state, true)
       }
 
     val results =
@@ -145,9 +146,11 @@ final class Query_Operation private(
       results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      get_status(Markup.FINISHED, Status.FINISHED) orElse
-      get_status(Markup.RUNNING, Status.RUNNING) getOrElse
-      Status.WAITING
+      if (removed) Status.FINISHED
+      else
+        get_status(Markup.FINISHED, Status.FINISHED) orElse
+        get_status(Markup.RUNNING, Status.RUNNING) getOrElse
+        Status.WAITING
 
     if (new_status == Status.RUNNING)
       results.collectFirst(
@@ -164,9 +167,9 @@ final class Query_Operation private(
         current_update_pending = true
       else {
         current_update_pending = false
-        if (current_output != new_output) {
+        if (current_output != new_output && !removed) {
           current_output = new_output
-          consume_result(snapshot, state.results, new_output)
+          consume_output(snapshot, state.results, new_output)
         }
         if (current_status != new_status) {
           current_status = new_status
@@ -195,6 +198,7 @@ final class Query_Operation private(
         val snapshot = doc_view.model.snapshot()
         remove_overlay()
         reset_state()
+        consume_output(Document.State.init.snapshot(), Command.Results.empty, Nil)
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
