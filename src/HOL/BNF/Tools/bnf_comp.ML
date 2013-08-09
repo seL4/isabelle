@@ -98,7 +98,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val Bss_repl = replicate olive Bs;
 
     val ((((fs', Qs'), Asets), xs), _(*names_lthy*)) = lthy
-      |> apfst snd o mk_Frees' "f" (map2 (curry (op -->)) As Bs)
+      |> apfst snd o mk_Frees' "f" (map2 (curry op -->) As Bs)
       ||>> apfst snd o mk_Frees' "Q" (map2 mk_pred2T As Bs)
       ||>> mk_Frees "A" (map HOLogic.mk_setT As)
       ||>> mk_Frees "x" As;
@@ -378,7 +378,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
 
     (*%f1 ... fn. bnf.map*)
     val mapx =
-      fold_rev Term.absdummy (map2 (curry (op -->)) newAs newBs) (mk_map_of_bnf Ds As Bs bnf);
+      fold_rev Term.absdummy (map2 (curry op -->) newAs newBs) (mk_map_of_bnf Ds As Bs bnf);
     (*%Q1 ... Qn. bnf.rel*)
     val rel = fold_rev Term.absdummy (map2 mk_pred2T newAs newBs) (mk_rel_of_bnf Ds As Bs bnf);
 

@@ -471,7 +471,7 @@ fun mk_tupled_allIN 0 = @{thm unit_all_impI}
 
 fun mk_sumEN_tupled_balanced ms =
   let val n = length ms in
-    if forall (curry (op =) 1) ms then mk_sumEN_balanced n
+    if forall (curry op = 1) ms then mk_sumEN_balanced n
     else mk_sumEN_balanced' n (map mk_tupled_allIN ms)
   end;
 

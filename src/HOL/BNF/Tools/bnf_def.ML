@@ -760,9 +760,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val (((((((((((((((((((((((((fs, gs), hs), x), y), (z, z')), zs), ys), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
       transfer_domRs), transfer_ranRs), names_lthy) = pre_names_lthy
-      |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
-      ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
-      ||>> mk_Frees "h" (map2 (curry (op -->)) As' Ts)
+      |> mk_Frees "f" (map2 (curry op -->) As' Bs')
+      ||>> mk_Frees "g" (map2 (curry op -->) Bs' Cs)
+      ||>> mk_Frees "h" (map2 (curry op -->) As' Ts)
       ||>> yield_singleton (mk_Frees "x") CA'
       ||>> yield_singleton (mk_Frees "y") CB'
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "z") CRs'
@@ -773,12 +773,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       ||>> mk_Frees "A" (map HOLogic.mk_setT domTs)
       ||>> mk_Frees "B1" (map HOLogic.mk_setT B1Ts)
       ||>> mk_Frees "B2" (map HOLogic.mk_setT B2Ts)
-      ||>> mk_Frees "f1" (map2 (curry (op -->)) B1Ts ranTs)
-      ||>> mk_Frees "f2" (map2 (curry (op -->)) B2Ts ranTs)
-      ||>> mk_Frees "e1" (map2 (curry (op -->)) B1Ts ranTs')
-      ||>> mk_Frees "e2" (map2 (curry (op -->)) B2Ts ranTs'')
-      ||>> mk_Frees "p1" (map2 (curry (op -->)) domTs B1Ts)
-      ||>> mk_Frees "p2" (map2 (curry (op -->)) domTs B2Ts)
+      ||>> mk_Frees "f1" (map2 (curry op -->) B1Ts ranTs)
+      ||>> mk_Frees "f2" (map2 (curry op -->) B2Ts ranTs)
+      ||>> mk_Frees "e1" (map2 (curry op -->) B1Ts ranTs')
+      ||>> mk_Frees "e2" (map2 (curry op -->) B2Ts ranTs'')
+      ||>> mk_Frees "p1" (map2 (curry op -->) domTs B1Ts)
+      ||>> mk_Frees "p2" (map2 (curry op -->) domTs B2Ts)
       ||>> mk_Frees "b" As'
       ||>> mk_Frees' "R" pred2RTs
       ||>> mk_Frees "R" pred2RTs

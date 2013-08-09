@@ -1658,8 +1658,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       mk_map_of_bnf Ds (passiveAs @ prodTs) (passiveAs @ Ts)) Dss bnfs;
     val fstsTs = map fst_const prodTs;
     val sndsTs = map snd_const prodTs;
-    val dtorTs = map2 (curry (op -->)) Ts FTs;
-    val ctorTs = map2 (curry (op -->)) FTs Ts;
+    val dtorTs = map2 (curry op -->) Ts FTs;
+    val ctorTs = map2 (curry op -->) FTs Ts;
     val unfold_fTs = map2 (curry op -->) activeAs Ts;
     val corec_sTs = map (Term.typ_subst_atomic (activeBs ~~ Ts)) sum_sTs;
     val corec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls;
@@ -1765,7 +1765,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     fun mk_unfolds passives actives =
       map3 (fn name => fn T => fn active =>
         Const (name, Library.foldr (op -->)
-          (map2 (curry (op -->)) actives (mk_FTs (passives @ actives)), active --> T)))
+          (map2 (curry op -->) actives (mk_FTs (passives @ actives)), active --> T)))
       unfold_names (mk_Ts passives) actives;
     fun mk_unfold Ts ss i = Term.list_comb (Const (nth unfold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
@@ -2410,7 +2410,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val thePullTs = passiveXs @ map2 (curry HOLogic.mk_prodT) Ts Ts';
         val thePull_ins = map2 (mk_in (AXs @ thePulls)) (mk_setss thePullTs) (mk_FTs thePullTs);
         val pickFs = map5 mk_pickWP thePull_ins pfst_Fmaps psnd_Fmaps
-          (map2 (curry (op $)) dtors Jzs) (map2 (curry (op $)) dtor's Jz's);
+          (map2 (curry op $) dtors Jzs) (map2 (curry op $) dtor's Jz's);
         val pickF_ss = map3 (fn pickF => fn z => fn z' =>
           HOLogic.mk_split (Term.absfree z (Term.absfree z' pickF))) pickFs Jzs' Jz's';
         val picks = map (mk_unfold XTs pickF_ss) ks;

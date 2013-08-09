@@ -328,7 +328,7 @@ fun add_nesty_bnf_names Us =
 fun nesty_bnfs ctxt ctr_Tsss Us =
   map_filter (bnf_of ctxt) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_Tsss []);
 
-fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
+fun indexify proj xs f p = f (find_index (curry op = (proj p)) xs) p;
 
 fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
@@ -356,7 +356,7 @@ fun mk_iters_args_types Cs ns mss ctor_iter_fun_Tss lthy =
         dest_sumTN_balanced n o domain_type o co_rec_of) ns mss ctor_iter_fun_Tss;
 
     val z_Tsss' = map (map flat_rec_arg_args) z_Tssss;
-    val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
+    val h_Tss = map2 (map2 (curry op --->)) z_Tsss' Css;
 
     val hss = map2 (map2 retype_free) h_Tss gss;
     val zssss_hd = map2 (map2 (map2 (retype_free o hd))) z_Tssss ysss;
@@ -377,7 +377,7 @@ fun mk_coiter_fun_arg_types0 Cs ns mss fun_Ts =
     val f_sum_prod_Ts = map range_type fun_Ts;
     val f_prod_Tss = map2 dest_sumTN_balanced ns f_sum_prod_Ts;
     val f_Tsss = map2 (map2 dest_tupleT o repair_arity) mss f_prod_Tss;
-    val f_Tssss = map2 (fn C => map (map (map (curry (op -->) C) o unzip_corecT Cs))) Cs f_Tsss;
+    val f_Tssss = map2 (fn C => map (map (map (curry op --> C) o unzip_corecT Cs))) Cs f_Tsss;
     val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
   in
     (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
@@ -498,7 +498,7 @@ fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
 
     fun generate_iter suf (f_Tss, _, fss, xssss) ctor_iter =
       let
-        val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
+        val res_T = fold_rev (curry op --->) f_Tss fpT_to_C;
         val b = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of b, res_T)),
@@ -517,7 +517,7 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
 
     fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, pf_Tss)) dtor_coiter =
       let
-        val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
+        val res_T = fold_rev (curry op --->) pf_Tss C_to_fpT;
         val b = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
@@ -566,7 +566,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
         val lives = lives_of_bnf bnf;
         val sets = sets_of_bnf bnf;
         fun mk_set U =
-          (case find_index (curry (op =) U) lives of
+          (case find_index (curry op = U) lives of
             ~1 => Term.dummy
           | i => nth sets i);
       in
@@ -583,7 +583,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
           end;
 
         fun mk_raw_prem_prems _ (x as Free (_, Type _)) (X as TFree _) =
-            [([], (find_index (curry (op =) X) Xs + 1, x))]
+            [([], (find_index (curry op = X) Xs + 1, x))]
           | mk_raw_prem_prems names_lthy (x as Free (s, Type (T_name, Ts0))) (Type (_, Xs_Ts0)) =
             (case AList.lookup (op =) setss_nested T_name of
               NONE => []
@@ -623,7 +623,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
         val goal =
           Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
-            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry (op $)) ps us)));
+            HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry op $) ps us)));
 
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
@@ -740,7 +740,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
         (* TODO: generalize (cf. "build_map") *)
         fun build_rel rs' T =
-          (case find_index (curry (op =) T) fpTs of
+          (case find_index (curry op = T) fpTs of
             ~1 =>
             if exists_subtype_in fpTs T then
               let
@@ -883,8 +883,8 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
           map2 (map2 prove) corec_goalss corec_tacss
           |> map (map (unfold_thms lthy @{thms sum_case_if}));
 
-        val unfold_safesss = map2 (map2 (map2 (curry (op =)))) crgsss' crgsss;
-        val corec_safesss = map2 (map2 (map2 (curry (op =)))) cshsss' cshsss;
+        val unfold_safesss = map2 (map2 (map2 (curry op =))) crgsss' crgsss;
+        val corec_safesss = map2 (map2 (map2 (curry op =))) cshsss' cshsss;
 
         val filter_safesss =
           map2 (map_filter (fn (safes, thm) => if forall I safes then SOME thm else NONE) oo

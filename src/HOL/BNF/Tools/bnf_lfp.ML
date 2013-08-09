@@ -75,17 +75,17 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val BTs = map HOLogic.mk_setT activeAs;
     val B'Ts = map HOLogic.mk_setT activeBs;
     val B''Ts = map HOLogic.mk_setT activeCs;
-    val sTs = map2 (curry (op -->)) FTsAs activeAs;
-    val s'Ts = map2 (curry (op -->)) FTsBs activeBs;
-    val s''Ts = map2 (curry (op -->)) FTsCs activeCs;
-    val fTs = map2 (curry (op -->)) activeAs activeBs;
-    val inv_fTs = map2 (curry (op -->)) activeBs activeAs;
-    val self_fTs = map2 (curry (op -->)) activeAs activeAs;
-    val gTs = map2 (curry (op -->)) activeBs activeCs;
-    val all_gTs = map2 (curry (op -->)) allBs allCs';
+    val sTs = map2 (curry op -->) FTsAs activeAs;
+    val s'Ts = map2 (curry op -->) FTsBs activeBs;
+    val s''Ts = map2 (curry op -->) FTsCs activeCs;
+    val fTs = map2 (curry op -->) activeAs activeBs;
+    val inv_fTs = map2 (curry op -->) activeBs activeAs;
+    val self_fTs = map2 (curry op -->) activeAs activeAs;
+    val gTs = map2 (curry op -->) activeBs activeCs;
+    val all_gTs = map2 (curry op -->) allBs allCs';
     val prodBsAs = map2 (curry HOLogic.mk_prodT) activeBs activeAs;
     val prodFTs = mk_FTs (passiveAs @ prodBsAs);
-    val prod_sTs = map2 (curry (op -->)) prodFTs activeAs;
+    val prod_sTs = map2 (curry op -->) prodFTs activeAs;
 
     (* terms *)
     val mapsAsAs = map4 mk_map_of_bnf Dss Ass Ass bnfs;
@@ -1094,7 +1094,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     fun mk_folds passives actives =
       map3 (fn name => fn T => fn active =>
         Const (name, Library.foldr (op -->)
-          (map2 (curry (op -->)) (mk_FTs (passives @ actives)) actives, T --> active)))
+          (map2 (curry op -->) (mk_FTs (passives @ actives)) actives, T --> active)))
       fold_names (mk_Ts passives) actives;
     fun mk_fold Ts ss i = Term.list_comb (Const (nth fold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
