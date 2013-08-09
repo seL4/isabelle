@@ -23,16 +23,16 @@ val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
 
 (* errors *)
 
-fun duplicate_variant_error oconst =
+fun err_duplicate_variant oconst =
   error ("Duplicate variant of " ^ quote oconst);
 
-fun not_a_variant_error oconst =
+fun err_not_a_variant oconst =
   error ("Not a variant of " ^  quote oconst);
 
-fun not_overloaded_error oconst =
+fun err_not_overloaded oconst =
   error ("Constant " ^ quote oconst ^ " is not declared as overloaded");
 
-fun unresolved_overloading_error ctxt (c, T) t instances =
+fun err_unresolved_overloading ctxt (c, T) t instances =
   let val ctxt' = Config.put show_variants true ctxt
   in
     cat_lines (
@@ -64,7 +64,7 @@ structure Overload_Data = Generic_Data
     let
       fun merge_oconsts _ (oconst1, oconst2) =
         if oconst1 = oconst2 then oconst1
-        else duplicate_variant_error oconst1;
+        else err_duplicate_variant oconst1;
     in
       {variants = Symtab.merge_list variants_eq (vtab1, vtab2),
        oconsts = Termtab.join merge_oconsts (otab1, otab2)}
@@ -94,14 +94,14 @@ fun generic_remove_overloaded oconst context =
       in map_tables (Symtab.delete_safe oconst) remove_variants context end;
   in
     if is_overloaded (Context.proof_of context) oconst then remove_oconst_and_variants context oconst
-    else not_overloaded_error oconst
+    else err_not_overloaded oconst
   end;
 
 local
   fun generic_variant add oconst t context =
     let
       val ctxt = Context.proof_of context;
-      val _ = if is_overloaded ctxt oconst then () else not_overloaded_error oconst;
+      val _ = if is_overloaded ctxt oconst then () else err_not_overloaded oconst;
       val T = t |> fastype_of;
       val t' = Term.map_types (K dummyT) t;
     in
@@ -110,7 +110,7 @@ local
           val _ =
             (case get_overloaded ctxt t' of
               NONE => ()
-            | SOME oconst' => duplicate_variant_error oconst');
+            | SOME oconst' => err_duplicate_variant oconst');
         in
           map_tables (Symtab.cons_list (oconst, (t', T))) (Termtab.update (t', oconst)) context
         end
@@ -118,7 +118,7 @@ local
         let
           val _ =
             if member variants_eq (the (get_variants ctxt oconst)) (t', T) then ()
-            else not_a_variant_error oconst;
+            else err_not_a_variant oconst;
         in
           map_tables (Symtab.map_entry oconst (remove1 variants_eq (t', T)))
             (Termtab.delete_safe t') context
@@ -150,7 +150,7 @@ fun get_candidates ctxt (c, T) =
 
 fun insert_variants ctxt t (oconst as Const (c, T)) =
       (case get_candidates ctxt (c, T) of
-        SOME [] => unresolved_overloading_error ctxt (c, T) t []
+        SOME [] => err_unresolved_overloading ctxt (c, T) t []
       | SOME [variant] => variant
       | _ => oconst)
   | insert_variants _ _ oconst = oconst;
@@ -175,7 +175,7 @@ fun reject_unresolved ctxt =
     fun check_unresolved t =
       (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
         [] => t
-      | (cT :: _) => unresolved_overloading_error ctxt cT t (the_candidates cT));
+      | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
   in map check_unresolved end;
 
 (* setup *)
