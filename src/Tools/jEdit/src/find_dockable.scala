@@ -110,7 +110,9 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       List(limit.text, allow_dups.selected.toString, context.selection.item.name, query.getText))
   }
 
-  private val query_label = new Label("Search criteria:")
+  private val query_label = new Label("Search criteria:") {
+    tooltip = "Search criteria for find operation"
+  }
 
   private val query = new HistoryTextField("isabelle-find-theorems") {
     override def processKeyEvent(evt: KeyEvent)
@@ -120,6 +122,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     }
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
+    setToolTipText(query_label.tooltip)
   }
 
   private case class Context_Entry(val name: String, val description: String)
@@ -128,7 +131,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val context_entries =
-    new Context_Entry("", "context") ::
+    new Context_Entry("", "current context") ::
       PIDE.thy_load.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
 
   private val context = new ComboBox[Context_Entry](context_entries) {
