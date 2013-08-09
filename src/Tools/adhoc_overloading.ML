@@ -135,19 +135,17 @@ end;
 
 (* check / uncheck *)
 
-fun unifiable_with thy T1 (t, T2) =
+fun unifiable_with thy T1 T2 =
   let
     val maxidx1 = Term.maxidx_of_typ T1;
     val T2' = Logic.incr_tvar (maxidx1 + 1) T2;
     val maxidx2 = Term.maxidx_typ T2' maxidx1;
-  in
-    (Sign.typ_unify thy (T1, T2') (Vartab.empty, maxidx2); SOME t)
-    handle Type.TUNIFY => NONE
-  end;
+  in can (Sign.typ_unify thy (T1, T2')) (Vartab.empty, maxidx2) end;
 
 fun get_instances ctxt (c, T) =
   Same.function (get_variants ctxt) c
-  |> map_filter (unifiable_with (Proof_Context.theory_of ctxt) T);
+  |> map_filter (fn (t, T') =>
+    if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t else NONE);
 
 fun insert_variants_same ctxt t (Const (c, T)) =
       (case get_instances ctxt (c, T) of
