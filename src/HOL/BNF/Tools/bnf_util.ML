@@ -68,6 +68,9 @@ sig
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
   val retype_free: typ -> term -> term
+  val variant_types: string list -> sort list -> Proof.context ->
+    (string * sort) list * Proof.context
+  val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
   val nonzero_string_of_int: int -> string
 
   val num_binder_types: typ -> int
@@ -383,6 +386,19 @@ fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> spl
 
 fun retype_free T (Free (s, _)) = Free (s, T)
   | retype_free _ t = raise TERM ("retype_free", [t]);
+
+fun ensure_prefix pre s = s |> not (String.isPrefix pre s) ? prefix pre;
+
+fun variant_types ss Ss ctxt =
+  let
+    val (tfrees, _) =
+      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
+    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
+  in (tfrees, ctxt') end;
+
+fun variant_tfrees ss =
+  apfst (map TFree) o
+    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) HOLogic.typeS);
 
 
 (** Types **)

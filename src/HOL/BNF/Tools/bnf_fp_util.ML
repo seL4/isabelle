@@ -134,10 +134,6 @@ sig
   val base_name_of_typ: typ -> string
   val mk_common_name: string list -> string
 
-  val variant_types: string list -> sort list -> Proof.context ->
-    (string * sort) list * Proof.context
-  val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
-
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
@@ -427,16 +423,6 @@ val mk_union = HOLogic.mk_binop @{const_name sup};
 
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
-
-fun variant_types ss Ss ctxt =
-  let
-    val (tfrees, _) =
-      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
-    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
-  in (tfrees, ctxt') end;
-
-fun variant_tfrees ss =
-  apfst (map TFree) o variant_types (map (prefix "'") ss) (replicate (length ss) HOLogic.typeS);
 
 (* stolen from "~~/src/HOL/Tools/Datatype/datatype_aux.ML" *)
 fun split_conj_thm th =
