@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, Component}
+import scala.swing.{FlowPanel, Button, Component, TextField, CheckBox, Label, ComboBox}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -105,7 +105,14 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* controls */
 
-  private def clicked { find_theorems.apply_query(List(query.getText)) }
+  private def clicked {
+    find_theorems.apply_query(
+      List(limit.text, allow_dups.selected.toString, context.selection.item.name, query.getText))
+  }
+
+  private val query_label = new Label("Search criteria:") {
+    tooltip = "Search criteria for find operation"
+  }
 
   private val query = new HistoryTextField("isabelle-find-theorems") {
     override def processKeyEvent(evt: KeyEvent)
@@ -115,18 +122,36 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     }
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
+    setToolTipText(query_label.tooltip)
   }
 
-  private val query_wrapped = Component.wrap(query)
+  private case class Context_Entry(val name: String, val description: String)
+  {
+    override def toString = description
+  }
+
+  private val context_entries =
+    new Context_Entry("", "current context") ::
+      PIDE.thy_load.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
+
+  private val context = new ComboBox[Context_Entry](context_entries) {
+    tooltip = "Search in pre-loaded theory (default: context of current command)"
+  }
+
+  private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
+    tooltip = "Limit of displayed results"
+    verifier = (s: String) =>
+      s match { case Properties.Value.Int(x) => x >= 0 case _ => false }
+  }
+
+  private val allow_dups = new CheckBox("Duplicates") {
+    tooltip = "Allow duplicates in result (faster for large theories)"
+    selected = false
+  }
 
   private val apply_query = new Button("Apply") {
     tooltip = "Find theorems meeting specified criteria"
     reactions += { case ButtonClicked(_) => clicked }
-  }
-
-  private val locate_query = new Button("Locate") {
-    tooltip = "Locate context of current query within source text"
-    reactions += { case ButtonClicked(_) => find_theorems.locate_query() }
   }
 
   private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() }) {
@@ -135,6 +160,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
-      query_wrapped, process_indicator.component, apply_query, locate_query, zoom)
+      query_label, Component.wrap(query), context, limit, allow_dups,
+      process_indicator.component, apply_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }

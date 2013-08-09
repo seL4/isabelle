@@ -110,7 +110,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       List(provers.getText, timeout.text, subgoal.text, isar_proofs.selected.toString))
   }
 
-  private val provers_label = new Label("Provers: ") {
+  private val provers_label = new Label("Provers:") {
     tooltip = "Automatic provers as space-separated list (e.g. \"e spass remote_vampire\")"
   }
 
@@ -147,7 +147,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val cancel_query = new Button("Cancel") {
-    tooltip = "Interrupt unfinished query process"
+    tooltip = "Interrupt unfinished sledgehammering"
     reactions += { case ButtonClicked(_) => sledgehammer.cancel_query() }
   }
 

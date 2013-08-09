@@ -9,31 +9,17 @@ signature FIND_THEOREMS =
 sig
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Solves | Simp of 'term | Pattern of 'term
-
-  datatype theorem =
-    Internal of Facts.ref * thm | External of Facts.ref * term
-
   type 'term query = {
     goal: thm option,
     limit: int option,
     rem_dups: bool,
     criteria: (bool * 'term criterion) list
   }
-
-  val read_criterion: Proof.context -> string criterion -> term criterion
   val read_query: Position.T -> string -> (bool * string criterion) list
-
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * term criterion) list -> int option * (Facts.ref * thm) list
   val find_theorems_cmd: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
-
-  val filter_theorems: Proof.context -> theorem list -> term query ->
-    int option * theorem list
-  val filter_theorems_cmd: Proof.context -> theorem list -> string query ->
-    int option * theorem list
-
-  val pretty_theorem: Proof.context -> theorem -> Pretty.T
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
 end;
 
@@ -164,18 +150,18 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
       is_nontrivial thy pat andalso
       Pattern.matches thy (if po then (pat, obj) else (obj, pat));
 
-    fun substsize pat =
+    fun subst_size pat =
       let val (_, subst) =
         Pattern.match thy (if po then (pat, obj) else (obj, pat)) (Vartab.empty, Vartab.empty)
       in Vartab.fold (fn (_, (_, t)) => fn n => size_of_term t + n) subst 0 end;
 
-    fun bestmatch [] = NONE
-      | bestmatch xs = SOME (foldl1 Int.min xs);
+    fun best_match [] = NONE
+      | best_match xs = SOME (foldl1 Int.min xs);
 
     val match_thm = matches o refine_term;
   in
-    map (substsize o refine_term) (filter match_thm (extract_terms term_src))
-    |> bestmatch
+    map (subst_size o refine_term) (filter match_thm (extract_terms term_src))
+    |> best_match
   end;
 
 
@@ -222,7 +208,7 @@ fun filter_elim ctxt goal theorem =
       val goal_concl = Logic.concl_of_goal goal 1;
       val rule_mp = hd (Logic.strip_imp_prems rule);
       val rule_concl = Logic.strip_imp_concl rule;
-      fun combine t1 t2 = Const ("*combine*", dummyT --> dummyT) $ (t1 $ t2);
+      fun combine t1 t2 = Const ("*combine*", dummyT --> dummyT) $ (t1 $ t2);  (* FIXME ?? *)
       val rule_tree = combine rule_mp rule_concl;
       fun goal_tree prem = combine prem goal_concl;
       fun try_subst prem = is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
@@ -244,11 +230,11 @@ fun filter_solves ctxt goal =
     val ctxt' = Proof_Context.transfer thy' ctxt;
     val goal' = Thm.transfer thy' goal;
 
-    fun etacn thm i =
+    fun limited_etac thm i =
       Seq.take (Options.default_int @{option find_theorems_tac_limit}) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal'
-      else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt')) 1 goal';
+      else (limited_etac thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt')) 1 goal';
   in
     fn Internal (_, thm) =>
         if is_some (Seq.pull (try_thm thm))
@@ -275,16 +261,13 @@ fun filter_simp ctxt t (Internal (_, thm)) =
 
 fun get_names t = Term.add_const_names t (Term.add_free_names t []);
 
-(*Including all constants and frees is only sound because
-  matching uses higher-order patterns. If full matching
-  were used, then constants that may be subject to
-  beta-reduction after substitution of frees should
-  not be included for LHS set because they could be
-  thrown away by the substituted function.
-  e.g. for (?F 1 2) do not include 1 or 2, if it were
-       possible for ?F to be (% x y. 3)
-  The largest possible set should always be included on
-  the RHS.*)
+(*Including all constants and frees is only sound because matching
+  uses higher-order patterns. If full matching were used, then
+  constants that may be subject to beta-reduction after substitution
+  of frees should not be included for LHS set because they could be
+  thrown away by the substituted function.  E.g. for (?F 1 2) do not
+  include 1 or 2, if it were possible for ?F to be (%x y. 3).  The
+  largest possible set should always be included on the RHS.*)
 
 fun filter_pattern ctxt pat =
   let
@@ -305,16 +288,14 @@ local
 fun err_no_goal c =
   error ("Current goal required for " ^ c ^ " search criterion");
 
-val fix_goal = Thm.prop_of;
-
 fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Intro = err_no_goal "intro"
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
   | filter_crit _ NONE Solves = err_no_goal "solves"
-  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (Thm.prop_of goal))
+  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (Thm.prop_of goal))
+  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (Thm.prop_of goal))
   | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
@@ -365,7 +346,7 @@ fun lazy_filter filters =
 end;
 
 
-(* removing duplicates, preferring nicer names, roughly n log n *)
+(* removing duplicates, preferring nicer names, roughly O(n log n) *)
 
 local
 
@@ -412,7 +393,7 @@ fun nicer_shortest ctxt =
   in nicer end;
 
 fun rem_thm_dups nicer xs =
-  xs ~~ (1 upto length xs)
+  (xs ~~ (1 upto length xs))
   |> sort (Term_Ord.fast_term_ord o pairself (prop_of o #1))
   |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
@@ -421,7 +402,10 @@ fun rem_thm_dups nicer xs =
 end;
 
 
-(* pretty_theorems *)
+
+(** main operations **)
+
+(* filter_theorems *)
 
 fun all_facts_of ctxt =
   let
@@ -460,8 +444,12 @@ fun filter_theorems ctxt theorems query =
   in find theorems end;
 
 fun filter_theorems_cmd ctxt theorems raw_query =
-  filter_theorems ctxt theorems (map_criteria
-    (map (apsnd (read_criterion ctxt))) raw_query);
+  filter_theorems ctxt theorems (map_criteria (map (apsnd (read_criterion ctxt))) raw_query);
+
+
+(* find_theorems *)
+
+local
 
 fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
@@ -476,8 +464,17 @@ fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
     |> apsnd (map (fn Internal f => f))
   end;
 
+in
+
 val find_theorems = gen_find_theorems filter_theorems;
 val find_theorems_cmd = gen_find_theorems filter_theorems_cmd;
+
+end;
+
+
+(* pretty_theorems *)
+
+local
 
 fun pretty_ref ctxt thmref =
   let
@@ -495,18 +492,23 @@ fun pretty_theorem ctxt (Internal (thmref, thm)) =
   | pretty_theorem ctxt (External (thmref, prop)) =
       Pretty.block (pretty_ref ctxt thmref @ [Syntax.unparse_term ctxt prop]);
 
+in
+
 fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm));
 
-fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun pretty_theorems state opt_limit rem_dups raw_criteria =
   let
+    val ctxt = Proof.context_of state;
+    val opt_goal = try Proof.simple_goal state |> Option.map #goal;
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val (foundo, theorems) =
+
+    val (opt_found, theorems) =
       filter_theorems ctxt (map Internal (all_facts_of ctxt))
         {goal = opt_goal, limit = opt_limit, rem_dups = rem_dups, criteria = criteria};
     val returned = length theorems;
 
     val tally_msg =
-      (case foundo of
+      (case opt_found of
         NONE => "displaying " ^ string_of_int returned ^ " theorem(s)"
       | SOME found =>
           "found " ^ string_of_int found ^ " theorem(s)" ^
@@ -522,15 +524,16 @@ fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
         grouped 10 Par_List.map (Pretty.item o single o pretty_theorem ctxt) theorems)
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
-fun pretty_theorems_cmd state opt_lim rem_dups spec =
-  let
-    val ctxt = Toplevel.context_of state;
-    val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-  in pretty_theorems ctxt opt_goal opt_lim rem_dups spec end;
+end;
 
 
 
 (** Isar command syntax **)
+
+fun proof_state st =
+  (case try Toplevel.proof_of st of
+    SOME state => state
+  | NONE => Proof.init (Toplevel.context_of st));
 
 local
 
@@ -563,8 +566,8 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "find_theorems"}
     "find theorems meeting specified criteria"
     (options -- query >> (fn ((opt_lim, rem_dups), spec) =>
-      Toplevel.keep (fn state =>
-        Pretty.writeln (pretty_theorems_cmd state opt_lim rem_dups spec))));
+      Toplevel.keep (fn st =>
+        Pretty.writeln (pretty_theorems (proof_state st) opt_lim rem_dups spec))));
 
 end;
 
@@ -573,9 +576,17 @@ end;
 (** PIDE query operation **)
 
 val _ =
-  Query_Operation.register "find_theorems" (fn st => fn args =>
-    if can Toplevel.theory_of st then
-      Pretty.string_of (pretty_theorems_cmd st NONE false (maps (read_query Position.none) args))
-    else error "Unknown theory context");
+  Query_Operation.register "find_theorems"
+    (fn st => fn [limit_arg, allow_dups_arg, context_arg, query_arg] =>
+      if can Toplevel.context_of st then
+        let
+          val state =
+            if context_arg = "" then proof_state st
+            else Proof.init (Proof_Context.init_global (Thy_Info.get_theory context_arg));
+          val opt_limit = Int.fromString limit_arg;
+          val rem_dups = allow_dups_arg = "false";
+          val criteria = read_query Position.none query_arg;
+        in Pretty.string_of (pretty_theorems state opt_limit rem_dups criteria) end
+      else error "Unknown context");
 
 end;
