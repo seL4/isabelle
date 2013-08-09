@@ -11,23 +11,31 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.Component
 
 import org.gjt.sp.jedit.View
 
 
 object Query_Operation
 {
+  object Status extends Enumeration
+  {
+    val WAITING = Value("waiting")
+    val RUNNING = Value("running")
+    val FINISHED = Value("finished")
+  }
+
   def apply(
       view: View,
       operation_name: String,
+      consume_status: Status.Value => Unit,
       consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
-    new Query_Operation(view, operation_name, consume_output)
+    new Query_Operation(view, operation_name, consume_status, consume_output)
 }
 
 final class Query_Operation private(
   view: View,
   operation_name: String,
+  consume_status: Query_Operation.Status.Value => Unit,
   consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
 {
   private val instance = Document_ID.make().toString
@@ -35,18 +43,11 @@ final class Query_Operation private(
 
   /* implicit state -- owned by Swing thread */
 
-  private object Status extends Enumeration
-  {
-    val WAITING = Value("waiting")
-    val RUNNING = Value("running")
-    val FINISHED = Value("finished")
-  }
-
   private var current_location: Option[Command] = None
   private var current_query: List[String] = Nil
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
-  private var current_status = Status.FINISHED
+  private var current_status = Query_Operation.Status.FINISHED
   private var current_exec_id = Document_ID.none
 
   private def reset_state()
@@ -55,7 +56,7 @@ final class Query_Operation private(
     current_query = Nil
     current_update_pending = false
     current_output = Nil
-    current_status = Status.FINISHED
+    current_status = Query_Operation.Status.FINISHED
     current_exec_id = Document_ID.none
   }
 
@@ -68,24 +69,6 @@ final class Query_Operation private(
       buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
       model <- PIDE.document_model(buffer)
     } model.remove_overlay(command, operation_name, instance :: current_query)
-  }
-
-
-  /* process indicator */
-
-  private val process_indicator = new Process_Indicator
-  val animation: Component = process_indicator.component
-
-  private def update_process_indicator()
-  {
-    current_status match {
-      case Status.WAITING =>
-        process_indicator.update("Waiting for evaluation of query context ...", 5)
-      case Status.RUNNING =>
-        process_indicator.update("Running query operation ...", 15)
-      case Status.FINISHED =>
-        process_indicator.update(null, 0)
-    }
   }
 
 
@@ -127,17 +110,18 @@ final class Query_Operation private(
 
     /* status */
 
-    def get_status(name: String, status: Status.Value): Option[Status.Value] =
+    def get_status(name: String, status: Query_Operation.Status.Value)
+        : Option[Query_Operation.Status.Value] =
       results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      if (removed) Status.FINISHED
+      if (removed) Query_Operation.Status.FINISHED
       else
-        get_status(Markup.FINISHED, Status.FINISHED) orElse
-        get_status(Markup.RUNNING, Status.RUNNING) getOrElse
-        Status.WAITING
+        get_status(Markup.FINISHED, Query_Operation.Status.FINISHED) orElse
+        get_status(Markup.RUNNING, Query_Operation.Status.RUNNING) getOrElse
+        Query_Operation.Status.WAITING
 
-    if (new_status == Status.RUNNING)
+    if (new_status == Query_Operation.Status.RUNNING)
       results.collectFirst(
       {
         case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
@@ -158,8 +142,8 @@ final class Query_Operation private(
         }
         if (current_status != new_status) {
           current_status = new_status
-          update_process_indicator()
-          if (new_status == Status.FINISHED) {
+          consume_status(new_status)
+          if (new_status == Query_Operation.Status.FINISHED) {
             remove_overlay()
             PIDE.flush_buffers()
           }
@@ -188,11 +172,11 @@ final class Query_Operation private(
           case Some(command) =>
             current_location = Some(command)
             current_query = query
-            current_status = Status.WAITING
+            current_status = Query_Operation.Status.WAITING
             doc_view.model.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
-        update_process_indicator()
+        consume_status(current_status)
         PIDE.flush_buffers()
       case None =>
     }
@@ -226,7 +210,8 @@ final class Query_Operation private(
           current_location match {
             case Some(command)
             if current_update_pending ||
-              (current_status != Status.FINISHED && changed.commands.contains(command)) =>
+              (current_status != Query_Operation.Status.FINISHED &&
+                changed.commands.contains(command)) =>
               Swing_Thread.later { content_update() }
             case _ =>
           }

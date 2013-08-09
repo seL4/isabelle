@@ -31,8 +31,22 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* query operation */
 
+  private val process_indicator = new Process_Indicator
+
+  private def consume_status(status: Query_Operation.Status.Value)
+  {
+    status match {
+      case Query_Operation.Status.WAITING =>
+        process_indicator.update("Waiting for evaluation of context ...", 5)
+      case Query_Operation.Status.RUNNING =>
+        process_indicator.update("Sledgehammering ...", 15)
+      case Query_Operation.Status.FINISHED =>
+        process_indicator.update(null, 0)
+    }
+  }
+
   private val sledgehammer =
-    Query_Operation(view, "sledgehammer",
+    Query_Operation(view, "sledgehammer", consume_status _,
       (snapshot, results, body) =>
         pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 
@@ -149,6 +163,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
       provers_label, Component.wrap(provers), timeout, subgoal, isar_proofs,
-      sledgehammer.animation, apply_query, cancel_query, locate_query, zoom)
+      process_indicator.component, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
