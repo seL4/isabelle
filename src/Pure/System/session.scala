@@ -238,6 +238,7 @@ class Session(val thy_load: Thy_Load)
   /* actor messages */
 
   private case class Start(args: List[String])
+  private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Change(
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
@@ -506,6 +507,9 @@ class Session(val thy_load: Thy_Load)
           global_options.event(Session.Global_Options(options))
           reply(())
 
+        case Cancel_Exec(exec_id) if prover.isDefined =>
+          prover.get.cancel_exec(exec_id)
+
         case Session.Raw_Edits(edits) if prover.isDefined =>
           handle_raw_edits(edits)
           reply(())
@@ -551,6 +555,8 @@ class Session(val thy_load: Thy_Load)
     change_parser !? Stop
     session_actor !? Stop
   }
+
+  def cancel_exec(exec_id: Document_ID.Exec) { session_actor ! Cancel_Exec(exec_id) }
 
   def update(edits: List[Document.Edit_Text])
   { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(edits) }

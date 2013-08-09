@@ -14,7 +14,6 @@ ML_file "scgi_server.ML"
 ML_file "echo.ML"
 ML_file "html_templates.ML"
 ML_file "find_theorems.ML"
-ML_file "yxml_find_theorems.ML"
 
 end
 

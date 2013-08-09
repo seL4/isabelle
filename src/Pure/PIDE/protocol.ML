@@ -32,6 +32,10 @@ val _ =
     (fn [] => Execution.discontinue ());
 
 val _ =
+  Isabelle_Process.protocol_command "Document.cancel_exec"
+    (fn [exec_id] => Execution.cancel (Document_ID.parse exec_id));
+
+val _ =
   Isabelle_Process.protocol_command "Document.update"
     (fn [old_id_string, new_id_string, edits_yxml] => Document.change_state (fn state =>
       let

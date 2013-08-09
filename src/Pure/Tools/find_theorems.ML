@@ -21,12 +21,7 @@ sig
   }
 
   val read_criterion: Proof.context -> string criterion -> term criterion
-  val parse_query: string -> (bool * string criterion) list
-
-  val xml_of_query: term query -> XML.tree
-  val query_of_xml: XML.tree -> term query
-  val xml_of_result: int option * theorem list -> XML.tree
-  val result_of_xml: XML.tree -> int option * theorem list
+  val read_query: Position.T -> string -> (bool * string criterion) list
 
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * term criterion) list -> int option * (Facts.ref * thm) list
@@ -40,7 +35,6 @@ sig
 
   val pretty_theorem: Proof.context -> theorem -> Pretty.T
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
-
 end;
 
 structure Find_Theorems: FIND_THEOREMS =
@@ -108,46 +102,6 @@ type 'term query = {
 fun map_criteria f {goal, limit, rem_dups, criteria} =
   {goal = goal, limit = limit, rem_dups = rem_dups, criteria = f criteria};
 
-fun xml_of_criterion (Name name) = XML.Elem (("Name", [("val", name)]), [])
-  | xml_of_criterion Intro = XML.Elem (("Intro", []) , [])
-  | xml_of_criterion Elim = XML.Elem (("Elim", []) , [])
-  | xml_of_criterion Dest = XML.Elem (("Dest", []) , [])
-  | xml_of_criterion Solves = XML.Elem (("Solves", []) , [])
-  | xml_of_criterion (Simp pat) = XML.Elem (("Simp", []), [Legacy_XML_Syntax.xml_of_term pat])
-  | xml_of_criterion (Pattern pat) = XML.Elem (("Pattern", []), [Legacy_XML_Syntax.xml_of_term pat]);
-
-fun criterion_of_xml (XML.Elem (("Name", [("val", name)]), [])) = Name name
-  | criterion_of_xml (XML.Elem (("Intro", []) , [])) = Intro
-  | criterion_of_xml (XML.Elem (("Elim", []) , [])) = Elim
-  | criterion_of_xml (XML.Elem (("Dest", []) , [])) = Dest
-  | criterion_of_xml (XML.Elem (("Solves", []) , [])) = Solves
-  | criterion_of_xml (XML.Elem (("Simp", []), [tree])) = Simp (Legacy_XML_Syntax.term_of_xml tree)
-  | criterion_of_xml (XML.Elem (("Pattern", []), [tree])) = Pattern (Legacy_XML_Syntax.term_of_xml tree)
-  | criterion_of_xml tree = raise Legacy_XML_Syntax.XML ("criterion_of_xml: bad tree", tree);
-
-fun xml_of_query {goal = NONE, limit, rem_dups, criteria} =
-      let
-        val properties = []
-          |> (if rem_dups then cons ("rem_dups", "") else I)
-          |> (if is_some limit then cons ("limit", Markup.print_int (the limit)) else I);
-      in
-        XML.Elem (("Query", properties), XML.Encode.list
-          (XML.Encode.pair XML.Encode.bool (single o xml_of_criterion)) criteria)
-      end
-  | xml_of_query _ = raise Fail "cannot serialize goal";
-
-fun query_of_xml (XML.Elem (("Query", properties), body)) =
-      let
-        val rem_dups = Properties.defined properties "rem_dups";
-        val limit = Properties.get properties "limit" |> Option.map Markup.parse_int;
-        val criteria =
-          XML.Decode.list (XML.Decode.pair XML.Decode.bool
-            (criterion_of_xml o the_single)) body;
-      in
-        {goal = NONE, limit = limit, rem_dups = rem_dups, criteria = criteria}
-      end
-  | query_of_xml tree = raise Legacy_XML_Syntax.XML ("query_of_xml: bad tree", tree);
-
 
 
 (** theorems, either internal or external (without proof) **)
@@ -161,35 +115,6 @@ fun fact_ref_markup (Facts.Named ((name, pos), SOME [Facts.Single i])) =
   | fact_ref_markup (Facts.Named ((name, pos), NONE)) =
       Position.markup pos o Markup.properties [("name", name)]
   | fact_ref_markup fact_ref = raise Fail "bad fact ref";
-
-fun xml_of_theorem (Internal _) = raise Fail "xml_of_theorem: Internal"
-  | xml_of_theorem (External (fact_ref, prop)) =
-      XML.Elem (fact_ref_markup fact_ref ("External", []), [Legacy_XML_Syntax.xml_of_term prop]);
-
-fun theorem_of_xml (XML.Elem (("External", properties), [tree])) =
-      let
-        val name = the (Properties.get properties "name");
-        val pos = Position.of_properties properties;
-        val intvs_opt =
-          Option.map (single o Facts.Single o Markup.parse_int)
-            (Properties.get properties "index");
-      in
-        External (Facts.Named ((name, pos), intvs_opt), Legacy_XML_Syntax.term_of_xml tree)
-      end
-  | theorem_of_xml tree = raise Legacy_XML_Syntax.XML ("theorem_of_xml: bad tree", tree);
-
-fun xml_of_result (opt_found, theorems) =
-  let
-    val properties =
-      if is_some opt_found then [("found", Markup.print_int (the opt_found))] else [];
-  in
-    XML.Elem (("Result", properties), XML.Encode.list (single o xml_of_theorem) theorems)
-  end;
-
-fun result_of_xml (XML.Elem (("Result", properties), body)) =
-      (Properties.get properties "found" |> Option.map Markup.parse_int,
-       XML.Decode.list (theorem_of_xml o the_single) body)
-  | result_of_xml tree = raise Legacy_XML_Syntax.XML ("result_of_xml: bad tree", tree);
 
 fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm
   | prop_of (External (_, prop)) = prop;
@@ -594,7 +519,7 @@ fun pretty_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     (if null theorems then [Pretty.str "nothing found"]
      else
       [Pretty.str (tally_msg ^ ":"), Pretty.str ""] @
-        grouped 10 Par_List.map (pretty_theorem ctxt) theorems)
+        grouped 10 Par_List.map (Pretty.item o single o pretty_theorem ctxt) theorems)
   end |> Pretty.fbreaks |> curry Pretty.blk 0;
 
 fun pretty_theorems_cmd state opt_lim rem_dups spec =
@@ -624,22 +549,20 @@ val options =
       Parse.!!! (Scan.option Parse.nat -- Scan.optional (Parse.reserved "with_dups" >> K false) true
         --| Parse.$$$ ")")) (NONE, true);
 
-val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
+val query = Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion);
 
 in
 
-(* FIXME proper wrapper for parser combinator *)
-fun parse_query str =
-  (str ^ ";")
-  |> Outer_Syntax.scan Position.start
+fun read_query pos str =
+  Outer_Syntax.scan pos str
   |> filter Token.is_proper
-  |> Scan.error query_parser
-  |> fst;
+  |> Scan.error (Scan.finite Token.stopper (Parse.!!! (query --| Scan.ahead Parse.eof)))
+  |> #1;
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_theorems"}
     "find theorems meeting specified criteria"
-    (options -- query_parser >> (fn ((opt_lim, rem_dups), spec) =>
+    (options -- query >> (fn ((opt_lim, rem_dups), spec) =>
       Toplevel.keep (fn state =>
         Pretty.writeln (pretty_theorems_cmd state opt_lim rem_dups spec))));
 
@@ -650,7 +573,9 @@ end;
 (** PIDE query operation **)
 
 val _ =
-  Query_Operation.register "find_theorems" (fn state => fn query =>
-    Pretty.string_of (pretty_theorems_cmd state NONE false (maps parse_query query)));
+  Query_Operation.register "find_theorems" (fn st => fn args =>
+    if can Toplevel.theory_of st then
+      Pretty.string_of (pretty_theorems_cmd st NONE false (maps (read_query Position.none) args))
+    else error "Unknown theory context");
 
 end;

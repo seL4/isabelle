@@ -16,7 +16,7 @@ fun find_theorems arg_data send =
     val args = Symtab.lookup arg_data;
 
     val query_str = the_default "" (args "query");
-    fun get_query () = Find_Theorems.parse_query query_str;
+    fun get_query () = Find_Theorems.read_query Position.none query_str;
 
     val limit = case args "limit" of
         NONE => default_limit

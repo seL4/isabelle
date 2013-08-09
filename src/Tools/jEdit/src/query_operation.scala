@@ -2,7 +2,7 @@
     Author:     Makarius
 
 One-shot query operations via asynchronous print functions and temporary
-document overlay.
+document overlays.
 */
 
 package isabelle.jedit
@@ -11,43 +11,44 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-import scala.swing.Label
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.AnimatedIcon
 
 
 object Query_Operation
 {
-  def apply(
-      view: View,
-      name: String,
-      consume: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
-    new Query_Operation(view, name, consume)
-}
-
-final class Query_Operation private(
-  view: View,
-  operation_name: String,
-  consume_result: (Document.Snapshot, Command.Results, XML.Body) => Unit)
-{
-  private val instance = Document_ID.make().toString
-
-
-  /* implicit state -- owned by Swing thread */
-
-  private object Status extends Enumeration
+  object Status extends Enumeration
   {
     val WAITING = Value("waiting")
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
   }
 
+  def apply(
+      view: View,
+      operation_name: String,
+      consume_status: Status.Value => Unit,
+      consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
+    new Query_Operation(view, operation_name, consume_status, consume_output)
+}
+
+final class Query_Operation private(
+  view: View,
+  operation_name: String,
+  consume_status: Query_Operation.Status.Value => Unit,
+  consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
+{
+  private val instance = Document_ID.make().toString
+
+
+  /* implicit state -- owned by Swing thread */
+
   private var current_location: Option[Command] = None
   private var current_query: List[String] = Nil
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
-  private var current_status = Status.FINISHED
+  private var current_status = Query_Operation.Status.FINISHED
+  private var current_exec_id = Document_ID.none
 
   private def reset_state()
   {
@@ -55,7 +56,8 @@ final class Query_Operation private(
     current_query = Nil
     current_update_pending = false
     current_output = Nil
-    current_status = Status.FINISHED
+    current_status = Query_Operation.Status.FINISHED
+    current_exec_id = Document_ID.none
   }
 
   private def remove_overlay()
@@ -70,38 +72,6 @@ final class Query_Operation private(
   }
 
 
-  /* animation */
-
-  val animation = new Label
-
-  private val passive_icon =
-    JEdit_Lib.load_image_icon(PIDE.options.string("process_passive_icon")).getImage
-  private val active_icons =
-    space_explode(':', PIDE.options.string("process_active_icons")).map(name =>
-      JEdit_Lib.load_image_icon(name).getImage)
-
-  private val animation_icon =
-    new AnimatedIcon(passive_icon, active_icons.toArray, 5, animation.peer)
-  animation.icon = animation_icon
-
-  private def animation_update()
-  {
-    animation_icon.stop
-    current_status match {
-      case Status.WAITING =>
-        animation.tooltip = "Waiting for evaluation of query context ..."
-        animation_icon.setRate(5)
-        animation_icon.start
-      case Status.RUNNING =>
-        animation.tooltip = "Running query operation ..."
-        animation_icon.setRate(15)
-        animation_icon.start
-      case Status.FINISHED =>
-        animation.tooltip = null
-    }
-  }
-
-
   /* content update */
 
   private def content_update()
@@ -111,42 +81,52 @@ final class Query_Operation private(
 
     /* snapshot */
 
-    val (snapshot, state) =
+    val (snapshot, state, removed) =
       current_location match {
         case Some(cmd) =>
           val snapshot = PIDE.document_snapshot(cmd.node_name)
           val state = snapshot.state.command_state(snapshot.version, cmd)
-          (snapshot, state)
+          val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
+          (snapshot, state, removed)
         case None =>
-          (Document.State.init.snapshot(), Command.empty.init_state)
+          (Document.State.init.snapshot(), Command.empty.init_state, true)
       }
 
     val results =
       (for {
-        (_, XML.Elem(Markup(Markup.RESULT, props), body)) <- state.results.entries
+        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- state.results.entries
         if props.contains((Markup.INSTANCE, instance))
-      } yield body).toList
+      } yield elem).toList
 
 
     /* output */
 
     val new_output =
       for {
-        List(XML.Elem(markup, body)) <- results
+        XML.Elem(_, List(XML.Elem(markup, body))) <- results
         if Markup.messages.contains(markup.name)
-      }
-      yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
+      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
 
 
     /* status */
 
-    def get_status(name: String, status: Status.Value): Option[Status.Value] =
-      results.collectFirst({ case List(elem: XML.Elem) if elem.name == name => status })
+    def get_status(name: String, status: Query_Operation.Status.Value)
+        : Option[Query_Operation.Status.Value] =
+      results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      get_status(Markup.FINISHED, Status.FINISHED) orElse
-      get_status(Markup.RUNNING, Status.RUNNING) getOrElse
-      Status.WAITING
+      if (removed) Query_Operation.Status.FINISHED
+      else
+        get_status(Markup.FINISHED, Query_Operation.Status.FINISHED) orElse
+        get_status(Markup.RUNNING, Query_Operation.Status.RUNNING) getOrElse
+        Query_Operation.Status.WAITING
+
+    if (new_status == Query_Operation.Status.RUNNING)
+      results.collectFirst(
+      {
+        case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
+        if elem.name == Markup.RUNNING => id
+      }).foreach(id => current_exec_id = id)
 
 
     /* state update */
@@ -156,14 +136,14 @@ final class Query_Operation private(
         current_update_pending = true
       else {
         current_update_pending = false
-        if (current_output != new_output) {
+        if (current_output != new_output && !removed) {
           current_output = new_output
-          consume_result(snapshot, state.results, new_output)
+          consume_output(snapshot, state.results, new_output)
         }
         if (current_status != new_status) {
           current_status = new_status
-          animation_update()
-          if (new_status == Status.FINISHED) {
+          consume_status(new_status)
+          if (new_status == Query_Operation.Status.FINISHED) {
             remove_overlay()
             PIDE.flush_buffers()
           }
@@ -173,7 +153,10 @@ final class Query_Operation private(
   }
 
 
-  /* apply query */
+  /* query operations */
+
+  def cancel_query(): Unit =
+    Swing_Thread.require { PIDE.session.cancel_exec(current_exec_id) }
 
   def apply_query(query: List[String])
   {
@@ -184,22 +167,20 @@ final class Query_Operation private(
         val snapshot = doc_view.model.snapshot()
         remove_overlay()
         reset_state()
+        consume_output(Document.State.init.snapshot(), Command.Results.empty, Nil)
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)
             current_query = query
-            current_status = Status.WAITING
+            current_status = Query_Operation.Status.WAITING
             doc_view.model.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
-        animation_update()
+        consume_status(current_status)
         PIDE.flush_buffers()
       case None =>
     }
   }
-
-
-  /* locate query */
 
   def locate_query()
   {
@@ -229,7 +210,8 @@ final class Query_Operation private(
           current_location match {
             case Some(command)
             if current_update_pending ||
-              (current_status != Status.FINISHED && changed.commands.contains(command)) =>
+              (current_status != Query_Operation.Status.FINISHED &&
+                changed.commands.contains(command)) =>
               Swing_Thread.later { content_update() }
             case _ =>
           }

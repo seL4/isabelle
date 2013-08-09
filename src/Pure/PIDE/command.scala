@@ -111,10 +111,9 @@ object Command
                 // FIXME java.lang.System.err.println("Ignored report message: " + msg)
                 state
             })
-        case XML.Elem(Markup(name, atts), body) =>
-          atts match {
+        case XML.Elem(Markup(name, props), body) =>
+          props match {
             case Markup.Serial(i) =>
-              val props = Position.purge(atts)
               val message1 = XML.Elem(Markup(Markup.message(name), props), body)
               val message2 = XML.Elem(Markup(name, props), body)
 

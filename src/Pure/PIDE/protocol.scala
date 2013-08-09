@@ -315,9 +315,16 @@ trait Protocol extends Isabelle_Process
       Document_ID(command.id), encode(command.name), encode(command.source))
 
 
-  /* document versions */
+  /* execution */
 
-  def discontinue_execution() { protocol_command("Document.discontinue_execution") }
+  def discontinue_execution(): Unit =
+    protocol_command("Document.discontinue_execution")
+
+  def cancel_exec(id: Document_ID.Exec): Unit =
+    protocol_command("Document.cancel_exec", Document_ID(id))
+
+
+  /* document versions */
 
   def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
     edits: List[Document.Edit_Command])
@@ -363,8 +370,6 @@ trait Protocol extends Isabelle_Process
 
   /* dialog via document content */
 
-  def dialog_result(serial: Long, result: String)
-  {
+  def dialog_result(serial: Long, result: String): Unit =
     protocol_command("Document.dialog_result", Properties.Value.Long(serial), result)
-  }
 }
