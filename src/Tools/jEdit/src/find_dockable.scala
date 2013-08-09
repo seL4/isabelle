@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, Component, TextField, CheckBox, Label}
+import scala.swing.{FlowPanel, Button, Component, TextField, CheckBox, Label, ComboBox}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -106,7 +106,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   /* controls */
 
   private def clicked {
-    find_theorems.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
+    find_theorems.apply_query(
+      List(limit.text, allow_dups.selected.toString, context.selection.item.name, query.getText))
   }
 
   private val query_label = new Label("Search criteria:")
@@ -119,6 +120,19 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     }
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
+  }
+
+  private case class Context_Entry(val name: String, val description: String)
+  {
+    override def toString = description
+  }
+
+  private val context_entries =
+    new Context_Entry("", "context") ::
+      PIDE.thy_load.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
+
+  private val context = new ComboBox[Context_Entry](context_entries) {
+    tooltip = "Search in pre-loaded theory (default: context of current command)"
   }
 
   private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
@@ -148,7 +162,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
-      query_label, Component.wrap(query), limit, allow_dups,
+      query_label, Component.wrap(query), context, limit, allow_dups,
       process_indicator.component, apply_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
