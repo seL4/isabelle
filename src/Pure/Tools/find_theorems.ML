@@ -376,8 +376,7 @@ in
 
 fun nicer_shortest ctxt =
   let
-    (* FIXME Why global name space!?? *)
-    val space = Facts.space_of (Global_Theory.facts_of (Proof_Context.theory_of ctxt));
+    val space = Facts.space_of (Proof_Context.facts_of ctxt);
 
     val shorten =
       Name_Space.extern
