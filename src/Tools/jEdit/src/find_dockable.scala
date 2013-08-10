@@ -145,7 +145,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val allow_dups = new CheckBox("Duplicates") {
-    tooltip = "Allow duplicates in result (faster for large theories)"
+    tooltip = "Show all versions of matching theorems"
     selected = false
   }
 
