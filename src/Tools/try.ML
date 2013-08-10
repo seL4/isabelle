@@ -123,6 +123,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
          {delay = SOME (seconds (Options.default_real @{option auto_time_start})),
           pri = ~ weight,
           persistent = true,
+          strict = true,
           print_fn = fn _ => fn st =>
             let
               val state = Toplevel.proof_of st

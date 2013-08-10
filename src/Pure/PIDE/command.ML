@@ -17,9 +17,10 @@ sig
   val print: bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
-  val print_function: string ->
-    ({command_name: string, args: string list} ->
-      {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option) -> unit
+  type print_function =
+    {command_name: string, args: string list} ->
+      {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option
+  val print_function: string -> print_function -> unit
   val no_print_function: string -> unit
   type exec = eval * print list
   val no_exec: exec
@@ -203,7 +204,7 @@ type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 type print_function =
   {command_name: string, args: string list} ->
-    {delay: Time.time option, pri: int, persistent: bool, print_fn: print_fn} option;
+    {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option;
 
 local
 
@@ -232,7 +233,7 @@ fun print command_visible command_overlays command_name eval old_prints =
 
     fun new_print name args get_pr =
       let
-        fun make_print strict {delay, pri, persistent, print_fn} =
+        fun make_print {delay, pri, persistent, strict, print_fn} =
           let
             val exec_id = Document_ID.make ();
             fun process () =
@@ -240,22 +241,22 @@ fun print command_visible command_overlays command_name eval old_prints =
                 val {failed, command, state = st', ...} = eval_result eval;
                 val tr = Toplevel.exec_id exec_id command;
               in
-                if failed andalso not strict then ()
+                if failed andalso strict then ()
                 else print_error tr (fn () => print_fn tr st')
               end;
           in
-           Print {
-             name = name, args = args, delay = delay, pri = pri, persistent = persistent,
-             exec_id = exec_id, print_process = memo exec_id process}
+            Print {
+              name = name, args = args, delay = delay, pri = pri, persistent = persistent,
+              exec_id = exec_id, print_process = memo exec_id process}
           end;
         val params = {command_name = command_name, args = args};
       in
         (case Exn.capture (Runtime.controlled_execution get_pr) params of
           Exn.Res NONE => NONE
-        | Exn.Res (SOME pr) => SOME (make_print false pr)
+        | Exn.Res (SOME pr) => SOME (make_print pr)
         | Exn.Exn exn =>
-            SOME (make_print true
-              {delay = NONE, pri = 0, persistent = false, print_fn = fn _ => fn _ => reraise exn}))
+            SOME (make_print {delay = NONE, pri = 0, persistent = false,
+              strict = false, print_fn = fn _ => fn _ => reraise exn}))
       end;
 
     fun get_print (a, b) =
@@ -290,7 +291,7 @@ end;
 val _ =
   print_function "print_state"
     (fn {command_name, ...} =>
-      SOME {delay = NONE, pri = 1, persistent = true,
+      SOME {delay = NONE, pri = 1, persistent = true, strict = true,
         print_fn = fn tr => fn st' =>
           let
             val is_init = Keyword.is_theory_begin command_name;

@@ -17,7 +17,7 @@ struct
 fun register_parallel name f =
   Command.print_function name
     (fn {args = instance :: args, ...} =>
-        SOME {delay = NONE, pri = 0, persistent = false,
+        SOME {delay = NONE, pri = 0, persistent = false, strict = false,
           print_fn = fn _ => uninterruptible (fn restore_attributes => fn state =>
             let
               fun result s = Output.result [(Markup.instanceN, instance)] s;
