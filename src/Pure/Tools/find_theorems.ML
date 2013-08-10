@@ -413,8 +413,8 @@ fun all_facts_of ctxt =
       |> filter_out (Facts.is_concealed facts o #1);
   in
     maps Facts.selections
-     (visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)) @
-      visible_facts (Proof_Context.facts_of ctxt))
+     (visible_facts (Proof_Context.facts_of ctxt) @
+      visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)))
   end;
 
 fun filter_theorems ctxt theorems query =
