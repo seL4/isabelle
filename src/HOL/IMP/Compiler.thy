@@ -107,7 +107,7 @@ lemma exec1_appendL:
   "P \<turnstile> (i,s,stk) \<rightarrow> (i',s',stk') \<Longrightarrow>
    P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow> (size(P')+i',s',stk')"
   unfolding exec1_def
-  by (auto split: instr.split)
+  by (auto simp del: iexec.simps)
 
 lemma exec_appendL:
   fixes i i' :: int 
