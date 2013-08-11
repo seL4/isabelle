@@ -1000,6 +1000,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
     val set_bss = map (map fst o type_args_named_constrained_of) specs;
 
+    val _ = has_duplicates (op =) unsorted_As andalso
+      error ("Duplicate parameters in " ^ co_prefix fp ^ "datatype specification");
+
     val bad_args =
       map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy0))) unsorted_As
       |> filter_out Term.is_TVar;
