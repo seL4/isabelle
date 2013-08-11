@@ -71,6 +71,8 @@ sig
   val variant_types: string list -> sort list -> Proof.context ->
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
+  val base_name_of_typ: typ -> string
+
   val nonzero_string_of_int: int -> string
 
   val num_binder_types: typ -> int
@@ -399,6 +401,14 @@ fun variant_types ss Ss ctxt =
 fun variant_tfrees ss =
   apfst (map TFree) o
     variant_types (map (ensure_prefix "'") ss) (replicate (length ss) HOLogic.typeS);
+
+fun add_components_of_typ (Type (s, Ts)) =
+    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
+  | add_components_of_typ (TFree (s, _)) = cons s
+  | add_components_of_typ (TVar ((s, _), _)) = cons s
+  | add_components_of_typ _ = I;
+
+fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
 
 
 (** Types **)

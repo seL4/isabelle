@@ -131,7 +131,6 @@ sig
 
   val co_prefix: fp_kind -> string
 
-  val base_name_of_typ: typ -> string
   val mk_common_name: string list -> string
 
   val split_conj_thm: thm -> thm list
@@ -348,12 +347,6 @@ val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
 
 fun co_prefix fp = (if fp = Greatest_FP then "co" else "");
-
-fun add_components_of_typ (Type (s, Ts)) =
-    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
-  | add_components_of_typ _ = I;
-
-fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
 
 val mk_common_name = space_implode "_";
 

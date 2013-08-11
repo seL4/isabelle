@@ -204,7 +204,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
 
     val (As, B) =
       no_defs_lthy
-      |> variant_tfrees (map (fst o fst o dest_TVar) As0)
+      |> variant_tfrees (map base_name_of_typ As0)
       ||> the_single o fst o mk_TFrees 1;
 
     val dataT = Type (dataT_name, As);
