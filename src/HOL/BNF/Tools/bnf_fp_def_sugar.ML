@@ -1000,6 +1000,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
     val set_bss = map (map fst o type_args_named_constrained_of) specs;
 
+    val bad_args =
+      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy0))) unsorted_As
+      |> filter_out Term.is_TVar;
+    val _ = null bad_args orelse
+      error ("Locally fixed type argument " ^
+        quote (Syntax.string_of_typ no_defs_lthy0 (hd bad_args)) ^ " in " ^ co_prefix fp ^
+        "datatype specification");
+
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
