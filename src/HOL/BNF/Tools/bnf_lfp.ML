@@ -34,19 +34,21 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
     val m = live - n; (*passive, if 0 don't generate a new BNF*)
-    val b = Binding.name (mk_common_name (map Binding.name_of bs));
+    val b_names = map Binding.name_of bs;
+    val b = Binding.name (mk_common_name b_names);
 
     (* TODO: check if m, n, etc., are sane *)
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
+    val passives = map fst (subtract (op = o apsnd TFree) deads resBs);
 
     (* tvars *)
     val ((((((passiveAs, activeAs), passiveBs), activeBs), activeCs), passiveXs), passiveYs) =
       names_lthy
-      |> mk_TFrees m
+      |> variant_tfrees passives
       ||>> mk_TFrees n
-      ||>> mk_TFrees m
+      ||>> variant_tfrees passives
       ||>> mk_TFrees n
       ||>> mk_TFrees n
       ||>> mk_TFrees m
@@ -63,7 +65,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* types *)
     val dead_poss =
-      map (fn T => if member (op =) deads (TFree T) then SOME (TFree T) else NONE) resBs;
+      map (fn x => if member (op =) deads (TFree x) then SOME (TFree x) else NONE) resBs;
     fun mk_param NONE passive = (hd passive, tl passive)
       | mk_param (SOME a) passive = (a, passive);
     val mk_params = fold_map mk_param dead_poss #> fst;
@@ -189,7 +191,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* derived thms *)
 
-    (*map g1 ... gm g(m+1) ... g(m+n) (map id ... id f(m+1) ... f(m+n) x)=
+    (*map g1 ... gm g(m+1) ... g(m+n) (map id ... id f(m+1) ... f(m+n) x) =
       map g1 ... gm (g(m+1) o f(m+1)) ... (g(m+n) o f(m+n)) x*)
     fun mk_map_comp_id x mapAsBs mapBsCs mapAsCs map_comp =
       let
