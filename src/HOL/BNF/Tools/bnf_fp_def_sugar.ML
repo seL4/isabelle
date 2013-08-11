@@ -1018,11 +1018,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       ||>> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
 
-    (* TODO: Cleaner handling of fake contexts, without "background_theory". The case where the new
-       type is defined in a locale and shadows an existing global type is currently not handled. *)
+    (* TODO: Cleaner handling of fake contexts, without "background_theory". *)
 
     fun add_fake_type spec =
-      Sign.add_type no_defs_lthy (type_binding_of spec,
+      (*The "qualify" hack below is for the case where the new type shadows an existing global type
+        defined in the same theory.*)
+      Sign.add_type no_defs_lthy (qualify false "" (type_binding_of spec),
         length (type_args_named_constrained_of spec), mixfix_of spec);
 
     val fake_thy = fold add_fake_type specs;
