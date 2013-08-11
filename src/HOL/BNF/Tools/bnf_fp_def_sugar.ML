@@ -1099,6 +1099,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
+    val _ =
+      if live = 0 andalso exists (not o Binding.is_empty) (map_bs @ rel_bs) then
+        warning ("Map function and relator names ignored")
+      else
+        ();
 
     val Bs =
       map3 (fn alive => fn A as TFree (_, S) => fn B => if alive then resort_tfree S B else A)
