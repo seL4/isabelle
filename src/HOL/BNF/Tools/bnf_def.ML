@@ -1263,7 +1263,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
 fun register_bnf key (bnf, lthy) =
   (bnf, Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update_new (key, morph_bnf phi bnf))) lthy);
+    (fn phi => Data.map (Symtab.default (key, morph_bnf phi bnf))) lthy);
 
 (* TODO: Once the invariant "nwits > 0" holds, remove "mk_conjunction_balanced'" and "rtac TrueI"
    below *)
