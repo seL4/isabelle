@@ -192,8 +192,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
       pad_list [] n (map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss);
 
     val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
-    val data_b = Binding.qualified_name dataT_name;
-    val data_b_name = Binding.name_of data_b;
+    val data_b_name = Long_Name.base_name dataT_name;
+    val data_b = Binding.name data_b_name;
 
     fun qualify mandatory =
       Binding.qualify mandatory data_b_name o
