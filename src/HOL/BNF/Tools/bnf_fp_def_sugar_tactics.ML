@@ -11,7 +11,6 @@ sig
   val sum_prod_thms_set: thm list
   val sum_prod_thms_rel: thm list
 
-  val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list list -> thm list list list -> thm list list list -> tactic
   val mk_coiter_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
@@ -69,12 +68,6 @@ fun inst_as_projs ctxt k thm =
   end;
 
 val inst_as_projs_tac = PRIMITIVE oo inst_as_projs;
-
-fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
-  unfold_thms_tac ctxt [case_def, ctr_def, dtor_ctor] THEN
-  HEADGOAL (rtac (mk_sum_casesN_balanced n k RS ssubst) THEN'
-    REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
-    rtac refl);
 
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
   unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN

@@ -65,10 +65,9 @@ sig
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list ->
     string * term list * term list list * ((term list list * term list list list)
       * (typ list * typ list list)) list ->
-    thm list -> thm list -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list ->
-    typ list -> typ list -> int list list -> int list list -> int list -> thm list list ->
-    BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> (thm list -> thm list) ->
-    local_theory ->
+    thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list -> typ list ->
+    int list list -> int list list -> int list -> thm list list -> BNF_Ctr_Sugar.ctr_sugar list ->
+    term list list -> thm list list -> (thm list -> thm list) -> local_theory ->
     ((thm list * thm) list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
@@ -201,7 +200,6 @@ fun flat_corec_preds_predsss_gettersss [] [qss] [fss] = flat_corec_predss_getter
     p :: flat_corec_predss_getterss qss fss @ flat_corec_preds_predsss_gettersss ps qsss fsss;
 
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
-fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
   mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat_rec_arg_args xss);
 
@@ -689,8 +687,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
-    dtor_coinducts dtor_ctors dtor_coiter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns
-    ctr_defss ctr_sugars coiterss coiter_defss export_args lthy =
+    dtor_coinducts dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs As kss mss ns ctr_defss
+    ctr_sugars coiterss coiter_defss export_args lthy =
   let
     val coiterss' = transpose coiterss;
     val coiter_defss' = transpose coiter_defss;
@@ -703,8 +701,6 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val nesting_map_ids'' = map (unfold_thms lthy [id_def] o map_id_of_bnf) nesting_bnfs;
     val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
-    val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
-    val nested_map_ids'' = map (unfold_thms lthy [id_def] o map_id_of_bnf) nested_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -839,7 +835,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
           let val T = fastype_of cqf in
             if exists_subtype_in Cs T then
               let val U = mk_U maybe_mk_sumT T in
-                build_map lthy (indexify snd fpTs (fn kk => fn TU =>
+                build_map lthy (indexify snd fpTs (fn kk => fn _ =>
                   maybe_tack (nth cs kk, nth us kk) (nth fcoiters kk))) (T, U) $ cqf
               end
             else
@@ -852,20 +848,6 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss';
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
-
-        fun mk_map_if_distrib bnf =
-          let
-            val mapx = map_of_bnf bnf;
-            val live = live_of_bnf bnf;
-            val ((Ts, T), U) = strip_typeN (live + 1) (fastype_of mapx) |>> split_last;
-            val fs = Variable.variant_frees lthy [mapx] (map (pair "f") Ts);
-            val t = Term.list_comb (mapx, map (Var o apfst (rpair 0)) fs);
-          in
-            Drule.instantiate' (map (SOME o certifyT lthy) [U, T]) [SOME (certify lthy t)]
-              @{thm if_distrib}
-          end;
-
-        val nested_map_if_distribs = map mk_map_if_distrib nested_bnfs;
 
         val unfold_tacss =
           map3 (map oo mk_coiter_tac unfold_defs nesting_map_ids'')
@@ -1139,7 +1121,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy') =
       mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
 
-    fun define_ctrs_case_for_type ((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
+    fun define_ctrs_dtrs_for_type (((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
             xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
           pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
         ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
@@ -1149,12 +1131,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val dtorT = domain_type (fastype_of ctor);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
         val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
-        val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
-        val (((((w, fs), xss), yss), u'), names_lthy) =
+        val ((((w, xss), yss), u'), names_lthy) =
           no_defs_lthy
           |> yield_singleton (mk_Frees "w") dtorT
-          ||>> mk_Frees "f" case_Ts
           ||>> mk_Freess "x" ctr_Tss
           ||>> mk_Freess "y" (map (map B_ify) ctr_Tss)
           ||>> yield_singleton Variable.variant_fixes fp_b_name;
@@ -1168,16 +1148,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           map3 (fn k => fn xs => fn tuple_x => fold_rev Term.lambda xs (ctor $
             mk_InN_balanced ctr_sum_prod_T n tuple_x k)) ks xss tuple_xs;
 
-        val case_binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ caseN) fp_b);
-
-        val case_rhs =
-          fold_rev Term.lambda (fs @ [u])
-            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (dtor $ u));
-
-        val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
+        val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
               Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
-            (case_binding :: ctr_bindings) (NoSyn :: ctr_mixfixes) (case_rhs :: ctr_rhss)
+            ctr_bindings ctr_mixfixes ctr_rhss
           ||> `Local_Theory.restore;
 
         val phi = Proof_Context.export_morphism lthy lthy';
@@ -1185,11 +1159,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val ctr_defs = map (Morphism.thm phi) raw_ctr_defs;
         val ctr_defs' =
           map2 (fn m => fn def => mk_unabs_def m (def RS meta_eq_to_obj_eq)) ms ctr_defs;
-        val case_def = Morphism.thm phi raw_case_def;
 
         val ctrs0 = map (Morphism.term phi) raw_ctrs;
-        val casex0 = Morphism.term phi raw_case;
-
         val ctrs = map (mk_ctr As) ctrs0;
 
         fun wrap_ctrs lthy =
@@ -1226,15 +1197,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               map (map (fn (def, def') => fn {context = ctxt, ...} =>
                 mk_half_distinct_tac ctxt ctor_inject [def, def'])) (mk_half_pairss (`I ctr_defs));
 
-            val case_tacs =
-              map3 (fn k => fn m => fn ctr_def => fn {context = ctxt, ...} =>
-                mk_case_tac ctxt n k m case_def ctr_def dtor_ctor) ks ms ctr_defs;
-
-            val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
+            val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
 
             val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
           in
-            wrap_free_constructors tacss (((wrap_opts, ctrs0), casex0), (disc_bindings,
+            wrap_free_constructors tacss (((wrap_opts, ctrs0), standard_binding), (disc_bindings,
               (sel_bindingss, sel_defaultss))) lthy
           end;
 
@@ -1391,9 +1358,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_inducts
-            dtor_ctors xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs As kss mss ns ctr_defss
-            ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy)
-            lthy;
+            dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs As kss mss ns ctr_defss ctr_sugars
+            coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1440,7 +1406,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       end;
 
     val lthy'' = lthy'
-      |> fold_map define_ctrs_case_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~
+      |> fold_map define_ctrs_dtrs_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
         xtor_co_iterss ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
         pre_set_defss ~~ pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~
         kss ~~ mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~

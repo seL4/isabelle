@@ -8,6 +8,7 @@ Tactics for wrapping existing freely generated type's constructors.
 signature BNF_CTR_SUGAR_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
+  val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
   val mk_case_conv_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
     tactic
@@ -108,10 +109,14 @@ fun mk_case_same_ctr_tac ctxt injects =
 fun mk_case_distinct_ctrs_tac ctxt distincts =
   REPEAT_DETERM o etac exE THEN' etac conjE THEN' full_simp_tac (ss_only distincts ctxt);
 
-fun mk_case_tac ctxt n k def injects distinctss =
-  let val ks = 1 upto n in
-    HEADGOAL (rtac (def RS trans) THEN' rtac @{thm the_equality} THEN' rtac (mk_disjIN n k) THEN'
-      REPEAT_DETERM o rtac exI THEN' rtac conjI THEN' rtac refl THEN' rtac refl THEN'
+fun mk_case_tac ctxt n k case_def injects distinctss =
+  let
+    val case_def' = mk_unabs_def (n + 1) (case_def RS meta_eq_to_obj_eq);
+    val ks = 1 upto n;
+  in
+    HEADGOAL (rtac (case_def' RS trans) THEN' rtac @{thm the_equality} THEN'
+      rtac (mk_disjIN n k) THEN' REPEAT_DETERM o rtac exI THEN' rtac conjI THEN' rtac refl THEN'
+      rtac refl THEN'
       EVERY' (map2 (fn k' => fn distincts =>
         (if k' < n then etac disjE else K all_tac) THEN'
         (if k' = k then mk_case_same_ctr_tac ctxt injects
