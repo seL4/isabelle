@@ -77,17 +77,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   }
 
 
-  /* overlays */
-
-  private var overlays = Document.Node.Overlays.empty
-
-  def insert_overlay(command: Command, name: String, args: List[String]): Unit =
-    Swing_Thread.require { overlays = overlays.insert(command, (name, args)) }
-
-  def remove_overlay(command: Command, name: String, args: List[String]): Unit =
-    Swing_Thread.require { overlays = overlays.remove(command, (name, args)) }
-
-
   /* perspective */
 
   // owned by Swing thread
@@ -115,7 +104,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         for {
           doc_view <- PIDE.document_views(buffer)
           range <- doc_view.perspective().ranges
-        } yield range), overlays)
+        } yield range), PIDE.editor.node_overlays(node_name))
     }
     else empty_perspective
   }

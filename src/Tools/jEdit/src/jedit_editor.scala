@@ -15,6 +15,8 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 class JEdit_Editor extends Editor[View]
 {
+  /* session */
+
   def session: Session = PIDE.session
 
   def flush()
@@ -33,6 +35,9 @@ class JEdit_Editor extends Editor[View]
       }
     )
   }
+
+
+  /* current situation */
 
   def current_context: View =
     Swing_Thread.require { jEdit.getActiveView() }
@@ -72,4 +77,18 @@ class JEdit_Editor extends Editor[View]
       }
     }
   }
+
+
+  /* overlays */
+
+  private var overlays = Document.Overlays.empty
+
+  def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+    synchronized { overlays(name) }
+
+  def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+    synchronized { overlays = overlays.insert(command, fn, args) }
+
+  def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+    synchronized { overlays = overlays.remove(command, fn, args) }
 }

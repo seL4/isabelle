@@ -15,6 +15,32 @@ object Document
 {
   /** document structure **/
 
+  /* overlays -- print functions with arguments */
+
+  object Overlays
+  {
+    val empty = new Overlays(Map.empty)
+  }
+
+  final class Overlays private(rep: Map[Node.Name, Node.Overlays])
+  {
+    def apply(name: Document.Node.Name): Node.Overlays =
+      rep.getOrElse(name, Node.Overlays.empty)
+
+    private def update(name: Node.Name, f: Node.Overlays => Node.Overlays): Overlays =
+    {
+      val node_overlays = f(apply(name))
+      new Overlays(if (node_overlays.is_empty) rep - name else rep + (name -> node_overlays))
+    }
+
+    def insert(command: Command, fn: String, args: List[String]): Overlays =
+      update(command.node_name, _.insert(command, fn, args))
+
+    def remove(command: Command, fn: String, args: List[String]): Overlays =
+      update(command.node_name, _.remove(command, fn, args))
+  }
+
+
   /* individual nodes */
 
   type Edit[A, B] = (Node.Name, Node.Edit[A, B])
@@ -60,27 +86,22 @@ object Document
     }
 
 
-    /* overlays -- print functions with arguments */
-
-    type Print_Function = (String, List[String])
+    /* node overlays */
 
     object Overlays
     {
       val empty = new Overlays(Multi_Map.empty)
     }
 
-    final class Overlays private(rep: Multi_Map[Command, Print_Function])
+    final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
     {
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
-
-      def insert(cmd: Command, over: Print_Function): Overlays =
-        new Overlays(rep.insert(cmd, over))
-
-      def remove(cmd: Command, over: Print_Function): Overlays =
-        new Overlays(rep.remove(cmd, over))
-
-      def dest: List[(Command, Print_Function)] = rep.iterator.toList
+      def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
+      def insert(cmd: Command, fn: String, args: List[String]): Overlays =
+        new Overlays(rep.insert(cmd, (fn, args)))
+      def remove(cmd: Command, fn: String, args: List[String]): Overlays =
+        new Overlays(rep.remove(cmd, (fn, args)))
     }
 
 

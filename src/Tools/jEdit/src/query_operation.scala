@@ -56,13 +56,8 @@ class Query_Operation(
 
   private def remove_overlay()
   {
-    Swing_Thread.require()
-
-    for {
-      command <- current_location
-      buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
-      model <- PIDE.document_model(buffer)
-    } model.remove_overlay(command, operation_name, instance :: current_query)
+    current_location.foreach(command =>
+      editor.remove_overlay(command, operation_name, instance :: current_query))
   }
 
 
@@ -167,7 +162,7 @@ class Query_Operation(
             current_location = Some(command)
             current_query = query
             current_status = Query_Operation.Status.WAITING
-            doc_view.model.insert_overlay(command, operation_name, instance :: query)
+            editor.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
         consume_status(current_status)
