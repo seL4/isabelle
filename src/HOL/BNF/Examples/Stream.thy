@@ -57,29 +57,22 @@ hide_const (open) smember
 theorem sset_induct:
   "\<lbrakk>\<And>s. P (shd s) s; \<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s\<rbrakk> \<Longrightarrow>
     \<forall>y \<in> sset s. P y s"
-  by (rule stream.dtor_set_induct)
-    (auto simp add:  shd_def stl_def stream_case_def fsts_def snds_def split_beta)
+  apply (rule stream.dtor_set_induct)
+  apply (auto simp add: shd_def stl_def fsts_def snds_def split_beta)
+  apply (metis Stream_def fst_conv stream.case stream.dtor_ctor stream.exhaust)
+  by (metis Stream_def sndI stl_def stream.collapse stream.dtor_ctor)
 
 lemma smap_simps[simp]:
   "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"
-  unfolding shd_def stl_def stream_case_def smap_def stream.dtor_unfold
-  by (case_tac [!] s) (auto simp: Stream_def stream.dtor_ctor)
+  by (case_tac [!] s) auto
 
 declare stream.map[code]
 
 theorem shd_sset: "shd s \<in> sset s"
-  sorry
-(*
-  by (auto simp add: shd_def stl_def stream_case_def fsts_def snds_def split_beta)
-    (metis UnCI fsts_def insertI1 stream.dtor_set)
-*)
+  by (case_tac s) auto
 
 theorem stl_sset: "y \<in> sset (stl s) \<Longrightarrow> y \<in> sset s"
-  sorry
-(*
-  by (auto simp add: shd_def stl_def stream_case_def fsts_def snds_def split_beta)
-    (metis insertI1 set_mp snds_def stream.dtor_set_set_incl)
-*)
+  by (case_tac s) auto
 
 (* only for the non-mutual case: *)
 theorem sset_induct1[consumes 1, case_names shd stl, induct set: "sset"]:
