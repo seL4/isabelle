@@ -98,6 +98,26 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
           ks ms disc_excludesss disc_excludesss' uncollapses))
     end;
 
+fun mk_case_same_ctr_tac ctxt injects =
+  REPEAT_DETERM o etac exE THEN' etac conjE THEN'
+    (case injects of
+      [] => atac
+    | [inject] => dtac (inject RS iffD1) THEN' REPEAT_DETERM o etac conjE THEN'
+        hyp_subst_tac ctxt THEN' rtac refl);
+
+fun mk_case_distinct_ctrs_tac ctxt distincts =
+  REPEAT_DETERM o etac exE THEN' etac conjE THEN' full_simp_tac (ss_only distincts ctxt);
+
+fun mk_case_tac ctxt n k def injects distinctss =
+  let val ks = 1 upto n in
+    HEADGOAL (rtac (def RS trans) THEN' rtac @{thm the_equality} THEN' rtac (mk_disjIN n k) THEN'
+      REPEAT_DETERM o rtac exI THEN' rtac conjI THEN' rtac refl THEN' rtac refl THEN'
+      EVERY' (map2 (fn k' => fn distincts =>
+        (if k' < n then etac disjE else K all_tac) THEN'
+        (if k' = k then mk_case_same_ctr_tac ctxt injects
+         else mk_case_distinct_ctrs_tac ctxt distincts)) ks distinctss))
+  end;
+
 fun mk_case_conv_tac ctxt n uexhaust cases discss' selss =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (map3 (fn casex => fn if_discs => fn sels =>
