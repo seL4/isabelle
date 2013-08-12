@@ -556,13 +556,17 @@ fun fp_bnf construct_fp bs resBs eqs lthy =
     fun fp_sort Ass =
       subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ lhss;
 
-    fun raw_qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
+    val name = mk_common_name (map Binding.name_of bs);
+
+    fun raw_qualify b =
+      let val s = Binding.name_of b in
+        Binding.qualify false s o Binding.qualify true (rawN ^ s)
+      end;
 
     val ((bnfs, (deadss, livess)), (unfold_set, lthy)) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort) bs rhss
         (empty_unfolds, lthy));
 
-    val name = mk_common_name (map Binding.name_of bs);
     fun qualify i =
       let val namei = name ^ nonzero_string_of_int i;
       in Binding.qualify true namei end;
@@ -582,8 +586,10 @@ fun fp_bnf construct_fp bs resBs eqs lthy =
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
+    fun pre_binding b = Binding.qualify false (Binding.name_of b) (Binding.prefix_name preN b);
+
     val ((pre_bnfs, deadss), lthy'') =
-      fold_map3 (seal_bnf unfold_set') (map (Binding.prefix_name preN) bs) Dss bnfs' lthy'
+      fold_map3 (seal_bnf unfold_set') (map pre_binding bs) Dss bnfs' lthy'
       |>> split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");
