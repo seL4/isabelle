@@ -66,7 +66,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
                         "Documentation error", GUI.scrollable_text(Exn.message(exn)))
                   })
               case Text_File(_, path) =>
-                Hyperlink(Isabelle_System.platform_path(path)).follow(view)
+                PIDE.editor.goto(view, Isabelle_System.platform_path(path))
               case _ =>
             }
           case _ =>

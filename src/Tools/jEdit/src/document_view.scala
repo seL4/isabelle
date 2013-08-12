@@ -197,7 +197,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 val snapshot = model.snapshot()
 
                 if (changed.assignment ||
-                    (changed.nodes.contains(model.name) &&
+                    (changed.nodes.contains(model.node_name) &&
                      changed.commands.exists(snapshot.node.commands.contains)))
                   Swing_Thread.later { overview.delay_repaint.invoke() }
 

@@ -46,7 +46,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val find_theorems =
-    Query_Operation(view, "find_theorems", consume_status _,
+    new Query_Operation(PIDE.editor, view, "find_theorems", consume_status _,
       (snapshot, results, body) =>
         pretty_text_area.update(snapshot, results, Pretty.separate(body)))
 

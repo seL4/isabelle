@@ -53,7 +53,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   private var cached_colors: List[(Color, Int, Int)] = Nil
 
-  private var last_snapshot = Document.State.init.snapshot()
+  private var last_snapshot = Document.Snapshot.init
   private var last_options = PIDE.options.value
   private var last_relevant_range = Text.Range(0)
   private var last_line_count = 0

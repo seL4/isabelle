@@ -199,15 +199,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val hyperlink_include = Set(Markup.ENTITY, Markup.PATH)
 
-  def hyperlink(range: Text.Range): Option[Text.Info[Hyperlink]] =
+  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
-    snapshot.cumulate_markup[List[Text.Info[Hyperlink]]](range, Nil, Some(hyperlink_include), _ =>
+    snapshot.cumulate_markup[List[Text.Info[PIDE.editor.Hyperlink]]](
+      range, Nil, Some(hyperlink_include), _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
-            val link = Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, 0, 0))
-            Some(link :: links)
+            val link = PIDE.editor.hyperlink_file(jedit_file)
+            Some(Text.Info(snapshot.convert(info_range), link) :: links)
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
@@ -220,23 +221,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 Isabelle_System.source_file(Path.explode(name)) match {
                   case Some(path) =>
                     val jedit_file = Isabelle_System.platform_path(path)
-                    val link =
-                      Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, line, 0))
-                    Some(link :: links)
+                    val link = PIDE.editor.hyperlink_file(jedit_file, line)
+                    Some(Text.Info(snapshot.convert(info_range), link) :: links)
                   case None => None
                 }
 
               case Position.Def_Id_Offset(id, offset) =>
                 snapshot.state.find_command(snapshot.version, id) match {
                   case Some((node, command)) =>
-                    val sources =
-                      node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-                        Iterator.single(command.source(Text.Range(0, command.decode(offset))))
-                    val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-                    val link =
-                      Text.Info(snapshot.convert(info_range),
-                        Hyperlink(command.node_name.node, line, column))
-                    Some(link :: links)
+                    PIDE.editor.hyperlink_command(snapshot, command, offset)
+                      .map(link => (Text.Info(snapshot.convert(info_range), link) :: links))
                   case None => None
                 }
 

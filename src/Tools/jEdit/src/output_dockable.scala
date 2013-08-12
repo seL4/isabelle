@@ -30,7 +30,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var zoom_factor = 100
   private var do_update = true
-  private var current_snapshot = Document.State.init.snapshot()
+  private var current_snapshot = Document.Snapshot.init
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
 
@@ -54,15 +54,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Swing_Thread.require()
 
     val (new_snapshot, new_state) =
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val snapshot = doc_view.model.snapshot()
+      PIDE.editor.current_node_snapshot(view) match {
+        case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
-            snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) =>
+            PIDE.editor.current_command(view, snapshot) match {
+              case Some((cmd, _)) =>
                 (snapshot, snapshot.state.command_state(snapshot.version, cmd))
               case None =>
-                (Document.State.init.snapshot(), Command.empty.init_state)
+                (Document.Snapshot.init, Command.empty.init_state)
             }
           }
           else (current_snapshot, current_state)

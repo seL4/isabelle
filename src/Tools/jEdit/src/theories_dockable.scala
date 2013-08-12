@@ -41,7 +41,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
               } model.node_required = !model.node_required
             }
           }
-          else if (clicks == 2) Hyperlink(listData(index).node).follow(view)
+          else if (clicks == 2) PIDE.editor.goto(view, listData(index).node)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)
@@ -98,7 +98,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       buffer <- JEdit_Lib.jedit_buffers
       model <- PIDE.document_model(buffer)
       if model.node_required
-    } nodes_required += model.name
+    } nodes_required += model.node_name
   }
   update_nodes_required()
 

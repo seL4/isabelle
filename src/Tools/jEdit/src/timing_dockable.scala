@@ -89,22 +89,14 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     extends Entry
   {
     def print: String = Time.print_seconds(timing) + "s theory " + quote(name.theory)
-    def follow(snapshot: Document.Snapshot): Unit = Hyperlink(name.node).follow(view)
+    def follow(snapshot: Document.Snapshot) { PIDE.editor.goto(view, name.node) }
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry
   {
     def print: String = "  " + Time.print_seconds(timing) + "s command " + quote(command.name)
-
     def follow(snapshot: Document.Snapshot)
-    {
-      val node = snapshot.version.nodes(command.node_name)
-      if (node.commands.contains(command)) {
-        val sources = node.commands.iterator.takeWhile(_ != command).map(_.source)
-        val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-        Hyperlink(command.node_name.node, line, column).follow(view)
-      }
-    }
+    { PIDE.editor.hyperlink_command(snapshot, command).foreach(_.follow(view)) }
   }
 
 
@@ -165,7 +157,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val name =
       Document_View(view.getTextArea) match {
         case None => Document.Node.Name.empty
-        case Some(doc_view) => doc_view.model.name
+        case Some(doc_view) => doc_view.model.node_name
       }
     val timing = nodes_timing.getOrElse(name, Protocol.empty_node_timing)
 

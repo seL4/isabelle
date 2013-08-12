@@ -47,22 +47,10 @@ object PIDE
     else Some(current_session.recent_syntax)
   }
 
+  lazy val editor = new JEdit_Editor
+
 
   /* document model and view */
-
-  def document_snapshot(name: Document.Node.Name): Document.Snapshot =
-  {
-    Swing_Thread.require()
-
-    JEdit_Lib.jedit_buffer(name.node) match {
-      case Some(buffer) =>
-        document_model(buffer) match {
-          case Some(model) => model.snapshot
-          case None => session.snapshot(name)
-        }
-      case None => session.snapshot(name)
-    }
-  }
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
   def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
@@ -95,7 +83,7 @@ object PIDE
               thy_load.buffer_node_name(buffer) match {
                 case Some(node_name) =>
                   document_model(buffer) match {
-                    case Some(model) if model.name == node_name => (Nil, Some(model))
+                    case Some(model) if model.node_name == node_name => (Nil, Some(model))
                     case _ =>
                       val model = Document_Model.init(session, buffer, node_name)
                       (model.init_edits(), Some(model))
@@ -131,23 +119,6 @@ object PIDE
       Document_View.exit(text_area)
     }
   }
-
-  def flush_buffers()
-  {
-    Swing_Thread.require()
-
-    session.update(
-      (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
-        case (edits, buffer) =>
-          JEdit_Lib.buffer_lock(buffer) {
-            document_model(buffer) match {
-              case Some(model) => model.flushed_edits() ::: edits
-              case None => edits
-            }
-          }
-      }
-    )
-  }
 }
 
 
@@ -173,7 +144,7 @@ class Plugin extends EBPlugin
 
         val thys =
           for (buffer <- buffers; model <- PIDE.document_model(buffer))
-            yield model.name
+            yield model.node_name
 
         val thy_info = new Thy_Info(PIDE.thy_load)
         // FIXME avoid I/O in Swing thread!?!

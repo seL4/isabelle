@@ -22,7 +22,7 @@ object Graphview_Dockable
 {
   /* implicit arguments -- owned by Swing thread */
 
-  private var implicit_snapshot = Document.State.init.snapshot()
+  private var implicit_snapshot = Document.Snapshot.init
 
   private val no_graph: Exn.Result[graphview.Model.Graph] = Exn.Exn(ERROR("No graph"))
   private var implicit_graph = no_graph
@@ -36,7 +36,7 @@ object Graphview_Dockable
   }
 
   private def reset_implicit(): Unit =
-    set_implicit(Document.State.init.snapshot(), no_graph)
+    set_implicit(Document.Snapshot.init, no_graph)
 
   def apply(view: View, snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
   {

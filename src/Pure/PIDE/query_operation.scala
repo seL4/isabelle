@@ -1,18 +1,14 @@
-/*  Title:      Tools/jEdit/src/query_operation.scala
+/*  Title:      Pure/PIDE/query_operation.scala
     Author:     Makarius
 
 One-shot query operations via asynchronous print functions and temporary
 document overlays.
 */
 
-package isabelle.jedit
+package isabelle
 
-
-import isabelle._
 
 import scala.actors.Actor._
-
-import org.gjt.sp.jedit.View
 
 
 object Query_Operation
@@ -23,17 +19,11 @@ object Query_Operation
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
   }
-
-  def apply(
-      view: View,
-      operation_name: String,
-      consume_status: Status.Value => Unit,
-      consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
-    new Query_Operation(view, operation_name, consume_status, consume_output)
 }
 
-final class Query_Operation private(
-  view: View,
+class Query_Operation[Editor_Context](
+  editor: Editor[Editor_Context],
+  editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status.Value => Unit,
   consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
@@ -62,13 +52,8 @@ final class Query_Operation private(
 
   private def remove_overlay()
   {
-    Swing_Thread.require()
-
-    for {
-      command <- current_location
-      buffer <- JEdit_Lib.jedit_buffer(command.node_name.node)
-      model <- PIDE.document_model(buffer)
-    } model.remove_overlay(command, operation_name, instance :: current_query)
+    current_location.foreach(command =>
+      editor.remove_overlay(command, operation_name, instance :: current_query))
   }
 
 
@@ -84,12 +69,12 @@ final class Query_Operation private(
     val (snapshot, state, removed) =
       current_location match {
         case Some(cmd) =>
-          val snapshot = PIDE.document_snapshot(cmd.node_name)
+          val snapshot = editor.node_snapshot(cmd.node_name)
           val state = snapshot.state.command_state(snapshot.version, cmd)
           val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
           (snapshot, state, removed)
         case None =>
-          (Document.State.init.snapshot(), Command.empty.init_state, true)
+          (Document.Snapshot.init, Command.empty.init_state, true)
       }
 
     val results =
@@ -145,7 +130,7 @@ final class Query_Operation private(
           consume_status(new_status)
           if (new_status == Query_Operation.Status.FINISHED) {
             remove_overlay()
-            PIDE.flush_buffers()
+            editor.flush()
           }
         }
       }
@@ -156,28 +141,27 @@ final class Query_Operation private(
   /* query operations */
 
   def cancel_query(): Unit =
-    Swing_Thread.require { PIDE.session.cancel_exec(current_exec_id) }
+    Swing_Thread.require { editor.session.cancel_exec(current_exec_id) }
 
   def apply_query(query: List[String])
   {
     Swing_Thread.require()
 
-    Document_View(view.getTextArea) match {
-      case Some(doc_view) =>
-        val snapshot = doc_view.model.snapshot()
+    editor.current_node_snapshot(editor_context) match {
+      case Some(snapshot) =>
         remove_overlay()
         reset_state()
-        consume_output(Document.State.init.snapshot(), Command.Results.empty, Nil)
-        snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-          case Some(command) =>
+        consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+        editor.current_command(editor_context, snapshot) match {
+          case Some((command, _)) =>
             current_location = Some(command)
             current_query = query
             current_status = Query_Operation.Status.WAITING
-            doc_view.model.insert_overlay(command, operation_name, instance :: query)
+            editor.insert_overlay(command, operation_name, instance :: query)
           case None =>
         }
         consume_status(current_status)
-        PIDE.flush_buffers()
+        editor.flush()
       case None =>
     }
   }
@@ -186,18 +170,11 @@ final class Query_Operation private(
   {
     Swing_Thread.require()
 
-    current_location match {
-      case Some(command) =>
-        val snapshot = PIDE.document_snapshot(command.node_name)
-        val commands = snapshot.node.commands
-        if (commands.contains(command)) {
-          // FIXME revert offset (!?)
-          val sources = commands.iterator.takeWhile(_ != command).map(_.source)
-          val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-          Hyperlink(command.node_name.node, line, column).follow(view)
-        }
-      case None =>
-    }
+    for {
+      command <- current_location
+      snapshot = editor.node_snapshot(command.node_name)
+      link <- editor.hyperlink_command(snapshot, command)
+    } link.follow(editor_context)
   }
 
 
@@ -221,6 +198,6 @@ final class Query_Operation private(
     }
   }
 
-  def activate() { PIDE.session.commands_changed += main_actor }
-  def deactivate() { PIDE.session.commands_changed -= main_actor }
+  def activate() { editor.session.commands_changed += main_actor }
+  def deactivate() { editor.session.commands_changed -= main_actor }
 }

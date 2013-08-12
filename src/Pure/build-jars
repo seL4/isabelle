@@ -18,6 +18,7 @@ declare -a SOURCES=(
   General/graph.scala
   General/graphics_file.scala
   General/linear_set.scala
+  General/multi_map.scala
   General/path.scala
   General/position.scala
   General/pretty.scala
@@ -35,9 +36,11 @@ declare -a SOURCES=(
   PIDE/command.scala
   PIDE/document.scala
   PIDE/document_id.scala
+  PIDE/editor.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
+  PIDE/query_operation.scala
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala

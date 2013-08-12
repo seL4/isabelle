@@ -15,6 +15,32 @@ object Document
 {
   /** document structure **/
 
+  /* overlays -- print functions with arguments */
+
+  object Overlays
+  {
+    val empty = new Overlays(Map.empty)
+  }
+
+  final class Overlays private(rep: Map[Node.Name, Node.Overlays])
+  {
+    def apply(name: Document.Node.Name): Node.Overlays =
+      rep.getOrElse(name, Node.Overlays.empty)
+
+    private def update(name: Node.Name, f: Node.Overlays => Node.Overlays): Overlays =
+    {
+      val node_overlays = f(apply(name))
+      new Overlays(if (node_overlays.is_empty) rep - name else rep + (name -> node_overlays))
+    }
+
+    def insert(command: Command, fn: String, args: List[String]): Overlays =
+      update(command.node_name, _.insert(command, fn, args))
+
+    def remove(command: Command, fn: String, args: List[String]): Overlays =
+      update(command.node_name, _.remove(command, fn, args))
+  }
+
+
   /* individual nodes */
 
   type Edit[A, B] = (Node.Name, Node.Edit[A, B])
@@ -60,45 +86,22 @@ object Document
     }
 
 
-    /* overlays -- print functions with arguments */
-
-    type Overlay = (Command, (String, List[String]))
+    /* node overlays */
 
     object Overlays
     {
-      val empty = new Overlays(Map.empty)
+      val empty = new Overlays(Multi_Map.empty)
     }
 
-    final class Overlays private(rep: Map[Command, List[(String, List[String])]])
+    final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
     {
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
-
-      def insert(cmd: Command, over: (String, List[String])): Overlays =
-      {
-        val overs = rep.getOrElse(cmd, Nil)
-        if (overs.contains(over)) this
-        else new Overlays(rep + (cmd -> (over :: overs)))
-      }
-
-      def remove(cmd: Command, over: (String, List[String])): Overlays =
-        rep.get(cmd) match {
-          case Some(overs) =>
-            if (overs.contains(over)) {
-              overs.filterNot(_ == over) match {
-                case Nil => new Overlays(rep - cmd)
-                case overs1 => new Overlays(rep + (cmd -> overs1))
-              }
-            }
-            else this
-          case None => this
-        }
-
-      def dest: List[Overlay] =
-        (for {
-          (cmd, overs) <- rep.iterator
-          over <- overs
-        } yield (cmd, over)).toList
+      def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
+      def insert(cmd: Command, fn: String, args: List[String]): Overlays =
+        new Overlays(rep.insert(cmd, (fn, args)))
+      def remove(cmd: Command, fn: String, args: List[String]): Overlays =
+        new Overlays(rep.remove(cmd, (fn, args)))
     }
 
 
@@ -204,12 +207,6 @@ object Document
 
     def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
       command_range(range.start) takeWhile { case (_, start) => start < range.stop }
-
-    def command_at(i: Text.Offset): Option[(Command, Text.Offset)] =
-    {
-      val range = command_range(i)
-      if (range.hasNext) Some(range.next) else None
-    }
 
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
@@ -324,17 +321,23 @@ object Document
 
   /** global state -- document structure, execution process, editing history **/
 
+  object Snapshot
+  {
+    val init = State.init.snapshot()
+  }
+
   abstract class Snapshot
   {
     val state: State
     val version: Version
-    val node_name: Node.Name
-    val node: Node
     val is_outdated: Boolean
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
+
+    val node_name: Node.Name
+    val node: Node
     def eq_content(other: Snapshot): Boolean
     def cumulate_markup[A](
       range: Text.Range,
@@ -555,16 +558,22 @@ object Document
 
       new Snapshot
       {
+        /* global information */
+
         val state = State.this
         val version = stable.version.get_finished
-        val node_name = name
-        val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
         def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
         def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
+
+
+        /* local node content */
+
+        val node_name = name
+        val node = version.nodes(name)
 
         def eq_content(other: Snapshot): Boolean =
           !is_outdated && !other.is_outdated &&
