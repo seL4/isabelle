@@ -149,7 +149,7 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_map's pre_set_de
       mss (unflat mss (1 upto n)) kkss)
   end;
 
-fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
+fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   hyp_subst_tac ctxt THEN'
   CONVERSION (hhf_concl_conv
     (Conv.top_conv (K (Conv.try_conv (Conv.rewr_conv ctr_def))) ctxt) ctxt) THEN'
@@ -161,7 +161,7 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
      REPEAT o etac conjE THEN_MAYBE' REPEAT o hyp_subst_tac ctxt THEN' REPEAT o rtac conjI THEN'
      REPEAT o rtac refl);
 
-fun mk_coinduct_distinct_ctrs ctxt discs discs' =
+fun mk_coinduct_distinct_ctrs_tac ctxt discs discs' =
   hyp_subst_tac ctxt THEN' REPEAT o etac conjE THEN'
   full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms) ctxt);
 
@@ -175,9 +175,9 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor e
         EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
           map2 (fn k' => fn discs' =>
             if k' = k then
-              mk_coinduct_same_ctr ctxt rel_eqs' pre_rel_def dtor_ctor ctr_def discs sels
+              mk_coinduct_same_ctr_tac ctxt rel_eqs' pre_rel_def dtor_ctor ctr_def discs sels
             else
-              mk_coinduct_distinct_ctrs ctxt discs discs') ks discss)) ks ctr_defs discss selss)
+              mk_coinduct_distinct_ctrs_tac ctxt discs discs') ks discss)) ks ctr_defs discss selss)
   end;
 
 fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs dtor_ctors exhausts ctr_defss
