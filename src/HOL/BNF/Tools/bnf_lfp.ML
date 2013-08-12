@@ -786,7 +786,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val timer = time (timer "Minimal algebra definition & thms");
 
     val II_repT = HOLogic.mk_prodT (HOLogic.mk_tupleT II_BTs, HOLogic.mk_tupleT II_sTs);
-    val IIT_bind = Binding.suffix_name ("_" ^ IITN) b;
+    val IIT_bind = Binding.qualify false (Binding.name_of b) (Binding.suffix_name ("_" ^ IITN) b);
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
       typedef (IIT_bind, params, NoSyn)

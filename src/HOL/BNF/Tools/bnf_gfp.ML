@@ -964,7 +964,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       then (lthy, sum_bd, sum_bdT, bd_card_order, bd_Cinfinite, bd_Card_order, set_bdss)
       else
         let
-          val sbdT_bind = Binding.suffix_name ("_" ^ sum_bdTN) b;
+          val sbdT_bind =
+            Binding.qualify false (Binding.name_of b) (Binding.suffix_name ("_" ^ sum_bdTN) b);
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
             typedef (sbdT_bind, dead_params, NoSyn)
