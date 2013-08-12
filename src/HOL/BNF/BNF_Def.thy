@@ -31,7 +31,7 @@ apply(rule ext)
 unfolding convol_def by simp
 
 lemma convol_mem_GrpI:
-"\<lbrakk>g x = g' x; x \<in> A\<rbrakk> \<Longrightarrow> <id , g> x \<in> (Collect (split (Grp A g)))"
+"x \<in> A \<Longrightarrow> <id , g> x \<in> (Collect (split (Grp A g)))"
 unfolding convol_def Grp_def by auto
 
 definition csquare where

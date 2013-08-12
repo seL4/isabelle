@@ -111,7 +111,7 @@ fun mk_rel_Grp_tac rel_OO_Grps map_id map_cong0 map_id' map_comp set_maps
             rtac CollectI,
             CONJ_WRAP' (fn thm =>
               EVERY' [rtac ord_eq_le_trans, rtac thm, rtac @{thm image_subsetI},
-                rtac @{thm convol_mem_GrpI[OF refl]}, etac set_mp, atac])
+                rtac @{thm convol_mem_GrpI}, etac set_mp, atac])
             set_maps])
           @{thms fst_convol snd_convol} [map_id', refl])] 1
   end;
