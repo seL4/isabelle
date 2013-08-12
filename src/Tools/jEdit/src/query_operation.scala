@@ -151,14 +151,13 @@ class Query_Operation(
   {
     Swing_Thread.require()
 
-    Document_View(view.getTextArea) match {
-      case Some(doc_view) =>
-        val snapshot = doc_view.model.snapshot()
+    editor.current_node_snapshot(view) match {
+      case Some(snapshot) =>
         remove_overlay()
         reset_state()
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-        snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-          case Some(command) =>
+        editor.current_command(view, snapshot) match {
+          case Some((command, _)) =>
             current_location = Some(command)
             current_query = query
             current_status = Query_Operation.Status.WAITING

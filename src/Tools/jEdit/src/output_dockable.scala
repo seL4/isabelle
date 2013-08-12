@@ -54,12 +54,11 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     Swing_Thread.require()
 
     val (new_snapshot, new_state) =
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val snapshot = doc_view.model.snapshot()
+      PIDE.editor.current_node_snapshot(view) match {
+        case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
-            snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) =>
+            PIDE.editor.current_command(view, snapshot) match {
+              case Some((cmd, _)) =>
                 (snapshot, snapshot.state.command_state(snapshot.version, cmd))
               case None =>
                 (Document.Snapshot.init, Command.empty.init_state)

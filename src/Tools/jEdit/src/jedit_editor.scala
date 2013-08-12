@@ -45,7 +45,7 @@ class JEdit_Editor extends Editor[View]
   def current_node(view: View): Option[Document.Node.Name] =
     Swing_Thread.require { PIDE.document_model(view.getBuffer).map(_.node_name) }
 
-  def current_snapshot(view: View): Option[Document.Snapshot] =
+  def current_node_snapshot(view: View): Option[Document.Snapshot] =
     Swing_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
 
   def node_snapshot(name: Document.Node.Name): Document.Snapshot =
@@ -72,7 +72,8 @@ class JEdit_Editor extends Editor[View]
       PIDE.document_view(text_area) match {
         case Some(doc_view) =>
           val node = snapshot.version.nodes(doc_view.model.node_name)
-          node.command_at(text_area.getCaretPosition)
+          val caret_commands = node.command_range(text_area.getCaretPosition)
+          if (caret_commands.hasNext) Some(caret_commands.next) else None
         case None => None
       }
     }

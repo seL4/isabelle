@@ -208,12 +208,6 @@ object Document
     def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
       command_range(range.start) takeWhile { case (_, start) => start < range.stop }
 
-    def command_at(i: Text.Offset): Option[(Command, Text.Offset)] =
-    {
-      val range = command_range(i)
-      if (range.hasNext) Some(range.next) else None
-    }
-
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
   }
