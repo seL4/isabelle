@@ -11,7 +11,7 @@ theory BNF_Ctr_Sugar
 imports BNF_Util
 keywords
   "wrap_free_constructors" :: thy_goal and
-  "no_dests" and
+  "no_discs_sels" and
   "rep_compat"
 begin
 

@@ -177,7 +177,7 @@ val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs),
+fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw_ctrs),
     raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -335,7 +335,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
 
     val (all_sels_distinct, discs, selss, udiscs, uselss, vdiscs, vselss, disc_defs, sel_defs,
          sel_defss, lthy') =
-      if no_dests then
+      if no_discs_sels then
         (true, [], [], [], [], [], [], [], [], [], lthy)
       else
         let
@@ -504,7 +504,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
 
         val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
              disc_exhaust_thms, collapse_thms, expand_thms, case_conv_thms) =
-          if no_dests then
+          if no_discs_sels then
             ([], [], [], [], [], [], [], [], [], [])
           else
             let
@@ -790,7 +790,7 @@ val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_free_constructors_options =
-  Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_dests"} >> K (true, false)) ||
+  Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_discs_sels"} >> K (true, false)) ||
       (@{keyword "rep_compat"} >> K (false, true))) --| @{keyword ")"}
     >> (pairself (exists I) o split_list)) (false, false);
 

@@ -411,7 +411,7 @@ Datatype definitions have the following general syntax:
   @@{command datatype_new} @{syntax target}? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' ((@'no_dests' | @'rep_compat') + ',') ')'
+  @{syntax_def dt_options}: '(' ((@'no_discs_sels' | @'rep_compat') + ',') ')'
 "}
 
 The syntactic quantity @{syntax target} can be used to specify a local context
@@ -424,7 +424,7 @@ The optional target is followed by optional options:
 \setlength{\itemsep}{0pt}
 
 \item
-The \keyw{no\_dests} option indicates that no destructors (i.e.,
+The \keyw{no\_discs\_sels} option indicates that no destructors (i.e.,
 discriminators and selectors) should be generated.
 
 \item
@@ -888,7 +888,7 @@ subsection {* Syntax
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
 (Section~\ref{ssec:datatype-syntax}), with two exceptions: The command is called
-@{command codatatype}; the \keyw{no\_dests} option is not available, because
+@{command codatatype}; the \keyw{no\_discs\_sels} option is not available, because
 destructors are a central notion for codatatypes.
 *}
 
@@ -982,7 +982,8 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
     old @{command datatype}
 
   * @{command wrap_free_constructors}
-    * \keyw{no\_dests}, \keyw{rep\_compat}
+    * \keyw{no\_discs\_sels}, \keyw{rep\_compat}
+    * hack to have both co and nonco view via locale (cf. ext nats)
 *}
 
 

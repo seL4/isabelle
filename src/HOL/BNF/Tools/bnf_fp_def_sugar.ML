@@ -953,12 +953,12 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    (wrap_opts as (no_dests, rep_compat), specs) no_defs_lthy0 =
+    (wrap_opts as (no_discs_sels, rep_compat), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
-    val _ = if fp = Greatest_FP andalso no_dests then
-        error "Cannot define destructor-less codatatypes"
+    val _ = if fp = Greatest_FP andalso no_discs_sels then
+        error "Cannot define codatatypes without discriminators and selectors"
       else
         ();
 
