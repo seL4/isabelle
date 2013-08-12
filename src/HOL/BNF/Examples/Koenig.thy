@@ -14,10 +14,14 @@ begin
 
 (* selectors for streams *)
 lemma shd_def': "shd as = fst (stream_dtor as)"
-unfolding shd_def stream_case_def fst_def by (rule refl)
+apply (case_tac as)
+apply (auto simp add: shd_def)
+by (simp add: Stream_def stream.dtor_ctor)
 
 lemma stl_def': "stl as = snd (stream_dtor as)"
-unfolding stl_def stream_case_def snd_def by (rule refl)
+apply (case_tac as)
+apply (auto simp add: stl_def)
+by (simp add: Stream_def stream.dtor_ctor)
 
 lemma unfold_pair_fun_shd[simp]: "shd (stream_dtor_unfold (f \<odot> g) t) = f t"
 unfolding shd_def' pair_fun_def stream.dtor_unfold by simp
