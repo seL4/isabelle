@@ -47,6 +47,8 @@ object PIDE
     else Some(current_session.recent_syntax)
   }
 
+  lazy val editor = new JEdit_Editor
+
 
   /* document model and view */
 

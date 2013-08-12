@@ -35,6 +35,7 @@ declare -a SOURCES=(
   PIDE/command.scala
   PIDE/document.scala
   PIDE/document_id.scala
+  PIDE/editor.scala
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala

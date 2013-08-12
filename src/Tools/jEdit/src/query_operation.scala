@@ -23,16 +23,10 @@ object Query_Operation
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
   }
-
-  def apply(
-      view: View,
-      operation_name: String,
-      consume_status: Status.Value => Unit,
-      consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit) =
-    new Query_Operation(view, operation_name, consume_status, consume_output)
 }
 
-final class Query_Operation private(
+class Query_Operation(
+  editor: Editor[View],
   view: View,
   operation_name: String,
   consume_status: Query_Operation.Status.Value => Unit,
@@ -156,7 +150,7 @@ final class Query_Operation private(
   /* query operations */
 
   def cancel_query(): Unit =
-    Swing_Thread.require { PIDE.session.cancel_exec(current_exec_id) }
+    Swing_Thread.require { editor.session.cancel_exec(current_exec_id) }
 
   def apply_query(query: List[String])
   {
@@ -221,6 +215,6 @@ final class Query_Operation private(
     }
   }
 
-  def activate() { PIDE.session.commands_changed += main_actor }
-  def deactivate() { PIDE.session.commands_changed -= main_actor }
+  def activate() { editor.session.commands_changed += main_actor }
+  def deactivate() { editor.session.commands_changed -= main_actor }
 }

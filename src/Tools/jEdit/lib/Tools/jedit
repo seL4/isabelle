@@ -24,6 +24,7 @@ declare -a SOURCES=(
   "src/isabelle_logic.scala"
   "src/isabelle_options.scala"
   "src/isabelle_sidekick.scala"
+  "src/jedit_editor.scala"
   "src/jedit_lib.scala"
   "src/jedit_main.scala"
   "src/jedit_options.scala"
