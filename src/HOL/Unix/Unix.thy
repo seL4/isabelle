@@ -843,8 +843,6 @@ text {*
   neither owned nor writable by @{term user\<^isub>1}.
 *}
 
-
-
 definition
   "invariant root path =
     (\<exists>att dir.
