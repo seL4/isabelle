@@ -1,14 +1,12 @@
-/*  Title:      Tools/jEdit/src/query_operation.scala
+/*  Title:      Pure/PIDE/query_operation.scala
     Author:     Makarius
 
 One-shot query operations via asynchronous print functions and temporary
 document overlays.
 */
 
-package isabelle.jedit
+package isabelle
 
-
-import isabelle._
 
 import scala.actors.Actor._
 

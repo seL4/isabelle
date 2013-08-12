@@ -40,6 +40,7 @@ declare -a SOURCES=(
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
+  PIDE/query_operation.scala
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
