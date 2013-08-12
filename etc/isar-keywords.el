@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Boogie + HOL-Decision_Procs + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -33,10 +33,6 @@
     "axiomatization"
     "back"
     "bnf"
-    "boogie_end"
-    "boogie_open"
-    "boogie_status"
-    "boogie_vc"
     "bundle"
     "by"
     "cannot_undo"
@@ -339,7 +335,7 @@
     "module_name"
     "monos"
     "morphisms"
-    "no_dests"
+    "no_discs_sels"
     "notes"
     "obtains"
     "open"
@@ -386,7 +382,6 @@
 (defconst isar-keywords-diag
   '("ML_command"
     "ML_val"
-    "boogie_status"
     "class_deps"
     "code_deps"
     "code_thms"
@@ -484,8 +479,6 @@
     "atom_decl"
     "attribute_setup"
     "axiomatization"
-    "boogie_end"
-    "boogie_open"
     "bundle"
     "class"
     "classes"
@@ -595,7 +588,6 @@
 (defconst isar-keywords-theory-goal
   '("ax_specification"
     "bnf"
-    "boogie_vc"
     "code_pred"
     "corollary"
     "cpodef"
