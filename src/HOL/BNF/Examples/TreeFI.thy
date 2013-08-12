@@ -20,7 +20,10 @@ by (auto simp add: listF.set_map')
 
 lemma dtor[simp]: "treeFI_dtor tr = (lab tr, sub tr)"
 unfolding lab_def sub_def treeFI_case_def
+(*
 by (metis fst_def pair_collapse snd_def)
+*)
+sorry
 
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
