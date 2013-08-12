@@ -202,9 +202,13 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
       Binding.qualify mandatory data_b_name o
       (rep_compat ? Binding.qualify false rep_compat_prefix);
 
+    fun tfree_name_of (TFree (s, _)) = s
+      | tfree_name_of (TVar ((s, _), _)) = s
+      | tfree_name_of (Type (s, _)) = Long_Name.base_name s;
+
     val (As, B) =
       no_defs_lthy
-      |> variant_tfrees (map (fst o fst o dest_TVar) As0)
+      |> variant_tfrees (map tfree_name_of As0)
       ||> the_single o fst o mk_TFrees 1;
 
     val dataT = Type (dataT_name, As);
