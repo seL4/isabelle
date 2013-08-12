@@ -62,43 +62,25 @@ object Document
 
     /* overlays -- print functions with arguments */
 
-    type Overlay = (Command, (String, List[String]))
+    type Print_Function = (String, List[String])
 
     object Overlays
     {
-      val empty = new Overlays(Map.empty)
+      val empty = new Overlays(Multi_Map.empty)
     }
 
-    final class Overlays private(rep: Map[Command, List[(String, List[String])]])
+    final class Overlays private(rep: Multi_Map[Command, Print_Function])
     {
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
 
-      def insert(cmd: Command, over: (String, List[String])): Overlays =
-      {
-        val overs = rep.getOrElse(cmd, Nil)
-        if (overs.contains(over)) this
-        else new Overlays(rep + (cmd -> (over :: overs)))
-      }
+      def insert(cmd: Command, over: Print_Function): Overlays =
+        new Overlays(rep.insert(cmd, over))
 
-      def remove(cmd: Command, over: (String, List[String])): Overlays =
-        rep.get(cmd) match {
-          case Some(overs) =>
-            if (overs.contains(over)) {
-              overs.filterNot(_ == over) match {
-                case Nil => new Overlays(rep - cmd)
-                case overs1 => new Overlays(rep + (cmd -> overs1))
-              }
-            }
-            else this
-          case None => this
-        }
+      def remove(cmd: Command, over: Print_Function): Overlays =
+        new Overlays(rep.remove(cmd, over))
 
-      def dest: List[Overlay] =
-        (for {
-          (cmd, overs) <- rep.iterator
-          over <- overs
-        } yield (cmd, over)).toList
+      def dest: List[(Command, Print_Function)] = rep.iterator.toList
     }
 
 
