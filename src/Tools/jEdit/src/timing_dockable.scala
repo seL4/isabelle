@@ -165,7 +165,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val name =
       Document_View(view.getTextArea) match {
         case None => Document.Node.Name.empty
-        case Some(doc_view) => doc_view.model.name
+        case Some(doc_view) => doc_view.model.node_name
       }
     val timing = nodes_timing.getOrElse(name, Protocol.empty_node_timing)
 

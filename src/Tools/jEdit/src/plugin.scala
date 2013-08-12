@@ -97,7 +97,7 @@ object PIDE
               thy_load.buffer_node_name(buffer) match {
                 case Some(node_name) =>
                   document_model(buffer) match {
-                    case Some(model) if model.name == node_name => (Nil, Some(model))
+                    case Some(model) if model.node_name == node_name => (Nil, Some(model))
                     case _ =>
                       val model = Document_Model.init(session, buffer, node_name)
                       (model.init_edits(), Some(model))
@@ -175,7 +175,7 @@ class Plugin extends EBPlugin
 
         val thys =
           for (buffer <- buffers; model <- PIDE.document_model(buffer))
-            yield model.name
+            yield model.node_name
 
         val thy_info = new Thy_Info(PIDE.thy_load)
         // FIXME avoid I/O in Swing thread!?!

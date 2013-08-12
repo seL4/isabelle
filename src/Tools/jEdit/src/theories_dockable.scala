@@ -98,7 +98,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       buffer <- JEdit_Lib.jedit_buffers
       model <- PIDE.document_model(buffer)
       if model.node_required
-    } nodes_required += model.name
+    } nodes_required += model.node_name
   }
   update_nodes_required()
 

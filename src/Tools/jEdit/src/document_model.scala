@@ -46,11 +46,11 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer, name: Document.Node.Name): Document_Model =
+  def init(session: Session, buffer: Buffer, node_name: Document.Node.Name): Document_Model =
   {
     Swing_Thread.require()
     apply(buffer).map(_.deactivate)
-    val model = new Document_Model(session, buffer, name)
+    val model = new Document_Model(session, buffer, node_name)
     buffer.setProperty(key, model)
     model.activate()
     buffer.propertiesChanged
@@ -59,7 +59,7 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session, val buffer: Buffer, val name: Document.Node.Name)
+class Document_Model(val session: Session, val buffer: Buffer, val node_name: Document.Node.Name)
 {
   /* header */
 
@@ -68,7 +68,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     Swing_Thread.require()
     JEdit_Lib.buffer_lock(buffer) {
       Exn.capture {
-        PIDE.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
+        PIDE.thy_load.check_thy_text(node_name, buffer.getSegment(0, buffer.getLength))
       } match {
         case Exn.Res(header) => header
         case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
@@ -131,10 +131,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     val text = JEdit_Lib.buffer_text(buffer)
     val perspective = node_perspective()
 
-    List(session.header_edit(name, header),
-      name -> Document.Node.Clear(),
-      name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
-      name -> perspective)
+    List(session.header_edit(node_name, header),
+      node_name -> Document.Node.Clear(),
+      node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
+      node_name -> perspective)
   }
 
   def node_edits(perspective: Document.Node.Perspective_Text, text_edits: List[Text.Edit])
@@ -144,9 +144,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
     val header = node_header()
 
-    List(session.header_edit(name, header),
-      name -> Document.Node.Edits(text_edits),
-      name -> perspective)
+    List(session.header_edit(node_name, header),
+      node_name -> Document.Node.Edits(text_edits),
+      node_name -> perspective)
   }
 
 
@@ -208,7 +208,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def snapshot(): Document.Snapshot =
   {
     Swing_Thread.require()
-    session.snapshot(name, pending_edits.snapshot())
+    session.snapshot(node_name, pending_edits.snapshot())
   }
 
 
