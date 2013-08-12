@@ -163,7 +163,7 @@ sig
   val unfold_thms: Proof.context -> thm list -> thm -> thm
 
   val mk_permute: ''a list -> ''a list -> 'b list -> 'b list
-  val find_indices: ''a list -> ''a list -> int list
+  val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
 
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
@@ -616,8 +616,8 @@ val list_exists_free =
     let val (x, T) = Term.dest_Free free;
     in HOLogic.exists_const T $ Term.absfree (x, T) P end);
 
-fun find_indices xs ys = map_filter I
-  (map_index (fn (i, y) => if member (op =) xs y then SOME i else NONE) ys);
+fun find_indices eq xs ys = map_filter I
+  (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
@@ -700,6 +700,7 @@ fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
   | transpose xss = map hd xss :: transpose (map tl xss);
 
+(*FIXME: merge with mk_permute*)
 fun sort_like eq xs ys = map (fn x => nth ys (find_index (curry eq x) xs));
 
 fun seq_conds f n k xs =

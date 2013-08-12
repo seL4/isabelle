@@ -524,8 +524,8 @@ fun lift_and_permute qualify n src dest bnf =
 fun normalize_bnfs qualify Ass Ds sort bnfs unfold_set lthy =
   let
     val before_kill_src = map (fn As => 0 upto (length As - 1)) Ass;
-    val kill_poss = map (find_indices Ds) Ass;
-    val live_poss = map2 (subtract (op =)) kill_poss before_kill_src;
+    val kill_poss = map (find_indices op = Ds) Ass;
+    val live_poss = map2 (subtract op =) kill_poss before_kill_src;
     val before_kill_dest = map2 append kill_poss live_poss;
     val kill_ns = map length kill_poss;
     val (inners', (unfold_set', lthy')) =
@@ -537,7 +537,7 @@ fun normalize_bnfs qualify Ass Ds sort bnfs unfold_set lthy =
     val As = sort Ass';
     val after_lift_dest = replicate (length Ass') (0 upto (length As - 1));
     val old_poss = map (map (fn x => find_index (fn y => x = y) As)) Ass';
-    val new_poss = map2 (subtract (op =)) old_poss after_lift_dest;
+    val new_poss = map2 (subtract op =) old_poss after_lift_dest;
     val after_lift_src = map2 append new_poss old_poss;
     val lift_ns = map (fn xs => length As - length xs) Ass';
   in
@@ -673,7 +673,7 @@ fun bnf_of_typ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
               in qualify' o Binding.qualify true namei end;
             val odead = dead_of_bnf bnf;
             val olive = live_of_bnf bnf;
-            val oDs_pos = find_indices [TFree ("dead", [])] (snd (Term.dest_Type
+            val oDs_pos = find_indices op = [TFree ("dead", [])] (snd (Term.dest_Type
               (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) bnf)));
             val oDs = map (nth Ts) oDs_pos;
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
