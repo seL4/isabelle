@@ -12,8 +12,6 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import org.gjt.sp.jedit.View
-
 
 object Query_Operation
 {
@@ -25,9 +23,9 @@ object Query_Operation
   }
 }
 
-class Query_Operation(
-  editor: Editor[View],
-  view: View,
+class Query_Operation[Editor_Context](
+  editor: Editor[Editor_Context],
+  editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status.Value => Unit,
   consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit)
@@ -151,12 +149,12 @@ class Query_Operation(
   {
     Swing_Thread.require()
 
-    editor.current_node_snapshot(view) match {
+    editor.current_node_snapshot(editor_context) match {
       case Some(snapshot) =>
         remove_overlay()
         reset_state()
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-        editor.current_command(view, snapshot) match {
+        editor.current_command(editor_context, snapshot) match {
           case Some((command, _)) =>
             current_location = Some(command)
             current_query = query
@@ -174,18 +172,11 @@ class Query_Operation(
   {
     Swing_Thread.require()
 
-    current_location match {
-      case Some(command) =>
-        val snapshot = editor.node_snapshot(command.node_name)
-        val commands = snapshot.node.commands
-        if (commands.contains(command)) {
-          // FIXME revert offset (!?)
-          val sources = commands.iterator.takeWhile(_ != command).map(_.source)
-          val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-          Hyperlink(command.node_name.node, line, column).follow(view)
-        }
-      case None =>
-    }
+    for {
+      command <- current_location
+      snapshot = editor.node_snapshot(command.node_name)
+      link <- editor.hyperlink_command(snapshot, command)
+    } link.follow(editor_context)
   }
 
 

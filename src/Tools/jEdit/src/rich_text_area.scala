@@ -135,7 +135,8 @@ class Rich_Text_Area(
   private var control: Boolean = false
 
   private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
-  private val hyperlink_area = new Active_Area[Hyperlink]((r: Rendering) => r.hyperlink _)
+  private val hyperlink_area =
+    new Active_Area[PIDE.editor.Hyperlink]((r: Rendering) => r.hyperlink _)
   private val active_area = new Active_Area[XML.Elem]((r: Rendering) => r.active _)
 
   private val active_areas =

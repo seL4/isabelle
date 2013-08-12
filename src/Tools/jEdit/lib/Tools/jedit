@@ -17,7 +17,6 @@ declare -a SOURCES=(
   "src/fold_handling.scala"
   "src/graphview_dockable.scala"
   "src/html_panel.scala"
-  "src/hyperlink.scala"
   "src/info_dockable.scala"
   "src/isabelle.scala"
   "src/isabelle_encoding.scala"
