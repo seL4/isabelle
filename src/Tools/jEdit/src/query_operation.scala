@@ -78,7 +78,7 @@ class Query_Operation(
     val (snapshot, state, removed) =
       current_location match {
         case Some(cmd) =>
-          val snapshot = PIDE.document_snapshot(cmd.node_name)
+          val snapshot = editor.node_snapshot(cmd.node_name)
           val state = snapshot.state.command_state(snapshot.version, cmd)
           val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
           (snapshot, state, removed)
@@ -139,7 +139,7 @@ class Query_Operation(
           consume_status(new_status)
           if (new_status == Query_Operation.Status.FINISHED) {
             remove_overlay()
-            PIDE.flush_buffers()
+            editor.flush()
           }
         }
       }
@@ -171,7 +171,7 @@ class Query_Operation(
           case None =>
         }
         consume_status(current_status)
-        PIDE.flush_buffers()
+        editor.flush()
       case None =>
     }
   }
@@ -182,7 +182,7 @@ class Query_Operation(
 
     current_location match {
       case Some(command) =>
-        val snapshot = PIDE.document_snapshot(command.node_name)
+        val snapshot = editor.node_snapshot(command.node_name)
         val commands = snapshot.node.commands
         if (commands.contains(command)) {
           // FIXME revert offset (!?)

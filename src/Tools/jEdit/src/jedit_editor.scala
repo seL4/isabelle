@@ -17,6 +17,23 @@ class JEdit_Editor extends Editor[View]
 {
   def session: Session = PIDE.session
 
+  def flush()
+  {
+    Swing_Thread.require()
+
+    session.update(
+      (List.empty[Document.Edit_Text] /: JEdit_Lib.jedit_buffers().toList) {
+        case (edits, buffer) =>
+          JEdit_Lib.buffer_lock(buffer) {
+            PIDE.document_model(buffer) match {
+              case Some(model) => model.flushed_edits() ::: edits
+              case None => edits
+            }
+          }
+      }
+    )
+  }
+
   def current_context: View =
     Swing_Thread.require { jEdit.getActiveView() }
 
@@ -25,6 +42,20 @@ class JEdit_Editor extends Editor[View]
 
   def current_snapshot(view: View): Option[Document.Snapshot] =
     Swing_Thread.require { PIDE.document_model(view.getBuffer).map(_.snapshot()) }
+
+  def node_snapshot(name: Document.Node.Name): Document.Snapshot =
+  {
+    Swing_Thread.require()
+
+    JEdit_Lib.jedit_buffer(name.node) match {
+      case Some(buffer) =>
+        PIDE.document_model(buffer) match {
+          case Some(model) => model.snapshot
+          case None => session.snapshot(name)
+        }
+      case None => session.snapshot(name)
+    }
+  }
 
   def current_command(view: View, snapshot: Document.Snapshot): Option[(Command, Text.Offset)] =
   {

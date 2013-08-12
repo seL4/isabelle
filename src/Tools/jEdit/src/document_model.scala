@@ -99,7 +99,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     if (_node_required != b) {
       _node_required = b
       PIDE.options_changed()
-      PIDE.flush_buffers()
+      PIDE.editor.flush()
     }
   }
 
