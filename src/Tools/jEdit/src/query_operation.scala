@@ -83,7 +83,7 @@ class Query_Operation(
           val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
           (snapshot, state, removed)
         case None =>
-          (Document.State.init.snapshot(), Command.empty.init_state, true)
+          (Document.Snapshot.init, Command.empty.init_state, true)
       }
 
     val results =
@@ -161,7 +161,7 @@ class Query_Operation(
         val snapshot = doc_view.model.snapshot()
         remove_overlay()
         reset_state()
-        consume_output(Document.State.init.snapshot(), Command.Results.empty, Nil)
+        consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
         snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
           case Some(command) =>
             current_location = Some(command)

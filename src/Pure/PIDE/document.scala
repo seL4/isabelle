@@ -324,17 +324,23 @@ object Document
 
   /** global state -- document structure, execution process, editing history **/
 
+  object Snapshot
+  {
+    val init = State.init.snapshot()
+  }
+
   abstract class Snapshot
   {
     val state: State
     val version: Version
-    val node_name: Node.Name
-    val node: Node
     val is_outdated: Boolean
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
     def revert(range: Text.Range): Text.Range
+
+    val node_name: Node.Name
+    val node: Node
     def eq_content(other: Snapshot): Boolean
     def cumulate_markup[A](
       range: Text.Range,
@@ -555,16 +561,22 @@ object Document
 
       new Snapshot
       {
+        /* global information */
+
         val state = State.this
         val version = stable.version.get_finished
-        val node_name = name
-        val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
         def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
         def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
+
+
+        /* local node content */
+
+        val node_name = name
+        val node = version.nodes(name)
 
         def eq_content(other: Snapshot): Boolean =
           !is_outdated && !other.is_outdated &&

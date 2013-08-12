@@ -25,7 +25,7 @@ object Info_Dockable
 {
   /* implicit arguments -- owned by Swing thread */
 
-  private var implicit_snapshot = Document.State.init.snapshot()
+  private var implicit_snapshot = Document.Snapshot.init
   private var implicit_results = Command.Results.empty
   private var implicit_info: XML.Body = Nil
 
@@ -39,7 +39,7 @@ object Info_Dockable
   }
 
   private def reset_implicit(): Unit =
-    set_implicit(Document.State.init.snapshot(), Command.Results.empty, Nil)
+    set_implicit(Document.Snapshot.init, Command.Results.empty, Nil)
 
   def apply(view: View, snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
   {

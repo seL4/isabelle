@@ -30,7 +30,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var zoom_factor = 100
   private var do_update = true
-  private var current_snapshot = Document.State.init.snapshot()
+  private var current_snapshot = Document.Snapshot.init
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
 
@@ -62,7 +62,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
               case Some(cmd) =>
                 (snapshot, snapshot.state.command_state(snapshot.version, cmd))
               case None =>
-                (Document.State.init.snapshot(), Command.empty.init_state)
+                (Document.Snapshot.init, Command.empty.init_state)
             }
           }
           else (current_snapshot, current_state)

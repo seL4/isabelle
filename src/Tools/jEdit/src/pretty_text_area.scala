@@ -64,7 +64,7 @@ class Pretty_Text_Area(
   private var current_font_family = "Dialog"
   private var current_font_size: Int = 12
   private var current_body: XML.Body = Nil
-  private var current_base_snapshot = Document.State.init.snapshot()
+  private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: Rendering =
     Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
