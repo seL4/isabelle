@@ -688,13 +688,13 @@ fun no_type_classes Type_Class_Polymorphic =
     Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
-fun adjust_type_enc (THF (Polymorphic, _, choice, _))
+fun adjust_type_enc (THF (Polymorphic, choice, _))
                     (Native (order, poly, level)) =
     Native (adjust_order choice order, no_type_classes poly, level)
-  | adjust_type_enc (THF (Monomorphic, _, choice, _))
+  | adjust_type_enc (THF (Monomorphic, choice, _))
                          (Native (order, _, level)) =
     Native (adjust_order choice order, Mangled_Monomorphic, level)
-  | adjust_type_enc (TFF (Monomorphic, _)) (Native (_, _, level)) =
+  | adjust_type_enc (TFF Monomorphic) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
   | adjust_type_enc (DFG Polymorphic) (Native (_, poly, level)) =
     Native (First_Order, poly, level)
@@ -1308,7 +1308,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
      atomic_types = atomic_Ts}
   end
 
-fun is_format_with_defs (THF (_, _, _, THF_With_Defs)) = true
+fun is_format_with_defs (THF (_, _, THF_With_Defs)) = true
   | is_format_with_defs _ = false
 
 fun make_fact ctxt format type_enc iff_for_eq
@@ -2652,7 +2652,7 @@ fun uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc
             o uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0
                                            sym_tab) sym_tab
 
-val implicit_declsN = "Should-be-implicit typings"
+val implicit_declsN = "Could-be-implicit typings"
 val explicit_declsN = "Explicit typings"
 val uncurried_alias_eqsN = "Uncurried aliases"
 val factsN = "Relevant facts"
@@ -2842,8 +2842,6 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
                     CNF => ensure_cnf_problem
                   | CNF_UEQ => filter_cnf_ueq_problem
                   | FOF => I
-                  | TFF (_, TPTP_Implicit) => I
-                  | THF (_, TPTP_Implicit, _, _) => I
                   | _ => declare_undeclared_in_problem implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
     fun add_sym_ary (s, {min_ary, ...} : sym_info) =

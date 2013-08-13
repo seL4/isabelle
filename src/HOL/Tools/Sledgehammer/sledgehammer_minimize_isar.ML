@@ -13,7 +13,6 @@ sig
     bool -> preplay_interface -> isar_proof -> isar_proof
 end
 
-
 structure Sledgehammer_Minimize_Isar : SLEDGEHAMMER_MINIMIZE_ISAR =
 struct
 
@@ -106,6 +105,5 @@ fun minimize_dependencies_and_remove_unrefed_steps
   in
     snd (do_proof proof)
   end
-
 
 end

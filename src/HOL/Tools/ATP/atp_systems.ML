@@ -211,8 +211,7 @@ val term_order =
 
 (* agsyHOL *)
 
-val agsyhol_thf0 =
-  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
+val agsyhol_thf0 = THF (Monomorphic, THF_Without_Choice, THF_With_Defs)
 
 val agsyhol_config : atp_config =
   {exec = K (["AGSYHOL_HOME"], ["agsyHOL"]),
@@ -233,7 +232,7 @@ val agsyhol = (agsyholN, fn () => agsyhol_config)
 
 (* Alt-Ergo *)
 
-val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
+val alt_ergo_tff1 = TFF Polymorphic
 
 val alt_ergo_config : atp_config =
   {exec = K (["WHY3_HOME"], ["why3"]),
@@ -462,8 +461,7 @@ val iprover_eq = (iprover_eqN, fn () => iprover_eq_config)
 
 (* LEO-II supports definitions, but it performs significantly better on our
    benchmarks when they are not used. *)
-val leo2_thf0 =
-  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_Without_Defs)
+val leo2_thf0 = THF (Monomorphic, THF_Without_Choice, THF_Without_Defs)
 
 val leo2_config : atp_config =
   {exec = K (["LEO2_HOME"], ["leo.opt", "leo"]),
@@ -490,8 +488,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 (* Satallax *)
 
 (* Choice is disabled until there is proper reconstruction for it. *)
-val satallax_thf0 =
-  THF (Monomorphic, TPTP_Explicit, THF_Without_Choice, THF_With_Defs)
+val satallax_thf0 = THF (Monomorphic, THF_Without_Choice, THF_With_Defs)
 
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
@@ -568,7 +565,7 @@ val spass = (spassN, fn () => spass_config)
 fun is_vampire_at_least_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
 fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
-val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
+val vampire_tff0 = TFF Monomorphic
 
 val vampire_config : atp_config =
   {exec = K (["VAMPIRE_HOME"], ["vampire"]),
@@ -620,7 +617,7 @@ val vampire = (vampireN, fn () => vampire_config)
 
 (* Z3 with TPTP syntax (half experimental, half legacy) *)
 
-val z3_tff0 = TFF (Monomorphic, TPTP_Implicit)
+val z3_tff0 = TFF Monomorphic
 
 val z3_tptp_config : atp_config =
   {exec = K (["Z3_HOME"], ["z3"]),
@@ -657,8 +654,7 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
-val dummy_thf_format =
-  THF (Polymorphic, TPTP_Explicit, THF_With_Choice, THF_With_Defs)
+val dummy_thf_format = THF (Polymorphic, THF_With_Choice, THF_With_Defs)
 val dummy_thf_config =
   dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
@@ -743,7 +739,7 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
   (remote_prefix ^ name,
    remotify_config system_name system_versions best_slice o config)
 
-val explicit_tff0 = TFF (Monomorphic, TPTP_Explicit)
+val explicit_tff0 = TFF Monomorphic
 
 val remote_agsyhol =
   remotify_atp agsyhol "agsyHOL" ["1.0", "1"]
@@ -764,7 +760,7 @@ val remote_satallax =
   remotify_atp satallax "Satallax" ["2.7", "2.3", "2"]
       (K (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
-  remotify_atp vampire "Vampire" ["2.6", "2.5", "1.8"]
+  remotify_atp vampire "Vampire" ["3.0", "2.6", "2.5", "1.8"]
       (K (((250, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture

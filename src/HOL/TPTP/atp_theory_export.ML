@@ -33,12 +33,12 @@ datatype inference_policy =
 
 val fact_name_of = prefix fact_prefix o ascii_of
 
-fun atp_of_format (THF (Polymorphic, _, _, _)) = dummy_thfN
-  | atp_of_format (THF (Monomorphic, _, _, _)) = satallaxN
+fun atp_of_format (THF (Polymorphic, _, _)) = dummy_thfN
+  | atp_of_format (THF (Monomorphic, _, _)) = satallaxN
   | atp_of_format (DFG Polymorphic) = spass_polyN
   | atp_of_format (DFG Monomorphic) = spassN
-  | atp_of_format (TFF (Polymorphic, _)) = alt_ergoN
-  | atp_of_format (TFF (Monomorphic, _)) = vampireN
+  | atp_of_format (TFF Polymorphic) = alt_ergoN
+  | atp_of_format (TFF Monomorphic) = vampireN
   | atp_of_format FOF = eN
   | atp_of_format CNF_UEQ = waldmeisterN
   | atp_of_format CNF = eN
