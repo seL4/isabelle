@@ -712,27 +712,27 @@ theorem "u \<in> users \<Longrightarrow> can_exec (init users)
   apply (rule can_exec_nil)
   done
 
-theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^isub>1 \<Longrightarrow>
-  Readable \<in> perms\<^isub>2 \<Longrightarrow> name\<^isub>3 \<noteq> name\<^isub>4 \<Longrightarrow>
+theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^sub>1 \<Longrightarrow>
+  Readable \<in> perms\<^sub>2 \<Longrightarrow> name\<^sub>3 \<noteq> name\<^sub>4 \<Longrightarrow>
   can_exec (init users)
-   [Mkdir u perms\<^isub>1 [u, name\<^isub>1],
-    Mkdir u' perms\<^isub>2 [u, name\<^isub>1, name\<^isub>2],
-    Creat u' perms\<^isub>3 [u, name\<^isub>1, name\<^isub>2, name\<^isub>3],
-    Creat u' perms\<^isub>3 [u, name\<^isub>1, name\<^isub>2, name\<^isub>4],
-    Readdir u {name\<^isub>3, name\<^isub>4} [u, name\<^isub>1, name\<^isub>2]]"
+   [Mkdir u perms\<^sub>1 [u, name\<^sub>1],
+    Mkdir u' perms\<^sub>2 [u, name\<^sub>1, name\<^sub>2],
+    Creat u' perms\<^sub>3 [u, name\<^sub>1, name\<^sub>2, name\<^sub>3],
+    Creat u' perms\<^sub>3 [u, name\<^sub>1, name\<^sub>2, name\<^sub>4],
+    Readdir u {name\<^sub>3, name\<^sub>4} [u, name\<^sub>1, name\<^sub>2]]"
   apply (rule can_exec_cons, rule transition.intros,
     (force simp add: eval)+, (simp add: eval)?)+
   txt {* peek at result: @{subgoals [display]} *}
   apply (rule can_exec_nil)
   done
 
-theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^isub>1 \<Longrightarrow> Readable \<in> perms\<^isub>3 \<Longrightarrow>
+theorem "u \<in> users \<Longrightarrow> Writable \<in> perms\<^sub>1 \<Longrightarrow> Readable \<in> perms\<^sub>3 \<Longrightarrow>
   can_exec (init users)
-   [Mkdir u perms\<^isub>1 [u, name\<^isub>1],
-    Mkdir u' perms\<^isub>2 [u, name\<^isub>1, name\<^isub>2],
-    Creat u' perms\<^isub>3 [u, name\<^isub>1, name\<^isub>2, name\<^isub>3],
-    Write u' ''foo'' [u, name\<^isub>1, name\<^isub>2, name\<^isub>3],
-    Read u ''foo'' [u, name\<^isub>1, name\<^isub>2, name\<^isub>3]]"
+   [Mkdir u perms\<^sub>1 [u, name\<^sub>1],
+    Mkdir u' perms\<^sub>2 [u, name\<^sub>1, name\<^sub>2],
+    Creat u' perms\<^sub>3 [u, name\<^sub>1, name\<^sub>2, name\<^sub>3],
+    Write u' ''foo'' [u, name\<^sub>1, name\<^sub>2, name\<^sub>3],
+    Read u ''foo'' [u, name\<^sub>1, name\<^sub>2, name\<^sub>3]]"
   apply (rule can_exec_cons, rule transition.intros,
     (force simp add: eval)+, (simp add: eval)?)+
   txt {* peek at result: @{subgoals [display]} *}
@@ -784,7 +784,7 @@ text {*
   Here @{prop "P x"} refers to the restriction on file-system
   operations that are admitted after having reached the critical
   configuration; according to the problem specification this will
-  become @{prop "uid_of x = user\<^isub>1"} later on.  Furthermore,
+  become @{prop "uid_of x = user\<^sub>1"} later on.  Furthermore,
   @{term y} refers to the operations we claim to be impossible to
   perform afterwards, we will take @{term Rmdir} later.  Moreover
   @{term Q} is a suitable (auxiliary) invariant over the file-system;
@@ -803,29 +803,29 @@ text {*
 
 locale situation =
   fixes users :: "uid set"
-    and user\<^isub>1 :: uid
-    and user\<^isub>2 :: uid
-    and name\<^isub>1 :: name
-    and name\<^isub>2 :: name
-    and name\<^isub>3 :: name
-    and perms\<^isub>1 :: perms
-    and perms\<^isub>2 :: perms
-  assumes user\<^isub>1_known: "user\<^isub>1 \<in> users"
-    and user\<^isub>1_not_root: "user\<^isub>1 \<noteq> 0"
-    and users_neq: "user\<^isub>1 \<noteq> user\<^isub>2"
-    and perms\<^isub>1_writable: "Writable \<in> perms\<^isub>1"
-    and perms\<^isub>2_not_writable: "Writable \<notin> perms\<^isub>2"
-  notes facts = user\<^isub>1_known user\<^isub>1_not_root users_neq
-    perms\<^isub>1_writable perms\<^isub>2_not_writable
+    and user\<^sub>1 :: uid
+    and user\<^sub>2 :: uid
+    and name\<^sub>1 :: name
+    and name\<^sub>2 :: name
+    and name\<^sub>3 :: name
+    and perms\<^sub>1 :: perms
+    and perms\<^sub>2 :: perms
+  assumes user\<^sub>1_known: "user\<^sub>1 \<in> users"
+    and user\<^sub>1_not_root: "user\<^sub>1 \<noteq> 0"
+    and users_neq: "user\<^sub>1 \<noteq> user\<^sub>2"
+    and perms\<^sub>1_writable: "Writable \<in> perms\<^sub>1"
+    and perms\<^sub>2_not_writable: "Writable \<notin> perms\<^sub>2"
+  notes facts = user\<^sub>1_known user\<^sub>1_not_root users_neq
+    perms\<^sub>1_writable perms\<^sub>2_not_writable
 begin
 
 definition
   "bogus =
-     [Mkdir user\<^isub>1 perms\<^isub>1 [user\<^isub>1, name\<^isub>1],
-      Mkdir user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2],
-      Creat user\<^isub>2 perms\<^isub>2 [user\<^isub>1, name\<^isub>1, name\<^isub>2, name\<^isub>3]]"
+     [Mkdir user\<^sub>1 perms\<^sub>1 [user\<^sub>1, name\<^sub>1],
+      Mkdir user\<^sub>2 perms\<^sub>2 [user\<^sub>1, name\<^sub>1, name\<^sub>2],
+      Creat user\<^sub>2 perms\<^sub>2 [user\<^sub>1, name\<^sub>1, name\<^sub>2, name\<^sub>3]]"
 definition
-  "bogus_path = [user\<^isub>1, name\<^isub>1, name\<^isub>2]"
+  "bogus_path = [user\<^sub>1, name\<^sub>1, name\<^sub>2]"
 
 text {*
   The @{term bogus} operations are the ones that lead into the uncouth
@@ -840,15 +840,15 @@ text {*
   The following invariant over the root file-system describes the
   bogus situation in an abstract manner: located at a certain @{term
   path} within the file-system is a non-empty directory that is
-  neither owned nor writable by @{term user\<^isub>1}.
+  neither owned nor writable by @{term user\<^sub>1}.
 *}
 
 definition
   "invariant root path =
     (\<exists>att dir.
-      access root path user\<^isub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
-      user\<^isub>1 \<noteq> owner att \<and>
-      access root path user\<^isub>1 {Writable} = None)"
+      access root path user\<^sub>1 {} = Some (Env att dir) \<and> dir \<noteq> empty \<and>
+      user\<^sub>1 \<noteq> owner att \<and>
+      access root path user\<^sub>1 {Writable} = None)"
 
 text {*
   Following the general procedure (see
@@ -858,15 +858,15 @@ text {*
   \begin{enumerate}
 
   \item The invariant is sufficiently strong to entail the
-  pathological case that @{term user\<^isub>1} is unable to remove the
-  (owned) directory at @{term "[user\<^isub>1, name\<^isub>1]"}.
+  pathological case that @{term user\<^sub>1} is unable to remove the
+  (owned) directory at @{term "[user\<^sub>1, name\<^sub>1]"}.
 
   \item The invariant does hold after having executed the @{term
   bogus} list of operations (starting with an initial file-system
   configuration).
 
   \item The invariant is preserved by any file-system operation
-  performed by @{term user\<^isub>1} alone, without any help by other
+  performed by @{term user\<^sub>1} alone, without any help by other
   users.
 
   \end{enumerate}
@@ -884,16 +884,16 @@ text {*
 
 lemma cannot_rmdir:
   assumes inv: "invariant root bogus_path"
-    and rmdir: "root \<midarrow>(Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1])\<rightarrow> root'"
+    and rmdir: "root \<midarrow>(Rmdir user\<^sub>1 [user\<^sub>1, name\<^sub>1])\<rightarrow> root'"
   shows False
 proof -
-  from inv obtain "file" where "access root bogus_path user\<^isub>1 {} = Some file"
+  from inv obtain "file" where "access root bogus_path user\<^sub>1 {} = Some file"
     unfolding invariant_def by blast
   moreover
   from rmdir obtain att where
-      "access root [user\<^isub>1, name\<^isub>1] user\<^isub>1 {} = Some (Env att empty)"
+      "access root [user\<^sub>1, name\<^sub>1] user\<^sub>1 {} = Some (Env att empty)"
     by cases auto
-  then have "access root ([user\<^isub>1, name\<^isub>1] @ [name\<^isub>2]) user\<^isub>1 {} = empty name\<^isub>2"
+  then have "access root ([user\<^sub>1, name\<^sub>1] @ [name\<^sub>2]) user\<^sub>1 {} = empty name\<^sub>2"
     by (simp only: access_empty_lookup lookup_append_some) simp
   ultimately show False by (simp add: bogus_path_def)
 qed
@@ -916,7 +916,7 @@ lemma
 text {*
   \medskip At last we are left with the main effort to show that the
   ``bogosity'' invariant is preserved by any file-system operation
-  performed by @{term user\<^isub>1} alone.  Note that this holds for
+  performed by @{term user\<^sub>1} alone.  Note that this holds for
   any @{term path} given, the particular @{term bogus_path} is not
   required here.
 *}
@@ -924,20 +924,20 @@ text {*
 lemma preserve_invariant:
   assumes tr: "root \<midarrow>x\<rightarrow> root'"
     and inv: "invariant root path"
-    and uid: "uid_of x = user\<^isub>1"
+    and uid: "uid_of x = user\<^sub>1"
   shows "invariant root' path"
 proof -
   from inv obtain att dir where
-      inv1: "access root path user\<^isub>1 {} = Some (Env att dir)" and
+      inv1: "access root path user\<^sub>1 {} = Some (Env att dir)" and
       inv2: "dir \<noteq> empty" and
-      inv3: "user\<^isub>1 \<noteq> owner att" and
-      inv4: "access root path user\<^isub>1 {Writable} = None"
+      inv3: "user\<^sub>1 \<noteq> owner att" and
+      inv4: "access root path user\<^sub>1 {Writable} = None"
     by (auto simp add: invariant_def)
 
   from inv1 have lookup: "lookup root path = Some (Env att dir)"
     by (simp only: access_empty_lookup)
 
-  from inv1 inv3 inv4 and user\<^isub>1_not_root
+  from inv1 inv3 inv4 and user\<^sub>1_not_root
   have not_writable: "Writable \<notin> others att"
     by (auto simp add: access_def split: option.splits)
 
@@ -953,7 +953,7 @@ proof -
     proof (rule prefixeq_cases)
       assume "path_of x \<parallel> path"
       with inv root'
-      have "\<And>perms. access root' path user\<^isub>1 perms = access root path user\<^isub>1 perms"
+      have "\<And>perms. access root' path user\<^sub>1 perms = access root path user\<^sub>1 perms"
         by (simp only: access_update_other)
       with inv show "invariant root' path"
         by (simp only: invariant_def)
@@ -964,7 +964,7 @@ proof -
       show ?thesis
       proof (cases ys)
         assume "ys = []"
-        with tr uid inv2 inv3 lookup changed path and user\<^isub>1_not_root
+        with tr uid inv2 inv3 lookup changed path and user\<^sub>1_not_root
         have False
           by cases (auto simp add: access_empty_lookup dest: access_some_lookup)
         then show ?thesis ..
@@ -1044,11 +1044,11 @@ proof -
         ultimately show ?thesis ..
       qed
 
-      from lookup' have inv1': "access root' path user\<^isub>1 {} = Some (Env att dir')"
+      from lookup' have inv1': "access root' path user\<^sub>1 {} = Some (Env att dir')"
         by (simp only: access_empty_lookup)
 
-      from inv3 lookup' and not_writable user\<^isub>1_not_root
-      have "access root' path user\<^isub>1 {Writable} = None"
+      from inv3 lookup' and not_writable user\<^sub>1_not_root
+      have "access root' path user\<^sub>1 {Writable} = None"
         by (simp add: access_def)
       with inv1' inv2' inv3 show ?thesis unfolding invariant_def by blast
     qed
@@ -1066,8 +1066,8 @@ text {*
 
 corollary
   assumes bogus: "init users =bogus\<Rightarrow> root"
-  shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user\<^isub>1) \<and>
-    can_exec root (xs @ [Rmdir user\<^isub>1 [user\<^isub>1, name\<^isub>1]]))"
+  shows "\<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user\<^sub>1) \<and>
+    can_exec root (xs @ [Rmdir user\<^sub>1 [user\<^sub>1, name\<^sub>1]]))"
 proof -
   from cannot_rmdir init_invariant preserve_invariant
     and bogus show ?thesis by (rule general_procedure)

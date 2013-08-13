@@ -349,19 +349,19 @@ definition sqrt :: "real \<Rightarrow> real" where
 
 lemma pos2: "0 < (2::nat)" by simp
 
-lemma real_sqrt_unique: "\<lbrakk>y\<twosuperior> = x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt x = y"
+lemma real_sqrt_unique: "\<lbrakk>y\<^sup>2 = x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt x = y"
 unfolding sqrt_def by (rule real_root_pos_unique [OF pos2])
 
-lemma real_sqrt_abs [simp]: "sqrt (x\<twosuperior>) = \<bar>x\<bar>"
+lemma real_sqrt_abs [simp]: "sqrt (x\<^sup>2) = \<bar>x\<bar>"
 apply (rule real_sqrt_unique)
 apply (rule power2_abs)
 apply (rule abs_ge_zero)
 done
 
-lemma real_sqrt_pow2 [simp]: "0 \<le> x \<Longrightarrow> (sqrt x)\<twosuperior> = x"
+lemma real_sqrt_pow2 [simp]: "0 \<le> x \<Longrightarrow> (sqrt x)\<^sup>2 = x"
 unfolding sqrt_def by (rule real_root_pow_pos2 [OF pos2])
 
-lemma real_sqrt_pow2_iff [simp]: "((sqrt x)\<twosuperior> = x) = (0 \<le> x)"
+lemma real_sqrt_pow2_iff [simp]: "((sqrt x)\<^sup>2 = x) = (0 \<le> x)"
 apply (rule iffI)
 apply (erule subst)
 apply (rule zero_le_power2)
@@ -501,47 +501,47 @@ by (simp add: divide_less_eq)
 
 lemma four_x_squared: 
   fixes x::real
-  shows "4 * x\<twosuperior> = (2 * x)\<twosuperior>"
+  shows "4 * x\<^sup>2 = (2 * x)\<^sup>2"
 by (simp add: power2_eq_square)
 
 subsection {* Square Root of Sum of Squares *}
 
-lemma real_sqrt_sum_squares_ge_zero: "0 \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma real_sqrt_sum_squares_ge_zero: "0 \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
   by simp (* TODO: delete *)
 
 declare real_sqrt_sum_squares_ge_zero [THEN abs_of_nonneg, simp]
 
 lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
-     "0 \<le> sqrt ((x\<twosuperior> + y\<twosuperior>)*(xa\<twosuperior> + ya\<twosuperior>))"
+     "0 \<le> sqrt ((x\<^sup>2 + y\<^sup>2)*(xa\<^sup>2 + ya\<^sup>2))"
   by (simp add: zero_le_mult_iff)
 
 lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
-     "sqrt ((x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)) ^ 2 = (x\<twosuperior> + y\<twosuperior>) * (xa\<twosuperior> + ya\<twosuperior>)"
+     "sqrt ((x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)) ^ 2 = (x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)"
   by (simp add: zero_le_mult_iff)
 
-lemma real_sqrt_sum_squares_eq_cancel: "sqrt (x\<twosuperior> + y\<twosuperior>) = x \<Longrightarrow> y = 0"
-by (drule_tac f = "%x. x\<twosuperior>" in arg_cong, simp)
+lemma real_sqrt_sum_squares_eq_cancel: "sqrt (x\<^sup>2 + y\<^sup>2) = x \<Longrightarrow> y = 0"
+by (drule_tac f = "%x. x\<^sup>2" in arg_cong, simp)
 
-lemma real_sqrt_sum_squares_eq_cancel2: "sqrt (x\<twosuperior> + y\<twosuperior>) = y \<Longrightarrow> x = 0"
-by (drule_tac f = "%x. x\<twosuperior>" in arg_cong, simp)
+lemma real_sqrt_sum_squares_eq_cancel2: "sqrt (x\<^sup>2 + y\<^sup>2) = y \<Longrightarrow> x = 0"
+by (drule_tac f = "%x. x\<^sup>2" in arg_cong, simp)
 
-lemma real_sqrt_sum_squares_ge1 [simp]: "x \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma real_sqrt_sum_squares_ge1 [simp]: "x \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
 by (rule power2_le_imp_le, simp_all)
 
-lemma real_sqrt_sum_squares_ge2 [simp]: "y \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma real_sqrt_sum_squares_ge2 [simp]: "y \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
 by (rule power2_le_imp_le, simp_all)
 
-lemma real_sqrt_ge_abs1 [simp]: "\<bar>x\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma real_sqrt_ge_abs1 [simp]: "\<bar>x\<bar> \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
 by (rule power2_le_imp_le, simp_all)
 
-lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma real_sqrt_ge_abs2 [simp]: "\<bar>y\<bar> \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
 by (rule power2_le_imp_le, simp_all)
 
 lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
 by (simp add: power2_eq_square [symmetric])
 
 lemma real_sqrt_sum_squares_triangle_ineq:
-  "sqrt ((a + c)\<twosuperior> + (b + d)\<twosuperior>) \<le> sqrt (a\<twosuperior> + b\<twosuperior>) + sqrt (c\<twosuperior> + d\<twosuperior>)"
+  "sqrt ((a + c)\<^sup>2 + (b + d)\<^sup>2) \<le> sqrt (a\<^sup>2 + b\<^sup>2) + sqrt (c\<^sup>2 + d\<^sup>2)"
 apply (rule power2_le_imp_le, simp)
 apply (simp add: power2_sum)
 apply (simp only: mult_assoc distrib_left [symmetric])
@@ -549,8 +549,8 @@ apply (rule mult_left_mono)
 apply (rule power2_le_imp_le)
 apply (simp add: power2_sum power_mult_distrib)
 apply (simp add: ring_distribs)
-apply (subgoal_tac "0 \<le> b\<twosuperior> * c\<twosuperior> + a\<twosuperior> * d\<twosuperior> - 2 * (a * c) * (b * d)", simp)
-apply (rule_tac b="(a * d - b * c)\<twosuperior>" in ord_le_eq_trans)
+apply (subgoal_tac "0 \<le> b\<^sup>2 * c\<^sup>2 + a\<^sup>2 * d\<^sup>2 - 2 * (a * c) * (b * d)", simp)
+apply (rule_tac b="(a * d - b * c)\<^sup>2" in ord_le_eq_trans)
 apply (rule zero_le_power2)
 apply (simp add: power2_diff power_mult_distrib)
 apply (simp add: mult_nonneg_nonneg)
@@ -559,7 +559,7 @@ apply (simp add: add_increasing)
 done
 
 lemma real_sqrt_sum_squares_less:
-  "\<lbrakk>\<bar>x\<bar> < u / sqrt 2; \<bar>y\<bar> < u / sqrt 2\<rbrakk> \<Longrightarrow> sqrt (x\<twosuperior> + y\<twosuperior>) < u"
+  "\<lbrakk>\<bar>x\<bar> < u / sqrt 2; \<bar>y\<bar> < u / sqrt 2\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) < u"
 apply (rule power2_less_imp_less, simp)
 apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
 apply (drule power_strict_mono [OF _ abs_ge_zero pos2])
@@ -571,12 +571,12 @@ done
 text{*Needed for the infinitely close relation over the nonstandard
     complex numbers*}
 lemma lemma_sqrt_hcomplex_capprox:
-     "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<twosuperior> + y\<twosuperior>) < u"
+     "[| 0 < u; x < u/2; y < u/2; 0 \<le> x; 0 \<le> y |] ==> sqrt (x\<^sup>2 + y\<^sup>2) < u"
 apply (rule_tac y = "u/sqrt 2" in order_le_less_trans)
 apply (erule_tac [2] lemma_real_divide_sqrt_less)
 apply (rule power2_le_imp_le)
 apply (auto simp add: zero_le_divide_iff power_divide)
-apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
+apply (rule_tac t = "u\<^sup>2" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
 apply (auto simp add: four_x_squared intro: power_mono)
 done

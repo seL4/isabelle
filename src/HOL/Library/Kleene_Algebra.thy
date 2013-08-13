@@ -321,10 +321,10 @@ by (metis add_est1 add_est2 less_add(1) mult_assoc order_def plus_leI star_absor
 lemma ka25: "star y * star x \<le> star x * star y \<Longrightarrow> star (star y * star x) \<le> star x * star y"
 proof -
   assume "star y * star x \<le> star x * star y"
-  hence "\<forall>x\<^isub>1. star y * (star x * x\<^isub>1) \<le> star x * (star y * x\<^isub>1)" by (metis mult_assoc mult_right_mono zero_minimum)
+  hence "\<forall>x\<^sub>1. star y * (star x * x\<^sub>1) \<le> star x * (star y * x\<^sub>1)" by (metis mult_assoc mult_right_mono zero_minimum)
   hence "star y * (star x * star y) \<le> star x * star y" by (metis star_mult_idem)
-  hence "\<exists>x\<^isub>1. star (star y * star x) * star x\<^isub>1 \<le> star x * star y" by (metis star_decomp star_idemp star_simulation_leq_2 star_slide)
-  hence "\<exists>x\<^isub>1\<ge>star (star y * star x). x\<^isub>1 \<le> star x * star y" by (metis x_less_star)
+  hence "\<exists>x\<^sub>1. star (star y * star x) * star x\<^sub>1 \<le> star x * star y" by (metis star_decomp star_idemp star_simulation_leq_2 star_slide)
+  hence "\<exists>x\<^sub>1\<ge>star (star y * star x). x\<^sub>1 \<le> star x * star y" by (metis x_less_star)
   thus "star (star y * star x) \<le> star x * star y" by (metis order_trans)
 qed
 

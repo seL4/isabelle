@@ -879,7 +879,7 @@ lemma partial_division_extend_1:
   obtains p where "p division_of {a..b}" "{c..d} \<in> p"
 proof
   let ?B = "\<lambda>f::'a\<Rightarrow>'a \<times> 'a. {(\<Sum>i\<in>Basis. (fst (f i) \<bullet> i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. (snd (f i) \<bullet> i) *\<^sub>R i)}"
-  def p \<equiv> "?B ` (Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)})"
+  def p \<equiv> "?B ` (Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)})"
 
   show "{c .. d} \<in> p"
     unfolding p_def
@@ -900,7 +900,7 @@ proof
     {
       fix k
       assume "k \<in> p"
-      then obtain f where f: "f \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}" and k: "k = ?B f"
+      then obtain f where f: "f \<in> Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)}" and k: "k = ?B f"
         by (auto simp: p_def)
       then show "\<exists>a b. k = {a..b}" by auto
       have "k \<subseteq> {a..b} \<and> k \<noteq> {}"
@@ -917,7 +917,7 @@ proof
       then show "k \<noteq> {}" "k \<subseteq> {a .. b}" by auto
       {
         fix l assume "l \<in> p"
-        then obtain g where g: "g \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}" and l: "l = ?B g"
+        then obtain g where g: "g \<in> Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)}" and l: "l = ?B g"
           by (auto simp: p_def)
         assume "l \<noteq> k"
         have "\<exists>i\<in>Basis. f i \<noteq> g i"
@@ -952,7 +952,7 @@ proof
           by auto
       qed
       then guess f unfolding bchoice_iff .. note f = this
-      moreover then have "restrict f Basis \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}"
+      moreover then have "restrict f Basis \<in> Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)}"
         by auto
       moreover from f have "x \<in> ?B (restrict f Basis)"
         by (auto simp: mem_interval eucl_le[where 'a='a])

@@ -491,18 +491,18 @@ qed
 
 section "Simple integral"
 
-definition simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^isup>S") where
-  "integral\<^isup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
+definition simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^sup>S") where
+  "integral\<^sup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
 
 syntax
-  "_simple_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^isup>S _. _ \<partial>_" [60,61] 110)
+  "_simple_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^sup>S _. _ \<partial>_" [60,61] 110)
 
 translations
-  "\<integral>\<^isup>S x. f \<partial>M" == "CONST simple_integral M (%x. f)"
+  "\<integral>\<^sup>S x. f \<partial>M" == "CONST simple_integral M (%x. f)"
 
 lemma simple_integral_cong:
   assumes "\<And>t. t \<in> space M \<Longrightarrow> f t = g t"
-  shows "integral\<^isup>S M f = integral\<^isup>S M g"
+  shows "integral\<^sup>S M f = integral\<^sup>S M g"
 proof -
   have "f ` space M = g ` space M"
     "\<And>x. f -` {x} \<inter> space M = g -` {x} \<inter> space M"
@@ -511,7 +511,7 @@ proof -
 qed
 
 lemma simple_integral_const[simp]:
-  "(\<integral>\<^isup>Sx. c \<partial>M) = c * (emeasure M) (space M)"
+  "(\<integral>\<^sup>Sx. c \<partial>M) = c * (emeasure M) (space M)"
 proof (cases "space M = {}")
   case True thus ?thesis unfolding simple_integral_def by simp
 next
@@ -521,7 +521,7 @@ qed
 
 lemma simple_function_partition:
   assumes f: "simple_function M f" and g: "simple_function M g"
-  shows "integral\<^isup>S M f = (\<Sum>A\<in>(\<lambda>x. f -` {f x} \<inter> g -` {g x} \<inter> space M) ` space M. the_elem (f`A) * (emeasure M) A)"
+  shows "integral\<^sup>S M f = (\<Sum>A\<in>(\<lambda>x. f -` {f x} \<inter> g -` {g x} \<inter> space M) ` space M. the_elem (f`A) * (emeasure M) A)"
     (is "_ = setsum _ (?p ` space M)")
 proof-
   let ?sub = "\<lambda>x. ?p ` (f -` {x} \<inter> space M)"
@@ -545,7 +545,7 @@ proof-
     have "\<Union>(?sub (f x)) = (f -` {f x} \<inter> space M)" by auto
     with sets have "(emeasure M) (f -` {f x} \<inter> space M) = setsum (emeasure M) (?sub (f x))"
       by (subst setsum_emeasure) (auto simp: disjoint_family_on_def) }
-  hence "integral\<^isup>S M f = (\<Sum>(x,A)\<in>?SIGMA. x * (emeasure M) A)"
+  hence "integral\<^sup>S M f = (\<Sum>(x,A)\<in>?SIGMA. x * (emeasure M) A)"
     unfolding simple_integral_def using f sets
     by (subst setsum_Sigma[symmetric])
        (auto intro!: setsum_cong setsum_ereal_right_distrib)
@@ -569,7 +569,7 @@ qed
 
 lemma simple_integral_add[simp]:
   assumes f: "simple_function M f" and "\<And>x. 0 \<le> f x" and g: "simple_function M g" and "\<And>x. 0 \<le> g x"
-  shows "(\<integral>\<^isup>Sx. f x + g x \<partial>M) = integral\<^isup>S M f + integral\<^isup>S M g"
+  shows "(\<integral>\<^sup>Sx. f x + g x \<partial>M) = integral\<^sup>S M f + integral\<^sup>S M g"
 proof -
   { fix x let ?S = "g -` {g x} \<inter> f -` {f x} \<inter> space M"
     assume "x \<in> space M"
@@ -588,7 +588,7 @@ qed
 lemma simple_integral_setsum[simp]:
   assumes "\<And>i x. i \<in> P \<Longrightarrow> 0 \<le> f i x"
   assumes "\<And>i. i \<in> P \<Longrightarrow> simple_function M (f i)"
-  shows "(\<integral>\<^isup>Sx. (\<Sum>i\<in>P. f i x) \<partial>M) = (\<Sum>i\<in>P. integral\<^isup>S M (f i))"
+  shows "(\<integral>\<^sup>Sx. (\<Sum>i\<in>P. f i x) \<partial>M) = (\<Sum>i\<in>P. integral\<^sup>S M (f i))"
 proof cases
   assume "finite P"
   from this assms show ?thesis
@@ -597,7 +597,7 @@ qed auto
 
 lemma simple_integral_mult[simp]:
   assumes f: "simple_function M f" "\<And>x. 0 \<le> f x"
-  shows "(\<integral>\<^isup>Sx. c * f x \<partial>M) = c * integral\<^isup>S M f"
+  shows "(\<integral>\<^sup>Sx. c * f x \<partial>M) = c * integral\<^sup>S M f"
 proof -
   note mult = simple_function_mult[OF simple_function_const[of _ c] f(1)]
   { fix x let ?S = "f -` {f x} \<inter> (\<lambda>x. c * f x) -` {c * f x} \<inter> space M"
@@ -614,7 +614,7 @@ qed
 lemma simple_integral_mono_AE:
   assumes f: "simple_function M f" and g: "simple_function M g"
   and mono: "AE x in M. f x \<le> g x"
-  shows "integral\<^isup>S M f \<le> integral\<^isup>S M g"
+  shows "integral\<^sup>S M f \<le> integral\<^sup>S M g"
 proof -
   let ?S = "\<lambda>x. (g -` {g x} \<inter> space M) \<inter> (f -` {f x} \<inter> space M)"
   have *: "\<And>x. g -` {g x} \<inter> f -` {f x} \<inter> space M = ?S x"
@@ -651,19 +651,19 @@ qed
 lemma simple_integral_mono:
   assumes "simple_function M f" and "simple_function M g"
   and mono: "\<And> x. x \<in> space M \<Longrightarrow> f x \<le> g x"
-  shows "integral\<^isup>S M f \<le> integral\<^isup>S M g"
+  shows "integral\<^sup>S M f \<le> integral\<^sup>S M g"
   using assms by (intro simple_integral_mono_AE) auto
 
 lemma simple_integral_cong_AE:
   assumes "simple_function M f" and "simple_function M g"
   and "AE x in M. f x = g x"
-  shows "integral\<^isup>S M f = integral\<^isup>S M g"
+  shows "integral\<^sup>S M f = integral\<^sup>S M g"
   using assms by (auto simp: eq_iff intro!: simple_integral_mono_AE)
 
 lemma simple_integral_cong':
   assumes sf: "simple_function M f" "simple_function M g"
   and mea: "(emeasure M) {x\<in>space M. f x \<noteq> g x} = 0"
-  shows "integral\<^isup>S M f = integral\<^isup>S M g"
+  shows "integral\<^sup>S M f = integral\<^sup>S M g"
 proof (intro simple_integral_cong_AE sf AE_I)
   show "(emeasure M) {x\<in>space M. f x \<noteq> g x} = 0" by fact
   show "{x \<in> space M. f x \<noteq> g x} \<in> sets M"
@@ -673,11 +673,11 @@ qed simp
 lemma simple_integral_indicator:
   assumes "A \<in> sets M"
   assumes f: "simple_function M f"
-  shows "(\<integral>\<^isup>Sx. f x * indicator A x \<partial>M) =
+  shows "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) =
     (\<Sum>x \<in> f ` space M. x * (emeasure M) (f -` {x} \<inter> space M \<inter> A))"
 proof cases
   assume "A = space M"
-  moreover hence "(\<integral>\<^isup>Sx. f x * indicator A x \<partial>M) = integral\<^isup>S M f"
+  moreover hence "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) = integral\<^sup>S M f"
     by (auto intro!: simple_integral_cong)
   moreover have "\<And>X. X \<inter> space M \<inter> space M = X \<inter> space M" by auto
   ultimately show ?thesis by (simp add: simple_integral_def)
@@ -693,7 +693,7 @@ next
   next
     show "0 \<in> ?I ` space M" using x by (auto intro!: image_eqI[of _ _ x])
   qed
-  have *: "(\<integral>\<^isup>Sx. f x * indicator A x \<partial>M) =
+  have *: "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) =
     (\<Sum>x \<in> f ` space M \<union> {0}. x * (emeasure M) (f -` {x} \<inter> space M \<inter> A))"
     unfolding simple_integral_def I
   proof (rule setsum_mono_zero_cong_left)
@@ -719,7 +719,7 @@ qed
 
 lemma simple_integral_indicator_only[simp]:
   assumes "A \<in> sets M"
-  shows "integral\<^isup>S M (indicator A) = emeasure M A"
+  shows "integral\<^sup>S M (indicator A) = emeasure M A"
 proof cases
   assume "space M = {}" hence "A = {}" using sets.sets_into_space[OF assms] by auto
   thus ?thesis unfolding simple_integral_def using `space M = {}` by auto
@@ -733,55 +733,55 @@ qed
 
 lemma simple_integral_null_set:
   assumes "simple_function M u" "\<And>x. 0 \<le> u x" and "N \<in> null_sets M"
-  shows "(\<integral>\<^isup>Sx. u x * indicator N x \<partial>M) = 0"
+  shows "(\<integral>\<^sup>Sx. u x * indicator N x \<partial>M) = 0"
 proof -
   have "AE x in M. indicator N x = (0 :: ereal)"
     using `N \<in> null_sets M` by (auto simp: indicator_def intro!: AE_I[of _ _ N])
-  then have "(\<integral>\<^isup>Sx. u x * indicator N x \<partial>M) = (\<integral>\<^isup>Sx. 0 \<partial>M)"
+  then have "(\<integral>\<^sup>Sx. u x * indicator N x \<partial>M) = (\<integral>\<^sup>Sx. 0 \<partial>M)"
     using assms apply (intro simple_integral_cong_AE) by auto
   then show ?thesis by simp
 qed
 
 lemma simple_integral_cong_AE_mult_indicator:
   assumes sf: "simple_function M f" and eq: "AE x in M. x \<in> S" and "S \<in> sets M"
-  shows "integral\<^isup>S M f = (\<integral>\<^isup>Sx. f x * indicator S x \<partial>M)"
+  shows "integral\<^sup>S M f = (\<integral>\<^sup>Sx. f x * indicator S x \<partial>M)"
   using assms by (intro simple_integral_cong_AE) auto
 
 lemma simple_integral_cmult_indicator:
   assumes A: "A \<in> sets M"
-  shows "(\<integral>\<^isup>Sx. c * indicator A x \<partial>M) = c * (emeasure M) A"
+  shows "(\<integral>\<^sup>Sx. c * indicator A x \<partial>M) = c * (emeasure M) A"
   using simple_integral_mult[OF simple_function_indicator[OF A]]
   unfolding simple_integral_indicator_only[OF A] by simp
 
 lemma simple_integral_positive:
   assumes f: "simple_function M f" and ae: "AE x in M. 0 \<le> f x"
-  shows "0 \<le> integral\<^isup>S M f"
+  shows "0 \<le> integral\<^sup>S M f"
 proof -
-  have "integral\<^isup>S M (\<lambda>x. 0) \<le> integral\<^isup>S M f"
+  have "integral\<^sup>S M (\<lambda>x. 0) \<le> integral\<^sup>S M f"
     using simple_integral_mono_AE[OF _ f ae] by auto
   then show ?thesis by simp
 qed
 
 section "Continuous positive integration"
 
-definition positive_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^isup>P") where
-  "integral\<^isup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f}. integral\<^isup>S M g)"
+definition positive_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> ereal" ("integral\<^sup>P") where
+  "integral\<^sup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f}. integral\<^sup>S M g)"
 
 syntax
-  "_positive_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^isup>+ _. _ \<partial>_" [60,61] 110)
+  "_positive_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> 'a measure \<Rightarrow> ereal" ("\<integral>\<^sup>+ _. _ \<partial>_" [60,61] 110)
 
 translations
-  "\<integral>\<^isup>+ x. f \<partial>M" == "CONST positive_integral M (%x. f)"
+  "\<integral>\<^sup>+ x. f \<partial>M" == "CONST positive_integral M (%x. f)"
 
 lemma positive_integral_positive:
-  "0 \<le> integral\<^isup>P M f"
+  "0 \<le> integral\<^sup>P M f"
   by (auto intro!: SUP_upper2[of "\<lambda>x. 0"] simp: positive_integral_def le_fun_def)
 
-lemma positive_integral_not_MInfty[simp]: "integral\<^isup>P M f \<noteq> -\<infinity>"
+lemma positive_integral_not_MInfty[simp]: "integral\<^sup>P M f \<noteq> -\<infinity>"
   using positive_integral_positive[of M f] by auto
 
 lemma positive_integral_def_finite:
-  "integral\<^isup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f \<and> range g \<subseteq> {0 ..< \<infinity>}}. integral\<^isup>S M g)"
+  "integral\<^sup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f \<and> range g \<subseteq> {0 ..< \<infinity>}}. integral\<^sup>S M g)"
     (is "_ = SUPR ?A ?f")
   unfolding positive_integral_def
 proof (safe intro!: antisym SUP_least)
@@ -794,7 +794,7 @@ proof (safe intro!: antisym SUP_least)
     apply (safe intro!: simple_function_max simple_function_If)
     apply (force simp: max_def le_fun_def split: split_if_asm)+
     done
-  show "integral\<^isup>S M g \<le> SUPR ?A ?f"
+  show "integral\<^sup>S M g \<le> SUPR ?A ?f"
   proof cases
     have g0: "?g 0 \<in> ?A" by (intro g_in_A) auto
     assume "(emeasure M) ?G = 0"
@@ -805,7 +805,7 @@ proof (safe intro!: antisym SUP_least)
          (auto simp: max_def intro!: simple_function_If)
   next
     assume \<mu>_G: "(emeasure M) ?G \<noteq> 0"
-    have "SUPR ?A (integral\<^isup>S M) = \<infinity>"
+    have "SUPR ?A (integral\<^sup>S M) = \<infinity>"
     proof (intro SUP_PInfty)
       fix n :: nat
       let ?y = "ereal (real n) / (if (emeasure M) ?G = \<infinity> then 1 else (emeasure M) ?G)"
@@ -813,12 +813,12 @@ proof (safe intro!: antisym SUP_least)
       then have "?g ?y \<in> ?A" by (rule g_in_A)
       have "real n \<le> ?y * (emeasure M) ?G"
         using \<mu>_G \<mu>_G_pos by (cases "(emeasure M) ?G") (auto simp: field_simps)
-      also have "\<dots> = (\<integral>\<^isup>Sx. ?y * indicator ?G x \<partial>M)"
+      also have "\<dots> = (\<integral>\<^sup>Sx. ?y * indicator ?G x \<partial>M)"
         using `0 \<le> ?y` `?g ?y \<in> ?A` gM
         by (subst simple_integral_cmult_indicator) auto
-      also have "\<dots> \<le> integral\<^isup>S M (?g ?y)" using `?g ?y \<in> ?A` gM
+      also have "\<dots> \<le> integral\<^sup>S M (?g ?y)" using `?g ?y \<in> ?A` gM
         by (intro simple_integral_mono) auto
-      finally show "\<exists>i\<in>?A. real n \<le> integral\<^isup>S M i"
+      finally show "\<exists>i\<in>?A. real n \<le> integral\<^sup>S M i"
         using `?g ?y \<in> ?A` by blast
     qed
     then show ?thesis by simp
@@ -826,7 +826,7 @@ proof (safe intro!: antisym SUP_least)
 qed (auto intro: SUP_upper)
 
 lemma positive_integral_mono_AE:
-  assumes ae: "AE x in M. u x \<le> v x" shows "integral\<^isup>P M u \<le> integral\<^isup>P M v"
+  assumes ae: "AE x in M. u x \<le> v x" shows "integral\<^sup>P M u \<le> integral\<^sup>P M v"
   unfolding positive_integral_def
 proof (safe intro!: SUP_mono)
   fix n assume n: "simple_function M n" "n \<le> max 0 \<circ> u"
@@ -844,34 +844,34 @@ proof (safe intro!: SUP_mono)
         by (auto simp: max_def split: split_if_asm)
     qed simp }
   then have "?n \<le> max 0 \<circ> v" by (auto simp: le_funI)
-  moreover have "integral\<^isup>S M n \<le> integral\<^isup>S M ?n"
+  moreover have "integral\<^sup>S M n \<le> integral\<^sup>S M ?n"
     using ae_N N n by (auto intro!: simple_integral_mono_AE)
-  ultimately show "\<exists>m\<in>{g. simple_function M g \<and> g \<le> max 0 \<circ> v}. integral\<^isup>S M n \<le> integral\<^isup>S M m"
+  ultimately show "\<exists>m\<in>{g. simple_function M g \<and> g \<le> max 0 \<circ> v}. integral\<^sup>S M n \<le> integral\<^sup>S M m"
     by force
 qed
 
 lemma positive_integral_mono:
-  "(\<And>x. x \<in> space M \<Longrightarrow> u x \<le> v x) \<Longrightarrow> integral\<^isup>P M u \<le> integral\<^isup>P M v"
+  "(\<And>x. x \<in> space M \<Longrightarrow> u x \<le> v x) \<Longrightarrow> integral\<^sup>P M u \<le> integral\<^sup>P M v"
   by (auto intro: positive_integral_mono_AE)
 
 lemma positive_integral_cong_AE:
-  "AE x in M. u x = v x \<Longrightarrow> integral\<^isup>P M u = integral\<^isup>P M v"
+  "AE x in M. u x = v x \<Longrightarrow> integral\<^sup>P M u = integral\<^sup>P M v"
   by (auto simp: eq_iff intro!: positive_integral_mono_AE)
 
 lemma positive_integral_cong:
-  "(\<And>x. x \<in> space M \<Longrightarrow> u x = v x) \<Longrightarrow> integral\<^isup>P M u = integral\<^isup>P M v"
+  "(\<And>x. x \<in> space M \<Longrightarrow> u x = v x) \<Longrightarrow> integral\<^sup>P M u = integral\<^sup>P M v"
   by (auto intro: positive_integral_cong_AE)
 
 lemma positive_integral_eq_simple_integral:
-  assumes f: "simple_function M f" "\<And>x. 0 \<le> f x" shows "integral\<^isup>P M f = integral\<^isup>S M f"
+  assumes f: "simple_function M f" "\<And>x. 0 \<le> f x" shows "integral\<^sup>P M f = integral\<^sup>S M f"
 proof -
   let ?f = "\<lambda>x. f x * indicator (space M) x"
   have f': "simple_function M ?f" using f by auto
   with f(2) have [simp]: "max 0 \<circ> ?f = ?f"
     by (auto simp: fun_eq_iff max_def split: split_indicator)
-  have "integral\<^isup>P M ?f \<le> integral\<^isup>S M ?f" using f'
+  have "integral\<^sup>P M ?f \<le> integral\<^sup>S M ?f" using f'
     by (force intro!: SUP_least simple_integral_mono simp: le_fun_def positive_integral_def)
-  moreover have "integral\<^isup>S M ?f \<le> integral\<^isup>P M ?f"
+  moreover have "integral\<^sup>S M ?f \<le> integral\<^sup>P M ?f"
     unfolding positive_integral_def
     using f' by (auto intro!: SUP_upper)
   ultimately show ?thesis
@@ -879,10 +879,10 @@ proof -
 qed
 
 lemma positive_integral_eq_simple_integral_AE:
-  assumes f: "simple_function M f" "AE x in M. 0 \<le> f x" shows "integral\<^isup>P M f = integral\<^isup>S M f"
+  assumes f: "simple_function M f" "AE x in M. 0 \<le> f x" shows "integral\<^sup>P M f = integral\<^sup>S M f"
 proof -
   have "AE x in M. f x = max 0 (f x)" using f by (auto split: split_max)
-  with f have "integral\<^isup>P M f = integral\<^isup>S M (\<lambda>x. max 0 (f x))"
+  with f have "integral\<^sup>P M f = integral\<^sup>S M (\<lambda>x. max 0 (f x))"
     by (simp cong: positive_integral_cong_AE simple_integral_cong_AE
              add: positive_integral_eq_simple_integral)
   with assms show ?thesis
@@ -892,11 +892,11 @@ qed
 lemma positive_integral_SUP_approx:
   assumes f: "incseq f" "\<And>i. f i \<in> borel_measurable M" "\<And>i x. 0 \<le> f i x"
   and u: "simple_function M u" "u \<le> (SUP i. f i)" "u`space M \<subseteq> {0..<\<infinity>}"
-  shows "integral\<^isup>S M u \<le> (SUP i. integral\<^isup>P M (f i))" (is "_ \<le> ?S")
+  shows "integral\<^sup>S M u \<le> (SUP i. integral\<^sup>P M (f i))" (is "_ \<le> ?S")
 proof (rule ereal_le_mult_one_interval)
-  have "0 \<le> (SUP i. integral\<^isup>P M (f i))"
+  have "0 \<le> (SUP i. integral\<^sup>P M (f i))"
     using f(3) by (auto intro!: SUP_upper2 positive_integral_positive)
-  then show "(SUP i. integral\<^isup>P M (f i)) \<noteq> -\<infinity>" by auto
+  then show "(SUP i. integral\<^sup>P M (f i)) \<noteq> -\<infinity>" by auto
   have u_range: "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> u x \<and> u x \<noteq> \<infinity>"
     using u(3) by auto
   fix a :: ereal assume "0 < a" "a < 1"
@@ -945,43 +945,43 @@ proof (rule ereal_le_mult_one_interval)
     then show "?thesis i" using SUP_emeasure_incseq[OF 1 2] by simp
   qed
 
-  have "integral\<^isup>S M u = (SUP i. integral\<^isup>S M (?uB i))"
+  have "integral\<^sup>S M u = (SUP i. integral\<^sup>S M (?uB i))"
     unfolding simple_integral_indicator[OF B `simple_function M u`]
   proof (subst SUPR_ereal_setsum, safe)
     fix x n assume "x \<in> space M"
     with u_range show "incseq (\<lambda>i. u x * (emeasure M) (?B' (u x) i))" "\<And>i. 0 \<le> u x * (emeasure M) (?B' (u x) i)"
       using B_mono B_u by (auto intro!: emeasure_mono ereal_mult_left_mono incseq_SucI simp: ereal_zero_le_0_iff)
   next
-    show "integral\<^isup>S M u = (\<Sum>i\<in>u ` space M. SUP n. i * (emeasure M) (?B' i n))"
+    show "integral\<^sup>S M u = (\<Sum>i\<in>u ` space M. SUP n. i * (emeasure M) (?B' i n))"
       using measure_conv u_range B_u unfolding simple_integral_def
       by (auto intro!: setsum_cong SUPR_ereal_cmult[symmetric])
   qed
   moreover
-  have "a * (SUP i. integral\<^isup>S M (?uB i)) \<le> ?S"
+  have "a * (SUP i. integral\<^sup>S M (?uB i)) \<le> ?S"
     apply (subst SUPR_ereal_cmult[symmetric])
   proof (safe intro!: SUP_mono bexI)
     fix i
-    have "a * integral\<^isup>S M (?uB i) = (\<integral>\<^isup>Sx. a * ?uB i x \<partial>M)"
+    have "a * integral\<^sup>S M (?uB i) = (\<integral>\<^sup>Sx. a * ?uB i x \<partial>M)"
       using B `simple_function M u` u_range
       by (subst simple_integral_mult) (auto split: split_indicator)
-    also have "\<dots> \<le> integral\<^isup>P M (f i)"
+    also have "\<dots> \<le> integral\<^sup>P M (f i)"
     proof -
       have *: "simple_function M (\<lambda>x. a * ?uB i x)" using B `0 < a` u(1) by auto
       show ?thesis using f(3) * u_range `0 < a`
         by (subst positive_integral_eq_simple_integral[symmetric])
            (auto intro!: positive_integral_mono split: split_indicator)
     qed
-    finally show "a * integral\<^isup>S M (?uB i) \<le> integral\<^isup>P M (f i)"
+    finally show "a * integral\<^sup>S M (?uB i) \<le> integral\<^sup>P M (f i)"
       by auto
   next
-    fix i show "0 \<le> \<integral>\<^isup>S x. ?uB i x \<partial>M" using B `0 < a` u(1) u_range
+    fix i show "0 \<le> \<integral>\<^sup>S x. ?uB i x \<partial>M" using B `0 < a` u(1) u_range
       by (intro simple_integral_positive) (auto split: split_indicator)
   qed (insert `0 < a`, auto)
-  ultimately show "a * integral\<^isup>S M u \<le> ?S" by simp
+  ultimately show "a * integral\<^sup>S M u \<le> ?S" by simp
 qed
 
 lemma incseq_positive_integral:
-  assumes "incseq f" shows "incseq (\<lambda>i. integral\<^isup>P M (f i))"
+  assumes "incseq f" shows "incseq (\<lambda>i. integral\<^sup>P M (f i))"
 proof -
   have "\<And>i x. f i x \<le> f (Suc i) x"
     using assms by (auto dest!: incseq_SucD simp: le_fun_def)
@@ -992,19 +992,19 @@ qed
 text {* Beppo-Levi monotone convergence theorem *}
 lemma positive_integral_monotone_convergence_SUP:
   assumes f: "incseq f" "\<And>i. f i \<in> borel_measurable M" "\<And>i x. 0 \<le> f i x"
-  shows "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^isup>P M (f i))"
+  shows "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^sup>P M (f i))"
 proof (rule antisym)
-  show "(SUP j. integral\<^isup>P M (f j)) \<le> (\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M)"
+  show "(SUP j. integral\<^sup>P M (f j)) \<le> (\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M)"
     by (auto intro!: SUP_least SUP_upper positive_integral_mono)
 next
-  show "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) \<le> (SUP j. integral\<^isup>P M (f j))"
+  show "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) \<le> (SUP j. integral\<^sup>P M (f j))"
     unfolding positive_integral_def_finite[of _ "\<lambda>x. SUP i. f i x"]
   proof (safe intro!: SUP_least)
     fix g assume g: "simple_function M g"
       and "g \<le> max 0 \<circ> (\<lambda>x. SUP i. f i x)" "range g \<subseteq> {0..<\<infinity>}"
     moreover then have "\<And>x. 0 \<le> (SUP i. f i x)" and g': "g`space M \<subseteq> {0..<\<infinity>}"
       using f by (auto intro!: SUP_upper2)
-    ultimately show "integral\<^isup>S M g \<le> (SUP j. integral\<^isup>P M (f j))"
+    ultimately show "integral\<^sup>S M g \<le> (SUP j. integral\<^sup>P M (f j))"
       by (intro  positive_integral_SUP_approx[OF f g _ g'])
          (auto simp: le_fun_def max_def)
   qed
@@ -1012,16 +1012,16 @@ qed
 
 lemma positive_integral_monotone_convergence_SUP_AE:
   assumes f: "\<And>i. AE x in M. f i x \<le> f (Suc i) x \<and> 0 \<le> f i x" "\<And>i. f i \<in> borel_measurable M"
-  shows "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^isup>P M (f i))"
+  shows "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^sup>P M (f i))"
 proof -
   from f have "AE x in M. \<forall>i. f i x \<le> f (Suc i) x \<and> 0 \<le> f i x"
     by (simp add: AE_all_countable)
   from this[THEN AE_E] guess N . note N = this
   let ?f = "\<lambda>i x. if x \<in> space M - N then f i x else 0"
   have f_eq: "AE x in M. \<forall>i. ?f i x = f i x" using N by (auto intro!: AE_I[of _ _ N])
-  then have "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (\<integral>\<^isup>+ x. (SUP i. ?f i x) \<partial>M)"
+  then have "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) = (\<integral>\<^sup>+ x. (SUP i. ?f i x) \<partial>M)"
     by (auto intro!: positive_integral_cong_AE)
-  also have "\<dots> = (SUP i. (\<integral>\<^isup>+ x. ?f i x \<partial>M))"
+  also have "\<dots> = (SUP i. (\<integral>\<^sup>+ x. ?f i x \<partial>M))"
   proof (rule positive_integral_monotone_convergence_SUP)
     show "incseq ?f" using N(1) by (force intro!: incseq_SucI le_funI)
     { fix i show "(\<lambda>x. if x \<in> space M - N then f i x else 0) \<in> borel_measurable M"
@@ -1029,34 +1029,34 @@ proof -
       fix x show "0 \<le> ?f i x"
         using N(1) by auto }
   qed
-  also have "\<dots> = (SUP i. (\<integral>\<^isup>+ x. f i x \<partial>M))"
+  also have "\<dots> = (SUP i. (\<integral>\<^sup>+ x. f i x \<partial>M))"
     using f_eq by (force intro!: arg_cong[where f="SUPR UNIV"] positive_integral_cong_AE ext)
   finally show ?thesis .
 qed
 
 lemma positive_integral_monotone_convergence_SUP_AE_incseq:
   assumes f: "incseq f" "\<And>i. AE x in M. 0 \<le> f i x" and borel: "\<And>i. f i \<in> borel_measurable M"
-  shows "(\<integral>\<^isup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^isup>P M (f i))"
+  shows "(\<integral>\<^sup>+ x. (SUP i. f i x) \<partial>M) = (SUP i. integral\<^sup>P M (f i))"
   using f[unfolded incseq_Suc_iff le_fun_def]
   by (intro positive_integral_monotone_convergence_SUP_AE[OF _ borel])
      auto
 
 lemma positive_integral_monotone_convergence_simple:
   assumes f: "incseq f" "\<And>i x. 0 \<le> f i x" "\<And>i. simple_function M (f i)"
-  shows "(SUP i. integral\<^isup>S M (f i)) = (\<integral>\<^isup>+x. (SUP i. f i x) \<partial>M)"
+  shows "(SUP i. integral\<^sup>S M (f i)) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
   using assms unfolding positive_integral_monotone_convergence_SUP[OF f(1)
     f(3)[THEN borel_measurable_simple_function] f(2)]
   by (auto intro!: positive_integral_eq_simple_integral[symmetric] arg_cong[where f="SUPR UNIV"] ext)
 
 lemma positive_integral_max_0:
-  "(\<integral>\<^isup>+x. max 0 (f x) \<partial>M) = integral\<^isup>P M f"
+  "(\<integral>\<^sup>+x. max 0 (f x) \<partial>M) = integral\<^sup>P M f"
   by (simp add: le_fun_def positive_integral_def)
 
 lemma positive_integral_cong_pos:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> f x \<le> 0 \<and> g x \<le> 0 \<or> f x = g x"
-  shows "integral\<^isup>P M f = integral\<^isup>P M g"
+  shows "integral\<^sup>P M f = integral\<^sup>P M g"
 proof -
-  have "integral\<^isup>P M (\<lambda>x. max 0 (f x)) = integral\<^isup>P M (\<lambda>x. max 0 (g x))"
+  have "integral\<^sup>P M (\<lambda>x. max 0 (f x)) = integral\<^sup>P M (\<lambda>x. max 0 (g x))"
   proof (intro positive_integral_cong)
     fix x assume "x \<in> space M"
     from assms[OF this] show "max 0 (f x) = max 0 (g x)"
@@ -1069,12 +1069,12 @@ lemma SUP_simple_integral_sequences:
   assumes f: "incseq f" "\<And>i x. 0 \<le> f i x" "\<And>i. simple_function M (f i)"
   and g: "incseq g" "\<And>i x. 0 \<le> g i x" "\<And>i. simple_function M (g i)"
   and eq: "AE x in M. (SUP i. f i x) = (SUP i. g i x)"
-  shows "(SUP i. integral\<^isup>S M (f i)) = (SUP i. integral\<^isup>S M (g i))"
+  shows "(SUP i. integral\<^sup>S M (f i)) = (SUP i. integral\<^sup>S M (g i))"
     (is "SUPR _ ?F = SUPR _ ?G")
 proof -
-  have "(SUP i. integral\<^isup>S M (f i)) = (\<integral>\<^isup>+x. (SUP i. f i x) \<partial>M)"
+  have "(SUP i. integral\<^sup>S M (f i)) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
     using f by (rule positive_integral_monotone_convergence_simple)
-  also have "\<dots> = (\<integral>\<^isup>+x. (SUP i. g i x) \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+x. (SUP i. g i x) \<partial>M)"
     unfolding eq[THEN positive_integral_cong_AE] ..
   also have "\<dots> = (SUP i. ?G i)"
     using g by (rule positive_integral_monotone_convergence_simple[symmetric])
@@ -1082,14 +1082,14 @@ proof -
 qed
 
 lemma positive_integral_const[simp]:
-  "0 \<le> c \<Longrightarrow> (\<integral>\<^isup>+ x. c \<partial>M) = c * (emeasure M) (space M)"
+  "0 \<le> c \<Longrightarrow> (\<integral>\<^sup>+ x. c \<partial>M) = c * (emeasure M) (space M)"
   by (subst positive_integral_eq_simple_integral) auto
 
 lemma positive_integral_linear:
   assumes f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" and "0 \<le> a"
   and g: "g \<in> borel_measurable M" "\<And>x. 0 \<le> g x"
-  shows "(\<integral>\<^isup>+ x. a * f x + g x \<partial>M) = a * integral\<^isup>P M f + integral\<^isup>P M g"
-    (is "integral\<^isup>P M ?L = _")
+  shows "(\<integral>\<^sup>+ x. a * f x + g x \<partial>M) = a * integral\<^sup>P M f + integral\<^sup>P M g"
+    (is "integral\<^sup>P M ?L = _")
 proof -
   from borel_measurable_implies_simple_function_sequence'[OF f(1)] guess u .
   note u = positive_integral_monotone_convergence_simple[OF this(2,5,1)] this
@@ -1101,17 +1101,17 @@ proof -
   from borel_measurable_implies_simple_function_sequence'[OF this] guess l .
   note l = positive_integral_monotone_convergence_simple[OF this(2,5,1)] this
 
-  have inc: "incseq (\<lambda>i. a * integral\<^isup>S M (u i))" "incseq (\<lambda>i. integral\<^isup>S M (v i))"
+  have inc: "incseq (\<lambda>i. a * integral\<^sup>S M (u i))" "incseq (\<lambda>i. integral\<^sup>S M (v i))"
     using u v `0 \<le> a`
     by (auto simp: incseq_Suc_iff le_fun_def
              intro!: add_mono ereal_mult_left_mono simple_integral_mono)
-  have pos: "\<And>i. 0 \<le> integral\<^isup>S M (u i)" "\<And>i. 0 \<le> integral\<^isup>S M (v i)" "\<And>i. 0 \<le> a * integral\<^isup>S M (u i)"
+  have pos: "\<And>i. 0 \<le> integral\<^sup>S M (u i)" "\<And>i. 0 \<le> integral\<^sup>S M (v i)" "\<And>i. 0 \<le> a * integral\<^sup>S M (u i)"
     using u v `0 \<le> a` by (auto simp: simple_integral_positive)
-  { fix i from pos[of i] have "a * integral\<^isup>S M (u i) \<noteq> -\<infinity>" "integral\<^isup>S M (v i) \<noteq> -\<infinity>"
+  { fix i from pos[of i] have "a * integral\<^sup>S M (u i) \<noteq> -\<infinity>" "integral\<^sup>S M (v i) \<noteq> -\<infinity>"
       by (auto split: split_if_asm) }
   note not_MInf = this
 
-  have l': "(SUP i. integral\<^isup>S M (l i)) = (SUP i. integral\<^isup>S M (?L' i))"
+  have l': "(SUP i. integral\<^sup>S M (l i)) = (SUP i. integral\<^sup>S M (?L' i))"
   proof (rule SUP_simple_integral_sequences[OF l(3,6,2)])
     show "incseq ?L'" "\<And>i x. 0 \<le> ?L' i x" "\<And>i. simple_function M (?L' i)"
       using u v  `0 \<le> a` unfolding incseq_Suc_iff le_fun_def
@@ -1128,9 +1128,9 @@ proof -
       unfolding l(5) using `0 \<le> a` u(5) v(5) l(5) f(2) g(2)
       by (intro AE_I2) (auto split: split_max simp add: ereal_add_nonneg_nonneg)
   qed
-  also have "\<dots> = (SUP i. a * integral\<^isup>S M (u i) + integral\<^isup>S M (v i))"
+  also have "\<dots> = (SUP i. a * integral\<^sup>S M (u i) + integral\<^sup>S M (v i))"
     using u(2, 6) v(2, 6) `0 \<le> a` by (auto intro!: arg_cong[where f="SUPR UNIV"] ext)
-  finally have "(\<integral>\<^isup>+ x. max 0 (a * f x + g x) \<partial>M) = a * (\<integral>\<^isup>+x. max 0 (f x) \<partial>M) + (\<integral>\<^isup>+x. max 0 (g x) \<partial>M)"
+  finally have "(\<integral>\<^sup>+ x. max 0 (a * f x + g x) \<partial>M) = a * (\<integral>\<^sup>+x. max 0 (f x) \<partial>M) + (\<integral>\<^sup>+x. max 0 (g x) \<partial>M)"
     unfolding l(5)[symmetric] u(5)[symmetric] v(5)[symmetric]
     unfolding l(1)[symmetric] u(1)[symmetric] v(1)[symmetric]
     apply (subst SUPR_ereal_cmult[symmetric, OF pos(1) `0 \<le> a`])
@@ -1140,11 +1140,11 @@ qed
 
 lemma positive_integral_cmult:
   assumes f: "f \<in> borel_measurable M" "0 \<le> c"
-  shows "(\<integral>\<^isup>+ x. c * f x \<partial>M) = c * integral\<^isup>P M f"
+  shows "(\<integral>\<^sup>+ x. c * f x \<partial>M) = c * integral\<^sup>P M f"
 proof -
   have [simp]: "\<And>x. c * max 0 (f x) = max 0 (c * f x)" using `0 \<le> c`
     by (auto split: split_max simp: ereal_zero_le_0_iff)
-  have "(\<integral>\<^isup>+ x. c * f x \<partial>M) = (\<integral>\<^isup>+ x. c * max 0 (f x) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. c * f x \<partial>M) = (\<integral>\<^sup>+ x. c * max 0 (f x) \<partial>M)"
     by (simp add: positive_integral_max_0)
   then show ?thesis
     using positive_integral_linear[OF _ _ `0 \<le> c`, of "\<lambda>x. max 0 (f x)" _ "\<lambda>x. 0"] f
@@ -1153,24 +1153,24 @@ qed
 
 lemma positive_integral_multc:
   assumes "f \<in> borel_measurable M" "0 \<le> c"
-  shows "(\<integral>\<^isup>+ x. f x * c \<partial>M) = integral\<^isup>P M f * c"
+  shows "(\<integral>\<^sup>+ x. f x * c \<partial>M) = integral\<^sup>P M f * c"
   unfolding mult_commute[of _ c] positive_integral_cmult[OF assms] by simp
 
 lemma positive_integral_indicator[simp]:
-  "A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+ x. indicator A x\<partial>M) = (emeasure M) A"
+  "A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. indicator A x\<partial>M) = (emeasure M) A"
   by (subst positive_integral_eq_simple_integral)
      (auto simp: simple_integral_indicator)
 
 lemma positive_integral_cmult_indicator:
-  "0 \<le> c \<Longrightarrow> A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+ x. c * indicator A x \<partial>M) = c * (emeasure M) A"
+  "0 \<le> c \<Longrightarrow> A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+ x. c * indicator A x \<partial>M) = c * (emeasure M) A"
   by (subst positive_integral_eq_simple_integral)
      (auto simp: simple_function_indicator simple_integral_indicator)
 
 lemma positive_integral_indicator':
   assumes [measurable]: "A \<inter> space M \<in> sets M"
-  shows "(\<integral>\<^isup>+ x. indicator A x \<partial>M) = emeasure M (A \<inter> space M)"
+  shows "(\<integral>\<^sup>+ x. indicator A x \<partial>M) = emeasure M (A \<inter> space M)"
 proof -
-  have "(\<integral>\<^isup>+ x. indicator A x \<partial>M) = (\<integral>\<^isup>+ x. indicator (A \<inter> space M) x \<partial>M)"
+  have "(\<integral>\<^sup>+ x. indicator A x \<partial>M) = (\<integral>\<^sup>+ x. indicator (A \<inter> space M) x \<partial>M)"
     by (intro positive_integral_cong) (simp split: split_indicator)
   also have "\<dots> = emeasure M (A \<inter> space M)"
     by simp
@@ -1180,15 +1180,15 @@ qed
 lemma positive_integral_add:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   and g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
-  shows "(\<integral>\<^isup>+ x. f x + g x \<partial>M) = integral\<^isup>P M f + integral\<^isup>P M g"
+  shows "(\<integral>\<^sup>+ x. f x + g x \<partial>M) = integral\<^sup>P M f + integral\<^sup>P M g"
 proof -
   have ae: "AE x in M. max 0 (f x) + max 0 (g x) = max 0 (f x + g x)"
     using assms by (auto split: split_max simp: ereal_add_nonneg_nonneg)
-  have "(\<integral>\<^isup>+ x. f x + g x \<partial>M) = (\<integral>\<^isup>+ x. max 0 (f x + g x) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. f x + g x \<partial>M) = (\<integral>\<^sup>+ x. max 0 (f x + g x) \<partial>M)"
     by (simp add: positive_integral_max_0)
-  also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (f x) + max 0 (g x) \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. max 0 (f x) + max 0 (g x) \<partial>M)"
     unfolding ae[THEN positive_integral_cong_AE] ..
-  also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (f x) \<partial>M) + (\<integral>\<^isup>+ x. max 0 (g x) \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. max 0 (f x) \<partial>M) + (\<integral>\<^sup>+ x. max 0 (g x) \<partial>M)"
     using positive_integral_linear[of "\<lambda>x. max 0 (f x)" _ 1 "\<lambda>x. max 0 (g x)"] f g
     by auto
   finally show ?thesis
@@ -1197,7 +1197,7 @@ qed
 
 lemma positive_integral_setsum:
   assumes "\<And>i. i\<in>P \<Longrightarrow> f i \<in> borel_measurable M" "\<And>i. i\<in>P \<Longrightarrow> AE x in M. 0 \<le> f i x"
-  shows "(\<integral>\<^isup>+ x. (\<Sum>i\<in>P. f i x) \<partial>M) = (\<Sum>i\<in>P. integral\<^isup>P M (f i))"
+  shows "(\<integral>\<^sup>+ x. (\<Sum>i\<in>P. f i x) \<partial>M) = (\<Sum>i\<in>P. integral\<^sup>P M (f i))"
 proof cases
   assume f: "finite P"
   from assms have "AE x in M. \<forall>i\<in>P. 0 \<le> f i x" unfolding AE_finite_all[OF f] by auto
@@ -1214,17 +1214,17 @@ qed simp
 
 lemma positive_integral_Markov_inequality:
   assumes u: "u \<in> borel_measurable M" "AE x in M. 0 \<le> u x" and "A \<in> sets M" and c: "0 \<le> c"
-  shows "(emeasure M) ({x\<in>space M. 1 \<le> c * u x} \<inter> A) \<le> c * (\<integral>\<^isup>+ x. u x * indicator A x \<partial>M)"
+  shows "(emeasure M) ({x\<in>space M. 1 \<le> c * u x} \<inter> A) \<le> c * (\<integral>\<^sup>+ x. u x * indicator A x \<partial>M)"
     (is "(emeasure M) ?A \<le> _ * ?PI")
 proof -
   have "?A \<in> sets M"
     using `A \<in> sets M` u by auto
-  hence "(emeasure M) ?A = (\<integral>\<^isup>+ x. indicator ?A x \<partial>M)"
+  hence "(emeasure M) ?A = (\<integral>\<^sup>+ x. indicator ?A x \<partial>M)"
     using positive_integral_indicator by simp
-  also have "\<dots> \<le> (\<integral>\<^isup>+ x. c * (u x * indicator A x) \<partial>M)" using u c
+  also have "\<dots> \<le> (\<integral>\<^sup>+ x. c * (u x * indicator A x) \<partial>M)" using u c
     by (auto intro!: positive_integral_mono_AE
       simp: indicator_def ereal_zero_le_0_iff)
-  also have "\<dots> = c * (\<integral>\<^isup>+ x. u x * indicator A x \<partial>M)"
+  also have "\<dots> = c * (\<integral>\<^sup>+ x. u x * indicator A x \<partial>M)"
     using assms
     by (auto intro!: positive_integral_cmult simp: ereal_zero_le_0_iff)
   finally show ?thesis .
@@ -1232,7 +1232,7 @@ qed
 
 lemma positive_integral_noteq_infinite:
   assumes g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
-  and "integral\<^isup>P M g \<noteq> \<infinity>"
+  and "integral\<^sup>P M g \<noteq> \<infinity>"
   shows "AE x in M. g x \<noteq> \<infinity>"
 proof (rule ccontr)
   assume c: "\<not> (AE x in M. g x \<noteq> \<infinity>)"
@@ -1241,19 +1241,19 @@ proof (rule ccontr)
   moreover have "0 \<le> (emeasure M) {x\<in>space M. g x = \<infinity>}" using g by (auto intro: measurable_sets)
   ultimately have "0 < (emeasure M) {x\<in>space M. g x = \<infinity>}" by auto
   then have "\<infinity> = \<infinity> * (emeasure M) {x\<in>space M. g x = \<infinity>}" by auto
-  also have "\<dots> \<le> (\<integral>\<^isup>+x. \<infinity> * indicator {x\<in>space M. g x = \<infinity>} x \<partial>M)"
+  also have "\<dots> \<le> (\<integral>\<^sup>+x. \<infinity> * indicator {x\<in>space M. g x = \<infinity>} x \<partial>M)"
     using g by (subst positive_integral_cmult_indicator) auto
-  also have "\<dots> \<le> integral\<^isup>P M g"
+  also have "\<dots> \<le> integral\<^sup>P M g"
     using assms by (auto intro!: positive_integral_mono_AE simp: indicator_def)
-  finally show False using `integral\<^isup>P M g \<noteq> \<infinity>` by auto
+  finally show False using `integral\<^sup>P M g \<noteq> \<infinity>` by auto
 qed
 
 lemma positive_integral_diff:
   assumes f: "f \<in> borel_measurable M"
   and g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
-  and fin: "integral\<^isup>P M g \<noteq> \<infinity>"
+  and fin: "integral\<^sup>P M g \<noteq> \<infinity>"
   and mono: "AE x in M. g x \<le> f x"
-  shows "(\<integral>\<^isup>+ x. f x - g x \<partial>M) = integral\<^isup>P M f - integral\<^isup>P M g"
+  shows "(\<integral>\<^sup>+ x. f x - g x \<partial>M) = integral\<^sup>P M f - integral\<^sup>P M g"
 proof -
   have diff: "(\<lambda>x. f x - g x) \<in> borel_measurable M" "AE x in M. 0 \<le> f x - g x"
     using assms by (auto intro: ereal_diff_positive)
@@ -1263,28 +1263,28 @@ proof -
   note * = this
   then have "AE x in M. f x = f x - g x + g x"
     using mono positive_integral_noteq_infinite[OF g fin] assms by auto
-  then have **: "integral\<^isup>P M f = (\<integral>\<^isup>+x. f x - g x \<partial>M) + integral\<^isup>P M g"
+  then have **: "integral\<^sup>P M f = (\<integral>\<^sup>+x. f x - g x \<partial>M) + integral\<^sup>P M g"
     unfolding positive_integral_add[OF diff g, symmetric]
     by (rule positive_integral_cong_AE)
   show ?thesis unfolding **
     using fin positive_integral_positive[of M g]
-    by (cases rule: ereal2_cases[of "\<integral>\<^isup>+ x. f x - g x \<partial>M" "integral\<^isup>P M g"]) auto
+    by (cases rule: ereal2_cases[of "\<integral>\<^sup>+ x. f x - g x \<partial>M" "integral\<^sup>P M g"]) auto
 qed
 
 lemma positive_integral_suminf:
   assumes f: "\<And>i. f i \<in> borel_measurable M" "\<And>i. AE x in M. 0 \<le> f i x"
-  shows "(\<integral>\<^isup>+ x. (\<Sum>i. f i x) \<partial>M) = (\<Sum>i. integral\<^isup>P M (f i))"
+  shows "(\<integral>\<^sup>+ x. (\<Sum>i. f i x) \<partial>M) = (\<Sum>i. integral\<^sup>P M (f i))"
 proof -
   have all_pos: "AE x in M. \<forall>i. 0 \<le> f i x"
     using assms by (auto simp: AE_all_countable)
-  have "(\<Sum>i. integral\<^isup>P M (f i)) = (SUP n. \<Sum>i<n. integral\<^isup>P M (f i))"
+  have "(\<Sum>i. integral\<^sup>P M (f i)) = (SUP n. \<Sum>i<n. integral\<^sup>P M (f i))"
     using positive_integral_positive by (rule suminf_ereal_eq_SUPR)
-  also have "\<dots> = (SUP n. \<integral>\<^isup>+x. (\<Sum>i<n. f i x) \<partial>M)"
+  also have "\<dots> = (SUP n. \<integral>\<^sup>+x. (\<Sum>i<n. f i x) \<partial>M)"
     unfolding positive_integral_setsum[OF f] ..
-  also have "\<dots> = \<integral>\<^isup>+x. (SUP n. \<Sum>i<n. f i x) \<partial>M" using f all_pos
+  also have "\<dots> = \<integral>\<^sup>+x. (SUP n. \<Sum>i<n. f i x) \<partial>M" using f all_pos
     by (intro positive_integral_monotone_convergence_SUP_AE[symmetric])
        (elim AE_mp, auto simp: setsum_nonneg simp del: setsum_lessThan_Suc intro!: AE_I2 setsum_mono3)
-  also have "\<dots> = \<integral>\<^isup>+x. (\<Sum>i. f i x) \<partial>M" using all_pos
+  also have "\<dots> = \<integral>\<^sup>+x. (\<Sum>i. f i x) \<partial>M" using all_pos
     by (intro positive_integral_cong_AE) (auto simp: suminf_ereal_eq_SUPR)
   finally show ?thesis by simp
 qed
@@ -1293,24 +1293,24 @@ text {* Fatou's lemma: convergence theorem on limes inferior *}
 lemma positive_integral_lim_INF:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes u: "\<And>i. u i \<in> borel_measurable M" "\<And>i. AE x in M. 0 \<le> u i x"
-  shows "(\<integral>\<^isup>+ x. liminf (\<lambda>n. u n x) \<partial>M) \<le> liminf (\<lambda>n. integral\<^isup>P M (u n))"
+  shows "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) \<le> liminf (\<lambda>n. integral\<^sup>P M (u n))"
 proof -
   have pos: "AE x in M. \<forall>i. 0 \<le> u i x" using u by (auto simp: AE_all_countable)
-  have "(\<integral>\<^isup>+ x. liminf (\<lambda>n. u n x) \<partial>M) =
-    (SUP n. \<integral>\<^isup>+ x. (INF i:{n..}. u i x) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) =
+    (SUP n. \<integral>\<^sup>+ x. (INF i:{n..}. u i x) \<partial>M)"
     unfolding liminf_SUPR_INFI using pos u
     by (intro positive_integral_monotone_convergence_SUP_AE)
        (elim AE_mp, auto intro!: AE_I2 intro: INF_greatest INF_superset_mono)
-  also have "\<dots> \<le> liminf (\<lambda>n. integral\<^isup>P M (u n))"
+  also have "\<dots> \<le> liminf (\<lambda>n. integral\<^sup>P M (u n))"
     unfolding liminf_SUPR_INFI
     by (auto intro!: SUP_mono exI INF_greatest positive_integral_mono INF_lower)
   finally show ?thesis .
 qed
 
 lemma positive_integral_null_set:
-  assumes "N \<in> null_sets M" shows "(\<integral>\<^isup>+ x. u x * indicator N x \<partial>M) = 0"
+  assumes "N \<in> null_sets M" shows "(\<integral>\<^sup>+ x. u x * indicator N x \<partial>M) = 0"
 proof -
-  have "(\<integral>\<^isup>+ x. u x * indicator N x \<partial>M) = (\<integral>\<^isup>+ x. 0 \<partial>M)"
+  have "(\<integral>\<^sup>+ x. u x * indicator N x \<partial>M) = (\<integral>\<^sup>+ x. 0 \<partial>M)"
   proof (intro positive_integral_cong_AE AE_I)
     show "{x \<in> space M. u x * indicator N x \<noteq> 0} \<subseteq> N"
       by (auto simp: indicator_def)
@@ -1322,22 +1322,22 @@ qed
 
 lemma positive_integral_0_iff:
   assumes u: "u \<in> borel_measurable M" and pos: "AE x in M. 0 \<le> u x"
-  shows "integral\<^isup>P M u = 0 \<longleftrightarrow> emeasure M {x\<in>space M. u x \<noteq> 0} = 0"
+  shows "integral\<^sup>P M u = 0 \<longleftrightarrow> emeasure M {x\<in>space M. u x \<noteq> 0} = 0"
     (is "_ \<longleftrightarrow> (emeasure M) ?A = 0")
 proof -
-  have u_eq: "(\<integral>\<^isup>+ x. u x * indicator ?A x \<partial>M) = integral\<^isup>P M u"
+  have u_eq: "(\<integral>\<^sup>+ x. u x * indicator ?A x \<partial>M) = integral\<^sup>P M u"
     by (auto intro!: positive_integral_cong simp: indicator_def)
   show ?thesis
   proof
     assume "(emeasure M) ?A = 0"
     with positive_integral_null_set[of ?A M u] u
-    show "integral\<^isup>P M u = 0" by (simp add: u_eq null_sets_def)
+    show "integral\<^sup>P M u = 0" by (simp add: u_eq null_sets_def)
   next
     { fix r :: ereal and n :: nat assume gt_1: "1 \<le> real n * r"
       then have "0 < real n * r" by (cases r) (auto split: split_if_asm simp: one_ereal_def)
       then have "0 \<le> r" by (auto simp add: ereal_zero_less_0_iff) }
     note gt_1 = this
-    assume *: "integral\<^isup>P M u = 0"
+    assume *: "integral\<^sup>P M u = 0"
     let ?M = "\<lambda>n. {x \<in> space M. 1 \<le> real (n::nat) * u x}"
     have "0 = (SUP n. (emeasure M) (?M n \<inter> ?A))"
     proof -
@@ -1387,12 +1387,12 @@ qed
 
 lemma positive_integral_0_iff_AE:
   assumes u: "u \<in> borel_measurable M"
-  shows "integral\<^isup>P M u = 0 \<longleftrightarrow> (AE x in M. u x \<le> 0)"
+  shows "integral\<^sup>P M u = 0 \<longleftrightarrow> (AE x in M. u x \<le> 0)"
 proof -
   have sets: "{x\<in>space M. max 0 (u x) \<noteq> 0} \<in> sets M"
     using u by auto
   from positive_integral_0_iff[of "\<lambda>x. max 0 (u x)"]
-  have "integral\<^isup>P M u = 0 \<longleftrightarrow> (AE x in M. max 0 (u x) = 0)"
+  have "integral\<^sup>P M u = 0 \<longleftrightarrow> (AE x in M. max 0 (u x) = 0)"
     unfolding positive_integral_max_0
     using AE_iff_null[OF sets] u by auto
   also have "\<dots> \<longleftrightarrow> (AE x in M. u x \<le> 0)" by (auto split: split_max)
@@ -1400,18 +1400,18 @@ proof -
 qed
 
 lemma AE_iff_positive_integral: 
-  "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> integral\<^isup>P M (indicator {x. \<not> P x}) = 0"
+  "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> integral\<^sup>P M (indicator {x. \<not> P x}) = 0"
   by (subst positive_integral_0_iff_AE) (auto simp: one_ereal_def zero_ereal_def
     sets.sets_Collect_neg indicator_def[abs_def] measurable_If)
 
 lemma positive_integral_const_If:
-  "(\<integral>\<^isup>+x. a \<partial>M) = (if 0 \<le> a then a * (emeasure M) (space M) else 0)"
+  "(\<integral>\<^sup>+x. a \<partial>M) = (if 0 \<le> a then a * (emeasure M) (space M) else 0)"
   by (auto intro!: positive_integral_0_iff_AE[THEN iffD2])
 
 lemma positive_integral_subalgebra:
   assumes f: "f \<in> borel_measurable N" "\<And>x. 0 \<le> f x"
   and N: "sets N \<subseteq> sets M" "space N = space M" "\<And>A. A \<in> sets N \<Longrightarrow> emeasure N A = emeasure M A"
-  shows "integral\<^isup>P N f = integral\<^isup>P M f"
+  shows "integral\<^sup>P N f = integral\<^sup>P M f"
 proof -
   have [simp]: "\<And>f :: 'a \<Rightarrow> ereal. f \<in> borel_measurable N \<Longrightarrow> f \<in> borel_measurable M"
     using N by (auto simp: measurable_def)
@@ -1429,7 +1429,7 @@ qed
 lemma positive_integral_nat_function:
   fixes f :: "'a \<Rightarrow> nat"
   assumes "f \<in> measurable M (count_space UNIV)"
-  shows "(\<integral>\<^isup>+x. ereal (of_nat (f x)) \<partial>M) = (\<Sum>t. emeasure M {x\<in>space M. t < f x})"
+  shows "(\<integral>\<^sup>+x. ereal (of_nat (f x)) \<partial>M) = (\<Sum>t. emeasure M {x\<in>space M. t < f x})"
 proof -
   def F \<equiv> "\<lambda>i. {x\<in>space M. i < f x}"
   with assms have [measurable]: "\<And>i. F i \<in> sets M"
@@ -1444,7 +1444,7 @@ proof -
       using `x \<in> space M` by (simp add: one_ereal_def F_def)
     ultimately have "ereal(of_nat(f x)) = (\<Sum>i. indicator (F i) x)"
       by (simp add: sums_iff) }
-  then have "(\<integral>\<^isup>+x. ereal (of_nat (f x)) \<partial>M) = (\<integral>\<^isup>+x. (\<Sum>i. indicator (F i) x) \<partial>M)"
+  then have "(\<integral>\<^sup>+x. ereal (of_nat (f x)) \<partial>M) = (\<integral>\<^sup>+x. (\<Sum>i. indicator (F i) x) \<partial>M)"
     by (simp cong: positive_integral_cong)
   also have "\<dots> = (\<Sum>i. emeasure M (F i))"
     by (simp add: positive_integral_suminf)
@@ -1456,7 +1456,7 @@ section "Lebesgue Integral"
 
 definition integrable :: "'a measure \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool" where
   "integrable M f \<longleftrightarrow> f \<in> borel_measurable M \<and>
-    (\<integral>\<^isup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity> \<and> (\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
+    (\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity> \<and> (\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
 
 lemma borel_measurable_integrable[measurable_dest]:
   "integrable M f \<Longrightarrow> f \<in> borel_measurable M"
@@ -1464,11 +1464,11 @@ lemma borel_measurable_integrable[measurable_dest]:
 
 lemma integrableD[dest]:
   assumes "integrable M f"
-  shows "f \<in> borel_measurable M" "(\<integral>\<^isup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
+  shows "f \<in> borel_measurable M" "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
   using assms unfolding integrable_def by auto
 
-definition lebesgue_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> real" ("integral\<^isup>L") where
-  "integral\<^isup>L M f = real ((\<integral>\<^isup>+ x. ereal (f x) \<partial>M)) - real ((\<integral>\<^isup>+ x. ereal (- f x) \<partial>M))"
+definition lebesgue_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> real" ("integral\<^sup>L") where
+  "integral\<^sup>L M f = real ((\<integral>\<^sup>+ x. ereal (f x) \<partial>M)) - real ((\<integral>\<^sup>+ x. ereal (- f x) \<partial>M))"
 
 syntax
   "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" ("\<integral> _. _ \<partial>_" [60,61] 110)
@@ -1479,22 +1479,22 @@ translations
 lemma integrableE:
   assumes "integrable M f"
   obtains r q where
-    "(\<integral>\<^isup>+x. ereal (f x)\<partial>M) = ereal r"
-    "(\<integral>\<^isup>+x. ereal (-f x)\<partial>M) = ereal q"
-    "f \<in> borel_measurable M" "integral\<^isup>L M f = r - q"
+    "(\<integral>\<^sup>+x. ereal (f x)\<partial>M) = ereal r"
+    "(\<integral>\<^sup>+x. ereal (-f x)\<partial>M) = ereal q"
+    "f \<in> borel_measurable M" "integral\<^sup>L M f = r - q"
   using assms unfolding integrable_def lebesgue_integral_def
   using positive_integral_positive[of M "\<lambda>x. ereal (f x)"]
   using positive_integral_positive[of M "\<lambda>x. ereal (-f x)"]
-  by (cases rule: ereal2_cases[of "(\<integral>\<^isup>+x. ereal (-f x)\<partial>M)" "(\<integral>\<^isup>+x. ereal (f x)\<partial>M)"]) auto
+  by (cases rule: ereal2_cases[of "(\<integral>\<^sup>+x. ereal (-f x)\<partial>M)" "(\<integral>\<^sup>+x. ereal (f x)\<partial>M)"]) auto
 
 lemma integral_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> f x = g x"
-  shows "integral\<^isup>L M f = integral\<^isup>L M g"
+  shows "integral\<^sup>L M f = integral\<^sup>L M g"
   using assms by (simp cong: positive_integral_cong add: lebesgue_integral_def)
 
 lemma integral_cong_AE:
   assumes cong: "AE x in M. f x = g x"
-  shows "integral\<^isup>L M f = integral\<^isup>L M g"
+  shows "integral\<^sup>L M f = integral\<^sup>L M g"
 proof -
   have *: "AE x in M. ereal (f x) = ereal (g x)"
     "AE x in M. ereal (- f x) = ereal (- g x)" using cong by auto
@@ -1507,8 +1507,8 @@ lemma integrable_cong_AE:
   assumes "AE x in M. f x = g x"
   shows "integrable M f = integrable M g"
 proof -
-  have "(\<integral>\<^isup>+ x. ereal (f x) \<partial>M) = (\<integral>\<^isup>+ x. ereal (g x) \<partial>M)"
-    "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) = (\<integral>\<^isup>+ x. ereal (- g x) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = (\<integral>\<^sup>+ x. ereal (g x) \<partial>M)"
+    "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) = (\<integral>\<^sup>+ x. ereal (- g x) \<partial>M)"
     using assms by (auto intro!: positive_integral_cong_AE)
   with assms show ?thesis
     by (auto simp: integrable_def)
@@ -1521,7 +1521,7 @@ lemma integrable_cong:
 lemma integral_mono_AE:
   assumes fg: "integrable M f" "integrable M g"
   and mono: "AE t in M. f t \<le> g t"
-  shows "integral\<^isup>L M f \<le> integral\<^isup>L M g"
+  shows "integral\<^sup>L M f \<le> integral\<^sup>L M g"
 proof -
   have "AE x in M. ereal (f x) \<le> ereal (g x)"
     using mono by auto
@@ -1534,35 +1534,35 @@ qed
 
 lemma integral_mono:
   assumes "integrable M f" "integrable M g" "\<And>t. t \<in> space M \<Longrightarrow> f t \<le> g t"
-  shows "integral\<^isup>L M f \<le> integral\<^isup>L M g"
+  shows "integral\<^sup>L M f \<le> integral\<^sup>L M g"
   using assms by (auto intro: integral_mono_AE)
 
 lemma positive_integral_eq_integral:
   assumes f: "integrable M f"
   assumes nonneg: "AE x in M. 0 \<le> f x" 
-  shows "(\<integral>\<^isup>+ x. ereal (f x) \<partial>M) = integral\<^isup>L M f"
+  shows "(\<integral>\<^sup>+ x. ereal (f x) \<partial>M) = integral\<^sup>L M f"
 proof -
-  have "(\<integral>\<^isup>+ x. max 0 (ereal (- f x)) \<partial>M) = (\<integral>\<^isup>+ x. 0 \<partial>M)"
+  have "(\<integral>\<^sup>+ x. max 0 (ereal (- f x)) \<partial>M) = (\<integral>\<^sup>+ x. 0 \<partial>M)"
     using nonneg by (intro positive_integral_cong_AE) (auto split: split_max)
   with f positive_integral_positive show ?thesis
-    by (cases "\<integral>\<^isup>+ x. ereal (f x) \<partial>M")
+    by (cases "\<integral>\<^sup>+ x. ereal (f x) \<partial>M")
        (auto simp add: lebesgue_integral_def positive_integral_max_0 integrable_def)
 qed
   
 lemma integral_eq_positive_integral:
   assumes f: "\<And>x. 0 \<le> f x"
-  shows "integral\<^isup>L M f = real (\<integral>\<^isup>+ x. ereal (f x) \<partial>M)"
+  shows "integral\<^sup>L M f = real (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
 proof -
   { fix x have "max 0 (ereal (- f x)) = 0" using f[of x] by (simp split: split_max) }
-  then have "0 = (\<integral>\<^isup>+ x. max 0 (ereal (- f x)) \<partial>M)" by simp
-  also have "\<dots> = (\<integral>\<^isup>+ x. ereal (- f x) \<partial>M)" unfolding positive_integral_max_0 ..
+  then have "0 = (\<integral>\<^sup>+ x. max 0 (ereal (- f x)) \<partial>M)" by simp
+  also have "\<dots> = (\<integral>\<^sup>+ x. ereal (- f x) \<partial>M)" unfolding positive_integral_max_0 ..
   finally show ?thesis
     unfolding lebesgue_integral_def by simp
 qed
 
 lemma integral_minus[intro, simp]:
   assumes "integrable M f"
-  shows "integrable M (\<lambda>x. - f x)" "(\<integral>x. - f x \<partial>M) = - integral\<^isup>L M f"
+  shows "integrable M (\<lambda>x. - f x)" "(\<integral>x. - f x \<partial>M) = - integral\<^sup>L M f"
   using assms by (auto simp: integrable_def lebesgue_integral_def)
 
 lemma integral_minus_iff[simp]:
@@ -1577,7 +1577,7 @@ qed (rule integral_minus)
 lemma integral_of_positive_diff:
   assumes integrable: "integrable M u" "integrable M v"
   and f_def: "\<And>x. f x = u x - v x" and pos: "\<And>x. 0 \<le> u x" "\<And>x. 0 \<le> v x"
-  shows "integrable M f" and "integral\<^isup>L M f = integral\<^isup>L M u - integral\<^isup>L M v"
+  shows "integrable M f" and "integral\<^sup>L M f = integral\<^sup>L M u - integral\<^sup>L M v"
 proof -
   let ?f = "\<lambda>x. max 0 (ereal (f x))"
   let ?mf = "\<lambda>x. max 0 (ereal (- f x))"
@@ -1592,9 +1592,9 @@ proof -
     "f \<in> borel_measurable M"
     by (auto simp: f_def[symmetric] integrable_def)
 
-  have "(\<integral>\<^isup>+ x. ereal (u x - v x) \<partial>M) \<le> integral\<^isup>P M ?u"
+  have "(\<integral>\<^sup>+ x. ereal (u x - v x) \<partial>M) \<le> integral\<^sup>P M ?u"
     using pos by (auto intro!: positive_integral_mono simp: positive_integral_max_0)
-  moreover have "(\<integral>\<^isup>+ x. ereal (v x - u x) \<partial>M) \<le> integral\<^isup>P M ?v"
+  moreover have "(\<integral>\<^sup>+ x. ereal (v x - u x) \<partial>M) \<le> integral\<^sup>P M ?v"
     using pos by (auto intro!: positive_integral_mono simp: positive_integral_max_0)
   ultimately show f: "integrable M f"
     using `integrable M u` `integrable M v` `f \<in> borel_measurable M`
@@ -1602,13 +1602,13 @@ proof -
 
   have "\<And>x. ?u x + ?mf x = ?v x + ?f x"
     unfolding f_def using pos by (simp split: split_max)
-  then have "(\<integral>\<^isup>+ x. ?u x + ?mf x \<partial>M) = (\<integral>\<^isup>+ x. ?v x + ?f x \<partial>M)" by simp
-  then have "real (integral\<^isup>P M ?u + integral\<^isup>P M ?mf) =
-      real (integral\<^isup>P M ?v + integral\<^isup>P M ?f)"
+  then have "(\<integral>\<^sup>+ x. ?u x + ?mf x \<partial>M) = (\<integral>\<^sup>+ x. ?v x + ?f x \<partial>M)" by simp
+  then have "real (integral\<^sup>P M ?u + integral\<^sup>P M ?mf) =
+      real (integral\<^sup>P M ?v + integral\<^sup>P M ?f)"
     using positive_integral_add[OF u_borel _ mf_borel]
     using positive_integral_add[OF v_borel _ f_borel]
     by auto
-  then show "integral\<^isup>L M f = integral\<^isup>L M u - integral\<^isup>L M v"
+  then show "integral\<^sup>L M f = integral\<^sup>L M u - integral\<^sup>L M v"
     unfolding positive_integral_max_0
     unfolding pos[THEN integral_eq_positive_integral]
     using integrable f by (auto elim!: integrableE)
@@ -1617,7 +1617,7 @@ qed
 lemma integral_linear:
   assumes "integrable M f" "integrable M g" and "0 \<le> a"
   shows "integrable M (\<lambda>t. a * f t + g t)"
-  and "(\<integral> t. a * f t + g t \<partial>M) = a * integral\<^isup>L M f + integral\<^isup>L M g" (is ?EQ)
+  and "(\<integral> t. a * f t + g t \<partial>M) = a * integral\<^sup>L M f + integral\<^sup>L M g" (is ?EQ)
 proof -
   let ?f = "\<lambda>x. max 0 (ereal (f x))"
   let ?g = "\<lambda>x. max 0 (ereal (g x))"
@@ -1627,11 +1627,11 @@ proof -
   let ?n = "\<lambda>t. max 0 (- (a * f t)) + max 0 (- g t)"
 
   from assms have linear:
-    "(\<integral>\<^isup>+ x. ereal a * ?f x + ?g x \<partial>M) = ereal a * integral\<^isup>P M ?f + integral\<^isup>P M ?g"
-    "(\<integral>\<^isup>+ x. ereal a * ?mf x + ?mg x \<partial>M) = ereal a * integral\<^isup>P M ?mf + integral\<^isup>P M ?mg"
+    "(\<integral>\<^sup>+ x. ereal a * ?f x + ?g x \<partial>M) = ereal a * integral\<^sup>P M ?f + integral\<^sup>P M ?g"
+    "(\<integral>\<^sup>+ x. ereal a * ?mf x + ?mg x \<partial>M) = ereal a * integral\<^sup>P M ?mf + integral\<^sup>P M ?mg"
     by (auto intro!: positive_integral_linear simp: integrable_def)
 
-  have *: "(\<integral>\<^isup>+x. ereal (- ?p x) \<partial>M) = 0" "(\<integral>\<^isup>+x. ereal (- ?n x) \<partial>M) = 0"
+  have *: "(\<integral>\<^sup>+x. ereal (- ?p x) \<partial>M) = 0" "(\<integral>\<^sup>+x. ereal (- ?n x) \<partial>M) = 0"
     using `0 \<le> a` assms by (auto simp: positive_integral_0_iff_AE integrable_def)
   have **: "\<And>x. ereal a * ?f x + ?g x = max 0 (ereal (?p x))"
            "\<And>x. ereal a * ?mf x + ?mg x = max 0 (ereal (?n x))"
@@ -1653,7 +1653,7 @@ qed
 lemma integral_add[simp, intro]:
   assumes "integrable M f" "integrable M g"
   shows "integrable M (\<lambda>t. f t + g t)"
-  and "(\<integral> t. f t + g t \<partial>M) = integral\<^isup>L M f + integral\<^isup>L M g"
+  and "(\<integral> t. f t + g t \<partial>M) = integral\<^sup>L M f + integral\<^sup>L M g"
   using assms integral_linear[where a=1] by auto
 
 lemma integral_zero[simp, intro]:
@@ -1662,27 +1662,27 @@ lemma integral_zero[simp, intro]:
   by auto
 
 lemma lebesgue_integral_uminus:
-    "(\<integral>x. - f x \<partial>M) = - integral\<^isup>L M f"
+    "(\<integral>x. - f x \<partial>M) = - integral\<^sup>L M f"
   unfolding lebesgue_integral_def by simp
 
 lemma lebesgue_integral_cmult_nonneg:
   assumes f: "f \<in> borel_measurable M" and "0 \<le> c"
-  shows "(\<integral>x. c * f x \<partial>M) = c * integral\<^isup>L M f"
+  shows "(\<integral>x. c * f x \<partial>M) = c * integral\<^sup>L M f"
 proof -
-  { have "real (ereal c * integral\<^isup>P M (\<lambda>x. max 0 (ereal (f x)))) =
-      real (integral\<^isup>P M (\<lambda>x. ereal c * max 0 (ereal (f x))))"
+  { have "real (ereal c * integral\<^sup>P M (\<lambda>x. max 0 (ereal (f x)))) =
+      real (integral\<^sup>P M (\<lambda>x. ereal c * max 0 (ereal (f x))))"
       using f `0 \<le> c` by (subst positive_integral_cmult) auto
-    also have "\<dots> = real (integral\<^isup>P M (\<lambda>x. max 0 (ereal (c * f x))))"
+    also have "\<dots> = real (integral\<^sup>P M (\<lambda>x. max 0 (ereal (c * f x))))"
       using `0 \<le> c` by (auto intro!: arg_cong[where f=real] positive_integral_cong simp: max_def zero_le_mult_iff)
-    finally have "real (integral\<^isup>P M (\<lambda>x. ereal (c * f x))) = c * real (integral\<^isup>P M (\<lambda>x. ereal (f x)))"
+    finally have "real (integral\<^sup>P M (\<lambda>x. ereal (c * f x))) = c * real (integral\<^sup>P M (\<lambda>x. ereal (f x)))"
       by (simp add: positive_integral_max_0) }
   moreover
-  { have "real (ereal c * integral\<^isup>P M (\<lambda>x. max 0 (ereal (- f x)))) =
-      real (integral\<^isup>P M (\<lambda>x. ereal c * max 0 (ereal (- f x))))"
+  { have "real (ereal c * integral\<^sup>P M (\<lambda>x. max 0 (ereal (- f x)))) =
+      real (integral\<^sup>P M (\<lambda>x. ereal c * max 0 (ereal (- f x))))"
       using f `0 \<le> c` by (subst positive_integral_cmult) auto
-    also have "\<dots> = real (integral\<^isup>P M (\<lambda>x. max 0 (ereal (- c * f x))))"
+    also have "\<dots> = real (integral\<^sup>P M (\<lambda>x. max 0 (ereal (- c * f x))))"
       using `0 \<le> c` by (auto intro!: arg_cong[where f=real] positive_integral_cong simp: max_def mult_le_0_iff)
-    finally have "real (integral\<^isup>P M (\<lambda>x. ereal (- c * f x))) = c * real (integral\<^isup>P M (\<lambda>x. ereal (- f x)))"
+    finally have "real (integral\<^sup>P M (\<lambda>x. ereal (- c * f x))) = c * real (integral\<^sup>P M (\<lambda>x. ereal (- f x)))"
       by (simp add: positive_integral_max_0) }
   ultimately show ?thesis
     by (simp add: lebesgue_integral_def field_simps)
@@ -1690,7 +1690,7 @@ qed
 
 lemma lebesgue_integral_cmult:
   assumes f: "f \<in> borel_measurable M"
-  shows "(\<integral>x. c * f x \<partial>M) = c * integral\<^isup>L M f"
+  shows "(\<integral>x. c * f x \<partial>M) = c * integral\<^sup>L M f"
 proof (cases rule: linorder_le_cases)
   assume "0 \<le> c" with f show ?thesis by (rule lebesgue_integral_cmult_nonneg)
 next
@@ -1701,19 +1701,19 @@ next
 qed
 
 lemma lebesgue_integral_multc:
-  "f \<in> borel_measurable M \<Longrightarrow> (\<integral>x. f x * c \<partial>M) = integral\<^isup>L M f * c"
+  "f \<in> borel_measurable M \<Longrightarrow> (\<integral>x. f x * c \<partial>M) = integral\<^sup>L M f * c"
   using lebesgue_integral_cmult[of f M c] by (simp add: ac_simps)
 
 lemma integral_multc:
-  "integrable M f \<Longrightarrow> (\<integral> x. f x * c \<partial>M) = integral\<^isup>L M f * c"
+  "integrable M f \<Longrightarrow> (\<integral> x. f x * c \<partial>M) = integral\<^sup>L M f * c"
   by (simp add: lebesgue_integral_multc)
 
 lemma integral_cmult[simp, intro]:
   assumes "integrable M f"
   shows "integrable M (\<lambda>t. a * f t)" (is ?P)
-  and "(\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f" (is ?I)
+  and "(\<integral> t. a * f t \<partial>M) = a * integral\<^sup>L M f" (is ?I)
 proof -
-  have "integrable M (\<lambda>t. a * f t) \<and> (\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f"
+  have "integrable M (\<lambda>t. a * f t) \<and> (\<integral> t. a * f t \<partial>M) = a * integral\<^sup>L M f"
   proof (cases rule: le_cases)
     assume "0 \<le> a" show ?thesis
       using integral_linear[OF assms integral_zero(1) `0 \<le> a`]
@@ -1731,19 +1731,19 @@ qed
 lemma integral_diff[simp, intro]:
   assumes f: "integrable M f" and g: "integrable M g"
   shows "integrable M (\<lambda>t. f t - g t)"
-  and "(\<integral> t. f t - g t \<partial>M) = integral\<^isup>L M f - integral\<^isup>L M g"
+  and "(\<integral> t. f t - g t \<partial>M) = integral\<^sup>L M f - integral\<^sup>L M g"
   using integral_add[OF f integral_minus(1)[OF g]]
   unfolding diff_minus integral_minus(2)[OF g]
   by auto
 
 lemma integral_indicator[simp, intro]:
   assumes "A \<in> sets M" and "(emeasure M) A \<noteq> \<infinity>"
-  shows "integral\<^isup>L M (indicator A) = real (emeasure M A)" (is ?int)
+  shows "integral\<^sup>L M (indicator A) = real (emeasure M A)" (is ?int)
   and "integrable M (indicator A)" (is ?able)
 proof -
   from `A \<in> sets M` have *:
     "\<And>x. ereal (indicator A x) = indicator A x"
-    "(\<integral>\<^isup>+x. ereal (- indicator A x) \<partial>M) = 0"
+    "(\<integral>\<^sup>+x. ereal (- indicator A x) \<partial>M) = 0"
     by (auto split: split_indicator simp: positive_integral_0_iff_AE one_ereal_def)
   show ?int ?able
     using assms unfolding lebesgue_integral_def integrable_def
@@ -1768,7 +1768,7 @@ qed
 
 lemma integral_setsum[simp, intro]:
   assumes "\<And>n. n \<in> S \<Longrightarrow> integrable M (f n)"
-  shows "(\<integral>x. (\<Sum> i \<in> S. f i x) \<partial>M) = (\<Sum> i \<in> S. integral\<^isup>L M (f i))" (is "?int S")
+  shows "(\<integral>x. (\<Sum> i \<in> S. f i x) \<partial>M) = (\<Sum> i \<in> S. integral\<^sup>L M (f i))" (is "?int S")
     and "integrable M (\<lambda>x. \<Sum> i \<in> S. f i x)" (is "?I S")
 proof -
   have "?int S \<and> ?I S"
@@ -1784,21 +1784,21 @@ lemma integrable_bound:
   assumes borel: "g \<in> borel_measurable M"
   shows "integrable M g"
 proof -
-  have "(\<integral>\<^isup>+ x. ereal (g x) \<partial>M) \<le> (\<integral>\<^isup>+ x. ereal \<bar>g x\<bar> \<partial>M)"
+  have "(\<integral>\<^sup>+ x. ereal (g x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal \<bar>g x\<bar> \<partial>M)"
     by (auto intro!: positive_integral_mono)
-  also have "\<dots> \<le> (\<integral>\<^isup>+ x. ereal (f x) \<partial>M)"
+  also have "\<dots> \<le> (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
     using f by (auto intro!: positive_integral_mono_AE)
   also have "\<dots> < \<infinity>"
     using `integrable M f` unfolding integrable_def by auto
-  finally have pos: "(\<integral>\<^isup>+ x. ereal (g x) \<partial>M) < \<infinity>" .
+  finally have pos: "(\<integral>\<^sup>+ x. ereal (g x) \<partial>M) < \<infinity>" .
 
-  have "(\<integral>\<^isup>+ x. ereal (- g x) \<partial>M) \<le> (\<integral>\<^isup>+ x. ereal (\<bar>g x\<bar>) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. ereal (- g x) \<partial>M) \<le> (\<integral>\<^sup>+ x. ereal (\<bar>g x\<bar>) \<partial>M)"
     by (auto intro!: positive_integral_mono)
-  also have "\<dots> \<le> (\<integral>\<^isup>+ x. ereal (f x) \<partial>M)"
+  also have "\<dots> \<le> (\<integral>\<^sup>+ x. ereal (f x) \<partial>M)"
     using f by (auto intro!: positive_integral_mono_AE)
   also have "\<dots> < \<infinity>"
     using `integrable M f` unfolding integrable_def by auto
-  finally have neg: "(\<integral>\<^isup>+ x. ereal (- g x) \<partial>M) < \<infinity>" .
+  finally have neg: "(\<integral>\<^sup>+ x. ereal (- g x) \<partial>M) < \<infinity>" .
 
   from neg pos borel show ?thesis
     unfolding integrable_def by auto
@@ -1808,7 +1808,7 @@ lemma integrable_abs:
   assumes f[measurable]: "integrable M f"
   shows "integrable M (\<lambda> x. \<bar>f x\<bar>)"
 proof -
-  from assms have *: "(\<integral>\<^isup>+x. ereal (- \<bar>f x\<bar>)\<partial>M) = 0"
+  from assms have *: "(\<integral>\<^sup>+x. ereal (- \<bar>f x\<bar>)\<partial>M) = 0"
     "\<And>x. ereal \<bar>f x\<bar> = max 0 (ereal (f x)) + max 0 (ereal (- f x))"
     by (auto simp: integrable_def positive_integral_0_iff_AE split: split_max)
   with assms show ?thesis
@@ -1819,10 +1819,10 @@ lemma integral_subalgebra:
   assumes borel: "f \<in> borel_measurable N"
   and N: "sets N \<subseteq> sets M" "space N = space M" "\<And>A. A \<in> sets N \<Longrightarrow> emeasure N A = emeasure M A"
   shows "integrable N f \<longleftrightarrow> integrable M f" (is ?P)
-    and "integral\<^isup>L N f = integral\<^isup>L M f" (is ?I)
+    and "integral\<^sup>L N f = integral\<^sup>L M f" (is ?I)
 proof -
-  have "(\<integral>\<^isup>+ x. max 0 (ereal (f x)) \<partial>N) = (\<integral>\<^isup>+ x. max 0 (ereal (f x)) \<partial>M)"
-       "(\<integral>\<^isup>+ x. max 0 (ereal (- f x)) \<partial>N) = (\<integral>\<^isup>+ x. max 0 (ereal (- f x)) \<partial>M)"
+  have "(\<integral>\<^sup>+ x. max 0 (ereal (f x)) \<partial>N) = (\<integral>\<^sup>+ x. max 0 (ereal (f x)) \<partial>M)"
+       "(\<integral>\<^sup>+ x. max 0 (ereal (- f x)) \<partial>N) = (\<integral>\<^sup>+ x. max 0 (ereal (- f x)) \<partial>M)"
     using borel by (auto intro!: positive_integral_subalgebra N)
   moreover have "f \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable N"
     using assms unfolding measurable_def by auto
@@ -1831,9 +1831,9 @@ proof -
 qed
 
 lemma lebesgue_integral_nonneg:
-  assumes ae: "(AE x in M. 0 \<le> f x)" shows "0 \<le> integral\<^isup>L M f"
+  assumes ae: "(AE x in M. 0 \<le> f x)" shows "0 \<le> integral\<^sup>L M f"
 proof -
-  have "(\<integral>\<^isup>+x. max 0 (ereal (- f x)) \<partial>M) = (\<integral>\<^isup>+x. 0 \<partial>M)"
+  have "(\<integral>\<^sup>+x. max 0 (ereal (- f x)) \<partial>M) = (\<integral>\<^sup>+x. 0 \<partial>M)"
     using ae by (intro positive_integral_cong_AE) (auto simp: max_def)
   then show ?thesis
     by (auto simp: lebesgue_integral_def positive_integral_max_0
@@ -1866,9 +1866,9 @@ qed auto
 
 lemma integral_triangle_inequality:
   assumes "integrable M f"
-  shows "\<bar>integral\<^isup>L M f\<bar> \<le> (\<integral>x. \<bar>f x\<bar> \<partial>M)"
+  shows "\<bar>integral\<^sup>L M f\<bar> \<le> (\<integral>x. \<bar>f x\<bar> \<partial>M)"
 proof -
-  have "\<bar>integral\<^isup>L M f\<bar> = max (integral\<^isup>L M f) (- integral\<^isup>L M f)" by auto
+  have "\<bar>integral\<^sup>L M f\<bar> = max (integral\<^sup>L M f) (- integral\<^sup>L M f)" by auto
   also have "\<dots> \<le> (\<integral>x. \<bar>f x\<bar> \<partial>M)"
       using assms integral_minus(2)[of M f, symmetric]
       by (auto intro!: integral_mono integrable_abs simp del: integral_minus)
@@ -1876,21 +1876,21 @@ proof -
 qed
 
 lemma integrable_nonneg:
-  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "(\<integral>\<^isup>+ x. f x \<partial>M) \<noteq> \<infinity>"
+  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "(\<integral>\<^sup>+ x. f x \<partial>M) \<noteq> \<infinity>"
   shows "integrable M f"
   unfolding integrable_def
 proof (intro conjI f)
-  have "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) = 0"
+  have "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) = 0"
     using f by (subst positive_integral_0_iff_AE) auto
-  then show "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>" by simp
+  then show "(\<integral>\<^sup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>" by simp
 qed
 
 lemma integral_positive:
   assumes "integrable M f" "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x"
-  shows "0 \<le> integral\<^isup>L M f"
+  shows "0 \<le> integral\<^sup>L M f"
 proof -
   have "0 = (\<integral>x. 0 \<partial>M)" by auto
-  also have "\<dots> \<le> integral\<^isup>L M f"
+  also have "\<dots> \<le> integral\<^sup>L M f"
     using assms by (rule integral_mono[OF integral_zero(1)])
   finally show ?thesis .
 qed
@@ -1899,12 +1899,12 @@ lemma integral_monotone_convergence_pos:
   assumes i: "\<And>i. integrable M (f i)" and mono: "AE x in M. mono (\<lambda>n. f n x)"
     and pos: "\<And>i. AE x in M. 0 \<le> f i x"
     and lim: "AE x in M. (\<lambda>i. f i x) ----> u x"
-    and ilim: "(\<lambda>i. integral\<^isup>L M (f i)) ----> x"
+    and ilim: "(\<lambda>i. integral\<^sup>L M (f i)) ----> x"
     and u: "u \<in> borel_measurable M"
   shows "integrable M u"
-  and "integral\<^isup>L M u = x"
+  and "integral\<^sup>L M u = x"
 proof -
-  have "(\<integral>\<^isup>+ x. ereal (u x) \<partial>M) = (SUP n. (\<integral>\<^isup>+ x. ereal (f n x) \<partial>M))"
+  have "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = (SUP n. (\<integral>\<^sup>+ x. ereal (f n x) \<partial>M))"
   proof (subst positive_integral_monotone_convergence_SUP_AE[symmetric])
     fix i
     from mono pos show "AE x in M. ereal (f i x) \<le> ereal (f (Suc i) x) \<and> 0 \<le> ereal (f i x)"
@@ -1912,7 +1912,7 @@ proof -
     show "(\<lambda>x. ereal (f i x)) \<in> borel_measurable M"
       using i by auto
   next
-    show "(\<integral>\<^isup>+ x. ereal (u x) \<partial>M) = \<integral>\<^isup>+ x. (SUP i. ereal (f i x)) \<partial>M"
+    show "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = \<integral>\<^sup>+ x. (SUP i. ereal (f i x)) \<partial>M"
       apply (rule positive_integral_cong_AE)
       using lim mono
       by eventually_elim (simp add: SUP_eq_LIMSEQ[THEN iffD2])
@@ -1920,8 +1920,8 @@ proof -
   also have "\<dots> = ereal x"
     using mono i unfolding positive_integral_eq_integral[OF i pos]
     by (subst SUP_eq_LIMSEQ) (auto simp: mono_def intro!: integral_mono_AE ilim)
-  finally have "(\<integral>\<^isup>+ x. ereal (u x) \<partial>M) = ereal x" .
-  moreover have "(\<integral>\<^isup>+ x. ereal (- u x) \<partial>M) = 0"
+  finally have "(\<integral>\<^sup>+ x. ereal (u x) \<partial>M) = ereal x" .
+  moreover have "(\<integral>\<^sup>+ x. ereal (- u x) \<partial>M) = 0"
   proof (subst positive_integral_0_iff_AE)
     show "(\<lambda>x. ereal (- u x)) \<in> borel_measurable M"
       using u by auto
@@ -1932,17 +1932,17 @@ proof -
         using incseq_le[of "\<lambda>n. f n x" "u x" 0] by (simp add: mono_def incseq_def)
     qed
   qed
-  ultimately show "integrable M u" "integral\<^isup>L M u = x"
+  ultimately show "integrable M u" "integral\<^sup>L M u = x"
     by (auto simp: integrable_def lebesgue_integral_def u)
 qed
 
 lemma integral_monotone_convergence:
   assumes f: "\<And>i. integrable M (f i)" and mono: "AE x in M. mono (\<lambda>n. f n x)"
   and lim: "AE x in M. (\<lambda>i. f i x) ----> u x"
-  and ilim: "(\<lambda>i. integral\<^isup>L M (f i)) ----> x"
+  and ilim: "(\<lambda>i. integral\<^sup>L M (f i)) ----> x"
   and u: "u \<in> borel_measurable M"
   shows "integrable M u"
-  and "integral\<^isup>L M u = x"
+  and "integral\<^sup>L M u = x"
 proof -
   have 1: "\<And>i. integrable M (\<lambda>x. f i x - f 0 x)"
     using f by auto
@@ -1952,14 +1952,14 @@ proof -
     using mono by (auto simp: field_simps mono_def le_fun_def)
   have 4: "AE x in M. (\<lambda>i. f i x - f 0 x) ----> u x - f 0 x"
     using lim by (auto intro!: tendsto_diff)
-  have 5: "(\<lambda>i. (\<integral>x. f i x - f 0 x \<partial>M)) ----> x - integral\<^isup>L M (f 0)"
+  have 5: "(\<lambda>i. (\<integral>x. f i x - f 0 x \<partial>M)) ----> x - integral\<^sup>L M (f 0)"
     using f ilim by (auto intro!: tendsto_diff)
   have 6: "(\<lambda>x. u x - f 0 x) \<in> borel_measurable M"
     using f[of 0] u by auto
   note diff = integral_monotone_convergence_pos[OF 1 2 3 4 5 6]
   have "integrable M (\<lambda>x. (u x - f 0 x) + f 0 x)"
     using diff(1) f by (rule integral_add(1))
-  with diff(2) f show "integrable M u" "integral\<^isup>L M u = x"
+  with diff(2) f show "integrable M u" "integral\<^sup>L M u = x"
     by auto
 qed
 
@@ -1967,11 +1967,11 @@ lemma integral_0_iff:
   assumes "integrable M f"
   shows "(\<integral>x. \<bar>f x\<bar> \<partial>M) = 0 \<longleftrightarrow> (emeasure M) {x\<in>space M. f x \<noteq> 0} = 0"
 proof -
-  have *: "(\<integral>\<^isup>+x. ereal (- \<bar>f x\<bar>) \<partial>M) = 0"
+  have *: "(\<integral>\<^sup>+x. ereal (- \<bar>f x\<bar>) \<partial>M) = 0"
     using assms by (auto simp: positive_integral_0_iff_AE integrable_def)
   have "integrable M (\<lambda>x. \<bar>f x\<bar>)" using assms by (rule integrable_abs)
   hence "(\<lambda>x. ereal (\<bar>f x\<bar>)) \<in> borel_measurable M"
-    "(\<integral>\<^isup>+ x. ereal \<bar>f x\<bar> \<partial>M) \<noteq> \<infinity>" unfolding integrable_def by auto
+    "(\<integral>\<^sup>+ x. ereal \<bar>f x\<bar> \<partial>M) \<noteq> \<infinity>" unfolding integrable_def by auto
   from positive_integral_0_iff[OF this(1)] this(2)
   show ?thesis unfolding lebesgue_integral_def *
     using positive_integral_positive[of M "\<lambda>x. ereal \<bar>f x\<bar>"]
@@ -1980,14 +1980,14 @@ qed
 
 lemma positive_integral_PInf:
   assumes f: "f \<in> borel_measurable M"
-  and not_Inf: "integral\<^isup>P M f \<noteq> \<infinity>"
+  and not_Inf: "integral\<^sup>P M f \<noteq> \<infinity>"
   shows "(emeasure M) (f -` {\<infinity>} \<inter> space M) = 0"
 proof -
-  have "\<infinity> * (emeasure M) (f -` {\<infinity>} \<inter> space M) = (\<integral>\<^isup>+ x. \<infinity> * indicator (f -` {\<infinity>} \<inter> space M) x \<partial>M)"
+  have "\<infinity> * (emeasure M) (f -` {\<infinity>} \<inter> space M) = (\<integral>\<^sup>+ x. \<infinity> * indicator (f -` {\<infinity>} \<inter> space M) x \<partial>M)"
     using f by (subst positive_integral_cmult_indicator) (auto simp: measurable_sets)
-  also have "\<dots> \<le> integral\<^isup>P M (\<lambda>x. max 0 (f x))"
+  also have "\<dots> \<le> integral\<^sup>P M (\<lambda>x. max 0 (f x))"
     by (auto intro!: positive_integral_mono simp: indicator_def max_def)
-  finally have "\<infinity> * (emeasure M) (f -` {\<infinity>} \<inter> space M) \<le> integral\<^isup>P M f"
+  finally have "\<infinity> * (emeasure M) (f -` {\<infinity>} \<inter> space M) \<le> integral\<^sup>P M f"
     by (simp add: positive_integral_max_0)
   moreover have "0 \<le> (emeasure M) (f -` {\<infinity>} \<inter> space M)"
     by (rule emeasure_nonneg)
@@ -1996,7 +1996,7 @@ proof -
 qed
 
 lemma positive_integral_PInf_AE:
-  assumes "f \<in> borel_measurable M" "integral\<^isup>P M f \<noteq> \<infinity>" shows "AE x in M. f x \<noteq> \<infinity>"
+  assumes "f \<in> borel_measurable M" "integral\<^sup>P M f \<noteq> \<infinity>" shows "AE x in M. f x \<noteq> \<infinity>"
 proof (rule AE_I)
   show "(emeasure M) (f -` {\<infinity>} \<inter> space M) = 0"
     by (rule positive_integral_PInf[OF assms])
@@ -2006,16 +2006,16 @@ qed auto
 
 lemma simple_integral_PInf:
   assumes "simple_function M f" "\<And>x. 0 \<le> f x"
-  and "integral\<^isup>S M f \<noteq> \<infinity>"
+  and "integral\<^sup>S M f \<noteq> \<infinity>"
   shows "(emeasure M) (f -` {\<infinity>} \<inter> space M) = 0"
 proof (rule positive_integral_PInf)
   show "f \<in> borel_measurable M" using assms by (auto intro: borel_measurable_simple_function)
-  show "integral\<^isup>P M f \<noteq> \<infinity>"
+  show "integral\<^sup>P M f \<noteq> \<infinity>"
     using assms by (simp add: positive_integral_eq_simple_integral)
 qed
 
 lemma integral_real:
-  "AE x in M. \<bar>f x\<bar> \<noteq> \<infinity> \<Longrightarrow> (\<integral>x. real (f x) \<partial>M) = real (integral\<^isup>P M f) - real (integral\<^isup>P M (\<lambda>x. - f x))"
+  "AE x in M. \<bar>f x\<bar> \<noteq> \<infinity> \<Longrightarrow> (\<integral>x. real (f x) \<partial>M) = real (integral\<^sup>P M f) - real (integral\<^sup>P M (\<lambda>x. - f x))"
   using assms unfolding lebesgue_integral_def
   by (subst (1 2) positive_integral_cong_AE) (auto simp add: ereal_real)
 
@@ -2024,10 +2024,10 @@ lemma (in finite_measure) lebesgue_integral_const[simp]:
   and  "(\<integral>x. a \<partial>M) = a * measure M (space M)"
 proof -
   { fix a :: real assume "0 \<le> a"
-    then have "(\<integral>\<^isup>+ x. ereal a \<partial>M) = ereal a * (emeasure M) (space M)"
+    then have "(\<integral>\<^sup>+ x. ereal a \<partial>M) = ereal a * (emeasure M) (space M)"
       by (subst positive_integral_const) auto
     moreover
-    from `0 \<le> a` have "(\<integral>\<^isup>+ x. ereal (-a) \<partial>M) = 0"
+    from `0 \<le> a` have "(\<integral>\<^sup>+ x. ereal (-a) \<partial>M) = 0"
       by (subst positive_integral_0_iff_AE) auto
     ultimately have "integrable M (\<lambda>x. a)" by (auto simp: integrable_def) }
   note * = this
@@ -2055,22 +2055,22 @@ lemma (in finite_measure) integral_less_AE:
   assumes int: "integrable M X" "integrable M Y"
   assumes A: "(emeasure M) A \<noteq> 0" "A \<in> sets M" "AE x in M. x \<in> A \<longrightarrow> X x \<noteq> Y x"
   assumes gt: "AE x in M. X x \<le> Y x"
-  shows "integral\<^isup>L M X < integral\<^isup>L M Y"
+  shows "integral\<^sup>L M X < integral\<^sup>L M Y"
 proof -
-  have "integral\<^isup>L M X \<le> integral\<^isup>L M Y"
+  have "integral\<^sup>L M X \<le> integral\<^sup>L M Y"
     using gt int by (intro integral_mono_AE) auto
   moreover
-  have "integral\<^isup>L M X \<noteq> integral\<^isup>L M Y"
+  have "integral\<^sup>L M X \<noteq> integral\<^sup>L M Y"
   proof
-    assume eq: "integral\<^isup>L M X = integral\<^isup>L M Y"
-    have "integral\<^isup>L M (\<lambda>x. \<bar>Y x - X x\<bar>) = integral\<^isup>L M (\<lambda>x. Y x - X x)"
+    assume eq: "integral\<^sup>L M X = integral\<^sup>L M Y"
+    have "integral\<^sup>L M (\<lambda>x. \<bar>Y x - X x\<bar>) = integral\<^sup>L M (\<lambda>x. Y x - X x)"
       using gt by (intro integral_cong_AE) auto
     also have "\<dots> = 0"
       using eq int by simp
     finally have "(emeasure M) {x \<in> space M. Y x - X x \<noteq> 0} = 0"
       using int by (simp add: integral_0_iff)
     moreover
-    have "(\<integral>\<^isup>+x. indicator A x \<partial>M) \<le> (\<integral>\<^isup>+x. indicator {x \<in> space M. Y x - X x \<noteq> 0} x \<partial>M)"
+    have "(\<integral>\<^sup>+x. indicator A x \<partial>M) \<le> (\<integral>\<^sup>+x. indicator {x \<in> space M. Y x - X x \<noteq> 0} x \<partial>M)"
       using A by (intro positive_integral_mono_AE) auto
     then have "(emeasure M) A \<le> (emeasure M) {x \<in> space M. Y x - X x \<noteq> 0}"
       using int A by (simp add: integrable_def)
@@ -2084,7 +2084,7 @@ qed
 lemma (in finite_measure) integral_less_AE_space:
   assumes int: "integrable M X" "integrable M Y"
   assumes gt: "AE x in M. X x < Y x" "(emeasure M) (space M) \<noteq> 0"
-  shows "integral\<^isup>L M X < integral\<^isup>L M Y"
+  shows "integral\<^sup>L M X < integral\<^sup>L M Y"
   using gt by (intro integral_less_AE[OF int, where A="space M"]) auto
 
 lemma integral_dominated_convergence:
@@ -2094,7 +2094,7 @@ lemma integral_dominated_convergence:
   and [measurable]: "u' \<in> borel_measurable M"
   shows "integrable M u'"
   and "(\<lambda>i. (\<integral>x. \<bar>u i x - u' x\<bar> \<partial>M)) ----> 0" (is "?lim_diff")
-  and "(\<lambda>i. integral\<^isup>L M (u i)) ----> integral\<^isup>L M u'" (is ?lim)
+  and "(\<lambda>i. integral\<^sup>L M (u i)) ----> integral\<^sup>L M u'" (is ?lim)
 proof -
   have all_bound: "AE x in M. \<forall>j. \<bar>u j x\<bar> \<le> w x"
     using bound by (auto simp: AE_all_countable)
@@ -2121,35 +2121,35 @@ proof -
     finally show "\<bar>u j x - u' x\<bar> \<le> 2 * w x" by simp
   qed
 
-  have PI_diff: "\<And>n. (\<integral>\<^isup>+ x. ereal (?diff n x) \<partial>M) =
-    (\<integral>\<^isup>+ x. ereal (2 * w x) \<partial>M) - (\<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
+  have PI_diff: "\<And>n. (\<integral>\<^sup>+ x. ereal (?diff n x) \<partial>M) =
+    (\<integral>\<^sup>+ x. ereal (2 * w x) \<partial>M) - (\<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
     using diff w diff_less_2w w_pos
     by (subst positive_integral_diff[symmetric])
        (auto simp: integrable_def intro!: positive_integral_cong_AE)
 
   have "integrable M (\<lambda>x. 2 * w x)"
     using w by auto
-  hence I2w_fin: "(\<integral>\<^isup>+ x. ereal (2 * w x) \<partial>M) \<noteq> \<infinity>" and
+  hence I2w_fin: "(\<integral>\<^sup>+ x. ereal (2 * w x) \<partial>M) \<noteq> \<infinity>" and
     borel_2w: "(\<lambda>x. ereal (2 * w x)) \<in> borel_measurable M"
     unfolding integrable_def by auto
 
-  have "limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M) = 0" (is "limsup ?f = 0")
+  have "limsup (\<lambda>n. \<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M) = 0" (is "limsup ?f = 0")
   proof cases
-    assume eq_0: "(\<integral>\<^isup>+ x. max 0 (ereal (2 * w x)) \<partial>M) = 0" (is "?wx = 0")
+    assume eq_0: "(\<integral>\<^sup>+ x. max 0 (ereal (2 * w x)) \<partial>M) = 0" (is "?wx = 0")
     { fix n
-      have "?f n \<le> ?wx" (is "integral\<^isup>P M ?f' \<le> _")
+      have "?f n \<le> ?wx" (is "integral\<^sup>P M ?f' \<le> _")
         using diff_less_2w unfolding positive_integral_max_0
         by (intro positive_integral_mono_AE) auto
       then have "?f n = 0"
         using positive_integral_positive[of M ?f'] eq_0 by auto }
     then show ?thesis by (simp add: Limsup_const)
   next
-    assume neq_0: "(\<integral>\<^isup>+ x. max 0 (ereal (2 * w x)) \<partial>M) \<noteq> 0" (is "?wx \<noteq> 0")
+    assume neq_0: "(\<integral>\<^sup>+ x. max 0 (ereal (2 * w x)) \<partial>M) \<noteq> 0" (is "?wx \<noteq> 0")
     have "0 = limsup (\<lambda>n. 0 :: ereal)" by (simp add: Limsup_const)
-    also have "\<dots> \<le> limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
+    also have "\<dots> \<le> limsup (\<lambda>n. \<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
       by (simp add: Limsup_mono  positive_integral_positive)
-    finally have pos: "0 \<le> limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)" .
-    have "?wx = (\<integral>\<^isup>+ x. liminf (\<lambda>n. max 0 (ereal (?diff n x))) \<partial>M)"
+    finally have pos: "0 \<le> limsup (\<lambda>n. \<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)" .
+    have "?wx = (\<integral>\<^sup>+ x. liminf (\<lambda>n. max 0 (ereal (?diff n x))) \<partial>M)"
       using u'
     proof (intro positive_integral_cong_AE, eventually_elim)
       fix x assume u': "(\<lambda>i. u i x) ----> u' x"
@@ -2162,18 +2162,18 @@ proof -
           by (auto intro!: tendsto_real_max)
       qed (rule trivial_limit_sequentially)
     qed
-    also have "\<dots> \<le> liminf (\<lambda>n. \<integral>\<^isup>+ x. max 0 (ereal (?diff n x)) \<partial>M)"
+    also have "\<dots> \<le> liminf (\<lambda>n. \<integral>\<^sup>+ x. max 0 (ereal (?diff n x)) \<partial>M)"
       using w u unfolding integrable_def
       by (intro positive_integral_lim_INF) (auto intro!: positive_integral_lim_INF)
-    also have "\<dots> = (\<integral>\<^isup>+ x. ereal (2 * w x) \<partial>M) -
-        limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
+    also have "\<dots> = (\<integral>\<^sup>+ x. ereal (2 * w x) \<partial>M) -
+        limsup (\<lambda>n. \<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
       unfolding PI_diff positive_integral_max_0
       using positive_integral_positive[of M "\<lambda>x. ereal (2 * w x)"]
       by (subst liminf_ereal_cminus) auto
     finally show ?thesis
       using neq_0 I2w_fin positive_integral_positive[of M "\<lambda>x. ereal (2 * w x)"] pos
       unfolding positive_integral_max_0
-      by (cases rule: ereal2_cases[of "\<integral>\<^isup>+ x. ereal (2 * w x) \<partial>M" "limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"])
+      by (cases rule: ereal2_cases[of "\<integral>\<^sup>+ x. ereal (2 * w x) \<partial>M" "limsup (\<lambda>n. \<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"])
          auto
   qed
 
@@ -2186,7 +2186,7 @@ proof -
     finally have "0 \<le> liminf ?f" . }
   ultimately have liminf_limsup_eq: "liminf ?f = ereal 0" "limsup ?f = ereal 0"
     using `limsup ?f = 0` by auto
-  have "\<And>n. (\<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M) = ereal (\<integral>x. \<bar>u n x - u' x\<bar> \<partial>M)"
+  have "\<And>n. (\<integral>\<^sup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M) = ereal (\<integral>x. \<bar>u n x - u' x\<bar> \<partial>M)"
     using diff positive_integral_positive[of M]
     by (subst integral_eq_positive_integral[of _ M]) (auto simp: ereal_real integrable_def)
   then show ?lim_diff
@@ -2200,15 +2200,15 @@ proof -
     obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> (\<integral>x. \<bar>u n x - u' x\<bar> \<partial>M) < r"
       using diff by (auto simp: integral_positive)
 
-    show "\<exists>N. \<forall>n\<ge>N. norm (integral\<^isup>L M (u n) - integral\<^isup>L M u') < r"
+    show "\<exists>N. \<forall>n\<ge>N. norm (integral\<^sup>L M (u n) - integral\<^sup>L M u') < r"
     proof (safe intro!: exI[of _ N])
       fix n assume "N \<le> n"
-      have "\<bar>integral\<^isup>L M (u n) - integral\<^isup>L M u'\<bar> = \<bar>(\<integral>x. u n x - u' x \<partial>M)\<bar>"
+      have "\<bar>integral\<^sup>L M (u n) - integral\<^sup>L M u'\<bar> = \<bar>(\<integral>x. u n x - u' x \<partial>M)\<bar>"
         using u `integrable M u'` by auto
       also have "\<dots> \<le> (\<integral>x. \<bar>u n x - u' x\<bar> \<partial>M)" using u `integrable M u'`
         by (rule_tac integral_triangle_inequality) auto
       also note N[OF `N \<le> n`]
-      finally show "norm (integral\<^isup>L M (u n) - integral\<^isup>L M u') < r" by simp
+      finally show "norm (integral\<^sup>L M (u n) - integral\<^sup>L M u') < r" by simp
     qed
   qed
 qed
@@ -2218,7 +2218,7 @@ lemma integral_sums:
   and summable: "\<And>x. x \<in> space M \<Longrightarrow> summable (\<lambda>i. \<bar>f i x\<bar>)"
   and sums: "summable (\<lambda>i. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
   shows "integrable M (\<lambda>x. (\<Sum>i. f i x))" (is "integrable M ?S")
-  and "(\<lambda>i. integral\<^isup>L M (f i)) sums (\<integral>x. (\<Sum>i. f i x) \<partial>M)" (is ?integral)
+  and "(\<lambda>i. integral\<^sup>L M (f i)) sums (\<integral>x. (\<Sum>i. f i x) \<partial>M)" (is ?integral)
 proof -
   have "\<forall>x\<in>space M. \<exists>w. (\<lambda>i. \<bar>f i x\<bar>) sums w"
     using summable unfolding summable_def by auto
@@ -2255,10 +2255,10 @@ proof -
       by (auto simp: mono_def le_fun_def intro!: setsum_mono2)
     show "AE x in M. (\<lambda>n. ?w' n x) ----> ?w x"
         using w by (simp_all add: tendsto_const sums_def)
-    have *: "\<And>n. integral\<^isup>L M (?w' n) = (\<Sum>i = 0..< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
+    have *: "\<And>n. integral\<^sup>L M (?w' n) = (\<Sum>i = 0..< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
       using integrable by (simp add: integrable_abs cong: integral_cong)
     from abs_sum
-    show "(\<lambda>i. integral\<^isup>L M (?w' i)) ----> x" unfolding * sums_def .
+    show "(\<lambda>i. integral\<^sup>L M (?w' i)) ----> x" unfolding * sums_def .
   qed (simp add: w_borel measurable_If_set)
 
   from summable[THEN summable_rabs_cancel]
@@ -2295,7 +2295,7 @@ proof -
         using f(2) by (intro AE_I2) (auto split: split_indicator)
       have int: "\<And>n. integrable M (\<lambda>x. f x * indicator {.. n} x)"
         by (rule integrable_mult_indicator) (auto simp: M f)
-      show "(\<lambda>n. \<integral> x. f x * indicator {..real n} x \<partial>M) ----> integral\<^isup>L M f"
+      show "(\<lambda>n. \<integral> x. f x * indicator {..real n} x \<partial>M) ----> integral\<^sup>L M f"
       proof (rule integral_dominated_convergence)
         { fix x have "eventually (\<lambda>n. f x * indicator {..real n} x = f x) sequentially"
             by (rule eventually_sequentiallyI[of "natceiling x"])
@@ -2310,8 +2310,8 @@ proof -
   note nonneg = this
   let ?P = "\<lambda>y. \<integral> x. max 0 (f x) * indicator {..y} x \<partial>M"
   let ?N = "\<lambda>y. \<integral> x. max 0 (- f x) * indicator {..y} x \<partial>M"
-  let ?p = "integral\<^isup>L M (\<lambda>x. max 0 (f x))"
-  let ?n = "integral\<^isup>L M (\<lambda>x. max 0 (- f x))"
+  let ?p = "integral\<^sup>L M (\<lambda>x. max 0 (f x))"
+  let ?n = "integral\<^sup>L M (\<lambda>x. max 0 (- f x))"
   have "(?P ---> ?p) at_top" "(?N ---> ?n) at_top"
     by (auto intro!: nonneg integrable_max f)
   note tendsto_diff[OF this]
@@ -2319,7 +2319,7 @@ proof -
     by (subst integral_diff(2)[symmetric])
        (auto intro!: integrable_mult_indicator integrable_max f integral_cong ext
              simp: M split: split_max)
-  also have "?p - ?n = integral\<^isup>L M f"
+  also have "?p - ?n = integral\<^sup>L M f"
     by (subst integral_diff(2)[symmetric])
        (auto intro!: integrable_max f integral_cong ext simp: M split: split_max)
   finally show ?thesis .
@@ -2332,7 +2332,7 @@ lemma integral_monotone_convergence_at_top:
   assumes borel: "f \<in> borel_measurable borel"
   assumes int: "\<And>y. integrable M (\<lambda>x. f x * indicator {.. y} x)"
   assumes conv: "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> x) at_top"
-  shows "integrable M f" "integral\<^isup>L M f = x"
+  shows "integrable M f" "integral\<^sup>L M f = x"
 proof -
   from nonneg have "AE x in M. mono (\<lambda>n::nat. f x * indicator {..real n} x)"
     by (auto split: split_indicator intro!: monoI)
@@ -2350,7 +2350,7 @@ proof -
     using borel by simp
   show "integrable M f"
     by (rule integral_monotone_convergence) fact+
-  show "integral\<^isup>L M f = x"
+  show "integral\<^sup>L M f = x"
     by (rule integral_monotone_convergence) fact+
 qed
 
@@ -2364,11 +2364,11 @@ lemma integral_on_countable:
   and fin: "\<And>x. x \<noteq> 0 \<Longrightarrow> (emeasure M) (f -` {x} \<inter> space M) \<noteq> \<infinity>"
   and abs_summable: "summable (\<lambda>r. \<bar>enum r * real ((emeasure M) (f -` {enum r} \<inter> space M))\<bar>)"
   shows "integrable M f"
-  and "(\<lambda>r. enum r * real ((emeasure M) (f -` {enum r} \<inter> space M))) sums integral\<^isup>L M f" (is ?sums)
+  and "(\<lambda>r. enum r * real ((emeasure M) (f -` {enum r} \<inter> space M))) sums integral\<^sup>L M f" (is ?sums)
 proof -
   let ?A = "\<lambda>r. f -` {enum r} \<inter> space M"
   let ?F = "\<lambda>r x. enum r * indicator (?A r) x"
-  have enum_eq: "\<And>r. enum r * real ((emeasure M) (?A r)) = integral\<^isup>L M (?F r)"
+  have enum_eq: "\<And>r. enum r * real ((emeasure M) (?A r)) = integral\<^sup>L M (?F r)"
     using f fin by (simp add: borel_measurable_vimage integral_cmul_indicator)
 
   { fix x assume "x \<in> space M"
@@ -2389,7 +2389,7 @@ proof -
       by (auto intro!: sums_single simp: F F_abs) }
   note F_sums_f = this(1) and F_abs_sums_f = this(2)
 
-  have int_f: "integral\<^isup>L M f = (\<integral>x. (\<Sum>r. ?F r x) \<partial>M)" "integrable M f = integrable M (\<lambda>x. \<Sum>r. ?F r x)"
+  have int_f: "integral\<^sup>L M f = (\<integral>x. (\<Sum>r. ?F r x) \<partial>M)" "integrable M f = integrable M (\<lambda>x. \<Sum>r. ?F r x)"
     using F_sums_f by (auto intro!: integral_cong integrable_cong simp: sums_iff)
 
   { fix r
@@ -2419,7 +2419,7 @@ section {* Distributions *}
 lemma positive_integral_distr':
   assumes T: "T \<in> measurable M M'"
   and f: "f \<in> borel_measurable (distr M M' T)" "\<And>x. 0 \<le> f x"
-  shows "integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
+  shows "integral\<^sup>P (distr M M' T) f = (\<integral>\<^sup>+ x. f (T x) \<partial>M)"
   using f 
 proof induct
   case (cong f g)
@@ -2441,12 +2441,12 @@ qed (simp_all add: measurable_compose[OF T] T positive_integral_cmult positive_i
                    positive_integral_monotone_convergence_SUP le_fun_def incseq_def)
 
 lemma positive_integral_distr:
-  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
+  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^sup>P (distr M M' T) f = (\<integral>\<^sup>+ x. f (T x) \<partial>M)"
   by (subst (1 2) positive_integral_max_0[symmetric])
      (simp add: positive_integral_distr')
 
 lemma integral_distr:
-  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^isup>L (distr M M' T) f = (\<integral> x. f (T x) \<partial>M)"
+  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^sup>L (distr M M' T) f = (\<integral> x. f (T x) \<partial>M)"
   unfolding lebesgue_integral_def
   by (subst (1 2) positive_integral_distr) auto
 
@@ -2467,13 +2467,13 @@ lemma simple_function_count_space[simp]:
 
 lemma positive_integral_count_space:
   assumes A: "finite {a\<in>A. 0 < f a}"
-  shows "integral\<^isup>P (count_space A) f = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
+  shows "integral\<^sup>P (count_space A) f = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
 proof -
-  have *: "(\<integral>\<^isup>+x. max 0 (f x) \<partial>count_space A) =
-    (\<integral>\<^isup>+ x. (\<Sum>a|a\<in>A \<and> 0 < f a. f a * indicator {a} x) \<partial>count_space A)"
+  have *: "(\<integral>\<^sup>+x. max 0 (f x) \<partial>count_space A) =
+    (\<integral>\<^sup>+ x. (\<Sum>a|a\<in>A \<and> 0 < f a. f a * indicator {a} x) \<partial>count_space A)"
     by (auto intro!: positive_integral_cong
              simp add: indicator_def if_distrib setsum_cases[OF A] max_def le_less)
-  also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. \<integral>\<^isup>+ x. f a * indicator {a} x \<partial>count_space A)"
+  also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. \<integral>\<^sup>+ x. f a * indicator {a} x \<partial>count_space A)"
     by (subst positive_integral_setsum)
        (simp_all add: AE_count_space ereal_zero_le_0_iff less_imp_le)
   also have "\<dots> = (\<Sum>a|a\<in>A \<and> 0 < f a. f a)"
@@ -2486,7 +2486,7 @@ lemma integrable_count_space:
   by (auto simp: positive_integral_count_space integrable_def)
 
 lemma positive_integral_count_space_finite:
-    "finite A \<Longrightarrow> (\<integral>\<^isup>+x. f x \<partial>count_space A) = (\<Sum>a\<in>A. max 0 (f a))"
+    "finite A \<Longrightarrow> (\<integral>\<^sup>+x. f x \<partial>count_space A) = (\<Sum>a\<in>A. max 0 (f a))"
   by (subst positive_integral_max_0[symmetric])
      (auto intro!: setsum_mono_zero_left simp: positive_integral_count_space less_le)
 
@@ -2525,7 +2525,7 @@ lemma borel_measurable_count_space[simp, intro!]:
 section {* Measure spaces with an associated density *}
 
 definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
-  "density M f = measure_of (space M) (sets M) (\<lambda>A. \<integral>\<^isup>+ x. f x * indicator A x \<partial>M)"
+  "density M f = measure_of (space M) (sets M) (\<lambda>A. \<integral>\<^sup>+ x. f x * indicator A x \<partial>M)"
 
 lemma 
   shows sets_density[simp]: "sets (density M f) = sets M"
@@ -2559,14 +2559,14 @@ lemma density_ereal_max_0: "density M (\<lambda>x. ereal (f x)) = density M (\<l
 
 lemma emeasure_density:
   assumes f[measurable]: "f \<in> borel_measurable M" and A[measurable]: "A \<in> sets M"
-  shows "emeasure (density M f) A = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>M)"
+  shows "emeasure (density M f) A = (\<integral>\<^sup>+ x. f x * indicator A x \<partial>M)"
     (is "_ = ?\<mu> A")
   unfolding density_def
 proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space M) (sets M)" ..
   show "positive (sets M) ?\<mu>"
     using f by (auto simp: positive_def intro!: positive_integral_positive)
-  have \<mu>_eq: "?\<mu> = (\<lambda>A. \<integral>\<^isup>+ x. max 0 (f x) * indicator A x \<partial>M)" (is "?\<mu> = ?\<mu>'")
+  have \<mu>_eq: "?\<mu> = (\<lambda>A. \<integral>\<^sup>+ x. max 0 (f x) * indicator A x \<partial>M)" (is "?\<mu> = ?\<mu>'")
     apply (subst positive_integral_max_0[symmetric])
     apply (intro ext positive_integral_cong_AE AE_I2)
     apply (auto simp: indicator_def)
@@ -2579,11 +2579,11 @@ proof (rule emeasure_measure_of_sigma)
     then have *: "\<And>i. (\<lambda>x. max 0 (f x) * indicator (A i) x) \<in> borel_measurable M"
       by (auto simp: set_eq_iff)
     assume disj: "disjoint_family A"
-    have "(\<Sum>n. ?\<mu>' (A n)) = (\<integral>\<^isup>+ x. (\<Sum>n. max 0 (f x) * indicator (A n) x) \<partial>M)"
+    have "(\<Sum>n. ?\<mu>' (A n)) = (\<integral>\<^sup>+ x. (\<Sum>n. max 0 (f x) * indicator (A n) x) \<partial>M)"
       using f * by (simp add: positive_integral_suminf)
-    also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (f x) * (\<Sum>n. indicator (A n) x) \<partial>M)" using f
+    also have "\<dots> = (\<integral>\<^sup>+ x. max 0 (f x) * (\<Sum>n. indicator (A n) x) \<partial>M)" using f
       by (auto intro!: suminf_cmult_ereal positive_integral_cong_AE)
-    also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (f x) * indicator (\<Union>n. A n) x \<partial>M)"
+    also have "\<dots> = (\<integral>\<^sup>+ x. max 0 (f x) * indicator (\<Union>n. A n) x \<partial>M)"
       unfolding suminf_indicator[OF disj] ..
     finally show "(\<Sum>n. ?\<mu>' (A n)) = ?\<mu>' (\<Union>x. A x)" by simp
   qed
@@ -2594,12 +2594,12 @@ lemma null_sets_density_iff:
   shows "A \<in> null_sets (density M f) \<longleftrightarrow> A \<in> sets M \<and> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)"
 proof -
   { assume "A \<in> sets M"
-    have eq: "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. max 0 (f x) * indicator A x \<partial>M)"
+    have eq: "(\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. max 0 (f x) * indicator A x \<partial>M)"
       apply (subst positive_integral_max_0[symmetric])
       apply (intro positive_integral_cong)
       apply (auto simp: indicator_def)
       done
-    have "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> 
+    have "(\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> 
       emeasure M {x \<in> space M. max 0 (f x) * indicator A x \<noteq> 0} = 0"
       unfolding eq
       using f `A \<in> sets M`
@@ -2609,7 +2609,7 @@ proof -
       by (intro AE_iff_measurable[OF _ refl, symmetric]) auto
     also have "(AE x in M. max 0 (f x) * indicator A x = 0) \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)"
       by (auto simp add: indicator_def max_def split: split_if_asm)
-    finally have "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)" . }
+    finally have "(\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)" . }
   with f show ?thesis
     by (simp add: null_sets_def emeasure_density cong: conj_cong)
 qed
@@ -2641,7 +2641,7 @@ qed
 lemma positive_integral_density':
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   assumes g: "g \<in> borel_measurable M" "\<And>x. 0 \<le> g x"
-  shows "integral\<^isup>P (density M f) g = (\<integral>\<^isup>+ x. f x * g x \<partial>M)"
+  shows "integral\<^sup>P (density M f) g = (\<integral>\<^sup>+ x. f x * g x \<partial>M)"
 using g proof induct
   case (cong u v)
   then show ?case
@@ -2677,7 +2677,7 @@ qed
 
 lemma positive_integral_density:
   "f \<in> borel_measurable M \<Longrightarrow> AE x in M. 0 \<le> f x \<Longrightarrow> g' \<in> borel_measurable M \<Longrightarrow> 
-    integral\<^isup>P (density M f) g' = (\<integral>\<^isup>+ x. f x * g' x \<partial>M)"
+    integral\<^sup>P (density M f) g' = (\<integral>\<^sup>+ x. f x * g' x \<partial>M)"
   by (subst (1 2) positive_integral_max_0[symmetric])
      (auto intro!: positive_integral_cong_AE
            simp: measurable_If max_def ereal_zero_le_0_iff positive_integral_density')
@@ -2685,7 +2685,7 @@ lemma positive_integral_density:
 lemma integral_density:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
     and g: "g \<in> borel_measurable M"
-  shows "integral\<^isup>L (density M f) g = (\<integral> x. f x * g x \<partial>M)"
+  shows "integral\<^sup>L (density M f) g = (\<integral> x. f x * g x \<partial>M)"
     and "integrable (density M f) g \<longleftrightarrow> integrable M (\<lambda>x. f x * g x)"
   unfolding lebesgue_integral_def integrable_def using f g
   by (auto simp: positive_integral_density)
@@ -2694,9 +2694,9 @@ lemma emeasure_restricted:
   assumes S: "S \<in> sets M" and X: "X \<in> sets M"
   shows "emeasure (density M (indicator S)) X = emeasure M (S \<inter> X)"
 proof -
-  have "emeasure (density M (indicator S)) X = (\<integral>\<^isup>+x. indicator S x * indicator X x \<partial>M)"
+  have "emeasure (density M (indicator S)) X = (\<integral>\<^sup>+x. indicator S x * indicator X x \<partial>M)"
     using S X by (simp add: emeasure_density)
-  also have "\<dots> = (\<integral>\<^isup>+x. indicator (S \<inter> X) x \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+x. indicator (S \<inter> X) x \<partial>M)"
     by (auto intro!: positive_integral_cong simp: indicator_def)
   also have "\<dots> = emeasure M (S \<inter> X)"
     using S X by (simp add: sets.Int)
@@ -2810,7 +2810,7 @@ lemma AE_point_measure:
 
 lemma positive_integral_point_measure:
   "finite {a\<in>A. 0 < f a \<and> 0 < g a} \<Longrightarrow>
-    integral\<^isup>P (point_measure A f) g = (\<Sum>a|a\<in>A \<and> 0 < f a \<and> 0 < g a. f a * g a)"
+    integral\<^sup>P (point_measure A f) g = (\<Sum>a|a\<in>A \<and> 0 < f a \<and> 0 < g a. f a * g a)"
   unfolding point_measure_def
   apply (subst density_max_0)
   apply (subst positive_integral_density)
@@ -2825,11 +2825,11 @@ lemma positive_integral_point_measure:
 
 lemma positive_integral_point_measure_finite:
   "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> f a) \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> g a) \<Longrightarrow>
-    integral\<^isup>P (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
+    integral\<^sup>P (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
   by (subst positive_integral_point_measure) (auto intro!: setsum_mono_zero_left simp: less_le)
 
 lemma lebesgue_integral_point_measure_finite:
-  "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> f a) \<Longrightarrow> integral\<^isup>L (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
+  "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> 0 \<le> f a) \<Longrightarrow> integral\<^sup>L (point_measure A f) g = (\<Sum>a\<in>A. f a * g a)"
   by (simp add: lebesgue_integral_count_space_finite AE_count_space integral_density point_measure_def)
 
 lemma integrable_point_measure_finite:
@@ -2853,7 +2853,7 @@ lemma emeasure_uniform_measure[simp]:
   assumes A: "A \<in> sets M" and B: "B \<in> sets M"
   shows "emeasure (uniform_measure M A) B = emeasure M (A \<inter> B) / emeasure M A"
 proof -
-  from A B have "emeasure (uniform_measure M A) B = (\<integral>\<^isup>+x. (1 / emeasure M A) * indicator (A \<inter> B) x \<partial>M)"
+  from A B have "emeasure (uniform_measure M A) B = (\<integral>\<^sup>+x. (1 / emeasure M A) * indicator (A \<inter> B) x \<partial>M)"
     by (auto simp add: uniform_measure_def emeasure_density split: split_indicator
              intro!: positive_integral_cong)
   also have "\<dots> = emeasure M (A \<inter> B) / emeasure M A"

@@ -54,7 +54,7 @@ proof -
   have deriv: "\<And>x. DERIV ?F x :> ?f x" "\<And>x. 0 \<le> l * exp (- x * l)"
     by (auto intro!: DERIV_intros simp: zero_le_mult_iff)
 
-  have "emeasure ?D (space ?D) = (\<integral>\<^isup>+ x. ereal (?f x) * indicator {0..} x \<partial>lborel)"
+  have "emeasure ?D (space ?D) = (\<integral>\<^sup>+ x. ereal (?f x) * indicator {0..} x \<partial>lborel)"
     by (auto simp: emeasure_density exponential_density_def
              intro!: positive_integral_cong split: split_indicator)
   also have "\<dots> = ereal (0 - ?F 0)"
@@ -71,10 +71,10 @@ proof -
   then show "prob_space ?D" by rule
 
   assume "0 \<le> a"
-  have "emeasure ?D {..a} = (\<integral>\<^isup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel)"
+  have "emeasure ?D {..a} = (\<integral>\<^sup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel)"
     by (auto simp add: emeasure_density intro!: positive_integral_cong split: split_indicator)
        (auto simp: exponential_density_def)
-  also have "(\<integral>\<^isup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel) = ereal (?F a) - ereal (?F 0)"
+  also have "(\<integral>\<^sup>+x. ereal (?f x) * indicator {0..a} x \<partial>lborel) = ereal (?F a) - ereal (?F 0)"
     using `0 \<le> a` deriv by (intro positive_integral_FTC_atLeastAtMost) auto
   also have "\<dots> = 1 - exp (- a * l)"
     by simp
@@ -141,7 +141,7 @@ proof (rule distributedI_borel_atMost)
 
   have "\<And>x. \<not> 0 \<le> a \<Longrightarrow> ereal (exponential_density l x) * indicator {..a} x = 0"
     by (simp add: exponential_density_def)
-  then show "(\<integral>\<^isup>+ x. exponential_density l x * indicator {..a} x \<partial>lborel) = ereal (if 0 \<le> a then 1 - exp (- a * l) else 0)"
+  then show "(\<integral>\<^sup>+ x. exponential_density l x * indicator {..a} x \<partial>lborel) = ereal (if 0 \<le> a then 1 - exp (- a * l) else 0)"
     using emeasure_exponential_density_le0[of l a]
     by (auto simp: emeasure_density times_ereal.simps[symmetric] ereal_indicator
              simp del: times_ereal.simps ereal_zero_times)
@@ -167,10 +167,10 @@ proof (rule integral_monotone_convergence)
   let ?f = "\<lambda>i x. x * exp (- x) * indicator {0::real .. i} x"
   have "eventually (\<lambda>b::real. 0 \<le> b) at_top"
     by (rule eventually_ge_at_top)
-  then have "eventually (\<lambda>b. 1 - (inverse (exp b) + b / exp b) = integral\<^isup>L lborel (?f b)) at_top"
+  then have "eventually (\<lambda>b. 1 - (inverse (exp b) + b / exp b) = integral\<^sup>L lborel (?f b)) at_top"
   proof eventually_elim
    fix b :: real assume [simp]: "0 \<le> b"
-    have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) - (integral\<^isup>L lborel (?f b)) = 
+    have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) - (integral\<^sup>L lborel (?f b)) = 
       (\<integral>x. (exp (-x) - x * exp (-x)) * indicator {0 .. b} x \<partial>lborel)"
       by (subst integral_diff(2)[symmetric])
          (auto intro!: borel_integrable_atLeastAtMost integral_cong split: split_indicator)
@@ -184,16 +184,16 @@ proof (rule integral_monotone_convergence)
     qed fact
     also have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) = - exp (- b) - - exp (- 0)"
       by (rule integral_FTC_atLeastAtMost) (auto intro!: DERIV_intros)
-    finally show "1 - (inverse (exp b) + b / exp b) = integral\<^isup>L lborel (?f b)"
+    finally show "1 - (inverse (exp b) + b / exp b) = integral\<^sup>L lborel (?f b)"
       by (auto simp: field_simps exp_minus inverse_eq_divide)
   qed
-  then have "((\<lambda>i. integral\<^isup>L lborel (?f i)) ---> 1 - (0 + 0)) at_top"
+  then have "((\<lambda>i. integral\<^sup>L lborel (?f i)) ---> 1 - (0 + 0)) at_top"
   proof (rule Lim_transform_eventually)
     show "((\<lambda>i. 1 - (inverse (exp i) + i / exp i)) ---> 1 - (0 + 0 :: real)) at_top"
       using tendsto_power_div_exp_0[of 1]
       by (intro tendsto_intros tendsto_inverse_0_at_top exp_at_top) simp
   qed
-  then show "(\<lambda>i. integral\<^isup>L lborel (?f i)) ----> 1"
+  then show "(\<lambda>i. integral\<^sup>L lborel (?f i)) ----> 1"
     by (intro filterlim_compose[OF _ filterlim_real_sequentially]) simp
   show "AE x in lborel. mono (\<lambda>n::nat. x * exp (- x) * indicator {0..real n} x)"
     by (auto simp: mono_def mult_le_0_iff zero_le_mult_iff split: split_indicator)
@@ -237,10 +237,10 @@ proof (intro measure_eqI)
     by (simp add: distr[of B] measurable_sets)
   also have "\<dots> = (1 / emeasure M' A) * emeasure M' (A \<inter> B)"
      by simp
-  also have "\<dots> = (\<integral>\<^isup>+ x. (1 / emeasure M' A) * indicator (A \<inter> B) x \<partial>M')"
+  also have "\<dots> = (\<integral>\<^sup>+ x. (1 / emeasure M' A) * indicator (A \<inter> B) x \<partial>M')"
     using A B
     by (intro positive_integral_cmult_indicator[symmetric]) (auto intro!: zero_le_divide_ereal)
-  also have "\<dots> = (\<integral>\<^isup>+ x. ?f x * indicator B x \<partial>M')"
+  also have "\<dots> = (\<integral>\<^sup>+ x. ?f x * indicator B x \<partial>M')"
     by (rule positive_integral_cong) (auto split: split_indicator)
   finally show "emeasure (distr M M' X) B = emeasure (density M' ?f) B"
     using A B X by (auto simp add: emeasure_distr emeasure_density)
@@ -267,15 +267,15 @@ proof (rule distributedI_borel_atMost)
   then show "emeasure M {x\<in>space M. X x \<le> a} = ereal (measure lborel (A \<inter> {..a}) / r)"
     using distr by simp
  
-  have "(\<integral>\<^isup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
-    (\<integral>\<^isup>+ x. ereal (1 / measure lborel A) * indicator (A \<inter> {..a}) x \<partial>lborel)"
+  have "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
+    (\<integral>\<^sup>+ x. ereal (1 / measure lborel A) * indicator (A \<inter> {..a}) x \<partial>lborel)"
     by (auto intro!: positive_integral_cong split: split_indicator)
   also have "\<dots> = ereal (1 / measure lborel A) * emeasure lborel (A \<inter> {..a})"
     using `A \<in> sets borel`
     by (intro positive_integral_cmult_indicator) (auto simp: measure_nonneg)
   also have "\<dots> = ereal (measure lborel (A \<inter> {..a}) / r)"
     unfolding emeasure_eq_ereal_measure[OF fin] using A by (simp add: measure_def)
-  finally show "(\<integral>\<^isup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
+  finally show "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
     ereal (measure lborel (A \<inter> {..a}) / r)" .
 qed (auto intro!: divide_nonneg_nonneg measure_nonneg)
 
@@ -325,7 +325,7 @@ proof -
   have "emeasure M {x \<in> space M. X x \<le> t} = emeasure (distr M lborel X) {.. t}"
     using distributed_measurable[OF D]
     by (subst emeasure_distr) (auto intro!: arg_cong2[where f=emeasure])
-  also have "\<dots> = (\<integral>\<^isup>+x. ereal (1 / (b - a)) * indicator {a .. t} x \<partial>lborel)"
+  also have "\<dots> = (\<integral>\<^sup>+x. ereal (1 / (b - a)) * indicator {a .. t} x \<partial>lborel)"
     using distributed_borel_measurable[OF D] `a \<le> t` `t \<le> b`
     unfolding distributed_distr_eq_density[OF D]
     by (subst emeasure_density)
@@ -378,11 +378,11 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
     show "isCont (\<lambda>x. x / Sigma_Algebra.measure lborel {a..b}) x"
       using uniform_distributed_params[OF D]
       by (auto intro!: isCont_divide)
-    have *: "b\<twosuperior> / (2 * measure lborel {a..b}) - a\<twosuperior> / (2 * measure lborel {a..b}) =
+    have *: "b\<^sup>2 / (2 * measure lborel {a..b}) - a\<^sup>2 / (2 * measure lborel {a..b}) =
       (b*b - a * a) / (2 * (b - a))"
       using `a < b`
       by (auto simp: measure_def power2_eq_square diff_divide_distrib[symmetric])
-    show "b\<twosuperior> / (2 * measure lborel {a..b}) - a\<twosuperior> / (2 * measure lborel {a..b}) = (a + b) / 2"
+    show "b\<^sup>2 / (2 * measure lborel {a..b}) - a\<^sup>2 / (2 * measure lborel {a..b}) = (a + b) / 2"
       using `a < b`
       unfolding * square_diff_square_factored by (auto simp: field_simps)
   qed (insert `a < b`, simp)

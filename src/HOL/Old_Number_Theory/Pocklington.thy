@@ -1079,7 +1079,7 @@ lemma pocklington:
   shows "prime n"
 unfolding prime_prime_factor_sqrt[of n]
 proof-
-  let ?ths = "n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<twosuperior> \<le> n)"
+  let ?ths = "n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<^sup>2 \<le> n)"
   from n have n01: "n\<noteq>0" "n\<noteq>1" by arith+
   {fix p assume p: "prime p" "p dvd n" "p^2 \<le> n"
     from p(3) sqr have "p^(Suc 1) \<le> q^(Suc 1)" by (simp add: power2_eq_square)

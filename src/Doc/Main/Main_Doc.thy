@@ -45,7 +45,7 @@ The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"},
 @{term"~(x = y)"} & @{term[source]"\<not> (x = y)"} & (\verb$~=$)\\
 @{term[source]"P \<longleftrightarrow> Q"} & @{term"P \<longleftrightarrow> Q"} \\
 @{term"If x y z"} & @{term[source]"If x y z"}\\
-@{term"Let e\<^isub>1 (%x. e\<^isub>2)"} & @{term[source]"Let e\<^isub>1 (\<lambda>x. e\<^isub>2)"}\\
+@{term"Let e\<^sub>1 (%x. e\<^sub>2)"} & @{term[source]"Let e\<^sub>1 (\<lambda>x. e\<^sub>2)"}\\
 \end{supertabular}
 
 
@@ -131,7 +131,7 @@ Library}.
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{text"{x\<^isub>1,\<dots>,x\<^isub>n}"} & @{text"insert x\<^isub>1 (\<dots> (insert x\<^isub>n {})\<dots>)"}\\
+@{text"{x\<^sub>1,\<dots>,x\<^sub>n}"} & @{text"insert x\<^sub>1 (\<dots> (insert x\<^sub>n {})\<dots>)"}\\
 @{term"x ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
 @{term"A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
 @{term"A \<subset> B"} & @{term[source]"A < B"}\\
@@ -165,7 +165,7 @@ Library}.
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{term"fun_upd f x y"} & @{term[source]"fun_upd f x y"}\\
-@{text"f(x\<^isub>1:=y\<^isub>1,\<dots>,x\<^isub>n:=y\<^isub>n)"} & @{text"f(x\<^isub>1:=y\<^isub>1)\<dots>(x\<^isub>n:=y\<^isub>n)"}\\
+@{text"f(x\<^sub>1:=y\<^sub>1,\<dots>,x\<^sub>n:=y\<^sub>n)"} & @{text"f(x\<^sub>1:=y\<^sub>1)\<dots>(x\<^sub>n:=y\<^sub>n)"}\\
 \end{tabular}
 
 
@@ -545,7 +545,7 @@ Type @{typ int}
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-@{text"[x\<^isub>1,\<dots>,x\<^isub>n]"} & @{text"x\<^isub>1 # \<dots> # x\<^isub>n # []"}\\
+@{text"[x\<^sub>1,\<dots>,x\<^sub>n]"} & @{text"x\<^sub>1 # \<dots> # x\<^sub>n # []"}\\
 @{term"[m..<n]"} & @{term[source]"upt m n"}\\
 @{term"[i..j]"} & @{term[source]"upto i j"}\\
 @{text"[e. x \<leftarrow> xs]"} & @{term"map (%x. e) xs"}\\
@@ -555,8 +555,8 @@ Type @{typ int}
 \end{supertabular}
 \medskip
 
-List comprehension: @{text"[e. q\<^isub>1, \<dots>, q\<^isub>n]"} where each
-qualifier @{text q\<^isub>i} is either a generator \mbox{@{text"pat \<leftarrow> e"}} or a
+List comprehension: @{text"[e. q\<^sub>1, \<dots>, q\<^sub>n]"} where each
+qualifier @{text q\<^sub>i} is either a generator \mbox{@{text"pat \<leftarrow> e"}} or a
 guard, i.e.\ boolean expression.
 
 \section*{Map}
@@ -581,8 +581,8 @@ the domain of a map may be infinite.
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{term"Map.empty"} & @{term"\<lambda>x. None"}\\
 @{term"m(x:=Some y)"} & @{term[source]"m(x:=Some y)"}\\
-@{text"m(x\<^isub>1\<mapsto>y\<^isub>1,\<dots>,x\<^isub>n\<mapsto>y\<^isub>n)"} & @{text[source]"m(x\<^isub>1\<mapsto>y\<^isub>1)\<dots>(x\<^isub>n\<mapsto>y\<^isub>n)"}\\
-@{text"[x\<^isub>1\<mapsto>y\<^isub>1,\<dots>,x\<^isub>n\<mapsto>y\<^isub>n]"} & @{text[source]"Map.empty(x\<^isub>1\<mapsto>y\<^isub>1,\<dots>,x\<^isub>n\<mapsto>y\<^isub>n)"}\\
+@{text"m(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"} & @{text[source]"m(x\<^sub>1\<mapsto>y\<^sub>1)\<dots>(x\<^sub>n\<mapsto>y\<^sub>n)"}\\
+@{text"[x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n]"} & @{text[source]"Map.empty(x\<^sub>1\<mapsto>y\<^sub>1,\<dots>,x\<^sub>n\<mapsto>y\<^sub>n)"}\\
 @{term"map_upds m xs ys"} & @{term[source]"map_upds m xs ys"}\\
 \end{tabular}
 

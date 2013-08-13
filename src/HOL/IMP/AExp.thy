@@ -16,7 +16,7 @@ text_raw{*\snip{AExpavaldef}{1}{2}{% *}
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 "aval (N n) s = n" |
 "aval (V x) s = s x" |
-"aval (Plus a\<^isub>1 a\<^isub>2) s = aval a\<^isub>1 s + aval a\<^isub>2 s"
+"aval (Plus a\<^sub>1 a\<^sub>2) s = aval a\<^sub>1 s + aval a\<^sub>2 s"
 text_raw{*}%endsnip*}
 
 
@@ -48,7 +48,7 @@ text {* In  the @{term[source] "<a := b>"} syntax, variables that are not mentio
 value "aval (Plus (V ''x'') (N 5)) <''y'' := 7>"
 
 text{* Note that this @{text"<\<dots>>"} syntax works for any function space
-@{text"\<tau>\<^isub>1 \<Rightarrow> \<tau>\<^isub>2"} where @{text "\<tau>\<^isub>2"} has a @{text 0}. *}
+@{text"\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2"} where @{text "\<tau>\<^sub>2"} has a @{text 0}. *}
 
 
 subsection "Constant Folding"
@@ -59,10 +59,10 @@ text_raw{*\snip{AExpasimpconstdef}{0}{2}{% *}
 fun asimp_const :: "aexp \<Rightarrow> aexp" where
 "asimp_const (N n) = N n" |
 "asimp_const (V x) = V x" |
-"asimp_const (Plus a\<^isub>1 a\<^isub>2) =
-  (case (asimp_const a\<^isub>1, asimp_const a\<^isub>2) of
-    (N n\<^isub>1, N n\<^isub>2) \<Rightarrow> N(n\<^isub>1+n\<^isub>2) |
-    (b\<^isub>1,b\<^isub>2) \<Rightarrow> Plus b\<^isub>1 b\<^isub>2)"
+"asimp_const (Plus a\<^sub>1 a\<^sub>2) =
+  (case (asimp_const a\<^sub>1, asimp_const a\<^sub>2) of
+    (N n\<^sub>1, N n\<^sub>2) \<Rightarrow> N(n\<^sub>1+n\<^sub>2) |
+    (b\<^sub>1,b\<^sub>2) \<Rightarrow> Plus b\<^sub>1 b\<^sub>2)"
 text_raw{*}%endsnip*}
 
 theorem aval_asimp_const:
@@ -76,10 +76,10 @@ method: optimized versions of the constructors: *}
 
 text_raw{*\snip{AExpplusdef}{0}{2}{% *}
 fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
-"plus (N i\<^isub>1) (N i\<^isub>2) = N(i\<^isub>1+i\<^isub>2)" |
+"plus (N i\<^sub>1) (N i\<^sub>2) = N(i\<^sub>1+i\<^sub>2)" |
 "plus (N i) a = (if i=0 then a else Plus (N i) a)" |
 "plus a (N i) = (if i=0 then a else Plus a (N i))" |
-"plus a\<^isub>1 a\<^isub>2 = Plus a\<^isub>1 a\<^isub>2"
+"plus a\<^sub>1 a\<^sub>2 = Plus a\<^sub>1 a\<^sub>2"
 text_raw{*}%endsnip*}
 
 lemma aval_plus[simp]:
@@ -92,7 +92,7 @@ text_raw{*\snip{AExpasimpdef}{2}{0}{% *}
 fun asimp :: "aexp \<Rightarrow> aexp" where
 "asimp (N n) = N n" |
 "asimp (V x) = V x" |
-"asimp (Plus a\<^isub>1 a\<^isub>2) = plus (asimp a\<^isub>1) (asimp a\<^isub>2)"
+"asimp (Plus a\<^sub>1 a\<^sub>2) = plus (asimp a\<^sub>1) (asimp a\<^sub>2)"
 text_raw{*}%endsnip*}
 
 text{* Note that in @{const asimp_const} the optimized constructor was

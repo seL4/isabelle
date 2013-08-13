@@ -93,9 +93,9 @@ text {*
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
 
-  \item @{command "unused_thms"}~@{text "A\<^isub>1 \<dots> A\<^isub>m - B\<^isub>1 \<dots> B\<^isub>n"}
-  displays all unused theorems in theories @{text "B\<^isub>1 \<dots> B\<^isub>n"}
-  or their parents, but not in @{text "A\<^isub>1 \<dots> A\<^isub>m"} or their parents.
+  \item @{command "unused_thms"}~@{text "A\<^sub>1 \<dots> A\<^sub>m - B\<^sub>1 \<dots> B\<^sub>n"}
+  displays all unused theorems in theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}
+  or their parents, but not in @{text "A\<^sub>1 \<dots> A\<^sub>m"} or their parents.
   If @{text n} is @{text 0}, the end of the range of theories
   defaults to the current theory. If no range is specified,
   only the unused theorems in the current theory are displayed.

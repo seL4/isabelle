@@ -275,9 +275,9 @@ instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
 definition dist_prod_def:
-  "dist x y = sqrt ((dist (fst x) (fst y))\<twosuperior> + (dist (snd x) (snd y))\<twosuperior>)"
+  "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
 
-lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<twosuperior> + (dist b d)\<twosuperior>)"
+lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
   unfolding dist_prod_def by simp
 
 lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
@@ -335,7 +335,7 @@ next
       def r \<equiv> "e / sqrt 2" and s \<equiv> "e / sqrt 2"
       from `0 < e` have "0 < r" and "0 < s"
         unfolding r_def s_def by (simp_all add: divide_pos_pos)
-      from `0 < e` have "e = sqrt (r\<twosuperior> + s\<twosuperior>)"
+      from `0 < e` have "e = sqrt (r\<^sup>2 + s\<^sup>2)"
         unfolding r_def s_def by (simp add: power_divide)
       def A \<equiv> "{y. dist (fst x) y < r}" and B \<equiv> "{y. dist (snd x) y < s}"
       have "open A" and "open B"
@@ -349,7 +349,7 @@ next
         hence "dist a (fst x) < r" and "dist b (snd x) < s"
           unfolding A_def B_def by (simp_all add: dist_commute)
         hence "dist (a, b) x < e"
-          unfolding dist_prod_def `e = sqrt (r\<twosuperior> + s\<twosuperior>)`
+          unfolding dist_prod_def `e = sqrt (r\<^sup>2 + s\<^sup>2)`
           by (simp add: add_strict_mono power_strict_mono)
         thus "(a, b) \<in> S"
           by (simp add: S)
@@ -406,12 +406,12 @@ instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vecto
 begin
 
 definition norm_prod_def:
-  "norm x = sqrt ((norm (fst x))\<twosuperior> + (norm (snd x))\<twosuperior>)"
+  "norm x = sqrt ((norm (fst x))\<^sup>2 + (norm (snd x))\<^sup>2)"
 
 definition sgn_prod_def:
   "sgn (x::'a \<times> 'b) = scaleR (inverse (norm x)) x"
 
-lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<twosuperior> + (norm b)\<twosuperior>)"
+lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<^sup>2 + (norm b)\<^sup>2)"
   unfolding norm_prod_def by simp
 
 instance proof

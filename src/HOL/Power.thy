@@ -27,14 +27,14 @@ notation (HTML output)
 text {* Special syntax for squares. *}
 
 abbreviation (xsymbols)
-  power2 :: "'a \<Rightarrow> 'a"  ("(_\<twosuperior>)" [1000] 999) where
-  "x\<twosuperior> \<equiv> x ^ 2"
+  power2 :: "'a \<Rightarrow> 'a"  ("(_\<^sup>2)" [1000] 999) where
+  "x\<^sup>2 \<equiv> x ^ 2"
 
 notation (latex output)
-  power2  ("(_\<twosuperior>)" [1000] 999)
+  power2  ("(_\<^sup>2)" [1000] 999)
 
 notation (HTML output)
-  power2  ("(_\<twosuperior>)" [1000] 999)
+  power2  ("(_\<^sup>2)" [1000] 999)
 
 end
 
@@ -67,7 +67,7 @@ lemma power_mult:
   "a ^ (m * n) = (a ^ m) ^ n"
   by (induct n) (simp_all add: power_add)
 
-lemma power2_eq_square: "a\<twosuperior> = a * a"
+lemma power2_eq_square: "a\<^sup>2 = a * a"
   by (simp add: numeral_2_eq_2)
 
 lemma power3_eq_cube: "a ^ 3 = a * a * a"
@@ -139,10 +139,10 @@ lemma of_nat_power:
 lemma power_zero_numeral [simp]: "(0::'a) ^ numeral k = 0"
   by (simp add: numeral_eq_Suc)
 
-lemma zero_power2: "0\<twosuperior> = 0" (* delete? *)
+lemma zero_power2: "0\<^sup>2 = 0" (* delete? *)
   by (rule power_zero_numeral)
 
-lemma one_power2: "1\<twosuperior> = 1" (* delete? *)
+lemma one_power2: "1\<^sup>2 = 1" (* delete? *)
   by (rule power_one)
 
 end
@@ -218,7 +218,7 @@ lemma power_neg_numeral_Bit1 [simp]:
   by (simp only: neg_numeral_def power_minus_Bit1 power_numeral pow.simps)
 
 lemma power2_minus [simp]:
-  "(- a)\<twosuperior> = a\<twosuperior>"
+  "(- a)\<^sup>2 = a\<^sup>2"
   by (rule power_minus_Bit0)
 
 lemma power_minus1_even [simp]:
@@ -247,11 +247,11 @@ lemma field_power_not_zero:
   by (induct n) auto
 
 lemma zero_eq_power2 [simp]:
-  "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
+  "a\<^sup>2 = 0 \<longleftrightarrow> a = 0"
   unfolding power2_eq_square by simp
 
 lemma power2_eq_1_iff:
-  "a\<twosuperior> = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
+  "a\<^sup>2 = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
   unfolding power2_eq_square by (rule square_eq_1_iff)
 
 end
@@ -259,7 +259,7 @@ end
 context idom
 begin
 
-lemma power2_eq_iff: "x\<twosuperior> = y\<twosuperior> \<longleftrightarrow> x = y \<or> x = - y"
+lemma power2_eq_iff: "x\<^sup>2 = y\<^sup>2 \<longleftrightarrow> x = y \<or> x = - y"
   unfolding power2_eq_square by (rule square_eq_iff)
 
 end
@@ -489,15 +489,15 @@ lemma power_eq_imp_eq_base:
   by (cases n) (simp_all del: power_Suc, rule power_inject_base)
 
 lemma power2_le_imp_le:
-  "x\<twosuperior> \<le> y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y"
+  "x\<^sup>2 \<le> y\<^sup>2 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y"
   unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
 
 lemma power2_less_imp_less:
-  "x\<twosuperior> < y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y"
+  "x\<^sup>2 < y\<^sup>2 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y"
   by (rule power_less_imp_less_base)
 
 lemma power2_eq_imp_eq:
-  "x\<twosuperior> = y\<twosuperior> \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
+  "x\<^sup>2 = y\<^sup>2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
   unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base) simp
 
 end
@@ -543,23 +543,23 @@ lemma zero_le_power_abs [simp]:
   by (rule zero_le_power [OF abs_ge_zero])
 
 lemma zero_le_power2 [simp]:
-  "0 \<le> a\<twosuperior>"
+  "0 \<le> a\<^sup>2"
   by (simp add: power2_eq_square)
 
 lemma zero_less_power2 [simp]:
-  "0 < a\<twosuperior> \<longleftrightarrow> a \<noteq> 0"
+  "0 < a\<^sup>2 \<longleftrightarrow> a \<noteq> 0"
   by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
 
 lemma power2_less_0 [simp]:
-  "\<not> a\<twosuperior> < 0"
+  "\<not> a\<^sup>2 < 0"
   by (force simp add: power2_eq_square mult_less_0_iff)
 
 lemma abs_power2 [simp]:
-  "abs (a\<twosuperior>) = a\<twosuperior>"
+  "abs (a\<^sup>2) = a\<^sup>2"
   by (simp add: power2_eq_square abs_mult abs_mult_self)
 
 lemma power2_abs [simp]:
-  "(abs a)\<twosuperior> = a\<twosuperior>"
+  "(abs a)\<^sup>2 = a\<^sup>2"
   by (simp add: power2_eq_square abs_mult_self)
 
 lemma odd_power_less_zero:
@@ -594,23 +594,23 @@ next
 qed
 
 lemma sum_power2_ge_zero:
-  "0 \<le> x\<twosuperior> + y\<twosuperior>"
+  "0 \<le> x\<^sup>2 + y\<^sup>2"
   by (intro add_nonneg_nonneg zero_le_power2)
 
 lemma not_sum_power2_lt_zero:
-  "\<not> x\<twosuperior> + y\<twosuperior> < 0"
+  "\<not> x\<^sup>2 + y\<^sup>2 < 0"
   unfolding not_less by (rule sum_power2_ge_zero)
 
 lemma sum_power2_eq_zero_iff:
-  "x\<twosuperior> + y\<twosuperior> = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  "x\<^sup>2 + y\<^sup>2 = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
   unfolding power2_eq_square by (simp add: add_nonneg_eq_0_iff)
 
 lemma sum_power2_le_zero_iff:
-  "x\<twosuperior> + y\<twosuperior> \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  "x\<^sup>2 + y\<^sup>2 \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
   by (simp add: le_less sum_power2_eq_zero_iff not_sum_power2_lt_zero)
 
 lemma sum_power2_gt_zero_iff:
-  "0 < x\<twosuperior> + y\<twosuperior> \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+  "0 < x\<^sup>2 + y\<^sup>2 \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
   unfolding not_le [symmetric] by (simp add: sum_power2_le_zero_iff)
 
 end
@@ -623,12 +623,12 @@ lemma power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
 
 lemma power2_sum:
   fixes x y :: "'a::comm_semiring_1"
-  shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
+  shows "(x + y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 + 2 * x * y"
   by (simp add: algebra_simps power2_eq_square mult_2_right)
 
 lemma power2_diff:
   fixes x y :: "'a::comm_ring_1"
-  shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
+  shows "(x - y)\<^sup>2 = x\<^sup>2 + y\<^sup>2 - 2 * x * y"
   by (simp add: ring_distribs power2_eq_square mult_2) (rule mult_commute)
 
 lemma power_0_Suc [simp]:
@@ -723,12 +723,12 @@ lemma power_dvd_imp_le:
 
 lemma power2_nat_le_eq_le:
   fixes m n :: nat
-  shows "m\<twosuperior> \<le> n\<twosuperior> \<longleftrightarrow> m \<le> n"
+  shows "m\<^sup>2 \<le> n\<^sup>2 \<longleftrightarrow> m \<le> n"
   by (auto intro: power2_le_imp_le power_mono)
 
 lemma power2_nat_le_imp_le:
   fixes m n :: nat
-  assumes "m\<twosuperior> \<le> n"
+  assumes "m\<^sup>2 \<le> n"
   shows "m \<le> n"
   using assms by (cases m) (simp_all add: power2_eq_square)
 

@@ -17,8 +17,8 @@ number of bits to calculate. In the proposition to prove an arbitrary amount of
 variables can be used, but each one need to be bounded by an upper and lower
 bound.
 
-To specify the bounds either @{term "l\<^isub>1 \<le> x \<and> x \<le> u\<^isub>1"},
-@{term "x \<in> { l\<^isub>1 .. u\<^isub>1 }"} or @{term "x = bnd"} can be used. Where the
+To specify the bounds either @{term "l\<^sub>1 \<le> x \<and> x \<le> u\<^sub>1"},
+@{term "x \<in> { l\<^sub>1 .. u\<^sub>1 }"} or @{term "x = bnd"} can be used. Where the
 bound specification are again arithmetic formulas containing variables. They can
 be connected using either meta level or HOL equivalence.
 

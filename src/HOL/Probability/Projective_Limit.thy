@@ -17,15 +17,15 @@ begin
 subsection {* Sequences of Finite Maps in Compact Sets *}
 
 locale finmap_seqs_into_compact =
-  fixes K::"nat \<Rightarrow> (nat \<Rightarrow>\<^isub>F 'a::metric_space) set" and f::"nat \<Rightarrow> (nat \<Rightarrow>\<^isub>F 'a)" and M
+  fixes K::"nat \<Rightarrow> (nat \<Rightarrow>\<^sub>F 'a::metric_space) set" and f::"nat \<Rightarrow> (nat \<Rightarrow>\<^sub>F 'a)" and M
   assumes compact: "\<And>n. compact (K n)"
   assumes f_in_K: "\<And>n. K n \<noteq> {}"
   assumes domain_K: "\<And>n. k \<in> K n \<Longrightarrow> domain k = domain (f n)"
   assumes proj_in_K:
-    "\<And>t n m. m \<ge> n \<Longrightarrow> t \<in> domain (f n) \<Longrightarrow> (f m)\<^isub>F t \<in> (\<lambda>k. (k)\<^isub>F t) ` K n"
+    "\<And>t n m. m \<ge> n \<Longrightarrow> t \<in> domain (f n) \<Longrightarrow> (f m)\<^sub>F t \<in> (\<lambda>k. (k)\<^sub>F t) ` K n"
 begin
 
-lemma proj_in_K': "(\<exists>n. \<forall>m \<ge> n. (f m)\<^isub>F t \<in> (\<lambda>k. (k)\<^isub>F t) ` K n)"
+lemma proj_in_K': "(\<exists>n. \<forall>m \<ge> n. (f m)\<^sub>F t \<in> (\<lambda>k. (k)\<^sub>F t) ` K n)"
   using proj_in_K f_in_K
 proof cases
   obtain k where "k \<in> K (Suc 0)" using f_in_K by auto
@@ -36,11 +36,11 @@ proof cases
 qed blast
 
 lemma proj_in_KE:
-  obtains n where "\<And>m. m \<ge> n \<Longrightarrow> (f m)\<^isub>F t \<in> (\<lambda>k. (k)\<^isub>F t) ` K n"
+  obtains n where "\<And>m. m \<ge> n \<Longrightarrow> (f m)\<^sub>F t \<in> (\<lambda>k. (k)\<^sub>F t) ` K n"
   using proj_in_K' by blast
 
 lemma compact_projset:
-  shows "compact ((\<lambda>k. (k)\<^isub>F i) ` K n)"
+  shows "compact ((\<lambda>k. (k)\<^sub>F i) ` K n)"
   using continuous_proj compact by (rule compact_continuous_image)
 
 end
@@ -58,38 +58,38 @@ proof atomize_elim
   thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) ----> l" by blast
 qed
 
-sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>l. (\<lambda>i. ((f o s) i)\<^isub>F n) ----> l)"
+sublocale finmap_seqs_into_compact \<subseteq> subseqs "\<lambda>n s. (\<exists>l. (\<lambda>i. ((f o s) i)\<^sub>F n) ----> l)"
 proof
   fix n s
   assume "subseq s"
   from proj_in_KE[of n] guess n0 . note n0 = this
-  have "\<forall>i \<ge> n0. ((f \<circ> s) i)\<^isub>F n \<in> (\<lambda>k. (k)\<^isub>F n) ` K n0"
+  have "\<forall>i \<ge> n0. ((f \<circ> s) i)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0"
   proof safe
     fix i assume "n0 \<le> i"
     also have "\<dots> \<le> s i" by (rule seq_suble) fact
     finally have "n0 \<le> s i" .
-    with n0 show "((f \<circ> s) i)\<^isub>F n \<in> (\<lambda>k. (k)\<^isub>F n) ` K n0 "
+    with n0 show "((f \<circ> s) i)\<^sub>F n \<in> (\<lambda>k. (k)\<^sub>F n) ` K n0 "
       by auto
   qed
   from compactE'[OF compact_projset this] guess ls rs .
-  thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^isub>F n) ----> l)" by (auto simp: o_def)
+  thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^sub>F n) ----> l)" by (auto simp: o_def)
 qed
 
-lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l"
+lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^sub>F n) ----> l"
 proof -
-  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^isub>F n) ----> l"
+  obtain l where "(\<lambda>i. ((f o (diagseq o op + (Suc n))) i)\<^sub>F n) ----> l"
   proof (atomize_elim, rule diagseq_holds)
     fix r s n
     assume "subseq r"
-    assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^isub>F n) ----> l"
-    then obtain l where "((\<lambda>i. (f i)\<^isub>F n) o s) ----> l"
+    assume "\<exists>l. (\<lambda>i. ((f \<circ> s) i)\<^sub>F n) ----> l"
+    then obtain l where "((\<lambda>i. (f i)\<^sub>F n) o s) ----> l"
       by (auto simp: o_def)
-    hence "((\<lambda>i. (f i)\<^isub>F n) o s o r) ----> l" using `subseq r`
+    hence "((\<lambda>i. (f i)\<^sub>F n) o s o r) ----> l" using `subseq r`
       by (rule LIMSEQ_subseq_LIMSEQ)
-    thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^isub>F n) ----> l" by (auto simp add: o_def)
+    thus "\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r)) i)\<^sub>F n) ----> l" by (auto simp add: o_def)
   qed
-  hence "(\<lambda>i. ((f (diagseq (i + Suc n))))\<^isub>F n) ----> l" by (simp add: ac_simps)
-  hence "(\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l" by (rule LIMSEQ_offset)
+  hence "(\<lambda>i. ((f (diagseq (i + Suc n))))\<^sub>F n) ----> l" by (simp add: ac_simps)
+  hence "(\<lambda>i. (f (diagseq i))\<^sub>F n) ----> l" by (rule LIMSEQ_offset)
   thus ?thesis ..
 qed
 
@@ -101,14 +101,14 @@ locale polish_projective = projective_family I P "\<lambda>_. borel::'a::polish_
   for I::"'i set" and P
 begin
 
-abbreviation "lim\<^isub>B \<equiv> (\<lambda>J P. limP J (\<lambda>_. borel) P)"
+abbreviation "lim\<^sub>B \<equiv> (\<lambda>J P. limP J (\<lambda>_. borel) P)"
 
 lemma emeasure_limB_emb_not_empty:
   assumes "I \<noteq> {}"
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (lim\<^isub>B J P) (Pi\<^isub>E J B)"
+  shows "emeasure (lim\<^sub>B I P) (emb I J (Pi\<^sub>E J B)) = emeasure (lim\<^sub>B J P) (Pi\<^sub>E J B)"
 proof -
-  let ?\<Omega> = "\<Pi>\<^isub>E i\<in>I. space borel"
+  let ?\<Omega> = "\<Pi>\<^sub>E i\<in>I. space borel"
   let ?G = generator
   interpret G!: algebra ?\<Omega> generator by (intro  algebra_generator) fact
   note mu_G_mono =
@@ -135,17 +135,17 @@ proof -
         using Z positive_mu_G[OF `I \<noteq> {}`] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
       hence "?a \<noteq> -\<infinity>" by auto
-      have "\<forall>n. \<exists>J B. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> B \<in> sets (Pi\<^isub>M J (\<lambda>_. borel)) \<and>
-        Z n = emb I J B \<and> \<mu>G (Z n) = emeasure (lim\<^isub>B J P) B"
+      have "\<forall>n. \<exists>J B. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> B \<in> sets (Pi\<^sub>M J (\<lambda>_. borel)) \<and>
+        Z n = emb I J B \<and> \<mu>G (Z n) = emeasure (lim\<^sub>B J P) B"
         using Z by (intro allI generator_Ex) auto
       then obtain J' B' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I"
-          "\<And>n. B' n \<in> sets (\<Pi>\<^isub>M i\<in>J' n. borel)"
+          "\<And>n. B' n \<in> sets (\<Pi>\<^sub>M i\<in>J' n. borel)"
         and Z_emb: "\<And>n. Z n = emb I (J' n) (B' n)"
         unfolding choice_iff by blast
       moreover def J \<equiv> "\<lambda>n. (\<Union>i\<le>n. J' i)"
       moreover def B \<equiv> "\<lambda>n. emb (J n) (J' n) (B' n)"
       ultimately have J: "\<And>n. J n \<noteq> {}" "\<And>n. finite (J n)" "\<And>n. J n \<subseteq> I"
-        "\<And>n. B n \<in> sets (\<Pi>\<^isub>M i\<in>J n. borel)"
+        "\<And>n. B n \<in> sets (\<Pi>\<^sub>M i\<in>J n. borel)"
         by auto
       have J_mono: "\<And>n m. n \<le> m \<Longrightarrow> J n \<subseteq> J m"
         unfolding J_def by force
@@ -230,8 +230,8 @@ proof -
         "\<And>n. emeasure (P (J n)) (B n) - emeasure (P' n) (K' n) \<le> ereal (2 powr - real n) * ?a"
         "\<And>n. compact (K' n)" "\<And>n. K' n \<subseteq> fm n ` B n"
         unfolding choice_iff by blast
-      def K \<equiv> "\<lambda>n. fm n -` K' n \<inter> space (Pi\<^isub>M (J n) (\<lambda>_. borel))"
-      have K_sets: "\<And>n. K n \<in> sets (Pi\<^isub>M (J n) (\<lambda>_. borel))"
+      def K \<equiv> "\<lambda>n. fm n -` K' n \<inter> space (Pi\<^sub>M (J n) (\<lambda>_. borel))"
+      have K_sets: "\<And>n. K n \<in> sets (Pi\<^sub>M (J n) (\<lambda>_. borel))"
         unfolding K_def
         using compact_imp_closed[OF `compact (K' _)`]
         by (intro measurable_sets[OF fm_measurable, of _ "Collect finite"])
@@ -250,7 +250,7 @@ proof -
         unfolding Z_eq unfolding Z'_def
       proof (rule prod_emb_mono, safe)
         fix n x assume "x \<in> K n"
-        hence "fm n x \<in> K' n" "x \<in> space (Pi\<^isub>M (J n) (\<lambda>_. borel))"
+        hence "fm n x \<in> K' n" "x \<in> space (Pi\<^sub>M (J n) (\<lambda>_. borel))"
           by (simp_all add: K_def proj_space)
         note this(1)
         also have "K' n \<subseteq> fm n ` B n" by (simp add: K')
@@ -259,7 +259,7 @@ proof -
         proof safe
           fix y assume "y \<in> B n"
           moreover
-          hence "y \<in> space (Pi\<^isub>M (J n) (\<lambda>_. borel))" using J sets.sets_into_space[of "B n" "P (J n)"]
+          hence "y \<in> space (Pi\<^sub>M (J n) (\<lambda>_. borel))" using J sets.sets_into_space[of "B n" "P (J n)"]
             by (auto simp add: proj_space proj_sets)
           assume "fm n x = fm n y"
           note inj_onD[OF inj_on_fm[OF space_borel],
@@ -297,7 +297,7 @@ proof -
           by (subst mu_G_eq) (auto simp: limP_finite proj_sets mu_G_eq)
         interpret finite_measure "(limP (J n) (\<lambda>_. borel) P)"
         proof
-          have "emeasure (limP (J n) (\<lambda>_. borel) P) (J n \<rightarrow>\<^isub>E space borel) \<noteq> \<infinity>"
+          have "emeasure (limP (J n) (\<lambda>_. borel) P) (J n \<rightarrow>\<^sub>E space borel) \<noteq> \<infinity>"
             using J by (subst emeasure_limP) auto
           thus  "emeasure (limP (J n) (\<lambda>_. borel) P) (space (limP (J n) (\<lambda>_. borel) P)) \<noteq> \<infinity>"
              by (simp add: space_PiM)
@@ -414,15 +414,15 @@ proof -
         hence "j \<in> J (Suc m)" using J_mono[OF `Suc n \<le> Suc m`] by auto
         have img: "fm (Suc n) (y (Suc m)) \<in> K' (Suc n)" using `n \<le> m`
           by (intro fm_in_K') simp_all
-        show "(fm (Suc m) (y (Suc m)))\<^isub>F t \<in> (\<lambda>k. (k)\<^isub>F t) ` K' (Suc n)"
+        show "(fm (Suc m) (y (Suc m)))\<^sub>F t \<in> (\<lambda>k. (k)\<^sub>F t) ` K' (Suc n)"
           apply (rule image_eqI[OF _ img])
           using `j \<in> J (Suc n)` `j \<in> J (Suc m)`
           unfolding j by (subst proj_fm, auto)+
       qed
-      have "\<forall>t. \<exists>z. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^isub>F t) ----> z"
+      have "\<forall>t. \<exists>z. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) ----> z"
         using diagonal_tendsto ..
       then obtain z where z:
-        "\<And>t. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^isub>F t) ----> z t"
+        "\<And>t. (\<lambda>i. (fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) ----> z t"
         unfolding choice_iff by blast
       {
         fix n :: nat assume "n \<ge> 1"
@@ -434,14 +434,14 @@ proof -
           assume t: "t \<in> domain (finmap_of (Utn ` J n) z)"
           hence "t \<in> Utn ` J n" by simp
           then obtain j where j: "t = Utn j" "j \<in> J n" by auto
-          have "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^isub>F t) ----> z t"
+          have "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) ----> z t"
             apply (subst (2) tendsto_iff, subst eventually_sequentially)
           proof safe
             fix e :: real assume "0 < e"
             { fix i x assume "i \<ge> n" "t \<in> domain (fm n x)"
               moreover
               hence "t \<in> domain (fm i x)" using J_mono[OF `i \<ge> n`] by auto
-              ultimately have "(fm i x)\<^isub>F t = (fm n x)\<^isub>F t"
+              ultimately have "(fm i x)\<^sub>F t = (fm n x)\<^sub>F t"
                 using j by (auto simp: proj_fm dest!: inj_onD[OF inj_on_Utn])
             } note index_shift = this
             have I: "\<And>i. i \<ge> n \<Longrightarrow> Suc (diagseq i) \<ge> n"
@@ -450,21 +450,21 @@ proof -
               apply (rule seq_suble[OF subseq_diagseq])
               done
             from z
-            have "\<exists>N. \<forall>i\<ge>N. dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^isub>F t) (z t) < e"
+            have "\<exists>N. \<forall>i\<ge>N. dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) (z t) < e"
               unfolding tendsto_iff eventually_sequentially using `0 < e` by auto
             then obtain N where N: "\<And>i. i \<ge> N \<Longrightarrow>
-              dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^isub>F t) (z t) < e" by auto
-            show "\<exists>N. \<forall>na\<ge>N. dist ((fm n (y (Suc (diagseq na))))\<^isub>F t) (z t) < e "
+              dist ((fm (Suc (diagseq i)) (y (Suc (diagseq i))))\<^sub>F t) (z t) < e" by auto
+            show "\<exists>N. \<forall>na\<ge>N. dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) < e "
             proof (rule exI[where x="max N n"], safe)
               fix na assume "max N n \<le> na"
-              hence  "dist ((fm n (y (Suc (diagseq na))))\<^isub>F t) (z t) =
-                      dist ((fm (Suc (diagseq na)) (y (Suc (diagseq na))))\<^isub>F t) (z t)" using t
+              hence  "dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) =
+                      dist ((fm (Suc (diagseq na)) (y (Suc (diagseq na))))\<^sub>F t) (z t)" using t
                 by (subst index_shift[OF I]) auto
               also have "\<dots> < e" using `max N n \<le> na` by (intro N) simp
-              finally show "dist ((fm n (y (Suc (diagseq na))))\<^isub>F t) (z t) < e" .
+              finally show "dist ((fm n (y (Suc (diagseq na))))\<^sub>F t) (z t) < e" .
             qed
           qed
-          hence "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^isub>F t) ----> (finmap_of (Utn ` J n) z)\<^isub>F t"
+          hence "(\<lambda>i. (fm n (y (Suc (diagseq i))))\<^sub>F t) ----> (finmap_of (Utn ` J n) z)\<^sub>F t"
             by (simp add: tendsto_intros)
         } ultimately
         have "(\<lambda>i. fm n (y (Suc (diagseq i)))) ----> finmap_of (Utn ` J n) z"
@@ -491,7 +491,7 @@ proof -
           moreover hence "from_nat_into (\<Union>n. J n) (Utn i) = i"
             unfolding Utn_def
             by (subst from_nat_into_to_nat_on[OF countable_UN_J]) auto
-          ultimately show "z (Utn i) = (fm n (\<lambda>i. z (Utn i)))\<^isub>F (Utn i)"
+          ultimately show "z (Utn i) = (fm n (\<lambda>i. z (Utn i)))\<^sub>F (Utn i)"
             by (simp add: finmap_eq_iff fm_def compose_def)
         qed
         finally have "fm n (\<lambda>i. z (Utn i)) \<in> K' n" .
@@ -514,27 +514,27 @@ proof -
   qed
   then guess \<mu> .. note \<mu> = this
   def f \<equiv> "finmap_of J B"
-  show "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (lim\<^isub>B J P) (Pi\<^isub>E J B)"
+  show "emeasure (lim\<^sub>B I P) (emb I J (Pi\<^sub>E J B)) = emeasure (lim\<^sub>B J P) (Pi\<^sub>E J B)"
   proof (subst emeasure_extend_measure_Pair[OF limP_def, of I "\<lambda>_. borel" \<mu>])
-    show "positive (sets (lim\<^isub>B I P)) \<mu>" "countably_additive (sets (lim\<^isub>B I P)) \<mu>"
+    show "positive (sets (lim\<^sub>B I P)) \<mu>" "countably_additive (sets (lim\<^sub>B I P)) \<mu>"
       using \<mu> unfolding sets_limP sets_PiM_generator by (auto simp: measure_space_def)
   next
     show "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> B \<in> J \<rightarrow> sets borel"
       using assms by (auto simp: f_def)
   next
     fix J and X::"'i \<Rightarrow> 'a set"
-    show "prod_emb I (\<lambda>_. borel) J (Pi\<^isub>E J X) \<in> Pow (I \<rightarrow>\<^isub>E space borel)"
+    show "prod_emb I (\<lambda>_. borel) J (Pi\<^sub>E J X) \<in> Pow (I \<rightarrow>\<^sub>E space borel)"
       by (auto simp: prod_emb_def)
     assume JX: "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> J \<rightarrow> sets borel"
-    hence "emb I J (Pi\<^isub>E J X) \<in> generator" using assms
-      by (intro generatorI[where J=J and X="Pi\<^isub>E J X"]) (auto intro: sets_PiM_I_finite)
-    hence "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))" using \<mu> by simp
-    also have "\<dots> = emeasure (P J) (Pi\<^isub>E J X)"
+    hence "emb I J (Pi\<^sub>E J X) \<in> generator" using assms
+      by (intro generatorI[where J=J and X="Pi\<^sub>E J X"]) (auto intro: sets_PiM_I_finite)
+    hence "\<mu> (emb I J (Pi\<^sub>E J X)) = \<mu>G (emb I J (Pi\<^sub>E J X))" using \<mu> by simp
+    also have "\<dots> = emeasure (P J) (Pi\<^sub>E J X)"
       using JX assms proj_sets
       by (subst mu_G_eq) (auto simp: mu_G_eq limP_finite intro: sets_PiM_I_finite)
-    finally show "\<mu> (emb I J (Pi\<^isub>E J X)) = emeasure (P J) (Pi\<^isub>E J X)" .
+    finally show "\<mu> (emb I J (Pi\<^sub>E J X)) = emeasure (P J) (Pi\<^sub>E J X)" .
   next
-    show "emeasure (P J) (Pi\<^isub>E J B) = emeasure (limP J (\<lambda>_. borel) P) (Pi\<^isub>E J B)"
+    show "emeasure (P J) (Pi\<^sub>E J B) = emeasure (limP J (\<lambda>_. borel) P) (Pi\<^sub>E J B)"
       using assms by (simp add: f_def limP_finite Pi_def)
   qed
 qed
@@ -542,7 +542,7 @@ qed
 end
 
 hide_const (open) PiF
-hide_const (open) Pi\<^isub>F
+hide_const (open) Pi\<^sub>F
 hide_const (open) Pi'
 hide_const (open) Abs_finmap
 hide_const (open) Rep_finmap
@@ -551,9 +551,9 @@ hide_const (open) proj
 hide_const (open) domain
 hide_const (open) basis_finmap
 
-sublocale polish_projective \<subseteq> P!: prob_space "(lim\<^isub>B I P)"
+sublocale polish_projective \<subseteq> P!: prob_space "(lim\<^sub>B I P)"
 proof
-  show "emeasure (lim\<^isub>B I P) (space (lim\<^isub>B I P)) = 1"
+  show "emeasure (lim\<^sub>B I P) (space (lim\<^sub>B I P)) = 1"
   proof cases
     assume "I = {}"
     interpret prob_space "P {}" using proj_prob_space by simp
@@ -563,7 +563,7 @@ proof
     assume "I \<noteq> {}"
     then obtain i where "i \<in> I" by auto
     interpret prob_space "P {i}" using proj_prob_space by simp
-    have R: "(space (lim\<^isub>B I P)) = (emb I {i} (Pi\<^isub>E {i} (\<lambda>_. space borel)))"
+    have R: "(space (lim\<^sub>B I P)) = (emb I {i} (Pi\<^sub>E {i} (\<lambda>_. space borel)))"
       by (auto simp: prod_emb_def space_PiM)
     moreover have "extensional {i} = space (P {i})" by (simp add: proj_space space_PiM PiE_def)
     ultimately show ?thesis using `i \<in> I`
@@ -578,13 +578,13 @@ context polish_projective begin
 
 lemma emeasure_limB_emb:
   assumes X: "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (P J) (Pi\<^isub>E J B)"
+  shows "emeasure (lim\<^sub>B I P) (emb I J (Pi\<^sub>E J B)) = emeasure (P J) (Pi\<^sub>E J B)"
 proof cases
   interpret prob_space "P {}" using proj_prob_space by simp
   assume "J = {}"
-  moreover have "emb I {} {\<lambda>x. undefined} = space (lim\<^isub>B I P)"
+  moreover have "emb I {} {\<lambda>x. undefined} = space (lim\<^sub>B I P)"
     by (auto simp: space_PiM prod_emb_def)
-  moreover have "{\<lambda>x. undefined} = space (lim\<^isub>B {} P)"
+  moreover have "{\<lambda>x. undefined} = space (lim\<^sub>B {} P)"
     by (auto simp: space_PiM prod_emb_def)
   ultimately show ?thesis
     by (simp add: P.emeasure_space_1 limP_finite emeasure_space_1 del: space_limP)
@@ -595,7 +595,7 @@ qed
 
 lemma measure_limB_emb:
   assumes "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "measure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = measure (P J) (Pi\<^isub>E J B)"
+  shows "measure (lim\<^sub>B I P) (emb I J (Pi\<^sub>E J B)) = measure (P J) (Pi\<^sub>E J B)"
 proof -
   interpret prob_space "P J" using proj_prob_space assms by simp
   show ?thesis
@@ -613,7 +613,7 @@ sublocale polish_product_prob_space \<subseteq> P: polish_projective I "\<lambda
 proof qed
 
 lemma (in polish_product_prob_space) limP_eq_PiM:
-  "I \<noteq> {} \<Longrightarrow> lim\<^isub>P I (\<lambda>_. borel) (\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)) =
+  "I \<noteq> {} \<Longrightarrow> lim\<^sub>P I (\<lambda>_. borel) (\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)) =
     PiM I (\<lambda>_. borel)"
   by (rule PiM_eq) (auto simp: emeasure_PiM emeasure_limB_emb)
 

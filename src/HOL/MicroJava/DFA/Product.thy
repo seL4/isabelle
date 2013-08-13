@@ -47,7 +47,7 @@ apply blast
 done 
 
 lemma acc_le_prodI [intro!]:
-  "\<lbrakk> acc r\<^isub>A; acc r\<^isub>B \<rbrakk> \<Longrightarrow> acc(Product.le r\<^isub>A r\<^isub>B)"
+  "\<lbrakk> acc r\<^sub>A; acc r\<^sub>B \<rbrakk> \<Longrightarrow> acc(Product.le r\<^sub>A r\<^sub>B)"
 apply (unfold acc_def)
 apply (rule wf_subset)
  apply (erule wf_lex_prod)

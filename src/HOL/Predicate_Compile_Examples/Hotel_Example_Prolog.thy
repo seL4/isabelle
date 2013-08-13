@@ -63,12 +63,12 @@ lemma [code_pred_def]: "no_Check_in s r = (~ (EX g c. List.member s (Check_in g 
 unfolding no_Check_in_def member_def by auto
 
 lemma [code_pred_def]: "feels_safe s r =
-(EX s\<^isub>1 s\<^isub>2 s\<^isub>3 g c c'.
+(EX s\<^sub>1 s\<^sub>2 s\<^sub>3 g c c'.
     s =
-    s\<^isub>3 @
-    [Enter g r c] @ s\<^isub>2 @ [Check_in g r c'] @ s\<^isub>1 &
-    no_Check_in (s\<^isub>3 @ s\<^isub>2) r &
-    (\<not> (\<exists> g'. isinp (s\<^isub>2 @ [Check_in g r c] @ s\<^isub>1) r g')))"
+    s\<^sub>3 @
+    [Enter g r c] @ s\<^sub>2 @ [Check_in g r c'] @ s\<^sub>1 &
+    no_Check_in (s\<^sub>3 @ s\<^sub>2) r &
+    (\<not> (\<exists> g'. isinp (s\<^sub>2 @ [Check_in g r c] @ s\<^sub>1) r g')))"
 unfolding feels_safe_def isinp_def by auto
 
 setup {* Code_Prolog.map_code_options (K

@@ -47,7 +47,7 @@ text_raw{*\snip{ASMcompdef}{0}{2}{% *}
 fun comp :: "aexp \<Rightarrow> instr list" where
 "comp (N n) = [LOADI n]" |
 "comp (V x) = [LOAD x]" |
-"comp (Plus e\<^isub>1 e\<^isub>2) = comp e\<^isub>1 @ comp e\<^isub>2 @ [ADD]"
+"comp (Plus e\<^sub>1 e\<^sub>2) = comp e\<^sub>1 @ comp e\<^sub>2 @ [ADD]"
 text_raw{*}%endsnip*}
 
 value "comp (Plus (Plus (V ''x'') (N 1)) (V ''z''))"

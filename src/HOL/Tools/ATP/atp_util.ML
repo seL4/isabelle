@@ -130,7 +130,7 @@ fun find_enclosed left right s =
      | NONE => [])
   | NONE => []
 
-val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
+val subscript = implode o map (prefix "\<^sub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
   n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 

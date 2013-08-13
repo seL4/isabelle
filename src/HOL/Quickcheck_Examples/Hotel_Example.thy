@@ -76,9 +76,9 @@ definition no_Check_in :: "event list \<Rightarrow> room \<Rightarrow> bool" whe
 
 definition feels_safe :: "event list \<Rightarrow> room \<Rightarrow> bool"
 where
-  "feels_safe s r = (\<exists>s\<^isub>1 s\<^isub>2 s\<^isub>3 g c c'.
-   s = s\<^isub>3 @ [Enter g r c] @ s\<^isub>2 @ [Check_in g r c'] @ s\<^isub>1 \<and>
-   no_Check_in (s\<^isub>3 @ s\<^isub>2) r \<and> isin (s\<^isub>2 @ [Check_in g r c] @ s\<^isub>1) r = {})"
+  "feels_safe s r = (\<exists>s\<^sub>1 s\<^sub>2 s\<^sub>3 g c c'.
+   s = s\<^sub>3 @ [Enter g r c] @ s\<^sub>2 @ [Check_in g r c'] @ s\<^sub>1 \<and>
+   no_Check_in (s\<^sub>3 @ s\<^sub>2) r \<and> isin (s\<^sub>2 @ [Check_in g r c] @ s\<^sub>1) r = {})"
 
 
 section {* Some setup *}

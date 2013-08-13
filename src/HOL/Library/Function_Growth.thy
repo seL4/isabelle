@@ -73,35 +73,35 @@ subsection {* The @{text "\<approx>"} relation, the equivalence relation induced
 definition equiv_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<cong>" 50)
 where
   "f \<cong> g \<longleftrightarrow>
-    (\<exists>c\<^isub>1>0. \<exists>c\<^isub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m)"
+    (\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m)"
 
 text {*
-  This yields @{text "f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)"}.  Concerning @{text "c\<^isub>1"} and @{text "c\<^isub>2"}
+  This yields @{text "f \<cong> g \<longleftrightarrow> f \<in> \<Theta>(g)"}.  Concerning @{text "c\<^sub>1"} and @{text "c\<^sub>2"}
   restricted to @{typ nat}, see note above on @{text "(\<lesssim>)"}.
 *}
 
 lemma equiv_funI [intro?]:
-  assumes "\<exists>c\<^isub>1>0. \<exists>c\<^isub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m"
+  assumes "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
   shows "f \<cong> g"
   unfolding equiv_fun_def by (rule assms)
 
 lemma not_equiv_funI:
-  assumes "\<And>c\<^isub>1 c\<^isub>2 n. c\<^isub>1 > 0 \<Longrightarrow> c\<^isub>2 > 0 \<Longrightarrow>
-    \<exists>m>n. c\<^isub>1 * f m < g m \<or> c\<^isub>2 * g m < f m"
+  assumes "\<And>c\<^sub>1 c\<^sub>2 n. c\<^sub>1 > 0 \<Longrightarrow> c\<^sub>2 > 0 \<Longrightarrow>
+    \<exists>m>n. c\<^sub>1 * f m < g m \<or> c\<^sub>2 * g m < f m"
   shows "\<not> f \<cong> g"
   using assms unfolding equiv_fun_def linorder_not_le [symmetric] by blast
 
 lemma equiv_funE [elim?]:
   assumes "f \<cong> g"
-  obtains n c\<^isub>1 c\<^isub>2 where "c\<^isub>1 > 0" and "c\<^isub>2 > 0"
-    and "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m"
+  obtains n c\<^sub>1 c\<^sub>2 where "c\<^sub>1 > 0" and "c\<^sub>2 > 0"
+    and "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
   using assms unfolding equiv_fun_def by blast
 
 lemma not_equiv_funE:
-  fixes n c\<^isub>1 c\<^isub>2
-  assumes "\<not> f \<cong> g" and "c\<^isub>1 > 0" and "c\<^isub>2 > 0"
+  fixes n c\<^sub>1 c\<^sub>2
+  assumes "\<not> f \<cong> g" and "c\<^sub>1 > 0" and "c\<^sub>2 > 0"
   obtains m where "m > n"
-    and "c\<^isub>1 * f m < g m \<or> c\<^isub>2 * g m < f m"
+    and "c\<^sub>1 * f m < g m \<or> c\<^sub>2 * g m < f m"
   using assms unfolding equiv_fun_def linorder_not_le [symmetric] by blast
 
 
@@ -207,23 +207,23 @@ proof -
     assume "f \<lesssim> g" and "g \<lesssim> h"
     show "f \<lesssim> h"
     proof
-      from `f \<lesssim> g` obtain n\<^isub>1 c\<^isub>1
-        where "c\<^isub>1 > 0" and P\<^isub>1: "\<And>m. m > n\<^isub>1 \<Longrightarrow> f m \<le> c\<^isub>1 * g m"
+      from `f \<lesssim> g` obtain n\<^sub>1 c\<^sub>1
+        where "c\<^sub>1 > 0" and P\<^sub>1: "\<And>m. m > n\<^sub>1 \<Longrightarrow> f m \<le> c\<^sub>1 * g m"
         by rule blast
-      from `g \<lesssim> h` obtain n\<^isub>2 c\<^isub>2
-        where "c\<^isub>2 > 0" and P\<^isub>2: "\<And>m. m > n\<^isub>2 \<Longrightarrow> g m \<le> c\<^isub>2 * h m"
+      from `g \<lesssim> h` obtain n\<^sub>2 c\<^sub>2
+        where "c\<^sub>2 > 0" and P\<^sub>2: "\<And>m. m > n\<^sub>2 \<Longrightarrow> g m \<le> c\<^sub>2 * h m"
         by rule blast
-      have "\<forall>m>max n\<^isub>1 n\<^isub>2. f m \<le> (c\<^isub>1 * c\<^isub>2) * h m"
+      have "\<forall>m>max n\<^sub>1 n\<^sub>2. f m \<le> (c\<^sub>1 * c\<^sub>2) * h m"
       proof (rule allI, rule impI)
         fix m
-        assume Q: "m > max n\<^isub>1 n\<^isub>2"
-        from P\<^isub>1 Q have *: "f m \<le> c\<^isub>1 * g m" by simp
-        from P\<^isub>2 Q have "g m \<le> c\<^isub>2 * h m" by simp
-        with `c\<^isub>1 > 0` have "c\<^isub>1 * g m \<le> (c\<^isub>1 * c\<^isub>2) * h m" by simp
-        with * show "f m \<le> (c\<^isub>1 * c\<^isub>2) * h m" by (rule order_trans)
+        assume Q: "m > max n\<^sub>1 n\<^sub>2"
+        from P\<^sub>1 Q have *: "f m \<le> c\<^sub>1 * g m" by simp
+        from P\<^sub>2 Q have "g m \<le> c\<^sub>2 * h m" by simp
+        with `c\<^sub>1 > 0` have "c\<^sub>1 * g m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by simp
+        with * show "f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by (rule order_trans)
       qed
-      then have "\<exists>n. \<forall>m>n. f m \<le> (c\<^isub>1 * c\<^isub>2) * h m" by rule
-      moreover from `c\<^isub>1 > 0` `c\<^isub>2 > 0` have "c\<^isub>1 * c\<^isub>2 > 0" by (rule mult_pos_pos)
+      then have "\<exists>n. \<forall>m>n. f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by rule
+      moreover from `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "c\<^sub>1 * c\<^sub>2 > 0" by (rule mult_pos_pos)
       ultimately show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * h m" by blast
     qed
   qed
@@ -234,43 +234,43 @@ proof -
     show "f \<lesssim> g \<and> g \<lesssim> f \<longleftrightarrow> f \<cong> g"
     proof
       assume "f \<cong> g"
-      then obtain n c\<^isub>1 c\<^isub>2 where "c\<^isub>1 > 0" and "c\<^isub>2 > 0"
-        and *: "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m"
+      then obtain n c\<^sub>1 c\<^sub>2 where "c\<^sub>1 > 0" and "c\<^sub>2 > 0"
+        and *: "\<And>m. m > n \<Longrightarrow> f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
         by rule blast
-      have "\<forall>m>n. f m \<le> c\<^isub>1 * g m"
+      have "\<forall>m>n. f m \<le> c\<^sub>1 * g m"
       proof (rule allI, rule impI)
         fix m
         assume "m > n"
-        with * show "f m \<le> c\<^isub>1 * g m" by simp
+        with * show "f m \<le> c\<^sub>1 * g m" by simp
       qed
-      with `c\<^isub>1 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
+      with `c\<^sub>1 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m" by blast
       then have "f \<lesssim> g" ..
-      have "\<forall>m>n. g m \<le> c\<^isub>2 * f m"
+      have "\<forall>m>n. g m \<le> c\<^sub>2 * f m"
       proof (rule allI, rule impI)
         fix m
         assume "m > n"
-        with * show "g m \<le> c\<^isub>2 * f m" by simp
+        with * show "g m \<le> c\<^sub>2 * f m" by simp
       qed
-      with `c\<^isub>2 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. g m \<le> c * f m" by blast
+      with `c\<^sub>2 > 0` have "\<exists>c>0. \<exists>n. \<forall>m>n. g m \<le> c * f m" by blast
       then have "g \<lesssim> f" ..
       from `f \<lesssim> g` and `g \<lesssim> f` show "f \<lesssim> g \<and> g \<lesssim> f" ..
     next
       assume "f \<lesssim> g \<and> g \<lesssim> f"
       then have "f \<lesssim> g" and "g \<lesssim> f" by auto
-      from `f \<lesssim> g` obtain n\<^isub>1 c\<^isub>1 where "c\<^isub>1 > 0"
-        and P\<^isub>1: "\<And>m. m > n\<^isub>1 \<Longrightarrow> f m \<le> c\<^isub>1 * g m" by rule blast
-      from `g \<lesssim> f` obtain n\<^isub>2 c\<^isub>2 where "c\<^isub>2 > 0"
-        and P\<^isub>2: "\<And>m. m > n\<^isub>2 \<Longrightarrow> g m \<le> c\<^isub>2 * f m" by rule blast
-      have "\<forall>m>max n\<^isub>1 n\<^isub>2. f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m"
+      from `f \<lesssim> g` obtain n\<^sub>1 c\<^sub>1 where "c\<^sub>1 > 0"
+        and P\<^sub>1: "\<And>m. m > n\<^sub>1 \<Longrightarrow> f m \<le> c\<^sub>1 * g m" by rule blast
+      from `g \<lesssim> f` obtain n\<^sub>2 c\<^sub>2 where "c\<^sub>2 > 0"
+        and P\<^sub>2: "\<And>m. m > n\<^sub>2 \<Longrightarrow> g m \<le> c\<^sub>2 * f m" by rule blast
+      have "\<forall>m>max n\<^sub>1 n\<^sub>2. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m"
       proof (rule allI, rule impI)
         fix m
-        assume Q: "m > max n\<^isub>1 n\<^isub>2"
-        from P\<^isub>1 Q have "f m \<le> c\<^isub>1 * g m" by simp
-        moreover from P\<^isub>2 Q have "g m \<le> c\<^isub>2 * f m" by simp
-        ultimately show "f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m" ..
+        assume Q: "m > max n\<^sub>1 n\<^sub>2"
+        from P\<^sub>1 Q have "f m \<le> c\<^sub>1 * g m" by simp
+        moreover from P\<^sub>2 Q have "g m \<le> c\<^sub>2 * f m" by simp
+        ultimately show "f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m" ..
       qed
-      with `c\<^isub>1 > 0` `c\<^isub>2 > 0` have "\<exists>c\<^isub>1>0. \<exists>c\<^isub>2>0. \<exists>n.
-        \<forall>m>n. f m \<le> c\<^isub>1 * g m \<and> g m \<le> c\<^isub>2 * f m" by blast
+      with `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n.
+        \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m" by blast
       then show "f \<cong> g" ..
     qed
   qed
@@ -318,15 +318,15 @@ lemma "Discrete.sqrt \<prec> id"
 proof (rule less_fun_strongI)
   fix c :: nat
   assume "0 < c"
-  have "\<forall>m>(Suc c)\<twosuperior>. c * Discrete.sqrt m < id m"
+  have "\<forall>m>(Suc c)\<^sup>2. c * Discrete.sqrt m < id m"
   proof (rule allI, rule impI)
     fix m
-    assume "(Suc c)\<twosuperior> < m"
-    then have "(Suc c)\<twosuperior> \<le> m" by simp
-    with mono_sqrt have "Discrete.sqrt ((Suc c)\<twosuperior>) \<le> Discrete.sqrt m" by (rule monoE)
+    assume "(Suc c)\<^sup>2 < m"
+    then have "(Suc c)\<^sup>2 \<le> m" by simp
+    with mono_sqrt have "Discrete.sqrt ((Suc c)\<^sup>2) \<le> Discrete.sqrt m" by (rule monoE)
     then have "Suc c \<le> Discrete.sqrt m" by simp
     then have "c < Discrete.sqrt m" by simp
-    moreover from `(Suc c)\<twosuperior> < m` have "Discrete.sqrt m > 0" by simp
+    moreover from `(Suc c)\<^sup>2 < m` have "Discrete.sqrt m > 0" by simp
     ultimately have "c * Discrete.sqrt m < Discrete.sqrt m * Discrete.sqrt m" by simp
     also have "\<dots> \<le> m" by (simp add: power2_eq_square [symmetric])
     finally show "c * Discrete.sqrt m < id m" by simp
@@ -334,7 +334,7 @@ proof (rule less_fun_strongI)
   then show "\<exists>n. \<forall>m>n. c * Discrete.sqrt m < id m" ..
 qed
 
-lemma "id \<prec> (\<lambda>n. n\<twosuperior>)"
+lemma "id \<prec> (\<lambda>n. n\<^sup>2)"
   by (rule less_fun_strongI) (auto simp add: power2_eq_square)
 
 lemma "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. n ^ Suc k)"

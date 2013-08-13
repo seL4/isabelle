@@ -16,17 +16,17 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = fun S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-lemma aval'_correct: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_correct: "s : \<gamma>\<^sub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def)
 
 lemma gamma_Step_subcomm: fixes C1 C2 :: "'a::semilattice_sup acom"
-  assumes "!!x e S. f1 x e (\<gamma>\<^isub>o S) \<subseteq> \<gamma>\<^isub>o (f2 x e S)"
-          "!!b S. g1 b (\<gamma>\<^isub>o S) \<subseteq> \<gamma>\<^isub>o (g2 b S)"
-  shows "Step f1 g1 (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (Step f2 g2 S C)"
+  assumes "!!x e S. f1 x e (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (f2 x e S)"
+          "!!b S. g1 b (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (g2 b S)"
+  shows "Step f1 g1 (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (Step f2 g2 S C)"
 proof(induction C arbitrary: S)
 qed (auto simp: assms intro!: mono_gamma_o sup_ge1 sup_ge2)
 
-lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
+lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^sub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^sub>s(update S x a)"
 by(simp add: \<gamma>_st_def)
 
 end
@@ -50,24 +50,24 @@ by(simp add: step'_def)
 
 text{* Correctness: *}
 
-lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
+lemma step_step': "step (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
   (auto simp: intro!: aval'_correct in_gamma_update split: option.splits)
 
-lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"  --"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  --"transfer the pfp'"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' \<top> C)" by(rule step_step')
-    show "... \<le> \<gamma>\<^isub>c C" by (metis mono_gamma_c[OF pfp'])
+    show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
+    show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])
   qed
-  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
-  have "lfp c (step (\<gamma>\<^isub>o \<top>)) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o \<top>)", OF 3 2])
-  thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
+  have 3: "strip (\<gamma>\<^sub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
+  have "lfp c (step (\<gamma>\<^sub>o \<top>)) \<le> \<gamma>\<^sub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^sub>o \<top>)", OF 3 2])
+  thus "lfp c (step UNIV) \<le> \<gamma>\<^sub>c C" by simp
 qed
 
 end
@@ -105,19 +105,19 @@ fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
 
-definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^isub>s") where
+definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>s") where
 "m_s S X = (\<Sum> x \<in> X. m(fun S x))"
 
 lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
 by(simp add: m_s_def) (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
 
-definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^isub>o") where
+definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>o") where
 "m_o opt X = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s S X)"
 
 lemma m_o_h: "finite X \<Longrightarrow> m_o opt X \<le> (h*card X + 1)"
 by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
 
-definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
+definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
 "m_c C = listsum (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
 text{* Upper complexity bound: *}
@@ -134,14 +134,14 @@ qed
 
 end
 
-fun top_on_st :: "'a::order_top st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>s") where
+fun top_on_st :: "'a::order_top st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>s") where
 "top_on_st S X = (\<forall>x\<in>X. fun S x = \<top>)"
 
-fun top_on_opt :: "'a::order_top st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>o") where
+fun top_on_opt :: "'a::order_top st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>o") where
 "top_on_opt (Some S)  X = top_on_st S X" |
 "top_on_opt None X = True"
 
-definition top_on_acom :: "'a::order_top st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>c") where
+definition top_on_acom :: "'a::order_top st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>c") where
 "top_on_acom C X = (\<forall>a \<in> set(annos C). top_on_opt a X)"
 
 lemma top_on_top: "top_on_opt (\<top>::_ st option) X"

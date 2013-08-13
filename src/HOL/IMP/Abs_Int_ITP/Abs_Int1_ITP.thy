@@ -17,7 +17,7 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = lookup S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_sound: "s : \<gamma>\<^sub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def lookup_def)
 
 end
@@ -41,7 +41,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {S \<squnion> post c} WHILE b DO step' Inv c {Inv}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI = lpfp\<^isub>c (step' \<top>)"
+"AI = lpfp\<^sub>c (step' \<top>)"
 
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
@@ -51,14 +51,14 @@ by(induct c arbitrary: S) (simp_all add: Let_def)
 text{* Soundness: *}
 
 lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(update S x a)"
+  "\<lbrakk> s : \<gamma>\<^sub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^sub>f(update S x a)"
 by(simp add: \<gamma>_st_def lookup_update)
 
 text{* The soundness proofs are textually identical to the ones for the step
 function operating on states as functions. *}
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; c \<le> \<gamma>\<^isub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^isub>c (step' S' c')"
+  "\<lbrakk> S \<subseteq> \<gamma>\<^sub>o S'; c \<le> \<gamma>\<^sub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^sub>c (step' S' c')"
 proof(induction c arbitrary: c' S S')
   case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
 next
@@ -72,40 +72,40 @@ next
   case (If b c1 c2 P)
   then obtain c1' c2' P' where
       "c' = IF b THEN c1' ELSE c2' {P'}"
-      "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'" "c2 \<le> \<gamma>\<^isub>c c2'"
+      "P \<subseteq> \<gamma>\<^sub>o P'" "c1 \<le> \<gamma>\<^sub>c c1'" "c2 \<le> \<gamma>\<^sub>c c2'"
     by (fastforce simp: If_le map_acom_If)
-  moreover have "post c1 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c1 \<le> \<gamma>\<^isub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
-  moreover have "post c2 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c2 \<le> \<gamma>\<^isub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
-  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` by (simp add: If.IH subset_iff)
+  moreover have "post c1 \<subseteq> \<gamma>\<^sub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c1 \<le> \<gamma>\<^sub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post c2 \<subseteq> \<gamma>\<^sub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c2 \<le> \<gamma>\<^sub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
+  ultimately show ?case using `S \<subseteq> \<gamma>\<^sub>o S'` by (simp add: If.IH subset_iff)
 next
   case (While I b c1 P)
   then obtain c1' I' P' where
     "c' = {I'} WHILE b DO c1' {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'"
+    "I \<subseteq> \<gamma>\<^sub>o I'" "P \<subseteq> \<gamma>\<^sub>o P'" "c1 \<le> \<gamma>\<^sub>c c1'"
     by (fastforce simp: map_acom_While While_le)
-  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post c1')"
-    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `c1 \<le> \<gamma>\<^isub>c c1'`, simplified]
+  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^sub>o (S' \<squnion> post c1')"
+    using `S \<subseteq> \<gamma>\<^sub>o S'` le_post[OF `c1 \<le> \<gamma>\<^sub>c c1'`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff)
 qed
 
-lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
+lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c c'"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp\<^isub>c (step' \<top>) c = Some c'"
+  assume 1: "lpfp\<^sub>c (step' \<top>) c = Some c'"
   have 2: "step' \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
-  have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c"
+  have 3: "strip (\<gamma>\<^sub>c (step' \<top> c')) = c"
     by(simp add: strip_lpfpc[OF _ 1])
-  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"
+  have "lfp (step UNIV) c \<le> \<gamma>\<^sub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[simplified,OF 3])
-    show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
+    show "step UNIV (\<gamma>\<^sub>c (step' \<top> c')) \<le> \<gamma>\<^sub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _])
-      show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
-      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
+      show "UNIV \<subseteq> \<gamma>\<^sub>o \<top>" by simp
+      show "\<gamma>\<^sub>c (step' \<top> c') \<le> \<gamma>\<^sub>c c'" by(rule mono_gamma_c[OF 2])
     qed
   qed
-  from this 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c c'"
+  from this 2 show "lfp (step UNIV) c \<le> \<gamma>\<^sub>c c'"
     by (blast intro: mono_gamma_c order_trans)
 qed
 
@@ -367,8 +367,8 @@ lemma lpfpc_termination:
   fixes f :: "(('a::SL_top)option acom \<Rightarrow> 'a option acom)"
   assumes "acc {(x::'a,y). x \<sqsubseteq> y}" and "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
   and "\<And>c. strip(f c) = strip c"
-  shows "\<exists>c'. lpfp\<^isub>c f c = Some c'"
-unfolding lpfp\<^isub>c_def
+  shows "\<exists>c'. lpfp\<^sub>c f c = Some c'"
+unfolding lpfp\<^sub>c_def
 apply(rule pfp_termination)
   apply(erule assms(2))
  apply(rule acc_acom[OF acc_option[OF assms(1)]])

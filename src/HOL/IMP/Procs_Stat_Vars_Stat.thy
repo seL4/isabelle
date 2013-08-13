@@ -17,19 +17,19 @@ inductive
 where
 Skip:    "e \<turnstile> (SKIP,s) \<Rightarrow> s" |
 Assign:  "(pe,ve,f) \<turnstile> (x ::= a,s) \<Rightarrow> s(ve x := aval a (s o ve))" |
-Seq:     "\<lbrakk> e \<turnstile> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  e \<turnstile> (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
-          e \<turnstile> (c\<^isub>1;;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
+Seq:     "\<lbrakk> e \<turnstile> (c\<^sub>1,s\<^sub>1) \<Rightarrow> s\<^sub>2;  e \<turnstile> (c\<^sub>2,s\<^sub>2) \<Rightarrow> s\<^sub>3 \<rbrakk> \<Longrightarrow>
+          e \<turnstile> (c\<^sub>1;;c\<^sub>2, s\<^sub>1) \<Rightarrow> s\<^sub>3" |
 
-IfTrue:  "\<lbrakk> bval b (s \<circ> venv e);  e \<turnstile> (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
-         e \<turnstile> (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
-IfFalse: "\<lbrakk> \<not>bval b (s \<circ> venv e);  e \<turnstile> (c\<^isub>2,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
-         e \<turnstile> (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
+IfTrue:  "\<lbrakk> bval b (s \<circ> venv e);  e \<turnstile> (c\<^sub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
+         e \<turnstile> (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t" |
+IfFalse: "\<lbrakk> \<not>bval b (s \<circ> venv e);  e \<turnstile> (c\<^sub>2,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
+         e \<turnstile> (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t" |
 
 WhileFalse: "\<not>bval b (s \<circ> venv e) \<Longrightarrow> e \<turnstile> (WHILE b DO c,s) \<Rightarrow> s" |
 WhileTrue:
-  "\<lbrakk> bval b (s\<^isub>1 \<circ> venv e);  e \<turnstile> (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;
-     e \<turnstile> (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
-   e \<turnstile> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
+  "\<lbrakk> bval b (s\<^sub>1 \<circ> venv e);  e \<turnstile> (c,s\<^sub>1) \<Rightarrow> s\<^sub>2;
+     e \<turnstile> (WHILE b DO c, s\<^sub>2) \<Rightarrow> s\<^sub>3 \<rbrakk> \<Longrightarrow>
+   e \<turnstile> (WHILE b DO c, s\<^sub>1) \<Rightarrow> s\<^sub>3" |
 
 Var: "(pe,ve(x:=f),f+1) \<turnstile> (c,s) \<Rightarrow> t  \<Longrightarrow>
       (pe,ve,f) \<turnstile> ({VAR x; c}, s) \<Rightarrow> t" |

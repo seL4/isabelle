@@ -26,16 +26,16 @@ setup {*
 
 datatype alphabet = a | b
 
-inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
-  "[] \<in> S\<^isub>1"
-| "w \<in> A\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "w \<in> B\<^isub>1 \<Longrightarrow> a # w \<in> S\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> a # w \<in> A\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
+inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
+  "[] \<in> S\<^sub>1"
+| "w \<in> A\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "w \<in> B\<^sub>1 \<Longrightarrow> a # w \<in> S\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> a # w \<in> A\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "\<lbrakk>v \<in> B\<^sub>1; v \<in> B\<^sub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>1"
 
 lemma
-  "S\<^isub>1p w \<Longrightarrow> w = []"
+  "S\<^sub>1p w \<Longrightarrow> w = []"
 quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
@@ -68,19 +68,19 @@ setup {* Code_Prolog.map_code_options (K
   manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
-theorem S\<^isub>1_sound:
-"S\<^isub>1p w \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>1_sound:
+"S\<^sub>1p w \<Longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
 
-inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
-  "[] \<in> S\<^isub>2"
-| "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
-| "w \<in> B\<^isub>2 \<Longrightarrow> a # w \<in> S\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
-| "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
+inductive_set S\<^sub>2 and A\<^sub>2 and B\<^sub>2 where
+  "[] \<in> S\<^sub>2"
+| "w \<in> A\<^sub>2 \<Longrightarrow> b # w \<in> S\<^sub>2"
+| "w \<in> B\<^sub>2 \<Longrightarrow> a # w \<in> S\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> a # w \<in> A\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> b # w \<in> B\<^sub>2"
+| "\<lbrakk>v \<in> B\<^sub>2; v \<in> B\<^sub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>2"
 
 
 setup {* Code_Prolog.map_code_options (K
@@ -92,18 +92,18 @@ setup {* Code_Prolog.map_code_options (K
   manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
-theorem S\<^isub>2_sound:
-  "S\<^isub>2p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>2_sound:
+  "S\<^sub>2p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester = prolog, iterations=1, expect = counterexample]
 oops
 
-inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
-  "[] \<in> S\<^isub>3"
-| "w \<in> A\<^isub>3 \<Longrightarrow> b # w \<in> S\<^isub>3"
-| "w \<in> B\<^isub>3 \<Longrightarrow> a # w \<in> S\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> a # w \<in> A\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
-| "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
+inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
+  "[] \<in> S\<^sub>3"
+| "w \<in> A\<^sub>3 \<Longrightarrow> b # w \<in> S\<^sub>3"
+| "w \<in> B\<^sub>3 \<Longrightarrow> a # w \<in> S\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> a # w \<in> A\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> b # w \<in> B\<^sub>3"
+| "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
 
 setup {* Code_Prolog.map_code_options (K
@@ -114,8 +114,8 @@ setup {* Code_Prolog.map_code_options (K
   replacing = [(("s3p", "limited_s3p"), "quickcheck")],
   manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
-lemma S\<^isub>3_sound:
-  "S\<^isub>3p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+lemma S\<^sub>3_sound:
+  "S\<^sub>3p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester = prolog, iterations=1, size=1, expect = no_counterexample]
 oops
 
@@ -132,20 +132,20 @@ setup {* Code_Prolog.map_code_options (K
   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 
-theorem S\<^isub>3_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
+theorem S\<^sub>3_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>3"
 quickcheck[tester = prolog, size=1, iterations=1]
 oops
 *)
 
-inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
-  "[] \<in> S\<^isub>4"
-| "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"
-| "w \<in> B\<^isub>4 \<Longrightarrow> a # w \<in> S\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> a # w \<in> A\<^isub>4"
-| "\<lbrakk>v \<in> A\<^isub>4; w \<in> A\<^isub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
-| "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
+inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
+  "[] \<in> S\<^sub>4"
+| "w \<in> A\<^sub>4 \<Longrightarrow> b # w \<in> S\<^sub>4"
+| "w \<in> B\<^sub>4 \<Longrightarrow> a # w \<in> S\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> a # w \<in> A\<^sub>4"
+| "\<lbrakk>v \<in> A\<^sub>4; w \<in> A\<^sub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> b # w \<in> B\<^sub>4"
+| "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
 
 setup {* Code_Prolog.map_code_options (K
@@ -157,14 +157,14 @@ setup {* Code_Prolog.map_code_options (K
   manual_reorder = [(("quickcheck", 1), [0,2,1,4,3,5])]}) *}
 
 
-theorem S\<^isub>4_sound:
-  "S\<^isub>4p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>4_sound:
+  "S\<^sub>4p w \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 quickcheck[tester = prolog, size=1, iterations=1, expect = no_counterexample]
 oops
 
 (*
-theorem S\<^isub>4_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
+theorem S\<^sub>4_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>4"
 oops
 *)
 

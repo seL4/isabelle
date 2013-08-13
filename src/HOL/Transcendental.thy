@@ -1266,13 +1266,13 @@ proof -
       by (rule le_imp_inverse_le) simp
     hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
       by (simp add: inverse_mult_distrib power_inverse)
-    hence "inverse (fact (n + 2)) * (x^n * x\<twosuperior>) \<le> 1/2 * (1/2)^n * (1 * x\<twosuperior>)"
+    hence "inverse (fact (n + 2)) * (x^n * x\<^sup>2) \<le> 1/2 * (1/2)^n * (1 * x\<^sup>2)"
       by (rule mult_mono)
         (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
-    hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<twosuperior>/2) * ((1/2)^n)"
+    hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<^sup>2/2) * ((1/2)^n)"
       unfolding power_add by (simp add: mult_ac del: fact_Suc) }
   note aux1 = this
-  have "(\<lambda>n. x\<twosuperior> / 2 * (1 / 2) ^ n) sums (x\<twosuperior> / 2 * (1 / (1 - 1 / 2)))"
+  have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
     by (intro sums_mult geometric_sums, simp)
   hence aux2: "(\<lambda>n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
     by simp
@@ -1299,7 +1299,7 @@ proof -
   also have "... <= 1"
     by (auto simp add: a)
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
-  moreover have c: "0 < 1 + x + x\<twosuperior>"
+  moreover have c: "0 < 1 + x + x\<^sup>2"
     by (simp add: add_pos_nonneg a)
   ultimately have "1 - x <= 1 / (1 + x + x^2)"
     by (elim mult_imp_le_div_pos)
@@ -2134,25 +2134,25 @@ lemma sin_zero [simp]: "sin 0 = 0"
 lemma cos_zero [simp]: "cos 0 = 1"
   unfolding cos_def cos_coeff_def by (simp add: powser_zero)
 
-lemma sin_cos_squared_add [simp]: "(sin x)\<twosuperior> + (cos x)\<twosuperior> = 1"
+lemma sin_cos_squared_add [simp]: "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
 proof -
-  have "\<forall>x. DERIV (\<lambda>x. (sin x)\<twosuperior> + (cos x)\<twosuperior>) x :> 0"
+  have "\<forall>x. DERIV (\<lambda>x. (sin x)\<^sup>2 + (cos x)\<^sup>2) x :> 0"
     by (auto intro!: DERIV_intros)
-  hence "(sin x)\<twosuperior> + (cos x)\<twosuperior> = (sin 0)\<twosuperior> + (cos 0)\<twosuperior>"
+  hence "(sin x)\<^sup>2 + (cos x)\<^sup>2 = (sin 0)\<^sup>2 + (cos 0)\<^sup>2"
     by (rule DERIV_isconst_all)
-  thus "(sin x)\<twosuperior> + (cos x)\<twosuperior> = 1" by simp
+  thus "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1" by simp
 qed
 
-lemma sin_cos_squared_add2 [simp]: "(cos x)\<twosuperior> + (sin x)\<twosuperior> = 1"
+lemma sin_cos_squared_add2 [simp]: "(cos x)\<^sup>2 + (sin x)\<^sup>2 = 1"
   by (subst add_commute, rule sin_cos_squared_add)
 
 lemma sin_cos_squared_add3 [simp]: "cos x * cos x + sin x * sin x = 1"
   using sin_cos_squared_add2 [unfolded power2_eq_square] .
 
-lemma sin_squared_eq: "(sin x)\<twosuperior> = 1 - (cos x)\<twosuperior>"
+lemma sin_squared_eq: "(sin x)\<^sup>2 = 1 - (cos x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add)
 
-lemma cos_squared_eq: "(cos x)\<twosuperior> = 1 - (sin x)\<twosuperior>"
+lemma cos_squared_eq: "(cos x)\<^sup>2 = 1 - (sin x)\<^sup>2"
   unfolding eq_diff_eq by (rule sin_cos_squared_add2)
 
 lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
@@ -2208,7 +2208,7 @@ lemma cos_add: "cos (x + y) = cos x * cos y - sin x * sin y"
   using sin_cos_add_lemma unfolding realpow_two_sum_zero_iff by simp
 
 lemma sin_cos_minus_lemma:
-  "(sin(-x) + sin(x))\<twosuperior> + (cos(-x) - cos(x))\<twosuperior> = 0" (is "?f x = 0")
+  "(sin(-x) + sin(x))\<^sup>2 + (cos(-x) - cos(x))\<^sup>2 = 0" (is "?f x = 0")
 proof -
   have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
     by (auto intro!: DERIV_intros simp add: algebra_simps)
@@ -2238,7 +2238,7 @@ lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
 lemma sin_double [simp]: "sin(2 * x) = 2* sin x * cos x"
   using sin_add [where x=x and y=x] by simp
 
-lemma cos_double: "cos(2* x) = ((cos x)\<twosuperior>) - ((sin x)\<twosuperior>)"
+lemma cos_double: "cos(2* x) = ((cos x)\<^sup>2) - ((sin x)\<^sup>2)"
   using cos_add [where x=x and y=x]
   by (simp add: power2_eq_square)
 
@@ -2732,7 +2732,7 @@ lemma tan_half: "tan x = sin (2 * x) / (cos (2 * x) + 1)"
   unfolding tan_def sin_double cos_double sin_squared_eq
   by (simp add: power2_eq_square)
 
-lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<twosuperior>)"
+lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<^sup>2)"
   unfolding tan_def
   by (auto intro!: DERIV_intros, simp add: divide_inverse power2_eq_square)
 
@@ -2827,10 +2827,10 @@ proof -
     thus "DERIV tan x' :> inverse (cos x'^2)" by (rule DERIV_tan)
   qed
   from MVT2[OF `y < x` this]
-  obtain z where "y < z" and "z < x" and tan_diff: "tan x - tan y = (x - y) * inverse ((cos z)\<twosuperior>)" by auto
+  obtain z where "y < z" and "z < x" and tan_diff: "tan x - tan y = (x - y) * inverse ((cos z)\<^sup>2)" by auto
   hence "- (pi / 2) < z" and "z < pi / 2" using assms by auto
   hence "0 < cos z" using cos_gt_zero_pi by auto
-  hence inv_pos: "0 < inverse ((cos z)\<twosuperior>)" by auto
+  hence inv_pos: "0 < inverse ((cos z)\<^sup>2)" by auto
   have "0 < x - y" using `y < x` by auto
   from mult_pos_pos [OF this inv_pos]
   have "0 < tan x - tan y" unfolding tan_diff by auto
@@ -2978,27 +2978,27 @@ apply (simp add: arccos_def)
 apply (auto intro!: the1_equality cos_total)
 done
 
-lemma cos_arcsin: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> cos (arcsin x) = sqrt (1 - x\<twosuperior>)"
-apply (subgoal_tac "x\<twosuperior> \<le> 1")
+lemma cos_arcsin: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> cos (arcsin x) = sqrt (1 - x\<^sup>2)"
+apply (subgoal_tac "x\<^sup>2 \<le> 1")
 apply (rule power2_eq_imp_eq)
 apply (simp add: cos_squared_eq)
 apply (rule cos_ge_zero)
 apply (erule (1) arcsin_lbound)
 apply (erule (1) arcsin_ubound)
 apply simp
-apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
+apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 \<le> 1\<^sup>2", simp)
 apply (rule power_mono, simp, simp)
 done
 
-lemma sin_arccos: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> sin (arccos x) = sqrt (1 - x\<twosuperior>)"
-apply (subgoal_tac "x\<twosuperior> \<le> 1")
+lemma sin_arccos: "\<lbrakk>-1 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> sin (arccos x) = sqrt (1 - x\<^sup>2)"
+apply (subgoal_tac "x\<^sup>2 \<le> 1")
 apply (rule power2_eq_imp_eq)
 apply (simp add: sin_squared_eq)
 apply (rule sin_ge_zero)
 apply (erule (1) arccos_lbound)
 apply (erule (1) arccos_ubound)
 apply simp
-apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> \<le> 1\<twosuperior>", simp)
+apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 \<le> 1\<^sup>2", simp)
 apply (rule power_mono, simp, simp)
 done
 
@@ -3041,26 +3041,26 @@ lemma cos_arctan_not_zero [simp]: "cos (arctan x) \<noteq> 0"
   by (intro less_imp_neq [symmetric] cos_gt_zero_pi
     arctan_lbound arctan_ubound)
 
-lemma cos_arctan: "cos (arctan x) = 1 / sqrt (1 + x\<twosuperior>)"
+lemma cos_arctan: "cos (arctan x) = 1 / sqrt (1 + x\<^sup>2)"
 proof (rule power2_eq_imp_eq)
-  have "0 < 1 + x\<twosuperior>" by (simp add: add_pos_nonneg)
-  show "0 \<le> 1 / sqrt (1 + x\<twosuperior>)" by simp
+  have "0 < 1 + x\<^sup>2" by (simp add: add_pos_nonneg)
+  show "0 \<le> 1 / sqrt (1 + x\<^sup>2)" by simp
   show "0 \<le> cos (arctan x)"
     by (intro less_imp_le cos_gt_zero_pi arctan_lbound arctan_ubound)
-  have "(cos (arctan x))\<twosuperior> * (1 + (tan (arctan x))\<twosuperior>) = 1"
+  have "(cos (arctan x))\<^sup>2 * (1 + (tan (arctan x))\<^sup>2) = 1"
     unfolding tan_def by (simp add: distrib_left power_divide)
-  thus "(cos (arctan x))\<twosuperior> = (1 / sqrt (1 + x\<twosuperior>))\<twosuperior>"
-    using `0 < 1 + x\<twosuperior>` by (simp add: power_divide eq_divide_eq)
+  thus "(cos (arctan x))\<^sup>2 = (1 / sqrt (1 + x\<^sup>2))\<^sup>2"
+    using `0 < 1 + x\<^sup>2` by (simp add: power_divide eq_divide_eq)
 qed
 
-lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<twosuperior>)"
+lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
   using add_pos_nonneg [OF zero_less_one zero_le_power2 [of x]]
   using tan_arctan [of x] unfolding tan_def cos_arctan
   by (simp add: eq_divide_eq)
 
 lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
 apply (rule power_inverse [THEN subst])
-apply (rule_tac c1 = "(cos x)\<twosuperior>" in real_mult_right_cancel [THEN iffD1])
+apply (rule_tac c1 = "(cos x)\<^sup>2" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest: field_power_not_zero
         simp add: power_mult_distrib distrib_right power_divide tan_def
                   mult_assoc power_inverse [symmetric])
@@ -3151,11 +3151,11 @@ lemma continuous_on_arctan [continuous_on_intros]: "continuous_on s f \<Longrigh
   unfolding continuous_on_def by (auto intro: tendsto_arctan)
   
 lemma DERIV_arcsin:
-  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<twosuperior>))"
+  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<^sup>2))"
 apply (rule DERIV_inverse_function [where f=sin and a="-1" and b="1"])
 apply (rule DERIV_cong [OF DERIV_sin])
 apply (simp add: cos_arcsin)
-apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> < 1\<twosuperior>", simp)
+apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
 apply (rule power_strict_mono, simp, simp, simp)
 apply assumption
 apply assumption
@@ -3164,11 +3164,11 @@ apply (erule (1) isCont_arcsin)
 done
 
 lemma DERIV_arccos:
-  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arccos x :> inverse (- sqrt (1 - x\<twosuperior>))"
+  "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arccos x :> inverse (- sqrt (1 - x\<^sup>2))"
 apply (rule DERIV_inverse_function [where f=cos and a="-1" and b="1"])
 apply (rule DERIV_cong [OF DERIV_cos])
 apply (simp add: sin_arccos)
-apply (subgoal_tac "\<bar>x\<bar>\<twosuperior> < 1\<twosuperior>", simp)
+apply (subgoal_tac "\<bar>x\<bar>\<^sup>2 < 1\<^sup>2", simp)
 apply (rule power_strict_mono, simp, simp, simp)
 apply assumption
 apply assumption
@@ -3176,12 +3176,12 @@ apply simp
 apply (erule (1) isCont_arccos)
 done
 
-lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<twosuperior>)"
+lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
 apply (rule DERIV_inverse_function [where f=tan and a="x - 1" and b="x + 1"])
 apply (rule DERIV_cong [OF DERIV_tan])
 apply (rule cos_arctan_not_zero)
 apply (simp add: power_inverse tan_sec [symmetric])
-apply (subgoal_tac "0 < 1 + x\<twosuperior>", simp)
+apply (subgoal_tac "0 < 1 + x\<^sup>2", simp)
 apply (simp add: add_pos_nonneg)
 apply (simp, simp, simp, rule isCont_arctan)
 done
@@ -3233,11 +3233,11 @@ proof -
     by (simp add: cos_ge_zero)
   have "0 = cos (pi / 4 + pi / 4)"
     by simp
-  also have "cos (pi / 4 + pi / 4) = ?c\<twosuperior> - ?s\<twosuperior>"
+  also have "cos (pi / 4 + pi / 4) = ?c\<^sup>2 - ?s\<^sup>2"
     by (simp only: cos_add power2_eq_square)
-  also have "\<dots> = 2 * ?c\<twosuperior> - 1"
+  also have "\<dots> = 2 * ?c\<^sup>2 - 1"
     by (simp add: sin_squared_eq)
-  finally have "?c\<twosuperior> = (sqrt 2 / 2)\<twosuperior>"
+  finally have "?c\<^sup>2 = (sqrt 2 / 2)\<^sup>2"
     by (simp add: power_divide)
   thus ?thesis
     using nonneg by (rule power2_eq_imp_eq) simp
@@ -3252,9 +3252,9 @@ proof -
     by simp
   also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
     by (simp only: cos_add sin_add)
-  also have "\<dots> = ?c * (?c\<twosuperior> - 3 * ?s\<twosuperior>)"
+  also have "\<dots> = ?c * (?c\<^sup>2 - 3 * ?s\<^sup>2)"
     by (simp add: algebra_simps power2_eq_square)
-  finally have "?c\<twosuperior> = (sqrt 3 / 2)\<twosuperior>"
+  finally have "?c\<^sup>2 = (sqrt 3 / 2)\<^sup>2"
     using pos_c by (simp add: sin_squared_eq power_divide)
   thus ?thesis
     using pos_c [THEN order_less_imp_le]
@@ -3695,7 +3695,7 @@ qed
 
 subsection {* Existence of Polar Coordinates *}
 
-lemma cos_x_y_le_one: "\<bar>x / sqrt (x\<twosuperior> + y\<twosuperior>)\<bar> \<le> 1"
+lemma cos_x_y_le_one: "\<bar>x / sqrt (x\<^sup>2 + y\<^sup>2)\<bar> \<le> 1"
 apply (rule power2_le_imp_le [OF _ zero_le_one])
 apply (simp add: power_divide divide_le_eq not_sum_power2_lt_zero)
 done
@@ -3703,7 +3703,7 @@ done
 lemma cos_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> cos (arccos y) = y"
 by (simp add: abs_le_iff)
 
-lemma sin_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> sin (arccos y) = sqrt (1 - y\<twosuperior>)"
+lemma sin_arccos_abs: "\<bar>y\<bar> \<le> 1 \<Longrightarrow> sin (arccos y) = sqrt (1 - y\<^sup>2)"
 by (simp add: sin_arccos abs_le_iff)
 
 lemmas cos_arccos_lemma1 = cos_arccos_abs [OF cos_x_y_le_one]
@@ -3712,8 +3712,8 @@ lemmas sin_arccos_lemma1 = sin_arccos_abs [OF cos_x_y_le_one]
 
 lemma polar_ex1:
      "0 < y ==> \<exists>r a. x = r * cos a & y = r * sin a"
-apply (rule_tac x = "sqrt (x\<twosuperior> + y\<twosuperior>)" in exI)
-apply (rule_tac x = "arccos (x / sqrt (x\<twosuperior> + y\<twosuperior>))" in exI)
+apply (rule_tac x = "sqrt (x\<^sup>2 + y\<^sup>2)" in exI)
+apply (rule_tac x = "arccos (x / sqrt (x\<^sup>2 + y\<^sup>2))" in exI)
 apply (simp add: cos_arccos_lemma1)
 apply (simp add: sin_arccos_lemma1)
 apply (simp add: power_divide)

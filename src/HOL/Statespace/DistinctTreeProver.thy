@@ -303,29 +303,29 @@ where
        | None \<Rightarrow> None)"
 
 lemma subtract_Some_set_of_res: 
-  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t \<subseteq> set_of t\<^isub>2"
-proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
+  "subtract t\<^sub>1 t\<^sub>2 = Some t \<Longrightarrow> set_of t \<subseteq> set_of t\<^sub>2"
+proof (induct t\<^sub>1 arbitrary: t\<^sub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x b r)
-  have sub: "subtract (Node l x b r) t\<^isub>2 = Some t" by fact
+  have sub: "subtract (Node l x b r) t\<^sub>2 = Some t" by fact
   show ?case
-  proof (cases "delete x t\<^isub>2")
-    case (Some t\<^isub>2')
+  proof (cases "delete x t\<^sub>2")
+    case (Some t\<^sub>2')
     note del_x_Some = this
     from delete_Some_set_of [OF Some] 
-    have t2'_t2: "set_of t\<^isub>2' \<subseteq> set_of t\<^isub>2" .
+    have t2'_t2: "set_of t\<^sub>2' \<subseteq> set_of t\<^sub>2" .
     show ?thesis
-    proof (cases "subtract l t\<^isub>2'")
-      case (Some t\<^isub>2'')
+    proof (cases "subtract l t\<^sub>2'")
+      case (Some t\<^sub>2'')
       note sub_l_Some = this
       from Node.hyps (1) [OF Some] 
-      have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
+      have t2''_t2': "set_of t\<^sub>2'' \<subseteq> set_of t\<^sub>2'" .
       show ?thesis
-      proof (cases "subtract r t\<^isub>2''")
-        case (Some t\<^isub>2''')
+      proof (cases "subtract r t\<^sub>2''")
+        case (Some t\<^sub>2''')
         from Node.hyps (2) [OF Some ] 
-        have "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''" .
+        have "set_of t\<^sub>2''' \<subseteq> set_of t\<^sub>2''" .
         with Some sub_l_Some del_x_Some sub t2''_t2' t2'_t2
         show ?thesis
           by simp
@@ -348,35 +348,35 @@ next
 qed
 
 lemma subtract_Some_set_of: 
-  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<subseteq> set_of t\<^isub>2"
-proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
+  "subtract t\<^sub>1 t\<^sub>2 = Some t \<Longrightarrow> set_of t\<^sub>1 \<subseteq> set_of t\<^sub>2"
+proof (induct t\<^sub>1 arbitrary: t\<^sub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
+  have sub: "subtract (Node l x d r) t\<^sub>2 = Some t" by fact
   show ?case
-  proof (cases "delete x t\<^isub>2")
-    case (Some t\<^isub>2')
+  proof (cases "delete x t\<^sub>2")
+    case (Some t\<^sub>2')
     note del_x_Some = this
     from delete_Some_set_of [OF Some] 
-    have t2'_t2: "set_of t\<^isub>2' \<subseteq> set_of t\<^isub>2" .
-    from delete_None_set_of_conv [of x t\<^isub>2] Some
-    have x_t2: "x \<in> set_of t\<^isub>2"
+    have t2'_t2: "set_of t\<^sub>2' \<subseteq> set_of t\<^sub>2" .
+    from delete_None_set_of_conv [of x t\<^sub>2] Some
+    have x_t2: "x \<in> set_of t\<^sub>2"
       by simp
     show ?thesis
-    proof (cases "subtract l t\<^isub>2'")
-      case (Some t\<^isub>2'')
+    proof (cases "subtract l t\<^sub>2'")
+      case (Some t\<^sub>2'')
       note sub_l_Some = this
       from Node.hyps (1) [OF Some] 
-      have l_t2': "set_of l \<subseteq> set_of t\<^isub>2'" .
+      have l_t2': "set_of l \<subseteq> set_of t\<^sub>2'" .
       from subtract_Some_set_of_res [OF Some]
-      have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
+      have t2''_t2': "set_of t\<^sub>2'' \<subseteq> set_of t\<^sub>2'" .
       show ?thesis
-      proof (cases "subtract r t\<^isub>2''")
-        case (Some t\<^isub>2''')
+      proof (cases "subtract r t\<^sub>2''")
+        case (Some t\<^sub>2''')
         from Node.hyps (2) [OF Some ] 
-        have r_t\<^isub>2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
-        from Some sub_l_Some del_x_Some sub r_t\<^isub>2'' l_t2' t2'_t2 t2''_t2' x_t2
+        have r_t\<^sub>2'': "set_of r \<subseteq> set_of t\<^sub>2''" .
+        from Some sub_l_Some del_x_Some sub r_t\<^sub>2'' l_t2' t2'_t2 t2''_t2' x_t2
         show ?thesis
           by auto
       next
@@ -398,30 +398,30 @@ next
 qed
 
 lemma subtract_Some_all_distinct_res: 
-  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> all_distinct t\<^isub>2 \<Longrightarrow> all_distinct t"
-proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
+  "subtract t\<^sub>1 t\<^sub>2 = Some t \<Longrightarrow> all_distinct t\<^sub>2 \<Longrightarrow> all_distinct t"
+proof (induct t\<^sub>1 arbitrary: t\<^sub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
-  have dist_t2: "all_distinct t\<^isub>2" by fact
+  have sub: "subtract (Node l x d r) t\<^sub>2 = Some t" by fact
+  have dist_t2: "all_distinct t\<^sub>2" by fact
   show ?case
-  proof (cases "delete x t\<^isub>2")
-    case (Some t\<^isub>2')
+  proof (cases "delete x t\<^sub>2")
+    case (Some t\<^sub>2')
     note del_x_Some = this
     from delete_Some_all_distinct [OF Some dist_t2] 
-    have dist_t2': "all_distinct t\<^isub>2'" .
+    have dist_t2': "all_distinct t\<^sub>2'" .
     show ?thesis
-    proof (cases "subtract l t\<^isub>2'")
-      case (Some t\<^isub>2'')
+    proof (cases "subtract l t\<^sub>2'")
+      case (Some t\<^sub>2'')
       note sub_l_Some = this
       from Node.hyps (1) [OF Some dist_t2'] 
-      have dist_t2'': "all_distinct t\<^isub>2''" .
+      have dist_t2'': "all_distinct t\<^sub>2''" .
       show ?thesis
-      proof (cases "subtract r t\<^isub>2''")
-        case (Some t\<^isub>2''')
+      proof (cases "subtract r t\<^sub>2''")
+        case (Some t\<^sub>2''')
         from Node.hyps (2) [OF Some dist_t2''] 
-        have dist_t2''': "all_distinct t\<^isub>2'''" .
+        have dist_t2''': "all_distinct t\<^sub>2'''" .
         from Some sub_l_Some del_x_Some sub 
              dist_t2'''
         show ?thesis
@@ -446,36 +446,36 @@ qed
 
 
 lemma subtract_Some_dist_res: 
-  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t\<^isub>1 \<inter> set_of t = {}"
-proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
+  "subtract t\<^sub>1 t\<^sub>2 = Some t \<Longrightarrow> set_of t\<^sub>1 \<inter> set_of t = {}"
+proof (induct t\<^sub>1 arbitrary: t\<^sub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
+  have sub: "subtract (Node l x d r) t\<^sub>2 = Some t" by fact
   show ?case
-  proof (cases "delete x t\<^isub>2")
-    case (Some t\<^isub>2')
+  proof (cases "delete x t\<^sub>2")
+    case (Some t\<^sub>2')
     note del_x_Some = this
     from delete_Some_x_set_of [OF Some]
-    obtain x_t2: "x \<in> set_of t\<^isub>2" and x_not_t2': "x \<notin> set_of t\<^isub>2'"
+    obtain x_t2: "x \<in> set_of t\<^sub>2" and x_not_t2': "x \<notin> set_of t\<^sub>2'"
       by simp
     from delete_Some_set_of [OF Some]
-    have t2'_t2: "set_of t\<^isub>2' \<subseteq> set_of t\<^isub>2" .
+    have t2'_t2: "set_of t\<^sub>2' \<subseteq> set_of t\<^sub>2" .
     show ?thesis
-    proof (cases "subtract l t\<^isub>2'")
-      case (Some t\<^isub>2'')
+    proof (cases "subtract l t\<^sub>2'")
+      case (Some t\<^sub>2'')
       note sub_l_Some = this
       from Node.hyps (1) [OF Some ] 
-      have dist_l_t2'': "set_of l \<inter> set_of t\<^isub>2'' = {}".
+      have dist_l_t2'': "set_of l \<inter> set_of t\<^sub>2'' = {}".
       from subtract_Some_set_of_res [OF Some]
-      have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
+      have t2''_t2': "set_of t\<^sub>2'' \<subseteq> set_of t\<^sub>2'" .
       show ?thesis
-      proof (cases "subtract r t\<^isub>2''")
-        case (Some t\<^isub>2''')
+      proof (cases "subtract r t\<^sub>2''")
+        case (Some t\<^sub>2''')
         from Node.hyps (2) [OF Some] 
-        have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}" .
+        have dist_r_t2''': "set_of r \<inter> set_of t\<^sub>2''' = {}" .
         from subtract_Some_set_of_res [OF Some]
-        have t2'''_t2'': "set_of t\<^isub>2''' \<subseteq> set_of t\<^isub>2''".
+        have t2'''_t2'': "set_of t\<^sub>2''' \<subseteq> set_of t\<^sub>2''".
         
         from Some sub_l_Some del_x_Some sub t2'''_t2'' dist_l_t2'' dist_r_t2'''
              t2''_t2' t2'_t2 x_not_t2'
@@ -500,48 +500,48 @@ next
 qed
         
 lemma subtract_Some_all_distinct:
-  "subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> all_distinct t\<^isub>2 \<Longrightarrow> all_distinct t\<^isub>1"
-proof (induct t\<^isub>1 arbitrary: t\<^isub>2 t)
+  "subtract t\<^sub>1 t\<^sub>2 = Some t \<Longrightarrow> all_distinct t\<^sub>2 \<Longrightarrow> all_distinct t\<^sub>1"
+proof (induct t\<^sub>1 arbitrary: t\<^sub>2 t)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
-  have dist_t2: "all_distinct t\<^isub>2" by fact
+  have sub: "subtract (Node l x d r) t\<^sub>2 = Some t" by fact
+  have dist_t2: "all_distinct t\<^sub>2" by fact
   show ?case
-  proof (cases "delete x t\<^isub>2")
-    case (Some t\<^isub>2')
+  proof (cases "delete x t\<^sub>2")
+    case (Some t\<^sub>2')
     note del_x_Some = this
     from delete_Some_all_distinct [OF Some dist_t2 ] 
-    have dist_t2': "all_distinct t\<^isub>2'" .
+    have dist_t2': "all_distinct t\<^sub>2'" .
     from delete_Some_set_of [OF Some]
-    have t2'_t2: "set_of t\<^isub>2' \<subseteq> set_of t\<^isub>2" .
+    have t2'_t2: "set_of t\<^sub>2' \<subseteq> set_of t\<^sub>2" .
     from delete_Some_x_set_of [OF Some]
-    obtain x_t2: "x \<in> set_of t\<^isub>2" and x_not_t2': "x \<notin> set_of t\<^isub>2'"
+    obtain x_t2: "x \<in> set_of t\<^sub>2" and x_not_t2': "x \<notin> set_of t\<^sub>2'"
       by simp
 
     show ?thesis
-    proof (cases "subtract l t\<^isub>2'")
-      case (Some t\<^isub>2'')
+    proof (cases "subtract l t\<^sub>2'")
+      case (Some t\<^sub>2'')
       note sub_l_Some = this
       from Node.hyps (1) [OF Some dist_t2' ] 
       have dist_l: "all_distinct l" .
       from subtract_Some_all_distinct_res [OF Some dist_t2'] 
-      have dist_t2'': "all_distinct t\<^isub>2''" .
+      have dist_t2'': "all_distinct t\<^sub>2''" .
       from subtract_Some_set_of [OF Some]
-      have l_t2': "set_of l \<subseteq> set_of t\<^isub>2'" .
+      have l_t2': "set_of l \<subseteq> set_of t\<^sub>2'" .
       from subtract_Some_set_of_res [OF Some]
-      have t2''_t2': "set_of t\<^isub>2'' \<subseteq> set_of t\<^isub>2'" .
+      have t2''_t2': "set_of t\<^sub>2'' \<subseteq> set_of t\<^sub>2'" .
       from subtract_Some_dist_res [OF Some]
-      have dist_l_t2'': "set_of l \<inter> set_of t\<^isub>2'' = {}".
+      have dist_l_t2'': "set_of l \<inter> set_of t\<^sub>2'' = {}".
       show ?thesis
-      proof (cases "subtract r t\<^isub>2''")
-        case (Some t\<^isub>2''')
+      proof (cases "subtract r t\<^sub>2''")
+        case (Some t\<^sub>2''')
         from Node.hyps (2) [OF Some dist_t2''] 
         have dist_r: "all_distinct r" .
         from subtract_Some_set_of [OF Some]
-        have r_t2'': "set_of r \<subseteq> set_of t\<^isub>2''" .
+        have r_t2'': "set_of r \<subseteq> set_of t\<^sub>2''" .
         from subtract_Some_dist_res [OF Some]
-        have dist_r_t2''': "set_of r \<inter> set_of t\<^isub>2''' = {}".
+        have dist_r_t2''': "set_of r \<inter> set_of t\<^sub>2''' = {}".
 
         from dist_l dist_r Some sub_l_Some del_x_Some r_t2'' l_t2' x_t2 x_not_t2' 
              t2''_t2' dist_l_t2'' dist_r_t2'''

@@ -342,21 +342,21 @@ subsection {* Extensional Function Spaces *}
 definition PiE :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<Rightarrow> 'b) set" where
   "PiE S T = Pi S T \<inter> extensional S"
 
-abbreviation "Pi\<^isub>E A B \<equiv> PiE A B"
+abbreviation "Pi\<^sub>E A B \<equiv> PiE A B"
 
 syntax "_PiE"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PIE _:_./ _)" 10)
 
-syntax (xsymbols) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)" 10)
+syntax (xsymbols) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 
-syntax (HTML output) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)" 10)
+syntax (HTML output) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
 
-translations "PIE x:A. B" == "CONST Pi\<^isub>E A (%x. B)"
+translations "PIE x:A. B" == "CONST Pi\<^sub>E A (%x. B)"
 
-abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "->\<^isub>E" 60) where
-  "A ->\<^isub>E B \<equiv> (\<Pi>\<^isub>E i\<in>A. B)"
+abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "->\<^sub>E" 60) where
+  "A ->\<^sub>E B \<equiv> (\<Pi>\<^sub>E i\<in>A. B)"
 
 notation (xsymbols)
-  extensional_funcset  (infixr "\<rightarrow>\<^isub>E" 60)
+  extensional_funcset  (infixr "\<rightarrow>\<^sub>E" 60)
 
 lemma extensional_funcset_def: "extensional_funcset S T = (S -> T) \<inter> extensional S"
   by (simp add: PiE_def)
@@ -368,16 +368,16 @@ lemma PiE_empty_range[simp]: "i \<in> I \<Longrightarrow> F i = {} \<Longrightar
   unfolding PiE_def by auto
 
 lemma PiE_eq_empty_iff:
-  "Pi\<^isub>E I F = {} \<longleftrightarrow> (\<exists>i\<in>I. F i = {})"
+  "Pi\<^sub>E I F = {} \<longleftrightarrow> (\<exists>i\<in>I. F i = {})"
 proof
-  assume "Pi\<^isub>E I F = {}"
+  assume "Pi\<^sub>E I F = {}"
   show "\<exists>i\<in>I. F i = {}"
   proof (rule ccontr)
     assume "\<not> ?thesis"
     then have "\<forall>i. \<exists>y. (i \<in> I \<longrightarrow> y \<in> F i) \<and> (i \<notin> I \<longrightarrow> y = undefined)" by auto
     from choice[OF this] guess f ..
-    then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def PiE_def)
-    with `Pi\<^isub>E I F = {}` show False by auto
+    then have "f \<in> Pi\<^sub>E I F" by (auto simp: extensional_def PiE_def)
+    with `Pi\<^sub>E I F = {}` show False by auto
   qed
 qed (auto simp: PiE_def)
 
@@ -405,11 +405,11 @@ proof -
   then show ?thesis using assms by (auto intro: PiE_fun_upd)
 qed
 
-lemma PiE_Int: "(Pi\<^isub>E I A) \<inter> (Pi\<^isub>E I B) = Pi\<^isub>E I (\<lambda>x. A x \<inter> B x)"
+lemma PiE_Int: "(Pi\<^sub>E I A) \<inter> (Pi\<^sub>E I B) = Pi\<^sub>E I (\<lambda>x. A x \<inter> B x)"
   by (auto simp: PiE_def)
 
 lemma PiE_cong:
-  "(\<And>i. i\<in>I \<Longrightarrow> A i = B i) \<Longrightarrow> Pi\<^isub>E I A = Pi\<^isub>E I B"
+  "(\<And>i. i\<in>I \<Longrightarrow> A i = B i) \<Longrightarrow> Pi\<^sub>E I A = Pi\<^sub>E I B"
   unfolding PiE_def by (auto simp: Pi_cong)
 
 lemma PiE_E [elim]:
@@ -433,22 +433,22 @@ lemma restrict_PiE[simp]: "restrict f I \<in> PiE I S \<longleftrightarrow> f \<
 
 lemma PiE_eq_subset:
   assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
-  assumes eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and "i \<in> I"
+  assumes eq: "Pi\<^sub>E I F = Pi\<^sub>E I F'" and "i \<in> I"
   shows "F i \<subseteq> F' i"
 proof
   fix x assume "x \<in> F i"
   with ne have "\<forall>j. \<exists>y. ((j \<in> I \<longrightarrow> y \<in> F j \<and> (i = j \<longrightarrow> x = y)) \<and> (j \<notin> I \<longrightarrow> y = undefined))" by auto
   from choice[OF this] guess f .. note f = this
-  then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def PiE_def)
-  then have "f \<in> Pi\<^isub>E I F'" using assms by simp
+  then have "f \<in> Pi\<^sub>E I F" by (auto simp: extensional_def PiE_def)
+  then have "f \<in> Pi\<^sub>E I F'" using assms by simp
   then show "x \<in> F' i" using f `i \<in> I` by (auto simp: PiE_def)
 qed
 
 lemma PiE_eq_iff_not_empty:
   assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
-  shows "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i)"
+  shows "Pi\<^sub>E I F = Pi\<^sub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i)"
 proof (intro iffI ballI)
-  fix i assume eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and i: "i \<in> I"
+  fix i assume eq: "Pi\<^sub>E I F = Pi\<^sub>E I F'" and i: "i \<in> I"
   show "F i = F' i"
     using PiE_eq_subset[of I F F', OF ne eq i]
     using PiE_eq_subset[of I F' F, OF ne(2,1) eq[symmetric] i]
@@ -456,21 +456,21 @@ proof (intro iffI ballI)
 qed (auto simp: PiE_def)
 
 lemma PiE_eq_iff:
-  "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
+  "Pi\<^sub>E I F = Pi\<^sub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
 proof (intro iffI disjCI)
-  assume eq[simp]: "Pi\<^isub>E I F = Pi\<^isub>E I F'"
+  assume eq[simp]: "Pi\<^sub>E I F = Pi\<^sub>E I F'"
   assume "\<not> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
   then have "(\<forall>i\<in>I. F i \<noteq> {}) \<and> (\<forall>i\<in>I. F' i \<noteq> {})"
     using PiE_eq_empty_iff[of I F] PiE_eq_empty_iff[of I F'] by auto
   with PiE_eq_iff_not_empty[of I F F'] show "\<forall>i\<in>I. F i = F' i" by auto
 next
   assume "(\<forall>i\<in>I. F i = F' i) \<or> (\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {})"
-  then show "Pi\<^isub>E I F = Pi\<^isub>E I F'"
+  then show "Pi\<^sub>E I F = Pi\<^sub>E I F'"
     using PiE_eq_empty_iff[of I F] PiE_eq_empty_iff[of I F'] by (auto simp: PiE_def)
 qed
 
 lemma extensional_funcset_fun_upd_restricts_rangeI: 
-  "\<forall>y \<in> S. f x \<noteq> f y \<Longrightarrow> f : (insert x S) \<rightarrow>\<^isub>E T ==> f(x := undefined) : S \<rightarrow>\<^isub>E (T - {f x})"
+  "\<forall>y \<in> S. f x \<noteq> f y \<Longrightarrow> f : (insert x S) \<rightarrow>\<^sub>E T ==> f(x := undefined) : S \<rightarrow>\<^sub>E (T - {f x})"
   unfolding extensional_funcset_def extensional_def
   apply auto
   apply (case_tac "x = xa")
@@ -478,21 +478,21 @@ lemma extensional_funcset_fun_upd_restricts_rangeI:
   done
 
 lemma extensional_funcset_fun_upd_extends_rangeI:
-  assumes "a \<in> T" "f \<in> S \<rightarrow>\<^isub>E (T - {a})"
-  shows "f(x := a) \<in> (insert x S) \<rightarrow>\<^isub>E  T"
+  assumes "a \<in> T" "f \<in> S \<rightarrow>\<^sub>E (T - {a})"
+  shows "f(x := a) \<in> (insert x S) \<rightarrow>\<^sub>E  T"
   using assms unfolding extensional_funcset_def extensional_def by auto
 
 subsubsection {* Injective Extensional Function Spaces *}
 
 lemma extensional_funcset_fun_upd_inj_onI:
-  assumes "f \<in> S \<rightarrow>\<^isub>E (T - {a})" "inj_on f S"
+  assumes "f \<in> S \<rightarrow>\<^sub>E (T - {a})" "inj_on f S"
   shows "inj_on (f(x := a)) S"
   using assms unfolding extensional_funcset_def by (auto intro!: inj_on_fun_updI)
 
 lemma extensional_funcset_extend_domain_inj_on_eq:
   assumes "x \<notin> S"
-  shows"{f. f \<in> (insert x S) \<rightarrow>\<^isub>E T \<and> inj_on f (insert x S)} =
-    (%(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^isub>E (T - {y}) \<and> inj_on g S}"
+  shows"{f. f \<in> (insert x S) \<rightarrow>\<^sub>E T \<and> inj_on f (insert x S)} =
+    (%(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
 proof -
   from assms show ?thesis
     apply (auto del: PiE_I PiE_E)
@@ -508,7 +508,7 @@ qed
 
 lemma extensional_funcset_extend_domain_inj_onI:
   assumes "x \<notin> S"
-  shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^isub>E (T - {y}) \<and> inj_on g S}"
+  shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
 proof -
   from assms show ?thesis
     apply (auto intro!: inj_onI)
@@ -522,9 +522,9 @@ subsubsection {* Cardinality *}
 lemma finite_PiE: "finite S \<Longrightarrow> (\<And>i. i \<in> S \<Longrightarrow> finite (T i)) \<Longrightarrow> finite (PIE i : S. T i)"
   by (induct S arbitrary: T rule: finite_induct) (simp_all add: PiE_insert_eq)
 
-lemma inj_combinator: "x \<notin> S \<Longrightarrow> inj_on (\<lambda>(y, g). g(x := y)) (T x \<times> Pi\<^isub>E S T)"
+lemma inj_combinator: "x \<notin> S \<Longrightarrow> inj_on (\<lambda>(y, g). g(x := y)) (T x \<times> Pi\<^sub>E S T)"
 proof (safe intro!: inj_onI ext)
-  fix f y g z assume "x \<notin> S" and fg: "f \<in> Pi\<^isub>E S T" "g \<in> Pi\<^isub>E S T"
+  fix f y g z assume "x \<notin> S" and fg: "f \<in> Pi\<^sub>E S T" "g \<in> Pi\<^sub>E S T"
   assume "f(x := y) = g(x := z)"
   then have *: "\<And>i. (f(x := y)) i = (g(x := z)) i"
     unfolding fun_eq_iff by auto

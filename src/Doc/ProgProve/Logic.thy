@@ -72,8 +72,8 @@ The implication @{text"\<Longrightarrow>"} is part of the Isabelle framework. It
 theorems and proof states, separating assumptions from conclusions.
 The implication @{text"\<longrightarrow>"} is part of the logic HOL and can occur inside the
 formulas that make up the assumptions and conclusion.
-Theorems should be of the form @{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"},
-not @{text"A\<^isub>1 \<and> \<dots> \<and> A\<^isub>n \<longrightarrow> A"}. Both are logically equivalent
+Theorems should be of the form @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"},
+not @{text"A\<^sub>1 \<and> \<dots> \<and> A\<^sub>n \<longrightarrow> A"}. Both are logically equivalent
 but the first one works better when using the theorem in further proofs.
 \end{warn}
 
@@ -83,7 +83,7 @@ but the first one works better when using the theorem in further proofs.
 Sets of elements of type @{typ 'a} have type @{typ"'a set"}.
 They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
-\item @{term"{}"},\quad @{text"{e\<^isub>1,\<dots>,e\<^isub>n}"}
+\item @{term"{}"},\quad @{text"{e\<^sub>1,\<dots>,e\<^sub>n}"}
 \item @{prop"e \<in> A"},\quad @{prop"A \<subseteq> B"}
 \item @{term"A \<union> B"},\quad @{term"A \<inter> B"},\quad @{term"A - B"},\quad @{term"-A"}
 \end{itemize}
@@ -319,9 +319,9 @@ instantiates the unknowns in @{thm[source] conjI} from left to right with the
 two formulas @{text"a=b"} and @{text False}, yielding the rule
 @{thm[display,mode=Rule]conjI[of "a=b" False]}
 
-In general, @{text"th[of string\<^isub>1 \<dots> string\<^isub>n]"} instantiates
+In general, @{text"th[of string\<^sub>1 \<dots> string\<^sub>n]"} instantiates
 the unknowns in the theorem @{text th} from left to right with the terms
-@{text string\<^isub>1} to @{text string\<^isub>n}.
+@{text string\<^sub>1} to @{text string\<^sub>n}.
 
 \item By unification. \concept{Unification} is the process of making two
 terms syntactically equal by suitable instantiations of unknowns. For example,
@@ -346,13 +346,13 @@ results in two subgoals, one for each premise of @{thm[source]conjI}:
 @{text"1.  \<dots>  \<Longrightarrow> A"}\\
 @{text"2.  \<dots>  \<Longrightarrow> B"}
 \end{quote}
-In general, the application of a rule @{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"}
+In general, the application of a rule @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}
 to a subgoal \mbox{@{text"\<dots> \<Longrightarrow> C"}} proceeds in two steps:
 \begin{enumerate}
 \item
 Unify @{text A} and @{text C}, thus instantiating the unknowns in the rule.
 \item
-Replace the subgoal @{text C} with @{text n} new subgoals @{text"A\<^isub>1"} to @{text"A\<^isub>n"}.
+Replace the subgoal @{text C} with @{text n} new subgoals @{text"A\<^sub>1"} to @{text"A\<^sub>n"}.
 \end{enumerate}
 This is the command to apply rule @{text xyz}:
 \begin{quote}
@@ -430,10 +430,10 @@ states operates in the backward direction, from the conclusion to the
 premises.
 \end{warn}
 
-In general @{text r} can be of the form @{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"}
-and there can be multiple argument theorems @{text r\<^isub>1} to @{text r\<^isub>m}
-(with @{text"m \<le> n"}), in which case @{text "r[OF r\<^isub>1 \<dots> r\<^isub>m]"} is obtained
-by unifying and thus proving @{text "A\<^isub>i"} with @{text "r\<^isub>i"}, @{text"i = 1\<dots>m"}.
+In general @{text r} can be of the form @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}
+and there can be multiple argument theorems @{text r\<^sub>1} to @{text r\<^sub>m}
+(with @{text"m \<le> n"}), in which case @{text "r[OF r\<^sub>1 \<dots> r\<^sub>m]"} is obtained
+by unifying and thus proving @{text "A\<^sub>i"} with @{text "r\<^sub>i"}, @{text"i = 1\<dots>m"}.
 Here is an example, where @{thm[source]refl} is the theorem
 @{thm[show_question_marks] refl}:
 *}
@@ -739,7 +739,7 @@ Inductive definitions have approximately the following general form:
 \end{quote}
 followed by a sequence of (possibly named) rules of the form
 \begin{quote}
-@{text "\<lbrakk> I a\<^isub>1; \<dots>; I a\<^isub>n \<rbrakk> \<Longrightarrow> I a"}
+@{text "\<lbrakk> I a\<^sub>1; \<dots>; I a\<^sub>n \<rbrakk> \<Longrightarrow> I a"}
 \end{quote}
 separated by @{text"|"}. As usual, @{text n} can be 0.
 The corresponding rule induction principle
@@ -755,7 +755,7 @@ Hence @{text "I x"} must be the first premise.
 Proving @{prop "I x \<Longrightarrow> P x"} by rule induction means proving
 for every rule of @{text I} that @{text P} is invariant:
 \begin{quote}
-@{text "\<lbrakk> I a\<^isub>1; P a\<^isub>1; \<dots>; I a\<^isub>n; P a\<^isub>n \<rbrakk> \<Longrightarrow> P a"}
+@{text "\<lbrakk> I a\<^sub>1; P a\<^sub>1; \<dots>; I a\<^sub>n; P a\<^sub>n \<rbrakk> \<Longrightarrow> P a"}
 \end{quote}
 
 The above format for inductive definitions is simplified in a number of

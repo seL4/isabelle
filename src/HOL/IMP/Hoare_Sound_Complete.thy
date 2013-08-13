@@ -31,12 +31,12 @@ by (rule ext) (auto simp: wp_def)
 lemma wp_Ass[simp]: "wp (x::=a) Q = (\<lambda>s. Q(s[a/x]))"
 by (rule ext) (auto simp: wp_def)
 
-lemma wp_Seq[simp]: "wp (c\<^isub>1;;c\<^isub>2) Q = wp c\<^isub>1 (wp c\<^isub>2 Q)"
+lemma wp_Seq[simp]: "wp (c\<^sub>1;;c\<^sub>2) Q = wp c\<^sub>1 (wp c\<^sub>2 Q)"
 by (rule ext) (auto simp: wp_def)
 
 lemma wp_If[simp]:
- "wp (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q =
- (\<lambda>s. if bval b s then wp c\<^isub>1 Q s else wp c\<^isub>2 Q s)"
+ "wp (IF b THEN c\<^sub>1 ELSE c\<^sub>2) Q =
+ (\<lambda>s. if bval b s then wp c\<^sub>1 Q s else wp c\<^sub>2 Q s)"
 by (rule ext) (auto simp: wp_def)
 
 lemma wp_While_If:

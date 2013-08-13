@@ -25,7 +25,7 @@ begin
 fun vars_aexp :: "aexp \<Rightarrow> vname set" where
 "vars (N n) = {}" |
 "vars (V x) = {x}" |
-"vars (Plus a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
+"vars (Plus a\<^sub>1 a\<^sub>2) = vars a\<^sub>1 \<union> vars a\<^sub>2"
 
 instance ..
 
@@ -39,8 +39,8 @@ begin
 fun vars_bexp :: "bexp \<Rightarrow> vname set" where
 "vars (Bc v) = {}" |
 "vars (Not b) = vars b" |
-"vars (And b\<^isub>1 b\<^isub>2) = vars b\<^isub>1 \<union> vars b\<^isub>2" |
-"vars (Less a\<^isub>1 a\<^isub>2) = vars a\<^isub>1 \<union> vars a\<^isub>2"
+"vars (And b\<^sub>1 b\<^sub>2) = vars b\<^sub>1 \<union> vars b\<^sub>2" |
+"vars (Less a\<^sub>1 a\<^sub>2) = vars a\<^sub>1 \<union> vars a\<^sub>2"
 
 instance ..
 
@@ -54,16 +54,16 @@ abbreviation
 "f = g on X == \<forall> x \<in> X. f x = g x"
 
 lemma aval_eq_if_eq_on_vars[simp]:
-  "s\<^isub>1 = s\<^isub>2 on vars a \<Longrightarrow> aval a s\<^isub>1 = aval a s\<^isub>2"
+  "s\<^sub>1 = s\<^sub>2 on vars a \<Longrightarrow> aval a s\<^sub>1 = aval a s\<^sub>2"
 apply(induction a)
 apply simp_all
 done
 
 lemma bval_eq_if_eq_on_vars:
-  "s\<^isub>1 = s\<^isub>2 on vars b \<Longrightarrow> bval b s\<^isub>1 = bval b s\<^isub>2"
+  "s\<^sub>1 = s\<^sub>2 on vars b \<Longrightarrow> bval b s\<^sub>1 = bval b s\<^sub>2"
 proof(induction b)
   case (Less a1 a2)
-  hence "aval a1 s\<^isub>1 = aval a1 s\<^isub>2" and "aval a2 s\<^isub>1 = aval a2 s\<^isub>2" by simp_all
+  hence "aval a1 s\<^sub>1 = aval a1 s\<^sub>2" and "aval a2 s\<^sub>1 = aval a2 s\<^sub>2" by simp_all
   thus ?case by simp
 qed simp_all
 

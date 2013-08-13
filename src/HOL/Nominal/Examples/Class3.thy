@@ -5,11 +5,11 @@ begin
 text {* 3rd Main Lemma *}
 
 lemma Cut_a_redu_elim:
-  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^isub>a R"
-  shows "(\<exists>M'. R = Cut <a>.M' (x).N \<and> M \<longrightarrow>\<^isub>a M') \<or>
-         (\<exists>N'. R = Cut <a>.M (x).N' \<and> N \<longrightarrow>\<^isub>a N') \<or>
-         (Cut <a>.M (x).N \<longrightarrow>\<^isub>c R) \<or>
-         (Cut <a>.M (x).N \<longrightarrow>\<^isub>l R)"
+  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^sub>a R"
+  shows "(\<exists>M'. R = Cut <a>.M' (x).N \<and> M \<longrightarrow>\<^sub>a M') \<or>
+         (\<exists>N'. R = Cut <a>.M (x).N' \<and> N \<longrightarrow>\<^sub>a N') \<or>
+         (Cut <a>.M (x).N \<longrightarrow>\<^sub>c R) \<or>
+         (Cut <a>.M (x).N \<longrightarrow>\<^sub>l R)"
 using a
 apply(erule_tac a_redu.cases)
 apply(simp_all)
@@ -30,7 +30,7 @@ apply(perm_simp add: fresh_left calc_atm a_redu.eqvt fresh_a_redu)
 done
 
 lemma Cut_c_redu_elim:
-  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^isub>c R"
+  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^sub>c R"
   shows "(R = M{a:=(x).N} \<and> \<not>fic M a) \<or>
          (R = N{x:=<a>.M} \<and> \<not>fin N x)"
 using a
@@ -563,8 +563,8 @@ apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 done
 
 lemma crename_credu:
-  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^isub>c M'"
-  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^isub>c M0"
+  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^sub>c M'"
+  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^sub>c M0"
 using a
 apply(nominal_induct M\<equiv>"M[a\<turnstile>c>b]" M' avoiding: M a b rule: c_redu.strong_induct)
 apply(drule sym)
@@ -594,8 +594,8 @@ apply(simp add: abs_fresh)
 done
 
 lemma crename_lredu:
-  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^isub>l M'"
-  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^isub>l M0"
+  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^sub>l M'"
+  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^sub>l M0"
 using a
 apply(nominal_induct M\<equiv>"M[a\<turnstile>c>b]" M' avoiding: M a b rule: l_redu.strong_induct)
 apply(drule sym)
@@ -805,8 +805,8 @@ apply(auto simp add: abs_fresh fresh_atm abs_supp fin_supp fresh_prod intro: cre
 done
 
 lemma crename_aredu:
-  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^isub>a M'" "a\<noteq>b"
-  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^isub>a M0"
+  assumes a: "(M[a\<turnstile>c>b]) \<longrightarrow>\<^sub>a M'" "a\<noteq>b"
+  shows "\<exists>M0. M0[a\<turnstile>c>b]=M' \<and> M \<longrightarrow>\<^sub>a M0"
 using a
 apply(nominal_induct "M[a\<turnstile>c>b]" M' avoiding: M a b rule: a_redu.strong_induct)
 apply(drule  crename_lredu)
@@ -1608,8 +1608,8 @@ apply(simp add: eqvts calc_atm)
 done
 
 lemma nrename_credu:
-  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^isub>c M'"
-  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^isub>c M0"
+  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^sub>c M'"
+  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^sub>c M0"
 using a
 apply(nominal_induct M\<equiv>"M[x\<turnstile>n>y]" M' avoiding: M x y rule: c_redu.strong_induct)
 apply(drule sym)
@@ -1658,8 +1658,8 @@ apply(auto dest: nrename_fresh_interesting2 simp add: fresh_prod fresh_atm)
 done
 
 lemma nrename_lredu:
-  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^isub>l M'"
-  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^isub>l M0"
+  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^sub>l M'"
+  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^sub>l M0"
 using a
 apply(nominal_induct M\<equiv>"M[x\<turnstile>n>y]" M' avoiding: M x y rule: l_redu.strong_induct)
 apply(drule sym)
@@ -1866,8 +1866,8 @@ apply(auto simp add: abs_fresh fresh_atm abs_supp fin_supp fresh_prod intro: nre
 done
 
 lemma nrename_aredu:
-  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^isub>a M'" "x\<noteq>y"
-  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^isub>a M0"
+  assumes a: "(M[x\<turnstile>n>y]) \<longrightarrow>\<^sub>a M'" "x\<noteq>y"
+  shows "\<exists>M0. M0[x\<turnstile>n>y]=M' \<and> M \<longrightarrow>\<^sub>a M0"
 using a
 apply(nominal_induct "M[x\<turnstile>n>y]" M' avoiding: M x y rule: a_redu.strong_induct)
 apply(drule  nrename_lredu)
@@ -2256,11 +2256,11 @@ where
 abbreviation
   A_Redu_set :: "(trm\<times>trm) set"
 where
- "A_Redu_set \<equiv> {(N,M)| M N. M \<longrightarrow>\<^isub>a N}"
+ "A_Redu_set \<equiv> {(N,M)| M N. M \<longrightarrow>\<^sub>a N}"
 
 lemma SNa_elim:
   assumes a: "SNa M"
-  shows "(\<forall>M. (\<forall>N. M \<longrightarrow>\<^isub>a N \<longrightarrow> P N)\<longrightarrow> P M) \<longrightarrow> P M"
+  shows "(\<forall>M. (\<forall>N. M \<longrightarrow>\<^sub>a N \<longrightarrow> P N)\<longrightarrow> P M) \<longrightarrow> P M"
 using a
 by (induct rule: SNa.induct) (blast)
 
@@ -2510,7 +2510,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.NotR (y).M'a a' (x).NotL <b>.N' x) 
                    =  Cut <c>.NotR (y).M'a c (x).NotL <b>.N' x")
 apply(simp)
-apply(subgoal_tac "Cut <c>.NotR (y).M'a c (x).NotL <b>.N' x \<longrightarrow>\<^isub>a Cut <b>.N' (y).M'a")
+apply(subgoal_tac "Cut <c>.NotR (y).M'a c (x).NotL <b>.N' x \<longrightarrow>\<^sub>a Cut <b>.N' (y).M'a")
 apply(simp only: a_preserves_SNa)
 apply(rule al_redu)
 apply(rule better_LNot_intro)
@@ -2531,7 +2531,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>x'. Cut <a>.NotR (y).M'a a (x').NotL <b>.N' x') 
                    = Cut <a>.NotR (y).M'a a (c).NotL <b>.N' c")
 apply(simp)
-apply(subgoal_tac "Cut <a>.NotR (y).M'a a (c).NotL <b>.N' c \<longrightarrow>\<^isub>a Cut <b>.N' (y).M'a")
+apply(subgoal_tac "Cut <a>.NotR (y).M'a a (c).NotL <b>.N' c \<longrightarrow>\<^sub>a Cut <b>.N' (y).M'a")
 apply(simp only: a_preserves_SNa)
 apply(rule al_redu)
 apply(rule better_LNot_intro)
@@ -2591,7 +2591,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.AndR <b>.M1 <c>.M2 a' (x).AndL1 (y).N' x) 
                    = Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL1 (y).N' x")
 apply(simp)
-apply(subgoal_tac "Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL1 (y).N' x \<longrightarrow>\<^isub>a Cut <b>.M1 (y).N'")
+apply(subgoal_tac "Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL1 (y).N' x \<longrightarrow>\<^sub>a Cut <b>.M1 (y).N'")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LAnd1_intro)
@@ -2612,7 +2612,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>z'. Cut <a>.AndR <b>.M1 <c>.M2 a (z').AndL1 (y).N' z') 
                    = Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL1 (y).N' ca")
 apply(simp)
-apply(subgoal_tac "Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL1 (y).N' ca \<longrightarrow>\<^isub>a Cut <b>.M1 (y).N'")
+apply(subgoal_tac "Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL1 (y).N' ca \<longrightarrow>\<^sub>a Cut <b>.M1 (y).N'")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LAnd1_intro)
@@ -2672,7 +2672,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.AndR <b>.M1 <c>.M2 a' (x).AndL2 (y).N' x) 
                    = Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL2 (y).N' x")
 apply(simp)
-apply(subgoal_tac "Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL2 (y).N' x \<longrightarrow>\<^isub>a Cut <c>.M2 (y).N'")
+apply(subgoal_tac "Cut <ca>.AndR <b>.M1 <c>.M2 ca (x).AndL2 (y).N' x \<longrightarrow>\<^sub>a Cut <c>.M2 (y).N'")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LAnd2_intro)
@@ -2693,7 +2693,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>z'. Cut <a>.AndR <b>.M1 <c>.M2 a (z').AndL2 (y).N' z') 
                    = Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL2 (y).N' ca")
 apply(simp)
-apply(subgoal_tac "Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL2 (y).N' ca \<longrightarrow>\<^isub>a Cut <c>.M2 (y).N'")
+apply(subgoal_tac "Cut <a>.AndR <b>.M1 <c>.M2 a (ca).AndL2 (y).N' ca \<longrightarrow>\<^sub>a Cut <c>.M2 (y).N'")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LAnd2_intro)
@@ -2753,7 +2753,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <b>.N' a' (x).OrL (z).M1 (y).M2 x) 
                    = Cut <c>.OrR1 <b>.N' c (x).OrL (z).M1 (y).M2 x")
 apply(simp)
-apply(subgoal_tac "Cut <c>.OrR1 <b>.N' c (x).OrL (z).M1 (y).M2 x \<longrightarrow>\<^isub>a Cut <b>.N' (z).M1")
+apply(subgoal_tac "Cut <c>.OrR1 <b>.N' c (x).OrL (z).M1 (y).M2 x \<longrightarrow>\<^sub>a Cut <b>.N' (z).M1")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LOr1_intro)
@@ -2774,7 +2774,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>z'. Cut <a>.OrR1 <b>.N' a (z').OrL (z).M1 (y).M2 z') 
                    = Cut <a>.OrR1 <b>.N' a (c).OrL (z).M1 (y).M2 c")
 apply(simp)
-apply(subgoal_tac "Cut <a>.OrR1 <b>.N' a (c).OrL (z).M1 (y).M2 c \<longrightarrow>\<^isub>a Cut <b>.N' (z).M1")
+apply(subgoal_tac "Cut <a>.OrR1 <b>.N' a (c).OrL (z).M1 (y).M2 c \<longrightarrow>\<^sub>a Cut <b>.N' (z).M1")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LOr1_intro)
@@ -2834,7 +2834,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <b>.N' a' (x).OrL (z).M1 (y).M2 x) 
                    = Cut <c>.OrR2 <b>.N' c (x).OrL (z).M1 (y).M2 x")
 apply(simp)
-apply(subgoal_tac "Cut <c>.OrR2 <b>.N' c (x).OrL (z).M1 (y).M2 x \<longrightarrow>\<^isub>a Cut <b>.N' (y).M2")
+apply(subgoal_tac "Cut <c>.OrR2 <b>.N' c (x).OrL (z).M1 (y).M2 x \<longrightarrow>\<^sub>a Cut <b>.N' (y).M2")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LOr2_intro)
@@ -2855,7 +2855,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>z'. Cut <a>.OrR2 <b>.N' a (z').OrL (z).M1 (y).M2 z') 
                    = Cut <a>.OrR2 <b>.N' a (c).OrL (z).M1 (y).M2 c")
 apply(simp)
-apply(subgoal_tac "Cut <a>.OrR2 <b>.N' a (c).OrL (z).M1 (y).M2 c \<longrightarrow>\<^isub>a Cut <b>.N' (y).M2")
+apply(subgoal_tac "Cut <a>.OrR2 <b>.N' a (c).OrL (z).M1 (y).M2 c \<longrightarrow>\<^sub>a Cut <b>.N' (y).M2")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
 apply(rule better_LOr2_intro)
@@ -2914,7 +2914,7 @@ apply(generate_fresh "coname")
 apply(subgoal_tac "fresh_fun (\<lambda>a'. Cut <a'>.ImpR (z).<b>.M'a a' (x).ImpL <c>.N1 (y).N2 x)
                    = Cut <ca>.ImpR (z).<b>.M'a ca (x).ImpL <c>.N1 (y).N2 x")
 apply(simp)
-apply(subgoal_tac "Cut <ca>.ImpR (z).<b>.M'a ca (x).ImpL <c>.N1 (y).N2 x \<longrightarrow>\<^isub>a 
+apply(subgoal_tac "Cut <ca>.ImpR (z).<b>.M'a ca (x).ImpL <c>.N1 (y).N2 x \<longrightarrow>\<^sub>a 
                                                           Cut <b>.Cut <c>.N1 (z).M'a (y).N2")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
@@ -2937,7 +2937,7 @@ apply(generate_fresh "name")
 apply(subgoal_tac "fresh_fun (\<lambda>z'. Cut <a>.ImpR (z).<b>.M'a a (z').ImpL <c>.N1 (y).N2 z')
                    = Cut <a>.ImpR (z).<b>.M'a a (ca).ImpL <c>.N1 (y).N2 ca")
 apply(simp)
-apply(subgoal_tac "Cut <a>.ImpR (z).<b>.M'a a (ca).ImpL <c>.N1 (y).N2 ca \<longrightarrow>\<^isub>a 
+apply(subgoal_tac "Cut <a>.ImpR (z).<b>.M'a a (ca).ImpL <c>.N1 (y).N2 ca \<longrightarrow>\<^sub>a 
                                                           Cut <b>.Cut <c>.N1 (z).M'a (y).N2")
 apply(auto intro: a_preserves_SNa)[1]
 apply(rule al_redu)
@@ -6097,7 +6097,7 @@ apply(auto simp add: fresh_list_cons fresh_prod fresh_atm fresh_list_nil)
 done
 
 lemma id_redu:
-  shows "(idn \<Gamma> x),(idc \<Delta> a)<M> \<longrightarrow>\<^isub>a* M"
+  shows "(idn \<Gamma> x),(idc \<Delta> a)<M> \<longrightarrow>\<^sub>a* M"
 apply(nominal_induct M avoiding: \<Gamma> \<Delta> x a rule: trm.strong_induct)
 apply(auto)
 (* Ax *)
@@ -6495,7 +6495,7 @@ proof -
   fix a have "(idn \<Gamma> a) ncloses \<Gamma>" by (simp add: ncloses_id)
   ultimately have "SNa ((idn \<Gamma> a),(idc \<Delta> x)<M>)" using a by (simp add: all_CAND)
   moreover
-  have "((idn \<Gamma> a),(idc \<Delta> x)<M>) \<longrightarrow>\<^isub>a* M" by (simp add: id_redu)
+  have "((idn \<Gamma> a),(idc \<Delta> x)<M>) \<longrightarrow>\<^sub>a* M" by (simp add: id_redu)
   ultimately show "SNa M" by (simp add: a_star_preserves_SNa)
 qed
 

@@ -48,33 +48,33 @@ Vassign:
 "me \<turnstile> (e,c) \<Rightarrow> (r,ve',sn') \<Longrightarrow>
  me \<turnstile> (x ::= e,c) \<Rightarrow> (r,ve'(x:=r),sn')" |
 Fassign:
-"\<lbrakk> me \<turnstile> (oe,c\<^isub>1) \<Rightarrow> (Ref a,c\<^isub>2);  me \<turnstile> (e,c\<^isub>2) \<Rightarrow> (r,ve\<^isub>3,s\<^isub>3,n\<^isub>3) \<rbrakk> \<Longrightarrow>
- me \<turnstile> (oe\<bullet>f ::= e,c\<^isub>1) \<Rightarrow> (r,ve\<^isub>3,s\<^isub>3(a,f := r),n\<^isub>3)" |
+"\<lbrakk> me \<turnstile> (oe,c\<^sub>1) \<Rightarrow> (Ref a,c\<^sub>2);  me \<turnstile> (e,c\<^sub>2) \<Rightarrow> (r,ve\<^sub>3,s\<^sub>3,n\<^sub>3) \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (oe\<bullet>f ::= e,c\<^sub>1) \<Rightarrow> (r,ve\<^sub>3,s\<^sub>3(a,f := r),n\<^sub>3)" |
 Mcall:
-"\<lbrakk> me \<turnstile> (oe,c\<^isub>1) \<Rightarrow> (or,c\<^isub>2);  me \<turnstile> (pe,c\<^isub>2) \<Rightarrow> (pr,ve\<^isub>3,sn\<^isub>3);
+"\<lbrakk> me \<turnstile> (oe,c\<^sub>1) \<Rightarrow> (or,c\<^sub>2);  me \<turnstile> (pe,c\<^sub>2) \<Rightarrow> (pr,ve\<^sub>3,sn\<^sub>3);
    ve = (\<lambda>x. null)(''this'' := or, ''param'' := pr);
-   me \<turnstile> (me m,ve,sn\<^isub>3) \<Rightarrow> (r,ve',sn\<^isub>4) \<rbrakk>
+   me \<turnstile> (me m,ve,sn\<^sub>3) \<Rightarrow> (r,ve',sn\<^sub>4) \<rbrakk>
   \<Longrightarrow>
- me \<turnstile> (oe\<bullet>m<pe>,c\<^isub>1) \<Rightarrow> (r,ve\<^isub>3,sn\<^isub>4)" |
+ me \<turnstile> (oe\<bullet>m<pe>,c\<^sub>1) \<Rightarrow> (r,ve\<^sub>3,sn\<^sub>4)" |
 Seq:
-"\<lbrakk> me \<turnstile> (e\<^isub>1,c\<^isub>1) \<Rightarrow> (r,c\<^isub>2);  me \<turnstile> (e\<^isub>2,c\<^isub>2) \<Rightarrow> c\<^isub>3 \<rbrakk> \<Longrightarrow>
- me \<turnstile> (e\<^isub>1; e\<^isub>2,c\<^isub>1) \<Rightarrow> c\<^isub>3" |
+"\<lbrakk> me \<turnstile> (e\<^sub>1,c\<^sub>1) \<Rightarrow> (r,c\<^sub>2);  me \<turnstile> (e\<^sub>2,c\<^sub>2) \<Rightarrow> c\<^sub>3 \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (e\<^sub>1; e\<^sub>2,c\<^sub>1) \<Rightarrow> c\<^sub>3" |
 IfTrue:
-"\<lbrakk> me \<turnstile> (b,c\<^isub>1) \<rightarrow> (True,c\<^isub>2);  me \<turnstile> (e\<^isub>1,c\<^isub>2) \<Rightarrow> c\<^isub>3 \<rbrakk> \<Longrightarrow>
- me \<turnstile> (IF b THEN e\<^isub>1 ELSE e\<^isub>2,c\<^isub>1) \<Rightarrow> c\<^isub>3" |
+"\<lbrakk> me \<turnstile> (b,c\<^sub>1) \<rightarrow> (True,c\<^sub>2);  me \<turnstile> (e\<^sub>1,c\<^sub>2) \<Rightarrow> c\<^sub>3 \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (IF b THEN e\<^sub>1 ELSE e\<^sub>2,c\<^sub>1) \<Rightarrow> c\<^sub>3" |
 IfFalse:
-"\<lbrakk> me \<turnstile> (b,c\<^isub>1) \<rightarrow> (False,c\<^isub>2);  me \<turnstile> (e\<^isub>2,c\<^isub>2) \<Rightarrow> c\<^isub>3 \<rbrakk> \<Longrightarrow>
- me \<turnstile> (IF b THEN e\<^isub>1 ELSE e\<^isub>2,c\<^isub>1) \<Rightarrow> c\<^isub>3" |
+"\<lbrakk> me \<turnstile> (b,c\<^sub>1) \<rightarrow> (False,c\<^sub>2);  me \<turnstile> (e\<^sub>2,c\<^sub>2) \<Rightarrow> c\<^sub>3 \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (IF b THEN e\<^sub>1 ELSE e\<^sub>2,c\<^sub>1) \<Rightarrow> c\<^sub>3" |
 
 "me \<turnstile> (B bv,c) \<rightarrow> (bv,c)" |
 
-"me \<turnstile> (b,c\<^isub>1) \<rightarrow> (bv,c\<^isub>2) \<Longrightarrow> me \<turnstile> (Not b,c\<^isub>1) \<rightarrow> (\<not>bv,c\<^isub>2)" |
+"me \<turnstile> (b,c\<^sub>1) \<rightarrow> (bv,c\<^sub>2) \<Longrightarrow> me \<turnstile> (Not b,c\<^sub>1) \<rightarrow> (\<not>bv,c\<^sub>2)" |
 
-"\<lbrakk> me \<turnstile> (b\<^isub>1,c\<^isub>1) \<rightarrow> (bv\<^isub>1,c\<^isub>2);  me \<turnstile> (b\<^isub>2,c\<^isub>2) \<rightarrow> (bv\<^isub>2,c\<^isub>3) \<rbrakk> \<Longrightarrow>
- me \<turnstile> (And b\<^isub>1 b\<^isub>2,c\<^isub>1) \<rightarrow> (bv\<^isub>1\<and>bv\<^isub>2,c\<^isub>3)" |
+"\<lbrakk> me \<turnstile> (b\<^sub>1,c\<^sub>1) \<rightarrow> (bv\<^sub>1,c\<^sub>2);  me \<turnstile> (b\<^sub>2,c\<^sub>2) \<rightarrow> (bv\<^sub>2,c\<^sub>3) \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (And b\<^sub>1 b\<^sub>2,c\<^sub>1) \<rightarrow> (bv\<^sub>1\<and>bv\<^sub>2,c\<^sub>3)" |
 
-"\<lbrakk> me \<turnstile> (e\<^isub>1,c\<^isub>1) \<Rightarrow> (r\<^isub>1,c\<^isub>2);  me \<turnstile> (e\<^isub>2,c\<^isub>2) \<Rightarrow> (r\<^isub>2,c\<^isub>3) \<rbrakk> \<Longrightarrow>
- me \<turnstile> (Eq e\<^isub>1 e\<^isub>2,c\<^isub>1) \<rightarrow> (r\<^isub>1=r\<^isub>2,c\<^isub>3)"
+"\<lbrakk> me \<turnstile> (e\<^sub>1,c\<^sub>1) \<Rightarrow> (r\<^sub>1,c\<^sub>2);  me \<turnstile> (e\<^sub>2,c\<^sub>2) \<Rightarrow> (r\<^sub>2,c\<^sub>3) \<rbrakk> \<Longrightarrow>
+ me \<turnstile> (Eq e\<^sub>1 e\<^sub>2,c\<^sub>1) \<rightarrow> (r\<^sub>1=r\<^sub>2,c\<^sub>3)"
 
 
 code_pred (modes: i => i => o => bool) big_step .

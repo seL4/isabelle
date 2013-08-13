@@ -115,7 +115,7 @@ theorem prefixeq_length_le: "prefixeq xs ys \<Longrightarrow> length xs \<le> le
   by (auto simp add: prefixeq_def)
 
 lemma prefixeq_same_cases:
-  "prefixeq (xs\<^isub>1::'a list) ys \<Longrightarrow> prefixeq xs\<^isub>2 ys \<Longrightarrow> prefixeq xs\<^isub>1 xs\<^isub>2 \<or> prefixeq xs\<^isub>2 xs\<^isub>1"
+  "prefixeq (xs\<^sub>1::'a list) ys \<Longrightarrow> prefixeq xs\<^sub>2 ys \<Longrightarrow> prefixeq xs\<^sub>1 xs\<^sub>2 \<or> prefixeq xs\<^sub>2 xs\<^sub>1"
   unfolding prefixeq_def by (metis append_eq_append_conv2)
 
 lemma set_mono_prefixeq: "prefixeq xs ys \<Longrightarrow> set xs \<subseteq> set ys"

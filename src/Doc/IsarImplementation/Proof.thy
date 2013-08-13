@@ -10,7 +10,7 @@ text {*
   Any variable that is not explicitly bound by @{text "\<lambda>"}-abstraction
   is considered as ``free''.  Logically, free variables act like
   outermost universal quantification at the sequent level: @{text
-  "A\<^isub>1(x), \<dots>, A\<^isub>n(x) \<turnstile> B(x)"} means that the result
+  "A\<^sub>1(x), \<dots>, A\<^sub>n(x) \<turnstile> B(x)"} means that the result
   holds \emph{for all} values of @{text "x"}.  Free variables for
   terms (not types) can be fully internalized into the logic: @{text
   "\<turnstile> B(x)"} and @{text "\<turnstile> \<And>x. B(x)"} are interchangeable, provided
@@ -35,26 +35,26 @@ text {*
   depend on type variables, which means that type variables would have
   to be declared first.  For example, a raw type-theoretic framework
   would demand the context to be constructed in stages as follows:
-  @{text "\<Gamma> = \<alpha>: type, x: \<alpha>, a: A(x\<^isub>\<alpha>)"}.
+  @{text "\<Gamma> = \<alpha>: type, x: \<alpha>, a: A(x\<^sub>\<alpha>)"}.
 
   We allow a slightly less formalistic mode of operation: term
   variables @{text "x"} are fixed without specifying a type yet
   (essentially \emph{all} potential occurrences of some instance
-  @{text "x\<^isub>\<tau>"} are fixed); the first occurrence of @{text "x"}
+  @{text "x\<^sub>\<tau>"} are fixed); the first occurrence of @{text "x"}
   within a specific term assigns its most general type, which is then
   maintained consistently in the context.  The above example becomes
-  @{text "\<Gamma> = x: term, \<alpha>: type, A(x\<^isub>\<alpha>)"}, where type @{text
+  @{text "\<Gamma> = x: term, \<alpha>: type, A(x\<^sub>\<alpha>)"}, where type @{text
   "\<alpha>"} is fixed \emph{after} term @{text "x"}, and the constraint
   @{text "x :: \<alpha>"} is an implicit consequence of the occurrence of
-  @{text "x\<^isub>\<alpha>"} in the subsequent proposition.
+  @{text "x\<^sub>\<alpha>"} in the subsequent proposition.
 
   This twist of dependencies is also accommodated by the reverse
   operation of exporting results from a context: a type variable
   @{text "\<alpha>"} is considered fixed as long as it occurs in some fixed
   term variable of the context.  For example, exporting @{text "x:
-  term, \<alpha>: type \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} produces in the first step @{text "x: term
-  \<turnstile> x\<^isub>\<alpha> \<equiv> x\<^isub>\<alpha>"} for fixed @{text "\<alpha>"}, and only in the second step
-  @{text "\<turnstile> ?x\<^isub>?\<^isub>\<alpha> \<equiv> ?x\<^isub>?\<^isub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
+  term, \<alpha>: type \<turnstile> x\<^sub>\<alpha> \<equiv> x\<^sub>\<alpha>"} produces in the first step @{text "x: term
+  \<turnstile> x\<^sub>\<alpha> \<equiv> x\<^sub>\<alpha>"} for fixed @{text "\<alpha>"}, and only in the second step
+  @{text "\<turnstile> ?x\<^sub>?\<^sub>\<alpha> \<equiv> ?x\<^sub>?\<^sub>\<alpha>"} for schematic @{text "?x"} and @{text "?\<alpha>"}.
   The following Isar source text illustrates this scenario.
 *}
 
@@ -92,9 +92,9 @@ text {* The Isabelle/Isar proof context manages the details of term
 
   The @{text "focus"} operation provides a variant of @{text "import"}
   for nested propositions (with explicit quantification): @{text
-  "\<And>x\<^isub>1 \<dots> x\<^isub>n. B(x\<^isub>1, \<dots>, x\<^isub>n)"} is
-  decomposed by inventing fixed variables @{text "x\<^isub>1, \<dots>,
-  x\<^isub>n"} for the body.
+  "\<And>x\<^sub>1 \<dots> x\<^sub>n. B(x\<^sub>1, \<dots>, x\<^sub>n)"} is
+  decomposed by inventing fixed variables @{text "x\<^sub>1, \<dots>,
+  x\<^sub>n"} for the body.
 *}
 
 text %mlref {*
@@ -234,8 +234,8 @@ text {*
   quantifiers stripped.  For example, by assuming @{text "\<And>x :: \<alpha>. P
   x"} we get @{text "\<And>x :: \<alpha>. P x \<turnstile> P ?x"} for schematic @{text "?x"}
   of fixed type @{text "\<alpha>"}.  Local derivations accumulate more and
-  more explicit references to hypotheses: @{text "A\<^isub>1, \<dots>,
-  A\<^isub>n \<turnstile> B"} where @{text "A\<^isub>1, \<dots>, A\<^isub>n"} needs to
+  more explicit references to hypotheses: @{text "A\<^sub>1, \<dots>,
+  A\<^sub>n \<turnstile> B"} where @{text "A\<^sub>1, \<dots>, A\<^sub>n"} needs to
   be covered by the assumptions of the current context.
 
   \medskip The @{text "add_assms"} operation augments the context by

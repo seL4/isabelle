@@ -77,59 +77,59 @@ subsection {* Some concrete Context Free Grammars *}
 
 datatype alphabet = a | b
 
-inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
-  "[] \<in> S\<^isub>1"
-| "w \<in> A\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "w \<in> B\<^isub>1 \<Longrightarrow> a # w \<in> S\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> a # w \<in> A\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
+inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
+  "[] \<in> S\<^sub>1"
+| "w \<in> A\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "w \<in> B\<^sub>1 \<Longrightarrow> a # w \<in> S\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> a # w \<in> A\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "\<lbrakk>v \<in> B\<^sub>1; v \<in> B\<^sub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>1"
 
-code_pred [inductify] S\<^isub>1p .
-code_pred [random_dseq inductify] S\<^isub>1p .
-thm S\<^isub>1p.equation
-thm S\<^isub>1p.random_dseq_equation
+code_pred [inductify] S\<^sub>1p .
+code_pred [random_dseq inductify] S\<^sub>1p .
+thm S\<^sub>1p.equation
+thm S\<^sub>1p.random_dseq_equation
 
-values [random_dseq 5, 5, 5] 5 "{x. S\<^isub>1p x}"
+values [random_dseq 5, 5, 5] 5 "{x. S\<^sub>1p x}"
 
-inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
-  "[] \<in> S\<^isub>2"
-| "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
-| "w \<in> B\<^isub>2 \<Longrightarrow> a # w \<in> S\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
-| "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
+inductive_set S\<^sub>2 and A\<^sub>2 and B\<^sub>2 where
+  "[] \<in> S\<^sub>2"
+| "w \<in> A\<^sub>2 \<Longrightarrow> b # w \<in> S\<^sub>2"
+| "w \<in> B\<^sub>2 \<Longrightarrow> a # w \<in> S\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> a # w \<in> A\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> b # w \<in> B\<^sub>2"
+| "\<lbrakk>v \<in> B\<^sub>2; v \<in> B\<^sub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>2"
 
-code_pred [random_dseq inductify] S\<^isub>2p .
-thm S\<^isub>2p.random_dseq_equation
-thm A\<^isub>2p.random_dseq_equation
-thm B\<^isub>2p.random_dseq_equation
+code_pred [random_dseq inductify] S\<^sub>2p .
+thm S\<^sub>2p.random_dseq_equation
+thm A\<^sub>2p.random_dseq_equation
+thm B\<^sub>2p.random_dseq_equation
 
-values [random_dseq 5, 5, 5] 10 "{x. S\<^isub>2p x}"
+values [random_dseq 5, 5, 5] 10 "{x. S\<^sub>2p x}"
 
-inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
-  "[] \<in> S\<^isub>3"
-| "w \<in> A\<^isub>3 \<Longrightarrow> b # w \<in> S\<^isub>3"
-| "w \<in> B\<^isub>3 \<Longrightarrow> a # w \<in> S\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> a # w \<in> A\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
-| "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
+inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
+  "[] \<in> S\<^sub>3"
+| "w \<in> A\<^sub>3 \<Longrightarrow> b # w \<in> S\<^sub>3"
+| "w \<in> B\<^sub>3 \<Longrightarrow> a # w \<in> S\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> a # w \<in> A\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> b # w \<in> B\<^sub>3"
+| "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
-code_pred [inductify, skip_proof] S\<^isub>3p .
-thm S\<^isub>3p.equation
+code_pred [inductify, skip_proof] S\<^sub>3p .
+thm S\<^sub>3p.equation
 
-values 10 "{x. S\<^isub>3p x}"
+values 10 "{x. S\<^sub>3p x}"
 
-inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
-  "[] \<in> S\<^isub>4"
-| "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"
-| "w \<in> B\<^isub>4 \<Longrightarrow> a # w \<in> S\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> a # w \<in> A\<^isub>4"
-| "\<lbrakk>v \<in> A\<^isub>4; w \<in> A\<^isub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
-| "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
+inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
+  "[] \<in> S\<^sub>4"
+| "w \<in> A\<^sub>4 \<Longrightarrow> b # w \<in> S\<^sub>4"
+| "w \<in> B\<^sub>4 \<Longrightarrow> a # w \<in> S\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> a # w \<in> A\<^sub>4"
+| "\<lbrakk>v \<in> A\<^sub>4; w \<in> A\<^sub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> b # w \<in> B\<^sub>4"
+| "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
-code_pred (expected_modes: o => bool, i => bool) S\<^isub>4p .
+code_pred (expected_modes: o => bool, i => bool) S\<^sub>4p .
 
 hide_const a b
 
@@ -272,7 +272,7 @@ datatype aexp = N nat | V name | Plus aexp aexp
 fun aval :: "aexp \<Rightarrow> state' \<Rightarrow> nat" where
 "aval (N n) _ = n" |
 "aval (V x) st = st x" |
-"aval (Plus e\<^isub>1 e\<^isub>2) st = aval e\<^isub>1 st + aval e\<^isub>2 st"
+"aval (Plus e\<^sub>1 e\<^sub>2) st = aval e\<^sub>1 st + aval e\<^sub>2 st"
 
 datatype bexp = B bool | Not bexp | And bexp bexp | Less aexp aexp
 
@@ -280,7 +280,7 @@ primrec bval :: "bexp \<Rightarrow> state' \<Rightarrow> bool" where
 "bval (B b) _ = b" |
 "bval (Not b) st = (\<not> bval b st)" |
 "bval (And b1 b2) st = (bval b1 st \<and> bval b2 st)" |
-"bval (Less a\<^isub>1 a\<^isub>2) st = (aval a\<^isub>1 st < aval a\<^isub>2 st)"
+"bval (Less a\<^sub>1 a\<^sub>2) st = (aval a\<^sub>1 st < aval a\<^sub>2 st)"
 
 datatype
   com' = SKIP 
@@ -295,14 +295,14 @@ where
   Skip:    "(SKIP,s) \<Rightarrow> s"
 | Assign:  "(x ::= a,s) \<Rightarrow> s(x := aval a s)"
 
-| Semi:    "(c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2  \<Longrightarrow>  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3  \<Longrightarrow> (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+| Semi:    "(c\<^sub>1,s\<^sub>1) \<Rightarrow> s\<^sub>2  \<Longrightarrow>  (c\<^sub>2,s\<^sub>2) \<Rightarrow> s\<^sub>3  \<Longrightarrow> (c\<^sub>1;c\<^sub>2, s\<^sub>1) \<Rightarrow> s\<^sub>3"
 
-| IfTrue:  "bval b s  \<Longrightarrow>  (c\<^isub>1,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t"
-| IfFalse: "\<not>bval b s  \<Longrightarrow>  (c\<^isub>2,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t"
+| IfTrue:  "bval b s  \<Longrightarrow>  (c\<^sub>1,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t"
+| IfFalse: "\<not>bval b s  \<Longrightarrow>  (c\<^sub>2,s) \<Rightarrow> t  \<Longrightarrow>  (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t"
 
 | WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s"
-| WhileTrue:  "bval b s\<^isub>1  \<Longrightarrow>  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2  \<Longrightarrow>  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3
-               \<Longrightarrow> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+| WhileTrue:  "bval b s\<^sub>1  \<Longrightarrow>  (c,s\<^sub>1) \<Rightarrow> s\<^sub>2  \<Longrightarrow>  (WHILE b DO c, s\<^sub>2) \<Rightarrow> s\<^sub>3
+               \<Longrightarrow> (WHILE b DO c, s\<^sub>1) \<Rightarrow> s\<^sub>3"
 
 code_pred big_step .
 

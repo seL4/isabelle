@@ -1110,7 +1110,7 @@ recdef plusinf "measure size"
   "plusinf (Ge  (CN 0 c e)) = T"
   "plusinf p = p"
 
-consts \<delta> :: "fm \<Rightarrow> int"  -- {* Compute @{text "lcm {d| N\<^isup>? Dvd c*x+t \<in> p}"} *}
+consts \<delta> :: "fm \<Rightarrow> int"  -- {* Compute @{text "lcm {d| N\<^sup>? Dvd c*x+t \<in> p}"} *}
 recdef \<delta> "measure size"
   "\<delta> (And p q) = lcm (\<delta> p) (\<delta> q)"
   "\<delta> (Or p q) = lcm (\<delta> p) (\<delta> q)"

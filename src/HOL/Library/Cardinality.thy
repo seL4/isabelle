@@ -345,20 +345,20 @@ definition "card_UNIV = Phantom('a set)
 instance by intro_classes (simp add: card_UNIV_set_def card_UNIV_set card_UNIV)
 end
 
-lemma UNIV_finite_1: "UNIV = set [finite_1.a\<^isub>1]"
+lemma UNIV_finite_1: "UNIV = set [finite_1.a\<^sub>1]"
 by(auto intro: finite_1.exhaust)
 
-lemma UNIV_finite_2: "UNIV = set [finite_2.a\<^isub>1, finite_2.a\<^isub>2]"
+lemma UNIV_finite_2: "UNIV = set [finite_2.a\<^sub>1, finite_2.a\<^sub>2]"
 by(auto intro: finite_2.exhaust)
 
-lemma UNIV_finite_3: "UNIV = set [finite_3.a\<^isub>1, finite_3.a\<^isub>2, finite_3.a\<^isub>3]"
+lemma UNIV_finite_3: "UNIV = set [finite_3.a\<^sub>1, finite_3.a\<^sub>2, finite_3.a\<^sub>3]"
 by(auto intro: finite_3.exhaust)
 
-lemma UNIV_finite_4: "UNIV = set [finite_4.a\<^isub>1, finite_4.a\<^isub>2, finite_4.a\<^isub>3, finite_4.a\<^isub>4]"
+lemma UNIV_finite_4: "UNIV = set [finite_4.a\<^sub>1, finite_4.a\<^sub>2, finite_4.a\<^sub>3, finite_4.a\<^sub>4]"
 by(auto intro: finite_4.exhaust)
 
 lemma UNIV_finite_5:
-  "UNIV = set [finite_5.a\<^isub>1, finite_5.a\<^isub>2, finite_5.a\<^isub>3, finite_5.a\<^isub>4, finite_5.a\<^isub>5]"
+  "UNIV = set [finite_5.a\<^sub>1, finite_5.a\<^sub>2, finite_5.a\<^sub>3, finite_5.a\<^sub>4, finite_5.a\<^sub>5]"
 by(auto intro: finite_5.exhaust)
 
 instantiation Enum.finite_1 :: card_UNIV begin

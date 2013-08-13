@@ -509,7 +509,7 @@ text %mlref {*
   regarded as an atomic formula, to solve premise @{text "i"} of
   @{text "thm\<^sub>2"}.  Let @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} be @{text
   "\<psi>"} and @{text "\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>"}.  The unique @{text "s"} that
-  unifies @{text "\<psi>"} and @{text "\<phi>\<^isub>i"} yields the theorem @{text "(\<phi>\<^sub>1 \<Longrightarrow>
+  unifies @{text "\<psi>"} and @{text "\<phi>\<^sub>i"} yields the theorem @{text "(\<phi>\<^sub>1 \<Longrightarrow>
   \<dots> \<phi>\<^sub>i\<^sub>-\<^sub>1 \<Longrightarrow> \<phi>\<^sub>i\<^sub>+\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>)s"}.  Multiple results are considered as
   error (exception @{ML THM}).
 

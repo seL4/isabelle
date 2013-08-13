@@ -9,17 +9,17 @@ Skip:
 Assign:
   "\<lbrakk> sec x \<ge> sec a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a"  |
 Seq:
-  "l \<turnstile> c\<^isub>1 \<Longrightarrow> l \<turnstile> c\<^isub>2 \<Longrightarrow> l \<turnstile> c\<^isub>1;;c\<^isub>2"  |
+  "l \<turnstile> c\<^sub>1 \<Longrightarrow> l \<turnstile> c\<^sub>2 \<Longrightarrow> l \<turnstile> c\<^sub>1;;c\<^sub>2"  |
 If:
-  "\<lbrakk> max (sec b) l \<turnstile> c\<^isub>1;  max (sec b) l \<turnstile> c\<^isub>2 \<rbrakk>
-   \<Longrightarrow> l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
+  "\<lbrakk> max (sec b) l \<turnstile> c\<^sub>1;  max (sec b) l \<turnstile> c\<^sub>2 \<rbrakk>
+   \<Longrightarrow> l \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2"  |
 While:
   "sec b = 0 \<Longrightarrow> 0 \<turnstile> c \<Longrightarrow> 0 \<turnstile> WHILE b DO c"
 
 code_pred (expected_modes: i => i => bool) sec_type .
 
 inductive_cases [elim!]:
-  "l \<turnstile> x ::= a"  "l \<turnstile> c\<^isub>1;;c\<^isub>2"  "l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2"  "l \<turnstile> WHILE b DO c"
+  "l \<turnstile> x ::= a"  "l \<turnstile> c\<^sub>1;;c\<^sub>2"  "l \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2"  "l \<turnstile> WHILE b DO c"
 
 
 lemma anti_mono: "l \<turnstile> c \<Longrightarrow> l' \<le> l \<Longrightarrow> l' \<turnstile> c"
@@ -176,9 +176,9 @@ Skip':
 Assign':
   "\<lbrakk> sec x \<ge> sec a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a"  |
 Seq':
-  "l \<turnstile>' c\<^isub>1 \<Longrightarrow> l \<turnstile>' c\<^isub>2 \<Longrightarrow> l \<turnstile>' c\<^isub>1;;c\<^isub>2"  |
+  "l \<turnstile>' c\<^sub>1 \<Longrightarrow> l \<turnstile>' c\<^sub>2 \<Longrightarrow> l \<turnstile>' c\<^sub>1;;c\<^sub>2"  |
 If':
-  "\<lbrakk> sec b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
+  "\<lbrakk> sec b \<le> l;  l \<turnstile>' c\<^sub>1;  l \<turnstile>' c\<^sub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^sub>1 ELSE c\<^sub>2"  |
 While':
   "\<lbrakk> sec b = 0;  0 \<turnstile>' c \<rbrakk> \<Longrightarrow> 0 \<turnstile>' WHILE b DO c"  |
 anti_mono':

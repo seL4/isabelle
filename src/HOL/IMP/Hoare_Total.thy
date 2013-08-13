@@ -25,10 +25,10 @@ Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}"  |
 
 Assign:  "\<turnstile>\<^sub>t {\<lambda>s. P(s[a/x])} x::=a {P}"  |
 
-Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1 {P\<^isub>2}; \<turnstile>\<^sub>t {P\<^isub>2} c\<^isub>2 {P\<^isub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^isub>1} c\<^isub>1;;c\<^isub>2 {P\<^isub>3}"  |
+Seq: "\<lbrakk> \<turnstile>\<^sub>t {P\<^sub>1} c\<^sub>1 {P\<^sub>2}; \<turnstile>\<^sub>t {P\<^sub>2} c\<^sub>2 {P\<^sub>3} \<rbrakk> \<Longrightarrow> \<turnstile>\<^sub>t {P\<^sub>1} c\<^sub>1;;c\<^sub>2 {P\<^sub>3}"  |
 
-If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
-  \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}"  |
+If: "\<lbrakk> \<turnstile>\<^sub>t {\<lambda>s. P s \<and> bval b s} c\<^sub>1 {Q}; \<turnstile>\<^sub>t {\<lambda>s. P s \<and> \<not> bval b s} c\<^sub>2 {Q} \<rbrakk>
+  \<Longrightarrow> \<turnstile>\<^sub>t {P} IF b THEN c\<^sub>1 ELSE c\<^sub>2 {Q}"  |
 
 While:
   "(\<And>n::nat.
@@ -119,14 +119,14 @@ by(auto intro!: ext simp: wpt_def)
 lemma [simp]: "wp\<^sub>t (x ::= e) Q = (\<lambda>s. Q(s(x := aval e s)))"
 by(auto intro!: ext simp: wpt_def)
 
-lemma [simp]: "wp\<^sub>t (c\<^isub>1;;c\<^isub>2) Q = wp\<^sub>t c\<^isub>1 (wp\<^sub>t c\<^isub>2 Q)"
+lemma [simp]: "wp\<^sub>t (c\<^sub>1;;c\<^sub>2) Q = wp\<^sub>t c\<^sub>1 (wp\<^sub>t c\<^sub>2 Q)"
 unfolding wpt_def
 apply(rule ext)
 apply auto
 done
 
 lemma [simp]:
- "wp\<^sub>t (IF b THEN c\<^isub>1 ELSE c\<^isub>2) Q = (\<lambda>s. wp\<^sub>t (if bval b s then c\<^isub>1 else c\<^isub>2) Q s)"
+ "wp\<^sub>t (IF b THEN c\<^sub>1 ELSE c\<^sub>2) Q = (\<lambda>s. wp\<^sub>t (if bval b s then c\<^sub>1 else c\<^sub>2) Q s)"
 apply(unfold wpt_def)
 apply(rule ext)
 apply auto

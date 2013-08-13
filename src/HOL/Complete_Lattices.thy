@@ -1033,8 +1033,8 @@ translations
 
 text {*
   Note the difference between ordinary xsymbol syntax of indexed
-  unions and intersections (e.g.\ @{text"\<Union>a\<^isub>1\<in>A\<^isub>1. B"})
-  and their \LaTeX\ rendition: @{term"\<Union>a\<^isub>1\<in>A\<^isub>1. B"}. The
+  unions and intersections (e.g.\ @{text"\<Union>a\<^sub>1\<in>A\<^sub>1. B"})
+  and their \LaTeX\ rendition: @{term"\<Union>a\<^sub>1\<in>A\<^sub>1. B"}. The
   former does not make the index expression a subscript of the
   union/intersection symbol because this leads to problems with nested
   subscripts in Proof General.

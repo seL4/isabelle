@@ -57,10 +57,10 @@ The predefined constructs @{text"if"}, @{text"let"} and
 @{text"case"} are set in sans serif font to distinguish them from
 other functions. This improves readability:
 \begin{itemize}
-\item @{term"if b then e\<^isub>1 else e\<^isub>2"} instead of @{text"if b then e\<^isub>1 else e\<^isub>2"}.
-\item @{term"let x = e\<^isub>1 in e\<^isub>2"} instead of @{text"let x = e\<^isub>1 in e\<^isub>2"}.
-\item @{term"case x of True \<Rightarrow> e\<^isub>1 | False \<Rightarrow> e\<^isub>2"} instead of\\
-      @{text"case x of True \<Rightarrow> e\<^isub>1 | False \<Rightarrow> e\<^isub>2"}.
+\item @{term"if b then e\<^sub>1 else e\<^sub>2"} instead of @{text"if b then e\<^sub>1 else e\<^sub>2"}.
+\item @{term"let x = e\<^sub>1 in e\<^sub>2"} instead of @{text"let x = e\<^sub>1 in e\<^sub>2"}.
+\item @{term"case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2"} instead of\\
+      @{text"case x of True \<Rightarrow> e\<^sub>1 | False \<Rightarrow> e\<^sub>2"}.
 \end{itemize}
 
 \subsection{Sets}
@@ -99,7 +99,7 @@ which leads to unpleasant line breaks if the term is too long for one
 line. To avoid this, \texttt{OptionalSugar} contains syntax to group
 @{text"@"}-terms to the left before printing, which leads to better
 line breaking behaviour:
-@{term[display]"term\<^isub>0 @ term\<^isub>1 @ term\<^isub>2 @ term\<^isub>3 @ term\<^isub>4 @ term\<^isub>5 @ term\<^isub>6 @ term\<^isub>7 @ term\<^isub>8 @ term\<^isub>9 @ term\<^isub>1\<^isub>0"}
+@{term[display]"term\<^sub>0 @ term\<^sub>1 @ term\<^sub>2 @ term\<^sub>3 @ term\<^sub>4 @ term\<^sub>5 @ term\<^sub>6 @ term\<^sub>7 @ term\<^sub>8 @ term\<^sub>9 @ term\<^sub>1\<^sub>0"}
 
 \end{itemize}
 
@@ -140,8 +140,8 @@ Hint: Setting \verb!show_question_marks! to \texttt{false} only
 suppresses question marks; variables that end in digits,
 e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
 e.g. @{text"x1.0"}, their internal index. This can be avoided by
-turning the last digit into a subscript: write \verb!x\<^isub>1! and
-obtain the much nicer @{text"x\<^isub>1"}. *}
+turning the last digit into a subscript: write \verb!x\<^sub>1! and
+obtain the much nicer @{text"x\<^sub>1"}. *}
 
 (*<*)declare [[show_question_marks = false]](*>*)
 

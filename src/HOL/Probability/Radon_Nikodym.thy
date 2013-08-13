@@ -44,7 +44,7 @@ proof (rule emeasure_measure_of_sigma)
 qed fact
 
 lemma (in sigma_finite_measure) Ex_finite_integrable_function:
-  shows "\<exists>h\<in>borel_measurable M. integral\<^isup>P M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>) \<and> (\<forall>x. 0 \<le> h x)"
+  shows "\<exists>h\<in>borel_measurable M. integral\<^sup>P M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>) \<and> (\<forall>x. 0 \<le> h x)"
 proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
     range[measurable]: "range A \<subseteq> sets M" and
@@ -67,7 +67,7 @@ proof -
   proof (safe intro!: bexI[of _ ?h] del: notI)
     have "\<And>i. A i \<in> sets M"
       using range by fastforce+
-    then have "integral\<^isup>P M ?h = (\<Sum>i. n i * emeasure M (A i))" using pos
+    then have "integral\<^sup>P M ?h = (\<Sum>i. n i * emeasure M (A i))" using pos
       by (simp add: positive_integral_suminf positive_integral_cmult_indicator)
     also have "\<dots> \<le> (\<Sum>i. (1 / 2)^Suc i)"
     proof (rule suminf_le_pos)
@@ -82,7 +82,7 @@ proof -
       finally show "n N * emeasure M (A N) \<le> (1 / 2) ^ Suc N" .
       show "0 \<le> n N * emeasure M (A N)" using n[of N] `A N \<in> sets M` by (simp add: emeasure_nonneg)
     qed
-    finally show "integral\<^isup>P M ?h \<noteq> \<infinity>" unfolding suminf_half_series_ereal by auto
+    finally show "integral\<^sup>P M ?h \<noteq> \<infinity>" unfolding suminf_half_series_ereal by auto
   next
     { fix x assume "x \<in> space M"
       then obtain i where "x \<in> A i" using space[symmetric] by auto
@@ -294,7 +294,7 @@ lemma (in finite_measure) Radon_Nikodym_finite_measure:
   shows "\<exists>f \<in> borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
 proof -
   interpret N: finite_measure N by fact
-  def G \<equiv> "{g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
+  def G \<equiv> "{g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
   { fix f have "f \<in> G \<Longrightarrow> f \<in> borel_measurable M" by (auto simp: G_def) }
   note this[measurable_dest]
   have "(\<lambda>x. 0) \<in> G" unfolding G_def by auto
@@ -313,16 +313,16 @@ proof -
       have "\<And>x. x \<in> space M \<Longrightarrow> max (g x) (f x) * indicator A x =
         g x * indicator (?A \<inter> A) x + f x * indicator ((space M - ?A) \<inter> A) x"
         by (auto simp: indicator_def max_def)
-      hence "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x \<partial>M) =
-        (\<integral>\<^isup>+x. g x * indicator (?A \<inter> A) x \<partial>M) +
-        (\<integral>\<^isup>+x. f x * indicator ((space M - ?A) \<inter> A) x \<partial>M)"
+      hence "(\<integral>\<^sup>+x. max (g x) (f x) * indicator A x \<partial>M) =
+        (\<integral>\<^sup>+x. g x * indicator (?A \<inter> A) x \<partial>M) +
+        (\<integral>\<^sup>+x. f x * indicator ((space M - ?A) \<inter> A) x \<partial>M)"
         using f g sets unfolding G_def
         by (auto cong: positive_integral_cong intro!: positive_integral_add)
       also have "\<dots> \<le> N (?A \<inter> A) + N ((space M - ?A) \<inter> A)"
         using f g sets unfolding G_def by (auto intro!: add_mono)
       also have "\<dots> = N A"
         using plus_emeasure[OF sets'] union by auto
-      finally show "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x \<partial>M) \<le> N A" .
+      finally show "(\<integral>\<^sup>+x. max (g x) (f x) * indicator A x \<partial>M) \<le> N A" .
     next
       fix x show "0 \<le> max (g x) (f x)" using f g by (auto simp: G_def split: split_max)
     qed }
@@ -336,33 +336,33 @@ proof -
           using f by (auto simp: G_def intro: SUP_upper2) }
     next
       fix A assume "A \<in> sets M"
-      have "(\<integral>\<^isup>+x. (SUP i. f i x) * indicator A x \<partial>M) =
-        (\<integral>\<^isup>+x. (SUP i. f i x * indicator A x) \<partial>M)"
+      have "(\<integral>\<^sup>+x. (SUP i. f i x) * indicator A x \<partial>M) =
+        (\<integral>\<^sup>+x. (SUP i. f i x * indicator A x) \<partial>M)"
         by (intro positive_integral_cong) (simp split: split_indicator)
-      also have "\<dots> = (SUP i. (\<integral>\<^isup>+x. f i x * indicator A x \<partial>M))"
+      also have "\<dots> = (SUP i. (\<integral>\<^sup>+x. f i x * indicator A x \<partial>M))"
         using `incseq f` f `A \<in> sets M`
         by (intro positive_integral_monotone_convergence_SUP)
            (auto simp: G_def incseq_Suc_iff le_fun_def split: split_indicator)
-      finally show "(\<integral>\<^isup>+x. (SUP i. f i x) * indicator A x \<partial>M) \<le> N A"
+      finally show "(\<integral>\<^sup>+x. (SUP i. f i x) * indicator A x \<partial>M) \<le> N A"
         using f `A \<in> sets M` by (auto intro!: SUP_least simp: G_def)
     qed }
   note SUP_in_G = this
-  let ?y = "SUP g : G. integral\<^isup>P M g"
+  let ?y = "SUP g : G. integral\<^sup>P M g"
   have y_le: "?y \<le> N (space M)" unfolding G_def
   proof (safe intro!: SUP_least)
-    fix g assume "\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> N A"
-    from this[THEN bspec, OF sets.top] show "integral\<^isup>P M g \<le> N (space M)"
+    fix g assume "\<forall>A\<in>sets M. (\<integral>\<^sup>+x. g x * indicator A x \<partial>M) \<le> N A"
+    from this[THEN bspec, OF sets.top] show "integral\<^sup>P M g \<le> N (space M)"
       by (simp cong: positive_integral_cong)
   qed
-  from SUPR_countable_SUPR[OF `G \<noteq> {}`, of "integral\<^isup>P M"] guess ys .. note ys = this
-  then have "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^isup>P M g = ys n"
+  from SUPR_countable_SUPR[OF `G \<noteq> {}`, of "integral\<^sup>P M"] guess ys .. note ys = this
+  then have "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^sup>P M g = ys n"
   proof safe
-    fix n assume "range ys \<subseteq> integral\<^isup>P M ` G"
-    hence "ys n \<in> integral\<^isup>P M ` G" by auto
-    thus "\<exists>g. g\<in>G \<and> integral\<^isup>P M g = ys n" by auto
+    fix n assume "range ys \<subseteq> integral\<^sup>P M ` G"
+    hence "ys n \<in> integral\<^sup>P M ` G" by auto
+    thus "\<exists>g. g\<in>G \<and> integral\<^sup>P M g = ys n" by auto
   qed
-  from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. integral\<^isup>P M (gs n) = ys n" by auto
-  hence y_eq: "?y = (SUP i. integral\<^isup>P M (gs i))" using ys by auto
+  from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. integral\<^sup>P M (gs n) = ys n" by auto
+  hence y_eq: "?y = (SUP i. integral\<^sup>P M (gs i))" using ys by auto
   let ?g = "\<lambda>i x. Max ((\<lambda>n. gs n x) ` {..i})"
   def f \<equiv> "\<lambda>x. SUP i. ?g i x"
   let ?F = "\<lambda>A x. f x * indicator A x"
@@ -380,23 +380,23 @@ proof -
     by (auto intro!: incseq_SucI le_funI simp add: atMost_Suc)
   from SUP_in_G[OF this g_in_G] have [measurable]: "f \<in> G" unfolding f_def .
   then have [simp, intro]: "f \<in> borel_measurable M" unfolding G_def by auto
-  have "integral\<^isup>P M f = (SUP i. integral\<^isup>P M (?g i))" unfolding f_def
+  have "integral\<^sup>P M f = (SUP i. integral\<^sup>P M (?g i))" unfolding f_def
     using g_in_G `incseq ?g`
     by (auto intro!: positive_integral_monotone_convergence_SUP simp: G_def)
   also have "\<dots> = ?y"
   proof (rule antisym)
-    show "(SUP i. integral\<^isup>P M (?g i)) \<le> ?y"
+    show "(SUP i. integral\<^sup>P M (?g i)) \<le> ?y"
       using g_in_G by (auto intro: Sup_mono simp: SUP_def)
-    show "?y \<le> (SUP i. integral\<^isup>P M (?g i))" unfolding y_eq
+    show "?y \<le> (SUP i. integral\<^sup>P M (?g i))" unfolding y_eq
       by (auto intro!: SUP_mono positive_integral_mono Max_ge)
   qed
-  finally have int_f_eq_y: "integral\<^isup>P M f = ?y" .
+  finally have int_f_eq_y: "integral\<^sup>P M f = ?y" .
   have "\<And>x. 0 \<le> f x"
     unfolding f_def using `\<And>i. gs i \<in> G`
     by (auto intro!: SUP_upper2 Max_ge_iff[THEN iffD2] simp: G_def)
-  let ?t = "\<lambda>A. N A - (\<integral>\<^isup>+x. ?F A x \<partial>M)"
+  let ?t = "\<lambda>A. N A - (\<integral>\<^sup>+x. ?F A x \<partial>M)"
   let ?M = "diff_measure N (density M f)"
-  have f_le_N: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. ?F A x \<partial>M) \<le> N A"
+  have f_le_N: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+x. ?F A x \<partial>M) \<le> N A"
     using `f \<in> G` unfolding G_def by auto
   have emeasure_M: "\<And>A. A \<in> sets M \<Longrightarrow> emeasure ?M A = ?t A"
   proof (subst emeasure_diff_measure)
@@ -415,8 +415,8 @@ proof -
     fix A assume A: "A \<in> null_sets M"
     with `absolutely_continuous M N` have "A \<in> null_sets N"
       unfolding absolutely_continuous_def by auto
-    moreover with A have "(\<integral>\<^isup>+ x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` by (auto simp: G_def)
-    ultimately have "N A - (\<integral>\<^isup>+ x. ?F A x \<partial>M) = 0"
+    moreover with A have "(\<integral>\<^sup>+ x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` by (auto simp: G_def)
+    ultimately have "N A - (\<integral>\<^sup>+ x. ?F A x \<partial>M) = 0"
       using positive_integral_positive[of M] by (auto intro!: antisym)
     then show "A \<in> null_sets ?M"
       using A by (simp add: emeasure_M null_sets_def sets_eq)
@@ -436,9 +436,9 @@ proof -
     then have pos_M: "0 < emeasure M (space M)"
       using emeasure_nonneg[of M "space M"] by (simp add: le_less)
     moreover
-    have "(\<integral>\<^isup>+x. f x * indicator (space M) x \<partial>M) \<le> N (space M)"
+    have "(\<integral>\<^sup>+x. f x * indicator (space M) x \<partial>M) \<le> N (space M)"
       using `f \<in> G` unfolding G_def by auto
-    hence "(\<integral>\<^isup>+x. f x * indicator (space M) x \<partial>M) \<noteq> \<infinity>"
+    hence "(\<integral>\<^sup>+x. f x * indicator (space M) x \<partial>M) \<noteq> \<infinity>"
       using M'.finite_emeasure_space by auto
     moreover
     def b \<equiv> "?M (space M) / emeasure M (space M) / 2"
@@ -460,32 +460,32 @@ proof -
     let ?f0 = "\<lambda>x. f x + b * indicator A0 x"
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
-      have "(\<integral>\<^isup>+x. ?f0 x  * indicator A x \<partial>M) =
-        (\<integral>\<^isup>+x. f x * indicator A x + b * indicator (A \<inter> A0) x \<partial>M)"
+      have "(\<integral>\<^sup>+x. ?f0 x  * indicator A x \<partial>M) =
+        (\<integral>\<^sup>+x. f x * indicator A x + b * indicator (A \<inter> A0) x \<partial>M)"
         by (auto intro!: positive_integral_cong split: split_indicator)
-      hence "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) =
-          (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + b * emeasure M (A \<inter> A0)"
+      hence "(\<integral>\<^sup>+x. ?f0 x * indicator A x \<partial>M) =
+          (\<integral>\<^sup>+x. f x * indicator A x \<partial>M) + b * emeasure M (A \<inter> A0)"
         using `A0 \<in> sets M` `A \<inter> A0 \<in> sets M` A b `f \<in> G`
         by (simp add: positive_integral_add positive_integral_cmult_indicator G_def) }
     note f0_eq = this
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
-      have f_le_v: "(\<integral>\<^isup>+x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` A unfolding G_def by auto
+      have f_le_v: "(\<integral>\<^sup>+x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` A unfolding G_def by auto
       note f0_eq[OF A]
-      also have "(\<integral>\<^isup>+x. ?F A x \<partial>M) + b * emeasure M (A \<inter> A0) \<le> (\<integral>\<^isup>+x. ?F A x \<partial>M) + ?M (A \<inter> A0)"
+      also have "(\<integral>\<^sup>+x. ?F A x \<partial>M) + b * emeasure M (A \<inter> A0) \<le> (\<integral>\<^sup>+x. ?F A x \<partial>M) + ?M (A \<inter> A0)"
         using bM_le_t[OF `A \<inter> A0 \<in> sets M`] `A \<in> sets M` `A0 \<in> sets M`
         by (auto intro!: add_left_mono)
-      also have "\<dots> \<le> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + ?M A"
+      also have "\<dots> \<le> (\<integral>\<^sup>+x. f x * indicator A x \<partial>M) + ?M A"
         using emeasure_mono[of "A \<inter> A0" A ?M] `A \<in> sets M` `A0 \<in> sets M`
         by (auto intro!: add_left_mono simp: sets_eq)
       also have "\<dots> \<le> N A"
         unfolding emeasure_M[OF `A \<in> sets M`]
         using f_le_v N.emeasure_eq_measure[of A] positive_integral_positive[of M "?F A"]
-        by (cases "\<integral>\<^isup>+x. ?F A x \<partial>M", cases "N A") auto
-      finally have "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
+        by (cases "\<integral>\<^sup>+x. ?F A x \<partial>M", cases "N A") auto
+      finally have "(\<integral>\<^sup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
     hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G`
       by (auto intro!: ereal_add_nonneg_nonneg simp: G_def)
-    have int_f_finite: "integral\<^isup>P M f \<noteq> \<infinity>"
+    have int_f_finite: "integral\<^sup>P M f \<noteq> \<infinity>"
       by (metis N.emeasure_finite ereal_infty_less_eq2(1) int_f_eq_y y_le)
     have  "0 < ?M (space M) - emeasure ?Mb (space M)"
       using pos_t
@@ -504,13 +504,13 @@ proof -
       by (auto simp: absolutely_continuous_def null_sets_def)
     then have "0 < emeasure M A0" using emeasure_nonneg[of M A0] by auto
     hence "0 < b * emeasure M A0" using b by (auto simp: ereal_zero_less_0_iff)
-    with int_f_finite have "?y + 0 < integral\<^isup>P M f + b * emeasure M A0" unfolding int_f_eq_y
+    with int_f_finite have "?y + 0 < integral\<^sup>P M f + b * emeasure M A0" unfolding int_f_eq_y
       using `f \<in> G`
       by (intro ereal_add_strict_mono) (auto intro!: SUP_upper2 positive_integral_positive)
-    also have "\<dots> = integral\<^isup>P M ?f0" using f0_eq[OF sets.top] `A0 \<in> sets M` sets.sets_into_space
+    also have "\<dots> = integral\<^sup>P M ?f0" using f0_eq[OF sets.top] `A0 \<in> sets M` sets.sets_into_space
       by (simp cong: positive_integral_cong)
-    finally have "?y < integral\<^isup>P M ?f0" by simp
-    moreover from `?f0 \<in> G` have "integral\<^isup>P M ?f0 \<le> ?y" by (auto intro!: SUP_upper)
+    finally have "?y < integral\<^sup>P M ?f0" by simp
+    moreover from `?f0 \<in> G` have "integral\<^sup>P M ?f0 \<le> ?y" by (auto intro!: SUP_upper)
     ultimately show False by auto
   qed
   let ?f = "\<lambda>x. max 0 (f x)"
@@ -521,7 +521,7 @@ proof -
     fix A assume A: "A\<in>sets (density M ?f)"
     then show "emeasure (density M ?f) A = emeasure N A"
       using `f \<in> G` A upper_bound[THEN bspec, of A] N.emeasure_eq_measure[of A]
-      by (cases "integral\<^isup>P M (?F A)")
+      by (cases "integral\<^sup>P M (?F A)")
          (auto intro!: antisym simp add: emeasure_density G_def emeasure_M density_max_0[symmetric])
   qed auto
 qed
@@ -686,12 +686,12 @@ proof -
     and f_density: "\<And>i. density (?M i) (f i) = ?N i"
     by auto
   { fix A i assume A: "A \<in> sets M"
-    with Q borel have "(\<integral>\<^isup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M) = emeasure (density (?M i) (f i)) A"
+    with Q borel have "(\<integral>\<^sup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M) = emeasure (density (?M i) (f i)) A"
       by (auto simp add: emeasure_density positive_integral_density subset_eq
                intro!: positive_integral_cong split: split_indicator)
     also have "\<dots> = emeasure N (Q i \<inter> A)"
       using A Q by (simp add: f_density emeasure_restricted subset_eq sets_eq)
-    finally have "emeasure N (Q i \<inter> A) = (\<integral>\<^isup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M)" .. }
+    finally have "emeasure N (Q i \<inter> A) = (\<integral>\<^sup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M)" .. }
   note integral_eq = this
   let ?f = "\<lambda>x. (\<Sum>i. f i x * indicator (Q i) x) + \<infinity> * indicator Q0 x"
   show ?thesis
@@ -707,15 +707,15 @@ proof -
       have [intro,simp]: "\<And>i. (\<lambda>x. f i x * indicator (Q i \<inter> A) x) \<in> borel_measurable M"
         "\<And>i. AE x in M. 0 \<le> f i x * indicator (Q i \<inter> A) x"
         using borel Qi Q0(1) `A \<in> sets M` by (auto intro!: borel_measurable_ereal_times)
-      have "(\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) + \<infinity> * indicator (Q0 \<inter> A) x \<partial>M)"
+      have "(\<integral>\<^sup>+x. ?f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) + \<infinity> * indicator (Q0 \<inter> A) x \<partial>M)"
         using borel by (intro positive_integral_cong) (auto simp: indicator_def)
-      also have "\<dots> = (\<integral>\<^isup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) \<partial>M) + \<infinity> * emeasure M (Q0 \<inter> A)"
+      also have "\<dots> = (\<integral>\<^sup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) \<partial>M) + \<infinity> * emeasure M (Q0 \<inter> A)"
         using borel Qi Q0(1) `A \<in> sets M`
         by (subst positive_integral_add) (auto simp del: ereal_infty_mult
             simp add: positive_integral_cmult_indicator sets.Int intro!: suminf_0_le)
       also have "\<dots> = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)"
         by (subst integral_eq[OF `A \<in> sets M`], subst positive_integral_suminf) auto
-      finally have "(\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M) = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)" .
+      finally have "(\<integral>\<^sup>+x. ?f x * indicator A x \<partial>M) = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)" .
       moreover have "(\<Sum>i. N (Q i \<inter> A)) = N ((\<Union>i. Q i) \<inter> A)"
         using Q Q_sets `A \<in> sets M`
         by (subst suminf_emeasure) (auto simp: disjoint_family_on_def sets_eq)
@@ -728,7 +728,7 @@ proof -
         using Q_sets `A \<in> sets M` Q0(1) by auto
       moreover have "((\<Union>i. Q i) \<inter> A) \<union> (Q0 \<inter> A) = A" "((\<Union>i. Q i) \<inter> A) \<inter> (Q0 \<inter> A) = {}"
         using `A \<in> sets M` sets.sets_into_space Q0 by auto
-      ultimately have "N A = (\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M)"
+      ultimately have "N A = (\<integral>\<^sup>+x. ?f x * indicator A x \<partial>M)"
         using plus_emeasure[of "(\<Union>i. Q i) \<inter> A" N "Q0 \<inter> A"] by (simp add: sets_eq)
       with `A \<in> sets M` borel Q Q0(1) show "emeasure (density M ?f) A = N A"
         by (auto simp: subset_eq emeasure_density)
@@ -741,12 +741,12 @@ lemma (in sigma_finite_measure) Radon_Nikodym:
   shows "\<exists>f \<in> borel_measurable M. (\<forall>x. 0 \<le> f x) \<and> density M f = N"
 proof -
   from Ex_finite_integrable_function
-  obtain h where finite: "integral\<^isup>P M h \<noteq> \<infinity>" and
+  obtain h where finite: "integral\<^sup>P M h \<noteq> \<infinity>" and
     borel: "h \<in> borel_measurable M" and
     nn: "\<And>x. 0 \<le> h x" and
     pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x" and
     "\<And>x. x \<in> space M \<Longrightarrow> h x < \<infinity>" by auto
-  let ?T = "\<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x \<partial>M)"
+  let ?T = "\<lambda>A. (\<integral>\<^sup>+x. h x * indicator A x \<partial>M)"
   let ?MT = "density M h"
   from borel finite nn interpret T: finite_measure ?MT
     by (auto intro!: finite_measureI cong: positive_integral_cong simp: emeasure_density)
@@ -773,28 +773,28 @@ section "Uniqueness of densities"
 lemma finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
-  and fin: "integral\<^isup>P M f \<noteq> \<infinity>"
+  and fin: "integral\<^sup>P M f \<noteq> \<infinity>"
   shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
 proof (intro iffI ballI)
   fix A assume eq: "AE x in M. f x = g x"
   with borel show "density M f = density M g"
     by (auto intro: density_cong)
 next
-  let ?P = "\<lambda>f A. \<integral>\<^isup>+ x. f x * indicator A x \<partial>M"
+  let ?P = "\<lambda>f A. \<integral>\<^sup>+ x. f x * indicator A x \<partial>M"
   assume "density M f = density M g"
   with borel have eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
     by (simp add: emeasure_density[symmetric])
   from this[THEN bspec, OF sets.top] fin
-  have g_fin: "integral\<^isup>P M g \<noteq> \<infinity>" by (simp cong: positive_integral_cong)
+  have g_fin: "integral\<^sup>P M g \<noteq> \<infinity>" by (simp cong: positive_integral_cong)
   { fix f g assume borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
       and pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
-      and g_fin: "integral\<^isup>P M g \<noteq> \<infinity>" and eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
+      and g_fin: "integral\<^sup>P M g \<noteq> \<infinity>" and eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
     let ?N = "{x\<in>space M. g x < f x}"
     have N: "?N \<in> sets M" using borel by simp
-    have "?P g ?N \<le> integral\<^isup>P M g" using pos
+    have "?P g ?N \<le> integral\<^sup>P M g" using pos
       by (intro positive_integral_mono_AE) (auto split: split_indicator)
     then have Pg_fin: "?P g ?N \<noteq> \<infinity>" using g_fin by auto
-    have "?P (\<lambda>x. (f x - g x)) ?N = (\<integral>\<^isup>+x. f x * indicator ?N x - g x * indicator ?N x \<partial>M)"
+    have "?P (\<lambda>x. (f x - g x)) ?N = (\<integral>\<^sup>+x. f x * indicator ?N x - g x * indicator ?N x \<partial>M)"
       by (auto intro!: positive_integral_cong simp: indicator_def)
     also have "\<dots> = ?P f ?N - ?P g ?N"
     proof (rule positive_integral_diff)
@@ -817,7 +817,7 @@ qed
 lemma (in finite_measure) density_unique_finite_measure:
   assumes borel: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
   assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> f' x"
-  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. f' x * indicator A x \<partial>M)"
+  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^sup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^sup>+x. f' x * indicator A x \<partial>M)"
     (is "\<And>A. A \<in> sets M \<Longrightarrow> ?P f A = ?P f' A")
   shows "AE x in M. f x = f' x"
 proof -
@@ -847,13 +847,13 @@ proof -
   moreover have "AE x in M. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
-        and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?N A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
+        and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?N A = (\<integral>\<^sup>+x. f x * indicator A x \<partial>M)"
       let ?A = "\<lambda>i. Q0 \<inter> {x \<in> space M. f x < (i::nat)}"
       have "(\<Union>i. ?A i) \<in> null_sets M"
       proof (rule null_sets_UN)
         fix i ::nat have "?A i \<in> sets M"
           using borel Q0(1) by auto
-        have "?N (?A i) \<le> (\<integral>\<^isup>+x. (i::ereal) * indicator (?A i) x \<partial>M)"
+        have "?N (?A i) \<le> (\<integral>\<^sup>+x. (i::ereal) * indicator (?A i) x \<partial>M)"
           unfolding eq[OF `?A i \<in> sets M`]
           by (auto intro!: positive_integral_mono simp: indicator_def)
         also have "\<dots> = i * emeasure M (?A i)"
@@ -887,7 +887,7 @@ lemma (in sigma_finite_measure) density_unique:
   shows "AE x in M. f x = f' x"
 proof -
   obtain h where h_borel: "h \<in> borel_measurable M"
-    and fin: "integral\<^isup>P M h \<noteq> \<infinity>" and pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<infinity>" "\<And>x. 0 \<le> h x"
+    and fin: "integral\<^sup>P M h \<noteq> \<infinity>" and pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<infinity>" "\<And>x. 0 \<le> h x"
     using Ex_finite_integrable_function by auto
   then have h_nn: "AE x in M. 0 \<le> h x" by auto
   let ?H = "density M h"
@@ -899,21 +899,21 @@ proof -
   { fix A assume "A \<in> sets M"
     then have "{x \<in> space M. h x * indicator A x \<noteq> 0} = A"
       using pos(1) sets.sets_into_space by (force simp: indicator_def)
-    then have "(\<integral>\<^isup>+x. h x * indicator A x \<partial>M) = 0 \<longleftrightarrow> A \<in> null_sets M"
+    then have "(\<integral>\<^sup>+x. h x * indicator A x \<partial>M) = 0 \<longleftrightarrow> A \<in> null_sets M"
       using h_borel `A \<in> sets M` h_nn by (subst positive_integral_0_iff) auto }
   note h_null_sets = this
   { fix A assume "A \<in> sets M"
-    have "(\<integral>\<^isup>+x. f x * (h x * indicator A x) \<partial>M) = (\<integral>\<^isup>+x. h x * indicator A x \<partial>?fM)"
+    have "(\<integral>\<^sup>+x. f x * (h x * indicator A x) \<partial>M) = (\<integral>\<^sup>+x. h x * indicator A x \<partial>?fM)"
       using `A \<in> sets M` h_borel h_nn f f'
       by (intro positive_integral_density[symmetric]) auto
-    also have "\<dots> = (\<integral>\<^isup>+x. h x * indicator A x \<partial>?f'M)"
+    also have "\<dots> = (\<integral>\<^sup>+x. h x * indicator A x \<partial>?f'M)"
       by (simp_all add: density_eq)
-    also have "\<dots> = (\<integral>\<^isup>+x. f' x * (h x * indicator A x) \<partial>M)"
+    also have "\<dots> = (\<integral>\<^sup>+x. f' x * (h x * indicator A x) \<partial>M)"
       using `A \<in> sets M` h_borel h_nn f f'
       by (intro positive_integral_density) auto
-    finally have "(\<integral>\<^isup>+x. h x * (f x * indicator A x) \<partial>M) = (\<integral>\<^isup>+x. h x * (f' x * indicator A x) \<partial>M)"
+    finally have "(\<integral>\<^sup>+x. h x * (f x * indicator A x) \<partial>M) = (\<integral>\<^sup>+x. h x * (f' x * indicator A x) \<partial>M)"
       by (simp add: ac_simps)
-    then have "(\<integral>\<^isup>+x. (f x * indicator A x) \<partial>?H) = (\<integral>\<^isup>+x. (f' x * indicator A x) \<partial>?H)"
+    then have "(\<integral>\<^sup>+x. (f x * indicator A x) \<partial>?H) = (\<integral>\<^sup>+x. (f' x * indicator A x) \<partial>?H)"
       using `A \<in> sets M` h_borel h_nn f f'
       by (subst (asm) (1 2) positive_integral_density[symmetric]) auto }
   then have "AE x in ?H. f x = f' x" using h_borel h_nn f f'
@@ -950,7 +950,7 @@ next
     fix i
     have "density (density M f) (indicator (A i)) = density (density M g) (indicator (A i))"
       unfolding eq ..
-    moreover have "(\<integral>\<^isup>+x. f x * indicator (A i) x \<partial>M) \<noteq> \<infinity>"
+    moreover have "(\<integral>\<^sup>+x. f x * indicator (A i) x \<partial>M) \<noteq> \<infinity>"
       using cover(1) cover(3)[of i] borel by (auto simp: emeasure_density subset_eq)
     ultimately have "AE x in M. f x * indicator (A i) x = g x * indicator (A i) x"
       using borel pos cover(1) pos
@@ -974,14 +974,14 @@ proof
   assume "sigma_finite_measure ?N"
   then interpret N: sigma_finite_measure ?N .
   from N.Ex_finite_integrable_function obtain h where
-    h: "h \<in> borel_measurable M" "integral\<^isup>P ?N h \<noteq> \<infinity>" and
+    h: "h \<in> borel_measurable M" "integral\<^sup>P ?N h \<noteq> \<infinity>" and
     h_nn: "\<And>x. 0 \<le> h x" and
     fin: "\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>" by auto
   have "AE x in M. f x * h x \<noteq> \<infinity>"
   proof (rule AE_I')
-    have "integral\<^isup>P ?N h = (\<integral>\<^isup>+x. f x * h x \<partial>M)" using f h h_nn
+    have "integral\<^sup>P ?N h = (\<integral>\<^sup>+x. f x * h x \<partial>M)" using f h h_nn
       by (auto intro!: positive_integral_density)
-    then have "(\<integral>\<^isup>+x. f x * h x \<partial>M) \<noteq> \<infinity>"
+    then have "(\<integral>\<^sup>+x. f x * h x \<partial>M) \<noteq> \<infinity>"
       using h(2) by simp
     then show "(\<lambda>x. f x * h x) -` {\<infinity>} \<inter> space M \<in> null_sets M"
       using f h(1) by (auto intro!: positive_integral_PInf borel_measurable_vimage)
@@ -1030,7 +1030,7 @@ next
   next
     fix n obtain i j where
       [simp]: "prod_decode n = (i, j)" by (cases "prod_decode n") auto
-    have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<noteq> \<infinity>"
+    have "(\<integral>\<^sup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<noteq> \<infinity>"
     proof (cases i)
       case 0
       have "AE x in M. f x * indicator (A i \<inter> Q j) x = 0"
@@ -1038,8 +1038,8 @@ next
       from positive_integral_cong_AE[OF this] show ?thesis by simp
     next
       case (Suc n)
-      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
-        (\<integral>\<^isup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
+      then have "(\<integral>\<^sup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
+        (\<integral>\<^sup>+x. (Suc n :: ereal) * indicator (Q j) x \<partial>M)"
         by (auto intro!: positive_integral_mono simp: indicator_def A_def real_eq_of_nat)
       also have "\<dots> = Suc n * emeasure M (Q j)"
         using Q by (auto intro!: positive_integral_cmult_indicator)
@@ -1093,11 +1093,11 @@ qed
 lemma (in sigma_finite_measure) RN_deriv_positive_integral:
   assumes N: "absolutely_continuous M N" "sets N = sets M"
     and f: "f \<in> borel_measurable M"
-  shows "integral\<^isup>P N f = (\<integral>\<^isup>+x. RN_deriv M N x * f x \<partial>M)"
+  shows "integral\<^sup>P N f = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
 proof -
-  have "integral\<^isup>P N f = integral\<^isup>P (density M (RN_deriv M N)) f"
+  have "integral\<^sup>P N f = integral\<^sup>P (density M (RN_deriv M N)) f"
     using N by (simp add: density_RN_deriv)
-  also have "\<dots> = (\<integral>\<^isup>+x. RN_deriv M N x * f x \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+x. RN_deriv M N x * f x \<partial>M)"
     using RN_deriv(1,3)[OF N] f by (simp add: positive_integral_density)
   finally show ?thesis by simp
 qed
@@ -1193,7 +1193,7 @@ lemma (in sigma_finite_measure)
     and f: "f \<in> borel_measurable M"
   shows RN_deriv_integrable: "integrable N f \<longleftrightarrow>
       integrable M (\<lambda>x. real (RN_deriv M N x) * f x)" (is ?integrable)
-    and RN_deriv_integral: "integral\<^isup>L N f =
+    and RN_deriv_integral: "integral\<^sup>L N f =
       (\<integral>x. real (RN_deriv M N x) * f x \<partial>M)" (is ?integral)
 proof -
   note ac(2)[simp] and sets_eq_imp_space_eq[OF ac(2), simp]
@@ -1207,8 +1207,8 @@ proof -
         by (simp add: mult_le_0_iff)
       then have "RN_deriv M N x * ereal (f x) = ereal (real (RN_deriv M N x) * f x)"
         using RN_deriv(3)[OF ac] * by (auto simp add: ereal_real split: split_if_asm) }
-    then have "(\<integral>\<^isup>+x. ereal (real (RN_deriv M N x) * f x) \<partial>M) = (\<integral>\<^isup>+x. RN_deriv M N x * ereal (f x) \<partial>M)"
-              "(\<integral>\<^isup>+x. ereal (- (real (RN_deriv M N x) * f x)) \<partial>M) = (\<integral>\<^isup>+x. RN_deriv M N x * ereal (- f x) \<partial>M)"
+    then have "(\<integral>\<^sup>+x. ereal (real (RN_deriv M N x) * f x) \<partial>M) = (\<integral>\<^sup>+x. RN_deriv M N x * ereal (f x) \<partial>M)"
+              "(\<integral>\<^sup>+x. ereal (- (real (RN_deriv M N x) * f x)) \<partial>M) = (\<integral>\<^sup>+x. RN_deriv M N x * ereal (- f x) \<partial>M)"
       using RN_deriv_finite[OF N ac] unfolding ereal_mult_minus_right uminus_ereal.simps(1)[symmetric]
       by (auto intro!: positive_integral_cong_AE) }
   note * = this
@@ -1235,9 +1235,9 @@ proof
   show "(\<lambda>x. real (RN_deriv M N x)) \<in> borel_measurable M"
     using RN by auto
 
-  have "N (?RN \<infinity>) = (\<integral>\<^isup>+ x. RN_deriv M N x * indicator (?RN \<infinity>) x \<partial>M)"
+  have "N (?RN \<infinity>) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN \<infinity>) x \<partial>M)"
     using RN(1,3) by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
-  also have "\<dots> = (\<integral>\<^isup>+ x. \<infinity> * indicator (?RN \<infinity>) x \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. \<infinity> * indicator (?RN \<infinity>) x \<partial>M)"
     by (intro positive_integral_cong) (auto simp: indicator_def)
   also have "\<dots> = \<infinity> * emeasure M (?RN \<infinity>)"
     using RN by (intro positive_integral_cmult_indicator) auto
@@ -1261,9 +1261,9 @@ proof
   show "\<And>x. 0 \<le> real (RN_deriv M N x)"
     using RN by (auto intro: real_of_ereal_pos)
 
-  have "N (?RN 0) = (\<integral>\<^isup>+ x. RN_deriv M N x * indicator (?RN 0) x \<partial>M)"
+  have "N (?RN 0) = (\<integral>\<^sup>+ x. RN_deriv M N x * indicator (?RN 0) x \<partial>M)"
     using RN(1,3) by (subst RN(2)[symmetric]) (auto simp: emeasure_density)
-  also have "\<dots> = (\<integral>\<^isup>+ x. 0 \<partial>M)"
+  also have "\<dots> = (\<integral>\<^sup>+ x. 0 \<partial>M)"
     by (intro positive_integral_cong) (auto simp: indicator_def)
   finally have "AE x in N. RN_deriv M N x \<noteq> 0"
     using RN by (subst AE_iff_measurable[OF _ refl]) (auto simp: ac cong: sets_eq_imp_space_eq)
@@ -1278,7 +1278,7 @@ lemma (in sigma_finite_measure) RN_deriv_singleton:
 proof -
   note deriv = RN_deriv[OF ac]
   from deriv(1,3) `{x} \<in> sets M`
-  have "density M (RN_deriv M N) {x} = (\<integral>\<^isup>+w. RN_deriv M N x * indicator {x} w \<partial>M)"
+  have "density M (RN_deriv M N) {x} = (\<integral>\<^sup>+w. RN_deriv M N x * indicator {x} w \<partial>M)"
     by (auto simp: indicator_def emeasure_density intro!: positive_integral_cong)
   with x deriv show ?thesis
     by (auto simp: positive_integral_cmult_indicator)

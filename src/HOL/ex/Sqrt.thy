@@ -19,23 +19,23 @@ proof
   then obtain m n :: nat where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
-  have eq: "m\<twosuperior> = p * n\<twosuperior>"
+  have eq: "m\<^sup>2 = p * n\<^sup>2"
   proof -
     from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
-    then have "m\<twosuperior> = (sqrt p)\<twosuperior> * n\<twosuperior>"
+    then have "m\<^sup>2 = (sqrt p)\<^sup>2 * n\<^sup>2"
       by (auto simp add: power2_eq_square)
-    also have "(sqrt p)\<twosuperior> = p" by simp
-    also have "\<dots> * n\<twosuperior> = p * n\<twosuperior>" by simp
+    also have "(sqrt p)\<^sup>2 = p" by simp
+    also have "\<dots> * n\<^sup>2 = p * n\<^sup>2" by simp
     finally show ?thesis ..
   qed
   have "p dvd m \<and> p dvd n"
   proof
-    from eq have "p dvd m\<twosuperior>" ..
+    from eq have "p dvd m\<^sup>2" ..
     with `prime p` pos2 show "p dvd m" by (rule prime_dvd_power_nat)
     then obtain k where "m = p * k" ..
-    with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
-    with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
-    then have "p dvd n\<twosuperior>" ..
+    with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square mult_ac)
+    with p have "n\<^sup>2 = p * k\<^sup>2" by (simp add: power2_eq_square)
+    then have "p dvd n\<^sup>2" ..
     with `prime p` pos2 show "p dvd n" by (rule prime_dvd_power_nat)
   qed
   then have "p dvd gcd m n" ..
@@ -65,17 +65,17 @@ proof
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
-  then have "m\<twosuperior> = (sqrt p)\<twosuperior> * n\<twosuperior>"
+  then have "m\<^sup>2 = (sqrt p)\<^sup>2 * n\<^sup>2"
     by (auto simp add: power2_eq_square)
-  also have "(sqrt p)\<twosuperior> = p" by simp
-  also have "\<dots> * n\<twosuperior> = p * n\<twosuperior>" by simp
-  finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
-  then have "p dvd m\<twosuperior>" ..
+  also have "(sqrt p)\<^sup>2 = p" by simp
+  also have "\<dots> * n\<^sup>2 = p * n\<^sup>2" by simp
+  finally have eq: "m\<^sup>2 = p * n\<^sup>2" ..
+  then have "p dvd m\<^sup>2" ..
   with `prime p` pos2 have dvd_m: "p dvd m" by (rule prime_dvd_power_nat)
   then obtain k where "m = p * k" ..
-  with eq have "p * n\<twosuperior> = p\<twosuperior> * k\<twosuperior>" by (auto simp add: power2_eq_square mult_ac)
-  with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
-  then have "p dvd n\<twosuperior>" ..
+  with eq have "p * n\<^sup>2 = p\<^sup>2 * k\<^sup>2" by (auto simp add: power2_eq_square mult_ac)
+  with p have "n\<^sup>2 = p * k\<^sup>2" by (simp add: power2_eq_square)
+  then have "p dvd n\<^sup>2" ..
   with `prime p` pos2 have "p dvd n" by (rule prime_dvd_power_nat)
   with dvd_m have "p dvd gcd m n" by (rule gcd_greatest_nat)
   with gcd have "p dvd 1" by simp

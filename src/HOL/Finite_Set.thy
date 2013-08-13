@@ -566,7 +566,7 @@ instance option :: (finite) finite
 subsection {* A basic fold functional for finite sets *}
 
 text {* The intended behaviour is
-@{text "fold f z {x\<^isub>1, ..., x\<^isub>n} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
+@{text "fold f z {x\<^sub>1, ..., x\<^sub>n} = f x\<^sub>1 (\<dots> (f x\<^sub>n z)\<dots>)"}
 if @{text f} is ``left-commutative'':
 *}
 

@@ -71,12 +71,12 @@ by (nominal_induct t avoiding: \<theta> c s rule: lam.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
  
 inductive 
-  Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _" [80,80] 80)
+  Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
 where
-  b1[intro!]: "s1 \<longrightarrow>\<^isub>\<beta> s2 \<Longrightarrow> App s1 t \<longrightarrow>\<^isub>\<beta> App s2 t"
-| b2[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^isub>\<beta> App t s2"
-| b3[intro!]: "s1\<longrightarrow>\<^isub>\<beta>s2 \<Longrightarrow> Lam [a].s1 \<longrightarrow>\<^isub>\<beta> Lam [a].s2"
-| b4[intro!]: "a\<sharp>s2 \<Longrightarrow> App (Lam [a].s1) s2\<longrightarrow>\<^isub>\<beta> (s1[a::=s2])"
+  b1[intro!]: "s1 \<longrightarrow>\<^sub>\<beta> s2 \<Longrightarrow> App s1 t \<longrightarrow>\<^sub>\<beta> App s2 t"
+| b2[intro!]: "s1\<longrightarrow>\<^sub>\<beta>s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^sub>\<beta> App t s2"
+| b3[intro!]: "s1\<longrightarrow>\<^sub>\<beta>s2 \<Longrightarrow> Lam [a].s1 \<longrightarrow>\<^sub>\<beta> Lam [a].s2"
+| b4[intro!]: "a\<sharp>s2 \<Longrightarrow> App (Lam [a].s1) s2\<longrightarrow>\<^sub>\<beta> (s1[a::=s2])"
 
 equivariance Beta
 
@@ -85,7 +85,7 @@ nominal_inductive Beta
 
 lemma beta_preserves_fresh: 
   fixes a::"name"
-  assumes a: "t\<longrightarrow>\<^isub>\<beta> s"
+  assumes a: "t\<longrightarrow>\<^sub>\<beta> s"
   shows "a\<sharp>t \<Longrightarrow> a\<sharp>s"
 using a
 apply(nominal_induct t s avoiding: a rule: Beta.strong_induct)
@@ -93,8 +93,8 @@ apply(auto simp add: abs_fresh fresh_fact fresh_atm)
 done
 
 lemma beta_abs: 
-  assumes a: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'" 
-  shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
+  assumes a: "Lam [a].t\<longrightarrow>\<^sub>\<beta> t'" 
+  shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^sub>\<beta> t''"
 proof -
   have "a\<sharp>Lam [a].t" by (simp add: abs_fresh)
   with a have "a\<sharp>t'" by (simp add: beta_preserves_fresh)
@@ -104,8 +104,8 @@ proof -
 qed
 
 lemma beta_subst: 
-  assumes a: "M \<longrightarrow>\<^isub>\<beta> M'"
-  shows "M[x::=N]\<longrightarrow>\<^isub>\<beta> M'[x::=N]" 
+  assumes a: "M \<longrightarrow>\<^sub>\<beta> M'"
+  shows "M[x::=N]\<longrightarrow>\<^sub>\<beta> M'[x::=N]" 
 using a
 by (nominal_induct M M' avoiding: x N rule: Beta.strong_induct)
    (auto simp add: fresh_atm subst_lemma fresh_fact)
@@ -159,13 +159,13 @@ nominal_inductive typing
 subsection {* a fact about beta *}
 
 definition "NORMAL" :: "lam \<Rightarrow> bool" where
-  "NORMAL t \<equiv> \<not>(\<exists>t'. t\<longrightarrow>\<^isub>\<beta> t')"
+  "NORMAL t \<equiv> \<not>(\<exists>t'. t\<longrightarrow>\<^sub>\<beta> t')"
 
 lemma NORMAL_Var:
   shows "NORMAL (Var a)"
 proof -
-  { assume "\<exists>t'. (Var a) \<longrightarrow>\<^isub>\<beta> t'"
-    then obtain t' where "(Var a) \<longrightarrow>\<^isub>\<beta> t'" by blast
+  { assume "\<exists>t'. (Var a) \<longrightarrow>\<^sub>\<beta> t'"
+    then obtain t' where "(Var a) \<longrightarrow>\<^sub>\<beta> t'" by blast
     hence False by (cases) (auto) 
   }
   thus "NORMAL (Var a)" by (auto simp add: NORMAL_def)
@@ -175,10 +175,10 @@ text {* Inductive version of Strong Normalisation *}
 inductive 
   SN :: "lam \<Rightarrow> bool"
 where
-  SN_intro: "(\<And>t'. t \<longrightarrow>\<^isub>\<beta> t' \<Longrightarrow> SN t') \<Longrightarrow> SN t"
+  SN_intro: "(\<And>t'. t \<longrightarrow>\<^sub>\<beta> t' \<Longrightarrow> SN t') \<Longrightarrow> SN t"
 
 lemma SN_preserved: 
-  assumes a: "SN t1" "t1\<longrightarrow>\<^isub>\<beta> t2"
+  assumes a: "SN t1" "t1\<longrightarrow>\<^sub>\<beta> t2"
   shows "SN t2"
 using a 
 by (cases) (auto)
@@ -187,8 +187,8 @@ lemma double_SN_aux:
   assumes a: "SN a"
   and b: "SN b"
   and hyp: "\<And>x z.
-    \<lbrakk>\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> SN y; \<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z;
-     \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> SN u; \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
+    \<lbrakk>\<And>y. x \<longrightarrow>\<^sub>\<beta> y \<Longrightarrow> SN y; \<And>y. x \<longrightarrow>\<^sub>\<beta> y \<Longrightarrow> P y z;
+     \<And>u. z \<longrightarrow>\<^sub>\<beta> u \<Longrightarrow> SN u; \<And>u. z \<longrightarrow>\<^sub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
   shows "P a b"
 proof -
   from a
@@ -215,7 +215,7 @@ qed
 lemma double_SN[consumes 2]:
   assumes a: "SN a"
   and     b: "SN b" 
-  and     c: "\<And>x z. \<lbrakk>\<And>y. x \<longrightarrow>\<^isub>\<beta> y \<Longrightarrow> P y z; \<And>u. z \<longrightarrow>\<^isub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
+  and     c: "\<And>x z. \<lbrakk>\<And>y. x \<longrightarrow>\<^sub>\<beta> y \<Longrightarrow> P y z; \<And>u. z \<longrightarrow>\<^sub>\<beta> u \<Longrightarrow> P x u\<rbrakk> \<Longrightarrow> P x z"
   shows "P a b"
 using a b c
 apply(rule_tac double_SN_aux)
@@ -276,10 +276,10 @@ definition "CR1" :: "ty \<Rightarrow> bool" where
   "CR1 \<tau> \<equiv> \<forall>t. (t\<in>RED \<tau> \<longrightarrow> SN t)"
 
 definition "CR2" :: "ty \<Rightarrow> bool" where
-  "CR2 \<tau> \<equiv> \<forall>t t'. (t\<in>RED \<tau> \<and> t \<longrightarrow>\<^isub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>"
+  "CR2 \<tau> \<equiv> \<forall>t t'. (t\<in>RED \<tau> \<and> t \<longrightarrow>\<^sub>\<beta> t') \<longrightarrow> t'\<in>RED \<tau>"
 
 definition "CR3_RED" :: "lam \<Rightarrow> ty \<Rightarrow> bool" where
-  "CR3_RED t \<tau> \<equiv> \<forall>t'. t\<longrightarrow>\<^isub>\<beta> t' \<longrightarrow>  t'\<in>RED \<tau>" 
+  "CR3_RED t \<tau> \<equiv> \<forall>t'. t\<longrightarrow>\<^sub>\<beta> t' \<longrightarrow>  t'\<in>RED \<tau>" 
 
 definition "CR3" :: "ty \<Rightarrow> bool" where
   "CR3 \<tau> \<equiv> \<forall>t. (NEUT t \<and> CR3_RED t \<tau>) \<longrightarrow> t\<in>RED \<tau>"
@@ -305,23 +305,23 @@ using a b
 proof (induct)
   fix u
   assume as: "u\<in>RED \<tau>"
-  assume ih: " \<And>u'. \<lbrakk>u \<longrightarrow>\<^isub>\<beta> u'; u' \<in> RED \<tau>\<rbrakk> \<Longrightarrow> App t u' \<in> RED \<sigma>"
+  assume ih: " \<And>u'. \<lbrakk>u \<longrightarrow>\<^sub>\<beta> u'; u' \<in> RED \<tau>\<rbrakk> \<Longrightarrow> App t u' \<in> RED \<sigma>"
   have "NEUT (App t u)" using c1 by (auto simp add: NEUT_def)
   moreover
   have "CR3_RED (App t u) \<sigma>" unfolding CR3_RED_def
   proof (intro strip)
     fix r
-    assume red: "App t u \<longrightarrow>\<^isub>\<beta> r"
+    assume red: "App t u \<longrightarrow>\<^sub>\<beta> r"
     moreover
-    { assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App t' u"
-      then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App t' u" by blast
+    { assume "\<exists>t'. t \<longrightarrow>\<^sub>\<beta> t' \<and> r = App t' u"
+      then obtain t' where a1: "t \<longrightarrow>\<^sub>\<beta> t'" and a2: "r = App t' u" by blast
       have "t'\<in>RED (\<tau>\<rightarrow>\<sigma>)" using c4 a1 by (simp add: CR3_RED_def)
       then have "App t' u\<in>RED \<sigma>" using as by simp
       then have "r\<in>RED \<sigma>" using a2 by simp
     }
     moreover
-    { assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App t u'"
-      then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App t u'" by blast
+    { assume "\<exists>u'. u \<longrightarrow>\<^sub>\<beta> u' \<and> r = App t u'"
+      then obtain u' where b1: "u \<longrightarrow>\<^sub>\<beta> u'" and b2: "r = App t u'" by blast
       have "u'\<in>RED \<tau>" using as b1 c2 by (auto simp add: CR2_def)
       with ih have "App t u' \<in> RED \<sigma>" using b1 by simp
       then have "r\<in>RED \<sigma>" using b2 by simp
@@ -423,17 +423,17 @@ proof -
     show "App (Lam [x].t) u \<in> RED \<sigma>" using b1 b3 b2 asm
     proof(induct t u rule: double_SN)
       fix t u
-      assume ih1: "\<And>t'.  \<lbrakk>t \<longrightarrow>\<^isub>\<beta> t'; u\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t'[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t') u \<in> RED \<sigma>" 
-      assume ih2: "\<And>u'.  \<lbrakk>u \<longrightarrow>\<^isub>\<beta> u'; u'\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t) u' \<in> RED \<sigma>"
+      assume ih1: "\<And>t'.  \<lbrakk>t \<longrightarrow>\<^sub>\<beta> t'; u\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t'[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t') u \<in> RED \<sigma>" 
+      assume ih2: "\<And>u'.  \<lbrakk>u \<longrightarrow>\<^sub>\<beta> u'; u'\<in>RED \<tau>; \<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>\<rbrakk> \<Longrightarrow> App (Lam [x].t) u' \<in> RED \<sigma>"
       assume as1: "u \<in> RED \<tau>"
       assume as2: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
       have "CR3_RED (App (Lam [x].t) u) \<sigma>" unfolding CR3_RED_def
       proof(intro strip)
         fix r
-        assume red: "App (Lam [x].t) u \<longrightarrow>\<^isub>\<beta> r"
+        assume red: "App (Lam [x].t) u \<longrightarrow>\<^sub>\<beta> r"
         moreover
-        { assume "\<exists>t'. t \<longrightarrow>\<^isub>\<beta> t' \<and> r = App (Lam [x].t') u"
-          then obtain t' where a1: "t \<longrightarrow>\<^isub>\<beta> t'" and a2: "r = App (Lam [x].t') u" by blast
+        { assume "\<exists>t'. t \<longrightarrow>\<^sub>\<beta> t' \<and> r = App (Lam [x].t') u"
+          then obtain t' where a1: "t \<longrightarrow>\<^sub>\<beta> t'" and a2: "r = App (Lam [x].t') u" by blast
           have "App (Lam [x].t') u\<in>RED \<sigma>" using ih1 a1 as1 as2
             apply(auto)
             apply(drule_tac x="t'" in meta_spec)
@@ -455,8 +455,8 @@ proof -
           then have "r\<in>RED \<sigma>" using a2 by simp
         }
         moreover
-        { assume "\<exists>u'. u \<longrightarrow>\<^isub>\<beta> u' \<and> r = App (Lam [x].t) u'"
-          then obtain u' where b1: "u \<longrightarrow>\<^isub>\<beta> u'" and b2: "r = App (Lam [x].t) u'" by blast
+        { assume "\<exists>u'. u \<longrightarrow>\<^sub>\<beta> u' \<and> r = App (Lam [x].t) u'"
+          then obtain u' where b1: "u \<longrightarrow>\<^sub>\<beta> u'" and b2: "r = App (Lam [x].t) u'" by blast
           have "App (Lam [x].t) u'\<in>RED \<sigma>" using ih2 b1 as1 as2
             apply(auto)
             apply(drule_tac x="u'" in meta_spec)

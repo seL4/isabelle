@@ -51,7 +51,7 @@ proof -
   assume A3: "(a, b) \<in> R\<^sup>*"
   assume A4: "(b, c) \<in> R\<^sup>*"
   have "b \<noteq> c" using A1 A2 by metis
-  hence "\<exists>x\<^isub>1. (b, x\<^isub>1) \<in> R" using A4 by (metis converse_rtranclE)
+  hence "\<exists>x\<^sub>1. (b, x\<^sub>1) \<in> R" using A4 by (metis converse_rtranclE)
   thus "\<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*" using A3 by (metis transitive_closure_trans(6))
 qed
 

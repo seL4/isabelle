@@ -102,7 +102,7 @@ by (metis in_mono le_astate_def le_rep lookup_def top)
 lemma in_rep_join_UpI: "s <:: S1 | s <:: S2 \<Longrightarrow> s <:: S1 \<squnion> S2"
 by (metis in_rep_up_trans SL_top_class.join_ge1 SL_top_class.join_ge2)
 
-fun aval' :: "aexp \<Rightarrow> 'a astate up \<Rightarrow> 'a" ("aval\<^isup>#") where
+fun aval' :: "aexp \<Rightarrow> 'a astate up \<Rightarrow> 'a" ("aval\<^sup>#") where
 "aval' _ bot = Bot" |
 "aval' (N n) _ = num' n" |
 "aval' (V x) (Up S) = lookup S x" |

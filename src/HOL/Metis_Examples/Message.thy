@@ -677,10 +677,10 @@ done
 
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
 proof -
-  have "\<forall>x\<^isub>2 x\<^isub>1. synth x\<^isub>1 \<union> analz (x\<^isub>1 \<union> x\<^isub>2) = analz (synth x\<^isub>1 \<union> x\<^isub>2)" by (metis Un_commute analz_synth_Un)
-  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1 \<union> {})" by (metis Un_empty_right)
-  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1)" by (metis Un_empty_right)
-  hence "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth x\<^isub>1 = analz (synth x\<^isub>1)" by (metis Un_commute)
+  have "\<forall>x\<^sub>2 x\<^sub>1. synth x\<^sub>1 \<union> analz (x\<^sub>1 \<union> x\<^sub>2) = analz (synth x\<^sub>1 \<union> x\<^sub>2)" by (metis Un_commute analz_synth_Un)
+  hence "\<forall>x\<^sub>1. synth x\<^sub>1 \<union> analz x\<^sub>1 = analz (synth x\<^sub>1 \<union> {})" by (metis Un_empty_right)
+  hence "\<forall>x\<^sub>1. synth x\<^sub>1 \<union> analz x\<^sub>1 = analz (synth x\<^sub>1)" by (metis Un_empty_right)
+  hence "\<forall>x\<^sub>1. analz x\<^sub>1 \<union> synth x\<^sub>1 = analz (synth x\<^sub>1)" by (metis Un_commute)
   thus "analz (synth H) = analz H \<union> synth H" by metis
 qed
 
@@ -690,8 +690,8 @@ subsubsection{*For reasoning about the Fake rule in traces *}
 lemma parts_insert_subset_Un: "X \<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 proof -
   assume "X \<in> G"
-  hence "\<forall>x\<^isub>1. G \<subseteq> x\<^isub>1 \<longrightarrow> X \<in> x\<^isub>1 " by auto
-  hence "\<forall>x\<^isub>1. X \<in> G \<union> x\<^isub>1" by (metis Un_upper1)
+  hence "\<forall>x\<^sub>1. G \<subseteq> x\<^sub>1 \<longrightarrow> X \<in> x\<^sub>1 " by auto
+  hence "\<forall>x\<^sub>1. X \<in> G \<union> x\<^sub>1" by (metis Un_upper1)
   hence "insert X H \<subseteq> G \<union> H" by (metis Un_upper2 insert_subset)
   hence "parts (insert X H) \<subseteq> parts (G \<union> H)" by (metis parts_mono)
   thus "parts (insert X H) \<subseteq> parts G \<union> parts H" by (metis parts_Un)
@@ -702,22 +702,22 @@ lemma Fake_parts_insert:
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
 proof -
   assume A1: "X \<in> synth (analz H)"
-  have F1: "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth (analz x\<^isub>1) = analz (synth (analz x\<^isub>1))"
+  have F1: "\<forall>x\<^sub>1. analz x\<^sub>1 \<union> synth (analz x\<^sub>1) = analz (synth (analz x\<^sub>1))"
     by (metis analz_idem analz_synth)
-  have F2: "\<forall>x\<^isub>1. parts x\<^isub>1 \<union> synth (analz x\<^isub>1) = parts (synth (analz x\<^isub>1))"
+  have F2: "\<forall>x\<^sub>1. parts x\<^sub>1 \<union> synth (analz x\<^sub>1) = parts (synth (analz x\<^sub>1))"
     by (metis parts_analz parts_synth)
   have F3: "X \<in> synth (analz H)" using A1 by metis
-  have "\<forall>x\<^isub>2 x\<^isub>1\<Colon>msg set. x\<^isub>1 \<le> sup x\<^isub>1 x\<^isub>2" by (metis inf_sup_ord(3))
-  hence F4: "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> analz (synth x\<^isub>1)" by (metis analz_synth)
+  have "\<forall>x\<^sub>2 x\<^sub>1\<Colon>msg set. x\<^sub>1 \<le> sup x\<^sub>1 x\<^sub>2" by (metis inf_sup_ord(3))
+  hence F4: "\<forall>x\<^sub>1. analz x\<^sub>1 \<subseteq> analz (synth x\<^sub>1)" by (metis analz_synth)
   have F5: "X \<in> synth (analz H)" using F3 by metis
-  have "\<forall>x\<^isub>1. analz x\<^isub>1 \<subseteq> synth (analz x\<^isub>1)
-         \<longrightarrow> analz (synth (analz x\<^isub>1)) = synth (analz x\<^isub>1)"
+  have "\<forall>x\<^sub>1. analz x\<^sub>1 \<subseteq> synth (analz x\<^sub>1)
+         \<longrightarrow> analz (synth (analz x\<^sub>1)) = synth (analz x\<^sub>1)"
     using F1 by (metis subset_Un_eq)
-  hence F6: "\<forall>x\<^isub>1. analz (synth (analz x\<^isub>1)) = synth (analz x\<^isub>1)"
+  hence F6: "\<forall>x\<^sub>1. analz (synth (analz x\<^sub>1)) = synth (analz x\<^sub>1)"
     by (metis synth_increasing)
-  have "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> analz (synth x\<^isub>1)" using F4 by (metis analz_subset_iff)
-  hence "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> analz (synth (analz x\<^isub>1))" by (metis analz_subset_iff)
-  hence "\<forall>x\<^isub>1. x\<^isub>1 \<subseteq> synth (analz x\<^isub>1)" using F6 by metis
+  have "\<forall>x\<^sub>1. x\<^sub>1 \<subseteq> analz (synth x\<^sub>1)" using F4 by (metis analz_subset_iff)
+  hence "\<forall>x\<^sub>1. x\<^sub>1 \<subseteq> analz (synth (analz x\<^sub>1))" by (metis analz_subset_iff)
+  hence "\<forall>x\<^sub>1. x\<^sub>1 \<subseteq> synth (analz x\<^sub>1)" using F6 by metis
   hence "H \<subseteq> synth (analz H)" by metis
   hence "H \<subseteq> synth (analz H) \<and> X \<in> synth (analz H)" using F5 by metis
   hence "insert X H \<subseteq> synth (analz H)" by (metis insert_subset)

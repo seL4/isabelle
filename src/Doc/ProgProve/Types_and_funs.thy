@@ -21,14 +21,14 @@ Type synonyms are expanded after parsing and are not present in internal represe
 The general form of a datatype definition looks like this:
 \begin{quote}
 \begin{tabular}{@ {}rclcll}
-\isacom{datatype} @{text "('a\<^isub>1,\<dots>,'a\<^isub>n)t"}
+\isacom{datatype} @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}
      & = & $C_1 \ @{text"\""}\tau_{1,1}@{text"\""} \dots @{text"\""}\tau_{1,n_1}@{text"\""}$ \\
      & $|$ & \dots \\
      & $|$ & $C_k \ @{text"\""}\tau_{k,1}@{text"\""} \dots @{text"\""}\tau_{k,n_k}@{text"\""}$
 \end{tabular}
 \end{quote}
 It introduces the constructors \
-$C_i :: \tau_{i,1}\Rightarrow \cdots \Rightarrow \tau_{i,n_i} \Rightarrow$~@{text "('a\<^isub>1,\<dots>,'a\<^isub>n)t"} \ and expresses that any value of this type is built from these constructors in a unique manner. Uniqueness is implied by the following
+$C_i :: \tau_{i,1}\Rightarrow \cdots \Rightarrow \tau_{i,n_i} \Rightarrow$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"} \ and expresses that any value of this type is built from these constructors in a unique manner. Uniqueness is implied by the following
 properties of the constructors:
 \begin{itemize}
 \item \emph{Distinctness:} $C_i\ \ldots \neq C_j\ \dots$ \quad if $i \neq j$
@@ -40,9 +40,9 @@ properties of the constructors:
 \end{itemize}
 The fact that any value of the datatype is built from the constructors implies
 the structural induction rule: to show
-$P~x$ for all $x$ of type @{text "('a\<^isub>1,\<dots>,'a\<^isub>n)t"},
+$P~x$ for all $x$ of type @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"},
 one needs to show $P(C_i\ x_1 \dots x_{n_i})$ (for each $i$) assuming
-$P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^isub>1,\<dots>,'a\<^isub>n)t"}.
+$P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}.
 Distinctness and injectivity are applied automatically by @{text auto}
 and other proof methods. Induction must be applied explicitly.
 
@@ -91,11 +91,11 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 "lookup ((a,b) # ps) x = (if a = x then Some b else lookup ps x)"
 
 text{*
-Note that @{text"\<tau>\<^isub>1 * \<tau>\<^isub>2"} is the type of pairs, also written @{text"\<tau>\<^isub>1 \<times> \<tau>\<^isub>2"}.
+Note that @{text"\<tau>\<^sub>1 * \<tau>\<^sub>2"} is the type of pairs, also written @{text"\<tau>\<^sub>1 \<times> \<tau>\<^sub>2"}.
 Pairs can be taken apart either by pattern matching (as above) or with the
 projection functions @{const fst} and @{const snd}: @{thm fst_conv} and @{thm snd_conv}. Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
-abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^isub>1 \<times> \<tau>\<^isub>2 \<times> \<tau>\<^isub>3"} abbreviates
-@{text "\<tau>\<^isub>1 \<times> (\<tau>\<^isub>2 \<times> \<tau>\<^isub>3)"}.
+abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^sub>2 \<times> \<tau>\<^sub>3"} abbreviates
+@{text "\<tau>\<^sub>1 \<times> (\<tau>\<^sub>2 \<times> \<tau>\<^sub>3)"}.
 
 \subsection{Definitions}
 
@@ -106,7 +106,7 @@ definition sq :: "nat \<Rightarrow> nat" where
 "sq n = n * n"
 
 text{* Such definitions do not allow pattern matching but only
-@{text"f x\<^isub>1 \<dots> x\<^isub>n = t"}, where @{text f} does not occur in @{text t}.
+@{text"f x\<^sub>1 \<dots> x\<^sub>n = t"}, where @{text f} does not occur in @{text t}.
 
 \subsection{Abbreviations}
 
@@ -185,18 +185,18 @@ The general case is often called \concept{computation induction},
 because the induction follows the (terminating!) computation.
 For every defining equation
 \begin{quote}
-@{text "f(e) = \<dots> f(r\<^isub>1) \<dots> f(r\<^isub>k) \<dots>"}
+@{text "f(e) = \<dots> f(r\<^sub>1) \<dots> f(r\<^sub>k) \<dots>"}
 \end{quote}
-where @{text"f(r\<^isub>i)"}, @{text"i=1\<dots>k"}, are all the recursive calls,
+where @{text"f(r\<^sub>i)"}, @{text"i=1\<dots>k"}, are all the recursive calls,
 the induction rule @{text"f.induct"} contains one premise of the form
 \begin{quote}
-@{text"P(r\<^isub>1) \<Longrightarrow> \<dots> \<Longrightarrow> P(r\<^isub>k) \<Longrightarrow> P(e)"}
+@{text"P(r\<^sub>1) \<Longrightarrow> \<dots> \<Longrightarrow> P(r\<^sub>k) \<Longrightarrow> P(e)"}
 \end{quote}
-If @{text "f :: \<tau>\<^isub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^isub>n \<Rightarrow> \<tau>"} then @{text"f.induct"} is applied like this:
+If @{text "f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> \<tau>"} then @{text"f.induct"} is applied like this:
 \begin{quote}
-\isacom{apply}@{text"(induction x\<^isub>1 \<dots> x\<^isub>n rule: f.induct)"}
+\isacom{apply}@{text"(induction x\<^sub>1 \<dots> x\<^sub>n rule: f.induct)"}
 \end{quote}
-where typically there is a call @{text"f x\<^isub>1 \<dots> x\<^isub>n"} in the goal.
+where typically there is a call @{text"f x\<^sub>1 \<dots> x\<^sub>n"} in the goal.
 But note that the induction rule does not mention @{text f} at all,
 except in its name, and is applicable independently of @{text f}.
 
@@ -300,7 +300,7 @@ This leads to another heuristic for generalization:
 \emph{Generalize induction by generalizing all free
 variables\\ {\em(except the induction variable itself)}.}
 \end{quote}
-Generalization is best performed with @{text"arbitrary: y\<^isub>1 \<dots> y\<^isub>k"}. 
+Generalization is best performed with @{text"arbitrary: y\<^sub>1 \<dots> y\<^sub>k"}. 
 This heuristic prevents trivial failures like the one above.
 However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
@@ -410,16 +410,16 @@ some cases, @{text auto} is overeager and modifies the proof state too much.
 In such cases the more predictable @{text simp} method should be used.
 Given a goal
 \begin{quote}
-@{text"1. \<lbrakk> P\<^isub>1; \<dots>; P\<^isub>m \<rbrakk> \<Longrightarrow> C"}
+@{text"1. \<lbrakk> P\<^sub>1; \<dots>; P\<^sub>m \<rbrakk> \<Longrightarrow> C"}
 \end{quote}
 the command
 \begin{quote}
-\isacom{apply}@{text"(simp add: th\<^isub>1 \<dots> th\<^isub>n)"}
+\isacom{apply}@{text"(simp add: th\<^sub>1 \<dots> th\<^sub>n)"}
 \end{quote}
-simplifies the assumptions @{text "P\<^isub>i"} and the conclusion @{text C} using
+simplifies the assumptions @{text "P\<^sub>i"} and the conclusion @{text C} using
 \begin{itemize}
 \item all simplification rules, including the ones coming from \isacom{datatype} and \isacom{fun},
-\item the additional lemmas @{text"th\<^isub>1 \<dots> th\<^isub>n"}, and
+\item the additional lemmas @{text"th\<^sub>1 \<dots> th\<^sub>n"}, and
 \item the assumptions.
 \end{itemize}
 In addition to or instead of @{text add} there is also @{text del} for removing

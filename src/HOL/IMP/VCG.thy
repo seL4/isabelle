@@ -20,8 +20,8 @@ text{* Strip annotations: *}
 fun strip :: "acom \<Rightarrow> com" where
 "strip SKIP = com.SKIP" |
 "strip (x ::= a) = (x ::= a)" |
-"strip (C\<^isub>1;; C\<^isub>2) = (strip C\<^isub>1;; strip C\<^isub>2)" |
-"strip (IF b THEN C\<^isub>1 ELSE C\<^isub>2) = (IF b THEN strip C\<^isub>1 ELSE strip C\<^isub>2)" |
+"strip (C\<^sub>1;; C\<^sub>2) = (strip C\<^sub>1;; strip C\<^sub>2)" |
+"strip (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = (IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2)" |
 "strip ({_} WHILE b DO C) = (WHILE b DO strip C)"
 
 text{* Weakest precondition from annotated commands: *}
@@ -29,9 +29,9 @@ text{* Weakest precondition from annotated commands: *}
 fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "pre SKIP Q = Q" |
 "pre (x ::= a) Q = (\<lambda>s. Q(s(x := aval a s)))" |
-"pre (C\<^isub>1;; C\<^isub>2) Q = pre C\<^isub>1 (pre C\<^isub>2 Q)" |
-"pre (IF b THEN C\<^isub>1 ELSE C\<^isub>2) Q =
-  (\<lambda>s. if bval b s then pre C\<^isub>1 Q s else pre C\<^isub>2 Q s)" |
+"pre (C\<^sub>1;; C\<^sub>2) Q = pre C\<^sub>1 (pre C\<^sub>2 Q)" |
+"pre (IF b THEN C\<^sub>1 ELSE C\<^sub>2) Q =
+  (\<lambda>s. if bval b s then pre C\<^sub>1 Q s else pre C\<^sub>2 Q s)" |
 "pre ({I} WHILE b DO C) Q = I"
 
 text{* Verification condition: *}
@@ -39,8 +39,8 @@ text{* Verification condition: *}
 fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 "vc SKIP Q = (\<lambda>s. True)" |
 "vc (x ::= a) Q = (\<lambda>s. True)" |
-"vc (C\<^isub>1;; C\<^isub>2) Q = (\<lambda>s. vc C\<^isub>1 (pre C\<^isub>2 Q) s \<and> vc C\<^isub>2 Q s)" |
-"vc (IF b THEN C\<^isub>1 ELSE C\<^isub>2) Q = (\<lambda>s. vc C\<^isub>1 Q s \<and> vc C\<^isub>2 Q s)" |
+"vc (C\<^sub>1;; C\<^sub>2) Q = (\<lambda>s. vc C\<^sub>1 (pre C\<^sub>2 Q) s \<and> vc C\<^sub>2 Q s)" |
+"vc (IF b THEN C\<^sub>1 ELSE C\<^sub>2) Q = (\<lambda>s. vc C\<^sub>1 Q s \<and> vc C\<^sub>2 Q s)" |
 "vc ({I} WHILE b DO C) Q =
   (\<lambda>s. (I s \<and> bval b s \<longrightarrow> pre C I s) \<and>
        (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>

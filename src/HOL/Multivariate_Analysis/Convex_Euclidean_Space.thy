@@ -3352,7 +3352,7 @@ proof(cases "s={}")
 next
   case False obtain y where "y\<in>s" and y:"\<forall>x\<in>s. dist z y \<le> dist z x"
     using distance_attains_inf[OF assms(2) False] by auto
-  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="inner (y - z) z + (norm(y - z))\<twosuperior> / 2" in exI)
+  show ?thesis apply(rule_tac x="y - z" in exI, rule_tac x="inner (y - z) z + (norm(y - z))\<^sup>2 / 2" in exI)
     apply rule defer apply rule proof-
     fix x assume "x\<in>s"
     have "\<not> 0 < inner (z - y) (x - y)" apply(rule_tac notI) proof(drule closer_point_lemma)
@@ -3363,7 +3363,7 @@ next
         using `x\<in>s` `y\<in>s` by (auto simp add: dist_commute algebra_simps) qed
     moreover have "0 < norm (y - z) ^ 2" using `y\<in>s` `z\<notin>s` by auto
     hence "0 < inner (y - z) (y - z)" unfolding power2_norm_eq_inner by simp
-    ultimately show "inner (y - z) z + (norm (y - z))\<twosuperior> / 2 < inner (y - z) x"
+    ultimately show "inner (y - z) z + (norm (y - z))\<^sup>2 / 2 < inner (y - z) x"
       unfolding power2_norm_eq_inner and not_less by (auto simp add: field_simps inner_commute inner_diff)
   qed(insert `y\<in>s` `z\<notin>s`, auto)
 qed

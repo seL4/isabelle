@@ -78,11 +78,11 @@ lemmas inner_distrib = inner_left_distrib inner_right_distrib
 lemma inner_gt_zero_iff [simp]: "0 < inner x x \<longleftrightarrow> x \<noteq> 0"
   by (simp add: order_less_le)
 
-lemma power2_norm_eq_inner: "(norm x)\<twosuperior> = inner x x"
+lemma power2_norm_eq_inner: "(norm x)\<^sup>2 = inner x x"
   by (simp add: norm_eq_sqrt_inner)
 
 lemma Cauchy_Schwarz_ineq:
-  "(inner x y)\<twosuperior> \<le> inner x x * inner y y"
+  "(inner x y)\<^sup>2 \<le> inner x x * inner y y"
 proof (cases)
   assume "y = 0"
   thus ?thesis by simp
@@ -93,21 +93,21 @@ next
     by (rule inner_ge_zero)
   also have "\<dots> = inner x x - inner y x * ?r"
     by (simp add: inner_diff)
-  also have "\<dots> = inner x x - (inner x y)\<twosuperior> / inner y y"
+  also have "\<dots> = inner x x - (inner x y)\<^sup>2 / inner y y"
     by (simp add: power2_eq_square inner_commute)
-  finally have "0 \<le> inner x x - (inner x y)\<twosuperior> / inner y y" .
-  hence "(inner x y)\<twosuperior> / inner y y \<le> inner x x"
+  finally have "0 \<le> inner x x - (inner x y)\<^sup>2 / inner y y" .
+  hence "(inner x y)\<^sup>2 / inner y y \<le> inner x x"
     by (simp add: le_diff_eq)
-  thus "(inner x y)\<twosuperior> \<le> inner x x * inner y y"
+  thus "(inner x y)\<^sup>2 \<le> inner x x * inner y y"
     by (simp add: pos_divide_le_eq y)
 qed
 
 lemma Cauchy_Schwarz_ineq2:
   "\<bar>inner x y\<bar> \<le> norm x * norm y"
 proof (rule power2_le_imp_le)
-  have "(inner x y)\<twosuperior> \<le> inner x x * inner y y"
+  have "(inner x y)\<^sup>2 \<le> inner x x * inner y y"
     using Cauchy_Schwarz_ineq .
-  thus "\<bar>inner x y\<bar>\<twosuperior> \<le> (norm x * norm y)\<twosuperior>"
+  thus "\<bar>inner x y\<bar>\<^sup>2 \<le> (norm x * norm y)\<^sup>2"
     by (simp add: power_mult_distrib power2_norm_eq_inner)
   show "0 \<le> norm x * norm y"
     unfolding norm_eq_sqrt_inner
@@ -123,13 +123,13 @@ proof
     proof (rule power2_le_imp_le)
       have "inner x y \<le> norm x * norm y"
         by (rule order_trans [OF abs_ge_self Cauchy_Schwarz_ineq2])
-      thus "(norm (x + y))\<twosuperior> \<le> (norm x + norm y)\<twosuperior>"
+      thus "(norm (x + y))\<^sup>2 \<le> (norm x + norm y)\<^sup>2"
         unfolding power2_sum power2_norm_eq_inner
         by (simp add: inner_add inner_commute)
       show "0 \<le> norm x + norm y"
         unfolding norm_eq_sqrt_inner by simp
     qed
-  have "sqrt (a\<twosuperior> * inner x x) = \<bar>a\<bar> * sqrt (inner x x)"
+  have "sqrt (a\<^sup>2 * inner x x) = \<bar>a\<bar> * sqrt (inner x x)"
     by (simp add: real_sqrt_mult_distrib)
   then show "norm (a *\<^sub>R x) = \<bar>a\<bar> * norm x"
     unfolding norm_eq_sqrt_inner
@@ -324,7 +324,7 @@ lemma GDERIV_mult:
 
 lemma GDERIV_inverse:
     "\<lbrakk>GDERIV f x :> df; f x \<noteq> 0\<rbrakk>
-     \<Longrightarrow> GDERIV (\<lambda>x. inverse (f x)) x :> - (inverse (f x))\<twosuperior> *\<^sub>R df"
+     \<Longrightarrow> GDERIV (\<lambda>x. inverse (f x)) x :> - (inverse (f x))\<^sup>2 *\<^sub>R df"
   apply (erule GDERIV_DERIV_compose)
   apply (erule DERIV_inverse [folded numeral_2_eq_2])
   done

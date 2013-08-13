@@ -210,7 +210,7 @@ nominal_primrec
   psubst_ty
 where
   "\<theta><TVar X>   = lookup \<theta> X"
-| "\<theta><T\<^isub>1 \<rightarrow> T\<^isub>2> = (\<theta><T\<^isub>1>) \<rightarrow> (\<theta><T\<^isub>2>)"
+| "\<theta><T\<^sub>1 \<rightarrow> T\<^sub>2> = (\<theta><T\<^sub>1>) \<rightarrow> (\<theta><T\<^sub>2>)"
 by (rule TrueI)+
 
 end
@@ -357,10 +357,10 @@ inductive
   typing :: "Ctxt \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
 where
   T_VAR[intro]: "\<lbrakk>valid \<Gamma>; (x,S)\<in>set \<Gamma>; T \<prec> S\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
-| T_APP[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t\<^isub>1 t\<^isub>2 : T\<^isub>2" 
-| T_LAM[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,Ty T\<^isub>1)#\<Gamma>) \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
-| T_LET[intro]: "\<lbrakk>x\<sharp>\<Gamma>; \<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1; ((x,close \<Gamma> T\<^isub>1)#\<Gamma>) \<turnstile> t\<^isub>2 : T\<^isub>2; set (ftv T\<^isub>1 - ftv \<Gamma>) \<sharp>* T\<^isub>2\<rbrakk> 
-                 \<Longrightarrow> \<Gamma> \<turnstile> Let x be t\<^isub>1 in t\<^isub>2 : T\<^isub>2"
+| T_APP[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t\<^sub>1 t\<^sub>2 : T\<^sub>2" 
+| T_LAM[intro]: "\<lbrakk>x\<sharp>\<Gamma>;((x,Ty T\<^sub>1)#\<Gamma>) \<turnstile> t : T\<^sub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^sub>1\<rightarrow>T\<^sub>2"
+| T_LET[intro]: "\<lbrakk>x\<sharp>\<Gamma>; \<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1; ((x,close \<Gamma> T\<^sub>1)#\<Gamma>) \<turnstile> t\<^sub>2 : T\<^sub>2; set (ftv T\<^sub>1 - ftv \<Gamma>) \<sharp>* T\<^sub>2\<rbrakk> 
+                 \<Longrightarrow> \<Gamma> \<turnstile> Let x be t\<^sub>1 in t\<^sub>2 : T\<^sub>2"
 
 equivariance typing[tvar]
 
@@ -411,7 +411,7 @@ by (induct xs)
    (simp_all add: supp_list_nil supp_list_cons supp_atm)
 
 nominal_inductive2 typing
-  avoids T_LET: "set (ftv T\<^isub>1 - ftv \<Gamma>)"
+  avoids T_LET: "set (ftv T\<^sub>1 - ftv \<Gamma>)"
 apply (simp add: fresh_star_def fresh_def ftv_Ctxt)
 apply (simp add: fresh_star_def fresh_tvar_trm)
 apply assumption
@@ -470,15 +470,15 @@ lemma close_supp:
 
 lemma better_T_LET:
   assumes x: "x\<sharp>\<Gamma>"
-  and t1: "\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1"
-  and t2: "((x,close \<Gamma> T\<^isub>1)#\<Gamma>) \<turnstile> t\<^isub>2 : T\<^isub>2"
-  shows "\<Gamma> \<turnstile> Let x be t\<^isub>1 in t\<^isub>2 : T\<^isub>2"
+  and t1: "\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1"
+  and t2: "((x,close \<Gamma> T\<^sub>1)#\<Gamma>) \<turnstile> t\<^sub>2 : T\<^sub>2"
+  shows "\<Gamma> \<turnstile> Let x be t\<^sub>1 in t\<^sub>2 : T\<^sub>2"
 proof -
-  have fin: "finite (set (ftv T\<^isub>1 - ftv \<Gamma>))" by simp
-  obtain pi where pi1: "(pi \<bullet> set (ftv T\<^isub>1 - ftv \<Gamma>)) \<sharp>* (T\<^isub>2, \<Gamma>)"
-    and pi2: "set pi \<subseteq> set (ftv T\<^isub>1 - ftv \<Gamma>) \<times> (pi \<bullet> set (ftv T\<^isub>1 - ftv \<Gamma>))"
-    by (rule at_set_avoiding [OF at_tvar_inst fin fs_tvar1, of "(T\<^isub>2, \<Gamma>)"])
-  from pi1 have pi1': "(pi \<bullet> set (ftv T\<^isub>1 - ftv \<Gamma>)) \<sharp>* \<Gamma>"
+  have fin: "finite (set (ftv T\<^sub>1 - ftv \<Gamma>))" by simp
+  obtain pi where pi1: "(pi \<bullet> set (ftv T\<^sub>1 - ftv \<Gamma>)) \<sharp>* (T\<^sub>2, \<Gamma>)"
+    and pi2: "set pi \<subseteq> set (ftv T\<^sub>1 - ftv \<Gamma>) \<times> (pi \<bullet> set (ftv T\<^sub>1 - ftv \<Gamma>))"
+    by (rule at_set_avoiding [OF at_tvar_inst fin fs_tvar1, of "(T\<^sub>2, \<Gamma>)"])
+  from pi1 have pi1': "(pi \<bullet> set (ftv T\<^sub>1 - ftv \<Gamma>)) \<sharp>* \<Gamma>"
     by (simp add: fresh_star_prod)
   have Gamma_fresh: "\<forall>(x,y)\<in>set pi. x \<sharp> \<Gamma> \<and> y \<sharp> \<Gamma>"
     apply (rule ballI)
@@ -488,7 +488,7 @@ proof -
     apply (drule freshs_mem [OF _ pi1'])
     apply (simp add: ftv_Ctxt [symmetric] fresh_def)
     done
-  have close_fresh': "\<forall>(x, y)\<in>set pi. x \<sharp> close \<Gamma> T\<^isub>1 \<and> y \<sharp> close \<Gamma> T\<^isub>1"
+  have close_fresh': "\<forall>(x, y)\<in>set pi. x \<sharp> close \<Gamma> T\<^sub>1 \<and> y \<sharp> close \<Gamma> T\<^sub>1"
     apply (rule ballI)
     apply (simp add: split_paired_all)
     apply (drule subsetD [OF pi2])
@@ -499,15 +499,15 @@ proof -
     done
   note x
   moreover from Gamma_fresh perm_boolI [OF t1, of pi]
-  have "\<Gamma> \<turnstile> t\<^isub>1 : pi \<bullet> T\<^isub>1"
+  have "\<Gamma> \<turnstile> t\<^sub>1 : pi \<bullet> T\<^sub>1"
     by (simp add: perm_fresh_fresh_aux eqvts fresh_tvar_trm)
   moreover from t2 close_fresh'
-  have "(x,(pi \<bullet> close \<Gamma> T\<^isub>1))#\<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>2"
+  have "(x,(pi \<bullet> close \<Gamma> T\<^sub>1))#\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2"
     by (simp add: perm_fresh_fresh_aux)
-  with Gamma_fresh have "(x,close \<Gamma> (pi \<bullet> T\<^isub>1))#\<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>2"
+  with Gamma_fresh have "(x,close \<Gamma> (pi \<bullet> T\<^sub>1))#\<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2"
     by (simp add: close_eqvt perm_fresh_fresh_aux)
   moreover from pi1 Gamma_fresh
-  have "set (ftv (pi \<bullet> T\<^isub>1) - ftv \<Gamma>) \<sharp>* T\<^isub>2"
+  have "set (ftv (pi \<bullet> T\<^sub>1) - ftv \<Gamma>) \<sharp>* T\<^sub>2"
     by (simp only: eqvts fresh_star_prod perm_fresh_fresh_aux)
   ultimately show ?thesis by (rule T_LET)
 qed

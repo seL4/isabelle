@@ -844,7 +844,7 @@ text {*
 
   A weakend form of this is available through a further variant of
   @{command instance}:  @{command instance}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} opens
-  a proof that class @{text "c\<^isub>2"} implies @{text "c\<^isub>1"} without reference
+  a proof that class @{text "c\<^sub>2"} implies @{text "c\<^sub>1"} without reference
   to the underlying locales;  this is useful if the properties to prove
   the logical connection are not sufficent on the locale level but on
   the theory level.

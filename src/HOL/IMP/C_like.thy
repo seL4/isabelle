@@ -9,15 +9,15 @@ datatype aexp = N nat | Deref aexp ("!") | Plus aexp aexp
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> nat" where
 "aval (N n) s = n" |
 "aval (!a) s = s(aval a s)" |
-"aval (Plus a\<^isub>1 a\<^isub>2) s = aval a\<^isub>1 s + aval a\<^isub>2 s"
+"aval (Plus a\<^sub>1 a\<^sub>2) s = aval a\<^sub>1 s + aval a\<^sub>2 s"
 
 datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
 
 primrec bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
 "bval (Bc v) _ = v" |
 "bval (Not b) s = (\<not> bval b s)" |
-"bval (And b\<^isub>1 b\<^isub>2) s = (if bval b\<^isub>1 s then bval b\<^isub>2 s else False)" |
-"bval (Less a\<^isub>1 a\<^isub>2) s = (aval a\<^isub>1 s < aval a\<^isub>2 s)"
+"bval (And b\<^sub>1 b\<^sub>2) s = (if bval b\<^sub>1 s then bval b\<^sub>2 s else False)" |
+"bval (Less a\<^sub>1 a\<^sub>2) s = (aval a\<^sub>1 s < aval a\<^sub>2 s)"
 
 
 datatype
@@ -34,18 +34,18 @@ where
 Skip:    "(SKIP,sn) \<Rightarrow> sn" |
 Assign:  "(lhs ::= a,s,n) \<Rightarrow> (s(aval lhs s := aval a s),n)" |
 New:     "(New lhs a,s,n) \<Rightarrow> (s(aval lhs s := n), n+aval a s)"  |
-Seq:    "\<lbrakk> (c\<^isub>1,sn\<^isub>1) \<Rightarrow> sn\<^isub>2;  (c\<^isub>2,sn\<^isub>2) \<Rightarrow> sn\<^isub>3 \<rbrakk> \<Longrightarrow>
-          (c\<^isub>1;c\<^isub>2, sn\<^isub>1) \<Rightarrow> sn\<^isub>3" |
+Seq:    "\<lbrakk> (c\<^sub>1,sn\<^sub>1) \<Rightarrow> sn\<^sub>2;  (c\<^sub>2,sn\<^sub>2) \<Rightarrow> sn\<^sub>3 \<rbrakk> \<Longrightarrow>
+          (c\<^sub>1;c\<^sub>2, sn\<^sub>1) \<Rightarrow> sn\<^sub>3" |
 
-IfTrue:  "\<lbrakk> bval b s;  (c\<^isub>1,s,n) \<Rightarrow> tn \<rbrakk> \<Longrightarrow>
-         (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s,n) \<Rightarrow> tn" |
-IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^isub>2,s,n) \<Rightarrow> tn \<rbrakk> \<Longrightarrow>
-         (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s,n) \<Rightarrow> tn" |
+IfTrue:  "\<lbrakk> bval b s;  (c\<^sub>1,s,n) \<Rightarrow> tn \<rbrakk> \<Longrightarrow>
+         (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s,n) \<Rightarrow> tn" |
+IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^sub>2,s,n) \<Rightarrow> tn \<rbrakk> \<Longrightarrow>
+         (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s,n) \<Rightarrow> tn" |
 
 WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s,n) \<Rightarrow> (s,n)" |
 WhileTrue:
-  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1,n) \<Rightarrow> sn\<^isub>2;  (WHILE b DO c, sn\<^isub>2) \<Rightarrow> sn\<^isub>3 \<rbrakk> \<Longrightarrow>
-   (WHILE b DO c, s\<^isub>1,n) \<Rightarrow> sn\<^isub>3"
+  "\<lbrakk> bval b s\<^sub>1;  (c,s\<^sub>1,n) \<Rightarrow> sn\<^sub>2;  (WHILE b DO c, sn\<^sub>2) \<Rightarrow> sn\<^sub>3 \<rbrakk> \<Longrightarrow>
+   (WHILE b DO c, s\<^sub>1,n) \<Rightarrow> sn\<^sub>3"
 
 code_pred big_step .
 

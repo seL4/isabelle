@@ -3770,31 +3770,31 @@ apply(simp)
 done
 
 inductive
-  l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>l _" [100,100] 100)
+  l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>l _" [100,100] 100)
 where
-  LAxR:  "\<lbrakk>x\<sharp>M; a\<sharp>b; fic M a\<rbrakk> \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^isub>l M[a\<turnstile>c>b]"
-| LAxL:  "\<lbrakk>a\<sharp>M; x\<sharp>y; fin M x\<rbrakk> \<Longrightarrow> Cut <a>.(Ax y a) (x).M \<longrightarrow>\<^isub>l M[x\<turnstile>n>y]"
+  LAxR:  "\<lbrakk>x\<sharp>M; a\<sharp>b; fic M a\<rbrakk> \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^sub>l M[a\<turnstile>c>b]"
+| LAxL:  "\<lbrakk>a\<sharp>M; x\<sharp>y; fin M x\<rbrakk> \<Longrightarrow> Cut <a>.(Ax y a) (x).M \<longrightarrow>\<^sub>l M[x\<turnstile>n>y]"
 | LNot:  "\<lbrakk>y\<sharp>(M,N); x\<sharp>(N,y); a\<sharp>(M,N,b); b\<sharp>M; y\<noteq>x; b\<noteq>a\<rbrakk> \<Longrightarrow>
-          Cut <a>.(NotR (x).M a) (y).(NotL <b>.N y) \<longrightarrow>\<^isub>l Cut <b>.N (x).M" 
+          Cut <a>.(NotR (x).M a) (y).(NotL <b>.N y) \<longrightarrow>\<^sub>l Cut <b>.N (x).M" 
 | LAnd1: "\<lbrakk>b\<sharp>([a1].M1,[a2].M2,N,a1,a2); y\<sharp>([x].N,M1,M2,x); x\<sharp>(M1,M2); a1\<sharp>(M2,N); a2\<sharp>(M1,N); a1\<noteq>a2\<rbrakk> \<Longrightarrow>
-          Cut <b>.(AndR <a1>.M1 <a2>.M2 b) (y).(AndL1 (x).N y) \<longrightarrow>\<^isub>l Cut <a1>.M1 (x).N"
+          Cut <b>.(AndR <a1>.M1 <a2>.M2 b) (y).(AndL1 (x).N y) \<longrightarrow>\<^sub>l Cut <a1>.M1 (x).N"
 | LAnd2: "\<lbrakk>b\<sharp>([a1].M1,[a2].M2,N,a1,a2); y\<sharp>([x].N,M1,M2,x); x\<sharp>(M1,M2); a1\<sharp>(M2,N); a2\<sharp>(M1,N); a1\<noteq>a2\<rbrakk> \<Longrightarrow>
-          Cut <b>.(AndR <a1>.M1 <a2>.M2 b) (y).(AndL2 (x).N y) \<longrightarrow>\<^isub>l Cut <a2>.M2 (x).N"
+          Cut <b>.(AndR <a1>.M1 <a2>.M2 b) (y).(AndL2 (x).N y) \<longrightarrow>\<^sub>l Cut <a2>.M2 (x).N"
 | LOr1:  "\<lbrakk>b\<sharp>([a].M,N1,N2,a); y\<sharp>([x1].N1,[x2].N2,M,x1,x2); x1\<sharp>(M,N2); x2\<sharp>(M,N1); a\<sharp>(N1,N2); x1\<noteq>x2\<rbrakk> \<Longrightarrow>
-          Cut <b>.(OrR1 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^isub>l Cut <a>.M (x1).N1"
+          Cut <b>.(OrR1 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^sub>l Cut <a>.M (x1).N1"
 | LOr2:  "\<lbrakk>b\<sharp>([a].M,N1,N2,a); y\<sharp>([x1].N1,[x2].N2,M,x1,x2); x1\<sharp>(M,N2); x2\<sharp>(M,N1); a\<sharp>(N1,N2); x1\<noteq>x2\<rbrakk> \<Longrightarrow>
-          Cut <b>.(OrR2 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^isub>l Cut <a>.M (x2).N2"
+          Cut <b>.(OrR2 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^sub>l Cut <a>.M (x2).N2"
 | LImp:  "\<lbrakk>z\<sharp>(N,[y].P,[x].M,y,x); b\<sharp>([a].M,[c].N,P,c,a); x\<sharp>(N,[y].P,y); 
           c\<sharp>(P,[a].M,b,a); a\<sharp>([c].N,P); y\<sharp>(N,[x].M)\<rbrakk> \<Longrightarrow>
-          Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z) \<longrightarrow>\<^isub>l Cut <a>.(Cut <c>.N (x).M) (y).P"
+          Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z) \<longrightarrow>\<^sub>l Cut <a>.(Cut <c>.N (x).M) (y).P"
 
 equivariance l_redu
 
 lemma l_redu_eqvt':
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>M) \<longrightarrow>\<^isub>l (pi1\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^isub>l M'"
-  and   "(pi2\<bullet>M) \<longrightarrow>\<^isub>l (pi2\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^isub>l M'"
+  shows "(pi1\<bullet>M) \<longrightarrow>\<^sub>l (pi1\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^sub>l M'"
+  and   "(pi2\<bullet>M) \<longrightarrow>\<^sub>l (pi2\<bullet>M') \<Longrightarrow> M \<longrightarrow>\<^sub>l M'"
 apply -
 apply(drule_tac pi="rev pi1" in l_redu.eqvt(1))
 apply(perm_simp)
@@ -3810,8 +3810,8 @@ nominal_inductive l_redu
 lemma fresh_l_redu:
   fixes x::"name"
   and   a::"coname"
-  shows "M \<longrightarrow>\<^isub>l M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
-  and   "M \<longrightarrow>\<^isub>l M' \<Longrightarrow> a\<sharp>M \<Longrightarrow> a\<sharp>M'"
+  shows "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
+  and   "M \<longrightarrow>\<^sub>l M' \<Longrightarrow> a\<sharp>M \<Longrightarrow> a\<sharp>M'"
 apply -
 apply(induct rule: l_redu.induct)
 apply(auto simp add: abs_fresh rename_fresh)
@@ -3828,35 +3828,35 @@ apply(simp add: fresh_prod abs_fresh abs_supp fin_supp)+
 done
 
 lemma better_LAxR_intro[intro]:
-  shows "fic M a \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^isub>l M[a\<turnstile>c>b]"
+  shows "fic M a \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^sub>l M[a\<turnstile>c>b]"
 proof -
   assume fin: "fic M a"
   obtain x'::"name" where fs1: "x'\<sharp>(M,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(a,M,b)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.M (x).(Ax x b) =  Cut <a'>.([(a',a)]\<bullet>M) (x').(Ax x' b)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>l ([(a',a)]\<bullet>M)[a'\<turnstile>c>b]" using fs1 fs2 fin
+  also have "\<dots> \<longrightarrow>\<^sub>l ([(a',a)]\<bullet>M)[a'\<turnstile>c>b]" using fs1 fs2 fin
     by (auto intro: l_redu.intros simp add: fresh_left calc_atm fic_rename)
   also have "\<dots> = M[a\<turnstile>c>b]" using fs1 fs2 by (simp add: crename_rename)
   finally show ?thesis by simp
 qed
     
 lemma better_LAxL_intro[intro]:
-  shows "fin M x \<Longrightarrow> Cut <a>.(Ax y a) (x).M \<longrightarrow>\<^isub>l M[x\<turnstile>n>y]"
+  shows "fin M x \<Longrightarrow> Cut <a>.(Ax y a) (x).M \<longrightarrow>\<^sub>l M[x\<turnstile>n>y]"
 proof -
   assume fin: "fin M x"
   obtain x'::"name" where fs1: "x'\<sharp>(y,M,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(a,M)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.(Ax y a) (x).M = Cut <a'>.(Ax y a') (x').([(x',x)]\<bullet>M)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>l ([(x',x)]\<bullet>M)[x'\<turnstile>n>y]" using fs1 fs2 fin
+  also have "\<dots> \<longrightarrow>\<^sub>l ([(x',x)]\<bullet>M)[x'\<turnstile>n>y]" using fs1 fs2 fin
     by (auto intro: l_redu.intros simp add: fresh_left calc_atm fin_rename)
   also have "\<dots> = M[x\<turnstile>n>y]" using fs1 fs2 by (simp add: nrename_rename)
   finally show ?thesis by simp
 qed
 
 lemma better_LNot_intro[intro]:
-  shows "\<lbrakk>y\<sharp>N; a\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.(NotR (x).M a) (y).(NotL <b>.N y) \<longrightarrow>\<^isub>l Cut <b>.N (x).M"
+  shows "\<lbrakk>y\<sharp>N; a\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.(NotR (x).M a) (y).(NotL <b>.N y) \<longrightarrow>\<^sub>l Cut <b>.N (x).M"
 proof -
   assume fs: "y\<sharp>N" "a\<sharp>M"
   obtain x'::"name" where f1: "x'\<sharp>(y,N,M,x)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -3872,7 +3872,7 @@ proof -
   also have "\<dots> = Cut <a'>.(NotR (x').([(x',x)]\<bullet>M) a') (y').(NotL <b'>.([(b',b)]\<bullet>N) y')"
     using f1 f2 f3 f4 
     by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <b'>.([(b',b)]\<bullet>N) (x').([(x',x)]\<bullet>M)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <b'>.([(b',b)]\<bullet>N) (x').([(x',x)]\<bullet>M)"
     using f1 f2 f3 f4 fs
     by (auto intro:  l_redu.intros simp add: fresh_prod fresh_left calc_atm fresh_atm)
   also have "\<dots> = Cut <b>.N (x).M"
@@ -3882,7 +3882,7 @@ qed
 
 lemma better_LAnd1_intro[intro]:
   shows "\<lbrakk>a\<sharp>([b1].M1,[b2].M2); y\<sharp>[x].N\<rbrakk> 
-         \<Longrightarrow> Cut <a>.(AndR <b1>.M1 <b2>.M2 a) (y).(AndL1 (x).N y) \<longrightarrow>\<^isub>l Cut <b1>.M1 (x).N"
+         \<Longrightarrow> Cut <a>.(AndR <b1>.M1 <b2>.M2 a) (y).(AndL1 (x).N y) \<longrightarrow>\<^sub>l Cut <b1>.M1 (x).N"
 proof -
   assume fs: "a\<sharp>([b1].M1,[b2].M2)" "y\<sharp>[x].N"
   obtain x'::"name" where f1: "x'\<sharp>(y,N,M1,M2,x)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -3903,7 +3903,7 @@ proof -
     apply(rule_tac sym)
     apply(perm_simp add: trm.inject alpha calc_atm fresh_prod fresh_left fresh_atm abs_fresh)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <b1'>.([(b1',b1)]\<bullet>M1) (x').([(x',x)]\<bullet>N)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <b1'>.([(b1',b1)]\<bullet>M1) (x').([(x',x)]\<bullet>N)"
     using f1 f2 f3 f4 f5 fs
     apply -
     apply(rule l_redu.intros)
@@ -3916,7 +3916,7 @@ qed
 
 lemma better_LAnd2_intro[intro]:
   shows "\<lbrakk>a\<sharp>([b1].M1,[b2].M2); y\<sharp>[x].N\<rbrakk> 
-         \<Longrightarrow> Cut <a>.(AndR <b1>.M1 <b2>.M2 a) (y).(AndL2 (x).N y) \<longrightarrow>\<^isub>l Cut <b2>.M2 (x).N"
+         \<Longrightarrow> Cut <a>.(AndR <b1>.M1 <b2>.M2 a) (y).(AndL2 (x).N y) \<longrightarrow>\<^sub>l Cut <b2>.M2 (x).N"
 proof -
   assume fs: "a\<sharp>([b1].M1,[b2].M2)" "y\<sharp>[x].N"
   obtain x'::"name" where f1: "x'\<sharp>(y,N,M1,M2,x)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -3937,7 +3937,7 @@ proof -
     apply(rule_tac sym)
     apply(perm_simp add: trm.inject alpha calc_atm fresh_prod fresh_left fresh_atm abs_fresh)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <b2'>.([(b2',b2)]\<bullet>M2) (x').([(x',x)]\<bullet>N)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <b2'>.([(b2',b2)]\<bullet>M2) (x').([(x',x)]\<bullet>N)"
     using f1 f2 f3 f4 f5 fs
     apply -
     apply(rule l_redu.intros)
@@ -3950,7 +3950,7 @@ qed
 
 lemma better_LOr1_intro[intro]:
   shows "\<lbrakk>y\<sharp>([x1].N1,[x2].N2); b\<sharp>[a].M\<rbrakk> 
-         \<Longrightarrow> Cut <b>.(OrR1 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^isub>l Cut <a>.M (x1).N1"
+         \<Longrightarrow> Cut <b>.(OrR1 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^sub>l Cut <a>.M (x1).N1"
 proof -
   assume fs: "y\<sharp>([x1].N1,[x2].N2)" "b\<sharp>[a].M"
   obtain y'::"name" where f1: "y'\<sharp>(y,M,N1,N2,x1,x2)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -3971,7 +3971,7 @@ proof -
     apply(rule_tac sym)
     apply(perm_simp add: trm.inject alpha calc_atm fresh_prod fresh_left fresh_atm abs_fresh)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <a'>.([(a',a)]\<bullet>M) (x1').([(x1',x1)]\<bullet>N1)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <a'>.([(a',a)]\<bullet>M) (x1').([(x1',x1)]\<bullet>N1)"
     using f1 f2 f3 f4 f5 fs
     apply -
     apply(rule l_redu.intros)
@@ -3984,7 +3984,7 @@ qed
 
 lemma better_LOr2_intro[intro]:
   shows "\<lbrakk>y\<sharp>([x1].N1,[x2].N2); b\<sharp>[a].M\<rbrakk> 
-         \<Longrightarrow> Cut <b>.(OrR2 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^isub>l Cut <a>.M (x2).N2"
+         \<Longrightarrow> Cut <b>.(OrR2 <a>.M b) (y).(OrL (x1).N1 (x2).N2 y) \<longrightarrow>\<^sub>l Cut <a>.M (x2).N2"
 proof -
   assume fs: "y\<sharp>([x1].N1,[x2].N2)" "b\<sharp>[a].M"
   obtain y'::"name" where f1: "y'\<sharp>(y,M,N1,N2,x1,x2)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -4005,7 +4005,7 @@ proof -
     apply(rule_tac sym)
     apply(perm_simp add: trm.inject alpha calc_atm fresh_prod fresh_left fresh_atm abs_fresh)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <a'>.([(a',a)]\<bullet>M) (x2').([(x2',x2)]\<bullet>N2)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <a'>.([(a',a)]\<bullet>M) (x2').([(x2',x2)]\<bullet>N2)"
     using f1 f2 f3 f4 f5 fs
     apply -
     apply(rule l_redu.intros)
@@ -4018,7 +4018,7 @@ qed
 
 lemma better_LImp_intro[intro]:
   shows "\<lbrakk>z\<sharp>(N,[y].P); b\<sharp>[a].M; a\<sharp>N\<rbrakk> 
-         \<Longrightarrow> Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z) \<longrightarrow>\<^isub>l Cut <a>.(Cut <c>.N (x).M) (y).P"
+         \<Longrightarrow> Cut <b>.(ImpR (x).<a>.M b) (z).(ImpL <c>.N (y).P z) \<longrightarrow>\<^sub>l Cut <a>.(Cut <c>.N (x).M) (y).P"
 proof -
   assume fs: "z\<sharp>(N,[y].P)" "b\<sharp>[a].M" "a\<sharp>N"
   obtain y'::"name" where f1: "y'\<sharp>(y,M,N,P,z,x)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -4049,7 +4049,7 @@ proof -
     apply(simp add: alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
     apply(simp add: alpha fresh_prod fresh_atm abs_perm calc_atm fresh_left abs_fresh)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>l Cut <a'>.(Cut <c'>.([(c',c)]\<bullet>N) (x').([(a',a)]\<bullet>[(x',x)]\<bullet>M)) (y').([(y',y)]\<bullet>P)"
+  also have "\<dots> \<longrightarrow>\<^sub>l Cut <a'>.(Cut <c'>.([(c',c)]\<bullet>N) (x').([(a',a)]\<bullet>[(x',x)]\<bullet>M)) (y').([(y',y)]\<bullet>P)"
     using f1 f2 f3 f4 f5 f6 fs
     apply -
     apply(rule l_redu.intros)
@@ -4118,7 +4118,7 @@ apply(perm_simp)
 done 
 
 lemma Cut_l_redu_elim:
-  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^isub>l R"
+  assumes a: "Cut <a>.M (x).N \<longrightarrow>\<^sub>l R"
   shows "(\<exists>b. R = M[a\<turnstile>c>b]) \<or> (\<exists>y. R = N[x\<turnstile>n>y]) \<or>
   (\<exists>y M' b N'. M = NotR (y).M' a \<and> N = NotL <b>.N' x \<and> R = Cut <b>.N' (y).M' \<and> fic M a \<and> fin N x) \<or>
   (\<exists>b M1 c M2 y N'. M = AndR <b>.M1 <c>.M2 a \<and> N = AndL1 (y).N' x \<and> R = Cut <b>.M1 (y).N' 
@@ -4471,10 +4471,10 @@ apply(perm_simp)+
 done
 
 inductive
-  c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>c _" [100,100] 100)
+  c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>c _" [100,100] 100)
 where
-  left[intro]:  "\<lbrakk>\<not>fic M a; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>c M{a:=(x).N}"
-| right[intro]: "\<lbrakk>\<not>fin N x; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>c N{x:=<a>.M}"
+  left[intro]:  "\<lbrakk>\<not>fic M a; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c M{a:=(x).N}"
+| right[intro]: "\<lbrakk>\<not>fin N x; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c N{x:=<a>.M}"
 
 equivariance c_redu
 
@@ -4482,14 +4482,14 @@ nominal_inductive c_redu
  by (simp_all add: abs_fresh subst_fresh)
 
 lemma better_left[intro]:
-  shows "\<not>fic M a \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>c M{a:=(x).N}"
+  shows "\<not>fic M a \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c M{a:=(x).N}"
 proof -
   assume not_fic: "\<not>fic M a"
   obtain x'::"name" where fs1: "x'\<sharp>(N,M,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(a,M,N)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>c ([(a',a)]\<bullet>M){a':=(x').([(x',x)]\<bullet>N)}" using fs1 fs2 not_fic
+  also have "\<dots> \<longrightarrow>\<^sub>c ([(a',a)]\<bullet>M){a':=(x').([(x',x)]\<bullet>N)}" using fs1 fs2 not_fic
     apply -
     apply(rule left)
     apply(clarify)
@@ -4503,14 +4503,14 @@ proof -
 qed
 
 lemma better_right[intro]:
-  shows "\<not>fin N x \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>c N{x:=<a>.M}"
+  shows "\<not>fin N x \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c N{x:=<a>.M}"
 proof -
   assume not_fin: "\<not>fin N x"
   obtain x'::"name" where fs1: "x'\<sharp>(N,M,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(a,M,N)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>c ([(x',x)]\<bullet>N){x':=<a'>.([(a',a)]\<bullet>M)}" using fs1 fs2 not_fin
+  also have "\<dots> \<longrightarrow>\<^sub>c ([(x',x)]\<bullet>N){x':=<a'>.([(a',a)]\<bullet>M)}" using fs1 fs2 not_fin
     apply -
     apply(rule right)
     apply(clarify)
@@ -4526,8 +4526,8 @@ qed
 lemma fresh_c_redu:
   fixes x::"name"
   and   c::"coname"
-  shows "M \<longrightarrow>\<^isub>c M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
-  and   "M \<longrightarrow>\<^isub>c M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
+  shows "M \<longrightarrow>\<^sub>c M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
+  and   "M \<longrightarrow>\<^sub>c M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
 apply -
 apply(induct rule: c_redu.induct)
 apply(auto simp add: abs_fresh rename_fresh subst_fresh)
@@ -4536,31 +4536,31 @@ apply(auto simp add: abs_fresh rename_fresh subst_fresh)
 done
 
 inductive
-  a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>a _" [100,100] 100)
+  a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a _" [100,100] 100)
 where
-  al_redu[intro]: "M\<longrightarrow>\<^isub>l M' \<Longrightarrow> M \<longrightarrow>\<^isub>a M'"
-| ac_redu[intro]: "M\<longrightarrow>\<^isub>c M' \<Longrightarrow> M \<longrightarrow>\<^isub>a M'"
-| a_Cut_l: "\<lbrakk>a\<sharp>N; x\<sharp>M; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a Cut <a>.M' (x).N"
-| a_Cut_r: "\<lbrakk>a\<sharp>N; x\<sharp>M; N\<longrightarrow>\<^isub>a N'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a Cut <a>.M (x).N'"
-| a_NotL[intro]: "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> NotL <a>.M x \<longrightarrow>\<^isub>a NotL <a>.M' x"
-| a_NotR[intro]: "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> NotR (x).M a \<longrightarrow>\<^isub>a NotR (x).M' a"
-| a_AndR_l: "\<lbrakk>a\<sharp>(N,c); b\<sharp>(M,c); b\<noteq>a; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a AndR <a>.M' <b>.N c"
-| a_AndR_r: "\<lbrakk>a\<sharp>(N,c); b\<sharp>(M,c); b\<noteq>a; N\<longrightarrow>\<^isub>a N'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a AndR <a>.M <b>.N' c"
-| a_AndL1: "\<lbrakk>x\<sharp>y; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^isub>a AndL1 (x).M' y"
-| a_AndL2: "\<lbrakk>x\<sharp>y; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^isub>a AndL2 (x).M' y"
-| a_OrL_l: "\<lbrakk>x\<sharp>(N,z); y\<sharp>(M,z); y\<noteq>x; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a OrL (x).M' (y).N z"
-| a_OrL_r: "\<lbrakk>x\<sharp>(N,z); y\<sharp>(M,z); y\<noteq>x; N\<longrightarrow>\<^isub>a N'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a OrL (x).M (y).N' z"
-| a_OrR1: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^isub>a OrR1 <a>.M' b"
-| a_OrR2: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^isub>a OrR2 <a>.M' b"
-| a_ImpL_l: "\<lbrakk>a\<sharp>N; x\<sharp>(M,y); M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^isub>a ImpL <a>.M' (x).N y"
-| a_ImpL_r: "\<lbrakk>a\<sharp>N; x\<sharp>(M,y); N\<longrightarrow>\<^isub>a N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^isub>a ImpL <a>.M (x).N' y"
-| a_ImpR: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^isub>a M'\<rbrakk> \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^isub>a ImpR (x).<a>.M' b"
+  al_redu[intro]: "M\<longrightarrow>\<^sub>l M' \<Longrightarrow> M \<longrightarrow>\<^sub>a M'"
+| ac_redu[intro]: "M\<longrightarrow>\<^sub>c M' \<Longrightarrow> M \<longrightarrow>\<^sub>a M'"
+| a_Cut_l: "\<lbrakk>a\<sharp>N; x\<sharp>M; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a Cut <a>.M' (x).N"
+| a_Cut_r: "\<lbrakk>a\<sharp>N; x\<sharp>M; N\<longrightarrow>\<^sub>a N'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a Cut <a>.M (x).N'"
+| a_NotL[intro]: "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> NotL <a>.M x \<longrightarrow>\<^sub>a NotL <a>.M' x"
+| a_NotR[intro]: "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> NotR (x).M a \<longrightarrow>\<^sub>a NotR (x).M' a"
+| a_AndR_l: "\<lbrakk>a\<sharp>(N,c); b\<sharp>(M,c); b\<noteq>a; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a AndR <a>.M' <b>.N c"
+| a_AndR_r: "\<lbrakk>a\<sharp>(N,c); b\<sharp>(M,c); b\<noteq>a; N\<longrightarrow>\<^sub>a N'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a AndR <a>.M <b>.N' c"
+| a_AndL1: "\<lbrakk>x\<sharp>y; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^sub>a AndL1 (x).M' y"
+| a_AndL2: "\<lbrakk>x\<sharp>y; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^sub>a AndL2 (x).M' y"
+| a_OrL_l: "\<lbrakk>x\<sharp>(N,z); y\<sharp>(M,z); y\<noteq>x; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a OrL (x).M' (y).N z"
+| a_OrL_r: "\<lbrakk>x\<sharp>(N,z); y\<sharp>(M,z); y\<noteq>x; N\<longrightarrow>\<^sub>a N'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a OrL (x).M (y).N' z"
+| a_OrR1: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^sub>a OrR1 <a>.M' b"
+| a_OrR2: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^sub>a OrR2 <a>.M' b"
+| a_ImpL_l: "\<lbrakk>a\<sharp>N; x\<sharp>(M,y); M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^sub>a ImpL <a>.M' (x).N y"
+| a_ImpL_r: "\<lbrakk>a\<sharp>N; x\<sharp>(M,y); N\<longrightarrow>\<^sub>a N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^sub>a ImpL <a>.M (x).N' y"
+| a_ImpR: "\<lbrakk>a\<sharp>b; M\<longrightarrow>\<^sub>a M'\<rbrakk> \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^sub>a ImpR (x).<a>.M' b"
 
 lemma fresh_a_redu:
   fixes x::"name"
   and   c::"coname"
-  shows "M \<longrightarrow>\<^isub>a M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
-  and   "M \<longrightarrow>\<^isub>a M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
+  shows "M \<longrightarrow>\<^sub>a M' \<Longrightarrow> x\<sharp>M \<Longrightarrow> x\<sharp>M'"
+  and   "M \<longrightarrow>\<^sub>a M' \<Longrightarrow> c\<sharp>M \<Longrightarrow> c\<sharp>M'"
 apply -
 apply(induct rule: a_redu.induct)
 apply(simp add: fresh_l_redu)
@@ -4578,14 +4578,14 @@ nominal_inductive a_redu
   by (simp_all add: abs_fresh fresh_atm fresh_prod abs_supp fin_supp fresh_a_redu)
 
 lemma better_CutL_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a Cut <a>.M' (x).N"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a Cut <a>.M' (x).N"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain x'::"name"   where fs1: "x'\<sharp>(M,N,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  Cut <a'>.([(a',a)]\<bullet>M') (x').([(x',x)]\<bullet>N)" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  Cut <a'>.([(a',a)]\<bullet>M') (x').([(x',x)]\<bullet>N)" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt)
   also have "\<dots> = Cut <a>.M' (x).N" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4593,14 +4593,14 @@ proof -
 qed
 
 lemma better_CutR_intro[intro]:
-  shows "N\<longrightarrow>\<^isub>a N' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a Cut <a>.M (x).N'"
+  shows "N\<longrightarrow>\<^sub>a N' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a Cut <a>.M (x).N'"
 proof -
-  assume red: "N\<longrightarrow>\<^isub>a N'"
+  assume red: "N\<longrightarrow>\<^sub>a N'"
   obtain x'::"name"   where fs1: "x'\<sharp>(M,N,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "Cut <a>.M (x).N =  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N)"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N')" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  Cut <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N')" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt)
   also have "\<dots> = Cut <a>.M (x).N'" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4608,14 +4608,14 @@ proof -
 qed
     
 lemma better_AndRL_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a AndR <a>.M' <b>.N c"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a AndR <a>.M' <b>.N c"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain b'::"coname" where fs1: "b'\<sharp>(M,N,a,b,c)" by (rule exists_fresh(2), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a,b,c,b')" by (rule exists_fresh(2), rule fin_supp, blast)
   have "AndR <a>.M <b>.N c =  AndR <a'>.([(a',a)]\<bullet>M) <b'>.([(b',b)]\<bullet>N) c"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  AndR <a'>.([(a',a)]\<bullet>M') <b'>.([(b',b)]\<bullet>N) c" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  AndR <a'>.([(a',a)]\<bullet>M') <b'>.([(b',b)]\<bullet>N) c" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = AndR <a>.M' <b>.N c" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4623,14 +4623,14 @@ proof -
 qed
 
 lemma better_AndRR_intro[intro]:
-  shows "N\<longrightarrow>\<^isub>a N' \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a AndR <a>.M <b>.N' c"
+  shows "N\<longrightarrow>\<^sub>a N' \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a AndR <a>.M <b>.N' c"
 proof -
-  assume red: "N\<longrightarrow>\<^isub>a N'"
+  assume red: "N\<longrightarrow>\<^sub>a N'"
   obtain b'::"coname" where fs1: "b'\<sharp>(M,N,a,b,c)" by (rule exists_fresh(2), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a,b,c,b')" by (rule exists_fresh(2), rule fin_supp, blast)
   have "AndR <a>.M <b>.N c =  AndR <a'>.([(a',a)]\<bullet>M) <b'>.([(b',b)]\<bullet>N) c"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  AndR <a'>.([(a',a)]\<bullet>M) <b'>.([(b',b)]\<bullet>N') c" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  AndR <a'>.([(a',a)]\<bullet>M) <b'>.([(b',b)]\<bullet>N') c" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = AndR <a>.M <b>.N' c" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4638,13 +4638,13 @@ proof -
 qed
 
 lemma better_AndL1_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^isub>a AndL1 (x).M' y"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^sub>a AndL1 (x).M' y"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain x'::"name" where fs1: "x'\<sharp>(M,y,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   have "AndL1 (x).M y = AndL1 (x').([(x',x)]\<bullet>M) y"
     using fs1 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a AndL1 (x').([(x',x)]\<bullet>M') y" using fs1 red
+  also have "\<dots> \<longrightarrow>\<^sub>a AndL1 (x').([(x',x)]\<bullet>M') y" using fs1 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = AndL1 (x).M' y" 
     using fs1 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4652,13 +4652,13 @@ proof -
 qed
 
 lemma better_AndL2_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^isub>a AndL2 (x).M' y"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^sub>a AndL2 (x).M' y"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain x'::"name" where fs1: "x'\<sharp>(M,y,x)" by (rule exists_fresh(1), rule fin_supp, blast)
   have "AndL2 (x).M y = AndL2 (x').([(x',x)]\<bullet>M) y"
     using fs1 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a AndL2 (x').([(x',x)]\<bullet>M') y" using fs1 red
+  also have "\<dots> \<longrightarrow>\<^sub>a AndL2 (x').([(x',x)]\<bullet>M') y" using fs1 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = AndL2 (x).M' y" 
     using fs1 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4666,14 +4666,14 @@ proof -
 qed
 
 lemma better_OrLL_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a OrL (x).M' (y).N z"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a OrL (x).M' (y).N z"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain x'::"name" where fs1: "x'\<sharp>(M,N,x,y,z)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain y'::"name" where fs2: "y'\<sharp>(M,N,x,y,z,x')" by (rule exists_fresh(1), rule fin_supp, blast)
   have "OrL (x).M (y).N z =  OrL (x').([(x',x)]\<bullet>M) (y').([(y',y)]\<bullet>N) z"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a OrL (x').([(x',x)]\<bullet>M') (y').([(y',y)]\<bullet>N) z" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a OrL (x').([(x',x)]\<bullet>M') (y').([(y',y)]\<bullet>N) z" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = OrL (x).M' (y).N z" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4681,14 +4681,14 @@ proof -
 qed
 
 lemma better_OrLR_intro[intro]:
-  shows "N\<longrightarrow>\<^isub>a N' \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a OrL (x).M (y).N' z"
+  shows "N\<longrightarrow>\<^sub>a N' \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a OrL (x).M (y).N' z"
 proof -
-  assume red: "N\<longrightarrow>\<^isub>a N'"
+  assume red: "N\<longrightarrow>\<^sub>a N'"
   obtain x'::"name" where fs1: "x'\<sharp>(M,N,x,y,z)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain y'::"name" where fs2: "y'\<sharp>(M,N,x,y,z,x')" by (rule exists_fresh(1), rule fin_supp, blast)
   have "OrL (x).M (y).N z =  OrL (x').([(x',x)]\<bullet>M) (y').([(y',y)]\<bullet>N) z"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a OrL (x').([(x',x)]\<bullet>M) (y').([(y',y)]\<bullet>N') z" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a OrL (x').([(x',x)]\<bullet>M) (y').([(y',y)]\<bullet>N') z" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = OrL (x).M (y).N' z" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4696,13 +4696,13 @@ proof -
 qed
 
 lemma better_OrR1_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^isub>a OrR1 <a>.M' b"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^sub>a OrR1 <a>.M' b"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain a'::"coname" where fs1: "a'\<sharp>(M,b,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "OrR1 <a>.M b = OrR1 <a'>.([(a',a)]\<bullet>M) b"
     using fs1 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a OrR1 <a'>.([(a',a)]\<bullet>M') b" using fs1 red
+  also have "\<dots> \<longrightarrow>\<^sub>a OrR1 <a'>.([(a',a)]\<bullet>M') b" using fs1 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = OrR1 <a>.M' b" 
     using fs1 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4710,13 +4710,13 @@ proof -
 qed
 
 lemma better_OrR2_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^isub>a OrR2 <a>.M' b"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^sub>a OrR2 <a>.M' b"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain a'::"coname" where fs1: "a'\<sharp>(M,b,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "OrR2 <a>.M b = OrR2 <a'>.([(a',a)]\<bullet>M) b"
     using fs1 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a OrR2 <a'>.([(a',a)]\<bullet>M') b" using fs1 red
+  also have "\<dots> \<longrightarrow>\<^sub>a OrR2 <a'>.([(a',a)]\<bullet>M') b" using fs1 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = OrR2 <a>.M' b" 
     using fs1 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4724,14 +4724,14 @@ proof -
 qed
 
 lemma better_ImpLL_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^isub>a ImpL <a>.M' (x).N y"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^sub>a ImpL <a>.M' (x).N y"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain x'::"name"   where fs1: "x'\<sharp>(M,N,x,y)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "ImpL <a>.M (x).N y =  ImpL <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N) y"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  ImpL <a'>.([(a',a)]\<bullet>M') (x').([(x',x)]\<bullet>N) y" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  ImpL <a'>.([(a',a)]\<bullet>M') (x').([(x',x)]\<bullet>N) y" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = ImpL <a>.M' (x).N y" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4739,14 +4739,14 @@ proof -
 qed
 
 lemma better_ImpLR_intro[intro]:
-  shows "N\<longrightarrow>\<^isub>a N' \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^isub>a ImpL <a>.M (x).N' y"
+  shows "N\<longrightarrow>\<^sub>a N' \<Longrightarrow> ImpL <a>.M (x).N y \<longrightarrow>\<^sub>a ImpL <a>.M (x).N' y"
 proof -
-  assume red: "N\<longrightarrow>\<^isub>a N'"
+  assume red: "N\<longrightarrow>\<^sub>a N'"
   obtain x'::"name"   where fs1: "x'\<sharp>(M,N,x,y)" by (rule exists_fresh(1), rule fin_supp, blast)
   obtain a'::"coname" where fs2: "a'\<sharp>(M,N,a)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "ImpL <a>.M (x).N y =  ImpL <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N) y"
     using fs1 fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a  ImpL <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N') y" using fs1 fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a  ImpL <a'>.([(a',a)]\<bullet>M) (x').([(x',x)]\<bullet>N') y" using fs1 fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = ImpL <a>.M (x).N' y" 
     using fs1 fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4754,13 +4754,13 @@ proof -
 qed
 
 lemma better_ImpR_intro[intro]:
-  shows "M\<longrightarrow>\<^isub>a M' \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^isub>a ImpR (x).<a>.M' b"
+  shows "M\<longrightarrow>\<^sub>a M' \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^sub>a ImpR (x).<a>.M' b"
 proof -
-  assume red: "M\<longrightarrow>\<^isub>a M'"
+  assume red: "M\<longrightarrow>\<^sub>a M'"
   obtain a'::"coname" where fs2: "a'\<sharp>(M,a,b)" by (rule exists_fresh(2), rule fin_supp, blast)
   have "ImpR (x).<a>.M b = ImpR (x).<a'>.([(a',a)]\<bullet>M) b"
     using fs2 by (rule_tac sym, auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a ImpR (x).<a'>.([(a',a)]\<bullet>M') b" using fs2 red
+  also have "\<dots> \<longrightarrow>\<^sub>a ImpR (x).<a'>.([(a',a)]\<bullet>M') b" using fs2 red
     by (auto intro: a_redu.intros simp add: fresh_left calc_atm a_redu.eqvt fresh_atm fresh_prod)
   also have "\<dots> = ImpR (x).<a>.M' b" 
     using fs2 red by (auto simp add: trm.inject alpha fresh_atm fresh_prod calc_atm fresh_a_redu)
@@ -4770,15 +4770,15 @@ qed
 text {* axioms do not reduce *}
 
 lemma ax_do_not_l_reduce:
-  shows "Ax x a \<longrightarrow>\<^isub>l M \<Longrightarrow> False"
+  shows "Ax x a \<longrightarrow>\<^sub>l M \<Longrightarrow> False"
 by (erule_tac l_redu.cases) (simp_all add: trm.inject)
  
 lemma ax_do_not_c_reduce:
-  shows "Ax x a \<longrightarrow>\<^isub>c M \<Longrightarrow> False"
+  shows "Ax x a \<longrightarrow>\<^sub>c M \<Longrightarrow> False"
 by (erule_tac c_redu.cases) (simp_all add: trm.inject)
 
 lemma ax_do_not_a_reduce:
-  shows "Ax x a \<longrightarrow>\<^isub>a M \<Longrightarrow> False"
+  shows "Ax x a \<longrightarrow>\<^sub>a M \<Longrightarrow> False"
 apply(erule_tac a_redu.cases) 
 apply(auto simp add: trm.inject)
 apply(drule ax_do_not_l_reduce)
@@ -4788,8 +4788,8 @@ apply(simp)
 done
 
 lemma a_redu_NotL_elim:
-  assumes a: "NotL <a>.M x \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = NotL <a>.M' x \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "NotL <a>.M x \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = NotL <a>.M' x \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -4809,8 +4809,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_NotR_elim:
-  assumes a: "NotR (x).M a \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = NotR (x).M' a \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "NotR (x).M a \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = NotR (x).M' a \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -4830,8 +4830,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_AndR_elim:
-  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^isub>a R"
-  shows "(\<exists>M'. R = AndR <a>.M' <b>.N c \<and> M\<longrightarrow>\<^isub>aM') \<or> (\<exists>N'. R = AndR <a>.M <b>.N' c \<and> N\<longrightarrow>\<^isub>aN')"
+  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a R"
+  shows "(\<exists>M'. R = AndR <a>.M' <b>.N c \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = AndR <a>.M <b>.N' c \<and> N\<longrightarrow>\<^sub>aN')"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -4919,8 +4919,8 @@ apply(auto simp add: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_red
 done
 
 lemma a_redu_AndL1_elim:
-  assumes a: "AndL1 (x).M y \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = AndL1 (x).M' y \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = AndL1 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -4940,8 +4940,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_AndL2_elim:
-  assumes a: "AndL2 (x).M y \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = AndL2 (x).M' y \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "AndL2 (x).M y \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = AndL2 (x).M' y \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -4961,8 +4961,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_OrL_elim:
-  assumes a: "OrL (x).M (y).N z\<longrightarrow>\<^isub>a R"
-  shows "(\<exists>M'. R = OrL (x).M' (y).N z \<and> M\<longrightarrow>\<^isub>aM') \<or> (\<exists>N'. R = OrL (x).M (y).N' z \<and> N\<longrightarrow>\<^isub>aN')"
+  assumes a: "OrL (x).M (y).N z\<longrightarrow>\<^sub>a R"
+  shows "(\<exists>M'. R = OrL (x).M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = OrL (x).M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -5050,8 +5050,8 @@ apply(auto simp add: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_red
 done
 
 lemma a_redu_OrR1_elim:
-  assumes a: "OrR1 <a>.M b \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = OrR1 <a>.M' b \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "OrR1 <a>.M b \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = OrR1 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -5071,8 +5071,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_OrR2_elim:
-  assumes a: "OrR2 <a>.M b \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = OrR2 <a>.M' b \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "OrR2 <a>.M b \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = OrR2 <a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -5092,8 +5092,8 @@ apply(simp add: perm_swap)
 done
 
 lemma a_redu_ImpL_elim:
-  assumes a: "ImpL <a>.M (y).N z\<longrightarrow>\<^isub>a R"
-  shows "(\<exists>M'. R = ImpL <a>.M' (y).N z \<and> M\<longrightarrow>\<^isub>aM') \<or> (\<exists>N'. R = ImpL <a>.M (y).N' z \<and> N\<longrightarrow>\<^isub>aN')"
+  assumes a: "ImpL <a>.M (y).N z\<longrightarrow>\<^sub>a R"
+  shows "(\<exists>M'. R = ImpL <a>.M' (y).N z \<and> M\<longrightarrow>\<^sub>aM') \<or> (\<exists>N'. R = ImpL <a>.M (y).N' z \<and> N\<longrightarrow>\<^sub>aN')"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -5181,8 +5181,8 @@ apply(auto simp add: perm_swap fresh_left alpha a_redu.eqvt calc_atm fresh_a_red
 done
 
 lemma a_redu_ImpR_elim:
-  assumes a: "ImpR (x).<a>.M b \<longrightarrow>\<^isub>a R"
-  shows "\<exists>M'. R = ImpR (x).<a>.M' b \<and> M\<longrightarrow>\<^isub>aM'"
+  assumes a: "ImpR (x).<a>.M b \<longrightarrow>\<^sub>a R"
+  shows "\<exists>M'. R = ImpR (x).<a>.M' b \<and> M\<longrightarrow>\<^sub>aM'"
 using a
 apply(erule_tac a_redu.cases, simp_all add: trm.inject)
 apply(erule_tac l_redu.cases, simp_all add: trm.inject)
@@ -5238,36 +5238,36 @@ done
 text {* Transitive Closure*}
 
 abbreviation
- a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^isub>a* _" [100,100] 100)
+ a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [100,100] 100)
 where
-  "M \<longrightarrow>\<^isub>a* M' \<equiv> (a_redu)^** M M'"
+  "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)^** M M'"
 
 lemma a_starI:
-  assumes a: "M \<longrightarrow>\<^isub>a M'"
-  shows "M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "M \<longrightarrow>\<^sub>a M'"
+  shows "M \<longrightarrow>\<^sub>a* M'"
 using a by blast
 
 lemma a_starE:
-  assumes a: "M \<longrightarrow>\<^isub>a* M'"
-  shows "M = M' \<or> (\<exists>N. M \<longrightarrow>\<^isub>a N \<and> N \<longrightarrow>\<^isub>a* M')"
+  assumes a: "M \<longrightarrow>\<^sub>a* M'"
+  shows "M = M' \<or> (\<exists>N. M \<longrightarrow>\<^sub>a N \<and> N \<longrightarrow>\<^sub>a* M')"
 using a 
 by (induct) (auto)
 
 lemma a_star_refl:
-  shows "M \<longrightarrow>\<^isub>a* M"
+  shows "M \<longrightarrow>\<^sub>a* M"
   by blast
 
 lemma a_star_trans[trans]:
-  assumes a1: "M1\<longrightarrow>\<^isub>a* M2"
-  and     a2: "M2\<longrightarrow>\<^isub>a* M3"
-  shows "M1 \<longrightarrow>\<^isub>a* M3"
+  assumes a1: "M1\<longrightarrow>\<^sub>a* M2"
+  and     a2: "M2\<longrightarrow>\<^sub>a* M3"
+  shows "M1 \<longrightarrow>\<^sub>a* M3"
 using a2 a1
 by (induct) (auto)
 
-text {* congruence rules for \<longrightarrow>\<^isub>a* *}
+text {* congruence rules for \<longrightarrow>\<^sub>a* *}
 
 lemma ax_do_not_a_star_reduce:
-  shows "Ax x a \<longrightarrow>\<^isub>a* M \<Longrightarrow> M = Ax x a"
+  shows "Ax x a \<longrightarrow>\<^sub>a* M \<Longrightarrow> M = Ax x a"
 apply(induct set: rtranclp)
 apply(auto)
 apply(drule  ax_do_not_a_reduce)
@@ -5276,87 +5276,87 @@ done
 
 
 lemma a_star_CutL:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M' (x).N"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a* Cut <a>.M' (x).N"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_CutR:
-    "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M (x).N'"
+    "N \<longrightarrow>\<^sub>a* N'\<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a* Cut <a>.M (x).N'"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_Cut:
-    "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^isub>a* Cut <a>.M' (x).N'"
+    "\<lbrakk>M \<longrightarrow>\<^sub>a* M'; N \<longrightarrow>\<^sub>a* N'\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>a* Cut <a>.M' (x).N'"
 by (blast intro!: a_star_CutL a_star_CutR intro: rtranclp_trans)
 
 lemma a_star_NotR:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> NotR (x).M a \<longrightarrow>\<^isub>a* NotR (x).M' a"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> NotR (x).M a \<longrightarrow>\<^sub>a* NotR (x).M' a"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_NotL:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> NotL <a>.M x \<longrightarrow>\<^isub>a* NotL <a>.M' x"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> NotL <a>.M x \<longrightarrow>\<^sub>a* NotL <a>.M' x"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndRL:
-    "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M' <b>.N c"
+    "M \<longrightarrow>\<^sub>a* M'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a* AndR <a>.M' <b>.N c"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndRR:
-    "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M <b>.N' c"
+    "N \<longrightarrow>\<^sub>a* N'\<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a* AndR <a>.M <b>.N' c"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndR:
-    "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^isub>a* AndR <a>.M' <b>.N' c"
+    "\<lbrakk>M \<longrightarrow>\<^sub>a* M'; N \<longrightarrow>\<^sub>a* N'\<rbrakk> \<Longrightarrow> AndR <a>.M <b>.N c \<longrightarrow>\<^sub>a* AndR <a>.M' <b>.N' c"
 by (blast intro!: a_star_AndRL a_star_AndRR intro: rtranclp_trans)
 
 lemma a_star_AndL1:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^isub>a* AndL1 (x).M' y"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> AndL1 (x).M y \<longrightarrow>\<^sub>a* AndL1 (x).M' y"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_AndL2:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^isub>a* AndL2 (x).M' y"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> AndL2 (x).M y \<longrightarrow>\<^sub>a* AndL2 (x).M' y"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrLL:
-    "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M' (y).N z"
+    "M \<longrightarrow>\<^sub>a* M'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a* OrL (x).M' (y).N z"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrLR:
-    "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M (y).N' z"
+    "N \<longrightarrow>\<^sub>a* N'\<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a* OrL (x).M (y).N' z"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrL:
-    "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^isub>a* OrL (x).M' (y).N' z"
+    "\<lbrakk>M \<longrightarrow>\<^sub>a* M'; N \<longrightarrow>\<^sub>a* N'\<rbrakk> \<Longrightarrow> OrL (x).M (y).N z \<longrightarrow>\<^sub>a* OrL (x).M' (y).N' z"
 by (blast intro!: a_star_OrLL a_star_OrLR intro: rtranclp_trans)
 
 lemma a_star_OrR1:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^isub>a* OrR1 <a>.M' b"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> OrR1 <a>.M b \<longrightarrow>\<^sub>a* OrR1 <a>.M' b"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_OrR2:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^isub>a* OrR2 <a>.M' b"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> OrR2 <a>.M b \<longrightarrow>\<^sub>a* OrR2 <a>.M' b"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpLL:
-    "M \<longrightarrow>\<^isub>a* M'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M' (y).N z"
+    "M \<longrightarrow>\<^sub>a* M'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* ImpL <a>.M' (y).N z"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpLR:
-    "N \<longrightarrow>\<^isub>a* N'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M (y).N' z"
+    "N \<longrightarrow>\<^sub>a* N'\<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* ImpL <a>.M (y).N' z"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma a_star_ImpL:
-    "\<lbrakk>M \<longrightarrow>\<^isub>a* M'; N \<longrightarrow>\<^isub>a* N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* ImpL <a>.M' (y).N' z"
+    "\<lbrakk>M \<longrightarrow>\<^sub>a* M'; N \<longrightarrow>\<^sub>a* N'\<rbrakk> \<Longrightarrow> ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* ImpL <a>.M' (y).N' z"
 by (blast intro!: a_star_ImpLL a_star_ImpLR intro: rtranclp_trans)
 
 lemma a_star_ImpR:
-    "M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^isub>a* ImpR (x).<a>.M' b"
+    "M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> ImpR (x).<a>.M b \<longrightarrow>\<^sub>a* ImpR (x).<a>.M' b"
 by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemmas a_star_congs = a_star_Cut a_star_NotR a_star_NotL a_star_AndR a_star_AndL1 a_star_AndL2
                       a_star_OrL a_star_OrR1 a_star_OrR2 a_star_ImpL a_star_ImpR
 
 lemma a_star_redu_NotL_elim:
-  assumes a: "NotL <a>.M x \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = NotL <a>.M' x \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "NotL <a>.M x \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = NotL <a>.M' x \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5365,8 +5365,8 @@ apply(auto)
 done
 
 lemma a_star_redu_NotR_elim:
-  assumes a: "NotR (x).M a \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = NotR (x).M' a \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "NotR (x).M a \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = NotR (x).M' a \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5375,8 +5375,8 @@ apply(auto)
 done
 
 lemma a_star_redu_AndR_elim:
-  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^isub>a* R"
-  shows "(\<exists>M' N'. R = AndR <a>.M' <b>.N' c \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
+  assumes a: "AndR <a>.M <b>.N c\<longrightarrow>\<^sub>a* R"
+  shows "(\<exists>M' N'. R = AndR <a>.M' <b>.N' c \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5385,8 +5385,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_AndL1_elim:
-  assumes a: "AndL1 (x).M y \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = AndL1 (x).M' y \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "AndL1 (x).M y \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = AndL1 (x).M' y \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5395,8 +5395,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_AndL2_elim:
-  assumes a: "AndL2 (x).M y \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = AndL2 (x).M' y \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "AndL2 (x).M y \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = AndL2 (x).M' y \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5405,8 +5405,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_OrL_elim:
-  assumes a: "OrL (x).M (y).N z \<longrightarrow>\<^isub>a* R"
-  shows "(\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
+  assumes a: "OrL (x).M (y).N z \<longrightarrow>\<^sub>a* R"
+  shows "(\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5415,8 +5415,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_OrR1_elim:
-  assumes a: "OrR1 <a>.M y \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = OrR1 <a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "OrR1 <a>.M y \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = OrR1 <a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5425,8 +5425,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_OrR2_elim:
-  assumes a: "OrR2 <a>.M y \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = OrR2 <a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "OrR2 <a>.M y \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = OrR2 <a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5435,8 +5435,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_ImpR_elim:
-  assumes a: "ImpR (x).<a>.M y \<longrightarrow>\<^isub>a* R"
-  shows "\<exists>M'. R = ImpR (x).<a>.M' y \<and> M \<longrightarrow>\<^isub>a* M'"
+  assumes a: "ImpR (x).<a>.M y \<longrightarrow>\<^sub>a* R"
+  shows "\<exists>M'. R = ImpR (x).<a>.M' y \<and> M \<longrightarrow>\<^sub>a* M'"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5445,8 +5445,8 @@ apply(auto simp add: alpha trm.inject)
 done
 
 lemma a_star_redu_ImpL_elim:
-  assumes a: "ImpL <a>.M (y).N z \<longrightarrow>\<^isub>a* R"
-  shows "(\<exists>M' N'. R = ImpL <a>.M' (y).N' z \<and> M \<longrightarrow>\<^isub>a* M' \<and> N \<longrightarrow>\<^isub>a* N')"
+  assumes a: "ImpL <a>.M (y).N z \<longrightarrow>\<^sub>a* R"
+  shows "(\<exists>M' N'. R = ImpL <a>.M' (y).N' z \<and> M \<longrightarrow>\<^sub>a* M' \<and> N \<longrightarrow>\<^sub>a* N')"
 using a
 apply(induct set: rtranclp)
 apply(auto)
@@ -5723,7 +5723,7 @@ text {* Reductions *}
 
 lemma fin_l_reduce:
   assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^isub>l M'"
+  and      b: "M \<longrightarrow>\<^sub>l M'"
   shows "fin M' x"
 using b a
 apply(induct)
@@ -5737,7 +5737,7 @@ done
 
 lemma fin_c_reduce:
   assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^isub>c M'"
+  and      b: "M \<longrightarrow>\<^sub>c M'"
   shows "fin M' x"
 using b a
 apply(induct)
@@ -5746,7 +5746,7 @@ done
 
 lemma fin_a_reduce:
   assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^isub>a M'"
+  and      b: "M \<longrightarrow>\<^sub>a M'"
   shows "fin M' x"
 using a b
 apply(induct)
@@ -5784,7 +5784,7 @@ done
 
 lemma fin_a_star_reduce:
   assumes  a: "fin M x"
-  and      b: "M \<longrightarrow>\<^isub>a* M'"
+  and      b: "M \<longrightarrow>\<^sub>a* M'"
   shows "fin M' x"
 using b a
 apply(induct set: rtranclp)
@@ -5793,7 +5793,7 @@ done
 
 lemma fic_l_reduce:
   assumes  a: "fic M x"
-  and      b: "M \<longrightarrow>\<^isub>l M'"
+  and      b: "M \<longrightarrow>\<^sub>l M'"
   shows "fic M' x"
 using b a
 apply(induct)
@@ -5807,7 +5807,7 @@ done
 
 lemma fic_c_reduce:
   assumes a: "fic M x"
-  and     b: "M \<longrightarrow>\<^isub>c M'"
+  and     b: "M \<longrightarrow>\<^sub>c M'"
   shows "fic M' x"
 using b a
 apply(induct)
@@ -5816,7 +5816,7 @@ done
 
 lemma fic_a_reduce:
   assumes a: "fic M x"
-  and     b: "M \<longrightarrow>\<^isub>a M'"
+  and     b: "M \<longrightarrow>\<^sub>a M'"
   shows "fic M' x"
 using a b
 apply(induct)
@@ -5850,7 +5850,7 @@ done
 
 lemma fic_a_star_reduce:
   assumes  a: "fic M x"
-  and      b: "M \<longrightarrow>\<^isub>a* M'"
+  and      b: "M \<longrightarrow>\<^sub>a* M'"
   shows "fic M' x"
 using b a
 apply(induct set: rtranclp)
@@ -5860,55 +5860,55 @@ done
 text {* substitution properties *}
 
 lemma subst_with_ax1:
-  shows "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]"
+  shows "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]"
 proof(nominal_induct M avoiding: x a y rule: trm.strong_induct)
   case (Ax z b x a y)
-  show "(Ax z b){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Ax z b)[x\<turnstile>n>y]"
+  show "(Ax z b){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Ax z b)[x\<turnstile>n>y]"
   proof (cases "z=x")
     case True
     assume eq: "z=x"
     have "(Ax z b){x:=<a>.Ax y a} = Cut <a>.Ax y a (x).Ax x b" using eq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* (Ax x b)[x\<turnstile>n>y]" by blast
-    finally show "Ax z b{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Ax z b)[x\<turnstile>n>y]" using eq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* (Ax x b)[x\<turnstile>n>y]" by blast
+    finally show "Ax z b{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Ax z b)[x\<turnstile>n>y]" using eq by simp
   next
     case False
     assume neq: "z\<noteq>x"
-    then show "(Ax z b){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Ax z b)[x\<turnstile>n>y]" using neq by simp
+    then show "(Ax z b){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Ax z b)[x\<turnstile>n>y]" using neq by simp
   qed
 next
   case (Cut b M z N x a y)
   have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>N" "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>M" by fact+
-  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
-  show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]"
+  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* N[x\<turnstile>n>y]" by fact
+  show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]"
   proof (cases "M = Ax x b")
     case True
     assume eq: "M = Ax x b"
     have "(Cut <b>.M (z).N){x:=<a>.Ax y a} = Cut <a>.Ax y a (z).(N{x:=<a>.Ax y a})" using fs eq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.Ax y a (z).(N[x\<turnstile>n>y])" using ih2 a_star_congs by blast
+    also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.Ax y a (z).(N[x\<turnstile>n>y])" using ih2 a_star_congs by blast
     also have "\<dots> = Cut <b>.(M[x\<turnstile>n>y]) (z).(N[x\<turnstile>n>y])" using eq
       by (simp add: trm.inject alpha calc_atm fresh_atm)
-    finally show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]" using fs by simp
+    finally show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]" using fs by simp
   next
     case False
     assume neq: "M \<noteq> Ax x b"
     have "(Cut <b>.M (z).N){x:=<a>.Ax y a} = Cut <b>.(M{x:=<a>.Ax y a}) (z).(N{x:=<a>.Ax y a})" 
       using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* Cut <b>.(M[x\<turnstile>n>y]) (z).(N[x\<turnstile>n>y])" using ih1 ih2 a_star_congs by blast
-    finally show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]" using fs by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* Cut <b>.(M[x\<turnstile>n>y]) (z).(N[x\<turnstile>n>y])" using ih1 ih2 a_star_congs by blast
+    finally show "(Cut <b>.M (z).N){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (Cut <b>.M (z).N)[x\<turnstile>n>y]" using fs by simp
   qed
 next
   case (NotR z M b x a y)
   have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "z\<sharp>b" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
   have "(NotR (z).M b){x:=<a>.Ax y a} = NotR (z).(M{x:=<a>.Ax y a}) b" using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* NotR (z).(M[x\<turnstile>n>y]) b" using ih by (auto intro: a_star_congs)
-  finally show "(NotR (z).M b){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotR (z).M b)[x\<turnstile>n>y]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* NotR (z).(M[x\<turnstile>n>y]) b" using ih by (auto intro: a_star_congs)
+  finally show "(NotR (z).M b){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (NotR (z).M b)[x\<turnstile>n>y]" using fs by simp
 next
   case (NotL b M z x a y)  
   have fs: "b\<sharp>x" "b\<sharp>a" "b\<sharp>y" "b\<sharp>z" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotL <b>.M z)[x\<turnstile>n>y]"
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (NotL <b>.M z)[x\<turnstile>n>y]"
   proof(cases "z=x")
     case True
     assume eq: "z=x"
@@ -5918,7 +5918,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <a>.Ax y a (x').NotL <b>.(M{x:=<a>.Ax y a}) x'" 
       using new by (simp add: fresh_fun_simp_NotL fresh_prod)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (NotL <b>.(M{x:=<a>.Ax y a}) x')[x'\<turnstile>n>y]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (NotL <b>.(M{x:=<a>.Ax y a}) x')[x'\<turnstile>n>y]"
       using new 
       apply(rule_tac a_starI)
       apply(rule al_redu)
@@ -5926,31 +5926,31 @@ next
       apply(auto)
       done
     also have "\<dots> = NotL <b>.(M{x:=<a>.Ax y a}) y" using new by (simp add: nrename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* NotL <b>.(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* NotL <b>.(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (NotL <b>.M z)[x\<turnstile>n>y]" using eq by simp
-    finally show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotL <b>.M z)[x\<turnstile>n>y]" by simp
+    finally show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (NotL <b>.M z)[x\<turnstile>n>y]" by simp
   next
     case False
     assume neq: "z\<noteq>x"
     have "(NotL <b>.M z){x:=<a>.Ax y a} = NotL <b>.(M{x:=<a>.Ax y a}) z" using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* NotL <b>.(M[x\<turnstile>n>y]) z" using ih by (auto intro: a_star_congs)
-    finally show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (NotL <b>.M z)[x\<turnstile>n>y]" using neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* NotL <b>.(M[x\<turnstile>n>y]) z" using ih by (auto intro: a_star_congs)
+    finally show "(NotL <b>.M z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (NotL <b>.M z)[x\<turnstile>n>y]" using neq by simp
   qed
 next
   case (AndR c M d N e x a y)
   have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "d\<sharp>x" "d\<sharp>a" "d\<sharp>y" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact+
-  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
+  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* N[x\<turnstile>n>y]" by fact
   have "(AndR <c>.M <d>.N e){x:=<a>.Ax y a} = AndR <c>.(M{x:=<a>.Ax y a}) <d>.(N{x:=<a>.Ax y a}) e"
     using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* AndR <c>.(M[x\<turnstile>n>y]) <d>.(N[x\<turnstile>n>y]) e" using ih1 ih2 by (auto intro: a_star_congs)
-  finally show "(AndR <c>.M <d>.N e){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndR <c>.M <d>.N e)[x\<turnstile>n>y]"
+  also have "\<dots> \<longrightarrow>\<^sub>a* AndR <c>.(M[x\<turnstile>n>y]) <d>.(N[x\<turnstile>n>y]) e" using ih1 ih2 by (auto intro: a_star_congs)
+  finally show "(AndR <c>.M <d>.N e){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndR <c>.M <d>.N e)[x\<turnstile>n>y]"
     using fs by simp
 next
   case (AndL1 u M v x a y)
   have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[x\<turnstile>n>y]"
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL1 (u).M v)[x\<turnstile>n>y]"
   proof(cases "v=x")
     case True
     assume eq: "v=x"
@@ -5960,7 +5960,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <a>.Ax y a (v').AndL1 (u).(M{x:=<a>.Ax y a}) v'" 
       using new by (simp add: fresh_fun_simp_AndL1 fresh_prod)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (AndL1 (u).(M{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (AndL1 (u).(M{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -5970,21 +5970,21 @@ next
       done
     also have "\<dots> = AndL1 (u).(M{x:=<a>.Ax y a}) y" using fs new
       by (auto simp add: fresh_prod fresh_atm nrename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndL1 (u).(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndL1 (u).(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (AndL1 (u).M v)[x\<turnstile>n>y]" using eq fs by simp
-    finally show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[x\<turnstile>n>y]" by simp
+    finally show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL1 (u).M v)[x\<turnstile>n>y]" by simp
   next
     case False
     assume neq: "v\<noteq>x"
     have "(AndL1 (u).M v){x:=<a>.Ax y a} = AndL1 (u).(M{x:=<a>.Ax y a}) v" using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndL1 (u).(M[x\<turnstile>n>y]) v" using ih by (auto intro: a_star_congs)
-    finally show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[x\<turnstile>n>y]" using fs neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndL1 (u).(M[x\<turnstile>n>y]) v" using ih by (auto intro: a_star_congs)
+    finally show "(AndL1 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL1 (u).M v)[x\<turnstile>n>y]" using fs neq by simp
   qed
 next
   case (AndL2 u M v x a y)
   have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "u\<sharp>v" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[x\<turnstile>n>y]"
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL2 (u).M v)[x\<turnstile>n>y]"
   proof(cases "v=x")
     case True
     assume eq: "v=x"
@@ -5994,7 +5994,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <a>.Ax y a (v').AndL2 (u).(M{x:=<a>.Ax y a}) v'" 
       using new by (simp add: fresh_fun_simp_AndL2 fresh_prod)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (AndL2 (u).(M{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (AndL2 (u).(M{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6004,36 +6004,36 @@ next
       done
     also have "\<dots> = AndL2 (u).(M{x:=<a>.Ax y a}) y" using fs new
       by (auto simp add: fresh_prod fresh_atm nrename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndL2 (u).(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndL2 (u).(M[x\<turnstile>n>y]) y" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (AndL2 (u).M v)[x\<turnstile>n>y]" using eq fs by simp
-    finally show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[x\<turnstile>n>y]" by simp
+    finally show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL2 (u).M v)[x\<turnstile>n>y]" by simp
   next
     case False
     assume neq: "v\<noteq>x"
     have "(AndL2 (u).M v){x:=<a>.Ax y a} = AndL2 (u).(M{x:=<a>.Ax y a}) v" using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndL2 (u).(M[x\<turnstile>n>y]) v" using ih by (auto intro: a_star_congs)
-    finally show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[x\<turnstile>n>y]" using fs neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndL2 (u).(M[x\<turnstile>n>y]) v" using ih by (auto intro: a_star_congs)
+    finally show "(AndL2 (u).M v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (AndL2 (u).M v)[x\<turnstile>n>y]" using fs neq by simp
   qed
 next
   case (OrR1 c M d  x a y)
   have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
   have "(OrR1 <c>.M d){x:=<a>.Ax y a} = OrR1 <c>.(M{x:=<a>.Ax y a}) d" using fs by (simp add: fresh_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a* OrR1 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
-  finally show "(OrR1 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[x\<turnstile>n>y]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* OrR1 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
+  finally show "(OrR1 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (OrR1 <c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (OrR2 c M d  x a y)
   have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "c\<sharp>d" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
   have "(OrR2 <c>.M d){x:=<a>.Ax y a} = OrR2 <c>.(M{x:=<a>.Ax y a}) d" using fs by (simp add: fresh_atm)
-  also have "\<dots> \<longrightarrow>\<^isub>a* OrR2 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
-  finally show "(OrR2 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[x\<turnstile>n>y]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* OrR2 <c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
+  finally show "(OrR2 <c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (OrR2 <c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (OrL u M v N z x a y)
   have fs: "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "v\<sharp>x" "v\<sharp>a" "v\<sharp>y" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact+
-  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
-  show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]"
+  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* N[x\<turnstile>n>y]" by fact
+  show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]"
   proof(cases "z=x")
     case True
     assume eq: "z=x"
@@ -6044,7 +6044,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <a>.Ax y a (z').OrL (u).(M{x:=<a>.Ax y a}) (v).(N{x:=<a>.Ax y a}) z'" 
       using new by (simp add: fresh_fun_simp_OrL)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (OrL (u).(M{x:=<a>.Ax y a}) (v).(N{x:=<a>.Ax y a}) z')[z'\<turnstile>n>y]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (OrL (u).(M{x:=<a>.Ax y a}) (v).(N{x:=<a>.Ax y a}) z')[z'\<turnstile>n>y]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6054,32 +6054,32 @@ next
       done
     also have "\<dots> = OrL (u).(M{x:=<a>.Ax y a}) (v).(N{x:=<a>.Ax y a}) y" using fs new
       by (auto simp add: fresh_prod fresh_atm nrename_fresh subst_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrL (u).(M[x\<turnstile>n>y]) (v).(N[x\<turnstile>n>y]) y" 
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrL (u).(M[x\<turnstile>n>y]) (v).(N[x\<turnstile>n>y]) y" 
       using ih1 ih2 by (auto intro: a_star_congs)
     also have "\<dots> = (OrL (u).M (v).N z)[x\<turnstile>n>y]" using eq fs by simp
-    finally show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]" by simp
+    finally show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]" by simp
   next
     case False
     assume neq: "z\<noteq>x"
     have "(OrL (u).M (v).N z){x:=<a>.Ax y a} = OrL (u).(M{x:=<a>.Ax y a}) (v).(N{x:=<a>.Ax y a}) z" 
       using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrL (u).(M[x\<turnstile>n>y]) (v).(N[x\<turnstile>n>y]) z" 
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrL (u).(M[x\<turnstile>n>y]) (v).(N[x\<turnstile>n>y]) z" 
       using ih1 ih2 by (auto intro: a_star_congs)
-    finally show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]" using fs neq by simp
+    finally show "(OrL (u).M (v).N z){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (OrL (u).M (v).N z)[x\<turnstile>n>y]" using fs neq by simp
   qed
 next
   case (ImpR z c M d x a y)
   have fs: "z\<sharp>x" "z\<sharp>a" "z\<sharp>y" "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "z\<sharp>d" "c\<sharp>d" by fact+
-  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
+  have ih: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
   have "(ImpR (z).<c>.M d){x:=<a>.Ax y a} = ImpR (z).<c>.(M{x:=<a>.Ax y a}) d" using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* ImpR (z).<c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
-  finally show "(ImpR (z).<c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[x\<turnstile>n>y]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* ImpR (z).<c>.(M[x\<turnstile>n>y]) d" using ih by (auto intro: a_star_congs)
+  finally show "(ImpR (z).<c>.M d){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (ImpR (z).<c>.M d)[x\<turnstile>n>y]" using fs by simp
 next
   case (ImpL c M u N v x a y)
   have fs: "c\<sharp>x" "c\<sharp>a" "c\<sharp>y" "u\<sharp>x" "u\<sharp>a" "u\<sharp>y" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact+
-  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]" by fact
-  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* N[x\<turnstile>n>y]" by fact
-  show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]"
+  have ih1: "M{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* M[x\<turnstile>n>y]" by fact
+  have ih2: "N{x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* N[x\<turnstile>n>y]" by fact
+  show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]"
   proof(cases "v=x")
     case True
     assume eq: "v=x"
@@ -6090,7 +6090,7 @@ next
       using eq fs by simp 
     also have "\<dots> = Cut <a>.Ax y a (v').ImpL <c>.(M{x:=<a>.Ax y a}) (u).(N{x:=<a>.Ax y a}) v'" 
       using new by (simp add: fresh_fun_simp_ImpL)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (ImpL <c>.(M{x:=<a>.Ax y a}) (u).(N{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (ImpL <c>.(M{x:=<a>.Ax y a}) (u).(N{x:=<a>.Ax y a}) v')[v'\<turnstile>n>y]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6100,65 +6100,65 @@ next
       done
     also have "\<dots> = ImpL <c>.(M{x:=<a>.Ax y a}) (u).(N{x:=<a>.Ax y a}) y" using fs new
       by (auto simp add: fresh_prod subst_fresh fresh_atm trm.inject alpha rename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* ImpL <c>.(M[x\<turnstile>n>y]) (u).(N[x\<turnstile>n>y]) y" 
+    also have "\<dots> \<longrightarrow>\<^sub>a* ImpL <c>.(M[x\<turnstile>n>y]) (u).(N[x\<turnstile>n>y]) y" 
       using ih1 ih2 by (auto intro: a_star_congs)
     also have "\<dots> = (ImpL <c>.M (u).N v)[x\<turnstile>n>y]" using eq fs by simp
-    finally show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]" using fs by simp
+    finally show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]" using fs by simp
   next
     case False
     assume neq: "v\<noteq>x"
     have "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} = ImpL <c>.(M{x:=<a>.Ax y a}) (u).(N{x:=<a>.Ax y a}) v" 
       using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* ImpL <c>.(M[x\<turnstile>n>y]) (u).(N[x\<turnstile>n>y]) v" 
+    also have "\<dots> \<longrightarrow>\<^sub>a* ImpL <c>.(M[x\<turnstile>n>y]) (u).(N[x\<turnstile>n>y]) v" 
       using ih1 ih2 by (auto intro: a_star_congs)
-    finally show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]" 
+    finally show "(ImpL <c>.M (u).N v){x:=<a>.Ax y a} \<longrightarrow>\<^sub>a* (ImpL <c>.M (u).N v)[x\<turnstile>n>y]" 
       using fs neq by simp
   qed
 qed
 
 lemma subst_with_ax2:
-  shows "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]"
+  shows "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]"
 proof(nominal_induct M avoiding: b a x rule: trm.strong_induct)
   case (Ax z c b a x)
-  show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Ax z c)[b\<turnstile>c>a]"
+  show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Ax z c)[b\<turnstile>c>a]"
   proof (cases "c=b")
     case True
     assume eq: "c=b"
     have "(Ax z c){b:=(x).Ax x a} = Cut <b>.Ax z c (x).Ax x a" using eq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* (Ax z c)[b\<turnstile>c>a]" using eq by blast
-    finally show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Ax z c)[b\<turnstile>c>a]" by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* (Ax z c)[b\<turnstile>c>a]" using eq by blast
+    finally show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Ax z c)[b\<turnstile>c>a]" by simp
   next
     case False
     assume neq: "c\<noteq>b"
-    then show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Ax z c)[b\<turnstile>c>a]" by simp
+    then show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Ax z c)[b\<turnstile>c>a]" by simp
   qed
 next
   case (Cut c M z N b a x)
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>N" "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>M" by fact+
-  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
-  show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]"
+  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* N[b\<turnstile>c>a]" by fact
+  show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]"
   proof (cases "N = Ax z b")
     case True
     assume eq: "N = Ax z b"
     have "(Cut <c>.M (z).N){b:=(x).Ax x a} = Cut <c>.(M{b:=(x).Ax x a}) (x).Ax x a" using eq fs by simp 
-    also have "\<dots> \<longrightarrow>\<^isub>a* Cut <c>.(M[b\<turnstile>c>a]) (x).Ax x a" using ih1 a_star_congs by blast
+    also have "\<dots> \<longrightarrow>\<^sub>a* Cut <c>.(M[b\<turnstile>c>a]) (x).Ax x a" using ih1 a_star_congs by blast
     also have "\<dots> = Cut <c>.(M[b\<turnstile>c>a]) (z).(N[b\<turnstile>c>a])" using eq fs
       by (simp add: trm.inject alpha calc_atm fresh_atm)
-    finally show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]" using fs by simp
+    finally show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]" using fs by simp
   next
     case False
     assume neq: "N \<noteq> Ax z b"
     have "(Cut <c>.M (z).N){b:=(x).Ax x a} = Cut <c>.(M{b:=(x).Ax x a}) (z).(N{b:=(x).Ax x a})" 
       using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* Cut <c>.(M[b\<turnstile>c>a]) (z).(N[b\<turnstile>c>a])" using ih1 ih2 a_star_congs by blast
-    finally show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]" using fs by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* Cut <c>.(M[b\<turnstile>c>a]) (z).(N[b\<turnstile>c>a])" using ih1 ih2 a_star_congs by blast
+    finally show "(Cut <c>.M (z).N){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (Cut <c>.M (z).N)[b\<turnstile>c>a]" using fs by simp
   qed
 next
   case (NotR z M c b a x)
   have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "z\<sharp>c" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotR (z).M c)[b\<turnstile>c>a]"
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (NotR (z).M c)[b\<turnstile>c>a]"
   proof (cases "c=b")
     case True
     assume eq: "c=b"
@@ -6168,7 +6168,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <a'>.NotR (z).M{b:=(x).Ax x a} a' (x).Ax x a"
       using new by (simp add: fresh_fun_simp_NotR fresh_prod)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (NotR (z).(M{b:=(x).Ax x a}) a')[a'\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (NotR (z).(M{b:=(x).Ax x a}) a')[a'\<turnstile>c>a]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6177,29 +6177,29 @@ next
       apply(simp)
       done
     also have "\<dots> = NotR (z).(M{b:=(x).Ax x a}) a" using new by (simp add: crename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* NotR (z).(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* NotR (z).(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (NotR (z).M c)[b\<turnstile>c>a]" using eq by simp
-    finally show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotR (z).M c)[b\<turnstile>c>a]" by simp
+    finally show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (NotR (z).M c)[b\<turnstile>c>a]" by simp
   next
     case False
     assume neq: "c\<noteq>b"
     have "(NotR (z).M c){b:=(x).Ax x a} = NotR (z).(M{b:=(x).Ax x a}) c" using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* NotR (z).(M[b\<turnstile>c>a]) c" using ih by (auto intro: a_star_congs)
-    finally show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotR (z).M c)[b\<turnstile>c>a]" using neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* NotR (z).(M[b\<turnstile>c>a]) c" using ih by (auto intro: a_star_congs)
+    finally show "(NotR (z).M c){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (NotR (z).M c)[b\<turnstile>c>a]" using neq by simp
   qed
 next
   case (NotL c M z b a x)  
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>z" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
   have "(NotL <c>.M z){b:=(x).Ax x a} = NotL <c>.(M{b:=(x).Ax x a}) z" using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* NotL <c>.(M[b\<turnstile>c>a]) z" using ih by (auto intro: a_star_congs)
-  finally show "(NotL <c>.M z){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (NotL <c>.M z)[b\<turnstile>c>a]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* NotL <c>.(M[b\<turnstile>c>a]) z" using ih by (auto intro: a_star_congs)
+  finally show "(NotL <c>.M z){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (NotL <c>.M z)[b\<turnstile>c>a]" using fs by simp
 next
   case (AndR c M d N e b a x)
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "d\<sharp>b" "d\<sharp>a" "d\<sharp>x" "d\<noteq>c" "c\<sharp>N" "c\<sharp>e" "d\<sharp>M" "d\<sharp>e" by fact+
-  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
-  show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]"
+  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* N[b\<turnstile>c>a]" by fact
+  show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]"
   proof(cases "e=b")
     case True
     assume eq: "e=b"
@@ -6210,7 +6210,7 @@ next
       using eq fs by simp
     also have "\<dots> = Cut <e'>.AndR <c>.(M{b:=(x).Ax x a}) <d>.(N{b:=(x).Ax x a}) e' (x).Ax x a"
       using new by (simp add: fresh_fun_simp_AndR fresh_prod)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (AndR <c>.(M{b:=(x).Ax x a}) <d>.(N{b:=(x).Ax x a}) e')[e'\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (AndR <c>.(M{b:=(x).Ax x a}) <d>.(N{b:=(x).Ax x a}) e')[e'\<turnstile>c>a]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6220,37 +6220,37 @@ next
       done
     also have "\<dots> = AndR <c>.(M{b:=(x).Ax x a}) <d>.(N{b:=(x).Ax x a}) a" using fs new
       by (auto simp add: fresh_prod fresh_atm subst_fresh crename_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndR <c>.(M[b\<turnstile>c>a]) <d>.(N[b\<turnstile>c>a]) a" using ih1 ih2 by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndR <c>.(M[b\<turnstile>c>a]) <d>.(N[b\<turnstile>c>a]) a" using ih1 ih2 by (auto intro: a_star_congs)
     also have "\<dots> = (AndR <c>.M <d>.N e)[b\<turnstile>c>a]" using eq fs by simp
-    finally show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]" by simp
+    finally show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]" by simp
   next
     case False
     assume neq: "e\<noteq>b"
     have "(AndR <c>.M <d>.N e){b:=(x).Ax x a} = AndR <c>.(M{b:=(x).Ax x a}) <d>.(N{b:=(x).Ax x a}) e"
       using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* AndR <c>.(M[b\<turnstile>c>a]) <d>.(N[b\<turnstile>c>a]) e" using ih1 ih2 by (auto intro: a_star_congs)
-    finally show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* AndR <c>.(M[b\<turnstile>c>a]) <d>.(N[b\<turnstile>c>a]) e" using ih1 ih2 by (auto intro: a_star_congs)
+    finally show "(AndR <c>.M <d>.N e){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (AndR <c>.M <d>.N e)[b\<turnstile>c>a]"
       using fs neq by simp
   qed
 next
   case (AndL1 u M v b a x)
   have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
   have "(AndL1 (u).M v){b:=(x).Ax x a} = AndL1 (u).(M{b:=(x).Ax x a}) v" using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* AndL1 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
-  finally show "(AndL1 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndL1 (u).M v)[b\<turnstile>c>a]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* AndL1 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
+  finally show "(AndL1 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (AndL1 (u).M v)[b\<turnstile>c>a]" using fs by simp
 next
   case (AndL2 u M v b a x)
   have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "u\<sharp>v" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
   have "(AndL2 (u).M v){b:=(x).Ax x a} = AndL2 (u).(M{b:=(x).Ax x a}) v" using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* AndL2 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
-  finally show "(AndL2 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (AndL2 (u).M v)[b\<turnstile>c>a]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* AndL2 (u).(M[b\<turnstile>c>a]) v" using ih by (auto intro: a_star_congs)
+  finally show "(AndL2 (u).M v){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (AndL2 (u).M v)[b\<turnstile>c>a]" using fs by simp
 next
   case (OrR1 c M d  b a x)
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]"
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]"
   proof(cases "d=b")
     case True
     assume eq: "d=b"
@@ -6260,7 +6260,7 @@ next
              fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <c>.M{b:=(x).Ax x a} a' (x).Ax x a)" using fs eq by (simp)
     also have "\<dots> = Cut <a'>.OrR1 <c>.M{b:=(x).Ax x a} a' (x).Ax x a"
       using new by (simp add: fresh_fun_simp_OrR1)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (OrR1 <c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (OrR1 <c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6270,21 +6270,21 @@ next
       done
     also have "\<dots> = OrR1 <c>.M{b:=(x).Ax x a} a" using fs new
       by (auto simp add: fresh_prod fresh_atm crename_fresh subst_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrR1 <c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrR1 <c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (OrR1 <c>.M d)[b\<turnstile>c>a]" using eq fs by simp
-    finally show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]" by simp
+    finally show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]" by simp
   next
     case False
     assume neq: "d\<noteq>b"
     have "(OrR1 <c>.M d){b:=(x).Ax x a} = OrR1 <c>.(M{b:=(x).Ax x a}) d" using fs neq by (simp)
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrR1 <c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
-    finally show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]" using fs neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrR1 <c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
+    finally show "(OrR1 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR1 <c>.M d)[b\<turnstile>c>a]" using fs neq by simp
   qed
 next
   case (OrR2 c M d  b a x)
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "c\<sharp>d" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]"
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]"
   proof(cases "d=b")
     case True
     assume eq: "d=b"
@@ -6294,7 +6294,7 @@ next
              fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <c>.M{b:=(x).Ax x a} a' (x).Ax x a)" using fs eq by (simp)
     also have "\<dots> = Cut <a'>.OrR2 <c>.M{b:=(x).Ax x a} a' (x).Ax x a"
       using new by (simp add: fresh_fun_simp_OrR2)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (OrR2 <c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (OrR2 <c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6304,30 +6304,30 @@ next
       done
     also have "\<dots> = OrR2 <c>.M{b:=(x).Ax x a} a" using fs new
       by (auto simp add: fresh_prod fresh_atm crename_fresh subst_fresh)
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrR2 <c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrR2 <c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (OrR2 <c>.M d)[b\<turnstile>c>a]" using eq fs by simp
-    finally show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]" by simp
+    finally show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]" by simp
   next
     case False
     assume neq: "d\<noteq>b"
     have "(OrR2 <c>.M d){b:=(x).Ax x a} = OrR2 <c>.(M{b:=(x).Ax x a}) d" using fs neq by (simp)
-    also have "\<dots> \<longrightarrow>\<^isub>a* OrR2 <c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
-    finally show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]" using fs neq by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* OrR2 <c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
+    finally show "(OrR2 <c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrR2 <c>.M d)[b\<turnstile>c>a]" using fs neq by simp
   qed
 next
   case (OrL u M v N z b a x)
   have fs: "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "v\<sharp>b" "v\<sharp>a" "v\<sharp>x" "v\<noteq>u" "u\<sharp>N" "u\<sharp>z" "v\<sharp>M" "v\<sharp>z" by fact+
-  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
+  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* N[b\<turnstile>c>a]" by fact
   have "(OrL (u).M (v).N z){b:=(x).Ax x a} = OrL (u).(M{b:=(x).Ax x a}) (v).(N{b:=(x).Ax x a}) z" 
     using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* OrL (u).(M[b\<turnstile>c>a]) (v).(N[b\<turnstile>c>a]) z" using ih1 ih2 by (auto intro: a_star_congs)
-  finally show "(OrL (u).M (v).N z){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (OrL (u).M (v).N z)[b\<turnstile>c>a]" using fs by simp
+  also have "\<dots> \<longrightarrow>\<^sub>a* OrL (u).(M[b\<turnstile>c>a]) (v).(N[b\<turnstile>c>a]) z" using ih1 ih2 by (auto intro: a_star_congs)
+  finally show "(OrL (u).M (v).N z){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (OrL (u).M (v).N z)[b\<turnstile>c>a]" using fs by simp
 next
   case (ImpR z c M d b a x)
   have fs: "z\<sharp>b" "z\<sharp>a" "z\<sharp>x" "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "z\<sharp>d" "c\<sharp>d" by fact+
-  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]"
+  have ih: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]"
   proof(cases "b=d")
     case True
     assume eq: "b=d"
@@ -6337,7 +6337,7 @@ next
                 fresh_fun (\<lambda>a'. Cut <a'>.ImpR z.<c>.M{b:=(x).Ax x a} a' (x).Ax x a)" using fs eq by simp
     also have "\<dots> = Cut <a'>.ImpR z.<c>.M{b:=(x).Ax x a} a' (x).Ax x a" 
       using new by (simp add: fresh_fun_simp_ImpR)
-    also have "\<dots> \<longrightarrow>\<^isub>a* (ImpR z.<c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
+    also have "\<dots> \<longrightarrow>\<^sub>a* (ImpR z.<c>.M{b:=(x).Ax x a} a')[a'\<turnstile>c>a]"
       using new 
       apply(rule_tac a_starI)
       apply(rule a_redu.intros)
@@ -6347,26 +6347,26 @@ next
       done
     also have "\<dots> = ImpR z.<c>.M{b:=(x).Ax x a} a" using fs new
       by (auto simp add: fresh_prod crename_fresh subst_fresh fresh_atm)
-    also have "\<dots> \<longrightarrow>\<^isub>a* ImpR z.<c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
+    also have "\<dots> \<longrightarrow>\<^sub>a* ImpR z.<c>.(M[b\<turnstile>c>a]) a" using ih by (auto intro: a_star_congs)
     also have "\<dots> = (ImpR z.<c>.M b)[b\<turnstile>c>a]" using eq fs by simp
-    finally show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]" using eq by simp
+    finally show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]" using eq by simp
   next
     case False
     assume neq: "b\<noteq>d"
     have "(ImpR (z).<c>.M d){b:=(x).Ax x a} = ImpR (z).<c>.(M{b:=(x).Ax x a}) d" using fs neq by simp
-    also have "\<dots> \<longrightarrow>\<^isub>a* ImpR (z).<c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
-    finally show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]" using neq fs by simp
+    also have "\<dots> \<longrightarrow>\<^sub>a* ImpR (z).<c>.(M[b\<turnstile>c>a]) d" using ih by (auto intro: a_star_congs)
+    finally show "(ImpR (z).<c>.M d){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (ImpR (z).<c>.M d)[b\<turnstile>c>a]" using neq fs by simp
   qed
 next
   case (ImpL c M u N v b a x)
   have fs: "c\<sharp>b" "c\<sharp>a" "c\<sharp>x" "u\<sharp>b" "u\<sharp>a" "u\<sharp>x" "c\<sharp>N" "c\<sharp>v" "u\<sharp>M" "u\<sharp>v" by fact+
-  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]" by fact
-  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* N[b\<turnstile>c>a]" by fact
+  have ih1: "M{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* M[b\<turnstile>c>a]" by fact
+  have ih2: "N{b:=(x).Ax x a} \<longrightarrow>\<^sub>a* N[b\<turnstile>c>a]" by fact
   have "(ImpL <c>.M (u).N v){b:=(x).Ax x a} = ImpL <c>.(M{b:=(x).Ax x a}) (u).(N{b:=(x).Ax x a}) v" 
     using fs by simp
-  also have "\<dots> \<longrightarrow>\<^isub>a* ImpL <c>.(M[b\<turnstile>c>a]) (u).(N[b\<turnstile>c>a]) v" 
+  also have "\<dots> \<longrightarrow>\<^sub>a* ImpL <c>.(M[b\<turnstile>c>a]) (u).(N[b\<turnstile>c>a]) v" 
     using ih1 ih2 by (auto intro: a_star_congs)
-  finally show "(ImpL <c>.M (u).N v){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (ImpL <c>.M (u).N v)[b\<turnstile>c>a]" 
+  finally show "(ImpL <c>.M (u).N v){b:=(x).Ax x a} \<longrightarrow>\<^sub>a* (ImpL <c>.M (u).N v)[b\<turnstile>c>a]" 
     using fs by simp
 qed
 

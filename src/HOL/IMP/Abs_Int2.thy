@@ -51,10 +51,10 @@ fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and inv_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and inv_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 assumes test_num': "test_num' i a = (i : \<gamma> a)"
-and inv_plus': "inv_plus' a a1 a2 = (a\<^isub>1',a\<^isub>2') \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> a\<^isub>1' \<and> i2 : \<gamma> a\<^isub>2'"
-and inv_less': "inv_less' (i1<i2) a1 a2 = (a\<^isub>1',a\<^isub>2') \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> a\<^isub>1' \<and> i2 : \<gamma> a\<^isub>2'"
+and inv_plus': "inv_plus' a a1 a2 = (a\<^sub>1',a\<^sub>2') \<Longrightarrow>
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> a\<^sub>1' \<and> i2 : \<gamma> a\<^sub>2'"
+and inv_less': "inv_less' (i1<i2) a1 a2 = (a\<^sub>1',a\<^sub>2') \<Longrightarrow>
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> a\<^sub>1' \<and> i2 : \<gamma> a\<^sub>2'"
 
 
 locale Abs_Int_inv = Val_inv where \<gamma> = \<gamma>
@@ -62,14 +62,14 @@ locale Abs_Int_inv = Val_inv where \<gamma> = \<gamma>
 begin
 
 lemma in_gamma_sup_UpI:
-  "s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
+  "s : \<gamma>\<^sub>o S1 \<or> s : \<gamma>\<^sub>o S2 \<Longrightarrow> s : \<gamma>\<^sub>o(S1 \<squnion> S2)"
 by (metis (hide_lams, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
 "aval'' e (Some S) = aval' e S"
 
-lemma aval''_correct: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
+lemma aval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
 by(cases S)(auto simp add: aval'_correct split: option.splits)
 
 subsubsection "Backward analysis"
@@ -103,12 +103,12 @@ fun inv_bval'' :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightar
   (let (a1,a2) = inv_less' res (aval'' e1 S) (aval'' e2 S)
    in inv_aval'' e1 a1 (inv_aval'' e2 a2 S))"
 
-lemma inv_aval''_correct: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (inv_aval'' e a S)"
+lemma inv_aval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^sub>o (inv_aval'' e a S)"
 proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
   case (V x)
-  obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>s S'" using `s : \<gamma>\<^isub>o S`
+  obtain S' where "S = Some S'" and "s : \<gamma>\<^sub>s S'" using `s : \<gamma>\<^sub>o S`
     by(auto simp: in_gamma_option_iff)
   moreover hence "s x : \<gamma> (fun S' x)"
     by(simp add: \<gamma>_st_def)
@@ -122,7 +122,7 @@ next
     by (auto split: prod.split)
 qed
 
-lemma inv_bval''_correct: "s : \<gamma>\<^isub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^isub>o(inv_bval'' b bv S)"
+lemma inv_bval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^sub>o(inv_bval'' b bv S)"
 proof(induction b arbitrary: S bv)
   case Bc thus ?case by simp
 next
@@ -159,24 +159,24 @@ by(rule top_on_Step)
 
 subsubsection "Correctness"
 
-lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
+lemma step_step': "step (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
   (auto simp: intro!: aval'_correct inv_bval''_correct in_gamma_update split: option.splits)
 
-lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
   have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"  --"transfer the pfp'"
+  have 2: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"  --"transfer the pfp'"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' \<top> C)" by(rule step_step')
-    show "... \<le> \<gamma>\<^isub>c C" by (metis mono_gamma_c[OF pfp'])
+    show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' \<top> C)" by(rule step_step')
+    show "... \<le> \<gamma>\<^sub>c C" by (metis mono_gamma_c[OF pfp'])
   qed
-  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
-  have "lfp c (step (\<gamma>\<^isub>o \<top>)) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o \<top>)", OF 3 2])
-  thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
+  have 3: "strip (\<gamma>\<^sub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
+  have "lfp c (step (\<gamma>\<^sub>o \<top>)) \<le> \<gamma>\<^sub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^sub>o \<top>)", OF 3 2])
+  thus "lfp c (step UNIV) \<le> \<gamma>\<^sub>c C" by simp
 qed
 
 end

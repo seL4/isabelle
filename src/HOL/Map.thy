@@ -48,7 +48,7 @@ definition
 
 definition
   map_le :: "('a ~=> 'b) => ('a ~=> 'b) => bool"  (infix "\<subseteq>\<^sub>m" 50) where
-  "(m\<^isub>1 \<subseteq>\<^sub>m m\<^isub>2) = (\<forall>a \<in> dom m\<^isub>1. m\<^isub>1 a = m\<^isub>2 a)"
+  "(m\<^sub>1 \<subseteq>\<^sub>m m\<^sub>2) = (\<forall>a \<in> dom m\<^sub>1. m\<^sub>1 a = m\<^sub>2 a)"
 
 nonterminal maplets and maplet
 

@@ -438,25 +438,25 @@ subsection {* Small finite types *}
 
 text {* We define small finite types for the use in Quickcheck *}
 
-datatype finite_1 = a\<^isub>1
+datatype finite_1 = a\<^sub>1
 
-notation (output) a\<^isub>1  ("a\<^isub>1")
+notation (output) a\<^sub>1  ("a\<^sub>1")
 
 lemma UNIV_finite_1:
-  "UNIV = {a\<^isub>1}"
+  "UNIV = {a\<^sub>1}"
   by (auto intro: finite_1.exhaust)
 
 instantiation finite_1 :: enum
 begin
 
 definition
-  "enum = [a\<^isub>1]"
+  "enum = [a\<^sub>1]"
 
 definition
-  "enum_all P = P a\<^isub>1"
+  "enum_all P = P a\<^sub>1"
 
 definition
-  "enum_ex P = P a\<^isub>1"
+  "enum_ex P = P a\<^sub>1"
 
 instance proof
 qed (simp_all only: enum_finite_1_def enum_all_finite_1_def enum_ex_finite_1_def UNIV_finite_1, simp_all)
@@ -482,28 +482,28 @@ done
 
 end
 
-hide_const (open) a\<^isub>1
+hide_const (open) a\<^sub>1
 
-datatype finite_2 = a\<^isub>1 | a\<^isub>2
+datatype finite_2 = a\<^sub>1 | a\<^sub>2
 
-notation (output) a\<^isub>1  ("a\<^isub>1")
-notation (output) a\<^isub>2  ("a\<^isub>2")
+notation (output) a\<^sub>1  ("a\<^sub>1")
+notation (output) a\<^sub>2  ("a\<^sub>2")
 
 lemma UNIV_finite_2:
-  "UNIV = {a\<^isub>1, a\<^isub>2}"
+  "UNIV = {a\<^sub>1, a\<^sub>2}"
   by (auto intro: finite_2.exhaust)
 
 instantiation finite_2 :: enum
 begin
 
 definition
-  "enum = [a\<^isub>1, a\<^isub>2]"
+  "enum = [a\<^sub>1, a\<^sub>2]"
 
 definition
-  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2"
+  "enum_all P \<longleftrightarrow> P a\<^sub>1 \<and> P a\<^sub>2"
 
 definition
-  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2"
+  "enum_ex P \<longleftrightarrow> P a\<^sub>1 \<or> P a\<^sub>2"
 
 instance proof
 qed (simp_all only: enum_finite_2_def enum_all_finite_2_def enum_ex_finite_2_def UNIV_finite_2, simp_all)
@@ -515,7 +515,7 @@ begin
 
 definition less_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
 where
-  "x < y \<longleftrightarrow> x = a\<^isub>1 \<and> y = a\<^isub>2"
+  "x < y \<longleftrightarrow> x = a\<^sub>1 \<and> y = a\<^sub>2"
 
 definition less_eq_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
 where
@@ -529,29 +529,29 @@ done
 
 end
 
-hide_const (open) a\<^isub>1 a\<^isub>2
+hide_const (open) a\<^sub>1 a\<^sub>2
 
-datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
+datatype finite_3 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3
 
-notation (output) a\<^isub>1  ("a\<^isub>1")
-notation (output) a\<^isub>2  ("a\<^isub>2")
-notation (output) a\<^isub>3  ("a\<^isub>3")
+notation (output) a\<^sub>1  ("a\<^sub>1")
+notation (output) a\<^sub>2  ("a\<^sub>2")
+notation (output) a\<^sub>3  ("a\<^sub>3")
 
 lemma UNIV_finite_3:
-  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3}"
+  "UNIV = {a\<^sub>1, a\<^sub>2, a\<^sub>3}"
   by (auto intro: finite_3.exhaust)
 
 instantiation finite_3 :: enum
 begin
 
 definition
-  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3]"
+  "enum = [a\<^sub>1, a\<^sub>2, a\<^sub>3]"
 
 definition
-  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3"
+  "enum_all P \<longleftrightarrow> P a\<^sub>1 \<and> P a\<^sub>2 \<and> P a\<^sub>3"
 
 definition
-  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3"
+  "enum_ex P \<longleftrightarrow> P a\<^sub>1 \<or> P a\<^sub>2 \<or> P a\<^sub>3"
 
 instance proof
 qed (simp_all only: enum_finite_3_def enum_all_finite_3_def enum_ex_finite_3_def UNIV_finite_3, simp_all)
@@ -563,7 +563,7 @@ begin
 
 definition less_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
 where
-  "x < y = (case x of a\<^isub>1 \<Rightarrow> y \<noteq> a\<^isub>1 | a\<^isub>2 \<Rightarrow> y = a\<^isub>3 | a\<^isub>3 \<Rightarrow> False)"
+  "x < y = (case x of a\<^sub>1 \<Rightarrow> y \<noteq> a\<^sub>1 | a\<^sub>2 \<Rightarrow> y = a\<^sub>3 | a\<^sub>3 \<Rightarrow> False)"
 
 definition less_eq_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
 where
@@ -574,69 +574,69 @@ qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split
 
 end
 
-hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3
+hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3
 
-datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
+datatype finite_4 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4
 
-notation (output) a\<^isub>1  ("a\<^isub>1")
-notation (output) a\<^isub>2  ("a\<^isub>2")
-notation (output) a\<^isub>3  ("a\<^isub>3")
-notation (output) a\<^isub>4  ("a\<^isub>4")
+notation (output) a\<^sub>1  ("a\<^sub>1")
+notation (output) a\<^sub>2  ("a\<^sub>2")
+notation (output) a\<^sub>3  ("a\<^sub>3")
+notation (output) a\<^sub>4  ("a\<^sub>4")
 
 lemma UNIV_finite_4:
-  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4}"
+  "UNIV = {a\<^sub>1, a\<^sub>2, a\<^sub>3, a\<^sub>4}"
   by (auto intro: finite_4.exhaust)
 
 instantiation finite_4 :: enum
 begin
 
 definition
-  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4]"
+  "enum = [a\<^sub>1, a\<^sub>2, a\<^sub>3, a\<^sub>4]"
 
 definition
-  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4"
+  "enum_all P \<longleftrightarrow> P a\<^sub>1 \<and> P a\<^sub>2 \<and> P a\<^sub>3 \<and> P a\<^sub>4"
 
 definition
-  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4"
+  "enum_ex P \<longleftrightarrow> P a\<^sub>1 \<or> P a\<^sub>2 \<or> P a\<^sub>3 \<or> P a\<^sub>4"
 
 instance proof
 qed (simp_all only: enum_finite_4_def enum_all_finite_4_def enum_ex_finite_4_def UNIV_finite_4, simp_all)
 
 end
 
-hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4
+hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4
 
 
-datatype finite_5 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4 | a\<^isub>5
+datatype finite_5 = a\<^sub>1 | a\<^sub>2 | a\<^sub>3 | a\<^sub>4 | a\<^sub>5
 
-notation (output) a\<^isub>1  ("a\<^isub>1")
-notation (output) a\<^isub>2  ("a\<^isub>2")
-notation (output) a\<^isub>3  ("a\<^isub>3")
-notation (output) a\<^isub>4  ("a\<^isub>4")
-notation (output) a\<^isub>5  ("a\<^isub>5")
+notation (output) a\<^sub>1  ("a\<^sub>1")
+notation (output) a\<^sub>2  ("a\<^sub>2")
+notation (output) a\<^sub>3  ("a\<^sub>3")
+notation (output) a\<^sub>4  ("a\<^sub>4")
+notation (output) a\<^sub>5  ("a\<^sub>5")
 
 lemma UNIV_finite_5:
-  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5}"
+  "UNIV = {a\<^sub>1, a\<^sub>2, a\<^sub>3, a\<^sub>4, a\<^sub>5}"
   by (auto intro: finite_5.exhaust)
 
 instantiation finite_5 :: enum
 begin
 
 definition
-  "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5]"
+  "enum = [a\<^sub>1, a\<^sub>2, a\<^sub>3, a\<^sub>4, a\<^sub>5]"
 
 definition
-  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4 \<and> P a\<^isub>5"
+  "enum_all P \<longleftrightarrow> P a\<^sub>1 \<and> P a\<^sub>2 \<and> P a\<^sub>3 \<and> P a\<^sub>4 \<and> P a\<^sub>5"
 
 definition
-  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4 \<or> P a\<^isub>5"
+  "enum_ex P \<longleftrightarrow> P a\<^sub>1 \<or> P a\<^sub>2 \<or> P a\<^sub>3 \<or> P a\<^sub>4 \<or> P a\<^sub>5"
 
 instance proof
 qed (simp_all only: enum_finite_5_def enum_all_finite_5_def enum_ex_finite_5_def UNIV_finite_5, simp_all)
 
 end
 
-hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
+hide_const (open) a\<^sub>1 a\<^sub>2 a\<^sub>3 a\<^sub>4 a\<^sub>5
 
 
 subsection {* Closing up *}

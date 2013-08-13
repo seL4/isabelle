@@ -45,7 +45,7 @@ nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [300, 0, 0] 300)
 where
   subst_Var: "(Var x)[y::=s] = (if x=y then s else (Var x))"
-| subst_App: "(t\<^isub>1 \<degree> t\<^isub>2)[y::=s] = t\<^isub>1[y::=s] \<degree> t\<^isub>2[y::=s]"
+| subst_App: "(t\<^sub>1 \<degree> t\<^sub>2)[y::=s] = t\<^sub>1[y::=s] \<degree> t\<^sub>2[y::=s]"
 | subst_Lam: "x \<sharp> (y, s) \<Longrightarrow> (Lam [x].t)[y::=s] = (Lam [x].(t[y::=s]))"
   apply(finite_guess)+
   apply(rule TrueI)+
