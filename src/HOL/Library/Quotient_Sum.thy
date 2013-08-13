@@ -12,11 +12,11 @@ subsection {* Rules for the Quotient package *}
 
 lemma sum_rel_map1:
   "sum_rel R1 R2 (sum_map f1 f2 x) y \<longleftrightarrow> sum_rel (\<lambda>x. R1 (f1 x)) (\<lambda>x. R2 (f2 x)) x y"
-  by (simp add: sum_rel_unfold split: sum.split)
+  by (simp add: sum_rel_def split: sum.split)
 
 lemma sum_rel_map2:
   "sum_rel R1 R2 x (sum_map f1 f2 y) \<longleftrightarrow> sum_rel (\<lambda>x y. R1 x (f1 y)) (\<lambda>x y. R2 x (f2 y)) x y"
-  by (simp add: sum_rel_unfold split: sum.split)
+  by (simp add: sum_rel_def split: sum.split)
 
 lemma sum_map_id [id_simps]:
   "sum_map id id = id"
@@ -24,15 +24,15 @@ lemma sum_map_id [id_simps]:
 
 lemma sum_rel_eq [id_simps]:
   "sum_rel (op =) (op =) = (op =)"
-  by (simp add: sum_rel_unfold fun_eq_iff split: sum.split)
+  by (simp add: sum_rel_def fun_eq_iff split: sum.split)
 
 lemma sum_symp:
   "symp R1 \<Longrightarrow> symp R2 \<Longrightarrow> symp (sum_rel R1 R2)"
-  unfolding symp_def split_sum_all sum_rel.simps by fast
+  unfolding symp_def split_sum_all sum_rel_simps by fast
 
 lemma sum_transp:
   "transp R1 \<Longrightarrow> transp R2 \<Longrightarrow> transp (sum_rel R1 R2)"
-  unfolding transp_def split_sum_all sum_rel.simps by fast
+  unfolding transp_def split_sum_all sum_rel_simps by fast
 
 lemma sum_equivp [quot_equiv]:
   "equivp R1 \<Longrightarrow> equivp R2 \<Longrightarrow> equivp (sum_rel R1 R2)"
@@ -46,7 +46,7 @@ lemma sum_quotient [quot_thm]:
   apply (simp_all add: sum_map.compositionality comp_def sum_map.identity sum_rel_eq sum_rel_map1 sum_rel_map2
     Quotient3_abs_rep [OF q1] Quotient3_rel_rep [OF q1] Quotient3_abs_rep [OF q2] Quotient3_rel_rep [OF q2])
   using Quotient3_rel [OF q1] Quotient3_rel [OF q2]
-  apply (simp add: sum_rel_unfold comp_def split: sum.split)
+  apply (simp add: sum_rel_def comp_def split: sum.split)
   done
 
 declare [[mapQ3 sum = (sum_rel, sum_quotient)]]

@@ -33,7 +33,7 @@ by transfer_prover
 definition equal_None :: "'a option \<Rightarrow> bool" where "equal_None x \<equiv> x = None"
 
 lemma [transfer_rule]: "(option_rel A ===> op=) equal_None equal_None" 
-unfolding fun_rel_def option_rel_unfold equal_None_def by (auto split: option.split)
+unfolding fun_rel_def option_rel_def equal_None_def by (auto split: option.split)
 
 lemma dom_transfer:
   assumes [transfer_rule]: "bi_total A"
