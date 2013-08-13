@@ -116,7 +116,7 @@ object Pretty_Tooltip
         stack = rest
         rest match {
           case top :: _ => top.request_focus
-          case Nil =>
+          case Nil => JEdit_Lib.request_focus_view
         }
       case _ =>
     }
@@ -129,6 +129,7 @@ object Pretty_Tooltip
     else {
       stack.foreach(_.hide_popup)
       stack = Nil
+      JEdit_Lib.request_focus_view
       true
     }
   }
