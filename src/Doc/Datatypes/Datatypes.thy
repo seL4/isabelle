@@ -44,7 +44,7 @@ through a large class of non-datatypes, comprising finite sets:
 
 text {*
 \noindent
-Another strong point is that the package supports local definitions:
+Another strong point is the support for local definitions:
 *}
 
     context linorder
@@ -57,25 +57,30 @@ text {*
 The package also provides some convenience, notably automatically generated
 destructors (discriminators and selectors).
 
-In addition to plain inductive datatypes, the package supports coinductive
+In addition to plain inductive datatypes, the new package supports coinductive
 datatypes, or \emph{codatatypes}, which may have infinite values. For example,
 the following command introduces the type of lazy lists:
 *}
 
-    codatatype 'a llist = LNil | LCons 'a "'a llist"
+    codatatype 'a llist (*<*)(map: lmap) (*>*)= LNil | LCons 'a "'a llist"
 
 text {*
 \noindent
 Mixed inductive--coinductive recursion is possible via nesting. Compare the
 following four examples:
-
-%%% TODO: Avoid 0
 *}
 
-    datatype_new 'a treeFF0 = NodeFF 'a "'a treeFF0 list"
-    datatype_new 'a treeFI0 = NodeFI 'a "'a treeFI0 llist"
-    codatatype 'a treeIF0 = NodeIF 'a "'a treeIF0 list"
-    codatatype 'a treeII0 = NodeII 'a "'a treeII0 llist"
+(*<*)
+    locale dummy_tree
+    begin
+(*>*)
+    datatype_new 'a treeFF = NodeFF 'a "'a treeFF list"
+    datatype_new 'a treeFI = NodeFI 'a "'a treeFI llist"
+    codatatype 'a treeIF = NodeIF 'a "'a treeIF list"
+    codatatype 'a treeII = NodeII 'a "'a treeII llist"
+(*<*)
+    end
+(*>*)
 
 text {*
 The first two tree types allow only finite branches, whereas the last two allow
@@ -199,10 +204,13 @@ enumeration type:
     datatype_new trool = Truue | Faalse | Perhaaps
 
 text {*
-Haskell-style option type:
+Option type:
 *}
 
-    datatype_new 'a maybe = Nothing | Just 'a
+(*<*)
+    hide_const None Some
+(*>*)
+    datatype_new 'a option = None | Some 'a
 
 text {*
 triple:
@@ -217,7 +225,10 @@ text {*
 simplest recursive type: natural numbers
 *}
 
-    datatype_new nat = Zero | Suc nat
+(*<*)
+    (* FIXME: remove "rep_compat" once "datatype_new" is integrated with "fun" *)
+(*>*)
+    datatype_new (*<*)(rep_compat) (*>*)nat = Zero | Suc nat
 
 text {*
 Setup to be able to write @{text 0} instead of @{const Zero}:
@@ -273,11 +284,11 @@ Nested recursion = Have recursion through a type constructor.
 
 The introduction showed some examples of trees with nesting through lists.
 
-More complex example, which reuses our maybe:
+More complex example, which reuses our option type:
 *}
 
     datatype_new 'a btree =
-      BNode 'a "'a btree maybe" "'a btree maybe"
+      BNode 'a "'a btree option" "'a btree option"
 
 text {*
 Recursion may not be arbitrary; e.g. impossible to define
@@ -330,8 +341,6 @@ The discriminators and selectors are collectively called \emph{destructors}. The
 
 The set functions, map function, relator, discriminators, and selectors can be
 given custom names, as in the example below:
-
-%%% FIXME: get rid of 0 below
 *}
 
 (*<*)
@@ -344,18 +353,21 @@ given custom names, as in the example below:
       Cons (infixr "#" 65)
 
     hide_const Nil Cons hd tl map
+
+    locale dummy_list
+    begin
 (*>*)
-    datatype_new (set0: 'a) list0 (map: map0 rel: list0_all2) =
+    datatype_new (set: 'a) list (map: map rel: list_all2) =
       null: Nil (defaults tl: Nil)
-    | Cons (hd: 'a) (tl: "'a list0")
+    | Cons (hd: 'a) (tl: "'a list")
 
 text {*
 \noindent
 The command introduces a discriminator @{const null} and a pair of selectors
 @{const hd} and @{const tl} characterized as follows:
 %
-\[@{thm list0.collapse(1)[of xs, no_vars]}
-  \qquad @{thm list0.collapse(2)[of xs, no_vars]}\]
+\[@{thm list.collapse(1)[of xs, no_vars]}
+  \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
 %
 For two-constructor datatypes, a single discriminator constant suffices. The
 discriminator associated with @{const Cons} is simply @{text "\<not> null"}.
@@ -380,18 +392,18 @@ The usual mixfix syntaxes are available for both types and constructors. For exa
 %%% supported.
 *}
 
+(*<*)
+    end
+(*>*)
     datatype_new ('a, 'b) prod (infixr "*" 20) =
       Pair 'a 'b
 
-(*<*)
-    hide_const Nil Cons hd tl
-(*>*)
     datatype_new (set: 'a) list (map: map rel: list_all2) =
       null: Nil ("[]")
     | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
 
 text {*
-Incidentally, this is how the traditional syntaxes are set up in @{theory List}:
+Incidentally, this is how the traditional syntaxes can be set up:
 *}
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
@@ -578,8 +590,8 @@ text {*
 *}
 
     primrec_new bool_of_trool :: "trool \<Rightarrow> bool" where
-      "real_of_trool Faalse = False" |
-      "real_of_trool Truue = True"
+      "bool_of_trool Faalse = False" |
+      "bool_of_trool Truue = True"
 
 text {*
   * OK to specify the cases in a different order
@@ -590,13 +602,13 @@ text {*
 More examples:
 *}
 
-    primrec_new list_of_maybe :: "'a maybe \<Rightarrow> 'a list" where
-      "list_of_maybe Nothing = []" |
-      "list_of_maybe (Just a) = [a]"
+    primrec_new the_list :: "'a option \<Rightarrow> 'a list" where
+      "the_list None = []" |
+      "the_list (Some a) = [a]"
 
-    primrec_new maybe_def :: "'a \<Rightarrow> 'a maybe \<Rightarrow> 'a" where
-      "maybe_def d Nothing = d" |
-      "maybe_def _ (Just a) = a"
+    primrec_new the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
+      "the_default d None = d" |
+      "the_default _ (Some a) = a"
 
     primrec_new mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
@@ -627,6 +639,9 @@ we don't like the confusing name @{const nth}:
       "tfold _ (TNil b) = b" |
       "tfold f (TCons a as) = f a (tfold f as)"
 
+text {*
+Show one example where fun is needed.
+*}
 
 subsubsection {* Mutual Recursion *}
 
@@ -643,11 +658,15 @@ E.g., converting even/odd naturals to plain old naturals:
       "nat_of_onat (OSuc n) = Suc (nat_of_enat n)"
 
 text {*
-Mutual recursion is even possible within a single type, an innovation over the
-old package:
+Mutual recursion is be possible within a single type, but currently only using fun:
 *}
 
-    primrec_new
+(*<*)
+    (* FIXME: remove hack once "primrec_new" is in place *)
+    rep_datatype "0\<Colon>nat" Suc
+    unfolding zero_nat_def by (erule nat.induct, assumption) auto
+(*>*)
+    fun
       even :: "nat \<Rightarrow> bool" and
       odd :: "nat \<Rightarrow> bool"
     where
@@ -657,7 +676,7 @@ old package:
       "odd (Suc n) = even n"
 
 text {*
-More elaborate:
+More elaborate example that works with primrec_new:
 *}
 
     primrec_new
@@ -680,22 +699,26 @@ subsubsection {* Nested Recursion *}
     datatype_new 'a treeFF = NodeFF 'a "'a treeFF list"
     datatype_new 'a treeFI = NodeFI 'a "'a treeFI llist"
 (*>*)
-    primrec_new atFF0 :: "'a treeFF \<Rightarrow> nat list \<Rightarrow> 'a" where
-      "atFF0 (NodeFF a ts) js =
+    primrec_new atFF :: "'a treeFF \<Rightarrow> nat list \<Rightarrow> 'a" where
+      "atFF (NodeFF a ts) js =
          (case js of
             [] \<Rightarrow> a
-          | j # js' \<Rightarrow> at (map (\<lambda>t. atFF0 t js') ts) j)"
+          | j # js' \<Rightarrow> at (map (\<lambda>t. atFF t js') ts) j)"
 
     primrec_new atFI :: "'a treeFI \<Rightarrow> nat list \<Rightarrow> 'a" where
-      "atFF (NodeFI a ts) js =
+      "atFI (NodeFI a ts) js =
          (case js of
             [] \<Rightarrow> a
-          | j # js' \<Rightarrow> at (llist_map (\<lambda>t. atFF t js') ts) j)"
+          | j # js' \<Rightarrow> at (lmap (\<lambda>t. atFI t js') ts) j)"
+
+text {*
+Explain @{const lmap}.
+*}
 
     primrec_new sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
-         a + maybe_def 0 (maybe_map sum_btree lt) +
-           maybe_def 0 (maybe_map sum_btree rt)"
+         a + the_default 0 (option_map sum_btree lt) +
+           the_default 0 (option_map sum_btree rt)"
 
 
 subsubsection {* Nested-as-Mutual Recursion *}
@@ -721,12 +744,12 @@ text {*
 
     primrec_new
       sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" and
-      sum_btree_maybe :: "('a\<Colon>plus) btree maybe \<Rightarrow> 'a"
+      sum_btree_option :: "('a\<Colon>plus) btree option \<Rightarrow> 'a"
     where
       "sum_btree (BNode a lt rt) =
-         a + sum_btree_maybe lt + sum_btree_maybe rt" |
-      "sum_btree_maybe Nothing = 0" |
-      "sum_btree_maybe (Just t) = sum_btree t"
+         a + sum_btree_option lt + sum_btree_option rt" |
+      "sum_btree_option None = 0" |
+      "sum_btree_option (Some t) = sum_btree t"
 
 text {*
   * this can always be avoided;
@@ -739,7 +762,7 @@ text {*
 
   * higher-order approach, considering nesting as nesting, is more
     compositional -- e.g. we saw how we could reuse an existing polymorphic
-    at or maybe_def, whereas at_treesFF is much more specific
+    at or the_default, whereas at_treesFF is much more specific
 
   * but:
      * is perhaps less intuitive, because it requires higher-order thinking
@@ -1088,7 +1111,7 @@ provided lots of comments on earlier versions of the package, especially for the
 coinductive part. Brian Huffman suggested major simplifications to the internal
 constructions, much of which has yet to be implemented. Florian Haftmann and
 Christian Urban provided general advice advice on Isabelle and package writing.
-Stefan Milius and Lutz Schr\"oder suggested an elegant prove to eliminate one of
+Stefan Milius and Lutz Schr\"oder suggested an elegant proof to eliminate one of
 the BNF assumptions.
 *}
 
