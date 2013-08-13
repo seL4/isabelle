@@ -198,6 +198,7 @@ class Pretty_Text_Area(
 
   getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
   getBuffer.setReadOnly(true)
+  getBuffer.setStringProperty("noWordSep", "_'.?")
 
   rich_text_area.activate()
 }
