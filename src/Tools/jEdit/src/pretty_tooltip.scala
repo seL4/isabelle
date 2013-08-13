@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Dimension}
 import java.awt.event.{FocusAdapter, FocusEvent}
-import javax.swing.{JWindow, JPanel, JComponent, PopupFactory}
+import javax.swing.{JPanel, JComponent, PopupFactory}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -133,28 +133,6 @@ object Pretty_Tooltip
       true
     }
   }
-
-
-  /* auxiliary geometry measurement */
-
-  private lazy val dummy_window = new JWindow
-
-  private def decoration_size(tip: Pretty_Tooltip): (Int, Int) =
-  {
-    val old_content = dummy_window.getContentPane
-
-    dummy_window.setContentPane(tip)
-    dummy_window.pack
-    dummy_window.revalidate
-
-    val painter = tip.pretty_text_area.getPainter
-    val w = dummy_window.getWidth - painter.getWidth
-    val h = dummy_window.getHeight - painter.getHeight
-
-    dummy_window.setContentPane(old_content)
-
-    (w, h)
-  }
 }
 
 
@@ -253,10 +231,10 @@ class Pretty_Tooltip private(
         XML.traverse_text(formatted)(0)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-      val (deco_width, deco_height) = Pretty_Tooltip.decoration_size(tip)
+      val geometry = JEdit_Lib.window_geometry(tip, tip.pretty_text_area.getPainter)
       val bounds = rendering.tooltip_bounds
 
-      val h1 = painter.getFontMetrics.getHeight * (lines + 1) + deco_height
+      val h1 = painter.getFontMetrics.getHeight * (lines + 1) + geometry.deco_height
       val h2 = (screen_bounds.height * bounds).toInt
       val h = h1 min h2
 
@@ -265,7 +243,7 @@ class Pretty_Tooltip private(
           (0.0 /: split_lines(XML.content(formatted)))({ case (m, line) => m max metric(line) })
         else margin
       val w =
-        ((metric.unit * (margin1 + metric.average)).round.toInt + deco_width) min
+        ((metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width) min
         (screen_bounds.width * bounds).toInt
 
       (w, h)
