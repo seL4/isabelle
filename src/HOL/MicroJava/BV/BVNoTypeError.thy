@@ -22,13 +22,13 @@ lemma isRef_def2:
 
 lemma app'Store[simp]:
   "app' (Store idx, G, pc, maxs, rT, (ST,LT)) = (\<exists>T ST'. ST = T#ST' \<and> idx < length LT)"
-  by (cases ST, auto)
+  by (cases ST) auto
 
 lemma app'GetField[simp]:
   "app' (Getfield F C, G, pc, maxs, rT, (ST,LT)) =  
   (\<exists>oT vT ST'. ST = oT#ST' \<and> is_class G C \<and>  
   field (G,C) F = Some (C,vT) \<and> G \<turnstile> oT \<preceq> Class C)"
-  by (cases ST, auto)
+  by (cases ST) auto
 
 lemma app'PutField[simp]:
 "app' (Putfield F C, G,  pc, maxs, rT, (ST,LT)) = 
@@ -61,13 +61,13 @@ done
 
 lemma app'Pop[simp]: 
   "app' (Pop, G, pc, maxs, rT, (ST,LT)) = (\<exists>T ST'. ST = T#ST')"
-  by (cases ST, auto)
+  by (cases ST) auto
 
 
 lemma app'Dup[simp]:
   "app' (Dup, G, pc, maxs, rT, (ST,LT)) =
   (\<exists>T ST'. ST = T#ST' \<and> length ST < maxs)"
-  by (cases ST, auto)
+  by (cases ST) auto
  
 
 lemma app'Dup_x1[simp]:
@@ -125,13 +125,14 @@ lemma app'Ifcmpeq[simp]:
 lemma app'Return[simp]:
   "app' (Return, G, pc, maxs, rT, (ST,LT)) = 
   (\<exists>T ST'. ST = T#ST'\<and> G \<turnstile> T \<preceq> rT)" 
-  by (cases ST, auto)
+  by (cases ST) auto
 
 
 lemma app'Throw[simp]:
   "app' (Throw, G, pc, maxs, rT, (ST,LT)) = 
   (\<exists>ST' r. ST = RefT r#ST')"
-  apply (cases ST, simp)
+  apply (cases ST)
+  apply simp
   apply (cases "hd ST")
   apply auto
   done
@@ -170,7 +171,7 @@ next
   with app
   show "?P ST LT"
     apply (clarsimp simp add: list_all2_def)
-    apply ((rule exI)+, (rule conjI)?)+
+    apply (intro exI conjI)
     apply auto
     done
 qed
@@ -198,9 +199,8 @@ lemma isIntgI [intro, simp]: "G,hp \<turnstile> v ::\<preceq> PrimT Integer \<Lo
   done
 
 lemma list_all2_approx:
-  "\<And>s. list_all2 (approx_val G hp) s (map OK S) = 
-       list_all2 (conf G hp) s S"
-  apply (induct S)
+  "list_all2 (approx_val G hp) s (map OK S) = list_all2 (conf G hp) s S"
+  apply (induct S arbitrary: s)
   apply (auto simp add: list_all2_Cons2 approx_val_def)
   done
 
