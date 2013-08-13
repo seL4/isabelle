@@ -10,11 +10,11 @@ begin
 
 lemma (in product_prob_space) emeasure_PiM_emb_not_empty:
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. X i \<in> sets (M i)"
-  shows "emeasure (Pi\<^isub>M I M) (emb I J (Pi\<^isub>E J X)) = emeasure (Pi\<^isub>M J M) (Pi\<^isub>E J X)"
+  shows "emeasure (Pi\<^sub>M I M) (emb I J (Pi\<^sub>E J X)) = emeasure (Pi\<^sub>M J M) (Pi\<^sub>E J X)"
 proof cases
   assume "finite I" with X show ?thesis by simp
 next
-  let ?\<Omega> = "\<Pi>\<^isub>E i\<in>I. space (M i)"
+  let ?\<Omega> = "\<Pi>\<^sub>E i\<in>I. space (M i)"
   let ?G = generator
   assume "\<not> finite I"
   then have I_not_empty: "I \<noteq> {}" by auto
@@ -31,19 +31,19 @@ next
     moreover from Z guess K' X' by (rule generatorE)
     moreover def K \<equiv> "insert k K'"
     moreover def X \<equiv> "emb K K' X'"
-    ultimately have K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "X \<in> sets (Pi\<^isub>M K M)" "Z = emb I K X"
-      "K - J \<noteq> {}" "K - J \<subseteq> I" "\<mu>G Z = emeasure (Pi\<^isub>M K M) X"
+    ultimately have K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "X \<in> sets (Pi\<^sub>M K M)" "Z = emb I K X"
+      "K - J \<noteq> {}" "K - J \<subseteq> I" "\<mu>G Z = emeasure (Pi\<^sub>M K M) X"
       by (auto simp: subset_insertI)
-    let ?M = "\<lambda>y. (\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
-    { fix y assume y: "y \<in> space (Pi\<^isub>M J M)"
+    let ?M = "\<lambda>y. (\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^sub>M (K - J) M)"
+    { fix y assume y: "y \<in> space (Pi\<^sub>M J M)"
       note * = merge_emb[OF `K \<subseteq> I` `J \<subseteq> I` y, of X]
       moreover
-      have **: "?M y \<in> sets (Pi\<^isub>M (K - J) M)"
+      have **: "?M y \<in> sets (Pi\<^sub>M (K - J) M)"
         using J K y by (intro merge_sets) auto
       ultimately
-      have ***: "((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)) \<in> ?G"
+      have ***: "((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^sub>M I M)) \<in> ?G"
         using J K by (intro generatorI) auto
-      have "\<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^isub>M I M)) = emeasure (Pi\<^isub>M (K - J) M) (?M y)"
+      have "\<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^sub>M I M)) = emeasure (Pi\<^sub>M (K - J) M) (?M y)"
         unfolding * using K J by (subst mu_G_eq[OF _ _ _ **]) auto
       note * ** *** this }
     note merge_in_G = this
@@ -53,28 +53,28 @@ next
     interpret J: finite_product_prob_space M J by default fact+
     interpret KmJ: finite_product_prob_space M "K - J" by default fact+
 
-    have "\<mu>G Z = emeasure (Pi\<^isub>M (J \<union> (K - J)) M) (emb (J \<union> (K - J)) K X)"
+    have "\<mu>G Z = emeasure (Pi\<^sub>M (J \<union> (K - J)) M) (emb (J \<union> (K - J)) K X)"
       using K J by simp
-    also have "\<dots> = (\<integral>\<^isup>+ x. emeasure (Pi\<^isub>M (K - J) M) (?M x) \<partial>Pi\<^isub>M J M)"
+    also have "\<dots> = (\<integral>\<^sup>+ x. emeasure (Pi\<^sub>M (K - J) M) (?M x) \<partial>Pi\<^sub>M J M)"
       using K J by (subst emeasure_fold_integral) auto
-    also have "\<dots> = (\<integral>\<^isup>+ y. \<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)) \<partial>Pi\<^isub>M J M)"
-      (is "_ = (\<integral>\<^isup>+x. \<mu>G (?MZ x) \<partial>Pi\<^isub>M J M)")
+    also have "\<dots> = (\<integral>\<^sup>+ y. \<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^sub>M I M)) \<partial>Pi\<^sub>M J M)"
+      (is "_ = (\<integral>\<^sup>+x. \<mu>G (?MZ x) \<partial>Pi\<^sub>M J M)")
     proof (intro positive_integral_cong)
-      fix x assume x: "x \<in> space (Pi\<^isub>M J M)"
+      fix x assume x: "x \<in> space (Pi\<^sub>M J M)"
       with K merge_in_G(2)[OF this]
-      show "emeasure (Pi\<^isub>M (K - J) M) (?M x) = \<mu>G (?MZ x)"
+      show "emeasure (Pi\<^sub>M (K - J) M) (?M x) = \<mu>G (?MZ x)"
         unfolding `Z = emb I K X` merge_in_G(1)[OF x] by (subst mu_G_eq) auto
     qed
-    finally have fold: "\<mu>G Z = (\<integral>\<^isup>+x. \<mu>G (?MZ x) \<partial>Pi\<^isub>M J M)" .
+    finally have fold: "\<mu>G Z = (\<integral>\<^sup>+x. \<mu>G (?MZ x) \<partial>Pi\<^sub>M J M)" .
 
-    { fix x assume x: "x \<in> space (Pi\<^isub>M J M)"
+    { fix x assume x: "x \<in> space (Pi\<^sub>M J M)"
       then have "\<mu>G (?MZ x) \<le> 1"
         unfolding merge_in_G(4)[OF x] `Z = emb I K X`
         by (intro KmJ.measure_le_1 merge_in_G(2)[OF x]) }
     note le_1 = this
 
-    let ?q = "\<lambda>y. \<mu>G ((\<lambda>x. merge J (I - J) (y,x)) -` Z \<inter> space (Pi\<^isub>M I M))"
-    have "?q \<in> borel_measurable (Pi\<^isub>M J M)"
+    let ?q = "\<lambda>y. \<mu>G ((\<lambda>x. merge J (I - J) (y,x)) -` Z \<inter> space (Pi\<^sub>M I M))"
+    have "?q \<in> borel_measurable (Pi\<^sub>M J M)"
       unfolding `Z = emb I K X` using J K merge_in_G(3)
       by (simp add: merge_in_G  mu_G_eq emeasure_fold_measurable cong: measurable_cong)
     note this fold le_1 merge_in_G(3) }
@@ -98,14 +98,14 @@ next
         using A positive_mu_G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
-      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (limP J M (\<lambda>J. (Pi\<^isub>M J M))) X"
+      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^sub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (limP J M (\<lambda>J. (Pi\<^sub>M J M))) X"
         using A by (intro allI generator_Ex) auto
-      then obtain J' X' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I" "\<And>n. X' n \<in> sets (Pi\<^isub>M (J' n) M)"
+      then obtain J' X' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I" "\<And>n. X' n \<in> sets (Pi\<^sub>M (J' n) M)"
         and A': "\<And>n. A n = emb I (J' n) (X' n)"
         unfolding choice_iff by blast
       moreover def J \<equiv> "\<lambda>n. (\<Union>i\<le>n. J' i)"
       moreover def X \<equiv> "\<lambda>n. emb (J n) (J' n) (X' n)"
-      ultimately have J: "\<And>n. J n \<noteq> {}" "\<And>n. finite (J n)" "\<And>n. J n \<subseteq> I" "\<And>n. X n \<in> sets (Pi\<^isub>M (J n) M)"
+      ultimately have J: "\<And>n. J n \<noteq> {}" "\<And>n. finite (J n)" "\<And>n. J n \<subseteq> I" "\<And>n. X n \<in> sets (Pi\<^sub>M (J n) M)"
         by auto
       with A' have A_eq: "\<And>n. A n = emb I (J n) (X n)" "\<And>n. A n \<in> ?G"
         unfolding J_def X_def by (subst prod_emb_trans) (insert A, auto)
@@ -119,7 +119,7 @@ next
         using mu_G_spec[of "J 0" "A 0" "X 0"] J A_eq
         by (auto intro!: INF_lower2[of 0] J.measure_le_1)
 
-      let ?M = "\<lambda>K Z y. (\<lambda>x. merge K (I - K) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)"
+      let ?M = "\<lambda>K Z y. (\<lambda>x. merge K (I - K) (y, x)) -` Z \<inter> space (Pi\<^sub>M I M)"
 
       { fix Z k assume Z: "range Z \<subseteq> ?G" "decseq Z" "\<forall>n. ?a / 2^k \<le> \<mu>G (Z n)"
         then have Z_sets: "\<And>n. Z n \<in> ?G" by auto
@@ -127,22 +127,22 @@ next
         interpret J': finite_product_prob_space M J' by default fact+
 
         let ?q = "\<lambda>n y. \<mu>G (?M J' (Z n) y)"
-        let ?Q = "\<lambda>n. ?q n -` {?a / 2^(k+1) ..} \<inter> space (Pi\<^isub>M J' M)"
+        let ?Q = "\<lambda>n. ?q n -` {?a / 2^(k+1) ..} \<inter> space (Pi\<^sub>M J' M)"
         { fix n
-          have "?q n \<in> borel_measurable (Pi\<^isub>M J' M)"
+          have "?q n \<in> borel_measurable (Pi\<^sub>M J' M)"
             using Z J' by (intro fold(1)) auto
-          then have "?Q n \<in> sets (Pi\<^isub>M J' M)"
+          then have "?Q n \<in> sets (Pi\<^sub>M J' M)"
             by (rule measurable_sets) auto }
         note Q_sets = this
 
-        have "?a / 2^(k+1) \<le> (INF n. emeasure (Pi\<^isub>M J' M) (?Q n))"
+        have "?a / 2^(k+1) \<le> (INF n. emeasure (Pi\<^sub>M J' M) (?Q n))"
         proof (intro INF_greatest)
           fix n
           have "?a / 2^k \<le> \<mu>G (Z n)" using Z by auto
-          also have "\<dots> \<le> (\<integral>\<^isup>+ x. indicator (?Q n) x + ?a / 2^(k+1) \<partial>Pi\<^isub>M J' M)"
+          also have "\<dots> \<le> (\<integral>\<^sup>+ x. indicator (?Q n) x + ?a / 2^(k+1) \<partial>Pi\<^sub>M J' M)"
             unfolding fold(2)[OF J' `Z n \<in> ?G`]
           proof (intro positive_integral_mono)
-            fix x assume x: "x \<in> space (Pi\<^isub>M J' M)"
+            fix x assume x: "x \<in> space (Pi\<^sub>M J' M)"
             then have "?q n x \<le> 1 + 0"
               using J' Z fold(3) Z_sets by auto
             also have "\<dots> \<le> 1 + ?a / 2^(k+1)"
@@ -151,21 +151,21 @@ next
             with x show "?q n x \<le> indicator (?Q n) x + ?a / 2^(k+1)"
               by (auto split: split_indicator simp del: power_Suc)
           qed
-          also have "\<dots> = emeasure (Pi\<^isub>M J' M) (?Q n) + ?a / 2^(k+1)"
+          also have "\<dots> = emeasure (Pi\<^sub>M J' M) (?Q n) + ?a / 2^(k+1)"
             using `0 \<le> ?a` Q_sets J'.emeasure_space_1
             by (subst positive_integral_add) auto
-          finally show "?a / 2^(k+1) \<le> emeasure (Pi\<^isub>M J' M) (?Q n)" using `?a \<le> 1`
-            by (cases rule: ereal2_cases[of ?a "emeasure (Pi\<^isub>M J' M) (?Q n)"])
+          finally show "?a / 2^(k+1) \<le> emeasure (Pi\<^sub>M J' M) (?Q n)" using `?a \<le> 1`
+            by (cases rule: ereal2_cases[of ?a "emeasure (Pi\<^sub>M J' M) (?Q n)"])
                (auto simp: field_simps)
         qed
-        also have "\<dots> = emeasure (Pi\<^isub>M J' M) (\<Inter>n. ?Q n)"
+        also have "\<dots> = emeasure (Pi\<^sub>M J' M) (\<Inter>n. ?Q n)"
         proof (intro INF_emeasure_decseq)
-          show "range ?Q \<subseteq> sets (Pi\<^isub>M J' M)" using Q_sets by auto
+          show "range ?Q \<subseteq> sets (Pi\<^sub>M J' M)" using Q_sets by auto
           show "decseq ?Q"
             unfolding decseq_def
           proof (safe intro!: vimageI[OF refl])
             fix m n :: nat assume "m \<le> n"
-            fix x assume x: "x \<in> space (Pi\<^isub>M J' M)"
+            fix x assume x: "x \<in> space (Pi\<^sub>M J' M)"
             assume "?a / 2^(k+1) \<le> ?q n x"
             also have "?q n x \<le> ?q m x"
             proof (rule mu_G_mono)
@@ -179,7 +179,7 @@ next
         qed simp
         finally have "(\<Inter>n. ?Q n) \<noteq> {}"
           using `0 < ?a` `?a \<le> 1` by (cases ?a) (auto simp: divide_le_0_iff power_le_zero_eq)
-        then have "\<exists>w\<in>space (Pi\<^isub>M J' M). \<forall>n. ?a / 2 ^ (k + 1) \<le> ?q n w" by auto }
+        then have "\<exists>w\<in>space (Pi\<^sub>M J' M). \<forall>n. ?a / 2 ^ (k + 1) \<le> ?q n w" by auto }
       note Ex_w = this
 
       let ?q = "\<lambda>k n y. \<mu>G (?M (J k) (A n) y)"
@@ -188,18 +188,18 @@ next
       from Ex_w[OF A(1,2) this J(1-3), of 0] guess w0 .. note w0 = this
 
       let ?P =
-        "\<lambda>k wk w. w \<in> space (Pi\<^isub>M (J (Suc k)) M) \<and> restrict w (J k) = wk \<and>
+        "\<lambda>k wk w. w \<in> space (Pi\<^sub>M (J (Suc k)) M) \<and> restrict w (J k) = wk \<and>
           (\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n w)"
       def w \<equiv> "nat_rec w0 (\<lambda>k wk. Eps (?P k wk))"
 
-      { fix k have w: "w k \<in> space (Pi\<^isub>M (J k) M) \<and>
+      { fix k have w: "w k \<in> space (Pi\<^sub>M (J k) M) \<and>
           (\<forall>n. ?a / 2 ^ (k + 1) \<le> ?q k n (w k)) \<and> (k \<noteq> 0 \<longrightarrow> restrict (w k) (J (k - 1)) = w (k - 1))"
         proof (induct k)
           case 0 with w0 show ?case
             unfolding w_def nat_rec_0 by auto
         next
           case (Suc k)
-          then have wk: "w k \<in> space (Pi\<^isub>M (J k) M)" by auto
+          then have wk: "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
           have "\<exists>w'. ?P k (w k) w'"
           proof cases
             assume [simp]: "J k = J (Suc k)"
@@ -211,7 +211,7 @@ next
               also have "\<dots> \<le> ?q k n (w k)" using Suc by auto
               finally show "?a / 2 ^ (Suc k + 1) \<le> ?q (Suc k) n (w k)" by simp
             next
-              show "w k \<in> space (Pi\<^isub>M (J (Suc k)) M)"
+              show "w k \<in> space (Pi\<^sub>M (J (Suc k)) M)"
                 using Suc by simp
               then show "restrict (w k) (J k) = w k"
                 by (simp add: extensional_restrict space_PiM)
@@ -225,7 +225,7 @@ next
               using `decseq A` fold(4)[OF J(1-3) A_eq(2), of "w k" k] Suc
               by (auto simp: decseq_def)
             from Ex_w[OF this `?D \<noteq> {}`] J[of "Suc k"]
-            obtain w' where w': "w' \<in> space (Pi\<^isub>M ?D M)"
+            obtain w' where w': "w' \<in> space (Pi\<^sub>M ?D M)"
               "\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> \<mu>G (?M ?D (?M (J k) (A n) (w k)) w')" by auto
             let ?w = "merge (J k) ?D (w k, w')"
             have [simp]: "\<And>x. merge (J k) (I - J k) (w k, merge ?D (I - ?D) (w', x)) =
@@ -246,7 +246,7 @@ next
           then show ?case by auto
         qed
         moreover
-        then have "w k \<in> space (Pi\<^isub>M (J k) M)" by auto
+        then have "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
         moreover
         from w have "?a / 2 ^ (k + 1) \<le> ?q k k (w k)" by auto
         then have "?M (J k) (A k) (w k) \<noteq> {}"
@@ -255,9 +255,9 @@ next
         then obtain x where "x \<in> ?M (J k) (A k) (w k)" by auto
         then have "merge (J k) (I - J k) (w k, x) \<in> A k" by auto
         then have "\<exists>x\<in>A k. restrict x (J k) = w k"
-          using `w k \<in> space (Pi\<^isub>M (J k) M)`
+          using `w k \<in> space (Pi\<^sub>M (J k) M)`
           by (intro rev_bexI) (auto intro!: ext simp: extensional_def space_PiM)
-        ultimately have "w k \<in> space (Pi\<^isub>M (J k) M)"
+        ultimately have "w k \<in> space (Pi\<^sub>M (J k) M)"
           "\<exists>x\<in>A k. restrict x (J k) = w k"
           "k \<noteq> 0 \<Longrightarrow> restrict (w k) (J (k - 1)) = w (k - 1)"
           by auto }
@@ -291,7 +291,7 @@ next
           using w(1) by (cases "i \<in> (\<Union>k. J k)") (force simp: w'_simps2 w'_eq space_PiM)+ }
       note w'_simps[simp] = w'_eq w'_simps1 w'_simps2 this
 
-      have w': "w' \<in> space (Pi\<^isub>M I M)"
+      have w': "w' \<in> space (Pi\<^sub>M I M)"
         using w(1) by (auto simp add: Pi_iff extensional_def space_PiM)
 
       { fix n
@@ -312,40 +312,40 @@ next
       by (simp add: Pi_iff)
   next
     fix J X assume J: "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))"
-    then show "emb I J (Pi\<^isub>E J X) \<in> Pow (\<Pi>\<^isub>E i\<in>I. space (M i))"
+    then show "emb I J (Pi\<^sub>E J X) \<in> Pow (\<Pi>\<^sub>E i\<in>I. space (M i))"
       by (auto simp: Pi_iff prod_emb_def dest: sets.sets_into_space)
-    have "emb I J (Pi\<^isub>E J X) \<in> generator"
+    have "emb I J (Pi\<^sub>E J X) \<in> generator"
       using J `I \<noteq> {}` by (intro generatorI') (auto simp: Pi_iff)
-    then have "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))"
+    then have "\<mu> (emb I J (Pi\<^sub>E J X)) = \<mu>G (emb I J (Pi\<^sub>E J X))"
       using \<mu> by simp
     also have "\<dots> = (\<Prod> j\<in>J. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
       using J  `I \<noteq> {}` by (subst mu_G_spec[OF _ _ _ refl]) (auto simp: emeasure_PiM Pi_iff)
     also have "\<dots> = (\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}.
       if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
       using J `I \<noteq> {}` by (intro setprod_mono_one_right) (auto simp: M.emeasure_space_1)
-    finally show "\<mu> (emb I J (Pi\<^isub>E J X)) = \<dots>" .
+    finally show "\<mu> (emb I J (Pi\<^sub>E J X)) = \<dots>" .
   next
     let ?F = "\<lambda>j. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j))"
     have "(\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}. ?F j) = (\<Prod>j\<in>J. ?F j)"
       using X `I \<noteq> {}` by (intro setprod_mono_one_right) (auto simp: M.emeasure_space_1)
     then show "(\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}. ?F j) =
-      emeasure (Pi\<^isub>M J M) (Pi\<^isub>E J X)"
+      emeasure (Pi\<^sub>M J M) (Pi\<^sub>E J X)"
       using X by (auto simp add: emeasure_PiM) 
   next
-    show "positive (sets (Pi\<^isub>M I M)) \<mu>" "countably_additive (sets (Pi\<^isub>M I M)) \<mu>"
+    show "positive (sets (Pi\<^sub>M I M)) \<mu>" "countably_additive (sets (Pi\<^sub>M I M)) \<mu>"
       using \<mu> unfolding sets_PiM_generator by (auto simp: measure_space_def)
   qed
 qed
 
-sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^isub>M I M"
+sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^sub>M I M"
 proof
-  show "emeasure (Pi\<^isub>M I M) (space (Pi\<^isub>M I M)) = 1"
+  show "emeasure (Pi\<^sub>M I M) (space (Pi\<^sub>M I M)) = 1"
   proof cases
     assume "I = {}" then show ?thesis by (simp add: space_PiM_empty)
   next
     assume "I \<noteq> {}"
     then obtain i where "i \<in> I" by auto
-    moreover then have "emb I {i} (\<Pi>\<^isub>E i\<in>{i}. space (M i)) = (space (Pi\<^isub>M I M))"
+    moreover then have "emb I {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i)) = (space (Pi\<^sub>M I M))"
       by (auto simp: prod_emb_def space_PiM)
     ultimately show ?thesis
       using emeasure_PiM_emb_not_empty[of "{i}" "\<lambda>i. space (M i)"]
@@ -355,10 +355,10 @@ qed
 
 lemma (in product_prob_space) emeasure_PiM_emb:
   assumes X: "J \<subseteq> I" "finite J" "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
-  shows "emeasure (Pi\<^isub>M I M) (emb I J (Pi\<^isub>E J X)) = (\<Prod> i\<in>J. emeasure (M i) (X i))"
+  shows "emeasure (Pi\<^sub>M I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. emeasure (M i) (X i))"
 proof cases
   assume "J = {}"
-  moreover have "emb I {} {\<lambda>x. undefined} = space (Pi\<^isub>M I M)"
+  moreover have "emb I {} {\<lambda>x. undefined} = space (Pi\<^sub>M I M)"
     by (auto simp: space_PiM prod_emb_def)
   ultimately show ?thesis
     by (simp add: space_PiM_empty P.emeasure_space_1)
@@ -369,22 +369,22 @@ qed
 
 lemma (in product_prob_space) emeasure_PiM_Collect:
   assumes X: "J \<subseteq> I" "finite J" "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
-  shows "emeasure (Pi\<^isub>M I M) {x\<in>space (Pi\<^isub>M I M). \<forall>i\<in>J. x i \<in> X i} = (\<Prod> i\<in>J. emeasure (M i) (X i))"
+  shows "emeasure (Pi\<^sub>M I M) {x\<in>space (Pi\<^sub>M I M). \<forall>i\<in>J. x i \<in> X i} = (\<Prod> i\<in>J. emeasure (M i) (X i))"
 proof -
-  have "{x\<in>space (Pi\<^isub>M I M). \<forall>i\<in>J. x i \<in> X i} = emb I J (Pi\<^isub>E J X)"
+  have "{x\<in>space (Pi\<^sub>M I M). \<forall>i\<in>J. x i \<in> X i} = emb I J (Pi\<^sub>E J X)"
     unfolding prod_emb_def using assms by (auto simp: space_PiM Pi_iff)
   with emeasure_PiM_emb[OF assms] show ?thesis by simp
 qed
 
 lemma (in product_prob_space) emeasure_PiM_Collect_single:
   assumes X: "i \<in> I" "A \<in> sets (M i)"
-  shows "emeasure (Pi\<^isub>M I M) {x\<in>space (Pi\<^isub>M I M). x i \<in> A} = emeasure (M i) A"
+  shows "emeasure (Pi\<^sub>M I M) {x\<in>space (Pi\<^sub>M I M). x i \<in> A} = emeasure (M i) A"
   using emeasure_PiM_Collect[of "{i}" "\<lambda>i. A"] assms
   by simp
 
 lemma (in product_prob_space) measure_PiM_emb:
   assumes "J \<subseteq> I" "finite J" "\<And>i. i \<in> J \<Longrightarrow> X i \<in> sets (M i)"
-  shows "measure (PiM I M) (emb I J (Pi\<^isub>E J X)) = (\<Prod> i\<in>J. measure (M i) (X i))"
+  shows "measure (PiM I M) (emb I J (Pi\<^sub>E J X)) = (\<Prod> i\<in>J. measure (M i) (X i))"
   using emeasure_PiM_emb[OF assms]
   unfolding emeasure_eq_measure M.emeasure_eq_measure by (simp add: setprod_ereal)
 
@@ -394,7 +394,7 @@ lemma sets_Collect_single':
   by (simp add: space_PiM PiE_iff cong: conj_cong)
 
 lemma (in finite_product_prob_space) finite_measure_PiM_emb:
-  "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> measure (PiM I M) (Pi\<^isub>E I A) = (\<Prod>i\<in>I. measure (M i) (A i))"
+  "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> measure (PiM I M) (Pi\<^sub>E I A) = (\<Prod>i\<in>I. measure (M i) (A i))"
   using measure_PiM_emb[of I A] finite_index prod_emb_PiE_same_index[OF sets.sets_into_space, of I A M]
   by auto
 
@@ -413,25 +413,25 @@ lemma (in product_prob_space) PiM_eq:
   assumes "I \<noteq> {}"
   assumes "sets M' = sets (PiM I M)"
   assumes eq: "\<And>J F. finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> (\<And>j. j \<in> J \<Longrightarrow> F j \<in> sets (M j)) \<Longrightarrow>
-    emeasure M' (prod_emb I M J (\<Pi>\<^isub>E j\<in>J. F j)) = (\<Prod>j\<in>J. emeasure (M j) (F j))"
+    emeasure M' (prod_emb I M J (\<Pi>\<^sub>E j\<in>J. F j)) = (\<Prod>j\<in>J. emeasure (M j) (F j))"
   shows "M' = (PiM I M)"
 proof (rule measure_eqI_generator_eq[symmetric, OF Int_stable_prod_algebra prod_algebra_sets_into_space])
-  show "sets (PiM I M) = sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) (prod_algebra I M)"
+  show "sets (PiM I M) = sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) (prod_algebra I M)"
     by (rule sets_PiM)
-  then show "sets M' = sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) (prod_algebra I M)"
+  then show "sets M' = sigma_sets (\<Pi>\<^sub>E i\<in>I. space (M i)) (prod_algebra I M)"
     unfolding `sets M' = sets (PiM I M)` by simp
 
   def i \<equiv> "SOME i. i \<in> I"
   with `I \<noteq> {}` have i: "i \<in> I"
     by (auto intro: someI_ex)
 
-  def A \<equiv> "\<lambda>n::nat. prod_emb I M {i} (\<Pi>\<^isub>E j\<in>{i}. space (M i))"
+  def A \<equiv> "\<lambda>n::nat. prod_emb I M {i} (\<Pi>\<^sub>E j\<in>{i}. space (M i))"
   then show "range A \<subseteq> prod_algebra I M"
     by (auto intro!: prod_algebraI i)
 
   have A_eq: "\<And>i. A i = space (PiM I M)"
     by (auto simp: prod_emb_def space_PiM Pi_iff A_def i)
-  show "(\<Union>i. A i) = (\<Pi>\<^isub>E i\<in>I. space (M i))"
+  show "(\<Union>i. A i) = (\<Pi>\<^sub>E i\<in>I. space (M i))"
     unfolding A_eq by (auto simp: space_PiM)
   show "\<And>i. emeasure (PiM I M) (A i) \<noteq> \<infinity>"
     unfolding A_eq P.emeasure_space_1 by simp
@@ -459,22 +459,22 @@ lemma split_comb_seq_asm: "P (comb_seq i \<omega> \<omega>' j) \<longleftrightar
   by (auto simp: comb_seq_def)
 
 lemma measurable_comb_seq:
-  "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> measurable ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) (\<Pi>\<^isub>M i\<in>UNIV. M)"
+  "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> measurable ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)) (\<Pi>\<^sub>M i\<in>UNIV. M)"
 proof (rule measurable_PiM_single)
-  show "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^isub>E space M)"
+  show "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^sub>E space M)"
     by (auto simp: space_pair_measure space_PiM PiE_iff split: split_comb_seq)
   fix j :: nat and A assume A: "A \<in> sets M"
-  then have *: "{\<omega> \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} =
-    (if j < i then {\<omega> \<in> space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> j \<in> A} \<times> space (\<Pi>\<^isub>M i\<in>UNIV. M)
-              else space (\<Pi>\<^isub>M i\<in>UNIV. M) \<times> {\<omega> \<in> space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> (j - i) \<in> A})"
+  then have *: "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} =
+    (if j < i then {\<omega> \<in> space (\<Pi>\<^sub>M i\<in>UNIV. M). \<omega> j \<in> A} \<times> space (\<Pi>\<^sub>M i\<in>UNIV. M)
+              else space (\<Pi>\<^sub>M i\<in>UNIV. M) \<times> {\<omega> \<in> space (\<Pi>\<^sub>M i\<in>UNIV. M). \<omega> (j - i) \<in> A})"
     by (auto simp: space_PiM space_pair_measure comb_seq_def dest: sets.sets_into_space)
-  show "{\<omega> \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} \<in> sets ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M))"
+  show "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} \<in> sets ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M))"
     unfolding * by (auto simp: A intro!: sets_Collect_single)
 qed
 
 lemma measurable_comb_seq'[measurable (raw)]:
-  assumes f: "f \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)" and g: "g \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
-  shows "(\<lambda>x. comb_seq i (f x) (g x)) \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
+  assumes f: "f \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)" and g: "g \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
+  shows "(\<lambda>x. comb_seq i (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
   using measurable_compose[OF measurable_Pair[OF f g] measurable_comb_seq] by simp
 
 lemma comb_seq_0: "comb_seq 0 \<omega> \<omega>' = \<omega>'"
@@ -502,13 +502,13 @@ lemma nat_case_comb_seq':
 locale sequence_space = product_prob_space "\<lambda>i. M" "UNIV :: nat set" for M
 begin
 
-abbreviation "S \<equiv> \<Pi>\<^isub>M i\<in>UNIV::nat set. M"
+abbreviation "S \<equiv> \<Pi>\<^sub>M i\<in>UNIV::nat set. M"
 
 lemma infprod_in_sets[intro]:
   fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets M"
   shows "Pi UNIV E \<in> sets S"
 proof -
-  have "Pi UNIV E = (\<Inter>i. emb UNIV {..i} (\<Pi>\<^isub>E j\<in>{..i}. E j))"
+  have "Pi UNIV E = (\<Inter>i. emb UNIV {..i} (\<Pi>\<^sub>E j\<in>{..i}. E j))"
     using E E[THEN sets.sets_into_space]
     by (auto simp: prod_emb_def Pi_iff extensional_def) blast
   with E show ?thesis by auto
@@ -518,7 +518,7 @@ lemma measure_PiM_countable:
   fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets M"
   shows "(\<lambda>n. \<Prod>i\<le>n. measure M (E i)) ----> measure S (Pi UNIV E)"
 proof -
-  let ?E = "\<lambda>n. emb UNIV {..n} (Pi\<^isub>E {.. n} E)"
+  let ?E = "\<lambda>n. emb UNIV {..n} (Pi\<^sub>E {.. n} E)"
   have "\<And>n. (\<Prod>i\<le>n. measure M (E i)) = measure S (?E n)"
     using E by (simp add: measure_PiM_emb)
   moreover have "Pi UNIV E = (\<Inter>n. ?E n)"
@@ -538,21 +538,21 @@ lemma nat_eq_diff_eq:
   by auto
 
 lemma PiM_comb_seq:
-  "distr (S \<Otimes>\<^isub>M S) S (\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') = S" (is "?D = _")
+  "distr (S \<Otimes>\<^sub>M S) S (\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') = S" (is "?D = _")
 proof (rule PiM_eq)
   let ?I = "UNIV::nat set" and ?M = "\<lambda>n. M"
   let "distr _ _ ?f" = "?D"
 
   fix J E assume J: "finite J" "J \<subseteq> ?I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets M"
-  let ?X = "prod_emb ?I ?M J (\<Pi>\<^isub>E j\<in>J. E j)"
+  let ?X = "prod_emb ?I ?M J (\<Pi>\<^sub>E j\<in>J. E j)"
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
     using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
-  with J have "?f -` ?X \<inter> space (S \<Otimes>\<^isub>M S) =
+  with J have "?f -` ?X \<inter> space (S \<Otimes>\<^sub>M S) =
     (prod_emb ?I ?M (J \<inter> {..<i}) (PIE j:J \<inter> {..<i}. E j)) \<times>
     (prod_emb ?I ?M ((op + i) -` J) (PIE j:(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM prod_emb_def all_conj_distrib PiE_iff
                split: split_comb_seq split_comb_seq_asm)
-  then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^isub>M S) (?E \<times> ?F)"
+  then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^sub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr[OF measurable_comb_seq])
        (auto intro!: sets_PiM_I simp: split_beta' J)
   also have "\<dots> = emeasure S ?E * emeasure S ?F"
@@ -570,7 +570,7 @@ proof (rule PiM_eq)
 qed simp_all
 
 lemma PiM_iter:
-  "distr (M \<Otimes>\<^isub>M S) S (\<lambda>(s, \<omega>). nat_case s \<omega>) = S" (is "?D = _")
+  "distr (M \<Otimes>\<^sub>M S) S (\<lambda>(s, \<omega>). nat_case s \<omega>) = S" (is "?D = _")
 proof (rule PiM_eq)
   let ?I = "UNIV::nat set" and ?M = "\<lambda>n. M"
   let "distr _ _ ?f" = "?D"
@@ -579,11 +579,11 @@ proof (rule PiM_eq)
   let ?X = "prod_emb ?I ?M J (PIE j:J. E j)"
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
     using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
-  with J have "?f -` ?X \<inter> space (M \<Otimes>\<^isub>M S) = (if 0 \<in> J then E 0 else space M) \<times>
+  with J have "?f -` ?X \<inter> space (M \<Otimes>\<^sub>M S) = (if 0 \<in> J then E 0 else space M) \<times>
     (prod_emb ?I ?M (Suc -` J) (PIE j:Suc -` J. E (Suc j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM PiE_iff prod_emb_def all_conj_distrib
       split: nat.split nat.split_asm)
-  then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^isub>M S) (?E \<times> ?F)"
+  then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^sub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr)
        (auto intro!: sets_PiM_I simp: split_beta' J)
   also have "\<dots> = emeasure M ?E * emeasure S ?F"

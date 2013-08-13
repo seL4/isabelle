@@ -195,11 +195,11 @@ instantiation %quote prod :: (semigroup, semigroup) semigroup
 begin
 
 definition %quote
-  mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 = (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
+  mult_prod_def: "p\<^sub>1 \<otimes> p\<^sub>2 = (fst p\<^sub>1 \<otimes> fst p\<^sub>2, snd p\<^sub>1 \<otimes> snd p\<^sub>2)"
 
 instance %quote proof
-  fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
-  show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
+  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
+  show "p\<^sub>1 \<otimes> p\<^sub>2 \<otimes> p\<^sub>3 = p\<^sub>1 \<otimes> (p\<^sub>2 \<otimes> p\<^sub>3)"
     unfolding mult_prod_def by (simp add: assoc)
 qed      
 

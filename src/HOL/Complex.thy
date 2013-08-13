@@ -103,7 +103,7 @@ definition complex_mult_def:
 
 definition complex_inverse_def:
   "inverse x =
-    Complex (Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)) (- Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>))"
+    Complex (Re x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)) (- Im x / ((Re x)\<^sup>2 + (Im x)\<^sup>2))"
 
 definition complex_divide_def:
   "x / (y\<Colon>complex) = x * inverse y"
@@ -128,15 +128,15 @@ lemma complex_Im_mult [simp]: "Im (x * y) = Re x * Im y + Im x * Re y"
   by (simp add: complex_mult_def)
 
 lemma complex_inverse [simp]:
-  "inverse (Complex a b) = Complex (a / (a\<twosuperior> + b\<twosuperior>)) (- b / (a\<twosuperior> + b\<twosuperior>))"
+  "inverse (Complex a b) = Complex (a / (a\<^sup>2 + b\<^sup>2)) (- b / (a\<^sup>2 + b\<^sup>2))"
   by (simp add: complex_inverse_def)
 
 lemma complex_Re_inverse:
-  "Re (inverse x) = Re x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)"
+  "Re (inverse x) = Re x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
   by (simp add: complex_inverse_def)
 
 lemma complex_Im_inverse:
-  "Im (inverse x) = - Im x / ((Re x)\<twosuperior> + (Im x)\<twosuperior>)"
+  "Im (inverse x) = - Im x / ((Re x)\<^sup>2 + (Im x)\<^sup>2)"
   by (simp add: complex_inverse_def)
 
 instance
@@ -267,7 +267,7 @@ instantiation complex :: real_normed_field
 begin
 
 definition complex_norm_def:
-  "norm z = sqrt ((Re z)\<twosuperior> + (Im z)\<twosuperior>)"
+  "norm z = sqrt ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
 
 abbreviation cmod :: "complex \<Rightarrow> real"
   where "cmod \<equiv> norm"
@@ -283,7 +283,7 @@ definition open_complex_def:
 
 lemmas cmod_def = complex_norm_def
 
-lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twosuperior>)"
+lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<^sup>2 + y\<^sup>2)"
   by (simp add: complex_norm_def)
 
 instance proof
@@ -439,7 +439,7 @@ lemma complex_of_real_i [simp]: "complex_of_real r * ii = Complex 0 r"
 lemma i_squared [simp]: "ii * ii = -1"
   by (simp add: i_def)
 
-lemma power2_i [simp]: "ii\<twosuperior> = -1"
+lemma power2_i [simp]: "ii\<^sup>2 = -1"
   by (simp add: power2_eq_square)
 
 lemma inverse_i [simp]: "inverse ii = - ii"
@@ -529,10 +529,10 @@ lemma complex_add_cnj: "z + cnj z = complex_of_real (2 * Re z)"
 lemma complex_diff_cnj: "z - cnj z = complex_of_real (2 * Im z) * ii"
   by (simp add: complex_eq_iff)
 
-lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<twosuperior> + (Im z)\<twosuperior>)"
+lemma complex_mult_cnj: "z * cnj z = complex_of_real ((Re z)\<^sup>2 + (Im z)\<^sup>2)"
   by (simp add: complex_eq_iff power2_eq_square)
 
-lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
+lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<^sup>2"
   by (simp add: norm_mult power2_eq_square)
 
 lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"

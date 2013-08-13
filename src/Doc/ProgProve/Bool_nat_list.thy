@@ -385,7 +385,7 @@ more syntactic sugar:
 \begin{itemize}
 \item @{text "[]"} is @{const Nil},
 \item @{term"x # xs"} is @{term"Cons x xs"},
-\item @{text"[x\<^isub>1, \<dots>, x\<^isub>n]"} is @{text"x\<^isub>1 # \<dots> # x\<^isub>n # []"}, and
+\item @{text"[x\<^sub>1, \<dots>, x\<^sub>n]"} is @{text"x\<^sub>1 # \<dots> # x\<^sub>n # []"}, and
 \item @{term "xs @ ys"} is @{term"app xs ys"}.
 \end{itemize}
 There is also a large library of predefined functions.

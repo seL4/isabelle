@@ -59,9 +59,9 @@ lemma n_leaves_reflect: "n_leaves (reflect t) = n_leaves t"
 proof (induct t)
   case Lf thus ?case
   proof -
-    let "?p\<^isub>1 x\<^isub>1" = "x\<^isub>1 \<noteq> n_leaves (reflect (Lf::'a bt))"
-    have "\<not> ?p\<^isub>1 (Suc 0)" by (metis reflect.simps(1) n_leaves.simps(1))
-    hence "\<not> ?p\<^isub>1 (n_leaves (Lf::'a bt))" by (metis n_leaves.simps(1))
+    let "?p\<^sub>1 x\<^sub>1" = "x\<^sub>1 \<noteq> n_leaves (reflect (Lf::'a bt))"
+    have "\<not> ?p\<^sub>1 (Suc 0)" by (metis reflect.simps(1) n_leaves.simps(1))
+    hence "\<not> ?p\<^sub>1 (n_leaves (Lf::'a bt))" by (metis n_leaves.simps(1))
     thus "n_leaves (reflect (Lf::'a bt)) = n_leaves (Lf::'a bt)" by metis
   qed
 next

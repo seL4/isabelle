@@ -745,7 +745,7 @@ proof -
   show ?thesis
   proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
     fix y :: 'a assume *: "y \<in> box ?a ?b"
-    have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<twosuperior>)"
+    have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<^sup>2)"
       unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
     also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
     proof (rule real_sqrt_less_mono, rule setsum_strict_mono)
@@ -756,9 +756,9 @@ proof -
       ultimately have "\<bar>x\<bullet>i - y\<bullet>i\<bar> < 2 * e'" by auto
       then have "dist (x \<bullet> i) (y \<bullet> i) < e/sqrt (real (DIM('a)))"
         unfolding e'_def by (auto simp: dist_real_def)
-      then have "(dist (x \<bullet> i) (y \<bullet> i))\<twosuperior> < (e/sqrt (real (DIM('a))))\<twosuperior>"
+      then have "(dist (x \<bullet> i) (y \<bullet> i))\<^sup>2 < (e/sqrt (real (DIM('a))))\<^sup>2"
         by (rule power_strict_mono) auto
-      then show "(dist (x \<bullet> i) (y \<bullet> i))\<twosuperior> < e\<twosuperior> / real DIM('a)"
+      then show "(dist (x \<bullet> i) (y \<bullet> i))\<^sup>2 < e\<^sup>2 / real DIM('a)"
         by (simp add: power_divide)
     qed auto
     also have "\<dots> = e" using `0 < e` by (simp add: real_eq_of_nat)
@@ -771,7 +771,7 @@ lemma open_UNION_box:
   assumes "open M" 
   defines "a' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
   defines "b' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
-  defines "I \<equiv> {f\<in>Basis \<rightarrow>\<^isub>E \<rat> \<times> \<rat>. box (a' f) (b' f) \<subseteq> M}"
+  defines "I \<equiv> {f\<in>Basis \<rightarrow>\<^sub>E \<rat> \<times> \<rat>. box (a' f) (b' f) \<subseteq> M}"
   shows "M = (\<Union>f\<in>I. box (a' f) (b' f))"
 proof -
   {
@@ -4747,7 +4747,7 @@ lemma bounded_Times:
 proof-
   obtain x y a b where "\<forall>z\<in>s. dist x z \<le> a" "\<forall>z\<in>t. dist y z \<le> b"
     using assms [unfolded bounded_def] by auto
-  then have "\<forall>z\<in>s \<times> t. dist (x, y) z \<le> sqrt (a\<twosuperior> + b\<twosuperior>)"
+  then have "\<forall>z\<in>s \<times> t. dist (x, y) z \<le> sqrt (a\<^sup>2 + b\<^sup>2)"
     by (auto simp add: dist_Pair_Pair real_sqrt_le_mono add_mono power_mono)
   thus ?thesis unfolding bounded_any_center [where a="(x, y)"] by auto
 qed
@@ -5500,7 +5500,7 @@ proof
   then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f" by simp
   def b \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. snd (f i) *\<^sub>R i"
   then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f" by simp
-  def B \<equiv> "(\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^isub>E (\<rat> \<times> \<rat>))"
+  def B \<equiv> "(\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^sub>E (\<rat> \<times> \<rat>))"
 
   have "Ball B open" by (simp add: B_def open_box)
   moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"

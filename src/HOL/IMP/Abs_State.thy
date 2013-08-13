@@ -132,29 +132,29 @@ locale Gamma_semilattice = Val_semilattice where \<gamma>=\<gamma>
   for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 
-abbreviation \<gamma>\<^isub>s :: "'av st \<Rightarrow> state set"
-where "\<gamma>\<^isub>s == \<gamma>_st \<gamma>"
+abbreviation \<gamma>\<^sub>s :: "'av st \<Rightarrow> state set"
+where "\<gamma>\<^sub>s == \<gamma>_st \<gamma>"
 
-abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
-where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>s"
+abbreviation \<gamma>\<^sub>o :: "'av st option \<Rightarrow> state set"
+where "\<gamma>\<^sub>o == \<gamma>_option \<gamma>\<^sub>s"
 
-abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
-where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
+abbreviation \<gamma>\<^sub>c :: "'av st option acom \<Rightarrow> state set acom"
+where "\<gamma>\<^sub>c == map_acom \<gamma>\<^sub>o"
 
-lemma gamma_s_top[simp]: "\<gamma>\<^isub>s \<top> = UNIV"
+lemma gamma_s_top[simp]: "\<gamma>\<^sub>s \<top> = UNIV"
 by(auto simp: \<gamma>_st_def fun_top)
 
-lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o \<top> = UNIV"
+lemma gamma_o_Top[simp]: "\<gamma>\<^sub>o \<top> = UNIV"
 by (simp add: top_option_def)
 
-lemma mono_gamma_s: "f \<le> g \<Longrightarrow> \<gamma>\<^isub>s f \<subseteq> \<gamma>\<^isub>s g"
+lemma mono_gamma_s: "f \<le> g \<Longrightarrow> \<gamma>\<^sub>s f \<subseteq> \<gamma>\<^sub>s g"
 by(simp add:\<gamma>_st_def le_st_iff subset_iff) (metis mono_gamma subsetD)
 
 lemma mono_gamma_o:
-  "S1 \<le> S2 \<Longrightarrow> \<gamma>\<^isub>o S1 \<subseteq> \<gamma>\<^isub>o S2"
+  "S1 \<le> S2 \<Longrightarrow> \<gamma>\<^sub>o S1 \<subseteq> \<gamma>\<^sub>o S2"
 by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 
-lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
+lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^sub>c C1 \<le> \<gamma>\<^sub>c C2"
 by (simp add: less_eq_acom_def mono_gamma_o size_annos anno_map_acom size_annos_same[of C1 C2])
 
 lemma in_gamma_option_iff:

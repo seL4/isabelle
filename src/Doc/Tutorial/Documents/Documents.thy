@@ -126,10 +126,10 @@ text {*
   in the trailing part of an identifier. This means that the input
 
   \medskip
-  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^isub>1.,~\verb,\,\verb,<alpha>\<^isub>1 = \,\verb,<Pi>\<^isub>\<A>,}
+  {\small\noindent \verb,\,\verb,<forall>\,\verb,<alpha>\<^sub>1.,~\verb,\,\verb,<alpha>\<^sub>1 = \,\verb,<Pi>\<^sub>\<A>,}
 
   \medskip
-  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^isub>1. \<alpha>\<^isub>1 = \<Pi>\<^isub>\<A>"} 
+  \noindent is recognized as the term @{term "\<forall>\<alpha>\<^sub>1. \<alpha>\<^sub>1 = \<Pi>\<^sub>\<A>"} 
   by Isabelle.
 
   Replacing our previous definition of @{text xor} by the

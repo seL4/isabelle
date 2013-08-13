@@ -2095,13 +2095,13 @@ apply (case_tac i, simp_all)
 done
 
 lemma append_eq_append_conv_if:
- "(xs\<^isub>1 @ xs\<^isub>2 = ys\<^isub>1 @ ys\<^isub>2) =
-  (if size xs\<^isub>1 \<le> size ys\<^isub>1
-   then xs\<^isub>1 = take (size xs\<^isub>1) ys\<^isub>1 \<and> xs\<^isub>2 = drop (size xs\<^isub>1) ys\<^isub>1 @ ys\<^isub>2
-   else take (size ys\<^isub>1) xs\<^isub>1 = ys\<^isub>1 \<and> drop (size ys\<^isub>1) xs\<^isub>1 @ xs\<^isub>2 = ys\<^isub>2)"
-apply(induct xs\<^isub>1 arbitrary: ys\<^isub>1)
+ "(xs\<^sub>1 @ xs\<^sub>2 = ys\<^sub>1 @ ys\<^sub>2) =
+  (if size xs\<^sub>1 \<le> size ys\<^sub>1
+   then xs\<^sub>1 = take (size xs\<^sub>1) ys\<^sub>1 \<and> xs\<^sub>2 = drop (size xs\<^sub>1) ys\<^sub>1 @ ys\<^sub>2
+   else take (size ys\<^sub>1) xs\<^sub>1 = ys\<^sub>1 \<and> drop (size ys\<^sub>1) xs\<^sub>1 @ xs\<^sub>2 = ys\<^sub>2)"
+apply(induct xs\<^sub>1 arbitrary: ys\<^sub>1)
  apply simp
-apply(case_tac ys\<^isub>1)
+apply(case_tac ys\<^sub>1)
 apply simp_all
 done
 

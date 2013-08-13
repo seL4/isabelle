@@ -42,20 +42,20 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> \<bar>x\<^isub>1\<bar>" by (metis abs_ge_zero)
-  have F2: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
-  have F3: "\<forall>x\<^isub>1 x\<^isub>3. x\<^isub>3 \<le> \<bar>h x\<^isub>1\<bar> \<longrightarrow> x\<^isub>3 \<le> c * \<bar>f x\<^isub>1\<bar>" by (metis A1 order_trans)
-  have F4: "\<forall>x\<^isub>2 x\<^isub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^isub>3\<bar> * \<bar>x\<^isub>2\<bar> = \<bar>x\<^isub>3 * x\<^isub>2\<bar>"
+  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> \<bar>x\<^sub>1\<bar>" by (metis abs_ge_zero)
+  have F2: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F3: "\<forall>x\<^sub>1 x\<^sub>3. x\<^sub>3 \<le> \<bar>h x\<^sub>1\<bar> \<longrightarrow> x\<^sub>3 \<le> c * \<bar>f x\<^sub>1\<bar>" by (metis A1 order_trans)
+  have F4: "\<forall>x\<^sub>2 x\<^sub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
     by (metis abs_mult)
-  have F5: "\<forall>x\<^isub>3 x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^isub>1 \<longrightarrow> \<bar>x\<^isub>3 * x\<^isub>1\<bar> = \<bar>x\<^isub>3\<bar> * x\<^isub>1"
+  have F5: "\<forall>x\<^sub>3 x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1"
     by (metis abs_mult_pos)
-  hence "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = \<bar>1\<bar> * x\<^isub>1" by (metis F2)
-  hence "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F2 abs_one)
-  hence "\<forall>x\<^isub>3. 0 \<le> \<bar>h x\<^isub>3\<bar> \<longrightarrow> \<bar>c * \<bar>f x\<^isub>3\<bar>\<bar> = c * \<bar>f x\<^isub>3\<bar>" by (metis F3)
-  hence "\<forall>x\<^isub>3. \<bar>c * \<bar>f x\<^isub>3\<bar>\<bar> = c * \<bar>f x\<^isub>3\<bar>" by (metis F1)
-  hence "\<forall>x\<^isub>3. (0\<Colon>'a) \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^isub>3\<bar>" by (metis F5)
-  hence "\<forall>x\<^isub>3. (0\<Colon>'a) \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c * f x\<^isub>3\<bar>" by (metis F4)
-  hence "\<forall>x\<^isub>3. c * \<bar>f x\<^isub>3\<bar> = \<bar>c * f x\<^isub>3\<bar>" by (metis F1)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = \<bar>1\<bar> * x\<^sub>1" by (metis F2)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F2 abs_one)
+  hence "\<forall>x\<^sub>3. 0 \<le> \<bar>h x\<^sub>3\<bar> \<longrightarrow> \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis F3)
+  hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis F1)
+  hence "\<forall>x\<^sub>3. (0\<Colon>'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^sub>3\<bar>" by (metis F5)
+  hence "\<forall>x\<^sub>3. (0\<Colon>'a) \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F4)
+  hence "\<forall>x\<^sub>3. c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F1)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis F4)
 qed
@@ -73,12 +73,12 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
-  have F2: "\<forall>x\<^isub>2 x\<^isub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^isub>3\<bar> * \<bar>x\<^isub>2\<bar> = \<bar>x\<^isub>3 * x\<^isub>2\<bar>"
+  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F2: "\<forall>x\<^sub>2 x\<^sub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^sub>3\<bar> * \<bar>x\<^sub>2\<bar> = \<bar>x\<^sub>3 * x\<^sub>2\<bar>"
     by (metis abs_mult)
-  have "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F1 abs_mult_pos abs_one)
-  hence "\<forall>x\<^isub>3. \<bar>c * \<bar>f x\<^isub>3\<bar>\<bar> = c * \<bar>f x\<^isub>3\<bar>" by (metis A1 abs_ge_zero order_trans)
-  hence "\<forall>x\<^isub>3. 0 \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c * f x\<^isub>3\<bar>" by (metis F2 abs_mult_pos)
+  have "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_mult_pos abs_one)
+  hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>" by (metis A1 abs_ge_zero order_trans)
+  hence "\<forall>x\<^sub>3. 0 \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c * f x\<^sub>3\<bar>" by (metis F2 abs_mult_pos)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1 abs_ge_zero)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis F2)
 qed
@@ -96,10 +96,10 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
-  have F2: "\<forall>x\<^isub>3 x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^isub>1 \<longrightarrow> \<bar>x\<^isub>3 * x\<^isub>1\<bar> = \<bar>x\<^isub>3\<bar> * x\<^isub>1" by (metis abs_mult_pos)
-  hence "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F1 abs_one)
-  hence "\<forall>x\<^isub>3. 0 \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^isub>3\<bar>" by (metis F2 A1 abs_ge_zero order_trans)
+  have F1: "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  have F2: "\<forall>x\<^sub>3 x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^sub>1 \<longrightarrow> \<bar>x\<^sub>3 * x\<^sub>1\<bar> = \<bar>x\<^sub>3\<bar> * x\<^sub>1" by (metis abs_mult_pos)
+  hence "\<forall>x\<^sub>1\<ge>0. \<bar>x\<^sub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^sub>1" by (metis F1 abs_one)
+  hence "\<forall>x\<^sub>3. 0 \<le> \<bar>f x\<^sub>3\<bar> \<longrightarrow> c * \<bar>f x\<^sub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^sub>3\<bar>" by (metis F2 A1 abs_ge_zero order_trans)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis A1 abs_ge_zero)
 qed
 
@@ -116,8 +116,8 @@ lemma
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
-  hence "\<forall>x\<^isub>3. \<bar>c * \<bar>f x\<^isub>3\<bar>\<bar> = c * \<bar>f x\<^isub>3\<bar>"
+  have "\<forall>x\<^sub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^sub>1 = x\<^sub>1" by (metis mult_1)
+  hence "\<forall>x\<^sub>3. \<bar>c * \<bar>f x\<^sub>3\<bar>\<bar> = c * \<bar>f x\<^sub>3\<bar>"
     by (metis A1 abs_ge_zero order_trans abs_mult_pos abs_one)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1 abs_ge_zero abs_mult_pos abs_mult)
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis abs_mult)
@@ -459,11 +459,11 @@ proof -
   have "(0\<Colon>'a) < \<bar>c\<bar> \<longrightarrow> (0\<Colon>'a) < \<bar>inverse c\<bar>" using F1 by (metis positive_imp_inverse_positive)
   hence "(0\<Colon>'a) < \<bar>inverse c\<bar>" using F2 by metis
   hence F3: "(0\<Colon>'a) \<le> \<bar>inverse c\<bar>" by (metis order_le_less)
-  have "\<exists>(u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar>"
+  have "\<exists>(u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar>"
     using A2 by metis
-  hence F4: "\<exists>(u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^isub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0\<Colon>'a) \<le> \<bar>inverse c\<bar>"
+  hence F4: "\<exists>(u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>g (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<le> u * \<bar>f (SKF\<^sub>7 (\<bar>inverse c\<bar> * u))\<bar> \<and> (0\<Colon>'a) \<le> \<bar>inverse c\<bar>"
     using F3 by metis
-  hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^isub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^isub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^isub>7 (u * v))\<bar>)"
+  hence "\<exists>(v\<Colon>'a) (u\<Colon>'a) SKF\<^sub>7\<Colon>'a \<Rightarrow> 'b. \<bar>inverse c\<bar> * \<bar>g (SKF\<^sub>7 (u * v))\<bar> \<le> u * (v * \<bar>f (SKF\<^sub>7 (u * v))\<bar>)"
     by (metis comm_mult_left_mono)
   thus "\<exists>ca\<Colon>'a. \<forall>x\<Colon>'b. \<bar>inverse c\<bar> * \<bar>g x\<bar> \<le> ca * \<bar>f x\<bar>"
     using A2 F4 by (metis ab_semigroup_mult_class.mult_ac(1) comm_mult_left_mono)

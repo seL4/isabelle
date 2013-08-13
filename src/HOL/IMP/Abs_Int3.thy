@@ -240,22 +240,22 @@ begin
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
 "AI_wn c = pfp_wn (step' \<top>) (bot c)"
 
-lemma AI_wn_correct: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_wn_correct: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C"
 proof(simp add: CS_def AI_wn_def)
   assume 1: "pfp_wn (step' \<top>) (bot c) = Some C"
   have 2: "strip C = c \<and> step' \<top> C \<le> C"
     by(rule pfp_wn_pfp[where x="bot c"]) (simp_all add: 1 mono_step'_top)
-  have pfp: "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  have pfp: "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' \<top> C)"
+    show "step (\<gamma>\<^sub>o \<top>) (\<gamma>\<^sub>c C) \<le>  \<gamma>\<^sub>c (step' \<top> C)"
       by(rule step_step')
-    show "... \<le> \<gamma>\<^isub>c C"
+    show "... \<le> \<gamma>\<^sub>c C"
       by(rule mono_gamma_c[OF conjunct2[OF 2]])
   qed
-  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp_wn[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o \<top>)) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o \<top>)", OF 3 pfp])
-  thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
+  have 3: "strip (\<gamma>\<^sub>c C) = c" by(simp add: strip_pfp_wn[OF _ 1])
+  have "lfp c (step (\<gamma>\<^sub>o \<top>)) \<le> \<gamma>\<^sub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^sub>o \<top>)", OF 3 pfp])
+  thus "lfp c (step UNIV) \<le> \<gamma>\<^sub>c C" by simp
 qed
 
 end
@@ -405,8 +405,8 @@ apply(rule_tac x=p in bexI)
 done
 
 
-definition n_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^isub>s") where
-"n\<^isub>s S X = (\<Sum>x\<in>X. n(fun S x))"
+definition n_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^sub>s") where
+"n\<^sub>s S X = (\<Sum>x\<in>X. n(fun S x))"
 
 lemma n_s_narrow_rep:
 assumes "finite X"  "S1 = S2 on -X"  "\<forall>x. S2 x \<le> S1 x"  "\<forall>x. S1 x \<triangle> S2 x \<le> S1 x"
@@ -423,25 +423,25 @@ proof-
 qed
 
 lemma n_s_narrow: "finite X \<Longrightarrow> fun S1 = fun S2 on -X \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1
-  \<Longrightarrow> n\<^isub>s (S1 \<triangle> S2) X < n\<^isub>s S1 X"
+  \<Longrightarrow> n\<^sub>s (S1 \<triangle> S2) X < n\<^sub>s S1 X"
 apply(auto simp add: less_st_def n_s_def)
 apply (transfer fixing: n)
 apply(auto simp add: less_eq_st_rep_iff eq_st_def fun_eq_iff n_s_narrow_rep)
 done
 
-definition n_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^isub>o") where
-"n\<^isub>o opt X = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s S X + 1)"
+definition n_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^sub>o") where
+"n\<^sub>o opt X = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^sub>s S X + 1)"
 
 lemma n_o_narrow:
   "top_on_opt S1 (-X) \<Longrightarrow> top_on_opt S2 (-X) \<Longrightarrow> finite X
-  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^isub>o (S1 \<triangle> S2) X < n\<^isub>o S1 X"
+  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^sub>o (S1 \<triangle> S2) X < n\<^sub>o S1 X"
 apply(induction S1 S2 rule: narrow_option.induct)
 apply(auto simp: n_o_def n_s_narrow)
 done
 
 
-definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^isub>c") where
-"n\<^isub>c C = listsum (map (\<lambda>a. n\<^isub>o a (vars C)) (annos C))"
+definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^sub>c") where
+"n\<^sub>c C = listsum (map (\<lambda>a. n\<^sub>o a (vars C)) (annos C))"
 
 lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
   (\<exists>i<length (annos C1). annos C1 ! i < annos C2 ! i))"
@@ -449,7 +449,7 @@ by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
 
 lemma n_c_narrow: "strip C1 = strip C2
   \<Longrightarrow> top_on_acom C1 (- vars C1) \<Longrightarrow> top_on_acom C2 (- vars C2)
-  \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
+  \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^sub>c (C1 \<triangle> C2) < n\<^sub>c C1"
 apply(auto simp: n_c_def narrow_acom_def listsum_setsum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
 prefer 2 apply (simp add: size_annos_same2)

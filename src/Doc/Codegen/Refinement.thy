@@ -116,8 +116,8 @@ text {*
   to be.
 
   The prerequisite for datatype constructors is only syntactical: a
-  constructor must be of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"} where @{text
-  "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all} type variables in
+  constructor must be of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^sub>1 \<dots> \<alpha>\<^sub>n"} where @{text
+  "{\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n}"} is exactly the set of \emph{all} type variables in
   @{text "\<tau>"}; then @{text "\<kappa>"} is its corresponding datatype.  The
   HOL datatype package by default registers any new datatype with its
   constructors, but this may be changed using @{command_def

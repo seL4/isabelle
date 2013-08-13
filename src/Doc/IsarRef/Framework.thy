@@ -270,8 +270,8 @@ text {*
   :: \<alpha>. B(x)"} and @{text "A \<Longrightarrow> B"}.  Primitive reasoning operates on
   judgments of the form @{text "\<Gamma> \<turnstile> \<phi>"}, with standard introduction
   and elimination rules for @{text "\<And>"} and @{text "\<Longrightarrow>"} that refer to
-  fixed parameters @{text "x\<^isub>1, \<dots>, x\<^isub>m"} and hypotheses
-  @{text "A\<^isub>1, \<dots>, A\<^isub>n"} from the context @{text "\<Gamma>"};
+  fixed parameters @{text "x\<^sub>1, \<dots>, x\<^sub>m"} and hypotheses
+  @{text "A\<^sub>1, \<dots>, A\<^sub>n"} from the context @{text "\<Gamma>"};
   the corresponding proof terms are left implicit.  The subsequent
   inference rules define @{text "\<Gamma> \<turnstile> \<phi>"} inductively, relative to a
   collection of axioms:
@@ -327,11 +327,11 @@ text {*
   quantifiers are pulled in front of implications at each level of
   nesting.  This means that any Pure proposition may be presented as a
   \emph{Hereditary Harrop Formula} \cite{Miller:1991} which is of the
-  form @{text "\<And>x\<^isub>1 \<dots> x\<^isub>m. H\<^isub>1 \<Longrightarrow> \<dots> H\<^isub>n \<Longrightarrow>
+  form @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. H\<^sub>1 \<Longrightarrow> \<dots> H\<^sub>n \<Longrightarrow>
   A"} for @{text "m, n \<ge> 0"}, and @{text "A"} atomic, and @{text
-  "H\<^isub>1, \<dots>, H\<^isub>n"} being recursively of the same format.
+  "H\<^sub>1, \<dots>, H\<^sub>n"} being recursively of the same format.
   Following the convention that outermost quantifiers are implicit,
-  Horn clauses @{text "A\<^isub>1 \<Longrightarrow> \<dots> A\<^isub>n \<Longrightarrow> A"} are a special
+  Horn clauses @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A"} are a special
   case of this.
 
   For example, @{text "\<inter>"}-introduction rule encountered before is
@@ -348,9 +348,9 @@ text {*
   @{text "InterI:"}~@{prop "(\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A) \<Longrightarrow> x \<in> \<Inter>\<A>"}
   \]
 
-  \medskip Goals are also represented as rules: @{text "A\<^isub>1 \<Longrightarrow>
-  \<dots> A\<^isub>n \<Longrightarrow> C"} states that the sub-goals @{text "A\<^isub>1, \<dots>,
-  A\<^isub>n"} entail the result @{text "C"}; for @{text "n = 0"} the
+  \medskip Goals are also represented as rules: @{text "A\<^sub>1 \<Longrightarrow>
+  \<dots> A\<^sub>n \<Longrightarrow> C"} states that the sub-goals @{text "A\<^sub>1, \<dots>,
+  A\<^sub>n"} entail the result @{text "C"}; for @{text "n = 0"} the
   goal is finished.  To allow @{text "C"} being a rule statement
   itself, we introduce the protective marker @{text "# :: prop \<Rightarrow>
   prop"}, which is defined as identity and hidden from the user.  We
@@ -369,7 +369,7 @@ text {*
   sub-goal (replacing it by zero or more sub-goals), and @{inference
   assumption}, for solving a sub-goal (finding a short-circuit with
   local assumptions).  Below @{text "\<^vec>x"} stands for @{text
-  "x\<^isub>1, \<dots>, x\<^isub>n"} (@{text "n \<ge> 0"}).
+  "x\<^sub>1, \<dots>, x\<^sub>n"} (@{text "n \<ge> 0"}).
 
   \[
   \infer[(@{inference_def resolution})]

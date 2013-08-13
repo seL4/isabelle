@@ -56,7 +56,7 @@ where
 | "veblen (Limit f) = \<nabla>(OpLim (\<lambda>n. veblen (f n)))"
 
 definition "veb a = veblen a Zero"
-definition "\<epsilon>\<^isub>0 = veb Zero"
-definition "\<Gamma>\<^isub>0 = Limit (\<lambda>n. iter veb n Zero)"
+definition "\<epsilon>\<^sub>0 = veb Zero"
+definition "\<Gamma>\<^sub>0 = Limit (\<lambda>n. iter veb n Zero)"
 
 end

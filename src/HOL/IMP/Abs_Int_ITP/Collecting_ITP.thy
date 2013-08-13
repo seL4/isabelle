@@ -63,14 +63,14 @@ qed
 
 end
 
-fun sub\<^isub>1 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>1(c1;;c2) = c1" |
-"sub\<^isub>1(IF b THEN c1 ELSE c2 {S}) = c1" |
-"sub\<^isub>1({I} WHILE b DO c {P}) = c"
+fun sub\<^sub>1 :: "'a acom \<Rightarrow> 'a acom" where
+"sub\<^sub>1(c1;;c2) = c1" |
+"sub\<^sub>1(IF b THEN c1 ELSE c2 {S}) = c1" |
+"sub\<^sub>1({I} WHILE b DO c {P}) = c"
 
-fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>2(c1;;c2) = c2" |
-"sub\<^isub>2(IF b THEN c1 ELSE c2 {S}) = c2"
+fun sub\<^sub>2 :: "'a acom \<Rightarrow> 'a acom" where
+"sub\<^sub>2(c1;;c2) = c2" |
+"sub\<^sub>2(IF b THEN c1 ELSE c2 {S}) = c2"
 
 fun invar :: "'a acom \<Rightarrow> 'a" where
 "invar({I} WHILE b DO c {P}) = I"
@@ -80,13 +80,13 @@ where
 "lift F com.SKIP M = (SKIP {F (post ` M)})" |
 "lift F (x ::= a) M = (x ::= a {F (post ` M)})" |
 "lift F (c1;;c2) M =
-  lift F c1 (sub\<^isub>1 ` M);; lift F c2 (sub\<^isub>2 ` M)" |
+  lift F c1 (sub\<^sub>1 ` M);; lift F c2 (sub\<^sub>2 ` M)" |
 "lift F (IF b THEN c1 ELSE c2) M =
-  IF b THEN lift F c1 (sub\<^isub>1 ` M) ELSE lift F c2 (sub\<^isub>2 ` M)
+  IF b THEN lift F c1 (sub\<^sub>1 ` M) ELSE lift F c2 (sub\<^sub>2 ` M)
   {F (post ` M)}" |
 "lift F (WHILE b DO c) M =
  {F (invar ` M)}
- WHILE b DO lift F c (sub\<^isub>1 ` M)
+ WHILE b DO lift F c (sub\<^sub>1 ` M)
  {F (post ` M)}"
 
 interpretation Complete_Lattice_ix "%c. {c'. strip c' = c}" "lift Inter"

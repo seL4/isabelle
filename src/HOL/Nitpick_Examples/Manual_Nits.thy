@@ -250,25 +250,25 @@ primrec loose where
 "loose (Lam t) k = loose t (Suc k)" |
 "loose (App t u) k = (loose t k \<or> loose u k)"
 
-primrec subst\<^isub>1 where
-"subst\<^isub>1 \<sigma> (Var j) = \<sigma> j" |
-"subst\<^isub>1 \<sigma> (Lam t) =
- Lam (subst\<^isub>1 (\<lambda>n. case n of 0 \<Rightarrow> Var 0 | Suc m \<Rightarrow> lift (\<sigma> m) 1) t)" |
-"subst\<^isub>1 \<sigma> (App t u) = App (subst\<^isub>1 \<sigma> t) (subst\<^isub>1 \<sigma> u)"
+primrec subst\<^sub>1 where
+"subst\<^sub>1 \<sigma> (Var j) = \<sigma> j" |
+"subst\<^sub>1 \<sigma> (Lam t) =
+ Lam (subst\<^sub>1 (\<lambda>n. case n of 0 \<Rightarrow> Var 0 | Suc m \<Rightarrow> lift (\<sigma> m) 1) t)" |
+"subst\<^sub>1 \<sigma> (App t u) = App (subst\<^sub>1 \<sigma> t) (subst\<^sub>1 \<sigma> u)"
 
-lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>1 \<sigma> t = t"
+lemma "\<not> loose t 0 \<Longrightarrow> subst\<^sub>1 \<sigma> t = t"
 nitpick [verbose, expect = genuine]
-nitpick [eval = "subst\<^isub>1 \<sigma> t", expect = genuine]
+nitpick [eval = "subst\<^sub>1 \<sigma> t", expect = genuine]
 (* nitpick [dont_box, expect = unknown] *)
 oops
 
-primrec subst\<^isub>2 where
-"subst\<^isub>2 \<sigma> (Var j) = \<sigma> j" |
-"subst\<^isub>2 \<sigma> (Lam t) =
- Lam (subst\<^isub>2 (\<lambda>n. case n of 0 \<Rightarrow> Var 0 | Suc m \<Rightarrow> lift (\<sigma> m) 0) t)" |
-"subst\<^isub>2 \<sigma> (App t u) = App (subst\<^isub>2 \<sigma> t) (subst\<^isub>2 \<sigma> u)"
+primrec subst\<^sub>2 where
+"subst\<^sub>2 \<sigma> (Var j) = \<sigma> j" |
+"subst\<^sub>2 \<sigma> (Lam t) =
+ Lam (subst\<^sub>2 (\<lambda>n. case n of 0 \<Rightarrow> Var 0 | Suc m \<Rightarrow> lift (\<sigma> m) 0) t)" |
+"subst\<^sub>2 \<sigma> (App t u) = App (subst\<^sub>2 \<sigma> t) (subst\<^sub>2 \<sigma> u)"
 
-lemma "\<not> loose t 0 \<Longrightarrow> subst\<^isub>2 \<sigma> t = t"
+lemma "\<not> loose t 0 \<Longrightarrow> subst\<^sub>2 \<sigma> t = t"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
@@ -354,73 +354,73 @@ subsection {* 3.1. A Context-Free Grammar *}
 
 datatype alphabet = a | b
 
-inductive_set S\<^isub>1 and A\<^isub>1 and B\<^isub>1 where
-  "[] \<in> S\<^isub>1"
-| "w \<in> A\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "w \<in> B\<^isub>1 \<Longrightarrow> a # w \<in> S\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> a # w \<in> A\<^isub>1"
-| "w \<in> S\<^isub>1 \<Longrightarrow> b # w \<in> S\<^isub>1"
-| "\<lbrakk>v \<in> B\<^isub>1; v \<in> B\<^isub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>1"
+inductive_set S\<^sub>1 and A\<^sub>1 and B\<^sub>1 where
+  "[] \<in> S\<^sub>1"
+| "w \<in> A\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "w \<in> B\<^sub>1 \<Longrightarrow> a # w \<in> S\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> a # w \<in> A\<^sub>1"
+| "w \<in> S\<^sub>1 \<Longrightarrow> b # w \<in> S\<^sub>1"
+| "\<lbrakk>v \<in> B\<^sub>1; v \<in> B\<^sub>1\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>1"
 
-theorem S\<^isub>1_sound:
-"w \<in> S\<^isub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>1_sound:
+"w \<in> S\<^sub>1 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 nitpick [expect = genuine]
 oops
 
-inductive_set S\<^isub>2 and A\<^isub>2 and B\<^isub>2 where
-  "[] \<in> S\<^isub>2"
-| "w \<in> A\<^isub>2 \<Longrightarrow> b # w \<in> S\<^isub>2"
-| "w \<in> B\<^isub>2 \<Longrightarrow> a # w \<in> S\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> a # w \<in> A\<^isub>2"
-| "w \<in> S\<^isub>2 \<Longrightarrow> b # w \<in> B\<^isub>2"
-| "\<lbrakk>v \<in> B\<^isub>2; v \<in> B\<^isub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>2"
+inductive_set S\<^sub>2 and A\<^sub>2 and B\<^sub>2 where
+  "[] \<in> S\<^sub>2"
+| "w \<in> A\<^sub>2 \<Longrightarrow> b # w \<in> S\<^sub>2"
+| "w \<in> B\<^sub>2 \<Longrightarrow> a # w \<in> S\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> a # w \<in> A\<^sub>2"
+| "w \<in> S\<^sub>2 \<Longrightarrow> b # w \<in> B\<^sub>2"
+| "\<lbrakk>v \<in> B\<^sub>2; v \<in> B\<^sub>2\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>2"
 
-theorem S\<^isub>2_sound:
-"w \<in> S\<^isub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>2_sound:
+"w \<in> S\<^sub>2 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 nitpick [expect = genuine]
 oops
 
-inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
-  "[] \<in> S\<^isub>3"
-| "w \<in> A\<^isub>3 \<Longrightarrow> b # w \<in> S\<^isub>3"
-| "w \<in> B\<^isub>3 \<Longrightarrow> a # w \<in> S\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> a # w \<in> A\<^isub>3"
-| "w \<in> S\<^isub>3 \<Longrightarrow> b # w \<in> B\<^isub>3"
-| "\<lbrakk>v \<in> B\<^isub>3; w \<in> B\<^isub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>3"
+inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
+  "[] \<in> S\<^sub>3"
+| "w \<in> A\<^sub>3 \<Longrightarrow> b # w \<in> S\<^sub>3"
+| "w \<in> B\<^sub>3 \<Longrightarrow> a # w \<in> S\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> a # w \<in> A\<^sub>3"
+| "w \<in> S\<^sub>3 \<Longrightarrow> b # w \<in> B\<^sub>3"
+| "\<lbrakk>v \<in> B\<^sub>3; w \<in> B\<^sub>3\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>3"
 
-theorem S\<^isub>3_sound:
-"w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>3_sound:
+"w \<in> S\<^sub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-theorem S\<^isub>3_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>3"
+theorem S\<^sub>3_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>3"
 nitpick [expect = genuine]
 oops
 
-inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
-  "[] \<in> S\<^isub>4"
-| "w \<in> A\<^isub>4 \<Longrightarrow> b # w \<in> S\<^isub>4"
-| "w \<in> B\<^isub>4 \<Longrightarrow> a # w \<in> S\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> a # w \<in> A\<^isub>4"
-| "\<lbrakk>v \<in> A\<^isub>4; w \<in> A\<^isub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^isub>4"
-| "w \<in> S\<^isub>4 \<Longrightarrow> b # w \<in> B\<^isub>4"
-| "\<lbrakk>v \<in> B\<^isub>4; w \<in> B\<^isub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^isub>4"
+inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
+  "[] \<in> S\<^sub>4"
+| "w \<in> A\<^sub>4 \<Longrightarrow> b # w \<in> S\<^sub>4"
+| "w \<in> B\<^sub>4 \<Longrightarrow> a # w \<in> S\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> a # w \<in> A\<^sub>4"
+| "\<lbrakk>v \<in> A\<^sub>4; w \<in> A\<^sub>4\<rbrakk> \<Longrightarrow> b # v @ w \<in> A\<^sub>4"
+| "w \<in> S\<^sub>4 \<Longrightarrow> b # w \<in> B\<^sub>4"
+| "\<lbrakk>v \<in> B\<^sub>4; w \<in> B\<^sub>4\<rbrakk> \<Longrightarrow> a # v @ w \<in> B\<^sub>4"
 
-theorem S\<^isub>4_sound:
-"w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+theorem S\<^sub>4_sound:
+"w \<in> S\<^sub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-theorem S\<^isub>4_complete:
-"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
+theorem S\<^sub>4_complete:
+"length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>4"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
-"w \<in> S\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-"w \<in> A\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
-"w \<in> B\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
+theorem S\<^sub>4_A\<^sub>4_B\<^sub>4_sound_and_complete:
+"w \<in> S\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
+"w \<in> A\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
+"w \<in> B\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
@@ -442,11 +442,11 @@ primrec level where
 
 primrec left where
 "left \<Lambda> = \<Lambda>" |
-"left (N _ _ t\<^isub>1 _) = t\<^isub>1"
+"left (N _ _ t\<^sub>1 _) = t\<^sub>1"
 
 primrec right where
 "right \<Lambda> = \<Lambda>" |
-"right (N _ _ _ t\<^isub>2) = t\<^isub>2"
+"right (N _ _ _ t\<^sub>2) = t\<^sub>2"
 
 fun wf where
 "wf \<Lambda> = True" |
@@ -484,31 +484,31 @@ theorem wf_skew_split:
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-primrec insort\<^isub>1 where
-"insort\<^isub>1 \<Lambda> x = N x 1 \<Lambda> \<Lambda>" |
-"insort\<^isub>1 (N y k t u) x =
- (* (split \<circ> skew) *) (N y k (if x < y then insort\<^isub>1 t x else t)
-                             (if x > y then insort\<^isub>1 u x else u))"
+primrec insort\<^sub>1 where
+"insort\<^sub>1 \<Lambda> x = N x 1 \<Lambda> \<Lambda>" |
+"insort\<^sub>1 (N y k t u) x =
+ (* (split \<circ> skew) *) (N y k (if x < y then insort\<^sub>1 t x else t)
+                             (if x > y then insort\<^sub>1 u x else u))"
 
-theorem wf_insort\<^isub>1: "wf t \<Longrightarrow> wf (insort\<^isub>1 t x)"
+theorem wf_insort\<^sub>1: "wf t \<Longrightarrow> wf (insort\<^sub>1 t x)"
 nitpick [expect = genuine]
 oops
 
-theorem wf_insort\<^isub>1_nat: "wf t \<Longrightarrow> wf (insort\<^isub>1 t (x\<Colon>nat))"
-nitpick [eval = "insort\<^isub>1 t x", expect = genuine]
+theorem wf_insort\<^sub>1_nat: "wf t \<Longrightarrow> wf (insort\<^sub>1 t (x\<Colon>nat))"
+nitpick [eval = "insort\<^sub>1 t x", expect = genuine]
 oops
 
-primrec insort\<^isub>2 where
-"insort\<^isub>2 \<Lambda> x = N x 1 \<Lambda> \<Lambda>" |
-"insort\<^isub>2 (N y k t u) x =
- (split \<circ> skew) (N y k (if x < y then insort\<^isub>2 t x else t)
-                       (if x > y then insort\<^isub>2 u x else u))"
+primrec insort\<^sub>2 where
+"insort\<^sub>2 \<Lambda> x = N x 1 \<Lambda> \<Lambda>" |
+"insort\<^sub>2 (N y k t u) x =
+ (split \<circ> skew) (N y k (if x < y then insort\<^sub>2 t x else t)
+                       (if x > y then insort\<^sub>2 u x else u))"
 
-theorem wf_insort\<^isub>2: "wf t \<Longrightarrow> wf (insort\<^isub>2 t x)"
+theorem wf_insort\<^sub>2: "wf t \<Longrightarrow> wf (insort\<^sub>2 t x)"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
-theorem dataset_insort\<^isub>2: "dataset (insort\<^isub>2 t x) = {x} \<union> dataset t"
+theorem dataset_insort\<^sub>2: "dataset (insort\<^sub>2 t x) = {x} \<union> dataset t"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 

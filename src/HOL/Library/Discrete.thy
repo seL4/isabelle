@@ -76,32 +76,32 @@ subsection {* Discrete square root *}
 
 definition sqrt :: "nat \<Rightarrow> nat"
 where
-  "sqrt n = Max {m. m\<twosuperior> \<le> n}"
+  "sqrt n = Max {m. m\<^sup>2 \<le> n}"
 
 lemma sqrt_aux:
   fixes n :: nat
-  shows "finite {m. m\<twosuperior> \<le> n}" and "{m. m\<twosuperior> \<le> n} \<noteq> {}"
+  shows "finite {m. m\<^sup>2 \<le> n}" and "{m. m\<^sup>2 \<le> n} \<noteq> {}"
 proof -
   { fix m
-    assume "m\<twosuperior> \<le> n"
+    assume "m\<^sup>2 \<le> n"
     then have "m \<le> n"
       by (cases m) (simp_all add: power2_eq_square)
   } note ** = this
-  then have "{m. m\<twosuperior> \<le> n} \<subseteq> {m. m \<le> n}" by auto
-  then show "finite {m. m\<twosuperior> \<le> n}" by (rule finite_subset) rule
-  have "0\<twosuperior> \<le> n" by simp
-  then show *: "{m. m\<twosuperior> \<le> n} \<noteq> {}" by blast
+  then have "{m. m\<^sup>2 \<le> n} \<subseteq> {m. m \<le> n}" by auto
+  then show "finite {m. m\<^sup>2 \<le> n}" by (rule finite_subset) rule
+  have "0\<^sup>2 \<le> n" by simp
+  then show *: "{m. m\<^sup>2 \<le> n} \<noteq> {}" by blast
 qed
 
 lemma [code]:
-  "sqrt n = Max (Set.filter (\<lambda>m. m\<twosuperior> \<le> n) {0..n})"
+  "sqrt n = Max (Set.filter (\<lambda>m. m\<^sup>2 \<le> n) {0..n})"
 proof -
-  from power2_nat_le_imp_le [of _ n] have "{m. m \<le> n \<and> m\<twosuperior> \<le> n} = {m. m\<twosuperior> \<le> n}" by auto
+  from power2_nat_le_imp_le [of _ n] have "{m. m \<le> n \<and> m\<^sup>2 \<le> n} = {m. m\<^sup>2 \<le> n}" by auto
   then show ?thesis by (simp add: sqrt_def Set.filter_def)
 qed
 
 lemma sqrt_inverse_power2 [simp]:
-  "sqrt (n\<twosuperior>) = n"
+  "sqrt (n\<^sup>2) = n"
 proof -
   have "{m. m \<le> n} \<noteq> {}" by auto
   then have "Max {m. m \<le> n} \<le> n" by auto
@@ -121,30 +121,30 @@ qed
 lemma sqrt_greater_zero_iff [simp]:
   "sqrt n > 0 \<longleftrightarrow> n > 0"
 proof -
-  have *: "0 < Max {m. m\<twosuperior> \<le> n} \<longleftrightarrow> (\<exists>a\<in>{m. m\<twosuperior> \<le> n}. 0 < a)"
+  have *: "0 < Max {m. m\<^sup>2 \<le> n} \<longleftrightarrow> (\<exists>a\<in>{m. m\<^sup>2 \<le> n}. 0 < a)"
     by (rule Max_gr_iff) (fact sqrt_aux)+
   show ?thesis
   proof
     assume "0 < sqrt n"
-    then have "0 < Max {m. m\<twosuperior> \<le> n}" by (simp add: sqrt_def)
+    then have "0 < Max {m. m\<^sup>2 \<le> n}" by (simp add: sqrt_def)
     with * show "0 < n" by (auto dest: power2_nat_le_imp_le)
   next
     assume "0 < n"
-    then have "1\<twosuperior> \<le> n \<and> 0 < (1::nat)" by simp
-    then have "\<exists>q. q\<twosuperior> \<le> n \<and> 0 < q" ..
-    with * have "0 < Max {m. m\<twosuperior> \<le> n}" by blast
+    then have "1\<^sup>2 \<le> n \<and> 0 < (1::nat)" by simp
+    then have "\<exists>q. q\<^sup>2 \<le> n \<and> 0 < q" ..
+    with * have "0 < Max {m. m\<^sup>2 \<le> n}" by blast
     then show "0 < sqrt n" by  (simp add: sqrt_def)
   qed
 qed
 
 lemma sqrt_power2_le [simp]: (* FIXME tune proof *)
-  "(sqrt n)\<twosuperior> \<le> n"
+  "(sqrt n)\<^sup>2 \<le> n"
 proof (cases "n > 0")
   case False then show ?thesis by (simp add: sqrt_def)
 next
   case True then have "sqrt n > 0" by simp
-  then have "mono (times (Max {m. m\<twosuperior> \<le> n}))" by (auto intro: mono_times_nat simp add: sqrt_def)
-  then have *: "Max {m. m\<twosuperior> \<le> n} * Max {m. m\<twosuperior> \<le> n} = Max (times (Max {m. m\<twosuperior> \<le> n}) ` {m. m\<twosuperior> \<le> n})"
+  then have "mono (times (Max {m. m\<^sup>2 \<le> n}))" by (auto intro: mono_times_nat simp add: sqrt_def)
+  then have *: "Max {m. m\<^sup>2 \<le> n} * Max {m. m\<^sup>2 \<le> n} = Max (times (Max {m. m\<^sup>2 \<le> n}) ` {m. m\<^sup>2 \<le> n})"
     using sqrt_aux [of n] by (rule mono_Max_commute)
   have "Max (op * (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
     apply (subst Max_le_iff)

@@ -4,6 +4,8 @@
 Symbols with explicit position information.
 *)
 
+val legacy_isub_isup = Unsynchronized.ref false;
+
 signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T
@@ -217,7 +219,11 @@ local
 
 val letter = Scan.one (symbol #> Symbol.is_letter);
 val letdigs1 = Scan.many1 (symbol #> Symbol.is_letdig);
-val sub = Scan.one (symbol #> (fn s => s = "\\<^sub>" orelse s = "\\<^isub>"));
+
+val sub =
+  Scan.one (symbol #> (fn s =>
+    if ! legacy_isub_isup then s = "\\<^sub>" orelse s = "\\<^isub>" orelse s = "\\<^isup>"
+    else s = "\\<^sub>"));
 
 in
 

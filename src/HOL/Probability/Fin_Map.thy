@@ -10,10 +10,10 @@ begin
 
 text {* Auxiliary type that is instantiated to @{class polish_space}, needed for the proof of
   projective limit. @{const extensional} functions are used for the representation in order to
-  stay close to the developments of (finite) products @{const Pi\<^isub>E} and their sigma-algebra
-  @{const Pi\<^isub>M}. *}
+  stay close to the developments of (finite) products @{const Pi\<^sub>E} and their sigma-algebra
+  @{const Pi\<^sub>M}. *}
 
-typedef ('i, 'a) finmap ("(_ \<Rightarrow>\<^isub>F /_)" [22, 21] 21) =
+typedef ('i, 'a) finmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21) =
   "{(I::'i set, f::'i \<Rightarrow> 'a). finite I \<and> f \<in> extensional I}" by auto
 
 subsection {* Domain and Application *}
@@ -23,11 +23,11 @@ definition domain where "domain P = fst (Rep_finmap P)"
 lemma finite_domain[simp, intro]: "finite (domain P)"
   by (cases P) (auto simp: domain_def Abs_finmap_inverse)
 
-definition proj ("'((_)')\<^isub>F" [0] 1000) where "proj P i = snd (Rep_finmap P) i"
+definition proj ("'((_)')\<^sub>F" [0] 1000) where "proj P i = snd (Rep_finmap P) i"
 
 declare [[coercion proj]]
 
-lemma extensional_proj[simp, intro]: "(P)\<^isub>F \<in> extensional (domain P)"
+lemma extensional_proj[simp, intro]: "(P)\<^sub>F \<in> extensional (domain P)"
   by (cases P) (auto simp: domain_def Abs_finmap_inverse proj_def[abs_def])
 
 lemma proj_undefined[simp, intro]: "i \<notin> domain P \<Longrightarrow> P i = undefined"
@@ -42,9 +42,9 @@ subsection {* Countable Finite Maps *}
 
 instance finmap :: (countable, countable) countable
 proof
-  obtain mapper where mapper: "\<And>fm :: 'a \<Rightarrow>\<^isub>F 'b. set (mapper fm) = domain fm"
+  obtain mapper where mapper: "\<And>fm :: 'a \<Rightarrow>\<^sub>F 'b. set (mapper fm) = domain fm"
     by (metis finite_list[OF finite_domain])
-  have "inj (\<lambda>fm. map (\<lambda>i. (i, (fm)\<^isub>F i)) (mapper fm))" (is "inj ?F")
+  have "inj (\<lambda>fm. map (\<lambda>i. (i, (fm)\<^sub>F i)) (mapper fm))" (is "inj ?F")
   proof (rule inj_onI)
     fix f1 f2 assume "?F f1 = ?F f2"
     then have "map fst (?F f1) = map fst (?F f2)" by simp
@@ -54,7 +54,7 @@ proof
       unfolding `mapper f1 = mapper f2` map_eq_conv mapper
       by (simp add: finmap_eq_iff)
   qed
-  then show "\<exists>to_nat :: 'a \<Rightarrow>\<^isub>F 'b \<Rightarrow> nat. inj to_nat"
+  then show "\<exists>to_nat :: 'a \<Rightarrow>\<^sub>F 'b \<Rightarrow> nat. inj to_nat"
     by (intro exI[of _ "to_nat \<circ> ?F"] inj_comp) auto
 qed
 
@@ -64,7 +64,7 @@ definition "finmap_of inds f = Abs_finmap (inds, restrict f inds)"
 
 lemma proj_finmap_of[simp]:
   assumes "finite inds"
-  shows "(finmap_of inds f)\<^isub>F = restrict f inds"
+  shows "(finmap_of inds f)\<^sub>F = restrict f inds"
   using assms
   by (auto simp: Abs_finmap_inverse finmap_of_def proj_def)
 
@@ -86,7 +86,7 @@ lemma finmap_of_inj_on_extensional_finite:
 proof (rule inj_onI)
   fix x y::"'a \<Rightarrow> 'b"
   assume "finmap_of K x = finmap_of K y"
-  hence "(finmap_of K x)\<^isub>F = (finmap_of K y)\<^isub>F" by simp
+  hence "(finmap_of K x)\<^sub>F = (finmap_of K y)\<^sub>F" by simp
   moreover
   assume "x \<in> S" "y \<in> S" hence "x \<in> extensional K" "y \<in> extensional K" using assms by auto
   ultimately
@@ -97,8 +97,8 @@ subsection {* Product set of Finite Maps *}
 
 text {* This is @{term Pi} for Finite Maps, most of this is copied *}
 
-definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> ('i \<Rightarrow>\<^isub>F 'a) set" where
-  "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^isub>F i \<in> A i) } "
+definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> ('i \<Rightarrow>\<^sub>F 'a) set" where
+  "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^sub>F i \<in> A i) } "
 
 syntax
   "_Pi'"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI' _:_./ _)" 10)
@@ -145,7 +145,7 @@ lemma Pi'_eq_empty[simp]:
 lemma Pi'_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Longrightarrow> Pi' A B \<subseteq> Pi' A C"
   by (auto simp: Pi'_def)
 
-lemma Pi_Pi': "finite A \<Longrightarrow> (Pi\<^isub>E A B) = proj ` Pi' A B"
+lemma Pi_Pi': "finite A \<Longrightarrow> (Pi\<^sub>E A B) = proj ` Pi' A B"
   apply (auto simp: Pi'_def Pi_def extensional_def)
   apply (rule_tac x = "finmap_of A (restrict x A)" in image_eqI)
   apply auto
@@ -156,7 +156,7 @@ subsection {* Topological Space of Finite Maps *}
 instantiation finmap :: (type, topological_space) topological_space
 begin
 
-definition open_finmap :: "('a \<Rightarrow>\<^isub>F 'b) set \<Rightarrow> bool" where
+definition open_finmap :: "('a \<Rightarrow>\<^sub>F 'b) set \<Rightarrow> bool" where
   "open_finmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
 
 lemma open_Pi'I: "(\<And>i. i \<in> I \<Longrightarrow> open (A i)) \<Longrightarrow> open (Pi' I A)"
@@ -192,7 +192,7 @@ lemma closed_restricted_space:
   using open_restricted_space[of "\<lambda>x. \<not> P x"]
   unfolding closed_def by (rule back_subst) auto
 
-lemma tendsto_proj: "((\<lambda>x. x) ---> a) F \<Longrightarrow> ((\<lambda>x. (x)\<^isub>F i) ---> (a)\<^isub>F i) F"
+lemma tendsto_proj: "((\<lambda>x. x) ---> a) F \<Longrightarrow> ((\<lambda>x. (x)\<^sub>F i) ---> (a)\<^sub>F i) F"
   unfolding tendsto_def
 proof safe
   fix S::"'b set"
@@ -200,17 +200,17 @@ proof safe
   assume "open S" hence "open ?S" by (auto intro!: open_Pi'I)
   moreover assume "\<forall>S. open S \<longrightarrow> a \<in> S \<longrightarrow> eventually (\<lambda>x. x \<in> S) F" "a i \<in> S"
   ultimately have "eventually (\<lambda>x. x \<in> ?S) F" by auto
-  thus "eventually (\<lambda>x. (x)\<^isub>F i \<in> S) F"
+  thus "eventually (\<lambda>x. (x)\<^sub>F i \<in> S) F"
     by eventually_elim (insert `a i \<in> S`, force simp: Pi'_iff split: split_if_asm)
 qed
 
 lemma continuous_proj:
-  shows "continuous_on s (\<lambda>x. (x)\<^isub>F i)"
+  shows "continuous_on s (\<lambda>x. (x)\<^sub>F i)"
   unfolding continuous_on_def by (safe intro!: tendsto_proj tendsto_ident_at)
 
 instance finmap :: (type, first_countable_topology) first_countable_topology
 proof
-  fix x::"'a\<Rightarrow>\<^isub>F'b"
+  fix x::"'a\<Rightarrow>\<^sub>F'b"
   have "\<forall>i. \<exists>A. countable A \<and> (\<forall>a\<in>A. x i \<in> a) \<and> (\<forall>a\<in>A. open a) \<and>
     (\<forall>S. open S \<and> x i \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)" (is "\<forall>i. ?th i")
   proof
@@ -220,19 +220,19 @@ proof
   then guess A unfolding choice_iff .. note A = this
   hence open_sub: "\<And>i S. i\<in>domain x \<Longrightarrow> open (S i) \<Longrightarrow> x i\<in>(S i) \<Longrightarrow> (\<exists>a\<in>A i. a\<subseteq>(S i))" by auto
   have A_notempty: "\<And>i. i \<in> domain x \<Longrightarrow> A i \<noteq> {}" using open_sub[of _ "\<lambda>_. UNIV"] by auto
-  let ?A = "(\<lambda>f. Pi' (domain x) f) ` (Pi\<^isub>E (domain x) A)"
-  show "\<exists>A::nat \<Rightarrow> ('a\<Rightarrow>\<^isub>F'b) set. (\<forall>i. x \<in> (A i) \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+  let ?A = "(\<lambda>f. Pi' (domain x) f) ` (Pi\<^sub>E (domain x) A)"
+  show "\<exists>A::nat \<Rightarrow> ('a\<Rightarrow>\<^sub>F'b) set. (\<forall>i. x \<in> (A i) \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
   proof (rule first_countableI[where A="?A"], safe)
     show "countable ?A" using A by (simp add: countable_PiE)
   next
-    fix S::"('a \<Rightarrow>\<^isub>F 'b) set" assume "open S" "x \<in> S"
+    fix S::"('a \<Rightarrow>\<^sub>F 'b) set" assume "open S" "x \<in> S"
     thus "\<exists>a\<in>?A. a \<subseteq> S" unfolding open_finmap_def
     proof (induct rule: generate_topology.induct)
       case UNIV thus ?case by (auto simp add: ex_in_conv PiE_eq_empty_iff A_notempty)
     next
       case (Int a b)
       then obtain f g where
-        "f \<in> Pi\<^isub>E (domain x) A" "Pi' (domain x) f \<subseteq> a" "g \<in> Pi\<^isub>E (domain x) A" "Pi' (domain x) g \<subseteq> b"
+        "f \<in> Pi\<^sub>E (domain x) A" "Pi' (domain x) f \<subseteq> a" "g \<in> Pi\<^sub>E (domain x) A" "Pi' (domain x) g \<subseteq> b"
         by auto
       thus ?case using A
         by (auto simp: Pi'_iff PiE_iff extensional_def Int_stable_def
@@ -245,10 +245,10 @@ proof
     next
       case (Basis s)
       then obtain a b where xs: "x\<in> Pi' a b" "s = Pi' a b" "\<And>i. i\<in>a \<Longrightarrow> open (b i)" by auto
-      have "\<forall>i. \<exists>a. (i \<in> domain x \<and> open (b i) \<and> (x)\<^isub>F i \<in> b i) \<longrightarrow> (a\<in>A i \<and> a \<subseteq> b i)"
+      have "\<forall>i. \<exists>a. (i \<in> domain x \<and> open (b i) \<and> (x)\<^sub>F i \<in> b i) \<longrightarrow> (a\<in>A i \<and> a \<subseteq> b i)"
         using open_sub[of _ b] by auto
       then obtain b'
-        where "\<And>i. i \<in> domain x \<Longrightarrow> open (b i) \<Longrightarrow> (x)\<^isub>F i \<in> b i \<Longrightarrow> (b' i \<in>A i \<and> b' i \<subseteq> b i)"
+        where "\<And>i. i \<in> domain x \<Longrightarrow> open (b i) \<Longrightarrow> (x)\<^sub>F i \<in> b i \<Longrightarrow> (b' i \<in>A i \<and> b' i \<subseteq> b i)"
           unfolding choice_iff by auto
       with xs have "\<And>i. i \<in> a \<Longrightarrow> (b' i \<in>A i \<and> b' i \<subseteq> b i)" "Pi' a b' \<subseteq> Pi' a b"
         by (auto simp: Pi'_iff intro!: Pi'_mono)
@@ -265,7 +265,7 @@ instantiation finmap :: (type, metric_space) metric_space
 begin
 
 definition dist_finmap where
-  "dist P Q = Max (range (\<lambda>i. dist ((P)\<^isub>F i) ((Q)\<^isub>F i))) + (if domain P = domain Q then 0 else 1)"
+  "dist P Q = Max (range (\<lambda>i. dist ((P)\<^sub>F i) ((Q)\<^sub>F i))) + (if domain P = domain Q then 0 else 1)"
 
 lemma add_eq_zero_iff[simp]:
   fixes a b::real
@@ -273,16 +273,16 @@ lemma add_eq_zero_iff[simp]:
   shows "a + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
 using assms by auto
 
-lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^isub>F ` S)"
+lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^sub>F ` S)"
   by (rule finite_subset[of _ "proj P ` (domain P \<inter> S \<union> {x})"]) auto
 
-lemma finite_proj_image: "finite ((P)\<^isub>F ` S)"
+lemma finite_proj_image: "finite ((P)\<^sub>F ` S)"
  by (cases "\<exists>x. x \<notin> domain P") (auto intro: finite_proj_image' finite_subset[where B="domain P"])
 
-lemma finite_proj_diag: "finite ((\<lambda>i. d ((P)\<^isub>F i) ((Q)\<^isub>F i)) ` S)"
+lemma finite_proj_diag: "finite ((\<lambda>i. d ((P)\<^sub>F i) ((Q)\<^sub>F i)) ` S)"
 proof -
-  have "(\<lambda>i. d ((P)\<^isub>F i) ((Q)\<^isub>F i)) ` S = (\<lambda>(i, j). d i j) ` ((\<lambda>i. ((P)\<^isub>F i, (Q)\<^isub>F i)) ` S)" by auto
-  moreover have "((\<lambda>i. ((P)\<^isub>F i, (Q)\<^isub>F i)) ` S) \<subseteq> (\<lambda>i. (P)\<^isub>F i) ` S \<times> (\<lambda>i. (Q)\<^isub>F i) ` S" by auto
+  have "(\<lambda>i. d ((P)\<^sub>F i) ((Q)\<^sub>F i)) ` S = (\<lambda>(i, j). d i j) ` ((\<lambda>i. ((P)\<^sub>F i, (Q)\<^sub>F i)) ` S)" by auto
+  moreover have "((\<lambda>i. ((P)\<^sub>F i, (Q)\<^sub>F i)) ` S) \<subseteq> (\<lambda>i. (P)\<^sub>F i) ` S \<times> (\<lambda>i. (Q)\<^sub>F i) ` S" by auto
   moreover have "finite \<dots>" using finite_proj_image[of P S] finite_proj_image[of Q S]
     by (intro finite_cartesian_product) simp_all
   ultimately show ?thesis by (simp add: finite_subset)
@@ -293,7 +293,7 @@ lemma dist_le_1_imp_domain_eq:
   by (simp add: dist_finmap_def finite_proj_diag split: split_if_asm)
 
 lemma dist_proj:
-  shows "dist ((x)\<^isub>F i) ((y)\<^isub>F i) \<le> dist x y"
+  shows "dist ((x)\<^sub>F i) ((y)\<^sub>F i) \<le> dist x y"
 proof -
   have "dist (x i) (y i) \<le> Max (range (\<lambda>i. dist (x i) (y i)))"
     by (simp add: Max_ge_iff finite_proj_diag)
@@ -312,7 +312,7 @@ proof -
   also have "\<dots> < e"
   proof (subst Max_less_iff, safe)
     fix i
-    show "dist ((P)\<^isub>F i) ((Q)\<^isub>F i) < e" using assms
+    show "dist ((P)\<^sub>F i) ((Q)\<^sub>F i) < e" using assms
       by (cases "i \<in> domain P") simp_all
   qed (simp add: finite_proj_diag)
   finally show ?thesis .
@@ -320,7 +320,7 @@ qed
 
 instance
 proof
-  fix S::"('a \<Rightarrow>\<^isub>F 'b) set"
+  fix S::"('a \<Rightarrow>\<^sub>F 'b) set"
   show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)" (is "_ = ?od")
   proof
     assume "open S"
@@ -365,7 +365,7 @@ proof
             show "domain y = a" using d s `a \<noteq> {}` by (auto simp: dist_le_1_imp_domain_eq a_dom)
             fix i assume "i \<in> a"
             moreover
-            hence "dist ((y)\<^isub>F i) ((x)\<^isub>F i) < es i" using d
+            hence "dist ((y)\<^sub>F i) ((x)\<^sub>F i) < es i" using d
               by (auto simp: dist_finmap_def `a \<noteq> {}` intro!: le_less_trans[OF dist_proj])
             ultimately
             show "y i \<in> b i" by (rule in_b)
@@ -403,15 +403,15 @@ proof
     finally show "open S" .
   qed
 next
-  fix P Q::"'a \<Rightarrow>\<^isub>F 'b"
+  fix P Q::"'a \<Rightarrow>\<^sub>F 'b"
   have Max_eq_iff: "\<And>A m. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (Max A = m) = (m \<in> A \<and> (\<forall>a\<in>A. a \<le> m))"
     by (auto intro: Max_in Max_eqI)
   show "dist P Q = 0 \<longleftrightarrow> P = Q"
     by (auto simp: finmap_eq_iff dist_finmap_def Max_ge_iff finite_proj_diag Max_eq_iff
       intro!: Max_eqI image_eqI[where x=undefined])
 next
-  fix P Q R::"'a \<Rightarrow>\<^isub>F 'b"
-  let ?dists = "\<lambda>P Q i. dist ((P)\<^isub>F i) ((Q)\<^isub>F i)"
+  fix P Q R::"'a \<Rightarrow>\<^sub>F 'b"
+  let ?dists = "\<lambda>P Q i. dist ((P)\<^sub>F i) ((Q)\<^sub>F i)"
   let ?dpq = "?dists P Q" and ?dpr = "?dists P R" and ?dqr = "?dists Q R"
   let ?dom = "\<lambda>P Q. (if domain P = domain Q then 0 else 1::real)"
   have "dist P Q = Max (range ?dpq) + ?dom P Q"
@@ -430,21 +430,21 @@ end
 subsection {* Complete Space of Finite Maps *}
 
 lemma tendsto_finmap:
-  fixes f::"nat \<Rightarrow> ('i \<Rightarrow>\<^isub>F ('a::metric_space))"
+  fixes f::"nat \<Rightarrow> ('i \<Rightarrow>\<^sub>F ('a::metric_space))"
   assumes ind_f:  "\<And>n. domain (f n) = domain g"
   assumes proj_g:  "\<And>i. i \<in> domain g \<Longrightarrow> (\<lambda>n. (f n) i) ----> g i"
   shows "f ----> g"
   unfolding tendsto_iff
 proof safe
   fix e::real assume "0 < e"
-  let ?dists = "\<lambda>x i. dist ((f x)\<^isub>F i) ((g)\<^isub>F i)"
+  let ?dists = "\<lambda>x i. dist ((f x)\<^sub>F i) ((g)\<^sub>F i)"
   have "eventually (\<lambda>x. \<forall>i\<in>domain g. ?dists x i < e) sequentially"
     using finite_domain[of g] proj_g
   proof induct
     case (insert i G)
     with `0 < e` have "eventually (\<lambda>x. ?dists x i < e) sequentially" by (auto simp add: tendsto_iff)
     moreover
-    from insert have "eventually (\<lambda>x. \<forall>i\<in>G. dist ((f x)\<^isub>F i) ((g)\<^isub>F i) < e) sequentially" by simp
+    from insert have "eventually (\<lambda>x. \<forall>i\<in>G. dist ((f x)\<^sub>F i) ((g)\<^sub>F i) < e) sequentially" by simp
     ultimately show ?case by eventually_elim auto
   qed simp
   thus "eventually (\<lambda>x. dist (f x) g < e) sequentially"
@@ -453,7 +453,7 @@ qed
 
 instance finmap :: (type, complete_space) complete_space
 proof
-  fix P::"nat \<Rightarrow> 'a \<Rightarrow>\<^isub>F 'b"
+  fix P::"nat \<Rightarrow> 'a \<Rightarrow>\<^sub>F 'b"
   assume "Cauchy P"
   then obtain Nd where Nd: "\<And>n. n \<ge> Nd \<Longrightarrow> dist (P n) (P Nd) < 1"
     by (force simp: cauchy)
@@ -507,7 +507,7 @@ proof
         assume "i \<in> domain (P n)"
         hence "ni i \<le> Max (ni ` d)" using dom by simp
         also have "\<dots> \<le> N" by (simp add: N_def)
-        finally show "dist ((P n)\<^isub>F i) ((Q)\<^isub>F i) < e" using ni `i \<in> domain (P n)` `N \<le> n` dom
+        finally show "dist ((P n)\<^sub>F i) ((Q)\<^sub>F i) < e" using ni `i \<in> domain (P n)` `N \<le> n` dom
           by (auto simp: p_def q N_def less_imp_le)
       qed
     qed
@@ -526,7 +526,7 @@ definition basis_proj::"'b set set"
 lemma countable_basis_proj: "countable basis_proj" and basis_proj: "topological_basis basis_proj"
   unfolding basis_proj_def by (intro is_basis countable_basis)+
 
-definition basis_finmap::"('a \<Rightarrow>\<^isub>F 'b) set set"
+definition basis_finmap::"('a \<Rightarrow>\<^sub>F 'b) set set"
   where "basis_finmap = {Pi' I S|I S. finite I \<and> (\<forall>i \<in> I. S i \<in> basis_proj)}"
 
 lemma in_basis_finmapI:
@@ -536,8 +536,8 @@ lemma in_basis_finmapI:
 
 lemma basis_finmap_eq:
   assumes "basis_proj \<noteq> {}"
-  shows "basis_finmap = (\<lambda>f. Pi' (domain f) (\<lambda>i. from_nat_into basis_proj ((f)\<^isub>F i))) `
-    (UNIV::('a \<Rightarrow>\<^isub>F nat) set)" (is "_ = ?f ` _")
+  shows "basis_finmap = (\<lambda>f. Pi' (domain f) (\<lambda>i. from_nat_into basis_proj ((f)\<^sub>F i))) `
+    (UNIV::('a \<Rightarrow>\<^sub>F nat) set)" (is "_ = ?f ` _")
   unfolding basis_finmap_def
 proof safe
   fix I::"'a set" and S::"'a \<Rightarrow> 'b set"
@@ -546,8 +546,8 @@ proof safe
     by (force simp: Pi'_def countable_basis_proj)
   thus "Pi' I S \<in> range ?f" by simp
 next
-  fix x and f::"'a \<Rightarrow>\<^isub>F nat"
-  show "\<exists>I S. (\<Pi>' i\<in>domain f. from_nat_into local.basis_proj ((f)\<^isub>F i)) = Pi' I S \<and>
+  fix x and f::"'a \<Rightarrow>\<^sub>F nat"
+  show "\<exists>I S. (\<Pi>' i\<in>domain f. from_nat_into local.basis_proj ((f)\<^sub>F i)) = Pi' I S \<and>
     finite I \<and> (\<forall>i\<in>I. S i \<in> local.basis_proj)"
     using assms by (auto intro: from_nat_into)
 qed
@@ -566,7 +566,7 @@ proof (subst topological_basis_iff, safe)
     by (auto intro!: open_Pi'I topological_basis_open[OF basis_proj]
       simp: topological_basis_def basis_finmap_def Let_def)
 next
-  fix O'::"('a \<Rightarrow>\<^isub>F 'b) set" and x
+  fix O'::"('a \<Rightarrow>\<^sub>F 'b) set" and x
   assume O': "open O'" "x \<in> O'"
   then obtain a where a:
     "x \<in> Pi' (domain x) a" "Pi' (domain x) a \<subseteq> O'" "\<And>i. i\<in>domain x \<Longrightarrow> open (a i)"
@@ -619,16 +619,16 @@ definition "PiF I M \<equiv>
   sigma (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j))) {(\<Pi>' j\<in>J. X j) |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}"
 
 abbreviation
-  "Pi\<^isub>F I M \<equiv> PiF I M"
+  "Pi\<^sub>F I M \<equiv> PiF I M"
 
 syntax
   "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3PIF _:_./ _)" 10)
 
 syntax (xsymbols)
-  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^isub>F _\<in>_./ _)"  10)
+  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
 
 syntax (HTML output)
-  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^isub>F _\<in>_./ _)"  10)
+  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
 
 translations
   "PIF x:I. M" == "CONST PiF I (%x. M)"
@@ -761,7 +761,7 @@ lemma countable_measurable_PiFI:
 proof safe
   fix y assume "y \<in> sets N"
   have "A -` y = (\<Union>{A -` y \<inter> {x. domain x = J}|J. finite J})" by auto
-  { fix x::"'a \<Rightarrow>\<^isub>F 'b"
+  { fix x::"'a \<Rightarrow>\<^sub>F 'b"
     from finite_list[of "domain x"] obtain xs where "set xs = domain x" by auto
     hence "\<exists>n. domain x = set (from_nat n)"
       by (intro exI[where x="to_nat xs"]) auto }
@@ -860,7 +860,7 @@ qed
 
 lemma measurable_PiM_finmap_of:
   assumes "finite J"
-  shows "finmap_of J \<in> measurable (Pi\<^isub>M J M) (PiF {J} M)"
+  shows "finmap_of J \<in> measurable (Pi\<^sub>M J M) (PiF {J} M)"
   apply (rule measurable_finmap_of)
   apply (rule measurable_component_singleton)
   apply simp
@@ -871,10 +871,10 @@ lemma measurable_PiM_finmap_of:
 
 lemma proj_measurable_singleton:
   assumes "A \<in> sets (M i)"
-  shows "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space (PiF {I} M) \<in> sets (PiF {I} M)"
+  shows "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space (PiF {I} M) \<in> sets (PiF {I} M)"
 proof cases
   assume "i \<in> I"
-  hence "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space (PiF {I} M) =
+  hence "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space (PiF {I} M) =
     Pi' I (\<lambda>x. if x = i then A else space (M x))"
     using sets.sets_into_space[OF ] `A \<in> sets (M i)` assms
     by (auto simp: space_PiF Pi'_def)
@@ -882,21 +882,21 @@ proof cases
     by (intro in_sets_PiFI) auto
 next
   assume "i \<notin> I"
-  hence "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space (PiF {I} M) =
+  hence "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space (PiF {I} M) =
     (if undefined \<in> A then space (PiF {I} M) else {})" by (auto simp: space_PiF Pi'_def)
   thus ?thesis by simp
 qed
 
 lemma measurable_proj_singleton:
   assumes "i \<in> I"
-  shows "(\<lambda>x. (x)\<^isub>F i) \<in> measurable (PiF {I} M) (M i)"
+  shows "(\<lambda>x. (x)\<^sub>F i) \<in> measurable (PiF {I} M) (M i)"
   by (unfold measurable_def, intro CollectI conjI ballI proj_measurable_singleton assms)
      (insert `i \<in> I`, auto simp: space_PiF)
 
 lemma measurable_proj_countable:
   fixes I::"'a::countable set set"
   assumes "y \<in> space (M i)"
-  shows "(\<lambda>x. if i \<in> domain x then (x)\<^isub>F i else y) \<in> measurable (PiF I M) (M i)"
+  shows "(\<lambda>x. if i \<in> domain x then (x)\<^sub>F i else y) \<in> measurable (PiF I M) (M i)"
 proof (rule countable_measurable_PiFI)
   fix J assume "J \<in> I" "finite J"
   show "(\<lambda>x. if i \<in> domain x then x i else y) \<in> measurable (PiF {J} M) (M i)"
@@ -904,7 +904,7 @@ proof (rule countable_measurable_PiFI)
   proof safe
     fix z assume "z \<in> sets (M i)"
     have "(\<lambda>x. if i \<in> domain x then x i else y) -` z \<inter> space (PiF {J} M) =
-      (\<lambda>x. if i \<in> J then (x)\<^isub>F i else y) -` z \<inter> space (PiF {J} M)"
+      (\<lambda>x. if i \<in> J then (x)\<^sub>F i else y) -` z \<inter> space (PiF {J} M)"
       by (auto simp: space_PiF Pi'_def)
     also have "\<dots> \<in> sets (PiF {J} M)" using `z \<in> sets (M i)` `finite J`
       by (cases "i \<in> J") (auto intro!: measurable_sets[OF measurable_proj_singleton])
@@ -925,14 +925,14 @@ lemma measurable_proj_PiM:
   assumes "x \<in> space (PiM J M)"
   shows "proj \<in> measurable (PiF {J} M) (PiM J M)"
 proof (rule measurable_PiM_single)
-  show "proj \<in> space (PiF {J} M) \<rightarrow> (\<Pi>\<^isub>E i \<in> J. space (M i))"
+  show "proj \<in> space (PiF {J} M) \<rightarrow> (\<Pi>\<^sub>E i \<in> J. space (M i))"
     using assms by (auto simp add: space_PiM space_PiF extensional_def sets_PiF Pi'_def)
 next
   fix A i assume A: "i \<in> J" "A \<in> sets (M i)"
-  show "{\<omega> \<in> space (PiF {J} M). (\<omega>)\<^isub>F i \<in> A} \<in> sets (PiF {J} M)"
+  show "{\<omega> \<in> space (PiF {J} M). (\<omega>)\<^sub>F i \<in> A} \<in> sets (PiF {J} M)"
   proof
-    have "{\<omega> \<in> space (PiF {J} M). (\<omega>)\<^isub>F i \<in> A} =
-      (\<lambda>\<omega>. (\<omega>)\<^isub>F i) -` A \<inter> space (PiF {J} M)" by auto
+    have "{\<omega> \<in> space (PiF {J} M). (\<omega>)\<^sub>F i \<in> A} =
+      (\<lambda>\<omega>. (\<omega>)\<^sub>F i) -` A \<inter> space (PiF {J} M)" by auto
     also have "\<dots> \<in> sets (PiF {J} M)"
       using assms A by (auto intro: measurable_sets[OF measurable_proj_singleton] simp: space_PiM)
     finally show ?thesis .
@@ -1024,11 +1024,11 @@ lemma sigma_fprod_algebra_sigma_eq:
   defines "P == { Pi' I F | F. \<forall>i\<in>I. F i \<in> E i }"
   shows "sets (PiF {I} M) = sigma_sets (space (PiF {I} M)) P"
 proof
-  let ?P = "sigma (space (Pi\<^isub>F {I} M)) P"
+  let ?P = "sigma (space (Pi\<^sub>F {I} M)) P"
   from `finite I`[THEN ex_bij_betw_finite_nat] guess T ..
   then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
     by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f simp del: `finite I`)
-  have P_closed: "P \<subseteq> Pow (space (Pi\<^isub>F {I} M))"
+  have P_closed: "P \<subseteq> Pow (space (Pi\<^sub>F {I} M))"
     using E_closed by (auto simp: space_PiF P_def Pi'_iff subset_eq)
   then have space_P: "space ?P = (\<Pi>' i\<in>I. space (M i))"
     by (simp add: space_PiF)
@@ -1038,15 +1038,15 @@ proof
   also have "\<dots> \<subseteq> sets (sigma (space (PiF {I} M)) P)"
   proof (safe intro!: sets.sigma_sets_subset)
     fix i A assume "i \<in> I" and A: "A \<in> sets (M i)"
-    have "(\<lambda>x. (x)\<^isub>F i) \<in> measurable ?P (sigma (space (M i)) (E i))"
+    have "(\<lambda>x. (x)\<^sub>F i) \<in> measurable ?P (sigma (space (M i)) (E i))"
     proof (subst measurable_iff_measure_of)
       show "E i \<subseteq> Pow (space (M i))" using `i \<in> I` by fact
-      from space_P `i \<in> I` show "(\<lambda>x. (x)\<^isub>F i) \<in> space ?P \<rightarrow> space (M i)"
+      from space_P `i \<in> I` show "(\<lambda>x. (x)\<^sub>F i) \<in> space ?P \<rightarrow> space (M i)"
         by auto
-      show "\<forall>A\<in>E i. (\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P \<in> sets ?P"
+      show "\<forall>A\<in>E i. (\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P \<in> sets ?P"
       proof
         fix A assume A: "A \<in> E i"
-        then have "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P = (\<Pi>' j\<in>I. if i = j then A else space (M j))"
+        then have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P = (\<Pi>' j\<in>I. if i = j then A else space (M j))"
           using E_closed `i \<in> I` by (auto simp: space_P Pi_iff subset_eq split: split_if_asm)
         also have "\<dots> = (\<Pi>' j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro Pi'_cong) (simp_all add: S_union)
@@ -1065,14 +1065,14 @@ proof
             by (simp add: P_closed)
                (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j (xs ! T j)"])
         qed
-        finally show "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P \<in> sets ?P"
+        finally show "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P \<in> sets ?P"
           using P_closed by simp
       qed
     qed
     from measurable_sets[OF this, of A] A `i \<in> I` E_closed
-    have "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P \<in> sets ?P"
+    have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P \<in> sets ?P"
       by (simp add: E_generates)
-    also have "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P = {f \<in> \<Pi>' i\<in>I. space (M i). f i \<in> A}"
+    also have "(\<lambda>x. (x)\<^sub>F i) -` A \<inter> space ?P = {f \<in> \<Pi>' i\<in>I. space (M i). f i \<in> A}"
       using P_closed by (auto simp: space_PiF)
     finally show "\<dots> \<in> sets ?P" .
   qed
@@ -1114,11 +1114,11 @@ qed
 lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. PI' j : J. UNIV) = UNIV" by auto
 
 lemma borel_eq_PiF_borel:
-  shows "(borel :: ('i::countable \<Rightarrow>\<^isub>F 'a::polish_space) measure) =
+  shows "(borel :: ('i::countable \<Rightarrow>\<^sub>F 'a::polish_space) measure) =
     PiF (Collect finite) (\<lambda>_. borel :: 'a measure)"
   unfolding borel_def PiF_def
 proof (rule measure_eqI, clarsimp, rule sigma_sets_eqI)
-  fix a::"('i \<Rightarrow>\<^isub>F 'a) set" assume "a \<in> Collect open" hence "open a" by simp
+  fix a::"('i \<Rightarrow>\<^sub>F 'a) set" assume "a \<in> Collect open" hence "open a" by simp
   then obtain B' where B': "B'\<subseteq>basis_finmap" "a = \<Union>B'"
     using finmap_topological_basis by (force simp add: topological_basis_def)
   have "a \<in> sigma UNIV {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
@@ -1138,9 +1138,9 @@ proof (rule measure_eqI, clarsimp, rule sigma_sets_eqI)
   thus "a \<in> sigma_sets UNIV {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
     by simp
 next
-  fix b::"('i \<Rightarrow>\<^isub>F 'a) set"
+  fix b::"('i \<Rightarrow>\<^sub>F 'a) set"
   assume "b \<in> {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
-  hence b': "b \<in> sets (Pi\<^isub>F (Collect finite) (\<lambda>_. borel))" by (auto simp: sets_PiF borel_def)
+  hence b': "b \<in> sets (Pi\<^sub>F (Collect finite) (\<lambda>_. borel))" by (auto simp: sets_PiF borel_def)
   let ?b = "\<lambda>J. b \<inter> {x. domain x = J}"
   have "b = \<Union>((\<lambda>J. ?b J) ` Collect finite)" by auto
   also have "\<dots> \<in> sets borel"
@@ -1202,16 +1202,16 @@ lemma fm_restrict[simp]: "fm (restrict y J) = fm y"
 
 lemma fm_product:
   assumes "\<And>i. space (M i) = UNIV"
-  shows "fm -` Pi' (f ` J) S \<inter> space (Pi\<^isub>M J M) = (\<Pi>\<^isub>E j \<in> J. S (f j))"
+  shows "fm -` Pi' (f ` J) S \<inter> space (Pi\<^sub>M J M) = (\<Pi>\<^sub>E j \<in> J. S (f j))"
   using assms
   by (auto simp: inv fm_def compose_def space_PiM Pi'_def)
 
 lemma fm_measurable:
   assumes "f ` J \<in> N"
-  shows "fm \<in> measurable (Pi\<^isub>M J (\<lambda>_. M)) (Pi\<^isub>F N (\<lambda>_. M))"
+  shows "fm \<in> measurable (Pi\<^sub>M J (\<lambda>_. M)) (Pi\<^sub>F N (\<lambda>_. M))"
   unfolding fm_def
 proof (rule measurable_comp, rule measurable_compose_inv)
-  show "finmap_of (f ` J) \<in> measurable (Pi\<^isub>M (f ` J) (\<lambda>_. M)) (PiF N (\<lambda>_. M)) "
+  show "finmap_of (f ` J) \<in> measurable (Pi\<^sub>M (f ` J) (\<lambda>_. M)) (PiF N (\<lambda>_. M)) "
     using assms by (intro measurable_finmap_of measurable_component_singleton) auto
 qed (simp_all add: inv)
 
@@ -1229,7 +1229,7 @@ qed
 
 lemma inj_on_fm:
   assumes "\<And>i. space (M i) = UNIV"
-  shows "inj_on fm (space (Pi\<^isub>M J M))"
+  shows "inj_on fm (space (Pi\<^sub>M J M))"
   using assms
   apply (auto simp: fm_def space_PiM PiE_def)
   apply (rule comp_inj_on)
@@ -1244,7 +1244,7 @@ text {* to measure functions *}
 definition "mf = (\<lambda>g. compose J g f) o proj"
 
 lemma mf_fm:
-  assumes "x \<in> space (Pi\<^isub>M J (\<lambda>_. M))"
+  assumes "x \<in> space (Pi\<^sub>M J (\<lambda>_. M))"
   shows "mf (fm x) = x"
 proof -
   have "mf (fm x) \<in> extensional J"
@@ -1266,13 +1266,13 @@ lemma mf_measurable:
   shows "mf \<in> measurable (PiF {f ` J} (\<lambda>_. M)) (PiM J (\<lambda>_. M))"
   unfolding mf_def
 proof (rule measurable_comp, rule measurable_proj_PiM)
-  show "(\<lambda>g. compose J g f) \<in> measurable (Pi\<^isub>M (f ` J) (\<lambda>x. M)) (Pi\<^isub>M J (\<lambda>_. M))"
+  show "(\<lambda>g. compose J g f) \<in> measurable (Pi\<^sub>M (f ` J) (\<lambda>x. M)) (Pi\<^sub>M J (\<lambda>_. M))"
     by (rule measurable_finmap_compose)
 qed (auto simp add: space_PiM extensional_def assms)
 
 lemma fm_image_measurable:
   assumes "space M = UNIV"
-  assumes "X \<in> sets (Pi\<^isub>M J (\<lambda>_. M))"
+  assumes "X \<in> sets (Pi\<^sub>M J (\<lambda>_. M))"
   shows "fm ` X \<in> sets (PiF {f ` J} (\<lambda>_. M))"
 proof -
   have "fm ` X = (mf) -` X \<inter> space (PiF {f ` J} (\<lambda>_. M))"
@@ -1296,7 +1296,7 @@ qed
 
 lemma fm_image_measurable_finite:
   assumes "space M = UNIV"
-  assumes "X \<in> sets (Pi\<^isub>M J (\<lambda>_. M::'c measure))"
+  assumes "X \<in> sets (Pi\<^sub>M J (\<lambda>_. M::'c measure))"
   shows "fm ` X \<in> sets (PiF (Collect finite) (\<lambda>_. M::'c measure))"
   using fm_image_measurable[OF assms]
   by (rule subspace_set_in_sets) (auto simp: finite_subset)
@@ -1312,8 +1312,8 @@ lemma space_mapmeasure[simp]: "space (mapmeasure M N) = space (PiF (Collect fini
   unfolding mapmeasure_def by simp
 
 lemma mapmeasure_PiF:
-  assumes s1: "space M = space (Pi\<^isub>M J (\<lambda>_. N))"
-  assumes s2: "sets M = sets (Pi\<^isub>M J (\<lambda>_. N))"
+  assumes s1: "space M = space (Pi\<^sub>M J (\<lambda>_. N))"
+  assumes s2: "sets M = sets (Pi\<^sub>M J (\<lambda>_. N))"
   assumes "space N = UNIV"
   assumes "X \<in> sets (PiF (Collect finite) (\<lambda>_. N))"
   shows "emeasure (mapmeasure M (\<lambda>_. N)) X = emeasure M ((fm -` X \<inter> extensional J))"
@@ -1323,15 +1323,15 @@ lemma mapmeasure_PiF:
 
 lemma mapmeasure_PiM:
   fixes N::"'c measure"
-  assumes s1: "space M = space (Pi\<^isub>M J (\<lambda>_. N))"
-  assumes s2: "sets M = (Pi\<^isub>M J (\<lambda>_. N))"
+  assumes s1: "space M = space (Pi\<^sub>M J (\<lambda>_. N))"
+  assumes s2: "sets M = (Pi\<^sub>M J (\<lambda>_. N))"
   assumes N: "space N = UNIV"
   assumes X: "X \<in> sets M"
   shows "emeasure M X = emeasure (mapmeasure M (\<lambda>_. N)) (fm ` X)"
   unfolding mapmeasure_def
 proof (subst emeasure_distr, subst measurable_eqI[OF s1 refl s2 refl], rule fm_measurable)
-  have "X \<subseteq> space (Pi\<^isub>M J (\<lambda>_. N))" using assms by (simp add: sets.sets_into_space)
-  from assms inj_on_fm[of "\<lambda>_. N"] set_mp[OF this] have "fm -` fm ` X \<inter> space (Pi\<^isub>M J (\<lambda>_. N)) = X"
+  have "X \<subseteq> space (Pi\<^sub>M J (\<lambda>_. N))" using assms by (simp add: sets.sets_into_space)
+  from assms inj_on_fm[of "\<lambda>_. N"] set_mp[OF this] have "fm -` fm ` X \<inter> space (Pi\<^sub>M J (\<lambda>_. N)) = X"
     by (auto simp: vimage_image_eq inj_on_def)
   thus "emeasure M X = emeasure M (fm -` fm ` X \<inter> space M)" using s1
     by simp

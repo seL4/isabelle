@@ -19,7 +19,7 @@ lemma
 
 lemma
   fixes x :: int
-  shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<twosuperior> + (80 * x + 32))))" 
+  shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<^sup>2 + (80 * x + 32))))" 
   apply (tactic {* ALLGOALS (CONVERSION
     (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
@@ -54,7 +54,7 @@ lemma
 lemma "(x::int)^3  - x^2  - 5*x - 3 = 0 \<longleftrightarrow> (x = 3 \<or> x = -1)"
   by algebra
 
-theorem "x* (x\<twosuperior> - x  - 5) - 3 = (0::int) \<longleftrightarrow> (x = 3 \<or> x = -1)"
+theorem "x* (x\<^sup>2 - x  - 5) - 3 = (0::int) \<longleftrightarrow> (x = 3 \<or> x = -1)"
   by algebra
 
 lemma
@@ -103,7 +103,7 @@ definition collinear ::"point \<Rightarrow> point \<Rightarrow> point \<Rightarr
     ((Ax - Bx) * (By - Cy) = (Ay - By) * (Bx - Cx))"
 
 lemma collinear_inv_rotation:
-  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<twosuperior> + s\<twosuperior> = 1"
+  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<^sup>2 + s\<^sup>2 = 1"
   shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
   using assms 

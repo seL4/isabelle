@@ -8,7 +8,7 @@ theory FinFunPred imports "~~/src/HOL/Library/FinFun_Syntax" begin
 
 text {* Instantiate FinFun predicates just like predicates *}
 
-type_synonym 'a pred\<^isub>f = "'a \<Rightarrow>f bool"
+type_synonym 'a pred\<^sub>f = "'a \<Rightarrow>f bool"
 
 instantiation "finfun" :: (type, ord) ord
 begin
@@ -101,13 +101,13 @@ text {*
   Replicate predicate operations for FinFuns
 *}
 
-abbreviation finfun_empty :: "'a pred\<^isub>f" ("{}\<^isub>f")
-where "{}\<^isub>f \<equiv> bot"
+abbreviation finfun_empty :: "'a pred\<^sub>f" ("{}\<^sub>f")
+where "{}\<^sub>f \<equiv> bot"
 
-abbreviation finfun_UNIV :: "'a pred\<^isub>f" 
+abbreviation finfun_UNIV :: "'a pred\<^sub>f" 
 where "finfun_UNIV \<equiv> top"
 
-definition finfun_single :: "'a \<Rightarrow> 'a pred\<^isub>f"
+definition finfun_single :: "'a \<Rightarrow> 'a pred\<^sub>f"
 where [code]: "finfun_single x = finfun_empty(x $:= True)"
 
 lemma finfun_single_apply [simp]:
@@ -129,7 +129,7 @@ text {* Bounded quantification.
   Warning: @{text "finfun_Ball"} and @{text "finfun_Ex"} may raise an exception, they should not be used for quickcheck
 *}
 
-definition finfun_Ball_except :: "'a list \<Rightarrow> 'a pred\<^isub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+definition finfun_Ball_except :: "'a list \<Rightarrow> 'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where [code del]: "finfun_Ball_except xs A P = (\<forall>a. A $ a \<longrightarrow> a \<in> set xs \<or> P a)"
 
 lemma finfun_Ball_except_const:
@@ -149,14 +149,14 @@ lemma finfun_Ball_except_update_code [code]:
   shows "finfun_Ball_except xs (finfun_update_code f a b) P = ((a \<in> set xs \<or> (b \<longrightarrow> P a)) \<and> finfun_Ball_except (a # xs) f P)"
 by(simp add: finfun_Ball_except_update)
 
-definition finfun_Ball :: "'a pred\<^isub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+definition finfun_Ball :: "'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where [code del]: "finfun_Ball A P = Ball {x. A $ x} P"
 
 lemma finfun_Ball_code [code]: "finfun_Ball = finfun_Ball_except []"
 by(auto intro!: ext simp add: finfun_Ball_except_def finfun_Ball_def)
 
 
-definition finfun_Bex_except :: "'a list \<Rightarrow> 'a pred\<^isub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+definition finfun_Bex_except :: "'a list \<Rightarrow> 'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where [code del]: "finfun_Bex_except xs A P = (\<exists>a. A $ a \<and> a \<notin> set xs \<and> P a)"
 
 lemma finfun_Bex_except_const:
@@ -176,7 +176,7 @@ lemma finfun_Bex_except_update_code [code]:
   shows "finfun_Bex_except xs (finfun_update_code f a b) P \<longleftrightarrow> ((a \<notin> set xs \<and> b \<and> P a) \<or> finfun_Bex_except (a # xs) f P)"
 by(simp add: finfun_Bex_except_update)
 
-definition finfun_Bex :: "'a pred\<^isub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+definition finfun_Bex :: "'a pred\<^sub>f \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
 where [code del]: "finfun_Bex A P = Bex {x. A $ x} P"
 
 lemma finfun_Bex_code [code]: "finfun_Bex = finfun_Bex_except []"
@@ -214,7 +214,7 @@ lemma iso_finfun_conj [code_unfold]:
 by(simp add: inf_fun_def)
 
 lemma iso_finfun_empty_conv [code_unfold]:
-  "(\<lambda>_. False) = op $ {}\<^isub>f"
+  "(\<lambda>_. False) = op $ {}\<^sub>f"
 by simp
 
 lemma iso_finfun_UNIV_conv [code_unfold]:
@@ -222,17 +222,17 @@ lemma iso_finfun_UNIV_conv [code_unfold]:
 by simp
 
 lemma iso_finfun_upd [code_unfold]:
-  fixes A :: "'a pred\<^isub>f"
+  fixes A :: "'a pred\<^sub>f"
   shows "(op $ A)(x := b) = op $ (A(x $:= b))"
 by(simp add: fun_eq_iff)
 
 lemma iso_finfun_uminus [code_unfold]:
-  fixes A :: "'a pred\<^isub>f"
+  fixes A :: "'a pred\<^sub>f"
   shows "- op $ A = op $ (- A)"
 by(simp)
 
 lemma iso_finfun_minus [code_unfold]:
-  fixes A :: "'a pred\<^isub>f"
+  fixes A :: "'a pred\<^sub>f"
   shows "op $ A - op $ B = op $ (A - B)"
 by(simp)
 

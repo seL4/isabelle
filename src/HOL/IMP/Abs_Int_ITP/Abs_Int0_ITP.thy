@@ -203,26 +203,26 @@ proof-
 qed
 
 definition
- lpfp\<^isub>c :: "(('a::SL_top)option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option" where
-"lpfp\<^isub>c f c = pfp f (\<bottom>\<^sub>c c)"
+ lpfp\<^sub>c :: "(('a::SL_top)option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option" where
+"lpfp\<^sub>c f c = pfp f (\<bottom>\<^sub>c c)"
 
-lemma lpfpc_pfp: "lpfp\<^isub>c f c0 = Some c \<Longrightarrow> f c \<sqsubseteq> c"
-by(simp add: pfp_pfp lpfp\<^isub>c_def)
+lemma lpfpc_pfp: "lpfp\<^sub>c f c0 = Some c \<Longrightarrow> f c \<sqsubseteq> c"
+by(simp add: pfp_pfp lpfp\<^sub>c_def)
 
 lemma strip_pfp:
 assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
 using assms while_option_rule[where P = "%x. g x = g x0" and c = f]
 unfolding pfp_def by metis
 
-lemma strip_lpfpc: assumes "\<And>c. strip(f c) = strip c" and "lpfp\<^isub>c f c = Some c'"
+lemma strip_lpfpc: assumes "\<And>c. strip(f c) = strip c" and "lpfp\<^sub>c f c = Some c'"
 shows "strip c' = c"
-using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp\<^isub>c_def]]
+using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp\<^sub>c_def]]
 by(metis strip_bot_acom)
 
 lemma lpfpc_least:
 assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-and "strip p = c0" and "f p \<sqsubseteq> p" and lp: "lpfp\<^isub>c f c0 = Some c" shows "c \<sqsubseteq> p"
-using pfp_least[OF _ _ bot_acom[OF `strip p = c0`] lp[simplified lpfp\<^isub>c_def]]
+and "strip p = c0" and "f p \<sqsubseteq> p" and lp: "lpfp\<^sub>c f c0 = Some c" shows "c \<sqsubseteq> p"
+using pfp_least[OF _ _ bot_acom[OF `strip p = c0`] lp[simplified lpfp\<^sub>c_def]]
   mono `f p \<sqsubseteq> p`
 by blast
 
@@ -270,51 +270,51 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
   {S \<squnion> post c} WHILE b DO (step' Inv c) {Inv}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI = lpfp\<^isub>c (step' \<top>)"
+"AI = lpfp\<^sub>c (step' \<top>)"
 
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
 
 
-abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
-where "\<gamma>\<^isub>f == \<gamma>_fun \<gamma>"
+abbreviation \<gamma>\<^sub>f :: "'av st \<Rightarrow> state set"
+where "\<gamma>\<^sub>f == \<gamma>_fun \<gamma>"
 
-abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
-where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
+abbreviation \<gamma>\<^sub>o :: "'av st option \<Rightarrow> state set"
+where "\<gamma>\<^sub>o == \<gamma>_option \<gamma>\<^sub>f"
 
-abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
-where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
+abbreviation \<gamma>\<^sub>c :: "'av st option acom \<Rightarrow> state set acom"
+where "\<gamma>\<^sub>c == map_acom \<gamma>\<^sub>o"
 
-lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"
+lemma gamma_f_Top[simp]: "\<gamma>\<^sub>f Top = UNIV"
 by(simp add: Top_fun_def \<gamma>_fun_def)
 
-lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
+lemma gamma_o_Top[simp]: "\<gamma>\<^sub>o Top = UNIV"
 by (simp add: Top_option_def)
 
 (* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^sub>f f \<subseteq> \<gamma>\<^sub>f g"
 by(auto simp: le_fun_def \<gamma>_fun_def dest: mono_gamma)
 
 lemma mono_gamma_o:
-  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>o sa \<subseteq> \<gamma>\<^isub>o sa'"
+  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^sub>o sa \<subseteq> \<gamma>\<^sub>o sa'"
 by(induction sa sa' rule: le_option.induct)(simp_all add: mono_gamma_f)
 
-lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
+lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^sub>c ca \<le> \<gamma>\<^sub>c ca'"
 by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_gamma_o)
 
 text{* Soundness: *}
 
-lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_sound: "s : \<gamma>\<^sub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_fun_def)
 
 lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(S(x := a))"
+  "\<lbrakk> s : \<gamma>\<^sub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^sub>f(S(x := a))"
 by(simp add: \<gamma>_fun_def)
 
 lemma step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; c \<le> \<gamma>\<^isub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^isub>c (step' S' c')"
+  "\<lbrakk> S \<subseteq> \<gamma>\<^sub>o S'; c \<le> \<gamma>\<^sub>c c' \<rbrakk> \<Longrightarrow> step S c \<le> \<gamma>\<^sub>c (step' S' c')"
 proof(induction c arbitrary: c' S S')
   case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
 next
@@ -328,40 +328,40 @@ next
   case (If b c1 c2 P)
   then obtain c1' c2' P' where
       "c' = IF b THEN c1' ELSE c2' {P'}"
-      "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'" "c2 \<le> \<gamma>\<^isub>c c2'"
+      "P \<subseteq> \<gamma>\<^sub>o P'" "c1 \<le> \<gamma>\<^sub>c c1'" "c2 \<le> \<gamma>\<^sub>c c2'"
     by (fastforce simp: If_le map_acom_If)
-  moreover have "post c1 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c1 \<le> \<gamma>\<^isub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
-  moreover have "post c2 \<subseteq> \<gamma>\<^isub>o(post c1' \<squnion> post c2')"
-    by (metis (no_types) `c2 \<le> \<gamma>\<^isub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
-  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'` by (simp add: If.IH subset_iff)
+  moreover have "post c1 \<subseteq> \<gamma>\<^sub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c1 \<le> \<gamma>\<^sub>c c1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom)
+  moreover have "post c2 \<subseteq> \<gamma>\<^sub>o(post c1' \<squnion> post c2')"
+    by (metis (no_types) `c2 \<le> \<gamma>\<^sub>c c2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom)
+  ultimately show ?case using `S \<subseteq> \<gamma>\<^sub>o S'` by (simp add: If.IH subset_iff)
 next
   case (While I b c1 P)
   then obtain c1' I' P' where
     "c' = {I'} WHILE b DO c1' {P'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "c1 \<le> \<gamma>\<^isub>c c1'"
+    "I \<subseteq> \<gamma>\<^sub>o I'" "P \<subseteq> \<gamma>\<^sub>o P'" "c1 \<le> \<gamma>\<^sub>c c1'"
     by (fastforce simp: map_acom_While While_le)
-  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post c1')"
-    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `c1 \<le> \<gamma>\<^isub>c c1'`, simplified]
+  moreover have "S \<union> post c1 \<subseteq> \<gamma>\<^sub>o (S' \<squnion> post c1')"
+    using `S \<subseteq> \<gamma>\<^sub>o S'` le_post[OF `c1 \<le> \<gamma>\<^sub>c c1'`, simplified]
     by (metis (no_types) join_ge1 join_ge2 le_sup_iff mono_gamma_o order_trans)
   ultimately show ?case by (simp add: While.IH subset_iff)
 qed
 
-lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c c'"
+lemma AI_sound: "AI c = Some c' \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c c'"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp\<^isub>c (step' \<top>) c = Some c'"
+  assume 1: "lpfp\<^sub>c (step' \<top>) c = Some c'"
   have 2: "step' \<top> c' \<sqsubseteq> c'" by(rule lpfpc_pfp[OF 1])
-  have 3: "strip (\<gamma>\<^isub>c (step' \<top> c')) = c"
+  have 3: "strip (\<gamma>\<^sub>c (step' \<top> c')) = c"
     by(simp add: strip_lpfpc[OF _ 1])
-  have "lfp (step UNIV) c \<le> \<gamma>\<^isub>c (step' \<top> c')"
+  have "lfp (step UNIV) c \<le> \<gamma>\<^sub>c (step' \<top> c')"
   proof(rule lfp_lowerbound[simplified,OF 3])
-    show "step UNIV (\<gamma>\<^isub>c (step' \<top> c')) \<le> \<gamma>\<^isub>c (step' \<top> c')"
+    show "step UNIV (\<gamma>\<^sub>c (step' \<top> c')) \<le> \<gamma>\<^sub>c (step' \<top> c')"
     proof(rule step_preserves_le[OF _ _])
-      show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>" by simp
-      show "\<gamma>\<^isub>c (step' \<top> c') \<le> \<gamma>\<^isub>c c'" by(rule mono_gamma_c[OF 2])
+      show "UNIV \<subseteq> \<gamma>\<^sub>o \<top>" by simp
+      show "\<gamma>\<^sub>c (step' \<top> c') \<le> \<gamma>\<^sub>c c'" by(rule mono_gamma_c[OF 2])
     qed
   qed
-  with 2 show "lfp (step UNIV) c \<le> \<gamma>\<^isub>c c'"
+  with 2 show "lfp (step UNIV) c \<le> \<gamma>\<^sub>c c'"
     by (blast intro: mono_gamma_c order_trans)
 qed
 

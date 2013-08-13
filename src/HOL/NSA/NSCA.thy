@@ -256,12 +256,12 @@ apply (rule order_le_less_trans [OF abs_hIm_le_hcmod])
 apply (erule (1) InfinitesimalD2)
 done
 
-lemma real_sqrt_lessI: "\<lbrakk>0 < u; x < u\<twosuperior>\<rbrakk> \<Longrightarrow> sqrt x < u"
+lemma real_sqrt_lessI: "\<lbrakk>0 < u; x < u\<^sup>2\<rbrakk> \<Longrightarrow> sqrt x < u"
 (* TODO: this belongs somewhere else *)
 by (frule real_sqrt_less_mono) simp
 
 lemma hypreal_sqrt_lessI:
-  "\<And>x u. \<lbrakk>0 < u; x < u\<twosuperior>\<rbrakk> \<Longrightarrow> ( *f* sqrt) x < u"
+  "\<And>x u. \<lbrakk>0 < u; x < u\<^sup>2\<rbrakk> \<Longrightarrow> ( *f* sqrt) x < u"
 by transfer (rule real_sqrt_lessI)
  
 lemma hypreal_sqrt_ge_zero: "\<And>x. 0 \<le> x \<Longrightarrow> 0 \<le> ( *f* sqrt) x"
@@ -270,7 +270,7 @@ by transfer (rule real_sqrt_ge_zero)
 lemma Infinitesimal_sqrt:
   "\<lbrakk>x \<in> Infinitesimal; 0 \<le> x\<rbrakk> \<Longrightarrow> ( *f* sqrt) x \<in> Infinitesimal"
 apply (rule InfinitesimalI2)
-apply (drule_tac r="r\<twosuperior>" in InfinitesimalD2, simp)
+apply (drule_tac r="r\<^sup>2" in InfinitesimalD2, simp)
 apply (simp add: hypreal_sqrt_ge_zero)
 apply (rule hypreal_sqrt_lessI, simp_all)
 done

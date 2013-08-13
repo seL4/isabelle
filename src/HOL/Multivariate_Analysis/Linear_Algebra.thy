@@ -94,11 +94,11 @@ lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bulle
 lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)^2 \<le> y^2"
 proof
   assume "\<bar>x\<bar> \<le> \<bar>y\<bar>"
-  then have "\<bar>x\<bar>\<twosuperior> \<le> \<bar>y\<bar>\<twosuperior>" by (rule power_mono, simp)
-  then show "x\<twosuperior> \<le> y\<twosuperior>" by simp
+  then have "\<bar>x\<bar>\<^sup>2 \<le> \<bar>y\<bar>\<^sup>2" by (rule power_mono, simp)
+  then show "x\<^sup>2 \<le> y\<^sup>2" by simp
 next
-  assume "x\<twosuperior> \<le> y\<twosuperior>"
-  then have "sqrt (x\<twosuperior>) \<le> sqrt (y\<twosuperior>)" by (rule real_sqrt_le_mono)
+  assume "x\<^sup>2 \<le> y\<^sup>2"
+  then have "sqrt (x\<^sup>2) \<le> sqrt (y\<^sup>2)" by (rule real_sqrt_le_mono)
   then show "\<bar>x\<bar> \<le> \<bar>y\<bar>" by simp
 qed
 
@@ -2601,7 +2601,7 @@ proof -
     unfolding real_of_nat_def
     apply(subst euclidean_inner)
     apply (subst power2_abs[symmetric])
-    apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<twosuperior>"]])
+    apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
     apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)

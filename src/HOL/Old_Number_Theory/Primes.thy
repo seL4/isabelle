@@ -39,7 +39,7 @@ lemma prime_dvd_mult: "prime p ==> p dvd m * n ==> p dvd m \<or> p dvd n"
 lemma prime_dvd_square: "prime p ==> p dvd m^Suc (Suc 0) ==> p dvd m"
   by (auto dest: prime_dvd_mult)
 
-lemma prime_dvd_power_two: "prime p ==> p dvd m\<twosuperior> ==> p dvd m"
+lemma prime_dvd_power_two: "prime p ==> p dvd m\<^sup>2 ==> p dvd m"
   by (rule prime_dvd_square) (simp_all add: power2_eq_square)
 
 

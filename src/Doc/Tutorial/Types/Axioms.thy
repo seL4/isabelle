@@ -63,9 +63,9 @@ instantiation prod :: (semigroup, semigroup) semigroup
 begin
 
 instance proof
-  fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
-  show "p\<^isub>1 \<oplus> p\<^isub>2 \<oplus> p\<^isub>3 = p\<^isub>1 \<oplus> (p\<^isub>2 \<oplus> p\<^isub>3)"
-    by (cases p\<^isub>1, cases p\<^isub>2, cases p\<^isub>3) (simp add: assoc)
+  fix p\<^sub>1 p\<^sub>2 p\<^sub>3 :: "'a\<Colon>semigroup \<times> 'b\<Colon>semigroup"
+  show "p\<^sub>1 \<oplus> p\<^sub>2 \<oplus> p\<^sub>3 = p\<^sub>1 \<oplus> (p\<^sub>2 \<oplus> p\<^sub>3)"
+    by (cases p\<^sub>1, cases p\<^sub>2, cases p\<^sub>3) (simp add: assoc)
 
 txt {* \noindent Associativity of product semigroups is established
 using the hypothetical associativity @{fact assoc} of the type

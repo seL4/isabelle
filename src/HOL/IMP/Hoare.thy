@@ -23,11 +23,11 @@ Skip: "\<turnstile> {P} SKIP {P}"  |
 
 Assign:  "\<turnstile> {\<lambda>s. P(s[a/x])} x::=a {P}"  |
 
-Seq: "\<lbrakk> \<turnstile> {P} c\<^isub>1 {Q};  \<turnstile> {Q} c\<^isub>2 {R} \<rbrakk>
-      \<Longrightarrow> \<turnstile> {P} c\<^isub>1;;c\<^isub>2 {R}"  |
+Seq: "\<lbrakk> \<turnstile> {P} c\<^sub>1 {Q};  \<turnstile> {Q} c\<^sub>2 {R} \<rbrakk>
+      \<Longrightarrow> \<turnstile> {P} c\<^sub>1;;c\<^sub>2 {R}"  |
 
-If: "\<lbrakk> \<turnstile> {\<lambda>s. P s \<and> bval b s} c\<^isub>1 {Q};  \<turnstile> {\<lambda>s. P s \<and> \<not> bval b s} c\<^isub>2 {Q} \<rbrakk>
-     \<Longrightarrow> \<turnstile> {P} IF b THEN c\<^isub>1 ELSE c\<^isub>2 {Q}"  |
+If: "\<lbrakk> \<turnstile> {\<lambda>s. P s \<and> bval b s} c\<^sub>1 {Q};  \<turnstile> {\<lambda>s. P s \<and> \<not> bval b s} c\<^sub>2 {Q} \<rbrakk>
+     \<Longrightarrow> \<turnstile> {P} IF b THEN c\<^sub>1 ELSE c\<^sub>2 {Q}"  |
 
 While: "\<turnstile> {\<lambda>s. P s \<and> bval b s} c {P} \<Longrightarrow>
         \<turnstile> {P} WHILE b DO c {\<lambda>s. P s \<and> \<not> bval b s}"  |

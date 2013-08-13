@@ -11,9 +11,9 @@ Skip:
 Assign:
   "\<lbrakk> sec x \<ge> sec a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a" |
 Seq:
-  "\<lbrakk> l \<turnstile> c\<^isub>1;  l \<turnstile> c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> c\<^isub>1;;c\<^isub>2" |
+  "\<lbrakk> l \<turnstile> c\<^sub>1;  l \<turnstile> c\<^sub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> c\<^sub>1;;c\<^sub>2" |
 If:
-  "\<lbrakk> max (sec b) l \<turnstile> c\<^isub>1;  max (sec b) l \<turnstile> c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2" |
+  "\<lbrakk> max (sec b) l \<turnstile> c\<^sub>1;  max (sec b) l \<turnstile> c\<^sub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2" |
 While:
   "max (sec b) l \<turnstile> c \<Longrightarrow> l \<turnstile> WHILE b DO c"
 
@@ -24,7 +24,7 @@ value "1 \<turnstile> IF Less (V ''x1'') (V ''x'') THEN ''x''  ::= N 0 ELSE SKIP
 value "2 \<turnstile> IF Less (V ''x1'') (V ''x'') THEN ''x1'' ::= N 0 ELSE SKIP"
 
 inductive_cases [elim!]:
-  "l \<turnstile> x ::= a"  "l \<turnstile> c\<^isub>1;;c\<^isub>2"  "l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2"  "l \<turnstile> WHILE b DO c"
+  "l \<turnstile> x ::= a"  "l \<turnstile> c\<^sub>1;;c\<^sub>2"  "l \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2"  "l \<turnstile> WHILE b DO c"
 
 
 text{* An important property: anti-monotonicity. *}
@@ -187,9 +187,9 @@ Skip':
 Assign':
   "\<lbrakk> sec x \<ge> sec a; sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a" |
 Seq':
-  "\<lbrakk> l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' c\<^isub>1;;c\<^isub>2" |
+  "\<lbrakk> l \<turnstile>' c\<^sub>1;  l \<turnstile>' c\<^sub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' c\<^sub>1;;c\<^sub>2" |
 If':
-  "\<lbrakk> sec b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2" |
+  "\<lbrakk> sec b \<le> l;  l \<turnstile>' c\<^sub>1;  l \<turnstile>' c\<^sub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^sub>1 ELSE c\<^sub>2" |
 While':
   "\<lbrakk> sec b \<le> l;  l \<turnstile>' c \<rbrakk> \<Longrightarrow> l \<turnstile>' WHILE b DO c" |
 anti_mono':
@@ -221,10 +221,10 @@ Skip2:
 Assign2:
   "sec x \<ge> sec a \<Longrightarrow> \<turnstile> x ::= a : sec x" |
 Seq2:
-  "\<lbrakk> \<turnstile> c\<^isub>1 : l\<^isub>1;  \<turnstile> c\<^isub>2 : l\<^isub>2 \<rbrakk> \<Longrightarrow> \<turnstile> c\<^isub>1;;c\<^isub>2 : min l\<^isub>1 l\<^isub>2 " |
+  "\<lbrakk> \<turnstile> c\<^sub>1 : l\<^sub>1;  \<turnstile> c\<^sub>2 : l\<^sub>2 \<rbrakk> \<Longrightarrow> \<turnstile> c\<^sub>1;;c\<^sub>2 : min l\<^sub>1 l\<^sub>2 " |
 If2:
-  "\<lbrakk> sec b \<le> min l\<^isub>1 l\<^isub>2;  \<turnstile> c\<^isub>1 : l\<^isub>1;  \<turnstile> c\<^isub>2 : l\<^isub>2 \<rbrakk>
-  \<Longrightarrow> \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2 : min l\<^isub>1 l\<^isub>2" |
+  "\<lbrakk> sec b \<le> min l\<^sub>1 l\<^sub>2;  \<turnstile> c\<^sub>1 : l\<^sub>1;  \<turnstile> c\<^sub>2 : l\<^sub>2 \<rbrakk>
+  \<Longrightarrow> \<turnstile> IF b THEN c\<^sub>1 ELSE c\<^sub>2 : min l\<^sub>1 l\<^sub>2" |
 While2:
   "\<lbrakk> sec b \<le> l;  \<turnstile> c : l \<rbrakk> \<Longrightarrow> \<turnstile> WHILE b DO c : l"
 

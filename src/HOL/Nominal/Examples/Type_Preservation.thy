@@ -23,7 +23,7 @@ nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]")
 where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
-| "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "(App t\<^sub>1 t\<^sub>2)[y::=s] = App (t\<^sub>1[y::=s]) (t\<^sub>2[y::=s])"
 | "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
@@ -63,7 +63,7 @@ type_synonym ctx = "(name\<times>ty) list"
 abbreviation
   "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" ("_ \<subseteq> _") 
 where
-  "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^isub>1 \<longrightarrow> x \<in> set \<Gamma>\<^isub>2"
+  "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
 text {* Validity of Typing Contexts *}
 
@@ -105,8 +105,8 @@ inductive
   typing :: "ctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
 where
   t_Var[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
-| t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t\<^isub>1 t\<^isub>2 : T\<^isub>2"
-| t_Lam[intro]: "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2"
+| t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t\<^sub>1 t\<^sub>2 : T\<^sub>2"
+| t_Lam[intro]: "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^sub>1)#\<Gamma> \<turnstile> t : T\<^sub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x].t : T\<^sub>1\<rightarrow>T\<^sub>2"
 
 equivariance typing
 nominal_inductive typing
@@ -115,7 +115,7 @@ nominal_inductive typing
 lemma t_Lam_inversion[dest]:
   assumes ty: "\<Gamma> \<turnstile> Lam [x].t : T" 
   and     fc: "x\<sharp>\<Gamma>" 
-  shows "\<exists>T\<^isub>1 T\<^isub>2. T = T\<^isub>1 \<rightarrow> T\<^isub>2 \<and> (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2"
+  shows "\<exists>T\<^sub>1 T\<^sub>2. T = T\<^sub>1 \<rightarrow> T\<^sub>2 \<and> (x,T\<^sub>1)#\<Gamma> \<turnstile> t : T\<^sub>2"
 using ty fc 
 by (cases rule: typing.strong_cases) 
    (auto simp add: alpha lam.inject abs_fresh ty_fresh)
@@ -169,12 +169,12 @@ by (auto intro: type_substitution_aux[where \<Delta>="[]",simplified])
 text {* Beta Reduction *}
 
 inductive 
-  "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _")
+  "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _")
 where
-  b1[intro]: "t1 \<longrightarrow>\<^isub>\<beta> t2 \<Longrightarrow> App t1 s \<longrightarrow>\<^isub>\<beta> App t2 s"
-| b2[intro]: "s1 \<longrightarrow>\<^isub>\<beta> s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^isub>\<beta> App t s2"
-| b3[intro]: "t1 \<longrightarrow>\<^isub>\<beta> t2 \<Longrightarrow> Lam [x].t1 \<longrightarrow>\<^isub>\<beta> Lam [x].t2"
-| b4[intro]: "x\<sharp>s \<Longrightarrow> App (Lam [x].t) s \<longrightarrow>\<^isub>\<beta> t[x::=s]"
+  b1[intro]: "t1 \<longrightarrow>\<^sub>\<beta> t2 \<Longrightarrow> App t1 s \<longrightarrow>\<^sub>\<beta> App t2 s"
+| b2[intro]: "s1 \<longrightarrow>\<^sub>\<beta> s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^sub>\<beta> App t s2"
+| b3[intro]: "t1 \<longrightarrow>\<^sub>\<beta> t2 \<Longrightarrow> Lam [x].t1 \<longrightarrow>\<^sub>\<beta> Lam [x].t2"
+| b4[intro]: "x\<sharp>s \<Longrightarrow> App (Lam [x].t) s \<longrightarrow>\<^sub>\<beta> t[x::=s]"
 
 equivariance beta
 nominal_inductive beta
@@ -182,7 +182,7 @@ nominal_inductive beta
 
 
 theorem type_preservation:
-  assumes a: "t \<longrightarrow>\<^isub>\<beta> t'"
+  assumes a: "t \<longrightarrow>\<^sub>\<beta> t'"
   and     b: "\<Gamma> \<turnstile> t : T" 
   shows "\<Gamma> \<turnstile> t' : T" 
 using a b
@@ -216,7 +216,7 @@ qed
 
 
 theorem type_preservation_automatic:
-  assumes a: "t \<longrightarrow>\<^isub>\<beta> t'"
+  assumes a: "t \<longrightarrow>\<^sub>\<beta> t'"
   and     b: "\<Gamma> \<turnstile> t : T" 
   shows "\<Gamma> \<turnstile> t' : T"
 using a b

@@ -94,23 +94,23 @@ proof
     case (Pair a b)
     show "P (a, b)"
     proof (induct a arbitrary: b rule: less_induct)
-      case (less a\<^isub>1) note a\<^isub>1 = this
-      show "P (a\<^isub>1, b)"
+      case (less a\<^sub>1) note a\<^sub>1 = this
+      show "P (a\<^sub>1, b)"
       proof (induct b rule: less_induct)
-        case (less b\<^isub>1) note b\<^isub>1 = this
-        show "P (a\<^isub>1, b\<^isub>1)"
+        case (less b\<^sub>1) note b\<^sub>1 = this
+        show "P (a\<^sub>1, b\<^sub>1)"
         proof (rule P)
-          fix p assume p: "p < (a\<^isub>1, b\<^isub>1)"
+          fix p assume p: "p < (a\<^sub>1, b\<^sub>1)"
           show "P p"
-          proof (cases "fst p < a\<^isub>1")
+          proof (cases "fst p < a\<^sub>1")
             case True
-            then have "P (fst p, snd p)" by (rule a\<^isub>1)
+            then have "P (fst p, snd p)" by (rule a\<^sub>1)
             then show ?thesis by simp
           next
             case False
-            with p have 1: "a\<^isub>1 = fst p" and 2: "snd p < b\<^isub>1"
+            with p have 1: "a\<^sub>1 = fst p" and 2: "snd p < b\<^sub>1"
               by (simp_all add: less_prod_def')
-            from 2 have "P (a\<^isub>1, snd p)" by (rule b\<^isub>1)
+            from 2 have "P (a\<^sub>1, snd p)" by (rule b\<^sub>1)
             with 1 show ?thesis by simp
           qed
         qed

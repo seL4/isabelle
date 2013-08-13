@@ -16,13 +16,13 @@ inductive
 where
 Skip: "(SKIP,s) \<Rightarrow> s" |
 Assign: "(x ::= a,s) \<Rightarrow> s(x := aval a s)" |
-Seq: "\<lbrakk> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (c\<^isub>2,s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow> (c\<^isub>1;;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
-IfTrue: "\<lbrakk> bval b s;  (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
-IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^isub>2,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
+Seq: "\<lbrakk> (c\<^sub>1,s\<^sub>1) \<Rightarrow> s\<^sub>2;  (c\<^sub>2,s\<^sub>2) \<Rightarrow> s\<^sub>3 \<rbrakk> \<Longrightarrow> (c\<^sub>1;;c\<^sub>2, s\<^sub>1) \<Rightarrow> s\<^sub>3" |
+IfTrue: "\<lbrakk> bval b s;  (c\<^sub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t" |
+IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^sub>2,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow> (IF b THEN c\<^sub>1 ELSE c\<^sub>2, s) \<Rightarrow> t" |
 WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s" |
 WhileTrue:
-"\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> 
-\<Longrightarrow> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+"\<lbrakk> bval b s\<^sub>1;  (c,s\<^sub>1) \<Rightarrow> s\<^sub>2;  (WHILE b DO c, s\<^sub>2) \<Rightarrow> s\<^sub>3 \<rbrakk> 
+\<Longrightarrow> (WHILE b DO c, s\<^sub>1) \<Rightarrow> s\<^sub>3"
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{BigStepEx}{1}{2}{% *}
@@ -283,19 +283,19 @@ theorem
   "(c,s) \<Rightarrow> t  \<Longrightarrow>  (c,s) \<Rightarrow> t'  \<Longrightarrow>  t' = t"
 proof (induction arbitrary: t' rule: big_step.induct)
   -- "the only interesting case, @{text WhileTrue}:"
-  fix b c s s\<^isub>1 t t'
+  fix b c s s\<^sub>1 t t'
   -- "The assumptions of the rule:"
-  assume "bval b s" and "(c,s) \<Rightarrow> s\<^isub>1" and "(WHILE b DO c,s\<^isub>1) \<Rightarrow> t"
+  assume "bval b s" and "(c,s) \<Rightarrow> s\<^sub>1" and "(WHILE b DO c,s\<^sub>1) \<Rightarrow> t"
   -- {* Ind.Hyp; note the @{text"\<And>"} because of arbitrary: *}
-  assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s\<^isub>1"
-  assume IHw: "\<And>t'. (WHILE b DO c,s\<^isub>1) \<Rightarrow> t' \<Longrightarrow> t' = t"
+  assume IHc: "\<And>t'. (c,s) \<Rightarrow> t' \<Longrightarrow> t' = s\<^sub>1"
+  assume IHw: "\<And>t'. (WHILE b DO c,s\<^sub>1) \<Rightarrow> t' \<Longrightarrow> t' = t"
   -- "Premise of implication:"
   assume "(WHILE b DO c,s) \<Rightarrow> t'"
-  with `bval b s` obtain s\<^isub>1' where
-      c: "(c,s) \<Rightarrow> s\<^isub>1'" and
-      w: "(WHILE b DO c,s\<^isub>1') \<Rightarrow> t'"
+  with `bval b s` obtain s\<^sub>1' where
+      c: "(c,s) \<Rightarrow> s\<^sub>1'" and
+      w: "(WHILE b DO c,s\<^sub>1') \<Rightarrow> t'"
     by auto
-  from c IHc have "s\<^isub>1' = s\<^isub>1" by blast
+  from c IHc have "s\<^sub>1' = s\<^sub>1" by blast
   with w IHw show "t' = t" by blast
 qed blast+ -- "prove the rest automatically"
 text_raw{*}%endsnip*}

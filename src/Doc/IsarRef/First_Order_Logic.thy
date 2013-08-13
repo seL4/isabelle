@@ -183,15 +183,15 @@ axiomatization
 
 axiomatization
   disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30) where
-  disjI\<^isub>1 [intro]: "A \<Longrightarrow> A \<or> B" and
-  disjI\<^isub>2 [intro]: "B \<Longrightarrow> A \<or> B" and
+  disjI\<^sub>1 [intro]: "A \<Longrightarrow> A \<or> B" and
+  disjI\<^sub>2 [intro]: "B \<Longrightarrow> A \<or> B" and
   disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
 
 axiomatization
   conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) where
   conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B" and
-  conjD\<^isub>1: "A \<and> B \<Longrightarrow> A" and
-  conjD\<^isub>2: "A \<and> B \<Longrightarrow> B"
+  conjD\<^sub>1: "A \<and> B \<Longrightarrow> A" and
+  conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
 
 text {*
   \noindent The conjunctive destructions have the disadvantage that
@@ -205,8 +205,8 @@ theorem conjE [elim]:
   assumes "A \<and> B"
   obtains A and B
 proof
-  from `A \<and> B` show A by (rule conjD\<^isub>1)
-  from `A \<and> B` show B by (rule conjD\<^isub>2)
+  from `A \<and> B` show A by (rule conjD\<^sub>1)
+  from `A \<and> B` show B by (rule conjD\<^sub>2)
 qed
 
 text {*
@@ -378,8 +378,8 @@ text {*
   @{text "impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B"} \\
   @{text "impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B"} \\[1ex]
 
-  @{text "disjI\<^isub>1: \<ASSUMES> A \<SHOWS> A \<or> B"} \\
-  @{text "disjI\<^isub>2: \<ASSUMES> B \<SHOWS> A \<or> B"} \\
+  @{text "disjI\<^sub>1: \<ASSUMES> A \<SHOWS> A \<or> B"} \\
+  @{text "disjI\<^sub>2: \<ASSUMES> B \<SHOWS> A \<or> B"} \\
   @{text "disjE: \<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"} \\[1ex]
 
   @{text "conjI: \<ASSUMES> A \<AND> B \<SHOWS> A \<and> B"} \\

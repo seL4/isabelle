@@ -27,8 +27,8 @@ proof -
 qed
 
 lemma c_redu_subst1:
-  assumes a: "M \<longrightarrow>\<^isub>c M'" "c\<sharp>M" "y\<sharp>P"
-  shows "M{y:=<c>.P} \<longrightarrow>\<^isub>c M'{y:=<c>.P}"
+  assumes a: "M \<longrightarrow>\<^sub>c M'" "c\<sharp>M" "y\<sharp>P"
+  shows "M{y:=<c>.P} \<longrightarrow>\<^sub>c M'{y:=<c>.P}"
 using a
 proof(nominal_induct avoiding: y c P rule: c_redu.strong_induct)
   case (left M a N x)
@@ -89,8 +89,8 @@ next
 qed
 
 lemma c_redu_subst2:
-  assumes a: "M \<longrightarrow>\<^isub>c M'" "c\<sharp>P" "y\<sharp>M"
-  shows "M{c:=(y).P} \<longrightarrow>\<^isub>c M'{c:=(y).P}"
+  assumes a: "M \<longrightarrow>\<^sub>c M'" "c\<sharp>P" "y\<sharp>M"
+  shows "M{c:=(y).P} \<longrightarrow>\<^sub>c M'{c:=(y).P}"
 using a
 proof(nominal_induct avoiding: y c P rule: c_redu.strong_induct)
   case (right N x a M)
@@ -155,8 +155,8 @@ next
 qed
 
 lemma c_redu_subst1':
-  assumes a: "M \<longrightarrow>\<^isub>c M'" 
-  shows "M{y:=<c>.P} \<longrightarrow>\<^isub>c M'{y:=<c>.P}"
+  assumes a: "M \<longrightarrow>\<^sub>c M'" 
+  shows "M{y:=<c>.P} \<longrightarrow>\<^sub>c M'{y:=<c>.P}"
 using a
 proof -
   obtain y'::"name"   where fs1: "y'\<sharp>(M,M',P,P,y)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -169,7 +169,7 @@ proof -
     apply(rule subst_rename(4))
     apply(simp)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>c ([(y',y)]\<bullet>M'){y':=<c'>.([(c',c)]\<bullet>P)}" using fs1 fs2
+  also have "\<dots> \<longrightarrow>\<^sub>c ([(y',y)]\<bullet>M'){y':=<c'>.([(c',c)]\<bullet>P)}" using fs1 fs2
     apply -
     apply(rule c_redu_subst1)
     apply(simp add: c_redu.eqvt a)
@@ -188,8 +188,8 @@ proof -
 qed
 
 lemma c_redu_subst2':
-  assumes a: "M \<longrightarrow>\<^isub>c M'" 
-  shows "M{c:=(y).P} \<longrightarrow>\<^isub>c M'{c:=(y).P}"
+  assumes a: "M \<longrightarrow>\<^sub>c M'" 
+  shows "M{c:=(y).P} \<longrightarrow>\<^sub>c M'{c:=(y).P}"
 using a
 proof -
   obtain y'::"name"   where fs1: "y'\<sharp>(M,M',P,P,y)" by (rule exists_fresh(1), rule fin_supp, blast)
@@ -202,7 +202,7 @@ proof -
     apply(rule subst_rename(2))
     apply(simp)
     done
-  also have "\<dots> \<longrightarrow>\<^isub>c ([(c',c)]\<bullet>M'){c':=(y').([(y',y)]\<bullet>P)}" using fs1 fs2
+  also have "\<dots> \<longrightarrow>\<^sub>c ([(c',c)]\<bullet>M'){c':=(y').([(y',y)]\<bullet>P)}" using fs1 fs2
     apply -
     apply(rule c_redu_subst2)
     apply(simp add: c_redu.eqvt a)
@@ -222,28 +222,28 @@ proof -
 qed
 
 lemma aux1:
-  assumes a: "M = M'" "M' \<longrightarrow>\<^isub>l M''"
-  shows "M \<longrightarrow>\<^isub>l M''"
+  assumes a: "M = M'" "M' \<longrightarrow>\<^sub>l M''"
+  shows "M \<longrightarrow>\<^sub>l M''"
 using a by simp
   
 lemma aux2:
-  assumes a: "M \<longrightarrow>\<^isub>l M'" "M' = M''"
-  shows "M \<longrightarrow>\<^isub>l M''"
+  assumes a: "M \<longrightarrow>\<^sub>l M'" "M' = M''"
+  shows "M \<longrightarrow>\<^sub>l M''"
 using a by simp
 
 lemma aux3:
-  assumes a: "M = M'" "M' \<longrightarrow>\<^isub>a* M''"
-  shows "M \<longrightarrow>\<^isub>a* M''"
+  assumes a: "M = M'" "M' \<longrightarrow>\<^sub>a* M''"
+  shows "M \<longrightarrow>\<^sub>a* M''"
 using a by simp
 
 lemma aux4:
   assumes a: "M = M'"
-  shows "M \<longrightarrow>\<^isub>a* M'"
+  shows "M \<longrightarrow>\<^sub>a* M'"
 using a by blast
 
 lemma l_redu_subst1:
-  assumes a: "M \<longrightarrow>\<^isub>l M'" 
-  shows "M{y:=<c>.P} \<longrightarrow>\<^isub>a* M'{y:=<c>.P}"
+  assumes a: "M \<longrightarrow>\<^sub>l M'" 
+  shows "M{y:=<c>.P} \<longrightarrow>\<^sub>a* M'{y:=<c>.P}"
 using a
 proof(nominal_induct M M' avoiding: y c P rule: l_redu.strong_induct)
   case LAxR
@@ -302,7 +302,7 @@ next
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} = 
         (Cut <a>.NotR (u).(M{y:=<c>.P}) a (v).NotL <b>.(N{y:=<c>.P}) v)" using LNot
         by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>l (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using LNot
+      also have "\<dots> \<longrightarrow>\<^sub>l (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using LNot
         by (auto intro: l_redu.intros simp add: subst_fresh)
       also have "\<dots> = (Cut <b>.N (u).M){y:=<c>.P}" using LNot asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
@@ -313,7 +313,7 @@ next
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} = 
         (Cut <a>.NotR (u).(M{y:=<c>.P}) a (v).NotL <b>.(N{y:=<c>.P}) v)" using LNot
         by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using LNot
+      also have "\<dots> \<longrightarrow>\<^sub>a* (Cut <b>.(N{y:=<c>.P}) (u).(M{y:=<c>.P}))" using LNot
         apply -
         apply(rule a_starI)
         apply(rule al_redu)
@@ -321,7 +321,7 @@ next
         done
       also have "\<dots> = (Cut <b>.(Cut <c>.P (y).Ax y b) (u).(M{y:=<c>.P}))" using LNot asm
         by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(P[c\<turnstile>c>b]) (u).(M{y:=<c>.P}))" 
+      also have "\<dots> \<longrightarrow>\<^sub>a* (Cut <b>.(P[c\<turnstile>c>b]) (u).(M{y:=<c>.P}))" 
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -356,7 +356,7 @@ next
         apply(rule crename_swap)
         apply(simp)
         done
-      finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <b>.N (u).M){y:=<c>.P}" 
+      finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <b>.N (u).M){y:=<c>.P}" 
         by simp
     }
     ultimately show ?thesis by blast
@@ -369,7 +369,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL1 (u).(N{y:=<c>.P}) z" 
         using LAnd1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
         using LAnd1
         apply -
         apply(rule a_starI)
@@ -379,7 +379,7 @@ next
       also have "\<dots> = (Cut <a1>.M1 (u).N){y:=<c>.P}" using LAnd1 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
         by simp
     } 
     moreover
@@ -387,7 +387,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL1 (u).(N{y:=<c>.P}) z" 
         using LAnd1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.(M1{y:=<c>.P}) (u).(N{y:=<c>.P})"
         using LAnd1
         apply -
         apply(rule a_starI)
@@ -396,7 +396,7 @@ next
         done
       also have "\<dots> = Cut <a1>.(Cut <c>.P (y). Ax y a1) (u).(N{y:=<c>.P})" 
         using LAnd1 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.P[c\<turnstile>c>a1] (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.P[c\<turnstile>c>a1] (u).(N{y:=<c>.P})"
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -432,7 +432,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a1>.M1 (u).N){y:=<c>.P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -445,7 +445,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL2 (u).(N{y:=<c>.P}) z" 
         using LAnd2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
         using LAnd2
         apply -
         apply(rule a_starI)
@@ -455,7 +455,7 @@ next
       also have "\<dots> = (Cut <a2>.M2 (u).N){y:=<c>.P}" using LAnd2 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
         by simp
     } 
     moreover
@@ -463,7 +463,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} = 
         Cut <b>.AndR <a1>.(M1{y:=<c>.P}) <a2>.(M2{y:=<c>.P}) b (z).AndL2 (u).(N{y:=<c>.P}) z" 
         using LAnd2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.(M2{y:=<c>.P}) (u).(N{y:=<c>.P})"
         using LAnd2
         apply -
         apply(rule a_starI)
@@ -472,7 +472,7 @@ next
         done
       also have "\<dots> = Cut <a2>.(Cut <c>.P (y). Ax y a2) (u).(N{y:=<c>.P})" 
         using LAnd2 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.P[c\<turnstile>c>a2] (u).(N{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.P[c\<turnstile>c>a2] (u).(N{y:=<c>.P})"
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -508,7 +508,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a2>.M2 (u).N){y:=<c>.P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -521,7 +521,7 @@ next
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR1 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
         using LOr1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
         using LOr1
         apply -
         apply(rule a_starI)
@@ -531,7 +531,7 @@ next
       also have "\<dots> = (Cut <a>.M (x1).N1){y:=<c>.P}" using LOr1 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
+      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
         by simp
     } 
     moreover
@@ -539,7 +539,7 @@ next
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR1 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
         using LOr1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{y:=<c>.P}) (x1).(N1{y:=<c>.P})"
         using LOr1
         apply -
         apply(rule a_starI)
@@ -548,7 +548,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <c>.P (y). Ax y a) (x1).(N1{y:=<c>.P})" 
         using LOr1 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.P[c\<turnstile>c>a] (x1).(N1{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.P[c\<turnstile>c>a] (x1).(N1{y:=<c>.P})"
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -584,7 +584,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
+      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x1).N1){y:=<c>.P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -597,7 +597,7 @@ next
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR2 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
         using LOr2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
         using LOr2
         apply -
         apply(rule a_starI)
@@ -607,7 +607,7 @@ next
       also have "\<dots> = (Cut <a>.M (x2).N2){y:=<c>.P}" using LOr2 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
+      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
         by simp
     } 
     moreover
@@ -615,7 +615,7 @@ next
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} = 
         Cut <b>.OrR2 <a>.(M{y:=<c>.P}) b (z).OrL (x1).(N1{y:=<c>.P}) (x2).(N2{y:=<c>.P}) z" 
         using LOr2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{y:=<c>.P}) (x2).(N2{y:=<c>.P})"
         using LOr2
         apply -
         apply(rule a_starI)
@@ -624,7 +624,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <c>.P (y). Ax y a) (x2).(N2{y:=<c>.P})" 
         using LOr2 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.P[c\<turnstile>c>a] (x2).(N2{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.P[c\<turnstile>c>a] (x2).(N2{y:=<c>.P})"
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -660,7 +660,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
+      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){y:=<c>.P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x2).N2){y:=<c>.P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -673,7 +673,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} = 
         Cut <b>.ImpR (x).<a>.(M{y:=<c>.P}) b (z).ImpL <d>.(N{y:=<c>.P}) (u).(Q{y:=<c>.P}) z" 
         using LImp by (simp add: fresh_prod abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -683,7 +683,7 @@ next
       also have "\<dots> = (Cut <a>.(Cut <d>.N  (x).M) (u).Q){y:=<c>.P}" using LImp asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^sub>a* 
                      (Cut <a>.(Cut <d>.N  (x).M) (u).Q){y:=<c>.P}"
         by simp
     } 
@@ -692,7 +692,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} = 
         Cut <b>.ImpR (x).<a>.(M{y:=<c>.P}) b (z).ImpL <d>.(N{y:=<c>.P}) (u).(Q{y:=<c>.P}) z" 
         using LImp by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{y:=<c>.P})  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -701,7 +701,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <d>.(Cut <c>.P (y).Ax y d)  (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
         using LImp asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(P[c\<turnstile>c>d]) (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(P[c\<turnstile>c>d]) (x).(M{y:=<c>.P})) (u).(Q{y:=<c>.P})"
       proof (cases "fic P c")
         case True 
         assume "fic P c"
@@ -743,7 +743,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){y:=<c>.P} \<longrightarrow>\<^sub>a* 
                (Cut <a>.(Cut <d>.N (x).M) (u).Q){y:=<c>.P}"
         by simp
     }
@@ -752,8 +752,8 @@ next
 qed
 
 lemma l_redu_subst2:
-  assumes a: "M \<longrightarrow>\<^isub>l M'" 
-  shows "M{c:=(y).P} \<longrightarrow>\<^isub>a* M'{c:=(y).P}"
+  assumes a: "M \<longrightarrow>\<^sub>l M'" 
+  shows "M{c:=(y).P} \<longrightarrow>\<^sub>a* M'{c:=(y).P}"
 using a
 proof(nominal_induct M M' avoiding: y c P rule: l_redu.strong_induct)
   case LAxR
@@ -812,7 +812,7 @@ next
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} = 
         (Cut <a>.NotR (u).(M{c:=(y).P}) a (v).NotL <b>.(N{c:=(y).P}) v)" using LNot
         by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>l (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using LNot
+      also have "\<dots> \<longrightarrow>\<^sub>l (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using LNot
         by (auto intro: l_redu.intros simp add: subst_fresh)
       also have "\<dots> = (Cut <b>.N (u).M){c:=(y).P}" using LNot asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
@@ -823,7 +823,7 @@ next
       have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} = 
         (Cut <a>.NotR (u).(M{c:=(y).P}) a (v).NotL <b>.(N{c:=(y).P}) v)" using LNot
         by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using LNot
+      also have "\<dots> \<longrightarrow>\<^sub>a* (Cut <b>.(N{c:=(y).P}) (u).(M{c:=(y).P}))" using LNot
         apply -
         apply(rule a_starI)
         apply(rule al_redu)
@@ -831,7 +831,7 @@ next
         done
       also have "\<dots> = (Cut <b>.(N{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P))" using LNot asm
         by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* (Cut <b>.(N{c:=(y).P})  (u).(P[y\<turnstile>n>u]))" 
+      also have "\<dots> \<longrightarrow>\<^sub>a* (Cut <b>.(N{c:=(y).P})  (u).(P[y\<turnstile>n>u]))" 
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -866,7 +866,7 @@ next
         apply(rule nrename_swap)
         apply(simp)
         done
-      finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <b>.N (u).M){c:=(y).P}" 
+      finally have "(Cut <a>.NotR (u).M a (v).NotL <b>.N v){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <b>.N (u).M){c:=(y).P}" 
         by simp
     }
     ultimately show ?thesis by blast
@@ -879,7 +879,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL1 (u).(N{c:=(y).P}) z" 
         using LAnd1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
         using LAnd1
         apply -
         apply(rule a_starI)
@@ -889,7 +889,7 @@ next
       also have "\<dots> = (Cut <a1>.M1 (u).N){c:=(y).P}" using LAnd1 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
         by simp
     } 
     moreover
@@ -897,7 +897,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL1 (u).(N{c:=(y).P}) z" 
         using LAnd1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.(M1{c:=(y).P}) (u).(N{c:=(y).P})"
         using LAnd1
         apply -
         apply(rule a_starI)
@@ -906,7 +906,7 @@ next
         done
       also have "\<dots> = Cut <a1>.(M1{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P)" 
         using LAnd1 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a1>.(M1{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a1>.(M1{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -942,7 +942,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL1 (u).N z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a1>.M1 (u).N){c:=(y).P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -955,7 +955,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL2 (u).(N{c:=(y).P}) z" 
         using LAnd2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
         using LAnd2
         apply -
         apply(rule a_starI)
@@ -965,7 +965,7 @@ next
       also have "\<dots> = (Cut <a2>.M2 (u).N){c:=(y).P}" using LAnd2 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
         by simp
     } 
     moreover
@@ -973,7 +973,7 @@ next
       have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} = 
         Cut <b>.AndR <a1>.(M1{c:=(y).P}) <a2>.(M2{c:=(y).P}) b (z).AndL2 (u).(N{c:=(y).P}) z" 
         using LAnd2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.(M2{c:=(y).P}) (u).(N{c:=(y).P})"
         using LAnd2
         apply -
         apply(rule a_starI)
@@ -982,7 +982,7 @@ next
         done
       also have "\<dots> = Cut <a2>.(M2{c:=(y).P}) (u).(Cut <c>.(Ax u c) (y).P)" 
         using LAnd2 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a2>.(M2{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a2>.(M2{c:=(y).P}) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1018,7 +1018,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
+      have "(Cut <b>.AndR <a1>.M1 <a2>.M2 b (z).AndL2 (u).N z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a2>.M2 (u).N){c:=(y).P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -1031,7 +1031,7 @@ next
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR1 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
         using LOr1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
         using LOr1
         apply -
         apply(rule a_starI)
@@ -1041,7 +1041,7 @@ next
       also have "\<dots> = (Cut <a>.M (x1).N1){c:=(y).P}" using LOr1 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
+      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
         by simp
     } 
     moreover
@@ -1049,7 +1049,7 @@ next
       have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR1 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
         using LOr1 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P}) (x1).(N1{c:=(y).P})"
         using LOr1
         apply -
         apply(rule a_starI)
@@ -1058,7 +1058,7 @@ next
         done
       also have "\<dots> = Cut <a>.(M{c:=(y).P}) (x1).(Cut <c>.(Ax x1 c) (y).P)" 
         using LOr1 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P})   (x1).(P[y\<turnstile>n>x1])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P})   (x1).(P[y\<turnstile>n>x1])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1094,7 +1094,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
+      have "(Cut <b>.OrR1 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x1).N1){c:=(y).P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -1107,7 +1107,7 @@ next
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR2 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
         using LOr2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
         using LOr2
         apply -
         apply(rule a_starI)
@@ -1117,7 +1117,7 @@ next
       also have "\<dots> = (Cut <a>.M (x2).N2){c:=(y).P}" using LOr2 asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
+      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
         by simp
     } 
     moreover
@@ -1125,7 +1125,7 @@ next
       have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} = 
         Cut <b>.OrR2 <a>.(M{c:=(y).P}) b (z).OrL (x1).(N1{c:=(y).P}) (x2).(N2{c:=(y).P}) z" 
         using LOr2 by (simp add: subst_fresh abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P}) (x2).(N2{c:=(y).P})"
         using LOr2
         apply -
         apply(rule a_starI)
@@ -1134,7 +1134,7 @@ next
         done
       also have "\<dots> = Cut <a>.(M{c:=(y).P}) (x2).(Cut <c>.(Ax x2 c) (y).P)" 
         using LOr2 asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(M{c:=(y).P}) (x2).(P[y\<turnstile>n>x2])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(M{c:=(y).P}) (x2).(P[y\<turnstile>n>x2])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1170,7 +1170,7 @@ next
         apply(simp)
         done
       finally 
-      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^isub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
+      have "(Cut <b>.OrR2 <a>.M b (z).OrL (x1).N1 (x2).N2 z){c:=(y).P} \<longrightarrow>\<^sub>a* (Cut <a>.M (x2).N2){c:=(y).P}"
         by simp
     }
     ultimately show ?thesis by blast
@@ -1183,7 +1183,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
         using LImp by (simp add: fresh_prod abs_fresh fresh_atm)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -1193,7 +1193,7 @@ next
       also have "\<dots> = (Cut <a>.(Cut <d>.N  (x).M) (u).Q){c:=(y).P}" using LImp asm
         by (simp add: subst_fresh abs_fresh fresh_atm)
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^sub>a* 
                      (Cut <a>.(Cut <d>.N  (x).M) (u).Q){c:=(y).P}"
         by simp
     } 
@@ -1202,7 +1202,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
         using LImp by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -1211,7 +1211,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(Q{c:=(y).P})"
         using LImp asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(Q{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(Q{c:=(y).P})"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1251,7 +1251,7 @@ next
         apply(simp add: nrename_swap)
         done
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^sub>a* 
                (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
         by simp
     }
@@ -1260,7 +1260,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
         using LImp by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -1269,7 +1269,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Cut <c>.Ax u c (y).P)"
         using LImp asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(P[y\<turnstile>n>u])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1303,7 +1303,7 @@ next
         apply(simp add: nrename_swap)
         done
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^sub>a* 
                (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
         by simp
     }
@@ -1312,7 +1312,7 @@ next
       have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} = 
         Cut <b>.ImpR (x).<a>.(M{c:=(y).P}) b (z).ImpL <d>.(N{c:=(y).P}) (u).(Q{c:=(y).P}) z" 
         using LImp by (simp add: subst_fresh abs_fresh fresh_atm fresh_prod)
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(M{c:=(y).P})) (u).(Q{c:=(y).P})"
         using LImp
         apply -
         apply(rule a_starI)
@@ -1321,7 +1321,7 @@ next
         done
       also have "\<dots> = Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(Cut <c>.Ax u c (y).P)"
         using LImp asm by simp
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(P[y\<turnstile>n>u])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(Cut <c>.Ax x c (y).P)) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1347,7 +1347,7 @@ next
           apply(simp add: subst_with_ax1)
           done
       qed
-      also have "\<dots> \<longrightarrow>\<^isub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(P[y\<turnstile>n>u])"
+      also have "\<dots> \<longrightarrow>\<^sub>a* Cut <a>.(Cut <d>.(N{c:=(y).P})  (x).(P[y\<turnstile>n>x])) (u).(P[y\<turnstile>n>u])"
       proof (cases "fin P y")
         case True 
         assume "fin P y"
@@ -1386,7 +1386,7 @@ next
         apply(simp add: nrename_swap)
         done
       finally 
-      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^isub>a* 
+      have "(Cut <b>.ImpR (x).<a>.M b (z).ImpL <d>.N (u).Q z){c:=(y).P} \<longrightarrow>\<^sub>a* 
                (Cut <a>.(Cut <d>.N (x).M) (u).Q){c:=(y).P}"
         by simp
     }
@@ -1395,8 +1395,8 @@ next
 qed
 
 lemma a_redu_subst1:
-  assumes a: "M \<longrightarrow>\<^isub>a M'"
-  shows "M{y:=<c>.P} \<longrightarrow>\<^isub>a* M'{y:=<c>.P}"
+  assumes a: "M \<longrightarrow>\<^sub>a M'"
+  shows "M{y:=<c>.P} \<longrightarrow>\<^sub>a* M'{y:=<c>.P}"
 using a
 proof(nominal_induct avoiding: y c P rule: a_redu.strong_induct)
   case al_redu
@@ -1602,8 +1602,8 @@ next
 qed
 
 lemma a_redu_subst2:
-  assumes a: "M \<longrightarrow>\<^isub>a M'"
-  shows "M{c:=(y).P} \<longrightarrow>\<^isub>a* M'{c:=(y).P}"
+  assumes a: "M \<longrightarrow>\<^sub>a M'"
+  shows "M{c:=(y).P} \<longrightarrow>\<^sub>a* M'{c:=(y).P}"
 using a
 proof(nominal_induct avoiding: y c P rule: a_redu.strong_induct)
   case al_redu
@@ -1802,8 +1802,8 @@ next
 qed
 
 lemma a_star_subst1:
-  assumes a: "M \<longrightarrow>\<^isub>a* M'"
-  shows "M{y:=<c>.P} \<longrightarrow>\<^isub>a* M'{y:=<c>.P}"
+  assumes a: "M \<longrightarrow>\<^sub>a* M'"
+  shows "M{y:=<c>.P} \<longrightarrow>\<^sub>a* M'{y:=<c>.P}"
 using a
 apply(induct)
 apply(blast)
@@ -1812,8 +1812,8 @@ apply(auto)
 done
 
 lemma a_star_subst2:
-  assumes a: "M \<longrightarrow>\<^isub>a* M'"
-  shows "M{c:=(y).P} \<longrightarrow>\<^isub>a* M'{c:=(y).P}"
+  assumes a: "M \<longrightarrow>\<^sub>a* M'"
+  shows "M{c:=(y).P} \<longrightarrow>\<^sub>a* M'{c:=(y).P}"
 using a
 apply(induct)
 apply(blast)
@@ -1828,11 +1828,11 @@ text {* SNa *}
 inductive 
   SNa :: "trm \<Rightarrow> bool"
 where
-  SNaI: "(\<And>M'. M \<longrightarrow>\<^isub>a M' \<Longrightarrow> SNa M') \<Longrightarrow> SNa M"
+  SNaI: "(\<And>M'. M \<longrightarrow>\<^sub>a M' \<Longrightarrow> SNa M') \<Longrightarrow> SNa M"
 
 lemma SNa_induct[consumes 1]:
   assumes major: "SNa M"
-  assumes hyp: "\<And>M'. SNa M' \<Longrightarrow> (\<forall>M''. M'\<longrightarrow>\<^isub>a M'' \<longrightarrow> P M'' \<Longrightarrow> P M')"
+  assumes hyp: "\<And>M'. SNa M' \<Longrightarrow> (\<forall>M''. M'\<longrightarrow>\<^sub>a M'' \<longrightarrow> P M'' \<Longrightarrow> P M')"
   shows "P M"
   apply (rule major[THEN SNa.induct])
   apply (rule hyp)
@@ -1845,10 +1845,10 @@ lemma double_SNa_aux:
   assumes a_SNa: "SNa a"
   and b_SNa: "SNa b"
   and hyp: "\<And>x z.
-    (\<And>y. x\<longrightarrow>\<^isub>a y \<Longrightarrow> SNa y) \<Longrightarrow>
-    (\<And>y. x\<longrightarrow>\<^isub>a y \<Longrightarrow> P y z) \<Longrightarrow>
-    (\<And>u. z\<longrightarrow>\<^isub>a u \<Longrightarrow> SNa u) \<Longrightarrow>
-    (\<And>u. z\<longrightarrow>\<^isub>a u \<Longrightarrow> P x u) \<Longrightarrow> P x z"
+    (\<And>y. x\<longrightarrow>\<^sub>a y \<Longrightarrow> SNa y) \<Longrightarrow>
+    (\<And>y. x\<longrightarrow>\<^sub>a y \<Longrightarrow> P y z) \<Longrightarrow>
+    (\<And>u. z\<longrightarrow>\<^sub>a u \<Longrightarrow> SNa u) \<Longrightarrow>
+    (\<And>u. z\<longrightarrow>\<^sub>a u \<Longrightarrow> P x u) \<Longrightarrow> P x z"
   shows "P a b"
 proof -
   from a_SNa
@@ -1873,20 +1873,20 @@ proof -
 qed
 
 lemma double_SNa:
-  "\<lbrakk>SNa a; SNa b; \<forall>x z. ((\<forall>y. x\<longrightarrow>\<^isub>ay \<longrightarrow> P y z) \<and> (\<forall>u. z\<longrightarrow>\<^isub>a u \<longrightarrow> P x u)) \<longrightarrow> P x z\<rbrakk> \<Longrightarrow> P a b"
+  "\<lbrakk>SNa a; SNa b; \<forall>x z. ((\<forall>y. x\<longrightarrow>\<^sub>ay \<longrightarrow> P y z) \<and> (\<forall>u. z\<longrightarrow>\<^sub>a u \<longrightarrow> P x u)) \<longrightarrow> P x z\<rbrakk> \<Longrightarrow> P a b"
 apply(rule_tac double_SNa_aux)
 apply(assumption)+
 apply(blast)
 done
 
 lemma a_preserves_SNa:
-  assumes a: "SNa M" "M\<longrightarrow>\<^isub>a M'"
+  assumes a: "SNa M" "M\<longrightarrow>\<^sub>a M'"
   shows "SNa M'"
 using a 
 by (erule_tac SNa.cases) (simp)
 
 lemma a_star_preserves_SNa:
-  assumes a: "SNa M" and b: "M\<longrightarrow>\<^isub>a* M'"
+  assumes a: "SNa M" and b: "M\<longrightarrow>\<^sub>a* M'"
   shows "SNa M'"
 using b a
 by (induct) (auto simp add: a_preserves_SNa)
@@ -5463,7 +5463,7 @@ next
       with imp fs have "(x'):(M'{a':=(z).Ax z a'}) \<in> \<parallel>(A)\<parallel>" by (simp add: fresh_prod fresh_atm)
       then have "SNa (M'{a':=(z).Ax z a'})" using ih2 by blast
       moreover 
-      have "M'{a':=(z).Ax z a'} \<longrightarrow>\<^isub>a* M'[a'\<turnstile>c>a']" by (simp add: subst_with_ax2)
+      have "M'{a':=(z).Ax z a'} \<longrightarrow>\<^sub>a* M'[a'\<turnstile>c>a']" by (simp add: subst_with_ax2)
       ultimately have "SNa (M'[a'\<turnstile>c>a'])" by (simp add: a_star_preserves_SNa)
       then have "SNa M'" by (simp add: crename_id)
       then have "SNa M" using eq by (simp add: ImpR_in_SNa)
@@ -5499,8 +5499,8 @@ qed
 text {* Main lemma 2 *}
 
 lemma AXIOMS_preserved:
-  shows "<a>:M \<in> AXIOMSc B \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> <a>:M' \<in> AXIOMSc B"
-  and   "(x):M \<in> AXIOMSn B \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> (x):M' \<in> AXIOMSn B"
+  shows "<a>:M \<in> AXIOMSc B \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> <a>:M' \<in> AXIOMSc B"
+  and   "(x):M \<in> AXIOMSn B \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> (x):M' \<in> AXIOMSn B"
   apply(simp_all add: AXIOMSc_def AXIOMSn_def)
   apply(auto simp add: ntrm.inject ctrm.inject alpha)
   apply(drule ax_do_not_a_star_reduce)
@@ -5514,28 +5514,28 @@ lemma AXIOMS_preserved:
   done  
 
 lemma BINDING_preserved:
-  shows "<a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>) \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> <a>:M' \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
-  and   "(x):M \<in> BINDINGn B (\<parallel><B>\<parallel>) \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> (x):M' \<in> BINDINGn B (\<parallel><B>\<parallel>)"
+  shows "<a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>) \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> <a>:M' \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
+  and   "(x):M \<in> BINDINGn B (\<parallel><B>\<parallel>) \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> (x):M' \<in> BINDINGn B (\<parallel><B>\<parallel>)"
 proof -
-  assume red: "M \<longrightarrow>\<^isub>a* M'"
+  assume red: "M \<longrightarrow>\<^sub>a* M'"
   assume asm: "<a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
   {
     fix x::"name" and  P::"trm"
     from asm have "((x):P) \<in> (\<parallel>(B)\<parallel>) \<Longrightarrow> SNa (M{a:=(x).P})" by (simp add: BINDINGc_elim)
     moreover
-    have "M{a:=(x).P} \<longrightarrow>\<^isub>a* M'{a:=(x).P}" using red by (simp add: a_star_subst2)
+    have "M{a:=(x).P} \<longrightarrow>\<^sub>a* M'{a:=(x).P}" using red by (simp add: a_star_subst2)
     ultimately 
     have "((x):P) \<in> (\<parallel>(B)\<parallel>) \<Longrightarrow> SNa (M'{a:=(x).P})" by (simp add: a_star_preserves_SNa)
   }
   then show "<a>:M' \<in> BINDINGc B (\<parallel>(B)\<parallel>)" by (auto simp add: BINDINGc_def)
 next
-  assume red: "M \<longrightarrow>\<^isub>a* M'"
+  assume red: "M \<longrightarrow>\<^sub>a* M'"
   assume asm: "(x):M \<in> BINDINGn B (\<parallel><B>\<parallel>)"
   {
     fix c::"coname" and  P::"trm"
     from asm have "(<c>:P) \<in> (\<parallel><B>\<parallel>) \<Longrightarrow> SNa (M{x:=<c>.P})" by (simp add: BINDINGn_elim)
     moreover
-    have "M{x:=<c>.P} \<longrightarrow>\<^isub>a* M'{x:=<c>.P}" using red by (simp add: a_star_subst1)
+    have "M{x:=<c>.P} \<longrightarrow>\<^sub>a* M'{x:=<c>.P}" using red by (simp add: a_star_subst1)
     ultimately 
     have "(<c>:P) \<in> (\<parallel><B>\<parallel>) \<Longrightarrow> SNa (M'{x:=<c>.P})" by (simp add: a_star_preserves_SNa)
   }
@@ -5543,12 +5543,12 @@ next
 qed
     
 lemma CANDs_preserved:
-  shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>"
-  and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" 
+  shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>"
+  and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> M \<longrightarrow>\<^sub>a* M' \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" 
 proof(nominal_induct B arbitrary: a x M M' rule: ty.strong_induct) 
   case (PR X)
   { case 1 
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "<a>:M \<in> \<parallel><PR X>\<parallel>" by fact
     then have "<a>:M \<in> NEGc (PR X) (\<parallel>(PR X)\<parallel>)" by simp
     then have "<a>:M \<in> AXIOMSc (PR X) \<union> BINDINGc (PR X) (\<parallel>(PR X)\<parallel>)" by simp
@@ -5565,7 +5565,7 @@ proof(nominal_induct B arbitrary: a x M M' rule: ty.strong_induct)
     then show "<a>:M' \<in> (\<parallel><PR X>\<parallel>)" using NEG_simp by blast
   next
     case 2
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "(x):M \<in> \<parallel>(PR X)\<parallel>" by fact
     then have "(x):M \<in> NEGn (PR X) (\<parallel><PR X>\<parallel>)" using NEG_simp by blast
     then have "(x):M \<in> AXIOMSn (PR X) \<union> BINDINGn (PR X) (\<parallel><PR X>\<parallel>)" by simp
@@ -5583,12 +5583,12 @@ proof(nominal_induct B arbitrary: a x M M' rule: ty.strong_induct)
   }
 next
   case (IMP A B)
-  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
-  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
-  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
-  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
+  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
+  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
+  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
+  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
   { case 1 
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "<a>:M \<in> \<parallel><A IMP B>\<parallel>" by fact
     then have "<a>:M \<in> NEGc (A IMP B) (\<parallel>(A IMP B)\<parallel>)" by simp
     then have "<a>:M \<in> AXIOMSc (A IMP B) \<union> BINDINGc (A IMP B) (\<parallel>(A IMP B)\<parallel>) 
@@ -5607,7 +5607,7 @@ next
                            and imp1: "\<forall>z P. x'\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B)\<parallel> \<longrightarrow> (x'):(N'{a':=(z).P}) \<in> \<parallel>(A)\<parallel>" 
                            and imp2: "\<forall>c Q. a'\<sharp>(c,Q) \<and> <c>:Q \<in> \<parallel><A>\<parallel> \<longrightarrow> <a'>:(N'{x':=<c>.Q}) \<in> \<parallel><B>\<parallel>"
         using IMPRIGHT_elim by blast
-      from eq asm obtain N'' where eq': "M' = ImpR (x').<a'>.N'' a" and red: "N' \<longrightarrow>\<^isub>a* N''" 
+      from eq asm obtain N'' where eq': "M' = ImpR (x').<a'>.N'' a" and red: "N' \<longrightarrow>\<^sub>a* N''" 
         using a_star_redu_ImpR_elim by (blast)
       from imp1 have "\<forall>z P. x'\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B)\<parallel> \<longrightarrow> (x'):(N''{a':=(z).P}) \<in> \<parallel>(A)\<parallel>" using red ih2
         apply(auto)
@@ -5636,7 +5636,7 @@ next
     then show "<a>:M' \<in> (\<parallel><A IMP B>\<parallel>)" using NEG_simp by blast
   next
     case 2
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "(x):M \<in> \<parallel>(A IMP B)\<parallel>" by fact
     then have "(x):M \<in> NEGn (A IMP B) (\<parallel><A IMP B>\<parallel>)" using NEG_simp by blast
     then have "(x):M \<in> AXIOMSn (A IMP B) \<union> BINDINGn (A IMP B) (\<parallel><A IMP B>\<parallel>) 
@@ -5656,7 +5656,7 @@ next
                              and imp1: "<a'>:T' \<in> \<parallel><A>\<parallel>" and imp2: "(y'):N' \<in> \<parallel>(B)\<parallel>"
         by (erule_tac IMPLEFT_elim, blast)
       from eq asm obtain T'' N'' where eq': "M' = ImpL <a'>.T'' (y').N'' x" 
-                                 and red1: "T' \<longrightarrow>\<^isub>a* T''"  and red2: "N' \<longrightarrow>\<^isub>a* N''"
+                                 and red1: "T' \<longrightarrow>\<^sub>a* T''"  and red2: "N' \<longrightarrow>\<^sub>a* N''"
         using a_star_redu_ImpL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
@@ -5672,12 +5672,12 @@ next
   }
 next
   case (AND A B)
-  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
-  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
-  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
-  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
+  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
+  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
+  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
+  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
   { case 1 
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "<a>:M \<in> \<parallel><A AND B>\<parallel>" by fact
     then have "<a>:M \<in> NEGc (A AND B) (\<parallel>(A AND B)\<parallel>)" by simp
     then have "<a>:M \<in> AXIOMSc (A AND B) \<union> BINDINGc (A AND B) (\<parallel>(A AND B)\<parallel>) 
@@ -5697,7 +5697,7 @@ next
                            and imp1: "<a'>:T' \<in> \<parallel><A>\<parallel>" and imp2: "<b'>:N' \<in> \<parallel><B>\<parallel>"
         using ANDRIGHT_elim by blast
       from eq asm obtain T'' N'' where eq': "M' = AndR <a'>.T'' <b'>.N'' a" 
-                          and red1: "T' \<longrightarrow>\<^isub>a* T''" and red2: "N' \<longrightarrow>\<^isub>a* N''" 
+                          and red1: "T' \<longrightarrow>\<^sub>a* T''" and red2: "N' \<longrightarrow>\<^sub>a* N''" 
         using a_star_redu_AndR_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
@@ -5712,7 +5712,7 @@ next
     then show "<a>:M' \<in> (\<parallel><A AND B>\<parallel>)" using NEG_simp by blast
   next
     case 2
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "(x):M \<in> \<parallel>(A AND B)\<parallel>" by fact
     then have "(x):M \<in> NEGn (A AND B) (\<parallel><A AND B>\<parallel>)" using NEG_simp by blast
     then have "(x):M \<in> AXIOMSn (A AND B) \<union> BINDINGn (A AND B) (\<parallel><A AND B>\<parallel>) 
@@ -5730,7 +5730,7 @@ next
       then obtain y' N' where eq: "M = AndL1 (y').N' x" 
                              and fin: "fin (AndL1 (y').N' x) x" and imp: "(y'):N' \<in> \<parallel>(A)\<parallel>"
         by (erule_tac ANDLEFT1_elim, blast)
-      from eq asm obtain N'' where eq': "M' = AndL1 (y').N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
+      from eq asm obtain N'' where eq': "M' = AndL1 (y').N'' x" and red1: "N' \<longrightarrow>\<^sub>a* N''"
         using a_star_redu_AndL1_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
@@ -5742,7 +5742,7 @@ next
       then obtain y' N' where eq: "M = AndL2 (y').N' x" 
                              and fin: "fin (AndL2 (y').N' x) x" and imp: "(y'):N' \<in> \<parallel>(B)\<parallel>"
         by (erule_tac ANDLEFT2_elim, blast)
-      from eq asm obtain N'' where eq': "M' = AndL2 (y').N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
+      from eq asm obtain N'' where eq': "M' = AndL2 (y').N'' x" and red1: "N' \<longrightarrow>\<^sub>a* N''"
         using a_star_redu_AndL2_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
@@ -5756,12 +5756,12 @@ next
   }
 next    
  case (OR A B)
-  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
-  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
-  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
-  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
+  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
+  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
+  have ih3: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><B>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>" by fact
+  have ih4: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(B)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" by fact
   { case 1 
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "<a>:M \<in> \<parallel><A OR B>\<parallel>" by fact
     then have "<a>:M \<in> NEGc (A OR B) (\<parallel>(A OR B)\<parallel>)" by simp
     then have "<a>:M \<in> AXIOMSc (A OR B) \<union> BINDINGc (A OR B) (\<parallel>(A OR B)\<parallel>) 
@@ -5779,7 +5779,7 @@ next
       then obtain a' N' where eq: "M = OrR1 <a'>.N' a" 
                               and fic: "fic (OrR1 <a'>.N' a) a" and imp1: "<a'>:N' \<in> \<parallel><A>\<parallel>"
         using ORRIGHT1_elim by blast
-      from eq asm obtain N'' where eq': "M' = OrR1 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^isub>a* N''" 
+      from eq asm obtain N'' where eq': "M' = OrR1 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^sub>a* N''" 
         using a_star_redu_OrR1_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
@@ -5791,7 +5791,7 @@ next
       then obtain a' N' where eq: "M = OrR2 <a'>.N' a" 
                               and fic: "fic (OrR2 <a'>.N' a) a" and imp1: "<a'>:N' \<in> \<parallel><B>\<parallel>"
         using ORRIGHT2_elim by blast
-      from eq asm obtain N'' where eq': "M' = OrR2 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^isub>a* N''" 
+      from eq asm obtain N'' where eq': "M' = OrR2 <a'>.N'' a" and red1: "N' \<longrightarrow>\<^sub>a* N''" 
         using a_star_redu_OrR2_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
@@ -5804,7 +5804,7 @@ next
     then show "<a>:M' \<in> (\<parallel><A OR B>\<parallel>)" using NEG_simp by blast
   next
     case 2
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "(x):M \<in> \<parallel>(A OR B)\<parallel>" by fact
     then have "(x):M \<in> NEGn (A OR B) (\<parallel><A OR B>\<parallel>)" using NEG_simp by blast
     then have "(x):M \<in> AXIOMSn (A OR B) \<union> BINDINGn (A OR B) (\<parallel><A OR B>\<parallel>) 
@@ -5824,7 +5824,7 @@ next
                              and imp1: "(y'):T' \<in> \<parallel>(A)\<parallel>" and imp2: "(z'):N' \<in> \<parallel>(B)\<parallel>"
         by (erule_tac ORLEFT_elim, blast)
       from eq asm obtain T'' N'' where eq': "M' = OrL (y').T'' (z').N'' x" 
-                and red1: "T' \<longrightarrow>\<^isub>a* T''" and red2: "N' \<longrightarrow>\<^isub>a* N''"
+                and red1: "T' \<longrightarrow>\<^sub>a* T''" and red2: "N' \<longrightarrow>\<^sub>a* N''"
         using a_star_redu_OrL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
@@ -5840,10 +5840,10 @@ next
   }
 next
   case (NOT A)
-  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
-  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^isub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
+  have ih1: "\<And>a M M'. \<lbrakk><a>:M \<in> \<parallel><A>\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> <a>:M' \<in> \<parallel><A>\<parallel>" by fact
+  have ih2: "\<And>x M M'. \<lbrakk>(x):M \<in> \<parallel>(A)\<parallel>; M \<longrightarrow>\<^sub>a* M'\<rbrakk> \<Longrightarrow> (x):M' \<in> \<parallel>(A)\<parallel>" by fact
   { case 1 
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "<a>:M \<in> \<parallel><NOT A>\<parallel>" by fact
     then have "<a>:M \<in> NEGc (NOT A) (\<parallel>(NOT A)\<parallel>)" by simp
     then have "<a>:M \<in> AXIOMSc (NOT A) \<union> BINDINGc (NOT A) (\<parallel>(NOT A)\<parallel>) 
@@ -5861,7 +5861,7 @@ next
       then obtain y' N' where eq: "M = NotR (y').N' a" 
                               and fic: "fic (NotR (y').N' a) a" and imp: "(y'):N' \<in> \<parallel>(A)\<parallel>"
         using NOTRIGHT_elim by blast
-      from eq asm obtain N'' where eq': "M' = NotR (y').N'' a" and red: "N' \<longrightarrow>\<^isub>a* N''" 
+      from eq asm obtain N'' where eq': "M' = NotR (y').N'' a" and red: "N' \<longrightarrow>\<^sub>a* N''" 
         using a_star_redu_NotR_elim by blast
       from fic have "fic M' a" using eq asm by (simp add: fic_a_star_reduce)
       moreover
@@ -5874,7 +5874,7 @@ next
     then show "<a>:M' \<in> (\<parallel><NOT A>\<parallel>)" using NEG_simp by blast
   next
     case 2
-    have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
+    have asm: "M \<longrightarrow>\<^sub>a* M'" by fact
     have "(x):M \<in> \<parallel>(NOT A)\<parallel>" by fact
     then have "(x):M \<in> NEGn (NOT A) (\<parallel><NOT A>\<parallel>)" using NEG_simp by blast
     then have "(x):M \<in> AXIOMSn (NOT A) \<union> BINDINGn (NOT A) (\<parallel><NOT A>\<parallel>) 
@@ -5892,7 +5892,7 @@ next
       then obtain a' N' where eq: "M = NotL <a'>.N' x" 
                              and fin: "fin (NotL <a'>.N' x) x" and imp: "<a'>:N' \<in> \<parallel><A>\<parallel>"
         by (erule_tac NOTLEFT_elim, blast)
-      from eq asm obtain N'' where eq': "M' = NotL <a'>.N'' x" and red1: "N' \<longrightarrow>\<^isub>a* N''"
+      from eq asm obtain N'' where eq': "M' = NotL <a'>.N'' x" and red1: "N' \<longrightarrow>\<^sub>a* N''"
         using a_star_redu_NotL_elim by blast
       from fin have "fin M' x" using eq asm by (simp add: fin_a_star_reduce)
       moreover
@@ -5907,8 +5907,8 @@ next
 qed
 
 lemma CANDs_preserved_single:
-  shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a M' \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>"
-  and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a M' \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>"
+  shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> M \<longrightarrow>\<^sub>a M' \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>"
+  and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> M \<longrightarrow>\<^sub>a M' \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>"
 by (auto simp add: a_starI CANDs_preserved)
 
 lemma fic_CANDS:

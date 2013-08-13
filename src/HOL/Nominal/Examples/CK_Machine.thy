@@ -43,11 +43,11 @@ nominal_primrec
   subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
 where
   "(VAR x)[y::=s] = (if x=y then s else (VAR x))"
-| "(APP t\<^isub>1 t\<^isub>2)[y::=s] = APP (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "(APP t\<^sub>1 t\<^sub>2)[y::=s] = APP (t\<^sub>1[y::=s]) (t\<^sub>2[y::=s])"
 | "x\<sharp>(y,s) \<Longrightarrow> (LAM [x].t)[y::=s] = LAM [x].(t[y::=s])"
 | "(NUM n)[y::=s] = NUM n"
-| "(t\<^isub>1 -- t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) -- (t\<^isub>2[y::=s])"
-| "(t\<^isub>1 ++ t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) ++ (t\<^isub>2[y::=s])"
+| "(t\<^sub>1 -- t\<^sub>2)[y::=s] = (t\<^sub>1[y::=s]) -- (t\<^sub>2[y::=s])"
+| "(t\<^sub>1 ++ t\<^sub>2)[y::=s] = (t\<^sub>1[y::=s]) ++ (t\<^sub>2[y::=s])"
 | "x\<sharp>(y,s) \<Longrightarrow> (FIX [x].t)[y::=s] = FIX [x].(t[y::=s])"
 | "TRUE[y::=s] = TRUE"
 | "FALSE[y::=s] = FALSE"
@@ -387,7 +387,7 @@ text {* Sub-Typing Contexts *}
 abbreviation
   "sub_tctx" :: "tctx \<Rightarrow> tctx \<Rightarrow> bool" ("_ \<subseteq> _") 
 where
-  "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^isub>1 \<longrightarrow> x \<in> set \<Gamma>\<^isub>2"
+  "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
 text {* Valid Typing Contexts *}
 
@@ -429,11 +429,11 @@ inductive
   typing :: "tctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
 where
   t_VAR[intro]:  "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> VAR x : T"
-| t_APP[intro]:  "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : T\<^isub>1\<rightarrow>T\<^isub>2; \<Gamma> \<turnstile> t\<^isub>2 : T\<^isub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> APP t\<^isub>1 t\<^isub>2 : T\<^isub>2"
-| t_LAM[intro]:  "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> LAM [x].t : T\<^isub>1 \<rightarrow> T\<^isub>2"
+| t_APP[intro]:  "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> APP t\<^sub>1 t\<^sub>2 : T\<^sub>2"
+| t_LAM[intro]:  "\<lbrakk>x\<sharp>\<Gamma>; (x,T\<^sub>1)#\<Gamma> \<turnstile> t : T\<^sub>2\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> LAM [x].t : T\<^sub>1 \<rightarrow> T\<^sub>2"
 | t_NUM[intro]:  "\<Gamma> \<turnstile> (NUM n) : tINT"
-| t_DIFF[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : tINT; \<Gamma> \<turnstile> t\<^isub>2 : tINT\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1 -- t\<^isub>2 : tINT"
-| t_PLUS[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^isub>1 : tINT; \<Gamma> \<turnstile> t\<^isub>2 : tINT\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^isub>1 ++ t\<^isub>2 : tINT"
+| t_DIFF[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : tINT; \<Gamma> \<turnstile> t\<^sub>2 : tINT\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^sub>1 -- t\<^sub>2 : tINT"
+| t_PLUS[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : tINT; \<Gamma> \<turnstile> t\<^sub>2 : tINT\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^sub>1 ++ t\<^sub>2 : tINT"
 | t_TRUE[intro]:  "\<Gamma> \<turnstile> TRUE : tBOOL"
 | t_FALSE[intro]: "\<Gamma> \<turnstile> FALSE : tBOOL"
 | t_IF[intro]:    "\<lbrakk>\<Gamma> \<turnstile> t1 : tBOOL; \<Gamma> \<turnstile> t2 : T; \<Gamma> \<turnstile> t3 : T\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> IF t1 t2 t3 : T"
@@ -443,8 +443,8 @@ where
 
 declare lam.inject[simp]
 inductive_cases typing_inversion[elim]:
-  "\<Gamma> \<turnstile> t\<^isub>1 -- t\<^isub>2 : T"
-  "\<Gamma> \<turnstile> t\<^isub>1 ++ t\<^isub>2 : T"
+  "\<Gamma> \<turnstile> t\<^sub>1 -- t\<^sub>2 : T"
+  "\<Gamma> \<turnstile> t\<^sub>1 ++ t\<^sub>2 : T"
   "\<Gamma> \<turnstile> IF t1 t2 t3 : T"
   "\<Gamma> \<turnstile> ZET t : T"
   "\<Gamma> \<turnstile> EQI t1 t2 : T"
@@ -461,7 +461,7 @@ nominal_inductive typing
 lemma t_LAM_inversion[dest]:
   assumes ty: "\<Gamma> \<turnstile> LAM [x].t : T" 
   and     fc: "x\<sharp>\<Gamma>" 
-  shows "\<exists>T\<^isub>1 T\<^isub>2. T = T\<^isub>1 \<rightarrow> T\<^isub>2 \<and> (x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2"
+  shows "\<exists>T\<^sub>1 T\<^sub>2. T = T\<^sub>1 \<rightarrow> T\<^sub>2 \<and> (x,T\<^sub>1)#\<Gamma> \<turnstile> t : T\<^sub>2"
 using ty fc 
 by (cases rule: typing.strong_cases) 
    (auto simp add: alpha lam.inject abs_fresh ty_fresh)

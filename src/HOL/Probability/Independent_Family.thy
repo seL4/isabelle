@@ -829,16 +829,16 @@ lemma (in prob_space) indep_vars_iff_distr_eq_PiM:
   assumes "I \<noteq> {}"
   assumes rv: "\<And>i. random_variable (M' i) (X i)"
   shows "indep_vars M' X I \<longleftrightarrow>
-    distr M (\<Pi>\<^isub>M i\<in>I. M' i) (\<lambda>x. \<lambda>i\<in>I. X i x) = (\<Pi>\<^isub>M i\<in>I. distr M (M' i) (X i))"
+    distr M (\<Pi>\<^sub>M i\<in>I. M' i) (\<lambda>x. \<lambda>i\<in>I. X i x) = (\<Pi>\<^sub>M i\<in>I. distr M (M' i) (X i))"
 proof -
-  let ?P = "\<Pi>\<^isub>M i\<in>I. M' i"
+  let ?P = "\<Pi>\<^sub>M i\<in>I. M' i"
   let ?X = "\<lambda>x. \<lambda>i\<in>I. X i x"
   let ?D = "distr M ?P ?X"
   have X: "random_variable ?P ?X" by (intro measurable_restrict rv)
   interpret D: prob_space ?D by (intro prob_space_distr X)
 
   let ?D' = "\<lambda>i. distr M (M' i) (X i)"
-  let ?P' = "\<Pi>\<^isub>M i\<in>I. distr M (M' i) (X i)"
+  let ?P' = "\<Pi>\<^sub>M i\<in>I. distr M (M' i) (X i)"
   interpret D': prob_space "?D' i" for i by (intro prob_space_distr rv)
   interpret P: product_prob_space ?D' I ..
     
@@ -855,10 +855,10 @@ proof -
         by (simp add: sets_PiM space_PiM)
       show "sets ?P' = sigma_sets (space ?P) (prod_algebra I M')"
         by (simp add: sets_PiM space_PiM cong: prod_algebra_cong)
-      let ?A = "\<lambda>i. \<Pi>\<^isub>E i\<in>I. space (M' i)"
-      show "range ?A \<subseteq> prod_algebra I M'" "(\<Union>i. ?A i) = space (Pi\<^isub>M I M')"
+      let ?A = "\<lambda>i. \<Pi>\<^sub>E i\<in>I. space (M' i)"
+      show "range ?A \<subseteq> prod_algebra I M'" "(\<Union>i. ?A i) = space (Pi\<^sub>M I M')"
         by (auto simp: space_PiM intro!: space_in_prod_algebra cong: prod_algebra_cong)
-      { fix i show "emeasure ?D (\<Pi>\<^isub>E i\<in>I. space (M' i)) \<noteq> \<infinity>" by auto }
+      { fix i show "emeasure ?D (\<Pi>\<^sub>E i\<in>I. space (M' i)) \<noteq> \<infinity>" by auto }
     next
       fix E assume E: "E \<in> prod_algebra I M'"
       from prod_algebraE[OF E] guess J Y . note J = this
@@ -896,7 +896,7 @@ proof -
       qed
       from bchoice[OF this] obtain Y where
         Y: "\<And>j. j \<in> J \<Longrightarrow> Y' j = X j -` Y j \<inter> space M" "\<And>j. j \<in> J \<Longrightarrow> Y j \<in> sets (M' j)" by auto
-      let ?E = "prod_emb I M' J (Pi\<^isub>E J Y)"
+      let ?E = "prod_emb I M' J (Pi\<^sub>E J Y)"
       from Y have "(\<Inter>j\<in>J. Y' j) = ?X -` ?E \<inter> space M"
         using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
       then have "emeasure M (\<Inter>j\<in>J. Y' j) = emeasure M (?X -` ?E \<inter> space M)"
@@ -946,18 +946,18 @@ qed
 
 lemma (in prob_space) indep_var_distribution_eq:
   "indep_var S X T Y \<longleftrightarrow> random_variable S X \<and> random_variable T Y \<and>
-    distr M S X \<Otimes>\<^isub>M distr M T Y = distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))" (is "_ \<longleftrightarrow> _ \<and> _ \<and> ?S \<Otimes>\<^isub>M ?T = ?J")
+    distr M S X \<Otimes>\<^sub>M distr M T Y = distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))" (is "_ \<longleftrightarrow> _ \<and> _ \<and> ?S \<Otimes>\<^sub>M ?T = ?J")
 proof safe
   assume "indep_var S X T Y"
   then show rvs: "random_variable S X" "random_variable T Y"
     by (blast dest: indep_var_rv1 indep_var_rv2)+
-  then have XY: "random_variable (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
+  then have XY: "random_variable (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))"
     by (rule measurable_Pair)
 
   interpret X: prob_space ?S by (rule prob_space_distr) fact
   interpret Y: prob_space ?T by (rule prob_space_distr) fact
   interpret XY: pair_prob_space ?S ?T ..
-  show "?S \<Otimes>\<^isub>M ?T = ?J"
+  show "?S \<Otimes>\<^sub>M ?T = ?J"
   proof (rule pair_measure_eqI)
     show "sigma_finite_measure ?S" ..
     show "sigma_finite_measure ?T" ..
@@ -973,7 +973,7 @@ proof safe
   qed simp
 next
   assume rvs: "random_variable S X" "random_variable T Y"
-  then have XY: "random_variable (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
+  then have XY: "random_variable (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x))"
     by (rule measurable_Pair)
 
   let ?S = "distr M S X" and ?T = "distr M T Y"
@@ -981,7 +981,7 @@ next
   interpret Y: prob_space ?T by (rule prob_space_distr) fact
   interpret XY: pair_prob_space ?S ?T ..
 
-  assume "?S \<Otimes>\<^isub>M ?T = ?J"
+  assume "?S \<Otimes>\<^sub>M ?T = ?J"
 
   { fix S and X
     have "Int_stable {X -` A \<inter> space M |A. A \<in> sets S}"
@@ -1004,8 +1004,8 @@ next
       fix A B assume ab: "A \<in> sets S" "B \<in> sets T"
       then have "ereal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) = emeasure ?J (A \<times> B)"
         using XY by (auto simp add: emeasure_distr emeasure_eq_measure intro!: arg_cong[where f="prob"])
-      also have "\<dots> = emeasure (?S \<Otimes>\<^isub>M ?T) (A \<times> B)"
-        unfolding `?S \<Otimes>\<^isub>M ?T = ?J` ..
+      also have "\<dots> = emeasure (?S \<Otimes>\<^sub>M ?T) (A \<times> B)"
+        unfolding `?S \<Otimes>\<^sub>M ?T = ?J` ..
       also have "\<dots> = emeasure ?S A * emeasure ?T B"
         using ab by (simp add: Y.emeasure_pair_measure_Times)
       finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
@@ -1019,7 +1019,7 @@ lemma (in prob_space) distributed_joint_indep:
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
   assumes X: "distributed M S X Px" and Y: "distributed M T Y Py"
   assumes indep: "indep_var S X T Y"
-  shows "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) (\<lambda>(x, y). Px x * Py y)"
+  shows "distributed M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)) (\<lambda>(x, y). Px x * Py y)"
   using indep_var_distribution_eq[of S X T Y] indep
   by (intro distributed_joint_indep'[OF S T X Y]) auto
 

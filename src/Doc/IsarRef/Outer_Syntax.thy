@@ -150,7 +150,7 @@ text {* The outer lexical syntax consists of three main categories of
     @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
 
     @{text letter} & = & @{text "latin  |  "}@{verbatim "\\"}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim "\\"}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
-          &   & @{verbatim "\<^isub>"}@{text "  |  "}@{verbatim "\<^isup>"} \\
+          &   & @{verbatim "\<^sub>"}@{text "  |  "}@{verbatim "\<^sup>"} \\
     @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
     @{text latin} & = & @{verbatim a}@{text "  | \<dots> |  "}@{verbatim z}@{text "  |  "}@{verbatim A}@{text "  |  \<dots> |  "}@{verbatim Z} \\
     @{text digit} & = & @{verbatim "0"}@{text "  |  \<dots> |  "}@{verbatim "9"} \\

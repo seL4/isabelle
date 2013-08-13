@@ -1212,16 +1212,16 @@ text {*
 
   \begin{matharray}{lll}
     @{text "m"} & @{text "::"} &
-      @{text "\<sigma>\<^isub>1 \<Rightarrow> \<dots> \<sigma>\<^isub>k \<Rightarrow> (\<^vec>\<alpha>\<^isub>n) t \<Rightarrow> (\<^vec>\<beta>\<^isub>n) t"} \\
+      @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>k \<Rightarrow> (\<^vec>\<alpha>\<^sub>n) t \<Rightarrow> (\<^vec>\<beta>\<^sub>n) t"} \\
   \end{matharray}
 
   \noindent where @{text t} is the type constructor, @{text
-  "\<^vec>\<alpha>\<^isub>n"} and @{text "\<^vec>\<beta>\<^isub>n"} are distinct
-  type variables free in the local theory and @{text "\<sigma>\<^isub>1"},
-  \ldots, @{text "\<sigma>\<^isub>k"} is a subsequence of @{text "\<alpha>\<^isub>1 \<Rightarrow>
-  \<beta>\<^isub>1"}, @{text "\<beta>\<^isub>1 \<Rightarrow> \<alpha>\<^isub>1"}, \ldots,
-  @{text "\<alpha>\<^isub>n \<Rightarrow> \<beta>\<^isub>n"}, @{text "\<beta>\<^isub>n \<Rightarrow>
-  \<alpha>\<^isub>n"}.
+  "\<^vec>\<alpha>\<^sub>n"} and @{text "\<^vec>\<beta>\<^sub>n"} are distinct
+  type variables free in the local theory and @{text "\<sigma>\<^sub>1"},
+  \ldots, @{text "\<sigma>\<^sub>k"} is a subsequence of @{text "\<alpha>\<^sub>1 \<Rightarrow>
+  \<beta>\<^sub>1"}, @{text "\<beta>\<^sub>1 \<Rightarrow> \<alpha>\<^sub>1"}, \ldots,
+  @{text "\<alpha>\<^sub>n \<Rightarrow> \<beta>\<^sub>n"}, @{text "\<beta>\<^sub>n \<Rightarrow>
+  \<alpha>\<^sub>n"}.
 
   \end{description}
 *}
@@ -1441,7 +1441,7 @@ text {*
 
   \begin{description}
 
-  \item @{command "adhoc_overloading"}~@{text "c v\<^isub>1 ... v\<^isub>n"}
+  \item @{command "adhoc_overloading"}~@{text "c v\<^sub>1 ... v\<^sub>n"}
   associates variants with an existing constant.
 
   \item @{command "no_adhoc_overloading"} is similar to
@@ -1687,8 +1687,8 @@ text {*
   \begin{description}
 
   \item @{attribute (HOL) "coercion"}~@{text "f"} registers a new
-  coercion function @{text "f :: \<sigma>\<^isub>1 \<Rightarrow> \<sigma>\<^isub>2"} where @{text "\<sigma>\<^isub>1"} and
-  @{text "\<sigma>\<^isub>2"} are type constructors without arguments.  Coercions are
+  coercion function @{text "f :: \<sigma>\<^sub>1 \<Rightarrow> \<sigma>\<^sub>2"} where @{text "\<sigma>\<^sub>1"} and
+  @{text "\<sigma>\<^sub>2"} are type constructors without arguments.  Coercions are
   composed by the inference algorithm if needed.  Note that the type
   inference algorithm is complete only if the registered coercions
   form a lattice.
@@ -1699,11 +1699,11 @@ text {*
 
   \begin{matharray}{lll}
     @{text "map"} & @{text "::"} &
-      @{text "f\<^isub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^isub>n \<Rightarrow> (\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n) t \<Rightarrow> (\<beta>\<^isub>1, \<dots>, \<beta>\<^isub>n) t"} \\
+      @{text "f\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> f\<^sub>n \<Rightarrow> (\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Rightarrow> (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t"} \\
   \end{matharray}
 
-  where @{text "t"} is a type constructor and @{text "f\<^isub>i"} is of type
-  @{text "\<alpha>\<^isub>i \<Rightarrow> \<beta>\<^isub>i"} or @{text "\<beta>\<^isub>i \<Rightarrow> \<alpha>\<^isub>i"}.  Registering a map function
+  where @{text "t"} is a type constructor and @{text "f\<^sub>i"} is of type
+  @{text "\<alpha>\<^sub>i \<Rightarrow> \<beta>\<^sub>i"} or @{text "\<beta>\<^sub>i \<Rightarrow> \<alpha>\<^sub>i"}.  Registering a map function
   overwrites any existing map function for this particular type
   constructor.
 
@@ -1881,7 +1881,7 @@ fun collinear :: "point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bo
     (Ax - Bx) * (By - Cy) = (Ay - By) * (Bx - Cx)"
 
 lemma collinear_inv_rotation:
-  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<twosuperior> + s\<twosuperior> = 1"
+  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<^sup>2 + s\<^sup>2 = 1"
   shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
     (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
   using assms by (algebra add: collinear.simps)

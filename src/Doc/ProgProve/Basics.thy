@@ -35,8 +35,8 @@ over @{text"\<Rightarrow>"}.
 
 \concept{Terms} are formed as in functional programming by
 applying functions to arguments. If @{text f} is a function of type
-@{text"\<tau>\<^isub>1 \<Rightarrow> \<tau>\<^isub>2"} and @{text t} is a term of type
-@{text"\<tau>\<^isub>1"} then @{term"f t"} is a term of type @{text"\<tau>\<^isub>2"}. We write @{text "t :: \<tau>"} to mean that term @{text t} has type @{text \<tau>}.
+@{text"\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2"} and @{text t} is a term of type
+@{text"\<tau>\<^sub>1"} then @{term"f t"} is a term of type @{text"\<tau>\<^sub>2"}. We write @{text "t :: \<tau>"} to mean that term @{text t} has type @{text \<tau>}.
 
 \begin{warn}
 There are many predefined infix symbols like @{text "+"} and @{text"\<le>"}.
@@ -47,9 +47,9 @@ not just @{text"+"}. That is, @{term"x + y"} is syntactic sugar for
 
 HOL also supports some basic constructs from functional programming:
 \begin{quote}
-@{text "(if b then t\<^isub>1 else t\<^isub>2)"}\\
+@{text "(if b then t\<^sub>1 else t\<^sub>2)"}\\
 @{text "(let x = t in u)"}\\
-@{text "(case t of pat\<^isub>1 \<Rightarrow> t\<^isub>1 | \<dots> | pat\<^isub>n \<Rightarrow> t\<^isub>n)"}
+@{text "(case t of pat\<^sub>1 \<Rightarrow> t\<^sub>1 | \<dots> | pat\<^sub>n \<Rightarrow> t\<^sub>n)"}
 \end{quote}
 \begin{warn}
 The above three constructs must always be enclosed in parentheses
@@ -86,11 +86,11 @@ clearer as we go along.
 \begin{warn}
 Right-arrows of all kinds always associate to the right. In particular,
 the formula
-@{text"A\<^isub>1 \<Longrightarrow> A\<^isub>2 \<Longrightarrow> A\<^isub>3"} means @{text "A\<^isub>1 \<Longrightarrow> (A\<^isub>2 \<Longrightarrow> A\<^isub>3)"}.
-The (Isabelle specific) notation \mbox{@{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"}}
-is short for the iterated implication \mbox{@{text"A\<^isub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^isub>n \<Longrightarrow> A"}}.
+@{text"A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow> A\<^sub>3"} means @{text "A\<^sub>1 \<Longrightarrow> (A\<^sub>2 \<Longrightarrow> A\<^sub>3)"}.
+The (Isabelle specific) notation \mbox{@{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}}
+is short for the iterated implication \mbox{@{text"A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> A"}}.
 Sometimes we also employ inference rule notation:
-\inferrule{\mbox{@{text "A\<^isub>1"}}\\ \mbox{@{text "\<dots>"}}\\ \mbox{@{text "A\<^isub>n"}}}
+\inferrule{\mbox{@{text "A\<^sub>1"}}\\ \mbox{@{text "\<dots>"}}\\ \mbox{@{text "A\<^sub>n"}}}
 {\mbox{@{text A}}}
 \end{warn}
 
@@ -104,13 +104,13 @@ All the Isabelle text that you ever type needs to go into a theory.
 The general format of a theory @{text T} is
 \begin{quote}
 \isacom{theory} @{text T}\\
-\isacom{imports} @{text "T\<^isub>1 \<dots> T\<^isub>n"}\\
+\isacom{imports} @{text "T\<^sub>1 \<dots> T\<^sub>n"}\\
 \isacom{begin}\\
 \emph{definitions, theorems and proofs}\\
 \isacom{end}
 \end{quote}
-where @{text "T\<^isub>1 \<dots> T\<^isub>n"} are the names of existing
-theories that @{text T} is based on. The @{text "T\<^isub>i"} are the
+where @{text "T\<^sub>1 \<dots> T\<^sub>n"} are the names of existing
+theories that @{text T} is based on. The @{text "T\<^sub>i"} are the
 direct \concept{parent theories} of @{text T}.
 Everything defined in the parent theories (and their parents, recursively) is
 automatically visible. Each theory @{text T} must

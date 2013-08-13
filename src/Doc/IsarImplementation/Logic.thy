@@ -38,18 +38,18 @@ text {*
 
   \medskip A \emph{type class} is an abstract syntactic entity
   declared in the theory context.  The \emph{subclass relation} @{text
-  "c\<^isub>1 \<subseteq> c\<^isub>2"} is specified by stating an acyclic
+  "c\<^sub>1 \<subseteq> c\<^sub>2"} is specified by stating an acyclic
   generating relation; the transitive closure is maintained
   internally.  The resulting relation is an ordering: reflexive,
   transitive, and antisymmetric.
 
-  A \emph{sort} is a list of type classes written as @{text "s = {c\<^isub>1,
-  \<dots>, c\<^isub>m}"}, it represents symbolic intersection.  Notationally, the
+  A \emph{sort} is a list of type classes written as @{text "s = {c\<^sub>1,
+  \<dots>, c\<^sub>m}"}, it represents symbolic intersection.  Notationally, the
   curly braces are omitted for singleton intersections, i.e.\ any
   class @{text "c"} may be read as a sort @{text "{c}"}.  The ordering
   on type classes is extended to sorts according to the meaning of
-  intersections: @{text "{c\<^isub>1, \<dots> c\<^isub>m} \<subseteq> {d\<^isub>1, \<dots>, d\<^isub>n}"} iff @{text
-  "\<forall>j. \<exists>i. c\<^isub>i \<subseteq> d\<^isub>j"}.  The empty intersection @{text "{}"} refers to
+  intersections: @{text "{c\<^sub>1, \<dots> c\<^sub>m} \<subseteq> {d\<^sub>1, \<dots>, d\<^sub>n}"} iff @{text
+  "\<forall>j. \<exists>i. c\<^sub>i \<subseteq> d\<^sub>j"}.  The empty intersection @{text "{}"} refers to
   the universal sort, which is the largest element wrt.\ the sort
   order.  Thus @{text "{}"} represents the ``full sort'', not the
   empty one!  The intersection of all (finitely many) classes declared
@@ -57,10 +57,10 @@ text {*
 
   \medskip A \emph{fixed type variable} is a pair of a basic name
   (starting with a @{text "'"} character) and a sort constraint, e.g.\
-  @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^isub>s"}.
+  @{text "('a, s)"} which is usually printed as @{text "\<alpha>\<^sub>s"}.
   A \emph{schematic type variable} is a pair of an indexname and a
   sort constraint, e.g.\ @{text "(('a, 0), s)"} which is usually
-  printed as @{text "?\<alpha>\<^isub>s"}.
+  printed as @{text "?\<alpha>\<^sub>s"}.
 
   Note that \emph{all} syntactic components contribute to the identity
   of type variables: basic name, index, and sort constraint.  The core
@@ -70,7 +70,7 @@ text {*
 
   A \emph{type constructor} @{text "\<kappa>"} is a @{text "k"}-ary operator
   on types declared in the theory.  Type constructor application is
-  written postfix as @{text "(\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>k)\<kappa>"}.  For
+  written postfix as @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>k)\<kappa>"}.  For
   @{text "k = 0"} the argument tuple is omitted, e.g.\ @{text "prop"}
   instead of @{text "()prop"}.  For @{text "k = 1"} the parentheses
   are omitted, e.g.\ @{text "\<alpha> list"} instead of @{text "(\<alpha>)list"}.
@@ -79,7 +79,7 @@ text {*
   \<beta>)fun"}.
   
   The logical category \emph{type} is defined inductively over type
-  variables and type constructors as follows: @{text "\<tau> = \<alpha>\<^isub>s | ?\<alpha>\<^isub>s |
+  variables and type constructors as follows: @{text "\<tau> = \<alpha>\<^sub>s | ?\<alpha>\<^sub>s |
   (\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"}.
 
   A \emph{type abbreviation} is a syntactic definition @{text
@@ -89,27 +89,27 @@ text {*
   logical core.
 
   A \emph{type arity} declares the image behavior of a type
-  constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^isub>1, \<dots>,
-  s\<^isub>k)s"} means that @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>k)\<kappa>"} is
-  of sort @{text "s"} if every argument type @{text "\<tau>\<^isub>i"} is
-  of sort @{text "s\<^isub>i"}.  Arity declarations are implicitly
+  constructor wrt.\ the algebra of sorts: @{text "\<kappa> :: (s\<^sub>1, \<dots>,
+  s\<^sub>k)s"} means that @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>k)\<kappa>"} is
+  of sort @{text "s"} if every argument type @{text "\<tau>\<^sub>i"} is
+  of sort @{text "s\<^sub>i"}.  Arity declarations are implicitly
   completed, i.e.\ @{text "\<kappa> :: (\<^vec>s)c"} entails @{text "\<kappa> ::
   (\<^vec>s)c'"} for any @{text "c' \<supseteq> c"}.
 
   \medskip The sort algebra is always maintained as \emph{coregular},
   which means that type arities are consistent with the subclass
   relation: for any type constructor @{text "\<kappa>"}, and classes @{text
-  "c\<^isub>1 \<subseteq> c\<^isub>2"}, and arities @{text "\<kappa> ::
-  (\<^vec>s\<^isub>1)c\<^isub>1"} and @{text "\<kappa> ::
-  (\<^vec>s\<^isub>2)c\<^isub>2"} holds @{text "\<^vec>s\<^isub>1 \<subseteq>
-  \<^vec>s\<^isub>2"} component-wise.
+  "c\<^sub>1 \<subseteq> c\<^sub>2"}, and arities @{text "\<kappa> ::
+  (\<^vec>s\<^sub>1)c\<^sub>1"} and @{text "\<kappa> ::
+  (\<^vec>s\<^sub>2)c\<^sub>2"} holds @{text "\<^vec>s\<^sub>1 \<subseteq>
+  \<^vec>s\<^sub>2"} component-wise.
 
   The key property of a coregular order-sorted algebra is that sort
   constraints can be solved in a most general fashion: for each type
   constructor @{text "\<kappa>"} and sort @{text "s"} there is a most general
-  vector of argument sorts @{text "(s\<^isub>1, \<dots>, s\<^isub>k)"} such
-  that a type scheme @{text "(\<alpha>\<^bsub>s\<^isub>1\<^esub>, \<dots>,
-  \<alpha>\<^bsub>s\<^isub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
+  vector of argument sorts @{text "(s\<^sub>1, \<dots>, s\<^sub>k)"} such
+  that a type scheme @{text "(\<alpha>\<^bsub>s\<^sub>1\<^esub>, \<dots>,
+  \<alpha>\<^bsub>s\<^sub>k\<^esub>)\<kappa>"} is of sort @{text "s"}.
   Consequently, type unification has most general solutions (modulo
   equivalence of sorts), so type-inference produces primary types as
   expected \cite{nipkow-prehofer}.
@@ -159,8 +159,8 @@ text %mlref {*
   TVar}) in @{text "\<tau>"}; the type structure is traversed from left to
   right.
 
-  \item @{ML Sign.subsort}~@{text "thy (s\<^isub>1, s\<^isub>2)"}
-  tests the subsort relation @{text "s\<^isub>1 \<subseteq> s\<^isub>2"}.
+  \item @{ML Sign.subsort}~@{text "thy (s\<^sub>1, s\<^sub>2)"}
+  tests the subsort relation @{text "s\<^sub>1 \<subseteq> s\<^sub>2"}.
 
   \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
   @{text "\<tau>"} is of sort @{text "s"}.
@@ -172,13 +172,13 @@ text %mlref {*
   \item @{ML Sign.add_type_abbrev}~@{text "ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)"}
   defines a new type abbreviation @{text "(\<^vec>\<alpha>)\<kappa> = \<tau>"}.
 
-  \item @{ML Sign.primitive_class}~@{text "(c, [c\<^isub>1, \<dots>,
-  c\<^isub>n])"} declares a new class @{text "c"}, together with class
-  relations @{text "c \<subseteq> c\<^isub>i"}, for @{text "i = 1, \<dots>, n"}.
+  \item @{ML Sign.primitive_class}~@{text "(c, [c\<^sub>1, \<dots>,
+  c\<^sub>n])"} declares a new class @{text "c"}, together with class
+  relations @{text "c \<subseteq> c\<^sub>i"}, for @{text "i = 1, \<dots>, n"}.
 
-  \item @{ML Sign.primitive_classrel}~@{text "(c\<^isub>1,
-  c\<^isub>2)"} declares the class relation @{text "c\<^isub>1 \<subseteq>
-  c\<^isub>2"}.
+  \item @{ML Sign.primitive_classrel}~@{text "(c\<^sub>1,
+  c\<^sub>2)"} declares the class relation @{text "c\<^sub>1 \<subseteq>
+  c\<^sub>2"}.
 
   \item @{ML Sign.primitive_arity}~@{text "(\<kappa>, \<^vec>s, s)"} declares
   the arity @{text "\<kappa> :: (\<^vec>s)s"}.
@@ -258,25 +258,25 @@ text {*
   without any loose variables.
 
   A \emph{fixed variable} is a pair of a basic name and a type, e.g.\
-  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^isub>\<tau>"} here.  A
+  @{text "(x, \<tau>)"} which is usually printed @{text "x\<^sub>\<tau>"} here.  A
   \emph{schematic variable} is a pair of an indexname and a type,
   e.g.\ @{text "((x, 0), \<tau>)"} which is likewise printed as @{text
-  "?x\<^isub>\<tau>"}.
+  "?x\<^sub>\<tau>"}.
 
   \medskip A \emph{constant} is a pair of a basic name and a type,
-  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^isub>\<tau>"}
+  e.g.\ @{text "(c, \<tau>)"} which is usually printed as @{text "c\<^sub>\<tau>"}
   here.  Constants are declared in the context as polymorphic families
   @{text "c :: \<sigma>"}, meaning that all substitution instances @{text
-  "c\<^isub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
+  "c\<^sub>\<tau>"} for @{text "\<tau> = \<sigma>\<vartheta>"} are valid.
 
-  The vector of \emph{type arguments} of constant @{text "c\<^isub>\<tau>"} wrt.\
+  The vector of \emph{type arguments} of constant @{text "c\<^sub>\<tau>"} wrt.\
   the declaration @{text "c :: \<sigma>"} is defined as the codomain of the
-  matcher @{text "\<vartheta> = {?\<alpha>\<^isub>1 \<mapsto> \<tau>\<^isub>1, \<dots>, ?\<alpha>\<^isub>n \<mapsto> \<tau>\<^isub>n}"} presented in
-  canonical order @{text "(\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n)"}, corresponding to the
-  left-to-right occurrences of the @{text "\<alpha>\<^isub>i"} in @{text "\<sigma>"}.
+  matcher @{text "\<vartheta> = {?\<alpha>\<^sub>1 \<mapsto> \<tau>\<^sub>1, \<dots>, ?\<alpha>\<^sub>n \<mapsto> \<tau>\<^sub>n}"} presented in
+  canonical order @{text "(\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n)"}, corresponding to the
+  left-to-right occurrences of the @{text "\<alpha>\<^sub>i"} in @{text "\<sigma>"}.
   Within a given theory context, there is a one-to-one correspondence
-  between any constant @{text "c\<^isub>\<tau>"} and the application @{text "c(\<tau>\<^isub>1,
-  \<dots>, \<tau>\<^isub>n)"} of its type arguments.  For example, with @{text "plus :: \<alpha>
+  between any constant @{text "c\<^sub>\<tau>"} and the application @{text "c(\<tau>\<^sub>1,
+  \<dots>, \<tau>\<^sub>n)"} of its type arguments.  For example, with @{text "plus :: \<alpha>
   \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"}, the instance @{text "plus\<^bsub>nat \<Rightarrow> nat \<Rightarrow> nat\<^esub>"} corresponds to
   @{text "plus(nat)"}.
 
@@ -290,7 +290,7 @@ text {*
   \medskip An \emph{atomic term} is either a variable or constant.
   The logical category \emph{term} is defined inductively over atomic
   terms, with abstraction and application as follows: @{text "t = b |
-  x\<^isub>\<tau> | ?x\<^isub>\<tau> | c\<^isub>\<tau> | \<lambda>\<^isub>\<tau>. t | t\<^isub>1 t\<^isub>2"}.  Parsing and printing takes care of
+  x\<^sub>\<tau> | ?x\<^sub>\<tau> | c\<^sub>\<tau> | \<lambda>\<^sub>\<tau>. t | t\<^sub>1 t\<^sub>2"}.  Parsing and printing takes care of
   converting between an external representation with named bound
   variables.  Subsequently, we shall use the latter notation instead
   of internal de-Bruijn representation.
@@ -299,7 +299,7 @@ text {*
   term according to the structure of atomic terms, abstractions, and
   applicatins:
   \[
-  \infer{@{text "a\<^isub>\<tau> :: \<tau>"}}{}
+  \infer{@{text "a\<^sub>\<tau> :: \<tau>"}}{}
   \qquad
   \infer{@{text "(\<lambda>x\<^sub>\<tau>. t) :: \<tau> \<Rightarrow> \<sigma>"}}{@{text "t :: \<sigma>"}}
   \qquad
@@ -315,7 +315,7 @@ text {*
 
   The identity of atomic terms consists both of the name and the type
   component.  This means that different variables @{text
-  "x\<^bsub>\<tau>\<^isub>1\<^esub>"} and @{text "x\<^bsub>\<tau>\<^isub>2\<^esub>"} may become the same after
+  "x\<^bsub>\<tau>\<^sub>1\<^esub>"} and @{text "x\<^bsub>\<tau>\<^sub>2\<^esub>"} may become the same after
   type instantiation.  Type-inference rejects variables of the same
   name, but different types.  In contrast, mixed instances of
   polymorphic constants occur routinely.
@@ -329,11 +329,11 @@ text {*
   pathological situation notoriously demands additional care.
 
   \medskip A \emph{term abbreviation} is a syntactic definition @{text
-  "c\<^isub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
+  "c\<^sub>\<sigma> \<equiv> t"} of a closed term @{text "t"} of type @{text "\<sigma>"},
   without any hidden polymorphism.  A term abbreviation looks like a
   constant in the syntax, but is expanded before entering the logical
   core.  Abbreviations are usually reverted when printing terms, using
-  @{text "t \<rightarrow> c\<^isub>\<sigma>"} as rules for higher-order rewriting.
+  @{text "t \<rightarrow> c\<^sub>\<sigma>"} as rules for higher-order rewriting.
 
   \medskip Canonical operations on @{text "\<lambda>"}-terms include @{text
   "\<alpha>\<beta>\<eta>"}-conversion: @{text "\<alpha>"}-conversion refers to capture-free
@@ -428,7 +428,7 @@ text %mlref {*
   introduces a new term abbreviation @{text "c \<equiv> t"}.
 
   \item @{ML Sign.const_typargs}~@{text "thy (c, \<tau>)"} and @{ML
-  Sign.const_instance}~@{text "thy (c, [\<tau>\<^isub>1, \<dots>, \<tau>\<^isub>n])"}
+  Sign.const_instance}~@{text "thy (c, [\<tau>\<^sub>1, \<dots>, \<tau>\<^sub>n])"}
   convert between two representations of polymorphic constants: full
   type instance vs.\ compact type arguments form.
 
@@ -497,7 +497,7 @@ text {*
   The theory @{text "Pure"} contains constant declarations for the
   primitive connectives @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"} of
   the logical framework, see \figref{fig:pure-connectives}.  The
-  derivability judgment @{text "A\<^isub>1, \<dots>, A\<^isub>n \<turnstile> B"} is
+  derivability judgment @{text "A\<^sub>1, \<dots>, A\<^sub>n \<turnstile> B"} is
   defined inductively by the primitive inferences given in
   \figref{fig:prim-rules}, with the global restriction that the
   hypotheses must \emph{not} contain any schematic variables.  The
@@ -564,7 +564,7 @@ text {*
   "\<And>\<hyphen>intro"}) need not be recorded in the hypotheses, because
   the simple syntactic types of Pure are always inhabitable.
   ``Assumptions'' @{text "x :: \<tau>"} for type-membership are only
-  present as long as some @{text "x\<^isub>\<tau>"} occurs in the statement
+  present as long as some @{text "x\<^sub>\<tau>"} occurs in the statement
   body.\footnote{This is the key difference to ``@{text "\<lambda>HOL"}'' in
   the PTS framework \cite{Barendregt-Geuvers:2001}, where hypotheses
   @{text "x : A"} are treated uniformly for propositions and types.}
@@ -625,7 +625,7 @@ text {*
   "c((\<^vec>\<alpha>)\<kappa>) \<equiv> t"} for each type constructor @{text "\<kappa>"} (for
   distinct variables @{text "\<^vec>\<alpha>"}).  The RHS may mention
   previously defined constants as above, or arbitrary constants @{text
-  "d(\<alpha>\<^isub>i)"} for some @{text "\<alpha>\<^isub>i"} projected from @{text
+  "d(\<alpha>\<^sub>i)"} for some @{text "\<alpha>\<^sub>i"} projected from @{text
   "\<^vec>\<alpha>"}.  Thus overloaded definitions essentially work by
   primitive recursion over the syntactic structure of a single type
   argument.  See also \cite[\S4.3]{Haftmann-Wenzel:2006:classes}.
@@ -738,10 +738,10 @@ text %mlref {*
   variables are generalized simultaneously, specified by the given
   basic names.
 
-  \item @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^isub>s,
-  \<^vec>x\<^isub>\<tau>)"} corresponds to the @{text "instantiate"} rules
+  \item @{ML Thm.instantiate}~@{text "(\<^vec>\<alpha>\<^sub>s,
+  \<^vec>x\<^sub>\<tau>)"} corresponds to the @{text "instantiate"} rules
   of \figref{fig:subst-rules}.  Type variables are substituted before
-  term variables.  Note that the types in @{text "\<^vec>x\<^isub>\<tau>"}
+  term variables.  Note that the types in @{text "\<^vec>x\<^sub>\<tau>"}
   refer to the instantiated versions.
 
   \item @{ML Thm.add_axiom}~@{text "ctxt (name, A)"} declares an
@@ -761,10 +761,10 @@ text %mlref {*
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \item @{ML Theory.add_deps}~@{text "ctxt name c\<^isub>\<tau> \<^vec>d\<^isub>\<sigma>"}
+  \item @{ML Theory.add_deps}~@{text "ctxt name c\<^sub>\<tau> \<^vec>d\<^sub>\<sigma>"}
   declares dependencies of a named specification for constant @{text
-  "c\<^isub>\<tau>"}, relative to existing specifications for constants @{text
-  "\<^vec>d\<^isub>\<sigma>"}.
+  "c\<^sub>\<tau>"}, relative to existing specifications for constants @{text
+  "\<^vec>d\<^sub>\<sigma>"}.
 
   \end{description}
 *}
@@ -1188,7 +1188,7 @@ text %mlref {*
   \item @{text "rules\<^sub>1 RL rules\<^sub>2"} abbreviates @{text "rules\<^sub>1 RLN (1,
   rules\<^sub>2)"}.
 
-  \item @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^isub>i"}
+  \item @{text "[rule\<^sub>1, \<dots>, rule\<^sub>n] MRS rule"} resolves @{text "rule\<^sub>i"}
   against premise @{text "i"} of @{text "rule"}, for @{text "i = n, \<dots>,
   1"}.  By working from right to left, newly emerging premises are
   concatenated in the result, without interfering.

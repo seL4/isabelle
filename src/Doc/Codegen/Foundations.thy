@@ -56,8 +56,8 @@ text {*
 
   \noindent Central to code generation is the notion of \emph{code
   equations}.  A code equation as a first approximation is a theorem
-  of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"} (an equation headed by a
-  constant @{text f} with arguments @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right
+  of the form @{text "f t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n \<equiv> t"} (an equation headed by a
+  constant @{text f} with arguments @{text "t\<^sub>1 t\<^sub>2 \<dots> t\<^sub>n"} and right
   hand side @{text t}).
 
   \begin{itemize}

@@ -844,7 +844,7 @@ text %mlref {*
   \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
   of a long name.
 
-  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"} appends two long
+  \item @{ML Long_Name.append}~@{text "name\<^sub>1 name\<^sub>2"} appends two long
   names.
 
   \item @{ML Long_Name.implode}~@{text "names"} and @{ML
@@ -989,7 +989,7 @@ text %mlref {*
   \item Type @{ML_type Name_Space.T} represents name spaces.
 
   \item @{ML Name_Space.empty}~@{text "kind"} and @{ML Name_Space.merge}~@{text
-  "(space\<^isub>1, space\<^isub>2)"} are the canonical operations for
+  "(space\<^sub>1, space\<^sub>2)"} are the canonical operations for
   maintaining name spaces according to theory data management
   (\secref{sec:context-data}); @{text "kind"} is a formal comment
   to characterize the purpose of a name space.

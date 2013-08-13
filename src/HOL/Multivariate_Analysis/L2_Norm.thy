@@ -9,7 +9,7 @@ imports NthRoot
 begin
 
 definition
-  "setL2 f A = sqrt (\<Sum>i\<in>A. (f i)\<twosuperior>)"
+  "setL2 f A = sqrt (\<Sum>i\<in>A. (f i)\<^sup>2)"
 
 lemma setL2_cong:
   "\<lbrakk>A = B; \<And>x. x \<in> B \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setL2 f A = setL2 g B"
@@ -27,7 +27,7 @@ lemma setL2_empty [simp]: "setL2 f {} = 0"
 
 lemma setL2_insert [simp]:
   "\<lbrakk>finite F; a \<notin> F\<rbrakk> \<Longrightarrow>
-    setL2 f (insert a F) = sqrt ((f a)\<twosuperior> + (setL2 f F)\<twosuperior>)"
+    setL2 f (insert a F) = sqrt ((f a)\<^sup>2 + (setL2 f F)\<^sup>2)"
   unfolding setL2_def by (simp add: setsum_nonneg)
 
 lemma setL2_nonneg [simp]: "0 \<le> setL2 f A"
@@ -94,12 +94,12 @@ next
     show ?case by simp
   next
     case (insert x F)
-    hence "sqrt ((f x + g x)\<twosuperior> + (setL2 (\<lambda>i. f i + g i) F)\<twosuperior>) \<le>
-           sqrt ((f x + g x)\<twosuperior> + (setL2 f F + setL2 g F)\<twosuperior>)"
+    hence "sqrt ((f x + g x)\<^sup>2 + (setL2 (\<lambda>i. f i + g i) F)\<^sup>2) \<le>
+           sqrt ((f x + g x)\<^sup>2 + (setL2 f F + setL2 g F)\<^sup>2)"
       by (intro real_sqrt_le_mono add_left_mono power_mono insert
                 setL2_nonneg add_increasing zero_le_power2)
     also have
-      "\<dots> \<le> sqrt ((f x)\<twosuperior> + (setL2 f F)\<twosuperior>) + sqrt ((g x)\<twosuperior> + (setL2 g F)\<twosuperior>)"
+      "\<dots> \<le> sqrt ((f x)\<^sup>2 + (setL2 f F)\<^sup>2) + sqrt ((g x)\<^sup>2 + (setL2 g F)\<^sup>2)"
       by (rule real_sqrt_sum_squares_triangle_ineq)
     finally show ?case
       using insert by simp
@@ -107,7 +107,7 @@ next
 qed
 
 lemma sqrt_sum_squares_le_sum:
-  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<twosuperior> + y\<twosuperior>) \<le> x + y"
+  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) \<le> x + y"
   apply (rule power2_le_imp_le)
   apply (simp add: power2_sum mult_nonneg_nonneg)
   apply simp
@@ -125,7 +125,7 @@ lemma setL2_le_setsum [rule_format]:
   apply simp
   done
 
-lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<twosuperior> + y\<twosuperior>) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
+lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<^sup>2 + y\<^sup>2) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
   apply (rule power2_le_imp_le)
   apply (simp add: power2_sum mult_nonneg_nonneg)
   apply simp
@@ -143,14 +143,14 @@ lemma setL2_le_setsum_abs: "setL2 f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
 
 lemma setL2_mult_ineq_lemma:
   fixes a b c d :: real
-  shows "2 * (a * c) * (b * d) \<le> a\<twosuperior> * d\<twosuperior> + b\<twosuperior> * c\<twosuperior>"
+  shows "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
 proof -
-  have "0 \<le> (a * d - b * c)\<twosuperior>" by simp
-  also have "\<dots> = a\<twosuperior> * d\<twosuperior> + b\<twosuperior> * c\<twosuperior> - 2 * (a * d) * (b * c)"
+  have "0 \<le> (a * d - b * c)\<^sup>2" by simp
+  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * d) * (b * c)"
     by (simp only: power2_diff power_mult_distrib)
-  also have "\<dots> = a\<twosuperior> * d\<twosuperior> + b\<twosuperior> * c\<twosuperior> - 2 * (a * c) * (b * d)"
+  also have "\<dots> = a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2 - 2 * (a * c) * (b * d)"
     by simp
-  finally show "2 * (a * c) * (b * d) \<le> a\<twosuperior> * d\<twosuperior> + b\<twosuperior> * c\<twosuperior>"
+  finally show "2 * (a * c) * (b * d) \<le> a\<^sup>2 * d\<^sup>2 + b\<^sup>2 * c\<^sup>2"
     by simp
 qed
 

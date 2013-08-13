@@ -443,8 +443,8 @@ the pattern for later use. As an example, consider the proof pattern for
 @{text"\<longleftrightarrow>"}:
 \end{isamarkuptext}%
 *}
-(*<*)lemma "formula\<^isub>1 \<longleftrightarrow> formula\<^isub>2" proof-(*>*)
-show "formula\<^isub>1 \<longleftrightarrow> formula\<^isub>2" (is "?L \<longleftrightarrow> ?R")
+(*<*)lemma "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" proof-(*>*)
+show "formula\<^sub>1 \<longleftrightarrow> formula\<^sub>2" (is "?L \<longleftrightarrow> ?R")
 proof
   assume "?L"
   txt_raw{*\\\mbox{}\quad$\vdots$\\\mbox{}\hspace{-1.4ex}*}
@@ -455,7 +455,7 @@ next
   show "?L" (*<*)sorry(*>*) txt_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
-text{* Instead of duplicating @{text"formula\<^isub>i"} in the text, we introduce
+text{* Instead of duplicating @{text"formula\<^sub>i"} in the text, we introduce
 the two abbreviations @{text"?L"} and @{text"?R"} by pattern matching.
 Pattern matching works wherever a formula is stated, in particular
 with \isacom{have} and \isacom{lemma}.
@@ -513,11 +513,11 @@ but one can also combine them with \isacom{moreover}, as shown on the left:
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have "P\<^isub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-moreover have "P\<^isub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+have "P\<^sub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+moreover have "P\<^sub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 moreover
 txt_raw{*\\$\vdots$\\\hspace{-1.4ex}*}(*<*)have "True" ..(*>*)
-moreover have "P\<^isub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+moreover have "P\<^sub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 ultimately have "P"  (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 (*<*)oops(*>*)
 
@@ -529,11 +529,11 @@ text_raw {* }
 \isa{%
 *}
 (*<*)lemma "P" proof-(*>*)
-have lab\<^isub>1: "P\<^isub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-have lab\<^isub>2: "P\<^isub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$*}
+have lab\<^sub>1: "P\<^sub>1" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+have lab\<^sub>2: "P\<^sub>2" (*<*)sorry(*>*)txt_raw{*\ $\dots$*}
 txt_raw{*\\$\vdots$\\\hspace{-1.4ex}*}
-have lab\<^isub>n: "P\<^isub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
-from lab\<^isub>1 lab\<^isub>2 txt_raw{*\ $\dots$\\*}
+have lab\<^sub>n: "P\<^sub>n" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
+from lab\<^sub>1 lab\<^sub>2 txt_raw{*\ $\dots$\\*}
 have "P"  (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 (*<*)oops(*>*)
 
@@ -551,14 +551,14 @@ A lemma that shares the current context of assumptions but that
 has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
 \begin{quote}
-@{text"{"} \isacom{fix} @{text"x\<^isub>1 \<dots> x\<^isub>n"}\\
-\mbox{}\ \ \ \isacom{assume} @{text"A\<^isub>1 \<dots> A\<^isub>m"}\\
+@{text"{"} \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
+\mbox{}\ \ \ \isacom{assume} @{text"A\<^sub>1 \<dots> A\<^sub>m"}\\
 \mbox{}\ \ \ $\vdots$\\
 \mbox{}\ \ \ \isacom{have} @{text"B"}\\
 @{text"}"}
 \end{quote}
-proves @{text"\<lbrakk> A\<^isub>1; \<dots> ; A\<^isub>m \<rbrakk> \<Longrightarrow> B"}
-where all @{text"x\<^isub>i"} have been replaced by unknowns @{text"?x\<^isub>i"}.
+proves @{text"\<lbrakk> A\<^sub>1; \<dots> ; A\<^sub>m \<rbrakk> \<Longrightarrow> B"}
+where all @{text"x\<^sub>i"} have been replaced by unknowns @{text"?x\<^sub>i"}.
 \begin{warn}
 The conclusion of a raw proof block is \emph{not} indicated by \isacom{show}
 but is simply the final \isacom{have}.
@@ -642,15 +642,15 @@ and @{prop"0 - 1 = (0::nat)"}.
 This proof pattern works for any term @{text t} whose type is a datatype.
 The goal has to be proved for each constructor @{text C}:
 \begin{quote}
-\isacom{fix} \ @{text"x\<^isub>1 \<dots> x\<^isub>n"} \isacom{assume} @{text"\"t = C x\<^isub>1 \<dots> x\<^isub>n\""}
+\isacom{fix} \ @{text"x\<^sub>1 \<dots> x\<^sub>n"} \isacom{assume} @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""}
 \end{quote}
 Each case can be written in a more compact form by means of the \isacom{case}
 command:
 \begin{quote}
-\isacom{case} @{text "(C x\<^isub>1 \<dots> x\<^isub>n)"}
+\isacom{case} @{text "(C x\<^sub>1 \<dots> x\<^sub>n)"}
 \end{quote}
 This is equivalent to the explicit \isacom{fix}-\isacom{assume} line
-but also gives the assumption @{text"\"t = C x\<^isub>1 \<dots> x\<^isub>n\""} a name: @{text C},
+but also gives the assumption @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""} a name: @{text C},
 like the constructor.
 Here is the \isacom{case} version of the proof above:
 *}
@@ -782,16 +782,16 @@ and @{text"Suc.prems"}, the premises of the goal being proved
 (here @{text"A(Suc n)"}).
 
 Induction works for any datatype.
-Proving a goal @{text"\<lbrakk> A\<^isub>1(x); \<dots>; A\<^isub>k(x) \<rbrakk> \<Longrightarrow> P(x)"}
+Proving a goal @{text"\<lbrakk> A\<^sub>1(x); \<dots>; A\<^sub>k(x) \<rbrakk> \<Longrightarrow> P(x)"}
 by induction on @{text x} generates a proof obligation for each constructor
-@{text C} of the datatype. The command @{text"case (C x\<^isub>1 \<dots> x\<^isub>n)"}
+@{text C} of the datatype. The command @{text"case (C x\<^sub>1 \<dots> x\<^sub>n)"}
 performs the following steps:
 \begin{enumerate}
-\item \isacom{fix} @{text"x\<^isub>1 \<dots> x\<^isub>n"}
+\item \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}
 \item \isacom{assume} the induction hypotheses (calling them @{text C.IH})
- and the premises \mbox{@{text"A\<^isub>i(C x\<^isub>1 \<dots> x\<^isub>n)"}} (calling them @{text"C.prems"})
+ and the premises \mbox{@{text"A\<^sub>i(C x\<^sub>1 \<dots> x\<^sub>n)"}} (calling them @{text"C.prems"})
  and calling the whole list @{text C}
-\item \isacom{let} @{text"?case = \"P(C x\<^isub>1 \<dots> x\<^isub>n)\""}
+\item \isacom{let} @{text"?case = \"P(C x\<^sub>1 \<dots> x\<^sub>n)\""}
 \end{enumerate}
 
 \subsection{Rule Induction}
@@ -889,34 +889,34 @@ text{*
 \indent
 In general, let @{text I} be a (for simplicity unary) inductively defined
 predicate and let the rules in the definition of @{text I}
-be called @{text "rule\<^isub>1"}, \dots, @{text "rule\<^isub>n"}. A proof by rule
+be called @{text "rule\<^sub>1"}, \dots, @{text "rule\<^sub>n"}. A proof by rule
 induction follows this pattern:
 *}
 
 (*<*)
-inductive I where rule\<^isub>1: "I()" |  rule\<^isub>2: "I()" |  rule\<^isub>n: "I()"
+inductive I where rule\<^sub>1: "I()" |  rule\<^sub>2: "I()" |  rule\<^sub>n: "I()"
 lemma "I x \<Longrightarrow> P x" proof-(*>*)
 show "I x \<Longrightarrow> P x"
 proof(induction rule: I.induct)
-  case rule\<^isub>1
+  case rule\<^sub>1
   txt_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
   show ?case (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 next
   txt_raw{*\\[-.4ex]$\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
 (*<*)
-  case rule\<^isub>2
+  case rule\<^sub>2
   show ?case sorry
 (*>*)
 next
-  case rule\<^isub>n
+  case rule\<^sub>n
   txt_raw{*\\[-.4ex]\mbox{}\ \ $\vdots$\\[-.4ex]\mbox{}\hspace{-1ex}*}
   show ?case (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 qed(*<*)qed(*>*)
 
 text{*
 One can provide explicit variable names by writing
-\isacom{case}~@{text"(rule\<^isub>i x\<^isub>1 \<dots> x\<^isub>k)"}, thus renaming the first @{text k}
-free variables in rule @{text i} to @{text"x\<^isub>1 \<dots> x\<^isub>k"},
+\isacom{case}~@{text"(rule\<^sub>i x\<^sub>1 \<dots> x\<^sub>k)"}, thus renaming the first @{text k}
+free variables in rule @{text i} to @{text"x\<^sub>1 \<dots> x\<^sub>k"},
 going through rule @{text i} from left to right.
 
 \subsection{Assumption Naming}
@@ -930,8 +930,8 @@ also called @{text name}, which is subdivided into three parts:
 induction rule. For rule inductions these are the hypotheses of rule
 @{text name}, for structural inductions these are empty.
 \item[@{text name.prems}] contains the (suitably instantiated) premises
-of the statement being proved, i.e. the @{text A\<^isub>i} when
-proving @{text"\<lbrakk> A\<^isub>1; \<dots>; A\<^isub>n \<rbrakk> \<Longrightarrow> A"}.
+of the statement being proved, i.e. the @{text A\<^sub>i} when
+proving @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}.
 \end{description}
 \begin{warn}
 Proof method @{text induct} differs from @{text induction}

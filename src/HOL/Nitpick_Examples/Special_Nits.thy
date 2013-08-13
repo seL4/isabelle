@@ -131,8 +131,8 @@ nitpick [dont_specialize, expect = potential]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^isub>1 b\<^isub>2 b\<^isub>3 b\<^isub>4 b\<^isub>5 b\<^isub>6 b\<^isub>7 b\<^isub>8 b\<^isub>9 b\<^isub>10 (b\<^isub>11\<Colon>nat).
-           b\<^isub>1 < b\<^isub>11 \<and> f5 g x = f5 (\<lambda>a. if b\<^isub>1 < b\<^isub>11 then a else h b\<^isub>2) x"
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+           b\<^sub>1 < b\<^sub>11 \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 < b\<^sub>11 then a else h b\<^sub>2) x"
 nitpick [expect = potential]
 nitpick [dont_specialize, expect = none]
 nitpick [dont_box, expect = none]
@@ -140,13 +140,13 @@ nitpick [dont_box, dont_specialize, expect = none]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^isub>1 b\<^isub>2 b\<^isub>3 b\<^isub>4 b\<^isub>5 b\<^isub>6 b\<^isub>7 b\<^isub>8 b\<^isub>9 b\<^isub>10 (b\<^isub>11\<Colon>nat).
-           b\<^isub>1 < b\<^isub>11
-           \<and> f5 g x = f5 (\<lambda>a. if b\<^isub>1 < b\<^isub>11 then
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+           b\<^sub>1 < b\<^sub>11
+           \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 < b\<^sub>11 then
                                 a
                               else
-                                h b\<^isub>2 + h b\<^isub>3 + h b\<^isub>4 + h b\<^isub>5 + h b\<^isub>6 + h b\<^isub>7 + h b\<^isub>8
-                                + h b\<^isub>9 + h b\<^isub>10) x"
+                                h b\<^sub>2 + h b\<^sub>3 + h b\<^sub>4 + h b\<^sub>5 + h b\<^sub>6 + h b\<^sub>7 + h b\<^sub>8
+                                + h b\<^sub>9 + h b\<^sub>10) x"
 nitpick [card nat = 2, card 'a = 1, expect = none]
 nitpick [card nat = 2, card 'a = 1, dont_box, expect = none]
 nitpick [card nat = 2, card 'a = 1, dont_specialize, expect = none]
@@ -154,13 +154,13 @@ nitpick [card nat = 2, card 'a = 1, dont_box, dont_specialize, expect = none]
 sorry
 
 lemma "\<forall>a. g a = a
-       \<Longrightarrow> \<exists>b\<^isub>1 b\<^isub>2 b\<^isub>3 b\<^isub>4 b\<^isub>5 b\<^isub>6 b\<^isub>7 b\<^isub>8 b\<^isub>9 b\<^isub>10 (b\<^isub>11\<Colon>nat).
-           b\<^isub>1 < b\<^isub>11
-           \<and> f5 g x = f5 (\<lambda>a. if b\<^isub>1 \<ge> b\<^isub>11 then
+       \<Longrightarrow> \<exists>b\<^sub>1 b\<^sub>2 b\<^sub>3 b\<^sub>4 b\<^sub>5 b\<^sub>6 b\<^sub>7 b\<^sub>8 b\<^sub>9 b\<^sub>10 (b\<^sub>11\<Colon>nat).
+           b\<^sub>1 < b\<^sub>11
+           \<and> f5 g x = f5 (\<lambda>a. if b\<^sub>1 \<ge> b\<^sub>11 then
                                 a
                               else
-                                h b\<^isub>2 + h b\<^isub>3 + h b\<^isub>4 + h b\<^isub>5 + h b\<^isub>6 + h b\<^isub>7 + h b\<^isub>8
-                                + h b\<^isub>9 + h b\<^isub>10) x"
+                                h b\<^sub>2 + h b\<^sub>3 + h b\<^sub>4 + h b\<^sub>5 + h b\<^sub>6 + h b\<^sub>7 + h b\<^sub>8
+                                + h b\<^sub>9 + h b\<^sub>10) x"
 nitpick [card nat = 2, card 'a = 1, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_box, expect = potential]
 nitpick [card nat = 2, card 'a = 1, dont_specialize, expect = potential]

@@ -61,32 +61,32 @@ by(auto simp add: le_st_def lookup_def update_def)
 locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
 begin
 
-abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
-where "\<gamma>\<^isub>f == \<gamma>_st \<gamma>"
+abbreviation \<gamma>\<^sub>f :: "'av st \<Rightarrow> state set"
+where "\<gamma>\<^sub>f == \<gamma>_st \<gamma>"
 
-abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
-where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
+abbreviation \<gamma>\<^sub>o :: "'av st option \<Rightarrow> state set"
+where "\<gamma>\<^sub>o == \<gamma>_option \<gamma>\<^sub>f"
 
-abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
-where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
+abbreviation \<gamma>\<^sub>c :: "'av st option acom \<Rightarrow> state set acom"
+where "\<gamma>\<^sub>c == map_acom \<gamma>\<^sub>o"
 
-lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"
+lemma gamma_f_Top[simp]: "\<gamma>\<^sub>f Top = UNIV"
 by(auto simp: Top_st_def \<gamma>_st_def lookup_def)
 
-lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
+lemma gamma_o_Top[simp]: "\<gamma>\<^sub>o Top = UNIV"
 by (simp add: Top_option_def)
 
 (* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>f f \<subseteq> \<gamma>\<^isub>f g"
+lemma mono_gamma_f: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^sub>f f \<subseteq> \<gamma>\<^sub>f g"
 apply(simp add:\<gamma>_st_def subset_iff lookup_def le_st_def split: if_splits)
 by (metis UNIV_I mono_gamma gamma_Top subsetD)
 
 lemma mono_gamma_o:
-  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^isub>o sa \<subseteq> \<gamma>\<^isub>o sa'"
+  "sa \<sqsubseteq> sa' \<Longrightarrow> \<gamma>\<^sub>o sa \<subseteq> \<gamma>\<^sub>o sa'"
 by(induction sa sa' rule: le_option.induct)(simp_all add: mono_gamma_f)
 
-lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^isub>c ca \<le> \<gamma>\<^isub>c ca'"
+lemma mono_gamma_c: "ca \<sqsubseteq> ca' \<Longrightarrow> \<gamma>\<^sub>c ca \<le> \<gamma>\<^sub>c ca'"
 by (induction ca ca' rule: le_acom.induct) (simp_all add:mono_gamma_o)
 
 lemma in_gamma_option_iff:
