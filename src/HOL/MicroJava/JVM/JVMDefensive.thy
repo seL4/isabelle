@@ -119,13 +119,10 @@ definition exec_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> 
 
 definition
   exec_all_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
-                   ("_ |- _ -jvmd-> _" [61,61,61]60) where
-  "G |- s -jvmd-> t \<longleftrightarrow>
+                   ("_ \<turnstile> _ \<midarrow>jvmd\<rightarrow> _" [61,61,61]60) where
+  "G \<turnstile> s \<midarrow>jvmd\<rightarrow> t \<longleftrightarrow>
          (s,t) \<in> ({(s,t). exec_d G s = TypeError \<and> t = TypeError} \<union>
                   {(s,t). \<exists>t'. exec_d G s = Normal (Some t') \<and> t = Normal t'})\<^sup>*"
-
-notation (xsymbols)
-  exec_all_d  ("_ \<turnstile> _ -jvmd\<rightarrow> _" [61,61,61]60)
 
 
 declare split_paired_All [simp del]
@@ -146,9 +143,9 @@ theorem no_type_error_commutes:
 
 
 lemma defensive_imp_aggressive:
-  "G \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t) \<Longrightarrow> G \<turnstile> s -jvm\<rightarrow> t"
+  "G \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t) \<Longrightarrow> G \<turnstile> s \<midarrow>jvm\<rightarrow> t"
 proof -
-  have "\<And>x y. G \<turnstile> x -jvmd\<rightarrow> y \<Longrightarrow> \<forall>s t. x = Normal s \<longrightarrow> y = Normal t \<longrightarrow>  G \<turnstile> s -jvm\<rightarrow> t"
+  have "\<And>x y. G \<turnstile> x \<midarrow>jvmd\<rightarrow> y \<Longrightarrow> \<forall>s t. x = Normal s \<longrightarrow> y = Normal t \<longrightarrow>  G \<turnstile> s \<midarrow>jvm\<rightarrow> t"
     apply (unfold exec_all_d_def)
     apply (erule rtrancl_induct)
      apply (simp add: exec_all_def)
@@ -163,9 +160,9 @@ proof -
     apply blast
     done
   moreover
-  assume "G \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t)" 
+  assume "G \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t)" 
   ultimately
-  show "G \<turnstile> s -jvm\<rightarrow> t" by blast
+  show "G \<turnstile> s \<midarrow>jvm\<rightarrow> t" by blast
 qed
 
 end

@@ -397,8 +397,8 @@ text {*
   one (after arbitrarily many steps).
 *}
 theorem welltyped_aggressive_imp_defensive:
-  "wt_jvm_prog G Phi \<Longrightarrow> G,Phi \<turnstile>JVM s \<surd> \<Longrightarrow> G \<turnstile> s -jvm\<rightarrow> t 
-  \<Longrightarrow> G \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t)"
+  "wt_jvm_prog G Phi \<Longrightarrow> G,Phi \<turnstile>JVM s \<surd> \<Longrightarrow> G \<turnstile> s \<midarrow>jvm\<rightarrow> t 
+  \<Longrightarrow> G \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t)"
   apply (unfold exec_all_def) 
   apply (erule rtrancl_induct)
    apply (simp add: exec_all_d_def)
@@ -417,7 +417,7 @@ lemma neq_TypeError_eq [simp]: "s \<noteq> TypeError = (\<exists>s'. s = Normal 
 
 theorem no_type_errors:
   "wt_jvm_prog G Phi \<Longrightarrow> G,Phi \<turnstile>JVM s \<surd>
-  \<Longrightarrow> G \<turnstile> (Normal s) -jvmd\<rightarrow> t \<Longrightarrow> t \<noteq> TypeError"
+  \<Longrightarrow> G \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> t \<Longrightarrow> t \<noteq> TypeError"
   apply (unfold exec_all_d_def)   
   apply (erule rtrancl_induct)
    apply simp
@@ -433,7 +433,7 @@ corollary no_type_errors_initial:
     and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
 
-  assumes s: "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> t" 
+  assumes s: "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> t" 
   shows "t \<noteq> TypeError"
 proof -
   from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
@@ -449,7 +449,7 @@ text {*
 corollary welltyped_commutes:
   fixes G ("\<Gamma>") and Phi ("\<Phi>")
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>" and *: "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" 
-  shows "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s -jvm\<rightarrow> t"
+  shows "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s \<midarrow>jvm\<rightarrow> t"
   apply rule
    apply (erule defensive_imp_aggressive, rule welltyped_aggressive_imp_defensive)
     apply (rule wt)
@@ -464,7 +464,7 @@ corollary welltyped_initial_commutes:
     and method: "method (\<Gamma>,C) (m,[]) = Some (C, b)"
     and m: "m \<noteq> init"
   defines start: "s \<equiv> start_state \<Gamma> C m"
-  shows "\<Gamma> \<turnstile> (Normal s) -jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s -jvm\<rightarrow> t"
+  shows "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s \<midarrow>jvm\<rightarrow> t"
 proof -
   from wt is_class method have "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
     unfolding start by (rule BV_correct_initial)

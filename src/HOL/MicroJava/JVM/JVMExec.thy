@@ -24,12 +24,9 @@ where
 
 
 definition exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
-              ("_ |- _ -jvm-> _" [61,61,61]60) where
-  "G |- s -jvm-> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
+              ("_ \<turnstile> _ \<midarrow>jvm\<rightarrow> _" [61,61,61]60) where
+  "G \<turnstile> s \<midarrow>jvm\<rightarrow> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}^*"
 
-
-notation (xsymbols)
-  exec_all  ("_ \<turnstile> _ -jvm\<rightarrow> _" [61,61,61]60)
 
 text {*
   The start configuration of the JVM: in the start heap, we call a 

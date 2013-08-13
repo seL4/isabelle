@@ -59,7 +59,7 @@ by (simp only: exec_all_def)
 theorem exec_instr_in_exec_all:
   "\<lbrakk> exec_instr i G hp stk lvars C S pc frs =  (None, hp', frs');
              gis (gmb G C S) ! pc = i\<rbrakk>  \<Longrightarrow>
-       G \<turnstile> (None, hp, (stk, lvars, C, S, pc) # frs) -jvm\<rightarrow> (None, hp', frs')"
+       G \<turnstile> (None, hp, (stk, lvars, C, S, pc) # frs) \<midarrow>jvm\<rightarrow> (None, hp', frs')"
 apply (simp only: exec_all_def)
 apply (rule rtrancl_refl [THEN rtrancl_into_rtrancl])
 apply (simp add: gis_def gmb_def)
@@ -71,7 +71,7 @@ theorem exec_all_one_step: "
   (exec_instr i G hp0 stk0 lvars0 C S pc0 frs) = 
   (None, hp1, (stk1,lvars1,C,S, Suc pc0)#frs) \<rbrakk>
   \<Longrightarrow> 
-  G \<turnstile> (None, hp0, (stk0,lvars0,C,S, pc0)#frs) -jvm\<rightarrow> 
+  G \<turnstile> (None, hp0, (stk0,lvars0,C,S, pc0)#frs) \<midarrow>jvm\<rightarrow> 
   (None, hp1, (stk1,lvars1,C,S, Suc pc0)#frs)"
 apply (unfold exec_all_def)
 apply (rule r_into_rtrancl)
@@ -90,7 +90,7 @@ definition progression :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Righ
   "{G,C,S} \<turnstile> {hp0, os0, lvars0} >- instrs \<rightarrow> {hp1, os1, lvars1} ==
   \<forall> pre post frs.
   (gis (gmb G C S) = pre @ instrs @ post) \<longrightarrow>
-   G \<turnstile> (None,hp0,(os0,lvars0,C,S,length pre)#frs) -jvm\<rightarrow>
+   G \<turnstile> (None,hp0,(os0,lvars0,C,S,length pre)#frs) \<midarrow>jvm\<rightarrow>
        (None,hp1,(os1,lvars1,C,S,(length pre) + (length instrs))#frs)"
 
 

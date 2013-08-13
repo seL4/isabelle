@@ -1304,7 +1304,7 @@ apply (fast intro: BV_correct_1)
 done
 
 theorem BV_correct [rule_format]:
-"\<lbrakk> wt_jvm_prog G phi; G \<turnstile> s -jvm\<rightarrow> t \<rbrakk> \<Longrightarrow> G,phi \<turnstile>JVM s\<surd> \<longrightarrow> G,phi \<turnstile>JVM t\<surd>"
+"\<lbrakk> wt_jvm_prog G phi; G \<turnstile> s \<midarrow>jvm\<rightarrow> t \<rbrakk> \<Longrightarrow> G,phi \<turnstile>JVM s\<surd> \<longrightarrow> G,phi \<turnstile>JVM t\<surd>"
 apply (unfold exec_all_def)
 apply (erule rtrancl_induct)
  apply simp
@@ -1314,7 +1314,7 @@ done
 
 theorem BV_correct_implies_approx:
 "\<lbrakk> wt_jvm_prog G phi; 
-    G \<turnstile> s0 -jvm\<rightarrow> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>\<rbrakk> 
+    G \<turnstile> s0 \<midarrow>jvm\<rightarrow> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>\<rbrakk> 
 \<Longrightarrow> approx_stk G hp stk (fst (the (phi C sig ! pc))) \<and> 
     approx_loc G hp loc (snd (the (phi C sig ! pc)))"
 apply (drule BV_correct)
@@ -1356,12 +1356,12 @@ theorem
   assumes welltyped:   "wt_jvm_prog \<Gamma> \<Phi>" and
           main_method: "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)"  
   shows typesafe:
-  "G \<turnstile> start_state \<Gamma> C m -jvm\<rightarrow> s  \<Longrightarrow>  \<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+  "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s  \<Longrightarrow>  \<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
 proof -
   from welltyped main_method
   have "\<Gamma>,\<Phi> \<turnstile>JVM start_state \<Gamma> C m \<surd>" by (rule BV_correct_initial)
   moreover
-  assume "G \<turnstile> start_state \<Gamma> C m -jvm\<rightarrow> s"
+  assume "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s"
   ultimately  
   show "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" using welltyped by - (rule BV_correct)
 qed
