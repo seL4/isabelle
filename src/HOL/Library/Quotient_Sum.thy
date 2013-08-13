@@ -50,12 +50,6 @@ lemma sum_rel_eq [id_simps, relator_eq]:
   "sum_rel (op =) (op =) = (op =)"
   by (simp add: sum_rel_unfold fun_eq_iff split: sum.split)
 
-lemma split_sum_all: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (Inl x)) \<and> (\<forall>x. P (Inr x))"
-  by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
-
-lemma split_sum_ex: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P (Inl x)) \<or> (\<exists>x. P (Inr x))"
-  by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
-
 lemma sum_rel_mono[relator_mono]:
   assumes "A \<le> C"
   assumes "B \<le> D"

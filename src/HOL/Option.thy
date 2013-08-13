@@ -30,9 +30,14 @@ lemma option_caseE:
   | (Some) y where "x = Some y" and "Q y"
   using c by (cases x) simp_all
 
+lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P (Some x))"
+by (auto intro: option.induct)
+
+lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
+using split_option_all[of "\<lambda>x. \<not>P x"] by blast
+
 lemma UNIV_option_conv: "UNIV = insert None (range Some)"
 by(auto intro: classical)
-
 
 subsubsection {* Operations *}
 

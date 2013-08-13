@@ -50,12 +50,6 @@ lemma option_rel_eq [id_simps, relator_eq]:
   "option_rel (op =) = (op =)"
   by (simp add: option_rel_unfold fun_eq_iff split: option.split)
 
-lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P (Some x))"
-  by (metis option.exhaust) (* TODO: move to Option.thy *)
-
-lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
-  by (metis option.exhaust) (* TODO: move to Option.thy *)
-
 lemma option_rel_mono[relator_mono]:
   assumes "A \<le> B"
   shows "(option_rel A) \<le> (option_rel B)"

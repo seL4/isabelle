@@ -115,6 +115,11 @@ next
   qed
 qed
 
+lemma split_sum_all: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (Inl x)) \<and> (\<forall>x. P (Inr x))"
+  by (auto intro: sum.induct)
+
+lemma split_sum_ex: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P (Inl x)) \<or> (\<exists>x. P (Inr x))"
+using split_sum_all[of "\<lambda>x. \<not>P x"] by blast
 
 subsection {* Projections *}
 
