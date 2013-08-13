@@ -52,9 +52,7 @@ local
   fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
 
   fun output_syms ("\<^sub>" :: s :: ss) = output_sub s :: output_syms ss
-    | output_syms ("\<^isub>" :: s :: ss) = output_sub s :: output_syms ss
     | output_syms ("\<^sup>" :: s :: ss) = output_sup s :: output_syms ss
-    | output_syms ("\<^isup>" :: s :: ss) = output_sup s :: output_syms ss
     | output_syms (s :: ss) = output_sym s :: output_syms ss
     | output_syms [] = [];
 

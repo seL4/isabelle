@@ -28,8 +28,7 @@ object Token_Markup
   /* editing support for control symbols */
 
   val is_control_style =
-    Set(Symbol.sub_decoded, Symbol.sup_decoded,
-      Symbol.isub_decoded, Symbol.isup_decoded, Symbol.bold_decoded)
+    Set(Symbol.sub_decoded, Symbol.sup_decoded, Symbol.bold_decoded)
 
   def update_control_style(control: String, text: String): String =
   {
@@ -161,8 +160,8 @@ object Token_Markup
   {
     // FIXME Symbol.bsub_decoded etc.
     def control_style(sym: String): Option[Byte => Byte] =
-      if (sym == Symbol.sub_decoded || sym == Symbol.isub_decoded) Some(subscript(_))
-      else if (sym == Symbol.sup_decoded || sym == Symbol.isup_decoded) Some(superscript(_))
+      if (sym == Symbol.sub_decoded) Some(subscript(_))
+      else if (sym == Symbol.sup_decoded) Some(superscript(_))
       else if (sym == Symbol.bold_decoded) Some(bold(_))
       else None
 

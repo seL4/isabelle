@@ -17,6 +17,9 @@ The ML reference variable "legacy_isub_isup" may be set as temporary
 workaround, to make the prover accept a subset of the old identifier
 syntax.
 
+* Document antiquotations: term style "isub" has been renamed to
+"sub".  Minor INCOMPATIBILITY.
+
 * Uniform management of "quick_and_dirty" as system option (see also
 "isabelle options"), configuration option within the context (see also
 Config.get in Isabelle/ML), and attribute in Isabelle/Isar.  Minor

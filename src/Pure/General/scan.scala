@@ -349,10 +349,7 @@ object Scan
       : Parser[Token] =
     {
       val letdigs1 = many1(Symbol.is_letdig)
-      val sub =
-        one(s =>
-          s == Symbol.sub_decoded || s == "\\<^sub>" ||
-          s == Symbol.isub_decoded || s == "\\<^isub>")
+      val sub = one(s => s == Symbol.sub_decoded || s == "\\<^sub>")
       val id =
         one(Symbol.is_letter) ~
           (rep(letdigs1 | (sub ~ letdigs1 ^^ { case x ~ y => x + y })) ^^ (_.mkString)) ^^

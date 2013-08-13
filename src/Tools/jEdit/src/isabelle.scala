@@ -140,12 +140,6 @@ object Isabelle
   def control_sup(text_area: JEditTextArea)
   { Token_Markup.edit_control_style(text_area, Symbol.sup_decoded) }
 
-  def control_isub(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.isub_decoded) }
-
-  def control_isup(text_area: JEditTextArea)
-  { Token_Markup.edit_control_style(text_area, Symbol.isup_decoded) }
-
   def control_bold(text_area: JEditTextArea)
   { Token_Markup.edit_control_style(text_area, Symbol.bold_decoded) }
 

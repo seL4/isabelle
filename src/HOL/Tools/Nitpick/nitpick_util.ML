@@ -238,9 +238,9 @@ val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 val string_of_time = ATP_Util.string_of_time
 
-val i_subscript = implode o map (prefix "\<^sub>") o Symbol.explode
+val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
 fun nat_subscript n =
-  n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? i_subscript
+  n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 
 fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos
