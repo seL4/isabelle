@@ -170,6 +170,10 @@ class Pretty_Text_Area(
         if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
           Registers.copy(text_area, '$')
           evt.consume
+        case KeyEvent.VK_A
+        if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
+          text_area.selectAll
+          evt.consume
         case _ =>
       }
       if (propagate_keys && !evt.isConsumed)
@@ -194,6 +198,7 @@ class Pretty_Text_Area(
 
   getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
   getBuffer.setReadOnly(true)
+  getBuffer.setStringProperty("noWordSep", "_'.?")
 
   rich_text_area.activate()
 }

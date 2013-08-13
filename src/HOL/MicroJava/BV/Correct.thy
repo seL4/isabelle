@@ -65,9 +65,7 @@ notation (xsymbols)
 
 lemma sup_ty_opt_OK:
   "(G \<turnstile> X <=o (OK T')) = (\<exists>T. X = OK T \<and> G \<turnstile> T \<preceq> T')"
-  apply (cases X)
-  apply auto
-  done
+  by (cases X) auto
 
 
 section {* approx-val *}
@@ -91,12 +89,12 @@ lemma approx_val_sup_heap:
 lemma approx_val_heap_update:
   "\<lbrakk> hp a = Some obj'; G,hp\<turnstile> v::\<preceq>T; obj_ty obj = obj_ty obj'\<rbrakk> 
   \<Longrightarrow> G,hp(a\<mapsto>obj)\<turnstile> v::\<preceq>T"
-  by (cases v, auto simp add: obj_ty_def conf_def)
+  by (cases v) (auto simp add: obj_ty_def conf_def)
 
 lemma approx_val_widen:
   "\<lbrakk> approx_val G hp v T; G \<turnstile> T <=o T'; wf_prog wt G \<rbrakk>
   \<Longrightarrow> approx_val G hp v T'"
-  by (cases T', auto simp add: sup_ty_opt_OK intro: conf_widen)
+  by (cases T') (auto simp add: sup_ty_opt_OK intro: conf_widen)
 
 section {* approx-loc *}
 
@@ -284,7 +282,7 @@ lemma
   shows preallocated_newref: "preallocated (hp(oref\<mapsto>obj))"
 proof (cases oref)
   case (XcptRef x) 
-  with none alloc have "False" by (auto elim: preallocatedE [of _ x])
+  with none alloc have False by (auto elim: preallocatedE [of _ x])
   thus ?thesis ..
 next
   case (Loc l)

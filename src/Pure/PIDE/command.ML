@@ -231,39 +231,42 @@ fun print command_visible command_overlays command_name eval old_prints =
   let
     val print_functions = Synchronized.value print_functions;
 
+    fun make_print name args {delay, pri, persistent, strict, print_fn} =
+      let
+        val exec_id = Document_ID.make ();
+        fun process () =
+          let
+            val {failed, command, state = st', ...} = eval_result eval;
+            val tr = Toplevel.exec_id exec_id command;
+          in
+            if failed andalso strict then ()
+            else print_error tr (fn () => print_fn tr st')
+          end;
+      in
+        Print {
+          name = name, args = args, delay = delay, pri = pri, persistent = persistent,
+          exec_id = exec_id, print_process = memo exec_id process}
+      end;
+
+    fun bad_print name args exn =
+      make_print name args {delay = NONE, pri = 0, persistent = false,
+        strict = false, print_fn = fn _ => fn _ => reraise exn};
+
     fun new_print name args get_pr =
       let
-        fun make_print {delay, pri, persistent, strict, print_fn} =
-          let
-            val exec_id = Document_ID.make ();
-            fun process () =
-              let
-                val {failed, command, state = st', ...} = eval_result eval;
-                val tr = Toplevel.exec_id exec_id command;
-              in
-                if failed andalso strict then ()
-                else print_error tr (fn () => print_fn tr st')
-              end;
-          in
-            Print {
-              name = name, args = args, delay = delay, pri = pri, persistent = persistent,
-              exec_id = exec_id, print_process = memo exec_id process}
-          end;
         val params = {command_name = command_name, args = args};
       in
         (case Exn.capture (Runtime.controlled_execution get_pr) params of
           Exn.Res NONE => NONE
-        | Exn.Res (SOME pr) => SOME (make_print pr)
-        | Exn.Exn exn =>
-            SOME (make_print {delay = NONE, pri = 0, persistent = false,
-              strict = false, print_fn = fn _ => fn _ => reraise exn}))
+        | Exn.Res (SOME pr) => SOME (make_print name args pr)
+        | Exn.Exn exn => SOME (bad_print name args exn))
       end;
 
     fun get_print (a, b) =
       (case find_first (fn Print {name, args, ...} => name = a andalso args = b) old_prints of
         NONE =>
           (case AList.lookup (op =) print_functions a of
-            NONE => NONE
+            NONE => SOME (bad_print a b (ERROR ("Missing print function " ^ quote a)))
           | SOME get_pr => new_print a b get_pr)
       | some => some);
 

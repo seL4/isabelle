@@ -76,6 +76,21 @@ object JEdit_Lib
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
 
+  /* focus of main window */
+
+  def request_focus_view: Unit =
+  {
+    jEdit.getActiveView() match {
+      case null =>
+      case view =>
+        view.getTextArea match {
+          case null =>
+          case text_area => text_area.requestFocus
+        }
+    }
+  }
+
+
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator

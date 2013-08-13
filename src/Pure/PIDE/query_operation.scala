@@ -199,5 +199,9 @@ class Query_Operation[Editor_Context](
   }
 
   def activate() { editor.session.commands_changed += main_actor }
-  def deactivate() { editor.session.commands_changed -= main_actor }
+
+  def deactivate() {
+    editor.session.commands_changed -= main_actor
+    remove_overlay()
+  }
 }

@@ -23,16 +23,16 @@ val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
 
 (* errors *)
 
-fun duplicate_variant_error oconst =
+fun err_duplicate_variant oconst =
   error ("Duplicate variant of " ^ quote oconst);
 
-fun not_a_variant_error oconst =
+fun err_not_a_variant oconst =
   error ("Not a variant of " ^  quote oconst);
 
-fun not_overloaded_error oconst =
+fun err_not_overloaded oconst =
   error ("Constant " ^ quote oconst ^ " is not declared as overloaded");
 
-fun unresolved_overloading_error ctxt (c, T) t instances =
+fun err_unresolved_overloading ctxt (c, T) t instances =
   let val ctxt' = Config.put show_variants true ctxt
   in
     cat_lines (
@@ -64,7 +64,7 @@ structure Overload_Data = Generic_Data
     let
       fun merge_oconsts _ (oconst1, oconst2) =
         if oconst1 = oconst2 then oconst1
-        else duplicate_variant_error oconst1;
+        else err_duplicate_variant oconst1;
     in
       {variants = Symtab.merge_list variants_eq (vtab1, vtab2),
        oconsts = Termtab.join merge_oconsts (otab1, otab2)}
@@ -94,15 +94,15 @@ fun generic_remove_overloaded oconst context =
       in map_tables (Symtab.delete_safe oconst) remove_variants context end;
   in
     if is_overloaded (Context.proof_of context) oconst then remove_oconst_and_variants context oconst
-    else not_overloaded_error oconst
+    else err_not_overloaded oconst
   end;
 
 local
   fun generic_variant add oconst t context =
     let
       val ctxt = Context.proof_of context;
-      val _ = if is_overloaded ctxt oconst then () else not_overloaded_error oconst;
-      val T = t |> singleton (Variable.polymorphic ctxt) |> fastype_of;
+      val _ = if is_overloaded ctxt oconst then () else err_not_overloaded oconst;
+      val T = t |> fastype_of;
       val t' = Term.map_types (K dummyT) t;
     in
       if add then
@@ -110,7 +110,7 @@ local
           val _ =
             (case get_overloaded ctxt t' of
               NONE => ()
-            | SOME oconst' => duplicate_variant_error oconst');
+            | SOME oconst' => err_duplicate_variant oconst');
         in
           map_tables (Symtab.cons_list (oconst, (t', T))) (Termtab.update (t', oconst)) context
         end
@@ -118,7 +118,7 @@ local
         let
           val _ =
             if member variants_eq (the (get_variants ctxt oconst)) (t', T) then ()
-            else not_a_variant_error oconst;
+            else err_not_a_variant oconst;
         in
           map_tables (Symtab.map_entry oconst (remove1 variants_eq (t', T)))
             (Termtab.delete_safe t') context
@@ -135,65 +135,55 @@ end;
 
 (* check / uncheck *)
 
-fun unifiable_with thy T1 (t, T2) =
+fun unifiable_with thy T1 T2 =
   let
     val maxidx1 = Term.maxidx_of_typ T1;
     val T2' = Logic.incr_tvar (maxidx1 + 1) T2;
     val maxidx2 = Term.maxidx_typ T2' maxidx1;
-  in
-    (Sign.typ_unify thy (T1, T2') (Vartab.empty, maxidx2); SOME t)
-    handle Type.TUNIFY => NONE
-  end;
+  in can (Sign.typ_unify thy (T1, T2')) (Vartab.empty, maxidx2) end;
 
-fun get_instances ctxt (c, T) =
-  Same.function (get_variants ctxt) c
-  |> map_filter (unifiable_with (Proof_Context.theory_of ctxt) T);
+fun get_candidates ctxt (c, T) =
+  get_variants ctxt c
+  |> Option.map (map_filter (fn (t, T') =>
+    if unifiable_with (Proof_Context.theory_of ctxt) T T' then SOME t
+    else NONE));
 
-fun insert_variants_same ctxt t (Const (c, T)) =
-      (case get_instances ctxt (c, T) of
-        [] => unresolved_overloading_error ctxt (c, T) t []
-      | [variant] => variant
-      | _ => raise Same.SAME)
-  | insert_variants_same _ _ _ = raise Same.SAME;
+fun insert_variants ctxt t (oconst as Const (c, T)) =
+      (case get_candidates ctxt (c, T) of
+        SOME [] => err_unresolved_overloading ctxt (c, T) t []
+      | SOME [variant] => variant
+      | _ => oconst)
+  | insert_variants _ _ oconst = oconst;
 
-fun insert_overloaded_same ctxt variant =
+fun insert_overloaded ctxt variant =
+  (case try Term.type_of variant of
+    NONE => variant
+  | SOME T =>
+    Pattern.rewrite_term (Proof_Context.theory_of ctxt) []
+      [Option.map (Const o rpair T) o get_overloaded ctxt o Term.map_types (K dummyT)] variant);
+
+fun check ctxt =
+  map (fn t => Term.map_aterms (insert_variants ctxt t) t);
+
+fun uncheck ctxt =
+  if Config.get ctxt show_variants then I
+  else map (insert_overloaded ctxt);
+
+fun reject_unresolved ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val t = Pattern.rewrite_term thy [] [fn t =>
-      Term.map_types (K dummyT) t
-      |> get_overloaded ctxt
-      |> Option.map (Const o rpair (fastype_of variant))] variant;
-  in
-    if Term.aconv_untyped (variant, t) then raise Same.SAME
-    else t
-  end;
-
-fun gen_check_uncheck replace ts ctxt =
-  Same.capture (Same.map replace) ts
-  |> Option.map (rpair ctxt);
-
-fun check ts ctxt = gen_check_uncheck (fn t =>
-  Term_Subst.map_aterms_same (insert_variants_same ctxt t) t) ts ctxt;
-
-fun uncheck ts ctxt =
-  if Config.get ctxt show_variants orelse exists (is_none o try Term.type_of) ts then NONE
-  else gen_check_uncheck (insert_overloaded_same ctxt) ts ctxt;
-
-fun reject_unresolved ts ctxt =
-  let
+    val the_candidates = the o get_candidates ctxt;
     fun check_unresolved t =
       (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
-        [] => ()
-      | ((c, T) :: _) => unresolved_overloading_error ctxt (c, T) t (get_instances ctxt (c, T)));
-    val _ = map check_unresolved ts;
-  in NONE end;
+        [] => t
+      | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
+  in map check_unresolved end;
 
 (* setup *)
 
 val _ = Context.>>
-  (Syntax_Phases.term_check' 0 "adhoc_overloading" check
-   #> Syntax_Phases.term_check' 1 "adhoc_overloading_unresolved_check" reject_unresolved
-   #> Syntax_Phases.term_uncheck' 0 "adhoc_overloading" uncheck);
+  (Syntax_Phases.term_check 0 "adhoc_overloading" check
+   #> Syntax_Phases.term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
+   #> Syntax_Phases.term_uncheck 0 "adhoc_overloading" uncheck);
 
 (* commands *)
 
@@ -216,10 +206,11 @@ fun adhoc_overloading_cmd' add args phi =
 fun adhoc_overloading_cmd add raw_args lthy =
   let
     fun const_name ctxt = fst o dest_Const o Proof_Context.read_const ctxt false dummyT;
+    fun read_term ctxt = singleton (Variable.polymorphic ctxt) o Syntax.read_term ctxt;
     val args =
       raw_args
       |> map (apfst (const_name lthy))
-      |> map (apsnd (map (Syntax.read_term lthy)));
+      |> map (apsnd (map (read_term lthy)));
   in
     Local_Theory.declaration {syntax = true, pervasive = false}
       (adhoc_overloading_cmd' add args) lthy
