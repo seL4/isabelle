@@ -12,9 +12,19 @@ begin
 subsection {* Relator for function space *}
 
 definition
-  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool" (infixr "===>" 55)
+  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
 where
   "fun_rel A B = (\<lambda>f g. \<forall>x y. A x y \<longrightarrow> B (f x) (g y))"
+
+locale lifting_syntax
+begin
+  notation fun_rel (infixr "===>" 55)
+  notation map_fun (infixr "--->" 55)
+end
+
+context
+begin
+interpretation lifting_syntax .
 
 lemma fun_relI [intro]:
   assumes "\<And>x y. A x y \<Longrightarrow> B (f x) (g y)"
@@ -112,6 +122,8 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def fun_rel_def by fast
 
+end
+
 ML_file "Tools/transfer.ML"
 setup Transfer.setup
 
@@ -120,6 +132,10 @@ declare refl [transfer_rule]
 declare fun_rel_eq [relator_eq]
 
 hide_const (open) Rel
+
+context
+begin
+interpretation lifting_syntax .
 
 text {* Handling of domains *}
 
@@ -356,5 +372,7 @@ lemma Domainp_forall_transfer [transfer_rule]:
 lemma forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
   unfolding transfer_forall_def by (rule All_transfer)
+
+end
 
 end

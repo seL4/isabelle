@@ -16,7 +16,9 @@ begin
 
 subsection {* Function map *}
 
-notation map_fun (infixr "--->" 55)
+context
+begin
+interpretation lifting_syntax .
 
 lemma map_fun_id:
   "(id ---> id) = id"
@@ -598,6 +600,8 @@ lemma invariant_to_Domainp:
   assumes "Quotient (Lifting.invariant P) Abs Rep T"
   shows "Domainp T = P"
 by (simp add: invariant_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
+
+end
 
 subsection {* ML setup *}
 

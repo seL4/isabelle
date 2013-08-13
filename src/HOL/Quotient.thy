@@ -28,6 +28,10 @@ lemma eq_comp_r:
   shows "((op =) OOO R) = R"
   by (auto simp add: fun_eq_iff)
 
+context
+begin
+interpretation lifting_syntax .
+
 subsection {* Quotient Predicate *}
 
 definition
@@ -578,6 +582,7 @@ lemma id_prs:
   shows "(Rep ---> Abs) id = id"
   by (simp add: fun_eq_iff Quotient3_abs_rep [OF a])
 
+end
 
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -812,9 +817,14 @@ lemma
 lemma QT_imp: "Quot_True a \<equiv> Quot_True b"
   by (simp add: Quot_True_def)
 
+context 
+begin
+interpretation lifting_syntax .
 
 text {* Tactics for proving the lifted theorems *}
 ML_file "Tools/Quotient/quotient_tacs.ML"
+
+end
 
 subsection {* Methods / Interface *}
 
@@ -862,9 +872,7 @@ attribute_setup quot_lifted =
   {* lift theorems to quotient types *}
 
 no_notation
-  rel_conj (infixr "OOO" 75) and
-  map_fun (infixr "--->" 55) and
-  fun_rel (infixr "===>" 55)
+  rel_conj (infixr "OOO" 75)
 
 end
 
