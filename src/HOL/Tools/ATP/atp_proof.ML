@@ -255,7 +255,8 @@ and parse_inference_source x =
    --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
    -- parse_dependencies --| $$ "]" --| $$ ")") x
 and skip_introduced x =
-  (Scan.this_string "introduced" |-- $$ "(" |-- skip_term --| $$ ")") x
+  (Scan.this_string "introduced" |-- $$ "(" |-- skip_term
+   -- Scan.repeat ($$ "," |-- skip_term) --| $$ ")") x
 and parse_source x =
   (parse_file_source >> File_Source
    || parse_inference_source >> Inference_Source
