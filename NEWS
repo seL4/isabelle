@@ -6,6 +6,17 @@ New in this Isabelle version
 
 *** General ***
 
+* Simplified subscripts within identifiers, using plain \<^sub>
+instead of the second copy \<^isub> and \<^isup>.  Superscripts are
+only for literal tokens within notation; explicit mixfix annotations
+for consts or fixed variables may be used as fall-back for unusual
+names.  Obsolete \<twosuperior> has been expanded to \<^sup>2 in
+Isabelle/HOL.  INCOMPATIBILITY, use "isabelle update_sub_sup" to
+standardize symbols as a starting point for further manual cleanup.
+The ML reference variable "legacy_isub_isup" may be set as temporary
+workaround, to make the prover accept a subset of the old identifier
+syntax.
+
 * Uniform management of "quick_and_dirty" as system option (see also
 "isabelle options"), configuration option within the context (see also
 Config.get in Isabelle/ML), and attribute in Isabelle/Isar.  Minor
