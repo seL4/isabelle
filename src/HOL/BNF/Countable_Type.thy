@@ -11,7 +11,6 @@ theory Countable_Type
 imports
   "~~/src/HOL/Cardinals/Cardinals"
   "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/Quotient_Set"
 begin
 
 subsection{* Cardinal stuff *}
@@ -76,7 +75,7 @@ lift_definition cin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" is "op \<in
   ..
 lift_definition cempty :: "'a cset" is "{}" parametric empty_transfer
   by (rule countable_empty)
-lift_definition cinsert :: "'a \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is insert parametric insert_transfer
+lift_definition cinsert :: "'a \<Rightarrow> 'a cset \<Rightarrow> 'a cset" is insert parametric Lifting_Set.insert_transfer
   by (rule countable_insert)
 lift_definition csingle :: "'a \<Rightarrow> 'a cset" is "\<lambda>x. {x}"
   by (rule countable_insert[OF countable_empty])

@@ -3,7 +3,7 @@
 *)
 
 theory Lift_DList
-imports Main "~~/src/HOL/Library/Quotient_List"
+imports Main
 begin
 
 subsection {* The type of distinct lists *}

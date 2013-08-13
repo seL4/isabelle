@@ -11,7 +11,7 @@ theory Process
 imports "../BNF"
 begin
 
-hide_fact (open) Quotient_Product.prod_rel_def
+hide_fact (open) Lifting_Product.prod_rel_def
 
 codatatype 'a process =
   isAction: Action (prefOf: 'a) (contOf: "'a process") |

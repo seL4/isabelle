@@ -5,7 +5,7 @@
 header {* Lifting and transfer with a finite set type *}
 
 theory Lift_FSet
-imports "~~/src/HOL/Library/Quotient_List"
+imports Main
 begin
 
 subsection {* Equivalence relation and quotient type definition *}
@@ -24,6 +24,10 @@ lemma transp_list_eq: "transp list_eq"
 
 lemma equivp_list_eq: "equivp list_eq"
   by (intro equivpI reflp_list_eq symp_list_eq transp_list_eq)
+
+context
+begin
+interpretation lifting_syntax .
 
 lemma list_eq_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
@@ -85,17 +89,19 @@ proof -
     done
 qed
 
+lemma member_transfer:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> list_all2 A ===> op=) (\<lambda>x xs. x \<in> set xs) (\<lambda>x xs. x \<in> set xs)"
+by transfer_prover
+
+end
+
 syntax
   "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
 
 translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"
-
-lemma member_transfer:
-  assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> list_all2 A ===> op=) (\<lambda>x xs. x \<in> set xs) (\<lambda>x xs. x \<in> set xs)"
-by transfer_prover
 
 lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is "\<lambda>x xs. x \<in> set xs"
    parametric member_transfer by simp

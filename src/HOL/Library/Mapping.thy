@@ -5,10 +5,14 @@
 header {* An abstract view on maps for code generation. *}
 
 theory Mapping
-imports Main Quotient_Option Quotient_List
+imports Main
 begin
 
 subsection {* Parametricity transfer rules *}
+
+context
+begin
+interpretation lifting_syntax .
 
 lemma empty_transfer: "(A ===> option_rel B) Map.empty Map.empty" by transfer_prover
 
@@ -71,6 +75,8 @@ lemma map_entry_transfer:
       | Some v \<Rightarrow> m (k \<mapsto> (f v)))) (\<lambda>k f m. (case m k of None \<Rightarrow> m
       | Some v \<Rightarrow> m (k \<mapsto> (f v))))"
 by transfer_prover
+
+end
 
 subsection {* Type definition and primitive operations *}
 
@@ -154,12 +160,17 @@ qed (unfold equal_mapping_def, transfer, auto)
 
 end
 
+context
+begin
+interpretation lifting_syntax .
+
 lemma [transfer_rule]:
   assumes [transfer_rule]: "bi_total A"
   assumes [transfer_rule]: "bi_unique B"
-  shows  "fun_rel (pcr_mapping A B) (fun_rel (pcr_mapping A B) HOL.iff) HOL.eq HOL.equal"
+  shows  "(pcr_mapping A B ===> pcr_mapping A B ===> op=) HOL.eq HOL.equal"
 by (unfold equal) transfer_prover
 
+end
 
 subsection {* Properties *}
 

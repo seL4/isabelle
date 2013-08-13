@@ -5,7 +5,7 @@
 header {* Abstract type of RBT trees *}
 
 theory RBT 
-imports Main RBT_Impl Quotient_List
+imports Main RBT_Impl
 begin
 
 subsection {* Type definition *}

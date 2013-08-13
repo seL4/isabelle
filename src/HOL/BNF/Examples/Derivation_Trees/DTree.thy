@@ -11,7 +11,7 @@ theory DTree
 imports Prelim
 begin
 
-hide_fact (open) Quotient_Product.prod_rel_def
+hide_fact (open) Lifting_Product.prod_rel_def
 
 typedecl N
 typedecl T

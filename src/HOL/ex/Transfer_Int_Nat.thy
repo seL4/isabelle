@@ -5,7 +5,7 @@
 header {* Using the transfer method between nat and int *}
 
 theory Transfer_Int_Nat
-imports GCD "~~/src/HOL/Library/Quotient_List"
+imports GCD
 begin
 
 subsection {* Correspondence relation *}
@@ -19,6 +19,10 @@ lemma Domainp_ZN [transfer_domain_rule]: "Domainp ZN = (\<lambda>x. x \<ge> 0)"
   unfolding ZN_def Domainp_iff[abs_def] by (auto intro: zero_le_imp_eq_int)
 
 subsection {* Transfer rules *}
+
+context
+begin
+interpretation lifting_syntax .
 
 lemma bi_unique_ZN [transfer_rule]: "bi_unique ZN"
   unfolding ZN_def bi_unique_def by simp
@@ -114,6 +118,8 @@ text {* For derived operations, we can use the @{text "transfer_prover"}
 
 lemma ZN_listsum [transfer_rule]: "(list_all2 ZN ===> ZN) listsum listsum"
   unfolding listsum_def [abs_def] by transfer_prover
+
+end
 
 subsection {* Transfer examples *}
 

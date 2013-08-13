@@ -12,7 +12,7 @@ theory TreeFsetI
 imports "../BNF"
 begin
 
-hide_fact (open) Quotient_Product.prod_rel_def
+hide_fact (open) Lifting_Product.prod_rel_def
 
 codatatype 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
 

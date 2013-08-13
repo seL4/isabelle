@@ -421,8 +421,14 @@ assumes "\<And>a. a \<in># M \<Longrightarrow> f a = g a"
 shows "mmap f M = mmap g M"
 using assms by transfer (auto intro!: setsum_cong)
 
+context
+begin
+interpretation lifting_syntax .
+
 lemma set_of_transfer[transfer_rule]: "(pcr_multiset op = ===> op =) (\<lambda>f. {a. 0 < f a}) set_of"
   unfolding set_of_def pcr_multiset_def cr_multiset_def fun_rel_def by auto
+
+end
 
 lemma set_of_mmap: "set_of o mmap h = image h o set_of"
 proof (rule ext, unfold o_apply)
