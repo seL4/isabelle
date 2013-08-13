@@ -49,8 +49,8 @@ quotient_type rat = "int \<times> int" / partial: "ratrel"
   morphisms Rep_Rat Abs_Rat
   by (rule part_equivp_ratrel)
 
-lemma Domainp_cr_rat [transfer_domain_rule]: "Domainp cr_rat = (\<lambda>x. snd x \<noteq> 0)"
-by (simp add: rat.domain)
+lemma Domainp_cr_rat [transfer_domain_rule]: "Domainp pcr_rat = (\<lambda>x. snd x \<noteq> 0)"
+by (simp add: rat.domain_eq)
 
 subsubsection {* Representation and basic operations *}
 

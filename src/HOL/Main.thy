@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Predicate_Compile Nitpick Extraction
+imports Predicate_Compile Nitpick Extraction Lifting_Sum
 begin
 
 text {*

@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Presburger Code_Numeral Quotient ATP
+imports Presburger Code_Numeral Quotient ATP Lifting_Set Lifting_Option Lifting_Product
 begin
 
 datatype 'a list =
@@ -6228,5 +6228,338 @@ lemma wf_set [code]:
   "wf (set xs) = acyclic (set xs)"
   by (simp add: wf_iff_acyclic_if_finite)
 
+subsection {* Setup for Lifting/Transfer *}
+
+subsubsection {* Relator and predicator properties *}
+
+lemma list_all2_eq'[relator_eq]:
+  "list_all2 (op =) = (op =)"
+by (rule ext)+ (simp add: list_all2_eq)
+
+lemma list_all2_mono'[relator_mono]:
+  assumes "A \<le> B"
+  shows "(list_all2 A) \<le> (list_all2 B)"
+using assms by (auto intro: list_all2_mono)
+
+lemma list_all2_OO[relator_distr]: "list_all2 A OO list_all2 B = list_all2 (A OO B)"
+proof (intro ext iffI)
+  fix xs ys
+  assume "list_all2 (A OO B) xs ys"
+  thus "(list_all2 A OO list_all2 B) xs ys"
+    unfolding OO_def
+    by (induct, simp, simp add: list_all2_Cons1 list_all2_Cons2, fast)
+next
+  fix xs ys
+  assume "(list_all2 A OO list_all2 B) xs ys"
+  then obtain zs where "list_all2 A xs zs" and "list_all2 B zs ys" ..
+  thus "list_all2 (A OO B) xs ys"
+    by (induct arbitrary: ys, simp, clarsimp simp add: list_all2_Cons1, fast)
+qed
+
+lemma Domainp_list[relator_domain]:
+  assumes "Domainp A = P"
+  shows "Domainp (list_all2 A) = (list_all P)"
+proof -
+  {
+    fix x
+    have *: "\<And>x. (\<exists>y. A x y) = P x" using assms unfolding Domainp_iff by blast
+    have "(\<exists>y. (list_all2 A x y)) = list_all P x"
+    by (induction x) (simp_all add: * list_all2_Cons1)
+  }
+  then show ?thesis
+  unfolding Domainp_iff[abs_def]
+  by (auto iff: fun_eq_iff)
+qed 
+
+lemma reflp_list_all2[reflexivity_rule]:
+  assumes "reflp R"
+  shows "reflp (list_all2 R)"
+proof (rule reflpI)
+  from assms have *: "\<And>xs. R xs xs" by (rule reflpE)
+  fix xs
+  show "list_all2 R xs xs"
+    by (induct xs) (simp_all add: *)
+qed
+
+lemma left_total_list_all2[reflexivity_rule]:
+  "left_total R \<Longrightarrow> left_total (list_all2 R)"
+  unfolding left_total_def
+  apply safe
+  apply (rename_tac xs, induct_tac xs, simp, simp add: list_all2_Cons1)
+done
+
+lemma left_unique_list_all2 [reflexivity_rule]:
+  "left_unique R \<Longrightarrow> left_unique (list_all2 R)"
+  unfolding left_unique_def
+  apply (subst (2) all_comm, subst (1) all_comm)
+  apply (rule allI, rename_tac zs, induct_tac zs)
+  apply (auto simp add: list_all2_Cons2)
+  done
+
+lemma right_total_list_all2 [transfer_rule]:
+  "right_total R \<Longrightarrow> right_total (list_all2 R)"
+  unfolding right_total_def
+  by (rule allI, induct_tac y, simp, simp add: list_all2_Cons2)
+
+lemma right_unique_list_all2 [transfer_rule]:
+  "right_unique R \<Longrightarrow> right_unique (list_all2 R)"
+  unfolding right_unique_def
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (auto simp add: list_all2_Cons1)
+  done
+
+lemma bi_total_list_all2 [transfer_rule]:
+  "bi_total A \<Longrightarrow> bi_total (list_all2 A)"
+  unfolding bi_total_def
+  apply safe
+  apply (rename_tac xs, induct_tac xs, simp, simp add: list_all2_Cons1)
+  apply (rename_tac ys, induct_tac ys, simp, simp add: list_all2_Cons2)
+  done
+
+lemma bi_unique_list_all2 [transfer_rule]:
+  "bi_unique A \<Longrightarrow> bi_unique (list_all2 A)"
+  unfolding bi_unique_def
+  apply (rule conjI)
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (simp, force simp add: list_all2_Cons1)
+  apply (subst (2) all_comm, subst (1) all_comm)
+  apply (rule allI, rename_tac xs, induct_tac xs)
+  apply (simp, force simp add: list_all2_Cons2)
+  done
+
+lemma list_invariant_commute [invariant_commute]:
+  "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
+  apply (simp add: fun_eq_iff list_all2_def list_all_iff Lifting.invariant_def Ball_def) 
+  apply (intro allI) 
+  apply (induct_tac rule: list_induct2') 
+  apply simp_all 
+  apply fastforce
+done
+
+subsubsection {* Quotient theorem for the Lifting package *}
+
+lemma Quotient_list[quot_map]:
+  assumes "Quotient R Abs Rep T"
+  shows "Quotient (list_all2 R) (map Abs) (map Rep) (list_all2 T)"
+proof (unfold Quotient_alt_def, intro conjI allI impI)
+  from assms have 1: "\<And>x y. T x y \<Longrightarrow> Abs x = y"
+    unfolding Quotient_alt_def by simp
+  fix xs ys assume "list_all2 T xs ys" thus "map Abs xs = ys"
+    by (induct, simp, simp add: 1)
+next
+  from assms have 2: "\<And>x. T (Rep x) x"
+    unfolding Quotient_alt_def by simp
+  fix xs show "list_all2 T (map Rep xs) xs"
+    by (induct xs, simp, simp add: 2)
+next
+  from assms have 3: "\<And>x y. R x y \<longleftrightarrow> T x (Abs x) \<and> T y (Abs y) \<and> Abs x = Abs y"
+    unfolding Quotient_alt_def by simp
+  fix xs ys show "list_all2 R xs ys \<longleftrightarrow> list_all2 T xs (map Abs xs) \<and>
+    list_all2 T ys (map Abs ys) \<and> map Abs xs = map Abs ys"
+    by (induct xs ys rule: list_induct2', simp_all, metis 3)
+qed
+
+subsubsection {* Transfer rules for the Transfer package *}
+
+context
+begin
+interpretation lifting_syntax .
+
+lemma Nil_transfer [transfer_rule]: "(list_all2 A) [] []"
+  by simp
+
+lemma Cons_transfer [transfer_rule]:
+  "(A ===> list_all2 A ===> list_all2 A) Cons Cons"
+  unfolding fun_rel_def by simp
+
+lemma list_case_transfer [transfer_rule]:
+  "(B ===> (A ===> list_all2 A ===> B) ===> list_all2 A ===> B)
+    list_case list_case"
+  unfolding fun_rel_def by (simp split: list.split)
+
+lemma list_rec_transfer [transfer_rule]:
+  "(B ===> (A ===> list_all2 A ===> B ===> B) ===> list_all2 A ===> B)
+    list_rec list_rec"
+  unfolding fun_rel_def by (clarify, erule list_all2_induct, simp_all)
+
+lemma tl_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A) tl tl"
+  unfolding tl_def by transfer_prover
+
+lemma butlast_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A) butlast butlast"
+  by (rule fun_relI, erule list_all2_induct, auto)
+
+lemma set_transfer [transfer_rule]:
+  "(list_all2 A ===> set_rel A) set set"
+  unfolding set_def by transfer_prover
+
+lemma map_transfer [transfer_rule]:
+  "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"
+  unfolding List.map_def by transfer_prover
+
+lemma append_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A ===> list_all2 A) append append"
+  unfolding List.append_def by transfer_prover
+
+lemma rev_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A) rev rev"
+  unfolding List.rev_def by transfer_prover
+
+lemma filter_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> list_all2 A) filter filter"
+  unfolding List.filter_def by transfer_prover
+
+lemma fold_transfer [transfer_rule]:
+  "((A ===> B ===> B) ===> list_all2 A ===> B ===> B) fold fold"
+  unfolding List.fold_def by transfer_prover
+
+lemma foldr_transfer [transfer_rule]:
+  "((A ===> B ===> B) ===> list_all2 A ===> B ===> B) foldr foldr"
+  unfolding List.foldr_def by transfer_prover
+
+lemma foldl_transfer [transfer_rule]:
+  "((B ===> A ===> B) ===> B ===> list_all2 A ===> B) foldl foldl"
+  unfolding List.foldl_def by transfer_prover
+
+lemma concat_transfer [transfer_rule]:
+  "(list_all2 (list_all2 A) ===> list_all2 A) concat concat"
+  unfolding List.concat_def by transfer_prover
+
+lemma drop_transfer [transfer_rule]:
+  "(op = ===> list_all2 A ===> list_all2 A) drop drop"
+  unfolding List.drop_def by transfer_prover
+
+lemma take_transfer [transfer_rule]:
+  "(op = ===> list_all2 A ===> list_all2 A) take take"
+  unfolding List.take_def by transfer_prover
+
+lemma list_update_transfer [transfer_rule]:
+  "(list_all2 A ===> op = ===> A ===> list_all2 A) list_update list_update"
+  unfolding list_update_def by transfer_prover
+
+lemma takeWhile_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> list_all2 A) takeWhile takeWhile"
+  unfolding takeWhile_def by transfer_prover
+
+lemma dropWhile_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> list_all2 A) dropWhile dropWhile"
+  unfolding dropWhile_def by transfer_prover
+
+lemma zip_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 B ===> list_all2 (prod_rel A B)) zip zip"
+  unfolding zip_def by transfer_prover
+
+lemma insert_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> list_all2 A ===> list_all2 A) List.insert List.insert"
+  unfolding List.insert_def [abs_def] by transfer_prover
+
+lemma find_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> option_rel A) List.find List.find"
+  unfolding List.find_def by transfer_prover
+
+lemma remove1_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> list_all2 A ===> list_all2 A) remove1 remove1"
+  unfolding remove1_def by transfer_prover
+
+lemma removeAll_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> list_all2 A ===> list_all2 A) removeAll removeAll"
+  unfolding removeAll_def by transfer_prover
+
+lemma distinct_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(list_all2 A ===> op =) distinct distinct"
+  unfolding distinct_def by transfer_prover
+
+lemma remdups_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(list_all2 A ===> list_all2 A) remdups remdups"
+  unfolding remdups_def by transfer_prover
+
+lemma replicate_transfer [transfer_rule]:
+  "(op = ===> A ===> list_all2 A) replicate replicate"
+  unfolding replicate_def by transfer_prover
+
+lemma length_transfer [transfer_rule]:
+  "(list_all2 A ===> op =) length length"
+  unfolding list_size_overloaded_def by transfer_prover
+
+lemma rotate1_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A) rotate1 rotate1"
+  unfolding rotate1_def by transfer_prover
+
+lemma rotate_transfer [transfer_rule]:
+  "(op = ===> list_all2 A ===> list_all2 A) rotate rotate"
+  unfolding rotate_def [abs_def] by transfer_prover
+
+lemma list_all2_transfer [transfer_rule]:
+  "((A ===> B ===> op =) ===> list_all2 A ===> list_all2 B ===> op =)
+    list_all2 list_all2"
+  apply (subst (4) list_all2_def [abs_def])
+  apply (subst (3) list_all2_def [abs_def])
+  apply transfer_prover
+  done
+
+lemma sublist_transfer [transfer_rule]:
+  "(list_all2 A ===> set_rel (op =) ===> list_all2 A) sublist sublist"
+  unfolding sublist_def [abs_def] by transfer_prover
+
+lemma partition_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> prod_rel (list_all2 A) (list_all2 A))
+    partition partition"
+  unfolding partition_def by transfer_prover
+
+lemma lists_transfer [transfer_rule]:
+  "(set_rel A ===> set_rel (list_all2 A)) lists lists"
+  apply (rule fun_relI, rule set_relI)
+  apply (erule lists.induct, simp)
+  apply (simp only: set_rel_def list_all2_Cons1, metis lists.Cons)
+  apply (erule lists.induct, simp)
+  apply (simp only: set_rel_def list_all2_Cons2, metis lists.Cons)
+  done
+
+lemma set_Cons_transfer [transfer_rule]:
+  "(set_rel A ===> set_rel (list_all2 A) ===> set_rel (list_all2 A))
+    set_Cons set_Cons"
+  unfolding fun_rel_def set_rel_def set_Cons_def
+  apply safe
+  apply (simp add: list_all2_Cons1, fast)
+  apply (simp add: list_all2_Cons2, fast)
+  done
+
+lemma listset_transfer [transfer_rule]:
+  "(list_all2 (set_rel A) ===> set_rel (list_all2 A)) listset listset"
+  unfolding listset_def by transfer_prover
+
+lemma null_transfer [transfer_rule]:
+  "(list_all2 A ===> op =) List.null List.null"
+  unfolding fun_rel_def List.null_def by auto
+
+lemma list_all_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> op =) list_all list_all"
+  unfolding list_all_iff [abs_def] by transfer_prover
+
+lemma list_ex_transfer [transfer_rule]:
+  "((A ===> op =) ===> list_all2 A ===> op =) list_ex list_ex"
+  unfolding list_ex_iff [abs_def] by transfer_prover
+
+lemma splice_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 A ===> list_all2 A) splice splice"
+  apply (rule fun_relI, erule list_all2_induct, simp add: fun_rel_def, simp)
+  apply (rule fun_relI)
+  apply (erule_tac xs=x in list_all2_induct, simp, simp add: fun_rel_def)
+  done
+
+lemma listsum_transfer[transfer_rule]:
+  assumes [transfer_rule]: "A 0 0"
+  assumes [transfer_rule]: "(A ===> A ===> A) op + op +"
+  shows "(list_all2 A ===> A) listsum listsum"
+  unfolding listsum_def[abs_def]
+  by transfer_prover
+
 end
 
+end
