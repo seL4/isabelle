@@ -82,7 +82,8 @@ fun minimize_line _ _ [] = ""
       "" => ""
     | command =>
       "\nTo minimize: " ^
-      Active.sendback_markup (if auto then [Markup.padding_command] else []) command ^ "."
+      Active.sendback_markup (if auto then [Markup.padding_command] else [])
+                             command ^ "."
 
 fun split_used_facts facts =
   facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
@@ -124,7 +125,6 @@ val indent_size = 2
 
 fun string_of_proof ctxt type_enc lam_trans i n proof =
   let
-
     val ctxt =
       (* make sure type constraint are actually printed *)
       ctxt |> Config.put show_markup false
@@ -147,7 +147,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun of_obtain qs nr =
       (if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
          "ultimately "
-       else if nr=1 orelse member (op =) qs Then then
+       else if nr = 1 orelse member (op =) qs Then then
          "then "
        else
          "") ^ "obtain"
