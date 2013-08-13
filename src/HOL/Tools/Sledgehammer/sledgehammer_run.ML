@@ -157,7 +157,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
             state |> Proof.map_context
               (Config.put sledgehammer_result (quote name ^ ": " ^ message ()))
           else
-            ((if outcome_code = someN orelse mode = Normal then
+            ((if outcome_code = someN orelse mode = Normal orelse mode = Normal_Result then
                quote name ^ ": " ^ message ()
              else
                "")
@@ -294,7 +294,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
         |> Par_List.map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
       fun maybe f (accum as (outcome_code, _)) =
-        accum |> (mode = Normal orelse outcome_code <> someN) ? f
+        accum |> (mode = Normal orelse mode = Normal_Result orelse outcome_code <> someN) ? f
     in
       (unknownN, state)
       |> (if blocking then

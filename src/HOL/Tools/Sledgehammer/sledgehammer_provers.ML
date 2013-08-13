@@ -16,7 +16,7 @@ sig
   type play = Sledgehammer_Reconstructor.play
   type minimize_command = Sledgehammer_Reconstructor.minimize_command
 
-  datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
+  datatype mode = Auto_Try | Try | Normal | Normal_Result | MaSh | Auto_Minimize | Minimize
 
   type params =
     {debug : bool,
@@ -161,7 +161,7 @@ open Sledgehammer_Reconstruct
 
 (** The Sledgehammer **)
 
-datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
+datatype mode = Auto_Try | Try | Normal | Normal_Result | MaSh | Auto_Minimize | Minimize
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
@@ -667,6 +667,7 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances
 fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"
   | suffix_of_mode Normal = ""
+  | suffix_of_mode Normal_Result = ""
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Auto_Minimize = "_min"
   | suffix_of_mode Minimize = "_min"
@@ -930,7 +931,7 @@ fun run_atp mode name
          (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
     val important_message =
-      if mode = Normal andalso
+      if (mode = Normal orelse mode = Normal_Result) andalso
          random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
         extract_important_message output
       else
