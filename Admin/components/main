@@ -1,6 +1,6 @@
 #main components for everyday use, without big impact on overall build time
 cvc3-2.4.1
-e-1.6-2
+e-1.8
 exec_process-1.0.3
 Haskabelle-2013
 jdk-7u21
