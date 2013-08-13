@@ -122,16 +122,6 @@
 	    isabelle.jedit.Isabelle.control_sup(textArea);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.control-isub">
-	  <CODE>
-	    isabelle.jedit.Isabelle.control_isub(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.control-isup">
-	  <CODE>
-	    isabelle.jedit.Isabelle.control_isup(textArea);
-	  </CODE>
-	</ACTION>
 	<ACTION NAME="isabelle.control-bold">
 	  <CODE>
 	    isabelle.jedit.Isabelle.control_bold(textArea);

@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
-import javax.swing.{Icon, ImageIcon}
+import javax.swing.{Icon, ImageIcon, JWindow}
 
 import scala.annotation.tailrec
 
@@ -31,6 +31,36 @@ object JEdit_Lib
       config <- device.getConfigurations.iterator
       bounds = config.getBounds
     } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+  }
+
+
+  /* window geometry measurement */
+
+  private lazy val dummy_window = new JWindow
+
+  final case class Window_Geometry(width: Int, height: Int, inner_width: Int, inner_height: Int)
+  {
+    def deco_width: Int = width - inner_width
+    def deco_height: Int = height - inner_height
+  }
+
+  def window_geometry(outer: Container, inner: Component): Window_Geometry =
+  {
+    Swing_Thread.require()
+
+    val old_content = dummy_window.getContentPane
+
+    dummy_window.setContentPane(outer)
+    dummy_window.pack
+    dummy_window.revalidate
+
+    val geometry =
+      Window_Geometry(
+        dummy_window.getWidth, dummy_window.getHeight, inner.getWidth, inner.getHeight)
+
+    dummy_window.setContentPane(old_content)
+
+    geometry
   }
 
 

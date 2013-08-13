@@ -223,9 +223,7 @@ local
           val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss));
           val ((w, s), r) =
             if s1 = "\\<^sub>" then (output_sub "&#8681;" s2, ss)
-            else if s1 = "\\<^isub>" then (output_sub "&#8675;" s2, ss)
             else if s1 = "\\<^sup>" then (output_sup "&#8679;" s2, ss)
-            else if s1 = "\\<^isup>" then (output_sup "&#8673;" s2, ss)
             else if s1 = "\\<^bold>" then (output_bold "&#10073;" s2, ss)
             else (output_sym s1, rest);
         in output_syms r (s :: result, width + w) end;

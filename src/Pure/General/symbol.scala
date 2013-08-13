@@ -364,8 +364,6 @@ object Symbol
 
     val sub_decoded = decode("\\<^sub>")
     val sup_decoded = decode("\\<^sup>")
-    val isub_decoded = decode("\\<^isub>")
-    val isup_decoded = decode("\\<^isup>")
     val bsub_decoded = decode("\\<^bsub>")
     val esub_decoded = decode("\\<^esub>")
     val bsup_decoded = decode("\\<^bsup>")
@@ -426,8 +424,6 @@ object Symbol
 
   def sub_decoded: Symbol = symbols.sub_decoded
   def sup_decoded: Symbol = symbols.sup_decoded
-  def isub_decoded: Symbol = symbols.isub_decoded
-  def isup_decoded: Symbol = symbols.isup_decoded
   def bsub_decoded: Symbol = symbols.bsub_decoded
   def esub_decoded: Symbol = symbols.esub_decoded
   def bsup_decoded: Symbol = symbols.bsup_decoded
