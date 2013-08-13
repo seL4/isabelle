@@ -113,22 +113,22 @@ This tutorial is organized as follows:
 \item Section \ref{sec:defining-datatypes}, ``Defining Datatypes,''
 describes how to specify datatypes using the @{command datatype_new} command.
 
-\item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive 
+\item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive
 Functions,'' describes how to specify recursive functions using
 \keyw{primrec\_new}, @{command fun}, and @{command function}.
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
 describes how to specify codatatypes using the @{command codatatype} command.
 
-\item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive 
+\item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive
 Functions,'' describes how to specify corecursive functions using the
 \keyw{primcorec} command.
 
-\item Section \ref{sec:registering-bounded-natural-functors}, ``Registering 
+\item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
 Bounded Natural Functors,'' explains how to set up the (co)datatype package to
 allow nested recursion through custom well-behaved type constructors.
 
-\item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free 
+\item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free
 Constructor Theorems,'' explains how to derive convenience theorems for free
 constructors, as performed internally by @{command datatype_new} and
 @{command codatatype}.
@@ -140,7 +140,7 @@ describes the package's programmatic interface.
 is concerned with the packages' interaction with other Isabelle packages and
 tools, such as the code generator and the counterexample generators.
 
-\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and 
+\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
 Limitations,'' concludes with known open issues at the time of writing.
 \end{itemize}
 
@@ -459,7 +459,7 @@ specify exactly the same type variables in the same order.
 
 @{rail "
   @{syntax_def ctor}: (@{syntax name} ':')? @{syntax name} (@{syntax ctor_arg} * ) \\
-    @{syntax sel_defaults}? @{syntax mixfix}?
+    @{syntax dt_sel_defaults}? @{syntax mixfix}?
 "}
 
 \noindent
@@ -479,7 +479,7 @@ name for the corresponding selector to override the default name
 constructors as long as they have the same type.
 
 @{rail "
-  @{syntax_def sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} +) ')'
+  @{syntax_def dt_sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} +) ')'
 "}
 
 \noindent
@@ -923,7 +923,7 @@ subsection {* Syntax
   \label{ssec:primcorec-syntax} *}
 
 text {*
-Primitive corecrusvie definitions have the following general syntax:
+Primitive corecursive definitions have the following general syntax:
 
 @{rail "
   @@{command primcorec} @{syntax target}? @{syntax \"fixes\"} \\ @'where'
@@ -994,6 +994,25 @@ subsection {* Example
 subsection {* Syntax
   \label{ssec:ctors-syntax} *}
 
+text {*
+Free constructor wrapping has the following general syntax:
+
+@{rail "
+  @@{command wrap_free_constructors} @{syntax target}? @{syntax dt_options} \\
+    @{syntax fc_conss} @{syntax name} \\
+    (@{syntax fc_discs} (@{syntax fc_sels} @{syntax fc_sel_defaults}? )? )?
+  ;
+  @{syntax_def fc_conss}: '[' (@{syntax term} + ',') ']'
+  ;
+  @{syntax_def fc_discs}: '[' (@{syntax name} + ',') ']'
+  ;
+  @{syntax_def fc_sels}: '[' ('[' (@{syntax name} + ',') ']' + ',') ']'
+  ;
+  @{syntax_def fc_sel_defaults}: '[' ('[' (@{syntax name} ':' @{syntax term} + ',') ']' + ',') ']'
+"}
+
+options: no_discs_sels rep_compat
+*}
 
 subsection {* Generated Theorems
   \label{ssec:ctors-generated-theorems} *}
