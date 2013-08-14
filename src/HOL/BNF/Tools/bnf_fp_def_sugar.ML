@@ -177,6 +177,8 @@ val exists_subtype_in = Term.exists_subtype o member (op =);
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
+(* FIXME: merge with function of the same name in "bnf_fp_n2m.ML" (in the
+   prim(co)rec repository) *)
 fun typ_subst_nonatomic inst (T as Type (s, Ts)) =
     (case AList.lookup (op =) inst T of
       NONE => Type (s, map (typ_subst_nonatomic inst) Ts)
