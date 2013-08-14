@@ -123,9 +123,27 @@ lemma [code abstract]:
   "integer_of_nat (nat k) = max 0 (integer_of_int k)"
   by transfer auto
 
+lemma term_of_nat_code [code]:
+  -- {* Use @{term Code_Numeral.nat_of_integer} in term reconstruction
+        instead of @{term Code_Target_Nat.Nat} such that reconstructed
+        terms can be fed back to the code generator *}
+  "term_of_class.term_of n =
+   Code_Evaluation.App
+     (Code_Evaluation.Const (STR ''Code_Numeral.nat_of_integer'')
+        (typerep.Typerep (STR ''fun'')
+           [typerep.Typerep (STR ''Code_Numeral.integer'') [],
+         typerep.Typerep (STR ''Nat.nat'') []]))
+     (term_of_class.term_of (integer_of_nat n))"
+by(simp add: term_of_anything)
+
+lemma nat_of_integer_code_post [code_post]:
+  "nat_of_integer 0 = 0"
+  "nat_of_integer 1 = 1"
+  "nat_of_integer (numeral k) = numeral k"
+by(transfer, simp)+
+
 code_identifier
   code_module Code_Target_Nat \<rightharpoonup>
     (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-
