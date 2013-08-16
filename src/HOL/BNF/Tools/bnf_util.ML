@@ -49,9 +49,12 @@ sig
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
-  val sort_like: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
   val pad_list: 'a -> int -> 'a list -> 'a list
+
+  val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
+  val mk_permute: ('a * 'b -> bool) -> 'a list -> 'b list -> 'c list -> 'c list
+  val sort_like: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
 
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
   val mk_TFrees: int -> Proof.context -> typ list * Proof.context
@@ -166,9 +169,6 @@ sig
   val cterm_instantiate_pos: cterm option list -> thm -> thm
   val fold_thms: Proof.context -> thm list -> thm -> thm
   val unfold_thms: Proof.context -> thm list -> thm -> thm
-
-  val mk_permute: ''a list -> ''a list -> 'b list -> 'b list
-  val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
 
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
@@ -624,8 +624,6 @@ fun mk_collect xs defT =
   let val T = (case xs of [] => defT | (x::_) => fastype_of x);
   in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
 
-fun mk_permute src dest xs = map (nth xs o (fn x => find_index ((curry op =) x) src)) dest;
-
 fun rapp u t = betapply (t, u);
 
 val list_all_free =
@@ -721,6 +719,8 @@ fun splice xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
   | transpose xss = map hd xss :: transpose (map tl xss);
+
+fun mk_permute eq xs xs' ys = map (nth ys o (fn y => find_index (fn x => eq (x, y)) xs)) xs';
 
 (*FIXME: merge with mk_permute*)
 fun sort_like eq xs ys = map (fn x => nth ys (find_index (curry eq x) xs));

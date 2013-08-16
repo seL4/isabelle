@@ -445,8 +445,8 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
     val live = live_of_bnf bnf;
     val dead = dead_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
-    fun permute xs = mk_permute src dest xs;
-    fun permute_rev xs = mk_permute dest src xs;
+    fun permute xs = mk_permute (op =) src dest xs;
+    fun unpermute xs = mk_permute (op =) dest src xs;
 
     val (Ds, lthy1) = apfst (map TFree)
       (Variable.invent_types (replicate dead HOLogic.typeS) lthy);
@@ -462,10 +462,10 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
 
     (*%f(1) ... f(n). bnf.map f\<sigma>(1) ... f\<sigma>(n)*)
     val mapx = fold_rev Term.absdummy (permute (map2 (curry op -->) As Bs))
-      (Term.list_comb (mk_map_of_bnf Ds As Bs bnf, permute_rev (map Bound (live - 1 downto 0))));
+      (Term.list_comb (mk_map_of_bnf Ds As Bs bnf, unpermute (map Bound (live - 1 downto 0))));
     (*%Q(1) ... Q(n). bnf.rel Q\<sigma>(1) ... Q\<sigma>(n)*)
     val rel = fold_rev Term.absdummy (permute (map2 mk_pred2T As Bs))
-      (Term.list_comb (mk_rel_of_bnf Ds As Bs bnf, permute_rev (map Bound (live - 1 downto 0))));
+      (Term.list_comb (mk_rel_of_bnf Ds As Bs bnf, unpermute (map Bound (live - 1 downto 0))));
 
     val bnf_sets = mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf;
     val sets = permute bnf_sets;
@@ -484,7 +484,7 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
     val in_alt_thm =
       let
         val inx = mk_in Asets sets T;
-        val in_alt = mk_in (permute_rev Asets) bnf_sets T;
+        val in_alt = mk_in (unpermute Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
         Goal.prove_sorry lthy [] [] goal (K (mk_permute_in_alt_tac src dest))
