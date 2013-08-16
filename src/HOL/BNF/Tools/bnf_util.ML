@@ -68,6 +68,7 @@ sig
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
   val nonzero_string_of_int: int -> string
+  val resort_tfree: sort -> typ -> typ
   val retype_free: typ -> term -> term
   val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
   val variant_types: string list -> sort list -> Proof.context ->
@@ -374,6 +375,8 @@ val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 
 fun mk_TFrees n = mk_TFrees' (replicate n HOLogic.typeS);
 val mk_TFreess = fold_map mk_TFrees;
+
+fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
 (*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
 fun typ_subst_nonatomic [] = I

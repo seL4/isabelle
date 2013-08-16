@@ -177,8 +177,6 @@ fun tvar_subst thy Ts Us =
 
 val exists_subtype_in = Term.exists_subtype o member (op =);
 
-fun resort_tfree S (TFree (s, _)) = TFree (s, S);
-
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun flat_rec_arg_args xss =
