@@ -12,7 +12,6 @@ sig
 
   val mk_bij_betw: term -> term -> term -> term
   val mk_cardSuc: term -> term
-  val mk_convol: term * term -> term
   val mk_cpow: term -> term
   val mk_inver: term -> term -> term -> term
   val mk_not_empty: term -> term
@@ -65,12 +64,5 @@ fun mk_inver f g A =
 fun mk_not_eq x y = HOLogic.mk_not (HOLogic.mk_eq (x, y));
 
 fun mk_not_empty B = mk_not_eq B (HOLogic.mk_set (HOLogic.dest_setT (fastype_of B)) []);
-
-fun mk_convol (f, g) =
-  let
-    val (fU, fTU) = `range_type (fastype_of f);
-    val ((gT, gU), gTU) = `dest_funT (fastype_of g);
-    val convolT = fTU --> gTU --> gT --> HOLogic.mk_prodT (fU, gU);
-  in Const (@{const_name convol}, convolT) $ f $ g end;
 
 end;

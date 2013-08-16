@@ -140,7 +140,7 @@ sig
   val mk_sumTN: typ list -> typ
   val mk_sumTN_balanced: typ list -> typ
 
-  val id_const: typ -> term
+  val mk_convol: term * term -> term
 
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
@@ -372,7 +372,12 @@ fun dest_tupleT 0 @{typ unit} = []
 val mk_sumTN = Library.foldr1 mk_sumT;
 val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
 
-fun id_const T = Const (@{const_name id}, T --> T);
+fun mk_convol (f, g) =
+  let
+    val (fU, fTU) = `range_type (fastype_of f);
+    val ((gT, gU), gTU) = `dest_funT (fastype_of g);
+    val convolT = fTU --> gTU --> gT --> HOLogic.mk_prodT (fU, gU);
+  in Const (@{const_name convol}, convolT) $ f $ g end;
 
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
 fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;

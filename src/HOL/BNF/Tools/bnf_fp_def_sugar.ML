@@ -272,7 +272,7 @@ fun build_map lthy build_simple =
   let
     fun build (TU as (T, U)) =
       if T = U then
-        id_const T
+        HOLogic.id_const T
       else
         (case TU of
           (Type (s, Ts), Type (s', Us)) =>
