@@ -36,9 +36,9 @@ sig
     declaration list ->
     (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
-  val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
   val extern: theory -> string -> xstring
+  val markup_name: Proof.context -> string -> string
   val pretty_name: Proof.context -> string -> Pretty.T
   val defined: theory -> string -> bool
   val params_of: theory -> string -> ((string * typ) * mixfix) list
@@ -159,13 +159,15 @@ structure Locales = Theory_Data
   val merge = Name_Space.join_tables (K merge_locale);
 );
 
-val intern = Name_Space.intern o #1 o Locales.get;
 fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
+
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
 
-fun pretty_name ctxt name =
-  Pretty.mark_str
-    (Name_Space.markup_extern ctxt (#1 (Locales.get (Proof_Context.theory_of ctxt))) name);
+fun markup_extern ctxt =
+  Name_Space.markup_extern ctxt (#1 (Locales.get (Proof_Context.theory_of ctxt)));
+
+fun markup_name ctxt name = markup_extern ctxt name |-> Markup.markup;
+fun pretty_name ctxt name = markup_extern ctxt name |> Pretty.mark_str;
 
 val get_locale = Symtab.lookup o #2 o Locales.get;
 val defined = Symtab.defined o #2 o Locales.get;
@@ -207,7 +209,7 @@ fun dependencies_of thy name = the_locale thy name |>
 fun mixins_of thy name serial = the_locale thy name |>
   #mixins |> lookup_mixins serial;
 
-(* FIXME unused *)
+(* FIXME unused!? *)
 fun identity_on thy name morph =
   let val mk_instance = instance_of thy name
   in ListPair.all Term.aconv_untyped (mk_instance Morphism.identity, mk_instance morph) end;
@@ -462,15 +464,18 @@ fun init name thy =
 fun amend_registration (name, morph) mixin export context =
   let
     val thy = Context.theory_of context;
+    val ctxt = Context.proof_of context;
+
     val regs = Registrations.get context |> fst;
     val base = instance_of thy name (morph $> export);
-    val serial' = case Idtab.lookup regs (name, base) of
+    val serial' =
+      (case Idtab.lookup regs (name, base) of
         NONE =>
-          error ("No interpretation of locale " ^
-            quote (extern thy name) ^ " with\nparameter instantiation " ^
+          error ("No interpretation of locale " ^ quote (markup_name ctxt name) ^
+            " with\nparameter instantiation " ^
             space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
             " available")
-      | SOME (_, serial') => serial';
+      | SOME (_, serial') => serial');
   in
     add_mixin serial' mixin context
   end;
@@ -502,7 +507,7 @@ fun add_registration (name, base_morph) mixin export context =
 
 (*** Dependencies ***)
 
-(*
+(* FIXME dead code!?
 fun amend_dependency loc (name, morph) mixin export thy =
   let
     val deps = dependencies_of thy loc;

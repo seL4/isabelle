@@ -89,6 +89,8 @@ fun check_expr thy instances = map (apfst (Locale.check thy)) instances;
 
 fun parameters_of thy strict (expr, fixed) =
   let
+    val ctxt = Proof_Context.init_global thy;
+
     fun reject_dups message xs =
       (case duplicates (op =) xs of
         [] => ()
@@ -103,16 +105,18 @@ fun parameters_of thy strict (expr, fixed) =
             val ps = params_loc loc;
             val d = length ps - length insts;
             val insts' =
-              if d < 0 then error ("More arguments than parameters in instantiation of locale " ^
-                quote (Locale.extern thy loc))
+              if d < 0 then
+                error ("More arguments than parameters in instantiation of locale " ^
+                  quote (Locale.markup_name ctxt loc))
               else insts @ replicate d NONE;
             val ps' = (ps ~~ insts') |>
               map_filter (fn (p, NONE) => SOME p | (_, SOME _) => NONE);
           in (ps', (loc, (prfx, Positional insts'))) end
       | params_inst (loc, (prfx, Named insts)) =
           let
-            val _ = reject_dups "Duplicate instantiation of the following parameter(s): "
-              (map fst insts);
+            val _ =
+              reject_dups "Duplicate instantiation of the following parameter(s): "
+                (map fst insts);
             val ps' = (insts, params_loc loc) |-> fold (fn (p, _) => fn ps =>
               if AList.defined (op =) ps p then AList.delete (op =) p ps
               else error (quote p ^ " not a parameter of instantiated expression"));
