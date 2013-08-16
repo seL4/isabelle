@@ -24,7 +24,7 @@ object Path
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
-    error (msg + " path element specification " + quote(s))
+    error(msg + " path element specification " + quote(s))
 
   private def check_elem(s: String): String =
     if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
@@ -170,7 +170,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
         case Path.Variable(s) =>
           val path = Path.explode(Isabelle_System.getenv_strict(s))
           if (path.elems.exists(_.isInstanceOf[Path.Variable]))
-            error ("Illegal path variable nesting: " + s + "=" + path.toString)
+            error("Illegal path variable nesting: " + s + "=" + path.toString)
           else path.elems
         case x => List(x)
       }
