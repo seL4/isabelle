@@ -75,6 +75,8 @@ sig
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
+  val binder_fun_types: typ -> typ list
+  val body_fun_type: typ -> typ
   val num_binder_types: typ -> int
   val strip_typeN: int -> typ -> typ list * typ
 
@@ -420,9 +422,16 @@ fun num_binder_types (Type (@{type_name fun}, [_, T2])) =
     1 + num_binder_types T2
   | num_binder_types _ = 0
 
+(*maps [T1,...,Tn]--->T to ([T1,T2,...,Tn], T)*)
 fun strip_typeN 0 T = ([], T)
   | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T
   | strip_typeN _ T = raise TYPE ("strip_typeN", [T], []);
+
+(*maps [T1,...,Tn]--->T-->U to ([T1,T2,...,Tn], T-->U), where U is not a function type*)
+fun strip_fun_type T = strip_typeN (num_binder_types T - 1) T;
+
+val binder_fun_types = fst o strip_fun_type;
+val body_fun_type = snd o strip_fun_type;
 
 fun mk_predT Ts = Ts ---> HOLogic.boolT;
 fun mk_pred1T T = mk_predT [T];
