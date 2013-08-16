@@ -25,8 +25,7 @@ sig
   val ml_store_thm: string * thm -> unit
   type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
   val add_antiq: binding -> (Position.T -> antiq context_parser) -> theory -> theory
-  val intern_antiq: theory -> xstring -> string
-  val defined_antiq: theory -> string -> bool
+  val check_antiq: theory -> xstring * Position.T -> string
   val trace_raw: Config.raw
   val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -111,8 +110,7 @@ structure Antiq_Parsers = Theory_Data
 fun add_antiq name scan thy = thy
   |> Antiq_Parsers.map (Name_Space.define (Context.Theory thy) true (name, scan) #> snd);
 
-val intern_antiq = Name_Space.intern o #1 o Antiq_Parsers.get;
-val defined_antiq = Symtab.defined o #2 o Antiq_Parsers.get;
+fun check_antiq thy = #1 o Name_Space.check (Context.Theory thy) (Antiq_Parsers.get thy);
 
 fun antiquotation src ctxt =
   let

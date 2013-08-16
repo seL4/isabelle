@@ -14,10 +14,8 @@ sig
   val modes: string Config.T
   val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
   val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
-  val intern_command: theory -> xstring -> string
-  val defined_command: theory -> string -> bool
-  val intern_option: theory -> xstring -> string
-  val defined_option: theory -> string -> bool
+  val check_command: theory -> xstring * Position.T -> string
+  val check_option: theory -> xstring * Position.T -> string
   val print_antiquotations: Proof.context -> unit
   val antiquotation: binding -> 'a context_parser ->
     ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
@@ -87,11 +85,9 @@ fun add_command name cmd thy = thy
 fun add_option name opt thy = thy
   |> Antiquotations.map (apsnd (Name_Space.define (Context.Theory thy) true (name, opt) #> snd));
 
-val intern_command = Name_Space.intern o #1 o #1 o Antiquotations.get;
-val defined_command = Symtab.defined o #2 o #1 o Antiquotations.get;
+fun check_command thy = #1 o Name_Space.check (Context.Theory thy) (#1 (Antiquotations.get thy));
 
-val intern_option = Name_Space.intern o #1 o #2 o Antiquotations.get;
-val defined_option = Symtab.defined o #2 o #2 o Antiquotations.get;
+fun check_option thy = #1 o Name_Space.check (Context.Theory thy) (#2 (Antiquotations.get thy));
 
 fun command src state ctxt =
   let

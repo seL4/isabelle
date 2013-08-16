@@ -146,13 +146,20 @@ local
 
 fun no_check _ _ = true;
 
-fun thy_check intern defined ctxt =
-  let val thy = Proof_Context.theory_of ctxt
-  in defined thy o intern thy end;
+fun thy_check check ctxt = can (check (Proof_Context.theory_of ctxt));
 
-fun check_tool name =
-  let val tool_dirs = map Path.explode ["~~/lib/Tools", "~~/src/Tools/jEdit/lib/Tools"]
-  in exists (fn dir => File.exists (Path.append dir (Path.basic name))) tool_dirs end;
+fun check_tool (name, pos) =
+  let
+    (* FIXME ISABELLE_TOOLS !? *)
+    val dirs = map Path.explode ["~~/lib/Tools", "~~/src/Tools/jEdit/lib/Tools"];
+    fun tool dir =
+      let val path = Path.append dir (Path.basic name)
+      in if File.exists path then SOME path else NONE end;
+  in
+    (case get_first tool dirs of
+      NONE => false
+    | SOME path => (Position.report pos (Markup.path (Path.implode path)); true))
+  end;
 
 val arg = enclose "{" "}" o clean_string;
 
@@ -160,8 +167,8 @@ fun entity check markup kind index =
   Thy_Output.antiquotation
     (Binding.name (translate (fn " " => "_" | c => c) kind ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
-    (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
-    (fn {context = ctxt, ...} => fn (logic, name) =>
+    (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Parse.position Args.name))
+    (fn {context = ctxt, ...} => fn (logic, (name, pos)) =>
       let
         val hyper_name =
           "{" ^ Long_Name.append kind (Long_Name.append logic (clean_name name)) ^ "}";
@@ -174,7 +181,7 @@ fun entity check markup kind index =
           | SOME is_def =>
               "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name);
       in
-        if check ctxt name then
+        if check ctxt (name, pos) then
           idx ^
           (Output.output name
             |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
@@ -182,7 +189,7 @@ fun entity check markup kind index =
             |> (if Config.get ctxt Thy_Output.display
                 then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
                 else hyper o enclose "\\mbox{\\isa{" "}}"))
-        else error ("Bad " ^ kind ^ " " ^ quote name)
+        else error ("Bad " ^ kind ^ " " ^ quote name ^ Position.here pos)
       end);
 
 fun entity_antiqs check markup kind =
@@ -194,25 +201,22 @@ in
 
 val entity_setup =
   entity_antiqs no_check "" "syntax" #>
-  entity_antiqs (K (is_some o Keyword.command_keyword)) "isacommand" "command" #>
-  entity_antiqs (K Keyword.is_keyword) "isakeyword" "keyword" #>
-  entity_antiqs (K Keyword.is_keyword) "isakeyword" "element" #>
-  entity_antiqs (thy_check Method.intern Method.defined) "" "method" #>
-  entity_antiqs (thy_check Attrib.intern Attrib.defined) "" "attribute" #>
+  entity_antiqs (K (is_some o Keyword.command_keyword o #1)) "isacommand" "command" #>
+  entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
+  entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
+  entity_antiqs (thy_check Method.check) "" "method" #>
+  entity_antiqs (thy_check Attrib.check) "" "attribute" #>
   entity_antiqs no_check "" "fact" #>
   entity_antiqs no_check "" "variable" #>
   entity_antiqs no_check "" "case" #>
-  entity_antiqs (thy_check Thy_Output.intern_command Thy_Output.defined_command)
-    "" "antiquotation" #>
-  entity_antiqs (thy_check Thy_Output.intern_option Thy_Output.defined_option)
-    "" "antiquotation option" #>
+  entity_antiqs (thy_check Thy_Output.check_command) "" "antiquotation" #>
+  entity_antiqs (thy_check Thy_Output.check_option) "" "antiquotation option" #>
   entity_antiqs no_check "isatt" "setting" #>
   entity_antiqs no_check "isatt" "system option" #>
   entity_antiqs no_check "" "inference" #>
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatool" "tool" #>
-  entity_antiqs (thy_check ML_Context.intern_antiq ML_Context.defined_antiq)
-    "" Markup.ML_antiquotationN;
+  entity_antiqs (thy_check ML_Context.check_antiq) "" Markup.ML_antiquotationN;
 
 end;
 

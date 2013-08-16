@@ -11,10 +11,10 @@ sig
   val empty_binding: binding
   val is_empty_binding: binding -> bool
   val print_attributes: theory -> unit
+  val check: theory -> xstring * Position.T -> string
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
-  val defined: theory -> string -> bool
   val attribute: Proof.context -> src -> attribute
   val attribute_global: theory -> src -> attribute
   val attribute_cmd: Proof.context -> src -> attribute
@@ -114,6 +114,8 @@ fun add_attribute name att comment thy = thy
 
 (* name space *)
 
+fun check thy = #1 o Name_Space.check (Context.Theory thy) (Attributes.get thy);
+
 val intern = Name_Space.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
@@ -128,8 +130,6 @@ fun pretty_attribs _ [] = []
 
 
 (* get attributes *)
-
-val defined = Symtab.defined o #2 o Attributes.get;
 
 fun attribute_generic context =
   let

@@ -62,8 +62,8 @@ sig
   val sorry_text: bool -> text
   val finish_text: text option * bool -> text
   val print_methods: theory -> unit
+  val check: theory -> xstring * Position.T -> string
   val intern: theory -> xstring -> string
-  val defined: theory -> string -> bool
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
@@ -331,8 +331,9 @@ fun add_method name meth comment thy = thy
 
 (* get methods *)
 
+fun check thy = #1 o Name_Space.check (Context.Theory thy) (Methods.get thy);
+
 val intern = Name_Space.intern o #1 o Methods.get;
-val defined = Symtab.defined o #2 o Methods.get;
 
 fun method_i thy =
   let
