@@ -68,7 +68,7 @@ next
   show "option_rel R =
         (Grp {x. Option.set x \<subseteq> Collect (split R)} (Option.map fst))\<inverse>\<inverse> OO
          Grp {x. Option.set x \<subseteq> Collect (split R)} (Option.map snd)"
-  unfolding option_rel_unfold Grp_def relcompp.simps conversep.simps fun_eq_iff prod.cases
+  unfolding option_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff prod.cases
   by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
            split: option.splits)
 qed

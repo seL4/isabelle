@@ -48,11 +48,6 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-definition sum_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'c \<Rightarrow> 'b + 'd \<Rightarrow> bool" where
-"sum_rel \<phi> \<psi> x y =
- (case x of Inl a1 \<Rightarrow> (case y of Inl a2 \<Rightarrow> \<phi> a1 a2 | Inr _ \<Rightarrow> False)
-          | Inr b1 \<Rightarrow> (case y of Inl _ \<Rightarrow> False | Inr b2 \<Rightarrow> \<psi> b1 b2))"
-
 bnf sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
@@ -152,9 +147,6 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 "snds x = {snd x}"
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
-
-definition prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" where
-"prod_rel \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> \<phi> a1 a2 \<and> \<psi> b1 b2)"
 
 bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. natLeq" [Pair] prod_rel
 proof (unfold prod_set_defs)

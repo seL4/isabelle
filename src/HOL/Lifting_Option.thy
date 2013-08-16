@@ -5,52 +5,45 @@
 header {* Setup for Lifting/Transfer for the option type *}
 
 theory Lifting_Option
-imports Lifting FunDef
+imports Lifting
 begin
 
 subsection {* Relator and predicator properties *}
 
-fun
+definition
   option_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> bool"
 where
-  "option_rel R None None = True"
-| "option_rel R (Some x) None = False"
-| "option_rel R None (Some x) = False"
-| "option_rel R (Some x) (Some y) = R x y"
-
-lemma option_rel_unfold:
   "option_rel R x y = (case (x, y) of (None, None) \<Rightarrow> True
     | (Some x, Some y) \<Rightarrow> R x y
     | _ \<Rightarrow> False)"
-  by (cases x) (cases y, simp_all)+
 
-fun option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool"
-where
-  "option_pred R None = True"
-| "option_pred R (Some x) = R x"
+lemma option_rel_simps[simp]:
+  "option_rel R None None = True"
+  "option_rel R (Some x) None = False"
+  "option_rel R None (Some y) = False"
+  "option_rel R (Some x) (Some y) = R x y"
+  unfolding option_rel_def by simp_all
 
-lemma option_pred_unfold:
-  "option_pred P x = (case x of None \<Rightarrow> True
-    | Some x \<Rightarrow> P x)"
-by (cases x) simp_all
+abbreviation (input) option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool" where
+  "option_pred \<equiv> option_case True"
 
 lemma option_rel_eq [relator_eq]:
   "option_rel (op =) = (op =)"
-  by (simp add: option_rel_unfold fun_eq_iff split: option.split)
+  by (simp add: option_rel_def fun_eq_iff split: option.split)
 
 lemma option_rel_mono[relator_mono]:
   assumes "A \<le> B"
   shows "(option_rel A) \<le> (option_rel B)"
-using assms by (auto simp: option_rel_unfold split: option.splits)
+using assms by (auto simp: option_rel_def split: option.splits)
 
 lemma option_rel_OO[relator_distr]:
   "(option_rel A) OO (option_rel B) = option_rel (A OO B)"
-by (rule ext)+ (auto simp: option_rel_unfold OO_def split: option.split)
+by (rule ext)+ (auto simp: option_rel_def OO_def split: option.split)
 
 lemma Domainp_option[relator_domain]:
   assumes "Domainp A = P"
   shows "Domainp (option_rel A) = (option_pred P)"
-using assms unfolding Domainp_iff[abs_def] option_rel_unfold[abs_def] option_pred_unfold[abs_def]
+using assms unfolding Domainp_iff[abs_def] option_rel_def[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
 lemma reflp_option_rel[reflexivity_rule]:
@@ -91,7 +84,7 @@ lemma Quotient_option[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (option_rel R) (Option.map Abs)
     (Option.map Rep) (option_rel T)"
-  using assms unfolding Quotient_alt_def option_rel_unfold
+  using assms unfolding Quotient_alt_def option_rel_def
   by (simp split: option.split)
 
 subsection {* Transfer rules for the Transfer package *}

@@ -12,11 +12,11 @@ subsection {* Rules for the Quotient package *}
 
 lemma option_rel_map1:
   "option_rel R (Option.map f x) y \<longleftrightarrow> option_rel (\<lambda>x. R (f x)) x y"
-  by (simp add: option_rel_unfold split: option.split)
+  by (simp add: option_rel_def split: option.split)
 
 lemma option_rel_map2:
   "option_rel R x (Option.map f y) \<longleftrightarrow> option_rel (\<lambda>x y. R x (f y)) x y"
-  by (simp add: option_rel_unfold split: option.split)
+  by (simp add: option_rel_def split: option.split)
 
 lemma option_map_id [id_simps]:
   "Option.map id = id"
@@ -24,15 +24,15 @@ lemma option_map_id [id_simps]:
 
 lemma option_rel_eq [id_simps]:
   "option_rel (op =) = (op =)"
-  by (simp add: option_rel_unfold fun_eq_iff split: option.split)
+  by (simp add: option_rel_def fun_eq_iff split: option.split)
 
 lemma option_symp:
   "symp R \<Longrightarrow> symp (option_rel R)"
-  unfolding symp_def split_option_all option_rel.simps by fast
+  unfolding symp_def split_option_all option_rel_simps by fast
 
 lemma option_transp:
   "transp R \<Longrightarrow> transp (option_rel R)"
-  unfolding transp_def split_option_all option_rel.simps by fast
+  unfolding transp_def split_option_all option_rel_simps by fast
 
 lemma option_equivp [quot_equiv]:
   "equivp R \<Longrightarrow> equivp (option_rel R)"
@@ -44,7 +44,7 @@ lemma option_quotient [quot_thm]:
   apply (rule Quotient3I)
   apply (simp_all add: Option.map.compositionality comp_def Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
   using Quotient3_rel [OF assms]
-  apply (simp add: option_rel_unfold split: option.split)
+  apply (simp add: option_rel_def split: option.split)
   done
 
 declare [[mapQ3 option = (option_rel, option_quotient)]]
