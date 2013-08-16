@@ -22,6 +22,7 @@ sig
   val make: string list -> T
   val implode: T -> string
   val explode: string -> T
+  val split: string -> T list
   val pretty: T -> Pretty.T
   val print: T -> string
   val dir: T -> T
@@ -148,6 +149,10 @@ fun explode_path str =
     val elems = raw_elems |> filter_out (fn c => c = "" orelse c = ".") |> map explode_elem;
 
   in Path (norm (rev elems @ roots)) end;
+
+fun split str =
+  space_explode ":" str
+  |> map_filter (fn s => if s = "" then NONE else SOME (explode_path s));
 
 
 (* print *)

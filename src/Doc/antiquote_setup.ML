@@ -150,13 +150,11 @@ fun thy_check check ctxt = can (check (Proof_Context.theory_of ctxt));
 
 fun check_tool (name, pos) =
   let
-    (* FIXME ISABELLE_TOOLS !? *)
-    val dirs = map Path.explode ["~~/lib/Tools", "~~/src/Tools/jEdit/lib/Tools"];
     fun tool dir =
       let val path = Path.append dir (Path.basic name)
       in if File.exists path then SOME path else NONE end;
   in
-    (case get_first tool dirs of
+    (case get_first tool (Path.split (getenv "ISABELLE_TOOLS")) of
       NONE => false
     | SOME path => (Position.report pos (Markup.path (Path.implode path)); true))
   end;
