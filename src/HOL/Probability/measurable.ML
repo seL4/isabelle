@@ -8,13 +8,13 @@ signature MEASURABLE =
 sig
   datatype level = Concrete | Generic
 
-  val simproc : Proof.context -> cterm -> thm option
-  val method : (Proof.context -> Method.method) context_parser
+  val add_app : thm -> Context.generic -> Context.generic
+  val add_dest : thm -> Context.generic -> Context.generic
+  val add_thm : bool * level -> thm -> Context.generic -> Context.generic
+
   val measurable_tac : Proof.context -> thm list -> tactic
 
-  val attr : attribute context_parser
-  val dest_attr : attribute context_parser
-  val app_attr : attribute context_parser
+  val simproc : Proof.context -> cterm -> thm option
 
   val get : level -> Proof.context -> thm list
   val get_all : Proof.context -> thm list
@@ -212,21 +212,6 @@ fun measurable_tac' ctxt facts =
 
 fun measurable_tac ctxt facts =
   TAKE (Config.get ctxt backtrack) (measurable_tac' ctxt facts);
-
-val attr_add = Thm.declaration_attribute o add_thm;
-
-val attr : attribute context_parser =
-  Scan.lift (Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
-     Scan.optional (Args.$$$ "generic" >> K Generic) Concrete)) (false, Concrete) >> attr_add);
-
-val dest_attr : attribute context_parser =
-  Scan.lift (Scan.succeed (Thm.declaration_attribute add_dest));
-
-val app_attr : attribute context_parser =
-  Scan.lift (Scan.succeed (Thm.declaration_attribute add_app));
-
-val method : (Proof.context -> Method.method) context_parser =
-  Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => measurable_tac ctxt facts)));
 
 fun simproc ctxt redex =
   let

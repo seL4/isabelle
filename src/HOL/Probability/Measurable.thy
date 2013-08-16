@@ -46,10 +46,24 @@ lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Lon
 
 ML_file "measurable.ML"
 
-attribute_setup measurable = {* Measurable.attr *} "declaration of measurability theorems"
-attribute_setup measurable_dest = {* Measurable.dest_attr *} "add dest rule for measurability prover"
-attribute_setup measurable_app = {* Measurable.app_attr *} "add application rule for measurability prover"
-method_setup measurable = {* Measurable.method *} "measurability prover"
+attribute_setup measurable = {*
+  Scan.lift (Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
+    Scan.optional (Args.$$$ "generic" >> K Measurable.Generic) Measurable.Concrete))
+    (false, Measurable.Concrete) >> (Thm.declaration_attribute o Measurable.add_thm))
+*} "declaration of measurability theorems"
+
+attribute_setup measurable_dest = {*
+  Scan.lift (Scan.succeed (Thm.declaration_attribute Measurable.add_dest))
+*} "add dest rule for measurability prover"
+
+attribute_setup measurable_app = {*
+  Scan.lift (Scan.succeed (Thm.declaration_attribute Measurable.add_app))
+*} "add application rule for measurability prover"
+
+method_setup measurable = {*
+  Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => Measurable.measurable_tac ctxt facts)))
+*} "measurability prover"
+
 simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
 
 declare
