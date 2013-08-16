@@ -33,6 +33,7 @@ sig
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val mk_map: int -> typ list -> typ list -> term -> term
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
+  val dest_map: Proof.context -> string -> term -> term * term list
   val mk_co_iters_prelims: BNF_FP_Util.fp_kind -> typ list -> typ list -> int list ->
     int list list -> term list list -> Proof.context ->
     (term list list
@@ -286,6 +287,28 @@ fun build_map lthy build_simple =
             build_simple TU
         | _ => build_simple TU);
   in build end;
+
+val dummy_var_name = "?f"
+
+fun mk_map_pattern ctxt s =
+  let
+    val bnf = the (bnf_of ctxt s);
+    val mapx = map_of_bnf bnf;
+    val live = live_of_bnf bnf;
+    val (f_Ts, _) = strip_typeN live (fastype_of mapx);
+    val fs = map_index (fn (i, T) => Var ((dummy_var_name, i), T)) f_Ts;
+  in
+    (mapx, betapplys (mapx, fs))
+  end;
+
+fun dest_map ctxt s call =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val (map0, pat) = mk_map_pattern ctxt s;
+    val (_, tenv) = Pattern.first_order_match thy (pat, call) (Vartab.empty, Vartab.empty);
+  in
+    (map0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
+  end;
 
 fun liveness_of_fp_bnf n bnf =
   (case T_of_bnf bnf of

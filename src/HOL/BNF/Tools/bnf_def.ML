@@ -83,6 +83,8 @@ sig
 
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
+  val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
+
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy = Dont_Note | Note_Some | Note_All
 
@@ -320,6 +322,15 @@ val axioms_of_bnf = #axioms o rep_bnf;
 val facts_of_bnf = #facts o rep_bnf;
 val nwits_of_bnf = #nwits o rep_bnf;
 val wits_of_bnf = #wits o rep_bnf;
+
+fun flatten_type_args_of_bnf bnf dead_x xs =
+  let
+    val Type (_, Ts) = T_of_bnf bnf;
+    val lives = lives_of_bnf bnf;
+    val deads = deads_of_bnf bnf;
+  in
+    sort_like (op =) (deads @ lives) (replicate (length deads) dead_x @ xs) Ts
+  end;
 
 (*terms*)
 val map_of_bnf = #map o rep_bnf;
