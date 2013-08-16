@@ -329,7 +329,7 @@ fun flatten_type_args_of_bnf bnf dead_x xs =
     val lives = lives_of_bnf bnf;
     val deads = deads_of_bnf bnf;
   in
-    sort_like (op =) (deads @ lives) (replicate (length deads) dead_x @ xs) Ts
+    mk_permute (op =) (deads @ lives) Ts (replicate (length deads) dead_x @ xs)
   end;
 
 (*terms*)

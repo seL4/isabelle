@@ -120,7 +120,7 @@ val iff_attrs = @{attributes [iff]};
 val safe_elim_attrs = @{attributes [elim!]};
 val simp_attrs = @{attributes [simp]};
 
-fun unflat_lookup eq = map oo sort_like eq;
+fun unflat_lookup eq xs ys = map (fn xs' => mk_permute eq xs xs' ys);
 
 fun mk_half_pairss' _ ([], []) = []
   | mk_half_pairss' indent (x :: xs, _ :: ys) =

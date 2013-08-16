@@ -54,7 +54,6 @@ sig
 
   val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
   val mk_permute: ('a * 'b -> bool) -> 'a list -> 'b list -> 'c list -> 'c list
-  val sort_like: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
 
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
   val mk_TFrees: int -> Proof.context -> typ list * Proof.context
@@ -721,9 +720,6 @@ fun transpose [] = []
   | transpose xss = map hd xss :: transpose (map tl xss);
 
 fun mk_permute eq xs xs' ys = map (nth ys o (fn y => find_index (fn x => eq (x, y)) xs)) xs';
-
-(*FIXME: merge with mk_permute*)
-fun sort_like eq xs ys = map (fn x => nth ys (find_index (curry eq x) xs));
 
 fun seq_conds f n k xs =
   if k = n then
