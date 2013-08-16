@@ -67,11 +67,12 @@ sig
     (term list * (string * typ) list) * Proof.context
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
+  val nonzero_string_of_int: int -> string
   val retype_free: typ -> term -> term
+  val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
   val variant_types: string list -> sort list -> Proof.context ->
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
-  val nonzero_string_of_int: int -> string
 
   val num_binder_types: typ -> int
   val strip_typeN: int -> typ -> typ list * typ
@@ -373,6 +374,14 @@ val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 
 fun mk_TFrees n = mk_TFrees' (replicate n HOLogic.typeS);
 val mk_TFreess = fold_map mk_TFrees;
+
+(*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
+fun typ_subst_nonatomic [] = I
+  | typ_subst_nonatomic inst =
+    let
+      fun subst (Type (s, Ts)) = perhaps (AList.lookup (op =) inst) (Type (s, map subst Ts))
+        | subst T = perhaps (AList.lookup (op =) inst) T;
+    in subst end;
 
 fun mk_names n x = if n = 1 then [x] else map (fn i => x ^ string_of_int i) (1 upto n);
 
