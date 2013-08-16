@@ -78,6 +78,7 @@ sig
   val binder_fun_types: typ -> typ list
   val body_fun_type: typ -> typ
   val num_binder_types: typ -> int
+  val strip_fun_type: typ -> typ list * typ
   val strip_typeN: int -> typ -> typ list * typ
 
   val mk_predT: typ list -> typ

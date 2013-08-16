@@ -193,8 +193,9 @@ open BNF_Def
 open BNF_Util
 
 datatype fp_kind = Least_FP | Greatest_FP;
-fun fp_case Least_FP f1 _ = f1
-  | fp_case Greatest_FP _ f2 = f2;
+
+fun fp_case Least_FP l _ = l
+  | fp_case Greatest_FP _ g = g;
 
 type fp_result =
   {Ts: typ list,

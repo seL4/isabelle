@@ -219,10 +219,9 @@ val mk_dtor = mk_ctor_or_dtor domain_type;
 
 fun mk_co_iter thy fp fpT Cs t =
   let
-    val (binders, body) = strip_type (fastype_of t);
-    val (f_Cs, prebody) = split_last binders;
-    val fpT0 = if fp = Least_FP then prebody else body;
-    val Cs0 = distinct (op =) (map (if fp = Least_FP then body_type else domain_type) f_Cs);
+    val (f_Cs, Type (_, [prebody, body])) = strip_fun_type (fastype_of t);
+    val fpT0 = fp_case fp prebody body;
+    val Cs0 = distinct (op =) (map (fp_case fp body_type domain_type) f_Cs);
     val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
   in
     Term.subst_TVars rho t
@@ -239,7 +238,7 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
     map (Term.subst_TVars rho) ts0
   end;
 
-val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
+val mk_fp_iter_fun_types = binder_fun_types o fastype_of;
 
 fun unzip_recT Cs (T as Type (@{type_name prod}, Ts as [_, U])) =
     if member (op =) Cs U then Ts else [T]
@@ -1444,8 +1443,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         kss ~~ mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~
         sel_bindingsss ~~ raw_sel_defaultsss)
       |> wrap_types_etc
-      |> (if fp = Least_FP then derive_and_note_induct_iters_thms_for_types
-          else derive_and_note_coinduct_coiters_thms_for_types);
+      |> fp_case fp derive_and_note_induct_iters_thms_for_types
+           derive_and_note_coinduct_coiters_thms_for_types;
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       co_prefix fp ^ "datatype"));
