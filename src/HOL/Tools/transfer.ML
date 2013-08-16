@@ -666,11 +666,11 @@ val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
 val fixing = Scan.optional (Scan.lift (Args.$$$ "fixing" -- Args.colon)
   |-- Scan.repeat free) []
 
-fun transfer_method equiv : (Proof.context -> Method.method) context_parser =
+fun transfer_method equiv : (Proof.context -> Proof.method) context_parser =
   fixing >> (fn vs => fn ctxt =>
     SIMPLE_METHOD' (gen_frees_tac vs ctxt THEN' transfer_tac equiv ctxt))
 
-val transfer_prover_method : (Proof.context -> Method.method) context_parser =
+val transfer_prover_method : (Proof.context -> Proof.method) context_parser =
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (transfer_prover_tac ctxt))
 
 (* Attribute for transfer rules *)
