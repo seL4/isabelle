@@ -353,6 +353,9 @@ object Markup
       }
   }
 
+  val SLEDGEHAMMER_PROVERS = "sledgehammer_provers"
+  val Sledgehammer_Provers: Properties.T = List((FUNCTION, SLEDGEHAMMER_PROVERS))
+
   object ML_Statistics
   {
     def unapply(props: Properties.T): Option[Properties.T] =

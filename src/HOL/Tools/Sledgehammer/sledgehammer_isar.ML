@@ -517,6 +517,15 @@ val _ =
             run_sledgehammer (get_params Normal ctxt override_params) Normal (SOME output_result) 1
               no_fact_override (minimize_command override_params 1) state
         in () end
-    | NONE => error "Unknown proof context"));
+    | NONE => error "Unknown proof context"))
+
+val _ = Session.protocol_handler "isabelle.Sledgehammer_Params$Handler"
+
+val _ = Isabelle_Process.protocol_command "Sledgehammer.provers"
+  (fn [] =>
+    let
+      val this_ctxt = @{context}
+      val provers = space_implode " " (#provers (default_params this_ctxt []))
+    in Output.protocol_message Markup.sledgehammer_provers provers end)
 
 end;

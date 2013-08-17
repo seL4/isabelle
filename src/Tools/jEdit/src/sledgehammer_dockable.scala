@@ -71,6 +71,24 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   })
 
 
+  /* provers according to ML */
+
+  private def update_provers()
+  {
+    val new_provers = Sledgehammer_Params.get_provers(PIDE.session)
+    if (new_provers != "" && provers.getText == "") {
+      provers.setText(new_provers)
+      if (provers.getCaret != null)
+        provers.getCaret.setDot(0)
+    }
+  }
+
+  private def query_provers()
+  {
+    PIDE.session.protocol_command("Sledgehammer.provers")
+  }
+
+
   /* main actor */
 
   private val main_actor = actor {
@@ -78,6 +96,10 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       react {
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
+          query_provers()
+        case Session.Ready => query_provers()
+        case Sledgehammer_Params.Provers =>
+          Swing_Thread.later { update_provers() }
         case bad =>
           java.lang.System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
       }
@@ -88,7 +110,10 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   {
     Swing_Thread.require()
 
+    PIDE.session.phase_changed += main_actor
     PIDE.session.global_options += main_actor
+    Sledgehammer_Params.provers += main_actor
+    if (PIDE.session.is_ready) query_provers()
     handle_resize()
     sledgehammer.activate()
   }
@@ -98,7 +123,9 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     Swing_Thread.require()
 
     sledgehammer.deactivate()
+    PIDE.session.phase_changed -= main_actor
     PIDE.session.global_options -= main_actor
+    Sledgehammer_Params.provers -= main_actor
     delay_resize.revoke()
   }
 
@@ -120,7 +147,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       super.processKeyEvent(evt)
     }
     setToolTipText(provers_label.tooltip)
-    setColumns(20)
+    setColumns(30)
   }
 
   private val timeout = new TextField("30.0", 5) {
