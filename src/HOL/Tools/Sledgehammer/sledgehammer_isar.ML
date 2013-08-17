@@ -503,17 +503,16 @@ val _ =
           val [provers_arg, timeout_arg, isar_proofs_arg] = args;
           val ctxt = Proof.context_of state
 
-          val {debug, verbose, overlord, isar_proofs, ...} = get_params Normal ctxt []
           val override_params =
-            ([("timeout", [timeout_arg]), ("blocking", ["true"])] @
-            (if Option.map Bool.toString isar_proofs <> SOME isar_proofs_arg
-             then [("isar_proofs", [isar_proofs_arg])] else []) @
-            (if debug then [("debug", ["false"])] else []) @
-            (if verbose then [("verbose", ["false"])] else []) @
-            (if overlord then [("overlord", ["false"])] else []) @
-            (if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]))
+            ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
+              [("timeout", [timeout_arg]),
+               ("isar_proofs", [isar_proofs_arg]),
+               ("blocking", ["true"]),
+               ("minimize", ["true"]),
+               ("debug", ["false"]),
+               ("verbose", ["false"]),
+               ("overlord", ["false"])])
             |> map (normalize_raw_param ctxt)
-
           val _ =
             run_sledgehammer (get_params Normal ctxt override_params) Normal (SOME output_result) 1
               no_fact_override (minimize_command override_params 1) state
