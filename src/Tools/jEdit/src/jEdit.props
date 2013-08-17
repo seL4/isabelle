@@ -210,6 +210,7 @@ isabelle.reset-continuous-checking.label=Reset continuous checking
 isabelle.reset-node-required.label=Reset node required
 isabelle.set-continuous-checking.label=Set continuous checking
 isabelle.set-node-required.label=Set node required
+isabelle-sledgehammer.dock-position=bottom
 isabelle.toggle-continuous-checking.label=Toggle continuous checking
 isabelle.toggle-continuous-checking.shortcut=C+e ENTER
 isabelle.toggle-node-required.label=Toggle node required
