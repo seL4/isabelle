@@ -53,6 +53,8 @@ object Session
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
     functions: Map[String, Isabelle_Process.Output => Boolean] = Map.empty)
   {
+    def get(name: String): Option[Protocol_Handler] = handlers.get(name)
+
     def add(prover: Prover, name: String): Protocol_Handlers =
     {
       val (handlers1, functions1) =
@@ -223,6 +225,14 @@ class Session(val thy_load: Thy_Load)
     global_state().snapshot(name, pending_edits)
 
 
+  /* protocol handlers */
+
+  @volatile private var _protocol_handlers = new Session.Protocol_Handlers()
+
+  def protocol_handler(name: String): Option[Session.Protocol_Handler] =
+    _protocol_handlers.get(name)
+
+
   /* theory files */
 
   def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
@@ -243,14 +253,13 @@ class Session(val thy_load: Thy_Load)
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
+  private case class Protocol_Command(name: String, args: List[String])
   private case class Messages(msgs: List[Isabelle_Process.Message])
   private case class Update_Options(options: Options)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     val this_actor = self
-
-    var protocol_handlers = new Session.Protocol_Handlers()
 
     var prune_next = System.currentTimeMillis() + prune_delay.ms
 
@@ -406,11 +415,11 @@ class Session(val thy_load: Thy_Load)
       }
 
       if (output.is_protocol) {
-        val handled = protocol_handlers.invoke(output)
+        val handled = _protocol_handlers.invoke(output)
         if (!handled) {
           output.properties match {
             case Markup.Protocol_Handler(name) =>
-              protocol_handlers = protocol_handlers.add(prover.get, name)
+              _protocol_handlers = _protocol_handlers.add(prover.get, name)
 
             case Protocol.Command_Timing(state_id, timing) =>
               val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
@@ -488,7 +497,7 @@ class Session(val thy_load: Thy_Load)
 
         case Stop =>
           if (phase == Session.Ready) {
-            protocol_handlers = protocol_handlers.stop(prover.get)
+            _protocol_handlers = _protocol_handlers.stop(prover.get)
             global_state >> (_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
             prover.get.terminate
@@ -517,6 +526,9 @@ class Session(val thy_load: Thy_Load)
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
           prover.get.dialog_result(serial, result)
           handle_output(new Isabelle_Process.Output(Protocol.Dialog_Result(id, serial, result)))
+
+        case Protocol_Command(name, args) if prover.isDefined =>
+          prover.get.protocol_command(name, args:_*)
 
         case Messages(msgs) =>
           msgs foreach {
@@ -555,6 +567,9 @@ class Session(val thy_load: Thy_Load)
     change_parser !? Stop
     session_actor !? Stop
   }
+
+  def protocol_command(name: String, args: String*)
+  { session_actor ! Protocol_Command(name, args.toList) }
 
   def cancel_exec(exec_id: Document_ID.Exec) { session_actor ! Cancel_Exec(exec_id) }
 
