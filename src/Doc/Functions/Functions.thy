@@ -87,7 +87,7 @@ text {*
 
   Isabelle provides customized induction rules for recursive
   functions. These rules follow the recursive structure of the
-  definition. Here is the rule @{text sep.induct} arising from the
+  definition. Here is the rule @{thm [source] sep.induct} arising from the
   above definition of @{const sep}:
 
   @{thm [display] sep.induct}
@@ -387,7 +387,7 @@ subsection {* Induction for mutual recursion *}
 text {*
 
   When functions are mutually recursive, proving properties about them
-  generally requires simultaneous induction. The induction rule @{text "even_odd.induct"}
+  generally requires simultaneous induction. The induction rule @{thm [source] "even_odd.induct"}
   generated from the above definition reflects this.
 
   Let us prove something about @{const even} and @{const odd}:
@@ -507,7 +507,7 @@ text {*
   can be simplified to @{term "F"} with the original equations, a
   (manual) case split on @{term "x"} is now necessary.
 
-  \item The splitting also concerns the induction rule @{text
+  \item The splitting also concerns the induction rule @{thm [source]
   "And.induct"}. Instead of five premises it now has seven, which
   means that our induction proofs will have more cases.
 
@@ -730,11 +730,11 @@ text {*
 
 text {*
   \noindent\begin{minipage}{0.79\textwidth}@{thm[display,margin=85] findzero.psimps}\end{minipage}
-  \hfill(@{text "findzero.psimps"})
+  \hfill(@{thm [source] "findzero.psimps"})
   \vspace{1em}
 
   \noindent\begin{minipage}{0.79\textwidth}@{thm[display,margin=85] findzero.pinduct}\end{minipage}
-  \hfill(@{text "findzero.pinduct"})
+  \hfill(@{thm [source] "findzero.pinduct"})
 *}
 
 text {*
@@ -854,10 +854,10 @@ text {*
 
   Since our function increases its argument at recursive calls, we
   need an induction principle which works \qt{backwards}. We will use
-  @{text inc_induct}, which allows to do induction from a fixed number
+  @{thm [source] inc_induct}, which allows to do induction from a fixed number
   \qt{downwards}:
 
-  \begin{center}@{thm inc_induct}\hfill(@{text "inc_induct"})\end{center}
+  \begin{center}@{thm inc_induct}\hfill(@{thm [source] "inc_induct"})\end{center}
 
   Figure \ref{findzero_term} gives a detailed Isar proof of the fact
   that @{text findzero} terminates if there is a zero which is greater
@@ -936,7 +936,7 @@ text {*
   findzero_rel}, which was also created internally by the function
   package. @{const findzero_rel} is just a normal
   inductive predicate, so we can inspect its definition by
-  looking at the introduction rules @{text findzero_rel.intros}.
+  looking at the introduction rules @{thm [source] findzero_rel.intros}.
   In our case there is just a single rule:
 
   @{thm[display] findzero_rel.intros}
@@ -955,9 +955,10 @@ text {*
 
   Since the domain predicate is just an abbreviation, you can use
   lemmas for @{const accp} and @{const findzero_rel} directly. Some
-  lemmas which are occasionally useful are @{text accpI}, @{text
+  lemmas which are occasionally useful are @{thm [source] accpI}, @{thm [source]
   accp_downward}, and of course the introduction and elimination rules
-  for the recursion relation @{text "findzero.intros"} and @{text "findzero.cases"}.
+  for the recursion relation @{thm [source] "findzero_rel.intros"} and @{thm
+  [source] "findzero_rel.cases"}.
 *}
 
 section {* Nested recursion *}
@@ -1158,7 +1159,7 @@ text {*
   congruence rule that specifies left-to-right evaluation order:
 
   \vspace{1ex}
-  \noindent @{thm disj_cong}\hfill(@{text "disj_cong"})
+  \noindent @{thm disj_cong}\hfill(@{thm [source] "disj_cong"})
   \vspace{1ex}
 
   Now the definition works without problems. Note how the termination
