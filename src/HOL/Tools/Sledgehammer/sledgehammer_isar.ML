@@ -384,7 +384,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params Normal ctxt override_params) Normal i
+        run_sledgehammer (get_params Normal ctxt override_params) Normal NONE i
                          fact_override (minimize_command override_params i)
                          state
         |> K ()
@@ -489,7 +489,7 @@ fun try_sledgehammer auto state =
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode ctxt []) mode i no_fact_override
+    run_sledgehammer (get_params mode ctxt []) mode NONE i no_fact_override
                      (minimize_command [] i) state
   end
 
@@ -502,36 +502,23 @@ val _ =
         let
           val [provers_arg, timeout_arg, subgoal_arg, isar_proofs_arg] = args;
           val ctxt = Proof.context_of state
+          val mode = Normal_Result
 
-          val {debug, verbose, overlord, isar_proofs, ...} = get_params Normal ctxt []
+          val {debug, verbose, overlord, isar_proofs, ...} = get_params mode ctxt []
           val override_params =
-            ([("timeout", [timeout_arg]),
-              ("blocking", ["true"])] @
+            ([("timeout", [timeout_arg]), ("blocking", ["true"])] @
             (if Option.map Bool.toString isar_proofs <> SOME isar_proofs_arg
              then [("isar_proofs", [isar_proofs_arg])] else []) @
             (if debug then [("debug", ["false"])] else []) @
             (if verbose then [("verbose", ["false"])] else []) @
-            (if overlord then [("overlord", ["false"])] else []))
+            (if overlord then [("overlord", ["false"])] else []) @
+            (if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]))
             |> map (normalize_raw_param ctxt)
 
           val i = the_default 1 (Int.fromString subgoal_arg)
-
-          val {provers, ...} =
-            get_params Normal ctxt
-              (if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)])
-
-          fun run prover =
-            let
-              val prover_params = ("provers", [prover]) :: override_params
-              val sledgehammer_params = get_params Normal ctxt prover_params
-              val minimize = minimize_command prover_params i
-              val (_, (_, state')) =
-                state
-                |> Proof.map_context (Config.put sledgehammer_result_request true)
-                |> run_sledgehammer sledgehammer_params Try i no_fact_override minimize
-            in output_result (Config.get (Proof.context_of state') sledgehammer_result) end
-
-          val _ = Par_Exn.release_all (Par_List.map (Exn.interruptible_capture run) provers);
+          val _ =
+            run_sledgehammer (get_params mode ctxt override_params) mode (SOME output_result) i
+              no_fact_override (minimize_command override_params i) state
         in () end
     | NONE => error "Unknown proof context"));
 
