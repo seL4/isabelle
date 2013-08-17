@@ -85,7 +85,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private def query_provers()
   {
-    PIDE.session.protocol_command("Sledgehammer.provers")
+    if (PIDE.session.is_ready)
+      PIDE.session.protocol_command("Sledgehammer.provers")
   }
 
 
@@ -113,7 +114,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     PIDE.session.phase_changed += main_actor
     PIDE.session.global_options += main_actor
     Sledgehammer_Params.provers += main_actor
-    if (PIDE.session.is_ready) query_provers()
+    query_provers()
     handle_resize()
     sledgehammer.activate()
   }
