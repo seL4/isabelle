@@ -23,3 +23,9 @@ public option auto_quickcheck : bool = true
 public option auto_solve_direct : bool = true
   -- "run solve_direct automatically"
 
+
+section "Miscellaneous Tools"
+
+public option sledgehammer_timeout : int = 30
+  -- "ATPs will be interrupted after this time (in seconds)"
+

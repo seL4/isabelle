@@ -9,7 +9,6 @@ sig
   type params = Sledgehammer_Provers.params
 
   val provers : string Unsynchronized.ref
-  val timeout : int Unsynchronized.ref
   val default_params : Proof.context -> (string * string) list -> params
 end;
 
@@ -61,7 +60,6 @@ fun merge_fact_overrides rs =
 (*** parameters ***)
 
 val provers = Unsynchronized.ref ""
-val timeout = Unsynchronized.ref 30
 
 val _ =
   ProofGeneral.preference_string ProofGeneral.category_proof
@@ -71,9 +69,9 @@ val _ =
     "Default automatic provers (separated by whitespace)"
 
 val _ =
-  ProofGeneral.preference_int ProofGeneral.category_proof
+  ProofGeneral.preference_option ProofGeneral.category_proof
     NONE
-    timeout
+    @{option sledgehammer_timeout}
     "Sledgehammer: Time Limit"
     "ATPs will be interrupted after this time (in seconds)"
 
@@ -240,7 +238,7 @@ fun default_raw_params ctxt =
             [("provers", [case !provers of
                             "" => default_provers_param_value ctxt
                           | s => s]),
-             ("timeout", let val timeout = !timeout in
+             ("timeout", let val timeout = Options.default_int @{option sledgehammer_timeout} in
                            [if timeout <= 0 then "none"
                             else string_of_int timeout]
                          end)]
@@ -500,13 +498,12 @@ val _ =
     (case try Toplevel.proof_of st of
       SOME state =>
         let
-          val [provers_arg, timeout_arg, isar_proofs_arg] = args;
+          val [provers_arg, isar_proofs_arg] = args;
           val ctxt = Proof.context_of state
 
           val override_params =
             ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
-              [("timeout", [timeout_arg]),
-               ("isar_proofs", [isar_proofs_arg]),
+              [("isar_proofs", [isar_proofs_arg]),
                ("blocking", ["true"]),
                ("minimize", ["true"]),
                ("debug", ["false"]),

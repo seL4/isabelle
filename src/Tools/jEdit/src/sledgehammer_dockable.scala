@@ -134,7 +134,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   /* controls */
 
   private def clicked {
-    sledgehammer.apply_query(List(provers.getText, timeout.text, isar_proofs.selected.toString))
+    sledgehammer.apply_query(List(provers.getText, isar_proofs.selected.toString))
   }
 
   private val provers_label = new Label("Provers:") {
@@ -149,12 +149,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     }
     setToolTipText(provers_label.tooltip)
     setColumns(30)
-  }
-
-  private val timeout = new TextField("30.0", 5) {
-    tooltip = "Soft time limit for each automatic prover (seconds > 0)"
-    verifier = (s: String) =>
-      s match { case Properties.Value.Double(x) => x >= 0.0 case _ => false }
   }
 
   private val isar_proofs = new CheckBox("Isar proofs") {
@@ -183,7 +177,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val controls =
     new FlowPanel(FlowPanel.Alignment.Right)(
-      provers_label, Component.wrap(provers), timeout, isar_proofs,
+      provers_label, Component.wrap(provers), isar_proofs,
       process_indicator.component, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }
