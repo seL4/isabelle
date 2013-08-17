@@ -500,7 +500,7 @@ val _ =
     (case try Toplevel.proof_of st of
       SOME state =>
         let
-          val [provers_arg, timeout_arg, subgoal_arg, isar_proofs_arg] = args;
+          val [provers_arg, timeout_arg, isar_proofs_arg] = args;
           val ctxt = Proof.context_of state
           val mode = Normal_Result
 
@@ -515,10 +515,9 @@ val _ =
             (if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]))
             |> map (normalize_raw_param ctxt)
 
-          val i = the_default 1 (Int.fromString subgoal_arg)
           val _ =
-            run_sledgehammer (get_params mode ctxt override_params) mode (SOME output_result) i
-              no_fact_override (minimize_command override_params i) state
+            run_sledgehammer (get_params mode ctxt override_params) mode (SOME output_result) 1
+              no_fact_override (minimize_command override_params 1) state
         in () end
     | NONE => error "Unknown proof context"));
 
