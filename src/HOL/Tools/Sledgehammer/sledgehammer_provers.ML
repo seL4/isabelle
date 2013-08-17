@@ -464,6 +464,11 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this"
 
+fun sendback_properties mode =
+  if mode = Auto_Try orelse mode = Normal_Result
+  then [Markup.padding_command]
+  else []
+
 fun bunch_of_reconstructors needs_full_types lam_trans =
   if needs_full_types then
     [Metis (full_type_enc, lam_trans false),
@@ -696,6 +701,7 @@ fun run_atp mode name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
+    val sendback_props = sendback_properties mode
     val atp_mode =
       if Config.get ctxt completish then Sledgehammer_Completish
       else Sledgehammer
@@ -976,7 +982,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt (mode = Auto_Try) isar_proofs isar_params
+                proof_text ctxt sendback_props isar_proofs isar_params
                            num_chained one_line_params
               end,
            (if verbose then
@@ -1154,6 +1160,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
+    val sendback_props = sendback_properties mode
     fun weight_facts facts =
       let val num_facts = length facts in
         facts ~~ (0 upto num_facts - 1)
@@ -1181,7 +1188,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text (mode = Auto_Try) num_chained one_line_params
+              one_line_proof_text sendback_props num_chained one_line_params
             end,
          if verbose then
            "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
@@ -1202,6 +1209,7 @@ fun run_reconstructor mode name
         ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...}
          : prover_problem) =
   let
+    val sendback_props = sendback_properties mode
     val reconstr =
       if name = metisN then
         Metis (type_enc |> the_default (hd partial_type_encs),
@@ -1228,7 +1236,7 @@ fun run_reconstructor mode name
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text (mode = Auto_Try) num_chained one_line_params
+              one_line_proof_text sendback_props num_chained one_line_params
             end,
        message_tail = ""}
     | play =>
