@@ -79,6 +79,10 @@ toplevel theorem statements.
 * Dockable window "Documentation" provides access to Isabelle
 documentation.
 
+* Dockable window "Sledgehammer" manages asynchronous / parallel
+sledgehammer runs over existing document sources, independently of
+normal editing and checking process.
+
 * Dockable window "Timing" provides an overview of relevant command
 timing information.
 
