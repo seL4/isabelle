@@ -137,7 +137,7 @@ fun do_try0 mode timeout_opt quad st =
              Auto_Try => "Auto Try0 found a proof"
            | Try => "Try0 found a proof"
            | Normal => "Try this") ^ ": " ^
-          Active.sendback_markup (if mode = Auto_Try then [Markup.padding_command] else [])
+          Active.sendback_markup [Markup.padding_command]
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
           "\n(" ^ space_implode "; " (map time_string xs) ^ ")."

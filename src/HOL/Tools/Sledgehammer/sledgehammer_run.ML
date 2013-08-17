@@ -146,11 +146,11 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
         val outcome =
-          if outcome_code = someN orelse mode = Normal orelse mode = Normal_Result then
+          if outcome_code = someN orelse mode = Normal then
             quote name ^ ": " ^ message ()
           else ""
         val _ =
-          if outcome <> "" andalso mode = Normal_Result andalso is_some output_result then
+          if outcome <> "" andalso is_some output_result then
             the output_result outcome
           else
             outcome
@@ -195,7 +195,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
   | n =>
     let
       val _ = Proof.assert_backward state
-      val print = if mode = Normal then Output.urgent_message else K ()
+      val print =
+        if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
       val state =
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
@@ -284,7 +285,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
         |> Par_List.map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
       fun maybe f (accum as (outcome_code, _)) =
-        accum |> (mode = Normal orelse mode = Normal_Result orelse outcome_code <> someN) ? f
+        accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in
       (unknownN, state)
       |> (if blocking then

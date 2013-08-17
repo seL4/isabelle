@@ -16,7 +16,7 @@ sig
   type play = Sledgehammer_Reconstructor.play
   type minimize_command = Sledgehammer_Reconstructor.minimize_command
 
-  datatype mode = Auto_Try | Try | Normal | Normal_Result | MaSh | Auto_Minimize | Minimize
+  datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
   type params =
     {debug : bool,
@@ -161,7 +161,7 @@ open Sledgehammer_Reconstruct
 
 (** The Sledgehammer **)
 
-datatype mode = Auto_Try | Try | Normal | Normal_Result | MaSh | Auto_Minimize | Minimize
+datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
@@ -464,11 +464,6 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this"
 
-fun sendback_properties mode =
-  if mode = Auto_Try orelse mode = Normal_Result
-  then [Markup.padding_command]
-  else []
-
 fun bunch_of_reconstructors needs_full_types lam_trans =
   if needs_full_types then
     [Metis (full_type_enc, lam_trans false),
@@ -672,7 +667,6 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances
 fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"
   | suffix_of_mode Normal = ""
-  | suffix_of_mode Normal_Result = ""
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Auto_Minimize = "_min"
   | suffix_of_mode Minimize = "_min"
@@ -701,7 +695,6 @@ fun run_atp mode name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val sendback_props = sendback_properties mode
     val atp_mode =
       if Config.get ctxt completish then Sledgehammer_Completish
       else Sledgehammer
@@ -937,8 +930,8 @@ fun run_atp mode name
          (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
     val important_message =
-      if (mode = Normal orelse mode = Normal_Result) andalso
-         random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
+      if mode = Normal andalso random_range 0 (atp_important_message_keep_quotient - 1) = 0
+      then
         extract_important_message output
       else
         ""
@@ -982,7 +975,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt sendback_props isar_proofs isar_params
+                proof_text ctxt isar_proofs isar_params
                            num_chained one_line_params
               end,
            (if verbose then
@@ -1160,7 +1153,6 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val sendback_props = sendback_properties mode
     fun weight_facts facts =
       let val num_facts = length facts in
         facts ~~ (0 upto num_facts - 1)
@@ -1188,7 +1180,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text sendback_props num_chained one_line_params
+              one_line_proof_text num_chained one_line_params
             end,
          if verbose then
            "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
@@ -1209,7 +1201,6 @@ fun run_reconstructor mode name
         ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...}
          : prover_problem) =
   let
-    val sendback_props = sendback_properties mode
     val reconstr =
       if name = metisN then
         Metis (type_enc |> the_default (hd partial_type_encs),
@@ -1236,7 +1227,7 @@ fun run_reconstructor mode name
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text sendback_props num_chained one_line_params
+              one_line_proof_text num_chained one_line_params
             end,
        message_tail = ""}
     | play =>

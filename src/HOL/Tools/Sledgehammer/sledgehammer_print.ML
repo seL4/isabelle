@@ -13,7 +13,7 @@ sig
 
   val string_of_reconstructor : reconstructor -> string
 
-  val one_line_proof_text : Properties.T -> int -> one_line_params -> string
+  val one_line_proof_text : int -> one_line_params -> string
 
   val string_of_proof :
     Proof.context -> string -> string -> int -> int -> isar_proof -> string
@@ -71,23 +71,24 @@ fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
   using_labels ls ^ apply_on_subgoal i n ^
   command_call (string_of_reconstructor reconstr) ss
 
-fun try_command_line sendback_props banner time command =
+fun try_command_line banner time command =
   banner ^ ": " ^
-  Active.sendback_markup sendback_props command ^
+  Active.sendback_markup [Markup.padding_command] command ^
   show_time time ^ "."
 
-fun minimize_line _ _ [] = ""
-  | minimize_line sendback_props minimize_command ss =
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
     | command =>
-      "\nTo minimize: " ^ Active.sendback_markup sendback_props command ^ "."
+      "\nTo minimize: " ^
+      Active.sendback_markup [Markup.padding_command] command ^ "."
 
 fun split_used_facts facts =
   facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
         |> pairself (sort_distinct (string_ord o pairself fst))
 
-fun one_line_proof_text sendback_props num_chained
+fun one_line_proof_text num_chained
         (preplay, banner, used_facts, minimize_command, subgoal,
          subgoal_count) =
   let
@@ -111,8 +112,8 @@ fun one_line_proof_text sendback_props num_chained
                      ".\n(Invoking \"sledgehammer\" with \"[strict]\" might \
                      \solve this.)"
           else
-            try_command_line sendback_props banner ext_time)
-  in try_line ^ minimize_line sendback_props minimize_command (map fst (extra @ chained)) end
+            try_command_line banner ext_time)
+  in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 
 
