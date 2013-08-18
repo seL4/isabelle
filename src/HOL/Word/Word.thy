@@ -4646,9 +4646,9 @@ lemma word_no_1 [simp]: "(Numeral1::'a::len0 word) = 1"
 
 declare bin_to_bl_def [simp]
 
-ML_file "~~/src/HOL/Word/Tools/word_lib.ML"
-ML_file "~~/src/HOL/Word/Tools/smt_word.ML"
-setup {* SMT_Word.setup *}
+ML_file "Tools/word_lib.ML"
+ML_file "Tools/smt_word.ML"
+setup SMT_Word.setup
 
 hide_const (open) Word
 
