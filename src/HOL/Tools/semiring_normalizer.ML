@@ -179,6 +179,9 @@ fun funs raw_key {is_const, dest_const, mk_const, conv} phi =
       mk_const = mk_const phi, conv = conv phi};
   in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
+val semiring_norm_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms semiring_norm});
+
 fun semiring_funs key = funs key
    {is_const = fn phi => can HOLogic.dest_number o Thm.term_of,
     dest_const = fn phi => fn ct =>
@@ -188,7 +191,7 @@ fun semiring_funs key = funs key
     mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT
       (case Rat.quotient_of_rat x of (i, 1) => i | _ => error "int_of_rat: bad int"),
     conv = fn phi => fn ctxt =>
-      Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms semiring_norm})
+      Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
       then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_1_eq_1})};
 
 fun field_funs key =
@@ -258,14 +261,16 @@ val natarith = [@{thm "numeral_plus_numeral"}, @{thm "diff_nat_numeral"},
                 @{thm "numeral_times_numeral"}, @{thm "numeral_eq_iff"}, 
                 @{thm "numeral_less_iff"}];
 
+val nat_add_ss =
+  simpset_of 
+    (put_simpset HOL_basic_ss @{context}
+       addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
+             @ [@{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc},
+                 @{thm add_numeral_left}, @{thm Suc_eq_plus1}]
+             @ map (fn th => th RS sym) @{thms numerals});
+
 fun nat_add_conv ctxt =
-  zerone_conv ctxt
-    (Simplifier.rewrite 
-      (put_simpset HOL_basic_ss ctxt
-         addsimps @{thms arith_simps} @ natarith @ @{thms rel_simps}
-               @ [@{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc},
-                   @{thm add_numeral_left}, @{thm Suc_eq_plus1}]
-               @ map (fn th => th RS sym) @{thms numerals}));
+  zerone_conv ctxt (Simplifier.rewrite (put_simpset nat_add_ss ctxt));
 
 val zeron_tm = @{cterm "0::nat"};
 val onen_tm  = @{cterm "1::nat"};
