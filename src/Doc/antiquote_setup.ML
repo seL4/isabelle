@@ -146,6 +146,16 @@ local
 
 fun no_check _ _ = true;
 
+fun command_check (name, pos) =
+  is_some (Keyword.command_keyword name) andalso
+    let
+      val markup =
+        Outer_Syntax.scan Position.none name
+        |> maps (Outer_Syntax.command_reports (#2 (Outer_Syntax.get_syntax ())))
+        |> map (snd o fst);
+      val _ = List.app (Position.report pos) markup;
+    in true end;
+
 fun thy_check check ctxt = can (check (Proof_Context.theory_of ctxt));
 
 fun check_tool (name, pos) =
@@ -199,7 +209,7 @@ in
 
 val entity_setup =
   entity_antiqs no_check "" "syntax" #>
-  entity_antiqs (K (is_some o Keyword.command_keyword o #1)) "isacommand" "command" #>
+  entity_antiqs (K command_check) "isacommand" "command" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
   entity_antiqs (thy_check Method.check) "" "method" #>
