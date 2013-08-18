@@ -593,7 +593,7 @@ where
 text {*
   This is a formulation of one step (referring to one digit position)
   in school-method division: compare the dividend at the current
-  digit position with the remained from previous division steps
+  digit position with the remainder from previous division steps
   and evaluate accordingly.
 *}
 
@@ -2550,7 +2550,7 @@ qed
 text {*
   This re-embedding of natural division on integers goes back to the
   time when numerals had been signed numerals.  It should
-  now be placed by the algorithm developed in @{class semiring_numeral_div}.  
+  now be replaced by the algorithm developed in @{class semiring_numeral_div}.  
 *}
 
 lemma div_nat_numeral [simp]:
