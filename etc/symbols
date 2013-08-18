@@ -350,9 +350,9 @@
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
 \<some>                 code: 0x0003f5
-\<^sub>                 code: 0x0021e9  group: control  font: IsabelleText  abbrev: =_
-\<^sup>                 code: 0x0021e7  group: control  font: IsabelleText  abbrev: =^
-\<^bold>                code: 0x002759  group: control  font: IsabelleText  abbrev: -.
+\<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
+\<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
+\<^bold>                code: 0x002759  group: control  font: IsabelleText
 \<^bsub>                code: 0x0021d8  group: control_block  font: IsabelleText  abbrev: =_(
 \<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
 \<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(

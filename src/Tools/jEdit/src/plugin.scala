@@ -35,7 +35,10 @@ object PIDE
   @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
 
-  def options_changed() { session.global_options.event(Session.Global_Options(options.value)) }
+  def options_changed() {
+    session.global_options.event(Session.Global_Options(options.value))
+    plugin.load_theories()
+  }
 
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
@@ -132,41 +135,45 @@ class Plugin extends EBPlugin
       PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
     }
 
+  def load_theories() { Swing_Thread.later { delay_load.invoke() }}
+
   private lazy val delay_load =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      val view = jEdit.getActiveView()
+      if (Isabelle.continuous_checking) {
+        val view = jEdit.getActiveView()
 
-      val buffers = JEdit_Lib.jedit_buffers().toList
-      if (buffers.forall(_.isLoaded)) {
-        def loaded_buffer(name: String): Boolean =
-          buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
+        val buffers = JEdit_Lib.jedit_buffers().toList
+        if (buffers.forall(_.isLoaded)) {
+          def loaded_buffer(name: String): Boolean =
+            buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
-        val thys =
-          for (buffer <- buffers; model <- PIDE.document_model(buffer))
-            yield model.node_name
+          val thys =
+            for (buffer <- buffers; model <- PIDE.document_model(buffer))
+              yield model.node_name
 
-        val thy_info = new Thy_Info(PIDE.thy_load)
-        // FIXME avoid I/O in Swing thread!?!
-        val files = thy_info.dependencies(thys).deps.map(_.name.node).
-          filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
+          val thy_info = new Thy_Info(PIDE.thy_load)
+          // FIXME avoid I/O in Swing thread!?!
+          val files = thy_info.dependencies(thys).deps.map(_.name.node).
+            filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
 
-        if (!files.isEmpty) {
-          val files_list = new ListView(files.sorted)
-          for (i <- 0 until files.length)
-            files_list.selection.indices += i
+          if (!files.isEmpty) {
+            val files_list = new ListView(files.sorted)
+            for (i <- 0 until files.length)
+              files_list.selection.indices += i
 
-          val answer =
-            GUI.confirm_dialog(view,
-              "Auto loading of required files",
-              JOptionPane.YES_NO_OPTION,
-              "The following files are required to resolve theory imports.",
-              "Reload selected files now?",
-              new ScrollPane(files_list))
-          if (answer == 0) {
-            files.foreach(file =>
-              if (files_list.selection.items.contains(file))
-                jEdit.openFile(null: View, file))
+            val answer =
+              GUI.confirm_dialog(view,
+                "Auto loading of required files",
+                JOptionPane.YES_NO_OPTION,
+                "The following files are required to resolve theory imports.",
+                "Reload selected files now?",
+                new ScrollPane(files_list))
+            if (answer == 0) {
+              files.foreach(file =>
+                if (files_list.selection.items.contains(file))
+                  jEdit.openFile(null: View, file))
+            }
           }
         }
       }
@@ -239,7 +246,7 @@ class Plugin extends EBPlugin
           if (PIDE.session.is_ready) {
             val buffer = msg.getBuffer
             if (buffer != null && !buffer.isLoading) delay_init.invoke()
-            Swing_Thread.later { delay_load.invoke() }
+            load_theories()
           }
 
         case msg: EditPaneUpdate
