@@ -881,8 +881,7 @@ text {* Theory @{text "Pure"} provides a few auxiliary connectives
   The @{text "TYPE"} constructor is the canonical representative of
   the unspecified type @{text "\<alpha> itself"}; it essentially injects the
   language of types into that of terms.  There is specific notation
-  @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau>
- itself\<^esub>"}.
+  @{text "TYPE(\<tau>)"} for @{text "TYPE\<^bsub>\<tau> itself\<^esub>"}.
   Although being devoid of any particular meaning, the term @{text
   "TYPE(\<tau>)"} accounts for the type @{text "\<tau>"} within the term
   language.  In particular, @{text "TYPE(\<alpha>)"} may be used as formal

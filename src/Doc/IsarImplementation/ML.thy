@@ -800,7 +800,7 @@ text {* Standard ML is a language in the tradition of @{text
   reasoning.}
 
   Currying gives some flexiblity due to \emph{partial application}.  A
-  function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^bsub>2\<^esub> \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
+  function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
   and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to another function
   etc.  How well this works in practice depends on the order of
   arguments.  In the worst case, arguments are arranged erratically,
@@ -904,8 +904,8 @@ text {* As explained above, a function @{text "f: \<alpha> \<rightarrow> \<beta>
   parametrized by arguments of type @{text "\<alpha>"}.  Given @{text "a: \<alpha>"}
   the partial application @{text "(f a): \<beta> \<rightarrow> \<beta>"} operates
   homogeneously on @{text "\<beta>"}.  This can be iterated naturally over a
-  list of parameters @{text "[a\<^sub>1, \<dots>, a\<^sub>n]"} as @{text "f a\<^sub>1 #> \<dots> #> f
-  a\<^bsub>n\<^esub>\<^bsub>\<^esub>"}.  The latter expression is again a function @{text "\<beta> \<rightarrow> \<beta>"}.
+  list of parameters @{text "[a\<^sub>1, \<dots>, a\<^sub>n]"} as @{text "f a\<^sub>1 #> \<dots> #> f a\<^sub>n"}.
+  The latter expression is again a function @{text "\<beta> \<rightarrow> \<beta>"}.
   It can be applied to an initial configuration @{text "b: \<beta>"} to
   start the iteration over the given list of arguments: each @{text
   "a"} in @{text "a\<^sub>1, \<dots>, a\<^sub>n"} is applied consecutively by updating a
