@@ -2122,15 +2122,18 @@ by (auto simp add: mult_ac divmod_int_rel_def linorder_neq_iff
                    zero_less_mult_iff distrib_left [symmetric] 
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: split_if_asm)
 
-lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"
+lemma zdiv_zmult2_eq:
+  fixes a b c :: int
+  shows "0 \<le> c \<Longrightarrow> a div (b * c) = (a div b) div c"
 apply (case_tac "b = 0", simp)
-apply (force simp add: divmod_int_rel_div_mod [THEN zmult2_lemma, THEN div_int_unique])
+apply (force simp add: le_less divmod_int_rel_div_mod [THEN zmult2_lemma, THEN div_int_unique])
 done
 
 lemma zmod_zmult2_eq:
-     "(0::int) < c ==> a mod (b*c) = b*(a div b mod c) + a mod b"
+  fixes a b c :: int
+  shows "0 \<le> c \<Longrightarrow> a mod (b * c) = b * (a div b mod c) + a mod b"
 apply (case_tac "b = 0", simp)
-apply (force simp add: divmod_int_rel_div_mod [THEN zmult2_lemma, THEN mod_int_unique])
+apply (force simp add: le_less divmod_int_rel_div_mod [THEN zmult2_lemma, THEN mod_int_unique])
 done
 
 lemma div_pos_geq:
@@ -2555,9 +2558,10 @@ lemma mod_2_not_eq_zero_eq_one_int:
   by auto
 
 instance int :: semiring_numeral_div
-  by intro_classes (auto intro: zmod_le_nonneg_dividend simp add: zmult_div_cancel
-    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial,
-    auto intro: zmod_zmult2_eq zdiv_zmult2_eq simp add: le_less)
+  by intro_classes (auto intro: zmod_le_nonneg_dividend
+    simp add: zmult_div_cancel
+    pos_imp_zdiv_pos_iff div_pos_pos_trivial mod_pos_pos_trivial
+    zmod_zmult2_eq zdiv_zmult2_eq)
 
 
 subsubsection {* Tools setup *}
