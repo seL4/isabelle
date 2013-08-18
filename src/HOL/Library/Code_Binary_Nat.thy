@@ -130,6 +130,15 @@ lemma less_nat_code [code]:
   "nat_of_num k < nat_of_num l \<longleftrightarrow> k < l"
   by (simp_all add: nat_of_num_numeral)
 
+lemma [code, code del]:
+  "divmod_nat = divmod_nat" ..
+  
+lemma divmod_nat_code [code]:
+  "divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
+  "divmod_nat m 0 = (0, m)"
+  "divmod_nat 0 n = (0, 0)"
+  by (simp_all add: prod_eq_iff nat_of_num_numeral del: div_nat_numeral mod_nat_numeral)
+
 
 subsection {* Conversions *}
 

@@ -660,6 +660,19 @@ next
   with False show ?thesis by simp
 qed
 
+lemma divmod_cancel [code]:
+  "divmod (Num.Bit0 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r))" (is ?P)
+  "divmod (Num.Bit1 m) (Num.Bit0 n) = (case divmod m n of (q, r) \<Rightarrow> (q, 2 * r + 1))" (is ?Q)
+proof -
+  have *: "\<And>q. numeral (Num.Bit0 q) = 2 * numeral q"
+    "\<And>q. numeral (Num.Bit1 q) = 2 * numeral q + 1"
+    by (simp_all only: numeral_mult numeral.simps distrib) simp_all
+  have "1 div 2 = 0" "1 mod 2 = 1" by (auto intro: div_less mod_less)
+  then show ?P and ?Q
+    by (simp_all add: prod_eq_iff split_def * [of m] * [of n] mod_mult_mult1
+      div_mult2_eq [of _ _ 2] mod_mult2_eq [of _ _ 2] add.commute del: numeral_times_numeral)
+ qed
+
 end
 
 hide_fact (open) diff_invert_add1 le_add_diff_inverse2 diff_zero
@@ -1846,7 +1859,11 @@ lemma int_mod_neg_eq: "\<lbrakk>(a::int) = b * q + r; r \<le> 0; b < r\<rbrakk> 
   by (rule mod_int_unique [of a b q r],
     simp add: divmod_int_rel_def)
 
-(* simprocs adapted from HOL/ex/Binary.thy *)
+text {*
+  numeral simprocs -- high chance that these can be replaced
+  by divmod algorithm from @{class semiring_numeral_div}
+*}
+
 ML {*
 local
   val mk_number = HOLogic.mk_number HOLogic.intT
@@ -2573,36 +2590,54 @@ lemmas [nitpick_unfold] = dvd_eq_mod_eq_0 mod_div_equality' zmod_zdiv_equality'
 
 subsubsection {* Code generation *}
 
-definition pdivmod :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "pdivmod k l = (\<bar>k\<bar> div \<bar>l\<bar>, \<bar>k\<bar> mod \<bar>l\<bar>)"
+definition divmod_abs :: "int \<Rightarrow> int \<Rightarrow> int \<times> int"
+where
+  "divmod_abs k l = (\<bar>k\<bar> div \<bar>l\<bar>, \<bar>k\<bar> mod \<bar>l\<bar>)"
 
-lemma pdivmod_posDivAlg [code]:
-  "pdivmod k l = (if l = 0 then (0, \<bar>k\<bar>) else posDivAlg \<bar>k\<bar> \<bar>l\<bar>)"
-by (subst posDivAlg_div_mod) (simp_all add: pdivmod_def)
+lemma fst_divmod_abs [simp]:
+  "fst (divmod_abs k l) = \<bar>k\<bar> div \<bar>l\<bar>"
+  by (simp add: divmod_abs_def)
 
-lemma divmod_int_pdivmod: "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+lemma snd_divmod_abs [simp]:
+  "snd (divmod_abs k l) = \<bar>k\<bar> mod \<bar>l\<bar>"
+  by (simp add: divmod_abs_def)
+
+lemma divmod_abs_code [code]:
+  "divmod_abs (Int.Pos k) (Int.Pos l) = divmod k l"
+  "divmod_abs (Int.Neg k) (Int.Neg l) = divmod k l"
+  "divmod_abs (Int.Neg k) (Int.Pos l) = divmod k l"
+  "divmod_abs (Int.Pos k) (Int.Neg l) = divmod k l"
+  "divmod_abs j 0 = (0, \<bar>j\<bar>)"
+  "divmod_abs 0 j = (0, 0)"
+  by (simp_all add: prod_eq_iff)
+
+lemma divmod_int_divmod_abs:
+  "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
   apsnd ((op *) (sgn l)) (if 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0
-    then pdivmod k l
-    else (let (r, s) = pdivmod k l in
+    then divmod_abs k l
+    else (let (r, s) = divmod_abs k l in
        if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
 proof -
   have aux: "\<And>q::int. - k = l * q \<longleftrightarrow> k = l * - q" by auto
   show ?thesis
-    by (simp add: divmod_int_mod_div pdivmod_def)
+    by (simp add: prod_eq_iff split_def Let_def)
       (auto simp add: aux not_less not_le zdiv_zminus1_eq_if
       zmod_zminus1_eq_if zdiv_zminus2_eq_if zmod_zminus2_eq_if)
 qed
 
-lemma divmod_int_code [code]: "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+lemma divmod_int_code [code]:
+  "divmod_int k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
   apsnd ((op *) (sgn l)) (if sgn k = sgn l
-    then pdivmod k l
-    else (let (r, s) = pdivmod k l in
+    then divmod_abs k l
+    else (let (r, s) = divmod_abs k l in
       if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
 proof -
   have "k \<noteq> 0 \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0 \<longleftrightarrow> sgn k = sgn l"
     by (auto simp add: not_less sgn_if)
-  then show ?thesis by (simp add: divmod_int_pdivmod)
+  then show ?thesis by (simp add: divmod_int_divmod_abs)
 qed
+
+hide_const (open) divmod_abs
 
 code_identifier
   code_module Divides \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith

@@ -223,6 +223,21 @@ lemma of_nat_of_integer [simp]:
   "of_nat (nat_of_integer k) = max 0 k"
   by transfer auto
 
+instance integer :: semiring_numeral_div
+  by intro_classes (transfer,
+    fact semiring_numeral_div_class.diff_invert_add1
+    semiring_numeral_div_class.le_add_diff_inverse2
+    semiring_numeral_div_class.mult_div_cancel
+    semiring_numeral_div_class.div_less
+    semiring_numeral_div_class.mod_less
+    semiring_numeral_div_class.div_positive
+    semiring_numeral_div_class.mod_less_eq_dividend
+    semiring_numeral_div_class.pos_mod_bound
+    semiring_numeral_div_class.pos_mod_sign
+    semiring_numeral_div_class.mod_mult2_eq
+    semiring_numeral_div_class.div_mult2_eq
+    semiring_numeral_div_class.discrete)+
+
 
 subsection {* Code theorems for target language integers *}
 
@@ -347,23 +362,14 @@ lemma snd_divmod_abs [simp]:
   "snd (divmod_abs k l) = \<bar>k\<bar> mod \<bar>l\<bar>"
   by (simp add: divmod_abs_def)
 
-lemma divmod_abs_terminate_code [code]:
-  "divmod_abs (Neg k) (Neg l) = divmod_abs (Pos k) (Pos l)"
-  "divmod_abs (Neg k) (Pos l) = divmod_abs (Pos k) (Pos l)"
-  "divmod_abs (Pos k) (Neg l) = divmod_abs (Pos k) (Pos l)"
+lemma divmod_abs_code [code]:
+  "divmod_abs (Pos k) (Pos l) = divmod k l"
+  "divmod_abs (Neg k) (Neg l) = divmod k l"
+  "divmod_abs (Neg k) (Pos l) = divmod k l"
+  "divmod_abs (Pos k) (Neg l) = divmod k l"
   "divmod_abs j 0 = (0, \<bar>j\<bar>)"
   "divmod_abs 0 j = (0, 0)"
   by (simp_all add: prod_eq_iff)
-
-lemma divmod_abs_rec_code [code]:
-  "divmod_abs (Pos k) (Pos l) =
-    (let j = sub k l in
-       if j < 0 then (0, Pos k)
-       else let (q, r) = divmod_abs j (Pos l) in (q + 1, r))"
-  apply (simp add: prod_eq_iff Let_def prod_case_beta)
-  apply transfer
-  apply (simp add: sub_non_negative sub_negative div_pos_pos_trivial mod_pos_pos_trivial div_pos_geq mod_pos_geq)
-  done
 
 lemma divmod_integer_code [code]:
   "divmod_integer k l =

@@ -65,9 +65,9 @@ lemma [code]:
   by simp
 
 lemma [code]:
-  "pdivmod k l = map_pair int_of_integer int_of_integer
+  "Divides.divmod_abs k l = map_pair int_of_integer int_of_integer
     (Code_Numeral.divmod_abs (of_int k) (of_int l))"
-  by (simp add: prod_eq_iff pdivmod_def)
+  by (simp add: prod_eq_iff)
 
 lemma [code]:
   "k div l = int_of_integer (of_int k div of_int l)"
