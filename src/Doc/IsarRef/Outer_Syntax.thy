@@ -137,7 +137,7 @@ text {* The outer lexical syntax consists of three main categories of
 
   \begin{center}
   \begin{supertabular}{rcl}
-    @{syntax_def ident} & = & @{text "letter quasiletter\<^sup>*"} \\
+    @{syntax_def ident} & = & @{text "letter (subscript\<^sup>? quasiletter)\<^sup>*"} \\
     @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
     @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim "\\"}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
     @{syntax_def nat} & = & @{text "digit\<^sup>+"} \\
@@ -150,7 +150,7 @@ text {* The outer lexical syntax consists of three main categories of
     @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
 
     @{text letter} & = & @{text "latin  |  "}@{verbatim "\\"}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim "\\"}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
-          &   & @{verbatim "\<^sub>"}@{text "  |  "}@{verbatim "\<^sup>"} \\
+    @{text subscript} & = & @{verbatim "\<^sub>"} \\
     @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
     @{text latin} & = & @{verbatim a}@{text "  | \<dots> |  "}@{verbatim z}@{text "  |  "}@{verbatim A}@{text "  |  \<dots> |  "}@{verbatim Z} \\
     @{text digit} & = & @{verbatim "0"}@{text "  |  \<dots> |  "}@{verbatim "9"} \\
