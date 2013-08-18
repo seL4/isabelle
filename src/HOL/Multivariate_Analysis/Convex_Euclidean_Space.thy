@@ -3361,7 +3361,7 @@ next
       thus False using y[THEN bspec[where x="y + u *\<^sub>R (x - y)"]]
         using assms(1)[unfolded convex_alt, THEN bspec[where x=y]]
         using `x\<in>s` `y\<in>s` by (auto simp add: dist_commute algebra_simps) qed
-    moreover have "0 < norm (y - z) ^ 2" using `y\<in>s` `z\<notin>s` by auto
+    moreover have "0 < (norm (y - z))\<^sup>2" using `y\<in>s` `z\<notin>s` by auto
     hence "0 < inner (y - z) (y - z)" unfolding power2_norm_eq_inner by simp
     ultimately show "inner (y - z) z + (norm (y - z))\<^sup>2 / 2 < inner (y - z) x"
       unfolding power2_norm_eq_inner and not_less by (auto simp add: field_simps inner_commute inner_diff)

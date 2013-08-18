@@ -17,7 +17,7 @@ notation inner (infix "\<bullet>" 70)
 
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof -
-  have "(x + 1/2)^2 + 3/4 > 0" using zero_le_power2[of "x+1/2"] by arith
+  have "(x + 1/2)\<^sup>2 + 3/4 > 0" using zero_le_power2[of "x+1/2"] by arith
   then show ?thesis by (simp add: field_simps power2_eq_square)
 qed
 
@@ -30,21 +30,21 @@ lemma square_continuous: "0 < (e::real) ==> \<exists>d. 0 < d \<and> (\<forall>y
   apply auto
   done
 
-lemma real_le_lsqrt: "0 <= x \<Longrightarrow> 0 <= y \<Longrightarrow> x <= y^2 ==> sqrt x <= y"
-  using real_sqrt_le_iff[of x "y^2"] by simp
+lemma real_le_lsqrt: "0 <= x \<Longrightarrow> 0 <= y \<Longrightarrow> x <= y\<^sup>2 ==> sqrt x <= y"
+  using real_sqrt_le_iff[of x "y\<^sup>2"] by simp
 
-lemma real_le_rsqrt: "x^2 \<le> y \<Longrightarrow> x \<le> sqrt y"
-  using real_sqrt_le_mono[of "x^2" y] by simp
+lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
+  using real_sqrt_le_mono[of "x\<^sup>2" y] by simp
 
-lemma real_less_rsqrt: "x^2 < y \<Longrightarrow> x < sqrt y"
-  using real_sqrt_less_mono[of "x^2" y] by simp
+lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
+  using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
 
 lemma sqrt_even_pow2:
   assumes n: "even n"
   shows "sqrt(2 ^ n) = 2 ^ (n div 2)"
 proof -
   from n obtain m where m: "n = 2*m" unfolding even_mult_two_ex ..
-  from m  have "sqrt(2 ^ n) = sqrt ((2 ^ m) ^ 2)"
+  from m  have "sqrt(2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
     by (simp only: power_mult[symmetric] mult_commute)
   then show ?thesis  using m by simp
 qed
@@ -85,13 +85,13 @@ lemma norm_eq_1: "norm(x) = 1 \<longleftrightarrow> x \<bullet> x = 1"
 
 text{* Squaring equations and inequalities involving norms.  *}
 
-lemma dot_square_norm: "x \<bullet> x = norm(x)^2"
+lemma dot_square_norm: "x \<bullet> x = (norm x)\<^sup>2"
   by (simp only: power2_norm_eq_inner) (* TODO: move? *)
 
-lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x = a^2"
+lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x = a\<^sup>2"
   by (auto simp add: norm_eq_sqrt_inner)
 
-lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)^2 \<le> y^2"
+lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)\<^sup>2 \<le> y\<^sup>2"
 proof
   assume "\<bar>x\<bar> \<le> \<bar>y\<bar>"
   then have "\<bar>x\<bar>\<^sup>2 \<le> \<bar>y\<bar>\<^sup>2" by (rule power_mono, simp)
@@ -102,21 +102,21 @@ next
   then show "\<bar>x\<bar> \<le> \<bar>y\<bar>" by simp
 qed
 
-lemma norm_le_square: "norm(x) <= a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x <= a^2"
+lemma norm_le_square: "norm(x) <= a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x <= a\<^sup>2"
   apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
   using norm_ge_zero[of x]
   apply arith
   done
 
-lemma norm_ge_square: "norm(x) >= a \<longleftrightarrow> a <= 0 \<or> x \<bullet> x >= a ^ 2"
+lemma norm_ge_square: "norm(x) >= a \<longleftrightarrow> a <= 0 \<or> x \<bullet> x >= a\<^sup>2"
   apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
   using norm_ge_zero[of x]
   apply arith
   done
 
-lemma norm_lt_square: "norm(x) < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a^2"
+lemma norm_lt_square: "norm(x) < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
   by (metis not_le norm_ge_square)
-lemma norm_gt_square: "norm(x) > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a^2"
+lemma norm_gt_square: "norm(x) > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
   by (metis norm_le_square not_less)
 
 text{* Dot product in terms of the norm rather than conversely. *}
@@ -124,10 +124,10 @@ text{* Dot product in terms of the norm rather than conversely. *}
 lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_left 
   inner_scaleR_left inner_scaleR_right
 
-lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
+lemma dot_norm: "x \<bullet> y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
 
-lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 2) / 2"
+lemma dot_norm_neg: "x \<bullet> y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute
   by (auto simp add: algebra_simps)
 
@@ -469,11 +469,11 @@ lemma approachable_lt_le: "(\<exists>(d::real)>0. \<forall>x. f x < d \<longrigh
 
 
 lemma triangle_lemma:
-  assumes x: "0 <= (x::real)" and y:"0 <= y" and z: "0 <= z" and xy: "x^2 <= y^2 + z^2"
+  assumes x: "0 <= (x::real)" and y:"0 <= y" and z: "0 <= z" and xy: "x\<^sup>2 <= y\<^sup>2 + z\<^sup>2"
   shows "x <= y + z"
 proof -
-  have "y^2 + z^2 \<le> y^2 + 2*y*z + z^2" using z y by (simp add: mult_nonneg_nonneg)
-  with xy have th: "x ^2 \<le> (y+z)^2" by (simp add: power2_eq_square field_simps)
+  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2*y*z + z\<^sup>2" using z y by (simp add: mult_nonneg_nonneg)
+  with xy have th: "x\<^sup>2 \<le> (y+z)\<^sup>2" by (simp add: power2_eq_square field_simps)
   from y z have yz: "y + z \<ge> 0" by arith
   from power2_le_imp_le[OF th yz] show ?thesis .
 qed
@@ -2592,11 +2592,11 @@ lemma norm_le_infnorm: "norm x \<le> sqrt DIM('a) * infnorm(x::'a::euclidean_spa
 proof -
   let ?d = "DIM('a)"
   have "real ?d \<ge> 0" by simp
-  then have d2: "(sqrt (real ?d))^2 = real ?d"
+  then have d2: "(sqrt (real ?d))\<^sup>2 = real ?d"
     by (auto intro: real_sqrt_pow2)
   have th: "sqrt (real ?d) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff infnorm_pos_le)
-  have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)^2"
+  have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)\<^sup>2"
     unfolding power_mult_distrib d2
     unfolding real_of_nat_def
     apply(subst euclidean_inner)
@@ -2680,9 +2680,9 @@ proof -
       by simp_all
     then have n: "norm x > 0" "norm y > 0"
       using norm_ge_zero[of x] norm_ge_zero[of y] by arith+
-    have th: "\<And>(a::real) b c. a + b + c \<noteq> 0 ==> (a = b + c \<longleftrightarrow> a^2 = (b + c)^2)"
+    have th: "\<And>(a::real) b c. a + b + c \<noteq> 0 ==> (a = b + c \<longleftrightarrow> a\<^sup>2 = (b + c)\<^sup>2)"
       by algebra
-    have "norm(x + y) = norm x + norm y \<longleftrightarrow> norm(x + y)^ 2 = (norm x + norm y) ^2"
+    have "norm (x + y) = norm x + norm y \<longleftrightarrow> (norm (x + y))\<^sup>2 = (norm x + norm y)\<^sup>2"
       apply (rule th) using n norm_ge_zero[of "x + y"]
       apply arith
       done

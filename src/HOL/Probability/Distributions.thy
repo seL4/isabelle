@@ -372,7 +372,7 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
   also have "(\<integral> x. (x / measure lborel {a .. b}) * indicator {a .. b} x \<partial>lborel) = (a + b) / 2"
   proof (subst integral_FTC_atLeastAtMost)
     fix x
-    show "DERIV (\<lambda>x. x ^ 2 / (2 * measure lborel {a..b})) x :> x / measure lborel {a..b}"
+    show "DERIV (\<lambda>x. x\<^sup>2 / (2 * measure lborel {a..b})) x :> x / measure lborel {a..b}"
       using uniform_distributed_params[OF D]
       by (auto intro!: DERIV_intros)
     show "isCont (\<lambda>x. x / Sigma_Algebra.measure lborel {a..b}) x"

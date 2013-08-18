@@ -103,7 +103,7 @@ done
 lemma hypreal_sqrt_ge_zero: "0 \<le> x ==> 0 \<le> ( *f* sqrt)(x)"
 by (auto intro: hypreal_sqrt_gt_zero simp add: order_le_less)
 
-lemma hypreal_sqrt_hrabs [simp]: "!!x. ( *f* sqrt)(x ^ 2) = abs(x)"
+lemma hypreal_sqrt_hrabs [simp]: "!!x. ( *f* sqrt)(x\<^sup>2) = abs(x)"
 by (transfer, simp)
 
 lemma hypreal_sqrt_hrabs2 [simp]: "!!x. ( *f* sqrt)(x*x) = abs(x)"
@@ -128,7 +128,7 @@ apply (rule_tac [5] hypreal_sqrt_mult_distrib2 [THEN subst])
 apply (auto simp add: st_hrabs st_zero_le star_sqrt_HFinite)
 done
 
-lemma hypreal_sqrt_sum_squares_ge1 [simp]: "!!x y. x \<le> ( *f* sqrt)(x ^ 2 + y ^ 2)"
+lemma hypreal_sqrt_sum_squares_ge1 [simp]: "!!x y. x \<le> ( *f* sqrt)(x\<^sup>2 + y\<^sup>2)"
 by transfer (rule real_sqrt_sum_squares_ge1)
 
 lemma HFinite_hypreal_sqrt:
@@ -584,14 +584,14 @@ by (insert NSLIMSEQ_mult [OF NSLIMSEQ_sin_pi NSLIMSEQ_cos_one], simp)
 text{*A familiar approximation to @{term "cos x"} when @{term x} is small*}
 
 lemma STAR_cos_Infinitesimal_approx:
-     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x ^ 2"
+     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - x\<^sup>2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto simp add: Infinitesimal_approx_minus [symmetric] 
             diff_minus add_assoc [symmetric] numeral_2_eq_2)
 done
 
 lemma STAR_cos_Infinitesimal_approx2:
-     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x ^ 2)/2"
+     "x \<in> Infinitesimal ==> ( *f* cos) x @= 1 - (x\<^sup>2)/2"
 apply (rule STAR_cos_Infinitesimal [THEN approx_trans])
 apply (auto intro: Infinitesimal_SReal_divide 
             simp add: Infinitesimal_approx_minus [symmetric] numeral_2_eq_2)

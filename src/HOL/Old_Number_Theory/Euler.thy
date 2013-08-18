@@ -75,7 +75,7 @@ proof
     from this and a show ?thesis
       by (auto simp add: zcong_zmult_prop2)
   qed
-  then have "[j^2 = a] (mod p)" by (simp add: power2_eq_square)
+  then have "[j\<^sup>2 = a] (mod p)" by (simp add: power2_eq_square)
   with assms show False by (simp add: QuadRes_def)
 qed
 
@@ -269,7 +269,7 @@ lemma Euler_part2:
 
 text {* \medskip Prove the final part of Euler's Criterion: *}
 
-lemma aux__1: "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> ~(p dvd y)"
+lemma aux__1: "[| ~([x = 0] (mod p)); [y\<^sup>2 = x] (mod p)|] ==> ~(p dvd y)"
   by (metis dvdI power2_eq_square zcong_sym zcong_trans zcong_zero_equiv_div dvd_trans)
 
 lemma aux__2: "2 * nat((p - 1) div 2) =  nat (2 * ((p - 1) div 2))"

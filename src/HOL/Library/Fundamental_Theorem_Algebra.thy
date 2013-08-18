@@ -14,7 +14,7 @@ definition csqrt :: "complex \<Rightarrow> complex" where
            else Complex (sqrt((cmod z + Re z) /2))
                         ((Im z / abs(Im z)) * sqrt((cmod z - Re z) /2)))"
 
-lemma csqrt[algebra]: "csqrt z ^ 2 = z"
+lemma csqrt[algebra]: "(csqrt z)\<^sup>2 = z"
 proof-
   obtain x y where xy: "z = Complex x y" by (cases z)
   {assume y0: "y = 0"
@@ -34,13 +34,15 @@ proof-
       hence "cmod ?z - x \<ge> 0" "cmod ?z + x \<ge> 0" by arith+
       hence "(sqrt (x * x + y * y) + x) / 2 \<ge> 0" "(sqrt (x * x + y * y) - x) / 2 \<ge> 0" by (simp_all add: power2_eq_square) }
     note th = this
-    have sq4: "\<And>x::real. x^2 / 4 = (x / 2) ^ 2"
+    have sq4: "\<And>x::real. x\<^sup>2 / 4 = (x / 2)\<^sup>2"
       by (simp add: power2_eq_square)
     from th[of x y]
-    have sq4': "sqrt (((sqrt (x * x + y * y) + x)^2 / 4)) = (sqrt (x * x + y * y) + x) / 2" "sqrt (((sqrt (x * x + y * y) - x)^2 / 4)) = (sqrt (x * x + y * y) - x) / 2" unfolding sq4 by simp_all
+    have sq4': "sqrt (((sqrt (x * x + y * y) + x)\<^sup>2 / 4)) = (sqrt (x * x + y * y) + x) / 2"
+      "sqrt (((sqrt (x * x + y * y) - x)\<^sup>2 / 4)) = (sqrt (x * x + y * y) - x) / 2"
+      unfolding sq4 by simp_all
     then have th1: "sqrt ((sqrt (x * x + y * y) + x) * (sqrt (x * x + y * y) + x) / 4) - sqrt ((sqrt (x * x + y * y) - x) * (sqrt (x * x + y * y) - x) / 4) = x"
       unfolding power2_eq_square by simp
-    have "sqrt 4 = sqrt (2^2)" by simp
+    have "sqrt 4 = sqrt (2\<^sup>2)" by simp
     hence sqrt4: "sqrt 4 = 2" by (simp only: real_sqrt_abs)
     have th2: "2 *(y * sqrt ((sqrt (x * x + y * y) - x) * (sqrt (x * x + y * y) + x) / 4)) / \<bar>y\<bar> = y"
       using iffD2[OF real_sqrt_pow2_iff sum_power2_ge_zero[of x y]] y0
@@ -184,14 +186,14 @@ lemma  unimodular_reduce_norm:
   shows "cmod (z + 1) < 1 \<or> cmod (z - 1) < 1 \<or> cmod (z + ii) < 1 \<or> cmod (z - ii) < 1"
 proof-
   obtain x y where z: "z = Complex x y " by (cases z, auto)
-  from md z have xy: "x^2 + y^2 = 1" by (simp add: cmod_def)
+  from md z have xy: "x\<^sup>2 + y\<^sup>2 = 1" by (simp add: cmod_def)
   {assume C: "cmod (z + 1) \<ge> 1" "cmod (z - 1) \<ge> 1" "cmod (z + ii) \<ge> 1" "cmod (z - ii) \<ge> 1"
     from C z xy have "2*x \<le> 1" "2*x \<ge> -1" "2*y \<le> 1" "2*y \<ge> -1"
       by (simp_all add: cmod_def power2_eq_square algebra_simps)
     hence "abs (2*x) \<le> 1" "abs (2*y) \<le> 1" by simp_all
-    hence "(abs (2 * x))^2 <= 1^2" "(abs (2 * y)) ^2 <= 1^2"
+    hence "(abs (2 * x))\<^sup>2 <= 1\<^sup>2" "(abs (2 * y))\<^sup>2 <= 1\<^sup>2"
       by - (rule power_mono, simp, simp)+
-    hence th0: "4*x^2 \<le> 1" "4*y^2 \<le> 1"
+    hence th0: "4*x\<^sup>2 \<le> 1" "4*y\<^sup>2 \<le> 1"
       by (simp_all add: power_mult_distrib)
     from add_mono[OF th0] xy have False by simp }
   thus ?thesis unfolding linorder_not_le[symmetric] by blast
@@ -454,7 +456,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma "(rcis (sqrt (abs r)) (a/2)) ^ 2 = rcis (abs r) a"
+lemma "(rcis (sqrt (abs r)) (a/2))\<^sup>2 = rcis (abs r) a"
   unfolding power2_eq_square
   apply (simp add: rcis_mult)
   apply (simp add: power2_eq_square[symmetric])
@@ -464,7 +466,7 @@ lemma cispi: "cis pi = -1"
   unfolding cis_def
   by simp
 
-lemma "(rcis (sqrt (abs r)) ((pi + a)/2)) ^ 2 = rcis (- abs r) a"
+lemma "(rcis (sqrt (abs r)) ((pi + a)/2))\<^sup>2 = rcis (- abs r) a"
   unfolding power2_eq_square
   apply (simp add: rcis_mult add_divide_distrib)
   apply (simp add: power2_eq_square[symmetric] rcis_def cispi cis_mult[symmetric])

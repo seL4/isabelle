@@ -175,9 +175,9 @@ proof -
     by (simp add: nat_mult_distrib)
   finally have "(-1::int)^nat x = (-1)^(2 * nat a)"
     by simp
-  also have "... = ((-1::int)^2)^ (nat a)"
+  also have "... = (-1::int)\<^sup>2 ^ nat a"
     by (simp add: zpower_zpower [symmetric])
-  also have "(-1::int)^2 = 1"
+  also have "(-1::int)\<^sup>2 = 1"
     by simp
   finally show ?thesis
     by simp
@@ -192,11 +192,11 @@ proof -
     by simp
   also from a have "nat (2 * a + 1) = 2 * nat a + 1"
     by (auto simp add: nat_mult_distrib nat_add_distrib)
-  finally have "(-1::int)^nat x = (-1)^(2 * nat a + 1)"
+  finally have "(-1::int) ^ nat x = (-1)^(2 * nat a + 1)"
     by simp
-  also have "... = ((-1::int)^2)^ (nat a) * (-1)^1"
+  also have "... = ((-1::int)\<^sup>2) ^ nat a * (-1)^1"
     by (auto simp add: power_mult power_add)
-  also have "(-1::int)^2 = 1"
+  also have "(-1::int)\<^sup>2 = 1"
     by simp
   finally show ?thesis
     by simp

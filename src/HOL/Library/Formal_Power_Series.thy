@@ -1173,22 +1173,22 @@ lemma fps_deriv_power:
 lemma fps_inverse_deriv:
   fixes a:: "('a :: field) fps"
   assumes a0: "a$0 \<noteq> 0"
-  shows "fps_deriv (inverse a) = - fps_deriv a * inverse a ^ 2"
+  shows "fps_deriv (inverse a) = - fps_deriv a * (inverse a)\<^sup>2"
 proof-
   from inverse_mult_eq_1[OF a0]
   have "fps_deriv (inverse a * a) = 0" by simp
   hence "inverse a * fps_deriv a + fps_deriv (inverse a) * a = 0" by simp
   hence "inverse a * (inverse a * fps_deriv a + fps_deriv (inverse a) * a) = 0"  by simp
   with inverse_mult_eq_1[OF a0]
-  have "inverse a ^ 2 * fps_deriv a + fps_deriv (inverse a) = 0"
+  have "(inverse a)\<^sup>2 * fps_deriv a + fps_deriv (inverse a) = 0"
     unfolding power2_eq_square
     apply (simp add: field_simps)
     apply (simp add: mult_assoc[symmetric])
     done
-  then have "inverse a ^ 2 * fps_deriv a + fps_deriv (inverse a) - fps_deriv a * inverse a ^ 2 =
-      0 - fps_deriv a * inverse a ^ 2"
+  then have "(inverse a)\<^sup>2 * fps_deriv a + fps_deriv (inverse a) - fps_deriv a * (inverse a)\<^sup>2 =
+      0 - fps_deriv a * (inverse a)\<^sup>2"
     by simp
-  then show "fps_deriv (inverse a) = - fps_deriv a * inverse a ^ 2"
+  then show "fps_deriv (inverse a) = - fps_deriv a * (inverse a)\<^sup>2"
     by (simp add: field_simps)
 qed
 
@@ -1223,7 +1223,7 @@ qed
 lemma fps_inverse_deriv':
   fixes a:: "('a :: field) fps"
   assumes a0: "a$0 \<noteq> 0"
-  shows "fps_deriv (inverse a) = - fps_deriv a / a ^ 2"
+  shows "fps_deriv (inverse a) = - fps_deriv a / a\<^sup>2"
   using fps_inverse_deriv[OF a0]
   unfolding power2_eq_square fps_divide_def fps_inverse_mult
   by simp
@@ -1236,7 +1236,7 @@ lemma inverse_mult_eq_1':
 lemma fps_divide_deriv:
   fixes a:: "('a :: field) fps"
   assumes a0: "b$0 \<noteq> 0"
-  shows "fps_deriv (a / b) = (fps_deriv a * b - a * fps_deriv b) / b ^ 2"
+  shows "fps_deriv (a / b) = (fps_deriv a * b - a * fps_deriv b) / b\<^sup>2"
   using fps_inverse_deriv[OF a0]
   by (simp add: fps_divide_def field_simps
     power2_eq_square fps_inverse_mult inverse_mult_eq_1'[OF a0])
@@ -3210,7 +3210,7 @@ lemma binomial_Vandermonde: "setsum (\<lambda>k. (a choose k) * (b choose (n - k
   apply (simp only: binomial_gbinomial[symmetric] of_nat_mult[symmetric] of_nat_setsum[symmetric] of_nat_add[symmetric])
   by simp
 
-lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)^2) {0..n} = (2*n) choose n"
+lemma binomial_Vandermonde_same: "setsum (\<lambda>k. (n choose k)\<^sup>2) {0..n} = (2*n) choose n"
   using binomial_Vandermonde[of n n n,symmetric]
   unfolding mult_2 apply (simp add: power2_eq_square)
   apply (rule setsum_cong2)
@@ -3425,8 +3425,8 @@ proof (rule fps_ext)
 qed
 
 lemma fps_sin_cos_sum_of_squares:
-  "fps_cos c ^ 2 + fps_sin c ^ 2 = 1" (is "?lhs = 1")
-proof-
+  "(fps_cos c)\<^sup>2 + (fps_sin c)\<^sup>2 = 1" (is "?lhs = 1")
+proof -
   have "fps_deriv ?lhs = 0"
     apply (simp add:  fps_deriv_power fps_sin_deriv fps_cos_deriv)
     apply (simp add: field_simps fps_const_neg[symmetric] del: fps_const_neg)
@@ -3546,7 +3546,7 @@ lemma fps_cos_odd: "fps_cos (- c) = fps_cos c"
 
 definition "fps_tan c = fps_sin c / fps_cos c"
 
-lemma fps_tan_deriv: "fps_deriv(fps_tan c) = fps_const c/ (fps_cos c ^ 2)"
+lemma fps_tan_deriv: "fps_deriv (fps_tan c) = fps_const c / (fps_cos c)\<^sup>2"
 proof -
   have th0: "fps_cos c $ 0 \<noteq> 0" by (simp add: fps_cos_def)
   show ?thesis

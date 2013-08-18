@@ -629,7 +629,7 @@ proof-
   then guess x .. note x=this
   show ?thesis proof(cases "f a = f b")
     case False
-    have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2"
+    have "norm (f b - f a) * norm (f b - f a) = (norm (f b - f a))\<^sup>2"
       by (simp add: power2_eq_square)
     also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding power2_norm_eq_inner ..
     also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)"

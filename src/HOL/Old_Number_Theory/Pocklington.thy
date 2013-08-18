@@ -940,32 +940,32 @@ proof-
 qed
 
 lemma prime_divisor_sqrt:
-  "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>d. d dvd n \<and> d^2 \<le> n \<longrightarrow> d = 1)"
+  "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>d. d dvd n \<and> d\<^sup>2 \<le> n \<longrightarrow> d = 1)"
 proof-
   {assume "n=0 \<or> n=1" hence ?thesis using prime_0 prime_1
     by (auto simp add: nat_power_eq_0_iff)}
   moreover
   {assume n: "n\<noteq>0" "n\<noteq>1"
     hence np: "n > 1" by arith
-    {fix d assume d: "d dvd n" "d^2 \<le> n" and H: "\<forall>m. m dvd n \<longrightarrow> m=1 \<or> m=n"
+    {fix d assume d: "d dvd n" "d\<^sup>2 \<le> n" and H: "\<forall>m. m dvd n \<longrightarrow> m=1 \<or> m=n"
       from H d have d1n: "d = 1 \<or> d=n" by blast
       {assume dn: "d=n"
-        have "n^2 > n*1" using n by (simp add: power2_eq_square)
+        have "n\<^sup>2 > n*1" using n by (simp add: power2_eq_square)
         with dn d(2) have "d=1" by simp}
       with d1n have "d = 1" by blast  }
     moreover
-    {fix d assume d: "d dvd n" and H: "\<forall>d'. d' dvd n \<and> d'^2 \<le> n \<longrightarrow> d' = 1"
+    {fix d assume d: "d dvd n" and H: "\<forall>d'. d' dvd n \<and> d'\<^sup>2 \<le> n \<longrightarrow> d' = 1"
       from d n have "d \<noteq> 0" apply - apply (rule ccontr) by simp
       hence dp: "d > 0" by simp
       from d[unfolded dvd_def] obtain e where e: "n= d*e" by blast
       from n dp e have ep:"e > 0" by simp
-      have "d^2 \<le> n \<or> e^2 \<le> n" using dp ep
+      have "d\<^sup>2 \<le> n \<or> e\<^sup>2 \<le> n" using dp ep
         by (auto simp add: e power2_eq_square mult_le_cancel_left)
       moreover
-      {assume h: "d^2 \<le> n"
+      {assume h: "d\<^sup>2 \<le> n"
         from H[rule_format, of d] h d have "d = 1" by blast}
       moreover
-      {assume h: "e^2 \<le> n"
+      {assume h: "e\<^sup>2 \<le> n"
         from e have "e dvd n" unfolding dvd_def by (simp add: mult_commute)
         with H[rule_format, of e] h have "e=1" by simp
         with e have "d = n" by simp}
@@ -974,7 +974,7 @@ proof-
   ultimately show ?thesis by auto
 qed
 lemma prime_prime_factor_sqrt:
-  "prime n \<longleftrightarrow> n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p^2 \<le> n)"
+  "prime n \<longleftrightarrow> n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<^sup>2 \<le> n)"
   (is "?lhs \<longleftrightarrow>?rhs")
 proof-
   {assume "n=0 \<or> n=1" hence ?thesis using prime_0 prime_1 by auto}
@@ -990,14 +990,14 @@ proof-
     }
     moreover
     {assume H: ?rhs
-      {fix d assume d: "d dvd n" "d^2 \<le> n" "d\<noteq>1"
+      {fix d assume d: "d dvd n" "d\<^sup>2 \<le> n" "d\<noteq>1"
         from prime_factor[OF d(3)]
         obtain p where p: "prime p" "p dvd d" by blast
         from n have np: "n > 0" by arith
         from d(1) n have "d \<noteq> 0" by - (rule ccontr, auto)
         hence dp: "d > 0" by arith
         from mult_mono[OF dvd_imp_le[OF p(2) dp] dvd_imp_le[OF p(2) dp]] d(2)
-        have "p^2 \<le> n" unfolding power2_eq_square by arith
+        have "p\<^sup>2 \<le> n" unfolding power2_eq_square by arith
         with H n p(1) dvd_trans[OF p(2) d(1)] have False  by blast}
       with n prime_divisor_sqrt  have ?lhs by auto}
     ultimately have ?thesis by blast }
@@ -1073,7 +1073,7 @@ proof-
 qed
 
 lemma pocklington:
-  assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and sqr: "n \<le> q^2"
+  assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and sqr: "n \<le> q\<^sup>2"
   and an: "[a^ (n - 1) = 1] (mod n)"
   and aq:"\<forall>p. prime p \<and> p dvd q \<longrightarrow> coprime (a^ ((n - 1) div p) - 1) n"
   shows "prime n"
@@ -1081,7 +1081,7 @@ unfolding prime_prime_factor_sqrt[of n]
 proof-
   let ?ths = "n \<noteq> 0 \<and> n \<noteq> 1 \<and> \<not> (\<exists>p. prime p \<and> p dvd n \<and> p\<^sup>2 \<le> n)"
   from n have n01: "n\<noteq>0" "n\<noteq>1" by arith+
-  {fix p assume p: "prime p" "p dvd n" "p^2 \<le> n"
+  {fix p assume p: "prime p" "p dvd n" "p\<^sup>2 \<le> n"
     from p(3) sqr have "p^(Suc 1) \<le> q^(Suc 1)" by (simp add: power2_eq_square)
     hence pq: "p \<le> q" unfolding exp_mono_le .
     from pocklington_lemma[OF n nqr an aq p(1,2)]  cong_1_divides
@@ -1093,7 +1093,7 @@ qed
 
 (* Variant for application, to separate the exponentiation.                  *)
 lemma pocklington_alt:
-  assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and sqr: "n \<le> q^2"
+  assumes n: "n \<ge> 2" and nqr: "n - 1 = q*r" and sqr: "n \<le> q\<^sup>2"
   and an: "[a^ (n - 1) = 1] (mod n)"
   and aq:"\<forall>p. prime p \<and> p dvd q \<longrightarrow> (\<exists>b. [a^((n - 1) div p) = b] (mod n) \<and> coprime (b - 1) n)"
   shows "prime n"
@@ -1205,7 +1205,7 @@ qed
 
 
 lemma pocklington_primefact:
-  assumes n: "n \<ge> 2" and qrn: "q*r = n - 1" and nq2: "n \<le> q^2"
+  assumes n: "n \<ge> 2" and qrn: "q*r = n - 1" and nq2: "n \<le> q\<^sup>2"
   and arnb: "(a^r) mod n = b" and psq: "foldr op * ps 1 = q"
   and bqn: "(b^q) mod n = 1"
   and psp: "list_all (\<lambda>p. prime p \<and> coprime ((b^(q div p)) mod n - 1) n) ps"

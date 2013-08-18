@@ -47,8 +47,8 @@ lemma "(4::int) + 0 = 4"
   by simp
 
 lemma
-  assumes "a * x^2 + b * x + c = (0::int)" and "d * x^2 + e * x + f = 0"
-  shows "d^2*c^2 - 2*d*c*a*f + a^2*f^2 - e*d*b*c - e*b*a*f + a*e^2*c + f*d*b^2 = 0"
+  assumes "a * x\<^sup>2 + b * x + c = (0::int)" and "d * x\<^sup>2 + e * x + f = 0"
+  shows "d\<^sup>2*c\<^sup>2 - 2*d*c*a*f + a\<^sup>2 * f\<^sup>2 - e*d*b*c - e*b*a*f + a*e\<^sup>2*c + f*d*b\<^sup>2 = 0"
   using assms by algebra
 
 lemma "(x::int)^3  - x^2  - 5*x - 3 = 0 \<longleftrightarrow> (x = 3 \<or> x = -1)"
@@ -58,8 +58,8 @@ theorem "x* (x\<^sup>2 - x  - 5) - 3 = (0::int) \<longleftrightarrow> (x = 3 \<o
   by algebra
 
 lemma
-  fixes x::"'a::{idom}"
-  shows "x^2*y = x^2 & x*y^2 = y^2 \<longleftrightarrow>  x=1 & y=1 | x=0 & y=0"
+  fixes x::"'a::idom"
+  shows "x\<^sup>2*y = x\<^sup>2 & x*y\<^sup>2 = y\<^sup>2 \<longleftrightarrow>  x = 1 & y = 1 | x = 0 & y = 0"
   by algebra
 
 subsection {* Lemmas for Lagrange's theorem *}

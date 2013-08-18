@@ -169,24 +169,24 @@ text {*
 *}
 
 lemma fib_Cassini_aux_int: "fib (int n + 2) * fib (int n) -
-    (fib (int n + 1))^2 = (-1)^(n + 1)"
+    (fib (int n + 1))\<^sup>2 = (-1)^(n + 1)"
   apply (induct n)
   apply (auto simp add: field_simps power2_eq_square fib_reduce_int power_add)
   done
 
 lemma fib_Cassini_int: "n >= 0 \<Longrightarrow> fib (n + 2) * fib n -
-    (fib (n + 1))^2 = (-1)^(nat n + 1)"
+    (fib (n + 1))\<^sup>2 = (-1)^(nat n + 1)"
   by (insert fib_Cassini_aux_int [of "nat n"], auto)
 
 (*
 lemma fib_Cassini'_int: "n >= 0 \<Longrightarrow> fib (n + 2) * fib n =
-    (fib (n + 1))^2 + (-1)^(nat n + 1)"
+    (fib (n + 1))\<^sup>2 + (-1)^(nat n + 1)"
   by (frule fib_Cassini_int, simp)
 *)
 
 lemma fib_Cassini'_int: "n >= 0 \<Longrightarrow> fib ((n::int) + 2) * fib n =
-  (if even n then tsub ((fib (n + 1))^2) 1
-   else (fib (n + 1))^2 + 1)"
+  (if even n then tsub ((fib (n + 1))\<^sup>2) 1
+   else (fib (n + 1))\<^sup>2 + 1)"
   apply (frule fib_Cassini_int, auto simp add: pos_int_even_equiv_nat_even)
   apply (subst tsub_eq)
   apply (insert fib_gr_0_int [of "n + 1"], force)
@@ -194,8 +194,8 @@ lemma fib_Cassini'_int: "n >= 0 \<Longrightarrow> fib ((n::int) + 2) * fib n =
   done
 
 lemma fib_Cassini_nat: "fib ((n::nat) + 2) * fib n =
-    (if even n then (fib (n + 1))^2 - 1
-     else (fib (n + 1))^2 + 1)"
+    (if even n then (fib (n + 1))\<^sup>2 - 1
+     else (fib (n + 1))\<^sup>2 + 1)"
   by (rule fib_Cassini'_int [transferred, of n], auto)
 
 

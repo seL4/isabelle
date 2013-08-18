@@ -325,7 +325,7 @@ lemma hcomplex_hcnj_zero_iff [iff]: "!!z. (hcnj z = 0) = (z = 0)"
 by transfer (rule complex_cnj_zero_iff)
 
 lemma hcomplex_mult_hcnj:
-     "!!z. z * hcnj z = hcomplex_of_hypreal (hRe(z) ^ 2 + hIm(z) ^ 2)"
+     "!!z. z * hcnj z = hcomplex_of_hypreal ((hRe z)\<^sup>2 + (hIm z)\<^sup>2)"
 by transfer (rule complex_mult_cnj)
 
 
@@ -339,7 +339,7 @@ lemma hcmod_hcomplex_of_hypreal_of_hypnat [simp]:
      "hcmod (hcomplex_of_hypreal(hypreal_of_hypnat n)) = hypreal_of_hypnat n"
 by simp
 
-lemma hcmod_mult_hcnj: "!!z. hcmod(z * hcnj(z)) = hcmod(z) ^ 2"
+lemma hcmod_mult_hcnj: "!!z. hcmod(z * hcnj(z)) = (hcmod z)\<^sup>2"
 by transfer (rule complex_mod_mult_cnj)
 
 lemma hcmod_triangle_ineq2 [simp]:
@@ -358,7 +358,7 @@ by (rule power_0)
 lemma hcomplexpow_Suc [simp]: "z ^ (Suc n) = (z::hcomplex) * (z ^ n)"
 by (rule power_Suc)
 
-lemma hcomplexpow_i_squared [simp]: "iii ^ 2 = -1"
+lemma hcomplexpow_i_squared [simp]: "iii\<^sup>2 = -1"
 by transfer (rule power2_i)
 
 lemma hcomplex_of_hypreal_pow:
@@ -405,7 +405,7 @@ by transfer (rule sgn_minus)
 lemma hsgn_eq: "!!z. hsgn z = z / hcomplex_of_hypreal (hcmod z)"
 by transfer (rule sgn_eq)
 
-lemma hcmod_i: "!!x y. hcmod (HComplex x y) = ( *f* sqrt) (x ^ 2 + y ^ 2)"
+lemma hcmod_i: "!!x y. hcmod (HComplex x y) = ( *f* sqrt) (x\<^sup>2 + y\<^sup>2)"
 by transfer (rule complex_norm)
 
 lemma hcomplex_eq_cancel_iff1 [simp]:
@@ -435,8 +435,7 @@ lemma hIm_hsgn [simp]: "!!z. hIm(hsgn z) = hIm(z)/hcmod z"
 by transfer (rule Im_sgn)
 
 lemma HComplex_inverse:
-     "!!x y. inverse (HComplex x y) =
-      HComplex (x/(x ^ 2 + y ^ 2)) (-y/(x ^ 2 + y ^ 2))"
+     "!!x y. inverse (HComplex x y) = HComplex (x/(x\<^sup>2 + y\<^sup>2)) (-y/(x\<^sup>2 + y\<^sup>2))"
 by transfer (rule complex_inverse)
 
 lemma hRe_mult_i_eq[simp]:

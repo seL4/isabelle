@@ -15,7 +15,7 @@ declare hypreal_epsilon_not_zero [simp]
 
 (*??generalize*)
 lemma lemma_complex_mult_inverse_squared [simp]:
-     "x \<noteq> (0::complex) \<Longrightarrow> (x * inverse(x) ^ 2) = inverse x"
+     "x \<noteq> (0::complex) \<Longrightarrow> x * (inverse x)\<^sup>2 = inverse x"
 by (simp add: numeral_2_eq_2)
 
 text{*Changing the quantified variable. Install earlier?*}
@@ -152,12 +152,12 @@ by (simp add: NSDERIV_DERIV_iff)
 
 text{*Can't relax the premise @{term "x \<noteq> 0"}: it isn't continuous at zero*}
 lemma NSCDERIV_inverse:
-     "(x::complex) \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ 2))"
+     "(x::complex) \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- ((inverse x)\<^sup>2))"
 unfolding numeral_2_eq_2
 by (rule NSDERIV_inverse)
 
 lemma CDERIV_inverse:
-     "(x::complex) \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ 2))"
+     "(x::complex) \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (- ((inverse x)\<^sup>2))"
 unfolding numeral_2_eq_2
 by (rule DERIV_inverse)
 
@@ -166,13 +166,13 @@ subsection{*Derivative of Reciprocals (Function @{term inverse})*}
 
 lemma CDERIV_inverse_fun:
      "[| DERIV f x :> d; f(x) \<noteq> (0::complex) |]
-      ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))"
+      ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse ((f x)\<^sup>2)))"
 unfolding numeral_2_eq_2
 by (rule DERIV_inverse_fun)
 
 lemma NSCDERIV_inverse_fun:
      "[| NSDERIV f x :> d; f(x) \<noteq> (0::complex) |]
-      ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))"
+      ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse ((f x)\<^sup>2)))"
 unfolding numeral_2_eq_2
 by (rule NSDERIV_inverse_fun)
 
@@ -181,13 +181,13 @@ subsection{* Derivative of Quotient*}
 
 lemma CDERIV_quotient:
      "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> (0::complex) |]
-       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ 2)"
+       ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / ((g x)\<^sup>2)"
 unfolding numeral_2_eq_2
 by (rule DERIV_quotient)
 
 lemma NSCDERIV_quotient:
      "[| NSDERIV f x :> d; NSDERIV g x :> e; g(x) \<noteq> (0::complex) |]
-       ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ 2)"
+       ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / ((g x)\<^sup>2)"
 unfolding numeral_2_eq_2
 by (rule NSDERIV_quotient)
 

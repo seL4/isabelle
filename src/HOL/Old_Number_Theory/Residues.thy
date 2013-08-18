@@ -19,7 +19,7 @@ definition StandardRes :: "int => int => int"
   where "StandardRes m x = x mod m"
 
 definition QuadRes :: "int => int => bool"
-  where "QuadRes m x = (\<exists>y. ([(y ^ 2) = x] (mod m)))"
+  where "QuadRes m x = (\<exists>y. ([y\<^sup>2 = x] (mod m)))"
 
 definition Legendre :: "int => int => int" where
   "Legendre a p = (if ([a = 0] (mod p)) then 0

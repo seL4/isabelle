@@ -56,39 +56,39 @@ lemma exp_mono_eq: "(x::nat) ^ Suc n = y ^ Suc n \<longleftrightarrow> x = y"
 using power_inject_base[of x n y] by auto
 
 
-lemma even_square: assumes e: "even (n::nat)" shows "\<exists>x. n ^ 2 = 4*x"
+lemma even_square: assumes e: "even (n::nat)" shows "\<exists>x. n\<^sup>2 = 4*x"
 proof-
   from e have "2 dvd n" by presburger
   then obtain k where k: "n = 2*k" using dvd_def by auto
-  hence "n^2 = 4* (k^2)" by (simp add: power2_eq_square)
+  hence "n\<^sup>2 = 4 * k\<^sup>2" by (simp add: power2_eq_square)
   thus ?thesis by blast
 qed
 
-lemma odd_square: assumes e: "odd (n::nat)" shows "\<exists>x. n ^ 2 = 4*x + 1"
+lemma odd_square: assumes e: "odd (n::nat)" shows "\<exists>x. n\<^sup>2 = 4*x + 1"
 proof-
   from e have np: "n > 0" by presburger
   from e have "2 dvd (n - 1)" by presburger
   then obtain k where "n - 1 = 2*k" using dvd_def by auto
   hence k: "n = 2*k + 1"  using e by presburger 
-  hence "n^2 = 4* (k^2 + k) + 1" by algebra   
+  hence "n\<^sup>2 = 4* (k\<^sup>2 + k) + 1" by algebra   
   thus ?thesis by blast
 qed
 
-lemma diff_square: "(x::nat)^2 - y^2 = (x+y)*(x - y)" 
+lemma diff_square: "(x::nat)\<^sup>2 - y\<^sup>2 = (x+y)*(x - y)" 
 proof-
   have "x \<le> y \<or> y \<le> x" by (rule nat_le_linear)
   moreover
   {assume le: "x \<le> y"
-    hence "x ^2 \<le> y^2" by (simp only: numeral_2_eq_2 exp_mono_le Let_def)
+    hence "x\<^sup>2 \<le> y\<^sup>2" by (simp only: numeral_2_eq_2 exp_mono_le Let_def)
     with le have ?thesis by simp }
   moreover
   {assume le: "y \<le> x"
-    hence le2: "y ^2 \<le> x^2" by (simp only: numeral_2_eq_2 exp_mono_le Let_def)
+    hence le2: "y\<^sup>2 \<le> x\<^sup>2" by (simp only: numeral_2_eq_2 exp_mono_le Let_def)
     from le have "\<exists>z. y + z = x" by presburger
     then obtain z where z: "x = y + z" by blast 
-    from le2 have "\<exists>z. x^2 = y^2 + z" by presburger
-    then obtain z2 where z2: "x^2 = y^2 + z2"  by blast
-    from z z2 have ?thesis apply simp by algebra }
+    from le2 have "\<exists>z. x\<^sup>2 = y\<^sup>2 + z" by presburger
+    then obtain z2 where z2: "x\<^sup>2 = y\<^sup>2 + z2" by blast
+    from z z2 have ?thesis by simp algebra }
   ultimately show ?thesis by blast  
 qed
 
@@ -544,29 +544,29 @@ proof-
   from g(2,3) dvd_trans[OF p(2)] p(1) show ?thesis by auto
 qed
 lemma coprime_sos: assumes xy: "coprime x y" 
-  shows "coprime (x * y) (x^2 + y^2)"
+  shows "coprime (x * y) (x\<^sup>2 + y\<^sup>2)"
 proof-
-  {assume c: "\<not> coprime (x * y) (x^2 + y^2)"
+  {assume c: "\<not> coprime (x * y) (x\<^sup>2 + y\<^sup>2)"
     from coprime_prime_dvd_ex[OF c] obtain p 
-      where p: "prime p" "p dvd x*y" "p dvd x^2 + y^2" by blast
+      where p: "prime p" "p dvd x*y" "p dvd x\<^sup>2 + y\<^sup>2" by blast
     {assume px: "p dvd x"
       from dvd_mult[OF px, of x] p(3) 
-        obtain r s where "x * x = p * r" and "x^2 + y^2 = p * s"
+        obtain r s where "x * x = p * r" and "x\<^sup>2 + y\<^sup>2 = p * s"
           by (auto elim!: dvdE)
-        then have "y^2 = p * (s - r)" 
+        then have "y\<^sup>2 = p * (s - r)" 
           by (auto simp add: power2_eq_square diff_mult_distrib2)
-        then have "p dvd y^2" ..
+        then have "p dvd y\<^sup>2" ..
       with prime_divexp[OF p(1), of y 2] have py: "p dvd y" .
       from p(1) px py xy[unfolded coprime, rule_format, of p] prime_1  
       have False by simp }
     moreover
     {assume py: "p dvd y"
       from dvd_mult[OF py, of y] p(3)
-        obtain r s where "y * y = p * r" and "x^2 + y^2 = p * s"
+        obtain r s where "y * y = p * r" and "x\<^sup>2 + y\<^sup>2 = p * s"
           by (auto elim!: dvdE)
-        then have "x^2 = p * (s - r)" 
+        then have "x\<^sup>2 = p * (s - r)" 
           by (auto simp add: power2_eq_square diff_mult_distrib2)
-        then have "p dvd x^2" ..
+        then have "p dvd x\<^sup>2" ..
       with prime_divexp[OF p(1), of x 2] have px: "p dvd x" .
       from p(1) px py xy[unfolded coprime, rule_format, of p] prime_1  
       have False by simp }

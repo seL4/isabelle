@@ -234,10 +234,10 @@ lemma sqrt_ub_pos_pos_1:
   assumes "sqrt x < b" and "0 < b" and "0 < x"
   shows "sqrt x < (b + x / b)/2"
 proof -
-  from assms have "0 < (b - sqrt x) ^ 2 " by simp
-  also have "\<dots> = b ^ 2 - 2 * b * sqrt x + (sqrt x) ^ 2" by algebra
-  also have "\<dots> = b ^ 2 - 2 * b * sqrt x + x" using assms by simp
-  finally have "0 < b ^ 2 - 2 * b * sqrt x + x" by assumption
+  from assms have "0 < (b - sqrt x)\<^sup>2 " by simp
+  also have "\<dots> = b\<^sup>2 - 2 * b * sqrt x + (sqrt x)\<^sup>2" by algebra
+  also have "\<dots> = b\<^sup>2 - 2 * b * sqrt x + x" using assms by simp
+  finally have "0 < b\<^sup>2 - 2 * b * sqrt x + x" .
   hence "0 < b / 2 - sqrt x + x / (2 * b)" using assms
     by (simp add: field_simps power2_eq_square)
   thus ?thesis by (simp add: field_simps)

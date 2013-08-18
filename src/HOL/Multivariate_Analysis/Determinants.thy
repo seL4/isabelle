@@ -917,7 +917,7 @@ proof-
   {fix v w
     {fix x note fd[rule_format, of x 0, unfolded dist_norm f0 diff_0_right] }
     note th0 = this
-    have "f v \<bullet> f w = c^2 * (v \<bullet> w)"
+    have "f v \<bullet> f w = c\<^sup>2 * (v \<bullet> w)"
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this

@@ -72,7 +72,7 @@ lemma
   shows "g / v * tan (35 * d) \<in> { 3 * d .. 3.1 * d }"
   using assms by (approximation 20)
 
-lemma "x \<in> { 0 .. 1 :: real } \<longrightarrow> x ^ 2 \<le> x"
+lemma "x \<in> { 0 .. 1 :: real } \<longrightarrow> x\<^sup>2 \<le> x"
   by (approximation 30 splitting: x=1 taylor: x = 3)
 
 value [approximate] "10"
