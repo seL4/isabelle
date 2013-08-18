@@ -1559,13 +1559,13 @@ by (rule sum_squares_eq_zero_iff)
 
 text {* FIXME: declare this [simp] for all types, or not at all *}
 lemma realpow_two_sum_zero_iff [simp]:
-     "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
+     "(x\<^sup>2 + y\<^sup>2 = (0::real)) = (x = 0 & y = 0)"
 by (rule sum_power2_eq_zero_iff)
 
 lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
 by (rule_tac y = 0 in order_trans, auto)
 
-lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
+lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> (x::real)\<^sup>2"
 by (auto simp add: power2_eq_square)
 
 

@@ -464,7 +464,7 @@ apply (subst power2_eq_square [symmetric])
 apply (rule real_sqrt_abs)
 done
 
-lemma real_inv_sqrt_pow2: "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x"
+lemma real_inv_sqrt_pow2: "0 < x ==> (inverse (sqrt x))\<^sup>2 = inverse x"
 by (simp add: power_inverse [symmetric])
 
 lemma real_sqrt_eq_zero_cancel: "[| 0 \<le> x; sqrt(x) = 0|] ==> x = 0"
@@ -516,7 +516,7 @@ lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
   by (simp add: zero_le_mult_iff)
 
 lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
-     "sqrt ((x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)) ^ 2 = (x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)"
+     "(sqrt ((x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)))\<^sup>2 = (x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)"
   by (simp add: zero_le_mult_iff)
 
 lemma real_sqrt_sum_squares_eq_cancel: "sqrt (x\<^sup>2 + y\<^sup>2) = x \<Longrightarrow> y = 0"

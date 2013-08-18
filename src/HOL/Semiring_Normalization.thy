@@ -107,7 +107,7 @@ lemma normalizing_semiring_rules:
   "(x ^ p) * (x ^ q) = x ^ (p + q)"
   "x * (x ^ q) = x ^ (Suc q)"
   "(x ^ q) * x = x ^ (Suc q)"
-  "x * x = x ^ 2"
+  "x * x = x\<^sup>2"
   "(x * y) ^ q = (x ^ q) * (y ^ q)"
   "(x ^ p) ^ q = x ^ (p * q)"
   "x ^ 0 = 1"

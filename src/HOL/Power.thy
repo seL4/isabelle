@@ -74,11 +74,11 @@ lemma power3_eq_cube: "a ^ 3 = a * a * a"
   by (simp add: numeral_3_eq_3 mult_assoc)
 
 lemma power_even_eq:
-  "a ^ (2*n) = (a ^ n) ^ 2"
+  "a ^ (2 * n) = (a ^ n)\<^sup>2"
   by (subst mult_commute) (simp add: power_mult)
 
 lemma power_odd_eq:
-  "a ^ Suc (2*n) = a * (a ^ n) ^ 2"
+  "a ^ Suc (2*n) = a * (a ^ n)\<^sup>2"
   by (simp add: power_even_eq)
 
 lemma power_numeral_even:

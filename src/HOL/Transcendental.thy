@@ -1251,7 +1251,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x^2"
+lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x\<^sup>2"
 proof -
   assume a: "0 <= x"
   assume b: "x <= 1"
@@ -1274,17 +1274,17 @@ proof -
   note aux1 = this
   have "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums (x\<^sup>2 / 2 * (1 / (1 - 1 / 2)))"
     by (intro sums_mult geometric_sums, simp)
-  hence aux2: "(\<lambda>n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
+  hence aux2: "(\<lambda>n. x\<^sup>2 / 2 * (1 / 2) ^ n) sums x\<^sup>2"
     by simp
-  have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x^2"
+  have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x\<^sup>2"
   proof -
     have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <=
-        suminf (%n. (x^2/2) * ((1/2)^n))"
+        suminf (%n. (x\<^sup>2/2) * ((1/2)^n))"
       apply (rule summable_le)
       apply (rule allI, rule aux1)
       apply (rule summable_exp [THEN summable_ignore_initial_segment])
       by (rule sums_summable, rule aux2)
-    also have "... = x^2"
+    also have "... = x\<^sup>2"
       by (rule sums_unique [THEN sym], rule aux2)
     finally show ?thesis .
   qed
@@ -1294,14 +1294,14 @@ qed
 lemma ln_one_minus_pos_upper_bound: "0 <= x ==> x < 1 ==> ln (1 - x) <= - x"
 proof -
   assume a: "0 <= (x::real)" and b: "x < 1"
-  have "(1 - x) * (1 + x + x^2) = (1 - x^3)"
+  have "(1 - x) * (1 + x + x\<^sup>2) = (1 - x^3)"
     by (simp add: algebra_simps power2_eq_square power3_eq_cube)
   also have "... <= 1"
     by (auto simp add: a)
-  finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
+  finally have "(1 - x) * (1 + x + x\<^sup>2) <= 1" .
   moreover have c: "0 < 1 + x + x\<^sup>2"
     by (simp add: add_pos_nonneg a)
-  ultimately have "1 - x <= 1 / (1 + x + x^2)"
+  ultimately have "1 - x <= 1 / (1 + x + x\<^sup>2)"
     by (elim mult_imp_le_div_pos)
   also have "... <= 1 / exp x"
     apply (rule divide_left_mono)
@@ -1343,18 +1343,18 @@ lemma exp_ge_add_one_self [simp]: "1 + (x::real) <= exp x"
   apply auto
 done
 
-lemma ln_one_plus_pos_lower_bound: "0 <= x ==> x <= 1 ==> x - x^2 <= ln (1 + x)"
+lemma ln_one_plus_pos_lower_bound: "0 <= x ==> x <= 1 ==> x - x\<^sup>2 <= ln (1 + x)"
 proof -
   assume a: "0 <= x" and b: "x <= 1"
-  have "exp (x - x^2) = exp x / exp (x^2)"
+  have "exp (x - x\<^sup>2) = exp x / exp (x\<^sup>2)"
     by (rule exp_diff)
-  also have "... <= (1 + x + x^2) / exp (x ^2)"
+  also have "... <= (1 + x + x\<^sup>2) / exp (x \<^sup>2)"
     apply (rule divide_right_mono) 
     apply (rule exp_bound)
     apply (rule a, rule b)
     apply simp
     done
-  also have "... <= (1 + x + x^2) / (1 + x^2)"
+  also have "... <= (1 + x + x\<^sup>2) / (1 + x\<^sup>2)"
     apply (rule divide_left_mono)
     apply (simp add: exp_ge_add_one_self_aux)
     apply (simp add: a)
@@ -1362,14 +1362,14 @@ proof -
     done
   also from a have "... <= 1 + x"
     by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
-  finally have "exp (x - x^2) <= 1 + x" .
+  finally have "exp (x - x\<^sup>2) <= 1 + x" .
   also have "... = exp (ln (1 + x))"
   proof -
     from a have "0 < 1 + x" by auto
     thus ?thesis
       by (auto simp only: exp_ln_iff [THEN sym])
   qed
-  finally have "exp (x - x ^ 2) <= exp (ln (1 + x))" .
+  finally have "exp (x - x\<^sup>2) <= exp (ln (1 + x))" .
   thus ?thesis by (auto simp only: exp_le_cancel_iff)
 qed
 
@@ -1392,7 +1392,7 @@ proof -
 qed
 
 lemma ln_one_minus_pos_lower_bound: "0 <= x ==> x <= (1 / 2) ==> 
-    - x - 2 * x^2 <= ln (1 - x)"
+    - x - 2 * x\<^sup>2 <= ln (1 - x)"
 proof -
   assume a: "0 <= x" and b: "x <= (1 / 2)"
   from b have c: "x < 1"
@@ -1412,10 +1412,10 @@ proof -
     by auto
   finally have d: "- x / (1 - x) <= ln (1 - x)" .
   have "0 < 1 - x" using a b by simp
-  hence e: "-x - 2 * x^2 <= - x / (1 - x)"
+  hence e: "-x - 2 * x\<^sup>2 <= - x / (1 - x)"
     using mult_right_le_one_le[of "x*x" "2*x"] a b
     by (simp add:field_simps power2_eq_square)
-  from e d show "- x - 2 * x^2 <= ln (1 - x)"
+  from e d show "- x - 2 * x\<^sup>2 <= ln (1 - x)"
     by (rule order_trans)
 qed
 
@@ -1426,7 +1426,7 @@ lemma ln_add_one_self_le_self2: "-1 < x ==> ln(1 + x) <= x"
 done
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
-    "0 <= x ==> x <= 1 ==> abs(ln (1 + x) - x) <= x^2"
+    "0 <= x ==> x <= 1 ==> abs(ln (1 + x) - x) <= x\<^sup>2"
 proof -
   assume x: "0 <= x"
   assume x1: "x <= 1"
@@ -1438,9 +1438,9 @@ proof -
     by (rule abs_of_nonpos)
   also have "... = x - ln (1 + x)" 
     by simp
-  also have "... <= x^2"
+  also have "... <= x\<^sup>2"
   proof -
-    from x x1 have "x - x^2 <= ln (1 + x)"
+    from x x1 have "x - x\<^sup>2 <= ln (1 + x)"
       by (intro ln_one_plus_pos_lower_bound)
     thus ?thesis
       by simp
@@ -1449,7 +1449,7 @@ proof -
 qed
 
 lemma abs_ln_one_plus_x_minus_x_bound_nonpos:
-    "-(1 / 2) <= x ==> x <= 0 ==> abs(ln (1 + x) - x) <= 2 * x^2"
+    "-(1 / 2) <= x ==> x <= 0 ==> abs(ln (1 + x) - x) <= 2 * x\<^sup>2"
 proof -
   assume a: "-(1 / 2) <= x"
   assume b: "x <= 0"
@@ -1459,8 +1459,8 @@ proof -
     apply (rule ln_add_one_self_le_self2)
     using a apply auto
     done
-  also have "... <= 2 * x^2"
-    apply (subgoal_tac "- (-x) - 2 * (-x)^2 <= ln (1 - (-x))")
+  also have "... <= 2 * x\<^sup>2"
+    apply (subgoal_tac "- (-x) - 2 * (-x)\<^sup>2 <= ln (1 - (-x))")
     apply (simp add: algebra_simps)
     apply (rule ln_one_minus_pos_lower_bound)
     using a b apply auto
@@ -1469,7 +1469,7 @@ proof -
 qed
 
 lemma abs_ln_one_plus_x_minus_x_bound:
-    "abs x <= 1 / 2 ==> abs(ln (1 + x) - x) <= 2 * x^2"
+    "abs x <= 1 / 2 ==> abs(ln (1 + x) - x) <= 2 * x\<^sup>2"
   apply (case_tac "0 <= x")
   apply (rule order_trans)
   apply (rule abs_ln_one_plus_x_minus_x_bound_nonneg)
@@ -2190,8 +2190,8 @@ lemma DERIV_fun_cos:
   by (auto intro!: DERIV_intros)
 
 lemma sin_cos_add_lemma:
-     "(sin (x + y) - (sin x * cos y + cos x * sin y)) ^ 2 +
-      (cos (x + y) - (cos x * cos y - sin x * sin y)) ^ 2 = 0"
+     "(sin (x + y) - (sin x * cos y + cos x * sin y))\<^sup>2 +
+      (cos (x + y) - (cos x * cos y - sin x * sin y))\<^sup>2 = 0"
   (is "?f x = 0")
 proof -
   have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
@@ -2715,7 +2715,7 @@ lemma tan_add:
 
 lemma tan_double:
      "[| cos x \<noteq> 0; cos (2 * x) \<noteq> 0 |]
-      ==> tan (2 * x) = (2 * tan x)/(1 - (tan(x) ^ 2))"
+      ==> tan (2 * x) = (2 * tan x) / (1 - (tan x)\<^sup>2)"
   using tan_add [of x x] by (simp add: power2_eq_square)
 
 lemma tan_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < tan x"
@@ -2818,13 +2818,13 @@ done
 lemma tan_monotone: assumes "- (pi / 2) < y" and "y < x" and "x < pi / 2"
   shows "tan y < tan x"
 proof -
-  have "\<forall> x'. y \<le> x' \<and> x' \<le> x \<longrightarrow> DERIV tan x' :> inverse (cos x'^2)"
+  have "\<forall> x'. y \<le> x' \<and> x' \<le> x \<longrightarrow> DERIV tan x' :> inverse ((cos x')\<^sup>2)"
   proof (rule allI, rule impI)
     fix x' :: real assume "y \<le> x' \<and> x' \<le> x"
     hence "-(pi/2) < x'" and "x' < pi/2" using assms by auto
     from cos_gt_zero_pi[OF this]
     have "cos x' \<noteq> 0" by auto
-    thus "DERIV tan x' :> inverse (cos x'^2)" by (rule DERIV_tan)
+    thus "DERIV tan x' :> inverse ((cos x')\<^sup>2)" by (rule DERIV_tan)
   qed
   from MVT2[OF `y < x` this]
   obtain z where "y < z" and "z < x" and tan_diff: "tan x - tan y = (x - y) * inverse ((cos z)\<^sup>2)" by auto
@@ -3058,7 +3058,7 @@ lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
   using tan_arctan [of x] unfolding tan_def cos_arctan
   by (simp add: eq_divide_eq)
 
-lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
+lemma tan_sec: "cos x \<noteq> 0 ==> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
 apply (rule power_inverse [THEN subst])
 apply (rule_tac c1 = "(cos x)\<^sup>2" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest: field_power_not_zero
@@ -3427,10 +3427,10 @@ lemma summable_arctan_series: fixes x :: real and n :: nat
   assumes "\<bar>x\<bar> \<le> 1" shows "summable (\<lambda> k. (-1)^k * (1 / real (k*2+1) * x ^ (k*2+1)))" (is "summable (?c x)")
   by (rule summable_Leibniz(1), rule zeroseq_arctan_series[OF assms], rule monoseq_arctan_series[OF assms])
 
-lemma less_one_imp_sqr_less_one: fixes x :: real assumes "\<bar>x\<bar> < 1" shows "x^2 < 1"
+lemma less_one_imp_sqr_less_one: fixes x :: real assumes "\<bar>x\<bar> < 1" shows "x\<^sup>2 < 1"
 proof -
   from mult_left_mono[OF less_imp_le[OF `\<bar>x\<bar> < 1`] abs_ge_zero[of x]]
-  have "\<bar> x^2 \<bar> < 1" using `\<bar> x \<bar> < 1` unfolding numeral_2_eq_2 power_Suc2 by auto
+  have "\<bar>x\<^sup>2\<bar> < 1" using `\<bar>x\<bar> < 1` unfolding numeral_2_eq_2 power_Suc2 by auto
   thus ?thesis using zero_le_power2 by auto
 qed
 
@@ -3442,9 +3442,9 @@ proof -
   { fix n :: nat assume "even n" hence "2 * (n div 2) = n" by presburger } note n_even=this
   have if_eq: "\<And> n x'. ?f n * real (Suc n) * x'^n = (if even n then (-1)^(n div 2) * x'^(2 * (n div 2)) else 0)" using n_even by auto
 
-  { fix x :: real assume "\<bar>x\<bar> < 1" hence "x^2 < 1" by (rule less_one_imp_sqr_less_one)
-    have "summable (\<lambda> n. -1 ^ n * (x^2) ^n)"
-      by (rule summable_Leibniz(1), auto intro!: LIMSEQ_realpow_zero monoseq_realpow `x^2 < 1` order_less_imp_le[OF `x^2 < 1`])
+  { fix x :: real assume "\<bar>x\<bar> < 1" hence "x\<^sup>2 < 1" by (rule less_one_imp_sqr_less_one)
+    have "summable (\<lambda> n. -1 ^ n * (x\<^sup>2) ^n)"
+      by (rule summable_Leibniz(1), auto intro!: LIMSEQ_realpow_zero monoseq_realpow `x\<^sup>2 < 1` order_less_imp_le[OF `x\<^sup>2 < 1`])
     hence "summable (\<lambda> n. -1 ^ n * x^(2*n))" unfolding power_mult .
   } note summable_Integral = this
 
@@ -3518,11 +3518,11 @@ proof -
         proof (rule allI, rule impI)
           fix x assume "-r < x \<and> x < r" hence "\<bar>x\<bar> < r" by auto
           hence "\<bar>x\<bar> < 1" using `r < 1` by auto
-          have "\<bar> - (x^2) \<bar> < 1" using less_one_imp_sqr_less_one[OF `\<bar>x\<bar> < 1`] by auto
-          hence "(\<lambda> n. (- (x^2)) ^ n) sums (1 / (1 - (- (x^2))))" unfolding real_norm_def[symmetric] by (rule geometric_sums)
-          hence "(?c' x) sums (1 / (1 - (- (x^2))))" unfolding power_mult_distrib[symmetric] power_mult nat_mult_commute[of _ 2] by auto
-          hence suminf_c'_eq_geom: "inverse (1 + x^2) = suminf (?c' x)" using sums_unique unfolding inverse_eq_divide by auto
-          have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x^2))" unfolding suminf_c'_eq_geom
+          have "\<bar> - (x\<^sup>2) \<bar> < 1" using less_one_imp_sqr_less_one[OF `\<bar>x\<bar> < 1`] by auto
+          hence "(\<lambda> n. (- (x\<^sup>2)) ^ n) sums (1 / (1 - (- (x\<^sup>2))))" unfolding real_norm_def[symmetric] by (rule geometric_sums)
+          hence "(?c' x) sums (1 / (1 - (- (x\<^sup>2))))" unfolding power_mult_distrib[symmetric] power_mult nat_mult_commute[of _ 2] by auto
+          hence suminf_c'_eq_geom: "inverse (1 + x\<^sup>2) = suminf (?c' x)" using sums_unique unfolding inverse_eq_divide by auto
+          have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x\<^sup>2))" unfolding suminf_c'_eq_geom
             by (rule DERIV_arctan_suminf[OF `0 < r` `r < 1` `\<bar>x\<bar> < r`])
           from DERIV_add_minus[OF this DERIV_arctan]
           show "DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0" unfolding diff_minus by auto
@@ -3632,7 +3632,7 @@ proof -
 qed
 
 lemma arctan_half: fixes x :: real
-  shows "arctan x = 2 * arctan (x / (1 + sqrt(1 + x^2)))"
+  shows "arctan x = 2 * arctan (x / (1 + sqrt(1 + x\<^sup>2)))"
 proof -
   obtain y where low: "- (pi / 2) < y" and high: "y < pi / 2" and y_eq: "tan y = x" using tan_total by blast
   hence low2: "- (pi / 2) < y / 2" and high2: "y / 2 < pi / 2" by auto
@@ -3640,18 +3640,18 @@ proof -
   have divide_nonzero_divide: "\<And> A B C :: real. C \<noteq> 0 \<Longrightarrow> A / B = (A / C) / (B / C)" by auto
 
   have "0 < cos y" using cos_gt_zero_pi[OF low high] .
-  hence "cos y \<noteq> 0" and cos_sqrt: "sqrt ((cos y) ^ 2) = cos y" by auto
+  hence "cos y \<noteq> 0" and cos_sqrt: "sqrt ((cos y)\<^sup>2) = cos y" by auto
 
-  have "1 + (tan y)^2 = 1 + sin y^2 / cos y^2" unfolding tan_def power_divide ..
-  also have "\<dots> = cos y^2 / cos y^2 + sin y^2 / cos y^2" using `cos y \<noteq> 0` by auto
-  also have "\<dots> = 1 / cos y^2" unfolding add_divide_distrib[symmetric] sin_cos_squared_add2 ..
-  finally have "1 + (tan y)^2 = 1 / cos y^2" .
+  have "1 + (tan y)\<^sup>2 = 1 + (sin y)\<^sup>2 / (cos y)\<^sup>2" unfolding tan_def power_divide ..
+  also have "\<dots> = (cos y)\<^sup>2 / (cos y)\<^sup>2 + (sin y)\<^sup>2 / (cos y)\<^sup>2" using `cos y \<noteq> 0` by auto
+  also have "\<dots> = 1 / (cos y)\<^sup>2" unfolding add_divide_distrib[symmetric] sin_cos_squared_add2 ..
+  finally have "1 + (tan y)\<^sup>2 = 1 / (cos y)\<^sup>2" .
 
   have "sin y / (cos y + 1) = tan y / ((cos y + 1) / cos y)" unfolding tan_def divide_nonzero_divide[OF `cos y \<noteq> 0`, symmetric] ..
   also have "\<dots> = tan y / (1 + 1 / cos y)" using `cos y \<noteq> 0` unfolding add_divide_distrib by auto
-  also have "\<dots> = tan y / (1 + 1 / sqrt(cos y^2))" unfolding cos_sqrt ..
-  also have "\<dots> = tan y / (1 + sqrt(1 / cos y^2))" unfolding real_sqrt_divide by auto
-  finally have eq: "sin y / (cos y + 1) = tan y / (1 + sqrt(1 + (tan y)^2))" unfolding `1 + (tan y)^2 = 1 / cos y^2` .
+  also have "\<dots> = tan y / (1 + 1 / sqrt ((cos y)\<^sup>2))" unfolding cos_sqrt ..
+  also have "\<dots> = tan y / (1 + sqrt (1 / (cos y)\<^sup>2))" unfolding real_sqrt_divide by auto
+  finally have eq: "sin y / (cos y + 1) = tan y / (1 + sqrt(1 + (tan y)\<^sup>2))" unfolding `1 + (tan y)\<^sup>2 = 1 / (cos y)\<^sup>2` .
 
   have "arctan x = y" using arctan_tan low high y_eq by auto
   also have "\<dots> = 2 * (arctan (tan (y/2)))" using arctan_tan[OF low2 high2] by auto
