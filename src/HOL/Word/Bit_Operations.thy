@@ -8,6 +8,8 @@ theory Bit_Operations
 imports "~~/src/HOL/Library/Bit"
 begin
 
+subsection {* Abstract syntactic bit operations *}
+
 class bit =
   fixes bitNOT :: "'a \<Rightarrow> 'a"       ("NOT _" [70] 71)
     and bitAND :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "AND" 64)
@@ -35,7 +37,7 @@ class bits = bit +
 class bitss = bits +
   fixes msb      :: "'a \<Rightarrow> bool"
 
-
+  
 subsection {* Bitwise operations on @{typ bit} *}
 
 instantiation bit :: bit

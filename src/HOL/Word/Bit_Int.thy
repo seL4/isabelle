@@ -365,7 +365,7 @@ lemma le_int_or:
   done
 
 lemmas int_and_le =
-  xtr3 [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
+  xtrans(3) [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
 
 lemma add_BIT_simps [simp]: (* FIXME: move *)
   "x BIT 0 + y BIT 0 = (x + y) BIT 0"
@@ -553,7 +553,7 @@ lemma bin_nth_split:
     (ALL k. bin_nth b k = (k < n & bin_nth c k))"
   apply (induct n arbitrary: b c)
    apply clarsimp
-  apply (clarsimp simp: Let_def split: ls_splits)
+  apply (clarsimp simp: Let_def split: prod.split_asm)
   apply (case_tac k)
   apply auto
   done
@@ -589,11 +589,11 @@ lemma cat_bintr [simp]:
 
 lemma split_bintrunc: 
   "bin_split n c = (a, b) ==> b = bintrunc n c"
-  by (induct n arbitrary: b c) (auto simp: Let_def split: ls_splits)
+  by (induct n arbitrary: b c) (auto simp: Let_def split: prod.split_asm)
 
 lemma bin_cat_split:
   "bin_split n w = (u, v) ==> w = bin_cat u n v"
-  by (induct n arbitrary: v w) (auto simp: Let_def split: ls_splits)
+  by (induct n arbitrary: v w) (auto simp: Let_def split: prod.split_asm)
 
 lemma bin_split_cat:
   "bin_split n (bin_cat v n w) = (v, bintrunc n w)"
@@ -610,18 +610,18 @@ lemma bin_split_trunc:
   "bin_split (min m n) c = (a, b) ==> 
     bin_split n (bintrunc m c) = (bintrunc (m - n) a, b)"
   apply (induct n arbitrary: m b c, clarsimp)
-  apply (simp add: bin_rest_trunc Let_def split: ls_splits)
+  apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def split: ls_splits)
+   apply (auto simp: Let_def split: prod.split_asm)
   done
 
 lemma bin_split_trunc1:
   "bin_split n c = (a, b) ==> 
     bin_split n (bintrunc m c) = (bintrunc (m - n) a, bintrunc m b)"
   apply (induct n arbitrary: m b c, clarsimp)
-  apply (simp add: bin_rest_trunc Let_def split: ls_splits)
+  apply (simp add: bin_rest_trunc Let_def split: prod.split_asm)
   apply (case_tac m)
-   apply (auto simp: Let_def split: ls_splits)
+   apply (auto simp: Let_def split: prod.split_asm)
   done
 
 lemma bin_cat_num:
@@ -658,3 +658,4 @@ lemma ex_eq_or:
   by auto
 
 end
+

@@ -7,9 +7,10 @@ header {* A type of finite bit strings *}
 theory Word
 imports
   Type_Length
-  Misc_Typedef
   "~~/src/HOL/Library/Boolean_Algebra"
   Bool_List_Representation
+  Misc_Typedef
+  Word_Miscellaneous
 begin
 
 text {* see @{text "Examples/WordExamples.thy"} for examples *}

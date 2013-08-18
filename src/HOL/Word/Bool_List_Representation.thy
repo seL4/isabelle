@@ -12,6 +12,23 @@ theory Bool_List_Representation
 imports Bit_Int
 begin
 
+definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
+where
+  "map2 f as bs = map (split f) (zip as bs)"
+
+lemma map2_Nil [simp, code]:
+  "map2 f [] ys = []"
+  unfolding map2_def by auto
+
+lemma map2_Nil2 [simp, code]:
+  "map2 f xs [] = []"
+  unfolding map2_def by auto
+
+lemma map2_Cons [simp, code]:
+  "map2 f (x # xs) (y # ys) = f x y # map2 f xs ys"
+  unfolding map2_def by auto
+
+
 subsection {* Operations on lists of booleans *}
 
 primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
@@ -39,19 +56,6 @@ primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a
   | Suc: "takefill fill (Suc n) xs = (
       case xs of [] => fill # takefill fill n xs
         | y # ys => y # takefill fill n ys)"
-
-definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
-  "map2 f as bs = map (split f) (zip as bs)"
-
-lemma map2_Nil [simp]: "map2 f [] ys = []"
-  unfolding map2_def by auto
-
-lemma map2_Nil2 [simp]: "map2 f xs [] = []"
-  unfolding map2_def by auto
-
-lemma map2_Cons [simp]:
-  "map2 f (x # xs) (y # ys) = f x y # map2 f xs ys"
-  unfolding map2_def by auto
 
 
 subsection "Arithmetic in terms of bool lists"
@@ -314,12 +318,12 @@ lemma bl_to_bin_lt2p_aux:
    apply clarsimp
   apply clarsimp
   apply safe
-  apply (drule meta_spec, erule xtr8 [rotated], simp add: Bit_def)+
+  apply (drule meta_spec, erule xtrans(8) [rotated], simp add: Bit_def)+
   done
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
   apply (unfold bl_to_bin_def)
-  apply (rule xtr1)
+  apply (rule xtrans(1))
    prefer 2
    apply (rule bl_to_bin_lt2p_aux)
   apply simp
@@ -337,7 +341,7 @@ lemma bl_to_bin_ge2p_aux:
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
   apply (unfold bl_to_bin_def)
-  apply (rule xtr4)
+  apply (rule xtrans(4))
    apply (rule bl_to_bin_ge2p_aux)
   apply simp
   done
@@ -534,7 +538,7 @@ lemma bin_split_take:
     bin_to_bl m a = take m (bin_to_bl (m + n) c)"
   apply (induct n arbitrary: b c)
    apply clarsimp
-  apply (clarsimp simp: Let_def split: ls_splits)
+  apply (clarsimp simp: Let_def split: prod.split_asm)
   apply (simp add: bin_to_bl_def)
   apply (simp add: take_bin2bl_lem)
   done
@@ -748,11 +752,6 @@ lemmas rbl_sizes [simp] =
 lemmas rbl_Nils =
   rbl_pred.Nil rbl_succ.Nil rbl_add.Nil rbl_mult.Nil
 
-lemma pred_BIT_simps [simp]:
-  "x BIT 0 - 1 = (x - 1) BIT 1"
-  "x BIT 1 - 1 = x BIT 0"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
-
 lemma rbl_pred:
   "rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin - 1))"
   apply (induct n arbitrary: bin, simp)
@@ -763,11 +762,6 @@ lemma rbl_pred:
    apply (clarsimp simp: bin_to_bl_aux_alt)+
   done
 
-lemma succ_BIT_simps [simp]:
-  "x BIT 0 + 1 = x BIT 1"
-  "x BIT 1 + 1 = (x + 1) BIT 0"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
-
 lemma rbl_succ: 
   "rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (bin + 1))"
   apply (induct n arbitrary: bin, simp)
@@ -777,13 +771,6 @@ lemma rbl_succ:
   apply (case_tac b)
    apply (clarsimp simp: bin_to_bl_aux_alt)+
   done
-
-lemma add_BIT_simps [simp]: (* FIXME: move *)
-  "x BIT 0 + y BIT 0 = (x + y) BIT 0"
-  "x BIT 0 + y BIT 1 = (x + y) BIT 1"
-  "x BIT 1 + y BIT 0 = (x + y) BIT 1"
-  "x BIT 1 + y BIT 1 = (x + y + 1) BIT 0"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
 
 lemma rbl_add: 
   "!!bina binb. rbl_add (rev (bin_to_bl n bina)) (rev (bin_to_bl n binb)) = 
@@ -870,12 +857,6 @@ lemma rbbl_Cons:
   apply (simp add: bin_to_bl_aux_alt)
   done
 
-lemma mult_BIT_simps [simp]:
-  "x BIT 0 * y = (x * y) BIT 0"
-  "x * y BIT 0 = (x * y) BIT 0"
-  "x BIT 1 * y = (x * y) BIT 0 + y"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t algebra_simps)
-
 lemma rbl_mult: "!!bina binb. 
     rbl_mult (rev (bin_to_bl n bina)) (rev (bin_to_bl n binb)) = 
     rev (bin_to_bl n (bina * binb))"
@@ -907,56 +888,6 @@ lemma rbl_mult_split:
     (y --> P (rbl_add ws xs)) & (~ y -->  P ws))"
   by (clarsimp simp add : Let_def)
   
-lemma and_len: "xs = ys ==> xs = ys & length xs = length ys"
-  by auto
-
-lemma size_if: "size (if p then xs else ys) = (if p then size xs else size ys)"
-  by auto
-
-lemma tl_if: "tl (if p then xs else ys) = (if p then tl xs else tl ys)"
-  by auto
-
-lemma hd_if: "hd (if p then xs else ys) = (if p then hd xs else hd ys)"
-  by auto
-
-lemma if_Not_x: "(if p then ~ x else x) = (p = (~ x))"
-  by auto
-
-lemma if_x_Not: "(if p then x else ~ x) = (p = x)"
-  by auto
-
-lemma if_same_and: "(If p x y & If p u v) = (if p then x & u else y & v)"
-  by auto
-
-lemma if_same_eq: "(If p x y  = (If p u v)) = (if p then x = (u) else y = (v))"
-  by auto
-
-lemma if_same_eq_not:
-  "(If p x y  = (~ If p u v)) = (if p then x = (~u) else y = (~v))"
-  by auto
-
-(* note - if_Cons can cause blowup in the size, if p is complex,
-  so make a simproc *)
-lemma if_Cons: "(if p then x # xs else y # ys) = If p x y # If p xs ys"
-  by auto
-
-lemma if_single:
-  "(if xc then [xab] else [an]) = [if xc then xab else an]"
-  by auto
-
-lemma if_bool_simps:
-  "If p True y = (p | y) & If p False y = (~p & y) & 
-    If p y True = (p --> y) & If p y False = (p & y)"
-  by auto
-
-lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
-
-lemmas seqr = eq_reflection [where x = "size w"] for w (* FIXME: delete *)
-
-(* TODO: move name bindings to List.thy *)
-lemmas tl_Nil = tl.simps (1)
-lemmas tl_Cons = tl.simps (2)
-
 
 subsection "Repeated splitting or concatenation"
 
@@ -1008,7 +939,7 @@ lemma bin_rsplit_aux_append:
   apply (induct n m c bs rule: bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
   apply (subst bin_rsplit_aux.simps)
-  apply (clarsimp split: ls_splits)
+  apply (clarsimp split: prod.split)
   apply auto
   done
 
@@ -1017,7 +948,7 @@ lemma bin_rsplitl_aux_append:
   apply (induct n m c bs rule: bin_rsplitl_aux.induct)
   apply (subst bin_rsplitl_aux.simps)
   apply (subst bin_rsplitl_aux.simps)
-  apply (clarsimp split: ls_splits)
+  apply (clarsimp split: prod.split)
   apply auto
   done
 
@@ -1065,7 +996,7 @@ lemma bin_rsplit_size_sign' [rule_format] :
    apply clarsimp
   apply clarsimp
   apply (drule bthrs)
-  apply (simp (no_asm_use) add: Let_def split: ls_splits)
+  apply (simp (no_asm_use) add: Let_def split: prod.split_asm split_if_asm)
   apply clarify
   apply (drule split_bintrunc)
   apply simp
@@ -1081,7 +1012,7 @@ lemma bin_nth_rsplit [rule_format] :
    apply clarsimp
   apply clarsimp
   apply (drule bthrs)
-  apply (simp (no_asm_use) add: Let_def split: ls_splits)
+  apply (simp (no_asm_use) add: Let_def split: prod.split_asm split_if_asm)
   apply clarify
   apply (erule allE, erule impE, erule exI)
   apply (case_tac k)
@@ -1097,7 +1028,7 @@ lemma bin_nth_rsplit [rule_format] :
 lemma bin_rsplit_all:
   "0 < nw ==> nw <= n ==> bin_rsplit n (nw, w) = [bintrunc n w]"
   unfolding bin_rsplit_def
-  by (clarsimp dest!: split_bintrunc simp: rsplit_aux_simp2ls split: ls_splits)
+  by (clarsimp dest!: split_bintrunc simp: rsplit_aux_simp2ls split: prod.split)
 
 lemma bin_rsplit_l [rule_format] :
   "ALL bin. bin_rsplitl n (m, bin) = bin_rsplit n (m, bintrunc m bin)"
@@ -1106,7 +1037,7 @@ lemma bin_rsplit_l [rule_format] :
   apply (rule allI)
   apply (subst bin_rsplitl_aux.simps)
   apply (subst bin_rsplit_aux.simps)
-  apply (clarsimp simp: Let_def split: ls_splits)
+  apply (clarsimp simp: Let_def split: prod.split)
   apply (drule bin_split_trunc)
   apply (drule sym [THEN trans], assumption)
   apply (subst rsplit_aux_alts(1))
@@ -1132,7 +1063,7 @@ lemma bin_rsplit_aux_len_le [rule_format] :
     length ws \<le> m \<longleftrightarrow> nw + length bs * n \<le> m * n"
   apply (induct n nw w bs rule: bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
-  apply (simp add: lrlem Let_def split: ls_splits)
+  apply (simp add: lrlem Let_def split: prod.split)
   done
 
 lemma bin_rsplit_len_le: 
@@ -1144,7 +1075,7 @@ lemma bin_rsplit_aux_len:
     (nw + n - 1) div n + length cs"
   apply (induct n nw w cs rule: bin_rsplit_aux.induct)
   apply (subst bin_rsplit_aux.simps)
-  apply (clarsimp simp: Let_def split: ls_splits)
+  apply (clarsimp simp: Let_def split: prod.split)
   apply (erule thin_rl)
   apply (case_tac m)
   apply simp
@@ -1172,7 +1103,7 @@ proof (induct n nw w cs arbitrary: v bs rule: bin_rsplit_aux.induct)
     by auto
     show ?thesis using `length bs = length cs` `n \<noteq> 0`
       by (auto simp add: bin_rsplit_aux_simp_alt Let_def bin_rsplit_len
-        split: ls_splits)
+        split: prod.split)
   qed
 qed
 

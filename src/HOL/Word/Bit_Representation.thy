@@ -1,16 +1,14 @@
 (* 
   Author: Jeremy Dawson, NICTA
-
-  Basic definitions to do with integers, expressed using Pls, Min, BIT.
 *) 
 
-header {* Basic Definitions for Binary Integers *}
+header {* Integers as implict bit strings *}
 
 theory Bit_Representation
-imports Misc_Numeric "~~/src/HOL/Library/Bit"
+imports "~~/src/HOL/Library/Bit" Misc_Numeric
 begin
 
-subsection {* Further properties of numerals *}
+subsection {* Constructors and destructors for binary integers *}
 
 definition bitval :: "bit \<Rightarrow> 'a\<Colon>zero_neq_one" where
   "bitval = bit_case 0 1"
@@ -22,6 +20,20 @@ lemma bitval_simps [simp]:
 
 definition Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
   "k BIT b = bitval b + k + k"
+
+lemma Bit_B0:
+  "k BIT (0::bit) = k + k"
+   by (unfold Bit_def) simp
+
+lemma Bit_B1:
+  "k BIT (1::bit) = k + k + 1"
+   by (unfold Bit_def) simp
+  
+lemma Bit_B0_2t: "k BIT (0::bit) = 2 * k"
+  by (rule trans, rule Bit_B0) simp
+
+lemma Bit_B1_2t: "k BIT (1::bit) = 2 * k + 1"
+  by (rule trans, rule Bit_B1) simp
 
 definition bin_last :: "int \<Rightarrow> bit" where
   "bin_last w = (if w mod 2 = 0 then (0::bit) else (1::bit))"
@@ -99,19 +111,28 @@ lemma le_Bits:
   "(v BIT b <= w BIT c) = (v < w | v <= w & (b ~= (1::bit) | c ~= (0::bit)))" 
   unfolding Bit_def by (auto simp add: bitval_def split: bit.split)
 
-lemma Bit_B0:
-  "k BIT (0::bit) = k + k"
-   by (unfold Bit_def) simp
+lemma pred_BIT_simps [simp]:
+  "x BIT 0 - 1 = (x - 1) BIT 1"
+  "x BIT 1 - 1 = x BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
 
-lemma Bit_B1:
-  "k BIT (1::bit) = k + k + 1"
-   by (unfold Bit_def) simp
-  
-lemma Bit_B0_2t: "k BIT (0::bit) = 2 * k"
-  by (rule trans, rule Bit_B0) simp
+lemma succ_BIT_simps [simp]:
+  "x BIT 0 + 1 = x BIT 1"
+  "x BIT 1 + 1 = (x + 1) BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
 
-lemma Bit_B1_2t: "k BIT (1::bit) = 2 * k + 1"
-  by (rule trans, rule Bit_B1) simp
+lemma add_BIT_simps [simp]:
+  "x BIT 0 + y BIT 0 = (x + y) BIT 0"
+  "x BIT 0 + y BIT 1 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 0 = (x + y) BIT 1"
+  "x BIT 1 + y BIT 1 = (x + y + 1) BIT 0"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t)
+
+lemma mult_BIT_simps [simp]:
+  "x BIT 0 * y = (x * y) BIT 0"
+  "x * y BIT 0 = (x * y) BIT 0"
+  "x BIT 1 * y = (x * y) BIT 0 + y"
+  by (simp_all add: Bit_B0_2t Bit_B1_2t algebra_simps)
 
 lemma B_mod_2': 
   "X = 2 ==> (w BIT (1::bit)) mod X = 1 & (w BIT (0::bit)) mod X = 0"
@@ -139,9 +160,6 @@ lemma bin_exhaust:
   apply (rule Q)
   apply force
   done
-
-
-subsection {* Destructors for binary integers *}
 
 primrec bin_nth where
   Z: "bin_nth w 0 = (bin_last w = (1::bit))"
@@ -575,7 +593,7 @@ lemma sbintrunc_numeral_simps [simp]:
   "sbintrunc (numeral k) 1 = 1"
   by (simp_all add: sbintrunc_numeral)
 
-lemma no_bintr_alt1: "bintrunc n = (%w. w mod 2 ^ n :: int)"
+lemma no_bintr_alt1: "bintrunc n = (\<lambda>w. w mod 2 ^ n :: int)"
   by (rule ext) (rule bintrunc_mod2p)
 
 lemma range_bintrunc: "range (bintrunc n) = {i. 0 <= i & i < 2 ^ n}"
@@ -674,7 +692,7 @@ lemma bin_rest_trunc:
   "(bin_rest (bintrunc n bin)) = bintrunc (n - 1) (bin_rest bin)"
   by (induct n arbitrary: bin) auto
 
-lemma bin_rest_power_trunc [rule_format] :
+lemma bin_rest_power_trunc:
   "(bin_rest ^^ k) (bintrunc n bin) = 
     bintrunc (n - k) ((bin_rest ^^ k) bin)"
   by (induct k) (auto simp: bin_rest_trunc)
@@ -720,17 +738,12 @@ lemma rco_lem:
   apply simp
   done
 
-lemma rco_alt: "(f o g) ^^ n o f = f o (g o f) ^^ n"
-  apply (rule ext)
-  apply (induct n)
-   apply (simp_all add: o_def)
-  done
-
 lemmas rco_bintr = bintrunc_rest' 
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 lemmas rco_sbintr = sbintrunc_rest' 
   [THEN rco_lem [THEN fun_cong], unfolded o_def]
 
+  
 subsection {* Splitting and concatenation *}
 
 primrec bin_split :: "nat \<Rightarrow> int \<Rightarrow> int \<times> int" where
@@ -747,59 +760,5 @@ primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" w
   Z: "bin_cat w 0 v = w"
   | Suc: "bin_cat w (Suc n) v = bin_cat w n (bin_rest v) BIT bin_last v"
 
-subsection {* Miscellaneous lemmas *}
-
-lemma funpow_minus_simp:
-  "0 < n \<Longrightarrow> f ^^ n = f \<circ> f ^^ (n - 1)"
-  by (cases n) simp_all
-
-lemma funpow_numeral [simp]:
-  "f ^^ numeral k = f \<circ> f ^^ (pred_numeral k)"
-  by (simp add: numeral_eq_Suc)
-
-lemma replicate_numeral [simp]: (* TODO: move to List.thy *)
-  "replicate (numeral k) x = x # replicate (pred_numeral k) x"
-  by (simp add: numeral_eq_Suc)
-
-lemmas power_minus_simp = 
-  trans [OF gen_minus [where f = "power f"] power_Suc] for f
-
-lemma list_exhaust_size_gt0:
-  assumes y: "\<And>a list. y = a # list \<Longrightarrow> P"
-  shows "0 < length y \<Longrightarrow> P"
-  apply (cases y, simp)
-  apply (rule y)
-  apply fastforce
-  done
-
-lemma list_exhaust_size_eq0:
-  assumes y: "y = [] \<Longrightarrow> P"
-  shows "length y = 0 \<Longrightarrow> P"
-  apply (cases y)
-   apply (rule y, simp)
-  apply simp
-  done
-
-lemma size_Cons_lem_eq:
-  "y = xa # list ==> size y = Suc k ==> size list = k"
-  by auto
-
-lemmas ls_splits = prod.split prod.split_asm split_if_asm
-
-lemma not_B1_is_B0: "y \<noteq> (1::bit) \<Longrightarrow> y = (0::bit)"
-  by (cases y) auto
-
-lemma B1_ass_B0: 
-  assumes y: "y = (0::bit) \<Longrightarrow> y = (1::bit)"
-  shows "y = (1::bit)"
-  apply (rule classical)
-  apply (drule not_B1_is_B0)
-  apply (erule y)
-  done
-
--- "simplifications for specific word lengths"
-lemmas n2s_ths [THEN eq_reflection] = add_2_eq_Suc add_2_eq_Suc'
-
-lemmas s2n_ths = n2s_ths [symmetric]
-
 end
+
