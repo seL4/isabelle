@@ -384,6 +384,10 @@ lemma nat_diff_distrib:
 lemma nat_zminus_int [simp]: "nat (- int n) = 0"
   by transfer simp
 
+lemma le_nat_iff:
+  "k \<ge> 0 \<Longrightarrow> n \<le> nat k \<longleftrightarrow> int n \<le> k"
+  by transfer auto
+  
 lemma zless_nat_eq_int_zless: "(m < nat z) = (int m < z)"
   by transfer (clarsimp simp add: less_diff_conv)
 
