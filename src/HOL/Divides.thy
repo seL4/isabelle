@@ -733,6 +733,17 @@ by simp
 lemma div_mult_self1_is_m [simp]: "0<n ==> (n*m) div n = (m::nat)"
 by simp
 
+lemma div_positive:
+  fixes m n :: nat
+  assumes "n > 0"
+  assumes "m \<ge> n"
+  shows "m div n > 0"
+proof -
+  from `m \<ge> n` obtain q where "m = n + q"
+    by (auto simp add: le_iff_add)
+  with `n > 0` show ?thesis by simp
+qed
+
 
 subsubsection {* Remainder *}
 
