@@ -14,24 +14,19 @@ text {*
   appropriate definitions of @{verbatim "\\"}@{verbatim isasym}@{text
   name} for each @{verbatim "\\"}@{verbatim "<"}@{text name}@{verbatim
   ">"} in the @{verbatim isabellesym.sty} file.  Most of these symbols
-  are displayed properly in Proof~General and Isabelle/jEdit.
+  are displayed properly in Isabelle/jEdit and {\LaTeX} generated from Isabelle.
 
   Moreover, any single symbol (or ASCII character) may be prefixed by
-  @{verbatim "\\"}@{verbatim "<^sup>"}, for superscript and @{verbatim
-  "\\"}@{verbatim "<^sub>"}, for subscript, such as @{verbatim
-  "A\\"}@{verbatim "<^sup>\<star>"}, for @{text "A\<^sup>\<star>"} the alternative
-  versions @{verbatim "\\"}@{verbatim "<^isub>"} and @{verbatim
-  "\\"}@{verbatim "<^isup>"} are considered as quasi letters and may
-  be used within identifiers.  Sub- and superscripts that span a
-  region of text are marked up with @{verbatim "\\"}@{verbatim
-  "<^bsub>"}@{text "\<dots>"}@{verbatim "\\"}@{verbatim "<^esub>"}, and
-  @{verbatim "\\"}@{verbatim "<^bsup>"}@{text "\<dots>"}@{verbatim
-  "\\"}@{verbatim "<^esup>"} respectively.  Furthermore, all ASCII
-  characters and most other symbols may be printed in bold by
-  prefixing @{verbatim "\\"}@{verbatim "<^bold>"} such as @{verbatim
-  "\\"}@{verbatim "<^bold>\\"}@{verbatim "<alpha>"} for @{text
-  "\<^bold>\<alpha>"}.  Note that @{verbatim "\\"}@{verbatim "<^bold>"}, may
-  \emph{not} be combined with sub- or superscripts for single symbols.
+  @{verbatim "\<^sup>"} for superscript and @{verbatim "\<^sub>"} for subscript,
+  such as @{verbatim "A\<^sup>\<star>"} for @{text "A\<^sup>\<star>"} and @{verbatim "A\<^sub>1"} for
+  @{text "A\<^sub>1"}.  Sub- and superscripts that span a region of text can
+  be marked up with @{verbatim "\<^bsub>"}@{text "\<dots>"}@{verbatim
+  "\<^esub>"} and @{verbatim "\<^bsup>"}@{text "\<dots>"}@{verbatim "\<^esup>"}
+  respectively, but note that there are limitations in the typographic
+  rendering quality of this form.  Furthermore, all ASCII characters
+  and most other symbols may be printed in bold by prefixing
+  @{verbatim "\<^bold>"} such as @{verbatim "\<^bold>\<alpha>"} for @{text "\<^bold>\<alpha>"}.  Note that
+  @{verbatim "\<^sup>"}, @{verbatim "\<^sub>"}, @{verbatim "\<^bold>"} cannot be combined.
 
   Further details of Isabelle document preparation are covered in
   \chref{ch:document-prep}.
