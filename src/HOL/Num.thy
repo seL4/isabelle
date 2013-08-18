@@ -529,6 +529,12 @@ lemma numeral_mult: "numeral (m * n) = numeral m * numeral n"
 lemma numeral_times_numeral: "numeral m * numeral n = numeral (m * n)"
   by (rule numeral_mult [symmetric])
 
+lemma mult_2: "2 * z = z + z"
+  unfolding one_add_one [symmetric] distrib_right by simp
+
+lemma mult_2_right: "z * 2 = z + z"
+  unfolding one_add_one [symmetric] distrib_left by simp
+
 end
 
 subsubsection {*
@@ -543,12 +549,6 @@ subclass semiring_numeral ..
 lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
   by (induct n,
     simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
-
-lemma mult_2: "2 * z = z + z"
-  unfolding one_add_one [symmetric] distrib_right by simp
-
-lemma mult_2_right: "z * 2 = z + z"
-  unfolding one_add_one [symmetric] distrib_left by simp
 
 end
 
