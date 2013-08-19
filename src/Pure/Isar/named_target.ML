@@ -45,15 +45,16 @@ val peek =
   Data.get #> Option.map (fn Target {target, is_locale, is_class, ...} =>
     {target = target, is_locale = is_locale, is_class = is_class});
 
-fun is_theory lthy = Option.map #target (peek lthy) = SOME ""
-  andalso Local_Theory.level lthy = 1;
+fun is_theory lthy =
+  Option.map #target (peek lthy) = SOME "" andalso Local_Theory.level lthy = 1;
 
 fun the_name lthy =
   let
     val _ = Local_Theory.assert_bottom true lthy;
-  in case Option.map #target (peek lthy) of
+  in
+    (case Option.map #target (peek lthy) of
       SOME target => target
-    | _ => error "Not in a named target"
+    | _ => error "Not in a named target")
   end;
 
 
