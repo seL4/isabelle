@@ -435,8 +435,6 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 
 (** Public activation functions **)
 
-fun transfer_morphism thy = Morphism.thm_morphism (Thm.transfer thy);
-
 fun activate_declarations dep = Context.proof_map (fn context =>
   let
     val thy = Context.theory_of context;
@@ -449,14 +447,15 @@ fun activate_facts export dep context =
   let
     val thy = Context.theory_of context;
     val activate =
-      activate_notes Element.init (transfer_morphism o Context.theory_of) context export;
+      activate_notes Element.init
+        (Morphism.transfer_morphism o Context.theory_of) context export;
   in
     roundup thy activate (the_default Morphism.identity export) dep (Idents.get context, context)
     |-> Idents.put
   end;
 
 fun init name thy =
-  activate_all name thy Element.init (transfer_morphism o Context.theory_of)
+  activate_all name thy Element.init (Morphism.transfer_morphism o Context.theory_of)
     (empty_idents, Context.Proof (Proof_Context.init_global thy))
   |-> Idents.put |> Context.proof_of;
 
@@ -637,7 +636,7 @@ fun pretty_locale thy show_facts name =
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
     val elems =
-      activate_all name thy cons_elem (K (transfer_morphism thy)) (empty_idents, [])
+      activate_all name thy cons_elem (K (Morphism.transfer_morphism thy)) (empty_idents, [])
       |> snd |> rev;
   in
     Pretty.block
