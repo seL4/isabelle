@@ -566,7 +566,8 @@ val logical_consts =
 val pat_tvar_prefix = "_"
 val pat_var_prefix = "_"
 
-val massage_long_name = Long_Name.base_name
+(* try "Long_Name.base_name" for shorter names *)
+fun massage_long_name s = s
 
 val crude_str_of_sort =
   space_implode ":" o map massage_long_name o subtract (op =) @{sort type}
