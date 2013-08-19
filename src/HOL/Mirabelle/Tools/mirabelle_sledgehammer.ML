@@ -383,14 +383,18 @@ fun get_prover ctxt name params goal all_facts =
 
 type stature = ATP_Problem_Generate.stature
 
+fun good_line s =
+  (String.isSubstring " ms)" s orelse String.isSubstring " s)" s)
+  andalso not (String.isSubstring "(> " s)
+  andalso not (String.isSubstring ", > " s)
+  andalso not (String.isSubstring "may fail" s)
+
 (* Fragile hack *)
 fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if (String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg)
-       andalso not (String.isSubstring "(> " msg)
-       andalso not (String.isSubstring ", > " msg) then
+    if exists good_line (split_lines msg) then
       "none" (* trust the preplayed proof *)
     else if String.isSubstring "metis (" msg then
       msg |> Substring.full
