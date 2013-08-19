@@ -571,9 +571,12 @@ val crude_str_of_sort = space_implode ":" o subtract (op =) @{sort type}
 
 fun crude_str_of_typ (Type (s, [])) = s
   | crude_str_of_typ (Type (s, Ts)) =
-    enclose "(" ")" (commas (map crude_str_of_typ Ts)) ^ s
+    s ^ enclose "(" ")" (space_implode "," (map crude_str_of_typ Ts))
   | crude_str_of_typ (TFree (_, S)) = crude_str_of_sort S
   | crude_str_of_typ (TVar (_, S)) = crude_str_of_sort S
+
+val pat_tvar_prefix = "$"
+val pat_var_prefix = "$"
 
 val max_pat_breadth = 10
 
@@ -606,8 +609,8 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
           val ps = take max_pat_breadth (pattify_type depth T)
           val qs = take max_pat_breadth ("" :: pattify_type (depth - 1) U)
         in pass_args ps qs end
-      | pattify_type _ (TFree (_, S)) = [crude_str_of_sort S]
-      | pattify_type _ (TVar (_, S)) = [crude_str_of_sort S]
+      | pattify_type _ (TFree (_, S)) = [pat_tvar_prefix ^ crude_str_of_sort S]
+      | pattify_type _ (TVar (_, S)) = [pat_tvar_prefix ^ crude_str_of_sort S]
     fun add_type_pat depth T =
       union (op = o pairself fst) (map type_feature_of (pattify_type depth T))
     fun add_type_pats 0 _ = I
@@ -619,51 +622,49 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
     fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
       | add_subtypes T = add_type T
 
-    fun pattify_term _ 0 _ = []
-      | pattify_term args _ (Const (x as (s, _))) =
+    fun pattify_term _ _ 0 _ = []
+      | pattify_term _ args _ (Const (x as (s, _))) =
         if fst (is_built_in x args) then [] else [s]
-      | pattify_term _ depth (Free (s, _)) =
-        if depth = term_max_depth andalso member (op =) fixes s then
-          [thy_name ^ Long_Name.separator ^ s]
-        else
-          []
-      | pattify_term args depth (t $ u) =
+      | pattify_term _ _ _ (Free (s, T)) =
+        if member (op =) fixes s then [thy_name ^ Long_Name.separator ^ s]
+        else [pat_var_prefix ^ crude_str_of_typ T]
+      | pattify_term _ _ _ (Var (_, T)) = [pat_var_prefix ^ crude_str_of_typ T]
+      | pattify_term Ts _ _ (Bound j) =
+        [pat_var_prefix ^ crude_str_of_typ (nth Ts j)]
+      | pattify_term Ts args depth (t $ u) =
         let
-          val ps = take max_pat_breadth (pattify_term (u :: args) depth t)
-          val qs = take max_pat_breadth ("" :: pattify_term [] (depth - 1) u)
+          val ps = take max_pat_breadth (pattify_term Ts (u :: args) depth t)
+          val qs = take max_pat_breadth ("" :: pattify_term Ts [] (depth - 1) u)
         in pass_args ps qs end
-      | pattify_term _ _ (Free (_, T)) = [crude_str_of_typ T]
-      | pattify_term _ _ (Var (_, T)) = [crude_str_of_typ T]
-      | pattify_term _ _ _ = []
-    fun add_term_pat feature_of depth =
-      union (op = o pairself fst) o map feature_of o pattify_term [] depth
-    fun add_term_pats _ 0 _ = I
-      | add_term_pats feature_of depth t =
-        add_term_pat feature_of depth t
-        #> add_term_pats feature_of (depth - 1) t
-    fun add_term feature_of = add_term_pats feature_of term_max_depth
-    fun add_subterms t =
+      | pattify_term _ _ _ _ = []
+    fun add_term_pat Ts feature_of depth =
+      union (op = o pairself fst) o map feature_of o pattify_term Ts [] depth
+    fun add_term_pats _ _ 0 _ = I
+      | add_term_pats Ts feature_of depth t =
+        add_term_pat Ts feature_of depth t
+        #> add_term_pats Ts feature_of (depth - 1) t
+    fun add_term Ts feature_of = add_term_pats Ts feature_of term_max_depth
+    fun add_subterms Ts t =
       case strip_comb t of
         (Const (x as (_, T)), args) =>
         let val (built_in, args) = is_built_in x args in
-          (not built_in ? add_term const_feature_of t)
+          (not built_in ? add_term Ts const_feature_of t)
           #> add_subtypes T
-          #> fold add_subterms args
+          #> fold (add_subterms Ts) args
         end
       | (head, args) =>
         (case head of
-           Const (_, T) => add_term const_feature_of t #> add_subtypes T
-         | Free (_, T) => add_term free_feature_of t #> add_subtypes T
+           Free (_, T) => add_term Ts free_feature_of t #> add_subtypes T
          | Var (_, T) => add_subtypes T
-         | Abs (_, T, body) => add_subtypes T #> add_subterms body
+         | Abs (_, T, body) => add_subtypes T #> add_subterms (T :: Ts) body
          | _ => I)
-        #> fold add_subterms args
-  in [] |> fold add_subterms ts end
+        #> fold (add_subterms Ts) args
+  in [] |> fold (add_subterms []) ts end
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
-val term_max_depth = 3
-val type_max_depth = 3
+val term_max_depth = 2
+val type_max_depth = 2
 
 (* TODO: Generate type classes for types? *)
 fun features_of ctxt prover thy (scope, status) ts =
