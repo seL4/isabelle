@@ -616,6 +616,8 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
     fun add_type T =
       add_type_pats type_max_depth T
       #> fold_atyps_sorts (fn (_, S) => add_classes S) T
+    fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
+      | add_subtypes T = add_type T
 
     fun pattify_term _ 0 _ = []
       | pattify_term args _ (Const (x as (s, _))) =
@@ -640,24 +642,23 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
         add_term_pat feature_of depth t
         #> add_term_pats feature_of (depth - 1) t
     fun add_term feature_of = add_term_pats feature_of term_max_depth
-
-    fun add_pats t =
+    fun add_subterms t =
       case strip_comb t of
         (Const (x as (_, T)), args) =>
         let val (built_in, args) = is_built_in x args in
           (not built_in ? add_term const_feature_of t)
-          #> add_type T
-          #> fold add_pats args
+          #> add_subtypes T
+          #> fold add_subterms args
         end
       | (head, args) =>
         (case head of
-           Const (_, T) => add_term const_feature_of t #> add_type T
-         | Free (_, T) => add_term free_feature_of t #> add_type T
-         | Var (_, T) => add_type T
-         | Abs (_, T, body) => add_type T #> add_pats body
+           Const (_, T) => add_term const_feature_of t #> add_subtypes T
+         | Free (_, T) => add_term free_feature_of t #> add_subtypes T
+         | Var (_, T) => add_subtypes T
+         | Abs (_, T, body) => add_subtypes T #> add_subterms body
          | _ => I)
-        #> fold add_pats args
-  in [] |> fold add_pats ts end
+        #> fold add_subterms args
+  in [] |> fold add_subterms ts end
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
