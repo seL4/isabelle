@@ -627,10 +627,11 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
       | pattify_term _ args _ (Const (x as (s, _))) =
         if fst (is_built_in x args) then [] else [massage_long_name s]
       | pattify_term _ _ _ (Free (s, T)) =
-        if member (op =) fixes s then
-          [massage_long_name (thy_name ^ Long_Name.separator ^ s)]
-        else
-          [pat_var_prefix ^ crude_str_of_typ T]
+        [pat_var_prefix ^ crude_str_of_typ T]
+        |> (if member (op =) fixes s then
+              cons (massage_long_name (thy_name ^ Long_Name.separator ^ s))
+            else
+              I)
       | pattify_term _ _ _ (Var (_, T)) = [pat_var_prefix ^ crude_str_of_typ T]
       | pattify_term Ts _ _ (Bound j) =
         [pat_var_prefix ^ crude_str_of_typ (nth Ts j)]
