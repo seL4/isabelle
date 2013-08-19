@@ -15,7 +15,6 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
-  val snow : bool Config.T
   val MePoN : string
   val MaShN : string
   val MeShN : string
@@ -110,8 +109,6 @@ open Sledgehammer_MePo
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
-val snow =
-  Attrib.setup_config_bool @{binding sledgehammer_mash_snow} (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
@@ -166,7 +163,6 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val command =
       "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
       "./mash.py --quiet" ^
-      (if Config.get ctxt snow then " --snow" else "") ^
       " --outputDir " ^ model_dir ^
       " --modelFile=" ^ model_dir ^ "/model.pickle" ^
       " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
@@ -567,16 +563,20 @@ val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 val logical_consts =
   [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
 
-val crude_str_of_sort = space_implode ":" o subtract (op =) @{sort type}
+val pat_tvar_prefix = "_"
+val pat_var_prefix = "_"
 
-fun crude_str_of_typ (Type (s, [])) = s
+val massage_long_name = Long_Name.base_name
+
+val crude_str_of_sort =
+  space_implode ":" o map massage_long_name o subtract (op =) @{sort type}
+
+fun crude_str_of_typ (Type (s, [])) = massage_long_name s
   | crude_str_of_typ (Type (s, Ts)) =
-    s ^ enclose "(" ")" (space_implode "," (map crude_str_of_typ Ts))
+    massage_long_name s ^
+    enclose "(" ")" (space_implode "," (map crude_str_of_typ Ts))
   | crude_str_of_typ (TFree (_, S)) = crude_str_of_sort S
   | crude_str_of_typ (TVar (_, S)) = crude_str_of_sort S
-
-val pat_tvar_prefix = "$"
-val pat_var_prefix = "$"
 
 val max_pat_breadth = 10
 
@@ -596,13 +596,13 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
       | add_classes S =
         fold (`(Sorts.super_classes classes)
               #> swap #> op ::
-              #> subtract (op =) @{sort type}
+              #> subtract (op =) @{sort type} #> map massage_long_name
               #> map class_feature_of
               #> union (op = o pairself fst)) S
 
     fun pattify_type 0 _ = []
       | pattify_type _ (Type (s, [])) =
-        if member (op =) bad_types s then [] else [s]
+        if member (op =) bad_types s then [] else [massage_long_name s]
       | pattify_type depth (Type (s, U :: Ts)) =
         let
           val T = Type (s, Ts)
@@ -624,10 +624,12 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
 
     fun pattify_term _ _ 0 _ = []
       | pattify_term _ args _ (Const (x as (s, _))) =
-        if fst (is_built_in x args) then [] else [s]
+        if fst (is_built_in x args) then [] else [massage_long_name s]
       | pattify_term _ _ _ (Free (s, T)) =
-        if member (op =) fixes s then [thy_name ^ Long_Name.separator ^ s]
-        else [pat_var_prefix ^ crude_str_of_typ T]
+        if member (op =) fixes s then
+          [massage_long_name (thy_name ^ Long_Name.separator ^ s)]
+        else
+          [pat_var_prefix ^ crude_str_of_typ T]
       | pattify_term _ _ _ (Var (_, T)) = [pat_var_prefix ^ crude_str_of_typ T]
       | pattify_term Ts _ _ (Bound j) =
         [pat_var_prefix ^ crude_str_of_typ (nth Ts j)]
