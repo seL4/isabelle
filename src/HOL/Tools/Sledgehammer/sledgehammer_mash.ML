@@ -567,6 +567,14 @@ val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 val logical_consts =
   [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
 
+val crude_str_of_sort = space_implode ":" o subtract (op =) @{sort type}
+
+fun crude_str_of_typ (Type (s, [])) = s
+  | crude_str_of_typ (Type (s, Ts)) =
+    enclose "(" ")" (commas (map crude_str_of_typ Ts)) ^ s
+  | crude_str_of_typ (TFree (_, S)) = crude_str_of_sort S
+  | crude_str_of_typ (TVar (_, S)) = crude_str_of_sort S
+
 val max_pat_breadth = 10
 
 fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
@@ -598,15 +606,16 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
           val ps = take max_pat_breadth (pattify_type depth T)
           val qs = take max_pat_breadth ("" :: pattify_type (depth - 1) U)
         in pass_args ps qs end
-      | pattify_type _ _ = []
+      | pattify_type _ (TFree (_, S)) = [crude_str_of_sort S]
+      | pattify_type _ (TVar (_, S)) = [crude_str_of_sort S]
     fun add_type_pat depth T =
-      union (op = o pairself fst)
-            (map type_feature_of (pattify_type depth T) @
-             fold_atyps_sorts (fn (_, S) => add_classes S) T [])
+      union (op = o pairself fst) (map type_feature_of (pattify_type depth T))
     fun add_type_pats 0 _ = I
       | add_type_pats depth t =
         add_type_pat depth t #> add_type_pats (depth - 1) t
-    val add_type = add_type_pats type_max_depth
+    fun add_type T =
+      add_type_pats type_max_depth T
+      #> fold_atyps_sorts (fn (_, S) => add_classes S) T
 
     fun pattify_term _ 0 _ = []
       | pattify_term args _ (Const (x as (s, _))) =
@@ -621,6 +630,8 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
           val ps = take max_pat_breadth (pattify_term (u :: args) depth t)
           val qs = take max_pat_breadth ("" :: pattify_term [] (depth - 1) u)
         in pass_args ps qs end
+      | pattify_term _ _ (Free (_, T)) = [crude_str_of_typ T]
+      | pattify_term _ _ (Var (_, T)) = [crude_str_of_typ T]
       | pattify_term _ _ _ = []
     fun add_term_pat feature_of depth =
       union (op = o pairself fst) o map feature_of o pattify_term [] depth
