@@ -2080,10 +2080,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []), dtor_coinduct)
       end;
 
-    (* TODO: Get rid of strong versions (since these can easily be derived from the weak ones). *)
-    val dtor_strong_coinduct_thm =
-      mk_strong_coinduct_thm m dtor_coinduct_thm rel_eqs rel_monos lthy;
-
     val timer = time (timer "coinduction");
 
     fun mk_dtor_map_DEADID_thm dtor_inject map_id =
@@ -2901,7 +2897,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     timer;
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors,
       xtor_co_iterss = transpose [unfolds, corecs],
-      xtor_co_inducts = [dtor_coinduct_thm, dtor_strong_coinduct_thm], dtor_ctors = dtor_ctor_thms,
+      xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       xtor_map_thms = folded_dtor_map_thms, xtor_set_thmss = folded_dtor_set_thmss',
       xtor_rel_thms = dtor_Jrel_thms,
