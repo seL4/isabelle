@@ -101,7 +101,8 @@ fun transform_values phi = map_args (Token.map_value
     | Token.Typ T => Token.Typ (Morphism.typ phi T)
     | Token.Term t => Token.Term (Morphism.term phi t)
     | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
-    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)));
+    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
+    | tok as Token.Files _ => tok));
 
 val assignable = map_args Token.assignable;
 val closure = map_args Token.closure;
@@ -224,17 +225,25 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 (* arguments within outer syntax *)
 
+val argument_kinds =
+ [Token.Ident, Token.LongIdent, Token.SymIdent, Token.Var, Token.TypeIdent, Token.TypeVar,
+  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Verbatim];
+
 fun parse_args is_symid =
   let
-    val keyword_symid = token (Parse.keyword_with is_symid);
-    fun atom blk = Parse.group (fn () => "argument")
-      (ident || keyword_symid || string || alt_string || token Parse.float_number ||
-        (if blk then token (Parse.$$$ ",") else Scan.fail));
+    fun argument blk =
+      Parse.group (fn () => "argument")
+        (Scan.one (fn tok =>
+          let val kind = Token.kind_of tok in
+            member (op =) argument_kinds kind orelse
+            Token.keyword_with is_symid tok orelse
+            (blk andalso Token.keyword_with (fn s => s = ",") tok)
+          end));
 
     fun args blk x = Scan.optional (args1 blk) [] x
     and args1 blk x =
       ((Scan.repeat1
-        (Scan.repeat1 (atom blk) ||
+        (Scan.repeat1 (argument blk) ||
           argsp "(" ")" ||
           argsp "[" "]")) >> flat) x
     and argsp l r x =
