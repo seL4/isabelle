@@ -27,7 +27,7 @@ class SNoW(object):
         self.SNoWTrainFile = '../tmp/snow.train'
         self.SNoWTestFile = '../snow.test'
         self.SNoWNetFile = '../tmp/snow.net'
-        self.defMaxNameId = 20000
+        self.defMaxNameId = 100000
 
     def initializeModel(self,trainData,dicts):
         """
@@ -51,6 +51,7 @@ class SNoW(object):
         # Build Model
         self.logger.debug('Building Model START.')
         snowTrainCommand = '../bin/snow -train -M+ -I %s -F %s -g- -B :0-%s' % (self.SNoWTrainFile,self.SNoWNetFile,dicts.maxNameId-1)
+        #print snowTrainCommand
         #snowTrainCommand = '../bin/snow -train -M+ -I %s -F %s -g- -B :0-%s' % (self.SNoWTrainFile,self.SNoWNetFile,self.defMaxNameId-1)
         args = shlex.split(snowTrainCommand)
         p = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)

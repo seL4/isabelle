@@ -95,6 +95,7 @@ class sparseNBClassifier(object):
         For each accessible, predicts the probability of it being useful given the features.
         Returns a ranking of the accessibles.
         """
+        tau = 0.01 # Jasmin, change value here
         predictions = []
         for a in accessibles:
             posA = self.counts[a][0]
@@ -112,6 +113,11 @@ class sparseNBClassifier(object):
                         resultA += w*log(float(self.posWeight*fWeightsA[f])/posA)
                 else:
                     resultA += w*self.defVal
+            if not tau == 0.0:
+                observedFeatures = [f for f,_w in features]
+                missingFeatures = list(fA.difference(observedFeatures))
+                sumOfWeights = sum([log(float(fWeightsA[x])/posA) for x in missingFeatures])
+                resultA -= tau * sumOfWeights
             predictions.append(resultA)
         predictions = array(predictions)
         perm = (-predictions).argsort()

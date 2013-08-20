@@ -35,7 +35,11 @@ class Predefined(object):
             name = line[0].strip()
             predId = dicts.get_name_id(name)
             line = line[1].split()
-            preds = [dicts.get_name_id(x.strip())for x in line]
+            predsTmp = []
+            for x in line:
+                x = x.split('=')
+                predsTmp.append(x[0])
+            preds = [dicts.get_name_id(x.strip())for x in predsTmp]
             self.predictions[predId] = preds
         IS.close()        
 

@@ -16,29 +16,39 @@ def worker(inQueue, outQueue):
         #print '%s says that %s%s = %s' % (current_process().name, func.__name__, args, result)
         outQueue.put(result)
 
-def run_mash(runId,inputDir,logFile,predictionFile,\
+def run_mash(runId,inputDir,logFile,predictionFile,predef,\
              learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
              NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
-             sineFeatures,sineWeight):
+             sineFeatures,sineWeight,quiet=True):
     # Init
     runId = str(runId)
     predictionFile = predictionFile + runId
-    args = ['--statistics','--init','--inputDir',inputDir,'-q','--log',logFile,'--theoryFile','../tmp/t'+runId,'--modelFile','../tmp/m'+runId,'--dictsFile','../tmp/d'+runId,
+    args = ['--statistics','--init','--inputDir',inputDir,'--log',logFile,'--theoryFile','../tmp/t'+runId,'--modelFile','../tmp/m'+runId,'--dictsFile','../tmp/d'+runId,
             '--theoryDefValPos',str(theoryDefValPos),'--theoryDefValNeg',str(theoryDefValNeg),'--theoryPosWeight',str(theoryPosWeight),\
             '--NBDefaultPriorWeight',str(NBDefaultPriorWeight),'--NBDefVal',str(NBDefVal),'--NBPosWeight',str(NBPosWeight)]    
     if learnTheories:
-        args = args + ['--learnTheories']    
+        args += ['--learnTheories']    
     if sineFeatures:
         args += ['--sineFeatures','--sineWeight',str(sineWeight)]
+    if not predef == '':
+        args += ['--predef',predef]
+    if quit:
+        args += ['-q']
+    #print args
     mash(args)
     # Run
-    args = ['-q','-i',inputFile,'-p',predictionFile,'--statistics','--cutOff','500','--log',logFile,'--theoryFile','../tmp/t'+runId,'--modelFile','../tmp/m'+runId,'--dictsFile','../tmp/d'+runId,\
+    args = ['-i',inputFile,'-p',predictionFile,'--statistics','--cutOff','1024','--log',logFile,'--theoryFile','../tmp/t'+runId,'--modelFile','../tmp/m'+runId,'--dictsFile','../tmp/d'+runId,\
             '--theoryDefValPos',str(theoryDefValPos),'--theoryDefValNeg',str(theoryDefValNeg),'--theoryPosWeight',str(theoryPosWeight),\
             '--NBDefaultPriorWeight',str(NBDefaultPriorWeight),'--NBDefVal',str(NBDefVal),'--NBPosWeight',str(NBPosWeight)]
     if learnTheories:
-        args = args + ['--learnTheories']    
+        args += ['--learnTheories']    
     if sineFeatures:
         args += ['--sineFeatures','--sineWeight',str(sineWeight)]
+    if not predef == '':
+        args += ['--predef',predef]
+    if quit:
+        args += ['-q']
+    #print args
     mash(args)
 
     # Get Results
@@ -46,29 +56,42 @@ def run_mash(runId,inputDir,logFile,predictionFile,\
     lines =  IS.readlines()
     tmpRes = lines[-1].split()
     avgAuc = tmpRes[5]
-    avgRecall100 = tmpRes[9]
+    medianAuc = tmpRes[7]
+    avgRecall100 = tmpRes[11]
+    medianRecall100 = tmpRes[13]
     tmpTheoryRes = lines[-3].split()
-    avgTheoryPrecision = tmpTheoryRes[5] 
-    avgTheoryRecall100 = tmpTheoryRes[7]
-    avgTheoryRecall = tmpTheoryRes[9]
-    avgTheoryPredictedPercent = tmpTheoryRes[11]
+    if learnTheories:
+        avgTheoryPrecision = tmpTheoryRes[5] 
+        avgTheoryRecall100 = tmpTheoryRes[7]
+        avgTheoryRecall = tmpTheoryRes[9]
+        avgTheoryPredictedPercent = tmpTheoryRes[11]
+    else:
+        avgTheoryPrecision = 'NA' 
+        avgTheoryRecall100 = 'NA'
+        avgTheoryRecall = 'NA'
+        avgTheoryPredictedPercent = 'NA'    
     IS.close()
     
     # Delete old models
     os.remove(logFile)
     os.remove(predictionFile)
-    os.remove('../tmp/t'+runId)
+    if learnTheories:
+        os.remove('../tmp/t'+runId)
     os.remove('../tmp/m'+runId)
     os.remove('../tmp/d'+runId)
     
     outFile = open('tester','a')
     #print 'avgAuc %s avgRecall100 %s avgTheoryPrecision %s avgTheoryRecall100 %s avgTheoryRecall %s avgTheoryPredictedPercent %s'
-    outFile.write('\t'.join([str(learnTheories),str(theoryDefValPos),str(theoryDefValNeg),str(theoryPosWeight),str(NBDefaultPriorWeight),str(NBDefVal),str(NBPosWeight),str(sineFeatures),str(sineWeight),str(avgAuc),str(avgRecall100),str(avgTheoryPrecision),str(avgTheoryRecall100),str(avgTheoryRecall),str(avgTheoryPredictedPercent)])+'\n')
+    outFile.write('\t'.join([str(learnTheories),str(theoryDefValPos),str(theoryDefValNeg),str(theoryPosWeight),\
+                             str(NBDefaultPriorWeight),str(NBDefVal),str(NBPosWeight),str(sineFeatures),str(sineWeight),\
+                             str(avgAuc),str(medianAuc),str(avgRecall100),str(medianRecall100),str(avgTheoryPrecision),\
+                             str(avgTheoryRecall100),str(avgTheoryRecall),str(avgTheoryPredictedPercent)])+'\n')
     outFile.close()
     print learnTheories,'\t',theoryDefValPos,'\t',theoryDefValNeg,'\t',theoryPosWeight,'\t',\
         NBDefaultPriorWeight,'\t',NBDefVal,'\t',NBPosWeight,'\t',\
         sineFeatures,'\t',sineWeight,'\t',\
-        avgAuc,'\t',avgRecall100,'\t',avgTheoryPrecision,'\t',avgTheoryRecall100,'\t',avgTheoryRecall,'\t',avgTheoryPredictedPercent    
+        avgAuc,'\t',medianAuc,'\t',avgRecall100,'\t',medianRecall100,'\t',\
+        avgTheoryPrecision,'\t',avgTheoryRecall100,'\t',avgTheoryRecall,'\t',avgTheoryPredictedPercent    
     return learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
              NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
              sineFeatures,sineWeight,\
@@ -93,8 +116,9 @@ if __name__ == '__main__':
     #cores = 1
     # Options
     depFile = 'mash_dependencies'
+    predef = ''
     outputDir = '../tmp/'
-    numberOfPredictions = 500
+    numberOfPredictions = 1024
     
     learnTheoriesRange = [True,False]
     theoryDefValPosRange = [-x for x in range(1,20)]
@@ -107,6 +131,7 @@ if __name__ == '__main__':
     sineFeaturesRange = [True,False]    
     sineWeightRange = [0.1,0.25,0.5,0.75,1.0]
     
+    """
     # Test 1
     inputFile = '../data/20121227b/Auth/mash_commands'
     inputDir = '../data/20121227b/Auth/'
@@ -180,3 +205,77 @@ if __name__ == '__main__':
                        learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight)              
         print 'bestAvgRecall100 %s bestNBDefaultPriorWeight %s bestNBDefVal %s bestNBPosWeight %s bestSineFeatures %s bestSineWeight %s',bestAvgRecall100,bestNBDefaultPriorWeight,bestNBDefVal,bestNBPosWeight,bestSineFeatures,bestSineWeight
     
+    """
+    # Test 2
+    #inputDir = '../data/20130118/Jinja'
+    inputDir = '../data/notheory/Prob'
+    inputFile = inputDir+'/mash_commands'
+    #inputFile = inputDir+'/mash_prover_commands'
+    
+    #depFile = 'mash_prover_dependencies'
+    depFile = 'mash_dependencies'    
+    outputDir = '../tmp/'
+    numberOfPredictions = 1024
+    predictionFile = '../tmp/auth.pred'
+    logFile = '../tmp/auth.log'
+    learnTheories = False
+    theoryDefValPos = -7.5
+    theoryDefValNeg = -10.0
+    theoryPosWeight = 2.0
+    NBDefaultPriorWeight = 20.0
+    NBDefVal =- 15.0
+    NBPosWeight = 10.0
+    sineFeatures = False
+    sineWeight =  0.5    
+    quiet = False
+    print inputDir
+    
+    #predef = inputDir+'/mash_prover_suggestions'
+    predef = inputDir+'/mash_suggestions'    
+    print 'Mash Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)
+
+    #"""
+    predef = inputDir+'/mesh_suggestions'
+    #predef = inputDir+'/mesh_prover_suggestions'
+    print 'Mesh Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)
+    #"""
+    predef = inputDir+'/mepo_suggestions'
+    print 'Mepo Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)    
+    
+    """
+    inputFile = inputDir+'/mash_prover_commands'
+    depFile = 'mash_prover_dependencies'
+    
+    predef = inputDir+'/mash_prover_suggestions'    
+    print 'Mash Prover Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)
+
+    predef = inputDir+'/mesh_prover_suggestions'
+    print 'Mesh Prover Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)
+
+    predef = inputDir+'/mepo_suggestions'
+    print 'Mepo Prover Isar'
+    run_mash(0,inputDir,logFile,predictionFile,predef,\
+             learnTheories,theoryDefValPos,theoryDefValNeg,theoryPosWeight,\
+             NBDefaultPriorWeight,NBDefVal,NBPosWeight,\
+             sineFeatures,sineWeight,quiet=quiet)
+    #"""

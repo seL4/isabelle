@@ -30,6 +30,7 @@ class Statistics(object):
         self.problems = 0.0
         self.cutOff = cutOff
         self.recallData = [0]*cutOff
+        self.recall100Median = []
         self.recall100Data = [0]*cutOff
         self.aucData = []
         self.premiseOccurenceCounter = {}
@@ -107,6 +108,7 @@ class Statistics(object):
         self.aucData.append(auc)
         self.avgAUC += auc
         self.avgRecall100 += recall100
+        self.recall100Median.append(recall100)
         self.problems += 1
         self.badPreds = badPreds
         self.avgAvailable += available
@@ -116,8 +118,29 @@ class Statistics(object):
 
     def printAvg(self):
         self.logger.info('Average results:')
-        self.logger.info('avgAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t cutOff:%s', \
-                         round(100*self.avgAUC/self.problems,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),self.cutOff)
+        #self.logger.info('avgAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t cutOff:%s', \
+        #                 round(100*self.avgAUC/self.problems,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),self.cutOff)
+        # HACK FOR PAPER
+        assert len(self.aucData) == len(self.recall100Median)
+        nrDataPoints = len(self.aucData)
+        if nrDataPoints % 2 == 1:
+            medianAUC = sorted(self.aucData)[nrDataPoints/2 + 1]
+        else:
+            medianAUC = float(sorted(self.aucData)[nrDataPoints/2] + sorted(self.aucData)[nrDataPoints/2 + 1])/2
+        #nrDataPoints = len(self.recall100Median)
+        if nrDataPoints % 2 == 1:
+            medianrecall100 = sorted(self.recall100Median)[nrDataPoints/2 + 1]
+        else:
+            medianrecall100 = float(sorted(self.recall100Median)[nrDataPoints/2] + sorted(self.recall100Median)[nrDataPoints/2 + 1])/2
+
+        returnString = 'avgAUC: %s \t medianAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t medianRecall100: %s \t cutOff:%s' %\
+                         (round(100*self.avgAUC/self.problems,2),round(100*medianAUC,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),round(medianrecall100,2),self.cutOff)
+        self.logger.info(returnString)
+        return returnString
+    
+        """
+        self.logger.info('avgAUC: %s \t medianAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t medianRecall100: %s \t cutOff:%s', \
+                         round(100*self.avgAUC/self.problems,2),round(100*medianAUC,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),round(medianrecall100,2),self.cutOff)
 
         #try:
         #if True:
@@ -156,6 +179,7 @@ class Statistics(object):
             show()
         #except:
         #    self.logger.warning('Matplotlib module missing. Skipping graphs.')
+        """
 
     def save(self,fileName):
         oStream = open(fileName, 'wb')

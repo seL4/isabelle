@@ -179,6 +179,13 @@ class Dictionaries(object):
         assert line.startswith('? ')
         line = line[2:]
         name = None
+        numberOfPredictions = None
+
+        # Check whether there is a problem name:
+        tmp = line.split('#')
+        if len(tmp) == 2:
+            numberOfPredictions = int(tmp[0].strip())
+            line = tmp[1]
 
         # Check whether there is a problem name:
         tmp = line.split(':')
@@ -206,7 +213,7 @@ class Dictionaries(object):
         else:
             hints = []
 
-        return name,features,accessibles,hints
+        return name,features,accessibles,hints,numberOfPredictions
 
     def save(self,fileName):
         if self.changed:
