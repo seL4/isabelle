@@ -101,7 +101,8 @@ fun transform_values phi = map_args (Token.map_value
     | Token.Typ T => Token.Typ (Morphism.typ phi T)
     | Token.Term t => Token.Term (Morphism.term phi t)
     | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
-    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)));
+    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
+    | tok as Token.Files _ => tok));
 
 val assignable = map_args Token.assignable;
 val closure = map_args Token.closure;
