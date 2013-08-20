@@ -145,7 +145,7 @@ fun write_file banner (xs, f) path =
    xs |> chunk_list 500 |> List.app (File.append path o implode o map f))
   handle IO.Io _ => ()
 
-fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
+fun run_mash_tool ctxt overlord save write_cmds read_suggs =
   let
     val (temp_dir, serial) =
       if overlord then (getenv "ISABELLE_HOME_USER", "")
@@ -226,9 +226,10 @@ fun str_of_learn (name, parents, feats, deps) =
 fun str_of_relearn (name, deps) =
   "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
 
-fun str_of_query (learns, hints, parents, feats) =
+fun str_of_query max_suggs (learns, hints, parents, feats) =
   implode (map str_of_learn learns) ^
-  "? " ^ encode_strs parents ^ "; " ^ encode_features feats ^
+  "? " ^ string_of_int max_suggs ^ " # " ^ encode_strs parents ^ "; " ^
+  encode_features feats ^
   (if null hints then "" else "; " ^ encode_strs hints) ^ "\n"
 
 (* The suggested weights don't make much sense. *)
@@ -261,17 +262,17 @@ fun learn _ _ [] = ()
   | learn ctxt overlord learns =
     (trace_msg ctxt (fn () => "MaSh learn " ^
          elide_string 1000 (space_implode " " (map #1 learns)));
-     run_mash_tool ctxt overlord true 0 (learns, str_of_learn) (K ()))
+     run_mash_tool ctxt overlord true (learns, str_of_learn) (K ()))
 
 fun relearn _ _ [] = ()
   | relearn ctxt overlord relearns =
     (trace_msg ctxt (fn () => "MaSh relearn " ^
          elide_string 1000 (space_implode " " (map #1 relearns)));
-     run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
+     run_mash_tool ctxt overlord true (relearns, str_of_relearn) (K ()))
 
 fun query ctxt overlord max_suggs (query as (learns, hints, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
-   run_mash_tool ctxt overlord false max_suggs ([query], str_of_query)
+   run_mash_tool ctxt overlord false ([query], str_of_query max_suggs)
        (fn suggs =>
            case suggs () of
              [] => []
