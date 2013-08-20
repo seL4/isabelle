@@ -44,7 +44,9 @@ sig
       Proof.context -> bool -> (string * string list) list -> unit
     val query :
       Proof.context -> bool -> bool -> int
-      -> string list * (string * real) list * string list -> string list
+      -> (string * string list * (string * real) list * string list) list
+         * string list * string list * (string * real) list
+      -> string list
   end
 
   val mash_unlearn : Proof.context -> unit
@@ -140,8 +142,7 @@ fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
 
 fun write_file banner (xs, f) path =
   (case banner of SOME s => File.write path s | NONE => ();
-   xs |> chunk_list 500
-      |> List.app (File.append path o space_implode "" o map f))
+   xs |> chunk_list 500 |> List.app (File.append path o implode o map f))
   handle IO.Io _ => ()
 
 fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
@@ -226,11 +227,15 @@ fun str_of_learn (name, parents, feats, deps) =
 fun str_of_relearn (name, deps) =
   "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
 
-fun str_of_query learn_hints (parents, feats, hints) =
-  (if not learn_hints orelse null hints then ""
-   else str_of_learn (freshish_name (), parents, feats, hints)) ^
+fun str_of_query learn (learns, hints, parents, feats) =
+  (if learn then
+     implode (map str_of_learn learns) ^
+     (if null hints then ""
+      else str_of_learn (freshish_name (), parents, feats, hints))
+   else
+     "") ^
   "? " ^ encode_strs parents ^ "; " ^ encode_features feats ^
-  (if learn_hints orelse null hints then "" else "; " ^ encode_strs hints) ^
+  (if learn orelse null hints then "" else "; " ^ encode_strs hints) ^
   "\n"
 
 (* The weights currently returned by "mash.py" are too spaced out to make any
@@ -272,10 +277,11 @@ fun relearn _ _ [] = ()
          elide_string 1000 (space_implode " " (map #1 relearns)));
      run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
-fun query ctxt overlord learn_hints max_suggs (query as (_, feats, hints)) =
+fun query ctxt overlord learn max_suggs (query as (learns, hints, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
-   run_mash_tool ctxt overlord (learn_hints andalso not (null hints))
-       max_suggs ([query], str_of_query learn_hints)
+   run_mash_tool ctxt overlord
+       (learn andalso not (null learns) andalso not (null hints))
+       max_suggs ([query], str_of_query learn)
        (fn suggs =>
            case suggs () of
              [] => []
@@ -878,7 +884,7 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                         |> map (nickname_of_thm o snd)
             in
               (access_G, MaSh.query ctxt overlord learn max_facts
-                                    (parents, feats, hints))
+                                    ([], hints, parents, feats))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
   in
