@@ -312,6 +312,10 @@ INCOMPATIBILITY.
   "ALL x1 ... xn. Prop x1 ... xn". Simple examples are in
   src/HOL/Spec_Check/Examples.thy.
 
+* Imperative HOL: The MREC combinator is considered legacy and no longer
+included by default. INCOMPATIBILITY, use partial_function instead, or import
+theory Legacy_Mrec as a fallback.
+
 
 *** HOL-Algebra ***
 

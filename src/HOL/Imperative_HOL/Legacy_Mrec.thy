@@ -1,8 +1,13 @@
-theory Mrec
+theory Legacy_Mrec
 imports Heap_Monad
 begin
 
 subsubsection {* A monadic combinator for simple recursive functions *}
+
+text {*
+  NOTE: The use of this obsolete combinator is discouraged. Instead, use the
+  @{text "partal_function (heap)"} command.
+*}
 
 text {* Using a locale to fix arguments f and g of MREC *}
 

@@ -8,6 +8,7 @@ header {* Monadic imperative HOL with examples *}
 theory Imperative_HOL_ex
 imports Imperative_HOL Overview
   "ex/Imperative_Quicksort" "ex/Imperative_Reverse" "ex/Linked_Lists" "ex/SatChecker"
+  Legacy_Mrec
 begin
 
 definition "everything = (Array.new, Array.of_list, Array.make, Array.len, Array.nth,
