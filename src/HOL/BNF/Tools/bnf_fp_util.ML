@@ -17,7 +17,7 @@ sig
      ctors: term list,
      dtors: term list,
      xtor_co_iterss: term list list,
-     xtor_co_inducts: thm list,
+     xtor_co_induct: thm,
      dtor_ctors: thm list,
      ctor_dtors: thm list,
      ctor_injects: thm list,
@@ -29,8 +29,6 @@ sig
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
-  val co_induct_of: 'a list -> 'a
-  val strong_co_induct_of: 'a list -> 'a
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
 
@@ -179,6 +177,8 @@ sig
   val mk_xtor_un_fold_o_map_thms: fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
+  val mk_strong_coinduct_thm: thm -> thm list -> thm list -> Proof.context -> thm
+
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> 'a) ->
     binding list -> (string * sort) list -> ((string * sort) * typ) list -> local_theory ->
@@ -203,7 +203,7 @@ type fp_result =
    ctors: term list,
    dtors: term list,
    xtor_co_iterss: term list list,
-   xtor_co_inducts: thm list,
+   xtor_co_induct: thm,
    dtor_ctors: thm list,
    ctor_dtors: thm list,
    ctor_injects: thm list,
@@ -213,7 +213,7 @@ type fp_result =
    xtor_co_iter_thmss: thm list list,
    rel_co_induct_thm: thm};
 
-fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts, dtor_ctors,
+fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct, dtor_ctors,
     ctor_dtors, ctor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss,
     rel_co_induct_thm} =
   {Ts = map (Morphism.typ phi) Ts,
@@ -221,7 +221,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
    xtor_co_iterss = map (map (Morphism.term phi)) xtor_co_iterss,
-   xtor_co_inducts = map (Morphism.thm phi) xtor_co_inducts,
+   xtor_co_induct = Morphism.thm phi xtor_co_induct,
    dtor_ctors = map (Morphism.thm phi) dtor_ctors,
    ctor_dtors = map (Morphism.thm phi) ctor_dtors,
    ctor_injects = map (Morphism.thm phi) ctor_injects,
@@ -233,9 +233,6 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_inducts
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
-
-fun co_induct_of (i :: _) = i;
-fun strong_co_induct_of [_, s] = s;
 
 fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;
@@ -550,6 +547,25 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
       xtor_maps xtor_un_folds rewrite1s rewrite2s;
   in
     split_conj_thm (un_fold_unique OF map (fp_case fp I mk_sym) unique_prems)
+  end;
+
+fun mk_strong_coinduct_thm coind rel_eqs rel_monos ctxt =
+  let
+    val n = Thm.nprems_of coind;
+    val m = Thm.nprems_of (hd rel_monos) - n;
+    fun mk_inst phi = (phi, mk_union (phi, HOLogic.eq_const (fst (dest_pred2T (fastype_of phi)))))
+      |> pairself (certify ctxt);
+    val insts = Term.add_vars (Thm.prop_of coind) [] |> rev |> take n |> map (mk_inst o Var);
+    fun mk_unfold rel_eq rel_mono =
+      let
+        val eq = iffD2 OF [rel_eq RS @{thm predicate2_eqD}, refl];
+        val mono = rel_mono OF (replicate m @{thm order_refl} @ replicate n @{thm eq_subset});
+      in eq RS (mono RS @{thm predicate2D}) RS @{thm eqTrueI} end;
+    val unfolds = map2 mk_unfold rel_eqs rel_monos @ @{thms sup_fun_def sup_bool_def
+      imp_disjL all_conj_distrib subst_eq_imp simp_thms(18,21,35)};
+  in
+    Thm.instantiate ([], insts) coind
+    |> unfold_thms ctxt unfolds
   end;
 
 fun fp_bnf construct_fp bs resBs eqs lthy =

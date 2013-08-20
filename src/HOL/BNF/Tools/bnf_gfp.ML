@@ -2019,20 +2019,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "corec definitions & thms");
 
-    (* TODO: Get rid of strong versions (since these can easily be derived from the weak ones). *)
-    val (dtor_map_coinduct_thm, coinduct_params, dtor_coinduct_thm,
-         dtor_map_strong_coinduct_thm, dtor_strong_coinduct_thm) =
+    val (dtor_map_coinduct_thm, coinduct_params, dtor_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
-
-        fun mk_phi strong_eq phi z1 z2 = if strong_eq
-          then Term.absfree (dest_Free z1) (Term.absfree (dest_Free z2)
-            (HOLogic.mk_disj (phi $ z1 $ z2, HOLogic.mk_eq (z1, z2))))
-          else phi;
-
-        fun phi_rels strong_eq =
-          map3 (fn phi => fn z1 => fn z2 => mk_phi strong_eq phi z1 z2) phis Jzs1 Jzs2;
 
         val rels = map (Term.subst_atomic_types ((activeAs ~~ Ts) @ (activeBs ~~ Ts))) relsAsBs;
 
@@ -2040,28 +2030,25 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
           (map3 mk_concl phis Jzs1 Jzs2));
 
-        fun mk_rel_prem strong_eq phi dtor rel Jz Jz_copy =
+        fun mk_rel_prem phi dtor rel Jz Jz_copy =
           let
-            val concl = Term.list_comb (rel, map HOLogic.eq_const passiveAs @ phi_rels strong_eq) $
+            val concl = Term.list_comb (rel, map HOLogic.eq_const passiveAs @ phis) $
               (dtor $ Jz) $ (dtor $ Jz_copy);
           in
             HOLogic.mk_Trueprop
               (list_all_free [Jz, Jz_copy] (HOLogic.mk_imp (phi $ Jz $ Jz_copy, concl)))
           end;
 
-        val rel_prems = map5 (mk_rel_prem false) phis dtors rels Jzs Jzs_copy;
-        val rel_strong_prems = map5 (mk_rel_prem true) phis dtors rels Jzs Jzs_copy;
-
+        val rel_prems = map5 mk_rel_prem phis dtors rels Jzs Jzs_copy;
         val dtor_coinduct_goal =
           fold_rev Logic.all frees (Logic.list_implies (rel_prems, concl));
-        val coinduct_params = rev (Term.add_tfrees dtor_coinduct_goal []);
 
         val dtor_coinduct =
           Goal.prove_sorry lthy [] [] dtor_coinduct_goal
             (K (mk_dtor_coinduct_tac m raw_coind_thm bis_rel_thm rel_congs))
           |> Thm.close_derivation;
 
-        fun mk_prem strong_eq phi dtor map_nth sets Jz Jz_copy FJz =
+        fun mk_prem phi dtor map_nth sets Jz Jz_copy FJz =
           let
             val xs = [Jz, Jz_copy];
 
@@ -2071,7 +2058,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             fun mk_set_conjunct set phi z1 z2 =
               list_all_free [z1, z2]
                 (HOLogic.mk_imp (HOLogic.mk_mem (HOLogic.mk_prod (z1, z2), set $ FJz),
-                  mk_phi strong_eq phi z1 z2 $ z1 $ z2));
+                  phi $ z1 $ z2));
 
             val concl = list_exists_free [FJz] (HOLogic.mk_conj
               (Library.foldr1 HOLogic.mk_conj (map2 mk_map_conjunct [fstsTs, sndsTs] xs),
@@ -2082,36 +2069,15 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               (HOLogic.mk_Trueprop (Term.list_comb (phi, xs)), HOLogic.mk_Trueprop concl))
           end;
 
-        fun mk_prems strong_eq =
-          map7 (mk_prem strong_eq) phis dtors map_FT_nths prodFT_setss Jzs Jzs_copy FJzs;
-
-        val prems = mk_prems false;
-        val strong_prems = mk_prems true;
+        val prems = map7 mk_prem phis dtors map_FT_nths prodFT_setss Jzs Jzs_copy FJzs;
 
         val dtor_map_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (prems, concl));
         val dtor_map_coinduct =
           Goal.prove_sorry lthy [] [] dtor_map_coinduct_goal
             (K (mk_dtor_map_coinduct_tac m ks raw_coind_thm bis_def))
           |> Thm.close_derivation;
-
-        val cTs = map (SOME o certifyT lthy o TFree) coinduct_params;
-        val cts = map3 (SOME o certify lthy ooo mk_phi true) phis Jzs1 Jzs2;
-
-        val dtor_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all zs (Logic.list_implies (rel_strong_prems, concl)))
-            (K (mk_dtor_strong_coinduct_tac lthy m cTs cts dtor_coinduct rel_monos rel_eqs)))
-          |> Thm.close_derivation;
-
-        val dtor_map_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all zs (Logic.list_implies (strong_prems, concl)))
-            (K (mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def
-              (tcoalg_thm RS bis_Id_on_thm))))
-          |> Thm.close_derivation;
       in
-        (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []),
-         dtor_coinduct, dtor_map_strong_coinduct, dtor_strong_coinduct)
+        (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []), dtor_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2902,8 +2868,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
         (dtor_map_coinductN, [dtor_map_coinduct_thm]),
-        (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
-        (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
         (rel_coinductN, [Jrel_coinduct_thm]),
         (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
         |> map (fn (thmN, thms) =>
@@ -2933,7 +2897,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     timer;
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors,
       xtor_co_iterss = transpose [unfolds, corecs],
-      xtor_co_inducts = [dtor_coinduct_thm, dtor_strong_coinduct_thm], dtor_ctors = dtor_ctor_thms,
+      xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       xtor_map_thms = folded_dtor_map_thms, xtor_set_thmss = folded_dtor_set_thmss',
       xtor_rel_thms = dtor_Jrel_thms,

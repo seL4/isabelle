@@ -147,6 +147,12 @@ lemma fun_rel_def_butlast:
   "(fun_rel R (fun_rel S T)) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"
   unfolding fun_rel_def ..
 
+lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<forall>a. P a a)"
+  by auto
+
+lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
+  by auto
+
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"

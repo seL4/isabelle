@@ -881,7 +881,7 @@ fun strip_blanks [] = []
 
 val scan_nat =
   Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
-  >> (the o Int.fromString o space_implode "")
+  >> (the o Int.fromString o implode)
 val scan_rel_name =
   ($$ "s" |-- scan_nat >> pair 1
    || $$ "r" |-- scan_nat >> pair 2

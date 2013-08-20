@@ -39,12 +39,8 @@ sig
   val mk_corec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
     tactic
   val mk_dtor_map_coinduct_tac: int -> int list -> thm -> thm -> tactic
-  val mk_dtor_map_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
-    thm -> thm -> tactic
   val mk_dtor_set_tac: int -> thm -> thm -> thm list -> tactic
   val mk_dtor_coinduct_tac: int -> thm -> thm -> thm list -> tactic
-  val mk_dtor_strong_coinduct_tac: Proof.context -> int -> ctyp option list ->
-    cterm option list -> thm -> thm list -> thm list -> tactic
   val mk_dtor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
@@ -991,18 +987,6 @@ fun mk_dtor_coinduct_tac m raw_coind bis_rel rel_congs =
     CONJ_WRAP' (K (EVERY' [rtac impI, rtac @{thm IdD}, etac set_mp,
       rtac CollectI, etac @{thm prod_caseI}])) rel_congs] 1;
 
-fun mk_dtor_strong_coinduct_tac ctxt m cTs cts dtor_coinduct rel_monos rel_eqs =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_coinduct),
-    EVERY' (map2 (fn rel_mono => fn rel_eq =>
-      EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], REPEAT_DETERM o etac allE,
-        etac disjE, etac mp, atac, hyp_subst_tac ctxt, rtac (rel_mono RS @{thm predicate2D}),
-        REPEAT_DETERM_N m o rtac @{thm order_refl},
-        REPEAT_DETERM_N (length rel_monos) o rtac @{thm eq_subset},
-        rtac (rel_eq RS sym RS @{thm eq_refl} RS @{thm predicate2D}), rtac refl])
-    rel_monos rel_eqs),
-    rtac impI, REPEAT_DETERM o etac conjE,
-    CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) rel_eqs] 1;
-
 fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
   let
     val n = length ks;
@@ -1023,20 +1007,6 @@ fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
         rtac @{thm subst[OF pair_in_Id_conv]}, etac set_mp,
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
-
-fun mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def bis_Id_on =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_map_coinduct),
-    EVERY' (map (fn i =>
-      EVERY' [etac disjE, REPEAT_DETERM o dtac @{thm meta_spec}, etac meta_mp,
-        atac, rtac rev_mp, rtac subst, rtac bis_def, rtac bis_Id_on,
-        rtac impI, dtac conjunct2, dtac (mk_conjunctN (length ks) i), REPEAT_DETERM o etac allE,
-        etac impE, etac @{thm Id_on_UNIV_I}, REPEAT_DETERM o eresolve_tac [bexE, conjE, CollectE],
-        rtac exI, rtac conjI, etac conjI, atac,
-        CONJ_WRAP' (K (EVERY' [REPEAT_DETERM o resolve_tac [allI, impI],
-          rtac disjI2, rtac @{thm Id_onD}, etac set_mp, atac])) ks])
-    ks),
-    rtac impI, REPEAT_DETERM o etac conjE,
-    CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) ks] 1;
 
 fun mk_map_tac m n cT unfold map_comp' map_cong0 =
   EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (o_apply RS trans RS sym),

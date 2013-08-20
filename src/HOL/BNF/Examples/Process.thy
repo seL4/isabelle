@@ -8,7 +8,7 @@ Processes.
 header {* Processes *}
 
 theory Process
-imports "../BNF"
+imports Stream 
 begin
 
 codatatype 'a process =
@@ -38,81 +38,31 @@ by (cases rule: process.exhaust[of p]) auto
 subsection{* Coinduction *}
 
 theorem process_coind[elim, consumes 1, case_names iss Action Choice, induct pred: "HOL.eq"]:
-assumes phi: "\<phi> p p'" and
-iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow> isAction p') \<and> (isChoice p \<longleftrightarrow> isChoice p')" and
-Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> \<phi> p p'" and
-Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<phi> p p' \<and> \<phi> q q'"
-shows "p = p'"
-proof(intro mp[OF process.dtor_coinduct, of \<phi>, OF _ phi], clarify)
-  fix p p'  assume \<phi>: "\<phi> p p'"
-  show "pre_process_rel (op =) \<phi> (process_dtor p) (process_dtor p')"
-  proof(cases rule: process.exhaust[of p])
-    case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
-    have 0: "a = a' \<and> \<phi> q q'" using Act[OF \<phi>[unfolded p p']] .
-    have dtor: "process_dtor p = Inl (a,q)" "process_dtor p' = Inl (a',q')"
-    unfolding p p' Action_def process.dtor_ctor by simp_all
-    show ?thesis using 0 unfolding dtor by simp
-  next
-    case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
-    then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process.exhaust[of p'], auto)
-    have 0: "\<phi> p1 p1' \<and> \<phi> p2 p2'" using Ch[OF \<phi>[unfolded p p']] .
-    have dtor: "process_dtor p = Inr (p1,p2)" "process_dtor p' = Inr (p1',p2')"
-    unfolding p p' Choice_def process.dtor_ctor by simp_all
-    show ?thesis using 0 unfolding dtor by simp
-  qed
-qed
+  assumes phi: "\<phi> p p'" and
+  iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow> isAction p') \<and> (isChoice p \<longleftrightarrow> isChoice p')" and
+  Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> \<phi> p p'" and
+  Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<phi> p p' \<and> \<phi> q q'"
+  shows "p = p'"
+  using assms
+  by (coinduct rule: process.coinduct) (metis process.collapse(1,2) process.discs(3))
 
 (* Stronger coinduction, up to equality: *)
 theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
-assumes phi: "\<phi> p p'" and
-iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow> isAction p') \<and> (isChoice p \<longleftrightarrow> isChoice p')" and
-Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> (\<phi> p p' \<or> p = p')" and
-Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
-shows "p = p'"
-proof(intro mp[OF process.dtor_strong_coinduct, of \<phi>, OF _ phi], clarify)
-  fix p p'  assume \<phi>: "\<phi> p p'"
-  show "pre_process_rel (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_dtor p) (process_dtor p')"
-  proof(cases rule: process.exhaust[of p])
-    case (Action a q) note p = Action
-    hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
-    then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
-    have 0: "a = a' \<and> (\<phi> q q' \<or> q = q')" using Act[OF \<phi>[unfolded p p']] .
-    have dtor: "process_dtor p = Inl (a,q)" "process_dtor p' = Inl (a',q')"
-    unfolding p p' Action_def process.dtor_ctor by simp_all
-    show ?thesis using 0 unfolding dtor by simp
-  next
-    case (Choice p1 p2) note p = Choice
-    hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
-    then obtain p1' p2' where p': "p' = Choice p1' p2'"
-    by (cases rule: process.exhaust[of p'], auto)
-    have 0: "(\<phi> p1 p1' \<or> p1 = p1') \<and> (\<phi> p2 p2' \<or> p2 = p2')" using Ch[OF \<phi>[unfolded p p']] .
-    have dtor: "process_dtor p = Inr (p1,p2)" "process_dtor p' = Inr (p1',p2')"
-    unfolding p p' Choice_def process.dtor_ctor by simp_all
-    show ?thesis using 0 unfolding dtor by simp
-  qed
-qed
+  assumes phi: "\<phi> p p'" and
+  iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow> isAction p') \<and> (isChoice p \<longleftrightarrow> isChoice p')" and
+  Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> (\<phi> p p' \<or> p = p')" and
+  Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
+  shows "p = p'"
+  using assms
+  by (coinduct rule: process.strong_coinduct) (metis process.collapse(1,2) process.discs(3))
 
 
 subsection {* Coiteration (unfold) *}
 
 
 section{* Coinductive definition of the notion of trace *}
-
-(* Say we have a type of streams: *)
-
-typedecl 'a stream
-
-consts Ccons :: "'a \<Rightarrow> 'a stream \<Rightarrow> 'a stream"
-
-(* Use the existing coinductive package (distinct from our
-new codatatype package, but highly compatible with it): *)
-
 coinductive trace where
-"trace p as \<Longrightarrow> trace (Action a p) (Ccons a as)"
+"trace p as \<Longrightarrow> trace (Action a p) (a ## as)"
 |
 "trace p as \<or> trace q as \<Longrightarrow> trace (Choice p q) as"
 

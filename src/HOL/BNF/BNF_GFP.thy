@@ -70,9 +70,6 @@ unfolding Id_on_def by auto
 lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarrow> (b, c) \<in> image2 A f g"
 unfolding image2_def by auto
 
-lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
-by auto
-
 lemma IdD: "(a, b) \<in> Id \<Longrightarrow> a = b"
 by auto
 
