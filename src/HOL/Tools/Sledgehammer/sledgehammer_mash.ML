@@ -145,7 +145,7 @@ fun write_file banner (xs, f) path =
    xs |> chunk_list 500 |> List.app (File.append path o implode o map f))
   handle IO.Io _ => ()
 
-fun run_mash_tool ctxt overlord save write_cmds read_suggs =
+fun run_mash_tool ctxt overlord write_cmds read_suggs =
   let
     val (temp_dir, serial) =
       if overlord then (getenv "ISABELLE_HOME_USER", "")
@@ -157,10 +157,7 @@ fun run_mash_tool ctxt overlord save write_cmds read_suggs =
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
     val cmd_path = Path.explode cmd_file
     val model_dir = File.shell_path (mash_model_dir ())
-    val core =
-      "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
-      " --numberOfPredictions " ^ string_of_int max_suggs ^
-      (if save then " --saveModel" else "")
+    val core = "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file
     val command =
       "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
       "./mash.py --quiet" ^
@@ -262,17 +259,17 @@ fun learn _ _ [] = ()
   | learn ctxt overlord learns =
     (trace_msg ctxt (fn () => "MaSh learn " ^
          elide_string 1000 (space_implode " " (map #1 learns)));
-     run_mash_tool ctxt overlord true (learns, str_of_learn) (K ()))
+     run_mash_tool ctxt overlord (learns, str_of_learn) (K ()))
 
 fun relearn _ _ [] = ()
   | relearn ctxt overlord relearns =
     (trace_msg ctxt (fn () => "MaSh relearn " ^
          elide_string 1000 (space_implode " " (map #1 relearns)));
-     run_mash_tool ctxt overlord true (relearns, str_of_relearn) (K ()))
+     run_mash_tool ctxt overlord (relearns, str_of_relearn) (K ()))
 
 fun query ctxt overlord max_suggs (query as (learns, hints, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
-   run_mash_tool ctxt overlord false ([query], str_of_query max_suggs)
+   run_mash_tool ctxt overlord ([query], str_of_query max_suggs)
        (fn suggs =>
            case suggs () of
              [] => []
