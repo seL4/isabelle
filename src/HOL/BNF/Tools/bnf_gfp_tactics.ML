@@ -41,8 +41,6 @@ sig
   val mk_dtor_map_coinduct_tac: int -> int list -> thm -> thm -> tactic
   val mk_dtor_set_tac: int -> thm -> thm -> thm list -> tactic
   val mk_dtor_coinduct_tac: int -> thm -> thm -> thm list -> tactic
-  val mk_dtor_strong_coinduct_tac: Proof.context -> int -> ctyp option list ->
-    cterm option list -> thm -> thm list -> thm list -> tactic
   val mk_dtor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
@@ -988,18 +986,6 @@ fun mk_dtor_coinduct_tac m raw_coind bis_rel rel_congs =
     rtac impI, REPEAT_DETERM o etac conjE,
     CONJ_WRAP' (K (EVERY' [rtac impI, rtac @{thm IdD}, etac set_mp,
       rtac CollectI, etac @{thm prod_caseI}])) rel_congs] 1;
-
-fun mk_dtor_strong_coinduct_tac ctxt m cTs cts dtor_coinduct rel_monos rel_eqs =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_coinduct),
-    EVERY' (map2 (fn rel_mono => fn rel_eq =>
-      EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], REPEAT_DETERM o etac allE,
-        etac disjE, etac mp, atac, hyp_subst_tac ctxt, rtac (rel_mono RS @{thm predicate2D}),
-        REPEAT_DETERM_N m o rtac @{thm order_refl},
-        REPEAT_DETERM_N (length rel_monos) o rtac @{thm eq_subset},
-        rtac (rel_eq RS sym RS @{thm eq_refl} RS @{thm predicate2D}), rtac refl])
-    rel_monos rel_eqs),
-    rtac impI, REPEAT_DETERM o etac conjE,
-    CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) rel_eqs] 1;
 
 fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
   let
