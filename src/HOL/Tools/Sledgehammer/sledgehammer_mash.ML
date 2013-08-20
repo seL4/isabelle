@@ -160,14 +160,13 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
-      (* " --learnTheories" ^ *) (if save then " --saveModel" else "")
+      (if save then " --saveModel" else "")
     val command =
       "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
       "./mash.py --quiet" ^
       " --outputDir " ^ model_dir ^
       " --modelFile=" ^ model_dir ^ "/model.pickle" ^
       " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
-      " --theoryFile=" ^ model_dir ^ "/theory.pickle" ^
       " --log " ^ log_file ^ " " ^ core ^
       " >& " ^ err_file
     fun run_on () =
@@ -232,8 +231,7 @@ fun str_of_query (learns, hints, parents, feats) =
   "? " ^ encode_strs parents ^ "; " ^ encode_features feats ^
   (if null hints then "" else "; " ^ encode_strs hints) ^ "\n"
 
-(* The weights currently returned by "mash.py" are too spaced out to make any
-   sense. *)
+(* The suggested weights don't make much sense. *)
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
     [name, _ (* weight *)] =>
