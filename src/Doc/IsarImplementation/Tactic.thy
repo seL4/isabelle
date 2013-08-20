@@ -336,13 +336,15 @@ text %mlref {*
   \item @{ML match_tac}, @{ML ematch_tac}, @{ML dmatch_tac}, and @{ML
   bimatch_tac} are similar to @{ML resolve_tac}, @{ML eresolve_tac},
   @{ML dresolve_tac}, and @{ML biresolve_tac}, respectively, but do
-  not instantiate schematic variables in the goal state.
+  not instantiate schematic variables in the goal state.%
+\footnote{Strictly speaking, matching means to treat the unknowns in the goal
+  state as constants, but these tactics merely discard unifiers that would
+  update the goal state. In rare situations (where the conclusion and 
+  goal state have flexible terms at the same position), the tactic
+  will fail even though an acceptable unifier exists.}
+  These tactics were written for a specific application within the classical reasoner.
 
   Flexible subgoals are not updated at will, but are left alone.
-  Strictly speaking, matching means to treat the unknowns in the goal
-  state as constants; these tactics merely discard unifiers that would
-  update the goal state.
-
   \end{description}
 *}
 
