@@ -664,20 +664,22 @@ where
 
 subsection {* Definition of merge function *}
 
-definition merge' :: "(('a::{heap, ord}) node ref * ('a::{heap, ord})) * ('a::{heap, ord}) node ref * ('a::{heap, ord}) node ref \<Rightarrow> ('a::{heap, ord}) node ref Heap"
+partial_function (heap) merge :: "('a::{heap, ord}) node ref \<Rightarrow> 'a node ref \<Rightarrow> 'a node ref Heap"
 where
-"merge' = MREC (\<lambda>(_, p, q). do { v \<leftarrow> !p; w \<leftarrow> !q;
-  (case v of Empty \<Rightarrow> return (Inl q)
+[code]: "merge p q = (do { v \<leftarrow> !p; w \<leftarrow> !q;
+  (case v of Empty \<Rightarrow> return q
           | Node valp np \<Rightarrow>
-            (case w of Empty \<Rightarrow> return (Inl p)
+            (case w of Empty \<Rightarrow> return p
                      | Node valq nq \<Rightarrow>
-                       if (valp \<le> valq) then
-                         return (Inr ((p, valp), np, q))
-                       else
-                         return (Inr ((q, valq), p, nq)))) })
- (\<lambda> _ ((n, v), _, _) r. do { n := Node v r; return n })"
+                       if (valp \<le> valq) then do {
+                         npq \<leftarrow> merge np q;
+                         p := Node valp npq;
+                         return p }
+                       else do {
+                         pnq \<leftarrow> merge p nq;
+                         q := Node valq pnq;
+                         return q }))})"
 
-definition merge where "merge p q = merge' (undefined, p, q)"
 
 lemma if_return: "(if P then return x else return y) = return (if P then x else y)"
 by auto
@@ -692,45 +694,6 @@ by auto
 
 lemma sum_distrib: "sum_case fl fr (case x of Empty \<Rightarrow> y | Node v n \<Rightarrow> (z v n)) = (case x of Empty \<Rightarrow> sum_case fl fr y | Node v n \<Rightarrow> sum_case fl fr (z v n))"
 by (cases x) auto
-
-lemma merge: "merge' (x, p, q) = merge p q"
-unfolding merge'_def merge_def
-apply (simp add: MREC_rule) done
-term "Ref.change"
-lemma merge_simps [code]:
-shows "merge p q =
-do { v \<leftarrow> !p;
-   w \<leftarrow> !q;
-   (case v of node.Empty \<Rightarrow> return q
-    | Node valp np \<Rightarrow>
-        case w of node.Empty \<Rightarrow> return p
-        | Node valq nq \<Rightarrow>
-            if valp \<le> valq then do { r \<leftarrow> merge np q;
-                                   p := (Node valp r);
-                                   return p
-                                }
-            else do { r \<leftarrow> merge p nq;
-                    q := (Node valq r);
-                    return q
-                 })
-}"
-proof -
-  {fix v x y
-    have case_return: "(case v of Empty \<Rightarrow> return x | Node v n \<Rightarrow> return (y v n)) = return (case v of Empty \<Rightarrow> x | Node v n \<Rightarrow> y v n)" by (cases v) auto
-    } note case_return = this
-show ?thesis
-unfolding merge_def[of p q] merge'_def
-apply (simp add: MREC_rule[of _ _ "(undefined, p, q)"])
-unfolding bind_bind return_bind
-unfolding merge'_def[symmetric]
-unfolding if_return case_return bind_bind return_bind sum_distrib sum.cases
-unfolding if_distrib[symmetric, where f="Inr"]
-unfolding sum.cases
-unfolding if_distrib
-unfolding split_beta fst_conv snd_conv
-unfolding if_distrib_App redundant_if merge
-..
-qed
 
 subsection {* Induction refinement by applying the abstraction function to our induct rule *}
 
@@ -800,13 +763,13 @@ using assms(3)
 proof (induct arbitrary: h' r rule: merge_induct2[OF assms(1) assms(2)])
   case (1 ys p q)
   from 1(3-4) have "h = h' \<and> r = q"
-    unfolding merge_simps[of p q]
+    unfolding merge.simps[of p q]
     by (auto elim!: effect_lookupE effect_bindE effect_returnE)
   with assms(4)[OF 1(1) 1(2) 1(3)] show ?case by simp
 next
   case (2 x xs' p q pn)
   from 2(3-5) have "h = h' \<and> r = p"
-    unfolding merge_simps[of p q]
+    unfolding merge.simps[of p q]
     by (auto elim!: effect_lookupE effect_bindE effect_returnE)
   with assms(5)[OF 2(1-4)] show ?case by simp
 next
@@ -814,7 +777,7 @@ next
   from 3(3-5) 3(7) obtain h1 r1 where
     1: "effect (merge pn q) h h1 r1" 
     and 2: "h' = Ref.set p (Node x r1) h1 \<and> r = p"
-    unfolding merge_simps[of p q]
+    unfolding merge.simps[of p q]
     by (auto elim!: effect_lookupE effect_bindE effect_returnE effect_ifE effect_updateE)
   from 3(6)[OF 1] assms(6) [OF 3(1-5)] 1 2 show ?case by simp
 next
@@ -822,7 +785,7 @@ next
   from 4(3-5) 4(7) obtain h1 r1 where
     1: "effect (merge p qn) h h1 r1" 
     and 2: "h' = Ref.set q (Node y r1) h1 \<and> r = q"
-    unfolding merge_simps[of p q]
+    unfolding merge.simps[of p q]
     by (auto elim!: effect_lookupE effect_bindE effect_returnE effect_ifE effect_updateE)
   from 4(6)[OF 1] assms(7) [OF 4(1-5)] 1 2 show ?case by simp
 qed
