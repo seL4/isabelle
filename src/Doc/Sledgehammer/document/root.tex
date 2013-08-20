@@ -504,16 +504,6 @@ If the goal is actually unprovable and you did not specify an unsound encoding
 using \textit{type\_enc} (\S\ref{problem-encoding}), this is a bug, and you are
 strongly encouraged to report this to the author at \authoremail.
 
-%\point{Why are the generated Isar proofs so ugly/broken?}
-%
-%The current implementation of the Isar proof feature,
-%enabled by the \textit{isar\_proofs} option (\S\ref{output-format}),
-%is experimental. Work on a new implementation has begun. There is a large body of
-%research into transforming resolution proofs into natural deduction proofs (such
-%as Isar proofs), which we hope to leverage. In the meantime, a workaround is to
-%set the \textit{isar\_compress} option (\S\ref{output-format}) to a larger
-%value or to try several provers and keep the nicest-looking proof.
-
 \point{How can I tell whether a suggested proof is sound?}
 
 Earlier versions of Sledgehammer often suggested unsound proofs---either proofs
@@ -633,8 +623,7 @@ about.
 
 Sledgehammer's philosophy should work out of the box, without user guidance.
 Many of the options are meant to be used mostly by the Sledgehammer developers
-for experimentation purposes. Of course, feel free to experiment with them if
-you are so inclined.
+for experiments. Of course, feel free to try them out if you are so inclined.
 
 \section{Command Syntax}
 \label{command-syntax}
@@ -852,10 +841,10 @@ the \texttt{agsyHOL} executable. Sledgehammer has been tested with version 1.0.
 \item[\labelitemi] \textbf{\textit{alt\_ergo}:} Alt-Ergo is a polymorphic
 ATP developed by Bobot et al.\ \cite{alt-ergo}.
 It supports the TPTP polymorphic typed first-order format (TFF1) via Why3
-\cite{why3}. It is included for experimental purposes. To use Alt-Ergo, set the
-environment variable \texttt{WHY3\_HOME} to the directory that contains the
-\texttt{why3} executable. Sledgehammer has been tested with Alt-Ergo 0.95.1 and
-an unidentified development version of Why3.
+\cite{why3}. To use Alt-Ergo, set the environment variable \texttt{WHY3\_HOME}
+to the directory that contains the \texttt{why3} executable. Sledgehammer has
+been tested with Alt-Ergo 0.95.1 and an unidentified development version of
+Why3.
 
 \item[\labelitemi] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
 Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
@@ -1071,10 +1060,10 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The memoryful MaSh machine learner. MaSh relies on the external Python program
-\texttt{mash.py}, which is part of Isabelle. To enable MaSh, set the environment
-variable \texttt{MASH} to \texttt{yes}. Persistent data is stored in the
-directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
+The experimental, memoryful MaSh machine learner. MaSh relies on the external
+Python program \texttt{mash.py}, which is part of Isabelle. To enable MaSh, set
+the environment variable \texttt{MASH} to \texttt{yes}. Persistent data is
+stored in the directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
