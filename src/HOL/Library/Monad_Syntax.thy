@@ -15,7 +15,7 @@ text {*
 *}
 
 consts
-  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c" (infixr ">>=" 54)
+  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd" (infixr ">>=" 54)
 
 notation (xsymbols)
   bind (infixr "\<guillemotright>=" 54)
@@ -24,7 +24,7 @@ notation (latex output)
   bind (infixr "\<bind>" 54)
 
 abbreviation (do_notation)
-  bind_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c"
+  bind_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'd"
 where
   "bind_do \<equiv> bind"
 
@@ -46,14 +46,14 @@ syntax
   "_do_then" :: "'a \<Rightarrow> do_bind" ("_" [14] 13)
   "_do_final" :: "'a \<Rightarrow> do_binds" ("_")
   "_do_cons" :: "[do_bind, do_binds] \<Rightarrow> do_binds" ("_;//_" [13, 12] 12)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'b" (infixr ">>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr ">>" 54)
 
 syntax (xsymbols)
   "_do_bind"  :: "[pttrn, 'a] \<Rightarrow> do_bind" ("(_ \<leftarrow>/ _)" 13)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'b" (infixr "\<guillemotright>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<guillemotright>" 54)
 
 syntax (latex output)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'b" (infixr "\<then>" 54)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixr "\<then>" 54)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
