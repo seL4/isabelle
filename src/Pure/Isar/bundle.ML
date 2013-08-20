@@ -61,7 +61,7 @@ fun gen_bundle prep_fact prep_att prep_vars (binding, raw_bundle) fixes lthy =
   let
     val (_, ctxt') = lthy |> prep_vars fixes |-> Proof_Context.add_fixes;
     val bundle0 = raw_bundle
-      |> map (fn (fact, atts) => (prep_fact lthy fact, map (prep_att lthy) atts));
+      |> map (fn (fact, atts) => (prep_fact ctxt' fact, map (prep_att ctxt') atts));
     val bundle =
       Attrib.partial_evaluation ctxt' [(Attrib.empty_binding, bundle0)] |> map snd |> flat
       |> transform_bundle (Proof_Context.export_morphism ctxt' lthy);
