@@ -2020,8 +2020,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val timer = time (timer "corec definitions & thms");
 
     (* TODO: Get rid of strong versions (since these can easily be derived from the weak ones). *)
-    val (dtor_map_coinduct_thm, coinduct_params, dtor_coinduct_thm,
-         dtor_map_strong_coinduct_thm, dtor_strong_coinduct_thm) =
+    val (dtor_map_coinduct_thm, coinduct_params, dtor_coinduct_thm, dtor_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2102,16 +2101,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             (fold_rev Logic.all zs (Logic.list_implies (rel_strong_prems, concl)))
             (K (mk_dtor_strong_coinduct_tac lthy m cTs cts dtor_coinduct rel_monos rel_eqs)))
           |> Thm.close_derivation;
-
-        val dtor_map_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all zs (Logic.list_implies (strong_prems, concl)))
-            (K (mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def
-              (tcoalg_thm RS bis_Id_on_thm))))
-          |> Thm.close_derivation;
       in
         (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []),
-         dtor_coinduct, dtor_map_strong_coinduct, dtor_strong_coinduct)
+         dtor_coinduct, dtor_strong_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2902,8 +2894,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
         (dtor_map_coinductN, [dtor_map_coinduct_thm]),
-        (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
-        (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
         (rel_coinductN, [Jrel_coinduct_thm]),
         (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
         |> map (fn (thmN, thms) =>
