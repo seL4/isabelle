@@ -147,7 +147,8 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             self.predict()
         elif self.data == '':
             # Empty Socket
-            pass
+            self.server.lock.release()
+            return
         elif self.data == 'avgStats':
             self.request.sendall(self.server.stats.printAvg())            
         else:

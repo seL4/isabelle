@@ -15,19 +15,10 @@ Created on July 12, 2012
 @author: Daniel Kuehlwein
 '''
 
-import socket,sys,time,logging
+import socket,sys,time,logging,os
+from os.path import realpath,dirname
 
 from spawnDaemon import spawnDaemon
-
-
-import logging,string,os,sys
-
-
-from theoryStats import TheoryStatistics
-from theoryModels import TheoryModels
-from dictionaries import Dictionaries
-from predefined import Predefined
-
 from parameters import init_parser
 
 def communicate(data,host,port):
@@ -44,10 +35,30 @@ def communicate(data,host,port):
         sock.close()    
     return received
 
+def start_server(host,port):
+    logger = logging.getLogger('start_server')
+    logger.info('Starting Server.')
+    path = dirname(realpath(__file__))
+    spawnDaemon(os.path.join(path,'server.py'))
+    serverIsUp=False
+    for _i in range(10):
+        # Test if server is up
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((host,port))       
+            sock.close()
+            serverIsUp = True
+            break
+        except:
+            time.sleep(0.5)
+    if not serverIsUp:
+        logger.error('Could not start server.')
+        sys.exit(-1)
+    return True
+
 def mash(argv = sys.argv[1:]):
     # Initializing command-line arguments
     args = init_parser(argv)
-    
     # Set up logging
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -58,7 +69,6 @@ def mash(argv = sys.argv[1:]):
 
     if args.quiet:
         logger.setLevel(logging.WARNING)
-        #console.setLevel(logging.WARNING)
     else:
         console = logging.StreamHandler(sys.stdout)
         console.setLevel(logging.INFO)
@@ -71,6 +81,7 @@ def mash(argv = sys.argv[1:]):
 
     # Shutdown commands need not start the server fist.
     if args.shutdownServer:
+        logger.info('Shutting down server.')
         try:
             communicate('shutdown',args.host,args.port)
         except:
@@ -84,11 +95,7 @@ def mash(argv = sys.argv[1:]):
         sock.connect((args.host,args.port))       
         sock.close()
     except:
-        logger.info('Starting Server.')
-        spawnDaemon('server.py')
-        # TODO: Make this fault tolerant
-        time.sleep(0.5)
-        startedServer = True
+        startedServer = start_server(args.host,args.port)
         
     if args.init or startedServer:
         logger.info('Initializing Server.')
@@ -102,7 +109,13 @@ def mash(argv = sys.argv[1:]):
     # IO Streams
     OS = open(args.predictions,'w')
     IS = open(args.inputFile,'r')
-    for line in IS:    
+    lineCount = 0
+    for line in IS:
+        lineCount += 1
+        if lineCount % 100 == 0:
+            logger.info('On line %s', lineCount)
+        #if lineCount == 50: ###
+        #    break       
         received = communicate(line,args.host,args.port)
         if not received == '':
             OS.write('%s\n' % received)
