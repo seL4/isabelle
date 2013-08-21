@@ -40,8 +40,8 @@ structure Data = Generic_Data
   type T =
     { transfer_raw : thm Item_Net.T,
       known_frees : (string * typ) list,
-      compound_lhs : unit Net.net,
-      compound_rhs : unit Net.net,
+      compound_lhs : term Net.net,
+      compound_rhs : term Net.net,
       relator_eq : thm Item_Net.T,
       relator_eq_raw : thm Item_Net.T,
       relator_domain : thm Item_Net.T }
@@ -122,12 +122,12 @@ fun add_transfer_thm thm = Data.map
    map_compound_lhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
         Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
-          Net.insert_term_safe (K true) (lhs, ())
+          Net.insert_term_safe (K true) (lhs, lhs)
       | _ => I) o
    map_compound_rhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
         Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
-          Net.insert_term_safe (K true) (rhs, ())
+          Net.insert_term_safe (K true) (rhs, rhs)
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
@@ -491,10 +491,13 @@ fun bool_insts p (t, u) =
     map_filter f (Symtab.dest tab)
   end
 
+fun matches_list ctxt term = 
+   exists (equal true) o map (fn pat => Pattern.matches (Proof_Context.theory_of ctxt) (pat, term))
+
 fun transfer_rule_of_term ctxt equiv t : thm =
   let
     val compound_rhs = get_compound_rhs ctxt
-    val is_rhs = not o null o Net.unify_term compound_rhs
+    fun is_rhs t = (matches_list ctxt t o Net.unify_term compound_rhs) t
     val s = skeleton is_rhs ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
@@ -519,7 +522,7 @@ fun transfer_rule_of_term ctxt equiv t : thm =
 fun transfer_rule_of_lhs ctxt t : thm =
   let
     val compound_lhs = get_compound_lhs ctxt
-    val is_lhs = not o null o Net.unify_term compound_lhs
+    fun is_lhs t = (matches_list ctxt t o Net.unify_term compound_lhs) t
     val s = skeleton is_lhs ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
