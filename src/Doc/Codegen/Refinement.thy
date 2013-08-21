@@ -264,6 +264,9 @@ text %quotetypewriter {*
 *}
 
 text {*
+  See further \cite{Haftmann-Kraus-Kuncar-Nipkow:2013:data_refinement}
+  for the meta theory of datatype refinement involving invariants.
+
   Typical data structures implemented by representations involving
   invariants are available in the library, theory @{theory Mapping}
   specifies key-value-mappings (type @{typ "('a, 'b) mapping"});
