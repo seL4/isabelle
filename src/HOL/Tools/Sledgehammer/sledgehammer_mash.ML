@@ -941,39 +941,9 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
               val hints =
                 chained |> filter (is_fact_in_graph access_G o snd)
                         |> map (nickname_of_thm o snd)
-              val (learns, parents) =
-                if length facts - num_known_facts <= max_learn_on_query then
-                  let
-                    val name_tabs = build_name_tables nickname_of_thm facts
-                    fun deps_of status th =
-                      if no_dependencies_for_status status then
-                        SOME []
-                      else
-                        isar_dependencies_of name_tabs th
-                        |> trim_dependencies
-                    fun learn_new_fact (parents,
-                                        ((_, stature as (_, status)), th)) =
-                      let
-                        val name = nickname_of_thm th
-                        val feats =
-                          features_of ctxt prover (theory_of_thm th) stature
-                                      [prop_of th]
-                        val deps = deps_of status th |> these
-                      in (name, parents, feats, deps) end
-                    val new_facts =
-                      facts |> filter_out (is_fact_in_graph access_G o snd)
-                            |> sort (crude_thm_ord o pairself snd)
-                            |> attach_crude_parents_to_facts parents
-                    val learns = new_facts |> map learn_new_fact
-                    val parents =
-                      if null new_facts then parents
-                      else [#1 (List.last learns)]
-                  in (learns, parents) end
-                else
-                  ([], parents)
             in
               (access_G, MaSh.query ctxt overlord max_facts
-                                    (learns, hints, parents, feats))
+                                    ([], hints, parents, feats))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G o snd)
   in
