@@ -16,9 +16,6 @@ sig
   val trace : bool Config.T
   val pseudo_abs_name : string
   val pseudo_skolem_prefix : string
-  val const_names_in_fact :
-    theory -> (string * typ -> term list -> bool * term list) -> term
-    -> string list
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> raw_fact list -> fact list
@@ -181,8 +178,6 @@ fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
                                                    (SOME true) t) []
-
-val const_names_in_fact = map fst ooo pconsts_in_fact
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)

@@ -62,8 +62,8 @@ sig
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
   val features_of :
-    Proof.context -> string -> theory -> stature -> term list
-    -> (string * real) list
+    Proof.context -> string -> theory -> int -> int Symtab.table -> stature
+    -> term list -> (string * real) list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of :
     string Symtab.table * string Symtab.table -> thm -> string list
@@ -78,6 +78,7 @@ sig
   val find_mash_suggestions :
     Proof.context -> int -> string list -> ('b * thm) list -> ('b * thm) list
     -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
+  val add_const_counts : term -> int Symtab.table -> int Symtab.table
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
     -> raw_fact list -> fact list * fact list
@@ -517,6 +518,15 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
+fun weighted_const_feature_of num_facts const_tab const_s s =
+  ("c" ^ s,
+   if num_facts = 0 then
+     0.0
+   else
+     let val count = Symtab.lookup const_tab const_s |> the_default 0 in
+       16.0 + (Real.fromInt num_facts / Real.fromInt count)
+     end)
+
 (* The following "crude" functions should be progressively phased out, since
    they create visibility edges that do not exist in Isabelle, resulting in
    failed lookups later on. *)
@@ -588,7 +598,8 @@ fun crude_str_of_typ (Type (s, [])) = massage_long_name s
 
 val max_pat_breadth = 10
 
-fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
+fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
+                     type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
 
@@ -657,9 +668,10 @@ fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
     fun add_term Ts feature_of = add_term_pats Ts feature_of term_max_depth
     fun add_subterms Ts t =
       case strip_comb t of
-        (Const (x as (_, T)), args) =>
+        (Const (x as (s, T)), args) =>
         let val (built_in, args) = is_built_in x args in
-          (not built_in ? add_term Ts const_feature_of t)
+          (not built_in
+             ? add_term Ts (weighted_const_feature_of num_facts const_tab s) t)
           #> add_subtypes T
           #> fold (add_subterms Ts) args
         end
@@ -678,10 +690,11 @@ val term_max_depth = 2
 val type_max_depth = 2
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt prover thy (scope, status) ts =
+fun features_of ctxt prover thy num_facts const_tab (scope, status) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    term_features_of ctxt prover thy_name term_max_depth type_max_depth ts
+    term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
+                     type_max_depth ts
     |> status <> General ? cons (status_feature_of status)
     |> scope <> Global ? cons local_feature
     |> exists (not o is_lambda_free) ts ? cons lams_feature
@@ -922,22 +935,26 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
                 [unknown_chained, proximity]
     in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
 
-val max_learn_on_query = 500
+fun add_const_counts t =
+  fold (fn s => Symtab.map_default (s, ~1) (Integer.add 1))
+       (Term.add_const_names t [])
 
-fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
-                         hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
+                         concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
+    val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
     val (access_G, suggs) =
-      peek_state ctxt (fn {access_G, num_known_facts, ...} =>
+      peek_state ctxt (fn {access_G, ...} =>
           if Graph.is_empty access_G then
             (access_G, [])
           else
             let
               val parents = maximal_wrt_access_graph access_G facts
               val feats =
-                features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
+                features_of ctxt prover thy (length facts) const_tab
+                            (Local, General) (concl_t :: hyp_ts)
               val hints =
                 chained |> filter (is_fact_in_graph access_G o snd)
                         |> map (nickname_of_thm o snd)
@@ -989,7 +1006,9 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
       let
         val thy = Proof_Context.theory_of ctxt
         val name = freshish_name ()
-        val feats = features_of ctxt prover thy (Local, General) [t] |> map fst
+        val feats =
+          features_of ctxt prover thy 0 Symtab.empty (Local, General) [t]
+          |> map fst
       in
         peek_state ctxt (fn {access_G, ...} =>
             let
@@ -1086,7 +1105,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             let
               val name = nickname_of_thm th
               val feats =
-                features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+                features_of ctxt prover (theory_of_thm th) 0 Symtab.empty
+                            stature [prop_of th]
                 |> map fst
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1

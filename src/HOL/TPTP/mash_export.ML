@@ -79,9 +79,11 @@ fun generate_features ctxt prover thys file_name =
       let
         val name = nickname_of_thm th
         val feats =
-          features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+          features_of ctxt prover (theory_of_thm th) 0 Symtab.empty stature
+                      [prop_of th]
+          |> map fst
         val s =
-          encode_str name ^ ": " ^ encode_features (sort_wrt fst feats) ^ "\n"
+          encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -152,15 +154,19 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
+    val num_old_facts = length old_facts
     val name_tabs = build_name_tables nickname_of_thm facts
-    fun do_fact (j, ((name, (parents, ((_, stature), th))), prevs)) =
+    fun do_fact (j,
+            (((name, (parents, ((_, stature), th))), prevs), const_tab)) =
       if in_range range j then
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
-          val feats =
-            features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-            |> sort_wrt fst
           val isar_deps = isar_dependencies_of name_tabs th
+          val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
+          val feats =
+            features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
+                        const_tab stature [prop_of th]
+            |> sort_wrt fst
           val access_facts =
             (if linearize then take (j - 1) new_facts
              else new_facts |> filter_accessible_from th) @ old_facts
@@ -169,12 +175,12 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                                   (SOME isar_deps)
           val parents = if linearize then prevs else parents
           val query =
-            if is_bad_query ctxt ho_atp step j th isar_deps then
-              ""
-            else
+            if do_query then
               "? " ^ string_of_int max_suggs ^ " # " ^
               encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
               encode_features feats ^ "\n"
+            else
+              ""
           val update =
             "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
             encode_strs (map fst feats) ^ "; " ^ marker ^ " " ^
@@ -187,8 +193,14 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                 |> map (`(nickname_of_thm o snd o snd))
     val hd_prevs =
       map (nickname_of_thm o snd) (the_list (try List.last old_facts))
-    val prevss = fst (split_last (hd_prevs :: map (single o fst) new_facts))
-    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss))
+    val prevss = hd_prevs :: map (single o fst) new_facts |> split_last |> fst
+    val hd_const_tabs =
+      fold (add_const_counts o prop_of o snd) old_facts Symtab.empty
+    val (const_tabs, _) =
+      fold_map (`I oo add_const_counts o prop_of o snd o snd o snd) new_facts
+               hd_const_tabs
+    val lines =
+      Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss ~~ const_tabs))
   in File.write_list path lines end
 
 fun generate_isar_commands ctxt prover =
