@@ -216,6 +216,8 @@ fun encode_feature (name, weight) =
 
 val encode_features = map encode_feature #> space_implode " "
 
+val str_of_saveless_shutdown = "S\n"
+
 fun str_of_learn (name, parents, feats, deps) =
   "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
   encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
@@ -249,6 +251,7 @@ struct
 fun unlearn ctxt =
   let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh unlearn");
+    run_mash_tool ctxt false ([()], K str_of_saveless_shutdown);
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
