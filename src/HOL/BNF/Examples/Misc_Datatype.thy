@@ -1,15 +1,15 @@
-(*  Title:      HOL/BNF/Examples/Misc_Data.thy
+(*  Title:      HOL/BNF/Examples/Misc_Datatype.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013
 
-Miscellaneous datatype declarations.
+Miscellaneous datatype definitions.
 *)
 
-header {* Miscellaneous Datatype Declarations *}
+header {* Miscellaneous Datatype Definitions *}
 
-theory Misc_Data
+theory Misc_Datatype
 imports "../BNF"
 begin
 

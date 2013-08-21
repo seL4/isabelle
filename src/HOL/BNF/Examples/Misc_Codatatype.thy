@@ -1,15 +1,15 @@
-(*  Title:      HOL/BNF/Examples/Misc_Codata.thy
+(*  Title:      HOL/BNF/Examples/Misc_Codatatype.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013
 
-Miscellaneous codatatype declarations.
+Miscellaneous codatatype definitions.
 *)
 
-header {* Miscellaneous Codatatype Declarations *}
+header {* Miscellaneous Codatatype Definitions *}
 
-theory Misc_Codata
+theory Misc_Codatatype
 imports "../BNF"
 begin
 

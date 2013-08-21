@@ -729,8 +729,8 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     "Derivation_Trees/Parallel"
     Koenig
   theories [condition = ISABELLE_FULL_TEST]
-    Misc_Codata
-    Misc_Data
+    Misc_Codatatype
+    Misc_Datatype
 
 session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
