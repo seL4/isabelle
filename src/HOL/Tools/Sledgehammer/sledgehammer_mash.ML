@@ -591,10 +591,12 @@ val crude_str_of_sort =
 
 fun crude_str_of_typ (Type (s, [])) = massage_long_name s
   | crude_str_of_typ (Type (s, Ts)) =
-    massage_long_name s ^
-    enclose "(" ")" (space_implode "," (map crude_str_of_typ Ts))
+    massage_long_name s ^ implode (map crude_str_of_typ Ts)
   | crude_str_of_typ (TFree (_, S)) = crude_str_of_sort S
   | crude_str_of_typ (TVar (_, S)) = crude_str_of_sort S
+
+fun maybe_singleton_str _ "" = []
+  | maybe_singleton_str pref s = [pref ^ s]
 
 val max_pat_breadth = 10
 
@@ -628,8 +630,10 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
           val ps = take max_pat_breadth (pattify_type depth T)
           val qs = take max_pat_breadth ("" :: pattify_type (depth - 1) U)
         in pass_args ps qs end
-      | pattify_type _ (TFree (_, S)) = [pat_tvar_prefix ^ crude_str_of_sort S]
-      | pattify_type _ (TVar (_, S)) = [pat_tvar_prefix ^ crude_str_of_sort S]
+      | pattify_type _ (TFree (_, S)) =
+        maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
+      | pattify_type _ (TVar (_, S)) =
+        maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
     fun add_type_pat depth T =
       union (op = o pairself fst) (map type_feature_of (pattify_type depth T))
     fun add_type_pats 0 _ = I
@@ -645,14 +649,15 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
       | pattify_term _ args _ (Const (x as (s, _))) =
         if fst (is_built_in x args) then [] else [massage_long_name s]
       | pattify_term _ _ _ (Free (s, T)) =
-        [pat_var_prefix ^ crude_str_of_typ T]
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
         |> (if member (op =) fixes s then
               cons (massage_long_name (thy_name ^ Long_Name.separator ^ s))
             else
               I)
-      | pattify_term _ _ _ (Var (_, T)) = [pat_var_prefix ^ crude_str_of_typ T]
+      | pattify_term _ _ _ (Var (_, T)) =
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
       | pattify_term Ts _ _ (Bound j) =
-        [pat_var_prefix ^ crude_str_of_typ (nth Ts j)]
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
       | pattify_term Ts args depth (t $ u) =
         let
           val ps = take max_pat_breadth (pattify_term Ts (u :: args) depth t)
