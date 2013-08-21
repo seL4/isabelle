@@ -22,7 +22,7 @@ def init_parser(argv):
     parser.add_argument('--depFile', default='mash_dependencies',
                         help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
     
-    parser.add_argument('--algorithm',default='nb',action='store_true',help="Which learning algorithm is used. nb = Naive Bayes,predef=predefined. Default=nb.")
+    parser.add_argument('--algorithm',default='nb',help="Which learning algorithm is used. nb = Naive Bayes,predef=predefined. Default=nb.")
     # NB Parameters
     parser.add_argument('--NBDefaultPriorWeight',default=20.0,help="Initializes classifiers with value * p |- p. Default=20.0.",type=float)
     parser.add_argument('--NBDefVal',default=-15.0,help="Default value for unknown features. Default=-15.0.",type=float)
@@ -42,5 +42,7 @@ def init_parser(argv):
     
     parser.add_argument('--port', default='9255', help='Port of the Mash server. Default=9255',type=int)
     parser.add_argument('--host', default='localhost', help='Host of the Mash server. Default=localhost')
+    parser.add_argument('--shutdownServer',default=False,action='store_true',help="Shutdown server without saving the models.")
+    parser.add_argument('--saveModels',default=False,action='store_true',help="Server saves the models.")
     args = parser.parse_args(argv)    
     return args

@@ -35,7 +35,7 @@ def communicate(data,host,port):
     try:
         sock.connect((host,port))
         sock.sendall(data)
-        received = sock.recv(262144)
+        received = sock.recv(4194304)
     except:
         logger = logging.getLogger('communicate')
         logger.warning('Communication with server failed.')
@@ -69,7 +69,16 @@ def mash(argv = sys.argv[1:]):
     if not os.path.exists(args.outputDir):
         os.makedirs(args.outputDir)
 
+    # Shutdown commands need not start the server fist.
+    if args.shutdownServer:
+        try:
+            communicate('shutdown',args.host,args.port)
+        except:
+            pass
+        return
+
     # If server is not running, start it.
+    startedServer = False
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((args.host,args.port))       
@@ -79,7 +88,10 @@ def mash(argv = sys.argv[1:]):
         spawnDaemon('server.py')
         # TODO: Make this fault tolerant
         time.sleep(0.5)
-        # Init server
+        startedServer = True
+        
+    if args.init or startedServer:
+        logger.info('Initializing Server.')
         data = "i "+";".join(argv)
         received = communicate(data,args.host,args.port)
         logger.info(received)     
@@ -90,15 +102,10 @@ def mash(argv = sys.argv[1:]):
     # IO Streams
     OS = open(args.predictions,'w')
     IS = open(args.inputFile,'r')
-    count = 0
-    for line in IS:
-        count += 1
-        #if count == 127:
-        #    break as       
+    for line in IS:    
         received = communicate(line,args.host,args.port)
         if not received == '':
             OS.write('%s\n' % received)
-        #logger.info(received)
     OS.close()
     IS.close()
 
@@ -106,6 +113,8 @@ def mash(argv = sys.argv[1:]):
     if args.statistics:
         received = communicate('avgStats',args.host,args.port)
         logger.info(received)
+    elif args.saveModels:
+        communicate('save',args.host,args.port)
 
 
 if __name__ == "__main__":
