@@ -13,14 +13,13 @@ Descent: 492
 LayerCount: 2
 Layer: 0 1 "Back"  1
 Layer: 1 1 "Fore"  0
-NeedsXUIDChange: 1
 XUID: [1021 906 1711068302 7174760]
 FSType: 4
 OS2Version: 1
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1050374980
-ModificationTime: 1372347014
+ModificationTime: 1377112717
 PfmFamily: 17
 TTFWeight: 700
 TTFWidth: 5
@@ -1668,14 +1667,14 @@ ShortTable: maxp 16
   1
 EndShort
 LangName: 1033 "" "" "" "" "" "Release 1.10" "" "Bitstream Vera is a trademark of Bitstream, Inc." "Bitstream Inc." "" "" "http://www.bitstream.com" "" "Copyright (c) 2003 by Bitstream, Inc.+AA0ACgAA-All Rights Reserved.+AA0ACgAA-Bitstream Vera is a trademark of Bitstream, Inc.+AA0ACgANAAoA-Permission is hereby granted, free of charge, to any person obtaining a copy of the fonts accompanying this license (+ACIA-Fonts+ACIA) and associated documentation files (the +ACIA-Font Software+ACIA), to reproduce and distribute the Font Software, including without limitation the rights to use, copy, merge, publish, distribute, and/or sell copies of the Font Software, and to permit persons to whom the Font Software is furnished to do so, subject to the following conditions:+AA0ACgANAAoA-The above copyright and trademark notices and this permission notice shall be included in all copies of one or more of the Font Software typefaces.+AA0ACgANAAoA-The Font Software may be modified, altered, or added to, and in particular the designs of glyphs or characters in the Fonts may be modified and additional glyphs or characters may be added to the Fonts, only if the fonts are renamed to names not containing either the words +ACIA-Bitstream+ACIA or the word +ACIA-Vera+ACIA.+AA0ACgANAAoA-This License becomes null and void to the extent applicable to Fonts or Font Software that has been modified and is distributed under the +ACIA-Bitstream Vera+ACIA names.+AA0ACgANAAoA-The Font Software may be sold as part of a larger software package but no copy of one or more of the Font Software typefaces may be sold by itself.+AA0ACgANAAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.+AA0ACgANAAoA-Except as contained in this notice, the names of Gnome, the Gnome Foundation, and Bitstream Inc., shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Font Software without prior written authorization from the Gnome Foundation or Bitstream Inc., respectively. For further information, contact: fonts at gnome dot org." 
-GaspTable: 2 8 2 65535 3
+GaspTable: 2 8 2 65535 3 0
 Encoding: UnicodeFull
 UnicodeInterp: none
 NameList: Adobe Glyph List
 DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
-WinInfo: 64 16 10
+WinInfo: 8176 16 10
 BeginChars: 1114112 1083
 
 StartChar: u10000
@@ -12196,7 +12195,7 @@ EndChar
 StartChar: degree
 Encoding: 176 176 131
 Width: 1233
-Flags: HWO
+Flags: W
 LayerCount: 2
 Fore
 SplineSet
@@ -15664,7 +15663,7 @@ StartChar: logicalnot
 Encoding: 172 172 164
 Width: 1478
 VWidth: 2220
-Flags: HW
+Flags: W
 LayerCount: 2
 Fore
 SplineSet
@@ -17165,65 +17164,38 @@ EndChar
 
 StartChar: guilsinglleft
 Encoding: 8249 8249 190
-Width: 1203
-VWidth: 2220
+Width: 1233
 Flags: W
 LayerCount: 2
 Fore
 SplineSet
-407.076 555 m 1,0,-1
- 1021.25 275.36 l 2,1,2
- 1076.04 250.075 1076.04 250.075 1076.04 197.543 c 0,3,4
- 1076.04 197.143 1076.04 197.143 1076 196.161 c 128,-1,5
- 1075.97 195.18 1075.97 195.18 1075.97 194.789 c 0,6,7
- 1075.92 162.798 1075.92 162.798 1051.52 138.399 c 128,-1,8
- 1027.12 114 1027.12 114 994 114 c 0,9,10
- 993.022 114.195 993.022 114.195 981.625 116.014 c 128,-1,11
- 970.228 117.832 970.228 117.832 967.872 118.617 c 0,12,13
- 958.537 121.729 958.537 121.729 947.998 126.998 c 2,14,-1
- 182.717 476.653 l 2,15,16
- 127 502.368 127 502.368 127 555 c 128,-1,17
- 127 607.631 127 607.631 182.726 633.351 c 2,18,-1
- 951.628 984.306 l 2,19,20
- 976.688 996 976.688 996 994 996 c 0,21,22
- 1027.12 996 1027.12 996 1051.53 971.594 c 128,-1,23
- 1075.94 947.188 1075.94 947.188 1075.97 915.211 c 0,24,25
- 1075.97 914.818 1075.97 914.818 1076 913.837 c 128,-1,26
- 1076.04 912.855 1076.04 912.855 1076.04 912.457 c 0,27,28
- 1076.04 859.925 1076.04 859.925 1021.25 834.64 c 2,29,-1
- 407.076 555 l 1,0,-1
+815 1059 m 1,0,-1
+ 815 821 l 1,1,-1
+ 539 600 l 1,2,-1
+ 815 379 l 1,3,-1
+ 815 141 l 1,4,-1
+ 346 535 l 1,5,-1
+ 346 666 l 1,6,-1
+ 815 1059 l 1,0,-1
 EndSplineSet
-Validated: 1
 EndChar
 
 StartChar: guilsinglright
 Encoding: 8250 8250 191
-Width: 1203
-VWidth: 2220
+Width: 1233
 Flags: W
 LayerCount: 2
 Fore
 SplineSet
-251.36 125.689 m 2,0,1
- 226.312 114 226.312 114 209 114 c 0,2,3
- 175.875 114 175.875 114 151.438 138.438 c 128,-1,4
- 127 162.875 127 162.875 127 196 c 0,5,6
- 127 247.501 127 247.501 182.029 275.016 c 1,7,-1
- 796.924 555 l 1,8,-1
- 182.747 834.64 l 2,9,10
- 127 860.369 127 860.369 127 914 c 0,11,12
- 127 947.125 127 947.125 151.438 971.562 c 128,-1,13
- 175.875 996 175.875 996 209 996 c 0,14,15
- 210.096 995.786 210.096 995.786 221.222 994.071 c 128,-1,16
- 232.348 992.356 232.348 992.356 234.794 991.573 c 0,17,18
- 239.78 989.979 239.78 989.979 245.279 987.741 c 0,19,20
- 250.204 985.739 250.204 985.739 255.455 983.267 c 2,21,-1
- 1021.28 633.347 l 2,22,23
- 1077 607.632 1077 607.632 1077 555 c 128,-1,24
- 1077 502.369 1077 502.369 1021.26 476.645 c 2,25,-1
- 251.36 125.689 l 2,0,1
+420 1059 m 1,0,-1
+ 889 666 l 1,1,-1
+ 889 535 l 1,2,-1
+ 420 141 l 1,3,-1
+ 420 379 l 1,4,-1
+ 698 600 l 1,5,-1
+ 420 821 l 1,6,-1
+ 420 1059 l 1,0,-1
 EndSplineSet
-Validated: 1
 EndChar
 
 StartChar: uniFB01
