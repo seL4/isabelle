@@ -159,6 +159,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val feats =
             features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+            |> sort_wrt fst
           val isar_deps = isar_dependencies_of name_tabs th
           val access_facts =
             (if linearize then take (j - 1) new_facts
@@ -167,14 +168,17 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             smart_dependencies_of ctxt params_opt access_facts name_tabs th
                                   (SOME isar_deps)
           val parents = if linearize then prevs else parents
-          val core =
-            encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-            encode_features (sort_wrt fst feats)
           val query =
-            if is_bad_query ctxt ho_atp step j th isar_deps then ""
-            else "? " ^ string_of_int max_suggs ^ " # " ^ core ^ "\n"
+            if is_bad_query ctxt ho_atp step j th isar_deps then
+              ""
+            else
+              "? " ^ string_of_int max_suggs ^ " # " ^
+              encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
+              encode_features feats ^ "\n"
           val update =
-            "! " ^ core ^ "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
+            "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
+            encode_strs (map fst feats) ^ "; " ^ marker ^ " " ^
+            encode_strs deps ^ "\n"
         in query ^ update end
       else
         ""

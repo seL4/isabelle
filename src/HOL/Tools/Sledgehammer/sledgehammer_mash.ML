@@ -39,12 +39,12 @@ sig
     val unlearn : Proof.context -> unit
     val learn :
       Proof.context -> bool
-      -> (string * string list * (string * real) list * string list) list -> unit
+      -> (string * string list * string list * string list) list -> unit
     val relearn :
       Proof.context -> bool -> (string * string list) list -> unit
     val query :
       Proof.context -> bool -> int
-      -> (string * string list * (string * real) list * string list) list
+      -> (string * string list * string list * string list) list
          * string list * string list * (string * real) list
       -> string list
   end
@@ -222,7 +222,7 @@ val encode_features = map encode_feature #> space_implode " "
 
 fun str_of_learn (name, parents, feats, deps) =
   "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-  encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
+  encode_strs feats ^ "; " ^ encode_strs deps ^ "\n"
 
 fun str_of_relearn (name, deps) =
   "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
@@ -989,7 +989,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
       let
         val thy = Proof_Context.theory_of ctxt
         val name = freshish_name ()
-        val feats = features_of ctxt prover thy (Local, General) [t]
+        val feats = features_of ctxt prover thy (Local, General) [t] |> map fst
       in
         peek_state ctxt (fn {access_G, ...} =>
             let
@@ -1087,6 +1087,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val name = nickname_of_thm th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+                |> map fst
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
