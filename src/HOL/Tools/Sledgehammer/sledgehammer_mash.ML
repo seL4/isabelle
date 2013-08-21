@@ -154,7 +154,7 @@ fun run_mash_tool ctxt overlord extra_args write_cmds read_suggs =
     val (temp_dir, serial) =
       if overlord then (getenv "ISABELLE_HOME_USER", "")
       else (getenv "ISABELLE_TMP", serial_string ())
-    val log_file = if overlord then temp_dir ^ "/mash_log" else "/dev/null"
+    val log_file = temp_dir ^ "/mash_log" ^ serial
     val err_file = temp_dir ^ "/mash_err" ^ serial
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
     val sugg_path = Path.explode sugg_file
@@ -254,7 +254,7 @@ struct
 fun unlearn ctxt =
   let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh unlearn");
-    run_mash_tool ctxt false [shutdown_server_arg] ([], K "");
+    run_mash_tool ctxt false [shutdown_server_arg] ([], K "") (K ());
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
