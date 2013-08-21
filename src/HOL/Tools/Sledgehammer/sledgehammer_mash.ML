@@ -138,6 +138,9 @@ fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
 (*** Low-level communication with MaSh ***)
 
+val save_models_arg = "--saveModels"
+val shutdown_server_arg = "--shutdownServer"
+
 fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
 
 fun write_file banner (xs, f) path =
@@ -145,7 +148,7 @@ fun write_file banner (xs, f) path =
    xs |> chunk_list 500 |> List.app (File.append path o implode o map f))
   handle IO.Io _ => ()
 
-fun run_mash_tool ctxt overlord write_cmds read_suggs =
+fun run_mash_tool ctxt overlord extra_args write_cmds read_suggs =
   let
     val (temp_dir, serial) =
       if overlord then (getenv "ISABELLE_HOME_USER", "")
@@ -165,6 +168,7 @@ fun run_mash_tool ctxt overlord write_cmds read_suggs =
       " --modelFile=" ^ model_dir ^ "/model.pickle" ^
       " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
       " --log " ^ log_file ^ " " ^ core ^
+      (if extra_args = [] then "" else " " ^ space_implode " " extra_args) ^
       " >& " ^ err_file
     fun run_on () =
       (Isabelle_System.bash command
@@ -216,8 +220,6 @@ fun encode_feature (name, weight) =
 
 val encode_features = map encode_feature #> space_implode " "
 
-val str_of_saveless_shutdown = "S\n"
-
 fun str_of_learn (name, parents, feats, deps) =
   "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
   encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
@@ -251,7 +253,7 @@ struct
 fun unlearn ctxt =
   let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh unlearn");
-    run_mash_tool ctxt false ([()], K str_of_saveless_shutdown);
+    run_mash_tool ctxt false [shutdown_server_arg] ([], K "");
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
@@ -262,17 +264,19 @@ fun learn _ _ [] = ()
   | learn ctxt overlord learns =
     (trace_msg ctxt (fn () => "MaSh learn " ^
          elide_string 1000 (space_implode " " (map #1 learns)));
-     run_mash_tool ctxt overlord (learns, str_of_learn) (K ()))
+     run_mash_tool ctxt overlord [save_models_arg] (learns, str_of_learn)
+                   (K ()))
 
 fun relearn _ _ [] = ()
   | relearn ctxt overlord relearns =
     (trace_msg ctxt (fn () => "MaSh relearn " ^
          elide_string 1000 (space_implode " " (map #1 relearns)));
-     run_mash_tool ctxt overlord (relearns, str_of_relearn) (K ()))
+     run_mash_tool ctxt overlord [save_models_arg] (relearns, str_of_relearn)
+                   (K ()))
 
-fun query ctxt overlord max_suggs (query as (learns, hints, _, feats)) =
+fun query ctxt overlord max_suggs (query as (_, _, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
-   run_mash_tool ctxt overlord ([query], str_of_query max_suggs)
+   run_mash_tool ctxt overlord [] ([query], str_of_query max_suggs)
        (fn suggs =>
            case suggs () of
              [] => []
