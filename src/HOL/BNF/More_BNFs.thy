@@ -12,8 +12,7 @@ header {* Registration of Various Types as Bounded Natural Functors *}
 
 theory More_BNFs
 imports
-  BNF_LFP
-  BNF_GFP
+  Basic_BNFs
   "~~/src/HOL/Quotient_Examples/Lift_FSet"
   "~~/src/HOL/Library/Multiset"
   Countable_Type
@@ -607,7 +606,7 @@ proof-
   apply(rule exI[of _ M]) proof safe
     fix b1 assume b1: "b1 \<in> B1"
     hence f1b1: "f1 b1 \<le> n1" using f1 unfolding bij_betw_def
-    by (metis bij_betwE f1 lessThan_iff less_Suc_eq_le)
+    by (metis image_eqI lessThan_iff less_Suc_eq_le)
     have "(\<Sum>b2\<in>B2. M (u b1 b2)) = (\<Sum>i2<Suc n2. ct (f1 b1) (f2 (e2 i2)))"
     unfolding e2_surj[symmetric] setsum_reindex[OF e2_inj]
     unfolding M_def comp_def apply(intro setsum_cong) apply force
@@ -617,7 +616,7 @@ proof-
   next
     fix b2 assume b2: "b2 \<in> B2"
     hence f2b2: "f2 b2 \<le> n2" using f2 unfolding bij_betw_def
-    by (metis bij_betwE f2 lessThan_iff less_Suc_eq_le)
+    by (metis image_eqI lessThan_iff less_Suc_eq_le)
     have "(\<Sum>b1\<in>B1. M (u b1 b2)) = (\<Sum>i1<Suc n1. ct (f1 (e1 i1)) (f2 b2))"
     unfolding e1_surj[symmetric] setsum_reindex[OF e1_inj]
     unfolding M_def comp_def apply(intro setsum_cong) apply force
