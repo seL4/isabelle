@@ -518,15 +518,6 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
-fun weighted_const_feature_of num_facts const_tab const_s s =
-  ("c" ^ s,
-   if num_facts = 0 then
-     0.0
-   else
-     let val count = Symtab.lookup const_tab const_s |> the_default 0 in
-       16.0 + (Real.fromInt num_facts / Real.fromInt count)
-     end)
-
 (* The following "crude" functions should be progressively phased out, since
    they create visibility edges that do not exist in Isabelle, resulting in
    failed lookups later on. *)
@@ -605,7 +596,6 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
   let
     val thy = Proof_Context.theory_of ctxt
 
-    val pass_args = map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")")
     fun is_built_in (x as (s, _)) args =
       if member (op =) logical_consts s then (true, args)
       else is_built_in_const_of_prover ctxt prover x args
@@ -629,7 +619,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
           val T = Type (s, Ts)
           val ps = take max_pat_breadth (pattify_type depth T)
           val qs = take max_pat_breadth ("" :: pattify_type (depth - 1) U)
-        in pass_args ps qs end
+        in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
       | pattify_type _ (TFree (_, S)) =
         maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
       | pattify_type _ (TVar (_, S)) =
@@ -645,44 +635,60 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
     fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
       | add_subtypes T = add_type T
 
+    fun weight_of_const s =
+      16.0 +
+      (if num_facts = 0 then
+         0.0
+       else
+         let val count = Symtab.lookup const_tab s |> the_default 1 in
+           (Real.fromInt num_facts / Real.fromInt count) (* FUDGE *)
+         end)
     fun pattify_term _ _ 0 _ = []
       | pattify_term _ args _ (Const (x as (s, _))) =
-        if fst (is_built_in x args) then [] else [massage_long_name s]
+        if fst (is_built_in x args) then []
+        else [(massage_long_name s, weight_of_const s)]
       | pattify_term _ _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
+        |> map (rpair 0.0)
         |> (if member (op =) fixes s then
-              cons (massage_long_name (thy_name ^ Long_Name.separator ^ s))
+              cons (free_feature_of (massage_long_name
+                  (thy_name ^ Long_Name.separator ^ s)))
             else
               I)
       | pattify_term _ _ _ (Var (_, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
+        |> map (rpair 0.0)
       | pattify_term Ts _ _ (Bound j) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
+        |> map (rpair 0.0)
       | pattify_term Ts args depth (t $ u) =
         let
           val ps = take max_pat_breadth (pattify_term Ts (u :: args) depth t)
-          val qs = take max_pat_breadth ("" :: pattify_term Ts [] (depth - 1) u)
-        in pass_args ps qs end
+          val qs =
+            take max_pat_breadth (("", 0.0) :: pattify_term Ts [] (depth - 1) u)
+        in
+          map_product (fn ppw as (p, pw) =>
+              fn ("", _) => ppw
+               | (q, qw) => (p ^ "(" ^ q ^ ")", pw + qw)) ps qs
+        end
       | pattify_term _ _ _ _ = []
-    fun add_term_pat Ts feature_of depth =
-      union (op = o pairself fst) o map feature_of o pattify_term Ts [] depth
-    fun add_term_pats _ _ 0 _ = I
-      | add_term_pats Ts feature_of depth t =
-        add_term_pat Ts feature_of depth t
-        #> add_term_pats Ts feature_of (depth - 1) t
-    fun add_term Ts feature_of = add_term_pats Ts feature_of term_max_depth
+    fun add_term_pat Ts depth =
+      union (op = o pairself fst) o pattify_term Ts [] depth
+    fun add_term_pats _ 0 _ = I
+      | add_term_pats Ts depth t =
+        add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
+    fun add_term Ts = add_term_pats Ts term_max_depth
     fun add_subterms Ts t =
       case strip_comb t of
         (Const (x as (s, T)), args) =>
         let val (built_in, args) = is_built_in x args in
-          (not built_in
-             ? add_term Ts (weighted_const_feature_of num_facts const_tab s) t)
+          (not built_in ? add_term Ts t)
           #> add_subtypes T
           #> fold (add_subterms Ts) args
         end
       | (head, args) =>
         (case head of
-           Free (_, T) => add_term Ts free_feature_of t #> add_subtypes T
+           Free (_, T) => add_term Ts t #> add_subtypes T
          | Var (_, T) => add_subtypes T
          | Abs (_, T, body) => add_subtypes T #> add_subterms (T :: Ts) body
          | _ => I)
@@ -941,7 +947,7 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
     in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
 
 fun add_const_counts t =
-  fold (fn s => Symtab.map_default (s, ~1) (Integer.add 1))
+  fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
        (Term.add_const_names t [])
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
