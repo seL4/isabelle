@@ -71,16 +71,16 @@ else
 
 ML {*
 if do_it then
-  generate_isar_commands @{context} prover (range, step) thys
-      linearize (prefix ^ "mash_commands")
+  generate_isar_commands @{context} prover (range, step) thys linearize
+      max_suggestions (prefix ^ "mash_commands")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params (range, step) thys
-      linearize max_suggestions (prefix ^ "mepo_suggestions")
+  generate_mepo_suggestions @{context} params (range, step) thys linearize
+      max_suggestions (prefix ^ "mepo_suggestions")
 else
   ()
 *}
@@ -103,8 +103,8 @@ else
 
 ML {*
 if do_it then
-  generate_prover_commands @{context} params (range, step) thys
-      linearize (prefix ^ "mash_prover_commands")
+  generate_prover_commands @{context} params (range, step) thys linearize
+      max_suggestions (prefix ^ "mash_prover_commands")
 else
   ()
 *}

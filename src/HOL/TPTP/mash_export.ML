@@ -20,10 +20,10 @@ sig
     -> unit
   val generate_isar_commands :
     Proof.context -> string -> (int * int option) * int -> theory list -> bool
-    -> string -> unit
+    -> int -> string -> unit
   val generate_prover_commands :
     Proof.context -> params -> (int * int option) * int -> theory list -> bool
-    -> string -> unit
+    -> int -> string -> unit
   val generate_mepo_suggestions :
     Proof.context -> params -> (int * int option) * int -> theory list -> bool
     -> int -> string -> unit
@@ -146,7 +146,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
-                                     linearize file_name =
+                                     linearize max_suggs file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -172,7 +172,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             encode_features (sort_wrt fst feats)
           val query =
             if is_bad_query ctxt ho_atp step j th isar_deps then ""
-            else "? " ^ core ^ "\n"
+            else "? " ^ string_of_int max_suggs ^ " # " ^ core ^ "\n"
           val update =
             "! " ^ core ^ "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
         in query ^ update end
