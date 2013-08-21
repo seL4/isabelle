@@ -140,7 +140,10 @@ structure Data = Generic_Data
   val merge = Symtab.merge eq_fp_sugar;
 );
 
-val fp_sugar_of = Symtab.lookup o Data.get o Context.Proof;
+fun fp_sugar_of ctxt =
+  Symtab.lookup (Data.get (Context.Proof ctxt))
+  #> Option.map (morph_fp_sugar
+    (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
