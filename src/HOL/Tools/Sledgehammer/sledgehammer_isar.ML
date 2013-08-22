@@ -404,15 +404,16 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = supported_proversN then
       supported_provers ctxt
     else if subcommand = kill_allN then
-      (kill_provers (); kill_learners ctxt)
+      (kill_provers ();
+       kill_learners ctxt (get_params Normal ctxt override_params))
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = unlearnN then
-      mash_unlearn ctxt
+      mash_unlearn ctxt (get_params Normal ctxt override_params)
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
             subcommand = relearn_isarN orelse subcommand = relearn_proverN then
       (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then
-         mash_unlearn ctxt
+         mash_unlearn ctxt (get_params Normal ctxt override_params)
        else
          ();
        mash_learn ctxt
