@@ -509,7 +509,6 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
     end
 
 fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
-fun const_feature_of s = ("c" ^ s, 32.0 (* FUDGE *))
 fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
@@ -680,7 +679,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
     fun add_term Ts = add_term_pats Ts term_max_depth
     fun add_subterms Ts t =
       case strip_comb t of
-        (Const (x as (s, T)), args) =>
+        (Const (x as (_, T)), args) =>
         let val (built_in, args) = is_built_in x args in
           (not built_in ? add_term Ts t)
           #> add_subtypes T
@@ -817,10 +816,6 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
 
 
 (*** High-level communication with MaSh ***)
-
-fun attach_crude_parents_to_facts _ [] = []
-  | attach_crude_parents_to_facts parents ((fact as (_, th)) :: facts) =
-    (parents, fact) :: attach_crude_parents_to_facts [nickname_of_thm th] facts
 
 (* In the following functions, chunks are risers w.r.t. "thm_less_eq". *)
 
