@@ -163,7 +163,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
-          val feats =
+          val goal_feats =
             features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
                         const_tab stature [prop_of th]
             |> sort_wrt fst
@@ -178,20 +178,18 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             [prop_of th]
             |> features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
                            const_tab stature
-            |> map (apsnd (fn r => weight * extra_feature_weight_factor * r))
+            |> map (apsnd (fn r => weight * extra_feature_factor * r))
           val query =
             if do_query then
               let
-                val extra_featss =
+                val query_feats =
                   new_facts
                   |> drop (j - num_extra_feature_facts)
                   |> take num_extra_feature_facts
                   |> rev
                   |> weight_facts_steeply
                   |> map extra_features_of
-                val extra_feats =
-                  fold_rev (union (op = o pairself fst)) extra_featss []
-                val query_feats = union (op = o pairself fst) extra_feats feats
+                  |> rpair goal_feats |-> fold (union (op = o pairself fst))
               in
                 "? " ^ string_of_int max_suggs ^ " # " ^
                 encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
@@ -201,7 +199,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
               ""
           val update =
             "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-            encode_strs (map fst feats) ^ "; " ^ marker ^ " " ^
+            encode_strs (map fst goal_feats) ^ "; " ^ marker ^ " " ^
             encode_strs deps ^ "\n"
         in query ^ update end
       else

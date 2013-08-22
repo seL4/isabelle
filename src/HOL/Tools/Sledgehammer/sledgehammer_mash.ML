@@ -74,7 +74,7 @@ sig
   val attach_parents_to_facts :
     ('a * thm) list -> ('a * thm) list -> (string list * ('a * thm)) list
   val num_extra_feature_facts : int
-  val extra_feature_weight_factor : real
+  val extra_feature_factor : real
   val weight_facts_smoothly : 'a list -> ('a * real) list
   val weight_facts_steeply : 'a list -> ('a * real) list
   val find_mash_suggestions :
@@ -519,10 +519,6 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
-(* The following "crude" functions should be progressively phased out, since
-   they create visibility edges that do not exist in Isabelle, resulting in
-   failed lookups later on. *)
-
 fun crude_theory_ord p =
   if Theory.subthy p then
     if Theory.eq_thy p then EQUAL else LESS
@@ -905,8 +901,9 @@ fun maximal_wrt_access_graph access_G =
 
 fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
+val chained_feature_factor = 0.5
+val extra_feature_factor = 0.1
 val num_extra_feature_facts = 10 (* FUDGE *)
-val extra_feature_weight_factor = 0.1
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
@@ -930,9 +927,7 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
       val raw_mash = find_suggested_facts ctxt facts suggs
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
-      val proximity =
-        facts |> sort (crude_thm_ord o pairself snd o swap)
-              |> take max_proximity_facts
+      val proximity = facts |> take max_proximity_facts
       val mess =
         [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
          (0.08 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown)),
@@ -951,8 +946,14 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
+    val num_facts = length facts
     val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
+    fun chained_or_extra_features_of factor (((_, stature), th), weight) =
+      [prop_of th]
+      |> features_of ctxt prover (theory_of_thm th) num_facts const_tab stature
+      |> map (apsnd (fn r => weight * factor * r))
     val (access_G, suggs) =
       peek_state ctxt (fn {access_G, ...} =>
           if Graph.is_empty access_G then
@@ -960,9 +961,23 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
           else
             let
               val parents = maximal_wrt_access_graph access_G facts
-              val feats =
-                features_of ctxt prover thy (length facts) const_tab
+              val goal_feats =
+                features_of ctxt prover thy num_facts const_tab
                             (Local, General) (concl_t :: hyp_ts)
+              val chained_feats =
+                chained
+                |> map (rpair 1.0)
+                |> map (chained_or_extra_features_of chained_feature_factor)
+                |> rpair [] |-> fold (union (op = o pairself fst))
+              val extra_feats =
+                facts
+                |> take (num_extra_feature_facts - length chained)
+                |> weight_facts_steeply
+                |> map (chained_or_extra_features_of extra_feature_factor)
+                |> rpair [] |-> fold (union (op = o pairself fst))
+              val feats =
+                fold (union (op = o pairself fst)) [chained_feats, extra_feats]
+                     goal_feats
               val hints =
                 chained |> filter (is_fact_in_graph access_G o snd)
                         |> map (nickname_of_thm o snd)
