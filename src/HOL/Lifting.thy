@@ -576,13 +576,13 @@ shows "Domainp (A OO B) = (inf P1 P2')"
 using assms unfolding fun_rel_def Domainp_iff[abs_def] OO_def
 by (fast intro: fun_eq_iff)
 
-definition rel_pred_comp :: "('a => 'b => bool) => ('b => bool) => 'a => bool"  (infixr "OP" 75)
+definition rel_pred_comp :: "('a => 'b => bool) => ('b => bool) => 'a => bool"
 where "rel_pred_comp R P \<equiv> \<lambda>x. \<exists>y. R x y \<and> P y"
 
 lemma pcr_Domainp:
 assumes "Domainp B = P"
-shows "Domainp (A OO B) = (A OP P)"
-using assms unfolding rel_pred_comp_def by blast
+shows "Domainp (A OO B) = (\<lambda>x. \<exists>y. A x y \<and> P y)"
+using assms by blast
 
 lemma pcr_Domainp_total:
   assumes "bi_total B"
