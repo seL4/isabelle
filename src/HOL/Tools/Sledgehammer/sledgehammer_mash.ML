@@ -927,18 +927,19 @@ val max_proximity_facts = 100
 fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
   | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     let
+      val inter_fact = inter (Thm.eq_thm_prop o pairself snd)
       val raw_mash = find_suggested_facts ctxt facts suggs
-      val unknown_chained =
-        inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
-      val proximity = facts |> take max_proximity_facts
+      val proximate = take max_proximity_facts facts
+      val unknown_chained = inter_fact raw_unknown chained
+      val unknown_proximate = inter_fact raw_unknown proximate
       val mess =
-        [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
-         (0.08 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown)),
-         (0.02 (* FUDGE *), (weight_facts_smoothly proximity, []))]
+        [(0.9 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
+         (0.4 (* FUDGE *), (weight_facts_smoothly unknown_proximate, [])),
+         (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
       val unknown =
         raw_unknown
         |> fold (subtract (Thm.eq_thm_prop o pairself snd))
-                [unknown_chained, proximity]
+                [unknown_chained, unknown_proximate]
     in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
 
 fun add_const_counts t =
