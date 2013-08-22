@@ -16,6 +16,8 @@ sig
   val get_sym_relator_eq: Proof.context -> thm list
   val get_relator_eq_raw: Proof.context -> thm list
   val get_relator_domain: Proof.context -> thm list
+  val get_compound_lhs: Proof.context -> term Net.net
+  val get_compound_rhs: Proof.context -> term Net.net
   val transfer_add: attribute
   val transfer_del: attribute
   val transferred_attribute: thm list -> attribute
