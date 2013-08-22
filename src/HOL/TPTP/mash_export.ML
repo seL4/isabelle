@@ -174,11 +174,29 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             smart_dependencies_of ctxt params_opt access_facts name_tabs th
                                   (SOME isar_deps)
           val parents = if linearize then prevs else parents
+          fun extra_features_of (((_, stature), th), weight) =
+            [prop_of th]
+            |> features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
+                           const_tab stature
+            |> map (apsnd (fn r => weight * extra_feature_weight_factor * r))
           val query =
             if do_query then
-              "? " ^ string_of_int max_suggs ^ " # " ^
-              encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-              encode_features feats ^ "\n"
+              let
+                val extra_featss =
+                  new_facts
+                  |> drop (j - num_extra_feature_facts)
+                  |> take num_extra_feature_facts
+                  |> rev
+                  |> weight_facts_steeply
+                  |> map extra_features_of
+                val extra_feats =
+                  fold_rev (union (op = o pairself fst)) extra_featss []
+                val query_feats = union (op = o pairself fst) extra_feats feats
+              in
+                "? " ^ string_of_int max_suggs ^ " # " ^
+                encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
+                encode_features query_feats ^ "\n"
+              end
             else
               ""
           val update =
@@ -254,10 +272,10 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name
       let
         val (name, mash_suggs) =
           extract_suggestions mash_line
-          ||> weight_mash_facts
+          ||> weight_facts_steeply
         val (name', mepo_suggs) =
           extract_suggestions mepo_line
-          ||> weight_mepo_facts
+          ||> weight_facts_steeply
         val _ = if name = name' then () else error "Input files out of sync."
         val mess =
           [(mepo_weight, (mepo_suggs, [])),

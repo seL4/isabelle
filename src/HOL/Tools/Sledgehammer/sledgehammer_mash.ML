@@ -73,8 +73,10 @@ sig
     -> bool * string list
   val attach_parents_to_facts :
     ('a * thm) list -> ('a * thm) list -> (string list * ('a * thm)) list
-  val weight_mepo_facts : 'a list -> ('a * real) list
-  val weight_mash_facts : 'a list -> ('a * real) list
+  val num_extra_feature_facts : int
+  val extra_feature_weight_factor : real
+  val weight_facts_smoothly : 'a list -> ('a * real) list
+  val weight_facts_steeply : 'a list -> ('a * real) list
   val find_mash_suggestions :
     Proof.context -> int -> string list -> ('b * thm) list -> ('b * thm) list
     -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
@@ -903,22 +905,22 @@ fun maximal_wrt_access_graph access_G =
 
 fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
-(* FUDGE *)
-fun weight_of_mepo_fact rank =
-  Math.pow (0.62, log2 (Real.fromInt (rank + 1)))
-
-fun weight_mepo_facts facts =
-  facts ~~ map weight_of_mepo_fact (0 upto length facts - 1)
-
-val weight_raw_mash_facts = weight_mepo_facts
-val weight_mash_facts = weight_raw_mash_facts
+val num_extra_feature_facts = 10 (* FUDGE *)
+val extra_feature_weight_factor = 0.1
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
   Math.pow (1.3, 15.5 - 0.2 * Real.fromInt rank) + 15.0
 
-fun weight_proximity_facts facts =
+fun weight_facts_smoothly facts =
   facts ~~ map weight_of_proximity_fact (0 upto length facts - 1)
+
+(* FUDGE *)
+fun steep_weight_of_fact rank =
+  Math.pow (0.62, log2 (Real.fromInt (rank + 1)))
+
+fun weight_facts_steeply facts =
+  facts ~~ map steep_weight_of_fact (0 upto length facts - 1)
 
 val max_proximity_facts = 100
 
@@ -933,8 +935,8 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
               |> take max_proximity_facts
       val mess =
         [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
-         (0.08 (* FUDGE *), (weight_raw_mash_facts raw_mash, raw_unknown)),
-         (0.02 (* FUDGE *), (weight_proximity_facts proximity, []))]
+         (0.08 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown)),
+         (0.02 (* FUDGE *), (weight_facts_smoothly proximity, []))]
       val unknown =
         raw_unknown
         |> fold (subtract (Thm.eq_thm_prop o pairself snd))
@@ -1289,11 +1291,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
       fun mepo () =
         mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
                              facts
-        |> weight_mepo_facts
+        |> weight_facts_steeply
       fun mash () =
         mash_suggested_facts ctxt params prover (generous_max_facts max_facts)
             hyp_ts concl_t facts
-        |>> weight_mash_facts
+        |>> weight_facts_steeply
       val mess =
         (* the order is important for the "case" expression below *)
         [] |> (if effective_fact_filter <> mepoN then
