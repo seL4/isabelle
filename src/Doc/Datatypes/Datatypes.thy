@@ -729,11 +729,14 @@ Explain @{const lmap}.
          a + the_default Zero (option_map sum_btree lt) +
            the_default Zero (option_map sum_btree rt)"
 
+text {*
+Show example with function composition (ftree).
+*}
 
 subsubsection {* Nested-as-Mutual Recursion *}
 
 text {*
-  * can pretend a nested type is mutually recursive
+  * can pretend a nested type is mutually recursive (if purely inductive)
   * avoids the higher-order map
   * e.g.
 *}
@@ -994,6 +997,7 @@ More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
 \verb|~~/src/HOL/BNF/More_BNFs.thy|.
 
 Mention distinction between live and dead type arguments;
+  * and existence of map, set for those
 mention =>.
 *}
 
