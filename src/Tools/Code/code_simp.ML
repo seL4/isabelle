@@ -13,6 +13,7 @@ sig
   val static_conv: theory -> simpset option -> string list -> conv
   val static_tac: theory -> simpset option -> string list -> Proof.context -> int -> tactic
   val setup: theory -> theory
+  val trace: bool Config.T
 end;
 
 structure Code_Simp : CODE_SIMP =
@@ -33,6 +34,18 @@ fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) t
 fun simpset_default thy = the_default (Simpset.get thy);
 
 
+(* diagonstic *)
+
+val trace = Attrib.setup_config_bool @{binding "code_simp_trace"} (K false);
+
+fun set_trace ctxt =
+  let
+    val global = Config.get ctxt trace;
+  in
+    ctxt |> Config.map Simplifier.simp_trace (fn b => b orelse global)
+  end;
+
+
 (* build simpset and conversion from program *)
 
 fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
@@ -49,7 +62,8 @@ val add_program = Graph.fold (add_stmt o fst o snd);
 fun simpset_program thy some_ss program =
   simpset_map (Proof_Context.init_global thy) (add_program program) (simpset_default thy some_ss);
 
-fun lift_ss_conv f ss ct = f (Simplifier.put_simpset ss (Proof_Context.init_global (theory_of_cterm ct))) ct;
+fun lift_ss_conv f ss ct =
+  f (Proof_Context.init_global (theory_of_cterm ct) |> Simplifier.put_simpset ss |> set_trace) ct;
 
 fun rewrite_modulo thy some_ss program =
   lift_ss_conv Simplifier.full_rewrite (simpset_program thy some_ss program);
