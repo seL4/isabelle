@@ -56,6 +56,8 @@ datatype_new ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) e
 and ('a, 'b) trm = Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
 and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
 
+datatype_new 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
+
 datatype_new ('a, 'b, 'c) some_killing =
   SK "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b, 'c) some_killing + ('a, 'b, 'c) in_here"
 and ('a, 'b, 'c) in_here =
