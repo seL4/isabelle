@@ -404,7 +404,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
     else if subcommand = supported_proversN then
       supported_provers ctxt
     else if subcommand = kill_allN then
-      (kill_provers (); kill_learners ())
+      (kill_provers (); kill_learners ctxt)
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = unlearnN then

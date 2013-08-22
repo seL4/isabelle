@@ -97,7 +97,7 @@ sig
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> raw_fact list -> (string * fact list) list
-  val kill_learners : unit -> unit
+  val kill_learners : Proof.context -> unit
   val running_learners : unit -> unit
 end;
 
@@ -253,10 +253,13 @@ fun extract_suggestions line =
 structure MaSh =
 struct
 
+fun shutdown ctxt =
+  run_mash_tool ctxt false [shutdown_server_arg] ([], K "") (K ())
+
 fun unlearn ctxt =
   let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh unlearn");
-    run_mash_tool ctxt false [shutdown_server_arg] ([], K "") (K ());
+    shutdown ctxt;
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
@@ -431,7 +434,7 @@ fun peek_state ctxt f =
 fun clear_state ctxt =
   Synchronized.change global_state (fn _ =>
       (MaSh.unlearn ctxt; (* also removes the state file *)
-       (true, empty_state)))
+       (false, empty_state)))
 
 end
 
@@ -1332,7 +1335,8 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
       | _ => [("", mesh)]
     end
 
-fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
+fun kill_learners ctxt =
+  (Async_Manager.kill_threads MaShN "learner"; MaSh.shutdown ctxt)
 fun running_learners () = Async_Manager.running_threads MaShN "learner"
 
 end;
