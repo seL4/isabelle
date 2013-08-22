@@ -1115,6 +1115,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
+    val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
     val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;

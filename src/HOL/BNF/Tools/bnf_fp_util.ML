@@ -33,7 +33,7 @@ sig
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
 
-  val time: Timer.real_timer -> string -> Timer.real_timer
+  val time: Proof.context -> Timer.real_timer -> string -> Timer.real_timer
 
   val IITN: string
   val LevN: string
@@ -240,8 +240,8 @@ fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_resu
 fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;
 
-val timing = true;
-fun time timer msg = (if timing
+
+fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ ATP_Util.string_of_time (Timer.checkRealTimer timer))
   else (); Timer.startRealTimer ());
 
@@ -573,6 +573,7 @@ fun mk_strong_coinduct_thm coind rel_eqs rel_monos ctxt =
 
 fun fp_bnf construct_fp bs resBs eqs lthy =
   let
+    val time = time lthy;
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
 

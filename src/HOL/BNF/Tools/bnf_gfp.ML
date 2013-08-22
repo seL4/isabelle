@@ -57,6 +57,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
 (*all BNFs have the same lives*)
 fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
   let
+    val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
     val live = live_of_bnf (hd bnfs);

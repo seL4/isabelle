@@ -28,6 +28,7 @@ open BNF_LFP_Tactics
 (*all BNFs have the same lives*)
 fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
   let
+    val time = time lthy;
     val timer = time (Timer.startRealTimer ());
 
     val live = live_of_bnf (hd bnfs);
