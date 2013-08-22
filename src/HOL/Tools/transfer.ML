@@ -16,8 +16,8 @@ sig
   val get_sym_relator_eq: Proof.context -> thm list
   val get_relator_eq_raw: Proof.context -> thm list
   val get_relator_domain: Proof.context -> thm list
-  val get_compound_lhs: Proof.context -> term Net.net
-  val get_compound_rhs: Proof.context -> term Net.net
+  val get_compound_lhs: Proof.context -> (term * thm) Item_Net.T
+  val get_compound_rhs: Proof.context -> (term * thm) Item_Net.T
   val transfer_add: attribute
   val transfer_del: attribute
   val transferred_attribute: thm list -> attribute
@@ -37,21 +37,23 @@ struct
 
 (** Theory Data **)
 
+val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o pairself snd) (single o fst);
+
 structure Data = Generic_Data
 (
   type T =
     { transfer_raw : thm Item_Net.T,
       known_frees : (string * typ) list,
-      compound_lhs : term Net.net,
-      compound_rhs : term Net.net,
+      compound_lhs : (term * thm) Item_Net.T,
+      compound_rhs : (term * thm) Item_Net.T,
       relator_eq : thm Item_Net.T,
       relator_eq_raw : thm Item_Net.T,
       relator_domain : thm Item_Net.T }
   val empty =
     { transfer_raw = Thm.intro_rules,
       known_frees = [],
-      compound_lhs = Net.empty,
-      compound_rhs = Net.empty,
+      compound_lhs = compound_xhs_empty_net,
+      compound_rhs = compound_xhs_empty_net,
       relator_eq = Thm.full_rules,
       relator_eq_raw = Thm.full_rules,
       relator_domain = Thm.full_rules }
@@ -67,8 +69,8 @@ structure Data = Generic_Data
         relator_eq_raw = rw2, relator_domain = rd2 } ) =
     { transfer_raw = Item_Net.merge (t1, t2),
       known_frees = Library.merge (op =) (k1, k2),
-      compound_lhs = Net.merge (K true) (l1, l2),
-      compound_rhs = Net.merge (K true) (c1, c2),
+      compound_lhs = Item_Net.merge (l1, l2),
+      compound_rhs = Item_Net.merge (c1, c2),
       relator_eq = Item_Net.merge (r1, r2),
       relator_eq_raw = Item_Net.merge (rw1, rw2),
       relator_domain = Item_Net.merge (rd1, rd2) }
@@ -124,16 +126,29 @@ fun add_transfer_thm thm = Data.map
    map_compound_lhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
         Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
-          Net.insert_term_safe (K true) (lhs, lhs)
+          Item_Net.update (lhs, thm)
       | _ => I) o
    map_compound_rhs
      (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
         Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
-          Net.insert_term_safe (K true) (rhs, rhs)
+          Item_Net.update (rhs, thm)
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
-fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
+fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
+
+fun del_transfer_thm thm = Data.map 
+  (map_transfer_raw (Item_Net.remove thm) o
+   map_compound_lhs
+     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+        Const (@{const_name Rel}, _) $ _ $ (lhs as (_ $ _)) $ _ =>
+          Item_Net.remove (lhs, thm)
+      | _ => I) o
+   map_compound_rhs
+     (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
+        Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
+          Item_Net.remove (rhs, thm)
+      | _ => I))
 
 (** Conversions **)
 
@@ -493,13 +508,15 @@ fun bool_insts p (t, u) =
     map_filter f (Symtab.dest tab)
   end
 
+fun retrieve_terms t net = map fst (Item_Net.retrieve net t)
+  
 fun matches_list ctxt term = 
-   exists (equal true) o map (fn pat => Pattern.matches (Proof_Context.theory_of ctxt) (pat, term))
+  is_some o find_first (fn pat => Pattern.matches (Proof_Context.theory_of ctxt) (pat, term))
 
 fun transfer_rule_of_term ctxt equiv t : thm =
   let
     val compound_rhs = get_compound_rhs ctxt
-    fun is_rhs t = (matches_list ctxt t o Net.unify_term compound_rhs) t
+    fun is_rhs t = compound_rhs |> retrieve_terms t |> matches_list ctxt t
     val s = skeleton is_rhs ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
@@ -524,7 +541,7 @@ fun transfer_rule_of_term ctxt equiv t : thm =
 fun transfer_rule_of_lhs ctxt t : thm =
   let
     val compound_lhs = get_compound_lhs ctxt
-    fun is_lhs t = (matches_list ctxt t o Net.unify_term compound_lhs) t
+    fun is_lhs t = compound_lhs |> retrieve_terms t |> matches_list ctxt t
     val s = skeleton is_lhs ctxt t
     val frees = map fst (Term.add_frees s [])
     val tfrees = map fst (Term.add_tfrees s [])
