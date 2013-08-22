@@ -95,7 +95,7 @@ class sparseNBClassifier(object):
         For each accessible, predicts the probability of it being useful given the features.
         Returns a ranking of the accessibles.
         """
-        tau = 0.01 # Jasmin, change value here
+        tau = 0.05 # Jasmin, change value here
         predictions = []
         for a in accessibles:
             posA = self.counts[a][0]

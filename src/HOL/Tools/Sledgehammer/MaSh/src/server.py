@@ -108,8 +108,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         # Output        
         predictionNames = [str(self.server.dicts.idNameDict[p]) for p in self.server.predictions[:numberOfPredictions]]
         predictionValues = [str(x) for x in predictionValues[:numberOfPredictions]]
-        predictionsStringList = ['%s=%s' % (predictionNames[i],predictionValues[i]) for i in range(len(predictionNames))]
-        predictionsString = string.join(predictionsStringList,' ')
+        predictionsString = string.join(predictionNames,' ')
         outString = '%s: %s' % (name,predictionsString)
         self.request.sendall(outString)
     
