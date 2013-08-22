@@ -116,32 +116,6 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
             |> filter (fn (_, th') =>
                           if linearize then crude_thm_ord (th', th) = LESS
                           else thm_less (th', th))
-          val find_suggs =
-            find_suggested_facts ctxt facts #> map fact_of_raw_fact
-          fun get_facts [] compute = compute facts
-            | get_facts suggs _ = find_suggs suggs
-          val mepo_facts =
-            get_facts mepo_suggs (fn _ =>
-                mepo_suggested_facts ctxt params prover slack_max_facts NONE
-                                     hyp_ts concl_t facts)
-            |> weight_mepo_facts
-          fun mash_of suggs =
-            get_facts suggs (fn _ =>
-                find_mash_suggestions ctxt slack_max_facts suggs facts [] []
-                |> fst |> map fact_of_raw_fact)
-            |> weight_mash_facts
-          val mash_isar_facts = mash_of mash_isar_suggs
-          val mash_prover_facts = mash_of mash_prover_suggs
-          fun mess_of mash_facts =
-            [(mepo_weight, (mepo_facts, [])),
-             (mash_weight, (mash_facts, []))]
-          fun mesh_of suggs mash_facts =
-            get_facts suggs (fn _ =>
-                mesh_facts (Thm.eq_thm_prop o pairself snd) slack_max_facts
-                           (mess_of mash_facts))
-          val mesh_isar_facts = mesh_of mesh_isar_suggs mash_isar_facts
-          val mesh_prover_facts = mesh_of mesh_prover_suggs mash_prover_facts
-          val isar_facts = find_suggs isar_deps
           (* adapted from "mirabelle_sledgehammer.ML" *)
           fun set_file_name method (SOME dir) =
               let
@@ -154,7 +128,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
-          fun prove method get facts =
+          fun prove method suggs =
             if not (member (op =) methods method) orelse
                (null facts andalso method <> IsarN) then
               (str_of_method method ^ "Skipped", 0)
@@ -163,8 +137,9 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                 fun nickify ((_, stature), th) =
                   ((K (encode_str (nickname_of_thm th)), stature), th)
                 val facts =
-                  facts
-                  |> map (get #> nickify)
+                  suggs
+                  |> find_suggested_facts ctxt facts
+                  |> map (fact_of_raw_fact #> nickify)
                   |> maybe_instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
                   |> map fact_of_raw_fact
@@ -174,12 +149,12 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                 val ok = if is_none outcome then 1 else 0
               in (str_of_result method facts res, ok) end
           val ress =
-            [fn () => prove MePoN fst mepo_facts,
-             fn () => prove MaSh_IsarN fst mash_isar_facts,
-             fn () => prove MaSh_ProverN fst mash_prover_facts,
-             fn () => prove MeSh_IsarN I mesh_isar_facts,
-             fn () => prove MeSh_ProverN I mesh_prover_facts,
-             fn () => prove IsarN I isar_facts]
+            [fn () => prove MePoN mepo_suggs,
+             fn () => prove MaSh_IsarN mash_isar_suggs,
+             fn () => prove MaSh_ProverN mash_prover_suggs,
+             fn () => prove MeSh_IsarN mesh_isar_suggs,
+             fn () => prove MeSh_ProverN mesh_prover_suggs,
+             fn () => prove IsarN isar_deps]
             |> (* Par_List. *) map (fn f => f ())
         in
           "Goal " ^ string_of_int j ^ ": " ^ name :: map fst ress
