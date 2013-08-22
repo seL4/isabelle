@@ -1695,11 +1695,21 @@ subsection {* Code generator setup *}
 
 subsubsection {* Generic code generator preprocessor setup *}
 
+lemma conj_left_cong:
+  "P \<longleftrightarrow> Q \<Longrightarrow> P \<and> R \<longleftrightarrow> Q \<and> R"
+  by (fact arg_cong)
+
+lemma disj_left_cong:
+  "P \<longleftrightarrow> Q \<Longrightarrow> P \<or> R \<longleftrightarrow> Q \<or> R"
+  by (fact arg_cong)
+
 setup {*
   Code_Preproc.map_pre (put_simpset HOL_basic_ss)
   #> Code_Preproc.map_post (put_simpset HOL_basic_ss)
-  #> Code_Simp.map_ss (put_simpset HOL_basic_ss)
+  #> Code_Simp.map_ss (put_simpset HOL_basic_ss
+    #> Simplifier.add_cong @{thm conj_left_cong} #> Simplifier.add_cong @{thm disj_left_cong})
 *}
+
 
 subsubsection {* Equality *}
 
