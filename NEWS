@@ -86,8 +86,6 @@ normal editing and checking process.
 * Dockable window "Timing" provides an overview of relevant command
 timing information.
 
-* Option to skip over proofs, using implicit 'sorry' internally.
-
 * Action isabelle.reset-font-size resets main text area font size
 according to Isabelle/Scala plugin option "jedit_font_reset_size"
 (cf. keyboard shortcut C+0).
