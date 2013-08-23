@@ -167,8 +167,6 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
 
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
-fun eq_facts p = eq_list (op = o pairself fst) p
-
 fun string_of_facts facts =
   "Including " ^ string_of_int (length facts) ^
   " relevant fact" ^ plural_s (length facts) ^ ":\n" ^

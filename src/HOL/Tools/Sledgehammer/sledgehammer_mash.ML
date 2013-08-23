@@ -520,14 +520,11 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
             |> map snd |> take max_facts
     end
 
-fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
 fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
+fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
-fun status_feature_of status = (string_of_status status, 2.0 (* FUDGE *))
-val local_feature = ("local", 8.0 (* FUDGE *))
-val lams_feature = ("lams", 2.0 (* FUDGE *))
-val skos_feature = ("skos", 2.0 (* FUDGE *))
+val local_feature = ("local", 16.0 (* FUDGE *))
 
 fun crude_theory_ord p =
   if Theory.subthy p then
@@ -702,21 +699,16 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
         #> fold (add_subterms Ts) args
   in [] |> fold (add_subterms []) ts end
 
-fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
-
 val term_max_depth = 2
-val type_max_depth = 2
+val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt prover thy num_facts const_tab (scope, status) ts =
+fun features_of ctxt prover thy num_facts const_tab (scope, _) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
     term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
                      type_max_depth ts
-    |> status <> General ? cons (status_feature_of status)
     |> scope <> Global ? cons local_feature
-    |> exists (not o is_lambda_free) ts ? cons lams_feature
-    |> exists (exists_Const is_exists) ts ? cons skos_feature
   end
 
 (* Too many dependencies is a sign that a decision procedure is at work. There
@@ -1314,7 +1306,7 @@ fun relevant_facts ctxt
                andalso length (filter_out is_in_access_G facts)
                        <= max_facts_to_learn_before_query then
               (mash_learn_facts ctxt params prover false 2 false timeout facts
-               |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s);
+               |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
                true)
             else
               (maybe_launch_thread (); false)
