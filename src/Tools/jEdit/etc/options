@@ -3,6 +3,9 @@
 public option jedit_logic : string = ""
   -- "default logic session"
 
+public option jedit_reset_font_size : int = 18
+  -- "reset font size for main text area"
+
 public option jedit_font_scale : real = 1.0
   -- "scale factor of add-on panels wrt. main text area"
 
