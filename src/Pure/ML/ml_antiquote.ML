@@ -92,18 +92,6 @@ val _ = Context.>> (Context.map_theory
   inline (Binding.name "term") (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
   inline (Binding.name "prop") (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
 
-  macro (Binding.name "let")
-    (Args.context --
-      Scan.lift
-        (Parse.and_list1 (Parse.and_list1 Args.name_source -- (Args.$$$ "=" |-- Args.name_source)))
-        >> (fn (ctxt, args) => #2 (Proof_Context.match_bind true args ctxt))) #>
-
-  macro (Binding.name "note")
-    (Args.context :|-- (fn ctxt =>
-      Parse.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms
-        >> (fn ((a, srcs), ths) => ((a, map (Attrib.attribute_cmd ctxt) srcs), [(ths, [])])))
-      >> (fn args => #2 (Proof_Context.note_thmss "" args ctxt)))) #>
-
   value (Binding.name "ctyp") (Args.typ >> (fn T =>
     "Thm.ctyp_of (Proof_Context.theory_of ML_context) " ^
       ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
