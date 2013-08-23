@@ -107,6 +107,8 @@ object Isabelle
     view.getStatus.setMessageAndClear("Text font size: " + size)
   }
 
+  def reset_font_size(view: View): Unit =
+    change_font_size(view, _ => PIDE.options.int("jedit_reset_font_size"))
   def increase_font_size(view: View): Unit = change_font_size(view, i => i + ((i / 10) max 1))
   def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
 

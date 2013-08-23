@@ -94,7 +94,7 @@ val symmetric = Thm.rule_attribute (fn x => fn th =>
 
 (* concrete syntax *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Attrib.setup (Binding.name "trans") (Attrib.add_del trans_add trans_del)
     "declaration of transitivity rule" #>
   Attrib.setup (Binding.name "sym") (Attrib.add_del sym_add sym_del)
@@ -103,7 +103,7 @@ val _ = Context.>> (Context.map_theory
     "resolution with symmetry rule" #>
   Global_Theory.add_thms
    [((Binding.empty, transitive_thm), [trans_add]),
-    ((Binding.empty, symmetric_thm), [sym_add])] #> snd));
+    ((Binding.empty, symmetric_thm), [sym_add])] #> snd);
 
 
 

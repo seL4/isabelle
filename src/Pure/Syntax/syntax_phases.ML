@@ -807,14 +807,14 @@ fun const_ast_tr intern ctxt [Ast.Variable c] =
 
 (* setup translations *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Sign.parse_ast_translation
    [("_context_const", const_ast_tr true),
     ("_context_xconst", const_ast_tr false)] #>
   Sign.typed_print_translation
    [("_type_prop", type_prop_tr'),
     ("\\<^const>TYPE", type_tr'),
-    ("_type_constraint_", type_constraint_tr')]));
+    ("_type_constraint_", type_constraint_tr')]);
 
 
 

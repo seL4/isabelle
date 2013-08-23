@@ -5665,7 +5665,7 @@ end;
 ML_file "mir_tac.ML"
 
 method_setup mir = {*
-  Args.mode "no_quantify" >>
+  Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Mir_Tac.mir_tac ctxt (not q)))
 *} "decision procedure for MIR arithmetic"
 

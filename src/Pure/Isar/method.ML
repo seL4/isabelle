@@ -438,7 +438,7 @@ fun position NONE = Position.none
 
 (* theory setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
   setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
   setup (Binding.name "-") (Scan.succeed (K insert_facts))
@@ -451,7 +451,7 @@ val _ = Context.>> (Context.map_theory
     "repeatedly apply elimination rules" #>
   setup (Binding.name "unfold") (Attrib.thms >> unfold_meth) "unfold definitions" #>
   setup (Binding.name "fold") (Attrib.thms >> fold_meth) "fold definitions" #>
-  setup (Binding.name "atomize") (Args.mode "full" >> (K o atomize))
+  setup (Binding.name "atomize") (Scan.lift (Args.mode "full") >> (K o atomize))
     "present local premises as object-level statements" #>
   setup (Binding.name "rule") (Attrib.thms >> some_rule) "apply some intro/elim rule" #>
   setup (Binding.name "erule") (xrule_meth erule) "apply rule in elimination manner (improper)" #>
@@ -470,7 +470,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "tactic") (Scan.lift Args.name_source_position >> tactic)
     "ML tactic as proof method" #>
   setup (Binding.name "raw_tactic") (Scan.lift Args.name_source_position >> raw_tactic)
-    "ML tactic as raw proof method"));
+    "ML tactic as raw proof method");
 
 
 (*final declarations of this structure!*)

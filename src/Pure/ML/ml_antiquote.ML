@@ -7,9 +7,7 @@ Common ML antiquotations.
 signature ML_ANTIQUOTE =
 sig
   val variant: string -> Proof.context -> string * Proof.context
-  val macro: binding -> Proof.context context_parser -> theory -> theory
   val inline: binding -> string context_parser -> theory -> theory
-  val declaration: string -> binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
 end;
 
@@ -31,37 +29,32 @@ structure Names = Proof_Data
 fun variant a ctxt =
   let
     val names = Names.get ctxt;
-    val (b, names') = Name.variant a names;
+    val (b, names') = Name.variant (Name.desymbolize false a) names;
     val ctxt' = Names.put names' ctxt;
   in (b, ctxt') end;
 
 
 (* specific antiquotations *)
 
-fun macro name scan = ML_Context.add_antiq name
-  (fn _ => scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
-    (Context.Proof ctxt, fn background => (K ("", ""), background)))));
+fun inline name scan =
+  ML_Context.add_antiq name
+    (Scan.depend (fn context => Scan.pass context scan >> (fn s => (context, K ("", s)))));
 
-fun inline name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn background => (K ("", s), background)));
-
-fun declaration kind name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn background =>
-    let
-      val (a, background') =
-        variant (translate_string (fn "." => "_" | c => c) (Binding.name_of name)) background;
-      val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
-      val body = "Isabelle." ^ a;
-    in (K (env, body), background') end));
-
-val value = declaration "val";
+fun value name scan =
+  ML_Context.add_antiq name
+    (Scan.depend (fn context => Scan.pass context scan >> (fn s =>
+      let
+        val ctxt = Context.the_proof context;
+        val (a, ctxt') = variant (Binding.name_of name) ctxt;
+        val env = "val " ^ a ^ " = " ^ s ^ ";\n";
+        val body = "Isabelle." ^ a;
+      in (Context.Proof ctxt', (K (env, body))) end)));
 
 
 
 (** misc antiquotations **)
 
-val _ = Context.>> (Context.map_theory
-
+val _ = Theory.setup
  (inline (Binding.name "assert")
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
@@ -92,18 +85,6 @@ val _ = Context.>> (Context.map_theory
   inline (Binding.name "term") (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
   inline (Binding.name "prop") (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
 
-  macro (Binding.name "let")
-    (Args.context --
-      Scan.lift
-        (Parse.and_list1 (Parse.and_list1 Args.name_source -- (Args.$$$ "=" |-- Args.name_source)))
-        >> (fn (ctxt, args) => #2 (Proof_Context.match_bind true args ctxt))) #>
-
-  macro (Binding.name "note")
-    (Args.context :|-- (fn ctxt =>
-      Parse.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms
-        >> (fn ((a, srcs), ths) => ((a, map (Attrib.attribute_cmd ctxt) srcs), [(ths, [])])))
-      >> (fn args => #2 (Proof_Context.note_thmss "" args ctxt)))) #>
-
   value (Binding.name "ctyp") (Args.typ >> (fn T =>
     "Thm.ctyp_of (Proof_Context.theory_of ML_context) " ^
       ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
@@ -120,7 +101,7 @@ val _ = Context.>> (Context.map_theory
     (Args.context --
       Scan.lift Args.name_source >> uncurry Proof_Context.read_term_pattern >> (fn t =>
         "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-          ML_Syntax.atomic (ML_Syntax.print_term t)))));
+          ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
 (* type classes *)
@@ -130,13 +111,13 @@ fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
   |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "class") (class false) #>
   inline (Binding.name "class_syntax") (class true) #>
 
   inline (Binding.name "sort")
     (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
-      ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))))));
+      ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
 
 
 (* type constructors *)
@@ -152,7 +133,7 @@ fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_s
         | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.here pos));
     in ML_Syntax.print_string res end);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "type_name")
     (type_name "logical type" (fn (c, Type.LogicalType _) => c)) #>
   inline (Binding.name "type_abbrev")
@@ -160,7 +141,7 @@ val _ = Context.>> (Context.map_theory
   inline (Binding.name "nonterminal")
     (type_name "nonterminal" (fn (c, Type.Nonterminal) => c)) #>
   inline (Binding.name "type_syntax")
-    (type_name "type" (fn (c, _) => Lexicon.mark_type c))));
+    (type_name "type" (fn (c, _) => Lexicon.mark_type c)));
 
 
 (* constants *)
@@ -173,7 +154,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_sourc
         handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     in ML_Syntax.print_string res end);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "const_name")
     (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
   inline (Binding.name "const_abbrev")
@@ -199,7 +180,7 @@ val _ = Context.>> (Context.map_theory
             error ("Constant requires " ^ string_of_int n ^ " type argument(s): " ^
               quote c ^ enclose "(" ")" (commas (replicate n "_")));
           val const = Const (c, Consts.instance consts (c, Ts));
-        in ML_Syntax.atomic (ML_Syntax.print_term const) end))));
+        in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
 
 
 (* outer syntax *)
@@ -209,7 +190,7 @@ fun with_keyword f =
     (f ((name, Thy_Header.the_keyword thy name), pos)
       handle ERROR msg => error (msg ^ Position.here pos)));
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (value (Binding.name "keyword")
     (with_keyword
       (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
@@ -227,7 +208,7 @@ val _ = Context.>> (Context.map_theory
                   (ML_Syntax.print_list ML_Syntax.print_string)))
               ML_Syntax.print_position) ((name, kind), pos))
         | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.here pos)))));
+            error ("Expected command keyword " ^ quote name ^ Position.here pos))));
 
 end;
 

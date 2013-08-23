@@ -190,7 +190,7 @@ fun rew b _ _ =
   in rew' #> Option.map (rpair Proofterm.no_skel) end;
 
 fun rprocs b = [rew b];
-val _ = Context.>> (Context.map_theory (fold Proofterm.add_prf_rproc (rprocs false)));
+val _ = Theory.setup (fold Proofterm.add_prf_rproc (rprocs false));
 
 
 (**** apply rewriting function to all terms in proof ****)

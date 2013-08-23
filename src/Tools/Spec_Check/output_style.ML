@@ -1,16 +1,11 @@
-(*  Title:      HOL/Spec_Check/output_style.ML
+(*  Title:      Tools/Spec_Check/output_style.ML
     Author:     Lukas Bulwahn and Nicolai Schaffroth, TU Muenchen
     Author:     Christopher League
 
 Output styles for presenting Spec_Check's results.
 *)
 
-signature OUTPUT_STYLE =
-sig
-  val setup : theory -> theory
-end
-
-structure Output_Style : OUTPUT_STYLE =
+structure Output_Style : sig end =
 struct
 
 (* perl style *)
@@ -83,6 +78,8 @@ val perl_style =
         {status = status, finish = finish}
       end)
 
+val _ = Theory.setup perl_style;
+
 
 (* CM style: meshes with CM output; highlighted in sml-mode *)
 
@@ -111,9 +108,6 @@ val cm_style =
         {status = K (), finish = finish}
       end)
 
-
-(* setup *)
-
-val setup = perl_style #> cm_style
+val _ = Theory.setup cm_style;
 
 end

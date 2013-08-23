@@ -667,7 +667,7 @@ text {* A very important consequence of embedding SML into Isar is the
   ML is augmented by special syntactic entities of the following form:
 
   @{rail "
-  @{syntax_def antiquote}: '@{' nameref args '}' | '\<lbrace>' | '\<rbrace>'
+  @{syntax_def antiquote}: '@{' nameref args '}'
   "}
 
   Here @{syntax nameref} and @{syntax args} are regular outer syntax
@@ -682,61 +682,6 @@ text {* A very important consequence of embedding SML into Isar is the
   scheme allows to refer to formal entities in a robust manner, with
   proper static scoping and with some degree of logical checking of
   small portions of the code.
-
-  Special antiquotations like @{text "@{let \<dots>}"} or @{text "@{note
-  \<dots>}"} augment the compilation context without generating code.  The
-  non-ASCII braces @{text "\<lbrace>"} and @{text "\<rbrace>"} allow to delimit the
-  effect by introducing local blocks within the pre-compilation
-  environment.
-
-  \medskip See also \cite{Wenzel-Chaieb:2007b} for a broader
-  perspective on Isabelle/ML antiquotations.  *}
-
-text %mlantiq {*
-  \begin{matharray}{rcl}
-  @{ML_antiquotation_def "let"} & : & @{text ML_antiquotation} \\
-  @{ML_antiquotation_def "note"} & : & @{text ML_antiquotation} \\
-  \end{matharray}
-
-  @{rail "
-  @@{ML_antiquotation let} ((term + @'and') '=' term + @'and')
-  ;
-  @@{ML_antiquotation note} (thmdef? thmrefs + @'and')
-  "}
-
-  \begin{description}
-
-  \item @{text "@{let p = t}"} binds schematic variables in the
-  pattern @{text "p"} by higher-order matching against the term @{text
-  "t"}.  This is analogous to the regular @{command_ref let} command
-  in the Isar proof language.  The pre-compilation environment is
-  augmented by auxiliary term bindings, without emitting ML source.
-
-  \item @{text "@{note a = b\<^sub>1 \<dots> b\<^sub>n}"} recalls existing facts @{text
-  "b\<^sub>1, \<dots>, b\<^sub>n"}, binding the result as @{text a}.  This is analogous to
-  the regular @{command_ref note} command in the Isar proof language.
-  The pre-compilation environment is augmented by auxiliary fact
-  bindings, without emitting ML source.
-
-  \end{description}
-*}
-
-text %mlex {* The following artificial example gives some impression
-  about the antiquotation elements introduced so far, together with
-  the important @{text "@{thm}"} antiquotation defined later.
-*}
-
-ML {*
-  \<lbrace>
-    @{let ?t = my_term}
-    @{note my_refl = reflexive [of ?t]}
-    fun foo th = Thm.transitive th @{thm my_refl}
-  \<rbrace>
-*}
-
-text {* The extra block delimiters do not affect the compiled code
-  itself, i.e.\ function @{ML foo} is available in the present context
-  of this paragraph.
 *}
 
 

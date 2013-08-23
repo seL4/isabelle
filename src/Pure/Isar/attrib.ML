@@ -353,8 +353,8 @@ val folded = unfolded_syntax Local_Defs.fold;
 
 (* rule format *)
 
-val rule_format = Args.mode "no_asm"
-  >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format);
+fun rule_format true = Object_Logic.rule_format_no_asm
+  | rule_format false = Object_Logic.rule_format;
 
 val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
@@ -385,7 +385,7 @@ val rotated = Scan.optional Parse.int 1 >> (fn n => Thm.rule_attribute (K (rotat
 
 (* theory setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
     "internal attribute" #>
   setup (Binding.name "tagged") (Scan.lift (Args.name -- Args.name) >> Thm.tag) "tagged theorem" #>
@@ -410,7 +410,8 @@ val _ = Context.>> (Context.map_theory
     "named rule parameters" #>
   setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
     "result put into standard form (legacy)" #>
-  setup (Binding.name "rule_format") rule_format "result put into canonical rule format" #>
+  setup (Binding.name "rule_format") (Scan.lift (Args.mode "no_asm") >> rule_format)
+    "result put into canonical rule format" #>
   setup (Binding.name "elim_format") (Scan.succeed elim_format)
     "destruct rule turned into elimination rule format" #>
   setup (Binding.name "no_vars") (Scan.succeed no_vars) "frozen schematic vars" #>
@@ -426,7 +427,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "abs_def")
     (Scan.succeed (Thm.rule_attribute (fn context =>
       Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def)))
-    "abstract over free variables of definitional theorem"));
+    "abstract over free variables of definitional theorem");
 
 
 
@@ -505,7 +506,7 @@ local
 fun setup_config declare_config binding default =
   let
     val (config, setup) = declare_config binding default;
-    val _ = Context.>> (Context.map_theory setup);
+    val _ = Theory.setup setup;
   in config end;
 
 in
@@ -530,7 +531,7 @@ fun declare_option coerce name =
 fun setup_option coerce name =
   let
     val config = Config.declare_option name;
-    val _ = Context.>> (Context.map_theory (register_config config));
+    val _ = Theory.setup (register_config config);
   in coerce config end;
 
 in
@@ -550,7 +551,7 @@ end;
 
 (* theory setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (register_config quick_and_dirty_raw #>
   register_config Ast.trace_raw #>
   register_config Ast.stats_raw #>
@@ -581,6 +582,6 @@ val _ = Context.>> (Context.map_theory
   register_config Raw_Simplifier.simp_depth_limit_raw #>
   register_config Raw_Simplifier.simp_trace_depth_limit_raw #>
   register_config Raw_Simplifier.simp_debug_raw #>
-  register_config Raw_Simplifier.simp_trace_raw));
+  register_config Raw_Simplifier.simp_trace_raw);
 
 end;

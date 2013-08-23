@@ -263,11 +263,10 @@ fun output_rules state rules =
 
 in
 
-val _ =
-  Context.>> (Context.map_theory
-    (Thy_Output.antiquotation (Binding.name "rail")
-      (Scan.lift (Parse.source_position Parse.string))
-      (fn {state, ...} => output_rules state o read)));
+val _ = Theory.setup
+  (Thy_Output.antiquotation (Binding.name "rail")
+    (Scan.lift (Parse.source_position Parse.string))
+    (fn {state, ...} => output_rules state o read));
 
 end;
 

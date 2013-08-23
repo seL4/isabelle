@@ -1,4 +1,4 @@
-(*  Title:      HOL/Spec_Check/spec_check.ML
+(*  Title:      Tools/Spec_Check/spec_check.ML
     Author:     Lukas Bulwahn and Nicolai Schaffroth, TU Muenchen
     Author:     Christopher League
 

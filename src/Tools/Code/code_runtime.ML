@@ -51,14 +51,14 @@ val structure_generated = "Generated_Code";
 
 datatype truth = Holds;
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Code_Target.extend_target (target, (Code_ML.target_SML, K I))
   #> Code_Target.set_printings (Code_Symbol.Type_Constructor (@{type_name prop},
     [(target, SOME (0, (K o K o K) (Code_Printer.str s_truth)))]))
   #> Code_Target.set_printings (Code_Symbol.Constant (@{const_name Code_Generator.holds},
     [(target, SOME (Code_Printer.plain_const_syntax s_Holds))]))
   #> Code_Target.add_reserved target this
-  #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]));
+  #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]);
        (*avoid further pervasive infix names*)
 
 val trace = Unsynchronized.ref false;
@@ -247,12 +247,15 @@ fun print_code is_first const ctxt =
 
 in
 
-fun ml_code_antiq raw_const background =
+fun ml_code_antiq context raw_const =
   let
-    val const = Code.check_const (Proof_Context.theory_of background) raw_const;
-    val is_first = is_first_occ background;
-    val background' = register_const const background;
-  in (print_code is_first const, background') end;
+    val ctxt = Context.the_proof context;
+    val thy = Proof_Context.theory_of ctxt;
+
+    val const = Code.check_const thy raw_const;
+    val is_first = is_first_occ ctxt;
+    val ctxt' = register_const const ctxt;
+  in (Context.Proof ctxt', print_code is_first const) end;
 
 end; (*local*)
 
@@ -342,9 +345,9 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 (** Isar setup **)
 
-val _ =
-  Context.>> (Context.map_theory
-    (ML_Context.add_antiq @{binding code} (fn _ => Args.term >> ml_code_antiq)));
+val _ = Theory.setup
+  (ML_Context.add_antiq @{binding code}
+    (Scan.depend (fn context => Scan.pass context Args.term >> ml_code_antiq context)));
 
 local
 
@@ -383,7 +386,7 @@ structure Loaded_Values = Theory_Data
 fun notify_val (string, value) = 
   let
     val _ = #enterVal ML_Env.name_space (string, value);
-    val _ = Context.>> ((Context.map_theory o Loaded_Values.map) (insert (op =) string));
+    val _ = Theory.setup (Loaded_Values.map (insert (op =) string));
   in () end;
 
 fun abort _ = error "Only value bindings allowed.";

@@ -91,11 +91,11 @@ fun sub_term (Free (n, T)) = Free (sub_name n, T)
   | sub_term (Abs (n, T, b)) = Abs (sub_name n, T, sub_term b)
   | sub_term t = t;
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (setup "lhs" (style_lhs_rhs fst) #>
   setup "rhs" (style_lhs_rhs snd) #>
   setup "prem" style_prem #>
   setup "concl" (Scan.succeed (K Logic.strip_imp_concl)) #>
-  setup "sub" (Scan.succeed (K sub_term))));
+  setup "sub" (Scan.succeed (K sub_term)));
 
 end;

@@ -320,9 +320,8 @@ fun conclude_history thy = if (history_concluded o the_exec) thy
         #> map_history_concluded (K true))
     |> SOME;
 
-val _ =
-  Context.>> (Context.map_theory
-    (Theory.at_begin continue_history #> Theory.at_end conclude_history));
+val _ = Theory.setup
+  (Theory.at_begin continue_history #> Theory.at_end conclude_history);
 
 
 (* access to data dependent on abstract executable code *)
@@ -1233,7 +1232,7 @@ fun add_abstype proto_thm thy =
 
 (* setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     val code_attribute_parser =
@@ -1247,7 +1246,7 @@ val _ = Context.>> (Context.map_theory
     Datatype_Interpretation.init
     #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
-  end));
+  end);
 
 end; (*struct*)
 

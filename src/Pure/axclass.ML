@@ -264,9 +264,8 @@ fun complete_arities thy =
     else SOME (map_proven_arities (K arities') thy)
   end;
 
-val _ = Context.>> (Context.map_theory
-  (Theory.at_begin complete_classrels #>
-   Theory.at_begin complete_arities));
+val _ = Theory.setup
+  (Theory.at_begin complete_classrels #> Theory.at_begin complete_arities);
 
 val _ = Proofterm.install_axclass_proofs
   {classrel_proof = Thm.proof_of oo the_classrel,

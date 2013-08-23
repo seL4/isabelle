@@ -1,0 +1,9 @@
+session WWW_Find in WWW_Find = Pure +
+  theories [condition = ISABELLE_POLYML] WWW_Find
+
+session Spec_Check in Spec_Check = Pure +
+  theories
+    Spec_Check
+  theories [condition = ISABELLE_POLYML]
+    Examples
+

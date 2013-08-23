@@ -99,9 +99,7 @@ val output_syms_antiq =
   (fn Antiquote.Text ss => output_symbols (map Symbol_Pos.symbol ss)
     | Antiquote.Antiq (ss, _) =>
         enclose "%\n\\isaantiq\n" "{}%\n\\endisaantiq\n"
-          (output_symbols (map Symbol_Pos.symbol ss))
-    | Antiquote.Open _ => "{\\isaantiqopen}"
-    | Antiquote.Close _ => "{\\isaantiqclose}");
+          (output_symbols (map Symbol_Pos.symbol ss)));
 
 end;
 

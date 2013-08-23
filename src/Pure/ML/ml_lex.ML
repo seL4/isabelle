@@ -270,7 +270,7 @@ val scan_ml =
     scan_ident >> token Ident ||
     scan_typevar >> token TypeVar));
 
-val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+val scan_antiq = Antiquote.scan_antiq >> Antiquote.Antiq || scan_ml >> Antiquote.Text;
 
 fun recover msg =
  (recover_char ||
@@ -304,7 +304,6 @@ fun read pos txt =
           (SOME (false, fn msg => recover msg >> map Antiquote.Text))
         |> Source.exhaust
         |> tap (Position.reports_text o Antiquote.reports_of (single o report_of_token))
-        |> tap Antiquote.check_nesting
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
       handle ERROR msg =>
         cat_error msg ("The error(s) above occurred in ML source" ^ Position.here pos);

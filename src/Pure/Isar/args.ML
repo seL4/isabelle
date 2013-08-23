@@ -25,9 +25,9 @@ sig
   val bang: string parser
   val query_colon: string parser
   val bang_colon: string parser
-  val parens: ('a parser) -> 'a parser
-  val bracks: ('a parser) -> 'a parser
-  val mode: string -> bool context_parser
+  val parens: 'a parser -> 'a parser
+  val bracks: 'a parser -> 'a parser
+  val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
   val name_source: string parser
   val name_source_position: (Symbol_Pos.text * Position.T) parser
@@ -145,7 +145,7 @@ val bang_colon = $$$ "!" ^^ $$$ ":";
 
 fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
-fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
+fun mode s = Scan.optional (parens ($$$ s) >> K true) false;
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val name_source = named >> Token.source_of;

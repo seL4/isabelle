@@ -56,7 +56,7 @@ val old_appl_syntax_setup =
 val token_markers =
   ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
    Old_Appl_Syntax.put false #>
    Sign.add_types_global
@@ -221,6 +221,6 @@ val _ = Context.>> (Context.map_theory
   #> Sign.hide_const false "Pure.conjunction"
   #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
   #> fold (fn (a, prop) =>
-      snd o Thm.add_axiom_global (Binding.name a, prop)) Proofterm.equality_axms));
+      snd o Thm.add_axiom_global (Binding.name a, prop)) Proofterm.equality_axms);
 
 end;
