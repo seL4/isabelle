@@ -103,30 +103,27 @@ def mash(argv = sys.argv[1:]):
         received = communicate(data,args.host,args.port)
         logger.info(received)     
     
-    if args.inputFile == None:
-        return
-    logger.debug('Using the following settings: %s',args)
-    # IO Streams
-    OS = open(args.predictions,'w')
-    IS = open(args.inputFile,'r')
-    lineCount = 0
-    for line in IS:
-        lineCount += 1
-        if lineCount % 100 == 0:
-            logger.info('On line %s', lineCount)
-        #if lineCount == 50: ###
-        #    break       
-        received = communicate(line,args.host,args.port)
-        if not received == '':
-            OS.write('%s\n' % received)
-    OS.close()
-    IS.close()
+    if not args.inputFile == None:
+        logger.debug('Using the following settings: %s',args)
+        # IO Streams
+        OS = open(args.predictions,'w')
+        IS = open(args.inputFile,'r')
+        lineCount = 0
+        for line in IS:
+            lineCount += 1
+            if lineCount % 100 == 0:
+                logger.info('On line %s', lineCount)
+            received = communicate(line,args.host,args.port)
+            if not received == '':
+                OS.write('%s\n' % received)
+        OS.close()
+        IS.close()
 
     # Statistics
     if args.statistics:
         received = communicate('avgStats',args.host,args.port)
         logger.info(received)
-    elif args.saveModels:
+    if args.saveModels:
         communicate('save',args.host,args.port)
 
 
