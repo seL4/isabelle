@@ -635,7 +635,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
         add_type_pat depth t #> add_type_pats (depth - 1) t
     fun add_type T =
       add_type_pats type_max_depth T
-      #> fold_atyps_sorts (fn (_, S) => add_classes S) T
+      #> fold_atyps_sorts (add_classes o snd) T
     fun add_subtypes (T as Type (_, Ts)) = add_type T #> fold add_subtypes Ts
       | add_subtypes T = add_type T
 

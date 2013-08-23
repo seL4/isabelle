@@ -123,6 +123,8 @@ class Statistics(object):
         # HACK FOR PAPER
         assert len(self.aucData) == len(self.recall100Median)
         nrDataPoints = len(self.aucData)
+        if nrDataPoints == 0:
+            return "No data points"
         if nrDataPoints % 2 == 1:
             medianAUC = sorted(self.aucData)[nrDataPoints/2 + 1]
         else:
