@@ -659,11 +659,11 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_tac ctxt facts;
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Method.setup (Binding.name "intro_classes") (Scan.succeed (K (METHOD intro_classes_tac)))
     "back-chain introduction rules of classes" #>
   Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
-    "apply some intro/elim rule"));
+    "apply some intro/elim rule");
 
 end;
 

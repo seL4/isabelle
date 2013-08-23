@@ -163,12 +163,12 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
 (* where: named instantiation *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Attrib.setup (Binding.name "where")
     (Scan.lift (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_source))) >>
       (fn args =>
         Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)))
-    "named instantiation of theorem"));
+    "named instantiation of theorem");
 
 
 (* of: positional instantiation (terms only) *)
@@ -184,11 +184,11 @@ val insts =
 
 in
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
   (Attrib.setup (Binding.name "of")
     (Scan.lift insts >> (fn args =>
       Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args)))
-    "positional instantiation of theorem"));
+    "positional instantiation of theorem");
 
 end;
 
@@ -341,7 +341,7 @@ val forw_inst_meth = method forw_inst_tac (K forward_tac);
 
 (* setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Method.setup (Binding.name "rule_tac") res_inst_meth "apply rule (dynamic instantiation)" #>
   Method.setup (Binding.name "erule_tac") eres_inst_meth
     "apply rule in elimination manner (dynamic instantiation)" #>
@@ -358,7 +358,7 @@ val _ = Context.>> (Context.map_theory
   Method.setup (Binding.name "thin_tac")
     (Args.goal_spec -- Scan.lift Args.name_source >>
       (fn (quant, prop) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop)))
-      "remove premise (dynamic instantiation)"));
+      "remove premise (dynamic instantiation)");
 
 end;
 

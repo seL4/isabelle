@@ -78,6 +78,8 @@ val perl_style =
         {status = status, finish = finish}
       end)
 
+val _ = Theory.setup perl_style;
+
 
 (* CM style: meshes with CM output; highlighted in sml-mode *)
 
@@ -106,9 +108,6 @@ val cm_style =
         {status = K (), finish = finish}
       end)
 
-
-(* setup *)
-
-val _ = Context.>> (Context.map_theory (perl_style #> cm_style));
+val _ = Theory.setup cm_style;
 
 end

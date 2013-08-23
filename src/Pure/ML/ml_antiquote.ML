@@ -54,8 +54,7 @@ fun value name scan =
 
 (** misc antiquotations **)
 
-val _ = Context.>> (Context.map_theory
-
+val _ = Theory.setup
  (inline (Binding.name "assert")
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
@@ -102,7 +101,7 @@ val _ = Context.>> (Context.map_theory
     (Args.context --
       Scan.lift Args.name_source >> uncurry Proof_Context.read_term_pattern >> (fn t =>
         "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-          ML_Syntax.atomic (ML_Syntax.print_term t)))));
+          ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
 (* type classes *)
@@ -112,13 +111,13 @@ fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
   |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "class") (class false) #>
   inline (Binding.name "class_syntax") (class true) #>
 
   inline (Binding.name "sort")
     (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
-      ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))))));
+      ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
 
 
 (* type constructors *)
@@ -134,7 +133,7 @@ fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_s
         | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.here pos));
     in ML_Syntax.print_string res end);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "type_name")
     (type_name "logical type" (fn (c, Type.LogicalType _) => c)) #>
   inline (Binding.name "type_abbrev")
@@ -142,7 +141,7 @@ val _ = Context.>> (Context.map_theory
   inline (Binding.name "nonterminal")
     (type_name "nonterminal" (fn (c, Type.Nonterminal) => c)) #>
   inline (Binding.name "type_syntax")
-    (type_name "type" (fn (c, _) => Lexicon.mark_type c))));
+    (type_name "type" (fn (c, _) => Lexicon.mark_type c)));
 
 
 (* constants *)
@@ -155,7 +154,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_sourc
         handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     in ML_Syntax.print_string res end);
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (inline (Binding.name "const_name")
     (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
   inline (Binding.name "const_abbrev")
@@ -181,7 +180,7 @@ val _ = Context.>> (Context.map_theory
             error ("Constant requires " ^ string_of_int n ^ " type argument(s): " ^
               quote c ^ enclose "(" ")" (commas (replicate n "_")));
           val const = Const (c, Consts.instance consts (c, Ts));
-        in ML_Syntax.atomic (ML_Syntax.print_term const) end))));
+        in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
 
 
 (* outer syntax *)
@@ -191,7 +190,7 @@ fun with_keyword f =
     (f ((name, Thy_Header.the_keyword thy name), pos)
       handle ERROR msg => error (msg ^ Position.here pos)));
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (value (Binding.name "keyword")
     (with_keyword
       (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
@@ -209,7 +208,7 @@ val _ = Context.>> (Context.map_theory
                   (ML_Syntax.print_list ML_Syntax.print_string)))
               ML_Syntax.print_position) ((name, kind), pos))
         | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.here pos)))));
+            error ("Expected command keyword " ^ quote name ^ Position.here pos))));
 
 end;
 

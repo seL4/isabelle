@@ -275,9 +275,8 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
 
 (* document antiquotation *)
 
-val _ =
-  Context.>> (Context.map_theory
-   (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
+val _ = Theory.setup
+  (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       let
         val dir = master_directory (Proof_Context.theory_of ctxt);
@@ -290,7 +289,7 @@ val _ =
         space_explode "/" name
         |> map Thy_Output.verb_text
         |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
-      end)));
+      end));
 
 
 (* global master path *)

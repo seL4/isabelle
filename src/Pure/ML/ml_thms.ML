@@ -34,23 +34,22 @@ val cons_thms = Data.map o apsnd o cons;
 
 (* attribute source *)
 
-val _ =
-  Context.>> (Context.map_theory
-    (ML_Context.add_antiq (Binding.name "attributes")
-      (Scan.depend (fn context => Parse_Spec.attribs >> (fn raw_srcs =>
-        let
-          val ctxt = Context.the_proof context;
-          val thy = Proof_Context.theory_of ctxt;
+val _ = Theory.setup
+  (ML_Context.add_antiq (Binding.name "attributes")
+    (Scan.depend (fn context => Parse_Spec.attribs >> (fn raw_srcs =>
+      let
+        val ctxt = Context.the_proof context;
+        val thy = Proof_Context.theory_of ctxt;
 
-          val i = serial ();
-          val srcs = map (Attrib.intern_src thy) raw_srcs;
-          val _ = map (Attrib.attribute ctxt) srcs;
-          val (a, ctxt') = ctxt
-            |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
-          val ml =
-            ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
-              string_of_int i ^ ";\n", "Isabelle." ^ a);
-        in (Context.Proof ctxt', K ml) end)))));
+        val i = serial ();
+        val srcs = map (Attrib.intern_src thy) raw_srcs;
+        val _ = map (Attrib.attribute ctxt) srcs;
+        val (a, ctxt') = ctxt
+          |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
+        val ml =
+          ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
+            string_of_int i ^ ";\n", "Isabelle." ^ a);
+      in (Context.Proof ctxt', K ml) end))));
 
 
 (* fact references *)
@@ -73,14 +72,13 @@ fun thm_binding kind is_single context thms =
       else ("", ml_body);
   in (Context.Proof ctxt'', decl) end;
 
-val _ =
-  Context.>> (Context.map_theory
-    (ML_Context.add_antiq (Binding.name "thm")
-      (Scan.depend (fn context =>
-        Scan.pass context Attrib.thm >> (thm_binding "thm" true context o single))) #>
-     ML_Context.add_antiq (Binding.name "thms")
-      (Scan.depend (fn context =>
-        Scan.pass context Attrib.thms >> thm_binding "thms" false context))));
+val _ = Theory.setup
+  (ML_Context.add_antiq (Binding.name "thm")
+    (Scan.depend (fn context =>
+      Scan.pass context Attrib.thm >> (thm_binding "thm" true context o single))) #>
+   ML_Context.add_antiq (Binding.name "thms")
+    (Scan.depend (fn context =>
+      Scan.pass context Attrib.thms >> thm_binding "thms" false context)));
 
 
 (* ad-hoc goals *)
@@ -89,9 +87,8 @@ val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name_source;
 
-val _ =
-  Context.>> (Context.map_theory
-   (ML_Context.add_antiq (Binding.name "lemma")
+val _ = Theory.setup
+  (ML_Context.add_antiq (Binding.name "lemma")
     (Scan.depend (fn context =>
       Args.mode "open" -- Parse.and_list1 (Scan.repeat1 goal) --
       (by |-- Method.parse -- Scan.option Method.parse) >>
@@ -111,7 +108,7 @@ val _ =
             val thms =
               Proof_Context.get_fact ctxt'
                 (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
-          in thm_binding "lemma" (length (flat propss) = 1) context thms end)))));
+          in thm_binding "lemma" (length (flat propss) = 1) context thms end))));
 
 end;
 

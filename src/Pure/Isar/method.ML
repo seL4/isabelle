@@ -438,7 +438,7 @@ fun position NONE = Position.none
 
 (* theory setup *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
   setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
   setup (Binding.name "-") (Scan.succeed (K insert_facts))
@@ -470,7 +470,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "tactic") (Scan.lift Args.name_source_position >> tactic)
     "ML tactic as proof method" #>
   setup (Binding.name "raw_tactic") (Scan.lift Args.name_source_position >> raw_tactic)
-    "ML tactic as raw proof method"));
+    "ML tactic as raw proof method");
 
 
 (*final declarations of this structure!*)

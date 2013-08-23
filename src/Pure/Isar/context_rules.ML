@@ -198,8 +198,8 @@ val intro_query = rule_add intro_queryK I;
 val elim_query  = rule_add elim_queryK I;
 val dest_query  = rule_add elim_queryK Tactic.make_elim;
 
-val _ = Context.>> (Context.map_theory
-  (snd o Global_Theory.add_thms [((Binding.empty, Drule.equal_intr_rule), [intro_query NONE])]));
+val _ = Theory.setup
+  (snd o Global_Theory.add_thms [((Binding.empty, Drule.equal_intr_rule), [intro_query NONE])]);
 
 
 (* concrete syntax *)
@@ -208,7 +208,7 @@ fun add a b c x =
   (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) --
     Scan.option Parse.nat) >> (fn (f, n) => f n)) x;
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Attrib.setup (Binding.name "intro") (add intro_bang intro intro_query)
     "declaration of introduction rule" #>
   Attrib.setup (Binding.name "elim") (add elim_bang elim elim_query)
@@ -216,6 +216,6 @@ val _ = Context.>> (Context.map_theory
   Attrib.setup (Binding.name "dest") (add dest_bang dest dest_query)
     "declaration of destruction rule" #>
   Attrib.setup (Binding.name "rule") (Scan.lift Args.del >> K rule_del)
-    "remove declaration of intro/elim/dest rule"));
+    "remove declaration of intro/elim/dest rule");
 
 end;

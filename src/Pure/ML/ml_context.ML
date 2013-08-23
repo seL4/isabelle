@@ -74,7 +74,7 @@ fun ml_store get (name, ths) =
   let
     val ths' = Context.>>> (Context.map_theory_result
       (Global_Theory.store_thms (Binding.name name, ths)));
-    val _ = Context.>> (Context.map_theory (Stored_Thms.put ths'));
+    val _ = Theory.setup (Stored_Thms.put ths');
     val _ =
       if name = "" then ()
       else if not (ML_Syntax.is_identifier name) then
@@ -82,7 +82,7 @@ fun ml_store get (name, ths) =
       else
         ML_Compiler.eval true Position.none
           (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
-    val _ = Context.>> (Context.map_theory (Stored_Thms.put []));
+    val _ = Theory.setup (Stored_Thms.put []);
   in () end;
 
 val ml_store_thms = ml_store "ML_Context.get_stored_thms";

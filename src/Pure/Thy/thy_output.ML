@@ -442,25 +442,24 @@ end;
 
 (* options *)
 
-val _ =
-  Context.>> (Context.map_theory
-   (add_option (Binding.name "show_types") (Config.put show_types o boolean) #>
-    add_option (Binding.name "show_sorts") (Config.put show_sorts o boolean) #>
-    add_option (Binding.name "show_structs") (Config.put show_structs o boolean) #>
-    add_option (Binding.name "show_question_marks") (Config.put show_question_marks o boolean) #>
-    add_option (Binding.name "show_abbrevs") (Config.put show_abbrevs o boolean) #>
-    add_option (Binding.name "names_long") (Config.put Name_Space.names_long o boolean) #>
-    add_option (Binding.name "names_short") (Config.put Name_Space.names_short o boolean) #>
-    add_option (Binding.name "names_unique") (Config.put Name_Space.names_unique o boolean) #>
-    add_option (Binding.name "eta_contract") (Config.put Syntax_Trans.eta_contract o boolean) #>
-    add_option (Binding.name "display") (Config.put display o boolean) #>
-    add_option (Binding.name "break") (Config.put break o boolean) #>
-    add_option (Binding.name "quotes") (Config.put quotes o boolean) #>
-    add_option (Binding.name "mode") (add_wrapper o Print_Mode.with_modes o single) #>
-    add_option (Binding.name "margin") (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer) #>
-    add_option (Binding.name "indent") (Config.put indent o integer) #>
-    add_option (Binding.name "source") (Config.put source o boolean) #>
-    add_option (Binding.name "goals_limit") (Config.put Goal_Display.goals_limit o integer)));
+val _ = Theory.setup
+ (add_option (Binding.name "show_types") (Config.put show_types o boolean) #>
+  add_option (Binding.name "show_sorts") (Config.put show_sorts o boolean) #>
+  add_option (Binding.name "show_structs") (Config.put show_structs o boolean) #>
+  add_option (Binding.name "show_question_marks") (Config.put show_question_marks o boolean) #>
+  add_option (Binding.name "show_abbrevs") (Config.put show_abbrevs o boolean) #>
+  add_option (Binding.name "names_long") (Config.put Name_Space.names_long o boolean) #>
+  add_option (Binding.name "names_short") (Config.put Name_Space.names_short o boolean) #>
+  add_option (Binding.name "names_unique") (Config.put Name_Space.names_unique o boolean) #>
+  add_option (Binding.name "eta_contract") (Config.put Syntax_Trans.eta_contract o boolean) #>
+  add_option (Binding.name "display") (Config.put display o boolean) #>
+  add_option (Binding.name "break") (Config.put break o boolean) #>
+  add_option (Binding.name "quotes") (Config.put quotes o boolean) #>
+  add_option (Binding.name "mode") (add_wrapper o Print_Mode.with_modes o single) #>
+  add_option (Binding.name "margin") (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer) #>
+  add_option (Binding.name "indent") (Config.put indent o integer) #>
+  add_option (Binding.name "source") (Config.put source o boolean) #>
+  add_option (Binding.name "goals_limit") (Config.put Goal_Display.goals_limit o integer));
 
 
 (* basic pretty printing *)
@@ -564,22 +563,21 @@ fun basic_entity name scan = basic_entities name (scan >> single);
 
 in
 
-val _ =
-  Context.>> (Context.map_theory
-   (basic_entities_style (Binding.name "thm") (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
-    basic_entity (Binding.name "prop") (Term_Style.parse -- Args.prop) pretty_term_style #>
-    basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
-    basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
-    basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
-    basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
-    basic_entity (Binding.name "abbrev") (Scan.lift Args.name_source) pretty_abbrev #>
-    basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
-    basic_entity (Binding.name "class") (Scan.lift Args.name_source) pretty_class #>
-    basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
-    basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
-    basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
-    basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
-    basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory));
+val _ = Theory.setup
+ (basic_entities_style (Binding.name "thm") (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
+  basic_entity (Binding.name "prop") (Term_Style.parse -- Args.prop) pretty_term_style #>
+  basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
+  basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
+  basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
+  basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
+  basic_entity (Binding.name "abbrev") (Scan.lift Args.name_source) pretty_abbrev #>
+  basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
+  basic_entity (Binding.name "class") (Scan.lift Args.name_source) pretty_class #>
+  basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
+  basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
+  basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
+  basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
+  basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory);
 
 end;
 
@@ -600,10 +598,9 @@ fun goal_state name main = antiquotation name (Scan.succeed ())
 
 in
 
-val _ =
-  Context.>> (Context.map_theory
-   (goal_state (Binding.name "goals") true #>
-    goal_state (Binding.name "subgoals") false));
+val _ = Theory.setup
+ (goal_state (Binding.name "goals") true #>
+  goal_state (Binding.name "subgoals") false);
 
 end;
 
@@ -612,9 +609,8 @@ end;
 
 val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 
-val _ =
-  Context.>> (Context.map_theory
-   (antiquotation (Binding.name "lemma")
+val _ = Theory.setup
+  (antiquotation (Binding.name "lemma")
     (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
     (fn {source, context, ...} => fn (prop, methods) =>
       let
@@ -624,7 +620,7 @@ val _ =
         val _ = context
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof methods;
-      in output context (maybe_pretty_source pretty_term context prop_src [prop]) end)));
+      in output context (maybe_pretty_source pretty_term context prop_src [prop]) end));
 
 
 (* ML text *)
@@ -649,20 +645,19 @@ fun ml_enclose bg en pos txt =
 
 in
 
-val _ =
-  Context.>> (Context.map_theory
-   (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
-    ml_text (Binding.name "ML_op") (ml_enclose "fn _ => (op " ");") #>
-    ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
-    ml_text (Binding.name "ML_struct")
-      (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
+val _ = Theory.setup
+ (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
+  ml_text (Binding.name "ML_op") (ml_enclose "fn _ => (op " ");") #>
+  ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
+  ml_text (Binding.name "ML_struct")
+    (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
-    ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
-      (fn pos => fn txt =>
-        ML_Lex.read Position.none ("ML_Env.check_functor " ^
-          ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos))))) #>
+  ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
+    (fn pos => fn txt =>
+      ML_Lex.read Position.none ("ML_Env.check_functor " ^
+        ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos))))) #>
 
-    ml_text (Binding.name "ML_text") (K (K []))));
+  ml_text (Binding.name "ML_text") (K (K [])));
 
 end;
 

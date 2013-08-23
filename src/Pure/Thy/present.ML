@@ -52,8 +52,8 @@ structure Browser_Info = Theory_Data
   fun merge _ = empty;
 );
 
-val _ = Context.>> (Context.map_theory
-  (Browser_Info.put {chapter = Context.PureN, name = Context.PureN}));
+val _ = Theory.setup
+  (Browser_Info.put {chapter = Context.PureN, name = Context.PureN});
 
 val session_name = #name o Browser_Info.get;
 val session_chapter_name = (fn {chapter, name} => [chapter, name]) o Browser_Info.get;

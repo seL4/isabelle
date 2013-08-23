@@ -613,11 +613,11 @@ fun gen_intro_locales_tac intros_tac eager ctxt =
 val intro_locales_tac = gen_intro_locales_tac Method.intros_tac;
 val try_intro_locales_tac= gen_intro_locales_tac Method.try_intros_tac;
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Method.setup (Binding.name "intro_locales") (Scan.succeed (METHOD o try_intro_locales_tac false))
     "back-chain introduction rules of locales without unfolding predicates" #>
   Method.setup (Binding.name "unfold_locales") (Scan.succeed (METHOD o try_intro_locales_tac true))
-    "back-chain all introduction rules of locales"));
+    "back-chain all introduction rules of locales");
 
 
 (*** diagnostic commands and interfaces ***)

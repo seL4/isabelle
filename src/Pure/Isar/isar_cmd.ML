@@ -265,12 +265,11 @@ fun diag_goal ctxt =
   Proof.goal (Toplevel.proof_of (diag_state ctxt))
     handle Toplevel.UNDEF => error "No goal present";
 
-val _ =
-  Context.>> (Context.map_theory
-   (ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "state"))
-      (Scan.succeed "Isar_Cmd.diag_state ML_context") #>
-    ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "goal"))
-      (Scan.succeed "Isar_Cmd.diag_goal ML_context")));
+val _ = Theory.setup
+  (ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "state"))
+    (Scan.succeed "Isar_Cmd.diag_state ML_context") #>
+   ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "goal"))
+    (Scan.succeed "Isar_Cmd.diag_goal ML_context"));
 
 
 (* print theorems *)

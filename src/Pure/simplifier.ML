@@ -129,10 +129,10 @@ val cong_del = attrib del_cong;
 (* global simprocs *)
 
 fun Addsimprocs args =
-  Context.>> (Context.map_theory (map_theory_simpset (fn ctxt => ctxt addsimprocs args)));
+  Theory.setup (map_theory_simpset (fn ctxt => ctxt addsimprocs args));
 
 fun Delsimprocs args =
-  Context.>> (Context.map_theory (map_theory_simpset (fn ctxt => ctxt delsimprocs args)));
+  Theory.setup (map_theory_simpset (fn ctxt => ctxt delsimprocs args));
 
 
 
@@ -154,13 +154,11 @@ val get_simprocs = Simprocs.get o Context.Proof;
 fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctxt) #> #1;
 val the_simproc = Name_Space.get o get_simprocs;
 
-val _ =
-  Context.>> (Context.map_theory
-   (ML_Antiquote.value (Binding.name "simproc")
-      (Args.context -- Scan.lift (Parse.position Args.name)
-        >> (fn (ctxt, name) =>
-          "Simplifier.the_simproc ML_context " ^
-            ML_Syntax.print_string (check_simproc ctxt name)))));
+val _ = Theory.setup
+  (ML_Antiquote.value (Binding.name "simproc")
+    (Args.context -- Scan.lift (Parse.position Args.name)
+      >> (fn (ctxt, name) =>
+        "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));
 
 
 (* define simprocs *)
@@ -327,14 +325,14 @@ end;
 
 (* setup attributes *)
 
-val _ = Context.>> (Context.map_theory
+val _ = Theory.setup
  (Attrib.setup (Binding.name simpN) (Attrib.add_del simp_add simp_del)
     "declaration of Simplifier rewrite rule" #>
   Attrib.setup (Binding.name congN) (Attrib.add_del cong_add cong_del)
     "declaration of Simplifier congruence rule" #>
   Attrib.setup (Binding.name "simproc") simproc_att
     "declaration of simplification procedures" #>
-  Attrib.setup (Binding.name "simplified") simplified "simplified rule"));
+  Attrib.setup (Binding.name "simplified") simplified "simplified rule");
 
 
 

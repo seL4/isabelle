@@ -15,6 +15,7 @@ sig
   val merge: theory * theory -> theory
   val merge_list: theory list -> theory
   val requires: theory -> string -> string -> unit
+  val setup: (theory -> theory) -> unit
   val get_markup: theory -> Markup.T
   val axiom_space: theory -> Name_Space.T
   val axiom_table: theory -> term Symtab.table
@@ -58,6 +59,8 @@ fun merge_list [] = raise THEORY ("Empty merge of theories", [])
 fun requires thy name what =
   if exists (fn thy' => Context.theory_name thy' = name) (nodes_of thy) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
+
+fun setup f = Context.>> (Context.map_theory f);
 
 
 

@@ -142,7 +142,6 @@ fun print_function ((name, (weight, auto, tool)): tool) =
 
 (* hybrid tool setup *)
 
-fun tool_setup tool =
-  (Context.>> (Context.map_theory (register_tool tool)); print_function tool)
+fun tool_setup tool = (Theory.setup (register_tool tool); print_function tool)
 
 end;
