@@ -255,10 +255,12 @@ structure MaSh =
 struct
 
 fun shutdown ctxt overlord =
-  run_mash_tool ctxt overlord [shutdown_server_arg] true ([], K "") (K ())
+  (trace_msg ctxt (K "MaSh shutdown");
+   run_mash_tool ctxt overlord [shutdown_server_arg] true ([], K "") (K ()))
 
 fun save ctxt overlord =
-  run_mash_tool ctxt overlord [save_models_arg] true ([], K "") (K ())
+  (trace_msg ctxt (K "MaSh save");
+   run_mash_tool ctxt overlord [save_models_arg] true ([], K "") (K ()))
 
 fun unlearn ctxt overlord =
   let val path = mash_model_dir () in
@@ -1274,7 +1276,8 @@ val max_facts_to_learn_before_query = 100
    Sledgehammer and Try. *)
 val min_secs_for_learning = 15
 
-fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
+fun relevant_facts ctxt
+        (params as {overlord, blocking, learn, fact_filter, timeout, ...})
         prover max_facts ({add, only, ...} : fact_override) hyp_ts concl_t
         facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
@@ -1288,7 +1291,8 @@ fun relevant_facts ctxt (params as {overlord, learn, fact_filter, timeout, ...})
   else
     let
       fun maybe_launch_thread () =
-        if not (Async_Manager.has_running_threads MaShN) andalso
+        if not blocking andalso
+           not (Async_Manager.has_running_threads MaShN) andalso
            (timeout = NONE orelse
             Time.toSeconds (the timeout) >= min_secs_for_learning) then
           let
