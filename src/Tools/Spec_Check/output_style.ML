@@ -5,12 +5,7 @@
 Output styles for presenting Spec_Check's results.
 *)
 
-signature OUTPUT_STYLE =
-sig
-  val setup : theory -> theory
-end
-
-structure Output_Style : OUTPUT_STYLE =
+structure Output_Style : sig end =
 struct
 
 (* perl style *)
@@ -114,6 +109,6 @@ val cm_style =
 
 (* setup *)
 
-val setup = perl_style #> cm_style
+val _ = Context.>> (Context.map_theory (perl_style #> cm_style));
 
 end
