@@ -247,12 +247,15 @@ fun print_code is_first const ctxt =
 
 in
 
-fun ml_code_antiq raw_const background =
+fun ml_code_antiq context raw_const =
   let
-    val const = Code.check_const (Proof_Context.theory_of background) raw_const;
-    val is_first = is_first_occ background;
-    val background' = register_const const background;
-  in (print_code is_first const, background') end;
+    val ctxt = Context.the_proof context;
+    val thy = Proof_Context.theory_of ctxt;
+
+    val const = Code.check_const thy raw_const;
+    val is_first = is_first_occ ctxt;
+    val ctxt' = register_const const ctxt;
+  in (Context.Proof ctxt', print_code is_first const) end;
 
 end; (*local*)
 
@@ -344,7 +347,8 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 val _ =
   Context.>> (Context.map_theory
-    (ML_Context.add_antiq @{binding code} (fn _ => Args.term >> ml_code_antiq)));
+    (ML_Context.add_antiq @{binding code}
+      (Scan.depend (fn context => Scan.pass context Args.term >> ml_code_antiq context))));
 
 local
 

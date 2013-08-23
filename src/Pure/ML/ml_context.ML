@@ -23,8 +23,8 @@ sig
   val get_stored_thm: unit -> thm
   val ml_store_thms: string * thm list -> unit
   val ml_store_thm: string * thm -> unit
-  type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
-  val add_antiq: binding -> (Position.T -> antiq context_parser) -> theory -> theory
+  type antiq = Proof.context -> string * string
+  val add_antiq: binding -> antiq context_parser -> theory -> theory
   val check_antiq: theory -> xstring * Position.T -> string
   val trace_raw: Config.raw
   val trace: bool Config.T
@@ -97,11 +97,11 @@ fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_conte
 
 (* antiquotation commands *)
 
-type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context;
+type antiq = Proof.context -> string * string;
 
 structure Antiq_Parsers = Theory_Data
 (
-  type T = (Position.T -> antiq context_parser) Name_Space.table;
+  type T = antiq context_parser Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
@@ -117,7 +117,7 @@ fun antiquotation src ctxt =
     val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
     val (_, scan) = Name_Space.check (Context.Proof ctxt) (Antiq_Parsers.get thy) (xname, pos);
-  in Args.context_syntax Markup.ML_antiquotationN (scan pos) src ctxt end;
+  in Args.context_syntax Markup.ML_antiquotationN scan src ctxt end;
 
 
 (* parsing and evaluation *)
@@ -160,9 +160,7 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
             | expand (Antiquote.Antiq (ss, range)) ctxt =
                 let
-                  val (f, _) =
-                    antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
-                  val (decl, ctxt') = f ctxt;  (* FIXME ?? *)
+                  val (decl, ctxt') = antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', ctxt') end;
 

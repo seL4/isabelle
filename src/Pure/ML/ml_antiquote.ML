@@ -7,9 +7,7 @@ Common ML antiquotations.
 signature ML_ANTIQUOTE =
 sig
   val variant: string -> Proof.context -> string * Proof.context
-  val macro: binding -> Proof.context context_parser -> theory -> theory
   val inline: binding -> string context_parser -> theory -> theory
-  val declaration: string -> binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
 end;
 
@@ -38,23 +36,20 @@ fun variant a ctxt =
 
 (* specific antiquotations *)
 
-fun macro name scan = ML_Context.add_antiq name
-  (fn _ => scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
-    (Context.Proof ctxt, fn background => (K ("", ""), background)))));
+fun inline name scan =
+  ML_Context.add_antiq name
+    (Scan.depend (fn context => Scan.pass context scan >> (fn s => (context, K ("", s)))));
 
-fun inline name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn background => (K ("", s), background)));
-
-fun declaration kind name scan = ML_Context.add_antiq name
-  (fn _ => scan >> (fn s => fn background =>
-    let
-      val (a, background') =
-        variant (translate_string (fn "." => "_" | c => c) (Binding.name_of name)) background;
-      val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
-      val body = "Isabelle." ^ a;
-    in (K (env, body), background') end));
-
-val value = declaration "val";
+fun value name scan =
+  ML_Context.add_antiq name
+    (Scan.depend (fn context => Scan.pass context scan >> (fn s =>
+      let
+        val ctxt = Context.the_proof context;
+        val (a, ctxt') =
+          variant (translate_string (fn "." => "_" | c => c) (Binding.name_of name)) ctxt;
+        val env = "val " ^ a ^ " = " ^ s ^ ";\n";
+        val body = "Isabelle." ^ a;
+      in (Context.Proof ctxt', (K (env, body))) end)));
 
 
 

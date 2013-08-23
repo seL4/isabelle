@@ -37,43 +37,50 @@ val cons_thms = Data.map o apsnd o cons;
 val _ =
   Context.>> (Context.map_theory
     (ML_Context.add_antiq (Binding.name "attributes")
-      (fn _ => Scan.lift Parse_Spec.attribs >> (fn raw_srcs => fn background =>
+      (Scan.depend (fn context => Parse_Spec.attribs >> (fn raw_srcs =>
         let
-          val thy = Proof_Context.theory_of background;
+          val ctxt = Context.the_proof context;
+          val thy = Proof_Context.theory_of ctxt;
 
           val i = serial ();
           val srcs = map (Attrib.intern_src thy) raw_srcs;
-          val _ = map (Attrib.attribute background) srcs;
-          val (a, background') = background
+          val _ = map (Attrib.attribute ctxt) srcs;
+          val (a, ctxt') = ctxt
             |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
           val ml =
             ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
               string_of_int i ^ ";\n", "Isabelle." ^ a);
-        in (K ml, background') end))));
+        in (Context.Proof ctxt', K ml) end)))));
 
 
 (* fact references *)
 
-fun thm_binding kind is_single thms background =
+fun thm_binding kind is_single context thms =
   let
-    val initial = null (get_thmss background);
-    val (name, background') = ML_Antiquote.variant kind background;
-    val background'' = cons_thms ((name, is_single), thms) background';
+    val ctxt = Context.the_proof context;
+
+    val initial = null (get_thmss ctxt);
+    val (name, ctxt') = ML_Antiquote.variant kind ctxt;
+    val ctxt'' = cons_thms ((name, is_single), thms) ctxt';
 
     val ml_body = "Isabelle." ^ name;
-    fun decl ctxt =
+    fun decl final_ctxt =
       if initial then
         let
-          val binds = get_thmss ctxt |> map (fn ((a, b), _) => (b ? enclose "[" "]") a);
+          val binds = get_thmss final_ctxt |> map (fn ((a, b), _) => (b ? enclose "[" "]") a);
           val ml_env = "val [" ^ commas binds ^ "] = ML_Thms.the_thmss ML_context;\n";
         in (ml_env, ml_body) end
       else ("", ml_body);
-  in (decl, background'') end;
+  in (Context.Proof ctxt'', decl) end;
 
 val _ =
   Context.>> (Context.map_theory
-   (ML_Context.add_antiq (Binding.name "thm") (K (Attrib.thm >> (thm_binding "thm" true o single))) #>
-    ML_Context.add_antiq (Binding.name "thms") (K (Attrib.thms >> thm_binding "thms" false))));
+    (ML_Context.add_antiq (Binding.name "thm")
+      (Scan.depend (fn context =>
+        Scan.pass context Attrib.thm >> (thm_binding "thm" true context o single))) #>
+     ML_Context.add_antiq (Binding.name "thms")
+      (Scan.depend (fn context =>
+        Scan.pass context Attrib.thms >> thm_binding "thms" false context))));
 
 
 (* ad-hoc goals *)
@@ -85,24 +92,26 @@ val goal = Scan.unless (by || and_) Args.name_source;
 val _ =
   Context.>> (Context.map_theory
    (ML_Context.add_antiq (Binding.name "lemma")
-    (fn _ => Args.context --
-        Scan.lift (Args.mode "open" -- Parse.and_list1 (Scan.repeat1 goal) --
-          (by |-- Method.parse -- Scan.option Method.parse)) >>
-      (fn (ctxt, ((is_open, raw_propss), methods)) =>
-        let
-          val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
-          val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
-          fun after_qed res goal_ctxt =
-            Proof_Context.put_thms false (Auto_Bind.thisN,
-              SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
+    (Scan.depend (fn context =>
+      Args.mode "open" -- Parse.and_list1 (Scan.repeat1 goal) --
+      (by |-- Method.parse -- Scan.option Method.parse) >>
+        (fn ((is_open, raw_propss), methods) =>
+          let
+            val ctxt = Context.proof_of context;
 
-          val ctxt' = ctxt
-            |> Proof.theorem NONE after_qed propss
-            |> Proof.global_terminal_proof methods;
-          val thms =
-            Proof_Context.get_fact ctxt'
-              (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
-        in thm_binding "lemma" (length (flat propss) = 1) thms end))));
+            val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
+            val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
+            fun after_qed res goal_ctxt =
+              Proof_Context.put_thms false (Auto_Bind.thisN,
+                SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;
+
+            val ctxt' = ctxt
+              |> Proof.theorem NONE after_qed propss
+              |> Proof.global_terminal_proof methods;
+            val thms =
+              Proof_Context.get_fact ctxt'
+                (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
+          in thm_binding "lemma" (length (flat propss) = 1) context thms end)))));
 
 end;
 
