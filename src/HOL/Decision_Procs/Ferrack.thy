@@ -2009,7 +2009,7 @@ end;
 ML_file "ferrack_tac.ML"
 
 method_setup rferrack = {*
-  Args.mode "no_quantify" >>
+  Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Ferrack_Tac.linr_tac ctxt (not q)))
 *} "decision procedure for linear real arithmetic"
 

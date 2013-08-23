@@ -919,7 +919,7 @@ in
 
 val cases_setup =
   Method.setup @{binding cases}
-    (Args.mode no_simpN --
+    (Scan.lift (Args.mode no_simpN) --
       (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
       (fn (no_simp, (insts, opt_rule)) => fn ctxt =>
         METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL
@@ -928,8 +928,9 @@ val cases_setup =
 
 fun gen_induct_setup binding itac =
   Method.setup binding
-    (Args.mode no_simpN -- (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
-      (arbitrary -- taking -- Scan.option induct_rule)) >>
+    (Scan.lift (Args.mode no_simpN) --
+      (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
+        (arbitrary -- taking -- Scan.option induct_rule)) >>
       (fn (no_simp, (insts, ((arbitrary, taking), opt_rule))) => fn ctxt =>
         RAW_METHOD_CASES (fn facts =>
           Seq.DETERM

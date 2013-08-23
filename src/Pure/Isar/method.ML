@@ -451,7 +451,7 @@ val _ = Context.>> (Context.map_theory
     "repeatedly apply elimination rules" #>
   setup (Binding.name "unfold") (Attrib.thms >> unfold_meth) "unfold definitions" #>
   setup (Binding.name "fold") (Attrib.thms >> fold_meth) "fold definitions" #>
-  setup (Binding.name "atomize") (Args.mode "full" >> (K o atomize))
+  setup (Binding.name "atomize") (Scan.lift (Args.mode "full") >> (K o atomize))
     "present local premises as object-level statements" #>
   setup (Binding.name "rule") (Attrib.thms >> some_rule) "apply some intro/elim rule" #>
   setup (Binding.name "erule") (xrule_meth erule) "apply rule in elimination manner (improper)" #>

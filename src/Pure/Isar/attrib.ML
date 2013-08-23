@@ -353,8 +353,8 @@ val folded = unfolded_syntax Local_Defs.fold;
 
 (* rule format *)
 
-val rule_format = Args.mode "no_asm"
-  >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format);
+fun rule_format true = Object_Logic.rule_format_no_asm
+  | rule_format false = Object_Logic.rule_format;
 
 val elim_format = Thm.rule_attribute (K Tactic.make_elim);
 
@@ -410,7 +410,8 @@ val _ = Context.>> (Context.map_theory
     "named rule parameters" #>
   setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
     "result put into standard form (legacy)" #>
-  setup (Binding.name "rule_format") rule_format "result put into canonical rule format" #>
+  setup (Binding.name "rule_format") (Scan.lift (Args.mode "no_asm") >> rule_format)
+    "result put into canonical rule format" #>
   setup (Binding.name "elim_format") (Scan.succeed elim_format)
     "destruct rule turned into elimination rule format" #>
   setup (Binding.name "no_vars") (Scan.succeed no_vars) "frozen schematic vars" #>

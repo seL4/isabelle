@@ -2140,7 +2140,7 @@ end;
 ML_file "cooper_tac.ML"
 
 method_setup cooper = {*
-  Args.mode "no_quantify" >>
+  Scan.lift (Args.mode "no_quantify") >>
     (fn q => fn ctxt => SIMPLE_METHOD' (Cooper_Tac.linz_tac ctxt (not q)))
 *} "decision procedure for linear integer arithmetic"
 

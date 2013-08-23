@@ -85,10 +85,10 @@ val goal = Scan.unless (by || and_) Args.name_source;
 val _ =
   Context.>> (Context.map_theory
    (ML_Context.add_antiq (Binding.name "lemma")
-    (fn _ => Args.context -- Args.mode "open" --
-        Scan.lift (Parse.and_list1 (Scan.repeat1 goal) --
+    (fn _ => Args.context --
+        Scan.lift (Args.mode "open" -- Parse.and_list1 (Scan.repeat1 goal) --
           (by |-- Method.parse -- Scan.option Method.parse)) >>
-      (fn ((ctxt, is_open), (raw_propss, methods)) =>
+      (fn (ctxt, ((is_open, raw_propss), methods)) =>
         let
           val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
           val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
