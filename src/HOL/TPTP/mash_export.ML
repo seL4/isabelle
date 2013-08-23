@@ -189,7 +189,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                   |> rev
                   |> weight_facts_steeply
                   |> map extra_features_of
-                  |> rpair goal_feats |-> fold (union (op = o pairself fst))
+                  |> rpair goal_feats |-> fold (union (eq_fst (op =)))
               in
                 "? " ^ string_of_int max_suggs ^ " # " ^
                 encode_str name ^ ": " ^ encode_strs parents ^ "; " ^

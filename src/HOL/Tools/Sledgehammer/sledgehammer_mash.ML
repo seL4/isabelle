@@ -613,7 +613,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
               #> swap #> op ::
               #> subtract (op =) @{sort type} #> map massage_long_name
               #> map class_feature_of
-              #> union (op = o pairself fst)) S
+              #> union (eq_fst (op =))) S
 
     fun pattify_type 0 _ = []
       | pattify_type _ (Type (s, [])) =
@@ -629,7 +629,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
       | pattify_type _ (TVar (_, S)) =
         maybe_singleton_str pat_tvar_prefix (crude_str_of_sort S)
     fun add_type_pat depth T =
-      union (op = o pairself fst) (map type_feature_of (pattify_type depth T))
+      union (eq_fst (op =)) (map type_feature_of (pattify_type depth T))
     fun add_type_pats 0 _ = I
       | add_type_pats depth t =
         add_type_pat depth t #> add_type_pats (depth - 1) t
@@ -676,8 +676,7 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
                | (q, qw) => (p ^ "(" ^ q ^ ")", pw + qw)) ps qs
         end
       | pattify_term _ _ _ _ = []
-    fun add_term_pat Ts depth =
-      union (op = o pairself fst) o pattify_term Ts [] depth
+    fun add_term_pat Ts = union (eq_fst (op =)) oo pattify_term Ts []
     fun add_term_pats _ 0 _ = I
       | add_term_pats Ts depth t =
         add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
@@ -905,7 +904,7 @@ fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
 val chained_feature_factor = 0.5
 val extra_feature_factor = 0.1
-val num_extra_feature_facts = 0 (* FUDGE *)
+val num_extra_feature_facts = 10 (* FUDGE *)
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
@@ -926,7 +925,7 @@ val max_proximity_facts = 100
 fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
   | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     let
-      val inter_fact = inter (Thm.eq_thm_prop o pairself snd)
+      val inter_fact = inter (eq_snd Thm.eq_thm_prop)
       val raw_mash = find_suggested_facts ctxt facts suggs
       val proximate = take max_proximity_facts facts
       val unknown_chained = inter_fact raw_unknown chained
@@ -937,9 +936,9 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
          (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
       val unknown =
         raw_unknown
-        |> fold (subtract (Thm.eq_thm_prop o pairself snd))
+        |> fold (subtract (eq_snd Thm.eq_thm_prop))
                 [unknown_chained, unknown_proximate]
-    in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
+    in (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown) end
 
 fun add_const_counts t =
   fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
@@ -971,15 +970,15 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                 chained
                 |> map (rpair 1.0)
                 |> map (chained_or_extra_features_of chained_feature_factor)
-                |> rpair [] |-> fold (union (op = o pairself fst))
+                |> rpair [] |-> fold (union (eq_fst (op =)))
               val extra_feats =
                 facts
                 |> take (Int.max (0, num_extra_feature_facts - length chained))
                 |> weight_facts_steeply
                 |> map (chained_or_extra_features_of extra_feature_factor)
-                |> rpair [] |-> fold (union (op = o pairself fst))
+                |> rpair [] |-> fold (union (eq_fst (op =)))
               val feats =
-                fold (union (op = o pairself fst)) [chained_feats, extra_feats]
+                fold (union (eq_fst (op =))) [chained_feats, extra_feats]
                      goal_feats
               val hints =
                 chained |> filter (is_fact_in_graph access_G o snd)
@@ -1349,7 +1348,7 @@ fun relevant_facts ctxt
                else
                  I)
       val mesh =
-        mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
+        mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess
         |> add_and_take
     in
       if save then MaSh.save ctxt overlord else ();
