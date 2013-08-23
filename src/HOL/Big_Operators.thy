@@ -1681,11 +1681,11 @@ text {*
   sets, to avoid garbage.
 *}
 
-definition (in semilattice_inf) Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^bsub>fin\<^esub>_" [900] 900)
+definition (in semilattice_inf) Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
 where
   "Inf_fin = semilattice_set.F inf"
 
-definition (in semilattice_sup) Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^bsub>fin\<^esub>_" [900] 900)
+definition (in semilattice_sup) Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
 where
   "Sup_fin = semilattice_set.F sup"
 
@@ -1789,7 +1789,7 @@ text {*
 context lattice
 begin
 
-lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A \<le> \<Squnion>\<^bsub>fin\<^esub>A"
+lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA"
 apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
 apply(erule exE)
@@ -1799,13 +1799,13 @@ apply(erule (1) Sup_fin.coboundedI)
 done
 
 lemma sup_Inf_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>\<^bsub>fin\<^esub>A) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA) = a"
 apply(subst sup_commute)
 apply(simp add: sup_absorb2 Inf_fin.coboundedI)
 done
 
 lemma inf_Sup_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^bsub>fin\<^esub>A) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA) = a"
 by (simp add: inf_absorb1 Sup_fin.coboundedI)
 
 end
@@ -1816,13 +1816,13 @@ begin
 lemma sup_Inf1_distrib:
   assumes "finite A"
     and "A \<noteq> {}"
-  shows "sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
+  shows "sup x (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA) = \<Sqinter>\<^sub>f\<^sub>i\<^sub>n{sup x a|a. a \<in> A}"
 using assms by (simp add: image_def Inf_fin.hom_commute [where h="sup x", OF sup_inf_distrib1])
   (rule arg_cong [where f="Inf_fin"], blast)
 
 lemma sup_Inf2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B}"
+  shows "sup (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA) (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nB) = \<Sqinter>\<^sub>f\<^sub>i\<^sub>n{sup a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton then show ?case
     by (simp add: sup_Inf1_distrib [OF B])
@@ -1837,13 +1837,13 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{sup a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "sup (\<Sqinter>\<^bsub>fin\<^esub>(insert x A)) (\<Sqinter>\<^bsub>fin\<^esub>B) = sup (inf x (\<Sqinter>\<^bsub>fin\<^esub>A)) (\<Sqinter>\<^bsub>fin\<^esub>B)"
+  have "sup (\<Sqinter>\<^sub>f\<^sub>i\<^sub>n(insert x A)) (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nB) = sup (inf x (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA)) (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nB)"
     using insert by simp
-  also have "\<dots> = inf (sup x (\<Sqinter>\<^bsub>fin\<^esub>B)) (sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B))" by(rule sup_inf_distrib2)
-  also have "\<dots> = inf (\<Sqinter>\<^bsub>fin\<^esub>{sup x b|b. b \<in> B}) (\<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = inf (sup x (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nB)) (sup (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA) (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nB))" by(rule sup_inf_distrib2)
+  also have "\<dots> = inf (\<Sqinter>\<^sub>f\<^sub>i\<^sub>n{sup x b|b. b \<in> B}) (\<Sqinter>\<^sub>f\<^sub>i\<^sub>n{sup a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:sup_Inf1_distrib[OF B])
-  also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Sqinter>\<^bsub>fin\<^esub>?M")
+  also have "\<dots> = \<Sqinter>\<^sub>f\<^sub>i\<^sub>n({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Sqinter>\<^sub>f\<^sub>i\<^sub>n?M")
     using B insert
     by (simp add: Inf_fin.union [OF finB _ finAB ne])
   also have "?M = {sup a b |a b. a \<in> insert x A \<and> b \<in> B}"
@@ -1853,13 +1853,13 @@ qed
 
 lemma inf_Sup1_distrib:
   assumes "finite A" and "A \<noteq> {}"
-  shows "inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
+  shows "inf x (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA) = \<Squnion>\<^sub>f\<^sub>i\<^sub>n{inf x a|a. a \<in> A}"
 using assms by (simp add: image_def Sup_fin.hom_commute [where h="inf x", OF inf_sup_distrib1])
   (rule arg_cong [where f="Sup_fin"], blast)
 
 lemma inf_Sup2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
-  shows "inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B) = \<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B}"
+  shows "inf (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA) (\<Squnion>\<^sub>f\<^sub>i\<^sub>nB) = \<Squnion>\<^sub>f\<^sub>i\<^sub>n{inf a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by(simp add: inf_Sup1_distrib [OF B])
@@ -1874,13 +1874,13 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{inf a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
+  have "inf (\<Squnion>\<^sub>f\<^sub>i\<^sub>n(insert x A)) (\<Squnion>\<^sub>f\<^sub>i\<^sub>nB) = inf (sup x (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA)) (\<Squnion>\<^sub>f\<^sub>i\<^sub>nB)"
     using insert by simp
-  also have "\<dots> = sup (inf x (\<Squnion>\<^bsub>fin\<^esub>B)) (inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B))" by(rule inf_sup_distrib2)
-  also have "\<dots> = sup (\<Squnion>\<^bsub>fin\<^esub>{inf x b|b. b \<in> B}) (\<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B})"
+  also have "\<dots> = sup (inf x (\<Squnion>\<^sub>f\<^sub>i\<^sub>nB)) (inf (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA) (\<Squnion>\<^sub>f\<^sub>i\<^sub>nB))" by(rule inf_sup_distrib2)
+  also have "\<dots> = sup (\<Squnion>\<^sub>f\<^sub>i\<^sub>n{inf x b|b. b \<in> B}) (\<Squnion>\<^sub>f\<^sub>i\<^sub>n{inf a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:inf_Sup1_distrib[OF B])
-  also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
-    (is "_ = \<Squnion>\<^bsub>fin\<^esub>?M")
+  also have "\<dots> = \<Squnion>\<^sub>f\<^sub>i\<^sub>n({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
+    (is "_ = \<Squnion>\<^sub>f\<^sub>i\<^sub>n?M")
     using B insert
     by (simp add: Sup_fin.union [OF finB _ finAB ne])
   also have "?M = {inf a b |a b. a \<in> insert x A \<and> b \<in> B}"
@@ -1895,7 +1895,7 @@ begin
 
 lemma Inf_fin_Inf:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
+  shows "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA = Inf A"
 proof -
   from assms obtain b B where "A = insert b B" and "finite B" by auto
   then show ?thesis
@@ -1904,7 +1904,7 @@ qed
 
 lemma Sup_fin_Sup:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
+  shows "\<Squnion>\<^sub>f\<^sub>i\<^sub>nA = Sup A"
 proof -
   from assms obtain b B where "A = insert b B" and "finite B" by auto
   then show ?thesis
