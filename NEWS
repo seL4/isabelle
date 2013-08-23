@@ -108,8 +108,8 @@ now the default.  Minor INCOMPATIBILITY.
 
 * Target-sensitive commands 'interpretation' and 'sublocale'.
 Particulary, 'interpretation' now allows for non-persistent
-interpretation within "context ... begin ... end" blocks.
-See "isar-ref" manual for details.
+interpretation within "context ... begin ... end" blocks.  See
+"isar-ref" manual for details.
 
 * Improved locales diagnostic command 'print_dependencies'.
 
@@ -130,39 +130,44 @@ situations.
 * Improved support for adhoc overloading of constants (see also
 isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).
 
-* Attibute 'code': 'code' now declares concrete and abstract code equations uniformly.
-Use explicit 'code equation' and 'code abstract' to distinguish both when desired.
+* Attibute 'code': 'code' now declares concrete and abstract code
+equations uniformly.  Use explicit 'code equation' and 'code abstract'
+to distinguish both when desired.
 
 * Code generator:
-  * 'code_printing' unifies 'code_const' / 'code_type' / 'code_class' / 'code_instance'.
-  * 'code_identifier' declares name hints for arbitrary identifiers in generated code,
-    subsuming 'code_modulename'.
-  See the Isar reference manual for syntax diagrams, and the HOL theories for examples.
+  - 'code_printing' unifies 'code_const' / 'code_type' / 'code_class' /
+    'code_instance'.
+  - 'code_identifier' declares name hints for arbitrary identifiers in
+    generated code, subsuming 'code_modulename'.
+  See the isar-ref manual for syntax diagrams, and the HOL theories
+  for examples.
 
 * Library/Polynomial.thy:
-  * Use lifting for primitive definitions.
-  * Explicit conversions from and to lists of coefficients, used for generated code.
-  * Replaced recursion operator poly_rec by fold_coeffs.
-  * Prefer pre-existing gcd operation for gcd.
-  * Fact renames:
+  - Use lifting for primitive definitions.
+  - Explicit conversions from and to lists of coefficients, used for
+    generated code.
+  - Replaced recursion operator poly_rec by fold_coeffs.
+  - Prefer pre-existing gcd operation for gcd.
+  - Fact renames:
     poly_eq_iff ~> poly_eq_poly_eq_iff
     poly_ext ~> poly_eqI
     expand_poly_eq ~> poly_eq_iff
 IMCOMPATIBILTIY.
 
 * Reification and reflection:
-  * Reification is now directly available in HOL-Main in structure "Reification".
-  * Reflection now handles multiple lists with variables also.
-  * The whole reflection stack has been decomposed into conversions.
+  - Reification is now directly available in HOL-Main in structure
+    "Reification".
+  - Reflection now handles multiple lists with variables also.
+  - The whole reflection stack has been decomposed into conversions.
 INCOMPATIBILITY.
 
 * Weaker precendence of syntax for big intersection and union on sets,
 in accordance with corresponding lattice operations.  INCOMPATIBILITY.
 
-* Nested case expressions are now translated in a separate check
-  phase rather than during parsing. The data for case combinators
-  is separated from the datatype package. The declaration attribute
-  "case_translation" can be used to register new case combinators:
+* Nested case expressions are now translated in a separate check phase
+rather than during parsing. The data for case combinators is separated
+from the datatype package. The declaration attribute
+"case_translation" can be used to register new case combinators:
 
   declare [[case_translation case_combinator constructor1 ... constructorN]]
 
@@ -187,7 +192,6 @@ in accordance with corresponding lattice operations.  INCOMPATIBILITY.
   - Fact renames:
       card.union_inter ~> card_Un_Int [symmetric]
       card.union_disjoint ~> card_Un_disjoint
-
 INCOMPATIBILITY.
 
 * Locale hierarchy for abstract orderings and (semi)lattices.
@@ -198,37 +202,38 @@ INCOMPATIBILITY.
 * Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
 Isabelle2013).  Use "isabelle build" to operate on Isabelle sessions.
 
-* Numeric types mapped by default to target language numerals:
-natural (replaces former code_numeral) and integer (replaces
-former code_int).  Conversions are available as integer_of_natural /
-natural_of_integer / integer_of_nat / nat_of_integer (in HOL) and
-Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in ML).
-INCOMPATIBILITY.
+* Numeric types mapped by default to target language numerals: natural
+(replaces former code_numeral) and integer (replaces former code_int).
+Conversions are available as integer_of_natural / natural_of_integer /
+integer_of_nat / nat_of_integer (in HOL) and
+Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in
+ML).  INCOMPATIBILITY.
 
 * Discontinued theories Code_Integer and Efficient_Nat by a more
 fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
-Code_Target_Nat and Code_Target_Numeral.  See the tutorial on
-code generation for details.  INCOMPATIBILITY.
+Code_Target_Nat and Code_Target_Numeral.  See the tutorial on code
+generation for details.  INCOMPATIBILITY.
 
-* Introduce type class "conditionally_complete_lattice": Like a complete
-  lattice but does not assume the existence of the top and bottom elements.
-  Allows to generalize some lemmas about reals and extended reals.
-  Removed SupInf and replaced it by the instantiation of
-  conditionally_complete_lattice for real. Renamed lemmas about
-  conditionally-complete lattice from Sup_... to cSup_... and from Inf_...
-  to cInf_... to avoid hidding of similar complete lattice lemmas.
+* Introduce type class "conditionally_complete_lattice": Like a
+complete lattice but does not assume the existence of the top and
+bottom elements.  Allows to generalize some lemmas about reals and
+extended reals.  Removed SupInf and replaced it by the instantiation
+of conditionally_complete_lattice for real. Renamed lemmas about
+conditionally-complete lattice from Sup_... to cSup_... and from
+Inf_...  to cInf_... to avoid hidding of similar complete lattice
+lemmas.
 
-  Introduce type class linear_continuum as combination of conditionally-complete
-  lattices and inner dense linorders which have more than one element.
-INCOMPATIBILITY.
+* Introduce type class linear_continuum as combination of
+conditionally-complete lattices and inner dense linorders which have
+more than one element.  INCOMPATIBILITY.
 
-* Introduce type classes "no_top" and "no_bot" for orderings without top
-  and bottom elements.
+* Introduce type classes "no_top" and "no_bot" for orderings without
+top and bottom elements.
 
 * Split dense_linorder into inner_dense_order and no_top, no_bot.
 
 * Complex_Main: Unify and move various concepts from
-  HOL-Multivariate_Analysis to HOL-Complex_Main.
+HOL-Multivariate_Analysis to HOL-Complex_Main.
 
  - Introduce type class (lin)order_topology and linear_continuum_topology.
    Allows to generalize theorems about limits and order.
@@ -312,17 +317,14 @@ INCOMPATIBILITY.
   "ALL x1 ... xn. Prop x1 ... xn". Simple examples are in
   src/HOL/Spec_Check/Examples.thy.
 
-* Imperative HOL: The MREC combinator is considered legacy and no longer
-included by default. INCOMPATIBILITY, use partial_function instead, or import
-theory Legacy_Mrec as a fallback.
+* Imperative-HOL: The MREC combinator is considered legacy and no
+longer included by default. INCOMPATIBILITY, use partial_function
+instead, or import theory Legacy_Mrec as a fallback.
 
-
-*** HOL-Algebra ***
-
-* Discontinued theories src/HOL/Algebra/abstract and .../poly.
-Existing theories should be based on src/HOL/Library/Polynomial
-instead.  The latter provides integration with HOL's type classes for
-rings.  INCOMPATIBILITY.
+* HOL-Algebra: Discontinued theories src/HOL/Algebra/abstract and
+.../poly.  Existing theories should be based on
+src/HOL/Library/Polynomial instead.  The latter provides integration
+with HOL's type classes for rings.  INCOMPATIBILITY.
 
 
 *** ML ***
