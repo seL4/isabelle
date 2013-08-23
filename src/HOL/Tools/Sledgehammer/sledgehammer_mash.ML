@@ -1314,7 +1314,7 @@ fun relevant_facts ctxt
                andalso length (filter_out is_in_access_G facts)
                        <= max_facts_to_learn_before_query then
               (mash_learn_facts ctxt params prover false 2 false timeout facts
-               |> (fn "" => () | s => Output.urgent_message s);
+               |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s);
                true)
             else
               (maybe_launch_thread (); false)
