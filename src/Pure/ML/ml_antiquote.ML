@@ -29,7 +29,7 @@ structure Names = Proof_Data
 fun variant a ctxt =
   let
     val names = Names.get ctxt;
-    val (b, names') = Name.variant a names;
+    val (b, names') = Name.variant (Name.desymbolize false a) names;
     val ctxt' = Names.put names' ctxt;
   in (b, ctxt') end;
 
@@ -45,8 +45,7 @@ fun value name scan =
     (Scan.depend (fn context => Scan.pass context scan >> (fn s =>
       let
         val ctxt = Context.the_proof context;
-        val (a, ctxt') =
-          variant (translate_string (fn "." => "_" | c => c) (Binding.name_of name)) ctxt;
+        val (a, ctxt') = variant (Binding.name_of name) ctxt;
         val env = "val " ^ a ^ " = " ^ s ^ ";\n";
         val body = "Isabelle." ^ a;
       in (Context.Proof ctxt', (K (env, body))) end)));
