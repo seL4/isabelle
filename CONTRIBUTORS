@@ -14,7 +14,7 @@ Contributions to this Isabelle version
   Ephemeral interpretation in local theories.
 
 * May 2013: Lukas Bulwahn and Nicolai Schaffroth, TUM
-  HOL-Spec_Check: A Quickcheck tool for Isabelle's ML environment.
+  Spec_Check: A Quickcheck tool for Isabelle/ML.
 
 * April 2013: Stefan Berghofer, secunet Security Networks AG
   Dmitriy Traytel, TUM

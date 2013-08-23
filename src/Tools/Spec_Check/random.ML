@@ -1,4 +1,4 @@
-(*  Title:      HOL/Spec_Check/random.ML
+(*  Title:      Tools/Spec_Check/random.ML
     Author:     Lukas Bulwahn and Nicolai Schaffroth, TU Muenchen
     Author:     Christopher League
 

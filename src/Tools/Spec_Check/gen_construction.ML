@@ -1,4 +1,4 @@
-(*  Title:      HOL/Spec_Check/gen_construction.ML
+(*  Title:      Tools/Spec_Check/gen_construction.ML
     Author:     Lukas Bulwahn and Nicolai Schaffroth, TU Muenchen
     Author:     Christopher League
 

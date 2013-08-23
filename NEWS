@@ -312,13 +312,6 @@ INCOMPATIBILITY.
   - Renamed option:
       isar_shrink ~> isar_compress
 
-* HOL-Spec_Check: a Quickcheck tool for Isabelle's ML environment.
-  
-  With HOL-Spec_Check, ML developers can check specifications with the
-  ML function check_property. The specifications must be of the form
-  "ALL x1 ... xn. Prop x1 ... xn". Simple examples are in
-  src/HOL/Spec_Check/Examples.thy.
-
 * Imperative-HOL: The MREC combinator is considered legacy and no
 longer included by default. INCOMPATIBILITY, use partial_function
 instead, or import theory Legacy_Mrec as a fallback.
@@ -330,6 +323,11 @@ with HOL's type classes for rings.  INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Spec_Check is a Quickcheck tool for Isabelle/ML.  The ML function
+"check_property" allows to check specifications of the form "ALL x y
+z. prop x y z".  See also ~~/src/Tools/Spec_Check/ with its
+Examples.thy in particular.
 
 * More uniform naming of goal functions for skipped proofs:
 

@@ -1,5 +1,5 @@
 theory Spec_Check
-imports Main
+imports Pure
 begin
 
 ML_file "random.ML"
