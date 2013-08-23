@@ -154,29 +154,24 @@ fun eval_antiquotes (ants, pos) opt_context =
       then ((begin_env0, map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
+          val lex = #1 (Keyword.get_lexicons ());
+          fun no_decl _ = ([], []);
+
+          fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
+            | expand (Antiquote.Antiq (ss, range)) ctxt =
+                let
+                  val (f, _) =
+                    antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
+                  val (decl, ctxt') = f ctxt;  (* FIXME ?? *)
+                  val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
+                in (decl', ctxt') end;
+
           val ctxt =
             (case opt_ctxt of
               NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.here pos)
             | SOME ctxt => Context.proof_of ctxt);
 
-          val lex = #1 (Keyword.get_lexicons ());
-          fun no_decl _ = ([], []);
-
-          fun expand (Antiquote.Text tok) state = (K ([], [tok]), state)
-            | expand (Antiquote.Antiq (ss, range)) (scope, background) =
-                let
-                  val context = Stack.top scope;
-                  val (f, context') =
-                    antiquotation (Token.read_antiq lex antiq (ss, #1 range)) context;
-                  val (decl, background') = f background;
-                  val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
-                in (decl', (Stack.map_top (K context') scope, background')) end
-            | expand (Antiquote.Open _) (scope, background) =
-                (no_decl, (Stack.push scope, background))
-            | expand (Antiquote.Close _) (scope, background) =
-                (no_decl, (Stack.pop scope, background));
-
-          val (decls, (_, ctxt')) = fold_map expand ants (Stack.init ctxt, ctxt);
+          val (decls, ctxt') = fold_map expand ants ctxt;
           val (ml_env, ml_body) =
             decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
         in ((begin_env visible @ ml_env, ml_body), SOME (Context.Proof ctxt')) end;

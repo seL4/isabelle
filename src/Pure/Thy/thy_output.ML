@@ -178,9 +178,7 @@ fun eval_antiq lex state (ss, (pos, _)) =
 fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
-      | expand (Antiquote.Antiq antiq) = eval_antiq lex state antiq
-      | expand (Antiquote.Open _) = ""
-      | expand (Antiquote.Close _) = "";
+      | expand (Antiquote.Antiq antiq) = eval_antiq lex state antiq;
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
   in
     if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then

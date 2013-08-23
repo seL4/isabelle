@@ -667,7 +667,7 @@ text {* A very important consequence of embedding SML into Isar is the
   ML is augmented by special syntactic entities of the following form:
 
   @{rail "
-  @{syntax_def antiquote}: '@{' nameref args '}' | '\<lbrace>' | '\<rbrace>'
+  @{syntax_def antiquote}: '@{' nameref args '}'
   "}
 
   Here @{syntax nameref} and @{syntax args} are regular outer syntax
