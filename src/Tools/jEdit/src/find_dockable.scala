@@ -23,8 +23,6 @@ import org.gjt.sp.jedit.gui.HistoryTextField
 
 class Find_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
@@ -78,6 +76,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       react {
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
+
         case bad =>
           java.lang.System.err.println("Find_Dockable: ignoring bad message " + bad)
       }
@@ -86,8 +85,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   override def init()
   {
-    Swing_Thread.require()
-
     PIDE.session.global_options += main_actor
     handle_resize()
     find_theorems.activate()
@@ -95,8 +92,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   override def exit()
   {
-    Swing_Thread.require()
-
     find_theorems.deactivate()
     PIDE.session.global_options -= main_actor
     delay_resize.revoke()

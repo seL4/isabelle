@@ -175,28 +175,28 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.now {
-      val snapshot = PIDE.session.snapshot()
+    Swing_Thread.require()
 
-      val iterator =
-        restriction match {
-          case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
-          case None => snapshot.version.nodes.entries
-        }
-      val nodes_timing1 =
-        (nodes_timing /: iterator)({ case (timing1, (name, node)) =>
-            if (PIDE.thy_load.loaded_theories(name.theory)) timing1
-            else {
-              val node_timing =
-                Protocol.node_timing(snapshot.state, snapshot.version, node, timing_threshold)
-              timing1 + (name -> node_timing)
-            }
-        })
-      nodes_timing = nodes_timing1
+    val snapshot = PIDE.session.snapshot()
 
-      val entries = make_entries()
-      if (timing_view.listData.toList != entries) timing_view.listData = entries
-    }
+    val iterator =
+      restriction match {
+        case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
+        case None => snapshot.version.nodes.entries
+      }
+    val nodes_timing1 =
+      (nodes_timing /: iterator)({ case (timing1, (name, node)) =>
+          if (PIDE.thy_load.loaded_theories(name.theory)) timing1
+          else {
+            val node_timing =
+              Protocol.node_timing(snapshot.state, snapshot.version, node, timing_threshold)
+            timing1 + (name -> node_timing)
+          }
+      })
+    nodes_timing = nodes_timing1
+
+    val entries = make_entries()
+    if (timing_view.listData.toList != entries) timing_view.listData = entries
   }
 
 
@@ -205,7 +205,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main_actor = actor {
     loop {
       react {
-        case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
+        case changed: Session.Commands_Changed =>
+          Swing_Thread.later { handle_update(Some(changed.nodes)) }
 
         case bad => System.err.println("Timing_Dockable: ignoring bad message " + bad)
       }

@@ -23,10 +23,10 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def update_syslog()
   {
-    Swing_Thread.later {
-      val text = PIDE.session.current_syslog()
-      if (text != syslog.text) syslog.text = text
-    }
+    Swing_Thread.require()
+
+    val text = PIDE.session.current_syslog()
+    if (text != syslog.text) syslog.text = text
   }
 
   set_content(syslog)
@@ -38,7 +38,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
     loop {
       react {
         case output: Isabelle_Process.Output =>
-          if (output.is_syslog) update_syslog()
+          if (output.is_syslog) Swing_Thread.later { update_syslog() }
 
         case bad => java.lang.System.err.println("Syslog_Dockable: ignoring bad message " + bad)
       }

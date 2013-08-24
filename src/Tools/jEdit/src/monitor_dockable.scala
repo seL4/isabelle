@@ -45,6 +45,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
             rev_stats ::= props
             delay_update.invoke()
           }
+
         case bad => java.lang.System.err.println("Monitor_Dockable: ignoring bad message " + bad)
       }
     }

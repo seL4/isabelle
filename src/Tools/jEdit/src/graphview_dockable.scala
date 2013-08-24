@@ -48,8 +48,6 @@ object Graphview_Dockable
 
 class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
   private val snapshot = Graphview_Dockable.implicit_snapshot
   private val graph = Graphview_Dockable.implicit_graph
 
@@ -82,13 +80,11 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
 
   override def init()
   {
-    Swing_Thread.require()
     JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
   }
 
   override def exit()
   {
-    Swing_Thread.require()
     JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
   }
 }

@@ -23,9 +23,6 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
-
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
@@ -91,11 +88,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       react {
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
+
         case changed: Session.Commands_Changed =>
           val restriction = if (changed.assignment) None else Some(changed.commands)
           Swing_Thread.later { handle_update(do_update, restriction) }
+
         case Session.Caret_Focus =>
           Swing_Thread.later { handle_update(do_update, None) }
+
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
@@ -103,8 +103,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
-    Swing_Thread.require()
-
     PIDE.session.global_options += main_actor
     PIDE.session.commands_changed += main_actor
     PIDE.session.caret_focus += main_actor
@@ -113,8 +111,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def exit()
   {
-    Swing_Thread.require()
-
     PIDE.session.global_options -= main_actor
     PIDE.session.commands_changed -= main_actor
     PIDE.session.caret_focus -= main_actor

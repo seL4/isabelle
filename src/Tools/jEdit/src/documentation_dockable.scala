@@ -19,8 +19,6 @@ import org.gjt.sp.jedit.{View, OperatingSystem}
 
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
   private val docs = Doc.contents()
 
   private case class Documentation(name: String, title: String)

@@ -23,8 +23,6 @@ import org.gjt.sp.jedit.gui.HistoryTextField
 
 class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
   val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
@@ -98,9 +96,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
           query_provers()
-        case Session.Ready => query_provers()
+
+        case Session.Ready =>
+          query_provers()
+
         case Sledgehammer_Params.Provers =>
           Swing_Thread.later { update_provers() }
+
         case bad =>
           java.lang.System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
       }
@@ -109,8 +111,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   override def init()
   {
-    Swing_Thread.require()
-
     PIDE.session.phase_changed += main_actor
     PIDE.session.global_options += main_actor
     Sledgehammer_Params.provers += main_actor
@@ -121,8 +121,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   override def exit()
   {
-    Swing_Thread.require()
-
     sledgehammer.deactivate()
     PIDE.session.phase_changed -= main_actor
     PIDE.session.global_options -= main_actor

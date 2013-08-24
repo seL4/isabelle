@@ -51,9 +51,6 @@ object Info_Dockable
 
 class Info_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
-
-
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
@@ -108,6 +105,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
       react {
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
+
         case bad => System.err.println("Info_Dockable: ignoring bad message " + bad)
       }
     }
@@ -115,8 +113,6 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   override def init()
   {
-    Swing_Thread.require()
-
     JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main_actor
     handle_resize()
@@ -124,8 +120,6 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   override def exit()
   {
-    Swing_Thread.require()
-
     JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main_actor
     delay_resize.revoke()

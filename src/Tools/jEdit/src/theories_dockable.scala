@@ -69,7 +69,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_phase(phase: Session.Phase)
   {
-    Swing_Thread.later { session_phase.text = " " + phase_text(phase) + " " }
+    Swing_Thread.require()
+    session_phase.text = " " + phase_text(phase) + " "
   }
 
   private val continuous_checking = new CheckBox("Continuous checking") {
@@ -183,25 +184,25 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
-    Swing_Thread.now {
-      val snapshot = PIDE.session.snapshot()
+    Swing_Thread.require()
 
-      val iterator =
-        restriction match {
-          case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
-          case None => snapshot.version.nodes.entries
-        }
-      val nodes_status1 =
-        (nodes_status /: iterator)({ case (status, (name, node)) =>
-            if (PIDE.thy_load.loaded_theories(name.theory)) status
-            else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
+    val snapshot = PIDE.session.snapshot()
 
-      if (nodes_status != nodes_status1) {
-        nodes_status = nodes_status1
-        status.listData =
-          snapshot.version.nodes.topological_order.filter(
-            (name: Document.Node.Name) => nodes_status.isDefinedAt(name))
+    val iterator =
+      restriction match {
+        case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
+        case None => snapshot.version.nodes.entries
       }
+    val nodes_status1 =
+      (nodes_status /: iterator)({ case (status, (name, node)) =>
+          if (PIDE.thy_load.loaded_theories(name.theory)) status
+          else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
+
+    if (nodes_status != nodes_status1) {
+      nodes_status = nodes_status1
+      status.listData =
+        snapshot.version.nodes.topological_order.filter(
+          (name: Document.Node.Name) => nodes_status.isDefinedAt(name))
     }
   }
 
@@ -211,7 +212,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main_actor = actor {
     loop {
       react {
-        case phase: Session.Phase => handle_phase(phase)
+        case phase: Session.Phase =>
+          Swing_Thread.later { handle_phase(phase) }
 
         case _: Session.Global_Options =>
           Swing_Thread.later {
@@ -221,7 +223,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             status.repaint()
           }
 
-        case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
+        case changed: Session.Commands_Changed =>
+          Swing_Thread.later { handle_update(Some(changed.nodes)) }
 
         case bad => System.err.println("Theories_Dockable: ignoring bad message " + bad)
       }
@@ -230,9 +233,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def init()
   {
-    PIDE.session.phase_changed += main_actor; handle_phase(PIDE.session.phase)
+    PIDE.session.phase_changed += main_actor
     PIDE.session.global_options += main_actor
-    PIDE.session.commands_changed += main_actor; handle_update()
+    PIDE.session.commands_changed += main_actor
+
+    handle_phase(PIDE.session.phase)
+    handle_update()
   }
 
   override def exit()
