@@ -15,7 +15,7 @@ import scala.swing.{FlowPanel, Button, TextArea, Label, ListView, Alignment,
 import scala.swing.event.{ButtonClicked, MouseClicked, MouseMoved}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D, Insets, Point, Dimension}
+import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
@@ -137,28 +137,30 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
       override def paintComponent(gfx: Graphics2D)
       {
-        val w = size.width
-        val h = size.height
+        def paint_segment(x: Int, w: Int, color: Color)
+        {
+          gfx.setColor(color)
+          gfx.fillRect(x, 0, w, size.height)
+        }
 
         nodes_status.get(node_name) match {
           case Some(st) if st.total > 0 =>
-            val colors = List(
-              (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
-              (st.running, PIDE.options.color_value("running_color")),
-              (st.warned, PIDE.options.color_value("warning_color")),
-              (st.failed, PIDE.options.color_value("error_color")))
+            val segments =
+              List(
+                (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+                (st.running, PIDE.options.color_value("running_color")),
+                (st.warned, PIDE.options.color_value("warning_color")),
+                (st.failed, PIDE.options.color_value("error_color"))
+              ).filter(_._1 > 0)
 
-            var end = size.width
-            for { (n, color) <- colors }
-            {
-              gfx.setColor(color)
-              val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
-              gfx.fillRect(end - v, 0, v, h)
-              end = end - v - 1
-            }
+            (size.width /: segments)({ case (last, (n, color)) =>
+              val w = (n * (size.width - segments.length) / st.total) max 4
+              paint_segment(last - w, w, color)
+              last - w - 1
+            })
+
           case _ =>
-            gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
-            gfx.fillRect(0, 0, w, h)
+            paint_segment(0, size.width, PIDE.options.color_value("unprocessed1_color"))
         }
         super.paintComponent(gfx)
       }
