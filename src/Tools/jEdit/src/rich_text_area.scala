@@ -169,13 +169,15 @@ class Rich_Text_Area(
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
-    override def mouseMoved(e: MouseEvent) {
+    override def mouseMoved(evt: MouseEvent) {
       robust_body(()) {
-        val control = (e.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
+        val x = evt.getX
+        val y = evt.getY
+        val control = (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
 
         if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
-            JEdit_Lib.pixel_range(text_area, e.getX, e.getY) match {
+            JEdit_Lib.pixel_range(text_area, x, y) match {
               case None => active_reset()
               case Some(range) =>
                 val rendering = get_rendering()
@@ -190,14 +192,12 @@ class Rich_Text_Area(
         }
         else active_reset()
 
-        if (e.getSource == text_area.getPainter) {
+        if (evt.getSource == text_area.getPainter) {
           Pretty_Tooltip.invoke(() =>
             robust_body(()) {
               val rendering = get_rendering()
               val snapshot = rendering.snapshot
               if (!snapshot.is_outdated) {
-                val x = e.getX
-                val y = e.getY
                 JEdit_Lib.pixel_range(text_area, x, y) match {
                   case None =>
                   case Some(range) =>
@@ -208,7 +208,7 @@ class Rich_Text_Area(
                       case None =>
                       case Some(tip) =>
                         val painter = text_area.getPainter
-                        val screen_point = e.getLocationOnScreen
+                        val screen_point = evt.getLocationOnScreen
                         screen_point.translate(0, painter.getFontMetrics.getHeight / 2)
                         val results = rendering.command_results(range)
                         Pretty_Tooltip(view, painter, rendering, screen_point, results, tip)
