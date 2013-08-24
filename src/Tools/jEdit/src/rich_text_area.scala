@@ -132,8 +132,6 @@ class Rich_Text_Area(
 
   // owned by Swing thread
 
-  private var control: Boolean = false
-
   private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink]((r: Rendering) => r.hyperlink _)
@@ -173,7 +171,7 @@ class Rich_Text_Area(
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
       robust_body(()) {
-        control = (e.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
+        val control = (e.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
 
         if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
