@@ -114,6 +114,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private object Node_Renderer_Component extends BorderPanel
   {
     opaque = false
+    border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
 
@@ -130,15 +131,13 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val label = new Label {
       opaque = false
+      border = BorderFactory.createEmptyBorder()
       xAlignment = Alignment.Leading
 
       override def paintComponent(gfx: Graphics2D)
       {
-        border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
-        val size = peer.getSize()
-        val insets = border.getBorderInsets(peer)
-        val w = size.width - insets.left - insets.right
-        val h = size.height - insets.top - insets.bottom
+        val w = size.width
+        val h = size.height
 
         nodes_status.get(node_name) match {
           case Some(st) if st.total > 0 =>
@@ -148,17 +147,17 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
               (st.warned, PIDE.options.color_value("warning_color")),
               (st.failed, PIDE.options.color_value("error_color")))
 
-            var end = size.width - insets.right
+            var end = size.width
             for { (n, color) <- colors }
             {
               gfx.setColor(color)
               val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
-              gfx.fillRect(end - v, insets.top, v, h)
+              gfx.fillRect(end - v, 0, v, h)
               end = end - v - 1
             }
           case _ =>
             gfx.setColor(PIDE.options.color_value("unprocessed1_color"))
-            gfx.fillRect(insets.left, insets.top, w, h)
+            gfx.fillRect(0, 0, w, h)
         }
         super.paintComponent(gfx)
       }
