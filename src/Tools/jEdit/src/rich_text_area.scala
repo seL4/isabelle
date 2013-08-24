@@ -29,7 +29,7 @@ class Rich_Text_Area(
   get_rendering: () => Rendering,
   close_action: () => Unit,
   caret_visible: Boolean,
-  hovering: Boolean)
+  enable_hovering: Boolean)
 {
   private val buffer = text_area.getBuffer
 
@@ -175,7 +175,7 @@ class Rich_Text_Area(
       robust_body(()) {
         control = (e.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
 
-        if ((control || hovering) && !buffer.isLoading) {
+        if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
             JEdit_Lib.pixel_range(text_area, e.getX, e.getY) match {
               case None => active_reset()

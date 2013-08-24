@@ -72,7 +72,7 @@ class Pretty_Text_Area(
 
   private val rich_text_area =
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
-      caret_visible = false, hovering = true)
+      caret_visible = false, enable_hovering = true)
 
   def get_background(): Option[Color] = None
 
