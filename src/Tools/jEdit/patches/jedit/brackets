@@ -1,7 +1,6 @@
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/TextUtilities.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java
 --- 5.0.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2012-11-17 16:42:29.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2013-08-21 22:13:10.688736361 +0200
-@@ -97,6 +97,10 @@
++++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2013-08-24 15:58:43.075546141 +0200
+@@ -97,6 +97,22 @@
  		case '}': if (direction != null) direction[0] = false; return '{';
  		case '<': if (direction != null) direction[0] = true;  return '>';
  		case '>': if (direction != null) direction[0] = false; return '<';
@@ -9,7 +8,18 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/TextUtilities.java 5.0.0/jEdit-patched/org
 +		case '»': if (direction != null) direction[0] = false; return '«';
 +		case '‹': if (direction != null) direction[0] = true;  return '›';
 +		case '›': if (direction != null) direction[0] = false; return '‹';
++		case '⟨': if (direction != null) direction[0] = true;  return '⟩';
++		case '⟩': if (direction != null) direction[0] = false; return '⟨';
++		case '⌈': if (direction != null) direction[0] = true;  return '⌉';
++		case '⌉': if (direction != null) direction[0] = false; return '⌈';
++		case '⌊': if (direction != null) direction[0] = true;  return '⌋';
++		case '⌋': if (direction != null) direction[0] = false; return '⌊';
++		case '⦇': if (direction != null) direction[0] = true;  return '⦈';
++		case '⦈': if (direction != null) direction[0] = false; return '⦇';
++		case '⟦': if (direction != null) direction[0] = true;  return '⟧';
++		case '⟧': if (direction != null) direction[0] = false; return '⟦';
++		case '⦃': if (direction != null) direction[0] = true;  return '⦄';
++		case '⦄': if (direction != null) direction[0] = false; return '⦃';
  		default:  return '\0';
  		}
  	} //}}}
-
