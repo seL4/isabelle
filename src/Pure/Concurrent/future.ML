@@ -535,8 +535,8 @@ fun get_result x =
   | SOME res =>
       if Exn.is_interrupt_exn res then
         (case Task_Queue.group_status (Task_Queue.group_of_task (task_of x)) of
-          NONE => res
-        | SOME exn => Exn.Exn exn)
+          [] => res
+        | exns => Exn.Exn (Par_Exn.make exns))
       else res);
 
 local

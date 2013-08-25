@@ -174,11 +174,9 @@ fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
 fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
 
-fun join_proofs (Result {theory, id, ...}) =
-  let
-    val result1 = Exn.capture Thm.join_theory_proofs theory;
-    val results2 = Future.join_results (Goal.peek_futures id);
-  in result1 :: results2 end;
+fun join_theory (Result {theory, id, ...}) =
+  Exn.capture Thm.join_theory_proofs theory ::
+  map Exn.Exn (maps Task_Queue.group_status (Goal.peek_futures id));
 
 
 datatype task =
@@ -198,7 +196,7 @@ val schedule_seq =
       Task (parents, body) =>
         let
           val result = body (task_parents deps parents);
-          val _ = Par_Exn.release_all (join_proofs result);
+          val _ = Par_Exn.release_all (join_theory result);
           val _ = result_present result ();
           val _ = result_commit result ();
         in result_theory result end
@@ -224,7 +222,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
     val results1 = futures
       |> maps (fn future =>
           (case Future.join_result future of
-            Exn.Res result => join_proofs result
+            Exn.Res result => join_theory result
           | Exn.Exn exn => [Exn.Exn exn]));
 
     val results2 = futures
@@ -237,7 +235,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
     (* FIXME avoid global reset_futures (!??) *)
-    val results4 = map Exn.Exn (map_filter Task_Queue.group_status (Goal.reset_futures ()));
+    val results4 = map Exn.Exn (maps Task_Queue.group_status (Goal.reset_futures ()));
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
   in () end);

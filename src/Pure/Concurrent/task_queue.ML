@@ -12,7 +12,7 @@ sig
   val eq_group: group * group -> bool
   val cancel_group: group -> exn -> unit
   val is_canceled: group -> bool
-  val group_status: group -> exn option
+  val group_status: group -> exn list
   val str_of_group: group -> string
   val str_of_groups: group -> string
   type task
@@ -82,14 +82,9 @@ fun is_canceled (Group {parent, status, ...}) =
   is_some (Synchronized.value status) orelse
     (case parent of NONE => false | SOME group => is_canceled group);
 
-fun group_exns (Group {parent, status, ...}) =
+fun group_status (Group {parent, status, ...}) =
   the_list (Synchronized.value status) @
-    (case parent of NONE => [] | SOME group => group_exns group);
-
-fun group_status group =
-  (case group_exns group of
-    [] => NONE
-  | exns => SOME (Par_Exn.make exns));
+    (case parent of NONE => [] | SOME group => group_status group);
 
 fun str_of_group group =
   (is_canceled group ? enclose "(" ")") (string_of_int (group_id group));

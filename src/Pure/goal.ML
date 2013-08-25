@@ -26,7 +26,7 @@ sig
   val norm_result: thm -> thm
   val fork_params: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
   val fork: int -> (unit -> 'a) -> 'a future
-  val peek_futures: int -> unit future list
+  val peek_futures: int -> Future.group list
   val purge_futures: int list -> unit
   val reset_futures: unit -> Future.group list
   val shutdown_futures: unit -> unit
@@ -117,12 +117,11 @@ local
 
 val forked_proofs =
   Synchronized.var "forked_proofs"
-    (Inttab.empty: (Future.group * unit future) list Inttab.table);
+    (Inttab.empty: Future.group list Inttab.table);
 
 fun register_forked id future =
-  Synchronized.change forked_proofs (fn tab =>
-    let val group = Task_Queue.group_of_task (Future.task_of future)
-    in Inttab.cons_list (id, (group, Future.map (K ()) future)) tab end);
+  Synchronized.change forked_proofs
+    (Inttab.cons_list (id, Task_Queue.group_of_task (Future.task_of future)));
 
 fun status task markups =
   let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
@@ -164,30 +163,28 @@ fun fork pri e =
   fork_params {name = "Goal.fork", pos = Position.thread_data (), pri = pri} e;
 
 fun peek_futures id =
-  map #2 (Inttab.lookup_list (Synchronized.value forked_proofs) id);
-
-fun check_canceled id group =
-  if Task_Queue.is_canceled group then ()
-  else raise Fail ("Attempt to purge valid execution " ^ string_of_int id);
+  Inttab.lookup_list (Synchronized.value forked_proofs) id;
 
 fun purge_futures ids =
   Synchronized.change forked_proofs (fn tab =>
     let
       val tab' = fold Inttab.delete_safe ids tab;
       val () =
-        Inttab.fold (fn (id, futures) => fn () =>
+        Inttab.fold (fn (id, groups) => fn () =>
           if Inttab.defined tab' id then ()
-          else List.app (check_canceled id o #1) futures) tab ();
+          else groups |> List.app (fn group =>
+            if Task_Queue.is_canceled group then ()
+            else raise Fail ("Attempt to purge valid execution " ^ string_of_int id))) tab ();
     in tab' end);
 
 fun reset_futures () =
   Synchronized.change_result forked_proofs (fn tab =>
-    let val groups = Inttab.fold (fold (cons o #1) o #2) tab []
+    let val groups = Inttab.fold (fold cons o #2) tab []
     in (groups, Inttab.empty) end);
 
 fun shutdown_futures () =
   (Future.shutdown ();
-    (case map_filter Task_Queue.group_status (reset_futures ()) of
+    (case maps Task_Queue.group_status (reset_futures ()) of
       [] => ()
     | exns => raise Par_Exn.make exns));
 
