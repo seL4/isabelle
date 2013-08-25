@@ -64,7 +64,7 @@ lemma card_UNIV_option: "CARD('a option) = (if CARD('a) = 0 then 0 else CARD('a)
 proof -
   have "(None :: 'a option) \<notin> range Some" by clarsimp
   thus ?thesis
-    by(simp add: UNIV_option_conv card_eq_0_iff finite_range_Some card_insert_disjoint card_image)
+    by (simp add: UNIV_option_conv card_eq_0_iff finite_range_Some card_image)
 qed
 
 lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"

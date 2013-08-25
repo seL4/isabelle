@@ -97,7 +97,7 @@ by (induct p) auto
 lemma padd_Cons_Cons: "(h1 # p1) +++ (h2 # p2) = (h1 + h2) # (p1 +++ p2)"
 by auto
 
-lemma pminus_Nil[simp]: "-- [] = []"
+lemma pminus_Nil: "-- [] = []"
 by (simp add: poly_minus_def)
 
 lemma pmult_singleton: "[h1] *** p1 = h1 %* p1" by simp
@@ -114,7 +114,7 @@ lemma (in comm_semiring_0) padd_commut: "b +++ a = a +++ b"
 proof(induct b arbitrary: a)
   case Nil thus ?case by auto
 next
-  case (Cons b bs a) thus ?case by (cases a, simp_all add: add_commute)
+  case (Cons b bs a) thus ?case by (cases a) (simp_all add: add_commute)
 qed
 
 lemma (in comm_semiring_0) padd_assoc: "\<forall>b c. (a +++ b) +++ c = a +++ (b +++ c)"
@@ -130,7 +130,7 @@ done
 
 lemma (in ring_1) pmult_by_x[simp]: "[0, 1] *** t = ((0)#t)"
 apply (induct "t", simp)
-apply (auto simp add: mult_zero_left poly_ident_mult padd_commut)
+apply (auto simp add: padd_commut)
 apply (case_tac t, auto)
 done
 
@@ -141,7 +141,7 @@ proof(induct p1 arbitrary: p2)
   case Nil thus ?case by simp
 next
   case (Cons a as p2) thus ?case
-    by (cases p2, simp_all  add: add_ac distrib_left)
+    by (cases p2) (simp_all  add: add_ac distrib_left)
 qed
 
 lemma (in comm_semiring_0) poly_cmult: "poly (c %* p) x = c * poly p x"
@@ -155,7 +155,7 @@ lemma (in comm_semiring_0) poly_cmult_map: "poly (map (op * c) p) x = c*poly p x
 
 lemma (in comm_ring_1) poly_minus: "poly (-- p) x = - (poly p x)"
 apply (simp add: poly_minus_def)
-apply (auto simp add: poly_cmult minus_mult_left[symmetric])
+apply (auto simp add: poly_cmult)
 done
 
 lemma (in comm_semiring_0) poly_mult: "poly (p1 *** p2) x = poly p1 x * poly p2 x"
@@ -171,7 +171,7 @@ class idom_char_0 = idom + ring_char_0
 
 lemma (in comm_ring_1) poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
 apply (induct "n")
-apply (auto simp add: poly_cmult poly_mult power_Suc)
+apply (auto simp add: poly_cmult poly_mult)
 done
 
 text{*More Polynomial Evaluation Lemmas*}
@@ -204,8 +204,7 @@ next
     from Cons.hyps[rule_format, of x]
     obtain q r where qr: "x#xs = [r] +++ [- a, 1] *** q" by blast
     have "h#x#xs = [a*r + h] +++ [-a, 1] *** (r#q)"
-      using qr by(cases q, simp_all add: algebra_simps diff_minus[symmetric]
-        minus_mult_left[symmetric] right_minus)
+      using qr by (cases q) (simp_all add: algebra_simps)
     hence "\<exists>q r. h#x#xs = [r] +++ [-a, 1] *** q" by blast}
   thus ?case by blast
 qed
@@ -218,9 +217,12 @@ lemma (in comm_ring_1) poly_linear_divides: "(poly p a = 0) = ((p = []) | (\<exi
 proof-
   {assume p: "p = []" hence ?thesis by simp}
   moreover
-  {fix x xs assume p: "p = x#xs"
-    {fix q assume "p = [-a, 1] *** q" hence "poly p a = 0"
-        by (simp add: poly_add poly_cmult minus_mult_left[symmetric])}
+  {
+    fix x xs assume p: "p = x#xs"
+    {
+      fix q assume "p = [-a, 1] *** q"
+      hence "poly p a = 0" by (simp add: poly_add poly_cmult)
+    }
     moreover
     {assume p0: "poly p a = 0"
       from poly_linear_rem[of x xs a] obtain q r
@@ -388,20 +390,20 @@ lemma (in idom_char_0) poly_entire_neg: "(poly (p *** q) \<noteq> poly []) = ((p
 by (simp add: poly_entire)
 
 lemma fun_eq: " (f = g) = (\<forall>x. f x = g x)"
-by (auto intro!: ext)
+by auto
 
 lemma (in comm_ring_1) poly_add_minus_zero_iff: "(poly (p +++ -- q) = poly []) = (poly p = poly q)"
-by (auto simp add: algebra_simps poly_add poly_minus_def fun_eq poly_cmult minus_mult_left[symmetric])
+by (auto simp add: algebra_simps poly_add poly_minus_def fun_eq poly_cmult)
 
 lemma (in comm_ring_1) poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
-by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult distrib_left minus_mult_left[symmetric] minus_mult_right[symmetric])
+by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult distrib_left)
 
 subclass (in idom_char_0) comm_ring_1 ..
 lemma (in idom_char_0) poly_mult_left_cancel: "(poly (p *** q) = poly (p *** r)) = (poly p = poly [] | poly q = poly r)"
 proof-
   have "poly (p *** q) = poly (p *** r) \<longleftrightarrow> poly (p *** q +++ -- (p *** r)) = poly []" by (simp only: poly_add_minus_zero_iff)
   also have "\<dots> \<longleftrightarrow> poly p = poly [] | poly q = poly r"
-    by (auto intro: ext simp add: poly_add_minus_mult_eq poly_entire poly_add_minus_zero_iff)
+    by (auto intro: simp add: poly_add_minus_mult_eq poly_entire poly_add_minus_zero_iff)
   finally show ?thesis .
 qed
 
@@ -474,7 +476,7 @@ apply (rule_tac x="qa" in exI)
 apply (simp add: distrib_right [symmetric])
 apply clarsimp
 
-apply (auto simp add: right_minus poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
+apply (auto simp add: poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
 apply (rule_tac x = "pmult qa q" in exI)
 apply (rule_tac [2] x = "pmult p qa" in exI)
 apply (auto simp add: poly_add poly_mult poly_cmult mult_ac)
@@ -556,7 +558,7 @@ next
       apply simp
       apply (simp only: fun_eq)
       apply (rule ccontr)
-      apply (simp add: fun_eq poly_add poly_cmult minus_mult_left[symmetric])
+      apply (simp add: fun_eq poly_add poly_cmult)
       done
     from Suc.hyps[OF qh] obtain m r where
       mr: "q = mulexp m [-a,1] r" "poly r a \<noteq> 0" by blast
@@ -570,7 +572,7 @@ qed
 
 
 lemma (in comm_semiring_1) poly_mulexp: "poly (mulexp n p q) x = (poly p x) ^ n * poly q x"
-by(induct n, auto simp add: poly_mult power_Suc mult_ac)
+  by (induct n) (auto simp add: poly_mult mult_ac)
 
 lemma (in comm_semiring_1) divides_left_mult:
   assumes d:"(p***q) divides r" shows "p divides r \<and> q divides r"
@@ -588,7 +590,7 @@ qed
 
 lemma (in semiring_1)
   zero_power_iff: "0 ^ n = (if n = 0 then 1 else 0)"
-  by (induct n, simp_all add: power_Suc)
+  by (induct n) simp_all
 
 lemma (in idom_char_0) poly_order_exists:
   assumes lp: "length p = d" and p0: "poly p \<noteq> poly []"
@@ -612,7 +614,7 @@ apply simp
 apply (induct_tac "n")
 apply (simp del: pmult_Cons pexp_Suc)
 apply (erule_tac Q = "?poly q a = zero" in contrapos_np)
-apply (simp add: poly_add poly_cmult minus_mult_left[symmetric])
+apply (simp add: poly_add poly_cmult)
 apply (rule pexp_Suc [THEN ssubst])
 apply (rule ccontr)
 apply (simp add: poly_mult_left_cancel poly_mult_assoc del: pmult_Cons pexp_Suc)
@@ -664,12 +666,10 @@ lemma (in idom_char_0) order_unique_lemma: "(poly p \<noteq> poly [] & ([-a, 1] 
 by (blast intro: order_unique)
 
 lemma (in ring_1) order_poly: "poly p = poly q ==> order a p = order a q"
-by (auto simp add: fun_eq divides_def poly_mult order_def)
+  by (auto simp add: fun_eq divides_def poly_mult order_def)
 
 lemma (in semiring_1) pexp_one[simp]: "p %^ (Suc 0) = p"
-apply (induct "p")
-apply (auto simp add: numeral_1_eq_1)
-done
+  by (induct "p") auto
 
 lemma (in comm_ring_1) lemma_order_root:
      " 0 < n & [- a, 1] %^ n divides p & ~ [- a, 1] %^ (Suc n) divides p
@@ -914,7 +914,8 @@ lemma (in semiring_0) pnormal_degree: "last p \<noteq> 0 \<Longrightarrow> degre
 
 lemma (in semiring_0) poly_Nil_ext: "poly [] = (\<lambda>x. 0)" by (rule ext) simp
 
-lemma (in idom_char_0) linear_mul_degree: assumes p: "poly p \<noteq> poly []"
+lemma (in idom_char_0) linear_mul_degree:
+  assumes p: "poly p \<noteq> poly []"
   shows "degree ([a,1] *** p) = degree p + 1"
 proof-
   from p have pnz: "pnormalize p \<noteq> []"
@@ -927,7 +928,7 @@ proof-
 
 
   have th: "degree ([a,1] *** pnormalize p) = degree (pnormalize p) + 1"
-    by (auto simp add: poly_length_mult)
+    by simp
 
   have eqs: "poly ([a,1] *** pnormalize p) = poly ([a,1] *** p)"
     by (rule ext) (simp add: poly_mult poly_add poly_cmult)
