@@ -320,11 +320,8 @@
 \<registered>           code: 0x0000ae
 \<hyphen>               code: 0x0000ad  group: punctuation
 \<inverse>              code: 0x0000af  group: punctuation
-\<onesuperior>          code: 0x0000b9  group: digit
 \<onequarter>           code: 0x0000bc  group: digit
-\<twosuperior>          code: 0x0000b2  group: digit
 \<onehalf>              code: 0x0000bd  group: digit
-\<threesuperior>        code: 0x0000b3  group: digit
 \<threequarters>        code: 0x0000be  group: digit
 \<ordfeminine>          code: 0x0000aa
 \<ordmasculine>         code: 0x0000ba
