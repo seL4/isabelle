@@ -1164,7 +1164,7 @@ end;
 local
 
 fun future_terminal_proof proof1 proof2 done int state =
-  if Goal.future_enabled_level 3 andalso not (is_relevant state) then
+  if Goal.future_enabled 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
       let
         val pos = Position.thread_data ();

@@ -130,7 +130,7 @@ val eval_result_state = #state o eval_result;
 local
 
 fun run int tr st =
-  if Goal.future_enabled () andalso Keyword.is_diag (Toplevel.name_of tr) then
+  if Goal.future_enabled 1 andalso Keyword.is_diag (Toplevel.name_of tr) then
     (Goal.fork_params {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
       (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;

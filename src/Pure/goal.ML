@@ -31,9 +31,7 @@ sig
   val reset_futures: unit -> Future.group list
   val shutdown_futures: unit -> unit
   val skip_proofs_enabled: unit -> bool
-  val future_enabled_level: int -> bool
-  val future_enabled: unit -> bool
-  val future_enabled_nested: int -> bool
+  val future_enabled: int -> bool
   val future_enabled_timing: Time.time -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
@@ -119,21 +117,12 @@ local
 
 val forked_proofs =
   Synchronized.var "forked_proofs"
-    (0, Inttab.empty: (Future.group * unit future) list Inttab.table);
-
-fun count_forked i =
-  Synchronized.change forked_proofs (fn (m, tab) =>
-    let
-      val n = m + i;
-      val _ = Future.forked_proofs := n;
-    in (n, tab) end);
+    (Inttab.empty: (Future.group * unit future) list Inttab.table);
 
 fun register_forked id future =
-  Synchronized.change forked_proofs (fn (m, tab) =>
-    let
-      val group = Task_Queue.group_of_task (Future.task_of future);
-      val tab' = Inttab.cons_list (id, (group, Future.map (K ()) future)) tab;
-    in (m, tab') end);
+  Synchronized.change forked_proofs (fn tab =>
+    let val group = Task_Queue.group_of_task (Future.task_of future)
+    in Inttab.cons_list (id, (group, Future.map (K ()) future)) tab end);
 
 fun status task markups =
   let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
@@ -145,7 +134,6 @@ fun fork_params {name, pos, pri} e =
   uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val id = the_default 0 (Position.parse_id pos);
-      val _ = count_forked 1;
 
       val future =
         (singleton o Future.forks)
@@ -167,7 +155,6 @@ fun fork_params {name, pos, pri} e =
                       (status task [Markup.failed];
                        Output.report (Markup.markup_only Markup.bad);
                        List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
-              val _ = count_forked ~1;
             in Exn.release result end);
       val _ = status (Future.task_of future) [Markup.forked];
       val _ = register_forked id future;
@@ -176,32 +163,27 @@ fun fork_params {name, pos, pri} e =
 fun fork pri e =
   fork_params {name = "Goal.fork", pos = Position.thread_data (), pri = pri} e;
 
-fun forked_count () = #1 (Synchronized.value forked_proofs);
-
 fun peek_futures id =
-  map #2 (Inttab.lookup_list (#2 (Synchronized.value forked_proofs)) id);
+  map #2 (Inttab.lookup_list (Synchronized.value forked_proofs) id);
 
 fun check_canceled id group =
   if Task_Queue.is_canceled group then ()
   else raise Fail ("Attempt to purge valid execution " ^ string_of_int id);
 
 fun purge_futures ids =
-  Synchronized.change forked_proofs (fn (_, tab) =>
+  Synchronized.change forked_proofs (fn tab =>
     let
       val tab' = fold Inttab.delete_safe ids tab;
-      val n' =
-        Inttab.fold (fn (id, futures) => fn m =>
-          if Inttab.defined tab' id then m + length futures
-          else (List.app (check_canceled id o #1) futures; m)) tab 0;
-      val _ = Future.forked_proofs := n';
-    in (n', tab') end);
+      val () =
+        Inttab.fold (fn (id, futures) => fn () =>
+          if Inttab.defined tab' id then ()
+          else List.app (check_canceled id o #1) futures) tab ();
+    in tab' end);
 
 fun reset_futures () =
-  Synchronized.change_result forked_proofs (fn (_, tab) =>
-    let
-      val groups = Inttab.fold (fold (cons o #1) o #2) tab [];
-      val _ = Future.forked_proofs := 0;
-    in (groups, (0, Inttab.empty)) end);
+  Synchronized.change_result forked_proofs (fn tab =>
+    let val groups = Inttab.fold (fold (cons o #1) o #2) tab []
+    in (groups, Inttab.empty) end);
 
 fun shutdown_futures () =
   (Future.shutdown ();
@@ -223,19 +205,12 @@ fun skip_proofs_enabled () =
 
 val parallel_proofs = Unsynchronized.ref 1;
 
-fun future_enabled_level n =
+fun future_enabled n =
   Multithreading.enabled () andalso ! parallel_proofs >= n andalso
   is_some (Future.worker_task ());
 
-fun future_enabled () = future_enabled_level 1;
-
-fun future_enabled_nested n =
-  future_enabled_level n andalso
-  forked_count () <
-    Options.default_int "parallel_subproofs_saturation" * Multithreading.max_threads_value ();
-
 fun future_enabled_timing t =
-  future_enabled () andalso
+  future_enabled 1 andalso
     Time.toReal t >= Options.default_real "parallel_subproofs_threshold";
 
 
@@ -299,7 +274,7 @@ fun prove_common immediate pri ctxt xs asms props tac =
     val string_of_term = Syntax.string_of_term ctxt;
 
     val schematic = exists is_schematic props;
-    val future = future_enabled ();
+    val future = future_enabled 1;
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
     val pos = Position.thread_data ();
@@ -363,7 +338,7 @@ fun prove_global thy xs asms prop tac =
 fun prove_sorry ctxt xs asms prop tac =
   if Config.get ctxt quick_and_dirty then
     prove ctxt xs asms prop (fn _ => ALLGOALS Skip_Proof.cheat_tac)
-  else (if future_enabled () then prove_future_pri ~2 else prove) ctxt xs asms prop tac;
+  else (if future_enabled 1 then prove_future_pri ~2 else prove) ctxt xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =
   Drule.export_without_context

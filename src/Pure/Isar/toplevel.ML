@@ -698,16 +698,16 @@ fun proof_future_enabled estimate st =
   | SOME state =>
       not (Proof.is_relevant state) andalso
        (if can (Proof.assert_bottom true) state
-        then Goal.future_enabled ()
+        then Goal.future_enabled 1
         else
           (case estimate of
-            NONE => Goal.future_enabled_nested 2
+            NONE => Goal.future_enabled 2
           | SOME t => Goal.future_enabled_timing t)));
 
 fun atom_result tr st =
   let
     val st' =
-      if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
+      if Goal.future_enabled 1 andalso Keyword.is_diag (name_of tr) then
         (Goal.fork_params
           {name = "Toplevel.diag", pos = pos_of tr,
             pri = priority (timing_estimate true (Thy_Syntax.atom tr))}

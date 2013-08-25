@@ -55,7 +55,6 @@ sig
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val ML_statistics: bool Unsynchronized.ref
-  val forked_proofs: int Unsynchronized.ref
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -200,7 +199,6 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 (* status *)
 
 val ML_statistics = Unsynchronized.ref false;
-val forked_proofs = Unsynchronized.ref 0;
 
 fun report_status () = (*requires SYNCHRONIZED*)
   if ! ML_statistics then
@@ -211,7 +209,6 @@ fun report_status () = (*requires SYNCHRONIZED*)
       val waiting = count_workers Waiting;
       val stats =
        [("now", Markup.print_real (Time.toReal (Time.now ()))),
-        ("tasks_proof", Markup.print_int (! forked_proofs)),
         ("tasks_ready", Markup.print_int ready),
         ("tasks_pending", Markup.print_int pending),
         ("tasks_running", Markup.print_int running),

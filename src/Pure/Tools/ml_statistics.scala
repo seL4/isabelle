@@ -48,8 +48,7 @@ object ML_Statistics
   val speed_fields = ("Speed", List("speed_CPU", "speed_GC"))
 
   val tasks_fields =
-    ("Future tasks",
-      List("tasks_proof", "tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
+    ("Future tasks", List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
 
   val workers_fields =
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
