@@ -24,12 +24,6 @@ sig
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
-  val fork_params: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
-  val fork: int -> (unit -> 'a) -> 'a future
-  val peek_futures: int -> Future.group list
-  val purge_futures: int list -> unit
-  val reset_futures: unit -> Future.group list
-  val shutdown_futures: unit -> unit
   val skip_proofs_enabled: unit -> bool
   val future_enabled: int -> bool
   val future_enabled_timing: Time.time -> bool
@@ -109,86 +103,6 @@ val norm_result =
   #> Raw_Simplifier.norm_hhf_protect
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
-
-
-(* forked proofs *)
-
-local
-
-val forked_proofs =
-  Synchronized.var "forked_proofs"
-    (Inttab.empty: Future.group list Inttab.table);
-
-fun register_forked id future =
-  Synchronized.change forked_proofs
-    (Inttab.cons_list (id, Task_Queue.group_of_task (Future.task_of future)));
-
-fun status task markups =
-  let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
-  in Output.status (implode (map (Markup.markup_only o props) markups)) end;
-
-in
-
-fun fork_params {name, pos, pri} e =
-  uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
-    let
-      val id = the_default 0 (Position.parse_id pos);
-
-      val future =
-        (singleton o Future.forks)
-          {name = name, group = NONE, deps = [], pri = pri, interrupts = false}
-          (fn () =>
-            let
-              val task = the (Future.worker_task ());
-              val _ = status task [Markup.running];
-              val result =
-                Exn.capture (Future.interruptible_task e) ()
-                |> Future.identify_result pos;
-              val _ = status task [Markup.finished, Markup.joined];
-              val _ =
-                (case result of
-                  Exn.Res _ => ()
-                | Exn.Exn exn =>
-                    if id = 0 orelse Exn.is_interrupt exn then ()
-                    else
-                      (status task [Markup.failed];
-                       Output.report (Markup.markup_only Markup.bad);
-                       List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
-            in Exn.release result end);
-      val _ = status (Future.task_of future) [Markup.forked];
-      val _ = register_forked id future;
-    in future end)) ();
-
-fun fork pri e =
-  fork_params {name = "Goal.fork", pos = Position.thread_data (), pri = pri} e;
-
-fun peek_futures id =
-  Inttab.lookup_list (Synchronized.value forked_proofs) id;
-
-fun purge_futures ids =
-  Synchronized.change forked_proofs (fn tab =>
-    let
-      val tab' = fold Inttab.delete_safe ids tab;
-      val () =
-        Inttab.fold (fn (id, groups) => fn () =>
-          if Inttab.defined tab' id then ()
-          else groups |> List.app (fn group =>
-            if Task_Queue.is_canceled group then ()
-            else raise Fail ("Attempt to purge valid execution " ^ string_of_int id))) tab ();
-    in tab' end);
-
-fun reset_futures () =
-  Synchronized.change_result forked_proofs (fn tab =>
-    let val groups = Inttab.fold (fold cons o #2) tab []
-    in (groups, Inttab.empty) end);
-
-fun shutdown_futures () =
-  (Future.shutdown ();
-    (case maps Task_Queue.group_status (reset_futures ()) of
-      [] => ()
-    | exns => raise Par_Exn.make exns));
-
-end;
 
 
 (* scheduling parameters *)
@@ -307,9 +221,11 @@ fun prove_common immediate pri ctxt xs asms props tac =
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
-      if immediate orelse schematic orelse not future orelse skip
-      then result ()
-      else future_result ctxt' (fork pri result) (Thm.term_of stmt);
+      if immediate orelse schematic orelse not future orelse skip then result ()
+      else
+        future_result ctxt'
+          (Execution.fork {name = "Goal.prove", pos = Position.thread_data (), pri = pri} result)
+          (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)

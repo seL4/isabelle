@@ -1170,7 +1170,7 @@ fun future_terminal_proof proof1 proof2 done int state =
         val pos = Position.thread_data ();
         val props = Markup.command_timing :: (Markup.nameN, "by") :: Position.properties_of pos;
       in
-        Goal.fork_params {name = "Proof.future_terminal_proof", pos = pos, pri = ~1}
+        Execution.fork {name = "Proof.future_terminal_proof", pos = pos, pri = ~1}
           (fn () => ((), Timing.protocol props proof2 state'))
       end) |> snd |> done
   else proof1 state;

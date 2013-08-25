@@ -173,7 +173,7 @@ fun loop channel =
       | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
   in
     if continue then loop channel
-    else (Future.shutdown (); Goal.reset_futures (); Execution.reset ())
+    else (Future.shutdown (); Execution.reset (); ())
   end;
 
 end;

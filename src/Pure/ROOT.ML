@@ -185,6 +185,9 @@ use "ML/ml_compiler.ML";
 if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
 if ML_System.name = "polyml-5.5.1" then use "ML/exn_trace_polyml-5.5.1.ML" else ();
 
+(*global execution*)
+use "PIDE/document_id.ML";
+use "PIDE/execution.ML";
 use "skip_proof.ML";
 use "goal.ML";
 
@@ -257,7 +260,6 @@ use "ML/ml_thms.ML";
 
 (*toplevel transactions*)
 use "Isar/proof_node.ML";
-use "PIDE/document_id.ML";
 use "Isar/toplevel.ML";
 
 (*theory documents*)
@@ -267,7 +269,6 @@ use "Thy/thy_output.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";
 use "Thy/present.ML";
-use "PIDE/execution.ML";
 use "PIDE/command.ML";
 use "PIDE/query_operation.ML";
 use "Thy/thy_load.ML";

@@ -708,7 +708,7 @@ fun atom_result tr st =
   let
     val st' =
       if Goal.future_enabled 1 andalso Keyword.is_diag (name_of tr) then
-        (Goal.fork_params
+        (Execution.fork
           {name = "Toplevel.diag", pos = pos_of tr,
             pri = priority (timing_estimate true (Thy_Syntax.atom tr))}
           (fn () => command tr st); st)
@@ -736,7 +736,7 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
 
             val future_proof =
               Proof.future_proof (fn state =>
-                Goal.fork_params
+                Execution.fork
                   {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = priority estimate}
                   (fn () =>
                     let

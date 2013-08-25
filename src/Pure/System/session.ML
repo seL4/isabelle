@@ -51,7 +51,7 @@ fun init build info info_path doc doc_graph doc_output doc_variants
 (* finish *)
 
 fun finish () =
- (Goal.shutdown_futures ();
+ (Execution.shutdown ();
   Thy_Info.finish ();
   Present.finish ();
   Outer_Syntax.check_syntax ();

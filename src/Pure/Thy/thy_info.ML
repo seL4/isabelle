@@ -176,7 +176,7 @@ fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j
 
 fun join_theory (Result {theory, id, ...}) =
   Exn.capture Thm.join_theory_proofs theory ::
-  map Exn.Exn (maps Task_Queue.group_status (Goal.peek_futures id));
+  map Exn.Exn (maps Task_Queue.group_status (Execution.peek id));
 
 
 datatype task =
@@ -235,7 +235,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
     (* FIXME avoid global reset_futures (!??) *)
-    val results4 = map Exn.Exn (maps Task_Queue.group_status (Goal.reset_futures ()));
+    val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
   in () end);

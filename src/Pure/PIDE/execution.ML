@@ -2,19 +2,23 @@
     Author:     Makarius
 
 Global management of execution.  Unique running execution serves as
-barrier for further exploration of exec fragments.
+barrier for further exploration of forked command execs.
 *)
 
 signature EXECUTION =
 sig
-  val reset: unit -> unit
   val start: unit -> Document_ID.execution
   val discontinue: unit -> unit
   val is_running: Document_ID.execution -> bool
   val is_running_exec: Document_ID.exec -> bool
   val running: Document_ID.execution -> Document_ID.exec -> bool
+  val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
   val terminate: Document_ID.exec -> unit
+  val fork: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
+  val purge: Document_ID.exec list -> unit
+  val reset: unit -> Future.group list
+  val shutdown: unit -> unit
 end;
 
 structure Execution: EXECUTION =
@@ -22,50 +26,129 @@ struct
 
 (* global state *)
 
-type state = Document_ID.execution * Future.group Inttab.table;
+datatype state = State of
+  {execution: Document_ID.execution,  (*overall document execution*)
+   execs: Future.group list Inttab.table};  (*command execs with registered forks*)
 
-val init_state: state = (Document_ID.none, Inttab.empty);
+fun make_state (execution, execs) = State {execution = execution, execs = execs};
+fun map_state f (State {execution, execs}) = make_state (f (execution, execs));
+
+val init_state = make_state (Document_ID.none, Inttab.empty);
 val state = Synchronized.var "Execution.state" init_state;
+
+fun get_state () = let val State args = Synchronized.value state in args end;
+fun change_state f = Synchronized.change state (map_state f);
 
 
 (* unique running execution *)
 
-fun reset () = Synchronized.change state (K init_state);
-
 fun start () =
   let
     val execution_id = Document_ID.make ();
-    val _ = Synchronized.change state (apfst (K execution_id));
+    val _ = change_state (apfst (K execution_id));
   in execution_id end;
 
-fun discontinue () =
-  Synchronized.change state (apfst (K Document_ID.none));
+fun discontinue () = change_state (apfst (K Document_ID.none));
 
-fun is_running execution_id = execution_id = fst (Synchronized.value state);
+fun is_running execution_id = execution_id = #execution (get_state ());
 
 
-(* registered execs *)
+(* execs *)
 
 fun is_running_exec exec_id =
-  Inttab.defined (snd (Synchronized.value state)) exec_id;
+  Inttab.defined (#execs (get_state ())) exec_id;
 
 fun running execution_id exec_id =
   Synchronized.guarded_access state
-    (fn (execution_id', execs) =>
+    (fn State {execution = execution_id', execs} =>
       let
         val continue = execution_id = execution_id';
         val execs' =
           if continue then
-            Inttab.update_new (exec_id, Future.the_worker_group ()) execs
-              handle Inttab.DUP dup => error ("Duplicate execution " ^ Document_ID.print dup)
+            Inttab.update_new (exec_id, [Future.the_worker_group ()]) execs
+              handle Inttab.DUP dup =>
+                error ("Execution already registered: " ^ Document_ID.print dup)
           else execs;
-      in SOME (continue, (execution_id', execs')) end);
+      in SOME (continue, make_state (execution_id', execs')) end);
 
-fun peek_list exec_id =
-  the_list (Inttab.lookup (snd (Synchronized.value state)) exec_id);
+fun peek exec_id =
+  Inttab.lookup_list (#execs (get_state ())) exec_id;
 
-fun cancel exec_id = List.app Future.cancel_group (peek_list exec_id);
-fun terminate exec_id = List.app Future.terminate (peek_list exec_id);
+fun cancel exec_id = List.app Future.cancel_group (peek exec_id);
+fun terminate exec_id = List.app Future.terminate (peek exec_id);
+
+
+(* fork *)
+
+local
+
+fun status task markups =
+  let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
+  in Output.status (implode (map (Markup.markup_only o props) markups)) end;
+
+fun register exec =
+  change_state (fn (execution, execs) => (execution, Inttab.cons_list exec execs));
+
+in
+
+fun fork {name, pos, pri} e =
+  uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
+    let
+      val exec_id = the_default 0 (Position.parse_id pos);
+      val group = Future.worker_subgroup ();
+      val _ = register (exec_id, group);
+
+      val future =
+        (singleton o Future.forks)
+          {name = name, group = SOME group, deps = [], pri = pri, interrupts = false}
+          (fn () =>
+            let
+              val task = the (Future.worker_task ());
+              val _ = status task [Markup.running];
+              val result =
+                Exn.capture (Future.interruptible_task e) ()
+                |> Future.identify_result pos;
+              val _ = status task [Markup.finished, Markup.joined];
+              val _ =
+                (case result of
+                  Exn.Res _ => ()
+                | Exn.Exn exn =>
+                    if exec_id = 0 orelse Exn.is_interrupt exn then ()
+                    else
+                      (status task [Markup.failed];
+                       Output.report (Markup.markup_only Markup.bad);
+                       List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
+            in Exn.release result end);
+      val _ = status (Future.task_of future) [Markup.forked];
+    in future end)) ();
+
+end;
+
+
+(* cleanup *)
+
+fun purge exec_ids =
+  (change_state o apsnd) (fn execs =>
+    let
+      val execs' = fold Inttab.delete_safe exec_ids execs;
+      val () =
+        (execs', ()) |-> Inttab.fold (fn (exec_id, groups) => fn () =>
+          if Inttab.defined execs' exec_id then ()
+          else groups |> List.app (fn group =>
+            if Task_Queue.is_canceled group then ()
+            else error ("Attempt to purge valid execution: " ^ Document_ID.print exec_id)));
+    in execs' end);
+
+fun reset () =
+  Synchronized.change_result state (fn State {execs, ...} =>
+    let val groups = Inttab.fold (append o #2) execs []
+    in (groups, init_state) end);
+
+fun shutdown () =
+  (Future.shutdown ();
+    (case maps Task_Queue.group_status (reset ()) of
+      [] => ()
+    | exns => raise Par_Exn.make exns));
 
 end;
 
