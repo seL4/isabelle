@@ -56,7 +56,7 @@ object Pretty_Tooltip
           }
         old.foreach(_.hide_popup)
 
-        val tip = new Pretty_Tooltip(view, rendering, parent, screen_point, results, info)
+        val tip = new Pretty_Tooltip(view, rendering, screen_point, results, info)
         stack = tip :: rest
         tip.show_popup
         tip
@@ -139,7 +139,6 @@ object Pretty_Tooltip
 class Pretty_Tooltip private(
   view: View,
   rendering: Rendering,
-  parent: JComponent,
   screen_point: Point,
   private val results: Command.Results,
   private val info: Text.Info[XML.Body]) extends JPanel(new BorderLayout)
@@ -220,10 +219,11 @@ class Pretty_Tooltip private(
   {
     val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
-    val x0 = parent.getLocationOnScreen.x
-    val y0 = parent.getLocationOnScreen.y
-    val w0 = parent.getWidth
-    val h0 = parent.getHeight
+    val root = view.getRootPane
+    val x0 = root.getLocationOnScreen.x
+    val y0 = root.getLocationOnScreen.y
+    val w0 = root.getWidth
+    val h0 = root.getHeight
 
     val (w, h) =
     {
@@ -266,7 +266,7 @@ class Pretty_Tooltip private(
 
     tip.setSize(new Dimension(w, h))
     tip.setPreferredSize(new Dimension(w, h))
-    PopupFactory.getSharedInstance.getPopup(parent, tip, x, y)
+    PopupFactory.getSharedInstance.getPopup(root, tip, x, y)
   }
 
   private def show_popup
