@@ -80,23 +80,16 @@ fun terminate exec_id = List.app Future.terminate (peek exec_id);
 
 (* fork *)
 
-local
-
 fun status task markups =
   let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
   in Output.status (implode (map (Markup.markup_only o props) markups)) end;
-
-fun register exec =
-  change_state (fn (execution, execs) => (execution, Inttab.cons_list exec execs));
-
-in
 
 fun fork {name, pos, pri} e =
   uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val exec_id = the_default 0 (Position.parse_id pos);
       val group = Future.worker_subgroup ();
-      val _ = register (exec_id, group);
+      val _ = change_state (apsnd (Inttab.cons_list (exec_id, group)));
 
       val future =
         (singleton o Future.forks)
@@ -121,8 +114,6 @@ fun fork {name, pos, pri} e =
             in Exn.release result end);
       val _ = status (Future.task_of future) [Markup.forked];
     in future end)) ();
-
-end;
 
 
 (* cleanup *)
