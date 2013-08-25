@@ -75,23 +75,21 @@ definition Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract" where
 
 code_datatype Fract
 
-lemma Fract_cases [case_names Fract, cases type: fract]:
-  assumes "\<And>a b. q = Fract a b \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> C"
-  shows C
-  using assms by (cases q) (clarsimp simp add: Fract_def fract_def quotient_def)
+lemma Fract_cases [cases type: fract]:
+  obtains (Fract) a b where "q = Fract a b" "b \<noteq> 0"
+  by (cases q) (clarsimp simp add: Fract_def fract_def quotient_def)
 
 lemma Fract_induct [case_names Fract, induct type: fract]:
-  assumes "\<And>a b. b \<noteq> 0 \<Longrightarrow> P (Fract a b)"
-  shows "P q"
-  using assms by (cases q) simp
+  shows "(\<And>a b. b \<noteq> 0 \<Longrightarrow> P (Fract a b)) \<Longrightarrow> P q"
+  by (cases q) simp
 
 lemma eq_fract:
   shows "\<And>a b c d. b \<noteq> 0 \<Longrightarrow> d \<noteq> 0 \<Longrightarrow> Fract a b = Fract c d \<longleftrightarrow> a * d = c * b"
-  and "\<And>a. Fract a 0 = Fract 0 1"
-  and "\<And>a c. Fract 0 a = Fract 0 c"
+    and "\<And>a. Fract a 0 = Fract 0 1"
+    and "\<And>a c. Fract 0 a = Fract 0 c"
   by (simp_all add: Fract_def)
 
-instantiation fract :: (idom) "{comm_ring_1, power}"
+instantiation fract :: (idom) "{comm_ring_1,power}"
 begin
 
 definition Zero_fract_def [code_unfold]: "0 = Fract 0 1"
@@ -103,13 +101,16 @@ definition add_fract_def:
     fractrel `` {(fst x * snd y + fst y * snd x, snd x * snd y)})"
 
 lemma add_fract [simp]:
-  assumes "b \<noteq> (0::'a::idom)" and "d \<noteq> 0"
+  assumes "b \<noteq> (0::'a::idom)"
+    and "d \<noteq> 0"
   shows "Fract a b + Fract c d = Fract (a * d + c * b) (b * d)"
 proof -
   have "(\<lambda>x y. fractrel``{(fst x * snd y + fst y * snd x, snd x * snd y :: 'a)})
     respects2 fractrel"
-  apply (rule equiv_fractrel [THEN congruent2_commuteI]) apply (auto simp add: algebra_simps)
-  unfolding mult_assoc[symmetric] .
+    apply (rule equiv_fractrel [THEN congruent2_commuteI])
+    apply (auto simp add: algebra_simps)
+    unfolding mult_assoc[symmetric]
+    done
   with assms show ?thesis by (simp add: Fract_def add_fract_def UN_fractrel2)
 qed
 
@@ -140,8 +141,9 @@ definition mult_fract_def:
 lemma mult_fract [simp]: "Fract (a::'a::idom) b * Fract c d = Fract (a * c) (b * d)"
 proof -
   have "(\<lambda>x y. fractrel `` {(fst x * fst y, snd x * snd y :: 'a)}) respects2 fractrel"
-    apply (rule equiv_fractrel [THEN congruent2_commuteI]) apply (auto simp add: algebra_simps)
-    unfolding mult_assoc[symmetric] .
+    apply (rule equiv_fractrel [THEN congruent2_commuteI])
+    apply (auto simp add: algebra_simps)
+    done
   then show ?thesis by (simp add: Fract_def mult_fract_def UN_fractrel2)
 qed
 
@@ -155,34 +157,27 @@ qed
 
 instance
 proof
-  fix q r s :: "'a fract" show "(q * r) * s = q * (r * s)" 
+  fix q r s :: "'a fract"
+  show "(q * r) * s = q * (r * s)" 
     by (cases q, cases r, cases s) (simp add: eq_fract algebra_simps)
-next
-  fix q r :: "'a fract" show "q * r = r * q"
+  show "q * r = r * q"
     by (cases q, cases r) (simp add: eq_fract algebra_simps)
-next
-  fix q :: "'a fract" show "1 * q = q"
+  show "1 * q = q"
     by (cases q) (simp add: One_fract_def eq_fract)
-next
-  fix q r s :: "'a fract" show "(q + r) + s = q + (r + s)"
+  show "(q + r) + s = q + (r + s)"
     by (cases q, cases r, cases s) (simp add: eq_fract algebra_simps)
-next
-  fix q r :: "'a fract" show "q + r = r + q"
+  show "q + r = r + q"
     by (cases q, cases r) (simp add: eq_fract algebra_simps)
-next
-  fix q :: "'a fract" show "0 + q = q"
+  show "0 + q = q"
     by (cases q) (simp add: Zero_fract_def eq_fract)
-next
-  fix q :: "'a fract" show "- q + q = 0"
+  show "- q + q = 0"
     by (cases q) (simp add: Zero_fract_def eq_fract)
-next
-  fix q r :: "'a fract" show "q - r = q + - r"
+  show "q - r = q + - r"
     by (cases q, cases r) (simp add: eq_fract)
-next
-  fix q r s :: "'a fract" show "(q + r) * s = q * s + r * s"
+  show "(q + r) * s = q * s + r * s"
     by (cases q, cases r, cases s) (simp add: eq_fract algebra_simps)
-next
-  show "(0::'a fract) \<noteq> 1" by (simp add: Zero_fract_def One_fract_def eq_fract)
+  show "(0::'a fract) \<noteq> 1"
+    by (simp add: Zero_fract_def One_fract_def eq_fract)
 qed
 
 end
@@ -205,28 +200,28 @@ lemma fract_expand [code_unfold]:
   "1 = Fract 1 1"
   by (simp_all add: fract_collapse)
 
-lemma Fract_cases_nonzero [case_names Fract 0]:
-  assumes Fract: "\<And>a b. q = Fract a b \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> C"
-  assumes 0: "q = 0 \<Longrightarrow> C"
-  shows C
+lemma Fract_cases_nonzero:
+  obtains (Fract) a b where "q = Fract a b" "b \<noteq> 0" "a \<noteq> 0"
+    | (0) "q = 0"
 proof (cases "q = 0")
-  case True then show C using 0 by auto
+  case True
+  then show thesis using 0 by auto
 next
   case False
   then obtain a b where "q = Fract a b" and "b \<noteq> 0" by (cases q) auto
   moreover with False have "0 \<noteq> Fract a b" by simp
   with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_fract_def eq_fract)
-  with Fract `q = Fract a b` `b \<noteq> 0` show C by auto
+  with Fract `q = Fract a b` `b \<noteq> 0` show thesis by auto
 qed
   
-
 
 subsubsection {* The field of rational numbers *}
 
 context idom
 begin
+
 subclass ring_no_zero_divisors ..
-thm mult_eq_0_iff
+
 end
 
 instantiation fract :: (idom) field_inverse_zero
@@ -236,12 +231,11 @@ definition inverse_fract_def:
   "inverse q = Abs_fract (\<Union>x \<in> Rep_fract q.
      fractrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)})"
 
-
 lemma inverse_fract [simp]: "inverse (Fract a b) = Fract (b::'a::idom) a"
 proof -
-  have stupid: "\<And>x. (0::'a) = x \<longleftrightarrow> x = 0" by auto
+  have *: "\<And>x. (0::'a) = x \<longleftrightarrow> x = 0" by auto
   have "(\<lambda>x. fractrel `` {if fst x = 0 then (0, 1) else (snd x, fst x :: 'a)}) respects fractrel"
-    by (auto simp add: congruent_def stupid algebra_simps)
+    by (auto simp add: congruent_def * algebra_simps)
   then show ?thesis by (simp add: Fract_def inverse_fract_def UN_fractrel)
 qed
 
@@ -315,20 +309,20 @@ instantiation fract :: (linordered_idom) linorder
 begin
 
 definition le_fract_def:
-   "q \<le> r \<longleftrightarrow> the_elem (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
-      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
+  "q \<le> r \<longleftrightarrow> the_elem (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
+    {(fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)})"
 
 definition less_fract_def: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
 
 lemma le_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
   shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
-by (simp add: Fract_def le_fract_def le_congruent2 UN_fractrel2 assms)
+  by (simp add: Fract_def le_fract_def le_congruent2 UN_fractrel2 assms)
 
 lemma less_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
   shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
-by (simp add: less_fract_def less_le_not_le mult_ac assms)
+  by (simp add: less_fract_def less_le_not_le mult_ac assms)
 
 instance
 proof
@@ -427,10 +421,11 @@ end
 instance fract :: (linordered_idom) linordered_field_inverse_zero
 proof
   fix q r s :: "'a fract"
-  show "q \<le> r ==> s + q \<le> s + r"
+  assume "q \<le> r"
+  then show "s + q \<le> s + r"
   proof (induct q, induct r, induct s)
     fix a b c d e f :: 'a
-    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
+    assume neq: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0"
     assume le: "Fract a b \<le> Fract c d"
     show "Fract e f + Fract a b \<le> Fract e f + Fract c d"
     proof -
@@ -443,7 +438,10 @@ proof
       with neq show ?thesis by (simp add: field_simps)
     qed
   qed
-  show "q < r ==> 0 < s ==> s * q < s * r"
+next
+  fix q r s :: "'a fract"
+  assume "q < r" and "0 < s"
+  then show "s * q < s * r"
   proof (induct q, induct r, induct s)
     fix a b c d e f :: 'a
     assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
@@ -483,36 +481,28 @@ proof (cases q)
   thus "P q" by (force simp add: linorder_neq_iff step step')
 qed
 
-lemma zero_less_Fract_iff:
-  "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
+lemma zero_less_Fract_iff: "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
   by (auto simp add: Zero_fract_def zero_less_mult_iff)
 
-lemma Fract_less_zero_iff:
-  "0 < b \<Longrightarrow> Fract a b < 0 \<longleftrightarrow> a < 0"
+lemma Fract_less_zero_iff: "0 < b \<Longrightarrow> Fract a b < 0 \<longleftrightarrow> a < 0"
   by (auto simp add: Zero_fract_def mult_less_0_iff)
 
-lemma zero_le_Fract_iff:
-  "0 < b \<Longrightarrow> 0 \<le> Fract a b \<longleftrightarrow> 0 \<le> a"
+lemma zero_le_Fract_iff: "0 < b \<Longrightarrow> 0 \<le> Fract a b \<longleftrightarrow> 0 \<le> a"
   by (auto simp add: Zero_fract_def zero_le_mult_iff)
 
-lemma Fract_le_zero_iff:
-  "0 < b \<Longrightarrow> Fract a b \<le> 0 \<longleftrightarrow> a \<le> 0"
+lemma Fract_le_zero_iff: "0 < b \<Longrightarrow> Fract a b \<le> 0 \<longleftrightarrow> a \<le> 0"
   by (auto simp add: Zero_fract_def mult_le_0_iff)
 
-lemma one_less_Fract_iff:
-  "0 < b \<Longrightarrow> 1 < Fract a b \<longleftrightarrow> b < a"
+lemma one_less_Fract_iff: "0 < b \<Longrightarrow> 1 < Fract a b \<longleftrightarrow> b < a"
   by (auto simp add: One_fract_def mult_less_cancel_right_disj)
 
-lemma Fract_less_one_iff:
-  "0 < b \<Longrightarrow> Fract a b < 1 \<longleftrightarrow> a < b"
+lemma Fract_less_one_iff: "0 < b \<Longrightarrow> Fract a b < 1 \<longleftrightarrow> a < b"
   by (auto simp add: One_fract_def mult_less_cancel_right_disj)
 
-lemma one_le_Fract_iff:
-  "0 < b \<Longrightarrow> 1 \<le> Fract a b \<longleftrightarrow> b \<le> a"
+lemma one_le_Fract_iff: "0 < b \<Longrightarrow> 1 \<le> Fract a b \<longleftrightarrow> b \<le> a"
   by (auto simp add: One_fract_def mult_le_cancel_right)
 
-lemma Fract_le_one_iff:
-  "0 < b \<Longrightarrow> Fract a b \<le> 1 \<longleftrightarrow> a \<le> b"
+lemma Fract_le_one_iff: "0 < b \<Longrightarrow> Fract a b \<le> 1 \<longleftrightarrow> a \<le> b"
   by (auto simp add: One_fract_def mult_le_cancel_right)
 
 end
