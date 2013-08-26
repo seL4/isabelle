@@ -71,9 +71,8 @@ sig
     string * term list * term list list * ((term list list * term list list list)
       * (typ list * typ list list)) list ->
     thm -> thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list ->
-    typ list -> int list list -> int list list -> int list -> thm list list ->
-    BNF_Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> (thm list -> thm list) ->
-    local_theory ->
+    int list list -> int list list -> int list -> thm list list -> BNF_Ctr_Sugar.ctr_sugar list ->
+    term list list -> thm list list -> (thm list -> thm list) -> local_theory ->
     ((thm list * thm) list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
@@ -728,7 +727,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
-    dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs As kss mss ns
+    dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs kss mss ns
     ctr_defss ctr_sugars coiterss coiter_defss export_args lthy =
   let
     fun mk_ctor_dtor_coiter_thm dtor_inject dtor_ctor coiter =
@@ -751,9 +750,9 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val ctrss = map (map (mk_ctr As) o #ctrs) ctr_sugars;
-    val discss = map (map (mk_disc_or_sel As) o #discs) ctr_sugars;
-    val selsss = map (map (map (mk_disc_or_sel As)) o #selss) ctr_sugars;
+    val ctrss = map #ctrs ctr_sugars;
+    val discss = map #discs ctr_sugars;
+    val selsss = map #selss ctr_sugars;
     val exhausts = map #exhaust ctr_sugars;
     val disc_thmsss = map #disc_thmss ctr_sugars;
     val discIss = map #discIs ctr_sugars;
@@ -1412,7 +1411,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
-            dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs As kss mss ns ctr_defss
+            dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs kss mss ns ctr_defss
             ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;

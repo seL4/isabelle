@@ -464,11 +464,11 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
         val inject_thms = flat inject_thmss;
 
-        val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
+        val rho_As = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
 
         fun inst_thm t thm =
           Drule.instantiate' [] [SOME (certify lthy t)]
-            (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes thm));
+            (Thm.instantiate (rho_As, []) (Drule.zero_var_indexes thm));
 
         val uexhaust_thm = inst_thm u exhaust_thm;
 
