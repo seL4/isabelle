@@ -414,7 +414,7 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
-    val transfer_rule = generate_transfer_rule lthy quot_thm rsp_thm def_thm opt_par_thm
+    val transfer_rule = generate_transfer_rule lthy' quot_thm rsp_thm def_thm opt_par_thm
 
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
     val opt_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)
