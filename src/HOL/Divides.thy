@@ -563,7 +563,6 @@ proof -
   qed
   moreover note assms w_exhaust
   ultimately have "w = 0" by auto
-  find_theorems "_ + ?b < _ + ?b"
   with mod_w have mod: "a mod (2 * b) = a mod b" by simp
   have "2 * (a div (2 * b)) = a div b - w"
     by (simp add: w_def div_mult2_eq mult_div_cancel ac_simps)
