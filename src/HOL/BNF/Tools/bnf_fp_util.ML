@@ -48,8 +48,6 @@ sig
   val corecN: string
   val ctorN: string
   val ctor_dtorN: string
-  val ctor_dtor_corecN: string
-  val ctor_dtor_unfoldN: string
   val ctor_exhaustN: string
   val ctor_induct2N: string
   val ctor_inductN: string
@@ -272,7 +270,6 @@ val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
 val dtor_unfold_o_mapN = dtor_unfoldN ^ "_o_" ^ mapN
 val ctor_fold_transferN = ctor_foldN ^ transferN
 val dtor_unfold_transferN = dtor_unfoldN ^ transferN
-val ctor_dtor_unfoldN = ctorN ^ "_" ^ dtor_unfoldN
 val ctor_mapN = ctorN ^ "_" ^ mapN
 val dtor_mapN = dtorN ^ "_" ^ mapN
 val map_uniqueN = mapN ^ uniqueN
@@ -305,7 +302,6 @@ val ctor_rec_uniqueN = ctor_recN ^ uniqueN
 val dtor_corecN = dtorN ^ "_" ^ corecN
 val dtor_corec_o_mapN = dtor_corecN ^ "_o_" ^ mapN
 val dtor_corec_uniqueN = dtor_corecN ^ uniqueN
-val ctor_dtor_corecN = ctorN ^ "_" ^ dtor_corecN
 
 val ctor_dtorN = ctorN ^ "_" ^ dtorN
 val dtor_ctorN = dtorN ^ "_" ^ ctorN
