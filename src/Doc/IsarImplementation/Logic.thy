@@ -1173,7 +1173,7 @@ text %mlref {*
   This corresponds to the rule attribute @{attribute THEN} in Isar
   source language.
 
-  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RS (1,
+  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} abbreviates @{text "rule\<^sub>1 RSN (1,
   rule\<^sub>2)"}.
 
   \item @{text "rules\<^sub>1 RLN (i, rules\<^sub>2)"} joins lists of rules.  For
