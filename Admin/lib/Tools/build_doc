@@ -17,6 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -a           select all doc sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -s           system build mode"
   echo
   echo "  Build Isabelle documentation from (doc) sessions."
   echo
@@ -37,12 +38,14 @@ function check_number()
 
 ## process command line
 
+declare -a BUILD_ARGS=()
+
+
 # options
 
 ALL_DOCS="false"
-JOBS=""
 
-while getopts "aj:" OPT
+while getopts "aj:s" OPT
 do
   case "$OPT" in
     a)
@@ -50,7 +53,11 @@ do
       ;;
     j)
       check_number "$OPTARG"
-      JOBS="-j $OPTARG"
+      BUILD_ARGS["${#BUILD_ARGS[@]}"]="-j"
+      BUILD_ARGS["${#BUILD_ARGS[@]}"]="$OPTARG"
+      ;;
+    s)
+      BUILD_ARGS["${#BUILD_ARGS[@]}"]="-s"
       ;;
     \?)
       usage
@@ -64,9 +71,9 @@ shift $(($OPTIND - 1))
 # arguments
 
 if [ "$ALL_DOCS" = true ]; then
-  declare -a BUILD_ARGS=(-g doc)
+  BUILD_ARGS["${#BUILD_ARGS[@]}"]="-g"
+  BUILD_ARGS["${#BUILD_ARGS[@]}"]="doc"
 else
-  declare -a BUILD_ARGS=()
   [ "$#" -eq 0 ] && usage
 fi
 
@@ -83,12 +90,12 @@ done
 OUTPUT="$ISABELLE_TMP_PREFIX$$"
 mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
 
-"$ISABELLE_TOOL" build -R -b $JOBS "${BUILD_ARGS[@]}"
+"$ISABELLE_TOOL" build -R -b "${BUILD_ARGS[@]}"
 RC=$?
 
 if [ "$RC" = 0 ]; then
   "$ISABELLE_TOOL" build -o browser_info=false -o "document=pdf" \
-    -o "document_output=$OUTPUT" -c $JOBS "${BUILD_ARGS[@]}"
+    -o "document_output=$OUTPUT" -c "${BUILD_ARGS[@]}"
   RC=$?
 fi
 

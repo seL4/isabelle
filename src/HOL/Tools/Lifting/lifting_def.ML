@@ -406,7 +406,7 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
     val absrep_trm =  quot_thm_abs quot_thm
     val rty_forced = (domain_type o fastype_of) absrep_trm
     val forced_rhs = force_rty_type lthy rty_forced rhs
-    val lhs = Free (Binding.print (#1 var), qty)
+    val lhs = Free (Binding.name_of (#1 var), qty)
     val prop = Logic.mk_equals (lhs, absrep_trm $ forced_rhs)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
@@ -414,7 +414,7 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
-    val transfer_rule = generate_transfer_rule lthy quot_thm rsp_thm def_thm opt_par_thm
+    val transfer_rule = generate_transfer_rule lthy' quot_thm rsp_thm def_thm opt_par_thm
 
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
     val opt_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)

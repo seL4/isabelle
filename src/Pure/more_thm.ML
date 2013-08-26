@@ -407,7 +407,7 @@ fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
 fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
 
 fun apply_attribute (att: attribute) th x =
-  let val (x', th') = att (x, th)
+  let val (x', th') = att (x, Thm.transfer (Context.theory_of x) th)
   in (the_default th th', the_default x x') end;
 
 fun attribute_declaration att th x = #2 (apply_attribute att th x);

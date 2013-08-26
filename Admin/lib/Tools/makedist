@@ -176,11 +176,11 @@ find . -print | xargs chmod -f u+rw
 
 cp -a src src.orig
 env ISABELLE_IDENTIFIER="${DISTNAME}-build" \
-  ./bin/isabelle build_doc $JOBS -a || fail "Failed to build documentation"
+  ./bin/isabelle build_doc $JOBS -s -a || fail "Failed to build documentation"
 rm -rf src
 mv src.orig src
 
-rm -rf Admin
+rm -rf Admin browser_info heaps
 
 
 # create archive
