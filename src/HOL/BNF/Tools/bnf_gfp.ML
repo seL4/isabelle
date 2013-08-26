@@ -1923,12 +1923,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val ctor_inject_thms = map (fn thm => thm RS @{thm inj_eq}) inj_ctor_thms;
     val ctor_exhaust_thms = map (fn thm => thm RS exE) ctor_nchotomy_thms;
 
-    fun mk_ctor_dtor_unfold_like_thm dtor_inject dtor_ctor unfold =
-      iffD1 OF [dtor_inject, trans OF [unfold, dtor_ctor RS sym]];
-
-    val ctor_dtor_unfold_thms =
-      map3 mk_ctor_dtor_unfold_like_thm dtor_inject_thms dtor_ctor_thms dtor_unfold_thms;
-
     val timer = time (timer "ctor definitions & thms");
 
     val corec_Inl_sum_thms =
@@ -2014,9 +2008,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
         |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_o_inj(1)} @
            map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
-
-    val ctor_dtor_corec_thms =
-      map3 mk_ctor_dtor_unfold_like_thm dtor_inject_thms dtor_ctor_thms dtor_corec_thms;
 
     val timer = time (timer "corec definitions & thms");
 
@@ -2876,8 +2867,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
       val notes =
         [(ctor_dtorN, ctor_dtor_thms),
-        (ctor_dtor_corecN, ctor_dtor_corec_thms),
-        (ctor_dtor_unfoldN, ctor_dtor_unfold_thms),
         (ctor_exhaustN, ctor_exhaust_thms),
         (ctor_injectN, ctor_inject_thms),
         (dtor_corecN, dtor_corec_thms),
@@ -2899,10 +2888,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors,
       xtor_co_iterss = transpose [unfolds, corecs],
       xtor_co_induct = dtor_coinduct_thm, dtor_ctors = dtor_ctor_thms,
-      ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
+      ctor_dtors = ctor_dtor_thms,
+      ctor_injects = ctor_inject_thms, dtor_injects = dtor_inject_thms,
       xtor_map_thms = folded_dtor_map_thms, xtor_set_thmss = folded_dtor_set_thmss',
       xtor_rel_thms = dtor_Jrel_thms,
-      xtor_co_iter_thmss = transpose [ctor_dtor_unfold_thms, ctor_dtor_corec_thms],
+      xtor_co_iter_thmss = transpose [dtor_unfold_thms, dtor_corec_thms],
       xtor_co_iter_o_map_thmss = transpose [dtor_unfold_o_map_thms, dtor_corec_o_map_thms],
       rel_co_induct_thm = Jrel_coinduct_thm},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
