@@ -5,7 +5,7 @@
 header {* Lexicographic order on lists *}
 
 theory List_lexord
-imports List Main
+imports Main
 begin
 
 instantiation list :: (ord) ord
@@ -28,25 +28,33 @@ proof
 next
   fix xs ys zs :: "'a list"
   assume "xs \<le> ys" and "ys \<le> zs"
-  then show "xs \<le> zs" by (auto simp add: list_le_def list_less_def)
-    (rule lexord_trans, auto intro: transI)
+  then show "xs \<le> zs"
+    apply (auto simp add: list_le_def list_less_def)
+    apply (rule lexord_trans)
+    apply (auto intro: transI)
+    done
 next
   fix xs ys :: "'a list"
   assume "xs \<le> ys" and "ys \<le> xs"
-  then show "xs = ys" apply (auto simp add: list_le_def list_less_def)
-  apply (rule lexord_irreflexive [THEN notE])
-  defer
-  apply (rule lexord_trans) apply (auto intro: transI) done
+  then show "xs = ys"
+    apply (auto simp add: list_le_def list_less_def)
+    apply (rule lexord_irreflexive [THEN notE])
+    defer
+    apply (rule lexord_trans)
+    apply (auto intro: transI)
+    done
 next
   fix xs ys :: "'a list"
-  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" 
-  apply (auto simp add: list_less_def list_le_def)
-  defer
-  apply (rule lexord_irreflexive [THEN notE])
-  apply auto
-  apply (rule lexord_irreflexive [THEN notE])
-  defer
-  apply (rule lexord_trans) apply (auto intro: transI) done
+  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
+    apply (auto simp add: list_less_def list_le_def)
+    defer
+    apply (rule lexord_irreflexive [THEN notE])
+    apply auto
+    apply (rule lexord_irreflexive [THEN notE])
+    defer
+    apply (rule lexord_trans)
+    apply (auto intro: transI)
+    done
 qed
 
 instance list :: (linorder) linorder
@@ -54,51 +62,47 @@ proof
   fix xs ys :: "'a list"
   have "(xs, ys) \<in> lexord {(u, v). u < v} \<or> xs = ys \<or> (ys, xs) \<in> lexord {(u, v). u < v}"
     by (rule lexord_linear) auto
-  then show "xs \<le> ys \<or> ys \<le> xs" 
+  then show "xs \<le> ys \<or> ys \<le> xs"
     by (auto simp add: list_le_def list_less_def)
 qed
 
 instantiation list :: (linorder) distrib_lattice
 begin
 
-definition
-  "(inf \<Colon> 'a list \<Rightarrow> _) = min"
+definition "(inf \<Colon> 'a list \<Rightarrow> _) = min"
 
-definition
-  "(sup \<Colon> 'a list \<Rightarrow> _) = max"
+definition "(sup \<Colon> 'a list \<Rightarrow> _) = max"
 
 instance
-  by intro_classes
-    (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
+  by default (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
 
 end
 
-lemma not_less_Nil [simp]: "\<not> (x < [])"
-  by (unfold list_less_def) simp
+lemma not_less_Nil [simp]: "\<not> x < []"
+  by (simp add: list_less_def)
 
 lemma Nil_less_Cons [simp]: "[] < a # x"
-  by (unfold list_less_def) simp
+  by (simp add: list_less_def)
 
 lemma Cons_less_Cons [simp]: "a # x < b # y \<longleftrightarrow> a < b \<or> a = b \<and> x < y"
-  by (unfold list_less_def) simp
+  by (simp add: list_less_def)
 
 lemma le_Nil [simp]: "x \<le> [] \<longleftrightarrow> x = []"
-  by (unfold list_le_def, cases x) auto
+  unfolding list_le_def by (cases x) auto
 
 lemma Nil_le_Cons [simp]: "[] \<le> x"
-  by (unfold list_le_def, cases x) auto
+  unfolding list_le_def by (cases x) auto
 
 lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
-  by (unfold list_le_def) auto
+  unfolding list_le_def by auto
 
 instantiation list :: (order) order_bot
 begin
 
-definition
-  "bot = []"
+definition "bot = []"
 
-instance proof
-qed (simp add: bot_list_def)
+instance
+  by default (simp add: bot_list_def)
 
 end
 
