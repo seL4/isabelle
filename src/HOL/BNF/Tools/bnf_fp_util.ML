@@ -157,6 +157,8 @@ sig
   val dest_sumTN_balanced: int -> typ -> typ list
   val dest_tupleT: int -> typ -> typ list
 
+  val If_const: typ -> term
+
   val mk_Field: term -> term
   val mk_If: term -> term -> term -> term
   val mk_union: term * term -> term
@@ -417,9 +419,8 @@ fun mk_sum_case (f, g) =
 val mk_sum_caseN = Library.foldr1 mk_sum_case;
 val mk_sum_caseN_balanced = Balanced_Tree.make mk_sum_case;
 
-fun mk_If p t f =
-  let val T = fastype_of t;
-  in Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ p $ t $ f end;
+fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
+fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
 
 fun mk_Field r =
   let val T = fst (dest_relT (fastype_of r));
