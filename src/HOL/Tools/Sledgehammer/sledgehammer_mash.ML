@@ -902,9 +902,9 @@ fun maximal_wrt_access_graph access_G =
 
 fun is_fact_in_graph access_G = can (Graph.get_node access_G) o nickname_of_thm
 
-val chained_feature_factor = 0.5
-val extra_feature_factor = 0.1
-val num_extra_feature_facts = 10 (* FUDGE *)
+val chained_feature_factor = 0.5 (* FUDGE *)
+val extra_feature_factor = 0.1 (* FUDGE *)
+val num_extra_feature_facts = 5 (* FUDGE *)
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
