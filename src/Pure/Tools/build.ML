@@ -127,6 +127,8 @@ in
 
 fun build args_file = Command_Line.tool (fn () =>
     let
+      val _ = SHA1_Samples.test ();
+
       val (command_timings, (do_output, (options, (verbose, (browser_info,
           (parent_name, (chapter, (name, theories)))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>

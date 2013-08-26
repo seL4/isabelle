@@ -59,6 +59,7 @@ use "General/socket_io.ML";
 
 use "General/sha1.ML";
 if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
+use "General/sha1_samples.ML";
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";

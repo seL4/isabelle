@@ -187,6 +187,8 @@ val default_modes2 = [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN];
 
 val init = uninterruptible (fn _ => fn rendezvous =>
   let
+    val _ = SHA1_Samples.test ()
+      handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); reraise exn);
     val _ = Output.physical_stderr Symbol.STX;
 
     val _ = Printer.show_markup_default := true;
