@@ -22,10 +22,29 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 
 object Completion_Popup
 {
+  /* items */
+
   private sealed case class Item(original: String, replacement: String, description: String)
   { override def toString: String = description }
 
-  private def complete_item(text_area: JEditTextArea, item: Item)
+
+  /* register single instance within root */
+
+  private def register(root: JComponent, completion: Completion_Popup)
+  {
+    Swing_Thread.require()
+
+    root.getClientProperty(Completion_Popup) match {
+      case old_completion: Completion_Popup => old_completion.hide_popup
+      case _ =>
+    }
+    root.putClientProperty(Completion_Popup, completion)
+  }
+
+
+  /* jEdit text area operations */
+
+  private def complete_text_area(text_area: JEditTextArea, item: Item)
   {
     Swing_Thread.require()
 
@@ -48,16 +67,16 @@ object Completion_Popup
   {
     Swing_Thread.require()
 
+    val view = text_area.getView
+    val root = view.getRootPane
     val buffer = text_area.getBuffer
+    val painter = text_area.getPainter
+
     if (buffer.isEditable) {
       get_syntax match {
-        case None =>
         case Some(syntax) =>
-          val view = text_area.getView
-          val painter = text_area.getPainter
-
           val caret = text_area.getCaretPosition
-          val completion =
+          val result =
           {
             val line = buffer.getLineOfOffset(caret)
             val start = buffer.getLineStartOffset(line)
@@ -74,8 +93,7 @@ object Completion_Popup
                 else Some((word, ds.map(s => Item(word, s, s))))
             }
           }
-          completion match {
-            case None =>
+          result match {
             case Some((original, items)) =>
               val popup_font =
                 painter.getFont.deriveFont(
@@ -86,15 +104,25 @@ object Completion_Popup
               if (location != null) {
                 location.y = location.y + painter.getFontMetrics.getHeight
                 SwingUtilities.convertPointToScreen(location, painter)
-                new Completion_Popup(view.getRootPane, popup_font, location, items) {
-                  override def complete(item: Item) { complete_item(text_area, item) }
-                  override def propagate(evt: KeyEvent) { JEdit_Lib.propagate_key(view, evt) }
-                  override def refocus() { text_area.requestFocus }
-                }
+
+                val completion =
+                  new Completion_Popup(root, popup_font, location, items) {
+                    override def complete(item: Item) { complete_text_area(text_area, item) }
+                    override def propagate(e: KeyEvent) {
+                      JEdit_Lib.propagate_key(view, e)
+                      if (!e.isConsumed) input_text_area(text_area, get_syntax, e)
+                    }
+                    override def refocus() { text_area.requestFocus }
+                  }
+                register(root, completion)
               }
+              else register(root, null)
+            case None => register(root, null)
           }
+        case None => register(root, null)
       }
     }
+    else register(root, null)
   }
 }
 
