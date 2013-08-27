@@ -25,25 +25,6 @@ object Completion_Popup
   sealed case class Item(name: String, text: String)
   { override def toString: String = text }
 
-  def apply(
-    opt_view: Option[View],
-    root: JComponent,
-    popup_font: Font,
-    screen_point: Point,
-    items: List[Item],
-    complete: Item => Unit,
-    hidden: () => Unit): Completion_Popup =
-  {
-    Swing_Thread.require()
-
-    require(!items.isEmpty)
-
-    val completion =
-      new Completion_Popup(opt_view, root, popup_font, screen_point, items, complete, hidden)
-    completion.show_popup()
-    completion
-  }
-
   def input_text_area(text_area: JEditTextArea, evt: KeyEvent)
   {
     Swing_Thread.require()
@@ -56,8 +37,6 @@ object Completion_Popup
 
       // FIXME
       def complete(item: Item) { }
-
-      def hidden() { text_area.requestFocus }
 
       // FIXME
       val token_length = 0
@@ -73,26 +52,33 @@ object Completion_Popup
         if (location != null) {
           location.y = location.y + painter.getFontMetrics.getHeight
           SwingUtilities.convertPointToScreen(location, painter)
-          apply(Some(view), view.getRootPane, popup_font, location, items, complete _, hidden _)
+          new Completion_Popup(view.getRootPane, popup_font, location, items) {
+            override def propagate(evt: KeyEvent) { JEdit_Lib.propagate_key(view, evt) }
+            override def hidden() { text_area.requestFocus }
+          }
         }
       }
     }
   }
 }
 
-
 class Completion_Popup private(
-  opt_view: Option[View],
   root: JComponent,
   popup_font: Font,
   screen_point: Point,
-  items: List[Completion_Popup.Item],
-  complete: Completion_Popup.Item => Unit,
-  hidden: () => Unit) extends JPanel(new BorderLayout)
+  items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
 
   Swing_Thread.require()
+  require(!items.isEmpty)
+
+
+  /* actions */
+
+  def complete(item: Completion_Popup.Item) { }
+  def propagate(evt: KeyEvent) { }
+  def hidden() { }
 
 
   /* list view */
@@ -155,12 +141,9 @@ class Completion_Popup private(
                   hide_popup()
             }
           }
-          opt_view.foreach(JEdit_Lib.propagate_key(_, e))
+          propagate(e)
         },
-      key_typed = (e: KeyEvent) =>
-        {
-          opt_view.foreach(JEdit_Lib.propagate_key(_, e))
-        }
+      key_typed = propagate _
     )
 
   list_view.peer.addKeyListener(key_listener)
@@ -218,16 +201,13 @@ class Completion_Popup private(
     PopupFactory.getSharedInstance.getPopup(root, completion, x, y)
   }
 
-  def show_popup()
-  {
-    popup.show
-    list_view.requestFocus
-  }
-
-  def hide_popup()
+  private def hide_popup()
   {
     popup.hide
     hidden()
   }
+
+  popup.show
+  list_view.requestFocus
 }
 
