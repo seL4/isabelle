@@ -72,6 +72,8 @@ object Completion_Popup
     val buffer = text_area.getBuffer
     val painter = text_area.getPainter
 
+    register(root, null)
+
     if (buffer.isEditable) {
       get_syntax match {
         case Some(syntax) =>
@@ -83,7 +85,6 @@ object Completion_Popup
             val text = buffer.getSegment(start, caret - start)
 
             syntax.completion.complete(text) match {
-              case None => None
               case Some((word, cs)) =>
                 val ds =
                   (if (Isabelle_Encoding.is_active(buffer))
@@ -91,6 +92,7 @@ object Completion_Popup
                    else cs).filter(_ != word)
                 if (ds.isEmpty) None
                 else Some((word, ds.map(s => Item(word, s, s))))
+              case None => None
             }
           }
           result match {
@@ -116,13 +118,11 @@ object Completion_Popup
                   }
                 register(root, completion)
               }
-              else register(root, null)
-            case None => register(root, null)
+            case None =>
           }
-        case None => register(root, null)
+        case None =>
       }
     }
-    else register(root, null)
   }
 }
 
