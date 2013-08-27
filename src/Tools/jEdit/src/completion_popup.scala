@@ -10,13 +10,14 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Point, BorderLayout, Dimension}
-import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
+import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, PopupFactory}
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.gui.KeyEventWorkaround
 
 
 object Completion_Popup
@@ -92,49 +93,50 @@ class Completion_Popup private(
 
   /* event handling */
 
-  private val key_handler = new KeyAdapter {
-    override def keyPressed(e: KeyEvent)
-    {
-      if (!e.isConsumed) {
-        e.getKeyCode match {
-          case KeyEvent.VK_TAB =>
-            if (complete_selected()) e.consume
-            hide_popup()
-          case KeyEvent.VK_ESCAPE =>
-            hide_popup()
-            e.consume
-          case KeyEvent.VK_UP => move_items(-1); e.consume
-          case KeyEvent.VK_DOWN => move_items(1); e.consume
-          case KeyEvent.VK_PAGE_UP => move_pages(-1); e.consume
-          case KeyEvent.VK_PAGE_DOWN => move_pages(1); e.consume
-          case _ =>
-            if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
-              hide_popup()
+  private val key_listener =
+    JEdit_Lib.key_listener(
+      workaround = false,
+      key_pressed = (e: KeyEvent) =>
+        {
+          if (!e.isConsumed) {
+            e.getKeyCode match {
+              case KeyEvent.VK_TAB =>
+                if (complete_selected()) e.consume
+                hide_popup()
+              case KeyEvent.VK_ESCAPE =>
+                hide_popup()
+                e.consume
+              case KeyEvent.VK_UP => move_items(-1); e.consume
+              case KeyEvent.VK_DOWN => move_items(1); e.consume
+              case KeyEvent.VK_PAGE_UP => move_pages(-1); e.consume
+              case KeyEvent.VK_PAGE_DOWN => move_pages(1); e.consume
+              case _ =>
+                if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
+                  hide_popup()
+            }
+          }
+          if (!e.isConsumed) pass_to_view(e)
+        },
+      key_typed = (e: KeyEvent) =>
+        {
+          if (!e.isConsumed) pass_to_view(e)
         }
-      }
-      if (!e.isConsumed) pass_to_view(e)
-    }
-
-    override def keyTyped(e: KeyEvent)
-    {
-      if (!e.isConsumed) pass_to_view(e)
-    }
-  }
+    )
 
   private def pass_to_view(e: KeyEvent)
   {
     opt_view match {
-      case Some(view) if view.getKeyEventInterceptor == key_handler =>
+      case Some(view) if view.getKeyEventInterceptor == key_listener =>
         try {
           view.setKeyEventInterceptor(null)
           view.getInputHandler().processKeyEvent(e, View.ACTION_BAR, false)
         }
-        finally { view.setKeyEventInterceptor(key_handler) }
+        finally { view.setKeyEventInterceptor(key_listener) }
       case _ =>
     }
   }
 
-  list_view.peer.addKeyListener(key_handler)
+  list_view.peer.addKeyListener(key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent) {
@@ -176,7 +178,7 @@ class Completion_Popup private(
 
   def show_popup()
   {
-    opt_view.foreach(view => view.setKeyEventInterceptor(key_handler))
+    opt_view.foreach(view => view.setKeyEventInterceptor(key_listener))
     popup.show
     list_view.requestFocus
   }
@@ -184,7 +186,7 @@ class Completion_Popup private(
   def hide_popup()
   {
     opt_view match {
-      case Some(view) if view.getKeyEventInterceptor == key_handler =>
+      case Some(view) if view.getKeyEventInterceptor == key_listener =>
         view.setKeyEventInterceptor(null)
       case _ =>
     }

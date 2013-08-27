@@ -17,7 +17,7 @@ import scala.actors.Actor._
 import java.lang.System
 import java.text.BreakIterator
 import java.awt.{Color, Graphics2D, Point}
-import java.awt.event.{KeyEvent, KeyAdapter}
+import java.awt.event.KeyEvent
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.{jEdit, Debug}
@@ -149,13 +149,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* key listener */
 
-  private val key_listener = new KeyAdapter {
-    override def keyTyped(evt: KeyEvent)
-    {
-      if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
-        evt.consume
-    }
-  }
+  private val key_listener =
+    JEdit_Lib.key_listener(
+      workaround = false,
+      key_typed = (evt: KeyEvent) =>
+        {
+          if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
+            evt.consume
+        }
+    )
 
 
   /* caret handling */

@@ -10,11 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
+import java.awt.event.{KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow}
 
 import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities}
+import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
@@ -300,5 +302,28 @@ object JEdit_Lib
       case icon: ImageIcon => icon
       case _ => error("Bad image icon: " + name)
     }
+
+
+  /* key listener */
+
+  def key_listener(
+    workaround: Boolean = true,
+    key_typed: KeyEvent => Unit = _ => (),
+    key_pressed: KeyEvent => Unit = _ => (),
+    key_released: KeyEvent => Unit = _ => ()): KeyListener =
+  {
+    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit)
+    {
+      val evt = if (workaround) KeyEventWorkaround.processKeyEvent(evt0) else evt0
+      if (evt != null) handle(evt)
+    }
+
+    new KeyListener
+    {
+      def keyTyped(evt: KeyEvent) { process_key_event(evt, key_typed) }
+      def keyPressed(evt: KeyEvent) { process_key_event(evt, key_pressed) }
+      def keyReleased(evt: KeyEvent) { process_key_event(evt, key_released) }
+    }
+  }
 }
 
