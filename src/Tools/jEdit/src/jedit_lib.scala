@@ -108,21 +108,6 @@ object JEdit_Lib
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
 
-  /* focus of main window */
-
-  def request_focus_view: Unit =
-  {
-    jEdit.getActiveView() match {
-      case null =>
-      case view =>
-        view.getTextArea match {
-          case null =>
-          case text_area => text_area.requestFocus
-        }
-    }
-  }
-
-
   /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
@@ -304,7 +289,22 @@ object JEdit_Lib
     }
 
 
-  /* key listener */
+  /* key event handling */
+
+  def request_focus_view
+  {
+    val view = jEdit.getActiveView()
+    if (view != null) {
+      val text_area = view.getTextArea
+      if (text_area != null) text_area.requestFocus
+    }
+  }
+
+  def propagate_key(view: View, evt: KeyEvent)
+  {
+    if (view != null && !evt.isConsumed)
+      view.getInputHandler().processKeyEvent(evt, View.ACTION_BAR, false)
+  }
 
   def key_listener(
     workaround: Boolean = true,

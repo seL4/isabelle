@@ -181,13 +181,11 @@ class Pretty_Text_Area(
 
           case _ =>
         }
-        if (propagate_keys && !evt.isConsumed)
-          view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
+        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
       },
     key_typed = (evt: KeyEvent) =>
       {
-        if (propagate_keys && !evt.isConsumed)
-          view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
+        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
       }
     )
   )

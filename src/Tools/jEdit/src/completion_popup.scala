@@ -155,26 +155,13 @@ class Completion_Popup private(
                   hide_popup()
             }
           }
-          if (!e.isConsumed) pass_to_view(e)
+          opt_view.foreach(JEdit_Lib.propagate_key(_, e))
         },
       key_typed = (e: KeyEvent) =>
         {
-          if (!e.isConsumed) pass_to_view(e)
+          opt_view.foreach(JEdit_Lib.propagate_key(_, e))
         }
     )
-
-  private def pass_to_view(e: KeyEvent)
-  {
-    opt_view match {
-      case Some(view) if view.getKeyEventInterceptor == key_listener =>
-        try {
-          view.setKeyEventInterceptor(null)
-          view.getInputHandler().processKeyEvent(e, View.ACTION_BAR, false)
-        }
-        finally { view.setKeyEventInterceptor(key_listener) }
-      case _ =>
-    }
-  }
 
   list_view.peer.addKeyListener(key_listener)
 
@@ -233,18 +220,12 @@ class Completion_Popup private(
 
   def show_popup()
   {
-    opt_view.foreach(view => view.setKeyEventInterceptor(key_listener))
     popup.show
     list_view.requestFocus
   }
 
   def hide_popup()
   {
-    opt_view match {
-      case Some(view) if (view.getKeyEventInterceptor == key_listener) =>
-        view.setKeyEventInterceptor(null)
-      case _ =>
-    }
     popup.hide
     hidden()
   }
