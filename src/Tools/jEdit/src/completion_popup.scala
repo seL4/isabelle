@@ -186,7 +186,6 @@ class Completion_Popup private(
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      workaround = false,
       key_pressed = (e: KeyEvent) =>
         {
           if (!e.isConsumed) {

@@ -307,14 +307,13 @@ object JEdit_Lib
   }
 
   def key_listener(
-    workaround: Boolean = true,
     key_typed: KeyEvent => Unit = _ => (),
     key_pressed: KeyEvent => Unit = _ => (),
     key_released: KeyEvent => Unit = _ => ()): KeyListener =
   {
     def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit)
     {
-      val evt = if (workaround) KeyEventWorkaround.processKeyEvent(evt0) else evt0
+      val evt = KeyEventWorkaround.processKeyEvent(evt0)
       if (evt != null) handle(evt)
     }
 
