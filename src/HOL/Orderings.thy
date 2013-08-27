@@ -1230,10 +1230,10 @@ end
 
 subsection {* Dense orders *}
 
-class inner_dense_order = order +
+class dense_order = order +
   assumes dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
 
-class inner_dense_linorder = linorder + inner_dense_order
+class dense_linorder = linorder + dense_order
 begin
 
 lemma dense_le:
@@ -1312,7 +1312,7 @@ class no_top = order +
 class no_bot = order + 
   assumes lt_ex: "\<exists>y. y < x"
 
-class unbounded_dense_linorder = inner_dense_linorder + no_top + no_bot
+class unbounded_dense_linorder = dense_linorder + no_top + no_bot
 
 
 subsection {* Wellorders *}

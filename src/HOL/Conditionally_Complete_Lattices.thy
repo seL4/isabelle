@@ -246,7 +246,7 @@ qed
 
 end
 
-class linear_continuum = conditionally_complete_linorder + inner_dense_linorder +
+class linear_continuum = conditionally_complete_linorder + dense_linorder +
   assumes UNIV_not_singleton: "\<exists>a b::'a. a \<noteq> b"
 begin
 

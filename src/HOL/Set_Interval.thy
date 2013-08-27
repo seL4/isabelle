@@ -373,7 +373,7 @@ lemmas not_Iic_eq_Icc[simp] = not_Icc_eq_Iic[symmetric]
 end
 
 
-context inner_dense_linorder
+context dense_linorder
 begin
 
 lemma greaterThanLessThan_empty_iff[simp]:
@@ -519,7 +519,7 @@ lemma
 end
 
 lemma
-  fixes x y :: "'a :: {complete_lattice, inner_dense_linorder}"
+  fixes x y :: "'a :: {complete_lattice, dense_linorder}"
   shows Sup_lessThan[simp]: "Sup {..< y} = y"
     and Sup_atLeastLessThan[simp]: "x < y \<Longrightarrow> Sup { x ..< y} = y"
     and Sup_greaterThanLessThan[simp]: "x < y \<Longrightarrow> Sup { x <..< y} = y"

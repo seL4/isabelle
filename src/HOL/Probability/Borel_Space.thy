@@ -251,7 +251,7 @@ lemma eucl_ivals[measurable]:
   by (blast intro: borel_open borel_closed)+
 
 lemma open_Collect_less:
-  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {inner_dense_linorder, linorder_topology}"
+  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {dense_linorder, linorder_topology}"
   assumes "continuous_on UNIV f"
   assumes "continuous_on UNIV g"
   shows "open {x. f x < g x}"
@@ -264,14 +264,14 @@ proof -
 qed
 
 lemma closed_Collect_le:
-  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {inner_dense_linorder, linorder_topology}"
+  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {dense_linorder, linorder_topology}"
   assumes f: "continuous_on UNIV f"
   assumes g: "continuous_on UNIV g"
   shows "closed {x. f x \<le> g x}"
   using open_Collect_less[OF g f] unfolding not_less[symmetric] Collect_neg_eq open_closed .
 
 lemma borel_measurable_less[measurable]:
-  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology}"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "{w \<in> space M. f w < g w} \<in> sets M"
@@ -285,7 +285,7 @@ proof -
 qed
 
 lemma
-  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, dense_linorder, linorder_topology}"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
   shows borel_measurable_le[measurable]: "{w \<in> space M. f w \<le> g w} \<in> sets M"
@@ -755,11 +755,11 @@ lemma borel_measurable_divide[measurable (raw)]:
   by (simp add: field_divide_inverse)
 
 lemma borel_measurable_max[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}) \<in> borel_measurable M"
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
   by (simp add: max_def)
 
 lemma borel_measurable_min[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}) \<in> borel_measurable M"
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: 'b::{second_countable_topology, dense_linorder, linorder_topology}) \<in> borel_measurable M"
   by (simp add: min_def)
 
 lemma borel_measurable_abs[measurable (raw)]:

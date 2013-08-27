@@ -293,7 +293,7 @@ end
 lemma ereal_dense2: "x < y \<Longrightarrow> \<exists>z. x < ereal z \<and> ereal z < y"
   using lt_ex gt_ex dense by (cases x y rule: ereal2_cases) auto
 
-instance ereal :: inner_dense_linorder
+instance ereal :: dense_linorder
   by default (blast dest: ereal_dense2)
 
 instance ereal :: ordered_ab_semigroup_add

@@ -9,13 +9,13 @@ imports Complex_Main
 begin
 
 lemma le_Sup_iff_less:
-  fixes x :: "'a :: {complete_linorder, inner_dense_linorder}"
+  fixes x :: "'a :: {complete_linorder, dense_linorder}"
   shows "x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)" (is "?lhs = ?rhs")
   unfolding le_SUP_iff
   by (blast intro: less_imp_le less_trans less_le_trans dest: dense)
 
 lemma Inf_le_iff_less:
-  fixes x :: "'a :: {complete_linorder, inner_dense_linorder}"
+  fixes x :: "'a :: {complete_linorder, dense_linorder}"
   shows "(INF i:A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
   unfolding INF_le_iff
   by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
