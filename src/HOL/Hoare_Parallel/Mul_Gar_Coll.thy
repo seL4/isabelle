@@ -32,21 +32,21 @@ definition Mul_mut_init :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> b
 
 definition Mul_Redirect_Edge  :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com" where
   "Mul_Redirect_Edge j n \<equiv>
-  .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}.
+  \<lbrace>\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)\<rbrace>
   \<langle>IF T(\<acute>Muts!j) \<in> Reach \<acute>E THEN  
   \<acute>E:= \<acute>E[R (\<acute>Muts!j):= (fst (\<acute>E!R(\<acute>Muts!j)), T (\<acute>Muts!j))] FI,, 
   \<acute>Muts:= \<acute>Muts[j:= (\<acute>Muts!j) \<lparr>Z:=False\<rparr>]\<rangle>"
 
 definition Mul_Color_Target :: "nat \<Rightarrow> nat \<Rightarrow> mul_gar_coll_state ann_com" where
   "Mul_Color_Target j n \<equiv>
-  .{\<acute>Mul_mut_init n \<and> \<not> Z (\<acute>Muts!j)}. 
+  \<lbrace>\<acute>Mul_mut_init n \<and> \<not> Z (\<acute>Muts!j)\<rbrace> 
   \<langle>\<acute>M:=\<acute>M[T (\<acute>Muts!j):=Black],, \<acute>Muts:=\<acute>Muts[j:= (\<acute>Muts!j) \<lparr>Z:=True\<rparr>]\<rangle>"
 
 definition Mul_Mutator :: "nat \<Rightarrow> nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Mutator j n \<equiv>
-  .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}.  
+  \<lbrace>\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)\<rbrace>  
   WHILE True  
-    INV .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}.  
+    INV \<lbrace>\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)\<rbrace>  
   DO Mul_Redirect_Edge j n ;; 
      Mul_Color_Target j n 
   OD"
@@ -67,7 +67,7 @@ done
 
 lemma Mul_Color_Target: "0\<le>j \<and> j<n \<Longrightarrow> 
   \<turnstile>  Mul_Color_Target j n  
-    .{\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)}."
+    \<lbrace>\<acute>Mul_mut_init n \<and> Z (\<acute>Muts!j)\<rbrace>"
 apply (unfold mul_mutator_defs)
 apply annhoare
 apply(simp_all)
@@ -76,7 +76,7 @@ apply(simp add:nth_list_update)
 done
 
 lemma Mul_Mutator: "0\<le>j \<and> j<n \<Longrightarrow>  
- \<turnstile> Mul_Mutator j n .{False}."
+ \<turnstile> Mul_Mutator j n \<lbrace>False\<rbrace>"
 apply(unfold Mul_Mutator_def)
 apply annhoare
 apply(simp_all add:Mul_Redirect_Edge Mul_Color_Target)
@@ -139,13 +139,13 @@ done
 subsubsection {* Modular Parameterized Mutators *}
 
 lemma Mul_Parameterized_Mutators: "0<n \<Longrightarrow>
- \<parallel>- .{\<acute>Mul_mut_init n \<and> (\<forall>i<n. Z (\<acute>Muts!i))}.
+ \<parallel>- \<lbrace>\<acute>Mul_mut_init n \<and> (\<forall>i<n. Z (\<acute>Muts!i))\<rbrace>
  COBEGIN
  SCHEME  [0\<le> j< n]
   Mul_Mutator j n
- .{False}.
+ \<lbrace>False\<rbrace>
  COEND
- .{False}."
+ \<lbrace>False\<rbrace>"
 apply oghoare
 apply(force simp add:Mul_Mutator_def mul_mutator_defs nth_list_update)
 apply(erule Mul_Mutator)
@@ -175,22 +175,22 @@ subsubsection {* Blackening Roots *}
 
 definition Mul_Blacken_Roots :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Blacken_Roots n \<equiv>
-  .{\<acute>Mul_Proper n}.
+  \<lbrace>\<acute>Mul_Proper n\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Mul_Proper n \<and> \<acute>ind=0}.
+  \<lbrace>\<acute>Mul_Proper n \<and> \<acute>ind=0\<rbrace>
   WHILE \<acute>ind<length \<acute>M 
-    INV .{\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind\<le>length \<acute>M}.
-  DO .{\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M}.
+    INV \<lbrace>\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+  DO \<lbrace>\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M\<rbrace>
        IF \<acute>ind\<in>Roots THEN 
-     .{\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<in>Roots}. 
+     \<lbrace>\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<in>Roots\<rbrace> 
        \<acute>M:=\<acute>M[\<acute>ind:=Black] FI;;
-     .{\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind+1. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M}.
+     \<lbrace>\<acute>Mul_Proper n \<and> (\<forall>i<\<acute>ind+1. i\<in>Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M\<rbrace>
        \<acute>ind:=\<acute>ind+1 
   OD"
 
 lemma Mul_Blacken_Roots: 
   "\<turnstile> Mul_Blacken_Roots n  
-  .{\<acute>Mul_Proper n \<and> Roots \<subseteq> Blacks \<acute>M}."
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots \<subseteq> Blacks \<acute>M\<rbrace>"
 apply (unfold Mul_Blacken_Roots_def)
 apply annhoare
 apply(simp_all add:mul_collector_defs Graph_defs)
@@ -213,40 +213,40 @@ definition Mul_Auxk :: "mul_gar_coll_state \<Rightarrow> bool" where
 
 definition Mul_Propagate_Black :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Propagate_Black n \<equiv>
- .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-  \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)}. 
+ \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+  \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)\<rbrace> 
  \<acute>ind:=0;;
- .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+ \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
    \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> Blacks \<acute>M\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-   \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M) \<and> \<acute>ind=0}. 
+   \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M) \<and> \<acute>ind=0\<rbrace> 
  WHILE \<acute>ind<length \<acute>E 
-  INV .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+  INV \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
         \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-        \<and> \<acute>Mul_PBInv \<and> \<acute>ind\<le>length \<acute>E}.
- DO .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+        \<and> \<acute>Mul_PBInv \<and> \<acute>ind\<le>length \<acute>E\<rbrace>
+ DO \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
      \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-     \<and> \<acute>Mul_PBInv \<and> \<acute>ind<length \<acute>E}.
+     \<and> \<acute>Mul_PBInv \<and> \<acute>ind<length \<acute>E\<rbrace>
    IF \<acute>M!(fst (\<acute>E!\<acute>ind))=Black THEN 
-   .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+   \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
      \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-     \<and> \<acute>Mul_PBInv \<and> (\<acute>M!fst(\<acute>E!\<acute>ind))=Black \<and> \<acute>ind<length \<acute>E}.
+     \<and> \<acute>Mul_PBInv \<and> (\<acute>M!fst(\<acute>E!\<acute>ind))=Black \<and> \<acute>ind<length \<acute>E\<rbrace>
     \<acute>k:=snd(\<acute>E!\<acute>ind);;
-   .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+   \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
      \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
      \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue \<or> (\<forall>i<\<acute>ind. \<not>BtoW(\<acute>E!i,\<acute>M)) 
         \<and> \<acute>l\<le>\<acute>Queue \<and> \<acute>Mul_Auxk ) \<and> \<acute>k<length \<acute>M \<and> \<acute>M!fst(\<acute>E!\<acute>ind)=Black 
-     \<and> \<acute>ind<length \<acute>E}.
+     \<and> \<acute>ind<length \<acute>E\<rbrace>
    \<langle>\<acute>M:=\<acute>M[\<acute>k:=Black],,\<acute>ind:=\<acute>ind+1\<rangle>
-   ELSE .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+   ELSE \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
          \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-         \<and> \<acute>Mul_PBInv \<and> \<acute>ind<length \<acute>E}.
+         \<and> \<acute>Mul_PBInv \<and> \<acute>ind<length \<acute>E\<rbrace>
          \<langle>IF \<acute>M!(fst (\<acute>E!\<acute>ind))\<noteq>Black THEN \<acute>ind:=\<acute>ind+1 FI\<rangle> FI
  OD"
 
 lemma Mul_Propagate_Black: 
   "\<turnstile> Mul_Propagate_Black n  
-   .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))}."
+   \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))\<rbrace>"
 apply(unfold Mul_Propagate_Black_def)
 apply annhoare
 apply(simp_all add:Mul_PBInv_def mul_collector_defs Mul_Auxk_def Graph6 Graph7 Graph8 Graph12 mul_collector_defs Queue_def)
@@ -295,51 +295,51 @@ definition Mul_CountInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> b
 
 definition Mul_Count :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Count n \<equiv> 
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
     \<and> length \<acute>Ma=length \<acute>M 
     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M) ) 
-    \<and> \<acute>q<n+1 \<and> \<acute>bc={}}.
+    \<and> \<acute>q<n+1 \<and> \<acute>bc={}\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
     \<and> length \<acute>Ma=length \<acute>M 
     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M) ) 
-    \<and> \<acute>q<n+1 \<and> \<acute>bc={} \<and> \<acute>ind=0}.
+    \<and> \<acute>q<n+1 \<and> \<acute>bc={} \<and> \<acute>ind=0\<rbrace>
   WHILE \<acute>ind<length \<acute>M 
-     INV .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+     INV \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
           \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M  
           \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv \<acute>ind 
           \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))
-          \<and> \<acute>q<n+1 \<and> \<acute>ind\<le>length \<acute>M}.
-  DO .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+          \<and> \<acute>q<n+1 \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+  DO \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
        \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
        \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv \<acute>ind 
        \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))
-       \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M}. 
+       \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M\<rbrace> 
      IF \<acute>M!\<acute>ind=Black 
-     THEN .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+     THEN \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
             \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M  
             \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv \<acute>ind 
             \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))
-            \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black}.
+            \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black\<rbrace>
           \<acute>bc:=insert \<acute>ind \<acute>bc
      FI;;
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
     \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>Mul_CountInv (\<acute>ind+1) 
     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))
-    \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M}.
+    \<and> \<acute>q<n+1 \<and> \<acute>ind<length \<acute>M\<rbrace>
   \<acute>ind:=\<acute>ind+1
   OD"
  
 lemma Mul_Count: 
   "\<turnstile> Mul_Count n  
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
     \<and> length \<acute>Ma=length \<acute>M \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc 
     \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) 
-    \<and> \<acute>q<n+1}."
+    \<and> \<acute>q<n+1\<rbrace>"
 apply (unfold Mul_Count_def)
 apply annhoare
 apply(simp_all add:Mul_CountInv_def mul_collector_defs Mul_Auxk_def Graph6 Graph7 Graph8 Graph12 mul_collector_defs Queue_def)
@@ -393,26 +393,26 @@ definition Mul_AppendInv :: "mul_gar_coll_state \<Rightarrow> nat \<Rightarrow> 
 
 definition Mul_Append :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Append n \<equiv> 
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe}.
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe \<and> \<acute>ind=0}.
+  \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe \<and> \<acute>ind=0\<rbrace>
   WHILE \<acute>ind<length \<acute>M 
-    INV .{\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>M}.
-  DO .{\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M}.
+    INV \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+  DO \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M\<rbrace>
       IF \<acute>M!\<acute>ind=Black THEN 
-     .{\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black}. 
+     \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black\<rbrace> 
       \<acute>M:=\<acute>M[\<acute>ind:=White] 
       ELSE 
-     .{\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<notin>Reach \<acute>E}. 
+     \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<notin>Reach \<acute>E\<rbrace> 
       \<acute>E:=Append_to_free(\<acute>ind,\<acute>E)
       FI;;
-  .{\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv (\<acute>ind+1) \<and> \<acute>ind<length \<acute>M}. 
+  \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_AppendInv (\<acute>ind+1) \<and> \<acute>ind<length \<acute>M\<rbrace> 
    \<acute>ind:=\<acute>ind+1
   OD"
 
 lemma Mul_Append: 
   "\<turnstile> Mul_Append n  
-     .{\<acute>Mul_Proper n}."
+     \<lbrace>\<acute>Mul_Proper n\<rbrace>"
 apply(unfold Mul_Append_def)
 apply annhoare
 apply(simp_all add: mul_collector_defs Mul_AppendInv_def 
@@ -431,52 +431,52 @@ subsubsection {* Collector *}
 
 definition Mul_Collector :: "nat \<Rightarrow>  mul_gar_coll_state ann_com" where
   "Mul_Collector n \<equiv>
-.{\<acute>Mul_Proper n}.  
-WHILE True INV .{\<acute>Mul_Proper n}. 
+\<lbrace>\<acute>Mul_Proper n\<rbrace>  
+WHILE True INV \<lbrace>\<acute>Mul_Proper n\<rbrace> 
 DO  
 Mul_Blacken_Roots n ;; 
-.{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M}.  
+\<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M\<rbrace>  
  \<acute>obc:={};; 
-.{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={}}.  
+\<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={}\<rbrace>  
  \<acute>bc:=Roots;; 
-.{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots}. 
+\<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots\<rbrace> 
  \<acute>l:=0;; 
-.{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots \<and> \<acute>l=0}. 
+\<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots \<and> \<acute>l=0\<rbrace> 
  WHILE \<acute>l<n+1  
-   INV .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and>  
-         (\<acute>Safe \<or> (\<acute>l\<le>\<acute>Queue \<or> \<acute>bc\<subset>Blacks \<acute>M) \<and> \<acute>l<n+1)}. 
- DO .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-      \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>bc\<subset>Blacks \<acute>M)}.
+   INV \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and>  
+         (\<acute>Safe \<or> (\<acute>l\<le>\<acute>Queue \<or> \<acute>bc\<subset>Blacks \<acute>M) \<and> \<acute>l<n+1)\<rbrace> 
+ DO \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+      \<and> (\<acute>Safe \<or> \<acute>l\<le>\<acute>Queue \<or> \<acute>bc\<subset>Blacks \<acute>M)\<rbrace>
     \<acute>obc:=\<acute>bc;;
     Mul_Propagate_Black n;; 
-    .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+    \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
       \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
       \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue 
-      \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))}. 
+      \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M))\<rbrace> 
     \<acute>bc:={};;
-    .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+    \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
       \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
       \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>M \<or> \<acute>l<\<acute>Queue 
-      \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) \<and> \<acute>bc={}}. 
+      \<and> (\<acute>l\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) \<and> \<acute>bc={}\<rbrace> 
        \<langle> \<acute>Ma:=\<acute>M,, \<acute>q:=\<acute>Queue \<rangle>;;
     Mul_Count n;; 
-    .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+    \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
       \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
       \<and> length \<acute>Ma=length \<acute>M \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc 
       \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) 
-      \<and> \<acute>q<n+1}. 
+      \<and> \<acute>q<n+1\<rbrace> 
     IF \<acute>obc=\<acute>bc THEN
-    .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+    \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
       \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
       \<and> length \<acute>Ma=length \<acute>M \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc 
       \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) 
-      \<and> \<acute>q<n+1 \<and> \<acute>obc=\<acute>bc}.  
+      \<and> \<acute>q<n+1 \<and> \<acute>obc=\<acute>bc\<rbrace>  
     \<acute>l:=\<acute>l+1  
-    ELSE .{\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
+    ELSE \<lbrace>\<acute>Mul_Proper n \<and> Roots\<subseteq>Blacks \<acute>M 
           \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
           \<and> length \<acute>Ma=length \<acute>M \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc 
           \<and> (\<acute>Safe \<or> \<acute>obc\<subset>Blacks \<acute>Ma \<or> \<acute>l<\<acute>q \<and> (\<acute>q\<le>\<acute>Queue \<or> \<acute>obc\<subset>Blacks \<acute>M)) 
-          \<and> \<acute>q<n+1 \<and> \<acute>obc\<noteq>\<acute>bc}.  
+          \<and> \<acute>q<n+1 \<and> \<acute>obc\<noteq>\<acute>bc\<rbrace>  
         \<acute>l:=0 FI 
  OD;; 
  Mul_Append n  
@@ -488,7 +488,7 @@ lemmas mul_modules = Mul_Redirect_Edge_def Mul_Color_Target_def
 
 lemma Mul_Collector:
   "\<turnstile> Mul_Collector n 
-  .{False}."
+  \<lbrace>False\<rbrace>"
 apply(unfold Mul_Collector_def)
 apply annhoare
 apply(simp_all only:pre.simps Mul_Blacken_Roots 
@@ -1237,16 +1237,16 @@ subsubsection {* The Multi-Mutator Garbage Collection Algorithm *}
 text {* The total number of verification conditions is 328 *}
 
 lemma Mul_Gar_Coll: 
- "\<parallel>- .{\<acute>Mul_Proper n \<and> \<acute>Mul_mut_init n \<and> (\<forall>i<n. Z (\<acute>Muts!i))}.  
+ "\<parallel>- \<lbrace>\<acute>Mul_Proper n \<and> \<acute>Mul_mut_init n \<and> (\<forall>i<n. Z (\<acute>Muts!i))\<rbrace>  
  COBEGIN  
   Mul_Collector n
- .{False}.
+ \<lbrace>False\<rbrace>
  \<parallel>  
  SCHEME  [0\<le> j< n]
   Mul_Mutator j n
- .{False}.  
+ \<lbrace>False\<rbrace>  
  COEND  
- .{False}."
+ \<lbrace>False\<rbrace>"
 apply oghoare
 --{* Strengthening the precondition *}
 apply(rule Int_greatest)

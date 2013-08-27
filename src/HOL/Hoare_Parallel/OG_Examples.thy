@@ -16,30 +16,30 @@ record Petersons_mutex_1 =
  hold :: nat
 
 lemma Petersons_mutex_1: 
-  "\<parallel>- .{\<acute>pr1=0 \<and> \<not>\<acute>in1 \<and> \<acute>pr2=0 \<and> \<not>\<acute>in2 }.  
-  COBEGIN .{\<acute>pr1=0 \<and> \<not>\<acute>in1}.  
-  WHILE True INV .{\<acute>pr1=0 \<and> \<not>\<acute>in1}.  
+  "\<parallel>- \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1 \<and> \<acute>pr2=0 \<and> \<not>\<acute>in2 \<rbrace>  
+  COBEGIN \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1\<rbrace>  
+  WHILE True INV \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1\<rbrace>  
   DO  
-  .{\<acute>pr1=0 \<and> \<not>\<acute>in1}. \<langle> \<acute>in1:=True,,\<acute>pr1:=1 \<rangle>;;  
-  .{\<acute>pr1=1 \<and> \<acute>in1}.  \<langle> \<acute>hold:=1,,\<acute>pr1:=2 \<rangle>;;  
-  .{\<acute>pr1=2 \<and> \<acute>in1 \<and> (\<acute>hold=1 \<or> \<acute>hold=2 \<and> \<acute>pr2=2)}.  
+  \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1\<rbrace> \<langle> \<acute>in1:=True,,\<acute>pr1:=1 \<rangle>;;  
+  \<lbrace>\<acute>pr1=1 \<and> \<acute>in1\<rbrace>  \<langle> \<acute>hold:=1,,\<acute>pr1:=2 \<rangle>;;  
+  \<lbrace>\<acute>pr1=2 \<and> \<acute>in1 \<and> (\<acute>hold=1 \<or> \<acute>hold=2 \<and> \<acute>pr2=2)\<rbrace>  
   AWAIT (\<not>\<acute>in2 \<or> \<not>(\<acute>hold=1)) THEN \<acute>pr1:=3 END;;    
-  .{\<acute>pr1=3 \<and> \<acute>in1 \<and> (\<acute>hold=1 \<or> \<acute>hold=2 \<and> \<acute>pr2=2)}. 
+  \<lbrace>\<acute>pr1=3 \<and> \<acute>in1 \<and> (\<acute>hold=1 \<or> \<acute>hold=2 \<and> \<acute>pr2=2)\<rbrace> 
    \<langle>\<acute>in1:=False,,\<acute>pr1:=0\<rangle> 
-  OD .{\<acute>pr1=0 \<and> \<not>\<acute>in1}.  
+  OD \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1\<rbrace>  
   \<parallel>  
-  .{\<acute>pr2=0 \<and> \<not>\<acute>in2}.  
-  WHILE True INV .{\<acute>pr2=0 \<and> \<not>\<acute>in2}.  
+  \<lbrace>\<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace>  
+  WHILE True INV \<lbrace>\<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace>  
   DO  
-  .{\<acute>pr2=0 \<and> \<not>\<acute>in2}. \<langle> \<acute>in2:=True,,\<acute>pr2:=1 \<rangle>;;  
-  .{\<acute>pr2=1 \<and> \<acute>in2}. \<langle>  \<acute>hold:=2,,\<acute>pr2:=2 \<rangle>;;  
-  .{\<acute>pr2=2 \<and> \<acute>in2 \<and> (\<acute>hold=2 \<or> (\<acute>hold=1 \<and> \<acute>pr1=2))}.  
+  \<lbrace>\<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace> \<langle> \<acute>in2:=True,,\<acute>pr2:=1 \<rangle>;;  
+  \<lbrace>\<acute>pr2=1 \<and> \<acute>in2\<rbrace> \<langle>  \<acute>hold:=2,,\<acute>pr2:=2 \<rangle>;;  
+  \<lbrace>\<acute>pr2=2 \<and> \<acute>in2 \<and> (\<acute>hold=2 \<or> (\<acute>hold=1 \<and> \<acute>pr1=2))\<rbrace>  
   AWAIT (\<not>\<acute>in1 \<or> \<not>(\<acute>hold=2)) THEN \<acute>pr2:=3  END;;    
-  .{\<acute>pr2=3 \<and> \<acute>in2 \<and> (\<acute>hold=2 \<or> (\<acute>hold=1 \<and> \<acute>pr1=2))}. 
+  \<lbrace>\<acute>pr2=3 \<and> \<acute>in2 \<and> (\<acute>hold=2 \<or> (\<acute>hold=1 \<and> \<acute>pr1=2))\<rbrace> 
     \<langle>\<acute>in2:=False,,\<acute>pr2:=0\<rangle> 
-  OD .{\<acute>pr2=0 \<and> \<not>\<acute>in2}.  
+  OD \<lbrace>\<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace>  
   COEND  
-  .{\<acute>pr1=0 \<and> \<not>\<acute>in1 \<and> \<acute>pr2=0 \<and> \<not>\<acute>in2}."
+  \<lbrace>\<acute>pr1=0 \<and> \<not>\<acute>in1 \<and> \<acute>pr2=0 \<and> \<not>\<acute>in2\<rbrace>"
 apply oghoare
 --{* 104 verification conditions. *}
 apply auto
@@ -57,37 +57,37 @@ record Busy_wait_mutex =
  after2 :: bool
 
 lemma Busy_wait_mutex: 
- "\<parallel>-  .{True}.  
+ "\<parallel>-  \<lbrace>True\<rbrace>  
   \<acute>flag1:=False,, \<acute>flag2:=False,,  
-  COBEGIN .{\<not>\<acute>flag1}.  
+  COBEGIN \<lbrace>\<not>\<acute>flag1\<rbrace>  
         WHILE True  
-        INV .{\<not>\<acute>flag1}.  
-        DO .{\<not>\<acute>flag1}. \<langle> \<acute>flag1:=True,,\<acute>after1:=False \<rangle>;;  
-           .{\<acute>flag1 \<and> \<not>\<acute>after1}. \<langle> \<acute>turn:=1,,\<acute>after1:=True \<rangle>;;  
-           .{\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}.  
+        INV \<lbrace>\<not>\<acute>flag1\<rbrace>  
+        DO \<lbrace>\<not>\<acute>flag1\<rbrace> \<langle> \<acute>flag1:=True,,\<acute>after1:=False \<rangle>;;  
+           \<lbrace>\<acute>flag1 \<and> \<not>\<acute>after1\<rbrace> \<langle> \<acute>turn:=1,,\<acute>after1:=True \<rangle>;;  
+           \<lbrace>\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace>  
             WHILE \<not>(\<acute>flag2 \<longrightarrow> \<acute>turn=2)  
-            INV .{\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}.  
-            DO .{\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}. SKIP OD;; 
-           .{\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>flag2 \<and> \<acute>after2 \<longrightarrow> \<acute>turn=2)}.
+            INV \<lbrace>\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace>  
+            DO \<lbrace>\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace> SKIP OD;; 
+           \<lbrace>\<acute>flag1 \<and> \<acute>after1 \<and> (\<acute>flag2 \<and> \<acute>after2 \<longrightarrow> \<acute>turn=2)\<rbrace>
             \<acute>flag1:=False  
         OD  
-       .{False}.  
+       \<lbrace>False\<rbrace>  
   \<parallel>  
-     .{\<not>\<acute>flag2}.  
+     \<lbrace>\<not>\<acute>flag2\<rbrace>  
         WHILE True  
-        INV .{\<not>\<acute>flag2}.  
-        DO .{\<not>\<acute>flag2}. \<langle> \<acute>flag2:=True,,\<acute>after2:=False \<rangle>;;  
-           .{\<acute>flag2 \<and> \<not>\<acute>after2}. \<langle> \<acute>turn:=2,,\<acute>after2:=True \<rangle>;;  
-           .{\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}.  
+        INV \<lbrace>\<not>\<acute>flag2\<rbrace>  
+        DO \<lbrace>\<not>\<acute>flag2\<rbrace> \<langle> \<acute>flag2:=True,,\<acute>after2:=False \<rangle>;;  
+           \<lbrace>\<acute>flag2 \<and> \<not>\<acute>after2\<rbrace> \<langle> \<acute>turn:=2,,\<acute>after2:=True \<rangle>;;  
+           \<lbrace>\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace>  
             WHILE \<not>(\<acute>flag1 \<longrightarrow> \<acute>turn=1)  
-            INV .{\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}.  
-            DO .{\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)}. SKIP OD;;  
-           .{\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>flag1 \<and> \<acute>after1 \<longrightarrow> \<acute>turn=1)}. 
+            INV \<lbrace>\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace>  
+            DO \<lbrace>\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>turn=1 \<or> \<acute>turn=2)\<rbrace> SKIP OD;;  
+           \<lbrace>\<acute>flag2 \<and> \<acute>after2 \<and> (\<acute>flag1 \<and> \<acute>after1 \<longrightarrow> \<acute>turn=1)\<rbrace> 
             \<acute>flag2:=False  
         OD  
-       .{False}.  
+       \<lbrace>False\<rbrace>  
   COEND  
-  .{False}."
+  \<lbrace>False\<rbrace>"
 apply oghoare
 --{* 122 vc *}
 apply auto
@@ -100,21 +100,21 @@ record  Semaphores_mutex =
  who :: nat
 
 lemma Semaphores_mutex: 
- "\<parallel>- .{i\<noteq>j}.  
+ "\<parallel>- \<lbrace>i\<noteq>j\<rbrace>  
   \<acute>out:=True ,,  
-  COBEGIN .{i\<noteq>j}.  
-       WHILE True INV .{i\<noteq>j}.  
-       DO .{i\<noteq>j}. AWAIT \<acute>out THEN  \<acute>out:=False,, \<acute>who:=i END;;  
-          .{\<not>\<acute>out \<and> \<acute>who=i \<and> i\<noteq>j}. \<acute>out:=True OD  
-       .{False}.  
+  COBEGIN \<lbrace>i\<noteq>j\<rbrace>  
+       WHILE True INV \<lbrace>i\<noteq>j\<rbrace>  
+       DO \<lbrace>i\<noteq>j\<rbrace> AWAIT \<acute>out THEN  \<acute>out:=False,, \<acute>who:=i END;;  
+          \<lbrace>\<not>\<acute>out \<and> \<acute>who=i \<and> i\<noteq>j\<rbrace> \<acute>out:=True OD  
+       \<lbrace>False\<rbrace>  
   \<parallel>  
-       .{i\<noteq>j}.  
-       WHILE True INV .{i\<noteq>j}.  
-       DO .{i\<noteq>j}. AWAIT \<acute>out THEN  \<acute>out:=False,,\<acute>who:=j END;;  
-          .{\<not>\<acute>out \<and> \<acute>who=j \<and> i\<noteq>j}. \<acute>out:=True OD  
-       .{False}.  
+       \<lbrace>i\<noteq>j\<rbrace>  
+       WHILE True INV \<lbrace>i\<noteq>j\<rbrace>  
+       DO \<lbrace>i\<noteq>j\<rbrace> AWAIT \<acute>out THEN  \<acute>out:=False,,\<acute>who:=j END;;  
+          \<lbrace>\<not>\<acute>out \<and> \<acute>who=j \<and> i\<noteq>j\<rbrace> \<acute>out:=True OD  
+       \<lbrace>False\<rbrace>  
   COEND  
-  .{False}."
+  \<lbrace>False\<rbrace>"
 apply oghoare
 --{* 38 vc *}
 apply auto
@@ -123,17 +123,17 @@ done
 subsubsection {* Peterson's Algorithm III: Parameterized version: *}
 
 lemma Semaphores_parameterized_mutex: 
- "0<n \<Longrightarrow> \<parallel>- .{True}.  
+ "0<n \<Longrightarrow> \<parallel>- \<lbrace>True\<rbrace>  
   \<acute>out:=True ,,  
  COBEGIN
   SCHEME [0\<le> i< n]
-    .{True}.  
-     WHILE True INV .{True}.  
-      DO .{True}. AWAIT \<acute>out THEN  \<acute>out:=False,, \<acute>who:=i END;;  
-         .{\<not>\<acute>out \<and> \<acute>who=i}. \<acute>out:=True OD
-    .{False}. 
+    \<lbrace>True\<rbrace>  
+     WHILE True INV \<lbrace>True\<rbrace>  
+      DO \<lbrace>True\<rbrace> AWAIT \<acute>out THEN  \<acute>out:=False,, \<acute>who:=i END;;  
+         \<lbrace>\<not>\<acute>out \<and> \<acute>who=i\<rbrace> \<acute>out:=True OD
+    \<lbrace>False\<rbrace> 
  COEND
-  .{False}." 
+  \<lbrace>False\<rbrace>" 
 apply oghoare
 --{* 20 vc *}
 apply auto
@@ -150,22 +150,22 @@ record Ticket_mutex =
 lemma Ticket_mutex: 
  "\<lbrakk> 0<n; I=\<guillemotleft>n=length \<acute>turn \<and> 0<\<acute>nextv \<and> (\<forall>k l. k<n \<and> l<n \<and> k\<noteq>l 
     \<longrightarrow> \<acute>turn!k < \<acute>num \<and> (\<acute>turn!k =0 \<or> \<acute>turn!k\<noteq>\<acute>turn!l))\<guillemotright> \<rbrakk>
-   \<Longrightarrow> \<parallel>- .{n=length \<acute>turn}.  
+   \<Longrightarrow> \<parallel>- \<lbrace>n=length \<acute>turn\<rbrace>  
    \<acute>index:= 0,,
-   WHILE \<acute>index < n INV .{n=length \<acute>turn \<and> (\<forall>i<\<acute>index. \<acute>turn!i=0)}. 
+   WHILE \<acute>index < n INV \<lbrace>n=length \<acute>turn \<and> (\<forall>i<\<acute>index. \<acute>turn!i=0)\<rbrace> 
     DO \<acute>turn:= \<acute>turn[\<acute>index:=0],, \<acute>index:=\<acute>index +1 OD,,
   \<acute>num:=1 ,, \<acute>nextv:=1 ,, 
  COBEGIN
   SCHEME [0\<le> i< n]
-    .{\<acute>I}.  
-     WHILE True INV .{\<acute>I}.  
-      DO .{\<acute>I}. \<langle> \<acute>turn :=\<acute>turn[i:=\<acute>num],, \<acute>num:=\<acute>num+1 \<rangle>;;  
-         .{\<acute>I}. WAIT \<acute>turn!i=\<acute>nextv END;;
-         .{\<acute>I \<and> \<acute>turn!i=\<acute>nextv}. \<acute>nextv:=\<acute>nextv+1
+    \<lbrace>\<acute>I\<rbrace>  
+     WHILE True INV \<lbrace>\<acute>I\<rbrace>  
+      DO \<lbrace>\<acute>I\<rbrace> \<langle> \<acute>turn :=\<acute>turn[i:=\<acute>num],, \<acute>num:=\<acute>num+1 \<rangle>;;  
+         \<lbrace>\<acute>I\<rbrace> WAIT \<acute>turn!i=\<acute>nextv END;;
+         \<lbrace>\<acute>I \<and> \<acute>turn!i=\<acute>nextv\<rbrace> \<acute>nextv:=\<acute>nextv+1
       OD
-    .{False}. 
+    \<lbrace>False\<rbrace> 
  COEND
-  .{False}." 
+  \<lbrace>False\<rbrace>" 
 apply oghoare
 --{* 35 vc *}
 apply simp_all
@@ -259,40 +259,40 @@ lemma Zero_search:
       \<and> (\<not>\<acute>found \<and> a<\<acute> x \<longrightarrow> f(\<acute>x)\<noteq>0) \<guillemotright> ;  
     I2= \<guillemotleft>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> (a<\<acute>x \<and> f(\<acute>x)=0) \<or> (\<acute>y\<le>a \<and> f(\<acute>y)=0)) 
       \<and> (\<not>\<acute>found \<and> \<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0) \<guillemotright> \<rbrakk> \<Longrightarrow>  
-  \<parallel>- .{\<exists> u. f(u)=0}.  
+  \<parallel>- \<lbrace>\<exists> u. f(u)=0\<rbrace>  
   \<acute>turn:=1,, \<acute>found:= False,,  
   \<acute>x:=a,, \<acute>y:=a+1 ,,  
-  COBEGIN .{\<acute>I1}.  
+  COBEGIN \<lbrace>\<acute>I1\<rbrace>  
        WHILE \<not>\<acute>found  
-       INV .{\<acute>I1}.  
-       DO .{a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)}.  
+       INV \<lbrace>\<acute>I1\<rbrace>  
+       DO \<lbrace>a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)\<rbrace>  
           WAIT \<acute>turn=1 END;;  
-          .{a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)}.  
+          \<lbrace>a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)\<rbrace>  
           \<acute>turn:=2;;  
-          .{a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)}.    
+          \<lbrace>a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)\<rbrace>    
           \<langle> \<acute>x:=\<acute>x+1,,  
             IF f(\<acute>x)=0 THEN \<acute>found:=True ELSE SKIP FI\<rangle>  
        OD;;  
-       .{\<acute>I1  \<and> \<acute>found}.  
+       \<lbrace>\<acute>I1  \<and> \<acute>found\<rbrace>  
        \<acute>turn:=2  
-       .{\<acute>I1 \<and> \<acute>found}.  
+       \<lbrace>\<acute>I1 \<and> \<acute>found\<rbrace>  
   \<parallel>  
-      .{\<acute>I2}.  
+      \<lbrace>\<acute>I2\<rbrace>  
        WHILE \<not>\<acute>found  
-       INV .{\<acute>I2}.  
-       DO .{\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)}.  
+       INV \<lbrace>\<acute>I2\<rbrace>  
+       DO \<lbrace>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)\<rbrace>  
           WAIT \<acute>turn=2 END;;  
-          .{\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)}.  
+          \<lbrace>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)\<rbrace>  
           \<acute>turn:=1;;  
-          .{\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)}.  
+          \<lbrace>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)\<rbrace>  
           \<langle> \<acute>y:=(\<acute>y - 1),,  
             IF f(\<acute>y)=0 THEN \<acute>found:=True ELSE SKIP FI\<rangle>  
        OD;;  
-       .{\<acute>I2 \<and> \<acute>found}.  
+       \<lbrace>\<acute>I2 \<and> \<acute>found\<rbrace>  
        \<acute>turn:=1  
-       .{\<acute>I2 \<and> \<acute>found}.  
+       \<lbrace>\<acute>I2 \<and> \<acute>found\<rbrace>  
   COEND  
-  .{f(\<acute>x)=0 \<or> f(\<acute>y)=0}."
+  \<lbrace>f(\<acute>x)=0 \<or> f(\<acute>y)=0\<rbrace>"
 apply oghoare
 --{* 98 verification conditions *}
 apply auto 
@@ -306,26 +306,26 @@ lemma Zero_Search_2:
     \<and> (\<not>\<acute>found \<and> a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)\<guillemotright>;  
  I2= \<guillemotleft>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> (a<\<acute>x \<and> f(\<acute>x)=0) \<or> (\<acute>y\<le>a \<and> f(\<acute>y)=0)) 
     \<and> (\<not>\<acute>found \<and> \<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)\<guillemotright>\<rbrakk> \<Longrightarrow>  
-  \<parallel>- .{\<exists>u. f(u)=0}.  
+  \<parallel>- \<lbrace>\<exists>u. f(u)=0\<rbrace>  
   \<acute>found:= False,,  
   \<acute>x:=a,, \<acute>y:=a+1,,  
-  COBEGIN .{\<acute>I1}.  
+  COBEGIN \<lbrace>\<acute>I1\<rbrace>  
        WHILE \<not>\<acute>found  
-       INV .{\<acute>I1}.  
-       DO .{a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)}.  
+       INV \<lbrace>\<acute>I1\<rbrace>  
+       DO \<lbrace>a\<le>\<acute>x \<and> (\<acute>found \<longrightarrow> \<acute>y\<le>a \<and> f(\<acute>y)=0) \<and> (a<\<acute>x \<longrightarrow> f(\<acute>x)\<noteq>0)\<rbrace>  
           \<langle> \<acute>x:=\<acute>x+1,,IF f(\<acute>x)=0 THEN  \<acute>found:=True ELSE  SKIP FI\<rangle>  
        OD  
-       .{\<acute>I1 \<and> \<acute>found}.  
+       \<lbrace>\<acute>I1 \<and> \<acute>found\<rbrace>  
   \<parallel>  
-      .{\<acute>I2}.  
+      \<lbrace>\<acute>I2\<rbrace>  
        WHILE \<not>\<acute>found  
-       INV .{\<acute>I2}.  
-       DO .{\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)}.  
+       INV \<lbrace>\<acute>I2\<rbrace>  
+       DO \<lbrace>\<acute>y\<le>a+1 \<and> (\<acute>found \<longrightarrow> a<\<acute>x \<and> f(\<acute>x)=0) \<and> (\<acute>y\<le>a \<longrightarrow> f(\<acute>y)\<noteq>0)\<rbrace>  
           \<langle> \<acute>y:=(\<acute>y - 1),,IF f(\<acute>y)=0 THEN  \<acute>found:=True ELSE  SKIP FI\<rangle>  
        OD  
-       .{\<acute>I2 \<and> \<acute>found}.  
+       \<lbrace>\<acute>I2 \<and> \<acute>found\<rbrace>  
   COEND  
-  .{f(\<acute>x)=0 \<or> f(\<acute>y)=0}."
+  \<lbrace>f(\<acute>x)=0 \<or> f(\<acute>y)=0\<rbrace>"
 apply oghoare
 --{* 20 vc *}
 apply auto
@@ -390,44 +390,44 @@ lemma Producer_consumer:
     p1= \<guillemotleft>\<acute>I1 \<and> \<acute>li=\<acute>ins\<guillemotright> ;  
     I2 = \<guillemotleft>\<acute>I \<and> (\<forall>k<\<acute>lj. (a ! k)=(\<acute>b ! k)) \<and> \<acute>lj\<le>length a\<guillemotright> ;
     p2 = \<guillemotleft>\<acute>I2 \<and> \<acute>lj=\<acute>outs\<guillemotright> \<rbrakk> \<Longrightarrow>   
-  \<parallel>- .{\<acute>INIT}.  
+  \<parallel>- \<lbrace>\<acute>INIT\<rbrace>  
  \<acute>ins:=0,, \<acute>outs:=0,, \<acute>li:=0,, \<acute>lj:=0,,
- COBEGIN .{\<acute>p1 \<and> \<acute>INIT}. 
+ COBEGIN \<lbrace>\<acute>p1 \<and> \<acute>INIT\<rbrace> 
    WHILE \<acute>li <length a 
-     INV .{\<acute>p1 \<and> \<acute>INIT}.   
-   DO .{\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a}.  
+     INV \<lbrace>\<acute>p1 \<and> \<acute>INIT\<rbrace>   
+   DO \<lbrace>\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a\<rbrace>  
        \<acute>vx:= (a ! \<acute>li);;  
-      .{\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a \<and> \<acute>vx=(a ! \<acute>li)}. 
+      \<lbrace>\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a \<and> \<acute>vx=(a ! \<acute>li)\<rbrace> 
         WAIT \<acute>ins-\<acute>outs < length \<acute>buffer END;; 
-      .{\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a \<and> \<acute>vx=(a ! \<acute>li) 
-         \<and> \<acute>ins-\<acute>outs < length \<acute>buffer}. 
+      \<lbrace>\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a \<and> \<acute>vx=(a ! \<acute>li) 
+         \<and> \<acute>ins-\<acute>outs < length \<acute>buffer\<rbrace> 
        \<acute>buffer:=(list_update \<acute>buffer (\<acute>ins mod (length \<acute>buffer)) \<acute>vx);; 
-      .{\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a 
+      \<lbrace>\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li<length a 
          \<and> (a ! \<acute>li)=(\<acute>buffer ! (\<acute>ins mod (length \<acute>buffer))) 
-         \<and> \<acute>ins-\<acute>outs <length \<acute>buffer}.  
+         \<and> \<acute>ins-\<acute>outs <length \<acute>buffer\<rbrace>  
        \<acute>ins:=\<acute>ins+1;; 
-      .{\<acute>I1 \<and> \<acute>INIT \<and> (\<acute>li+1)=\<acute>ins \<and> \<acute>li<length a}.  
+      \<lbrace>\<acute>I1 \<and> \<acute>INIT \<and> (\<acute>li+1)=\<acute>ins \<and> \<acute>li<length a\<rbrace>  
        \<acute>li:=\<acute>li+1  
    OD  
-  .{\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li=length a}.  
+  \<lbrace>\<acute>p1 \<and> \<acute>INIT \<and> \<acute>li=length a\<rbrace>  
   \<parallel>  
-  .{\<acute>p2 \<and> \<acute>INIT}.  
+  \<lbrace>\<acute>p2 \<and> \<acute>INIT\<rbrace>  
    WHILE \<acute>lj < length a  
-     INV .{\<acute>p2 \<and> \<acute>INIT}.  
-   DO .{\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>INIT}.  
+     INV \<lbrace>\<acute>p2 \<and> \<acute>INIT\<rbrace>  
+   DO \<lbrace>\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>INIT\<rbrace>  
         WAIT \<acute>outs<\<acute>ins END;; 
-      .{\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>outs<\<acute>ins \<and> \<acute>INIT}.  
+      \<lbrace>\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>outs<\<acute>ins \<and> \<acute>INIT\<rbrace>  
        \<acute>vy:=(\<acute>buffer ! (\<acute>outs mod (length \<acute>buffer)));; 
-      .{\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>outs<\<acute>ins \<and> \<acute>vy=(a ! \<acute>lj) \<and> \<acute>INIT}.  
+      \<lbrace>\<acute>p2 \<and> \<acute>lj<length a \<and> \<acute>outs<\<acute>ins \<and> \<acute>vy=(a ! \<acute>lj) \<and> \<acute>INIT\<rbrace>  
        \<acute>outs:=\<acute>outs+1;;  
-      .{\<acute>I2 \<and> (\<acute>lj+1)=\<acute>outs \<and> \<acute>lj<length a \<and> \<acute>vy=(a ! \<acute>lj) \<and> \<acute>INIT}.  
+      \<lbrace>\<acute>I2 \<and> (\<acute>lj+1)=\<acute>outs \<and> \<acute>lj<length a \<and> \<acute>vy=(a ! \<acute>lj) \<and> \<acute>INIT\<rbrace>  
        \<acute>b:=(list_update \<acute>b \<acute>lj \<acute>vy);; 
-      .{\<acute>I2 \<and> (\<acute>lj+1)=\<acute>outs \<and> \<acute>lj<length a \<and> (a ! \<acute>lj)=(\<acute>b ! \<acute>lj) \<and> \<acute>INIT}.  
+      \<lbrace>\<acute>I2 \<and> (\<acute>lj+1)=\<acute>outs \<and> \<acute>lj<length a \<and> (a ! \<acute>lj)=(\<acute>b ! \<acute>lj) \<and> \<acute>INIT\<rbrace>  
        \<acute>lj:=\<acute>lj+1  
    OD  
-  .{\<acute>p2 \<and> \<acute>lj=length a \<and> \<acute>INIT}.  
+  \<lbrace>\<acute>p2 \<and> \<acute>lj=length a \<and> \<acute>INIT\<rbrace>  
  COEND  
- .{ \<forall>k<length a. (a ! k)=(\<acute>b ! k)}."
+ \<lbrace> \<forall>k<length a. (a ! k)=(\<acute>b ! k)\<rbrace>"
 apply oghoare
 --{* 138 vc  *}
 apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
@@ -455,9 +455,9 @@ record Example1 =
   a :: "nat \<Rightarrow> nat"
 
 lemma Example1: 
- "\<parallel>- .{True}.
-   COBEGIN SCHEME [0\<le>i<n] .{True}. \<acute>a:=\<acute>a (i:=0) .{\<acute>a i=0}. COEND 
-  .{\<forall>i < n. \<acute>a i = 0}."
+ "\<parallel>- \<lbrace>True\<rbrace>
+   COBEGIN SCHEME [0\<le>i<n] \<lbrace>True\<rbrace> \<acute>a:=\<acute>a (i:=0) \<lbrace>\<acute>a i=0\<rbrace> COEND 
+  \<lbrace>\<forall>i < n. \<acute>a i = 0\<rbrace>"
 apply oghoare
 apply simp_all
 done
@@ -466,11 +466,11 @@ text {* Same example with lists as auxiliary variables. *}
 record Example1_list =
   A :: "nat list"
 lemma Example1_list: 
- "\<parallel>- .{n < length \<acute>A}. 
+ "\<parallel>- \<lbrace>n < length \<acute>A\<rbrace> 
    COBEGIN 
-     SCHEME [0\<le>i<n] .{n < length \<acute>A}. \<acute>A:=\<acute>A[i:=0] .{\<acute>A!i=0}. 
+     SCHEME [0\<le>i<n] \<lbrace>n < length \<acute>A\<rbrace> \<acute>A:=\<acute>A[i:=0] \<lbrace>\<acute>A!i=0\<rbrace> 
    COEND 
-    .{\<forall>i < n. \<acute>A!i = 0}."
+    \<lbrace>\<forall>i < n. \<acute>A!i = 0\<rbrace>"
 apply oghoare
 apply force+
 done
@@ -525,14 +525,14 @@ record Example2 =
  x :: nat
 
 lemma Example_2: "0<n \<Longrightarrow> 
- \<parallel>- .{\<acute>x=0 \<and> (\<Sum>i=0..<n. \<acute>c i)=0}.  
+ \<parallel>- \<lbrace>\<acute>x=0 \<and> (\<Sum>i=0..<n. \<acute>c i)=0\<rbrace>  
  COBEGIN 
    SCHEME [0\<le>i<n] 
-  .{\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=0}. 
+  \<lbrace>\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=0\<rbrace> 
    \<langle> \<acute>x:=\<acute>x+(Suc 0),, \<acute>c:=\<acute>c (i:=(Suc 0)) \<rangle>
-  .{\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=(Suc 0)}.
+  \<lbrace>\<acute>x=(\<Sum>i=0..<n. \<acute>c i) \<and> \<acute>c i=(Suc 0)\<rbrace>
  COEND 
- .{\<acute>x=n}."
+ \<lbrace>\<acute>x=n\<rbrace>"
 apply oghoare
 apply (simp_all cong del: strong_setsum_cong)
 apply (tactic {* ALLGOALS (clarify_tac @{context}) *})

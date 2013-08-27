@@ -40,15 +40,15 @@ consider two modules, one for each action.  An auxiliary variable
 edge but has not yet colored the new target.   *}
 
 definition Redirect_Edge :: "gar_coll_state ann_com" where
-  "Redirect_Edge \<equiv> .{\<acute>Mut_init \<and> \<acute>z}. \<langle>\<acute>E:=\<acute>E[R:=(fst(\<acute>E!R), T)],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
+  "Redirect_Edge \<equiv> \<lbrace>\<acute>Mut_init \<and> \<acute>z\<rbrace> \<langle>\<acute>E:=\<acute>E[R:=(fst(\<acute>E!R), T)],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
 
 definition Color_Target :: "gar_coll_state ann_com" where
-  "Color_Target \<equiv> .{\<acute>Mut_init \<and> \<not>\<acute>z}. \<langle>\<acute>M:=\<acute>M[T:=Black],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
+  "Color_Target \<equiv> \<lbrace>\<acute>Mut_init \<and> \<not>\<acute>z\<rbrace> \<langle>\<acute>M:=\<acute>M[T:=Black],, \<acute>z:= (\<not>\<acute>z)\<rangle>"
 
 definition Mutator :: "gar_coll_state ann_com" where
   "Mutator \<equiv>
-  .{\<acute>Mut_init \<and> \<acute>z}. 
-  WHILE True INV .{\<acute>Mut_init \<and> \<acute>z}. 
+  \<lbrace>\<acute>Mut_init \<and> \<acute>z\<rbrace> 
+  WHILE True INV \<lbrace>\<acute>Mut_init \<and> \<acute>z\<rbrace> 
   DO  Redirect_Edge ;; Color_Target  OD"
 
 subsubsection {* Correctness of the mutator *}
@@ -64,14 +64,14 @@ apply(force elim:Graph2)
 done
 
 lemma Color_Target:
-  "\<turnstile> Color_Target .{\<acute>Mut_init \<and> \<acute>z}."
+  "\<turnstile> Color_Target \<lbrace>\<acute>Mut_init \<and> \<acute>z\<rbrace>"
 apply (unfold mutator_defs)
 apply annhoare
 apply(simp_all)
 done
 
 lemma Mutator: 
- "\<turnstile> Mutator .{False}."
+ "\<turnstile> Mutator \<lbrace>False\<rbrace>"
 apply(unfold Mutator_def)
 apply annhoare
 apply(simp_all add:Redirect_Edge Color_Target)
@@ -101,21 +101,21 @@ subsubsection {* Blackening the roots *}
 
 definition Blacken_Roots :: " gar_coll_state ann_com" where
   "Blacken_Roots \<equiv> 
-  .{\<acute>Proper}.
+  \<lbrace>\<acute>Proper\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Proper \<and> \<acute>ind=0}.
+  \<lbrace>\<acute>Proper \<and> \<acute>ind=0\<rbrace>
   WHILE \<acute>ind<length \<acute>M 
-   INV .{\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind\<le>length \<acute>M}.
-  DO .{\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M}.
+   INV \<lbrace>\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+  DO \<lbrace>\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M\<rbrace>
    IF \<acute>ind\<in>Roots THEN 
-   .{\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<in>Roots}. 
+   \<lbrace>\<acute>Proper \<and> (\<forall>i<\<acute>ind. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<in>Roots\<rbrace> 
     \<acute>M:=\<acute>M[\<acute>ind:=Black] FI;;
-   .{\<acute>Proper \<and> (\<forall>i<\<acute>ind+1. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M}.
+   \<lbrace>\<acute>Proper \<and> (\<forall>i<\<acute>ind+1. i \<in> Roots \<longrightarrow> \<acute>M!i=Black) \<and> \<acute>ind<length \<acute>M\<rbrace>
     \<acute>ind:=\<acute>ind+1 
   OD"
 
 lemma Blacken_Roots: 
- "\<turnstile> Blacken_Roots .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M}."
+ "\<turnstile> Blacken_Roots \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M\<rbrace>"
 apply (unfold Blacken_Roots_def)
 apply annhoare
 apply(simp_all add:collector_defs Graph_defs)
@@ -135,28 +135,28 @@ definition PBInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" where
 
 definition Propagate_Black_aux :: "gar_coll_state ann_com" where
   "Propagate_Black_aux \<equiv>
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M}.
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> \<acute>ind=0}. 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> \<acute>ind=0\<rbrace> 
   WHILE \<acute>ind<length \<acute>E 
-   INV .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-         \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>E}.
-  DO .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E}. 
+   INV \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+         \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>E\<rbrace>
+  DO \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E\<rbrace> 
    IF \<acute>M!(fst (\<acute>E!\<acute>ind)) = Black THEN 
-    .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E \<and> \<acute>M!fst(\<acute>E!\<acute>ind)=Black}.
+    \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E \<and> \<acute>M!fst(\<acute>E!\<acute>ind)=Black\<rbrace>
      \<acute>M:=\<acute>M[snd(\<acute>E!\<acute>ind):=Black];;
-    .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-       \<and> \<acute>PBInv (\<acute>ind + 1) \<and> \<acute>ind<length \<acute>E}.
+    \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+       \<and> \<acute>PBInv (\<acute>ind + 1) \<and> \<acute>ind<length \<acute>E\<rbrace>
      \<acute>ind:=\<acute>ind+1
    FI
   OD"
 
 lemma Propagate_Black_aux: 
   "\<turnstile>  Propagate_Black_aux
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-    \<and> ( \<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)}."
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+    \<and> ( \<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)\<rbrace>"
 apply (unfold Propagate_Black_aux_def  PBInv_def collector_defs)
 apply annhoare
 apply(simp_all add:Graph6 Graph7 Graph8 Graph12)
@@ -215,32 +215,32 @@ definition Auxk :: "gar_coll_state \<Rightarrow> bool" where
 
 definition Propagate_Black :: " gar_coll_state ann_com" where
   "Propagate_Black \<equiv>
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M}.
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> \<acute>ind=0}.
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> \<acute>ind=0\<rbrace>
   WHILE \<acute>ind<length \<acute>E 
-   INV .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-         \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>E}.
-  DO .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E}. 
+   INV \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+         \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>E\<rbrace>
+  DO \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E\<rbrace> 
    IF (\<acute>M!(fst (\<acute>E!\<acute>ind)))=Black THEN 
-    .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-      \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E \<and> (\<acute>M!fst(\<acute>E!\<acute>ind))=Black}.
+    \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+      \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E \<and> (\<acute>M!fst(\<acute>E!\<acute>ind))=Black\<rbrace>
      \<acute>k:=(snd(\<acute>E!\<acute>ind));;
-    .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+    \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
       \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E \<and> (\<acute>M!fst(\<acute>E!\<acute>ind))=Black 
-      \<and> \<acute>Auxk}.
+      \<and> \<acute>Auxk\<rbrace>
      \<langle>\<acute>M:=\<acute>M[\<acute>k:=Black],, \<acute>ind:=\<acute>ind+1\<rangle>
-   ELSE .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-          \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E}. 
+   ELSE \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+          \<and> \<acute>PBInv \<acute>ind \<and> \<acute>ind<length \<acute>E\<rbrace> 
          \<langle>IF (\<acute>M!(fst (\<acute>E!\<acute>ind)))\<noteq>Black THEN \<acute>ind:=\<acute>ind+1 FI\<rangle> 
    FI
   OD"
 
 lemma Propagate_Black: 
   "\<turnstile>  Propagate_Black
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-    \<and> ( \<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)}."
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+    \<and> ( \<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)\<rbrace>"
 apply (unfold Propagate_Black_def  PBInv_def Auxk_def collector_defs)
 apply annhoare
 apply(simp_all add: Graph6 Graph7 Graph8 Graph12)
@@ -325,42 +325,42 @@ definition CountInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" whe
 
 definition Count :: " gar_coll_state ann_com" where
   "Count \<equiv>
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-    \<and> length \<acute>Ma=length \<acute>M \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>bc={}}.
+    \<and> length \<acute>Ma=length \<acute>M \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>bc={}\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
     \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
    \<and> length \<acute>Ma=length \<acute>M \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>bc={} 
-   \<and> \<acute>ind=0}.
+   \<and> \<acute>ind=0\<rbrace>
    WHILE \<acute>ind<length \<acute>M 
-     INV .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+     INV \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
            \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
            \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>CountInv \<acute>ind
-           \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind\<le>length \<acute>M}.
-   DO .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+           \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+   DO \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
          \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
          \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>CountInv \<acute>ind 
-         \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M}. 
+         \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M\<rbrace> 
        IF \<acute>M!\<acute>ind=Black 
-          THEN .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+          THEN \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
                  \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
                  \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>CountInv \<acute>ind
-                 \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black}.
+                 \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black\<rbrace>
           \<acute>bc:=insert \<acute>ind \<acute>bc
        FI;;
-      .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+      \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
         \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
         \<and> length \<acute>Ma=length \<acute>M \<and> \<acute>CountInv (\<acute>ind+1)
-        \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M}.
+        \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe) \<and> \<acute>ind<length \<acute>M\<rbrace>
       \<acute>ind:=\<acute>ind+1
    OD"
 
 lemma Count: 
   "\<turnstile> Count 
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
    \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> length \<acute>Ma=length \<acute>M
-   \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)}."
+   \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)\<rbrace>"
 apply(unfold Count_def)
 apply annhoare
 apply(simp_all add:CountInv_def Graph6 Graph7 Graph8 Graph12 Blacks_def collector_defs)
@@ -392,24 +392,24 @@ definition AppendInv :: "gar_coll_state \<Rightarrow> nat \<Rightarrow> bool" wh
 
 definition Append :: "gar_coll_state ann_com" where
    "Append \<equiv>
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe}.
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe\<rbrace>
   \<acute>ind:=0;;
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe \<and> \<acute>ind=0}.
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>Safe \<and> \<acute>ind=0\<rbrace>
     WHILE \<acute>ind<length \<acute>M 
-      INV .{\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>M}.
-    DO .{\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M}.
+      INV \<lbrace>\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind\<le>length \<acute>M\<rbrace>
+    DO \<lbrace>\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M\<rbrace>
        IF \<acute>M!\<acute>ind=Black THEN 
-          .{\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black}. 
+          \<lbrace>\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>M!\<acute>ind=Black\<rbrace> 
           \<acute>M:=\<acute>M[\<acute>ind:=White] 
-       ELSE .{\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<notin>Reach \<acute>E}.
+       ELSE \<lbrace>\<acute>Proper \<and> \<acute>AppendInv \<acute>ind \<and> \<acute>ind<length \<acute>M \<and> \<acute>ind\<notin>Reach \<acute>E\<rbrace>
               \<acute>E:=Append_to_free(\<acute>ind,\<acute>E)
        FI;;
-     .{\<acute>Proper \<and> \<acute>AppendInv (\<acute>ind+1) \<and> \<acute>ind<length \<acute>M}. 
+     \<lbrace>\<acute>Proper \<and> \<acute>AppendInv (\<acute>ind+1) \<and> \<acute>ind<length \<acute>M\<rbrace> 
        \<acute>ind:=\<acute>ind+1
     OD"
 
 lemma Append: 
-  "\<turnstile> Append .{\<acute>Proper}."
+  "\<turnstile> Append \<lbrace>\<acute>Proper\<rbrace>"
 apply(unfold Append_def AppendInv_def)
 apply annhoare
 apply(simp_all add:collector_defs Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
@@ -433,30 +433,30 @@ subsubsection {* Correctness of the Collector *}
 
 definition Collector :: " gar_coll_state ann_com" where
   "Collector \<equiv>
-.{\<acute>Proper}.  
- WHILE True INV .{\<acute>Proper}. 
+\<lbrace>\<acute>Proper\<rbrace>  
+ WHILE True INV \<lbrace>\<acute>Proper\<rbrace> 
  DO  
   Blacken_Roots;; 
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M}.  
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M\<rbrace>  
    \<acute>obc:={};; 
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={}}. 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={}\<rbrace> 
    \<acute>bc:=Roots;; 
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots}. 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots\<rbrace> 
    \<acute>Ma:=M_init;;  
-  .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots \<and> \<acute>Ma=M_init}. 
+  \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc={} \<and> \<acute>bc=Roots \<and> \<acute>Ma=M_init\<rbrace> 
    WHILE \<acute>obc\<noteq>\<acute>bc  
-     INV .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
+     INV \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M 
            \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma \<and> Blacks \<acute>Ma\<subseteq>\<acute>bc \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-           \<and> length \<acute>Ma=length \<acute>M \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)}. 
-   DO .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M}.
+           \<and> length \<acute>Ma=length \<acute>M \<and> (\<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)\<rbrace> 
+   DO \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M\<rbrace>
        \<acute>obc:=\<acute>bc;;
        Propagate_Black;; 
-      .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
-        \<and> (\<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)}. 
+      \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M 
+        \<and> (\<acute>obc < Blacks \<acute>M \<or> \<acute>Safe)\<rbrace> 
        \<acute>Ma:=\<acute>M;;
-      .{\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma 
+      \<lbrace>\<acute>Proper \<and> Roots\<subseteq>Blacks \<acute>M \<and> \<acute>obc\<subseteq>Blacks \<acute>Ma 
         \<and> Blacks \<acute>Ma\<subseteq>Blacks \<acute>M \<and> \<acute>bc\<subseteq>Blacks \<acute>M \<and> length \<acute>Ma=length \<acute>M 
-        \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)}.
+        \<and> ( \<acute>obc < Blacks \<acute>Ma \<or> \<acute>Safe)\<rbrace>
        \<acute>bc:={};;
        Count 
    OD;; 
@@ -464,7 +464,7 @@ definition Collector :: " gar_coll_state ann_com" where
  OD"
 
 lemma Collector: 
-  "\<turnstile> Collector .{False}."
+  "\<turnstile> Collector \<lbrace>False\<rbrace>"
 apply(unfold Collector_def)
 apply annhoare
 apply(simp_all add: Blacken_Roots Propagate_Black Count Append)
@@ -806,15 +806,15 @@ subsubsection {* The Garbage Collection algorithm *}
 text {* In total there are 289 verification conditions.  *}
 
 lemma Gar_Coll: 
-  "\<parallel>- .{\<acute>Proper \<and> \<acute>Mut_init \<and> \<acute>z}.  
+  "\<parallel>- \<lbrace>\<acute>Proper \<and> \<acute>Mut_init \<and> \<acute>z\<rbrace>  
   COBEGIN  
    Collector
-  .{False}.
+  \<lbrace>False\<rbrace>
  \<parallel>  
    Mutator
-  .{False}. 
+  \<lbrace>False\<rbrace> 
  COEND 
-  .{False}."
+  \<lbrace>False\<rbrace>"
 apply oghoare
 apply(force simp add: Mutator_def Collector_def modules)
 apply(rule Collector)
