@@ -163,7 +163,6 @@ class Pretty_Text_Area(
   /* key handling */
 
   addKeyListener(JEdit_Lib.key_listener(
-    workaround = false,
     key_pressed = (evt: KeyEvent) =>
       {
         evt.getKeyCode match {
@@ -171,10 +170,15 @@ class Pretty_Text_Area(
           if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
             Registers.copy(text_area, '$')
             evt.consume
+
           case KeyEvent.VK_A
           if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
             text_area.selectAll
             evt.consume
+
+          case KeyEvent.VK_ESCAPE =>
+            if (Pretty_Tooltip.dismissed_all()) evt.consume
+
           case _ =>
         }
         if (propagate_keys && !evt.isConsumed)
@@ -182,8 +186,6 @@ class Pretty_Text_Area(
       },
     key_typed = (evt: KeyEvent) =>
       {
-        if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
-          evt.consume
         if (propagate_keys && !evt.isConsumed)
           view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
       }

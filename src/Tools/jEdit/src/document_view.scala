@@ -151,10 +151,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      workaround = false,
-      key_typed = (evt: KeyEvent) =>
+      key_pressed = (evt: KeyEvent) =>
         {
-          if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
+          if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Pretty_Tooltip.dismissed_all())
             evt.consume
         }
     )
