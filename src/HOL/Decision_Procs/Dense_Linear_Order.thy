@@ -243,7 +243,7 @@ end
 
 section {* The classical QE after Langford for dense linear orders *}
 
-context dense_linorder
+context unbounded_dense_linorder
 begin
 
 lemma interval_empty_iff: "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
@@ -299,7 +299,8 @@ lemma exists_neq[no_atp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t 
 lemmas dlo_simps[no_atp] = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom[no_atp]: "class.dense_linorder (op \<le>) (op <)" by (rule dense_linorder_axioms)
+lemma axiom[no_atp]: "class.unbounded_dense_linorder (op \<le>) (op <)"
+  by (rule unbounded_dense_linorder_axioms)
 lemma atoms[no_atp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
@@ -452,7 +453,7 @@ locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
   assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
     and between_same: "between x x = x"
 
-sublocale  constr_dense_linorder < dlo: dense_linorder 
+sublocale  constr_dense_linorder < dlo: unbounded_dense_linorder 
   apply unfold_locales
   using gt_ex lt_ex between_less
   apply auto

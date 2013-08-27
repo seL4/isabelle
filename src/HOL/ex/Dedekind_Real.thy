@@ -24,7 +24,7 @@ definition
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
 lemma interval_empty_iff:
-  "{y. (x::'a::dense_linorder) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  "{y. (x::'a::unbounded_dense_linorder) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
   by (auto dest: dense)
 
 

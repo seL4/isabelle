@@ -180,7 +180,7 @@ lemma fixes x y::float
     and real_of_float_max: "real (max x y) = max (real x) (real y)"
   by (simp_all add: min_def max_def)
 
-instance float :: dense_linorder
+instance float :: unbounded_dense_linorder
 proof
   fix a b :: float
   show "\<exists>c. a < c"

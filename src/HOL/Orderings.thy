@@ -1312,7 +1312,7 @@ class no_top = order +
 class no_bot = order + 
   assumes lt_ex: "\<exists>y. y < x"
 
-class dense_linorder = inner_dense_linorder + no_top + no_bot
+class unbounded_dense_linorder = inner_dense_linorder + no_top + no_bot
 
 
 subsection {* Wellorders *}

@@ -842,7 +842,7 @@ by (simp add: field_simps zero_less_two)
 lemma gt_half_sum: "a < b ==> (a+b)/(1+1) < b"
 by (simp add: field_simps zero_less_two)
 
-subclass dense_linorder
+subclass unbounded_dense_linorder
 proof
   fix x y :: 'a
   from less_add_one show "\<exists>y. x < y" .. 

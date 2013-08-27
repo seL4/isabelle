@@ -567,7 +567,7 @@ lemma eventually_ge_at_top:
   "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
   unfolding eventually_at_top_linorder by auto
 
-lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::dense_linorder. \<forall>n>N. P n)"
+lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::unbounded_dense_linorder. \<forall>n>N. P n)"
   unfolding eventually_at_top_linorder
 proof safe
   fix N assume "\<forall>n\<ge>N. P n" then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
@@ -578,7 +578,7 @@ next
 qed
 
 lemma eventually_gt_at_top:
-  "eventually (\<lambda>x. (c::_::dense_linorder) < x) at_top"
+  "eventually (\<lambda>x. (c::_::unbounded_dense_linorder) < x) at_top"
   unfolding eventually_at_top_dense by auto
 
 definition at_bot :: "('a::order) filter"
@@ -600,7 +600,7 @@ lemma eventually_le_at_bot:
   unfolding eventually_at_bot_linorder by auto
 
 lemma eventually_at_bot_dense:
-  fixes P :: "'a::dense_linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n<N. P n)"
+  fixes P :: "'a::unbounded_dense_linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n<N. P n)"
   unfolding eventually_at_bot_linorder
 proof safe
   fix N assume "\<forall>n\<le>N. P n" then show "\<exists>N. \<forall>n<N. P n" by (auto intro!: exI[of _ N])
@@ -611,7 +611,7 @@ next
 qed
 
 lemma eventually_gt_at_bot:
-  "eventually (\<lambda>x. x < (c::_::dense_linorder)) at_bot"
+  "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
   unfolding eventually_at_bot_dense by auto
 
 subsection {* Sequentially *}
@@ -794,11 +794,11 @@ next
 qed
 
 lemma trivial_limit_at_left_real [simp]:
-  "\<not> trivial_limit (at_left (x::'a::{no_bot, dense_linorder, linorder_topology}))"
+  "\<not> trivial_limit (at_left (x::'a::{no_bot, unbounded_dense_linorder, linorder_topology}))"
   unfolding trivial_limit_def eventually_at_left by (auto dest: dense)
 
 lemma trivial_limit_at_right_real [simp]:
-  "\<not> trivial_limit (at_right (x::'a::{no_top, dense_linorder, linorder_topology}))"
+  "\<not> trivial_limit (at_right (x::'a::{no_top, unbounded_dense_linorder, linorder_topology}))"
   unfolding trivial_limit_def eventually_at_right by (auto dest: dense)
 
 lemma at_eq_sup_left_right: "at (x::'a::linorder_topology) = sup (at_left x) (at_right x)"
@@ -1047,7 +1047,7 @@ lemma filterlim_at_top:
   by (auto simp: filterlim_iff eventually_at_top_linorder elim!: eventually_elim1)
 
 lemma filterlim_at_top_dense:
-  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
+  fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
   by (metis eventually_elim1[of _ F] eventually_gt_at_top order_less_imp_le
             filterlim_at_top[of f F] filterlim_iff[of f at_top F])
@@ -1084,7 +1084,7 @@ proof -
 qed
 
 lemma filterlim_at_top_gt:
-  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
+  fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)" and c :: "'b"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z>c. eventually (\<lambda>x. Z \<le> f x) F)"
   by (metis filterlim_at_top order_less_le_trans gt_ex filterlim_at_top_ge)
 
@@ -1104,7 +1104,7 @@ proof safe
 qed simp
 
 lemma filterlim_at_bot_lt:
-  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
+  fixes f :: "'a \<Rightarrow> ('b::unbounded_dense_linorder)" and c :: "'b"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z \<ge> f x) F)"
   by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
 
