@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Point, BorderLayout, Dimension}
+import java.awt.{Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, PopupFactory, SwingUtilities}
 
@@ -27,16 +27,19 @@ object Completion_Popup
 
   def apply(
     opt_view: Option[View],
-    parent: JComponent,
+    root: JComponent,
+    popup_font: Font,
     screen_point: Point,
     items: List[Item],
-    complete: Item => Unit): Completion_Popup =
+    complete: Item => Unit,
+    hidden: () => Unit): Completion_Popup =
   {
     Swing_Thread.require()
 
     require(!items.isEmpty)
 
-    val completion = new Completion_Popup(opt_view, parent, screen_point, items, complete)
+    val completion =
+      new Completion_Popup(opt_view, root, popup_font, screen_point, items, complete, hidden)
     completion.show_popup()
     completion
   }
@@ -47,20 +50,30 @@ object Completion_Popup
 
     val buffer = text_area.getBuffer
     if (buffer.isEditable) {
+      val view = text_area.getView
       val painter = text_area.getPainter
       val caret = text_area.getCaretPosition
 
       // FIXME
       def complete(item: Item) { }
+
+      def hidden() { text_area.requestFocus }
+
+      // FIXME
       val token_length = 0
       val items: List[Item] = Nil
+
+      val popup_font =
+        painter.getFont.deriveFont(
+          (painter.getFont.getSize2D * PIDE.options.real("jedit_popup_font_scale")).toFloat
+            max 10.0f)
 
       if (!items.isEmpty) {
         val location = text_area.offsetToXY(caret - token_length)
         if (location != null) {
           location.y = location.y + painter.getFontMetrics.getHeight
           SwingUtilities.convertPointToScreen(location, painter)
-          apply(Some(text_area.getView), painter, location, items, complete _)
+          apply(Some(view), view.getRootPane, popup_font, location, items, complete _, hidden _)
         }
       }
     }
@@ -70,10 +83,12 @@ object Completion_Popup
 
 class Completion_Popup private(
   opt_view: Option[View],
-  parent: JComponent,
+  root: JComponent,
+  popup_font: Font,
   screen_point: Point,
   items: List[Completion_Popup.Item],
-  complete: Completion_Popup.Item => Unit) extends JPanel(new BorderLayout)
+  complete: Completion_Popup.Item => Unit,
+  hidden: () => Unit) extends JPanel(new BorderLayout)
 {
   completion =>
 
@@ -84,7 +99,7 @@ class Completion_Popup private(
 
   private val list_view = new ListView(items)
   {
-    font = parent.getFont
+    font = popup_font
   }
   list_view.selection.intervalMode = ListView.IntervalMode.Single
   list_view.peer.setFocusTraversalKeysEnabled(false)
@@ -198,7 +213,7 @@ class Completion_Popup private(
 
     val x = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
     val y = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
-    PopupFactory.getSharedInstance.getPopup(parent, completion, x, y)
+    PopupFactory.getSharedInstance.getPopup(root, completion, x, y)
   }
 
   def show_popup()
@@ -211,18 +226,12 @@ class Completion_Popup private(
   def hide_popup()
   {
     opt_view match {
-      case Some(view) =>
-        if (view.getKeyEventInterceptor == key_listener)
-          view.setKeyEventInterceptor(null)
-        popup.hide
-        view.getTextArea match {
-          case null =>
-          case text_area => text_area.requestFocus
-        }
-      case None =>
-        popup.hide
-        parent.requestFocus
+      case Some(view) if (view.getKeyEventInterceptor == key_listener) =>
+        view.setKeyEventInterceptor(null)
+      case _ =>
     }
+    popup.hide
+    hidden()
   }
 }
 
