@@ -89,7 +89,7 @@ object Completion_Popup
                 new Completion_Popup(view.getRootPane, popup_font, location, items) {
                   override def complete(item: Item) { complete_item(text_area, item) }
                   override def propagate(evt: KeyEvent) { JEdit_Lib.propagate_key(view, evt) }
-                  override def hidden() { text_area.requestFocus }
+                  override def refocus() { text_area.requestFocus }
                 }
               }
           }
@@ -115,7 +115,7 @@ class Completion_Popup private(
 
   def complete(item: Completion_Popup.Item) { }
   def propagate(evt: KeyEvent) { }
-  def hidden() { }
+  def refocus() { }
 
 
   /* list view */
@@ -240,8 +240,9 @@ class Completion_Popup private(
 
   private def hide_popup()
   {
+    val had_focus = list_view.peer.isFocusOwner
     popup.hide
-    hidden()
+    if (had_focus) refocus()
   }
 
   popup.show
