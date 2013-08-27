@@ -11,13 +11,13 @@ import isabelle._
 
 import java.awt.{Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, JComponent, PopupFactory}
+import javax.swing.{JPanel, JComponent, PopupFactory, SwingUtilities}
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.KeyEventWorkaround
+import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object Completion_Popup
@@ -39,6 +39,31 @@ object Completion_Popup
     val completion = new Completion_Popup(opt_view, parent, screen_point, items, complete)
     completion.show_popup()
     completion
+  }
+
+  def input_text_area(text_area: JEditTextArea, evt: KeyEvent)
+  {
+    Swing_Thread.require()
+
+    val buffer = text_area.getBuffer
+    if (buffer.isEditable) {
+      val painter = text_area.getPainter
+      val caret = text_area.getCaretPosition
+
+      // FIXME
+      def complete(item: Item) { }
+      val token_length = 0
+      val items: List[Item] = Nil
+
+      if (!items.isEmpty) {
+        val location = text_area.offsetToXY(caret - token_length)
+        if (location != null) {
+          location.y = location.y + painter.getFontMetrics.getHeight
+          SwingUtilities.convertPointToScreen(location, painter)
+          apply(Some(text_area.getView), painter, location, items, complete _)
+        }
+      }
+    }
   }
 }
 
@@ -186,12 +211,18 @@ class Completion_Popup private(
   def hide_popup()
   {
     opt_view match {
-      case Some(view) if view.getKeyEventInterceptor == key_listener =>
-        view.setKeyEventInterceptor(null)
-      case _ =>
+      case Some(view) =>
+        if (view.getKeyEventInterceptor == key_listener)
+          view.setKeyEventInterceptor(null)
+        popup.hide
+        view.getTextArea match {
+          case null =>
+          case text_area => text_area.requestFocus
+        }
+      case None =>
+        popup.hide
+        parent.requestFocus
     }
-    popup.hide
-    parent.requestFocus
   }
 }
 
