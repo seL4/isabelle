@@ -188,6 +188,9 @@ class Isabelle_Sidekick_Structure(
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
   "isabelle", PIDE.get_recent_syntax, PIDE.thy_load.buffer_node_name)
+{
+  override def supportsCompletion = false
+}
 
 
 class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
