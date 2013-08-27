@@ -49,6 +49,11 @@ object Rendering
     (jEdit.getIntegerProperty("view.fontsize", 16) * PIDE.options.real(scale)).toFloat
 
 
+  /* popup window bounds */
+
+  def popup_bounds: Double = (PIDE.options.real("jedit_popup_bounds") max 0.2) min 0.8
+
+
   /* token markup -- text styles */
 
   private val command_style: Map[String, Byte] =
@@ -372,7 +377,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
   val tooltip_margin: Int = options.int("jedit_tooltip_margin")
-  val tooltip_bounds: Double = (options.real("jedit_tooltip_bounds") max 0.2) min 0.8
 
   lazy val tooltip_close_icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))

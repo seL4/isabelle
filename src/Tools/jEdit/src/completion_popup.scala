@@ -203,16 +203,31 @@ class Completion_Popup private(
   {
     val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
-    val geometry = JEdit_Lib.window_geometry(completion, completion)
+    val x0 = root.getLocationOnScreen.x
+    val y0 = root.getLocationOnScreen.y
+    val w0 = root.getWidth
+    val h0 = root.getHeight
 
-    val w = geometry.width min (screen_bounds.width / 2)
-    val h = geometry.height min (screen_bounds.height / 2)
+    val (w, h) =
+    {
+      val geometry = JEdit_Lib.window_geometry(completion, completion)
+      val bounds = Rendering.popup_bounds
+      val w = geometry.width min (screen_bounds.width * bounds).toInt min w0
+      val h = geometry.height min (screen_bounds.height * bounds).toInt min h0
+      (w, h)
+    }
+
+    val (x, y) =
+    {
+      val x1 = x0 + w0 - w
+      val y1 = y0 + h0 - h
+      val x2 = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
+      val y2 = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
+      ((x2 min x1) max x0, (y2 min y1) max y0)
+    }
 
     completion.setSize(new Dimension(w, h))
     completion.setPreferredSize(new Dimension(w, h))
-
-    val x = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
-    val y = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
     PopupFactory.getSharedInstance.getPopup(root, completion, x, y)
   }
 

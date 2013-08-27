@@ -237,7 +237,7 @@ class Pretty_Tooltip private(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
       val geometry = JEdit_Lib.window_geometry(tip, tip.pretty_text_area.getPainter)
-      val bounds = rendering.tooltip_bounds
+      val bounds = Rendering.popup_bounds
 
       val h1 = painter.getFontMetrics.getHeight * (lines + 1) + geometry.deco_height
       val h2 = h0 min (screen_bounds.height * bounds).toInt
