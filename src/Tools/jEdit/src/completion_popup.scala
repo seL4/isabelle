@@ -28,16 +28,28 @@ object Completion_Popup
   { override def toString: String = description }
 
 
-  /* register single instance within root */
+  /* single instance within root */
+
+  def dismissed_view(view: View): Boolean = dismissed(view.getRootPane)
+
+  private def dismissed(root: JComponent): Boolean =
+  {
+    Swing_Thread.require()
+
+    root.getClientProperty(Completion_Popup) match {
+      case old_completion: Completion_Popup =>
+        old_completion.hide_popup
+        true
+      case _ =>
+        false
+    }
+  }
 
   private def register(root: JComponent, completion: Completion_Popup)
   {
     Swing_Thread.require()
 
-    root.getClientProperty(Completion_Popup) match {
-      case old_completion: Completion_Popup => old_completion.hide_popup
-      case _ =>
-    }
+    dismissed(root)
     root.putClientProperty(Completion_Popup, completion)
   }
 
@@ -69,12 +81,12 @@ object Completion_Popup
     {
       Swing_Thread.require()
 
+      dismissed(text_area)
+
       val view = text_area.getView
       val root = view.getRootPane
       val buffer = text_area.getBuffer
       val painter = text_area.getPainter
-
-      register(root, null)
 
       if (buffer.isEditable && !evt.isConsumed) {
         get_syntax match {

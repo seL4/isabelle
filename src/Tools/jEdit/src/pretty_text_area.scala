@@ -177,7 +177,7 @@ class Pretty_Text_Area(
             evt.consume
 
           case KeyEvent.VK_ESCAPE =>
-            if (Pretty_Tooltip.dismissed_all()) evt.consume
+            if (PIDE.dismissed_popups(view)) evt.consume
 
           case _ =>
         }
