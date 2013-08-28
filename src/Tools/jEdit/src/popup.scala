@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/popup.scala
     Author:     Makarius
 
-Simple popup within layered pane, based on component with given geometry.
+Popup within layered pane.
 */
 
 package isabelle.jedit
@@ -9,17 +9,24 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.awt.{Point, Dimension}
 import javax.swing.{JLayeredPane, JComponent}
 
 
 class Popup(
   layered: JLayeredPane,
-  component: JComponent) extends javax.swing.Popup()
+  component: JComponent,
+  location: Point,
+  size: Dimension) extends javax.swing.Popup()
 {
   override def show
   {
+    component.setLocation(location)
+    component.setSize(size)
+    component.setPreferredSize(size)
     component.setOpaque(true)
     layered.add(component, JLayeredPane.POPUP_LAYER)
+    layered.moveToFront(component)
     layered.repaint(component.getBounds())
   }
 

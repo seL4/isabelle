@@ -249,41 +249,16 @@ class Completion_Popup private(
 
   private val popup =
   {
-    val screen_point = new Point(location.x, location.y)
-    SwingUtilities.convertPointToScreen(screen_point, layered)
-    val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
-
-    val w0 = layered.getWidth
-    val h0 = layered.getHeight
-
-    val (w, h) =
+    val screen = JEdit_Lib.screen_location(layered, location)
+    val size =
     {
       val geometry = JEdit_Lib.window_geometry(completion, completion)
       val bounds = Rendering.popup_bounds
-      val w = geometry.width min (screen_bounds.width * bounds).toInt min w0
-      val h = geometry.height min (screen_bounds.height * bounds).toInt min h0
-      (w, h)
+      val w = geometry.width min (screen.bounds.width * bounds).toInt min layered.getWidth
+      val h = geometry.height min (screen.bounds.height * bounds).toInt min layered.getHeight
+      new Dimension(w, h)
     }
-
-    val (x, y) =
-    {
-      val x0 = layered.getLocationOnScreen.x
-      val y0 = layered.getLocationOnScreen.y
-      val x1 = x0 + w0 - w
-      val y1 = y0 + h0 - h
-      val x2 = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
-      val y2 = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
-
-      val point = new Point((x2 min x1) max x0, (y2 min y1) max y0)
-      SwingUtilities.convertPointFromScreen(point, layered)
-      (point.x, point.y)
-    }
-
-    completion.setLocation(x, y)
-    completion.setSize(new Dimension(w, h))
-    completion.setPreferredSize(new Dimension(w, h))
-
-    new Popup(layered, completion)
+    new Popup(layered, completion, screen.relative(layered, size), size)
   }
 
   private def show_popup()

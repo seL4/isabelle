@@ -9,9 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
+import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle, Dimension}
 import java.awt.event.{KeyEvent, KeyListener}
-import javax.swing.{Icon, ImageIcon, JWindow}
+import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.annotation.tailrec
 
@@ -23,16 +23,42 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
 object JEdit_Lib
 {
-  /* bounds within multi-screen environment */
+  /* location within multi-screen environment */
 
-  def screen_bounds(screen_point: Point): Rectangle =
+  final case class Screen_Location(point: Point, bounds: Rectangle)
   {
+    def relative(parent: Component, size: Dimension): Point =
+    {
+      val w = size.width
+      val h = size.height
+
+      val x0 = parent.getLocationOnScreen.x
+      val y0 = parent.getLocationOnScreen.y
+      val x1 = x0 + parent.getWidth - w
+      val y1 = y0 + parent.getHeight - h
+      val x2 = point.x min (bounds.x + bounds.width - w)
+      val y2 = point.y min (bounds.y + bounds.height - h)
+
+      val location = new Point((x2 min x1) max x0, (y2 min y1) max y0)
+      SwingUtilities.convertPointFromScreen(location, parent)
+      location
+    }
+  }
+
+  def screen_location(component: Component, point: Point): Screen_Location =
+  {
+    val screen_point = new Point(point.x, point.y)
+    SwingUtilities.convertPointToScreen(screen_point, component)
+
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment
-    (for {
-      device <- ge.getScreenDevices.iterator
-      config <- device.getConfigurations.iterator
-      bounds = config.getBounds
-    } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+    val screen_bounds =
+      (for {
+        device <- ge.getScreenDevices.iterator
+        config <- device.getConfigurations.iterator
+        bounds = config.getBounds
+      } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+
+    Screen_Location(screen_point, screen_bounds)
   }
 
 
