@@ -17,9 +17,9 @@ class Popup(
   layered: JLayeredPane,
   component: JComponent,
   location: Point,
-  size: Dimension) extends javax.swing.Popup()
+  size: Dimension)
 {
-  override def show
+  def show
   {
     component.setLocation(location)
     component.setSize(size)
@@ -30,7 +30,7 @@ class Popup(
     layered.repaint(component.getBounds())
   }
 
-  override def hide
+  def hide
   {
     val bounds = component.getBounds()
     layered.remove(component)
