@@ -571,18 +571,18 @@ fun mk_strong_coinduct_thm coind rel_eqs rel_monos ctxt =
     |> unfold_thms ctxt unfolds
   end;
 
-fun fp_bnf construct_fp bs resBs eqs lthy =
+fun fp_bnf construct_fp bs resBs fp_eqs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
-    val (lhss, rhss) = split_list eqs;
+    val (lhss, rhss) = split_list fp_eqs;
 
     (* FIXME: because of "@ lhss", the output could contain type variables that are not in the
        input; also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
     fun fp_sort Ass =
       subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ lhss;
 
-    val name = mk_common_name (map Binding.name_of bs);
+    val common_name = mk_common_name (map Binding.name_of bs);
 
     fun raw_qualify b =
       let val s = Binding.name_of b in
@@ -594,7 +594,7 @@ fun fp_bnf construct_fp bs resBs eqs lthy =
         (empty_unfolds, lthy));
 
     fun qualify i =
-      let val namei = name ^ nonzero_string_of_int i;
+      let val namei = common_name ^ nonzero_string_of_int i;
       in Binding.qualify true namei end;
 
     val Ass = map (map dest_TFree) livess;

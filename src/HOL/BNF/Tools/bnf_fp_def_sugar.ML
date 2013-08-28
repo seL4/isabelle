@@ -1119,8 +1119,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
            dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...},
            lthy)) =
-      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
-        no_defs_lthy0;
+      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
+        fake_Ts fp_eqs no_defs_lthy0;
 
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
