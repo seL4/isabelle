@@ -285,7 +285,11 @@ object Token_Markup
   def refresh_buffer(buffer: JEditBuffer)
   {
     buffer.setTokenMarker(jEdit.getMode("text").getTokenMarker)
-    markers.get(buffer.getMode.getName).map(buffer.setTokenMarker(_))
+    // FIXME potential NPE ahead!?!
+    val mode = buffer.getMode
+    val name = mode.getName
+    val marker = markers.get(name)
+    marker.map(buffer.setTokenMarker(_))
   }
 }
 
