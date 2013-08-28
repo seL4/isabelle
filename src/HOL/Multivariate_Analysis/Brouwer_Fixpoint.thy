@@ -96,12 +96,15 @@ lemma setsum_Un_disjoint':
   shows "setsum g C = setsum g A + setsum g B"
   using setsum_Un_disjoint[OF assms(1-3)] and assms(4) by auto
 
-lemma kuhn_counting_lemma: assumes "finite faces" "finite simplices"
-  "\<forall>f\<in>faces. bnd f  \<longrightarrow> (card {s \<in> simplices. face f s} = 1)"
-  "\<forall>f\<in>faces. \<not> bnd f \<longrightarrow> (card {s \<in> simplices. face f s} = 2)"
-  "\<forall>s\<in>simplices. compo s  \<longrightarrow> (card {f \<in> faces. face f s \<and> compo' f} = 1)"
-  "\<forall>s\<in>simplices. \<not> compo s \<longrightarrow> (card {f \<in> faces. face f s \<and> compo' f} = 0) \<or>
-                             (card {f \<in> faces. face f s \<and> compo' f} = 2)"
+lemma kuhn_counting_lemma:
+  assumes
+    "finite faces"
+    "finite simplices"
+    "\<forall>f\<in>faces. bnd f \<longrightarrow> (card {s \<in> simplices. face f s} = 1)"
+    "\<forall>f\<in>faces. \<not> bnd f \<longrightarrow> (card {s \<in> simplices. face f s} = 2)"
+    "\<forall>s\<in>simplices. compo s \<longrightarrow> (card {f \<in> faces. face f s \<and> compo' f} = 1)"
+    "\<forall>s\<in>simplices. \<not> compo s \<longrightarrow>
+      (card {f \<in> faces. face f s \<and> compo' f} = 0) \<or> (card {f \<in> faces. face f s \<and> compo' f} = 2)"
     "odd(card {f \<in> faces. compo' f \<and> bnd f})"
   shows "odd(card {s \<in> simplices. compo s})"
 proof -
@@ -118,28 +121,39 @@ proof -
     using assms(1)
     apply (auto simp add: card_Un_Int, auto simp add:conj_commute)
     done
-  have lem2:"setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> bnd f}. face f j}) simplices =
-              1 * card {f \<in> faces. compo' f \<and> bnd f}"
-       "setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> \<not> bnd f}. face f j}) simplices =
-              2 * card {f \<in> faces. compo' f \<and> \<not> bnd f}"
+  have lem2:
+    "setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> bnd f}. face f j}) simplices =
+      1 * card {f \<in> faces. compo' f \<and> bnd f}"
+    "setsum (\<lambda>j. card {f \<in> {f \<in> faces. compo' f \<and> \<not> bnd f}. face f j}) simplices =
+      2 * card {f \<in> faces. compo' f \<and> \<not> bnd f}"
     apply(rule_tac[!] setsum_multicount)
     using assms
     apply auto
     done
-  have lem3:"setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) simplices =
-    setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices.   compo s}+
-    setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. \<not> compo s}"
-    apply(rule setsum_Un_disjoint') using assms(2) by auto
-  have lem4:"setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. compo s}
-    = setsum (\<lambda>s. 1) {s \<in> simplices. compo s}"
-    apply(rule setsum_cong2) using assms(5) by auto
+  have lem3:
+    "setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) simplices =
+      setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices.   compo s}+
+      setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. \<not> compo s}"
+    apply (rule setsum_Un_disjoint')
+    using assms(2)
+    apply auto
+    done
+  have lem4: "setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. compo s} =
+    setsum (\<lambda>s. 1) {s \<in> simplices. compo s}"
+    apply (rule setsum_cong2)
+    using assms(5)
+    apply auto
+    done
   have lem5: "setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f}) {s \<in> simplices. \<not> compo s} =
     setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f})
            {s \<in> simplices. (\<not> compo s) \<and> (card {f \<in> faces. face f s \<and> compo' f} = 0)} +
     setsum (\<lambda>s. card {f \<in> faces. face f s \<and> compo' f})
            {s \<in> simplices. (\<not> compo s) \<and> (card {f \<in> faces. face f s \<and> compo' f} = 2)}"
-    apply(rule setsum_Un_disjoint') using assms(2,6) by auto
-  have *:"int (\<Sum>s\<in>{s \<in> simplices. compo s}. card {f \<in> faces. face f s \<and> compo' f}) =
+    apply (rule setsum_Un_disjoint')
+    using assms(2,6)
+    apply auto
+    done
+  have *: "int (\<Sum>s\<in>{s \<in> simplices. compo s}. card {f \<in> faces. face f s \<and> compo' f}) =
     int (card {f \<in> faces. compo' f \<and> bnd f} + 2 * card {f \<in> faces. compo' f \<and> \<not> bnd f}) -
     int (card {s \<in> simplices. \<not> compo s \<and> card {f \<in> faces. face f s \<and> compo' f} = 2} * 2)"
     using lem1[unfolded lem3 lem2 lem5] by auto
@@ -229,7 +243,8 @@ proof -
     apply (rule set_eqI)
     unfolding singleton_iff
     apply (rule, rule inj[unfolded inj_on_def, rule_format])
-    unfolding a using a(2) and assms and inj[unfolded inj_on_def] apply auto
+    unfolding a using a(2) and assms and inj[unfolded inj_on_def]
+    apply auto
     done
   show ?thesis
     apply (rule image_lemma_0)
@@ -247,7 +262,8 @@ proof (cases "{a\<in>s. f ` (s - {a}) = t - {b}} = {}")
   then show ?thesis
     apply -
     apply (rule disjI1, rule image_lemma_0)
-    using assms(1) apply auto
+    using assms(1)
+    apply auto
     done
 next
   let ?M = "{a\<in>s. f ` (s - {a}) = t - {b}}"
@@ -319,7 +335,9 @@ proof (rule_tac[1-2] ballI impI)+
     using assms(3) by (auto intro: card_ge_0_finite)
   show "finite {f. \<exists>s\<in>simplices. face f s}"
     unfolding assms(2)[rule_format] and *
-    apply (rule finite_UN_I[OF assms(1)]) using ** apply auto
+    apply (rule finite_UN_I[OF assms(1)])
+    using **
+    apply auto
     done
   have *: "\<And>P f s. s\<in>simplices \<Longrightarrow> (f \<in> {f. \<exists>s\<in>simplices. \<exists>a\<in>s. f = s - {a}}) \<and>
     (\<exists>a\<in>s. (f = s - {a})) \<and> P f \<longleftrightarrow> (\<exists>a\<in>s. (f = s - {a}) \<and> P f)" by auto
@@ -336,7 +354,8 @@ proof (rule_tac[1-2] ballI impI)+
   show "rl ` s = {0..n+1} \<Longrightarrow> card ?S = 1" "rl ` s \<noteq> {0..n+1} \<Longrightarrow> card ?S = 0 \<or> card ?S = 2"
     unfolding S
     apply(rule_tac[!] image_lemma_1 image_lemma_2)
-    using ** assms(4) and s apply auto
+    using ** assms(4) and s
+    apply auto
     done
 qed
 
@@ -429,9 +448,9 @@ lemma kle_imp_pointwise: "kle n x y \<Longrightarrow> (\<forall>j. x j \<le> y j
 
 lemma pointwise_antisym:
   fixes x :: "nat \<Rightarrow> nat"
-  shows "(\<forall>j. x j \<le> y j) \<and> (\<forall>j. y j \<le> x j) \<longleftrightarrow> (x = y)"
+  shows "(\<forall>j. x j \<le> y j) \<and> (\<forall>j. y j \<le> x j) \<longleftrightarrow> x = y"
   apply (rule, rule ext, erule conjE)
-  apply (erule_tac x=xa in allE)+
+  apply (erule_tac x = xa in allE)+
   apply auto
   done
 
@@ -491,11 +510,12 @@ proof -
     apply (rule pointwise_minimal_pointwise_maximal(1)[OF assms(1-2)])
     apply (rule, rule)
     apply (drule_tac assms(3)[rule_format], assumption)
-    using kle_imp_pointwise apply auto
+    using kle_imp_pointwise
+    apply auto
     done
   then guess a .. note a = this
   show ?thesis
-    apply (rule_tac x=a in bexI)
+    apply (rule_tac x = a in bexI)
   proof
     fix x
     assume "x \<in> s"
@@ -504,13 +524,14 @@ proof -
       apply -
     proof (erule disjE)
       assume "kle n x a"
-      hence "x = a"
+      then have "x = a"
         apply -
         unfolding pointwise_antisym[symmetric]
         apply (drule kle_imp_pointwise)
-        using a(2)[rule_format,OF `x\<in>s`] apply auto
+        using a(2)[rule_format,OF `x\<in>s`]
+        apply auto
         done
-      thus ?thesis using kle_refl by auto
+      then show ?thesis using kle_refl by auto
     qed
   qed (insert a, auto)
 qed
@@ -565,16 +586,18 @@ lemma kle_range_combine:
     "m1 \<le> card {k\<in>{1..n}. x k < y k}"
     "m2 \<le> card {k\<in>{1..n}. y k < z k}"
   shows "kle n x z \<and> m1 + m2 \<le> card {k\<in>{1..n}. x k < z k}"
-    apply (rule, rule kle_trans[OF assms(1-3)])
+  apply (rule, rule kle_trans[OF assms(1-3)])
 proof -
   have "\<And>j. x j < y j \<Longrightarrow> x j < z j"
     apply (rule less_le_trans)
-    using kle_imp_pointwise[OF assms(2)] apply auto
+    using kle_imp_pointwise[OF assms(2)]
+    apply auto
     done
   moreover
   have "\<And>j. y j < z j \<Longrightarrow> x j < z j"
     apply (rule le_less_trans)
-    using kle_imp_pointwise[OF assms(1)] apply auto
+    using kle_imp_pointwise[OF assms(1)]
+    apply auto
     done
   ultimately
   have *: "{k\<in>{1..n}. x k < y k} \<union> {k\<in>{1..n}. y k < z k} = {k\<in>{1..n}. x k < z k}"
@@ -695,7 +718,8 @@ proof -
   show ?thesis
     unfolding kle_def
     apply (rule_tac x="kk1 \<union> kk2" in exI)
-    apply (rule) defer
+    apply rule
+    defer
   proof
     fix i
     show "c i = a i + (if i \<in> kk1 \<union> kk2 then 1 else 0)"
@@ -746,7 +770,7 @@ qed
 
 lemma kle_adjacent:
   assumes "\<forall>j. b j = (if j = k then a(j) + 1 else a j)" "kle n a x" "kle n x b"
-  shows "(x = a) \<or> (x = b)"
+  shows "x = a \<or> x = b"
 proof (cases "x k = a k")
   case True
   show ?thesis
@@ -761,7 +785,8 @@ proof (cases "x k = a k")
       using True
       apply auto
       done
-    thus "x j = a j" using kle_imp_pointwise[OF assms(2),THEN spec[where x=j]] by auto
+    then show "x j = a j"
+      using kle_imp_pointwise[OF assms(2),THEN spec[where x=j]] by auto
   qed
 next
   case False
@@ -774,7 +799,7 @@ next
       apply -
       apply(cases "j = k")
       using False by auto
-    thus "x j = b j"
+    then show "x j = b j"
       using kle_imp_pointwise[OF assms(3),THEN spec[where x=j]]
     by auto
   qed
@@ -830,12 +855,14 @@ next
     using kle_range_induct[of s n n] using assm by auto
   have "kle n c b \<and> n \<le> card {k \<in> {1..n}. c k < b k}"
     apply (rule kle_range_combine_r[where y=d])
-    using c_d a b apply auto
+    using c_d a b
+    apply auto
     done
   hence "kle n a b \<and> n \<le> card {k\<in>{1..n}. a(k) < b(k)}"
     apply -
     apply (rule kle_range_combine_l[where y=c])
-    using a `c \<in> s` `b \<in> s` apply auto
+    using a `c \<in> s` `b \<in> s`
+    apply auto
     done
   moreover
   have "card {1..n} \<ge> card {k\<in>{1..n}. a(k) < b(k)}"
@@ -905,16 +932,18 @@ next
   case False
   then obtain b where b: "b\<in>s" "\<not> kle n b a" "\<forall>x\<in>{x \<in> s. \<not> kle n x a}. kle n b x"
     using kle_minimal[of "{x\<in>s. \<not> kle n x a}" n] and assm by auto
-  hence  **: "1 \<le> card {k\<in>{1..n}. a k < b k}"
+  then have **: "1 \<le> card {k\<in>{1..n}. a k < b k}"
     apply -
     apply (rule kle_strict_set)
-    using assm(6) and `a\<in>s` apply (auto simp add:kle_refl)
+    using assm(6) and `a\<in>s`
+    apply (auto simp add:kle_refl)
     done
 
   let ?kle1 = "{x \<in> s. \<not> kle n x a}"
   have "card ?kle1 > 0"
     apply (rule ccontr)
-    using assm(2) and False apply auto
+    using assm(2) and False
+    apply auto
     done
   hence sizekle1: "card ?kle1 = Suc (card ?kle1 - 1)"
     using assm(2) by auto
@@ -925,7 +954,8 @@ next
   let ?kle2 = "{x \<in> s. kle n x a}"
   have "card ?kle2 > 0"
     apply (rule ccontr)
-    using assm(6)[rule_format,of a a] and `a\<in>s` and assm(2) apply auto
+    using assm(6)[rule_format,of a a] and `a\<in>s` and assm(2)
+    apply auto
     done
   hence sizekle2: "card ?kle2 = Suc (card ?kle2 - 1)"
     using assm(2) by auto
@@ -948,11 +978,13 @@ next
       by auto
     have "kle n e a \<and> card {x \<in> s. kle n x a} - 1 \<le> card {k \<in> {1..n}. e k < a k}"
       apply (rule kle_range_combine_r[where y=f])
-      using e_f using `a\<in>s` assm(6) apply auto
+      using e_f using `a\<in>s` assm(6)
+      apply auto
       done
     moreover have "kle n b d \<and> card {x \<in> s. \<not> kle n x a} - 1 \<le> card {k \<in> {1..n}. b k < d k}"
       apply (rule kle_range_combine_l[where y=c])
-      using c_d using assm(6) and b apply auto
+      using c_d using assm(6) and b
+      apply auto
       done
     hence "kle n a d \<and> 2 + (card {x \<in> s. \<not> kle n x a} - 1) \<le> card {k \<in> {1..n}. a k < d k}"
       apply -
@@ -983,24 +1015,27 @@ next
     have kkk: "k \<in> kk"
       apply (rule ccontr)
       using k(1)
-      unfolding kk apply auto
+      unfolding kk
+      apply auto
       done
     show "b j = (if j = k then a j + 1 else a j)"
     proof (cases "j \<in> kk")
       case True
-      hence "j = k"
-      apply - apply (rule k(2)[rule_format])
-      using kk_raw kkk apply auto
-      done
-      thus ?thesis unfolding kk using kkk by auto
+      then have "j = k"
+        apply -
+        apply (rule k(2)[rule_format])
+        using kk_raw kkk
+        apply auto
+        done
+      then show ?thesis unfolding kk using kkk by auto
     next
       case False
-      hence "j \<noteq> k"
+      then have "j \<noteq> k"
         using k(2)[rule_format, of j k] and kk_raw kkk by auto
-      thus ?thesis unfolding kk using kkk and False
+      then show ?thesis unfolding kk using kkk and False
         by auto
     qed
-  qed(insert k(1) `b\<in>s`, auto)
+  qed (insert k(1) `b\<in>s`, auto)
 qed
 
 lemma ksimplex_predecessor:
@@ -1017,13 +1052,15 @@ next
   hence **: "1 \<le> card {k\<in>{1..n}. a k > b k}"
     apply -
     apply (rule kle_strict_set)
-    using assm(6) and `a\<in>s` apply (auto simp add: kle_refl)
+    using assm(6) and `a\<in>s`
+    apply (auto simp add: kle_refl)
     done
 
   let ?kle1 = "{x \<in> s. \<not> kle n a x}"
   have "card ?kle1 > 0"
     apply (rule ccontr)
-    using assm(2) and False apply auto
+    using assm(2) and False
+    apply auto
     done
   hence sizekle1: "card ?kle1 = Suc (card ?kle1 - 1)"
     using assm(2) by auto
@@ -1034,7 +1071,8 @@ next
   let ?kle2 = "{x \<in> s. kle n a x}"
   have "card ?kle2 > 0"
     apply (rule ccontr)
-    using assm(6)[rule_format,of a a] and `a\<in>s` and assm(2) apply auto
+    using assm(6)[rule_format,of a a] and `a\<in>s` and assm(2)
+    apply auto
     done
   hence sizekle2:"card ?kle2 = Suc (card ?kle2 - 1)"
     using assm(2) by auto
@@ -1057,11 +1095,13 @@ next
       by auto
     have "kle n a e \<and> card {x \<in> s. kle n a x} - 1 \<le> card {k \<in> {1..n}. e k > a k}"
       apply (rule kle_range_combine_l[where y=f])
-      using e_f and `a\<in>s` assm(6) apply auto
+      using e_f and `a\<in>s` assm(6)
+      apply auto
       done
     moreover have "kle n d b \<and> card {x \<in> s. \<not> kle n a x} - 1 \<le> card {k \<in> {1..n}. b k > d k}"
       apply (rule kle_range_combine_r[where y=c])
-      using c_d and assm(6) and b apply auto
+      using c_d and assm(6) and b
+      apply auto
       done
     hence "kle n d a \<and> (card {x \<in> s. \<not> kle n a x} - 1) + 2 \<le> card {k \<in> {1..n}. a k > d k}"
       apply -
@@ -1071,7 +1111,8 @@ next
     ultimately have "kle n d e \<and> (card ?kle1 - 1 + 2) + (card ?kle2 - 1) \<le> card {k\<in>{1..n}. e k > d k}"
       apply -
       apply (rule kle_range_combine[where y=a])
-      using assm(6)[rule_format,OF `e\<in>s` `d\<in>s`] apply blast+
+      using assm(6)[rule_format,OF `e\<in>s` `d\<in>s`]
+      apply blast+
       done
     moreover have "card {k \<in> {1..n}. e k > d k} \<le> card {1..n}"
       by (rule card_mono) auto
@@ -1100,7 +1141,8 @@ next
       hence "j = k"
         apply -
         apply (rule k(2)[rule_format])
-        using kk_raw kkk apply auto
+        using kk_raw kkk
+        apply auto
         done
       thus ?thesis unfolding kk using kkk by auto
     next
@@ -1123,14 +1165,14 @@ lemma card_funspace':
   using assms
   apply -
 proof (induct m arbitrary: s)
-  have *:"{f. \<forall>x. f x = d} = {\<lambda>x. d}"
+  case 0
+  have [simp]: "{f. \<forall>x. f x = d} = {\<lambda>x. d}"
     apply (rule set_eqI,rule)
     unfolding mem_Collect_eq
     apply (rule, rule ext)
     apply auto
     done
-  case 0
-  thus ?case by(auto simp add: *)
+  from 0 show ?case by auto
 next
   case (Suc m)
   guess a using card_eq_SucD[OF Suc(4)] ..
@@ -1254,9 +1296,8 @@ proof
       then guess k unfolding kle_def .. note k = this
       hence *: "n + 1 \<notin> k" using xyp by auto
       have "\<not> (\<exists>x\<in>k. x\<notin>{1..n})"
-        apply (rule ccontr)
-        unfolding not_not
-        apply(erule bexE)
+        apply (rule notI)
+        apply (erule bexE)
       proof -
         fix x
         assume as: "x \<in> k" "x \<notin> {1..n}"
@@ -1276,23 +1317,25 @@ proof
       hence "kle (n + 1) y x"
         using ksimplexD(6)[OF sa(1),rule_format, of x y] and as by auto
       then guess k unfolding kle_def .. note k = this
-      hence *: "n + 1 \<notin> k" using xyp by auto
-      hence "\<not> (\<exists>x\<in>k. x\<notin>{1..n})"
+      then have *: "n + 1 \<notin> k" using xyp by auto
+      then have "\<not> (\<exists>x\<in>k. x\<notin>{1..n})"
         apply -
-        apply (rule ccontr)
-        unfolding not_not
+        apply (rule notI)
         apply (erule bexE)
       proof -
         fix x
         assume as: "x \<in> k" "x \<notin> {1..n}"
         have "x \<noteq> n + 1" using as and * by auto
-        thus False using as and k[THEN conjunct1,unfolded subset_eq] by auto
+        then show False using as and k[THEN conjunct1,unfolded subset_eq] by auto
       qed
-      thus ?thesis
+      then show ?thesis
         apply -
         apply (rule disjI2)
         unfolding kle_def
-        using k apply (rule_tac x = k in exI) by auto
+        using k
+        apply (rule_tac x = k in exI)
+        apply auto
+        done
     qed
   next
     fix x j
@@ -1306,13 +1349,14 @@ proof
   qed (insert sa ksimplexD[OF sa(1)], auto)
 next
   assume ?rs note rs=ksimplexD[OF this]
-  guess a b apply (rule ksimplex_extrema[OF `?rs`]) . note ab = this
+  guess a b by (rule ksimplex_extrema[OF `?rs`]) note ab = this
   def c \<equiv> "\<lambda>i. if i = (n + 1) then p - 1 else a i"
   have "c \<notin> f"
-    apply (rule ccontr) unfolding not_not
+    apply (rule notI)
     apply (drule assms(2)[rule_format])
     unfolding c_def
-    using assms(1) apply auto
+    using assms(1)
+    apply auto
     done
   thus ?ls
     apply (rule_tac x = "insert c f" in exI, rule_tac x = c in exI)
@@ -1334,12 +1378,16 @@ next
       show ?thesis
         unfolding True c_def
         apply (cases "j=n+1")
-        using ab(1) and rs(4) apply auto
+        using ab(1) and rs(4)
+        apply auto
         done
     qed (insert x rs(4), auto simp add:c_def)
     show "j \<notin> {1..n + 1} \<longrightarrow> x j = p"
       apply (cases "x = c")
-      using x ab(1) rs(5) unfolding c_def by auto
+      using x ab(1) rs(5)
+      unfolding c_def
+      apply auto
+      done
     {
       fix z
       assume z: "z \<in> insert c f"
@@ -1367,9 +1415,9 @@ next
     assume y: "y \<in> insert c f"
     show "kle (n + 1) x y \<or> kle (n + 1) y x"
     proof (cases "x = c \<or> y = c")
-      case False hence **:"x\<in>f" "y\<in>f" using x y by auto
+      case False hence **: "x \<in> f" "y \<in> f" using x y by auto
       show ?thesis using rs(6)[rule_format,OF **]
-        by(auto dest: kle_Suc)
+        by (auto dest: kle_Suc)
     qed (insert * x y, auto)
   qed (insert rs, auto)
 qed
@@ -1385,7 +1433,9 @@ proof -
     apply (rule ccontr)
     using *[OF assms(3), of a0 a1]
     unfolding assms(6)[THEN spec[where x=j]]
-    using assms(1-2,4-5) by auto
+    using assms(1-2,4-5)
+    apply auto
+    done
 qed
 
 lemma ksimplex_fix_plane_0:
@@ -1407,11 +1457,11 @@ lemma ksimplex_fix_plane_p:
 proof (rule ccontr)
   note s = ksimplexD[OF assms(1),rule_format]
   assume as: "a \<noteq> a0"
-  hence *: "a0 \<in> s - {a}"
+  then have *: "a0 \<in> s - {a}"
     using assms(5) by auto
-  hence "a1 = a"
+  then have "a1 = a"
     using ksimplex_fix_plane[OF assms(2-)] by auto
-  thus False
+  then show False
     using as and assms(3,5) and assms(7)[rule_format,of j]
     unfolding assms(4)[rule_format,OF *]
     using s(4)[OF assms(6), of j]
@@ -1430,7 +1480,8 @@ proof -
     guess a0 a1 by (rule ksimplex_extrema_strong[OF assms(1,3)]) note exta = this[rule_format]
     have a:"a = a1"
       apply (rule ksimplex_fix_plane_0[OF assms(2,4-5)])
-      using exta(1-2,5) apply auto
+      using exta(1-2,5)
+      apply auto
       done
     moreover
     guess b0 b1 by (rule ksimplex_extrema_strong[OF goal1(1) assms(3)])
@@ -1438,7 +1489,9 @@ proof -
     have a': "a' = b1"
       apply (rule ksimplex_fix_plane_0[OF goal1(2) assms(4), of b0])
       unfolding goal1(3)
-      using assms extb goal1 apply auto done
+      using assms extb goal1
+      apply auto
+      done
     moreover
     have "b0 = a0"
       unfolding kle_antisym[symmetric, of b0 a0 n]
@@ -1454,7 +1507,8 @@ proof -
     show "s' = s"
       apply -
       apply (rule *[of _ a1 b1])
-      using exta(1-2) extb(1-2) goal1 apply auto
+      using exta(1-2) extb(1-2) goal1
+      apply auto
       done
   qed
   show ?thesis
@@ -1465,7 +1519,8 @@ proof -
     defer
     apply (erule conjE bexE)+
     apply (rule_tac a'=b in **)
-    using assms(1,2) apply auto
+    using assms(1,2)
+    apply auto
     done
 qed
 
@@ -3140,11 +3195,13 @@ proof (rule ccontr)
         using i label(1)[of i y] by auto
       show "x \<bullet> i \<le> f x \<bullet> i"
         apply (rule label(4)[rule_format])
-        using xy lx i(2) apply auto
+        using xy lx i(2)
+        apply auto
         done
       show "f y \<bullet> i \<le> y \<bullet> i"
         apply (rule label(5)[rule_format])
-        using xy ly i(2) apply auto
+        using xy ly i(2)
+        apply auto
         done
     next
       assume "label x i \<noteq> 0"
@@ -3152,11 +3209,13 @@ proof (rule ccontr)
         using i label(1)[of i x] label(1)[of i y] by auto
       show "f x \<bullet> i \<le> x \<bullet> i"
         apply (rule label(5)[rule_format])
-        using xy l i(2) apply auto
+        using xy l i(2)
+        apply auto
         done
       show "y \<bullet> i \<le> f y \<bullet> i"
         apply (rule label(4)[rule_format])
-        using xy l i(2) apply auto
+        using xy l i(2)
+        apply auto
         done
     qed
     also have "\<dots> \<le> norm (f y - f x) + norm (y - x)"
@@ -3206,21 +3265,25 @@ proof (rule ccontr)
           unfolding norm_minus_commute by auto
         also have "\<dots> < e / 2 + e / 2"
           apply (rule add_strict_mono)
-          using as(4,5) apply auto
+          using as(4,5)
+          apply auto
           done
         finally show "norm (f y - f x) < d / real n / 8"
           apply -
           apply (rule e(2))
-          using as apply auto
+          using as
+          apply auto
           done
         have "norm (y - z) + norm (x - z) < d / real n / 8 + d / real n / 8"
           apply (rule add_strict_mono)
-          using as apply auto
+          using as
+          apply auto
           done
         thus "norm (y - x) < 2 * (d / real n / 8)" using tria by auto
         show "norm (f x - f z) < d / real n / 8"
           apply (rule e(2))
-          using as e(1) apply auto
+          using as e(1)
+          apply auto
           done
       qed (insert as, auto)
     qed
@@ -3231,9 +3294,10 @@ proof (rule ccontr)
     apply (rule add_pos_pos)
     defer
     apply (rule divide_pos_pos)
-    using e(1) n apply auto
+    using e(1) n
+    apply auto
     done
-  hence "p > 0" using p by auto
+  then have "p > 0" using p by auto
 
   obtain b :: "nat \<Rightarrow> 'a" where b: "bij_betw b {1..n} Basis"
     by atomize_elim (auto simp: n_def intro!: finite_same_card_bij)
@@ -3316,7 +3380,8 @@ proof (rule ccontr)
   have "\<And>i. i \<in> Basis \<Longrightarrow> r (b' i) \<le> p"
     apply (rule order_trans)
     apply (rule rs(1)[OF b'_im,THEN conjunct2])
-    using q(1)[rule_format,OF b'_im] apply (auto simp add: Suc_le_eq)
+    using q(1)[rule_format,OF b'_im]
+    apply (auto simp add: Suc_le_eq)
     done
   hence "r' \<in> {0..\<Sum>Basis}"
     unfolding r'_def mem_interval using b'_Basis
@@ -3325,7 +3390,8 @@ proof (rule ccontr)
   have "\<And>i. i\<in>Basis \<Longrightarrow> s (b' i) \<le> p"
     apply (rule order_trans)
     apply (rule rs(2)[OF b'_im, THEN conjunct2])
-    using q(1)[rule_format,OF b'_im] apply (auto simp add: Suc_le_eq)
+    using q(1)[rule_format,OF b'_im]
+    apply (auto simp add: Suc_le_eq)
     done
   hence "s' \<in> {0..\<Sum>Basis}"
     unfolding s'_def mem_interval using b'_Basis
@@ -3336,7 +3402,8 @@ proof (rule ccontr)
   have *: "\<And>x. 1 + real x = real (Suc x)" by auto
   { have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
-      using rs(1)[OF b'_im] apply (auto simp add:* field_simps)
+      using rs(1)[OF b'_im]
+      apply (auto simp add:* field_simps)
       done
     also have "\<dots> < e * real p" using p `e>0` `p>0`
       by (auto simp add: field_simps n_def real_of_nat_def)
@@ -3345,7 +3412,8 @@ proof (rule ccontr)
   moreover
   { have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)"
       apply (rule setsum_mono)
-      using rs(2)[OF b'_im] apply (auto simp add:* field_simps)
+      using rs(2)[OF b'_im]
+      apply (auto simp add:* field_simps)
       done
     also have "\<dots> < e * real p" using p `e > 0` `p > 0`
       by (auto simp add: field_simps n_def real_of_nat_def)
@@ -3467,7 +3535,8 @@ proof -
     defer
     apply (erule bexE)
     apply (rule_tac x=y in that)
-    using assms apply auto
+    using assms
+    apply auto
     done
 qed
 
@@ -3599,7 +3668,8 @@ proof -
   have "((x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (v \<bullet> i - u \<bullet> i) \<le> 1 * (v \<bullet> i - u \<bullet> i)"
     apply (rule mult_right_mono)
     unfolding divide_le_eq_1
-    using * x apply auto
+    using * x
+    apply auto
     done
   thus "u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i) \<le> v \<bullet> i"
     using * by auto
