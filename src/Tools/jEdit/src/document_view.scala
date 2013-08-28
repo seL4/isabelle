@@ -151,7 +151,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private val key_listener =
     JEdit_Lib.key_listener(
-      key_typed = Completion_Popup.input_text_area(text_area, PIDE.get_recent_syntax, _),
+      key_typed = Completion_Popup.Text_Area.input(text_area, PIDE.get_recent_syntax, _),
       key_pressed = (evt: KeyEvent) =>
         {
           if (evt.getKeyCode == KeyEvent.VK_ESCAPE && Pretty_Tooltip.dismissed_all())
