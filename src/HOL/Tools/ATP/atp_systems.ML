@@ -529,8 +529,7 @@ val spass_config : atp_config =
        |> extra_options <> "" ? prefix (extra_options ^ " "),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
-     [(OldSPASS, "Unrecognized option Isabelle"),
-      (GaveUp, "SPASS beiseite: Completion found"),
+     [(GaveUp, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
