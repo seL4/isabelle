@@ -103,8 +103,7 @@ val missing_message_tail =
 
 fun involving [] = ""
   | involving ss =
-    "involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss)) ^
-    " "
+    " involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
 fun string_of_failure Unprovable = "The generated problem is unprovable."
   | string_of_failure GaveUp = "The prover gave up."
@@ -114,13 +113,13 @@ fun string_of_failure Unprovable = "The generated problem is unprovable."
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \(or unparsable) proof."
   | string_of_failure (UnsoundProof (false, ss)) =
-    "The prover found an unsound proof " ^ involving ss ^
-    "(or, less likely, your axioms are inconsistent). Specify a sound type \
-    \encoding or omit the \"type_enc\" option."
+    "The prover derived \"False\" using" ^ involving ss ^
+    ". Specify a sound type encoding or omit the \"type_enc\" option."
   | string_of_failure (UnsoundProof (true, ss)) =
-    "The prover found an unsound proof " ^ involving ss ^
-    "(or, less likely, your axioms are inconsistent). Please report this to \
-    \the Isabelle developers."
+    "The prover derived \"False\" using" ^ involving ss ^
+    ". This could be due to inconsistent axioms (including \"sorry\"s) or to \
+    \a bug in Sledgehammer. If the problem persists, please contact the \
+    \Isabelle developers."
   | string_of_failure CantConnect = "Cannot connect to remote server."
   | string_of_failure TimedOut = "Timed out."
   | string_of_failure Inappropriate =

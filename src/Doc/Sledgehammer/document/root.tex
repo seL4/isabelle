@@ -601,14 +601,15 @@ option (\S\ref{mode-of-operation}).
 \point{A strange error occurred---what should I do?}
 
 Sledgehammer tries to give informative error messages. Please report any strange
-error to the author at \authoremail. This applies double if you get the message
+error to the author at \authoremail. This applies doubly if you get the message
 
 \prew
 \slshape
-The prover found a type-unsound proof involving ``\textit{foo\/}'',
-``\textit{bar\/}'', and ``\textit{baz\/}'' even though a supposedly type-sound
-encoding was used (or, less likely, your axioms are inconsistent). You might
-want to report this to the Isabelle developers.
+The prover derived ``\textit{False}'' using ``\textit{foo\/}'',
+``\textit{bar\/}'', and ``\textit{baz\/}''.
+This could be due to inconsistent axioms (including ``\textbf{sorry}''s) or to
+a bug in Sledgehammer. If the problem persists, please contact the
+Isabelle developers.
 \postw
 
 \point{Auto can solve it---why not Sledgehammer?}
