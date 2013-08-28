@@ -76,7 +76,7 @@ object Completion_Popup
 
       register(root, null)
 
-      if (buffer.isEditable) {
+      if (buffer.isEditable && !evt.isConsumed) {
         get_syntax match {
           case Some(syntax) =>
             val caret = text_area.getCaretPosition
@@ -114,7 +114,7 @@ object Completion_Popup
                       override def complete(item: Item) { insert(text_area, item) }
                       override def propagate(e: KeyEvent) {
                         JEdit_Lib.propagate_key(view, e)
-                        if (!e.isConsumed) input(text_area, get_syntax, e)
+                        input(text_area, get_syntax, e)
                       }
                       override def refocus() { text_area.requestFocus }
                     }
