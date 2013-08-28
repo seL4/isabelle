@@ -75,8 +75,8 @@ fun get_quot_thm ctxt s =
   end
 
 fun get_pcrel_info ctxt s =
-  case #pcrel_info (get_quot_data ctxt s) of
-    SOME pcrel_info => pcrel_info
+  case #pcr_info (get_quot_data ctxt s) of
+    SOME pcr_info => pcr_info
   | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
     [Pretty.str ("No parametrized correspondce relation for " ^ quote s), 
      Pretty.brk 1, 
@@ -100,7 +100,7 @@ fun get_rel_quot_thm ctxt s =
    let
     val thy = Proof_Context.theory_of ctxt
   in
-    (case Lifting_Info.lookup_quotmaps ctxt s of
+    (case Lifting_Info.lookup_quot_maps ctxt s of
       SOME map_data => Thm.transfer thy (#rel_quot_thm map_data)
     | NONE => raise QUOT_THM_INTERNAL (Pretty.block 
       [Pretty.str ("No relator for the type " ^ quote s), 

@@ -6,18 +6,15 @@ Context data for the lifting package.
 
 signature LIFTING_INFO =
 sig
-  type quotmaps = {rel_quot_thm: thm}
-  val lookup_quotmaps: Proof.context -> string -> quotmaps option
-  val lookup_quotmaps_global: theory -> string -> quotmaps option
-  val print_quotmaps: Proof.context -> unit
-
-  type pcrel_info = {pcrel_def: thm, pcr_cr_eq: thm}
-  type quotients = {quot_thm: thm, pcrel_info: pcrel_info option}
-  val transform_quotients: morphism -> quotients -> quotients
-  val lookup_quotients: Proof.context -> string -> quotients option
-  val lookup_quotients_global: theory -> string -> quotients option
-  val update_quotients: string -> quotients -> Context.generic -> Context.generic
-  val dest_quotients: Proof.context -> quotients list
+  type quot_map = {rel_quot_thm: thm}
+  val lookup_quot_maps: Proof.context -> string -> quot_map option
+  val print_quot_maps: Proof.context -> unit
+  
+  type pcr = {pcrel_def: thm, pcr_cr_eq: thm}
+  type quotient = {quot_thm: thm, pcr_info: pcr option}
+  val transform_quotient: morphism -> quotient -> quotient
+  val lookup_quotients: Proof.context -> string -> quotient option
+  val update_quotients: string -> quotient -> Context.generic -> Context.generic
   val print_quotients: Proof.context -> unit
 
   val get_invariant_commute_rules: Proof.context -> thm list
@@ -29,7 +26,10 @@ sig
   type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
     pos_distr_rules: thm list, neg_distr_rules: thm list}
   val lookup_relator_distr_data: Proof.context -> string -> relator_distr_data option
-  val lookup_relator_distr_data_global: theory -> string -> relator_distr_data option
+
+  val get_quot_maps           : Proof.context -> quot_map Symtab.table
+  val get_quotients           : Proof.context -> quotient Symtab.table
+  val get_relator_distr_data  : Proof.context -> relator_distr_data Symtab.table
 
   val setup: theory -> theory
 end;
@@ -39,23 +39,62 @@ struct
 
 open Lifting_Util
 
-(** data containers **)
+(** data container **)
 
-(* info about Quotient map theorems *)
-type quotmaps = {rel_quot_thm: thm}
+type quot_map = {rel_quot_thm: thm}
+type pcr = {pcrel_def: thm, pcr_cr_eq: thm}
+type quotient = {quot_thm: thm, pcr_info: pcr option}
+type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
+  pos_distr_rules: thm list, neg_distr_rules: thm list}
 
-structure Quotmaps = Generic_Data
+structure Data = Generic_Data
 (
-  type T = quotmaps Symtab.table
-  val empty = Symtab.empty
+  type T = 
+    { quot_maps : quot_map Symtab.table,
+      quotients : quotient Symtab.table,
+      reflexivity_rules : thm Item_Net.T,
+      relator_distr_data : relator_distr_data Symtab.table
+    }
+  val empty =
+    { quot_maps = Symtab.empty,
+      quotients = Symtab.empty,
+      reflexivity_rules = Thm.full_rules,
+      relator_distr_data = Symtab.empty
+    }
   val extend = I
-  fun merge data = Symtab.merge (K true) data
+  fun merge
+    ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1 },
+      { quot_maps = qm2, quotients = q2, reflexivity_rules = rr2, relator_distr_data = rdd2 } ) =
+    { quot_maps = Symtab.merge (K true) (qm1, qm2),
+      quotients = Symtab.merge (K true) (q1, q2),
+      reflexivity_rules = Item_Net.merge (rr1, rr2),
+      relator_distr_data = Symtab.merge (K true) (rdd1, rdd2) }
 )
 
-val lookup_quotmaps = Symtab.lookup o Quotmaps.get o Context.Proof
-val lookup_quotmaps_global = Symtab.lookup o Quotmaps.get o Context.Theory
+fun map_data f1 f2 f3 f4
+  { quot_maps, quotients, reflexivity_rules, relator_distr_data} =
+  { quot_maps = f1 quot_maps,
+    quotients = f2 quotients,
+    reflexivity_rules = f3 reflexivity_rules,
+    relator_distr_data = f4 relator_distr_data }
 
-(* FIXME export proper internal update operation!? *)
+fun map_quot_maps           f = map_data f I I I
+fun map_quotients           f = map_data I f I I
+fun map_reflexivity_rules   f = map_data I I f I
+fun map_relator_distr_data  f = map_data I I I f
+  
+val get_quot_maps'           = #quot_maps o Data.get
+val get_quotients'           = #quotients o Data.get
+val get_reflexivity_rules'   = #reflexivity_rules o Data.get
+val get_relator_distr_data'  = #relator_distr_data o Data.get
+
+fun get_quot_maps          ctxt = get_quot_maps' (Context.Proof ctxt)
+fun get_quotients          ctxt = get_quotients' (Context.Proof ctxt)
+fun get_relator_distr_data ctxt = get_relator_distr_data' (Context.Proof ctxt)
+
+(* info about Quotient map theorems *)
+
+val lookup_quot_maps = Symtab.lookup o get_quot_maps
 
 fun quot_map_thm_sanity_check rel_quot_thm ctxt =
   let
@@ -102,14 +141,14 @@ fun add_quot_map rel_quot_thm ctxt =
     val relatorT_name = (fst o dest_Type o fst o dest_funT o fastype_of) abs
     val minfo = {rel_quot_thm = rel_quot_thm}
   in
-    Quotmaps.map (Symtab.update (relatorT_name, minfo)) ctxt
+    Data.map (map_quot_maps (Symtab.update (relatorT_name, minfo))) ctxt
   end    
 
 val quot_map_attribute_setup =
   Attrib.setup @{binding quot_map} (Scan.succeed (Thm.declaration_attribute add_quot_map))
     "declaration of the Quotient map theorem"
 
-fun print_quotmaps ctxt =
+fun print_quot_maps ctxt =
   let
     fun prt_map (ty_name, {rel_quot_thm}) =
       Pretty.block (separate (Pretty.brk 2)
@@ -118,67 +157,49 @@ fun print_quotmaps ctxt =
           Pretty.str "quot. theorem:", 
           Syntax.pretty_term ctxt (prop_of rel_quot_thm)])
   in
-    map prt_map (Symtab.dest (Quotmaps.get (Context.Proof ctxt)))
+    map prt_map (Symtab.dest (get_quot_maps ctxt))
     |> Pretty.big_list "maps for type constructors:"
     |> Pretty.writeln
   end
 
 (* info about quotient types *)
-type pcrel_info = {pcrel_def: thm, pcr_cr_eq: thm}
-type quotients = {quot_thm: thm, pcrel_info: pcrel_info option}
-
-structure Quotients = Generic_Data
-(
-  type T = quotients Symtab.table
-  val empty = Symtab.empty
-  val extend = I
-  fun merge data = Symtab.merge (K true) data
-)
-
-fun transform_pcrel_info phi {pcrel_def, pcr_cr_eq} =
+fun transform_pcr_info phi {pcrel_def, pcr_cr_eq} =
   {pcrel_def = Morphism.thm phi pcrel_def, pcr_cr_eq = Morphism.thm phi pcr_cr_eq}
 
-fun transform_quotients phi {quot_thm, pcrel_info} =
-  {quot_thm = Morphism.thm phi quot_thm, pcrel_info = Option.map (transform_pcrel_info phi) pcrel_info}
+fun transform_quotient phi {quot_thm, pcr_info} =
+  {quot_thm = Morphism.thm phi quot_thm, pcr_info = Option.map (transform_pcr_info phi) pcr_info}
 
-val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
-val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
+fun lookup_quotients ctxt type_name = Symtab.lookup (get_quotients ctxt) type_name
 
-fun update_quotients str qinfo = Quotients.map (Symtab.update (str, qinfo))
+fun update_quotients type_name qinfo ctxt = 
+  Data.map (map_quotients (Symtab.update (type_name, qinfo))) ctxt
 
 fun delete_quotients quot_thm ctxt =
   let
     val (_, qtyp) = quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
-    val symtab = Quotients.get ctxt
-    val opt_stored_quot_thm = Symtab.lookup symtab qty_full_name
+    val symtab = get_quotients' ctxt
+    fun compare_data (_, data) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
   in
-    case opt_stored_quot_thm of
-      SOME data => 
-        if Thm.eq_thm_prop (#quot_thm data, quot_thm) then
-          Quotients.map (Symtab.delete qty_full_name) ctxt
-        else
-          ctxt
-      | NONE => ctxt
+    if Symtab.member compare_data symtab (qty_full_name, quot_thm)
+      then Data.map (map_quotients (Symtab.delete qty_full_name)) ctxt
+      else ctxt
   end
-
-fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
-  map snd (Symtab.dest (Quotients.get (Context.Proof ctxt)))
 
 fun print_quotients ctxt =
   let
-    fun prt_quot (qty_name, {quot_thm, pcrel_info}: quotients) =
+    fun prt_quot (qty_name, {quot_thm, pcr_info}: quotient) =
       Pretty.block (separate (Pretty.brk 2)
        [Pretty.str "type:", 
         Pretty.str qty_name,
         Pretty.str "quot. thm:",
         Syntax.pretty_term ctxt (prop_of quot_thm),
         Pretty.str "pcrel_def thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcrel_def) pcrel_info,
+        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcrel_def) pcr_info,
         Pretty.str "pcr_cr_eq thm:",
-        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcr_cr_eq) pcrel_info])
+        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of o #pcr_cr_eq) pcr_info])
   in
-    map prt_quot (Symtab.dest (Quotients.get (Context.Proof ctxt)))
+    map prt_quot (Symtab.dest (get_quotients ctxt))
     |> Pretty.big_list "quotients:"
     |> Pretty.writeln
   end
@@ -186,6 +207,8 @@ fun print_quotients ctxt =
 val quot_del_attribute_setup =
   Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
     "deletes the Quotient theorem"
+
+(* theorems that a relator of an invariant is an invariant of the corresponding predicate *)
 
 structure Invariant_Commute = Named_Thms
 (
@@ -197,16 +220,8 @@ fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.ge
 
 (* info about reflexivity rules *)
 
-structure Reflexivity_Rule = Generic_Data
-(
-  type T = thm Item_Net.T
-  val empty = Thm.full_rules
-  val extend = I
-  val merge = Item_Net.merge
-)
-
-fun get_reflexivity_rules ctxt = ctxt
-  |> (Item_Net.content o Reflexivity_Rule.get o Context.Proof)
+fun get_reflexivity_rules ctxt = Item_Net.content (get_reflexivity_rules' (Context.Proof ctxt))
+  
 
 (* Conversion to create a reflp' variant of a reflexivity rule  *)
 fun safe_reflp_conv ct =
@@ -219,7 +234,7 @@ fun prep_reflp_conv ct = (
       else_conv
       Conv.all_conv) ct
 
-fun add_reflexivity_rule_raw thm = Reflexivity_Rule.map (Item_Net.update thm)
+fun add_reflexivity_rule_raw thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
 val add_reflexivity_rule_raw_attribute = Thm.declaration_attribute add_reflexivity_rule_raw
 
 fun add_reflexivity_rule thm = add_reflexivity_rule_raw thm #>
@@ -230,40 +245,30 @@ val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_r
 val relfexivity_rule_setup =
   let
     val name = @{binding reflexivity_rule}
-    fun del_thm_raw thm = Reflexivity_Rule.map (Item_Net.remove thm)
+    fun del_thm_raw thm = Data.map (map_reflexivity_rules (Item_Net.remove thm))
     fun del_thm thm = del_thm_raw thm #>
       del_thm_raw (Conv.fconv_rule prep_reflp_conv thm)
     val del = Thm.declaration_attribute del_thm
     val text = "rules that are used to prove that a relation is reflexive"
-    val content = Item_Net.content o Reflexivity_Rule.get
+    val content = Item_Net.content o get_reflexivity_rules'
   in
     Attrib.setup name (Attrib.add_del add_reflexivity_rule_attribute del) text
     #> Global_Theory.add_thms_dynamic (name, content)
   end
 
 (* info about relator distributivity theorems *)
-type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
-  pos_distr_rules: thm list, neg_distr_rules: thm list}
 
-fun map_relator_distr_data f1 f2 f3 f4
+fun map_relator_distr_data' f1 f2 f3 f4
   {pos_mono_rule, neg_mono_rule, pos_distr_rules, neg_distr_rules} =
   {pos_mono_rule   = f1 pos_mono_rule, 
    neg_mono_rule   = f2 neg_mono_rule,
    pos_distr_rules = f3 pos_distr_rules, 
    neg_distr_rules = f4 neg_distr_rules}
 
-fun map_pos_mono_rule f = map_relator_distr_data f I I I
-fun map_neg_mono_rule f = map_relator_distr_data I f I I
-fun map_pos_distr_rules f = map_relator_distr_data I I f I 
-fun map_neg_distr_rules f = map_relator_distr_data I I I f
-
-structure Relator_Distr = Generic_Data
-(
-  type T = relator_distr_data Symtab.table
-  val empty = Symtab.empty
-  val extend = I
-  fun merge data = Symtab.merge (K true) data
-);
+fun map_pos_mono_rule f = map_relator_distr_data' f I I I
+fun map_neg_mono_rule f = map_relator_distr_data' I f I I
+fun map_pos_distr_rules f = map_relator_distr_data' I I f I 
+fun map_neg_distr_rules f = map_relator_distr_data' I I I f
 
 fun introduce_polarities rule =
   let
@@ -315,14 +320,14 @@ fun add_mono_rule mono_rule ctxt =
     val mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o 
       dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) mono_rule
-    val _ = if Symtab.defined (Relator_Distr.get ctxt) mono_ruleT_name 
+    val _ = if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name 
       then error ("Monotocity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
       else ()
     val neg_mono_rule = negate_mono_rule mono_rule
     val relator_distr_data = {pos_mono_rule = mono_rule, neg_mono_rule = neg_mono_rule, 
       pos_distr_rules = [], neg_distr_rules = []}
   in
-    Relator_Distr.map (Symtab.update (mono_ruleT_name, relator_distr_data)) ctxt
+    Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data))) ctxt
   end;
 
 local 
@@ -331,8 +336,9 @@ local
       val distr_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o 
         dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) distr_rule
     in
-      if Symtab.defined (Relator_Distr.get ctxt) distr_ruleT_name then 
-        Relator_Distr.map (Symtab.map_entry distr_ruleT_name (update_entry distr_rule)) ctxt
+      if Symtab.defined (get_relator_distr_data' ctxt) distr_ruleT_name then 
+        Data.map (map_relator_distr_data (Symtab.map_entry distr_ruleT_name (update_entry distr_rule))) 
+          ctxt
       else error "The monoticity rule is not defined."
     end
 
@@ -425,14 +431,13 @@ end
 
 fun get_distr_rules_raw ctxt = Symtab.fold 
   (fn (_, {pos_distr_rules, neg_distr_rules, ...}) => fn rules => pos_distr_rules @ neg_distr_rules @ rules) 
-    (Relator_Distr.get ctxt) []
+    (get_relator_distr_data' ctxt) []
 
 fun get_mono_rules_raw ctxt = Symtab.fold 
   (fn (_, {pos_mono_rule, neg_mono_rule, ...}) => fn rules => [pos_mono_rule, neg_mono_rule] @ rules) 
-    (Relator_Distr.get ctxt) []
+    (get_relator_distr_data' ctxt) []
 
-val lookup_relator_distr_data = Symtab.lookup o Relator_Distr.get o Context.Proof
-val lookup_relator_distr_data_global = Symtab.lookup o Relator_Distr.get o Context.Theory
+val lookup_relator_distr_data = Symtab.lookup o get_relator_distr_data
 
 val relator_distr_attribute_setup =
   Attrib.setup @{binding relator_mono} (Scan.succeed (Thm.declaration_attribute add_mono_rule))
@@ -456,8 +461,8 @@ val setup =
 (* outer syntax commands *)
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_quotmaps"} "print quotient map functions"
-    (Scan.succeed (Toplevel.keep (print_quotmaps o Toplevel.context_of)))
+  Outer_Syntax.improper_command @{command_spec "print_quot_maps"} "print quotient map functions"
+    (Scan.succeed (Toplevel.keep (print_quot_maps o Toplevel.context_of)))
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_quotients"} "print quotients"

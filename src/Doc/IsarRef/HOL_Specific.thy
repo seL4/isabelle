@@ -1550,7 +1550,7 @@ text {*
   \begin{matharray}{rcl}
     @{command_def (HOL) "setup_lifting"} & : & @{text "local_theory \<rightarrow> local_theory"}\\
     @{command_def (HOL) "lift_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "print_quotmaps"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
     @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
     @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
     @{attribute_def (HOL) "invariant_commute"} & : & @{text attribute} \\
@@ -1626,7 +1626,7 @@ text {*
     Integration with code: For total quotients, @{command
     (HOL) "lift_definition"} uses @{text f.abs_eq} as a code equation.
 
-  \item @{command (HOL) "print_quotmaps"} prints stored quotient map
+  \item @{command (HOL) "print_quot_maps"} prints stored quotient map
     theorems.
 
   \item @{command (HOL) "print_quotients"} prints stored quotient

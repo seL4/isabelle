@@ -9,7 +9,7 @@ theory Lifting
 imports Equiv_Relations Transfer
 keywords
   "parametric" and
-  "print_quotmaps" "print_quotients" :: diag and
+  "print_quot_maps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and
   "setup_lifting" :: thy_decl
 begin

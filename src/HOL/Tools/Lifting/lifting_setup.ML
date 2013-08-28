@@ -201,12 +201,12 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
     val (pcr_cr_eq, lthy) = case pcrel_def of
       SOME pcrel_def => apfst SOME (define_pcr_cr_eq lthy pcrel_def)
       | NONE => (NONE, lthy)
-    val pcrel_info = case pcrel_def of
+    val pcr_info = case pcrel_def of
       SOME pcrel_def => SOME { pcrel_def = pcrel_def, pcr_cr_eq = the pcr_cr_eq }
       | NONE => NONE
-    val quotients = { quot_thm = quot_thm, pcrel_info = pcrel_info }
+    val quotients = { quot_thm = quot_thm, pcr_info = pcr_info }
     val qty_full_name = (fst o dest_Type) qtyp  
-    fun quot_info phi = Lifting_Info.transform_quotients phi quotients
+    fun quot_info phi = Lifting_Info.transform_quotient phi quotients
     val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
     val lthy = case opt_reflp_thm of
       SOME reflp_thm => lthy
@@ -376,7 +376,7 @@ local
       reduced_assm RS thm
     end
 in
-  fun parametrize_domain dom_thm (pcrel_info : Lifting_Info.pcrel_info) ctxt =
+  fun parametrize_domain dom_thm (pcr_info : Lifting_Info.pcr) ctxt =
     let
       fun reduce_first_assm ctxt rules thm =
         let
@@ -386,9 +386,9 @@ in
           reduced_assm RS thm
         end
 
-      val pcr_cr_met_eq = #pcr_cr_eq pcrel_info RS @{thm eq_reflection}
+      val pcr_cr_met_eq = #pcr_cr_eq pcr_info RS @{thm eq_reflection}
       val pcr_Domainp_eq = rewrite_first_Domainp_arg (Thm.symmetric pcr_cr_met_eq) dom_thm
-      val pcrel_def = #pcrel_def pcrel_info
+      val pcrel_def = #pcrel_def pcr_info
       val pcr_Domainp_par_left_total = 
         (dom_thm RS @{thm pcr_Domainp_par_left_total})
           |> fold_Domainp_pcrel pcrel_def
@@ -422,7 +422,7 @@ in
 end
 
 fun get_pcrel_info ctxt qty_full_name =  
-  #pcrel_info (the (Lifting_Info.lookup_quotients ctxt qty_full_name))
+  #pcr_info (the (Lifting_Info.lookup_quotients ctxt qty_full_name))
 
 fun get_Domainp_thm quot_thm =
    the (get_first (try(curry op RS quot_thm)) [@{thm invariant_to_Domainp}, @{thm Quotient_to_Domainp}])
