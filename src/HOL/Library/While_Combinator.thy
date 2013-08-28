@@ -256,8 +256,8 @@ where "rtrancl_while p f x =
   while_option (%(ws,_). ws \<noteq> [] \<and> p(hd ws))
     ((%(ws,Z).
      let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
-     in (new @ tl ws, insert x Z)))
-    ([x],{})"
+     in (new @ tl ws, set new \<union> insert x Z)))
+    ([x],{x})"
 
 lemma rtrancl_while_Some: assumes "rtrancl_while p f x = Some(ws,Z)"
 shows "if ws = []
@@ -267,10 +267,10 @@ proof-
   let ?test = "(%(ws,_). ws \<noteq> [] \<and> p(hd ws))"
   let ?step = "(%(ws,Z).
      let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
-     in (new @ tl ws, insert x Z))"
+     in (new @ tl ws, set new \<union> insert x Z))"
   let ?R = "{(x,y). y \<in> set(f x)}"
-  let ?Inv = "%(ws,Z). x \<in> set ws \<union> Z \<and> ?R `` Z \<subseteq> set ws \<union> Z \<and>
-                       set ws \<union> Z \<subseteq> ?R^* `` {x} \<and> (\<forall>z\<in>Z. p z)"
+  let ?Inv = "%(ws,Z). x \<in> Z \<and> set ws \<subseteq> Z \<and> ?R `` (Z - set ws) \<subseteq> Z \<and>
+                       Z \<subseteq> ?R^* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z)"
   { fix ws Z assume 1: "?Inv(ws,Z)" and 2: "?test(ws,Z)"
     from 2 obtain v vs where [simp]: "ws = v#vs" by (auto simp: neq_Nil_conv)
     have "?Inv(?step (ws,Z))" using 1 2
@@ -279,7 +279,7 @@ proof-
   hence "!!p. ?Inv p \<Longrightarrow> ?test p \<Longrightarrow> ?Inv(?step p)"
     apply(tactic {* split_all_tac @{context} 1 *})
     using inv by iprover
-  moreover have "?Inv ([x],{})" by (simp)
+  moreover have "?Inv ([x],{x})" by (simp)
   ultimately have I: "?Inv (ws,Z)"
     by (rule while_option_rule[OF _ assms[unfolded rtrancl_while_def]])
   { assume "ws = []"
