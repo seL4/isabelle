@@ -9,28 +9,56 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
-import javax.swing.{Icon, ImageIcon, JWindow}
+import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle, Dimension}
+import java.awt.event.{KeyEvent, KeyListener}
+import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities}
+import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
 
 object JEdit_Lib
 {
-  /* bounds within multi-screen environment */
+  /* location within multi-screen environment */
 
-  def screen_bounds(screen_point: Point): Rectangle =
+  final case class Screen_Location(point: Point, bounds: Rectangle)
   {
+    def relative(parent: Component, size: Dimension): Point =
+    {
+      val w = size.width
+      val h = size.height
+
+      val x0 = parent.getLocationOnScreen.x
+      val y0 = parent.getLocationOnScreen.y
+      val x1 = x0 + parent.getWidth - w
+      val y1 = y0 + parent.getHeight - h
+      val x2 = point.x min (bounds.x + bounds.width - w)
+      val y2 = point.y min (bounds.y + bounds.height - h)
+
+      val location = new Point((x2 min x1) max x0, (y2 min y1) max y0)
+      SwingUtilities.convertPointFromScreen(location, parent)
+      location
+    }
+  }
+
+  def screen_location(component: Component, point: Point): Screen_Location =
+  {
+    val screen_point = new Point(point.x, point.y)
+    SwingUtilities.convertPointToScreen(screen_point, component)
+
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment
-    (for {
-      device <- ge.getScreenDevices.iterator
-      config <- device.getConfigurations.iterator
-      bounds = config.getBounds
-    } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+    val screen_bounds =
+      (for {
+        device <- ge.getScreenDevices.iterator
+        config <- device.getConfigurations.iterator
+        bounds = config.getBounds
+      } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+
+    Screen_Location(screen_point, screen_bounds)
   }
 
 
@@ -104,21 +132,6 @@ object JEdit_Lib
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
-
-
-  /* focus of main window */
-
-  def request_focus_view: Unit =
-  {
-    jEdit.getActiveView() match {
-      case null =>
-      case view =>
-        view.getTextArea match {
-          case null =>
-          case text_area => text_area.requestFocus
-        }
-    }
-  }
 
 
   /* main jEdit components */
@@ -300,5 +313,42 @@ object JEdit_Lib
       case icon: ImageIcon => icon
       case _ => error("Bad image icon: " + name)
     }
+
+
+  /* key event handling */
+
+  def request_focus_view
+  {
+    val view = jEdit.getActiveView()
+    if (view != null) {
+      val text_area = view.getTextArea
+      if (text_area != null) text_area.requestFocus
+    }
+  }
+
+  def propagate_key(view: View, evt: KeyEvent)
+  {
+    if (view != null && !evt.isConsumed)
+      view.getInputHandler().processKeyEvent(evt, View.ACTION_BAR, false)
+  }
+
+  def key_listener(
+    key_typed: KeyEvent => Unit = _ => (),
+    key_pressed: KeyEvent => Unit = _ => (),
+    key_released: KeyEvent => Unit = _ => ()): KeyListener =
+  {
+    def process_key_event(evt0: KeyEvent, handle: KeyEvent => Unit)
+    {
+      val evt = KeyEventWorkaround.processKeyEvent(evt0)
+      if (evt != null) handle(evt)
+    }
+
+    new KeyListener
+    {
+      def keyTyped(evt: KeyEvent) { process_key_event(evt, key_typed) }
+      def keyPressed(evt: KeyEvent) { process_key_event(evt, key_pressed) }
+      def keyReleased(evt: KeyEvent) { process_key_event(evt, key_released) }
+    }
+  }
 }
 

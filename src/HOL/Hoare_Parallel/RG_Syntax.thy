@@ -20,10 +20,10 @@ syntax
 
 translations
   "\<acute>x := a" \<rightharpoonup> "CONST Basic \<guillemotleft>\<acute>(_update_name x (\<lambda>_. a))\<guillemotright>"
-  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond .{b}. c1 c2"
+  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond \<lbrace>b\<rbrace> c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
-  "WHILE b DO c OD" \<rightharpoonup> "CONST While .{b}. c"
-  "AWAIT b THEN c END" \<rightleftharpoons> "CONST Await .{b}. c"
+  "WHILE b DO c OD" \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> c"
+  "AWAIT b THEN c END" \<rightleftharpoons> "CONST Await \<lbrace>b\<rbrace> c"
   "\<langle>c\<rangle>" \<rightleftharpoons> "AWAIT CONST True THEN c END"
   "WAIT b END" \<rightleftharpoons> "AWAIT b THEN SKIP END"
 

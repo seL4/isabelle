@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/pretty_tooltip.scala
     Author:     Makarius
 
-Enhanced tooltip window based on Pretty_Text_Area.
+Tooltip based on Pretty_Text_Area.
 */
 
 package isabelle.jedit
@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Dimension}
 import java.awt.event.{FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, JComponent, PopupFactory}
+import javax.swing.{JPanel, JComponent, SwingUtilities}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -39,8 +39,8 @@ object Pretty_Tooltip
   def apply(
     view: View,
     parent: JComponent,
+    location: Point,
     rendering: Rendering,
-    screen_point: Point,
     results: Command.Results,
     info: Text.Info[XML.Body]): Pretty_Tooltip =
   {
@@ -56,7 +56,8 @@ object Pretty_Tooltip
           }
         old.foreach(_.hide_popup)
 
-        val tip = new Pretty_Tooltip(view, rendering, screen_point, results, info)
+        val loc = SwingUtilities.convertPoint(parent, location, view.getLayeredPane)
+        val tip = new Pretty_Tooltip(view, loc, rendering, results, info)
         stack = tip :: rest
         tip.show_popup
         tip
@@ -138,8 +139,8 @@ object Pretty_Tooltip
 
 class Pretty_Tooltip private(
   view: View,
+  location: Point,
   rendering: Rendering,
-  screen_point: Point,
   private val results: Command.Results,
   private val info: Text.Info[XML.Body]) extends JPanel(new BorderLayout)
 {
@@ -195,7 +196,7 @@ class Pretty_Tooltip private(
   })
 
   pretty_text_area.resize(Rendering.font_family(),
-    Rendering.font_size("jedit_tooltip_font_scale").round)
+    Rendering.font_size("jedit_popup_font_scale").round)
 
 
   /* main content */
@@ -217,15 +218,9 @@ class Pretty_Tooltip private(
 
   private val popup =
   {
-    val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
-
-    val root = view.getRootPane
-    val x0 = root.getLocationOnScreen.x
-    val y0 = root.getLocationOnScreen.y
-    val w0 = root.getWidth
-    val h0 = root.getHeight
-
-    val (w, h) =
+    val layered = view.getLayeredPane
+    val screen = JEdit_Lib.screen_location(layered, location)
+    val size =
     {
       val painter = pretty_text_area.getPainter
       val metric = JEdit_Lib.pretty_metric(painter)
@@ -237,10 +232,11 @@ class Pretty_Tooltip private(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
       val geometry = JEdit_Lib.window_geometry(tip, tip.pretty_text_area.getPainter)
-      val bounds = rendering.tooltip_bounds
+      val bounds = Rendering.popup_bounds
 
+      val h0 = layered.getHeight
       val h1 = painter.getFontMetrics.getHeight * (lines + 1) + geometry.deco_height
-      val h2 = h0 min (screen_bounds.height * bounds).toInt
+      val h2 = h0 min (screen.bounds.height * bounds).toInt
       val h = h1 min h2
 
       val margin1 =
@@ -248,25 +244,14 @@ class Pretty_Tooltip private(
           (0.0 /: split_lines(XML.content(formatted)))({ case (m, line) => m max metric(line) })
         else margin
 
+      val w0 = layered.getWidth
       val w1 = (metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width
-      val w2 = w0 min (screen_bounds.width * bounds).toInt
+      val w2 = w0 min (screen.bounds.width * bounds).toInt
       val w = w1 min w2
 
-      (w, h)
+      new Dimension(w, h)
     }
-
-    val (x, y) =
-    {
-      val x1 = x0 + w0 - w
-      val y1 = y0 + h0 - h
-      val x2 = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
-      val y2 = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
-      ((x2 min x1) max x0, (y2 min y1) max y0)
-    }
-
-    tip.setSize(new Dimension(w, h))
-    tip.setPreferredSize(new Dimension(w, h))
-    PopupFactory.getSharedInstance.getPopup(root, tip, x, y)
+    new Popup(layered, tip, screen.relative(layered, size), size)
   }
 
   private def show_popup

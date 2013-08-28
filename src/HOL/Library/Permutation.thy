@@ -8,13 +8,12 @@ theory Permutation
 imports Multiset
 begin
 
-inductive
-  perm :: "'a list => 'a list => bool"  ("_ <~~> _"  [50, 50] 50)
-  where
-    Nil  [intro!]: "[] <~~> []"
-  | swap [intro!]: "y # x # l <~~> x # y # l"
-  | Cons [intro!]: "xs <~~> ys ==> z # xs <~~> z # ys"
-  | trans [intro]: "xs <~~> ys ==> ys <~~> zs ==> xs <~~> zs"
+inductive perm :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  ("_ <~~> _"  [50, 50] 50)  (* FIXME proper infix, without ambiguity!? *)
+where
+  Nil [intro!]: "[] <~~> []"
+| swap [intro!]: "y # x # l <~~> x # y # l"
+| Cons [intro!]: "xs <~~> ys \<Longrightarrow> z # xs <~~> z # ys"
+| trans [intro]: "xs <~~> ys \<Longrightarrow> ys <~~> zs \<Longrightarrow> xs <~~> zs"
 
 lemma perm_refl [iff]: "l <~~> l"
   by (induct l) auto
@@ -22,7 +21,7 @@ lemma perm_refl [iff]: "l <~~> l"
 
 subsection {* Some examples of rule induction on permutations *}
 
-lemma xperm_empty_imp: "[] <~~> ys ==> ys = []"
+lemma xperm_empty_imp: "[] <~~> ys \<Longrightarrow> ys = []"
   by (induct xs == "[]::'a list" ys pred: perm) simp_all
 
 
@@ -30,13 +29,13 @@ text {*
   \medskip This more general theorem is easier to understand!
   *}
 
-lemma perm_length: "xs <~~> ys ==> length xs = length ys"
+lemma perm_length: "xs <~~> ys \<Longrightarrow> length xs = length ys"
   by (induct pred: perm) simp_all
 
-lemma perm_empty_imp: "[] <~~> xs ==> xs = []"
+lemma perm_empty_imp: "[] <~~> xs \<Longrightarrow> xs = []"
   by (drule perm_length) auto
 
-lemma perm_sym: "xs <~~> ys ==> ys <~~> xs"
+lemma perm_sym: "xs <~~> ys \<Longrightarrow> ys <~~> xs"
   by (induct pred: perm) auto
 
 
@@ -64,10 +63,10 @@ lemma perm_rev: "rev xs <~~> xs"
   apply (blast intro!: perm_append_single intro: perm_sym)
   done
 
-lemma perm_append1: "xs <~~> ys ==> l @ xs <~~> l @ ys"
+lemma perm_append1: "xs <~~> ys \<Longrightarrow> l @ xs <~~> l @ ys"
   by (induct l) auto
 
-lemma perm_append2: "xs <~~> ys ==> xs @ l <~~> ys @ l"
+lemma perm_append2: "xs <~~> ys \<Longrightarrow> xs @ l <~~> ys @ l"
   by (blast intro!: perm_append_swap perm_append1)
 
 
@@ -81,7 +80,7 @@ lemma perm_empty2 [iff]: "(xs <~~> []) = (xs = [])"
   apply (erule perm_sym [THEN perm_empty_imp])
   done
 
-lemma perm_sing_imp: "ys <~~> xs ==> xs = [y] ==> ys = [y]"
+lemma perm_sing_imp: "ys <~~> xs \<Longrightarrow> xs = [y] \<Longrightarrow> ys = [y]"
   by (induct pred: perm) auto
 
 lemma perm_sing_eq [iff]: "(ys <~~> [y]) = (ys = [y])"
@@ -93,29 +92,26 @@ lemma perm_sing_eq2 [iff]: "([y] <~~> ys) = (ys = [y])"
 
 subsection {* Removing elements *}
 
-lemma perm_remove: "x \<in> set ys ==> ys <~~> x # remove1 x ys"
+lemma perm_remove: "x \<in> set ys \<Longrightarrow> ys <~~> x # remove1 x ys"
   by (induct ys) auto
 
 
 text {* \medskip Congruence rule *}
 
-lemma perm_remove_perm: "xs <~~> ys ==> remove1 z xs <~~> remove1 z ys"
+lemma perm_remove_perm: "xs <~~> ys \<Longrightarrow> remove1 z xs <~~> remove1 z ys"
   by (induct pred: perm) auto
 
 lemma remove_hd [simp]: "remove1 z (z # xs) = xs"
   by auto
 
-lemma cons_perm_imp_perm: "z # xs <~~> z # ys ==> xs <~~> ys"
+lemma cons_perm_imp_perm: "z # xs <~~> z # ys \<Longrightarrow> xs <~~> ys"
   by (drule_tac z = z in perm_remove_perm) auto
 
 lemma cons_perm_eq [iff]: "(z#xs <~~> z#ys) = (xs <~~> ys)"
   by (blast intro: cons_perm_imp_perm)
 
-lemma append_perm_imp_perm: "zs @ xs <~~> zs @ ys ==> xs <~~> ys"
-  apply (induct zs arbitrary: xs ys rule: rev_induct)
-   apply (simp_all (no_asm_use))
-  apply blast
-  done
+lemma append_perm_imp_perm: "zs @ xs <~~> zs @ ys \<Longrightarrow> xs <~~> ys"
+  by (induct zs arbitrary: xs ys rule: rev_induct) auto
 
 lemma perm_append1_eq [iff]: "(zs @ xs <~~> zs @ ys) = (xs <~~> ys)"
   by (blast intro: append_perm_imp_perm perm_append1)
@@ -135,38 +131,38 @@ lemma multiset_of_eq_perm: "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   apply (induct_tac xs, auto)
   apply (erule_tac x = "remove1 a x" in allE, drule sym, simp)
   apply (subgoal_tac "a \<in> set x")
-  apply (drule_tac z=a in perm.Cons)
+  apply (drule_tac z = a in perm.Cons)
   apply (erule perm.trans, rule perm_sym, erule perm_remove)
   apply (drule_tac f=set_of in arg_cong, simp)
   done
 
-lemma multiset_of_le_perm_append:
-    "multiset_of xs \<le> multiset_of ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
+lemma multiset_of_le_perm_append: "multiset_of xs \<le> multiset_of ys \<longleftrightarrow> (\<exists>zs. xs @ zs <~~> ys)"
   apply (auto simp: multiset_of_eq_perm[THEN sym] mset_le_exists_conv)
   apply (insert surj_multiset_of, drule surjD)
   apply (blast intro: sym)+
   done
 
-lemma perm_set_eq: "xs <~~> ys ==> set xs = set ys"
+lemma perm_set_eq: "xs <~~> ys \<Longrightarrow> set xs = set ys"
   by (metis multiset_of_eq_perm multiset_of_eq_setD)
 
-lemma perm_distinct_iff: "xs <~~> ys ==> distinct xs = distinct ys"
+lemma perm_distinct_iff: "xs <~~> ys \<Longrightarrow> distinct xs = distinct ys"
   apply (induct pred: perm)
      apply simp_all
    apply fastforce
   apply (metis perm_set_eq)
   done
 
-lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
+lemma eq_set_perm_remdups: "set xs = set ys \<Longrightarrow> remdups xs <~~> remdups ys"
   apply (induct xs arbitrary: ys rule: length_induct)
-  apply (case_tac "remdups xs", simp, simp)
-  apply (subgoal_tac "a : set (remdups ys)")
+  apply (case_tac "remdups xs")
+   apply simp_all
+  apply (subgoal_tac "a \<in> set (remdups ys)")
    prefer 2 apply (metis set.simps(2) insert_iff set_remdups)
   apply (drule split_list) apply(elim exE conjE)
   apply (drule_tac x=list in spec) apply(erule impE) prefer 2
    apply (drule_tac x="ysa@zs" in spec) apply(erule impE) prefer 2
     apply simp
-    apply (subgoal_tac "a#list <~~> a#ysa@zs")
+    apply (subgoal_tac "a # list <~~> a # ysa @ zs")
      apply (metis Cons_eq_appendI perm_append_Cons trans)
     apply (metis Cons Cons_eq_appendI distinct.simps(2)
       distinct_remdups distinct_remdups_id perm_append_swap perm_distinct_iff)
@@ -180,21 +176,23 @@ lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
    apply (rule length_remdups_leq)
   done
 
-lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y = (set x = set y)"
+lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y \<longleftrightarrow> (set x = set y)"
   by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
 
 lemma permutation_Ex_bij:
   assumes "xs <~~> ys"
   shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
 using assms proof induct
-  case Nil then show ?case unfolding bij_betw_def by simp
+  case Nil
+  then show ?case unfolding bij_betw_def by simp
 next
   case (swap y x l)
   show ?case
   proof (intro exI[of _ "Fun.swap 0 1 id"] conjI allI impI)
     show "bij_betw (Fun.swap 0 1 id) {..<length (y # x # l)} {..<length (x # y # l)}"
       by (auto simp: bij_betw_def)
-    fix i assume "i < length(y#x#l)"
+    fix i
+    assume "i < length(y#x#l)"
     show "(y # x # l) ! i = (x # y # l) ! (Fun.swap 0 1 id) i"
       by (cases i) (auto simp: Fun.swap_def gr0_conv_Suc)
   qed
@@ -202,19 +200,21 @@ next
   case (Cons xs ys z)
   then obtain f where bij: "bij_betw f {..<length xs} {..<length ys}" and
     perm: "\<forall>i<length xs. xs ! i = ys ! (f i)" by blast
-  let "?f i" = "case i of Suc n \<Rightarrow> Suc (f n) | 0 \<Rightarrow> 0"
+  let ?f = "\<lambda>i. case i of Suc n \<Rightarrow> Suc (f n) | 0 \<Rightarrow> 0"
   show ?case
   proof (intro exI[of _ ?f] allI conjI impI)
     have *: "{..<length (z#xs)} = {0} \<union> Suc ` {..<length xs}"
             "{..<length (z#ys)} = {0} \<union> Suc ` {..<length ys}"
       by (simp_all add: lessThan_Suc_eq_insert_0)
-    show "bij_betw ?f {..<length (z#xs)} {..<length (z#ys)}" unfolding *
+    show "bij_betw ?f {..<length (z#xs)} {..<length (z#ys)}"
+      unfolding *
     proof (rule bij_betw_combine)
       show "bij_betw ?f (Suc ` {..<length xs}) (Suc ` {..<length ys})"
         using bij unfolding bij_betw_def
         by (auto intro!: inj_onI imageI dest: inj_onD simp: image_compose[symmetric] comp_def)
     qed (auto simp: bij_betw_def)
-    fix i assume "i < length (z#xs)"
+    fix i
+    assume "i < length (z#xs)"
     then show "(z # xs) ! i = (z # ys) ! (?f i)"
       using perm by (cases i) auto
   qed
@@ -224,13 +224,13 @@ next
     bij: "bij_betw f {..<length xs} {..<length ys}" "bij_betw g {..<length ys} {..<length zs}" and
     perm: "\<forall>i<length xs. xs ! i = ys ! (f i)" "\<forall>i<length ys. ys ! i = zs ! (g i)" by blast
   show ?case
-  proof (intro exI[of _ "g\<circ>f"] conjI allI impI)
+  proof (intro exI[of _ "g \<circ> f"] conjI allI impI)
     show "bij_betw (g \<circ> f) {..<length xs} {..<length zs}"
       using bij by (rule bij_betw_trans)
     fix i assume "i < length xs"
     with bij have "f i < length ys" unfolding bij_betw_def by force
     with `i < length xs` show "xs ! i = zs ! (g \<circ> f) i"
-      using trans(1,3)[THEN perm_length] perm by force
+      using trans(1,3)[THEN perm_length] perm by auto
   qed
 qed
 
