@@ -352,7 +352,7 @@ val sel_corecN = selN ^ "_" ^ corecN
 fun co_prefix fp = (if fp = Greatest_FP then "co" else "");
 
 fun add_components_of_typ (Type (s, Ts)) =
-    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
+    cons (Long_Name.base_name s) #> fold_rev add_components_of_typ Ts
   | add_components_of_typ _ = I;
 
 fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
