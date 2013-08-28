@@ -242,4 +242,55 @@ lemma lfp_while:
   shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
 unfolding while_def using assms by (rule lfp_the_while_option) blast
 
+
+text{* Computing the reflexive, transitive closure by iterating a successor
+function. Stops when an element is found that dos not satisfy the test.
+
+More refined (and hence more efficient) versions can be found in ITP 2011 paper
+by Nipkow (the theories are in the AFP entry Flyspeck by Nipkow)
+and the AFP article Executable Transitive Closures by René Thiemann. *}
+
+definition rtrancl_while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a list) \<Rightarrow> 'a
+  \<Rightarrow> ('a list * 'a set) option"
+where "rtrancl_while p f x =
+  while_option (%(ws,_). ws \<noteq> [] \<and> p(hd ws))
+    ((%(ws,Z).
+     let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
+     in (new @ tl ws, insert x Z)))
+    ([x],{})"
+
+lemma rtrancl_while_Some: assumes "rtrancl_while p f x = Some(ws,Z)"
+shows "if ws = []
+       then Z = {(x,y). y \<in> set(f x)}^* `` {x} \<and> (\<forall>z\<in>Z. p z)
+       else \<not>p(hd ws) \<and> hd ws \<in> {(x,y). y \<in> set(f x)}^* `` {x}"
+proof-
+  let ?test = "(%(ws,_). ws \<noteq> [] \<and> p(hd ws))"
+  let ?step = "(%(ws,Z).
+     let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
+     in (new @ tl ws, insert x Z))"
+  let ?R = "{(x,y). y \<in> set(f x)}"
+  let ?Inv = "%(ws,Z). x \<in> set ws \<union> Z \<and> ?R `` Z \<subseteq> set ws \<union> Z \<and>
+                       set ws \<union> Z \<subseteq> ?R^* `` {x} \<and> (\<forall>z\<in>Z. p z)"
+  { fix ws Z assume 1: "?Inv(ws,Z)" and 2: "?test(ws,Z)"
+    from 2 obtain v vs where [simp]: "ws = v#vs" by (auto simp: neq_Nil_conv)
+    have "?Inv(?step (ws,Z))" using 1 2
+      by (auto intro: rtrancl.rtrancl_into_rtrancl)
+  } note inv = this
+  hence "!!p. ?Inv p \<Longrightarrow> ?test p \<Longrightarrow> ?Inv(?step p)"
+    apply(tactic {* split_all_tac @{context} 1 *})
+    using inv by iprover
+  moreover have "?Inv ([x],{})" by (simp)
+  ultimately have I: "?Inv (ws,Z)"
+    by (rule while_option_rule[OF _ assms[unfolded rtrancl_while_def]])
+  { assume "ws = []"
+    hence ?thesis using I
+      by (auto simp del:Image_Collect_split dest: Image_closed_trancl)
+  } moreover
+  { assume "ws \<noteq> []"
+    hence ?thesis using I while_option_stop[OF assms[unfolded rtrancl_while_def]]
+      by (simp add: subset_iff)
+  }
+  ultimately show ?thesis by simp
+qed
+
 end
