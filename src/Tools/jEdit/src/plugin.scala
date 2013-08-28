@@ -57,7 +57,7 @@ object PIDE
 
   def dismissed_popups(view: View): Boolean =
   {
-    val b1 = Completion_Popup.dismissed_view(view)
+    val b1 = Completion_Popup.dismissed(view.getLayeredPane)
     val b2 = Pretty_Tooltip.dismissed_all()
     b1 || b2
   }

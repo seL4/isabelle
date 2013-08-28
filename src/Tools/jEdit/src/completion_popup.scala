@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/completion_popup.scala
     Author:     Makarius
 
-Completion popup based on javax.swing.PopupFactory.
+Completion popup.
 */
 
 package isabelle.jedit
@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, JComponent, PopupFactory, SwingUtilities}
+import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
@@ -28,29 +28,27 @@ object Completion_Popup
   { override def toString: String = description }
 
 
-  /* single instance within root */
+  /* maintain single instance */
 
-  def dismissed_view(view: View): Boolean = dismissed(view.getRootPane)
-
-  private def dismissed(root: JComponent): Boolean =
+  def dismissed(layered: JLayeredPane): Boolean =
   {
     Swing_Thread.require()
 
-    root.getClientProperty(Completion_Popup) match {
+    layered.getClientProperty(Completion_Popup) match {
       case old_completion: Completion_Popup =>
-        old_completion.hide_popup
+        old_completion.hide_popup()
         true
       case _ =>
         false
     }
   }
 
-  private def register(root: JComponent, completion: Completion_Popup)
+  private def register(layered: JLayeredPane, completion: Completion_Popup)
   {
     Swing_Thread.require()
 
-    dismissed(root)
-    root.putClientProperty(Completion_Popup, completion)
+    dismissed(layered)
+    layered.putClientProperty(Completion_Popup, completion)
   }
 
 
@@ -81,14 +79,14 @@ object Completion_Popup
     {
       Swing_Thread.require()
 
-      dismissed(text_area)
-
       val view = text_area.getView
-      val root = view.getRootPane
+      val layered = view.getLayeredPane
       val buffer = text_area.getBuffer
       val painter = text_area.getPainter
 
       if (buffer.isEditable && !evt.isConsumed) {
+        dismissed(layered)
+
         get_syntax match {
           case Some(syntax) =>
             val caret = text_area.getCaretPosition
@@ -116,13 +114,13 @@ object Completion_Popup
                     (painter.getFont.getSize2D * PIDE.options.real("jedit_popup_font_scale")).toFloat
                       max 10.0f)
 
-                val location = text_area.offsetToXY(caret - original.length)
-                if (location != null) {
-                  location.y = location.y + painter.getFontMetrics.getHeight
-                  SwingUtilities.convertPointToScreen(location, painter)
-
+                val loc1 = text_area.offsetToXY(caret - original.length)
+                if (loc1 != null) {
+                  val loc2 =
+                    SwingUtilities.convertPoint(painter,
+                      loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
                   val completion =
-                    new Completion_Popup(root, popup_font, location, items) {
+                    new Completion_Popup(layered, loc2, popup_font, items) {
                       override def complete(item: Item) { insert(text_area, item) }
                       override def propagate(e: KeyEvent) {
                         JEdit_Lib.propagate_key(view, e)
@@ -130,7 +128,8 @@ object Completion_Popup
                       }
                       override def refocus() { text_area.requestFocus }
                     }
-                  register(root, completion)
+                  register(layered, completion)
+                  completion.show_popup()
                 }
               case None =>
             }
@@ -143,9 +142,9 @@ object Completion_Popup
 
 
 class Completion_Popup private(
-  root: JComponent,
+  layered: JLayeredPane,
+  location: Point,
   popup_font: Font,
-  screen_point: Point,
   items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
@@ -250,12 +249,12 @@ class Completion_Popup private(
 
   private val popup =
   {
+    val screen_point = new Point(location.x, location.y)
+    SwingUtilities.convertPointToScreen(screen_point, layered)
     val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
-    val x0 = root.getLocationOnScreen.x
-    val y0 = root.getLocationOnScreen.y
-    val w0 = root.getWidth
-    val h0 = root.getHeight
+    val w0 = layered.getWidth
+    val h0 = layered.getHeight
 
     val (w, h) =
     {
@@ -268,16 +267,29 @@ class Completion_Popup private(
 
     val (x, y) =
     {
+      val x0 = layered.getLocationOnScreen.x
+      val y0 = layered.getLocationOnScreen.y
       val x1 = x0 + w0 - w
       val y1 = y0 + h0 - h
       val x2 = screen_point.x min (screen_bounds.x + screen_bounds.width - w)
       val y2 = screen_point.y min (screen_bounds.y + screen_bounds.height - h)
-      ((x2 min x1) max x0, (y2 min y1) max y0)
+
+      val point = new Point((x2 min x1) max x0, (y2 min y1) max y0)
+      SwingUtilities.convertPointFromScreen(point, layered)
+      (point.x, point.y)
     }
 
+    completion.setLocation(x, y)
     completion.setSize(new Dimension(w, h))
     completion.setPreferredSize(new Dimension(w, h))
-    PopupFactory.getSharedInstance.getPopup(root, completion, x, y)
+
+    new Popup(layered, completion)
+  }
+
+  private def show_popup()
+  {
+    popup.show
+    list_view.requestFocus
   }
 
   private def hide_popup()
@@ -286,8 +298,5 @@ class Completion_Popup private(
     popup.hide
     if (had_focus) refocus()
   }
-
-  popup.show
-  list_view.requestFocus
 }
 
