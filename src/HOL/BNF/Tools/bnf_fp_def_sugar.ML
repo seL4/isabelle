@@ -97,6 +97,7 @@ struct
 
 open BNF_Util
 open BNF_Ctr_Sugar
+open BNF_Comp
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar_Tactics
@@ -1103,11 +1104,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           quote (Syntax.string_of_typ fake_lthy T)))
       | eq_fpT_check _ _ = false;
 
-    fun freeze_fp (T as Type (s, Us)) =
+    fun freeze_fp (T as Type (s, Ts)) =
         (case find_index (eq_fpT_check T) fake_Ts of
-          ~1 => Type (s, map freeze_fp Us)
+          ~1 => Type (s, map freeze_fp Ts)
         | kk => nth Xs kk)
       | freeze_fp T = T;
+
+    val unfreeze_fp = Term.typ_subst_atomic (Xs ~~ fake_Ts);
 
     val ctrXs_Tsss = map (map (map freeze_fp)) fake_ctr_Tsss;
     val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
@@ -1119,8 +1122,34 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
            dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...},
            lthy)) =
-      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
-        fake_Ts fp_eqs no_defs_lthy0;
+      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
+        no_defs_lthy0
+      handle BAD_DEAD (X, X_backdrop) =>
+        (case X_backdrop of
+          Type (bad_tc, _) =>
+          let
+            val qsoty = quote o Syntax.string_of_typ fake_lthy;
+            val fake_T = qsoty (unfreeze_fp X);
+            val fake_T_backdrop = qsoty (unfreeze_fp X_backdrop);
+            fun register_hint () =
+              "\nUse the " ^ quote (fst (fst @{command_spec "bnf"})) ^ " command to register " ^
+              quote bad_tc ^ " as a bounded natural functor to allow nested (co)recursion through \
+              \it";
+          in
+            if is_some (bnf_of no_defs_lthy bad_tc) orelse
+               is_some (fp_sugar_of no_defs_lthy bad_tc) then
+              error ("Non-strictly-positive " ^ co_prefix fp ^ "recursive occurrence of type " ^
+                fake_T ^ " in type expression " ^ fake_T_backdrop)
+            else if is_some (Datatype_Data.get_info (Proof_Context.theory_of no_defs_lthy)
+                bad_tc) then
+              error ("Unsupported " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
+                " via the old-style datatype " ^ quote bad_tc ^ " in type expression " ^
+                fake_T_backdrop ^ register_hint ())
+            else
+              error ("Unsupported " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
+                " via type constructor " ^ quote bad_tc ^ " in type expression " ^ fake_T_backdrop ^
+                register_hint ())
+          end);
 
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());

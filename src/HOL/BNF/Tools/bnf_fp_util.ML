@@ -575,12 +575,12 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
-    val (lhss, rhss) = split_list fp_eqs;
+    val (Xs, rhsXs) = split_list fp_eqs;
 
-    (* FIXME: because of "@ lhss", the output could contain type variables that are not in the
+    (* FIXME: because of "@ Xs", the output could contain type variables that are not in the
        input; also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
     fun fp_sort Ass =
-      subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ lhss;
+      subtract (op =) Xs (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ Xs;
 
     val common_name = mk_common_name (map Binding.name_of bs);
 
@@ -590,7 +590,7 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
       end;
 
     val ((bnfs, (deadss, livess)), (unfold_set, lthy)) = apfst (apsnd split_list o split_list)
-      (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort) bs rhss
+      (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort Xs) bs rhsXs
         (empty_unfolds, lthy));
 
     fun qualify i =
@@ -600,10 +600,6 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
     val Ass = map (map dest_TFree) livess;
     val resDs = fold (subtract (op =)) Ass resBs;
     val Ds = fold (fold Term.add_tfreesT) deadss [];
-
-    val _ = (case Library.inter (op =) Ds lhss of [] => ()
-      | A :: _ => error ("Inadmissible type recursion (cannot take fixed point of dead type \
-        \variable " ^ quote (Syntax.string_of_typ lthy (TFree A)) ^ ")"));
 
     val timer = time (timer "Construction of BNFs");
 

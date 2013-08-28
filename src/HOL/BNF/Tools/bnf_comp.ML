@@ -14,8 +14,11 @@ sig
   type unfold_set
   val empty_unfolds: unfold_set
 
+  exception BAD_DEAD of typ * typ
+
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
-    ((string * sort) list list -> (string * sort) list) -> typ -> unfold_set * Proof.context ->
+    ((string * sort) list list -> (string * sort) list) -> (string * sort) list -> typ ->
+    unfold_set * Proof.context ->
     (BNF_Def.bnf * (typ list * typ list)) * (unfold_set * Proof.context)
   val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
@@ -645,10 +648,18 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
     ((bnf', deads), lthy')
   end;
 
-fun bnf_of_typ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
-  | bnf_of_typ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' sort (T as Type (C, Ts)) (unfold_set, lthy) =
+exception BAD_DEAD of typ * typ;
+
+fun bnf_of_typ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
+  | bnf_of_typ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
+  | bnf_of_typ const_policy qualify' sort Xs (T as Type (C, Ts)) (unfold_set, lthy) =
     let
+      fun check_bad_dead ((_, (deads, _)), _) =
+        let val Ds = fold Term.add_tfreesT deads [] in
+          (case Library.inter (op =) Ds Xs of [] => ()
+           | X :: _ => raise BAD_DEAD (TFree X, T))
+        end;
+
       val tfrees = Term.add_tfreesT T [];
       val bnf_opt = if null tfrees then NONE else bnf_of lthy C;
     in
@@ -679,11 +690,12 @@ fun bnf_of_typ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (unfold_set', lthy')) =
               apfst (apsnd split_list o split_list)
-                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort)
+                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs)
                 (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' (unfold_set, lthy));
           in
             compose_bnf const_policy qualify sort bnf inners oDs Dss Ass (unfold_set', lthy')
           end)
+      |> tap check_bad_dead
     end;
 
 end;
