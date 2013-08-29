@@ -1034,8 +1034,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val fp_bs = map type_binding_of specs;
     val fp_b_names = map Binding.name_of fp_bs;
     val fp_common_name = mk_common_name fp_b_names;
-    val map_bs = map2 (fn fp_b_name => qualify false fp_b_name o map_binding_of) fp_b_names specs;
-    val rel_bs = map2 (fn fp_b_name => qualify false fp_b_name o rel_binding_of) fp_b_names specs;
+    val map_bs = map map_binding_of specs;
+    val rel_bs = map rel_binding_of specs;
 
     fun prepare_type_arg (_, (ty, c)) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in

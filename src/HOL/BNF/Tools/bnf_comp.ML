@@ -24,8 +24,8 @@ sig
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.bnf list -> unfold_set -> Proof.context ->
     (int list list * ''a list) * (BNF_Def.bnf list * (unfold_set * Proof.context))
-  val seal_bnf: unfold_set -> binding -> typ list -> BNF_Def.bnf -> Proof.context ->
-    (BNF_Def.bnf * typ list) * local_theory
+  val seal_bnf: (binding -> binding) -> unfold_set -> binding -> typ list -> BNF_Def.bnf ->
+    Proof.context -> (BNF_Def.bnf * typ list) * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =
@@ -434,7 +434,6 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds) Binding.empty Binding.empty
         [] (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
-
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -571,7 +570,7 @@ fun compose_bnf const_policy qualify sort outer inners oDs Dss tfreess (unfold_s
 
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
 
-fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
+fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
@@ -604,7 +603,7 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
 
     (*bd should only depend on dead type variables!*)
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
-    val bdT_bind = Binding.suffix_name ("_" ^ bdTN) b;
+    val bdT_bind = qualify (Binding.suffix_name ("_" ^ bdTN) b);
     val params = fold Term.add_tfreesT Ds [];
     val deads = map TFree params;
 
@@ -641,9 +640,10 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
 
     fun wit_tac _ = mk_simple_wit_tac (map unfold_all (wit_thms_of_bnf bnf));
 
-    val (bnf', lthy') = bnf_def Hardly_Inline (user_policy Dont_Note) I tacs wit_tac (SOME deads)
-      Binding.empty Binding.empty []
-      (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
+    val (bnf', lthy') =
+      bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME deads)
+        Binding.empty Binding.empty []
+        (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
     ((bnf', deads), lthy')
   end;
