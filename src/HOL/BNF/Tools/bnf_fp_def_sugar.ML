@@ -1047,17 +1047,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
     val set_bss = map (map fst o type_args_named_constrained_of) specs;
 
-    val _ = has_duplicates (op =) unsorted_As andalso
-      error ("Duplicate parameters in " ^ co_prefix fp ^ "datatype specification");
-
-    val bad_args =
-      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy0))) unsorted_As
-      |> filter_out Term.is_TVar;
-    val _ = null bad_args orelse
-      error ("Locally fixed type argument " ^
-        quote (Syntax.string_of_typ no_defs_lthy0 (hd bad_args)) ^ " in " ^ co_prefix fp ^
-        "datatype specification");
-
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
@@ -1075,6 +1064,19 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val fake_thy = fold add_fake_type specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
+
+    val qsoty = quote o Syntax.string_of_typ fake_lthy;
+
+    val _ = (case duplicates (op =) unsorted_As of [] => ()
+      | A :: _ => error ("Duplicate type parameter " ^ qsoty A ^ " in " ^ co_prefix fp ^
+          "datatype specification"));
+
+    val bad_args =
+      map (Logic.type_map (singleton (Variable.polymorphic no_defs_lthy0))) unsorted_As
+      |> filter_out Term.is_TVar;
+    val _ = null bad_args orelse
+      error ("Locally fixed type argument " ^ qsoty (hd bad_args) ^ " in " ^ co_prefix fp ^
+        "datatype specification");
 
     fun mk_fake_T b =
       Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
@@ -1101,20 +1103,17 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val (As :: _) :: fake_ctr_Tsss =
       burrow (burrow (Syntax.check_typs fake_lthy)) (Ass0 :: fake_ctr_Tsss0);
-
-    val _ = (case duplicates (op =) unsorted_As of [] => ()
-      | A :: _ => error ("Duplicate type parameter " ^
-          quote (Syntax.string_of_typ no_defs_lthy A)));
+    val As' = map dest_TFree As;
 
     val rhs_As' = fold (fold (fold Term.add_tfreesT)) fake_ctr_Tsss [];
-    val _ = (case subtract (op =) (map dest_TFree As) rhs_As' of
-        [] => ()
-      | A' :: _ => error ("Extra type variable on right-hand side: " ^
-          quote (Syntax.string_of_typ no_defs_lthy (TFree A'))));
+    val _ = (case subtract (op =) As' rhs_As' of [] => ()
+      | extras => error ("Extra type variables on right-hand side: " ^
+          commas (map (qsoty o TFree) extras)));
 
-    fun eq_fpT_check (T as Type (s, Us)) (Type (s', Us')) =
-        s = s' andalso (Us = Us' orelse error ("Illegal occurrence of recursive type " ^
-          quote (Syntax.string_of_typ fake_lthy T)))
+    fun eq_fpT_check (T as Type (s, Ts)) (T' as Type (s', Ts')) =
+        s = s' andalso (Ts = Ts' orelse
+          error ("Wrong type arguments in " ^ co_prefix fp ^ "recursive type " ^ qsoty T ^
+            " (expected " ^ qsoty T' ^ ")"))
       | eq_fpT_check _ _ = false;
 
     fun freeze_fp (T as Type (s, Ts)) =
@@ -1131,6 +1130,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_sum_prod_Ts;
 
+    val rhsXs_As' = fold (fold (fold Term.add_tfreesT)) ctrXs_Tsss [];
+    val _ = (case subtract (op =) rhsXs_As' As' of [] => ()
+      | extras => List.app (fn extra => warning ("Unused type variable: " ^ qsoty (TFree extra)))
+          extras);
+
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
            dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...},
@@ -1141,7 +1145,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (case X_backdrop of
           Type (bad_tc, _) =>
           let
-            val qsoty = quote o Syntax.string_of_typ fake_lthy;
             val fake_T = qsoty (unfreeze_fp X);
             val fake_T_backdrop = qsoty (unfreeze_fp X_backdrop);
             fun register_hint () =
