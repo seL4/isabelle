@@ -43,13 +43,6 @@ object PIDE
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
 
-  def get_recent_syntax(): Option[Outer_Syntax] =
-  {
-    val current_session = session
-    if (current_session.recent_syntax == Outer_Syntax.empty) None
-    else Some(current_session.recent_syntax)
-  }
-
   lazy val editor = new JEdit_Editor
 
 

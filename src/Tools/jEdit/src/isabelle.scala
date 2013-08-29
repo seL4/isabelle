@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/isabelle.scala
     Author:     Makarius
 
-Convenience operations for Isabelle/jEdit.
+Global configuration and convenience operations for Isabelle/jEdit.
 */
 
 package isabelle.jedit
@@ -18,18 +18,39 @@ object Isabelle
 {
   /* editor modes */
 
-  val modes = List("isabelle", "isabelle-options", "isabelle-root", "isabelle-news")
+  val modes =
+    List(
+      "isabelle",         // theory source
+      "isabelle-news",    // NEWS
+      "isabelle-options", // etc/options
+      "isabelle-output",  // pretty text area output
+      "isabelle-raw",     // SideKick content tree
+      "isabelle-root")    // session ROOT
 
   private lazy val news_syntax = Outer_Syntax.init()
 
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
-      case "isabelle" | "isabelle-raw" => PIDE.get_recent_syntax
+      case "isabelle" | "isabelle-raw" =>
+        val syntax = PIDE.session.recent_syntax
+        if (syntax == Outer_Syntax.empty) None else Some(syntax)
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-news" => Some(news_syntax)
+      case "isabelle-output" => None
       case _ => None
     }
+
+
+  /* token markers */
+
+  private val marker_modes =
+    List("isabelle", "isabelle-options", "isabelle-output", "isabelle-root")
+
+  private val markers =
+    Map(marker_modes.map(name => (name, new Token_Markup.Marker(name))): _*)
+
+  def token_marker(name: String): Option[Token_Markup.Marker] = markers.get(name)
 
 
   /* dockable windows */
