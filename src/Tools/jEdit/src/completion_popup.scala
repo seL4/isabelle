@@ -155,10 +155,6 @@ object Completion_Popup
           else input_delay.invoke()
         }
       }
-      else {
-        dismissed()
-        input_delay.revoke()
-      }
     }
 
     private val input_delay =
