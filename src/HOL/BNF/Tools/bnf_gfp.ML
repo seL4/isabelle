@@ -66,7 +66,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val m = live - n; (*passive, if 0 don't generate a new BNF*)
     val ls = 1 upto m;
     val b_names = map Binding.name_of bs;
-    val b = Binding.name (mk_common_name b_names);
+    val common_name = mk_common_name b_names;
+    val b = Binding.name common_name;
+    val internal_b = Binding.prefix true common_name b;
+    fun qualify_bs internal = map2 (Binding.prefix internal) b_names bs;
+    val internal_bs = qualify_bs true;
+    val external_bs = qualify_bs false;
 
     (* TODO: check if m, n, etc., are sane *)
 
@@ -291,7 +296,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* coalgebra *)
 
-    val coalg_bind = Binding.suffix_name ("_" ^ coN ^ algN) b;
+    val coalg_bind = Binding.suffix_name ("_" ^ coN ^ algN) internal_b;
     val coalg_name = Binding.name_of coalg_bind;
     val coalg_def_bind = (Thm.def_binding coalg_bind, []);
 
@@ -367,7 +372,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* morphism *)
 
-    val mor_bind = Binding.suffix_name ("_" ^ morN) b;
+    val mor_bind = Binding.suffix_name ("_" ^ morN) internal_b;
     val mor_name = Binding.name_of mor_bind;
     val mor_def_bind = (Thm.def_binding mor_bind, []);
 
@@ -512,8 +517,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "Morphism definition & thms");
 
-    fun hset_rec_bind j = Binding.suffix_name ("_" ^ hset_recN ^ (if m = 1 then "" else
-      string_of_int j)) b;
+    fun hset_rec_bind j = internal_b
+      |> Binding.suffix_name ("_" ^ hset_recN ^ (if m = 1 then "" else string_of_int j)) ;
     val hset_rec_name = Binding.name_of o hset_rec_bind;
     val hset_rec_def_bind = rpair [] o Thm.def_binding o hset_rec_bind;
 
@@ -567,8 +572,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val hset_rec_0ss' = transpose hset_rec_0ss;
     val hset_rec_Sucss' = transpose hset_rec_Sucss;
 
-    fun hset_bind i j = Binding.suffix_name ("_" ^ hsetN ^
-      (if m = 1 then "" else string_of_int j)) (nth bs (i - 1));
+    fun hset_bind i j = nth internal_bs (i - 1)
+      |> Binding.suffix_name ("_" ^ hsetN ^ (if m = 1 then "" else string_of_int j));
     val hset_name = Binding.name_of oo hset_bind;
     val hset_def_bind = rpair [] o Thm.def_binding oo hset_bind;
 
@@ -735,7 +740,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* bisimulation *)
 
-    val bis_bind = Binding.suffix_name ("_" ^ bisN) b;
+    val bis_bind = Binding.suffix_name ("_" ^ bisN) internal_b;
     val bis_name = Binding.name_of bis_bind;
     val bis_def_bind = (Thm.def_binding bis_bind, []);
 
@@ -879,8 +884,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* largest self-bisimulation *)
 
-    fun lsbis_bind i = Binding.suffix_name ("_" ^ lsbisN ^ (if n = 1 then "" else
-      string_of_int i)) b;
+    fun lsbis_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ lsbisN);
     val lsbis_name = Binding.name_of o lsbis_bind;
     val lsbis_def_bind = rpair [] o Thm.def_binding o lsbis_bind;
 
@@ -975,7 +979,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           val sbdT = Type (sbdT_name, dead_params');
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
 
-          val sbd_bind = Binding.suffix_name ("_" ^ sum_bdN) b;
+          val sbd_bind = Binding.suffix_name ("_" ^ sum_bdN) internal_b;
           val sbd_name = Binding.name_of sbd_bind;
           val sbd_def_bind = (Thm.def_binding sbd_bind, []);
 
@@ -1071,8 +1075,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* tree coalgebra *)
 
-    fun isNode_bind i = Binding.suffix_name ("_" ^ isNodeN ^ (if n = 1 then "" else
-      string_of_int i)) b;
+    fun isNode_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ isNodeN);
     val isNode_name = Binding.name_of o isNode_bind;
     val isNode_def_bind = rpair [] o Thm.def_binding o isNode_bind;
 
@@ -1131,8 +1134,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         Library.foldr1 HOLogic.mk_conj [empty, Field, prefCl, tree, undef]
       end;
 
-    fun carT_bind i = Binding.suffix_name ("_" ^ carTN ^ (if n = 1 then "" else
-      string_of_int i)) b;
+    fun carT_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ carTN);
     val carT_name = Binding.name_of o carT_bind;
     val carT_def_bind = rpair [] o Thm.def_binding o carT_bind;
 
@@ -1164,8 +1166,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       (Const (nth carTs (i - 1),
          Library.foldr (op -->) (map fastype_of As, HOLogic.mk_setT treeT)), As);
 
-    fun strT_bind i = Binding.suffix_name ("_" ^ strTN ^ (if n = 1 then "" else
-      string_of_int i)) b;
+    fun strT_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ strTN);
     val strT_name = Binding.name_of o strT_bind;
     val strT_def_bind = rpair [] o Thm.def_binding o strT_bind;
 
@@ -1226,7 +1227,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val to_sbd_thmss = mk_to_sbd_thmss @{thm toCard};
     val from_to_sbd_thmss = mk_to_sbd_thmss @{thm fromCard_toCard};
 
-    val Lev_bind = Binding.suffix_name ("_" ^ LevN) b;
+    val Lev_bind = Binding.suffix_name ("_" ^ LevN) internal_b;
     val Lev_name = Binding.name_of Lev_bind;
     val Lev_def_bind = rpair [] (Thm.def_binding Lev_bind);
 
@@ -1280,7 +1281,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val Lev_0s = flat (mk_rec_simps n @{thm nat_rec_0} [Lev_def]);
     val Lev_Sucs = flat (mk_rec_simps n @{thm nat_rec_Suc} [Lev_def]);
 
-    val rv_bind = Binding.suffix_name ("_" ^ rvN) b;
+    val rv_bind = Binding.suffix_name ("_" ^ rvN) internal_b;
     val rv_name = Binding.name_of rv_bind;
     val rv_def_bind = rpair [] (Thm.def_binding rv_bind);
 
@@ -1326,8 +1327,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val rv_Nils = flat (mk_rec_simps n @{thm list_rec_Nil} [rv_def]);
     val rv_Conss = flat (mk_rec_simps n @{thm list_rec_Cons} [rv_def]);
 
-    fun beh_bind i = Binding.suffix_name ("_" ^ behN ^ (if n = 1 then "" else
-      string_of_int i)) b;
+    fun beh_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ behN);
     val beh_name = Binding.name_of o beh_bind;
     val beh_def_bind = rpair [] o Thm.def_binding o beh_bind;
 
@@ -1689,7 +1689,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       ||>> mk_Frees "s" corec_sTs
       ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
-    fun dtor_bind i = Binding.suffix_name ("_" ^ dtorN) (nth bs (i - 1));
+    fun dtor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtorN);
     val dtor_name = Binding.name_of o dtor_bind;
     val dtor_def_bind = rpair [] o Thm.def_binding o dtor_bind;
 
@@ -1741,7 +1741,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "dtor definitions & thms");
 
-    fun unfold_bind i = Binding.suffix_name ("_" ^ dtor_unfoldN) (nth bs (i - 1));
+    fun unfold_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtor_unfoldN);
     val unfold_name = Binding.name_of o unfold_bind;
     val unfold_def_bind = rpair [] o Thm.def_binding o unfold_bind;
 
@@ -1862,7 +1862,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       Term.list_comb (mk_map_of_bnf Ds (passiveAs @ Ts) (passiveAs @ FTs) bnf,
         map HOLogic.id_const passiveAs @ dtors)) Dss bnfs;
 
-    fun ctor_bind i = Binding.suffix_name ("_" ^ ctorN) (nth bs (i - 1));
+    fun ctor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctorN);
     val ctor_name = Binding.name_of o ctor_bind;
     val ctor_def_bind = rpair [] o Thm.def_binding o ctor_bind;
 
@@ -1933,7 +1933,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           trans OF [mor RS unique, unfold_dtor]) unfold_unique_mor_thms unfold_dtor_thms
       end;
 
-    fun corec_bind i = Binding.suffix_name ("_" ^ dtor_corecN) (nth bs (i - 1));
+    fun corec_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtor_corecN);
     val corec_name = Binding.name_of o corec_bind;
     val corec_def_bind = rpair [] o Thm.def_binding o corec_bind;
 
