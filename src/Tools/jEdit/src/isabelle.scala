@@ -20,12 +20,14 @@ object Isabelle
 
   val modes = List("isabelle", "isabelle-options", "isabelle-root", "isabelle-news")
 
+  private lazy val news_syntax = Outer_Syntax.init()
+
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
       case "isabelle" | "isabelle-raw" => PIDE.get_recent_syntax
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
-      case "isabelle-news" => Some(Outer_Syntax.empty)
+      case "isabelle-news" => Some(news_syntax)
       case _ => None
     }
 
