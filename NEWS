@@ -90,10 +90,11 @@ timing information.
 according to Isabelle/Scala plugin option "jedit_font_reset_size"
 (cf. keyboard shortcut C+0).
 
-* More reactive and less intrusive completion.  Plain words need to be
-at least 3 characters long to be completed (was 2 before).  Symbols
-are only completed in backslash forms, e.g. \forall or \<forall> that
-both produce the Isabelle symbol \<forall> in its Unicode rendering.
+* More reactive and less intrusive completion, managed by
+Isabelle/jEdit instead of SideKick.  Plain words need to be at least 3
+characters long to be completed (was 2 before).  Symbols are only
+completed in backslash forms, e.g. \forall or \<forall> that both
+produce the Isabelle symbol \<forall> in its Unicode rendering.
 
 * Improved support for Linux look-and-feel "GTK+", see also "Utilities
 / Global Options / Appearance".
