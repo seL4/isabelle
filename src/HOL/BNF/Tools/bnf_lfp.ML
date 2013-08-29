@@ -163,7 +163,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_cong0s = map map_cong0_of_bnf bnfs;
     val map_id0s = map map_id0_of_bnf bnfs;
-    val map_id's = map map_id'_of_bnf bnfs;
+    val map_ids = map map_id_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
     val set_map'ss = map set_map'_of_bnf bnfs;
 
@@ -211,7 +211,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (*forall a : set(m+1) x. f(m+1) a = a; ...; forall a : set(m+n) x. f(m+n) a = a ==>
       map id ... id f(m+1) ... f(m+n) x = x*)
-    fun mk_map_cong0L x mapAsAs sets map_cong0 map_id' =
+    fun mk_map_cong0L x mapAsAs sets map_cong0 map_id =
       let
         fun mk_prem set f z z' = HOLogic.mk_Trueprop
           (mk_Ball (set $ x) (Term.absfree z' (HOLogic.mk_eq (f $ z, z))));
@@ -220,11 +220,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       in
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (x :: self_fs) (Logic.list_implies (prems, goal)))
-          (K (mk_map_cong0L_tac m map_cong0 map_id'))
+          (K (mk_map_cong0L_tac m map_cong0 map_id))
         |> Thm.close_derivation
       end;
 
-    val map_cong0L_thms = map5 mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_id's;
+    val map_cong0L_thms = map5 mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_ids;
     val in_mono'_thms = map (fn bnf => in_mono_of_bnf bnf OF (replicate m subset_refl)) bnfs;
     val in_cong'_thms = map (fn bnf => in_cong_of_bnf bnf OF (replicate m refl)) bnfs;
 
@@ -389,7 +389,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       in
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ Bs_copy) (Logic.list_implies (prems, concl)))
-          (K (mk_mor_incl_tac mor_def map_id's))
+          (K (mk_mor_incl_tac mor_def map_ids))
         |> Thm.close_derivation
       end;
 
@@ -1405,7 +1405,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         ctor_Irel_thms, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
-        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_id's),
+        map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
         replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;

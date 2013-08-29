@@ -160,12 +160,12 @@ fun mk_mor_elim_tac mor_def =
   etac bspec THEN'
   atac) 1;
 
-fun mk_mor_incl_tac mor_def map_id's =
+fun mk_mor_incl_tac mor_def map_ids =
   (stac mor_def THEN'
   rtac conjI THEN'
-  CONJ_WRAP' (K (EVERY' [rtac ballI, etac set_mp, stac id_apply, atac])) map_id's THEN'
+  CONJ_WRAP' (K (EVERY' [rtac ballI, etac set_mp, stac id_apply, atac])) map_ids THEN'
   CONJ_WRAP' (fn thm =>
-   (EVERY' [rtac ballI, rtac (thm RS trans), rtac sym, rtac (id_apply RS arg_cong)])) map_id's) 1;
+   (EVERY' [rtac ballI, rtac (thm RS trans), rtac sym, rtac (id_apply RS arg_cong)])) map_ids) 1;
 
 fun mk_mor_comp_tac mor_def mor_images morEs map_comp_ids =
   let
