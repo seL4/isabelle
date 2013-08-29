@@ -179,7 +179,7 @@ fun delete_quotients quot_thm ctxt =
     val (_, qtyp) = quot_thm_rty_qty quot_thm
     val qty_full_name = (fst o dest_Type) qtyp
     val symtab = get_quotients' ctxt
-    fun compare_data (_, data) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
+    fun compare_data (_, data:quotient) = Thm.eq_thm_prop (#quot_thm data, quot_thm)
   in
     if Symtab.member compare_data symtab (qty_full_name, quot_thm)
       then Data.map (map_quotients (Symtab.delete qty_full_name)) ctxt
