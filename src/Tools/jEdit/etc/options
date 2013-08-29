@@ -33,6 +33,9 @@ public option jedit_mac_adapter : bool = true
 public option jedit_timing_threshold : real = 0.1
   -- "default threshold for timing display"
 
+
+section "Completion"
+
 public option jedit_completion : bool = true
   -- "enable completion popup"
 
