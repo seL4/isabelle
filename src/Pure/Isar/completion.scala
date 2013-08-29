@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/completion.scala
+/*  Title:      Pure/Isar/completion.scala
     Author:     Makarius
 
 Completion of symbols and keywords.
