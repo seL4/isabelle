@@ -714,14 +714,14 @@ fun mk_map_comp0_tac map_comp0s ctor_maps unique iplus1 =
   let
     val i = iplus1 - 1;
     val unique' = Thm.permute_prems 0 i unique;
-    val map_comps' = drop i map_comp0s @ take i map_comp0s;
+    val map_comp0s' = drop i map_comp0s @ take i map_comp0s;
     val ctor_maps' = drop i ctor_maps @ take i ctor_maps;
     fun mk_comp comp simp =
       EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, rtac o_apply,
         rtac trans, rtac (simp RS arg_cong), rtac trans, rtac simp,
         rtac trans, rtac (comp RS arg_cong), rtac sym, rtac o_apply];
   in
-    (rtac sym THEN' rtac unique' THEN' EVERY' (map2 mk_comp map_comps' ctor_maps')) 1
+    (rtac sym THEN' rtac unique' THEN' EVERY' (map2 mk_comp map_comp0s' ctor_maps')) 1
   end;
 
 fun mk_set_map_tac set_nat =

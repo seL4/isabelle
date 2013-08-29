@@ -160,7 +160,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       set_bd0ss bd0_Card_orders;
     val in_bds = map in_bd_of_bnf bnfs;
     val sym_map_comps = map (fn bnf => map_comp0_of_bnf bnf RS sym) bnfs;
-    val map_comp's = map map_comp'_of_bnf bnfs;
+    val map_comps = map map_comp_of_bnf bnfs;
     val map_cong0s = map map_cong0_of_bnf bnfs;
     val map_id0s = map map_id0_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;
@@ -207,7 +207,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         |> Thm.close_derivation
       end;
 
-    val map_comp_id_thms = map5 mk_map_comp_id xFs mapsAsBs mapsBsCs' mapsAsCs' map_comp's;
+    val map_comp_id_thms = map5 mk_map_comp_id xFs mapsAsBs mapsBsCs' mapsAsCs' map_comps;
 
     (*forall a : set(m+1) x. f(m+1) a = a; ...; forall a : set(m+n) x. f(m+n) a = a ==>
       map id ... id f(m+1) ... f(m+n) x = x*)
@@ -1693,7 +1693,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val map_id0_tacs = map (K o mk_map_id0_tac map_id0s) ctor_map_unique_thms;
         val map_comp0_tacs =
-          map2 (K oo mk_map_comp0_tac map_comp's ctor_map_thms) ctor_map_unique_thms ks;
+          map2 (K oo mk_map_comp0_tac map_comps ctor_map_thms) ctor_map_unique_thms ks;
         val map_cong0_tacs = map (mk_map_cong0_tac m) map_cong0_thms;
         val set_nat_tacss = map (map (K o mk_set_map_tac)) (transpose set_map_thmss);
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
@@ -1780,7 +1780,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
                (K (mk_ctor_rel_tac lthy in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
                  ctor_inject ctor_dtor set_maps ctor_set_incls ctor_set_set_inclss))
               |> Thm.close_derivation)
-            ks goals in_rels map_comp's map_cong0s folded_ctor_map_thms folded_ctor_set_thmss'
+            ks goals in_rels map_comps map_cong0s folded_ctor_map_thms folded_ctor_set_thmss'
               ctor_inject_thms ctor_dtor_thms set_map'ss ctor_set_incl_thmss
               ctor_set_set_incl_thmsss
           end;

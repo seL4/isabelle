@@ -1008,9 +1008,9 @@ fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_map_tac m n cT unfold map_comp' map_cong0 =
+fun mk_map_tac m n cT unfold map_comp map_cong0 =
   EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (o_apply RS trans RS sym),
-    rtac (unfold RS trans), rtac (Thm.permute_prems 0 1 (map_comp' RS box_equals)), rtac map_cong0,
+    rtac (unfold RS trans), rtac (Thm.permute_prems 0 1 (map_comp RS box_equals)), rtac map_cong0,
     REPEAT_DETERM_N m o rtac (@{thm id_o} RS fun_cong),
     REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong),
     rtac (o_apply RS (Drule.instantiate' [cT] [] arg_cong) RS sym)] 1;
@@ -1049,21 +1049,21 @@ fun mk_map_comp0_tac m n maps map_comp0s map_cong0s unfold_unique =
         replicate n (@{thm o_id} RS fun_cong))))
     maps map_comp0s map_cong0s)] 1;
 
-fun mk_mcong_tac ctxt m coinduct_tac map_comp's dtor_maps map_cong0s set_mapss set_hsetss
+fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_mapss set_hsetss
   set_hset_hsetsss =
   let
-    val n = length map_comp's;
+    val n = length map_comps;
     val ks = 1 upto n;
   in
     EVERY' ([rtac rev_mp,
       coinduct_tac] @
-      maps (fn (((((map_comp'_trans, dtor_maps_trans), map_cong0), set_maps), set_hsets),
+      maps (fn (((((map_comp_trans, dtor_maps_trans), map_cong0), set_maps), set_hsets),
         set_hset_hsetss) =>
         [REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac ctxt, rtac exI, rtac conjI,
-         rtac conjI, rtac map_comp'_trans, rtac sym, rtac dtor_maps_trans, rtac map_cong0,
+         rtac conjI, rtac map_comp_trans, rtac sym, rtac dtor_maps_trans, rtac map_cong0,
          REPEAT_DETERM_N m o (rtac o_apply_trans_sym THEN' rtac id_apply),
          REPEAT_DETERM_N n o rtac fst_convol_fun_cong_sym,
-         rtac map_comp'_trans, rtac sym, rtac dtor_maps_trans, rtac map_cong0,
+         rtac map_comp_trans, rtac sym, rtac dtor_maps_trans, rtac map_cong0,
          EVERY' (maps (fn set_hset =>
            [rtac o_apply_trans_sym, rtac (id_apply RS trans), etac CollectE,
            REPEAT_DETERM o etac conjE, etac bspec, etac set_hset]) set_hsets),
@@ -1076,7 +1076,7 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comp's dtor_maps map_cong0s set_mapss s
              CONJ_WRAP' (fn set_hset_hset =>
                EVERY' [rtac ballI, etac bspec, etac set_hset_hset, atac]) set_hset_hsets])
            (drop m set_maps ~~ set_hset_hsetss)])
-        (map (fn th => th RS trans) map_comp's ~~ map (fn th => th RS trans) dtor_maps ~~
+        (map (fn th => th RS trans) map_comps ~~ map (fn th => th RS trans) dtor_maps ~~
           map_cong0s ~~ set_mapss ~~ set_hsetss ~~ set_hset_hsetsss) @
       [rtac impI,
        CONJ_WRAP' (fn k =>

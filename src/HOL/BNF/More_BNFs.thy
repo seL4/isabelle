@@ -227,7 +227,7 @@ apply -
 apply transfer apply simp
 done
 
-lemmas [simp] = fset.map_comp' fset.map_id fset.set_map'
+lemmas [simp] = fset.map_comp fset.map_id fset.set_map'
 
 lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
   unfolding fset_rel_def set_rel_def by auto

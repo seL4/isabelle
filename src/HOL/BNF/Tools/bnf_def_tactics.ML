@@ -10,7 +10,7 @@ signature BNF_DEF_TACTICS =
 sig
   val mk_collect_set_map_tac: thm list -> tactic
   val mk_map_id: thm -> thm
-  val mk_map_comp': thm -> thm
+  val mk_map_comp: thm -> thm
   val mk_map_cong_tac: Proof.context -> thm -> tactic
   val mk_in_mono_tac: int -> tactic
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
@@ -46,7 +46,7 @@ val ord_le_eq_trans = @{thm ord_le_eq_trans};
 val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id id = mk_trans (fun_cong OF [id]) @{thm id_apply};
-fun mk_map_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
+fun mk_map_comp comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac cong0 THEN'
    REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
@@ -226,7 +226,7 @@ fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
     EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
       CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_maps] 1;
 
-fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp'
+fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp
   {context = ctxt, prems = _} =
   let
     val n = length set_map's;
@@ -242,11 +242,11 @@ fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp'
       set_map's,
       rtac conjI,
       EVERY' (map (fn convol =>
-        rtac (box_equals OF [map_cong0, map_comp' RS sym, map_comp' RS sym]) THEN'
+        rtac (box_equals OF [map_cong0, map_comp RS sym, map_comp RS sym]) THEN'
         REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
   end;
 
-fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp' map_id map_cong0 set_map's set_bds
+fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_map's set_bds
   bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero {context = ctxt, prems = _} =
   if live = 0 then
     rtac @{thm ordLeq_transitive[OF ordLeq_csum2[OF card_of_Card_order]
@@ -294,7 +294,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp' map_id map_cong0 set_map's 
         rtac sym,
         rtac (Drule.rotate_prems 1
            ((box_equals OF [map_cong0 OF replicate live @{thm If_the_inv_into_f_f},
-             map_comp' RS sym, map_id]) RSN (2, trans))),
+             map_comp RS sym, map_id]) RSN (2, trans))),
         REPEAT_DETERM_N (2 * live) o atac,
         REPEAT_DETERM_N live o rtac (@{thm prod.cases} RS trans),
         rtac refl,
@@ -305,7 +305,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp' map_id map_cong0 set_map's 
         set_map's,
         rtac sym,
         rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
-           map_comp' RS sym, map_id])] 1
+           map_comp RS sym, map_id])] 1
   end;
 
 end;
