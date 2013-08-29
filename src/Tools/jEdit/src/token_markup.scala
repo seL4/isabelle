@@ -208,8 +208,6 @@ object Token_Markup
 
   class Marker(mode: String) extends TokenMarker
   {
-    private val ext_styles = mode == "isabelle"
-
     override def markTokens(context: TokenMarker.LineContext,
         handler: TokenHandler, raw_line: Segment): TokenMarker.LineContext =
     {
@@ -234,9 +232,7 @@ object Token_Markup
             (List((JEditToken.NULL, token)), new Line_Context(None))
           }
 
-        val extended =
-          if (ext_styles) extended_styles(line)
-          else Map.empty[Text.Offset, Byte => Byte]
+        val extended = extended_styles(line)
 
         var offset = 0
         for ((style, token) <- styled_tokens) {
