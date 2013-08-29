@@ -142,7 +142,7 @@ class Isabelle_Sidekick_Root extends
   Isabelle_Sidekick_Structure("isabelle-root", PIDE.thy_load.buffer_node_dummy)
 
 
-class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
+class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
