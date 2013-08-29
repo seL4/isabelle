@@ -2844,7 +2844,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       val Jrels = if m = 0 then map HOLogic.eq_const Ts
         else map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
       val Jrel_coinduct_thm =
-        mk_rel_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
+        mk_rel_xtor_co_induct_thm Greatest_FP rels activeJphis Jrels Jphis Jzs Jz's dtors dtor's
           Jrel_coinduct_tac lthy;
 
       val rels = map2 (fn Ds => mk_rel_of_bnf Ds allAs allBs') Dss bnfs;
@@ -2894,7 +2894,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_rel_thms = dtor_Jrel_thms,
       xtor_co_iter_thmss = transpose [dtor_unfold_thms, dtor_corec_thms],
       xtor_co_iter_o_map_thmss = transpose [dtor_unfold_o_map_thms, dtor_corec_o_map_thms],
-      rel_co_induct_thm = Jrel_coinduct_thm},
+      rel_xtor_co_induct_thm = Jrel_coinduct_thm},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

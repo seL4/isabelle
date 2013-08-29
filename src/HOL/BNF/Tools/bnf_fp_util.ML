@@ -27,7 +27,7 @@ sig
      xtor_rel_thms: thm list,
      xtor_co_iter_thmss: thm list list,
      xtor_co_iter_o_map_thmss: thm list list,
-     rel_co_induct_thm: thm}
+     rel_xtor_co_induct_thm: thm}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
@@ -170,7 +170,7 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val mk_rel_co_induct_thm: fp_kind -> term list -> term list -> term list -> term list ->
+  val mk_rel_xtor_co_induct_thm: fp_kind -> term list -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
   val mk_un_fold_transfer_thms: fp_kind -> term list -> term list -> term list -> term list ->
@@ -215,11 +215,11 @@ type fp_result =
    xtor_rel_thms: thm list,
    xtor_co_iter_thmss: thm list list,
    xtor_co_iter_o_map_thmss: thm list list,
-   rel_co_induct_thm: thm};
+   rel_xtor_co_induct_thm: thm};
 
 fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct, dtor_ctors,
     ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
-    xtor_co_iter_thmss, xtor_co_iter_o_map_thmss, rel_co_induct_thm} =
+    xtor_co_iter_thmss, xtor_co_iter_o_map_thmss, rel_xtor_co_induct_thm} =
   {Ts = map (Morphism.typ phi) Ts,
    bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
@@ -235,7 +235,7 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
    xtor_rel_thms = map (Morphism.thm phi) xtor_rel_thms,
    xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss,
    xtor_co_iter_o_map_thmss = map (map (Morphism.thm phi)) xtor_co_iter_o_map_thmss,
-   rel_co_induct_thm = Morphism.thm phi rel_co_induct_thm};
+   rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
 
 fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
   eq_list eq_bnf (bnfs1, bnfs2);
@@ -480,7 +480,7 @@ fun mk_sum_casesN_balanced 1 1 = refl
     Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm sum_case_step(1)},
       right = mk_sum_step @{thm sum.cases(2)} @{thm sum_case_step(2)}, init = refl} n k;
 
-fun mk_rel_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
+fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let
     val pre_relphis = map (fn rel => Term.list_comb (rel, phis @ pre_phis)) pre_rels;
     val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;

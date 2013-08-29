@@ -1817,7 +1817,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       val Irels = if m = 0 then map HOLogic.eq_const Ts
         else map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
       val Irel_induct_thm =
-        mk_rel_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
+        mk_rel_xtor_co_induct_thm Least_FP rels activeIphis Irels Iphis xFs yFs ctors ctor's
           (mk_rel_induct_tac m ctor_induct2_thm ks ctor_Irel_thms (map rel_mono_strong_of_bnf bnfs))
           lthy;
 
@@ -1865,7 +1865,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_rel_thms = ctor_Irel_thms,
       xtor_co_iter_thmss = transpose [ctor_fold_thms, ctor_rec_thms],
       xtor_co_iter_o_map_thmss = transpose [ctor_fold_o_map_thms, ctor_rec_o_map_thms],
-      rel_co_induct_thm = Irel_induct_thm},
+      rel_xtor_co_induct_thm = Irel_induct_thm},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
