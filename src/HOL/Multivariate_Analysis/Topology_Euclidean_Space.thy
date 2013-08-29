@@ -55,11 +55,11 @@ subsection {* Topological Basis *}
 context topological_space
 begin
 
-definition "topological_basis B =
-  ((\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x)))"
+definition "topological_basis B \<longleftrightarrow>
+  (\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
 
 lemma topological_basis:
-  "topological_basis B = (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
+  "topological_basis B \<longleftrightarrow> (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
   unfolding topological_basis_def
   apply safe
      apply fastforce
@@ -198,7 +198,7 @@ lemma open_countable_basisE:
   by (atomize_elim) simp
 
 lemma countable_dense_exists:
-  shows "\<exists>D::'a set. countable D \<and> (\<forall>X. open X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>d \<in> D. d \<in> X))"
+  "\<exists>D::'a set. countable D \<and> (\<forall>X. open X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>d \<in> D. d \<in> X))"
 proof -
   let ?f = "(\<lambda>B'. SOME x. x \<in> B')"
   have "countable (?f ` B)" using countable_basis by simp
@@ -667,7 +667,7 @@ lemma open_subset: "S \<subseteq> T \<Longrightarrow> open S \<Longrightarrow> o
 lemma closedin_closed: "closedin (subtopology euclidean U) S \<longleftrightarrow> (\<exists>T. closed T \<and> S = U \<inter> T)"
   by (simp add: closedin_subtopology closed_closedin Int_ac)
 
-lemma closedin_closed_Int: "closed S ==> closedin (subtopology euclidean U) (U \<inter> S)"
+lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euclidean U) (U \<inter> S)"
   by (metis closedin_closed)
 
 lemma closed_closedin_trans:
@@ -818,7 +818,7 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   apply (metis zero_le_dist order_trans dist_self)
   done
 
-lemma ball_empty[intro]: "e \<le> 0 ==> ball x e = {}" by simp
+lemma ball_empty[intro]: "e \<le> 0 \<Longrightarrow> ball x e = {}" by simp
 
 lemma euclidean_dist_l2:
   fixes x y :: "'a :: euclidean_space"
@@ -830,11 +830,11 @@ definition "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<
 
 lemma rational_boxes:
   fixes x :: "'a\<Colon>euclidean_space"
-  assumes "0 < e"
+  assumes "e > 0"
   shows "\<exists>a b. (\<forall>i\<in>Basis. a \<bullet> i \<in> \<rat> \<and> b \<bullet> i \<in> \<rat> ) \<and> x \<in> box a b \<and> box a b \<subseteq> ball x e"
 proof -
   def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
-  then have e: "0 < e'"
+  then have e: "e' > 0"
     using assms by (auto intro!: divide_pos_pos simp: DIM_positive)
   have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
   proof
@@ -1087,7 +1087,7 @@ proof -
       by blast
     let ?m = "min (e/2) (dist x y) "
     from e2 y(2) have mp: "?m > 0"
-      by (simp add: dist_nz[THEN sym])
+      by (simp add: dist_nz[symmetric])
     from C[rule_format, OF mp] obtain z where z: "z \<in> S" "z \<noteq> x" "dist z x < ?m"
       by blast
     have th: "dist z y < e" using z y
@@ -1754,7 +1754,7 @@ lemma Lim_at_id: "(id ---> a) (at a)"
 
 lemma Lim_at_zero:
   fixes a :: "'a::real_normed_vector"
-  fixes l :: "'b::topological_space"
+    and l :: "'b::topological_space"
   shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)"
   using LIM_offset_zero LIM_offset_zero_cancel ..
 
@@ -1880,7 +1880,8 @@ text{* Useful lemmas on closure and set of possible sequential limits.*}
 
 lemma closure_sequential:
   fixes l :: "'a::first_countable_topology"
-  shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)" (is "?lhs = ?rhs")
+  shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)"
+  (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   moreover
@@ -1917,7 +1918,7 @@ lemma closure_approachable:
 
 lemma closed_approachable:
   fixes S :: "'a::metric_space set"
-  shows "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
+  shows "closed S \<Longrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
 
 lemma closure_contains_Inf:
@@ -2135,17 +2136,17 @@ lemma seq_offset:
   using assms by (rule LIMSEQ_ignore_initial_segment) (* FIXME: redundant *)
 
 lemma seq_offset_neg:
-  "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
+  "(f ---> l) sequentially \<Longrightarrow> ((\<lambda>i. f(i - k)) ---> l) sequentially"
   apply (rule topological_tendstoI)
   apply (drule (2) topological_tendstoD)
   apply (simp only: eventually_sequentially)
-  apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k")
+  apply (subgoal_tac "\<And>N k (n::nat). N + k <= n \<Longrightarrow> N <= n - k")
   apply metis
   apply arith
   done
 
 lemma seq_offset_rev:
-  "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
+  "((\<lambda>i. f(i + k)) ---> l) sequentially \<Longrightarrow> (f ---> l) sequentially"
   by (rule LIMSEQ_offset) (* FIXME: redundant *)
 
 lemma seq_harmonic: "((\<lambda>n. inverse (real n)) ---> 0) sequentially"
@@ -2184,7 +2185,7 @@ proof -
     unfolding open_contains_ball by auto
 qed
 
-lemma open_contains_cball_eq: "open S ==> (\<forall>x. x \<in> S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S))"
+lemma open_contains_cball_eq: "open S \<Longrightarrow> (\<forall>x. x \<in> S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S))"
   by (metis open_contains_cball subset_eq order_less_imp_le centre_in_cball)
 
 lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
@@ -2196,7 +2197,8 @@ lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>
 
 lemma islimpt_ball:
   fixes x y :: "'a::{real_normed_vector,perfect_space}"
-  shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e" (is "?lhs = ?rhs")
+  shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e"
+  (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   {
@@ -2233,10 +2235,10 @@ next
         case False
         have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
           norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
-          unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[THEN sym]
+          unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
           by auto
         also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
-          using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", THEN sym, of "y - x"]
+          using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
           unfolding scaleR_minus_left scaleR_one
           by (auto simp add: norm_minus_commute)
         also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
@@ -2402,7 +2404,7 @@ next
         using d as(1)[unfolded subset_eq] by blast
       have "y - x \<noteq> 0" using `x \<noteq> y` by auto
       then have **:"d / (2 * norm (y - x)) > 0"
-        unfolding zero_less_norm_iff[THEN sym]
+        unfolding zero_less_norm_iff[symmetric]
         using `d>0` divide_pos_pos[of d "2*norm (y - x)"] by auto
       have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) x =
         norm (y + (d / (2 * norm (y - x))) *\<^sub>R y - (d / (2 * norm (y - x))) *\<^sub>R x - x)"
@@ -2427,7 +2429,7 @@ qed
 
 lemma frontier_ball:
   fixes a :: "'a::real_normed_vector"
-  shows "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
+  shows "0 < e \<Longrightarrow> frontier(ball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def closure_ball interior_open order_less_imp_le)
   apply (simp add: set_eq_iff)
   apply arith
@@ -2463,7 +2465,7 @@ qed auto
 
 lemma cball_sing:
   fixes x :: "'a::metric_space"
-  shows "e = 0 ==> cball x e = {x}"
+  shows "e = 0 \<Longrightarrow> cball x e = {x}"
   by (auto simp add: set_eq_iff)
 
 
@@ -2501,10 +2503,10 @@ lemma bounded_realI:
 lemma bounded_empty [simp]: "bounded {}"
   by (simp add: bounded_def)
 
-lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
+lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T \<Longrightarrow> bounded S"
   by (metis bounded_def subset_eq)
 
-lemma bounded_interior[intro]: "bounded S ==> bounded(interior S)"
+lemma bounded_interior[intro]: "bounded S \<Longrightarrow> bounded(interior S)"
   by (metis bounded_subset interior_subset)
 
 lemma bounded_closure[intro]:
@@ -2583,7 +2585,7 @@ lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f::_::real_n
 lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (S \<inter> T)"
   by (metis Int_lower1 Int_lower2 bounded_subset)
 
-lemma bounded_diff[intro]: "bounded S ==> bounded (S - T)"
+lemma bounded_diff[intro]: "bounded S \<Longrightarrow> bounded (S - T)"
   by (metis Diff_subset bounded_subset)
 
 lemma not_bounded_UNIV[simp, intro]:
@@ -2599,8 +2601,9 @@ proof(auto simp add: bounded_pos not_le)
 qed
 
 lemma bounded_linear_image:
-  assumes "bounded S" "bounded_linear f"
-  shows "bounded(f ` S)"
+  assumes "bounded S"
+    and "bounded_linear f"
+  shows "bounded (f ` S)"
 proof -
   from assms(1) obtain b where b:"b>0" "\<forall>x\<in>S. norm x \<le> b"
     unfolding bounded_pos by auto
@@ -2626,7 +2629,8 @@ qed
 lemma bounded_scaling:
   fixes S :: "'a::real_normed_vector set"
   shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *\<^sub>R x) ` S)"
-  apply (rule bounded_linear_image, assumption)
+  apply (rule bounded_linear_image)
+  apply assumption
   apply (rule bounded_linear_scaleR_right)
   done
 
@@ -2654,7 +2658,7 @@ text{* Some theorems on sups and infs using the notion "bounded". *}
 
 lemma bounded_real:
   fixes S :: "real set"
-  shows "bounded S \<longleftrightarrow>  (\<exists>a. \<forall>x\<in>S. abs x <= a)"
+  shows "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. abs x \<le> a)"
   by (simp add: bounded_iff)
 
 lemma bounded_has_Sup:
@@ -2674,7 +2678,7 @@ qed
 
 lemma Sup_insert:
   fixes S :: "real set"
-  shows "bounded S ==> Sup(insert x S) = (if S = {} then x else max x (Sup S))"
+  shows "bounded S \<Longrightarrow> Sup (insert x S) = (if S = {} then x else max x (Sup S))"
   apply (subst cSup_insert_If)
   apply (rule bounded_has_Sup(1)[of S, rule_format])
   apply (auto simp: sup_max)
@@ -2682,7 +2686,7 @@ lemma Sup_insert:
 
 lemma Sup_insert_finite:
   fixes S :: "real set"
-  shows "finite S \<Longrightarrow> Sup(insert x S) = (if S = {} then x else max x (Sup S))"
+  shows "finite S \<Longrightarrow> Sup (insert x S) = (if S = {} then x else max x (Sup S))"
   apply (rule Sup_insert)
   apply (rule finite_imp_bounded)
   apply simp
@@ -2707,7 +2711,7 @@ qed
 
 lemma Inf_insert:
   fixes S :: "real set"
-  shows "bounded S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
+  shows "bounded S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
   apply (subst cInf_insert_if)
   apply (rule bounded_has_Inf(1)[of S, rule_format])
   apply (auto simp: inf_min)
@@ -2715,7 +2719,7 @@ lemma Inf_insert:
 
 lemma Inf_insert_finite:
   fixes S :: "real set"
-  shows "finite S \<Longrightarrow> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
+  shows "finite S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
   apply (rule Inf_insert)
   apply (rule finite_imp_bounded)
   apply simp
@@ -2726,9 +2730,9 @@ subsection {* Compactness *}
 subsubsection {* Bolzano-Weierstrass property *}
 
 lemma heine_borel_imp_bolzano_weierstrass:
-  assumes "compact s" "infinite t"  "t \<subseteq> s"
+  assumes "compact s" and "infinite t" and "t \<subseteq> s"
   shows "\<exists>x \<in> s. x islimpt t"
-proof(rule ccontr)
+proof (rule ccontr)
   assume "\<not> (\<exists>x \<in> s. x islimpt t)"
   then obtain f where f:"\<forall>x\<in>s. x \<in> f x \<and> open (f x) \<and> (\<forall>y\<in>t. y \<in> f x \<longrightarrow> y = x)"
     unfolding islimpt_def
@@ -2981,7 +2985,8 @@ qed
 text{* In particular, some common special cases. *}
 
 lemma compact_union [intro]:
-  assumes "compact s" "compact t"
+  assumes "compact s"
+    and "compact t"
   shows " compact (s \<union> t)"
 proof (rule compactI)
   fix f
@@ -3411,7 +3416,10 @@ lemma seq_compactE:
   using assms unfolding seq_compact_def by fast
 
 lemma countably_compact_imp_acc_point:
-  assumes "countably_compact s" "countable t" "infinite t"  "t \<subseteq> s"
+  assumes "countably_compact s"
+    and "countable t"
+    and "infinite t"
+    and "t \<subseteq> s"
   shows "\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)"
 proof (rule ccontr)
   def C \<equiv> "(\<lambda>F. interior (F \<union> (- t))) ` {F. finite F \<and> F \<subseteq> t }"
@@ -3445,7 +3453,8 @@ qed
 
 lemma countable_acc_point_imp_seq_compact:
   fixes s :: "'a::first_countable_topology set"
-  assumes "\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t))"
+  assumes "\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s \<longrightarrow>
+    (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t))"
   shows "seq_compact s"
 proof -
   {
@@ -3487,7 +3496,8 @@ lemma seq_compact_eq_countably_compact:
 
 lemma seq_compact_eq_acc_point:
   fixes s :: "'a :: first_countable_topology set"
-  shows "seq_compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s --> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)))"
+  shows "seq_compact s \<longleftrightarrow>
+    (\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s --> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)))"
   using
     countable_acc_point_imp_seq_compact[of s]
     countably_compact_imp_acc_point[of s]
@@ -3670,7 +3680,8 @@ qed
 
 lemma compact_eq_bounded_closed:
   fixes s :: "'a::heine_borel set"
-  shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
+  shows "compact s \<longleftrightarrow> bounded s \<and> closed s"
+  (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
@@ -3707,8 +3718,8 @@ qed
 lemma compact_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
   assumes "bounded (range f)"
-  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r. subseq r \<and>
-        (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r.
+    subseq r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
 proof safe
   fix d :: "'a set"
   assume d: "d \<subseteq> Basis"
@@ -4133,28 +4144,30 @@ lemma compact_cball[simp]:
 
 lemma compact_frontier_bounded[intro]:
   fixes s :: "'a::heine_borel set"
-  shows "bounded s ==> compact(frontier s)"
+  shows "bounded s \<Longrightarrow> compact(frontier s)"
   unfolding frontier_def
   using compact_eq_bounded_closed
   by blast
 
 lemma compact_frontier[intro]:
   fixes s :: "'a::heine_borel set"
-  shows "compact s ==> compact (frontier s)"
+  shows "compact s \<Longrightarrow> compact (frontier s)"
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
 lemma frontier_subset_compact:
   fixes s :: "'a::heine_borel set"
-  shows "compact s ==> frontier s \<subseteq> s"
+  shows "compact s \<Longrightarrow> frontier s \<subseteq> s"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
 subsection {* Bounded closed nest property (proof does not use Heine-Borel) *}
 
 lemma bounded_closed_nest:
-  assumes "\<forall>n. closed(s n)" "\<forall>n. (s n \<noteq> {})"
-    "(\<forall>m n. m \<le> n --> s n \<subseteq> s m)"  "bounded(s 0)"
+  assumes "\<forall>n. closed(s n)"
+    and "\<forall>n. (s n \<noteq> {})"
+    and "(\<forall>m n. m \<le> n --> s n \<subseteq> s m)"
+    and "bounded(s 0)"
   shows "\<exists>a::'a::heine_borel. \<forall>n::nat. a \<in> s(n)"
 proof -
   from assms(2) obtain x where x:"\<forall>n::nat. x n \<in> s n"
@@ -4296,8 +4309,8 @@ text{* Cauchy-type criteria for uniform convergence. *}
 lemma uniformly_convergent_eq_cauchy:
   fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::complete_space"
   shows
-    "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e) \<longleftrightarrow>
-      (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  --> dist (s m x) (s n x) < e)"
+    "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e) \<longleftrightarrow>
+      (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  \<longrightarrow> dist (s m x) (s n x) < e)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
@@ -4328,7 +4341,7 @@ next
     apply auto
     done
   then obtain l where l: "\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l x) sequentially"
-    unfolding convergent_eq_cauchy[THEN sym]
+    unfolding convergent_eq_cauchy[symmetric]
     using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l) sequentially"]
     by auto
   {
@@ -4358,11 +4371,11 @@ qed
 lemma uniformly_cauchy_imp_uniformly_convergent:
   fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::complete_space"
   assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
-          "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n --> dist(s n x)(l x) < e)"
-  shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e"
+    and "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n \<longrightarrow> dist(s n x)(l x) < e)"
+  shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e"
 proof -
   obtain l' where l:"\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist (s n x) (l' x) < e"
-    using assms(1) unfolding uniformly_convergent_eq_cauchy[THEN sym] by auto
+    using assms(1) unfolding uniformly_convergent_eq_cauchy[symmetric] by auto
   moreover
   {
     fix x
@@ -4383,7 +4396,7 @@ lemma continuous_within_eps_delta:
   "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
   unfolding continuous_within and Lim_within
   apply auto
-  unfolding dist_nz[THEN sym]
+  unfolding dist_nz[symmetric]
   apply (auto del: allE elim!:allE)
   apply(rule_tac x=d in exI)
   apply auto
@@ -4411,7 +4424,7 @@ proof
       assume "y \<in> f ` (ball x d \<inter> s)"
       then have "y \<in> ball (f x) e"
         using d(2)
-        unfolding dist_nz[THEN sym]
+        unfolding dist_nz[symmetric]
         apply (auto simp add: dist_commute)
         apply (erule_tac x=xa in ballE)
         apply auto
@@ -4447,7 +4460,7 @@ proof
     apply auto
     apply (erule_tac x=xa in allE)
     apply (auto simp add: dist_commute dist_nz)
-    unfolding dist_nz[THEN sym]
+    unfolding dist_nz[symmetric]
     apply auto
     done
 next
@@ -4534,7 +4547,7 @@ proof
     proof eventually_elim
       case (elim n)
       then show ?case
-        using d x(1) `f a \<in> T` unfolding dist_nz[THEN sym] by auto
+        using d x(1) `f a \<in> T` unfolding dist_nz[symmetric] by auto
     qed
   }
   then show ?rhs
@@ -4548,15 +4561,16 @@ qed
 
 lemma continuous_at_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
-  shows "continuous (at a) f \<longleftrightarrow> (\<forall>x. (x ---> a) sequentially
-                  --> ((f o x) ---> f a) sequentially)"
+  shows "continuous (at a) f \<longleftrightarrow>
+    (\<forall>x. (x ---> a) sequentially --> ((f o x) ---> f a) sequentially)"
   using continuous_within_sequentially[of a UNIV f] by simp
 
 lemma continuous_on_sequentially:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   shows "continuous_on s f \<longleftrightarrow>
     (\<forall>x. \<forall>a \<in> s. (\<forall>n. x(n) \<in> s) \<and> (x ---> a) sequentially
-                    --> ((f o x) ---> f(a)) sequentially)" (is "?lhs = ?rhs")
+      --> ((f o x) ---> f(a)) sequentially)"
+  (is "?lhs = ?rhs")
 proof
   assume ?rhs
   then show ?lhs
@@ -4878,7 +4892,7 @@ proof -
 qed
 
 lemma continuous_closed_in_preimage:
-  assumes "continuous_on s f"  "closed t"
+  assumes "continuous_on s f" and "closed t"
   shows "closedin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
 proof -
   have *: "\<forall>x. x \<in> s \<and> f x \<in> t \<longleftrightarrow> x \<in> s \<and> f x \<in> (t \<inter> f ` s)"
@@ -4892,7 +4906,9 @@ proof -
 qed
 
 lemma continuous_open_preimage:
-  assumes "continuous_on s f" "open s" "open t"
+  assumes "continuous_on s f"
+    and "open s"
+    and "open t"
   shows "open {x \<in> s. f x \<in> t}"
 proof-
   obtain T where T: "open T" "{x \<in> s. f x \<in> t} = s \<inter> T"
@@ -4902,7 +4918,9 @@ proof-
 qed
 
 lemma continuous_closed_preimage:
-  assumes "continuous_on s f" "closed s" "closed t"
+  assumes "continuous_on s f"
+    and "closed s"
+    and "closed t"
   shows "closed {x \<in> s. f x \<in> t}"
 proof-
   obtain T where "closed T" "{x \<in> s. f x \<in> t} = s \<inter> T"
@@ -4916,7 +4934,7 @@ lemma continuous_open_preimage_univ:
   using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_closed_preimage_univ:
-  "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
+  "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s \<Longrightarrow> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_open_vimage: "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open (f -` s)"
@@ -4926,7 +4944,8 @@ lemma continuous_closed_vimage: "\<forall>x. continuous (at x) f \<Longrightarro
   unfolding vimage_def by (rule continuous_closed_preimage_univ)
 
 lemma interior_image_subset:
-  assumes "\<forall>x. continuous (at x) f" "inj f"
+  assumes "\<forall>x. continuous (at x) f"
+    and "inj f"
   shows "interior (f ` s) \<subseteq> f ` (interior s)"
 proof
   fix x assume "x \<in> interior (f ` s)"
@@ -4947,12 +4966,12 @@ text {* Equality of continuous functions on closure and related results. *}
 
 lemma continuous_closed_in_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
-  shows "continuous_on s f ==> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
+  shows "continuous_on s f \<Longrightarrow> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
   using continuous_closed_in_preimage[of s f "{a}"] by auto
 
 lemma continuous_closed_preimage_constant:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
-  shows "continuous_on s f \<Longrightarrow> closed s ==> closed {x \<in> s. f x = a}"
+  shows "continuous_on s f \<Longrightarrow> closed s \<Longrightarrow> closed {x \<in> s. f x = a}"
   using continuous_closed_preimage[of s f "{a}"] by auto
 
 lemma continuous_constant_on_closure:
@@ -4966,7 +4985,9 @@ lemma continuous_constant_on_closure:
     by auto
 
 lemma image_closure_subset:
-  assumes "continuous_on (closure s) f"  "closed t"  "(f ` s) \<subseteq> t"
+  assumes "continuous_on (closure s) f"
+    and "closed t"
+    and "(f ` s) \<subseteq> t"
   shows "f ` (closure s) \<subseteq> t"
 proof -
   have "s \<subseteq> {x \<in> closure s. f x \<in> t}"
@@ -4983,10 +5004,10 @@ lemma continuous_on_closure_norm_le:
   assumes "continuous_on (closure s) f"
     and "\<forall>y \<in> s. norm(f y) \<le> b"
     and "x \<in> (closure s)"
-  shows "norm(f x) \<le> b"
+  shows "norm (f x) \<le> b"
 proof -
   have *: "f ` s \<subseteq> cball 0 b"
-    using assms(2)[unfolded mem_cball_0[THEN sym]] by auto
+    using assms(2)[unfolded mem_cball_0[symmetric]] by auto
   show ?thesis
     using image_closure_subset[OF assms(1) closed_cball[of 0 b] *] assms(3)
     unfolding subset_eq
@@ -5002,7 +5023,7 @@ lemma continuous_within_avoid:
   assumes "continuous (at x within s) f"
     and "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y \<in> s. dist x y < e --> f y \<noteq> a"
-proof-
+proof -
   obtain U where "open U" and "f x \<in> U" and "a \<notin> U"
     using t1_space [OF `f x \<noteq> a`] by fast
   have "(f ---> f x) (at x within s)"
@@ -5036,7 +5057,10 @@ lemma continuous_on_avoid:
 
 lemma continuous_on_open_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
-  assumes "continuous_on s f"  "open s"  "x \<in> s"  "f x \<noteq> a"
+  assumes "continuous_on s f"
+    and "open s"
+    and "x \<in> s"
+    and "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
   using assms(1)[unfolded continuous_on_eq_continuous_at[OF assms(2)], THEN bspec[where x=x], OF assms(3)]
   using continuous_at_avoid[of x f a] assms(4)
@@ -5056,7 +5080,7 @@ lemma continuous_levelset_open_in:
   fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
         openin (subtopology euclidean s) {x \<in> s. f x = a} \<Longrightarrow>
-        (\<exists>x \<in> s. f x = a)  ==> (\<forall>x \<in> s. f x = a)"
+        (\<exists>x \<in> s. f x = a)  \<Longrightarrow> (\<forall>x \<in> s. f x = a)"
   using continuous_levelset_open_in_cases[of s f ]
   by meson
 
@@ -5075,7 +5099,8 @@ text {* Some arithmetical combinations (more to prove). *}
 
 lemma open_scaling[intro]:
   fixes s :: "'a::real_normed_vector set"
-  assumes "c \<noteq> 0"  "open s"
+  assumes "c \<noteq> 0"
+    and "open s"
   shows "open((\<lambda>x. c *\<^sub>R x) ` s)"
 proof -
   {
@@ -5085,7 +5110,7 @@ proof -
       and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
       by auto
     have "e * abs c > 0"
-      using assms(1)[unfolded zero_less_abs_iff[THEN sym]]
+      using assms(1)[unfolded zero_less_abs_iff[symmetric]]
       using mult_pos_pos[OF `e>0`]
       by auto
     moreover
@@ -5095,7 +5120,7 @@ proof -
       then have "norm ((1 / c) *\<^sub>R y - x) < e"
         unfolding dist_norm
         using norm_scaleR[of c "(1 / c) *\<^sub>R y - x", unfolded scaleR_right_diff_distrib, unfolded scaleR_scaleR] assms(1)
-          assms(1)[unfolded zero_less_abs_iff[THEN sym]] by (simp del:zero_less_abs_iff)
+          assms(1)[unfolded zero_less_abs_iff[symmetric]] by (simp del:zero_less_abs_iff)
       then have "y \<in> op *\<^sub>R c ` s"
         using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "op *\<^sub>R c"]
         using e[THEN spec[where x="(1 / c) *\<^sub>R y"]]
@@ -5118,13 +5143,14 @@ lemma minus_image_eq_vimage:
 
 lemma open_negations:
   fixes s :: "'a::real_normed_vector set"
-  shows "open s ==> open ((\<lambda> x. -x) ` s)"
+  shows "open s \<Longrightarrow> open ((\<lambda> x. -x) ` s)"
   unfolding scaleR_minus1_left [symmetric]
   by (rule open_scaling, auto)
 
 lemma open_translation:
   fixes s :: "'a::real_normed_vector set"
-  assumes "open s"  shows "open((\<lambda>x. a + x) ` s)"
+  assumes "open s"
+  shows "open((\<lambda>x. a + x) ` s)"
 proof -
   {
     fix x
@@ -5164,7 +5190,7 @@ proof (rule set_eqI, rule)
     unfolding subset_eq Ball_def mem_ball dist_norm
     apply auto
     apply (erule_tac x="a + xa" in allE)
-    unfolding ab_group_add_class.diff_diff_eq[THEN sym]
+    unfolding ab_group_add_class.diff_diff_eq[symmetric]
     apply auto
     done
   then show "x \<in> op + a ` interior s"
@@ -5217,11 +5243,11 @@ lemma linear_continuous_at:
   done
 
 lemma linear_continuous_within:
-  "bounded_linear f ==> continuous (at x within s) f"
+  "bounded_linear f \<Longrightarrow> continuous (at x within s) f"
   using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
 
 lemma linear_continuous_on:
-  "bounded_linear f ==> continuous_on s f"
+  "bounded_linear f \<Longrightarrow> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
 text {* Also bilinear functions, in composition form. *}
@@ -5293,12 +5319,17 @@ next
 qed
 
 lemma connected_continuous_image:
-  assumes "continuous_on s f"  "connected s"
+  assumes "continuous_on s f"
+    and "connected s"
   shows "connected(f ` s)"
 proof -
   {
     fix T
-    assume as: "T \<noteq> {}"  "T \<noteq> f ` s"  "openin (subtopology euclidean (f ` s)) T"  "closedin (subtopology euclidean (f ` s)) T"
+    assume as:
+      "T \<noteq> {}"
+      "T \<noteq> f ` s"
+      "openin (subtopology euclidean (f ` s)) T"
+      "closedin (subtopology euclidean (f ` s)) T"
     have "{x \<in> s. f x \<in> T} = {} \<or> {x \<in> s. f x \<in> T} = s"
       using assms(1)[unfolded continuous_on_open, THEN spec[where x=T]]
       using assms(1)[unfolded continuous_on_closed, THEN spec[where x=T]]
@@ -5313,7 +5344,8 @@ qed
 text {* Continuity implies uniform continuity on a compact domain. *}
 
 lemma compact_uniformly_continuous:
-  assumes f: "continuous_on s f" and s: "compact s"
+  assumes f: "continuous_on s f"
+    and s: "compact s"
   shows "uniformly_continuous_on s f"
   unfolding uniformly_continuous_on_def
 proof (cases, safe)
@@ -5415,7 +5447,7 @@ lemma continuous_at_real_range:
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'. norm(x' - x) < d --> abs(f x' - f x) < e)"
   unfolding continuous_at
   unfolding Lim_at
-  unfolding dist_nz[THEN sym]
+  unfolding dist_nz[symmetric]
   unfolding dist_norm
   apply auto
   apply (erule_tac x=e in allE)
@@ -5454,7 +5486,8 @@ text {* For \emph{minimal} distance, we only need closure, not compactness. *}
 
 lemma distance_attains_inf:
   fixes a :: "'a::heine_borel"
-  assumes "closed s"  "s \<noteq> {}"
+  assumes "closed s"
+    and "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a x \<le> dist a y"
 proof -
   from assms(2) obtain b where "b \<in> s" by auto
@@ -5569,12 +5602,13 @@ qed
 lemma compact_negations:
   fixes s :: "'a::real_normed_vector set"
   assumes "compact s"
-  shows "compact ((\<lambda>x. -x) ` s)"
+  shows "compact ((\<lambda>x. - x) ` s)"
   using compact_scaling [OF assms, of "- 1"] by auto
 
 lemma compact_sums:
   fixes s t :: "'a::real_normed_vector set"
-  assumes "compact s" and "compact t"
+  assumes "compact s"
+    and "compact t"
   shows "compact {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof -
   have *: "{x + y | x y. x \<in> s \<and> y \<in> t} = (\<lambda>z. fst z + snd z) ` (s \<times> t)"
@@ -5591,7 +5625,9 @@ qed
 
 lemma compact_differences:
   fixes s t :: "'a::real_normed_vector set"
-  assumes "compact s" "compact t"  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
+  assumes "compact s"
+    and "compact t"
+  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   have "{x - y | x y. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
     apply auto
@@ -5630,7 +5666,8 @@ text {* Hence we get the following. *}
 
 lemma compact_sup_maxdistance:
   fixes s :: "'a::metric_space set"
-  assumes "compact s"  "s \<noteq> {}"
+  assumes "compact s"
+    and "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
 proof -
   have "compact (s \<times> s)"
@@ -5688,17 +5725,19 @@ qed
 lemma diameter_bounded:
   assumes "bounded s"
   shows "\<forall>x\<in>s. \<forall>y\<in>s. dist x y \<le> diameter s"
-        "\<forall>d>0. d < diameter s \<longrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. dist x y > d)"
+    and "\<forall>d>0. d < diameter s \<longrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. dist x y > d)"
   using diameter_bounded_bound[of s] diameter_lower_bounded[of s] assms
   by auto
 
 lemma diameter_compact_attained:
-  assumes "compact s"  "s \<noteq> {}"
+  assumes "compact s"
+    and "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. dist x y = diameter s"
 proof -
   have b: "bounded s" using assms(1)
     by (rule compact_imp_bounded)
-  then obtain x y where xys: "x\<in>s" "y\<in>s" and xy: "\<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
+  then obtain x y where xys: "x\<in>s" "y\<in>s"
+    and xy: "\<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
     using compact_sup_maxdistance[OF assms] by auto
   then have "diameter s \<le> dist x y"
     unfolding diameter_def
@@ -5752,7 +5791,7 @@ next
           using as(2)[unfolded LIMSEQ_def, THEN spec[where x="e * abs c"]] by auto
         then have "\<exists>N. \<forall>n\<ge>N. dist (scaleR (1 / c) (x n)) (scaleR (1 / c) l) < e"
           unfolding dist_norm
-          unfolding scaleR_right_diff_distrib[THEN sym]
+          unfolding scaleR_right_diff_distrib[symmetric]
           using mult_imp_div_pos_less[of "abs c" _ e] `c\<noteq>0` by auto
       }
       then have "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially"
@@ -5795,7 +5834,9 @@ proof -
       unfolding o_def
       by auto
     then have "l - l' \<in> t"
-      using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda> n. snd (f (r n))"], THEN spec[where x="l - l'"]]
+      using assms(2)[unfolded closed_sequential_limits,
+        THEN spec[where x="\<lambda> n. snd (f (r n))"],
+        THEN spec[where x="l - l'"]]
       using f(3)
       by auto
     then have "l \<in> ?S"
@@ -5812,7 +5853,8 @@ qed
 
 lemma closed_compact_sums:
   fixes s t :: "'a::real_normed_vector set"
-  assumes "closed s"  "compact t"
+  assumes "closed s"
+    and "compact t"
   shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof -
   have "{x + y |x y. x \<in> t \<and> y \<in> s} = {x + y |x y. x \<in> s \<and> y \<in> t}"
@@ -5828,7 +5870,8 @@ qed
 
 lemma compact_closed_differences:
   fixes s t :: "'a::real_normed_vector set"
-  assumes "compact s" and "closed t"
+  assumes "compact s"
+    and "closed t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof -
   have "{x + y |x y. x \<in> s \<and> y \<in> uminus ` t} =  {x - y |x y. x \<in> s \<and> y \<in> t}"
@@ -5844,7 +5887,8 @@ qed
 
 lemma closed_compact_differences:
   fixes s t :: "'a::real_normed_vector set"
-  assumes "closed s" "compact t"
+  assumes "closed s"
+    and "compact t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof -
   have "{x + y |x y. x \<in> s \<and> y \<in> uminus ` t} = {x - y |x y. x \<in> s \<and> y \<in> t}"
@@ -5917,7 +5961,8 @@ subsection {* Separation between points and sets *}
 
 lemma separate_point_closed:
   fixes s :: "'a::heine_borel set"
-  assumes "closed s" and "a \<notin> s"
+  assumes "closed s"
+    and "a \<notin> s"
   shows "\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x"
 proof (cases "s = {}")
   case True
@@ -6049,7 +6094,8 @@ lemma interval_ne_empty:
 
 lemma interval_sing:
   fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. a} = {a}" and "{a<..<a} = {}"
+  shows "{a .. a} = {a}"
+    and "{a<..<a} = {}"
   unfolding set_eq_iff mem_interval eq_iff [symmetric]
   by (auto intro: euclidean_eqI simp: ex_in_conv)
 
@@ -6173,7 +6219,8 @@ qed
 
 lemma inter_interval:
   fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. b} \<inter> {c .. d} =  {(\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)}"
+  shows "{a .. b} \<inter> {c .. d} =
+    {(\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)}"
   unfolding set_eq_iff and Int_iff and mem_interval
   by auto
 
@@ -6225,7 +6272,8 @@ lemma interior_closed_interval [intro]:
   fixes a b :: "'a::ordered_euclidean_space"
   shows "interior {a..b} = {a<..<b}" (is "?L = ?R")
 proof(rule subset_antisym)
-  show "?R \<subseteq> ?L" using interval_open_subset_closed open_interval
+  show "?R \<subseteq> ?L"
+    using interval_open_subset_closed open_interval
     by (rule interior_maximal)
   {
     fix x
@@ -6296,7 +6344,7 @@ lemma bounded_interval:
 
 lemma not_interval_univ:
   fixes a :: "'a::ordered_euclidean_space"
-  shows "({a .. b} \<noteq> UNIV) \<and> ({a<..<b} \<noteq> UNIV)"
+  shows "{a .. b} \<noteq> UNIV \<and> {a<..<b} \<noteq> UNIV"
   using bounded_interval[of a b] by auto
 
 lemma compact_interval:
@@ -6462,12 +6510,13 @@ qed
 
 lemma bounded_subset_open_interval:
   fixes s :: "('a::ordered_euclidean_space) set"
-  shows "bounded s ==> (\<exists>a b. s \<subseteq> {a<..<b})"
+  shows "bounded s \<Longrightarrow> (\<exists>a b. s \<subseteq> {a<..<b})"
   by (auto dest!: bounded_subset_open_interval_symmetric)
 
 lemma bounded_subset_closed_interval_symmetric:
   fixes s :: "('a::ordered_euclidean_space) set"
-  assumes "bounded s" shows "\<exists>a. s \<subseteq> {-a .. a}"
+  assumes "bounded s"
+  shows "\<exists>a. s \<subseteq> {-a .. a}"
 proof -
   obtain a where "s \<subseteq> {- a<..<a}"
     using bounded_subset_open_interval_symmetric[OF assms] by auto
@@ -6477,7 +6526,7 @@ qed
 
 lemma bounded_subset_closed_interval:
   fixes s :: "('a::ordered_euclidean_space) set"
-  shows "bounded s \<Longrightarrow> (\<exists>a b. s \<subseteq> {a .. b})"
+  shows "bounded s \<Longrightarrow> \<exists>a b. s \<subseteq> {a .. b}"
   using bounded_subset_closed_interval_symmetric[of s] by auto
 
 lemma frontier_closed_interval:
@@ -6503,7 +6552,7 @@ lemma inter_interval_mixed_eq_empty:
   fixes a :: "'a::ordered_euclidean_space"
   assumes "{c<..<d} \<noteq> {}"
   shows "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> {a<..<b} \<inter> {c<..<d} = {}"
-  unfolding closure_open_interval[OF assms, THEN sym]
+  unfolding closure_open_interval[OF assms, symmetric]
   unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
 
@@ -6815,7 +6864,11 @@ lemma Lim_topological:
 text{* Some more convenient intermediate-value theorem formulations. *}
 
 lemma connected_ivt_hyperplane:
-  assumes "connected s" "x \<in> s" "y \<in> s" "inner a x \<le> b" "b \<le> inner a y"
+  assumes "connected s"
+    and "x \<in> s"
+    and "y \<in> s"
+    and "inner a x \<le> b"
+    and "b \<le> inner a y"
   shows "\<exists>z \<in> s. inner a z = b"
 proof (rule ccontr)
   assume as:"\<not> (\<exists>z\<in>s. inner a z = b)"
@@ -6823,9 +6876,12 @@ proof (rule ccontr)
   let ?B = "{x. inner a x > b}"
   have "open ?A" "open ?B"
     using open_halfspace_lt and open_halfspace_gt by auto
-  moreover have "?A \<inter> ?B = {}" by auto
-  moreover have "s \<subseteq> ?A \<union> ?B" using as by auto
-  ultimately show False
+  moreover
+  have "?A \<inter> ?B = {}" by auto
+  moreover
+  have "s \<subseteq> ?A \<union> ?B" using as by auto
+  ultimately
+  show False
     using assms(1)[unfolded connected_def not_ex,
       THEN spec[where x="?A"], THEN spec[where x="?B"]]
     using assms(2-5)
@@ -6951,7 +7007,7 @@ proof -
     then obtain x where x:"f x = y" "x\<in>s"
       using assms(3) by auto
     then have "g (f x) = x" using g by auto
-    then have "f (g y) = y" unfolding x(1)[THEN sym] by auto
+    then have "f (g y) = y" unfolding x(1)[symmetric] by auto
   }
   then have g':"\<forall>x\<in>t. f (g x) = x" by auto
   moreover
@@ -6971,7 +7027,7 @@ proof -
       then have "x \<in> s"
         unfolding g_def
         using someI2[of "\<lambda>b. b\<in>s \<and> f b = y" x' "\<lambda>x. x\<in>s"]
-        unfolding y(2)[THEN sym] and g_def
+        unfolding y(2)[symmetric] and g_def
         by auto
     }
     ultimately have "x\<in>s \<longleftrightarrow> x \<in> g ` t" ..
@@ -7069,9 +7125,11 @@ lemma cauchy_isometric:
 proof -
   interpret f: bounded_linear f by fact
   {
-    fix d::real assume "d>0"
+    fix d :: real
+    assume "d > 0"
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
-      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] and e and mult_pos_pos[of e d]
+      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]]
+        and e and mult_pos_pos[of e d]
       by auto
     {
       fix n
@@ -7082,7 +7140,7 @@ proof -
         using normf[THEN bspec[where x="x n - x N"]]
         by auto
       also have "norm (f (x n - x N)) < e * d"
-        using `N \<le> n` N unfolding f.diff[THEN sym] by auto
+        using `N \<le> n` N unfolding f.diff[symmetric] by auto
       finally have "norm (x n - x N) < d" using `e>0` by simp
     }
     then have "\<exists>N. \<forall>n\<ge>N. norm (x n - x N) < d" by auto
@@ -7091,13 +7149,13 @@ proof -
 qed
 
 lemma complete_isometric_image:
-  fixes f :: "'a::euclidean_space => 'b::euclidean_space"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "0 < e"
     and s: "subspace s"
     and f: "bounded_linear f"
     and normf: "\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)"
     and cs: "complete s"
-  shows "complete(f ` s)"
+  shows "complete (f ` s)"
 proof -
   {
     fix g
@@ -7156,7 +7214,7 @@ next
   then obtain b where "b\<in>s"
     and ba: "norm b = norm a"
     and b: "\<forall>x\<in>{x \<in> s. norm x = norm a}. norm (f b) \<le> norm (f x)"
-    unfolding *[THEN sym] unfolding image_iff by auto
+    unfolding *[symmetric] unfolding image_iff by auto
 
   let ?e = "norm (f b) / norm b"
   have "norm b > 0" using ba and a and norm_ge_zero by auto
@@ -7179,7 +7237,7 @@ next
       case False
       then have *: "0 < norm a / norm x"
         using `a\<noteq>0`
-        unfolding zero_less_norm_iff[THEN sym]
+        unfolding zero_less_norm_iff[symmetric]
         by (simp only: divide_pos_pos)
       have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s"
         using s[unfolded subspace_def] by auto
@@ -7203,7 +7261,7 @@ proof -
     using injective_imp_isometric[OF assms(4,1,2,3)] by auto
   show ?thesis
     using complete_isometric_image[OF `e>0` assms(1,2) e] and assms(4)
-    unfolding complete_eq_closed[THEN sym] by auto
+    unfolding complete_eq_closed[symmetric] by auto
 qed
 
 
@@ -7299,7 +7357,7 @@ next
 qed
 
 lemma closed_subspace:
-  fixes s::"('a::euclidean_space) set"
+  fixes s :: "'a::euclidean_space set"
   assumes "subspace s"
   shows "closed s"
 proof -
@@ -7349,36 +7407,37 @@ qed
 subsection {* Affine transformations of intervals *}
 
 lemma real_affinity_le:
- "0 < (m::'a::linordered_field) ==> (m * x + c \<le> y \<longleftrightarrow> x \<le> inverse(m) * y + -(c / m))"
+ "0 < (m::'a::linordered_field) \<Longrightarrow> (m * x + c \<le> y \<longleftrightarrow> x \<le> inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_le_affinity:
- "0 < (m::'a::linordered_field) ==> (y \<le> m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) \<le> x)"
+ "0 < (m::'a::linordered_field) \<Longrightarrow> (y \<le> m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) \<le> x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_affinity_lt:
- "0 < (m::'a::linordered_field) ==> (m * x + c < y \<longleftrightarrow> x < inverse(m) * y + -(c / m))"
+ "0 < (m::'a::linordered_field) \<Longrightarrow> (m * x + c < y \<longleftrightarrow> x < inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_lt_affinity:
- "0 < (m::'a::linordered_field) ==> (y < m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) < x)"
+ "0 < (m::'a::linordered_field) \<Longrightarrow> (y < m * x + c \<longleftrightarrow> inverse(m) * y + -(c / m) < x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_affinity_eq:
- "(m::'a::linordered_field) \<noteq> 0 ==> (m * x + c = y \<longleftrightarrow> x = inverse(m) * y + -(c / m))"
+ "(m::'a::linordered_field) \<noteq> 0 \<Longrightarrow> (m * x + c = y \<longleftrightarrow> x = inverse(m) * y + -(c / m))"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma real_eq_affinity:
- "(m::'a::linordered_field) \<noteq> 0 ==> (y = m * x + c  \<longleftrightarrow> inverse(m) * y + -(c / m) = x)"
+ "(m::'a::linordered_field) \<noteq> 0 \<Longrightarrow> (y = m * x + c  \<longleftrightarrow> inverse(m) * y + -(c / m) = x)"
   by (simp add: field_simps inverse_eq_divide)
 
 lemma image_affinity_interval: fixes m::real
   fixes a b c :: "'a::ordered_euclidean_space"
   shows "(\<lambda>x. m *\<^sub>R x + c) ` {a .. b} =
-            (if {a .. b} = {} then {}
-            else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
-            else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
+    (if {a .. b} = {} then {}
+     else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
+     else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
 proof (cases "m = 0")
+  case True
   {
     fix x
     assume "x \<le> c" "c \<le> x"
@@ -7389,9 +7448,9 @@ proof (cases "m = 0")
       apply (auto intro: order_antisym)
       done
   }
-  moreover case True
-  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: eucl_le[where 'a='a])
-  ultimately show ?thesis by auto
+  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}"
+    unfolding True by (auto simp add: eucl_le[where 'a='a])
+  ultimately show ?thesis using True by auto
 next
   case False
   {
@@ -7441,8 +7500,8 @@ lemma banach_fix:
   assumes s: "complete s" "s \<noteq> {}"
     and c: "0 \<le> c" "c < 1"
     and f: "(f ` s) \<subseteq> s"
-    and lipschitz:"\<forall>x\<in>s. \<forall>y\<in>s. dist (f x) (f y) \<le> c * dist x y"
-  shows "\<exists>! x\<in>s. (f x = x)"
+    and lipschitz: "\<forall>x\<in>s. \<forall>y\<in>s. dist (f x) (f y) \<le> c * dist x y"
+  shows "\<exists>!x\<in>s. f x = x"
 proof -
   have "1 - c > 0" using c by auto
 
