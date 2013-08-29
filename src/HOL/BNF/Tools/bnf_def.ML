@@ -292,10 +292,10 @@ datatype bnf = BNF of {
   name: binding,
   T: typ,
   live: int,
-  lives: typ list, (*source type variables of map, only for composition*)
-  lives': typ list, (*target type variables of map, only for composition*)
+  lives: typ list, (*source type variables of map*)
+  lives': typ list, (*target type variables of map*)
   dead: int,
-  deads: typ list, (*only for composition*)
+  deads: typ list,
   map: term,
   sets: term list,
   bd: term,
