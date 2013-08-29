@@ -1557,13 +1557,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           map (map (Term.subst_atomic_types (passiveAs ~~ passiveBs))) setss_by_bnf;
         val setss_by_range' = transpose setss_by_bnf';
 
-        val set_map_thmss =
+        val set_map0_thmss =
           let
-            fun mk_set_map f map z set set' =
+            fun mk_set_map0 f map z set set' =
               HOLogic.mk_eq (mk_image f $ (set $ z), set' $ (map $ z));
 
             fun mk_cphi f map z set set' = certify lthy
-              (Term.absfree (dest_Free z) (mk_set_map f map z set set'));
+              (Term.absfree (dest_Free z) (mk_set_map0 f map z set set'));
 
             val csetss = map (map (certify lthy)) setss_by_range';
 
@@ -1576,7 +1576,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             val goals =
               map3 (fn f => fn sets => fn sets' =>
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-                  (map4 (mk_set_map f) fs_maps Izs sets sets')))
+                  (map4 (mk_set_map0 f) fs_maps Izs sets sets')))
                   fs setss_by_range setss_by_range';
 
             fun mk_tac induct = mk_set_nat_tac m (rtac induct) set_map'ss ctor_map_thms;
@@ -1695,7 +1695,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val map_comp0_tacs =
           map2 (K oo mk_map_comp0_tac map_comps ctor_map_thms) ctor_map_unique_thms ks;
         val map_cong0_tacs = map (mk_map_cong0_tac m) map_cong0_thms;
-        val set_nat_tacss = map (map (K o mk_set_map_tac)) (transpose set_map_thmss);
+        val set_nat_tacss = map (map (K o mk_set_map0_tac)) (transpose set_map0_thmss);
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
         val bd_cinf_tacs = replicate n (K (rtac (bd_Cinfinite RS conjunct1) 1));
         val set_bd_tacss = map (map (fn thm => K (rtac thm 1))) (transpose set_bd_thmss);
@@ -1775,10 +1775,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           in
             map12 (fn i => fn goal => fn in_rel => fn map_comp0 => fn map_cong0 =>
               fn ctor_map => fn ctor_sets => fn ctor_inject => fn ctor_dtor =>
-              fn set_maps => fn ctor_set_incls => fn ctor_set_set_inclss =>
+              fn set_map0s => fn ctor_set_incls => fn ctor_set_set_inclss =>
               Goal.prove_sorry lthy [] [] goal
                (K (mk_ctor_rel_tac lthy in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
-                 ctor_inject ctor_dtor set_maps ctor_set_incls ctor_set_set_inclss))
+                 ctor_inject ctor_dtor set_map0s ctor_set_incls ctor_set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_rels map_comps map_cong0s folded_ctor_map_thms folded_ctor_set_thmss'
               ctor_inject_thms ctor_dtor_thms set_map'ss ctor_set_incl_thmss

@@ -2462,7 +2462,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         val map_comp0_tacs = map (fn thm => K (rtac (thm RS sym) 1)) map_comp0_thms;
         val map_cong0_tacs = map (mk_map_cong0_tac m) map_cong0_thms;
         val set_nat_tacss =
-          map2 (map2 (K oo mk_set_map_tac)) hset_defss (transpose col_natural_thmss);
+          map2 (map2 (K oo mk_set_map0_tac)) hset_defss (transpose col_natural_thmss);
 
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac sbd_card_order));
         val bd_cinf_tacs = replicate n (K (mk_bd_cinfinite_tac sbd_Cinfinite));
@@ -2701,10 +2701,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           in
             map12 (fn i => fn goal => fn in_rel => fn map_comp0 => fn map_cong0 =>
               fn dtor_map => fn dtor_sets => fn dtor_inject => fn dtor_ctor =>
-              fn set_maps => fn dtor_set_incls => fn dtor_set_set_inclss =>
+              fn set_map0s => fn dtor_set_incls => fn dtor_set_set_inclss =>
               Goal.prove_sorry lthy [] [] goal
                 (K (mk_dtor_rel_tac lthy in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_sets
-                  dtor_inject dtor_ctor set_maps dtor_set_incls dtor_set_set_inclss))
+                  dtor_inject dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_rels map_comps map_cong0s folded_dtor_map_thms folded_dtor_set_thmss'
               dtor_inject_thms dtor_ctor_thms set_map'ss dtor_set_incl_thmss

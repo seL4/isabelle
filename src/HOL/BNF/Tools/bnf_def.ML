@@ -72,8 +72,8 @@ sig
   val rel_flip_of_bnf: bnf -> thm
   val set_bd_of_bnf: bnf -> thm list
   val set_defs_of_bnf: bnf -> thm list
+  val set_map0_of_bnf: bnf -> thm list
   val set_map'_of_bnf: bnf -> thm list
-  val set_map_of_bnf: bnf -> thm list
   val wit_thms_of_bnf: bnf -> thm list
   val wit_thmss_of_bnf: bnf -> thm list list
 
@@ -116,7 +116,7 @@ type axioms = {
   map_id0: thm,
   map_comp0: thm,
   map_cong0: thm,
-  set_map: thm list,
+  set_map0: thm list,
   bd_card_order: thm,
   bd_cinfinite: thm,
   set_bd: thm list,
@@ -124,8 +124,8 @@ type axioms = {
   rel_OO_Grp: thm
 };
 
-fun mk_axioms' ((((((((id, comp), cong), nat), c_o), cinf), set_bd), wpull), rel) =
-  {map_id0 = id, map_comp0 = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
+fun mk_axioms' ((((((((id, comp), cong), map), c_o), cinf), set_bd), wpull), rel) =
+  {map_id0 = id, map_comp0 = comp, map_cong0 = cong, set_map0 = map, bd_card_order = c_o,
    bd_cinfinite = cinf, set_bd = set_bd, map_wpull = wpull, rel_OO_Grp = rel};
 
 fun dest_cons [] = raise List.Empty
@@ -144,20 +144,20 @@ fun mk_axioms n thms = thms
   ||> the_single
   |> mk_axioms';
 
-fun zip_axioms mid mcomp mcong snat bdco bdinf sbd wpull rel =
-  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [wpull, rel];
+fun zip_axioms mid mcomp mcong smap bdco bdinf sbd wpull rel =
+  [mid, mcomp, mcong] @ smap @ [bdco, bdinf] @ sbd @ [wpull, rel];
 
-fun dest_axioms {map_id0, map_comp0, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
+fun dest_axioms {map_id0, map_comp0, map_cong0, set_map0, bd_card_order, bd_cinfinite, set_bd,
   map_wpull, rel_OO_Grp} =
-  zip_axioms map_id0 map_comp0 map_cong0 set_map bd_card_order bd_cinfinite set_bd map_wpull
+  zip_axioms map_id0 map_comp0 map_cong0 set_map0 bd_card_order bd_cinfinite set_bd map_wpull
     rel_OO_Grp;
 
-fun map_axioms f {map_id0, map_comp0, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
+fun map_axioms f {map_id0, map_comp0, map_cong0, set_map0, bd_card_order, bd_cinfinite, set_bd,
   map_wpull, rel_OO_Grp} =
   {map_id0 = f map_id0,
     map_comp0 = f map_comp0,
     map_cong0 = f map_cong0,
-    set_map = map f set_map,
+    set_map0 = map f set_map0,
     bd_card_order = f bd_card_order,
     bd_cinfinite = f bd_cinfinite,
     set_bd = map f set_bd,
@@ -394,7 +394,7 @@ val rel_eq_of_bnf = Lazy.force o #rel_eq o #facts o rep_bnf;
 val rel_flip_of_bnf = Lazy.force o #rel_flip o #facts o rep_bnf;
 val set_bd_of_bnf = #set_bd o #axioms o rep_bnf;
 val set_defs_of_bnf = #set_defs o #defs o rep_bnf;
-val set_map_of_bnf = #set_map o #axioms o rep_bnf;
+val set_map0_of_bnf = #set_map0 o #axioms o rep_bnf;
 val set_map'_of_bnf = map Lazy.force o #set_map' o #facts o rep_bnf;
 val rel_cong_of_bnf = Lazy.force o #rel_cong o #facts o rep_bnf;
 val rel_mono_of_bnf = Lazy.force o #rel_mono o #facts o rep_bnf;
@@ -518,7 +518,7 @@ val map_transferN = "map_transfer";
 val map_wpullN = "map_wpull";
 val rel_eqN = "rel_eq";
 val rel_flipN = "rel_flip";
-val set_mapN = "set_map";
+val set_map0N = "set_map0";
 val set_map'N = "set_map'";
 val set_bdN = "set_bd";
 val rel_GrpN = "rel_Grp";
@@ -563,7 +563,7 @@ fun note_bnf_thms fact_policy qualify bnf_b bnf =
             (map_transferN, [Lazy.force (#map_transfer facts)]),
             (map_wpullN, [#map_wpull axioms]),
             (rel_mono_strongN, [Lazy.force (#rel_mono_strong facts)]),
-            (set_mapN, #set_map axioms),
+            (set_map0N, #set_map0 axioms),
             (set_bdN, #set_bd axioms)] @
             (witNs ~~ wit_thmss_of_bnf bnf)
             |> map (fn (thmN, thms) =>
@@ -873,7 +873,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         fold_rev Logic.all (x :: fs @ fs_copy) (Logic.list_implies (prems, eq))
       end;
 
-    val set_maps_goal =
+    val set_map0s_goal =
       let
         fun mk_goal setA setB f =
           let
@@ -922,7 +922,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
     val rel_OO_Grp_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), OO_Grp));
 
-    val goals = zip_axioms map_id0_goal map_comp0_goal map_cong0_goal set_maps_goal
+    val goals = zip_axioms map_id0_goal map_comp0_goal map_cong0_goal set_map0s_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal map_wpull_goal rel_OO_Grp_goal;
 
     fun mk_wit_goals (I, wit) =
@@ -965,7 +965,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
             val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
-            Goal.prove_sorry lthy [] [] goal (K (mk_collect_set_map_tac (#set_map axioms)))
+            Goal.prove_sorry lthy [] [] goal (K (mk_collect_set_map_tac (#set_map0 axioms)))
             |> Thm.close_derivation
           end;
 
@@ -1018,7 +1018,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val map_cong = Lazy.lazy mk_map_cong;
 
-        val set_map' = map (fn thm => Lazy.lazy (fn () => mk_set_map' thm)) (#set_map axioms);
+        val set_map' = map (fn thm => Lazy.lazy (fn () => mk_set_map' thm)) (#set_map0 axioms);
 
         fun mk_in_bd () =
           let
@@ -1335,12 +1335,12 @@ fun print_bnfs ctxt =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_bnfs"}
-    "print all BNFs (bounded natural functors)"
+    "print all bounded natural functors"
     (Scan.succeed (Toplevel.keep (print_bnfs o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf"}
-    "register a type as a BNF (bounded natural functor)"
+    "register a type as a bounded natural functor"
     ((parse_opt_binding_colon -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Scan.option Parse.term)
