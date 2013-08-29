@@ -1123,6 +1123,11 @@ text {*
 
 * no direct way to define recursive functions for default values -- but show trick
   based on overloading
+
+* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
+  (for datatype\_compat and prim(co)rec)
+
+* no way to register same type as both data- and codatatype?
 *}
 
 
