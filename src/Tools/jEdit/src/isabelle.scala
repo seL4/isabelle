@@ -11,7 +11,7 @@ import isabelle._
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
-import org.gjt.sp.jedit.gui.DockableWindowManager
+import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
 
 
 object Isabelle
@@ -159,6 +159,17 @@ object Isabelle
         }
         else text
       text_area.setSelectedText(text1)
+    }
+  }
+
+
+  /* completion */
+
+  def complete(view: View)
+  {
+    Completion_Popup.Text_Area(view.getTextArea) match {
+      case Some(text_area_completion) => text_area_completion.action(true)
+      case None => CompleteWord.completeWord(view)
     }
   }
 
