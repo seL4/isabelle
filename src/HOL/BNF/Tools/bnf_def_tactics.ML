@@ -66,7 +66,7 @@ fun mk_collect_set_map_tac set_maps =
     rtac set_map) set_maps) THEN'
   rtac @{thm image_empty}) 1;
 
-fun mk_map_wppull_tac map_id0 map_cong0 map_wpull map_comp set_maps =
+fun mk_map_wppull_tac map_id0 map_cong0 map_wpull map_comp0 set_maps =
   if null set_maps then
     EVERY' [rtac @{thm wppull_id}, rtac map_wpull, rtac map_id0, rtac map_id0] 1
   else EVERY' [REPEAT_DETERM o etac conjE, REPEAT_DETERM o dtac @{thm wppull_thePull},
@@ -76,13 +76,13 @@ fun mk_map_wppull_tac map_id0 map_cong0 map_wpull map_comp set_maps =
     CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS ord_eq_le_trans),
       rtac @{thm image_subsetI}, rtac conjunct1, etac bspec, etac set_mp, atac])
       set_maps,
-    CONJ_WRAP' (fn thm => EVERY' [rtac (map_comp RS trans), rtac (map_comp RS trans),
-      rtac (map_comp RS trans RS sym), rtac map_cong0,
+    CONJ_WRAP' (fn thm => EVERY' [rtac (map_comp0 RS trans), rtac (map_comp0 RS trans),
+      rtac (map_comp0 RS trans RS sym), rtac map_cong0,
       REPEAT_DETERM_N (length set_maps) o EVERY' [rtac (o_apply RS trans),
         rtac (o_apply RS trans RS sym), rtac (o_apply RS trans), rtac thm,
         rtac conjunct2, etac bspec, etac set_mp, atac]]) [conjunct1, conjunct2]] 1;
 
-fun mk_rel_Grp_tac rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps
+fun mk_rel_Grp_tac rel_OO_Grps map_id0 map_cong0 map_id map_comp0 set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
@@ -95,7 +95,7 @@ fun mk_rel_Grp_tac rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps
       EVERY' [rel_OO_Grps_tac, rtac @{thm antisym}, rtac @{thm predicate2I},
         REPEAT_DETERM o
           eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
-        hyp_subst_tac ctxt, rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
+        hyp_subst_tac ctxt, rtac @{thm GrpI}, rtac trans, rtac map_comp0, rtac map_cong0,
         REPEAT_DETERM_N n o EVERY' [rtac @{thm Collect_split_Grp_eqD}, etac @{thm set_mp}, atac],
         rtac CollectI,
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS ord_eq_le_trans),
@@ -105,7 +105,7 @@ fun mk_rel_Grp_tac rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps
         hyp_subst_tac ctxt,
         rtac @{thm relcomppI}, rtac @{thm conversepI},
         EVERY' (map2 (fn convol => fn map_id0 =>
-          EVERY' [rtac @{thm GrpI}, rtac (box_equals OF [map_cong0, map_comp RS sym, map_id0]),
+          EVERY' [rtac @{thm GrpI}, rtac (box_equals OF [map_cong0, map_comp0 RS sym, map_id0]),
             REPEAT_DETERM_N n o rtac (convol RS fun_cong),
             REPEAT_DETERM o eresolve_tac [CollectE, conjE],
             rtac CollectI,
@@ -135,7 +135,7 @@ fun mk_rel_mono_tac rel_OO_Grps in_mono =
       rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono}] 1
   end;
 
-fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
+fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp0 set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
@@ -151,7 +151,7 @@ fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
         hyp_subst_tac ctxt, rtac @{thm conversepI}, rtac @{thm relcomppI}, rtac @{thm conversepI},
         EVERY' (map (fn thm => EVERY' [rtac @{thm GrpI}, rtac sym, rtac trans,
           rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
-          rtac (map_comp RS sym), rtac CollectI,
+          rtac (map_comp0 RS sym), rtac CollectI,
           CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS ord_eq_le_trans),
             etac @{thm flip_pred}]) set_maps]) [@{thm snd_fst_flip}, @{thm fst_snd_flip}])] 1
   end;
@@ -161,7 +161,7 @@ fun mk_rel_conversep_tac le_conversep rel_mono =
     rtac le_conversep, rtac @{thm iffD2[OF conversep_mono]}, rtac rel_mono,
     REPEAT_DETERM o rtac @{thm eq_refl[OF sym[OF conversep_conversep]]}] 1;
 
-fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp set_maps
+fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp0 set_maps
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
@@ -180,20 +180,20 @@ fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp set_maps
           eresolve_tac [CollectE, exE, conjE, @{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
         hyp_subst_tac ctxt,
         rtac @{thm relcomppI}, rtac @{thm relcomppI}, rtac @{thm conversepI}, rtac @{thm GrpI},
-        rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
+        rtac trans, rtac map_comp0, rtac sym, rtac map_cong0,
         REPEAT_DETERM_N n o rtac @{thm fst_fstOp},
         in_tac @{thm fstOp_in},
-        rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac map_cong0,
+        rtac @{thm GrpI}, rtac trans, rtac map_comp0, rtac map_cong0,
         REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply, 
           rtac ballE, rtac subst,
           rtac @{thm csquare_def}, rtac @{thm csquare_fstOp_sndOp}, atac, etac notE,
           etac set_mp, atac],
         in_tac @{thm fstOp_in},
         rtac @{thm relcomppI}, rtac @{thm conversepI}, rtac @{thm GrpI},
-        rtac trans, rtac map_comp, rtac map_cong0,
+        rtac trans, rtac map_comp0, rtac map_cong0,
         REPEAT_DETERM_N n o rtac o_apply,
         in_tac @{thm sndOp_in},
-        rtac @{thm GrpI}, rtac trans, rtac map_comp, rtac sym, rtac map_cong0,
+        rtac @{thm GrpI}, rtac trans, rtac map_comp0, rtac sym, rtac map_cong0,
         REPEAT_DETERM_N n o rtac @{thm snd_sndOp},
         in_tac @{thm sndOp_in},
         rtac @{thm predicate2I},
@@ -206,7 +206,7 @@ fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp set_maps
         rtac @{thm relcomppI}, rtac @{thm conversepI},
         EVERY' (map (fn thm => EVERY' [rtac @{thm GrpI}, rtac trans,
           rtac trans, rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
-          rtac (map_comp RS sym), atac, atac]) [@{thm fst_fstOp}, @{thm snd_sndOp}])] 1
+          rtac (map_comp0 RS sym), atac, atac]) [@{thm fst_fstOp}, @{thm snd_sndOp}])] 1
   end;
 
 fun mk_in_rel_tac rel_OO_Gr {context = ctxt, prems = _} =

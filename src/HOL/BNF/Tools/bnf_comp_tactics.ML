@@ -11,7 +11,7 @@ sig
   val mk_comp_bd_card_order_tac: thm list -> thm -> tactic
   val mk_comp_bd_cinfinite_tac: thm -> thm -> tactic
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
-  val mk_comp_map_comp_tac: thm -> thm -> thm list -> tactic
+  val mk_comp_map_comp0_tac: thm -> thm -> thm list -> tactic
   val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
   val mk_comp_map_id0_tac: thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
@@ -62,17 +62,17 @@ fun mk_comp_map_id0_tac Gmap_id0 Gmap_cong0 map_id0s =
   EVERY' ([rtac ext, rtac (Gmap_cong0 RS trans)] @
     map (fn thm => rtac (thm RS fun_cong)) map_id0s @ [rtac (Gmap_id0 RS fun_cong)]) 1;
 
-fun mk_comp_map_comp_tac Gmap_comp Gmap_cong0 map_comps =
+fun mk_comp_map_comp0_tac Gmap_comp0 Gmap_cong0 map_comp0s =
   EVERY' ([rtac ext, rtac sym, rtac trans_o_apply,
-    rtac (Gmap_comp RS sym RS o_eq_dest_lhs RS trans), rtac Gmap_cong0] @
-    map (fn thm => rtac (thm RS sym RS fun_cong)) map_comps) 1;
+    rtac (Gmap_comp0 RS sym RS o_eq_dest_lhs RS trans), rtac Gmap_cong0] @
+    map (fn thm => rtac (thm RS sym RS fun_cong)) map_comp0s) 1;
 
-fun mk_comp_set_map_tac Gmap_comp Gmap_cong0 Gset_map set_maps =
+fun mk_comp_set_map_tac Gmap_comp0 Gmap_cong0 Gset_map set_maps =
   EVERY' ([rtac ext] @
     replicate 3 (rtac trans_o_apply) @
     [rtac (arg_cong_Union RS trans),
      rtac (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
-     rtac (Gmap_comp RS sym RS o_eq_dest_lhs RS trans),
+     rtac (Gmap_comp0 RS sym RS o_eq_dest_lhs RS trans),
      rtac Gmap_cong0] @
      map (fn thm => rtac (thm RS fun_cong)) set_maps @
      [rtac (Gset_map RS o_eq_dest_lhs), rtac sym, rtac trans_o_apply,

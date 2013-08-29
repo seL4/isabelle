@@ -51,7 +51,7 @@ sig
   val in_mono_of_bnf: bnf -> thm
   val in_rel_of_bnf: bnf -> thm
   val map_comp'_of_bnf: bnf -> thm
-  val map_comp_of_bnf: bnf -> thm
+  val map_comp0_of_bnf: bnf -> thm
   val map_cong0_of_bnf: bnf -> thm
   val map_cong_of_bnf: bnf -> thm
   val map_def_of_bnf: bnf -> thm
@@ -114,7 +114,7 @@ val fundef_cong_attrs = @{attributes [fundef_cong]};
 
 type axioms = {
   map_id0: thm,
-  map_comp: thm,
+  map_comp0: thm,
   map_cong0: thm,
   set_map: thm list,
   bd_card_order: thm,
@@ -125,7 +125,7 @@ type axioms = {
 };
 
 fun mk_axioms' ((((((((id, comp), cong), nat), c_o), cinf), set_bd), wpull), rel) =
-  {map_id0 = id, map_comp = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
+  {map_id0 = id, map_comp0 = comp, map_cong0 = cong, set_map = nat, bd_card_order = c_o,
    bd_cinfinite = cinf, set_bd = set_bd, map_wpull = wpull, rel_OO_Grp = rel};
 
 fun dest_cons [] = raise List.Empty
@@ -147,15 +147,15 @@ fun mk_axioms n thms = thms
 fun zip_axioms mid mcomp mcong snat bdco bdinf sbd wpull rel =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [wpull, rel];
 
-fun dest_axioms {map_id0, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
+fun dest_axioms {map_id0, map_comp0, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
   map_wpull, rel_OO_Grp} =
-  zip_axioms map_id0 map_comp map_cong0 set_map bd_card_order bd_cinfinite set_bd map_wpull
+  zip_axioms map_id0 map_comp0 map_cong0 set_map bd_card_order bd_cinfinite set_bd map_wpull
     rel_OO_Grp;
 
-fun map_axioms f {map_id0, map_comp, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
+fun map_axioms f {map_id0, map_comp0, map_cong0, set_map, bd_card_order, bd_cinfinite, set_bd,
   map_wpull, rel_OO_Grp} =
   {map_id0 = f map_id0,
-    map_comp = f map_comp,
+    map_comp0 = f map_comp0,
     map_cong0 = f map_cong0,
     set_map = map f set_map,
     bd_card_order = f bd_card_order,
@@ -382,7 +382,7 @@ val in_rel_of_bnf = Lazy.force o #in_rel o #facts o rep_bnf;
 val map_def_of_bnf = #map_def o #defs o rep_bnf;
 val map_id0_of_bnf = #map_id0 o #axioms o rep_bnf;
 val map_id_of_bnf = Lazy.force o #map_id o #facts o rep_bnf;
-val map_comp_of_bnf = #map_comp o #axioms o rep_bnf;
+val map_comp0_of_bnf = #map_comp0 o #axioms o rep_bnf;
 val map_comp'_of_bnf = Lazy.force o #map_comp' o #facts o rep_bnf;
 val map_cong0_of_bnf = #map_cong0 o #axioms o rep_bnf;
 val map_cong_of_bnf = Lazy.force o #map_cong o #facts o rep_bnf;
@@ -510,7 +510,7 @@ val in_monoN = "in_mono";
 val in_relN = "in_rel";
 val map_id0N = "map_id0";
 val map_idN = "map_id";
-val map_compN = "map_comp";
+val map_comp0N = "map_comp0";
 val map_comp'N = "map_comp'";
 val map_cong0N = "map_cong0";
 val map_congN = "map_cong";
@@ -558,7 +558,7 @@ fun note_bnf_thms fact_policy qualify bnf_b bnf =
             (in_bdN, [Lazy.force (#in_bd facts)]),
             (in_monoN, [Lazy.force (#in_mono facts)]),
             (in_relN, [Lazy.force (#in_rel facts)]),
-            (map_compN, [#map_comp axioms]),
+            (map_comp0N, [#map_comp0 axioms]),
             (map_id0N, [#map_id0 axioms]),
             (map_transferN, [Lazy.force (#map_transfer facts)]),
             (map_wpullN, [#map_wpull axioms]),
@@ -850,7 +850,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         mk_Trueprop_eq (bnf_map_app_id, HOLogic.id_const CA')
       end;
 
-    val map_comp_goal =
+    val map_comp0_goal =
       let
         val bnf_map_app_comp = Term.list_comb (bnf_map_AsCs, map2 (curry HOLogic.mk_comp) gs fs);
         val comp_bnf_map_app = HOLogic.mk_comp
@@ -922,7 +922,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
     val rel_OO_Grp_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), OO_Grp));
 
-    val goals = zip_axioms map_id0_goal map_comp_goal map_cong0_goal set_maps_goal
+    val goals = zip_axioms map_id0_goal map_comp0_goal map_cong0_goal set_maps_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal map_wpull_goal rel_OO_Grp_goal;
 
     fun mk_wit_goals (I, wit) =
@@ -1001,7 +1001,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         val in_cong = Lazy.lazy mk_in_cong;
 
         val map_id = Lazy.lazy (fn () => mk_map_id (#map_id0 axioms));
-        val map_comp' = Lazy.lazy (fn () => mk_map_comp' (#map_comp axioms));
+        val map_comp' = Lazy.lazy (fn () => mk_map_comp' (#map_comp0 axioms));
 
         fun mk_map_cong () =
           let
