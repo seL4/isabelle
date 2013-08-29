@@ -57,9 +57,16 @@ object PIDE
 
   def dismissed_popups(view: View): Boolean =
   {
-    val b1 = Completion_Popup.dismissed(view.getLayeredPane)
-    val b2 = Pretty_Tooltip.dismissed_all()
-    b1 || b2
+    var dismissed = false
+
+    for {
+      text_area <- JEdit_Lib.jedit_text_areas(view)
+      doc_view <- document_view(text_area)
+    } { if (doc_view.dismissed_popups()) dismissed = true }
+
+    if (Pretty_Tooltip.dismissed_all()) dismissed = true
+
+    dismissed
   }
 
 

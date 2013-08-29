@@ -28,35 +28,33 @@ object Completion_Popup
   { override def toString: String = description }
 
 
-  /* maintain single instance */
-
-  def dismissed(layered: JLayeredPane): Boolean =
-  {
-    Swing_Thread.require()
-
-    layered.getClientProperty(Completion_Popup) match {
-      case old_completion: Completion_Popup =>
-        old_completion.hide_popup()
-        true
-      case _ =>
-        false
-    }
-  }
-
-  private def register(layered: JLayeredPane, completion: Completion_Popup)
-  {
-    Swing_Thread.require()
-
-    dismissed(layered)
-    layered.putClientProperty(Completion_Popup, completion)
-  }
-
-
-  /* jEdit text area operations */
+  /* setup for jEdit text area */
 
   object Text_Area
   {
-    private def insert(text_area: JEditTextArea, item: Item)
+    def apply(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax]): Text_Area =
+      new Text_Area(text_area, get_syntax)
+  }
+
+  class Text_Area private(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax])
+  {
+    private var completion_popup: Option[Completion_Popup] = None
+
+    def dismissed(): Boolean =
+    {
+      Swing_Thread.require()
+
+      completion_popup match {
+        case Some(completion) =>
+          completion.hide_popup()
+          completion_popup = None
+          true
+        case None =>
+          false
+      }
+    }
+
+    private def insert(item: Item)
     {
       Swing_Thread.require()
 
@@ -75,7 +73,7 @@ object Completion_Popup
       }
     }
 
-    def input(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax], evt: KeyEvent)
+    def input(evt: KeyEvent)
     {
       Swing_Thread.require()
 
@@ -85,7 +83,7 @@ object Completion_Popup
       val painter = text_area.getPainter
 
       if (buffer.isEditable && !evt.isConsumed) {
-        dismissed(layered)
+        dismissed()
 
         get_syntax match {
           case Some(syntax) =>
@@ -109,10 +107,7 @@ object Completion_Popup
             }
             result match {
               case Some((original, items)) =>
-                val popup_font =
-                  painter.getFont.deriveFont(
-                    (painter.getFont.getSize2D * PIDE.options.real("jedit_popup_font_scale")).toFloat
-                      max 10.0f)
+                val font = painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
                 val loc1 = text_area.offsetToXY(caret - original.length)
                 if (loc1 != null) {
@@ -120,15 +115,15 @@ object Completion_Popup
                     SwingUtilities.convertPoint(painter,
                       loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
                   val completion =
-                    new Completion_Popup(layered, loc2, popup_font, items) {
-                      override def complete(item: Item) { insert(text_area, item) }
+                    new Completion_Popup(layered, loc2, font, items) {
+                      override def complete(item: Item) { insert(item) }
                       override def propagate(e: KeyEvent) {
                         JEdit_Lib.propagate_key(view, e)
-                        input(text_area, get_syntax, e)
+                        input(e)
                       }
                       override def refocus() { text_area.requestFocus }
                     }
-                  register(layered, completion)
+                  completion_popup = Some(completion)
                   completion.show_popup()
                 }
               case None =>
@@ -144,7 +139,7 @@ object Completion_Popup
 class Completion_Popup private(
   layered: JLayeredPane,
   location: Point,
-  popup_font: Font,
+  font: Font,
   items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
@@ -163,9 +158,7 @@ class Completion_Popup private(
   /* list view */
 
   private val list_view = new ListView(items)
-  {
-    font = popup_font
-  }
+  list_view.font = font
   list_view.selection.intervalMode = ListView.IntervalMode.Single
   list_view.peer.setFocusTraversalKeysEnabled(false)
   list_view.peer.setVisibleRowCount(items.length min 8)

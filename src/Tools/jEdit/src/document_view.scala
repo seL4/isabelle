@@ -149,6 +149,11 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* key listener */
 
+  private val completion_popup =
+    Completion_Popup.Text_Area(text_area, PIDE.get_recent_syntax)
+
+  def dismissed_popups(): Boolean = completion_popup.dismissed()
+
   private val key_listener =
     JEdit_Lib.key_listener(
       key_pressed = (evt: KeyEvent) =>
@@ -156,7 +161,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           if (evt.getKeyCode == KeyEvent.VK_ESCAPE && PIDE.dismissed_popups(text_area.getView))
             evt.consume
         },
-      key_typed = Completion_Popup.Text_Area.input(text_area, PIDE.get_recent_syntax, _)
+      key_typed = completion_popup.input _
     )
 
 

@@ -98,19 +98,14 @@ object Isabelle
 
   /* font size */
 
-  def change_font_size(view: View, change: Int => Int)
-  {
-    val size = change(jEdit.getIntegerProperty("view.fontsize", 16)) max 5 min 250
-    jEdit.setIntegerProperty("view.fontsize", size)
-    jEdit.propertiesChanged()
-    jEdit.saveSettings()
-    view.getStatus.setMessageAndClear("Text font size: " + size)
-  }
-
   def reset_font_size(view: View): Unit =
-    change_font_size(view, _ => PIDE.options.int("jedit_reset_font_size"))
-  def increase_font_size(view: View): Unit = change_font_size(view, i => i + ((i / 10) max 1))
-  def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
+    Rendering.font_size_change(view, _ => PIDE.options.int("jedit_reset_font_size"))
+
+  def increase_font_size(view: View): Unit =
+    Rendering.font_size_change(view, i => i + ((i / 10) max 1))
+
+  def decrease_font_size(view: View): Unit =
+    Rendering.font_size_change(view, i => i - ((i / 10) max 1))
 
 
   /* structured insert */
