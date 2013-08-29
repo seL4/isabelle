@@ -539,7 +539,7 @@ fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else
 
 val smart_max_inline_size = 25; (*FUDGE*)
 
-fun note_bnf_thms fact_policy qualify b bnf =
+fun note_bnf_thms fact_policy qualify bnf_b bnf =
   let
     val axioms = axioms_of_bnf bnf;
     val facts = facts_of_bnf bnf;
@@ -567,7 +567,7 @@ fun note_bnf_thms fact_policy qualify b bnf =
             (set_bdN, #set_bd axioms)] @
             (witNs ~~ wit_thmss_of_bnf bnf)
             |> map (fn (thmN, thms) =>
-              ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
+              ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)), []),
               [(thms, [])]));
         in
           Local_Theory.notes notes #> snd
@@ -591,7 +591,7 @@ fun note_bnf_thms fact_policy qualify b bnf =
             (rel_OON, [Lazy.force (#rel_OO facts)], [])]
             |> filter_out (null o #2)
             |> map (fn (thmN, thms, attrs) =>
-              ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)),
+              ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)),
                 attrs), [(thms, [])]));
         in
           Local_Theory.notes notes #> snd
@@ -604,10 +604,10 @@ fun note_bnf_thms fact_policy qualify b bnf =
 (* Define new BNFs *)
 
 fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b set_bs
-  (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
+  (((((raw_bnf_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
-    val b = qualify raw_b;
+    val bnf_b = qualify raw_bnf_b;
     val live = length raw_sets;
     val nwits = length raw_wits;
 
@@ -622,13 +622,17 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       error ("Trying to register the type " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
         " as unnamed BNF");
 
-    val (b, key) =
-      if Binding.eq_name (b, Binding.empty) then
+    val (bnf_b, key) =
+      if Binding.eq_name (bnf_b, Binding.empty) then
         (case bd_rhsT of
-          Type (C, Ts) => if forall (is_some o try dest_TFree) Ts
+          Type (C, Ts) => if forall (can dest_TFree) Ts
             then (Binding.qualified_name C, C) else err bd_rhsT
         | T => err T)
-      else (b, Local_Theory.full_name no_defs_lthy b);
+      else (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
+
+    val def_qualify = Binding.qualify false (Binding.name_of bnf_b);
+
+    fun mk_suffix_binding suf = Binding.suffix_name ("_" ^ suf) bnf_b;
 
     fun maybe_define user_specified (b, rhs) lthy =
       let
@@ -653,26 +657,22 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       lthy |> not (pointer_eq (lthy_old, lthy)) ? Local_Theory.restore;
 
     val map_bind_def =
-      (fn () => if Binding.is_empty map_b then Binding.suffix_name ("_" ^ mapN) b else map_b,
-       map_rhs);
+      (fn () => def_qualify (if Binding.is_empty map_b then mk_suffix_binding mapN else map_b),
+         map_rhs);
     val set_binds_defs =
       let
         fun set_name i get_b =
           (case try (nth set_bs) (i - 1) of
             SOME b => if Binding.is_empty b then get_b else K b
-          | NONE => get_b);
-        val bs =
-          if live = 1 then
-            [set_name 1 (fn () => Binding.suffix_name ("_" ^ setN) b)]
-          else
-            map (fn i => set_name i (fn () => Binding.suffix_name ("_" ^ mk_setN i) b))
-              (1 upto live);
+          | NONE => get_b) #> def_qualify;
+        val bs = if live = 1 then [set_name 1 (fn () => mk_suffix_binding setN)]
+          else map (fn i => set_name i (fn () => mk_suffix_binding (mk_setN i))) (1 upto live);
       in bs ~~ set_rhss end;
-    val bd_bind_def = (fn () => Binding.suffix_name ("_" ^ bdN) b, bd_rhs);
+    val bd_bind_def = (fn () => def_qualify (mk_suffix_binding bdN), bd_rhs);
     val wit_binds_defs =
       let
-        val bs = if nwits = 1 then [fn () => Binding.suffix_name ("_" ^ witN) b]
-          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_witN i) b) (1 upto nwits);
+        val bs = if nwits = 1 then [fn () => def_qualify (mk_suffix_binding witN)]
+          else map (fn i => fn () => def_qualify (mk_suffix_binding (mk_witN i))) (1 upto nwits);
       in bs ~~ wit_rhss end;
 
     val (((((bnf_map_term, raw_map_def),
@@ -822,8 +822,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       | SOME raw_rel => prep_term no_defs_lthy raw_rel);
 
     val rel_bind_def =
-      (fn () => if Binding.is_empty rel_b then Binding.suffix_name ("_" ^ relN) b else rel_b,
-       rel_rhs);
+      (fn () => def_qualify (if Binding.is_empty rel_b then mk_suffix_binding relN else rel_b),
+         rel_rhs);
 
     val ((bnf_rel_term, raw_rel_def), (lthy, lthy_old)) =
       lthy
@@ -1262,10 +1262,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         val bnf_rel =
           Term.subst_atomic_types ((Ds ~~ deads) @ (As' ~~ alphas) @ (Bs' ~~ betas)) rel;
 
-        val bnf = mk_bnf b CA live alphas betas dead deads bnf_map bnf_sets bnf_bd axioms defs facts
-          wits bnf_rel;
+        val bnf = mk_bnf bnf_b CA live alphas betas dead deads bnf_map bnf_sets bnf_bd axioms defs
+          facts wits bnf_rel;
       in
-        (bnf, lthy |> note_bnf_thms fact_policy qualify b bnf)
+        (bnf, lthy |> note_bnf_thms fact_policy qualify bnf_b bnf)
       end;
 
     val one_step_defs =
