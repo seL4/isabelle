@@ -59,10 +59,8 @@ object PIDE
   {
     var dismissed = false
 
-    for {
-      text_area <- JEdit_Lib.jedit_text_areas(view)
-      doc_view <- document_view(text_area)
-    } { if (doc_view.dismissed_popups()) dismissed = true }
+    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
+      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
 
     if (Pretty_Tooltip.dismissed_all()) dismissed = true
 
@@ -73,6 +71,7 @@ object PIDE
   /* document model and view */
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
+
   def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
 
   def document_views(buffer: Buffer): List[Document_View] =
@@ -285,6 +284,12 @@ class Plugin extends EBPlugin
               PIDE.dismissed_popups(text_area.getView)
               PIDE.exit_view(buffer, text_area)
             }
+
+            if (msg.getWhat == EditPaneUpdate.CREATED)
+              Completion_Popup.Text_Area.init(text_area)
+
+            if (msg.getWhat == EditPaneUpdate.DESTROYED)
+              Completion_Popup.Text_Area.exit(text_area)
           }
 
         case msg: PropertiesChanged =>
@@ -314,6 +319,8 @@ class Plugin extends EBPlugin
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
         ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
 
+      JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
+
       val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
 
@@ -334,6 +341,8 @@ class Plugin extends EBPlugin
 
   override def stop()
   {
+    JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
+
     if (PIDE.startup_failure.isEmpty)
       PIDE.options.value.save_prefs()
 

@@ -16,6 +16,20 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 
 object Isabelle
 {
+  /* editor modes */
+
+  val modes = List("isabelle", "isabelle-options", "isabelle-root", "isabelle-news")
+
+  def mode_syntax(name: String): Option[Outer_Syntax] =
+    name match {
+      case "isabelle" | "isabelle-raw" => PIDE.get_recent_syntax
+      case "isabelle-options" => Some(Options.options_syntax)
+      case "isabelle-root" => Some(Build.root_syntax)
+      case "isabelle-news" => Some(Outer_Syntax.empty)
+      case _ => None
+    }
+
+
   /* dockable windows */
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager

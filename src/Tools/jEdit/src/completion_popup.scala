@@ -32,11 +32,45 @@ object Completion_Popup
 
   object Text_Area
   {
-    def apply(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax]): Text_Area =
-      new Text_Area(text_area, get_syntax)
+    private val key = new Object
+
+    def apply(text_area: JEditTextArea): Option[Completion_Popup.Text_Area] =
+      text_area.getClientProperty(key) match {
+        case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
+        case _ => None
+      }
+
+    def exit(text_area: JEditTextArea)
+    {
+      Swing_Thread.require()
+      apply(text_area) match {
+        case None =>
+        case Some(text_area_completion) =>
+          text_area_completion.deactivate()
+          text_area.putClientProperty(key, null)
+      }
+    }
+
+    def init(text_area: JEditTextArea): Completion_Popup.Text_Area =
+    {
+      exit(text_area)
+      val text_area_completion = new Text_Area(text_area)
+      text_area.putClientProperty(key, text_area_completion)
+      text_area_completion.activate()
+      text_area_completion
+    }
+
+    def dismissed(text_area: JEditTextArea): Boolean =
+    {
+      Swing_Thread.require()
+      apply(text_area) match {
+        case Some(text_area_completion) => text_area_completion.dismissed()
+        case None => false
+      }
+    }
   }
 
-  class Text_Area private(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax])
+  class Text_Area private(text_area: JEditTextArea)
   {
     /* popup state */
 
@@ -106,7 +140,7 @@ object Completion_Popup
         val painter = text_area.getPainter
 
         if (buffer.isEditable) {
-          get_syntax match {
+          Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
             case Some(syntax) =>
               val caret = text_area.getCaretPosition
               val result =
@@ -155,6 +189,23 @@ object Completion_Popup
           }
         }
       }
+
+
+    /* activation */
+
+    private val outer_key_listener =
+      JEdit_Lib.key_listener(key_typed = input _)
+
+    private def activate()
+    {
+      text_area.addKeyListener(outer_key_listener)
+    }
+
+    private def deactivate()
+    {
+      dismissed()
+      text_area.removeKeyListener(outer_key_listener)
+    }
   }
 }
 
@@ -214,7 +265,7 @@ class Completion_Popup private(
 
   /* event handling */
 
-  private val key_listener =
+  private val inner_key_listener =
     JEdit_Lib.key_listener(
       key_pressed = (e: KeyEvent) =>
         {
@@ -240,7 +291,7 @@ class Completion_Popup private(
       key_typed = propagate _
     )
 
-  list_view.peer.addKeyListener(key_listener)
+  list_view.peer.addKeyListener(inner_key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent) {

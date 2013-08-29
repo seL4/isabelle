@@ -10,18 +10,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.collection.Set
-import scala.collection.immutable.TreeSet
-import scala.util.matching.Regex
-
-import java.awt.Component
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
-import javax.swing.{Icon, DefaultListCellRenderer, ListCellRenderer, JList}
+import javax.swing.Icon
 
-import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
-import errorlist.DefaultErrorSource
-import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
+import org.gjt.sp.jedit.Buffer
+import sidekick.{SideKickParser, SideKickParsedData, IAsset}
 
 
 object Isabelle_Sidekick
@@ -58,9 +52,11 @@ object Isabelle_Sidekick
 }
 
 
-class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
-  extends SideKickParser(name)
+class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 {
+  override def supportsCompletion = false
+
+
   /* parsing */
 
   @volatile protected var stopped = false
@@ -68,7 +64,7 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
 
   def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean = false
 
-  def parse(buffer: Buffer, error_source: DefaultErrorSource): SideKickParsedData =
+  def parse(buffer: Buffer, error_source: errorlist.DefaultErrorSource): SideKickParsedData =
   {
     stopped = false
 
@@ -77,7 +73,7 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
     val root = data.root
     data.getAsset(root).setEnd(Isabelle_Sidekick.int_to_pos(buffer.getLength))
 
-    val syntax = get_syntax
+    val syntax = Isabelle.mode_syntax(name)
     val ok =
       if (syntax.isDefined) {
         val ok = parser(buffer, syntax.get, data)
@@ -89,65 +85,13 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
 
     data
   }
-
-
-  /* completion */
-
-  override def supportsCompletion = true
-  override def canCompleteAnywhere = true
-
-  override def complete(pane: EditPane, caret: Text.Offset): SideKickCompletion =
-  {
-    Swing_Thread.assert()
-
-    val buffer = pane.getBuffer
-    JEdit_Lib.buffer_lock(buffer) {
-      get_syntax match {
-        case None => null
-        case Some(syntax) =>
-          val line = buffer.getLineOfOffset(caret)
-          val start = buffer.getLineStartOffset(line)
-          val text = buffer.getSegment(start, caret - start)
-
-          syntax.completion.complete(text) match {
-            case None => null
-            case Some((word, cs)) =>
-              val ds =
-                (if (Isabelle_Encoding.is_active(buffer))
-                  cs.map(Symbol.decode(_)).sorted
-                 else cs).filter(_ != word)
-              if (ds.isEmpty) null
-              else
-                new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) {
-                  override def getRenderer() =
-                    new ListCellRenderer[Any] {
-                      val default_renderer =
-                        (new DefaultListCellRenderer).asInstanceOf[ListCellRenderer[Any]]
-
-                      override def getListCellRendererComponent(
-                          list: JList[_ <: Any], value: Any, index: Int,
-                          selected: Boolean, focus: Boolean): Component =
-                      {
-                        val renderer: Component =
-                          default_renderer.getListCellRendererComponent(
-                            list, value, index, selected, focus)
-                        renderer.setFont(pane.getTextArea.getPainter.getFont)
-                        renderer
-                      }
-                    }
-                }
-          }
-      }
-    }
-  }
 }
 
 
 class Isabelle_Sidekick_Structure(
     name: String,
-    get_syntax: => Option[Outer_Syntax],
     node_name: Buffer => Option[Document.Node.Name])
-  extends Isabelle_Sidekick(name, get_syntax)
+  extends Isabelle_Sidekick(name)
 {
   import Thy_Syntax.Structure
 
@@ -186,22 +130,19 @@ class Isabelle_Sidekick_Structure(
 }
 
 
-class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
-  "isabelle", PIDE.get_recent_syntax, PIDE.thy_load.buffer_node_name)
-{
-  override def supportsCompletion = false
-}
+class Isabelle_Sidekick_Default extends
+  Isabelle_Sidekick_Structure("isabelle", PIDE.thy_load.buffer_node_name)
 
 
-class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
-  "isabelle-options", Some(Options.options_syntax), PIDE.thy_load.buffer_node_dummy)
+class Isabelle_Sidekick_Options extends
+  Isabelle_Sidekick_Structure("isabelle-options", PIDE.thy_load.buffer_node_dummy)
 
 
-class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
-  "isabelle-root", Some(Build.root_syntax), PIDE.thy_load.buffer_node_dummy)
+class Isabelle_Sidekick_Root extends
+  Isabelle_Sidekick_Structure("isabelle-root", PIDE.thy_load.buffer_node_dummy)
 
 
-class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_recent_syntax)
+class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
@@ -234,10 +175,10 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_r
 }
 
 
-class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news", Some(Outer_Syntax.empty))
+class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
 {
-  private val Heading1 = new Regex("""^New in (.*)\w*$""")
-  private val Heading2 = new Regex("""^\*\*\*\w*(.*)\w*\*\*\*\w*$""")
+  private val Heading1 = """^New in (.*)\w*$""".r
+  private val Heading2 = """^\*\*\*\w*(.*)\w*\*\*\*\w*$""".r
 
   private def make_node(s: String, start: Text.Offset, stop: Text.Offset): DefaultMutableTreeNode =
     new DefaultMutableTreeNode(new Isabelle_Sidekick.Asset(s, start, stop))
@@ -260,7 +201,5 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news", Some(Out
 
     true
   }
-
-  override def supportsCompletion = false
 }
 

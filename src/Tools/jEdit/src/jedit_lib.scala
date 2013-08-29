@@ -131,6 +131,16 @@ object JEdit_Lib
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
+  def buffer_mode(buffer: JEditBuffer): String =
+  {
+    val mode = buffer.getMode
+    if (mode == null) ""
+    else {
+      val name = mode.getName
+      if (name == null) "" else name
+    }
+  }
+
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
 
