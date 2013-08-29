@@ -1045,25 +1045,21 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of) specs;
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
+    val num_As = length unsorted_As;
     val set_bss = map (map fst o type_args_named_constrained_of) specs;
 
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
-      |> mk_TFrees (length unsorted_As)
+      |> mk_TFrees num_As
       ||>> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
 
-    (* TODO: Cleaner handling of fake contexts, without "background_theory". *)
-
     fun add_fake_type spec =
-      (*The "qualify" hack below is for the case where the new type shadows an existing global type
-        defined in the same theory.*)
-      Sign.add_type no_defs_lthy (qualify false "" (type_binding_of spec),
-        length (type_args_named_constrained_of spec), mixfix_of spec);
+      Typedecl.basic_typedecl (type_binding_of spec, num_As, mixfix_of spec)
+      #>> (fn s => Type (s, unsorted_As));
 
-    val fake_thy = fold add_fake_type specs;
-    val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
+    val (fake_Ts, fake_lthy) = fold_map add_fake_type specs no_defs_lthy0;
 
     val qsoty = quote o Syntax.string_of_typ fake_lthy;
 
@@ -1077,12 +1073,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val _ = null bad_args orelse
       error ("Locally fixed type argument " ^ qsoty (hd bad_args) ^ " in " ^ co_prefix fp ^
         "datatype specification");
-
-    fun mk_fake_T b =
-      Type (fst (Term.dest_Type (Proof_Context.read_type_name fake_lthy true (Binding.name_of b))),
-        unsorted_As);
-
-    val fake_Ts = map mk_fake_T fp_bs;
 
     val mixfixes = map mixfix_of specs;
 
@@ -1132,8 +1122,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val rhsXs_As' = fold (fold (fold Term.add_tfreesT)) ctrXs_Tsss [];
     val _ = (case subtract (op =) rhsXs_As' As' of [] => ()
-      | extras => List.app (fn extra => warning ("Unused type variable: " ^ qsoty (TFree extra)))
-          extras);
+      | extras => List.app (fn extra => warning ("Unused type variable on right-hand side of " ^
+          co_prefix fp ^ "datatype definition: " ^ qsoty (TFree extra))) extras);
 
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
@@ -1182,13 +1172,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val live = live_of_bnf any_fp_bnf;
     val _ =
       if live = 0 andalso exists (not o Binding.is_empty) (map_bs @ rel_bs) then
-        warning ("Map function and relator names ignored")
+        warning "Map function and relator names ignored"
       else
         ();
 
     val Bs =
       map3 (fn alive => fn A as TFree (_, S) => fn B => if alive then resort_tfree S B else A)
-        (liveness_of_fp_bnf (length As) any_fp_bnf) As Bs0;
+        (liveness_of_fp_bnf num_As any_fp_bnf) As Bs0;
 
     val B_ify = Term.typ_subst_atomic (As ~~ Bs);
 
@@ -1350,9 +1340,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
                 fold_thms lthy ctr_defs'
-                   (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
-                        (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel)
-                      (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
+                  (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel)
+                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
                 |> postproc
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
@@ -1549,7 +1539,7 @@ val no_map_rel = (Binding.empty, Binding.empty);
    that we don't want them to be highlighted everywhere. *)
 fun extract_map_rel ("map", b) = apfst (K b)
   | extract_map_rel ("rel", b) = apsnd (K b)
-  | extract_map_rel (s, _) = error ("Expected \"map\" or \"rel\" instead of " ^ quote s);
+  | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
 
 val parse_map_rel_bindings =
   @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
