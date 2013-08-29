@@ -1138,8 +1138,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           in
             if is_some (bnf_of no_defs_lthy bad_tc) orelse
                is_some (fp_sugar_of no_defs_lthy bad_tc) then
-              error ("Non-strictly-positive " ^ co_prefix fp ^ "recursive occurrence of type " ^
-                fake_T ^ " in type expression " ^ fake_T_backdrop)
+              error ("Inadmissible " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
+                " in type expression " ^ fake_T_backdrop)
             else if is_some (Datatype_Data.get_info (Proof_Context.theory_of no_defs_lthy)
                 bad_tc) then
               error ("Unsupported " ^ co_prefix fp ^ "recursive occurrence of type " ^ fake_T ^
