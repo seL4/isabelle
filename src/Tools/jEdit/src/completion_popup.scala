@@ -10,13 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Font, Point, BorderLayout, Dimension}
-import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
+import java.awt.event.{InputEvent, KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{View, Debug}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
@@ -106,7 +106,7 @@ object Completion_Popup
             val text = buffer.getSegment(start, caret - start)
 
             syntax.completion.complete(Isabelle_Encoding.is_active(buffer), text) match {
-              case Some((_, List(item))) if immediate =>
+              case Some((_, List(item))) if item.immediate && immediate =>
                 insert(item)
 
               case Some((original, items)) =>
@@ -148,7 +148,17 @@ object Completion_Popup
       if (PIDE.options.bool("jedit_completion")) {
         if (!evt.isConsumed) {
           dismissed()
-          if (PIDE.options.seconds("jedit_completion_delay").is_zero) {
+
+          val mod = evt.getModifiers
+          val special =
+            evt.getKeyChar == '\b' ||
+            // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+            (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
+            (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
+              !Debug.ALT_KEY_PRESSED_DISABLED ||
+            (mod & InputEvent.META_MASK) != 0
+
+          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
             input_delay.revoke()
             action(PIDE.options.bool("jedit_completion_immediate"))
           }

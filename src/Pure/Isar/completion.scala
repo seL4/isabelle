@@ -13,7 +13,11 @@ object Completion
 {
   /* items */
 
-  sealed case class Item(original: String, replacement: String, description: String)
+  sealed case class Item(
+    original: String,
+    replacement: String,
+    description: String,
+    immediate: Boolean)
   { override def toString: String = description }
 
 
@@ -107,7 +111,10 @@ final class Completion private(
       case Some((word, cs)) =>
         val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs)
         if (ds.isEmpty) None
-        else Some((word, ds.map(s => Completion.Item(word, s, s))))
+        else {
+          val immediate = !Completion.is_word(word)
+          Some((word, ds.map(s => Completion.Item(word, s, s, immediate))))
+        }
       case None => None
     }
   }
