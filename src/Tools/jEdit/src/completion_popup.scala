@@ -9,9 +9,10 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, Point, BorderLayout, Dimension}
+import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{InputEvent, KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
+import javax.swing.border.LineBorder
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
@@ -307,7 +308,7 @@ class Completion_Popup private(
   /* main content */
 
   override def getFocusTraversalKeysEnabled = false
-
+  completion.setBorder(new LineBorder(Color.BLACK))
   completion.add((new ScrollPane(list_view)).peer.asInstanceOf[JComponent])
 
 
