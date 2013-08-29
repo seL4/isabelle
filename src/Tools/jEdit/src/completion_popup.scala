@@ -22,12 +22,6 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 
 object Completion_Popup
 {
-  /* items */
-
-  private sealed case class Item(original: String, replacement: String, description: String)
-  { override def toString: String = description }
-
-
   /* setup for jEdit text area */
 
   object Text_Area
@@ -93,7 +87,7 @@ object Completion_Popup
 
     /* insert selected item */
 
-    private def insert(item: Item)
+    private def insert(item: Completion.Item)
     {
       Swing_Thread.require()
 
@@ -143,24 +137,11 @@ object Completion_Popup
           Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
             case Some(syntax) =>
               val caret = text_area.getCaretPosition
-              val result =
-              {
-                val line = buffer.getLineOfOffset(caret)
-                val start = buffer.getLineStartOffset(line)
-                val text = buffer.getSegment(start, caret - start)
+              val line = buffer.getLineOfOffset(caret)
+              val start = buffer.getLineStartOffset(line)
+              val text = buffer.getSegment(start, caret - start)
 
-                syntax.completion.complete(text) match {
-                  case Some((word, cs)) =>
-                    val ds =
-                      (if (Isabelle_Encoding.is_active(buffer))
-                        cs.map(Symbol.decode(_)).sorted
-                       else cs).filter(_ != word)
-                    if (ds.isEmpty) None
-                    else Some((word, ds.map(s => Item(word, s, s))))
-                  case None => None
-                }
-              }
-              result match {
+              syntax.completion.complete(Isabelle_Encoding.is_active(buffer), text) match {
                 case Some((original, items)) =>
                   val font =
                     painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
@@ -173,10 +154,10 @@ object Completion_Popup
 
                     val completion =
                       new Completion_Popup(layered, loc2, font, items) {
-                        override def complete(item: Item) { insert(item) }
-                        override def propagate(e: KeyEvent) {
-                          JEdit_Lib.propagate_key(view, e)
-                          input(e)
+                        override def complete(item: Completion.Item) { insert(item) }
+                        override def propagate(evt: KeyEvent) {
+                          JEdit_Lib.propagate_key(view, evt)
+                          input(evt)
                         }
                         override def refocus() { text_area.requestFocus }
                       }
@@ -214,7 +195,7 @@ class Completion_Popup private(
   layered: JLayeredPane,
   location: Point,
   font: Font,
-  items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
+  items: List[Completion.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
 
@@ -224,7 +205,7 @@ class Completion_Popup private(
 
   /* actions */
 
-  def complete(item: Completion_Popup.Item) { }
+  def complete(item: Completion.Item) { }
   def propagate(evt: KeyEvent) { }
   def refocus() { }
 
