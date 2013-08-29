@@ -105,7 +105,7 @@ final class Completion private(
       }
     raw_result match {
       case Some((word, cs)) =>
-        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs).filter(_ != word)
+        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs)
         if (ds.isEmpty) None
         else Some((word, ds.map(s => Completion.Item(word, s, s))))
       case None => None
