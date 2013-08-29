@@ -584,10 +584,9 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
 
     val common_name = mk_common_name (map Binding.name_of bs);
 
-    fun raw_qualify b =
-      let val s = Binding.name_of b in
-        Binding.qualify false s o Binding.qualify true (rawN ^ s)
-      end;
+    fun raw_qualify base_b =
+      Binding.prefix_name rawN
+      #> fold_rev (fn (s, mand) => Binding.qualify mand s) (#2 (Binding.dest base_b));
 
     val ((bnfs, (deadss, livess)), (unfold_set, lthy)) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort Xs) bs rhsXs
@@ -608,10 +607,8 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
-    fun pre_binding b = Binding.qualify false (Binding.name_of b) (Binding.prefix_name preN b);
-
     val ((pre_bnfs, deadss), lthy'') =
-      fold_map3 (seal_bnf unfold_set') (map pre_binding bs) Dss bnfs' lthy'
+      fold_map3 (seal_bnf unfold_set') (map (Binding.prefix_name preN) bs) Dss bnfs' lthy'
       |>> split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");

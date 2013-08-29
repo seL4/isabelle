@@ -323,7 +323,7 @@ fun split_list4 [] = ([], [], [], [])
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
 fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 
-(* The standard binding stands for a name generated following the canonical convention (e.g.
+(* The standard binding stands for a name generated following the canonical convention (e.g.,
    "is_Nil" from "Nil"). The smart binding is either the standard binding or no binding at all,
    depending on the context. *)
 val standard_binding = @{binding _};
@@ -334,11 +334,13 @@ val parse_binding_colon = parse_binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)
-fun typedef typ set opt_morphs tac lthy =
+fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let
+    (*Work around loss of qualification in "typedef" axioms by replicating it in the name*)
+    val b' = fold_rev Binding.prefix_name (map (suffix "_" o fst) (#2 (Binding.dest b))) b;
     val ((name, info), (lthy, lthy_old)) =
       lthy
-      |> Typedef.add_typedef typ set opt_morphs tac
+      |> Typedef.add_typedef (b', Ts, mx) set opt_morphs tac
       ||> `Local_Theory.restore;
     val phi = Proof_Context.export_morphism lthy_old lthy;
   in
