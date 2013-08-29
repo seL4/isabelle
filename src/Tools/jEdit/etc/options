@@ -16,7 +16,7 @@ public option jedit_popup_bounds : real = 0.5
   -- "relative bounds of popup window wrt. logical screen size"
 
 public option jedit_tooltip_delay : real = 0.75
-  -- "open/close delay for document tooltips"
+  -- "open/close delay for document tooltips (seconds)"
 
 public option jedit_tooltip_margin : int = 60
   -- "margin for tooltip pretty-printing"
@@ -32,6 +32,12 @@ public option jedit_mac_adapter : bool = true
 
 public option jedit_timing_threshold : real = 0.1
   -- "default threshold for timing display"
+
+public option jedit_completion : bool = true
+  -- "enable completion popup"
+
+public option jedit_completion_delay : real = 0.0
+  -- "delay for completion popup (seconds)"
 
 
 section "Rendering of Document Content"

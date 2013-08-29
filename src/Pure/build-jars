@@ -29,6 +29,7 @@ declare -a SOURCES=(
   General/time.scala
   General/timing.scala
   General/xz_file.scala
+  Isar/completion.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
@@ -64,7 +65,6 @@ declare -a SOURCES=(
   System/swing_thread.scala
   System/system_channel.scala
   System/utf8.scala
-  Thy/completion.scala
   Thy/html.scala
   Thy/present.scala
   Thy/thy_header.scala

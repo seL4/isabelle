@@ -42,7 +42,8 @@ object Outer_Syntax
 final class Outer_Syntax private(
   keywords: Map[String, (String, List[String])] = Map.empty,
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
-  val completion: Completion = Completion.empty)
+  val completion: Completion = Completion.empty,
+  val has_tokens: Boolean = true)
 {
   override def toString: String =
     (for ((name, (kind, files)) <- keywords) yield {
@@ -59,14 +60,19 @@ final class Outer_Syntax private(
     (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
-    new Outer_Syntax(
-      keywords + (name -> kind),
-      lexicon + name,
+  {
+    val keywords1 = keywords + (name -> kind)
+    val lexicon1 = lexicon + name
+    val completion1 =
       if (Keyword.control(kind._1) || replace == Some("")) completion
-      else completion + (name, replace getOrElse name))
+      else completion + (name, replace getOrElse name)
+    new Outer_Syntax(keywords1, lexicon1, completion1, true)
+  }
 
-  def + (name: String, kind: (String, List[String])): Outer_Syntax = this + (name, kind, Some(name))
-  def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), Some(name))
+  def + (name: String, kind: (String, List[String])): Outer_Syntax =
+    this + (name, kind, Some(name))
+  def + (name: String, kind: String): Outer_Syntax =
+    this + (name, (kind, Nil), Some(name))
   def + (name: String, replace: Option[String]): Outer_Syntax =
     this + (name, (Keyword.MINOR, Nil), replace)
   def + (name: String): Outer_Syntax = this + (name, None)
@@ -106,7 +112,13 @@ final class Outer_Syntax private(
     heading_level(command.name)
 
 
-  /* tokenize */
+  /* token language */
+
+  def no_tokens: Outer_Syntax =
+  {
+    require(keywords.isEmpty && lexicon.isEmpty)
+    new Outer_Syntax(completion = completion, has_tokens = false)
+  }
 
   def scan(input: Reader[Char]): List[Token] =
   {

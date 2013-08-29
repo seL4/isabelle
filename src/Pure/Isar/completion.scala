@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/completion.scala
+/*  Title:      Pure/Isar/completion.scala
     Author:     Makarius
 
 Completion of symbols and keywords.
@@ -6,12 +6,19 @@ Completion of symbols and keywords.
 
 package isabelle
 
-import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 
 object Completion
 {
+  /* items */
+
+  sealed case class Item(original: String, replacement: String, description: String)
+  { override def toString: String = description }
+
+
+  /* init */
+
   val empty: Completion = new Completion()
   def init(): Completion = empty.add_symbols()
 
@@ -79,21 +86,29 @@ final class Completion private(
 
   /* complete */
 
-  def complete(line: CharSequence): Option[(String, List[String])] =
+  def complete(decode: Boolean, line: CharSequence): Option[(String, List[Completion.Item])] =
   {
-    abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
-      case abbrevs_lex.Success(reverse_a, _) =>
-        val (word, c) = abbrevs_map(reverse_a)
-        Some(word, List(c))
-      case _ =>
-        Completion.Parse.read(line) match {
-          case Some(word) =>
-            words_lex.completions(word).map(words_map(_)) match {
-              case Nil => None
-              case cs => Some(word, cs.sorted)
-            }
-          case None => None
-        }
+    val raw_result =
+      abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
+        case abbrevs_lex.Success(reverse_a, _) =>
+          val (word, c) = abbrevs_map(reverse_a)
+          Some(word, List(c))
+        case _ =>
+          Completion.Parse.read(line) match {
+            case Some(word) =>
+              words_lex.completions(word).map(words_map(_)) match {
+                case Nil => None
+                case cs => Some(word, cs.sorted)
+              }
+            case None => None
+          }
+      }
+    raw_result match {
+      case Some((word, cs)) =>
+        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs).filter(_ != word)
+        if (ds.isEmpty) None
+        else Some((word, ds.map(s => Completion.Item(word, s, s))))
+      case None => None
     }
   }
 }

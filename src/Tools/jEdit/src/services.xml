@@ -8,6 +8,9 @@
 	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
 		new isabelle.jedit.Isabelle_Sidekick_Default();
 	</SERVICE>
+	<SERVICE NAME="isabelle-markup" CLASS="sidekick.SideKickParser">
+		new isabelle.jedit.Isabelle_Sidekick_Markup();
+	</SERVICE>
 	<SERVICE NAME="isabelle-news" CLASS="sidekick.SideKickParser">
 		new isabelle.jedit.Isabelle_Sidekick_News();
 	</SERVICE>
@@ -16,9 +19,6 @@
 	</SERVICE>
 	<SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
 		new isabelle.jedit.Isabelle_Sidekick_Root();
-	</SERVICE>
-	<SERVICE NAME="isabelle-raw" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_Raw();
 	</SERVICE>
  	<SERVICE CLASS="console.Shell" NAME="Scala">
 		new isabelle.jedit.Scala_Console();

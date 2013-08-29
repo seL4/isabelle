@@ -14,7 +14,7 @@ import java.awt.Color
 import javax.swing.Icon
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
-import org.gjt.sp.jedit.jEdit
+import org.gjt.sp.jedit.{jEdit, View}
 
 import scala.collection.immutable.SortedMap
 
@@ -45,8 +45,21 @@ object Rendering
 
   def font_family(): String = jEdit.getProperty("view.font")
 
+  private def view_font_size(): Int = jEdit.getIntegerProperty("view.fontsize", 16)
+  private val font_size0 = 5
+  private val font_size1 = 250
+
   def font_size(scale: String): Float =
-    (jEdit.getIntegerProperty("view.fontsize", 16) * PIDE.options.real(scale)).toFloat
+    (view_font_size() * PIDE.options.real(scale)).toFloat max font_size0 min font_size1
+
+  def font_size_change(view: View, change: Int => Int)
+  {
+    val size = change(view_font_size()) max font_size0 min font_size1
+    jEdit.setIntegerProperty("view.fontsize", size)
+    jEdit.propertiesChanged()
+    jEdit.saveSettings()
+    view.getStatus.setMessageAndClear("Text font size: " + size)
+  }
 
 
   /* popup window bounds */

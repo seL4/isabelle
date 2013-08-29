@@ -22,41 +22,72 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 
 object Completion_Popup
 {
-  /* items */
-
-  private sealed case class Item(original: String, replacement: String, description: String)
-  { override def toString: String = description }
-
-
-  /* maintain single instance */
-
-  def dismissed(layered: JLayeredPane): Boolean =
-  {
-    Swing_Thread.require()
-
-    layered.getClientProperty(Completion_Popup) match {
-      case old_completion: Completion_Popup =>
-        old_completion.hide_popup()
-        true
-      case _ =>
-        false
-    }
-  }
-
-  private def register(layered: JLayeredPane, completion: Completion_Popup)
-  {
-    Swing_Thread.require()
-
-    dismissed(layered)
-    layered.putClientProperty(Completion_Popup, completion)
-  }
-
-
-  /* jEdit text area operations */
+  /* setup for jEdit text area */
 
   object Text_Area
   {
-    private def insert(text_area: JEditTextArea, item: Item)
+    private val key = new Object
+
+    def apply(text_area: JEditTextArea): Option[Completion_Popup.Text_Area] =
+      text_area.getClientProperty(key) match {
+        case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
+        case _ => None
+      }
+
+    def exit(text_area: JEditTextArea)
+    {
+      Swing_Thread.require()
+      apply(text_area) match {
+        case None =>
+        case Some(text_area_completion) =>
+          text_area_completion.deactivate()
+          text_area.putClientProperty(key, null)
+      }
+    }
+
+    def init(text_area: JEditTextArea): Completion_Popup.Text_Area =
+    {
+      exit(text_area)
+      val text_area_completion = new Text_Area(text_area)
+      text_area.putClientProperty(key, text_area_completion)
+      text_area_completion.activate()
+      text_area_completion
+    }
+
+    def dismissed(text_area: JEditTextArea): Boolean =
+    {
+      Swing_Thread.require()
+      apply(text_area) match {
+        case Some(text_area_completion) => text_area_completion.dismissed()
+        case None => false
+      }
+    }
+  }
+
+  class Text_Area private(text_area: JEditTextArea)
+  {
+    /* popup state */
+
+    private var completion_popup: Option[Completion_Popup] = None
+
+    def dismissed(): Boolean =
+    {
+      Swing_Thread.require()
+
+      completion_popup match {
+        case Some(completion) =>
+          completion.hide_popup()
+          completion_popup = None
+          true
+        case None =>
+          false
+      }
+    }
+
+
+    /* insert selected item */
+
+    private def insert(item: Completion.Item)
     {
       Swing_Thread.require()
 
@@ -75,67 +106,86 @@ object Completion_Popup
       }
     }
 
-    def input(text_area: JEditTextArea, get_syntax: => Option[Outer_Syntax], evt: KeyEvent)
+
+    /* input of key events */
+
+    def input(evt: KeyEvent)
     {
       Swing_Thread.require()
 
-      val view = text_area.getView
-      val layered = view.getLayeredPane
-      val buffer = text_area.getBuffer
-      val painter = text_area.getPainter
+      if (PIDE.options.bool("jedit_completion")) {
+        if (!evt.isConsumed) {
+          dismissed()
+          input_delay.invoke()
+        }
+      }
+      else {
+        dismissed()
+        input_delay.revoke()
+      }
+    }
 
-      if (buffer.isEditable && !evt.isConsumed) {
-        dismissed(layered)
+    private val input_delay =
+      Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay"))
+      {
+        val view = text_area.getView
+        val layered = view.getLayeredPane
+        val buffer = text_area.getBuffer
+        val painter = text_area.getPainter
 
-        get_syntax match {
-          case Some(syntax) =>
-            val caret = text_area.getCaretPosition
-            val result =
-            {
+        if (buffer.isEditable) {
+          Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
+            case Some(syntax) =>
+              val caret = text_area.getCaretPosition
               val line = buffer.getLineOfOffset(caret)
               val start = buffer.getLineStartOffset(line)
               val text = buffer.getSegment(start, caret - start)
 
-              syntax.completion.complete(text) match {
-                case Some((word, cs)) =>
-                  val ds =
-                    (if (Isabelle_Encoding.is_active(buffer))
-                      cs.map(Symbol.decode(_)).sorted
-                     else cs).filter(_ != word)
-                  if (ds.isEmpty) None
-                  else Some((word, ds.map(s => Item(word, s, s))))
-                case None => None
-              }
-            }
-            result match {
-              case Some((original, items)) =>
-                val popup_font =
-                  painter.getFont.deriveFont(
-                    (painter.getFont.getSize2D * PIDE.options.real("jedit_popup_font_scale")).toFloat
-                      max 10.0f)
+              syntax.completion.complete(Isabelle_Encoding.is_active(buffer), text) match {
+                case Some((original, items)) =>
+                  val font =
+                    painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
-                val loc1 = text_area.offsetToXY(caret - original.length)
-                if (loc1 != null) {
-                  val loc2 =
-                    SwingUtilities.convertPoint(painter,
-                      loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
-                  val completion =
-                    new Completion_Popup(layered, loc2, popup_font, items) {
-                      override def complete(item: Item) { insert(text_area, item) }
-                      override def propagate(e: KeyEvent) {
-                        JEdit_Lib.propagate_key(view, e)
-                        input(text_area, get_syntax, e)
+                  val loc1 = text_area.offsetToXY(caret - original.length)
+                  if (loc1 != null) {
+                    val loc2 =
+                      SwingUtilities.convertPoint(painter,
+                        loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
+
+                    val completion =
+                      new Completion_Popup(layered, loc2, font, items) {
+                        override def complete(item: Completion.Item) { insert(item) }
+                        override def propagate(evt: KeyEvent) {
+                          JEdit_Lib.propagate_key(view, evt)
+                          input(evt)
+                        }
+                        override def refocus() { text_area.requestFocus }
                       }
-                      override def refocus() { text_area.requestFocus }
-                    }
-                  register(layered, completion)
-                  completion.show_popup()
-                }
-              case None =>
-            }
-          case None =>
+                    completion_popup = Some(completion)
+                    completion.show_popup()
+                  }
+                case None =>
+              }
+            case None =>
+          }
         }
       }
+
+
+    /* activation */
+
+    private val outer_key_listener =
+      JEdit_Lib.key_listener(key_typed = input _)
+
+    private def activate()
+    {
+      text_area.addKeyListener(outer_key_listener)
+    }
+
+    private def deactivate()
+    {
+      dismissed()
+      text_area.removeKeyListener(outer_key_listener)
     }
   }
 }
@@ -144,8 +194,8 @@ object Completion_Popup
 class Completion_Popup private(
   layered: JLayeredPane,
   location: Point,
-  popup_font: Font,
-  items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
+  font: Font,
+  items: List[Completion.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
 
@@ -155,7 +205,7 @@ class Completion_Popup private(
 
   /* actions */
 
-  def complete(item: Completion_Popup.Item) { }
+  def complete(item: Completion.Item) { }
   def propagate(evt: KeyEvent) { }
   def refocus() { }
 
@@ -163,9 +213,7 @@ class Completion_Popup private(
   /* list view */
 
   private val list_view = new ListView(items)
-  {
-    font = popup_font
-  }
+  list_view.font = font
   list_view.selection.intervalMode = ListView.IntervalMode.Single
   list_view.peer.setFocusTraversalKeysEnabled(false)
   list_view.peer.setVisibleRowCount(items.length min 8)
@@ -198,7 +246,7 @@ class Completion_Popup private(
 
   /* event handling */
 
-  private val key_listener =
+  private val inner_key_listener =
     JEdit_Lib.key_listener(
       key_pressed = (e: KeyEvent) =>
         {
@@ -224,7 +272,7 @@ class Completion_Popup private(
       key_typed = propagate _
     )
 
-  list_view.peer.addKeyListener(key_listener)
+  list_view.peer.addKeyListener(inner_key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent) {

@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/isabelle.scala
     Author:     Makarius
 
-Convenience operations for Isabelle/jEdit.
+Global configuration and convenience operations for Isabelle/jEdit.
 */
 
 package isabelle.jedit
@@ -16,6 +16,40 @@ import org.gjt.sp.jedit.gui.DockableWindowManager
 
 object Isabelle
 {
+  /* editor modes */
+
+  val modes =
+    List(
+      "isabelle",         // theory source
+      "isabelle-markup",  // SideKick markup tree
+      "isabelle-news",    // NEWS
+      "isabelle-options", // etc/options
+      "isabelle-output",  // pretty text area output
+      "isabelle-root")    // session ROOT
+
+  private lazy val news_syntax = Outer_Syntax.init().no_tokens
+
+  def mode_syntax(name: String): Option[Outer_Syntax] =
+    name match {
+      case "isabelle" | "isabelle-markup" =>
+        val syntax = PIDE.session.recent_syntax
+        if (syntax == Outer_Syntax.empty) None else Some(syntax)
+      case "isabelle-options" => Some(Options.options_syntax)
+      case "isabelle-root" => Some(Build.root_syntax)
+      case "isabelle-news" => Some(news_syntax)
+      case "isabelle-output" => None
+      case _ => None
+    }
+
+
+  /* token markers */
+
+  private val markers =
+    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*)
+
+  def token_marker(name: String): Option[Token_Markup.Marker] = markers.get(name)
+
+
   /* dockable windows */
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
@@ -98,19 +132,14 @@ object Isabelle
 
   /* font size */
 
-  def change_font_size(view: View, change: Int => Int)
-  {
-    val size = change(jEdit.getIntegerProperty("view.fontsize", 16)) max 5 min 250
-    jEdit.setIntegerProperty("view.fontsize", size)
-    jEdit.propertiesChanged()
-    jEdit.saveSettings()
-    view.getStatus.setMessageAndClear("Text font size: " + size)
-  }
-
   def reset_font_size(view: View): Unit =
-    change_font_size(view, _ => PIDE.options.int("jedit_reset_font_size"))
-  def increase_font_size(view: View): Unit = change_font_size(view, i => i + ((i / 10) max 1))
-  def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
+    Rendering.font_size_change(view, _ => PIDE.options.int("jedit_reset_font_size"))
+
+  def increase_font_size(view: View): Unit =
+    Rendering.font_size_change(view, i => i + ((i / 10) max 1))
+
+  def decrease_font_size(view: View): Unit =
+    Rendering.font_size_change(view, i => i - ((i / 10) max 1))
 
 
   /* structured insert */
