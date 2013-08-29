@@ -453,12 +453,12 @@ lemma snth_sset_smerge: "ss !! n !! m \<in> sset (smerge ss)"
 proof (cases "n \<le> m")
   case False thus ?thesis unfolding smerge_def
     by (subst sset_flat)
-      (auto simp: stream.set_map' in_set_conv_nth simp del: stake.simps
+      (auto simp: stream.set_map in_set_conv_nth simp del: stake.simps
         intro!: exI[of _ n, OF disjI2] exI[of _ m, OF mp])
 next
   case True thus ?thesis unfolding smerge_def
     by (subst sset_flat)
-      (auto simp: stream.set_map' in_set_conv_nth image_iff simp del: stake.simps snth.simps
+      (auto simp: stream.set_map in_set_conv_nth image_iff simp del: stake.simps snth.simps
         intro!: exI[of _ m, OF disjI1] bexI[of _ "ss !! n"] exI[of _ n, OF mp])
 qed
 
@@ -467,7 +467,7 @@ proof safe
   fix x assume "x \<in> sset (smerge ss)"
   thus "x \<in> UNION (sset ss) sset"
     unfolding smerge_def by (subst (asm) sset_flat)
-      (auto simp: stream.set_map' in_set_conv_nth sset_range simp del: stake.simps, fast+)
+      (auto simp: stream.set_map in_set_conv_nth sset_range simp del: stake.simps, fast+)
 next
   fix s x assume "s \<in> sset ss" "x \<in> sset s"
   thus "x \<in> sset (smerge ss)" using snth_sset_smerge by (auto simp: sset_range)
@@ -480,7 +480,7 @@ definition sproduct :: "'a stream \<Rightarrow> 'b stream \<Rightarrow> ('a \<ti
   "sproduct s1 s2 = smerge (smap (\<lambda>x. smap (Pair x) s2) s1)"
 
 lemma sset_sproduct: "sset (sproduct s1 s2) = sset s1 \<times> sset s2"
-  unfolding sproduct_def sset_smerge by (auto simp: stream.set_map')
+  unfolding sproduct_def sset_smerge by (auto simp: stream.set_map)
 
 
 subsection {* interleave two streams *}

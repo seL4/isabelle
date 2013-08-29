@@ -222,7 +222,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val map_ids = map map_id_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
     val set_bdss = map set_bd_of_bnf bnfs;
-    val set_map'ss = map set_map'_of_bnf bnfs;
+    val set_mapss = map set_map_of_bnf bnfs;
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
@@ -809,7 +809,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ Rs)
             (mk_Trueprop_eq (mk_bis As Bs ss B's s's Rs, rhs)))
-          (K (mk_bis_rel_tac lthy m bis_def rel_OO_Grps map_comps map_cong0s set_map'ss))
+          (K (mk_bis_rel_tac lthy m bis_def rel_OO_Grps map_comps map_cong0s set_mapss))
         |> Thm.close_derivation
       end;
 
@@ -1209,7 +1209,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val coalgT_thm =
       Goal.prove_sorry lthy [] []
         (fold_rev Logic.all As (HOLogic.mk_Trueprop (mk_coalg As carTAs strTAs)))
-        (mk_coalgT_tac m (coalg_def :: isNode_defs @ carT_defs) strT_defs set_map'ss)
+        (mk_coalgT_tac m (coalg_def :: isNode_defs @ carT_defs) strT_defs set_mapss)
       |> Thm.close_derivation;
 
     val timer = time (timer "Tree coalgebra");
@@ -1578,7 +1578,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           to_sbd_inj_thmss from_to_sbd_thmss Lev_0s Lev_Sucs rv_Nils rv_Conss Lev_sbd_thms
           length_Lev_thms length_Lev'_thms prefCl_Lev_thms rv_last_thmss
           set_rv_Lev_thmsss set_Lev_thmsss set_image_Lev_thmsss
-          set_map'ss coalg_set_thmss map_comp_id_thms map_cong0s map_arg_cong_thms)
+          set_mapss coalg_set_thmss map_comp_id_thms map_cong0s map_arg_cong_thms)
       |> Thm.close_derivation;
 
     val timer = time (timer "Behavioral morphism");
@@ -1617,7 +1617,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val coalg_final_thm = Goal.prove_sorry lthy [] [] (fold_rev Logic.all As
       (HOLogic.mk_Trueprop (mk_coalg As car_finalAs str_finalAs)))
       (K (mk_coalg_final_tac m coalg_def congruent_str_final_thms equiv_LSBIS_thms
-        set_map'ss coalgT_set_thmss))
+        set_mapss coalgT_set_thmss))
       |> Thm.close_derivation;
 
     val mor_T_final_thm = Goal.prove_sorry lthy [] [] (fold_rev Logic.all As
@@ -2292,7 +2292,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               map4 (fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
                 singleton (Proof_Context.export names_lthy lthy)
                   (Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-                    (mk_col_natural_tac cts rec_0s rec_Sucs dtor_map_thms set_map'ss))
+                    (mk_col_natural_tac cts rec_0s rec_Sucs dtor_map_thms set_mapss))
                 |> Thm.close_derivation)
               goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
@@ -2360,7 +2360,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Goal.prove_sorry lthy [] [] goal
-              (K (mk_mcong_tac lthy m (rtac coinduct) map_comps dtor_map_thms map_cong0s set_map'ss
+              (K (mk_mcong_tac lthy m (rtac coinduct) map_comps dtor_map_thms map_cong0s set_mapss
               set_hset_thmss set_hset_hset_thmsss)))
               |> Thm.close_derivation
           in
@@ -2396,7 +2396,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               (Logic.mk_implies (wpull_prem, coalg));
           in
             Goal.prove_sorry lthy [] [] goal (mk_coalg_thePull_tac m coalg_def map_wpull_thms
-              set_map'ss pickWP_assms_tacs)
+              set_mapss pickWP_assms_tacs)
             |> Thm.close_derivation
           end;
 
@@ -2447,7 +2447,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             val thms =
               map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
                 singleton (Proof_Context.export names_lthy lthy) (Goal.prove_sorry lthy [] [] goal
-                  (mk_pick_col_tac m j cts rec_0s rec_Sucs dtor_unfold_thms set_map'ss
+                  (mk_pick_col_tac m j cts rec_0s rec_Sucs dtor_unfold_thms set_mapss
                     map_wpull_thms pickWP_assms_tacs))
                 |> Thm.close_derivation)
               ls goals ctss hset_rec_0ss' hset_rec_Sucss';
@@ -2633,7 +2633,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           in
             map2 (fn goal => fn induct =>
               Goal.prove_sorry lthy [] [] goal
-                (mk_coind_wit_tac induct dtor_unfold_thms (flat set_map'ss) wit_thms)
+                (mk_coind_wit_tac induct dtor_unfold_thms (flat set_mapss) wit_thms)
               |> Thm.close_derivation)
             goals dtor_hset_induct_thms
             |> map split_conj_thm
@@ -2707,7 +2707,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
                   dtor_inject dtor_ctor set_map0s dtor_set_incls dtor_set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_rels map_comps map_cong0s folded_dtor_map_thms folded_dtor_set_thmss'
-              dtor_inject_thms dtor_ctor_thms set_map'ss dtor_set_incl_thmss
+              dtor_inject_thms dtor_ctor_thms set_mapss dtor_set_incl_thmss
               dtor_set_set_incl_thmsss
           end;
 
@@ -2802,7 +2802,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               (map6 (mk_helper_coind_concl false)
               activeJphis Jzs Jz's_copy Jz's Jmap_snds zip_unfolds));
           val helper_coind_tac = mk_rel_coinduct_coind_tac m dtor_map_coinduct_thm ks map_comps
-            map_cong0s map_arg_cong_thms set_map'ss dtor_unfold_thms folded_dtor_map_thms;
+            map_cong0s map_arg_cong_thms set_mapss dtor_unfold_thms folded_dtor_map_thms;
           fun mk_helper_coind_thms vars concl =
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Jphis @ activeJphis @ vars @ zips)
@@ -2831,7 +2831,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               Goal.prove_sorry lthy [] []
                 (fold_rev Logic.all (Jphis @ activeJphis @ zip_zs @ zips)
                   (Logic.list_implies (helper_prems, concl)))
-                (mk_rel_coinduct_ind_tac m ks dtor_unfold_thms set_map'ss j set_induct)
+                (mk_rel_coinduct_ind_tac m ks dtor_unfold_thms set_mapss j set_induct)
               |> Thm.close_derivation
               |> split_conj_thm)
             mk_helper_ind_concls ls dtor_set_induct_thms

@@ -604,7 +604,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val nesting_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
     val nested_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs;
-    val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
+    val nested_set_maps = maps set_map_of_bnf nested_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -687,7 +687,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
         val thm =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' nested_set_map's
+            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' nested_set_maps
               pre_set_defss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
@@ -1170,8 +1170,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nesting_set_map's = maps set_map'_of_bnf nesting_bnfs;
-    val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
+    val nesting_set_maps = maps set_map_of_bnf nesting_bnfs;
+    val nested_set_maps = maps set_map_of_bnf nested_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
     val _ =
@@ -1330,7 +1330,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
-                  (unfold_thms lthy (pre_set_defs @ nested_set_map's @ nesting_set_map's @
+                  (unfold_thms lthy (pre_set_defs @ nested_set_maps @ nesting_set_maps @
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_set)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);

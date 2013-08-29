@@ -14,7 +14,7 @@ sig
   val mk_map_cong_tac: Proof.context -> thm -> tactic
   val mk_in_mono_tac: int -> tactic
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
-  val mk_set_map': thm -> thm
+  val mk_set_map: thm -> thm
 
   val mk_rel_Grp_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
@@ -50,7 +50,7 @@ fun mk_map_comp comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac cong0 THEN'
    REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
-fun mk_set_map' set_map0 = set_map0 RS @{thm comp_eq_dest};
+fun mk_set_map set_map0 = set_map0 RS @{thm comp_eq_dest};
 fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   else (rtac subsetI THEN'
   rtac CollectI) 1 THEN
@@ -226,10 +226,10 @@ fun mk_rel_mono_strong_tac in_rel set_map0s {context = ctxt, prems = _} =
     EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
       CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_map0s] 1;
 
-fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp
+fun mk_map_transfer_tac rel_mono in_rel set_maps map_cong0 map_comp
   {context = ctxt, prems = _} =
   let
-    val n = length set_map's;
+    val n = length set_maps;
   in
     REPEAT_DETERM_N n (HEADGOAL (rtac @{thm fun_relI})) THEN
     unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
@@ -239,14 +239,14 @@ fun mk_map_transfer_tac rel_mono in_rel set_map's map_cong0 map_comp
       rtac @{thm vimage2pI}, rtac (in_rel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
       CONJ_WRAP' (fn thm =>
         etac (thm RS @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimage2p]]}))
-      set_map's,
+      set_maps,
       rtac conjI,
       EVERY' (map (fn convol =>
         rtac (box_equals OF [map_cong0, map_comp RS sym, map_comp RS sym]) THEN'
         REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
   end;
 
-fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_map's set_bds
+fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_maps set_bds
   bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero {context = ctxt, prems = _} =
   if live = 0 then
     rtac @{thm ordLeq_transitive[OF ordLeq_csum2[OF card_of_Card_order]
@@ -272,7 +272,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_map's s
         rtac bd_Card_order, rtac @{thm Card_order_csum}, rtac bd_Cnotzero,
         rtac @{thm csum_Cfinite_cexp_Cinfinite},
         rtac (if live = 1 then @{thm card_of_Card_order} else @{thm Card_order_csum}),
-        CONJ_WRAP_GEN' (rtac @{thm Cfinite_csum}) (K (rtac @{thm Cfinite_cone})) set_map's,
+        CONJ_WRAP_GEN' (rtac @{thm Cfinite_csum}) (K (rtac @{thm Cfinite_cone})) set_maps,
         rtac bd'_Cinfinite, rtac @{thm card_of_Card_order},
         rtac @{thm Card_order_cexp}, rtac @{thm Cinfinite_cexp}, rtac @{thm ordLeq_csum2},
         rtac @{thm Card_order_ctwo}, rtac bd'_Cinfinite,
@@ -290,7 +290,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_map's s
         else REPEAT_DETERM_N (live - 2) o (etac conjE THEN' rotate_tac ~1) THEN' etac conjE,
         rtac (Drule.rotate_prems 1 @{thm image_eqI}), rtac @{thm SigmaI}, rtac @{thm UNIV_I},
         CONJ_WRAP_GEN' (rtac @{thm SigmaI})
-          (K (etac @{thm If_the_inv_into_in_Func} THEN' atac)) set_map's,
+          (K (etac @{thm If_the_inv_into_in_Func} THEN' atac)) set_maps,
         rtac sym,
         rtac (Drule.rotate_prems 1
            ((box_equals OF [map_cong0 OF replicate live @{thm If_the_inv_into_f_f},
@@ -302,7 +302,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_map's s
         REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
         CONJ_WRAP' (fn thm =>
           rtac (thm RS ord_eq_le_trans) THEN' etac @{thm subset_trans[OF image_mono Un_upper1]})
-        set_map's,
+        set_maps,
         rtac sym,
         rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
            map_comp RS sym, map_id])] 1
