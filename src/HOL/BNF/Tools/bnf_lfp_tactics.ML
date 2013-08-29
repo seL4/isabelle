@@ -40,7 +40,7 @@ sig
   val mk_lfp_map_wpull_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list ->
     thm list list -> thm list list list -> thm list -> tactic
   val mk_map_comp_tac: thm list -> thm list -> thm -> int -> tactic
-  val mk_map_id_tac: thm list -> thm -> tactic
+  val mk_map_id0_tac: thm list -> thm -> tactic
   val mk_map_tac: int -> int -> thm -> thm -> thm -> tactic
   val mk_ctor_map_unique_tac: thm -> thm list -> {prems: thm list, context: Proof.context} -> tactic
   val mk_mcong_tac: (int -> tactic) -> thm list list list -> thm list -> thm list ->
@@ -704,11 +704,11 @@ fun mk_lfp_map_wpull_tac ctxt m induct_tac wpulls ctor_maps ctor_setss set_setss
 
 (* BNF tactics *)
 
-fun mk_map_id_tac map_ids unique =
+fun mk_map_id0_tac map_id0s unique =
   (rtac sym THEN' rtac unique THEN'
   EVERY' (map (fn thm =>
     EVERY' [rtac trans, rtac @{thm id_o}, rtac trans, rtac sym, rtac @{thm o_id},
-      rtac (thm RS sym RS arg_cong)]) map_ids)) 1;
+      rtac (thm RS sym RS arg_cong)]) map_id0s)) 1;
 
 fun mk_map_comp_tac map_comps ctor_maps unique iplus1 =
   let

@@ -376,7 +376,7 @@ unfolding multiset_def proof safe
   qed
 qed
 
-lemma mmap_id: "mmap id = id"
+lemma mmap_id0: "mmap id = id"
 proof (intro ext multiset_eqI)
   fix f a show "count (mmap id f) a = count (id f) a"
   proof (cases "count f a = 0")
@@ -872,7 +872,7 @@ lemma set_of_bd: "|set_of x| \<le>o natLeq"
     (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
 
 bnf mmap [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
-by (auto simp add: mmap_id mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
+by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
   intro: mmap_cong wpull_mmap)
 
 inductive multiset_rel' where

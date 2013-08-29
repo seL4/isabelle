@@ -13,7 +13,7 @@ sig
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
   val mk_comp_map_comp_tac: thm -> thm -> thm list -> tactic
   val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
-  val mk_comp_map_id_tac: thm -> thm -> thm list -> tactic
+  val mk_comp_map_id0_tac: thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
   val mk_comp_set_bd_tac: Proof.context -> thm -> thm list -> tactic
   val mk_comp_set_map_tac: thm -> thm -> thm -> thm list -> tactic
@@ -58,9 +58,9 @@ fun mk_comp_set_alt_tac ctxt collect_set_map =
   unfold_thms_tac ctxt [collect_set_map RS sym] THEN
   rtac refl 1;
 
-fun mk_comp_map_id_tac Gmap_id Gmap_cong0 map_ids =
+fun mk_comp_map_id0_tac Gmap_id0 Gmap_cong0 map_id0s =
   EVERY' ([rtac ext, rtac (Gmap_cong0 RS trans)] @
-    map (fn thm => rtac (thm RS fun_cong)) map_ids @ [rtac (Gmap_id RS fun_cong)]) 1;
+    map (fn thm => rtac (thm RS fun_cong)) map_id0s @ [rtac (Gmap_id0 RS fun_cong)]) 1;
 
 fun mk_comp_map_comp_tac Gmap_comp Gmap_cong0 map_comps =
   EVERY' ([rtac ext, rtac sym, rtac trans_o_apply,

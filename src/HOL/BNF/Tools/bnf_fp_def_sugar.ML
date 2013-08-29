@@ -602,8 +602,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
-    val nesting_map_ids'' = map (unfold_thms lthy [id_def] o map_id_of_bnf) nesting_bnfs;
-    val nested_map_ids'' = map (unfold_thms lthy [id_def] o map_id_of_bnf) nested_bnfs;
+    val nesting_map_ids'' = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
+    val nested_map_ids'' = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs;
     val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
@@ -763,7 +763,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nesting_map_ids'' = map (unfold_thms lthy [id_def] o map_id_of_bnf) nesting_bnfs;
+    val nesting_map_ids'' = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
     val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;

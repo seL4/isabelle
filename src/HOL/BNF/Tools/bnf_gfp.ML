@@ -218,7 +218,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val sym_map_comps = map mk_sym map_comps;
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_cong0s = map map_cong0_of_bnf bnfs;
-    val map_ids = map map_id_of_bnf bnfs;
+    val map_id0s = map map_id0_of_bnf bnfs;
     val map_id's = map map_id'_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
     val set_bdss = map set_bd_of_bnf bnfs;
@@ -2007,7 +2007,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
         |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_o_inj(1)} @
-           map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
+           map_id0s @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
 
     val timer = time (timer "corec definitions & thms");
 
@@ -2074,8 +2074,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "coinduction");
 
-    fun mk_dtor_map_DEADID_thm dtor_inject map_id =
-      trans OF [iffD2 OF [dtor_inject, id_apply], map_id RS sym];
+    fun mk_dtor_map_DEADID_thm dtor_inject map_id0 =
+      trans OF [iffD2 OF [dtor_inject, id_apply], map_id0 RS sym];
 
     fun mk_dtor_Jrel_DEADID_thm dtor_inject bnf =
       trans OF [rel_eq_of_bnf bnf RS @{thm predicate2_eqD}, dtor_inject] RS sym;
@@ -2457,8 +2457,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val timer = time (timer "helpers for BNF properties");
 
-        val map_id_tacs =
-          map2 (K oo mk_map_id_tac map_thms) dtor_unfold_unique_thms unfold_dtor_thms;
+        val map_id0_tacs =
+          map2 (K oo mk_map_id0_tac map_thms) dtor_unfold_unique_thms unfold_dtor_thms;
         val map_comp_tacs = map (fn thm => K (rtac (thm RS sym) 1)) map_comp_thms;
         val map_cong0_tacs = map (mk_map_cong0_tac m) map_cong0_thms;
         val set_nat_tacss =
@@ -2476,7 +2476,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val rel_OO_Grp_tacs = replicate n (K (rtac refl 1));
 
-        val tacss = map9 zip_axioms map_id_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
+        val tacss = map9 zip_axioms map_id0_tacs map_comp_tacs map_cong0_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss map_wpull_tacs rel_OO_Grp_tacs;
 
         val (hset_dtor_incl_thmss, hset_hset_dtor_incl_thmsss, dtor_hset_induct_thms) =

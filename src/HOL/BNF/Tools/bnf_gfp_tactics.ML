@@ -55,7 +55,7 @@ sig
   val mk_map_comp_tac: int -> int -> thm list -> thm list -> thm list -> thm -> tactic
   val mk_mcong_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list list -> tactic
-  val mk_map_id_tac: thm list -> thm -> thm -> tactic
+  val mk_map_id0_tac: thm list -> thm -> thm -> tactic
   val mk_map_tac: int -> int -> ctyp option -> thm -> thm -> thm -> tactic
   val mk_dtor_map_unique_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_mor_Abs_tac: thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
@@ -1030,7 +1030,7 @@ fun mk_dtor_set_tac n set_le set_incl_hset set_hset_incl_hsets =
     REPEAT_DETERM_N (n - 1) o rtac @{thm Un_least},
     EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_hset_incl_hsets)] 1;
 
-fun mk_map_id_tac maps unfold_unique unfold_dtor =
+fun mk_map_id0_tac maps unfold_unique unfold_dtor =
   EVERY' [rtac (unfold_unique RS trans), EVERY' (map (rtac o mk_sym) maps),
     rtac unfold_dtor] 1;
 
