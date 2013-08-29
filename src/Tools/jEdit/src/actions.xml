@@ -117,6 +117,11 @@
 	    isabelle.jedit.Isabelle.decrease_font_size(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.complete">
+	  <CODE>
+	    isabelle.jedit.Isabelle.complete(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.control-sub">
 	  <CODE>
 	    isabelle.jedit.Isabelle.control_sub(textArea);

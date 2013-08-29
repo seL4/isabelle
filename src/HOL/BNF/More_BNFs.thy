@@ -227,7 +227,7 @@ apply -
 apply transfer apply simp
 done
 
-lemmas [simp] = fset.map_comp' fset.map_id' fset.set_map'
+lemmas [simp] = fset.map_comp fset.map_id fset.set_map
 
 lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
   unfolding fset_rel_def set_rel_def by auto
@@ -881,7 +881,7 @@ Zero: "multiset_rel' R {#} {#}"
 Plus: "\<lbrakk>R a b; multiset_rel' R M N\<rbrakk> \<Longrightarrow> multiset_rel' R (M + {#a#}) (N + {#b#})"
 
 lemma multiset_map_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
-by (metis image_is_empty multiset.set_map' set_of_eq_empty_iff)
+by (metis image_is_empty multiset.set_map set_of_eq_empty_iff)
 
 lemma multiset_map_Zero[simp]: "mmap f {#} = {#}" by simp
 
@@ -1001,7 +1001,7 @@ assumes "mmap f (M + {#a#}) = N"
 shows "\<exists> N1. N = N1 + {#f a#} \<and> mmap f M = N1"
 proof-
   have "f a \<in># N"
-  using assms multiset.set_map'[of f "M + {#a#}"] by auto
+  using assms multiset.set_map[of f "M + {#a#}"] by auto
   then obtain N1 where N: "N = N1 + {#f a#}" using multi_member_split by metis
   have "mmap f M = N1" using assms unfolding N by simp
   thus ?thesis using N by blast
@@ -1012,7 +1012,7 @@ assumes "mmap f M = N + {#b#}"
 shows "\<exists> M1 a. M = M1 + {#a#} \<and> f a = b \<and> mmap f M1 = N"
 proof-
   obtain a where a: "a \<in># M" and fa: "f a = b"
-  using multiset.set_map'[of f M] unfolding assms
+  using multiset.set_map[of f M] unfolding assms
   by (metis image_iff mem_set_of_iff union_single_eq_member)
   then obtain M1 where M: "M = M1 + {#a#}" using multi_member_split by metis
   have "mmap f M1 = N" using assms unfolding M fa[symmetric] by simp

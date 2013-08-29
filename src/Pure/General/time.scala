@@ -30,6 +30,7 @@ final class Time private(val ms: Long)
   def min(t: Time): Time = if (ms < t.ms) this else t
   def max(t: Time): Time = if (ms > t.ms) this else t
 
+  def is_zero: Boolean = ms == 0
   def is_relevant: Boolean = ms >= 1
 
   override def hashCode: Int = ms.hashCode

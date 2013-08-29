@@ -106,16 +106,16 @@ fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context =
       split_conv}) THEN
   rtac refl 1;
 
-fun mk_map_comp_id_tac map_comp =
-  (rtac trans THEN' rtac map_comp THEN' REPEAT_DETERM o stac @{thm o_id} THEN' rtac refl) 1;
+fun mk_map_comp_id_tac map_comp0 =
+  (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm o_id} THEN' rtac refl) 1;
 
 fun mk_map_cong0_tac m map_cong0 {context = ctxt, prems = _} =
   EVERY' [rtac mp, rtac map_cong0,
     CONJ_WRAP' (K (rtac ballI THEN' Goal.assume_rule_tac ctxt)) (1 upto m)] 1;
 
-fun mk_map_cong0L_tac passive map_cong0 map_id' =
+fun mk_map_cong0L_tac passive map_cong0 map_id =
   (rtac trans THEN' rtac map_cong0 THEN' EVERY' (replicate passive (rtac refl))) 1 THEN
   REPEAT_DETERM (EVERY' [rtac trans, etac bspec, atac, rtac sym, rtac @{thm id_apply}] 1) THEN
-  rtac map_id' 1;
+  rtac map_id 1;
 
 end;

@@ -94,17 +94,17 @@ val iter_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
       split_conv unit_case_Unity} @ sum_prod_thms_map;
 
-fun mk_iter_tac pre_map_defs map_ids'' iter_defs ctor_iter ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_ids'' @
+fun mk_iter_tac pre_map_defs map_id's iter_defs ctor_iter ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_id's @
     iter_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val coiter_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
 
-fun mk_coiter_tac coiter_defs map_ids'' ctor_dtor_coiter pre_map_def ctr_def ctxt =
+fun mk_coiter_tac coiter_defs map_id's ctor_dtor_coiter pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
   HEADGOAL (rtac (ctor_dtor_coiter RS trans) THEN'
     asm_simp_tac (put_simpset ss_if_True_False ctxt)) THEN_MAYBE
-  (unfold_thms_tac ctxt (pre_map_def :: map_ids'' @ coiter_unfold_thms) THEN
+  (unfold_thms_tac ctxt (pre_map_def :: map_id's @ coiter_unfold_thms) THEN
    HEADGOAL (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)));
 
 fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =
@@ -119,26 +119,26 @@ fun solve_prem_prem_tac ctxt =
     hyp_subst_tac ctxt ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
-fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs =
+fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_maps pre_set_defs =
   HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-    SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_map's @ sum_prod_thms_set0)),
+    SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_maps @ sum_prod_thms_set0)),
     solve_prem_prem_tac ctxt]) (rev kks)));
 
-fun mk_induct_discharge_prem_tac ctxt nn n set_map's pre_set_defs m k kks =
+fun mk_induct_discharge_prem_tac ctxt nn n set_maps pre_set_defs m k kks =
   let val r = length kks in
     HEADGOAL (EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac ctxt,
       REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)]) THEN
     EVERY [REPEAT_DETERM_N r
         (HEADGOAL (rotate_tac ~1 THEN' dtac meta_mp THEN' rotate_tac 1) THEN prefer_tac 2),
       if r > 0 then ALLGOALS Goal.norm_hhf_tac else all_tac, HEADGOAL atac,
-      mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs]
+      mk_induct_leverage_prem_prems_tac ctxt nn kks set_maps pre_set_defs]
   end;
 
-fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_map's pre_set_defss =
+fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_maps pre_set_defss =
   let val n = Integer.sum ns in
     unfold_thms_tac ctxt ctr_defs THEN
     HEADGOAL (rtac ctor_induct' THEN' inst_as_projs_tac ctxt) THEN
-    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_map's) pre_set_defss
+    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_maps) pre_set_defss
       mss (unflat mss (1 upto n)) kkss)
   end;
 
