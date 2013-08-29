@@ -95,6 +95,9 @@ at least 3 characters long to be completed (was 2 before).  Symbols
 are only completed in backslash forms, e.g. \forall or \<forall> that
 both produce the Isabelle symbol \<forall> in its Unicode rendering.
 
+* Improved support for Linux look-and-feel "GTK+", see also "Utilities
+/ Global Options / Appearance".
+
 
 *** Pure ***
 
