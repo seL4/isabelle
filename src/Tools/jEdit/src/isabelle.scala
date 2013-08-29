@@ -27,7 +27,7 @@ object Isabelle
       "isabelle-raw",     // SideKick content tree
       "isabelle-root")    // session ROOT
 
-  private lazy val news_syntax = Outer_Syntax.init()
+  private lazy val news_syntax = Outer_Syntax.init().no_tokens
 
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
@@ -44,11 +44,8 @@ object Isabelle
 
   /* token markers */
 
-  private val marker_modes =
-    List("isabelle", "isabelle-options", "isabelle-output", "isabelle-root")
-
   private val markers =
-    Map(marker_modes.map(name => (name, new Token_Markup.Marker(name))): _*)
+    Map(modes.map(name => (name, new Token_Markup.Marker(name))): _*)
 
   def token_marker(name: String): Option[Token_Markup.Marker] = markers.get(name)
 

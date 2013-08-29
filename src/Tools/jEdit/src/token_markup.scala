@@ -220,16 +220,15 @@ object Token_Markup
 
       val context1 =
       {
-        val syntax = Isabelle.mode_syntax(mode)
         val (styled_tokens, context1) =
-          if (line_ctxt.isDefined && syntax.isDefined) {
-            val (tokens, ctxt1) = syntax.get.scan_context(line, line_ctxt.get)
-            val styled_tokens = tokens.map(tok => (Rendering.token_markup(syntax.get, tok), tok))
-            (styled_tokens, new Line_Context(Some(ctxt1)))
-          }
-          else {
-            val token = Token(Token.Kind.UNPARSED, line.subSequence(0, line.count).toString)
-            (List((JEditToken.NULL, token)), new Line_Context(None))
+          Isabelle.mode_syntax(mode) match {
+            case Some(syntax) if syntax.has_tokens && line_ctxt.isDefined =>
+              val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+              val styled_tokens = tokens.map(tok => (Rendering.token_markup(syntax, tok), tok))
+              (styled_tokens, new Line_Context(Some(ctxt1)))
+            case _ =>
+              val token = Token(Token.Kind.UNPARSED, line.subSequence(0, line.count).toString)
+              (List((JEditToken.NULL, token)), new Line_Context(None))
           }
 
         val extended = extended_styles(line)
