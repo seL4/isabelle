@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import javax.swing.{SwingUtilities, JComponent}
+import javax.swing.JComponent
 import java.awt.Point
 import java.awt.event.{WindowFocusListener, WindowEvent}
 
@@ -66,10 +66,8 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
             Pretty_Tooltip.invoke(() =>
               {
                 val rendering = Rendering(snapshot, PIDE.options.value)
-                val screen_point = new Point(x, y)
-                SwingUtilities.convertPointToScreen(screen_point, parent)
                 val info = Text.Info(Text.Range(~1), body)
-                Pretty_Tooltip(view, parent, rendering, screen_point, Command.Results.empty, info)
+                Pretty_Tooltip(view, parent, new Point(x, y), rendering, Command.Results.empty, info)
               })
             null
           }

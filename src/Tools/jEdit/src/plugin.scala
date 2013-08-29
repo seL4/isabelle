@@ -53,6 +53,16 @@ object PIDE
   lazy val editor = new JEdit_Editor
 
 
+  /* popups */
+
+  def dismissed_popups(view: View): Boolean =
+  {
+    val b1 = Completion_Popup.dismissed(view.getLayeredPane)
+    val b2 = Pretty_Tooltip.dismissed_all()
+    b1 || b2
+  }
+
+
   /* document model and view */
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
@@ -265,7 +275,7 @@ class Plugin extends EBPlugin
                 PIDE.init_view(buffer, text_area)
             }
             else {
-              Pretty_Tooltip.dismissed_all()
+              PIDE.dismissed_popups(text_area.getView)
               PIDE.exit_view(buffer, text_area)
             }
           }

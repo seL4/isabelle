@@ -27,12 +27,13 @@ object Completion
 
     def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
-    def word: Parser[String] = "[a-zA-Z0-9_']{2,}".r
+    def escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
+    def word: Parser[String] = """[a-zA-Z0-9_']{3,}""".r
 
     def read(in: CharSequence): Option[String] =
     {
       val reverse_in = new Library.Reverse(in)
-      parse((reverse_symbol | reverse_symb | word) ^^ (_.reverse), reverse_in) match {
+      parse((reverse_symbol | reverse_symb | escape | word) ^^ (_.reverse), reverse_in) match {
         case Success(result, _) => Some(result)
         case _ => None
       }
@@ -61,7 +62,7 @@ final class Completion private(
   {
     val words =
       (for ((x, _) <- Symbol.names) yield (x, x)).toList :::
-      (for ((x, y) <- Symbol.names) yield (y, x)).toList :::
+      (for ((x, y) <- Symbol.names) yield ("\\" + y, x)).toList :::
       (for ((x, y) <- Symbol.abbrevs if Completion.is_word(y)) yield (y, x)).toList
 
     val abbrs =

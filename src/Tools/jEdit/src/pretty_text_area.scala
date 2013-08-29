@@ -11,7 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
-import java.awt.event.{KeyEvent, KeyAdapter}
+import java.awt.event.KeyEvent
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
@@ -162,33 +162,33 @@ class Pretty_Text_Area(
 
   /* key handling */
 
-  addKeyListener(new KeyAdapter {
-    override def keyPressed(evt: KeyEvent)
-    {
-      evt.getKeyCode match {
-        case KeyEvent.VK_C
-        if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
-          Registers.copy(text_area, '$')
-          evt.consume
-        case KeyEvent.VK_A
-        if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
-          text_area.selectAll
-          evt.consume
-        case _ =>
+  addKeyListener(JEdit_Lib.key_listener(
+    key_pressed = (evt: KeyEvent) =>
+      {
+        evt.getKeyCode match {
+          case KeyEvent.VK_C
+          if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
+            Registers.copy(text_area, '$')
+            evt.consume
+
+          case KeyEvent.VK_A
+          if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
+            text_area.selectAll
+            evt.consume
+
+          case KeyEvent.VK_ESCAPE =>
+            if (PIDE.dismissed_popups(view)) evt.consume
+
+          case _ =>
+        }
+        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+      },
+    key_typed = (evt: KeyEvent) =>
+      {
+        if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
       }
-      if (propagate_keys && !evt.isConsumed)
-        view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
-    }
-
-    override def keyTyped(evt: KeyEvent)
-    {
-      if (evt.getKeyChar == 27 && Pretty_Tooltip.dismissed_all())
-        evt.consume
-
-      if (propagate_keys && !evt.isConsumed)
-        view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
-    }
-  })
+    )
+  )
 
 
   /* init */

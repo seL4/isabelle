@@ -44,15 +44,15 @@ syntax
                     ("(0WHILE _ //DO _ /OD)"  [0, 0] 61)
 
 translations
-  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond .{b}. c1 c2"
+  "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond \<lbrace>b\<rbrace> c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
-  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While .{b}. i c"
+  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> i c"
   "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
 
-  "r IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST AnnCond1 r .{b}. c1 c2"
-  "r IF b THEN c FI" \<rightharpoonup> "CONST AnnCond2 r .{b}. c"
-  "r WHILE b INV i DO c OD" \<rightharpoonup> "CONST AnnWhile r .{b}. i c"
-  "r AWAIT b THEN c END" \<rightharpoonup> "CONST AnnAwait r .{b}. c"
+  "r IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST AnnCond1 r \<lbrace>b\<rbrace> c1 c2"
+  "r IF b THEN c FI" \<rightharpoonup> "CONST AnnCond2 r \<lbrace>b\<rbrace> c"
+  "r WHILE b INV i DO c OD" \<rightharpoonup> "CONST AnnWhile r \<lbrace>b\<rbrace> i c"
+  "r AWAIT b THEN c END" \<rightharpoonup> "CONST AnnAwait r \<lbrace>b\<rbrace> c"
   "r \<langle>c\<rangle>" \<rightleftharpoons> "r AWAIT CONST True THEN c END"
   "r WAIT b END" \<rightleftharpoons> "r AWAIT b THEN SKIP END"
  

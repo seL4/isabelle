@@ -16,20 +16,18 @@ text {*
   lemmas may not work well with @{text "blast"}.
 *}
 
-abbreviation
-  infinite :: "'a set \<Rightarrow> bool" where
-  "infinite S == \<not> finite S"
+abbreviation infinite :: "'a set \<Rightarrow> bool"
+  where "infinite S \<equiv> \<not> finite S"
 
 text {*
   Infinite sets are non-empty, and if we remove some elements from an
   infinite set, the result is still infinite.
 *}
 
-lemma infinite_imp_nonempty: "infinite S ==> S \<noteq> {}"
+lemma infinite_imp_nonempty: "infinite S \<Longrightarrow> S \<noteq> {}"
   by auto
 
-lemma infinite_remove:
-  "infinite S \<Longrightarrow> infinite (S - {a})"
+lemma infinite_remove: "infinite S \<Longrightarrow> infinite (S - {a})"
   by simp
 
 lemma Diff_infinite_finite:
@@ -72,7 +70,7 @@ text {*
 lemma finite_nat_bounded:
   assumes S: "finite (S::nat set)"
   shows "\<exists>k. S \<subseteq> {..<k}"  (is "\<exists>k. ?bounded S k")
-using S
+  using S
 proof induct
   have "?bounded {} 0" by simp
   then show "\<exists>k. ?bounded {} k" ..
@@ -92,7 +90,7 @@ next
 qed
 
 lemma finite_nat_iff_bounded:
-  "finite (S::nat set) = (\<exists>k. S \<subseteq> {..<k})"  (is "?lhs = ?rhs")
+  "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..<k})"  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
   then show ?rhs by (rule finite_nat_bounded)
@@ -104,7 +102,7 @@ next
 qed
 
 lemma finite_nat_iff_bounded_le:
-  "finite (S::nat set) = (\<exists>k. S \<subseteq> {..k})"  (is "?lhs = ?rhs")
+  "finite (S::nat set) \<longleftrightarrow> (\<exists>k. S \<subseteq> {..k})"  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
   then obtain k where "S \<subseteq> {..<k}"
@@ -119,14 +117,14 @@ next
 qed
 
 lemma infinite_nat_iff_unbounded:
-  "infinite (S::nat set) = (\<forall>m. \<exists>n. m<n \<and> n\<in>S)"
-  (is "?lhs = ?rhs")
+  "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> n \<in> S)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
   show ?rhs
   proof (rule ccontr)
     assume "\<not> ?rhs"
-    then obtain m where m: "\<forall>n. m<n \<longrightarrow> n\<notin>S" by blast
+    then obtain m where m: "\<forall>n. m < n \<longrightarrow> n \<notin> S" by blast
     then have "S \<subseteq> {..m}"
       by (auto simp add: sym [OF linorder_not_less])
     with `?lhs` show False
@@ -139,22 +137,22 @@ next
     assume "finite S"
     then obtain m where "S \<subseteq> {..m}"
       by (auto simp add: finite_nat_iff_bounded_le)
-    then have "\<forall>n. m<n \<longrightarrow> n\<notin>S" by auto
+    then have "\<forall>n. m < n \<longrightarrow> n \<notin> S" by auto
     with `?rhs` show False by blast
   qed
 qed
 
 lemma infinite_nat_iff_unbounded_le:
-  "infinite (S::nat set) = (\<forall>m. \<exists>n. m\<le>n \<and> n\<in>S)"
-  (is "?lhs = ?rhs")
+  "infinite (S::nat set) \<longleftrightarrow> (\<forall>m. \<exists>n. m \<le> n \<and> n \<in> S)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
   show ?rhs
   proof
     fix m
-    from `?lhs` obtain n where "m<n \<and> n\<in>S"
+    from `?lhs` obtain n where "m < n \<and> n \<in> S"
       by (auto simp add: infinite_nat_iff_unbounded)
-    then have "m\<le>n \<and> n\<in>S" by simp
+    then have "m \<le> n \<and> n \<in> S" by simp
     then show "\<exists>n. m \<le> n \<and> n \<in> S" ..
   qed
 next
@@ -162,9 +160,9 @@ next
   show ?lhs
   proof (auto simp add: infinite_nat_iff_unbounded)
     fix m
-    from `?rhs` obtain n where "Suc m \<le> n \<and> n\<in>S"
+    from `?rhs` obtain n where "Suc m \<le> n \<and> n \<in> S"
       by blast
-    then have "m<n \<and> n\<in>S" by simp
+    then have "m < n \<and> n \<in> S" by simp
     then show "\<exists>n. m < n \<and> n \<in> S" ..
   qed
 qed
@@ -176,18 +174,18 @@ text {*
 *}
 
 lemma unbounded_k_infinite:
-  assumes k: "\<forall>m. k<m \<longrightarrow> (\<exists>n. m<n \<and> n\<in>S)"
+  assumes k: "\<forall>m. k < m \<longrightarrow> (\<exists>n. m < n \<and> n \<in> S)"
   shows "infinite (S::nat set)"
 proof -
   {
-    fix m have "\<exists>n. m<n \<and> n\<in>S"
-    proof (cases "k<m")
+    fix m have "\<exists>n. m < n \<and> n \<in> S"
+    proof (cases "k < m")
       case True
       with k show ?thesis by blast
     next
       case False
-      from k obtain n where "Suc k < n \<and> n\<in>S" by auto
-      with False have "m<n \<and> n\<in>S" by auto
+      from k obtain n where "Suc k < n \<and> n \<in> S" by auto
+      with False have "m < n \<and> n \<in> S" by auto
       then show ?thesis ..
     qed
   }
@@ -217,13 +215,14 @@ proof
   then show False by simp
 qed
 
-lemma int_infinite [simp]:
-  shows "infinite (UNIV::int set)"
+lemma int_infinite [simp]: "infinite (UNIV::int set)"
 proof -
-  from inj_int have "infinite (range int)" by (rule range_inj_infinite)
+  from inj_int have "infinite (range int)"
+    by (rule range_inj_infinite)
   moreover 
   have "range int \<subseteq> (UNIV::int set)" by simp
-  ultimately show "infinite (UNIV::int set)" by (simp add: infinite_super)
+  ultimately show "infinite (UNIV::int set)"
+    by (simp add: infinite_super)
 qed
 
 text {*
@@ -235,7 +234,7 @@ text {*
 *}
 
 lemma linorder_injI:
-  assumes hyp: "!!x y. x < (y::'a::linorder) ==> f x \<noteq> f y"
+  assumes hyp: "\<And>x y. x < (y::'a::linorder) \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
 proof (rule inj_onI)
   fix x y
@@ -284,7 +283,8 @@ proof -
   proof -
     fix n
     show "pick n \<in> Sseq n"
-    proof (unfold pick_def, rule someI_ex)
+      unfolding pick_def
+    proof (rule someI_ex)
       from Sseq_inf have "infinite (Sseq n)" .
       then have "Sseq n \<noteq> {}" by auto
       then show "\<exists>x. x \<in> Sseq n" by auto
@@ -324,7 +324,7 @@ proof -
 qed
 
 lemma infinite_iff_countable_subset:
-    "infinite S = (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
+    "infinite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
   by (auto simp add: infinite_countable_subset range_inj_infinite infinite_super)
 
 text {*
@@ -359,13 +359,11 @@ text {*
   we introduce corresponding binders and their proof rules.
 *}
 
-definition
-  Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10) where
-  "Inf_many P = infinite {x. P x}"
+definition Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "INFM " 10)
+  where "Inf_many P \<longleftrightarrow> infinite {x. P x}"
 
-definition
-  Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10) where
-  "Alm_all P = (\<not> (INFM x. \<not> P x))"
+definition Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "MOST " 10)
+  where "Alm_all P \<longleftrightarrow> \<not> (INFM x. \<not> P x)"
 
 notation (xsymbols)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
@@ -397,15 +395,21 @@ lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (
   unfolding Alm_all_def by simp
 
 lemma INFM_EX: "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
-  by (erule contrapos_pp, simp)
+  apply (erule contrapos_pp)
+  apply simp
+  done
 
 lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x"
   by simp
 
-lemma INFM_E: assumes "INFM x. P x" obtains x where "P x"
+lemma INFM_E:
+  assumes "INFM x. P x"
+  obtains x where "P x"
   using INFM_EX [OF assms] by (rule exE)
 
-lemma MOST_I: assumes "\<And>x. P x" shows "MOST x. P x"
+lemma MOST_I:
+  assumes "\<And>x. P x"
+  shows "MOST x. P x"
   using assms by simp
 
 lemma INFM_mono:
@@ -476,15 +480,18 @@ lemma INFM_MOST_simps [simp]:
 
 text {* Properties of quantifiers with injective functions. *}
 
-lemma INFM_inj:
-  "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM x. P x"
+lemma INFM_inj: "INFM x. P (f x) \<Longrightarrow> inj f \<Longrightarrow> INFM x. P x"
   unfolding INFM_iff_infinite
-  by (clarify, drule (1) finite_vimageI, simp)
+  apply clarify
+  apply (drule (1) finite_vimageI)
+  apply simp
+  done
 
-lemma MOST_inj:
-  "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
+lemma MOST_inj: "MOST x. P x \<Longrightarrow> inj f \<Longrightarrow> MOST x. P (f x)"
   unfolding MOST_iff_cofinite
-  by (drule (1) finite_vimageI, simp)
+  apply (drule (1) finite_vimageI)
+  apply simp
+  done
 
 text {* Properties of quantifiers with singletons. *}
 
@@ -515,16 +522,16 @@ lemma MOST_eq_imp:
 
 text {* Properties of quantifiers over the naturals. *}
 
-lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m<n \<and> P n)"
+lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n. m < n \<and> P n)"
   by (simp add: Inf_many_def infinite_nat_iff_unbounded)
 
-lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m\<le>n \<and> P n)"
+lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<forall>m. \<exists>n. m \<le> n \<and> P n)"
   by (simp add: Inf_many_def infinite_nat_iff_unbounded_le)
 
-lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) = (\<exists>m. \<forall>n. m<n \<longrightarrow> P n)"
+lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n. m < n \<longrightarrow> P n)"
   by (simp add: Alm_all_def INFM_nat)
 
-lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) = (\<exists>m. \<forall>n. m\<le>n \<longrightarrow> P n)"
+lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) \<longleftrightarrow> (\<exists>m. \<forall>n. m \<le> n \<longrightarrow> P n)"
   by (simp add: Alm_all_def INFM_nat_le)
 
 
@@ -534,20 +541,20 @@ text {*
   The set's element type must be wellordered (e.g. the natural numbers).
 *}
 
-primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a" where
-    enumerate_0:   "enumerate S 0       = (LEAST n. n \<in> S)"
-  | enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
+primrec (in wellorder) enumerate :: "'a set \<Rightarrow> nat \<Rightarrow> 'a"
+where
+  enumerate_0: "enumerate S 0 = (LEAST n. n \<in> S)"
+| enumerate_Suc: "enumerate S (Suc n) = enumerate (S - {LEAST n. n \<in> S}) n"
 
-lemma enumerate_Suc':
-    "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"
+lemma enumerate_Suc': "enumerate S (Suc n) = enumerate (S - {enumerate S 0}) n"
   by simp
 
 lemma enumerate_in_set: "infinite S \<Longrightarrow> enumerate S n : S"
-apply (induct n arbitrary: S)
- apply (fastforce intro: LeastI dest!: infinite_imp_nonempty)
-apply simp
-apply (metis DiffE infinite_remove)
-done
+  apply (induct n arbitrary: S)
+   apply (fastforce intro: LeastI dest!: infinite_imp_nonempty)
+  apply simp
+  apply (metis DiffE infinite_remove)
+  done
 
 declare enumerate_0 [simp del] enumerate_Suc [simp del]
 
@@ -573,31 +580,38 @@ lemma le_enumerate:
   shows "n \<le> enumerate S n"
   using S 
 proof (induct n)
+  case 0
+  then show ?case by simp
+next
   case (Suc n)
   then have "n \<le> enumerate S n" by simp
   also note enumerate_mono[of n "Suc n", OF _ `infinite S`]
   finally show ?case by simp
-qed simp
+qed
 
 lemma enumerate_Suc'':
   fixes S :: "'a::wellorder set"
-  shows "infinite S  \<Longrightarrow> enumerate S (Suc n) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+  assumes "infinite S"
+  shows "enumerate S (Suc n) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+  using assms
 proof (induct n arbitrary: S)
   case 0
-  then have "\<forall>s\<in>S. enumerate S 0 \<le> s"
+  then have "\<forall>s \<in> S. enumerate S 0 \<le> s"
     by (auto simp: enumerate.simps intro: Least_le)
   then show ?case
     unfolding enumerate_Suc' enumerate_0[of "S - {enumerate S 0}"]
-    by (intro arg_cong[where f=Least] ext) auto
+    by (intro arg_cong[where f = Least] ext) auto
 next
   case (Suc n S)
   show ?case
     using enumerate_mono[OF zero_less_Suc `infinite S`, of n] `infinite S`
     apply (subst (1 2) enumerate_Suc')
     apply (subst Suc)
-    apply (insert `infinite S`, simp)
-    by (intro arg_cong[where f=Least] ext)
-       (auto simp: enumerate_Suc'[symmetric])
+    using `infinite S`
+    apply simp
+    apply (intro arg_cong[where f = Least] ext)
+    apply (auto simp: enumerate_Suc'[symmetric])
+    done
 qed
 
 lemma enumerate_Ex:
@@ -609,9 +623,12 @@ proof (induct s rule: less_induct)
   proof cases
     let ?y = "Max {s'\<in>S. s' < s}"
     assume "\<exists>y\<in>S. y < s"
-    then have y: "\<And>x. ?y < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)" by (subst Max_less_iff) auto
-    then have y_in: "?y \<in> {s'\<in>S. s' < s}" by (intro Max_in) auto
-    with less.hyps[of ?y] obtain n where "enumerate S n = ?y" by auto
+    then have y: "\<And>x. ?y < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)"
+      by (subst Max_less_iff) auto
+    then have y_in: "?y \<in> {s'\<in>S. s' < s}"
+      by (intro Max_in) auto
+    with less.hyps[of ?y] obtain n where "enumerate S n = ?y"
+      by auto
     with S have "enumerate S (Suc n) = s"
       by (auto simp: y less enumerate_Suc'' intro!: Least_equality)
     then show ?case by auto
@@ -632,7 +649,7 @@ proof -
     using enumerate_mono[OF _ `infinite S`] by (auto simp: neq_iff)
   then have "inj (enumerate S)"
     by (auto simp: inj_on_def)
-  moreover have "\<forall>s\<in>S. \<exists>i. enumerate S i = s"
+  moreover have "\<forall>s \<in> S. \<exists>i. enumerate S i = s"
     using enumerate_Ex[OF S] by auto
   moreover note `infinite S`
   ultimately show ?thesis
@@ -646,9 +663,8 @@ text {*
   These simplify the reasoning about deterministic automata.
 *}
 
-definition
-  atmost_one :: "'a set \<Rightarrow> bool" where
-  "atmost_one S = (\<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x=y)"
+definition atmost_one :: "'a set \<Rightarrow> bool"
+  where "atmost_one S \<longleftrightarrow> (\<forall>x y. x\<in>S \<and> y\<in>S \<longrightarrow> x = y)"
 
 lemma atmost_one_empty: "S = {} \<Longrightarrow> atmost_one S"
   by (simp add: atmost_one_def)
