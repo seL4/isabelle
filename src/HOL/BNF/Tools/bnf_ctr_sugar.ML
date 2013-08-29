@@ -199,14 +199,16 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
       Binding.qualify mandatory data_b_name o
       (rep_compat ? Binding.qualify false rep_compat_prefix);
 
-    fun tfree_name_of (TFree (s, _)) = s
-      | tfree_name_of (TVar ((s, _), _)) = s
-      | tfree_name_of (Type (s, _)) = Long_Name.base_name s;
+    fun dest_TFree_or_TVar (TFree p) = p
+      | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
+      | dest_TFree_or_TVar _ = error "Invalid type argument";
 
-    val (As, B) =
+    val (unsorted_As, B) =
       no_defs_lthy
-      |> variant_tfrees (map tfree_name_of As0)
+      |> variant_tfrees (map (fst o dest_TFree_or_TVar) As0)
       ||> the_single o fst o mk_TFrees 1;
+
+    val As = map2 (resort_tfree o snd o dest_TFree_or_TVar) As0 unsorted_As;
 
     val dataT = Type (dataT_name, As);
     val ctrs = map (mk_ctr As) ctrs0;

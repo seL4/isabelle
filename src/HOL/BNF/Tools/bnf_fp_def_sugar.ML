@@ -1055,11 +1055,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       ||>> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
 
-    fun add_fake_type spec =
-      Typedecl.basic_typedecl (type_binding_of spec, num_As, mixfix_of spec)
-      #>> (fn s => Type (s, unsorted_As));
+    fun add_fake_type spec = Typedecl.basic_typedecl (type_binding_of spec, num_As, mixfix_of spec);
 
-    val (fake_Ts, fake_lthy) = fold_map add_fake_type specs no_defs_lthy0;
+    val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy0;
 
     val qsoty = quote o Syntax.string_of_typ fake_lthy;
 
@@ -1099,6 +1097,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val _ = (case subtract (op =) As' rhs_As' of [] => ()
       | extras => error ("Extra type variables on right-hand side: " ^
           commas (map (qsoty o TFree) extras)));
+
+    val fake_Ts = map (fn s => Type (s, As)) fake_T_names;
 
     fun eq_fpT_check (T as Type (s, Ts)) (T' as Type (s', Ts')) =
         s = s' andalso (Ts = Ts' orelse
@@ -1279,7 +1279,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
             val inject_tacss =
               map2 (fn 0 => K [] | _ => fn ctr_def => [fn {context = ctxt, ...} =>
-                  mk_inject_tac ctxt ctr_def ctor_inject]) ms ctr_defs;
+                mk_inject_tac ctxt ctr_def ctor_inject]) ms ctr_defs;
 
             val half_distinct_tacss =
               map (map (fn (def, def') => fn {context = ctxt, ...} =>
