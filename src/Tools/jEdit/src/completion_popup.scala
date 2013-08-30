@@ -106,8 +106,9 @@ object Completion_Popup
             val start = buffer.getLineStartOffset(line)
             val text = buffer.getSegment(start, caret - start)
 
+            val history = PIDE.completion_history.value
             val decode = Isabelle_Encoding.is_active(buffer)
-            syntax.completion.complete(decode, explicit, text) match {
+            syntax.completion.complete(history, decode, explicit, text) match {
               case Some(result) =>
                 if (result.unique && result.items.head.immediate && immediate)
                   insert(result.items.head)
@@ -123,7 +124,10 @@ object Completion_Popup
 
                     val completion =
                       new Completion_Popup(layered, loc2, font, result.items) {
-                        override def complete(item: Completion.Item) { insert(item) }
+                        override def complete(item: Completion.Item) {
+                          PIDE.completion_history.update(item)
+                          insert(item)
+                        }
                         override def propagate(evt: KeyEvent) {
                           JEdit_Lib.propagate_key(view, evt)
                           input(evt)

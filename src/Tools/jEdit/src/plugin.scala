@@ -28,6 +28,7 @@ object PIDE
   /* plugin instance */
 
   val options = new JEdit_Options
+  val completion_history = new Completion.History_Variable
 
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
@@ -302,8 +303,8 @@ class Plugin extends EBPlugin
       Isabelle_System.init()
       Isabelle_Font.install_fonts()
 
-      val init_options = Options.init()
-      Swing_Thread.now { PIDE.options.update(init_options)  }
+      PIDE.options.update(Options.init())
+      PIDE.completion_history.load()
 
       if (Platform.is_macos && PIDE.options.bool("jedit_mac_adapter"))
         OSX_Adapter.set_quit_handler(this, this.getClass.getDeclaredMethod("handle_quit"))
@@ -336,8 +337,10 @@ class Plugin extends EBPlugin
   {
     JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.exit _)
 
-    if (PIDE.startup_failure.isEmpty)
+    if (PIDE.startup_failure.isEmpty) {
       PIDE.options.value.save_prefs()
+      PIDE.completion_history.value.save()
+    }
 
     PIDE.session.phase_changed -= session_manager
     PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)

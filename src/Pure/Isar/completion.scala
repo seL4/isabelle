@@ -6,7 +6,9 @@ Completion of symbols and keywords.
 
 package isabelle
 
+import scala.collection.immutable.SortedMap
 import scala.util.parsing.combinator.RegexParsers
+import scala.math.Ordering
 
 
 object Completion
@@ -27,6 +29,88 @@ object Completion
 
   val empty: Completion = new Completion()
   def init(): Completion = empty.add_symbols()
+
+
+  /** persistent history **/
+
+  private val COMPLETION_HISTORY = Path.explode("$ISABELLE_HOME_USER/etc/completion_history")
+
+  object History
+  {
+    val empty: History = new History()
+
+    def load(): History =
+    {
+      def ignore_error(msg: String): Unit =
+        java.lang.System.err.println("### Ignoring bad content of file " + COMPLETION_HISTORY +
+          (if (msg == "") "" else "\n" + msg))
+
+      val content =
+        if (COMPLETION_HISTORY.is_file) {
+          try {
+            import XML.Decode._
+            list(pair(Symbol.decode_string, int))(
+              YXML.parse_body(File.read(COMPLETION_HISTORY)))
+          }
+          catch {
+            case ERROR(msg) => ignore_error(msg); Nil
+            case _: XML.Error => ignore_error(""); Nil
+          }
+        }
+        else Nil
+      (empty /: content)(_ + _)
+    }
+  }
+
+  final class History private(rep: SortedMap[String, Int] = SortedMap.empty)
+  {
+    override def toString: String = rep.mkString("Completion.History(", ",", ")")
+
+    def frequency(name: String): Int = rep.getOrElse(name, 0)
+
+    def + (entry: (String, Int)): History =
+    {
+      val (name, freq) = entry
+      new History(rep + (name -> (frequency(name) + freq)))
+    }
+
+    def ordering: Ordering[Item] =
+      new Ordering[Item] {
+        def compare(item1: Item, item2: Item): Int =
+        {
+          frequency(item1.replacement) compare frequency(item2.replacement) match {
+            case 0 => item1.replacement compare item2.replacement
+            case ord => - ord
+          }
+        }
+      }
+
+    def save()
+    {
+      Isabelle_System.mkdirs(COMPLETION_HISTORY.dir)
+      File.write_backup(COMPLETION_HISTORY,
+        {
+          import XML.Encode._
+          YXML.string_of_body(list(pair(Symbol.encode_string, int))(rep.toList))
+        })
+    }
+  }
+
+  class History_Variable
+  {
+    private var history = History.empty
+    def value: History = synchronized { history }
+
+    def load()
+    {
+      val h = History.load()
+      synchronized { history = h }
+    }
+
+    def update(item: Item, freq: Int = 1): Unit = synchronized {
+      history = history + (item.replacement -> freq)
+    }
+  }
 
 
   /** word completion **/
@@ -94,7 +178,11 @@ final class Completion private(
 
   /* complete */
 
-  def complete(decode: Boolean, explicit: Boolean, line: CharSequence): Option[Completion.Result] =
+  def complete(
+    history: Completion.History,
+    decode: Boolean,
+    explicit: Boolean,
+    line: CharSequence): Option[Completion.Result] =
   {
     val raw_result =
       abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
@@ -109,21 +197,22 @@ final class Completion private(
             case Some(word) =>
               words_lex.completions(word).map(words_map.get_list(_)).flatten match {
                 case Nil => None
-                case cs => Some(word, cs.sorted)
+                case cs => Some(word, cs)
               }
             case None => None
           }
       }
     raw_result match {
       case Some((word, cs)) =>
-        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs).filter(_ != word)
+        val ds =
+          (if (decode) cs.map(Symbol.decode(_)) else cs).filter(_ != word)
         if (ds.isEmpty) None
         else {
           val immediate =
             !Completion.is_word(word) &&
             Character.codePointCount(word, 0, word.length) > 1
           val items = ds.map(s => Completion.Item(word, s, s, explicit || immediate))
-          Some(Completion.Result(word, cs.length == 1, items))
+          Some(Completion.Result(word, cs.length == 1, items.sorted(history.ordering)))
         }
       case None => None
     }
