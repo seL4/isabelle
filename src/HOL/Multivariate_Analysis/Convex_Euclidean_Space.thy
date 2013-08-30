@@ -20,17 +20,17 @@ begin
 lemma linear_scaleR: "linear (\<lambda>x. scaleR c x)"
   by (simp add: linear_def scaleR_add_right)
 
-lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>(x::'a::real_vector). scaleR c x)"
+lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>x::'a::real_vector. scaleR c x)"
   by (simp add: inj_on_def)
 
 lemma linear_add_cmul:
   assumes "linear f"
-  shows "f(a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
+  shows "f (a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
   using linear_add[of f] linear_cmul[of f] assms by simp
 
 lemma mem_convex_2:
-  assumes "convex S" "x : S" "y : S" "u>=0" "v>=0" "u+v=1"
-  shows "(u *\<^sub>R x + v *\<^sub>R y) : S"
+  assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v = 1"
+  shows "u *\<^sub>R x + v *\<^sub>R y \<in> S"
   using assms convex_def[of S] by auto
 
 lemma mem_convex_alt:
@@ -54,14 +54,14 @@ lemma independent_injective_on_span_image:
 proof -
   {
     fix a
-    assume a: "a : S" "f a : span (f ` S - {f a})"
+    assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
     have eq: "f ` S - {f a} = f ` (S - {a})"
       using fi a span_inc by (auto simp add: inj_on_def)
-    from a have "f a : f ` span (S -{a})"
-      unfolding eq span_linear_image[OF lf, of "S - {a}"] by blast
-    moreover have "span (S -{a}) <= span S"
-      using span_mono[of "S-{a}" S] by auto
-    ultimately have "a : span (S -{a})"
+    from a have "f a \<in> f ` span (S -{a})"
+      unfolding eq span_linear_image [OF lf, of "S - {a}"] by blast
+    moreover have "span (S - {a}) \<subseteq> span S"
+      using span_mono[of "S - {a}" S] by auto
+    ultimately have "a \<in> span (S - {a})"
       using fi a span_inc by (auto simp add: inj_on_def)
     with a(1) iS have False
       by (simp add: dependent_def)
@@ -71,12 +71,12 @@ proof -
 qed
 
 lemma dim_image_eq:
-  fixes f :: "'n::euclidean_space => 'm::euclidean_space"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
     and fi: "inj_on f (span S)"
-  shows "dim (f ` S) = dim (S::('n::euclidean_space) set)"
+  shows "dim (f ` S) = dim (S:: 'n::euclidean_space set)"
 proof -
-  obtain B where B_def: "B \<subseteq> S & independent B & S \<subseteq> span B & card B = dim S"
+  obtain B where B_def: "B \<subseteq> S \<and> independent B \<and> S \<subseteq> span B \<and> card B = dim S"
     using basis_exists[of S] by auto
   then have "span S = span B"
     using span_mono[of B S] span_mono[of S "span B"] span_span[of B] by auto
@@ -119,7 +119,7 @@ lemma substdbasis_expansion_unique:
   shows "(\<Sum>i\<in>d. f i *\<^sub>R i) = (x::'a::euclidean_space) \<longleftrightarrow>
     (\<forall>i\<in>Basis. (i \<in> d \<longrightarrow> f i = x \<bullet> i) \<and> (i \<notin> d \<longrightarrow> x \<bullet> i = 0))"
 proof -
-  have *: "\<And>x a b P. x * (if P then a else b) = (if P then x*a else x*b)"
+  have *: "\<And>x a b P. x * (if P then a else b) = (if P then x * a else x * b)"
     by auto
   have **: "finite d"
     by (auto intro: finite_subset[OF assms])
@@ -140,46 +140,46 @@ proof -
   {
     fix x :: "'n::euclidean_space"
     def y \<equiv> "(e / norm x) *\<^sub>R x"
-    then have "y : cball 0 e"
+    then have "y \<in> cball 0 e"
       using cball_def dist_norm[of 0 y] assms by auto
-    moreover have *: "x = (norm x/e) *\<^sub>R y"
+    moreover have *: "x = (norm x / e) *\<^sub>R y"
       using y_def assms by simp
     moreover from * have "x = (norm x/e) *\<^sub>R y"
       by auto
-    ultimately have "x : span (cball 0 e)"
+    ultimately have "x \<in> span (cball 0 e)"
       using span_mul[of y "cball 0 e" "norm x/e"] span_inc[of "cball 0 e"] by auto
   }
-  then have "span (cball 0 e) = (UNIV :: ('n::euclidean_space) set)"
+  then have "span (cball 0 e) = (UNIV :: 'n::euclidean_space set)"
     by auto
   then show ?thesis
     using dim_span[of "cball (0 :: 'n::euclidean_space) e"] by (auto simp add: dim_UNIV)
 qed
 
 lemma indep_card_eq_dim_span:
-  fixes B :: "('n::euclidean_space) set"
+  fixes B :: "'n::euclidean_space set"
   assumes "independent B"
-  shows "finite B & card B = dim (span B)"
+  shows "finite B \<and> card B = dim (span B)"
   using assms basis_card_eq_dim[of B "span B"] span_inc by auto
 
-lemma setsum_not_0: "setsum f A \<noteq> 0 \<Longrightarrow> \<exists> a\<in>A. f a \<noteq> 0"
+lemma setsum_not_0: "setsum f A \<noteq> 0 \<Longrightarrow> \<exists>a \<in> A. f a \<noteq> 0"
   by (rule ccontr) auto
 
 lemma translate_inj_on:
-  fixes A :: "('a::ab_group_add) set"
-  shows "inj_on (\<lambda>x. a+x) A"
+  fixes A :: "'a::ab_group_add set"
+  shows "inj_on (\<lambda>x. a + x) A"
   unfolding inj_on_def by auto
 
 lemma translation_assoc:
   fixes a b :: "'a::ab_group_add"
-  shows "(\<lambda>x. b+x) ` ((\<lambda>x. a+x) ` S) = (\<lambda>x. (a+b)+x) ` S"
+  shows "(\<lambda>x. b + x) ` ((\<lambda>x. a + x) ` S) = (\<lambda>x. (a + b) + x) ` S"
   by auto
 
 lemma translation_invert:
   fixes a :: "'a::ab_group_add"
-  assumes "(\<lambda>x. a+x) ` A = (\<lambda>x. a+x) ` B"
+  assumes "(\<lambda>x. a + x) ` A = (\<lambda>x. a + x) ` B"
   shows "A = B"
 proof -
-  have "(\<lambda>x. -a+x) ` ((\<lambda>x. a+x) ` A) = (\<lambda>x. -a+x) ` ((\<lambda>x. a+x) ` B)"
+  have "(\<lambda>x. -a + x) ` ((\<lambda>x. a + x) ` A) = (\<lambda>x. - a + x) ` ((\<lambda>x. a + x) ` B)"
     using assms by auto
   then show ?thesis
     using translation_assoc[of "-a" a A] translation_assoc[of "-a" a B] by auto
@@ -187,7 +187,7 @@ qed
 
 lemma translation_galois:
   fixes a :: "'a::ab_group_add"
-  shows "T = ((\<lambda>x. a+x) ` S) \<longleftrightarrow> S = ((\<lambda>x. (-a)+x) ` T)"
+  shows "T = ((\<lambda>x. a + x) ` S) \<longleftrightarrow> S = ((\<lambda>x. (- a) + x) ` T)"
   using translation_assoc[of "-a" a S]
   apply auto
   using translation_assoc[of a "-a" T]
@@ -195,8 +195,8 @@ lemma translation_galois:
   done
 
 lemma translation_inverse_subset:
-  assumes "((%x. -a+x) ` V) \<le> (S :: 'n::ab_group_add set)"
-  shows "V \<le> ((%x. a+x) ` S)"
+  assumes "((\<lambda>x. - a + x) ` V) \<le> (S :: 'n::ab_group_add set)"
+  shows "V \<le> ((\<lambda>x. a + x) ` S)"
 proof -
   {
     fix x
@@ -272,23 +272,23 @@ lemma closure_bounded_linear_image:
   by (rule image_closure_subset)
 
 lemma closure_linear_image:
-  fixes f :: "('m::euclidean_space) \<Rightarrow> ('n::real_normed_vector)"
+  fixes f :: "'m::euclidean_space \<Rightarrow> 'n::real_normed_vector"
   assumes "linear f"
   shows "f ` (closure S) \<le> closure (f ` S)"
   using assms unfolding linear_conv_bounded_linear
   by (rule closure_bounded_linear_image)
 
 lemma closure_injective_linear_image:
-  fixes f :: "('n::euclidean_space) \<Rightarrow> ('n::euclidean_space)"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "linear f" "inj f"
   shows "f ` (closure S) = closure (f ` S)"
 proof -
-  obtain f' where f'_def: "linear f' \<and> f o f' = id \<and> f' o f = id"
+  obtain f' where f'_def: "linear f' \<and> f \<circ> f' = id \<and> f' \<circ> f = id"
     using assms linear_injective_isomorphism[of f] isomorphism_expand by auto
   then have "f' ` closure (f ` S) \<le> closure (S)"
     using closure_linear_image[of f' "f ` S"] image_compose[of f' f] by auto
-  then have "f ` f' ` closure (f ` S) \<le> f ` closure (S)" by auto
-  then have "closure (f ` S) \<le> f ` closure (S)"
+  then have "f ` f' ` closure (f ` S) \<le> f ` closure S" by auto
+  then have "closure (f ` S) \<le> f ` closure S"
     using image_compose[of f f' "closure (f ` S)"] f'_def by auto
   then show ?thesis using closure_linear_image[of f S] assms by auto
 qed
@@ -297,7 +297,7 @@ lemma closure_direct_sum: "closure (S \<times> T) = closure S \<times> closure T
   by (rule closure_Times)
 
 lemma closure_scaleR:
-  fixes S :: "('a::real_normed_vector) set"
+  fixes S :: "'a::real_normed_vector set"
   shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
 proof
   show "(op *\<^sub>R c) ` (closure S) \<subseteq> closure ((op *\<^sub>R c) ` S)"
@@ -474,7 +474,7 @@ next
           using as(7) and `card s > 2`
           by (metis One_nat_def less_Suc0 Zero_not_Suc of_nat_1 of_nat_eq_iff numeral_2_eq_2)
       qed
-      then obtain x where x:"x\<in>s" "u x \<noteq> 1" by auto
+      then obtain x where x:"x \<in> s" "u x \<noteq> 1" by auto
 
       have c: "card (s - {x}) = card s - 1"
         apply (rule card_Diff_singleton)
@@ -807,7 +807,7 @@ lemma affine_hull_insert_span:
 proof (rule, rule, erule exE, erule conjE)
   fix y v
   assume "y = a + v" "v \<in> span {x - a |x. x \<in> s}"
-  then obtain t u where obt:"finite t" "t \<subseteq> {x - a |x. x \<in> s}" "a + (\<Sum>v\<in>t. u v *\<^sub>R v) = y"
+  then obtain t u where obt: "finite t" "t \<subseteq> {x - a |x. x \<in> s}" "a + (\<Sum>v\<in>t. u v *\<^sub>R v) = y"
     unfolding span_explicit by auto
   def f \<equiv> "(\<lambda>x. x + a) ` t"
   have f: "finite f" "f \<subseteq> s" "(\<Sum>v\<in>f. u (v - a) *\<^sub>R (v - a)) = y - a"
@@ -817,7 +817,8 @@ proof (rule, rule, erule exE, erule conjE)
   show "\<exists>sa u. finite sa \<and> sa \<noteq> {} \<and> sa \<subseteq> insert a s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = y"
     apply (rule_tac x = "insert a f" in exI)
     apply (rule_tac x = "\<lambda>x. if x=a then 1 - setsum (\<lambda>x. u (x - a)) f else u (x - a)" in exI)
-    using assms and f unfolding setsum_clauses(2)[OF f(1)] and if_smult
+    using assms and f
+    unfolding setsum_clauses(2)[OF f(1)] and if_smult
     unfolding setsum_cases[OF f(1), of "\<lambda>x. x = a"]
     apply (auto simp add: setsum_subtractf scaleR_left.setsum algebra_simps *)
     done
@@ -832,26 +833,27 @@ lemma affine_hull_span:
 subsubsection {* Parallel affine sets *}
 
 definition affine_parallel :: "'a::real_vector set => 'a::real_vector set => bool"
-  where "affine_parallel S T = (? a. T = ((\<lambda>x. a + x) ` S))"
+  where "affine_parallel S T \<longleftrightarrow> (\<exists>a. T = (\<lambda>x. a + x) ` S)"
 
 lemma affine_parallel_expl_aux:
   fixes S T :: "'a::real_vector set"
-  assumes "\<forall>x. (x : S \<longleftrightarrow> (a+x) \<in> T)"
-  shows "T = ((\<lambda>x. a + x) ` S)"
+  assumes "\<forall>x. x \<in> S \<longleftrightarrow> a + x \<in> T"
+  shows "T = (\<lambda>x. a + x) ` S"
 proof -
   {
     fix x
-    assume "x : T"
-    then have "(-a)+x \<in> S" using assms by auto
-    then have "x : ((\<lambda>x. a + x) ` S)"
+    assume "x \<in> T"
+    then have "( - a) + x \<in> S"
+      using assms by auto
+    then have "x \<in> ((\<lambda>x. a + x) ` S)"
       using imageI[of "-a+x" S "(\<lambda>x. a+x)"] by auto
   }
-  moreover have "T >= ((\<lambda>x. a + x) ` S)"
+  moreover have "T \<ge> (\<lambda>x. a + x) ` S"
     using assms by auto
   ultimately show ?thesis by auto
 qed
 
-lemma affine_parallel_expl: "affine_parallel S T = (\<exists>a. \<forall>x. (x \<in> S \<longleftrightarrow> (a+x) \<in> T))"
+lemma affine_parallel_expl: "affine_parallel S T \<longleftrightarrow> (\<exists>a. \<forall>x. x \<in> S \<longleftrightarrow> a + x \<in> T)"
   unfolding affine_parallel_def
   using affine_parallel_expl_aux[of S _ T] by auto
 
@@ -873,7 +875,8 @@ proof -
 qed
 
 lemma affine_parallel_assoc:
-  assumes "affine_parallel A B" "affine_parallel B C"
+  assumes "affine_parallel A B"
+    and "affine_parallel B C"
   shows "affine_parallel A C"
 proof -
   from assms obtain ab where "B = (\<lambda>x. ab + x) ` A"
@@ -895,13 +898,13 @@ proof -
     assume xy: "x \<in> S" "y \<in> S" "(u :: real) + v = 1"
     then have "(a + x) \<in> ((\<lambda>x. a + x) ` S)" "(a + y) \<in> ((\<lambda>x. a + x) ` S)"
       by auto
-    then have h1: "u *\<^sub>R  (a+x) + v *\<^sub>R (a+y) \<in> ((\<lambda>x. a + x) ` S)"
+    then have h1: "u *\<^sub>R  (a + x) + v *\<^sub>R (a + y) \<in> (\<lambda>x. a + x) ` S"
       using xy assms unfolding affine_def by auto
-    have "u *\<^sub>R (a+x) + v *\<^sub>R (a+y) = (u+v) *\<^sub>R a + (u *\<^sub>R x + v *\<^sub>R y)"
+    have "u *\<^sub>R (a + x) + v *\<^sub>R (a + y) = (u + v) *\<^sub>R a + (u *\<^sub>R x + v *\<^sub>R y)"
       by (simp add: algebra_simps)
-    also have "...= a + (u *\<^sub>R x + v *\<^sub>R y)"
-      using `u+v=1` by auto
-    ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) : ((%x. a + x) ` S)"
+    also have "\<dots> = a + (u *\<^sub>R x + v *\<^sub>R y)"
+      using `u + v = 1` by auto
+    ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) \<in> (\<lambda>x. a + x) ` S"
       using h1 by auto
     then have "u *\<^sub>R x + v *\<^sub>R y : S" by auto
   }
@@ -910,10 +913,10 @@ qed
 
 lemma affine_translation:
   fixes a :: "'a::real_vector"
-  shows "affine S \<longleftrightarrow> affine ((%x. a + x) ` S)"
+  shows "affine S \<longleftrightarrow> affine ((\<lambda>x. a + x) ` S)"
 proof -
-  have "affine S \<Longrightarrow> affine ((%x. a + x) ` S)"
-    using affine_translation_aux[of "-a" "((%x. a + x) ` S)"]
+  have "affine S \<Longrightarrow> affine ((\<lambda>x. a + x) ` S)"
+    using affine_translation_aux[of "-a" "((\<lambda>x. a + x) ` S)"]
     using translation_assoc[of "-a" a S] by auto
   then show ?thesis using affine_translation_aux by auto
 qed
@@ -923,9 +926,10 @@ lemma parallel_is_affine:
   assumes "affine S" "affine_parallel S T"
   shows "affine T"
 proof -
-  from assms obtain a where "T=((%x. a + x) ` S)"
+  from assms obtain a where "T = (\<lambda>x. a + x) ` S"
     unfolding affine_parallel_def by auto
-  then show ?thesis using affine_translation assms by auto
+  then show ?thesis
+    using affine_translation assms by auto
 qed
 
 lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
@@ -934,7 +938,7 @@ lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
 
 subsubsection {* Subspace parallel to an affine set *}
 
-lemma subspace_affine: "subspace S \<longleftrightarrow> (affine S \<and> 0 : S)"
+lemma subspace_affine: "subspace S \<longleftrightarrow> affine S \<and> 0 \<in> S"
 proof -
   have h0: "subspace S \<Longrightarrow> affine S \<and> 0 \<in> S"
     using subspace_imp_affine[of S] subspace_0 by auto
@@ -945,7 +949,7 @@ proof -
       fix x assume x_def: "x \<in> S"
       have "c *\<^sub>R x = (1-c) *\<^sub>R 0 + c *\<^sub>R x" by auto
       moreover
-      have "(1-c) *\<^sub>R 0 + c *\<^sub>R x : S"
+      have "(1 - c) *\<^sub>R 0 + c *\<^sub>R x \<in> S"
         using affine_alt[of S] assm x_def by auto
       ultimately have "c *\<^sub>R x \<in> S" by auto
     }
@@ -1003,7 +1007,7 @@ proof -
   moreover have "0 \<in> L"
     using assms
     apply auto
-    using exI[of "(%x. x:S & -a+x=0)" a]
+    using exI[of "(\<lambda>x. x:S \<and> -a+x=0)" a]
     apply auto
     done
   ultimately show ?thesis
@@ -1016,7 +1020,7 @@ lemma parallel_subspace_aux:
     and "affine_parallel A B"
   shows "A \<supseteq> B"
 proof -
-  from assms obtain a where a_def: "\<forall>x. (x \<in> A \<longleftrightarrow> (a+x) \<in> B)"
+  from assms obtain a where a_def: "\<forall>x. x \<in> A \<longleftrightarrow> a + x \<in> B"
     using affine_parallel_expl[of A B] by auto
   then have "-a \<in> A"
     using assms subspace_0[of B] by auto
@@ -1040,13 +1044,13 @@ qed
 
 lemma affine_parallel_subspace:
   assumes "affine S" "S \<noteq> {}"
-  shows "\<exists>!L. subspace L & affine_parallel S L"
+  shows "\<exists>!L. subspace L \<and> affine_parallel S L"
 proof -
-  have ex: "\<exists>L. subspace L & affine_parallel S L"
+  have ex: "\<exists>L. subspace L \<and> affine_parallel S L"
     using assms parallel_subspace_explicit by auto
   {
     fix L1 L2
-    assume ass: "subspace L1 & affine_parallel S L1" "subspace L2 & affine_parallel S L2"
+    assume ass: "subspace L1 \<and> affine_parallel S L1" "subspace L2 \<and> affine_parallel S L2"
     then have "affine_parallel L1 L2"
       using affine_parallel_commut[of S L1] affine_parallel_assoc[of L1 S L2] by auto
     then have "L1 = L2"
@@ -1059,7 +1063,7 @@ qed
 subsection {* Cones *}
 
 definition cone :: "'a::real_vector set \<Rightarrow> bool"
-  where "cone s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>c\<ge>0. (c *\<^sub>R x) \<in> s)"
+  where "cone s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>c\<ge>0. c *\<^sub>R x \<in> s)"
 
 lemma cone_empty[intro, simp]: "cone {}"
   unfolding cone_def by auto
@@ -1067,7 +1071,7 @@ lemma cone_empty[intro, simp]: "cone {}"
 lemma cone_univ[intro, simp]: "cone UNIV"
   unfolding cone_def by auto
 
-lemma cone_Inter[intro]: "\<forall>s\<in>f. cone s \<Longrightarrow> cone(\<Inter> f)"
+lemma cone_Inter[intro]: "\<forall>s\<in>f. cone s \<Longrightarrow> cone (\<Inter>f)"
   unfolding cone_def by auto
 
 
@@ -1109,7 +1113,7 @@ lemma cone_Union[intro]: "(\<forall>s\<in>f. cone s) \<longrightarrow> cone (Uni
 
 lemma cone_iff:
   assumes "S ~= {}"
-  shows "cone S \<longleftrightarrow> 0 \<in> S & (\<forall>c. c>0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+  shows "cone S \<longleftrightarrow> 0 \<in> S & (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
 proof -
   {
     assume "cone S"
@@ -1136,12 +1140,12 @@ proof -
       }
       ultimately have "(op *\<^sub>R c) ` S = S" by auto
     }
-    then have "0 \<in> S & (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+    then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
       using `cone S` cone_contains_0[of S] assms by auto
   }
   moreover
   {
-    assume a: "0 \<in> S & (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
+    assume a: "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> (op *\<^sub>R c) ` S = S)"
     {
       fix x
       assume "x \<in> S"
@@ -1170,16 +1174,17 @@ lemma mem_cone_hull:
   shows "c *\<^sub>R x \<in> cone hull S"
   by (metis assms cone_cone_hull hull_inc mem_cone)
 
-lemma cone_hull_expl: "cone hull S = {c *\<^sub>R x | c x. c \<ge> 0 & x \<in> S}" (is "?lhs = ?rhs")
+lemma cone_hull_expl: "cone hull S = {c *\<^sub>R x | c x. c \<ge> 0 \<and> x \<in> S}"
+  (is "?lhs = ?rhs")
 proof -
   {
     fix x
     assume "x \<in> ?rhs"
-    then obtain cx xx where x_def: "x = cx *\<^sub>R xx & (cx :: real) \<ge> 0 & xx \<in> S"
+    then obtain cx xx where x_def: "x = cx *\<^sub>R xx" "(cx :: real) \<ge> 0" "xx \<in> S"
       by auto
     fix c
     assume c_def: "(c :: real) \<ge> 0"
-    then have "c *\<^sub>R x = (c*cx) *\<^sub>R xx"
+    then have "c *\<^sub>R x = (c * cx) *\<^sub>R xx"
       using x_def by (simp add: algebra_simps)
     moreover
     have "c * cx \<ge> 0"
@@ -1205,8 +1210,10 @@ proof -
   {
     fix x
     assume "x \<in> ?rhs"
-    then obtain cx xx where x_def: "x = cx *\<^sub>R xx & (cx :: real) \<ge> 0 & xx \<in> S" by auto
-    then have "xx \<in> cone hull S" using hull_subset[of S] by auto
+    then obtain cx xx where x_def: "x = cx *\<^sub>R xx" "(cx :: real) \<ge> 0" "xx \<in> S"
+      by auto
+    then have "xx \<in> cone hull S"
+      using hull_subset[of S] by auto
     then have "x \<in> ?lhs"
       using x_def cone_cone_hull[of S] cone_def[of "cone hull S"] by auto
   }
@@ -1222,18 +1229,19 @@ proof (cases "S = {}")
   then show ?thesis by auto
 next
   case False
-  then have "0 \<in> S & (!c. c>0 --> op *\<^sub>R c ` S = S)"
+  then have "0 \<in> S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` S = S)"
     using cone_iff[of S] assms by auto
-  then have "0 \<in> closure S & (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` closure S = closure S)"
+  then have "0 \<in> closure S \<and> (\<forall>c. c > 0 \<longrightarrow> op *\<^sub>R c ` closure S = closure S)"
     using closure_subset by (auto simp add: closure_scaleR)
-  then show ?thesis using cone_iff[of "closure S"] by auto
+  then show ?thesis
+    using cone_iff[of "closure S"] by auto
 qed
 
 
 subsection {* Affine dependence and consequential theorems (from Lars Schewe) *}
 
 definition affine_dependent :: "'a::real_vector set \<Rightarrow> bool"
-  where "affine_dependent s \<longleftrightarrow> (\<exists>x\<in>s. x \<in> (affine hull (s - {x})))"
+  where "affine_dependent s \<longleftrightarrow> (\<exists>x\<in>s. x \<in> affine hull (s - {x}))"
 
 lemma affine_dependent_explicit:
   "affine_dependent p \<longleftrightarrow>
@@ -1254,12 +1262,14 @@ proof -
   show "\<exists>s u. finite s \<and> s \<subseteq> p \<and> setsum u s = 0 \<and> (\<exists>v\<in>s. u v \<noteq> 0) \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
     apply (rule_tac x="insert x s" in exI, rule_tac x="\<lambda>v. if v = x then - 1 else u v" in exI)
     unfolding if_smult and setsum_clauses(2)[OF as(2)] and setsum_delta_notmem[OF `x\<notin>s`] and as
-    using as apply auto
+    using as
+    apply auto
     done
 next
   fix s u v
   assume as: "finite s" "s \<subseteq> p" "setsum u s = 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0" "v \<in> s" "u v \<noteq> 0"
-  have "s \<noteq> {v}" using as(3,6) by auto
+  have "s \<noteq> {v}"
+    using as(3,6) by auto
   then show "\<exists>x\<in>p. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p - {x} \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
     apply (rule_tac x=v in bexI)
     apply (rule_tac x="s - {v}" in exI)
@@ -1282,7 +1292,7 @@ proof
     by auto
   assume ?lhs
   then obtain t u v where
-      "finite t" "t \<subseteq> s" "setsum u t = 0" "v\<in>t" "u v \<noteq> 0"  "(\<Sum>v\<in>t. u v *\<^sub>R v) = 0"
+    "finite t" "t \<subseteq> s" "setsum u t = 0" "v\<in>t" "u v \<noteq> 0"  "(\<Sum>v\<in>t. u v *\<^sub>R v) = 0"
     unfolding affine_dependent_explicit by auto
   then show ?rhs
     apply (rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
@@ -1292,7 +1302,8 @@ proof
     done
 next
   assume ?rhs
-  then obtain u v where "setsum u s = 0"  "v\<in>s" "u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0" by auto
+  then obtain u v where "setsum u s = 0"  "v\<in>s" "u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
+    by auto
   then show ?lhs unfolding affine_dependent_explicit
     using assms by auto
 qed
@@ -1484,7 +1495,7 @@ qed auto
 
 lemma in_convex_hull_linear_image:
   assumes "bounded_linear f" "x \<in> convex hull s"
-  shows "(f x) \<in> convex hull (f ` s)"
+  shows "f x \<in> convex hull (f ` s)"
   using convex_hull_linear_image[OF assms(1)] assms(2) by auto
 
 
@@ -1523,7 +1534,7 @@ next
   assume "x \<in> ?hull"
   then obtain u v b where obt: "u\<ge>0" "v\<ge>0" "u + v = 1" "b \<in> convex hull s" "x = u *\<^sub>R a + v *\<^sub>R b"
     by auto
-  have "a \<in> convex hull insert a s" "b\<in>convex hull insert a s"
+  have "a \<in> convex hull insert a s" "b \<in> convex hull insert a s"
     using hull_mono[of s "insert a s" convex] hull_mono[of "{a}" "insert a s" convex] and obt(4)
     by auto
   then show "x \<in> convex hull insert a s"
@@ -1542,10 +1553,12 @@ next
   proof -
     fix x y u v
     assume as: "(0::real) \<le> u" "0 \<le> v" "u + v = 1" "x\<in>?hull" "y\<in>?hull"
-    from as(4) obtain u1 v1 b1
-      where obt1: "u1\<ge>0" "v1\<ge>0" "u1 + v1 = 1" "b1 \<in> convex hull s" "x = u1 *\<^sub>R a + v1 *\<^sub>R b1" by auto
-    from as(5) obtain u2 v2 b2
-      where obt2: "u2\<ge>0" "v2\<ge>0" "u2 + v2 = 1" "b2 \<in> convex hull s" "y = u2 *\<^sub>R a + v2 *\<^sub>R b2" by auto
+    from as(4) obtain u1 v1 b1 where
+      obt1: "u1\<ge>0" "v1\<ge>0" "u1 + v1 = 1" "b1 \<in> convex hull s" "x = u1 *\<^sub>R a + v1 *\<^sub>R b1"
+      by auto
+    from as(5) obtain u2 v2 b2 where
+      obt2: "u2\<ge>0" "v2\<ge>0" "u2 + v2 = 1" "b2 \<in> convex hull s" "y = u2 *\<^sub>R a + v2 *\<^sub>R b2"
+      by auto
     have *: "\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x"
       by (auto simp add: algebra_simps)
     have **: "\<exists>b \<in> convex hull s. u *\<^sub>R x + v *\<^sub>R y =
@@ -1584,7 +1597,8 @@ next
         unfolding obt1(5) obt2(5)
         unfolding * and **
         using False
-        apply (rule_tac x = "((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI)
+        apply (rule_tac
+          x = "((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI)
         defer
         apply (rule convex_convex_hull[of s, unfolded convex_def, rule_format])
         using obt1(4) obt2(4)
@@ -1596,7 +1610,7 @@ next
       unfolding obt1(3)[symmetric] and not_le using obt1(2) by auto
     have u2: "u2 \<le> 1"
       unfolding obt2(3)[symmetric] and not_le using obt2(2) by auto
-    have "u1 * u + u2 * v \<le> (max u1 u2) * u + (max u1 u2) * v"
+    have "u1 * u + u2 * v \<le> max u1 u2 * u + max u1 u2 * v"
       apply (rule add_mono)
       apply (rule_tac [!] mult_right_mono)
       using as(1,2) obt1(1,2) obt2(1,2)
@@ -1625,7 +1639,8 @@ lemma convex_hull_indexed:
   shows "convex hull s =
     {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
         (setsum u {1..k} = 1) \<and>
-        (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}" (is "?xyz = ?hull")
+        (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}"
+  (is "?xyz = ?hull")
   apply (rule hull_unique)
   apply rule
   defer
@@ -1661,10 +1676,10 @@ next
   fix x y u v
   assume uv: "0 \<le> u" "0 \<le> v" "u + v = (1::real)" and xy: "x \<in> ?hull" "y \<in> ?hull"
   from xy obtain k1 u1 x1 where
-      x: "\<forall>i\<in>{1::nat..k1}. 0\<le>u1 i \<and> x1 i \<in> s" "setsum u1 {Suc 0..k1} = 1" "(\<Sum>i = Suc 0..k1. u1 i *\<^sub>R x1 i) = x"
+    x: "\<forall>i\<in>{1::nat..k1}. 0\<le>u1 i \<and> x1 i \<in> s" "setsum u1 {Suc 0..k1} = 1" "(\<Sum>i = Suc 0..k1. u1 i *\<^sub>R x1 i) = x"
     by auto
   from xy obtain k2 u2 x2 where
-      y: "\<forall>i\<in>{1::nat..k2}. 0\<le>u2 i \<and> x2 i \<in> s" "setsum u2 {Suc 0..k2} = 1" "(\<Sum>i = Suc 0..k2. u2 i *\<^sub>R x2 i) = y"
+    y: "\<forall>i\<in>{1::nat..k2}. 0\<le>u2 i \<and> x2 i \<in> s" "setsum u2 {Suc 0..k2} = 1" "(\<Sum>i = Suc 0..k2. u2 i *\<^sub>R x2 i) = y"
     by auto
   have *: "\<And>P (x1::'a) x2 s1 s2 i.
     (if P i then s1 else s2) *\<^sub>R (if P i then x1 else x2) = (if P i then s1 *\<^sub>R x1 else s2 *\<^sub>R x2)"
@@ -1715,7 +1730,8 @@ lemma convex_hull_finite:
   fixes s :: "'a::real_vector set"
   assumes "finite s"
   shows "convex hull s = {y. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and>
-    setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}" (is "?HULL = ?set")
+    setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}"
+  (is "?HULL = ?set")
 proof (rule hull_unique, auto simp add: convex_def[of ?set])
   fix x
   assume "x \<in> s"
@@ -1730,7 +1746,8 @@ next
   assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
   fix ux assume ux: "\<forall>x\<in>s. 0 \<le> ux x" "setsum ux s = (1::real)"
   fix uy assume uy: "\<forall>x\<in>s. 0 \<le> uy x" "setsum uy s = (1::real)"
-  { fix x
+  {
+    fix x
     assume "x\<in>s"
     then have "0 \<le> u * ux x + v * uy x"
       using ux(1)[THEN bspec[where x=x]] uy(1)[THEN bspec[where x=x]] and uv(1,2)
@@ -1744,7 +1761,8 @@ next
     using uv(3) by auto
   moreover
   have "(\<Sum>x\<in>s. (u * ux x + v * uy x) *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
-    unfolding scaleR_left_distrib and setsum_addf and scaleR_scaleR[symmetric] and scaleR_right.setsum [symmetric]
+    unfolding scaleR_left_distrib and setsum_addf and scaleR_scaleR[symmetric]
+      and scaleR_right.setsum [symmetric]
     by auto
   ultimately
   show "\<exists>uc. (\<forall>x\<in>s. 0 \<le> uc x) \<and> setsum uc s = 1 \<and>
@@ -1776,7 +1794,8 @@ lemma setsum_constant_scaleR:
 lemma convex_hull_explicit:
   fixes p :: "'a::real_vector set"
   shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and>
-    (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}" (is "?lhs = ?rhs")
+    (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
+  (is "?lhs = ?rhs")
 proof -
   {
     fix x
@@ -1817,7 +1836,8 @@ proof -
     fix y
     assume "y\<in>?rhs"
     then obtain s u where
-      obt: "finite s" "s \<subseteq> p" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = y" by auto
+      obt: "finite s" "s \<subseteq> p" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = y"
+      by auto
 
     obtain f where f: "inj_on f {1..card s}" "f ` {1..card s} = s"
       using ex_bij_betw_nat_finite_1[OF obt(1)] unfolding bij_betw_def by auto
@@ -1850,8 +1870,10 @@ proof -
         by (auto simp add: setsum_constant_scaleR)
     }
     then have "(\<Sum>x = 1..card s. u (f x)) = 1" "(\<Sum>i = 1..card s. u (f i) *\<^sub>R f i) = y"
-      unfolding setsum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f] and setsum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
-      unfolding f using setsum_cong2[of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
+      unfolding setsum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f]
+        and setsum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
+      unfolding f
+      using setsum_cong2[of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
       using setsum_cong2 [of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u]
       unfolding obt(4,5)
       by auto
@@ -1882,7 +1904,7 @@ lemma convex_hull_finite_step:
   (is "?lhs = ?rhs")
 proof (rule, case_tac[!] "a\<in>s")
   assume "a \<in> s"
-  then have *:" insert a s = s" by auto
+  then have *: "insert a s = s" by auto
   assume ?lhs
   then show ?rhs
     unfolding *
@@ -1919,7 +1941,8 @@ next
     done
 next
   assume ?rhs
-  then obtain v u where uv: "v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a"
+  then obtain v u where
+    uv: "v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a"
     by auto
   moreover
   assume "a \<notin> s"
@@ -2354,27 +2377,27 @@ qed
 
 lemma affine_dependent_translation:
   assumes "affine_dependent S"
-  shows "affine_dependent ((%x. a + x) ` S)"
+  shows "affine_dependent ((\<lambda>x. a + x) ` S)"
 proof -
-  obtain x where x_def: "x : S & x : affine hull (S - {x})"
+  obtain x where x_def: "x \<in> S \<and> x \<in> affine hull (S - {x})"
     using assms affine_dependent_def by auto
   have "op + a ` (S - {x}) = op + a ` S - {a + x}"
     by auto
-  then have "a+x \<in> affine hull ((%x. a + x) ` S - {a+x})"
+  then have "a+x \<in> affine hull ((\<lambda>x. a + x) ` S - {a+x})"
     using affine_hull_translation[of a "S-{x}"] x_def by auto
-  moreover have "a+x : (\<lambda>x. a + x) ` S"
+  moreover have "a+x \<in> (\<lambda>x. a + x) ` S"
     using x_def by auto
   ultimately show ?thesis
     unfolding affine_dependent_def by auto
 qed
 
 lemma affine_dependent_translation_eq:
-  "affine_dependent S <-> affine_dependent ((%x. a + x) ` S)"
+  "affine_dependent S <-> affine_dependent ((\<lambda>x. a + x) ` S)"
 proof -
   {
-    assume "affine_dependent ((%x. a + x) ` S)"
+    assume "affine_dependent ((\<lambda>x. a + x) ` S)"
     then have "affine_dependent S"
-      using affine_dependent_translation[of "((%x. a + x) ` S)" "-a"] translation_assoc[of "-a" a]
+      using affine_dependent_translation[of "((\<lambda>x. a + x) ` S)" "-a"] translation_assoc[of "-a" a]
       by auto
   }
   then show ?thesis
@@ -2382,14 +2405,14 @@ proof -
 qed
 
 lemma affine_hull_0_dependent:
-  assumes "0 : affine hull S"
+  assumes "0 \<in> affine hull S"
   shows "dependent S"
 proof -
-  obtain s u where s_u_def: "finite s & s ~= {} & s <= S & setsum u s = 1 & (SUM v:s. u v *\<^sub>R v) = 0"
+  obtain s u where s_u_def: "finite s \<and> s \<noteq> {} \<and> s \<subseteq> S \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
     using assms affine_hull_explicit[of S] by auto
-  then have "EX v:s. u v \<noteq> 0"
+  then have "\<exists>v\<in>s. u v \<noteq> 0"
     using setsum_not_0[of "u" "s"] by auto
-  then have "finite s & s <= S & (EX v:s. u v ~= 0 & (SUM v:s. u v *\<^sub>R v) = 0)"
+  then have "finite s \<and> s \<subseteq> S \<and> (\<exists>v\<in>s. u v \<noteq> 0 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = 0)"
     using s_u_def by auto
   then show ?thesis
     unfolding dependent_explicit[of S] by auto
@@ -2399,7 +2422,7 @@ lemma affine_dependent_imp_dependent2:
   assumes "affine_dependent (insert 0 S)"
   shows "dependent S"
 proof -
-  obtain x where x_def: "x:insert 0 S & x : affine hull (insert 0 S - {x})"
+  obtain x where x_def: "x \<in> insert 0 S \<and> x \<in> affine hull (insert 0 S - {x})"
     using affine_dependent_def[of "(insert 0 S)"] assms by blast
   then have "x \<in> span (insert 0 S - {x})"
     using affine_hull_subset_span by auto
@@ -2432,19 +2455,19 @@ proof -
 qed
 
 lemma affine_dependent_iff_dependent2:
-  assumes "a : S"
-  shows "affine_dependent S <-> dependent ((%x. -a + x) ` (S-{a}))"
+  assumes "a \<in> S"
+  shows "affine_dependent S \<longleftrightarrow> dependent ((\<lambda>x. -a + x) ` (S-{a}))"
 proof -
-  have "insert a (S - {a})=S"
+  have "insert a (S - {a}) = S"
     using assms by auto
   then show ?thesis
     using assms affine_dependent_iff_dependent[of a "S-{a}"] by auto
 qed
 
 lemma affine_hull_insert_span_gen:
-  "affine hull (insert a s) = (%x. a+x) ` span ((%x. -a+x) ` s)"
+  "affine hull (insert a s) = (\<lambda>x. a + x) ` span ((\<lambda>x. - a + x) ` s)"
 proof -
-  have h1: "{x - a |x. x : s}=((%x. -a+x) ` s)"
+  have h1: "{x - a |x. x \<in> s} = ((\<lambda>x. -a+x) ` s)"
     by auto
   {
     assume "a \<notin> s"
@@ -2454,18 +2477,18 @@ proof -
   moreover
   {
     assume a1: "a \<in> s"
-    have "\<exists>x. x \<in> s & -a+x=0"
+    have "\<exists>x. x \<in> s \<and> -a+x=0"
       apply (rule exI[of _ a])
       using a1
       apply auto
       done
-    then have "insert 0 ((%x. -a+x) ` (s - {a}))=(%x. -a+x) ` s"
+    then have "insert 0 ((\<lambda>x. -a+x) ` (s - {a})) = (\<lambda>x. -a+x) ` s"
       by auto
-    then have "span ((%x. -a+x) ` (s - {a}))=span ((%x. -a+x) ` s)"
+    then have "span ((\<lambda>x. -a+x) ` (s - {a}))=span ((\<lambda>x. -a+x) ` s)"
       using span_insert_0[of "op + (- a) ` (s - {a})"] by auto
-    moreover have "{x - a |x. x : (s - {a})}=((%x. -a+x) ` (s - {a}))"
+    moreover have "{x - a |x. x \<in> (s - {a})} = ((\<lambda>x. -a+x) ` (s - {a}))"
       by auto
-    moreover have "insert a (s - {a})=(insert a s)"
+    moreover have "insert a (s - {a}) = insert a s"
       using assms by auto
     ultimately have ?thesis
       using assms affine_hull_insert_span[of "a" "s-{a}"] by auto
@@ -2480,8 +2503,8 @@ lemma affine_hull_span2:
   by auto
 
 lemma affine_hull_span_gen:
-  assumes "a : affine hull s"
-  shows "affine hull s = (%x. a+x) ` span ((%x. -a+x) ` s)"
+  assumes "a \<in> affine hull s"
+  shows "affine hull s = (\<lambda>x. a+x) ` span ((\<lambda>x. -a+x) ` s)"
 proof -
   have "affine hull (insert a s) = affine hull s"
     using hull_redundant[of a affine s] assms by auto
@@ -2490,33 +2513,34 @@ proof -
 qed
 
 lemma affine_hull_span_0:
-  assumes "0 : affine hull S"
+  assumes "0 \<in> affine hull S"
   shows "affine hull S = span S"
   using affine_hull_span_gen[of "0" S] assms by auto
 
 
 lemma extend_to_affine_basis:
-  fixes S V :: "('n::euclidean_space) set"
-  assumes "\<not> affine_dependent S" "S <= V" "S \<noteq> {}"
-  shows "\<exists>T. \<not> affine_dependent T & S <=T & T <= V & affine hull T = affine hull V"
+  fixes S V :: "'n::euclidean_space set"
+  assumes "\<not> affine_dependent S" "S \<subseteq> V" "S \<noteq> {}"
+  shows "\<exists>T. \<not> affine_dependent T \<and> S \<subseteq> T \<and> T \<subseteq> V \<and> affine hull T = affine hull V"
 proof -
   obtain a where a_def: "a \<in> S"
     using assms by auto
-  then have h0: "independent  ((%x. -a + x) ` (S-{a}))"
+  then have h0: "independent  ((\<lambda>x. -a + x) ` (S-{a}))"
     using affine_dependent_iff_dependent2 assms by auto
   then obtain B where B_def:
-    "(%x. -a+x) ` (S - {a}) <= B & B <= (%x. -a+x) ` V & independent B & (%x. -a+x) ` V <= span B"
-     using maximal_independent_subset_extend[of "(%x. -a+x) ` (S-{a})" "(%x. -a + x) ` V"] assms
+    "(\<lambda>x. -a+x) ` (S - {a}) \<subseteq> B \<and> B \<subseteq> (\<lambda>x. -a+x) ` V \<and> independent B \<and> (\<lambda>x. -a+x) ` V \<subseteq> span B"
+     using maximal_independent_subset_extend[of "(\<lambda>x. -a+x) ` (S-{a})" "(\<lambda>x. -a + x) ` V"] assms
      by blast
-  def T \<equiv> "(%x. a+x) ` (insert 0 B)"
-  then have "T = insert a ((%x. a+x) ` B)" by auto
-  then have "affine hull T = (%x. a+x) ` span B"
-    using affine_hull_insert_span_gen[of a "((%x. a+x) ` B)"] translation_assoc[of "-a" a B]
+  def T \<equiv> "(\<lambda>x. a+x) ` insert 0 B"
+  then have "T = insert a ((\<lambda>x. a+x) ` B)"
+    by auto
+  then have "affine hull T = (\<lambda>x. a+x) ` span B"
+    using affine_hull_insert_span_gen[of a "((\<lambda>x. a+x) ` B)"] translation_assoc[of "-a" a B]
     by auto
   then have "V <= affine hull T"
     using B_def assms translation_inverse_subset[of a V "span B"]
     by auto
-  moreover have "T<=V"
+  moreover have "T \<subseteq> V"
     using T_def B_def a_def assms by auto
   ultimately have "affine hull T = affine hull V"
     by (metis Int_absorb1 Int_absorb2 hull_hull hull_mono)
@@ -2524,14 +2548,15 @@ proof -
     using T_def B_def translation_inverse_subset[of a "S-{a}" B]
     by auto
   moreover have "\<not> affine_dependent T"
-    using T_def affine_dependent_translation_eq[of "insert 0 B"] affine_dependent_imp_dependent2 B_def
+    using T_def affine_dependent_translation_eq[of "insert 0 B"]
+      affine_dependent_imp_dependent2 B_def
     by auto
-  ultimately show ?thesis using `T<=V` by auto
+  ultimately show ?thesis using `T \<subseteq> V` by auto
 qed
 
 lemma affine_basis_exists:
-  fixes V :: "('n::euclidean_space) set"
-  shows "\<exists>B. B <= V & \<not> affine_dependent B & affine hull V = affine hull B"
+  fixes V :: "'n::euclidean_space set"
+  shows "\<exists>B. B \<subseteq> V \<and> \<not> affine_dependent B \<and> affine hull V = affine hull B"
 proof (cases "V = {}")
   case True
   then show ?thesis
@@ -2540,7 +2565,8 @@ next
   case False
   then obtain x where "x \<in> V" by auto
   then show ?thesis
-    using affine_dependent_def[of "{x}"] extend_to_affine_basis[of "{x}:: ('n::euclidean_space) set" V]
+    using affine_dependent_def[of "{x}"]
+      extend_to_affine_basis[of "{x}:: ('n::euclidean_space) set" V]
     by auto
 qed
 
@@ -2548,19 +2574,21 @@ qed
 subsection {* Affine Dimension of a Set *}
 
 definition "aff_dim V =
-  (SOME d :: int. ? B. (affine hull B=affine hull V) & ~(affine_dependent B) & (of_nat(card B) = d+1))"
+  (SOME d :: int.
+    \<exists>B. affine hull B = affine hull V \<and> \<not> affine_dependent B \<and> of_nat (card B) = d + 1)"
 
 lemma aff_dim_basis_exists:
   fixes V :: "('n::euclidean_space) set"
-  shows "? B. (affine hull B=affine hull V) & ~(affine_dependent B) & (of_nat(card B) = aff_dim V+1)"
+  shows "\<exists>B. affine hull B = affine hull V \<and> \<not> affine_dependent B \<and> of_nat (card B) = aff_dim V + 1"
 proof -
-  obtain B where B_def: "\<not> affine_dependent B & affine hull B = affine hull V"
+  obtain B where B_def: "\<not> affine_dependent B \<and> affine hull B = affine hull V"
     using affine_basis_exists[of V] by auto
   then show ?thesis
-    unfolding aff_dim_def some_eq_ex[of "\<lambda>d. \<exists>(B :: ('n::euclidean_space) set). affine hull B = affine hull V
-      & \<not> affine_dependent B & of_nat (card B) = d+1"]
+    unfolding aff_dim_def
+      some_eq_ex[of "\<lambda>d. \<exists>(B :: ('n::euclidean_space) set). affine hull B = affine hull V
+        \<and> \<not> affine_dependent B \<and> of_nat (card B) = d + 1"]
     apply auto
-    apply (rule exI[of _ "int (card B)-(1 :: int)"])
+    apply (rule exI[of _ "int (card B) - (1 :: int)"])
     apply (rule exI[of _ "B"])
     apply auto
     done
@@ -2578,45 +2606,47 @@ qed
 lemma aff_dim_parallel_subspace_aux:
   fixes B :: "('n::euclidean_space) set"
   assumes "\<not> affine_dependent B" "a \<in> B"
-  shows "finite B & ((card B) - 1 = dim (span ((%x. -a+x) ` (B-{a}))))"
+  shows "finite B \<and> ((card B) - 1 = dim (span ((\<lambda>x. -a+x) ` (B-{a}))))"
 proof -
-  have "independent ((%x. -a + x) ` (B-{a}))"
+  have "independent ((\<lambda>x. -a + x) ` (B-{a}))"
     using affine_dependent_iff_dependent2 assms by auto
-  then have fin: "dim (span ((%x. -a+x) ` (B-{a}))) = card ((%x. -a + x) ` (B-{a}))"
-    "finite ((%x. -a + x) ` (B - {a}))"  using indep_card_eq_dim_span[of "(%x. -a+x) ` (B-{a})"]
-    by auto
+  then have fin: "dim (span ((\<lambda>x. -a+x) ` (B-{a}))) = card ((\<lambda>x. -a + x) ` (B-{a}))"
+    "finite ((\<lambda>x. -a + x) ` (B - {a}))"
+    using indep_card_eq_dim_span[of "(%x. -a+x) ` (B-{a})"] by auto
   show ?thesis
-  proof (cases "(%x. -a + x) ` (B - {a}) = {}")
+  proof (cases "(\<lambda>x. -a + x) ` (B - {a}) = {}")
     case True
-    have "B = insert a ((%x. a + x) ` (%x. -a + x) ` (B - {a}))"
+    have "B = insert a ((\<lambda>x. a + x) ` (\<lambda>x. -a + x) ` (B - {a}))"
       using translation_assoc[of "a" "-a" "(B - {a})"] assms by auto
-    then have "B={a}" using True by auto
+    then have "B = {a}" using True by auto
     then show ?thesis using assms fin by auto
   next
     case False
-    then have "card ((%x. -a + x) ` (B - {a}))>0"
+    then have "card ((\<lambda>x. -a + x) ` (B - {a})) > 0"
       using fin by auto
-    moreover have h1: "card ((%x. -a + x) ` (B-{a})) = card (B-{a})"
+    moreover have h1: "card ((\<lambda>x. -a + x) ` (B-{a})) = card (B-{a})"
        apply (rule card_image)
        using translate_inj_on
        apply auto
        done
-    ultimately have "card (B-{a})>0" by auto
-    then have *: "finite(B-{a})"
+    ultimately have "card (B-{a}) > 0" by auto
+    then have *: "finite (B - {a})"
       using card_gt_0_iff[of "(B - {a})"] by auto
-    then have "(card (B-{a})= (card B) - 1)"
+    then have "card (B - {a}) = card B - 1"
       using card_Diff_singleton assms by auto
     with * show ?thesis using fin h1 by auto
   qed
 qed
 
 lemma aff_dim_parallel_subspace:
-  fixes V L :: "('n::euclidean_space) set"
+  fixes V L :: "'n::euclidean_space set"
   assumes "V \<noteq> {}"
-  assumes "subspace L" "affine_parallel (affine hull V) L"
+    and "subspace L"
+    and "affine_parallel (affine hull V) L"
   shows "aff_dim V = int (dim L)"
 proof -
-  obtain B where B_def: "affine hull B = affine hull V & ~ affine_dependent B & int (card B) = aff_dim V + 1"
+  obtain B where
+    B_def: "affine hull B = affine hull V & ~ affine_dependent B & int (card B) = aff_dim V + 1"
     using aff_dim_basis_exists by auto
   then have "B \<noteq> {}"
     using assms B_def affine_hull_nonempty[of V] affine_hull_nonempty[of B]
@@ -2624,8 +2654,10 @@ proof -
   then obtain a where a_def: "a \<in> B" by auto
   def Lb \<equiv> "span ((\<lambda>x. -a+x) ` (B-{a}))"
   moreover have "affine_parallel (affine hull B) Lb"
-    using Lb_def B_def assms affine_hull_span2[of a B] a_def  affine_parallel_commut[of "Lb" "(affine hull B)"]
-    unfolding affine_parallel_def by auto
+    using Lb_def B_def assms affine_hull_span2[of a B] a_def
+      affine_parallel_commut[of "Lb" "(affine hull B)"]
+    unfolding affine_parallel_def
+    by auto
   moreover have "subspace Lb"
     using Lb_def subspace_span by auto
   moreover have "affine hull B \<noteq> {}"
@@ -2633,8 +2665,9 @@ proof -
   ultimately have "L = Lb"
     using assms affine_parallel_subspace[of "affine hull B"] affine_affine_hull[of B] B_def
     by auto
-  then have "dim L = dim Lb" by auto
-  moreover have "(card B) - 1 = dim Lb" "finite B"
+  then have "dim L = dim Lb"
+    by auto
+  moreover have "card B - 1 = dim Lb" and "finite B"
     using Lb_def aff_dim_parallel_subspace_aux a_def B_def by auto
 (*  hence "card B=dim Lb+1" using `B~={}` card_gt_0_iff[of B] by auto *)
   ultimately show ?thesis
@@ -2642,8 +2675,8 @@ proof -
 qed
 
 lemma aff_independent_finite:
-  fixes B :: "('n::euclidean_space) set"
-  assumes "~(affine_dependent B)"
+  fixes B :: "'n::euclidean_space set"
+  assumes "\<not> affine_dependent B"
   shows "finite B"
 proof -
   {
@@ -2656,244 +2689,337 @@ proof -
 qed
 
 lemma independent_finite:
-  fixes B :: "('n::euclidean_space) set"
+  fixes B :: "'n::euclidean_space set"
   assumes "independent B"
   shows "finite B"
   using affine_dependent_imp_dependent[of B] aff_independent_finite[of B] assms
   by auto
 
 lemma subspace_dim_equal:
-  assumes "subspace (S :: ('n::euclidean_space) set)" "subspace T" "S <= T" "dim S >= dim T"
+  assumes "subspace (S :: ('n::euclidean_space) set)"
+    and "subspace T"
+    and "S \<subseteq> T"
+    and "dim S \<ge> dim T"
   shows "S = T"
 proof -
-  obtain B where B_def: "B <= S & independent B & S <= span B & (card B = dim S)" using basis_exists[of S] by auto
-  hence "span B <= S" using span_mono[of B S] span_eq[of S] assms by metis
-  hence "span B = S" using B_def by auto
-  have "dim S = dim T" using assms dim_subset[of S T] by auto
-  hence "T <= span B" using card_eq_dim[of B T] B_def independent_finite assms by auto
-  from this show ?thesis using assms `span B=S` by auto
+  obtain B where B_def: "B \<le> S \<and> independent B \<and> S \<subseteq> span B \<and> card B = dim S"
+    using basis_exists[of S] by auto
+  then have "span B \<subseteq> S"
+    using span_mono[of B S] span_eq[of S] assms by metis
+  then have "span B = S"
+    using B_def by auto
+  have "dim S = dim T"
+    using assms dim_subset[of S T] by auto
+  then have "T \<subseteq> span B"
+    using card_eq_dim[of B T] B_def independent_finite assms by auto
+  then show ?thesis
+    using assms `span B = S` by auto
 qed
 
 lemma span_substd_basis:
   assumes d: "d \<subseteq> Basis"
   shows "span d = {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}" (is "_ = ?B")
-proof-
-have "d <= ?B" using d by (auto simp: inner_Basis)
-moreover have s: "subspace ?B" using subspace_substandard[of "%i. i ~: d"] .
-ultimately have "span d <= ?B" using span_mono[of d "?B"] span_eq[of "?B"] by blast
-moreover have "card d <= dim (span d)" using independent_card_le_dim[of d "span d"]
-   independent_substdbasis[OF assms] span_inc[of d] by auto
-moreover hence "dim ?B <= dim (span d)" using dim_substandard[OF assms] by auto
-ultimately show ?thesis using s subspace_dim_equal[of "span d" "?B"]
-  subspace_span[of d] by auto
+proof -
+  have "d \<subseteq> ?B"
+    using d by (auto simp: inner_Basis)
+  moreover have s: "subspace ?B"
+    using subspace_substandard[of "\<lambda>i. i \<notin> d"] .
+  ultimately have "span d \<subseteq> ?B"
+    using span_mono[of d "?B"] span_eq[of "?B"] by blast
+  moreover have "card d \<le> dim (span d)"
+    using independent_card_le_dim[of d "span d"] independent_substdbasis[OF assms] span_inc[of d]
+    by auto
+  moreover then have "dim ?B \<le> dim (span d)"
+    using dim_substandard[OF assms] by auto
+  ultimately show ?thesis
+    using s subspace_dim_equal[of "span d" "?B"] subspace_span[of d] by auto
 qed
 
 lemma basis_to_substdbasis_subspace_isomorphism:
-fixes B :: "('a::euclidean_space) set"
-assumes "independent B"
-shows "EX f (d::'a set). card d = card B \<and> linear f \<and> f ` B = d \<and>
-       f ` span B = {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} \<and> inj_on f (span B) \<and> d \<subseteq> Basis"
-proof-
-  have B:"card B=dim B" using dim_unique[of B B "card B"] assms span_inc[of B] by auto
-  have "dim B \<le> card (Basis :: 'a set)" using dim_subset_UNIV[of B] by simp
-  from ex_card[OF this] obtain d :: "'a set" where d: "d \<subseteq> Basis" and t: "card d = dim B" by auto
+  fixes B :: "'a::euclidean_space set"
+  assumes "independent B"
+  shows "\<exists>f d::'a set. card d = card B \<and> linear f \<and> f ` B = d \<and>
+    f ` span B = {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} \<and> inj_on f (span B) \<and> d \<subseteq> Basis"
+proof -
+  have B: "card B = dim B"
+    using dim_unique[of B B "card B"] assms span_inc[of B] by auto
+  have "dim B \<le> card (Basis :: 'a set)"
+    using dim_subset_UNIV[of B] by simp
+  from ex_card[OF this] obtain d :: "'a set" where d: "d \<subseteq> Basis" and t: "card d = dim B"
+    by auto
   let ?t = "{x::'a::euclidean_space. \<forall>i\<in>Basis. i ~: d --> x\<bullet>i = 0}"
-  have "EX f. linear f & f ` B = d & f ` span B = ?t & inj_on f (span B)"
+  have "\<exists>f. linear f \<and> f ` B = d \<and> f ` span B = ?t \<and> inj_on f (span B)"
     apply (rule basis_to_basis_subspace_isomorphism[of "span B" ?t B "d"])
-    apply(rule subspace_span) apply(rule subspace_substandard) defer
-    apply(rule span_inc) apply(rule assms) defer unfolding dim_span[of B] apply(rule B)
+    apply (rule subspace_span)
+    apply (rule subspace_substandard)
+    defer
+    apply (rule span_inc)
+    apply (rule assms)
+    defer
+    unfolding dim_span[of B]
+    apply(rule B)
     unfolding span_substd_basis[OF d, symmetric] 
-    apply(rule span_inc)
-    apply(rule independent_substdbasis[OF d]) apply(rule,assumption)
-    unfolding t[symmetric] span_substd_basis[OF d] dim_substandard[OF d] by auto
+    apply (rule span_inc)
+    apply (rule independent_substdbasis[OF d])
+    apply rule
+    apply assumption
+    unfolding t[symmetric] span_substd_basis[OF d] dim_substandard[OF d]
+    apply auto
+    done
   with t `card B = dim B` d show ?thesis by auto
 qed
 
 lemma aff_dim_empty:
-fixes S :: "('n::euclidean_space) set"
-shows "S = {} <-> aff_dim S = -1"
-proof-
-obtain B where "affine hull B = affine hull S & ~ affine_dependent B & int (card B) = aff_dim S + 1" using aff_dim_basis_exists by auto
-moreover hence "S={} <-> B={}" using affine_hull_nonempty[of B] affine_hull_nonempty[of S] by auto
-ultimately show ?thesis using aff_independent_finite[of B] card_gt_0_iff[of B] by auto
+  fixes S :: "'n::euclidean_space set"
+  shows "S = {} \<longleftrightarrow> aff_dim S = -1"
+proof -
+  obtain B where *: "affine hull B = affine hull S"
+    and "\<not> affine_dependent B"
+    and "int (card B) = aff_dim S + 1"
+    using aff_dim_basis_exists by auto
+  moreover
+  from * have "S = {} \<longleftrightarrow> B = {}"
+    using affine_hull_nonempty[of B] affine_hull_nonempty[of S] by auto
+  ultimately show ?thesis
+    using aff_independent_finite[of B] card_gt_0_iff[of B] by auto
 qed
 
-lemma aff_dim_affine_hull:
-shows "aff_dim (affine hull S)=aff_dim S"
-unfolding aff_dim_def using hull_hull[of _ S] by auto
+lemma aff_dim_affine_hull: "aff_dim (affine hull S) = aff_dim S"
+  unfolding aff_dim_def using hull_hull[of _ S] by auto
 
 lemma aff_dim_affine_hull2:
-assumes "affine hull S=affine hull T"
-shows "aff_dim S=aff_dim T" unfolding aff_dim_def using assms by auto
+  assumes "affine hull S = affine hull T"
+  shows "aff_dim S = aff_dim T"
+  unfolding aff_dim_def using assms by auto
 
 lemma aff_dim_unique:
-fixes B V :: "('n::euclidean_space) set"
-assumes "(affine hull B=affine hull V) & ~(affine_dependent B)"
-shows "of_nat(card B) = aff_dim V+1"
-proof-
-{ assume "B={}" hence "V={}" using affine_hull_nonempty[of V] affine_hull_nonempty[of B] assms by auto
-  hence "aff_dim V = (-1::int)"  using aff_dim_empty by auto
-  hence ?thesis using `B={}` by auto
-}
-moreover
-{ assume "B~={}" from this obtain a where a_def: "a:B" by auto
-  def Lb == "span ((%x. -a+x) ` (B-{a}))"
+  fixes B V :: "'n::euclidean_space set"
+  assumes "affine hull B = affine hull V \<and> \<not> affine_dependent B"
+  shows "of_nat (card B) = aff_dim V + 1"
+proof (cases "B = {}")
+  case True
+  then have "V = {}"
+    using affine_hull_nonempty[of V] affine_hull_nonempty[of B] assms
+    by auto
+  then have "aff_dim V = (-1::int)"
+    using aff_dim_empty by auto
+  then show ?thesis
+    using `B={}` by auto
+next
+  case False
+  then obtain a where a_def: "a \<in> B" by auto
+  def Lb \<equiv> "span ((\<lambda>x. -a+x) ` (B-{a}))"
   have "affine_parallel (affine hull B) Lb"
-     using Lb_def affine_hull_span2[of a B] a_def  affine_parallel_commut[of "Lb" "(affine hull B)"]
-     unfolding affine_parallel_def by auto
-  moreover have "subspace Lb" using Lb_def subspace_span by auto
-  ultimately have "aff_dim B=int(dim Lb)" using aff_dim_parallel_subspace[of B Lb] `B~={}` by auto
-  moreover have "(card B) - 1 = dim Lb" "finite B" using Lb_def aff_dim_parallel_subspace_aux a_def assms by auto
-  ultimately have "(of_nat(card B) = aff_dim B+1)" using  `B~={}` card_gt_0_iff[of B] by auto
-  hence ?thesis using aff_dim_affine_hull2 assms by auto
-} ultimately show ?thesis by blast
+    using Lb_def affine_hull_span2[of a B] a_def
+      affine_parallel_commut[of "Lb" "(affine hull B)"]
+    unfolding affine_parallel_def by auto
+  moreover have "subspace Lb"
+    using Lb_def subspace_span by auto
+  ultimately have "aff_dim B = int(dim Lb)"
+    using aff_dim_parallel_subspace[of B Lb] `B~={}` by auto
+  moreover have "(card B) - 1 = dim Lb" "finite B"
+    using Lb_def aff_dim_parallel_subspace_aux a_def assms by auto
+  ultimately have "of_nat (card B) = aff_dim B + 1"
+    using `B \<noteq> {}` card_gt_0_iff[of B] by auto
+  then show ?thesis
+    using aff_dim_affine_hull2 assms by auto
 qed
 
 lemma aff_dim_affine_independent:
-fixes B :: "('n::euclidean_space) set"
-assumes "~(affine_dependent B)"
-shows "of_nat(card B) = aff_dim B+1"
+  fixes B :: "'n::euclidean_space set"
+  assumes "\<not> affine_dependent B"
+  shows "of_nat (card B) = aff_dim B + 1"
   using aff_dim_unique[of B B] assms by auto
 
 lemma aff_dim_sing:
-fixes a :: "'n::euclidean_space"
-shows "aff_dim {a}=0"
+  fixes a :: "'n::euclidean_space"
+  shows "aff_dim {a} = 0"
   using aff_dim_affine_independent[of "{a}"] affine_independent_sing by auto
 
 lemma aff_dim_inner_basis_exists:
   fixes V :: "('n::euclidean_space) set"
-  shows "? B. B<=V & (affine hull B=affine hull V) & ~(affine_dependent B) & (of_nat(card B) = aff_dim V+1)"
-proof-
-obtain B where B_def: "~(affine_dependent B) & B<=V & (affine hull B=affine hull V)" using affine_basis_exists[of V] by auto
-moreover hence "of_nat(card B) = aff_dim V+1" using aff_dim_unique by auto
-ultimately show ?thesis by auto
+  shows "\<exists>B. B \<subseteq> V \<and> affine hull B = affine hull V \<and>
+    \<not> affine_dependent B \<and> of_nat (card B) = aff_dim V + 1"
+proof -
+  obtain B where B_def: "\<not> affine_dependent B" "B \<subseteq> V" "affine hull B = affine hull V"
+    using affine_basis_exists[of V] by auto
+  then have "of_nat(card B) = aff_dim V+1" using aff_dim_unique by auto
+  with B_def show ?thesis by auto
 qed
 
 lemma aff_dim_le_card:
-fixes V :: "('n::euclidean_space) set"
-assumes "finite V"
-shows "aff_dim V <= of_nat(card V) - 1"
- proof-
- obtain B where B_def: "B<=V & (of_nat(card B) = aff_dim V+1)" using aff_dim_inner_basis_exists[of V] by auto
- moreover hence "card B <= card V" using assms card_mono by auto
- ultimately show ?thesis by auto
+  fixes V :: "('n::euclidean_space) set"
+  assumes "finite V"
+  shows "aff_dim V <= of_nat(card V) - 1"
+proof -
+  obtain B where B_def: "B \<subseteq> V" "of_nat (card B) = aff_dim V + 1"
+    using aff_dim_inner_basis_exists[of V] by auto
+  then have "card B \<le> card V"
+    using assms card_mono by auto
+  with B_def show ?thesis by auto
 qed
 
 lemma aff_dim_parallel_eq:
-fixes S T :: "('n::euclidean_space) set"
-assumes "affine_parallel (affine hull S) (affine hull T)"
-shows "aff_dim S=aff_dim T"
-proof-
-{ assume "T~={}" "S~={}"
-  from this obtain L where L_def: "subspace L & affine_parallel (affine hull T) L"
-       using affine_parallel_subspace[of "affine hull T"] affine_affine_hull[of T] affine_hull_nonempty by auto
-  hence "aff_dim T = int(dim L)" using aff_dim_parallel_subspace `T~={}` by auto
-  moreover have "subspace L & affine_parallel (affine hull S) L"
-     using L_def affine_parallel_assoc[of "affine hull S" "affine hull T" L] assms by auto
-  moreover hence "aff_dim S = int(dim L)" using aff_dim_parallel_subspace `S~={}` by auto
-  ultimately have ?thesis by auto
-}
-moreover
-{ assume "S={}" hence "S={} & T={}" using assms affine_hull_nonempty unfolding affine_parallel_def by auto
-  hence ?thesis using aff_dim_empty by auto
-}
-moreover
-{ assume "T={}" hence "S={} & T={}" using assms affine_hull_nonempty unfolding affine_parallel_def by auto
-  hence ?thesis using aff_dim_empty by auto
-}
-ultimately show ?thesis by blast
+  fixes S T :: "'n::euclidean_space set"
+  assumes "affine_parallel (affine hull S) (affine hull T)"
+  shows "aff_dim S = aff_dim T"
+proof -
+  {
+    assume "T \<noteq> {}" "S \<noteq> {}"
+    then obtain L where L_def: "subspace L & affine_parallel (affine hull T) L"
+      using affine_parallel_subspace[of "affine hull T"] affine_affine_hull[of T] affine_hull_nonempty
+      by auto
+    then have "aff_dim T = int (dim L)"
+      using aff_dim_parallel_subspace `T \<noteq> {}` by auto
+    moreover have *: "subspace L \<and> affine_parallel (affine hull S) L"
+       using L_def affine_parallel_assoc[of "affine hull S" "affine hull T" L] assms by auto
+    moreover from * have "aff_dim S = int (dim L)"
+      using aff_dim_parallel_subspace `S \<noteq> {}` by auto
+    ultimately have ?thesis by auto
+  }
+  moreover
+  {
+    assume "S = {}"
+    then have "S = {}" and "T = {}"
+      using assms affine_hull_nonempty
+      unfolding affine_parallel_def
+      by auto
+    then have ?thesis using aff_dim_empty by auto
+  }
+  moreover
+  {
+    assume "T = {}"
+    then have "S = {}" and "T = {}"
+      using assms affine_hull_nonempty
+      unfolding affine_parallel_def
+      by auto
+    then have ?thesis
+      using aff_dim_empty by auto
+  }
+  ultimately show ?thesis by blast
 qed
 
 lemma aff_dim_translation_eq:
-fixes a :: "'n::euclidean_space"
-shows "aff_dim ((%x. a + x) ` S)=aff_dim S"
-proof-
-have "affine_parallel (affine hull S) (affine hull ((%x. a + x) ` S))" unfolding affine_parallel_def apply (rule exI[of _ "a"]) using affine_hull_translation[of a S] by auto
-from this show ?thesis using  aff_dim_parallel_eq[of S "(%x. a + x) ` S"] by auto
+  fixes a :: "'n::euclidean_space"
+  shows "aff_dim ((\<lambda>x. a + x) ` S) = aff_dim S"
+proof -
+  have "affine_parallel (affine hull S) (affine hull ((%x. a + x) ` S))"
+    unfolding affine_parallel_def
+    apply (rule exI[of _ "a"])
+    using affine_hull_translation[of a S]
+    apply auto
+    done
+  then show ?thesis
+    using aff_dim_parallel_eq[of S "(\<lambda>x. a + x) ` S"] by auto
 qed
 
 lemma aff_dim_affine:
-fixes S L :: "('n::euclidean_space) set"
-assumes "S ~= {}" "affine S"
-assumes "subspace L" "affine_parallel S L"
-shows "aff_dim S=int(dim L)"
-proof-
-have 1: "(affine hull S) = S" using assms affine_hull_eq[of S] by auto
-hence "affine_parallel (affine hull S) L" using assms by (simp add:1)
-from this show ?thesis using assms aff_dim_parallel_subspace[of S L] by blast
+  fixes S L :: "'n::euclidean_space set"
+  assumes "S \<noteq> {}"
+    and "affine S"
+    and "subspace L"
+    and "affine_parallel S L"
+  shows "aff_dim S = int (dim L)"
+proof -
+  have *: "affine hull S = S"
+    using assms affine_hull_eq[of S] by auto
+  then have "affine_parallel (affine hull S) L"
+    using assms by (simp add: *)
+  then show ?thesis
+    using assms aff_dim_parallel_subspace[of S L] by blast
 qed
 
 lemma dim_affine_hull:
-fixes S :: "('n::euclidean_space) set"
-shows "dim (affine hull S)=dim S"
-proof-
-have "dim (affine hull S)>=dim S" using dim_subset by auto
-moreover have "dim(span S) >= dim (affine hull S)" using dim_subset affine_hull_subset_span by auto
-moreover have "dim(span S)=dim S" using dim_span by auto
-ultimately show ?thesis by auto
+  fixes S :: "'n::euclidean_space set"
+  shows "dim (affine hull S) = dim S"
+proof -
+  have "dim (affine hull S) \<ge> dim S"
+    using dim_subset by auto
+  moreover have "dim (span S) \<ge> dim (affine hull S)"
+    using dim_subset affine_hull_subset_span by auto
+  moreover have "dim (span S) = dim S"
+    using dim_span by auto
+  ultimately show ?thesis by auto
 qed
 
 lemma aff_dim_subspace:
-fixes S :: "('n::euclidean_space) set"
-assumes "S ~= {}" "subspace S"
-shows "aff_dim S=int(dim S)" using aff_dim_affine[of S S] assms subspace_imp_affine[of S] affine_parallel_reflex[of S] by auto
+  fixes S :: "'n::euclidean_space set"
+  assumes "S \<noteq> {}"
+    and "subspace S"
+  shows "aff_dim S = int (dim S)"
+  using aff_dim_affine[of S S] assms subspace_imp_affine[of S] affine_parallel_reflex[of S]
+  by auto
 
 lemma aff_dim_zero:
-fixes S :: "('n::euclidean_space) set"
-assumes "0 : affine hull S"
-shows "aff_dim S=int(dim S)"
-proof-
-have "subspace(affine hull S)" using subspace_affine[of "affine hull S"] affine_affine_hull assms by auto
-hence "aff_dim (affine hull S) =int(dim (affine hull S))" using assms aff_dim_subspace[of "affine hull S"] by auto
-from this show ?thesis using aff_dim_affine_hull[of S] dim_affine_hull[of S] by auto
+  fixes S :: "'n::euclidean_space set"
+  assumes "0 \<in> affine hull S"
+  shows "aff_dim S = int (dim S)"
+proof -
+  have "subspace (affine hull S)"
+    using subspace_affine[of "affine hull S"] affine_affine_hull assms
+    by auto
+  then have "aff_dim (affine hull S) = int (dim (affine hull S))"
+    using assms aff_dim_subspace[of "affine hull S"] by auto
+  then show ?thesis
+    using aff_dim_affine_hull[of S] dim_affine_hull[of S]
+    by auto
 qed
 
 lemma aff_dim_univ: "aff_dim (UNIV :: ('n::euclidean_space) set) = int(DIM('n))"
   using aff_dim_subspace[of "(UNIV :: ('n::euclidean_space) set)"]
-    dim_UNIV[where 'a="'n::euclidean_space"] by auto
+    dim_UNIV[where 'a="'n::euclidean_space"]
+  by auto
 
 lemma aff_dim_geq:
-  fixes V :: "('n::euclidean_space) set"
-  shows "aff_dim V >= -1"
-proof-
-obtain B where B_def: "affine hull B = affine hull V & ~ affine_dependent B & int (card B) = aff_dim V + 1" using aff_dim_basis_exists by auto
-from this show ?thesis by auto
+  fixes V :: "'n::euclidean_space set"
+  shows "aff_dim V \<ge> -1"
+proof -
+  obtain B where
+    B_def: "affine hull B = affine hull V" "\<not> affine_dependent B" "int (card B) = aff_dim V + 1"
+    using aff_dim_basis_exists by auto
+  then show ?thesis by auto
 qed
 
 lemma independent_card_le_aff_dim:
-  assumes "(B::('n::euclidean_space) set) <= V"
-  assumes "~(affine_dependent B)"
-  shows "int(card B) <= aff_dim V+1"
-proof-
-{ assume "B~={}"
-  from this obtain T where T_def: "~(affine_dependent T) & B<=T & T<=V & affine hull T = affine hull V"
-  using assms extend_to_affine_basis[of B V] by auto
-  hence "of_nat(card T) = aff_dim V+1" using aff_dim_unique by auto
-  hence ?thesis using T_def card_mono[of T B] aff_independent_finite[of T] by auto
-}
-moreover
-{ assume "B={}"
-  moreover have "-1<= aff_dim V" using aff_dim_geq by auto
-  ultimately have ?thesis by auto
-}  ultimately show ?thesis by blast
+  assumes "(B:: 'n::euclidean_space set) \<subseteq> V"
+  assumes "\<not> affine_dependent B"
+  shows "int (card B) \<le> aff_dim V + 1"
+proof (cases "B = {}")
+  case True
+  then have "-1 \<le> aff_dim V"
+    using aff_dim_geq by auto
+  with True show ?thesis by auto
+next
+  case False
+  then obtain T where T_def: "\<not> affine_dependent T \<and> B \<subseteq> T \<and> T \<subseteq> V \<and> affine hull T = affine hull V"
+    using assms extend_to_affine_basis[of B V] by auto
+  then have "of_nat (card T) = aff_dim V + 1"
+    using aff_dim_unique by auto
+  then show ?thesis
+    using T_def card_mono[of T B] aff_independent_finite[of T] by auto
 qed
 
 lemma aff_dim_subset:
   fixes S T :: "('n::euclidean_space) set"
   assumes "S <= T"
   shows "aff_dim S <= aff_dim T"
-proof-
-obtain B where B_def: "~(affine_dependent B) & B<=S & (affine hull B=affine hull S) & of_nat(card B) = aff_dim S+1" using aff_dim_inner_basis_exists[of S] by auto
-moreover hence "int (card B) <= aff_dim T + 1" using assms independent_card_le_aff_dim[of B T] by auto
-ultimately show ?thesis by auto
+proof -
+  obtain B where B_def: "\<not> affine_dependent B \<and> B \<subseteq> S \<and> affine hull B = affine hull S \<and>
+    of_nat (card B) = aff_dim S + 1"
+    using aff_dim_inner_basis_exists[of S] by auto
+  then have "int (card B) \<le> aff_dim T + 1"
+    using assms independent_card_le_aff_dim[of B T] by auto
+  with B_def show ?thesis by auto
 qed
 
 lemma aff_dim_subset_univ:
-fixes S :: "('n::euclidean_space) set"
-shows "aff_dim S <= int(DIM('n))"
+  fixes S :: "'n::euclidean_space set"
+  shows "aff_dim S \<le> int (DIM('n))"
 proof -
-  have "aff_dim (UNIV :: ('n::euclidean_space) set) = int(DIM('n))" using aff_dim_univ by auto
-  from this show "aff_dim (S:: ('n::euclidean_space) set) <= int(DIM('n))" using assms aff_dim_subset[of S "(UNIV :: ('n::euclidean_space) set)"] subset_UNIV by auto
+  have "aff_dim (UNIV :: 'n::euclidean_space set) = int(DIM('n))"
+    using aff_dim_univ by auto
+  then show "aff_dim (S:: 'n::euclidean_space set) \<le> int(DIM('n))"
+    using assms aff_dim_subset[of S "(UNIV :: ('n::euclidean_space) set)"] subset_UNIV by auto
 qed
 
 lemma affine_dim_equal:
