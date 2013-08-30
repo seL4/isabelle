@@ -54,9 +54,9 @@ object Completion
 
 final class Completion private(
   words_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  words_map: Map[String, String] = Map.empty,
+  words_map: Multi_Map[String, String] = Multi_Map.empty,
   abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
-  abbrevs_map: Map[String, (String, String)] = Map.empty)
+  abbrevs_map: Multi_Map[String, (String, String)] = Multi_Map.empty)
 {
   /* adding stuff */
 
@@ -95,12 +95,15 @@ final class Completion private(
     val raw_result =
       abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
         case abbrevs_lex.Success(reverse_a, _) =>
-          val (word, c) = abbrevs_map(reverse_a)
-          Some(word, List(c))
+          val abbrevs = abbrevs_map.get_list(reverse_a)
+          abbrevs match {
+            case Nil => None
+            case (a, _) :: _ => Some((a, abbrevs.map(_._2)))
+          }
         case _ =>
           Completion.Parse.read(line) match {
             case Some(word) =>
-              words_lex.completions(word).map(words_map(_)) match {
+              words_lex.completions(word).map(words_map.get_list(_)).flatten match {
                 case Nil => None
                 case cs => Some(word, cs.sorted)
               }
