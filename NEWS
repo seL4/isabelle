@@ -158,7 +158,7 @@ to distinguish both when desired.
 
 * HOL/BNF:
   - Various improvements to BNF-based (co)datatype package, including a
-    "primrec_new" command, a "datatype_compat" command, and
+    "primrec_new" command, a "datatype_new_compat" command, and
     documentation. See "datatypes.pdf" for details.
   - Renamed keywords:
     data ~> datatype_new
