@@ -141,7 +141,7 @@ situations.
 
 *** HOL ***
 
-* Improved support for adhoc overloading of constants (see also
+* Improved support for ad hoc overloading of constants (see also
 isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).
 
 * Attibute 'code': 'code' now declares concrete and abstract code
@@ -156,6 +156,20 @@ to distinguish both when desired.
   See the isar-ref manual for syntax diagrams, and the HOL theories
   for examples.
 
+* HOL/BNF:
+  - Various improvements to BNF-based (co)datatype package, including a
+    "primrec_new" command, a "datatype_compat" command, and
+    documentation. See "datatypes.pdf" for details.
+  - Renamed keywords:
+    data ~> datatype_new
+    codata ~> codatatype
+    bnf_def ~> bnf
+  - Renamed many generated theorems, including
+    map_comp' ~> map_comp
+    map_id' ~> map_id
+    set_map' ~> set_map
+IMCOMPATIBILITY.
+
 * Library/Polynomial.thy:
   - Use lifting for primitive definitions.
   - Explicit conversions from and to lists of coefficients, used for
@@ -166,7 +180,7 @@ to distinguish both when desired.
     poly_eq_iff ~> poly_eq_poly_eq_iff
     poly_ext ~> poly_eqI
     expand_poly_eq ~> poly_eq_iff
-IMCOMPATIBILTIY.
+IMCOMPATIBILITY.
 
 * Reification and reflection:
   - Reification is now directly available in HOL-Main in structure

@@ -6,8 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and Jasmin Blanchette, TUM
+  Various improvements to BNF-based (co)datatype package, including a
+  "primrec_new" command and a compatibility layer.
+
 * Summer 2013: Christian Sternagel, JAIST
-  Improved support for adhoc overloading of constants, including
+  Improved support for ad hoc overloading of constants, including
   documentation and examples.
 
 * May 2013: Florian Haftmann, TUM
