@@ -192,10 +192,10 @@
 \<Updown>               code: 0x0021d5  group: arrow
 \<langle>               code: 0x0027e8  group: punctuation  abbrev: <<
 \<rangle>               code: 0x0027e9  group: punctuation  abbrev: >>
-\<lceil>                code: 0x002308  group: punctuation
-\<rceil>                code: 0x002309  group: punctuation
-\<lfloor>               code: 0x00230a  group: punctuation
-\<rfloor>               code: 0x00230b  group: punctuation
+\<lceil>                code: 0x002308  group: punctuation  abbrev: [.
+\<rceil>                code: 0x002309  group: punctuation  abbrev: .]
+\<lfloor>               code: 0x00230a  group: punctuation  abbrev: [.
+\<rfloor>               code: 0x00230b  group: punctuation  abbrev: .]
 \<lparr>                code: 0x002987  group: punctuation  abbrev: (|
 \<rparr>                code: 0x002988  group: punctuation  abbrev: |)
 \<lbrakk>               code: 0x0027e6  group: punctuation  abbrev: [|
@@ -269,7 +269,7 @@
 \<preceq>               code: 0x00227c  group: relation
 \<succeq>               code: 0x00227d  group: relation
 \<parallel>             code: 0x002225  group: punctuation  abbrev: ||
-\<bar>                  code: 0x0000a6  group: punctuation
+\<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
 \<minusplus>            code: 0x002213  group: operator
 \<times>                code: 0x0000d7  group: operator  abbrev: *
