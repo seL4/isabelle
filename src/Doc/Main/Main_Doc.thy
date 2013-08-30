@@ -131,13 +131,14 @@ Library}.
 \subsubsection*{Syntax}
 
 \begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
-@{text"{x\<^sub>1,\<dots>,x\<^sub>n}"} & @{text"insert x\<^sub>1 (\<dots> (insert x\<^sub>n {})\<dots>)"}\\
-@{term"x ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
+@{text"{a\<^sub>1,\<dots>,a\<^sub>n}"} & @{text"insert a\<^sub>1 (\<dots> (insert a\<^sub>n {})\<dots>)"}\\
+@{term"a ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
 @{term"A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
 @{term"A \<subset> B"} & @{term[source]"A < B"}\\
 @{term[source]"A \<supseteq> B"} & @{term[source]"B \<le> A"}\\
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term"{x. P}"} & @{term[source]"Collect (\<lambda>x. P)"}\\
+@{text"{t | x\<^sub>1 \<dots> x\<^sub>n. P}"} & @{text"{v. \<exists>x\<^sub>1 \<dots> x\<^sub>n. v = t \<and> P}"}\\
 @{term[mode=xsymbols]"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
 @{term[mode=xsymbols]"UN x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
 @{term[mode=xsymbols]"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
