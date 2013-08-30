@@ -602,8 +602,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
-    val nesting_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
-    val nested_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs;
+    val nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
+    val nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs;
     val nested_set_maps = maps set_map_of_bnf nested_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
@@ -726,7 +726,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
         val goalss = map5 (map4 o mk_goal fss) fiters xctrss fss xsss fxsss;
 
         val tacss =
-          map2 (map o mk_iter_tac pre_map_defs (nested_map_id's @ nesting_map_id's) iter_defs)
+          map2 (map o mk_iter_tac pre_map_defs (nested_map_idents @ nesting_map_idents) iter_defs)
             ctor_iter_thms ctr_defss;
 
         fun prove goal tac =
@@ -763,7 +763,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nesting_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
+    val nesting_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nesting_bnfs;
     val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
@@ -919,10 +919,10 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
         val unfold_tacss =
-          map3 (map oo mk_coiter_tac unfold_defs nesting_map_id's)
+          map3 (map oo mk_coiter_tac unfold_defs nesting_map_idents)
             (map un_fold_of ctor_dtor_coiter_thmss) pre_map_defs ctr_defss;
         val corec_tacss =
-          map3 (map oo mk_coiter_tac corec_defs nesting_map_id's)
+          map3 (map oo mk_coiter_tac corec_defs nesting_map_idents)
             (map co_rec_of ctor_dtor_coiter_thmss) pre_map_defs ctr_defss;
 
         fun prove goal tac =

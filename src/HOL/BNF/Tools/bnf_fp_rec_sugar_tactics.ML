@@ -22,10 +22,10 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-fun mk_primrec_tac ctxt num_extra_args map_id's map_comps fun_defs recx =
+fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (@{thms id_def split o_def fst_conv snd_conv} @ map_comps @ map_id's) THEN
+  unfold_thms_tac ctxt (@{thms id_def split o_def fst_conv snd_conv} @ map_comps @ map_idents) THEN
   HEADGOAL (rtac refl);
 
 fun mk_primcorec_taut_tac ctxt =
@@ -54,10 +54,10 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc k m exclsss =
   mk_primcorec_prelude ctxt defs disc THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_eq_tac ctxt defs sel k m exclsss maps map_id's map_comps =
+fun mk_primcorec_eq_tac ctxt defs sel k m exclsss maps map_idents map_comps =
   mk_primcorec_prelude ctxt defs (sel RS trans) THEN mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False o_def split_def sum.cases} @
-    maps @ map_comps @ map_id's) THEN HEADGOAL (rtac refl);
+    maps @ map_comps @ map_idents) THEN HEADGOAL (rtac refl);
 
 fun mk_primcorec_dtr_to_ctr_tac ctxt m collapse disc sels =
   HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc THEN' REPEAT_DETERM_N m o atac) THEN

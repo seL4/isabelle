@@ -94,17 +94,17 @@ val iter_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
       split_conv unit_case_Unity} @ sum_prod_thms_map;
 
-fun mk_iter_tac pre_map_defs map_id's iter_defs ctor_iter ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_id's @
+fun mk_iter_tac pre_map_defs map_idents iter_defs ctor_iter ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_idents @
     iter_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val coiter_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
 
-fun mk_coiter_tac coiter_defs map_id's ctor_dtor_coiter pre_map_def ctr_def ctxt =
+fun mk_coiter_tac coiter_defs map_idents ctor_dtor_coiter pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
   HEADGOAL (rtac (ctor_dtor_coiter RS trans) THEN'
     asm_simp_tac (put_simpset ss_if_True_False ctxt)) THEN_MAYBE
-  (unfold_thms_tac ctxt (pre_map_def :: map_id's @ coiter_unfold_thms) THEN
+  (unfold_thms_tac ctxt (pre_map_def :: map_idents @ coiter_unfold_thms) THEN
    HEADGOAL (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)));
 
 fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =

@@ -14,10 +14,6 @@ sig
     Proof.state
 end;
 
-(* TODO:
-     - error handling for indirect calls
-*)
-
 structure BNF_FP_Rec_Sugar : BNF_FP_REC_SUGAR =
 struct
 
@@ -341,7 +337,7 @@ fun add_primrec fixes specs lthy =
 
     val defs = build_defs lthy' bs funs_data rec_specs get_indices;
 
-    fun prove def_thms' {ctr_specs, nested_map_id's, nested_map_comps, ...} induct_thm fun_data
+    fun prove def_thms' {ctr_specs, nested_map_idents, nested_map_comps, ...} induct_thm fun_data
         lthy =
       let
         val fun_name = #fun_name (hd fun_data);
@@ -351,7 +347,7 @@ fun add_primrec fixes specs lthy =
           |> map_filter (try (fn (x, [y]) =>
             (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map (fn (user_eqn, num_extra_args, rec_thm) =>
-            mk_primrec_tac lthy num_extra_args nested_map_id's nested_map_comps def_thms rec_thm
+            mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
             |> K |> Goal.prove lthy [] [] user_eqn)
 
         val notes =

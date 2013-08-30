@@ -35,7 +35,7 @@ sig
 
   type rec_spec =
     {recx: term,
-     nested_map_id's: thm list,
+     nested_map_idents: thm list,
      nested_map_comps: thm list,
      ctr_specs: rec_ctr_spec list}
 
@@ -94,7 +94,7 @@ type corec_ctr_spec =
 
 type rec_spec =
   {recx: term,
-   nested_map_id's: thm list,
+   nested_map_idents: thm list,
    nested_map_comps: thm list,
    ctr_specs: rec_ctr_spec list};
 
@@ -336,7 +336,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     fun mk_spec {T, index, ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...} =
       {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of (nth iterss index)),
-       nested_map_id's = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
+       nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars iter_thmsss};
   in
