@@ -216,27 +216,28 @@ object Symbol
     private val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
     private val Key = new Regex("""(?xs) (.+): """)
 
-    private def read_decl(decl: String): (Symbol, Map[String, String]) =
+    private def read_decl(decl: String): (Symbol, Properties.T) =
     {
       def err() = error("Bad symbol declaration: " + decl)
 
-      def read_props(props: List[String]): Map[String, String] =
+      def read_props(props: List[String]): Properties.T =
       {
         props match {
-          case Nil => Map()
+          case Nil => Nil
           case _ :: Nil => err()
-          case Key(x) :: y :: rest => read_props(rest) + (x -> y)
+          case Key(x) :: y :: rest => (x -> y) :: read_props(rest)
           case _ => err()
         }
       }
       decl.split("\\s+").toList match {
-        case sym :: props if sym.length > 1 && !is_malformed(sym) => (sym, read_props(props))
+        case sym :: props if sym.length > 1 && !is_malformed(sym) =>
+          (sym, read_props(props))
         case _ => err()
       }
     }
 
-    private val symbols: List[(Symbol, Map[String, String])] =
-      (((List.empty[(Symbol, Map[String, String])], Set.empty[Symbol]) /:
+    private val symbols: List[(Symbol, Properties.T)] =
+      (((List.empty[(Symbol, Properties.T)], Set.empty[Symbol]) /:
           split_lines(symbols_spec).reverse)
         { case (res, No_Decl()) => res
           case ((list, known), decl) =>
@@ -255,28 +256,35 @@ object Symbol
     }
 
     val groups: List[(String, List[Symbol])] =
-      symbols.map({ case (sym, props) => (sym, props.getOrElse("group", "unsorted")) })
+      symbols.map({ case (sym, props) =>
+        val gs = for (("group", g) <- props) yield g
+        if (gs.isEmpty) List(sym -> "unsorted") else gs.map(sym -> _)
+      }).flatten
         .groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
         .sortBy(_._1)
 
-    val abbrevs: Map[Symbol, String] =
-      Map((
-        for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
-          yield (sym -> props("abbrev"))): _*)
+    val abbrevs: Multi_Map[Symbol, String] =
+      Multi_Map((
+        for {
+          (sym, props) <- symbols
+          ("abbrev", a) <- props.reverse
+        } yield (sym -> a)): _*)
 
 
     /* recoding */
 
+    private val Code = new Properties.String("code")
     private val (decoder, encoder) =
     {
       val mapping =
         for {
           (sym, props) <- symbols
           code =
-            try { Integer.decode(props("code")).intValue }
-            catch {
-              case _: NoSuchElementException => error("Missing code for symbol " + sym)
-              case _: NumberFormatException => error("Bad code for symbol " + sym)
+            props match {
+              case Code(s) =>
+                try { Integer.decode(s).intValue }
+                catch { case _: NumberFormatException => error("Bad code for symbol " + sym) }
+              case _ => error("Missing code for symbol " + sym)
             }
           ch = new String(Character.toChars(code))
         } yield {
@@ -305,10 +313,9 @@ object Symbol
 
     /* user fonts */
 
+    private val Font = new Properties.String("font")
     val fonts: Map[Symbol, String] =
-      recode_map((
-        for ((sym, props) <- symbols if props.isDefinedAt("font"))
-          yield (sym -> props("font"))): _*)
+      recode_map((for ((sym, Font(font)) <- symbols) yield (sym -> font)): _*)
 
     val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
     val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
@@ -376,7 +383,7 @@ object Symbol
 
   def names: Map[Symbol, String] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
-  def abbrevs: Map[Symbol, String] = symbols.abbrevs
+  def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs
 
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
