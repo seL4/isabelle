@@ -59,17 +59,22 @@ proof -
       using fi a span_inc by (auto simp add: inj_on_def)
     from a have "f a : f ` span (S -{a})"
       unfolding eq span_linear_image[OF lf, of "S - {a}"] by blast
-    moreover have "span (S -{a}) <= span S" using span_mono[of "S-{a}" S] by auto
-    ultimately have "a : span (S -{a})" using fi a span_inc by (auto simp add: inj_on_def)
-    with a(1) iS have False by (simp add: dependent_def)
+    moreover have "span (S -{a}) <= span S"
+      using span_mono[of "S-{a}" S] by auto
+    ultimately have "a : span (S -{a})"
+      using fi a span_inc by (auto simp add: inj_on_def)
+    with a(1) iS have False
+      by (simp add: dependent_def)
   }
-  then show ?thesis unfolding dependent_def by blast
+  then show ?thesis
+    unfolding dependent_def by blast
 qed
 
 lemma dim_image_eq:
   fixes f :: "'n::euclidean_space => 'm::euclidean_space"
-  assumes lf: "linear f" and fi: "inj_on f (span S)"
-  shows "dim (f ` S) = dim (S:: ('n::euclidean_space) set)"
+  assumes lf: "linear f"
+    and fi: "inj_on f (span S)"
+  shows "dim (f ` S) = dim (S::('n::euclidean_space) set)"
 proof -
   obtain B where B_def: "B \<subseteq> S & independent B & S \<subseteq> span B & card B = dim S"
     using basis_exists[of S] by auto
@@ -79,10 +84,12 @@ proof -
     using independent_injective_on_span_image[of B f] B_def assms by auto
   moreover have "card (f ` B) = card B"
     using assms card_image[of f B] subset_inj_on[of f "span S" B] B_def span_inc by auto
-  moreover have "(f ` B) \<subseteq> (f ` S)" using B_def by auto
+  moreover have "(f ` B) \<subseteq> (f ` S)"
+    using B_def by auto
   ultimately have "dim (f ` S) \<ge> dim S"
     using independent_card_le_dim[of "f ` B" "f ` S"] B_def by auto
-  then show ?thesis using dim_image_le[of f S] assms by auto
+  then show ?thesis
+    using dim_image_le[of f S] assms by auto
 qed
 
 lemma linear_injective_on_subspace_0:
@@ -154,12 +161,12 @@ lemma indep_card_eq_dim_span:
   shows "finite B & card B = dim (span B)"
   using assms basis_card_eq_dim[of B "span B"] span_inc by auto
 
-lemma setsum_not_0: "setsum f A ~= 0 ==> EX a:A. f a ~= 0"
+lemma setsum_not_0: "setsum f A \<noteq> 0 \<Longrightarrow> \<exists> a\<in>A. f a \<noteq> 0"
   by (rule ccontr) auto
 
 lemma translate_inj_on:
   fixes A :: "('a::ab_group_add) set"
-  shows "inj_on (%x. a+x) A"
+  shows "inj_on (\<lambda>x. a+x) A"
   unfolding inj_on_def by auto
 
 lemma translation_assoc:
@@ -172,7 +179,7 @@ lemma translation_invert:
   assumes "(\<lambda>x. a+x) ` A = (\<lambda>x. a+x) ` B"
   shows "A = B"
 proof -
-  have "(%x. -a+x) ` ((%x. a+x) ` A) = (%x. -a+x) ` ((%x. a+x) ` B)"
+  have "(\<lambda>x. -a+x) ` ((\<lambda>x. a+x) ` A) = (\<lambda>x. -a+x) ` ((\<lambda>x. a+x) ` B)"
     using assms by auto
   then show ?thesis
     using translation_assoc[of "-a" a A] translation_assoc[of "-a" a B] by auto
@@ -180,43 +187,49 @@ qed
 
 lemma translation_galois:
   fixes a :: "'a::ab_group_add"
-  shows "T=((\<lambda>x. a+x) ` S) <-> S=((\<lambda>x. (-a)+x) ` T)"
-  using translation_assoc[of "-a" a S] apply auto
-  using translation_assoc[of a "-a" T] apply auto
+  shows "T = ((\<lambda>x. a+x) ` S) \<longleftrightarrow> S = ((\<lambda>x. (-a)+x) ` T)"
+  using translation_assoc[of "-a" a S]
+  apply auto
+  using translation_assoc[of a "-a" T]
+  apply auto
   done
 
 lemma translation_inverse_subset:
-  assumes "((%x. -a+x) ` V) <= (S :: 'n::ab_group_add set)"
-  shows "V <= ((%x. a+x) ` S)"
+  assumes "((%x. -a+x) ` V) \<le> (S :: 'n::ab_group_add set)"
+  shows "V \<le> ((%x. a+x) ` S)"
 proof -
-  { fix x
-    assume "x:V"
-    then have "x-a : S" using assms by auto
-    then have "x : {a + v |v. v : S}"
+  {
+    fix x
+    assume "x \<in> V"
+    then have "x-a \<in> S" using assms by auto
+    then have "x \<in> {a + v |v. v \<in> S}"
       apply auto
       apply (rule exI[of _ "x-a"])
       apply simp
       done
-    then have "x : ((%x. a+x) ` S)" by auto
-  } then show ?thesis by auto
+    then have "x \<in> ((\<lambda>x. a+x) ` S)" by auto
+  }
+  then show ?thesis by auto
 qed
 
 lemma basis_to_basis_subspace_isomorphism:
   assumes s: "subspace (S:: ('n::euclidean_space) set)"
     and t: "subspace (T :: ('m::euclidean_space) set)"
     and d: "dim S = dim T"
-    and B: "B <= S" "independent B" "S <= span B" "card B = dim S"
-    and C: "C <= T" "independent C" "T <= span C" "card C = dim T"
-  shows "EX f. linear f & f ` B = C & f ` S = T & inj_on f S"
+    and B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S"
+    and C: "C \<subseteq> T" "independent C" "T \<subseteq> span C" "card C = dim T"
+  shows "\<exists>f. linear f \<and> f ` B = C \<and> f ` S = T \<and> inj_on f S"
 proof -
 (* Proof is a modified copy of the proof of similar lemma subspace_isomorphism
 *)
-  from B independent_bound have fB: "finite B" by blast
-  from C independent_bound have fC: "finite C" by blast
+  from B independent_bound have fB: "finite B"
+    by blast
+  from C independent_bound have fC: "finite C"
+    by blast
   from B(4) C(4) card_le_inj[of B C] d obtain f where
     f: "f ` B \<subseteq> C" "inj_on f B" using `finite B` `finite C` by auto
   from linear_independent_extend[OF B(2)] obtain g where
-    g: "linear g" "\<forall>x\<in> B. g x = f x" by blast
+    g: "linear g" "\<forall>x \<in> B. g x = f x" by blast
   from inj_on_iff_eq_card[OF fB, of f] f(2)
   have "card (f ` B) = card B" by simp
   with B(4) C(4) have ceq: "card (f ` B) = card C" using d
@@ -228,51 +241,59 @@ proof -
   have gi: "inj_on g B" using f(2) g(2)
     by (auto simp add: inj_on_def)
   note g0 = linear_indep_image_lemma[OF g(1) fB, unfolded gBC, OF C(2) gi]
-  { fix x y
+  {
+    fix x y
     assume x: "x \<in> S" and y: "y \<in> S" and gxy: "g x = g y"
-    from B(3) x y have x': "x \<in> span B" and y': "y \<in> span B" by blast+
-    from gxy have th0: "g (x - y) = 0" by (simp add: linear_sub[OF g(1)])
-    have th1: "x - y \<in> span B" using x' y' by (metis span_sub)
-    have "x=y" using g0[OF th1 th0] by simp
-  } then have giS: "inj_on g S" unfolding inj_on_def by blast
+    from B(3) x y have x': "x \<in> span B" and y': "y \<in> span B"
+      by blast+
+    from gxy have th0: "g (x - y) = 0"
+      by (simp add: linear_sub[OF g(1)])
+    have th1: "x - y \<in> span B" using x' y'
+      by (metis span_sub)
+    have "x = y" using g0[OF th1 th0] by simp
+  }
+  then have giS: "inj_on g S" unfolding inj_on_def by blast
   from span_subspace[OF B(1,3) s]
-  have "g ` S = span (g ` B)" by (simp add: span_linear_image[OF g(1)])
-  also have "\<dots> = span C" unfolding gBC ..
-  also have "\<dots> = T" using span_subspace[OF C(1,3) t] .
+  have "g ` S = span (g ` B)"
+    by (simp add: span_linear_image[OF g(1)])
+  also have "\<dots> = span C"
+    unfolding gBC ..
+  also have "\<dots> = T"
+    using span_subspace[OF C(1,3) t] .
   finally have gS: "g ` S = T" .
-  from g(1) gS giS gBC show ?thesis by blast
+  from g(1) gS giS gBC show ?thesis
+    by blast
 qed
 
 lemma closure_bounded_linear_image:
   assumes f: "bounded_linear f"
-  shows "f ` (closure S) \<subseteq> closure (f ` S)"
+  shows "f ` closure S \<subseteq> closure (f ` S)"
   using linear_continuous_on [OF f] closed_closure closure_subset
   by (rule image_closure_subset)
 
 lemma closure_linear_image:
-  fixes f :: "('m::euclidean_space) => ('n::real_normed_vector)"
+  fixes f :: "('m::euclidean_space) \<Rightarrow> ('n::real_normed_vector)"
   assumes "linear f"
-  shows "f ` (closure S) <= closure (f ` S)"
+  shows "f ` (closure S) \<le> closure (f ` S)"
   using assms unfolding linear_conv_bounded_linear
   by (rule closure_bounded_linear_image)
 
 lemma closure_injective_linear_image:
-  fixes f :: "('n::euclidean_space) => ('n::euclidean_space)"
+  fixes f :: "('n::euclidean_space) \<Rightarrow> ('n::euclidean_space)"
   assumes "linear f" "inj f"
   shows "f ` (closure S) = closure (f ` S)"
 proof -
-  obtain f' where f'_def: "linear f' & f o f' = id & f' o f = id"
+  obtain f' where f'_def: "linear f' \<and> f o f' = id \<and> f' o f = id"
     using assms linear_injective_isomorphism[of f] isomorphism_expand by auto
-  then have "f' ` closure (f ` S) <= closure (S)"
+  then have "f' ` closure (f ` S) \<le> closure (S)"
     using closure_linear_image[of f' "f ` S"] image_compose[of f' f] by auto
-  then have "f ` f' ` closure (f ` S) <= f ` closure (S)" by auto
-  then have "closure (f ` S) <= f ` closure (S)"
+  then have "f ` f' ` closure (f ` S) \<le> f ` closure (S)" by auto
+  then have "closure (f ` S) \<le> f ` closure (S)"
     using image_compose[of f f' "closure (f ` S)"] f'_def by auto
   then show ?thesis using closure_linear_image[of f S] assms by auto
 qed
 
-lemma closure_direct_sum:
-  shows "closure (S <*> T) = closure S <*> closure T"
+lemma closure_direct_sum: "closure (S \<times> T) = closure S \<times> closure T"
   by (rule closure_Times)
 
 lemma closure_scaleR:
@@ -280,7 +301,8 @@ lemma closure_scaleR:
   shows "(op *\<^sub>R c) ` (closure S) = closure ((op *\<^sub>R c) ` S)"
 proof
   show "(op *\<^sub>R c) ` (closure S) \<subseteq> closure ((op *\<^sub>R c) ` S)"
-    using bounded_linear_scaleR_right by (rule closure_bounded_linear_image)
+    using bounded_linear_scaleR_right
+    by (rule closure_bounded_linear_image)
   show "closure ((op *\<^sub>R c) ` S) \<subseteq> (op *\<^sub>R c) ` (closure S)"
     by (intro closure_minimal image_mono closure_subset closed_scaling closed_closure)
 qed
@@ -300,8 +322,8 @@ lemma scaleR_2:
   unfolding one_add_one [symmetric] scaleR_left_distrib by simp
 
 lemma vector_choose_size:
-  "0 <= c ==> \<exists>(x::'a::euclidean_space). norm x = c"
-  apply (rule exI[where x="c *\<^sub>R (SOME i. i \<in> Basis)"])
+  "0 \<le> c \<Longrightarrow> \<exists>x::'a::euclidean_space. norm x = c"
+  apply (rule exI [where x="c *\<^sub>R (SOME i. i \<in> Basis)"])
   apply (auto simp: SOME_Basis)
   done
 
@@ -312,7 +334,8 @@ lemma setsum_delta_notmem:
     and "setsum (\<lambda>y. if (y = x) then P y else Q y) s = setsum Q s"
     and "setsum (\<lambda>y. if (x = y) then P y else Q y) s = setsum Q s"
   apply (rule_tac [!] setsum_cong2)
-  using assms apply auto
+  using assms
+  apply auto
   done
 
 lemma setsum_delta'':
@@ -326,7 +349,8 @@ proof -
     unfolding * using setsum_delta[OF assms, of y "\<lambda>x. f x *\<^sub>R x"] by auto
 qed
 
-lemma if_smult:"(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)" by auto
+lemma if_smult: "(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)"
+  by auto
 
 lemma image_smult_interval:
   "(\<lambda>x. m *\<^sub>R (x::'a::ordered_euclidean_space)) ` {a..b} =
@@ -335,7 +359,8 @@ lemma image_smult_interval:
 
 lemma dist_triangle_eq:
   fixes x y z :: "'a::real_inner"
-  shows "dist x z = dist x y + dist y z \<longleftrightarrow> norm (x - y) *\<^sub>R (y - z) = norm (y - z) *\<^sub>R (x - y)"
+  shows "dist x z = dist x y + dist y z \<longleftrightarrow>
+    norm (x - y) *\<^sub>R (y - z) = norm (y - z) *\<^sub>R (x - y)"
 proof -
   have *: "x - y + (y - z) = x - z" by auto
   show ?thesis unfolding dist_norm norm_triangle_eq[of "x - y" "y - z", unfolded *]
@@ -407,7 +432,8 @@ proof -
     apply (cases "x = y")
     using as(4)[THEN spec[where x="{x,y}"], THEN spec[where x="\<lambda>w. if w = x then u else v"]]
       and as(1-3)
-    by (auto simp add: scaleR_left_distrib[symmetric])
+    apply (auto simp add: scaleR_left_distrib[symmetric])
+    done
 next
   fix s u
   assume as: "\<forall>x\<in>V. \<forall>y\<in>V. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> V"
@@ -417,8 +443,10 @@ next
   then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
   proof (auto simp only: disjE)
     assume "card s = 2"
-    then have "card s = Suc (Suc 0)" by auto
-    then obtain a b where "s = {a, b}" unfolding card_Suc_eq by auto
+    then have "card s = Suc (Suc 0)"
+      by auto
+    then obtain a b where "s = {a, b}"
+      unfolding card_Suc_eq by auto
     then show ?thesis
       using as(1)[THEN bspec[where x=a], THEN bspec[where x=b]] using as(4,5)
       by (auto simp add: setsum_clauses(2))
@@ -440,7 +468,8 @@ next
       have "\<exists>x\<in>s. u x \<noteq> 1"
       proof (rule ccontr)
         assume "\<not> ?thesis"
-        then have "setsum u s = real_of_nat (card s)" unfolding card_eq_setsum by auto
+        then have "setsum u s = real_of_nat (card s)"
+          unfolding card_eq_setsum by auto
         then show False
           using as(7) and `card s > 2`
           by (metis One_nat_def less_Suc0 Zero_not_Suc of_nat_1 of_nat_eq_iff numeral_2_eq_2)
@@ -448,7 +477,10 @@ next
       then obtain x where x:"x\<in>s" "u x \<noteq> 1" by auto
 
       have c: "card (s - {x}) = card s - 1"
-        apply (rule card_Diff_singleton) using `x\<in>s` as(4) by auto
+        apply (rule card_Diff_singleton)
+        using `x\<in>s` as(4)
+        apply auto
+        done
       have *: "s = insert x (s - {x})" "finite (s - {x})"
         using `x\<in>s` and as(4) by auto
       have **: "setsum u (s - {x}) = 1 - u x"
@@ -467,40 +499,50 @@ next
         qed auto
         then show ?thesis
           apply (rule_tac IA[of "s - {x}" "\<lambda>y. (inverse (1 - u x) * u y)"])
-          unfolding setsum_right_distrib[symmetric] using as and *** and True
+          unfolding setsum_right_distrib[symmetric]
+          using as and *** and True
           apply auto
           done
       next
         case False
-        then have "card (s - {x}) = Suc (Suc 0)" using as(2) and c by auto
-        then obtain a b where "(s - {x}) = {a, b}" "a\<noteq>b" unfolding card_Suc_eq by auto
-        then show ?thesis using as(3)[THEN bspec[where x=a], THEN bspec[where x=b]]
+        then have "card (s - {x}) = Suc (Suc 0)"
+          using as(2) and c by auto
+        then obtain a b where "(s - {x}) = {a, b}" "a\<noteq>b"
+          unfolding card_Suc_eq by auto
+        then show ?thesis
+          using as(3)[THEN bspec[where x=a], THEN bspec[where x=b]]
           using *** *(2) and `s \<subseteq> V`
-          unfolding setsum_right_distrib by (auto simp add: setsum_clauses(2))
+          unfolding setsum_right_distrib
+          by (auto simp add: setsum_clauses(2))
       qed
       then have "u x + (1 - u x) = 1 \<Longrightarrow>
           u x *\<^sub>R x + (1 - u x) *\<^sub>R ((\<Sum>xa\<in>s - {x}. u xa *\<^sub>R xa) /\<^sub>R (1 - u x)) \<in> V"
         apply -
         apply (rule as(3)[rule_format])
         unfolding  Real_Vector_Spaces.scaleR_right.setsum
-        using x(1) as(6) apply auto
+        using x(1) as(6)
+        apply auto
         done
       then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
         unfolding scaleR_scaleR[symmetric] and scaleR_right.setsum [symmetric]
         apply (subst *)
         unfolding setsum_clauses(2)[OF *(2)]
-        using `u x \<noteq> 1` apply auto
+        using `u x \<noteq> 1`
+        apply auto
         done
     qed
   next
     assume "card s = 1"
-    then obtain a where "s={a}" by (auto simp add: card_Suc_eq)
-    then show ?thesis using as(4,5) by simp
+    then obtain a where "s={a}"
+      by (auto simp add: card_Suc_eq)
+    then show ?thesis
+      using as(4,5) by simp
   qed (insert `s\<noteq>{}` `finite s`, auto)
 qed
 
 lemma affine_hull_explicit:
-  "affine hull p = {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> setsum (\<lambda>v. (u v) *\<^sub>R v) s = y}"
+  "affine hull p =
+    {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> setsum (\<lambda>v. (u v) *\<^sub>R v) s = y}"
   apply (rule hull_unique)
   apply (subst subset_eq)
   prefer 3
@@ -514,14 +556,17 @@ proof -
   fix x
   assume "x\<in>p"
   then show "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-    apply (rule_tac x="{x}" in exI, rule_tac x="\<lambda>x. 1" in exI)
+    apply (rule_tac x="{x}" in exI)
+    apply (rule_tac x="\<lambda>x. 1" in exI)
     apply auto
     done
 next
   fix t x s u
-  assume as: "p \<subseteq> t" "affine t" "finite s" "s \<noteq> {}" "s \<subseteq> p" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
+  assume as: "p \<subseteq> t" "affine t" "finite s" "s \<noteq> {}"
+    "s \<subseteq> p" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
   then show "x \<in> t"
-    using as(2)[unfolded affine, THEN spec[where x=s], THEN spec[where x=u]] by auto
+    using as(2)[unfolded affine, THEN spec[where x=s], THEN spec[where x=u]]
+    by auto
 next
   show "affine {y. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y}"
     unfolding affine_def
@@ -533,20 +578,27 @@ next
     fix x
     assume "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
     then obtain sx ux where
-      x: "finite sx" "sx \<noteq> {}" "sx \<subseteq> p" "setsum ux sx = 1" "(\<Sum>v\<in>sx. ux v *\<^sub>R v) = x" by auto
-    fix y assume "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
+      x: "finite sx" "sx \<noteq> {}" "sx \<subseteq> p" "setsum ux sx = 1" "(\<Sum>v\<in>sx. ux v *\<^sub>R v) = x"
+      by auto
+    fix y
+    assume "\<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
     then obtain sy uy where
       y: "finite sy" "sy \<noteq> {}" "sy \<subseteq> p" "setsum uy sy = 1" "(\<Sum>v\<in>sy. uy v *\<^sub>R v) = y" by auto
-    have xy: "finite (sx \<union> sy)" using x(1) y(1) by auto
-    have **: "(sx \<union> sy) \<inter> sx = sx" "(sx \<union> sy) \<inter> sy = sy" by auto
+    have xy: "finite (sx \<union> sy)"
+      using x(1) y(1) by auto
+    have **: "(sx \<union> sy) \<inter> sx = sx" "(sx \<union> sy) \<inter> sy = sy"
+      by auto
     show "\<exists>s ua. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p \<and>
         setsum ua s = 1 \<and> (\<Sum>v\<in>s. ua v *\<^sub>R v) = u *\<^sub>R x + v *\<^sub>R y"
       apply (rule_tac x="sx \<union> sy" in exI)
       apply (rule_tac x="\<lambda>a. (if a\<in>sx then u * ux a else 0) + (if a\<in>sy then v * uy a else 0)" in exI)
-      unfolding scaleR_left_distrib setsum_addf if_smult scaleR_zero_left ** setsum_restrict_set[OF xy, symmetric]
-      unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric] and setsum_right_distrib[symmetric]
+      unfolding scaleR_left_distrib setsum_addf if_smult scaleR_zero_left
+        ** setsum_restrict_set[OF xy, symmetric]
+      unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric]
+        and setsum_right_distrib[symmetric]
       unfolding x y
-      using x(1-3) y(1-3) uv apply simp
+      using x(1-3) y(1-3) uv
+      apply simp
       done
   qed
 qed
@@ -554,9 +606,10 @@ qed
 lemma affine_hull_finite:
   assumes "finite s"
   shows "affine hull s = {y. \<exists>u. setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding affine_hull_explicit and set_eq_iff and mem_Collect_eq apply (rule,rule)
-  apply(erule exE)+
-  apply(erule conjE)+
+  unfolding affine_hull_explicit and set_eq_iff and mem_Collect_eq
+  apply (rule, rule)
+  apply (erule exE)+
+  apply (erule conjE)+
   defer
   apply (erule exE)
   apply (erule conjE)
@@ -566,12 +619,14 @@ proof -
   then show "\<exists>sa u. finite sa \<and>
       \<not> (\<forall>x. (x \<in> sa) = (x \<in> {})) \<and> sa \<subseteq> s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = x"
     apply (rule_tac x=s in exI, rule_tac x=u in exI)
-    using assms apply auto
+    using assms
+    apply auto
     done
 next
   fix x t u
   assume "t \<subseteq> s"
-  then have *: "s \<inter> t = t" by auto
+  then have *: "s \<inter> t = t"
+    by auto
   assume "finite t" "\<not> (\<forall>x. (x \<in> t) = (x \<in> {}))" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
   then show "\<exists>u. setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
     apply (rule_tac x="\<lambda>x. if x\<in>t then u x else 0" in exI)
@@ -630,7 +685,8 @@ proof -
       case True
       then show ?thesis
         apply (rule_tac x="\<lambda>x. (if x=a then v else 0) + u x" in exI)
-        unfolding setsum_clauses(2)[OF `?as`] apply simp
+        unfolding setsum_clauses(2)[OF `?as`]
+        apply simp
         unfolding scaleR_left_distrib and setsum_addf
         unfolding vu and * and scaleR_zero_left
         apply (auto simp add: setsum_delta[OF `?as`])
@@ -688,15 +744,15 @@ proof -
 qed
 
 lemma mem_affine:
-  assumes "affine S" "x : S" "y : S" "u + v = 1"
-  shows "(u *\<^sub>R x + v *\<^sub>R y) : S"
+  assumes "affine S" "x \<in> S" "y \<in> S" "u + v = 1"
+  shows "(u *\<^sub>R x + v *\<^sub>R y) \<in> S"
   using assms affine_def[of S] by auto
 
 lemma mem_affine_3:
-  assumes "affine S" "x : S" "y : S" "z : S" "u + v + w = 1"
-  shows "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) : S"
+  assumes "affine S" "x \<in> S" "y \<in> S" "z \<in> S" "u + v + w = 1"
+  shows "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) \<in> S"
 proof -
-  have "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) : affine hull {x, y, z}"
+  have "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) \<in> affine hull {x, y, z}"
     using affine_hull_3[of x y z] assms by auto
   moreover
   have "affine hull {x, y, z} <= affine hull S"
@@ -707,9 +763,10 @@ proof -
 qed
 
 lemma mem_affine_3_minus:
-  assumes "affine S" "x : S" "y : S" "z : S"
-  shows "x + v *\<^sub>R (y-z) : S"
-  using mem_affine_3[of S x y z 1 v "-v"] assms by (simp add: algebra_simps)
+  assumes "affine S" "x \<in> S" "y \<in> S" "z \<in> S"
+  shows "x + v *\<^sub>R (y-z) \<in> S"
+  using mem_affine_3[of S x y z 1 v "-v"] assms
+  by (simp add: algebra_simps)
 
 
 subsubsection {* Some relations between affine hull and subspaces *}
@@ -724,7 +781,8 @@ lemma affine_hull_insert_subset_span:
 proof -
   fix x t u
   assume as: "finite t" "t \<noteq> {}" "t \<subseteq> insert a s" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
-  have "(\<lambda>x. x - a) ` (t - {a}) \<subseteq> {x - a |x. x \<in> s}" using as(3) by auto
+  have "(\<lambda>x. x - a) ` (t - {a}) \<subseteq> {x - a |x. x \<in> s}"
+    using as(3) by auto
   then show "\<exists>v. x = a + v \<and> (\<exists>S u. finite S \<and> S \<subseteq> {x - a |x. x \<in> s} \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = v)"
     apply (rule_tac x="x - a" in exI)
     apply (rule conjI, simp)
@@ -752,9 +810,10 @@ proof (rule, rule, erule exE, erule conjE)
   then obtain t u where obt:"finite t" "t \<subseteq> {x - a |x. x \<in> s}" "a + (\<Sum>v\<in>t. u v *\<^sub>R v) = y"
     unfolding span_explicit by auto
   def f \<equiv> "(\<lambda>x. x + a) ` t"
-  have f:"finite f" "f \<subseteq> s" "(\<Sum>v\<in>f. u (v - a) *\<^sub>R (v - a)) = y - a"
+  have f: "finite f" "f \<subseteq> s" "(\<Sum>v\<in>f. u (v - a) *\<^sub>R (v - a)) = y - a"
     unfolding f_def using obt by (auto simp add: setsum_reindex[unfolded inj_on_def])
-  have *: "f \<inter> {a} = {}" "f \<inter> - {a} = f" using f(2) assms by auto
+  have *: "f \<inter> {a} = {}" "f \<inter> - {a} = f"
+    using f(2) assms by auto
   show "\<exists>sa u. finite sa \<and> sa \<noteq> {} \<and> sa \<subseteq> insert a s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = y"
     apply (rule_tac x = "insert a f" in exI)
     apply (rule_tac x = "\<lambda>x. if x=a then 1 - setsum (\<lambda>x. u (x - a)) f else u (x - a)" in exI)
@@ -773,25 +832,26 @@ lemma affine_hull_span:
 subsubsection {* Parallel affine sets *}
 
 definition affine_parallel :: "'a::real_vector set => 'a::real_vector set => bool"
-  where "affine_parallel S T = (? a. T = ((%x. a + x) ` S))"
+  where "affine_parallel S T = (? a. T = ((\<lambda>x. a + x) ` S))"
 
 lemma affine_parallel_expl_aux:
   fixes S T :: "'a::real_vector set"
-  assumes "!x. (x : S <-> (a+x) : T)"
-  shows "T = ((%x. a + x) ` S)"
+  assumes "\<forall>x. (x : S \<longleftrightarrow> (a+x) \<in> T)"
+  shows "T = ((\<lambda>x. a + x) ` S)"
 proof -
   {
     fix x
     assume "x : T"
-    then have "(-a)+x : S" using assms by auto
-    then have "x : ((%x. a + x) ` S)"
-      using imageI[of "-a+x" S "(%x. a+x)"] by auto
+    then have "(-a)+x \<in> S" using assms by auto
+    then have "x : ((\<lambda>x. a + x) ` S)"
+      using imageI[of "-a+x" S "(\<lambda>x. a+x)"] by auto
   }
-  moreover have "T >= ((%x. a + x) ` S)" using assms by auto
+  moreover have "T >= ((\<lambda>x. a + x) ` S)"
+    using assms by auto
   ultimately show ?thesis by auto
 qed
 
-lemma affine_parallel_expl: "affine_parallel S T = (? a. !x. (x : S <-> (a+x) : T))"
+lemma affine_parallel_expl: "affine_parallel S T = (\<exists>a. \<forall>x. (x \<in> S \<longleftrightarrow> (a+x) \<in> T))"
   unfolding affine_parallel_def
   using affine_parallel_expl_aux[of S _ T] by auto
 
@@ -805,20 +865,21 @@ lemma affine_parallel_commut:
   assumes "affine_parallel A B"
   shows "affine_parallel B A"
 proof -
-  from assms obtain a where "B=((%x. a + x) ` A)"
+  from assms obtain a where "B = (\<lambda>x. a + x) ` A"
     unfolding affine_parallel_def by auto
   then show ?thesis
-    using translation_galois[of B a A] unfolding affine_parallel_def by auto
+    using translation_galois [of B a A]
+    unfolding affine_parallel_def by auto
 qed
 
 lemma affine_parallel_assoc:
   assumes "affine_parallel A B" "affine_parallel B C"
   shows "affine_parallel A C"
 proof -
-  from assms obtain ab where "B=((%x. ab + x) ` A)"
+  from assms obtain ab where "B = (\<lambda>x. ab + x) ` A"
     unfolding affine_parallel_def by auto
   moreover
-  from assms obtain bc where "C=((%x. bc + x) ` B)"
+  from assms obtain bc where "C = (\<lambda>x. bc + x) ` B"
     unfolding affine_parallel_def by auto
   ultimately show ?thesis
     using translation_assoc[of bc ab A] unfolding affine_parallel_def by auto
@@ -826,18 +887,22 @@ qed
 
 lemma affine_translation_aux:
   fixes a :: "'a::real_vector"
-  assumes "affine ((%x. a + x) ` S)" shows "affine S"
+  assumes "affine ((\<lambda>x. a + x) ` S)"
+  shows "affine S"
 proof -
   {
     fix x y u v
-    assume xy: "x : S" "y : S" "(u :: real)+v=1"
-    then have "(a+x):((%x. a + x) ` S)" "(a+y):((%x. a + x) ` S)" by auto
-    then have h1: "u *\<^sub>R  (a+x) + v *\<^sub>R (a+y) : ((%x. a + x) ` S)"
+    assume xy: "x \<in> S" "y \<in> S" "(u :: real) + v = 1"
+    then have "(a + x) \<in> ((\<lambda>x. a + x) ` S)" "(a + y) \<in> ((\<lambda>x. a + x) ` S)"
+      by auto
+    then have h1: "u *\<^sub>R  (a+x) + v *\<^sub>R (a+y) \<in> ((\<lambda>x. a + x) ` S)"
       using xy assms unfolding affine_def by auto
     have "u *\<^sub>R (a+x) + v *\<^sub>R (a+y) = (u+v) *\<^sub>R a + (u *\<^sub>R x + v *\<^sub>R y)"
       by (simp add: algebra_simps)
-    also have "...= a + (u *\<^sub>R x + v *\<^sub>R y)" using `u+v=1` by auto
-    ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) : ((%x. a + x) ` S)" using h1 by auto
+    also have "...= a + (u *\<^sub>R x + v *\<^sub>R y)"
+      using `u+v=1` by auto
+    ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) : ((%x. a + x) ` S)"
+      using h1 by auto
     then have "u *\<^sub>R x + v *\<^sub>R y : S" by auto
   }
   then show ?thesis unfolding affine_def by auto
@@ -845,9 +910,9 @@ qed
 
 lemma affine_translation:
   fixes a :: "'a::real_vector"
-  shows "affine S <-> affine ((%x. a + x) ` S)"
+  shows "affine S \<longleftrightarrow> affine ((%x. a + x) ` S)"
 proof -
-  have "affine S ==> affine ((%x. a + x) ` S)"
+  have "affine S \<Longrightarrow> affine ((%x. a + x) ` S)"
     using affine_translation_aux[of "-a" "((%x. a + x) ` S)"]
     using translation_assoc[of "-a" a S] by auto
   then show ?thesis using affine_translation_aux by auto
@@ -869,22 +934,22 @@ lemma subspace_imp_affine: "subspace s \<Longrightarrow> affine s"
 
 subsubsection {* Subspace parallel to an affine set *}
 
-lemma subspace_affine: "subspace S <-> (affine S & 0 : S)"
+lemma subspace_affine: "subspace S \<longleftrightarrow> (affine S \<and> 0 : S)"
 proof -
-  have h0: "subspace S \<Longrightarrow> affine S & 0 \<in> S"
+  have h0: "subspace S \<Longrightarrow> affine S \<and> 0 \<in> S"
     using subspace_imp_affine[of S] subspace_0 by auto
   {
-    assume assm: "affine S & 0 : S"
+    assume assm: "affine S \<and> 0 \<in> S"
     {
       fix c :: real
-      fix x assume x_def: "x : S"
+      fix x assume x_def: "x \<in> S"
       have "c *\<^sub>R x = (1-c) *\<^sub>R 0 + c *\<^sub>R x" by auto
       moreover
       have "(1-c) *\<^sub>R 0 + c *\<^sub>R x : S"
         using affine_alt[of S] assm x_def by auto
-      ultimately have "c *\<^sub>R x : S" by auto
+      ultimately have "c *\<^sub>R x \<in> S" by auto
     }
-    then have h1: "!c. !x : S. c *\<^sub>R x : S" by auto
+    then have h1: "\<forall>c. \<forall>x \<in> S. c *\<^sub>R x \<in> S" by auto
 
     {
       fix x y
@@ -896,16 +961,16 @@ proof -
       have "(1/2) *\<^sub>R (x+y)=(1/2) *\<^sub>R x + (1-(1/2)) *\<^sub>R y"
         by (simp add: algebra_simps)
       moreover
-      have "(1-u) *\<^sub>R x + u *\<^sub>R y : S"
+      have "(1-u) *\<^sub>R x + u *\<^sub>R y \<in> S"
         using affine_alt[of S] assm xy_def by auto
       ultimately
-      have "(1/2) *\<^sub>R (x+y) : S"
+      have "(1/2) *\<^sub>R (x+y) \<in> S"
         using u_def by auto
       moreover
       have "(x+y) = 2 *\<^sub>R ((1/2) *\<^sub>R (x+y))"
         by auto
       ultimately
-      have "(x+y) : S"
+      have "(x+y) \<in> S"
         using h1[rule_format, of "(1/2) *\<^sub>R (x+y)" "2"] by auto
     }
     then have "\<forall>x \<in> S. \<forall>y \<in> S. x + y \<in> S"
@@ -917,13 +982,13 @@ proof -
 qed
 
 lemma affine_diffs_subspace:
-  assumes "affine S" "a : S"
+  assumes "affine S" "a \<in> S"
   shows "subspace ((\<lambda>x. (-a)+x) ` S)"
 proof -
   have "affine ((\<lambda>x. (-a)+x) ` S)"
     using  affine_translation assms by auto
   moreover have "0 : ((\<lambda>x. (-a)+x) ` S)"
-    using assms exI[of "(\<lambda>x. x:S & -a+x = 0)" a] by auto
+    using assms exI[of "(\<lambda>x. x\<in>S \<and> -a+x = 0)" a] by auto
   ultimately show ?thesis using subspace_affine by auto
 qed
 
