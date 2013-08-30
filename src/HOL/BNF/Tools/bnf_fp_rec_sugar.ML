@@ -9,6 +9,9 @@ signature BNF_FP_REC_SUGAR =
 sig
   val add_primrec_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> local_theory;
+  val add_primcorec_cmd: bool ->
+    (binding * string option * mixfix) list * (Attrib.binding * string) list -> Proof.context ->
+    Proof.state
 end;
 
 (* TODO:
@@ -33,6 +36,9 @@ fun finds eq = fold_map (fn x => List.partition (curry eq x) #>> pair x);
 
 val simp_attrs = @{attributes [simp]};
 
+
+
+(* Primrec *)
 
 type eqn_data = {
   fun_name: string,
@@ -390,25 +396,8 @@ fun add_primrec_cmd raw_fixes raw_specs lthy =
       space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns))
 
 
-val _ = Outer_Syntax.local_theory
-  @{command_spec "primrec_new"}
-  "define primitive recursive functions"
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_primrec_cmd);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(* Primcorec *)
 
 type co_eqn_data_dtr_disc = {
   fun_name: string,
@@ -733,11 +722,5 @@ fun add_primcorec_cmd seq (raw_fixes, raw_specs) lthy =
     then error ("primcorec error:\n  " ^ str)
     else error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
       space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns))
-
-val _ = Outer_Syntax.local_theory_to_proof
-  @{command_spec "primcorec"}
-  "define primitive corecursive functions"
-  (Parse.opt_keyword "sequential" -- (Parse.fixes -- Parse_Spec.where_alt_specs) >>
-    uncurry add_primcorec_cmd);
 
 end;

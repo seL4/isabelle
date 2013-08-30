@@ -23,6 +23,7 @@ open BNF_Tactics
 open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
+open BNF_FP_Rec_Sugar
 open BNF_GFP_Util
 open BNF_GFP_Tactics
 
@@ -2901,5 +2902,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 val _ =
   Outer_Syntax.local_theory @{command_spec "codatatype"} "define BNF-based coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
+
+val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorec"}
+  "define primitive corecursive functions"
+  ((Scan.option @{keyword "sequential"} >> is_some) --
+    (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorec_cmd);
 
 end;

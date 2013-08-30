@@ -11,10 +11,7 @@ header {* Basic Fixed Point Operations on Bounded Natural Functors *}
 theory BNF_FP_Basic
 imports BNF_Comp BNF_Ctr_Sugar
 keywords
-  "primrec_new" :: thy_decl and
-  "primcorec" :: thy_goal and
-  "defaults" and
-  "sequential"
+  "defaults"
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
