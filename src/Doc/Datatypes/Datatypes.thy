@@ -246,10 +246,11 @@ text {*
 simplest recursive type: copy of the natural numbers:
 *}
 
+    datatype_new nat = Zero | Suc nat
 (*<*)
-    (* FIXME: remove "rep_compat" once "datatype_new" is integrated with "fun" *)
+    (* FIXME: remove once "datatype_new" is integrated with "fun" *)
+    datatype_new_compat nat
 (*>*)
-    datatype_new (*<*)(rep_compat) (*>*)nat = Zero | Suc nat
 
 text {*
 lists were shown in the introduction; terminated lists are a variant:
@@ -638,15 +639,11 @@ text {*
 we don't like the confusing name @{const nth}:
 *}
 
-    (* FIXME *)
-    primrec_new_notyet at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (a # as) j =
          (case j of
             Zero \<Rightarrow> a
           | Suc j' \<Rightarrow> at as j')"
-
-    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
-      "at (a # as) j = nat_case a (at as) j"
 
     primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil b) = b" |
@@ -674,11 +671,6 @@ text {*
 Mutual recursion is be possible within a single type, but currently only using fun:
 *}
 
-(*<*)
-    (* FIXME: remove hack once "primrec_new" is in place *)
-    rep_datatype Zero Suc
-    by (erule nat.induct, assumption) auto
-(*>*)
     fun
       even :: "nat \<Rightarrow> bool" and
       odd :: "nat \<Rightarrow> bool"
