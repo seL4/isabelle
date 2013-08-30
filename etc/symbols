@@ -154,7 +154,7 @@
 \<rat>                  code: 0x00211a  group: letter
 \<real>                 code: 0x00211d  group: letter
 \<int>                  code: 0x002124  group: letter
-\<leftarrow>            code: 0x002190  group: arrow
+\<leftarrow>            code: 0x002190  group: arrow  abbrev: <-
 \<longleftarrow>        code: 0x0027f5  group: arrow
 \<rightarrow>           code: 0x002192  group: arrow  abbrev: ->
 \<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: -->
@@ -162,10 +162,10 @@
 \<Longleftarrow>        code: 0x0027f8  group: arrow
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: =>
 \<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>
-\<leftrightarrow>       code: 0x002194  group: arrow
-\<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <->
-\<Leftrightarrow>       code: 0x0021d4  group: arrow
-\<Longleftrightarrow>   code: 0x0027fa  group: arrow  abbrev: <=>
+\<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <->
+\<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <->  abbrev: <-->
+\<Leftrightarrow>       code: 0x0021d4  group: arrow  abbrev: <=>
+\<Longleftrightarrow>   code: 0x0027fa  group: arrow  abbrev: <=>  abbrev: <==>
 \<mapsto>               code: 0x0021a6  group: arrow  abbrev: |->
 \<longmapsto>           code: 0x0027fc  group: arrow  abbrev: |-->
 \<midarrow>             code: 0x002500  group: arrow
@@ -175,7 +175,7 @@
 \<leftharpoondown>      code: 0x0021bd  group: arrow
 \<rightharpoondown>     code: 0x0021c1  group: arrow
 \<leftharpoonup>        code: 0x0021bc  group: arrow
-\<rightharpoonup>       code: 0x0021c0  group: arrow
+\<rightharpoonup>       code: 0x0021c0  group: arrow  abbrev: ~=>
 \<rightleftharpoons>    code: 0x0021cc  group: arrow
 \<leadsto>              code: 0x00219d  group: arrow  abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  group: arrow
@@ -206,12 +206,12 @@
 \<guillemotright>       code: 0x0000bb  group: punctuation  abbrev: >>
 \<bottom>               code: 0x0022a5  group: logic
 \<top>                  code: 0x0022a4  group: logic
-\<and>                  code: 0x002227  group: logic  abbrev: /\
+\<and>                  code: 0x002227  group: logic  abbrev: /\  abbrev: &
 \<And>                  code: 0x0022c0  group: logic  abbrev: !!
-\<or>                   code: 0x002228  group: logic  abbrev: \/
+\<or>                   code: 0x002228  group: logic  abbrev: \/  abbrev: |
 \<Or>                   code: 0x0022c1  group: logic  abbrev: ??
-\<forall>               code: 0x002200  group: logic  abbrev: !
-\<exists>               code: 0x002203  group: logic  abbrev: ?
+\<forall>               code: 0x002200  group: logic  abbrev: !  abbrev: ALL
+\<exists>               code: 0x002203  group: logic  abbrev: ?  abbrev: EX
 \<nexists>              code: 0x002204  group: logic  abbrev: ~?
 \<not>                  code: 0x0000ac  group: logic  abbrev: ~
 \<box>                  code: 0x0025a1  group: logic
@@ -224,8 +224,8 @@
 \<surd>                 code: 0x00221a  group: relation
 \<le>                   code: 0x002264  group: relation  abbrev: <=
 \<ge>                   code: 0x002265  group: relation  abbrev: >=
-\<lless>                code: 0x00226a  group: relation
-\<ggreater>             code: 0x00226b  group: relation
+\<lless>                code: 0x00226a  group: relation  abbrev: <<
+\<ggreater>             code: 0x00226b  group: relation  abbrev: >>
 \<lesssim>              code: 0x002272  group: relation
 \<greatersim>           code: 0x002273  group: relation
 \<lessapprox>           code: 0x002a85  group: relation
@@ -240,21 +240,21 @@
 \<sqsupset>             code: 0x002290  group: relation
 \<sqsubseteq>           code: 0x002291  group: relation  abbrev: [=
 \<sqsupseteq>           code: 0x002292  group: relation  abbrev: =]
-\<inter>                code: 0x002229  group: operator
-\<Inter>                code: 0x0022c2  group: operator
-\<union>                code: 0x00222a  group: operator
-\<Union>                code: 0x0022c3  group: operator
+\<inter>                code: 0x002229  group: operator  abbrev: Int
+\<Inter>                code: 0x0022c2  group: operator  abbrev: Inter
+\<union>                code: 0x00222a  group: operator  abbrev: Un
+\<Union>                code: 0x0022c3  group: operator  abbrev: Union
 \<squnion>              code: 0x002294  group: operator
-\<Squnion>              code: 0x002a06  group: operator
+\<Squnion>              code: 0x002a06  group: operator  abbrev: SUP
 \<sqinter>              code: 0x002293  group: operator
-\<Sqinter>              code: 0x002a05  group: operator
+\<Sqinter>              code: 0x002a05  group: operator  abbrev: INF
 \<setminus>             code: 0x002216  group: operator
 \<propto>               code: 0x00221d  group: operator
 \<uplus>                code: 0x00228e  group: operator
 \<Uplus>                code: 0x002a04  group: operator
 \<noteq>                code: 0x002260  group: relation  abbrev: ~=
 \<sim>                  code: 0x00223c  group: relation
-\<doteq>                code: 0x002250  group: relation
+\<doteq>                code: 0x002250  group: relation  abbrev: =.
 \<simeq>                code: 0x002243  group: relation
 \<approx>               code: 0x002248  group: relation
 \<asymp>                code: 0x00224d  group: relation
@@ -272,12 +272,12 @@
 \<bar>                  code: 0x0000a6  group: punctuation
 \<plusminus>            code: 0x0000b1  group: operator
 \<minusplus>            code: 0x002213  group: operator
-\<times>                code: 0x0000d7  group: operator
+\<times>                code: 0x0000d7  group: operator  abbrev: *
 \<div>                  code: 0x0000f7  group: operator
 \<cdot>                 code: 0x0022c5  group: operator
 \<star>                 code: 0x0022c6  group: operator
 \<bullet>               code: 0x002219  group: operator
-\<circ>                 code: 0x002218  group: operator
+\<circ>                 code: 0x002218  group: operator  abbrev: o
 \<dagger>               code: 0x002020
 \<ddagger>              code: 0x002021
 \<lhd>                  code: 0x0022b2  group: relation
