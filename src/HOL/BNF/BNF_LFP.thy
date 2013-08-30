@@ -1,6 +1,8 @@
 (*  Title:      HOL/BNF/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
-    Copyright   2012
+    Author:     Lorenz Panny, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013
 
 Least fixed point operation on bounded natural functors.
 *)
@@ -10,7 +12,8 @@ header {* Least Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_LFP
 imports BNF_FP_Basic
 keywords
-  "datatype_new" :: thy_decl
+  "datatype_new" :: thy_decl and
+  "datatype_compat" :: thy_decl
 begin
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
@@ -232,5 +235,6 @@ lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<L
 ML_file "Tools/bnf_lfp_util.ML"
 ML_file "Tools/bnf_lfp_tactics.ML"
 ML_file "Tools/bnf_lfp.ML"
+ML_file "Tools/bnf_lfp_compat.ML"
 
 end

@@ -11,7 +11,10 @@ header {* Basic Fixed Point Operations on Bounded Natural Functors *}
 theory BNF_FP_Basic
 imports BNF_Comp BNF_Ctr_Sugar
 keywords
-  "defaults"
+  "primrec_new" :: thy_decl and
+  "primcorec" :: thy_goal and
+  "defaults" and
+  "sequential"
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
@@ -153,8 +156,21 @@ lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<f
 lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
   by auto
 
+lemma if_if_True:
+  "(if (if b then True else b') then (if b then x else x') else f (if b then y else y')) =
+   (if b then x else if b' then x' else f y')"
+  by simp
+
+lemma if_if_False:
+  "(if (if b then False else b') then (if b then x else x') else f (if b then y else y')) =
+   (if b then f y else if b' then x' else f y')"
+  by simp
+
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"
+ML_file "Tools/bnf_fp_rec_sugar_util.ML"
+ML_file "Tools/bnf_fp_rec_sugar_tactics.ML"
+ML_file "Tools/bnf_fp_rec_sugar.ML"
 
 end
