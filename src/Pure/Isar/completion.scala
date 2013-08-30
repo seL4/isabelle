@@ -112,7 +112,9 @@ final class Completion private(
         val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs)
         if (ds.isEmpty) None
         else {
-          val immediate = !Completion.is_word(word)
+          val immediate =
+            !Completion.is_word(word) &&
+            Character.codePointCount(word, 0, word.length) > 1
           Some((word, ds.map(s => Completion.Item(word, s, s, immediate))))
         }
       case None => None
