@@ -277,7 +277,7 @@
 \<cdot>                 code: 0x0022c5  group: operator
 \<star>                 code: 0x0022c6  group: operator
 \<bullet>               code: 0x002219  group: operator
-\<circ>                 code: 0x002218  group: operator  abbrev: o
+\<circ>                 code: 0x002218  group: operator
 \<dagger>               code: 0x002020
 \<ddagger>              code: 0x002021
 \<lhd>                  code: 0x0022b2  group: relation
