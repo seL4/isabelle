@@ -126,6 +126,12 @@ object File
   def write_gzip(path: Path, text: Iterable[CharSequence]): Unit = write_gzip(path.file, text)
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
 
+  def write_backup(path: Path, text: CharSequence)
+  {
+    path.file renameTo path.backup.file
+    File.write(path, text)
+  }
+
 
   /* copy */
 
