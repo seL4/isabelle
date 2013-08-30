@@ -39,12 +39,14 @@ object Completion
     def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
     def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
     def escape: Parser[String] = """[a-zA-Z0-9_']+\\""".r
-    def word: Parser[String] = """[a-zA-Z0-9_']{3,}""".r
+    def word: Parser[String] = word_regex
+    def word3: Parser[String] = """[a-zA-Z0-9_']{3,}""".r
 
-    def read(in: CharSequence): Option[String] =
+    def read(explicit: Boolean, in: CharSequence): Option[String] =
     {
+      val parse_word = if (explicit) word else word3
       val reverse_in = new Library.Reverse(in)
-      parse((reverse_symbol | reverse_symb | escape | word) ^^ (_.reverse), reverse_in) match {
+      parse((reverse_symbol | reverse_symb | escape | parse_word) ^^ (_.reverse), reverse_in) match {
         case Success(result, _) => Some(result)
         case _ => None
       }
@@ -90,7 +92,8 @@ final class Completion private(
 
   /* complete */
 
-  def complete(decode: Boolean, line: CharSequence): Option[(String, List[Completion.Item])] =
+  def complete(decode: Boolean, explicit: Boolean, line: CharSequence)
+    : Option[(String, List[Completion.Item])] =
   {
     val raw_result =
       abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
@@ -101,7 +104,7 @@ final class Completion private(
             case (a, _) :: _ => Some((a, abbrevs.map(_._2)))
           }
         case _ =>
-          Completion.Parse.read(line) match {
+          Completion.Parse.read(explicit, line) match {
             case Some(word) =>
               words_lex.completions(word).map(words_map.get_list(_)).flatten match {
                 case Nil => None

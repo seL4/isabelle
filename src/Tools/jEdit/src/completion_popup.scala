@@ -91,7 +91,7 @@ object Completion_Popup
       }
     }
 
-    def action(immediate: Boolean)
+    def action(immediate: Boolean = false, explicit: Boolean = false)
     {
       val view = text_area.getView
       val layered = view.getLayeredPane
@@ -106,7 +106,8 @@ object Completion_Popup
             val start = buffer.getLineStartOffset(line)
             val text = buffer.getSegment(start, caret - start)
 
-            syntax.completion.complete(Isabelle_Encoding.is_active(buffer), text) match {
+            val decode = Isabelle_Encoding.is_active(buffer)
+            syntax.completion.complete(decode, explicit, text) match {
               case Some((_, List(item))) if item.immediate && immediate =>
                 insert(item)
 
@@ -161,7 +162,7 @@ object Completion_Popup
 
           if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
             input_delay.revoke()
-            action(PIDE.options.bool("jedit_completion_immediate"))
+            action(immediate = PIDE.options.bool("jedit_completion_immediate"))
           }
           else input_delay.invoke()
         }
@@ -170,7 +171,7 @@ object Completion_Popup
 
     private val input_delay =
       Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
-        action(false)
+        action()
       }
 
 
