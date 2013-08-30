@@ -43,8 +43,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       }
     tooltip =
       JEdit_Lib.wrap_tooltip(
-        symbol +
-          (if (Symbol.abbrevs.isDefinedAt(symbol)) "\nabbrev: " + Symbol.abbrevs(symbol) else ""))
+        cat_lines(symbol :: Symbol.abbrevs.get_list(symbol).map(a => "abbrev: " + a)))
   }
 
   private class Reset_Component extends Button

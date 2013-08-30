@@ -90,17 +90,40 @@ timing information.
 according to Isabelle/Scala plugin option "jedit_font_reset_size"
 (cf. keyboard shortcut C+0).
 
-* More reactive and less intrusive completion, managed by
-Isabelle/jEdit instead of SideKick.  Plain words need to be at least 3
-characters long to be completed (was 2 before).  Symbols are only
-completed in backslash forms, e.g. \forall or \<forall> that both
-produce the Isabelle symbol \<forall> in its Unicode rendering.
-
-* Standard jEdit completion via C+b uses action isabelle.complete
-with fall-back on complete-word for non-Isabelle buffers.
-
 * Improved support for Linux look-and-feel "GTK+", see also "Utilities
 / Global Options / Appearance".
+
+* Improved completion mechanism, which is now managed by the
+Isabelle/jEdit plugin instead of SideKick.
+
+  - Various Isabelle plugin options to control popup behaviour and
+    immediate insertion into buffer.
+
+  - Light-weight popup, which avoids explicit window (more reactive
+    and more robust).  Interpreted key events: TAB, ESCAPE, UP, DOWN,
+    PAGE_UP, PAGE_DOWN.  All other key events are passed to the jEdit
+    text area unchanged.
+
+  - Explicit completion via standard jEdit shortcut C+b, which has
+    been remapped to action "isabelle.complete" (fall-back on regular
+    "complete-word" for non-Isabelle buffers).
+
+  - Implicit completion via keyboard input on text area, with popup or
+    immediate insertion into buffer.
+
+  - Implicit completion of plain words requires at least 3 characters
+    (was 2 before).
+
+  - Immediate completion ignores plain words; it requires > 1
+    characters of symbol abbreviation to complete, otherwise fall-back
+    on completion popup.
+
+  - Isabelle Symbols are only completed in backslashed forms,
+    e.g. \forall or \<forall> that both produce the Isabelle symbol
+    \<forall> in its Unicode rendering.
+
+  - Refined table of Isabelle symbol abbreviations (see
+    $ISABELLE_HOME/etc/symbols).
 
 
 *** Pure ***

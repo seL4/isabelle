@@ -1,7 +1,7 @@
 (*  Title:      Tools/WWW_Find/unicode_symbols.ML
     Author:     Timothy Bourke, NICTA
 
-Ad-hoc parsing of ~~/etc/symbols.
+Parsing of private etc/symbols.
 *)
 
 signature UNICODE_SYMBOLS =
@@ -176,7 +176,8 @@ fun read_symbols path =
 end;
 
 local
-val (fromsym, fromabbr, tosym, toabbr) = read_symbols (Path.explode "~~/etc/symbols");
+val (fromsym, fromabbr, tosym, toabbr) =
+  read_symbols (Path.explode "~~/src/Tools/WWW_Find/etc/symbols");
 in
 val symbol_to_unicode = Symtab.lookup fromsym;
 val abbrev_to_unicode = Symtab.lookup fromabbr;

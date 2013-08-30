@@ -168,7 +168,8 @@ object Isabelle
   def complete(view: View)
   {
     Completion_Popup.Text_Area(view.getTextArea) match {
-      case Some(text_area_completion) => text_area_completion.action(true)
+      case Some(text_area_completion) =>
+        text_area_completion.action(immediate = true, explicit = true)
       case None => CompleteWord.completeWord(view)
     }
   }

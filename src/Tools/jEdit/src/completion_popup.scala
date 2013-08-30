@@ -91,7 +91,7 @@ object Completion_Popup
       }
     }
 
-    def action(immediate: Boolean)
+    def action(immediate: Boolean = false, explicit: Boolean = false)
     {
       val view = text_area.getView
       val layered = view.getLayeredPane
@@ -106,31 +106,33 @@ object Completion_Popup
             val start = buffer.getLineStartOffset(line)
             val text = buffer.getSegment(start, caret - start)
 
-            syntax.completion.complete(Isabelle_Encoding.is_active(buffer), text) match {
-              case Some((_, List(item))) if item.immediate && immediate =>
-                insert(item)
+            val decode = Isabelle_Encoding.is_active(buffer)
+            syntax.completion.complete(decode, explicit, text) match {
+              case Some(result) =>
+                if (result.unique && result.items.head.immediate && immediate)
+                  insert(result.items.head)
+                else {
+                  val font =
+                    painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
-              case Some((original, items)) =>
-                val font =
-                  painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
+                  val loc1 = text_area.offsetToXY(caret - result.original.length)
+                  if (loc1 != null) {
+                    val loc2 =
+                      SwingUtilities.convertPoint(painter,
+                        loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
 
-                val loc1 = text_area.offsetToXY(caret - original.length)
-                if (loc1 != null) {
-                  val loc2 =
-                    SwingUtilities.convertPoint(painter,
-                      loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
-
-                  val completion =
-                    new Completion_Popup(layered, loc2, font, items) {
-                      override def complete(item: Completion.Item) { insert(item) }
-                      override def propagate(evt: KeyEvent) {
-                        JEdit_Lib.propagate_key(view, evt)
-                        input(evt)
+                    val completion =
+                      new Completion_Popup(layered, loc2, font, result.items) {
+                        override def complete(item: Completion.Item) { insert(item) }
+                        override def propagate(evt: KeyEvent) {
+                          JEdit_Lib.propagate_key(view, evt)
+                          input(evt)
+                        }
+                        override def refocus() { text_area.requestFocus }
                       }
-                      override def refocus() { text_area.requestFocus }
-                    }
-                  completion_popup = Some(completion)
-                  completion.show_popup()
+                    completion_popup = Some(completion)
+                    completion.show_popup()
+                  }
                 }
               case None =>
             }
@@ -161,7 +163,7 @@ object Completion_Popup
 
           if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
             input_delay.revoke()
-            action(PIDE.options.bool("jedit_completion_immediate"))
+            action(immediate = PIDE.options.bool("jedit_completion_immediate"))
           }
           else input_delay.invoke()
         }
@@ -170,7 +172,7 @@ object Completion_Popup
 
     private val input_delay =
       Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
-        action(false)
+        action()
       }
 
 

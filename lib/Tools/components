@@ -134,7 +134,7 @@ else
       fi
       if [ -e "${FULL_NAME}.tar.gz" ]; then
         echo "Unpacking \"${FULL_NAME}.tar.gz\""
-        tar -C "$(dirname "$FULL_NAME")" -x -f "${FULL_NAME}.tar.gz"
+        tar -C "$(dirname "$FULL_NAME")" -x -f "${FULL_NAME}.tar.gz" || exit 2
       fi
     fi
   done
