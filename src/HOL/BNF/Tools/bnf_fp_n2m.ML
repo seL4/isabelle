@@ -374,9 +374,6 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
         xtor_co_iter_o_map_thmss = steal #xtor_co_iter_o_map_thmss (*theorem about old constant*),
         rel_xtor_co_induct_thm = rel_xtor_co_induct_thm}
        |> morph_fp_result (Morphism.term_morphism (singleton (Variable.polymorphic lthy))));
-(**
-    val _ = fp_res |> @{make_string} |> tracing
-**)
   in
     (fp_res, lthy)
   end

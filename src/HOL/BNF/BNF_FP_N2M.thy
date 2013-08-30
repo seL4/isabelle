@@ -9,7 +9,7 @@ Flattening of nested to mutual (co)recursion.
 header {* Flattening of Nested to Mutual (Co)recursion *}
 
 theory BNF_FP_N2M
-imports "~~/src/HOL/BNF/BNF_FP_Basic"
+imports BNF_FP_Basic
 begin
 
 lemma eq_le_Grp_id_iff: "(op = \<le> BNF_Util.Grp (Collect R) id) = (All R)"

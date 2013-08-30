@@ -8,9 +8,7 @@ Miscellaneous primitive recursive function definitions.
 header {* Miscellaneous Primitive Recursive Function Definitions *}
 
 theory Misc_Primrec
-imports
-  "~~/src/HOL/BNF/Examples/Misc_Datatype"
-  "../BNF_FP_Rec_Sugar"
+imports Misc_Datatype
 begin
 
 primrec_new nat_of_simple :: "simple \<Rightarrow> nat" where

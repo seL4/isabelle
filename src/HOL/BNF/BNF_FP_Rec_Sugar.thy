@@ -1,7 +1,7 @@
 (*  Title:      HOL/BNF/BNF_FP_Rec_Sugar.thy
     Author:     Lorenz Panny, TU Muenchen
-    Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 
 Recursor and corecursor sugar.

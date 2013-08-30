@@ -47,7 +47,7 @@ type eqn_data = {
 };
 
 fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
-  |> fold (K (fn u => Abs ("", dummyT, u))) (0 upto n);
+  |> fold (K (fn u => Abs (Name.uu, dummyT, u))) (0 upto n);
 
 fun dissect_eqn lthy fun_names eqn' =
   let
@@ -674,7 +674,7 @@ val _ = warning ("corecursor arguments:\n    \<cdot> " ^
     fun currys Ts t = if length Ts <= 1 then t else
       t $ foldr1 (fn (u, v) => HOLogic.pair_const dummyT dummyT $ u $ v)
         (length Ts - 1 downto 0 |> map Bound)
-      |> fold_rev (fn T => fn u => Abs ("", T, u)) Ts;
+      |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts;
   in
     map (list_comb o rpair corec_args) corecs
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
@@ -741,4 +741,3 @@ val _ = Outer_Syntax.local_theory_to_proof
     uncurry add_primcorec_cmd);
 
 end;
-
