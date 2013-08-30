@@ -11,7 +11,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 object Completion
 {
-  /* items */
+  /* result */
 
   sealed case class Item(
     original: String,
@@ -19,6 +19,8 @@ object Completion
     description: String,
     immediate: Boolean)
   { override def toString: String = description }
+
+  sealed case class Result(original: String, unique: Boolean, items: List[Item])
 
 
   /* init */
@@ -92,8 +94,7 @@ final class Completion private(
 
   /* complete */
 
-  def complete(decode: Boolean, explicit: Boolean, line: CharSequence)
-    : Option[(String, List[Completion.Item])] =
+  def complete(decode: Boolean, explicit: Boolean, line: CharSequence): Option[Completion.Result] =
   {
     val raw_result =
       abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
@@ -115,13 +116,14 @@ final class Completion private(
       }
     raw_result match {
       case Some((word, cs)) =>
-        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs)
+        val ds = (if (decode) cs.map(Symbol.decode(_)).sorted else cs).filter(_ != word)
         if (ds.isEmpty) None
         else {
           val immediate =
             !Completion.is_word(word) &&
             Character.codePointCount(word, 0, word.length) > 1
-          Some((word, ds.map(s => Completion.Item(word, s, s, explicit || immediate))))
+          val items = ds.map(s => Completion.Item(word, s, s, explicit || immediate))
+          Some(Completion.Result(word, cs.length == 1, items))
         }
       case None => None
     }
