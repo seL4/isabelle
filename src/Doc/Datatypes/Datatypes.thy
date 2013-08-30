@@ -739,7 +739,7 @@ text {*
   * e.g.
 *}
 
-    primrec_new_notyet
+    primrec_new
       at_tree\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
       at_trees\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
     where
@@ -752,7 +752,7 @@ text {*
             Zero \<Rightarrow> at_tree\<^sub>f\<^sub>f t
           | Suc j' \<Rightarrow> at_trees\<^sub>f\<^sub>f ts j')"
 
-    primrec_new_notyet
+    primrec_new
       sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
       sum_btree_option :: "'a btree option \<Rightarrow> 'a"
     where

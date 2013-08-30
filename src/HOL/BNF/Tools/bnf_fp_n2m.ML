@@ -276,13 +276,13 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
       |>> apfst rev o apsnd rev;
     val foldN = fp_case fp ctor_foldN dtor_unfoldN;
     val recN = fp_case fp ctor_recN dtor_corecN;
-    val (((raw_un_folds, raw_un_fold_defs), (raw_co_recs, raw_co_rec_defs)), (lthy, lthy_old)) =
+    val (((raw_un_folds, raw_un_fold_defs), (raw_co_recs, raw_co_rec_defs)), (lthy, raw_lthy)) =
       lthy
       |> mk_iters false foldN
       ||>> mk_iters true recN
-      ||> `(Local_Theory.restore);
+      ||> `Local_Theory.restore;
 
-    val phi = Proof_Context.export_morphism lthy_old lthy;
+    val phi = Proof_Context.export_morphism raw_lthy lthy;
 
     val un_folds = map (Morphism.term phi) raw_un_folds;
     val co_recs = map (Morphism.term phi) raw_co_recs;
@@ -316,7 +316,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
           Library.foldr1 HOLogic.mk_conj goals
           |> HOLogic.mk_Trueprop
           |> fold_rev Logic.all ss
-          |> (fn goal => Goal.prove_sorry lthy [] [] goal tac)
+          |> (fn goal => Goal.prove_sorry raw_lthy [] [] goal tac)
           |> Thm.close_derivation
           |> Morphism.thm phi
           |> split_conj_thm
