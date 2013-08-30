@@ -1,14 +1,15 @@
-(*  Title:      HOL/BNF/BNF_FP_Basic.thy
+(*  Title:      HOL/BNF/BNF_FP_Base.thy
+    Author:     Lorenz Panny, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
-Basic fixed point operations on bounded natural functors.
+Shared fixed point operations on bounded natural functors, including
 *)
 
-header {* Basic Fixed Point Operations on Bounded Natural Functors *}
+header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
-theory BNF_FP_Basic
+theory BNF_FP_Base
 imports BNF_Comp BNF_Ctr_Sugar
 keywords
   "defaults"
