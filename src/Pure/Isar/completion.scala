@@ -121,7 +121,7 @@ final class Completion private(
           val immediate =
             !Completion.is_word(word) &&
             Character.codePointCount(word, 0, word.length) > 1
-          Some((word, ds.map(s => Completion.Item(word, s, s, immediate))))
+          Some((word, ds.map(s => Completion.Item(word, s, s, explicit || immediate))))
         }
       case None => None
     }
