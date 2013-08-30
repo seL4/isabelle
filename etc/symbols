@@ -161,11 +161,11 @@
 \<Leftarrow>            code: 0x0021d0  group: arrow
 \<Longleftarrow>        code: 0x0027f8  group: arrow
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: =>
-\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>
+\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>  abbrev: ≡>
 \<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <->
 \<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <->  abbrev: <-->
-\<Leftrightarrow>       code: 0x0021d4  group: arrow  abbrev: <=>
-\<Longleftrightarrow>   code: 0x0027fa  group: arrow  abbrev: <=>  abbrev: <==>
+\<Leftrightarrow>       code: 0x0021d4  group: arrow
+\<Longleftrightarrow>   code: 0x0027fa  group: arrow
 \<mapsto>               code: 0x0021a6  group: arrow  abbrev: |->
 \<longmapsto>           code: 0x0027fc  group: arrow  abbrev: |-->
 \<midarrow>             code: 0x002500  group: arrow
