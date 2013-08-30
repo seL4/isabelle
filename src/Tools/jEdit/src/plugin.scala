@@ -303,8 +303,7 @@ class Plugin extends EBPlugin
       Isabelle_System.init()
       Isabelle_Font.install_fonts()
 
-      val init_options = Options.init()
-      Swing_Thread.now { PIDE.options.update(init_options)  }
+      PIDE.options.update(Options.init())
       PIDE.completion_history.load()
 
       if (Platform.is_macos && PIDE.options.bool("jedit_mac_adapter"))
