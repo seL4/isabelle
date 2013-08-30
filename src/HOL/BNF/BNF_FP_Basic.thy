@@ -156,6 +156,13 @@ lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<f
 lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
   by auto
 
+lemma eq_le_Grp_id_iff: "(op = \<le> Grp (Collect R) id) = (All R)"
+  unfolding Grp_def id_apply by blast
+
+lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f x) (f y)) \<equiv>
+   (\<And>x. x \<in> P \<Longrightarrow> f x \<in> Q)"
+  unfolding Grp_def by rule auto
+
 lemma if_if_True:
   "(if (if b then True else b') then (if b then x else x') else f (if b then y else y')) =
    (if b then x else if b' then x' else f y')"
@@ -169,6 +176,9 @@ lemma if_if_False:
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"
+ML_file "Tools/bnf_fp_n2m_tactics.ML"
+ML_file "Tools/bnf_fp_n2m.ML"
+ML_file "Tools/bnf_fp_n2m_sugar.ML"
 ML_file "Tools/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/bnf_fp_rec_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_rec_sugar.ML"
