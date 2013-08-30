@@ -714,10 +714,17 @@ text {*
 Explain @{const lmap}.
 *}
 
-    primrec_new_notyet sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
+(*<*)
+    locale sum_btree_nested
+      begin
+(*>*)
+    primrec_new sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
          a + the_default 0 (option_map sum_btree lt) +
            the_default 0 (option_map sum_btree rt)"
+(*<*)
+    end
+(*>*)
 
 text {*
 Show example with function composition (ftree).

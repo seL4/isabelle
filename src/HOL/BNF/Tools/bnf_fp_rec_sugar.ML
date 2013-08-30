@@ -173,14 +173,17 @@ fun subst_indirect_call lthy funs_data get_indices (y, y') =
       massage_indirect_rec_call lthy (not o null o get_indices) massage_map_arg bound_Ts y y';
     fun subst bound_Ts (t as _ $ _) =
         let
+          val ctr_args = fold_aterms (curry (op @) o get_indices) t []
+            |> maps (maps #ctr_args o nth funs_data);
           val (f', args') = strip_comb t;
           val fun_arg_idx = find_index (exists_subterm (not o null o get_indices)) args';
           val arg_idx = find_index (exists_subterm (equal y)) args';
           val (f, args) = chop (arg_idx + 1) args' |>> curry list_comb f';
           val _ = fun_arg_idx < 0 orelse arg_idx >= 0 orelse
+            exists (exists_subterm (member (op =) ctr_args)) args' orelse
             primrec_error_eqn "recursive call not applied to constructor argument" t;
         in
-          if fun_arg_idx <> arg_idx andalso fun_arg_idx >= 0 then
+          if fun_arg_idx <> arg_idx andalso fun_arg_idx >= 0 andalso arg_idx >= 0 then
             if nth args' arg_idx = y then
               list_comb (massage (rewrite_map_arg funs_data get_indices y) bound_Ts f, args)
             else
