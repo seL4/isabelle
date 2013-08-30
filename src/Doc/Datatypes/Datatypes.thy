@@ -7,19 +7,19 @@ Tutorial for (co)datatype definitions with the new package.
 theory Datatypes
 imports Setup
 keywords
-  "primrec_new" :: thy_decl and
-  "primcorec" :: thy_decl
+  "primrec_new_notyet" :: thy_decl and
+  "primcorec_notyet" :: thy_decl
 begin
 
 (*<*)
-(* FIXME: Evil setup until "primrec_new" and "primcorec" are in place. *)
+(* FIXME: Evil setup until "primrec_new" and "primcorec" are bug-free. *)
 ML_command {*
 fun add_dummy_cmd _ _ lthy = lthy;
 
-val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"} ""
+val _ = Outer_Syntax.local_theory @{command_spec "primrec_new_notyet"} ""
   (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec"} ""
+val _ = Outer_Syntax.local_theory @{command_spec "primcorec_notyet"} ""
   (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 *}
 (*>*)
@@ -630,19 +630,23 @@ again, simple pattern matching on left-hand side, but possibility
 to call a function recursively on an argument to a constructor:
 *}
 
-    primrec_new replicate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-      "rep Zero _ = []" |
-      "rep (Suc n) a = a # rep n a"
+    primrec_new replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+      "replicate Zero _ = []" |
+      "replicate (Suc n) a = a # replicate n a"
 
 text {*
 we don't like the confusing name @{const nth}:
 *}
 
-    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+    (* FIXME *)
+    primrec_new_notyet at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (a # as) j =
          (case j of
             Zero \<Rightarrow> a
           | Suc j' \<Rightarrow> at as j')"
+
+    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+      "at (a # as) j = nat_case a (at as) j"
 
     primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil b) = b" |
@@ -689,13 +693,13 @@ More elaborate example that works with primrec_new:
 *}
 
     primrec_new
-      eval\<^sub>e :: "('a, 'b) exp \<Rightarrow> real" and
-      eval\<^sub>t :: "('a, 'b) trm \<Rightarrow> real" and
-      eval\<^sub>f :: "('a, 'b) fct \<Rightarrow> real"
+      eval\<^sub>e :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) exp \<Rightarrow> int" and
+      eval\<^sub>t :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) trm \<Rightarrow> int" and
+      eval\<^sub>f :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) fct \<Rightarrow> int"
     where
       "eval\<^sub>e \<gamma> \<xi> (Term t) = eval\<^sub>t \<gamma> \<xi> t" |
       "eval\<^sub>e \<gamma> \<xi> (Sum t e) = eval\<^sub>t \<gamma> \<xi> t + eval\<^sub>e \<gamma> \<xi> e" |
-      "eval\<^sub>t \<gamma> \<xi> (Factor f) = eval\<^sub>f \<gamma> \<xi> f)" |
+      "eval\<^sub>t \<gamma> \<xi> (Factor f) = eval\<^sub>f \<gamma> \<xi> f" |
       "eval\<^sub>t \<gamma> \<xi> (Prod f t) = eval\<^sub>f \<gamma> \<xi> f + eval\<^sub>t \<gamma> \<xi> t" |
       "eval\<^sub>f \<gamma> _ (Const a) = \<gamma> a" |
       "eval\<^sub>f _ \<xi> (Var b) = \<xi> b" |
@@ -714,20 +718,14 @@ subsubsection {* Nested Recursion *}
             [] \<Rightarrow> a
           | j # js' \<Rightarrow> at (map (\<lambda>t. at\<^sub>f\<^sub>f t js') ts) j)"
 
-    primrec_new at\<^sub>f\<^sub>i :: "'a tree\<^sub>f\<^sub>i \<Rightarrow> nat list \<Rightarrow> 'a" where
-      "at\<^sub>f\<^sub>i (Node\<^sub>f\<^sub>i a ts) js =
-         (case js of
-            [] \<Rightarrow> a
-          | j # js' \<Rightarrow> at (lmap (\<lambda>t. at\<^sub>f\<^sub>i t js') ts) j)"
-
 text {*
 Explain @{const lmap}.
 *}
 
-    primrec_new sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" where
+    primrec_new_notyet sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
-         a + the_default Zero (option_map sum_btree lt) +
-           the_default Zero (option_map sum_btree rt)"
+         a + the_default 0 (option_map sum_btree lt) +
+           the_default 0 (option_map sum_btree rt)"
 
 text {*
 Show example with function composition (ftree).
@@ -741,7 +739,7 @@ text {*
   * e.g.
 *}
 
-    primrec_new
+    primrec_new_notyet
       at_tree\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
       at_trees\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
     where
@@ -754,13 +752,13 @@ text {*
             Zero \<Rightarrow> at_tree\<^sub>f\<^sub>f t
           | Suc j' \<Rightarrow> at_trees\<^sub>f\<^sub>f ts j')"
 
-    primrec_new
-      sum_btree :: "('a\<Colon>plus) btree \<Rightarrow> 'a" and
-      sum_btree_option :: "('a\<Colon>plus) btree option \<Rightarrow> 'a"
+    primrec_new_notyet
+      sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
+      sum_btree_option :: "'a btree option \<Rightarrow> 'a"
     where
       "sum_btree (BNode a lt rt) =
          a + sum_btree_option lt + sum_btree_option rt" |
-      "sum_btree_option None = Zero" |
+      "sum_btree_option None = 0" |
       "sum_btree_option (Some t) = sum_btree t"
 
 text {*
@@ -858,24 +856,13 @@ The following example illustrates this procedure:
 
     consts termi\<^sub>0 :: 'a
 
-    datatype_new (*<*)(rep_compat) (*>*)('a, 'b) tlist_ =
+    datatype_new ('a, 'b) tlist_ =
       TNil (termi: 'b) (defaults ttl: TNil)
     | TCons (thd: 'a) (ttl : "('a, 'b) tlist_") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
 
-(*<*)
-    (* FIXME: remove hack once "primrec_new" is in place *)
-    rep_datatype TNil TCons
-    by (erule tlist_.induct, assumption) auto
-(*>*)
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist_ \<Rightarrow> 'b"
     begin
-(*<*)
-    (* FIXME: remove hack once "primrec_new" is in place *)
-    fun termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
-    "termi\<^sub>0 (TNil y) = y" |
-    "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
-(*>*)
     primrec_new termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
     "termi\<^sub>0 (TNil y) = y" |
     "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
