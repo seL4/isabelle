@@ -388,6 +388,9 @@ object Symbol
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
+  def decode_string: XML.Decode.T[String] = (x => decode(XML.Decode.string(x)))
+  def encode_string: XML.Encode.T[String] = (x => XML.Encode.string(encode(x)))
+
   def decode_strict(text: String): String =
   {
     val decoded = decode(text)
