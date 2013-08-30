@@ -731,6 +731,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
   theories [condition = ISABELLE_FULL_TEST]
     Misc_Codatatype
     Misc_Datatype
+    Misc_Primrec
 
 session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
