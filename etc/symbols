@@ -154,30 +154,30 @@
 \<rat>                  code: 0x00211a  group: letter
 \<real>                 code: 0x00211d  group: letter
 \<int>                  code: 0x002124  group: letter
-\<leftarrow>            code: 0x002190  group: arrow
-\<longleftarrow>        code: 0x0027f5  group: arrow
-\<rightarrow>           code: 0x002192  group: arrow  abbrev: ->
-\<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: -->
-\<Leftarrow>            code: 0x0021d0  group: arrow
-\<Longleftarrow>        code: 0x0027f8  group: arrow
-\<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: =>
-\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>
-\<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <->
-\<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <->  abbrev: <-->
-\<Leftrightarrow>       code: 0x0021d4  group: arrow
-\<Longleftrightarrow>   code: 0x0027fa  group: arrow
-\<mapsto>               code: 0x0021a6  group: arrow  abbrev: |->
-\<longmapsto>           code: 0x0027fc  group: arrow  abbrev: |-->
-\<midarrow>             code: 0x002500  group: arrow
-\<Midarrow>             code: 0x002550  group: arrow
-\<hookleftarrow>        code: 0x0021a9  group: arrow
-\<hookrightarrow>       code: 0x0021aa  group: arrow
-\<leftharpoondown>      code: 0x0021bd  group: arrow
-\<rightharpoondown>     code: 0x0021c1  group: arrow
-\<leftharpoonup>        code: 0x0021bc  group: arrow
-\<rightharpoonup>       code: 0x0021c0  group: arrow
-\<rightleftharpoons>    code: 0x0021cc  group: arrow  abbrev: ==
-\<leadsto>              code: 0x00219d  group: arrow  abbrev: ~>
+\<leftarrow>            code: 0x002190  group: arrow  abbrev: <.
+\<longleftarrow>        code: 0x0027f5  group: arrow  abbrev: <.
+\<rightarrow>           code: 0x002192  group: arrow  abbrev: .>  abbrev: ->
+\<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: .>  abbrev: -->
+\<Leftarrow>            code: 0x0021d0  group: arrow  abbrev: <.
+\<Longleftarrow>        code: 0x0027f8  group: arrow  abbrev: <.
+\<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: .>  abbrev: =>
+\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: .>  abbrev: ==>
+\<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <>  abbrev: <->
+\<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <>  abbrev: <->  abbrev: <-->
+\<Leftrightarrow>       code: 0x0021d4  group: arrow  abbrev: <>
+\<Longleftrightarrow>   code: 0x0027fa  group: arrow  abbrev: <>
+\<mapsto>               code: 0x0021a6  group: arrow  abbrev: .>  abbrev: |->
+\<longmapsto>           code: 0x0027fc  group: arrow  abbrev: .>  abbrev: |-->
+\<midarrow>             code: 0x002500  group: arrow  abbrev: <>
+\<Midarrow>             code: 0x002550  group: arrow  abbrev: <>
+\<hookleftarrow>        code: 0x0021a9  group: arrow  abbrev: <.
+\<hookrightarrow>       code: 0x0021aa  group: arrow  abbrev: .>
+\<leftharpoondown>      code: 0x0021bd  group: arrow  abbrev: <.
+\<rightharpoondown>     code: 0x0021c1  group: arrow  abbrev: .>
+\<leftharpoonup>        code: 0x0021bc  group: arrow  abbrev: <.
+\<rightharpoonup>       code: 0x0021c0  group: arrow  abbrev: .>
+\<rightleftharpoons>    code: 0x0021cc  group: arrow  abbrev: <> abbrev: ==
+\<leadsto>              code: 0x00219d  group: arrow  abbrev: .> abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  group: arrow
 \<downharpoonright>     code: 0x0021c2  group: arrow
 \<upharpoonleft>        code: 0x0021bf  group: arrow
