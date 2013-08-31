@@ -241,9 +241,9 @@
 \<sqsubseteq>           code: 0x002291  group: relation  abbrev: [=
 \<sqsupseteq>           code: 0x002292  group: relation  abbrev: ]=
 \<inter>                code: 0x002229  group: operator  abbrev: Int
-\<Inter>                code: 0x0022c2  group: operator  abbrev: Inter
+\<Inter>                code: 0x0022c2  group: operator  abbrev: Inter  abbrev: INT
 \<union>                code: 0x00222a  group: operator  abbrev: Un
-\<Union>                code: 0x0022c3  group: operator  abbrev: Union
+\<Union>                code: 0x0022c3  group: operator  abbrev: Union  abbrev: UN
 \<squnion>              code: 0x002294  group: operator
 \<Squnion>              code: 0x002a06  group: operator  abbrev: SUP
 \<sqinter>              code: 0x002293  group: operator
