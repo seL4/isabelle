@@ -161,7 +161,7 @@
 \<Leftarrow>            code: 0x0021d0  group: arrow
 \<Longleftarrow>        code: 0x0027f8  group: arrow
 \<Rightarrow>           code: 0x0021d2  group: arrow  abbrev: =>
-\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>  abbrev: ≡>
+\<Longrightarrow>       code: 0x0027f9  group: arrow  abbrev: ==>
 \<leftrightarrow>       code: 0x002194  group: arrow  abbrev: <->
 \<longleftrightarrow>   code: 0x0027f7  group: arrow  abbrev: <->  abbrev: <-->
 \<Leftrightarrow>       code: 0x0021d4  group: arrow
@@ -176,7 +176,7 @@
 \<rightharpoondown>     code: 0x0021c1  group: arrow
 \<leftharpoonup>        code: 0x0021bc  group: arrow
 \<rightharpoonup>       code: 0x0021c0  group: arrow
-\<rightleftharpoons>    code: 0x0021cc  group: arrow
+\<rightleftharpoons>    code: 0x0021cc  group: arrow  abbrev: ==
 \<leadsto>              code: 0x00219d  group: arrow  abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  group: arrow
 \<downharpoonright>     code: 0x0021c2  group: arrow
@@ -235,11 +235,11 @@
 \<subset>               code: 0x002282  group: relation
 \<supset>               code: 0x002283  group: relation
 \<subseteq>             code: 0x002286  group: relation  abbrev: (=
-\<supseteq>             code: 0x002287  group: relation  abbrev: =)
+\<supseteq>             code: 0x002287  group: relation  abbrev: )=
 \<sqsubset>             code: 0x00228f  group: relation
 \<sqsupset>             code: 0x002290  group: relation
 \<sqsubseteq>           code: 0x002291  group: relation  abbrev: [=
-\<sqsupseteq>           code: 0x002292  group: relation  abbrev: =]
+\<sqsupseteq>           code: 0x002292  group: relation  abbrev: ]=
 \<inter>                code: 0x002229  group: operator  abbrev: Int
 \<Inter>                code: 0x0022c2  group: operator  abbrev: Inter
 \<union>                code: 0x00222a  group: operator  abbrev: Un
@@ -272,7 +272,7 @@
 \<bar>                  code: 0x0000a6  group: punctuation  abbrev: ||
 \<plusminus>            code: 0x0000b1  group: operator
 \<minusplus>            code: 0x002213  group: operator
-\<times>                code: 0x0000d7  group: operator  abbrev: *
+\<times>                code: 0x0000d7  group: operator
 \<div>                  code: 0x0000f7  group: operator
 \<cdot>                 code: 0x0022c5  group: operator
 \<star>                 code: 0x0022c6  group: operator
