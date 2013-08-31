@@ -12,7 +12,8 @@ theory ListF
 imports "../BNF"
 begin
 
-datatype_new 'a listF (map: mapF rel: relF) = NilF | Conss 'a "'a listF"
+datatype_new 'a listF (map: mapF rel: relF) =
+  NilF (defaults tlF: NilF) | Conss (hdF: 'a) (tlF: "'a listF")
 datatype_new_compat listF
 
 definition Singll ("[[_]]") where

@@ -14,13 +14,6 @@ begin
 
 codatatype 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
 
-lemma pre_treeFI_listF_set[simp]: "pre_treeFI_set2 (i, xs) = listF_set xs"
-unfolding pre_treeFI_set2_def collect_def[abs_def] prod_set_defs
-by (auto simp add: listF.set_map)
-
-lemma dtor[simp]: "treeFI_dtor tr = (lab tr, sub tr)"
-by (metis Tree_def treeFI.collapse treeFI.dtor_ctor)
-
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
 
@@ -28,10 +21,10 @@ definition pair_fun (infixr "\<odot>" 50) where
 definition "trev \<equiv> treeFI_unfold lab (lrev o sub)"
 
 lemma trev_simps1[simp]: "lab (trev t) = lab t"
-unfolding trev_def by simp
+  unfolding trev_def by simp
 
 lemma trev_simps2[simp]: "sub (trev t) = mapF trev (lrev (sub t))"
-unfolding trev_def by simp
+  unfolding trev_def by simp
 
 lemma treeFI_coinduct:
 assumes *: "phi x y"
@@ -40,32 +33,20 @@ and step: "\<And>a b. phi a b \<Longrightarrow>
    lengthh (sub a) = lengthh (sub b) \<and>
    (\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i))"
 shows "x = y"
-proof (rule mp[OF treeFI.dtor_map_coinduct, of phi, OF _ *])
-  fix a b :: "'a treeFI"
-  let ?zs = "zipp (sub a) (sub b)"
-  let ?z = "(lab a, ?zs)"
-  assume "phi a b"
-  with step have step': "lab a = lab b" "lengthh (sub a) = lengthh (sub b)"
-    "\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i)" by auto
-  hence "pre_treeFI_map id fst ?z = treeFI_dtor a" "pre_treeFI_map id snd ?z = treeFI_dtor b"
-    unfolding pre_treeFI_map_def by auto
-  moreover have "\<forall>(x, y) \<in> pre_treeFI_set2 ?z. phi x y"
-  proof safe
-    fix z1 z2
-    assume "(z1, z2) \<in> pre_treeFI_set2 ?z"
-    hence "(z1, z2) \<in> listF_set ?zs" by auto
-    hence "\<exists>i < lengthh ?zs. nthh ?zs i = (z1, z2)" by auto
-    with step'(2) obtain i where "i < lengthh (sub a)"
-      "nthh (sub a) i = z1" "nthh (sub b) i = z2" by auto
-    with step'(3) show "phi z1 z2" by auto
-  qed
-  ultimately show "\<exists>z.
-    (pre_treeFI_map id fst z = treeFI_dtor a \<and>
-    pre_treeFI_map id snd z = treeFI_dtor b) \<and>
-    (\<forall>x y. (x, y) \<in> pre_treeFI_set2 z \<longrightarrow> phi x y)" by blast
+using * proof (coinduct rule: treeFI.coinduct)
+  fix t1 t2 assume "phi t1 t2" note * = step[OF this] and ** = conjunct2[OF *]
+  from conjunct1[OF **] conjunct2[OF **] have "relF phi (sub t1) (sub t2)"
+  proof (induction "sub t1" "sub t2" arbitrary: t1 t2 rule: listF_induct2)
+    case (Conss x xs y ys)
+    note sub = Conss(2,3)[symmetric] and phi = mp[OF spec[OF Conss(4)], unfolded sub]
+      and IH = Conss(1)[of "Tree (lab t1) (tlF (sub t1))" "Tree (lab t2) (tlF (sub t2))",
+        unfolded sub, simplified]
+    from phi[of 0] show ?case unfolding sub by (auto intro!: IH dest: phi[simplified, OF Suc_mono])
+  qed simp
+  with conjunct1[OF *] show "lab t1 = lab t2 \<and> relF phi (sub t1) (sub t2)" ..
 qed
 
 lemma trev_trev: "trev (trev tr) = tr"
-by (rule treeFI_coinduct[of "%a b. trev (trev b) = a"]) auto
+  by (rule treeFI_coinduct[of "%a b. trev (trev b) = a"]) auto
 
 end
