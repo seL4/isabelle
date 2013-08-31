@@ -12,82 +12,40 @@ theory ListF
 imports "../BNF"
 begin
 
-datatype_new (rep_compat) 'a listF = NilF | Conss 'a "'a listF"
-
-lemma fold_sum_case_NilF: "listF_ctor_fold (sum_case f g) NilF = f ()"
-unfolding NilF_def listF.ctor_fold pre_listF_map_def by simp
-
-lemma fold_sum_case_Conss:
-  "listF_ctor_fold (sum_case f g) (Conss y ys) = g (y, listF_ctor_fold (sum_case f g) ys)"
-unfolding Conss_def listF.ctor_fold pre_listF_map_def by simp
-
-(* familiar induction principle *)
-lemma listF_induct:
-  fixes xs :: "'a listF"
-  assumes IB: "P NilF" and IH: "\<And>x xs. P xs \<Longrightarrow> P (Conss x xs)"
-  shows "P xs"
-proof (rule listF.ctor_induct)
-  fix xs :: "unit + 'a \<times> 'a listF"
-  assume raw_IH: "\<And>a. a \<in> pre_listF_set2 xs \<Longrightarrow> P a"
-  show "P (listF_ctor xs)"
-  proof (cases xs)
-    case (Inl a) with IB show ?thesis unfolding NilF_def by simp
-  next
-    case (Inr b)
-    then obtain y ys where yys: "listF_ctor xs = Conss y ys"
-      unfolding Conss_def listF.ctor_inject by (blast intro: prod.exhaust)
-    hence "ys \<in> pre_listF_set2 xs"
-      unfolding pre_listF_set2_def Conss_def listF.ctor_inject sum_set_defs prod_set_defs
-        collect_def[abs_def] by simp
-    with raw_IH have "P ys" by blast
-    with IH have "P (Conss y ys)" by blast
-    with yys show ?thesis by simp
-  qed
-qed
-
-rep_datatype NilF Conss
-by (blast intro: listF_induct) (auto simp add: NilF_def Conss_def listF.ctor_inject)
+datatype_new 'a listF (map: mapF rel: relF) = NilF | Conss 'a "'a listF"
+datatype_new_compat listF
 
 definition Singll ("[[_]]") where
   [simp]: "Singll a \<equiv> Conss a NilF"
 
-definition appendd (infixr "@@" 65) where
-  "appendd \<equiv> listF_ctor_fold (sum_case (\<lambda> _. id) (\<lambda> (a,f) bs. Conss a (f bs)))"
+primrec_new appendd (infixr "@@" 65) where
+  "NilF @@ ys = ys"
+| "Conss x xs @@ ys = Conss x (xs @@ ys)"
 
-definition "lrev \<equiv> listF_ctor_fold (sum_case (\<lambda> _. NilF) (\<lambda> (b,bs). bs @@ [[b]]))"
-
-lemma lrev_NilF[simp]: "lrev NilF = NilF"
-unfolding lrev_def by (simp add: fold_sum_case_NilF)
-
-lemma lrev_Conss[simp]: "lrev (Conss y ys) = lrev ys @@ [[y]]"
-unfolding lrev_def by (simp add: fold_sum_case_Conss)
-
-lemma NilF_appendd[simp]: "NilF @@ ys = ys"
-unfolding appendd_def by (simp add: fold_sum_case_NilF)
-
-lemma Conss_append[simp]: "Conss x xs @@ ys = Conss x (xs @@ ys)"
-unfolding appendd_def by (simp add: fold_sum_case_Conss)
+primrec_new lrev where
+  "lrev NilF = NilF"
+| "lrev (Conss y ys) = lrev ys @@ [[y]]"
 
 lemma appendd_NilF[simp]: "xs @@ NilF = xs"
-by (rule listF_induct) auto
+  by (induct xs) auto
 
 lemma appendd_assoc[simp]: "(xs @@ ys) @@ zs = xs @@ ys @@ zs"
-by (rule listF_induct) auto
+  by (induct xs) auto
 
 lemma lrev_appendd[simp]: "lrev (xs @@ ys) = lrev ys @@ lrev xs"
-by (rule listF_induct[of _ xs]) auto
+  by (induct xs) auto
 
 lemma listF_map_appendd[simp]:
-  "listF_map f (xs @@ ys) = listF_map f xs @@ listF_map f ys"
-by (rule listF_induct[of _ xs]) auto
+  "mapF f (xs @@ ys) = mapF f xs @@ mapF f ys"
+  by (induct xs) auto
 
-lemma lrev_listF_map[simp]: "lrev (listF_map f xs) = listF_map f (lrev xs)"
-by (rule listF_induct[of _ xs]) auto
+lemma lrev_listF_map[simp]: "lrev (mapF f xs) = mapF f (lrev xs)"
+  by (induct xs) auto
 
-lemma lrev_lrev[simp]: "lrev (lrev as) = as"
-by (rule listF_induct) auto
+lemma lrev_lrev[simp]: "lrev (lrev xs) = xs"
+  by (induct xs) auto
 
-fun lengthh where
+primrec_new lengthh where
   "lengthh NilF = 0"
 | "lengthh (Conss x xs) = Suc (lengthh xs)"
 
@@ -96,30 +54,30 @@ fun nthh where
 | "nthh (Conss x xs) (Suc n) = nthh xs n"
 | "nthh xs i = undefined"
 
-lemma lengthh_listF_map[simp]: "lengthh (listF_map f xs) = lengthh xs"
-by (rule listF_induct[of _ xs]) auto
+lemma lengthh_listF_map[simp]: "lengthh (mapF f xs) = lengthh xs"
+  by (induct xs) auto
 
 lemma nthh_listF_map[simp]:
-  "i < lengthh xs \<Longrightarrow> nthh (listF_map f xs) i = f (nthh xs i)"
-by (induct rule: nthh.induct) auto
+  "i < lengthh xs \<Longrightarrow> nthh (mapF f xs) i = f (nthh xs i)"
+  by (induct rule: nthh.induct) auto
 
 lemma nthh_listF_set[simp]: "i < lengthh xs \<Longrightarrow> nthh xs i \<in> listF_set xs"
-by (induct rule: nthh.induct) auto
+  by (induct rule: nthh.induct) auto
 
 lemma NilF_iff[iff]: "(lengthh xs = 0) = (xs = NilF)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma Conss_iff[iff]:
   "(lengthh xs = Suc n) = (\<exists>y ys. xs = Conss y ys \<and> lengthh ys = n)"
-by (induct xs) auto
+  by (induct xs) auto
 
 lemma Conss_iff'[iff]:
   "(Suc n = lengthh xs) = (\<exists>y ys. xs = Conss y ys \<and> lengthh ys = n)"
-by (induct xs) (simp, simp, blast)
+  by (induct xs) (simp, simp, blast)
 
-lemma listF_induct2: "\<lbrakk>lengthh xs = lengthh ys; P NilF NilF;
+lemma listF_induct2[consumes 1, case_names NilF Conss]: "\<lbrakk>lengthh xs = lengthh ys; P NilF NilF;
     \<And>x xs y ys. P xs ys \<Longrightarrow> P (Conss x xs) (Conss y ys)\<rbrakk> \<Longrightarrow> P xs ys"
-by (induct xs arbitrary: ys rule: listF_induct) auto
+    by (induct xs arbitrary: ys) auto
 
 fun zipp where
   "zipp NilF NilF = NilF"
@@ -127,26 +85,26 @@ fun zipp where
 | "zipp xs ys = undefined"
 
 lemma listF_map_fst_zip[simp]:
-  "lengthh xs = lengthh ys \<Longrightarrow> listF_map fst (zipp xs ys) = xs"
-by (erule listF_induct2) auto
+  "lengthh xs = lengthh ys \<Longrightarrow> mapF fst (zipp xs ys) = xs"
+  by (induct rule: listF_induct2) auto
 
 lemma listF_map_snd_zip[simp]:
-  "lengthh xs = lengthh ys \<Longrightarrow> listF_map snd (zipp xs ys) = ys"
-by (erule listF_induct2) auto
+  "lengthh xs = lengthh ys \<Longrightarrow> mapF snd (zipp xs ys) = ys"
+  by (induct rule: listF_induct2) auto
 
 lemma lengthh_zip[simp]:
   "lengthh xs = lengthh ys \<Longrightarrow> lengthh (zipp xs ys) = lengthh xs"
-by (erule listF_induct2) auto
+  by (induct rule: listF_induct2) auto
 
 lemma nthh_zip[simp]:
-  assumes *: "lengthh xs = lengthh ys"
+  assumes "lengthh xs = lengthh ys"
   shows "i < lengthh xs \<Longrightarrow> nthh (zipp xs ys) i = (nthh xs i, nthh ys i)"
-proof (induct arbitrary: i rule: listF_induct2[OF *])
-  case (2 x xs y ys) thus ?case by (induct i) auto
+using assms proof (induct arbitrary: i rule: listF_induct2)
+  case (Conss x xs y ys) thus ?case by (induct i) auto
 qed simp
 
 lemma list_set_nthh[simp]:
   "(x \<in> listF_set xs) \<Longrightarrow> (\<exists>i < lengthh xs. nthh xs i = x)"
-by (induct xs) (auto, induct rule: nthh.induct, auto)
+  by (induct xs) (auto, induct rule: nthh.induct, auto)
 
 end

@@ -30,7 +30,7 @@ definition "trev \<equiv> treeFI_unfold lab (lrev o sub)"
 lemma trev_simps1[simp]: "lab (trev t) = lab t"
 unfolding trev_def by simp
 
-lemma trev_simps2[simp]: "sub (trev t) = listF_map trev (lrev (sub t))"
+lemma trev_simps2[simp]: "sub (trev t) = mapF trev (lrev (sub t))"
 unfolding trev_def by simp
 
 lemma treeFI_coinduct:
