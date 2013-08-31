@@ -253,7 +253,7 @@ fun build_rec_arg lthy get_indices funs_data ctr_spec maybe_eqn_data =
     end
   else Const (@{const_name undefined}, dummyT)
 
-fun build_defs lthy bs funs_data rec_specs get_indices =
+fun build_defs lthy bs mxs funs_data rec_specs get_indices =
   let
     val n_funs = length funs_data;
 
@@ -282,7 +282,7 @@ fun build_defs lthy bs funs_data rec_specs get_indices =
     (recs, ctr_poss)
     |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
     |> Syntax.check_terms lthy
-    |> map2 (fn b => fn t => ((b, NoSyn), ((Binding.map_name Thm.def_name b, []), t))) bs
+    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
   end;
 
 fun find_rec_calls get_indices eqn_data =
@@ -311,7 +311,7 @@ fun find_rec_calls get_indices eqn_data =
 
 fun add_primrec fixes specs lthy =
   let
-    val bs = map (fst o fst) fixes;
+    val (bs, mxs) = map_split (apfst fst) fixes;
     val fun_names = map Binding.name_of bs;
     val eqns_data = map (snd #> dissect_eqn lthy fun_names) specs;
     val funs_data = eqns_data
@@ -340,7 +340,7 @@ fun add_primrec fixes specs lthy =
         primrec_error_eqn ("argument " ^ quote (Syntax.string_of_term lthy' ctr) ^
           " is not a constructor in left-hand side") user_eqn) eqns_data end;
 
-    val defs = build_defs lthy' bs funs_data rec_specs get_indices;
+    val defs = build_defs lthy' bs mxs funs_data rec_specs get_indices;
 
     fun prove def_thms' {ctr_specs, nested_map_idents, nested_map_comps, ...} induct_thm fun_data
         lthy =
@@ -638,7 +638,7 @@ val _ = warning ("sels / calls:\n    \<cdot> " ^ space_implode "\n    \<cdot> " 
       end
   end;
 
-fun co_build_defs lthy sequential bs arg_Tss fun_name_corec_spec_list eqns_data =
+fun co_build_defs lthy sequential bs mxs arg_Tss fun_name_corec_spec_list eqns_data =
   let
     val fun_names = map Binding.name_of bs;
 
@@ -692,13 +692,13 @@ val _ = warning ("corecursor arguments:\n    \<cdot> " ^
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
     |> Syntax.check_terms lthy
-    |> map2 (fn b => fn t => ((b, NoSyn), ((Binding.map_name Thm.def_name b, []), t))) bs
+    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
     |> rpair proof_obligations
   end;
 
 fun add_primcorec sequential fixes specs lthy =
   let
-    val bs = map (fst o fst) fixes;
+    val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> HOLogic.mk_tupleT) fixes |> split_list;
 
     (* copied from primrec_new *)
@@ -723,7 +723,7 @@ fun add_primcorec sequential fixes specs lthy =
       |>> flat;
 
     val (defs, proof_obligations) =
-      co_build_defs lthy' sequential bs (map (binder_types o snd o fst) fixes)
+      co_build_defs lthy' sequential bs mxs (map (binder_types o snd o fst) fixes)
         fun_name_corec_spec_list eqns_data;
   in
     lthy'
