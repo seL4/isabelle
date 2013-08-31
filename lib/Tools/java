@@ -5,6 +5,8 @@
 # DESCRIPTION: invoke Java within the Isabelle environment
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
-isabelle_jdk java -Dfile.encoding=UTF-8 -server \
+
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS)"
+isabelle_jdk java "${JAVA_ARGS[@]}" \
   "-Djava.ext.dirs=$(jvmpath "$ISABELLE_JAVA_EXT:$ISABELLE_HOME/lib/classes/ext")" "$@"
 

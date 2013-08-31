@@ -13,6 +13,8 @@
 
 ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5 -Xmax-classfile-name 130"
 
+ISABELLE_JAVA_SYSTEM_OPTIONS="-Dfile.encoding=UTF-8 -server"
+
 
 ###
 ### Interactive sessions (cf. isabelle tty)
