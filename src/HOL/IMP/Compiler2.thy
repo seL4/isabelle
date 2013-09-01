@@ -40,7 +40,7 @@ subsection {* Basic properties of @{term exec_n} *}
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
-  by (induct n arbitrary: c) (auto simp del: exec1_def)
+  by (induct n arbitrary: c) auto
 
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
@@ -360,7 +360,7 @@ next
   obtain i' s'' stk'' where
     step: "P @ P' \<turnstile> (i, s, stk) \<rightarrow> (i', s'', stk'')" and
     rest: "P @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^k (n, s', stk')"
-    by (auto simp del: exec1_def)
+    by auto
   from step `size P \<le> i`
   have "P' \<turnstile> (i - size P, s, stk) \<rightarrow> (i' - size P, s'', stk'')" 
     by (rule exec1_drop_left)
