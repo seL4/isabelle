@@ -883,6 +883,13 @@ lemma diff_single_insert: "A - {x} \<subseteq> B ==> A \<subseteq> insert x B"
 lemma doubleton_eq_iff: "({a,b} = {c,d}) = (a=c & b=d | a=d & b=c)"
   by (blast elim: equalityE)
 
+lemma Un_singleton_iff:
+  "(A \<union> B = {x}) = (A = {} \<and> B = {x} \<or> A = {x} \<and> B = {} \<or> A = {x} \<and> B = {x})"
+by auto
+
+lemma singleton_Un_iff:
+  "({x} = A \<union> B) = (A = {} \<and> B = {x} \<or> A = {x} \<and> B = {} \<or> A = {x} \<and> B = {x})"
+by auto
 
 subsubsection {* Image of a set under a function *}
 
