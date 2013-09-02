@@ -155,66 +155,71 @@ proof (rule ccpo_Sup_least[OF chain_iterates[OF f]])
   qed (auto intro: ccpo_Sup_least)
 qed
 
+end
 
 subsection {* Fixpoint induction *}
 
-definition
-  admissible :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
-where
-  "admissible P = (\<forall>A. chain (op \<le>) A \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (Sup A))"
+setup {* Sign.map_naming (Name_Space.mandatory_path "ccpo") *}
+
+definition admissible :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
+where "admissible lub ord P = (\<forall>A. chain ord A \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (lub A))"
 
 lemma admissibleI:
-  assumes "\<And>A. chain (op \<le>) A \<Longrightarrow> \<forall>x\<in>A. P x \<Longrightarrow> P (Sup A)"
-  shows "admissible P"
-using assms unfolding admissible_def by fast
+  assumes "\<And>A. chain ord A \<Longrightarrow> \<forall>x\<in>A. P x \<Longrightarrow> P (lub A)"
+  shows "ccpo.admissible lub ord P"
+using assms unfolding ccpo.admissible_def by fast
 
 lemma admissibleD:
-  assumes "admissible P"
-  assumes "chain (op \<le>) A"
+  assumes "ccpo.admissible lub ord P"
+  assumes "chain ord A"
   assumes "\<And>x. x \<in> A \<Longrightarrow> P x"
-  shows "P (Sup A)"
-using assms by (auto simp: admissible_def)
+  shows "P (lub A)"
+using assms by (auto simp: ccpo.admissible_def)
 
-lemma fixp_induct:
-  assumes adm: "admissible P"
+setup {* Sign.map_naming Name_Space.parent_path *}
+
+lemma (in ccpo) fixp_induct:
+  assumes adm: "ccpo.admissible Sup (op \<le>) P"
   assumes mono: "monotone (op \<le>) (op \<le>) f"
   assumes step: "\<And>x. P x \<Longrightarrow> P (f x)"
   shows "P (fixp f)"
 unfolding fixp_def using adm chain_iterates[OF mono]
-proof (rule admissibleD)
+proof (rule ccpo.admissibleD)
   fix x assume "x \<in> iterates f"
   thus "P x"
     by (induct rule: iterates.induct)
-      (auto intro: step admissibleD adm)
+      (auto intro: step ccpo.admissibleD adm)
 qed
 
-lemma admissible_True: "admissible (\<lambda>x. True)"
-unfolding admissible_def by simp
+lemma admissible_True: "ccpo.admissible lub ord (\<lambda>x. True)"
+unfolding ccpo.admissible_def by simp
 
-lemma admissible_False: "\<not> admissible (\<lambda>x. False)"
-unfolding admissible_def chain_def by simp
+lemma admissible_False: "\<not> ccpo.admissible lub ord (\<lambda>x. False)"
+unfolding ccpo.admissible_def chain_def by simp
 
-lemma admissible_const: "admissible (\<lambda>x. t) = t"
+lemma admissible_const: "ccpo.admissible lub ord (\<lambda>x. t) = t"
 by (cases t, simp_all add: admissible_True admissible_False)
 
 lemma admissible_conj:
-  assumes "admissible (\<lambda>x. P x)"
-  assumes "admissible (\<lambda>x. Q x)"
-  shows "admissible (\<lambda>x. P x \<and> Q x)"
-using assms unfolding admissible_def by simp
+  assumes "ccpo.admissible lub ord (\<lambda>x. P x)"
+  assumes "ccpo.admissible lub ord (\<lambda>x. Q x)"
+  shows "ccpo.admissible lub ord (\<lambda>x. P x \<and> Q x)"
+using assms unfolding ccpo.admissible_def by simp
 
 lemma admissible_all:
-  assumes "\<And>y. admissible (\<lambda>x. P x y)"
-  shows "admissible (\<lambda>x. \<forall>y. P x y)"
-using assms unfolding admissible_def by fast
+  assumes "\<And>y. ccpo.admissible lub ord (\<lambda>x. P x y)"
+  shows "ccpo.admissible lub ord (\<lambda>x. \<forall>y. P x y)"
+using assms unfolding ccpo.admissible_def by fast
 
 lemma admissible_ball:
-  assumes "\<And>y. y \<in> A \<Longrightarrow> admissible (\<lambda>x. P x y)"
-  shows "admissible (\<lambda>x. \<forall>y\<in>A. P x y)"
-using assms unfolding admissible_def by fast
+  assumes "\<And>y. y \<in> A \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. P x y)"
+  shows "ccpo.admissible lub ord (\<lambda>x. \<forall>y\<in>A. P x y)"
+using assms unfolding ccpo.admissible_def by fast
 
-lemma chain_compr: "chain (op \<le>) A \<Longrightarrow> chain (op \<le>) {x \<in> A. P x}"
+lemma chain_compr: "chain ord A \<Longrightarrow> chain ord {x \<in> A. P x}"
 unfolding chain_def by fast
+
+context ccpo begin
 
 lemma admissible_disj_lemma:
   assumes A: "chain (op \<le>)A"
@@ -238,10 +243,10 @@ qed
 
 lemma admissible_disj:
   fixes P Q :: "'a \<Rightarrow> bool"
-  assumes P: "admissible (\<lambda>x. P x)"
-  assumes Q: "admissible (\<lambda>x. Q x)"
-  shows "admissible (\<lambda>x. P x \<or> Q x)"
-proof (rule admissibleI)
+  assumes P: "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x)"
+  assumes Q: "ccpo.admissible Sup (op \<le>) (\<lambda>x. Q x)"
+  shows "ccpo.admissible Sup (op \<le>) (\<lambda>x. P x \<or> Q x)"
+proof (rule ccpo.admissibleI)
   fix A :: "'a set" assume A: "chain (op \<le>) A"
   assume "\<forall>x\<in>A. P x \<or> Q x"
   hence "(\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> P y) \<or> (\<forall>x\<in>A. \<exists>y\<in>A. x \<le> y \<and> Q y)"
@@ -250,8 +255,8 @@ proof (rule admissibleI)
     using admissible_disj_lemma [OF A] by fast
   thus "P (Sup A) \<or> Q (Sup A)"
     apply (rule disjE, simp_all)
-    apply (rule disjI1, rule admissibleD [OF P chain_compr [OF A]], simp)
-    apply (rule disjI2, rule admissibleD [OF Q chain_compr [OF A]], simp)
+    apply (rule disjI1, rule ccpo.admissibleD [OF P chain_compr [OF A]], simp)
+    apply (rule disjI2, rule ccpo.admissibleD [OF Q chain_compr [OF A]], simp)
     done
 qed
 
@@ -271,6 +276,6 @@ proof (rule antisym)
     by (rule fixp_lowerbound [OF f'], subst lfp_unfold [OF f], rule order_refl)
 qed
 
-hide_const (open) iterates fixp admissible
+hide_const (open) iterates fixp
 
 end

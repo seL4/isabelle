@@ -432,7 +432,7 @@ by (fact heap_interpretation)
 lemma heap_step_admissible: 
   "option.admissible
       (\<lambda>f:: 'a => ('b * 'c) option. \<forall>h h' r. f h = Some (r, h') \<longrightarrow> P x h h' r)"
-proof (rule ccpo.admissibleI[OF option.ccpo])
+proof (rule ccpo.admissibleI)
   fix A :: "('a \<Rightarrow> ('b * 'c) option) set"
   assume ch: "Complete_Partial_Order.chain option.le_fun A"
     and IH: "\<forall>f\<in>A. \<forall>h h' r. f h = Some (r, h') \<longrightarrow> P x h h' r"

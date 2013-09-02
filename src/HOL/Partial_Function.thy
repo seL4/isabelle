@@ -250,7 +250,7 @@ abbreviation "mono_tailrec \<equiv> monotone (fun_ord tailrec_ord) tailrec_ord"
 lemma tailrec_admissible:
   "ccpo.admissible (fun_lub (flat_lub undefined)) (fun_ord tailrec_ord)
      (\<lambda>a. \<forall>x. a x \<noteq> undefined \<longrightarrow> P x (a x))"
-proof(intro ccpo.admissibleI[OF tailrec.ccpo] strip)
+proof(intro ccpo.admissibleI strip)
   fix A x
   assume chain: "Complete_Partial_Order.chain (fun_ord tailrec_ord) A"
     and P [rule_format]: "\<forall>f\<in>A. \<forall>x. f x \<noteq> undefined \<longrightarrow> P x (f x)"
@@ -290,13 +290,13 @@ lemma admissible_image:
   assumes inj: "\<And>x y. f x = f y \<Longrightarrow> x = y"
   assumes inv: "\<And>x. f (g x) = x"
   shows "ccpo.admissible (img_lub f g lub) (img_ord f le) P"
-proof (rule ccpo.admissibleI, rule ccpo, rule partial_function_image, fact pfun, fact inj, fact inv)
+proof (rule ccpo.admissibleI)
   fix A assume "chain (img_ord f le) A"
    then have ch': "chain le (f ` A)"
       by (auto simp: img_ord_def intro: chainI dest: chainD)
   assume P_A: "\<forall>x\<in>A. P x"
-  have "(P o g) (lub (f ` A))"
-  proof (rule ccpo.admissibleD[OF ccpo, OF pfun adm ch'])
+  have "(P o g) (lub (f ` A))" using adm ch'
+  proof (rule ccpo.admissibleD)
     fix x assume "x \<in> f ` A"
     with P_A show "(P o g) x" by (auto simp: inj[OF inv])
   qed
@@ -307,13 +307,13 @@ lemma admissible_fun:
   assumes pfun: "partial_function_definitions le lub"
   assumes adm: "\<And>x. ccpo.admissible lub le (Q x)"
   shows "ccpo.admissible  (fun_lub lub) (fun_ord le) (\<lambda>f. \<forall>x. Q x (f x))"
-proof (rule ccpo.admissibleI, rule ccpo, rule partial_function_lift, rule pfun)
+proof (rule ccpo.admissibleI)
   fix A :: "('b \<Rightarrow> 'a) set"
   assume Q: "\<forall>f\<in>A. \<forall>x. Q x (f x)"
   assume ch: "chain (fun_ord le) A"
   show "\<forall>x. Q x (fun_lub lub A x)"
     unfolding fun_lub_def
-    by (rule allI, rule ccpo.admissibleD[OF ccpo, OF pfun adm chain_fun[OF ch]])
+    by (rule allI, rule ccpo.admissibleD[OF adm chain_fun[OF ch]])
       (auto simp: Q)
 qed
 
@@ -360,7 +360,7 @@ qed
 
 lemma option_admissible: "option.admissible (%(f::'a \<Rightarrow> 'b option).
   (\<forall>x y. f x = Some y \<longrightarrow> P x y))"
-proof (rule ccpo.admissibleI[OF option.ccpo])
+proof (rule ccpo.admissibleI)
   fix A :: "('a \<Rightarrow> 'b option) set"
   assume ch: "chain option.le_fun A"
     and IH: "\<forall>f\<in>A. \<forall>x y. f x = Some y \<longrightarrow> P x y"

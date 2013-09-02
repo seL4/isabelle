@@ -53,13 +53,6 @@ export_code _ checking SML OCaml? Haskell?
 (* If the compilation fails with an error "ambiguous implicit values",
    read \<section>7.1 in the Code Generation Manual *)
 
-class ccpo_linorder = ccpo + linorder
-
-lemma [code]:
-  "(Complete_Partial_Order.admissible :: ('a :: ccpo_linorder \<Rightarrow> bool) \<Rightarrow> bool) P = 
-    (\<forall>A. Complete_Partial_Order.chain (op \<le>) A \<longrightarrow> (\<forall>x\<in>A. P x) \<longrightarrow> P (Sup A))"
-unfolding admissible_def by blast
-
 lemma [code]:
   "(gfp :: ('a :: complete_linorder \<Rightarrow> 'a) \<Rightarrow> 'a) f = Sup {u. u \<le> f u}"
 unfolding gfp_def by blast
