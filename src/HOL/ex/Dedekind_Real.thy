@@ -8,7 +8,7 @@ provides some of the definitions.
 *)
 
 theory Dedekind_Real
-imports Rat Lubs
+imports Complex_Main
 begin
 
 section {* Positive real numbers *}
@@ -782,7 +782,7 @@ proof -
     have "r + ?d < r*x"
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)
-      also with ypos have "... = (r/y) * (y + ?d)"
+      also from ypos have "... = (r/y) * (y + ?d)"
         by (simp only: algebra_simps divide_inverse, simp)
       also have "... = r*x" using ypos
         by simp
@@ -1785,10 +1785,10 @@ proof
   proof
     fix pa
     assume "pa \<in> ?pS"
-    then obtain a where "a \<in> S" and "a = real_of_preal pa"
+    then obtain a where a: "a \<in> S" "a = real_of_preal pa"
       by simp
-    moreover hence "a \<le> u" using sup by simp
-    ultimately show "pa \<le> pu"
+    then have "a \<le> u" using sup by simp
+    with a show "pa \<le> pu"
       using sup and u_is_pu by (simp add: real_of_preal_le_iff)
   qed
 
@@ -1864,9 +1864,9 @@ proof -
       fix s
       assume "s \<in> {z. \<exists>x\<in>S. z = x + - X + 1}"
       hence "\<exists> x \<in> S. s = x + -X + 1" ..
-      then obtain x1 where "x1 \<in> S" and "s = x1 + (-X) + 1" ..
-      moreover hence "x1 \<le> x" using S_le_x by simp
-      ultimately have "s \<le> x + - X + 1" by arith
+      then obtain x1 where x1: "x1 \<in> S" "s = x1 + (-X) + 1" ..
+      then have "x1 \<le> x" using S_le_x by simp
+      with x1 have "s \<le> x + - X + 1" by arith
     }
     then have "isUb (UNIV::real set) ?SHIFT (x + (-X) + 1)"
       by (auto simp add: isUb_def setle_def)
