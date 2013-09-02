@@ -2145,7 +2145,8 @@ proof (rule connectedI)
       moreover obtain b where "b \<in> B" "x < b" "b < min a y"
         using cInf_less_iff[of "B \<inter> {x <..}" x "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
         by (auto intro: less_imp_le)
-      moreover then have "?z \<le> b"
+      moreover have "?z \<le> b"
+        using `b \<in> B` `x < b`
         by (intro cInf_lower[where z=x]) auto
       moreover have "b \<in> U"
         using `x \<le> ?z` `?z \<le> b` `b < min a y`

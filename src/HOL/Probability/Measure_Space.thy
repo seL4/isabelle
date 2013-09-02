@@ -158,7 +158,8 @@ lemma (in ring_of_sets) additive_sum:
       and A: "A`S \<subseteq> M"
       and disj: "disjoint_family_on A S"
   shows  "(\<Sum>i\<in>S. f (A i)) = f (\<Union>i\<in>S. A i)"
-using `finite S` disj A proof induct
+  using `finite S` disj A
+proof induct
   case empty show ?case using f by (simp add: positive_def)
 next
   case (insert s S)
@@ -168,7 +169,6 @@ next
   have "A s \<in> M" using insert by blast
   moreover have "(\<Union>i\<in>S. A i) \<in> M"
     using insert `finite S` by auto
-  moreover
   ultimately have "f (A s \<union> (\<Union>i\<in>S. A i)) = f (A s) + f(\<Union>i\<in>S. A i)"
     using ad UNION_in_sets A by (auto simp add: additive_def)
   with insert show ?case using ad disjoint_family_on_mono[of S "insert s S" A]
@@ -781,15 +781,15 @@ proof (rule ring_of_setsI)
     using sets.sets_into_space by auto
   show "{} \<in> null_sets M"
     by auto
-  fix A B assume sets: "A \<in> null_sets M" "B \<in> null_sets M"
-  then have "A \<in> sets M" "B \<in> sets M"
+  fix A B assume null_sets: "A \<in> null_sets M" "B \<in> null_sets M"
+  then have sets: "A \<in> sets M" "B \<in> sets M"
     by auto
-  moreover then have "emeasure M (A \<union> B) \<le> emeasure M A + emeasure M B"
+  then have *: "emeasure M (A \<union> B) \<le> emeasure M A + emeasure M B"
     "emeasure M (A - B) \<le> emeasure M A"
     by (auto intro!: emeasure_subadditive emeasure_mono)
-  moreover have "emeasure M B = 0" "emeasure M A = 0"
-    using sets by auto
-  ultimately show "A - B \<in> null_sets M" "A \<union> B \<in> null_sets M"
+  then have "emeasure M B = 0" "emeasure M A = 0"
+    using null_sets by auto
+  with sets * show "A - B \<in> null_sets M" "A \<union> B \<in> null_sets M"
     by (auto intro!: antisym)
 qed
 
@@ -1563,9 +1563,9 @@ proof (rule emeasure_measure_of_sigma)
         by (auto intro!: Lim_eventually eventually_sequentiallyI[where c=i])
     next
       assume "\<not> (\<exists>i. \<forall>j\<ge>i. F i = F j)"
-      then obtain f where "\<And>i. i \<le> f i" "\<And>i. F i \<noteq> F (f i)" by metis
-      moreover then have "\<And>i. F i \<subseteq> F (f i)" using `incseq F` by (auto simp: incseq_def)
-      ultimately have *: "\<And>i. F i \<subset> F (f i)" by auto
+      then obtain f where f: "\<And>i. i \<le> f i" "\<And>i. F i \<noteq> F (f i)" by metis
+      then have "\<And>i. F i \<subseteq> F (f i)" using `incseq F` by (auto simp: incseq_def)
+      with f have *: "\<And>i. F i \<subset> F (f i)" by auto
 
       have "incseq (\<lambda>i. ?M (F i))"
         using `incseq F` unfolding incseq_def by (auto simp: card_mono dest: finite_subset)

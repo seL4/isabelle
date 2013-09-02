@@ -2743,10 +2743,10 @@ proof -
     using subspace_substandard[of "\<lambda>i. i \<notin> d"] .
   ultimately have "span d \<subseteq> ?B"
     using span_mono[of d "?B"] span_eq[of "?B"] by blast
-  moreover have "card d \<le> dim (span d)"
+  moreover have *: "card d \<le> dim (span d)"
     using independent_card_le_dim[of d "span d"] independent_substdbasis[OF assms] span_inc[of d]
     by auto
-  moreover then have "dim ?B \<le> dim (span d)"
+  moreover from * have "dim ?B \<le> dim (span d)"
     using dim_substandard[OF assms] by auto
   ultimately show ?thesis
     using s subspace_dim_equal[of "span d" "?B"] subspace_span[of d] by auto
@@ -8604,7 +8604,7 @@ from this obtain p where p_def: "!i:I. p i : S i" by metis
   { fix i assume "i:I"
     { assume "e i = 0"
       have ge: "u * (c i) >= 0 & v * (d i) >= 0" using xc yc uv `i:I` by (simp add: mult_nonneg_nonneg)
-      moreover hence "u * (c i) <= 0 & v * (d i) <= 0" using `e i = 0` e_def `i:I` by simp
+      moreover from ge have "u * (c i) <= 0 & v * (d i) <= 0" using `e i = 0` e_def `i:I` by simp
       ultimately have "u * (c i) = 0 & v * (d i) = 0" by auto
       hence "(u * (c i))*\<^sub>R (s i)+(v * (d i))*\<^sub>R (t i) = (e i) *\<^sub>R (q i)"
          using `e i = 0` by auto

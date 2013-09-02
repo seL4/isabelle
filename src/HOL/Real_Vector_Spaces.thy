@@ -758,10 +758,10 @@ proof
   show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
   proof (safe intro!: exI[of _ "\<lambda>n. {y. dist x y < inverse (Suc n)}"])
     fix S assume "open S" "x \<in> S"
-    then obtain e where "0 < e" "{y. dist x y < e} \<subseteq> S"
+    then obtain e where e: "0 < e" and "{y. dist x y < e} \<subseteq> S"
       by (auto simp: open_dist subset_eq dist_commute)
     moreover
-    then obtain i where "inverse (Suc i) < e"
+    from e obtain i where "inverse (Suc i) < e"
       by (auto dest!: reals_Archimedean)
     then have "{y. dist x y < inverse (Suc i)} \<subseteq> {y. dist x y < e}"
       by auto

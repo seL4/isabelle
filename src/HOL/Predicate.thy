@@ -225,9 +225,9 @@ lemma eval_singletonI:
   "\<exists>!x. eval A x \<Longrightarrow> eval A (singleton dfault A)"
 proof -
   assume assm: "\<exists>!x. eval A x"
-  then obtain x where "eval A x" ..
-  moreover with assm have "singleton dfault A = x" by (rule singleton_eqI)
-  ultimately show ?thesis by simp 
+  then obtain x where x: "eval A x" ..
+  with assm have "singleton dfault A = x" by (rule singleton_eqI)
+  with x show ?thesis by simp
 qed
 
 lemma single_singleton:

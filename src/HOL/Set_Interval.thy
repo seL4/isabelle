@@ -269,9 +269,9 @@ lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"
 proof
   assume "{a..b} = {c}"
-  hence "\<not> (\<not> a \<le> b)" unfolding atLeastatMost_empty_iff[symmetric] by simp
-  moreover with `{a..b} = {c}` have "c \<le> a \<and> b \<le> c" by auto
-  ultimately show "a = b \<and> b = c" by auto
+  hence *: "\<not> (\<not> a \<le> b)" unfolding atLeastatMost_empty_iff[symmetric] by simp
+  with `{a..b} = {c}` have "c \<le> a \<and> b \<le> c" by auto
+  with * show "a = b \<and> b = c" by auto
 qed simp
 
 lemma Icc_subset_Ici_iff[simp]:
@@ -827,21 +827,23 @@ text{* Any subset of an interval of natural numbers the size of the
 subset is exactly that interval. *}
 
 lemma subset_card_intvl_is_intvl:
-  "A <= {k..<k+card A} \<Longrightarrow> A = {k..<k+card A}" (is "PROP ?P")
-proof cases
-  assume "finite A"
-  thus "PROP ?P"
-  proof(induct A rule:finite_linorder_max_induct)
+  assumes "A \<subseteq> {k..<k+card A}"
+  shows "A = {k..<k+card A}"
+proof (cases "finite A")
+  case True
+  from this and assms show ?thesis
+  proof (induct A rule: finite_linorder_max_induct)
     case empty thus ?case by auto
   next
     case (insert b A)
-    moreover hence "b ~: A" by auto
-    moreover have "A <= {k..<k+card A}" and "b = k+card A"
-      using `b ~: A` insert by fastforce+
-    ultimately show ?case by auto
+    hence *: "b \<notin> A" by auto
+    with insert have "A <= {k..<k+card A}" and "b = k+card A"
+      by fastforce+
+    with insert * show ?case by auto
   qed
 next
-  assume "~finite A" thus "PROP ?P" by simp
+  case False
+  with assms show ?thesis by simp
 qed
 
 
@@ -1470,7 +1472,7 @@ proof -
     case 0 then show ?case by simp
   next
     case (Suc n)
-    moreover with `y \<noteq> 0` have "(1 + y) ^ n = (y * inverse y) * (1 + y) ^ n" by simp 
+    moreover from Suc `y \<noteq> 0` have "(1 + y) ^ n = (y * inverse y) * (1 + y) ^ n" by simp 
     ultimately show ?case by (simp add: field_simps divide_inverse)
   qed
   ultimately show ?thesis by simp

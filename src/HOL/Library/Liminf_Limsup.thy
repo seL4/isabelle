@@ -171,8 +171,8 @@ proof -
     have "\<exists>P. eventually P F \<and> y < INFI (Collect P) X"
     proof cases
       assume "\<exists>z. y < z \<and> z < C"
-      then guess z ..
-      moreover then have "z \<le> INFI {x. z < X x} X"
+      then guess z .. note z = this
+      moreover from z have "z \<le> INFI {x. z < X x} X"
         by (auto intro!: INF_greatest)
       ultimately show ?thesis
         using y by (intro exI[of _ "\<lambda>x. z < X x"]) auto
@@ -203,7 +203,7 @@ next
   show "f0 \<le> y"
   proof cases
     assume "\<exists>z. y < z \<and> z < f0"
-    then guess z ..
+    then obtain z where "y < z \<and> z < f0" ..
     moreover have "z \<le> INFI {x. z < f x} f"
       by (rule INF_greatest) simp
     ultimately show ?thesis

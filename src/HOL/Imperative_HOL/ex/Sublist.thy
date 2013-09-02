@@ -490,7 +490,6 @@ proof -
   moreover
   from right l_r length_eq have "sublist' r (List.length xs) xs = sublist' r (List.length ys) ys"
     by (auto simp add: length_sublist' nth_sublist' intro!: nth_equalityI)
-  moreover
   ultimately show ?thesis by (simp add: multiset_of_append)
 qed
 

@@ -54,7 +54,8 @@ declare sorted.Nil [code_pred_intro]
   sorted_single [code_pred_intro]
   sorted_many [code_pred_intro]
 
-code_pred sorted proof -
+code_pred sorted
+proof -
   assume "sorted xa"
   assume 1: "xa = [] \<Longrightarrow> thesis"
   assume 2: "\<And>x. xa = [x] \<Longrightarrow> thesis"
@@ -65,9 +66,12 @@ code_pred sorted proof -
     case (Cons x xs) show ?thesis proof (cases xs)
       case Nil with Cons 2 show ?thesis by simp
     next
-      case (Cons y zs) with `xa = x # xs` have "xa = x # y # zs" by simp
-      moreover with `sorted xa` have "x \<le> y" and "sorted (y # zs)" by simp_all
-      ultimately show ?thesis by (rule 3)
+      case (Cons y zs)
+      show ?thesis
+      proof (rule 3)
+        from Cons `xa = x # xs` show "xa = x # y # zs" by simp
+        with `sorted xa` show "x \<le> y" and "sorted (y # zs)" by simp_all
+      qed
     qed
   qed
 qed

@@ -146,11 +146,11 @@ function plus_ereal where
 "-\<infinity> + -\<infinity> = -(\<infinity>::ereal)"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a, b)" by (cases x) auto
-  ultimately show P
+  then obtain a b where "x = (a, b)" by (cases x) auto
+  with goal1 show P
    by (cases rule: ereal2_cases[of a b]) auto
 qed auto
-termination proof qed (rule wf_empty)
+termination by default (rule wf_empty)
 
 lemma Infty_neq_0[simp]:
   "(\<infinity>::ereal) \<noteq> 0" "0 \<noteq> (\<infinity>::ereal)"
@@ -234,8 +234,8 @@ where
 | "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a,b)" by (cases x) auto
-  ultimately show P by (cases rule: ereal2_cases[of a b]) auto
+  then obtain a b where "x = (a,b)" by (cases x) auto
+  with goal1 show P by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
 
@@ -496,8 +496,8 @@ function times_ereal where
 "-(\<infinity>::ereal) * -\<infinity> = \<infinity>"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a, b)" by (cases x) auto
-  ultimately show P by (cases rule: ereal2_cases[of a b]) auto
+  then obtain a b where "x = (a, b)" by (cases x) auto
+  with goal1 show P by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
 
@@ -1338,9 +1338,9 @@ next
   next
     { assume "c = \<infinity>" have ?thesis
       proof cases
-        assume "\<forall>i. f i = 0"
-        moreover then have "range f = {0}" by auto
-        ultimately show "c * SUPR UNIV f \<le> y" using *
+        assume **: "\<forall>i. f i = 0"
+        then have "range f = {0}" by auto
+        with ** show "c * SUPR UNIV f \<le> y" using *
           by (auto simp: SUP_def min_max.sup_absorb1)
       next
         assume "\<not> (\<forall>i. f i = 0)"
@@ -1417,9 +1417,9 @@ next
   from `A \<noteq> {}` obtain x where "x \<in> A" by auto
   show ?thesis
   proof cases
-    assume "\<infinity> \<in> A"
-    moreover then have "\<infinity> \<le> Sup A" by (intro complete_lattice_class.Sup_upper)
-    ultimately show ?thesis by (auto intro!: exI[of _ "\<lambda>x. \<infinity>"])
+    assume *: "\<infinity> \<in> A"
+    then have "\<infinity> \<le> Sup A" by (intro complete_lattice_class.Sup_upper)
+    with * show ?thesis by (auto intro!: exI[of _ "\<lambda>x. \<infinity>"])
   next
     assume "\<infinity> \<notin> A"
     have "\<exists>x\<in>A. 0 \<le> x"
@@ -1489,10 +1489,13 @@ lemma Inf_ereal_cminus:
   fixes A :: "ereal set" assumes "A \<noteq> {}" and "\<bar>a\<bar> \<noteq> \<infinity>"
   shows "Inf ((\<lambda>x. a - x) ` A) = a - Sup A"
 proof -
-  { fix x have "-a - -x = -(a - x)" using assms by (cases x) auto }
-  moreover then have "(\<lambda>x. -a - x)`uminus`A = uminus ` (\<lambda>x. a - x) ` A"
+  {
+    fix x
+    have "-a - -x = -(a - x)" using assms by (cases x) auto
+  } note * = this
+  then have "(\<lambda>x. -a - x)`uminus`A = uminus ` (\<lambda>x. a - x) ` A"
     by (auto simp: image_image)
-  ultimately show ?thesis
+  with * show ?thesis
     using Sup_ereal_cminus[of "uminus ` A" "-a"] assms
     by (auto simp add: ereal_Sup_uminus_image_eq ereal_Inf_uminus_image_eq)
 qed
@@ -1606,9 +1609,9 @@ lemma open_PInfty: "open A \<Longrightarrow> \<infinity> \<in> A \<Longrightarro
   unfolding open_ereal_generated
 proof (induct rule: generate_topology.induct)
   case (Int A B)
-  moreover then obtain x z where "\<infinity> \<in> A \<Longrightarrow> {ereal x <..} \<subseteq> A" "\<infinity> \<in> B \<Longrightarrow> {ereal z <..} \<subseteq> B"
-      by auto
-  ultimately show ?case
+  then obtain x z where "\<infinity> \<in> A \<Longrightarrow> {ereal x <..} \<subseteq> A" "\<infinity> \<in> B \<Longrightarrow> {ereal z <..} \<subseteq> B"
+    by auto
+  with Int show ?case
     by (intro exI[of _ "max x z"]) fastforce
 next
   { fix x have "x \<noteq> \<infinity> \<Longrightarrow> \<exists>t. x \<le> ereal t" by (cases x) auto }
@@ -1621,9 +1624,9 @@ lemma open_MInfty: "open A \<Longrightarrow> -\<infinity> \<in> A \<Longrightarr
   unfolding open_ereal_generated
 proof (induct rule: generate_topology.induct)
   case (Int A B)
-  moreover then obtain x z where "-\<infinity> \<in> A \<Longrightarrow> {..< ereal x} \<subseteq> A" "-\<infinity> \<in> B \<Longrightarrow> {..< ereal z} \<subseteq> B"
-      by auto
-  ultimately show ?case
+  then obtain x z where "-\<infinity> \<in> A \<Longrightarrow> {..< ereal x} \<subseteq> A" "-\<infinity> \<in> B \<Longrightarrow> {..< ereal z} \<subseteq> B"
+    by auto
+  with Int show ?case
     by (intro exI[of _ "min x z"]) fastforce
 next
   { fix x have "x \<noteq> - \<infinity> \<Longrightarrow> \<exists>t. ereal t \<le> x" by (cases x) auto }

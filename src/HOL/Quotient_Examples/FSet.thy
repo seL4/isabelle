@@ -1033,9 +1033,9 @@ next
   case (insert x A)
   from insert.prems insert.hyps(1) have "\<And>z. z \<in> fset A \<longleftrightarrow> z \<in> fset (B - {|x|})"
     by (auto simp add: in_fset)
-  then have "A = B - {|x|}" by (rule insert.hyps(2))
-  moreover with insert.prems [symmetric, of x] have "x |\<in>| B" by (simp add: in_fset)
-  ultimately show ?case by (metis in_fset_mdef)
+  then have A: "A = B - {|x|}" by (rule insert.hyps(2))
+  with insert.prems [symmetric, of x] have "x |\<in>| B" by (simp add: in_fset)
+  with A show ?case by (metis in_fset_mdef)
 qed
 
 subsection {* alternate formulation with a different decomposition principle

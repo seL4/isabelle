@@ -65,7 +65,7 @@ proof
       proof -
         from xs have
           "x \<ge> 2^(m - 1) + 1" by auto
-        moreover with mgt0 have
+        moreover from mgt0 have
           "2^(m - 1) + 1 \<ge> (1::nat)" by auto
         ultimately have
           "x \<ge> 1" by (rule xtrans)

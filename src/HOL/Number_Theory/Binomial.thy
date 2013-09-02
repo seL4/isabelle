@@ -203,7 +203,7 @@ proof -
     by (subst choose_reduce_nat, auto simp add: field_simps)
   also note one
   also note two
-  also with less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
+  also from less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
     apply (subst fact_plus_one_nat)
     apply (subst distrib_right [symmetric])
     apply simp

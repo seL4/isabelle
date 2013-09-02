@@ -257,14 +257,13 @@ proof -
         finally have "fm n x \<in> fm n ` B n" .
         thus "x \<in> B n"
         proof safe
-          fix y assume "y \<in> B n"
-          moreover
+          fix y assume y: "y \<in> B n"
           hence "y \<in> space (Pi\<^sub>M (J n) (\<lambda>_. borel))" using J sets.sets_into_space[of "B n" "P (J n)"]
             by (auto simp add: proj_space proj_sets)
           assume "fm n x = fm n y"
           note inj_onD[OF inj_on_fm[OF space_borel],
             OF `fm n x = fm n y` `x \<in> space _` `y \<in> space _`]
-          ultimately show "x \<in> B n" by simp
+          with y show "x \<in> B n" by simp
         qed
       qed
       { fix n
@@ -438,10 +437,11 @@ proof -
             apply (subst (2) tendsto_iff, subst eventually_sequentially)
           proof safe
             fix e :: real assume "0 < e"
-            { fix i x assume "i \<ge> n" "t \<in> domain (fm n x)"
-              moreover
+            { fix i x
+              assume i: "i \<ge> n"
+              assume "t \<in> domain (fm n x)"
               hence "t \<in> domain (fm i x)" using J_mono[OF `i \<ge> n`] by auto
-              ultimately have "(fm i x)\<^sub>F t = (fm n x)\<^sub>F t"
+              with i have "(fm i x)\<^sub>F t = (fm n x)\<^sub>F t"
                 using j by (auto simp: proj_fm dest!: inj_onD[OF inj_on_Utn])
             } note index_shift = this
             have I: "\<And>i. i \<ge> n \<Longrightarrow> Suc (diagseq i) \<ge> n"
@@ -487,11 +487,11 @@ proof -
         also have "finmap_of (Utn ` J n) z  = fm n (\<lambda>i. z (Utn i))"
           unfolding finmap_eq_iff
         proof clarsimp
-          fix i assume "i \<in> J n"
-          moreover hence "from_nat_into (\<Union>n. J n) (Utn i) = i"
+          fix i assume i: "i \<in> J n"
+          hence "from_nat_into (\<Union>n. J n) (Utn i) = i"
             unfolding Utn_def
             by (subst from_nat_into_to_nat_on[OF countable_UN_J]) auto
-          ultimately show "z (Utn i) = (fm n (\<lambda>i. z (Utn i)))\<^sub>F (Utn i)"
+          with i show "z (Utn i) = (fm n (\<lambda>i. z (Utn i)))\<^sub>F (Utn i)"
             by (simp add: finmap_eq_iff fm_def compose_def)
         qed
         finally have "fm n (\<lambda>i. z (Utn i)) \<in> K' n" .
