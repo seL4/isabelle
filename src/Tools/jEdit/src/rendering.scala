@@ -77,7 +77,8 @@ object Rendering
       Keyword.THY_SCRIPT -> LABEL,
       Keyword.PRF_SCRIPT -> DIGIT,
       Keyword.PRF_ASM -> KEYWORD3,
-      Keyword.PRF_ASM_GOAL -> KEYWORD3
+      Keyword.PRF_ASM_GOAL -> KEYWORD3,
+      Keyword.PRF_ASM_GOAL_SCRIPT -> DIGIT
     ).withDefaultValue(KEYWORD1)
   }
 
