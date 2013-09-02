@@ -265,6 +265,11 @@ fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
 Code_Target_Nat and Code_Target_Numeral.  See the tutorial on code
 generation for details.  INCOMPATIBILITY.
 
+* Complete_Partial_Order.admissible is defined outside the type 
+class ccpo, but with mandatory prefix ccpo. Admissibility theorems
+lose the class predicate assumption or sort constraint when possible.
+INCOMPATIBILITY.
+
 * Introduce type class "conditionally_complete_lattice": Like a
 complete lattice but does not assume the existence of the top and
 bottom elements.  Allows to generalize some lemmas about reals and
