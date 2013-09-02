@@ -38,7 +38,7 @@ Quick start in 25min
 
 4. Access documentation (bash shell commands):
 
-    ./bin/isabelle build_doc -p -a
+    ./bin/isabelle build_doc -a
 
     ./bin/isabelle doc system
 
