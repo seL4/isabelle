@@ -122,6 +122,20 @@ fun parse_problem_name str' : problem_name =
       end
   end
 
+(*Restricts the character set used in a string*)
+fun restricted_ascii only_exclude =
+  let
+    fun restrict x = "_" ^ Int.toString (Char.ord x)
+    fun restrict_uniform x =
+      if member (op =) (numerics @ alphabetics) x then Char.toString x else restrict x
+    fun restrict_specific x =
+      if member (op =) only_exclude x then restrict x else Char.toString x
+    val restrict_ascii =
+      if List.null only_exclude
+      then map restrict_uniform
+      else map restrict_specific
+  in String.explode #> restrict_ascii #> implode end;
+
 (*Produces an ASCII encoding of a TPTP problem-file name.*)
 fun mangle_problem_name (prob : problem_name) : string =
   case prob of
@@ -148,6 +162,6 @@ fun mangle_problem_name (prob : problem_name) : string =
           prob_form ^
           suffix
         end
-    | Nonstandard str => str
+    | Nonstandard str => restricted_ascii [] str
 
 end
