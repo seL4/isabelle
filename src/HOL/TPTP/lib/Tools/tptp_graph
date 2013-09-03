@@ -143,8 +143,8 @@ fi
 cd $WORKDIR
 if [ -z "$NON_EXEC" ]; then
   $DOT -Txdot "${FILENAME}.dot" \
-  | $DOT2TEX -f pgf -t raw --crop > "${FILENAME}.tex"
-  $PERL -w -p -e 's/_/\\_/g' "${FILENAME}.tex"
+  | $DOT2TEX -f pgf -t raw --crop \
+  | $PERL -w -p -e 's/_/\\_/g' > "${FILENAME}.tex"
 fi
 
 if [ "$OUTPUT_FORMAT" -eq 1 ]; then
