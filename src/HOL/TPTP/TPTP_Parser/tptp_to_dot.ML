@@ -78,12 +78,20 @@ fun tptp_dot_node with_label reverse_arrows
        else the_role_shape role) ^
    "\", style=\"" ^ the_lang_style lang ^
    "\", label=\"" ^ n ^ "\"];\n" ^
-   (case TPTP_Proof.extract_inference_info annot of
-     NONE => ""
-   | SOME (rule, ids) =>
-       map (dot_arc reverse_arrows
-             (n, if with_label then SOME rule else NONE)) ids
-       |> implode)
+   (case TPTP_Proof.extract_source_info annot of
+        SOME (TPTP_Proof.Inference (rule, _, pinfos)) =>
+          let
+            fun parent_id (TPTP_Proof.Parent n) = n
+              | parent_id (TPTP_Proof.ParentWithDetails (n, _)) = n
+            val parent_ids = map parent_id pinfos
+          in
+            map
+              (dot_arc reverse_arrows
+               (n, if with_label then SOME rule else NONE))
+              parent_ids
+            |> implode
+          end
+      | _ => "")
  else ""
 
 (*FIXME add opts to label arcs etc*)
