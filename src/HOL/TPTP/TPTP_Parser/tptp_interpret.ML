@@ -14,15 +14,11 @@ sig
   base types. The map must be total wrt TPTP types.*)
   type type_map = (TPTP_Syntax.tptp_type * typ) list
 
-  (*Inference info, when available, consists of the name of the inference rule
-  and the names of the inferences involved in the reasoning step.*)
-  type inference_info = (string * string list) option
-
   (*A parsed annotated formula is represented as a 5-tuple consisting of
   the formula's label, its role, the TPTP formula, its Isabelle/HOL meaning, and
   inference info*)
   type tptp_formula_meaning =
-    string * TPTP_Syntax.role * term * inference_info
+    string * TPTP_Syntax.role * term * TPTP_Proof.source_info option
 
   (*In general, the meaning of a TPTP statement (which, through the Include
   directive, may include the meaning of an entire TPTP file, is a map from
@@ -139,9 +135,8 @@ type config =
 type const_map = (string * term) list
 type var_types = (string * typ option) list
 type type_map = (TPTP_Syntax.tptp_type * typ) list
-type inference_info = (string * string list) option
 type tptp_formula_meaning =
-  string * TPTP_Syntax.role * term * inference_info
+  string * TPTP_Syntax.role * term * TPTP_Proof.source_info option
 type tptp_general_meaning =
   (type_map * const_map * tptp_formula_meaning list)
 
@@ -811,7 +806,7 @@ fun interpret_line config inc_list type_map const_map path_prefixes line thy =
               ((type_map, const_map,
                 [(label, role,
                   Syntax.check_term (Proof_Context.init_global thy') t,
-                  TPTP_Proof.extract_inference_info annotation_opt)]), thy')
+                  TPTP_Proof.extract_source_info annotation_opt)]), thy')
              end
        else (*do nothing if we're not to includ this AF*)
          ((type_map, const_map, []), thy)
