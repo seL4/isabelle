@@ -667,15 +667,15 @@ text {*
   context --- for example, because a constant of that name exists ---
   it may be added to the @{keyword "for"} clause.
 
-  Additional equations, which are unfolded during
-  post-processing, may be given after the keyword @{keyword "where"}.
-  This is useful for interpreting concepts introduced through
-  definitions.  The equations must be proved.
+  The equations @{text eqns} yield \emph{rewrite morphisms}, which are
+  unfolded during post-processing and are useful for interpreting
+  concepts introduced through definitions.  The equations must be
+  proved.
 
   \item @{command "interpret"}~@{text "expr \<WHERE> eqns"} interprets
   @{text expr} in the proof context and is otherwise similar to
-  interpretation in local theories.  Note that rewrite rules given to
-  @{command "interpret"} after the @{keyword "where"} keyword should be
+  interpretation in local theories.  Note that for @{command
+  "interpret"} the @{text eqns} should be
   explicitly universally quantified.
 
   \item @{command "sublocale"}~@{text "name \<subseteq> expr \<WHERE>
@@ -684,28 +684,29 @@ text {*
   the specification of @{text name} implies the specification of
   @{text expr} is required.  As in the localized version of the
   theorem command, the proof is in the context of @{text name}.  After
-  the proof obligation has been discharged, the declarations of @{text expr}
-  become part of locale @{text name} as \emph{derived} context
-  elements and are available when the context @{text name} is
-  subsequently entered.  Note that, like import, this is dynamic:
-  declarations added to a locale part of @{text expr} after interpretation
-  become also available in @{text name}.
-
-  Only specification fragments of @{text expr} that are not already
-  part of @{text name} (be it imported, derived or a derived fragment
-  of the import) are considered in this process.  This enables
-  circular interpretations provided that no infinite chains are
-  generated in the locale hierarchy.
+  the proof obligation has been discharged, the locale hierarchy is
+  changed as if @{text name} imported @{text expr} (hence the name
+  @{command "sublocale"}).  When the context of @{text name} is
+  subsequently entered, traversing the locale hierachy will involve
+  the locale instances of @{text expr}, and their declarations will be
+  added to the context.  This makes @{command "sublocale"}
+  dynamic: extensions of a locale that is instantiated in @{text expr}
+  may take place after the @{command "sublocale"} declaration and
+  still become available in the context.  Circular @{command
+  "sublocale"} declarations are allowed as long as they do not lead to
+  infinite chains.  A detailed description of the \emph{roundup}
+  algorithm that administers traversing locale hierarchies is available
+  \cite{Ballarin2013}.
 
   If interpretations of @{text name} exist in the current global
   theory, the command adds interpretations for @{text expr} as well,
   with the same qualifier, although only for fragments of @{text expr}
   that are not interpreted in the theory already.
 
-  Equations given after @{keyword "where"} amend the morphism through
-  which @{text expr} is interpreted.  This enables to map definitions
-  from the interpreted locales to entities of @{text name}.  This
-  feature is experimental.
+  The equations @{text eqns} amend the morphism through
+  which @{text expr} is interpreted.  This enables mapping definitions
+  from the interpreted locales to entities of @{text name} and can
+  help break infinite chains induced by circular sublocale declarations.
 
   In a named context block the @{command sublocale} command may also
   be used, but the locale argument must be omitted.  The command then
