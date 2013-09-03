@@ -947,7 +947,7 @@ proof
       using complete_real[of X] by blast
     then have "Sup X = s"
       unfolding Sup_real_def by (best intro: Least_equality)  
-    also with s z have "... \<le> z"
+    also from s z have "... \<le> z"
       by blast
     finally show "Sup X \<le> z" . }
   note Sup_least = this

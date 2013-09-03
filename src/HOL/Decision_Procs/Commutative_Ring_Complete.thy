@@ -138,7 +138,6 @@ next
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
     moreover
     note 6 Y0
-    moreover
     ultimately have ?case by (simp add: mkPinj_cn) }
   moreover
   { assume "x>y" hence "EX d. x = d + y" by arith
@@ -286,7 +285,6 @@ next
     from 6 have "y>0" by (cases y) (auto simp add: norm_Pinj_0_False)
     moreover
     note 6
-    moreover
     ultimately have ?case by (simp add: mkPinj_cn) }
   moreover
   { assume "x > y" hence "EX d. x = d + y" by arith

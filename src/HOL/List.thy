@@ -722,12 +722,18 @@ lemma list_nonempty_induct [consumes 1, case_names single cons]:
 using `xs \<noteq> []` proof (induct xs)
   case Nil then show ?case by simp
 next
-  case (Cons x xs) show ?case proof (cases xs)
-    case Nil with single show ?thesis by simp
+  case (Cons x xs)
+  show ?case
+  proof (cases xs)
+    case Nil
+    with single show ?thesis by simp
   next
-    case Cons then have "xs \<noteq> []" by simp
-    moreover with Cons.hyps have "P xs" .
-    ultimately show ?thesis by (rule cons)
+    case Cons
+    show ?thesis
+    proof (rule cons)
+      from Cons show "xs \<noteq> []" by simp
+      with Cons.hyps show "P xs" .
+    qed
   qed
 qed
 
@@ -1061,12 +1067,13 @@ by(induct ys, auto simp add: Cons_eq_map_conv)
 lemma map_eq_imp_length_eq:
   assumes "map f xs = map g ys"
   shows "length xs = length ys"
-using assms proof (induct ys arbitrary: xs)
+  using assms
+proof (induct ys arbitrary: xs)
   case Nil then show ?case by simp
 next
   case (Cons y ys) then obtain z zs where xs: "xs = z # zs" by auto
   from Cons xs have "map f zs = map g ys" by simp
-  moreover with Cons have "length zs = length ys" by blast
+  with Cons have "length zs = length ys" by blast
   with xs show ?case by simp
 qed
   
@@ -1669,10 +1676,10 @@ next
   hence n: "n < Suc (length xs)" by simp
   moreover
   { assume "n < length xs"
-    with n obtain n' where "length xs - n = Suc n'"
+    with n obtain n' where n': "length xs - n = Suc n'"
       by (cases "length xs - n", auto)
     moreover
-    then have "length xs - Suc n = n'" by simp
+    from n' have "length xs - Suc n = n'" by simp
     ultimately
     have "xs ! (length xs - Suc n) = (x # xs) ! (length xs - n)" by simp
   }
@@ -3801,14 +3808,12 @@ proof (induct "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
     then have "\<exists>m n zs. concat (replicate m zs) = xs' \<and> concat (replicate n zs) = ws"
       using False and `xs' \<noteq> []` and `ys' = xs' @ ws` and len
       by (intro less.hyps) auto
-    then obtain m n zs where "concat (replicate m zs) = xs'"
+    then obtain m n zs where *: "concat (replicate m zs) = xs'"
       and "concat (replicate n zs) = ws" by blast
-    moreover
     then have "concat (replicate (m + n) zs) = ys'"
       using `ys' = xs' @ ws`
       by (simp add: replicate_add)
-    ultimately
-    show ?thesis by blast
+    with * show ?thesis by blast
   qed
   then show ?case
     using xs'_def ys'_def by metis
@@ -4074,8 +4079,8 @@ proof (induct xs arbitrary: s)
   case Nil thus ?case by simp
 next
   case (Cons a xs)
-  moreover hence "!x. x: set xs \<longrightarrow> x \<noteq> a" by auto
-  ultimately show ?case by(simp add: sublist_Cons cong:filter_cong)
+  then have "!x. x: set xs \<longrightarrow> x \<noteq> a" by auto
+  with Cons show ?case by(simp add: sublist_Cons cong:filter_cong)
 qed
 
 
@@ -4195,8 +4200,8 @@ proof (cases "[ys\<leftarrow>xss . ys\<noteq>[]] = []")
   hence "foldr (\<lambda>xs. max (length xs)) xss 0 = 0"
   proof (induct xss)
     case (Cons x xs)
-    moreover hence "x = []" by (cases x) auto
-    ultimately show ?case by auto
+    then have "x = []" by (cases x) auto
+    with Cons show ?case by auto
   qed simp
   thus ?thesis using True by simp
 next
@@ -4585,7 +4590,7 @@ lemma map_sorted_distinct_set_unique:
 proof -
   from assms have "map f xs = map f ys"
     by (simp add: sorted_distinct_set_unique)
-  moreover with `inj_on f (set xs \<union> set ys)` show "xs = ys"
+  with `inj_on f (set xs \<union> set ys)` show "xs = ys"
     by (blast intro: map_inj_on)
 qed
 
@@ -4620,11 +4625,12 @@ lemma sorted_filter:
 lemma foldr_max_sorted:
   assumes "sorted (rev xs)"
   shows "foldr max xs y = (if xs = [] then y else max (xs ! 0) y)"
-using assms proof (induct xs)
+  using assms
+proof (induct xs)
   case (Cons x xs)
-  moreover hence "sorted (rev xs)" using sorted_append by auto
-  ultimately show ?case
-    by (cases xs, auto simp add: sorted_append max_def)
+  then have "sorted (rev xs)" using sorted_append by auto
+  with Cons show ?case
+    by (cases xs) (auto simp add: sorted_append max_def)
 qed simp
 
 lemma filter_equals_takeWhile_sorted_rev:

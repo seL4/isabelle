@@ -235,7 +235,7 @@ proof -
     using sets.sets_into_space by auto
   then have "A = (\<Pi>\<^sub>E i\<in>I. if i\<in>J then E i else space (M i))"
     using A J by (auto simp: prod_emb_PiE)
-  moreover then have "(\<lambda>i. if i\<in>J then E i else space (M i)) \<in> (\<Pi> i\<in>I. sets (M i))"
+  moreover have "(\<lambda>i. if i\<in>J then E i else space (M i)) \<in> (\<Pi> i\<in>I. sets (M i))"
     using sets.top E by auto
   ultimately show ?thesis using that by auto
 qed
@@ -792,9 +792,9 @@ lemma (in product_sigma_finite) distr_singleton:
 proof (intro measure_eqI[symmetric])
   interpret I: finite_product_sigma_finite M "{i}" by default simp
   fix A assume A: "A \<in> sets (M i)"
-  moreover then have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^sub>M {i} M) = (\<Pi>\<^sub>E i\<in>{i}. A)"
+  then have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^sub>M {i} M) = (\<Pi>\<^sub>E i\<in>{i}. A)"
     using sets.sets_into_space by (auto simp: space_PiM)
-  ultimately show "emeasure (M i) A = emeasure ?D A"
+  then show "emeasure (M i) A = emeasure ?D A"
     using A I.measure_times[of "\<lambda>_. A"]
     by (simp add: emeasure_distr measurable_component_singleton)
 qed simp

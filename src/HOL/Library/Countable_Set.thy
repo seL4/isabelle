@@ -55,7 +55,8 @@ lemma countableE_infinite:
   assumes "countable S" "infinite S"
   obtains e :: "'a \<Rightarrow> nat" where "bij_betw e S UNIV"
 proof -
-  from `countable S`[THEN countableE] guess f .
+  obtain f :: "'a \<Rightarrow> nat" where "inj_on f S"
+    using `countable S` by (rule countableE)
   then have "bij_betw f S (f`S)"
     unfolding bij_betw_def by simp
   moreover
@@ -169,9 +170,12 @@ lemma countable_SIGMA[intro, simp]:
   "countable I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (A i)) \<Longrightarrow> countable (SIGMA i : I. A i)"
   by (intro countableI'[of "\<lambda>(i, a). (to_nat_on I i, to_nat_on (A i) a)"]) (auto simp: inj_on_def)
 
-lemma countable_image[intro, simp]: assumes A: "countable A" shows "countable (f`A)"
+lemma countable_image[intro, simp]:
+  assumes "countable A"
+  shows "countable (f`A)"
 proof -
-  from A guess g by (rule countableE)
+  obtain g :: "'a \<Rightarrow> nat" where "inj_on g A"
+    using assms by (rule countableE)
   moreover have "inj_on (inv_into A f) (f`A)" "inv_into A f ` f ` A \<subseteq> A"
     by (auto intro: inj_on_inv_into inv_into_into)
   ultimately show ?thesis

@@ -246,7 +246,7 @@ next
           then show ?case by auto
         qed
         moreover
-        then have "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
+        from w have "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
         moreover
         from w have "?a / 2 ^ (k + 1) \<le> ?q k k (w k)" by auto
         then have "?M (J k) (A k) (w k) \<noteq> {}"
@@ -344,10 +344,10 @@ proof
     assume "I = {}" then show ?thesis by (simp add: space_PiM_empty)
   next
     assume "I \<noteq> {}"
-    then obtain i where "i \<in> I" by auto
-    moreover then have "emb I {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i)) = (space (Pi\<^sub>M I M))"
+    then obtain i where i: "i \<in> I" by auto
+    then have "emb I {i} (\<Pi>\<^sub>E i\<in>{i}. space (M i)) = (space (Pi\<^sub>M I M))"
       by (auto simp: prod_emb_def space_PiM)
-    ultimately show ?thesis
+    with i show ?thesis
       using emeasure_PiM_emb_not_empty[of "{i}" "\<lambda>i. space (M i)"]
       by (simp add: emeasure_PiM emeasure_space_1)
   qed

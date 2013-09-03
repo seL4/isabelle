@@ -3637,11 +3637,11 @@ proof -
     assume cunit:"c \<in> Units G"
 
     have "b \<otimes> inv c = a \<otimes> c \<otimes> inv c" by (simp add: b)
-    also with ccarr acarr cunit
+    also from ccarr acarr cunit
         have "\<dots> = a \<otimes> (c \<otimes> inv c)" by (fast intro: m_assoc)
-    also with ccarr cunit
+    also from ccarr cunit
         have "\<dots> = a \<otimes> \<one>" by (simp add: Units_r_inv)
-    also with acarr
+    also from acarr
         have "\<dots> = a" by simp
     finally have "a = b \<otimes> inv c" by simp
     with ccarr cunit

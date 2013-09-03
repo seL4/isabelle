@@ -416,10 +416,10 @@ proof -
   proof
     fix h show "F h = 0"
     proof (rule ccontr)
-      assume "F h \<noteq> 0"
-      moreover from this have h: "h \<noteq> 0"
+      assume **: "F h \<noteq> 0"
+      then have h: "h \<noteq> 0"
         by (clarsimp simp add: F.zero)
-      ultimately have "0 < ?r h"
+      with ** have "0 < ?r h"
         by (simp add: divide_pos_pos)
       from LIM_D [OF * this] obtain s where s: "0 < s"
         and r: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> ?r x < ?r h" by auto
@@ -528,11 +528,11 @@ where
 lemma differentiable_def: "(f::real \<Rightarrow> real) differentiable x in s \<longleftrightarrow> (\<exists>D. DERIV f x : s :> D)"
 proof safe
   assume "f differentiable x in s"
-  then obtain f' where "FDERIV f x : s :> f'"
+  then obtain f' where *: "FDERIV f x : s :> f'"
     unfolding isDiff_def by auto
-  moreover then obtain c where "f' = (\<lambda>x. x * c)"
+  then obtain c where "f' = (\<lambda>x. x * c)"
     by (metis real_bounded_linear FDERIV_bounded_linear)
-  ultimately show "\<exists>D. DERIV f x : s :> D"
+  with * show "\<exists>D. DERIV f x : s :> D"
     unfolding deriv_fderiv by auto
 qed (auto simp: isDiff_def deriv_fderiv)
 
@@ -730,8 +730,8 @@ lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x)
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
   unfolding DERIV_iff2
 proof (rule filterlim_cong)
-  assume "eventually (\<lambda>x. f x = g x) (nhds x)"
-  moreover then have "f x = g x" by (auto simp: eventually_nhds)
+  assume *: "eventually (\<lambda>x. f x = g x) (nhds x)"
+  moreover from * have "f x = g x" by (auto simp: eventually_nhds)
   moreover assume "x = y" "u = v"
   ultimately show "eventually (\<lambda>xa. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)) (at x)"
     by (auto simp: eventually_at_filter elim: eventually_elim1)
@@ -1319,7 +1319,8 @@ theorem GMVT:
     and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
     and gc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont g x"
     and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable x"
-  shows "\<exists>g'c f'c c. DERIV g c :> g'c \<and> DERIV f c :> f'c \<and> a < c \<and> c < b \<and> ((f b - f a) * g'c) = ((g b - g a) * f'c)"
+  shows "\<exists>g'c f'c c.
+    DERIV g c :> g'c \<and> DERIV f c :> f'c \<and> a < c \<and> c < b \<and> ((f b - f a) * g'c) = ((g b - g a) * f'c)"
 proof -
   let ?h = "\<lambda>x. (f b - f a)*(g x) - (g b - g a)*(f x)"
   from assms have "a < b" by simp
@@ -1348,7 +1349,7 @@ proof -
 
   {
     from cdef have "?h b - ?h a = (b - a) * l" by auto
-    also with leq have "\<dots> = (b - a) * (g'c * (f b - f a) - f'c * (g b - g a))" by simp
+    also from leq have "\<dots> = (b - a) * (g'c * (f b - f a) - f'c * (g b - g a))" by simp
     finally have "?h b - ?h a = (b - a) * (g'c * (f b - f a) - f'c * (g b - g a))" by simp
   }
   moreover
@@ -1458,14 +1459,15 @@ proof -
       using `isCont g 0` g by (auto intro: DERIV_isCont simp: le_less)
     ultimately have "\<exists>c. 0 < c \<and> c < x \<and> (f x - f 0) * g' c = (g x - g 0) * f' c"
       using f g `x < a` by (intro GMVT') auto
-    then guess c ..
+    then obtain c where *: "0 < c" "c < x" "(f x - f 0) * g' c = (g x - g 0) * f' c"
+      by blast
     moreover
-    with g'(1)[of c] g'(2) have "(f x - f 0)  / (g x - g 0) = f' c / g' c"
+    from * g'(1)[of c] g'(2) have "(f x - f 0)  / (g x - g 0) = f' c / g' c"
       by (simp add: field_simps)
     ultimately show "\<exists>y. 0 < y \<and> y < x \<and> f x / g x = f' y / g' y"
       using `f 0 = 0` `g 0 = 0` by (auto intro!: exI[of _ c])
   qed
-  then guess \<zeta> ..
+  then obtain \<zeta> where "\<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)" ..
   then have \<zeta>: "eventually (\<lambda>x. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)) (at_right 0)"
     unfolding eventually_at by (intro exI[of _ a]) (auto simp: dist_real_def)
   moreover
@@ -1581,9 +1583,10 @@ proof safe
 
     have "\<exists>y. t < y \<and> y < a \<and> (g a - g t) * f' y = (f a - f t) * g' y"
       using f0 g0 t(1,2) by (intro GMVT') (force intro!: DERIV_isCont)+
-    then guess y ..
-    from this
-    have [arith]: "t < y" "y < a" and D_eq: "(f t - f a) / (g t - g a) = f' y / g' y"
+    then obtain y where [arith]: "t < y" "y < a"
+      and D_eq0: "(g a - g t) * f' y = (f a - f t) * g' y"
+      by blast
+    from D_eq0 have D_eq: "(f t - f a) / (g t - g a) = f' y / g' y"
       using `g a < g t` g'_neq_0[of y] by (auto simp add: field_simps)
 
     have *: "f t / g t - x = ((f t - f a) / (g t - g a) - x) * (1 - g a / g t) + (f a - x * g a) / g t"

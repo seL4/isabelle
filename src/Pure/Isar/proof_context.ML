@@ -31,7 +31,6 @@ sig
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
-  val cases_of: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
@@ -132,9 +131,10 @@ sig
   val add_assms_i: Assumption.export ->
     (Thm.binding * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
-  val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
-  val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
-  val get_case: Proof.context -> string -> binding option list -> Rule_Cases.T
+  val dest_cases: Proof.context -> (string * (Rule_Cases.T * bool)) list
+  val update_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
+  val apply_case: Rule_Cases.T -> Proof.context -> (binding * term list) list * Proof.context
+  val check_case: Proof.context -> string * Position.T -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -192,6 +192,9 @@ val mode_abbrev    = make_mode (false, false, false, true);
 
 (** Isar proof context information **)
 
+type cases = ((Rule_Cases.T * bool) * int) Name_Space.table;
+val empty_cases: cases = Name_Space.empty_table Markup.caseN;
+
 datatype data =
   Data of
    {mode: mode,                  (*inner syntax mode*)
@@ -199,7 +202,7 @@ datatype data =
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
     consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
     facts: Facts.T,              (*local facts*)
-    cases: (string * (Rule_Cases.T * bool)) list};    (*named case contexts*)
+    cases: cases};               (*named case contexts: case, is_proper, running index*)
 
 fun make_data (mode, syntax, tsig, consts, facts, cases) =
   Data {mode = mode, syntax = syntax, tsig = tsig, consts = consts, facts = facts, cases = cases};
@@ -210,7 +213,7 @@ structure Data = Proof_Data
   fun init thy =
     make_data (mode_default, Local_Syntax.init thy,
       (Sign.tsig_of thy, Sign.tsig_of thy),
-      (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
+      (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, empty_cases);
 );
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);
@@ -1132,28 +1135,23 @@ end;
 
 (** cases **)
 
+fun dest_cases ctxt =
+  Symtab.fold (fn (a, (c, i)) => cons (i, (a, c))) (#2 (cases_of ctxt)) []
+  |> sort (int_ord o pairself #1) |> map #2;
+
 local
 
-fun rem_case name = remove (fn (x: string, (y, _)) => x = y) name;
-
-fun add_case _ ("", _) cases = cases
-  | add_case _ (name, NONE) cases = rem_case name cases
-  | add_case is_proper (name, SOME c) cases = (name, (c, is_proper)) :: rem_case name cases;
-
-fun prep_case name fxs c =
-  let
-    fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
-      | replace [] ys = ys
-      | replace (_ :: _) [] = error ("Too many parameters for case " ^ quote name);
-    val Rule_Cases.Case {fixes, assumes, binds, cases} = c;
-    val fixes' = replace fxs fixes;
-    val binds' = map drop_schematic binds;
-  in
-    if null (fold (Term.add_tvarsT o snd) fixes []) andalso
-      null (fold (fold Term.add_vars o snd) assumes []) then
-        Rule_Cases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
-    else error ("Illegal schematic variable(s) in case " ^ quote name)
-  end;
+fun update_case _ _ ("", _) res = res
+  | update_case _ _ (name, NONE) ((space, tab), index) =
+      let
+        val tab' = Symtab.delete_safe name tab;
+      in ((space, tab'), index) end
+  | update_case context is_proper (name, SOME c) (cases, index) =
+      let
+        val (_, cases') = cases |> Name_Space.define context false
+          (Binding.make (name, Position.none), ((c, is_proper), index));
+        val index' = index + 1;
+      in (cases', index') end;
 
 fun fix (b, T) ctxt =
   let val ([x], ctxt') = add_fixes [(b, SOME T, NoSyn)] ctxt
@@ -1161,7 +1159,13 @@ fun fix (b, T) ctxt =
 
 in
 
-fun add_cases is_proper = map_cases o fold (add_case is_proper);
+fun update_cases is_proper args ctxt =
+  let
+    val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.default_naming);
+    val cases = cases_of ctxt;
+    val index = Symtab.fold (fn _ => Integer.add 1) (#2 cases) 0;
+    val (cases', _) = fold (update_case context is_proper) args (cases, index);
+  in map_cases (K cases') ctxt end;
 
 fun case_result c ctxt =
   let
@@ -1171,16 +1175,29 @@ fun case_result c ctxt =
   in
     ctxt'
     |> bind_terms (map drop_schematic binds)
-    |> add_cases true (map (apsnd SOME) cases)
+    |> update_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;
 
 val apply_case = apfst fst oo case_result;
 
-fun get_case ctxt name xs =
-  (case AList.lookup (op =) (cases_of ctxt) name of
-    NONE => error ("Unknown case: " ^ quote name)
-  | SOME (c, _) => prep_case name xs c);
+fun check_case ctxt (name, pos) fxs =
+  let
+    val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, _), _)) =
+      Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
+
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
+      | replace [] ys = ys
+      | replace (_ :: _) [] =
+          error ("Too many parameters for case " ^ quote name ^ Position.here pos);
+    val fixes' = replace fxs fixes;
+    val binds' = map drop_schematic binds;
+  in
+    if null (fold (Term.add_tvarsT o snd) fixes []) andalso
+      null (fold (fold Term.add_vars o snd) assumes []) then
+        Rule_Cases.Case {fixes = fixes', assumes = assumes, binds = binds', cases = cases}
+    else error ("Illegal schematic variable(s) in case " ^ quote name ^ Position.here pos)
+  end;
 
 end;
 
@@ -1256,8 +1273,9 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
       [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
         Pretty.quote (prt_term t)];
 
-    fun prt_asm (a, ts) = Pretty.block (Pretty.breaks
-      ((if a = "" then [] else [Pretty.str (a ^ ":")]) @ map (Pretty.quote o prt_term) ts));
+    fun prt_asm (b, ts) = Pretty.block (Pretty.breaks
+      ((if Binding.is_empty b then []
+        else [Binding.pretty b, Pretty.str ":"]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs =
@@ -1278,10 +1296,10 @@ in
 
 fun pretty_cases ctxt =
   let
-    fun add_case (_, (_, false)) = I
-      | add_case (name, (c as Rule_Cases.Case {fixes, ...}, true)) =
-          cons (name, (fixes, case_result c ctxt));
-    val cases = fold add_case (cases_of ctxt) [];
+    fun mk_case (_, (_, false)) = NONE
+      | mk_case (name, (c as Rule_Cases.Case {fixes, ...}, true)) =
+          SOME (name, (fixes, case_result c ctxt));
+    val cases = dest_cases ctxt |> map_filter mk_case;
   in
     if null cases then []
     else [Pretty.big_list "cases:" (map pretty_case cases)]

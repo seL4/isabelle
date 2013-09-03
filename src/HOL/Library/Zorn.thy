@@ -119,9 +119,9 @@ lemma chain_suc:
 lemma chain_sucD:
   assumes "chain X" shows "suc X \<subseteq> A \<and> chain (suc X)"
 proof -
-  from `chain X` have "chain (suc X)" by (rule chain_suc)
-  moreover then have "suc X \<subseteq> A" unfolding chain_def by blast
-  ultimately show ?thesis by blast
+  from `chain X` have *: "chain (suc X)" by (rule chain_suc)
+  then have "suc X \<subseteq> A" unfolding chain_def by blast
+  with * show ?thesis by blast
 qed
 
 lemma suc_Union_closed_total':
@@ -348,8 +348,8 @@ proof (rule ccontr)
   moreover have "\<forall>x\<in>C. x \<subseteq> X" using `\<Union>C \<subseteq> X` by auto
   ultimately have "subset.chain A ?C"
     using subset.chain_extend [of A C X] and `X \<in> A` by auto
-  moreover assume "\<Union>C \<noteq> X"
-  moreover then have "C \<subset> ?C" using `\<Union>C \<subseteq> X` by auto
+  moreover assume **: "\<Union>C \<noteq> X"
+  moreover from ** have "C \<subset> ?C" using `\<Union>C \<subseteq> X` by auto
   ultimately show False using * by blast
 qed
 
@@ -578,11 +578,11 @@ proof(simp add: wf_iff_no_infinite_down_chain, rule ccontr, auto)
       case 0 show ?case by fact
     next
       case (Suc i)
-      moreover obtain s where "s \<in> R" and "(f (Suc (Suc i)), f(Suc i)) \<in> s"
+      then obtain s where s: "s \<in> R" "(f (Suc (Suc i)), f(Suc i)) \<in> s"
         using 1 by auto
-      moreover hence "s initial_segment_of r \<or> r initial_segment_of s"
+      then have "s initial_segment_of r \<or> r initial_segment_of s"
         using assms(1) `r \<in> R` by (simp add: Chains_def)
-      ultimately show ?case by (simp add: init_seg_of_def) blast
+      with Suc s show ?case by (simp add: init_seg_of_def) blast
     qed
   }
   thus False using assms(2) and `r \<in> R`
@@ -682,15 +682,14 @@ proof -
     qed
     ultimately have "Well_order ?m" by (simp add: order_on_defs)
 --{*We show that the extension is above m*}
-    moreover hence "(m, ?m) \<in> I" using `Well_order m` and `x \<notin> Field m`
+    moreover have "(m, ?m) \<in> I" using `Well_order ?m` and `Well_order m` and `x \<notin> Field m`
       by (fastforce simp: I_def init_seg_of_def Field_def)
     ultimately
 --{*This contradicts maximality of m:*}
     have False using max and `x \<notin> Field m` unfolding Field_def by blast
   }
   hence "Field m = UNIV" by auto
-  moreover with `Well_order m` have "Well_order m" by simp
-  ultimately show ?thesis by blast
+  with `Well_order m` show ?thesis by blast
 qed
 
 corollary well_order_on: "\<exists>r::'a rel. well_order_on A r"

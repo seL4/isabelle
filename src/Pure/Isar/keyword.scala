@@ -38,6 +38,7 @@ object Keyword
   val PRF_DECL = "prf_decl"
   val PRF_ASM = "prf_asm"
   val PRF_ASM_GOAL = "prf_asm_goal"
+  val PRF_ASM_GOAL_SCRIPT = "prf_asm_goal_script"
   val PRF_SCRIPT = "prf_script"
 
 
@@ -52,11 +53,11 @@ object Keyword
   val theory1 = Set(THY_BEGIN, THY_END)
   val theory2 = Set(THY_DECL, THY_GOAL)
   val proof =
-    Set(QED, QED_BLOCK, QED_GLOBAL, PRF_HEADING2, PRF_HEADING3, PRF_HEADING4, PRF_GOAL,
-      PRF_BLOCK, PRF_OPEN, PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_SCRIPT)
+    Set(QED, QED_BLOCK, QED_GLOBAL, PRF_HEADING2, PRF_HEADING3, PRF_HEADING4, PRF_GOAL, PRF_BLOCK,
+      PRF_OPEN, PRF_CHAIN, PRF_DECL, PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT, PRF_SCRIPT)
   val proof1 =
     Set(QED, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL)
-  val proof2 = Set(PRF_ASM, PRF_ASM_GOAL)
+  val proof2 = Set(PRF_ASM, PRF_ASM_GOAL, PRF_ASM_GOAL_SCRIPT)
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
 }
 

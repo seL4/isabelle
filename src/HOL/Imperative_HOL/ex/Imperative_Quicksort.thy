@@ -469,12 +469,12 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       assume pivot: "l \<le> p \<and> p \<le> r"
       assume i_outer: "i < l \<or> r < i"
       from  partition_outer_remains [OF part True] i_outer
-      have "Array.get h a !i = Array.get h1 a ! i" by fastforce
+      have 2: "Array.get h a !i = Array.get h1 a ! i" by fastforce
       moreover
-      with 1(1) [OF True pivot qs1] pivot i_outer
-      have "Array.get h1 a ! i = Array.get h2 a ! i" by auto
+      from 1(1) [OF True pivot qs1] pivot i_outer 2
+      have 3: "Array.get h1 a ! i = Array.get h2 a ! i" by auto
       moreover
-      with qs2 1(2) [of p h2 h' ret2] True pivot i_outer
+      from qs2 1(2) [of p h2 h' ret2] True pivot i_outer 3
       have "Array.get h2 a ! i = Array.get h' a ! i" by auto
       ultimately have "Array.get h a ! i= Array.get h' a ! i" by simp
     }
@@ -604,9 +604,9 @@ lemma success_bindI' [success_intros]: (*FIXME move*)
   shows "success (f \<guillemotright>= g) h"
 using assms(1) proof (rule success_effectE)
   fix h' r
-  assume "effect f h h' r"
-  moreover with assms(2) have "success (g r) h'" .
-  ultimately show "success (f \<guillemotright>= g) h" by (rule success_bind_effectI)
+  assume *: "effect f h h' r"
+  with assms(2) have "success (g r) h'" .
+  with * show "success (f \<guillemotright>= g) h" by (rule success_bind_effectI)
 qed
 
 lemma success_partitionI:

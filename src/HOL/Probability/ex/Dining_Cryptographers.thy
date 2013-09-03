@@ -5,7 +5,7 @@ begin
 lemma image_ex1_eq: "inj_on f A \<Longrightarrow> (b \<in> f ` A) \<longleftrightarrow> (\<exists>!x \<in> A. b = f x)"
   by (unfold inj_on_def) blast
 
-lemma Ex1_eq: "\<exists>! x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
+lemma Ex1_eq: "\<exists>!x. P x \<Longrightarrow> P x \<Longrightarrow> P y \<Longrightarrow> x = y"
   by auto
 
 section "Define the state space"
@@ -143,8 +143,8 @@ proof -
         thus "x ! j = y ! j"
         proof (induct j)
           case (Suc j)
-          moreover hence "j < n" by simp
-          ultimately show ?case using *[OF `j < n`]
+          hence "j < n" by simp
+          with Suc show ?case using *[OF `j < n`]
             by (cases "y ! j") simp_all
         qed simp
       qed
@@ -234,7 +234,7 @@ proof -
   hence zs: "inversion (Some i, zs) = xs"
     by (simp add: xs_inv[symmetric] inversion_def coin_def payer_def)
   moreover
-  hence Not_zs: "inversion (Some i, (map Not zs)) = xs"
+  from zs have Not_zs: "inversion (Some i, (map Not zs)) = xs"
     by (simp add: xs_inv[symmetric] inversion_def coin_def payer_def)
   ultimately
   have "{dc \<in> dc_crypto. payer dc = Some i \<and> inversion dc = xs} =

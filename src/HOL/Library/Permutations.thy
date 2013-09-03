@@ -166,8 +166,8 @@ next
     have xfgpF': "?xF = ?g ` ?pF'" .
     have Fs: "card F = n - 1" using `x \<notin> F` H0 `finite F` by auto
     from insert.hyps Fs have pFs: "card ?pF = fact (n - 1)" using `finite F` by auto
-    moreover hence "finite ?pF" using fact_gt_zero_nat by (auto intro: card_ge_0_finite)
-    ultimately have pF'f: "finite ?pF'" using H0 `finite F`
+    then have "finite ?pF" using fact_gt_zero_nat by (auto intro: card_ge_0_finite)
+    then have pF'f: "finite ?pF'" using H0 `finite F`
       apply (simp only: Collect_split Collect_mem_eq)
       apply (rule finite_cartesian_product)
       apply simp_all
@@ -195,7 +195,7 @@ next
       thus ?thesis  unfolding inj_on_def by blast
     qed
     from `x \<notin> F` H0 have n0: "n \<noteq> 0 " using `finite F` by auto
-    hence "\<exists>m. n = Suc m" by arith
+    hence "\<exists>m. n = Suc m" by presburger
     then obtain m where n[simp]: "n = Suc m" by blast
     from pFs H0 have xFc: "card ?xF = fact n"
       unfolding xfgpF' card_image[OF ginj] using `finite F` `finite ?pF`

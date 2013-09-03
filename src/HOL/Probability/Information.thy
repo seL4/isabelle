@@ -381,10 +381,10 @@ lemma ac_fst:
   shows "absolutely_continuous S (distr (S \<Otimes>\<^sub>M T) S fst)"
 proof -
   interpret sigma_finite_measure T by fact
-  { fix A assume "A \<in> sets S" "emeasure S A = 0"
-    moreover then have "fst -` A \<inter> space (S \<Otimes>\<^sub>M T) = A \<times> space T"
+  { fix A assume A: "A \<in> sets S" "emeasure S A = 0"
+    then have "fst -` A \<inter> space (S \<Otimes>\<^sub>M T) = A \<times> space T"
       by (auto simp: space_pair_measure dest!: sets.sets_into_space)
-    ultimately have "emeasure (S \<Otimes>\<^sub>M T) (fst -` A \<inter> space (S \<Otimes>\<^sub>M T)) = 0"
+    with A have "emeasure (S \<Otimes>\<^sub>M T) (fst -` A \<inter> space (S \<Otimes>\<^sub>M T)) = 0"
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
     unfolding absolutely_continuous_def
@@ -398,10 +398,10 @@ lemma ac_snd:
   shows "absolutely_continuous T (distr (S \<Otimes>\<^sub>M T) T snd)"
 proof -
   interpret sigma_finite_measure T by fact
-  { fix A assume "A \<in> sets T" "emeasure T A = 0"
-    moreover then have "snd -` A \<inter> space (S \<Otimes>\<^sub>M T) = space S \<times> A"
+  { fix A assume A: "A \<in> sets T" "emeasure T A = 0"
+    then have "snd -` A \<inter> space (S \<Otimes>\<^sub>M T) = space S \<times> A"
       by (auto simp: space_pair_measure dest!: sets.sets_into_space)
-    ultimately have "emeasure (S \<Otimes>\<^sub>M T) (snd -` A \<inter> space (S \<Otimes>\<^sub>M T)) = 0"
+    with A have "emeasure (S \<Otimes>\<^sub>M T) (snd -` A \<inter> space (S \<Otimes>\<^sub>M T)) = 0"
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
     unfolding absolutely_continuous_def

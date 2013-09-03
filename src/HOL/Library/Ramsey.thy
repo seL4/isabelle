@@ -326,11 +326,11 @@ proof -
   have part2: "\<forall>X. X \<subseteq> Z & finite X & card X = 2 --> f X < s"
     using part by (fastforce simp add: eval_nat_numeral card_Suc_eq)
   obtain Y t
-    where "Y \<subseteq> Z" "infinite Y" "t < s"
+    where *: "Y \<subseteq> Z" "infinite Y" "t < s"
           "(\<forall>X. X \<subseteq> Y & finite X & card X = 2 --> f X = t)"
     by (insert Ramsey [OF infZ part2]) auto
-  moreover from this have  "\<forall>x\<in>Y. \<forall>y\<in>Y. x \<noteq> y \<longrightarrow> f {x, y} = t" by auto
-  ultimately show ?thesis by iprover
+  then have "\<forall>x\<in>Y. \<forall>y\<in>Y. x \<noteq> y \<longrightarrow> f {x, y} = t" by auto
+  with * show ?thesis by iprover
 qed
 
 

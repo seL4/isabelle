@@ -1441,14 +1441,14 @@ proof-
   have *:"(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
     apply(rule frechet_derivative_unique_within_closed_interval[of "a" "b"])
     using assms(3-)[unfolded has_vector_derivative_def] using assms(1-2)
-    by (auto simp: Basis_real_def)
+    by auto
   show ?thesis
   proof(rule ccontr)
-    assume "f' \<noteq> f''"
-    moreover
-    hence "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1"
-      using * by (auto simp: fun_eq_iff)
-    ultimately show False unfolding o_def by auto
+    assume **: "f' \<noteq> f''"
+    with * have "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1"
+      by (auto simp: fun_eq_iff)
+    with ** show False
+      unfolding o_def by auto
   qed
 qed
 

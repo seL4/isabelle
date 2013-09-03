@@ -165,18 +165,20 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
 (* scheduling loader tasks *)
 
 datatype result =
-  Result of {theory: theory, id: serial, present: unit -> unit, commit: unit -> unit, weight: int};
+  Result of {theory: theory, exec_id: Document_ID.exec,
+    present: unit -> unit, commit: unit -> unit, weight: int};
 
-fun theory_result theory = Result {theory = theory, id = 0, present = I, commit = I, weight = 0};
+fun theory_result theory =
+  Result {theory = theory, exec_id = Document_ID.none, present = I, commit = I, weight = 0};
 
 fun result_theory (Result {theory, ...}) = theory;
 fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
 fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
 
-fun join_theory (Result {theory, id, ...}) =
+fun join_theory (Result {theory, exec_id, ...}) =
   Exn.capture Thm.join_theory_proofs theory ::
-  map Exn.Exn (maps Task_Queue.group_status (Execution.peek id));
+  map Exn.Exn (maps Task_Queue.group_status (Execution.peek exec_id));
 
 
 datatype task =
@@ -271,13 +273,19 @@ fun load_thy last_timing initiators update_time deps text (name, pos) keywords p
 
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
 
-    val id = serial ();
-    val text_pos = Position.put_id (Markup.print_int id) (Path.position thy_path);
+    val exec_id = Document_ID.make ();
+    val _ =
+      Execution.running Document_ID.none exec_id [] orelse
+        raise Fail ("Failed to register execution: " ^ Document_ID.print exec_id);
+
+    val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
       Thy_Load.load_thy last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
-  in Result {theory = theory, id = id, present = present, commit = commit, weight = weight} end;
+  in
+    Result {theory = theory, exec_id = exec_id, present = present, commit = commit, weight = weight}
+  end;
 
 fun check_deps dir name =
   (case lookup_deps name of

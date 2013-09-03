@@ -388,19 +388,18 @@ where
   refl: "star r x x"
 | step: "r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
 
-text{* Underscores are replaced by the default name hyps: *}
+text {* Underscores are replaced by the default name hyps: *}
 
-lemmas star_induct = star.induct[case_names base step[r _ IH]]
+lemmas star_induct = star.induct [case_names base step[r _ IH]]
 
 lemma "star r x y \<Longrightarrow> star r y z \<Longrightarrow> star r x z"
-proof(induct rule: star_induct)
-print_cases
-  case base thus ?case .
+proof (induct rule: star_induct) print_cases
+  case base
+  then show ?case .
 next
-  case (step a b c)
-  from step.prems have "star r b z" by(rule step.IH)
-  from step.r this show ?case by(rule star.step)
+  case (step a b c) print_facts
+  from step.prems have "star r b z" by (rule step.IH)
+  with step.r show ?case by (rule star.step)
 qed
-
 
 end

@@ -572,13 +572,13 @@ lemma delete_left:
   shows "delete x (Node l y d r) = Some (Node l' y d r)"
 proof -
   from delete_Some_x_set_of [OF del_l]
-  obtain "x \<in> set_of l"
+  obtain x: "x \<in> set_of l"
     by simp
-  moreover with dist 
+  with dist 
   have "delete x r = None"
     by (cases "delete x r") (auto dest:delete_Some_x_set_of)
 
-  ultimately 
+  with x 
   show ?thesis
     using del_l dist
     by (auto split: option.splits)
@@ -590,13 +590,13 @@ lemma delete_right:
   shows "delete x (Node l y d r) = Some (Node l y d r')"
 proof -
   from delete_Some_x_set_of [OF del_r]
-  obtain "x \<in> set_of r"
+  obtain x: "x \<in> set_of r"
     by simp
-  moreover with dist 
+  with dist 
   have "delete x l = None"
     by (cases "delete x l") (auto dest:delete_Some_x_set_of)
 
-  ultimately 
+  with x 
   show ?thesis
     using del_r dist
     by (auto split: option.splits)

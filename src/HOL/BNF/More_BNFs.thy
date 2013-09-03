@@ -898,11 +898,10 @@ lemma multiset_map_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
 proof (intro multiset_eqI, transfer fixing: f)
   fix x :: 'a and M1 M2 :: "'b \<Rightarrow> nat"
   assume "M1 \<in> multiset" "M2 \<in> multiset"
-  moreover
   hence "setsum M1 {a. f a = x \<and> 0 < M1 a} = setsum M1 {a. f a = x \<and> 0 < M1 a + M2 a}"
         "setsum M2 {a. f a = x \<and> 0 < M2 a} = setsum M2 {a. f a = x \<and> 0 < M1 a + M2 a}"
     by (auto simp: multiset_def intro!: setsum_mono_zero_cong_left)
-  ultimately show "(\<Sum>a | f a = x \<and> 0 < M1 a + M2 a. M1 a + M2 a) =
+  then show "(\<Sum>a | f a = x \<and> 0 < M1 a + M2 a. M1 a + M2 a) =
        setsum M1 {a. f a = x \<and> 0 < M1 a} +
        setsum M2 {a. f a = x \<and> 0 < M2 a}"
     by (auto simp: setsum.distrib[symmetric])

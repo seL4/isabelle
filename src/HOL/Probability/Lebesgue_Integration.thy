@@ -675,12 +675,11 @@ lemma simple_integral_indicator:
   assumes f: "simple_function M f"
   shows "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) =
     (\<Sum>x \<in> f ` space M. x * (emeasure M) (f -` {x} \<inter> space M \<inter> A))"
-proof cases
-  assume "A = space M"
-  moreover hence "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) = integral\<^sup>S M f"
+proof (cases "A = space M")
+  case True
+  then have "(\<integral>\<^sup>Sx. f x * indicator A x \<partial>M) = integral\<^sup>S M f"
     by (auto intro!: simple_integral_cong)
-  moreover have "\<And>X. X \<inter> space M \<inter> space M = X \<inter> space M" by auto
-  ultimately show ?thesis by (simp add: simple_integral_def)
+  with True show ?thesis by (simp add: simple_integral_def)
 next
   assume "A \<noteq> space M"
   then obtain x where x: "x \<in> space M" "x \<notin> A" using sets.sets_into_space[OF assms(1)] by auto
@@ -1001,10 +1000,10 @@ next
     unfolding positive_integral_def_finite[of _ "\<lambda>x. SUP i. f i x"]
   proof (safe intro!: SUP_least)
     fix g assume g: "simple_function M g"
-      and "g \<le> max 0 \<circ> (\<lambda>x. SUP i. f i x)" "range g \<subseteq> {0..<\<infinity>}"
-    moreover then have "\<And>x. 0 \<le> (SUP i. f i x)" and g': "g`space M \<subseteq> {0..<\<infinity>}"
+      and *: "g \<le> max 0 \<circ> (\<lambda>x. SUP i. f i x)" "range g \<subseteq> {0..<\<infinity>}"
+    then have "\<And>x. 0 \<le> (SUP i. f i x)" and g': "g`space M \<subseteq> {0..<\<infinity>}"
       using f by (auto intro!: SUP_upper2)
-    ultimately show "integral\<^sup>S M g \<le> (SUP j. integral\<^sup>P M (f j))"
+    with * show "integral\<^sup>S M g \<le> (SUP j. integral\<^sup>P M (f j))"
       by (intro  positive_integral_SUP_approx[OF f g _ g'])
          (auto simp: le_fun_def max_def)
   qed
@@ -1357,7 +1356,7 @@ proof -
       proof (safe intro!: incseq_SucI)
         fix n :: nat and x
         assume *: "1 \<le> real n * u x"
-        also from gt_1[OF this] have "real n * u x \<le> real (Suc n) * u x"
+        also from gt_1[OF *] have "real n * u x \<le> real (Suc n) * u x"
           using `0 \<le> u x` by (auto intro!: ereal_mult_right_mono)
         finally show "1 \<le> real (Suc n) * u x" by auto
       qed
@@ -2658,10 +2657,9 @@ next
     using f by (simp add: positive_integral_cmult)
 next
   case (add u v)
-  moreover then have "\<And>x. f x * (v x + u x) = f x * v x + f x * u x"
+  then have "\<And>x. f x * (v x + u x) = f x * v x + f x * u x"
     by (simp add: ereal_right_distrib)
-  moreover note f
-  ultimately show ?case
+  with add f show ?case
     by (auto simp add: positive_integral_add ereal_zero_le_0_iff intro!: positive_integral_add[symmetric])
 next
   case (seq U)

@@ -2168,7 +2168,6 @@ proof-
       by(simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
   moreover
-  moreover
   {assume c: "?c = 0" and d: "?d>0"  
     from d have d'': "2*?d > 0" by (simp add: zero_less_mult_iff)
     from d have d': "2*?d \<noteq> 0" by simp
@@ -2313,7 +2312,6 @@ proof-
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
-  moreover
   moreover
   {assume c: "?c = 0" and d: "?d>0"  
     from d have d'': "2*?d > 0" by (simp add: zero_less_mult_iff)

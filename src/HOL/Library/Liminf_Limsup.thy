@@ -169,15 +169,15 @@ proof -
   moreover
   { fix y P assume "y < C" and y: "\<forall>y<C. eventually (\<lambda>x. y < X x) F"
     have "\<exists>P. eventually P F \<and> y < INFI (Collect P) X"
-    proof cases
-      assume "\<exists>z. y < z \<and> z < C"
-      then guess z ..
-      moreover then have "z \<le> INFI {x. z < X x} X"
+    proof (cases "\<exists>z. y < z \<and> z < C")
+      case True
+      then obtain z where z: "y < z \<and> z < C" ..
+      moreover from z have "z \<le> INFI {x. z < X x} X"
         by (auto intro!: INF_greatest)
       ultimately show ?thesis
         using y by (intro exI[of _ "\<lambda>x. z < X x"]) auto
     next
-      assume "\<not> (\<exists>z. y < z \<and> z < C)"
+      case False
       then have "C \<le> INFI {x. y < X x} X"
         by (intro INF_greatest) auto
       with `y < C` show ?thesis
@@ -203,7 +203,7 @@ next
   show "f0 \<le> y"
   proof cases
     assume "\<exists>z. y < z \<and> z < f0"
-    then guess z ..
+    then obtain z where "y < z \<and> z < f0" ..
     moreover have "z \<le> INFI {x. z < f x} f"
       by (rule INF_greatest) simp
     ultimately show ?thesis
@@ -240,22 +240,22 @@ proof (intro Limsup_eqI)
 next
   fix y assume lower: "\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f"
   show "y \<le> f0"
-  proof cases
-    assume "\<exists>z. f0 < z \<and> z < y"
-    then guess z ..
+  proof (cases "\<exists>z. f0 < z \<and> z < y")
+    case True
+    then obtain z where "f0 < z \<and> z < y" ..
     moreover have "SUPR {x. f x < z} f \<le> z"
       by (rule SUP_least) simp
     ultimately show ?thesis
       using lim[THEN topological_tendstoD, THEN lower, of "{..< z}"] by auto
   next
-    assume discrete: "\<not> (\<exists>z. f0 < z \<and> z < y)"
+    case False
     show ?thesis
     proof (rule classical)
       assume "\<not> y \<le> f0"
       then have "eventually (\<lambda>x. f x < y) F"
         using lim[THEN topological_tendstoD, of "{..< y}"] by auto
       then have "eventually (\<lambda>x. f x \<le> f0) F"
-        using discrete by (auto elim!: eventually_elim1 simp: not_less)
+        using False by (auto elim!: eventually_elim1 simp: not_less)
       then have "y \<le> SUPR {x. f x \<le> f0} f"
         by (rule lower)
       moreover have "SUPR {x. f x \<le> f0} f \<le> f0"

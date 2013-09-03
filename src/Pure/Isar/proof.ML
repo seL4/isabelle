@@ -70,8 +70,10 @@ sig
   val using_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
   val unfolding_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val invoke_case: string * binding option list * attribute list -> state -> state
-  val invoke_case_cmd: string * binding option list * Attrib.src list -> state -> state
+  val invoke_case: (string * Position.T) * binding option list * attribute list ->
+    state -> state
+  val invoke_case_cmd: (string * Position.T) * binding option list * Attrib.src list ->
+    state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state
@@ -399,8 +401,8 @@ fun apply_method current_context meth state =
     Method.apply meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
-          (Proof_Context.add_cases false (no_goal_cases goal @ goal_cases goal') #>
-           Proof_Context.add_cases true meth_cases)
+          (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
+           Proof_Context.update_cases true meth_cases)
           (K (statement, [], using, goal', before_qed, after_qed)) I)
   end;
 
@@ -741,20 +743,18 @@ end;
 
 local
 
-fun qualified_binding a =
-  Binding.qualify true (Long_Name.qualifier a) (Binding.name (Long_Name.base_name a));
-
-fun gen_invoke_case prep_att (name, xs, raw_atts) state =
+fun gen_invoke_case prep_att ((name, pos), xs, raw_atts) state =
   let
     val atts = map (prep_att (context_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
-      ctxt |> Proof_Context.apply_case (Proof_Context.get_case ctxt name xs));
-    val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
+      ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt (name, pos) xs));
+    val assumptions =
+      asms |> map (fn (b, ts) => ((Binding.set_pos pos b, atts), map (rpair []) ts));
   in
     state'
     |> assume assumptions
     |> bind_terms Auto_Bind.no_facts
-    |> `the_facts |-> (fn thms => note_thmss [((Binding.name name, []), [(thms, [])])])
+    |> `the_facts |-> (fn thms => note_thmss [((Binding.make (name, pos), []), [(thms, [])])])
   end;
 
 in

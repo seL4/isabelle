@@ -38,6 +38,7 @@ object Keywords
     "prf_decl" -> "proof-decl",
     "prf_asm" -> "proof-asm",
     "prf_asm_goal" -> "proof-asm-goal",
+    "prf_asm_goal_script" -> "proof-asm-goal",
     "prf_script" -> "proof-script"
   ).withDefault((s: String) => s)
 

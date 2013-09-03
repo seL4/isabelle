@@ -57,7 +57,7 @@ fun memo_exec execution_id (Memo v) =
       (case expr of
         Expr (exec_id, body) =>
           uninterruptible (fn restore_attributes => fn () =>
-            if Execution.running execution_id exec_id then
+            if Execution.running execution_id exec_id [Future.the_worker_group ()] then
               let
                 val res =
                   (body

@@ -144,8 +144,8 @@ proof
       where "class": "class G C = Some (D', fs', ms')"
       unfolding class_def by(auto dest!: weak_map_of_SomeI)
     hence "G \<turnstile> C \<prec>C1 D'" using `C \<noteq> Object` ..
-    hence "(C, D') \<in> (subcls1 G)^+" ..
-    also with acyc have "C \<noteq> D'" by(auto simp add: acyclic_def)
+    hence *: "(C, D') \<in> (subcls1 G)^+" ..
+    also from * acyc have "C \<noteq> D'" by(auto simp add: acyclic_def)
     with subcls "class" have "(D', C) \<in> (subcls1 G)^+" by(auto dest: rtranclD)
     finally show False using acyc by(auto simp add: acyclic_def)
   qed

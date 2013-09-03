@@ -146,8 +146,7 @@ lemma dom_rbt_lookup_Branch:
     = Set.insert k (dom (rbt_lookup t1) \<union> dom (rbt_lookup t2))"
 proof -
   assume "rbt_sorted (Branch c t1 k v t2)"
-  moreover from this have "rbt_sorted t1" "rbt_sorted t2" by simp_all
-  ultimately show ?thesis by (simp add: rbt_lookup_keys)
+  then show ?thesis by (simp add: rbt_lookup_keys)
 qed
 
 lemma finite_dom_rbt_lookup [simp, intro!]: "finite (dom (rbt_lookup t))"
@@ -1405,14 +1404,14 @@ proof -
       proof(cases "n mod 2 = 0")
         case True note ge0 
         moreover from "1.prems" have n2: "n div 2 \<le> length kvs" by simp
-        moreover with True have "P (n div 2) kvs" by(rule IH)
+        moreover from True n2 have "P (n div 2) kvs" by(rule IH)
         moreover from length_rbtreeify_f[OF n2] ge0 "1.prems" obtain t k v kvs' 
           where kvs': "rbtreeify_f (n div 2) kvs = (t, (k, v) # kvs')"
           by(cases "snd (rbtreeify_f (n div 2) kvs)")
             (auto simp add: snd_def split: prod.split_asm)
         moreover from "1.prems" length_rbtreeify_f[OF n2] ge0
-        have "n div 2 \<le> Suc (length kvs')" by(simp add: kvs')
-        moreover with True kvs'[symmetric] refl refl
+        have n2': "n div 2 \<le> Suc (length kvs')" by(simp add: kvs')
+        moreover from True kvs'[symmetric] refl refl n2'
         have "Q (n div 2) kvs'" by(rule IH)
         moreover note feven[unfolded feven_def]
           (* FIXME: why does by(rule feven[unfolded feven_def]) not work? *)
@@ -1421,14 +1420,14 @@ proof -
       next
         case False note ge0
         moreover from "1.prems" have n2: "n div 2 \<le> length kvs" by simp
-        moreover with False have "P (n div 2) kvs" by(rule IH)
+        moreover from False n2 have "P (n div 2) kvs" by(rule IH)
         moreover from length_rbtreeify_f[OF n2] ge0 "1.prems" obtain t k v kvs' 
           where kvs': "rbtreeify_f (n div 2) kvs = (t, (k, v) # kvs')"
           by(cases "snd (rbtreeify_f (n div 2) kvs)")
             (auto simp add: snd_def split: prod.split_asm)
         moreover from "1.prems" length_rbtreeify_f[OF n2] ge0 False
-        have "n div 2 \<le> length kvs'" by(simp add: kvs') arith
-        moreover with False kvs'[symmetric] refl refl have "P (n div 2) kvs'" by(rule IH)
+        have n2': "n div 2 \<le> length kvs'" by(simp add: kvs') arith
+        moreover from False kvs'[symmetric] refl refl n2' have "P (n div 2) kvs'" by(rule IH)
         moreover note fodd[unfolded fodd_def]
         ultimately have "P (Suc (2 * (n div 2))) kvs" by -
         thus ?thesis using False 
@@ -1451,14 +1450,14 @@ proof -
       proof(cases "n mod 2 = 0")
         case True note ge0
         moreover from "2.prems" have n2: "n div 2 \<le> Suc (length kvs)" by simp
-        moreover with True have "Q (n div 2) kvs" by(rule IH)
+        moreover from True n2 have "Q (n div 2) kvs" by(rule IH)
         moreover from length_rbtreeify_g[OF ge0 n2] ge0 "2.prems" obtain t k v kvs' 
           where kvs': "rbtreeify_g (n div 2) kvs = (t, (k, v) # kvs')"
           by(cases "snd (rbtreeify_g (n div 2) kvs)")
             (auto simp add: snd_def split: prod.split_asm)
         moreover from "2.prems" length_rbtreeify_g[OF ge0 n2] ge0
-        have "n div 2 \<le> Suc (length kvs')" by(simp add: kvs')
-        moreover with True kvs'[symmetric] refl refl 
+        have n2': "n div 2 \<le> Suc (length kvs')" by(simp add: kvs')
+        moreover from True kvs'[symmetric] refl refl  n2'
         have "Q (n div 2) kvs'" by(rule IH)
         moreover note geven[unfolded geven_def]
         ultimately have "Q (2 * (n div 2)) kvs" by -
@@ -1467,14 +1466,14 @@ proof -
       next
         case False note ge0
         moreover from "2.prems" have n2: "n div 2 \<le> length kvs" by simp
-        moreover with False have "P (n div 2) kvs" by(rule IH)
+        moreover from False n2 have "P (n div 2) kvs" by(rule IH)
         moreover from length_rbtreeify_f[OF n2] ge0 "2.prems" False obtain t k v kvs' 
           where kvs': "rbtreeify_f (n div 2) kvs = (t, (k, v) # kvs')"
           by(cases "snd (rbtreeify_f (n div 2) kvs)")
             (auto simp add: snd_def split: prod.split_asm, arith)
         moreover from "2.prems" length_rbtreeify_f[OF n2] ge0 False
-        have "n div 2 \<le> Suc (length kvs')" by(simp add: kvs') arith
-        moreover with False kvs'[symmetric] refl refl
+        have n2': "n div 2 \<le> Suc (length kvs')" by(simp add: kvs') arith
+        moreover from False kvs'[symmetric] refl refl n2'
         have "Q (n div 2) kvs'" by(rule IH)
         moreover note godd[unfolded godd_def]
         ultimately have "Q (Suc (2 * (n div 2))) kvs" by -

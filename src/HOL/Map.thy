@@ -715,18 +715,19 @@ proof
     by (rule set_map_of_compr)
   ultimately show ?rhs by simp
 next
-  assume ?rhs show ?lhs proof
+  assume ?rhs show ?lhs
+  proof
     fix k
     show "map_of xs k = map_of ys k" proof (cases "map_of xs k")
       case None
-      moreover with `?rhs` have "map_of ys k = None"
+      with `?rhs` have "map_of ys k = None"
         by (simp add: map_of_eq_None_iff)
-      ultimately show ?thesis by simp
+      with None show ?thesis by simp
     next
       case (Some v)
-      moreover with distinct `?rhs` have "map_of ys k = Some v"
+      with distinct `?rhs` have "map_of ys k = Some v"
         by simp
-      ultimately show ?thesis by simp
+      with Some show ?thesis by simp
     qed
   qed
 qed

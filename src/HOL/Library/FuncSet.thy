@@ -375,7 +375,8 @@ proof
   proof (rule ccontr)
     assume "\<not> ?thesis"
     then have "\<forall>i. \<exists>y. (i \<in> I \<longrightarrow> y \<in> F i) \<and> (i \<notin> I \<longrightarrow> y = undefined)" by auto
-    from choice[OF this] guess f ..
+    from choice[OF this]
+    obtain f where " \<forall>x. (x \<in> I \<longrightarrow> f x \<in> F x) \<and> (x \<notin> I \<longrightarrow> f x = undefined)" ..
     then have "f \<in> Pi\<^sub>E I F" by (auto simp: extensional_def PiE_def)
     with `Pi\<^sub>E I F = {}` show False by auto
   qed
@@ -437,8 +438,10 @@ lemma PiE_eq_subset:
   shows "F i \<subseteq> F' i"
 proof
   fix x assume "x \<in> F i"
-  with ne have "\<forall>j. \<exists>y. ((j \<in> I \<longrightarrow> y \<in> F j \<and> (i = j \<longrightarrow> x = y)) \<and> (j \<notin> I \<longrightarrow> y = undefined))" by auto
-  from choice[OF this] guess f .. note f = this
+  with ne have "\<forall>j. \<exists>y. ((j \<in> I \<longrightarrow> y \<in> F j \<and> (i = j \<longrightarrow> x = y)) \<and> (j \<notin> I \<longrightarrow> y = undefined))"
+    by auto
+  from choice[OF this] obtain f
+    where f: " \<forall>j. (j \<in> I \<longrightarrow> f j \<in> F j \<and> (i = j \<longrightarrow> x = f j)) \<and> (j \<notin> I \<longrightarrow> f j = undefined)" ..
   then have "f \<in> Pi\<^sub>E I F" by (auto simp: extensional_def PiE_def)
   then have "f \<in> Pi\<^sub>E I F'" using assms by simp
   then show "x \<in> F' i" using f `i \<in> I` by (auto simp: PiE_def)

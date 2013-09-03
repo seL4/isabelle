@@ -250,7 +250,7 @@ lemma Inf_less_eq:
   shows "\<Sqinter>A \<sqsubseteq> u"
 proof -
   from `A \<noteq> {}` obtain v where "v \<in> A" by blast
-  moreover with assms have "v \<sqsubseteq> u" by blast
+  moreover from `v \<in> A` assms(1) have "v \<sqsubseteq> u" by blast
   ultimately show ?thesis by (rule Inf_lower2)
 qed
 
@@ -260,7 +260,7 @@ lemma less_eq_Sup:
   shows "u \<sqsubseteq> \<Squnion>A"
 proof -
   from `A \<noteq> {}` obtain v where "v \<in> A" by blast
-  moreover with assms have "u \<sqsubseteq> v" by blast
+  moreover from `v \<in> A` assms(1) have "u \<sqsubseteq> v" by blast
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 

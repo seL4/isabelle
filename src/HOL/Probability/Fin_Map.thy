@@ -342,9 +342,9 @@ proof
       case (UN K)
       show ?case
       proof safe
-        fix x X assume "x \<in> X" "X \<in> K"
-        moreover with UN obtain e where "e>0" "\<And>y. dist y x < e \<longrightarrow> y \<in> X" by force
-        ultimately show "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> \<Union>K" by auto
+        fix x X assume "x \<in> X" and X: "X \<in> K"
+        with UN obtain e where "e>0" "\<And>y. dist y x < e \<longrightarrow> y \<in> X" by force
+        with X show "\<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> \<Union>K" by auto
       qed
     next
       case (Basis s) then obtain a b where s: "s = Pi' a b" and b: "\<And>i. i\<in>a \<Longrightarrow> open (b i)" by auto
@@ -363,12 +363,10 @@ proof
           show "y \<in> s" unfolding s
           proof
             show "domain y = a" using d s `a \<noteq> {}` by (auto simp: dist_le_1_imp_domain_eq a_dom)
-            fix i assume "i \<in> a"
-            moreover
+            fix i assume i: "i \<in> a"
             hence "dist ((y)\<^sub>F i) ((x)\<^sub>F i) < es i" using d
               by (auto simp: dist_finmap_def `a \<noteq> {}` intro!: le_less_trans[OF dist_proj])
-            ultimately
-            show "y i \<in> b i" by (rule in_b)
+            with i show "y i \<in> b i" by (rule in_b)
           qed
         next
           assume "\<not>a \<noteq> {}"
@@ -715,9 +713,9 @@ lemma countable_finite_comprehension:
 proof -
   have "\<Union>{f s|s. P s} = (\<Union>n::nat. let s = set (from_nat n) in if P s then f s else {})"
   proof safe
-    fix x X s assume "x \<in> f s" "P s"
-    moreover with assms obtain l where "s = set l" using finite_list by blast
-    ultimately show "x \<in> (\<Union>n. let s = set (from_nat n) in if P s then f s else {})" using `P s`
+    fix x X s assume *: "x \<in> f s" "P s"
+    with assms obtain l where "s = set l" using finite_list by blast
+    with * show "x \<in> (\<Union>n. let s = set (from_nat n) in if P s then f s else {})" using `P s`
       by (auto intro!: exI[where x="to_nat l"])
   next
     fix x n assume "x \<in> (let s = set (from_nat n) in if P s then f s else {})"

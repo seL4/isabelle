@@ -919,8 +919,8 @@ next
   assume notless: "~ (0 < x)"
   have "~ (1 < inverse x)"
   proof
-    assume "1 < inverse x"
-    also with notless have "... \<le> 0" by simp
+    assume *: "1 < inverse x"
+    also from notless and * have "... \<le> 0" by simp
     also have "... < 1" by (rule zero_less_one) 
     finally show False by auto
   qed
