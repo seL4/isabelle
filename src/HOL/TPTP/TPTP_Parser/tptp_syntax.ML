@@ -294,27 +294,38 @@ fun pos_of_line tptp_line =
    |  Include (position, _, _) => position
 
 (*Used for debugging. Returns all files contained within a directory or its
-subdirectories. Follows symbolic links, filters away directories.*)
+subdirectories. Follows symbolic links, filters away directories.
+Files are ordered by size*)
 fun get_file_list path =
   let
-    fun check_file_entry f rest =
-      let
-        (*NOTE needed since no File.is_link and File.read_link*)
-        val f_str = Path.implode f
-      in
-        if File.is_dir f then
-          rest @ get_file_list f
-        else if OS.FileSys.isLink f_str then
-          (*follow links -- NOTE this breaks if links are relative paths*)
-          check_file_entry (Path.explode (OS.FileSys.readLink f_str)) rest
-        else f :: rest
-      end
+    fun get_file_list' acc paths =
+      case paths of
+          [] => acc
+        | (f :: fs) =>
+            let
+              (*NOTE needed since no File.is_link and File.read_link*)
+              val f_str = Path.implode f
+            in
+              if File.is_dir f then
+                let
+                  val contents =
+                    File.read_dir f
+                    |> map
+                        (Path.explode
+                        #> Path.append f)
+                in
+                  get_file_list' acc (fs @ contents)
+                end
+              else if OS.FileSys.isLink f_str then
+                (*follow links -- NOTE this breaks if links are relative paths*)
+                get_file_list' acc (Path.explode (OS.FileSys.readLink f_str) :: fs)
+              else
+                get_file_list' ((f, OS.FileSys.fileSize f_str) :: acc) fs
+            end
   in
-    File.read_dir path
-    |> map
-        (Path.explode
-        #> Path.append path)
-    |> (fn l => fold check_file_entry l [])
+    get_file_list' [] [path]
+    |> sort (fn ((_, n1), (_, n2)) => Int.compare (n1, n2))
+    |> map fst
   end
 
 fun role_to_string role =
