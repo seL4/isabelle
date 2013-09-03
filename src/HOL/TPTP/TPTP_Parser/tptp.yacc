@@ -183,10 +183,13 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
   | tptp_file of tptp_problem
   | tptp of tptp_problem
 
-  | thf_let_defn of tptp_let list
+  | thf_let_term_defn of tptp_let
+  | thf_let_formula_defn of tptp_let
   | tff_let of tptp_formula
-  | tff_let_term_defn of tptp_let list
-  | tff_let_formula_defn of tptp_let list
+  | tff_let_term_defn of tptp_let
+  | tff_let_term_binding of tptp_term
+  | tff_let_formula_defn of tptp_let
+  | tff_let_formula_binding of tptp_formula
   | tff_quantified_type of tptp_type
   | tff_monotype of tptp_type
   | tff_type_arguments of tptp_type list
@@ -229,7 +232,7 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
 
  Parser for TPTP languages. Latest version of the language spec can
  be obtained from http://www.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html
- This implements version 5.3.0.
+ Our parser implements version 5.4.0 of that spec.
 *)
 
 tptp : tptp_file (( tptp_file ))
@@ -333,15 +336,28 @@ thf_conditional : ITE_F LPAREN thf_logic_formula COMMA thf_logic_formula COMMA t
   Conditional (thf_logic_formula1, thf_logic_formula2, thf_logic_formula3)
 ))
 
-thf_let : LET_TF LPAREN thf_let_defn COMMA thf_formula RPAREN ((
-  Let (thf_let_defn, thf_formula)
-))
+(*NOTE support for Let in THF is still broken (cf. the spec).
+  When it gets fixed, look at how TFF support is encoded in this file
+  (to possibly replicate some of the checks done there)*)
+thf_let : LET_TF LPAREN thf_let_term_defn COMMA thf_formula RPAREN (( Let (thf_let_term_defn, thf_formula) ))
+        | LET_FF LPAREN thf_let_formula_defn COMMA thf_formula RPAREN (( Let (thf_let_formula_defn, thf_formula) ))
 
-(*FIXME here could check that fmla is of right form (TPTP BNF L130-134)*)
-thf_let_defn : thf_quantified_formula ((
+(*FIXME here could check that fmla is of right form (TPTP BNF (v5.3.0) L130-134)
+  i.e. it should have "=" or "<=>" at the top level.
+  We deviate from the spec by not checking this here, but "Let" support in THF
+  is still not fully specified.
+*)
+thf_let_term_defn : thf_quantified_formula ((
   let
     val (_, vars, fmla) = extract_quant_info thf_quantified_formula
-  in [Let_fmla (hd vars, fmla)]
+  in Let_fmla (vars, fmla)
+  end
+))
+(*NOTE "thf_let_formula_defn" has the same definition as "thf_let_term_defn" (as per the spec)*)
+thf_let_formula_defn : thf_quantified_formula ((
+  let
+    val (_, vars, fmla) = extract_quant_info thf_quantified_formula
+  in Let_fmla (vars, fmla)
   end
 ))
 
@@ -431,21 +447,19 @@ tff_conditional : ITE_F LPAREN tff_logic_formula COMMA tff_logic_formula COMMA t
 tff_let : LET_TF LPAREN tff_let_term_defn COMMA tff_formula RPAREN ((Let (tff_let_term_defn, tff_formula) ))
         | LET_FF LPAREN tff_let_formula_defn COMMA tff_formula RPAREN (( Let (tff_let_formula_defn, tff_formula) ))
 
-(*FIXME here could check that fmla is of right form (TPTP BNF L210-214)*)
-(*FIXME why "term" if using "Let_fmla"?*)
-tff_let_term_defn : tff_quantified_formula ((
-  let
-    val (_, vars, fmla) = extract_quant_info tff_quantified_formula
-  in [Let_fmla (hd vars, fmla)]
-  end
+
+tff_let_term_defn : EXCLAMATION LBRKT tff_variable_list RBRKT COLON tff_let_term_binding (( Let_term (tff_variable_list, tff_let_term_binding) ))
+                  | tff_let_term_binding (( Let_term ([], tff_let_term_binding) ))
+
+tff_let_term_binding : term EQUALS term ((
+  Term_Func (Interpreted_ExtraLogic Apply, [term1, term2])
 ))
 
-(*FIXME here could check that fmla is of right form (TPTP BNF L215-217)*)
-tff_let_formula_defn : tff_quantified_formula ((
-  let
-    val (_, vars, fmla) = extract_quant_info tff_quantified_formula
-  in [Let_fmla (hd vars, fmla)]
-  end
+tff_let_formula_defn : EXCLAMATION LBRKT tff_variable_list RBRKT COLON tff_let_formula_binding (( Let_fmla (tff_variable_list, tff_let_formula_binding) ))
+                  | tff_let_formula_binding (( Let_fmla ([], tff_let_formula_binding) ))
+
+tff_let_formula_binding : atomic_formula IFF tff_unitary_formula ((
+  Fmla (Interpreted_Logic Iff, [atomic_formula, tff_unitary_formula])
 ))
 
 tff_sequent : tff_tuple GENTZEN_ARROW tff_tuple (( Sequent (tff_tuple1, tff_tuple2) ))

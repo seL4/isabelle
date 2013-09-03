@@ -86,7 +86,7 @@ sig
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
     | Term_Distinct_Object of string
-    | Term_Let of tptp_let list * tptp_term (*FIXME remove list?*)
+    | Term_Let of tptp_let * tptp_term
 
   and tptp_atom =
       TFF_Typed_Atom of symbol * tptp_type option (*only TFF*)
@@ -99,14 +99,14 @@ sig
     | Sequent of tptp_formula list * tptp_formula list
     | Quant of quantifier * (string * tptp_type option) list * tptp_formula
     | Conditional of tptp_formula * tptp_formula * tptp_formula
-    | Let of tptp_let list * tptp_formula (*FIXME remove list?*)
+    | Let of tptp_let * tptp_formula
     | Atom of tptp_atom
     | Type_fmla of tptp_type
     | THF_typing of tptp_formula * tptp_type (*only THF*)
 
   and tptp_let =
-      Let_fmla of (string * tptp_type option) * tptp_formula
-    | Let_term of (string * tptp_type option) * tptp_term (*only TFF*)
+      Let_fmla of (string * tptp_type option) list * tptp_formula
+    | Let_term of (string * tptp_type option) list * tptp_term
 
   and tptp_type =
       Prod_type of tptp_type * tptp_type
@@ -234,7 +234,7 @@ and general_data = (*Bind of variable * formula_data*)
     | Term_Conditional of tptp_formula * tptp_term * tptp_term
     | Term_Num of number_kind * string
     | Term_Distinct_Object of string
-    | Term_Let of tptp_let list * tptp_term (*FIXME remove list?*)
+    | Term_Let of tptp_let * tptp_term
 
   and tptp_atom =
       TFF_Typed_Atom of symbol * tptp_type option (*only TFF*)
@@ -247,14 +247,14 @@ and general_data = (*Bind of variable * formula_data*)
     | Sequent of tptp_formula list * tptp_formula list
     | Quant of quantifier * (string * tptp_type option) list * tptp_formula
     | Conditional of tptp_formula * tptp_formula * tptp_formula
-    | Let of tptp_let list * tptp_formula
+    | Let of tptp_let * tptp_formula
     | Atom of tptp_atom
     | Type_fmla of tptp_type
     | THF_typing of tptp_formula * tptp_type
 
   and tptp_let =
-      Let_fmla of (string * tptp_type option) * tptp_formula
-    | Let_term of (string * tptp_type option) * tptp_term
+      Let_fmla of (string * tptp_type option) list * tptp_formula
+    | Let_term of (string * tptp_type option) list * tptp_term
 
   and tptp_type =
       Prod_type of tptp_type * tptp_type
