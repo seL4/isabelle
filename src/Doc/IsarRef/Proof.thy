@@ -1195,7 +1195,7 @@ text {*
   later.
 
   @{rail "
-    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) +) ')')
+    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) *) ')')
     ;
     caseref: nameref attributes?
     ;
