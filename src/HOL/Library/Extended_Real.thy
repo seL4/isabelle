@@ -1368,7 +1368,8 @@ proof safe
   next
     case (real r)
     with less_PInf_Ex_of_nat[of x] obtain n :: nat where "x < ereal (real n)" by auto
-    moreover from assms[of n] guess i ..
+    moreover obtain i where "i \<in> A" "ereal (real n) \<le> f i"
+      using assms ..
     ultimately show ?thesis
       by (auto intro!: bexI[of _ i])
   qed
@@ -1383,11 +1384,12 @@ proof (cases "Sup A")
   proof
     fix n ::nat have "\<exists>x\<in>A. Sup A - 1 / ereal (real n) < x"
       using assms real by (intro Sup_ereal_close) (auto simp: one_ereal_def)
-    then guess x ..
+    then obtain x where "x \<in> A" "Sup A - 1 / ereal (real n) < x" ..
     then show "\<exists>x. x \<in> A \<and> Sup A < x + 1 / ereal (real n)"
       by (auto intro!: exI[of _ x] simp: ereal_minus_less_iff)
   qed
-  from choice[OF this] guess f .. note f = this
+  from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
+    where f: "\<forall>x. f x \<in> A \<and> Sup A < f x + 1 / ereal (real x)" ..
   have "SUPR UNIV f = Sup A"
   proof (rule SUP_eqI)
     fix i show "f i \<le> Sup A" using f
@@ -1433,10 +1435,12 @@ next
       then show False using `x \<in> A` `\<infinity> \<notin> A` PInf
         by(cases x) auto
     qed
-    from choice[OF this] guess f .. note f = this
+    from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
+      where f: "\<forall>z. f z \<in> A \<and> x + ereal (real z) \<le> f z" ..
     have "SUPR UNIV f = \<infinity>"
     proof (rule SUP_PInfty)
-      fix n :: nat show "\<exists>i\<in>UNIV. ereal (real n) \<le> f i"
+      fix n :: nat
+      show "\<exists>i\<in>UNIV. ereal (real n) \<le> f i"
         using f[THEN spec, of n] `0 \<le> x`
         by (cases rule: ereal2_cases[of "f n" x]) (auto intro!: exI[of _ n])
     qed
@@ -1714,8 +1718,9 @@ lemma ereal_open_cont_interval2:
   fixes S :: "ereal set"
   assumes "open S" "x \<in> S" and x: "\<bar>x\<bar> \<noteq> \<infinity>"
   obtains a b where "a < x" "x < b" "{a <..< b} \<subseteq> S"
-proof-
-  guess e using ereal_open_cont_interval[OF assms] .
+proof -
+  obtain e where "0 < e" "{x - e<..<x + e} \<subseteq> S"
+    using assms by (rule ereal_open_cont_interval)
   with that[of "x-e" "x+e"] ereal_between[OF x, of e]
   show thesis by auto
 qed
@@ -1762,8 +1767,9 @@ qed
 lemma tendsto_MInfty: "(f ---> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
   unfolding tendsto_def
 proof safe
-  fix S :: "ereal set" assume "open S" "-\<infinity> \<in> S"
-  from open_MInfty[OF this] guess B .. note B = this
+  fix S :: "ereal set"
+  assume "open S" "-\<infinity> \<in> S"
+  from open_MInfty[OF this] obtain B where "{..<ereal B} \<subseteq> S" ..
   moreover
   assume "\<forall>r::real. eventually (\<lambda>z. f z < r) F"
   then have "eventually (\<lambda>z. f z \<in> {..< B}) F" by auto
@@ -1778,7 +1784,7 @@ lemma Lim_PInfty: "f ----> \<infinity> \<longleftrightarrow> (\<forall>B. \<exis
   unfolding tendsto_PInfty eventually_sequentially
 proof safe
   fix r assume "\<forall>r. \<exists>N. \<forall>n\<ge>N. ereal r \<le> f n"
-  from this[rule_format, of "r+1"] guess N ..
+  then obtain N where "\<forall>n\<ge>N. ereal (r + 1) \<le> f n" by blast
   moreover have "ereal r < ereal (r + 1)" by auto
   ultimately show "\<exists>N. \<forall>n\<ge>N. ereal r < f n"
     by (blast intro: less_le_trans)
@@ -1788,7 +1794,7 @@ lemma Lim_MInfty: "f ----> -\<infinity> \<longleftrightarrow> (\<forall>B. \<exi
   unfolding tendsto_MInfty eventually_sequentially
 proof safe
   fix r assume "\<forall>r. \<exists>N. \<forall>n\<ge>N. f n \<le> ereal r"
-  from this[rule_format, of "r - 1"] guess N ..
+  then obtain N where "\<forall>n\<ge>N. f n \<le> ereal (r - 1)" by blast
   moreover have "ereal (r - 1) < ereal r" by auto
   ultimately show "\<exists>N. \<forall>n\<ge>N. f n < ereal r"
     by (blast intro: le_less_trans)
