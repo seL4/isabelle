@@ -768,6 +768,23 @@ sublocale roundup \<subseteq> sub: roundup x where "x <-> True & True"
 lemma (in roundup) "True & True <-> True" by (rule sub.true)
 
 
+section {* Interpretation in named contexts *}
+
+locale container
+begin
+interpretation private!: roundup True by unfold_locales rule
+lemmas true_copy = private.true
+end
+
+context container begin
+ML {* (Context.>> (fn generic => let val context = Context.proof_of generic
+  val _ = Proof_Context.get_thms context "private.true" in generic end);
+  error "thm private.true was persisted")
+  handle ERROR "Unknown fact \"private.true\"" => ([]:thm list); *}
+thm true_copy
+end
+
+
 section {* Interpretation in proofs *}
 
 lemma True
