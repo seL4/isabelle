@@ -232,7 +232,8 @@ fun extract_quant_info (Quant (quantifier, vars, tptp_formula)) =
 
  Parser for TPTP languages. Latest version of the language spec can
  be obtained from http://www.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html
- Our parser implements version 5.4.0 of that spec.
+ Our parser implements version 5.5.0 of that spec, except for the TPI
+ language since its (parser) spec is still incomplete.
 *)
 
 tptp : tptp_file (( tptp_file ))
@@ -451,16 +452,14 @@ tff_let : LET_TF LPAREN tff_let_term_defn COMMA tff_formula RPAREN ((Let (tff_le
 tff_let_term_defn : EXCLAMATION LBRKT tff_variable_list RBRKT COLON tff_let_term_binding (( Let_term (tff_variable_list, tff_let_term_binding) ))
                   | tff_let_term_binding (( Let_term ([], tff_let_term_binding) ))
 
-tff_let_term_binding : term EQUALS term ((
-  Term_Func (Interpreted_ExtraLogic Apply, [term1, term2])
-))
+tff_let_term_binding : term EQUALS term (( Term_Func (Interpreted_ExtraLogic Apply, [term1, term2]) ))
+                     | LPAREN tff_let_term_binding RPAREN (( tff_let_term_binding ))
 
 tff_let_formula_defn : EXCLAMATION LBRKT tff_variable_list RBRKT COLON tff_let_formula_binding (( Let_fmla (tff_variable_list, tff_let_formula_binding) ))
                   | tff_let_formula_binding (( Let_fmla ([], tff_let_formula_binding) ))
 
-tff_let_formula_binding : atomic_formula IFF tff_unitary_formula ((
-  Fmla (Interpreted_Logic Iff, [atomic_formula, tff_unitary_formula])
-))
+tff_let_formula_binding : atomic_formula IFF tff_unitary_formula (( Fmla (Interpreted_Logic Iff, [atomic_formula, tff_unitary_formula]) ))
+                        | LPAREN tff_let_formula_binding RPAREN (( tff_let_formula_binding ))
 
 tff_sequent : tff_tuple GENTZEN_ARROW tff_tuple (( Sequent (tff_tuple1, tff_tuple2) ))
             | LPAREN tff_sequent RPAREN         (( tff_sequent ))
@@ -480,11 +479,11 @@ tff_untyped_atom : functor_       (( (functor_, NONE) ))
 tff_top_level_type : tff_atomic_type     (( tff_atomic_type ))
                    | tff_mapping_type    (( tff_mapping_type ))
                    | tff_quantified_type (( tff_quantified_type ))
+                   | LPAREN tff_top_level_type RPAREN (( tff_top_level_type ))
 
 tff_quantified_type : DEP_PROD LBRKT tff_variable_list RBRKT COLON tff_monotype ((
        Fmla_type (Quant (Dep_Prod, tff_variable_list, Type_fmla tff_monotype))
 ))
-                    | LPAREN tff_quantified_type RPAREN (( tff_quantified_type ))
 
 tff_monotype : tff_atomic_type                (( tff_atomic_type ))
              | LPAREN tff_mapping_type RPAREN (( tff_mapping_type ))
@@ -501,11 +500,9 @@ tff_type_arguments : tff_atomic_type   (( [tff_atomic_type]  ))
                    | tff_atomic_type COMMA tff_type_arguments (( tff_atomic_type :: tff_type_arguments ))
 
 tff_mapping_type : tff_unitary_type ARROW tff_atomic_type (( Fn_type(tff_unitary_type, tff_atomic_type) ))
-                 | LPAREN tff_mapping_type RPAREN         (( tff_mapping_type ))
 
 tff_xprod_type : tff_atomic_type TIMES tff_atomic_type (( Prod_type(tff_atomic_type1, tff_atomic_type2) ))
                | tff_xprod_type TIMES tff_atomic_type  (( Prod_type(tff_xprod_type, tff_atomic_type) ))
-               | LPAREN tff_xprod_type RPAREN          (( tff_xprod_type ))
 
 
 (* FOF Formulas *)
