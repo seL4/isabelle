@@ -115,8 +115,8 @@ function generate_dot()
 {
   LOADER="tptp_graph_$RANDOM"
   echo "theory $LOADER imports \"$TPTP_HOME/TPTP_Parser\" \
-        uses \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\" \
-        begin ML {* TPTP_To_Dot.write_proof_dot \"$1\" \"$2\" *} end" \
+begin ML_file \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\" \
+ML {* TPTP_To_Dot.write_proof_dot \"$1\" \"$2\" *} end" \
         > $WORKDIR/$LOADER.thy
   "$ISABELLE_PROCESS" -e "use_thy \"$WORKDIR/$LOADER\"; exit 0;" Pure
 }
