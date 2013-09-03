@@ -742,11 +742,11 @@ next
   apply (subst less_iff_Suc_add)
   apply (auto simp add: add_mult_distrib)
   done
-  from `n \<noteq> 0` assms have "fst qr = fst qr'"
+  from `n \<noteq> 0` assms have *: "fst qr = fst qr'"
     by (auto simp add: divmod_nat_rel_def intro: order_antisym dest: aux sym)
-  moreover from this assms have "snd qr = snd qr'"
+  with assms have "snd qr = snd qr'"
     by (simp add: divmod_nat_rel_def)
-  ultimately show ?thesis by (cases qr, cases qr') simp
+  with * show ?thesis by (cases qr, cases qr') simp
 qed
 
 text {*

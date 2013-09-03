@@ -758,10 +758,10 @@ proof
   show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
   proof (safe intro!: exI[of _ "\<lambda>n. {y. dist x y < inverse (Suc n)}"])
     fix S assume "open S" "x \<in> S"
-    then obtain e where "0 < e" "{y. dist x y < e} \<subseteq> S"
+    then obtain e where e: "0 < e" and "{y. dist x y < e} \<subseteq> S"
       by (auto simp: open_dist subset_eq dist_commute)
     moreover
-    then obtain i where "inverse (Suc i) < e"
+    from e obtain i where "inverse (Suc i) < e"
       by (auto dest!: reals_Archimedean)
     then have "{y. dist x y < inverse (Suc i)} \<subseteq> {y. dist x y < e}"
       by auto
@@ -833,7 +833,8 @@ proof
   show "(open :: real set \<Rightarrow> bool) = generate_topology (range lessThan \<union> range greaterThan)"
   proof (rule ext, safe)
     fix S :: "real set" assume "open S"
-    then guess f unfolding open_real_def bchoice_iff ..
+    then obtain f where "\<forall>x\<in>S. 0 < f x \<and> (\<forall>y. dist y x < f x \<longrightarrow> y \<in> S)"
+      unfolding open_real_def bchoice_iff ..
     then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
       by (fastforce simp: dist_real_def)
     show "generate_topology (range lessThan \<union> range greaterThan) S"
@@ -1525,7 +1526,8 @@ proof (rule tendstoI)
   with limseq obtain N :: nat where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>f (real n) - y\<bar> < e"
     by (auto simp: LIMSEQ_def dist_real_def)
   { fix x :: real
-    from ex_le_of_nat[of x] guess n ..
+    obtain n where "x \<le> real_of_nat n"
+      using ex_le_of_nat[of x] ..
     note monoD[OF mono this]
     also have "f (real_of_nat n) \<le> y"
       by (rule LIMSEQ_le_const[OF limseq])

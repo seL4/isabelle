@@ -93,8 +93,9 @@ proof (rule trans[OF if_distrib if_cong], safe, unfold option.inject)
   next
     case (Suc k)
     hence "\<not> b ((c^^k) (c s))" by (auto simp: funpow_swap1)
-    then guess k by (rule exE[OF Suc.IH[of "c s"]])
-    with assms show ?case by (cases "b s") (auto simp: funpow_swap1 intro: exI[of _ "Suc k"] exI[of _ "0"])
+    from Suc.IH[OF this] obtain k where "\<not> b' ((c' ^^ k) (f (c s)))" ..
+    with assms show ?case
+      by (cases "b s") (auto simp: funpow_swap1 intro: exI[of _ "Suc k"] exI[of _ "0"])
   qed
 next
   fix k assume "\<not> b' ((c' ^^ k) (f s))"
@@ -107,8 +108,8 @@ next
     show ?case
     proof (cases "b s")
       case True
-      with assms(2) * have "\<not> b' ((c'^^k) (f (c s)))" by simp 
-      then guess k by (rule exE[OF Suc.IH[of "c s"]])
+      with assms(2) * have "\<not> b' ((c'^^k) (f (c s)))" by simp
+      from Suc.IH[OF this] obtain k where "\<not> b ((c ^^ k) (c s))" ..
       thus ?thesis by (auto simp: funpow_swap1 intro: exI[of _ "Suc k"])
     qed (auto intro: exI[of _ "0"])
   qed

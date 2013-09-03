@@ -105,8 +105,8 @@ object Markup
   val CLASS = "class"
   val TYPE_NAME = "type_name"
   val FIXED = "fixed"
+  val CASE = "case"
   val CONSTANT = "constant"
-
   val DYNAMIC_FACT = "dynamic_fact"
 
 

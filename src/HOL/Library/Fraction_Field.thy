@@ -209,7 +209,7 @@ proof (cases "q = 0")
 next
   case False
   then obtain a b where "q = Fract a b" and "b \<noteq> 0" by (cases q) auto
-  moreover with False have "0 \<noteq> Fract a b" by simp
+  with False have "0 \<noteq> Fract a b" by simp
   with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_fract_def eq_fract)
   with Fract `q = Fract a b` `b \<noteq> 0` show thesis by auto
 qed

@@ -1103,7 +1103,7 @@ lemma remove:
 proof -
   from `x \<in> A` obtain B where A: "A = insert x B" and "x \<notin> B"
     by (auto dest: mk_disjoint_insert)
-  moreover from `finite A` this have "finite B" by simp
+  moreover from `finite A` A have "finite B" by simp
   ultimately show ?thesis by simp
 qed
 

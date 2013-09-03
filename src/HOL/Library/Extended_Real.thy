@@ -146,11 +146,11 @@ function plus_ereal where
 "-\<infinity> + -\<infinity> = -(\<infinity>::ereal)"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a, b)" by (cases x) auto
-  ultimately show P
+  then obtain a b where "x = (a, b)" by (cases x) auto
+  with goal1 show P
    by (cases rule: ereal2_cases[of a b]) auto
 qed auto
-termination proof qed (rule wf_empty)
+termination by default (rule wf_empty)
 
 lemma Infty_neq_0[simp]:
   "(\<infinity>::ereal) \<noteq> 0" "0 \<noteq> (\<infinity>::ereal)"
@@ -234,8 +234,8 @@ where
 | "        -\<infinity> < (\<infinity>::ereal) \<longleftrightarrow> True"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a,b)" by (cases x) auto
-  ultimately show P by (cases rule: ereal2_cases[of a b]) auto
+  then obtain a b where "x = (a,b)" by (cases x) auto
+  with goal1 show P by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
 
@@ -496,8 +496,8 @@ function times_ereal where
 "-(\<infinity>::ereal) * -\<infinity> = \<infinity>"
 proof -
   case (goal1 P x)
-  moreover then obtain a b where "x = (a, b)" by (cases x) auto
-  ultimately show P by (cases rule: ereal2_cases[of a b]) auto
+  then obtain a b where "x = (a, b)" by (cases x) auto
+  with goal1 show P by (cases rule: ereal2_cases[of a b]) auto
 qed simp_all
 termination by (relation "{}") simp
 
@@ -1338,9 +1338,9 @@ next
   next
     { assume "c = \<infinity>" have ?thesis
       proof cases
-        assume "\<forall>i. f i = 0"
-        moreover then have "range f = {0}" by auto
-        ultimately show "c * SUPR UNIV f \<le> y" using *
+        assume **: "\<forall>i. f i = 0"
+        then have "range f = {0}" by auto
+        with ** show "c * SUPR UNIV f \<le> y" using *
           by (auto simp: SUP_def min_max.sup_absorb1)
       next
         assume "\<not> (\<forall>i. f i = 0)"
@@ -1368,7 +1368,8 @@ proof safe
   next
     case (real r)
     with less_PInf_Ex_of_nat[of x] obtain n :: nat where "x < ereal (real n)" by auto
-    moreover from assms[of n] guess i ..
+    moreover obtain i where "i \<in> A" "ereal (real n) \<le> f i"
+      using assms ..
     ultimately show ?thesis
       by (auto intro!: bexI[of _ i])
   qed
@@ -1383,11 +1384,12 @@ proof (cases "Sup A")
   proof
     fix n ::nat have "\<exists>x\<in>A. Sup A - 1 / ereal (real n) < x"
       using assms real by (intro Sup_ereal_close) (auto simp: one_ereal_def)
-    then guess x ..
+    then obtain x where "x \<in> A" "Sup A - 1 / ereal (real n) < x" ..
     then show "\<exists>x. x \<in> A \<and> Sup A < x + 1 / ereal (real n)"
       by (auto intro!: exI[of _ x] simp: ereal_minus_less_iff)
   qed
-  from choice[OF this] guess f .. note f = this
+  from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
+    where f: "\<forall>x. f x \<in> A \<and> Sup A < f x + 1 / ereal (real x)" ..
   have "SUPR UNIV f = Sup A"
   proof (rule SUP_eqI)
     fix i show "f i \<le> Sup A" using f
@@ -1417,9 +1419,9 @@ next
   from `A \<noteq> {}` obtain x where "x \<in> A" by auto
   show ?thesis
   proof cases
-    assume "\<infinity> \<in> A"
-    moreover then have "\<infinity> \<le> Sup A" by (intro complete_lattice_class.Sup_upper)
-    ultimately show ?thesis by (auto intro!: exI[of _ "\<lambda>x. \<infinity>"])
+    assume *: "\<infinity> \<in> A"
+    then have "\<infinity> \<le> Sup A" by (intro complete_lattice_class.Sup_upper)
+    with * show ?thesis by (auto intro!: exI[of _ "\<lambda>x. \<infinity>"])
   next
     assume "\<infinity> \<notin> A"
     have "\<exists>x\<in>A. 0 \<le> x"
@@ -1433,10 +1435,12 @@ next
       then show False using `x \<in> A` `\<infinity> \<notin> A` PInf
         by(cases x) auto
     qed
-    from choice[OF this] guess f .. note f = this
+    from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
+      where f: "\<forall>z. f z \<in> A \<and> x + ereal (real z) \<le> f z" ..
     have "SUPR UNIV f = \<infinity>"
     proof (rule SUP_PInfty)
-      fix n :: nat show "\<exists>i\<in>UNIV. ereal (real n) \<le> f i"
+      fix n :: nat
+      show "\<exists>i\<in>UNIV. ereal (real n) \<le> f i"
         using f[THEN spec, of n] `0 \<le> x`
         by (cases rule: ereal2_cases[of "f n" x]) (auto intro!: exI[of _ n])
     qed
@@ -1489,10 +1493,13 @@ lemma Inf_ereal_cminus:
   fixes A :: "ereal set" assumes "A \<noteq> {}" and "\<bar>a\<bar> \<noteq> \<infinity>"
   shows "Inf ((\<lambda>x. a - x) ` A) = a - Sup A"
 proof -
-  { fix x have "-a - -x = -(a - x)" using assms by (cases x) auto }
-  moreover then have "(\<lambda>x. -a - x)`uminus`A = uminus ` (\<lambda>x. a - x) ` A"
+  {
+    fix x
+    have "-a - -x = -(a - x)" using assms by (cases x) auto
+  } note * = this
+  then have "(\<lambda>x. -a - x)`uminus`A = uminus ` (\<lambda>x. a - x) ` A"
     by (auto simp: image_image)
-  ultimately show ?thesis
+  with * show ?thesis
     using Sup_ereal_cminus[of "uminus ` A" "-a"] assms
     by (auto simp add: ereal_Sup_uminus_image_eq ereal_Inf_uminus_image_eq)
 qed
@@ -1606,9 +1613,9 @@ lemma open_PInfty: "open A \<Longrightarrow> \<infinity> \<in> A \<Longrightarro
   unfolding open_ereal_generated
 proof (induct rule: generate_topology.induct)
   case (Int A B)
-  moreover then obtain x z where "\<infinity> \<in> A \<Longrightarrow> {ereal x <..} \<subseteq> A" "\<infinity> \<in> B \<Longrightarrow> {ereal z <..} \<subseteq> B"
-      by auto
-  ultimately show ?case
+  then obtain x z where "\<infinity> \<in> A \<Longrightarrow> {ereal x <..} \<subseteq> A" "\<infinity> \<in> B \<Longrightarrow> {ereal z <..} \<subseteq> B"
+    by auto
+  with Int show ?case
     by (intro exI[of _ "max x z"]) fastforce
 next
   { fix x have "x \<noteq> \<infinity> \<Longrightarrow> \<exists>t. x \<le> ereal t" by (cases x) auto }
@@ -1621,9 +1628,9 @@ lemma open_MInfty: "open A \<Longrightarrow> -\<infinity> \<in> A \<Longrightarr
   unfolding open_ereal_generated
 proof (induct rule: generate_topology.induct)
   case (Int A B)
-  moreover then obtain x z where "-\<infinity> \<in> A \<Longrightarrow> {..< ereal x} \<subseteq> A" "-\<infinity> \<in> B \<Longrightarrow> {..< ereal z} \<subseteq> B"
-      by auto
-  ultimately show ?case
+  then obtain x z where "-\<infinity> \<in> A \<Longrightarrow> {..< ereal x} \<subseteq> A" "-\<infinity> \<in> B \<Longrightarrow> {..< ereal z} \<subseteq> B"
+    by auto
+  with Int show ?case
     by (intro exI[of _ "min x z"]) fastforce
 next
   { fix x have "x \<noteq> - \<infinity> \<Longrightarrow> \<exists>t. ereal t \<le> x" by (cases x) auto }
@@ -1711,8 +1718,9 @@ lemma ereal_open_cont_interval2:
   fixes S :: "ereal set"
   assumes "open S" "x \<in> S" and x: "\<bar>x\<bar> \<noteq> \<infinity>"
   obtains a b where "a < x" "x < b" "{a <..< b} \<subseteq> S"
-proof-
-  guess e using ereal_open_cont_interval[OF assms] .
+proof -
+  obtain e where "0 < e" "{x - e<..<x + e} \<subseteq> S"
+    using assms by (rule ereal_open_cont_interval)
   with that[of "x-e" "x+e"] ereal_between[OF x, of e]
   show thesis by auto
 qed
@@ -1759,8 +1767,9 @@ qed
 lemma tendsto_MInfty: "(f ---> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
   unfolding tendsto_def
 proof safe
-  fix S :: "ereal set" assume "open S" "-\<infinity> \<in> S"
-  from open_MInfty[OF this] guess B .. note B = this
+  fix S :: "ereal set"
+  assume "open S" "-\<infinity> \<in> S"
+  from open_MInfty[OF this] obtain B where "{..<ereal B} \<subseteq> S" ..
   moreover
   assume "\<forall>r::real. eventually (\<lambda>z. f z < r) F"
   then have "eventually (\<lambda>z. f z \<in> {..< B}) F" by auto
@@ -1775,7 +1784,7 @@ lemma Lim_PInfty: "f ----> \<infinity> \<longleftrightarrow> (\<forall>B. \<exis
   unfolding tendsto_PInfty eventually_sequentially
 proof safe
   fix r assume "\<forall>r. \<exists>N. \<forall>n\<ge>N. ereal r \<le> f n"
-  from this[rule_format, of "r+1"] guess N ..
+  then obtain N where "\<forall>n\<ge>N. ereal (r + 1) \<le> f n" by blast
   moreover have "ereal r < ereal (r + 1)" by auto
   ultimately show "\<exists>N. \<forall>n\<ge>N. ereal r < f n"
     by (blast intro: less_le_trans)
@@ -1785,7 +1794,7 @@ lemma Lim_MInfty: "f ----> -\<infinity> \<longleftrightarrow> (\<forall>B. \<exi
   unfolding tendsto_MInfty eventually_sequentially
 proof safe
   fix r assume "\<forall>r. \<exists>N. \<forall>n\<ge>N. f n \<le> ereal r"
-  from this[rule_format, of "r - 1"] guess N ..
+  then obtain N where "\<forall>n\<ge>N. f n \<le> ereal (r - 1)" by blast
   moreover have "ereal (r - 1) < ereal r" by auto
   ultimately show "\<exists>N. \<forall>n\<ge>N. f n < ereal r"
     by (blast intro: le_less_trans)

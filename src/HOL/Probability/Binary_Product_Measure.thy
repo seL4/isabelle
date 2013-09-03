@@ -177,9 +177,9 @@ proof (induct rule: sigma_sets_induct_disjoint)
     by (auto intro!: measurable_If simp: space_pair_measure)
 next
   case (union F)
-  moreover then have *: "\<And>x. emeasure M (Pair x -` (\<Union>i. F i)) = (\<Sum>i. ?s (F i) x)"
+  then have "\<And>x. emeasure M (Pair x -` (\<Union>i. F i)) = (\<Sum>i. ?s (F i) x)"
     by (simp add: suminf_emeasure disjoint_family_vimageI subset_eq vimage_UN sets_pair_measure[symmetric])
-  ultimately show ?case
+  with union show ?case
     unfolding sets_pair_measure[symmetric] by simp
 qed (auto simp add: if_distrib Int_def[symmetric] intro!: measurable_If)
 
@@ -515,9 +515,9 @@ lemma (in sigma_finite_measure) positive_integral_fst:
   shows "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>M \<partial>M1) = integral\<^sup>P (M1 \<Otimes>\<^sub>M M) f" (is "?I f = _")
 using f proof induct
   case (cong u v)
-  moreover then have "?I u = ?I v"
+  then have "?I u = ?I v"
     by (intro positive_integral_cong) (auto simp: space_pair_measure)
-  ultimately show ?case
+  with cong show ?case
     by (simp cong: positive_integral_cong)
 qed (simp_all add: emeasure_pair_measure positive_integral_cmult positive_integral_add
                    positive_integral_monotone_convergence_SUP

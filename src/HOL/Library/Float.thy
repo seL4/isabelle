@@ -44,7 +44,7 @@ lemma floatI: fixes m e :: int shows "m * 2 powr e = x \<Longrightarrow> x \<in>
 
 lemma zero_float[simp]: "0 \<in> float" by (auto simp: float_def)
 lemma one_float[simp]: "1 \<in> float" by (intro floatI[of 1 0]) simp
-lemma numeral_float[simp]: "numeral i \<in> float" by (intro floatI[of "numeral i" 0]) simp  
+lemma numeral_float[simp]: "numeral i \<in> float" by (intro floatI[of "numeral i" 0]) simp
 lemma neg_numeral_float[simp]: "neg_numeral i \<in> float" by (intro floatI[of "neg_numeral i" 0]) simp
 lemma real_of_int_float[simp]: "real (x :: int) \<in> float" by (intro floatI[of x 0]) simp
 lemma real_of_nat_float[simp]: "real (x :: nat) \<in> float" by (intro floatI[of x 0]) simp
@@ -175,7 +175,7 @@ end
 lemma real_of_float_power[simp]: fixes f::float shows "real (f^n) = real f^n"
   by (induct n) simp_all
 
-lemma fixes x y::float 
+lemma fixes x y::float
   shows real_of_float_min: "real (min x y) = min (real x) (real y)"
     and real_of_float_max: "real (max x y) = max (real x) (real y)"
   by (simp_all add: min_def max_def)
@@ -197,7 +197,7 @@ proof
   then show "\<exists>c. a < c \<and> c < b"
     apply (intro exI[of _ "(a + b) * Float 1 -1"])
     apply transfer
-    apply (simp add: powr_neg_numeral) 
+    apply (simp add: powr_neg_numeral)
     done
 qed
 
@@ -222,14 +222,14 @@ lemma float_numeral[simp]: "real (numeral x :: float) = numeral x"
                   plus_float.rep_eq one_float.rep_eq plus_float numeral_float one_float)
   done
 
-lemma transfer_numeral [transfer_rule]: 
+lemma transfer_numeral [transfer_rule]:
   "fun_rel (op =) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
   unfolding fun_rel_def float.pcr_cr_eq  cr_float_def by simp
 
 lemma float_neg_numeral[simp]: "real (neg_numeral x :: float) = neg_numeral x"
   by (simp add: minus_numeral[symmetric] del: minus_numeral)
 
-lemma transfer_neg_numeral [transfer_rule]: 
+lemma transfer_neg_numeral [transfer_rule]:
   "fun_rel (op =) pcr_float (neg_numeral :: _ \<Rightarrow> real) (neg_numeral :: _ \<Rightarrow> float)"
   unfolding fun_rel_def float.pcr_cr_eq cr_float_def by simp
 
@@ -321,7 +321,7 @@ definition exponent :: "float \<Rightarrow> int" where
   "exponent f = snd (SOME p::int \<times> int. (f = 0 \<and> fst p = 0 \<and> snd p = 0)
    \<or> (f \<noteq> 0 \<and> real f = real (fst p) * 2 powr real (snd p) \<and> \<not> 2 dvd fst p))"
 
-lemma 
+lemma
   shows exponent_0[simp]: "exponent (float_of 0) = 0" (is ?E)
     and mantissa_0[simp]: "mantissa (float_of 0) = 0" (is ?M)
 proof -
@@ -351,7 +351,7 @@ qed simp
 lemma mantissa_noteq_0: "f \<noteq> float_of 0 \<Longrightarrow> mantissa f \<noteq> 0"
   using mantissa_not_dvd[of f] by auto
 
-lemma 
+lemma
   fixes m e :: int
   defines "f \<equiv> float_of (m * 2 powr e)"
   assumes dvd: "\<not> 2 dvd m"
@@ -740,19 +740,23 @@ proof -
 qed
 
 lemma bitlen_Float:
-fixes m e
-defines "f \<equiv> Float m e"
-shows "bitlen (\<bar>mantissa f\<bar>) + exponent f = (if m = 0 then 0 else bitlen \<bar>m\<bar> + e)"
-proof cases
-  assume "m \<noteq> 0"
+  fixes m e
+  defines "f \<equiv> Float m e"
+  shows "bitlen (\<bar>mantissa f\<bar>) + exponent f = (if m = 0 then 0 else bitlen \<bar>m\<bar> + e)"
+proof (cases "m = 0")
+  case True
+  then show ?thesis by (simp add: f_def bitlen_def Float_def)
+next
+  case False
   hence "f \<noteq> float_of 0"
     unfolding real_of_float_eq by (simp add: f_def)
   hence "mantissa f \<noteq> 0"
     by (simp add: mantissa_noteq_0)
   moreover
-  from f_def[THEN denormalize_shift, OF `f \<noteq> float_of 0`] guess i .
+  obtain i where "m = mantissa f * 2 ^ i" "e = exponent f - int i"
+    by (rule f_def[THEN denormalize_shift, OF `f \<noteq> float_of 0`])
   ultimately show ?thesis by (simp add: abs_mult)
-qed (simp add: f_def bitlen_def Float_def)
+qed
 
 lemma compute_bitlen[code]:
   shows "bitlen x = (if x > 0 then bitlen (x div 2) + 1 else 0)"
@@ -865,9 +869,9 @@ lift_definition lapprox_posrat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rig
   is "\<lambda>prec (x::nat) (y::nat). round_down (rat_precision prec x y) (x / y)" by simp
 
 lemma compute_lapprox_posrat[code]:
-  fixes prec x y 
-  shows "lapprox_posrat prec x y = 
-   (let 
+  fixes prec x y
+  shows "lapprox_posrat prec x y =
+   (let
        l = rat_precision prec x y;
        d = if 0 \<le> l then x * 2^nat l div y else x div 2^nat (- l) div y
     in normfloat (Float d (- l)))"
@@ -948,7 +952,7 @@ lemma rapprox_posrat_less1:
   assumes "0 \<le> x" and "0 < y" and "2 * x < y" and "0 < n"
   shows "real (rapprox_posrat n x y) < 1"
 proof -
-  have powr1: "2 powr real (rat_precision n (int x) (int y)) = 
+  have powr1: "2 powr real (rat_precision n (int x) (int y)) =
     2 ^ nat (rat_precision n (int x) (int y))" using rat_precision_pos[of x y n] assms
     by (simp add: powr_realpow[symmetric])
   have "x * 2 powr real (rat_precision n (int x) (int y)) / y = (x / y) *
@@ -978,7 +982,7 @@ lemma compute_lapprox_rat[code]:
     (if y = 0 then 0
     else if 0 \<le> x then
       (if 0 < y then lapprox_posrat prec (nat x) (nat y)
-      else - (rapprox_posrat prec (nat x) (nat (-y)))) 
+      else - (rapprox_posrat prec (nat x) (nat (-y))))
       else (if 0 < y
         then - (rapprox_posrat prec (nat (-x)) (nat y))
         else lapprox_posrat prec (nat (-x)) (nat (-y))))"
@@ -993,7 +997,7 @@ lemma compute_rapprox_rat[code]:
     (if y = 0 then 0
     else if 0 \<le> x then
       (if 0 < y then rapprox_posrat prec (nat x) (nat y)
-      else - (lapprox_posrat prec (nat x) (nat (-y)))) 
+      else - (lapprox_posrat prec (nat x) (nat (-y))))
       else (if 0 < y
         then - (lapprox_posrat prec (nat (-x)) (nat y))
         else rapprox_posrat prec (nat (-x)) (nat (-y))))"
@@ -1017,7 +1021,7 @@ proof cases
     by (simp add: field_simps powr_divide2[symmetric])
 
   show ?thesis
-    using not_0 
+    using not_0
     by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_down_shift, simp add: field_simps)
 qed (transfer, auto)
 hide_fact (open) compute_float_divl
@@ -1037,7 +1041,7 @@ proof cases
     by (simp add: field_simps powr_divide2[symmetric])
 
   show ?thesis
-    using not_0 
+    using not_0
     by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_up_shift, simp add: field_simps)
 qed (transfer, auto)
 hide_fact (open) compute_float_divr
@@ -1104,7 +1108,7 @@ proof -
        (simp add: powr_minus inverse_eq_divide)
 qed
 
-lemma rapprox_rat_nonneg_neg: 
+lemma rapprox_rat_nonneg_neg:
   "0 \<le> x \<Longrightarrow> y < 0 \<Longrightarrow> real (rapprox_rat n x y) \<le> 0"
   unfolding rapprox_rat_def round_up_def
   by (auto simp: field_simps mult_le_0_iff zero_le_mult_iff)
@@ -1157,7 +1161,7 @@ lemma float_divl_pos_less1_bound:
   "0 < real x \<Longrightarrow> real x < 1 \<Longrightarrow> prec \<ge> 1 \<Longrightarrow> 1 \<le> real (float_divl prec 1 x)"
 proof transfer
   fix prec :: nat and x :: real assume x: "0 < x" "x < 1" "x \<in> float" and prec: "1 \<le> prec"
-  def p \<equiv> "int prec + \<lfloor>log 2 \<bar>x\<bar>\<rfloor>" 
+  def p \<equiv> "int prec + \<lfloor>log 2 \<bar>x\<bar>\<rfloor>"
   show "1 \<le> round_down (int prec + \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - \<lfloor>log 2 \<bar>1\<bar>\<rfloor>) (1 / x) "
   proof cases
     assume nonneg: "0 \<le> p"
@@ -1279,12 +1283,16 @@ lemma floor_fl: "real (floor_fl x) \<le> real x" by transfer simp
 lemma int_floor_fl: "real (int_floor_fl x) \<le> real x" by transfer simp
 
 lemma floor_pos_exp: "exponent (floor_fl x) \<ge> 0"
-proof cases
-  assume nzero: "floor_fl x \<noteq> float_of 0"
-  have "floor_fl x = Float \<lfloor>real x\<rfloor> 0" by transfer simp
-  from denormalize_shift[OF this[THEN eq_reflection] nzero] guess i . note i = this
-  thus ?thesis by simp
-qed (simp add: floor_fl_def)
+proof (cases "floor_fl x = float_of 0")
+  case True
+  then show ?thesis by (simp add: floor_fl_def)
+next
+  case False
+  have eq: "floor_fl x = Float \<lfloor>real x\<rfloor> 0" by transfer simp
+  obtain i where "\<lfloor>real x\<rfloor> = mantissa (floor_fl x) * 2 ^ i" "0 = exponent (floor_fl x) - int i"
+    by (rule denormalize_shift[OF eq[THEN eq_reflection] False])
+  then show ?thesis by simp
+qed
 
 end
 

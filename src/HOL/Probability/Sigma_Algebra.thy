@@ -1244,8 +1244,8 @@ proof (cases M N rule: measure_cases[case_product measure_cases])
   interpret N: sigma_algebra \<Omega>' A' using measure_measure by (auto simp: measure_space_def)
   have "A = sets M" "A' = sets N"
     using measure_measure by (simp_all add: sets_def Abs_measure_inverse)
-  with `sets M = sets N` have "A = A'" by simp
-  moreover with M.top N.top M.space_closed N.space_closed have "\<Omega> = \<Omega>'" by auto
+  with `sets M = sets N` have AA': "A = A'" by simp
+  moreover from M.top N.top M.space_closed N.space_closed AA' have "\<Omega> = \<Omega>'" by auto
   moreover { fix B have "\<mu> B = \<mu>' B"
     proof cases
       assume "B \<in> A"
@@ -1977,7 +1977,7 @@ proof -
   moreover have "D \<union> (\<Omega> - E) = (\<Union>i. ?f i)"
     by (auto simp: image_iff split: split_if_asm)
   moreover
-  then have "disjoint_family ?f" unfolding disjoint_family_on_def
+  have "disjoint_family ?f" unfolding disjoint_family_on_def
     using `D \<in> M`[THEN sets_into_space] `D \<subseteq> E` by auto
   ultimately have "\<Omega> - (D \<union> (\<Omega> - E)) \<in> M"
     using sets by auto
@@ -2193,11 +2193,11 @@ lemma (in dynkin_system) dynkin_lemma:
 proof -
   have "E \<subseteq> Pow \<Omega>"
     using E sets_into_space by force
-  then have "sigma_sets \<Omega> E = dynkin \<Omega> E"
+  then have *: "sigma_sets \<Omega> E = dynkin \<Omega> E"
     using `Int_stable E` by (rule sigma_eq_dynkin)
-  moreover then have "dynkin \<Omega> E = M"
+  then have "dynkin \<Omega> E = M"
     using assms dynkin_subset[OF E(1)] by simp
-  ultimately show ?thesis
+  with * show ?thesis
     using assms by (auto simp: dynkin_def)
 qed
 

@@ -412,14 +412,14 @@ proof -
 
   have ac: "absolutely_continuous M ?M" unfolding absolutely_continuous_def
   proof
-    fix A assume A: "A \<in> null_sets M"
-    with `absolutely_continuous M N` have "A \<in> null_sets N"
+    fix A assume A_M: "A \<in> null_sets M"
+    with `absolutely_continuous M N` have A_N: "A \<in> null_sets N"
       unfolding absolutely_continuous_def by auto
-    moreover with A have "(\<integral>\<^sup>+ x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` by (auto simp: G_def)
+    moreover from A_M A_N have "(\<integral>\<^sup>+ x. ?F A x \<partial>M) \<le> N A" using `f \<in> G` by (auto simp: G_def)
     ultimately have "N A - (\<integral>\<^sup>+ x. ?F A x \<partial>M) = 0"
       using positive_integral_positive[of M] by (auto intro!: antisym)
     then show "A \<in> null_sets ?M"
-      using A by (simp add: emeasure_M null_sets_def sets_eq)
+      using A_M by (simp add: emeasure_M null_sets_def sets_eq)
   qed
   have upper_bound: "\<forall>A\<in>sets M. ?M A \<le> 0"
   proof (rule ccontr)
@@ -431,7 +431,7 @@ proof -
       using emeasure_space[of ?M A] by (simp add: sets_eq[THEN sets_eq_imp_space_eq])
     finally have pos_t: "0 < ?M (space M)" by simp
     moreover
-    then have "emeasure M (space M) \<noteq> 0"
+    from pos_t have "emeasure M (space M) \<noteq> 0"
       using ac unfolding absolutely_continuous_def by (auto simp: null_sets_def)
     then have pos_M: "0 < emeasure M (space M)"
       using emeasure_nonneg[of M "space M"] by (simp add: le_less)
@@ -594,12 +594,14 @@ proof -
       proof (rule disjCI, simp)
         assume *: "0 < emeasure M A \<longrightarrow> N A \<noteq> \<infinity>"
         show "emeasure M A = 0 \<and> N A = 0"
-        proof cases
-          assume "emeasure M A = 0" moreover with ac A have "N A = 0"
+        proof (cases "emeasure M A = 0")
+          case True
+          with ac A have "N A = 0"
             unfolding absolutely_continuous_def by auto
-          ultimately show ?thesis by simp
+          with True show ?thesis by simp
         next
-          assume "emeasure M A \<noteq> 0" with * have "N A \<noteq> \<infinity>" using emeasure_nonneg[of M A] by auto
+          case False
+          with * have "N A \<noteq> \<infinity>" using emeasure_nonneg[of M A] by auto
           with A have "emeasure M ?O_0 + emeasure M A = emeasure M (?O_0 \<union> A)"
             using Q' by (auto intro!: plus_emeasure sets.countable_UN)
           also have "\<dots> = (SUP i. emeasure M (?O i \<union> A))"

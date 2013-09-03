@@ -707,11 +707,11 @@ proof -
       unfolding d_def by simp
     moreover from a assms have "cos a = cos x" and "sin a = sin x"
       by (simp_all add: complex_eq_iff)
-    hence "cos d = 1" unfolding d_def cos_diff by simp
-    moreover hence "sin d = 0" by (rule cos_one_sin_zero)
+    hence cos: "cos d = 1" unfolding d_def cos_diff by simp
+    moreover from cos have "sin d = 0" by (rule cos_one_sin_zero)
     ultimately have "d = 0"
       unfolding sin_zero_iff even_mult_two_ex
-      by (safe, auto simp add: numeral_2_eq_2 less_Suc_eq)
+      by (auto simp add: numeral_2_eq_2 less_Suc_eq)
     thus "a = x" unfolding d_def by simp
   qed (simp add: assms del: Re_sgn Im_sgn)
   with `z \<noteq> 0` show "arg z = x"

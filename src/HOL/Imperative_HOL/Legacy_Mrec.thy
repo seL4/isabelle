@@ -118,7 +118,7 @@ proof -
         proof (cases "mrec b h1")
           case (Some result)
           then obtain aaa h2 where mrec_rec: "mrec b h1 = Some (aaa, h2)" by fastforce
-          moreover from this have "P b h1 (snd (the (mrec b h1))) (fst (the (mrec b h1)))"
+          moreover from mrec_rec have "P b h1 (snd (the (mrec b h1))) (fst (the (mrec b h1)))"
             apply (intro 1(2))
             apply (auto simp add: Inr Inl')
             done

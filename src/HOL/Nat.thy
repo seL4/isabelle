@@ -1888,8 +1888,8 @@ lemma dvd_minus_add:
 proof -
   have "m dvd n - q \<longleftrightarrow> m dvd r * m + (n - q)"
     by (auto elim: dvd_plusE)
-  also with assms have "\<dots> \<longleftrightarrow> m dvd r * m + n - q" by simp
-  also with assms have "\<dots> \<longleftrightarrow> m dvd (r * m - q) + n" by simp
+  also from assms have "\<dots> \<longleftrightarrow> m dvd r * m + n - q" by simp
+  also from assms have "\<dots> \<longleftrightarrow> m dvd (r * m - q) + n" by simp
   also have "\<dots> \<longleftrightarrow> m dvd n + (r * m - q)" by (simp add: add_commute)
   finally show ?thesis .
 qed

@@ -905,12 +905,11 @@ proof
       then show "\<exists>a b. k = {a..b}" by auto
       have "k \<subseteq> {a..b} \<and> k \<noteq> {}"
       proof (simp add: k interval_eq_empty subset_interval not_less, safe)
-        fix i :: 'a assume i: "i \<in> Basis"
-        moreover
+        fix i :: 'a
+        assume i: "i \<in> Basis"
         with f have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
           by (auto simp: PiE_iff)
-        moreover note ord[of i]
-        ultimately
+        with i ord[of i]
         show "a \<bullet> i \<le> fst (f i) \<bullet> i" "snd (f i) \<bullet> i \<le> b \<bullet> i" "fst (f i) \<bullet> i \<le> snd (f i) \<bullet> i"
           by (auto simp: subset_iff eucl_le[where 'a='a])
       qed
@@ -952,7 +951,7 @@ proof
           by auto
       qed
       then guess f unfolding bchoice_iff .. note f = this
-      moreover then have "restrict f Basis \<in> Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)}"
+      moreover from f have "restrict f Basis \<in> Basis \<rightarrow>\<^sub>E {(a, c), (c, d), (d, b)}"
         by auto
       moreover from f have "x \<in> ?B (restrict f Basis)"
         by (auto simp: mem_interval eucl_le[where 'a='a])
@@ -3874,7 +3873,7 @@ proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis app
                     setprod_timesf setprod_constant inner_diff_left)
   next
     case False
-    moreover with as have "{m *\<^sub>R b + c..m *\<^sub>R a + c} \<noteq> {}"
+    with as have "{m *\<^sub>R b + c..m *\<^sub>R a + c} \<noteq> {}"
       unfolding interval_ne_empty
       apply (intro ballI)
       apply (erule_tac x=i in ballE)
@@ -3882,7 +3881,7 @@ proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis app
       done
     moreover from False have *: "\<And>i. (m *\<^sub>R a + c) \<bullet> i - (m *\<^sub>R b + c) \<bullet> i = (-m) *\<^sub>R (b - a) \<bullet> i"
       by (simp add: inner_simps field_simps)
-    ultimately show ?thesis
+    ultimately show ?thesis using False
       by (simp add: image_affinity_interval content_closed_interval'
                     setprod_timesf[symmetric] setprod_constant[symmetric] inner_diff_left)
   qed
@@ -3918,17 +3917,20 @@ proof cases
       unfolding interval_ne_empty by auto
     show "(\<exists>xa. x \<bullet> i = m i * xa \<and> a \<bullet> i \<le> xa \<and> xa \<le> b \<bullet> i) \<longleftrightarrow>
         min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) \<le> x \<bullet> i \<and> x \<bullet> i \<le> max (m i * (a \<bullet> i)) (m i * (b \<bullet> i))"
-    proof cases
-      assume "m i \<noteq> 0"
-      moreover then have *: "\<And>a b. a = m i * b \<longleftrightarrow> b = a / m i"
+    proof (cases "m i = 0")
+      case True
+      with a_le_b show ?thesis by auto
+    next
+      case False
+      then have *: "\<And>a b. a = m i * b \<longleftrightarrow> b = a / m i"
         by (auto simp add: field_simps)
-      moreover have
+      from False have
           "min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (a \<bullet> i) else m i * (b \<bullet> i))"
           "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) = (if 0 < m i then m i * (b \<bullet> i) else m i * (a \<bullet> i))"
         using a_le_b by (auto simp: min_def max_def mult_le_cancel_left)
-      ultimately show ?thesis using a_le_b
+      with False show ?thesis using a_le_b
         unfolding * by (auto simp add: le_divide_eq divide_le_eq ac_simps) 
-    qed (insert a_le_b, auto)
+    qed
   qed
 qed simp
 

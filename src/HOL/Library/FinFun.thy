@@ -960,7 +960,7 @@ proof -
     { fix g' a b show "Abs_finfun (g \<circ> op $ g'(a $:= b)) = (Abs_finfun (g \<circ> op $ g'))(a $:= g b)"
       proof -
         obtain y where y: "y \<in> finfun" and g': "g' = Abs_finfun y" by(cases g')
-        moreover hence "(g \<circ> op $ g') \<in> finfun" by(simp add: finfun_left_compose)
+        moreover from g' have "(g \<circ> op $ g') \<in> finfun" by(simp add: finfun_left_compose)
         moreover have "g \<circ> y(a := b) = (g \<circ> y)(a := g b)" by(auto)
         ultimately show ?thesis by(simp add: finfun_comp_def finfun_update_def)
       qed }

@@ -766,9 +766,8 @@ lemma logical_pseudo_reflexivity:
   assumes "\<Gamma>' \<turnstile> t is s over \<Gamma>"
   shows "\<Gamma>' \<turnstile> s is s over \<Gamma>" 
 proof -
-  have "\<Gamma>' \<turnstile> t is s over \<Gamma>" by fact
-  moreover then have "\<Gamma>' \<turnstile> s is t over \<Gamma>" using logical_symmetry by blast
-  ultimately show "\<Gamma>' \<turnstile> s is s over \<Gamma>" using logical_transitivity by blast
+  from assms have "\<Gamma>' \<turnstile> s is t over \<Gamma>" using logical_symmetry by blast
+  with assms show "\<Gamma>' \<turnstile> s is s over \<Gamma>" using logical_transitivity by blast
 qed
 
 lemma logical_subst_monotonicity :

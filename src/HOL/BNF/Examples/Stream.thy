@@ -423,9 +423,9 @@ proof safe
       case False
       hence "x = flat (stl s) !! (y - length (shd s))" by (metis less(2,3) flat_snth)
       moreover
-      { from less(2) have "length (shd s) > 0" by (cases s) simp_all
-        moreover with False have "y > 0" by (cases y) simp_all
-        ultimately have "y - length (shd s) < y" by simp
+      { from less(2) have *: "length (shd s) > 0" by (cases s) simp_all
+        with False have "y > 0" by (cases y) simp_all
+        with * have "y - length (shd s) < y" by simp
       }
       moreover have "\<forall>xs \<in> sset (stl s). xs \<noteq> []" using less(2) by (cases s) auto
       ultimately have "\<exists>n m'. x = stl s !! n ! m' \<and> m' < length (stl s !! n)" by (intro less(1)) auto

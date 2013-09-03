@@ -3804,8 +3804,8 @@ proof (cases "f = g")
     by (simp add: split_if_asm dist_fps_def)
   moreover
   from fps_eq_least_unique[OF `f \<noteq> g`]
-  obtain n where "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
-  moreover hence "\<And>m. m < n \<Longrightarrow> f$m = g$m" "f$n \<noteq> g$n"
+  obtain n where n: "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
+  moreover from n have "\<And>m. m < n \<Longrightarrow> f$m = g$m" "f$n \<noteq> g$n"
     by (auto simp add: leastP_def setge_def)
   ultimately show ?thesis using `j \<le> i` by simp
 next

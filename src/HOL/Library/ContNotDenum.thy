@@ -323,64 +323,46 @@ non-singleton itself. *}
 
 lemma closed_subset_ex:
   fixes c::real
-  assumes alb: "a < b"
-  shows
-    "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> (closed_int ka kb)"
-proof -
-  {
-    assume clb: "c < b"
-    {
-      assume cla: "c < a"
-      from alb cla clb have "c \<notin> closed_int a b" by (unfold closed_int_def, auto)
-      with alb have
-        "a < b \<and> closed_int a b \<subseteq> closed_int a b \<and> c \<notin> closed_int a b"
-        by auto
-      hence
-        "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> (closed_int ka kb)"
-        by auto
-    }
-    moreover
-    {
-      assume ncla: "\<not>(c < a)"
-      with clb have cdef: "a \<le> c \<and> c < b" by simp
-      obtain ka where kadef: "ka = (c + b)/2" by blast
+  assumes "a < b"
+  shows "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> closed_int ka kb"
+proof (cases "c < b")
+  case True
+  show ?thesis
+  proof (cases "c < a")
+    case True
+    with `a < b` `c < b` have "c \<notin> closed_int a b"
+      unfolding closed_int_def by auto
+    with `a < b` show ?thesis by auto
+  next
+    case False
+    then have "a \<le> c" by simp
+    def ka \<equiv> "(c + b)/2"
 
-      from kadef clb have kalb: "ka < b" by auto
-      moreover from kadef cdef have kagc: "ka > c" by simp
-      ultimately have "c\<notin>(closed_int ka b)" by (unfold closed_int_def, auto)
-      moreover from cdef kagc have "ka \<ge> a" by simp
-      hence "closed_int ka b \<subseteq> closed_int a b" by (unfold closed_int_def, auto)
-      ultimately have
-        "ka < b  \<and> closed_int ka b \<subseteq> closed_int a b \<and> c \<notin> closed_int ka b"
-        using kalb by auto
-      hence
-        "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> (closed_int ka kb)"
-        by auto
-
-    }
+    from ka_def `c < b` have kalb: "ka < b" by auto
+    moreover from ka_def `c < b` have kagc: "ka > c" by simp
+    ultimately have "c\<notin>(closed_int ka b)" by (unfold closed_int_def, auto)
+    moreover from `a \<le> c` kagc have "ka \<ge> a" by simp
+    hence "closed_int ka b \<subseteq> closed_int a b" by (unfold closed_int_def, auto)
     ultimately have
-      "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> (closed_int ka kb)"
-      by (rule case_split)
-  }
-  moreover
-  {
-    assume "\<not> (c < b)"
-    hence cgeb: "c \<ge> b" by simp
-
-    obtain kb where kbdef: "kb = (a + b)/2" by blast
-    with alb have kblb: "kb < b" by auto
-    with kbdef cgeb have "a < kb \<and> kb < c" by auto
-    moreover hence "c \<notin> (closed_int a kb)" by (unfold closed_int_def, auto)
-    moreover from kblb have
-      "closed_int a kb \<subseteq> closed_int a b" by (unfold closed_int_def, auto)
-    ultimately have
-      "a < kb \<and>  closed_int a kb \<subseteq> closed_int a b \<and> c\<notin>closed_int a kb"
-      by simp
-    hence
-      "\<exists>ka kb. ka < kb \<and> closed_int ka kb \<subseteq> closed_int a b \<and> c \<notin> (closed_int ka kb)"
+      "ka < b  \<and> closed_int ka b \<subseteq> closed_int a b \<and> c \<notin> closed_int ka b"
+      using kalb by auto
+    then show ?thesis
       by auto
-  }
-  ultimately show ?thesis by (rule case_split)
+  qed
+next
+  case False
+  then have "c \<ge> b" by simp
+
+  def kb \<equiv> "(a + b)/2"
+  with `a < b` have "kb < b" by auto
+  with kb_def `c \<ge> b` have "a < kb" "kb < c" by auto
+  from `kb < c` have c: "c \<notin> closed_int a kb"
+    unfolding closed_int_def by auto
+  with `kb < b` have "closed_int a kb \<subseteq> closed_int a b"
+    unfolding closed_int_def by auto
+  with `a < kb` c have "a < kb \<and> closed_int a kb \<subseteq> closed_int a b \<and> c \<notin> closed_int a kb"
+    by simp
+  then show ?thesis by auto
 qed
 
 subsection {* newInt: Interval generation *}

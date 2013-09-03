@@ -608,14 +608,13 @@ val _ =
     (opt_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
     >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
-val case_spec =
-  (@{keyword "("} |--
-    Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.binding) --| @{keyword ")"}) ||
-    Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> Parse.triple1;
-
 val _ =
   Outer_Syntax.command @{command_spec "case"} "invoke local context"
-    (case_spec >> (Toplevel.print oo (Toplevel.proof o Proof.invoke_case_cmd)));
+    ((@{keyword "("} |--
+      Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
+        --| @{keyword ")"}) ||
+      Parse.position Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> (fn ((c, xs), atts) =>
+        Toplevel.print o Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
 
 
 (* proof structure *)

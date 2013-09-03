@@ -983,22 +983,20 @@ lemma borel_fubini_integrable:
   shows "integrable lborel f \<longleftrightarrow> integrable (\<Pi>\<^sub>M (i::'a)\<in>Basis. lborel) (\<lambda>x. f (p2e x))"
     (is "_ \<longleftrightarrow> integrable ?B ?f")
 proof
-  assume "integrable lborel f"
-  moreover then have f: "f \<in> borel_measurable borel"
+  assume *: "integrable lborel f"
+  then have f: "f \<in> borel_measurable borel"
     by auto
-  moreover with measurable_p2e
-  have "f \<circ> p2e \<in> borel_measurable ?B"
+  with measurable_p2e have "f \<circ> p2e \<in> borel_measurable ?B"
     by (rule measurable_comp)
-  ultimately show "integrable ?B ?f"
+  with * f show "integrable ?B ?f"
     by (simp add: comp_def borel_fubini_positiv_integral integrable_def)
 next
-  assume "integrable ?B ?f"
-  moreover
+  assume *: "integrable ?B ?f"
   then have "?f \<circ> e2p \<in> borel_measurable (borel::'a measure)"
     by (auto intro!: measurable_e2p)
   then have "f \<in> borel_measurable borel"
     by (simp cong: measurable_cong)
-  ultimately show "integrable lborel f"
+  with * show "integrable lborel f"
     by (simp add: borel_fubini_positiv_integral integrable_def)
 qed
 

@@ -33,16 +33,17 @@ lemma at_infinity_eq_at_top_bot:
   "(at_infinity \<Colon> real filter) = sup at_top at_bot"
   unfolding sup_filter_def at_infinity_def eventually_at_top_linorder eventually_at_bot_linorder
 proof (intro arg_cong[where f=Abs_filter] ext iffI)
-  fix P :: "real \<Rightarrow> bool" assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
-  then guess r ..
+  fix P :: "real \<Rightarrow> bool"
+  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
+  then obtain r where "\<forall>x. r \<le> norm x \<longrightarrow> P x" ..
   then have "(\<forall>x\<ge>r. P x) \<and> (\<forall>x\<le>-r. P x)" by auto
   then show "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)" by auto
 next
-  fix P :: "real \<Rightarrow> bool" assume "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)"
+  fix P :: "real \<Rightarrow> bool"
+  assume "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)"
   then obtain p q where "\<forall>x\<ge>p. P x" "\<forall>x\<le>q. P x" by auto
   then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
-    by (intro exI[of _ "max p (-q)"])
-       (auto simp: abs_real_def)
+    by (intro exI[of _ "max p (-q)"]) (auto simp: abs_real_def)
 qed
 
 lemma at_top_le_at_infinity:

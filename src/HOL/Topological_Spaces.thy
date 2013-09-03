@@ -215,14 +215,14 @@ qed
 lemma (in linorder) less_separate:
   assumes "x < y"
   shows "\<exists>a b. x \<in> {..< a} \<and> y \<in> {b <..} \<and> {..< a} \<inter> {b <..} = {}"
-proof cases
-  assume "\<exists>z. x < z \<and> z < y"
-  then guess z ..
+proof (cases "\<exists>z. x < z \<and> z < y")
+  case True
+  then obtain z where "x < z \<and> z < y" ..
   then have "x \<in> {..< z} \<and> y \<in> {z <..} \<and> {z <..} \<inter> {..< z} = {}"
     by auto
   then show ?thesis by blast
 next
-  assume "\<not> (\<exists>z. x < z \<and> z < y)"
+  case False
   with `x < y` have "x \<in> {..< y} \<and> y \<in> {x <..} \<and> {x <..} \<inter> {..< y} = {}"
     by auto
   then show ?thesis by blast
@@ -570,10 +570,11 @@ lemma eventually_ge_at_top:
 lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::unbounded_dense_linorder. \<forall>n>N. P n)"
   unfolding eventually_at_top_linorder
 proof safe
-  fix N assume "\<forall>n\<ge>N. P n" then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
+  fix N assume "\<forall>n\<ge>N. P n"
+  then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
 next
   fix N assume "\<forall>n>N. P n"
-  moreover from gt_ex[of N] guess y ..
+  moreover obtain y where "N < y" using gt_ex[of N] ..
   ultimately show "\<exists>N. \<forall>n\<ge>N. P n" by (auto intro!: exI[of _ y])
 qed
 
@@ -606,7 +607,7 @@ proof safe
   fix N assume "\<forall>n\<le>N. P n" then show "\<exists>N. \<forall>n<N. P n" by (auto intro!: exI[of _ N])
 next
   fix N assume "\<forall>n<N. P n" 
-  moreover from lt_ex[of N] guess y ..
+  moreover obtain y where "y < N" using lt_ex[of N] ..
   ultimately show "\<exists>N. \<forall>n\<le>N. P n" by (auto intro!: exI[of _ y])
 qed
 
@@ -765,7 +766,7 @@ lemma eventually_at_right:
   shows "eventually P (at_right x) \<longleftrightarrow> (\<exists>b. x < b \<and> (\<forall>z. x < z \<and> z < b \<longrightarrow> P z))"
   unfolding eventually_at_topological
 proof safe
-  from gt_ex[of x] guess y ..
+  obtain y where "x < y" using gt_ex[of x] ..
   moreover fix S assume "open S" "x \<in> S" note open_right[OF this, of y]
   moreover note gt_ex[of x]
   moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {x<..} \<longrightarrow> P s"
@@ -782,7 +783,7 @@ lemma eventually_at_left:
   shows "eventually P (at_left x) \<longleftrightarrow> (\<exists>b. x > b \<and> (\<forall>z. b < z \<and> z < x \<longrightarrow> P z))"
   unfolding eventually_at_topological
 proof safe
-  from lt_ex[of x] guess y ..
+  obtain y where "y < x" using lt_ex[of x] ..
   moreover fix S assume "open S" "x \<in> S" note open_left[OF this, of y]
   moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s"
   ultimately show "\<exists>b<x. \<forall>z. b < z \<and> z < x \<longrightarrow> P z"
@@ -1513,10 +1514,16 @@ lemma (in first_countable_topology) countable_basis:
     "\<And>i. open (A i)" "\<And>i. x \<in> A i"
     "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F ----> x"
 proof atomize_elim
-  from countable_basis_at_decseq[of x] guess A . note A = this
-  { fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
+  obtain A :: "nat \<Rightarrow> 'a set" where A:
+    "\<And>i. open (A i)"
+    "\<And>i. x \<in> A i"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+    by (rule countable_basis_at_decseq) blast
+  {
+    fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
     with A(3)[of S] have "eventually (\<lambda>n. F n \<in> S) sequentially"
-      by (auto elim: eventually_elim1 simp: subset_eq) }
+      by (auto elim: eventually_elim1 simp: subset_eq)
+  }
   with A show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and> (\<forall>F. (\<forall>n. F n \<in> A n) \<longrightarrow> F ----> x)"
     by (intro exI[of _ A]) (auto simp: tendsto_def)
 qed
@@ -1525,13 +1532,16 @@ lemma (in first_countable_topology) sequentially_imp_eventually_nhds_within:
   assumes "\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
   shows "eventually P (inf (nhds a) (principal s))"
 proof (rule ccontr)
-  from countable_basis[of a] guess A . note A = this
-  assume "\<not> eventually P (inf (nhds a) (principal s))"
+  obtain A :: "nat \<Rightarrow> 'a set" where A:
+    "\<And>i. open (A i)"
+    "\<And>i. a \<in> A i"
+    "\<And>F. \<forall>n. F n \<in> A n \<Longrightarrow> F ----> a"
+    by (rule countable_basis) blast
+  assume "\<not> ?thesis"
   with A have P: "\<exists>F. \<forall>n. F n \<in> s \<and> F n \<in> A n \<and> \<not> P (F n)"
     unfolding eventually_inf_principal eventually_nhds by (intro choice) fastforce
-  then guess F ..
-  hence F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
-    by fast+
+  then obtain F where F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
+    by blast
   with A have "F ----> a" by auto
   hence "eventually (\<lambda>n. P (F n)) sequentially"
     using assms F0 by simp
@@ -1668,7 +1678,8 @@ proof safe
   fix B :: "'b set" assume "continuous_on s f" "open B"
   then have "\<forall>x\<in>f -` B \<inter> s. (\<exists>A. open A \<and> x \<in> A \<and> s \<inter> A \<subseteq> f -` B)"
     by (auto simp: continuous_on_topological subset_eq Ball_def imp_conjL)
-  then guess A unfolding bchoice_iff ..
+  then obtain A where "\<forall>x\<in>f -` B \<inter> s. open (A x) \<and> x \<in> A x \<and> s \<inter> A x \<subseteq> f -` B"
+    unfolding bchoice_iff ..
   then show "\<exists>A. open A \<and> A \<inter> s = f -` B \<inter> s"
     by (intro exI[of _ "\<Union>x\<in>f -` B \<inter> s. A x"]) auto
 next
@@ -1883,7 +1894,7 @@ proof (rule compactI)
   moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
   ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
     using `compact s` unfolding compact_eq_heine_borel by auto
-  then guess D ..
+  then obtain D where "D \<subseteq> C \<union> {- t} \<and> finite D \<and> s \<subseteq> \<Union>D" ..
   then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
     by (intro exI[of _ "D - {-t}"]) auto
 qed
@@ -1925,7 +1936,8 @@ proof (rule compactI)
   fix C assume "\<forall>c\<in>C. open c" and cover: "f`s \<subseteq> \<Union>C"
   with f have "\<forall>c\<in>C. \<exists>A. open A \<and> A \<inter> s = f -` c \<inter> s"
     unfolding continuous_on_open_invariant by blast
-  then guess A unfolding bchoice_iff .. note A = this
+  then obtain A where A: "\<forall>c\<in>C. open (A c) \<and> A c \<inter> s = f -` c \<inter> s"
+    unfolding bchoice_iff ..
   with cover have "\<forall>c\<in>C. open (A c)" "s \<subseteq> (\<Union>c\<in>C. A c)"
     by (fastforce simp add: subset_eq set_eq_iff)+
   from compactE_image[OF s this] obtain D where "D \<subseteq> C" "finite D" "s \<subseteq> (\<Union>c\<in>D. A c)" .
@@ -2114,7 +2126,8 @@ end
 instance linear_continuum_topology \<subseteq> perfect_space
 proof
   fix x :: 'a
-  from ex_gt_or_lt [of x] guess y ..
+  obtain y where "x < y \<or> y < x"
+    using ex_gt_or_lt [of x] ..
   with Inf_notin_open[of "{x}" y] Sup_notin_open[of "{x}" y]
   show "\<not> open {x}"
     by auto
@@ -2145,7 +2158,8 @@ proof (rule connectedI)
       moreover obtain b where "b \<in> B" "x < b" "b < min a y"
         using cInf_less_iff[of "B \<inter> {x <..}" x "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
         by (auto intro: less_imp_le)
-      moreover then have "?z \<le> b"
+      moreover have "?z \<le> b"
+        using `b \<in> B` `x < b`
         by (intro cInf_lower[where z=x]) auto
       moreover have "b \<in> U"
         using `x \<le> ?z` `?z \<le> b` `b < min a y`

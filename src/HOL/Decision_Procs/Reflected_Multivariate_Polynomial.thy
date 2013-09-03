@@ -1314,7 +1314,7 @@ next
         head_isnpolyh_Suc'[OF np norm(5)] head_isnpolyh_Suc'[OF np norm(6)[simplified nn']]
       have ?case by simp}
     moreover
-    {moreover assume nz: "n = 0"
+    { assume nz: "n = 0"
       from polymul_degreen[OF norm(5,4), where m="0"]
         polymul_degreen[OF norm(5,3), where m="0"] nn' nz degree_eq_degreen0
       norm(5,6) degree_npolyhCN[OF norm(6)]

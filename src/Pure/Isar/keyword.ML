@@ -36,6 +36,7 @@ sig
   val prf_decl: T
   val prf_asm: T
   val prf_asm_goal: T
+  val prf_asm_goal_script: T
   val prf_script: T
   val kinds: T list
   val tag: string -> T -> T
@@ -115,13 +116,14 @@ val prf_chain = kind "prf_chain";
 val prf_decl = kind "prf_decl";
 val prf_asm = kind "prf_asm";
 val prf_asm_goal = kind "prf_asm_goal";
+val prf_asm_goal_script = kind "prf_asm_goal_script";
 val prf_script = kind "prf_script";
 
 val kinds =
   [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
     thy_load, thy_decl, thy_script, thy_goal, qed, qed_block, qed_global,
     prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 
 (* tags *)
@@ -242,14 +244,14 @@ val is_theory = command_category
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
     prf_goal, prf_block, prf_open, prf_close, prf_chain, prf_decl,
-    prf_asm, prf_asm_goal, prf_script];
+    prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_proof_body = command_category
-  [diag, prf_heading2, prf_heading3, prf_heading4, prf_block, prf_open,
-    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
+  [diag, prf_heading2, prf_heading3, prf_heading4, prf_block, prf_open, prf_close, prf_chain,
+    prf_decl, prf_asm, prf_asm_goal, prf_asm_goal_script, prf_script];
 
 val is_theory_goal = command_category [thy_goal];
-val is_proof_goal = command_category [prf_goal, prf_asm_goal];
+val is_proof_goal = command_category [prf_goal, prf_asm_goal, prf_asm_goal_script];
 val is_qed = command_category [qed, qed_block];
 val is_qed_global = command_category [qed_global];
 

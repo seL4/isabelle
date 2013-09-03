@@ -288,8 +288,8 @@ proof
   next
     fix S
     assume "open S" "x \<in> S"
-    from open_prod_elim[OF this] guess a' b' .
-    moreover with A(4)[of a'] B(4)[of b']
+    from open_prod_elim[OF this] guess a' b' . note a'b' = this
+    moreover from a'b' A(4)[of a'] B(4)[of b']
     obtain a b where "a \<in> A" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'" by auto
     ultimately show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
       by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
@@ -3264,12 +3264,12 @@ proof safe
       unfolding C_def by auto
   qed
   then have "U \<subseteq> \<Union>C" using `U \<subseteq> \<Union>A` by auto
-  ultimately obtain T where "T\<subseteq>C" "finite T" "U \<subseteq> \<Union>T"
+  ultimately obtain T where T: "T\<subseteq>C" "finite T" "U \<subseteq> \<Union>T"
     using * by metis
-  moreover then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<inter> U \<subseteq> a"
+  then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<inter> U \<subseteq> a"
     by (auto simp: C_def)
   then guess f unfolding bchoice_iff Bex_def ..
-  ultimately show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
+  with T show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
     unfolding C_def by (intro exI[of _ "f`T"]) fastforce
 qed
 
@@ -3708,10 +3708,9 @@ proof
   assume f: "bounded (range f)"
   obtain r where r: "subseq r" "monoseq (f \<circ> r)"
     unfolding comp_def by (metis seq_monosub)
-  moreover
   then have "Bseq (f \<circ> r)"
     unfolding Bseq_eq_bounded using f by (auto intro: bounded_subset)
-  ultimately show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
+  with r show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
     using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
 
@@ -5558,9 +5557,9 @@ proof (rule compactI)
       and c: "\<And>y. y \<in> t \<Longrightarrow> c y \<in> C \<and> open (a y) \<and> open (b y) \<and> x \<in> a y \<and> y \<in> b y \<and> a y \<times> b y \<subseteq> c y"
       by metis
     then have "\<forall>y\<in>t. open (b y)" "t \<subseteq> (\<Union>y\<in>t. b y)" by auto
-    from compactE_image[OF `compact t` this] obtain D where "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
+    from compactE_image[OF `compact t` this] obtain D where D: "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
       by auto
-    moreover with c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
+    moreover from D c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
       by (fastforce simp: subset_eq)
     ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
       using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
@@ -7345,8 +7344,8 @@ lemma ex_card:
   shows "\<exists>S\<subseteq>A. card S = n"
 proof cases
   assume "finite A"
-  from ex_bij_betw_nat_finite[OF this] guess f ..
-  moreover with `n \<le> card A` have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
+  from ex_bij_betw_nat_finite[OF this] guess f .. note f = this
+  moreover from f `n \<le> card A` have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
     by (auto simp: bij_betw_def intro: subset_inj_on)
   ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
     by (auto simp: bij_betw_def card_image)

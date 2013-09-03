@@ -237,7 +237,7 @@ proof (cases "q = 0")
 next
   case False
   then obtain a b where "q = Fract a b" and "b > 0" and "coprime a b" by (cases q) auto
-  moreover with False have "0 \<noteq> Fract a b" by simp
+  with False have "0 \<noteq> Fract a b" by simp
   with `b > 0` have "a \<noteq> 0" by (simp add: Zero_rat_def eq_rat)
   with Fract `q = Fract a b` `b > 0` `coprime a b` show C by blast
 qed

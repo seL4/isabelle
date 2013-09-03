@@ -63,10 +63,10 @@ lemma closed_contains_Sup_cl:
   assumes "closed S" "S \<noteq> {}" shows "Sup S \<in> S"
 proof -
   from compact_eq_closed[of S] compact_attains_sup[of S] assms
-  obtain s where "s \<in> S" "\<forall>t\<in>S. t \<le> s" by auto
-  moreover then have "Sup S = s"
+  obtain s where S: "s \<in> S" "\<forall>t\<in>S. t \<le> s" by auto
+  then have "Sup S = s"
     by (auto intro!: Sup_eqI)
-  ultimately show ?thesis
+  with S show ?thesis
     by simp
 qed
 
@@ -75,10 +75,10 @@ lemma closed_contains_Inf_cl:
   assumes "closed S" "S \<noteq> {}" shows "Inf S \<in> S"
 proof -
   from compact_eq_closed[of S] compact_attains_inf[of S] assms
-  obtain s where "s \<in> S" "\<forall>t\<in>S. s \<le> t" by auto
-  moreover then have "Inf S = s"
+  obtain s where S: "s \<in> S" "\<forall>t\<in>S. s \<le> t" by auto
+  then have "Inf S = s"
     by (auto intro!: Inf_eqI)
-  ultimately show ?thesis
+  with S show ?thesis
     by simp
 qed
 
