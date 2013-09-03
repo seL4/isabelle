@@ -598,10 +598,9 @@ subsection {* Locale interpretation *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "interpretation"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "interpretation"} & : & @{text "theory | local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
-    @{command_def "sublocale"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-    @{command_def "sublocale"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "sublocale"} & : & @{text "theory | local_theory \<rightarrow> proof(prove)"} \\
     @{command_def "print_dependencies"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
@@ -610,19 +609,17 @@ text {*
   added to the current context.  This requires a proof of the
   instantiated specification and is called \emph{locale
   interpretation}.  Interpretation is possible in locales (command
-  @{command "sublocale"}), (local) theories (command @{command
+  @{command "sublocale"}), theories and local theories (command @{command
   "interpretation"}) and also within proof bodies (command @{command
   "interpret"}).
 
   @{rail "
-    @@{command interpretation} @{syntax target}? @{syntax locale_expr} equations?
+    @@{command interpretation} @{syntax locale_expr} equations?
     ;
     @@{command interpret} @{syntax locale_expr} equations?
     ;
-    @@{command sublocale} @{syntax nameref} ('<' | '\<subseteq>') @{syntax locale_expr} \\
+    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \\
       equations?
-    ;
-    @@{command sublocale} @{syntax target}? @{syntax locale_expr} equations?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
@@ -635,10 +632,33 @@ text {*
   \begin{description}
 
   \item @{command "interpretation"}~@{text "expr \<WHERE> eqns"}
-  interprets @{text expr} in a local theory.  The command generates proof
-  obligations for the instantiated specifications (assumes and defines
-  elements).  Once these are discharged by the user, instantiated
-  facts are added to the local theory in a post-processing phase.
+  interprets @{text expr} in a theory or local theory.  The command
+  generates proof obligations for the instantiated specifications
+  (assumes and defines elements).  Once these are discharged by the
+  user, instantiated facts are added to the theory in a
+  post-processing phase.
+
+  The command is aware of interpretations that are already active, but
+  does not simplify the goal automatically.  In order to simplify the
+  proof obligations use methods @{method intro_locales} or @{method
+  unfold_locales}.  Post-processing is not applied to facts of
+  interpretations that are already active.  This avoids duplication of
+  interpreted facts, in particular.  Note that, in the case of a
+  locale with import, parts of the interpretation may already be
+  active.  The command will only process facts for new parts.
+
+  When adding facts to locales, interpreted versions of these facts
+  are added to the global theory for all interpretations in the global
+  theory as well. That is, interpretations in global theories
+  dynamically participate in any facts added to locales.  (Note that
+  if a global theory inherits additional facts for a locale through
+  one parent and an interpretation of that locale through another
+  parent, the additional facts will not be interpreted.)  In contrast,
+  the lifetime of an interpretation in a local theory is limited to the
+  current context block.  At the closing @{command end} of the block
+  the interpretation and its facts disappear.  This enables local
+  interpretations, which are useful for auxilliary contructions,
+  without polluting the class or locale with interpreted facts.
 
   Free variables in the interpreted expression are allowed.  They are
   turned into schematic variables in the generated declarations.  In
@@ -650,31 +670,6 @@ text {*
   post-processing, may be given after the keyword @{keyword "where"}.
   This is useful for interpreting concepts introduced through
   definitions.  The equations must be proved.
-
-  The command is aware of interpretations already active in the
-  local theory, but does not simplify the goal automatically.  In order to
-  simplify the proof obligations use methods @{method intro_locales}
-  or @{method unfold_locales}.  Post-processing is not applied to
-  facts of interpretations that are already active.  This avoids
-  duplication of interpreted facts, in particular.  Note that, in the
-  case of a locale with import, parts of the interpretation may
-  already be active.  The command will only process facts for new
-  parts.
-
-  If the local theory is a global theory target, the facts persist.
-  Even more, adding facts to locales has the effect of adding interpreted facts
-  to the global background theory for all interpretations as well.  That is,
-  interpretations into global theories dynamically participate in any facts added to
-  locales.
-
-  If the local theory is not a global theory, the facts disappear
-  after the @{command end} confining the current context block
-  opened by @{command context}, similar to @{command interpret}.
-
-  Note that if a local theory inherits additional facts for a
-  locale through one parent and an interpretation of that locale
-  through another parent, the additional facts will not be
-  interpreted.
 
   \item @{command "interpret"}~@{text "expr \<WHERE> eqns"} interprets
   @{text expr} in the proof context and is otherwise similar to
@@ -701,21 +696,19 @@ text {*
   circular interpretations provided that no infinite chains are
   generated in the locale hierarchy.
 
-  If interpretations of @{text name} exist in the current theory, the
-  command adds interpretations for @{text expr} as well, with the same
-  qualifier, although only for fragments of @{text expr} that are not
-  interpreted in the theory already.
+  If interpretations of @{text name} exist in the current global
+  theory, the command adds interpretations for @{text expr} as well,
+  with the same qualifier, although only for fragments of @{text expr}
+  that are not interpreted in the theory already.
 
   Equations given after @{keyword "where"} amend the morphism through
   which @{text expr} is interpreted.  This enables to map definitions
   from the interpreted locales to entities of @{text name}.  This
   feature is experimental.
 
-  \item @{command "sublocale"}~@{text "expr \<WHERE> eqns"} is a syntactic
-  variant of @{command "sublocale"} which must be used in
-  the local theory context of a locale @{text name} only.  Then it
-  is equivalent to  @{command "sublocale"}~@{text "name \<subseteq> expr \<WHERE>
-  eqns"}.
+  In a named context block the @{command sublocale} command may also
+  be used, but the locale argument must be omitted.  The command then
+  refers to the locale (or class) target of the context block.
 
   \item @{command "print_dependencies"}~@{text "expr"} is useful for
   understanding the effect of an interpretation of @{text "expr"}.  It
