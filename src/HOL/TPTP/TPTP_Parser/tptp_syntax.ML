@@ -150,6 +150,7 @@ sig
   all THF problems.*)
   val get_file_list : Path.T -> Path.T list
 
+  val read_status : string -> status_value
   val string_of_tptp_term : tptp_term -> string
   val string_of_interpreted_symbol : interpreted_symbol -> string
   val string_of_tptp_formula : tptp_formula -> string
@@ -347,6 +348,27 @@ fun dequote str : single_quoted =
         raise DEQUOTE ("string doesn't close with quote:" ^ str)
       else raise Fail str)
 
+exception UNRECOGNISED_STATUS of string
+fun read_status status =
+  case status of
+      "suc" => Suc  | "unp" => Unp
+    | "sap" => Sap  | "esa" => Esa
+    | "sat" => Sat  | "fsa" => Fsa
+    | "thm" => Thm  | "wuc" => Wuc
+    | "eqv" => Eqv  | "tac" => Tac
+    | "wec" => Wec  | "eth" => Eth
+    | "tau" => Tau  | "wtc" => Wtc
+    | "wth" => Wth  | "cax" => Cax
+    | "sca" => Sca  | "tca" => Tca
+    | "wca" => Wca  | "cup" => Cup
+    | "csp" => Csp  | "ecs" => Ecs
+    | "csa" => Csa  | "cth" => Cth
+    | "ceq" => Ceq  | "unc" => Unc
+    | "wcc" => Wcc  | "ect" => Ect
+    | "fun" => Fun  | "uns" => Uns
+    | "wct" => Wct  | "scc" => Scc
+    | "uca" => Uca  | "noc" => Noc
+    | thing => raise (UNRECOGNISED_STATUS thing)
 
 (* Printing parsed TPTP formulas *)
 (*FIXME this is not pretty-printing, just printing*)
