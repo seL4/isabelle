@@ -49,6 +49,8 @@ datatype source_info =
 
 open TPTP_Syntax
 
+exception ANNOT_STRUCTURE of general_term
+
 (*Extract name of inference rule, and the inferences it relies on*)
 (*This is tuned to work with LEO-II, and is brittle wrt upstream
   changes of the proof protocol.*)
@@ -119,6 +121,15 @@ fun extract_source_info annot =
               General_Data (Atomic_Word defname)])), _) =
                 (SOME (File (filename, defname)))
 
+      | analyse_annot
+         (General_Data
+           (Application
+             ("file",
+              [General_Data (Atomic_Word filename),
+               General_Data (Number (Int_num, defname))])), _) =
+                (SOME (File (filename, defname)))
+
+      | analyse_annot (other, _) = raise (ANNOT_STRUCTURE other)
   in
     case annot of
       NONE => NONE
