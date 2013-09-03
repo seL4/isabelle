@@ -456,7 +456,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
        provide a hint to the user. *)
     fun is_struct_induct_step (name, (Rule_Cases.Case {fixes, assumes, ...}, _)) =
       not (null fixes) andalso
-      exists (String.isSuffix ".hyps" o fst) assumes andalso
+      exists (String.isSuffix ".hyps" o Name_Space.full_name Name_Space.default_naming o fst) assumes andalso
       exists (exists (curry (op =) name o shortest_name o fst)
               o datatype_constrs hol_ctxt) deep_dataTs
     val likely_in_struct_induct_step =

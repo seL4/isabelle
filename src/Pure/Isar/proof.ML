@@ -743,15 +743,13 @@ end;
 
 local
 
-fun qualified_binding a =
-  Binding.qualify true (Long_Name.qualifier a) (Binding.name (Long_Name.base_name a));
-
 fun gen_invoke_case prep_att ((name, pos), xs, raw_atts) state =
   let
     val atts = map (prep_att (context_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> Proof_Context.apply_case (Proof_Context.check_case ctxt (name, pos) xs));
-    val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
+    val assumptions =
+      asms |> map (fn (b, ts) => ((Binding.set_pos pos b, atts), map (rpair []) ts));
   in
     state'
     |> assume assumptions

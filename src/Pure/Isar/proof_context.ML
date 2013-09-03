@@ -133,7 +133,7 @@ sig
     Proof.context -> (string * thm list) list * Proof.context
   val dest_cases: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val update_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
-  val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
+  val apply_case: Rule_Cases.T -> Proof.context -> (binding * term list) list * Proof.context
   val check_case: Proof.context -> string * Position.T -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
@@ -1273,8 +1273,9 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
       [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
         Pretty.quote (prt_term t)];
 
-    fun prt_asm (a, ts) = Pretty.block (Pretty.breaks
-      ((if a = "" then [] else [Pretty.str (a ^ ":")]) @ map (Pretty.quote o prt_term) ts));
+    fun prt_asm (b, ts) = Pretty.block (Pretty.breaks
+      ((if Binding.is_empty b then []
+        else [Binding.pretty b, Pretty.str ":"]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs =
