@@ -46,6 +46,7 @@ sig
   val type_nameN: string
   val constantN: string
   val fixedN: string val fixed: string -> T
+  val caseN: string val case_: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
@@ -288,6 +289,7 @@ val type_nameN = "type_name";
 val constantN = "constant";
 
 val (fixedN, fixed) = markup_string "fixed" nameN;
+val (caseN, case_) = markup_string "case" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
 
 

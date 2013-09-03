@@ -1600,7 +1600,7 @@ fun generic_code_pred prep_const options raw_const lthy =
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
       |> fold Variable.auto_fixes cases_rules
-      |> Proof_Context.add_cases true case_env
+      |> Proof_Context.update_cases true case_env
     fun after_qed thms goal_ctxt =
       let
         val global_thms = Proof_Context.export goal_ctxt

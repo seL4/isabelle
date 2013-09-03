@@ -611,8 +611,9 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "case"} "invoke local context"
     ((@{keyword "("} |--
-      Parse.!!! (Parse.xname -- Scan.repeat (Parse.maybe Parse.binding) --| @{keyword ")"}) ||
-      Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> (fn ((c, xs), atts) =>
+      Parse.!!! (Parse.position Parse.xname -- Scan.repeat (Parse.maybe Parse.binding)
+        --| @{keyword ")"}) ||
+      Parse.position Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> (fn ((c, xs), atts) =>
         Toplevel.print o Toplevel.proof (Proof.invoke_case_cmd (c, xs, atts))));
 
 
