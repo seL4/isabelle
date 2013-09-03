@@ -484,7 +484,9 @@ sublocale logic_a < logic_b
   by unfold_locales
 
 
-subsection {* Equations *}
+subsection {* Interpretation *}
+
+subsection {* Rewrite morphism *}
 
 locale logic_o =
   fixes land (infixl "&&" 55)
@@ -516,7 +518,7 @@ thm lor_triv [where z = True] (* Check strict prefix. *)
   x.lor_triv
 
 
-subsection {* Inheritance of mixins *}
+subsection {* Inheritance of rewrite morphisms *}
 
 locale reflexive =
   fixes le :: "'a => 'a => o" (infix "\<sqsubseteq>" 50)
@@ -549,7 +551,7 @@ proof -
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
 
-text {* Mixin propagated along the locale hierarchy *}
+text {* Rewrite morphism propagated along the locale hierarchy *}
 
 locale mixin2 = mixin
 begin
@@ -559,11 +561,11 @@ end
 interpretation le: mixin2 gle
   by unfold_locales
 
-thm le.less_thm2  (* mixin applied *)
+thm le.less_thm2  (* rewrite morphism applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le.less_thm2)
 
-text {* Mixin does not leak to a side branch. *}
+text {* Rewrite morphism does not leak to a side branch. *}
 
 locale mixin3 = reflexive
 begin
@@ -573,10 +575,10 @@ end
 interpretation le: mixin3 gle
   by unfold_locales
 
-thm le.less_thm3  (* mixin not applied *)
+thm le.less_thm3  (* rewrite morphism not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y" by (rule le.less_thm3)
 
-text {* Mixin only available in original context *}
+text {* Rewrite morphism only available in original context *}
 
 locale mixin4_base = reflexive
 
@@ -604,11 +606,11 @@ end
 interpretation le4: mixin4_combined gle' gle
   by unfold_locales (rule grefl')
 
-thm le4.less_thm4' (* mixin not applied *)
+thm le4.less_thm4' (* rewrite morphism not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
   by (rule le4.less_thm4')
 
-text {* Inherited mixin applied to new theorem *}
+text {* Inherited rewrite morphism applied to new theorem *}
 
 locale mixin5_base = reflexive
 
@@ -628,11 +630,11 @@ interpretation le5: mixin5_inherited gle
 
 lemmas (in mixin5_inherited) less_thm5 = less_def
 
-thm le5.less_thm5  (* mixin applied *)
+thm le5.less_thm5  (* rewrite morphism applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le5.less_thm5)
 
-text {* Mixin pushed down to existing inherited locale *}
+text {* Rewrite morphism pushed down to existing inherited locale *}
 
 locale mixin6_base = reflexive
 
@@ -657,7 +659,7 @@ thm le6.less_thm6  (* mixin applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le6.less_thm6)
 
-text {* Existing mixin inherited through sublocale relation *}
+text {* Existing rewrite morphism inherited through sublocale relation *}
 
 locale mixin7_base = reflexive
 
@@ -677,7 +679,7 @@ interpretation le7: mixin7_inherited gle
 
 lemmas (in mixin7_inherited) less_thm7 = less_def
 
-thm le7.less_thm7  (* before, mixin not applied *)
+thm le7.less_thm7  (* before, rewrite morphism not applied *)
 lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
   by (rule le7.less_thm7)
 
@@ -696,7 +698,7 @@ text {* This locale will be interpreted in later theories. *}
 locale mixin_thy_merge = le: reflexive le + le': reflexive le' for le le'
 
 
-subsection {* Mixins in sublocale *}
+subsection {* Rewrite morphisms in sublocale *}
 
 text {* Simulate a specification of left groups where unit and inverse are defined
   rather than specified.  This is possible, but not in FOL, due to the lack of a
@@ -745,7 +747,7 @@ text {* Equations stored in target *}
 lemma "dgrp.one(prod) = one" by (rule one_equation)
 lemma "dgrp.inv(prod, x) = inv(x)" by (rule inv_equation)
 
-text {* Mixins applied *}
+text {* Rewrite morphisms applied *}
 
 lemma "one = glob_one(prod)" by (rule one_def)
 lemma "inv(x) = glob_inv(prod, x)" by (rule inv_def)
@@ -757,7 +759,7 @@ text {* Interpreted versions *}
 lemma "0 = glob_one (op +)" by (rule int.def.one_def)
 lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
 
-text {* Roundup applies mixins at declaration level in DFS tree *}
+text {* Roundup applies rewrite morphisms at declaration level in DFS tree *}
 
 locale roundup = fixes x assumes true: "x <-> True"
 
