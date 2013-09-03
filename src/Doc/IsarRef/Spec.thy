@@ -635,30 +635,31 @@ text {*
   interprets @{text expr} in a theory or local theory.  The command
   generates proof obligations for the instantiated specifications
   (assumes and defines elements).  Once these are discharged by the
-  user, instantiated facts are added to the theory in a
-  post-processing phase.
+  user, instantiated declarations (in particular, facts) are added to
+  the theory in a post-processing phase.
 
   The command is aware of interpretations that are already active, but
   does not simplify the goal automatically.  In order to simplify the
   proof obligations use methods @{method intro_locales} or @{method
-  unfold_locales}.  Post-processing is not applied to facts of
+  unfold_locales}.  Post-processing is not applied to declarations of
   interpretations that are already active.  This avoids duplication of
-  interpreted facts, in particular.  Note that, in the case of a
+  interpreted declarations, in particular.  Note that, in the case of a
   locale with import, parts of the interpretation may already be
-  active.  The command will only process facts for new parts.
+  active.  The command will only process declarations for new parts.
 
-  When adding facts to locales, interpreted versions of these facts
-  are added to the global theory for all interpretations in the global
-  theory as well. That is, interpretations in global theories
-  dynamically participate in any facts added to locales.  (Note that
-  if a global theory inherits additional facts for a locale through
-  one parent and an interpretation of that locale through another
-  parent, the additional facts will not be interpreted.)  In contrast,
-  the lifetime of an interpretation in a local theory is limited to the
-  current context block.  At the closing @{command end} of the block
-  the interpretation and its facts disappear.  This enables local
+  When adding declarations to locales, interpreted versions of these
+  declarations are added to the global theory for all interpretations
+  in the global theory as well. That is, interpretations in global
+  theories dynamically participate in any declarations added to
+  locales.  (Note that if a global theory inherits additional
+  declarations for a locale through one parent and an interpretation
+  of that locale through another parent, the additional declarations
+  will not be interpreted.)  In contrast, the lifetime of an
+  interpretation in a local theory is limited to the current context
+  block.  At the closing @{command end} of the block the
+  interpretation and its declarations disappear.  This enables local
   interpretations, which are useful for auxilliary contructions,
-  without polluting the class or locale with interpreted facts.
+  without polluting the class or locale with interpreted declarations.
 
   Free variables in the interpreted expression are allowed.  They are
   turned into schematic variables in the generated declarations.  In
@@ -683,11 +684,11 @@ text {*
   the specification of @{text name} implies the specification of
   @{text expr} is required.  As in the localized version of the
   theorem command, the proof is in the context of @{text name}.  After
-  the proof obligation has been discharged, the facts of @{text expr}
+  the proof obligation has been discharged, the declarations of @{text expr}
   become part of locale @{text name} as \emph{derived} context
   elements and are available when the context @{text name} is
   subsequently entered.  Note that, like import, this is dynamic:
-  facts added to a locale part of @{text expr} after interpretation
+  declarations added to a locale part of @{text expr} after interpretation
   become also available in @{text name}.
 
   Only specification fragments of @{text expr} that are not already
