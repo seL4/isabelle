@@ -10,7 +10,7 @@ begin
 
 ML_file "sledgehammer_tactics.ML"
 
-import_tptp "$TPTP/Problems/CSR/CSR077+1.p"
+import_tptp "$TPTP/Problems/LCL/LCL414+1.p"
 
 ML {*
 val an_fmlas =
@@ -46,7 +46,7 @@ fun prove_conjectures tactic ctxt an_fmlas =
   let
     val assumptions =
       extract_terms
-       [TPTP_Syntax.Role_Definition (*FIXME include axioms, etc here*)]
+       [TPTP_Syntax.Role_Definition, TPTP_Syntax.Role_Axiom]
        an_fmlas
       |> map snd
     val goals = extract_terms [TPTP_Syntax.Role_Conjecture] an_fmlas
@@ -61,9 +61,13 @@ val sh_prove = prove_conjectures (fn ctxt =>
   {add = [], del = [], only = false} 1)
 *}
 
-ML "auto_prove @{context} an_fmlas"
+ML {*
+@{assert} (is_some (try (auto_prove @{context}) an_fmlas) = false)
+*}
 
-sledgehammer_params [provers = z3_tptp leo2, debug]
-ML "sh_prove @{context} an_fmlas"
+sledgehammer_params [provers = remote_z3, debug]
+ML {*
+@{assert} (is_some (try (sh_prove @{context}) an_fmlas) = true)
+*}
 
 end
