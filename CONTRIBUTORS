@@ -6,7 +6,11 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and Jasmin Blanchette, TUM
+* September 2013: Nik Sultana, University of Cambridge
+  Improvements to HOL/TPTP parser and import facilities.
+
+* Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
+  Jasmin Blanchette, TUM
   Various improvements to BNF-based (co)datatype package, including a
   "primrec_new" command and a compatibility layer.
 
