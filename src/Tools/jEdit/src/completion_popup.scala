@@ -225,7 +225,9 @@ class Completion_Popup private(
   completion =>
 
   Swing_Thread.require()
+
   require(!items.isEmpty)
+  val multi = items.length > 1
 
 
   /* actions */
@@ -288,10 +290,14 @@ class Completion_Popup private(
               case KeyEvent.VK_ESCAPE =>
                 hide_popup()
                 e.consume
-              case KeyEvent.VK_UP | KeyEvent.VK_KP_UP => move_items(-1); e.consume
-              case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN => move_items(1); e.consume
-              case KeyEvent.VK_PAGE_UP => move_pages(-1); e.consume
-              case KeyEvent.VK_PAGE_DOWN => move_pages(1); e.consume
+              case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
+                move_items(-1); e.consume
+              case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
+                move_items(1); e.consume
+              case KeyEvent.VK_PAGE_UP if multi =>
+                move_pages(-1); e.consume
+              case KeyEvent.VK_PAGE_DOWN if multi =>
+                move_pages(1); e.consume
               case _ =>
                 if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                   hide_popup()
