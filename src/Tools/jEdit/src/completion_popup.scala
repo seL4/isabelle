@@ -244,6 +244,11 @@ class Completion_Popup private(
   list_view.peer.setVisibleRowCount(items.length min 8)
   list_view.peer.setSelectedIndex(0)
 
+  for (cond <-
+    List(JComponent.WHEN_FOCUSED,
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      JComponent.WHEN_IN_FOCUSED_WINDOW)) list_view.peer.setInputMap(cond, null)
+
   private def complete_selected(): Boolean =
   {
     list_view.selection.items.toList match {
@@ -283,8 +288,8 @@ class Completion_Popup private(
               case KeyEvent.VK_ESCAPE =>
                 hide_popup()
                 e.consume
-              case KeyEvent.VK_UP => move_items(-1); e.consume
-              case KeyEvent.VK_DOWN => move_items(1); e.consume
+              case KeyEvent.VK_UP | KeyEvent.VK_KP_UP => move_items(-1); e.consume
+              case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN => move_items(1); e.consume
               case KeyEvent.VK_PAGE_UP => move_pages(-1); e.consume
               case KeyEvent.VK_PAGE_DOWN => move_pages(1); e.consume
               case _ =>
