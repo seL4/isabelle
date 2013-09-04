@@ -2427,16 +2427,22 @@ lemma fine_division_exists:
   obtains p where "p tagged_division_of {a..b}" "g fine p"
 proof -
   presume "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p) \<Longrightarrow> False"
-  then obtain p where "p tagged_division_of {a..b}" "g fine p" by blast
+  then obtain p where "p tagged_division_of {a..b}" "g fine p"
+    by blast
   then show thesis ..
 next
   assume as: "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p)"
-  guess x apply(rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p",rule_format,OF _ _ as])
-    apply(rule_tac x="{}" in exI)
-    defer apply(erule conjE exE)+
+  guess x
+    apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p",rule_format,OF _ _ as])
+    apply (rule_tac x="{}" in exI)
+    defer
+    apply (erule conjE exE)+
   proof -
-    show "{} tagged_division_of {} \<and> g fine {}" unfolding fine_def by auto
-    fix s t p p' assume "p tagged_division_of s" "g fine p" "p' tagged_division_of t" "g fine p'" "interior s \<inter> interior t = {}"
+    show "{} tagged_division_of {} \<and> g fine {}"
+      unfolding fine_def by auto
+    fix s t p p'
+    assume "p tagged_division_of s" "g fine p" "p' tagged_division_of t" "g fine p'"
+      "interior s \<inter> interior t = {}"
     then show "\<exists>p. p tagged_division_of s \<union> t \<and> g fine p"
       apply -
       apply (rule_tac x="p \<union> p'" in exI)
@@ -2446,13 +2452,19 @@ next
       apply (rule fine_union)
       apply auto
       done
-  qed note x=this
-  obtain e where e:"e > 0" "ball x e \<subseteq> g x"
+  qed note x = this
+  obtain e where e: "e > 0" "ball x e \<subseteq> g x"
     using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
-  from x(2)[OF e(1)] guess c d apply-apply(erule exE conjE)+ . note c_d = this
+  from x(2)[OF e(1)] obtain c d where c_d:
+    "x \<in> {c..d}"
+    "{c..d} \<subseteq> ball x e"
+    "{c..d} \<subseteq> {a..b}"
+    "\<not> (\<exists>p. p tagged_division_of {c..d} \<and> g fine p)"
+    by blast
   have "g fine {(x, {c..d})}"
     unfolding fine_def using e using c_d(2) by auto
-  then show False using tagged_division_of_self[OF c_d(1)] using c_d by auto
+  then show False
+    using tagged_division_of_self[OF c_d(1)] using c_d by auto
 qed
 
 
@@ -2460,303 +2472,656 @@ subsection {* Basic theorems about integrals. *}
 
 lemma has_integral_unique:
   fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral k1) i" and "(f has_integral k2) i"
+  assumes "(f has_integral k1) i"
+    and "(f has_integral k2) i"
   shows "k1 = k2"
-proof (rule ccontr) let ?e = "norm(k1 - k2) / 2" assume as:"k1 \<noteq> k2" hence e:"?e > 0" by auto
-  have lem:"\<And>f::'n \<Rightarrow> 'a.  \<And> a b k1 k2.
+proof (rule ccontr)
+  let ?e = "norm(k1 - k2) / 2"
+  assume as:"k1 \<noteq> k2"
+  then have e: "?e > 0"
+    by auto
+  have lem: "\<And>f::'n \<Rightarrow> 'a.  \<And>a b k1 k2.
     (f has_integral k1) ({a..b}) \<Longrightarrow> (f has_integral k2) ({a..b}) \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> False"
-  proof- case goal1 let ?e = "norm(k1 - k2) / 2" from goal1(3) have e:"?e > 0" by auto
-    guess d1 by(rule has_integralD[OF goal1(1) e]) note d1=this
-    guess d2 by(rule has_integralD[OF goal1(2) e]) note d2=this
-    guess p by(rule fine_division_exists[OF gauge_inter[OF d1(1) d2(1)],of a b]) note p=this
-    let ?c = "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" have "norm (k1 - k2) \<le> norm (?c - k2) + norm (?c - k1)"
-      using norm_triangle_ineq4[of "k1 - ?c" "k2 - ?c"] by(auto simp add:algebra_simps norm_minus_commute)
+  proof -
+    case goal1
+    let ?e = "norm (k1 - k2) / 2"
+    from goal1(3) have e: "?e > 0" by auto
+    guess d1 by (rule has_integralD[OF goal1(1) e]) note d1=this
+    guess d2 by (rule has_integralD[OF goal1(2) e]) note d2=this
+    guess p by (rule fine_division_exists[OF gauge_inter[OF d1(1) d2(1)],of a b]) note p=this
+    let ?c = "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)"
+    have "norm (k1 - k2) \<le> norm (?c - k2) + norm (?c - k1)"
+      using norm_triangle_ineq4[of "k1 - ?c" "k2 - ?c"]
+      by (auto simp add:algebra_simps norm_minus_commute)
     also have "\<dots> < norm (k1 - k2) / 2 + norm (k1 - k2) / 2"
-      apply(rule add_strict_mono) apply(rule_tac[!] d2(2) d1(2)) using p unfolding fine_def by auto
+      apply (rule add_strict_mono)
+      apply (rule_tac[!] d2(2) d1(2))
+      using p unfolding fine_def
+      apply auto
+      done
     finally show False by auto
-  qed { presume "\<not> (\<exists>a b. i = {a..b}) \<Longrightarrow> False"
-    thus False apply-apply(cases "\<exists>a b. i = {a..b}")
-      using assms by(auto simp add:has_integral intro:lem[OF _ _ as]) }
-  assume as:"\<not> (\<exists>a b. i = {a..b})"
-  guess B1 by(rule has_integral_altD[OF assms(1) as,OF e]) note B1=this[rule_format]
-  guess B2 by(rule has_integral_altD[OF assms(2) as,OF e]) note B2=this[rule_format]
-  have "\<exists>a b::'n. ball 0 B1 \<union> ball 0 B2 \<subseteq> {a..b}" apply(rule bounded_subset_closed_interval)
-    using bounded_Un bounded_ball by auto then guess a b apply-by(erule exE)+
-  note ab=conjunctD2[OF this[unfolded Un_subset_iff]]
-  guess w using B1(2)[OF ab(1)] .. note w=conjunctD2[OF this]
-  guess z using B2(2)[OF ab(2)] .. note z=conjunctD2[OF this]
-  have "z = w" using lem[OF w(1) z(1)] by auto
-  hence "norm (k1 - k2) \<le> norm (z - k2) + norm (w - k1)"
-    using norm_triangle_ineq4[of "k1 - w" "k2 - z"] by(auto simp add: norm_minus_commute)
-  also have "\<dots> < norm (k1 - k2) / 2 + norm (k1 - k2) / 2" apply(rule add_strict_mono) by(rule_tac[!] z(2) w(2))
-  finally show False by auto qed
+  qed
+  {
+    presume "\<not> (\<exists>a b. i = {a..b}) \<Longrightarrow> False"
+    then show False
+      apply -
+      apply (cases "\<exists>a b. i = {a..b}")
+      using assms
+      apply (auto simp add:has_integral intro:lem[OF _ _ as])
+      done
+  }
+  assume as: "\<not> (\<exists>a b. i = {a..b})"
+  guess B1 by (rule has_integral_altD[OF assms(1) as,OF e]) note B1=this[rule_format]
+  guess B2 by (rule has_integral_altD[OF assms(2) as,OF e]) note B2=this[rule_format]
+  have "\<exists>a b::'n. ball 0 B1 \<union> ball 0 B2 \<subseteq> {a..b}"
+    apply (rule bounded_subset_closed_interval)
+    using bounded_Un bounded_ball
+    apply auto
+    done
+  then obtain a b :: 'n where ab: "ball 0 B1 \<subseteq> {a..b}" "ball 0 B2 \<subseteq> {a..b}"
+    by blast
+  obtain w where w:
+    "((\<lambda>x. if x \<in> i then f x else 0) has_integral w) {a..b}"
+    "norm (w - k1) < norm (k1 - k2) / 2"
+    using B1(2)[OF ab(1)] by blast
+  obtain z where z:
+    "((\<lambda>x. if x \<in> i then f x else 0) has_integral z) {a..b}"
+    "norm (z - k2) < norm (k1 - k2) / 2"
+    using B2(2)[OF ab(2)] by blast
+  have "z = w"
+    using lem[OF w(1) z(1)] by auto
+  then have "norm (k1 - k2) \<le> norm (z - k2) + norm (w - k1)"
+    using norm_triangle_ineq4 [of "k1 - w" "k2 - z"]
+    by (auto simp add: norm_minus_commute)
+  also have "\<dots> < norm (k1 - k2) / 2 + norm (k1 - k2) / 2"
+    apply (rule add_strict_mono)
+    apply (rule_tac[!] z(2) w(2))
+    done
+  finally show False by auto
+qed
 
-lemma integral_unique[intro]:
-  "(f has_integral y) k \<Longrightarrow> integral k f = y"
-  unfolding integral_def apply(rule some_equality) by(auto intro: has_integral_unique)
+lemma integral_unique [intro]: "(f has_integral y) k \<Longrightarrow> integral k f = y"
+  unfolding integral_def
+  by (rule some_equality) (auto intro: has_integral_unique)
 
-lemma has_integral_is_0: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "\<forall>x\<in>s. f x = 0" shows "(f has_integral 0) s"
-proof- have lem:"\<And>a b. \<And>f::'n \<Rightarrow> 'a.
-    (\<forall>x\<in>{a..b}. f(x) = 0) \<Longrightarrow> (f has_integral 0) ({a..b})" unfolding has_integral
-  proof(rule,rule) fix a b e and f::"'n \<Rightarrow> 'a"
-    assume as:"\<forall>x\<in>{a..b}. f x = 0" "0 < (e::real)"
-    show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e)"
-      apply(rule_tac x="\<lambda>x. ball x 1" in exI)  apply(rule,rule gaugeI) unfolding centre_in_ball defer apply(rule open_ball)
-    proof(rule,rule,erule conjE) case goal1
-      have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) = 0" proof(rule setsum_0',rule)
-        fix x assume x:"x\<in>p" have "f (fst x) = 0" using tagged_division_ofD(2-3)[OF goal1(1), of "fst x" "snd x"] using as x by auto
-        thus "(\<lambda>(x, k). content k *\<^sub>R f x) x = 0" apply(subst surjective_pairing[of x]) unfolding split_conv by auto
-      qed thus ?case using as by auto
-    qed auto qed  { presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
-    thus ?thesis apply-apply(cases "\<exists>a b. s = {a..b}")
-      using assms by(auto simp add:has_integral intro:lem) }
-  have *:"(\<lambda>x. if x \<in> s then f x else 0) = (\<lambda>x. 0)" apply(rule ext) using assms by auto
-  assume "\<not> (\<exists>a b. s = {a..b})" thus ?thesis apply(subst has_integral_alt) unfolding if_not_P *
-  apply(rule,rule,rule_tac x=1 in exI,rule) defer apply(rule,rule,rule)
-  proof- fix e::real and a b assume "e>0"
-    thus "\<exists>z. ((\<lambda>x::'n. 0::'a) has_integral z) {a..b} \<and> norm (z - 0) < e"
-      apply(rule_tac x=0 in exI) apply(rule,rule lem) by auto
-  qed auto qed
+lemma has_integral_is_0:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes "\<forall>x\<in>s. f x = 0"
+  shows "(f has_integral 0) s"
+proof -
+  have lem: "\<And>a b. \<And>f::'n \<Rightarrow> 'a.
+    (\<forall>x\<in>{a..b}. f(x) = 0) \<Longrightarrow> (f has_integral 0) ({a..b})"
+    unfolding has_integral
+    apply rule
+    apply rule
+  proof -
+    fix a b e
+    fix f :: "'n \<Rightarrow> 'a"
+    assume as: "\<forall>x\<in>{a..b}. f x = 0" "0 < (e::real)"
+    show "\<exists>d. gauge d \<and>
+      (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e)"
+      apply (rule_tac x="\<lambda>x. ball x 1" in exI)
+      apply rule
+      apply (rule gaugeI)
+      unfolding centre_in_ball
+      defer
+      apply (rule open_ball)
+      apply rule
+      apply rule
+      apply (erule conjE)
+    proof -
+      case goal1
+      have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) = 0"
+      proof (rule setsum_0', rule)
+        fix x
+        assume x: "x \<in> p"
+        have "f (fst x) = 0"
+          using tagged_division_ofD(2-3)[OF goal1(1), of "fst x" "snd x"] using as x by auto
+        then show "(\<lambda>(x, k). content k *\<^sub>R f x) x = 0"
+          apply (subst surjective_pairing[of x])
+          unfolding split_conv
+          apply auto
+          done
+      qed
+      then show ?case
+        using as by auto
+    qed auto
+  qed
+  {
+    presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
+    then show ?thesis
+      apply -
+      apply (cases "\<exists>a b. s = {a..b}")
+      using assms
+      apply (auto simp add:has_integral intro: lem)
+      done
+  }
+  have *: "(\<lambda>x. if x \<in> s then f x else 0) = (\<lambda>x. 0)"
+    apply (rule ext)
+    using assms
+    apply auto
+    done
+  assume "\<not> (\<exists>a b. s = {a..b})"
+  then show ?thesis
+    apply (subst has_integral_alt)
+    unfolding if_not_P *
+    apply rule
+    apply rule
+    apply (rule_tac x=1 in exI)
+    apply rule
+    defer
+    apply rule
+    apply rule
+    apply rule
+  proof -
+    fix e :: real
+    fix a b
+    assume "e > 0"
+    then show "\<exists>z. ((\<lambda>x::'n. 0::'a) has_integral z) {a..b} \<and> norm (z - 0) < e"
+      apply (rule_tac x=0 in exI)
+      apply(rule,rule lem)
+      apply auto
+      done
+  qed auto
+qed
 
 lemma has_integral_0[simp]: "((\<lambda>x::'n::ordered_euclidean_space. 0) has_integral 0) s"
-  apply(rule has_integral_is_0) by auto
+  by (rule has_integral_is_0) auto
 
 lemma has_integral_0_eq[simp]: "((\<lambda>x. 0) has_integral i) s \<longleftrightarrow> i = 0"
   using has_integral_unique[OF has_integral_0] by auto
 
-lemma has_integral_linear: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral y) s" "bounded_linear h" shows "((h o f) has_integral ((h y))) s"
-proof- interpret bounded_linear h using assms(2) . from pos_bounded guess B .. note B=conjunctD2[OF this,rule_format]
-  have lem:"\<And>f::'n \<Rightarrow> 'a. \<And> y a b.
-    (f has_integral y) ({a..b}) \<Longrightarrow> ((h o f) has_integral h(y)) ({a..b})"
-  proof(subst has_integral,rule,rule) case goal1
-    from pos_bounded guess B .. note B=conjunctD2[OF this,rule_format]
-    have *:"e / B > 0" apply(rule divide_pos_pos) using goal1(2) B by auto
-    guess g using has_integralD[OF goal1(1) *] . note g=this
-    show ?case apply(rule_tac x=g in exI) apply(rule,rule g(1))
-    proof(rule,rule,erule conjE) fix p assume as:"p tagged_division_of {a..b}" "g fine p"
-      have *:"\<And>x k. h ((\<lambda>(x, k). content k *\<^sub>R f x) x) = (\<lambda>(x, k). h (content k *\<^sub>R f x)) x" by auto
+lemma has_integral_linear:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral y) s"
+    and "bounded_linear h"
+  shows "((h o f) has_integral ((h y))) s"
+proof -
+  interpret bounded_linear h
+    using assms(2) .
+  from pos_bounded obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
+    by blast
+  have lem: "\<And>(f :: 'n \<Rightarrow> 'a) y a b.
+    (f has_integral y) {a..b} \<Longrightarrow> ((h o f) has_integral h y) {a..b}"
+    apply (subst has_integral)
+    apply rule
+    apply rule
+  proof -
+    case goal1
+    from pos_bounded
+    obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
+      by blast
+    have *: "e / B > 0"
+      apply (rule divide_pos_pos)
+      using goal1(2) B
+      apply auto
+      done
+      thm has_integralD[OF goal1(1) *]
+    obtain g where g:
+      "gauge g"
+      "\<And>p. p tagged_division_of {a..b} \<Longrightarrow> g fine p \<Longrightarrow>
+        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e / B"
+      by (rule has_integralD[OF goal1(1) *]) blast
+    show ?case
+      apply (rule_tac x=g in exI)
+      apply rule
+      apply (rule g(1))
+      apply rule
+      apply rule
+      apply (erule conjE)
+    proof -
+      fix p
+      assume as: "p tagged_division_of {a..b}" "g fine p"
+      have *: "\<And>x k. h ((\<lambda>(x, k). content k *\<^sub>R f x) x) = (\<lambda>(x, k). h (content k *\<^sub>R f x)) x"
+        by auto
       have "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = setsum (h \<circ> (\<lambda>(x, k). content k *\<^sub>R f x)) p"
         unfolding o_def unfolding scaleR[symmetric] * by simp
-      also have "\<dots> = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" using setsum[of "\<lambda>(x,k). content k *\<^sub>R f x" p] using as by auto
-      finally have *:"(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" .
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) - h y) < e" unfolding * diff[symmetric]
-        apply(rule le_less_trans[OF B(2)]) using g(2)[OF as] B(1) by(auto simp add:field_simps)
-    qed qed { presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
-    thus ?thesis apply-apply(cases "\<exists>a b. s = {a..b}") using assms by(auto simp add:has_integral intro!:lem) }
-  assume as:"\<not> (\<exists>a b. s = {a..b})" thus ?thesis apply(subst has_integral_alt) unfolding if_not_P
-  proof(rule,rule) fix e::real  assume e:"0<e"
-    have *:"0 < e/B" by(rule divide_pos_pos,rule e,rule B(1))
-    guess M using has_integral_altD[OF assms(1) as *,rule_format] . note M=this
-    show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> {a..b} \<longrightarrow> (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) {a..b} \<and> norm (z - h y) < e)"
-      apply(rule_tac x=M in exI) apply(rule,rule M(1))
-    proof(rule,rule,rule) case goal1 guess z using M(2)[OF goal1(1)] .. note z=conjunctD2[OF this]
-      have *:"(\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> s then f x else 0)"
-        unfolding o_def apply(rule ext) using zero by auto
-      show ?case apply(rule_tac x="h z" in exI,rule) unfolding * apply(rule lem[OF z(1)]) unfolding diff[symmetric]
-        apply(rule le_less_trans[OF B(2)]) using B(1) z(2) by(auto simp add:field_simps)
-    qed qed qed
+      also have "\<dots> = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)"
+        using setsum[of "\<lambda>(x,k). content k *\<^sub>R f x" p] using as by auto
+      finally have *: "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) = h (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" .
+      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (h \<circ> f) x) - h y) < e"
+        unfolding * diff[symmetric]
+        apply (rule le_less_trans[OF B(2)])
+        using g(2)[OF as] B(1)
+        apply (auto simp add: field_simps)
+        done
+    qed
+  qed
+  {
+    presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
+    then show ?thesis
+      apply -
+      apply (cases "\<exists>a b. s = {a..b}")
+      using assms
+      apply (auto simp add:has_integral intro!:lem)
+      done
+  }
+  assume as: "\<not> (\<exists>a b. s = {a..b})"
+  then show ?thesis
+    apply (subst has_integral_alt)
+    unfolding if_not_P
+    apply rule
+    apply rule
+  proof -
+    fix e :: real
+    assume e: "e > 0"
+    have *: "0 < e/B"
+      by (rule divide_pos_pos,rule e,rule B(1))
+    obtain M where M:
+      "M > 0"
+      "\<And>a b. ball 0 M \<subseteq> {a..b} \<Longrightarrow>
+        \<exists>z. ((\<lambda>x. if x \<in> s then f x else 0) has_integral z) {a..b} \<and> norm (z - y) < e / B"
+      using has_integral_altD[OF assms(1) as *] by blast
+    show "\<exists>B>0. \<forall>a b. ball 0 B \<subseteq> {a..b} \<longrightarrow>
+      (\<exists>z. ((\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) has_integral z) {a..b} \<and> norm (z - h y) < e)"
+      apply (rule_tac x=M in exI)
+      apply rule
+      apply (rule M(1))
+      apply rule
+      apply rule
+      apply rule
+    proof -
+      case goal1
+      obtain z where z:
+        "((\<lambda>x. if x \<in> s then f x else 0) has_integral z) {a..b}"
+        "norm (z - y) < e / B"
+        using M(2)[OF goal1(1)] by blast
+      have *: "(\<lambda>x. if x \<in> s then (h \<circ> f) x else 0) = h \<circ> (\<lambda>x. if x \<in> s then f x else 0)"
+        unfolding o_def
+        apply (rule ext)
+        using zero
+        apply auto
+        done
+      show ?case
+        apply (rule_tac x="h z" in exI)
+        apply rule
+        unfolding *
+        apply (rule lem[OF z(1)])
+        unfolding diff[symmetric]
+        apply (rule le_less_trans[OF B(2)])
+        using B(1) z(2)
+        apply (auto simp add: field_simps)
+        done
+    qed
+  qed
+qed
 
-lemma has_integral_cmul:
-  shows "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
-  unfolding o_def[symmetric] apply(rule has_integral_linear,assumption)
-  by(rule bounded_linear_scaleR_right)
+lemma has_integral_cmul: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. c *\<^sub>R f x) has_integral (c *\<^sub>R k)) s"
+  unfolding o_def[symmetric]
+  apply (rule has_integral_linear,assumption)
+  apply (rule bounded_linear_scaleR_right)
+  done
 
 lemma has_integral_cmult_real:
   fixes c :: real
   assumes "c \<noteq> 0 \<Longrightarrow> (f has_integral x) A"
   shows "((\<lambda>x. c * f x) has_integral c * x) A"
-proof cases
-  assume "c \<noteq> 0"
+proof (cases "c = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
   from has_integral_cmul[OF assms[OF this], of c] show ?thesis
     unfolding real_scaleR_def .
-qed simp
+qed
 
-lemma has_integral_neg:
-  shows "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
-  apply(drule_tac c="-1" in has_integral_cmul) by auto
+lemma has_integral_neg: "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
+  apply (drule_tac c="-1" in has_integral_cmul)
+  apply auto
+  done
 
-lemma has_integral_add: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral k) s" "(g has_integral l) s"
+lemma has_integral_add:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral k) s"
+    and "(g has_integral l) s"
   shows "((\<lambda>x. f x + g x) has_integral (k + l)) s"
-proof- have lem:"\<And>f g::'n \<Rightarrow> 'a. \<And>a b k l.
-    (f has_integral k) ({a..b}) \<Longrightarrow> (g has_integral l) ({a..b}) \<Longrightarrow>
-     ((\<lambda>x. f(x) + g(x)) has_integral (k + l)) ({a..b})" proof- case goal1
-    show ?case unfolding has_integral proof(rule,rule) fix e::real assume e:"e>0" hence *:"e/2>0" by auto
-      guess d1 using has_integralD[OF goal1(1) *] . note d1=this
-      guess d2 using has_integralD[OF goal1(2) *] . note d2=this
-      show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e)"
-        apply(rule_tac x="\<lambda>x. (d1 x) \<inter> (d2 x)" in exI) apply(rule,rule gauge_inter[OF d1(1) d2(1)])
-      proof(rule,rule,erule conjE) fix p assume as:"p tagged_division_of {a..b}" "(\<lambda>x. d1 x \<inter> d2 x) fine p"
-        have *:"(\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) = (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p. content k *\<^sub>R g x)"
+proof -
+  have lem:"\<And>(f:: 'n \<Rightarrow> 'a) g a b k l.
+    (f has_integral k) {a..b} \<Longrightarrow>
+    (g has_integral l) {a..b} \<Longrightarrow>
+    ((\<lambda>x. f x + g x) has_integral (k + l)) {a..b}"
+  proof -
+    case goal1
+    show ?case
+      unfolding has_integral
+      apply rule
+      apply rule
+    proof -
+      fix e :: real
+      assume e: "e > 0"
+      then have *: "e/2 > 0"
+        by auto
+      obtain d1 where d1:
+        "gauge d1"
+        "\<And>p. p tagged_division_of {a..b} \<Longrightarrow> d1 fine p \<Longrightarrow>
+          norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) < e / 2"
+        using has_integralD[OF goal1(1) *] by blast
+      obtain d2 where d2:
+        "gauge d2"
+        "\<And>p. p tagged_division_of {a..b} \<Longrightarrow> d2 fine p \<Longrightarrow>
+          norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l) < e / 2"
+        using has_integralD[OF goal1(2) *] by blast
+      show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow>
+        norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e)"
+        apply (rule_tac x="\<lambda>x. (d1 x) \<inter> (d2 x)" in exI)
+        apply rule
+        apply (rule gauge_inter[OF d1(1) d2(1)])
+        apply (rule,rule,erule conjE)
+      proof -
+        fix p
+        assume as: "p tagged_division_of {a..b}" "(\<lambda>x. d1 x \<inter> d2 x) fine p"
+        have *: "(\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) =
+          (\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>p. content k *\<^sub>R g x)"
           unfolding scaleR_right_distrib setsum_addf[of "\<lambda>(x,k). content k *\<^sub>R f x" "\<lambda>(x,k). content k *\<^sub>R g x" p,symmetric]
-          by(rule setsum_cong2,auto)
-        have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) = norm (((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l))"
-          unfolding * by(auto simp add:algebra_simps) also let ?res = "\<dots>"
-        from as have *:"d1 fine p" "d2 fine p" unfolding fine_inter by auto
-        have "?res < e/2 + e/2" apply(rule le_less_trans[OF norm_triangle_ineq])
-          apply(rule add_strict_mono) using d1(2)[OF as(1) *(1)] and d2(2)[OF as(1) *(2)] by auto
-        finally show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e" by auto
-      qed qed qed { presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
-    thus ?thesis apply-apply(cases "\<exists>a b. s = {a..b}") using assms by(auto simp add:has_integral intro!:lem) }
-  assume as:"\<not> (\<exists>a b. s = {a..b})" thus ?thesis apply(subst has_integral_alt) unfolding if_not_P
-  proof(rule,rule) case goal1 hence *:"e/2 > 0" by auto
+          by (rule setsum_cong2) auto
+        have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) =
+          norm (((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l))"
+          unfolding * by (auto simp add: algebra_simps)
+        also
+        let ?res = "\<dots>"
+        from as have *: "d1 fine p" "d2 fine p"
+          unfolding fine_inter by auto
+        have "?res < e/2 + e/2"
+          apply (rule le_less_trans[OF norm_triangle_ineq])
+          apply (rule add_strict_mono)
+          using d1(2)[OF as(1) *(1)] and d2(2)[OF as(1) *(2)]
+          apply auto
+          done
+        finally show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) < e"
+          by auto
+      qed
+    qed
+  qed
+  {
+    presume "\<not> (\<exists>a b. s = {a..b}) \<Longrightarrow> ?thesis"
+    then show ?thesis
+      apply -
+      apply (cases "\<exists>a b. s = {a..b}")
+      using assms
+      apply (auto simp add:has_integral intro!:lem)
+      done
+  }
+  assume as: "\<not> (\<exists>a b. s = {a..b})"
+  then show ?thesis
+    apply (subst has_integral_alt)
+    unfolding if_not_P
+    apply rule
+    apply rule
+  proof -
+    case goal1
+    then have *: "e/2 > 0"
+      by auto
     from has_integral_altD[OF assms(1) as *] guess B1 . note B1=this[rule_format]
     from has_integral_altD[OF assms(2) as *] guess B2 . note B2=this[rule_format]
-    show ?case apply(rule_tac x="max B1 B2" in exI) apply(rule,rule min_max.less_supI1,rule B1)
-    proof(rule,rule,rule) fix a b assume "ball 0 (max B1 B2) \<subseteq> {a..b::'n}"
-      hence *:"ball 0 B1 \<subseteq> {a..b::'n}" "ball 0 B2 \<subseteq> {a..b::'n}" by auto
-      guess w using B1(2)[OF *(1)] .. note w=conjunctD2[OF this]
-      guess z using B2(2)[OF *(2)] .. note z=conjunctD2[OF this]
-      have *:"\<And>x. (if x \<in> s then f x + g x else 0) = (if x \<in> s then f x else 0) + (if x \<in> s then g x else 0)" by auto
+    show ?case
+      apply (rule_tac x="max B1 B2" in exI)
+      apply rule
+      apply (rule min_max.less_supI1)
+      apply (rule B1)
+      apply rule
+      apply rule
+      apply rule
+    proof -
+      fix a b
+      assume "ball 0 (max B1 B2) \<subseteq> {a..b::'n}"
+      then have *: "ball 0 B1 \<subseteq> {a..b::'n}" "ball 0 B2 \<subseteq> {a..b::'n}"
+        by auto
+      obtain w where w:
+        "((\<lambda>x. if x \<in> s then f x else 0) has_integral w) {a..b}"
+        "norm (w - k) < e / 2"
+        using B1(2)[OF *(1)] by blast
+      obtain z where z:
+        "((\<lambda>x. if x \<in> s then g x else 0) has_integral z) {a..b}"
+        "norm (z - l) < e / 2"
+        using B2(2)[OF *(2)] by blast
+      have *: "\<And>x. (if x \<in> s then f x + g x else 0) =
+        (if x \<in> s then f x else 0) + (if x \<in> s then g x else 0)"
+        by auto
       show "\<exists>z. ((\<lambda>x. if x \<in> s then f x + g x else 0) has_integral z) {a..b} \<and> norm (z - (k + l)) < e"
-        apply(rule_tac x="w + z" in exI) apply(rule,rule lem[OF w(1) z(1), unfolded *[symmetric]])
-        using norm_triangle_ineq[of "w - k" "z - l"] w(2) z(2) by(auto simp add:field_simps)
-    qed qed qed
+        apply (rule_tac x="w + z" in exI)
+        apply rule
+        apply (rule lem[OF w(1) z(1), unfolded *[symmetric]])
+        using norm_triangle_ineq[of "w - k" "z - l"] w(2) z(2)
+        apply (auto simp add: field_simps)
+        done
+    qed
+  qed
+qed
 
 lemma has_integral_sub:
-  shows "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) has_integral (k - l)) s"
-  using has_integral_add[OF _ has_integral_neg,of f k s g l] unfolding algebra_simps by auto
+  "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow>
+    ((\<lambda>x. f x - g x) has_integral (k - l)) s"
+  using has_integral_add[OF _ has_integral_neg, of f k s g l]
+  unfolding algebra_simps
+  by auto
 
-lemma integral_0: "integral s (\<lambda>x::'n::ordered_euclidean_space. 0::'m::real_normed_vector) = 0"
-  by(rule integral_unique has_integral_0)+
+lemma integral_0:
+  "integral s (\<lambda>x::'n::ordered_euclidean_space. 0::'m::real_normed_vector) = 0"
+  by (rule integral_unique has_integral_0)+
 
-lemma integral_add:
-  shows "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
-   integral s (\<lambda>x. f x + g x) = integral s f + integral s g"
-  apply(rule integral_unique) apply(drule integrable_integral)+
-  apply(rule has_integral_add) by assumption+
+lemma integral_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
+    integral s (\<lambda>x. f x + g x) = integral s f + integral s g"
+  apply (rule integral_unique)
+  apply (drule integrable_integral)+
+  apply (rule has_integral_add)
+  apply assumption+
+  done
 
-lemma integral_cmul:
-  shows "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
-  apply(rule integral_unique) apply(drule integrable_integral)+
-  apply(rule has_integral_cmul) by assumption+
+lemma integral_cmul: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. c *\<^sub>R f x) = c *\<^sub>R integral s f"
+  apply (rule integral_unique)
+  apply (drule integrable_integral)+
+  apply (rule has_integral_cmul)
+  apply assumption+
+  done
 
-lemma integral_neg:
-  shows "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. - f x) = - integral s f"
-  apply(rule integral_unique) apply(drule integrable_integral)+
-  apply(rule has_integral_neg) by assumption+
+lemma integral_neg: "f integrable_on s \<Longrightarrow> integral s (\<lambda>x. - f x) = - integral s f"
+  apply (rule integral_unique)
+  apply (drule integrable_integral)+
+  apply (rule has_integral_neg)
+  apply assumption+
+  done
 
-lemma integral_sub:
-  shows "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
-  apply(rule integral_unique) apply(drule integrable_integral)+
-  apply(rule has_integral_sub) by assumption+
+lemma integral_sub: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow>
+    integral s (\<lambda>x. f x - g x) = integral s f - integral s g"
+  apply (rule integral_unique)
+  apply (drule integrable_integral)+
+  apply (rule has_integral_sub)
+  apply assumption+
+  done
 
 lemma integrable_0: "(\<lambda>x. 0) integrable_on s"
   unfolding integrable_on_def using has_integral_0 by auto
 
-lemma integrable_add:
-  shows "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) integrable_on s"
+lemma integrable_add: "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x + g x) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_add)
 
-lemma integrable_cmul:
-  shows "f integrable_on s \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on s"
+lemma integrable_cmul: "f integrable_on s \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_cmul)
 
 lemma integrable_on_cmult_iff:
-  fixes c :: real assumes "c \<noteq> 0"
+  fixes c :: real
+  assumes "c \<noteq> 0"
   shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
   using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] `c \<noteq> 0`
   by auto
 
-lemma integrable_neg:
-  shows "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
+lemma integrable_neg: "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_neg)
 
 lemma integrable_sub:
-  shows "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on s"
+  "f integrable_on s \<Longrightarrow> g integrable_on s \<Longrightarrow> (\<lambda>x. f x - g x) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_sub)
 
 lemma integrable_linear:
-  shows "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> (h o f) integrable_on s"
+  "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> (h \<circ> f) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_linear)
 
 lemma integral_linear:
-  shows "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> integral s (h o f) = h(integral s f)"
-  apply(rule has_integral_unique) defer unfolding has_integral_integral
-  apply(drule has_integral_linear,assumption,assumption) unfolding has_integral_integral[symmetric]
-  apply(rule integrable_linear) by assumption+
+  "f integrable_on s \<Longrightarrow> bounded_linear h \<Longrightarrow> integral s (h \<circ> f) = h (integral s f)"
+  apply (rule has_integral_unique)
+  defer
+  unfolding has_integral_integral
+  apply (drule (2) has_integral_linear)
+  unfolding has_integral_integral[symmetric]
+  apply (rule integrable_linear)
+  apply assumption+
+  done
 
-lemma integral_component_eq[simp]: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'm::ordered_euclidean_space"
-  assumes "f integrable_on s" shows "integral s (\<lambda>x. f x \<bullet> k) = integral s f \<bullet> k"
+lemma integral_component_eq[simp]:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'm::ordered_euclidean_space"
+  assumes "f integrable_on s"
+  shows "integral s (\<lambda>x. f x \<bullet> k) = integral s f \<bullet> k"
   unfolding integral_linear[OF assms(1) bounded_linear_component,unfolded o_def] ..
 
 lemma has_integral_setsum:
-  assumes "finite t" "\<forall>a\<in>t. ((f a) has_integral (i a)) s"
+  assumes "finite t"
+    and "\<forall>a\<in>t. ((f a) has_integral (i a)) s"
   shows "((\<lambda>x. setsum (\<lambda>a. f a x) t) has_integral (setsum i t)) s"
-proof(insert assms(1) subset_refl[of t],induct rule:finite_subset_induct)
-  case (insert x F) show ?case unfolding setsum_insert[OF insert(1,3)]
-    apply(rule has_integral_add) using insert assms by auto
-qed auto
+  using assms(1) subset_refl[of t]
+proof (induct rule: finite_subset_induct)
+  case empty
+  then show ?case by auto
+next
+  case (insert x F)
+  show ?case
+    unfolding setsum_insert[OF insert(1,3)]
+    apply (rule has_integral_add)
+    using insert assms
+    apply auto
+    done
+qed
 
-lemma integral_setsum:
-  shows "finite t \<Longrightarrow> \<forall>a\<in>t. (f a) integrable_on s \<Longrightarrow>
+lemma integral_setsum: "finite t \<Longrightarrow> \<forall>a\<in>t. (f a) integrable_on s \<Longrightarrow>
   integral s (\<lambda>x. setsum (\<lambda>a. f a x) t) = setsum (\<lambda>a. integral s (f a)) t"
-  apply(rule integral_unique) apply(rule has_integral_setsum)
-  using integrable_integral by auto
+  apply (rule integral_unique)
+  apply (rule has_integral_setsum)
+  using integrable_integral
+  apply auto
+  done
 
 lemma integrable_setsum:
-  shows "finite t \<Longrightarrow> \<forall>a \<in> t.(f a) integrable_on s \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) t) integrable_on s"
-  unfolding integrable_on_def apply(drule bchoice) using has_integral_setsum[of t] by auto
+  "finite t \<Longrightarrow> \<forall>a \<in> t.(f a) integrable_on s \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) t) integrable_on s"
+  unfolding integrable_on_def
+  apply (drule bchoice)
+  using has_integral_setsum[of t]
+  apply auto
+  done
 
 lemma has_integral_eq:
-  assumes "\<forall>x\<in>s. f x = g x" "(f has_integral k) s" shows "(g has_integral k) s"
+  assumes "\<forall>x\<in>s. f x = g x"
+    and "(f has_integral k) s"
+  shows "(g has_integral k) s"
   using has_integral_sub[OF assms(2), of "\<lambda>x. f x - g x" 0]
-  using has_integral_is_0[of s "\<lambda>x. f x - g x"] using assms(1) by auto
+  using has_integral_is_0[of s "\<lambda>x. f x - g x"]
+  using assms(1)
+  by auto
 
-lemma integrable_eq:
-  shows "\<forall>x\<in>s. f x = g x \<Longrightarrow> f integrable_on s \<Longrightarrow> g integrable_on s"
-  unfolding integrable_on_def using has_integral_eq[of s f g] by auto
+lemma integrable_eq: "\<forall>x\<in>s. f x = g x \<Longrightarrow> f integrable_on s \<Longrightarrow> g integrable_on s"
+  unfolding integrable_on_def
+  using has_integral_eq[of s f g]
+  by auto
 
-lemma has_integral_eq_eq:
-  shows "\<forall>x\<in>s. f x = g x \<Longrightarrow> ((f has_integral k) s \<longleftrightarrow> (g has_integral k) s)"
-  using has_integral_eq[of s f g] has_integral_eq[of s g f] by rule auto
+lemma has_integral_eq_eq: "\<forall>x\<in>s. f x = g x \<Longrightarrow> (f has_integral k) s \<longleftrightarrow> (g has_integral k) s"
+  using has_integral_eq[of s f g] has_integral_eq[of s g f]
+  by auto
 
 lemma has_integral_null[dest]:
-  assumes "content({a..b}) = 0" shows  "(f has_integral 0) ({a..b})"
-  unfolding has_integral apply(rule,rule,rule_tac x="\<lambda>x. ball x 1" in exI,rule) defer
-proof(rule,rule,erule conjE) fix e::real assume e:"e>0" thus "gauge (\<lambda>x. ball x 1)" by auto
-  fix p assume p:"p tagged_division_of {a..b}" (*"(\<lambda>x. ball x 1) fine p"*)
-  have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) = 0" unfolding norm_eq_zero diff_0_right
+  assumes "content({a..b}) = 0"
+  shows "(f has_integral 0) ({a..b})"
+  unfolding has_integral
+  apply rule
+  apply rule
+  apply (rule_tac x="\<lambda>x. ball x 1" in exI)
+  apply rule
+  defer
+  apply rule
+  apply rule
+  apply (erule conjE)
+proof -
+  fix e :: real
+  assume e: "e > 0"
+  then show "gauge (\<lambda>x. ball x 1)"
+    by auto
+  fix p
+  assume p: "p tagged_division_of {a..b}"
+  have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) = 0"
+    unfolding norm_eq_zero diff_0_right
     using setsum_content_null[OF assms(1) p, of f] .
-  thus "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e" using e by auto qed
+  then show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
+    using e by auto
+qed
 
-lemma has_integral_null_eq[simp]:
-  shows "content({a..b}) = 0 \<Longrightarrow> ((f has_integral i) ({a..b}) \<longleftrightarrow> i = 0)"
-  apply rule apply(rule has_integral_unique,assumption)
-  apply(drule has_integral_null,assumption)
-  apply(drule has_integral_null) by auto
+lemma has_integral_null_eq[simp]: "content {a..b} = 0 \<Longrightarrow> (f has_integral i) {a..b} \<longleftrightarrow> i = 0"
+  apply rule
+  apply (rule has_integral_unique)
+  apply assumption
+  apply (drule (1) has_integral_null)
+  apply (drule has_integral_null)
+  apply auto
+  done
 
-lemma integral_null[dest]: shows "content({a..b}) = 0 \<Longrightarrow> integral({a..b}) f = 0"
-  by(rule integral_unique,drule has_integral_null)
+lemma integral_null[dest]: "content {a..b} = 0 \<Longrightarrow> integral {a..b} f = 0"
+  apply (rule integral_unique)
+  apply (drule has_integral_null)
+  apply assumption
+  done
 
-lemma integrable_on_null[dest]: shows "content({a..b}) = 0 \<Longrightarrow> f integrable_on {a..b}"
-  unfolding integrable_on_def apply(drule has_integral_null) by auto
+lemma integrable_on_null[dest]: "content {a..b} = 0 \<Longrightarrow> f integrable_on {a..b}"
+  unfolding integrable_on_def
+  apply (drule has_integral_null)
+  apply auto
+  done
 
-lemma has_integral_empty[intro]: shows "(f has_integral 0) {}"
-  unfolding empty_as_interval apply(rule has_integral_null)
-  using content_empty unfolding empty_as_interval .
+lemma has_integral_empty[intro]: "(f has_integral 0) {}"
+  unfolding empty_as_interval
+  apply (rule has_integral_null)
+  using content_empty
+  unfolding empty_as_interval
+  apply assumption
+  done
 
-lemma has_integral_empty_eq[simp]: shows "(f has_integral i) {} \<longleftrightarrow> i = 0"
-  apply(rule,rule has_integral_unique,assumption) by auto
+lemma has_integral_empty_eq[simp]: "(f has_integral i) {} \<longleftrightarrow> i = 0"
+  apply rule
+  apply (rule has_integral_unique)
+  apply assumption
+  apply auto
+  done
 
-lemma integrable_on_empty[intro]: shows "f integrable_on {}" unfolding integrable_on_def by auto
+lemma integrable_on_empty[intro]: "f integrable_on {}"
+  unfolding integrable_on_def by auto
 
-lemma integral_empty[simp]: shows "integral {} f = 0"
-  apply(rule integral_unique) using has_integral_empty .
+lemma integral_empty[simp]: "integral {} f = 0"
+  by (rule integral_unique) (rule has_integral_empty)
 
-lemma has_integral_refl[intro]: shows "(f has_integral 0) {a..a}" "(f has_integral 0) {a::'a::ordered_euclidean_space}"
-proof-
-  have *:"{a} = {a..a}" apply(rule set_eqI) unfolding mem_interval singleton_iff euclidean_eq_iff[where 'a='a]
-    apply safe prefer 3 apply(erule_tac x=b in ballE) by(auto simp add: field_simps)
-  show "(f has_integral 0) {a..a}" "(f has_integral 0) {a}" unfolding *
-    apply(rule_tac[!] has_integral_null) unfolding content_eq_0_interior
-    unfolding interior_closed_interval using interval_sing by auto qed
+lemma has_integral_refl[intro]:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "(f has_integral 0) {a..a}"
+    and "(f has_integral 0) {a}"
+proof -
+  have *: "{a} = {a..a}"
+    apply (rule set_eqI)
+    unfolding mem_interval singleton_iff euclidean_eq_iff[where 'a='a]
+    apply safe
+    prefer 3
+    apply (erule_tac x=b in ballE)
+    apply (auto simp add: field_simps)
+    done
+  show "(f has_integral 0) {a..a}" "(f has_integral 0) {a}"
+    unfolding *
+    apply (rule_tac[!] has_integral_null)
+    unfolding content_eq_0_interior
+    unfolding interior_closed_interval
+    using interval_sing
+    apply auto
+    done
+qed
 
-lemma integrable_on_refl[intro]: shows "f integrable_on {a..a}" unfolding integrable_on_def by auto
+lemma integrable_on_refl[intro]: "f integrable_on {a..a}"
+  unfolding integrable_on_def by auto
 
-lemma integral_refl: shows "integral {a..a} f = 0" apply(rule integral_unique) by auto
+lemma integral_refl: "integral {a..a} f = 0"
+  by (rule integral_unique) auto
+
 
 subsection {* Cauchy-type criterion for integrability. *}
 
