@@ -291,13 +291,17 @@ class Completion_Popup private(
                 hide_popup()
                 e.consume
               case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
-                move_items(-1); e.consume
+                move_items(-1)
+                e.consume
               case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
-                move_items(1); e.consume
+                move_items(1)
+                e.consume
               case KeyEvent.VK_PAGE_UP if multi =>
-                move_pages(-1); e.consume
+                move_pages(-1)
+                e.consume
               case KeyEvent.VK_PAGE_DOWN if multi =>
-                move_pages(1); e.consume
+                move_pages(1)
+                e.consume
               case _ =>
                 if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                   hide_popup()
