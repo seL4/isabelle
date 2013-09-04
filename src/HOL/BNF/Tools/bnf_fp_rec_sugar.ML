@@ -536,6 +536,9 @@ fun co_dissect_eqn sequential fun_name_corec_spec_list eqn' matched_conds =
 fun build_corec_args_discs disc_eqns ctr_specs =
   if null disc_eqns then I else
     let
+(*val _ = tracing ("d/p:\<cdot> " ^ space_implode "\n    \<cdot> " (map ((op ^) o
+ apfst (Syntax.string_of_term @{context}) o apsnd (curry (op ^) " / " o @{make_string}))
+  (ctr_specs |> map_filter (fn {disc, pred = SOME pred, ...} => SOME (disc, pred) | _ => NONE))));*)
       val conds = map #cond disc_eqns;
       val fun_args = #fun_args (hd disc_eqns);
       val args =
@@ -544,14 +547,15 @@ fun build_corec_args_discs disc_eqns ctr_specs =
           fst (split_last conds)
         else if length disc_eqns = length ctr_specs - 1 then
           let val n = 0 upto length ctr_specs - 1
-              |> the o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns)) (*###*) in
+              |> the(*###*) o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns)) in
             if n = length ctr_specs - 1 then
               conds
             else
               split_last conds
               ||> HOLogic.mk_not
-              |>> chop n
-              |> (fn ((l, r), x) => l @ (x :: r))
+              |> `(uncurry (fold (curry HOLogic.mk_conj o HOLogic.mk_not)))
+              ||> chop n o fst
+              |> (fn (x, (l, r)) => l @ (x :: r))
           end
         else
           0 upto length ctr_specs - 1
@@ -570,11 +574,12 @@ fun build_corec_args_discs disc_eqns ctr_specs =
 fun build_corec_arg_no_call sel_eqns sel = find_first (equal sel o #sel) sel_eqns
   |> try (fn SOME sel_eqn => (#fun_args sel_eqn, #rhs_term sel_eqn))
   |> the_default ([], undef_const)
-  |-> abs_tuple;
+  |-> abs_tuple
+  |> K;
 
 fun build_corec_arg_direct_call lthy has_call sel_eqns sel =
   let
-    val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns
+    val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
     fun rewrite is_end U T t =
       if U = @{typ bool} then @{term True} |> has_call t ? K @{term False} (* stop? *)
       else if is_end = has_call t then undef_const
@@ -587,8 +592,33 @@ fun build_corec_arg_direct_call lthy has_call sel_eqns sel =
       abs_tuple (#fun_args (the maybe_sel_eqn)) oo massage (#rhs_term (the maybe_sel_eqn))
   end;
 
-fun build_corec_arg_indirect_call sel_eqns sel =
-  primrec_error "indirect corecursion not implemented yet";
+fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
+  let
+    val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
+    fun rewrite _ _ =
+      let
+        fun subst (Abs (v, T, b)) = Abs (v, T, subst b)
+          | subst (t as _ $ _) =
+            let val (u, vs) = strip_comb t in
+              if is_Free u andalso has_call u then
+                Const (@{const_name Inr}, dummyT) $ (*HOLogic.mk_tuple vs*)
+                  (try (foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y)) vs
+                    |> the_default (hd vs))
+              else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
+                list_comb (u |> map_types (K dummyT), map subst vs)
+              else
+                list_comb (subst u, map subst vs)
+            end
+          | subst t = t;
+      in
+        subst
+      end;
+    fun massage rhs_term t = massage_indirect_corec_call
+      lthy has_call rewrite [] (fastype_of t |> range_type) rhs_term;
+  in
+    if is_none maybe_sel_eqn then I else
+      abs_tuple (#fun_args (the maybe_sel_eqn)) o massage (#rhs_term (the maybe_sel_eqn))
+  end;
 
 fun build_corec_args_sel lthy has_call all_sel_eqns ctr_spec =
   let val sel_eqns = filter (equal (#ctr ctr_spec) o #ctr) all_sel_eqns in
@@ -596,9 +626,9 @@ fun build_corec_args_sel lthy has_call all_sel_eqns ctr_spec =
       let
         val sel_call_list = #sels ctr_spec ~~ #calls ctr_spec;
 
-val _ = tracing ("sels / calls:\n    \<cdot> " ^ space_implode "\n    \<cdot> " (map ((op ^) o
- apfst (Syntax.string_of_term @{context}) o apsnd (curry (op ^) " / " o @{make_string}))
-  (sel_call_list)));
+(*val _ = tracing ("s/c:\<cdot> " ^ space_implode "\n    \<cdot> " (map ((op ^) o
+ apfst (Syntax.string_of_term lthy) o apsnd (curry (op ^) " / " o @{make_string}))
+  sel_call_list));*)
 
         val no_calls' = map_filter (try (apsnd (fn No_Corec n => n))) sel_call_list;
         val direct_calls' = map_filter (try (apsnd (fn Direct_Corec n => n))) sel_call_list;
@@ -606,12 +636,12 @@ val _ = tracing ("sels / calls:\n    \<cdot> " ^ space_implode "\n    \<cdot> " 
       in
         I
         #> fold (fn (sel, n) => nth_map n
-          (build_corec_arg_no_call sel_eqns sel |> K)) no_calls'
+          (build_corec_arg_no_call sel_eqns sel)) no_calls'
         #> fold (fn (sel, (q, g, h)) =>
           let val f = build_corec_arg_direct_call lthy has_call sel_eqns sel in
             nth_map h (f false) o nth_map g (f true) o nth_map q (f true) end) direct_calls'
         #> fold (fn (sel, n) => nth_map n
-          (build_corec_arg_indirect_call sel_eqns sel |> K)) indirect_calls'
+          (build_corec_arg_indirect_call lthy has_call sel_eqns sel)) indirect_calls'
       end
   end;
 
@@ -652,18 +682,19 @@ fun co_build_defs lthy sequential bs mxs has_call arg_Tss fun_name_corec_spec_li
       |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts;
 
 val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) corec_args));
+ space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
 
     fun uneq_pairs_rev xs = xs (* FIXME \<exists>? *)
       |> these o try (split_last #> (fn (ys, y) => uneq_pairs_rev ys @ map (pair y) ys));
     val proof_obligations = if sequential then [] else
-      maps (uneq_pairs_rev o map (fn {fun_args, cond, ...} => (fun_args, cond))) disc_eqnss
+      disc_eqnss
+      |> maps (uneq_pairs_rev o map (fn {fun_args, cond, ...} => (fun_args, cond)))
       |> map (fn ((fun_args, x), (_, y)) => [x, HOLogic.mk_not y]
         |> map (HOLogic.mk_Trueprop o curry subst_bounds (List.rev fun_args))
         |> curry list_comb @{const ==>});
 
 val _ = tracing ("proof obligations:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) proof_obligations));
+ space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) proof_obligations));
 
   in
     map (list_comb o rpair corec_args) corecs

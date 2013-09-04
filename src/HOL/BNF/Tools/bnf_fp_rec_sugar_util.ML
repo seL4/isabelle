@@ -198,11 +198,11 @@ fun massage_direct_corec_call ctxt has_call massage_direct_call bound_Ts res_U t
 fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U t =
   let
     val typof = curry fastype_of1 bound_Ts;
-    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o fst);
+    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
 
     fun check_and_massage_direct_call U T t =
       if has_call t then factor_out_types ctxt massage_direct_call dest_sumT U T t
-      else build_map_Inl (U, T) $ t;
+      else build_map_Inl (T, U) $ t;
 
     fun check_and_massage_unapplied_direct_call U T t =
       let val var = Var ((Name.uu, Term.maxidx_of_term t + 1), domain_type (typof t)) in
@@ -241,11 +241,11 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U
               | NONE =>
                 (case t of
                   t1 $ t2 =>
-                  if has_call t2 then
+                  (if has_call t2 then
                     check_and_massage_direct_call U T t
                   else
                     massage_map U T t1 $ t2
-                    handle AINT_NO_MAP _ => check_and_massage_direct_call U T t
+                    handle AINT_NO_MAP _ => check_and_massage_direct_call U T t)
                 | _ => check_and_massage_direct_call U T t))
             | _ => ill_formed_corec_call ctxt t))
         U T
