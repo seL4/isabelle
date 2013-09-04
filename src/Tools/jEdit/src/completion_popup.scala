@@ -155,21 +155,21 @@ object Completion_Popup
       if (PIDE.options.bool("jedit_completion")) {
         if (!evt.isConsumed) {
           dismissed()
+          if (evt.getKeyChar != '\b') {
+            val mod = evt.getModifiers
+            val special =
+              // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+              (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
+              (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
+                !Debug.ALT_KEY_PRESSED_DISABLED ||
+              (mod & InputEvent.META_MASK) != 0
 
-          val mod = evt.getModifiers
-          val special =
-            evt.getKeyChar == '\b' ||
-            // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
-            (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
-            (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
-              !Debug.ALT_KEY_PRESSED_DISABLED ||
-            (mod & InputEvent.META_MASK) != 0
-
-          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
-            input_delay.revoke()
-            action(immediate = PIDE.options.bool("jedit_completion_immediate"))
+            if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+              input_delay.revoke()
+              action(immediate = PIDE.options.bool("jedit_completion_immediate"))
+            }
+            else input_delay.invoke()
           }
-          else input_delay.invoke()
         }
       }
     }
