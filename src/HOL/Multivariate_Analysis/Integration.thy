@@ -1982,215 +1982,487 @@ definition integrable_on (infixr "integrable'_on" 46)
 
 definition "integral i f = (SOME y. (f has_integral y) i)"
 
-lemma integrable_integral[dest]:
- "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
-  unfolding integrable_on_def integral_def by(rule someI_ex)
+lemma integrable_integral[dest]: "f integrable_on i \<Longrightarrow> (f has_integral (integral i f)) i"
+  unfolding integrable_on_def integral_def by (rule someI_ex)
 
 lemma has_integral_integrable[intro]: "(f has_integral i) s \<Longrightarrow> f integrable_on s"
   unfolding integrable_on_def by auto
 
-lemma has_integral_integral:"f integrable_on s \<longleftrightarrow> (f has_integral (integral s f)) s"
+lemma has_integral_integral: "f integrable_on s \<longleftrightarrow> (f has_integral (integral s f)) s"
   by auto
 
 lemma setsum_content_null:
-  assumes "content({a..b}) = 0" "p tagged_division_of {a..b}"
+  assumes "content {a..b} = 0"
+    and "p tagged_division_of {a..b}"
   shows "setsum (\<lambda>(x,k). content k *\<^sub>R f x) p = (0::'a::real_normed_vector)"
-proof(rule setsum_0',rule) fix y assume y:"y\<in>p"
-  obtain x k where xk:"y = (x,k)" using surj_pair[of y] by blast
+proof (rule setsum_0', rule)
+  fix y
+  assume y: "y \<in> p"
+  obtain x k where xk: "y = (x, k)"
+    using surj_pair[of y] by blast
   note assm = tagged_division_ofD(3-4)[OF assms(2) y[unfolded xk]]
-  from this(2) guess c .. then guess d .. note c_d=this
-  have "(\<lambda>(x, k). content k *\<^sub>R f x) y = content k *\<^sub>R f x" unfolding xk by auto
-  also have "\<dots> = 0" using content_subset[OF assm(1)[unfolded c_d]] content_pos_le[of c d]
-    unfolding assms(1) c_d by auto
+  from this(2) obtain c d where k: "k = {c..d}" by blast
+  have "(\<lambda>(x, k). content k *\<^sub>R f x) y = content k *\<^sub>R f x"
+    unfolding xk by auto
+  also have "\<dots> = 0"
+    using content_subset[OF assm(1)[unfolded k]] content_pos_le[of c d]
+    unfolding assms(1) k
+    by auto
   finally show "(\<lambda>(x, k). content k *\<^sub>R f x) y = 0" .
 qed
+
 
 subsection {* Some basic combining lemmas. *}
 
 lemma tagged_division_unions_exists:
-  assumes "finite iset" "\<forall>i \<in> iset. \<exists>p. p tagged_division_of i \<and> d fine p"
-  "\<forall>i1\<in>iset. \<forall>i2\<in>iset. ~(i1 = i2) \<longrightarrow> (interior(i1) \<inter> interior(i2) = {})" "(\<Union>iset = i)"
-   obtains p where "p tagged_division_of i" "d fine p"
-proof- guess pfn using bchoice[OF assms(2)] .. note pfn = conjunctD2[OF this[rule_format]]
-  show thesis apply(rule_tac p="\<Union>(pfn ` iset)" in that) unfolding assms(4)[symmetric]
-    apply(rule tagged_division_unions[OF assms(1) _ assms(3)]) defer
-    apply(rule fine_unions) using pfn by auto
+  assumes "finite iset"
+    and "\<forall>i\<in>iset. \<exists>p. p tagged_division_of i \<and> d fine p"
+    and "\<forall>i1\<in>iset. \<forall>i2\<in>iset. i1 \<noteq> i2 \<longrightarrow> interior i1 \<inter> interior i2 = {}"
+    and "\<Union>iset = i"
+   obtains p where "p tagged_division_of i" and "d fine p"
+proof -
+  obtain pfn where pfn:
+    "\<And>x. x \<in> iset \<Longrightarrow> pfn x tagged_division_of x"
+    "\<And>x. x \<in> iset \<Longrightarrow> d fine pfn x"
+    using bchoice[OF assms(2)] by auto
+  show thesis
+    apply (rule_tac p="\<Union>(pfn ` iset)" in that)
+    unfolding assms(4)[symmetric]
+    apply (rule tagged_division_unions[OF assms(1) _ assms(3)])
+    defer
+    apply (rule fine_unions)
+    using pfn
+    apply auto
+    done
 qed
+
 
 subsection {* The set we're concerned with must be closed. *}
 
-lemma division_of_closed: "s division_of i \<Longrightarrow> closed (i::('n::ordered_euclidean_space) set)"
+lemma division_of_closed:
+  fixes i :: "'n::ordered_euclidean_space set"
+  shows "s division_of i \<Longrightarrow> closed i"
   unfolding division_of_def by fastforce
 
 subsection {* General bisection principle for intervals; might be useful elsewhere. *}
 
-lemma interval_bisection_step:  fixes type::"'a::ordered_euclidean_space"
-  assumes "P {}" "(\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P(s \<union> t))" "~(P {a..b::'a})"
-  obtains c d where "~(P{c..d})"
-  "\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
-proof- have "{a..b} \<noteq> {}" using assms(1,3) by auto
-  then have ab: "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i" by (auto simp: interval_eq_empty not_le)
-  { fix f have "finite f \<Longrightarrow>
-        (\<forall>s\<in>f. P s) \<Longrightarrow>
-        (\<forall>s\<in>f. \<exists>a b. s = {a..b}) \<Longrightarrow>
-        (\<forall>s\<in>f.\<forall>t\<in>f. ~(s = t) \<longrightarrow> interior(s) \<inter> interior(t) = {}) \<Longrightarrow> P(\<Union>f)"
-    proof(induct f rule:finite_induct)
-      case empty show ?case using assms(1) by auto
-    next case (insert x f) show ?case unfolding Union_insert apply(rule assms(2)[rule_format])
-        apply rule defer apply rule defer apply(rule inter_interior_unions_intervals)
-        using insert by auto
-    qed } note * = this
-  let ?A = "{{c..d} | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<or> (c\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<and> (d\<bullet>i = b\<bullet>i)}"
+lemma interval_bisection_step:
+  fixes type :: "'a::ordered_euclidean_space"
+  assumes "P {}"
+    and "\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P (s \<union> t)"
+    and "\<not> P {a..b::'a}"
+  obtains c d where "\<not> P{c..d}"
+    and "\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
+proof -
+  have "{a..b} \<noteq> {}"
+    using assms(1,3) by auto
+  then have ab: "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
+    by (auto simp: interval_eq_empty not_le)
+  {
+    fix f
+    have "finite f \<Longrightarrow>
+      \<forall>s\<in>f. P s \<Longrightarrow>
+      \<forall>s\<in>f. \<exists>a b. s = {a..b} \<Longrightarrow>
+      \<forall>s\<in>f.\<forall>t\<in>f. s \<noteq> t \<longrightarrow> interior s \<inter> interior t = {} \<Longrightarrow> P (\<Union>f)"
+    proof (induct f rule: finite_induct)
+      case empty
+      show ?case
+        using assms(1) by auto
+    next
+      case (insert x f)
+      show ?case
+        unfolding Union_insert
+        apply (rule assms(2)[rule_format])
+        apply rule
+        defer
+        apply rule
+        defer
+        apply (rule inter_interior_unions_intervals)
+        using insert
+        apply auto
+        done
+    qed
+  } note * = this
+  let ?A = "{{c..d} | c d::'a. \<forall>i\<in>Basis. (c\<bullet>i = a\<bullet>i) \<and> (d\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<or>
+    (c\<bullet>i = (a\<bullet>i + b\<bullet>i) / 2) \<and> (d\<bullet>i = b\<bullet>i)}"
   let ?PP = "\<lambda>c d. \<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
-  { presume "\<forall>c d. ?PP c d \<longrightarrow> P {c..d} \<Longrightarrow> False"
-    thus thesis unfolding atomize_not not_all apply-apply(erule exE)+ apply(rule_tac c=x and d=xa in that) by auto }
-  assume as:"\<forall>c d. ?PP c d \<longrightarrow> P {c..d}"
-  have "P (\<Union> ?A)" proof(rule *, rule_tac[2-] ballI, rule_tac[4] ballI, rule_tac[4] impI)
+  {
+    presume "\<forall>c d. ?PP c d \<longrightarrow> P {c..d} \<Longrightarrow> False"
+    then show thesis
+      unfolding atomize_not not_all
+      apply -
+      apply (erule exE)+
+      apply (rule_tac c=x and d=xa in that)
+      apply auto
+      done
+  }
+  assume as: "\<forall>c d. ?PP c d \<longrightarrow> P {c..d}"
+  have "P (\<Union> ?A)"
+    apply (rule *)
+    apply (rule_tac[2-] ballI)
+    apply (rule_tac[4] ballI)
+    apply (rule_tac[4] impI)
+  proof -
     let ?B = "(\<lambda>s.{(\<Sum>i\<in>Basis. (if i \<in> s then a\<bullet>i else (a\<bullet>i + b\<bullet>i) / 2) *\<^sub>R i)::'a ..
       (\<Sum>i\<in>Basis. (if i \<in> s then (a\<bullet>i + b\<bullet>i) / 2 else b\<bullet>i) *\<^sub>R i)}) ` {s. s \<subseteq> Basis}"
-    have "?A \<subseteq> ?B" proof case goal1
-      then guess c unfolding mem_Collect_eq .. then guess d apply- by(erule exE,(erule conjE)+) note c_d=this[rule_format]
-      have *:"\<And>a b c d. a = c \<Longrightarrow> b = d \<Longrightarrow> {a..b} = {c..d}" by auto
-      show "x\<in>?B" unfolding image_iff
-        apply(rule_tac x="{i. i\<in>Basis \<and> c\<bullet>i = a\<bullet>i}" in bexI)
-        unfolding c_d
-        apply(rule *)
-        apply (simp_all only: euclidean_eq_iff[where 'a='a] inner_setsum_left_Basis mem_Collect_eq simp_thms
-                        cong: ball_cong)
-        apply safe
-      proof-
-        fix i :: 'a assume i: "i\<in>Basis"
-        thus " c \<bullet> i = (if c \<bullet> i = a \<bullet> i then a \<bullet> i else (a \<bullet> i + b \<bullet> i) / 2)"
-          "d \<bullet> i = (if c \<bullet> i = a \<bullet> i then (a \<bullet> i + b \<bullet> i) / 2 else b \<bullet> i)"
-          using c_d(2)[of i] ab[OF i] by(auto simp add:field_simps)
-      qed qed
-    thus "finite ?A" apply(rule finite_subset) by auto
-    fix s assume "s\<in>?A" then guess c unfolding mem_Collect_eq .. then guess d apply- by(erule exE,(erule conjE)+)
-    note c_d=this[rule_format]
-    show "P s" unfolding c_d apply(rule as[rule_format]) proof- case goal1 thus ?case
-        using c_d(2)[of i] using ab[OF `i \<in> Basis`] by auto qed
-    show "\<exists>a b. s = {a..b}" unfolding c_d by auto
-    fix t assume "t\<in>?A" then guess e unfolding mem_Collect_eq .. then guess f apply- by(erule exE,(erule conjE)+)
-    note e_f=this[rule_format]
-    assume "s \<noteq> t" hence "\<not> (c = e \<and> d = f)" unfolding c_d e_f by auto
-    then obtain i where "c\<bullet>i \<noteq> e\<bullet>i \<or> d\<bullet>i \<noteq> f\<bullet>i" and i':"i\<in>Basis"
-      unfolding euclidean_eq_iff[where 'a='a] by auto
-    hence i:"c\<bullet>i \<noteq> e\<bullet>i" "d\<bullet>i \<noteq> f\<bullet>i" apply- apply(erule_tac[!] disjE)
-    proof- assume "c\<bullet>i \<noteq> e\<bullet>i" thus "d\<bullet>i \<noteq> f\<bullet>i" using c_d(2)[OF i'] e_f(2)[OF i'] by fastforce
-    next   assume "d\<bullet>i \<noteq> f\<bullet>i" thus "c\<bullet>i \<noteq> e\<bullet>i" using c_d(2)[OF i'] e_f(2)[OF i'] by fastforce
-    qed have *:"\<And>s t. (\<And>a. a\<in>s \<Longrightarrow> a\<in>t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}" by auto
-    show "interior s \<inter> interior t = {}" unfolding e_f c_d interior_closed_interval proof(rule *)
-      fix x assume "x\<in>{c<..<d}" "x\<in>{e<..<f}"
-      hence x:"c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i" unfolding mem_interval using i'
-        apply-apply(erule_tac[!] x=i in ballE)+ by auto
-      show False using c_d(2)[OF i'] apply- apply(erule_tac disjE)
-      proof(erule_tac[!] conjE) assume as:"c \<bullet> i = a \<bullet> i" "d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2"
-        show False using e_f(2)[OF i'] and i x unfolding as by(fastforce simp add:field_simps)
-      next assume as:"c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2" "d \<bullet> i = b \<bullet> i"
-        show False using e_f(2)[OF i'] and i x unfolding as by(fastforce simp add:field_simps)
-      qed qed qed
-  also have "\<Union> ?A = {a..b}" proof(rule set_eqI,rule)
-    fix x assume "x\<in>\<Union>?A" then guess Y unfolding Union_iff ..
-    from this(1) guess c unfolding mem_Collect_eq .. then guess d ..
-    note c_d = this[THEN conjunct2,rule_format] `x\<in>Y`[unfolded this[THEN conjunct1]]
-    show "x\<in>{a..b}" unfolding mem_interval proof safe
-      fix i :: 'a assume i: "i\<in>Basis" thus "a \<bullet> i \<le> x \<bullet> i" "x \<bullet> i \<le> b \<bullet> i"
-        using c_d(1)[OF i] c_d(2)[unfolded mem_interval,THEN bspec, OF i] by auto qed
-  next fix x assume x:"x\<in>{a..b}"
-    have "\<forall>i\<in>Basis. \<exists>c d. (c = a\<bullet>i \<and> d = (a\<bullet>i + b\<bullet>i) / 2 \<or> c = (a\<bullet>i + b\<bullet>i) / 2 \<and> d = b\<bullet>i) \<and> c\<le>x\<bullet>i \<and> x\<bullet>i \<le> d"
-      (is "\<forall>i\<in>Basis. \<exists>c d. ?P i c d") unfolding mem_interval
+    have "?A \<subseteq> ?B"
     proof
-      fix i :: 'a assume i: "i \<in> Basis"
-      have "?P i (a\<bullet>i) ((a \<bullet> i + b \<bullet> i) / 2) \<or> ?P i ((a \<bullet> i + b \<bullet> i) / 2) (b\<bullet>i)"
-        using x[unfolded mem_interval,THEN bspec, OF i] by auto thus "\<exists>c d. ?P i c d" by blast
+      case goal1
+      then obtain c d where x: "x = {c..d}"
+        "\<And>i. i \<in> Basis \<Longrightarrow>
+          c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+          c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
+      have *: "\<And>a b c d. a = c \<Longrightarrow> b = d \<Longrightarrow> {a..b} = {c..d}"
+        by auto
+      show "x \<in> ?B"
+        unfolding image_iff
+        apply (rule_tac x="{i. i\<in>Basis \<and> c\<bullet>i = a\<bullet>i}" in bexI)
+        unfolding x
+        apply (rule *)
+        apply (simp_all only: euclidean_eq_iff[where 'a='a] inner_setsum_left_Basis mem_Collect_eq simp_thms
+          cong: ball_cong)
+        apply safe
+      proof -
+        fix i :: 'a
+        assume i: "i \<in> Basis"
+        then show "c \<bullet> i = (if c \<bullet> i = a \<bullet> i then a \<bullet> i else (a \<bullet> i + b \<bullet> i) / 2)"
+          and "d \<bullet> i = (if c \<bullet> i = a \<bullet> i then (a \<bullet> i + b \<bullet> i) / 2 else b \<bullet> i)"
+          using x(2)[of i] ab[OF i] by (auto simp add:field_simps)
+      qed
     qed
-    thus "x\<in>\<Union>?A"
+    then show "finite ?A"
+      by (rule finite_subset) auto
+    fix s
+    assume "s \<in> ?A"
+    then obtain c d where s:
+      "s = {c..d}"
+      "\<And>i. i \<in> Basis \<Longrightarrow>
+         c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+         c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i"
+      by blast
+    show "P s"
+      unfolding s
+      apply (rule as[rule_format])
+    proof -
+      case goal1
+      then show ?case
+        using s(2)[of i] using ab[OF `i \<in> Basis`] by auto
+    qed
+    show "\<exists>a b. s = {a..b}"
+      unfolding s by auto
+    fix t
+    assume "t \<in> ?A"
+    then obtain e f where t:
+      "t = {e..f}"
+      "\<And>i. i \<in> Basis \<Longrightarrow>
+        e \<bullet> i = a \<bullet> i \<and> f \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+        e \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> f \<bullet> i = b \<bullet> i"
+      by blast
+    assume "s \<noteq> t"
+    then have "\<not> (c = e \<and> d = f)"
+      unfolding s t by auto
+    then obtain i where "c\<bullet>i \<noteq> e\<bullet>i \<or> d\<bullet>i \<noteq> f\<bullet>i" and i': "i \<in> Basis"
+      unfolding euclidean_eq_iff[where 'a='a] by auto
+    then have i: "c\<bullet>i \<noteq> e\<bullet>i" "d\<bullet>i \<noteq> f\<bullet>i"
+      apply -
+      apply(erule_tac[!] disjE)
+    proof -
+      assume "c\<bullet>i \<noteq> e\<bullet>i"
+      then show "d\<bullet>i \<noteq> f\<bullet>i"
+        using s(2)[OF i'] t(2)[OF i'] by fastforce
+    next
+      assume "d\<bullet>i \<noteq> f\<bullet>i"
+      then show "c\<bullet>i \<noteq> e\<bullet>i"
+        using s(2)[OF i'] t(2)[OF i'] by fastforce
+    qed
+    have *: "\<And>s t. (\<And>a. a \<in> s \<Longrightarrow> a \<in> t \<Longrightarrow> False) \<Longrightarrow> s \<inter> t = {}"
+      by auto
+    show "interior s \<inter> interior t = {}"
+      unfolding s t interior_closed_interval
+    proof (rule *)
+      fix x
+      assume "x \<in> {c<..<d}" "x \<in> {e<..<f}"
+      then have x: "c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i"
+        unfolding mem_interval using i'
+        apply -
+        apply (erule_tac[!] x=i in ballE)+
+        apply auto
+        done
+      show False
+        using s(2)[OF i']
+        apply -
+        apply (erule_tac disjE)
+        apply (erule_tac[!] conjE)
+      proof -
+        assume as: "c \<bullet> i = a \<bullet> i" "d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2"
+        show False
+          using t(2)[OF i'] and i x unfolding as by (fastforce simp add:field_simps)
+      next
+        assume as: "c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2" "d \<bullet> i = b \<bullet> i"
+        show False
+          using t(2)[OF i'] and i x unfolding as by(fastforce simp add:field_simps)
+      qed
+    qed
+  qed
+  also have "\<Union> ?A = {a..b}"
+  proof (rule set_eqI,rule)
+    fix x
+    assume "x \<in> \<Union>?A"
+    then obtain c d where x:
+      "x \<in> {c..d}"
+      "\<And>i. i \<in> Basis \<Longrightarrow>
+        c \<bullet> i = a \<bullet> i \<and> d \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<or>
+        c \<bullet> i = (a \<bullet> i + b \<bullet> i) / 2 \<and> d \<bullet> i = b \<bullet> i" by blast
+    show "x\<in>{a..b}"
+      unfolding mem_interval
+    proof safe
+      fix i :: 'a
+      assume i: "i \<in> Basis"
+      then show "a \<bullet> i \<le> x \<bullet> i" "x \<bullet> i \<le> b \<bullet> i"
+        using x(2)[OF i] x(1)[unfolded mem_interval,THEN bspec, OF i] by auto
+    qed
+  next
+    fix x
+    assume x: "x \<in> {a..b}"
+    have "\<forall>i\<in>Basis.
+      \<exists>c d. (c = a\<bullet>i \<and> d = (a\<bullet>i + b\<bullet>i) / 2 \<or> c = (a\<bullet>i + b\<bullet>i) / 2 \<and> d = b\<bullet>i) \<and> c\<le>x\<bullet>i \<and> x\<bullet>i \<le> d"
+      (is "\<forall>i\<in>Basis. \<exists>c d. ?P i c d")
+      unfolding mem_interval
+    proof
+      fix i :: 'a
+      assume i: "i \<in> Basis"
+      have "?P i (a\<bullet>i) ((a \<bullet> i + b \<bullet> i) / 2) \<or> ?P i ((a \<bullet> i + b \<bullet> i) / 2) (b\<bullet>i)"
+        using x[unfolded mem_interval,THEN bspec, OF i] by auto
+      then show "\<exists>c d. ?P i c d"
+        by blast
+    qed
+    then show "x\<in>\<Union>?A"
       unfolding Union_iff Bex_def mem_Collect_eq choice_Basis_iff
-      apply-apply(erule exE)+ apply(rule_tac x="{xa..xaa}" in exI) unfolding mem_interval by auto
-  qed finally show False using assms by auto qed
+      apply -
+      apply (erule exE)+
+      apply (rule_tac x="{xa..xaa}" in exI)
+      unfolding mem_interval
+      apply auto
+      done
+  qed
+  finally show False
+    using assms by auto
+qed
 
-lemma interval_bisection: fixes type::"'a::ordered_euclidean_space"
-  assumes "P {}" "(\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P(s \<union> t))" "\<not> P {a..b::'a}"
-  obtains x where "x \<in> {a..b}" "\<forall>e>0. \<exists>c d. x \<in> {c..d} \<and> {c..d} \<subseteq> ball x e \<and> {c..d} \<subseteq> {a..b} \<and> ~P({c..d})"
-proof-
+lemma interval_bisection:
+  fixes type :: "'a::ordered_euclidean_space"
+  assumes "P {}"
+    and "(\<forall>s t. P s \<and> P t \<and> interior(s) \<inter> interior(t) = {} \<longrightarrow> P(s \<union> t))"
+    and "\<not> P {a..b::'a}"
+  obtains x where "x \<in> {a..b}"
+    and "\<forall>e>0. \<exists>c d. x \<in> {c..d} \<and> {c..d} \<subseteq> ball x e \<and> {c..d} \<subseteq> {a..b} \<and> \<not> P {c..d}"
+proof -
   have "\<forall>x. \<exists>y. \<not> P {fst x..snd x} \<longrightarrow> (\<not> P {fst y..snd y} \<and>
     (\<forall>i\<in>Basis. fst x\<bullet>i \<le> fst y\<bullet>i \<and> fst y\<bullet>i \<le> snd y\<bullet>i \<and> snd y\<bullet>i \<le> snd x\<bullet>i \<and>
-                           2 * (snd y\<bullet>i - fst y\<bullet>i) \<le> snd x\<bullet>i - fst x\<bullet>i))" proof case goal1 thus ?case proof-
+       2 * (snd y\<bullet>i - fst y\<bullet>i) \<le> snd x\<bullet>i - fst x\<bullet>i))"
+  proof
+    case goal1
+    then show ?case
+    proof -
       presume "\<not> P {fst x..snd x} \<Longrightarrow> ?thesis"
-      thus ?thesis apply(cases "P {fst x..snd x}") by auto
-    next assume as:"\<not> P {fst x..snd x}" from interval_bisection_step[of P, OF assms(1-2) as] guess c d .
-      thus ?thesis apply- apply(rule_tac x="(c,d)" in exI) by auto
-    qed qed then guess f apply-apply(drule choice) by(erule exE) note f=this
-  def AB \<equiv> "\<lambda>n. (f ^^ n) (a,b)" def A \<equiv> "\<lambda>n. fst(AB n)" and B \<equiv> "\<lambda>n. snd(AB n)" note ab_def = this AB_def
+      then show ?thesis by (cases "P {fst x..snd x}") auto
+    next
+      assume as: "\<not> P {fst x..snd x}"
+      obtain c d where "\<not> P {c..d}"
+        "\<forall>i\<in>Basis.
+           fst x \<bullet> i \<le> c \<bullet> i \<and>
+           c \<bullet> i \<le> d \<bullet> i \<and>
+           d \<bullet> i \<le> snd x \<bullet> i \<and>
+           2 * (d \<bullet> i - c \<bullet> i) \<le> snd x \<bullet> i - fst x \<bullet> i"
+        by (rule interval_bisection_step[of P, OF assms(1-2) as])
+      then show ?thesis
+        apply -
+        apply (rule_tac x="(c,d)" in exI)
+        apply auto
+        done
+    qed
+  qed
+  then guess f
+    apply -
+    apply (drule choice)
+    apply (erule exE)
+    done
+  note f = this
+  def AB \<equiv> "\<lambda>n. (f ^^ n) (a,b)"
+  def A \<equiv> "\<lambda>n. fst(AB n)"
+  def B \<equiv> "\<lambda>n. snd(AB n)"
+  note ab_def = A_def B_def AB_def
   have "A 0 = a" "B 0 = b" "\<And>n. \<not> P {A(Suc n)..B(Suc n)} \<and>
     (\<forall>i\<in>Basis. A(n)\<bullet>i \<le> A(Suc n)\<bullet>i \<and> A(Suc n)\<bullet>i \<le> B(Suc n)\<bullet>i \<and> B(Suc n)\<bullet>i \<le> B(n)\<bullet>i \<and>
     2 * (B(Suc n)\<bullet>i - A(Suc n)\<bullet>i) \<le> B(n)\<bullet>i - A(n)\<bullet>i)" (is "\<And>n. ?P n")
-  proof- show "A 0 = a" "B 0 = b" unfolding ab_def by auto
-    case goal3 note S = ab_def funpow.simps o_def id_apply show ?case
-    proof(induct n) case 0 thus ?case unfolding S apply(rule f[rule_format]) using assms(3) by auto
-    next case (Suc n) show ?case unfolding S apply(rule f[rule_format]) using Suc unfolding S by auto
-    qed qed note AB = this(1-2) conjunctD2[OF this(3),rule_format]
+  proof -
+    show "A 0 = a" "B 0 = b"
+      unfolding ab_def by auto
+    case goal3
+    note S = ab_def funpow.simps o_def id_apply
+    show ?case
+    proof (induct n)
+      case 0
+      then show ?case
+        unfolding S
+        apply (rule f[rule_format]) using assms(3)
+        apply auto
+        done
+    next
+      case (Suc n)
+      show ?case
+        unfolding S
+        apply (rule f[rule_format])
+        using Suc
+        unfolding S
+        apply auto
+        done
+    qed
+  qed
+  note AB = this(1-2) conjunctD2[OF this(3),rule_format]
 
-  have interv:"\<And>e. 0 < e \<Longrightarrow> \<exists>n. \<forall>x\<in>{A n..B n}. \<forall>y\<in>{A n..B n}. dist x y < e"
-  proof- case goal1 guess n using real_arch_pow2[of "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] .. note n=this
-    show ?case apply(rule_tac x=n in exI) proof(rule,rule)
-      fix x y assume xy:"x\<in>{A n..B n}" "y\<in>{A n..B n}"
-      have "dist x y \<le> setsum (\<lambda>i. abs((x - y)\<bullet>i)) Basis" unfolding dist_norm by(rule norm_le_l1)
+  have interv: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. \<forall>x\<in>{A n..B n}. \<forall>y\<in>{A n..B n}. dist x y < e"
+  proof -
+    case goal1
+    obtain n where n: "(\<Sum>i\<in>Basis. b \<bullet> i - a \<bullet> i) / e < 2 ^ n"
+      using real_arch_pow2[of "(setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] ..
+    show ?case
+      apply (rule_tac x=n in exI)
+      apply rule
+      apply rule
+    proof -
+      fix x y
+      assume xy: "x\<in>{A n..B n}" "y\<in>{A n..B n}"
+      have "dist x y \<le> setsum (\<lambda>i. abs((x - y)\<bullet>i)) Basis"
+        unfolding dist_norm by(rule norm_le_l1)
       also have "\<dots> \<le> setsum (\<lambda>i. B n\<bullet>i - A n\<bullet>i) Basis"
-      proof(rule setsum_mono)
-        fix i :: 'a assume i: "i \<in> Basis" show "\<bar>(x - y) \<bullet> i\<bar> \<le> B n \<bullet> i - A n \<bullet> i"
-          using xy[unfolded mem_interval,THEN bspec, OF i] by (auto simp: inner_diff_left) qed
-      also have "\<dots> \<le> setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis / 2^n" unfolding setsum_divide_distrib
-      proof(rule setsum_mono) case goal1 thus ?case
-        proof(induct n) case 0 thus ?case unfolding AB by auto
-        next case (Suc n) have "B (Suc n) \<bullet> i - A (Suc n) \<bullet> i \<le> (B n \<bullet> i - A n \<bullet> i) / 2"
+      proof (rule setsum_mono)
+        fix i :: 'a
+        assume i: "i \<in> Basis"
+        show "\<bar>(x - y) \<bullet> i\<bar> \<le> B n \<bullet> i - A n \<bullet> i"
+          using xy[unfolded mem_interval,THEN bspec, OF i]
+          by (auto simp: inner_diff_left)
+      qed
+      also have "\<dots> \<le> setsum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis / 2^n"
+        unfolding setsum_divide_distrib
+      proof (rule setsum_mono)
+        case goal1
+        then show ?case
+        proof (induct n)
+          case 0
+          then show ?case
+            unfolding AB by auto
+        next
+          case (Suc n)
+          have "B (Suc n) \<bullet> i - A (Suc n) \<bullet> i \<le> (B n \<bullet> i - A n \<bullet> i) / 2"
             using AB(4)[of i n] using goal1 by auto
-          also have "\<dots> \<le> (b \<bullet> i - a \<bullet> i) / 2 ^ Suc n" using Suc by(auto simp add:field_simps) finally show ?case .
-        qed qed
-      also have "\<dots> < e" using n using goal1 by(auto simp add:field_simps) finally show "dist x y < e" .
-    qed qed
-  { fix n m :: nat assume "m \<le> n" then have "{A n..B n} \<subseteq> {A m..B m}"
-    proof(induct rule: inc_induct)
-      case (step i) show ?case
+          also have "\<dots> \<le> (b \<bullet> i - a \<bullet> i) / 2 ^ Suc n"
+            using Suc by (auto simp add:field_simps)
+          finally show ?case .
+        qed
+      qed
+      also have "\<dots> < e"
+        using n using goal1 by (auto simp add:field_simps)
+      finally show "dist x y < e" .
+    qed
+  qed
+  {
+    fix n m :: nat
+    assume "m \<le> n"
+    then have "{A n..B n} \<subseteq> {A m..B m}"
+    proof (induct rule: inc_induct)
+      case (step i)
+      show ?case
         using AB(4) by (intro order_trans[OF step(2)] subset_interval_imp) auto
-    qed simp } note ABsubset = this
-  have "\<exists>a. \<forall>n. a\<in>{A n..B n}" apply(rule decreasing_closed_nest[rule_format,OF closed_interval _ ABsubset interv])
-  proof- fix n show "{A n..B n} \<noteq> {}" apply(cases "0<n") using AB(3)[of "n - 1"] assms(1,3) AB(1-2) by auto qed auto
-  then guess x0 .. note x0=this[rule_format]
-  show thesis proof(rule that[rule_format,of x0])
-    show "x0\<in>{a..b}" using x0[of 0] unfolding AB .
-    fix e assume "0 < (e::real)" from interv[OF this] guess n .. note n=this
+    qed simp
+  } note ABsubset = this
+  have "\<exists>a. \<forall>n. a\<in>{A n..B n}"
+    apply (rule decreasing_closed_nest[rule_format,OF closed_interval _ ABsubset interv])
+  proof -
+    fix n
+    show "{A n..B n} \<noteq> {}"
+      apply (cases "0 < n")
+      using AB(3)[of "n - 1"] assms(1,3) AB(1-2)
+      apply auto
+      done
+  qed auto
+  then obtain x0 where x0: "\<And>n. x0 \<in> {A n..B n}"
+    by blast
+  show thesis
+  proof (rule that[rule_format, of x0])
+    show "x0\<in>{a..b}"
+      using x0[of 0] unfolding AB .
+    fix e :: real
+    assume "e > 0"
+    from interv[OF this] obtain n
+      where n: "\<forall>x\<in>{A n..B n}. \<forall>y\<in>{A n..B n}. dist x y < e" ..
     show "\<exists>c d. x0 \<in> {c..d} \<and> {c..d} \<subseteq> ball x0 e \<and> {c..d} \<subseteq> {a..b} \<and> \<not> P {c..d}"
-      apply(rule_tac x="A n" in exI,rule_tac x="B n" in exI) apply(rule,rule x0) apply rule defer
-    proof show "\<not> P {A n..B n}" apply(cases "0<n") using AB(3)[of "n - 1"] assms(3) AB(1-2) by auto
-      show "{A n..B n} \<subseteq> ball x0 e" using n using x0[of n] by auto
-      show "{A n..B n} \<subseteq> {a..b}" unfolding AB(1-2)[symmetric] apply(rule ABsubset) by auto
-    qed qed qed
+      apply (rule_tac x="A n" in exI)
+      apply (rule_tac x="B n" in exI)
+      apply rule
+      apply (rule x0)
+      apply rule
+      defer
+      apply rule
+    proof -
+      show "\<not> P {A n..B n}"
+        apply (cases "0 < n")
+        using AB(3)[of "n - 1"] assms(3) AB(1-2)
+        apply auto
+        done
+      show "{A n..B n} \<subseteq> ball x0 e"
+        using n using x0[of n] by auto
+      show "{A n..B n} \<subseteq> {a..b}"
+        unfolding AB(1-2)[symmetric] by (rule ABsubset) auto
+    qed
+  qed
+qed
+
 
 subsection {* Cousin's lemma. *}
 
-lemma fine_division_exists: assumes "gauge g"
-  obtains p where "p tagged_division_of {a..b::'a::ordered_euclidean_space}" "g fine p"
-proof- presume "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p) \<Longrightarrow> False"
-  then guess p unfolding atomize_not not_not .. thus thesis apply-apply(rule that[of p]) by auto
-next assume as:"\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p)"
+lemma fine_division_exists:
+  fixes a b :: "'a::ordered_euclidean_space"
+  assumes "gauge g"
+  obtains p where "p tagged_division_of {a..b}" "g fine p"
+proof -
+  presume "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p) \<Longrightarrow> False"
+  then obtain p where "p tagged_division_of {a..b}" "g fine p" by blast
+  then show thesis ..
+next
+  assume as: "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p)"
   guess x apply(rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p",rule_format,OF _ _ as])
-    apply(rule_tac x="{}" in exI) defer apply(erule conjE exE)+
-  proof- show "{} tagged_division_of {} \<and> g fine {}" unfolding fine_def by auto
+    apply(rule_tac x="{}" in exI)
+    defer apply(erule conjE exE)+
+  proof -
+    show "{} tagged_division_of {} \<and> g fine {}" unfolding fine_def by auto
     fix s t p p' assume "p tagged_division_of s" "g fine p" "p' tagged_division_of t" "g fine p'" "interior s \<inter> interior t = {}"
-    thus "\<exists>p. p tagged_division_of s \<union> t \<and> g fine p" apply-apply(rule_tac x="p \<union> p'" in exI) apply rule
-      apply(rule tagged_division_union) prefer 4 apply(rule fine_union) by auto
+    then show "\<exists>p. p tagged_division_of s \<union> t \<and> g fine p"
+      apply -
+      apply (rule_tac x="p \<union> p'" in exI)
+      apply rule
+      apply (rule tagged_division_union)
+      prefer 4
+      apply (rule fine_union)
+      apply auto
+      done
   qed note x=this
-  obtain e where e:"e>0" "ball x e \<subseteq> g x" using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
+  obtain e where e:"e > 0" "ball x e \<subseteq> g x"
+    using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
   from x(2)[OF e(1)] guess c d apply-apply(erule exE conjE)+ . note c_d = this
-  have "g fine {(x, {c..d})}" unfolding fine_def using e using c_d(2) by auto
-  thus False using tagged_division_of_self[OF c_d(1)] using c_d by auto qed
+  have "g fine {(x, {c..d})}"
+    unfolding fine_def using e using c_d(2) by auto
+  then show False using tagged_division_of_self[OF c_d(1)] using c_d by auto
+qed
+
 
 subsection {* Basic theorems about integrals. *}
 
-lemma has_integral_unique: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
-  assumes "(f has_integral k1) i" "(f has_integral k2) i" shows "k1 = k2"
-proof(rule ccontr) let ?e = "norm(k1 - k2) / 2" assume as:"k1 \<noteq> k2" hence e:"?e > 0" by auto
+lemma has_integral_unique:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::real_normed_vector"
+  assumes "(f has_integral k1) i" and "(f has_integral k2) i"
+  shows "k1 = k2"
+proof (rule ccontr) let ?e = "norm(k1 - k2) / 2" assume as:"k1 \<noteq> k2" hence e:"?e > 0" by auto
   have lem:"\<And>f::'n \<Rightarrow> 'a.  \<And> a b k1 k2.
     (f has_integral k1) ({a..b}) \<Longrightarrow> (f has_integral k2) ({a..b}) \<Longrightarrow> k1 \<noteq> k2 \<Longrightarrow> False"
   proof- case goal1 let ?e = "norm(k1 - k2) / 2" from goal1(3) have e:"?e > 0" by auto
