@@ -95,7 +95,7 @@ exception Protocol_Message of Properties.T;
 structure Internal =
 struct
   val writeln_fn = Unsynchronized.ref physical_writeln;
-  val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
+  val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);  (*Proof General legacy*)
   val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
   val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### ");
   val error_fn = Unsynchronized.ref (fn (_: serial, s) => physical_writeln (prefix_lines "*** " s));
@@ -108,7 +108,7 @@ struct
 end;
 
 fun writeln s = ! Internal.writeln_fn (output s);
-fun urgent_message s = ! Internal.urgent_message_fn (output s);
+fun urgent_message s = ! Internal.urgent_message_fn (output s);  (*Proof General legacy*)
 fun tracing s = ! Internal.tracing_fn (output s);
 fun warning s = ! Internal.warning_fn (output s);
 fun error_msg' (i, s) = ! Internal.error_fn (i, output s);

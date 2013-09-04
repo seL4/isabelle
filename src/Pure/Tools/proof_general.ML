@@ -6,6 +6,8 @@ Isabelle/Isar configuration for Proof General / Emacs.
 See also http://proofgeneral.inf.ed.ac.uk
 *)
 
+(*Proof General legacy*)
+
 signature PROOF_GENERAL =
 sig
   type category = string

@@ -292,7 +292,7 @@ val _ = Theory.setup
       end));
 
 
-(* global master path *)
+(* global master path *)  (*Proof General legacy*)
 
 local
   val master_path = Unsynchronized.ref Path.current;
