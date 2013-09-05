@@ -47,10 +47,11 @@ object Main
             if (!(new JFile(isabelle_home)).isDirectory)
               error("Bad Isabelle home directory: " + quote(isabelle_home))
 
-            System.setProperty("cygwin.root", isabelle_home + "\\contrib\\cygwin")
+            val cygwin_root = isabelle_home + "\\contrib\\cygwin"
+            if ((new JFile(cygwin_root)).isDirectory)
+              System.setProperty("cygwin.root", cygwin_root)
 
-            val uninitialized_file =
-              new JFile(isabelle_home, "contrib\\cygwin\\isabelle\\uninitialized")
+            val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
             val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
 
             if (uninitialized) Some(isabelle_home) else None

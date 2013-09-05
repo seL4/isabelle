@@ -100,6 +100,8 @@ object Cygwin_Init
 
   private def init_filesystem(isabelle_home: String, echo: String => Unit)
   {
+    val cygwin_root = isabelle_home + "\\contrib\\cygwin"
+
     def execute(args: String*): Int =
     {
       val cwd = new JFile(isabelle_home)
@@ -125,7 +127,7 @@ object Cygwin_Init
     echo("symlinks ...")
     val symlinks =
     {
-      val path = (new JFile("contrib\\cygwin\\isabelle\\symlinks")).toPath
+      val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
       Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
     }
     @tailrec def recover_symlinks(list: List[String]): Unit =
@@ -148,10 +150,10 @@ object Cygwin_Init
     recover_symlinks(symlinks)
 
     echo("rebaseall ...")
-    execute("contrib\\cygwin\\bin\\dash.exe", "/isabelle/rebaseall")
+    execute(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
 
     echo("postinstall ...")
-    execute("contrib\\cygwin\\bin\\bash.exe", "/isabelle/postinstall")
+    execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
 
     echo("init ...")
     Isabelle_System.init()
