@@ -48,10 +48,11 @@ fun lookup_identifier symbol_of identifiers name =
   Code_Symbol.lookup identifiers (symbol_of name)
   |> Option.map (split_last o Long_Name.explode);
 
-fun force_identifier symbol_of fragments_tab identifiers name =
+fun force_identifier symbol_of fragments_tab force_module identifiers name =
   case lookup_identifier symbol_of identifiers name of
       NONE => (apfst (the o Symtab.lookup fragments_tab) o split_name) name
-    | SOME name' => name';
+    | SOME prefix_name => if null force_module then prefix_name
+        else (force_module, snd prefix_name);
 
 fun build_module_namespace { module_prefix, module_identifiers, reserved } program =
   let
@@ -79,7 +80,7 @@ fun flat_program ctxt symbol_of { module_prefix, module_name, reserved,
       else K (SOME module_name);
     val fragments_tab = build_module_namespace { module_prefix = module_prefix,
       module_identifiers = module_identifiers, reserved = reserved } program;
-    val prep_name = force_identifier symbol_of fragments_tab identifiers
+    val prep_name = force_identifier symbol_of fragments_tab (Long_Name.explode module_name) identifiers
       #>> Long_Name.implode;
 
     (* distribute statements over hierarchy *)
@@ -171,7 +172,7 @@ fun hierarchical_program ctxt symbol_of { module_name, reserved, identifiers, em
       else K (SOME module_name);
     val fragments_tab = build_module_namespace { module_prefix = "",
       module_identifiers = module_identifiers, reserved = reserved } program;
-    val prep_name = force_identifier symbol_of fragments_tab identifiers;
+    val prep_name = force_identifier symbol_of fragments_tab (Long_Name.explode module_name) identifiers;
 
     (* building empty module hierarchy *)
     val empty_module = (empty_data, Graph.empty);
