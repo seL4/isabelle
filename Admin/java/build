@@ -11,8 +11,8 @@ function fail()
 
 ## parameters
 
-VERSION="7u21"
-FULL_VERSION="1.7.0_21"
+VERSION="7u25"
+FULL_VERSION="1.7.0_25"
 
 ARCHIVE_LINUX32="jdk-${VERSION}-linux-i586.tar.gz"
 ARCHIVE_LINUX64="jdk-${VERSION}-linux-x64.tar.gz"
@@ -37,8 +37,6 @@ Code License Agreement for Java SE.
 
 Linux, Mac OS X, Windows work uniformly, depending on certain
 platform-specific subdirectories.
-
-Note that Java 1.7 on Mac OS X requires 64bit hardware!
 EOF
 
 
@@ -53,10 +51,10 @@ case "\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}" in
     echo "### Java 1.7 unavailable on 32bit Macintosh!" >&2
     ;;
   x86_64-darwin)
-    ISABELLE_JDK_HOME="\$COMPONENT/\$ISABELLE_PLATFORM64/jdk${FULL_VERSION}.jdk/Contents/Home"
+    ISABELLE_JDK_HOME="\$COMPONENT/\$ISABELLE_PLATFORM64/Contents/Home"
     ;;
   *)
-    ISABELLE_JDK_HOME="\$COMPONENT/\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}/jdk${FULL_VERSION}"
+    ISABELLE_JDK_HOME="\$COMPONENT/\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}"
     ;;
 esac
 
@@ -82,6 +80,18 @@ tar -C "$DIR/x86_64-linux" -xf "$ARCHIVE_LINUX64"
 tar -C "$DIR/x86_64-darwin" -xf "$ARCHIVE_DARWIN"
 tar -C "$DIR/x86-cygwin" -xf "$ARCHIVE_WINDOWS"
 
+(
+  cd "$DIR"
+  for PLATFORM in x86-linux x86_64-linux x86-cygwin
+  do
+    mv "$PLATFORM/jdk${FULL_VERSION}"/* "$PLATFORM"/.
+    rmdir "$PLATFORM/jdk${FULL_VERSION}"
+  done
+  PLATFORM=x86_64-darwin
+  mv "$PLATFORM/jdk${FULL_VERSION}.jdk"/* "$PLATFORM"/.
+  rmdir "$PLATFORM/jdk${FULL_VERSION}.jdk"
+)
+
 chgrp -R isabelle "$DIR"
 chmod -R a+r "$DIR"
 chmod -R a+X "$DIR"
@@ -90,13 +100,13 @@ find "$DIR/x86_64-darwin" -name "._*" -exec rm -f {} ";"
 
 echo "Sharing ..."
 (
-  cd "$DIR/x86-linux/jdk${FULL_VERSION}"
+  cd "$DIR/x86-linux"
   for FILE in $(find . -type f)
   do
     for OTHER in \
-      "../../x86_64-linux/jdk${FULL_VERSION}/$FILE" \
-      "../../x86_64-darwin/jdk${FULL_VERSION}.jdk/Contents/Home/$FILE" \
-      "../../x86-cygwin/jdk${FULL_VERSION}/$FILE"
+      "../../x86_64-linux/$FILE" \
+      "../../x86_64-darwin/Contents/Home/$FILE" \
+      "../../x86-cygwin/$FILE"
     do
       if cmp -s "$FILE" "$OTHER"
       then

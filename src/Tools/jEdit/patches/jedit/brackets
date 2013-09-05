@@ -1,5 +1,6 @@
---- 5.0.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2012-11-17 16:42:29.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2013-08-24 15:58:43.075546141 +0200
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/TextUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2013-07-28 19:03:24.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2013-09-05 10:51:09.996193290 +0200
 @@ -97,6 +97,22 @@
  		case '}': if (direction != null) direction[0] = false; return '{';
  		case '<': if (direction != null) direction[0] = true;  return '>';
