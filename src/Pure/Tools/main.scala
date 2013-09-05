@@ -47,6 +47,8 @@ object Main
             if (!(new JFile(isabelle_home)).isDirectory)
               error("Bad Isabelle home directory: " + quote(isabelle_home))
 
+            System.setProperty("cygwin.root", isabelle_home + "\\contrib\\cygwin")
+
             val uninitialized_file =
               new JFile(isabelle_home, "contrib\\cygwin\\isabelle\\uninitialized")
             val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
@@ -61,7 +63,6 @@ object Main
         }
       init_isabelle_home match {
         case Some(isabelle_home) =>
-          GUI.dialog(null, "Isabelle", GUI.scrollable_text("OK"))
           Swing_Thread.later { Cygwin_Init.main_frame(isabelle_home, start) }
         case None => start
       }
