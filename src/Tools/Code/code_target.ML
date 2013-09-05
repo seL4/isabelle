@@ -417,8 +417,9 @@ fun mount_serializer thy target some_width module_name args naming program names
 
 fun invoke_serializer thy target some_width module_name args naming program names =
   let
+    val check = if module_name = "" then I else check_name true;
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target some_width module_name args naming program names;
+      target some_width (check module_name) args naming program names;
   in mounted_serializer prepared_program end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
