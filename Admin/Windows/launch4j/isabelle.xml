@@ -20,11 +20,11 @@
     <cp>%EXEDIR%\lib\classes\ext\scala-swing.jar</cp>
   </classPath>
   <jre>
-    <path>%EXEDIR%\contrib\jdk-7u21\x86-cygwin\jdk1.7.0_21</path>
+    <path>%EXEDIR%\contrib\jdk\x86-cygwin</path>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
+    <opt>-Disabelle.home=&quot;%EXEDIR%&quot;</opt>
   </jre>
   <splash>
     <file>isabelle.bmp</file>
