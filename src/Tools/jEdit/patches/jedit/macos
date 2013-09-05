@@ -1,43 +1,13 @@
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/OperatingSystem.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/OperatingSystem.java	2012-11-17 16:42:29.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/OperatingSystem.java	2012-12-01 17:32:47.000000000 +0100
-@@ -318,6 +318,10 @@
- 			{
- 				os = WINDOWS_NT;
- 			}
-+			else if(osName.contains("Mac OS X"))
-+			{
-+				os = MAC_OS_X;
-+			}
- 			else if(osName.contains("VMS"))
- 			{
- 				os = VMS;
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/Debug.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/Debug.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/Debug.java     2012-11-17 16:42:29.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/Debug.java     2013-01-04 20:00:25.698332853 +0100
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/Debug.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/Debug.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/Debug.java	2013-07-28 19:03:49.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/Debug.java	2013-09-05 10:55:36.388181955 +0200
 @@ -109,7 +109,7 @@
-         * used to handle a modifier key press in conjunction with an alphabet
-         * key. <b>On by default on MacOS.</b>
-         */
--       public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS();
-+       public static boolean ALTERNATIVE_DISPATCHER = false;
+ 	 * used to handle a modifier key press in conjunction with an alphabet
+ 	 * key. <b>On by default on MacOS.</b>
+ 	 */
+-	public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS();
++	public static boolean ALTERNATIVE_DISPATCHER = false;
  
-        /**
-         * If true, A+ shortcuts are disabled. If you use this, you should also
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java 5.0.0/jEdit-patched/org/gjt/sp/jed
-it/gui/KeyEventWorkaround.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java    2012-11-17 16:41:58.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventWorkaround.java    2013-01-04 20:04:43.02632209
-2 +0100
-@@ -297,8 +297,8 @@
- 
-                        if(!Debug.ALTERNATIVE_DISPATCHER)
-                        {
--                               if(((modifiers & InputEvent.CTRL_MASK) != 0
--                                       ^ (modifiers & InputEvent.ALT_MASK) != 0)
-+                               if((modifiers & InputEvent.CTRL_MASK) != 0 && (modifiers & InputEvent.ALT_MASK) == 0
-+                                       || (modifiers & InputEvent.CTRL_MASK) == 0 && (modifiers & InputEvent.ALT_MASK) != 0 && !Debug.ALT_KEY_PRESSED_DISABLED
-                                        || (modifiers & InputEvent.META_MASK) != 0)
-                                {
-                                        return null;
+ 	/**
+ 	 * If true, A+ shortcuts are disabled. If you use this, you should also
 

@@ -221,6 +221,7 @@ JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
 )
 
 declare -a JFREECHART_JARS=()
