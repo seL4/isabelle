@@ -52,8 +52,11 @@ object Cygwin_Init
     {
       _return_code match {
         case None =>
-        case Some(0) => start
-        case Some(rc) => sys.exit(rc)
+        case Some(0) =>
+          visible = false
+          default_thread_pool.submit(() => start)
+        case Some(rc) =>
+          sys.exit(rc)
       }
     }
 
