@@ -48,7 +48,7 @@ mkdir "$TMP" || fail "Cannot create directory $TMP"
 
 ISABELLE_TARGET="$TMP/$ISABELLE_NAME"
 
-tar -C "$TMP" -x -z -f "$ARCHIVE"
+tar -C "$TMP" -x -z -f "$ARCHIVE" || exit 2
 
 
 # bundled components
@@ -83,10 +83,18 @@ do
                   perl -e "exit((stat('${CONTRIB}'))[7] == 0 ? 0 : 1);" && exit 2
                 fi
 
-                tar -C "$ISABELLE_TARGET/contrib" -x -z -f "$CONTRIB"
+                tar -C "$ISABELLE_TARGET/contrib" -x -z -f "$CONTRIB" || exit 2
                 if [ -f "$COMPONENT_DIR/etc/settings" -o -f "$COMPONENT_DIR/etc/components" ]
                 then
-                  echo "contrib/$COMPONENT" >> "$ISABELLE_TARGET/etc/components"
+                  case "$COMPONENT" in
+                    jdk-*)
+                      mv "$ISABELLE_TARGET/contrib/$COMPONENT" "$ISABELLE_TARGET/contrib/jdk"
+                      echo "contrib/jdk" >> "$ISABELLE_TARGET/etc/components"
+                      ;;
+                    *)
+                      echo "contrib/$COMPONENT" >> "$ISABELLE_TARGET/etc/components"
+                      ;;
+                  esac
                 fi
                 ;;
             esac
@@ -202,7 +210,7 @@ then
         cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
         cp "$APP_TEMPLATE/../isabelle.icns" "$APP/Contents/Resources/."
 
-        ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk-7u21/x86_64-darwin/jdk1.7.0_21.jdk" \
+        ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk/x86_64-darwin" \
           "$APP/Contents/PlugIns/jdk"
 
         cp macos_app/JavaAppLauncher "$APP/Contents/MacOS/." && \
