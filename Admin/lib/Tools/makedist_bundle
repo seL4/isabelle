@@ -162,6 +162,8 @@ case "$PLATFORM_FAMILY" in
 
       find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" \
         > "contrib/cygwin/isabelle/symlinks"
+
+      touch "contrib/cygwin/isabelle/uninitialized"
     )
 
     perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
