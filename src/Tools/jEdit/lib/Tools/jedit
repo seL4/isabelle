@@ -330,23 +330,6 @@ popd >/dev/null
 ## main
 
 if [ "$BUILD_ONLY" = false ]; then
-  mkdir -p "$JEDIT_SETTINGS/DockableWindowManager"
-
-  if [ ! -e "$JEDIT_SETTINGS/perspective.xml" ]; then
-    cat > "$JEDIT_SETTINGS/DockableWindowManager/perspective-view0.xml" <<EOF
-<DOCKING LEFT="" TOP="" RIGHT="" BOTTOM="isabelle-readme" LEFT_POS="0" TOP_POS="0" RIGHT_POS="250" BOTTOM_POS="250" />
-EOF
-  cat > "$JEDIT_SETTINGS/perspective.xml" <<EOF
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE PERSPECTIVE SYSTEM "perspective.dtd">
-<PERSPECTIVE>
-<VIEW PLAIN="FALSE">
-<GEOMETRY X="0" Y="35" WIDTH="1072" HEIGHT="787" EXT_STATE="0" />
-</VIEW>
-</PERSPECTIVE>
-EOF
-  fi
-
   if [ "$NO_BUILD" = false ]; then
     "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}"
     RC="$?"
