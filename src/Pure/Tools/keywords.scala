@@ -4,6 +4,8 @@
 Generate keyword files for Emacs Proof General.
 */
 
+/*Proof General legacy*/
+
 package isabelle
 
 
