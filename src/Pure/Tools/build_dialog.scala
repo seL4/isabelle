@@ -16,6 +16,8 @@ import scala.swing.event.ButtonClicked
 
 object Build_Dialog
 {
+  /* command line entry point */
+
   def main(args: Array[String]) =
   {
     GUI.init_laf()
@@ -26,26 +28,15 @@ object Build_Dialog
           logic ::
           Properties.Value.Boolean(system_mode) ::
           include_dirs =>
-            val more_dirs = include_dirs.map(s => ((false, Path.explode(s))))
-
             val options = Options.init()
+            val dirs = include_dirs.map(Path.explode(_))
             val session =
               Isabelle_System.default_logic(logic,
                 if (logic_option != "") options.string(logic_option) else "")
 
-            if (Build.build(options = options, build_heap = true, no_build = true,
-                more_dirs = more_dirs, sessions = List(session)) == 0) sys.exit(0)
-            else
-              Swing_Thread.later {
-                val top = build_dialog(options, system_mode, more_dirs, session)
-                top.pack()
+            if (!dialog(options, system_mode, dirs, session, (rc: Int) => sys.exit(rc)))
+              sys.exit(0)
 
-                val point = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
-                top.location =
-                  new Point(point.x - top.size.width / 2, point.y - top.size.height / 2)
-
-                top.visible = true
-              }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
@@ -57,11 +48,36 @@ object Build_Dialog
   }
 
 
+  /* dialog */
+
+  def dialog(options: Options, system_mode: Boolean, dirs: List[Path], session: String,
+    continue: Int => Unit): Boolean =
+  {
+    val more_dirs = dirs.map((false, _))
+
+    if (Build.build(options = options, build_heap = true, no_build = true,
+        more_dirs = more_dirs, sessions = List(session)) == 0) false
+    else {
+      Swing_Thread.later {
+        val top = build_dialog(options, system_mode, more_dirs, session, continue)
+        top.pack()
+
+        val point = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
+        top.location =
+          new Point(point.x - top.size.width / 2, point.y - top.size.height / 2)
+
+        top.visible = true
+      }
+      true
+    }
+  }
+
   def build_dialog(
     options: Options,
     system_mode: Boolean,
     more_dirs: List[(Boolean, Path)],
-    session: String): MainFrame = new MainFrame
+    session: String,
+    continue: Int => Unit): MainFrame = new MainFrame
   {
     iconImage = GUI.isabelle_image()
 
@@ -71,7 +87,8 @@ object Build_Dialog
     @volatile private var is_stopped = false
     private var return_code = 2
 
-    override def closeOperation { sys.exit(return_code) }
+    def close(rc: Int) { visible = false; continue(rc) }
+    override def closeOperation { close(return_code) }
 
 
     /* text */
@@ -120,7 +137,8 @@ object Build_Dialog
     /* actions */
 
     var do_auto_close = true
-    def check_auto_close(): Unit = if (do_auto_close && return_code == 0) sys.exit(return_code)
+    def check_auto_close(): Unit =
+      if (do_auto_close && return_code == 0) close(return_code)
 
     val auto_close = new CheckBox("Auto close") {
       reactions += {
@@ -151,7 +169,7 @@ object Build_Dialog
         check_auto_close()
         val button =
           new Button(if (return_code == 0) "OK" else "Exit") {
-            reactions += { case ButtonClicked(_) => sys.exit(return_code) }
+            reactions += { case ButtonClicked(_) => close(return_code) }
           }
         set_actions(button)
         button.peer.getRootPane.setDefaultButton(button.peer)

@@ -7,24 +7,59 @@ Main Isabelle application entry point.
 package isabelle
 
 
+import javax.swing.SwingUtilities
 import java.lang.{System, ClassLoader}
 import java.io.{File => JFile}
 
 
 object Main
 {
+  /* auxiliary dialogs */
+
   private def exit_error(exn: Throwable): Nothing =
   {
     GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
     sys.exit(2)
   }
 
+  private def continue(body: => Unit)(rc: Int)
+  {
+    if (rc != 0) sys.exit(rc)
+    else if (SwingUtilities.isEventDispatchThread())
+      Simple_Thread.fork("Isabelle") { body }
+    else body
+  }
 
-  /** main entry point **/
+  private def build_dialog(cont: Int => Unit)
+  {
+    try {
+      GUI.init_laf()
+      Isabelle_System.init()
+
+      val mode = Isabelle_System.getenv("JEDIT_BUILD_MODE")
+      if (mode == "none") cont(0)
+      else {
+        val system_mode = mode == "" || mode == "system"
+        val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+        val options = Options.init()
+        val session = Isabelle_System.default_logic(
+          Isabelle_System.getenv("JEDIT_LOGIC"),
+          options.string("jedit_logic"))
+
+        if (!Build_Dialog.dialog(options, system_mode, dirs, session, cont))
+          cont(0)
+      }
+    }
+    catch { case exn: Throwable => exit_error(exn) }
+  }
+
+
+  /* main entry point */
 
   def main(args: Array[String])
   {
     def start { start_jedit(ClassLoader.getSystemClassLoader, args) }
+    def build { build_dialog(continue(start)) }
 
     if (Platform.is_windows) {
       val init_isabelle_home =
@@ -55,16 +90,15 @@ object Main
 
       init_isabelle_home match {
         case Some(isabelle_home) =>
-          Swing_Thread.later { Cygwin_Init.main_frame(isabelle_home, start) }
-        case None => start
+          Swing_Thread.later { Cygwin_Init.main_frame(isabelle_home, continue(build)) }
+        case None => build
       }
     }
-    else start
+    else build
   }
 
 
-
-  /** warm start of Isabelle/jEdit **/
+  /* warm start of Isabelle/jEdit */
 
   def start_jedit(loader: ClassLoader, args: Array[String])
   {

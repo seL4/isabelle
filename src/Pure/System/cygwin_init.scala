@@ -22,7 +22,7 @@ object Cygwin_Init
 {
   /* main GUI entry point */
 
-  def main_frame(isabelle_home: String, start: => Unit) = new MainFrame
+  def main_frame(isabelle_home: String, continue: Int => Unit) = new MainFrame
   {
     title = "Isabelle system initialization"
     iconImage = new ImageIcon(isabelle_home + "\\lib\\logo\\isabelle.gif").getImage
@@ -52,11 +52,9 @@ object Cygwin_Init
     {
       _return_code match {
         case None =>
-        case Some(0) =>
-          visible = false
-          Simple_Thread.fork("Isabelle") { start }
         case Some(rc) =>
-          sys.exit(rc)
+          visible = false
+          continue(rc)
       }
     }
 

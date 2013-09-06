@@ -108,14 +108,12 @@ function failed()
 
 # options
 
-declare -a BUILD_DIALOG_OPTIONS=(-L jedit_logic)
-
 BUILD_ONLY=false
 BUILD_JARS="jars"
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
-NO_BUILD="false"
+JEDIT_BUILD_MODE="normal"
 
 function getoptions()
 {
@@ -135,8 +133,6 @@ function getoptions()
         else
           JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
         fi
-        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-d"
-        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="$OPTARG"
         ;;
       f)
         BUILD_JARS="jars_fresh"
@@ -145,8 +141,6 @@ function getoptions()
         ARGS["${#ARGS[@]}"]="$OPTARG"
         ;;
       l)
-        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-l"
-        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="$OPTARG"
         JEDIT_LOGIC="$OPTARG"
         ;;
       m)
@@ -157,10 +151,10 @@ function getoptions()
         fi
         ;;
       n)
-        NO_BUILD="true"
+        JEDIT_BUILD_MODE="none"
         ;;
       s)
-        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-s"
+        JEDIT_BUILD_MODE="system"
         ;;
       \?)
         usage
@@ -320,13 +314,7 @@ popd >/dev/null
 ## main
 
 if [ "$BUILD_ONLY" = false ]; then
-  if [ "$NO_BUILD" = false ]; then
-    "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}"
-    RC="$?"
-    [ "$RC" = 0 ] || exit "$RC"
-  fi
-
-  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE
+  export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
     -classpath "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" isabelle.Main "${ARGS[@]}"
