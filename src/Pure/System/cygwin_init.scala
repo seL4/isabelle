@@ -54,7 +54,7 @@ object Cygwin_Init
         case None =>
         case Some(0) =>
           visible = false
-          default_thread_pool.submit(() => start)
+          Simple_Thread.fork("Isabelle") { start }
         case Some(rc) =>
           sys.exit(rc)
       }
