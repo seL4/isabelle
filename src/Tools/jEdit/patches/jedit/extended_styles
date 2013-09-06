@@ -1,6 +1,6 @@
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2012-11-17 16:41:58.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2012-12-01 17:34:47.000000000 +0100
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2013-07-28 19:03:38.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/gui/StyleEditor.java	2013-09-05 10:51:29.192192327 +0200
 @@ -79,7 +79,7 @@
  			start = next;
  			token = token.next;
@@ -10,9 +10,9 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java 5.0.0/jEdit-patched/o
  		{
  			JOptionPane.showMessageDialog(textArea.getView(),
  				jEdit.getProperty("syntax-style-no-token.message"),
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2012-11-17 16:42:25.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2012-12-01 18:28:35.000000000 +0100
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2013-07-28 19:03:51.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Chunk.java	2013-09-05 10:51:29.192192327 +0200
 @@ -256,9 +256,9 @@
  	//{{{ Package private members
  
@@ -34,9 +34,9 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java 5.0.0/jEdit-patched/org/
  	private GlyphVector[] glyphs;
  	//}}}
  
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2012-11-17 16:42:25.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2012-12-01 17:37:04.000000000 +0100
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/syntax/Token.java	2013-07-28 19:03:51.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2013-09-05 10:51:29.192192327 +0200
 @@ -57,7 +57,7 @@
  	 */
  	public static String tokenToString(byte token)
@@ -46,9 +46,9 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/syntax/Token.java 5.0.0/jEdit-patched/org/
  	} //}}}
  
  	//{{{ Token types
-diff -ru 5.0.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.0.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
---- 5.0.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2012-11-17 16:42:30.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2012-12-01 17:40:33.000000000 +0100
+diff -ru 5.1.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- 5.1.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2013-07-28 19:03:53.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2013-09-05 10:51:29.192192327 +0200
 @@ -194,7 +194,24 @@
  	{
  		return loadStyles(family,size,true);
@@ -88,10 +88,10 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java 5.0.0/jEdit-patched/or
 +
  	private SyntaxUtilities(){}
  }
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2012-11-17 16:41:43.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2012-12-01 17:28:12.000000000 +0100
-@@ -906,6 +906,11 @@
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2013-07-28 19:03:32.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2013-09-05 10:51:29.196192309 +0200
+@@ -907,6 +907,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
  
@@ -103,4 +103,3 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.0.0/jEdit-patched
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-

@@ -101,7 +101,7 @@ Isabelle/jEdit plugin instead of SideKick.
 
   - Light-weight popup, which avoids explicit window (more reactive
     and more robust).  Interpreted key events include TAB, ESCAPE, UP,
-    DOWN, PAGE_UP, PAGE_DOWN.  Uninterpreted key events are passed to
+    DOWN, PAGE_UP, PAGE_DOWN.  All other key events are passed to
     the jEdit text area.
 
   - Explicit completion via standard jEdit shortcut C+b, which has

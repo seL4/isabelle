@@ -247,7 +247,9 @@ object Symbol
         })._1
 
 
-    /* misc properties */
+    /* basic properties */
+
+    val properties: Map[Symbol, Properties.T] = Map(symbols: _*)
 
     val names: Map[Symbol, String] =
     {
@@ -381,6 +383,7 @@ object Symbol
 
   /* tables */
 
+  def properties: Map[Symbol, Properties.T] = symbols.properties
   def names: Map[Symbol, String] = symbols.names
   def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Multi_Map[Symbol, String] = symbols.abbrevs

@@ -548,9 +548,9 @@ fun simproc ctxt redex =
         fun check (i, case_t) s =
           (case strip_abs_body case_t of
             (Const (@{const_name List.Nil}, _)) => s
-          | _ => (case s of NONE => SOME i | SOME _ => NONE))
+          | _ => (case s of SOME NONE => SOME (SOME i) | _ => NONE))
       in
-        fold_index check cases NONE
+        fold_index check cases (SOME NONE) |> the_default NONE
       end
     (* returns (case_expr type index chosen_case) option  *)
     fun dest_case case_term =

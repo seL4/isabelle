@@ -225,10 +225,10 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 (** toplevel transitions **)
 
-val quiet = Unsynchronized.ref false;
+val quiet = Unsynchronized.ref false;  (*Proof General legacy*)
 val debug = Runtime.debug;
-val interact = Unsynchronized.ref false;
-val timing = Unsynchronized.ref false;
+val interact = Unsynchronized.ref false;  (*Proof General legacy*)
+val timing = Unsynchronized.ref false;  (*Proof General legacy*)
 val profiling = Unsynchronized.ref 0;
 
 fun program body =
@@ -327,7 +327,7 @@ end;
 datatype transition = Transition of
  {name: string,              (*command name*)
   pos: Position.T,           (*source position*)
-  int_only: bool,            (*interactive-only*)
+  int_only: bool,            (*interactive-only*)  (* TTY / Proof General legacy*)
   print: bool,               (*print result state*)
   timing: Time.time option,  (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
@@ -556,10 +556,12 @@ fun actual_proof f = transaction (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
+(*Proof General legacy*)
 fun skip_proof f = transaction (fn _ =>
   (fn Skipped_Proof (h, x) => Skipped_Proof (f h, x)
     | _ => raise UNDEF));
 
+(*Proof General legacy*)
 fun skip_proof_to_theory pred = transaction (fn _ =>
   (fn Skipped_Proof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
     | _ => raise UNDEF));

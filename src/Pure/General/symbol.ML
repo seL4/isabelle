@@ -113,6 +113,7 @@ fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
+(*Proof General legacy*)
 val sync = "\\<^sync>";
 fun is_sync s = s = sync;
 
@@ -424,7 +425,7 @@ fun implode_pseudo_utf8 (cs as ["\192", c]) =
 val scan_encoded_newline =
   $$ "\^M" -- $$ "\n" >> K "\n" ||
   $$ "\^M" >> K "\n" ||
-  Scan.this_string "\\<^newline>" >> K "\n";
+  Scan.this_string "\\<^newline>" >> K "\n";  (*Proof General legacy*)
 
 val scan_raw =
   Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||

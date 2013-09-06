@@ -7,7 +7,6 @@ Initialize Isabelle distribution after extracting via 7zip.
 package isabelle
 
 
-import java.lang.System
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 import java.nio.file.{Paths, Files}
 import java.awt.{GraphicsEnvironment, Point, Font}
@@ -21,33 +20,9 @@ import scala.swing.event.ButtonClicked
 
 object Cygwin_Init
 {
-  /* command-line entry point */
+  /* main GUI entry point */
 
-  def main(args: Array[String]) =
-  {
-    GUI.init_laf()
-    try {
-      require(Platform.is_windows)
-
-      val isabelle_home = System.getProperty("isabelle.home")
-      if (isabelle_home == null || isabelle_home == "")
-        error("Unknown Isabelle home directory")
-      if (!(new JFile(isabelle_home)).isDirectory)
-        error("Bad Isabelle home directory: " + quote(isabelle_home))
-
-      Swing_Thread.later { main_frame(isabelle_home) }
-    }
-    catch {
-      case exn: Throwable =>
-        GUI.error_dialog(null, "Isabelle init failure", GUI.scrollable_text(Exn.message(exn)))
-        sys.exit(2)
-    }
-  }
-
-
-  /* main window */
-
-  private def main_frame(isabelle_home: String) = new MainFrame
+  def main_frame(isabelle_home: String, start: => Unit) = new MainFrame
   {
     title = "Isabelle system initialization"
     iconImage = new ImageIcon(isabelle_home + "\\lib\\logo\\isabelle.gif").getImage
@@ -73,7 +48,17 @@ object Cygwin_Init
     /* exit button */
 
     var _return_code: Option[Int] = None
-    def maybe_exit(): Unit = _return_code.foreach(sys.exit(_))
+    def maybe_exit()
+    {
+      _return_code match {
+        case None =>
+        case Some(0) =>
+          visible = false
+          default_thread_pool.submit(() => start)
+        case Some(rc) =>
+          sys.exit(rc)
+      }
+    }
 
     def return_code(rc: Int): Unit =
       Swing_Thread.later {
@@ -102,7 +87,7 @@ object Cygwin_Init
 
     default_thread_pool.submit(() =>
       try {
-        init(isabelle_home, echo)
+        init_filesystem(isabelle_home, echo)
         return_code(0)
       }
       catch {
@@ -116,12 +101,9 @@ object Cygwin_Init
 
   /* init Cygwin file-system */
 
-  private def init(isabelle_home: String, echo: String => Unit)
+  private def init_filesystem(isabelle_home: String, echo: String => Unit)
   {
     val cygwin_root = isabelle_home + "\\contrib\\cygwin"
-
-    if (!(new JFile(cygwin_root)).isDirectory)
-      error("Bad Isabelle Cygwin directory: " + quote(cygwin_root))
 
     def execute(args: String*): Int =
     {
@@ -148,7 +130,7 @@ object Cygwin_Init
     echo("symlinks ...")
     val symlinks =
     {
-      val path = (new JFile(cygwin_root, "isabelle\\symlinks")).toPath
+      val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
       Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
     }
     @tailrec def recover_symlinks(list: List[String]): Unit =
@@ -177,7 +159,6 @@ object Cygwin_Init
     execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
 
     echo("init ...")
-    System.setProperty("cygwin.root", cygwin_root)
     Isabelle_System.init()
     echo("OK")
   }

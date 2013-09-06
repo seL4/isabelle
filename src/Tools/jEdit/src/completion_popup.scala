@@ -155,21 +155,21 @@ object Completion_Popup
       if (PIDE.options.bool("jedit_completion")) {
         if (!evt.isConsumed) {
           dismissed()
+          if (evt.getKeyChar != '\b') {
+            val mod = evt.getModifiers
+            val special =
+              // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+              (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
+              (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
+                !Debug.ALT_KEY_PRESSED_DISABLED ||
+              (mod & InputEvent.META_MASK) != 0
 
-          val mod = evt.getModifiers
-          val special =
-            evt.getKeyChar == '\b' ||
-            // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
-            (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
-            (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
-              !Debug.ALT_KEY_PRESSED_DISABLED ||
-            (mod & InputEvent.META_MASK) != 0
-
-          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
-            input_delay.revoke()
-            action(immediate = PIDE.options.bool("jedit_completion_immediate"))
+            if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+              input_delay.revoke()
+              action(immediate = PIDE.options.bool("jedit_completion_immediate"))
+            }
+            else input_delay.invoke()
           }
-          else input_delay.invoke()
         }
       }
     }
@@ -225,7 +225,9 @@ class Completion_Popup private(
   completion =>
 
   Swing_Thread.require()
+
   require(!items.isEmpty)
+  val multi = items.length > 1
 
 
   /* actions */
@@ -243,6 +245,11 @@ class Completion_Popup private(
   list_view.peer.setFocusTraversalKeysEnabled(false)
   list_view.peer.setVisibleRowCount(items.length min 8)
   list_view.peer.setSelectedIndex(0)
+
+  for (cond <-
+    List(JComponent.WHEN_FOCUSED,
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      JComponent.WHEN_IN_FOCUSED_WINDOW)) list_view.peer.setInputMap(cond, null)
 
   private def complete_selected(): Boolean =
   {
@@ -283,10 +290,18 @@ class Completion_Popup private(
               case KeyEvent.VK_ESCAPE =>
                 hide_popup()
                 e.consume
-              case KeyEvent.VK_UP => move_items(-1); e.consume
-              case KeyEvent.VK_DOWN => move_items(1); e.consume
-              case KeyEvent.VK_PAGE_UP => move_pages(-1); e.consume
-              case KeyEvent.VK_PAGE_DOWN => move_pages(1); e.consume
+              case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
+                move_items(-1)
+                e.consume
+              case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
+                move_items(1)
+                e.consume
+              case KeyEvent.VK_PAGE_UP if multi =>
+                move_pages(-1)
+                e.consume
+              case KeyEvent.VK_PAGE_DOWN if multi =>
+                move_pages(1)
+                e.consume
               case _ =>
                 if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                   hide_popup()

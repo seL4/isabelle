@@ -5,6 +5,8 @@
 Proof General setup within theory Pure.
 *)
 
+(*Proof General legacy*)
+
 structure ProofGeneral_Pure: sig end =
 struct
 

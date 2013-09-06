@@ -34,8 +34,8 @@ lemma mem_convex_2:
   using assms convex_def[of S] by auto
 
 lemma mem_convex_alt:
-  assumes "convex S" "x : S" "y : S" "u>=0" "v>=0" "u+v>0"
-  shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) : S"
+  assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v > 0"
+  shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) \<in> S"
   apply (subst mem_convex_2)
   using assms
   apply (auto simp add: algebra_simps zero_le_divide_iff)
@@ -74,20 +74,20 @@ lemma dim_image_eq:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
     and fi: "inj_on f (span S)"
-  shows "dim (f ` S) = dim (S:: 'n::euclidean_space set)"
+  shows "dim (f ` S) = dim (S::'n::euclidean_space set)"
 proof -
-  obtain B where B_def: "B \<subseteq> S \<and> independent B \<and> S \<subseteq> span B \<and> card B = dim S"
+  obtain B where B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S"
     using basis_exists[of S] by auto
   then have "span S = span B"
     using span_mono[of B S] span_mono[of S "span B"] span_span[of B] by auto
   then have "independent (f ` B)"
-    using independent_injective_on_span_image[of B f] B_def assms by auto
+    using independent_injective_on_span_image[of B f] B assms by auto
   moreover have "card (f ` B) = card B"
-    using assms card_image[of f B] subset_inj_on[of f "span S" B] B_def span_inc by auto
+    using assms card_image[of f B] subset_inj_on[of f "span S" B] B span_inc by auto
   moreover have "(f ` B) \<subseteq> (f ` S)"
-    using B_def by auto
+    using B by auto
   ultimately have "dim (f ` S) \<ge> dim S"
-    using independent_card_le_dim[of "f ` B" "f ` S"] B_def by auto
+    using independent_card_le_dim[of "f ` B" "f ` S"] B by auto
   then show ?thesis
     using dim_image_le[of f S] assms by auto
 qed
@@ -220,8 +220,6 @@ lemma basis_to_basis_subspace_isomorphism:
     and C: "C \<subseteq> T" "independent C" "T \<subseteq> span C" "card C = dim T"
   shows "\<exists>f. linear f \<and> f ` B = C \<and> f ` S = T \<and> inj_on f S"
 proof -
-(* Proof is a modified copy of the proof of similar lemma subspace_isomorphism
-*)
   from B independent_bound have fB: "finite B"
     by blast
   from C independent_bound have fC: "finite C"
@@ -292,9 +290,6 @@ proof -
     using image_compose[of f f' "closure (f ` S)"] f'_def by auto
   then show ?thesis using closure_linear_image[of f S] assms by auto
 qed
-
-lemma closure_direct_sum: "closure (S \<times> T) = closure S \<times> closure T"
-  by (rule closure_Times)
 
 lemma closure_scaleR:
   fixes S :: "'a::real_normed_vector set"
@@ -367,7 +362,7 @@ proof -
     by (auto simp add:norm_minus_commute)
 qed
 
-lemma norm_minus_eqI:"x = - y \<Longrightarrow> norm x = norm y" by auto
+lemma norm_minus_eqI: "x = - y \<Longrightarrow> norm x = norm y" by auto
 
 lemma Min_grI:
   assumes "finite A" "A \<noteq> {}" "\<forall>a\<in>A. x < a"
@@ -8668,7 +8663,7 @@ proof-
   have "(closure S) + (closure T) = (\<lambda>(x,y). x + y) ` (closure S \<times> closure T)"
     by (simp add: set_plus_image)
   also have "... = (\<lambda>(x,y). x + y) ` closure (S \<times> T)"
-    using closure_direct_sum by auto
+    using closure_Times by auto
   also have "... \<subseteq> closure (S + T)"
     using fst_snd_linear closure_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
     by (auto simp: set_plus_image)

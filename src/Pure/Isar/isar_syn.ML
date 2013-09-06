@@ -743,6 +743,7 @@ val opt_modes =
 
 val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
 
+(*Proof General legacy*)
 val _ =
   Outer_Syntax.improper_command @{command_spec "pretty_setmargin"}
     "change default margin for pretty printing"
@@ -958,7 +959,7 @@ val _ =
     "kill theory -- try to remove from loader database"
     (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
 
-val _ =
+val _ = (*partial Proof General legacy*)
   Outer_Syntax.improper_command @{command_spec "display_drafts"}
     "display raw source files with symbols"
     (Scan.repeat1 Parse.path >> (fn names =>
@@ -971,7 +972,7 @@ val _ =
       Toplevel.keep (fn state =>
         Print_Mode.with_modes modes (Toplevel.print_state true) state)));
 
-val _ = (*historical, e.g. for ProofGeneral-3.7.x*)
+val _ = (*Proof General legacy, e.g. for ProofGeneral-3.7.x*)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
       Toplevel.keep (fn state =>
@@ -980,12 +981,12 @@ val _ = (*historical, e.g. for ProofGeneral-3.7.x*)
         Toplevel.quiet := false;
         Print_Mode.with_modes modes (Toplevel.print_state true) state))));
 
-val _ =
+val _ = (*Proof General legacy*)
   Outer_Syntax.improper_command @{command_spec "disable_pr"}
     "disable printing of toplevel state"
     (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := true)));
 
-val _ =
+val _ = (*Proof General legacy*)
   Outer_Syntax.improper_command @{command_spec "enable_pr"}
     "enable printing of toplevel state"
     (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := false)));

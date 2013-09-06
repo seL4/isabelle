@@ -6,6 +6,8 @@
 Central manager for asynchronous diagnosis tool threads.
 *)
 
+(*Proof General legacy*)
+
 signature ASYNC_MANAGER =
 sig
   val break_into_chunks : string -> string list
