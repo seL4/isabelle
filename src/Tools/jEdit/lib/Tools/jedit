@@ -171,7 +171,6 @@ function getoptions()
 }
 
 declare -a JAVA_ARGS; eval "JAVA_ARGS=($JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
-[ -n "$SCALA_HOME" ] && JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Dscala.home=$SCALA_HOME"
 
 declare -a ARGS; eval "ARGS=($JEDIT_OPTIONS)"
 

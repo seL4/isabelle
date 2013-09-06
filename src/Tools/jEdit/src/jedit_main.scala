@@ -59,6 +59,9 @@ object JEdit_Main
     System.setProperty("jedit.home",
       Isabelle_System.platform_path(Path.explode("$JEDIT_HOME/dist")))
 
+    System.setProperty("scala.home",
+      Isabelle_System.platform_path(Path.explode("$SCALA_HOME")))
+
     jEdit.main(jedit_options ++ jedit_settings ++ more_args)
   }
 }
