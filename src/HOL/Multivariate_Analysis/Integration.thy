@@ -2656,7 +2656,6 @@ proof -
       using goal1(2) B
       apply auto
       done
-      thm has_integralD[OF goal1(1) *]
     obtain g where g:
       "gauge g"
       "\<And>p. p tagged_division_of {a..b} \<Longrightarrow> g fine p \<Longrightarrow>
