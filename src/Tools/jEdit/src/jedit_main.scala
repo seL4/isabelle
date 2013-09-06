@@ -20,14 +20,21 @@ object JEdit_Main
     GUI.init_laf()
     Isabelle_System.init()
 
+    val file_args =
+      if (args.isEmpty)
+        Array(Isabelle_System.platform_path(Path.explode("$USER_HOME/Scratch.thy")))
+      else args
+
+    val jedit_options =
+      Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
+
+    val jedit_settings =
+      Array("-settings=" + Isabelle_System.platform_path(Path.explode("$JEDIT_SETTINGS")))
+
     System.setProperty("jedit.home",
       Isabelle_System.platform_path(Path.explode("$JEDIT_HOME/dist")))
 
-    // FIXME properties from JEDIT_JAVA_OPTIONS JEDIT_SYSTEM_OPTIONS
-    val jedit_options = Isabelle_System.getenv_strict("JEDIT_OPTIONS").split(" +")
-    val jedit_settings =
-      Array("-settings=" + Isabelle_System.platform_path(Path.explode("$JEDIT_SETTINGS")))
-    jEdit.main(jedit_options ++ jedit_settings ++ args)
+    jEdit.main(jedit_options ++ jedit_settings ++ file_args)
   }
 }
 

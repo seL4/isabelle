@@ -214,15 +214,23 @@ pushd "$JEDIT_HOME" >/dev/null || failed
 JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
 
 JEDIT_JARS=(
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
+  "Console.jar"
+  "ErrorList.jar"
+  "Highlight.jar"
+  "SideKick.jar"
+  "cobra.jar"
+  "js.jar"
+  "idea-icons.jar"
+  "jsr305-2.0.0.jar"
 )
+
+declare -a JEDIT_BUILD_JARS=()
+declare -a JEDIT_STARTUP_JARS=()
+for NAME in "${JEDIT_JARS[@]}"
+do
+  JEDIT_BUILD_JARS["${#JEDIT_BUILD_JARS[@]}"]="$ISABELLE_JEDIT_BUILD_HOME/contrib/$NAME"
+  JEDIT_STARTUP_JARS["${#JEDIT_STARTUP_JARS[@]}"]="$JEDIT_HOME/dist/jars/$NAME"
+done
 
 declare -a JFREECHART_JARS=()
 for NAME in $JFREECHART_JAR_NAMES
@@ -246,7 +254,7 @@ else
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=(
-        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar"
+        "$JEDIT_JAR" "${JEDIT_BUILD_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar"
         "$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}"
       )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
@@ -299,10 +307,10 @@ then
       print qq,<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n,; }
     print; }' dist/modes/catalog
 
-  cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
+  cp -p -R -f "${JEDIT_BUILD_JARS[@]}" dist/jars/. || failed
   (
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar" \
-      "$PURE_JAR" "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
+    for JAR in "$JEDIT_JAR" "${JEDIT_BUILD_JARS[@]}" "${JFREECHART_JARS[@]}" \
+      "$XZ_JAVA_HOME/lib/xz.jar" "$PURE_JAR" "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do
       CLASSPATH="$CLASSPATH:$JAR"
     done
@@ -345,9 +353,16 @@ EOF
     [ "$RC" = 0 ] || exit "$RC"
   fi
 
+  JEDIT_CLASSPATH="$JEDIT_HOME/dist/jedit.jar"
+  for JAR in "$JEDIT_HOME/dist/jars/Isabelle-jEdit.jar" "${JEDIT_STARTUP_JARS[@]}" \
+    "${JFREECHART_JARS[@]}"
+  do
+    JEDIT_CLASSPATH="$JEDIT_CLASSPATH:$JAR"
+  done
+  JEDIT_CLASSPATH="$(jvmpath "$JEDIT_CLASSPATH")"
+
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
-    -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \
-    "-settings=$(jvmpath "$JEDIT_SETTINGS")" "${ARGS[@]}"
+    -classpath "$JEDIT_CLASSPATH" isabelle.jedit.JEdit_Main "${ARGS[@]}"
 fi
