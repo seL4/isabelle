@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -37,6 +37,7 @@
     "by"
     "cannot_undo"
     "case"
+    "case_of_simps"
     "cd"
     "chapter"
     "class"
@@ -240,6 +241,7 @@
     "setup_lifting"
     "show"
     "simproc_setup"
+    "simps_of_case"
     "sledgehammer"
     "sledgehammer_params"
     "smt_status"
@@ -484,6 +486,7 @@
     "attribute_setup"
     "axiomatization"
     "bundle"
+    "case_of_simps"
     "class"
     "classes"
     "classrel"
@@ -568,6 +571,7 @@
     "setup"
     "setup_lifting"
     "simproc_setup"
+    "simps_of_case"
     "sledgehammer_params"
     "spark_end"
     "spark_open"
