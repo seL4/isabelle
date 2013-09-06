@@ -1,10 +1,10 @@
 (*  Title:      HOL/Library/simps_case_conv.ML
     Author:     Lars Noschinski, TU Muenchen
-                Gerwin Klein, NICTA
+    Author:     Gerwin Klein, NICTA
 
-  Converts function specifications between the representation as
-  a list of equations (with patterns on the lhs) and a single
-  equation (with a nested case expression on the rhs).
+Convert function specifications between the representation as a list
+of equations (with patterns on the lhs) and a single equation (with a
+nested case expression on the rhs).
 *)
 
 signature SIMPS_CASE_CONV =

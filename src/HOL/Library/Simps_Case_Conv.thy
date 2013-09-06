@@ -1,5 +1,5 @@
-(*  Title:    HOL/Library/Simps_Case_Conv.thy
-    Author:   Lars Noschinski
+(*  Title:      HOL/Library/Simps_Case_Conv.thy
+    Author:     Lars Noschinski
 *)
 
 theory Simps_Case_Conv
