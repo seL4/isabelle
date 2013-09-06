@@ -21,7 +21,7 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
     -I           init user settings
     -R URL       component repository
                  (default $ISABELLE_COMPONENT_REPOSITORY)
-    -a           all missing components
+    -a           resolve all missing components
     -l           list status
 
   Resolve Isabelle components via download and installation.
@@ -42,7 +42,7 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
   local directories.
 
   Option @{verbatim "-a"} selects all missing components to be
-  installed.  Explicit components may be named as command
+  resolved.  Explicit components may be named as command
   line-arguments as well.  Note that components are uniquely
   identified by their base name, while the installation takes place in
   the location that was specified in the attempt to initialize the

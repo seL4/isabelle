@@ -17,7 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -I           init user settings"
   echo "    -R URL       component repository (default \$ISABELLE_COMPONENT_REPOSITORY)"
-  echo "    -a           all missing components"
+  echo "    -a           resolve all missing components"
   echo "    -l           list status"
   echo
   echo "  Resolve Isabelle components via download and installation."
