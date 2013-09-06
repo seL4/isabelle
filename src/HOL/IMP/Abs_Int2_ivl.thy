@@ -55,7 +55,7 @@ by(auto simp add: \<gamma>_rep_def split: prod.splits extended.splits)
 
 lift_definition  is_empty_ivl :: "ivl \<Rightarrow> bool" is is_empty_rep
 apply(auto simp: eq_ivl_def \<gamma>_rep_cases is_empty_rep_def)
-apply(auto simp: not_less less_eq_extended_cases split: extended.splits)
+apply(auto simp: not_less less_eq_extended_case split: extended.splits)
 done
 
 lemma eq_ivl_iff: "eq_ivl p1 p2 = (is_empty_rep p1 & is_empty_rep p2 | p1 = p2)"

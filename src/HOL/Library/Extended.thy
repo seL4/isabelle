@@ -5,13 +5,12 @@ Oriented towards numeric types, hence "\<infinity>" and "-\<infinity>".
 *)
 
 theory Extended
-imports Main
+imports
+  Main
+  "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
 datatype 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
-
-lemmas extended_cases2 = extended.exhaust[case_product extended.exhaust]
-lemmas extended_cases3 = extended.exhaust[case_product extended_cases2]
 
 
 instantiation extended :: (order)order
@@ -23,31 +22,18 @@ fun less_eq_extended :: "'a extended \<Rightarrow> 'a extended \<Rightarrow> boo
 "Minf  \<le> _     = True" |
 "(_::'a extended) \<le> _     = False"
 
-lemma less_eq_extended_cases:
-  "x \<le> y = (case x of Fin x \<Rightarrow> (case y of Fin y \<Rightarrow> x \<le> y | Pinf \<Rightarrow> True | Minf \<Rightarrow> False)
-            | Pinf \<Rightarrow> y=Pinf | Minf \<Rightarrow> True)"
-by(induct x y rule: less_eq_extended.induct)(auto split: extended.split)
+case_of_simps less_eq_extended_case: less_eq_extended.simps
 
 definition less_extended :: "'a extended \<Rightarrow> 'a extended \<Rightarrow> bool" where
 "((x::'a extended) < y) = (x \<le> y & \<not> x \<ge> y)"
 
 instance
-proof
-  case goal1 show ?case by(rule less_extended_def)
-next
-  case goal2 show ?case by(cases x) auto
-next
-  case goal3 thus ?case by(auto simp: less_eq_extended_cases split:extended.splits)
-next
-  case goal4 thus ?case by(auto simp: less_eq_extended_cases split:extended.splits)
-qed
+  by intro_classes (auto simp: less_extended_def less_eq_extended_case split: extended.splits)
 
 end
 
 instance extended :: (linorder)linorder
-proof
-  case goal1 thus ?case by(auto simp: less_eq_extended_cases split:extended.splits)
-qed
+  by intro_classes (auto simp: less_eq_extended_case split:extended.splits)
 
 lemma Minf_le[simp]: "Minf \<le> y"
 by(cases y) auto
@@ -114,26 +100,19 @@ fun plus_extended where
 "Minf  + Pinf  = Pinf" |
 "Pinf  + Minf  = Pinf"
 
+case_of_simps plus_case: plus_extended.simps
+
 instance ..
 
 end
 
 
+
 instance extended :: (ab_semigroup_add)ab_semigroup_add
-proof
-  fix a b c :: "'a extended"
-  show "a + b = b + a"
-    by (induct a b rule: plus_extended.induct) (simp_all add: ac_simps)
-  show "a + b + c = a + (b + c)"
-    by (cases rule: extended_cases3[of a b c]) (simp_all add: ac_simps)
-qed
+  by intro_classes (simp_all add: ac_simps plus_case split: extended.splits)
 
 instance extended :: (ordered_ab_semigroup_add)ordered_ab_semigroup_add
-proof
-  fix a b c :: "'a extended"
-  assume "a \<le> b" then show "c + a \<le> c + b"
-    by (cases rule: extended_cases3[of a b c]) (auto simp: add_left_mono)
-qed
+  by intro_classes (auto simp: add_left_mono plus_case split: extended.splits)
 
 instance extended :: (comm_monoid_add)comm_monoid_add
 proof
@@ -206,16 +185,12 @@ fun sup_extended :: "'a extended \<Rightarrow> 'a extended \<Rightarrow> 'a exte
 "sup_extended Minf a = a" |
 "sup_extended a Minf = a"
 
+case_of_simps inf_extended_case: inf_extended.simps
+case_of_simps sup_extended_case: sup_extended.simps
+
 instance
-proof
-  fix x y z ::"'a extended"
-  show "inf x y \<le> x" "inf x y \<le> y" "\<lbrakk>x \<le> y; x \<le> z\<rbrakk> \<Longrightarrow> x \<le> inf y z"
-    "x \<le> sup x y" "y \<le> sup x y" "\<lbrakk>y \<le> x; z \<le> x\<rbrakk> \<Longrightarrow> sup y z \<le> x" "bot \<le> x" "x \<le> top"
-    apply (atomize (full))
-    apply (cases rule: extended_cases3[of x y z])
-    apply (auto simp: bot_extended_def top_extended_def)
-    done
-qed
+  by (intro_classes) (auto simp: inf_extended_case sup_extended_case less_eq_extended_case
+    bot_extended_def top_extended_def split: extended.splits)
 end
 
 end
