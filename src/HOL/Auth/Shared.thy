@@ -251,6 +251,6 @@ method_setup basic_possibility = {*
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"
-by (induct e) (auto simp: knows_Cons)
+by (cases e) (auto simp: knows_Cons)
 
 end

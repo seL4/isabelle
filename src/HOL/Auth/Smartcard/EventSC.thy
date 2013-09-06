@@ -1,6 +1,10 @@
 header{*Theory of Events for Security Protocols that use smartcards*}
 
-theory EventSC imports "../Message" begin
+theory EventSC
+imports
+  "../Message"
+  "~~/src/HOL/Library/Simps_Case_Conv"
+begin
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: "agent => msg set"
@@ -45,7 +49,6 @@ specification (cloned)
   Card_Server_not_cloned [iff]: "Card Server \<notin> cloned"
   Card_Spy_not_cloned    [iff]: "Card Spy \<notin> cloned"
   apply blast done
-
 
 primrec (*This definition is extended over the new events, subject to the 
           assumption of secure means*)
@@ -244,16 +247,6 @@ lemmas knows_Spy_partsEs =
 
 subsection{*Knowledge of Agents*}
 
-lemma knows_Says: "knows A (Says A B X # evs) = insert X (knows A evs)"
-by simp
-
-lemma knows_Notes: "knows A (Notes A X # evs) = insert X (knows A evs)"
-by simp
-
-lemma knows_Gets:
-      "A \<noteq> Spy \<longrightarrow> knows A (Gets A X # evs) = insert X (knows A evs)"
-by simp
-
 lemma knows_Inputs: "knows A (Inputs A C X # evs) = insert X (knows A evs)"
 by simp
 
@@ -346,7 +339,7 @@ done
 
 lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) \<subseteq> used evs"
 apply (induct_tac "evs", force)  
-apply (simp add: parts_insert_knows_A knows_Cons add: event.split, blast) 
+apply (simp add: parts_insert_knows_A add: event.split, blast)
 done
 
 lemmas usedI = parts_knows_Spy_subset_used [THEN subsetD, intro]
@@ -356,26 +349,7 @@ apply (induct_tac "evs")
 apply (simp_all add: parts_insert_knows_A split add: event.split, blast)
 done
 
-lemma used_Says [simp]: "used (Says A B X # evs) = parts{X} \<union> used evs"
-by simp
-
-lemma used_Notes [simp]: "used (Notes A X # evs) = parts{X} \<union> used evs"
-by simp
-
-lemma used_Gets [simp]: "used (Gets A X # evs) = used evs"
-by simp
-
-lemma used_Inputs [simp]: "used (Inputs A C X # evs) = parts{X} \<union> used evs"
-by simp
-
-lemma used_C_Gets [simp]: "used (C_Gets C X # evs) = used evs"
-by simp
-
-lemma used_Outpts [simp]: "used (Outpts C A X # evs) = parts{X} \<union> used evs"
-by simp
-
-lemma used_A_Gets [simp]: "used (A_Gets A X # evs) = used evs"
-by simp
+simps_of_case used_Cons_simps[simp]: used_Cons
 
 lemma used_nil_subset: "used [] \<subseteq> used evs"
 apply simp
@@ -422,7 +396,7 @@ declare knows_Cons [simp del]
 
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
-by (induct e, auto simp: knows_Cons)
+by (cases e, auto simp: knows_Cons)
 
 lemma initState_subset_knows: "initState A \<subseteq> knows A evs"
 apply (induct_tac evs, simp) 

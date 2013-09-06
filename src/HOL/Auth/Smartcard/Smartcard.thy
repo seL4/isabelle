@@ -370,8 +370,7 @@ struct
 fun possibility_tac ctxt =
    (REPEAT 
     (ALLGOALS (simp_tac (ctxt
-      delsimps [@{thm used_Says}, @{thm used_Notes}, @{thm used_Gets},
-        @{thm used_Inputs}, @{thm used_C_Gets}, @{thm used_Outpts}, @{thm used_A_Gets}]
+      delsimps @{thms used_Cons_simps}
       setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 

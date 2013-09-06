@@ -48,7 +48,6 @@ where
              if A'=A then insert X (knows A evs) else knows A evs
          | Notes A' X    => 
              if A'=A then insert X (knows A evs) else knows A evs))"
-
 (*
   Case A=Spy on the Gets event
   enforces the fact that if a message is received then it must have been sent,
@@ -153,17 +152,6 @@ lemmas parts_insert_spies = parts_insert_knows_A [of _ Spy]
 
 subsection{*Knowledge of Agents*}
 
-lemma knows_Says: "knows A (Says A B X # evs) = insert X (knows A evs)"
-by simp
-
-lemma knows_Notes: "knows A (Notes A X # evs) = insert X (knows A evs)"
-by simp
-
-lemma knows_Gets:
-     "A \<noteq> Spy --> knows A (Gets A X # evs) = insert X (knows A evs)"
-by simp
-
-
 lemma knows_subset_knows_Says: "knows A evs \<subseteq> knows A (Says A' B X # evs)"
 by (simp add: subset_insertI)
 
@@ -260,7 +248,7 @@ lemmas analz_mono_contra =
 
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
-by (induct e, auto simp: knows_Cons)
+by (cases e, auto simp: knows_Cons)
 
 lemma initState_subset_knows: "initState A \<subseteq> knows A evs"
 apply (induct_tac evs, simp) 
