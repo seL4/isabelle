@@ -67,12 +67,6 @@ lemma int_and_0 [simp]: "(0::int) AND x = 0"
 lemma int_and_m1 [simp]: "(-1::int) AND x = x"
   by (simp add: bitAND_int.simps)
 
-lemma Bit_eq_0_iff: "w BIT b = 0 \<longleftrightarrow> w = 0 \<and> b = 0"
-  by (subst BIT_eq_iff [symmetric], simp)
-
-lemma Bit_eq_m1_iff: "w BIT b = -1 \<longleftrightarrow> w = -1 \<and> b = 1"
-  by (subst BIT_eq_iff [symmetric], simp)
-
 lemma int_and_Bits [simp]: 
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
   by (subst bitAND_int.simps, simp add: Bit_eq_0_iff Bit_eq_m1_iff)
@@ -83,18 +77,12 @@ lemma int_or_zero [simp]: "(0::int) OR x = x"
 lemma int_or_minus1 [simp]: "(-1::int) OR x = -1"
   unfolding int_or_def by simp
 
-lemma bit_or_def: "(b::bit) OR c = NOT (NOT b AND NOT c)"
-  by (induct b, simp_all) (* TODO: move *)
-
 lemma int_or_Bits [simp]: 
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
   unfolding int_or_def bit_or_def by simp
 
 lemma int_xor_zero [simp]: "(0::int) XOR x = x"
   unfolding int_xor_def by simp
-
-lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
-  by (induct b, simp_all) (* TODO: move *)
 
 lemma int_xor_Bits [simp]: 
   "(x BIT b) XOR (y BIT c) = (x XOR y) BIT (b XOR c)"
@@ -125,12 +113,6 @@ lemma bin_rest_XOR [simp]: "bin_rest (x XOR y) = bin_rest x XOR bin_rest y"
 
 lemma bin_last_XOR [simp]: "bin_last (x XOR y) = bin_last x XOR bin_last y"
   by (cases x rule: bin_exhaust, cases y rule: bin_exhaust, simp)
-
-lemma bit_NOT_eq_1_iff [simp]: "NOT (b::bit) = 1 \<longleftrightarrow> b = 0"
-  by (induct b, simp_all)
-
-lemma bit_AND_eq_1_iff [simp]: "(a::bit) AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
-  by (induct a, simp_all)
 
 lemma bin_nth_ops:
   "!!x y. bin_nth (x AND y) n = (bin_nth x n & bin_nth y n)" 
@@ -366,13 +348,6 @@ lemma le_int_or:
 
 lemmas int_and_le =
   xtrans(3) [OF bbw_ao_absorbs (2) [THEN conjunct2, symmetric] le_int_or]
-
-lemma add_BIT_simps [simp]: (* FIXME: move *)
-  "x BIT 0 + y BIT 0 = (x + y) BIT 0"
-  "x BIT 0 + y BIT 1 = (x + y) BIT 1"
-  "x BIT 1 + y BIT 0 = (x + y) BIT 1"
-  "x BIT 1 + y BIT 1 = (x + y + 1) BIT 0"
-  by (simp_all add: Bit_B0_2t Bit_B1_2t)
 
 (* interaction between bit-wise and arithmetic *)
 (* good example of bin_induction *)

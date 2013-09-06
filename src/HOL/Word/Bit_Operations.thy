@@ -90,4 +90,16 @@ lemma bit_ops_same [simp]:
 lemma bit_not_not [simp]: "NOT (NOT (x::bit)) = x"
   by (cases x) auto
 
+lemma bit_or_def: "(b::bit) OR c = NOT (NOT b AND NOT c)"
+  by (induct b, simp_all)
+
+lemma bit_xor_def: "(b::bit) XOR c = (b AND NOT c) OR (NOT b AND c)"
+  by (induct b, simp_all)
+
+lemma bit_NOT_eq_1_iff [simp]: "NOT (b::bit) = 1 \<longleftrightarrow> b = 0"
+  by (induct b, simp_all)
+
+lemma bit_AND_eq_1_iff [simp]: "(a::bit) AND b = 1 \<longleftrightarrow> a = 1 \<and> b = 1"
+  by (induct a, simp_all)
+
 end

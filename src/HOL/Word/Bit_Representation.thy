@@ -71,6 +71,12 @@ lemma BIT_special_simps [simp]:
   shows "0 BIT 0 = 0" and "0 BIT 1 = 1" and "1 BIT 0 = 2" and "1 BIT 1 = 3"
   unfolding Bit_def by simp_all
 
+lemma Bit_eq_0_iff: "w BIT b = 0 \<longleftrightarrow> w = 0 \<and> b = 0"
+  by (subst BIT_eq_iff [symmetric], simp)
+
+lemma Bit_eq_m1_iff: "w BIT b = -1 \<longleftrightarrow> w = -1 \<and> b = 1"
+  by (subst BIT_eq_iff [symmetric], simp)
+
 lemma BitM_inc: "Num.BitM (Num.inc w) = Num.Bit1 w"
   by (induct w, simp_all)
 

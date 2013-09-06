@@ -374,23 +374,18 @@ lemma butlast_rest_bl2bin:
 lemma trunc_bl2bin_aux:
   "bintrunc m (bl_to_bin_aux bl w) = 
     bl_to_bin_aux (drop (length bl - m) bl) (bintrunc (m - length bl) w)"
-  apply (induct bl arbitrary: w)
-   apply clarsimp
-  apply clarsimp
-  apply safe
-   apply (case_tac "m - size bl")
-    apply (simp add : diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-   apply simp
-   apply (rule_tac f = "%nat. bl_to_bin_aux bl (bintrunc nat w BIT 1)" 
-                   in arg_cong)
-   apply simp
-  apply (case_tac "m - size bl")
-   apply (simp add: diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
-  apply simp
-  apply (rule_tac f = "%nat. bl_to_bin_aux bl (bintrunc nat w BIT 0)"
-                  in arg_cong)
-  apply simp
-  done
+proof (induct bl arbitrary: w)
+  case Nil show ?case by simp
+next
+  case (Cons b bl) show ?case
+  proof (cases "m - length bl")
+    case 0 then have "Suc (length bl) - m = Suc (length bl - m)" by simp
+    with Cons show ?thesis by simp
+  next
+    case (Suc n) then have *: "m - Suc (length bl) = n" by simp
+    with Suc Cons show ?thesis by simp
+  qed
+qed
 
 lemma trunc_bl2bin: 
   "bintrunc m (bl_to_bin bl) = bl_to_bin (drop (length bl - m) bl)"
