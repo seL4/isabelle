@@ -63,7 +63,7 @@ fun simpset_program thy some_ss program =
   simpset_map (Proof_Context.init_global thy) (add_program program) (simpset_default thy some_ss);
 
 fun lift_ss_conv f ss ct =
-  f (Proof_Context.init_global (theory_of_cterm ct) |> Simplifier.put_simpset ss |> set_trace) ct;
+  f (Simplifier.global_context (theory_of_cterm ct) ss |> set_trace) ct;
 
 fun rewrite_modulo thy some_ss program =
   lift_ss_conv Simplifier.full_rewrite (simpset_program thy some_ss program);
