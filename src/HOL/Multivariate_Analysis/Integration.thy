@@ -3330,34 +3330,79 @@ proof -
     done
 qed
 
-lemma division_split_right_inj: fixes type::"'a::ordered_euclidean_space"
-  assumes "d division_of i" "k1 \<in> d" "k2 \<in> d"  "k1 \<noteq> k2"
-  "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}" and k:"k\<in>Basis"
-  shows "content(k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
-proof- note d=division_ofD[OF assms(1)]
-  have *:"\<And>a b::'a. \<And> c. (content({a..b} \<inter> {x. x\<bullet>k >= c}) = 0 \<longleftrightarrow> interior({a..b} \<inter> {x. x\<bullet>k >= c}) = {})"
+lemma division_split_right_inj:
+  fixes type :: "'a::ordered_euclidean_space"
+  assumes "d division_of i"
+    and "k1 \<in> d"
+    and "k2 \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+    and k: "k \<in> Basis"
+  shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
+proof -
+  note d=division_ofD[OF assms(1)]
+  have *: "\<And>a b::'a. \<And>c. content({a..b} \<inter> {x. x\<bullet>k \<ge> c}) = 0 \<longleftrightarrow>
+    interior({a..b} \<inter> {x. x\<bullet>k \<ge> c}) = {}"
     unfolding interval_split[OF k] content_eq_0_interior by auto
   guess u1 v1 using d(4)[OF assms(2)] apply-by(erule exE)+ note uv1=this
   guess u2 v2 using d(4)[OF assms(3)] apply-by(erule exE)+ note uv2=this
-  have **:"\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}" by auto
-  show ?thesis unfolding uv1 uv2 * apply(rule **[OF d(5)[OF assms(2-4)]])
-    defer apply(subst assms(5)[unfolded uv1 uv2]) unfolding uv1 uv2 by auto qed
+  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
+    by auto
+  show ?thesis
+    unfolding uv1 uv2 *
+    apply (rule **[OF d(5)[OF assms(2-4)]])
+    defer
+    apply (subst assms(5)[unfolded uv1 uv2])
+    unfolding uv1 uv2
+    apply auto
+    done
+qed
 
-lemma tagged_division_split_left_inj: fixes x1::"'a::ordered_euclidean_space"
-  assumes "d tagged_division_of i" "(x1,k1) \<in> d" "(x2,k2) \<in> d" "k1 \<noteq> k2"  "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
-  and k:"k\<in>Basis"
-  shows "content(k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
-proof- have *:"\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c" unfolding image_iff apply(rule_tac x="(a,b)" in bexI) by auto
-  show ?thesis apply(rule division_split_left_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply(rule_tac[1-2] *) using assms(2-) by auto qed
+lemma tagged_division_split_left_inj:
+  fixes x1 :: "'a::ordered_euclidean_space"
+  assumes "d tagged_division_of i"
+    and "(x1,k1) \<in> d"
+    and "(x2, k2) \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
+    and k: "k \<in> Basis"
+  shows "content (k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
+proof -
+  have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
+    unfolding image_iff
+    apply (rule_tac x="(a,b)" in bexI)
+    apply auto
+    done
+  show ?thesis
+    apply (rule division_split_left_inj[OF division_of_tagged_division[OF assms(1)]])
+    apply (rule_tac[1-2] *)
+    using assms(2-)
+    apply auto
+    done
+qed
 
-lemma tagged_division_split_right_inj: fixes x1::"'a::ordered_euclidean_space"
-  assumes "d tagged_division_of i" "(x1,k1) \<in> d" "(x2,k2) \<in> d" "k1 \<noteq> k2"  "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-  and k:"k\<in>Basis"
+lemma tagged_division_split_right_inj:
+  fixes x1 :: "'a::ordered_euclidean_space"
+  assumes "d tagged_division_of i"
+    and "(x1, k1) \<in> d"
+    and "(x2, k2) \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+  and k: "k \<in> Basis"
   shows "content(k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
-proof- have *:"\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c" unfolding image_iff apply(rule_tac x="(a,b)" in bexI) by auto
-  show ?thesis apply(rule division_split_right_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply(rule_tac[1-2] *) using assms(2-) by auto qed
+proof -
+  have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
+    unfolding image_iff
+    apply (rule_tac x="(a,b)" in bexI)
+    apply auto
+    done
+  show ?thesis
+    apply (rule division_split_right_inj[OF division_of_tagged_division[OF assms(1)]])
+    apply (rule_tac[1-2] *)
+    using assms(2-)
+    apply auto
+    done
+qed
 
 lemma division_split: fixes a::"'a::ordered_euclidean_space"
   assumes "p division_of {a..b}" and k:"k\<in>Basis"
