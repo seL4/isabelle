@@ -193,7 +193,6 @@ object Main
 
     system_dialog.echo("init ...")
     Isabelle_System.init()
-    system_dialog.echo("OK")
   }
 }
 
