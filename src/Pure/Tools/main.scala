@@ -151,7 +151,7 @@ object Main
   private def cygwin_init(system_dialog: System_Dialog, isabelle_home: String, cygwin_root: String)
   {
     system_dialog.title("Isabelle system initialization")
-    system_dialog.echo("Initializing Cygwin:")
+    system_dialog.echo("Initializing Cygwin ...")
 
     def execute(args: String*): Int =
     {
