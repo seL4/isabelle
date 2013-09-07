@@ -11,7 +11,7 @@ import java.awt.{GraphicsEnvironment, Point, Font}
 import javax.swing.WindowConstants
 
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
-  BorderPanel, Frame, TextArea, SwingApplication, Component, Label}
+  BorderPanel, Frame, TextArea, Component, Label}
 import scala.swing.event.ButtonClicked
 
 
