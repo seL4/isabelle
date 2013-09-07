@@ -22,7 +22,7 @@ object Main
     {
       GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
       system_dialog.return_code(2)
-      sys.exit(system_dialog.join)
+      system_dialog.join_exit
     }
 
     def build

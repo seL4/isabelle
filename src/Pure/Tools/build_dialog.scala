@@ -36,7 +36,7 @@ object Build_Dialog
 
             val system_dialog = new System_Dialog
             dialog(options, system_dialog, system_mode, dirs, session)
-            sys.exit(system_dialog.join)
+            system_dialog.join_exit
 
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

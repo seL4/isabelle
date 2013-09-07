@@ -24,20 +24,7 @@ object Cygwin_Init
     {
       val cwd = new JFile(isabelle_home)
       val env = Map("CYGWIN" -> "nodosfilewarning")
-      val proc = Isabelle_System.raw_execute(cwd, env, true, args: _*)
-      proc.getOutputStream.close
-
-      val stdout = new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
-      try {
-        var line = stdout.readLine
-        while (line != null) {
-          system_dialog.echo(line)
-          line = stdout.readLine
-        }
-      }
-      finally { stdout.close }
-
-      proc.waitFor
+      system_dialog.execute(cwd, env, args: _*)
     }
 
     val cygwin_root = isabelle_home + "\\contrib\\cygwin"
