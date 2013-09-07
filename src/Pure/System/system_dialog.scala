@@ -14,8 +14,11 @@ import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
 import scala.swing.event.ButtonClicked
 
 
-class System_Dialog(continue: Int => Unit) extends Build.Progress
+class System_Dialog extends Build.Progress
 {
+  val result = Future.promise[Int]
+
+
   /* GUI state -- owned by Swing thread */
 
   private var _title = "Isabelle"
@@ -42,10 +45,11 @@ class System_Dialog(continue: Int => Unit) extends Build.Progress
       }
   }
 
-  def conclude()
+  private def conclude()
   {
     Swing_Thread.require()
     require(_return_code.isDefined)
+    require(!result.is_finished)
 
     _window match {
       case None =>
@@ -54,7 +58,7 @@ class System_Dialog(continue: Int => Unit) extends Build.Progress
         _window = None
     }
 
-    continue(_return_code.get)
+    result.fulfill(_return_code.get)
   }
 
 
