@@ -126,6 +126,15 @@ function purge_contrib
 case "$PLATFORM_FAMILY" in
   linux)
     purge_contrib '-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+    cat > "$ISABELLE_TARGET/$ISABELLE_NAME" <<EOF
+#!/usr/bin/env bash
+
+ISABELLE_TOOL="\$(dirname "\$0")"/bin/isabelle
+JEDIT_HOME="\$("\$ISABELLE_TOOL" getenv -b JEDIT_HOME)"
+
+exec "\$ISABELLE_TOOL" java -classpath "\$JEDIT_HOME/dist/jedit.jar" isabelle.Main "\$@"
+EOF
+    chmod +x "$ISABELLE_TARGET/$ISABELLE_NAME"
     ;;
   macos)
     purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
@@ -134,14 +143,14 @@ case "$PLATFORM_FAMILY" in
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
       -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
-      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
+      "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
     purge_contrib '-name "x86*-linux" -o -name "x86*-darwin"'
     mv "$ISABELLE_TARGET/contrib/windows_app" "$TMP/."
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
-      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
+      "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
     cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
