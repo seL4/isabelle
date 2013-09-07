@@ -3404,136 +3404,327 @@ proof -
     done
 qed
 
-lemma division_split: fixes a::"'a::ordered_euclidean_space"
-  assumes "p division_of {a..b}" and k:"k\<in>Basis"
-  shows "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> p \<and> ~(l \<inter> {x. x\<bullet>k \<le> c} = {})} division_of({a..b} \<inter> {x. x\<bullet>k \<le> c})" (is "?p1 division_of ?I1") and
-        "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> p \<and> ~(l \<inter> {x. x\<bullet>k \<ge> c} = {})} division_of ({a..b} \<inter> {x. x\<bullet>k \<ge> c})" (is "?p2 division_of ?I2")
-proof(rule_tac[!] division_ofI) note p=division_ofD[OF assms(1)]
-  show "finite ?p1" "finite ?p2" using p(1) by auto show "\<Union>?p1 = ?I1" "\<Union>?p2 = ?I2" unfolding p(6)[symmetric] by auto
-  { fix k assume "k\<in>?p1" then guess l unfolding mem_Collect_eq apply-by(erule exE,(erule conjE)+) note l=this
-    guess u v using p(4)[OF l(2)] apply-by(erule exE)+ note uv=this
-    show "k\<subseteq>?I1" "k \<noteq> {}" "\<exists>a b. k = {a..b}" unfolding l
-      using p(2-3)[OF l(2)] l(3) unfolding uv apply- prefer 3 apply(subst interval_split[OF k]) by auto
-    fix k' assume "k'\<in>?p1" then guess l' unfolding mem_Collect_eq apply-by(erule exE,(erule conjE)+) note l'=this
-    assume "k\<noteq>k'" thus "interior k \<inter> interior k' = {}" unfolding l l' using p(5)[OF l(2) l'(2)] by auto }
-  { fix k assume "k\<in>?p2" then guess l unfolding mem_Collect_eq apply-by(erule exE,(erule conjE)+) note l=this
-    guess u v using p(4)[OF l(2)] apply-by(erule exE)+ note uv=this
-    show "k\<subseteq>?I2" "k \<noteq> {}" "\<exists>a b. k = {a..b}" unfolding l
-      using p(2-3)[OF l(2)] l(3) unfolding uv apply- prefer 3 apply(subst interval_split[OF k]) by auto
-    fix k' assume "k'\<in>?p2" then guess l' unfolding mem_Collect_eq apply-by(erule exE,(erule conjE)+) note l'=this
-    assume "k\<noteq>k'" thus "interior k \<inter> interior k' = {}" unfolding l l' using p(5)[OF l(2) l'(2)] by auto }
+lemma division_split:
+  fixes a :: "'a::ordered_euclidean_space"
+  assumes "p division_of {a..b}"
+    and k: "k\<in>Basis"
+  shows "{l \<inter> {x. x\<bullet>k \<le> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} division_of({a..b} \<inter> {x. x\<bullet>k \<le> c})"
+      (is "?p1 division_of ?I1")
+    and "{l \<inter> {x. x\<bullet>k \<ge> c} | l. l \<in> p \<and> l \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}} division_of ({a..b} \<inter> {x. x\<bullet>k \<ge> c})"
+      (is "?p2 division_of ?I2")
+proof (rule_tac[!] division_ofI)
+  note p = division_ofD[OF assms(1)]
+  show "finite ?p1" "finite ?p2"
+    using p(1) by auto
+  show "\<Union>?p1 = ?I1" "\<Union>?p2 = ?I2"
+    unfolding p(6)[symmetric] by auto
+  {
+    fix k
+    assume "k \<in> ?p1"
+    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
+    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
+    show "k \<subseteq> ?I1" "k \<noteq> {}" "\<exists>a b. k = {a..b}"
+      unfolding l
+      using p(2-3)[OF l(2)] l(3)
+      unfolding uv
+      apply -
+      prefer 3
+      apply (subst interval_split[OF k])
+      apply auto
+      done
+    fix k'
+    assume "k' \<in> ?p1"
+    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
+    assume "k \<noteq> k'"
+    then show "interior k \<inter> interior k' = {}"
+      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
+  }
+  {
+    fix k
+    assume "k \<in> ?p2"
+    then guess l unfolding mem_Collect_eq by (elim exE conjE) note l=this
+    guess u v using p(4)[OF l(2)] by (elim exE) note uv=this
+    show "k \<subseteq> ?I2" "k \<noteq> {}" "\<exists>a b. k = {a..b}"
+      unfolding l
+      using p(2-3)[OF l(2)] l(3)
+      unfolding uv
+      apply -
+      prefer 3
+      apply (subst interval_split[OF k])
+      apply auto
+      done
+    fix k'
+    assume "k' \<in> ?p2"
+    then guess l' unfolding mem_Collect_eq by (elim exE conjE) note l'=this
+    assume "k \<noteq> k'"
+    then show "interior k \<inter> interior k' = {}"
+      unfolding l l' using p(5)[OF l(2) l'(2)] by auto
+  }
 qed
 
-lemma has_integral_split: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "(f has_integral i) ({a..b} \<inter> {x. x\<bullet>k \<le> c})"  "(f has_integral j) ({a..b} \<inter> {x. x\<bullet>k \<ge> c})" and k:"k\<in>Basis"
+lemma has_integral_split:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "(f has_integral i) ({a..b} \<inter> {x. x\<bullet>k \<le> c})"
+    and "(f has_integral j) ({a..b} \<inter> {x. x\<bullet>k \<ge> c})"
+    and k: "k \<in> Basis"
   shows "(f has_integral (i + j)) ({a..b})"
-proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
+proof (unfold has_integral, rule, rule)
+  case goal1
+  then have e: "e/2 > 0"
+    by auto
   guess d1 using has_integralD[OF assms(1)[unfolded interval_split[OF k]] e] . note d1=this[unfolded interval_split[symmetric,OF k]]
   guess d2 using has_integralD[OF assms(2)[unfolded interval_split[OF k]] e] . note d2=this[unfolded interval_split[symmetric,OF k]]
   let ?d = "\<lambda>x. if x\<bullet>k = c then (d1 x \<inter> d2 x) else ball x (abs(x\<bullet>k - c)) \<inter> d1 x \<inter> d2 x"
-  show ?case apply(rule_tac x="?d" in exI,rule) defer apply(rule,rule,(erule conjE)+)
-  proof- show "gauge ?d" using d1(1) d2(1) unfolding gauge_def by auto
-    fix p assume "p tagged_division_of {a..b}" "?d fine p" note p = this tagged_division_ofD[OF this(1)]
-    have lem0:"\<And>x kk. (x,kk) \<in> p \<Longrightarrow> ~(kk \<inter> {x. x\<bullet>k \<le> c} = {}) \<Longrightarrow> x\<bullet>k \<le> c"
-         "\<And>x kk. (x,kk) \<in> p \<Longrightarrow> ~(kk \<inter> {x. x\<bullet>k \<ge> c} = {}) \<Longrightarrow> x\<bullet>k \<ge> c"
-    proof- fix x kk assume as:"(x,kk)\<in>p"
-      show "~(kk \<inter> {x. x\<bullet>k \<le> c} = {}) \<Longrightarrow> x\<bullet>k \<le> c"
-      proof(rule ccontr) case goal1
-        from this(2)[unfolded not_le] have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
-          using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
-        hence "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<le> c}" using goal1(1) by blast
-        then guess y .. hence "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<le> c" apply-apply(rule le_less_trans)
-          using Basis_le_norm[OF k, of "x - y"] by (auto simp add: dist_norm inner_diff_left)
-        thus False using goal1(2)[unfolded not_le] by(auto simp add:field_simps)
-      qed
-      show "~(kk \<inter> {x. x\<bullet>k \<ge> c} = {}) \<Longrightarrow> x\<bullet>k \<ge> c"
-      proof(rule ccontr) case goal1
-        from this(2)[unfolded not_le] have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
-          using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
-        hence "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<ge> c}" using goal1(1) by blast
-        then guess y .. hence "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<ge> c" apply-apply(rule le_less_trans)
-          using Basis_le_norm[OF k, of "x - y"] by (auto simp add: dist_norm inner_diff_left)
-        thus False using goal1(2)[unfolded not_le] by(auto simp add:field_simps)
-      qed
+  show ?case
+    apply (rule_tac x="?d" in exI)
+    apply rule
+    defer
+    apply rule
+    apply rule
+    apply (elim conjE)
+  proof -
+    show "gauge ?d"
+      using d1(1) d2(1) unfolding gauge_def by auto
+    fix p
+    assume "p tagged_division_of {a..b}" "?d fine p" note p = this tagged_division_ofD[OF this(1)]
+    have lem0:
+      "\<And>x kk. (x, kk) \<in> p \<Longrightarrow> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {} \<Longrightarrow> x\<bullet>k \<le> c"
+      "\<And>x kk. (x, kk) \<in> p \<Longrightarrow> kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {} \<Longrightarrow> x\<bullet>k \<ge> c"
+    proof -
+      fix x kk
+      assume as: "(x, kk) \<in> p"
+      {
+        assume *: "kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}"
+        show "x\<bullet>k \<le> c"
+        proof (rule ccontr)
+          assume **: "\<not> ?thesis"
+          from this[unfolded not_le]
+          have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
+            using p(2)[unfolded fine_def, rule_format,OF as,unfolded split_conv] by auto
+          with * have "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<le> c}"
+            by blast
+          then guess y ..
+          then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<le> c"
+            apply -
+            apply (rule le_less_trans)
+            using Basis_le_norm[OF k, of "x - y"]
+            apply (auto simp add: dist_norm inner_diff_left)
+            done
+          then show False
+            using **[unfolded not_le] by (auto simp add: field_simps)
+        qed
+      next
+        assume *: "kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}"
+        show "x\<bullet>k \<ge> c"
+        proof (rule ccontr)
+          assume **: "\<not> ?thesis"
+          from this[unfolded not_le] have "kk \<subseteq> ball x \<bar>x \<bullet> k - c\<bar>"
+            using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
+          with * have "\<exists>y. y \<in> ball x \<bar>x \<bullet> k - c\<bar> \<inter> {x. x \<bullet> k \<ge> c}"
+            by blast
+          then guess y ..
+          then have "\<bar>x \<bullet> k - y \<bullet> k\<bar> < \<bar>x \<bullet> k - c\<bar>" "y\<bullet>k \<ge> c"
+            apply -
+            apply (rule le_less_trans)
+            using Basis_le_norm[OF k, of "x - y"]
+            apply (auto simp add: dist_norm inner_diff_left)
+            done
+          then show False
+            using **[unfolded not_le] by (auto simp add: field_simps)
+        qed
+      }
     qed
 
-    have lem1: "\<And>f P Q. (\<forall>x k. (x,k) \<in> {(x,f k) | x k. P x k} \<longrightarrow> Q x k) \<longleftrightarrow> (\<forall>x k. P x k \<longrightarrow> Q x (f k))" by auto
+    have lem1: "\<And>f P Q. (\<forall>x k. (x, k) \<in> {(x, f k) | x k. P x k} \<longrightarrow> Q x k) \<longleftrightarrow>
+      (\<forall>x k. P x k \<longrightarrow> Q x (f k))" by auto
     have lem2: "\<And>f s P f. finite s \<Longrightarrow> finite {(x,f k) | x k. (x,k) \<in> s \<and> P x k}"
-    proof- case goal1 thus ?case apply-apply(rule finite_subset[of _ "(\<lambda>(x,k). (x,f k)) ` s"]) by auto qed
-    have lem3: "\<And>g::'a set \<Rightarrow> 'a set. finite p \<Longrightarrow>
-      setsum (\<lambda>(x,k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> ~(g k = {})}
-               = setsum (\<lambda>(x,k). content k *\<^sub>R f x) ((\<lambda>(x,k). (x,g k)) ` p)"
-      apply(rule setsum_mono_zero_left) prefer 3
-    proof fix g::"'a set \<Rightarrow> 'a set" and i::"('a) \<times> (('a) set)"
+    proof -
+      case goal1
+      then show ?case
+        apply -
+        apply (rule finite_subset[of _ "(\<lambda>(x,k). (x,f k)) ` s"])
+        apply auto
+        done
+    qed
+    have lem3: "\<And>g :: 'a set \<Rightarrow> 'a set. finite p \<Longrightarrow>
+      setsum (\<lambda>(x, k). content k *\<^sub>R f x) {(x,g k) |x k. (x,k) \<in> p \<and> g k \<noteq> {}} =
+      setsum (\<lambda>(x, k). content k *\<^sub>R f x) ((\<lambda>(x, k). (x, g k)) ` p)"
+      apply (rule setsum_mono_zero_left)
+      prefer 3
+    proof
+      fix g :: "'a set \<Rightarrow> 'a set"
+      fix i :: "'a \<times> 'a set"
       assume "i \<in> (\<lambda>(x, k). (x, g k)) ` p - {(x, g k) |x k. (x, k) \<in> p \<and> g k \<noteq> {}}"
-      then obtain x k where xk:"i=(x,g k)" "(x,k)\<in>p" "(x,g k) \<notin> {(x, g k) |x k. (x, k) \<in> p \<and> g k \<noteq> {}}" by auto
-      have "content (g k) = 0" using xk using content_empty by auto
-      thus "(\<lambda>(x, k). content k *\<^sub>R f x) i = 0" unfolding xk split_conv by auto
+      then obtain x k where xk:
+        "i = (x, g k)"
+        "(x, k) \<in> p"
+        "(x, g k) \<notin> {(x, g k) |x k. (x, k) \<in> p \<and> g k \<noteq> {}}"
+        by auto
+      have "content (g k) = 0"
+        using xk using content_empty by auto
+      then show "(\<lambda>(x, k). content k *\<^sub>R f x) i = 0"
+        unfolding xk split_conv by auto
     qed auto
-    have lem4:"\<And>g. (\<lambda>(x,l). content (g l) *\<^sub>R f x) = (\<lambda>(x,l). content l *\<^sub>R f x) o (\<lambda>(x,l). (x,g l))" apply(rule ext) by auto
+    have lem4: "\<And>g. (\<lambda>(x,l). content (g l) *\<^sub>R f x) = (\<lambda>(x,l). content l *\<^sub>R f x) \<circ> (\<lambda>(x,l). (x,g l))"
+      by auto
 
-    let ?M1 = "{(x,kk \<inter> {x. x\<bullet>k \<le> c}) |x kk. (x,kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
-    have "norm ((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) < e/2" apply(rule d1(2),rule tagged_division_ofI)
-      apply(rule lem2 p(3))+ prefer 6 apply(rule fineI)
-    proof- show "\<Union>{k. \<exists>x. (x, k) \<in> ?M1} = {a..b} \<inter> {x. x\<bullet>k \<le> c}" unfolding p(8)[symmetric] by auto
-      fix x l assume xl:"(x,l)\<in>?M1"
-      then guess x' l' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note xl'=this
-      have "l' \<subseteq> d1 x'" apply(rule order_trans[OF fineD[OF p(2) xl'(3)]]) by auto
-      thus "l \<subseteq> d1 x" unfolding xl' by auto
-      show "x\<in>l" "l \<subseteq> {a..b} \<inter> {x. x \<bullet> k \<le> c}" unfolding xl' using p(4-6)[OF xl'(3)] using xl'(4)
+    let ?M1 = "{(x, kk \<inter> {x. x\<bullet>k \<le> c}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}}"
+    have "norm ((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) < e/2"
+      apply (rule d1(2),rule tagged_division_ofI)
+      apply (rule lem2 p(3))+
+      prefer 6
+      apply (rule fineI)
+    proof -
+      show "\<Union>{k. \<exists>x. (x, k) \<in> ?M1} = {a..b} \<inter> {x. x\<bullet>k \<le> c}"
+        unfolding p(8)[symmetric] by auto
+      fix x l
+      assume xl: "(x, l) \<in> ?M1"
+      then guess x' l' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note xl'=this
+      have "l' \<subseteq> d1 x'"
+        apply (rule order_trans[OF fineD[OF p(2) xl'(3)]])
+        apply auto
+        done
+      then show "l \<subseteq> d1 x"
+        unfolding xl' by auto
+      show "x \<in> l" "l \<subseteq> {a..b} \<inter> {x. x \<bullet> k \<le> c}"
+        unfolding xl'
+        using p(4-6)[OF xl'(3)] using xl'(4)
         using lem0(1)[OF xl'(3-4)] by auto
-      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastforce simp add: interval_split[OF k,where c=c])
-      fix y r let ?goal = "interior l \<inter> interior r = {}" assume yr:"(y,r)\<in>?M1"
-      then guess y' r' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note yr'=this
-      assume as:"(x,l) \<noteq> (y,r)" show "interior l \<inter> interior r = {}"
-      proof(cases "l' = r' \<longrightarrow> x' = y'")
-        case False thus ?thesis using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
-      next case True hence "l' \<noteq> r'" using as unfolding xl' yr' by auto
-        thus ?thesis using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
-      qed qed moreover
-
+      show "\<exists>a b. l = {a..b}"
+        unfolding xl'
+        using p(6)[OF xl'(3)]
+        by (fastforce simp add: interval_split[OF k,where c=c])
+      fix y r
+      let ?goal = "interior l \<inter> interior r = {}"
+      assume yr: "(y, r) \<in> ?M1"
+      then guess y' r' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note yr'=this
+      assume as: "(x, l) \<noteq> (y, r)"
+      show "interior l \<inter> interior r = {}"
+      proof (cases "l' = r' \<longrightarrow> x' = y'")
+        case False
+        then show ?thesis
+          using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
+      next
+        case True
+        then have "l' \<noteq> r'"
+          using as unfolding xl' yr' by auto
+        then show ?thesis
+          using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
+      qed
+    qed
+    moreover
     let ?M2 = "{(x,kk \<inter> {x. x\<bullet>k \<ge> c}) |x kk. (x,kk) \<in> p \<and> kk \<inter> {x. x\<bullet>k \<ge> c} \<noteq> {}}"
-    have "norm ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j) < e/2" apply(rule d2(2),rule tagged_division_ofI)
-      apply(rule lem2 p(3))+ prefer 6 apply(rule fineI)
-    proof- show "\<Union>{k. \<exists>x. (x, k) \<in> ?M2} = {a..b} \<inter> {x. x\<bullet>k \<ge> c}" unfolding p(8)[symmetric] by auto
-      fix x l assume xl:"(x,l)\<in>?M2"
-      then guess x' l' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note xl'=this
-      have "l' \<subseteq> d2 x'" apply(rule order_trans[OF fineD[OF p(2) xl'(3)]]) by auto
-      thus "l \<subseteq> d2 x" unfolding xl' by auto
-      show "x\<in>l" "l \<subseteq> {a..b} \<inter> {x. x \<bullet> k \<ge> c}" unfolding xl' using p(4-6)[OF xl'(3)] using xl'(4)
-        using lem0(2)[OF xl'(3-4)] by auto
-      show  "\<exists>a b. l = {a..b}" unfolding xl' using p(6)[OF xl'(3)] by(fastforce simp add: interval_split[OF k, where c=c])
-      fix y r let ?goal = "interior l \<inter> interior r = {}" assume yr:"(y,r)\<in>?M2"
-      then guess y' r' unfolding mem_Collect_eq apply- unfolding Pair_eq apply((erule exE)+,(erule conjE)+) .  note yr'=this
-      assume as:"(x,l) \<noteq> (y,r)" show "interior l \<inter> interior r = {}"
-      proof(cases "l' = r' \<longrightarrow> x' = y'")
-        case False thus ?thesis using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
-      next case True hence "l' \<noteq> r'" using as unfolding xl' yr' by auto
-        thus ?thesis using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
-      qed qed ultimately
-
+    have "norm ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j) < e/2"
+      apply (rule d2(2),rule tagged_division_ofI)
+      apply (rule lem2 p(3))+
+      prefer 6
+      apply (rule fineI)
+    proof -
+      show "\<Union>{k. \<exists>x. (x, k) \<in> ?M2} = {a..b} \<inter> {x. x\<bullet>k \<ge> c}"
+        unfolding p(8)[symmetric] by auto
+      fix x l
+      assume xl: "(x, l) \<in> ?M2"
+      then guess x' l' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note xl'=this
+      have "l' \<subseteq> d2 x'"
+        apply (rule order_trans[OF fineD[OF p(2) xl'(3)]])
+        apply auto
+        done
+      then show "l \<subseteq> d2 x"
+        unfolding xl' by auto
+      show "x \<in> l" "l \<subseteq> {a..b} \<inter> {x. x \<bullet> k \<ge> c}"
+        unfolding xl'
+        using p(4-6)[OF xl'(3)]
+        using xl'(4)
+        using lem0(2)[OF xl'(3-4)]
+        by auto
+      show "\<exists>a b. l = {a..b}"
+        unfolding xl'
+        using p(6)[OF xl'(3)]
+        by (fastforce simp add: interval_split[OF k, where c=c])
+      fix y r
+      let ?goal = "interior l \<inter> interior r = {}"
+      assume yr: "(y, r) \<in> ?M2"
+      then guess y' r' unfolding mem_Collect_eq unfolding Pair_eq by (elim exE conjE) note yr'=this
+      assume as: "(x, l) \<noteq> (y, r)"
+      show "interior l \<inter> interior r = {}"
+      proof (cases "l' = r' \<longrightarrow> x' = y'")
+        case False
+        then show ?thesis
+          using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
+      next
+        case True
+        then have "l' \<noteq> r'"
+          using as unfolding xl' yr' by auto
+        then show ?thesis
+          using p(7)[OF xl'(3) yr'(3)] using as unfolding xl' yr' by auto
+      qed
+    qed
+    ultimately
     have "norm (((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) + ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j)) < e/2 + e/2"
-      apply- apply(rule norm_triangle_lt) by auto
-    also { have *:"\<And>x y. x = (0::real) \<Longrightarrow> x *\<^sub>R (y::'b) = 0" using scaleR_zero_left by auto
-      have "((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) + ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j)
-       = (\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - (i + j)" by auto
+      apply -
+      apply (rule norm_triangle_lt)
+      apply auto
+      done
+    also {
+      have *: "\<And>x y. x = (0::real) \<Longrightarrow> x *\<^sub>R (y::'b) = 0"
+        using scaleR_zero_left by auto
+      have "((\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) - i) + ((\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - j) =
+        (\<Sum>(x, k)\<in>?M1. content k *\<^sub>R f x) + (\<Sum>(x, k)\<in>?M2. content k *\<^sub>R f x) - (i + j)"
+        by auto
       also have "\<dots> = (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f x) +
         (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f x) - (i + j)"
-        unfolding lem3[OF p(3)] apply(subst setsum_reindex_nonzero[OF p(3)]) defer apply(subst setsum_reindex_nonzero[OF p(3)])
-        defer unfolding lem4[symmetric] apply(rule refl) unfolding split_paired_all split_conv apply(rule_tac[!] *)
-      proof- case goal1 thus ?case apply- apply(rule tagged_division_split_left_inj [OF p(1), of a b aa ba]) using k by auto
-      next case   goal2 thus ?case apply- apply(rule tagged_division_split_right_inj[OF p(1), of a b aa ba]) using k by auto
-      qed also note setsum_addf[symmetric]
-      also have *:"\<And>x. x\<in>p \<Longrightarrow> (\<lambda>(x, ka). content (ka \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f x) x + (\<lambda>(x, ka). content (ka \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f x) x
-        = (\<lambda>(x,ka). content ka *\<^sub>R f x) x" unfolding split_paired_all split_conv
-      proof- fix a b assume "(a,b) \<in> p" from p(6)[OF this] guess u v apply-by(erule exE)+ note uv=this
-        thus "content (b \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f a + content (b \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f a = content b *\<^sub>R f a"
-          unfolding scaleR_left_distrib[symmetric] unfolding uv content_split[OF k,of u v c] by auto
-      qed note setsum_cong2[OF this]
+        unfolding lem3[OF p(3)]
+        apply (subst setsum_reindex_nonzero[OF p(3)])
+        defer
+        apply(subst setsum_reindex_nonzero[OF p(3)])
+        defer
+        unfolding lem4[symmetric]
+        apply (rule refl)
+        unfolding split_paired_all split_conv
+        apply (rule_tac[!] *)
+      proof -
+        case goal1
+        then show ?case
+          apply -
+          apply (rule tagged_division_split_left_inj [OF p(1), of a b aa ba])
+          using k
+          apply auto
+          done
+      next
+        case goal2
+        then show ?case
+          apply -
+          apply (rule tagged_division_split_right_inj[OF p(1), of a b aa ba])
+          using k
+          apply auto
+          done
+      qed
+      also note setsum_addf[symmetric]
+      also have *: "\<And>x. x \<in> p \<Longrightarrow>
+        (\<lambda>(x,ka). content (ka \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f x) x + (\<lambda>(x,ka). content (ka \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f x) x =
+        (\<lambda>(x,ka). content ka *\<^sub>R f x) x"
+        unfolding split_paired_all split_conv
+      proof -
+        fix a b
+        assume "(a, b) \<in> p"
+        from p(6)[OF this] guess u v by (elim exE) note uv=this
+        then show "content (b \<inter> {x. x \<bullet> k \<le> c}) *\<^sub>R f a + content (b \<inter> {x. c \<le> x \<bullet> k}) *\<^sub>R f a =
+          content b *\<^sub>R f a"
+          unfolding scaleR_left_distrib[symmetric]
+          unfolding uv content_split[OF k,of u v c]
+          by auto
+      qed
+      note setsum_cong2[OF this]
       finally have "(\<Sum>(x, k)\<in>{(x, kk \<inter> {x. x \<bullet> k \<le> c}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}}. content k *\<^sub>R f x) - i +
         ((\<Sum>(x, k)\<in>{(x, kk \<inter> {x. c \<le> x \<bullet> k}) |x kk. (x, kk) \<in> p \<and> kk \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}}. content k *\<^sub>R f x) - j) =
-        (\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f x) - (i + j)" by auto }
-    finally show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (i + j)) < e" by auto qed qed
+        (\<Sum>(x, ka)\<in>p. content ka *\<^sub>R f x) - (i + j)"
+        by auto
+    }
+    finally show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (i + j)) < e"
+      by auto
+  qed
+qed
+
 
 subsection {* A sort of converse, integrability on subintervals. *}
 
