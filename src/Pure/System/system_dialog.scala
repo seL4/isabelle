@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.awt.{GraphicsEnvironment, Point, Font}
+import javax.swing.WindowConstants
 
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
   BorderPanel, Frame, TextArea, SwingApplication, Component, Label}
@@ -69,8 +70,6 @@ class System_Dialog extends Build.Progress
     title = _title
     iconImage = GUI.isabelle_image()
 
-    override def closeOperation { if (_return_code.isDefined) conclude() }
-
 
     /* text */
 
@@ -102,7 +101,24 @@ class System_Dialog extends Build.Progress
     }
 
 
-    /* actions */
+    /* close */
+
+    peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+
+    override def closeOperation {
+      if (_return_code.isDefined) conclude()
+      else stopping()
+    }
+
+    def stopping()
+    {
+      is_stopped = true
+      set_actions(new Label("Stopping ..."))
+    }
+
+    val stop_button = new Button("Stop") {
+      reactions += { case ButtonClicked(_) => stopping() }
+    }
 
     var do_auto_close = true
     def can_auto_close: Boolean = do_auto_close && _return_code == Some(0)
@@ -115,15 +131,6 @@ class System_Dialog extends Build.Progress
     }
     auto_close.selected = do_auto_close
     auto_close.tooltip = "Automatically close dialog when finished"
-
-
-    val stop_button = new Button("Stop") {
-      reactions += {
-        case ButtonClicked(_) =>
-          is_stopped = true
-          set_actions(new Label("Stopping ..."))
-      }
-    }
 
     set_actions(stop_button, auto_close)
 
