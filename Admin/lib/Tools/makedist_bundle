@@ -213,10 +213,11 @@ then
         cat "$APP_TEMPLATE/Info.plist" | \
           perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
 
-        for NAME in Pure.jar scala-library.jar scala-swing.jar
+        for NAME in Pure.jar scala-compiler.jar scala-library.jar scala-swing.jar scala-actors.jar scala-reflect.jar
         do
           ln -sf "../Resources/${ISABELLE_NAME}/lib/classes/ext/$NAME" "$APP/Contents/Java"
         done
+        ln -sf "../Resources/${ISABELLE_NAME}/src/Tools/jEdit/dist/jedit.jar" "$APP/Contents/Java"
 
         cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
         cp "$APP_TEMPLATE/../isabelle.icns" "$APP/Contents/Resources/."

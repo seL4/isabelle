@@ -34,7 +34,7 @@
 <string>isabelle.Main</string>
 <key>JVMOptions</key>
 <array>
-<string>-Dapple.laf.useScreenMenuBar=true</string>
+<string>-Dapple.laf.useScreenMenuBar=true -Xms128m -Xmx1024m -Xss2m -Dactors.corePoolSize=4 -Dactors.enableForkJoin=false</string>
 <string>-Disabelle.home=$APP_ROOT/Contents/Resources/{ISABELLE_NAME}</string>
 </array>
 <key>JVMArguments</key>
