@@ -64,6 +64,7 @@ declare -a SOURCES=(
   System/session.scala
   System/swing_thread.scala
   System/system_channel.scala
+  System/system_dialog.scala
   System/utf8.scala
   Thy/html.scala
   Thy/present.scala
