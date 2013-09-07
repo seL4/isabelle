@@ -9,11 +9,16 @@ package isabelle
 
 import javax.swing.SwingUtilities
 import java.lang.{System, ClassLoader}
-import java.io.{File => JFile}
+import java.io.{File => JFile, BufferedReader, InputStreamReader}
+import java.nio.file.Files
+
+import scala.annotation.tailrec
 
 
 object Main
 {
+  /** main entry point **/
+
   def main(args: Array[String])
   {
     val system_dialog = new System_Dialog
@@ -123,8 +128,7 @@ object Main
           val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
           val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
 
-          if (uninitialized)
-            Cygwin_Init.filesystem(system_dialog, isabelle_home)
+          if (uninitialized) cygwin_init(system_dialog, isabelle_home, cygwin_root)
         }
       }
       catch { case exn: Throwable => exit_error(exn) }
@@ -133,6 +137,58 @@ object Main
     build
     val rc = system_dialog.join
     if (rc == 0) start else sys.exit(rc)
+  }
+
+
+
+  /** Cygwin init (e.g. after extraction via 7zip) **/
+
+  private def cygwin_init(system_dialog: System_Dialog, isabelle_home: String, cygwin_root: String)
+  {
+    system_dialog.title("Isabelle system initialization")
+    system_dialog.echo("Initializing Cygwin:")
+
+    def execute(args: String*): Int =
+    {
+      val cwd = new JFile(isabelle_home)
+      val env = Map("CYGWIN" -> "nodosfilewarning")
+      system_dialog.execute(cwd, env, args: _*)
+    }
+
+    system_dialog.echo("symlinks ...")
+    val symlinks =
+    {
+      val path = (new JFile(cygwin_root + "\\isabelle\\symlinks")).toPath
+      Files.readAllLines(path, UTF8.charset).toArray.toList.asInstanceOf[List[String]]
+    }
+    @tailrec def recover_symlinks(list: List[String]): Unit =
+    {
+      list match {
+        case Nil | List("") =>
+        case link :: content :: rest =>
+          val path = (new JFile(isabelle_home, link)).toPath
+
+          val writer = Files.newBufferedWriter(path, UTF8.charset)
+          try { writer.write("!<symlink>" + content + "\0") }
+          finally { writer.close }
+
+          Files.setAttribute(path, "dos:system", true)
+
+          recover_symlinks(rest)
+        case _ => error("Unbalanced symlinks list")
+      }
+    }
+    recover_symlinks(symlinks)
+
+    system_dialog.echo("rebaseall ...")
+    execute(cygwin_root + "\\bin\\dash.exe", "/isabelle/rebaseall")
+
+    system_dialog.echo("postinstall ...")
+    execute(cygwin_root + "\\bin\\bash.exe", "/isabelle/postinstall")
+
+    system_dialog.echo("init ...")
+    Isabelle_System.init()
+    system_dialog.echo("OK")
   }
 }
 

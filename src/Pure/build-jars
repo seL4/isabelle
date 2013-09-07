@@ -47,7 +47,6 @@ declare -a SOURCES=(
   PIDE/yxml.scala
   System/color_value.scala
   System/command_line.scala
-  System/cygwin_init.scala
   System/event_bus.scala
   System/gui.scala
   System/gui_setup.scala
