@@ -132,6 +132,11 @@ object Main
         }
       }
       catch { case exn: Throwable => exit_error(exn) }
+
+      if (system_dialog.stopped) {
+        system_dialog.return_code(130)
+        system_dialog.join_exit
+      }
     }
 
     build
