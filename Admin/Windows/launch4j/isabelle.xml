@@ -16,15 +16,19 @@
   <classPath>
     <mainClass>isabelle.Main</mainClass>
     <cp>%EXEDIR%\lib\classes\ext\Pure.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\scala-compiler.jar</cp>
     <cp>%EXEDIR%\lib\classes\ext\scala-library.jar</cp>
     <cp>%EXEDIR%\lib\classes\ext\scala-swing.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\scala-actors.jar</cp>
+    <cp>%EXEDIR%\lib\classes\ext\scala-reflect.jar</cp>
+    <cp>%EXEDIR%\src\Tools\jEdit\dist\jedit.jar</cp>
   </classPath>
   <jre>
     <path>%EXEDIR%\contrib\jdk\x86-cygwin</path>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <opt>-Disabelle.home=&quot;%EXEDIR%&quot;</opt>
+    <opt>-Dfile.encoding=UTF-8 -server -Xms128m -Xmx1024m -Xss2m -Dactors.corePoolSize=4 -Dactors.enableForkJoin=false -Disabelle.home=&quot;%EXEDIR%&quot;</opt>
   </jre>
   <splash>
     <file>isabelle.bmp</file>

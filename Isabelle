@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-#
-# Author: Makarius
-#
-# Default Isabelle application wrapper.
-
-exec "$(dirname "$0")"/bin/isabelle jedit -s -- "$@"
-

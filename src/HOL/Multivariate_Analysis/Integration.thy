@@ -3125,131 +3125,284 @@ lemma integral_refl: "integral {a..a} f = 0"
 subsection {* Cauchy-type criterion for integrability. *}
 
 (* XXXXXXX *)
-lemma integrable_cauchy: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'a::{real_normed_vector,complete_space}"
+lemma integrable_cauchy:
+  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::{real_normed_vector,complete_space}"
   shows "f integrable_on {a..b} \<longleftrightarrow>
-  (\<forall>e>0.\<exists>d. gauge d \<and> (\<forall>p1 p2. p1 tagged_division_of {a..b} \<and> d fine p1 \<and>
-                            p2 tagged_division_of {a..b} \<and> d fine p2
-                            \<longrightarrow> norm(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p1 -
-                                     setsum (\<lambda>(x,k). content k *\<^sub>R f x) p2) < e))" (is "?l = (\<forall>e>0. \<exists>d. ?P e d)")
-proof assume ?l
+    (\<forall>e>0.\<exists>d. gauge d \<and>
+      (\<forall>p1 p2. p1 tagged_division_of {a..b} \<and> d fine p1 \<and>
+        p2 tagged_division_of {a..b} \<and> d fine p2 \<longrightarrow>
+        norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p1 -
+        setsum (\<lambda>(x,k). content k *\<^sub>R f x) p2) < e))"
+  (is "?l = (\<forall>e>0. \<exists>d. ?P e d)")
+proof
+  assume ?l
   then guess y unfolding integrable_on_def has_integral .. note y=this
-  show "\<forall>e>0. \<exists>d. ?P e d" proof(rule,rule) case goal1 hence "e/2 > 0" by auto
+  show "\<forall>e>0. \<exists>d. ?P e d"
+  proof (rule, rule)
+    case goal1
+    then have "e/2 > 0" by auto
     then guess d apply- apply(drule y[rule_format]) by(erule exE,erule conjE) note d=this[rule_format]
-    show ?case apply(rule_tac x=d in exI,rule,rule d) apply(rule,rule,rule,(erule conjE)+)
-    proof- fix p1 p2 assume as:"p1 tagged_division_of {a..b}" "d fine p1" "p2 tagged_division_of {a..b}" "d fine p2"
+    show ?case
+      apply (rule_tac x=d in exI)
+      apply rule
+      apply (rule d)
+      apply rule
+      apply rule
+      apply rule
+      apply (erule conjE)+
+    proof -
+      fix p1 p2
+      assume as: "p1 tagged_division_of {a..b}" "d fine p1"
+        "p2 tagged_division_of {a..b}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-        apply(rule dist_triangle_half_l[where y=y,unfolded dist_norm])
+        apply (rule dist_triangle_half_l[where y=y,unfolded dist_norm])
         using d(2)[OF conjI[OF as(1-2)]] d(2)[OF conjI[OF as(3-4)]] .
-    qed qed
-next assume "\<forall>e>0. \<exists>d. ?P e d" hence "\<forall>n::nat. \<exists>d. ?P (inverse(real (n + 1))) d" by auto
+    qed
+  qed
+next
+  assume "\<forall>e>0. \<exists>d. ?P e d"
+  then have "\<forall>n::nat. \<exists>d. ?P (inverse(real (n + 1))) d"
+    by auto
   from choice[OF this] guess d .. note d=conjunctD2[OF this[rule_format],rule_format]
-  have "\<And>n. gauge (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}})" apply(rule gauge_inters) using d(1) by auto
-  hence "\<forall>n. \<exists>p. p tagged_division_of {a..b} \<and> (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}}) fine p" apply-
-  proof case goal1 from this[of n] show ?case apply(drule_tac fine_division_exists) by auto qed
+  have "\<And>n. gauge (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}})"
+    apply (rule gauge_inters)
+    using d(1)
+    apply auto
+    done
+  then have "\<forall>n. \<exists>p. p tagged_division_of {a..b} \<and> (\<lambda>x. \<Inter>{d i x |i. i \<in> {0..n}}) fine p"
+    apply -
+  proof
+    case goal1
+    from this[of n]
+    show ?case
+      apply (drule_tac fine_division_exists)
+      apply auto
+      done
+  qed
   from choice[OF this] guess p .. note p = conjunctD2[OF this[rule_format]]
-  have dp:"\<And>i n. i\<le>n \<Longrightarrow> d i fine p n" using p(2) unfolding fine_inters by auto
+  have dp: "\<And>i n. i\<le>n \<Longrightarrow> d i fine p n"
+    using p(2) unfolding fine_inters by auto
   have "Cauchy (\<lambda>n. setsum (\<lambda>(x,k). content k *\<^sub>R (f x)) (p n))"
-  proof(rule CauchyI) case goal1 then guess N unfolding real_arch_inv[of e] .. note N=this
-    show ?case apply(rule_tac x=N in exI)
-    proof(rule,rule,rule,rule) fix m n assume mn:"N \<le> m" "N \<le> n" have *:"N = (N - 1) + 1" using N by auto
+  proof (rule CauchyI)
+    case goal1
+    then guess N unfolding real_arch_inv[of e] .. note N=this
+    show ?case
+      apply (rule_tac x=N in exI)
+    proof (rule, rule, rule, rule)
+      fix m n
+      assume mn: "N \<le> m" "N \<le> n"
+      have *: "N = (N - 1) + 1" using N by auto
       show "norm ((\<Sum>(x, k)\<in>p m. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p n. content k *\<^sub>R f x)) < e"
-        apply(rule less_trans[OF _ N[THEN conjunct2,THEN conjunct2]]) apply(subst *) apply(rule d(2))
-        using dp p(1) using mn by auto
-    qed qed
+        apply (rule less_trans[OF _ N[THEN conjunct2,THEN conjunct2]])
+        apply(subst *)
+        apply(rule d(2))
+        using dp p(1)
+        using mn
+        apply auto
+        done
+    qed
+  qed
   then guess y unfolding convergent_eq_cauchy[symmetric] .. note y=this[THEN LIMSEQ_D]
-  show ?l unfolding integrable_on_def has_integral apply(rule_tac x=y in exI)
-  proof(rule,rule) fix e::real assume "e>0" hence *:"e/2 > 0" by auto
-    then guess N1 unfolding real_arch_inv[of "e/2"] .. note N1=this hence N1':"N1 = N1 - 1 + 1" by auto
+  show ?l
+    unfolding integrable_on_def has_integral
+    apply (rule_tac x=y in exI)
+  proof (rule, rule)
+    fix e :: real
+    assume "e>0"
+    then have *:"e/2 > 0" by auto
+    then guess N1 unfolding real_arch_inv[of "e/2"] .. note N1=this
+    then have N1': "N1 = N1 - 1 + 1"
+      by auto
     guess N2 using y[OF *] .. note N2=this
-    show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e)"
-      apply(rule_tac x="d (N1 + N2)" in exI) apply rule defer
-    proof(rule,rule,erule conjE) show "gauge (d (N1 + N2))" using d by auto
-      fix q assume as:"q tagged_division_of {a..b}" "d (N1 + N2) fine q"
-      have *:"inverse (real (N1 + N2 + 1)) < e / 2" apply(rule less_trans) using N1 by auto
-      show "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e" apply(rule norm_triangle_half_r)
-        apply(rule less_trans[OF _ *]) apply(subst N1', rule d(2)[of "p (N1+N2)"]) defer
+    show "\<exists>d. gauge d \<and>
+      (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - y) < e)"
+      apply (rule_tac x="d (N1 + N2)" in exI)
+      apply rule
+      defer
+    proof (rule, rule, erule conjE)
+      show "gauge (d (N1 + N2))"
+        using d by auto
+      fix q
+      assume as: "q tagged_division_of {a..b}" "d (N1 + N2) fine q"
+      have *: "inverse (real (N1 + N2 + 1)) < e / 2"
+        apply (rule less_trans)
+        using N1
+        apply auto
+        done
+      show "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e"
+        apply (rule norm_triangle_half_r)
+        apply (rule less_trans[OF _ *])
+        apply (subst N1', rule d(2)[of "p (N1+N2)"])
+        defer
         using N2[rule_format,of "N1+N2"]
-        using as dp[of "N1 - 1 + 1 + N2" "N1 + N2"] using p(1)[of "N1 + N2"] using N1 by auto qed qed qed
+        using as dp[of "N1 - 1 + 1 + N2" "N1 + N2"]
+        using p(1)[of "N1 + N2"]
+        using N1
+        apply auto
+        done
+    qed
+  qed
+qed
+
 
 subsection {* Additivity of integral on abutting intervals. *}
 
 lemma interval_split:
-  fixes a::"'a::ordered_euclidean_space" assumes "k \<in> Basis"
+  fixes a :: "'a::ordered_euclidean_space"
+  assumes "k \<in> Basis"
   shows
     "{a..b} \<inter> {x. x\<bullet>k \<le> c} = {a .. (\<Sum>i\<in>Basis. (if i = k then min (b\<bullet>k) c else b\<bullet>i) *\<^sub>R i)}"
     "{a..b} \<inter> {x. x\<bullet>k \<ge> c} = {(\<Sum>i\<in>Basis. (if i = k then max (a\<bullet>k) c else a\<bullet>i) *\<^sub>R i) .. b}"
-  apply(rule_tac[!] set_eqI) unfolding Int_iff mem_interval mem_Collect_eq using assms
-  by auto
+  apply (rule_tac[!] set_eqI)
+  unfolding Int_iff mem_interval mem_Collect_eq
+  using assms
+  apply auto
+  done
 
-lemma content_split: fixes a::"'a::ordered_euclidean_space" assumes "k\<in>Basis" shows
-  "content {a..b} = content({a..b} \<inter> {x. x\<bullet>k \<le> c}) + content({a..b} \<inter> {x. x\<bullet>k >= c})"
+lemma content_split:
+  fixes a :: "'a::ordered_euclidean_space"
+  assumes "k \<in> Basis"
+  shows "content {a..b} = content({a..b} \<inter> {x. x\<bullet>k \<le> c}) + content({a..b} \<inter> {x. x\<bullet>k \<ge> c})"
 proof cases
   note simps = interval_split[OF assms] content_closed_interval_cases eucl_le[where 'a='a]
-  have *:"Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
+  have *: "Basis = insert k (Basis - {k})" "\<And>x. finite (Basis-{x})" "\<And>x. x\<notin>Basis-{x}"
     using assms by auto
-  have *:"\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
+  have *: "\<And>X Y Z. (\<Prod>i\<in>Basis. Z i (if i = k then X else Y i)) = Z k X * (\<Prod>i\<in>Basis-{k}. Z i (Y i))"
     "(\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i) = (\<Prod>i\<in>Basis-{k}. b\<bullet>i - a\<bullet>i) * (b\<bullet>k - a\<bullet>k)"
-    apply(subst *(1)) defer apply(subst *(1)) unfolding setprod_insert[OF *(2-)] by auto
-  assume as:"a\<le>b" moreover have "\<And>x. min (b \<bullet> k) c = max (a \<bullet> k) c
-    \<Longrightarrow> x* (b\<bullet>k - a\<bullet>k) = x*(max (a \<bullet> k) c - a \<bullet> k) + x*(b \<bullet> k - max (a \<bullet> k) c)"
-    by  (auto simp add:field_simps)
-  moreover have **:"(\<Prod>i\<in>Basis. ((\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) *\<^sub>R i) \<bullet> i - a \<bullet> i)) =
+    apply (subst *(1))
+    defer
+    apply (subst *(1))
+    unfolding setprod_insert[OF *(2-)]
+    apply auto
+    done
+  assume as: "a \<le> b"
+  moreover
+  have "\<And>x. min (b \<bullet> k) c = max (a \<bullet> k) c \<Longrightarrow>
+    x * (b\<bullet>k - a\<bullet>k) = x * (max (a \<bullet> k) c - a \<bullet> k) + x * (b \<bullet> k - max (a \<bullet> k) c)"
+    by  (auto simp add: field_simps)
+  moreover
+  have **: "(\<Prod>i\<in>Basis. ((\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) *\<^sub>R i) \<bullet> i - a \<bullet> i)) =
       (\<Prod>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) - a \<bullet> i)"
     "(\<Prod>i\<in>Basis. b \<bullet> i - ((\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i)) =
       (\<Prod>i\<in>Basis. b \<bullet> i - (if i = k then max (a \<bullet> k) c else a \<bullet> i))"
     by (auto intro!: setprod_cong)
   have "\<not> a \<bullet> k \<le> c \<Longrightarrow> \<not> c \<le> b \<bullet> k \<Longrightarrow> False"
-    unfolding not_le using as[unfolded eucl_le[where 'a='a],rule_format,of k] assms by auto
-  ultimately show ?thesis using assms unfolding simps **
-    unfolding *(1)[of "\<lambda>i x. b\<bullet>i - x"] *(1)[of "\<lambda>i x. x - a\<bullet>i"] unfolding *(2)
+    unfolding not_le
+    using as[unfolded eucl_le[where 'a='a],rule_format,of k] assms
+    by auto
+  ultimately show ?thesis
+    using assms
+    unfolding simps **
+    unfolding *(1)[of "\<lambda>i x. b\<bullet>i - x"] *(1)[of "\<lambda>i x. x - a\<bullet>i"]
+    unfolding *(2)
     by auto
 next
-  assume "\<not> a \<le> b" then have "{a .. b} = {}"
+  assume "\<not> a \<le> b"
+  then have "{a .. b} = {}"
     unfolding interval_eq_empty by (auto simp: eucl_le[where 'a='a] not_le)
-  then show ?thesis by auto
+  then show ?thesis
+    by auto
 qed
 
-lemma division_split_left_inj: fixes type::"'a::ordered_euclidean_space"
-  assumes "d division_of i" "k1 \<in> d" "k2 \<in> d"  "k1 \<noteq> k2"
-  "k1 \<inter> {x::'a. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"and k:"k\<in>Basis"
+lemma division_split_left_inj:
+  fixes type :: "'a::ordered_euclidean_space"
+  assumes "d division_of i"
+    and "k1 \<in> d"
+    and "k2 \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x::'a. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
+    and k: "k\<in>Basis"
   shows "content(k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
-proof- note d=division_ofD[OF assms(1)]
-  have *:"\<And>a b::'a. \<And> c. (content({a..b} \<inter> {x. x\<bullet>k \<le> c}) = 0 \<longleftrightarrow> interior({a..b} \<inter> {x. x\<bullet>k \<le> c}) = {})"
+proof -
+  note d=division_ofD[OF assms(1)]
+  have *: "\<And>a b::'a. \<And> c. (content({a..b} \<inter> {x. x\<bullet>k \<le> c}) = 0 \<longleftrightarrow> interior({a..b} \<inter> {x. x\<bullet>k \<le> c}) = {})"
     unfolding  interval_split[OF k] content_eq_0_interior by auto
   guess u1 v1 using d(4)[OF assms(2)] apply-by(erule exE)+ note uv1=this
   guess u2 v2 using d(4)[OF assms(3)] apply-by(erule exE)+ note uv2=this
-  have **:"\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}" by auto
-  show ?thesis unfolding uv1 uv2 * apply(rule **[OF d(5)[OF assms(2-4)]])
-    defer apply(subst assms(5)[unfolded uv1 uv2]) unfolding uv1 uv2 by auto qed
+  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
+    by auto
+  show ?thesis
+    unfolding uv1 uv2 * apply(rule **[OF d(5)[OF assms(2-4)]])
+    defer
+    apply (subst assms(5)[unfolded uv1 uv2])
+    unfolding uv1 uv2
+    apply auto
+    done
+qed
 
-lemma division_split_right_inj: fixes type::"'a::ordered_euclidean_space"
-  assumes "d division_of i" "k1 \<in> d" "k2 \<in> d"  "k1 \<noteq> k2"
-  "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}" and k:"k\<in>Basis"
-  shows "content(k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
-proof- note d=division_ofD[OF assms(1)]
-  have *:"\<And>a b::'a. \<And> c. (content({a..b} \<inter> {x. x\<bullet>k >= c}) = 0 \<longleftrightarrow> interior({a..b} \<inter> {x. x\<bullet>k >= c}) = {})"
+lemma division_split_right_inj:
+  fixes type :: "'a::ordered_euclidean_space"
+  assumes "d division_of i"
+    and "k1 \<in> d"
+    and "k2 \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x::'a. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+    and k: "k \<in> Basis"
+  shows "content (k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
+proof -
+  note d=division_ofD[OF assms(1)]
+  have *: "\<And>a b::'a. \<And>c. content({a..b} \<inter> {x. x\<bullet>k \<ge> c}) = 0 \<longleftrightarrow>
+    interior({a..b} \<inter> {x. x\<bullet>k \<ge> c}) = {}"
     unfolding interval_split[OF k] content_eq_0_interior by auto
   guess u1 v1 using d(4)[OF assms(2)] apply-by(erule exE)+ note uv1=this
   guess u2 v2 using d(4)[OF assms(3)] apply-by(erule exE)+ note uv2=this
-  have **:"\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}" by auto
-  show ?thesis unfolding uv1 uv2 * apply(rule **[OF d(5)[OF assms(2-4)]])
-    defer apply(subst assms(5)[unfolded uv1 uv2]) unfolding uv1 uv2 by auto qed
+  have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
+    by auto
+  show ?thesis
+    unfolding uv1 uv2 *
+    apply (rule **[OF d(5)[OF assms(2-4)]])
+    defer
+    apply (subst assms(5)[unfolded uv1 uv2])
+    unfolding uv1 uv2
+    apply auto
+    done
+qed
 
-lemma tagged_division_split_left_inj: fixes x1::"'a::ordered_euclidean_space"
-  assumes "d tagged_division_of i" "(x1,k1) \<in> d" "(x2,k2) \<in> d" "k1 \<noteq> k2"  "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
-  and k:"k\<in>Basis"
-  shows "content(k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
-proof- have *:"\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c" unfolding image_iff apply(rule_tac x="(a,b)" in bexI) by auto
-  show ?thesis apply(rule division_split_left_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply(rule_tac[1-2] *) using assms(2-) by auto qed
+lemma tagged_division_split_left_inj:
+  fixes x1 :: "'a::ordered_euclidean_space"
+  assumes "d tagged_division_of i"
+    and "(x1,k1) \<in> d"
+    and "(x2, k2) \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x. x\<bullet>k \<le> c} = k2 \<inter> {x. x\<bullet>k \<le> c}"
+    and k: "k \<in> Basis"
+  shows "content (k1 \<inter> {x. x\<bullet>k \<le> c}) = 0"
+proof -
+  have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
+    unfolding image_iff
+    apply (rule_tac x="(a,b)" in bexI)
+    apply auto
+    done
+  show ?thesis
+    apply (rule division_split_left_inj[OF division_of_tagged_division[OF assms(1)]])
+    apply (rule_tac[1-2] *)
+    using assms(2-)
+    apply auto
+    done
+qed
 
-lemma tagged_division_split_right_inj: fixes x1::"'a::ordered_euclidean_space"
-  assumes "d tagged_division_of i" "(x1,k1) \<in> d" "(x2,k2) \<in> d" "k1 \<noteq> k2"  "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
-  and k:"k\<in>Basis"
+lemma tagged_division_split_right_inj:
+  fixes x1 :: "'a::ordered_euclidean_space"
+  assumes "d tagged_division_of i"
+    and "(x1, k1) \<in> d"
+    and "(x2, k2) \<in> d"
+    and "k1 \<noteq> k2"
+    and "k1 \<inter> {x. x\<bullet>k \<ge> c} = k2 \<inter> {x. x\<bullet>k \<ge> c}"
+  and k: "k \<in> Basis"
   shows "content(k1 \<inter> {x. x\<bullet>k \<ge> c}) = 0"
-proof- have *:"\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c" unfolding image_iff apply(rule_tac x="(a,b)" in bexI) by auto
-  show ?thesis apply(rule division_split_right_inj[OF division_of_tagged_division[OF assms(1)]])
-    apply(rule_tac[1-2] *) using assms(2-) by auto qed
+proof -
+  have *: "\<And>a b c. (a,b) \<in> c \<Longrightarrow> b \<in> snd ` c"
+    unfolding image_iff
+    apply (rule_tac x="(a,b)" in bexI)
+    apply auto
+    done
+  show ?thesis
+    apply (rule division_split_right_inj[OF division_of_tagged_division[OF assms(1)]])
+    apply (rule_tac[1-2] *)
+    using assms(2-)
+    apply auto
+    done
+qed
 
 lemma division_split: fixes a::"'a::ordered_euclidean_space"
   assumes "p division_of {a..b}" and k:"k\<in>Basis"

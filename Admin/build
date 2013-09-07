@@ -74,6 +74,10 @@ function build_jars ()
 
 ## main
 
+#workaround for scalac
+function stty() { :; }
+export -f stty
+
 for MODULE in $MODULES
 do
   case $MODULE in
