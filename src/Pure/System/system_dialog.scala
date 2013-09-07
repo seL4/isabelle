@@ -17,9 +17,6 @@ import scala.swing.event.ButtonClicked
 
 class System_Dialog extends Build.Progress
 {
-  val result = Future.promise[Int]
-
-
   /* GUI state -- owned by Swing thread */
 
   private var _title = "Isabelle"
@@ -46,11 +43,12 @@ class System_Dialog extends Build.Progress
       }
   }
 
+  private val result = Future.promise[Int]
+
   private def conclude()
   {
     Swing_Thread.require()
     require(_return_code.isDefined)
-    require(!result.is_finished)
 
     _window match {
       case None =>
@@ -59,8 +57,11 @@ class System_Dialog extends Build.Progress
         _window = None
     }
 
-    result.fulfill(_return_code.get)
+    try { result.fulfill(_return_code.get) }
+    catch { case ERROR(_) => }
   }
+
+  def join(): Int = result.join
 
 
   /* window */
@@ -164,7 +165,10 @@ class System_Dialog extends Build.Progress
   def return_code(rc: Int): Unit =
     Swing_Thread.later {
       _return_code = Some(rc)
-      _window.foreach(window => window.delay_exit.invoke)
+      _window match {
+        case None => conclude()
+        case Some(window) => window.delay_exit.invoke
+      }
     }
 
   override def echo(txt: String): Unit =
