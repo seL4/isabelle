@@ -54,6 +54,7 @@ class System_Dialog extends Build.Progress
       case None =>
       case Some(window) =>
         window.visible = false
+        window.dispose
         _window = None
     }
 

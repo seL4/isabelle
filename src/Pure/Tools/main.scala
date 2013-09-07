@@ -36,7 +36,9 @@ object Main
     def run
     {
       build
-      if (system_dialog.join == 0) start
+      val rc = system_dialog.join
+      if (rc == 0) start
+      else sys.exit(rc)
     }
 
     def build
