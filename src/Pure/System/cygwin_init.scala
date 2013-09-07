@@ -25,7 +25,7 @@ object Cygwin_Init
   def main_frame(isabelle_home: String, continue: Int => Unit) = new MainFrame
   {
     title = "Isabelle system initialization"
-    iconImage = new ImageIcon(isabelle_home + "\\lib\\logo\\isabelle.gif").getImage
+    iconImage = GUI.isabelle_image()
 
     val layout_panel = new BorderPanel
     contents = layout_panel

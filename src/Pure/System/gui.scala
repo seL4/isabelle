@@ -114,7 +114,7 @@ object GUI
   /* icon */
 
   def isabelle_icon(): ImageIcon =
-    new ImageIcon(Isabelle_System.platform_path(Path.explode("~~/lib/logo/isabelle.gif")))
+    new ImageIcon(getClass.getClassLoader.getResource("isabelle/isabelle.gif"))
 
   def isabelle_image(): Image = isabelle_icon().getImage
 }
