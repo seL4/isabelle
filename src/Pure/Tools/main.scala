@@ -14,14 +14,6 @@ import java.io.{File => JFile}
 
 object Main
 {
-  private def continue(body: => Unit)(rc: Int)
-  {
-    if (rc != 0) sys.exit(rc)
-    else if (SwingUtilities.isEventDispatchThread())
-      Simple_Thread.fork("Isabelle") { body }
-    else body
-  }
-
   def main(args: Array[String])
   {
     val system_dialog = new System_Dialog
@@ -31,14 +23,6 @@ object Main
       GUI.dialog(null, "Isabelle", GUI.scrollable_text(Exn.message(exn)))
       system_dialog.return_code(2)
       sys.exit(system_dialog.join)
-    }
-
-    def run
-    {
-      build
-      val rc = system_dialog.join
-      if (rc == 0) start
-      else sys.exit(rc)
     }
 
     def build
@@ -120,39 +104,35 @@ object Main
     }
 
     if (Platform.is_windows) {
-      val init_isabelle_home =
-        try {
-          GUI.init_laf()
+      try {
+        GUI.init_laf()
 
-          val isabelle_home0 = System.getenv("ISABELLE_HOME_WINDOWS")
-          val isabelle_home = System.getProperty("isabelle.home")
+        val isabelle_home0 = System.getenv("ISABELLE_HOME_WINDOWS")
+        val isabelle_home = System.getProperty("isabelle.home")
 
-          if (isabelle_home0 != null && isabelle_home0 != "") None
-          else {
-            if (isabelle_home == null || isabelle_home == "")
-              error("Unknown Isabelle home directory")
-            if (!(new JFile(isabelle_home)).isDirectory)
-              error("Bad Isabelle home directory: " + quote(isabelle_home))
+        if (isabelle_home0 == null || isabelle_home0 == "") {
+          if (isabelle_home == null || isabelle_home == "")
+            error("Unknown Isabelle home directory")
+          if (!(new JFile(isabelle_home)).isDirectory)
+            error("Bad Isabelle home directory: " + quote(isabelle_home))
 
-            val cygwin_root = isabelle_home + "\\contrib\\cygwin"
-            if ((new JFile(cygwin_root)).isDirectory)
-              System.setProperty("cygwin.root", cygwin_root)
+          val cygwin_root = isabelle_home + "\\contrib\\cygwin"
+          if ((new JFile(cygwin_root)).isDirectory)
+            System.setProperty("cygwin.root", cygwin_root)
 
-            val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
-            val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
+          val uninitialized_file = new JFile(cygwin_root, "isabelle\\uninitialized")
+          val uninitialized = uninitialized_file.isFile && uninitialized_file.delete
 
-            if (uninitialized) Some(isabelle_home) else None
-          }
+          if (uninitialized)
+            Cygwin_Init.filesystem(system_dialog, isabelle_home)
         }
-        catch { case exn: Throwable => exit_error(exn) }
-
-      init_isabelle_home match {
-        case Some(isabelle_home) =>
-          Swing_Thread.later { Cygwin_Init.main_frame(isabelle_home, continue(run)) }
-        case None => run
       }
+      catch { case exn: Throwable => exit_error(exn) }
     }
-    else run
+
+    build
+    val rc = system_dialog.join
+    if (rc == 0) start else sys.exit(rc)
   }
 }
 
