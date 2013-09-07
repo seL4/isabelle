@@ -293,6 +293,10 @@ then
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
+    #workaround for scalac
+    function stty() { :; }
+    export -f stty
+
     for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" \
       "$XZ_JAVA_HOME/lib/xz.jar" "$PURE_JAR" "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do

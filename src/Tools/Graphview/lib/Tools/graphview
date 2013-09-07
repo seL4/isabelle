@@ -139,6 +139,10 @@ then
   rm -rf classes && mkdir classes
 
   (
+    #workaround for scalac
+    function stty() { :; }
+    export -f stty
+
     CLASSPATH="$CLASSPATH:$PURE_JAR"
     CLASSPATH="$(jvmpath "$CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
