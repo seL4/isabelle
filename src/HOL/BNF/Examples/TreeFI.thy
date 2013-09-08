@@ -27,12 +27,12 @@ lemma trev_simps2[simp]: "sub (trev t) = mapF trev (lrev (sub t))"
   unfolding trev_def by simp
 
 lemma treeFI_coinduct:
-assumes *: "phi x y"
-and step: "\<And>a b. phi a b \<Longrightarrow>
-   lab a = lab b \<and>
-   lengthh (sub a) = lengthh (sub b) \<and>
-   (\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i))"
-shows "x = y"
+  assumes *: "phi x y"
+  and step: "\<And>a b. phi a b \<Longrightarrow>
+     lab a = lab b \<and>
+     lengthh (sub a) = lengthh (sub b) \<and>
+     (\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i))"
+  shows "x = y"
 using * proof (coinduct rule: treeFI.coinduct)
   fix t1 t2 assume "phi t1 t2" note * = step[OF this] and ** = conjunct2[OF *]
   from conjunct1[OF **] conjunct2[OF **] have "relF phi (sub t1) (sub t2)"
