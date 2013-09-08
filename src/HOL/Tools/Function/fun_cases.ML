@@ -15,7 +15,6 @@ structure Fun_Cases : FUN_CASES =
 struct
 
 local
-  open Function_Elims;
 
   val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
     (fn _ => assume_tac 1);
@@ -31,7 +30,7 @@ fun mk_fun_cases ctxt prop =
         error (Pretty.string_of (Pretty.block
           [Pretty.str "Proposition is not a function equation:",
            Pretty.fbrk, Syntax.pretty_term ctxt prop]));
-      val ((f,_),_) = dest_funprop (HOLogic.dest_Trueprop prop)
+      val ((f,_),_) = Function_Elims.dest_funprop (HOLogic.dest_Trueprop prop)
               handle TERM _ => err ();
       val info = Function.get_info ctxt f handle Empty => err ();
       val {elims, pelims, is_partial, ...} = info;
