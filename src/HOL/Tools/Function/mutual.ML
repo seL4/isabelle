@@ -285,27 +285,23 @@ fun postprocess_cases_rules ctxt cont proof =
       val FunctionResult {fs, G, R, dom, psimps, simple_pinducts, cases, pelims,
                         termination, domintros, ...} = result;
       val n_fs = length fs;
+      val domT = R |> dest_Free |> snd |> hd o snd o dest_Type
 
       fun postprocess_cases_rule (idx,f) =
         let val lhs_of =
               prop_of #> Logic.strip_assums_concl #> HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst
 
-            fun mk_fun_args 0 _ acc_vars = rev acc_vars
-              | mk_fun_args n (Type("fun",[S,T])) acc_vars =
-                let val xn = Free ("x" ^ Int.toString n,S) in
-                  mk_fun_args (n - 1) T (xn :: acc_vars)
-                end
-              | mk_fun_args _ _ _ = raise (TERM ("Not a function.", [f]))
-
             val f_simps = filter (fn r => Term.head_of (lhs_of r) aconv f) psimps
             val arity = length (snd (strip_comb (lhs_of (hd f_simps))))
 
-            val arg_vars = mk_fun_args arity (fastype_of f) []
+            val arg_vars = 
+                take arity (binder_types (fastype_of f))
+                |> map_index (fn (i, T) => Free ("x" ^ string_of_int i, T)) (* FIXME: proper context *)
+
             val argsT = fastype_of (HOLogic.mk_tuple arg_vars);
-            val args = Free ("x", argsT);
+            val args = Free ("x", argsT); (* FIXME: proper context *)
 
             val cert = cterm_of (Proof_Context.theory_of ctxt);
-            val domT = R |> dest_Free |> snd |> hd o snd o dest_Type
 
             val sumtree_inj = SumTree.mk_inj domT n_fs (idx+1) args;
 
@@ -316,13 +312,11 @@ fun postprocess_cases_rules ctxt cont proof =
                                           Inr_inject[elim_format]} i)
               THEN REPEAT (Tactic.eresolve_tac sum_elims i);
 
-            val tac = ALLGOALS prep_subgoal;
-
         in
             hd cases
               |> Thm.forall_elim @{cterm "P::bool"}
               |> Thm.forall_elim (cert sumtree_inj)
-              |> Tactic.rule_by_tactic ctxt tac
+              |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal)
               |> Thm.forall_intr (cert args)
               |> Thm.forall_intr @{cterm "P::bool"}
 
