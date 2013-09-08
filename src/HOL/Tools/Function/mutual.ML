@@ -287,9 +287,8 @@ fun postprocess_cases_rules ctxt cont proof =
       val n_fs = length fs;
 
       fun postprocess_cases_rule (idx,f) =
-        let fun dest_funprop (Const ("HOL.eq", _) $ lhs $ rhs) = (strip_comb lhs, rhs)
-              | dest_funprop (Const ("HOL.Not", _) $ trm) = (strip_comb trm, @{term "False"})
-              | dest_funprop trm = (strip_comb trm, @{term "True"});
+        let val lhs_of =
+              prop_of #> Logic.strip_assums_concl #> HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst
 
             fun mk_fun_args 0 _ acc_vars = rev acc_vars
               | mk_fun_args n (Type("fun",[S,T])) acc_vars =
@@ -298,20 +297,14 @@ fun postprocess_cases_rules ctxt cont proof =
                 end
               | mk_fun_args _ _ _ = raise (TERM ("Not a function.", [f]))
 
+            val f_simps = filter (fn r => Term.head_of (lhs_of r) aconv f) psimps
+            val arity = length (snd (strip_comb (lhs_of (hd f_simps))))
 
-            val f_simps = filter (fn r => (prop_of r |> Logic.strip_assums_concl
-                                           |> HOLogic.dest_Trueprop
-                                           |> dest_funprop |> fst |> fst) = f)
-                                 psimps
-
-            val arity = hd f_simps |> prop_of |> Logic.strip_assums_concl
-                                   |> HOLogic.dest_Trueprop
-                                   |> snd o fst o dest_funprop |> length;
             val arg_vars = mk_fun_args arity (fastype_of f) []
             val argsT = fastype_of (HOLogic.mk_tuple arg_vars);
             val args = Free ("x", argsT);
 
-            val thy = Proof_Context.theory_of ctxt;
+            val cert = cterm_of (Proof_Context.theory_of ctxt);
             val domT = R |> dest_Free |> snd |> hd o snd o dest_Type
 
             val sumtree_inj = SumTree.mk_inj domT n_fs (idx+1) args;
@@ -328,9 +321,9 @@ fun postprocess_cases_rules ctxt cont proof =
         in
             hd cases
               |> Thm.forall_elim @{cterm "P::bool"}
-              |> Thm.forall_elim (cterm_of thy sumtree_inj)
+              |> Thm.forall_elim (cert sumtree_inj)
               |> Tactic.rule_by_tactic ctxt tac
-              |> Thm.forall_intr (cterm_of thy args)
+              |> Thm.forall_intr (cert args)
               |> Thm.forall_intr @{cterm "P::bool"}
 
         end;
