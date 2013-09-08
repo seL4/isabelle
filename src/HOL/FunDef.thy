@@ -6,7 +6,7 @@ header {* Function Definitions and Termination Proofs *}
 
 theory FunDef
 imports Partial_Function SAT Wellfounded
-keywords "function" "termination" :: thy_goal and "fun" :: thy_decl
+keywords "function" "termination" :: thy_goal and "fun" "fun_cases" :: thy_decl
 begin
 
 subsection {* Definitions with default value. *}
@@ -89,6 +89,7 @@ ML_file "Tools/Function/sum_tree.ML"
 ML_file "Tools/Function/mutual.ML"
 ML_file "Tools/Function/pattern_split.ML"
 ML_file "Tools/Function/relation.ML"
+ML_file "Tools/Function/function_elims.ML"
 
 method_setup relation = {*
   Args.term >> (fn t => fn ctxt => SIMPLE_METHOD' (Function_Relation.relation_infer_tac ctxt t))
@@ -307,6 +308,7 @@ subsection {* Tool setup *}
 ML_file "Tools/Function/termination.ML"
 ML_file "Tools/Function/scnp_solve.ML"
 ML_file "Tools/Function/scnp_reconstruct.ML"
+ML_file "Tools/Function/fun_cases.ML"
 
 setup {* ScnpReconstruct.setup *}
 

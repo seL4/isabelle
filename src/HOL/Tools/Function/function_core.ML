@@ -915,8 +915,9 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
              (map (mk_domain_intro lthy globals R R_elim)) xclauses)
            else NONE
       in
-        FunctionResult {fs=[f], G=G, R=R, dom=dom, cases=complete_thm,
-          psimps=psimps, simple_pinducts=[simple_pinduct],
+        FunctionResult {fs=[f], G=G, R=R, dom=dom,
+          cases=[complete_thm], psimps=psimps, pelims=[],
+          simple_pinducts=[simple_pinduct],
           termination=total_intro, domintros=dom_intros}
       end
   in

@@ -13,6 +13,7 @@ type info =
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
     Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+  fnames : string list,
   case_names : string list,
   fs : term list,
   R : term,
@@ -22,7 +23,9 @@ type info =
   simps : thm list option,
   inducts : thm list option,
   termination : thm,
-  cases : thm}
+  cases : thm list,
+  pelims: thm list list,
+  elims: thm list list option}
 
 end
 
@@ -35,6 +38,7 @@ type info =
     (* contains no logical entities: invariant under morphisms: *)
   add_simps : (binding -> binding) -> string -> (binding -> binding) ->
     Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+  fnames : string list,
   case_names : string list,
   fs : term list,
   R : term,
@@ -44,7 +48,9 @@ type info =
   simps : thm list option,
   inducts : thm list option,
   termination : thm,
-  cases : thm}
+  cases : thm list,
+  pelims : thm list list,
+  elims : thm list list option}
 
 end
 
@@ -66,7 +72,8 @@ sig
     dom: term,
     psimps : thm list,
     simple_pinducts : thm list,
-    cases : thm,
+    cases : thm list,
+    pelims : thm list list,
     termination : thm,
     domintros : thm list option}
   val transform_function_data : info -> morphism -> info
@@ -146,23 +153,25 @@ datatype function_result = FunctionResult of
   dom: term,
   psimps : thm list,
   simple_pinducts : thm list,
-  cases : thm,
+  cases : thm list,
+  pelims : thm list list,
   termination : thm,
   domintros : thm list option}
 
-fun transform_function_data ({add_simps, case_names, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, defname, is_partial, cases} : info) phi =
+fun transform_function_data ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
+  simps, inducts, termination, defname, is_partial, cases, pelims, elims} : info) phi =
     let
       val term = Morphism.term phi
       val thm = Morphism.thm phi
       val fact = Morphism.fact phi
       val name = Binding.name_of o Morphism.binding phi o Binding.name
     in
-      { add_simps = add_simps, case_names = case_names,
+      { add_simps = add_simps, case_names = case_names, fnames = fnames,
         fs = map term fs, R = term R, dom = term dom, psimps = fact psimps,
         pinducts = fact pinducts, simps = Option.map fact simps,
         inducts = Option.map fact inducts, termination = thm termination,
-        defname = name defname, is_partial=is_partial, cases = thm cases }
+        defname = name defname, is_partial=is_partial, cases = fact cases,
+        elims = Option.map (map fact) elims, pelims = map fact pelims }
     end
 
 (* FIXME just one data slot (record) per program unit *)
