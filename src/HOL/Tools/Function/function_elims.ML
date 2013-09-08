@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Function/function_elims.ML
-    Author:     Manuel Eberl <eberlm@in.tum.de>, TU München
+    Author:     Manuel Eberl, TU Muenchen
 
 Generates the pelims rules for a function. These are of the shape
 [|f x y z = w; !!…. [|x = …; y = …; z = …; w = …|] ==> P; …|] ==> P

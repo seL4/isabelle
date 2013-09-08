@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Function/fun_cases.ML
-    Author:     Manuel Eberl <eberlm@in.tum.de>, TU München
+    Author:     Manuel Eberl, TU Muenchen
 
 Provides the fun_cases command for generating specialised elimination
 rules for function package functions.
