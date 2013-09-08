@@ -53,6 +53,11 @@ val psimp_attribs =
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
+fun note_qualified suffix attrs (fname, thms) =
+  Local_Theory.note ((Binding.qualify true fname (Binding.name suffix),
+    map (Attrib.internal o K) attrs), thms)
+  #> apfst snd
+
 fun add_simps fnames post sort extra_qualify label mod_binding moreatts
   simps lthy =
   let
@@ -107,29 +112,7 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
 
         val addsmps = add_simps fnames post sort_cont
 
-        (* TODO: case names *)
-        fun addcases lthy =
-          let fun go name thm (thms_acc, lthy) =
-                 case Local_Theory.note ((Binding.name "cases" |> Binding.qualify true name,
-                          [Attrib.internal (K (Rule_Cases.case_names cnames))]), [thm]) lthy
-                 of ((_,thms), lthy') => (thms :: thms_acc, lthy')
-              val (thms, lthy') = fold2 go fnames cases ([], lthy);
-          in
-            (rev thms, lthy')
-          end;
-
-        fun addpelims lthy =
-          let fun go name thm (thms_acc, lthy) =
-                 case Local_Theory.note ((Binding.name "pelims" |> Binding.qualify true name,
-                          [Attrib.internal (K (Rule_Cases.consumes 1)),
-                           Attrib.internal (K (Rule_Cases.constraints 1))]), thm) lthy
-                 of ((_,thms), lthy') => (thms :: thms_acc, lthy')
-              val (thms, lthy') = fold2 go fnames pelims ([], lthy);
-          in
-            (rev thms, lthy')
-          end;
-
-          val (((((psimps', [pinducts']), [termination']), cases'), pelims'), lthy) =
+        val (((((psimps', [pinducts']), [termination']), cases'), pelims'), lthy) =
           lthy
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
@@ -139,8 +122,8 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
                   Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
                   Attrib.internal (K (Induct.induct_pred ""))])))]
           ||>> (apfst snd o Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination]))
-          ||>> addcases
-          ||>> addpelims
+          ||>> fold_map (note_qualified "cases" [Rule_Cases.case_names cnames]) (fnames ~~ map single cases) (* TODO: case names *)
+          ||>> fold_map (note_qualified "pelims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1]) (fnames ~~ pelims)
           ||> (case domintros of NONE => I | SOME thms =>
                    Local_Theory.note ((qualify "domintros", []), thms) #> snd)
 
@@ -221,18 +204,6 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
         fun qualify n = Binding.name n
           |> Binding.qualify true defname
 
-        fun addtelims lthy =
-          let fun go name thm (thms_acc, lthy) =
-                 case Local_Theory.note ((Binding.name "elims" |> Binding.qualify true name,
-                          [Attrib.internal (K (Rule_Cases.consumes 1)),
-                           Attrib.internal (K (Rule_Cases.constraints 1)),
-                           Attrib.internal (K (Induct.cases_pred defname))]), thm) lthy
-                 of ((_,thms), lthy') => (thms :: thms_acc, lthy')
-              val (thms, lthy') = fold2 go fnames telims ([], lthy);
-          in
-            (rev thms, lthy')
-          end;
-
       in
         lthy
         |> add_simps I "simps" I simp_attribs tsimps
@@ -240,7 +211,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
            ((qualify "induct",
              [Attrib.internal (K (Rule_Cases.case_names case_names))]),
             tinduct)
-        ||>> addtelims
+        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1, Induct.cases_pred defname]) (fnames ~~ telims)
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
