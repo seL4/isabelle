@@ -350,7 +350,6 @@
     "permissive"
     "pervasive"
     "rep_compat"
-    "sequential"
     "shows"
     "structure"
     "type_class"

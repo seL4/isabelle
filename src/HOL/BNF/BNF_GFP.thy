@@ -11,8 +11,7 @@ theory BNF_GFP
 imports BNF_FP_Base Equiv_Relations_More "~~/src/HOL/Library/Sublist"
 keywords
   "codatatype" :: thy_decl and
-  "primcorec" :: thy_goal and
-  "sequential"
+  "primcorec" :: thy_goal
 begin
 
 lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"

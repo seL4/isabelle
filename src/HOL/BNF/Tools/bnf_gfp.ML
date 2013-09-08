@@ -2903,9 +2903,17 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "codatatype"} "define BNF-based coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
+local
+
+val option_parser = Parse.group (fn () => "option") (Parse.reserved "sequential" >> K true);
+
+in
+
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorec"}
   "define primitive corecursive functions"
-  ((Scan.option @{keyword "sequential"} >> is_some) --
+  ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
     (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorec_cmd);
+ 
+end
 
 end;
