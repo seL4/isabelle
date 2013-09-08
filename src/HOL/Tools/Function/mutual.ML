@@ -321,8 +321,6 @@ fun postprocess_cases_rules ctxt cont proof =
             fun prep_subgoal i =
               REPEAT (eresolve_tac @{thms Pair_inject Inl_inject[elim_format]
                                           Inr_inject[elim_format]} i)
-(*              THEN propagate_tac i*)
-(*              THEN bool_subst_tac ctxt i*)
               THEN REPEAT (Tactic.eresolve_tac sum_elims i);
 
             val tac = ALLGOALS prep_subgoal;
