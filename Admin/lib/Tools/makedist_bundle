@@ -147,8 +147,19 @@ case "$PLATFORM_FAMILY" in
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
 
+    (
+      cat "$ISABELLE_HOME/Admin/Windows/WinRun4J/Isabelle.ini"
+      declare -a JAVA_ARGS=()
+      eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
+      A=2
+      for ARG in "${JAVA_ARGS[@]}"
+      do
+        echo -e "vmarg.$A=$ARG\r"
+        A=$[ $A + 1 ]
+      done
+    ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.ini"
+
     cp "$TMP/windows_app/Isabelle.exe" "$ISABELLE_TARGET/${ISABELLE_NAME}.exe"
-    cp "$ISABELLE_HOME/Admin/Windows/WinRun4J/Isabelle.ini" "$ISABELLE_TARGET/${ISABELLE_NAME}.ini"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Latex-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
