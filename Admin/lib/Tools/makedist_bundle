@@ -228,6 +228,7 @@ then
           do
             echo "<string>$OPT</string>"
           done
+          echo "<string>-Dapple.awt.application.name={ISABELLE_NAME}</string>"
 
           cat "$APP_TEMPLATE/Info.plist-part2"
         ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
