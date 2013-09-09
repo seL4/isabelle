@@ -272,6 +272,18 @@ fun indexedddd xssss = fold_map indexeddd xssss;
 
 fun find_index_eq hs h = find_index (curry (op =) h) hs;
 
+(*FIXME: remove special cases for products and sum once they are registered as datatypes*)
+fun map_thms_of_typ ctxt (Type (s, _)) =
+    if s = @{type_name prod} then
+      @{thms map_pair_simp}
+    else if s = @{type_name sum} then
+      @{thms sum_map.simps}
+    else
+      (case fp_sugar_of ctxt s of
+        SOME {index, mapss, ...} => nth mapss index
+      | NONE => [])
+  | map_thms_of_typ _ _ = [];
+
 val lose_co_rec = false (*FIXME: try true?*);
 
 fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
@@ -361,7 +373,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val ((nontriv, missing_res_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
-          co_inducts = coinduct_thms, ...} :: _), lthy') =
+            co_inducts = coinduct_thms, ...} :: _), lthy') =
       nested_to_mutual_fps lose_co_rec Greatest_FP bs res_Ts get_indices callssss0 lthy;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
@@ -446,7 +458,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
           disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...}
         p_is q_isss f_isss f_Tsss =
       {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
-       nested_maps = [] (*FIXME*),
+       nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss

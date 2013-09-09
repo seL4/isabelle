@@ -59,6 +59,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
         end;
 
       val ctr_defss = map (of_fp_sugar #ctr_defss) fp_sugars0;
+      val mapss = map (of_fp_sugar #mapss) fp_sugars0;
       val ctr_sugars0 = map2 target_ctr_sugar_of_fp_sugar fpTs fp_sugars0;
 
       val ctrss = map #ctrs ctr_sugars0;
@@ -168,7 +169,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
       fun mk_target_fp_sugar (kk, T) =
         {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, nested_bnfs = nested_bnfs,
          nesting_bnfs = nesting_bnfs, fp_res = fp_res, ctr_defss = ctr_defss,
-         ctr_sugars = ctr_sugars, co_inducts = co_inducts, co_iterss = co_iterss,
+         ctr_sugars = ctr_sugars, co_iterss = co_iterss, mapss = mapss, co_inducts = co_inducts,
          co_iter_thmsss = transpose [un_fold_thmss, co_rec_thmss],
          disc_co_itersss = transpose [disc_unfold_thmss, disc_corec_thmss],
          sel_co_iterssss = transpose [sel_unfold_thmsss, sel_corec_thmsss]}
