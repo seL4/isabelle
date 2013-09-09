@@ -11,7 +11,6 @@ begin
 
 ML_file "Tools/lambda_lifting.ML"
 ML_file "Tools/monomorph.ML"
-ML_file "Tools/legacy_monomorph.ML"
 ML_file "Tools/ATP/atp_util.ML"
 ML_file "Tools/ATP/atp_problem.ML"
 ML_file "Tools/ATP/atp_proof.ML"
