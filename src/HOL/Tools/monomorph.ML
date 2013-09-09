@@ -77,9 +77,6 @@ fun limit_rounds ctxt f =
     fun round i x = if i > max then x else round (i + 1) (f ctxt i x)
   in round 1 end
 
-fun reached_thm_instance_limit ctxt n =
-  n >= Config.get ctxt max_thm_instances
-
 
 
 (* theorem information and related functions *)
@@ -180,8 +177,8 @@ fun add_new_grounds used_grounds new_grounds thm =
   in Term.fold_aterms add (Thm.prop_of thm) end
 
 
-fun add_insts max_instances ctxt round used_grounds new_grounds id thm tvars
-    schematics cx =
+fun add_insts max_instances max_thm_instances ctxt round used_grounds
+    new_grounds id thm tvars schematics cx =
   let
     exception ENOUGH of
       typ list Symtab.table * (int * (int * thm) list Inttab.table)
@@ -198,7 +195,7 @@ fun add_insts max_instances ctxt round used_grounds new_grounds id thm tvars
           val rthms = Inttab.lookup_list insts id;
           val n_insts' =
             if member (eq_snd Thm.eq_thm) rthms rthm orelse
-               reached_thm_instance_limit ctxt (length rthms) then
+               length rthms >= max_thm_instances then
               (n, insts)
             else
               (n + 1, Inttab.cons_list (id, rthm) insts)
@@ -250,10 +247,10 @@ fun is_new round initial_round = (round = initial_round)
 fun is_active round initial_round = (round > initial_round)
 
 
-fun find_instances max_instances thm_infos ctxt round
+fun find_instances max_instances max_thm_instances thm_infos ctxt round
     (known_grounds, new_grounds, insts) =
   let
-    val add_new = add_insts max_instances ctxt round
+    val add_new = add_insts max_instances max_thm_instances ctxt round
     fun consider_all pred f (cx as (_, (n, _))) =
       if n >= max_instances then cx else fold_schematics pred f thm_infos cx
 
@@ -277,12 +274,13 @@ fun collect_instances ctxt thm_infos consts =
   let
     val known_grounds = fold_grounds add_ground_types thm_infos consts
     val empty_grounds = clear_grounds known_grounds
-    val max_instances =
-      Config.get ctxt max_new_instances
+    val max_instances = Config.get ctxt max_new_instances
       |> fold (fn Schematic _ => Integer.add 1 | _ => I) thm_infos
+    val max_thm_instances = Config.get ctxt max_thm_instances
   in
     (empty_grounds, known_grounds, (0, Inttab.empty))
-    |> limit_rounds ctxt (find_instances max_instances thm_infos)
+    |> limit_rounds ctxt
+      (find_instances max_instances max_thm_instances thm_infos)
     |> (fn (_, _, (_, insts)) => insts)
   end
 
