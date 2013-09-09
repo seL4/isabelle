@@ -650,14 +650,6 @@ fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
       | _ => (maybe_isar_name, [])
   in minimize_command override_params min_name end
 
-fun repair_legacy_monomorph_context max_iters best_max_iters max_new_instances
-                                    best_max_new_instances =
-  Config.put Legacy_Monomorph.max_rounds
-      (max_iters |> the_default best_max_iters)
-  #> Config.put Legacy_Monomorph.max_new_instances
-         (max_new_instances |> the_default best_max_new_instances)
-  #> Config.put Legacy_Monomorph.keep_partial_instances false
-
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
   Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
@@ -757,7 +749,7 @@ fun run_atp mode name
           let
             val ctxt =
               ctxt
-              |> repair_legacy_monomorph_context max_mono_iters
+              |> repair_monomorph_context max_mono_iters
                      best_max_mono_iters max_new_mono_instances
                      best_max_new_mono_instances
             (* pseudo-theorem involving the same constants as the subgoal *)
@@ -770,9 +762,8 @@ fun run_atp mode name
                     |> op @
                     |> cons (0, subgoal_th)
           in
-            Legacy_Monomorph.monomorph atp_schematic_consts_of rths ctxt
-            |> fst |> tl
-            |> curry ListPair.zip (map fst facts)
+            Monomorph.monomorph atp_schematic_consts_of ctxt rths
+            |> tl |> curry ListPair.zip (map fst facts)
             |> maps (fn (name, rths) =>
                         map (pair name o zero_var_indexes o snd) rths)
           end
