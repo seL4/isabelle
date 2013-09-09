@@ -387,7 +387,7 @@ fun could_benefit_from_ext is_built_in_const facts =
 (* High enough so that it isn't wrongly considered as very relevant (e.g., for E
    weights), but low enough so that it is unlikely to be truncated away if few
    facts are included. *)
-val special_fact_index = 75
+val special_fact_index = 45
 
 fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
