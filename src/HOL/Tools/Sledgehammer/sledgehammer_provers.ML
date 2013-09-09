@@ -650,11 +650,14 @@ fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
       | _ => (maybe_isar_name, [])
   in minimize_command override_params min_name end
 
+val max_fact_instances = 10 (* FUDGE *)
+
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
   Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
   #> Config.put Monomorph.max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
+  #> Config.put Monomorph.max_thm_instances max_fact_instances
 
 fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"

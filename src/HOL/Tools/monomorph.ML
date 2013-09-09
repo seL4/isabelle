@@ -35,6 +35,7 @@ sig
   (* configuration options *)
   val max_rounds: int Config.T
   val max_new_instances: int Config.T
+  val max_thm_instances: int Config.T
 
   (* monomorphization *)
   val monomorph: (term -> typ list Symtab.table) -> Proof.context ->
@@ -67,13 +68,20 @@ val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
 val max_new_instances =
   Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
 
+val max_thm_instances =
+  Attrib.setup_config_int @{binding max_thm_instances} (K 20)
+
 fun limit_rounds ctxt f =
   let
     val max = Config.get ctxt max_rounds
     fun round i x = if i > max then x else round (i + 1) (f ctxt i x)
   in round 1 end
 
-fun reached_limit ctxt n = (n >= Config.get ctxt max_new_instances)
+fun reached_new_instance_limit ctxt n =
+  n >= Config.get ctxt max_new_instances
+
+fun reached_thm_instance_limit ctxt n =
+  n >= Config.get ctxt max_thm_instances
 
 
 
@@ -186,14 +194,17 @@ fun add_insts ctxt round used_grounds new_grounds id thm tvars schematics cx =
       let
         val thm' = instantiate thy subst thm
         val rthm = (round, thm')
+        val rthms = Inttab.lookup_list insts id;
         val n_insts' =
-          if member (eq_snd Thm.eq_thm) (Inttab.lookup_list insts id) rthm then
+          if member (eq_snd Thm.eq_thm) rthms rthm orelse
+             reached_thm_instance_limit ctxt (length rthms) then
             (n, insts)
-          else (n + 1, Inttab.cons_list (id, rthm) insts)
+          else
+            (n + 1, Inttab.cons_list (id, rthm) insts)
         val next_grounds' =
           add_new_grounds used_grounds new_grounds thm' next_grounds
         val cx' = (next_grounds', n_insts')
-      in if reached_limit ctxt n then raise ENOUGH cx' else cx' end
+      in if reached_new_instance_limit ctxt n then raise ENOUGH cx' else cx' end
 
     fun with_grounds (n, T) f subst (n', Us) =
       let
@@ -243,7 +254,7 @@ fun find_instances thm_infos ctxt round (known_grounds, new_grounds, insts) =
   let
     val add_new = add_insts ctxt round
     fun consider_all pred f (cx as (_, (n, _))) =
-      if reached_limit ctxt n then cx
+      if reached_new_instance_limit ctxt n then cx
       else fold_schematics pred f thm_infos cx
 
     val known_grounds' = Symtab.merge_list (op =) (known_grounds, new_grounds)
