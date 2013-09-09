@@ -839,8 +839,7 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof =
-              debug orelse (isar_proofs |> the_default (mode = Minimize))
+            val full_proof = isar_proofs |> the_default (mode = Minimize)
             val args =
               arguments ctxt full_proof extra
                         (slice_timeout |> the_default one_day)
