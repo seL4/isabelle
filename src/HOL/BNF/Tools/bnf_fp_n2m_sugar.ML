@@ -145,19 +145,23 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
 
       val ctr_sugars = map inst_ctr_sugar ctr_sugars0;
 
-      val (co_inducts, un_fold_thmss, co_rec_thmss) =
+      val (co_inducts, un_fold_thmss, co_rec_thmss, disc_unfold_thmss, disc_corec_thmss,
+           sel_unfold_thmsss, sel_corec_thmsss) =
         if fp = Least_FP then
           derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
             xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
             co_iterss co_iter_defss lthy
           |> (fn ((_, induct, _), (fold_thmss, _), (rec_thmss, _)) =>
-            ([induct], fold_thmss, rec_thmss))
+            ([induct], fold_thmss, rec_thmss, [], [], [], []))
         else
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs kss mss ns ctr_defss
             ctr_sugars co_iterss co_iter_defss (Proof_Context.export lthy no_defs_lthy) lthy
-          |> (fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _), _, _, _, _) =>
-            (map snd coinduct_thms_pairs, unfold_thmss, corec_thmss));
+          |> (fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _), _, _,
+                  (disc_unfold_thmss, disc_corec_thmss, _),
+                  (sel_unfold_thmsss, sel_corec_thmsss, _)) =>
+            (map snd coinduct_thms_pairs, unfold_thmss, corec_thmss, disc_unfold_thmss,
+             disc_corec_thmss, sel_unfold_thmsss, sel_corec_thmsss));
 
       val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
 
@@ -165,7 +169,9 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
         {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, nested_bnfs = nested_bnfs,
          nesting_bnfs = nesting_bnfs, fp_res = fp_res, ctr_defss = ctr_defss,
          ctr_sugars = ctr_sugars, co_inducts = co_inducts, co_iterss = co_iterss,
-         co_iter_thmsss = transpose [un_fold_thmss, co_rec_thmss]}
+         co_iter_thmsss = transpose [un_fold_thmss, co_rec_thmss],
+         disc_co_itersss = transpose [disc_unfold_thmss, disc_corec_thmss],
+         sel_co_iterssss = transpose [sel_unfold_thmsss, sel_corec_thmsss]}
         |> morph_fp_sugar phi;
     in
       ((true, map_index mk_target_fp_sugar fpTs), lthy)
