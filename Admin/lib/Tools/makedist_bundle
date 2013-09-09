@@ -219,8 +219,18 @@ then
           mkdir -p "$APP/Contents/$NAME"
         done
 
-        cat "$APP_TEMPLATE/Info.plist" | \
-          perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
+        (
+          cat "$APP_TEMPLATE/Info.plist-part1"
+
+          declare -a OPTIONS=()
+          eval "OPTIONS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
+          for OPT in "${OPTIONS[@]}"
+          do
+            echo "<string>$OPT</string>"
+          done
+
+          cat "$APP_TEMPLATE/Info.plist-part2"
+        ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
 
         for NAME in Pure.jar scala-compiler.jar scala-library.jar scala-swing.jar scala-actors.jar scala-reflect.jar
         do
