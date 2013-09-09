@@ -54,8 +54,8 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc k m exclsss =
   mk_primcorec_prelude ctxt defs disc THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_eq_tac ctxt defs sel k m exclsss maps map_idents map_comps =
-  mk_primcorec_prelude ctxt defs (sel RS trans) THEN mk_primcorec_cases_tac ctxt k m exclsss THEN
+fun mk_primcorec_eq_tac ctxt defs eq_thm k m exclsss maps map_idents map_comps =
+  mk_primcorec_prelude ctxt defs (eq_thm RS trans) THEN mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False o_def split_def sum.cases} @
     maps @ map_comps @ map_idents) THEN HEADGOAL (rtac refl);
 
