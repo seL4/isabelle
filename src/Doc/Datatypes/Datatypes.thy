@@ -6,23 +6,7 @@ Tutorial for (co)datatype definitions with the new package.
 
 theory Datatypes
 imports Setup
-keywords
-  "primrec_new_notyet" :: thy_decl and
-  "primcorec_notyet" :: thy_decl
 begin
-
-(*<*)
-(* FIXME: Evil setup until "primrec_new" and "primcorec" are bug-free. *)
-ML_command {*
-fun add_dummy_cmd _ _ lthy = lthy;
-
-val _ = Outer_Syntax.local_theory @{command_spec "primrec_new_notyet"} ""
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
-
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec_notyet"} ""
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
-*}
-(*>*)
 
 
 section {* Introduction
@@ -182,6 +166,7 @@ included, please let the authors know.
 
 *}
 
+
 section {* Defining Datatypes
   \label{sec:defining-datatypes} *}
 
@@ -200,7 +185,7 @@ subsubsection {* Nonrecursive Types *}
 
 text {*
 Datatypes are introduced by specifying the desired names and argument types for
-their constructors. \emph{Enumeration types} are the simplest form of datatype:
+their constructors. \emph{Enumeration} types are the simplest form of datatype.
 All their constructors are nullary:
 *}
 
@@ -208,7 +193,7 @@ All their constructors are nullary:
 
 text {*
 \noindent
-All three constructors have the type @{typ trool}.
+Here, @{const Truue}, @{const Faalse}, and @{const Perhaaps} have the type @{typ trool}.
 
 Polymorphic types are possible, such as the following option type, modeled after
 its homologue from the @{theory Option} theory:
@@ -221,8 +206,8 @@ its homologue from the @{theory Option} theory:
 
 text {*
 \noindent
-The constructors are @{term "None :: 'a option"} and
-@{term "Some :: 'a \<Rightarrow> 'a option"}.
+The constructors are @{text "None :: 'a option"} and
+@{text "Some :: 'a \<Rightarrow> 'a option"}.
 
 The next example has three type parameters:
 *}
@@ -232,7 +217,7 @@ The next example has three type parameters:
 text {*
 \noindent
 The constructor is
-@{term "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
+@{text "Triple :: 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> ('a, 'b, 'c) triple"}.
 Unlike in Standard ML, curried constructors are supported. The uncurried variant
 is also possible:
 *}
@@ -243,7 +228,7 @@ is also possible:
 subsubsection {* Simple Recursion *}
 
 text {*
-simplest recursive type: copy of the natural numbers:
+Natural numbers are the simplest example of a recursive type:
 *}
 
     datatype_new nat = Zero | Suc nat
@@ -253,30 +238,41 @@ simplest recursive type: copy of the natural numbers:
 (*>*)
 
 text {*
-lists were shown in the introduction; terminated lists are a variant:
+\noindent
+Lists were shown in the introduction. Terminated lists are a variant:
 *}
 
+(*<*)
+    locale dummy_tlist
+    begin
+(*>*)
     datatype_new ('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
+(*<*)
+    end
+(*>*)
 
 text {*
-On the right-hand side of the equal sign, the usual Isabelle conventions apply:
-Nonatomic types must be enclosed in double quotes.
+\noindent
+Nonatomic types must be enclosed in double quotes on the right-hand side of the
+equal sign, as is customary in Isabelle.
 *}
 
 
 subsubsection {* Mutual Recursion *}
 
 text {*
-Mutual recursion = Define several types simultaneously, referring to each other.
-
-Simple example: distinction between even and odd natural numbers:
+\emph{Mutually recursive} types are introduced simultaneously and may refer to each
+other. The example below introduces a pair of types for even and odd natural
+numbers:
 *}
 
     datatype_new enat = EZero | ESuc onat
     and onat = OSuc enat
 
 text {*
-More complex, and more realistic, example:
+\noindent
+Arithmetic expressions are defined via terms, terms via factors, and factors via
+expressions:
 *}
 
     datatype_new ('a, 'b) exp =
@@ -290,67 +286,81 @@ More complex, and more realistic, example:
 subsubsection {* Nested Recursion *}
 
 text {*
-Nested recursion = Have recursion through a type constructor.
-
-The introduction showed some examples of trees with nesting through lists.
-
-More complex example, which reuses our option type:
+\emph{Nested recursion} occurs when recursive occurrences of a type appear under
+a type constructor. The introduction showed some examples of trees with nesting
+through lists. A more complex example, that reuses our @{text option} type,
+follows:
 *}
 
     datatype_new 'a btree =
       BNode 'a "'a btree option" "'a btree option"
 
 text {*
-Recursion may not be arbitrary; e.g. impossible to define
+\noindent
+Not all nestings are admissible. For example, this command will fail:
 *}
 
-    datatype_new 'a evil = Evil (*<*)'a
-    typ (*>*)"'a evil \<Rightarrow> 'a evil"
+    datatype_new 'a wrong = Wrong (*<*)'a
+    typ (*>*)"'a wrong \<Rightarrow> 'a wrong"
 
 text {*
-Issue: => allows recursion only on its right-hand side.
-This issue is inherited by polymorphic datatypes (and codatatypes)
-defined in terms of =>.
-In general, type constructors "('a1, ..., 'an) k" allow recursion on a subset
-of their type arguments.
+\noindent
+The issue is that the function arrow @{text "\<Rightarrow>"} allows recursion
+only through its right-hand side. This issue is inherited by polymorphic
+datatypes defined in terms of~@{text "\<Rightarrow>"}:
+*}
+
+    datatype_new ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
+    datatype_new 'a also_wrong = Also_Wrong (*<*)'a
+    typ (*>*)"('a also_wrong, 'a also_wrong) fn"
+
+text {*
+\noindent
+In general, type constructors @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
+allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
+@{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
+type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
+@{typ "('a, 'b) fn"}, the type variable @{typ 'a} is dead and @{typ 'b} is live.
 *}
 
 
 subsubsection {* Auxiliary Constants and Syntaxes *}
 
 text {*
-The @{command datatype_new} command introduces various constants in addition to the
-constructors. Given a type @{text "('a1,\<dots>,'aM) t"} with constructors
-@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>m"}, the following auxiliary
-constants are introduced (among others):
+The @{command datatype_new} command introduces various constants in addition to
+the constructors. Given a type @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
+with $m > 0$ live type variables and $n$ constructors
+@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the
+following auxiliary constants are introduced (among others):
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \emph{Set functions} (\emph{natural transformations}):
-@{text t_set1}, \ldots, @{text t_setM}
+\item \relax{Set functions} (or \relax{natural transformations}):
+@{text t_set1}, \ldots, @{text t_setm}
 
-\item \emph{Map function} (\emph{functorial action}): @{text t_map}
+\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
 
-\item \emph{Relator}: @{text t_rel}
+\item \relax{Relator}: @{text t_rel}
 
-\item \emph{Iterator}: @{text t_fold}
+\item \relax{Iterator}: @{text t_fold}
 
-\item \emph{Recursor}: @{text t_rec}
+\item \relax{Recursor}: @{text t_rec}
 
-\item \emph{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
-@{text "t.is_C\<^sub>m"}
+\item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
+@{text "t.is_C\<^sub>n"}
 
-\item \emph{Selectors}:
-@{text t.un_C}$_{11}$, \ldots, @{text t.un_C}$_{1n_1}$, \ldots,
-@{text t.un_C}$_{m1}$, \ldots, @{text t.un_C}$_{mn_m}$
+\item \relax{Selectors}:
+@{text t.un_C11}$, \ldots, @{text t.un_C1k\<^sub>1}, \\
+\phantom{\relax{Selectors:}} \quad\vdots \\
+\phantom{\relax{Selectors:}} @{text t.un_Cn1}$, \ldots, @{text t.un_Cnk\<^sub>n}.
 \end{itemize}
 
+\noindent
 The discriminators and selectors are collectively called \emph{destructors}. The
-@{text "t."} prefix is an optional component of the name and is normally hidden.
-
-The set functions, map function, relator, discriminators, and selectors can be
-given custom names, as in the example below:
+prefix ``@{text "t."}'' is an optional component of the name and is normally
+hidden. The set functions, map function, relator, discriminators, and selectors
+can be given custom names, as in the example below:
 *}
 
 (*<*)
@@ -380,26 +390,26 @@ The command introduces a discriminator @{const null} and a pair of selectors
   \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
 %
 For two-constructor datatypes, a single discriminator constant suffices. The
-discriminator associated with @{const Cons} is simply @{text "\<not> null"}.
+discriminator associated with @{const Cons} is simply
+@{term "\<lambda>xs. \<not> null xs"}.
 
-The \keyw{defaults} keyword following the @{const Nil} constructor specifies a
-default value for selectors associated with other constructors. Here, it is
-used to specify that the tail of the empty list is the empty list (instead of
-being unspecified).
+The @{text "defaults"} keyword following the @{const Nil} constructor specifies
+a default value for selectors associated with other constructors. Here, it is
+used to ensure that the tail of the empty list is the empty list (instead of
+being left unspecified).
 
-Because @{const Nil} is a nullary constructor, it is also possible to use @{text
-"= Nil"} as a discriminator. This is specified by specifying @{text "="} instead
-of the identifier @{const null} in the declaration above. Although this may look
-appealing, the mixture of constructors and selectors in the resulting
-characteristic theorems can lead Isabelle's automation to switch between the
-constructor and the destructor view in surprising ways.
+Because @{const Nil} is a nullary constructor, it is also possible to use
+@{term "\<lambda>xs. xs = Nil"} as a discriminator. This is specified by
+entering ``@{text "="}'' instead of the identifier @{const null} in the
+declaration above. Although this may look appealing, the mixture of constructors
+and selectors in the resulting characteristic theorems can lead Isabelle's
+automation to switch between the constructor and the destructor view in
+surprising ways.
 *}
 
 text {*
-The usual mixfix syntaxes are available for both types and constructors. For example:
-
-%%% FIXME: remove trailing underscore and use locale trick instead once this is
-%%% supported.
+The usual mixfix syntaxes are available for both types and constructors. For
+example:
 *}
 
 (*<*)
@@ -645,9 +655,16 @@ we don't like the confusing name @{const nth}:
             Zero \<Rightarrow> a
           | Suc j' \<Rightarrow> at as j')"
 
+(*<*)
+    context dummy_tlist
+    begin
+(*>*)
     primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil b) = b" |
       "tfold f (TCons a as) = f a (tfold f as)"
+(*<*)
+    end
+(*>*)
 
 text {*
 Show one example where fun is needed.
@@ -855,14 +872,14 @@ The following example illustrates this procedure:
 
     consts termi\<^sub>0 :: 'a
 
-    datatype_new ('a, 'b) tlist_ =
+    datatype_new ('a, 'b) tlist =
       TNil (termi: 'b) (defaults ttl: TNil)
-    | TCons (thd: 'a) (ttl : "('a, 'b) tlist_") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
+    | TCons (thd: 'a) (ttl : "('a, 'b) tlist") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
 
     overloading
-      termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist_ \<Rightarrow> 'b"
+      termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist \<Rightarrow> 'b"
     begin
-    primrec_new termi\<^sub>0 :: "('a, 'b) tlist_ \<Rightarrow> 'b" where
+    primrec_new termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
     "termi\<^sub>0 (TNil y) = y" |
     "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
