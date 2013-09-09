@@ -53,6 +53,8 @@ tar -C "$TMP" -x -z -f "$ARCHIVE" || exit 2
 
 # bundled components
 
+init_component "$JEDIT_HOME"
+
 mkdir -p "$ARCHIVE_DIR/contrib"
 
 echo "#bundled components" >> "$ISABELLE_TARGET/etc/components"
