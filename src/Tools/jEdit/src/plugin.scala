@@ -14,6 +14,8 @@ import javax.swing.JOptionPane
 import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug}
+import org.jedit.options.CombinedOptions
+import org.gjt.sp.jedit.gui.AboutDialog
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
@@ -222,10 +224,21 @@ class Plugin extends EBPlugin
 
   /* Mac OS X application hooks */
 
-  def handle_quit(): Boolean =
+  def handleQuit(): Boolean =
   {
     jEdit.exit(jEdit.getActiveView(), true)
     false
+  }
+
+  def handlePreferences()
+  {
+    CombinedOptions.combinedOptions(jEdit.getActiveView())
+  }
+
+  def handleAbout(): Boolean =
+  {
+    new AboutDialog(jEdit.getActiveView())
+    true
   }
 
 
@@ -306,8 +319,7 @@ class Plugin extends EBPlugin
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()
 
-      if (Platform.is_macos && PIDE.options.bool("jedit_mac_adapter"))
-        OSX_Adapter.set_quit_handler(this, this.getClass.getDeclaredMethod("handle_quit"))
+      if (Platform.is_macos) OSX_Adapter.init
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
