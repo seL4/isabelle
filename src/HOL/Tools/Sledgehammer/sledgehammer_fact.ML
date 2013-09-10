@@ -237,9 +237,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       | is_boring_prop _ _ = true
     val t = prop_of th
   in
-    (is_boring_prop [] (prop_of th) andalso
-     not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
-    exists_type type_has_top_sort t orelse
+    (is_boring_prop [] t andalso not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
     exists_Const (is_technical_const orf is_low_level_class_const) t orelse
     is_that_fact th
   end
