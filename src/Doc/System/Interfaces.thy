@@ -32,10 +32,10 @@ Start jEdit with Isabelle plugin setup and open theory FILES
   directories may be included via option @{verbatim "-d"} to augment
   that name space (see also \secref{sec:tool-build}).
 
-  By default, the specified image is checked and built on demand, see
-  also @{tool build_dialog}.  The @{verbatim "-s"} determines where to
-  store the result session image (see also \secref{sec:tool-build}).
-  The @{verbatim "-n"} option bypasses the session build dialog.
+  By default, the specified image is checked and built on demand. The
+  @{verbatim "-s"} option determines where to store the result session
+  image (see also \secref{sec:tool-build}). The @{verbatim "-n"}
+  option bypasses the session build dialog.
 
   The @{verbatim "-m"} option specifies additional print modes for the
   prover process.
