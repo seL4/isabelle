@@ -211,8 +211,10 @@ val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
 fun is_low_level_class_const (s, _) =
   s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
 
+val sep_that = Long_Name.separator ^ Obtain.thatN
+
 fun is_that_fact th =
-  String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
+  String.isSuffix sep_that (Thm.get_name_hint th)
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
 
