@@ -106,15 +106,49 @@ val may_be_induction =
                      body_type T = @{typ bool}
                    | _ => false)
 
+fun normalize_vars t =
+  let
+    fun normT (Type (s, Ts)) = fold_map normT Ts #>> curry Type s
+      | normT (TVar (z as (_, S))) =
+        (fn ((knownT, nT), accum) =>
+            case find_index (equal z) knownT of
+              ~1 => (TVar ((Name.uu, nT), S), ((z :: knownT, nT + 1), accum))
+            | j => (TVar ((Name.uu, nT - j - 1), S), ((knownT, nT), accum)))
+      | normT (T as TFree _) = pair T
+    fun norm (t $ u) = norm t ##>> norm u #>> op $
+      | norm (Const (s, T)) = normT T #>> curry Const s
+      | norm (Var (z as (_, T))) =
+        normT T
+        #> (fn (T, (accumT, (known, n))) =>
+               case find_index (equal z) known of
+                 ~1 => (Var ((Name.uu, n), T), (accumT, (z :: known, n + 1)))
+               | j => (Var ((Name.uu, n - j - 1), T), (accumT, (known, n))))
+      | norm (Abs (_, T, t)) =
+        norm t ##>> normT T #>> (fn (t, T) => Abs (Name.uu, T, t))
+      | norm (Bound j) = pair (Bound j)
+      | norm (Free (s, T)) = normT T #>> curry Free s
+  in fst (norm t (([], 0), ([], 0))) end
+
 fun status_of_thm css name th =
-  (* FIXME: use structured name *)
-  if (String.isSubstring ".induct" name orelse
-      String.isSubstring ".inducts" name) andalso
-     may_be_induction (prop_of th) then
-    Induction
-  else case Termtab.lookup css (prop_of th) of
-    SOME status => status
-  | NONE => General
+  let val t = normalize_vars (prop_of th) in
+    (* FIXME: use structured name *)
+    if String.isSubstring ".induct" name andalso may_be_induction t then
+      Induction
+    else case Termtab.lookup css t of
+      SOME status => status
+    | NONE =>
+      let val concl = Logic.strip_imp_concl t in
+        case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+          SOME lrhss =>
+          let
+            val prems = Logic.strip_imp_prems t
+            val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
+          in
+            Termtab.lookup css t' |> the_default General
+          end
+        | NONE => General
+      end
+  end
 
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
@@ -274,18 +308,8 @@ fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
 fun clasimpset_rule_table_of ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
-    fun add stature normalizers get_th =
-      fold (fn rule =>
-               let
-                 val th = rule |> get_th
-                 val t =
-                   th |> Thm.maxidx_of th > 0 ? zero_var_indexes |> prop_of
-               in
-                 fold (fn normalize => Termtab.update (normalize t, stature))
-                      (I :: normalizers)
-               end)
+    fun add stature th =
+      Termtab.update (normalize_vars (prop_of th), stature)
     val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
       ctxt |> claset_of |> Classical.rep_cs
     val intros = Item_Net.content safeIs @ Item_Net.content hazIs
@@ -306,14 +330,14 @@ fun clasimpset_rule_table_of ctxt =
                                       Spec_Rules.Co_Inductive] o fst)
             |> maps (snd o snd)
   in
-    Termtab.empty |> add Simp [atomize] snd simps
-                  |> add Rec_Def [] I rec_defs
-                  |> add Non_Rec_Def [] I nonrec_defs
+    Termtab.empty |> fold (add Simp o snd) simps
+                  |> fold (add Rec_Def) rec_defs
+                  |> fold (add Non_Rec_Def) nonrec_defs
 (* Add once it is used:
-                  |> add Elim [] I elims
+                  |> fold (add Elim) elims
 *)
-                  |> add Intro [] I intros
-                  |> add Inductive [] I spec_intros
+                  |> fold (add Intro) intros
+                  |> fold (add Inductive) spec_intros
   end
 
 fun normalize_eq (t as @{const Trueprop}
