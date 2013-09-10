@@ -357,7 +357,7 @@ fun normalize_eq (t as @{const Trueprop}
     else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
   | normalize_eq t = t
 
-val normalize_eq_etc = normalize_eq o Term_Subst.zero_var_indexes
+val normalize_eq_vars = normalize_eq #> normalize_vars
 
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
@@ -372,7 +372,8 @@ fun un_class_ify s =
 
 fun build_name_tables name_of facts =
   let
-    fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
+    fun cons_thm (_, th) =
+      Termtab.cons_list (normalize_eq_vars (prop_of th), th)
     fun add_plain canon alias =
       Symtab.update (Thm.get_name_hint alias,
                      name_of (if_thm_before canon alias))
@@ -386,7 +387,7 @@ fun build_name_tables name_of facts =
 
 fun uniquify facts =
   Termtab.fold (cons o snd)
-      (fold (Termtab.default o `(normalize_eq_etc o prop_of o snd)) facts
+      (fold (Termtab.default o `(normalize_eq_vars o prop_of o snd)) facts
             Termtab.empty) []
 
 fun struct_induct_rule_on th =
