@@ -18,7 +18,6 @@ sig
      del : (Facts.ref * Attrib.src list) list,
      only : bool}
 
-  val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
   val fact_of_ref :
@@ -33,7 +32,6 @@ sig
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
-  val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
   val fact_of_raw_fact : raw_fact -> fact
   val all_facts :
     Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list
@@ -59,9 +57,7 @@ type fact_override =
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
 
-(* experimental features *)
-val ignore_no_atp =
-  Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
+(* experimental feature *)
 val instantiate_inducts =
   Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
 
@@ -245,7 +241,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
   end
 
 fun is_blacklisted_or_something ctxt ho_atp name =
-  (not (Config.get ctxt ignore_no_atp) andalso is_package_def name) orelse
+  is_package_def name orelse
   exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
 
 fun hackish_string_of_term ctxt =
@@ -423,9 +419,6 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
   else
     I
 
-fun maybe_filter_no_atps ctxt =
-  not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
-
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
@@ -511,8 +504,8 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt false ho_atp reserved add chained css
-           |> filter_out (member Thm.eq_thm_prop del o snd)
-           |> maybe_filter_no_atps ctxt
+           |> filter_out
+                  ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
            |> hashed_keyed_distinct (size_of_term o prop_of o snd)
                   (normalize_eq_vars o prop_of o snd)
          end)
