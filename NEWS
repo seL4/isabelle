@@ -193,6 +193,19 @@ to distinguish both when desired.
     set_map' ~> set_map
 IMCOMPATIBILITY.
 
+* Function package: For mutually recursive functions f and g, separate
+cases rules f.cases and g.cases are generated instead of unusable
+f_g.cases which exposed internal sum types. Potential INCOMPATIBILITY,
+in the case that the unusable rule was used nevertheless.
+
+* Function package: For each function f, new rules f.elims are
+automatically generated, which eliminate equalities of the form "f x =
+t".
+
+* New command "fun_cases" derives ad-hoc elimination rules for
+function equations as simplified instances of f.elims, analogous to
+inductive_cases.  See HOL/ex/Fundefs.thy for some examples.
+
 * Library/Polynomial.thy:
   - Use lifting for primitive definitions.
   - Explicit conversions from and to lists of coefficients, used for

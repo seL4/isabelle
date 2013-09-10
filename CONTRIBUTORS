@@ -9,6 +9,10 @@ Contributions to this Isabelle version
 * September 2013: Nik Sultana, University of Cambridge
   Improvements to HOL/TPTP parser and import facilities.
 
+* Summer 2013: Manuel Eberl, TUM
+  Generation of elimination rules in the function package.
+  New command "fun_cases".
+
 * Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
   Jasmin Blanchette, TUM
   Various improvements to BNF-based (co)datatype package, including a
