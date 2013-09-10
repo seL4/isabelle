@@ -142,7 +142,7 @@ object Isabelle
     Rendering.font_size_change(view, i => i - ((i / 10) max 1))
 
 
-  /* structured insert */
+  /* structured edits */
 
   def insert_line_padding(text_area: JEditTextArea, text: String)
   {
@@ -159,6 +159,39 @@ object Isabelle
         }
         else text
       text_area.setSelectedText(text1)
+    }
+  }
+
+  def edit_command(
+    snapshot: Document.Snapshot,
+    buffer: Buffer,
+    padding: Boolean,
+    exec_id: Document_ID.Exec,
+    s: String)
+  {
+    snapshot.state.execs.get(exec_id).map(_.command) match {
+      case Some(command) =>
+        snapshot.node.command_start(command) match {
+          case Some(start) =>
+            JEdit_Lib.buffer_edit(buffer) {
+              val range = command.proper_range + start
+              if (padding) {
+                val pad =
+                  JEdit_Lib.try_get_text(buffer, Text.Range(range.length - 1, range.length))
+                    match {
+                      case None => ""
+                      case Some(s) => if (Symbol.is_blank(s)) "" else " "
+                    }
+                buffer.insert(start + range.length, pad + s)
+              }
+              else {
+                buffer.remove(start, range.length)
+                buffer.insert(start, s)
+              }
+            }
+          case None =>
+        }
+      case None =>
     }
   }
 

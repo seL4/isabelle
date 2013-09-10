@@ -19,7 +19,9 @@
 
 \newcommand{\keyw}[1]{\isacommand{#1}}
 
-\renewcommand{\isactrlsub}[1]{\/$\sb{\mathrm{#1}}$}
+%\renewcommand{\isactrlsub}[1]{\/$\sb{\mathrm{#1}}$}
+\renewcommand{\isactrlsub}[1]{\/$\sb{#1}$}
+\renewcommand{\isadigit}[1]{\/\ensuremath{\mathrm{#1}}}
 \renewcommand{\isacharprime}{\isamath{{'}\mskip-2mu}}
 \renewcommand{\isacharunderscore}{\mbox{\_}}
 \renewcommand{\isacharunderscorekeyword}{\mbox{\_}}

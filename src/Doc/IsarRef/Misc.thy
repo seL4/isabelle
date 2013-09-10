@@ -46,7 +46,7 @@ text {*
   \begin{description}
   
   \item @{command "print_theory"} prints the main logical content of
-  the theory context; the ``@{text "!"}'' option indicates extra
+  the background theory; the ``@{text "!"}'' option indicates extra
   verbosity.
 
   \item @{command "print_methods"} prints all proof methods
@@ -55,8 +55,9 @@ text {*
   \item @{command "print_attributes"} prints all attributes
   available in the current theory context.
   
-  \item @{command "print_theorems"} prints theorems resulting from the
-  last command; the ``@{text "!"}'' option indicates extra verbosity.
+  \item @{command "print_theorems"} prints theorems of the background
+  theory resulting from the last command; the ``@{text "!"}'' option
+  indicates extra verbosity.
   
   \item @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search

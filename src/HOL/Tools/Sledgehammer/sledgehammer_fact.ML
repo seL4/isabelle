@@ -18,7 +18,6 @@ sig
      del : (Facts.ref * Attrib.src list) list,
      only : bool}
 
-  val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
   val fact_of_ref :
@@ -33,7 +32,6 @@ sig
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
-  val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
   val fact_of_raw_fact : raw_fact -> fact
   val all_facts :
     Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list
@@ -59,9 +57,7 @@ type fact_override =
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
 
-(* experimental features *)
-val ignore_no_atp =
-  Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
+(* experimental feature *)
 val instantiate_inducts =
   Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
 
@@ -106,15 +102,49 @@ val may_be_induction =
                      body_type T = @{typ bool}
                    | _ => false)
 
+fun normalize_vars t =
+  let
+    fun normT (Type (s, Ts)) = fold_map normT Ts #>> curry Type s
+      | normT (TVar (z as (_, S))) =
+        (fn ((knownT, nT), accum) =>
+            case find_index (equal z) knownT of
+              ~1 => (TVar ((Name.uu, nT), S), ((z :: knownT, nT + 1), accum))
+            | j => (TVar ((Name.uu, nT - j - 1), S), ((knownT, nT), accum)))
+      | normT (T as TFree _) = pair T
+    fun norm (t $ u) = norm t ##>> norm u #>> op $
+      | norm (Const (s, T)) = normT T #>> curry Const s
+      | norm (Var (z as (_, T))) =
+        normT T
+        #> (fn (T, (accumT, (known, n))) =>
+               case find_index (equal z) known of
+                 ~1 => (Var ((Name.uu, n), T), (accumT, (z :: known, n + 1)))
+               | j => (Var ((Name.uu, n - j - 1), T), (accumT, (known, n))))
+      | norm (Abs (_, T, t)) =
+        norm t ##>> normT T #>> (fn (t, T) => Abs (Name.uu, T, t))
+      | norm (Bound j) = pair (Bound j)
+      | norm (Free (s, T)) = normT T #>> curry Free s
+  in fst (norm t (([], 0), ([], 0))) end
+
 fun status_of_thm css name th =
-  (* FIXME: use structured name *)
-  if (String.isSubstring ".induct" name orelse
-      String.isSubstring ".inducts" name) andalso
-     may_be_induction (prop_of th) then
-    Induction
-  else case Termtab.lookup css (prop_of th) of
-    SOME status => status
-  | NONE => General
+  let val t = normalize_vars (prop_of th) in
+    (* FIXME: use structured name *)
+    if String.isSubstring ".induct" name andalso may_be_induction t then
+      Induction
+    else case Termtab.lookup css t of
+      SOME status => status
+    | NONE =>
+      let val concl = Logic.strip_imp_concl t in
+        case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+          SOME lrhss =>
+          let
+            val prems = Logic.strip_imp_prems t
+            val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
+          in
+            Termtab.lookup css t' |> the_default General
+          end
+        | NONE => General
+      end
+  end
 
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
@@ -161,36 +191,6 @@ fun multi_base_blacklist ctxt ho_atp =
         append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
 
-val max_lambda_nesting = 5 (*only applies if not ho_atp*)
-
-fun term_has_too_many_lambdas max (t1 $ t2) =
-    exists (term_has_too_many_lambdas max) [t1, t2]
-  | term_has_too_many_lambdas max (Abs (_, _, t)) =
-    max = 0 orelse term_has_too_many_lambdas (max - 1) t
-  | term_has_too_many_lambdas _ _ = false
-
-(* Don't count nested lambdas at the level of formulas, since they are
-   quantifiers. *)
-fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
-    formula_has_too_many_lambdas (T :: Ts) t
-  | formula_has_too_many_lambdas Ts t =
-    if member (op =) [HOLogic.boolT, propT] (fastype_of1 (Ts, t)) then
-      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
-    else
-      term_has_too_many_lambdas max_lambda_nesting t
-
-(* The maximum apply depth of any "metis" call in "Metis_Examples" (on
-   2007-10-31) was 11. *)
-val max_apply_depth = 18
-
-fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
-  | apply_depth (Abs (_, _, t)) = apply_depth t
-  | apply_depth _ = 0
-
-fun is_too_complex ho_atp t =
-  apply_depth t > max_apply_depth orelse
-  (not ho_atp andalso formula_has_too_many_lambdas [] t)
-
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
   ["ATP", "Code_Evaluation", "Datatype", "Enum", "Lazy_Sequence",
@@ -199,20 +199,28 @@ val technical_prefixes =
    "Random_Sequence", "Sledgehammer", "SMT"]
   |> map (suffix Long_Name.separator)
 
-fun has_technical_prefix s =
+fun is_technical_const (s, _) =
   exists (fn pref => String.isPrefix pref s) technical_prefixes
-val exists_technical_const = exists_Const (has_technical_prefix o fst)
 
 (* FIXME: make more reliable *)
-val exists_low_level_class_const =
-  exists_Const (fn (s, _) =>
-     s = @{const_name equal_class.equal} orelse
-     String.isSubstring (Long_Name.separator ^ "class" ^ Long_Name.separator) s)
+val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
+fun is_low_level_class_const (s, _) =
+  s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
+
+val sep_that = Long_Name.separator ^ Obtain.thatN
 
 fun is_that_fact th =
-  String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
+  String.isSuffix sep_that (Thm.get_name_hint th)
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
+
+datatype interest = Deal_Breaker | Interesting | Boring
+
+fun combine_interests Deal_Breaker _ = Deal_Breaker
+  | combine_interests _ Deal_Breaker = Deal_Breaker
+  | combine_interests Interesting _ = Interesting
+  | combine_interests _ Interesting = Interesting
+  | combine_interests Boring Boring = Boring
 
 fun is_likely_tautology_too_meta_or_too_technical th =
   let
@@ -220,30 +228,37 @@ fun is_likely_tautology_too_meta_or_too_technical th =
         not (member (op =) atp_widely_irrelevant_consts s)
       | is_interesting_subterm (Free _) = true
       | is_interesting_subterm _ = false
-    fun is_boring_bool t =
-      not (exists_subterm is_interesting_subterm t) orelse
-      exists_type (exists_subtype (curry (op =) @{typ prop})) t
-    fun is_boring_prop _ (@{const Trueprop} $ t) = is_boring_bool t
-      | is_boring_prop Ts (@{const "==>"} $ t $ u) =
-        is_boring_prop Ts t andalso is_boring_prop Ts u
-      | is_boring_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
-        is_boring_prop (T :: Ts) t
-      | is_boring_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
-        is_boring_prop Ts (t $ eta_expand Ts u 1)
-      | is_boring_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
-        is_boring_bool t andalso is_boring_bool u
-      | is_boring_prop _ _ = true
+    fun interest_of_bool t =
+      if exists_Const (is_technical_const orf is_low_level_class_const) t then
+        Deal_Breaker
+      else if exists_type (exists_subtype (curry (op =) @{typ prop})) t orelse
+              not (exists_subterm is_interesting_subterm t) then
+        Boring
+      else
+        Interesting
+    fun interest_of_prop _ (@{const Trueprop} $ t) = interest_of_bool t
+      | interest_of_prop Ts (@{const "==>"} $ t $ u) =
+        combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
+      | interest_of_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
+        interest_of_prop (T :: Ts) t
+      | interest_of_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
+        interest_of_prop Ts (t $ eta_expand Ts u 1)
+      | interest_of_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
+        combine_interests (interest_of_bool t) (interest_of_bool u)
+      | interest_of_prop _ _ = Deal_Breaker
     val t = prop_of th
   in
-    (is_boring_prop [] (prop_of th) andalso
+    (interest_of_prop [] t <> Interesting andalso
      not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
-    exists_type type_has_top_sort t orelse exists_technical_const t orelse
-    exists_low_level_class_const t orelse is_that_fact th
+    is_that_fact th
   end
 
-fun is_blacklisted_or_something ctxt ho_atp name =
-  (not (Config.get ctxt ignore_no_atp) andalso is_package_def name) orelse
-  exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
+fun is_blacklisted_or_something ctxt ho_atp =
+  let
+    val blist = multi_base_blacklist ctxt ho_atp
+    fun is_blisted name =
+      is_package_def name orelse exists (fn s => String.isSuffix s name) blist
+  in is_blisted end
 
 fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
@@ -272,48 +287,45 @@ fun close_form t =
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
 fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
+(* gracefully handle huge background theories *)
+val max_simps_for_clasimpset = 10000
+
 fun clasimpset_rule_table_of ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val atomize = HOLogic.mk_Trueprop o Object_Logic.atomize_term thy
-    fun add stature normalizers get_th =
-      fold (fn rule =>
-               let
-                 val th = rule |> get_th
-                 val t =
-                   th |> Thm.maxidx_of th > 0 ? zero_var_indexes |> prop_of
-               in
-                 fold (fn normalize => Termtab.update (normalize t, stature))
-                      (I :: normalizers)
-               end)
-    val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
-      ctxt |> claset_of |> Classical.rep_cs
-    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+  let val simps = ctxt |> simpset_of |> dest_ss |> #simps in
+    if length simps >= max_simps_for_clasimpset then
+      Termtab.empty
+    else
+      let
+        fun add stature th =
+          Termtab.update (normalize_vars (prop_of th), stature)
+        val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
+          ctxt |> claset_of |> Classical.rep_cs
+        val intros = Item_Net.content safeIs @ Item_Net.content hazIs
 (* Add once it is used:
-    val elims =
-      Item_Net.content safeEs @ Item_Net.content hazEs
-      |> map Classical.classical_rule
+        val elims =
+          Item_Net.content safeEs @ Item_Net.content hazEs
+          |> map Classical.classical_rule
 *)
-    val simps = ctxt |> simpset_of |> dest_ss |> #simps
-    val specs = ctxt |> Spec_Rules.get
-    val (rec_defs, nonrec_defs) =
-      specs |> filter (curry (op =) Spec_Rules.Equational o fst)
-            |> maps (snd o snd)
-            |> filter_out (member Thm.eq_thm_prop risky_defs)
-            |> List.partition (is_rec_def o prop_of)
-    val spec_intros =
-      specs |> filter (member (op =) [Spec_Rules.Inductive,
-                                      Spec_Rules.Co_Inductive] o fst)
-            |> maps (snd o snd)
-  in
-    Termtab.empty |> add Simp [atomize] snd simps
-                  |> add Rec_Def [] I rec_defs
-                  |> add Non_Rec_Def [] I nonrec_defs
+        val specs = ctxt |> Spec_Rules.get
+        val (rec_defs, nonrec_defs) =
+          specs |> filter (curry (op =) Spec_Rules.Equational o fst)
+                |> maps (snd o snd)
+                |> filter_out (member Thm.eq_thm_prop risky_defs)
+                |> List.partition (is_rec_def o prop_of)
+        val spec_intros =
+          specs |> filter (member (op =) [Spec_Rules.Inductive,
+                                          Spec_Rules.Co_Inductive] o fst)
+                |> maps (snd o snd)
+      in
+        Termtab.empty |> fold (add Simp o snd) simps
+                      |> fold (add Rec_Def) rec_defs
+                      |> fold (add Non_Rec_Def) nonrec_defs
 (* Add once it is used:
-                  |> add Elim [] I elims
+                      |> fold (add Elim) elims
 *)
-                  |> add Intro [] I intros
-                  |> add Inductive [] I spec_intros
+                      |> fold (add Intro) intros
+                      |> fold (add Inductive) spec_intros
+      end
   end
 
 fun normalize_eq (t as @{const Trueprop}
@@ -326,7 +338,7 @@ fun normalize_eq (t as @{const Trueprop}
     else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
   | normalize_eq t = t
 
-val normalize_eq_etc = normalize_eq o Term_Subst.zero_var_indexes
+val normalize_eq_vars = normalize_eq #> normalize_vars
 
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
@@ -341,7 +353,8 @@ fun un_class_ify s =
 
 fun build_name_tables name_of facts =
   let
-    fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
+    fun cons_thm (_, th) =
+      Termtab.cons_list (normalize_eq_vars (prop_of th), th)
     fun add_plain canon alias =
       Symtab.update (Thm.get_name_hint alias,
                      name_of (if_thm_before canon alias))
@@ -353,10 +366,17 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-fun uniquify facts =
-  Termtab.fold (cons o snd)
-      (fold (Termtab.default o `(normalize_eq_etc o prop_of o snd)) facts
-            Termtab.empty) []
+fun keyed_distinct key_of xs =
+  let val tab = fold (Termtab.default o `key_of) xs Termtab.empty in
+    Termtab.fold (cons o snd) tab []
+  end
+
+fun hashed_keyed_distinct hash_of key_of xs =
+  let
+    val ys = map (`hash_of) xs
+    val sorted_ys = sort (int_ord o pairself fst) ys
+    val grouped_ys = AList.coalesce (op =) sorted_ys
+  in maps (keyed_distinct key_of o snd) grouped_ys end
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -415,9 +435,6 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
   else
     I
 
-fun maybe_filter_no_atps ctxt =
-  not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
-
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
@@ -435,14 +452,13 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
+    val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
-            not (can (Proof_Context.get_thms ctxt) name0) orelse
-            (not generous andalso
-             is_blacklisted_or_something ctxt ho_atp name0)) then
+            (not generous andalso is_blacklisted_or_something name0)) then
           I
         else
           let
@@ -457,9 +473,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
             #> fold_rev (fn th => fn (j, accum) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
-                       (is_likely_tautology_too_meta_or_too_technical th orelse
-                        (not generous andalso
-                         is_too_complex ho_atp (prop_of th))) then
+                       is_likely_tautology_too_meta_or_too_technical th then
                       accum
                     else
                       let
@@ -506,9 +520,10 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt false ho_atp reserved add chained css
-           |> filter_out (member Thm.eq_thm_prop del o snd)
-           |> maybe_filter_no_atps ctxt
-           |> uniquify
+           |> filter_out
+                  ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
+           |> hashed_keyed_distinct (size_of_term o prop_of o snd)
+                  (normalize_eq_vars o prop_of o snd)
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end

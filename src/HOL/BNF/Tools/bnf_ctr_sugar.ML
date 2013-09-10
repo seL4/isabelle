@@ -23,7 +23,11 @@ sig
      split_asm: thm,
      disc_thmss: thm list list,
      discIs: thm list,
-     sel_thmss: thm list list};
+     sel_thmss: thm list list,
+     disc_exhausts: thm list,
+     collapses: thm list,
+     expands: thm list,
+     case_convs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
 
@@ -68,10 +72,15 @@ type ctr_sugar =
    split_asm: thm,
    disc_thmss: thm list list,
    discIs: thm list,
-   sel_thmss: thm list list};
+   sel_thmss: thm list list,
+   disc_exhausts: thm list,
+   collapses: thm list,
+   expands: thm list,
+   case_convs: thm list};
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
-    case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss} =
+    case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
+    disc_exhausts, collapses, expands, case_convs} =
   {ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -87,7 +96,11 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    split_asm = Morphism.thm phi split_asm,
    disc_thmss = map (map (Morphism.thm phi)) disc_thmss,
    discIs = map (Morphism.thm phi) discIs,
-   sel_thmss = map (map (Morphism.thm phi)) sel_thmss};
+   sel_thmss = map (map (Morphism.thm phi)) sel_thmss,
+   disc_exhausts = map (Morphism.thm phi) disc_exhausts,
+   collapses = map (Morphism.thm phi) collapses,
+   expands = map (Morphism.thm phi) expands,
+   case_convs = map (Morphism.thm phi) case_convs};
 
 val rep_compat_prefix = "new";
 
@@ -762,7 +775,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
           case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
           split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
-          discIs = discI_thms, sel_thmss = sel_thmss},
+          discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
+          collapses = collapse_thms, expands = expand_thms, case_convs = case_conv_thms},
          lthy
          |> not rep_compat ?
             (Local_Theory.declaration {syntax = false, pervasive = true}

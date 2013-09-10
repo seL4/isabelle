@@ -9,26 +9,41 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.{Class, ClassNotFoundException}
+import java.lang.{Class, ClassNotFoundException, NoSuchMethodException}
 import java.lang.reflect.{InvocationHandler, Method, Proxy}
 
 
 object OSX_Adapter
 {
-  def set_quit_handler(target: AnyRef, quit_handler: Method)
+  private lazy val application_class: Class[_] = Class.forName("com.apple.eawt.Application")
+  private lazy val application = application_class.getConstructor().newInstance()
+
+  def init
   {
-    set_handler(new OSX_Adapter("handle_quit", target, quit_handler))
+    if (PIDE.options.bool("jedit_macos_application")) {
+      try {
+        set_handler("handleQuit")
+        set_handler("handleAbout")
+
+        if (PIDE.options.bool("jedit_macos_preferences")) {
+          application_class.getDeclaredMethod("setEnabledPreferencesMenu", classOf[Boolean]).
+            invoke(application, java.lang.Boolean.valueOf(true))
+          set_handler("handlePreferences")
+        }
+      }
+      catch {
+        case exn: ClassNotFoundException =>
+          java.lang.System.err.println(
+            "com.apple.eawt.Application unavailable -- cannot install native OS X handler")
+      }
+    }
   }
 
-  var application: Any = null
-
-  def set_handler(adapter: OSX_Adapter)
+  private def set_handler(name: String)
   {
+    val handler = PIDE.plugin.getClass.getDeclaredMethod(name)
+    val adapter = new OSX_Adapter(name, PIDE.plugin, handler)
     try {
-      val application_class: Class[_] = Class.forName("com.apple.eawt.Application")
-      if (application == null)
-        application = application_class.getConstructor().newInstance()
-
       val application_listener_class: Class[_] =
         Class.forName("com.apple.eawt.ApplicationListener")
       val add_listener_method =
@@ -58,9 +73,12 @@ class OSX_Adapter(proxy_signature: String, target_object: AnyRef, target_method:
 
       val event = args(0)
       if (event != null) {
-        val set_handled_method =
-          event.getClass.getDeclaredMethod("setHandled", classOf[java.lang.Boolean])
-        set_handled_method.invoke(event, java.lang.Boolean.valueOf(handled))
+        try {
+          val set_handled_method =
+            event.getClass.getDeclaredMethod("setHandled", classOf[java.lang.Boolean])
+          set_handled_method.invoke(event, java.lang.Boolean.valueOf(handled))
+        }
+        catch { case _: NoSuchMethodException => }
       }
     }
     null

@@ -650,19 +650,14 @@ fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
       | _ => (maybe_isar_name, [])
   in minimize_command override_params min_name end
 
-fun repair_legacy_monomorph_context max_iters best_max_iters max_new_instances
-                                    best_max_new_instances =
-  Config.put Legacy_Monomorph.max_rounds
-      (max_iters |> the_default best_max_iters)
-  #> Config.put Legacy_Monomorph.max_new_instances
-         (max_new_instances |> the_default best_max_new_instances)
-  #> Config.put Legacy_Monomorph.keep_partial_instances false
+val max_fact_instances = 10 (* FUDGE *)
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
   Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
   #> Config.put Monomorph.max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
+  #> Config.put Monomorph.max_thm_instances max_fact_instances
 
 fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode Try = "_try"
@@ -757,7 +752,7 @@ fun run_atp mode name
           let
             val ctxt =
               ctxt
-              |> repair_legacy_monomorph_context max_mono_iters
+              |> repair_monomorph_context max_mono_iters
                      best_max_mono_iters max_new_mono_instances
                      best_max_new_mono_instances
             (* pseudo-theorem involving the same constants as the subgoal *)
@@ -770,9 +765,8 @@ fun run_atp mode name
                     |> op @
                     |> cons (0, subgoal_th)
           in
-            Legacy_Monomorph.monomorph atp_schematic_consts_of rths ctxt
-            |> fst |> tl
-            |> curry ListPair.zip (map fst facts)
+            Monomorph.monomorph atp_schematic_consts_of ctxt rths
+            |> tl |> curry ListPair.zip (map fst facts)
             |> maps (fn (name, rths) =>
                         map (pair name o zero_var_indexes o snd) rths)
           end
@@ -845,8 +839,7 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof =
-              debug orelse (isar_proofs |> the_default (mode = Minimize))
+            val full_proof = isar_proofs |> the_default (mode = Minimize)
             val args =
               arguments ctxt full_proof extra
                         (slice_timeout |> the_default one_day)
@@ -1129,7 +1122,7 @@ fun smt_filter_loop name
               (if show_filter then " " ^ quote fact_filter else "") ^
               " fact" ^ plural_s num_facts
             val _ =
-              if verbose andalso is_some outcome then
+              if debug then
                 quote name ^ " invoked with " ^
                 num_of_facts fact_filter num_facts ^ ": " ^
                 string_of_failure (failure_of_smt_failure (the outcome)) ^

@@ -7,8 +7,9 @@ General-purpose functions used by the ATP module.
 signature ATP_UTIL =
 sig
   val timestamp : unit -> string
+  val hashw : word * word -> word
+  val hashw_string : string * word -> word
   val hash_string : string -> int
-  val hash_term : term -> int
   val chunk_list : int -> 'a list -> 'a list list
   val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
@@ -63,13 +64,7 @@ val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
 fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
 fun hashw_string (s : string, w) = CharVector.foldl hashw_char w s
-fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
-  | hashw_term (Const (s, _)) = hashw_string (s, 0w0)
-  | hashw_term (Free (s, _)) = hashw_string (s, 0w0)
-  | hashw_term _ = 0w0
-
 fun hash_string s = Word.toInt (hashw_string (s, 0w0))
-val hash_term = Word.toInt o hashw_term
 
 fun chunk_list _ [] = []
   | chunk_list k xs =

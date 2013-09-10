@@ -26,37 +26,8 @@ object Active
           val buffer = model.buffer
           val snapshot = model.snapshot()
 
-          def try_replace_command(padding: Boolean, exec_id: Document_ID.Exec, s: String)
-          {
-            snapshot.state.execs.get(exec_id).map(_.command) match {
-              case Some(command) =>
-                snapshot.node.command_start(command) match {
-                  case Some(start) =>
-                    JEdit_Lib.buffer_edit(buffer) {
-                      val range = command.proper_range + start
-                      if (padding) {
-                        val pad =
-                          JEdit_Lib.try_get_text(buffer, Text.Range(range.length - 1, range.length))
-                            match {
-                              case None => ""
-                              case Some(s) => if (Symbol.is_blank(s)) "" else " "
-                            }
-                        buffer.insert(start + range.length, pad + s)
-                      }
-                      else {
-                        buffer.remove(start, range.length)
-                        buffer.insert(start, s)
-                      }
-                    }
-                  case None =>
-                }
-              case None =>
-            }
-          }
-
           if (!snapshot.is_outdated) {
             // FIXME avoid hard-wired stuff
-
             elem match {
               case XML.Elem(Markup(Markup.BROWSER, _), body) =>
                 default_thread_pool.submit(() =>
@@ -82,7 +53,8 @@ object Active
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
                 props match {
                   case Position.Id(exec_id) =>
-                    try_replace_command(props.exists(_ == Markup.PADDING_COMMAND), exec_id, text)
+                    Isabelle.edit_command(snapshot, buffer,
+                      props.exists(_ == Markup.PADDING_COMMAND), exec_id, text)
                   case _ =>
                     if (props.exists(_ == Markup.PADDING_LINE))
                       Isabelle.insert_line_padding(text_area, text)
