@@ -8206,35 +8206,89 @@ qed
 
 subsection {* Stronger form with finite number of exceptional points. *}
 
-lemma fundamental_theorem_of_calculus_interior_strong: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes"finite s" "a \<le> b" "continuous_on {a..b} f"
-  "\<forall>x\<in>{a<..<b} - s. (f has_vector_derivative f'(x)) (at x)"
-  shows "(f' has_integral (f b - f a)) {a..b}" using assms apply-
-proof(induct "card s" arbitrary:s a b)
-  case 0 show ?case apply(rule fundamental_theorem_of_calculus_interior) using 0 by auto
-next case (Suc n) from this(2) guess c s' apply-apply(subst(asm) eq_commute) unfolding card_Suc_eq
-    apply(subst(asm)(2) eq_commute) by(erule exE conjE)+ note cs = this[rule_format]
-  show ?case proof(cases "c\<in>{a<..<b}")
-    case False thus ?thesis apply- apply(rule Suc(1)[OF cs(3) _ Suc(4,5)]) apply safe defer
-      apply(rule Suc(6)[rule_format]) using Suc(3) unfolding cs by auto
-  next have *:"f b - f a = (f c - f a) + (f b - f c)" by auto
-    case True hence "a \<le> c" "c \<le> b" by auto
-    thus ?thesis apply(subst *) apply(rule has_integral_combine) apply assumption+
-      apply(rule_tac[!] Suc(1)[OF cs(3)]) using Suc(3) unfolding cs
-    proof- show "continuous_on {a..c} f" "continuous_on {c..b} f"
-        apply(rule_tac[!] continuous_on_subset[OF Suc(5)]) using True by auto
+lemma fundamental_theorem_of_calculus_interior_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "finite s"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<forall>x\<in>{a<..<b} - s. (f has_vector_derivative f'(x)) (at x)"
+  shows "(f' has_integral (f b - f a)) {a..b}"
+  using assms
+proof (induct "card s" arbitrary: s a b)
+  case 0
+  show ?case
+    apply (rule fundamental_theorem_of_calculus_interior)
+    using 0
+    apply auto
+    done
+next
+  case (Suc n)
+  from this(2) guess c s'
+    apply -
+    apply (subst(asm) eq_commute)
+    unfolding card_Suc_eq
+    apply (subst(asm)(2) eq_commute)
+    apply (elim exE conjE)
+    done
+  note cs = this[rule_format]
+  show ?case
+  proof (cases "c \<in> {a<..<b}")
+    case False
+    then show ?thesis
+      apply -
+      apply (rule Suc(1)[OF cs(3) _ Suc(4,5)])
+      apply safe
+      defer
+      apply (rule Suc(6)[rule_format])
+      using Suc(3)
+      unfolding cs
+      apply auto
+      done
+  next
+    have *: "f b - f a = (f c - f a) + (f b - f c)"
+      by auto
+    case True
+    then have "a \<le> c" "c \<le> b"
+      by auto
+    then show ?thesis
+      apply (subst *)
+      apply (rule has_integral_combine)
+      apply assumption+
+      apply (rule_tac[!] Suc(1)[OF cs(3)])
+      using Suc(3)
+      unfolding cs
+    proof -
+      show "continuous_on {a..c} f" "continuous_on {c..b} f"
+        apply (rule_tac[!] continuous_on_subset[OF Suc(5)])
+        using True
+        apply auto
+        done
       let ?P = "\<lambda>i j. \<forall>x\<in>{i<..<j} - s'. (f has_vector_derivative f' x) (at x)"
-      show "?P a c" "?P c b" apply safe apply(rule_tac[!] Suc(6)[rule_format]) using True unfolding cs by auto
-    qed auto qed qed
+      show "?P a c" "?P c b"
+        apply safe
+        apply (rule_tac[!] Suc(6)[rule_format])
+        using True
+        unfolding cs
+        apply auto
+        done
+    qed auto
+  qed
+qed
 
-lemma fundamental_theorem_of_calculus_strong: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "finite s" "a \<le> b" "continuous_on {a..b} f"
-  "\<forall>x\<in>{a..b} - s. (f has_vector_derivative f'(x)) (at x)"
+lemma fundamental_theorem_of_calculus_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "finite s"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<forall>x\<in>{a..b} - s. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f(b) - f(a))) {a..b}"
-  apply(rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
-  using assms(4) by auto
+  apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
+  using assms(4)
+  apply auto
+  done
 
-lemma indefinite_integral_continuous_left: fixes f::"real \<Rightarrow> 'a::banach"
+lemma indefinite_integral_continuous_left:
+  fixes f::"real \<Rightarrow> 'a::banach"
   assumes "f integrable_on {a..b}" "a < c" "c \<le> b" "0 < e"
   obtains d where "0 < d" "\<forall>t. c - d < t \<and> t \<le> c \<longrightarrow> norm(integral {a..c} f - integral {a..t} f) < e"
 proof- have "\<exists>w>0. \<forall>t. c - w < t \<and> t < c \<longrightarrow> norm(f c) * norm(c - t) < e / 3"
@@ -10162,7 +10216,8 @@ proof -
         apply (rule_tac x=N in exI)
       proof safe
         case goal1
-        have *:"\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r" by arith
+        have *: "\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r"
+          by arith
         show ?case
           unfolding real_norm_def
             apply (rule *[rule_format,OF y(2)])
