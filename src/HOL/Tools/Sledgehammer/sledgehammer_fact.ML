@@ -214,29 +214,42 @@ fun is_that_fact th =
   andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
                            | _ => false) (prop_of th)
 
+datatype interest = Deal_Breaker | Interesting | Boring
+
+fun combine_interests Deal_Breaker _ = Deal_Breaker
+  | combine_interests _ Deal_Breaker = Deal_Breaker
+  | combine_interests Interesting _ = Interesting
+  | combine_interests _ Interesting = Interesting
+  | combine_interests Boring Boring = Boring
+
 fun is_likely_tautology_too_meta_or_too_technical th =
   let
     fun is_interesting_subterm (Const (s, _)) =
         not (member (op =) atp_widely_irrelevant_consts s)
       | is_interesting_subterm (Free _) = true
       | is_interesting_subterm _ = false
-    fun is_boring_bool t =
-      not (exists_subterm is_interesting_subterm t) orelse
-      exists_type (exists_subtype (curry (op =) @{typ prop})) t
-    fun is_boring_prop _ (@{const Trueprop} $ t) = is_boring_bool t
-      | is_boring_prop Ts (@{const "==>"} $ t $ u) =
-        is_boring_prop Ts t andalso is_boring_prop Ts u
-      | is_boring_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
-        is_boring_prop (T :: Ts) t
-      | is_boring_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
-        is_boring_prop Ts (t $ eta_expand Ts u 1)
-      | is_boring_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
-        is_boring_bool t andalso is_boring_bool u
-      | is_boring_prop _ _ = true
+    fun interest_of_bool t =
+      if exists_Const (is_technical_const orf is_low_level_class_const) t then
+        Deal_Breaker
+      else if exists_type (exists_subtype (curry (op =) @{typ prop})) t orelse
+              not (exists_subterm is_interesting_subterm t) then
+        Boring
+      else
+        Interesting
+    fun interest_of_prop _ (@{const Trueprop} $ t) = interest_of_bool t
+      | interest_of_prop Ts (@{const "==>"} $ t $ u) =
+        combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
+      | interest_of_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
+        interest_of_prop (T :: Ts) t
+      | interest_of_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
+        interest_of_prop Ts (t $ eta_expand Ts u 1)
+      | interest_of_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
+        combine_interests (interest_of_bool t) (interest_of_bool u)
+      | interest_of_prop _ _ = Deal_Breaker
     val t = prop_of th
   in
-    (is_boring_prop [] t andalso not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
-    exists_Const (is_technical_const orf is_low_level_class_const) t orelse
+    (interest_of_prop [] t <> Interesting andalso
+     not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
     is_that_fact th
   end
 
