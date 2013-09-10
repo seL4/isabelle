@@ -7,6 +7,8 @@ General-purpose functions used by the ATP module.
 signature ATP_UTIL =
 sig
   val timestamp : unit -> string
+  val hashw : word * word -> word
+  val hashw_string : string * word -> word
   val hash_string : string -> int
   val chunk_list : int -> 'a list -> 'a list list
   val stringN_of_int : int -> int -> string
