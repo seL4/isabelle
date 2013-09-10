@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # make_tptp_parser - Runs ML-Yacc to generate TPTP parser and makes it
 #                    Isabelle-friendly.
