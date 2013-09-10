@@ -306,38 +306,45 @@ fun close_form t =
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
 fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
+(* gracefully handle huge background theories *)
+val max_simps_for_clasimpset = 10000
+
 fun clasimpset_rule_table_of ctxt =
-  let
-    fun add stature th =
-      Termtab.update (normalize_vars (prop_of th), stature)
-    val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
-      ctxt |> claset_of |> Classical.rep_cs
-    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+  let val simps = ctxt |> simpset_of |> dest_ss |> #simps in
+    if length simps >= max_simps_for_clasimpset then
+      Termtab.empty
+    else
+      let
+        fun add stature th =
+          Termtab.update (normalize_vars (prop_of th), stature)
+        val {safeIs, (* safeEs, *) hazIs, (* hazEs, *) ...} =
+          ctxt |> claset_of |> Classical.rep_cs
+        val intros = Item_Net.content safeIs @ Item_Net.content hazIs
 (* Add once it is used:
-    val elims =
-      Item_Net.content safeEs @ Item_Net.content hazEs
-      |> map Classical.classical_rule
+        val elims =
+          Item_Net.content safeEs @ Item_Net.content hazEs
+          |> map Classical.classical_rule
 *)
-    val simps = ctxt |> simpset_of |> dest_ss |> #simps
-    val specs = ctxt |> Spec_Rules.get
-    val (rec_defs, nonrec_defs) =
-      specs |> filter (curry (op =) Spec_Rules.Equational o fst)
-            |> maps (snd o snd)
-            |> filter_out (member Thm.eq_thm_prop risky_defs)
-            |> List.partition (is_rec_def o prop_of)
-    val spec_intros =
-      specs |> filter (member (op =) [Spec_Rules.Inductive,
-                                      Spec_Rules.Co_Inductive] o fst)
-            |> maps (snd o snd)
-  in
-    Termtab.empty |> fold (add Simp o snd) simps
-                  |> fold (add Rec_Def) rec_defs
-                  |> fold (add Non_Rec_Def) nonrec_defs
+        val specs = ctxt |> Spec_Rules.get
+        val (rec_defs, nonrec_defs) =
+          specs |> filter (curry (op =) Spec_Rules.Equational o fst)
+                |> maps (snd o snd)
+                |> filter_out (member Thm.eq_thm_prop risky_defs)
+                |> List.partition (is_rec_def o prop_of)
+        val spec_intros =
+          specs |> filter (member (op =) [Spec_Rules.Inductive,
+                                          Spec_Rules.Co_Inductive] o fst)
+                |> maps (snd o snd)
+      in
+        Termtab.empty |> fold (add Simp o snd) simps
+                      |> fold (add Rec_Def) rec_defs
+                      |> fold (add Non_Rec_Def) nonrec_defs
 (* Add once it is used:
-                  |> fold (add Elim) elims
+                      |> fold (add Elim) elims
 *)
-                  |> fold (add Intro) intros
-                  |> fold (add Inductive) spec_intros
+                      |> fold (add Intro) intros
+                      |> fold (add Inductive) spec_intros
+      end
   end
 
 fun normalize_eq (t as @{const Trueprop}
