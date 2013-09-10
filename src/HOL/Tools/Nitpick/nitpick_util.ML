@@ -299,6 +299,11 @@ fun pretty_maybe_quote pretty =
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
   end
 
-val hash_term = ATP_Util.hash_term
+fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
+  | hashw_term (Const (s, _)) = hashw_string (s, 0w0)
+  | hashw_term (Free (s, _)) = hashw_string (s, 0w0)
+  | hashw_term _ = 0w0
+
+val hash_term = Word.toInt o hashw_term
 
 end;
