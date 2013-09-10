@@ -28,6 +28,9 @@ text {* total simp and induction rules: *}
 thm fib.simps
 thm fib.induct
 
+text {* elimination rules *}
+thm fib.elims
+
 subsection {* Currying *}
 
 fun add
@@ -174,6 +177,8 @@ thm od.simps
 thm evn_od.induct
 thm evn_od.termination
 
+thm evn.elims
+thm od.elims
 
 subsection {* Definitions in local contexts *}
 
@@ -207,6 +212,74 @@ end
 
 thm my_monoid.foldL.simps
 thm my_monoid.foldR_foldL
+
+subsection {* @{text fun_cases} *}
+
+subsubsection {* Predecessor *}
+
+fun pred :: "nat \<Rightarrow> nat" where
+"pred 0 = 0" |
+"pred (Suc n) = n"
+
+thm pred.elims
+
+lemma assumes "pred x = y"
+obtains "x = 0" "y = 0" | "n" where "x = Suc n" "y = n"
+by (fact pred.elims[OF assms])
+
+text {* If the predecessor of a number is 0, that number must be 0 or 1. *}
+
+fun_cases pred0E[elim]: "pred n = 0"
+
+lemma "pred n = 0 \<Longrightarrow> n = 0 \<or> n = Suc 0"
+by (erule pred0E) metis+
+
+
+text {* Other expressions on the right-hand side also work, but whether the
+        generated rule is useful depends on how well the simplifier can
+        simplify it. This example works well: *}
+
+fun_cases pred42E[elim]: "pred n = 42"
+
+lemma "pred n = 42 \<Longrightarrow> n = 43"
+by (erule pred42E)
+
+subsubsection {* List to option *}
+
+fun list_to_option :: "'a list \<Rightarrow> 'a option" where
+"list_to_option [x] = Some x" |
+"list_to_option _ = None"
+
+fun_cases list_to_option_NoneE: "list_to_option xs = None"
+      and list_to_option_SomeE: "list_to_option xs = Some _"
+
+lemma "list_to_option xs = Some y \<Longrightarrow> xs = [y]"
+by (erule list_to_option_SomeE)
+
+subsubsection {* Boolean Functions *}
+
+fun xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
+"xor False False = False" |
+"xor True True = False" |
+"xor _ _ = True"
+
+thm xor.elims
+
+text {* @{text fun_cases} does not only recognise function equations, but also works with
+   functions that return a boolean, e.g.: *}
+
+fun_cases xor_TrueE: "xor a b" and xor_FalseE: "\<not>xor a b"
+print_theorems
+
+subsubsection {* Many parameters *}
+
+fun sum4 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
+"sum4 a b c d = a + b + c + d"
+
+fun_cases sum40E: "sum4 a b c d = 0"
+
+lemma "sum4 a b c d = 0 \<Longrightarrow> a = 0"
+by (erule sum40E)
 
 
 subsection {* Partial Function Definitions *}
