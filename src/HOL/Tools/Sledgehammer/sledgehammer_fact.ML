@@ -195,36 +195,6 @@ fun multi_base_blacklist ctxt ho_atp =
         append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
 
-val max_lambda_nesting = 5 (*only applies if not ho_atp*)
-
-fun term_has_too_many_lambdas max (t1 $ t2) =
-    exists (term_has_too_many_lambdas max) [t1, t2]
-  | term_has_too_many_lambdas max (Abs (_, _, t)) =
-    max = 0 orelse term_has_too_many_lambdas (max - 1) t
-  | term_has_too_many_lambdas _ _ = false
-
-(* Don't count nested lambdas at the level of formulas, since they are
-   quantifiers. *)
-fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
-    formula_has_too_many_lambdas (T :: Ts) t
-  | formula_has_too_many_lambdas Ts t =
-    if member (op =) [HOLogic.boolT, propT] (fastype_of1 (Ts, t)) then
-      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
-    else
-      term_has_too_many_lambdas max_lambda_nesting t
-
-(* The maximum apply depth of any "metis" call in "Metis_Examples" (on
-   2007-10-31) was 11. *)
-val max_apply_depth = 18
-
-fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
-  | apply_depth (Abs (_, _, t)) = apply_depth t
-  | apply_depth _ = 0
-
-fun is_too_complex ho_atp t =
-  apply_depth t > max_apply_depth orelse
-  (not ho_atp andalso formula_has_too_many_lambdas [] t)
-
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
   ["ATP", "Code_Evaluation", "Datatype", "Enum", "Lazy_Sequence",
@@ -496,9 +466,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
             #> fold_rev (fn th => fn (j, accum) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
-                       (is_likely_tautology_too_meta_or_too_technical th orelse
-                        (not generous andalso
-                         is_too_complex ho_atp (prop_of th))) then
+                       (is_likely_tautology_too_meta_or_too_technical th) then
                       accum
                     else
                       let
