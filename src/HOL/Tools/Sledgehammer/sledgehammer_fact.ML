@@ -385,10 +385,17 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-fun uniquify facts =
-  Termtab.fold (cons o snd)
-      (fold (Termtab.default o `(normalize_eq_vars o prop_of o snd)) facts
-            Termtab.empty) []
+fun keyed_distinct key_of xs =
+  let val tab = fold (Termtab.default o `key_of) xs Termtab.empty in
+    Termtab.fold (cons o snd) tab []
+  end
+
+fun hashed_keyed_distinct hash_of key_of xs =
+  let
+    val ys = map (`hash_of) xs
+    val sorted_ys = sort (int_ord o pairself fst) ys
+    val grouped_ys = AList.coalesce (op =) sorted_ys
+  in maps (keyed_distinct key_of o snd) grouped_ys end
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -540,7 +547,8 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
            all_facts ctxt false ho_atp reserved add chained css
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
-           |> uniquify
+           |> hashed_keyed_distinct (size_of_term o prop_of o snd)
+                  (normalize_eq_vars o prop_of o snd)
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
