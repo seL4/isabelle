@@ -203,15 +203,13 @@ val technical_prefixes =
    "Random_Sequence", "Sledgehammer", "SMT"]
   |> map (suffix Long_Name.separator)
 
-fun has_technical_prefix s =
+fun is_technical_const (s, _) =
   exists (fn pref => String.isPrefix pref s) technical_prefixes
-val exists_technical_const = exists_Const (has_technical_prefix o fst)
 
 (* FIXME: make more reliable *)
-val exists_low_level_class_const =
-  exists_Const (fn (s, _) =>
-     s = @{const_name equal_class.equal} orelse
-     String.isSubstring (Long_Name.separator ^ "class" ^ Long_Name.separator) s)
+val sep_class_sep = Long_Name.separator ^ "class" ^ Long_Name.separator
+fun is_low_level_class_const (s, _) =
+  s = @{const_name equal_class.equal} orelse String.isSubstring sep_class_sep s
 
 fun is_that_fact th =
   String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
@@ -241,8 +239,9 @@ fun is_likely_tautology_too_meta_or_too_technical th =
   in
     (is_boring_prop [] (prop_of th) andalso
      not (Thm.eq_thm_prop (@{thm ext}, th))) orelse
-    exists_type type_has_top_sort t orelse exists_technical_const t orelse
-    exists_low_level_class_const t orelse is_that_fact th
+    exists_type type_has_top_sort t orelse
+    exists_Const (is_technical_const orf is_low_level_class_const) t orelse
+    is_that_fact th
   end
 
 fun is_blacklisted_or_something ctxt ho_atp name =
