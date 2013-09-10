@@ -240,9 +240,12 @@ fun is_likely_tautology_too_meta_or_too_technical th =
     is_that_fact th
   end
 
-fun is_blacklisted_or_something ctxt ho_atp name =
-  is_package_def name orelse
-  exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
+fun is_blacklisted_or_something ctxt ho_atp =
+  let
+    val blist = multi_base_blacklist ctxt ho_atp
+    fun is_blisted name =
+      is_package_def name orelse exists (fn s => String.isSuffix s name) blist
+  in is_blisted end
 
 fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
@@ -436,13 +439,13 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
+    val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
-            (not generous andalso
-             is_blacklisted_or_something ctxt ho_atp name0)) then
+            (not generous andalso is_blacklisted_or_something name0)) then
           I
         else
           let
@@ -457,7 +460,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
             #> fold_rev (fn th => fn (j, accum) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
-                       (is_likely_tautology_too_meta_or_too_technical th) then
+                       is_likely_tautology_too_meta_or_too_technical th then
                       accum
                     else
                       let
