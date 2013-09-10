@@ -1122,7 +1122,7 @@ fun smt_filter_loop name
               (if show_filter then " " ^ quote fact_filter else "") ^
               " fact" ^ plural_s num_facts
             val _ =
-              if verbose andalso is_some outcome then
+              if debug then
                 quote name ^ " invoked with " ^
                 num_of_facts fact_filter num_facts ^ ": " ^
                 string_of_failure (failure_of_smt_failure (the outcome)) ^
