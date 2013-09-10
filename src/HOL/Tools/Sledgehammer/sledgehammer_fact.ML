@@ -448,7 +448,6 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
-            not (can (Proof_Context.get_thms ctxt) name0) orelse
             (not generous andalso
              is_blacklisted_or_something ctxt ho_atp name0)) then
           I
