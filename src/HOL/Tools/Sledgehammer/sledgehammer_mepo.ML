@@ -15,7 +15,6 @@ sig
 
   val trace : bool Config.T
   val pseudo_abs_name : string
-  val pseudo_skolem_prefix : string
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> raw_fact list -> fact list
@@ -35,7 +34,6 @@ fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val pseudo_abs_name = sledgehammer_prefix ^ "abs"
-val pseudo_skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
@@ -88,9 +86,7 @@ fun string_of_hyper_pconst (s, ps) =
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table also_skolem (s, p) =
-  if (not also_skolem andalso String.isPrefix pseudo_skolem_prefix s) then I
-  else Symtab.map_default (s, [p]) (insert (op =) p)
+fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage
    by treating them more or less as if they were built-in but add their
@@ -98,7 +94,7 @@ fun add_pconst_to_table also_skolem (s, p) =
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
-fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
+fun add_pconsts_in_term thy is_built_in_const pos =
   let
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
@@ -111,7 +107,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
           fold (do_term ext_arg) ts
         else
           (not built_in
-           ? add_pconst_to_table also_skolems (rich_pconst thy const x))
+           ? add_pconst_to_table (rich_pconst thy const x))
           #> fold (do_term false) ts
       end
     and do_term ext_arg t =
@@ -123,17 +119,12 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
          (* Since lambdas on the right-hand side of equalities are usually
             extensionalized later by "abs_extensionalize_term", we don't
             penalize them here. *)
-         ? add_pconst_to_table true (pseudo_abs_name,
-                                     PType (order_of_type T + 1, [])))
+         ? add_pconst_to_table (pseudo_abs_name,
+                                PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
-      #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table true (pseudo_skolem_prefix ^ serial_string (),
-                                      PType (order_of_type abs_T, []))
-          else
-            I)
     and do_term_or_formula ext_arg T =
       if T = HOLogic.boolT then do_formula NONE else do_term ext_arg
     and do_formula pos t =
@@ -176,7 +167,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
 
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
+              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const
                                                    (SOME true) t) []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
@@ -268,8 +259,6 @@ fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
                           const_tab chained_const_tab (c as (s, PType (m, _))) =
   if s = pseudo_abs_name then
     abs_weight
-  else if String.isPrefix pseudo_skolem_prefix s then
-    skolem_weight
   else if String.isSuffix theory_const_suffix s then
     theory_const_weight
   else
@@ -308,8 +297,7 @@ fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
   | stature_bonus _ _ = 0.0
 
 fun is_odd_const_name s =
-  s = pseudo_abs_name orelse String.isPrefix pseudo_skolem_prefix s orelse
-  String.isSuffix theory_const_suffix s
+  s = pseudo_abs_name orelse String.isSuffix theory_const_suffix s
 
 fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
                 fact_consts =
@@ -358,7 +346,7 @@ fun take_most_relevant ctxt max_facts remaining_max
 fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy is_built_in_const false (SOME false))
+    |> fold (add_pconsts_in_term thy is_built_in_const (SOME false))
             (map_filter (fn ((_, (sc', _)), th) =>
                             if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
@@ -397,7 +385,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
-    val add_pconsts = add_pconsts_in_term thy is_built_in_const false o SOME
+    val add_pconsts = add_pconsts_in_term thy is_built_in_const o SOME
     val chained_ts =
       facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
                             | _ => NONE)
@@ -428,7 +416,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                 take_most_relevant ctxt max_facts remaining_max fudge candidates
               val sps = maps (snd o fst) accepts
               val rel_const_tab' =
-                rel_const_tab |> fold (add_pconst_to_table false) sps
+                rel_const_tab |> fold add_pconst_to_table sps
               fun is_dirty (s, _) =
                 Symtab.lookup rel_const_tab' s <> Symtab.lookup rel_const_tab s
               val (hopeful_rejects, hopeless_rejects) =
