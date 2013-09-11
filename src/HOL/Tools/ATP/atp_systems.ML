@@ -91,7 +91,7 @@ open ATP_Problem_Generate
 (* ATP configuration *)
 
 val default_max_mono_iters = 3 (* FUDGE *)
-val default_max_new_mono_instances = 200 (* FUDGE *)
+val default_max_new_mono_instances = 100 (* FUDGE *)
 
 type slice_spec = (int * string) * atp_format * string * string * bool
 
@@ -225,7 +225,7 @@ val agsyhol_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val agsyhol = (agsyholN, fn () => agsyhol_config)
 
@@ -480,7 +480,7 @@ val leo2_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((40, ""), leo2_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val leo2 = (leo2N, fn () => leo2_config)
 
@@ -502,7 +502,7 @@ val satallax_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val satallax = (satallaxN, fn () => satallax_config)
 
@@ -609,7 +609,7 @@ val vampire_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I),
    best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val vampire = (vampireN, fn () => vampire_config)
 
@@ -633,7 +633,7 @@ val z3_tptp_config : atp_config =
         (0.125, (((62, mashN), z3_tff0, "mono_native", combsN, false), "")),
         (0.125, (((31, meshN), z3_tff0, "mono_native", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
