@@ -1,5 +1,5 @@
-(* Author: Alexander Krauss, TU Muenchen
-   Author: Christian Sternagel, University of Innsbruck
+(*  Author:     Alexander Krauss, TU Muenchen
+    Author:     Christian Sternagel, University of Innsbruck
 
 Adhoc overloading of constants based on their types.
 *)
@@ -20,6 +20,7 @@ structure Adhoc_Overloading: ADHOC_OVERLOADING =
 struct
 
 val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
+
 
 (* errors *)
 
@@ -47,6 +48,7 @@ fun err_unresolved_overloading ctxt (c, T) t instances =
           Pretty.str "multiple instances:" ::
           map (Pretty.mark Markup.item o Syntax.pretty_term ctxt') instances)))]))
   end;
+
 
 (* generic data *)
 
@@ -136,6 +138,7 @@ in
   val generic_remove_variant = generic_variant false;
 end;
 
+
 (* check / uncheck *)
 
 fun unifiable_with thy T1 T2 =
@@ -181,12 +184,14 @@ fun reject_unresolved ctxt =
       | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
   in map check_unresolved end;
 
+
 (* setup *)
 
 val _ = Context.>>
   (Syntax_Phases.term_check 0 "adhoc_overloading" check
    #> Syntax_Phases.term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
    #> Syntax_Phases.term_uncheck 0 "adhoc_overloading" uncheck);
+
 
 (* commands *)
 
