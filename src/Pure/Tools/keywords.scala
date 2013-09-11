@@ -27,6 +27,7 @@ object Keywords
     "thy_decl" -> "theory-decl",
     "thy_script" -> "theory-script",
     "thy_goal" -> "theory-goal",
+    "qed_script" -> "qed",
     "qed_block" -> "qed-block",
     "qed_global" -> "qed-global",
     "prf_heading2" -> "proof-heading",
