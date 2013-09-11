@@ -182,14 +182,14 @@ fun print_classes ctxt =
 
     fun prt_param (c, ty) =
       Pretty.block
-       [Pretty.mark_str (Name_Space.markup_extern ctxt const_space c), Pretty.str " ::",
+       [Name_Space.pretty ctxt const_space c, Pretty.str " ::",
         Pretty.brk 1, Syntax.pretty_typ ctxt (Type.strip_sorts_dummy ty)];
 
     fun prt_entry class =
       Pretty.block
         ([Pretty.command "class", Pretty.brk 1,
-          Pretty.mark_str (Name_Space.markup_extern ctxt class_space class), Pretty.str ":",
-          Pretty.fbrk, Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
+          Name_Space.pretty ctxt class_space class, Pretty.str ":", Pretty.fbrk,
+          Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
           (case try (Axclass.get_info thy) class of
             NONE => []
           | SOME {params, ...} =>
