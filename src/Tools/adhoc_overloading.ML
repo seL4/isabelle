@@ -35,14 +35,17 @@ fun err_not_overloaded oconst =
 fun err_unresolved_overloading ctxt (c, T) t instances =
   let val ctxt' = Config.put show_variants true ctxt
   in
-    cat_lines (
-      "Unresolved overloading of constant" ::
-      quote c ^ " :: " ^ quote (Syntax.string_of_typ ctxt' T) ::
-      "in term " ::
-      quote (Syntax.string_of_term ctxt' t) ::
-      (if null instances then "no instances" else "multiple instances:") ::
-    map (Markup.markup Markup.item o Syntax.string_of_term ctxt') instances)
-    |> error
+    error (Pretty.string_of (Pretty.chunks [
+      Pretty.block [
+        Pretty.str "Unresolved adhoc overloading of constant", Pretty.brk 1,
+        Pretty.quote (Syntax.pretty_term ctxt' (Type.constraint T (Const (c, T)))),
+        Pretty.brk 1, Pretty.str "in term", Pretty.brk 1,
+        Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t)]],
+      Pretty.block (
+        (if null instances then [Pretty.str "no instances"]
+        else Pretty.fbreaks (
+          Pretty.str "multiple instances:" ::
+          map (Pretty.mark Markup.item o Syntax.pretty_term ctxt') instances)))]))
   end;
 
 (* generic data *)
