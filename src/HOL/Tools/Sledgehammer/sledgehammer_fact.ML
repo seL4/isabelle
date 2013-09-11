@@ -187,7 +187,7 @@ fun multi_base_blacklist ctxt ho_atp =
    "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
    "weak_case_cong", "nat_of_char_simps", "nibble.simps",
    "nibble.distinct"]
-  |> not (ho_atp orelse (Config.get ctxt instantiate_inducts)) ?
+  |> not (ho_atp orelse Config.get ctxt instantiate_inducts) ?
         append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
 
