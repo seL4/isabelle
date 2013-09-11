@@ -252,6 +252,9 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
 fun is_appropriate_prop_of_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
+val atp_irrelevant_const_tab =
+  Symtab.make (map (rpair ()) atp_irrelevant_consts)
+
 fun is_built_in_const_of_prover ctxt name =
   if is_smt_prover ctxt name then
     let val ctxt = ctxt |> select_smt_solver name in
@@ -264,7 +267,7 @@ fun is_built_in_const_of_prover ctxt name =
            (false, ts)
     end
   else
-    fn (s, _) => fn ts => (member (op =) atp_irrelevant_consts s, ts)
+    fn (s, _) => fn ts => (Symtab.defined atp_irrelevant_const_tab s, ts)
 
 (* FUDGE *)
 val atp_relevance_fudge =
