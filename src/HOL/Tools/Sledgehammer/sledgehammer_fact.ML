@@ -447,10 +447,21 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
+fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
+
+(* gracefully handle huge background theories *)
+val max_facts_for_complex_check = 25000
+
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
+    val is_too_complex =
+      if generous orelse
+         fact_count global_facts >= max_facts_for_complex_check then
+        K false
+      else
+        is_too_complex ho_atp
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
@@ -484,8 +495,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
                        (is_likely_tautology_too_meta_or_too_technical th orelse
-                        (not generous andalso
-                         is_too_complex ho_atp (prop_of th))) then
+                        is_too_complex (prop_of th)) then
                       accum
                     else
                       let
