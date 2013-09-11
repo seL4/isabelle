@@ -78,8 +78,8 @@ structure Classical = Data.Classical;
 (* options *)
 
 val (depth_limit, setup_depth_limit) = Attrib.config_int @{binding blast_depth_limit} (K 20);
-val (trace, setup_trace) = Attrib.config_bool @{binding blast_trace} (K false);
-val (stats, setup_stats) = Attrib.config_bool @{binding blast_stats} (K false);
+val (trace, _) = Attrib.config_bool @{binding blast_trace} (K false);
+val (stats, _) = Attrib.config_bool @{binding blast_stats} (K false);
 
 
 datatype term =
@@ -1298,8 +1298,6 @@ fun tryIt ctxt lim s =
 
 val setup =
   setup_depth_limit #>
-  setup_trace #>
-  setup_stats #>
   Method.setup @{binding blast}
     (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
       (fn NONE => SIMPLE_METHOD' o blast_tac

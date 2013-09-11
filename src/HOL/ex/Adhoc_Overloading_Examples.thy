@@ -1,5 +1,5 @@
-(*  Title:  HOL/ex/Adhoc_Overloading_Examples.thy
-    Author: Christian Sternagel
+(*  Title:      HOL/ex/Adhoc_Overloading_Examples.thy
+    Author:     Christian Sternagel
 *)
 
 header {* Ad Hoc Overloading *}

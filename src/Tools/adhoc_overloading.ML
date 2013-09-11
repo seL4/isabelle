@@ -1,5 +1,5 @@
-(* Author: Alexander Krauss, TU Muenchen
-   Author: Christian Sternagel, University of Innsbruck
+(*  Author:     Alexander Krauss, TU Muenchen
+    Author:     Christian Sternagel, University of Innsbruck
 
 Adhoc overloading of constants based on their types.
 *)
@@ -21,6 +21,7 @@ struct
 
 val show_variants = Attrib.setup_config_bool @{binding show_variants} (K false);
 
+
 (* errors *)
 
 fun err_duplicate_variant oconst =
@@ -32,18 +33,26 @@ fun err_not_a_variant oconst =
 fun err_not_overloaded oconst =
   error ("Constant " ^ quote oconst ^ " is not declared as overloaded");
 
-fun err_unresolved_overloading ctxt (c, T) t instances =
-  let val ctxt' = Config.put show_variants true ctxt
+fun err_unresolved_overloading ctxt0 (c, T) t instances =
+  let
+    val ctxt = Config.put show_variants true ctxt0
+    val const_space = Proof_Context.const_space ctxt
+    val prt_const =
+      Pretty.block [Name_Space.pretty ctxt const_space c, Pretty.str " ::", Pretty.brk 1,
+        Pretty.quote (Syntax.pretty_typ ctxt T)]
   in
-    cat_lines (
-      "Unresolved overloading of constant" ::
-      quote c ^ " :: " ^ quote (Syntax.string_of_typ ctxt' T) ::
-      "in term " ::
-      quote (Syntax.string_of_term ctxt' t) ::
-      (if null instances then "no instances" else "multiple instances:") ::
-    map (Markup.markup Markup.item o Syntax.string_of_term ctxt') instances)
-    |> error
+    error (Pretty.string_of (Pretty.chunks [
+      Pretty.block [
+        Pretty.str "Unresolved adhoc overloading of constant", Pretty.brk 1,
+        prt_const, Pretty.brk 1, Pretty.str "in term", Pretty.brk 1,
+        Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t)]],
+      Pretty.block (
+        (if null instances then [Pretty.str "no instances"]
+        else Pretty.fbreaks (
+          Pretty.str "multiple instances:" ::
+          map (Pretty.mark Markup.item o Syntax.pretty_term ctxt) instances)))]))
   end;
+
 
 (* generic data *)
 
@@ -133,6 +142,7 @@ in
   val generic_remove_variant = generic_variant false;
 end;
 
+
 (* check / uncheck *)
 
 fun unifiable_with thy T1 T2 =
@@ -178,12 +188,14 @@ fun reject_unresolved ctxt =
       | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
   in map check_unresolved end;
 
+
 (* setup *)
 
 val _ = Context.>>
   (Syntax_Phases.term_check 0 "adhoc_overloading" check
    #> Syntax_Phases.term_check 1 "adhoc_overloading_unresolved_check" reject_unresolved
    #> Syntax_Phases.term_uncheck 0 "adhoc_overloading" uncheck);
+
 
 (* commands *)
 

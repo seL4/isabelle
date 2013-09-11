@@ -30,6 +30,7 @@ sig
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string * string -> order
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
+  val pretty: Proof.context -> T -> string -> Pretty.T
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
@@ -193,6 +194,8 @@ fun extern ctxt space name =
 fun extern_ord ctxt space = string_ord o pairself (extern ctxt space);
 
 fun markup_extern ctxt space name = (markup space name, extern ctxt space name);
+
+fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 
 
 (* modify internals *)
