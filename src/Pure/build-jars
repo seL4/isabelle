@@ -72,7 +72,6 @@ declare -a SOURCES=(
   Thy/thy_load.scala
   Thy/thy_syntax.scala
   Tools/build.scala
-  Tools/build_dialog.scala
   Tools/doc.scala
   Tools/keywords.scala
   Tools/main.scala

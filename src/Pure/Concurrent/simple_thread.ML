@@ -25,7 +25,7 @@ fun attributes interrupts =
 fun fork interrupts body =
   Thread.fork (fn () =>
     exception_trace (fn () =>
-      body () handle exn => if Exn.is_interrupt exn then () else reraise exn),
+      body () handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
     attributes interrupts);
 
 fun join thread =

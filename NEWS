@@ -247,8 +247,7 @@ INCOMPATIBILITY.
 
 * Locale hierarchy for abstract orderings and (semi)lattices.
 
-* Discontinued theory src/HOL/Library/Eval_Witness.
-INCOMPATIBILITY.
+* Discontinued theory src/HOL/Library/Eval_Witness.  INCOMPATIBILITY.
 
 * Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
 Isabelle2013).  Use "isabelle build" to operate on Isabelle sessions.
@@ -265,9 +264,9 @@ fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
 Code_Target_Nat and Code_Target_Numeral.  See the tutorial on code
 generation for details.  INCOMPATIBILITY.
 
-* Complete_Partial_Order.admissible is defined outside the type 
-class ccpo, but with mandatory prefix ccpo. Admissibility theorems
-lose the class predicate assumption or sort constraint when possible.
+* Complete_Partial_Order.admissible is defined outside the type class
+ccpo, but with mandatory prefix ccpo. Admissibility theorems lose the
+class predicate assumption or sort constraint when possible.
 INCOMPATIBILITY.
 
 * Introduce type class "conditionally_complete_lattice": Like a
