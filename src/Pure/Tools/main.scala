@@ -16,20 +16,6 @@ import scala.annotation.tailrec
 
 object Main
 {
-  /** class path **/
-
-  def class_path: List[Path] = List(
-    "$ISABELLE_HOME/lib/classes/ext/Pure.jar",
-    "$ISABELLE_HOME/lib/classes/ext/scala-compiler.jar",
-    "$ISABELLE_HOME/lib/classes/ext/scala-library.jar",
-    "$ISABELLE_HOME/lib/classes/ext/scala-swing.jar",
-    "$ISABELLE_HOME/lib/classes/ext/scala-actors.jar",
-    "$ISABELLE_HOME/lib/classes/ext/scala-reflect.jar",
-    "$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar"
-  ).map(Path.explode(_))
-
-
-
   /** main entry point **/
 
   def main(args: Array[String])

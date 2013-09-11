@@ -46,9 +46,17 @@ class Scala_Console extends Shell("Scala")
         find_files(new JFile(start),
           entry => entry.isFile && entry.getName.endsWith(".jar")).map(_.getAbsolutePath)
       else Nil
+
+    val initial_class_path =
+      System.getProperty("java.class.path") match {
+        case null => Nil
+        case class_path => Library.space_explode(JFile.pathSeparatorChar, class_path)
+      }
+
     val path =
-      Main.class_path.map(Isabelle_System.platform_file(_)) :::
-      find_jars(jEdit.getSettingsDirectory) ::: find_jars(jEdit.getJEditHome)
+      initial_class_path :::
+      find_jars(jEdit.getSettingsDirectory) :::
+      find_jars(jEdit.getJEditHome)
     path.mkString(JFile.pathSeparator)
   }
 
