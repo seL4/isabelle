@@ -239,7 +239,8 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       | is_interesting_subterm (Free _) = true
       | is_interesting_subterm _ = false
     fun interest_of_bool t =
-      if exists_Const (is_technical_const orf is_low_level_class_const) t then
+      if exists_Const (is_technical_const orf is_low_level_class_const orf
+                       type_has_top_sort o snd) t then
         Deal_Breaker
       else if exists_type (exists_subtype (curry (op =) @{typ prop})) t orelse
               not (exists_subterm is_interesting_subterm t) then
