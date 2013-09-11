@@ -199,7 +199,7 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
   | apply_depth (Abs (_, _, t)) = apply_depth t
   | apply_depth _ = 0
 
-fun is_too_complex ho_atp t = apply_depth t > max_apply_depth
+fun is_too_complex t = apply_depth t > max_apply_depth
 
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
@@ -461,7 +461,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
          fact_count global_facts >= max_facts_for_complex_check then
         K false
       else
-        is_too_complex ho_atp
+        is_too_complex
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
