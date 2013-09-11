@@ -311,8 +311,8 @@ fun is_odd_const_name s =
   s = pseudo_abs_name orelse String.isPrefix pseudo_skolem_prefix s orelse
   String.isSuffix theory_const_suffix s
 
-fun fact_weight fudge stature const_tab rel_const_tab rel_const_iter_tab
-                chained_const_tab fact_consts =
+fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
+                fact_consts =
   case fact_consts |> List.partition (pconst_hyper_mem I rel_const_tab)
                    ||> filter_out (pconst_hyper_mem swap rel_const_tab) of
     ([], _) => 0.0
@@ -407,16 +407,14 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
               [Chained, Assum, Local]
-    val goal_const_iter_tab = goal_const_tab |> Symtab.map (K (K ~1))
-    fun iter j remaining_max thres rel_const_tab rel_const_iter_tab hopeless
-             hopeful =
+    fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
         fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso thres >= ridiculous_threshold then
               (* First iteration? Try again. *)
               iter 0 max_facts (thres / threshold_divisor) rel_const_tab
-                   rel_const_iter_tab hopeless hopeful
+                   hopeless hopeful
             else
               []
           | relevant candidates rejects [] =
@@ -426,9 +424,6 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               val sps = maps (snd o fst) accepts;
               val rel_const_tab' =
                 rel_const_tab |> fold (add_pconst_to_table false) sps
-              val rel_const_iter_tab' =
-                rel_const_iter_tab
-                |> fold (fn (s, _) => Symtab.default (s, j)) sps
               fun is_dirty (s, _) =
                 Symtab.lookup rel_const_tab' s <> Symtab.lookup rel_const_tab s
               val (hopeful_rejects, hopeless_rejects) =
@@ -457,7 +452,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                  []
                else
                  iter (j + 1) remaining_max thres rel_const_tab'
-                      rel_const_iter_tab' hopeless_rejects hopeful_rejects)
+                      hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
                      (((ax as (((_, stature), _), fact_consts)), cached_weight)
@@ -468,7 +463,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                   SOME w => w
                 | NONE =>
                   fact_weight fudge stature const_tab rel_const_tab
-                              rel_const_iter_tab chained_const_tab fact_consts
+                              chained_const_tab fact_consts
             in
               if weight >= thres then
                 relevant ((ax, weight) :: candidates) rejects hopeful
@@ -509,7 +504,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
          |> insert_into_facts accepts
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
-          |> iter 0 max_facts thres0 goal_const_tab goal_const_iter_tab []
+          |> iter 0 max_facts thres0 goal_const_tab []
           |> insert_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
