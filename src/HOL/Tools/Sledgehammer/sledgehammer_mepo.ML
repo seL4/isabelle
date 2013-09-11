@@ -387,7 +387,9 @@ fun could_benefit_from_ext is_built_in_const facts =
 (* High enough so that it isn't wrongly considered as very relevant (e.g., for E
    weights), but low enough so that it is unlikely to be truncated away if few
    facts are included. *)
-val special_fact_index = 45
+val special_fact_index = 45 (* FUDGE *)
+
+val really_hopeless_get_kicked_out_iter = 5 (* FUDGE *)
 
 fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
@@ -409,6 +411,9 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               [Chained, Assum, Local]
     fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
+        val hopeless =
+          hopeless |> j = really_hopeless_get_kicked_out_iter
+                      ? filter_out (fn (_, w) => w < 0.001)
         fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso thres >= ridiculous_threshold then
@@ -421,7 +426,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
             let
               val (accepts, more_rejects) =
                 take_most_relevant ctxt max_facts remaining_max fudge candidates
-              val sps = maps (snd o fst) accepts;
+              val sps = maps (snd o fst) accepts
               val rel_const_tab' =
                 rel_const_tab |> fold (add_pconst_to_table false) sps
               fun is_dirty (s, _) =
