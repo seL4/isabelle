@@ -514,7 +514,8 @@ specify exactly the same type variables in the same order.
 \noindent
 The main constituents of a constructor specification is the name of the
 constructor and the list of its argument types. An optional discriminator name
-can be supplied at the front to override the default name (@{text t.un_Cji}).
+can be supplied at the front to override the default name
+(@{text t.is_C\<^sub>j}).
 
 @{rail "
   @{syntax_def ctor_arg}: type | '(' name ':' type ')'
@@ -525,8 +526,8 @@ can be supplied at the front to override the default name (@{text t.un_Cji}).
 \noindent
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector to override the default name
-(@{text t.un_C}$_{ij}$). The same selector names can be reused for several
-constructors as long as they have the same type.
+(@{text un_C\<^sub>ji}). The same selector names can be reused for several
+constructors as long as they share the same type.
 
 @{rail "
   @{syntax_def dt_sel_defaults}: '(' @'defaults' (name ':' term +) ')'
