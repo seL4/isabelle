@@ -75,7 +75,7 @@ types have finite branching, whereas those of the second and fourth may have
 infinitely many direct subtrees.
 
 To use the package, it is necessary to import the @{theory BNF} theory, which
-can be precompiled into the @{text "HOL-BNF"} image. The following commands show
+can be precompiled into the \texttt{HOL-BNF} image. The following commands show
 how to launch jEdit/PIDE with the image loaded and how to build the image
 without launching jEdit:
 *}
@@ -94,7 +94,9 @@ The package, like its predecessor, fully adheres to the LCF philosophy
 \footnote{If the @{text quick_and_dirty} option is enabled, some of the
 internal constructions and most of the internal proof obligations are skipped.}
 The package's metatheory is described in a pair of papers
-\cite{traytel-et-al-2012,blanchette-et-al-wit}.
+\cite{traytel-et-al-2012,blanchette-et-al-wit}. The central notion is that of a
+\emph{bounded natural functor} (BNF)---a well-behaved type constructor for which
+nested (co)recursion is supported.
 
 This tutorial is organized as follows:
 
@@ -116,13 +118,15 @@ Functions,'' describes how to specify corecursive functions using the
 @{command primcorec} command.
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
-Bounded Natural Functors,'' explains how to set up the package to allow nested
-recursion through custom well-behaved type constructors.
+Bounded Natural Functors,'' explains how to use the @{command bnf} command
+to register arbitrary type constructors as BNFs.
 
-\item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free
-Constructor Theorems,'' explains how to derive convenience theorems for free
-constructors using the @{command wrap_free_constructors} command, as performed
-internally by @{command datatype_new} and @{command codatatype}.
+\item Section
+\ref{sec:generating-destructors-and-theorems-for-free-constructors},
+``Generating Destructors and Theorems for Free Constructors,'' explains how to
+use the command @{command wrap_free_constructors} to derive destructor constants
+and theorems for freely generated types, as performed internally by @{command
+datatype_new} and @{command codatatype}.
 
 \item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
 describes the package's programmatic interface.
@@ -163,7 +167,6 @@ and \authoremailiv.
 for its appearance. If you have ideas regarding material that should be
 included, please let the authors know.
 \end{framed}
-
 *}
 
 
@@ -253,17 +256,17 @@ Lists were shown in the introduction. Terminated lists are a variant:
 
 text {*
 \noindent
-Nonatomic types must be enclosed in double quotes on the right-hand side of the
-equal sign, as is customary in Isabelle.
+Occurrences of nonatomic types on the right-hand side of the equal sign must be
+enclosed in double quotes, as is customary in Isabelle.
 *}
 
 
 subsubsection {* Mutual Recursion *}
 
 text {*
-\emph{Mutually recursive} types are introduced simultaneously and may refer to each
-other. The example below introduces a pair of types for even and odd natural
-numbers:
+\emph{Mutually recursive} types are introduced simultaneously and may refer to
+each other. The example below introduces a pair of types for even and odd
+natural numbers:
 *}
 
     datatype_new enat = EZero | ESuc onat
@@ -321,6 +324,12 @@ allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
 @{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
 type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 @{typ "('a, 'b) fn"}, the type variable @{typ 'a} is dead and @{typ 'b} is live.
+
+Type constructors must be registered as bounded natural functors (BNFs) to have
+live arguments. This is done automatically for datatypes and codatatypes
+introduced by the @{command datatype_new} and @{command codatatype} commands.
+Section~\ref{sec:registering-bounded-natural-functors} explains how to register
+arbitrary type constructors as BNFs.
 *}
 
 
@@ -418,8 +427,9 @@ example:
 (*<*)
     end
 (*>*)
-    datatype_new ('a, 'b) prod (infixr "*" 20) =
-      Pair 'a 'b
+    datatype_new ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
+
+text {* \blankline *}
 
     datatype_new (set: 'a) list (map: map rel: list_all2) =
       null: Nil ("[]")
@@ -431,6 +441,8 @@ Incidentally, this is how the traditional syntaxes can be set up:
 *}
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
+
+text {* \blankline *}
 
     translations
       "[x, xs]" == "x # [xs]"
@@ -542,16 +554,19 @@ two broad categories:
 and destructors that can be derived for any freely generated type. Internally,
 the derivation is performed by @{command wrap_free_constructors}.
 
-\item The \emph{inductive theorems} are properties of datatypes that rely on
+\item The \emph{functorial theorems} are properties of datatypes related to
+their BNF nature.
+
+\item The \emph{inductive theorems} are properties of datatypes related to
 their inductive nature.
+
 \end{itemize}
 
 \noindent
 The full list of named theorems can be obtained as usual by entering the
 command \keyw{print\_theorems} immediately after the datatype definition.
 This list normally excludes low-level theorems that reveal internal
-constructions. To make these accessible, add the following line to the top of your
-theory file:
+constructions. To make these accessible, add the line
 *}
 
     declare [[bnf_note_all]]
@@ -559,6 +574,10 @@ theory file:
     declare [[bnf_note_all = false]]
 (*>*)
 
+text {*
+\noindent
+to the top of the theory file.
+*}
 
 subsubsection {* Free Constructor Theorems *}
 
@@ -570,134 +589,157 @@ text {*
 The first subgroup of properties are concerned with the constructors.
 They are listed below for @{typ "'a list"}:
 
+\begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}:] ~ \\
+\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\upshape:] ~ \\
 @{thm list.inject[no_vars]}
 
-\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}:] ~ \\
+\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\upshape:] ~ \\
 @{thm list.distinct(1)[no_vars]} \\
 @{thm list.distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}:] ~ \\
+\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
 @{thm list.exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{nchotomy}:] ~ \\
+\item[@{text "t."}\hthm{nchotomy}\upshape:] ~ \\
 @{thm list.nchotomy[no_vars]}
 
 \end{description}
+\end{indentblock}
 
 \noindent
 The next subgroup is concerned with the case combinator:
 
+\begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case} @{text "[simp]"}:] ~ \\
+\item[@{text "t."}\hthm{case} @{text "[simp]"}\upshape:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong}:] ~ \\
+\item[@{text "t."}\hthm{case\_cong}\upshape:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}:] ~ \\
+\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\upshape:] ~ \\
 @{thm list.weak_case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{split}:] ~ \\
+\item[@{text "t."}\hthm{split}\upshape:] ~ \\
 @{thm list.split[no_vars]}
 
-\item[@{text "t."}\hthm{split\_asm}:] ~ \\
+\item[@{text "t."}\hthm{split\_asm}\upshape:] ~ \\
 @{thm list.split_asm[no_vars]}
 
 \item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
 
 \end{description}
+\end{indentblock}
 
 \noindent
 The third and last subgroup revolves around discriminators and selectors:
 
+\begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{discs} @{text "[simp]"}:] ~ \\
+\item[@{text "t."}\hthm{discs} @{text "[simp]"}\upshape:] ~ \\
 @{thm list.discs(1)[no_vars]} \\
 @{thm list.discs(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sels} @{text "[simp]"}:] ~ \\
+\item[@{text "t."}\hthm{sels} @{text "[simp]"}\upshape:] ~ \\
 @{thm list.sels(1)[no_vars]} \\
 @{thm list.sels(2)[no_vars]}
 
-\item[@{text "t."}\hthm{collapse} @{text "[simp]"}:] ~ \\
+\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\upshape:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_exclude}:] ~ \\
+\item[@{text "t."}\hthm{disc\_exclude}\upshape:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
 discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> is_Cons list"} \\
 @{prop "is_Cons list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}:] ~ \\
+\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{expand}:] ~ \\
+\item[@{text "t."}\hthm{expand}\upshape:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{case\_conv}:] ~ \\
+\item[@{text "t."}\hthm{case\_conv}\upshape:] ~ \\
 @{thm list.case_conv[no_vars]}
 
 \end{description}
+\end{indentblock}
+*}
+
+
+subsubsection {* Functorial Theorems *}
+
+text {*
+The BNF-related theorem are listed below:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{sets} @{text "[code]"}\upshape:] ~ \\
+@{thm list.sets(1)[no_vars]} \\
+@{thm list.sets(2)[no_vars]}
+
+\item[@{text "t."}\hthm{map} @{text "[code]"}\upshape:] ~ \\
+@{thm list.map(1)[no_vars]} \\
+@{thm list.map(2)[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\upshape:] ~ \\
+@{thm list.rel_inject(1)[no_vars]} \\
+@{thm list.rel_inject(2)[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\upshape:] ~ \\
+@{thm list.rel_distinct(1)[no_vars]} \\
+@{thm list.rel_distinct(2)[no_vars]}
+
+\end{description}
+\end{indentblock}
 *}
 
 
 subsubsection {* Inductive Theorems *}
 
 text {*
+The inductive theorems are listed below:
 
+\begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}:] ~ \\
+\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct}: @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}:] ~ \\
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{fold} @{text "[code]"}:] ~ \\
+\item[@{text "t."}\hthm{fold} @{text "[code]"}\upshape:] ~ \\
 @{thm list.fold(1)[no_vars]} \\
 @{thm list.fold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec} @{text "[code]"}:] ~ \\
+\item[@{text "t."}\hthm{rec} @{text "[code]"}\upshape:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sets}: @{text "[code]"}] ~ \\
-@{thm list.sets(1)[no_vars]} \\
-@{thm list.sets(2)[no_vars]}
-
-\item[@{text "t."}\hthm{map}: @{text "[code]"}] ~ \\
-@{thm list.map(1)[no_vars]} \\
-@{thm list.map(2)[no_vars]}
-
-\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}:] ~ \\
-@{thm list.rel_inject(1)[no_vars]} \\
-@{thm list.rel_inject(2)[no_vars]}
-
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}:] ~ \\
-@{thm list.rel_distinct(1)[no_vars]} \\
-@{thm list.rel_distinct(2)[no_vars]}
-
 \end{description}
+\end{indentblock}
 
 \noindent
 For convenience, @{command datatype_new} also provides the following collection:
 
+\begin{indentblock}
 \begin{description}
 
 \item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.fold} @{text t.map} @{text t.rel_inject}] ~ \\
 @{text t.rel_distinct} @{text t.sets}
 
 \end{description}
-
+\end{indentblock}
 *}
 
 
@@ -1170,7 +1212,6 @@ subsection {* Syntax
   \label{ssec:bnf-syntax} *}
 
 text {*
-
 @{rail "
   @@{command_def bnf} target? (name ':')? term \\
     term_list term term_list term?
@@ -1181,8 +1222,8 @@ text {*
 options: no_discs_sels rep_compat
 *}
 
-section {* Generating Free Constructor Theorems
-  \label{sec:generating-free-constructor-theorems} *}
+section {* Generating Destructors and Theorems for Free Constructors
+  \label{sec:generating-destructors-and-theorems-for-free-constructors} *}
 
 text {*
 This section explains how to derive convenience theorems for free constructors,
@@ -1292,7 +1333,6 @@ text {*
 * no way to register same type as both data- and codatatype?
 
 * no recursion through unused arguments (unlike with the old package)
-
 *}
 
 
