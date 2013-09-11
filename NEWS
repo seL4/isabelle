@@ -212,7 +212,7 @@ IMCOMPATIBILITY.
   - The whole reflection stack has been decomposed into conversions.
 INCOMPATIBILITY.
 
-* Weaker precendence of syntax for big intersection and union on sets,
+* Stronger precedence of syntax for big intersection and union on sets,
 in accordance with corresponding lattice operations.  INCOMPATIBILITY.
 
 * Nested case expressions are now translated in a separate check phase
