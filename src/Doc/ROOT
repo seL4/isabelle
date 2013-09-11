@@ -38,7 +38,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     "document/style.sty"
 
 session Datatypes (doc) in "Datatypes" = "HOL-BNF" +
-  options [document_variants = "datatypes", document_output = "/tmp/isa-output"]
+  options [document_variants = "datatypes"]
   theories [document = false] Setup
   theories Datatypes
   files
