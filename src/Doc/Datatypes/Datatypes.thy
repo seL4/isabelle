@@ -408,9 +408,9 @@ For two-constructor datatypes, a single discriminator constant suffices. The
 discriminator associated with @{const Cons} is simply
 @{term "\<lambda>xs. \<not> null xs"}.
 
-The @{text "defaults"} keyword following the @{const Nil} constructor specifies
-a default value for selectors associated with other constructors. Here, it is
-used to ensure that the tail of the empty list is itself (instead of being left
+The @{text defaults} clause following the @{const Nil} constructor specifies a
+default value for selectors associated with other constructors. Here, it is used
+to ensure that the tail of the empty list is itself (instead of being left
 unspecified).
 
 Because @{const Nil} is a nullary constructor, it is also possible to use

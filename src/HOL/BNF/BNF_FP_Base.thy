@@ -11,8 +11,6 @@ header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP_Base
 imports BNF_Comp BNF_Ctr_Sugar
-keywords
-  "defaults"
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"

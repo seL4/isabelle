@@ -1538,7 +1538,7 @@ val parse_ctr_arg =
   (Parse.typ >> pair Binding.empty);
 
 val parse_defaults =
-  @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
+  @{keyword "("} |-- Parse.reserved "defaults" |-- Scan.repeat parse_bound_term --| @{keyword ")"};
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
@@ -1554,8 +1554,6 @@ val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_bindin
 
 val no_map_rel = (Binding.empty, Binding.empty);
 
-(* "map" and "rel" are purposedly not registered as keywords, because they are short and nice names
-   that we don't want them to be highlighted everywhere. *)
 fun extract_map_rel ("map", b) = apfst (K b)
   | extract_map_rel ("rel", b) = apsnd (K b)
   | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
