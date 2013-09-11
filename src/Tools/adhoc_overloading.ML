@@ -33,20 +33,24 @@ fun err_not_a_variant oconst =
 fun err_not_overloaded oconst =
   error ("Constant " ^ quote oconst ^ " is not declared as overloaded");
 
-fun err_unresolved_overloading ctxt (c, T) t instances =
-  let val ctxt' = Config.put show_variants true ctxt
+fun err_unresolved_overloading ctxt0 (c, T) t instances =
+  let
+    val ctxt = Config.put show_variants true ctxt0
+    val const_space = Proof_Context.const_space ctxt
+    val prt_const =
+      Pretty.block [Name_Space.pretty ctxt const_space c, Pretty.str " ::", Pretty.brk 1,
+        Pretty.quote (Syntax.pretty_typ ctxt T)]
   in
     error (Pretty.string_of (Pretty.chunks [
       Pretty.block [
         Pretty.str "Unresolved adhoc overloading of constant", Pretty.brk 1,
-        Pretty.quote (Syntax.pretty_term ctxt' (Type.constraint T (Const (c, T)))),
-        Pretty.brk 1, Pretty.str "in term", Pretty.brk 1,
-        Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t)]],
+        prt_const, Pretty.brk 1, Pretty.str "in term", Pretty.brk 1,
+        Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t)]],
       Pretty.block (
         (if null instances then [Pretty.str "no instances"]
         else Pretty.fbreaks (
           Pretty.str "multiple instances:" ::
-          map (Pretty.mark Markup.item o Syntax.pretty_term ctxt') instances)))]))
+          map (Pretty.mark Markup.item o Syntax.pretty_term ctxt) instances)))]))
   end;
 
 
