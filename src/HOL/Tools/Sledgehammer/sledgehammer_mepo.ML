@@ -94,13 +94,8 @@ fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
-fun add_pconsts_in_term thy is_built_in_const pos =
+fun add_pconsts_in_term thy is_built_in_const =
   let
-    val flip = Option.map not
-    (* We include free variables, as well as constants, to handle locales. For
-       each quantifiers that must necessarily be skolemized by the automatic
-       prover, we introduce a fresh constant to simulate the effect of
-       Skolemization. *)
     fun do_const const ext_arg (x as (s, _)) ts =
       let val (built_in, ts) = is_built_in_const x ts in
         if member (op =) set_consts s then
@@ -123,52 +118,41 @@ fun add_pconsts_in_term thy is_built_in_const pos =
                                 PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts
-    fun do_quantifier will_surely_be_skolemized abs_T body_t =
-      do_formula pos body_t
     and do_term_or_formula ext_arg T =
-      if T = HOLogic.boolT then do_formula NONE else do_term ext_arg
-    and do_formula pos t =
+      if T = HOLogic.boolT then do_formula else do_term ext_arg
+    and do_formula t =
       case t of
-        Const (@{const_name all}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T t'
-      | @{const "==>"} $ t1 $ t2 =>
-        do_formula (flip pos) t1 #> do_formula pos t2
+        Const (@{const_name all}, _) $ Abs (_, T, t') => do_formula t'
+      | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
-      | @{const Trueprop} $ t1 => do_formula pos t1
+      | @{const Trueprop} $ t1 => do_formula t1
       | @{const False} => I
       | @{const True} => I
-      | @{const Not} $ t1 => do_formula (flip pos) t1
-      | Const (@{const_name All}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T t'
-      | Const (@{const_name Ex}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME true) T t'
-      | @{const HOL.conj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const HOL.disj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const HOL.implies} $ t1 $ t2 =>
-        do_formula (flip pos) t1 #> do_formula pos t2
+      | @{const Not} $ t1 => do_formula t1
+      | Const (@{const_name All}, _) $ Abs (_, T, t') => do_formula t'
+      | Const (@{const_name Ex}, _) $ Abs (_, T, t') => do_formula t'
+      | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
-        do_formula NONE t1 #> fold (do_term_or_formula false T) [t2, t3]
-      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') =>
-        do_quantifier (is_some pos) T t'
+        do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
+      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') => do_formula t'
       | Const (@{const_name Ball}, _) $ t1 $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T
-                      (HOLogic.mk_imp (incr_boundvars 1 t1 $ Bound 0, t'))
+        do_formula (t1 $ Bound ~1) #> do_formula t'
       | Const (@{const_name Bex}, _) $ t1 $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME true) T
-                      (HOLogic.mk_conj (incr_boundvars 1 t1 $ Bound 0, t'))
+        do_formula (t1 $ Bound ~1) #> do_formula t'
       | (t0 as Const (_, @{typ bool})) $ t1 =>
-        do_term false t0 #> do_formula pos t1  (* theory constant *)
+        do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t
-  in do_formula pos end
+  in do_formula end
 
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const
-                                                   (SOME true) t) []
+              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const t) []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)
@@ -254,9 +238,9 @@ fun multiplier_of_const_name local_const_multiplier s =
   if String.isSubstring "." s then 1.0 else local_const_multiplier
 
 (* Computes a constant's weight, as determined by its frequency. *)
-fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
-                          theory_const_weight chained_const_weight weight_for f
-                          const_tab chained_const_tab (c as (s, PType (m, _))) =
+fun generic_pconst_weight local_const_multiplier abs_weight theory_const_weight
+        chained_const_weight weight_for f const_tab chained_const_tab
+        (c as (s, PType (m, _))) =
   if s = pseudo_abs_name then
     abs_weight
   else if String.isSuffix theory_const_suffix s then
@@ -273,19 +257,18 @@ fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
 fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight,
                         theory_const_rel_weight, ...} : relevance_fudge)
                       const_tab =
-  generic_pconst_weight local_const_multiplier abs_rel_weight 0.0
+  generic_pconst_weight local_const_multiplier abs_rel_weight
                         theory_const_rel_weight 0.0 rel_weight_for I const_tab
                         Symtab.empty
 
 fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
-                                   skolem_irrel_weight,
                                    theory_const_irrel_weight,
                                    chained_const_irrel_weight, ...})
                         const_tab chained_const_tab =
   generic_pconst_weight local_const_multiplier abs_irrel_weight
-                        skolem_irrel_weight theory_const_irrel_weight
-                        chained_const_irrel_weight (irrel_weight_for fudge) swap
-                        const_tab chained_const_tab
+                        theory_const_irrel_weight chained_const_irrel_weight
+                        (irrel_weight_for fudge) swap const_tab
+                        chained_const_tab
 
 fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
     intro_bonus
@@ -346,7 +329,7 @@ fun take_most_relevant ctxt max_facts remaining_max
 fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy is_built_in_const (SOME false))
+    |> fold (add_pconsts_in_term thy is_built_in_const)
             (map_filter (fn ((_, (sc', _)), th) =>
                             if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
@@ -385,15 +368,15 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
-    val add_pconsts = add_pconsts_in_term thy is_built_in_const o SOME
+    val add_pconsts = add_pconsts_in_term thy is_built_in_const
     val chained_ts =
       facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
                             | _ => NONE)
-    val chained_const_tab = Symtab.empty |> fold (add_pconsts true) chained_ts
+    val chained_const_tab = Symtab.empty |> fold add_pconsts chained_ts
     val goal_const_tab =
       Symtab.empty
-      |> fold (add_pconsts true) hyp_ts
-      |> add_pconsts false concl_t
+      |> fold add_pconsts hyp_ts
+      |> add_pconsts concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
               [Chained, Assum, Local]
