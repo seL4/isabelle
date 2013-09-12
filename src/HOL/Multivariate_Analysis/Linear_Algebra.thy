@@ -560,6 +560,9 @@ lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (S 
 lemma subset_hull: "S t \<Longrightarrow> S hull s \<subseteq> t \<longleftrightarrow> s \<subseteq> t"
   unfolding hull_def by blast
 
+lemma hull_UNIV: "S hull UNIV = UNIV"
+  unfolding hull_def by auto
+
 lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
   unfolding hull_def by auto
 

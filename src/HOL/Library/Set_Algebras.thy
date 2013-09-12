@@ -90,6 +90,11 @@ by default (simp_all add: set_times_def)
 lemma set_plus_intro [intro]: "a : C ==> b : D ==> a + b : C + D"
   by (auto simp add: set_plus_def)
 
+lemma set_plus_elim:
+  assumes "x \<in> A + B"
+  obtains a b where "x = a + b" and "a \<in> A" and "b \<in> B"
+  using assms unfolding set_plus_def by fast
+
 lemma set_plus_intro2 [intro]: "b : C ==> a + b : a +o C"
   by (auto simp add: elt_set_plus_def)
 
@@ -200,6 +205,11 @@ lemma set_minus_plus: "((a::'a::ab_group_add) - b : C) = (a : b +o C)"
 
 lemma set_times_intro [intro]: "a : C ==> b : D ==> a * b : C * D"
   by (auto simp add: set_times_def)
+
+lemma set_times_elim:
+  assumes "x \<in> A * B"
+  obtains a b where "x = a * b" and "a \<in> A" and "b \<in> B"
+  using assms unfolding set_times_def by fast
 
 lemma set_times_intro2 [intro!]: "b : C ==> a * b : a *o C"
   by (auto simp add: elt_set_times_def)
@@ -321,9 +331,19 @@ lemma set_neg_intro2: "(a::'a::ring_1) : C ==>
     - a : (- 1) *o C"
   by (auto simp add: elt_set_times_def)
 
-lemma set_plus_image:
-  fixes S T :: "'n::semigroup_add set" shows "S + T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
+lemma set_plus_image: "S + T = (\<lambda>(x, y). x + y) ` (S \<times> T)"
   unfolding set_plus_def by (fastforce simp: image_iff)
+
+lemma set_times_image: "S * T = (\<lambda>(x, y). x * y) ` (S \<times> T)"
+  unfolding set_times_def by (fastforce simp: image_iff)
+
+lemma finite_set_plus:
+  assumes "finite s" and "finite t" shows "finite (s + t)"
+  using assms unfolding set_plus_image by simp
+
+lemma finite_set_times:
+  assumes "finite s" and "finite t" shows "finite (s * t)"
+  using assms unfolding set_times_image by simp
 
 lemma set_setsum_alt:
   assumes fin: "finite I"

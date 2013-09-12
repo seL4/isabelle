@@ -46,6 +46,12 @@ lemma convex_Inter: "(\<forall>s\<in>f. convex s) ==> convex(\<Inter> f)"
 lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<inter> t)"
   unfolding convex_def by auto
 
+lemma convex_INT: "\<forall>i\<in>A. convex (B i) \<Longrightarrow> convex (\<Inter>i\<in>A. B i)"
+  unfolding convex_def by auto
+
+lemma convex_Times: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<times> t)"
+  unfolding convex_def by auto
+
 lemma convex_halfspace_le: "convex {x. inner a x \<le> b}"
   unfolding convex_def
   by (auto simp: inner_add intro!: convex_bound_le)
