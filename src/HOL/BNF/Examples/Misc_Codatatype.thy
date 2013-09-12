@@ -73,6 +73,7 @@ and ('a, 'b, 'c) in_here'' =
 
 codatatype ('b, 'c) less_killing = LK "'b \<Rightarrow> 'c"
 
+codatatype 'b poly_unit = U "'b \<Rightarrow> 'b poly_unit"
 codatatype 'b cps = CPS1 'b | CPS2 "'b \<Rightarrow> 'b cps"
 
 codatatype ('b1, 'b2, 'b3, 'b4, 'b5, 'b6, 'b7, 'b8, 'b9) fun_rhs =

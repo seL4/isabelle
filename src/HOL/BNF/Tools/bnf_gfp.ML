@@ -2014,7 +2014,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_o_inj(1)} @
+        |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o id_apply o_assoc sum_case_o_inj(1)} @
            map_id0s @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
 
     val timer = time (timer "corec definitions & thms");
