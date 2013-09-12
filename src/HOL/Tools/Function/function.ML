@@ -211,7 +211,7 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
            ((qualify "induct",
              [Attrib.internal (K (Rule_Cases.case_names case_names))]),
             tinduct)
-        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1, Induct.cases_pred defname]) (fnames ~~ telims)
+        ||>> fold_map (note_qualified "elims" [Rule_Cases.consumes 1, Rule_Cases.constraints 1]) (fnames ~~ telims)
         |-> (fn ((simps,(_,inducts)), elims) => fn lthy =>
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
