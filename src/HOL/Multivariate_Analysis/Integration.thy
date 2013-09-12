@@ -4123,11 +4123,8 @@ lemma operative_content[intro]: "operative (op +) content"
   apply rule
   done
 
-lemma neutral_monoid: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
-  by (rule neutral_add) (* FIXME: duplicate *)
-
 lemma monoidal_monoid[intro]: "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
-  unfolding monoidal_def neutral_monoid
+  unfolding monoidal_def neutral_add
   by (auto simp add: algebra_simps)
 
 lemma operative_integral:
@@ -4855,12 +4852,12 @@ lemma setsum_iterate:
 proof -
   have *: "setsum f s = setsum f (support op + f s)"
     apply (rule setsum_mono_zero_right)
-    unfolding support_def neutral_monoid
+    unfolding support_def neutral_add
     using assms
     apply auto
     done
   then show ?thesis unfolding * iterate_def fold'_def setsum.eq_fold
-    unfolding neutral_monoid by (simp add: comp_def)
+    unfolding neutral_add by (simp add: comp_def)
 qed
 
 lemma additive_content_division:
@@ -5399,7 +5396,6 @@ lemma vsum_nonzero_image_lemma:
   apply (rule iterate_nonzero_image_lemma)
   apply (rule assms monoidal_monoid)+
   unfolding assms
-  using neutral_add
   unfolding neutral_add
   using assms
   apply auto
@@ -8506,7 +8502,7 @@ proof- def g \<equiv> "\<lambda>x. if x \<in>{c<..<d} then f x else 0"
     thus ?thesis using integrable_integral unfolding g_def by auto }
 
   note iterate_eq_neutral[OF mon,unfolded neutral_lifted[OF monoidal_monoid]]
-  note * = this[unfolded neutral_monoid]
+  note * = this[unfolded neutral_add]
   have iterate:"iterate (lifted op +) (p - {{c..d}})
       (\<lambda>i. if g integrable_on i then Some (integral i g) else None) = Some 0"
   proof(rule *,rule) case goal1 hence "x\<in>p" by auto note div = division_ofD(2-5)[OF p(1) this]
@@ -9415,7 +9411,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   next case goal2 thus ?case apply(rule integrable_sub) using assms(1) by auto
   next case goal3 thus ?case using *[of x "Suc k" "Suc (Suc k)"] by auto
   next case goal4 thus ?case apply-apply(rule tendsto_diff)
-      using seq_offset[OF assms(3)[rule_format],of x 1] by auto
+      using LIMSEQ_ignore_initial_segment[OF assms(3)[rule_format],of x 1] by auto
   next case goal5 thus ?case using assms(4) unfolding bounded_iff
       apply safe apply(rule_tac x="a + norm (integral s (\<lambda>x. f 0 x))" in exI)
       apply safe apply(erule_tac x="integral s (\<lambda>x. f (Suc k) x)" in ballE) unfolding sub
@@ -9423,7 +9419,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   note conjunctD2[OF this] note tendsto_add[OF this(2) tendsto_const[of "integral s (f 0)"]]
     integrable_add[OF this(1) assms(1)[rule_format,of 0]]
   thus ?thesis unfolding sub apply-apply rule defer apply(subst(asm) integral_sub)
-    using assms(1) apply auto apply(rule seq_offset_rev[where k=1]) by auto qed
+    using assms(1) apply auto by(rule LIMSEQ_imp_Suc) qed
 
 lemma monotone_convergence_decreasing: fixes f::"nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on s"  "\<forall>k. \<forall>x\<in>s. (f (Suc k) x) \<le> (f k x)"

@@ -978,9 +978,6 @@ proof -
     unfolding th0 th1 by simp
 qed
 
-lemma connected_empty[simp, intro]: "connected {}"  (* FIXME duplicate? *)
-  by simp
-
 
 subsection{* Limit points *}
 
@@ -2125,32 +2122,20 @@ qed
 
 text{* Some other lemmas about sequences. *}
 
-lemma sequentially_offset:
+lemma sequentially_offset: (* TODO: move to Topological_Spaces.thy *)
   assumes "eventually (\<lambda>i. P i) sequentially"
   shows "eventually (\<lambda>i. P (i + k)) sequentially"
-  using assms unfolding eventually_sequentially by (metis trans_le_add1)
+  using assms by (rule eventually_sequentially_seg [THEN iffD2])
 
-lemma seq_offset:
-  assumes "(f ---> l) sequentially"
-  shows "((\<lambda>i. f (i + k)) ---> l) sequentially"
-  using assms by (rule LIMSEQ_ignore_initial_segment) (* FIXME: redundant *)
-
-lemma seq_offset_neg:
+lemma seq_offset_neg: (* TODO: move to Topological_Spaces.thy *)
   "(f ---> l) sequentially \<Longrightarrow> ((\<lambda>i. f(i - k)) ---> l) sequentially"
-  apply (rule topological_tendstoI)
-  apply (drule (2) topological_tendstoD)
-  apply (simp only: eventually_sequentially)
-  apply (subgoal_tac "\<And>N k (n::nat). N + k <= n \<Longrightarrow> N <= n - k")
-  apply metis
+  apply (erule filterlim_compose)
+  apply (simp add: filterlim_def le_sequentially eventually_filtermap eventually_sequentially)
   apply arith
   done
 
-lemma seq_offset_rev:
-  "((\<lambda>i. f(i + k)) ---> l) sequentially \<Longrightarrow> (f ---> l) sequentially"
-  by (rule LIMSEQ_offset) (* FIXME: redundant *)
-
 lemma seq_harmonic: "((\<lambda>n. inverse (real n)) ---> 0) sequentially"
-  using LIMSEQ_inverse_real_of_nat by (rule LIMSEQ_imp_Suc)
+  using LIMSEQ_inverse_real_of_nat by (rule LIMSEQ_imp_Suc) (* TODO: move to Limits.thy *)
 
 subsection {* More properties of closed balls *}
 
