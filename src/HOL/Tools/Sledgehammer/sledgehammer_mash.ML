@@ -165,12 +165,12 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
     val model_dir = File.shell_path (mash_model_dir ())
     val core = "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file
     val command =
-      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
-      "./mash.py --quiet" ^
-      " --outputDir " ^ model_dir ^
-      " --modelFile=" ^ model_dir ^ "/model.pickle" ^
-      " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
-      " --log " ^ log_file ^ " " ^ core ^
+      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; \
+      \python -B ./mash.py --quiet\
+      \ --outputDir " ^ model_dir ^
+      " --modelFile=" ^ model_dir ^ "/model.pickle\
+      \ --dictsFile=" ^ model_dir ^ "/dict.pickle\
+      \ --log " ^ log_file ^ " " ^ core ^
       (if extra_args = [] then "" else " " ^ space_implode " " extra_args) ^
       " >& " ^ err_file ^
       (if background then " &" else "")
