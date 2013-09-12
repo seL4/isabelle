@@ -19,11 +19,9 @@ source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 # main
 
-declare -a JAVA_ARGS
-JAVA_ARGS=({JAVA_ARGS})
-
 exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/bin/java" \
-  -classpath "$ISABELLE_HOME/lib/classes/ext/Pure.jar:$ISABELLE_HOME/lib/classes/ext/scala-compiler.jar:$ISABELLE_HOME/lib/classes/ext/scala-library.jar:$ISABELLE_HOME/lib/classes/ext/scala-swing.jar:$ISABELLE_HOME/lib/classes/ext/scala-actors.jar:$ISABELLE_HOME/lib/classes/ext/scala-reflect.jar:$ISABELLE_HOME/src/Tools/jEdit/dist/jedit.jar" \
-  "${JAVA_ARGS[@]}" "-Disabelle.home=$ISABELLE_HOME" \
+  "-Disabelle.home=$ISABELLE_HOME" \
+  {JAVA_ARGS} \
+  -classpath "{CLASSPATH}" \
   isabelle.Main "$@"
 
