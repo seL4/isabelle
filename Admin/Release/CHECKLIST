@@ -11,6 +11,8 @@ Checklist for official releases
 
 - test 'display_drafts' command;
 
+- test "#!/usr/bin/env isabelle_scala_script";
+
 - check HTML header of library;
 
 - check file positions within logic images (hyperlinks etc.);

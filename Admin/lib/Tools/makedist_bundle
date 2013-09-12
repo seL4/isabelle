@@ -51,6 +51,30 @@ ISABELLE_TARGET="$TMP/$ISABELLE_NAME"
 tar -C "$TMP" -x -z -f "$ARCHIVE" || exit 2
 
 
+# distribution classpath (based on educated guesses)
+
+splitarray ":" "$ISABELLE_CLASSPATH"; CLASSPATH_ENTRIES=("${SPLITARRAY[@]}")
+declare -a DISTRIBITION_CLASSPATH=()
+
+for ENTRY in "${CLASSPATH_ENTRIES[@]}"
+do
+  ENTRY=$(echo "$ENTRY" | perl -n -e "
+    if (m,$ISABELLE_HOME/(.*)\$,) { print qq{\$1}; }
+    elsif (m,$USER_HOME/.isabelle/contrib/(.*)\$,) { print qq{contrib/\$1}; }
+    else { print; };
+    print qq{\n};")
+  DISTRIBITION_CLASSPATH["${#DISTRIBITION_CLASSPATH[@]}"]="$ENTRY"
+done
+
+DISTRIBITION_CLASSPATH["${#DISTRIBITION_CLASSPATH[@]}"]="src/Tools/jEdit/dist/jedit.jar"
+
+echo "classpath"
+for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+do
+  echo "  $ENTRY"
+done
+
+
 # bundled components
 
 init_component "$JEDIT_HOME"
@@ -128,9 +152,19 @@ function purge_contrib
 case "$PLATFORM_FAMILY" in
   linux)
     purge_contrib '-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+
+    LINUX_CLASSPATH=""
+    for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+    do
+      if [ -z "$LINUX_CLASSPATH" ]; then
+        LINUX_CLASSPATH="\\\$ISABELLE_HOME/$ENTRY"
+      else
+        LINUX_CLASSPATH="$LINUX_CLASSPATH:\\\$ISABELLE_HOME/$ENTRY"
+      fi
+    done
     cat "$ISABELLE_HOME/Admin/Linux/Isabelle" | \
-      perl -p -e "s,{JAVA_ARGS},$JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS,g;" \
-        > "$ISABELLE_TARGET/$ISABELLE_NAME"
+      perl -p > "$ISABELLE_TARGET/$ISABELLE_NAME" \
+        -e "s,{JAVA_ARGS},$JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS,g; s,{CLASSPATH},$LINUX_CLASSPATH,;"
     chmod +x "$ISABELLE_TARGET/$ISABELLE_NAME"
     ;;
   macos)
@@ -151,12 +185,21 @@ case "$PLATFORM_FAMILY" in
 
     (
       cat "$ISABELLE_HOME/Admin/Windows/WinRun4J/Isabelle.ini"
+
       declare -a JAVA_ARGS=()
       eval "JAVA_ARGS=($ISABELLE_JAVA_SYSTEM_OPTIONS $JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS)"
       A=2
       for ARG in "${JAVA_ARGS[@]}"
       do
         echo -e "vmarg.$A=$ARG\r"
+        A=$[ $A + 1 ]
+      done
+
+      A=1
+      for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
+      do
+        ENTRY=$(echo "$ENTRY" | perl -p -e 's,/,\\\\,g;')
+        echo -e "classpath.$A=$ENTRY\r"
         A=$[ $A + 1 ]
       done
     ) > "$ISABELLE_TARGET/${ISABELLE_NAME}.ini"
@@ -233,11 +276,10 @@ then
           cat "$APP_TEMPLATE/Info.plist-part2"
         ) | perl -p -e "s,{ISABELLE_NAME},${ISABELLE_NAME},g;" > "$APP/Contents/Info.plist"
 
-        for NAME in Pure.jar scala-compiler.jar scala-library.jar scala-swing.jar scala-actors.jar scala-reflect.jar
+        for ENTRY in "${DISTRIBITION_CLASSPATH[@]}"
         do
-          ln -sf "../Resources/${ISABELLE_NAME}/lib/classes/ext/$NAME" "$APP/Contents/Java"
+          ln -sf "../Resources/${ISABELLE_NAME}/$ENTRY" "$APP/Contents/Java"
         done
-        ln -sf "../Resources/${ISABELLE_NAME}/src/Tools/jEdit/dist/jedit.jar" "$APP/Contents/Java"
 
         cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
         cp "$APP_TEMPLATE/../isabelle.icns" "$APP/Contents/Resources/."

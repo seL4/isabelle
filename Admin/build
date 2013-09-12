@@ -74,7 +74,7 @@ function build_jars ()
 
 ## main
 
-#workaround for scalac
+#workaround for scalac 2.10.2
 function stty() { :; }
 export -f stty
 
