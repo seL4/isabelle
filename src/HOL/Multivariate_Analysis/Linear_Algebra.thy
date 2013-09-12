@@ -1521,7 +1521,7 @@ lemma norm_bound_Basis_le: "b \<in> Basis \<Longrightarrow> norm x \<le> e \<Lon
   by (metis Basis_le_norm order_trans)
 
 lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrightarrow> \<bar>x \<bullet> b\<bar> < e"
-  by (metis Basis_le_norm basic_trans_rules(21))
+  by (metis Basis_le_norm le_less_trans)
 
 lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>x \<bullet> b\<bar>)"
   apply (subst euclidean_representation[of x, symmetric])

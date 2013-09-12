@@ -291,7 +291,7 @@ lemma norm_bound_component_le_cart: "norm x <= e ==> \<bar>x$i\<bar> <= e"
   by (metis component_le_norm_cart order_trans)
 
 lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
-  by (metis component_le_norm_cart basic_trans_rules(21))
+  by (metis component_le_norm_cart le_less_trans)
 
 lemma norm_le_l1_cart: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def setL2_le_setsum)
