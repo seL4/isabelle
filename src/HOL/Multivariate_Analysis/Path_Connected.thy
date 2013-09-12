@@ -587,7 +587,7 @@ proof -
 qed
 
 lemma open_path_component:
-  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s"
   shows "open {y. path_component s x y}"
   unfolding open_contains_ball
@@ -620,7 +620,7 @@ proof
 qed
 
 lemma open_non_path_component:
-  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s"
   shows "open(s - {y. path_component s x y})"
   unfolding open_contains_ball
@@ -648,7 +648,7 @@ proof
 qed
 
 lemma connected_open_path_connected:
-  fixes s :: "'a::real_normed_vector set" (*TODO: generalize to metric_space*)
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s" "connected s"
   shows "path_connected s"
   unfolding path_connected_component_set

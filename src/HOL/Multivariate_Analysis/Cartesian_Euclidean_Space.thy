@@ -322,7 +322,6 @@ lemma setsum_cmul:
   shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
   by (simp add: vec_eq_iff setsum_right_distrib)
 
-(* TODO: use setsum_norm_allsubsets_bound *)
 lemma setsum_norm_allsubsets_bound_cart:
   fixes f:: "'a \<Rightarrow> real ^'n"
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
