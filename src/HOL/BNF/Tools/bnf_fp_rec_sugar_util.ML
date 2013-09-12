@@ -447,7 +447,8 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
         val p_ios = map SOME p_is @ [NONE];
         val collapses = #collapses (nth ctr_sugars index);
         val corec_thms = co_rec_of (nth coiter_thmsss index);
-        val disc_corecs = co_rec_of (nth disc_coitersss index);
+        val disc_corecs = co_rec_of (nth disc_coitersss index)
+          |> pad_list TrueI 1;
         val sel_corecss = co_rec_of (nth sel_coiterssss index);
       in
         map11 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss collapses corec_thms
