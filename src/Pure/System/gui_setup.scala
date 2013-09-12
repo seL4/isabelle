@@ -44,7 +44,7 @@ object GUI_Setup extends SwingApplication
     // values
     text.append("JVM name: " + Platform.jvm_name + "\n")
     text.append("JVM platform: " + Platform.jvm_platform + "\n")
-    text.append("JVM home: " + java.lang.System.getProperty("java.home") + "\n")
+    text.append("JVM home: " + java.lang.System.getProperty("java.home", "") + "\n")
     try {
       Isabelle_System.init()
       if (Platform.is_windows)

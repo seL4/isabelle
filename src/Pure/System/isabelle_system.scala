@@ -21,7 +21,7 @@ object Isabelle_System
 
   def jdk_home(): String =
   {
-    val java_home = System.getProperty("java.home")
+    val java_home = System.getProperty("java.home", "")
     val home = new JFile(java_home)
     val parent = home.getParent
     if (home.getName == "jre" && parent != null &&
@@ -74,9 +74,9 @@ object Isabelle_System
       set_cygwin_root()
       val env0 = sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home()))
 
-      val user_home = System.getProperty("user.home")
+      val user_home = System.getProperty("user.home", "")
       val env =
-        if (user_home == null || env0.isDefinedAt("HOME")) env0
+        if (user_home == "" || env0.isDefinedAt("HOME")) env0
         else env0 + ("HOME" -> user_home)
 
       val system_home =
@@ -84,8 +84,8 @@ object Isabelle_System
         else
           env.get("ISABELLE_HOME") match {
             case None | Some("") =>
-              val path = System.getProperty("isabelle.home")
-              if (path == null || path == "") error("Unknown Isabelle home directory")
+              val path = System.getProperty("isabelle.home", "")
+              if (path == "") error("Unknown Isabelle home directory")
               else path
             case Some(path) => path
           }

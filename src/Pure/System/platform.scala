@@ -16,8 +16,8 @@ object Platform
 {
   /* main OS variants */
 
-  val is_macos = System.getProperty("os.name") == "Mac OS X"
-  val is_windows = System.getProperty("os.name").startsWith("Windows")
+  val is_macos = System.getProperty("os.name", "") == "Mac OS X"
+  val is_windows = System.getProperty("os.name", "").startsWith("Windows")
 
 
   /* Platform identifiers */
@@ -35,7 +35,7 @@ object Platform
   lazy val jvm_platform: String =
   {
     val arch =
-      System.getProperty("os.arch") match {
+      System.getProperty("os.arch", "") match {
         case X86() => "x86"
         case X86_64() => "x86_64"
         case Sparc() => "sparc"
@@ -43,7 +43,7 @@ object Platform
         case _ => error("Failed to determine CPU architecture")
       }
     val os =
-      System.getProperty("os.name") match {
+      System.getProperty("os.name", "") match {
         case Solaris() => "solaris"
         case Linux() => "linux"
         case Darwin() => "darwin"
@@ -56,6 +56,6 @@ object Platform
 
   /* JVM name */
 
-  val jvm_name: String = System.getProperty("java.vm.name")
+  val jvm_name: String = System.getProperty("java.vm.name", "")
 }
 

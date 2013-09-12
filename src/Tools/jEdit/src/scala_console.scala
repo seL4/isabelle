@@ -48,10 +48,7 @@ class Scala_Console extends Shell("Scala")
       else Nil
 
     val initial_class_path =
-      System.getProperty("java.class.path") match {
-        case null => Nil
-        case class_path => Library.space_explode(JFile.pathSeparatorChar, class_path)
-      }
+      Library.space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
 
     val path =
       initial_class_path :::
