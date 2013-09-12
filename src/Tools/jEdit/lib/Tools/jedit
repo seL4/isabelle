@@ -216,12 +216,6 @@ JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
 )
 
-declare -a JFREECHART_JARS=()
-for NAME in $JFREECHART_JAR_NAMES
-do
-  JFREECHART_JARS["${#JFREECHART_JARS[@]}"]="$JFREECHART_HOME/lib/$NAME"
-done
-
 
 # target
 
@@ -238,8 +232,8 @@ else
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=(
-        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar"
-        "$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}"
+        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$GRAPHVIEW_JAR"
+        "${SOURCES[@]}" "${RESOURCES[@]}"
       )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
       declare -a DEPS=("$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
@@ -297,12 +291,11 @@ then
     function stty() { :; }
     export -f stty
 
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" \
-      "$XZ_JAVA_HOME/lib/xz.jar" "$PURE_JAR" "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$GRAPHVIEW_JAR"
     do
-      CLASSPATH="$CLASSPATH:$JAR"
+      classpath "$JAR"
     done
-    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    export CLASSPATH="$(jvmpath "$ISABELLE_CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d dist/classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 
@@ -317,9 +310,9 @@ popd >/dev/null
 
 ## main
 
-if [ "$BUILD_ONLY" = false ]; then
+if [ "$BUILD_ONLY" = false ]
+then
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE JEDIT_BUILD_MODE
-
-  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
-    -classpath "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" isabelle.Main "${ARGS[@]}"
+  classpath "$JEDIT_HOME/dist/jedit.jar"
+  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Main "${ARGS[@]}"
 fi

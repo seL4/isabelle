@@ -15,6 +15,13 @@ ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5 -Xmax-classfile-name 130"
 
 ISABELLE_JAVA_SYSTEM_OPTIONS="-Dfile.encoding=UTF-8 -server"
 
+classpath "$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+classpath "$ISABELLE_HOME/lib/classes/ext/scala-library.jar"
+classpath "$ISABELLE_HOME/lib/classes/ext/scala-swing.jar"
+classpath "$ISABELLE_HOME/lib/classes/ext/scala-actors.jar"
+classpath "$ISABELLE_HOME/lib/classes/ext/scala-compiler.jar"
+classpath "$ISABELLE_HOME/lib/classes/ext/scala-reflect.jar"
+
 
 ###
 ### Interactive sessions (cf. isabelle tty)

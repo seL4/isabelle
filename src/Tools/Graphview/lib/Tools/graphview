@@ -143,8 +143,8 @@ then
     function stty() { :; }
     export -f stty
 
-    CLASSPATH="$CLASSPATH:$PURE_JAR"
-    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    classpath "$PURE_JAR"
+    export CLASSPATH="$(jvmpath "$ISABELLE_CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 

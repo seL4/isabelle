@@ -140,15 +140,6 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 0 ] && usage
 
 
-## dependencies
-
-declare -a JFREECHART_JARS=()
-for NAME in $JFREECHART_JAR_NAMES
-do
-  JFREECHART_JARS["${#JFREECHART_JARS[@]}"]="$JFREECHART_HOME/lib/$NAME"
-done
-
-
 ## build
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
@@ -203,14 +194,10 @@ then
 
   SCALAC_OPTIONS="$ISABELLE_SCALA_BUILD_OPTIONS -d classes"
 
-  JFXRT="$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar"
-
   (
-    for X in "$JFXRT" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar" classes
-    do
-      CLASSPATH="$CLASSPATH:$X"
-    done
-    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    classpath "$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar"
+    classpath classes
+    export CLASSPATH="$(jvmpath "$ISABELLE_CLASSPATH")"
 
     if [ "$TEST_PIDE" = true ]; then
       isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \

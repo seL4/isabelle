@@ -61,10 +61,10 @@ text {* The @{tool_def scalac} tool is a direct wrapper for the Scala
 
   This allows to compile further Scala modules, depending on existing
   Isabelle/Scala functionality.  The resulting class or jar files can
-  be added to the @{setting CLASSPATH} via the @{verbatim classpath}
-  Bash function that is provided by the Isabelle process environment.
-  Thus add-on components can register themselves in a modular manner,
-  see also \secref{sec:components}.
+  be added to the Java classpath the @{verbatim classpath} Bash
+  function that is provided by the Isabelle process environment.  Thus
+  add-on components can register themselves in a modular manner, see
+  also \secref{sec:components}.
 
   Note that jEdit (\secref{sec:tool-jedit}) has its own mechanisms for
   adding plugin components, which needs special attention since
