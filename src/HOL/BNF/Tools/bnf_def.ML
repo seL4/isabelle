@@ -770,7 +770,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
     val pre_names_lthy = lthy;
-    val (((((((((((((((((((((((((fs, gs), hs), x), y), (z, z')), zs), ys), As),
+    val ((((((((((((((((((((((((fs, gs), hs), x), y), zs), ys), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
       transfer_domRs), transfer_ranRs), names_lthy) = pre_names_lthy
       |> mk_Frees "f" (map2 (curry op -->) As' Bs')
@@ -778,7 +778,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
       ||>> mk_Frees "h" (map2 (curry op -->) As' Ts)
       ||>> yield_singleton (mk_Frees "x") CA'
       ||>> yield_singleton (mk_Frees "y") CB'
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "z") CRs'
       ||>> mk_Frees "z" As'
       ||>> mk_Frees "y" Bs'
       ||>> mk_Frees "A" (map HOLogic.mk_setT As')
@@ -1093,7 +1092,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val map_wppull = Lazy.lazy mk_map_wppull;
 
-        val rel_OO_Grps = no_refl [#rel_OO_Grp axioms];
+        val rel_OO_Grp = #rel_OO_Grp axioms;
+        val rel_OO_Grps = no_refl [rel_OO_Grp];
 
         fun mk_rel_Grp () =
           let
@@ -1182,23 +1182,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
         val rel_OO = Lazy.lazy mk_rel_OO;
 
-        fun mk_in_rel () =
-          let
-            val bnf_in = mk_in setRs (map (mk_bnf_t RTs) bnf_sets) CRs';
-            val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
-            val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
-            val map_fst_eq = HOLogic.mk_eq (map1 $ z, x);
-            val map_snd_eq = HOLogic.mk_eq (map2 $ z, y);
-            val lhs = Term.list_comb (rel, Rs) $ x $ y;
-            val rhs =
-              HOLogic.mk_exists (fst z', snd z', HOLogic.mk_conj (HOLogic.mk_mem (z, bnf_in),
-                HOLogic.mk_conj (map_fst_eq, map_snd_eq)));
-            val goal =
-              fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
-          in
-            Goal.prove_sorry lthy [] [] goal (mk_in_rel_tac (the_single rel_OO_Grps))
-            |> Thm.close_derivation
-          end;
+        fun mk_in_rel () = trans OF [rel_OO_Grp, @{thm OO_Grp_alt}] RS @{thm predicate2_eqD};
 
         val in_rel = Lazy.lazy mk_in_rel;
 

@@ -21,7 +21,6 @@ sig
   val mk_rel_eq_tac: int -> thm -> thm -> thm -> tactic
   val mk_rel_OO_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_in_rel_tac: thm -> {prems: 'a, context: Proof.context} -> tactic
   val mk_rel_conversep_tac: thm -> thm -> tactic
   val mk_rel_conversep_le_tac: thm list -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
@@ -208,13 +207,6 @@ fun mk_rel_OO_tac rel_OO_Grps rel_eq map_cong0 map_wppull map_comp0 set_map0s
           rtac trans, rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
           rtac (map_comp0 RS sym), atac, atac]) [@{thm fst_fstOp}, @{thm snd_sndOp}])] 1
   end;
-
-fun mk_in_rel_tac rel_OO_Gr {context = ctxt, prems = _} =
-  EVERY' [rtac (rel_OO_Gr RS fun_cong RS fun_cong RS trans), rtac iffI,
-    REPEAT_DETERM o eresolve_tac [@{thm GrpE}, @{thm relcomppE}, @{thm conversepE}],
-    hyp_subst_tac ctxt, rtac exI, rtac conjI, atac, rtac conjI, rtac refl, rtac refl,
-    REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm relcomppI}, rtac @{thm conversepI},
-    etac @{thm GrpI}, atac, etac @{thm GrpI}, atac] 1;
 
 fun mk_rel_mono_strong_tac in_rel set_map0s {context = ctxt, prems = _} =
   if null set_map0s then atac 1
