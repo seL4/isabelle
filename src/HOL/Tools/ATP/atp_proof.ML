@@ -35,10 +35,11 @@ sig
     UnknownError of string
 
   type atp_step_name = string * string list
-  type 'a atp_step =
-    atp_step_name * atp_formula_role * 'a * string * atp_step_name list
+  type ('a, 'b) atp_step =
+    atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-  type 'a atp_proof = ('a, 'a, ('a, 'a) atp_term, 'a) atp_formula atp_step list
+  type 'a atp_proof =
+    (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
@@ -196,10 +197,11 @@ fun vampire_step_name_ord p =
     | _ => raise Fail "not Vampire"
   end
 
-type 'a atp_step =
-  atp_step_name * atp_formula_role * 'a * string * atp_step_name list
+type ('a, 'b) atp_step =
+  atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-type 'a atp_proof = ('a, 'a, ('a, 'a) atp_term, 'a) atp_formula atp_step list
+type 'a atp_proof =
+  (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
 
 (**** PARSING OF TSTP FORMAT ****)
 
