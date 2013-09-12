@@ -2889,7 +2889,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-          bs thmss)
+          bs thmss);
+
+    (*FIXME: once the package exports all the necessary high-level characteristic theorems,
+       those should not only be concealed but rather not noted at all*)
+    val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
   in
     timer;
     ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors,
@@ -2902,7 +2906,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_co_iter_thmss = transpose [dtor_unfold_thms, dtor_corec_thms],
       xtor_co_iter_o_map_thmss = transpose [dtor_unfold_o_map_thms, dtor_corec_o_map_thms],
       rel_xtor_co_induct_thm = Jrel_coinduct_thm},
-     lthy |> Local_Theory.notes (common_notes @ notes @ Jbnf_notes) |> snd)
+     lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Jbnf_notes)) |> snd)
   end;
 
 val _ =
