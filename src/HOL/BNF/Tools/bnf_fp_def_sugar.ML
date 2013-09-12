@@ -542,9 +542,12 @@ fun define_co_iters fp fpT Cs binding_specs lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
+    val maybe_conceal_def_binding = Thm.def_binding
+      #> Config.get lthy0 bnf_note_all = false ? Binding.conceal;
+
     val ((csts, defs), (lthy', lthy)) = lthy0
       |> apfst split_list o fold_map (fn (b, spec) =>
-        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
+        Specification.definition (SOME (b, NONE, NoSyn), ((maybe_conceal_def_binding b, []), spec))
         #>> apsnd snd) binding_specs
       ||> `Local_Theory.restore;
 
@@ -1250,9 +1253,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           map3 (fn k => fn xs => fn tuple_x => fold_rev Term.lambda xs (ctor $
             mk_InN_balanced ctr_sum_prod_T n tuple_x k)) ks xss tuple_xs;
 
+        val maybe_conceal_def_binding = Thm.def_binding
+          #> Config.get no_defs_lthy bnf_note_all = false ? Binding.conceal;
+
         val ((raw_ctrs, raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
-              Local_Theory.define ((b, mx), ((Thm.def_binding b, []), rhs)) #>> apsnd snd)
+              Local_Theory.define ((b, mx), ((maybe_conceal_def_binding b, []), rhs)) #>> apsnd snd)
             ctr_bindings ctr_mixfixes ctr_rhss
           ||> `Local_Theory.restore;
 
