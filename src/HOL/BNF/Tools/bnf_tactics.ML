@@ -102,7 +102,7 @@ fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context =
   rtac (unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
     @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
   unfold_thms_tac ctxt (srel_def ::
-    @{thms Collect_fst_snd_mem_eq mem_Collect_eq pair_mem_Collect_split fst_conv snd_conv
+    @{thms pair_collapse Collect_mem_eq mem_Collect_eq prod.cases fst_conv snd_conv
       split_conv}) THEN
   rtac refl 1;
 
