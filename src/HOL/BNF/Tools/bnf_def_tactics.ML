@@ -222,16 +222,18 @@ fun mk_map_transfer_tac rel_mono in_rel set_maps map_cong0 map_comp
   {context = ctxt, prems = _} =
   let
     val n = length set_maps;
+    val in_tac = if n = 0 then rtac UNIV_I else
+      rtac CollectI THEN' CONJ_WRAP' (fn thm =>
+        etac (thm RS
+          @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimage2p]]}))
+      set_maps;
   in
     REPEAT_DETERM_N n (HEADGOAL (rtac @{thm fun_relI})) THEN
     unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
     HEADGOAL (EVERY' [rtac @{thm order_trans}, rtac rel_mono, REPEAT_DETERM_N n o atac,
       rtac @{thm predicate2I}, dtac (in_rel RS iffD1),
       REPEAT_DETERM o eresolve_tac [exE, CollectE, conjE], hyp_subst_tac ctxt,
-      rtac @{thm vimage2pI}, rtac (in_rel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
-      CONJ_WRAP' (fn thm =>
-        etac (thm RS @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimage2p]]}))
-      set_maps,
+      rtac @{thm vimage2pI}, rtac (in_rel RS iffD2), rtac exI, rtac conjI, in_tac,
       rtac conjI,
       EVERY' (map (fn convol =>
         rtac (box_equals OF [map_cong0, map_comp RS sym, map_comp RS sym]) THEN'
