@@ -7,22 +7,22 @@ Isar proof reconstruction from ATP proofs.
 
 signature SLEDGEHAMMER_RECONSTRUCT =
 sig
-  type 'a proof = 'a ATP_Proof.proof
+  type 'a atp_proof = 'a ATP_Proof.atp_proof
   type stature = ATP_Problem_Generate.stature
   type one_line_params = Sledgehammer_Print.one_line_params
 
   type isar_params =
     bool * bool * Time.time option * bool * real * int * real * bool * bool
     * string Symtab.table * (string * stature) list vector
-    * (string * term) list * int Symtab.table * string proof * thm
+    * (string * term) list * int Symtab.table * string atp_proof * thm
 
-  val lam_trans_of_atp_proof : string proof -> string -> string
-  val is_typed_helper_used_in_atp_proof : string proof -> bool
+  val lam_trans_of_atp_proof : string atp_proof -> string -> string
+  val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val used_facts_in_atp_proof :
-    Proof.context -> (string * stature) list vector -> string proof ->
+    Proof.context -> (string * stature) list vector -> string atp_proof ->
     (string * stature) list
   val used_facts_in_unsound_atp_proof :
-    Proof.context -> (string * stature) list vector -> 'a proof ->
+    Proof.context -> (string * stature) list vector -> 'a atp_proof ->
     string list option
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
@@ -50,7 +50,7 @@ open Sledgehammer_Try0
 open Sledgehammer_Minimize_Isar
 
 structure String_Redirect = ATP_Proof_Redirect(
-  type key = step_name
+  type key = atp_step_name
   val ord = fn ((s, _ : string list), (s', _)) => fast_string_ord (s, s')
   val string_of = fst)
 
@@ -410,7 +410,7 @@ val chain_direct_proof =
 type isar_params =
   bool * bool * Time.time option * bool * real * int * real * bool * bool
   * string Symtab.table * (string * stature) list vector
-  * (string * term) list * int Symtab.table * string proof * thm
+  * (string * term) list * int Symtab.table * string atp_proof * thm
 
 fun isar_proof_text ctxt isar_proofs
     (debug, verbose, preplay_timeout, preplay_trace, isar_compress,

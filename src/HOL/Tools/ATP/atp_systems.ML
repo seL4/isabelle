@@ -9,8 +9,8 @@ signature ATP_SYSTEMS =
 sig
   type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
-  type formula_role = ATP_Problem.formula_role
-  type failure = ATP_Proof.failure
+  type atp_formula_role = ATP_Problem.atp_formula_role
+  type atp_failure = ATP_Proof.atp_failure
 
   type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
@@ -20,8 +20,8 @@ sig
        -> term_order * (unit -> (string * int) list)
           * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
-     known_failures : (failure * string) list,
-     prem_role : formula_role,
+     known_failures : (atp_failure * string) list,
+     prem_role : atp_formula_role,
      best_slices : Proof.context -> (real * (slice_spec * string)) list,
      best_max_mono_iters : int,
      best_max_new_mono_instances : int}
@@ -69,7 +69,7 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_role
+    -> (atp_failure * string) list -> atp_formula_role
     -> (Proof.context -> slice_spec * string) -> string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
@@ -102,8 +102,8 @@ type atp_config =
      -> term_order * (unit -> (string * int) list)
         * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
-   known_failures : (failure * string) list,
-   prem_role : formula_role,
+   known_failures : (atp_failure * string) list,
+   prem_role : atp_formula_role,
    best_slices : Proof.context -> (real * (slice_spec * string)) list,
    best_max_mono_iters : int,
    best_max_new_mono_instances : int}
@@ -675,8 +675,8 @@ fun get_remote_systems () =
             "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
           (output, 0) => split_lines output
         | (output, _) =>
-          (warning (case extract_known_failure known_perl_failures output of
-                      SOME failure => string_of_failure failure
+          (warning (case extract_known_atp_failure known_perl_failures output of
+                      SOME failure => string_of_atp_failure failure
                     | NONE => trim_line output ^ "."); [])) ()
   handle TimeLimit.TimeOut => []
 

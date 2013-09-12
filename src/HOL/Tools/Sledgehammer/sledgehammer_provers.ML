@@ -8,7 +8,7 @@ Generic prover abstraction for Sledgehammer.
 
 signature SLEDGEHAMMER_PROVERS =
 sig
-  type failure = ATP_Proof.failure
+  type atp_failure = ATP_Proof.atp_failure
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
   type fact = Sledgehammer_Fact.fact
@@ -75,7 +75,7 @@ sig
      factss : (string * fact list) list}
 
   type prover_result =
-    {outcome : failure option,
+    {outcome : atp_failure option,
      used_facts : (string * stature) list,
      used_from : fact list,
      run_time : Time.time,
@@ -390,7 +390,7 @@ type prover_problem =
    factss : (string * fact list) list}
 
 type prover_result =
-  {outcome : failure option,
+  {outcome : atp_failure option,
    used_facts : (string * stature) list,
    used_from : fact list,
    run_time : Time.time,
@@ -878,8 +878,10 @@ fun run_atp mode name
                      val failure =
                        UnsoundProof (is_type_enc_sound type_enc, facts)
                    in
-                     if debug then (warning (string_of_failure failure); NONE)
-                     else SOME failure
+                     if debug then
+                       (warning (string_of_atp_failure failure); NONE)
+                     else
+                       SOME failure
                    end
                  | NONE => NONE)
               | _ => outcome
@@ -982,7 +984,7 @@ fun run_atp mode name
         end
       | SOME failure =>
         ([], Lazy.value (Failed_to_Play plain_metis),
-         fn _ => string_of_failure failure, "")
+         fn _ => string_of_atp_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
@@ -1124,7 +1126,7 @@ fun smt_filter_loop name
               if debug then
                 quote name ^ " invoked with " ^
                 num_of_facts fact_filter num_facts ^ ": " ^
-                string_of_failure (failure_of_smt_failure (the outcome)) ^
+                string_of_atp_failure (failure_of_smt_failure (the outcome)) ^
                 " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
                 "..."
                 |> Output.urgent_message
@@ -1180,7 +1182,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
            "")
       | SOME failure =>
         (Lazy.value (Failed_to_Play plain_metis),
-         fn _ => string_of_failure failure, "")
+         fn _ => string_of_atp_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
@@ -1228,7 +1230,7 @@ fun run_reconstructor mode name
       in
         {outcome = SOME failure, used_facts = [], used_from = [],
          run_time = Time.zeroTime, preplay = Lazy.value play,
-         message = fn _ => string_of_failure failure, message_tail = ""}
+         message = fn _ => string_of_atp_failure failure, message_tail = ""}
       end
   end
 

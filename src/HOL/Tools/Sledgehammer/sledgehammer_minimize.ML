@@ -97,7 +97,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     print silent
           (fn () =>
               case outcome of
-                SOME failure => string_of_failure failure
+                SOME failure => string_of_atp_failure failure
               | NONE =>
                 "Found proof" ^
                  (if length used_facts = length facts then ""
