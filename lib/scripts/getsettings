@@ -134,7 +134,7 @@ function classpath ()
     if [ -z "$ISABELLE_CLASSPATH" ]; then
       ISABELLE_CLASSPATH="$X"
     else
-      ISABELLE_CLASSPATH="$X:$ISABELLE_CLASSPATH"
+      ISABELLE_CLASSPATH="$ISABELLE_CLASSPATH:$X"
     fi
   done
   export ISABELLE_CLASSPATH
