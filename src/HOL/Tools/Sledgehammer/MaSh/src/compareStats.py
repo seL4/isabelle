@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #     Title:      HOL/Tools/Sledgehammer/MaSh/src/compareStats.py
 #     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
 #     Copyright   2012

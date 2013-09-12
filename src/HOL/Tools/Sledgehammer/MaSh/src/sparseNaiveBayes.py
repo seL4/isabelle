@@ -36,7 +36,7 @@ class sparseNBClassifier(object):
             dFeatureCounts = {}
             # Add p proves p with weight self.defaultPriorWeight
             if not self.defaultPriorWeight == 0:            
-                for f,_w in dicts.featureDict[d]:
+                for f in dicts.featureDict[d].iterkeys():
                     dFeatureCounts[f] = self.defaultPriorWeight
             self.counts[d] = [self.defaultPriorWeight,dFeatureCounts]
 
@@ -44,7 +44,7 @@ class sparseNBClassifier(object):
             for dep in keyDeps:
                 self.counts[dep][0] += 1
                 depFeatures = dicts.featureDict[key]
-                for f,_w in depFeatures:
+                for f in depFeatures.iterkeys():
                     if self.counts[dep][1].has_key(f):
                         self.counts[dep][1][f] += 1
                     else:
@@ -59,12 +59,12 @@ class sparseNBClassifier(object):
             dFeatureCounts = {}            
             # Give p |- p a higher weight
             if not self.defaultPriorWeight == 0:               
-                for f,_w in features:
+                for f in features.iterkeys():
                     dFeatureCounts[f] = self.defaultPriorWeight
             self.counts[dataPoint] = [self.defaultPriorWeight,dFeatureCounts]            
         for dep in dependencies:
             self.counts[dep][0] += 1
-            for f,_w in features:
+            for f in features.iterkeys():
                 if self.counts[dep][1].has_key(f):
                     self.counts[dep][1][f] += 1
                 else:
@@ -97,12 +97,14 @@ class sparseNBClassifier(object):
         """
         tau = 0.05 # Jasmin, change value here
         predictions = []
+        #observedFeatures = [f for f,_w in features]
+        observedFeatures = features.keys()
         for a in accessibles:
             posA = self.counts[a][0]
             fA = set(self.counts[a][1].keys())
             fWeightsA = self.counts[a][1]
             resultA = log(posA)
-            for f,w in features:
+            for f,w in features.iteritems():
                 # DEBUG
                 #w = 1.0
                 if f in fA:
@@ -114,9 +116,10 @@ class sparseNBClassifier(object):
                 else:
                     resultA += w*self.defVal
             if not tau == 0.0:
-                observedFeatures = [f for f,_w in features]
                 missingFeatures = list(fA.difference(observedFeatures))
-                sumOfWeights = sum([log(float(fWeightsA[x])/posA) for x in missingFeatures])
+                #sumOfWeights = sum([log(float(fWeightsA[x])/posA) for x in missingFeatures])  # slower
+                sumOfWeights = sum([log(float(fWeightsA[x])) for x in missingFeatures]) - log(posA) * len(missingFeatures) #DEFAULT
+                #sumOfWeights = sum([log(float(fWeightsA[x])/self.totalFeatureCounts[x]) for x in missingFeatures]) - log(posA) * len(missingFeatures)
                 resultA -= tau * sumOfWeights
             predictions.append(resultA)
         predictions = array(predictions)
