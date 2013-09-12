@@ -15,7 +15,7 @@ from sparseNaiveBayes import sparseNBClassifier
 from KNN import KNN,euclidean
 from KNNs import KNNAdaptPointFeatures,KNNUrban
 from predefined import Predefined
-from ExpandFeatures import ExpandFeatures
+#from ExpandFeatures import ExpandFeatures
 from stats import Statistics
 
 
@@ -64,9 +64,9 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             self.server.model = Predefined(self.server.args.predef)
         else: # Default case
             self.server.model = sparseNBClassifier(self.server.args.NBDefaultPriorWeight,self.server.args.NBPosWeight,self.server.args.NBDefVal)
-        if self.server.args.expandFeatures:
-            self.server.expandFeatures = ExpandFeatures(self.server.dicts)
-            self.server.expandFeatures.initialize(self.server.dicts)
+#        if self.server.args.expandFeatures:
+#            self.server.expandFeatures = ExpandFeatures(self.server.dicts)
+#            self.server.expandFeatures.initialize(self.server.dicts)
         # Create Model
         if os.path.isfile(self.server.args.modelFile):
             self.server.model.load(self.server.args.modelFile)          
@@ -104,8 +104,8 @@ class MaShHandler(SocketServer.BaseRequestHandler):
                 self.server.logger.debug('Poor predictions: %s',bp)
             self.server.statementCounter += 1
 
-        if self.server.args.expandFeatures:
-            self.server.expandFeatures.update(self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
+#        if self.server.args.expandFeatures:
+#            self.server.expandFeatures.update(self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
         # Update Dependencies, p proves p
         self.server.dicts.dependenciesDict[problemId] = [problemId]+self.server.dicts.dependenciesDict[problemId]
         self.server.model.update(problemId,self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
@@ -126,8 +126,8 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             numberOfPredictions = self.server.args.numberOfPredictions
         if not hints == []:
             self.server.model.update('hints',features,hints)
-        if self.server.args.expandFeatures:
-            features = self.server.expandFeatures.expand(features)
+#        if self.server.args.expandFeatures:
+#            features = self.server.expandFeatures.expand(features)
         # Create predictions
         self.server.logger.debug('Starting computation for line %s',self.server.callCounter)
                 
