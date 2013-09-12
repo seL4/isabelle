@@ -94,10 +94,10 @@ isabelle_admin_build "$BUILD_JARS" || exit $?
 
 pushd "$GRAPHVIEW_HOME" >/dev/null || failed
 
-PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
-TARGET="$TARGET_DIR/ext/Graphview.jar"
+TARGET="$TARGET_DIR/Graphview.jar"
 
 declare -a UPDATED=()
 
