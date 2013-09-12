@@ -57,7 +57,7 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
   x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
-  fixes x z :: "'a::real_normed_field"
+  fixes x z :: "'a::real_normed_div_algebra"
   assumes 1: "summable (\<lambda>n. f n * x ^ n)"
     and 2: "norm z < norm x"
   shows "summable (\<lambda>n. norm (f n * z ^ n))"
@@ -95,7 +95,7 @@ proof -
   proof -
     from 2 have "norm (norm (z * inverse x)) < 1"
       using x_neq_0
-      by (simp add: nonzero_norm_divide divide_inverse [symmetric])
+      by (simp add: norm_mult nonzero_norm_inverse divide_inverse [where 'a=real, symmetric])
     hence "summable (\<lambda>n. norm (z * inverse x) ^ n)"
       by (rule summable_geometric)
     hence "summable (\<lambda>n. K * norm (z * inverse x) ^ n)"
@@ -110,7 +110,7 @@ proof -
 qed
 
 lemma powser_inside:
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach}"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   shows
     "summable (\<lambda>n. f n * (x ^ n)) \<Longrightarrow> norm z < norm x \<Longrightarrow>
       summable (\<lambda>n. f n * (z ^ n))"
