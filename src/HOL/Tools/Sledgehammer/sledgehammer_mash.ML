@@ -166,7 +166,7 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
     val core = "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file
     val command =
       "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; \
-      \python -B ./mash.py --quiet\
+      \PYTHONDONTWRITEBYTECODE=y ./mash.py --quiet\
       \ --outputDir " ^ model_dir ^
       " --modelFile=" ^ model_dir ^ "/model.pickle\
       \ --dictsFile=" ^ model_dir ^ "/dict.pickle\
