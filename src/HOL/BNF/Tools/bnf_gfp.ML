@@ -2103,11 +2103,11 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (*register new codatatypes as BNFs*)
     val (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
-      dtor_set_induct_thms, dtor_Jrel_thms, lthy) =
+      dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
         map_split (`(mk_pointfree lthy)) (map2 mk_dtor_map_DEADID_thm dtor_inject_thms map_ids),
-        replicate n [], [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs, lthy)
+        replicate n [], [], map2 mk_dtor_Jrel_DEADID_thm dtor_inject_thms bnfs, [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
@@ -2741,8 +2741,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             bs thmss)
       in
        (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
-         dtor_set_induct_thms, dtor_Jrel_thms,
-         lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
+         dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_common_notes @ Jbnf_notes, lthy)
       end;
 
       val dtor_unfold_o_map_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
@@ -2903,7 +2902,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_co_iter_thmss = transpose [dtor_unfold_thms, dtor_corec_thms],
       xtor_co_iter_o_map_thmss = transpose [dtor_unfold_o_map_thms, dtor_corec_o_map_thms],
       rel_xtor_co_induct_thm = Jrel_coinduct_thm},
-     lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
+     lthy |> Local_Theory.notes (common_notes @ notes @ Jbnf_notes) |> snd)
   end;
 
 val _ =

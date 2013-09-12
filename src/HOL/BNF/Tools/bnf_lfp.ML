@@ -1412,11 +1412,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (*register new datatypes as BNFs*)
     val (timer, Ibnfs, (folded_ctor_map_o_thms, folded_ctor_map_thms), folded_ctor_set_thmss',
-        ctor_Irel_thms, lthy) =
+        ctor_Irel_thms, Ibnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
         map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
-        replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
+        replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
@@ -1816,7 +1816,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             bs thmss)
       in
         (timer, Ibnfs, (folded_ctor_map_o_thms, folded_ctor_map_thms), folded_ctor_set_thmss',
-          ctor_Irel_thms, lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
+          ctor_Irel_thms, Ibnf_common_notes @ Ibnf_notes, lthy)
       end;
 
       val ctor_fold_o_map_thms = mk_xtor_un_fold_o_map_thms Least_FP false m ctor_fold_unique_thm
@@ -1876,7 +1876,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_co_iter_thmss = transpose [ctor_fold_thms, ctor_rec_thms],
       xtor_co_iter_o_map_thmss = transpose [ctor_fold_o_map_thms, ctor_rec_o_map_thms],
       rel_xtor_co_induct_thm = Irel_induct_thm},
-     lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
+     lthy |> Local_Theory.notes (common_notes @ notes @ Ibnf_notes) |> snd)
   end;
 
 val _ =
