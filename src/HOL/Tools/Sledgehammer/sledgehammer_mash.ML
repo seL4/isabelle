@@ -218,9 +218,15 @@ fun freshish_name () =
   Date.fmt ".%Y%m%d_%H%M%S__" (Date.fromTimeLocal (Time.now ())) ^
   serial_string ()
 
+(* Avoid scientific notation *)
+fun safe_str_of_real r =
+  if r < 0.00001 then "0.00001"
+  else if r >= 1000000.0 then "1000000"
+  else Markup.print_real r
+
 fun encode_feature (name, weight) =
   encode_str name ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ Markup.print_real weight)
+  (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
@@ -445,7 +451,8 @@ fun clear_state ctxt overlord =
 
 end
 
-fun mash_unlearn ctxt ({overlord, ...} : params) = clear_state ctxt overlord
+fun mash_unlearn ctxt ({overlord, ...} : params) =
+  (clear_state ctxt overlord; Output.urgent_message "Reset MaSh")
 
 
 (*** Isabelle helpers ***)
