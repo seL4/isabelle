@@ -1334,6 +1334,8 @@ text {*
 * no way to register same type as both data- and codatatype?
 
 * no recursion through unused arguments (unlike with the old package)
+
+* in a locale, cannot use locally fixed types (because of limitation in typedef)?
 *}
 
 
