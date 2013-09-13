@@ -1,5 +1,8 @@
 (*  Title:      Doc/Datatypes/Datatypes.thy
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Lorenz Panny, TU Muenchen
+    Author:     Andrei Popescu, TU Muenchen
+    Author:     Dmitriy Traytel, TU Muenchen
 
 Tutorial for (co)datatype definitions with the new package.
 *)
@@ -122,21 +125,21 @@ Bounded Natural Functors,'' explains how to use the @{command bnf} command
 to register arbitrary type constructors as BNFs.
 
 \item Section
-\ref{sec:generating-destructors-and-theorems-for-free-constructors},
-``Generating Destructors and Theorems for Free Constructors,'' explains how to
+\ref{sec:deriving-destructors-and-theorems-for-free-constructors},
+``Deriving Destructors and Theorems for Free Constructors,'' explains how to
 use the command @{command wrap_free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by @{command
 datatype_new} and @{command codatatype}.
 
-\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
-describes the package's programmatic interface.
+%\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
+%describes the package's programmatic interface.
 
-\item Section \ref{sec:interoperability}, ``Interoperability,''
-is concerned with the packages' interaction with other Isabelle packages and
-tools, such as the code generator and the counterexample generators.
+%\item Section \ref{sec:interoperability}, ``Interoperability,''
+%is concerned with the packages' interaction with other Isabelle packages and
+%tools, such as the code generator and the counterexample generators.
 
-\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
-Limitations,'' concludes with known open issues at the time of writing.
+%\item Section \ref{sec:known-bugs-and-limitations}, ``Known Bugs and
+%Limitations,'' concludes with known open issues at the time of writing.
 \end{itemize}
 
 
@@ -181,8 +184,8 @@ the directory \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
-subsection {* Examples
-  \label{ssec:datatype-examples} *}
+subsection {* Introductory Examples
+  \label{ssec:datatype-introductory-examples} *}
 
 subsubsection {* Nonrecursive Types *}
 
@@ -333,48 +336,16 @@ arbitrary type constructors as BNFs.
 *}
 
 
-subsubsection {* Auxiliary Constants and Syntaxes *}
+subsubsection {* Custom Names and Syntaxes *}
 
 text {*
 The @{command datatype_new} command introduces various constants in addition to
-the constructors. Given a type @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
-with $m > 0$ live type variables and $n$ constructors
-@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the
-following auxiliary constants are introduced (among others):
-
-\begin{itemize}
-\setlength{\itemsep}{0pt}
-
-\item \relax{Case combinator}: @{text t_case} (rendered using the familiar
-@{text case}--@{text of} syntax)
-
-\item \relax{Iterator}: @{text t_fold}
-
-\item \relax{Recursor}: @{text t_rec}
-
-\item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
-@{text "t.is_C\<^sub>n"}
-
-\item \relax{Selectors}:
-@{text t.un_C\<^sub>11}$, \ldots, @{text t.un_C\<^sub>1k\<^sub>1}, \\
-\phantom{\relax{Selectors:}} \quad\vdots \\
-\phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
-
-\item \relax{Set functions} (or \relax{natural transformations}):
-@{text t_set1}, \ldots, @{text t_setm}
-
-\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
-
-\item \relax{Relator}: @{text t_rel}
-
-\end{itemize}
-
-\noindent
-The case combinator, discriminators, and selectors are collectively called
-\emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
-name and is normally hidden. The set functions, map function, relator,
-discriminators, and selectors can be given custom names, as in the example
-below:
+the constructors. With each datatype are associated set functions, a map
+function, a relator, discriminators, and selectors, all of which can be given
+custom names. In the example below, the traditional names
+@{text set}, @{text map}, @{text list_all2}, @{text null}, @{text hd}, and
+@{text tl} override the default names @{text list_set}, @{text list_map}, @{text
+list_rel}, @{text is_Nil}, @{text un_Cons1}, and @{text un_Cons2}:
 *}
 
 (*<*)
@@ -413,7 +384,7 @@ default value for selectors associated with other constructors. Here, it is used
 to ensure that the tail of the empty list is itself (instead of being left
 unspecified).
 
-Because @{const Nil} is a nullary constructor, it is also possible to use
+Because @{const Nil} is nullary, it is also possible to use
 @{term "\<lambda>xs. xs = Nil"} as a discriminator. This is specified by
 entering ``@{text "="}'' instead of the identifier @{const null}. Although this
 may look appealing, the mixture of constructors and selectors in the
@@ -449,8 +420,11 @@ text {* \blankline *}
       "[x]" == "x # []"
 
 
-subsection {* Syntax
-  \label{ssec:datatype-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:datatype-command-syntax} *}
+
+
+subsubsection {* \keyw{datatype\_new} *}
 
 text {*
 Datatype definitions have the following general syntax:
@@ -542,6 +516,59 @@ associated with other constructors. The specified default value must be of type
 @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
 (i.e., it may depends on @{text C}'s arguments).
 *}
+
+
+subsubsection {* \keyw{datatype\_new\_compat} *}
+
+text {*
+@{rail "
+  @@{command_def datatype_new_compat} types
+"}
+*}
+
+
+subsection {* Generated Constants
+  \label{ssec:datatype-generated-constants} *}
+
+text {*
+Given a type @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
+with $m > 0$ live type variables and $n$ constructors
+@{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the
+following auxiliary constants are introduced:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item \relax{Case combinator}: @{text t_case} (rendered using the familiar
+@{text case}--@{text of} syntax)
+
+\item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
+@{text "t.is_C\<^sub>n"}
+
+\item \relax{Selectors}:
+@{text t.un_C\<^sub>11}$, \ldots, @{text t.un_C\<^sub>1k\<^sub>1}, \\
+\phantom{\relax{Selectors:}} \quad\vdots \\
+\phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
+
+\item \relax{Set functions} (or \relax{natural transformations}):
+@{text t_set1}, \ldots, @{text t_setm}
+
+\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
+
+\item \relax{Relator}: @{text t_rel}
+
+\item \relax{Iterator}: @{text t_fold}
+
+\item \relax{Recursor}: @{text t_rec}
+
+\end{itemize}
+
+\noindent
+The case combinator, discriminators, and selectors are collectively called
+\emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
+name and is normally hidden. 
+*}
+
 
 subsection {* Generated Theorems
   \label{ssec:datatype-generated-theorems} *}
@@ -744,47 +771,45 @@ For convenience, @{command datatype_new} also provides the following collection:
 *}
 
 
+(*
 subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
 
 text {*
-  * main incompabilities between two packages
-    * differences in theorem names (e.g. singular vs. plural for some props?)
-    * differences in "simps"?
-    * different recursor/induction in nested case
-        * discussed in Section~\ref{sec:defining-recursive-functions}
-    * different ML interfaces / extension mechanisms
+%  * main incompabilities between two packages
+%    * differences in theorem names (e.g. singular vs. plural for some props?)
+%    * differences in "simps"?
+%    * different recursor/induction in nested case
+%        * discussed in Section~\ref{sec:defining-recursive-functions}
+%    * different ML interfaces / extension mechanisms
+%
+%  * register new datatype as old datatype
+%    * motivation:
+%      * do recursion through new datatype in old datatype
+%        (e.g. useful when porting to the new package one type at a time)
+%      * use old primrec
+%      * use fun
+%      * use extensions like size (needed for fun), the AFP order, Quickcheck,
+%        Nitpick
+%      * provide exactly the same theorems with the same names (compatibility)
+%    * option 1
+%      * \keyw{rep\_compat}
+%      * \keyw{rep\_datatype}
+%      * has some limitations
+%        * mutually recursive datatypes? (fails with rep_datatype?)
+%        * nested datatypes? (fails with datatype_new?)
+%    * option 2
+%      * @{command datatype_new_compat}
+%      * not fully implemented yet?
 
-  * register new datatype as old datatype
-    * motivation:
-      * do recursion through new datatype in old datatype
-        (e.g. useful when porting to the new package one type at a time)
-      * use old primrec
-      * use fun
-      * use extensions like size (needed for fun), the AFP order, Quickcheck,
-        Nitpick
-      * provide exactly the same theorems with the same names (compatibility)
-    * option 1
-      * \keyw{rep\_compat}
-      * \keyw{rep\_datatype}
-      * has some limitations
-        * mutually recursive datatypes? (fails with rep_datatype?)
-        * nested datatypes? (fails with datatype_new?)
-    * option 2
-      * @{command datatype_new_compat}
-      * not fully implemented yet?
-
-@{rail "
-  @@{command_def datatype_new_compat} types
-"}
-
-  * register old datatype as new datatype
-    * no clean way yet
-    * if the goal is to do recursion through old datatypes, can register it as
-      a BNF (Section XXX)
-    * can also derive destructors etc. using @{command wrap_free_constructors}
-      (Section XXX)
+%  * register old datatype as new datatype
+%    * no clean way yet
+%    * if the goal is to do recursion through old datatypes, can register it as
+%      a BNF (Section XXX)
+%    * can also derive destructors etc. using @{command wrap_free_constructors}
+%      (Section XXX)
 *}
+*)
 
 
 section {* Defining Recursive Functions
@@ -804,13 +829,13 @@ text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
-subsection {* Examples
-  \label{ssec:primrec-examples} *}
+subsection {* Introductory Examples
+  \label{ssec:primrec-introductory-examples} *}
 
 subsubsection {* Nonrecursive Types *}
 
 text {*
-  * simple (depth 1) pattern matching on the left-hand side
+%  * simple (depth 1) pattern matching on the left-hand side
 *}
 
     primrec_new bool_of_trool :: "trool \<Rightarrow> bool" where
@@ -818,10 +843,10 @@ text {*
       "bool_of_trool Truue = True"
 
 text {*
-  * OK to specify the cases in a different order
-  * OK to leave out some case (but get a warning -- maybe we need a "quiet"
-    or "silent" flag?)
-    * case is then unspecified
+%  * OK to specify the cases in a different order
+%  * OK to leave out some case (but get a warning -- maybe we need a "quiet"
+%    or "silent" flag?)
+%    * case is then unspecified
 
 More examples:
 *}
@@ -954,9 +979,9 @@ Show example with function composition (ftree).
 subsubsection {* Nested-as-Mutual Recursion *}
 
 text {*
-  * can pretend a nested type is mutually recursive (if purely inductive)
-  * avoids the higher-order map
-  * e.g.
+%  * can pretend a nested type is mutually recursive (if purely inductive)
+%  * avoids the higher-order map
+%  * e.g.
 *}
 
     primrec_new
@@ -982,34 +1007,36 @@ text {*
       "sum_btree_option (Some t) = sum_btree t"
 
 text {*
-  * this can always be avoided;
-     * e.g. in our previous example, we first mapped the recursive
-       calls, then we used a generic at function to retrieve the result
-
-  * there's no hard-and-fast rule of when to use one or the other,
-    just like there's no rule when to use fold and when to use
-    primrec_new
-
-  * higher-order approach, considering nesting as nesting, is more
-    compositional -- e.g. we saw how we could reuse an existing polymorphic
-    at or the_default, whereas @{text at_trees\<^sub>f\<^sub>f} is much more specific
-
-  * but:
-     * is perhaps less intuitive, because it requires higher-order thinking
-     * may seem inefficient, and indeed with the code generator the
-       mutually recursive version might be nicer
-     * is somewhat indirect -- must apply a map first, then compute a result
-       (cannot mix)
-     * the auxiliary functions like @{text at_trees\<^sub>f\<^sub>f} are sometimes useful in own right
-
-  * impact on automation unclear
-
-%%% TODO: change text antiquotation to const once the real primrec is used
+%  * this can always be avoided;
+%     * e.g. in our previous example, we first mapped the recursive
+%       calls, then we used a generic at function to retrieve the result
+%
+%  * there's no hard-and-fast rule of when to use one or the other,
+%    just like there's no rule when to use fold and when to use
+%    primrec_new
+%
+%  * higher-order approach, considering nesting as nesting, is more
+%    compositional -- e.g. we saw how we could reuse an existing polymorphic
+%    at or the_default, whereas @{const at_trees\<^sub>f\<^sub>f} is much more specific
+%
+%  * but:
+%     * is perhaps less intuitive, because it requires higher-order thinking
+%     * may seem inefficient, and indeed with the code generator the
+%       mutually recursive version might be nicer
+%     * is somewhat indirect -- must apply a map first, then compute a result
+%       (cannot mix)
+%     * the auxiliary functions like @{const at_trees\<^sub>f\<^sub>f} are sometimes useful in own right
+%
+%  * impact on automation unclear
+%
 *}
 
 
-subsection {* Syntax
-  \label{ssec:primrec-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:primrec-command-syntax} *}
+
+
+subsubsection {* \keyw{primrec\_new} *}
 
 text {*
 Primitive recursive functions have the following general syntax:
@@ -1027,14 +1054,14 @@ subsection {* Generated Theorems
   \label{ssec:primrec-generated-theorems} *}
 
 text {*
-  * synthesized nonrecursive definition
-  * user specification is rederived from it, exactly as entered
-
-  * induct
-    * mutualized
-    * without some needless induction hypotheses if not used
-  * fold, rec
-    * mutualized
+%  * synthesized nonrecursive definition
+%  * user specification is rederived from it, exactly as entered
+%
+%  * induct
+%    * mutualized
+%    * without some needless induction hypotheses if not used
+%  * fold, rec
+%    * mutualized
 *}
 
 subsection {* Recursive Default Values for Selectors
@@ -1093,18 +1120,20 @@ The following example illustrates this procedure:
     by (cases xs) auto
 
 
+(*
 subsection {* Compatibility Issues
-  \label{ssec:datatype-compatibility-issues} *}
+  \label{ssec:primrec-compatibility-issues} *}
 
 text {*
-  * different induction in nested case
-    * solution: define nested-as-mutual functions with primrec,
-      and look at .induct
-
-  * different induction and recursor in nested case
-    * only matters to low-level users; they can define a dummy function to force
-      generation of mutualized recursor
+%  * different induction in nested case
+%    * solution: define nested-as-mutual functions with primrec,
+%      and look at .induct
+%
+%  * different induction and recursor in nested case
+%    * only matters to low-level users; they can define a dummy function to force
+%      generation of mutualized recursor
 *}
+*)
 
 
 section {* Defining Codatatypes
@@ -1114,28 +1143,33 @@ text {*
 This section describes how to specify codatatypes using the @{command codatatype}
 command.
 
-  * libraries include some useful codatatypes, notably lazy lists;
-    see the ``Coinductive'' AFP entry \cite{xxx} for an elaborate library
+%  * libraries include some useful codatatypes, notably lazy lists;
+%    see the ``Coinductive'' AFP entry \cite{xxx} for an elaborate library
 *}
 
 
-subsection {* Examples
-  \label{ssec:codatatype-examples} *}
+subsection {* Introductory Examples
+  \label{ssec:codatatype-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
-subsection {* Syntax
-  \label{ssec:codatatype-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:codatatype-command-syntax} *}
 
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section~\ref{ssec:datatype-syntax}), with two exceptions: The command is called
-@{command codatatype}; the \keyw{no\_discs\_sels} option is not available,
-because destructors are a central notion for codatatypes.
+(Section~\ref{ssec:datatype-command-syntax}), with two exceptions: The command
+is called @{command codatatype}; the \keyw{no\_discs\_sels} option is not
+available, because destructors are a central notion for codatatypes.
 *}
+
+
+subsection {* Generated Constants
+  \label{ssec:codatatype-generated-constants} *}
+
 
 subsection {* Generated Theorems
   \label{ssec:codatatype-generated-theorems} *}
@@ -1153,8 +1187,8 @@ This section describes how to specify corecursive functions using the
 *}
 
 
-subsection {* Examples
-  \label{ssec:primcorec-examples} *}
+subsection {* Introductory Examples
+  \label{ssec:primcorec-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
@@ -1164,8 +1198,11 @@ codatatypes (Section~\ref{ssec:recursive-default-values-for-selectors}).
 *}
 
 
-subsection {* Syntax
-  \label{ssec:primcorec-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:primcorec-command-syntax} *}
+
+
+subsubsection {* \keyw{primcorec} *}
 
 text {*
 Primitive corecursive definitions have the following general syntax:
@@ -1191,26 +1228,27 @@ This section explains how to set up the (co)datatype package to allow nested
 recursion through custom well-behaved type constructors. The key concept is that
 of a bounded natural functor (BNF).
 
-    * @{command bnf}
-    * @{command print_bnfs}
 *}
 
 
-subsection {* Example
-  \label{ssec:bnf-examples} *}
+subsection {* Introductory Example
+  \label{ssec:bnf-introductory-example} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
 \verb|~~/src/HOL/BNF/More_BNFs.thy|.
 
-Mention distinction between live and dead type arguments;
-  * and existence of map, set for those
-mention =>.
+%Mention distinction between live and dead type arguments;
+%  * and existence of map, set for those
+%mention =>.
 *}
 
 
-subsection {* Syntax
-  \label{ssec:bnf-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:bnf-command-syntax} *}
+
+
+subsubsection {* \keyw{bnf} *}
 
 text {*
 @{rail "
@@ -1223,31 +1261,42 @@ text {*
 options: no_discs_sels rep_compat
 *}
 
-section {* Generating Destructors and Theorems for Free Constructors
-  \label{sec:generating-destructors-and-theorems-for-free-constructors} *}
+
+subsubsection {* \keyw{print\_bnfs} *}
+
+text {*
+@{command print_bnfs}
+*}
+
+
+section {* Deriving Destructors and Theorems for Free Constructors
+  \label{sec:deriving-destructors-and-theorems-for-free-constructors} *}
 
 text {*
 This section explains how to derive convenience theorems for free constructors,
 as performed internally by @{command datatype_new} and @{command codatatype}.
 
-  * need for this is rare but may arise if you want e.g. to add destructors to
-    a type not introduced by ...
-
-  * also useful for compatibility with old package, e.g. add destructors to
-    old \keyw{datatype}
-
-  * @{command wrap_free_constructors}
-    * \keyw{no\_discs\_sels}, \keyw{rep\_compat}
-    * hack to have both co and nonco view via locale (cf. ext nats)
+%  * need for this is rare but may arise if you want e.g. to add destructors to
+%    a type not introduced by ...
+%
+%  * also useful for compatibility with old package, e.g. add destructors to
+%    old \keyw{datatype}
+%
+%  * @{command wrap_free_constructors}
+%    * \keyw{no\_discs\_sels}, \keyw{rep\_compat}
+%    * hack to have both co and nonco view via locale (cf. ext nats)
 *}
 
 
-subsection {* Example
-  \label{ssec:ctors-examples} *}
+subsection {* Introductory Example
+  \label{ssec:ctors-introductory-example} *}
 
 
-subsection {* Syntax
-  \label{ssec:ctors-syntax} *}
+subsection {* Command Syntax
+  \label{ssec:ctors-command-syntax} *}
+
+
+subsubsection {* \keyw{wrap\_free\_constructors} *}
 
 text {*
 Free constructor wrapping has the following general syntax:
@@ -1261,22 +1310,25 @@ Free constructor wrapping has the following general syntax:
   @{syntax_def name_term}: (name ':' term)
 "}
 
-options: no_discs_sels rep_compat
+% options: no_discs_sels rep_compat
 
-X_list is as for BNF
+% X_list is as for BNF
 
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 *}
 
 
+(*
 section {* Standard ML Interface
   \label{sec:standard-ml-interface} *}
 
 text {*
 This section describes the package's programmatic interface.
 *}
+*)
 
 
+(*
 section {* Interoperability
   \label{sec:interoperability} *}
 
@@ -1305,8 +1357,10 @@ subsection {* Nitpick
 
 subsection {* Nominal Isabelle
   \label{ssec:nominal-isabelle} *}
+*)
 
 
+(*
 section {* Known Bugs and Limitations
   \label{sec:known-bugs-and-limitations} *}
 
@@ -1315,27 +1369,27 @@ This section lists known open issues of the package.
 *}
 
 text {*
-* primcorec is unfinished
-
-* slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
-
-* issues with HOL-Proofs?
-
-* partial documentation
-
-* too much output by commands like "datatype_new" and "codatatype"
-
-* no direct way to define recursive functions for default values -- but show trick
-  based on overloading
-
-* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
-  (for @{command datatype_new_compat} and prim(co)rec)
-
-* no way to register same type as both data- and codatatype?
-
-* no recursion through unused arguments (unlike with the old package)
-
-* in a locale, cannot use locally fixed types (because of limitation in typedef)?
+%* primcorec is unfinished
+%
+%* slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
+%
+%* issues with HOL-Proofs?
+%
+%* partial documentation
+%
+%* too much output by commands like "datatype_new" and "codatatype"
+%
+%* no direct way to define recursive functions for default values -- but show trick
+%  based on overloading
+%
+%* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
+%  (for @{command datatype_new_compat} and prim(co)rec)
+%
+%* no way to register same type as both data- and codatatype?
+%
+%* no recursion through unused arguments (unlike with the old package)
+%
+%* in a locale, cannot use locally fixed types (because of limitation in typedef)?
 *}
 
 
@@ -1343,13 +1397,15 @@ section {* Acknowledgments
   \label{sec:acknowledgments} *}
 
 text {*
-Tobias Nipkow and Makarius Wenzel made this work possible. Andreas Lochbihler
-provided lots of comments on earlier versions of the package, especially for the
-coinductive part. Brian Huffman suggested major simplifications to the internal
-constructions, much of which has yet to be implemented. Florian Haftmann and
-Christian Urban provided general advice advice on Isabelle and package writing.
-Stefan Milius and Lutz Schr\"oder suggested an elegant proof to eliminate one of
-the BNF assumptions.
+Tobias Nipkow and Makarius Wenzel have encouraged us to implement the new
+(co)datatype package. Andreas Lochbihler provided lots of comments on earlier
+versions of the package, especially for the coinductive part. Brian Huffman
+suggested major simplifications to the internal constructions, much of which has
+yet to be implemented. Florian Haftmann and Christian Urban provided general
+advice advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
+suggested an elegant proof to eliminate one of the BNF assumptions.
 *}
+*)
+
 
 end
