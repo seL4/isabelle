@@ -71,7 +71,7 @@ primrec_new mylist_of_forest :: "'a forest \<Rightarrow> 'a tree mylist" where
   "mylist_of_forest (FCons t ts) = MyCons t (mylist_of_forest ts)"
 
 definition frev :: "'a forest \<Rightarrow> 'a forest" where
-  "frev = forest_of_mylist o myrev o mylist_of_forest"
+  "frev = forest_of_mylist \<circ> myrev \<circ> mylist_of_forest"
 
 primrec_new
   mirror_tree :: "'a tree \<Rightarrow> 'a tree" and
@@ -105,10 +105,10 @@ where
 
 primrec_new map_ftreeA :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
   "map_ftreeA f (FTLeaf x) = FTLeaf (f x)" |
-  "map_ftreeA f (FTNode g) = FTNode (map_ftreeA f o g)"
+  "map_ftreeA f (FTNode g) = FTNode (map_ftreeA f \<circ> g)"
 
 primrec_new map_ftreeB :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ftree \<Rightarrow> 'b ftree" where
   "map_ftreeB f (FTLeaf x) = FTLeaf (f x)" |
-  "map_ftreeB f (FTNode g) = FTNode (map_ftreeB f o g o the_inv f)"
+  "map_ftreeB f (FTNode g) = FTNode (map_ftreeB f \<circ> g \<circ> the_inv f)"
 
 end
