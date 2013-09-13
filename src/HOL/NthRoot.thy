@@ -410,17 +410,17 @@ unfolding sqrt_def by (rule real_root_le_iff [OF pos2])
 lemma real_sqrt_eq_iff [simp]: "(sqrt x = sqrt y) = (x = y)"
 unfolding sqrt_def by (rule real_root_eq_iff [OF pos2])
 
-lemmas real_sqrt_gt_0_iff [simp] = real_sqrt_less_iff [where x=0, simplified]
-lemmas real_sqrt_lt_0_iff [simp] = real_sqrt_less_iff [where y=0, simplified]
-lemmas real_sqrt_ge_0_iff [simp] = real_sqrt_le_iff [where x=0, simplified]
-lemmas real_sqrt_le_0_iff [simp] = real_sqrt_le_iff [where y=0, simplified]
-lemmas real_sqrt_eq_0_iff [simp] = real_sqrt_eq_iff [where y=0, simplified]
+lemmas real_sqrt_gt_0_iff [simp] = real_sqrt_less_iff [where x=0, unfolded real_sqrt_zero]
+lemmas real_sqrt_lt_0_iff [simp] = real_sqrt_less_iff [where y=0, unfolded real_sqrt_zero]
+lemmas real_sqrt_ge_0_iff [simp] = real_sqrt_le_iff [where x=0, unfolded real_sqrt_zero]
+lemmas real_sqrt_le_0_iff [simp] = real_sqrt_le_iff [where y=0, unfolded real_sqrt_zero]
+lemmas real_sqrt_eq_0_iff [simp] = real_sqrt_eq_iff [where y=0, unfolded real_sqrt_zero]
 
-lemmas real_sqrt_gt_1_iff [simp] = real_sqrt_less_iff [where x=1, simplified]
-lemmas real_sqrt_lt_1_iff [simp] = real_sqrt_less_iff [where y=1, simplified]
-lemmas real_sqrt_ge_1_iff [simp] = real_sqrt_le_iff [where x=1, simplified]
-lemmas real_sqrt_le_1_iff [simp] = real_sqrt_le_iff [where y=1, simplified]
-lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, simplified]
+lemmas real_sqrt_gt_1_iff [simp] = real_sqrt_less_iff [where x=1, unfolded real_sqrt_one]
+lemmas real_sqrt_lt_1_iff [simp] = real_sqrt_less_iff [where y=1, unfolded real_sqrt_one]
+lemmas real_sqrt_ge_1_iff [simp] = real_sqrt_le_iff [where x=1, unfolded real_sqrt_one]
+lemmas real_sqrt_le_1_iff [simp] = real_sqrt_le_iff [where y=1, unfolded real_sqrt_one]
+lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, unfolded real_sqrt_one]
 
 lemma isCont_real_sqrt: "isCont sqrt x"
 unfolding sqrt_def by (rule isCont_real_root)

@@ -251,7 +251,7 @@ text {*
   Here is an artificial example of bundling various configuration
   options: *}
 
-bundle trace = [[simp_trace, blast_trace, linarith_trace, metis_trace, smt_trace]]
+bundle trace = [[simp_trace, linarith_trace, metis_trace, smt_trace]]
 
 lemma "x = x"
   including trace by metis

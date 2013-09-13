@@ -446,7 +446,7 @@ lemma suminf_ge_zero:
 lemma sumr_pos_lt_pair:
   fixes f :: "nat \<Rightarrow> real"
   shows "\<lbrakk>summable f;
-        \<forall>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
+        \<And>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
       \<Longrightarrow> setsum f {0..<k} < suminf f"
 unfolding One_nat_def
 apply (subst suminf_split_initial_segment [where k="k"])

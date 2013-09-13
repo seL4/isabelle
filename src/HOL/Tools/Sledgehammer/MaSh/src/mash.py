@@ -41,7 +41,7 @@ def start_server(host,port):
     path = dirname(realpath(__file__))
     spawnDaemon(os.path.join(path,'server.py'))
     serverIsUp=False
-    for _i in range(10):
+    for _i in range(20):
         # Test if server is up
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -118,11 +118,12 @@ def mash(argv = sys.argv[1:]):
                 OS.write('%s\n' % received)
         OS.close()
         IS.close()
+        
+        # Statistics
+        if args.statistics:
+            received = communicate('avgStats',args.host,args.port)
+            logger.info(received)
 
-    # Statistics
-    if args.statistics:
-        received = communicate('avgStats',args.host,args.port)
-        logger.info(received)
     if args.saveModels:
         communicate('save',args.host,args.port)
 

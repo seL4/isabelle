@@ -291,7 +291,7 @@ lemma norm_bound_component_le_cart: "norm x <= e ==> \<bar>x$i\<bar> <= e"
   by (metis component_le_norm_cart order_trans)
 
 lemma norm_bound_component_lt_cart: "norm x < e ==> \<bar>x$i\<bar> < e"
-  by (metis component_le_norm_cart basic_trans_rules(21))
+  by (metis component_le_norm_cart le_less_trans)
 
 lemma norm_le_l1_cart: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
   by (simp add: norm_vec_def setL2_le_setsum)
@@ -322,7 +322,6 @@ lemma setsum_cmul:
   shows "setsum (\<lambda>x. c *s f x) S = c *s setsum f S"
   by (simp add: vec_eq_iff setsum_right_distrib)
 
-(* TODO: use setsum_norm_allsubsets_bound *)
 lemma setsum_norm_allsubsets_bound_cart:
   fixes f:: "'a \<Rightarrow> real ^'n"
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
@@ -500,7 +499,7 @@ definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<R
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
-  by (simp add: linear_def matrix_vector_mult_def vec_eq_iff
+  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
       field_simps setsum_right_distrib setsum_addf)
 
 lemma matrix_works:

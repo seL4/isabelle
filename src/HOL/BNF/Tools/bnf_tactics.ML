@@ -61,8 +61,7 @@ fun mk_pointfree ctxt thm = thm
   |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
   |> mk_Trueprop_eq
   |> (fn goal => Goal.prove_sorry ctxt [] [] goal
-     (fn {context=ctxt, prems = _} =>
-       unfold_thms_tac ctxt [@{thm o_def}, mk_sym thm] THEN rtac refl 1))
+    (K (rtac ext 1 THEN unfold_thms_tac ctxt [o_apply, mk_sym thm] THEN rtac refl 1)))
   |> Thm.close_derivation;
 
 
@@ -102,7 +101,7 @@ fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context =
   rtac (unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
     @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
   unfold_thms_tac ctxt (srel_def ::
-    @{thms Collect_fst_snd_mem_eq mem_Collect_eq pair_mem_Collect_split fst_conv snd_conv
+    @{thms pair_collapse Collect_mem_eq mem_Collect_eq prod.cases fst_conv snd_conv
       split_conv}) THEN
   rtac refl 1;
 

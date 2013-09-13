@@ -94,10 +94,10 @@ isabelle_admin_build "$BUILD_JARS" || exit $?
 
 pushd "$GRAPHVIEW_HOME" >/dev/null || failed
 
-PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
-TARGET="$TARGET_DIR/ext/Graphview.jar"
+TARGET="$TARGET_DIR/Graphview.jar"
 
 declare -a UPDATED=()
 
@@ -139,12 +139,12 @@ then
   rm -rf classes && mkdir classes
 
   (
-    #workaround for scalac
+    #workaround for scalac 2.10.2
     function stty() { :; }
     export -f stty
 
-    CLASSPATH="$CLASSPATH:$PURE_JAR"
-    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    classpath "$PURE_JAR"
+    export CLASSPATH="$(jvmpath "$ISABELLE_CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 

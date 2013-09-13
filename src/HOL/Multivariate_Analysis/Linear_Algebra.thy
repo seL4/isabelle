@@ -248,35 +248,36 @@ lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
 
 subsection {* Linear functions. *}
 
-definition linear :: "('a::real_vector \<Rightarrow> 'b::real_vector) \<Rightarrow> bool"
-  where "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *\<^sub>R x) = c *\<^sub>R f x)"
-
-lemma linearI:
-  assumes "\<And>x y. f (x + y) = f x + f y"
-    and "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
-  shows "linear f"
-  using assms unfolding linear_def by auto
+lemma linear_iff:
+  "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *\<^sub>R x) = c *\<^sub>R f x)"
+  (is "linear f \<longleftrightarrow> ?rhs")
+proof
+  assume "linear f" then interpret f: linear f .
+  show "?rhs" by (simp add: f.add f.scaleR)
+next
+  assume "?rhs" then show "linear f" by unfold_locales simp_all
+qed
 
 lemma linear_compose_cmul: "linear f \<Longrightarrow> linear (\<lambda>x. c *\<^sub>R f x)"
-  by (simp add: linear_def algebra_simps)
+  by (simp add: linear_iff algebra_simps)
 
 lemma linear_compose_neg: "linear f \<Longrightarrow> linear (\<lambda>x. - f x)"
-  by (simp add: linear_def)
+  by (simp add: linear_iff)
 
 lemma linear_compose_add: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (\<lambda>x. f x + g x)"
-  by (simp add: linear_def algebra_simps)
+  by (simp add: linear_iff algebra_simps)
 
 lemma linear_compose_sub: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (\<lambda>x. f x - g x)"
-  by (simp add: linear_def algebra_simps)
+  by (simp add: linear_iff algebra_simps)
 
 lemma linear_compose: "linear f \<Longrightarrow> linear g \<Longrightarrow> linear (g \<circ> f)"
-  by (simp add: linear_def)
+  by (simp add: linear_iff)
 
 lemma linear_id: "linear id"
-  by (simp add: linear_def id_def)
+  by (simp add: linear_iff id_def)
 
 lemma linear_zero: "linear (\<lambda>x. 0)"
-  by (simp add: linear_def)
+  by (simp add: linear_iff)
 
 lemma linear_compose_setsum:
   assumes fS: "finite S"
@@ -288,20 +289,20 @@ lemma linear_compose_setsum:
   done
 
 lemma linear_0: "linear f \<Longrightarrow> f 0 = 0"
-  unfolding linear_def
+  unfolding linear_iff
   apply clarsimp
   apply (erule allE[where x="0::'a"])
   apply simp
   done
 
 lemma linear_cmul: "linear f \<Longrightarrow> f (c *\<^sub>R x) = c *\<^sub>R f x"
-  by (simp add: linear_def)
+  by (simp add: linear_iff)
 
 lemma linear_neg: "linear f \<Longrightarrow> f (- x) = - f x"
   using linear_cmul [where c="-1"] by simp
 
 lemma linear_add: "linear f \<Longrightarrow> f(x + y) = f x + f y"
-  by (metis linear_def)
+  by (metis linear_iff)
 
 lemma linear_sub: "linear f \<Longrightarrow> f(x - y) = f x - f y"
   by (simp add: diff_minus linear_add linear_neg)
@@ -354,16 +355,16 @@ subsection {* Bilinear functions. *}
 definition "bilinear f \<longleftrightarrow> (\<forall>x. linear (\<lambda>y. f x y)) \<and> (\<forall>y. linear (\<lambda>x. f x y))"
 
 lemma bilinear_ladd: "bilinear h \<Longrightarrow> h (x + y) z = h x z + h y z"
-  by (simp add: bilinear_def linear_def)
+  by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_radd: "bilinear h \<Longrightarrow> h x (y + z) = h x y + h x z"
-  by (simp add: bilinear_def linear_def)
+  by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_lmul: "bilinear h \<Longrightarrow> h (c *\<^sub>R x) y = c *\<^sub>R h x y"
-  by (simp add: bilinear_def linear_def)
+  by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_rmul: "bilinear h \<Longrightarrow> h x (c *\<^sub>R y) = c *\<^sub>R h x y"
-  by (simp add: bilinear_def linear_def)
+  by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_lneg: "bilinear h \<Longrightarrow> h (- x) y = - h x y"
   by (simp only: scaleR_minus1_left [symmetric] bilinear_lmul)
@@ -475,7 +476,7 @@ lemma adjoint_linear:
   fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
-  by (simp add: lf linear_def euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
+  by (simp add: lf linear_iff euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
     adjoint_clauses[OF lf] inner_simps)
 
 lemma adjoint_adjoint:
@@ -559,6 +560,9 @@ lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (S 
 
 lemma subset_hull: "S t \<Longrightarrow> S hull s \<subseteq> t \<longleftrightarrow> s \<subseteq> t"
   unfolding hull_def by blast
+
+lemma hull_UNIV: "S hull UNIV = UNIV"
+  unfolding hull_def by auto
 
 lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
   unfolding hull_def by auto
@@ -744,7 +748,7 @@ lemma subspace_linear_image:
     and sS: "subspace S"
   shows "subspace (f ` S)"
   using lf sS linear_0[OF lf]
-  unfolding linear_def subspace_def
+  unfolding linear_iff subspace_def
   apply (auto simp add: image_iff)
   apply (rule_tac x="x + y" in bexI)
   apply auto
@@ -753,10 +757,10 @@ lemma subspace_linear_image:
   done
 
 lemma subspace_linear_vimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace (f -` S)"
-  by (auto simp add: subspace_def linear_def linear_0[of f])
+  by (auto simp add: subspace_def linear_iff linear_0[of f])
 
 lemma subspace_linear_preimage: "linear f \<Longrightarrow> subspace S \<Longrightarrow> subspace {x. f x \<in> S}"
-  by (auto simp add: subspace_def linear_def linear_0[of f])
+  by (auto simp add: subspace_def linear_iff linear_0[of f])
 
 lemma subspace_trivial: "subspace {0}"
   by (simp add: subspace_def)
@@ -984,7 +988,7 @@ proof (rule span_unique)
     by safe (force intro: span_clauses)+
 next
   have "linear (\<lambda>(a, b). a + b)"
-    by (simp add: linear_def scaleR_add_right)
+    by (simp add: linear_iff scaleR_add_right)
   moreover have "subspace (span A \<times> span B)"
     by (intro subspace_Times subspace_span)
   ultimately show "subspace ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
@@ -1521,7 +1525,7 @@ lemma norm_bound_Basis_le: "b \<in> Basis \<Longrightarrow> norm x \<le> e \<Lon
   by (metis Basis_le_norm order_trans)
 
 lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrightarrow> \<bar>x \<bullet> b\<bar> < e"
-  by (metis Basis_le_norm basic_trans_rules(21))
+  by (metis Basis_le_norm le_less_trans)
 
 lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>x \<bullet> b\<bar>)"
   apply (subst euclidean_representation[of x, symmetric])
@@ -1639,11 +1643,11 @@ proof
   proof
     fix x y
     show "f (x + y) = f x + f y"
-      using `linear f` unfolding linear_def by simp
+      using `linear f` unfolding linear_iff by simp
   next
     fix r x
     show "f (scaleR r x) = scaleR r (f x)"
-      using `linear f` unfolding linear_def by simp
+      using `linear f` unfolding linear_iff by simp
   next
     have "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
       using `linear f` by (rule linear_bounded)
@@ -1653,7 +1657,7 @@ proof
 next
   assume "bounded_linear f"
   then interpret f: bounded_linear f .
-  show "linear f" by (simp add: f.add f.scaleR linear_def)
+  show "linear f" by (simp add: f.add f.scaleR linear_iff)
 qed
 
 lemma bounded_linearI':
@@ -1725,20 +1729,20 @@ proof
   proof
     fix x y z
     show "h (x + y) z = h x z + h y z"
-      using `bilinear h` unfolding bilinear_def linear_def by simp
+      using `bilinear h` unfolding bilinear_def linear_iff by simp
   next
     fix x y z
     show "h x (y + z) = h x y + h x z"
-      using `bilinear h` unfolding bilinear_def linear_def by simp
+      using `bilinear h` unfolding bilinear_def linear_iff by simp
   next
     fix r x y
     show "h (scaleR r x) y = scaleR r (h x y)"
-      using `bilinear h` unfolding bilinear_def linear_def
+      using `bilinear h` unfolding bilinear_def linear_iff
       by simp
   next
     fix r x y
     show "h x (scaleR r y) = scaleR r (h x y)"
-      using `bilinear h` unfolding bilinear_def linear_def
+      using `bilinear h` unfolding bilinear_def linear_iff
       by simp
   next
     have "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
@@ -2444,7 +2448,7 @@ proof -
      (\<forall>x\<in> span C. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x) \<and>
      (\<forall>x\<in> C. g x = f x)" by blast
   from g show ?thesis
-    unfolding linear_def
+    unfolding linear_iff
     using C
     apply clarsimp
     apply blast
@@ -2613,7 +2617,7 @@ lemma bilinear_eq:
 proof -
   let ?P = "{x. \<forall>y\<in> span C. f x y = g x y}"
   from bf bg have sp: "subspace ?P"
-    unfolding bilinear_def linear_def subspace_def bf bg
+    unfolding bilinear_def linear_iff subspace_def bf bg
     by (auto simp add: span_0 bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def
       intro: bilinear_ladd[OF bf])
 
@@ -2623,7 +2627,7 @@ proof -
     apply (rule span_induct')
     apply (simp add: fg)
     apply (auto simp add: subspace_def)
-    using bf bg unfolding bilinear_def linear_def
+    using bf bg unfolding bilinear_def linear_iff
     apply (auto simp add: span_0 bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def
       intro: bilinear_ladd[OF bf])
     done

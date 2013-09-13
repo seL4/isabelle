@@ -13,11 +13,20 @@
 \usepackage{railsetup}
 \usepackage{framed}
 
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
 \newbox\boxA
 \setbox\boxA=\hbox{\ }
 \parindent=4\wd\boxA
 
+\newcommand\blankline{\vskip-.5\baselineskip}
+
+\newenvironment{indentblock}{\list{}{}\item[]}{\endlist}
+
 \newcommand{\keyw}[1]{\isacommand{#1}}
+\newcommand{\synt}[1]{\textit{#1}}
+\newcommand{\hthm}[1]{\textbf{\textit{#1}}}
 
 %\renewcommand{\isactrlsub}[1]{\/$\sb{\mathrm{#1}}$}
 \renewcommand{\isactrlsub}[1]{\/$\sb{#1}$}

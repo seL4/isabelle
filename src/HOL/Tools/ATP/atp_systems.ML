@@ -9,8 +9,8 @@ signature ATP_SYSTEMS =
 sig
   type term_order = ATP_Problem.term_order
   type atp_format = ATP_Problem.atp_format
-  type formula_role = ATP_Problem.formula_role
-  type failure = ATP_Proof.failure
+  type atp_formula_role = ATP_Problem.atp_formula_role
+  type atp_failure = ATP_Proof.atp_failure
 
   type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
@@ -20,8 +20,8 @@ sig
        -> term_order * (unit -> (string * int) list)
           * (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
-     known_failures : (failure * string) list,
-     prem_role : formula_role,
+     known_failures : (atp_failure * string) list,
+     prem_role : atp_formula_role,
      best_slices : Proof.context -> (real * (slice_spec * string)) list,
      best_max_mono_iters : int,
      best_max_new_mono_instances : int}
@@ -69,7 +69,7 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_role
+    -> (atp_failure * string) list -> atp_formula_role
     -> (Proof.context -> slice_spec * string) -> string * (unit -> atp_config)
   val add_atp : string * (unit -> atp_config) -> theory -> theory
   val get_atp : theory -> string -> (unit -> atp_config)
@@ -91,7 +91,7 @@ open ATP_Problem_Generate
 (* ATP configuration *)
 
 val default_max_mono_iters = 3 (* FUDGE *)
-val default_max_new_mono_instances = 200 (* FUDGE *)
+val default_max_new_mono_instances = 100 (* FUDGE *)
 
 type slice_spec = (int * string) * atp_format * string * string * bool
 
@@ -102,8 +102,8 @@ type atp_config =
      -> term_order * (unit -> (string * int) list)
         * (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
-   known_failures : (failure * string) list,
-   prem_role : formula_role,
+   known_failures : (atp_failure * string) list,
+   prem_role : atp_formula_role,
    best_slices : Proof.context -> (real * (slice_spec * string)) list,
    best_max_mono_iters : int,
    best_max_new_mono_instances : int}
@@ -225,7 +225,7 @@ val agsyhol_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((60, ""), agsyhol_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val agsyhol = (agsyholN, fn () => agsyhol_config)
 
@@ -480,7 +480,7 @@ val leo2_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((40, ""), leo2_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val leo2 = (leo2N, fn () => leo2_config)
 
@@ -502,7 +502,7 @@ val satallax_config : atp_config =
      (* FUDGE *)
      K [(1.0, (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
-   best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
+   best_max_new_mono_instances = default_max_new_mono_instances}
 
 val satallax = (satallaxN, fn () => satallax_config)
 
@@ -609,7 +609,7 @@ val vampire_config : atp_config =
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I),
    best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val vampire = (vampireN, fn () => vampire_config)
 
@@ -633,7 +633,7 @@ val z3_tptp_config : atp_config =
         (0.125, (((62, mashN), z3_tff0, "mono_native", combsN, false), "")),
         (0.125, (((31, meshN), z3_tff0, "mono_native", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
-   best_max_new_mono_instances = default_max_new_mono_instances}
+   best_max_new_mono_instances = 2 * default_max_new_mono_instances (* FUDGE *)}
 
 val z3_tptp = (z3_tptpN, fn () => z3_tptp_config)
 
@@ -675,8 +675,8 @@ fun get_remote_systems () =
             "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
           (output, 0) => split_lines output
         | (output, _) =>
-          (warning (case extract_known_failure known_perl_failures output of
-                      SOME failure => string_of_failure failure
+          (warning (case extract_known_atp_failure known_perl_failures output of
+                      SOME failure => string_of_atp_failure failure
                     | NONE => trim_line output ^ "."); [])) ()
   handle TimeLimit.TimeOut => []
 

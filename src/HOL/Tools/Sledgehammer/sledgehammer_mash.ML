@@ -165,12 +165,12 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
     val model_dir = File.shell_path (mash_model_dir ())
     val core = "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file
     val command =
-      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
-      "./mash.py --quiet" ^
-      " --outputDir " ^ model_dir ^
-      " --modelFile=" ^ model_dir ^ "/model.pickle" ^
-      " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
-      " --log " ^ log_file ^ " " ^ core ^
+      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; \
+      \PYTHONDONTWRITEBYTECODE=y ./mash.py --quiet\
+      \ --outputDir " ^ model_dir ^
+      " --modelFile=" ^ model_dir ^ "/model.pickle\
+      \ --dictsFile=" ^ model_dir ^ "/dict.pickle\
+      \ --log " ^ log_file ^ " " ^ core ^
       (if extra_args = [] then "" else " " ^ space_implode " " extra_args) ^
       " >& " ^ err_file ^
       (if background then " &" else "")
@@ -218,9 +218,15 @@ fun freshish_name () =
   Date.fmt ".%Y%m%d_%H%M%S__" (Date.fromTimeLocal (Time.now ())) ^
   serial_string ()
 
+(* Avoid scientific notation *)
+fun safe_str_of_real r =
+  if r < 0.00001 then "0.00001"
+  else if r >= 1000000.0 then "1000000"
+  else Markup.print_real r
+
 fun encode_feature (name, weight) =
   encode_str name ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ Markup.print_real weight)
+  (if Real.== (weight, 1.0) then "" else "=" ^ safe_str_of_real weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
@@ -445,7 +451,8 @@ fun clear_state ctxt overlord =
 
 end
 
-fun mash_unlearn ctxt ({overlord, ...} : params) = clear_state ctxt overlord
+fun mash_unlearn ctxt ({overlord, ...} : params) =
+  (clear_state ctxt overlord; Output.urgent_message "Reset MaSh.")
 
 
 (*** Isabelle helpers ***)
@@ -944,14 +951,17 @@ fun add_const_counts t =
   fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
        (Term.add_const_names t [])
 
-fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
-                         concl_t facts =
+fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
+                         hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val thy_name = Context.theory_name thy
     val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val num_facts = length facts
     val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
+    fun fact_has_right_theory (_, th) =
+      thy_name = Context.theory_name (theory_of_thm th)
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
       |> features_of ctxt prover (theory_of_thm th) num_facts const_tab stature
@@ -964,8 +974,8 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
             let
               val parents = maximal_wrt_access_graph access_G facts
               val goal_feats =
-                features_of ctxt prover thy num_facts const_tab
-                            (Local, General) (concl_t :: hyp_ts)
+                features_of ctxt prover thy num_facts const_tab (Local, General)
+                            (concl_t :: hyp_ts)
               val chained_feats =
                 chained
                 |> map (rpair 1.0)
@@ -974,12 +984,14 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               val extra_feats =
                 facts
                 |> take (Int.max (0, num_extra_feature_facts - length chained))
+                |> filter fact_has_right_theory
                 |> weight_facts_steeply
                 |> map (chained_or_extra_features_of extra_feature_factor)
                 |> rpair [] |-> fold (union (eq_fst (op =)))
               val feats =
                 fold (union (eq_fst (op =))) [chained_feats, extra_feats]
                      goal_feats
+                |> debug ? sort (Real.compare o swap o pairself snd)
               val hints =
                 chained |> filter (is_fact_in_graph access_G o snd)
                         |> map (nickname_of_thm o snd)

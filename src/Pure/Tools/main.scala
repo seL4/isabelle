@@ -7,7 +7,6 @@ Main Isabelle application entry point.
 package isabelle
 
 
-import javax.swing.SwingUtilities
 import java.lang.{System, ClassLoader}
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 import java.nio.file.Files
@@ -40,13 +39,32 @@ object Main
         if (mode == "none")
           system_dialog.return_code(0)
         else {
-          val system_mode = mode == "" || mode == "system"
-          val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
           val options = Options.init()
+          val system_mode = mode == "" || mode == "system"
+          val more_dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS")).map((false, _))
           val session = Isabelle_System.default_logic(
             Isabelle_System.getenv("JEDIT_LOGIC"),
             options.string("jedit_logic"))
-          Build_Dialog.dialog(options, system_dialog, system_mode, dirs, session)
+
+          if (Build.build(options = options, build_heap = true, no_build = true,
+              more_dirs = more_dirs, sessions = List(session)) == 0)
+            system_dialog.return_code(0)
+          else {
+            system_dialog.title("Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")")
+            system_dialog.echo("Build started for Isabelle/" + session + " ...")
+
+            val (out, rc) =
+              try {
+                ("",
+                  Build.build(options = options, progress = system_dialog,
+                    build_heap = true, more_dirs = more_dirs,
+                    system_mode = system_mode, sessions = List(session)))
+              }
+              catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
+
+            system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
+            system_dialog.return_code(rc)
+          }
         }
       }
       catch { case exn: Throwable => exit_error(exn) }

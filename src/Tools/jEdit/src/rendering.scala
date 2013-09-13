@@ -75,6 +75,7 @@ object Rendering
     Map[String, Byte](
       Keyword.THY_END -> KEYWORD2,
       Keyword.THY_SCRIPT -> LABEL,
+      Keyword.QED_SCRIPT -> DIGIT,
       Keyword.PRF_SCRIPT -> DIGIT,
       Keyword.PRF_ASM -> KEYWORD3,
       Keyword.PRF_ASM_GOAL -> KEYWORD3,

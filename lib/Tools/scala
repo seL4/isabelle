@@ -6,6 +6,6 @@
 
 isabelle_admin_build jars || exit $?
 
-CLASSPATH="$(jvmpath "$CLASSPATH")"
 isabelle_scala scala -Dfile.encoding=UTF-8 \
-  "-Djava.ext.dirs=$(jvmpath "$ISABELLE_JAVA_EXT:$ISABELLE_HOME/lib/classes/ext")" "$@"
+  -classpath "$(jvmpath "$ISABELLE_CLASSPATH")" "$@"
+

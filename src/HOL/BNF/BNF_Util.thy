@@ -47,14 +47,7 @@ by simp
 lemma bijI: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); \<And>y. \<exists>x. y = f x\<rbrakk> \<Longrightarrow> bij f"
 unfolding bij_def inj_on_def by auto blast
 
-lemma pair_mem_Collect_split:
-"(\<lambda>x y. (x, y) \<in> {(x, y). P x y}) = P"
-by simp
-
 lemma Collect_pair_mem_eq: "{(x, y). (x, y) \<in> R} = R"
-by simp
-
-lemma Collect_fst_snd_mem_eq: "{p. (fst p, snd p) \<in> A} = A"
 by simp
 
 (* Operator: *)

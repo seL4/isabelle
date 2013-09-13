@@ -15,7 +15,6 @@ sig
 
   val trace : bool Config.T
   val pseudo_abs_name : string
-  val pseudo_skolem_prefix : string
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> raw_fact list -> fact list
@@ -30,12 +29,11 @@ open Sledgehammer_Fact
 open Sledgehammer_Provers
 
 val trace =
-  Attrib.setup_config_bool @{binding sledgehammer_filter_iter_trace} (K false)
+  Attrib.setup_config_bool @{binding sledgehammer_mepo_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val pseudo_abs_name = sledgehammer_prefix ^ "abs"
-val pseudo_skolem_prefix = sledgehammer_prefix ^ "sko"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
@@ -88,9 +86,7 @@ fun string_of_hyper_pconst (s, ps) =
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table also_skolem (s, p) =
-  if (not also_skolem andalso String.isPrefix pseudo_skolem_prefix s) then I
-  else Symtab.map_default (s, [p]) (insert (op =) p)
+fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage
    by treating them more or less as if they were built-in but add their
@@ -98,20 +94,15 @@ fun add_pconst_to_table also_skolem (s, p) =
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
-fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
+fun add_pconsts_in_term thy is_built_in_const =
   let
-    val flip = Option.map not
-    (* We include free variables, as well as constants, to handle locales. For
-       each quantifiers that must necessarily be skolemized by the automatic
-       prover, we introduce a fresh constant to simulate the effect of
-       Skolemization. *)
     fun do_const const ext_arg (x as (s, _)) ts =
       let val (built_in, ts) = is_built_in_const x ts in
         if member (op =) set_consts s then
           fold (do_term ext_arg) ts
         else
           (not built_in
-           ? add_pconst_to_table also_skolems (rich_pconst thy const x))
+           ? add_pconst_to_table (rich_pconst thy const x))
           #> fold (do_term false) ts
       end
     and do_term ext_arg t =
@@ -123,61 +114,45 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
          (* Since lambdas on the right-hand side of equalities are usually
             extensionalized later by "abs_extensionalize_term", we don't
             penalize them here. *)
-         ? add_pconst_to_table true (pseudo_abs_name,
-                                     PType (order_of_type T + 1, [])))
+         ? add_pconst_to_table (pseudo_abs_name,
+                                PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts
-    fun do_quantifier will_surely_be_skolemized abs_T body_t =
-      do_formula pos body_t
-      #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pconst_to_table true (pseudo_skolem_prefix ^ serial_string (),
-                                      PType (order_of_type abs_T, []))
-          else
-            I)
     and do_term_or_formula ext_arg T =
-      if T = HOLogic.boolT then do_formula NONE else do_term ext_arg
-    and do_formula pos t =
+      if T = HOLogic.boolT then do_formula else do_term ext_arg
+    and do_formula t =
       case t of
-        Const (@{const_name all}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T t'
-      | @{const "==>"} $ t1 $ t2 =>
-        do_formula (flip pos) t1 #> do_formula pos t2
+        Const (@{const_name all}, _) $ Abs (_, T, t') => do_formula t'
+      | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
-      | @{const Trueprop} $ t1 => do_formula pos t1
+      | @{const Trueprop} $ t1 => do_formula t1
       | @{const False} => I
       | @{const True} => I
-      | @{const Not} $ t1 => do_formula (flip pos) t1
-      | Const (@{const_name All}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T t'
-      | Const (@{const_name Ex}, _) $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME true) T t'
-      | @{const HOL.conj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const HOL.disj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const HOL.implies} $ t1 $ t2 =>
-        do_formula (flip pos) t1 #> do_formula pos t2
+      | @{const Not} $ t1 => do_formula t1
+      | Const (@{const_name All}, _) $ Abs (_, T, t') => do_formula t'
+      | Const (@{const_name Ex}, _) $ Abs (_, T, t') => do_formula t'
+      | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
-        do_formula NONE t1 #> fold (do_term_or_formula false T) [t2, t3]
-      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') =>
-        do_quantifier (is_some pos) T t'
+        do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
+      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') => do_formula t'
       | Const (@{const_name Ball}, _) $ t1 $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME false) T
-                      (HOLogic.mk_imp (incr_boundvars 1 t1 $ Bound 0, t'))
+        do_formula (t1 $ Bound ~1) #> do_formula t'
       | Const (@{const_name Bex}, _) $ t1 $ Abs (_, T, t') =>
-        do_quantifier (pos = SOME true) T
-                      (HOLogic.mk_conj (incr_boundvars 1 t1 $ Bound 0, t'))
+        do_formula (t1 $ Bound ~1) #> do_formula t'
       | (t0 as Const (_, @{typ bool})) $ t1 =>
-        do_term false t0 #> do_formula pos t1  (* theory constant *)
+        do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t
-  in do_formula pos end
+  in do_formula end
 
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
-                                                   (SOME true) t) []
+              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const t) []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)
@@ -263,13 +238,11 @@ fun multiplier_of_const_name local_const_multiplier s =
   if String.isSubstring "." s then 1.0 else local_const_multiplier
 
 (* Computes a constant's weight, as determined by its frequency. *)
-fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
-                          theory_const_weight chained_const_weight weight_for f
-                          const_tab chained_const_tab (c as (s, PType (m, _))) =
+fun generic_pconst_weight local_const_multiplier abs_weight theory_const_weight
+        chained_const_weight weight_for f const_tab chained_const_tab
+        (c as (s, PType (m, _))) =
   if s = pseudo_abs_name then
     abs_weight
-  else if String.isPrefix pseudo_skolem_prefix s then
-    skolem_weight
   else if String.isSuffix theory_const_suffix s then
     theory_const_weight
   else
@@ -284,19 +257,18 @@ fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
 fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight,
                         theory_const_rel_weight, ...} : relevance_fudge)
                       const_tab =
-  generic_pconst_weight local_const_multiplier abs_rel_weight 0.0
+  generic_pconst_weight local_const_multiplier abs_rel_weight
                         theory_const_rel_weight 0.0 rel_weight_for I const_tab
                         Symtab.empty
 
 fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
-                                   skolem_irrel_weight,
                                    theory_const_irrel_weight,
                                    chained_const_irrel_weight, ...})
                         const_tab chained_const_tab =
   generic_pconst_weight local_const_multiplier abs_irrel_weight
-                        skolem_irrel_weight theory_const_irrel_weight
-                        chained_const_irrel_weight (irrel_weight_for fudge) swap
-                        const_tab chained_const_tab
+                        theory_const_irrel_weight chained_const_irrel_weight
+                        (irrel_weight_for fudge) swap const_tab
+                        chained_const_tab
 
 fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
     intro_bonus
@@ -308,11 +280,10 @@ fun stature_bonus ({intro_bonus, ...} : relevance_fudge) (_, Intro) =
   | stature_bonus _ _ = 0.0
 
 fun is_odd_const_name s =
-  s = pseudo_abs_name orelse String.isPrefix pseudo_skolem_prefix s orelse
-  String.isSuffix theory_const_suffix s
+  s = pseudo_abs_name orelse String.isSuffix theory_const_suffix s
 
-fun fact_weight fudge stature const_tab rel_const_tab rel_const_iter_tab
-                chained_const_tab fact_consts =
+fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
+                fact_consts =
   case fact_consts |> List.partition (pconst_hyper_mem I rel_const_tab)
                    ||> filter_out (pconst_hyper_mem swap rel_const_tab) of
     ([], _) => 0.0
@@ -358,7 +329,7 @@ fun take_most_relevant ctxt max_facts remaining_max
 fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy is_built_in_const false (SOME false))
+    |> fold (add_pconsts_in_term thy is_built_in_const)
             (map_filter (fn ((_, (sc', _)), th) =>
                             if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
@@ -387,7 +358,9 @@ fun could_benefit_from_ext is_built_in_const facts =
 (* High enough so that it isn't wrongly considered as very relevant (e.g., for E
    weights), but low enough so that it is unlikely to be truncated away if few
    facts are included. *)
-val special_fact_index = 45
+val special_fact_index = 45 (* FUDGE *)
+
+val really_hopeless_get_kicked_out_iter = 5 (* FUDGE *)
 
 fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
@@ -395,40 +368,38 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
-    val add_pconsts = add_pconsts_in_term thy is_built_in_const false o SOME
+    val add_pconsts = add_pconsts_in_term thy is_built_in_const
     val chained_ts =
       facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
                             | _ => NONE)
-    val chained_const_tab = Symtab.empty |> fold (add_pconsts true) chained_ts
+    val chained_const_tab = Symtab.empty |> fold add_pconsts chained_ts
     val goal_const_tab =
       Symtab.empty
-      |> fold (add_pconsts true) hyp_ts
-      |> add_pconsts false concl_t
+      |> fold add_pconsts hyp_ts
+      |> add_pconsts concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
               [Chained, Assum, Local]
-    val goal_const_iter_tab = goal_const_tab |> Symtab.map (K (K ~1))
-    fun iter j remaining_max thres rel_const_tab rel_const_iter_tab hopeless
-             hopeful =
+    fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
+        val hopeless =
+          hopeless |> j = really_hopeless_get_kicked_out_iter
+                      ? filter_out (fn (_, w) => w < 0.001)
         fun relevant [] _ [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso thres >= ridiculous_threshold then
               (* First iteration? Try again. *)
               iter 0 max_facts (thres / threshold_divisor) rel_const_tab
-                   rel_const_iter_tab hopeless hopeful
+                   hopeless hopeful
             else
               []
           | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
                 take_most_relevant ctxt max_facts remaining_max fudge candidates
-              val sps = maps (snd o fst) accepts;
+              val sps = maps (snd o fst) accepts
               val rel_const_tab' =
-                rel_const_tab |> fold (add_pconst_to_table false) sps
-              val rel_const_iter_tab' =
-                rel_const_iter_tab
-                |> fold (fn (s, _) => Symtab.default (s, j)) sps
+                rel_const_tab |> fold add_pconst_to_table sps
               fun is_dirty (s, _) =
                 Symtab.lookup rel_const_tab' s <> Symtab.lookup rel_const_tab s
               val (hopeful_rejects, hopeless_rejects) =
@@ -457,7 +428,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                  []
                else
                  iter (j + 1) remaining_max thres rel_const_tab'
-                      rel_const_iter_tab' hopeless_rejects hopeful_rejects)
+                      hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects
                      (((ax as (((_, stature), _), fact_consts)), cached_weight)
@@ -468,7 +439,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                   SOME w => w
                 | NONE =>
                   fact_weight fudge stature const_tab rel_const_tab
-                              rel_const_iter_tab chained_const_tab fact_consts
+                              chained_const_tab fact_consts
             in
               if weight >= thres then
                 relevant ((ax, weight) :: candidates) rejects hopeful
@@ -509,7 +480,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
          |> insert_into_facts accepts
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
-          |> iter 0 max_facts thres0 goal_const_tab goal_const_iter_tab []
+          |> iter 0 max_facts thres0 goal_const_tab []
           |> insert_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))

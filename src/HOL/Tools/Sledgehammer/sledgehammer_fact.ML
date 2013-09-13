@@ -187,9 +187,19 @@ fun multi_base_blacklist ctxt ho_atp =
    "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
    "weak_case_cong", "nat_of_char_simps", "nibble.simps",
    "nibble.distinct"]
-  |> not (ho_atp orelse (Config.get ctxt instantiate_inducts)) ?
+  |> not (ho_atp orelse Config.get ctxt instantiate_inducts) ?
         append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
+
+(* The maximum apply depth of any "metis" call in "Metis_Examples" (on
+   2007-10-31) was 11. *)
+val max_apply_depth = 18
+
+fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
+  | apply_depth (Abs (_, _, t)) = apply_depth t
+  | apply_depth _ = 0
+
+fun is_too_complex t = apply_depth t > max_apply_depth
 
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
@@ -229,7 +239,8 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       | is_interesting_subterm (Free _) = true
       | is_interesting_subterm _ = false
     fun interest_of_bool t =
-      if exists_Const (is_technical_const orf is_low_level_class_const) t then
+      if exists_Const (is_technical_const orf is_low_level_class_const orf
+                       type_has_top_sort o snd) t then
         Deal_Breaker
       else if exists_type (exists_subtype (curry (op =) @{typ prop})) t orelse
               not (exists_subterm is_interesting_subterm t) then
@@ -437,10 +448,21 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
+fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
+
+(* gracefully handle huge background theories *)
+val max_facts_for_complex_check = 25000
+
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
+    val is_too_complex =
+      if generous orelse
+         fact_count global_facts >= max_facts_for_complex_check then
+        K false
+      else
+        is_too_complex
     val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
@@ -473,7 +495,8 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
             #> fold_rev (fn th => fn (j, accum) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
-                       is_likely_tautology_too_meta_or_too_technical th then
+                       (is_likely_tautology_too_meta_or_too_technical th orelse
+                        is_too_complex (prop_of th)) then
                       accum
                     else
                       let

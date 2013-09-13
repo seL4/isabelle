@@ -14,7 +14,7 @@ proof -
   assume "bounded_linear f"
   then interpret f: bounded_linear f .
   show "linear f"
-    by (simp add: f.add f.scaleR linear_def)
+    by (simp add: f.add f.scaleR linear_iff)
 qed
 
 lemma netlimit_at_vector: (* TODO: move *)
@@ -1278,7 +1278,7 @@ proof-
       qed
     qed
     show "bounded_linear (g' x)"
-      unfolding linear_linear linear_def
+      unfolding linear_linear linear_iff
       apply(rule,rule,rule) defer
     proof(rule,rule)
       fix x' y z::"'m" and c::real
@@ -1286,12 +1286,12 @@ proof-
       show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
         apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format])
-        unfolding lin[unfolded bounded_linear_def bounded_linear_axioms_def,THEN conjunct2,THEN conjunct1,rule_format]
+        unfolding lin[THEN bounded_linear_imp_linear, THEN linear_cmul]
         apply (intro tendsto_intros) by(rule lem3[rule_format])
       show "g' x (y + z) = g' x y + g' x z"
         apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format])
-        unfolding lin[unfolded bounded_linear_def additive_def,THEN conjunct1,rule_format]
+        unfolding lin[THEN bounded_linear_imp_linear, THEN linear_add]
         apply(rule tendsto_add) by(rule lem3[rule_format])+
     qed
     show "\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm (y - x) < d \<longrightarrow> norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"

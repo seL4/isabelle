@@ -7,21 +7,23 @@ Abstract representation of ATP problems and TPTP syntax.
 
 signature ATP_PROBLEM =
 sig
-  datatype ('a, 'b) ho_term =
-    ATerm of ('a * 'b list) * ('a, 'b) ho_term list |
-    AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
-  datatype quantifier = AForall | AExists
-  datatype connective = ANot | AAnd | AOr | AImplies | AIff
-  datatype ('a, 'b, 'c, 'd) formula =
-    ATyQuant of quantifier * ('b * 'd list) list * ('a, 'b, 'c, 'd) formula |
-    AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c, 'd) formula |
-    AConn of connective * ('a, 'b, 'c, 'd) formula list |
+  datatype ('a, 'b) atp_term =
+    ATerm of ('a * 'b list) * ('a, 'b) atp_term list |
+    AAbs of (('a * 'b) * ('a, 'b) atp_term) * ('a, 'b) atp_term list
+  datatype atp_quantifier = AForall | AExists
+  datatype atp_connective = ANot | AAnd | AOr | AImplies | AIff
+  datatype ('a, 'b, 'c, 'd) atp_formula =
+    ATyQuant of atp_quantifier * ('b * 'd list) list
+        * ('a, 'b, 'c, 'd) atp_formula |
+    AQuant of atp_quantifier * ('a * 'b option) list
+        * ('a, 'b, 'c, 'd) atp_formula |
+    AConn of atp_connective * ('a, 'b, 'c, 'd) atp_formula list |
     AAtom of 'c
 
-  datatype 'a ho_type =
-    AType of 'a * 'a ho_type list |
-    AFun of 'a ho_type * 'a ho_type |
-    APi of 'a list * 'a ho_type
+  datatype 'a atp_type =
+    AType of 'a * 'a atp_type list |
+    AFun of 'a atp_type * 'a atp_type |
+    APi of 'a list * 'a atp_type
 
   type term_order =
     {is_lpo : bool,
@@ -41,22 +43,22 @@ sig
     THF of polymorphism * thf_choice * thf_defs |
     DFG of polymorphism
 
-  datatype formula_role =
+  datatype atp_formula_role =
     Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
     Plain | Unknown
 
-  datatype 'a problem_line =
+  datatype 'a atp_problem_line =
     Class_Decl of string * 'a * 'a list |
     Type_Decl of string * 'a * int |
-    Sym_Decl of string * 'a * 'a ho_type |
-    Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                     * ('a, 'a ho_type) ho_term list * bool |
-    Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
-    Formula of (string * string) * formula_role
-               * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
-               * (string, string ho_type) ho_term option
-               * (string, string ho_type) ho_term list
-  type 'a problem = (string * 'a problem_line list) list
+    Sym_Decl of string * 'a * 'a atp_type |
+    Datatype_Decl of string * ('a * 'a list) list * 'a atp_type
+                     * ('a, 'a atp_type) atp_term list * bool |
+    Class_Memb of string * ('a * 'a list) list * 'a atp_type * 'a |
+    Formula of (string * string) * atp_formula_role
+               * ('a, 'a atp_type, ('a, 'a atp_type) atp_term, 'a) atp_formula
+               * (string, string atp_type) atp_term option
+               * (string, string atp_type) atp_term list
+  type 'a atp_problem = (string * 'a atp_problem_line list) list
 
   val tptp_cnf : string
   val tptp_fof : string
@@ -89,9 +91,9 @@ sig
   val tptp_true : string
   val tptp_empty_list : string
   val isabelle_info_prefix : string
-  val isabelle_info : string -> int -> (string, 'a) ho_term list
-  val extract_isabelle_status : (string, 'a) ho_term list -> string option
-  val extract_isabelle_rank : (string, 'a) ho_term list -> int
+  val isabelle_info : string -> int -> (string, 'a) atp_term list
+  val extract_isabelle_status : (string, 'a) atp_term list -> string option
+  val extract_isabelle_rank : (string, 'a) atp_term list -> int
   val inductionN : string
   val introN : string
   val inductiveN : string
@@ -107,37 +109,37 @@ sig
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
   val is_tptp_user_symbol : string -> bool
-  val bool_atype : (string * string) ho_type
-  val individual_atype : (string * string) ho_type
-  val mk_anot : ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'c, 'd) formula
+  val bool_atype : (string * string) atp_type
+  val individual_atype : (string * string) atp_type
+  val mk_anot : ('a, 'b, 'c, 'd) atp_formula -> ('a, 'b, 'c, 'd) atp_formula
   val mk_aconn :
-    connective -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'c, 'd) formula
-    -> ('a, 'b, 'c, 'd) formula
+    atp_connective -> ('a, 'b, 'c, 'd) atp_formula
+    -> ('a, 'b, 'c, 'd) atp_formula -> ('a, 'b, 'c, 'd) atp_formula
   val aconn_fold :
-    bool option -> (bool option -> 'a -> 'b -> 'b) -> connective * 'a list
+    bool option -> (bool option -> 'a -> 'b -> 'b) -> atp_connective * 'a list
     -> 'b -> 'b
   val aconn_map :
-    bool option -> (bool option -> 'a -> ('b, 'c, 'd, 'e) formula)
-    -> connective * 'a list -> ('b, 'c, 'd, 'e) formula
+    bool option -> (bool option -> 'a -> ('b, 'c, 'd, 'e) atp_formula)
+    -> atp_connective * 'a list -> ('b, 'c, 'd, 'e) atp_formula
   val formula_fold :
-    bool option -> (bool option -> 'c -> 'e -> 'e) -> ('a, 'b, 'c, 'd) formula
-    -> 'e -> 'e
+    bool option -> (bool option -> 'c -> 'e -> 'e)
+    -> ('a, 'b, 'c, 'd) atp_formula -> 'e -> 'e
   val formula_map :
-    ('c -> 'e) -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'e, 'd) formula
-  val strip_atype : 'a ho_type -> 'a list * ('a ho_type list * 'a ho_type)
+    ('c -> 'e) -> ('a, 'b, 'c, 'd) atp_formula -> ('a, 'b, 'e, 'd) atp_formula
+  val strip_atype : 'a atp_type -> 'a list * ('a atp_type list * 'a atp_type)
   val is_format_higher_order : atp_format -> bool
-  val tptp_string_of_line : atp_format -> string problem_line -> string
+  val tptp_string_of_line : atp_format -> string atp_problem_line -> string
   val lines_of_atp_problem :
-    atp_format -> term_order -> (unit -> (string * int) list) -> string problem
-    -> string list
+    atp_format -> term_order -> (unit -> (string * int) list)
+    -> string atp_problem -> string list
   val ensure_cnf_problem :
-    (string * string) problem -> (string * string) problem
+    (string * string) atp_problem -> (string * string) atp_problem
   val filter_cnf_ueq_problem :
-    (string * string) problem -> (string * string) problem
-  val declared_in_atp_problem : 'a problem -> ('a list * 'a list) * 'a list
+    (string * string) atp_problem -> (string * string) atp_problem
+  val declared_in_atp_problem : 'a atp_problem -> ('a list * 'a list) * 'a list
   val nice_atp_problem :
-    bool -> atp_format -> ('a * (string * string) problem_line list) list
-    -> ('a * string problem_line list) list
+    bool -> atp_format -> ('a * (string * string) atp_problem_line list) list
+    -> ('a * string atp_problem_line list) list
        * (string Symtab.table * string Symtab.table) option
 end;
 
@@ -151,21 +153,23 @@ val parens = enclose "(" ")"
 
 (** ATP problem **)
 
-datatype ('a, 'b) ho_term =
-  ATerm of ('a * 'b list) * ('a, 'b) ho_term list |
-  AAbs of (('a * 'b) * ('a, 'b) ho_term) * ('a, 'b) ho_term list
-datatype quantifier = AForall | AExists
-datatype connective = ANot | AAnd | AOr | AImplies | AIff
-datatype ('a, 'b, 'c, 'd) formula =
-  ATyQuant of quantifier * ('b * 'd list) list * ('a, 'b, 'c, 'd) formula |
-  AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c, 'd) formula |
-  AConn of connective * ('a, 'b, 'c, 'd) formula list |
+datatype ('a, 'b) atp_term =
+  ATerm of ('a * 'b list) * ('a, 'b) atp_term list |
+  AAbs of (('a * 'b) * ('a, 'b) atp_term) * ('a, 'b) atp_term list
+datatype atp_quantifier = AForall | AExists
+datatype atp_connective = ANot | AAnd | AOr | AImplies | AIff
+datatype ('a, 'b, 'c, 'd) atp_formula =
+  ATyQuant of atp_quantifier * ('b * 'd list) list
+      * ('a, 'b, 'c, 'd) atp_formula |
+  AQuant of atp_quantifier * ('a * 'b option) list
+      * ('a, 'b, 'c, 'd) atp_formula |
+  AConn of atp_connective * ('a, 'b, 'c, 'd) atp_formula list |
   AAtom of 'c
 
-datatype 'a ho_type =
-  AType of 'a * 'a ho_type list |
-  AFun of 'a ho_type * 'a ho_type |
-  APi of 'a list * 'a ho_type
+datatype 'a atp_type =
+  AType of 'a * 'a atp_type list |
+  AFun of 'a atp_type * 'a atp_type |
+  APi of 'a list * 'a atp_type
 
 type term_order =
   {is_lpo : bool,
@@ -185,22 +189,22 @@ datatype atp_format =
   THF of polymorphism * thf_choice * thf_defs |
   DFG of polymorphism
 
-datatype formula_role =
+datatype atp_formula_role =
   Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
   Plain | Unknown
 
-datatype 'a problem_line =
+datatype 'a atp_problem_line =
   Class_Decl of string * 'a * 'a list |
   Type_Decl of string * 'a * int |
-  Sym_Decl of string * 'a * 'a ho_type |
-  Datatype_Decl of string * ('a * 'a list) list * 'a ho_type
-                   * ('a, 'a ho_type) ho_term list * bool |
-  Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
-  Formula of (string * string) * formula_role
-             * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
-             * (string, string ho_type) ho_term option
-             * (string, string ho_type) ho_term list
-type 'a problem = (string * 'a problem_line list) list
+  Sym_Decl of string * 'a * 'a atp_type |
+  Datatype_Decl of string * ('a * 'a list) list * 'a atp_type
+                   * ('a, 'a atp_type) atp_term list * bool |
+  Class_Memb of string * ('a * 'a list) list * 'a atp_type * 'a |
+  Formula of (string * string) * atp_formula_role
+             * ('a, 'a atp_type, ('a, 'a atp_type) atp_term, 'a) atp_formula
+             * (string, string atp_type) atp_term option
+             * (string, string atp_type) atp_term list
+type 'a atp_problem = (string * 'a atp_problem_line list) list
 
 (* official TPTP syntax *)
 val tptp_cnf = "cnf"

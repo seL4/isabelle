@@ -136,18 +136,21 @@ lemma linear_simps:
     "f 0 = 0"
     "f (- a) = - f a"
     "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
-  apply (rule_tac[!] additive.add additive.minus additive.diff additive.zero bounded_linear.scaleR)
-  using assms unfolding bounded_linear_def additive_def
-  apply auto
-  done
+proof -
+  interpret f: bounded_linear f by fact
+  show "f (a + b) = f a + f b" by (rule f.add)
+  show "f (a - b) = f a - f b" by (rule f.diff)
+  show "f 0 = 0" by (rule f.zero)
+  show "f (- a) = - f a" by (rule f.minus)
+  show "f (s *\<^sub>R v) = s *\<^sub>R (f v)" by (rule f.scaleR)
+qed
 
 lemma bounded_linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"
     and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x"
     and "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def
-  using assms by auto
+  using assms by (rule bounded_linear_intro) (* FIXME: duplicate *)
 
 lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
   by (rule bounded_linear_inner_left)
@@ -3324,12 +3327,13 @@ proof -
   have *: "\<And>(a::'a) b c. content ({a..b} \<inter> {x. x\<bullet>k \<le> c}) = 0 \<longleftrightarrow>
     interior({a..b} \<inter> {x. x\<bullet>k \<le> c}) = {}"
     unfolding  interval_split[OF k] content_eq_0_interior by auto
-  guess u1 v1 using d(4)[OF assms(2)] apply-by(erule exE)+ note uv1=this
-  guess u2 v2 using d(4)[OF assms(3)] apply-by(erule exE)+ note uv2=this
+  guess u1 v1 using d(4)[OF assms(2)] by (elim exE) note uv1=this
+  guess u2 v2 using d(4)[OF assms(3)] by (elim exE) note uv2=this
   have **: "\<And>s t u. s \<inter> t = {} \<Longrightarrow> u \<subseteq> s \<Longrightarrow> u \<subseteq> t \<Longrightarrow> u = {}"
     by auto
   show ?thesis
-    unfolding uv1 uv2 * apply(rule **[OF d(5)[OF assms(2-4)]])
+    unfolding uv1 uv2 *
+    apply (rule **[OF d(5)[OF assms(2-4)]])
     defer
     apply (subst assms(5)[unfolded uv1 uv2])
     unfolding uv1 uv2
@@ -3686,7 +3690,7 @@ proof (unfold has_integral, rule, rule)
         unfolding lem3[OF p(3)]
         apply (subst setsum_reindex_nonzero[OF p(3)])
         defer
-        apply(subst setsum_reindex_nonzero[OF p(3)])
+        apply (subst setsum_reindex_nonzero[OF p(3)])
         defer
         unfolding lem4[symmetric]
         apply (rule refl)
@@ -3903,7 +3907,7 @@ proof -
           unfolding interval_split[OF k] b'_def[symmetric] a'_def[symmetric]
           using p
           using assms
-          by (auto simp add:algebra_simps)
+          by (auto simp add: algebra_simps)
       qed
     qed
   qed
@@ -3927,7 +3931,7 @@ lemma operativeD[dest]:
       opp (f ({a..b} \<inter> {x. x\<bullet>k \<le> c})) (f ({a..b} \<inter> {x. x\<bullet>k \<ge> c}))"
   using assms unfolding operative_def by auto
 
-lemma operative_trivial: "operative opp f \<Longrightarrow> content({a..b}) = 0 \<Longrightarrow> f({a..b}) = neutral opp"
+lemma operative_trivial: "operative opp f \<Longrightarrow> content {a..b} = 0 \<Longrightarrow> f {a..b} = neutral opp"
   unfolding operative_def by auto
 
 lemma property_empty_interval: "\<forall>a b. content {a..b} = 0 \<longrightarrow> P {a..b} \<Longrightarrow> P {}"
@@ -4122,11 +4126,8 @@ lemma operative_content[intro]: "operative (op +) content"
   apply rule
   done
 
-lemma neutral_monoid: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
-  by (rule neutral_add) (* FIXME: duplicate *)
-
 lemma monoidal_monoid[intro]: "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
-  unfolding monoidal_def neutral_monoid
+  unfolding monoidal_def neutral_add
   by (auto simp add: algebra_simps)
 
 lemma operative_integral:
@@ -4854,12 +4855,12 @@ lemma setsum_iterate:
 proof -
   have *: "setsum f s = setsum f (support op + f s)"
     apply (rule setsum_mono_zero_right)
-    unfolding support_def neutral_monoid
+    unfolding support_def neutral_add
     using assms
     apply auto
     done
   then show ?thesis unfolding * iterate_def fold'_def setsum.eq_fold
-    unfolding neutral_monoid by (simp add: comp_def)
+    unfolding neutral_add by (simp add: comp_def)
 qed
 
 lemma additive_content_division:
@@ -5180,7 +5181,7 @@ lemma has_integral_component_neg:
   by auto
 
 lemma has_integral_component_lbound:
-  fixes f :: "'a::ordered_euclidean_space => 'b::ordered_euclidean_space"
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
   assumes "(f has_integral i) {a..b}"
     and "\<forall>x\<in>{a..b}. B \<le> f(x)\<bullet>k"
     and "k \<in> Basis"
@@ -5398,7 +5399,6 @@ lemma vsum_nonzero_image_lemma:
   apply (rule iterate_nonzero_image_lemma)
   apply (rule assms monoidal_monoid)+
   unfolding assms
-  using neutral_add
   unfolding neutral_add
   using assms
   apply auto
@@ -6354,54 +6354,121 @@ lemma operative_division_and:
   using operative_division[OF monoidal_and assms] division_of_finite[OF assms(2)]
   by auto
 
-lemma operative_approximable: assumes "0 \<le> e" fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  shows "operative op \<and> (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)" unfolding operative_def neutral_and
+lemma operative_approximable:
+  fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "0 \<le> e"
+  shows "operative op \<and> (\<lambda>i. \<exists>g. (\<forall>x\<in>i. norm (f x - g (x::'b)) \<le> e) \<and> g integrable_on i)"
+  unfolding operative_def neutral_and
 proof safe
-  fix a b::"'b"
-  { assume "content {a..b} = 0"
-    thus "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}"
-      apply(rule_tac x=f in exI) using assms by(auto intro!:integrable_on_null) }
-  { fix c g and k :: 'b
-    assume as:"\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e" "g integrable_on {a..b}" and k:"k\<in>Basis"
+  fix a b :: 'b
+  {
+    assume "content {a..b} = 0"
+    then show "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}"
+      apply (rule_tac x=f in exI)
+      using assms
+      apply (auto intro!:integrable_on_null)
+      done
+  }
+  {
+    fix c g
+    fix k :: 'b
+    assume as: "\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e" "g integrable_on {a..b}"
+    assume k: "k \<in> Basis"
     show "\<exists>g. (\<forall>x\<in>{a..b} \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}"
       "\<exists>g. (\<forall>x\<in>{a..b} \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b} \<inter> {x. c \<le> x \<bullet> k}"
-      apply(rule_tac[!] x=g in exI) using as(1) integrable_split[OF as(2) k] by auto }
-  fix c k g1 g2 assume as:"\<forall>x\<in>{a..b} \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g1 x) \<le> e" "g1 integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}"
-                          "\<forall>x\<in>{a..b} \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g2 x) \<le> e" "g2 integrable_on {a..b} \<inter> {x. c \<le> x \<bullet> k}"
-  assume k:"k\<in>Basis"
+      apply (rule_tac[!] x=g in exI)
+      using as(1) integrable_split[OF as(2) k]
+      apply auto
+      done
+  }
+  fix c k g1 g2
+  assume as: "\<forall>x\<in>{a..b} \<inter> {x. x \<bullet> k \<le> c}. norm (f x - g1 x) \<le> e" "g1 integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}"
+    "\<forall>x\<in>{a..b} \<inter> {x. c \<le> x \<bullet> k}. norm (f x - g2 x) \<le> e" "g2 integrable_on {a..b} \<inter> {x. c \<le> x \<bullet> k}"
+  assume k: "k \<in> Basis"
   let ?g = "\<lambda>x. if x\<bullet>k = c then f x else if x\<bullet>k \<le> c then g1 x else g2 x"
-  show "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}" apply(rule_tac x="?g" in exI)
-  proof safe case goal1 thus ?case apply- apply(cases "x\<bullet>k=c", case_tac "x\<bullet>k < c") using as assms by auto
-  next case goal2 presume "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<ge> c}"
-    then guess h1 h2 unfolding integrable_on_def by auto from has_integral_split[OF this k]
-    show ?case unfolding integrable_on_def by auto
-  next show "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<ge> c}"
-      apply(rule_tac[!] integrable_spike[OF negligible_standard_hyperplane[of k c]]) using k as(2,4) by auto qed qed
+  show "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}"
+    apply (rule_tac x="?g" in exI)
+  proof safe
+    case goal1
+    then show ?case
+      apply -
+      apply (cases "x\<bullet>k=c")
+      apply (case_tac "x\<bullet>k < c")
+      using as assms
+      apply auto
+      done
+  next
+    case goal2
+    presume "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}"
+      and "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<ge> c}"
+    then guess h1 h2 unfolding integrable_on_def by auto
+    from has_integral_split[OF this k] show ?case
+      unfolding integrable_on_def by auto
+  next
+    show "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<le> c}" "?g integrable_on {a..b} \<inter> {x. x \<bullet> k \<ge> c}"
+      apply(rule_tac[!] integrable_spike[OF negligible_standard_hyperplane[of k c]])
+      using k as(2,4)
+      apply auto
+      done
+  qed
+qed
 
-lemma approximable_on_division: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "0 \<le> e" "d division_of {a..b}" "\<forall>i\<in>d. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
+lemma approximable_on_division:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "0 \<le> e"
+    and "d division_of {a..b}"
+    and "\<forall>i\<in>d. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
   obtains g where "\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e" "g integrable_on {a..b}"
-proof- note * = operative_division[OF monoidal_and operative_approximable[OF assms(1)] assms(2)]
-  note this[unfolded iterate_and[OF division_of_finite[OF assms(2)]]] from assms(3)[unfolded this[of f]]
-  guess g .. thus thesis apply-apply(rule that[of g]) by auto qed
+proof -
+  note * = operative_division[OF monoidal_and operative_approximable[OF assms(1)] assms(2)]
+  note this[unfolded iterate_and[OF division_of_finite[OF assms(2)]]]
+  from assms(3)[unfolded this[of f]] guess g ..
+  then show thesis
+    apply -
+    apply (rule that[of g])
+    apply auto
+    done
+qed
 
-lemma integrable_continuous: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "continuous_on {a..b} f" shows "f integrable_on {a..b}"
-proof(rule integrable_uniform_limit,safe) fix e::real assume e:"0 < e"
+lemma integrable_continuous:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "continuous_on {a..b} f"
+  shows "f integrable_on {a..b}"
+proof (rule integrable_uniform_limit, safe)
+  fix e :: real
+  assume e: "e > 0"
   from compact_uniformly_continuous[OF assms compact_interval,unfolded uniformly_continuous_on_def,rule_format,OF e] guess d ..
   note d=conjunctD2[OF this,rule_format]
   from fine_division_exists[OF gauge_ball[OF d(1)], of a b] guess p . note p=this
   note p' = tagged_division_ofD[OF p(1)]
-  have *:"\<forall>i\<in>snd ` p. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
-  proof(safe,unfold snd_conv) fix x l assume as:"(x,l) \<in> p"
-    from p'(4)[OF this] guess a b apply-by(erule exE)+ note l=this
-    show "\<exists>g. (\<forall>x\<in>l. norm (f x - g x) \<le> e) \<and> g integrable_on l" apply(rule_tac x="\<lambda>y. f x" in exI)
-    proof safe show "(\<lambda>y. f x) integrable_on l" unfolding integrable_on_def l by(rule,rule has_integral_const)
-      fix y assume y:"y\<in>l" note fineD[OF p(2) as,unfolded subset_eq,rule_format,OF this]
+  have *: "\<forall>i\<in>snd ` p. \<exists>g. (\<forall>x\<in>i. norm (f x - g x) \<le> e) \<and> g integrable_on i"
+  proof (safe, unfold snd_conv)
+    fix x l
+    assume as: "(x, l) \<in> p"
+    from p'(4)[OF this] guess a b by (elim exE) note l=this
+    show "\<exists>g. (\<forall>x\<in>l. norm (f x - g x) \<le> e) \<and> g integrable_on l"
+      apply (rule_tac x="\<lambda>y. f x" in exI)
+    proof safe
+      show "(\<lambda>y. f x) integrable_on l"
+        unfolding integrable_on_def l
+        apply rule
+        apply (rule has_integral_const)
+        done
+      fix y
+      assume y: "y \<in> l"
+      note fineD[OF p(2) as,unfolded subset_eq,rule_format,OF this]
       note d(2)[OF _ _ this[unfolded mem_ball]]
-      thus "norm (f y - f x) \<le> e" using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastforce qed qed
-  from e have "0 \<le> e" by auto from approximable_on_division[OF this division_of_tagged_division[OF p(1)] *] guess g .
-  thus "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}" by auto qed
+      then show "norm (f y - f x) \<le> e"
+        using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastforce
+    qed
+  qed
+  from e have "e \<ge> 0"
+    by auto
+  from approximable_on_division[OF this division_of_tagged_division[OF p(1)] *] guess g .
+  then show "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}"
+    by auto
+qed
+
 
 subsection {* Specialization of additivity to one dimension. *}
 
@@ -6410,374 +6477,978 @@ lemma
   and real_inner_1_right: "inner x 1 = x"
   by simp_all
 
-lemma operative_1_lt: assumes "monoidal opp"
+lemma operative_1_lt:
+  assumes "monoidal opp"
   shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a..b::real} = neutral opp) \<and>
-                (\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f{a..c})(f{c..b}) = f {a..b}))"
-  apply (simp add: operative_def content_eq_0 less_one)
-proof safe fix a b c::"real" assume as:"\<forall>a b c. f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c}))
-    (f ({a..b} \<inter> {x. c \<le> x}))" "a < c" "c < b"
-    from this(2-) have "{a..b} \<inter> {x. x \<le> c} = {a..c}" "{a..b} \<inter> {x. x \<ge> c} = {c..b}" by auto
-    thus "opp (f {a..c}) (f {c..b}) = f {a..b}" unfolding as(1)[rule_format,of a b "c"] by auto
-next fix a b c::real
-  assume as:"\<forall>a b. b \<le> a \<longrightarrow> f {a..b} = neutral opp" "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
+    (\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}))"
+  apply (simp add: operative_def content_eq_0)
+proof safe
+  fix a b c :: real
+  assume as:
+    "\<forall>a b c. f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c})) (f ({a..b} \<inter> {x. c \<le> x}))"
+    "a < c"
+    "c < b"
+    from this(2-) have "{a..b} \<inter> {x. x \<le> c} = {a..c}" "{a..b} \<inter> {x. x \<ge> c} = {c..b}"
+      by auto
+    then show "opp (f {a..c}) (f {c..b}) = f {a..b}"
+      unfolding as(1)[rule_format,of a b "c"] by auto
+next
+  fix a b c :: real
+  assume as: "\<forall>a b. b \<le> a \<longrightarrow> f {a..b} = neutral opp"
+    "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
   show "f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c})) (f ({a..b} \<inter> {x. c \<le> x}))"
-  proof(cases "c \<in> {a .. b}")
-    case False hence "c<a \<or> c>b" by auto
-    thus ?thesis apply-apply(erule disjE)
-    proof- assume "c<a" hence *:"{a..b} \<inter> {x. x \<le> c} = {1..0}"  "{a..b} \<inter> {x. c \<le> x} = {a..b}" by auto
-      show ?thesis unfolding * apply(subst as(1)[rule_format,of 0 1]) using assms by auto
-    next   assume "b<c" hence *:"{a..b} \<inter> {x. x \<le> c} = {a..b}"  "{a..b} \<inter> {x. c \<le> x} = {1..0}" by auto
-      show ?thesis unfolding * apply(subst as(1)[rule_format,of 0 1]) using assms by auto
+  proof (cases "c \<in> {a..b}")
+    case False
+    then have "c < a \<or> c > b" by auto
+    then show ?thesis
+    proof
+      assume "c < a"
+      then have *: "{a..b} \<inter> {x. x \<le> c} = {1..0}" "{a..b} \<inter> {x. c \<le> x} = {a..b}"
+        by auto
+      show ?thesis
+        unfolding *
+        apply (subst as(1)[rule_format,of 0 1])
+        using assms
+        apply auto
+        done
+    next
+      assume "b < c"
+      then have *: "{a..b} \<inter> {x. x \<le> c} = {a..b}" "{a..b} \<inter> {x. c \<le> x} = {1..0}"
+        by auto
+      show ?thesis
+        unfolding *
+        apply (subst as(1)[rule_format,of 0 1])
+        using assms
+        apply auto
+        done
     qed
-  next case True hence *:"min (b) c = c" "max a c = c" by auto
-    have **: "(1::real) \<in> Basis" by simp
-    have ***:"\<And>P Q. (\<Sum>i\<in>Basis. (if i = 1 then P i else Q i) *\<^sub>R i) = (P 1::real)"
+  next
+    case True
+    then have *: "min (b) c = c" "max a c = c"
+      by auto
+    have **: "(1::real) \<in> Basis"
+      by simp
+    have ***: "\<And>P Q. (\<Sum>i\<in>Basis. (if i = 1 then P i else Q i) *\<^sub>R i) = (P 1::real)"
       by simp
     show ?thesis
       unfolding interval_split[OF **, unfolded real_inner_1_right] unfolding *** *
-    proof(cases "c = a \<or> c = b")
-      case False thus "f {a..b} = opp (f {a..c}) (f {c..b})"
-        apply-apply(subst as(2)[rule_format]) using True by auto
-    next case True thus "f {a..b} = opp (f {a..c}) (f {c..b})" apply-
-      proof(erule disjE) assume *:"c=a"
-        hence "f {a..c} = neutral opp" apply-apply(rule as(1)[rule_format]) by auto
-        thus ?thesis using assms unfolding * by auto
-      next assume *:"c=b" hence "f {c..b} = neutral opp" apply-apply(rule as(1)[rule_format]) by auto
-        thus ?thesis using assms unfolding * by auto qed qed qed qed
+    proof (cases "c = a \<or> c = b")
+      case False
+      then show "f {a..b} = opp (f {a..c}) (f {c..b})"
+        apply -
+        apply (subst as(2)[rule_format])
+        using True
+        apply auto
+        done
+    next
+      case True
+      then show "f {a..b} = opp (f {a..c}) (f {c..b})"
+      proof
+        assume *: "c = a"
+        then have "f {a..c} = neutral opp"
+          apply -
+          apply (rule as(1)[rule_format])
+          apply auto
+          done
+        then show ?thesis
+          using assms unfolding * by auto
+      next
+        assume *: "c = b"
+        then have "f {c..b} = neutral opp"
+          apply -
+          apply (rule as(1)[rule_format])
+          apply auto
+          done
+        then show ?thesis
+          using assms unfolding * by auto
+      qed
+    qed
+  qed
+qed
 
-lemma operative_1_le: assumes "monoidal opp"
+lemma operative_1_le:
+  assumes "monoidal opp"
   shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a..b::real} = neutral opp) \<and>
-                (\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f{a..c})(f{c..b}) = f {a..b}))"
-unfolding operative_1_lt[OF assms]
-proof safe fix a b c::"real" assume as:"\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}" "a < c" "c < b"
-  show "opp (f {a..c}) (f {c..b}) = f {a..b}" apply(rule as(1)[rule_format]) using as(2-) by auto
-next fix a b c ::"real" assume "\<forall>a b. b \<le> a \<longrightarrow> f {a..b} = neutral opp"
-    "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}" "a \<le> c" "c \<le> b"
+    (\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}))"
+  unfolding operative_1_lt[OF assms]
+proof safe
+  fix a b c :: real
+  assume as:
+    "\<forall>a b c. a \<le> c \<and> c \<le> b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
+    "a < c"
+    "c < b"
+  show "opp (f {a..c}) (f {c..b}) = f {a..b}"
+    apply (rule as(1)[rule_format])
+    using as(2-)
+    apply auto
+    done
+next
+  fix a b c :: real
+  assume "\<forall>a b. b \<le> a \<longrightarrow> f {a..b} = neutral opp"
+    and "\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f {a..c}) (f {c..b}) = f {a..b}"
+    and "a \<le> c"
+    and "c \<le> b"
   note as = this[rule_format]
   show "opp (f {a..c}) (f {c..b}) = f {a..b}"
-  proof(cases "c = a \<or> c = b")
-    case False thus ?thesis apply-apply(subst as(2)) using as(3-) by(auto)
-    next case True thus ?thesis apply-
-      proof(erule disjE) assume *:"c=a" hence "f {a..c} = neutral opp" apply-apply(rule as(1)[rule_format]) by auto
-        thus ?thesis using assms unfolding * by auto
-      next               assume *:"c=b" hence "f {c..b} = neutral opp" apply-apply(rule as(1)[rule_format]) by auto
-        thus ?thesis using assms unfolding * by auto qed qed qed
+  proof (cases "c = a \<or> c = b")
+    case False
+    then show ?thesis
+      apply -
+      apply (subst as(2))
+      using as(3-)
+      apply auto
+      done
+  next
+    case True
+    then show ?thesis
+    proof
+      assume *: "c = a"
+      then have "f {a..c} = neutral opp"
+        apply -
+        apply (rule as(1)[rule_format])
+        apply auto
+        done
+      then show ?thesis
+        using assms unfolding * by auto
+    next
+      assume *: "c = b"
+      then have "f {c..b} = neutral opp"
+        apply -
+        apply (rule as(1)[rule_format])
+        apply auto
+        done
+      then show ?thesis
+        using assms unfolding * by auto
+    qed
+  qed
+qed
+
 
 subsection {* Special case of additivity we need for the FCT. *}
 
-lemma interval_bound_sing[simp]: "interval_upperbound {a} = a"  "interval_lowerbound {a} = a"
-  unfolding interval_upperbound_def interval_lowerbound_def by (auto simp: euclidean_representation)
+lemma interval_bound_sing[simp]:
+  "interval_upperbound {a} = a"
+  "interval_lowerbound {a} = a"
+  unfolding interval_upperbound_def interval_lowerbound_def
+  by (auto simp: euclidean_representation)
 
-lemma additive_tagged_division_1: fixes f::"real \<Rightarrow> 'a::real_normed_vector"
-  assumes "a \<le> b" "p tagged_division_of {a..b}"
+lemma additive_tagged_division_1:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  assumes "a \<le> b"
+    and "p tagged_division_of {a..b}"
   shows "setsum (\<lambda>(x,k). f(interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
-proof- let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
-  have ***:"\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i" using assms by auto
-  have *:"operative op + ?f" unfolding operative_1_lt[OF monoidal_monoid] interval_eq_empty by auto
-  have **:"{a..b} \<noteq> {}" using assms(1) by auto note operative_tagged_division[OF monoidal_monoid * assms(2)]
+proof -
+  let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
+  have ***: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
+    using assms by auto
+  have *: "operative op + ?f"
+    unfolding operative_1_lt[OF monoidal_monoid] interval_eq_empty by auto
+  have **: "{a..b} \<noteq> {}"
+    using assms(1) by auto note operative_tagged_division[OF monoidal_monoid * assms(2)]
   note * = this[unfolded if_not_P[OF **] interval_bounds[OF ***],symmetric]
-  show ?thesis unfolding * apply(subst setsum_iterate[symmetric]) defer
-    apply(rule setsum_cong2) unfolding split_paired_all split_conv using assms(2) by auto qed
+  show ?thesis
+    unfolding *
+    apply (subst setsum_iterate[symmetric])
+    defer
+    apply (rule setsum_cong2)
+    unfolding split_paired_all split_conv
+    using assms(2)
+    apply auto
+    done
+qed
+
 
 subsection {* A useful lemma allowing us to factor out the content size. *}
 
 lemma has_integral_factor_content:
-  "(f has_integral i) {a..b} \<longleftrightarrow> (\<forall>e>0. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p
-    \<longrightarrow> norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content {a..b}))"
-proof(cases "content {a..b} = 0")
-  case True show ?thesis unfolding has_integral_null_eq[OF True] apply safe
-    apply(rule,rule,rule gauge_trivial,safe) unfolding setsum_content_null[OF True] True defer
-    apply(erule_tac x=1 in allE,safe) defer apply(rule fine_division_exists[of _ a b],assumption)
-    apply(erule_tac x=p in allE) unfolding setsum_content_null[OF True] by auto
-next case False note F = this[unfolded content_lt_nz[symmetric]]
-  let ?P = "\<lambda>e opp. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> opp (norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i)) e)"
-  show ?thesis apply(subst has_integral)
-  proof safe fix e::real assume e:"e>0"
-    { assume "\<forall>e>0. ?P e op <" thus "?P (e * content {a..b}) op \<le>" apply(erule_tac x="e * content {a..b}" in allE)
-        apply(erule impE) defer apply(erule exE,rule_tac x=d in exI)
-        using F e by(auto simp add:field_simps intro:mult_pos_pos) }
-    {  assume "\<forall>e>0. ?P (e * content {a..b}) op \<le>" thus "?P e op <" apply(erule_tac x="e / 2 / content {a..b}" in allE)
-        apply(erule impE) defer apply(erule exE,rule_tac x=d in exI)
-        using F e by(auto simp add:field_simps intro:mult_pos_pos) } qed qed
+  "(f has_integral i) {a..b} \<longleftrightarrow>
+    (\<forall>e>0. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow>
+      norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - i) \<le> e * content {a..b}))"
+proof (cases "content {a..b} = 0")
+  case True
+  show ?thesis
+    unfolding has_integral_null_eq[OF True]
+    apply safe
+    apply (rule, rule, rule gauge_trivial, safe)
+    unfolding setsum_content_null[OF True] True
+    defer
+    apply (erule_tac x=1 in allE)
+    apply safe
+    defer
+    apply (rule fine_division_exists[of _ a b])
+    apply assumption
+    apply (erule_tac x=p in allE)
+    unfolding setsum_content_null[OF True]
+    apply auto
+    done
+next
+  case False
+  note F = this[unfolded content_lt_nz[symmetric]]
+  let ?P = "\<lambda>e opp. \<exists>d. gauge d \<and>
+    (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> opp (norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - i)) e)"
+  show ?thesis
+    apply (subst has_integral)
+  proof safe
+    fix e :: real
+    assume e: "e > 0"
+    {
+      assume "\<forall>e>0. ?P e op <"
+      then show "?P (e * content {a..b}) op \<le>"
+        apply (erule_tac x="e * content {a..b}" in allE)
+        apply (erule impE)
+        defer
+        apply (erule exE,rule_tac x=d in exI)
+        using F e
+        apply (auto simp add:field_simps intro:mult_pos_pos)
+        done
+    }
+    {
+      assume "\<forall>e>0. ?P (e * content {a..b}) op \<le>"
+      then show "?P e op <"
+        apply (erule_tac x="e / 2 / content {a..b}" in allE)
+        apply (erule impE)
+        defer
+        apply (erule exE,rule_tac x=d in exI)
+        using F e
+        apply (auto simp add: field_simps intro: mult_pos_pos)
+        done
+    }
+  qed
+qed
+
 
 subsection {* Fundamental theorem of calculus. *}
 
-lemma interval_bounds_real: assumes "a\<le>(b::real)"
-  shows "interval_upperbound {a..b} = b" "interval_lowerbound {a..b} = a"
-  apply(rule_tac[!] interval_bounds) using assms by auto
+lemma interval_bounds_real:
+  fixes q b :: real
+  assumes "a \<le> b"
+  shows "interval_upperbound {a..b} = b"
+    and "interval_lowerbound {a..b} = a"
+  apply (rule_tac[!] interval_bounds)
+  using assms
+  apply auto
+  done
 
-lemma fundamental_theorem_of_calculus: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "a \<le> b"  "\<forall>x\<in>{a..b}. (f has_vector_derivative f' x) (at x within {a..b})"
-  shows "(f' has_integral (f b - f a)) ({a..b})"
-unfolding has_integral_factor_content
-proof safe fix e::real assume e:"e>0"
+lemma fundamental_theorem_of_calculus:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "a \<le> b"
+    and "\<forall>x\<in>{a..b}. (f has_vector_derivative f' x) (at x within {a..b})"
+  shows "(f' has_integral (f b - f a)) {a..b}"
+  unfolding has_integral_factor_content
+proof safe
+  fix e :: real
+  assume e: "e > 0"
   note assm = assms(2)[unfolded has_vector_derivative_def has_derivative_within_alt]
-  have *:"\<And>P Q. \<forall>x\<in>{a..b}. P x \<and> (\<forall>e>0. \<exists>d>0. Q x e d) \<Longrightarrow> \<forall>x. \<exists>(d::real)>0. x\<in>{a..b} \<longrightarrow> Q x e d" using e by blast
-  note this[OF assm,unfolded gauge_existence_lemma] from choice[OF this,unfolded Ball_def[symmetric]]
-  guess d .. note d=conjunctD2[OF this[rule_format],rule_format]
+  have *: "\<And>P Q. \<forall>x\<in>{a..b}. P x \<and> (\<forall>e>0. \<exists>d>0. Q x e d) \<Longrightarrow> \<forall>x. \<exists>(d::real)>0. x\<in>{a..b} \<longrightarrow> Q x e d"
+    using e by blast
+  note this[OF assm,unfolded gauge_existence_lemma]
+  from choice[OF this,unfolded Ball_def[symmetric]] guess d ..
+  note d=conjunctD2[OF this[rule_format],rule_format]
   show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow>
-                 norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
-    apply(rule_tac x="\<lambda>x. ball x (d x)" in exI,safe)
-    apply(rule gauge_ball_dependent,rule,rule d(1))
-  proof- fix p assume as:"p tagged_division_of {a..b}" "(\<lambda>x. ball x (d x)) fine p"
+    norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
+    apply (rule_tac x="\<lambda>x. ball x (d x)" in exI)
+    apply safe
+    apply (rule gauge_ball_dependent)
+    apply rule
+    apply (rule d(1))
+  proof -
+    fix p
+    assume as: "p tagged_division_of {a..b}" "(\<lambda>x. ball x (d x)) fine p"
     show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b}"
       unfolding content_real[OF assms(1)] additive_tagged_division_1[OF assms(1) as(1),of f,symmetric]
       unfolding additive_tagged_division_1[OF assms(1) as(1),of "\<lambda>x. x",symmetric]
-      unfolding setsum_right_distrib defer unfolding setsum_subtractf[symmetric]
-    proof(rule setsum_norm_le,safe) fix x k assume "(x,k)\<in>p"
-      note xk = tagged_division_ofD(2-4)[OF as(1) this] from this(3) guess u v apply-by(erule exE)+ note k=this
-      have *:"u \<le> v" using xk unfolding k by auto
-      have ball:"\<forall>xa\<in>k. xa \<in> ball x (d x)" using as(2)[unfolded fine_def,rule_format,OF `(x,k)\<in>p`,
-        unfolded split_conv subset_eq] .
+      unfolding setsum_right_distrib
+      defer
+      unfolding setsum_subtractf[symmetric]
+    proof (rule setsum_norm_le,safe)
+      fix x k
+      assume "(x, k) \<in> p"
+      note xk = tagged_division_ofD(2-4)[OF as(1) this]
+      from this(3) guess u v by (elim exE) note k=this
+      have *: "u \<le> v"
+        using xk unfolding k by auto
+      have ball: "\<forall>xa\<in>k. xa \<in> ball x (d x)"
+        using as(2)[unfolded fine_def,rule_format,OF `(x,k)\<in>p`,unfolded split_conv subset_eq] .
       have "norm ((v - u) *\<^sub>R f' x - (f v - f u)) \<le>
         norm (f u - f x - (u - x) *\<^sub>R f' x) + norm (f v - f x - (v - x) *\<^sub>R f' x)"
-        apply(rule order_trans[OF _ norm_triangle_ineq4]) apply(rule eq_refl) apply(rule arg_cong[where f=norm])
-        unfolding scaleR_diff_left by(auto simp add:algebra_simps)
-      also have "... \<le> e * norm (u - x) + e * norm (v - x)"
-        apply(rule add_mono) apply(rule d(2)[of "x" "u",unfolded o_def]) prefer 4
-        apply(rule d(2)[of "x" "v",unfolded o_def])
+        apply (rule order_trans[OF _ norm_triangle_ineq4])
+        apply (rule eq_refl)
+        apply (rule arg_cong[where f=norm])
+        unfolding scaleR_diff_left
+        apply (auto simp add:algebra_simps)
+        done
+      also have "\<dots> \<le> e * norm (u - x) + e * norm (v - x)"
+        apply (rule add_mono)
+        apply (rule d(2)[of "x" "u",unfolded o_def])
+        prefer 4
+        apply (rule d(2)[of "x" "v",unfolded o_def])
         using ball[rule_format,of u] ball[rule_format,of v]
-        using xk(1-2) unfolding k subset_eq by(auto simp add:dist_real_def)
-      also have "... \<le> e * (interval_upperbound k - interval_lowerbound k)"
-        unfolding k interval_bounds_real[OF *] using xk(1) unfolding k by(auto simp add:dist_real_def field_simps)
+        using xk(1-2)
+        unfolding k subset_eq
+        apply (auto simp add:dist_real_def)
+        done
+      also have "\<dots> \<le> e * (interval_upperbound k - interval_lowerbound k)"
+        unfolding k interval_bounds_real[OF *]
+        using xk(1)
+        unfolding k
+        by (auto simp add: dist_real_def field_simps)
       finally show "norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k))) \<le>
-        e * (interval_upperbound k - interval_lowerbound k)" unfolding k interval_bounds_real[OF *] content_real[OF *] .
-    qed qed qed
+        e * (interval_upperbound k - interval_lowerbound k)"
+        unfolding k interval_bounds_real[OF *] content_real[OF *] .
+    qed
+  qed
+qed
+
 
 subsection {* Attempt a systematic general set of "offset" results for components. *}
 
 lemma gauge_modify:
   assumes "(\<forall>s. open s \<longrightarrow> open {x. f(x) \<in> s})" "gauge d"
   shows "gauge (\<lambda>x. {y. f y \<in> d (f x)})"
-  using assms unfolding gauge_def apply safe defer apply(erule_tac x="f x" in allE)
-  apply(erule_tac x="d (f x)" in allE) by auto
+  using assms
+  unfolding gauge_def
+  apply safe
+  defer
+  apply (erule_tac x="f x" in allE)
+  apply (erule_tac x="d (f x)" in allE)
+  apply auto
+  done
+
 
 subsection {* Only need trivial subintervals if the interval itself is trivial. *}
 
-lemma division_of_nontrivial: fixes s::"('a::ordered_euclidean_space) set set"
-  assumes "s division_of {a..b}" "content({a..b}) \<noteq> 0"
-  shows "{k. k \<in> s \<and> content k \<noteq> 0} division_of {a..b}" using assms(1) apply-
-proof(induct "card s" arbitrary:s rule:nat_less_induct)
-  fix s::"'a set set" assume assm:"s division_of {a..b}"
-    "\<forall>m<card s. \<forall>x. m = card x \<longrightarrow> x division_of {a..b} \<longrightarrow> {k \<in> x. content k \<noteq> 0} division_of {a..b}"
-  note s = division_ofD[OF assm(1)] let ?thesis = "{k \<in> s. content k \<noteq> 0} division_of {a..b}"
-  { presume *:"{k \<in> s. content k \<noteq> 0} \<noteq> s \<Longrightarrow> ?thesis"
-    show ?thesis apply cases defer apply(rule *,assumption) using assm(1) by auto }
-  assume noteq:"{k \<in> s. content k \<noteq> 0} \<noteq> s"
-  then obtain k where k:"k\<in>s" "content k = 0" by auto
-  from s(4)[OF k(1)] guess c d apply-by(erule exE)+ note k=k this
-  from k have "card s > 0" unfolding card_gt_0_iff using assm(1) by auto
-  hence card:"card (s - {k}) < card s" using assm(1) k(1) apply(subst card_Diff_singleton_if) by auto
-  have *:"closed (\<Union>(s - {k}))" apply(rule closed_Union) defer apply rule apply(drule DiffD1,drule s(4))
-    apply safe apply(rule closed_interval) using assm(1) by auto
-  have "k \<subseteq> \<Union>(s - {k})" apply safe apply(rule *[unfolded closed_limpt,rule_format]) unfolding islimpt_approachable
-  proof safe fix x and e::real assume as:"x\<in>k" "e>0"
+lemma division_of_nontrivial:
+  fixes s :: "'a::ordered_euclidean_space set set"
+  assumes "s division_of {a..b}"
+    and "content {a..b} \<noteq> 0"
+  shows "{k. k \<in> s \<and> content k \<noteq> 0} division_of {a..b}"
+  using assms(1)
+  apply -
+proof (induct "card s" arbitrary: s rule: nat_less_induct)
+  fix s::"'a set set"
+  assume assm: "s division_of {a..b}"
+    "\<forall>m<card s. \<forall>x. m = card x \<longrightarrow>
+      x division_of {a..b} \<longrightarrow> {k \<in> x. content k \<noteq> 0} division_of {a..b}"
+  note s = division_ofD[OF assm(1)]
+  let ?thesis = "{k \<in> s. content k \<noteq> 0} division_of {a..b}"
+  {
+    presume *: "{k \<in> s. content k \<noteq> 0} \<noteq> s \<Longrightarrow> ?thesis"
+    show ?thesis
+      apply cases
+      defer
+      apply (rule *)
+      apply assumption
+      using assm(1)
+      apply auto
+      done
+  }
+  assume noteq: "{k \<in> s. content k \<noteq> 0} \<noteq> s"
+  then obtain k where k: "k \<in> s" "content k = 0"
+    by auto
+  from s(4)[OF k(1)] guess c d by (elim exE) note k=k this
+  from k have "card s > 0"
+    unfolding card_gt_0_iff using assm(1) by auto
+  then have card: "card (s - {k}) < card s"
+    using assm(1) k(1)
+    apply (subst card_Diff_singleton_if)
+    apply auto
+    done
+  have *: "closed (\<Union>(s - {k}))"
+    apply (rule closed_Union)
+    defer
+    apply rule
+    apply (drule DiffD1,drule s(4))
+    apply safe
+    apply (rule closed_interval)
+    using assm(1)
+    apply auto
+    done
+  have "k \<subseteq> \<Union>(s - {k})"
+    apply safe
+    apply (rule *[unfolded closed_limpt,rule_format])
+    unfolding islimpt_approachable
+  proof safe
+    fix x
+    fix e :: real
+    assume as: "x \<in> k" "e > 0"
     from k(2)[unfolded k content_eq_0] guess i ..
-    hence i:"c\<bullet>i = d\<bullet>i" "i\<in>Basis" using s(3)[OF k(1),unfolded k] unfolding interval_ne_empty by auto
-    hence xi:"x\<bullet>i = d\<bullet>i" using as unfolding k mem_interval by (metis antisym)
-    def y \<equiv> "(\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
-      min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j)::'a"
-    show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x=y in bexI)
-    proof have "d \<in> {c..d}" using s(3)[OF k(1)] unfolding k interval_eq_empty mem_interval by(fastforce simp add: not_less)
-      hence "d \<in> {a..b}" using s(2)[OF k(1)] unfolding k by auto note di = this[unfolded mem_interval,THEN bspec[where x=i]]
-      hence xyi:"y\<bullet>i \<noteq> x\<bullet>i"
-        unfolding y_def i xi using as(2) assms(2)[unfolded content_eq_0] i(2)
+    then have i:"c\<bullet>i = d\<bullet>i" "i\<in>Basis"
+      using s(3)[OF k(1),unfolded k] unfolding interval_ne_empty by auto
+    then have xi: "x\<bullet>i = d\<bullet>i"
+      using as unfolding k mem_interval by (metis antisym)
+    def y \<equiv> "\<Sum>j\<in>Basis. (if j = i then if c\<bullet>i \<le> (a\<bullet>i + b\<bullet>i) / 2 then c\<bullet>i +
+      min e (b\<bullet>i - c\<bullet>i) / 2 else c\<bullet>i - min e (c\<bullet>i - a\<bullet>i) / 2 else x\<bullet>j) *\<^sub>R j"
+    show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e"
+      apply (rule_tac x=y in bexI)
+    proof
+      have "d \<in> {c..d}"
+        using s(3)[OF k(1)]
+        unfolding k interval_eq_empty mem_interval
+        by (fastforce simp add: not_less)
+      then have "d \<in> {a..b}"
+        using s(2)[OF k(1)]
+        unfolding k
+        by auto
+      note di = this[unfolded mem_interval,THEN bspec[where x=i]]
+      then have xyi: "y\<bullet>i \<noteq> x\<bullet>i"
+        unfolding y_def i xi
+        using as(2) assms(2)[unfolded content_eq_0] i(2)
         by (auto elim!: ballE[of _ _ i])
-      thus "y \<noteq> x" unfolding euclidean_eq_iff[where 'a='a] using i by auto
-      have *:"Basis = insert i (Basis - {i})" using i by auto
-      have "norm (y - x) < e + setsum (\<lambda>i. 0) Basis" apply(rule le_less_trans[OF norm_le_l1])
-        apply(subst *,subst setsum_insert) prefer 3 apply(rule add_less_le_mono)
-      proof-
+      then show "y \<noteq> x"
+        unfolding euclidean_eq_iff[where 'a='a] using i by auto
+      have *: "Basis = insert i (Basis - {i})"
+        using i by auto
+      have "norm (y - x) < e + setsum (\<lambda>i. 0) Basis"
+        apply (rule le_less_trans[OF norm_le_l1])
+        apply (subst *)
+        apply (subst setsum_insert)
+        prefer 3
+        apply (rule add_less_le_mono)
+      proof -
         show "\<bar>(y - x) \<bullet> i\<bar> < e"
           using di as(2) y_def i xi by (auto simp: inner_simps)
         show "(\<Sum>i\<in>Basis - {i}. \<bar>(y - x) \<bullet> i\<bar>) \<le> (\<Sum>i\<in>Basis. 0)"
           unfolding y_def by (auto simp: inner_simps)
-      qed auto thus "dist y x < e" unfolding dist_norm by auto
-      have "y\<notin>k" unfolding k mem_interval apply rule apply(erule_tac x=i in ballE) using xyi k i xi by auto
-      moreover have "y \<in> \<Union>s"
-        using set_rev_mp[OF as(1) s(2)[OF k(1)]] as(2) di i unfolding s mem_interval y_def
+      qed auto
+      then show "dist y x < e"
+        unfolding dist_norm by auto
+      have "y \<notin> k"
+        unfolding k mem_interval
+        apply rule
+        apply (erule_tac x=i in ballE)
+        using xyi k i xi
+        apply auto
+        done
+      moreover
+      have "y \<in> \<Union>s"
+        using set_rev_mp[OF as(1) s(2)[OF k(1)]] as(2) di i
+        unfolding s mem_interval y_def
         by (auto simp: field_simps elim!: ballE[of _ _ i])
-      ultimately show "y \<in> \<Union>(s - {k})" by auto
-    qed qed hence "\<Union>(s - {k}) = {a..b}" unfolding s(6)[symmetric] by auto
-  hence  "{ka \<in> s - {k}. content ka \<noteq> 0} division_of {a..b}" apply-apply(rule assm(2)[rule_format,OF card refl])
-    apply(rule division_ofI) defer apply(rule_tac[1-4] s) using assm(1) by auto
-  moreover have "{ka \<in> s - {k}. content ka \<noteq> 0} = {k \<in> s. content k \<noteq> 0}" using k by auto ultimately show ?thesis by auto qed
+      ultimately
+      show "y \<in> \<Union>(s - {k})" by auto
+    qed
+  qed
+  then have "\<Union>(s - {k}) = {a..b}"
+    unfolding s(6)[symmetric] by auto
+  then have  "{ka \<in> s - {k}. content ka \<noteq> 0} division_of {a..b}"
+    apply -
+    apply (rule assm(2)[rule_format,OF card refl])
+    apply (rule division_ofI)
+    defer
+    apply (rule_tac[1-4] s)
+    using assm(1)
+    apply auto
+    done
+  moreover
+  have "{ka \<in> s - {k}. content ka \<noteq> 0} = {k \<in> s. content k \<noteq> 0}"
+    using k by auto
+  ultimately show ?thesis by auto
+qed
+
 
 subsection {* Integrability on subintervals. *}
 
-lemma operative_integrable: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach" shows
-  "operative op \<and> (\<lambda>i. f integrable_on i)"
-  unfolding operative_def neutral_and apply safe apply(subst integrable_on_def)
-  unfolding has_integral_null_eq apply(rule,rule refl) apply(rule,assumption,assumption)+
-  unfolding integrable_on_def by(auto intro!: has_integral_split)
+lemma operative_integrable:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  shows "operative op \<and> (\<lambda>i. f integrable_on i)"
+  unfolding operative_def neutral_and
+  apply safe
+  apply (subst integrable_on_def)
+  unfolding has_integral_null_eq
+  apply (rule, rule refl)
+  apply (rule, assumption, assumption)+
+  unfolding integrable_on_def
+  by (auto intro!: has_integral_split)
 
-lemma integrable_subinterval: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on {a..b}" "{c..d} \<subseteq> {a..b}" shows "f integrable_on {c..d}"
-  apply(cases "{c..d} = {}") defer apply(rule partial_division_extend_1[OF assms(2)],assumption)
-  using operative_division_and[OF operative_integrable,symmetric,of _ _ _ f] assms(1) by auto
+lemma integrable_subinterval:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "f integrable_on {a..b}"
+    and "{c..d} \<subseteq> {a..b}"
+  shows "f integrable_on {c..d}"
+  apply (cases "{c..d} = {}")
+  defer
+  apply (rule partial_division_extend_1[OF assms(2)],assumption)
+  using operative_division_and[OF operative_integrable,symmetric,of _ _ _ f] assms(1)
+  apply auto
+  done
+
 
 subsection {* Combining adjacent intervals in 1 dimension. *}
 
-lemma has_integral_combine: assumes "(a::real) \<le> c" "c \<le> b"
-  "(f has_integral i) {a..c}" "(f has_integral (j::'a::banach)) {c..b}"
+lemma has_integral_combine:
+  fixes a b c :: real
+  assumes "a \<le> c"
+    and "c \<le> b"
+    and "(f has_integral i) {a..c}"
+    and "(f has_integral (j::'a::banach)) {c..b}"
   shows "(f has_integral (i + j)) {a..b}"
-proof- note operative_integral[of f, unfolded operative_1_le[OF monoidal_lifted[OF monoidal_monoid]]]
-  note conjunctD2[OF this,rule_format] note * = this(2)[OF conjI[OF assms(1-2)],unfolded if_P[OF assms(3)]]
-  hence "f integrable_on {a..b}" apply- apply(rule ccontr) apply(subst(asm) if_P) defer
-    apply(subst(asm) if_P) using assms(3-) by auto
-  with * show ?thesis apply-apply(subst(asm) if_P) defer apply(subst(asm) if_P) defer apply(subst(asm) if_P)
-    unfolding lifted.simps using assms(3-) by(auto simp add: integrable_on_def integral_unique) qed
+proof -
+  note operative_integral[of f, unfolded operative_1_le[OF monoidal_lifted[OF monoidal_monoid]]]
+  note conjunctD2[OF this,rule_format]
+  note * = this(2)[OF conjI[OF assms(1-2)],unfolded if_P[OF assms(3)]]
+  then have "f integrable_on {a..b}"
+    apply -
+    apply (rule ccontr)
+    apply (subst(asm) if_P)
+    defer
+    apply (subst(asm) if_P)
+    using assms(3-)
+    apply auto
+    done
+  with *
+  show ?thesis
+    apply -
+    apply (subst(asm) if_P)
+    defer
+    apply (subst(asm) if_P)
+    defer
+    apply (subst(asm) if_P)
+    unfolding lifted.simps
+    using assms(3-)
+    apply (auto simp add: integrable_on_def integral_unique)
+    done
+qed
 
-lemma integral_combine: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "a \<le> c" "c \<le> b" "f integrable_on ({a..b})"
-  shows "integral {a..c} f + integral {c..b} f = integral({a..b}) f"
-  apply(rule integral_unique[symmetric]) apply(rule has_integral_combine[OF assms(1-2)])
-  apply(rule_tac[!] integrable_integral integrable_subinterval[OF assms(3)])+ using assms(1-2) by auto
+lemma integral_combine:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "a \<le> c"
+    and "c \<le> b"
+    and "f integrable_on {a..b}"
+  shows "integral {a..c} f + integral {c..b} f = integral {a..b} f"
+  apply (rule integral_unique[symmetric])
+  apply (rule has_integral_combine[OF assms(1-2)])
+  apply (rule_tac[!] integrable_integral integrable_subinterval[OF assms(3)])+
+  using assms(1-2)
+  apply auto
+  done
 
-lemma integrable_combine: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "a \<le> c" "c \<le> b" "f integrable_on {a..c}" "f integrable_on {c..b}"
-  shows "f integrable_on {a..b}" using assms unfolding integrable_on_def by(fastforce intro!:has_integral_combine)
+lemma integrable_combine:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "a \<le> c"
+    and "c \<le> b"
+    and "f integrable_on {a..c}"
+    and "f integrable_on {c..b}"
+  shows "f integrable_on {a..b}"
+  using assms
+  unfolding integrable_on_def
+  by (fastforce intro!:has_integral_combine)
+
 
 subsection {* Reduce integrability to "local" integrability. *}
 
-lemma integrable_on_little_subintervals: fixes f::"'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "\<forall>x\<in>{a..b}. \<exists>d>0. \<forall>u v. x \<in> {u..v} \<and> {u..v} \<subseteq> ball x d \<and> {u..v} \<subseteq> {a..b} \<longrightarrow> f integrable_on {u..v}"
+lemma integrable_on_little_subintervals:
+  fixes f :: "'b::ordered_euclidean_space \<Rightarrow> 'a::banach"
+  assumes "\<forall>x\<in>{a..b}. \<exists>d>0. \<forall>u v. x \<in> {u..v} \<and> {u..v} \<subseteq> ball x d \<and> {u..v} \<subseteq> {a..b} \<longrightarrow>
+    f integrable_on {u..v}"
   shows "f integrable_on {a..b}"
-proof- have "\<forall>x. \<exists>d. x\<in>{a..b} \<longrightarrow> d>0 \<and> (\<forall>u v. x \<in> {u..v} \<and> {u..v} \<subseteq> ball x d \<and> {u..v} \<subseteq> {a..b} \<longrightarrow> f integrable_on {u..v})"
-    using assms by auto note this[unfolded gauge_existence_lemma] from choice[OF this] guess d .. note d=this[rule_format]
-  guess p apply(rule fine_division_exists[OF gauge_ball_dependent,of d a b]) using d by auto note p=this(1-2)
-  note division_of_tagged_division[OF this(1)] note * = operative_division_and[OF operative_integrable,OF this,symmetric,of f]
-  show ?thesis unfolding * apply safe unfolding snd_conv
-  proof- fix x k assume "(x,k) \<in> p" note tagged_division_ofD(2-4)[OF p(1) this] fineD[OF p(2) this]
-    thus "f integrable_on k" apply safe apply(rule d[THEN conjunct2,rule_format,of x]) by auto qed qed
+proof -
+  have "\<forall>x. \<exists>d. x\<in>{a..b} \<longrightarrow> d>0 \<and> (\<forall>u v. x \<in> {u..v} \<and> {u..v} \<subseteq> ball x d \<and> {u..v} \<subseteq> {a..b} \<longrightarrow>
+    f integrable_on {u..v})"
+    using assms by auto
+  note this[unfolded gauge_existence_lemma]
+  from choice[OF this] guess d .. note d=this[rule_format]
+  guess p
+    apply (rule fine_division_exists[OF gauge_ball_dependent,of d a b])
+    using d
+    by auto
+  note p=this(1-2)
+  note division_of_tagged_division[OF this(1)]
+  note * = operative_division_and[OF operative_integrable,OF this,symmetric,of f]
+  show ?thesis
+    unfolding *
+    apply safe
+    unfolding snd_conv
+  proof -
+    fix x k
+    assume "(x, k) \<in> p"
+    note tagged_division_ofD(2-4)[OF p(1) this] fineD[OF p(2) this]
+    then show "f integrable_on k"
+      apply safe
+      apply (rule d[THEN conjunct2,rule_format,of x])
+      apply auto
+      done
+  qed
+qed
+
 
 subsection {* Second FCT or existence of antiderivative. *}
 
-lemma integrable_const[intro]:"(\<lambda>x. c) integrable_on {a..b}"
-  unfolding integrable_on_def by(rule,rule has_integral_const)
+lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on {a..b}"
+  unfolding integrable_on_def
+  apply rule
+  apply (rule has_integral_const)
+  done
 
-lemma integral_has_vector_derivative: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "continuous_on {a..b} f" "x \<in> {a..b}"
+lemma integral_has_vector_derivative:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "continuous_on {a..b} f"
+    and "x \<in> {a..b}"
   shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f(x)) (at x within {a..b})"
   unfolding has_vector_derivative_def has_derivative_within_alt
-apply safe apply(rule bounded_linear_scaleR_left)
-proof- fix e::real assume e:"e>0"
+  apply safe
+  apply (rule bounded_linear_scaleR_left)
+proof -
+  fix e :: real
+  assume e: "e > 0"
   note compact_uniformly_continuous[OF assms(1) compact_interval,unfolded uniformly_continuous_on_def]
-  from this[rule_format,OF e] guess d apply-by(erule conjE exE)+ note d=this[rule_format]
+  from this[rule_format,OF e] guess d by (elim conjE exE) note d=this[rule_format]
   let ?I = "\<lambda>a b. integral {a..b} f"
-  show "\<exists>d>0. \<forall>y\<in>{a..b}. norm (y - x) < d \<longrightarrow> norm (?I a y - ?I a x - (y - x) *\<^sub>R f x) \<le> e * norm (y - x)"
-  proof(rule,rule,rule d,safe) case goal1 show ?case proof(cases "y < x")
-      case False have "f integrable_on {a..y}" apply(rule integrable_subinterval,rule integrable_continuous)
-        apply(rule assms)  unfolding not_less using assms(2) goal1 by auto
-      hence *:"?I a y - ?I a x = ?I x y" unfolding algebra_simps apply(subst eq_commute) apply(rule integral_combine)
-        using False unfolding not_less using assms(2) goal1 by auto
-      have **:"norm (y - x) = content {x..y}" apply(subst content_real) using False unfolding not_less by auto
-      show ?thesis unfolding ** apply(rule has_integral_bound[where f="(\<lambda>u. f u - f x)"]) unfolding * unfolding o_def
-        defer apply(rule has_integral_sub) apply(rule integrable_integral)
-        apply(rule integrable_subinterval,rule integrable_continuous) apply(rule assms)+
-      proof- show "{x..y} \<subseteq> {a..b}" using goal1 assms(2) by auto
-        have *:"y - x = norm(y - x)" using False by auto
-        show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {x.. y}" apply(subst *) unfolding ** by auto
-        show "\<forall>xa\<in>{x..y}. norm (f xa - f x) \<le> e" apply safe apply(rule less_imp_le)
-          apply(rule d(2)[unfolded dist_norm]) using assms(2) using goal1 by auto
-      qed(insert e,auto)
-    next case True have "f integrable_on {a..x}" apply(rule integrable_subinterval,rule integrable_continuous)
-        apply(rule assms)+  unfolding not_less using assms(2) goal1 by auto
-      hence *:"?I a x - ?I a y = ?I y x" unfolding algebra_simps apply(subst eq_commute) apply(rule integral_combine)
-        using True using assms(2) goal1 by auto
-      have **:"norm (y - x) = content {y..x}" apply(subst content_real) using True unfolding not_less by auto
-      have ***:"\<And>fy fx c::'a. fx - fy - (y - x) *\<^sub>R c = -(fy - fx - (x - y) *\<^sub>R c)" unfolding scaleR_left.diff by auto
-      show ?thesis apply(subst ***) unfolding norm_minus_cancel **
-        apply(rule has_integral_bound[where f="(\<lambda>u. f u - f x)"]) unfolding * unfolding o_def
-        defer apply(rule has_integral_sub) apply(subst minus_minus[symmetric]) unfolding minus_minus
-        apply(rule integrable_integral) apply(rule integrable_subinterval,rule integrable_continuous) apply(rule assms)+
-      proof- show "{y..x} \<subseteq> {a..b}" using goal1 assms(2) by auto
-        have *:"x - y = norm(y - x)" using True by auto
-        show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {y..x}" apply(subst *) unfolding ** by auto
-        show "\<forall>xa\<in>{y..x}. norm (f xa - f x) \<le> e" apply safe apply(rule less_imp_le)
-          apply(rule d(2)[unfolded dist_norm]) using assms(2) using goal1 by auto
-      qed(insert e,auto) qed qed qed
+  show "\<exists>d>0. \<forall>y\<in>{a..b}. norm (y - x) < d \<longrightarrow>
+    norm (?I a y - ?I a x - (y - x) *\<^sub>R f x) \<le> e * norm (y - x)"
+  proof (rule, rule, rule d, safe)
+    case goal1
+    show ?case
+    proof (cases "y < x")
+      case False
+      have "f integrable_on {a..y}"
+        apply (rule integrable_subinterval,rule integrable_continuous)
+        apply (rule assms)
+        unfolding not_less
+        using assms(2) goal1
+        apply auto
+        done
+      then have *: "?I a y - ?I a x = ?I x y"
+        unfolding algebra_simps
+        apply (subst eq_commute)
+        apply (rule integral_combine)
+        using False
+        unfolding not_less
+        using assms(2) goal1
+        apply auto
+        done
+      have **: "norm (y - x) = content {x..y}"
+        apply (subst content_real)
+        using False
+        unfolding not_less
+        apply auto
+        done
+      show ?thesis
+        unfolding **
+        apply (rule has_integral_bound[where f="(\<lambda>u. f u - f x)"])
+        unfolding *
+        unfolding o_def
+        defer
+        apply (rule has_integral_sub)
+        apply (rule integrable_integral)
+        apply (rule integrable_subinterval)
+        apply (rule integrable_continuous)
+        apply (rule assms)+
+      proof -
+        show "{x..y} \<subseteq> {a..b}"
+          using goal1 assms(2) by auto
+        have *: "y - x = norm (y - x)"
+          using False by auto
+        show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {x.. y}"
+          apply (subst *)
+          unfolding **
+          apply auto
+          done
+        show "\<forall>xa\<in>{x..y}. norm (f xa - f x) \<le> e"
+          apply safe
+          apply (rule less_imp_le)
+          apply (rule d(2)[unfolded dist_norm])
+          using assms(2)
+          using goal1
+          apply auto
+          done
+      qed (insert e, auto)
+    next
+      case True
+      have "f integrable_on {a..x}"
+        apply (rule integrable_subinterval,rule integrable_continuous)
+        apply (rule assms)+
+        unfolding not_less
+        using assms(2) goal1
+        apply auto
+        done
+      then have *: "?I a x - ?I a y = ?I y x"
+        unfolding algebra_simps
+        apply (subst eq_commute)
+        apply (rule integral_combine)
+        using True using assms(2) goal1
+        apply auto
+        done
+      have **: "norm (y - x) = content {y..x}"
+        apply (subst content_real)
+        using True
+        unfolding not_less
+        apply auto
+        done
+      have ***: "\<And>fy fx c::'a. fx - fy - (y - x) *\<^sub>R c = -(fy - fx - (x - y) *\<^sub>R c)"
+        unfolding scaleR_left.diff by auto
+      show ?thesis
+        apply (subst ***)
+        unfolding norm_minus_cancel **
+        apply (rule has_integral_bound[where f="(\<lambda>u. f u - f x)"])
+        unfolding *
+        unfolding o_def
+        defer
+        apply (rule has_integral_sub)
+        apply (subst minus_minus[symmetric])
+        unfolding minus_minus
+        apply (rule integrable_integral)
+        apply (rule integrable_subinterval,rule integrable_continuous)
+        apply (rule assms)+
+      proof -
+        show "{y..x} \<subseteq> {a..b}"
+          using goal1 assms(2) by auto
+        have *: "x - y = norm (y - x)"
+          using True by auto
+        show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {y..x}"
+          apply (subst *)
+          unfolding **
+          apply auto
+          done
+        show "\<forall>xa\<in>{y..x}. norm (f xa - f x) \<le> e"
+          apply safe
+          apply (rule less_imp_le)
+          apply (rule d(2)[unfolded dist_norm])
+          using assms(2)
+          using goal1
+          apply auto
+          done
+      qed (insert e, auto)
+    qed
+  qed
+qed
 
-lemma antiderivative_continuous: assumes "continuous_on {a..b::real} f"
-  obtains g where "\<forall>x\<in> {a..b}. (g has_vector_derivative (f(x)::_::banach)) (at x within {a..b})"
-  apply(rule that,rule) using integral_has_vector_derivative[OF assms] by auto
+lemma antiderivative_continuous:
+  fixes q b :: real
+  assumes "continuous_on {a..b} f"
+  obtains g where "\<forall>x\<in> {a..b}. (g has_vector_derivative (f x::_::banach)) (at x within {a..b})"
+  apply (rule that)
+  apply rule
+  using integral_has_vector_derivative[OF assms]
+  apply auto
+  done
+
 
 subsection {* Combined fundamental theorem of calculus. *}
 
-lemma antiderivative_integral_continuous: fixes f::"real \<Rightarrow> 'a::banach" assumes "continuous_on {a..b} f"
+lemma antiderivative_integral_continuous:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "continuous_on {a..b} f"
   obtains g where "\<forall>u\<in>{a..b}. \<forall>v \<in> {a..b}. u \<le> v \<longrightarrow> (f has_integral (g v - g u)) {u..v}"
-proof- from antiderivative_continuous[OF assms] guess g . note g=this
-  show ?thesis apply(rule that[of g])
-  proof safe case goal1 have "\<forall>x\<in>{u..v}. (g has_vector_derivative f x) (at x within {u..v})"
-      apply(rule,rule has_vector_derivative_within_subset) apply(rule g[rule_format]) using goal1(1-2) by auto
-    thus ?case using fundamental_theorem_of_calculus[OF goal1(3),of "g" "f"] by auto qed qed
+proof -
+  from antiderivative_continuous[OF assms] guess g . note g=this
+  show ?thesis
+    apply (rule that[of g])
+  proof safe
+    case goal1
+    have "\<forall>x\<in>{u..v}. (g has_vector_derivative f x) (at x within {u..v})"
+      apply rule
+      apply (rule has_vector_derivative_within_subset)
+      apply (rule g[rule_format])
+      using goal1(1-2)
+      apply auto
+      done
+    then show ?case
+      using fundamental_theorem_of_calculus[OF goal1(3),of "g" "f"] by auto
+  qed
+qed
+
 
 subsection {* General "twiddling" for interval-to-interval function image. *}
 
 lemma has_integral_twiddle:
-  assumes "0 < r" "\<forall>x. h(g x) = x" "\<forall>x. g(h x) = x" "\<forall>x. continuous (at x) g"
-  "\<forall>u v. \<exists>w z. g ` {u..v} = {w..z}"
-  "\<forall>u v. \<exists>w z. h ` {u..v} = {w..z}"
-  "\<forall>u v. content(g ` {u..v}) = r * content {u..v}"
-  "(f has_integral i) {a..b}"
+  assumes "0 < r"
+    and "\<forall>x. h(g x) = x"
+    and "\<forall>x. g(h x) = x"
+    and "\<forall>x. continuous (at x) g"
+    and "\<forall>u v. \<exists>w z. g ` {u..v} = {w..z}"
+    and "\<forall>u v. \<exists>w z. h ` {u..v} = {w..z}"
+    and "\<forall>u v. content(g ` {u..v}) = r * content {u..v}"
+    and "(f has_integral i) {a..b}"
   shows "((\<lambda>x. f(g x)) has_integral (1 / r) *\<^sub>R i) (h ` {a..b})"
-proof- { presume *:"{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
-    show ?thesis apply cases defer apply(rule *,assumption)
-    proof- case goal1 thus ?thesis unfolding goal1 assms(8)[unfolded goal1 has_integral_empty_eq] by auto qed }
-  assume "{a..b} \<noteq> {}" from assms(6)[rule_format,of a b] guess w z apply-by(erule exE)+ note wz=this
-  have inj:"inj g" "inj h" unfolding inj_on_def apply safe apply(rule_tac[!] ccontr)
-    using assms(2) apply(erule_tac x=x in allE) using assms(2) apply(erule_tac x=y in allE) defer
-    using assms(3) apply(erule_tac x=x in allE) using assms(3) apply(erule_tac x=y in allE) by auto
-  show ?thesis unfolding has_integral_def has_integral_compact_interval_def apply(subst if_P) apply(rule,rule,rule wz)
-  proof safe fix e::real assume e:"e>0" hence "e * r > 0" using assms(1) by(rule mult_pos_pos)
-    from assms(8)[unfolded has_integral,rule_format,OF this] guess d apply-by(erule exE conjE)+ note d=this[rule_format]
-    def d' \<equiv> "\<lambda>x. {y. g y \<in> d (g x)}" have d':"\<And>x. d' x = {y. g y \<in> (d (g x))}" unfolding d'_def ..
+proof -
+  {
+    presume *: "{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
+    show ?thesis
+      apply cases
+      defer
+      apply (rule *)
+      apply assumption
+    proof -
+      case goal1
+      then show ?thesis
+        unfolding goal1 assms(8)[unfolded goal1 has_integral_empty_eq] by auto qed
+  }
+  assume "{a..b} \<noteq> {}"
+  from assms(6)[rule_format,of a b] guess w z by (elim exE) note wz=this
+  have inj: "inj g" "inj h"
+    unfolding inj_on_def
+    apply safe
+    apply(rule_tac[!] ccontr)
+    using assms(2)
+    apply(erule_tac x=x in allE)
+    using assms(2)
+    apply(erule_tac x=y in allE)
+    defer
+    using assms(3)
+    apply (erule_tac x=x in allE)
+    using assms(3)
+    apply(erule_tac x=y in allE)
+    apply auto
+    done
+  show ?thesis
+    unfolding has_integral_def has_integral_compact_interval_def
+    apply (subst if_P)
+    apply rule
+    apply rule
+    apply (rule wz)
+  proof safe
+    fix e :: real
+    assume e: "e > 0"
+    then have "e * r > 0"
+      using assms(1) by (rule mult_pos_pos)
+    from assms(8)[unfolded has_integral,rule_format,OF this] guess d by (elim exE conjE) note d=this[rule_format]
+    def d' \<equiv> "\<lambda>x. {y. g y \<in> d (g x)}"
+    have d': "\<And>x. d' x = {y. g y \<in> (d (g x))}"
+      unfolding d'_def ..
     show "\<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of h ` {a..b} \<and> d fine p \<longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e)"
-    proof(rule_tac x=d' in exI,safe) show "gauge d'" using d(1) unfolding gauge_def d' using continuous_open_preimage_univ[OF assms(4)] by auto
-      fix p assume as:"p tagged_division_of h ` {a..b}" "d' fine p" note p = tagged_division_ofD[OF as(1)]
-      have "(\<lambda>(x, k). (g x, g ` k)) ` p tagged_division_of {a..b} \<and> d fine (\<lambda>(x, k). (g x, g ` k)) ` p" unfolding tagged_division_of
-      proof safe show "finite ((\<lambda>(x, k). (g x, g ` k)) ` p)" using as by auto
-        show "d fine (\<lambda>(x, k). (g x, g ` k)) ` p" using as(2) unfolding fine_def d' by auto
-        fix x k assume xk[intro]:"(x,k) \<in> p" show "g x \<in> g ` k" using p(2)[OF xk] by auto
-        show "\<exists>u v. g ` k = {u..v}" using p(4)[OF xk] using assms(5-6) by auto
-        { fix y assume "y \<in> k" thus "g y \<in> {a..b}" "g y \<in> {a..b}" using p(3)[OF xk,unfolded subset_eq,rule_format,of "h (g y)"]
-            using assms(2)[rule_format,of y] unfolding inj_image_mem_iff[OF inj(2)] by auto }
-        fix x' k' assume xk':"(x',k') \<in> p" fix z assume "z \<in> interior (g ` k)" "z \<in> interior (g ` k')"
-        hence *:"interior (g ` k) \<inter> interior (g ` k') \<noteq> {}" by auto
-        have same:"(x, k) = (x', k')" apply-apply(rule ccontr,drule p(5)[OF xk xk'])
-        proof- assume as:"interior k \<inter> interior k' = {}" from nonempty_witness[OF *] guess z .
-          hence "z \<in> g ` (interior k \<inter> interior k')" using interior_image_subset[OF assms(4) inj(1)]
-            unfolding image_Int[OF inj(1)] by auto thus False using as by blast
-        qed thus "g x = g x'" by auto
-        { fix z assume "z \<in> k"  thus  "g z \<in> g ` k'" using same by auto }
-        { fix z assume "z \<in> k'" thus  "g z \<in> g ` k"  using same by auto }
-      next fix x assume "x \<in> {a..b}" hence "h x \<in>  \<Union>{k. \<exists>x. (x, k) \<in> p}" using p(6) by auto
-        then guess X unfolding Union_iff .. note X=this from this(1) guess y unfolding mem_Collect_eq ..
-        thus "x \<in> \<Union>{k. \<exists>x. (x, k) \<in> (\<lambda>(x, k). (g x, g ` k)) ` p}" apply-
-          apply(rule_tac X="g ` X" in UnionI) defer apply(rule_tac x="h x" in image_eqI)
-          using X(2) assms(3)[rule_format,of x] by auto
-      qed note ** = d(2)[OF this] have *:"inj_on (\<lambda>(x, k). (g x, g ` k)) p" using inj(1) unfolding inj_on_def by fastforce
-       have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _") unfolding algebra_simps add_left_cancel
-        unfolding setsum_reindex[OF *] apply(subst scaleR_right.setsum) defer apply(rule setsum_cong2) unfolding o_def split_paired_all split_conv
-        apply(drule p(4)) apply safe unfolding assms(7)[rule_format] using p by auto
-      also have "... = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r") unfolding scaleR_diff_right scaleR_scaleR
-        using assms(1) by auto finally have *:"?l = ?r" .
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e" using ** unfolding * unfolding norm_scaleR
-        using assms(1) by(auto simp add:field_simps) qed qed qed
+    proof (rule_tac x=d' in exI, safe)
+      show "gauge d'"
+        using d(1)
+        unfolding gauge_def d'
+        using continuous_open_preimage_univ[OF assms(4)]
+        by auto
+      fix p
+      assume as: "p tagged_division_of h ` {a..b}" "d' fine p"
+      note p = tagged_division_ofD[OF as(1)]
+      have "(\<lambda>(x, k). (g x, g ` k)) ` p tagged_division_of {a..b} \<and> d fine (\<lambda>(x, k). (g x, g ` k)) ` p"
+        unfolding tagged_division_of
+      proof safe
+        show "finite ((\<lambda>(x, k). (g x, g ` k)) ` p)"
+          using as by auto
+        show "d fine (\<lambda>(x, k). (g x, g ` k)) ` p"
+          using as(2) unfolding fine_def d' by auto
+        fix x k
+        assume xk[intro]: "(x, k) \<in> p"
+        show "g x \<in> g ` k"
+          using p(2)[OF xk] by auto
+        show "\<exists>u v. g ` k = {u..v}"
+          using p(4)[OF xk] using assms(5-6) by auto
+        {
+          fix y
+          assume "y \<in> k"
+          then show "g y \<in> {a..b}" "g y \<in> {a..b}"
+            using p(3)[OF xk,unfolded subset_eq,rule_format,of "h (g y)"]
+            using assms(2)[rule_format,of y]
+            unfolding inj_image_mem_iff[OF inj(2)]
+            by auto
+        }
+        fix x' k'
+        assume xk': "(x', k') \<in> p"
+        fix z
+        assume "z \<in> interior (g ` k)" and "z \<in> interior (g ` k')"
+        then have *: "interior (g ` k) \<inter> interior (g ` k') \<noteq> {}"
+          by auto
+        have same: "(x, k) = (x', k')"
+          apply -
+          apply (rule ccontr,drule p(5)[OF xk xk'])
+        proof -
+          assume as: "interior k \<inter> interior k' = {}"
+          from nonempty_witness[OF *] guess z .
+          then have "z \<in> g ` (interior k \<inter> interior k')"
+            using interior_image_subset[OF assms(4) inj(1)]
+            unfolding image_Int[OF inj(1)]
+            by auto
+          then show False
+            using as by blast
+        qed
+        then show "g x = g x'"
+          by auto
+        {
+          fix z
+          assume "z \<in> k"
+          then show "g z \<in> g ` k'"
+            using same by auto
+        }
+        {
+          fix z
+          assume "z \<in> k'"
+          then show "g z \<in> g ` k"
+            using same by auto
+        }
+      next
+        fix x
+        assume "x \<in> {a..b}"
+        then have "h x \<in>  \<Union>{k. \<exists>x. (x, k) \<in> p}"
+          using p(6) by auto
+        then guess X unfolding Union_iff .. note X=this
+        from this(1) guess y unfolding mem_Collect_eq ..
+        then show "x \<in> \<Union>{k. \<exists>x. (x, k) \<in> (\<lambda>(x, k). (g x, g ` k)) ` p}"
+          apply -
+          apply (rule_tac X="g ` X" in UnionI)
+          defer
+          apply (rule_tac x="h x" in image_eqI)
+          using X(2) assms(3)[rule_format,of x]
+          apply auto
+          done
+      qed
+        note ** = d(2)[OF this]
+        have *: "inj_on (\<lambda>(x, k). (g x, g ` k)) p"
+          using inj(1) unfolding inj_on_def by fastforce
+        have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _")
+          unfolding algebra_simps add_left_cancel
+          unfolding setsum_reindex[OF *]
+          apply (subst scaleR_right.setsum)
+          defer
+          apply (rule setsum_cong2)
+          unfolding o_def split_paired_all split_conv
+          apply (drule p(4))
+          apply safe
+          unfolding assms(7)[rule_format]
+          using p
+          apply auto
+          done
+      also have "\<dots> = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r")
+        unfolding scaleR_diff_right scaleR_scaleR
+        using assms(1)
+        by auto
+      finally have *: "?l = ?r" .
+      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i) < e"
+        using **
+        unfolding *
+        unfolding norm_scaleR
+        using assms(1)
+        by (auto simp add:field_simps)
+    qed
+  qed
+qed
+
 
 subsection {* Special case of a basic affine transformation. *}
 
-lemma interval_image_affinity_interval: shows "\<exists>u v. (\<lambda>x. m *\<^sub>R (x::'a::ordered_euclidean_space) + c) ` {a..b} = {u..v}"
-  unfolding image_affinity_interval by auto
+lemma interval_image_affinity_interval:
+  "\<exists>u v. (\<lambda>x. m *\<^sub>R (x::'a::ordered_euclidean_space) + c) ` {a..b} = {u..v}"
+  unfolding image_affinity_interval
+  by auto
 
-lemma setprod_cong2: assumes "\<And>x. x \<in> A \<Longrightarrow> f x = g x" shows "setprod f A = setprod g A"
-  apply(rule setprod_cong) using assms by auto
+lemma setprod_cong2:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x = g x"
+  shows "setprod f A = setprod g A"
+  apply (rule setprod_cong)
+  using assms
+  apply auto
+  done
 
 lemma content_image_affinity_interval:
- "content((\<lambda>x::'a::ordered_euclidean_space. m *\<^sub>R x + c) ` {a..b}) = (abs m) ^ DIM('a) * content {a..b}" (is "?l = ?r")
-proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis apply(cases,rule *,assumption)
-      unfolding not_not using content_empty by auto }
-  assume as: "{a..b}\<noteq>{}"
+  "content((\<lambda>x::'a::ordered_euclidean_space. m *\<^sub>R x + c) ` {a..b}) =
+    abs m ^ DIM('a) * content {a..b}" (is "?l = ?r")
+proof -
+  {
+    presume *: "{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
+    show ?thesis
+      apply cases
+      apply (rule *)
+      apply assumption
+      unfolding not_not
+      using content_empty
+      apply auto
+      done
+  }
+  assume as: "{a..b} \<noteq> {}"
   show ?thesis
   proof (cases "m \<ge> 0")
     case True
@@ -6791,7 +7462,7 @@ proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis app
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis
       by (simp add: image_affinity_interval True content_closed_interval'
-                    setprod_timesf setprod_constant inner_diff_left)
+        setprod_timesf setprod_constant inner_diff_left)
   next
     case False
     with as have "{m *\<^sub>R b + c..m *\<^sub>R a + c} \<noteq> {}"
@@ -6804,20 +7475,43 @@ proof- { presume *:"{a..b}\<noteq>{} \<Longrightarrow> ?thesis" show ?thesis app
       by (simp add: inner_simps field_simps)
     ultimately show ?thesis using False
       by (simp add: image_affinity_interval content_closed_interval'
-                    setprod_timesf[symmetric] setprod_constant[symmetric] inner_diff_left)
+        setprod_timesf[symmetric] setprod_constant[symmetric] inner_diff_left)
   qed
 qed
 
-lemma has_integral_affinity: fixes a::"'a::ordered_euclidean_space" assumes "(f has_integral i) {a..b}" "m \<noteq> 0"
+lemma has_integral_affinity:
+  fixes a :: "'a::ordered_euclidean_space"
+  assumes "(f has_integral i) {a..b}"
+    and "m \<noteq> 0"
   shows "((\<lambda>x. f(m *\<^sub>R x + c)) has_integral ((1 / (abs(m) ^ DIM('a))) *\<^sub>R i)) ((\<lambda>x. (1 / m) *\<^sub>R x + -((1 / m) *\<^sub>R c)) ` {a..b})"
-  apply(rule has_integral_twiddle,safe) apply(rule zero_less_power) unfolding euclidean_eq_iff[where 'a='a]
+  apply (rule has_integral_twiddle)
+  apply safe
+  apply (rule zero_less_power)
+  unfolding euclidean_eq_iff[where 'a='a]
   unfolding scaleR_right_distrib inner_simps scaleR_scaleR
-  defer apply(insert assms(2), simp add:field_simps) apply(insert assms(2), simp add:field_simps)
-  apply(rule continuous_intros)+ apply(rule interval_image_affinity_interval)+ apply(rule content_image_affinity_interval) using assms by auto
+  defer
+  apply (insert assms(2))
+  apply (simp add: field_simps)
+  apply (insert assms(2))
+  apply (simp add: field_simps)
+  apply (rule continuous_intros)+
+  apply (rule interval_image_affinity_interval)+
+  apply (rule content_image_affinity_interval)
+  using assms
+  apply auto
+  done
 
-lemma integrable_affinity: assumes "f integrable_on {a..b}" "m \<noteq> 0"
+lemma integrable_affinity:
+  assumes "f integrable_on {a..b}"
+    and "m \<noteq> 0"
   shows "(\<lambda>x. f(m *\<^sub>R x + c)) integrable_on ((\<lambda>x. (1 / m) *\<^sub>R x + -((1/m) *\<^sub>R c)) ` {a..b})"
-  using assms unfolding integrable_on_def apply safe apply(drule has_integral_affinity) by auto
+  using assms
+  unfolding integrable_on_def
+  apply safe
+  apply (drule has_integral_affinity)
+  apply auto
+  done
+
 
 subsection {* Special case of stretching coordinate axes separately. *}
 
@@ -6856,310 +7550,744 @@ proof cases
 qed simp
 
 lemma interval_image_stretch_interval:
-    "\<exists>u v. (\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k) ` {a..b::'a::ordered_euclidean_space} = {u..v::'a}"
+  "\<exists>u v. (\<lambda>x. \<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k) ` {a..b::'a::ordered_euclidean_space} = {u..v::'a}"
   unfolding image_stretch_interval by auto
 
 lemma content_image_stretch_interval:
-  "content((\<lambda>x::'a::ordered_euclidean_space. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` {a..b}) = abs(setprod m Basis) * content({a..b})"
-proof(cases "{a..b} = {}") case True thus ?thesis
+  "content ((\<lambda>x::'a::ordered_euclidean_space. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` {a..b}) =
+    abs (setprod m Basis) * content {a..b}"
+proof (cases "{a..b} = {}")
+  case True
+  then show ?thesis
     unfolding content_def image_is_empty image_stretch_interval if_P[OF True] by auto
-next case False hence "(\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)::'a) ` {a..b} \<noteq> {}" by auto
-  thus ?thesis using False unfolding content_def image_stretch_interval apply- unfolding interval_bounds' if_not_P
-    unfolding abs_setprod setprod_timesf[symmetric] apply(rule setprod_cong2) unfolding lessThan_iff
-  proof (simp only: inner_setsum_left_Basis)
-    fix i :: 'a assume i:"i\<in>Basis" have "(m i < 0 \<or> m i > 0) \<or> m i = 0" by auto
-    thus "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) - min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) =
-        \<bar>m i\<bar> * (b \<bullet> i - a \<bullet> i)"
-      apply-apply(erule disjE)+ unfolding min_def max_def using False[unfolded interval_ne_empty,rule_format,of i] i
-      by(auto simp add:field_simps not_le mult_le_cancel_left_neg mult_le_cancel_left_pos) qed qed
+next
+  case False
+  then have "(\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) ` {a..b} \<noteq> {}"
+    by auto
+  then show ?thesis
+    using False
+    unfolding content_def image_stretch_interval
+    apply -
+    unfolding interval_bounds' if_not_P
+    unfolding abs_setprod setprod_timesf[symmetric]
+    apply (rule setprod_cong2)
+    unfolding lessThan_iff
+    apply (simp only: inner_setsum_left_Basis)
+  proof -
+    fix i :: 'a
+    assume i: "i \<in> Basis"
+    have "(m i < 0 \<or> m i > 0) \<or> m i = 0"
+      by auto
+    then show "max (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) - min (m i * (a \<bullet> i)) (m i * (b \<bullet> i)) =
+      \<bar>m i\<bar> * (b \<bullet> i - a \<bullet> i)"
+      apply -
+      apply (erule disjE)+
+      unfolding min_def max_def
+      using False[unfolded interval_ne_empty,rule_format,of i] i
+      apply (auto simp add:field_simps not_le mult_le_cancel_left_neg mult_le_cancel_left_pos)
+      done
+  qed
+qed
 
-lemma has_integral_stretch: fixes f::"'a::ordered_euclidean_space => 'b::real_normed_vector"
-  assumes "(f has_integral i) {a..b}" "\<forall>k\<in>Basis. ~(m k = 0)"
+lemma has_integral_stretch:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "(f has_integral i) {a..b}"
+    and "\<forall>k\<in>Basis. m k \<noteq> 0"
   shows "((\<lambda>x. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) has_integral
-             ((1/(abs(setprod m Basis))) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` {a..b})"
-  apply(rule has_integral_twiddle[where f=f]) unfolding zero_less_abs_iff content_image_stretch_interval
-  unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a] using assms
-proof- show "\<forall>y::'a. continuous (at y) (\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k))"
-   apply(rule,rule linear_continuous_at) unfolding linear_linear
-   unfolding linear_def inner_simps euclidean_eq_iff[where 'a='a] by(auto simp add:field_simps)
+    ((1/(abs(setprod m Basis))) *\<^sub>R i)) ((\<lambda>x. (\<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k)) ` {a..b})"
+  apply (rule has_integral_twiddle[where f=f])
+  unfolding zero_less_abs_iff content_image_stretch_interval
+  unfolding image_stretch_interval empty_as_interval euclidean_eq_iff[where 'a='a]
+  using assms
+proof -
+  show "\<forall>y::'a. continuous (at y) (\<lambda>x. (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k))"
+    apply rule
+    apply (rule linear_continuous_at)
+    unfolding linear_linear
+    unfolding linear_iff inner_simps euclidean_eq_iff[where 'a='a]
+    apply (auto simp add: field_simps)
+    done
 qed auto
 
-lemma integrable_stretch:  fixes f::"'a::ordered_euclidean_space => 'b::real_normed_vector"
-  assumes "f integrable_on {a..b}" "\<forall>k\<in>Basis. ~(m k = 0)"
-  shows "(\<lambda>x::'a. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) integrable_on ((\<lambda>x. \<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k) ` {a..b})"
-  using assms unfolding integrable_on_def apply-apply(erule exE)
-  apply(drule has_integral_stretch,assumption) by auto
+lemma integrable_stretch:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "f integrable_on {a..b}"
+    and "\<forall>k\<in>Basis. m k \<noteq> 0"
+  shows "(\<lambda>x::'a. f (\<Sum>k\<in>Basis. (m k * (x\<bullet>k))*\<^sub>R k)) integrable_on
+    ((\<lambda>x. \<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k) ` {a..b})"
+  using assms
+  unfolding integrable_on_def
+  apply -
+  apply (erule exE)
+  apply (drule has_integral_stretch)
+  apply assumption
+  apply auto
+  done
+
 
 subsection {* even more special cases. *}
 
-lemma uminus_interval_vector[simp]:"uminus ` {a..b} = {-b .. -a::'a::ordered_euclidean_space}"
-  apply(rule set_eqI,rule) defer unfolding image_iff
-  apply(rule_tac x="-x" in bexI) by(auto simp add:minus_le_iff le_minus_iff eucl_le[where 'a='a])
+lemma uminus_interval_vector[simp]:
+  fixes a b :: "'a::ordered_euclidean_space"
+  shows "uminus ` {a..b} = {-b..-a}"
+  apply (rule set_eqI)
+  apply rule
+  defer
+  unfolding image_iff
+  apply (rule_tac x="-x" in bexI)
+  apply (auto simp add:minus_le_iff le_minus_iff eucl_le[where 'a='a])
+  done
 
-lemma has_integral_reflect_lemma[intro]: assumes "(f has_integral i) {a..b}"
-  shows "((\<lambda>x. f(-x)) has_integral i) {-b .. -a}"
-  using has_integral_affinity[OF assms, of "-1" 0] by auto
+lemma has_integral_reflect_lemma[intro]:
+  assumes "(f has_integral i) {a..b}"
+  shows "((\<lambda>x. f(-x)) has_integral i) {-b..-a}"
+  using has_integral_affinity[OF assms, of "-1" 0]
+  by auto
 
-lemma has_integral_reflect[simp]: "((\<lambda>x. f(-x)) has_integral i) {-b..-a} \<longleftrightarrow> (f has_integral i) ({a..b})"
-  apply rule apply(drule_tac[!] has_integral_reflect_lemma) by auto
+lemma has_integral_reflect[simp]:
+  "((\<lambda>x. f (-x)) has_integral i) {-b..-a} \<longleftrightarrow> (f has_integral i) {a..b}"
+  apply rule
+  apply (drule_tac[!] has_integral_reflect_lemma)
+  apply auto
+  done
 
 lemma integrable_reflect[simp]: "(\<lambda>x. f(-x)) integrable_on {-b..-a} \<longleftrightarrow> f integrable_on {a..b}"
   unfolding integrable_on_def by auto
 
-lemma integral_reflect[simp]: "integral {-b..-a} (\<lambda>x. f(-x)) = integral ({a..b}) f"
+lemma integral_reflect[simp]: "integral {-b..-a} (\<lambda>x. f (-x)) = integral {a..b} f"
   unfolding integral_def by auto
+
 
 subsection {* Stronger form of FCT; quite a tedious proof. *}
 
-lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)" by(meson zero_less_one)
+lemma bgauge_existence_lemma: "(\<forall>x\<in>s. \<exists>d::real. 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. x\<in>s \<longrightarrow> q d x)"
+  by (meson zero_less_one)
 
-lemma additive_tagged_division_1': fixes f::"real \<Rightarrow> 'a::real_normed_vector"
-  assumes "a \<le> b" "p tagged_division_of {a..b}"
+lemma additive_tagged_division_1':
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  assumes "a \<le> b"
+    and "p tagged_division_of {a..b}"
   shows "setsum (\<lambda>(x,k). f (interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
-  using additive_tagged_division_1[OF _ assms(2), of f] using assms(1) by auto
+  using additive_tagged_division_1[OF _ assms(2), of f]
+  using assms(1)
+  by auto
 
-lemma split_minus[simp]:"(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x = (\<lambda>(x, k). f x k - g x k) x"
-  unfolding split_def by(rule refl)
+lemma split_minus[simp]: "(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x = (\<lambda>(x, k). f x k - g x k) x"
+  by (simp add: split_def)
 
 lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
-  apply(subst(asm)(2) norm_minus_cancel[symmetric])
-  apply(drule norm_triangle_le) by(auto simp add:algebra_simps)
+  apply (subst(asm)(2) norm_minus_cancel[symmetric])
+  apply (drule norm_triangle_le)
+  apply (auto simp add: algebra_simps)
+  done
 
-lemma fundamental_theorem_of_calculus_interior: fixes f::"real => 'a::real_normed_vector"
-  assumes"a \<le> b" "continuous_on {a..b} f" "\<forall>x\<in>{a<..<b}. (f has_vector_derivative f'(x)) (at x)"
+lemma fundamental_theorem_of_calculus_interior:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  assumes "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<forall>x\<in>{a<..<b}. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f b - f a)) {a..b}"
-proof- { presume *:"a < b \<Longrightarrow> ?thesis"
-    show ?thesis proof(cases,rule *,assumption)
-      assume "\<not> a < b" hence "a = b" using assms(1) by auto
-      hence *:"{a .. b} = {b}" "f b - f a = 0" by(auto simp add:  order_antisym)
-      show ?thesis unfolding *(2) apply(rule has_integral_null) unfolding content_eq_0 using * `a=b`
+proof -
+  {
+    presume *: "a < b \<Longrightarrow> ?thesis"
+    show ?thesis
+    proof (cases "a < b")
+      case True
+      then show ?thesis by (rule *)
+    next
+      case False
+      then have "a = b"
+        using assms(1) by auto
+      then have *: "{a .. b} = {b}" "f b - f a = 0"
+        by (auto simp add:  order_antisym)
+      show ?thesis
+        unfolding *(2)
+        apply (rule has_integral_null)
+        unfolding content_eq_0
+        using * `a = b`
         by (auto simp: ex_in_conv)
-    qed } assume ab:"a < b"
+    qed
+  }
+  assume ab: "a < b"
   let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow>
-                   norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
-  { presume "\<And>e. e>0 \<Longrightarrow> ?P e" thus ?thesis unfolding has_integral_factor_content by auto }
-  fix e::real assume e:"e>0"
+    norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f' x) - (f b - f a)) \<le> e * content {a..b})"
+  { presume "\<And>e. e > 0 \<Longrightarrow> ?P e" then show ?thesis unfolding has_integral_factor_content by auto }
+  fix e :: real
+  assume e: "e > 0"
   note assms(3)[unfolded has_vector_derivative_def has_derivative_at_alt ball_conj_distrib]
-  note conjunctD2[OF this] note bounded=this(1) and this(2)
-  from this(2) have "\<forall>x\<in>{a<..<b}. \<exists>d>0. \<forall>y. norm (y - x) < d \<longrightarrow> norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e/2 * norm (y - x)"
-    apply-apply safe apply(erule_tac x=x in ballE,erule_tac x="e/2" in allE) using e by auto note this[unfolded bgauge_existence_lemma]
-  from choice[OF this] guess d .. note conjunctD2[OF this[rule_format]] note d = this[rule_format]
-  have "bounded (f ` {a..b})" apply(rule compact_imp_bounded compact_continuous_image)+ using compact_interval assms by auto
+  note conjunctD2[OF this]
+  note bounded=this(1) and this(2)
+  from this(2) have "\<forall>x\<in>{a<..<b}. \<exists>d>0. \<forall>y. norm (y - x) < d \<longrightarrow>
+    norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e/2 * norm (y - x)"
+    apply -
+    apply safe
+    apply (erule_tac x=x in ballE)
+    apply (erule_tac x="e/2" in allE)
+    using e
+    apply auto
+    done
+  note this[unfolded bgauge_existence_lemma]
+  from choice[OF this] guess d ..
+  note conjunctD2[OF this[rule_format]]
+  note d = this[rule_format]
+  have "bounded (f ` {a..b})"
+    apply (rule compact_imp_bounded compact_continuous_image)+
+    using compact_interval assms
+    apply auto
+    done
   from this[unfolded bounded_pos] guess B .. note B = this[rule_format]
 
-  have "\<exists>da. 0 < da \<and> (\<forall>c. a \<le> c \<and> {a..c} \<subseteq> {a..b} \<and> {a..c} \<subseteq> ball a da
-    \<longrightarrow> norm(content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4)"
-  proof- have "a\<in>{a..b}" using ab by auto
+  have "\<exists>da. 0 < da \<and> (\<forall>c. a \<le> c \<and> {a..c} \<subseteq> {a..b} \<and> {a..c} \<subseteq> ball a da \<longrightarrow>
+    norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> (e * (b - a)) / 4)"
+  proof -
+    have "a \<in> {a..b}"
+      using ab by auto
     note assms(2)[unfolded continuous_on_eq_continuous_within,rule_format,OF this]
-    note * = this[unfolded continuous_within Lim_within,rule_format] have "(e * (b - a)) / 8 > 0" using e ab by(auto simp add:field_simps)
+    note * = this[unfolded continuous_within Lim_within,rule_format]
+    have "(e * (b - a)) / 8 > 0"
+      using e ab by (auto simp add: field_simps)
     from *[OF this] guess k .. note k = conjunctD2[OF this,rule_format]
     have "\<exists>l. 0 < l \<and> norm(l *\<^sub>R f' a) \<le> (e * (b - a)) / 8"
-    proof(cases "f' a = 0") case True
-      thus ?thesis apply(rule_tac x=1 in exI) using ab e by(auto intro!:mult_nonneg_nonneg)
-    next case False thus ?thesis
-        apply(rule_tac x="(e * (b - a)) / 8 / norm (f' a)" in exI) using ab e by(auto simp add:field_simps)
-    qed then guess l .. note l = conjunctD2[OF this]
-    show ?thesis apply(rule_tac x="min k l" in exI) apply safe unfolding min_less_iff_conj apply(rule,(rule l k)+)
-    proof- fix c assume as:"a \<le> c" "{a..c} \<subseteq> {a..b}" "{a..c} \<subseteq> ball a (min k l)"
+    proof (cases "f' a = 0")
+      case True
+      then show ?thesis
+        apply (rule_tac x=1 in exI)
+        using ab e
+        apply (auto intro!:mult_nonneg_nonneg)
+        done
+    next
+      case False
+      then show ?thesis
+        apply (rule_tac x="(e * (b - a)) / 8 / norm (f' a)" in exI)
+        using ab e
+        apply (auto simp add: field_simps)
+        done
+    qed
+    then guess l .. note l = conjunctD2[OF this]
+    show ?thesis
+      apply (rule_tac x="min k l" in exI)
+      apply safe
+      unfolding min_less_iff_conj
+      apply rule
+      apply (rule l k)+
+    proof -
+      fix c
+      assume as: "a \<le> c" "{a..c} \<subseteq> {a..b}" "{a..c} \<subseteq> ball a (min k l)"
       note as' = this[unfolded subset_eq Ball_def mem_ball dist_real_def mem_interval]
-      have "norm ((c - a) *\<^sub>R f' a - (f c - f a)) \<le> norm ((c - a) *\<^sub>R f' a) + norm (f c - f a)" by(rule norm_triangle_ineq4)
-      also have "... \<le> e * (b - a) / 8 + e * (b - a) / 8"
-      proof(rule add_mono) case goal1 have "\<bar>c - a\<bar> \<le> \<bar>l\<bar>" using as' by auto
-        thus ?case apply-apply(rule order_trans[OF _ l(2)]) unfolding norm_scaleR apply(rule mult_right_mono) by auto
-      next case goal2 show ?case apply(rule less_imp_le) apply(cases "a = c") defer
-          apply(rule k(2)[unfolded dist_norm]) using as' e ab by(auto simp add:field_simps)
-      qed finally show "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
+      have "norm ((c - a) *\<^sub>R f' a - (f c - f a)) \<le> norm ((c - a) *\<^sub>R f' a) + norm (f c - f a)"
+        by (rule norm_triangle_ineq4)
+      also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
+      proof (rule add_mono)
+        case goal1
+        have "\<bar>c - a\<bar> \<le> \<bar>l\<bar>"
+          using as' by auto
+        then show ?case
+          apply -
+          apply (rule order_trans[OF _ l(2)])
+          unfolding norm_scaleR
+          apply (rule mult_right_mono)
+          apply auto
+          done
+      next
+        case goal2
+        show ?case
+          apply (rule less_imp_le)
+          apply (cases "a = c")
+          defer
+          apply (rule k(2)[unfolded dist_norm])
+          using as' e ab
+          apply (auto simp add: field_simps)
+          done
+      qed
+      finally show "norm (content {a..c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4"
         unfolding content_real[OF as(1)] by auto
-    qed qed then guess da .. note da=conjunctD2[OF this,rule_format]
+    qed
+  qed
+  then guess da .. note da=conjunctD2[OF this,rule_format]
 
   have "\<exists>db>0. \<forall>c\<le>b. {c..b} \<subseteq> {a..b} \<and> {c..b} \<subseteq> ball b db \<longrightarrow>
-    norm(content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b - a)) / 4"
-  proof- have "b\<in>{a..b}" using ab by auto
+    norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> (e * (b - a)) / 4"
+  proof -
+    have "b \<in> {a..b}"
+      using ab by auto
     note assms(2)[unfolded continuous_on_eq_continuous_within,rule_format,OF this]
     note * = this[unfolded continuous_within Lim_within,rule_format] have "(e * (b - a)) / 8 > 0"
-      using e ab by(auto simp add:field_simps)
+      using e ab by (auto simp add: field_simps)
     from *[OF this] guess k .. note k = conjunctD2[OF this,rule_format]
-    have "\<exists>l. 0 < l \<and> norm(l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
-    proof(cases "f' b = 0") case True
-      thus ?thesis apply(rule_tac x=1 in exI) using ab e by(auto intro!:mult_nonneg_nonneg)
-    next case False thus ?thesis
-        apply(rule_tac x="(e * (b - a)) / 8 / norm (f' b)" in exI)
-        using ab e by(auto simp add:field_simps)
-    qed then guess l .. note l = conjunctD2[OF this]
-    show ?thesis apply(rule_tac x="min k l" in exI) apply safe unfolding min_less_iff_conj apply(rule,(rule l k)+)
-    proof- fix c assume as:"c \<le> b" "{c..b} \<subseteq> {a..b}" "{c..b} \<subseteq> ball b (min k l)"
+    have "\<exists>l. 0 < l \<and> norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
+    proof (cases "f' b = 0")
+      case True
+      then show ?thesis
+        apply (rule_tac x=1 in exI)
+        using ab e
+        apply (auto intro!: mult_nonneg_nonneg)
+        done
+    next
+      case False
+      then show ?thesis
+        apply (rule_tac x="(e * (b - a)) / 8 / norm (f' b)" in exI)
+        using ab e
+        apply (auto simp add: field_simps)
+        done
+    qed
+    then guess l .. note l = conjunctD2[OF this]
+    show ?thesis
+      apply (rule_tac x="min k l" in exI)
+      apply safe
+      unfolding min_less_iff_conj
+      apply rule
+      apply (rule l k)+
+    proof -
+      fix c
+      assume as: "c \<le> b" "{c..b} \<subseteq> {a..b}" "{c..b} \<subseteq> ball b (min k l)"
       note as' = this[unfolded subset_eq Ball_def mem_ball dist_real_def mem_interval]
-      have "norm ((b - c) *\<^sub>R f' b - (f b - f c)) \<le> norm ((b - c) *\<^sub>R f' b) + norm (f b - f c)" by(rule norm_triangle_ineq4)
-      also have "... \<le> e * (b - a) / 8 + e * (b - a) / 8"
-      proof(rule add_mono) case goal1 have "\<bar>c - b\<bar> \<le> \<bar>l\<bar>" using as' by auto
-        thus ?case apply-apply(rule order_trans[OF _ l(2)]) unfolding norm_scaleR apply(rule mult_right_mono) by auto
-      next case goal2 show ?case apply(rule less_imp_le) apply(cases "b = c") defer apply(subst norm_minus_commute)
-          apply(rule k(2)[unfolded dist_norm]) using as' e ab by(auto simp add:field_simps)
-      qed finally show "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4"
+      have "norm ((b - c) *\<^sub>R f' b - (f b - f c)) \<le> norm ((b - c) *\<^sub>R f' b) + norm (f b - f c)"
+        by (rule norm_triangle_ineq4)
+      also have "\<dots> \<le> e * (b - a) / 8 + e * (b - a) / 8"
+      proof (rule add_mono)
+        case goal1
+        have "\<bar>c - b\<bar> \<le> \<bar>l\<bar>"
+          using as' by auto
+        then show ?case
+          apply -
+          apply (rule order_trans[OF _ l(2)])
+          unfolding norm_scaleR
+          apply (rule mult_right_mono)
+          apply auto
+          done
+      next
+        case goal2
+        show ?case
+          apply (rule less_imp_le)
+          apply (cases "b = c")
+          defer
+          apply (subst norm_minus_commute)
+          apply (rule k(2)[unfolded dist_norm])
+          using as' e ab
+          apply (auto simp add: field_simps)
+          done
+      qed
+      finally show "norm (content {c..b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4"
         unfolding content_real[OF as(1)] by auto
-    qed qed then guess db .. note db=conjunctD2[OF this,rule_format]
+    qed
+  qed
+  then guess db .. note db=conjunctD2[OF this,rule_format]
 
   let ?d = "(\<lambda>x. ball x (if x=a then da else if x=b then db else d x))"
-  show "?P e" apply(rule_tac x="?d" in exI)
-  proof safe case goal1 show ?case apply(rule gauge_ball_dependent) using ab db(1) da(1) d(1) by auto
-  next case goal2 note as=this let ?A = "{t. fst t \<in> {a, b}}" note p = tagged_division_ofD[OF goal2(1)]
-    have pA:"p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"  using goal2 by auto
+  show "?P e"
+    apply (rule_tac x="?d" in exI)
+  proof safe
+    case goal1
+    show ?case
+      apply (rule gauge_ball_dependent)
+      using ab db(1) da(1) d(1)
+      apply auto
+      done
+  next
+    case goal2
+    note as=this
+    let ?A = "{t. fst t \<in> {a, b}}"
+    note p = tagged_division_ofD[OF goal2(1)]
+    have pA: "p = (p \<inter> ?A) \<union> (p - ?A)" "finite (p \<inter> ?A)" "finite (p - ?A)" "(p \<inter> ?A) \<inter> (p - ?A) = {}"
+      using goal2 by auto
     note * = additive_tagged_division_1'[OF assms(1) goal2(1), symmetric]
-    have **:"\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2" by arith
-    show ?case unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[symmetric] split_minus
-      unfolding setsum_right_distrib apply(subst(2) pA,subst pA) unfolding setsum_Un_disjoint[OF pA(2-)]
-    proof(rule norm_triangle_le,rule **)
-      case goal1 show ?case apply(rule order_trans,rule setsum_norm_le) defer apply(subst setsum_divide_distrib)
-      proof(rule order_refl,safe,unfold not_le o_def split_conv fst_conv,rule ccontr) fix x k assume as:"(x,k) \<in> p"
-          "e * (interval_upperbound k -  interval_lowerbound k) / 2
-          < norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k)))"
-        from p(4)[OF this(1)] guess u v apply-by(erule exE)+ note k=this
-        hence "u \<le> v" and uv:"{u,v}\<subseteq>{u..v}" using p(2)[OF as(1)] by auto
+    have **: "\<And>n1 s1 n2 s2::real. n2 \<le> s2 / 2 \<Longrightarrow> n1 - s1 \<le> s2 / 2 \<Longrightarrow> n1 + n2 \<le> s1 + s2"
+      by arith
+    show ?case
+      unfolding content_real[OF assms(1)] and *[of "\<lambda>x. x"] *[of f] setsum_subtractf[symmetric] split_minus
+      unfolding setsum_right_distrib
+      apply (subst(2) pA)
+      apply (subst pA)
+      unfolding setsum_Un_disjoint[OF pA(2-)]
+    proof (rule norm_triangle_le, rule **)
+      case goal1
+      show ?case
+        apply (rule order_trans)
+        apply (rule setsum_norm_le)
+        defer
+        apply (subst setsum_divide_distrib)
+        apply (rule order_refl)
+        apply safe
+        apply (unfold not_le o_def split_conv fst_conv)
+      proof (rule ccontr)
+        fix x k
+        assume as: "(x, k) \<in> p"
+          "e * (interval_upperbound k -  interval_lowerbound k) / 2 <
+            norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k)))"
+        from p(4)[OF this(1)] guess u v by (elim exE) note k=this
+        then have "u \<le> v" and uv: "{u, v} \<subseteq> {u..v}"
+          using p(2)[OF as(1)] by auto
         note result = as(2)[unfolded k interval_bounds_real[OF this(1)] content_real[OF this(1)]]
 
-        assume as':"x \<noteq> a" "x \<noteq> b" hence "x \<in> {a<..<b}" using p(2-3)[OF as(1)] by auto
+        assume as': "x \<noteq> a" "x \<noteq> b"
+        then have "x \<in> {a<..<b}"
+          using p(2-3)[OF as(1)] by auto
         note  * = d(2)[OF this]
         have "norm ((v - u) *\<^sub>R f' (x) - (f (v) - f (u))) =
           norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
-          apply(rule arg_cong[of _ _ norm]) unfolding scaleR_left.diff by auto
-        also have "... \<le> e / 2 * norm (u - x) + e / 2 * norm (v - x)" apply(rule norm_triangle_le_sub)
-          apply(rule add_mono) apply(rule_tac[!] *) using fineD[OF goal2(2) as(1)] as' unfolding k subset_eq
-          apply- apply(erule_tac x=u in ballE,erule_tac[3] x=v in ballE) using uv by(auto simp:dist_real_def)
-        also have "... \<le> e / 2 * norm (v - u)" using p(2)[OF as(1)] unfolding k by(auto simp add:field_simps)
+          apply (rule arg_cong[of _ _ norm])
+          unfolding scaleR_left.diff
+          apply auto
+          done
+        also have "\<dots> \<le> e / 2 * norm (u - x) + e / 2 * norm (v - x)"
+          apply (rule norm_triangle_le_sub)
+          apply (rule add_mono)
+          apply (rule_tac[!] *)
+          using fineD[OF goal2(2) as(1)] as'
+          unfolding k subset_eq
+          apply -
+          apply (erule_tac x=u in ballE)
+          apply (erule_tac[3] x=v in ballE)
+          using uv
+          apply (auto simp:dist_real_def)
+          done
+        also have "\<dots> \<le> e / 2 * norm (v - u)"
+          using p(2)[OF as(1)]
+          unfolding k
+          by (auto simp add: field_simps)
         finally have "e * (v - u) / 2 < e * (v - u) / 2"
-          apply- apply(rule less_le_trans[OF result]) using uv by auto thus False by auto qed
-
-    next have *:"\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2" by auto
-      case goal2 show ?case apply(rule *) apply(rule setsum_nonneg) apply(rule,unfold split_paired_all split_conv)
-        defer unfolding setsum_Un_disjoint[OF pA(2-),symmetric] pA(1)[symmetric] unfolding setsum_right_distrib[symmetric]
-        apply(subst additive_tagged_division_1[OF _ as(1)]) apply(rule assms)
-      proof- fix x k assume "(x,k) \<in> p \<inter> {t. fst t \<in> {a, b}}" note xk=IntD1[OF this]
-        from p(4)[OF this] guess u v apply-by(erule exE)+ note uv=this
-        with p(2)[OF xk] have "{u..v} \<noteq> {}" by auto
-        thus "0 \<le> e * ((interval_upperbound k) - (interval_lowerbound k))"
-          unfolding uv using e by(auto simp add:field_simps)
-      next have *:"\<And>s f t e. setsum f s = setsum f t \<Longrightarrow> norm(setsum f t) \<le> e \<Longrightarrow> norm(setsum f s) \<le> e" by auto
+          apply -
+          apply (rule less_le_trans[OF result])
+          using uv
+          apply auto
+          done
+        then show False by auto
+      qed
+    next
+      have *: "\<And>x s1 s2::real. 0 \<le> s1 \<Longrightarrow> x \<le> (s1 + s2) / 2 \<Longrightarrow> x - s1 \<le> s2 / 2"
+        by auto
+      case goal2
+      show ?case
+        apply (rule *)
+        apply (rule setsum_nonneg)
+        apply rule
+        apply (unfold split_paired_all split_conv)
+        defer
+        unfolding setsum_Un_disjoint[OF pA(2-),symmetric] pA(1)[symmetric]
+        unfolding setsum_right_distrib[symmetric]
+        apply (subst additive_tagged_division_1[OF _ as(1)])
+        apply (rule assms)
+      proof -
+        fix x k
+        assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}}"
+        note xk=IntD1[OF this]
+        from p(4)[OF this] guess u v by (elim exE) note uv=this
+        with p(2)[OF xk] have "{u..v} \<noteq> {}"
+          by auto
+        then show "0 \<le> e * ((interval_upperbound k) - (interval_lowerbound k))"
+          unfolding uv using e by (auto simp add: field_simps)
+      next
+        have *: "\<And>s f t e. setsum f s = setsum f t \<Longrightarrow> norm (setsum f t) \<le> e \<Longrightarrow> norm (setsum f s) \<le> e"
+          by auto
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
           (f ((interval_upperbound k)) - f ((interval_lowerbound k)))) \<le> e * (b - a) / 2"
-          apply(rule *[where t="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
-          apply(rule setsum_mono_zero_right[OF pA(2)]) defer apply(rule) unfolding split_paired_all split_conv o_def
-        proof- fix x k assume "(x,k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
-          hence xk:"(x,k)\<in>p" "content k = 0" by auto from p(4)[OF xk(1)] guess u v apply-by(erule exE)+ note uv=this
-          have "k\<noteq>{}" using p(2)[OF xk(1)] by auto hence *:"u = v" using xk
-            unfolding uv content_eq_0 interval_eq_empty by auto
-          thus "content k *\<^sub>R (f' (x)) - (f ((interval_upperbound k)) - f ((interval_lowerbound k))) = 0" using xk unfolding uv by auto
-        next have *:"p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} =
-            {t. t\<in>p \<and> fst t = a \<and> content(snd t) \<noteq> 0} \<union> {t. t\<in>p \<and> fst t = b \<and> content(snd t) \<noteq> 0}" by blast
-          have **:"\<And>s f. \<And>e::real. (\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y) \<Longrightarrow> (\<forall>x. x \<in> s \<longrightarrow> norm(f x) \<le> e)
-            \<Longrightarrow> e>0 \<Longrightarrow> norm(setsum f s) \<le> e"
-          proof(case_tac "s={}") case goal2 then obtain x where "x\<in>s" by auto hence *:"s = {x}" using goal2(1) by auto
-            thus ?case using `x\<in>s` goal2(2) by auto
+          apply (rule *[where t="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
+          apply (rule setsum_mono_zero_right[OF pA(2)])
+          defer
+          apply rule
+          unfolding split_paired_all split_conv o_def
+        proof -
+          fix x k
+          assume "(x, k) \<in> p \<inter> {t. fst t \<in> {a, b}} - p \<inter> {t. fst t \<in> {a, b} \<and> content (snd t) \<noteq> 0}"
+          then have xk: "(x, k) \<in> p" "content k = 0"
+            by auto
+          from p(4)[OF xk(1)] guess u v by (elim exE) note uv=this
+          have "k \<noteq> {}"
+            using p(2)[OF xk(1)] by auto
+          then have *: "u = v"
+            using xk
+            unfolding uv content_eq_0 interval_eq_empty
+            by auto
+          then show "content k *\<^sub>R (f' (x)) - (f ((interval_upperbound k)) - f ((interval_lowerbound k))) = 0"
+            using xk unfolding uv by auto
+        next
+          have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} =
+            {t. t\<in>p \<and> fst t = a \<and> content(snd t) \<noteq> 0} \<union> {t. t\<in>p \<and> fst t = b \<and> content(snd t) \<noteq> 0}"
+            by blast
+          have **: "\<And>s f. \<And>e::real. (\<forall>x y. x \<in> s \<and> y \<in> s \<longrightarrow> x = y) \<Longrightarrow>
+            (\<forall>x. x \<in> s \<longrightarrow> norm (f x) \<le> e) \<Longrightarrow> e > 0 \<Longrightarrow> norm (setsum f s) \<le> e"
+          proof (case_tac "s = {}")
+            case goal2
+            then obtain x where "x \<in> s"
+              by auto
+            then have *: "s = {x}"
+              using goal2(1) by auto
+            then show ?case
+              using `x \<in> s` goal2(2) by auto
           qed auto
-          case goal2 show ?case apply(subst *, subst setsum_Un_disjoint) prefer 4
-            apply(rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
-            apply(rule norm_triangle_le,rule add_mono) apply(rule_tac[1-2] **)
-          proof- let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
-            have pa:"\<And>k. (a, k) \<in> p \<Longrightarrow> \<exists>v. k = {a .. v} \<and> a \<le> v"
-            proof- case goal1 guess u v using p(4)[OF goal1] apply-by(erule exE)+ note uv=this
-              have *:"u \<le> v" using p(2)[OF goal1] unfolding uv by auto
-              have u:"u = a" proof(rule ccontr)  have "u \<in> {u..v}" using p(2-3)[OF goal1(1)] unfolding uv by auto
-                have "u \<ge> a" using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto moreover assume "u\<noteq>a" ultimately
-                have "u > a" by auto
-                thus False using p(2)[OF goal1(1)] unfolding uv by(auto simp add:)
-              qed thus ?case apply(rule_tac x=v in exI) unfolding uv using * by auto
+          case goal2
+          show ?case
+            apply (subst *)
+            apply (subst setsum_Un_disjoint)
+            prefer 4
+            apply (rule order_trans[of _ "e * (b - a)/4 + e * (b - a)/4"])
+            apply (rule norm_triangle_le,rule add_mono)
+            apply (rule_tac[1-2] **)
+          proof -
+            let ?B = "\<lambda>x. {t \<in> p. fst t = x \<and> content (snd t) \<noteq> 0}"
+            have pa: "\<And>k. (a, k) \<in> p \<Longrightarrow> \<exists>v. k = {a .. v} \<and> a \<le> v"
+            proof -
+              case goal1
+              guess u v using p(4)[OF goal1] by (elim exE) note uv=this
+              have *: "u \<le> v"
+                using p(2)[OF goal1] unfolding uv by auto
+              have u: "u = a"
+              proof (rule ccontr)
+                have "u \<in> {u..v}"
+                  using p(2-3)[OF goal1(1)] unfolding uv by auto
+                have "u \<ge> a"
+                  using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto
+                moreover assume "u \<noteq> a"
+                ultimately have "u > a" by auto
+                then show False
+                  using p(2)[OF goal1(1)] unfolding uv by (auto simp add:)
+              qed
+              then show ?case
+                apply (rule_tac x=v in exI)
+                unfolding uv
+                using *
+                apply auto
+                done
             qed
-            have pb:"\<And>k. (b, k) \<in> p \<Longrightarrow> \<exists>v. k = {v .. b} \<and> b \<ge> v"
-            proof- case goal1 guess u v using p(4)[OF goal1] apply-by(erule exE)+ note uv=this
-              have *:"u \<le> v" using p(2)[OF goal1] unfolding uv by auto
-              have u:"v =  b" proof(rule ccontr)  have "u \<in> {u..v}" using p(2-3)[OF goal1(1)] unfolding uv by auto
-                have "v \<le>  b" using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto moreover assume "v\<noteq> b" ultimately
-                have "v <  b" by auto
-                thus False using p(2)[OF goal1(1)] unfolding uv by(auto simp add:)
-              qed thus ?case apply(rule_tac x=u in exI) unfolding uv using * by auto
+            have pb: "\<And>k. (b, k) \<in> p \<Longrightarrow> \<exists>v. k = {v .. b} \<and> b \<ge> v"
+            proof -
+              case goal1
+              guess u v using p(4)[OF goal1] by (elim exE) note uv=this
+              have *: "u \<le> v"
+                using p(2)[OF goal1] unfolding uv by auto
+              have u: "v =  b"
+              proof (rule ccontr)
+                have "u \<in> {u..v}"
+                  using p(2-3)[OF goal1(1)] unfolding uv by auto
+                have "v \<le> b"
+                  using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto
+                moreover assume "v \<noteq> b"
+                ultimately have "v < b" by auto
+                then show False
+                  using p(2)[OF goal1(1)] unfolding uv by (auto simp add:)
+              qed
+              then show ?case
+                apply (rule_tac x=u in exI)
+                unfolding uv
+                using *
+                apply auto
+                done
             qed
-
-            show "\<forall>x y. x \<in> ?B a \<and> y \<in> ?B a \<longrightarrow> x = y" apply(rule,rule,rule,unfold split_paired_all)
-              unfolding mem_Collect_eq fst_conv snd_conv apply safe
-            proof- fix x k k' assume k:"( a, k) \<in> p" "( a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
+            show "\<forall>x y. x \<in> ?B a \<and> y \<in> ?B a \<longrightarrow> x = y"
+              apply (rule,rule,rule,unfold split_paired_all)
+              unfolding mem_Collect_eq fst_conv snd_conv
+              apply safe
+            proof -
+              fix x k k'
+              assume k: "(a, k) \<in> p" "(a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
               guess v using pa[OF k(1)] .. note v = conjunctD2[OF this]
-              guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = " (min (v) (v'))"
-              have "{ a <..< ?v} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note interior_mono[OF this,unfolded interior_inter]
-              moreover have " ((a + ?v)/2) \<in> { a <..< ?v}" using k(3-)
-                unfolding v v' content_eq_0 not_le by(auto simp add:not_le)
-              ultimately have " ((a + ?v)/2) \<in> interior k \<inter> interior k'" unfolding interior_open[OF open_interval] by auto
-              hence *:"k = k'" apply- apply(rule ccontr) using p(5)[OF k(1-2)] by auto
-              { assume "x\<in>k" thus "x\<in>k'" unfolding * . } { assume "x\<in>k'" thus "x\<in>k" unfolding * . }
+              guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = "min v v'"
+              have "{a <..< ?v} \<subseteq> k \<inter> k'"
+                unfolding v v' by (auto simp add:)
+              note interior_mono[OF this,unfolded interior_inter]
+              moreover have "(a + ?v)/2 \<in> { a <..< ?v}"
+                using k(3-)
+                unfolding v v' content_eq_0 not_le
+                by (auto simp add: not_le)
+              ultimately have "(a + ?v)/2 \<in> interior k \<inter> interior k'"
+                unfolding interior_open[OF open_interval] by auto
+              then have *: "k = k'"
+                apply -
+                apply (rule ccontr)
+                using p(5)[OF k(1-2)]
+                apply auto
+                done
+              { assume "x \<in> k" then show "x \<in> k'" unfolding * . }
+              { assume "x \<in> k'" then show "x\<in>k" unfolding * . }
             qed
-            show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y" apply(rule,rule,rule,unfold split_paired_all)
-              unfolding mem_Collect_eq fst_conv snd_conv apply safe
-            proof- fix x k k' assume k:"( b, k) \<in> p" "( b, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
+            show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
+              apply rule
+              apply rule
+              apply rule
+              apply (unfold split_paired_all)
+              unfolding mem_Collect_eq fst_conv snd_conv
+              apply safe
+            proof -
+              fix x k k'
+              assume k: "(b, k) \<in> p" "(b, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
               guess v using pb[OF k(1)] .. note v = conjunctD2[OF this]
-              guess v' using pb[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = " (max (v) (v'))"
-              have "{?v <..<  b} \<subseteq> k \<inter> k'" unfolding v v' by(auto simp add:) note interior_mono[OF this,unfolded interior_inter]
-              moreover have " ((b + ?v)/2) \<in> {?v <..<  b}" using k(3-) unfolding v v' content_eq_0 not_le by auto
-              ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'" unfolding interior_open[OF open_interval] by auto
-              hence *:"k = k'" apply- apply(rule ccontr) using p(5)[OF k(1-2)] by auto
-              { assume "x\<in>k" thus "x\<in>k'" unfolding * . } { assume "x\<in>k'" thus "x\<in>k" unfolding * . }
+              guess v' using pb[OF k(2)] .. note v' = conjunctD2[OF this]
+              let ?v = "max v v'"
+              have "{?v <..< b} \<subseteq> k \<inter> k'"
+                unfolding v v' by auto
+                note interior_mono[OF this,unfolded interior_inter]
+              moreover have " ((b + ?v)/2) \<in> {?v <..<  b}"
+                using k(3-) unfolding v v' content_eq_0 not_le by auto
+              ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'"
+                unfolding interior_open[OF open_interval] by auto
+              then have *: "k = k'"
+                apply -
+                apply (rule ccontr)
+                using p(5)[OF k(1-2)]
+                apply auto
+                done
+              { assume "x \<in> k" then show "x \<in> k'" unfolding * . }
+              { assume "x \<in> k'" then show "x\<in>k" unfolding * . }
             qed
 
             let ?a = a and ?b = b (* a is something else while proofing the next theorem. *)
-            show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' (x) - (f ((interval_upperbound k)) -
-              f ((interval_lowerbound k)))) x) \<le> e * (b - a) / 4" apply(rule,rule) unfolding mem_Collect_eq
+            show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (interval_upperbound k) -
+              f (interval_lowerbound k))) x) \<le> e * (b - a) / 4"
+              apply rule
+              apply rule
+              unfolding mem_Collect_eq
               unfolding split_paired_all fst_conv snd_conv
-            proof safe case goal1 guess v using pa[OF goal1(1)] .. note v = conjunctD2[OF this]
-              have " ?a\<in>{ ?a..v}" using v(2) by auto hence "v \<le> ?b" using p(3)[OF goal1(1)] unfolding subset_eq v by auto
-              moreover have "{?a..v} \<subseteq> ball ?a da" using fineD[OF as(2) goal1(1)]
-                apply-apply(subst(asm) if_P,rule refl) unfolding subset_eq apply safe apply(erule_tac x=" x" in ballE)
-                by(auto simp add:subset_eq dist_real_def v) ultimately
-              show ?case unfolding v interval_bounds_real[OF v(2)] apply- apply(rule da(2)[of "v"])
-                using goal1 fineD[OF as(2) goal1(1)] unfolding v content_eq_0 by auto
+            proof safe
+              case goal1
+              guess v using pa[OF goal1(1)] .. note v = conjunctD2[OF this]
+              have "?a \<in> {?a..v}"
+                using v(2) by auto
+              then have "v \<le> ?b"
+                using p(3)[OF goal1(1)] unfolding subset_eq v by auto
+              moreover have "{?a..v} \<subseteq> ball ?a da"
+                using fineD[OF as(2) goal1(1)]
+                apply -
+                apply (subst(asm) if_P)
+                apply (rule refl)
+                unfolding subset_eq
+                apply safe
+                apply (erule_tac x=" x" in ballE)
+                apply (auto simp add:subset_eq dist_real_def v)
+                done
+              ultimately show ?case
+                unfolding v interval_bounds_real[OF v(2)]
+                apply -
+                apply(rule da(2)[of "v"])
+                using goal1 fineD[OF as(2) goal1(1)]
+                unfolding v content_eq_0
+                apply auto
+                done
             qed
-            show "\<forall>x. x \<in> ?B b \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' (x) -
-              (f ((interval_upperbound k)) - f ((interval_lowerbound k)))) x) \<le> e * (b - a) / 4"
-              apply(rule,rule) unfolding mem_Collect_eq unfolding split_paired_all fst_conv snd_conv
-            proof safe case goal1 guess v using pb[OF goal1(1)] .. note v = conjunctD2[OF this]
-              have " ?b\<in>{v.. ?b}" using v(2) by auto hence "v \<ge> ?a" using p(3)[OF goal1(1)]
+            show "\<forall>x. x \<in> ?B b \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x -
+              (f (interval_upperbound k) - f (interval_lowerbound k))) x) \<le> e * (b - a) / 4"
+              apply rule
+              apply rule
+              unfolding mem_Collect_eq
+              unfolding split_paired_all fst_conv snd_conv
+            proof safe
+              case goal1 guess v using pb[OF goal1(1)] .. note v = conjunctD2[OF this]
+              have "?b \<in> {v.. ?b}"
+                using v(2) by auto
+              then have "v \<ge> ?a" using p(3)[OF goal1(1)]
                 unfolding subset_eq v by auto
-              moreover have "{v..?b} \<subseteq> ball ?b db" using fineD[OF as(2) goal1(1)]
-                apply-apply(subst(asm) if_P,rule refl) unfolding subset_eq apply safe
-                apply(erule_tac x=" x" in ballE) using ab
-                by(auto simp add:subset_eq v dist_real_def) ultimately
-              show ?case unfolding v unfolding interval_bounds_real[OF v(2)] apply- apply(rule db(2)[of "v"])
-                using goal1 fineD[OF as(2) goal1(1)] unfolding v content_eq_0 by auto
+              moreover have "{v..?b} \<subseteq> ball ?b db"
+                using fineD[OF as(2) goal1(1)]
+                apply -
+                apply (subst(asm) if_P, rule refl)
+                unfolding subset_eq
+                apply safe
+                apply (erule_tac x=" x" in ballE)
+                using ab
+                apply (auto simp add:subset_eq v dist_real_def)
+                done
+              ultimately show ?case
+                unfolding v
+                unfolding interval_bounds_real[OF v(2)]
+                apply -
+                apply(rule db(2)[of "v"])
+                using goal1 fineD[OF as(2) goal1(1)]
+                unfolding v content_eq_0
+                apply auto
+                done
             qed
-          qed(insert p(1) ab e, auto simp add:field_simps) qed auto qed qed qed qed
+          qed (insert p(1) ab e, auto simp add: field_simps)
+        qed auto
+      qed
+    qed
+  qed
+qed
+
 
 subsection {* Stronger form with finite number of exceptional points. *}
 
-lemma fundamental_theorem_of_calculus_interior_strong: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes"finite s" "a \<le> b" "continuous_on {a..b} f"
-  "\<forall>x\<in>{a<..<b} - s. (f has_vector_derivative f'(x)) (at x)"
-  shows "(f' has_integral (f b - f a)) {a..b}" using assms apply-
-proof(induct "card s" arbitrary:s a b)
-  case 0 show ?case apply(rule fundamental_theorem_of_calculus_interior) using 0 by auto
-next case (Suc n) from this(2) guess c s' apply-apply(subst(asm) eq_commute) unfolding card_Suc_eq
-    apply(subst(asm)(2) eq_commute) by(erule exE conjE)+ note cs = this[rule_format]
-  show ?case proof(cases "c\<in>{a<..<b}")
-    case False thus ?thesis apply- apply(rule Suc(1)[OF cs(3) _ Suc(4,5)]) apply safe defer
-      apply(rule Suc(6)[rule_format]) using Suc(3) unfolding cs by auto
-  next have *:"f b - f a = (f c - f a) + (f b - f c)" by auto
-    case True hence "a \<le> c" "c \<le> b" by auto
-    thus ?thesis apply(subst *) apply(rule has_integral_combine) apply assumption+
-      apply(rule_tac[!] Suc(1)[OF cs(3)]) using Suc(3) unfolding cs
-    proof- show "continuous_on {a..c} f" "continuous_on {c..b} f"
-        apply(rule_tac[!] continuous_on_subset[OF Suc(5)]) using True by auto
+lemma fundamental_theorem_of_calculus_interior_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "finite s"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<forall>x\<in>{a<..<b} - s. (f has_vector_derivative f'(x)) (at x)"
+  shows "(f' has_integral (f b - f a)) {a..b}"
+  using assms
+proof (induct "card s" arbitrary: s a b)
+  case 0
+  show ?case
+    apply (rule fundamental_theorem_of_calculus_interior)
+    using 0
+    apply auto
+    done
+next
+  case (Suc n)
+  from this(2) guess c s'
+    apply -
+    apply (subst(asm) eq_commute)
+    unfolding card_Suc_eq
+    apply (subst(asm)(2) eq_commute)
+    apply (elim exE conjE)
+    done
+  note cs = this[rule_format]
+  show ?case
+  proof (cases "c \<in> {a<..<b}")
+    case False
+    then show ?thesis
+      apply -
+      apply (rule Suc(1)[OF cs(3) _ Suc(4,5)])
+      apply safe
+      defer
+      apply (rule Suc(6)[rule_format])
+      using Suc(3)
+      unfolding cs
+      apply auto
+      done
+  next
+    have *: "f b - f a = (f c - f a) + (f b - f c)"
+      by auto
+    case True
+    then have "a \<le> c" "c \<le> b"
+      by auto
+    then show ?thesis
+      apply (subst *)
+      apply (rule has_integral_combine)
+      apply assumption+
+      apply (rule_tac[!] Suc(1)[OF cs(3)])
+      using Suc(3)
+      unfolding cs
+    proof -
+      show "continuous_on {a..c} f" "continuous_on {c..b} f"
+        apply (rule_tac[!] continuous_on_subset[OF Suc(5)])
+        using True
+        apply auto
+        done
       let ?P = "\<lambda>i j. \<forall>x\<in>{i<..<j} - s'. (f has_vector_derivative f' x) (at x)"
-      show "?P a c" "?P c b" apply safe apply(rule_tac[!] Suc(6)[rule_format]) using True unfolding cs by auto
-    qed auto qed qed
+      show "?P a c" "?P c b"
+        apply safe
+        apply (rule_tac[!] Suc(6)[rule_format])
+        using True
+        unfolding cs
+        apply auto
+        done
+    qed auto
+  qed
+qed
 
-lemma fundamental_theorem_of_calculus_strong: fixes f::"real \<Rightarrow> 'a::banach"
-  assumes "finite s" "a \<le> b" "continuous_on {a..b} f"
-  "\<forall>x\<in>{a..b} - s. (f has_vector_derivative f'(x)) (at x)"
+lemma fundamental_theorem_of_calculus_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "finite s"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<forall>x\<in>{a..b} - s. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f(b) - f(a))) {a..b}"
-  apply(rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
-  using assms(4) by auto
+  apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
+  using assms(4)
+  apply auto
+  done
 
-lemma indefinite_integral_continuous_left: fixes f::"real \<Rightarrow> 'a::banach"
+lemma indefinite_integral_continuous_left:
+  fixes f::"real \<Rightarrow> 'a::banach"
   assumes "f integrable_on {a..b}" "a < c" "c \<le> b" "0 < e"
   obtains d where "0 < d" "\<forall>t. c - d < t \<and> t \<le> c \<longrightarrow> norm(integral {a..c} f - integral {a..t} f) < e"
 proof- have "\<exists>w>0. \<forall>t. c - w < t \<and> t < c \<longrightarrow> norm(f c) * norm(c - t) < e / 3"
@@ -7377,7 +8505,7 @@ proof- def g \<equiv> "\<lambda>x. if x \<in>{c<..<d} then f x else 0"
     thus ?thesis using integrable_integral unfolding g_def by auto }
 
   note iterate_eq_neutral[OF mon,unfolded neutral_lifted[OF monoidal_monoid]]
-  note * = this[unfolded neutral_monoid]
+  note * = this[unfolded neutral_add]
   have iterate:"iterate (lifted op +) (p - {{c..d}})
       (\<lambda>i. if g integrable_on i then Some (integral i g) else None) = Some 0"
   proof(rule *,rule) case goal1 hence "x\<in>p" by auto note div = division_ofD(2-5)[OF p(1) this]
@@ -8286,7 +9414,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   next case goal2 thus ?case apply(rule integrable_sub) using assms(1) by auto
   next case goal3 thus ?case using *[of x "Suc k" "Suc (Suc k)"] by auto
   next case goal4 thus ?case apply-apply(rule tendsto_diff)
-      using seq_offset[OF assms(3)[rule_format],of x 1] by auto
+      using LIMSEQ_ignore_initial_segment[OF assms(3)[rule_format],of x 1] by auto
   next case goal5 thus ?case using assms(4) unfolding bounded_iff
       apply safe apply(rule_tac x="a + norm (integral s (\<lambda>x. f 0 x))" in exI)
       apply safe apply(erule_tac x="integral s (\<lambda>x. f (Suc k) x)" in ballE) unfolding sub
@@ -8294,7 +9422,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> 'n::ordered_euclidean_space \<Righta
   note conjunctD2[OF this] note tendsto_add[OF this(2) tendsto_const[of "integral s (f 0)"]]
     integrable_add[OF this(1) assms(1)[rule_format,of 0]]
   thus ?thesis unfolding sub apply-apply rule defer apply(subst(asm) integral_sub)
-    using assms(1) apply auto apply(rule seq_offset_rev[where k=1]) by auto qed
+    using assms(1) apply auto by(rule LIMSEQ_imp_Suc) qed
 
 lemma monotone_convergence_decreasing: fixes f::"nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on s"  "\<forall>k. \<forall>x\<in>s. (f (Suc k) x) \<le> (f k x)"
@@ -9087,7 +10215,8 @@ proof -
         apply (rule_tac x=N in exI)
       proof safe
         case goal1
-        have *:"\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r" by arith
+        have *: "\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r"
+          by arith
         show ?case
           unfolding real_norm_def
             apply (rule *[rule_format,OF y(2)])

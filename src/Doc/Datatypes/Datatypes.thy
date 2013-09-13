@@ -17,7 +17,7 @@ The 2013 edition of Isabelle introduced a new definitional package for freely
 generated datatypes and codatatypes. The datatype support is similar to that
 provided by the earlier package due to Berghofer and Wenzel
 \cite{Berghofer-Wenzel:1999:TPHOL}, documented in the Isar reference manual
-\cite{isabelle-isar-ref}; indeed, replacing the keyword @{command datatype} by
+\cite{isabelle-isar-ref}; indeed, replacing the keyword \keyw{datatype} by
 @{command datatype_new} is usually all that is needed to port existing theories
 to use the new package.
 
@@ -40,7 +40,7 @@ Another strong point is the support for local definitions:
 text {*
 \noindent
 The package also provides some convenience, notably automatically generated
-destructors (discriminators and selectors).
+discriminators and selectors.
 
 In addition to plain inductive datatypes, the new package supports coinductive
 datatypes, or \emph{codatatypes}, which may have infinite values. For example,
@@ -75,7 +75,7 @@ types have finite branching, whereas those of the second and fourth may have
 infinitely many direct subtrees.
 
 To use the package, it is necessary to import the @{theory BNF} theory, which
-can be precompiled into the \textit{HOL-BNF} image. The following commands show
+can be precompiled into the \texttt{HOL-BNF} image. The following commands show
 how to launch jEdit/PIDE with the image loaded and how to build the image
 without launching jEdit:
 *}
@@ -91,10 +91,12 @@ text {*
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
-\footnote{If the \textit{quick\_and\_dirty} option is enabled, some of the
+\footnote{If the @{text quick_and_dirty} option is enabled, some of the
 internal constructions and most of the internal proof obligations are skipped.}
 The package's metatheory is described in a pair of papers
-\cite{traytel-et-al-2012,blanchette-et-al-wit}.
+\cite{traytel-et-al-2012,blanchette-et-al-wit}. The central notion is that of a
+\emph{bounded natural functor} (BNF)---a well-behaved type constructor for which
+nested (co)recursion is supported.
 
 This tutorial is organized as follows:
 
@@ -106,23 +108,25 @@ describes how to specify datatypes using the @{command datatype_new} command.
 
 \item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive
 Functions,'' describes how to specify recursive functions using
-\keyw{primrec\_new}, @{command fun}, and @{command function}.
+@{command primrec_new}, \keyw{fun}, and \keyw{function}.
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
 describes how to specify codatatypes using the @{command codatatype} command.
 
 \item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive
 Functions,'' describes how to specify corecursive functions using the
-\keyw{primcorec} command.
+@{command primcorec} command.
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
-Bounded Natural Functors,'' explains how to set up the package to allow nested
-recursion through custom well-behaved type constructors.
+Bounded Natural Functors,'' explains how to use the @{command bnf} command
+to register arbitrary type constructors as BNFs.
 
-\item Section \ref{sec:generating-free-constructor-theorems}, ``Generating Free
-Constructor Theorems,'' explains how to derive convenience theorems for free
-constructors, as performed internally by @{command datatype_new} and
-@{command codatatype}.
+\item Section
+\ref{sec:generating-destructors-and-theorems-for-free-constructors},
+``Generating Destructors and Theorems for Free Constructors,'' explains how to
+use the command @{command wrap_free_constructors} to derive destructor constants
+and theorems for freely generated types, as performed internally by @{command
+datatype_new} and @{command codatatype}.
 
 \item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
 describes the package's programmatic interface.
@@ -149,8 +153,8 @@ in.\allowbreak tum.\allowbreak de}}
 in.\allowbreak tum.\allowbreak de}}
 
 The commands @{command datatype_new} and @{command primrec_new} are expected to
-displace @{command datatype} and @{command primrec} in a future release. Authors
-of new theories are encouraged to use the new commands, and maintainers of older
+displace \keyw{datatype} and \keyw{primrec} in a future release. Authors of new
+theories are encouraged to use the new commands, and maintainers of older
 theories may want to consider upgrading.
 
 Comments and bug reports concerning either the tool or this tutorial should be
@@ -163,7 +167,6 @@ and \authoremailiv.
 for its appearance. If you have ideas regarding material that should be
 included, please let the authors know.
 \end{framed}
-
 *}
 
 
@@ -171,10 +174,10 @@ section {* Defining Datatypes
   \label{sec:defining-datatypes} *}
 
 text {*
-This section describes how to specify datatypes using the @{command datatype_new}
-command. The command is first illustrated through concrete examples featuring
-different flavors of recursion. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|.
+This section describes how to specify datatypes using the @{command
+datatype_new} command. The command is first illustrated through concrete
+examples featuring different flavors of recursion. More examples can be found in
+the directory \verb|~~/src/HOL/BNF/Examples|.
 *}
 
 
@@ -253,17 +256,17 @@ Lists were shown in the introduction. Terminated lists are a variant:
 
 text {*
 \noindent
-Nonatomic types must be enclosed in double quotes on the right-hand side of the
-equal sign, as is customary in Isabelle.
+Occurrences of nonatomic types on the right-hand side of the equal sign must be
+enclosed in double quotes, as is customary in Isabelle.
 *}
 
 
 subsubsection {* Mutual Recursion *}
 
 text {*
-\emph{Mutually recursive} types are introduced simultaneously and may refer to each
-other. The example below introduces a pair of types for even and odd natural
-numbers:
+\emph{Mutually recursive} types are introduced simultaneously and may refer to
+each other. The example below introduces a pair of types for even and odd
+natural numbers:
 *}
 
     datatype_new enat = EZero | ESuc onat
@@ -301,7 +304,7 @@ Not all nestings are admissible. For example, this command will fail:
 *}
 
     datatype_new 'a wrong = Wrong (*<*)'a
-    typ (*>*)"'a wrong \<Rightarrow> 'a wrong"
+    typ (*>*)"'a wrong \<Rightarrow> 'a"
 
 text {*
 \noindent
@@ -312,7 +315,7 @@ datatypes defined in terms of~@{text "\<Rightarrow>"}:
 
     datatype_new ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
     datatype_new 'a also_wrong = Also_Wrong (*<*)'a
-    typ (*>*)"('a also_wrong, 'a also_wrong) fn"
+    typ (*>*)"('a also_wrong, 'a) fn"
 
 text {*
 \noindent
@@ -321,6 +324,12 @@ allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
 @{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
 type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 @{typ "('a, 'b) fn"}, the type variable @{typ 'a} is dead and @{typ 'b} is live.
+
+Type constructors must be registered as bounded natural functors (BNFs) to have
+live arguments. This is done automatically for datatypes and codatatypes
+introduced by the @{command datatype_new} and @{command codatatype} commands.
+Section~\ref{sec:registering-bounded-natural-functors} explains how to register
+arbitrary type constructors as BNFs.
 *}
 
 
@@ -336,12 +345,8 @@ following auxiliary constants are introduced (among others):
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Set functions} (or \relax{natural transformations}):
-@{text t_set1}, \ldots, @{text t_setm}
-
-\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
-
-\item \relax{Relator}: @{text t_rel}
+\item \relax{Case combinator}: @{text t_case} (rendered using the familiar
+@{text case}--@{text of} syntax)
 
 \item \relax{Iterator}: @{text t_fold}
 
@@ -351,16 +356,25 @@ following auxiliary constants are introduced (among others):
 @{text "t.is_C\<^sub>n"}
 
 \item \relax{Selectors}:
-@{text t.un_C11}$, \ldots, @{text t.un_C1k\<^sub>1}, \\
+@{text t.un_C\<^sub>11}$, \ldots, @{text t.un_C\<^sub>1k\<^sub>1}, \\
 \phantom{\relax{Selectors:}} \quad\vdots \\
-\phantom{\relax{Selectors:}} @{text t.un_Cn1}$, \ldots, @{text t.un_Cnk\<^sub>n}.
+\phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
+
+\item \relax{Set functions} (or \relax{natural transformations}):
+@{text t_set1}, \ldots, @{text t_setm}
+
+\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
+
+\item \relax{Relator}: @{text t_rel}
+
 \end{itemize}
 
 \noindent
-The discriminators and selectors are collectively called \emph{destructors}. The
-prefix ``@{text "t."}'' is an optional component of the name and is normally
-hidden. The set functions, map function, relator, discriminators, and selectors
-can be given custom names, as in the example below:
+The case combinator, discriminators, and selectors are collectively called
+\emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
+name and is normally hidden. The set functions, map function, relator,
+discriminators, and selectors can be given custom names, as in the example
+below:
 *}
 
 (*<*)
@@ -372,7 +386,8 @@ can be given custom names, as in the example below:
       Nil ("[]") and
       Cons (infixr "#" 65)
 
-    hide_const Nil Cons hd tl map
+    hide_type list
+    hide_const Nil Cons hd tl set map list_all2 list_case list_rec
 
     locale dummy_list
     begin
@@ -393,21 +408,18 @@ For two-constructor datatypes, a single discriminator constant suffices. The
 discriminator associated with @{const Cons} is simply
 @{term "\<lambda>xs. \<not> null xs"}.
 
-The @{text "defaults"} keyword following the @{const Nil} constructor specifies
-a default value for selectors associated with other constructors. Here, it is
-used to ensure that the tail of the empty list is the empty list (instead of
-being left unspecified).
+The @{text defaults} clause following the @{const Nil} constructor specifies a
+default value for selectors associated with other constructors. Here, it is used
+to ensure that the tail of the empty list is itself (instead of being left
+unspecified).
 
 Because @{const Nil} is a nullary constructor, it is also possible to use
 @{term "\<lambda>xs. xs = Nil"} as a discriminator. This is specified by
-entering ``@{text "="}'' instead of the identifier @{const null} in the
-declaration above. Although this may look appealing, the mixture of constructors
-and selectors in the resulting characteristic theorems can lead Isabelle's
-automation to switch between the constructor and the destructor view in
-surprising ways.
-*}
+entering ``@{text "="}'' instead of the identifier @{const null}. Although this
+may look appealing, the mixture of constructors and selectors in the
+characteristic theorems can lead Isabelle's automation to switch between the
+constructor and the destructor view in surprising ways.
 
-text {*
 The usual mixfix syntaxes are available for both types and constructors. For
 example:
 *}
@@ -415,18 +427,22 @@ example:
 (*<*)
     end
 (*>*)
-    datatype_new ('a, 'b) prod (infixr "*" 20) =
-      Pair 'a 'b
+    datatype_new ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
+
+text {* \blankline *}
 
     datatype_new (set: 'a) list (map: map rel: list_all2) =
       null: Nil ("[]")
     | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
 
 text {*
+\noindent
 Incidentally, this is how the traditional syntaxes can be set up:
 *}
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
+
+text {* \blankline *}
 
     translations
       "[x, xs]" == "x # [xs]"
@@ -440,49 +456,48 @@ text {*
 Datatype definitions have the following general syntax:
 
 @{rail "
-  @@{command datatype_new} @{syntax target}? @{syntax dt_options}? \\
+  @@{command_def datatype_new} target? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
   @{syntax_def dt_options}: '(' ((@'no_discs_sels' | @'rep_compat') + ',') ')'
 "}
 
-The syntactic quantity @{syntax target} can be used to specify a local context
-(e.g., @{text "(in linorder)"}). It is documented in the Isar reference manual
-\cite{isabelle-isar-ref}.
-
-The optional target is followed by optional options:
+The syntactic quantity \synt{target} can be used to specify a local
+context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
+manual \cite{isabelle-isar-ref}.
+%
+The optional target is optionally followed by datatype-specific options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
 \item
-The \keyw{no\_discs\_sels} option indicates that no destructors (i.e.,
-discriminators and selectors) should be generated.
+The \keyw{no\_discs\_sels} option indicates that no discriminators or selectors
+should be generated.
 
 \item
 The \keyw{rep\_compat} option indicates that the names generated by the
-package should contain optional (and normally not displayed) @{text "new."}
-components to prevent clashes with a later call to @{command rep_datatype}. See
+package should contain optional (and normally not displayed) ``@{text "new."}''
+components to prevent clashes with a later call to \keyw{rep\_datatype}. See
 Section~\ref{ssec:datatype-compatibility-issues} for details.
 \end{itemize}
 
 The left-hand sides of the datatype equations specify the name of the type to
-define, its type parameters, and optional additional information:
+define, its type parameters, and additional information:
 
 @{rail "
-  @{syntax_def dt_name}: @{syntax tyargs}? @{syntax name}
-    @{syntax map_rel}? @{syntax mixfix}?
+  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
   ;
-  @{syntax_def tyargs}: @{syntax typefree} | '(' ((@{syntax name} ':')? @{syntax typefree} + ',') ')'
+  @{syntax_def tyargs}: typefree | '(' ((name ':')? typefree + ',') ')'
   ;
-  @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' @{syntax name}) +) ')'
+  @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 "}
 
 \noindent
-The syntactic quantity @{syntax name} denotes an identifier, @{syntax typefree}
-denotes fixed type variable (@{typ 'a}, @{typ 'b}, \ldots), and @{syntax
-mixfix} denotes the usual parenthesized mixfix notation. They are documented in
-the Isar reference manual \cite{isabelle-isar-ref}.
+The syntactic quantity \synt{name} denotes an identifier, \synt{typefree}
+denotes fixed type variable (@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix}
+denotes the usual parenthesized mixfix notation. They are documented in the Isar
+reference manual \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text t_set1}, \ldots, @{text t_setM}).
@@ -490,28 +505,32 @@ Inside a mutually recursive datatype specification, all defined datatypes must
 specify exactly the same type variables in the same order.
 
 @{rail "
-  @{syntax_def ctor}: (@{syntax name} ':')? @{syntax name} (@{syntax ctor_arg} * ) \\
-    @{syntax dt_sel_defaults}? @{syntax mixfix}?
+  @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \\
+    @{syntax dt_sel_defaults}? mixfix?
 "}
+
+\medskip
 
 \noindent
 The main constituents of a constructor specification is the name of the
 constructor and the list of its argument types. An optional discriminator name
 can be supplied at the front to override the default name
-(@{text t.un_C}$_{ij}$).
+(@{text t.is_C\<^sub>j}).
 
 @{rail "
-  @{syntax_def ctor_arg}: @{syntax type} | '(' @{syntax name} ':' @{syntax type} ')'
+  @{syntax_def ctor_arg}: type | '(' name ':' type ')'
 "}
+
+\medskip
 
 \noindent
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector to override the default name
-(@{text t.un_C}$_{ij}$). The same selector names can be reused for several
-constructors as long as they have the same type.
+(@{text un_C\<^sub>ji}). The same selector names can be reused for several
+constructors as long as they share the same type.
 
 @{rail "
-  @{syntax_def dt_sel_defaults}: '(' @'defaults' (@{syntax name} ':' @{syntax term} +) ')'
+  @{syntax_def dt_sel_defaults}: '(' @'defaults' (name ':' term +) ')'
 "}
 
 \noindent
@@ -519,28 +538,209 @@ Given a constructor
 @{text "C \<Colon> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<sigma>"},
 default values can be specified for any selector
 @{text "un_D \<Colon> \<sigma> \<Rightarrow> \<tau>"}
-associated with other constructors. The specified default value must have type
+associated with other constructors. The specified default value must be of type
 @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
-(i.e., it may dependend on @{text C}'s arguments).
+(i.e., it may depends on @{text C}'s arguments).
 *}
 
 subsection {* Generated Theorems
   \label{ssec:datatype-generated-theorems} *}
 
 text {*
-  * free ctor theorems
-    * case syntax
+The characteristic theorems generated by @{command datatype_new} are grouped in
+two broad categories:
 
-  * per-type theorems
-    * sets, map, rel
-    * induct, fold, rec
-    * simps
+\begin{itemize}
+\item The \emph{free constructor theorems} are properties about the constructors
+and destructors that can be derived for any freely generated type. Internally,
+the derivation is performed by @{command wrap_free_constructors}.
 
-  * multi-type (``common'') theorems
-    * induct
+\item The \emph{functorial theorems} are properties of datatypes related to
+their BNF nature.
 
-  * mention what is registered with which attribute
-    * and also nameless safes
+\item The \emph{inductive theorems} are properties of datatypes related to
+their inductive nature.
+
+\end{itemize}
+
+\noindent
+The full list of named theorems can be obtained as usual by entering the
+command \keyw{print\_theorems} immediately after the datatype definition.
+This list normally excludes low-level theorems that reveal internal
+constructions. To make these accessible, add the line
+*}
+
+    declare [[bnf_note_all]]
+(*<*)
+    declare [[bnf_note_all = false]]
+(*>*)
+
+text {*
+\noindent
+to the top of the theory file.
+*}
+
+subsubsection {* Free Constructor Theorems *}
+
+(*<*)
+    consts is_Cons :: 'a
+(*>*)
+
+text {*
+The first subgroup of properties are concerned with the constructors.
+They are listed below for @{typ "'a list"}:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\upshape:] ~ \\
+@{thm list.inject[no_vars]}
+
+\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\upshape:] ~ \\
+@{thm list.distinct(1)[no_vars]} \\
+@{thm list.distinct(2)[no_vars]}
+
+\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+@{thm list.exhaust[no_vars]}
+
+\item[@{text "t."}\hthm{nchotomy}\upshape:] ~ \\
+@{thm list.nchotomy[no_vars]}
+
+\end{description}
+\end{indentblock}
+
+\noindent
+The next subgroup is concerned with the case combinator:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{case} @{text "[simp]"}\upshape:] ~ \\
+@{thm list.case(1)[no_vars]} \\
+@{thm list.case(2)[no_vars]}
+
+\item[@{text "t."}\hthm{case\_cong}\upshape:] ~ \\
+@{thm list.case_cong[no_vars]}
+
+\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\upshape:] ~ \\
+@{thm list.weak_case_cong[no_vars]}
+
+\item[@{text "t."}\hthm{split}\upshape:] ~ \\
+@{thm list.split[no_vars]}
+
+\item[@{text "t."}\hthm{split\_asm}\upshape:] ~ \\
+@{thm list.split_asm[no_vars]}
+
+\item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
+
+\end{description}
+\end{indentblock}
+
+\noindent
+The third and last subgroup revolves around discriminators and selectors:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{discs} @{text "[simp]"}\upshape:] ~ \\
+@{thm list.discs(1)[no_vars]} \\
+@{thm list.discs(2)[no_vars]}
+
+\item[@{text "t."}\hthm{sels} @{text "[simp]"}\upshape:] ~ \\
+@{thm list.sels(1)[no_vars]} \\
+@{thm list.sels(2)[no_vars]}
+
+\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\upshape:] ~ \\
+@{thm list.collapse(1)[no_vars]} \\
+@{thm list.collapse(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_exclude}\upshape:] ~ \\
+These properties are missing for @{typ "'a list"} because there is only one
+proper discriminator. Had the datatype been introduced with a second
+discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
+@{prop "null list \<Longrightarrow> \<not> is_Cons list"} \\
+@{prop "is_Cons list \<Longrightarrow> \<not> null list"}
+
+\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+@{thm list.disc_exhaust[no_vars]}
+
+\item[@{text "t."}\hthm{expand}\upshape:] ~ \\
+@{thm list.expand[no_vars]}
+
+\item[@{text "t."}\hthm{case\_conv}\upshape:] ~ \\
+@{thm list.case_conv[no_vars]}
+
+\end{description}
+\end{indentblock}
+*}
+
+
+subsubsection {* Functorial Theorems *}
+
+text {*
+The BNF-related theorem are listed below:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{sets} @{text "[code]"}\upshape:] ~ \\
+@{thm list.sets(1)[no_vars]} \\
+@{thm list.sets(2)[no_vars]}
+
+\item[@{text "t."}\hthm{map} @{text "[code]"}\upshape:] ~ \\
+@{thm list.map(1)[no_vars]} \\
+@{thm list.map(2)[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\upshape:] ~ \\
+@{thm list.rel_inject(1)[no_vars]} \\
+@{thm list.rel_inject(2)[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\upshape:] ~ \\
+@{thm list.rel_distinct(1)[no_vars]} \\
+@{thm list.rel_distinct(2)[no_vars]}
+
+\end{description}
+\end{indentblock}
+*}
+
+
+subsubsection {* Inductive Theorems *}
+
+text {*
+The inductive theorems are listed below:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+@{thm list.induct[no_vars]}
+
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
+prove $m$ properties simultaneously.
+
+\item[@{text "t."}\hthm{fold} @{text "[code]"}\upshape:] ~ \\
+@{thm list.fold(1)[no_vars]} \\
+@{thm list.fold(2)[no_vars]}
+
+\item[@{text "t."}\hthm{rec} @{text "[code]"}\upshape:] ~ \\
+@{thm list.rec(1)[no_vars]} \\
+@{thm list.rec(2)[no_vars]}
+
+\end{description}
+\end{indentblock}
+
+\noindent
+For convenience, @{command datatype_new} also provides the following collection:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.fold} @{text t.map} @{text t.rel_inject}] ~ \\
+@{text t.rel_distinct} @{text t.sets}
+
+\end{description}
+\end{indentblock}
 *}
 
 
@@ -568,11 +768,15 @@ text {*
       * \keyw{rep\_compat}
       * \keyw{rep\_datatype}
       * has some limitations
-        * mutually recursive datatypes? (fails with rep\_datatype?)
-        * nested datatypes? (fails with datatype\_new?)
+        * mutually recursive datatypes? (fails with rep_datatype?)
+        * nested datatypes? (fails with datatype_new?)
     * option 2
-      * \keyw{datatype\_compat}
+      * @{command datatype_new_compat}
       * not fully implemented yet?
+
+@{rail "
+  @@{command_def datatype_new_compat} types
+"}
 
   * register old datatype as new datatype
     * no clean way yet
@@ -587,11 +791,11 @@ section {* Defining Recursive Functions
   \label{sec:defining-recursive-functions} *}
 
 text {*
-This describes how to specify recursive functions over datatypes
-specified using @{command datatype_new}. The focus in on the \keyw{primrec\_new}
-command, which supports primitive recursion. A few examples feature the
-@{command fun} and @{command function} commands, described in a separate
-tutorial \cite{isabelle-function}.
+This describes how to specify recursive functions over datatypes specified using
+@{command datatype_new}. The focus in on the @{command primrec_new} command,
+which supports primitive recursion. A few examples feature the \keyw{fun} and
+\keyw{function} commands, described in a separate tutorial
+\cite{isabelle-function}.
 
 %%% TODO: partial_function?
 *}
@@ -811,10 +1015,10 @@ text {*
 Primitive recursive functions have the following general syntax:
 
 @{rail "
-  @@{command primrec_new} @{syntax target}? @{syntax \"fixes\"} \\ @'where'
+  @@{command_def primrec_new} target? fixes \\ @'where'
     (@{syntax primrec_equation} + '|')
   ;
-  @{syntax_def primrec_equation}: @{syntax thmdecl}? @{syntax prop}
+  @{syntax_def primrec_equation}: thmdecl? prop
 "}
 *}
 
@@ -856,11 +1060,12 @@ Introduce a fully unspecified constant @{text "un_D\<^sub>0 \<Colon> 'a"} using
 @{keyword consts}.
 
 \item
-Define the datatype, specifying @{text "un_D\<^sub>0"} as the selector's default value.
+Define the datatype, specifying @{text "un_D\<^sub>0"} as the selector's default
+value.
 
 \item
-Define the behavior of @{text "un_D\<^sub>0"} on values of the newly introduced datatype
-using the @{command overloading} command.
+Define the behavior of @{text "un_D\<^sub>0"} on values of the newly introduced
+datatype using the \keyw{overloading} command.
 
 \item
 Derive the desired equation on @{text un_D} from the characteristic equations
@@ -928,8 +1133,8 @@ subsection {* Syntax
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
 (Section~\ref{ssec:datatype-syntax}), with two exceptions: The command is called
-@{command codatatype}; the \keyw{no\_discs\_sels} option is not available, because
-destructors are a central notion for codatatypes.
+@{command codatatype}; the \keyw{no\_discs\_sels} option is not available,
+because destructors are a central notion for codatatypes.
 *}
 
 subsection {* Generated Theorems
@@ -941,7 +1146,7 @@ section {* Defining Corecursive Functions
 
 text {*
 This section describes how to specify corecursive functions using the
-\keyw{primcorec} command.
+@{command primcorec} command.
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
 %%% lists (cf. terminal0 in TLList.thy)
@@ -966,11 +1171,10 @@ text {*
 Primitive corecursive definitions have the following general syntax:
 
 @{rail "
-  @@{command primcorec} @{syntax target}? @{syntax \"fixes\"} \\ @'where'
+  @@{command_def primcorec} target? fixes \\ @'where'
     (@{syntax primcorec_formula} + '|')
   ;
-  @{syntax_def primcorec_formula}: @{syntax thmdecl}? @{syntax prop}
-    (@'of' (@{syntax term} * ))?
+  @{syntax_def primcorec_formula}: thmdecl? prop (@'of' (term * ))?
 "}
 *}
 
@@ -1009,19 +1213,18 @@ subsection {* Syntax
   \label{ssec:bnf-syntax} *}
 
 text {*
-
 @{rail "
-  @@{command bnf} @{syntax target}? (@{syntax name} ':')? @{syntax term} \\
-    @{syntax term_list} @{syntax term} @{syntax term_list} @{syntax term}?
+  @@{command_def bnf} target? (name ':')? term \\
+    term_list term term_list term?
   ;
-  @{syntax_def X_list}: '[' (@{syntax X} + ',') ']'
+  X_list: '[' (X + ',') ']'
 "}
 
 options: no_discs_sels rep_compat
 *}
 
-section {* Generating Free Constructor Theorems
-  \label{sec:generating-free-constructor-theorems} *}
+section {* Generating Destructors and Theorems for Free Constructors
+  \label{sec:generating-destructors-and-theorems-for-free-constructors} *}
 
 text {*
 This section explains how to derive convenience theorems for free constructors,
@@ -1031,7 +1234,7 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
     a type not introduced by ...
 
   * also useful for compatibility with old package, e.g. add destructors to
-    old @{command datatype}
+    old \keyw{datatype}
 
   * @{command wrap_free_constructors}
     * \keyw{no\_discs\_sels}, \keyw{rep\_compat}
@@ -1050,22 +1253,20 @@ text {*
 Free constructor wrapping has the following general syntax:
 
 @{rail "
-  @@{command wrap_free_constructors} @{syntax target}? @{syntax dt_options} \\
-    @{syntax term_list} @{syntax name} @{syntax fc_discs_sels}?
+  @@{command_def wrap_free_constructors} target? @{syntax dt_options} \\
+    term_list name @{syntax fc_discs_sels}?
   ;
-  @{syntax_def fc_discs_sels}: @{syntax name_list} (@{syntax name_list_list} @{syntax name_term_list_list}? )?
+  @{syntax_def fc_discs_sels}: name_list (name_list_list name_term_list_list? )?
   ;
-  @{syntax_def name_term}: (@{syntax name} ':' @{syntax term})
+  @{syntax_def name_term}: (name ':' term)
 "}
 
 options: no_discs_sels rep_compat
 
 X_list is as for BNF
 
+Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 *}
-
-subsection {* Generated Theorems
-  \label{ssec:ctors-generated-theorems} *}
 
 
 section {* Standard ML Interface
@@ -1114,7 +1315,7 @@ This section lists known open issues of the package.
 *}
 
 text {*
-* primrec\_new and primcorec are vaporware
+* primcorec is unfinished
 
 * slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
 
@@ -1128,12 +1329,13 @@ text {*
   based on overloading
 
 * no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
-  (for datatype\_compat and prim(co)rec)
+  (for @{command datatype_new_compat} and prim(co)rec)
 
 * no way to register same type as both data- and codatatype?
 
 * no recursion through unused arguments (unlike with the old package)
 
+* in a locale, cannot use locally fixed types (because of limitation in typedef)?
 *}
 
 

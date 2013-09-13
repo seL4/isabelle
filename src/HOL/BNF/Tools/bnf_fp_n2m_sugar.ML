@@ -127,7 +127,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
       val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;
 
       val ((xtor_co_iterss, iters_args_types, coiters_args_types), _) =
-        mk_co_iters_prelims fp fpTs Cs ns mss xtor_co_iterss0 lthy;
+        mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy;
 
       fun mk_binding b suf = Binding.suffix_name ("_" ^ suf) b;
 

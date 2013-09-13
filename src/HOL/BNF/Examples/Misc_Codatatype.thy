@@ -43,6 +43,8 @@ codatatype 'a par_lambda =
   ('a, 'b1, 'b2) F2 = unit + 'b1 * 'b2
 *)
 
+codatatype 'a p = P "'a + 'a p"
+
 codatatype 'a J1 = J11 'a "'a J1" | J12 'a "'a J2"
 and 'a J2 = J21 | J22 "'a J1" "'a J2"
 
@@ -73,6 +75,7 @@ and ('a, 'b, 'c) in_here'' =
 
 codatatype ('b, 'c) less_killing = LK "'b \<Rightarrow> 'c"
 
+codatatype 'b poly_unit = U "'b \<Rightarrow> 'b poly_unit"
 codatatype 'b cps = CPS1 'b | CPS2 "'b \<Rightarrow> 'b cps"
 
 codatatype ('b1, 'b2, 'b3, 'b4, 'b5, 'b6, 'b7, 'b8, 'b9) fun_rhs =

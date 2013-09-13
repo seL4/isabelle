@@ -22,14 +22,13 @@ def init_parser(argv):
     parser.add_argument('--depFile', default='mash_dependencies',
                         help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
     
-    parser.add_argument('--algorithm',default='nb',help="Which learning algorithm is used. nb = Naive Bayes,predef=predefined. Default=nb.")
+    parser.add_argument('--algorithm',default='nb',help="Which learning algorithm is used. nb = Naive Bayes,KNN,predef=predefined. Default=nb.")
+    parser.add_argument('--predef',help="File containing the predefined suggestions. Only used when algorithm = predef.")
     # NB Parameters
     parser.add_argument('--NBDefaultPriorWeight',default=20.0,help="Initializes classifiers with value * p |- p. Default=20.0.",type=float)
     parser.add_argument('--NBDefVal',default=-15.0,help="Default value for unknown features. Default=-15.0.",type=float)
     parser.add_argument('--NBPosWeight',default=10.0,help="Weight value for positive features. Default=10.0.",type=float)
-    # TODO: Rename to sineFeatures
-    parser.add_argument('--sineFeatures',default=False,action='store_true',help="Uses a SInE like prior for premise lvl predictions. Default=False.")
-    parser.add_argument('--sineWeight',default=0.5,help="How much the SInE prior is weighted. Default=0.5.",type=float)
+    parser.add_argument('--expandFeatures',default=False,action='store_true',help="Learning-based feature expansion. Default=False.")
     
     parser.add_argument('--statistics',default=False,action='store_true',help="Create and show statistics for the top CUTOFF predictions.\
                         WARNING: This will make the program a lot slower! Default=False.")

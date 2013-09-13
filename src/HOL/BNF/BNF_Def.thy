@@ -89,6 +89,9 @@ lemma leq_conversepI: "R = op = \<Longrightarrow> R \<le> R^--1"
 lemma eq_OOI: "R = op = \<Longrightarrow> R = R OO R"
   by auto
 
+lemma OO_Grp_alt: "(Grp A f)^--1 OO Grp A g = (\<lambda>x y. \<exists>z. z \<in> A \<and> f z = x \<and> g z = y)"
+  unfolding Grp_def by auto
+
 lemma Grp_UNIV_id: "f = id \<Longrightarrow> (Grp UNIV f)^--1 OO Grp UNIV f = Grp UNIV f"
 unfolding Grp_def by auto
 
@@ -109,10 +112,6 @@ unfolding Grp_def o_def by auto
 
 lemma Collect_split_Grp_inD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> fst z \<in> A"
 unfolding Grp_def o_def by auto
-
-lemma wpull_Grp:
-"wpull (Collect (split (Grp A f))) A (f ` A) f id fst snd"
-unfolding wpull_def Grp_def by auto
 
 definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"
 

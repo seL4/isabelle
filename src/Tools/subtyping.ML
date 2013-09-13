@@ -1046,9 +1046,9 @@ fun print_coercions ctxt =
     val tmaps =
       sort (Name_Space.extern_ord ctxt type_space o pairself #1)
         (Symtab.dest (tmaps_of ctxt));
-    fun show_map (x, (t, _)) =
+    fun show_map (c, (t, _)) =
       Pretty.block
-       [Pretty.mark_str (Name_Space.markup_extern ctxt type_space x), Pretty.str ":",
+       [Name_Space.pretty ctxt type_space c, Pretty.str ":",
         Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt t)];
   in
    [Pretty.big_list "coercions between base types:" (map show_coercion simple),

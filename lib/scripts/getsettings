@@ -21,16 +21,20 @@ then
   ISABELLE_HOME_WINDOWS="$(cygpath -w "$(dirname "$ISABELLE_HOME")")\\$(basename "$ISABELLE_HOME")"
   ISABELLE_HOME="$(cygpath -u "$ISABELLE_HOME_WINDOWS")"
 
-  CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -i -C UTF8 -w -p "$@"; }
   CYGWIN_ROOT="$(jvmpath "/")"
+
+  ISABELLE_CLASSPATH="$(cygpath -i -u -p "$CLASSPATH")"
+  unset CLASSPATH
 else
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$HOME"
   fi
 
   function jvmpath() { echo "$@"; }
-  CLASSPATH="$CLASSPATH"
+
+  ISABELLE_CLASSPATH="$CLASSPATH"
+  unset CLASSPATH
 fi
 
 export ISABELLE_HOME
@@ -122,18 +126,18 @@ else
   function isabelle_admin_build () { return 0; }
 fi
 
-#CLASSPATH convenience
+#classpath
 function classpath ()
 {
   for X in "$@"
   do
-    if [ -z "$CLASSPATH" ]; then
-      CLASSPATH="$X"
+    if [ -z "$ISABELLE_CLASSPATH" ]; then
+      ISABELLE_CLASSPATH="$X"
     else
-      CLASSPATH="$X:$CLASSPATH"
+      ISABELLE_CLASSPATH="$ISABELLE_CLASSPATH:$X"
     fi
   done
-  export CLASSPATH
+  export ISABELLE_CLASSPATH
 }
 
 #arrays

@@ -185,17 +185,19 @@ apply simp
 done
 
 text{*alternative formulation for boundedness*}
-lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
-apply safe
-apply (simp add: Bseq_def, safe)
-apply (rule_tac x = "K + norm (X N)" in exI)
-apply auto
-apply (erule order_less_le_trans, simp)
-apply (rule_tac x = N in exI, safe)
-apply (drule_tac x = n in spec)
-apply (rule order_trans [OF norm_triangle_ineq], simp)
-apply (auto simp add: Bseq_iff2)
-done
+lemma Bseq_iff3:
+  "Bseq X \<longleftrightarrow> (\<exists>k>0. \<exists>N. \<forall>n. norm (X n + - X N) \<le> k)" (is "?P \<longleftrightarrow> ?Q")
+proof
+  assume ?P
+  then obtain K
+    where *: "0 < K" and **: "\<And>n. norm (X n) \<le> K" by (auto simp add: Bseq_def)
+  from * have "0 < K + norm (X 0)" by (rule order_less_le_trans) simp
+  moreover from ** have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
+    by (auto intro: order_trans norm_triangle_ineq)
+  ultimately show ?Q by blast
+next
+  assume ?Q then show ?P by (auto simp add: Bseq_iff2)
+qed
 
 lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
 apply (simp add: Bseq_def)

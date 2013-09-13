@@ -8,14 +8,14 @@ Abstract representation of ATP proofs and TSTP/SPASS syntax.
 
 signature ATP_PROOF =
 sig
-  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
-  type formula_role = ATP_Problem.formula_role
-  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
-  type 'a problem = 'a ATP_Problem.problem
+  type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
+  type atp_formula_role = ATP_Problem.atp_formula_role
+  type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
+  type 'a atp_problem = 'a ATP_Problem.atp_problem
 
   exception UNRECOGNIZED_ATP_PROOF of unit
 
-  datatype failure =
+  datatype atp_failure =
     Unprovable |
     GaveUp |
     ProofMissing |
@@ -34,32 +34,36 @@ sig
     InternalError |
     UnknownError of string
 
-  type step_name = string * string list
-  type 'a step = step_name * formula_role * 'a * string * step_name list
+  type atp_step_name = string * string list
+  type ('a, 'b) atp_step =
+    atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-  type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
+  type 'a atp_proof =
+    (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
 
   val short_output : bool -> string -> string
-  val string_of_failure : failure -> string
+  val string_of_atp_failure : atp_failure -> string
   val extract_important_message : string -> string
-  val extract_known_failure :
-    (failure * string) list -> string -> failure option
+  val extract_known_atp_failure :
+    (atp_failure * string) list -> string -> atp_failure option
   val extract_tstplike_proof_and_outcome :
-    bool -> (string * string) list -> (failure * string) list -> string
-    -> string * failure option
-  val is_same_atp_step : step_name -> step_name -> bool
+    bool -> (string * string) list -> (atp_failure * string) list -> string
+    -> string * atp_failure option
+  val is_same_atp_step : atp_step_name -> atp_step_name -> bool
   val scan_general_id : string list -> string * string list
   val agsyhol_coreN : string
   val satallax_coreN : string
   val z3_tptp_coreN : string
   val parse_formula :
     string list
-    -> (string, 'a, (string, 'a) ho_term, string) formula * string list
-  val atp_proof_of_tstplike_proof : string problem -> string -> string proof
-  val clean_up_atp_proof_dependencies : string proof -> string proof
+    -> (string, 'a, (string, 'a) atp_term, string) atp_formula * string list
+  val atp_proof_of_tstplike_proof :
+    string atp_problem -> string -> string atp_proof
+  val clean_up_atp_proof_dependencies : string atp_proof -> string atp_proof
   val map_term_names_in_atp_proof :
-    (string -> string) -> string proof -> string proof
-  val nasty_atp_proof : string Symtab.table -> string proof -> string proof
+    (string -> string) -> string atp_proof -> string atp_proof
+  val nasty_atp_proof :
+    string Symtab.table -> string atp_proof -> string atp_proof
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -70,7 +74,7 @@ open ATP_Problem
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
-datatype failure =
+datatype atp_failure =
   Unprovable |
   GaveUp |
   ProofMissing |
@@ -103,37 +107,37 @@ fun involving [] = ""
   | involving ss =
     " involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
-fun string_of_failure Unprovable = "The generated problem is unprovable."
-  | string_of_failure GaveUp = "The prover gave up."
-  | string_of_failure ProofMissing =
+fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
+  | string_of_atp_failure GaveUp = "The prover gave up."
+  | string_of_atp_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
-  | string_of_failure ProofIncomplete =
+  | string_of_atp_failure ProofIncomplete =
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \(or unparsable) proof."
-  | string_of_failure (UnsoundProof (false, ss)) =
+  | string_of_atp_failure (UnsoundProof (false, ss)) =
     "The prover derived \"False\" using" ^ involving ss ^
     ". Specify a sound type encoding or omit the \"type_enc\" option."
-  | string_of_failure (UnsoundProof (true, ss)) =
+  | string_of_atp_failure (UnsoundProof (true, ss)) =
     "The prover derived \"False\" using" ^ involving ss ^
     ". This could be due to inconsistent axioms (including \"sorry\"s) or to \
     \a bug in Sledgehammer. If the problem persists, please contact the \
     \Isabelle developers."
-  | string_of_failure CantConnect = "Cannot connect to remote server."
-  | string_of_failure TimedOut = "Timed out."
-  | string_of_failure Inappropriate =
+  | string_of_atp_failure CantConnect = "Cannot connect to remote server."
+  | string_of_atp_failure TimedOut = "Timed out."
+  | string_of_atp_failure Inappropriate =
     "The generated problem lies outside the prover's scope."
-  | string_of_failure OutOfResources = "The prover ran out of resources."
-  | string_of_failure NoPerl = "Perl" ^ missing_message_tail
-  | string_of_failure NoLibwwwPerl =
+  | string_of_atp_failure OutOfResources = "The prover ran out of resources."
+  | string_of_atp_failure NoPerl = "Perl" ^ missing_message_tail
+  | string_of_atp_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
-  | string_of_failure MalformedInput =
+  | string_of_atp_failure MalformedInput =
     "The generated problem is malformed. Please report this to the Isabelle \
     \developers."
-  | string_of_failure MalformedOutput = "The prover output is malformed."
-  | string_of_failure Interrupted = "The prover was interrupted."
-  | string_of_failure Crashed = "The prover crashed."
-  | string_of_failure InternalError = "An internal prover error occurred."
-  | string_of_failure (UnknownError s) =
+  | string_of_atp_failure MalformedOutput = "The prover output is malformed."
+  | string_of_atp_failure Interrupted = "The prover was interrupted."
+  | string_of_atp_failure Crashed = "The prover crashed."
+  | string_of_atp_failure InternalError = "An internal prover error occurred."
+  | string_of_atp_failure (UnknownError s) =
     "A prover error occurred" ^
     (if s = "" then ". (Pass the \"verbose\" option for details.)"
      else ":\n" ^ s)
@@ -163,7 +167,7 @@ fun extract_tstplike_proof delims output =
     extract_delimited (begin_delim, end_delim) output
   | _ => ""
 
-fun extract_known_failure known_failures output =
+fun extract_known_atp_failure known_failures output =
   known_failures
   |> find_first (fn (_, pattern) => String.isSubstring pattern output)
   |> Option.map fst
@@ -171,14 +175,14 @@ fun extract_known_failure known_failures output =
 fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures
                                        output =
   case (extract_tstplike_proof proof_delims output,
-        extract_known_failure known_failures output) of
+        extract_known_atp_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", NONE)
   | ("", SOME ProofMissing) => ("", NONE)
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | res as ("", _) => res
   | (tstplike_proof, _) => (tstplike_proof, NONE)
 
-type step_name = string * string list
+type atp_step_name = string * string list
 
 fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
 
@@ -193,9 +197,11 @@ fun vampire_step_name_ord p =
     | _ => raise Fail "not Vampire"
   end
 
-type 'a step = step_name * formula_role * 'a * string * step_name list
+type ('a, 'b) atp_step =
+  atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
+type 'a atp_proof =
+  (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -204,8 +210,6 @@ val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
-
-val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit) >> implode
 
 val skip_term =
   let

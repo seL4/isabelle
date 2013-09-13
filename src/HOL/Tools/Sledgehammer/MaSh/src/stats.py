@@ -97,7 +97,7 @@ class Statistics(object):
                     badPreds.append(dep)
                     recall100 = len(predictions)+1
                     positives+=1
-            self.logger.debug('Dependencies missing for %s in accessibles! Estimating Statistics.',\
+            self.logger.debug('Dependencies missing for %s in cutoff predictions! Estimating Statistics.',\
                               string.join([str(dep) for dep in missing],','))
 
         if positives == 0 or negatives == 0:
@@ -113,7 +113,7 @@ class Statistics(object):
         self.badPreds = badPreds
         self.avgAvailable += available
         self.avgDepNr += depNr
-        self.logger.info('Statement: %s: AUC: %s \t Needed: %s \t Recall100: %s \t Available: %s \t cutOff:%s',\
+        self.logger.info('Statement: %s: AUC: %s \t Needed: %s \t Recall100: %s \t Available: %s \t cutOff: %s',\
                           statementCounter,round(100*auc,2),depNr,recall100,available,self.cutOff)
 
     def printAvg(self):
@@ -135,7 +135,7 @@ class Statistics(object):
         else:
             medianrecall100 = float(sorted(self.recall100Median)[nrDataPoints/2] + sorted(self.recall100Median)[nrDataPoints/2 + 1])/2
 
-        returnString = 'avgAUC: %s \t medianAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t medianRecall100: %s \t cutOff:%s' %\
+        returnString = 'avgAUC: %s \t medianAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t medianRecall100: %s \t cutOff: %s' %\
                          (round(100*self.avgAUC/self.problems,2),round(100*medianAUC,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),round(medianrecall100,2),self.cutOff)
         self.logger.info(returnString)
         return returnString
@@ -143,44 +143,6 @@ class Statistics(object):
         """
         self.logger.info('avgAUC: %s \t medianAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t medianRecall100: %s \t cutOff:%s', \
                          round(100*self.avgAUC/self.problems,2),round(100*medianAUC,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),round(medianrecall100,2),self.cutOff)
-
-        #try:
-        #if True:
-        if False:
-            from matplotlib.pyplot import plot,figure,show,xlabel,ylabel,axis,hist
-            avgRecall = [float(x)/self.problems for x in self.recallData]
-            figure('Recall')
-            plot(range(self.cutOff),avgRecall)
-            ylabel('Average Recall')
-            xlabel('Highest ranked premises')
-            axis([0,self.cutOff,0.0,1.0])
-            figure('100%Recall')
-            plot(range(self.cutOff),self.recall100Data)
-            ylabel('100%Recall')
-            xlabel('Highest ranked premises')
-            axis([0,self.cutOff,0,self.problems])
-            figure('AUC Histogram')
-            hist(self.aucData,bins=100)
-            ylabel('Problems')
-            xlabel('AUC')
-            maxCount = max(self.premiseOccurenceCounter.values())
-            minCount = min(self.premiseOccurenceCounter.values())
-            figure('Dependency Occurances')
-            hist(self.premiseOccurenceCounter.values(),bins=range(minCount,maxCount+2),align = 'left')
-            #ylabel('Occurences')
-            xlabel('Number of Times a Dependency Occurs')
-            figure('Dependency Appearance in Problems after Introduction.')
-            hist(self.depAppearances,bins=50)
-            figure('Dependency Appearance in Problems after Introduction in Percent.')
-            xAxis = range(max(self.depAppearances)+1)
-            yAxis = [0] * (max(self.depAppearances)+1)
-            for val in self.depAppearances:
-                yAxis[val] += 1
-            yAxis = [float(x)/len(self.firstDepAppearance.keys()) for x in yAxis]
-            plot(xAxis,yAxis)
-            show()
-        #except:
-        #    self.logger.warning('Matplotlib module missing. Skipping graphs.')
         """
 
     def save(self,fileName):

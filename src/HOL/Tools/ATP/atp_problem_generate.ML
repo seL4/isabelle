@@ -8,12 +8,12 @@ Translation of HOL to FOL for Metis and Sledgehammer.
 
 signature ATP_PROBLEM_GENERATE =
 sig
-  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
-  type connective = ATP_Problem.connective
-  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
+  type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
+  type atp_connective = ATP_Problem.atp_connective
+  type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
   type atp_format = ATP_Problem.atp_format
-  type formula_role = ATP_Problem.formula_role
-  type 'a problem = 'a ATP_Problem.problem
+  type atp_formula_role = ATP_Problem.atp_formula_role
+  type 'a atp_problem = 'a ATP_Problem.atp_problem
 
   datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
 
@@ -100,8 +100,9 @@ sig
   val adjust_type_enc : atp_format -> type_enc -> type_enc
   val is_lambda_free : term -> bool
   val mk_aconns :
-    connective -> ('a, 'b, 'c, 'd) formula list -> ('a, 'b, 'c, 'd) formula
-  val unmangled_const : string -> string * (string, 'b) ho_term list
+    atp_connective -> ('a, 'b, 'c, 'd) atp_formula list
+    -> ('a, 'b, 'c, 'd) atp_formula
+  val unmangled_const : string -> string * (string, 'b) atp_term list
   val unmangled_const_name : string -> string list
   val helper_table : ((string * bool) * (status * thm) list) list
   val trans_lams_of_string :
@@ -109,13 +110,13 @@ sig
   val string_of_status : status -> string
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> atp_format -> formula_role -> type_enc -> mode -> string
-    -> bool -> bool -> bool -> term list -> term
+    Proof.context -> atp_format -> atp_formula_role -> type_enc -> mode
+    -> string -> bool -> bool -> bool -> term list -> term
     -> ((string * stature) * term) list
-    -> string problem * string Symtab.table * (string * stature) list vector
+    -> string atp_problem * string Symtab.table * (string * stature) list vector
        * (string * term) list * int Symtab.table
-  val atp_problem_selection_weights : string problem -> (string * real) list
-  val atp_problem_term_order_info : string problem -> (string * int) list
+  val atp_problem_selection_weights : string atp_problem -> (string * real) list
+  val atp_problem_term_order_info : string atp_problem -> (string * int) list
 end;
 
 structure ATP_Problem_Generate : ATP_PROBLEM_GENERATE =
@@ -826,8 +827,8 @@ fun intentionalize_def (Const (@{const_name All}, _) $ Abs (_, _, t)) =
 type ifact =
   {name : string,
    stature : stature,
-   role : formula_role,
-   iformula : (string * string, typ, iterm, string * string) formula,
+   role : atp_formula_role,
+   iformula : (string * string, typ, iterm, string * string) atp_formula,
    atomic_types : typ list}
 
 fun update_iformula f ({name, stature, role, iformula, atomic_types} : ifact) =
@@ -916,9 +917,9 @@ fun raw_ho_type_of_typ type_enc =
     | term (TVar z) = AType (tvar_name z, [])
   in term end
 
-fun ho_term_of_ho_type (AType (name, tys)) =
-    ATerm ((name, []), map ho_term_of_ho_type tys)
-  | ho_term_of_ho_type _ = raise Fail "unexpected type"
+fun atp_term_of_ho_type (AType (name, tys)) =
+    ATerm ((name, []), map atp_term_of_ho_type tys)
+  | atp_term_of_ho_type _ = raise Fail "unexpected type"
 
 fun ho_type_of_type_arg type_enc T =
   if T = dummyT then NONE else SOME (raw_ho_type_of_typ type_enc T)
@@ -983,7 +984,7 @@ fun process_type_args type_enc T_args =
   if is_type_enc_native type_enc then
     (map (native_ho_type_of_typ type_enc false 0) T_args, [])
   else
-    ([], map_filter (Option.map ho_term_of_ho_type
+    ([], map_filter (Option.map atp_term_of_ho_type
                      o ho_type_of_type_arg type_enc) T_args)
 
 fun class_atom type_enc (cl, T) =
@@ -2071,10 +2072,10 @@ fun do_bound_type ctxt mono type_enc =
 fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm type_enc
-  |> ho_term_of_iterm ctxt mono type_enc pos
+  |> atp_term_of_iterm ctxt mono type_enc pos
   |> (fn ATerm ((s, tys), tms) => ATerm ((s, tys), tms @ [tm])
        | _ => raise Fail "unexpected lambda-abstraction")
-and ho_term_of_iterm ctxt mono type_enc pos =
+and atp_term_of_iterm ctxt mono type_enc pos =
   let
     fun term site u =
       let
@@ -2112,7 +2113,7 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
   let
     val thy = Proof_Context.theory_of ctxt
     val level = level_of_type_enc type_enc
-    val do_term = ho_term_of_iterm ctxt mono type_enc
+    val do_term = atp_term_of_iterm ctxt mono type_enc
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_guard_type ctxt mono type_enc
              (fn () => should_guard_var thy level pos phi universal name) T then
@@ -2599,7 +2600,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         val base_ary = min_ary_of sym_tab0 base_s
         fun do_const name = IConst (name, T, T_args)
         val filter_ty_args = filter_type_args_in_iterm thy ctrss type_enc
-        val ho_term_of = ho_term_of_iterm ctxt mono type_enc (SOME true)
+        val atp_term_of = atp_term_of_iterm ctxt mono type_enc (SOME true)
         val name1 as (s1, _) =
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
         val name2 as (s2, _) = base_name |> aliased_uncurried ary
@@ -2619,7 +2620,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         val eq =
           eq_formula type_enc (atomic_types_of T)
                      (map (apsnd do_bound_type) bounds) false
-                     (ho_term_of tm1) (ho_term_of tm2)
+                     (atp_term_of tm1) (atp_term_of tm2)
       in
         ([tm1, tm2],
          [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role,

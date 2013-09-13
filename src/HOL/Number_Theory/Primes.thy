@@ -167,17 +167,23 @@ lemma not_prime_eq_prod_int: "(n::int) > 1 \<Longrightarrow> ~ prime n \<Longrig
   by (metis div_mult_self1_is_id div_mult_self2_is_id
       int_div_less_self int_one_le_iff_zero_less zero_less_mult_pos less_le)
 
-lemma prime_dvd_power_nat [rule_format]: "prime (p::nat) -->
-    n > 0 --> (p dvd x^n --> p dvd x)"
-  by (induct n rule: nat_induct) auto
+lemma prime_dvd_power_nat: "prime (p::nat) \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
+  by (induct n) auto
 
-lemma prime_dvd_power_int [rule_format]: "prime (p::int) -->
-    n > 0 --> (p dvd x^n --> p dvd x)"
-  apply (induct n rule: nat_induct)
-  apply auto
+lemma prime_dvd_power_int: "prime (p::int) \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
+  apply (induct n)
   apply (frule prime_ge_0_int)
   apply auto
   done
+
+lemma prime_dvd_power_nat_iff: "prime (p::nat) \<Longrightarrow> n > 0 \<Longrightarrow>
+    p dvd x^n \<longleftrightarrow> p dvd x"
+  by (cases n) (auto elim: prime_dvd_power_nat)
+
+lemma prime_dvd_power_int_iff: "prime (p::int) \<Longrightarrow> n > 0 \<Longrightarrow>
+    p dvd x^n \<longleftrightarrow> p dvd x"
+  by (cases n) (auto elim: prime_dvd_power_int)
+
 
 subsubsection {* Make prime naively executable *}
 

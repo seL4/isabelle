@@ -587,13 +587,15 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
       in
         Binding.prefix_name rawN
         #> fold_rev (fn (s, mand) => Binding.qualify mand s) (qs @ [(n, true)])
+        #> Binding.conceal
       end;
 
     val ((bnfs, (deadss, livess)), (unfold_set, lthy)) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort Xs) bs rhsXs
         (empty_unfolds, lthy));
 
-    fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))));
+    fun norm_qualify i = Binding.qualify true (Binding.name_of (nth bs (Int.max (0, i - 1))))
+      #> Binding.conceal;
 
     val Ass = map (map dest_TFree) livess;
     val resDs = fold (subtract (op =)) Ass resBs;
@@ -606,7 +608,8 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
-    val pre_qualify = Binding.qualify false o Binding.name_of;
+    fun pre_qualify b = Binding.qualify false (Binding.name_of b)
+      #> Config.get lthy' bnf_note_all = false ? Binding.conceal;
 
     val ((pre_bnfs, deadss), lthy'') =
       fold_map3 (fn b => seal_bnf (pre_qualify b) unfold_set' (Binding.prefix_name preN b))

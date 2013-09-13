@@ -934,8 +934,16 @@ lemma norm_conv_dist: "norm x = dist x 0"
 
 subsection {* Bounded Linear and Bilinear Operators *}
 
-locale bounded_linear = additive f for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" +
+locale linear = additive f for f :: "'a::real_vector \<Rightarrow> 'b::real_vector" +
   assumes scaleR: "f (scaleR r x) = scaleR r (f x)"
+
+lemma linearI:
+  assumes "\<And>x y. f (x + y) = f x + f y"
+  assumes "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
+  shows "linear f"
+  by default (rule assms)+
+
+locale bounded_linear = linear f for f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" +
   assumes bounded: "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
 begin
 
@@ -1547,4 +1555,3 @@ proof (rule tendstoI)
 qed
 
 end
-

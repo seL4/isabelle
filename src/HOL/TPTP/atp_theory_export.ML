@@ -71,7 +71,7 @@ fun run_atp ctxt format problem =
       tracing ("Ran ATP: " ^
                (case outcome of
                   NONE => "Success"
-                | SOME failure => string_of_failure failure))
+                | SOME failure => string_of_atp_failure failure))
   in outcome end
 
 fun is_problem_line_reprovable ctxt format prelude axioms deps

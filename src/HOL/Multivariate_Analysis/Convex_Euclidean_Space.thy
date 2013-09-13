@@ -18,7 +18,7 @@ begin
 (* ------------------------------------------------------------------------- *)
 
 lemma linear_scaleR: "linear (\<lambda>x. scaleR c x)"
-  by (simp add: linear_def scaleR_add_right)
+  by (simp add: linear_iff scaleR_add_right)
 
 lemma injective_scaleR: "c \<noteq> 0 \<Longrightarrow> inj (\<lambda>x::'a::real_vector. scaleR c x)"
   by (simp add: inj_on_def)
@@ -303,13 +303,13 @@ proof
 qed
 
 lemma fst_linear: "linear fst"
-  unfolding linear_def by (simp add: algebra_simps)
+  unfolding linear_iff by (simp add: algebra_simps)
 
 lemma snd_linear: "linear snd"
-  unfolding linear_def by (simp add: algebra_simps)
+  unfolding linear_iff by (simp add: algebra_simps)
 
 lemma fst_snd_linear: "linear (%(x,y). x + y)"
-  unfolding linear_def by (simp add: algebra_simps)
+  unfolding linear_iff by (simp add: algebra_simps)
 
 lemma scaleR_2:
   fixes x :: "'a::real_vector"
@@ -8098,7 +8098,7 @@ proof -
       then obtain e where e: "e > 1" "(1 - e) *\<^sub>R f x + e *\<^sub>R f z \<in> S"
         using convex_rel_interior_iff[of S "f z"] z assms `S \<noteq> {}` by auto
       moreover have "(1 - e) *\<^sub>R f x + e *\<^sub>R f z = f ((1 - e) *\<^sub>R x + e *\<^sub>R z)"
-        using `linear f` by (simp add: linear_def)
+        using `linear f` by (simp add: linear_iff)
       ultimately have "\<exists>e. e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R z \<in> f -` S"
         using e by auto
     }
@@ -8116,7 +8116,7 @@ proof -
       then obtain e where e: "e > 1" "(1 - e) *\<^sub>R y + e *\<^sub>R z \<in> f -` S"
         using convex_rel_interior_iff[of "f -` S" z] z conv by auto
       moreover have "(1 - e) *\<^sub>R x + e *\<^sub>R f z = f ((1 - e) *\<^sub>R y + e *\<^sub>R z)"
-        using `linear f` y by (simp add: linear_def)
+        using `linear f` y by (simp add: linear_iff)
       ultimately have "\<exists>e. e > 1 \<and> (1 - e) *\<^sub>R x + e *\<^sub>R f z \<in> S \<inter> range f"
         using e by auto
     }

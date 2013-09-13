@@ -36,13 +36,17 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
     val m = live - n; (*passive, if 0 don't generate a new BNF*)
+
+    val note_all = Config.get lthy bnf_note_all;
     val b_names = map Binding.name_of bs;
-    val common_name = mk_common_name b_names;
-    val b = Binding.name common_name;
-    val internal_b = Binding.prefix true common_name b;
-    fun qualify_bs internal = map2 (Binding.prefix internal) b_names bs;
-    val internal_bs = qualify_bs true;
-    val external_bs = qualify_bs false;
+    val b_name = mk_common_name b_names;
+    val b = Binding.name b_name;
+    val mk_internal_b = Binding.name #> Binding.prefix true b_name #> Binding.conceal;
+    fun mk_internal_bs name =
+      map (fn b =>
+        Binding.prefix true b_name (Binding.suffix_name ("_" ^ name) b) |> Binding.conceal) bs;
+    val external_bs = map2 (Binding.prefix false) b_names bs
+      |> note_all = false ? map Binding.conceal;
 
     (* TODO: check if m, n, etc., are sane *)
 
@@ -238,7 +242,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* algebra *)
 
-    val alg_bind = Binding.suffix_name ("_" ^ algN) internal_b;
+    val alg_bind = mk_internal_b algN;
     val alg_name = Binding.name_of alg_bind;
     val alg_def_bind = (Thm.def_binding alg_bind, []);
 
@@ -325,7 +329,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (* morphism *)
 
-    val mor_bind = Binding.suffix_name ("_" ^ morN) internal_b;
+    val mor_bind = mk_internal_b morN;
     val mor_name = Binding.name_of mor_bind;
     val mor_def_bind = (Thm.def_binding mor_bind, []);
 
@@ -712,8 +716,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "min_algs definition & thms");
 
-    fun min_alg_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ min_algN);
-    val min_alg_name = Binding.name_of o min_alg_bind;
+    val min_alg_binds = mk_internal_bs min_algN;
+    fun min_alg_bind i = nth min_alg_binds (i - 1);
+    fun min_alg_name i = Binding.name_of (min_alg_bind i);
     val min_alg_def_bind = rpair [] o Thm.def_binding o min_alg_bind;
 
     fun min_alg_spec i =
@@ -791,7 +796,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val timer = time (timer "Minimal algebra definition & thms");
 
     val II_repT = HOLogic.mk_prodT (HOLogic.mk_tupleT II_BTs, HOLogic.mk_tupleT II_sTs);
-    val IIT_bind = Binding.suffix_name ("_" ^ IITN) b;
+    val IIT_bind = mk_internal_b IITN;
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
       typedef (IIT_bind, params, NoSyn)
@@ -824,7 +829,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val select_Bs = map (mk_nthN n (HOLogic.mk_fst (Rep_IIT $ iidx))) ks;
     val select_ss = map (mk_nthN n (HOLogic.mk_snd (Rep_IIT $ iidx))) ks;
 
-    fun str_init_bind i = nth internal_bs (i - 1) |> Binding.suffix_name ("_" ^ str_initN);
+    val str_init_binds = mk_internal_bs str_initN;
+    fun str_init_bind i = nth str_init_binds (i - 1);
     val str_init_name = Binding.name_of o str_init_bind;
     val str_init_def_bind = rpair [] o Thm.def_binding o str_init_bind;
 
@@ -953,7 +959,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
-      |> fold_map3 (fn b => fn mx => fn car_init => typedef (b, params, mx) car_init NONE
+      |> fold_map3 (fn b => fn mx => fn car_init =>
+        typedef (Binding.conceal b, params, mx) car_init NONE
           (EVERY' [rtac ssubst, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
@@ -1016,7 +1023,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctorN);
     val ctor_name = Binding.name_of o ctor_bind;
-    val ctor_def_bind = rpair [] o Thm.def_binding o ctor_bind;
+    val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
 
     fun ctor_spec i abs str map_FT_init x x' =
       let
@@ -1075,7 +1082,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     fun fold_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctor_foldN);
     val fold_name = Binding.name_of o fold_bind;
-    val fold_def_bind = rpair [] o Thm.def_binding o fold_bind;
+    val fold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o fold_bind;
 
     fun fold_spec i T AT =
       let
@@ -1165,7 +1172,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     fun dtor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtorN);
     val dtor_name = Binding.name_of o dtor_bind;
-    val dtor_def_bind = rpair [] o Thm.def_binding o dtor_bind;
+    val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
 
     fun dtor_spec i FT T =
       let
@@ -1238,7 +1245,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     fun rec_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctor_recN);
     val rec_name = Binding.name_of o rec_bind;
-    val rec_def_bind = rpair [] o Thm.def_binding o rec_bind;
+    val rec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o rec_bind;
 
     val rec_strs =
       map3 (fn ctor => fn prod_s => fn mapx =>
@@ -1405,11 +1412,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     (*register new datatypes as BNFs*)
     val (timer, Ibnfs, (folded_ctor_map_o_thms, folded_ctor_map_thms), folded_ctor_set_thmss',
-        ctor_Irel_thms, lthy) =
+        ctor_Irel_thms, Ibnf_notes, lthy) =
       if m = 0 then
         (timer, replicate n DEADID_bnf,
         map_split (`(mk_pointfree lthy)) (map2 mk_ctor_map_DEADID_thm ctor_inject_thms map_ids),
-        replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, lthy)
+        replicate n [], map2 mk_ctor_Irel_DEADID_thm ctor_inject_thms bnfs, [], lthy)
       else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
@@ -1809,7 +1816,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             bs thmss)
       in
         (timer, Ibnfs, (folded_ctor_map_o_thms, folded_ctor_map_thms), folded_ctor_set_thmss',
-          ctor_Irel_thms, lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
+          ctor_Irel_thms, Ibnf_common_notes @ Ibnf_notes, lthy)
       end;
 
       val ctor_fold_o_map_thms = mk_xtor_un_fold_o_map_thms Least_FP false m ctor_fold_unique_thm
@@ -1858,7 +1865,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
-          bs thmss)
+          bs thmss);
+
+    (*FIXME: once the package exports all the necessary high-level characteristic theorems,
+       those should not only be concealed but rather not noted at all*)
+    val maybe_conceal_notes = note_all = false ? map (apfst (apfst Binding.conceal));
   in
     timer;
     ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, xtor_co_iterss = transpose [folds, recs],
@@ -1869,7 +1880,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       xtor_co_iter_thmss = transpose [ctor_fold_thms, ctor_rec_thms],
       xtor_co_iter_o_map_thmss = transpose [ctor_fold_o_map_thms, ctor_rec_o_map_thms],
       rel_xtor_co_induct_thm = Irel_induct_thm},
-     lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
+     lthy |> Local_Theory.notes (maybe_conceal_notes (common_notes @ notes @ Ibnf_notes)) |> snd)
   end;
 
 val _ =

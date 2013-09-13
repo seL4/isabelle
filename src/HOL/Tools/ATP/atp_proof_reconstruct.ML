@@ -8,8 +8,8 @@ Basic proof reconstruction from ATP proofs.
 
 signature ATP_PROOF_RECONSTRUCT =
 sig
-  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
-  type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
+  type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
+  type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
 
   val metisN : string
   val full_typesN : string
@@ -28,10 +28,10 @@ sig
   val unalias_type_enc : string -> string list
   val term_of_atp :
     Proof.context -> bool -> int Symtab.table -> typ option ->
-    (string, string) ho_term -> term
+    (string, string) atp_term -> term
   val prop_of_atp :
     Proof.context -> bool -> int Symtab.table ->
-    (string, string, (string, string) ho_term, string) formula -> term
+    (string, string, (string, string) atp_term, string) atp_formula -> term
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -90,9 +90,9 @@ fun make_tfree ctxt w =
     TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
   end
 
-exception HO_TERM of (string, string) ho_term list
-exception FORMULA of
-    (string, string, (string, string) ho_term, string) formula list
+exception ATP_TERM of (string, string) atp_term list
+exception ATP_FORMULA of
+    (string, string, (string, string) atp_term, string) atp_formula list
 exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
@@ -103,7 +103,7 @@ fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
-        raise HO_TERM [u]  (* only "tconst"s have type arguments *)
+        raise ATP_TERM [u]  (* only "tconst"s have type arguments *)
       else case unprefix_and_unascii tfree_prefix a of
         SOME b => make_tfree ctxt b
       | NONE =>
@@ -120,7 +120,7 @@ fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
 fun type_constraint_of_term ctxt (u as ATerm ((a, _), us)) =
   case (unprefix_and_unascii class_prefix a, map (typ_of_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
-  | _ => raise HO_TERM [u]
+  | _ => raise ATP_TERM [u]
 
 (* Accumulate type constraints in a formula: negative type literals. *)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
@@ -178,7 +178,8 @@ fun term_of_atp ctxt textual sym_tab =
       case u of
         ATerm ((s, _), us) =>
         if s = ""
-          then error "Isar proof reconstruction failed because the ATP proof contained unparsable material."
+          then error "Isar proof reconstruction failed because the ATP proof \
+                     \contains unparsable material."
         else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
@@ -199,7 +200,7 @@ fun term_of_atp ctxt textual sym_tab =
               case mangled_us @ us of
                 [typ_u, term_u] =>
                 do_term extra_ts (SOME (typ_of_atp ctxt typ_u)) term_u
-              | _ => raise HO_TERM us
+              | _ => raise ATP_TERM us
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
             else if s' = app_op_name then
@@ -335,7 +336,7 @@ fun prop_of_atp ctxt textual sym_tab phi =
              | AIff => s_iff
              | ANot => raise Fail "impossible connective")
       | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
-      | _ => raise FORMULA [phi]
+      | _ => raise ATP_FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
 end;
