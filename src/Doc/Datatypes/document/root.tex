@@ -20,9 +20,9 @@
 \setbox\boxA=\hbox{\ }
 \parindent=4\wd\boxA
 
-\newcommand\blankline{\vskip-.5\baselineskip}
+\newcommand\blankline{\vskip-.25\baselineskip}
 
-\newenvironment{indentblock}{\list{}{}\item[]}{\endlist}
+\newenvironment{indentblock}{\list{}{\setlength{\leftmargin}{\parindent}}\item[]}{\endlist}
 
 \newcommand{\keyw}[1]{\textbf{#1}}
 \newcommand{\synt}[1]{\textit{#1}}

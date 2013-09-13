@@ -187,7 +187,9 @@ the directory \verb|~~/src/HOL/BNF/Examples|.
 subsection {* Introductory Examples
   \label{ssec:datatype-introductory-examples} *}
 
-subsubsection {* Nonrecursive Types *}
+
+subsubsection {* Nonrecursive Types
+  \label{sssec:datatype-nonrecursive-types} *}
 
 text {*
 Datatypes are introduced by specifying the desired names and argument types for
@@ -231,17 +233,14 @@ is also possible:
     datatype_new ('a, 'b, 'c) triple\<^sub>u = Triple\<^sub>u "'a * 'b * 'c"
 
 
-subsubsection {* Simple Recursion *}
+subsubsection {* Simple Recursion
+  \label{sssec:datatype-simple-recursion} *}
 
 text {*
 Natural numbers are the simplest example of a recursive type:
 *}
 
     datatype_new nat = Zero | Suc nat
-(*<*)
-    (* FIXME: remove once "datatype_new" is integrated with "fun" *)
-    datatype_new_compat nat
-(*>*)
 
 text {*
 \noindent
@@ -264,7 +263,8 @@ enclosed in double quotes, as is customary in Isabelle.
 *}
 
 
-subsubsection {* Mutual Recursion *}
+subsubsection {* Mutual Recursion
+  \label{sssec:datatype-mutual-recursion} *}
 
 text {*
 \emph{Mutually recursive} types are introduced simultaneously and may refer to
@@ -289,7 +289,8 @@ expressions:
       Const 'a | Var 'b | Expr "('a, 'b) exp"
 
 
-subsubsection {* Nested Recursion *}
+subsubsection {* Nested Recursion
+  \label{sssec:datatype-nested-recursion} *}
 
 text {*
 \emph{Nested recursion} occurs when recursive occurrences of a type appear under
@@ -322,6 +323,13 @@ datatypes defined in terms of~@{text "\<Rightarrow>"}:
 
 text {*
 \noindent
+This is legal:
+*}
+
+    datatype_new 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
+
+text {*
+\noindent
 In general, type constructors @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
 @{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
@@ -336,7 +344,8 @@ arbitrary type constructors as BNFs.
 *}
 
 
-subsubsection {* Custom Names and Syntaxes *}
+subsubsection {* Custom Names and Syntaxes
+  \label{sssec:datatype-custom-names-and-syntaxes} *}
 
 text {*
 The @{command datatype_new} command introduces various constants in addition to
@@ -424,7 +433,8 @@ subsection {* Command Syntax
   \label{ssec:datatype-command-syntax} *}
 
 
-subsubsection {* \keyw{datatype\_new} *}
+subsubsection {* \keyw{datatype\_new}
+  \label{sssec:datatype-new} *}
 
 text {*
 Datatype definitions have the following general syntax:
@@ -504,7 +514,7 @@ name for the corresponding selector to override the default name
 constructors as long as they share the same type.
 
 @{rail "
-  @{syntax_def dt_sel_defaults}: '(' @'defaults' (name ':' term +) ')'
+  @{syntax_def dt_sel_defaults}: '(' 'defaults' (name ':' term +) ')'
 "}
 
 \noindent
@@ -518,12 +528,49 @@ associated with other constructors. The specified default value must be of type
 *}
 
 
-subsubsection {* \keyw{datatype\_new\_compat} *}
+subsubsection {* \keyw{datatype\_new\_compat}
+  \label{sssec:datatype-new-compat} *}
 
 text {*
+The old datatype package provides some functionality that is not yet replicated
+in the new package:
+
+\begin{itemize}
+\item It is integrated with \keyw{fun} and \keyw{function}
+\cite{isabelle-function}, Nitpick \cite{isabelle-nitpick}, Quickcheck,
+and other packages.
+
+\item It is extended by various add-ons, notably to produce instances of the
+@{const size} function.
+\end{itemize}
+
+\noindent
+New-style datatypes can in most case be registered as old-style datatypes using
+the command
+
 @{rail "
-  @@{command_def datatype_new_compat} types
+  @@{command_def datatype_new_compat} names
 "}
+
+\noindent
+where the \textit{names} argument is simply a space-separated list of type names
+that are mutually recursive. For example:
+*}
+
+    datatype_new_compat enat onat
+
+text {* \blankline *}
+
+    thm enat_onat.size
+
+text {* \blankline *}
+
+    ML {* Datatype_Data.get_info @{theory} @{type_name enat} *}
+
+text {*
+For nested recursive datatypes, all types through which recursion takes place
+must be new-style datatypes. In principle, it should be possible to support
+old-style datatypes as well, but the command does not support this yet.
 *}
 
 
@@ -607,7 +654,8 @@ text {*
 to the top of the theory file.
 *}
 
-subsubsection {* Free Constructor Theorems *}
+subsubsection {* Free Constructor Theorems
+  \label{sssec:free-constructor-theorems} *}
 
 (*<*)
     consts is_Cons :: 'a
@@ -620,18 +668,31 @@ They are listed below for @{typ "'a list"}:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\rmfamily:] ~ \\
 @{thm list.inject[no_vars]}
 
-\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\rmfamily:] ~ \\
 @{thm list.distinct(1)[no_vars]} \\
 @{thm list.distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
 @{thm list.exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{nchotomy}\upshape:] ~ \\
+\item[@{text "t."}\hthm{nchotomy}\rmfamily:] ~ \\
 @{thm list.nchotomy[no_vars]}
+
+\end{description}
+\end{indentblock}
+
+\noindent
+In addition, these nameless theorems are registered as safe elimination rules:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{list.distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rmfamily:] ~ \\
+@{thm list.distinct(1)[THEN notE, elim!, no_vars]} \\
+@{thm list.distinct(2)[THEN notE, elim!, no_vars]}
 
 \end{description}
 \end{indentblock}
@@ -642,20 +703,20 @@ The next subgroup is concerned with the case combinator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case} @{text "[simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{case} @{text "[simp]"}\rmfamily:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong}\upshape:] ~ \\
+\item[@{text "t."}\hthm{case\_cong}\rmfamily:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rmfamily:] ~ \\
 @{thm list.weak_case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{split}\upshape:] ~ \\
+\item[@{text "t."}\hthm{split}\rmfamily:] ~ \\
 @{thm list.split[no_vars]}
 
-\item[@{text "t."}\hthm{split\_asm}\upshape:] ~ \\
+\item[@{text "t."}\hthm{split\_asm}\rmfamily:] ~ \\
 @{thm list.split_asm[no_vars]}
 
 \item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
@@ -669,32 +730,32 @@ The third and last subgroup revolves around discriminators and selectors:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{discs} @{text "[simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{discs} @{text "[simp]"}\rmfamily:] ~ \\
 @{thm list.discs(1)[no_vars]} \\
 @{thm list.discs(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sels} @{text "[simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{sels} @{text "[simp]"}\rmfamily:] ~ \\
 @{thm list.sels(1)[no_vars]} \\
 @{thm list.sels(2)[no_vars]}
 
-\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rmfamily:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_exclude}\upshape:] ~ \\
+\item[@{text "t."}\hthm{disc\_exclude}\rmfamily:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
 discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> is_Cons list"} \\
 @{prop "is_Cons list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{expand}\upshape:] ~ \\
+\item[@{text "t."}\hthm{expand}\rmfamily:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{case\_conv}\upshape:] ~ \\
+\item[@{text "t."}\hthm{case\_conv}\rmfamily:] ~ \\
 @{thm list.case_conv[no_vars]}
 
 \end{description}
@@ -702,7 +763,8 @@ discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
 *}
 
 
-subsubsection {* Functorial Theorems *}
+subsubsection {* Functorial Theorems
+  \label{sssec:functorial-theorems} *}
 
 text {*
 The BNF-related theorem are listed below:
@@ -710,19 +772,19 @@ The BNF-related theorem are listed below:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{sets} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{sets} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.sets(1)[no_vars]} \\
 @{thm list.sets(2)[no_vars]}
 
-\item[@{text "t."}\hthm{map} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{map} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
@@ -731,7 +793,8 @@ The BNF-related theorem are listed below:
 *}
 
 
-subsubsection {* Inductive Theorems *}
+subsubsection {* Inductive Theorems
+  \label{sssec:inductive-theorems} *}
 
 text {*
 The inductive theorems are listed below:
@@ -739,18 +802,18 @@ The inductive theorems are listed below:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\upshape:] ~ \\
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{fold} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{fold} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.fold(1)[no_vars]} \\
 @{thm list.fold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec} @{text "[code]"}\upshape:] ~ \\
+\item[@{text "t."}\hthm{rec} @{text "[code]"}\rmfamily:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
@@ -818,65 +881,72 @@ section {* Defining Recursive Functions
 text {*
 This describes how to specify recursive functions over datatypes specified using
 @{command datatype_new}. The focus in on the @{command primrec_new} command,
-which supports primitive recursion. A few examples feature the \keyw{fun} and
-\keyw{function} commands, described in a separate tutorial
-\cite{isabelle-function}.
+which supports primitive recursion. More examples can be found in
+\verb|~~/src/HOL/BNF/Examples|.
 
-%%% TODO: partial_function?
+%%% TODO: partial_function
 *}
 
-text {*
-More examples in \verb|~~/src/HOL/BNF/Examples|.
-*}
 
 subsection {* Introductory Examples
   \label{ssec:primrec-introductory-examples} *}
 
-subsubsection {* Nonrecursive Types *}
+
+subsubsection {* Nonrecursive Types
+  \label{sssec:primrec-nonrecursive-types} *}
 
 text {*
-%  * simple (depth 1) pattern matching on the left-hand side
+Primitive recursion removes one layer of constructors on the left-hand side in
+each equation. For example:
 *}
 
     primrec_new bool_of_trool :: "trool \<Rightarrow> bool" where
-      "bool_of_trool Faalse = False" |
-      "bool_of_trool Truue = True"
+      "bool_of_trool Faalse \<longleftrightarrow> False" |
+      "bool_of_trool Truue \<longleftrightarrow> True"
 
-text {*
-%  * OK to specify the cases in a different order
-%  * OK to leave out some case (but get a warning -- maybe we need a "quiet"
-%    or "silent" flag?)
-%    * case is then unspecified
-
-More examples:
-*}
+text {* \blankline *}
 
     primrec_new the_list :: "'a option \<Rightarrow> 'a list" where
       "the_list None = []" |
       "the_list (Some a) = [a]"
 
+text {* \blankline *}
+
     primrec_new the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
       "the_default d None = d" |
       "the_default _ (Some a) = a"
 
+text {* \blankline *}
+
     primrec_new mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
 
-
-subsubsection {* Simple Recursion *}
-
 text {*
-again, simple pattern matching on left-hand side, but possibility
-to call a function recursively on an argument to a constructor:
+\noindent
+The equations can be specified in any order, and it is acceptable to leave out
+some cases, which are then unspecified. Pattern matching on the left-hand side
+is restricted to a single datatype, which must correspond to the same argument
+in all equations.
 *}
 
+
+subsubsection {* Simple Recursion
+  \label{sssec:primrec-simple-recursion} *}
+
+text {*
+For simple recursive types, recursive calls on a constructor argument are
+allowed on the right-hand side:
+*}
+
+(*<*)
+    context dummy_tlist
+    begin
+(*>*)
     primrec_new replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
       "replicate Zero _ = []" |
       "replicate (Suc n) a = a # replicate n a"
 
-text {*
-we don't like the confusing name @{const nth}:
-*}
+text {* \blankline *}
 
     primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (a # as) j =
@@ -884,10 +954,8 @@ we don't like the confusing name @{const nth}:
             Zero \<Rightarrow> a
           | Suc j' \<Rightarrow> at as j')"
 
-(*<*)
-    context dummy_tlist
-    begin
-(*>*)
+text {* \blankline *}
+
     primrec_new tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil b) = b" |
       "tfold f (TCons a as) = f a (tfold f as)"
@@ -896,39 +964,37 @@ we don't like the confusing name @{const nth}:
 (*>*)
 
 text {*
-Show one example where fun is needed.
+\noindent
+The next example is not primitive recursive, but it can be defined easily using
+@{command fun}. The @{command datatype_new_compat} command is needed to register
+new-style datatypes for use with @{command fun} and @{command function}
+(Section~\ref{sssec:datatype-new-compat}):
 *}
 
-subsubsection {* Mutual Recursion *}
+    datatype_new_compat nat
+
+text {* \blankline *}
+
+    fun at_least_two :: "nat \<Rightarrow> bool" where
+      "at_least_two (Suc (Suc _)) \<longleftrightarrow> True" |
+      "at_least_two _ \<longleftrightarrow> False"
+
+
+subsubsection {* Mutual Recursion
+  \label{sssec:primrec-mutual-recursion} *}
 
 text {*
-E.g., converting even/odd naturals to plain old naturals:
+The syntax for mutually recursive functions over mutually recursive datatypes
+is straightforward:
 *}
 
     primrec_new
       nat_of_enat :: "enat \<Rightarrow> nat" and
-      nat_of_onat :: "onat => nat"
+      nat_of_onat :: "onat \<Rightarrow> nat"
     where
       "nat_of_enat EZero = Zero" |
       "nat_of_enat (ESuc n) = Suc (nat_of_onat n)" |
       "nat_of_onat (OSuc n) = Suc (nat_of_enat n)"
-
-text {*
-Mutual recursion is be possible within a single type, but currently only using fun:
-*}
-
-    fun
-      even :: "nat \<Rightarrow> bool" and
-      odd :: "nat \<Rightarrow> bool"
-    where
-      "even Zero = True" |
-      "even (Suc n) = odd n" |
-      "odd Zero = False" |
-      "odd (Suc n) = even n"
-
-text {*
-More elaborate example that works with primrec_new:
-*}
 
     primrec_new
       eval\<^sub>e :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) exp \<Rightarrow> int" and
@@ -943,26 +1009,55 @@ More elaborate example that works with primrec_new:
       "eval\<^sub>f _ \<xi> (Var b) = \<xi> b" |
       "eval\<^sub>f \<gamma> \<xi> (Expr e) = eval\<^sub>e \<gamma> \<xi> e"
 
+text {*
+\noindent
+Mutual recursion is be possible within a single type, using @{command fun}:
+*}
 
-subsubsection {* Nested Recursion *}
+    fun
+      even :: "nat \<Rightarrow> bool" and
+      odd :: "nat \<Rightarrow> bool"
+    where
+      "even Zero = True" |
+      "even (Suc n) = odd n" |
+      "odd Zero = False" |
+      "odd (Suc n) = even n"
+
+
+subsubsection {* Nested Recursion
+  \label{sssec:primrec-nested-recursion} *}
+
+text {*
+In a departure from the old datatype package, nested recursion is normally
+handled via the map functions of the nesting type constructors. For example,
+recursive calls are lifted to lists using @{const map}:
+*}
 
 (*<*)
     datatype_new 'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f 'a "'a tree\<^sub>f\<^sub>f list"
     datatype_new 'a tree\<^sub>f\<^sub>i = Node\<^sub>f\<^sub>i 'a "'a tree\<^sub>f\<^sub>i llist"
+
+    context dummy_tlist
+    begin
 (*>*)
     primrec_new at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" where
       "at\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
          (case js of
             [] \<Rightarrow> a
           | j # js' \<Rightarrow> at (map (\<lambda>t. at\<^sub>f\<^sub>f t js') ts) j)"
+(*<*)
+    end
+(*>*)
 
 text {*
-Explain @{const lmap}.
+The next example features recursion through the @{text option} type. Although
+@{text option} is not a new-style datatype, it is registered as a BNF, with the
+map function @{const option_map}:
 *}
 
 (*<*)
     locale sum_btree_nested
-      begin
+    begin
 (*>*)
     primrec_new sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
@@ -973,15 +1068,31 @@ Explain @{const lmap}.
 (*>*)
 
 text {*
-Show example with function composition (ftree).
+\noindent
+The same principle applies for arbitrary type constructors through which
+recursion is possible. Notably, the map function for the function type
+(@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
 *}
 
-subsubsection {* Nested-as-Mutual Recursion *}
+    primrec_new ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+      "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
+      "ftree_map f (FTNode g) = FTNode (ftree_map f \<circ> g)"
 
 text {*
-%  * can pretend a nested type is mutually recursive (if purely inductive)
-%  * avoids the higher-order map
-%  * e.g.
+\noindent
+(No such function is defined by the package because @{typ 'a} is dead in
+@{typ "'a ftree"}, but we can easily do it ourselves.)
+*}
+
+
+subsubsection {* Nested-as-Mutual Recursion
+  \label{sssec:datatype-nested-as-mutual-recursion} *}
+
+text {*
+For compatibility with the old package, but also because it is sometimes
+convenient in its own right, it is possible to treat nested recursive datatypes
+as mutually recursive ones if the recursion takes place though new-style
+datatypes. For example:
 *}
 
     primrec_new
@@ -997,6 +1108,8 @@ text {*
             Zero \<Rightarrow> at_tree\<^sub>f\<^sub>f t
           | Suc j' \<Rightarrow> at_trees\<^sub>f\<^sub>f ts j')"
 
+text {* \blankline *}
+
     primrec_new
       sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
       sum_btree_option :: "'a btree option \<Rightarrow> 'a"
@@ -1007,6 +1120,11 @@ text {*
       "sum_btree_option (Some t) = sum_btree t"
 
 text {*
+
+%  * can pretend a nested type is mutually recursive (if purely inductive)
+%  * avoids the higher-order map
+%  * e.g.
+
 %  * this can always be avoided;
 %     * e.g. in our previous example, we first mapped the recursive
 %       calls, then we used a generic at function to retrieve the result
@@ -1036,7 +1154,8 @@ subsection {* Command Syntax
   \label{ssec:primrec-command-syntax} *}
 
 
-subsubsection {* \keyw{primrec\_new} *}
+subsubsection {* \keyw{primrec\_new}
+  \label{sssec:primrec-new} *}
 
 text {*
 Primitive recursive functions have the following general syntax:
@@ -1074,7 +1193,7 @@ text {*
 A datatype selector @{text un_D} can have a default value for each constructor
 on which it is not otherwise specified. Occasionally, it is useful to have the
 default value be defined recursively. This produces a chicken-and-egg situation
-that appears unsolvable, because the datatype is not introduced yet at the
+that may seem unsolvable, because the datatype is not introduced yet at the
 moment when the selectors are introduced. Of course, we can always define the
 selectors manually afterward, but we then have to state and prove all the
 characteristic theorems ourselves instead of letting the package do it.
@@ -1120,8 +1239,8 @@ text {* \blankline *}
       termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist \<Rightarrow> 'b"
     begin
     primrec_new termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
-    "termi\<^sub>0 (TNil y) = y" |
-    "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
+      "termi\<^sub>0 (TNil y) = y" |
+      "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
 
 text {* \blankline *}
@@ -1173,7 +1292,8 @@ subsection {* Command Syntax
   \label{ssec:codatatype-command-syntax} *}
 
 
-subsubsection {* \keyw{codatatype} *}
+subsubsection {* \keyw{codatatype}
+  \label{sssec:codatatype} *}
 
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
@@ -1224,7 +1344,8 @@ subsection {* Command Syntax
   \label{ssec:primcorec-command-syntax} *}
 
 
-subsubsection {* \keyw{primcorec} *}
+subsubsection {* \keyw{primcorec}
+  \label{sssec:primcorec} *}
 
 text {*
 Primitive corecursive definitions have the following general syntax:
@@ -1274,7 +1395,8 @@ subsection {* Command Syntax
   \label{ssec:bnf-command-syntax} *}
 
 
-subsubsection {* \keyw{bnf} *}
+subsubsection {* \keyw{bnf}
+  \label{sssec:bnf} *}
 
 text {*
 @{rail "
@@ -1286,7 +1408,8 @@ text {*
 *}
 
 
-subsubsection {* \keyw{print\_bnfs} *}
+subsubsection {* \keyw{print\_bnfs}
+  \label{sssec:print-bnfs} *}
 
 text {*
 @{command print_bnfs}
@@ -1322,7 +1445,8 @@ subsection {* Command Syntax
   \label{ssec:ctors-command-syntax} *}
 
 
-subsubsection {* \keyw{wrap\_free\_constructors} *}
+subsubsection {* \keyw{wrap\_free\_constructors}
+    \label{sssec:wrap-free-constructors} *}
 
 text {*
 Free constructor wrapping has the following general syntax:
