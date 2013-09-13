@@ -2495,35 +2495,47 @@ lemma real_mult_inverse_cancel2:
      "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
   by (auto dest: real_mult_inverse_cancel simp add: mult_ac)
 
-lemma realpow_num_eq_if:
-  fixes m :: "'a::power"
-  shows "m ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
-  by (cases n) auto
+lemmas realpow_num_eq_if = power_eq_if
 
-lemma cos_two_less_zero [simp]: "cos (2) < 0"
-  apply (cut_tac x = 2 in cos_paired)
-  apply (drule sums_minus)
-  apply (rule neg_less_iff_less [THEN iffD1])
-  apply (frule sums_unique, auto)
-  apply (rule_tac y =
-   "\<Sum>n=0..< Suc(Suc(Suc 0)). - (-1 ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
-         in order_less_trans)
-  apply (simp (no_asm) add: fact_num_eq_if_nat realpow_num_eq_if del: fact_Suc)
-  apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
-  apply (rule sumr_pos_lt_pair)
-  apply (erule sums_summable, safe)
-  unfolding One_nat_def
-  apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric]
-              del: fact_Suc)
-  apply (simp add: inverse_eq_divide less_divide_eq del: fact_Suc)
-  apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
-  apply (simp only: real_of_nat_mult)
-  apply (rule mult_strict_mono, force)
-    apply (rule_tac [3] real_of_nat_ge_zero)
-   prefer 2 apply force
-  apply (rule real_of_nat_less_iff [THEN iffD2])
-  apply (rule fact_less_mono_nat, auto)
-  done
+lemma cos_two_less_zero [simp]:
+  "cos 2 < 0"
+proof -
+  note fact_Suc [simp del]
+  from cos_paired
+  have "(\<lambda>n. - (-1 ^ n / real (fact (2 * n)) * 2 ^ (2 * n))) sums - cos 2"
+    by (rule sums_minus)
+  then have *: "(\<lambda>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n)))) sums - cos 2"
+    by simp
+  then have **: "summable (\<lambda>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+    by (rule sums_summable)
+  have "0 < (\<Sum>n = 0..<Suc (Suc (Suc 0)). - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+    by (simp add: fact_num_eq_if_nat realpow_num_eq_if)
+  moreover have "(\<Sum>n = 0..<Suc (Suc (Suc 0)). - (-1 ^ n  * 2 ^ (2 * n) / real (fact (2 * n))))
+    < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+  proof -
+    { fix d
+      have "4 * real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
+       < real (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))) *
+           fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
+        by (simp only: real_of_nat_mult) (auto intro!: mult_strict_mono fact_less_mono_nat)
+      then have "4 * real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))
+        < real (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d))))))))))"
+        by (simp only: fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
+      then have "4 * inverse (real (fact (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))))
+        < inverse (real (fact (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))))"
+        by (simp add: inverse_eq_divide less_divide_eq)
+    }
+    note *** = this
+    from ** show ?thesis by (rule sumr_pos_lt_pair)
+      (simp add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] ***)
+  qed
+  ultimately have "0 < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+    by (rule order_less_trans)
+  moreover from * have "- cos 2 = (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
+    by (rule sums_unique)
+  ultimately have "0 < - cos 2" by simp
+  then show ?thesis by simp
+qed
 
 lemmas cos_two_neq_zero [simp] = cos_two_less_zero [THEN less_imp_neq]
 lemmas cos_two_le_zero [simp] = cos_two_less_zero [THEN order_less_imp_le]
