@@ -244,7 +244,7 @@ definition convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> rea
 lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
   unfolding convex_on_def by auto
 
-lemma convex_add[intro]:
+lemma convex_on_add [intro]:
   assumes "convex_on s f" "convex_on s g"
   shows "convex_on s (\<lambda>x. f x + g x)"
 proof -
@@ -262,7 +262,7 @@ proof -
   then show ?thesis unfolding convex_on_def by auto
 qed
 
-lemma convex_cmul[intro]:
+lemma convex_on_cmul [intro]:
   assumes "0 \<le> (c::real)" "convex_on s f"
   shows "convex_on s (\<lambda>x. c * f x)"
 proof-
@@ -284,7 +284,7 @@ proof-
     using assms unfolding convex_on_def by fastforce
 qed
 
-lemma convex_distance[intro]:
+lemma convex_on_dist [intro]:
   fixes s :: "'a::real_normed_vector set"
   shows "convex_on s (\<lambda>x. dist a x)"
 proof (auto simp add: convex_on_def dist_norm)
@@ -304,42 +304,47 @@ qed
 
 subsection {* Arithmetic operations on sets preserve convexity. *}
 
-lemma convex_scaling:
-  assumes "convex s"
-  shows"convex ((\<lambda>x. c *\<^sub>R x) ` s)"
-  using assms unfolding convex_def image_iff
-proof safe
-  fix x xa y xb :: "'a::real_vector"
-  fix u v :: real
-  assume asm: "\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
-    "xa \<in> s" "xb \<in> s" "0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "\<exists>x\<in>s. u *\<^sub>R c *\<^sub>R xa + v *\<^sub>R c *\<^sub>R xb = c *\<^sub>R x"
-    using bexI[of _ "u *\<^sub>R xa +v *\<^sub>R xb"] asm by (auto simp add: algebra_simps)
+lemma convex_linear_image:
+  assumes "linear f" and "convex s" shows "convex (f ` s)"
+proof -
+  interpret f: linear f by fact
+  from `convex s` show "convex (f ` s)"
+    by (simp add: convex_def f.scaleR [symmetric] f.add [symmetric])
 qed
 
-lemma convex_negations: "convex s \<Longrightarrow> convex ((\<lambda>x. -x)` s)"
-  using assms unfolding convex_def image_iff
-proof safe
-  fix x xa y xb :: "'a::real_vector"
-  fix u v :: real
-  assume asm: "\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
-    "xa \<in> s" "xb \<in> s" "0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "\<exists>x\<in>s. u *\<^sub>R - xa + v *\<^sub>R - xb = - x"
-    using bexI[of _ "u *\<^sub>R xa +v *\<^sub>R xb"] asm by auto
+lemma convex_linear_vimage:
+  assumes "linear f" and "convex s" shows "convex (f -` s)"
+proof -
+  interpret f: linear f by fact
+  from `convex s` show "convex (f -` s)"
+    by (simp add: convex_def f.add f.scaleR)
+qed
+
+lemma convex_scaling:
+  assumes "convex s" shows "convex ((\<lambda>x. c *\<^sub>R x) ` s)"
+proof -
+  have "linear (\<lambda>x. c *\<^sub>R x)" by (simp add: linearI scaleR_add_right)
+  then show ?thesis using `convex s` by (rule convex_linear_image)
+qed
+
+lemma convex_negations:
+  assumes "convex s" shows "convex ((\<lambda>x. - x) ` s)"
+proof -
+  have "linear (\<lambda>x. - x)" by (simp add: linearI)
+  then show ?thesis using `convex s` by (rule convex_linear_image)
 qed
 
 lemma convex_sums:
-  assumes "convex s" "convex t"
+  assumes "convex s" and "convex t"
   shows "convex {x + y| x y. x \<in> s \<and> y \<in> t}"
-  using assms unfolding convex_def image_iff
-proof safe
-  fix xa xb ya yb
-  assume xy:"xa\<in>s" "xb\<in>s" "ya\<in>t" "yb\<in>t"
-  fix u v :: real
-  assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "\<exists>x y. u *\<^sub>R (xa + ya) + v *\<^sub>R (xb + yb) = x + y \<and> x \<in> s \<and> y \<in> t"
-    using exI[of _ "u *\<^sub>R xa + v *\<^sub>R xb"] exI[of _ "u *\<^sub>R ya + v *\<^sub>R yb"]
-      assms[unfolded convex_def] uv xy by (auto simp add:scaleR_right_distrib)
+proof -
+  have "linear (\<lambda>(x, y). x + y)"
+    by (auto intro: linearI simp add: scaleR_add_right)
+  with assms have "convex ((\<lambda>(x, y). x + y) ` (s \<times> t))"
+    by (intro convex_linear_image convex_Times)
+  also have "((\<lambda>(x, y). x + y) ` (s \<times> t)) = {x + y| x y. x \<in> s \<and> y \<in> t}"
+    by auto
+  finally show ?thesis .
 qed
 
 lemma convex_differences:
@@ -347,17 +352,7 @@ lemma convex_differences:
   shows "convex {x - y| x y. x \<in> s \<and> y \<in> t}"
 proof -
   have "{x - y| x y. x \<in> s \<and> y \<in> t} = {x + y |x y. x \<in> s \<and> y \<in> uminus ` t}"
-  proof safe
-    fix x x' y
-    assume "x' \<in> s" "y \<in> t"
-    then show "\<exists>x y'. x' - y = x + y' \<and> x \<in> s \<and> y' \<in> uminus ` t"
-      using exI[of _ x'] exI[of _ "-y"] by auto
-  next
-    fix x x' y y'
-    assume "x' \<in> s" "y' \<in> t"
-    then show "\<exists>x y. x' + - y' = x - y \<and> x \<in> s \<and> y \<in> t"
-      using exI[of _ x'] exI[of _ y'] by auto
-  qed
+    unfolding diff_def by auto
   then show ?thesis
     using convex_sums[OF assms(1) convex_negations[OF assms(2)]] by auto
 qed
@@ -379,21 +374,6 @@ proof -
   then show ?thesis
     using convex_translation[OF convex_scaling[OF assms], of a c] by auto
 qed
-
-lemma convex_linear_image:
-  assumes c:"convex s" and l:"bounded_linear f"
-  shows "convex(f ` s)"
-proof (auto simp add: convex_def)
-  interpret f: bounded_linear f by fact
-  fix x y
-  assume xy: "x \<in> s" "y \<in> s"
-  fix u v :: real
-  assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "u *\<^sub>R f x + v *\<^sub>R f y \<in> f ` s" unfolding image_iff
-    using bexI[of _ "u *\<^sub>R x + v *\<^sub>R y"] f.add f.scaleR
-      c[unfolded convex_def] xy uv by auto
-qed
-
 
 lemma pos_is_convex: "convex {0 :: real <..}"
   unfolding convex_alt
