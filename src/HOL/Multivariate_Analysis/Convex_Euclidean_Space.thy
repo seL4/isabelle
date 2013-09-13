@@ -31,19 +31,12 @@ lemma linear_add_cmul:
   shows "f (a *\<^sub>R x + b *\<^sub>R y) = a *\<^sub>R f x +  b *\<^sub>R f y"
   using linear_add[of f] linear_cmul[of f] assms by simp
 
-lemma mem_convex_2:
-  assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v = 1"
-  shows "u *\<^sub>R x + v *\<^sub>R y \<in> S"
-  using assms convex_def[of S] by auto
-
 lemma mem_convex_alt:
   assumes "convex S" "x \<in> S" "y \<in> S" "u \<ge> 0" "v \<ge> 0" "u + v > 0"
   shows "((u/(u+v)) *\<^sub>R x + (v/(u+v)) *\<^sub>R y) \<in> S"
-  apply (subst mem_convex_2)
+  apply (rule convexD)
   using assms
-  apply (auto simp add: algebra_simps zero_le_divide_iff)
-  using add_divide_distrib[of u v "u+v"]
-  apply auto
+  apply (simp_all add: zero_le_divide_iff add_divide_distrib [symmetric])
   done
 
 lemma inj_on_image_mem_iff: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f a \<in> f`A \<Longrightarrow> a \<in> B \<Longrightarrow> a \<in> A"
@@ -1348,7 +1341,6 @@ lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
 text {* Balls, being convex, are connected. *}
 
 lemma convex_box:
-  fixes a::"'a::euclidean_space"
   assumes "\<And>i. i \<in> Basis \<Longrightarrow> convex {x. P i x}"
   shows "convex {x. \<forall>i\<in>Basis. P i (x\<bullet>i)}"
   using assms unfolding convex_def
@@ -1575,19 +1567,11 @@ next
     using hull_mono[of s "insert a s" convex] hull_mono[of "{a}" "insert a s" convex] and obt(4)
     by auto
   then show "x \<in> convex hull insert a s"
-    unfolding obt(5)
-    using convex_convex_hull[of "insert a s", unfolded convex_def]
-    apply (erule_tac x = a in ballE)
-    apply (erule_tac x = b in ballE)
-    apply (erule_tac x = u in allE)
-    using obt
-    apply auto
-    done
+    unfolding obt(5) using obt(1-3)
+    by (rule convexD [OF convex_convex_hull])
 next
   show "convex ?hull"
-    unfolding convex_def
-    apply (rule, rule, rule, rule, rule, rule, rule)
-  proof -
+  proof (rule convexI)
     fix x y u v
     assume as: "(0::real) \<le> u" "0 \<le> v" "u + v = 1" "x\<in>?hull" "y\<in>?hull"
     from as(4) obtain u1 v1 b1 where
@@ -1637,7 +1621,7 @@ next
         apply (rule_tac
           x = "((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI)
         defer
-        apply (rule convex_convex_hull[of s, unfolded convex_def, rule_format])
+        apply (rule convexD [OF convex_convex_hull])
         using obt1(4) obt2(4)
         unfolding add_divide_distrib[symmetric] and zero_le_divide_iff
         apply (auto simp add: scaleR_left_distrib scaleR_right_distrib)
@@ -1681,8 +1665,7 @@ lemma convex_hull_indexed:
   apply (rule hull_unique)
   apply rule
   defer
-  apply (subst convex_def)
-  apply (rule, rule, rule, rule, rule, rule, rule)
+  apply (rule convexI)
 proof -
   fix x
   assume "x\<in>s"
@@ -4667,13 +4650,11 @@ lemma convex_closure:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s"
   shows "convex (closure s)"
-  unfolding convex_def Ball_def closure_sequential
-  apply (rule,rule,rule,rule,rule,rule,rule,rule,rule)
-  apply (elim exE)
-  apply (rule_tac x="\<lambda>n. u *\<^sub>R xb n + v *\<^sub>R xc n" in exI)
+  apply (rule convexI)
+  apply (unfold closure_sequential, elim exE)
+  apply (rule_tac x="\<lambda>n. u *\<^sub>R xa n + v *\<^sub>R xb n" in exI)
   apply (rule,rule)
-  apply (rule assms[unfolded convex_def, rule_format])
-  prefer 6
+  apply (rule convexD [OF assms])
   apply (auto del: tendsto_const intro!: tendsto_intros)
   done
 
@@ -4715,37 +4696,25 @@ lemma convex_hull_eq_empty[simp]: "convex hull s = {} \<longleftrightarrow> s = 
 
 subsection {* Moving and scaling convex hulls. *}
 
-lemma convex_hull_translation_lemma:
-  "convex hull ((\<lambda>x. a + x) ` s) \<subseteq> (\<lambda>x. a + x) ` (convex hull s)"
-  by (metis convex_convex_hull convex_translation hull_minimal hull_subset image_mono)
+lemma convex_hull_set_plus:
+  "convex hull (s + t) = convex hull s + convex hull t"
+  unfolding set_plus_image
+  apply (subst convex_hull_linear_image [symmetric])
+  apply (simp add: linear_iff scaleR_right_distrib)
+  apply (simp add: convex_hull_Times)
+  done
 
-lemma convex_hull_bilemma:
-  assumes "\<forall>s a. (convex hull (up a s)) \<subseteq> up a (convex hull s)"
-  shows "(\<forall>s. up a (up (neg a) s) = s) \<and> (\<forall>s. up (neg a) (up a s) = s) \<and> (\<forall>s t a. s \<subseteq> t \<longrightarrow> up a s \<subseteq> up a t)
-  \<Longrightarrow> \<forall>s. (convex hull (up a s)) = up a (convex hull s)"
-  using assms by (metis subset_antisym)
+lemma translation_eq_singleton_plus: "(\<lambda>x. a + x) ` t = {a} + t"
+  unfolding set_plus_def by auto
 
 lemma convex_hull_translation:
   "convex hull ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (convex hull s)"
-  apply (rule convex_hull_bilemma[rule_format, of _ _ "\<lambda>a. -a"])
-  apply (rule convex_hull_translation_lemma)
-  unfolding image_image
-  apply auto
-  done
-
-lemma convex_hull_scaling_lemma:
-  "convex hull ((\<lambda>x. c *\<^sub>R x) ` s) \<subseteq> (\<lambda>x. c *\<^sub>R x) ` (convex hull s)"
-  by (metis convex_convex_hull convex_scaling hull_subset subset_hull subset_image_iff)
+  unfolding translation_eq_singleton_plus
+  by (simp only: convex_hull_set_plus convex_hull_singleton)
 
 lemma convex_hull_scaling:
   "convex hull ((\<lambda>x. c *\<^sub>R x) ` s) = (\<lambda>x. c *\<^sub>R x) ` (convex hull s)"
-  apply (cases "c = 0")
-  defer
-  apply (rule convex_hull_bilemma[rule_format, of _ _ inverse])
-  apply (rule convex_hull_scaling_lemma)
-  unfolding image_image scaleR_scaleR
-  apply (auto simp add:image_constant_conv)
-  done
+  using linear_scaleR by (rule convex_hull_linear_image [symmetric])
 
 lemma convex_hull_affinity:
   "convex hull ((\<lambda>x. a + c *\<^sub>R x) ` s) = (\<lambda>x. a + c *\<^sub>R x) ` (convex hull s)"
@@ -4757,44 +4726,41 @@ subsection {* Convexity of cone hulls *}
 lemma convex_cone_hull:
   assumes "convex S"
   shows "convex (cone hull S)"
-proof -
+proof (rule convexI)
+  fix x y
+  assume xy: "x \<in> cone hull S" "y \<in> cone hull S"
+  then have "S \<noteq> {}"
+    using cone_hull_empty_iff[of S] by auto
+  fix u v :: real
+  assume uv: "u \<ge> 0" "v \<ge> 0" "u + v = 1"
+  then have *: "u *\<^sub>R x \<in> cone hull S" "v *\<^sub>R y \<in> cone hull S"
+    using cone_cone_hull[of S] xy cone_def[of "cone hull S"] by auto
+  from * obtain cx :: real and xx where x: "u *\<^sub>R x = cx *\<^sub>R xx" "cx \<ge> 0" "xx \<in> S"
+    using cone_hull_expl[of S] by auto
+  from * obtain cy :: real and yy where y: "v *\<^sub>R y = cy *\<^sub>R yy" "cy \<ge> 0" "yy \<in> S"
+    using cone_hull_expl[of S] by auto
   {
-    fix x y
-    assume xy: "x \<in> cone hull S" "y \<in> cone hull S"
-    then have "S \<noteq> {}"
-      using cone_hull_empty_iff[of S] by auto
-    fix u v :: real
-    assume uv: "u \<ge> 0" "v \<ge> 0" "u + v = 1"
-    then have *: "u *\<^sub>R x \<in> cone hull S" "v *\<^sub>R y \<in> cone hull S"
-      using cone_cone_hull[of S] xy cone_def[of "cone hull S"] by auto
-    from * obtain cx :: real and xx where x: "u *\<^sub>R x = cx *\<^sub>R xx" "cx \<ge> 0" "xx \<in> S"
-      using cone_hull_expl[of S] by auto
-    from * obtain cy :: real and yy where y: "v *\<^sub>R y = cy *\<^sub>R yy" "cy \<ge> 0" "yy \<in> S"
-      using cone_hull_expl[of S] by auto
-    {
-      assume "cx + cy \<le> 0"
-      then have "u *\<^sub>R x = 0" and "v *\<^sub>R y = 0"
-        using x y by auto
-      then have "u *\<^sub>R x+ v *\<^sub>R y = 0"
-        by auto
-      then have "u *\<^sub>R x+ v *\<^sub>R y \<in> cone hull S"
-        using cone_hull_contains_0[of S] `S \<noteq> {}` by auto
-    }
-    moreover
-    {
-      assume "cx + cy > 0"
-      then have "(cx / (cx + cy)) *\<^sub>R xx + (cy / (cx + cy)) *\<^sub>R yy \<in> S"
-        using assms mem_convex_alt[of S xx yy cx cy] x y by auto
-      then have "cx *\<^sub>R xx + cy *\<^sub>R yy \<in> cone hull S"
-        using mem_cone_hull[of "(cx/(cx+cy)) *\<^sub>R xx + (cy/(cx+cy)) *\<^sub>R yy" S "cx+cy"] `cx+cy>0`
-        by (auto simp add: scaleR_right_distrib)
-      then have "u *\<^sub>R x+ v *\<^sub>R y \<in> cone hull S"
-        using x y by auto
-    }
-    moreover have "cx + cy \<le> 0 \<or> cx + cy > 0" by auto
-    ultimately have "u *\<^sub>R x+ v *\<^sub>R y \<in> cone hull S" by blast
+    assume "cx + cy \<le> 0"
+    then have "u *\<^sub>R x = 0" and "v *\<^sub>R y = 0"
+      using x y by auto
+    then have "u *\<^sub>R x + v *\<^sub>R y = 0"
+      by auto
+    then have "u *\<^sub>R x + v *\<^sub>R y \<in> cone hull S"
+      using cone_hull_contains_0[of S] `S \<noteq> {}` by auto
   }
-  then show ?thesis unfolding convex_def by auto
+  moreover
+  {
+    assume "cx + cy > 0"
+    then have "(cx / (cx + cy)) *\<^sub>R xx + (cy / (cx + cy)) *\<^sub>R yy \<in> S"
+      using assms mem_convex_alt[of S xx yy cx cy] x y by auto
+    then have "cx *\<^sub>R xx + cy *\<^sub>R yy \<in> cone hull S"
+      using mem_cone_hull[of "(cx/(cx+cy)) *\<^sub>R xx + (cy/(cx+cy)) *\<^sub>R yy" S "cx+cy"] `cx+cy>0`
+      by (auto simp add: scaleR_right_distrib)
+    then have "u *\<^sub>R x + v *\<^sub>R y \<in> cone hull S"
+      using x y by auto
+  }
+  moreover have "cx + cy \<le> 0 \<or> cx + cy > 0" by auto
+  ultimately show "u *\<^sub>R x + v *\<^sub>R y \<in> cone hull S" by blast
 qed
 
 lemma cone_convex_hull:
@@ -5660,11 +5626,6 @@ lemma convex_on:
 
 subsection {* Convexity of general and special intervals *}
 
-lemma convexI: (* TODO: move to Library/Convex.thy *)
-  assumes "\<And>x y u v. x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> 0 \<le> u \<Longrightarrow> 0 \<le> v \<Longrightarrow> u + v = 1 \<Longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
-  shows "convex s"
-  using assms unfolding convex_def by fast
-
 lemma is_interval_convex:
   fixes s :: "'a::euclidean_space set"
   assumes "is_interval s"
@@ -5878,14 +5839,6 @@ lemma box_eq_set_setsum_Basis:
   apply (cut_tac u=x and v=i in inner_Basis, assumption+)
   apply (rule ccontr)
   apply simp
-  done
-
-lemma convex_hull_set_plus:
-  "convex hull (s + t) = convex hull s + convex hull t"
-  unfolding set_plus_image
-  apply (subst convex_hull_linear_image [symmetric])
-  apply (simp add: linear_iff scaleR_right_distrib)
-  apply (simp add: convex_hull_Times)
   done
 
 lemma convex_hull_set_setsum:

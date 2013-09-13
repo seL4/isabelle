@@ -14,6 +14,16 @@ subsection {* Convexity. *}
 definition convex :: "'a::real_vector set \<Rightarrow> bool"
   where "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
 
+lemma convexI:
+  assumes "\<And>x y u v. x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> 0 \<le> u \<Longrightarrow> 0 \<le> v \<Longrightarrow> u + v = 1 \<Longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
+  shows "convex s"
+  using assms unfolding convex_def by fast
+
+lemma convexD:
+  assumes "convex s" and "x \<in> s" and "y \<in> s" and "0 \<le> u" and "0 \<le> v" and "u + v = 1"
+  shows "u *\<^sub>R x + v *\<^sub>R y \<in> s"
+  using assms unfolding convex_def by fast
+
 lemma convex_alt:
   "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
   (is "_ \<longleftrightarrow> ?alt")
@@ -140,7 +150,7 @@ next
     then have a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
     with asms have "(\<Sum>j\<in>s. ?a j *\<^sub>R y j) \<in> C" using a_nonneg by fastforce
     then have "a i *\<^sub>R y i + (1 - a i) *\<^sub>R (\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
-      using asms[unfolded convex_def, rule_format] yai ai1 by auto
+      using asms yai ai1 by (auto intro: convexD)
     then have "a i *\<^sub>R y i + (\<Sum> j \<in> s. (1 - a i) *\<^sub>R (?a j *\<^sub>R y j)) \<in> C"
       using scaleR_right.setsum[of "(1 - a i)" "\<lambda> j. ?a j *\<^sub>R y j" s] by auto
     then have "a i *\<^sub>R y i + (\<Sum> j \<in> s. a j *\<^sub>R y j) \<in> C" using i0 by auto
