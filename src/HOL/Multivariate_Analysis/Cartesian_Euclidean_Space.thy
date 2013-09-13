@@ -499,7 +499,7 @@ definition matrix :: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<R
   where "matrix f = (\<chi> i j. (f(axis j 1))$i)"
 
 lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
-  by (simp add: linear_def matrix_vector_mult_def vec_eq_iff
+  by (simp add: linear_iff matrix_vector_mult_def vec_eq_iff
       field_simps setsum_right_distrib setsum_addf)
 
 lemma matrix_works:

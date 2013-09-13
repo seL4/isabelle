@@ -1080,7 +1080,7 @@ proof -
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
   show ?thesis
-    unfolding linear_def vector_eq[where 'a="real^'n"] scalar_mult_eq_scaleR
+    unfolding linear_iff vector_eq[where 'a="real^'n"] scalar_mult_eq_scaleR
     by (simp add: inner_add fc field_simps)
 qed
 

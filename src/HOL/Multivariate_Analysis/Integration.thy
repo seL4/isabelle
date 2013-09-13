@@ -136,18 +136,21 @@ lemma linear_simps:
     "f 0 = 0"
     "f (- a) = - f a"
     "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
-  apply (rule_tac[!] additive.add additive.minus additive.diff additive.zero bounded_linear.scaleR)
-  using assms unfolding bounded_linear_def additive_def
-  apply auto
-  done
+proof -
+  interpret f: bounded_linear f by fact
+  show "f (a + b) = f a + f b" by (rule f.add)
+  show "f (a - b) = f a - f b" by (rule f.diff)
+  show "f 0 = 0" by (rule f.zero)
+  show "f (- a) = - f a" by (rule f.minus)
+  show "f (s *\<^sub>R v) = s *\<^sub>R (f v)" by (rule f.scaleR)
+qed
 
 lemma bounded_linearI:
   assumes "\<And>x y. f (x + y) = f x + f y"
     and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x"
     and "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def
-  using assms by auto
+  using assms by (rule bounded_linear_intro) (* FIXME: duplicate *)
 
 lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
   by (rule bounded_linear_inner_left)
@@ -7601,7 +7604,7 @@ proof -
     apply rule
     apply (rule linear_continuous_at)
     unfolding linear_linear
-    unfolding linear_def inner_simps euclidean_eq_iff[where 'a='a]
+    unfolding linear_iff inner_simps euclidean_eq_iff[where 'a='a]
     apply (auto simp add: field_simps)
     done
 qed auto
