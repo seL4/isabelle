@@ -25,7 +25,7 @@ provided by the earlier package due to Berghofer and Wenzel
 to use the new package.
 
 Perhaps the main advantage of the new package is that it supports recursion
-through a large class of non-datatypes, comprising finite sets:
+through a large class of non-datatypes, such as finite sets:
 *}
 
     datatype_new 'a tree\<^sub>f\<^sub>s = Node\<^sub>f\<^sub>s 'a "'a tree\<^sub>f\<^sub>s fset"
@@ -1050,6 +1050,7 @@ Primitive recursive functions have the following general syntax:
 *}
 
 
+(*
 subsection {* Generated Theorems
   \label{ssec:primrec-generated-theorems} *}
 
@@ -1063,6 +1064,8 @@ text {*
 %  * fold, rec
 %    * mutualized
 *}
+*)
+
 
 subsection {* Recursive Default Values for Selectors
   \label{ssec:recursive-default-values-for-selectors} *}
@@ -1099,14 +1102,19 @@ Derive the desired equation on @{text un_D} from the characteristic equations
 for @{text "un_D\<^sub>0"}.
 \end{enumerate}
 
+\noindent
 The following example illustrates this procedure:
 *}
 
     consts termi\<^sub>0 :: 'a
 
+text {* \blankline *}
+
     datatype_new ('a, 'b) tlist =
       TNil (termi: 'b) (defaults ttl: TNil)
     | TCons (thd: 'a) (ttl : "('a, 'b) tlist") (defaults termi: "\<lambda>_ xs. termi\<^sub>0 xs")
+
+text {* \blankline *}
 
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist \<Rightarrow> 'b"
@@ -1115,6 +1123,8 @@ The following example illustrates this procedure:
     "termi\<^sub>0 (TNil y) = y" |
     "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
+
+text {* \blankline *}
 
     lemma terminal_TCons[simp]: "termi (TCons x xs) = termi xs"
     by (cases xs) auto
@@ -1140,24 +1150,30 @@ section {* Defining Codatatypes
   \label{sec:defining-codatatypes} *}
 
 text {*
-This section describes how to specify codatatypes using the @{command codatatype}
-command.
-
-%  * libraries include some useful codatatypes, notably lazy lists;
-%    see the ``Coinductive'' AFP entry \cite{xxx} for an elaborate library
+This section describes how to specify codatatypes using the @{command
+codatatype} command. The command is first illustrated through concrete examples
+featuring different flavors of corecursion. More examples can be found in the
+directory \verb|~~/src/HOL/BNF/Examples|. The \emph{Archive of Formal Proofs}
+also includes some useful codatatypes, notably for lazy lists
+\cite{lochbihler-2010}.
 *}
 
 
+(*
 subsection {* Introductory Examples
   \label{ssec:codatatype-introductory-examples} *}
 
 text {*
 More examples in \verb|~~/src/HOL/BNF/Examples|.
 *}
+*)
 
 
 subsection {* Command Syntax
   \label{ssec:codatatype-command-syntax} *}
+
+
+subsubsection {* \keyw{codatatype} *}
 
 text {*
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
@@ -1167,12 +1183,16 @@ available, because destructors are a central notion for codatatypes.
 *}
 
 
+(*
 subsection {* Generated Constants
   \label{ssec:codatatype-generated-constants} *}
+*)
 
 
+(*
 subsection {* Generated Theorems
   \label{ssec:codatatype-generated-theorems} *}
+*)
 
 
 section {* Defining Corecursive Functions
@@ -1187,6 +1207,7 @@ This section describes how to specify corecursive functions using the
 *}
 
 
+(*
 subsection {* Introductory Examples
   \label{ssec:primcorec-introductory-examples} *}
 
@@ -1196,6 +1217,7 @@ More examples in \verb|~~/src/HOL/BNF/Examples|.
 Also, for default values, the same trick as for datatypes is possible for
 codatatypes (Section~\ref{ssec:recursive-default-values-for-selectors}).
 *}
+*)
 
 
 subsection {* Command Syntax
@@ -1216,8 +1238,10 @@ Primitive corecursive definitions have the following general syntax:
 *}
 
 
+(*
 subsection {* Generated Theorems
   \label{ssec:primcorec-generated-theorems} *}
+*)
 
 
 section {* Registering Bounded Natural Functors
@@ -1231,6 +1255,7 @@ of a bounded natural functor (BNF).
 *}
 
 
+(*
 subsection {* Introductory Example
   \label{ssec:bnf-introductory-example} *}
 
@@ -1242,6 +1267,7 @@ More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
 %  * and existence of map, set for those
 %mention =>.
 *}
+*)
 
 
 subsection {* Command Syntax
@@ -1257,8 +1283,6 @@ text {*
   ;
   X_list: '[' (X + ',') ']'
 "}
-
-options: no_discs_sels rep_compat
 *}
 
 
@@ -1288,8 +1312,10 @@ as performed internally by @{command datatype_new} and @{command codatatype}.
 *}
 
 
+(*
 subsection {* Introductory Example
   \label{ssec:ctors-introductory-example} *}
+*)
 
 
 subsection {* Command Syntax
@@ -1377,19 +1403,16 @@ text {*
 %
 %* partial documentation
 %
-%* too much output by commands like "datatype_new" and "codatatype"
-%
-%* no direct way to define recursive functions for default values -- but show trick
-%  based on overloading
-%
 %* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
 %  (for @{command datatype_new_compat} and prim(co)rec)
 %
-%* no way to register same type as both data- and codatatype?
+%    * a fortiori, no way to register same type as both data- and codatatype
 %
 %* no recursion through unused arguments (unlike with the old package)
 %
 %* in a locale, cannot use locally fixed types (because of limitation in typedef)?
+%
+% *names of variables suboptimal
 *}
 
 
