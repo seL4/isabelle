@@ -312,7 +312,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val perm_Cs = map (body_type o fastype_of o co_rec_of o of_fp_sugar (#xtor_co_iterss o #fp_res))
       perm_fp_sugars;
-    val perm_fun_arg_Tssss = mk_iter_fun_arg_types perm_Cs perm_ns perm_mss (co_rec_of ctor_iters1);
+    val perm_fun_arg_Tssss =
+      mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
 
     fun unpermute0 perm0_xs = permute_like (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like (op =) perm_indices indices perm_xs;
@@ -389,12 +390,11 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val nn = length perm_fpTs;
     val kks = 0 upto nn - 1;
     val perm_ns = map length perm_ctr_Tsss;
-    val perm_mss = map (map length) perm_ctr_Tsss;
 
     val perm_Cs = map (domain_type o body_fun_type o fastype_of o co_rec_of o
       of_fp_sugar (#xtor_co_iterss o #fp_res)) perm_fp_sugars;
     val (perm_p_Tss, (perm_q_Tssss, _, perm_f_Tssss, _)) =
-      mk_coiter_fun_arg_types perm_Cs perm_ns perm_mss (co_rec_of dtor_coiters1);
+      mk_coiter_fun_arg_types perm_ctr_Tsss perm_Cs perm_ns (co_rec_of dtor_coiters1);
 
     val (perm_p_hss, h) = indexedd perm_p_Tss 0;
     val (perm_q_hssss, h') = indexedddd perm_q_Tssss h;
