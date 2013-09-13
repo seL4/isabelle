@@ -312,7 +312,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val perm_Cs = map (body_type o fastype_of o co_rec_of o of_fp_sugar (#xtor_co_iterss o #fp_res))
       perm_fp_sugars;
-    val perm_fun_arg_Tssss = mk_iter_fun_arg_types perm_Cs perm_ns perm_mss (co_rec_of ctor_iters1);
+    val perm_fun_arg_Tssss =
+      mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
 
     fun unpermute0 perm0_xs = permute_like (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like (op =) perm_indices indices perm_xs;
