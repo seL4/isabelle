@@ -104,17 +104,19 @@ echo "Sharing ..."
   for FILE in $(find . -type f)
   do
     for OTHER in \
-      "../../x86_64-linux/$FILE" \
-      "../../x86_64-darwin/Contents/Home/$FILE" \
-      "../../x86-cygwin/$FILE"
+      "../x86_64-linux/$FILE" \
+      "../x86_64-darwin/Contents/Home/$FILE" \
+      "../x86-cygwin/$FILE"
     do
       if cmp -s "$FILE" "$OTHER"
       then
+        echo -n "."
         ln -f "$FILE" "$OTHER"
       fi
     done
   done
 )
+echo
 
 
 # create archive
