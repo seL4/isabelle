@@ -57,7 +57,7 @@ proof (rule ccontr)
     unfolding sqprojection_def
     unfolding infnorm_mul[unfolded scalar_mult_eq_scaleR]
     unfolding abs_inverse real_abs_infnorm
-    apply (subst infnorm_eq_0[THEN sym])
+    apply (subst infnorm_eq_0[symmetric])
     apply auto
     done
   let ?F = "\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w"
@@ -121,9 +121,11 @@ proof (rule ccontr)
       apply auto
       done
     then have *: "infnorm (sqprojection (?F y)) = 1"
-      unfolding y o_def by - (rule lem2[rule_format])
+      unfolding y o_def
+      by - (rule lem2[rule_format])
     have "infnorm x = 1"
-      unfolding *[THEN sym] y o_def by (rule lem1[rule_format])
+      unfolding *[symmetric] y o_def
+      by (rule lem1[rule_format])
     then show "x \<in> {- 1..1}"
       unfolding mem_interval_cart infnorm_2
       apply -
@@ -150,10 +152,11 @@ proof (rule ccontr)
     apply auto
     done
   then have *: "infnorm (sqprojection (?F x)) = 1"
-    unfolding o_def by (rule lem2[rule_format])
+    unfolding o_def
+    by (rule lem2[rule_format])
   have nx: "infnorm x = 1"
-    apply (subst x(2)[THEN sym])
-    unfolding *[THEN sym] o_def
+    apply (subst x(2)[symmetric])
+    unfolding *[symmetric] o_def
     apply (rule lem1[rule_format])
     done
   have "\<forall>x i. x \<noteq> 0 \<longrightarrow> (0 < (sqprojection x)$i \<longleftrightarrow> 0 < x$i)"
@@ -165,7 +168,7 @@ proof (rule ccontr)
     fix i :: 2
     assume x: "x \<noteq> 0"
     have "inverse (infnorm x) > 0"
-      using x[unfolded infnorm_pos_lt[THEN sym]] by auto
+      using x[unfolded infnorm_pos_lt[symmetric]] by auto
     then show "(0 < sqprojection x $ i) = (0 < x $ i)"
       and "(sqprojection x $ i < 0) = (x $ i < 0)"
       unfolding sqprojection_def vector_component_simps vector_scaleR_component real_scaleR_def
@@ -311,8 +314,8 @@ proof -
   qed
   then guess s .. from this(2) guess t .. note st=this
   show thesis
-    apply (rule_tac z="f (iscale s)" in that)
-    using st `s\<in>{- 1..1}`
+    apply (rule_tac z = "f (iscale s)" in that)
+    using st `s \<in> {- 1..1}`
     unfolding o_def path_image_def image_iff
     apply -
     apply (rule_tac x="iscale s" in bexI)
@@ -485,7 +488,7 @@ proof -
     presume "?L \<Longrightarrow> ?R" and "?R \<Longrightarrow> ?L"
     then show ?thesis
       unfolding closed_segment_def mem_Collect_eq
-      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[THEN sym] vector_component_simps
+      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[symmetric] vector_component_simps
       by blast
   }
   {
@@ -560,7 +563,7 @@ proof -
     presume "?L \<Longrightarrow> ?R" and "?R \<Longrightarrow> ?L"
     then show ?thesis
       unfolding closed_segment_def mem_Collect_eq
-      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[THEN sym] vector_component_simps
+      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[symmetric] vector_component_simps
       by blast
   }
   {
@@ -570,7 +573,7 @@ proof -
       fix b a
       assume "b + u * a > a + u * b"
       then have "(1 - u) * b > (1 - u) * a"
-        by (auto simp add:field_simps)
+        by (auto simp add: field_simps)
       then have "b \<ge> a"
         apply (drule_tac mult_less_imp_less_left)
         using u
@@ -645,8 +648,13 @@ proof -
   have "{a..b} \<noteq> {}"
     using path_image_nonempty using assms(3) by auto
   note ab=this[unfolded interval_eq_empty_cart not_ex forall_2 not_less]
-  have "pathstart f \<in> {a..b}" "pathfinish f \<in> {a..b}" "pathstart g \<in> {a..b}" "pathfinish g \<in> {a..b}"
-    using pathstart_in_path_image pathfinish_in_path_image using assms(3-4) by auto
+  have "pathstart f \<in> {a..b}"
+    and "pathfinish f \<in> {a..b}"
+    and "pathstart g \<in> {a..b}"
+    and "pathfinish g \<in> {a..b}"
+    using pathstart_in_path_image pathfinish_in_path_image
+    using assms(3-4)
+    by auto
   note startfin = this[unfolded mem_interval_cart forall_2]
   let ?P1 = "linepath (vector[a$1 - 2, a$2 - 2]) (vector[(pathstart f)$1,a$2 - 2]) +++
      linepath(vector[(pathstart f)$1,a$2 - 2])(pathstart f) +++ f +++
@@ -673,7 +681,7 @@ proof -
     apply (rule fashoda[of ?P1 ?P2 ?a ?b])
     unfolding pathstart_join pathfinish_join pathstart_linepath pathfinish_linepath vector_2
   proof -
-    show "path ?P1" "path ?P2"
+    show "path ?P1" and "path ?P2"
       using assms by auto
     have "path_image ?P1 \<subseteq> {?a .. ?b}"
       unfolding P1P2 path_image_linepath
@@ -686,7 +694,7 @@ proof -
       unfolding assms
       apply (auto simp add: field_simps)
       done
-    then show "path_image ?P1  \<subseteq> {?a .. ?b}" .
+    then show "path_image ?P1 \<subseteq> {?a .. ?b}" .
     have "path_image ?P2 \<subseteq> {?a .. ?b}"
       unfolding P1P2 path_image_linepath
       apply (rule Un_least)+
@@ -698,13 +706,14 @@ proof -
       unfolding assms
       apply (auto simp add: field_simps)
       done
-    then show "path_image ?P2  \<subseteq> {?a .. ?b}" .
+    then show "path_image ?P2 \<subseteq> {?a .. ?b}" .
     show "a $ 1 - 2 = a $ 1 - 2"
       and "b $ 1 + 2 = b $ 1 + 2"
       and "pathstart g $ 2 - 3 = a $ 2 - 3"
       and "b $ 2 + 3 = b $ 2 + 3"
       by (auto simp add: assms)
-  qed note z=this[unfolded P1P2 path_image_linepath]
+  qed
+  note z=this[unfolded P1P2 path_image_linepath]
   show thesis
     apply (rule that[of z])
   proof -
@@ -721,37 +730,52 @@ proof -
       case goal1 note as=this
       have "pathfinish f \<in> {a..b}"
         using assms(3) pathfinish_in_path_image[of f] by auto 
-      hence "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
+      then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
         unfolding mem_interval_cart forall_2 by auto
       then have "z$1 \<noteq> pathfinish f$1"
-        using as(2) using assms ab by (auto simp add: field_simps)
+        using as(2)
+        using assms ab
+        by (auto simp add: field_simps)
       moreover have "pathstart f \<in> {a..b}"
-        using assms(3) pathstart_in_path_image[of f] by auto 
+        using assms(3) pathstart_in_path_image[of f]
+        by auto
       then have "1 + b $ 1 \<le> pathstart f $ 1 \<Longrightarrow> False"
-        unfolding mem_interval_cart forall_2 by auto
+        unfolding mem_interval_cart forall_2
+        by auto
       then have "z$1 \<noteq> pathstart f$1"
-        using as(2) using assms ab by (auto simp add: field_simps)
+        using as(2) using assms ab
+        by (auto simp add: field_simps)
       ultimately have *: "z$2 = a$2 - 2"
-        using goal1(1) by auto
+        using goal1(1)
+        by auto
       have "z$1 \<noteq> pathfinish g$1"
-        using as(2) using assms ab by (auto simp add: field_simps *)
+        using as(2)
+        using assms ab
+        by (auto simp add: field_simps *)
       moreover have "pathstart g \<in> {a..b}"
-        using assms(4) pathstart_in_path_image[of g] by auto 
+        using assms(4) pathstart_in_path_image[of g]
+        by auto 
       note this[unfolded mem_interval_cart forall_2]
       then have "z$1 \<noteq> pathstart g$1"
-        using as(1) using assms ab by (auto simp add: field_simps *)
+        using as(1)
+        using assms ab
+        by (auto simp add: field_simps *)
       ultimately have "a $ 2 - 1 \<le> z $ 2 \<and> z $ 2 \<le> b $ 2 + 3 \<or> b $ 2 + 3 \<le> z $ 2 \<and> z $ 2 \<le> a $ 2 - 1"
-        using as(2) unfolding * assms by (auto simp add: field_simps)
+        using as(2)
+        unfolding * assms
+        by (auto simp add: field_simps)
       then show False
         unfolding * using ab by auto
     qed
     then have "z \<in> path_image f \<or> z \<in> path_image g"
       using z unfolding Un_iff by blast
     then have z': "z \<in> {a..b}"
-      using assms(3-4) by auto
+      using assms(3-4)
+      by auto
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart f $ 1 \<or> z $ 1 = pathfinish f $ 1) \<Longrightarrow>
       z = pathstart f \<or> z = pathfinish f"
-      unfolding vec_eq_iff forall_2 assms by auto
+      unfolding vec_eq_iff forall_2 assms
+      by auto
     with z' show "z \<in> path_image f"
       using z(1)
       unfolding Un_iff mem_interval_cart forall_2
@@ -762,7 +786,8 @@ proof -
       done
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart g $ 1 \<or> z $ 1 = pathfinish g $ 1) \<Longrightarrow>
       z = pathstart g \<or> z = pathfinish g"
-      unfolding vec_eq_iff forall_2 assms by auto
+      unfolding vec_eq_iff forall_2 assms
+      by auto
     with z' show "z \<in> path_image g"
       using z(2)
       unfolding Un_iff mem_interval_cart forall_2
