@@ -43,6 +43,8 @@ codatatype 'a par_lambda =
   ('a, 'b1, 'b2) F2 = unit + 'b1 * 'b2
 *)
 
+codatatype 'a p = P "'a + 'a p"
+
 codatatype 'a J1 = J11 'a "'a J1" | J12 'a "'a J2"
 and 'a J2 = J21 | J22 "'a J1" "'a J2"
 
