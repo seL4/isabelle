@@ -71,6 +71,15 @@ definition (in ring_1) poly_minus :: "'a list \<Rightarrow> 'a list" ("-- _" [80
 definition (in semiring_0) divides :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl "divides" 70)
   where "p1 divides p2 = (\<exists>q. poly p2 = poly(p1 *** q))"
 
+lemma (in semiring_0) dividesI:
+  "poly p2 = poly (p1 *** q) \<Longrightarrow> p1 divides p2"
+  by (auto simp add: divides_def)
+
+lemma (in semiring_0) dividesE:
+  assumes "p1 divides p2"
+  obtains q where "poly p2 = poly (p1 *** q)"
+  using assms by (auto simp add: divides_def)
+
     --{*order of a polynomial*}
 definition (in ring_1) order :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
   "order a p = (SOME n. ([-a, 1] %^ n) divides p \<and> ~ (([-a, 1] %^ (Suc n)) divides p))"
@@ -620,27 +629,39 @@ lemma (in semiring_1) zero_power_iff: "0 ^ n = (if n = 0 then 1 else 0)"
 
 lemma (in idom_char_0) poly_order_exists:
   assumes "length p = d" and "poly p \<noteq> poly []"
-  shows "\<exists>n. ([-a, 1] %^ n) divides p \<and> ~(([-a, 1] %^ (Suc n)) divides p)"
-  using assms
-  apply -
-  apply (drule poly_order_exists_lemma [where a=a], assumption, clarify)
-  apply (rule_tac x = n in exI, safe)
-  apply (unfold divides_def)
-  apply (rule_tac x = q in exI)
-  apply (induct_tac n, simp)
-  apply (simp (no_asm_simp) add: poly_add poly_cmult poly_mult distrib_left mult_ac)
-  apply safe
-  apply (subgoal_tac "poly (mulexp n [uminus a, one] q) \<noteq>
-    poly (pmult (pexp [uminus a, one] (Suc n)) qa)")
-  apply simp
-  apply (induct_tac n)
-  apply (simp del: pmult_Cons pexp_Suc)
-  apply (erule_tac Q = "poly q a = zero" in contrapos_np)
-  apply (simp add: poly_add poly_cmult)
-  apply (rule pexp_Suc [THEN ssubst])
-  apply (rule ccontr)
-  apply (simp add: poly_mult_left_cancel poly_mult_assoc del: pmult_Cons pexp_Suc)
-  done
+  shows "\<exists>n. [- a, 1] %^ n divides p \<and> \<not> [- a, 1] %^ Suc n divides p"
+proof -
+  from assms have "\<exists>n q. p = mulexp n [- a, 1] q \<and> poly q a \<noteq> 0"
+    by (rule poly_order_exists_lemma)
+  then obtain n q where p: "p = mulexp n [- a, 1] q" and "poly q a \<noteq> 0" by blast
+  have "[- a, 1] %^ n divides mulexp n [- a, 1] q"
+  proof (rule dividesI)
+    show "poly (mulexp n [- a, 1] q) = poly ([- a, 1] %^ n *** q)"
+      by (induct n) (simp_all add: poly_add poly_cmult poly_mult distrib_left mult_ac)
+  qed
+  moreover have "\<not> [- a, 1] %^ Suc n divides mulexp n [- a, 1] q"
+  proof
+    assume "[- a, 1] %^ Suc n divides mulexp n [- a, 1] q"
+    then obtain m where "poly (mulexp n [- a, 1] q) = poly ([- a, 1] %^ Suc n *** m)"
+      by (rule dividesE)
+    moreover have "poly (mulexp n [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc n *** m)"
+    proof (induct n)
+      case 0 show ?case
+      proof (rule ccontr)
+        assume "\<not> poly (mulexp 0 [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc 0 *** m)"
+        then have "poly q a = 0"
+          by (simp add: poly_add poly_cmult)
+        with `poly q a \<noteq> 0` show False by simp
+      qed
+    next
+      case (Suc n) show ?case
+        by (rule pexp_Suc [THEN ssubst], rule ccontr)
+          (simp add: poly_mult_left_cancel poly_mult_assoc Suc del: pmult_Cons pexp_Suc)
+    qed
+    ultimately show False by simp
+  qed
+  ultimately show ?thesis by (auto simp add: p)
+qed
 
 lemma (in semiring_1) poly_one_divides[simp]: "[1] divides p"
   by (auto simp add: divides_def)
