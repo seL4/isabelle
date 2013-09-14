@@ -108,6 +108,9 @@ fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm
 fun nprems_of (Internal (_, thm)) = Thm.nprems_of thm
   | nprems_of (External (_, prop)) = Logic.count_prems prop;
 
+fun size_of (Internal (_, thm)) = size_of_term (Thm.prop_of thm)
+  | size_of (External (_, prop)) = size_of_term prop;
+
 fun major_prem_of (Internal (_, thm)) = Thm.major_prem_of thm
   | major_prem_of (External (_, prop)) =
       Logic.strip_assums_concl (hd (Logic.strip_imp_prems prop));
@@ -121,16 +124,16 @@ fun fact_ref_of (Internal (fact_ref, _)) = fact_ref
 
 (*generated filters are to be of the form
   input: theorem
-  output: (p:int, s:int) option, where
+  output: (p:int, s:int, t:int) option, where
     NONE indicates no match
     p is the primary sorting criterion
-      (eg. number of assumptions in the theorem)
+      (eg. size of term)
     s is the secondary sorting criterion
+      (eg. number of assumptions in the theorem)
+    t is the tertiary sorting criterion
       (eg. size of the substitution for intro, elim and dest)
   when applying a set of filters to a thm, fold results in:
-    (biggest p, sum of all s)
-  currently p and s only matter for intro, elim, dest and simp filters,
-  otherwise the default ordering is used.
+    (max p, max s, sum of all t)
 *)
 
 
@@ -169,7 +172,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
 fun filter_name str_pat theorem =
   if match_string str_pat (Facts.name_of_ref (fact_ref_of theorem))
-  then SOME (0, 0) else NONE;
+  then SOME (0, 0, 0) else NONE;
 
 
 (* filter intro/elim/dest/solves rules *)
@@ -188,7 +191,7 @@ fun filter_dest ctxt goal theorem =
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
     if not (null successful)
-    then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
+    then SOME (size_of theorem, nprems_of theorem - 1, foldl1 Int.min successful) else NONE
   end;
 
 fun filter_intro ctxt goal theorem =
@@ -197,7 +200,7 @@ fun filter_intro ctxt goal theorem =
     val concl = Logic.concl_of_goal goal 1;
     val ss = is_matching_thm extract_intro ctxt true concl theorem;
   in
-    if is_some ss then SOME (nprems_of theorem, the ss) else NONE
+    if is_some ss then SOME (size_of theorem, nprems_of theorem, the ss) else NONE
   end;
 
 fun filter_elim ctxt goal theorem =
@@ -218,7 +221,7 @@ fun filter_elim ctxt goal theorem =
         assumption is as good as an intro rule with none*)
       if is_nontrivial (Proof_Context.theory_of ctxt) (major_prem_of theorem)
         andalso not (null successful)
-      then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
+      then SOME (size_of theorem, nprems_of theorem - 1, foldl1 Int.min successful) else NONE
     end
   else NONE;
 
@@ -238,7 +241,7 @@ fun filter_solves ctxt goal =
   in
     fn Internal (_, thm) =>
         if is_some (Seq.pull (try_thm thm))
-        then SOME (Thm.nprems_of thm, 0) else NONE
+        then SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, 0) else NONE
      | External _ => NONE
   end;
 
@@ -252,7 +255,9 @@ fun filter_simp ctxt t (Internal (_, thm)) =
           (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
         val ss = is_matching_thm extract_simp ctxt false t thm;
       in
-        if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
+        if is_some ss
+        then SOME (size_of_term (Thm.prop_of thm), Thm.nprems_of thm, the ss)
+        else NONE
       end
   | filter_simp _ _ (External _) = NONE;
 
@@ -277,7 +282,7 @@ fun filter_pattern ctxt pat =
       | check (theorem, c as SOME thm_consts) =
          (if subset (op =) (pat_consts, thm_consts) andalso
             Pattern.matches_subterm (Proof_Context.theory_of ctxt) (pat, prop_of theorem)
-          then SOME (0, 0) else NONE, c);
+          then SOME (size_of theorem, nprems_of theorem, 0) else NONE, c);
   in check end;
 
 
@@ -300,9 +305,9 @@ fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
-fun opt_not x = if is_some x then NONE else SOME (0, 0);
+fun opt_not x = if is_some x then NONE else SOME (0, 0, 0);
 
-fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
+fun opt_add (SOME (a, c, x)) (SOME (b, d, y)) = SOME (Int.max (a,b), Int.max (c, d), x + y : int)
   | opt_add _ _ = NONE;
 
 fun app_filters thm =
@@ -321,13 +326,14 @@ fun filter_criterion ctxt opt_goal (b, c) =
 
 fun sorted_filter filters theorems =
   let
-    fun eval_filters theorem = app_filters theorem (SOME (0, 0), NONE, filters);
+    fun eval_filters theorem = app_filters theorem (SOME (0, 0, 0), NONE, filters);
 
-    (*filters return: (number of assumptions, substitution size) option, so
-      sort (desc. in both cases) according to number of assumptions first,
-      then by the substitution size*)
-    fun result_ord (((p0, s0), _), ((p1, s1), _)) =
-      prod_ord int_ord int_ord ((p1, s1), (p0, s0));
+    (*filters return: (thm size, number of assumptions, substitution size) option, so
+      sort according to size of thm first, then number of assumptions,
+      then by the substitution size, then by term order *)
+    fun result_ord (((p0, s0, t0), thm0), ((p1, s1, t1), thm1)) =
+      prod_ord int_ord (prod_ord int_ord (prod_ord int_ord Term_Ord.term_ord)) 
+         ((p1, (s1, (t1, prop_of thm1))), (p0, (s0, (t0, prop_of thm0))));
   in
     grouped 100 Par_List.map eval_filters theorems
     |> map_filter I |> sort result_ord |> map #2
@@ -338,7 +344,7 @@ fun lazy_filter filters =
     fun lazy_match thms = Seq.make (fn () => first_match thms)
     and first_match [] = NONE
       | first_match (thm :: thms) =
-          (case app_filters thm (SOME (0, 0), NONE, filters) of
+          (case app_filters thm (SOME (0, 0, 0), NONE, filters) of
             NONE => first_match thms
           | SOME (_, t) => SOME (t, lazy_match thms));
   in lazy_match end;
