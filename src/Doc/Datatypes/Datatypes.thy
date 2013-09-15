@@ -1402,37 +1402,60 @@ subsubsection {* Coinductive Theorems
 text {*
 The coinductive theorems are as follows:
 
-%          [(coinductN, map single coinduct_thms,
-%            fn T_name => coinduct_attrs @ [coinduct_type_attr T_name]),
-%           (corecN, corec_thmss, K coiter_attrs),
-%           (disc_corecN, disc_corec_thmss, K disc_coiter_attrs),
-%           (disc_corec_iffN, disc_corec_iff_thmss, K disc_coiter_iff_attrs),
-%           (disc_unfoldN, disc_unfold_thmss, K disc_coiter_attrs),
-%           (disc_unfold_iffN, disc_unfold_iff_thmss, K disc_coiter_iff_attrs),
-%           (sel_corecN, sel_corec_thmss, K sel_coiter_attrs),
-%           (sel_unfoldN, sel_unfold_thmss, K sel_coiter_attrs),
-%           (simpsN, simp_thmss, K []),
-%           (strong_coinductN, map single strong_coinduct_thms, K coinduct_attrs),
-%           (unfoldN, unfold_thmss, K coiter_attrs)]
-%          |> massage_multi_notes;
-
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{coinduct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t."}\hthm{coinduct} @{text "[coinduct t, consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
 @{thm llist.coinduct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
-Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
-prove $m$ properties simultaneously.
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t."}\hthm{strong\_coinduct} @{text "[consumes m, case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+@{thm llist.strong_coinduct[no_vars]}
 
-\item[@{text "t."}\hthm{unfold} @{text "[code]"}\rm:] ~ \\
+\item[\begin{tabular}{@ {}l@ {}}
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m, case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"} \\
+  @{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "[case_names t\<^sub>1 \<dots> t\<^sub>m,"} \\
+  \phantom{@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{strong\_coinduct} @{text "["}}@{text "case_conclusion D\<^sub>1 \<dots> D\<^sub>n]"}\rm:
+\end{tabular}] ~ \\
+Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
+used to prove $m$ properties simultaneously.
+
+\item[@{text "t."}\hthm{unfold} \rm(@{text "[simp]"})\rm:] ~ \\
 @{thm llist.unfold(1)[no_vars]} \\
 @{thm llist.unfold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{corec} (@{text "[simp]"})\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_unfold} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.disc_unfold(1)[no_vars]} \\
+@{thm llist.disc_unfold(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_corec} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.disc_corec(1)[no_vars]} \\
+@{thm llist.disc_corec(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_unfold\_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.disc_unfold_iff(1)[no_vars]} \\
+@{thm llist.disc_unfold_iff(2)[no_vars]}
+
+\item[@{text "t."}\hthm{disc\_corec\_iff} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.disc_corec_iff(1)[no_vars]} \\
+@{thm llist.disc_corec_iff(2)[no_vars]}
+
+\item[@{text "t."}\hthm{sel\_unfold} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.sel_unfold(1)[no_vars]} \\
+@{thm llist.sel_unfold(2)[no_vars]}
+
+\item[@{text "t."}\hthm{sel\_corec} @{text "[simp]"}\rm:] ~ \\
+@{thm llist.sel_corec(1)[no_vars]} \\
+@{thm llist.sel_corec(2)[no_vars]}
 
 \end{description}
 \end{indentblock}
@@ -1443,8 +1466,9 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.fold} @{text t.map} @{text t.rel_inject}] ~ \\
-@{text t.rel_distinct} @{text t.sets}
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec}$^*$ @{text t.disc_corec}] ~ \\
+@{text t.disc_corec_iff} @{text t.sel_corec} @{text t.unfold}$^*$ @{text t.disc_unfold} @{text t.disc_unfold_iff} ~ \\
+@{text t.sel_unfold} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.sets}
 
 \end{description}
 \end{indentblock}
@@ -1456,6 +1480,34 @@ section {* Defining Corecursive Functions
 
 text {*
 Corecursive functions can be specified using the @{command primcorec} command.
+Whereas recursive functions consume datatypes one constructor at a time,
+corecursive functions construct codatatypes one constructor at a time.
+
+Reflecting a lack of agreement among proponents of coalgebraic methods, Isabelle
+supports two competing syntaxes for specifying a function $f$:
+
+\begin{itemize}
+\item Following the \emph{constructor view}, $f$ is specified by equations of
+the form
+\[@{text "f x\<^sub>1 \<dots> x\<^sub>n = \<dots>"}\]
+Corecursive calls on
+the right-hand side must appear under a guarding codatatype constructor. Haskell
+and other lazy functional programming languages support this style.
+
+\item Following the \emph{destructor view}, $f$ is specified by implications
+of the form
+\[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
+equations of the form
+\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\] where
+the right-hand side may be a corecursive call or an arbitrary term that does
+not mention @{text f}. This style is commonly found in the coalgebraic
+literature.
+\end{itemize}
+
+\noindent
+Both styles are available as input syntax to @{command primcorec}. Whichever
+input syntax is chosen, characteristic theorems following both styles are
+generated.
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
 %%% lists (cf. terminal0 in TLList.thy)
