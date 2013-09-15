@@ -1479,13 +1479,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
-        fun flat_coiter_thms coiters disc_coiters sel_coiters =
-          coiters @ disc_coiters @ sel_coiters;
+        fun flat_coiter_thms coiters disc_coiters disc_coiter_iffs sel_coiters =
+          coiters @ disc_coiters @ disc_coiter_iffs @ sel_coiters;
 
         val simp_thmss =
           mk_simp_thmss ctr_sugars
-            (map3 flat_coiter_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss)
-            (map3 flat_coiter_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
+            (map4 flat_coiter_thms safe_unfold_thmss disc_unfold_thmss disc_unfold_iff_thmss
+               sel_unfold_thmss)
+            (map4 flat_coiter_thms safe_corec_thmss disc_corec_thmss disc_corec_iff_thmss
+               sel_corec_thmss)
             mapss rel_injects rel_distincts setss;
 
         val anonymous_notes =
