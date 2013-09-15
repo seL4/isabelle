@@ -668,17 +668,17 @@ They are listed below for @{typ "'a list"}:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{inject} @{text "[iff, induct_simp]"}\rm:] ~ \\
 @{thm list.inject[no_vars]}
 
-\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{distinct} @{text "[simp, induct_simp]"}\rm:] ~ \\
 @{thm list.distinct(1)[no_vars]} \\
 @{thm list.distinct(2)[no_vars]}
 
-\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{exhaust} @{text "[cases t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{nchotomy}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{nchotomy}\rm:] ~ \\
 @{thm list.nchotomy[no_vars]}
 
 \end{description}
@@ -690,7 +690,7 @@ In addition, these nameless theorems are registered as safe elimination rules:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{list.distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{list.distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rm:] ~ \\
 @{thm list.distinct(1)[THEN notE, elim!, no_vars]} \\
 @{thm list.distinct(2)[THEN notE, elim!, no_vars]}
 
@@ -703,20 +703,20 @@ The next subgroup is concerned with the case combinator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case} @{text "[simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{case} @{text "[simp]"}\rm:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{case\_cong}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rm:] ~ \\
 @{thm list.weak_case_cong[no_vars]}
 
-\item[@{text "t."}\hthm{split}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{split}\rm:] ~ \\
 @{thm list.split[no_vars]}
 
-\item[@{text "t."}\hthm{split\_asm}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{split\_asm}\rm:] ~ \\
 @{thm list.split_asm[no_vars]}
 
 \item[@{text "t."}\hthm{splits} = @{text "split split_asm"}]
@@ -730,32 +730,32 @@ The third and last subgroup revolves around discriminators and selectors:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{discs} @{text "[simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{discs} @{text "[simp]"}\rm:] ~ \\
 @{thm list.discs(1)[no_vars]} \\
 @{thm list.discs(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sels} @{text "[simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{sels} @{text "[simp]"}\rm:] ~ \\
 @{thm list.sels(1)[no_vars]} \\
 @{thm list.sels(2)[no_vars]}
 
-\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_exclude}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{disc\_exclude}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
 discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
 @{prop "null list \<Longrightarrow> \<not> is_Cons list"} \\
 @{prop "is_Cons list \<Longrightarrow> \<not> null list"}
 
-\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
 
-\item[@{text "t."}\hthm{expand}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{case\_conv}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{case\_conv}\rm:] ~ \\
 @{thm list.case_conv[no_vars]}
 
 \end{description}
@@ -772,19 +772,19 @@ The BNF-related theorem are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{sets} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{sets} @{text "[code]"}\rm:] ~ \\
 @{thm list.sets(1)[no_vars]} \\
 @{thm list.sets(2)[no_vars]}
 
-\item[@{text "t."}\hthm{map} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{map} @{text "[code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
@@ -802,18 +802,18 @@ The inductive theorems are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{induct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.induct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{induct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{fold} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{fold} @{text "[code]"}\rm:] ~ \\
 @{thm list.fold(1)[no_vars]} \\
 @{thm list.fold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{rec} @{text "[code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
@@ -1391,7 +1391,8 @@ their coinductive nature.
 
 \noindent
 The first two categories are exactly as for datatypes and are described in
-Sections \ref{ssec:free-constructor-theorems}~and~\ref{ssec:functorial-theorems}.
+Sections
+\ref{sssec:free-constructor-theorems}~and~\ref{sssec:functorial-theorems}.
 *}
 
 
@@ -1418,18 +1419,18 @@ The coinductive theorems are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{coinduct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{coinduct} @{text "[induct t, case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm llist.coinduct[no_vars]}
 
-\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rmfamily:] ~ \\
+\item[@{text "t\<^sub>1_\<dots>_t\<^sub>m."}\hthm{coinduct} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{unfold} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{unfold} @{text "[code]"}\rm:] ~ \\
 @{thm llist.unfold(1)[no_vars]} \\
 @{thm llist.unfold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec} @{text "[code]"}\rmfamily:] ~ \\
+\item[@{text "t."}\hthm{corec} @{text "[code]"}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
