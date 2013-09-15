@@ -179,9 +179,9 @@ and \authoremailiv.
 
 \begin{framed}
 \noindent
-\textbf{Warning:} This tutorial and the package it describes are under construction. Please apologise
-for their appearance. Should you have suggestions or comments regarding either,
-please let the authors know.
+\textbf{Warning:}\enskip This tutorial and the package it describes are under
+construction. Please apologise for their appearance. Should you have suggestions
+or comments regarding either, please let the authors know.
 \end{framed}
 *}
 
@@ -190,16 +190,18 @@ section {* Defining Datatypes
   \label{sec:defining-datatypes} *}
 
 text {*
-Datatypes can be specified using the @{command datatype_new} command. The
-command is first illustrated through concrete examples featuring different
-flavors of recursion. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|.
+Datatypes can be specified using the @{command datatype_new} command.
 *}
 
 
 subsection {* Introductory Examples
   \label{ssec:datatype-introductory-examples} *}
 
+text {*
+Datatypes are illustrated through concrete examples featuring different flavors
+of recursion. More examples can be found in the directory
+\verb|~~/src/HOL/BNF/Examples|.
+*}
 
 subsubsection {* Nonrecursive Types
   \label{sssec:datatype-nonrecursive-types} *}
@@ -894,8 +896,7 @@ Recursive functions over datatypes can be specified using @{command
 primrec_new}, which supports primitive recursion, or using the more general
 \keyw{fun} and \keyw{function} commands. Here, the focus is on @{command
 primrec_new}; the other two commands are described in a separate tutorial
-\cite{isabelle-function}. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|.
+\cite{isabelle-function}.
 
 %%% TODO: partial_function
 *}
@@ -903,6 +904,12 @@ primrec_new}; the other two commands are described in a separate tutorial
 
 subsection {* Introductory Examples
   \label{ssec:primrec-introductory-examples} *}
+
+text {*
+Primitive recursion is illustrated through concrete examples based on the
+datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
+examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|.
+*}
 
 
 subsubsection {* Nonrecursive Types
@@ -1493,45 +1500,17 @@ section {* Defining Corecursive Functions
 
 text {*
 Corecursive functions can be specified using the @{command primcorec} command.
-Whereas recursive functions consume datatypes one constructor at a time,
-corecursive functions construct codatatypes one constructor at a time.
-
 Corecursive functions over codatatypes can be specified using @{command
 primcorec}, which supports primitive corecursion, or using the more general
 \keyw{partial\_function} command. Here, the focus is on @{command primcorec}.
 More examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|.
 
-Reflecting a lack of agreement among proponents of coalgebraic methods, Isabelle
-supports two competing syntaxes for specifying a function $f$:
-
-\begin{itemize}
-\abovedisplayskip=.5\abovedisplayskip
-\belowdisplayskip=.5\belowdisplayskip
-
-\item The \emph{constructor view} specifies $f$ by equations of the form
-\[@{text "f x\<^sub>1 \<dots> x\<^sub>n = \<dots>"}\]
-Corecursive calls on
-the right-hand side must appear under a guarding codatatype constructor. Haskell
-and other lazy functional programming languages support this style.
-
-\item The \emph{destructor view} specifies $f$ by implications of the form
-\[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
-equations of the form
-\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\] where
-the right-hand side may be a corecursive call or an arbitrary term that does
-not mention @{text f}. This style is favored in the coalgebraic literature.
-\end{itemize}
-
-\noindent
-Both styles are available as input syntax to @{command primcorec}. Whichever
-syntax is chosen, characteristic theorems following both styles are generated.
-
 \begin{framed}
 \noindent
-\textbf{Warning:} The @{command primcorec} command is under heavy development.
-Much of the functionality described here is vaporware. Until the command is
-fully in place, it is recommended to define corecursive functions directly using
-@{text unfold} or @{text corec}.
+\textbf{Warning:}\enskip The @{command primcorec} command is under heavy
+development. Much of the functionality described here is vaporware. Until the
+command is fully in place, it is recommended to define corecursive functions
+directly using the generated @{text t_unfold} or @{text t_corec} combinators.
 \end{framed}
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
@@ -1542,13 +1521,63 @@ fully in place, it is recommended to define corecursive functions directly using
 subsection {* Introductory Examples
   \label{ssec:primcorec-introductory-examples} *}
 
+text {*
+Primitive corecursion is illustrated through concrete examples based on the
+codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
+examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|.
+*}
+
 
 subsubsection {* Simple Corecursion
   \label{sssec:primcorec-simple-corecursion} *}
 
+text {*
+Whereas recursive functions consume datatypes one constructor at a time,
+corecursive functions construct codatatypes one constructor at a time.
+Reflecting a lack of agreement among proponents of coalgebraic methods, Isabelle
+supports two competing syntaxes for specifying a function $f$:
+
+\begin{itemize}
+\abovedisplayskip=.5\abovedisplayskip
+\belowdisplayskip=.5\belowdisplayskip
+
+\item The \emph{constructor view} specifies $f$ by equations of the form
+\[@{text "f x\<^sub>1 \<dots> x\<^sub>n = \<dots>"}\]
+Haskell and other lazy functional programming languages support this style.
+
+\item The \emph{destructor view} specifies $f$ by implications of the form
+\[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
+equations of the form
+\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\].
+This style is favored in the coalgebraic literature.
+\end{itemize}
+
+\noindent
+Both styles are available as input syntax to @{command primcorec}. Whichever
+syntax is chosen, characteristic theorems following both styles are generated.
+
+In the constructor view, corecursive calls are allowed on the right-hand side
+as long as they occur under a constructor. The constructor itself normally
+appears directly to the right of the equal sign:
+*}
+
     primcorec iterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "iterate f x = LCons x (iterate f (f x))"
     .
+
+text {*
+\noindent
+The constructor ensures that progress is made---i.e., the function is
+\emph{productive}. The above function computes the infinite list
+@{text "[x, f x, f (f x), \<dots>]"}. Productivity guarantees that prefixes
+@{text "[x, f x, f (f x), \<dots>, (f ^^ k) x]"} of arbitrary finite length
+@{text k} can be computed by unfolding the equation a finite number of times.
+The period (@{text "."}) at the end of the command discharges the zero proof
+obligations associated with this definition.
+
+The @{const iterate} function can be specified as follows in the destructor
+view:
+*}
 
 (*<*)
     locale dummy_dest_view
@@ -1563,11 +1592,26 @@ subsubsection {* Simple Corecursion
     end
 (*>*)
 
+text {*
+Corecursive calls may only appear directly to the right of the equal sign.
+
+In the constructor view, constructs such as @{text "let"}---@{text "in"}, @{text
+"if"}---@{text "then"}---@{text "else"}, and @{text "case"}---@{text "of"} may
+appear around constructors that guard corecursive calls:
+*}
+
     primcorec_notyet lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lappend xs ys =
          (case xs of
             LNil \<Rightarrow> ys
           | LCons x xs' \<Rightarrow> LCons x (lappend xs' ys))"
+
+text {*
+\noindent
+For this example, the destructor view is more cumbersome, because it requires us
+to destroy the second argument @{term ys} (cf.\ @{term "lnull ys"}, @{term "lhd
+ys"}, and @{term "ltl ys"}):
+*}
 
 (*<*)
     context dummy_dest_view
@@ -1588,9 +1632,18 @@ subsubsection {* Simple Corecursion
     end
 (*>*)
 
+text {*
+Corecursion is useful to specify not only functions but also infinite objects:
+*}
+
     primcorec infty :: enat where
       "infty = ESuc infty"
     .
+
+text {*
+\noindent
+The same example in the destructor view:
+*}
 
 (*<*)
     context dummy_dest_view
