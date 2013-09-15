@@ -351,9 +351,9 @@ allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
 type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 @{typ "('a, 'b) fn"}, the type variable @{typ 'a} is dead and @{typ 'b} is live.
 
-Type constructors must be registered as bounded natural functors (BNFs) to have
-live arguments. This is done automatically for datatypes and codatatypes
-introduced by the @{command datatype_new} and @{command codatatype} commands.
+Type constructors must be registered as BNFs to have live arguments. This is
+done automatically for datatypes and codatatypes introduced by the @{command
+datatype_new} and @{command codatatype} commands.
 Section~\ref{sec:registering-bounded-natural-functors} explains how to register
 arbitrary type constructors as BNFs.
 *}
@@ -500,8 +500,8 @@ reference manual \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text t_set1}, \ldots, @{text t_setM}).
-Inside a mutually recursive datatype specification, all defined datatypes must
-specify exactly the same type variables in the same order.
+Inside a mutually recursive specification, all defined datatypes must
+mention exactly the same type variables in the same order.
 
 @{rail "
   @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \\
@@ -585,7 +585,12 @@ text {* \blankline *}
 text {*
 For nested recursive datatypes, all types through which recursion takes place
 must be new-style datatypes. In principle, it should be possible to support
-old-style datatypes as well, but the command does not support this yet.
+old-style datatypes as well, but the command does not support this yet (and
+there is currently no way to register old-style datatypes as new-style
+datatypes).
+
+An alternative is to use the old package's \keyw{rep\_datatype} command. The
+associated proof obligations must then be discharged manually.
 *}
 
 
@@ -853,38 +858,61 @@ subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
 
 text {*
-%  * main incompabilities between two packages
-%    * differences in theorem names (e.g. singular vs. plural for some props?)
-%    * differences in "simps"?
-%    * different recursor/induction in nested case
-%        * discussed in Section~\ref{sec:defining-recursive-functions}
-%    * different ML interfaces / extension mechanisms
-%
-%  * register new datatype as old datatype
-%    * motivation:
-%      * do recursion through new datatype in old datatype
-%        (e.g. useful when porting to the new package one type at a time)
-%      * use old primrec
-%      * use fun
-%      * use extensions like size (needed for fun), the AFP order, Quickcheck,
-%        Nitpick
-%      * provide exactly the same theorems with the same names (compatibility)
-%    * option 1
-%      * @{text "rep_compat"}
-%      * \keyw{rep\_datatype}
-%      * has some limitations
-%        * mutually recursive datatypes? (fails with rep_datatype?)
-%        * nested datatypes? (fails with datatype_new?)
-%    * option 2
-%      * @{command datatype_new_compat}
-%      * not fully implemented yet?
+The command @{command datatype_new} was designed to be highly compatible with
+@{command datatype}, to ease migration. There are nonetheless a number of
+incompatibilities that may arise when porting to the new package:
 
-%  * register old datatype as new datatype
-%    * no clean way yet
-%    * if the goal is to do recursion through old datatypes, can register it as
-%      a BNF (Section XXX)
-%    * can also derive destructors etc. using @{command wrap_free_constructors}
-%      (Section XXX)
+\begin{itemize}
+\item \emph{The Standard ML interfaces are different.} Tools and extensions
+written to call the old ML interfaces will need to be adapted to the new
+interfaces. Little has been done so far in this direction. Whenever possible, it
+is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
+to register new-style datatypes as old-style datatypes.
+
+\item \emph{The recursor @{text "t_rec"} has a different signature for nested
+recursive datatypes.} In the old package, nested recursion was internally
+reduced to mutual recursion. This reduction was visible in the type of the
+recursor, used by \keyw{primrec}. In the new package, nested recursion is
+handled in a more modular fashion. The old-style recursor can be generated on
+demand using @{command primrec_new}, as explained in
+Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
+new-style datatypes.
+
+\item \emph{Accordingly, the induction principle is different for nested
+recursive datatypes.} Again, the old-style induction principle can be generated
+on demand using @{command primrec_new}, as explained in
+Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
+new-style datatypes.
+
+\item \emph{The internal constructions are completely different.} Proofs texts
+that unfold the definition of constants introduced by \keyw{datatype} will be
+difficult to port.
+
+\item \emph{A few theorems have different names.}
+The properties @{text t.cases} and @{text t.recs} have been renamed to
+@{text t.case} and @{text t.rec}. For non-mutually recursive datatypes,
+@{text t.inducts} is available as @{text t.induct}.
+For $m > 1$ mutually recursive datatypes,
+@{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed to
+@{text "t\<^sub>i.induct"}.
+
+\item \emph{The @{text t.simps} collection has been extended.}
+Previously available theorems are available at the same index.
+
+\item \emph{Variables in generated properties have different names.} This is
+rarely an issue, except in proof texts that refer to variable names in the
+@{text "[where \<dots>]"} attribute. The solution is to use the more robust
+@{text "[of \<dots>]"} syntax.
+\end{itemize}
+
+In the other direction, there is currently no way to register old-style
+datatypes as new-style datatypes. If the goal is to define new-style datatypes
+with nested recursion through old-style datatypes, the old-style
+datatypes can be registered as a BNF
+(Section~\ref{sec:registering-bounded-natural-functors}). If the goal is
+to derive discriminators and selectors, this can be achieved using @{command
+wrap_free_constructors}
+(Section~\ref{sec:deriving-destructors-and-theorems-for-free-constructors}).
 *}
 
 
@@ -1031,7 +1059,7 @@ is straightforward:
 
 text {*
 \noindent
-Mutual recursion is be possible within a single type, using \keyw{fun}:
+Mutual recursion is possible within a single type, using \keyw{fun}:
 *}
 
     fun
@@ -1069,6 +1097,7 @@ recursive calls are lifted to lists using @{const map}:
 (*>*)
 
 text {*
+\noindent
 The next example features recursion through the @{text option} type. Although
 @{text option} is not a new-style datatype, it is registered as a BNF with the
 map function @{const option_map}:
@@ -1115,19 +1144,29 @@ datatypes. For example:
 *}
 
     primrec_new
-      at_tree\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
-      at_trees\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
+      at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
+      ats\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
     where
-      "at_tree\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
+      "at\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
          (case js of
             [] \<Rightarrow> a
-          | j # js' \<Rightarrow> at_trees\<^sub>f\<^sub>f ts j js')" |
-      "at_trees\<^sub>f\<^sub>f (t # ts) j =
+          | j # js' \<Rightarrow> ats\<^sub>f\<^sub>f ts j js')" |
+      "ats\<^sub>f\<^sub>f (t # ts) j =
          (case j of
-            Zero \<Rightarrow> at_tree\<^sub>f\<^sub>f t
-          | Suc j' \<Rightarrow> at_trees\<^sub>f\<^sub>f ts j')"
+            Zero \<Rightarrow> at\<^sub>f\<^sub>f t
+          | Suc j' \<Rightarrow> ats\<^sub>f\<^sub>f ts j')"
 
-text {* \blankline *}
+text {*
+\noindent
+Appropriate induction principles are generated under the names
+@{thm [source] "at\<^sub>f\<^sub>f.induct"},
+@{thm [source] "ats\<^sub>f\<^sub>f.induct"}, and
+@{thm [source] "at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct"}.
+
+%%% TODO: Add recursors.
+
+Here is a second example:
+*}
 
     primrec_new
       sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
@@ -1139,7 +1178,6 @@ text {* \blankline *}
       "sum_btree_option (Some t) = sum_btree t"
 
 text {*
-
 %  * can pretend a nested type is mutually recursive (if purely inductive)
 %  * avoids the higher-order map
 %  * e.g.
@@ -1154,7 +1192,7 @@ text {*
 %
 %  * higher-order approach, considering nesting as nesting, is more
 %    compositional -- e.g. we saw how we could reuse an existing polymorphic
-%    at or the_default, whereas @{const at_trees\<^sub>f\<^sub>f} is much more specific
+%    at or the_default, whereas @{const ats\<^sub>f\<^sub>f} is much more specific
 %
 %  * but:
 %     * is perhaps less intuitive, because it requires higher-order thinking
@@ -1162,7 +1200,7 @@ text {*
 %       mutually recursive version might be nicer
 %     * is somewhat indirect -- must apply a map first, then compute a result
 %       (cannot mix)
-%     * the auxiliary functions like @{const at_trees\<^sub>f\<^sub>f} are sometimes useful in own right
+%     * the auxiliary functions like @{const ats\<^sub>f\<^sub>f} are sometimes useful in own right
 %
 %  * impact on automation unclear
 %
@@ -1317,7 +1355,16 @@ definition of lazy lists:
 text {*
 \noindent
 Lazy lists can be infinite, such as @{text "LCons 0 (LCons 0 (\<dots>))"} and
-@{text "LCons 0 (LCons 1 (LCons 2 (\<dots>)))"}. Another interesting type that can
+@{text "LCons 0 (LCons 1 (LCons 2 (\<dots>)))"}. Here is a related type, that of
+infinite streams:
+*}
+
+    codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
+      SCons (shd: 'a) (stl: "'a stream")
+
+text {*
+\noindent
+Another interesting type that can
 be defined as a codatatype is that of the extended natural numbers:
 *}
 
@@ -1548,8 +1595,8 @@ Haskell and other lazy functional programming languages support this style.
 \item The \emph{destructor view} specifies $f$ by implications of the form
 \[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
 equations of the form
-\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\].
-This style is favored in the coalgebraic literature.
+\[@{text "un_C\<^sub>ji (f x\<^sub>1 \<dots> x\<^sub>n) = \<dots>"}\]
+This style is popular in the coalgebraic literature.
 \end{itemize}
 
 \noindent
@@ -1561,39 +1608,53 @@ as long as they occur under a constructor. The constructor itself normally
 appears directly to the right of the equal sign:
 *}
 
-    primcorec iterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
-      "iterate f x = LCons x (iterate f (f x))"
+    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+      "literate f x = LCons x (literate f (f x))"
+    .
+
+    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+      "siterate f x = SCons x (siterate f (f x))"
     .
 
 text {*
 \noindent
 The constructor ensures that progress is made---i.e., the function is
-\emph{productive}. The above function computes the infinite list
+\emph{productive}. The above function computes the infinite lazy list or stream
 @{text "[x, f x, f (f x), \<dots>]"}. Productivity guarantees that prefixes
 @{text "[x, f x, f (f x), \<dots>, (f ^^ k) x]"} of arbitrary finite length
 @{text k} can be computed by unfolding the equation a finite number of times.
-The period (@{text "."}) at the end of the command discharges the zero proof
-obligations associated with this definition.
+The period (\keyw{.}) at the end of the commands discharge the zero proof
+obligations.
 
-The @{const iterate} function can be specified as follows in the destructor
-view:
+These two functions can be specified as follows in the destructor view:
 *}
 
 (*<*)
     locale dummy_dest_view
     begin
 (*>*)
-    primcorec iterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
-      "\<not> lnull (iterate _ x)" |
-      "lhd (iterate _ x) = x" |
-      "ltl (iterate f x) = iterate f (f x)"
+    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+      "\<not> lnull (literate _ x)" |
+      "lhd (literate _ x) = x" |
+      "ltl (literate f x) = literate f (f x)"
+    .
+
+    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+      "shd (siterate _ x) = x" |
+      "stl (siterate f x) = siterate f (f x)"
     .
 (*<*)
     end
 (*>*)
 
 text {*
-Corecursive calls may only appear directly to the right of the equal sign.
+\noindent
+The first formula in the @{const literate} specification indicates which
+constructor to choose. For @{const siterate}, no such formula is necessary,
+since the type has only one constructor. The last two formulas are equations
+specifying the value of the result for the relevant selectors. Corecursive calls
+are allowed to appear directly to the right of the equal sign. Their arguments
+are unrestricted.
 
 In the constructor view, constructs such as @{text "let"}---@{text "in"}, @{text
 "if"}---@{text "then"}---@{text "else"}, and @{text "case"}---@{text "of"} may
@@ -1608,9 +1669,8 @@ appear around constructors that guard corecursive calls:
 
 text {*
 \noindent
-For this example, the destructor view is more cumbersome, because it requires us
-to destroy the second argument @{term ys} (cf.\ @{term "lnull ys"}, @{term "lhd
-ys"}, and @{term "ltl ys"}):
+For this example, the destructor view is slighlty more involved, because it
+requires us to analyze the second argument (@{term ys}):
 *}
 
 (*<*)
@@ -1619,14 +1679,8 @@ ys"}, and @{term "ltl ys"}):
 (*>*)
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
-      "lhd (lappend xs ys) =
-         (case xs of
-            LNil \<Rightarrow> lhd ys
-          | LCons x _ \<Rightarrow> x)" |
-      "ltl (lappend xs ys) =
-         (case xs of
-            LNil \<Rightarrow> ltl ys
-          | LCons _ xs \<Rightarrow> xs)"
+      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
+      "ltl (lappend xs ys) = ltl (if lnull xs then ys else xs)"
     .
 (*<*)
     end
@@ -1642,7 +1696,7 @@ Corecursion is useful to specify not only functions but also infinite objects:
 
 text {*
 \noindent
-The same example in the destructor view:
+Here is the example again for those passengers who prefer destructors:
 *}
 
 (*<*)
@@ -1661,6 +1715,11 @@ The same example in the destructor view:
 subsubsection {* Mutual Corecursion
   \label{sssec:primcorec-mutual-corecursion} *}
 
+text {*
+The syntax for mutually corecursive functions over mutually corecursive
+datatypes is anything but surprising. Following the constructor view:
+*}
+
     primcorec
       even_infty :: even_enat and
       odd_infty :: odd_enat
@@ -1668,6 +1727,10 @@ subsubsection {* Mutual Corecursion
       "even_infty = Even_ESuc odd_infty" |
       "odd_infty = Odd_ESuc even_infty"
     .
+
+text {*
+And following the destructor view:
+*}
 
 (*<*)
     context dummy_dest_view
@@ -1689,6 +1752,13 @@ subsubsection {* Mutual Corecursion
 subsubsection {* Nested Corecursion
   \label{sssec:primcorec-nested-corecursion} *}
 
+text {*
+The next pair of examples generalize the @{const literate} and @{const siterate}
+functions (Section~\ref{sssec:primcorec-nested-corecursion}) to possibly
+infinite trees in which subnodes are organized either as a lazy list (@{text
+tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
+*}
+
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
     .
@@ -1698,7 +1768,8 @@ subsubsection {* Nested Corecursion
     .
 
 text {*
-Again, let us not forget our destructor-oriented passengers:
+Again, let us not forget our destructor-oriented passengers. Here is the first
+example in the destructor view:
 *}
 
 (*<*)
@@ -1716,6 +1787,14 @@ Again, let us not forget our destructor-oriented passengers:
 
 subsubsection {* Nested-as-Mutual Corecursion
   \label{sssec:primcorec-nested-as-mutual-corecursion} *}
+
+text {*
+Just as it is possible to recurse over nested recursive datatypes as if they
+were mutually recursive
+(Section~\ref{sssec:primrec-nested-as-mutual-recursion}), it is possible to
+corecurse over nested codatatypes as if they were mutually corecursive. For
+example:
+*}
 
 (*<*)
     locale dummy_iterate
@@ -1774,10 +1853,9 @@ section {* Registering Bounded Natural Functors
   \label{sec:registering-bounded-natural-functors} *}
 
 text {*
-The (co)datatype package can be set up to allow nested recursion through custom
-well-behaved type constructors. The key concept is that of a bounded natural
-functor (BNF).
-
+The (co)datatype package can be set up to allow nested recursion through
+arbitrary type constructors, as long as they adhere to the BNF requirements and
+are registered as BNFs.
 *}
 
 
@@ -1817,7 +1895,9 @@ subsubsection {* \keyw{print\_bnfs}
   \label{sssec:print-bnfs} *}
 
 text {*
-@{command print_bnfs}
+@{rail "
+  @@{command_def print_bnfs}
+"}
 *}
 
 
