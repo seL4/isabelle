@@ -24,20 +24,20 @@ struct
 open Function_Lib
 open Function_Common
 
-(* Extracts a function and its arguments from a proposition that is
+(* Extract a function and its arguments from a proposition that is
    either of the form "f x y z = ..." or, in case of function that
    returns a boolean, "f x y z" *)
-fun dest_funprop (Const ("HOL.eq", _) $ lhs $ rhs) = (strip_comb lhs, rhs)
-  | dest_funprop (Const ("HOL.Not", _) $ trm) = (strip_comb trm, @{term "False"})
+fun dest_funprop (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (strip_comb lhs, rhs)
+  | dest_funprop (Const (@{const_name Not}, _) $ trm) = (strip_comb trm, @{term "False"})
   | dest_funprop trm = (strip_comb trm, @{term "True"});
 
 local
 
 fun propagate_tac i thm =
   let fun inspect eq = case eq of
-              Const ("HOL.Trueprop",_) $ (Const ("HOL.eq",_) $ Free x $ t) =>
+              Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ Free x $ t) =>
                   if Logic.occs (Free x, t) then raise Match else true
-            | Const ("HOL.Trueprop",_) $ (Const ("HOL.eq",_) $ t $ Free x) =>
+            | Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ t $ Free x) =>
                   if Logic.occs (Free x, t) then raise Match else false
             | _ => raise Match;
       fun mk_eq thm = (if inspect (prop_of thm) then
@@ -87,7 +87,7 @@ fun mk_partial_elim_rules ctxt result =
                 let val y = Free("y",T) in
                   (y :: acc_vars, (HOLogic.mk_Trueprop (HOLogic.mk_eq (acc_lhs, y))), T)
                 end
-              | mk_funeq n (Type("fun",[S,T])) (acc_vars, acc_lhs) =
+              | mk_funeq n (Type(@{type_name "fun"}, [S, T])) (acc_vars, acc_lhs) =
                 let val xn = Free ("x" ^ Int.toString n,S) in
                   mk_funeq (n - 1) T (xn :: acc_vars, acc_lhs $ xn)
                 end
@@ -133,7 +133,7 @@ fun mk_partial_elim_rules ctxt result =
                 |> Thm.forall_intr (cterm_of thy rhs_var)
 
           val bool_elims = (case ranT of
-                              Type ("HOL.bool", []) => mk_bool_elims ctxt elim_stripped
+                              Type (@{type_name bool}, []) => mk_bool_elims ctxt elim_stripped
                               | _ => []);
 
           fun unstrip rl =
