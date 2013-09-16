@@ -19,6 +19,8 @@ Checklist for official releases
 
 - check file positions within logic images (hyperlinks etc.);
 
+- check ML sources: isabelle build -nal;
+
 - run isabelle update_keywords;
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
