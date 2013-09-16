@@ -15,6 +15,7 @@ sig
   val transform_quotient: morphism -> quotient -> quotient
   val lookup_quotients: Proof.context -> string -> quotient option
   val update_quotients: string -> quotient -> Context.generic -> Context.generic
+  val delete_quotients: thm -> Context.generic -> Context.generic
   val print_quotients: Proof.context -> unit
 
   val get_invariant_commute_rules: Proof.context -> thm list
