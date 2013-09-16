@@ -310,7 +310,7 @@ subsubsection {* Nested Recursion
 text {*
 \emph{Nested recursion} occurs when recursive occurrences of a type appear under
 a type constructor. The introduction showed some examples of trees with nesting
-through lists. A more complex example, that reuses our @{text option} type,
+through lists. A more complex example, that reuses our @{type option} type,
 follows:
 *}
 
@@ -1375,7 +1375,15 @@ text {*
 This type has exactly one infinite element, @{text "ESuc (ESuc (ESuc (\<dots>)))"},
 that represents $\infty$. In addition, it has finite values of the form
 @{text "ESuc (\<dots> (ESuc EZero)\<dots>)"}.
+
+Here is an example with many constructors:
 *}
+
+    codatatype 'a process =
+      Fail
+    | Skip (cont: "'a process")
+    | Action (prefix: 'a) (cont: "'a process")
+    | Choice (left: "'a process") (right: "'a process")
 
 
 subsubsection {* Mutual Corecursion
@@ -1395,11 +1403,15 @@ subsubsection {* Nested Corecursion
 
 text {*
 \noindent
-The next two examples feature \emph{nested corecursion}:
+The next examples feature \emph{nested corecursion}:
 *}
 
     codatatype 'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i (lbl\<^sub>i\<^sub>i: 'a) (sub\<^sub>i\<^sub>i: "'a tree\<^sub>i\<^sub>i llist")
+
     codatatype 'a tree\<^sub>i\<^sub>s = Node\<^sub>i\<^sub>s (lbl\<^sub>i\<^sub>s: 'a) (sub\<^sub>i\<^sub>s: "'a tree\<^sub>i\<^sub>s fset")
+
+    codatatype 'a state_machine =
+      State_Machine bool "'a \<Rightarrow> 'a state_machine"
 
 
 subsection {* Command Syntax
@@ -1655,6 +1667,32 @@ specifying the value of the result for the relevant selectors. Corecursive calls
 are allowed to appear directly to the right of the equal sign. Their arguments
 are unrestricted.
 
+Corecursive functions necessarily construct codatatype values. Nothing prevents
+them from also consuming such values. The following function drops ever second
+element in a stream:
+*}
+
+    primcorec_notyet every_snd :: "'a stream \<Rightarrow> 'a stream" where
+      "every_snd s = SCons (shd s) (stl (stl s))"
+
+text {*
+\noindent
+Here is the same example in the destructor view:
+*}
+
+(*<*)
+    context dummy_dest_view
+    begin
+(*>*)
+    primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
+      "shd (every_snd s) = shd s" |
+      "stl (every_snd s) = stl (stl s)"
+    .
+(*<*)
+    end
+(*>*)
+
+text {*
 In the constructor view, constructs such as @{text "let"}---@{text "in"}, @{text
 "if"}---@{text "then"}---@{text "else"}, and @{text "case"}---@{text "of"} may
 appear around constructors that guard corecursive calls:
@@ -1708,6 +1746,60 @@ Here is the example again for those passengers who prefer destructors:
 (*<*)
     end
 (*>*)
+
+text {*
+The last example constructs a pseudorandom process value. It takes a stream of
+actions (@{text s}), a pseudorandom function generator (@{text f}), and a
+pseudorandom seed (@{text n}):
+*}
+
+    primcorec_notyet random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process" where
+      "random_process s f n =
+         (if n mod 4 = 0 then
+            Fail
+          else if n mod 4 = 1 then
+            Skip (random_process s f (f n))
+          else if n mod 4 = 2 then
+            Action (shd s) (random_process (stl s) f (f n))
+          else
+            Choice (random_process (every_snd s) (f \<circ> f) (f n))
+              (random_process (every_snd (stl s)) (f \<circ> f) (f (f n))))"
+
+text {*
+\noindent
+The main disadvantage of the constructor view in this case is that the
+conditions are tested sequentially. This is visible in the generated theorems.
+In this respect, the destructor view is more elegant:
+*}
+
+(*<*)
+    context dummy_dest_view
+    begin
+(*>*)
+    primcorec_notyet random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process" where
+      "n mod 4 = 0 \<Longrightarrow> is_Fail (random_process s f n)" |
+      "n mod 4 = 1 \<Longrightarrow> is_Skip (random_process s f n)" |
+      "n mod 4 = 2 \<Longrightarrow> is_Action (random_process s f n)" |
+      "n mod 4 = 3 \<Longrightarrow> is_Choice (random_process s f n)" |
+      "cont (random_process s f n) = random_process s f (f n)" (* of Skip FIXME *) |
+      "prefix (random_process s f n) = shd s" |
+      "cont (random_process s f n) = random_process (stl s) f (f n)" (* of Action FIXME *) |
+      "left (random_process s f n) = random_process (every_snd s) f (f n)" |
+      "right (random_process s f n) = random_process (every_snd (stl s)) f (f n)"
+    (* by auto FIXME *)
+(*<*)
+    end
+(*>*)
+
+text {*
+\noindent
+The price to pay for this elegance is that we must discharge exclusivity proof
+obligations, one for each pair of conditions
+@{term "(n mod 4 = i, n mod 4 = j)"}. If we prefer not to discharge any
+obligations, we can specify the option @{text "(sequential)"} after the
+@{command primcorec} keyword. This pushes the problem to the users of the
+generated properties, as with the constructor view.
+*}
 
 
 subsubsection {* Mutual Corecursion
@@ -1778,6 +1870,17 @@ example in the destructor view:
 (*<*)
     end
 (*>*)
+
+text {*
+Deterministic finite automata (DFAs) are usually defined as 5-tuples
+@{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
+@{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
+is an initial state, and @{text F} is a set of final states. The following
+function translates a DFA into a @{type state_machine}:
+*}
+
+    primcorec_notyet of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine" where
+      "of_dfa \<delta> F q = State_Machine (q \<in> F) (of_dfa \<delta> F o \<delta> q)"
 
 
 subsubsection {* Nested-as-Mutual Corecursion
@@ -1927,7 +2030,7 @@ subsection {* Command Syntax
 
 
 subsubsection {* \keyw{wrap\_free\_constructors}
-    \label{sssec:wrap-free-constructors} *}
+  \label{sssec:wrap-free-constructors} *}
 
 text {*
 Free constructor wrapping has the following general syntax:
@@ -2018,6 +2121,7 @@ text {*
 %
 % *names of variables suboptimal
 *}
+*)
 
 
 section {* Acknowledgments
@@ -2029,10 +2133,9 @@ Tobias Nipkow and Makarius Wenzel have encouraged us to implement the new
 versions of the package, especially for the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions, much of which has
 yet to be implemented. Florian Haftmann and Christian Urban provided general
-advice advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
+advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
 suggested an elegant proof to eliminate one of the BNF assumptions.
 *}
-*)
 
 
 end
