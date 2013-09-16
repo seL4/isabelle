@@ -14,7 +14,7 @@ elim rules with P x resp. \<not>P x as premises.
 signature FUNCTION_ELIMS =
 sig
   val dest_funprop : term -> (term * term list) * term
-  val mk_partial_elim_rules : local_theory ->
+  val mk_partial_elim_rules : Proof.context ->
     Function_Common.function_result -> thm list list
 end;
 
@@ -74,8 +74,11 @@ fun mk_bool_elims ctxt elim =
 
 in
 
-fun mk_partial_elim_rules ctxt result=
-  let val FunctionResult {fs, G, R, dom, psimps, simple_pinducts, cases,
+fun mk_partial_elim_rules ctxt result =
+  let
+      val thy = Proof_Context.theory_of ctxt;
+
+      val FunctionResult {fs, G, R, dom, psimps, simple_pinducts, cases,
                           termination, domintros, ...} = result;
       val n_fs = length fs;
 
@@ -105,7 +108,6 @@ fun mk_partial_elim_rules ctxt result=
 
             val sumtree_inj = SumTree.mk_inj domT n_fs (idx+1) args;
 
-            val thy = Proof_Context.theory_of ctxt;
             val cprop = cterm_of thy prop
 
             val asms = [cprop, cterm_of thy (HOLogic.mk_Trueprop (dom $ sumtree_inj))];

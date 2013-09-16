@@ -7,7 +7,8 @@ rules for function package functions.
 
 signature FUN_CASES =
 sig
-  val mk_fun_cases : local_theory -> term -> thm
+  val mk_fun_cases : Proof.context -> term -> thm
+  (* FIXME regular ML interface for fun_cases *)
 end;
 
 
@@ -54,41 +55,43 @@ end;
 (* Setting up the fun_cases command *)
 
 local
-  (* Convert the schematic variables and type variables in a term into free
-     variables and takes care of schematic variables originating from dummy
-     patterns by renaming them to something sensible. *)
-  fun pat_to_term ctxt t =
-    let
-       fun prep_var ((x,_),T) =
-            if x = "_dummy_" then ("x",T) else (x,T);
-       val schem_vars = Term.add_vars t [];
-       val prepped_vars = map prep_var schem_vars;
-       val fresh_vars = map Free (Variable.variant_frees ctxt [t] prepped_vars);
-       val subst = ListPair.zip (map fst schem_vars, fresh_vars);
-    in fst (yield_singleton (Variable.import_terms true)
-           (subst_Vars subst t) ctxt)
-    end;
 
-  fun fun_cases args ctxt =
-    let
-      val thy = Proof_Context.theory_of ctxt
-      val thmss = map snd args
-                  |> burrow (grouped 10 Par_List.map
-                      (mk_fun_cases ctxt
-                       o pat_to_term ctxt
-                       o HOLogic.mk_Trueprop
-                       o Proof_Context.read_term_pattern ctxt));
-      val facts = map2 (fn ((a,atts), _) => fn thms =>
-        ((a, map (Attrib.intern_src thy) atts), [(thms, [])])) args thmss;
-    in
-      ctxt |> Local_Theory.notes facts |>> map snd
-    end;
+(* Convert the schematic variables and type variables in a term into free
+   variables and takes care of schematic variables originating from dummy
+   patterns by renaming them to something sensible. *)
+fun pat_to_term ctxt t =
+  let
+     fun prep_var ((x,_),T) =
+          if x = "_dummy_" then ("x",T) else (x,T);
+     val schem_vars = Term.add_vars t [];
+     val prepped_vars = map prep_var schem_vars;
+     val fresh_vars = map Free (Variable.variant_frees ctxt [t] prepped_vars);
+     val subst = ListPair.zip (map fst schem_vars, fresh_vars);
+  in fst (yield_singleton (Variable.import_terms true)
+         (subst_Vars subst t) ctxt)
+  end;
+
+fun fun_cases_cmd args lthy =
+  let
+    val thy = Proof_Context.theory_of lthy
+    val thmss = map snd args
+                |> burrow (grouped 10 Par_List.map
+                    (mk_fun_cases lthy
+                     o pat_to_term lthy
+                     o HOLogic.mk_Trueprop
+                     o Proof_Context.read_term_pattern lthy));
+    val facts = map2 (fn ((a,atts), _) => fn thms =>
+      ((a, map (Attrib.intern_src thy) atts), [(thms, [])])) args thmss;
+  in
+    lthy |> Local_Theory.notes facts |>> map snd
+  end;
+
 in
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "fun_cases"}
     "automatic derivation of simplified elimination rules for function equations"
-    (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases));
+    (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases_cmd));
 
 end;
 
