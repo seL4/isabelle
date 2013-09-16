@@ -8,9 +8,10 @@ rules for function package functions.
 signature FUN_CASES =
 sig
   val mk_fun_cases : Proof.context -> term -> thm
+  val fun_cases_cmd: ((binding * Args.src list) * string list) list -> local_theory ->
+    (string * thm list) list * local_theory
   (* FIXME regular ML interface for fun_cases *)
 end;
-
 
 structure Fun_Cases : FUN_CASES =
 struct
@@ -71,6 +72,8 @@ fun pat_to_term ctxt t =
          (subst_Vars subst t) ctxt)
   end;
 
+in
+
 fun fun_cases_cmd args lthy =
   let
     val thy = Proof_Context.theory_of lthy
@@ -83,10 +86,8 @@ fun fun_cases_cmd args lthy =
     val facts = map2 (fn ((a,atts), _) => fn thms =>
       ((a, map (Attrib.intern_src thy) atts), [(thms, [])])) args thmss;
   in
-    lthy |> Local_Theory.notes facts |>> map snd
+    lthy |> Local_Theory.notes facts
   end;
-
-in
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "fun_cases"}
