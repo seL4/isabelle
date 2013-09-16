@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Function/fun_cases.ML
     Author:     Manuel Eberl, TU Muenchen
 
-Provides the fun_cases command for generating specialised elimination
+Provide the fun_cases command for generating specialised elimination
 rules for function package functions.
 *)
 
@@ -16,14 +16,16 @@ struct
 
 local
 
-  val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
-    (fn _ => assume_tac 1);
-  val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
-  val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
+val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
+  (fn _ => assume_tac 1);
+val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
+val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
-  fun simp_case_tac ctxt i =
-    EVERY' [elim_tac, TRY o asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac ctxt] i;
+fun simp_case_tac ctxt i =
+  EVERY' [elim_tac, TRY o asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac ctxt] i;
+
 in
+
 fun mk_fun_cases ctxt prop =
   let val thy = Proof_Context.theory_of ctxt;
       fun err () =
@@ -45,12 +47,14 @@ fun mk_fun_cases ctxt prop =
       SOME r => r
     | NONE => err ()
   end;
+
 end;
 
 
 (* Setting up the fun_cases command *)
+
 local
-  (* Converts the schematic variables and type variables in a term into free
+  (* Convert the schematic variables and type variables in a term into free
      variables and takes care of schematic variables originating from dummy
      patterns by renaming them to something sensible. *)
   fun pat_to_term ctxt t =
@@ -80,10 +84,13 @@ local
       ctxt |> Local_Theory.notes facts |>> map snd
     end;
 in
+
 val _ =
   Outer_Syntax.local_theory @{command_spec "fun_cases"}
     "automatic derivation of simplified elimination rules for function equations"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases));
+
 end;
+
 end;
 
