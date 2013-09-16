@@ -1608,13 +1608,11 @@ as long as they occur under a constructor. The constructor itself normally
 appears directly to the right of the equal sign:
 *}
 
-    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+    primcorec_notyet literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate f x = LCons x (literate f (f x))"
-    .
 
-    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+    primcorec_notyet siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate f x = SCons x (siterate f (f x))"
-    .
 
 text {*
 \noindent
@@ -1632,6 +1630,7 @@ These two functions can be specified as follows in the destructor view:
 (*<*)
     locale dummy_dest_view
     begin
+end
 (*>*)
     primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "\<not> lnull (literate _ x)" |
@@ -1644,7 +1643,7 @@ These two functions can be specified as follows in the destructor view:
       "stl (siterate f x) = siterate f (f x)"
     .
 (*<*)
-    end
+(*    end*)
 (*>*)
 
 text {*
@@ -1690,9 +1689,8 @@ text {*
 Corecursion is useful to specify not only functions but also infinite objects:
 *}
 
-    primcorec infty :: enat where
+    primcorec_notyet infty :: enat where
       "infty = ESuc infty"
-    .
 
 text {*
 \noindent
@@ -1720,13 +1718,12 @@ The syntax for mutually corecursive functions over mutually corecursive
 datatypes is anything but surprising. Following the constructor view:
 *}
 
-    primcorec
+    primcorec_notyet
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
       "even_infty = Even_ESuc odd_infty" |
       "odd_infty = Odd_ESuc even_infty"
-    .
 
 text {*
 And following the destructor view:
@@ -1759,13 +1756,11 @@ infinite trees in which subnodes are organized either as a lazy list (@{text
 tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
 *}
 
-    primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+    primcorec_notyet iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
-    .
 
-    primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
+    primcorec_notyet iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fmap (iterate\<^sub>i\<^sub>s f) (f x))"
-    .
 
 text {*
 Again, let us not forget our destructor-oriented passengers. Here is the first
