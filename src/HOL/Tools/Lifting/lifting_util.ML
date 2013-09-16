@@ -28,7 +28,7 @@ sig
   val relation_types: typ -> typ * typ
   val mk_HOL_eq: thm -> thm
   val safe_HOL_meta_eq: thm -> thm
-end;
+end
 
 
 structure Lifting_Util: LIFTING_UTIL =
@@ -110,4 +110,4 @@ fun mk_HOL_eq r = r RS @{thm meta_eq_to_obj_eq}
 
 fun safe_HOL_meta_eq r = mk_HOL_eq r handle Thm.THM _ => r
 
-end;
+end

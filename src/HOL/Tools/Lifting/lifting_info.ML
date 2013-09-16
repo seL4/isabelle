@@ -12,10 +12,18 @@ sig
   
   type pcr = {pcrel_def: thm, pcr_cr_eq: thm}
   type quotient = {quot_thm: thm, pcr_info: pcr option}
+  val pcr_eq: pcr * pcr -> bool
+  val quotient_eq: quotient * quotient -> bool
   val transform_quotient: morphism -> quotient -> quotient
   val lookup_quotients: Proof.context -> string -> quotient option
   val update_quotients: string -> quotient -> Context.generic -> Context.generic
+  val delete_quotients: thm -> Context.generic -> Context.generic
   val print_quotients: Proof.context -> unit
+
+  type restore_data = {quotient : quotient, transfer_rules: thm Item_Net.T}
+  val lookup_restore_data: Proof.context -> string -> restore_data option
+  val init_restore_data: string -> quotient -> Context.generic -> Context.generic
+  val add_transfer_rules_in_restore_data: string -> thm Item_Net.T -> Context.generic -> Context.generic  
 
   val get_invariant_commute_rules: Proof.context -> thm list
   
@@ -30,9 +38,10 @@ sig
   val get_quot_maps           : Proof.context -> quot_map Symtab.table
   val get_quotients           : Proof.context -> quotient Symtab.table
   val get_relator_distr_data  : Proof.context -> relator_distr_data Symtab.table
+  val get_restore_data        : Proof.context -> restore_data Symtab.table
 
   val setup: theory -> theory
-end;
+end
 
 structure Lifting_Info: LIFTING_INFO =
 struct
@@ -46,6 +55,7 @@ type pcr = {pcrel_def: thm, pcr_cr_eq: thm}
 type quotient = {quot_thm: thm, pcr_info: pcr option}
 type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
   pos_distr_rules: thm list, neg_distr_rules: thm list}
+type restore_data = {quotient : quotient, transfer_rules: thm Item_Net.T}
 
 structure Data = Generic_Data
 (
@@ -53,44 +63,53 @@ structure Data = Generic_Data
     { quot_maps : quot_map Symtab.table,
       quotients : quotient Symtab.table,
       reflexivity_rules : thm Item_Net.T,
-      relator_distr_data : relator_distr_data Symtab.table
+      relator_distr_data : relator_distr_data Symtab.table,
+      restore_data : restore_data Symtab.table
     }
   val empty =
     { quot_maps = Symtab.empty,
       quotients = Symtab.empty,
       reflexivity_rules = Thm.full_rules,
-      relator_distr_data = Symtab.empty
+      relator_distr_data = Symtab.empty,
+      restore_data = Symtab.empty
     }
   val extend = I
   fun merge
-    ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1 },
-      { quot_maps = qm2, quotients = q2, reflexivity_rules = rr2, relator_distr_data = rdd2 } ) =
+    ( { quot_maps = qm1, quotients = q1, reflexivity_rules = rr1, relator_distr_data = rdd1, 
+        restore_data = rd1 },
+      { quot_maps = qm2, quotients = q2, reflexivity_rules = rr2, relator_distr_data = rdd2,
+        restore_data = rd2 } ) =
     { quot_maps = Symtab.merge (K true) (qm1, qm2),
       quotients = Symtab.merge (K true) (q1, q2),
       reflexivity_rules = Item_Net.merge (rr1, rr2),
-      relator_distr_data = Symtab.merge (K true) (rdd1, rdd2) }
+      relator_distr_data = Symtab.merge (K true) (rdd1, rdd2),
+      restore_data = Symtab.merge (K true) (rd1, rd2) }
 )
 
-fun map_data f1 f2 f3 f4
-  { quot_maps, quotients, reflexivity_rules, relator_distr_data} =
+fun map_data f1 f2 f3 f4 f5
+  { quot_maps, quotients, reflexivity_rules, relator_distr_data, restore_data } =
   { quot_maps = f1 quot_maps,
     quotients = f2 quotients,
     reflexivity_rules = f3 reflexivity_rules,
-    relator_distr_data = f4 relator_distr_data }
+    relator_distr_data = f4 relator_distr_data,
+    restore_data = f5 restore_data }
 
-fun map_quot_maps           f = map_data f I I I
-fun map_quotients           f = map_data I f I I
-fun map_reflexivity_rules   f = map_data I I f I
-fun map_relator_distr_data  f = map_data I I I f
+fun map_quot_maps           f = map_data f I I I I
+fun map_quotients           f = map_data I f I I I
+fun map_reflexivity_rules   f = map_data I I f I I
+fun map_relator_distr_data  f = map_data I I I f I
+fun map_restore_data        f = map_data I I I I f
   
 val get_quot_maps'           = #quot_maps o Data.get
 val get_quotients'           = #quotients o Data.get
 val get_reflexivity_rules'   = #reflexivity_rules o Data.get
 val get_relator_distr_data'  = #relator_distr_data o Data.get
+val get_restore_data'        = #restore_data o Data.get
 
 fun get_quot_maps          ctxt = get_quot_maps' (Context.Proof ctxt)
 fun get_quotients          ctxt = get_quotients' (Context.Proof ctxt)
 fun get_relator_distr_data ctxt = get_relator_distr_data' (Context.Proof ctxt)
+fun get_restore_data       ctxt = get_restore_data' (Context.Proof ctxt)
 
 (* info about Quotient map theorems *)
 
@@ -163,6 +182,20 @@ fun print_quot_maps ctxt =
   end
 
 (* info about quotient types *)
+
+fun pcr_eq ({pcrel_def = pcrel_def1, pcr_cr_eq = pcr_cr_eq1},
+           {pcrel_def = pcrel_def2, pcr_cr_eq = pcr_cr_eq2}) = 
+           Thm.eq_thm (pcrel_def1, pcrel_def2) andalso Thm.eq_thm (pcr_cr_eq1, pcr_cr_eq2)
+
+fun option_eq _ (NONE,NONE) = true
+  | option_eq _ (NONE,_) = false
+  | option_eq _ (_,NONE) = false
+  | option_eq cmp (SOME x, SOME y) = cmp (x,y);
+
+fun quotient_eq ({quot_thm = quot_thm1, pcr_info = pcr_info1},
+                {quot_thm = quot_thm2, pcr_info = pcr_info2}) =
+                Thm.eq_thm (quot_thm1, quot_thm2) andalso option_eq pcr_eq (pcr_info1, pcr_info2)
+
 fun transform_pcr_info phi {pcrel_def, pcr_cr_eq} =
   {pcrel_def = Morphism.thm phi pcrel_def, pcr_cr_eq = Morphism.thm phi pcr_cr_eq}
 
@@ -207,6 +240,22 @@ fun print_quotients ctxt =
 val quot_del_attribute_setup =
   Attrib.setup @{binding quot_del} (Scan.succeed (Thm.declaration_attribute delete_quotients))
     "deletes the Quotient theorem"
+
+(* data for restoring Transfer/Lifting context *)
+
+fun lookup_restore_data ctxt bundle_name = Symtab.lookup (get_restore_data ctxt) bundle_name
+
+fun update_restore_data bundle_name restore_data ctxt = 
+  Data.map (map_restore_data (Symtab.update (bundle_name, restore_data))) ctxt
+
+fun init_restore_data bundle_name qinfo ctxt = 
+  update_restore_data bundle_name { quotient = qinfo, transfer_rules = Thm.full_rules } ctxt
+
+fun add_transfer_rules_in_restore_data bundle_name transfer_rules ctxt =
+  case Symtab.lookup (get_restore_data' ctxt) bundle_name of
+    SOME restore_data => update_restore_data bundle_name { quotient = #quotient restore_data, 
+      transfer_rules = Item_Net.merge ((#transfer_rules restore_data), transfer_rules) } ctxt
+    | NONE => error ("The restore data " ^ quote bundle_name ^ " is not defined.")
 
 (* theorems that a relator of an invariant is an invariant of the corresponding predicate *)
 
@@ -468,4 +517,4 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_quotients"} "print quotients"
     (Scan.succeed (Toplevel.keep (print_quotients o Toplevel.context_of)))
 
-end;
+end

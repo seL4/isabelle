@@ -11,7 +11,7 @@ keywords
   "parametric" and
   "print_quot_maps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and
-  "setup_lifting" :: thy_decl
+  "setup_lifting" "lifting_forget" "lifting_update" :: thy_decl
 begin
 
 subsection {* Function map *}

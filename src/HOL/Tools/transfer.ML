@@ -20,6 +20,8 @@ sig
   val get_compound_rhs: Proof.context -> (term * thm) Item_Net.T
   val transfer_add: attribute
   val transfer_del: attribute
+  val transfer_raw_add: thm -> Context.generic -> Context.generic
+  val transfer_raw_del: thm -> Context.generic -> Context.generic
   val transferred_attribute: thm list -> attribute
   val untransferred_attribute: thm list -> attribute
   val transfer_domain_add: attribute
@@ -135,8 +137,6 @@ fun add_transfer_thm thm = Data.map
       | _ => I) o
    map_known_frees (Term.add_frees (Thm.concl_of thm)))
 
-fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
-
 fun del_transfer_thm thm = Data.map 
   (map_transfer_raw (Item_Net.remove thm) o
    map_compound_lhs
@@ -149,6 +149,9 @@ fun del_transfer_thm thm = Data.map
         Const (@{const_name Rel}, _) $ _ $ _ $ (rhs as (_ $ _)) =>
           Item_Net.remove (rhs, thm)
       | _ => I))
+
+fun transfer_raw_add thm ctxt = add_transfer_thm thm ctxt
+fun transfer_raw_del thm ctxt = del_transfer_thm thm ctxt
 
 (** Conversions **)
 

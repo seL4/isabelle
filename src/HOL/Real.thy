@@ -987,14 +987,8 @@ declare Real_induct [induct del]
 declare Abs_real_induct [induct del]
 declare Abs_real_cases [cases del]
 
-lemmas [transfer_rule del] =
-  real.rel_eq_transfer
-  zero_real.transfer one_real.transfer plus_real.transfer uminus_real.transfer
-  times_real.transfer inverse_real.transfer positive.transfer real.right_unique
-  real.right_total
-
-lemmas [transfer_domain_rule del] = 
-  real.domain real.domain_eq Domainp_pcr_real real.domain_par real.domain_par_left_total
+lifting_update real.lifting
+lifting_forget real.lifting
   
 subsection{*More Lemmas*}
 
