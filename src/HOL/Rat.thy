@@ -1143,20 +1143,12 @@ text{* Test: *}
 lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::rat)"
   by simp
 
+subsection {* Hiding implementation details *}
 
 hide_const (open) normalize positive
 
-lemmas [transfer_rule del] =
-  rat.rel_eq_transfer
-  Fract.transfer zero_rat.transfer one_rat.transfer plus_rat.transfer
-  uminus_rat.transfer times_rat.transfer inverse_rat.transfer
-  positive.transfer of_rat.transfer rat.right_unique rat.right_total
-
-lemmas [transfer_domain_rule del] = Domainp_cr_rat rat.domain
-
-text {* De-register @{text "rat"} as a quotient type: *}
-
-declare Quotient_rat[quot_del]
+lifting_update rat.lifting
+lifting_forget rat.lifting
 
 end
 

@@ -1660,12 +1660,7 @@ lemmas zpower_int = int_power [symmetric]
 
 text {* De-register @{text "int"} as a quotient type: *}
 
-lemmas [transfer_rule del] =
-  int.id_abs_transfer int.rel_eq_transfer zero_int.transfer one_int.transfer
-  plus_int.transfer uminus_int.transfer minus_int.transfer times_int.transfer
-  int_transfer less_eq_int.transfer less_int.transfer of_int.transfer
-  nat.transfer int.right_unique int.right_total int.bi_total
-
-declare Quotient_int [quot_del]
+lifting_update int.lifting
+lifting_forget int.lifting
 
 end
