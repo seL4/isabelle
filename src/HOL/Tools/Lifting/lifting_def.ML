@@ -16,7 +16,7 @@ sig
     (binding * string option * mixfix) * string * (Facts.ref * Args.src list) option -> local_theory -> Proof.state
 
   val can_generate_code_cert: thm -> bool
-end;
+end
 
 structure Lifting_Def: LIFTING_DEF =
 struct
@@ -583,4 +583,4 @@ val _ =
       (liftdef_parser >> lift_def_cmd_with_err_handling)
 
 
-end; (* structure *)
+end (* structure *)

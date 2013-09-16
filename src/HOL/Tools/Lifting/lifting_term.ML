@@ -523,4 +523,4 @@ fun parametrize_transfer_rule ctxt thm =
       Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.fun2_conv parametrize_relation_conv)) thm
     end
 
-end;
+end
