@@ -71,10 +71,10 @@ fun preplay_trace ctxt assms concl time =
     val assms = assms |> map (Display.pretty_thm ctxt)
                       |> (fn [] => Pretty.str ""
                            | [a] => a
-                           | assms => Pretty.enum ";" "⟦" "⟧" assms)
+                           | assms => Pretty.enum ";" "\<lbrakk>" "\<rbrakk>" assms)  (* Syntax.pretty_term!? *)
     val concl = concl |> Syntax.pretty_term ctxt
     val trace_list = [] |> cons concl
-                        |> nr_of_assms>0 ? cons (Pretty.str "⟹")
+                        |> nr_of_assms>0 ? cons (Pretty.str "\<Longrightarrow>")
                         |> cons assms
                         |> cons time
     val pretty_trace = Pretty.blk(2, Pretty.breaks trace_list)

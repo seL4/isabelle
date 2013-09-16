@@ -2,13 +2,13 @@
     Author:     Manuel Eberl, TU Muenchen
 
 Generates the pelims rules for a function. These are of the shape
-[|f x y z = w; !!…. [|x = …; y = …; z = …; w = …|] ==> P; …|] ==> P
+[|f x y z = w; !!\<dots>. [|x = \<dots>; y = \<dots>; z = \<dots>; w = \<dots>|] ==> P; \<dots>|] ==> P
 and are derived from the cases rule. There is at least one pelim rule for
 each function (cf. mutually recursive functions)
 There may be more than one pelim rule for a function in case of functions
 that return a boolean. For such a function, e.g. P x, not only the normal
 elim rule with the premise P x = z is generated, but also two additional
-elim rules with P x resp. ¬P x as premises.
+elim rules with P x resp. \<not>P x as premises.
 *)
 
 signature FUNCTION_ELIMS =
