@@ -14,7 +14,6 @@ sig
   val mk_param: int -> sort -> typ
   val anyT: sort -> typ
   val paramify_vars: typ -> typ
-  val paramify_dummies: typ -> int -> typ * int
   val deref: typ Vartab.table -> typ -> typ
   val finish: Proof.context -> typ Vartab.table -> typ list * term list -> typ list * term list
   val fixate: Proof.context -> term list -> term list
@@ -51,18 +50,6 @@ val paramify_vars =
   Same.commit
     (Term_Subst.map_atypsT_same
       (fn TVar ((x, i), S) => (param i (x, S)) | _ => raise Same.SAME));
-
-val paramify_dummies =
-  let
-    fun dummy S maxidx = (param (maxidx + 1) ("'dummy", S), maxidx + 1);
-
-    fun paramify (TFree ("'_dummy_", S)) maxidx = dummy S maxidx
-      | paramify (Type ("dummy", _)) maxidx = dummy [] maxidx
-      | paramify (Type (a, Ts)) maxidx =
-          let val (Ts', maxidx') = fold_map paramify Ts maxidx
-          in (Type (a, Ts'), maxidx') end
-      | paramify T maxidx = (T, maxidx);
-  in paramify end;
 
 
 
