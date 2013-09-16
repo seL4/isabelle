@@ -35,7 +35,7 @@ fun mk_fun_cases ctxt prop =
            Pretty.fbrk, Syntax.pretty_term ctxt prop]));
       val ((f,_),_) = Function_Elims.dest_funprop (HOLogic.dest_Trueprop prop)
               handle TERM _ => err ();
-      val info = Function.get_info ctxt f handle Empty => err ();
+      val info = Function.get_info ctxt f handle List.Empty => err ();
       val {elims, pelims, is_partial, ...} = info;
       val elims = if is_partial then pelims else the elims
       val cprop = cterm_of thy prop;
