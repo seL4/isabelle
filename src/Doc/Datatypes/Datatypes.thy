@@ -1602,7 +1602,7 @@ supports two competing syntaxes for specifying a function $f$:
 
 \item The \emph{constructor view} specifies $f$ by equations of the form
 \[@{text "f x\<^sub>1 \<dots> x\<^sub>n = \<dots>"}\]
-Haskell and other lazy functional programming languages support this style.
+Lazy functional programming languages such as Haskell support this style.
 
 \item The \emph{destructor view} specifies $f$ by implications of the form
 \[@{text "\<dots> \<Longrightarrow> is_C\<^sub>j (f x\<^sub>1 \<dots> x\<^sub>n)"}\] and
@@ -1622,6 +1622,8 @@ appears directly to the right of the equal sign:
 
     primcorec_notyet literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate f x = LCons x (literate f (f x))"
+
+text {* \blankline *}
 
     primcorec_notyet siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate f x = SCons x (siterate f (f x))"
@@ -1649,6 +1651,8 @@ end
       "lhd (literate _ x) = x" |
       "ltl (literate f x) = literate f (f x)"
     .
+
+text {* \blankline *}
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "shd (siterate _ x) = x" |
@@ -1850,6 +1854,8 @@ tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
 
     primcorec_notyet iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
+
+text {* \blankline *}
 
     primcorec_notyet iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fmap (iterate\<^sub>i\<^sub>s f) (f x))"
