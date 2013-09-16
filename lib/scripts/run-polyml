@@ -52,7 +52,11 @@ if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = false;'
   MLEXIT=""
 else
-  COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
+  if [ -z "$INFILE" ]; then
+    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
+  else
+    COMMIT="fun commit () = (ML_System.share_common_data (); ML_System.save_state \"$OUTFILE\");"
+  fi
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
   MLEXIT="commit();"
 fi
