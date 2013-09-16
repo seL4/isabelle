@@ -128,6 +128,9 @@ Isabelle/jEdit plugin instead of SideKick.
 
 *** Pure ***
 
+* Former global reference trace_unify_fail is now available as
+configuration option "unify_trace_failure" (global context only).
+
 * Type theory is now immutable, without any special treatment of
 drafts or linear updates (which could lead to "stale theory" errors in
 the past).  Discontinued obsolete operations like Theory.copy,

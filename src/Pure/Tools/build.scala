@@ -441,8 +441,22 @@ object Build
             (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: body_files :::
               info.files.map(file => info.dir + file)).map(_.expand)
 
-          if (list_files)
+          if (list_files) {
             progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+            for {
+              file <- all_files
+              if file.split_ext._2 == "ML"
+            } {
+              val path = info.dir + file
+              try { Symbol.decode_strict(File.read(path)) }
+              catch {
+                case ERROR(msg) =>
+                  cat_error(msg,
+                    "The error(s) above occurred in session " + quote(name) +
+                      " file " + path.toString)
+              }
+            }
+          }
 
           val sources =
             try { all_files.map(p => (p, SHA1.digest(p.file))) }

@@ -4,7 +4,7 @@
 
 ## global parameters
 
-CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2013"
+CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2013-1"
 
 
 ## diagnostics
@@ -43,7 +43,7 @@ TARGET="$PWD/cygwin"
 [ ! -e "$TARGET" ] || fail "Target already exists: \"$TARGET\""
 mkdir -p "$TARGET/isabelle" || fail "Failed to create target directory: \"$TARGET\""
 
-perl -MLWP::Simple -e "getprint '$CYGWIN_MIRROR/setup.exe';" > "$TARGET/isabelle/cygwin.exe"
+perl -MLWP::Simple -e "getprint '$CYGWIN_MIRROR/setup-x86.exe';" > "$TARGET/isabelle/cygwin.exe"
 chmod +x "$TARGET/isabelle/cygwin.exe"
 
 "$TARGET/isabelle/cygwin.exe" -h </dev/null >/dev/null || exit 2
@@ -55,7 +55,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
   --site "$CYGWIN_MIRROR" --no-verify \
   --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
-  --packages libgmp3,make,perl,python,rlwrap,vim \
+  --packages libgmp3,perl,python,rlwrap,vim \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
 
 [ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2

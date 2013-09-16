@@ -7,7 +7,9 @@ Checklist for official releases
 
 - test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0, smlnj;
 
-- test Proof General 4.1, 3.7.1.1;
+- test Isabelle/jEdit on single-core;
+
+- test Isabelle/jEdit on airy device;
 
 - test 'display_drafts' command;
 
@@ -16,6 +18,8 @@ Checklist for official releases
 - check HTML header of library;
 
 - check file positions within logic images (hyperlinks etc.);
+
+- check ML sources: isabelle build -nal;
 
 - run isabelle update_keywords;
 
