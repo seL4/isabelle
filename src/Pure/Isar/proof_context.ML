@@ -626,9 +626,11 @@ fun prepare_sorts_env ctxt tys =
     val tsig = tsig_of ctxt;
     val defaultS = Type.defaultS tsig;
 
+    val dummy_var = ("'_dummy_", ~1);
+
     fun constraint (xi, raw_S) env =
       let val (ps, S) = Term_Position.decode_positionS raw_S in
-        if S = dummyS then env
+        if xi = dummy_var orelse S = dummyS then env
         else
           Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
             handle Vartab.DUP _ =>
@@ -642,17 +644,20 @@ fun prepare_sorts_env ctxt tys =
           | TVar v => constraint v
           | _ => I) tys Vartab.empty;
 
-    fun get_sort xi =
-      (case (Vartab.lookup env xi, Variable.def_sort ctxt xi) of
-        (NONE, NONE) => defaultS
-      | (NONE, SOME S) => S
-      | (SOME S, NONE) => S
-      | (SOME S, SOME S') =>
-          if Type.eq_sort tsig (S, S') then S'
-          else
-            error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
-              " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
-              " for type variable " ^ quote (Term.string_of_vname' xi)));
+    fun get_sort xi raw_S =
+      if xi = dummy_var then
+        Type.minimize_sort tsig (#2 (Term_Position.decode_positionS raw_S))
+      else
+        (case (Vartab.lookup env xi, Variable.def_sort ctxt xi) of
+          (NONE, NONE) => defaultS
+        | (NONE, SOME S) => S
+        | (SOME S, NONE) => S
+        | (SOME S, SOME S') =>
+            if Type.eq_sort tsig (S, S') then S'
+            else
+              error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
+                " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
+                " for type variable " ^ quote (Term.string_of_vname' xi)));
 
     fun add_report S pos reports =
       if Position.is_reported pos andalso not (AList.defined (op =) reports pos) then
@@ -662,7 +667,7 @@ fun prepare_sorts_env ctxt tys =
     fun get_sort_reports xi raw_S =
       let
         val ps = #1 (Term_Position.decode_positionS raw_S);
-        val S = get_sort xi handle ERROR msg => error (msg ^ Position.here_list ps);
+        val S = get_sort xi raw_S handle ERROR msg => error (msg ^ Position.here_list ps);
       in fold (add_report S) ps end;
 
     val reports =
@@ -683,8 +688,8 @@ fun replace_sortsT get_sort =
       if Term_Position.is_positionT T then T
       else
         (case T of
-          TFree (x, _) => TFree (x, get_sort (x, ~1))
-        | TVar (xi, _) => TVar (xi, get_sort xi)
+          TFree (x, raw_S) => TFree (x, get_sort (x, ~1) raw_S)
+        | TVar (xi, raw_S) => TVar (xi, get_sort xi raw_S)
         | _ => T));
 
 in
