@@ -303,6 +303,10 @@ lemmas.
 conditionally-complete lattices and inner dense linorders which have
 more than one element.  INCOMPATIBILITY.
 
+* Introduced type classes order_top and order_bot. The old classes top 
+and bot only contain the syntax without assumptions. 
+INCOMPATIBILITY: Rename bot -> order_bot, top -> order_top
+
 * Introduce type classes "no_top" and "no_bot" for orderings without
 top and bottom elements.
 
