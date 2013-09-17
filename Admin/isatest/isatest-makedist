@@ -98,7 +98,7 @@ mkdir -p $RUNNING
 
 ## spawn test runs
 
-$SSH lxbroy1 "$MAKEALL $HOME/settings/at64-poly"
+$SSH lxbroy10 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
 $SSH lxbroy4 "
   $MAKEALL $HOME/settings/at-poly;
