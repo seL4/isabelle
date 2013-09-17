@@ -238,6 +238,11 @@ from the datatype package. The declaration attribute
 
   declare [[case_translation case_combinator constructor1 ... constructorN]]
 
+* New Library/Simps_Case_Conv.thy: Provides commands simps_of_case and
+case_of_simps to convert function definitions between a list of
+equations with patterns on the lhs and a single equation with case
+expressions on the rhs. See also Ex/Simps_Case_Conv_Examples.thy.
+
 * Notation "{p:A. P}" now allows tuple patterns as well.
 
 * Revised devices for recursive definitions over finite sets:
