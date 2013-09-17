@@ -1,22 +1,25 @@
 # -*- shell-script -*- :mode=shellscript:
 
+POLYML_HOME="$COMPONENT"
+
+
 # basic settings
 
-#ML_SYSTEM=polyml-5.5.0
-#ML_PLATFORM="$ISABELLE_PLATFORM"
-#ML_HOME="$COMPONENT/$ML_PLATFORM"
+#ML_SYSTEM=polyml-5.5.1
+#ML_PLATFORM="$ISABELLE_PLATFORM32"
+#ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 #ML_OPTIONS="-H 500"
-#ML_SOURCES="$ML_HOME/../src"
+#ML_SOURCES="$POLYML_HOME/src"
 
 
 # smart settings
 
-ML_SYSTEM=polyml-5.5.0
+ML_SYSTEM=polyml-5.5.1
 
 case "$ISABELLE_PLATFORM" in
   *-linux)
-    if env LD_LIBRARY_PATH="$COMPONENT/$ISABELLE_PLATFORM32:$LD_LIBRARY_PATH" \
-      "$COMPONENT/$ISABELLE_PLATFORM32/poly" -v >/dev/null 2>/dev/null
+    if env LD_LIBRARY_PATH="$POLYML_HOME/$ISABELLE_PLATFORM32:$LD_LIBRARY_PATH" \
+      "$POLYML_HOME/$ISABELLE_PLATFORM32/poly" -v >/dev/null 2>/dev/null
     then
       ML_PLATFORM="$ISABELLE_PLATFORM32"
     else
@@ -42,6 +45,6 @@ case "$ML_PLATFORM" in
     ;;
 esac
 
-ML_HOME="$COMPONENT/$ML_PLATFORM"
-ML_SOURCES="$COMPONENT/src"
+ML_HOME="$POLYML_HOME/$ML_PLATFORM"
+ML_SOURCES="$POLYML_HOME/src"
 
