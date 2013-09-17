@@ -57,6 +57,25 @@ type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm,
   pos_distr_rules: thm list, neg_distr_rules: thm list}
 type restore_data = {quotient : quotient, transfer_rules: thm Item_Net.T}
 
+fun pcr_eq ({pcrel_def = pcrel_def1, pcr_cr_eq = pcr_cr_eq1},
+           {pcrel_def = pcrel_def2, pcr_cr_eq = pcr_cr_eq2}) = 
+           Thm.eq_thm (pcrel_def1, pcrel_def2) andalso Thm.eq_thm (pcr_cr_eq1, pcr_cr_eq2)
+
+fun option_eq _ (NONE,NONE) = true
+  | option_eq _ (NONE,_) = false
+  | option_eq _ (_,NONE) = false
+  | option_eq cmp (SOME x, SOME y) = cmp (x,y);
+
+fun quotient_eq ({quot_thm = quot_thm1, pcr_info = pcr_info1},
+                {quot_thm = quot_thm2, pcr_info = pcr_info2}) =
+                Thm.eq_thm (quot_thm1, quot_thm2) andalso option_eq pcr_eq (pcr_info1, pcr_info2)
+
+fun join_restore_data key (rd1, rd2) =
+  if pointer_eq (rd1, rd2) then raise Symtab.SAME else
+  if not (quotient_eq (#quotient rd1, #quotient rd2)) then raise Symtab.DUP key else
+    { quotient = #quotient rd1, 
+      transfer_rules = Item_Net.merge (#transfer_rules rd1, #transfer_rules rd2)}
+
 structure Data = Generic_Data
 (
   type T = 
@@ -83,7 +102,7 @@ structure Data = Generic_Data
       quotients = Symtab.merge (K true) (q1, q2),
       reflexivity_rules = Item_Net.merge (rr1, rr2),
       relator_distr_data = Symtab.merge (K true) (rdd1, rdd2),
-      restore_data = Symtab.merge (K true) (rd1, rd2) }
+      restore_data = Symtab.join join_restore_data (rd1, rd2) }
 )
 
 fun map_data f1 f2 f3 f4 f5
@@ -182,19 +201,6 @@ fun print_quot_maps ctxt =
   end
 
 (* info about quotient types *)
-
-fun pcr_eq ({pcrel_def = pcrel_def1, pcr_cr_eq = pcr_cr_eq1},
-           {pcrel_def = pcrel_def2, pcr_cr_eq = pcr_cr_eq2}) = 
-           Thm.eq_thm (pcrel_def1, pcrel_def2) andalso Thm.eq_thm (pcr_cr_eq1, pcr_cr_eq2)
-
-fun option_eq _ (NONE,NONE) = true
-  | option_eq _ (NONE,_) = false
-  | option_eq _ (_,NONE) = false
-  | option_eq cmp (SOME x, SOME y) = cmp (x,y);
-
-fun quotient_eq ({quot_thm = quot_thm1, pcr_info = pcr_info1},
-                {quot_thm = quot_thm2, pcr_info = pcr_info2}) =
-                Thm.eq_thm (quot_thm1, quot_thm2) andalso option_eq pcr_eq (pcr_info1, pcr_info2)
 
 fun transform_pcr_info phi {pcrel_def, pcr_cr_eq} =
   {pcrel_def = Morphism.thm phi pcrel_def, pcr_cr_eq = Morphism.thm phi pcr_cr_eq}
