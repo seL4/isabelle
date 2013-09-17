@@ -20,7 +20,8 @@ proof
   {
     fix x :: "'a"
     assume x: "norm x = 1"
-    from H[rule_format, of x] x have "norm (f x) \<le> b" by simp
+    from H[rule_format, of x] x have "norm (f x) \<le> b"
+      by simp
   }
   then show ?lhs by blast
 next
@@ -41,16 +42,21 @@ next
     moreover
     {
       assume x0: "x \<noteq> 0"
-      then have n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
+      then have n0: "norm x \<noteq> 0"
+        by (metis norm_eq_zero)
       let ?c = "1/ norm x"
-      have "norm (?c *\<^sub>R x) = 1" using x0 by (simp add: n0)
-      with H have "norm (f (?c *\<^sub>R x)) \<le> b" by blast
+      have "norm (?c *\<^sub>R x) = 1"
+        using x0 by (simp add: n0)
+      with H have "norm (f (?c *\<^sub>R x)) \<le> b"
+        by blast
       then have "?c * norm (f x) \<le> b"
         by (simp add: linear_cmul[OF lf])
       then have "norm (f x) \<le> b * norm x"
-        using n0 norm_ge_zero[of x] by (auto simp add: field_simps)
+        using n0 norm_ge_zero[of x]
+        by (auto simp add: field_simps)
     }
-    ultimately have "norm (f x) \<le> b * norm x" by blast
+    ultimately have "norm (f x) \<le> b * norm x"
+      by blast
   }
   then show ?rhs by blast
 qed
@@ -64,30 +70,34 @@ proof -
   let ?S = "{norm (f x) |x. norm x = 1}"
   have "norm (f (SOME i. i \<in> Basis)) \<in> ?S"
     by (auto intro!: exI[of _ "SOME i. i \<in> Basis"] norm_Basis SOME_Basis)
-  then have Se: "?S \<noteq> {}" by auto
+  then have Se: "?S \<noteq> {}"
+    by auto
   from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
-    unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
+    unfolding norm_bound_generalize[OF lf, symmetric]
+    by (auto simp add: setle_def)
   from isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
-  show "norm (f x) <= onorm f * norm x"
+  show "norm (f x) \<le> onorm f * norm x"
     apply -
     apply (rule spec[where x = x])
     unfolding norm_bound_generalize[OF lf, symmetric]
     apply (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)
     done
-  show "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
+  show "\<forall>x. norm (f x) \<le> b * norm x \<Longrightarrow> onorm f \<le> b"
     using isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
     unfolding norm_bound_generalize[OF lf, symmetric]
     by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)
 qed
 
 lemma onorm_pos_le:
-  assumes lf: "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space)"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
   shows "0 \<le> onorm f"
   using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "SOME i. i \<in> Basis"]]
   by (simp add: SOME_Basis)
 
 lemma onorm_eq_0:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
   shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
   using onorm[OF lf]
   apply (auto simp add: onorm_pos_le)
@@ -97,9 +107,10 @@ lemma onorm_eq_0:
   apply arith
   done
 
-lemma onorm_const: "onorm(\<lambda>x::'a::euclidean_space. (y::'b::euclidean_space)) = norm y"
+lemma onorm_const:
+  "onorm (\<lambda>x::'a::euclidean_space. y::'b::euclidean_space) = norm y"
 proof -
-  let ?f = "\<lambda>x::'a. (y::'b)"
+  let ?f = "\<lambda>x::'a. y::'b"
   have th: "{norm (?f x)| x. norm x = 1} = {norm y}"
     by (auto simp: SOME_Basis intro!: exI[of _ "SOME i. i \<in> Basis"])
   show ?thesis
@@ -110,15 +121,18 @@ proof -
 qed
 
 lemma onorm_pos_lt:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"
-  shows "0 < onorm f \<longleftrightarrow> ~(\<forall>x. f x = 0)"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
+  shows "0 < onorm f \<longleftrightarrow> \<not> (\<forall>x. f x = 0)"
   unfolding onorm_eq_0[OF lf, symmetric]
   using onorm_pos_le[OF lf] by arith
 
 lemma onorm_compose:
-  assumes lf: "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space)"
-    and lg: "linear (g::'k::euclidean_space \<Rightarrow> 'n::euclidean_space)"
-  shows "onorm (f o g) \<le> onorm f * onorm g"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+    and g :: "'k::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  assumes lf: "linear f"
+    and lg: "linear g"
+  shows "onorm (f \<circ> g) \<le> onorm f * onorm g"
     apply (rule onorm(2)[OF linear_compose[OF lg lf], rule_format])
     unfolding o_def
     apply (subst mult_assoc)
@@ -130,19 +144,22 @@ lemma onorm_compose:
     done
 
 lemma onorm_neg_lemma:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
   shows "onorm (\<lambda>x. - f x) \<le> onorm f"
   using onorm[OF linear_compose_neg[OF lf]] onorm[OF lf]
   unfolding norm_minus_cancel by metis
 
 lemma onorm_neg:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
   shows "onorm (\<lambda>x. - f x) = onorm f"
   using onorm_neg_lemma[OF lf] onorm_neg_lemma[OF linear_compose_neg[OF lf]]
   by simp
 
 lemma onorm_triangle:
-  assumes lf: "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space)"
+  fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
     and lg: "linear g"
   shows "onorm (\<lambda>x. f x + g x) \<le> onorm f + onorm g"
   apply(rule onorm(2)[OF linear_compose_add[OF lf lg], rule_format])
@@ -155,19 +172,25 @@ lemma onorm_triangle:
   done
 
 lemma onorm_triangle_le:
-  "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space) \<Longrightarrow>
-    linear g \<Longrightarrow> onorm f + onorm g \<le> e \<Longrightarrow> onorm (\<lambda>x. f x + g x) \<le> e"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes "linear f"
+    and "linear g"
+    and "onorm f + onorm g \<le> e"
+  shows "onorm (\<lambda>x. f x + g x) \<le> e"
   apply (rule order_trans)
   apply (rule onorm_triangle)
-  apply assumption+
+  apply (rule assms)+
   done
 
 lemma onorm_triangle_lt:
-  "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space) \<Longrightarrow> linear g \<Longrightarrow>
-    onorm f + onorm g < e \<Longrightarrow> onorm(\<lambda>x. f x + g x) < e"
+  fixes f g :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes "linear f"
+    and "linear g"
+    and "onorm f + onorm g < e"
+  shows "onorm (\<lambda>x. f x + g x) < e"
   apply (rule order_le_less_trans)
   apply (rule onorm_triangle)
-  apply assumption+
+  apply (rule assms)+
   done
 
 end
