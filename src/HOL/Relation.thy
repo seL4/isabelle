@@ -680,6 +680,12 @@ lemma conversep_conversep [simp]:
   "(r\<inverse>\<inverse>)\<inverse>\<inverse> = r"
   by (fact converse_converse [to_pred])
 
+lemma converse_empty[simp]: "{}\<inverse> = {}"
+by auto
+
+lemma converse_UNIV[simp]: "UNIV\<inverse> = UNIV"
+by auto
+
 lemma converse_relcomp: "(r O s)^-1 = s^-1 O r^-1"
   by blast
 
@@ -762,7 +768,7 @@ lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
 lemma conversep_eq [simp]: "(op =)^--1 = op ="
   by (auto simp add: fun_eq_iff)
 
-lemma converse_unfold:
+lemma converse_unfold [code]:
   "r\<inverse> = {(y, x). (x, y) \<in> r}"
   by (simp add: set_eq_iff)
 
