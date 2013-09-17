@@ -914,6 +914,7 @@ session "HOL-Quotient_Examples" in Quotient_Examples = HOL +
     Lift_Fun
     Quotient_Rat
     Lift_DList
+    Int_Pow
 
 session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
   options [document = false]
