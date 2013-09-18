@@ -1,7 +1,7 @@
 (*  Title:      Pure/Tools/rule_insts.ML
     Author:     Makarius
 
-Rule instantiations -- operations within a rule/subgoal context.
+Rule instantiations -- operations within implicit rule / subgoal context.
 *)
 
 signature BASIC_RULE_INSTS =
@@ -15,14 +15,14 @@ sig
   val dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
-  val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
-    (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
 signature RULE_INSTS =
 sig
   include BASIC_RULE_INSTS
   val make_elim_preserve: thm -> thm
+  val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
+    (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
 structure Rule_Insts: RULE_INSTS =
@@ -164,7 +164,7 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 (* where: named instantiation *)
 
 val _ = Theory.setup
-  (Attrib.setup (Binding.name "where")
+  (Attrib.setup @{binding "where"}
     (Scan.lift (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_source))) >>
       (fn args =>
         Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)))
@@ -185,7 +185,7 @@ val insts =
 in
 
 val _ = Theory.setup
-  (Attrib.setup (Binding.name "of")
+  (Attrib.setup @{binding "of"}
     (Scan.lift insts >> (fn args =>
       Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args)))
     "positional instantiation of theorem");
@@ -315,9 +315,7 @@ fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
 
 
 
-(** methods **)
-
-(* rule_tac etc. -- refer to dynamic goal state! *)
+(* method wrapper *)
 
 fun method inst_tac tac =
   Args.goal_spec --
@@ -332,30 +330,28 @@ fun method inst_tac tac =
         [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
-val res_inst_meth = method res_inst_tac (K resolve_tac);
-val eres_inst_meth = method eres_inst_tac (K eresolve_tac);
-val cut_inst_meth = method cut_inst_tac (K cut_rules_tac);
-val dres_inst_meth = method dres_inst_tac (K dresolve_tac);
-val forw_inst_meth = method forw_inst_tac (K forward_tac);
-
 
 (* setup *)
 
+(*warning: rule_tac etc. refer to dynamic subgoal context!*)
+
 val _ = Theory.setup
- (Method.setup (Binding.name "rule_tac") res_inst_meth "apply rule (dynamic instantiation)" #>
-  Method.setup (Binding.name "erule_tac") eres_inst_meth
+ (Method.setup @{binding rule_tac} (method res_inst_tac (K resolve_tac))
+    "apply rule (dynamic instantiation)" #>
+  Method.setup @{binding erule_tac} (method eres_inst_tac (K eresolve_tac))
     "apply rule in elimination manner (dynamic instantiation)" #>
-  Method.setup (Binding.name "drule_tac") dres_inst_meth
+  Method.setup @{binding drule_tac} (method dres_inst_tac (K dresolve_tac))
     "apply rule in destruct manner (dynamic instantiation)" #>
-  Method.setup (Binding.name "frule_tac") forw_inst_meth
+  Method.setup @{binding frule_tac} (method forw_inst_tac (K forward_tac))
     "apply rule in forward manner (dynamic instantiation)" #>
-  Method.setup (Binding.name "cut_tac") cut_inst_meth "cut rule (dynamic instantiation)" #>
-  Method.setup (Binding.name "subgoal_tac")
+  Method.setup @{binding cut_tac} (method cut_inst_tac (K cut_rules_tac))
+    "cut rule (dynamic instantiation)" #>
+  Method.setup @{binding subgoal_tac}
     (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_source) >>
       (fn (quant, props) => fn ctxt =>
         SIMPLE_METHOD'' quant (EVERY' (map (subgoal_tac ctxt) props))))
     "insert subgoal (dynamic instantiation)" #>
-  Method.setup (Binding.name "thin_tac")
+  Method.setup @{binding thin_tac}
     (Args.goal_spec -- Scan.lift Args.name_source >>
       (fn (quant, prop) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop)))
       "remove premise (dynamic instantiation)");
