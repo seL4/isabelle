@@ -1395,7 +1395,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 [(mapN, map_thms, code_simp_attrs),
                  (rel_distinctN, rel_distinct_thms, code_simp_attrs),
                  (rel_injectN, rel_inject_thms, code_simp_attrs),
-                 (setsN, flat set_thmss, code_simp_attrs)]
+                 (setN, flat set_thmss, code_simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),

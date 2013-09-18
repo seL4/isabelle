@@ -115,13 +115,13 @@ val case_convN = "case_conv";
 val collapseN = "collapse";
 val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
-val discsN = "discs";
+val discN = "disc";
 val distinctN = "distinct";
 val exhaustN = "exhaust";
 val expandN = "expand";
 val injectN = "inject";
 val nchotomyN = "nchotomy";
-val selsN = "sels";
+val selN = "sel";
 val splitN = "split";
 val splitsN = "splits";
 val split_asmN = "split_asm";
@@ -750,7 +750,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (case_congN, [case_cong_thm], []),
            (case_convN, case_conv_thms, []),
            (collapseN, collapse_thms, simp_attrs),
-           (discsN, disc_thms, simp_attrs),
+           (discN, disc_thms, simp_attrs),
            (disc_excludeN, disc_exclude_thms, []),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
@@ -758,7 +758,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ induct_simp_attrs),
            (nchotomyN, [nchotomy_thm], []),
-           (selsN, all_sel_thms, simp_attrs),
+           (selN, all_sel_thms, simp_attrs),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
            (splitsN, [split_thm, split_asm_thm], []),
