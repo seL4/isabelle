@@ -156,7 +156,7 @@ fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs se
 
 fun mk_coinduct_distinct_ctrs_tac ctxt discs discs' =
   hyp_subst_tac ctxt THEN' REPEAT o etac conjE THEN'
-  full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms) ctxt);
+  full_simp_tac (ss_only (refl :: no_refl (union Thm.eq_thm discs discs') @ basic_simp_thms) ctxt);
 
 fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor exhaust ctr_defs
     discss selss =

@@ -134,7 +134,6 @@ fun mk_case_cong_tac ctxt uexhaust cases =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases));
 
-(* TODO: More precise "simp_thms"; get rid of "blast_tac" *)
 fun mk_split_tac ctxt uexhaust cases injectss distinctsss =
   HEADGOAL (rtac uexhaust) THEN
   ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'

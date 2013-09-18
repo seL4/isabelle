@@ -111,7 +111,7 @@ sig
   val set_inclN: string
   val set_set_inclN: string
   val sel_unfoldN: string
-  val setsN: string
+  val setN: string
   val simpsN: string
   val strTN: string
   val str_initN: string
@@ -287,7 +287,7 @@ val isNodeN = "isNode"
 val LevN = "Lev"
 val rvN = "recover"
 val behN = "beh"
-val setsN = "sets"
+val setN = "set"
 val mk_ctor_setN = prefix (ctorN ^ "_") o mk_setN
 val mk_dtor_setN = prefix (dtorN ^ "_") o mk_setN
 fun mk_set_inductN i = mk_setN i ^ "_induct"

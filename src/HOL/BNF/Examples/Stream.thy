@@ -33,7 +33,7 @@ declaration {*
 *}
 
 code_datatype Stream
-lemmas [code] = stream.sels stream.sets stream.case
+lemmas [code] = stream.sel stream.set stream.case
 
 lemma stream_case_cert:
   assumes "CASE \<equiv> stream_case c"
@@ -495,7 +495,7 @@ lemma sinterleave_simps[simp]:
 
 lemma sinterleave_code[code]:
   "sinterleave (x ## s1) s2 = x ## sinterleave s2 s1"
-  by (metis sinterleave_simps stream.exhaust stream.sels)
+  by (metis sinterleave_simps stream.exhaust stream.sel)
 
 lemma sinterleave_snth[simp]:
   "even n \<Longrightarrow> sinterleave s1 s2 !! n = s1 !! (n div 2)"

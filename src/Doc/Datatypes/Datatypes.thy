@@ -750,13 +750,17 @@ The third and last subgroup revolves around discriminators and selectors:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{discs} @{text "[simp]"}\rm:] ~ \\
-@{thm list.discs(1)[no_vars]} \\
-@{thm list.discs(2)[no_vars]}
+\item[@{text "t."}\hthm{disc} @{text "[simp]"}\rm:] ~ \\
+@{thm list.disc(1)[no_vars]} \\
+@{thm list.disc(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sels} @{text "[simp]"}\rm:] ~ \\
-@{thm list.sels(1)[no_vars]} \\
-@{thm list.sels(2)[no_vars]}
+\item[@{text "t."}\hthm{discI}\rm:] ~ \\
+@{thm list.discI(1)[no_vars]} \\
+@{thm list.discI(2)[no_vars]}
+
+\item[@{text "t."}\hthm{sel} @{text "[simp]"}\rm:] ~ \\
+@{thm list.sel(1)[no_vars]} \\
+@{thm list.sel(2)[no_vars]}
 
 \item[@{text "t."}\hthm{collapse} @{text "[simp]"}\rm:] ~ \\
 @{thm list.collapse(1)[no_vars]} \\
@@ -792,9 +796,9 @@ The BNF-related theorem are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{sets} @{text "[code]"}\rm:] ~ \\
-@{thm list.sets(1)[no_vars]} \\
-@{thm list.sets(2)[no_vars]}
+\item[@{text "t."}\hthm{set} @{text "[code]"}\rm:] ~ \\
+@{thm list.set(1)[no_vars]} \\
+@{thm list.set(2)[no_vars]}
 
 \item[@{text "t."}\hthm{map} @{text "[code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
@@ -847,7 +851,7 @@ For convenience, @{command datatype_new} also provides the following collection:
 \begin{description}
 
 \item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.fold} @{text t.map} @{text t.rel_inject}] ~ \\
-@{text t.rel_distinct} @{text t.sets}
+@{text t.rel_distinct} @{text t.set}
 
 \end{description}
 \end{indentblock}
@@ -1512,11 +1516,11 @@ used to prove $m$ properties simultaneously.
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_unfold} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc\_unfold}\rm:] ~ \\
 @{thm llist.disc_unfold(1)[no_vars]} \\
 @{thm llist.disc_unfold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_corec} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc\_corec}\rm:] ~ \\
 @{thm llist.disc_corec(1)[no_vars]} \\
 @{thm llist.disc_corec(2)[no_vars]}
 
@@ -1547,7 +1551,7 @@ For convenience, @{command codatatype} also provides the following collection:
 
 \item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec}$^*$ @{text t.disc_corec}] ~ \\
 @{text t.disc_corec_iff} @{text t.sel_corec} @{text t.unfold}$^*$ @{text t.disc_unfold} @{text t.disc_unfold_iff} ~ \\
-@{text t.sel_unfold} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.sets}
+@{text t.sel_unfold} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
 \end{indentblock}
@@ -1721,7 +1725,7 @@ requires us to analyze the second argument (@{term ys}):
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
       "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
-      "ltl (lappend xs ys) = ltl (if lnull xs then ys else xs)"
+      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
     .
 (*<*)
     end

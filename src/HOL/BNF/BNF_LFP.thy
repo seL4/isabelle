@@ -136,10 +136,7 @@ lemma bij_betwI':
   "\<lbrakk>\<And>x y. \<lbrakk>x \<in> X; y \<in> X\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y);
     \<And>x. x \<in> X \<Longrightarrow> f x \<in> Y;
     \<And>y. y \<in> Y \<Longrightarrow> \<exists>x \<in> X. y = f x\<rbrakk> \<Longrightarrow> bij_betw f X Y"
-unfolding bij_betw_def inj_on_def
-apply (rule conjI)
- apply blast
-by (erule thin_rl) blast
+unfolding bij_betw_def inj_on_def by blast
 
 lemma surj_fun_eq:
   assumes surj_on: "f ` X = UNIV" and eq_on: "\<forall>x \<in> X. (g1 o f) x = (g2 o f) x"

@@ -44,7 +44,7 @@ theorem process_coind[elim, consumes 1, case_names iss Action Choice, induct pre
   Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<phi> p p' \<and> \<phi> q q'"
   shows "p = p'"
   using assms
-  by (coinduct rule: process.coinduct) (metis process.collapse(1,2) process.discs(3))
+  by (coinduct rule: process.coinduct) (metis process.collapse(1,2) process.disc(3))
 
 (* Stronger coinduction, up to equality: *)
 theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
@@ -54,7 +54,7 @@ theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
   Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
   shows "p = p'"
   using assms
-  by (coinduct rule: process.strong_coinduct) (metis process.collapse(1,2) process.discs(3))
+  by (coinduct rule: process.strong_coinduct) (metis process.collapse(1,2) process.disc(3))
 
 
 subsection {* Coiteration (unfold) *}

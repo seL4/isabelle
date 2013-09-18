@@ -1034,7 +1034,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
     ((coinduct_thms_pairs, coinduct_case_attrs),
      (unfold_thmss, corec_thmss, []),
      (safe_unfold_thmss, safe_corec_thmss),
-     (disc_unfold_thmss, disc_corec_thmss, simp_attrs),
+     (disc_unfold_thmss, disc_corec_thmss, []),
      (disc_unfold_iff_thmss, disc_corec_iff_thmss, simp_attrs),
      (sel_unfold_thmsss, sel_corec_thmsss, simp_attrs))
   end;
@@ -1395,7 +1395,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 [(mapN, map_thms, code_simp_attrs),
                  (rel_distinctN, rel_distinct_thms, code_simp_attrs),
                  (rel_injectN, rel_inject_thms, code_simp_attrs),
-                 (setsN, flat set_thmss, code_simp_attrs)]
+                 (setN, flat set_thmss, code_simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),

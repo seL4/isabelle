@@ -23,24 +23,14 @@ by (metis sum_case_o_inj(1,2) surjective_sum)
 lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
 by auto
 
-lemma equiv_triv1:
-assumes "equiv A R" and "(a, b) \<in> R" and "(a, c) \<in> R"
-shows "(b, c) \<in> R"
-using assms unfolding equiv_def sym_def trans_def by blast
-
-lemma equiv_triv2:
-assumes "equiv A R" and "(a, b) \<in> R" and "(b, c) \<in> R"
-shows "(a, c) \<in> R"
-using assms unfolding equiv_def trans_def by blast
-
 lemma equiv_proj:
   assumes e: "equiv A R" and "z \<in> R"
   shows "(proj R o fst) z = (proj R o snd) z"
 proof -
   from assms(2) have z: "(fst z, snd z) \<in> R" by auto
-  have P: "\<And>x. (fst z, x) \<in> R \<Longrightarrow> (snd z, x) \<in> R" by (erule equiv_triv1[OF e z])
-  have "\<And>x. (snd z, x) \<in> R \<Longrightarrow> (fst z, x) \<in> R" by (erule equiv_triv2[OF e z])
-  with P show ?thesis unfolding proj_def[abs_def] by auto
+  with e have "\<And>x. (fst z, x) \<in> R \<Longrightarrow> (snd z, x) \<in> R" "\<And>x. (snd z, x) \<in> R \<Longrightarrow> (fst z, x) \<in> R"
+    unfolding equiv_def sym_def trans_def by blast+
+  then show ?thesis unfolding proj_def[abs_def] by auto
 qed
 
 (* Operators: *)
