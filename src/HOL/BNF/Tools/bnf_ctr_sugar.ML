@@ -116,6 +116,7 @@ val collapseN = "collapse";
 val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
 val discN = "disc";
+val discIN = "discI";
 val distinctN = "distinct";
 val exhaustN = "exhaust";
 val expandN = "expand";
@@ -127,10 +128,10 @@ val splitsN = "splits";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
-val induct_simp_attrs = @{attributes [induct_simp]};
 val cong_attrs = @{attributes [cong]};
-val iff_attrs = @{attributes [iff]};
 val safe_elim_attrs = @{attributes [elim!]};
+val iff_attrs = @{attributes [iff]};
+val induct_simp_attrs = @{attributes [induct_simp]};
 val simp_attrs = @{attributes [simp]};
 
 fun unflat_lookup eq xs ys = map (fn xs' => permute_like eq xs xs' ys);
@@ -696,6 +697,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                [disc_exhaust_thm], collapse_thms, expand_thms, case_conv_thms)
             end;
 
+        val nontriv_discI_thms = if n = 1 then [] else discI_thms;
+
         val (case_cong_thm, weak_case_cong_thm) =
           let
             fun mk_prem xctr xs xf xg =
@@ -751,6 +754,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (case_convN, case_conv_thms, []),
            (collapseN, collapse_thms, simp_attrs),
            (discN, disc_thms, simp_attrs),
+           (discIN, nontriv_discI_thms, []),
            (disc_excludeN, disc_exclude_thms, []),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
