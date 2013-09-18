@@ -57,8 +57,8 @@ sig
     term
   val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
-  val massage_corec_code_rhs: Proof.context -> (term -> bool) -> (term -> term list -> term) ->
-    typ list -> typ -> term -> term
+  val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
+  val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ -> term -> term
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list) * local_theory
@@ -267,7 +267,7 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
     massage_call U (typof t) t
   end;
 
-fun explode_ctr_term ctxt s Ts t =
+fun expand_ctr_term ctxt s Ts t =
   (case fp_sugar_of ctxt s of
     SOME fp_sugar =>
     let
@@ -284,19 +284,18 @@ fun explode_ctr_term ctxt s Ts t =
     in
       Const (@{const_name Let}, T --> (T --> T) --> T) $ t $ Abs (Name.uu, T, xif)
     end
-  | NONE => raise Fail "explode_ctr_term");
+  | NONE => raise Fail "expand_ctr_term");
 
-fun massage_corec_code_rhs ctxt has_call massage_ctr bound_Ts U t =
-  let val typof = curry fastype_of1 bound_Ts in
-    (case typof t of
-      T as Type (s, Ts) =>
-      massage_let_and_if ctxt has_call (fn t =>
-        (case try (dest_ctr ctxt s) t of
-          SOME (f, args) => massage_ctr f args
-        | NONE => massage_let_and_if ctxt has_call (uncurry massage_ctr o Term.strip_comb) T
-            (explode_ctr_term ctxt s Ts t))) U t
-    | _ => raise Fail "massage_corec_code_rhs")
-  end;
+fun expand_corec_code_rhs ctxt has_call bound_Ts t =
+  (case fastype_of1 (bound_Ts, t) of
+    T as Type (s, Ts) =>
+    massage_let_and_if ctxt has_call (fn t =>
+      if can (dest_ctr ctxt s) t then t
+      else massage_let_and_if ctxt has_call I T (expand_ctr_term ctxt s Ts t)) T t
+  | _ => raise Fail "expand_corec_code_rhs");
+
+fun massage_corec_code_rhs ctxt massage_ctr =
+  massage_let_and_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
 fun indexedd xss = fold_map indexed xss;
