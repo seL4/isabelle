@@ -1721,7 +1721,7 @@ requires us to analyze the second argument (@{term ys}):
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
       "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
-      "ltl (lappend xs ys) = ltl (if lnull xs then ys else xs)"
+      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
     .
 (*<*)
     end
