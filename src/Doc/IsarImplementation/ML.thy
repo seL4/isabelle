@@ -1163,7 +1163,7 @@ text %mlref {*
   @{index_ML Fail: "string -> exn"} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
   @{index_ML reraise: "exn -> 'a"} \\
-  @{index_ML exception_trace: "(unit -> 'a) -> 'a"} \\
+  @{index_ML ML_Compiler.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1191,14 +1191,13 @@ text %mlref {*
   while preserving its implicit position information (if possible,
   depending on the ML platform).
 
-  \item @{ML exception_trace}~@{ML_text "(fn () =>"}~@{text
+  \item @{ML ML_Compiler.exn_trace}~@{ML_text "(fn () =>"}~@{text
   "e"}@{ML_text ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
-  depending on the ML platform).\footnote{In versions of Poly/ML the
-  trace will appear on raw stdout of the Isabelle process.}
+  depending on the ML platform).}
 
-  Inserting @{ML exception_trace} into ML code temporarily is useful
-  for debugging, but not suitable for production code.
+  Inserting @{ML ML_Compiler.exn_trace} into ML code temporarily is
+  useful for debugging, but not suitable for production code.
 
   \end{description}
 *}

@@ -24,7 +24,7 @@ fun attributes interrupts =
 
 fun fork interrupts body =
   Thread.fork (fn () =>
-    exception_trace (fn () =>
+    print_exception_trace General.exnMessage (fn () =>
       body () handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn),
     attributes interrupts);
 

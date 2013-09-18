@@ -402,6 +402,11 @@ with HOL's type classes for rings.  INCOMPATIBILITY.
 
 *** ML ***
 
+* Improved printing of exception trace in Poly/ML 5.5.1, with regular
+tracing output in the command transaction context instead of physical
+stdout.  See also Toplevel.debug, Toplevel.debugging and
+ML_Compiler.exn_trace.
+
 * Spec_Check is a Quickcheck tool for Isabelle/ML.  The ML function
 "check_property" allows to check specifications of the form "ALL x y
 z. prop x y z".  See also ~~/src/Tools/Spec_Check/ with its

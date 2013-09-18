@@ -26,10 +26,12 @@ sig
   val print_state: bool -> state -> unit
   val pretty_abstract: state -> Pretty.T
   val quiet: bool Unsynchronized.ref
-  val debug: bool Unsynchronized.ref
   val interact: bool Unsynchronized.ref
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
+  val debug: bool Unsynchronized.ref
+  val debugging: ('a -> 'b) -> 'a -> 'b
+  val controlled_execution: ('a -> 'b) -> 'a -> 'b
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -226,20 +228,26 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 (** toplevel transitions **)
 
 val quiet = Unsynchronized.ref false;  (*Proof General legacy*)
-val debug = Runtime.debug;
 val interact = Unsynchronized.ref false;  (*Proof General legacy*)
 val timing = Unsynchronized.ref false;  (*Proof General legacy*)
 val profiling = Unsynchronized.ref 0;
 
+
+(* controlled execution *)
+
+val debug = Runtime.debug;
+fun debugging f = Runtime.debugging ML_Compiler.exn_message f;
+fun controlled_execution f = Runtime.controlled_execution ML_Compiler.exn_message f;
+
 fun program body =
  (body
-  |> Runtime.controlled_execution
+  |> controlled_execution
   |> Runtime.toplevel_error (Output.error_msg o ML_Compiler.exn_message)) ();
 
 fun thread interrupts body =
   Thread.fork
     (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
-        |> Runtime.debugging
+        |> debugging
         |> Runtime.toplevel_error
           (fn exn =>
             Output.urgent_message ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),
@@ -268,7 +276,7 @@ fun apply_transaction f g node =
 
     val (result, err) =
       cont_node
-      |> Runtime.controlled_execution f
+      |> controlled_execution f
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
   in
@@ -297,11 +305,11 @@ datatype trans =
 local
 
 fun apply_tr _ (Init f) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory (Runtime.controlled_execution f ()), NONE)), NONE)
+      State (SOME (Theory (Context.Theory (controlled_execution f ()), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
-      Runtime.controlled_execution (fn x => tap (f int) x) state
+      controlled_execution (fn x => tap (f int) x) state
   | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
       apply_transaction (fn x => f int x) g state
   | apply_tr _ _ _ = raise UNDEF;

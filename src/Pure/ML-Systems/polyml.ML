@@ -75,7 +75,7 @@ end;
 
 (* ML runtime system *)
 
-val exception_trace = PolyML.exception_trace;
+fun print_exception_trace (_: exn -> string) = PolyML.exception_trace;
 val timing = PolyML.timing;
 val profiling = PolyML.profiling;
 

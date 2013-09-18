@@ -17,8 +17,8 @@ sig
   val exn_messages_ids: exn_info -> exn -> error list
   val exn_messages: exn_info -> exn -> (serial * string) list
   val exn_message: exn_info -> exn -> string
-  val debugging: ('a -> 'b) -> 'a -> 'b
-  val controlled_execution: ('a -> 'b) -> 'a -> 'b
+  val debugging: (exn -> string) -> ('a -> 'b) -> 'a -> 'b
+  val controlled_execution: (exn -> string) -> ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
 end;
 
@@ -137,13 +137,13 @@ fun exn_message exn_info exn =
 
 (** controlled execution **)
 
-fun debugging f x =
+fun debugging exn_message f x =
   if ! debug
-  then exception_trace (fn () => f x)
+  then print_exception_trace exn_message (fn () => f x)
   else f x;
 
-fun controlled_execution f x =
-  (f |> debugging |> Future.interruptible_task) x;
+fun controlled_execution exn_message f x =
+  (f |> debugging exn_message |> Future.interruptible_task) x;
 
 fun toplevel_error output_exn f x = f x
   handle exn =>

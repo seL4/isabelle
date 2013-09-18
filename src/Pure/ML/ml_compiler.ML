@@ -9,6 +9,7 @@ sig
   val exn_messages_ids: exn -> Runtime.error list
   val exn_messages: exn -> (serial * string) list
   val exn_message: exn -> string
+  val exn_trace: (unit -> 'a) -> 'a
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
@@ -22,6 +23,7 @@ val exn_info =
 val exn_messages_ids = Runtime.exn_messages_ids exn_info;
 val exn_messages = Runtime.exn_messages exn_info;
 val exn_message = Runtime.exn_message exn_info;
+fun exn_trace e = print_exception_trace exn_message e;
 
 fun eval verbose pos toks =
   let
