@@ -53,8 +53,8 @@ sig
 
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
-  val massage_direct_corec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
-    typ list -> typ -> term -> term
+  val massage_direct_corec_call: Proof.context -> (term -> bool) -> (term -> term) -> typ -> term ->
+    term
   val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
@@ -126,6 +126,9 @@ fun ill_formed_rec_call ctxt t =
   error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
 fun ill_formed_corec_call ctxt t =
   error ("Ill-formed corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
+fun ill_formed_corec_code_rhs ctxt t =
+  error ("Ill-formed corecursive equation right-hand side: " ^
+    quote (Syntax.string_of_term ctxt t));
 fun invalid_map ctxt t =
   error ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
 fun unexpected_rec_call ctxt t =
@@ -193,25 +196,23 @@ fun massage_indirect_rec_call ctxt has_call massage_unapplied_direct_call bound_
     massage_call
   end;
 
-fun massage_let_and_if ctxt check_cond massage_leaf =
+fun massage_let_and_if ctxt check_cond massage_leaf U =
   let
-    fun massage_rec U T t =
+    fun massage_rec t =
       (case Term.strip_comb t of
-        (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec U T (betapply (arg2, arg1))
+        (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), arg :: args) =>
-        list_comb (If_const U $ tap check_cond arg, map (massage_rec U T) args)
-      | _ => massage_leaf U T t)
+        list_comb (If_const U $ tap check_cond arg, map massage_rec args)
+      | _ => massage_leaf t)
   in
     massage_rec
   end;
 
-fun massage_direct_corec_call ctxt has_call massage_direct_call bound_Ts res_U t =
-  let val typof = curry fastype_of1 bound_Ts in
-    massage_let_and_if ctxt ((not o has_call) orf unexpected_corec_call ctxt) massage_direct_call
-      res_U (typof t) t
-  end;
+fun massage_direct_corec_call ctxt has_call massage_direct_call U t =
+  massage_let_and_if ctxt ((not o has_call) orf unexpected_corec_call ctxt) massage_direct_call
+    U t;
 
-fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U t =
+fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
   let
     val typof = curry fastype_of1 bound_Ts;
     val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
@@ -246,7 +247,7 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U
 
     fun massage_call U T =
       massage_let_and_if ctxt ((not o has_call) orf unexpected_corec_call ctxt)
-        (fn U => fn T => fn t =>
+        (fn t =>
             (case U of
               Type (s, Us) =>
               (case try (dest_ctr ctxt s) t of
@@ -264,9 +265,9 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U
                     handle AINT_NO_MAP _ => check_and_massage_direct_call U T t)
                 | _ => check_and_massage_direct_call U T t))
             | _ => ill_formed_corec_call ctxt t))
-        U T
+        U
   in
-    massage_call res_U (typof t) t
+    massage_call U (typof t) t
   end;
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;

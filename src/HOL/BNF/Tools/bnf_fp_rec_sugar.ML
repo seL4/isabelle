@@ -564,13 +564,17 @@ fun build_corec_arg_no_call sel_eqns sel =
 fun build_corec_arg_direct_call lthy has_call sel_eqns sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-    fun rewrite is_end U _ t =
-      if U = @{typ bool} then @{term True} |> has_call t ? K @{term False} (* stop? *)
-      else if is_end = has_call t then undef_const
-      else if is_end then t (* end *)
-      else HOLogic.mk_tuple (snd (strip_comb t)); (* continue *)
-    fun massage rhs_term is_end t = massage_direct_corec_call
-      lthy has_call (rewrite is_end) [] (range_type (fastype_of t)) rhs_term;
+    fun massage rhs_term is_end t =
+      let
+        val U = range_type (fastype_of t);
+        fun rewrite t =
+          if U = @{typ bool} then (if has_call t then @{term False} else @{term True}) (* stop? *)
+          else if is_end = has_call t then undef_const
+          else if is_end then t (* end *)
+          else HOLogic.mk_tuple (snd (strip_comb t)); (* continue *)
+      in
+        massage_direct_corec_call lthy has_call rewrite U rhs_term
+      end;
   in
     if is_none maybe_sel_eqn then K I else
       abs_tuple (#fun_args (the maybe_sel_eqn)) oo massage (#rhs_term (the maybe_sel_eqn))
