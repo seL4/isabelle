@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, Component, Label, TextField, CheckBox}
+import scala.swing.{Button, Component, Label, TextField, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -174,7 +174,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       provers_label, Component.wrap(provers), isar_proofs,
       process_indicator.component, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)

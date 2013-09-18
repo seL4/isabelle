@@ -65,6 +65,7 @@ declare -a SOURCES=(
   System/system_channel.scala
   System/system_dialog.scala
   System/utf8.scala
+  System/wrap_panel.scala
   Thy/html.scala
   Thy/present.scala
   Thy/thy_header.scala

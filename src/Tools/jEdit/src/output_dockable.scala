@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, CheckBox}
+import scala.swing.{Button, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import java.lang.System
@@ -155,6 +155,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(auto_update, update, detach, zoom)
+  private val controls =
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(auto_update, update, detach, zoom)
   add(controls.peer, BorderLayout.NORTH)
 }

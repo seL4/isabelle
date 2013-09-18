@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button}
+import scala.swing.Button
 import scala.swing.event.ButtonClicked
 
 import java.lang.System
@@ -94,7 +94,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom)
+  private val controls = new Wrap_Panel(Wrap_Panel.Alignment.Right)(zoom)
   add(controls.peer, BorderLayout.NORTH)
 
 

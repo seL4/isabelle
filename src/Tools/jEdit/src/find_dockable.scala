@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, Component, TextField, CheckBox, Label, ComboBox}
+import scala.swing.{Button, Component, TextField, CheckBox, Label, ComboBox}
 import scala.swing.event.ButtonClicked
 
 import java.awt.BorderLayout
@@ -154,7 +154,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(
+    new Wrap_Panel(Wrap_Panel.Alignment.Right)(
       query_label, Component.wrap(query), context, limit, allow_dups,
       process_indicator.component, apply_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
