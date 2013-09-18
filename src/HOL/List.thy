@@ -146,6 +146,10 @@ primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b)
 
 hide_const (open) product
 
+primrec product_lists :: "'a list list \<Rightarrow> 'a list list" where
+"product_lists [] = [[]]" |
+"product_lists (xs # xss) = concat (map (\<lambda>x. map (Cons x) (product_lists xss)) xs)"
+
 primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
 upt_0: "[i..<0] = []" |
 upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
@@ -184,6 +188,11 @@ primrec distinct :: "'a list \<Rightarrow> bool" where
 primrec remdups :: "'a list \<Rightarrow> 'a list" where
 "remdups [] = []" |
 "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
+
+fun remdups_adj :: "'a list \<Rightarrow> 'a list" where
+"remdups_adj [] = []" |
+"remdups_adj [x] = [x]" |
+"remdups_adj (x # y # xs) = (if x = y then remdups_adj (x # xs) else x # remdups_adj (y # xs))"
 
 primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
 replicate_0: "replicate 0 x = []" |
@@ -250,6 +259,7 @@ text{*
 @{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" by simp}\\
 @{lemma "enumerate 3 [a,b,c] = [(3,a),(4,b),(5,c)]" by normalization}\\
 @{lemma "List.product [a,b] [c,d] = [(a, c), (a, d), (b, c), (b, d)]" by simp}\\
+@{lemma "product_lists [[a,b], [c], [d,e]] = [[a,c,d], [a,c,e], [b,c,d], [b,c,e]]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
 @{lemma "splice [a,b,c,d] [x,y] = [a,x,b,y,c,d]" by simp}\\
 @{lemma "take 2 [a,b,c,d] = [a,b]" by simp}\\
@@ -260,6 +270,7 @@ text{*
 @{lemma "dropWhile (%n::nat. n<3) [1,2,3,0] = [3,0]" by simp}\\
 @{lemma "distinct [2,0,1::nat]" by simp}\\
 @{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" by simp}\\
+@{lemma "remdups_adj [2,2,3,1,1::nat,2,1] = [2,3,1,2,1]" by simp}\\
 @{lemma "List.insert 2 [0::nat,1,2] = [0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "List.insert 3 [0::nat,1,2] = [3,0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
@@ -2663,7 +2674,7 @@ lemma list_eq_iff_zip_eq:
 by(auto simp add: set_zip list_all2_eq list_all2_conv_all_nth cong: conj_cong)
 
 
-subsubsection {* @{const List.product} *}
+subsubsection {* @{const List.product} and @{const product_lists} *}
 
 lemma product_list_set:
   "set (List.product xs ys) = set xs \<times> set ys"
@@ -2683,6 +2694,21 @@ next
   then have "length ys > 0" by auto
   with Cons show ?case
     by (auto simp add: nth_append not_less le_mod_geq le_div_geq)
+qed
+
+lemma in_set_product_lists_length: 
+  "xs \<in> set (product_lists xss) \<Longrightarrow> length xs = length xss"
+  by (induct xss arbitrary: xs) auto
+
+lemma product_lists_set:
+  "set (product_lists xss) = {xs. list_all2 (\<lambda>x ys. x \<in> set ys) xs xss}" (is "?L = Collect ?R")
+proof (intro equalityI subsetI, unfold mem_Collect_eq)
+  fix xs assume "xs \<in> ?L"
+  then have "length xs = length xss" by (rule in_set_product_lists_length)
+  from this `xs \<in> ?L` show "?R xs" by (induct xs xss rule: list_induct2) auto
+next
+  fix xs assume "?R xs"
+  then show "xs \<in> ?L" by induct auto
 qed
 
 
@@ -3085,7 +3111,7 @@ lemma upto_code[code]: "[i..j] = upto_aux i j []"
 by(simp add: upto_aux_def)
 
 
-subsubsection {* @{const distinct} and @{const remdups} *}
+subsubsection {* @{const distinct} and @{const remdups} and @{const remdups_adj} *}
 
 lemma distinct_tl:
   "distinct xs \<Longrightarrow> distinct (tl xs)"
@@ -3280,6 +3306,20 @@ lemma distinct_product:
   using assms by (induct xs)
     (auto intro: inj_onI simp add: product_list_set distinct_map)
 
+lemma distinct_product_lists:
+  assumes "\<forall>xs \<in> set xss. distinct xs"
+  shows "distinct (product_lists xss)"
+using assms proof (induction xss)
+  case (Cons xs xss) note * = this
+  then show ?case
+  proof (cases "product_lists xss")
+    case Nil then show ?thesis by (induct xs) simp_all
+  next
+    case (Cons ps pss) with * show ?thesis 
+      by (auto intro!: inj_onI distinct_concat simp add: distinct_map)
+  qed
+qed simp
+
 lemma length_remdups_concat:
   "length (remdups (concat xss)) = card (\<Union>xs\<in>set xss. set xs)"
   by (simp add: distinct_card [symmetric])
@@ -3343,6 +3383,49 @@ lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
 by (metis distinct.simps(2) hd.simps hd_in_set list.simps(2) set_ConsD set_rev_mp set_subset_Cons)
 
+lemma remdups_adj_Cons: "remdups_adj (x # xs) =
+  (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
+  by (induct xs arbitrary: x) (auto split: list.splits)
+
+lemma remdups_adj_append_two: 
+  "remdups_adj (xs @ [x,y]) = remdups_adj (xs @ [x]) @ (if x = y then [] else [y])"
+  by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_rev[simp]: "remdups_adj (rev xs) = rev (remdups_adj xs)"
+  by (induct xs rule: remdups_adj.induct, simp_all add: remdups_adj_append_two)
+
+lemma remdups_adj_length[simp]: "length (remdups_adj xs) \<le> length xs"
+  by (induct xs rule: remdups_adj.induct, auto)
+
+lemma remdups_adj_length_ge1[simp]: "xs \<noteq> [] \<Longrightarrow> length (remdups_adj xs) \<ge> Suc 0"
+  by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_Nil_iff[simp]: "remdups_adj xs = [] \<longleftrightarrow> xs = []"
+  by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_set[simp]: "set (remdups_adj xs) = set xs"
+  by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_Cons_alt[simp]: "x # tl (remdups_adj (x # xs)) = remdups_adj (x # xs)"
+    by (induct xs rule: remdups_adj.induct, auto)
+
+lemma remdups_adj_distinct: "distinct xs \<Longrightarrow> remdups_adj xs = xs"
+    by (induct xs rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_append: 
+  "remdups_adj (xs\<^sub>1 @ x # xs\<^sub>2) = remdups_adj (xs\<^sub>1 @ [x]) @ tl (remdups_adj (x # xs\<^sub>2))"
+  by (induct xs\<^sub>1 rule: remdups_adj.induct, simp_all)
+
+lemma remdups_adj_singleton:
+  "remdups_adj xs = [x] \<Longrightarrow> xs = replicate (length xs) x"
+  by (induct xs rule: remdups_adj.induct, auto split: split_if_asm)
+
+lemma remdups_adj_map_injective:
+  assumes "inj f"
+  shows "remdups_adj (map f xs) = map f (remdups_adj xs)"
+  by (induct xs rule: remdups_adj.induct, 
+      auto simp add: injD[OF assms])
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
@@ -3395,6 +3478,12 @@ lemma (in monoid_add) list_size_conv_listsum:
 lemma (in monoid_add) length_concat:
   "length (concat xss) = listsum (map length xss)"
   by (induct xss) simp_all
+
+lemma (in monoid_add) length_product_lists:
+  "length (product_lists xss) = foldr op * (map length xss) 1"
+proof (induct xss)
+  case (Cons xs xss) then show ?case by (induct xs) (auto simp: length_concat o_def)
+qed simp
 
 lemma (in monoid_add) listsum_map_filter:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> \<not> P x \<Longrightarrow> f x = 0"
@@ -4572,6 +4661,10 @@ qed
 lemma sorted_remdups[simp]:
   "sorted l \<Longrightarrow> sorted (remdups l)"
 by (induct l) (auto simp: sorted_Cons)
+
+lemma sorted_remdups_adj[simp]:
+  "sorted xs \<Longrightarrow> sorted (remdups_adj xs)"
+by (induct xs rule: remdups_adj.induct, simp_all split: split_if_asm add: sorted_Cons)
 
 lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
@@ -6462,6 +6555,14 @@ lemma zip_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 B ===> list_all2 (prod_rel A B)) zip zip"
   unfolding zip_def by transfer_prover
 
+lemma product_transfer [transfer_rule]:
+  "(list_all2 A ===> list_all2 B ===> list_all2 (prod_rel A B)) List.product List.product"
+  unfolding List.product_def by transfer_prover
+
+lemma product_lists_transfer [transfer_rule]:
+  "(list_all2 (list_all2 A) ===> list_all2 (list_all2 A)) product_lists product_lists"
+  unfolding product_lists_def by transfer_prover
+
 lemma insert_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(A ===> list_all2 A ===> list_all2 A) List.insert List.insert"
@@ -6490,6 +6591,12 @@ lemma remdups_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "(list_all2 A ===> list_all2 A) remdups remdups"
   unfolding remdups_def by transfer_prover
+
+lemma remdups_adj_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(list_all2 A ===> list_all2 A) remdups_adj remdups_adj"
+  proof (rule fun_relI, erule list_all2_induct)
+  qed (auto simp: remdups_adj_Cons assms[unfolded bi_unique_def] split: list.splits)
 
 lemma replicate_transfer [transfer_rule]:
   "(op = ===> A ===> list_all2 A) replicate replicate"
