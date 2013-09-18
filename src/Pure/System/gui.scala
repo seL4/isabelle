@@ -35,10 +35,12 @@ object GUI
 
   /* simple dialogs */
 
-  def scrollable_text(txt: String, width: Int = 60, editable: Boolean = false): ScrollPane =
+  def scrollable_text(txt: String, width: Int = 60, height: Int = 20, editable: Boolean = false)
+    : ScrollPane =
   {
     val text = new TextArea(txt)
     if (width > 0) text.columns = width
+    if (height > 0 && split_lines(txt).length > height) text.rows = height
     text.editable = editable
     new ScrollPane(text)
   }
