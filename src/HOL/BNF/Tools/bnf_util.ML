@@ -29,6 +29,9 @@ sig
   val map12: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list
+  val map13: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n) ->
+    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
+    'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list
   val fold_map2: ('a -> 'b -> 'c -> 'd * 'c) -> 'a list -> 'b list -> 'c -> 'd list * 'c
   val fold_map3: ('a -> 'b -> 'c -> 'd -> 'e * 'd) ->
     'a list -> 'b list -> 'c list -> 'd -> 'e list * 'd
@@ -247,6 +250,13 @@ fun map12 _ [] [] [] [] [] [] [] [] [] [] [] [] = []
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 ::
       map12 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s
   | map12 _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun map13 _ [] [] [] [] [] [] [] [] [] [] [] [] [] = []
+  | map13 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
+      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) =
+    f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 ::
+      map13 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s
+  | map13 _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_map2 _ [] [] acc = ([], acc)
   | fold_map2 f (x1::x1s) (x2::x2s) acc =

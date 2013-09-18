@@ -518,22 +518,22 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
               ks goals inject_thmss distinct_thmsss
           end;
 
-        val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-             disc_exhaust_thms, collapse_thms, expand_thms, case_conv_thms) =
+        val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms, nontriv_discI_thms,
+             disc_exclude_thms, disc_exhaust_thms, collapse_thms, expand_thms, case_conv_thms) =
           if no_discs_sels then
-            ([], [], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [], [])
           else
             let
               fun make_sel_thm xs' case_thm sel_def =
                 zero_var_indexes (Drule.gen_all (Drule.rename_bvars' (map (SOME o fst) xs')
                     (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
 
+              val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
+
               fun has_undefined_rhs thm =
                 (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))) of
                   Const (@{const_name undefined}, _) => true
                 | _ => false);
-
-              val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
 
               val all_sel_thms =
                 (if all_sels_distinct andalso forall null sel_defaultss then
@@ -593,8 +593,16 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
                 end;
 
-              val disc_thms = flat (map2 (fn b => if is_disc_binding_valid b then I else K [])
-                disc_bindings disc_thmss);
+              val nontriv_disc_thms =
+                flat (map2 (fn b => if is_disc_binding_valid b then I else K [])
+                  disc_bindings disc_thmss);
+
+              fun is_discI_boring b =
+                (n = 1 andalso Binding.is_empty b) orelse Binding.eq_name (b, equal_binding);
+
+              val nontriv_discI_thms =
+                flat (map2 (fn b => if is_discI_boring b then K [] else single) disc_bindings
+                  discI_thms);
 
               val (disc_exclude_thms, (disc_exclude_thmsss', disc_exclude_thmsss)) =
                 let
@@ -693,11 +701,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   |> Proof_Context.export names_lthy lthy
                 end;
             in
-              (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-               [disc_exhaust_thm], collapse_thms, expand_thms, case_conv_thms)
+              (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
+               nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], collapse_thms,
+               expand_thms, case_conv_thms)
             end;
-
-        val nontriv_discI_thms = if n = 1 then [] else discI_thms;
 
         val (case_cong_thm, weak_case_cong_thm) =
           let
@@ -753,7 +760,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (case_congN, [case_cong_thm], []),
            (case_convN, case_conv_thms, []),
            (collapseN, collapse_thms, simp_attrs),
-           (discN, disc_thms, simp_attrs),
+           (discN, nontriv_disc_thms, simp_attrs),
            (discIN, nontriv_discI_thms, []),
            (disc_excludeN, disc_exclude_thms, []),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),

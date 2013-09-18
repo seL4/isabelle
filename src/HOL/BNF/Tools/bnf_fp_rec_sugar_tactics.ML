@@ -13,8 +13,10 @@ sig
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
     thm list list list -> thm list -> thm list -> thm list -> tactic
+  val mk_primcorec_disc_of_ctr_tac: thm -> thm -> tactic;
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
+  val mk_primcorec_sel_of_ctr_tac: thm -> thm -> tactic;
   val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
@@ -51,23 +53,29 @@ fun mk_primcorec_cases_tac ctxt k m exclsss =
 fun mk_primcorec_prelude ctxt defs thm =
   unfold_thms_tac ctxt defs THEN HEADGOAL (rtac thm) THEN unfold_thms_tac ctxt @{thms split};
 
-fun mk_primcorec_disc_tac ctxt defs disc k m exclsss =
-  mk_primcorec_prelude ctxt defs disc THEN mk_primcorec_cases_tac ctxt k m exclsss;
+fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
+  mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_ctr_or_sel_tac ctxt defs eq_thm k m exclsss maps map_idents map_comps =
-  mk_primcorec_prelude ctxt defs (eq_thm RS trans) THEN
+fun mk_primcorec_ctr_or_sel_tac ctxt defs f_eq k m exclsss maps map_idents map_comps =
+  mk_primcorec_prelude ctxt defs (f_eq RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False if_cancel[of _ True]
     if_cancel[of _ False] o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
   HEADGOAL (rtac refl);
 
-fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc sels =
-  HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc THEN' REPEAT_DETERM_N m o atac) THEN
-  unfold_thms_tac ctxt sels THEN HEADGOAL (rtac refl);
+fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc_f sel_fs =
+  HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc_f THEN' REPEAT_DETERM_N m o atac) THEN
+  unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
-fun mk_primcorec_code_of_ctr_case_tac ctxt m ctr_thm =
+fun mk_primcorec_disc_of_ctr_tac discI f_ctr =
+  HEADGOAL (rtac discI THEN' rtac f_ctr) THEN ALLGOALS atac;
+
+fun mk_primcorec_sel_of_ctr_tac sel f_ctr =
+  HEADGOAL (etac (f_ctr RS arg_cong RS trans) THEN' rtac sel);
+
+fun mk_primcorec_code_of_ctr_case_tac ctxt m f_ctr =
   HEADGOAL (REPEAT o rtac @{thm eq_ifI}) THEN
-  mk_primcorec_prelude ctxt [] (ctr_thm RS trans) THEN
+  mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
   REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt) THEN
   HEADGOAL (asm_simp_tac (ss_only @{thms if_True if_False not_False_eq_True} ctxt));
 
