@@ -1034,7 +1034,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
     ((coinduct_thms_pairs, coinduct_case_attrs),
      (unfold_thmss, corec_thmss, []),
      (safe_unfold_thmss, safe_corec_thmss),
-     (disc_unfold_thmss, disc_corec_thmss, simp_attrs),
+     (disc_unfold_thmss, disc_corec_thmss, []),
      (disc_unfold_iff_thmss, disc_corec_iff_thmss, simp_attrs),
      (sel_unfold_thmsss, sel_corec_thmsss, simp_attrs))
   end;
