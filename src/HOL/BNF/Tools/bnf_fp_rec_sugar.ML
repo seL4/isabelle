@@ -35,7 +35,7 @@ val const_name = try (fn Const (v, _) => v);
 val undef_const = Const (@{const_name undefined}, dummyT);
 
 fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
-  |> fold (K (fn u => Abs (Name.uu, dummyT, u))) (0 upto n);
+  |> fold (K (Term.abs (Name.uu, dummyT))) (0 upto n);
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
 fun drop_All t = subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
   strip_qnt_body @{const_name all} t)
@@ -46,16 +46,18 @@ fun mk_not @{const True} = @{const False}
   | mk_not t = HOLogic.mk_not t
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
-
 fun invert_prems [t] = map mk_not (HOLogic.disjuncts t)
   | invert_prems ts = [mk_disjs (map mk_not ts)];
+fun invert_prems_disj [t] = map mk_not (HOLogic.disjuncts t)
+  | invert_prems_disj ts = [mk_disjs (map (mk_conjs o map mk_not o HOLogic.disjuncts) ts)];
+fun abstract vs =
+  let fun a n (t $ u) = a n t $ a n u
+        | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
+        | a n t = let val idx = find_index (equal t) vs in
+            if idx < 0 then t else Bound (n + idx) end
+  in a 0 end;
 
 val simp_attrs = @{attributes [simp]};
-
-fun abstract n vs (t $ u) = abstract n vs t $ abstract n vs u
-  | abstract n vs (Abs (v, T, b)) = Abs (v, T, abstract (n + 1) vs b)
-  | abstract n vs t = let val idx = find_index (equal t) vs in
-      if idx < 0 then t else Bound (n + idx) end;
 
 
 (* Primrec *)
@@ -383,13 +385,17 @@ fun add_primrec_cmd raw_fixes raw_specs lthy =
 
 type co_eqn_data_disc = {
   fun_name: string,
+  fun_T: typ,
   fun_args: term list,
+  ctr: term,
   ctr_no: int, (*###*)
+  disc: term,
   prems: term list,
   user_eqn: term
 };
 type co_eqn_data_sel = {
   fun_name: string,
+  fun_T: typ,
   fun_args: term list,
   ctr: term,
   sel: term,
@@ -400,7 +406,7 @@ datatype co_eqn_data =
   Disc of co_eqn_data_disc |
   Sel of co_eqn_data_sel;
 
-fun co_dissect_eqn_disc sequential fun_names corec_specs prems' concl matchedss =
+fun co_dissect_eqn_disc sequential fun_names corec_specs prems' concl matchedsss =
   let
     fun find_subterm p = let (* FIXME \<exists>? *)
       fun f (t as u $ v) = if p t then SOME t else merge_options (f u, f v)
@@ -411,11 +417,11 @@ fun co_dissect_eqn_disc sequential fun_names corec_specs prems' concl matchedss 
       |> find_subterm (member ((op =) o apsnd SOME) fun_names o try (fst o dest_Free o head_of))
       |> the
       handle Option.Option => primrec_error_eqn "malformed discriminator equation" concl;
-    val (fun_name, fun_args) = strip_comb applied_fun |>> fst o dest_Free;
-    val corec_spec = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
+    val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
+    val {ctr_specs, ...} = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
 
-    val discs = #ctr_specs corec_spec |> map #disc;
-    val ctrs = #ctr_specs corec_spec |> map #ctr;
+    val discs = map #disc ctr_specs;
+    val ctrs = map #ctr ctr_specs;
     val not_disc = head_of concl = @{term Not};
     val _ = not_disc andalso length ctrs <> 2 andalso
       primrec_error_eqn "\<not>ed discriminator for a type with \<noteq> 2 constructors" concl;
@@ -428,28 +434,33 @@ fun co_dissect_eqn_disc sequential fun_names corec_specs prems' concl matchedss 
     val ctr_no' =
       if is_none disc then the eq_ctr0 else find_index (equal (head_of (the disc))) discs;
     val ctr_no = if not_disc then 1 - ctr_no' else ctr_no';
+    val ctr = #ctr (nth ctr_specs ctr_no);
 
     val catch_all = try (fst o dest_Free o the_single) prems' = SOME Name.uu_;
-    val matcheds = AList.lookup (op =) matchedss fun_name |> the_default [];
-    val prems = map (abstract 0 (List.rev fun_args)) prems';
-    val real_prems = (if catch_all orelse sequential then invert_prems matcheds else []) @
+    val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
+    val prems = map (abstract (List.rev fun_args)) prems';
+    val real_prems =
+      (if catch_all orelse sequential then maps invert_prems_disj matchedss else []) @
       (if catch_all then [] else prems);
 
-    val matchedss' = AList.delete (op =) fun_name matchedss
-      |> cons (fun_name, if sequential then prems @ matcheds else real_prems @ matcheds);
+    val matchedsss' = AList.delete (op =) fun_name matchedsss
+      |> cons (fun_name, if sequential then matchedss @ [prems] else matchedss @ [real_prems]);
 
     val user_eqn =
-      (real_prems, betapply (#disc (nth (#ctr_specs corec_spec) ctr_no), applied_fun))
+      (real_prems, betapply (#disc (nth ctr_specs ctr_no), applied_fun))
       |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop
       |> Logic.list_implies;
   in
     (Disc {
       fun_name = fun_name,
+      fun_T = fun_T,
       fun_args = fun_args,
+      ctr = ctr,
       ctr_no = ctr_no,
+      disc = #disc (nth ctr_specs ctr_no),
       prems = real_prems,
       user_eqn = user_eqn
-    }, matchedss')
+    }, matchedsss')
   end;
 
 fun co_dissect_eqn_sel fun_names corec_specs eqn' eqn =
@@ -458,7 +469,7 @@ fun co_dissect_eqn_sel fun_names corec_specs eqn' eqn =
       handle TERM _ =>
         primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
     val sel = head_of lhs;
-    val (fun_name, fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst (fst o dest_Free)
+    val ((fun_name, fun_T), fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst dest_Free
       handle TERM _ =>
         primrec_error_eqn "malformed selector argument in left-hand side" eqn;
     val corec_spec = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name)
@@ -470,6 +481,7 @@ fun co_dissect_eqn_sel fun_names corec_specs eqn' eqn =
   in
     Sel {
       fun_name = fun_name,
+      fun_T = fun_T,
       fun_args = fun_args,
       ctr = #ctr ctr_spec,
       sel = sel,
@@ -478,22 +490,22 @@ fun co_dissect_eqn_sel fun_names corec_specs eqn' eqn =
     }
   end;
 
-fun co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs matchedss =
+fun co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs matchedsss =
   let 
     val (lhs, rhs) = HOLogic.dest_eq imp_rhs;
     val fun_name = head_of lhs |> fst o dest_Free;
-    val corec_spec = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
+    val {ctr_specs, ...} = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
     val (ctr, ctr_args) = strip_comb rhs;
-    val ctr_spec = the (find_first (equal ctr o #ctr) (#ctr_specs corec_spec))
+    val {disc, sels, ...} = the (find_first (equal ctr o #ctr) ctr_specs)
       handle Option.Option => primrec_error_eqn "not a constructor" ctr;
 
-    val disc_imp_rhs = betapply (#disc ctr_spec, lhs);
-    val (maybe_eqn_data_disc, matchedss') = if length (#ctr_specs corec_spec) = 1
-      then (NONE, matchedss)
+    val disc_imp_rhs = betapply (disc, lhs);
+    val (maybe_eqn_data_disc, matchedsss') = if length ctr_specs = 1
+      then (NONE, matchedsss)
       else apfst SOME (co_dissect_eqn_disc
-          sequential fun_names corec_specs imp_prems disc_imp_rhs matchedss);
+          sequential fun_names corec_specs imp_prems disc_imp_rhs matchedsss);
 
-    val sel_imp_rhss = (#sels ctr_spec ~~ ctr_args)
+    val sel_imp_rhss = (sels ~~ ctr_args)
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg));
 
 val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} imp_rhs ^ "\nto\n    \<cdot> " ^
@@ -503,10 +515,10 @@ val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} imp_rhs ^ "\
     val eqns_data_sel =
       map (co_dissect_eqn_sel fun_names corec_specs eqn') sel_imp_rhss;
   in
-    (the_list maybe_eqn_data_disc @ eqns_data_sel, matchedss')
+    (the_list maybe_eqn_data_disc @ eqns_data_sel, matchedsss')
   end;
 
-fun co_dissect_eqn sequential fun_names corec_specs eqn' matchedss =
+fun co_dissect_eqn sequential fun_names corec_specs eqn' matchedsss =
   let
     val eqn = drop_All eqn'
       handle TERM _ => primrec_error_eqn "malformed function equation" eqn';
@@ -526,12 +538,12 @@ fun co_dissect_eqn sequential fun_names corec_specs eqn' matchedss =
     if member (op =) discs head orelse
       is_some maybe_rhs andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the maybe_rhs) then
-      co_dissect_eqn_disc sequential fun_names corec_specs imp_prems imp_rhs matchedss
+      co_dissect_eqn_disc sequential fun_names corec_specs imp_prems imp_rhs matchedsss
       |>> single
     else if member (op =) sels head then
-      ([co_dissect_eqn_sel fun_names corec_specs eqn' imp_rhs], matchedss)
+      ([co_dissect_eqn_sel fun_names corec_specs eqn' imp_rhs], matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
-      co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs matchedss
+      co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs matchedsss
     else
       primrec_error_eqn "malformed function equation" eqn
   end;
@@ -543,10 +555,10 @@ fun build_corec_arg_disc ctr_specs {fun_args, ctr_no, prems, ...} =
     |> HOLogic.tupled_lambda (HOLogic.mk_tuple fun_args)
     |> K |> nth_map (the (#pred (nth ctr_specs ctr_no)));
 
-fun build_corec_arg_no_call sel_eqns sel = find_first (equal sel o #sel) sel_eqns
-  |> try (fn SOME sel_eqn => (#fun_args sel_eqn, #rhs_term sel_eqn))
-  |> the_default ([], undef_const)
-  |-> abs_tuple
+fun build_corec_arg_no_call sel_eqns sel =
+  find_first (equal sel o #sel) sel_eqns
+  |> try (fn SOME {fun_args, rhs_term, ...} => abs_tuple fun_args rhs_term)
+  |> the_default undef_const
   |> K;
 
 fun build_corec_arg_direct_call lthy has_call sel_eqns sel =
@@ -573,7 +585,7 @@ fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
           | subst (t as _ $ _) =
             let val (u, vs) = strip_comb t in
               if is_Free u andalso has_call u then
-                Const (@{const_name Inr}, dummyT) $ (*HOLogic.mk_tuple vs*)
+                Const (@{const_name Inr}, dummyT) $
                   (try (foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y)) vs
                     |> the_default (hd vs))
               else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
@@ -586,7 +598,7 @@ fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
         subst
       end;
     fun massage rhs_term t = massage_indirect_corec_call
-      lthy has_call rewrite [] (fastype_of t |> range_type) rhs_term;
+      lthy has_call rewrite [] (range_type (fastype_of t)) rhs_term;
   in
     if is_none maybe_sel_eqn then I else
       abs_tuple (#fun_args (the maybe_sel_eqn)) o massage (#rhs_term (the maybe_sel_eqn))
@@ -613,53 +625,26 @@ fun build_corec_args_sel lthy has_call all_sel_eqns ctr_spec =
       end
   end;
 
-fun mk_real_disc_eqns ctr_specs disc_eqns =
-  let
-    val real_disc_eqns =
-      if length disc_eqns = 0 then disc_eqns
-      else if length disc_eqns = length ctr_specs - 1 then
-        let
-          val n = 0 upto length ctr_specs
-            |> the(*###*) o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns));
-          val extra_disc_eqn = {
-            fun_name = #fun_name (hd disc_eqns),
-            fun_args = #fun_args (hd disc_eqns),
-            ctr_no = n,
-            prems = maps (invert_prems o #prems) disc_eqns,
-            user_eqn = Const (@{const_name undefined}, dummyT)};
-        in
-          chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
-        end
-      else disc_eqns;
-  in
-    real_disc_eqns
-  end;
-
 fun co_build_defs lthy bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss =
   let
-    val _ = disc_eqnss |> map (fn x =>
-      let val d = duplicates ((op =) o pairself #ctr_no) x in null d orelse
-        primrec_error_eqns "excess discriminator equations in definition"
-          (maps (fn t => filter (equal (#ctr_no t) o #ctr_no) x) d |> map #user_eqn) end);
     val corec_specs' = take (length bs) corec_specs;
     val corecs = map #corec corec_specs';
     val ctr_specss = map #ctr_specs corec_specs';
-    val real_disc_eqnss = map2 mk_real_disc_eqns ctr_specss disc_eqnss;
     val corec_args = hd corecs
       |> fst o split_last o binder_types o fastype_of
       |> map (Const o pair @{const_name undefined})
-      |> fold2 (fold o build_corec_arg_disc) ctr_specss real_disc_eqnss
+      |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel lthy has_call) sel_eqnss ctr_specss;
     fun currys Ts t = if length Ts <= 1 then t else
       t $ foldr1 (fn (u, v) => HOLogic.pair_const dummyT dummyT $ u $ v)
         (length Ts - 1 downto 0 |> map Bound)
-      |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts;
+      |> fold_rev (Term.abs o pair Name.uu) Ts;
 
 val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
 
     val exclss' =
-      real_disc_eqnss
+      disc_eqnss
       |> map (map (fn {fun_args, ctr_no, prems, ...} => (fun_args, ctr_no, prems))
         #> fst o (fn xs => fold_map (fn x => fn ys => ((x, ys), ys @ [x])) xs [])
         #> maps (uncurry (map o pair)
@@ -675,6 +660,24 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
     |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
     |> rpair exclss'
   end;
+
+fun mk_real_disc_eqns fun_binding arg_Ts {ctr_specs, ...} disc_eqns =
+  if length disc_eqns <> length ctr_specs - 1 then disc_eqns else
+    let
+      val n = 0 upto length ctr_specs
+        |> the o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns));
+      val extra_disc_eqn = {
+        fun_name = Binding.name_of fun_binding,
+        fun_T = arg_Ts ---> body_type (fastype_of (#ctr (hd ctr_specs))),
+        fun_args = the_default (map (curry Free Name.uu) arg_Ts) (try (#fun_args o hd) disc_eqns),
+        ctr = #ctr (nth ctr_specs n),
+        ctr_no = n,
+        disc = #disc (nth ctr_specs n),
+        prems = maps (invert_prems o #prems) disc_eqns,
+        user_eqn = undef_const};
+    in
+      chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
+    end;
 
 fun add_primcorec sequential fixes specs lthy =
   let
@@ -699,18 +702,23 @@ fun add_primcorec sequential fixes specs lthy =
       fold_map (co_dissect_eqn sequential fun_names corec_specs) (map snd specs) []
       |>> flat;
 
-    val disc_eqnss = map_filter (try (fn Disc x => x)) eqns_data
+    val disc_eqnss' = map_filter (try (fn Disc x => x)) eqns_data
       |> partition_eq ((op =) o pairself #fun_name)
-      |> finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names |> fst
+      |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (sort ((op <) o pairself #ctr_no |> make_ord) o flat o snd);
+    val _ = disc_eqnss' |> map (fn x =>
+      let val d = duplicates ((op =) o pairself #ctr_no) x in null d orelse
+        primrec_error_eqns "excess discriminator equations in definition"
+          (maps (fn t => filter (equal (#ctr_no t) o #ctr_no) x) d |> map #user_eqn) end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
       |> partition_eq ((op =) o pairself #fun_name)
-      |> finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names |> fst
+      |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (flat o snd);
 
     val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
     val arg_Tss = map (binder_types o snd o fst) fixes;
+    val disc_eqnss = map4 mk_real_disc_eqns bs arg_Tss corec_specs disc_eqnss';
     val (defs, exclss') =
       co_build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
@@ -735,60 +743,108 @@ fun add_primcorec sequential fixes specs lthy =
           |-> map2 (fn excls => fn (_, {ctr_specs, ...}) => mk_exclsss excls (length ctr_specs));
 
         fun prove_disc {ctr_specs, ...} exclsss
-            {fun_name, fun_args, ctr_no, prems, ...} =
-          let
-            val disc_corec = nth ctr_specs ctr_no |> #disc_corec;
-            val k = 1 + ctr_no;
-            val m = length prems;
-            val t =
-              (* FIXME use applied_fun from dissect_\<dots> instead? *)
-              list_comb (Free (fun_name, dummyT), map Bound (length fun_args - 1 downto 0))
-              |> curry betapply (#disc (nth ctr_specs ctr_no)) (*###*)
-              |> HOLogic.mk_Trueprop
-              |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
-              |> curry Logic.list_all (map dest_Free fun_args)
-              |> Syntax.check_term lthy(*###*);
-          in
-            mk_primcorec_disc_tac lthy def_thms disc_corec k m exclsss
-            |> K |> Goal.prove lthy [] [] t
-          end;
+            {fun_name, fun_T, fun_args, ctr_no, prems, user_eqn, ...} =
+          if user_eqn = undef_const then [] else
+            let
+              val disc_corec = nth ctr_specs ctr_no |> #disc_corec;
+              val k = 1 + ctr_no;
+              val m = length prems;
+              val t =
+                (* FIXME use applied_fun from dissect_\<dots> instead? *)
+                list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0))
+                |> curry betapply (#disc (nth ctr_specs ctr_no)) (*###*)
+                |> HOLogic.mk_Trueprop
+                |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
+                |> curry Logic.list_all (map dest_Free fun_args);
+            in
+              mk_primcorec_disc_tac lthy def_thms disc_corec k m exclsss
+              |> K |> Goal.prove lthy [] [] t
+              |> pair (#disc (nth ctr_specs ctr_no))
+              |> single
+            end;
 
-        (* FIXME don't use user_eqn (cf. constructor view reduction),
-                 instead generate "sel" and "code" theorems ourselves *)
-        fun prove_sel
-          ((fun_name, {ctr_specs, nested_maps, nested_map_idents, nested_map_comps, ...}),
-            disc_eqns) exclsss sel_eqn =
+        fun prove_sel {ctr_specs, nested_maps, nested_map_idents, nested_map_comps, ...}
+            disc_eqns exclsss {fun_name, fun_T, fun_args, ctr, sel, rhs_term, ...} =
           let
-            val (SOME ctr_spec) = find_first (equal (#ctr sel_eqn) o #ctr) ctr_specs;
-            val ctr_no = find_index (equal (#ctr sel_eqn) o #ctr) ctr_specs;
+            val (SOME ctr_spec) = find_first (equal ctr o #ctr) ctr_specs;
+            val ctr_no = find_index (equal ctr o #ctr) ctr_specs;
             val prems = the_default (maps (invert_prems o #prems) disc_eqns)
                 (find_first (equal ctr_no o #ctr_no) disc_eqns |> Option.map #prems);
-            val sel_corec = find_index (equal (#sel sel_eqn)) (#sels ctr_spec)
+            val sel_corec = find_index (equal sel) (#sels ctr_spec)
               |> nth (#sel_corecs ctr_spec);
             val k = 1 + ctr_no;
             val m = length prems;
-            val t = #user_eqn sel_eqn
-              |> abstract 0 (List.rev (#fun_args sel_eqn)) (* FIXME do this in dissect_\<dots> *)
+            val t =
+              list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0))
+              |> curry betapply sel
+              |> rpair (abstract (List.rev fun_args) rhs_term)
+              |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
-              |> curry Logic.list_all (map dest_Free (#fun_args sel_eqn));
+              |> curry Logic.list_all (map dest_Free fun_args);
           in
             mk_primcorec_ctr_or_sel_tac lthy def_thms sel_corec k m exclsss
               nested_maps nested_map_idents nested_map_comps
             |> K |> Goal.prove lthy [] [] t
+            |> pair sel
           end;
 
-        val disc_notes =
-          fun_names ~~
-            map3 (map oo prove_disc) (take (length disc_eqnss) corec_specs) exclssss disc_eqnss
+        fun prove_ctr (_, disc_thms) (_, sel_thms') disc_eqns sel_eqns
+            {ctr, disc, sels, collapse, ...} =
+          if not (exists (equal ctr o #ctr) disc_eqns)
+andalso (warning ("no disc_eqn for ctr " ^ Syntax.string_of_term lthy ctr); true)
+            orelse (* don't try to prove theorems where some sel_eqns are missing *)
+              filter (equal ctr o #ctr) sel_eqns
+              |> fst o finds ((op =) o apsnd #sel) sels
+              |> exists (null o snd)
+andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr); true)
+            orelse
+              #user_eqn (the (find_first (equal ctr o #ctr) disc_eqns)) = undef_const
+andalso (warning ("auto-generated disc_eqn for ctr " ^ Syntax.string_of_term lthy ctr); true)
+          then [] else
+            let
+val _ = tracing ("ctr = " ^ Syntax.string_of_term lthy ctr);
+val _ = tracing ("disc = " ^ Syntax.string_of_term lthy (#disc (the (find_first (equal ctr o #ctr) disc_eqns))));
+              val {fun_name, fun_T, fun_args, prems, ...} =
+                the (find_first (equal ctr o #ctr) disc_eqns);
+              val m = length prems;
+              val t = sel_eqns
+                |> fst o finds ((op =) o apsnd #sel) sels
+                |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
+                |> curry list_comb ctr
+                |> curry HOLogic.mk_eq (list_comb (Free (fun_name, fun_T),
+                  map Bound (length fun_args - 1 downto 0)))
+                |> HOLogic.mk_Trueprop
+                |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
+                |> curry Logic.list_all (map dest_Free fun_args);
+              val disc_thm = the_default TrueI (AList.lookup (op =) disc_thms disc);
+              val sel_thms = map snd (filter (member (op =) sels o fst) sel_thms');
+val _ = tracing ("t = " ^ Syntax.string_of_term lthy t);
+val _ = tracing ("m = " ^ @{make_string} m);
+val _ = tracing ("collapse = " ^ @{make_string} collapse);
+val _ = tracing ("disc_thm = " ^ @{make_string} disc_thm);
+val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
+            in
+              mk_primcorec_ctr_of_dtr_tac lthy m collapse disc_thm sel_thms
+              |> K |> Goal.prove lthy [] [] t
+              |> single
+          end;
+
+        val (disc_notes, disc_thmss) =
+          fun_names ~~ map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss
+          |> `(map (fn (fun_name, thms) =>
+            ((Binding.qualify true fun_name (@{binding disc}), simp_attrs), [(map snd thms, [])])));
+        val (sel_notes, sel_thmss) =
+          fun_names ~~ map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss
+          |> `(map (fn (fun_name, thms) =>
+            ((Binding.qualify true fun_name (@{binding sel}), simp_attrs), [(map snd thms, [])])));
+        val ctr_notes =
+          fun_names ~~ map5 (maps oooo prove_ctr) disc_thmss sel_thmss
+            disc_eqnss sel_eqnss (map #ctr_specs corec_specs)
           |> map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding disc}), simp_attrs), [(thms, [])]));
-        val sel_notes =
-          fun_names ~~
-            map3 (map oo prove_sel) (fun_names ~~ corec_specs ~~ disc_eqnss) exclssss sel_eqnss
-          |> map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding sel}), simp_attrs), [(thms, [])]));
+            ((Binding.qualify true fun_name (@{binding ctr}), simp_attrs), [(thms, [])]));
       in
-        lthy |> snd o Local_Theory.notes (disc_notes @ sel_notes)
+        lthy |> snd o Local_Theory.notes
+          (filter (not o null o fst o the_single o snd) (disc_notes @ sel_notes @ ctr_notes))
       end;
   in
     lthy'

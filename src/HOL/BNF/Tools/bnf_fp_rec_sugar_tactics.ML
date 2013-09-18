@@ -64,7 +64,8 @@ fun mk_primcorec_ctr_or_sel_tac ctxt defs f_eq k m exclsss maps map_idents map_c
   HEADGOAL (rtac refl);
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc_f sel_fs =
-  HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc_f THEN' REPEAT_DETERM_N m o atac) THEN
+  HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
+    rtac disc_f THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
 fun mk_primcorec_disc_of_ctr_tac discI f_ctr =
