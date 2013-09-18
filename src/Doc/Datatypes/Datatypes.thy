@@ -1624,13 +1624,15 @@ as long as they occur under a constructor. The constructor itself normally
 appears directly to the right of the equal sign:
 *}
 
-    primcorec_notyet literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate f x = LCons x (literate f (f x))"
+    .
 
 text {* \blankline *}
 
-    primcorec_notyet siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate f x = SCons x (siterate f (f x))"
+    .
 
 text {*
 \noindent
@@ -1648,7 +1650,6 @@ These two functions can be specified as follows in the destructor view:
 (*<*)
     locale dummy_dest_view
     begin
-end
 (*>*)
     primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "\<not> lnull (literate _ x)" |
@@ -1663,7 +1664,7 @@ text {* \blankline *}
       "stl (siterate f x) = siterate f (f x)"
     .
 (*<*)
-(*    end*)
+    end
 (*>*)
 
 text {*
@@ -1680,8 +1681,9 @@ them from also consuming such values. The following function drops ever second
 element in a stream:
 *}
 
-    primcorec_notyet every_snd :: "'a stream \<Rightarrow> 'a stream" where
+    primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "every_snd s = SCons (shd s) (stl (stl s))"
+    .
 
 text {*
 \noindent
@@ -1735,8 +1737,9 @@ text {*
 Corecursion is useful to specify not only functions but also infinite objects:
 *}
 
-    primcorec_notyet infty :: enat where
+    primcorec infty :: enat where
       "infty = ESuc infty"
+    .
 
 text {*
 \noindent
@@ -1818,12 +1821,13 @@ The syntax for mutually corecursive functions over mutually corecursive
 datatypes is anything but surprising. Following the constructor view:
 *}
 
-    primcorec_notyet
+    primcorec
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
       "even_infty = Even_ESuc odd_infty" |
       "odd_infty = Odd_ESuc even_infty"
+    .
 
 text {*
 And following the destructor view:
@@ -1856,13 +1860,15 @@ infinite trees in which subnodes are organized either as a lazy list (@{text
 tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
 *}
 
-    primcorec_notyet iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+    primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
+    .
 
 text {* \blankline *}
 
-    primcorec_notyet iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
+    primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fmap (iterate\<^sub>i\<^sub>s f) (f x))"
+    .
 
 text {*
 Again, let us not forget our destructor-oriented passengers. Here is the first
@@ -1889,8 +1895,9 @@ is an initial state, and @{text F} is a set of final states. The following
 function translates a DFA into a @{type state_machine}:
 *}
 
-    primcorec_notyet of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine" where
+    primcorec of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine" where
       "of_dfa \<delta> F q = State_Machine (q \<in> F) (of_dfa \<delta> F o \<delta> q)"
+    .
 
 
 subsubsection {* Nested-as-Mutual Corecursion

@@ -10,7 +10,7 @@ sig
   val mk_primcorec_assumption_tac: Proof.context -> tactic
   val mk_primcorec_code_tac: Proof.context -> thm -> thm list -> tactic
   val mk_primcorec_code_of_ctr_tac: Proof.context -> int list -> thm list -> tactic
-  val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
+  val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
     thm list list list -> thm list -> thm list -> thm list -> tactic
   val mk_primcorec_disc_of_ctr_tac: thm -> thm -> tactic;
@@ -63,9 +63,9 @@ fun mk_primcorec_ctr_or_sel_tac ctxt defs f_eq k m exclsss maps map_idents map_c
     if_cancel[of _ False] o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
   HEADGOAL (rtac refl);
 
-fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc_f sel_fs =
+fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
   HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
-    rtac disc_f THEN' REPEAT_DETERM_N m o atac) THEN
+    (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
 fun mk_primcorec_disc_of_ctr_tac discI f_ctr =
