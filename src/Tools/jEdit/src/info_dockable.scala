@@ -113,14 +113,14 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   override def init()
   {
-    JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main_actor
     handle_resize()
   }
 
   override def exit()
   {
-    JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main_actor
     delay_resize.revoke()
   }

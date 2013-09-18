@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle, Dimension}
+import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension}
 import java.awt.event.{KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
@@ -90,30 +90,6 @@ object JEdit_Lib
 
     geometry
   }
-
-
-  /* GUI components */
-
-  def get_parent(component: Component): Option[Container] =
-    component.getParent match {
-      case null => None
-      case parent => Some(parent)
-    }
-
-  def ancestors(component: Component): Iterator[Container] = new Iterator[Container] {
-    private var next_elem = get_parent(component)
-    def hasNext(): Boolean = next_elem.isDefined
-    def next(): Container =
-      next_elem match {
-        case Some(parent) =>
-          next_elem = get_parent(parent)
-          parent
-        case None => Iterator.empty.next()
-      }
-  }
-
-  def parent_window(component: Component): Option[Window] =
-    ancestors(component).collectFirst({ case x: Window => x })
 
 
   /* basic tooltips, with multi-line support */

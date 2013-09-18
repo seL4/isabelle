@@ -78,11 +78,11 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
 
   override def init()
   {
-    JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
   }
 
   override def exit()
   {
-    JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
+    GUI.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
   }
 }

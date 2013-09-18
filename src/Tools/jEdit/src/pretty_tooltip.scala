@@ -50,7 +50,7 @@ object Pretty_Tooltip
       case top :: _ if top.results == results && top.info == info => top
       case _ =>
         val (old, rest) =
-          JEdit_Lib.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
+          GUI.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
             case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
             case None => (stack, Nil)
           }
