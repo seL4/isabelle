@@ -8,7 +8,7 @@ Tactics for recursor and corecursor sugar.
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_code_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> thm list -> tactic
+  val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
     thm list list list -> thm list -> thm list -> thm list -> tactic
@@ -73,8 +73,7 @@ fun mk_primcorec_code_of_ctr_case_tac ctxt defs ctr_thm =
   REPEAT_DETERM_N 2 (HEADGOAL
     (asm_simp_tac (ss_only @{thms if_True if_False not_False_eq_True} ctxt)));
 
-fun mk_primcorec_code_of_ctr_tac ctxt defs ctr_thms =
-  unfold_thms_tac ctxt defs THEN
+fun mk_primcorec_code_of_ctr_tac ctxt ctr_thms =
   EVERY (map (mk_primcorec_code_of_ctr_case_tac ctxt []) ctr_thms);
 
 fun mk_primcorec_code_tac ctxt raw collapses =
