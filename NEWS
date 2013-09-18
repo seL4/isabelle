@@ -183,17 +183,20 @@ to distinguish both when desired.
   for examples.
 
 * HOL/BNF:
-  - Various improvements to BNF-based (co)datatype package, including a
-    "primrec_new" command, a "datatype_new_compat" command, and
+  - Various improvements to BNF-based (co)datatype package, including new
+    commands "primrec_new", "primcorec", and "datatype_new_compat", and
     documentation. See "datatypes.pdf" for details.
   - Renamed keywords:
     data ~> datatype_new
     codata ~> codatatype
     bnf_def ~> bnf
   - Renamed many generated theorems, including
+    discs ~> disc
     map_comp' ~> map_comp
     map_id' ~> map_id
+    sels ~> sel
     set_map' ~> set_map
+    sets ~> set
 IMCOMPATIBILITY.
 
 * Function package: For mutually recursive functions f and g, separate
@@ -386,9 +389,9 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 * Sledgehammer:
-
   - Renamed option:
       isar_shrink ~> isar_compress
+  - Better support for "isar_proofs"
 
 * Imperative-HOL: The MREC combinator is considered legacy and no
 longer included by default. INCOMPATIBILITY, use partial_function
