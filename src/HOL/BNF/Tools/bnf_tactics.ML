@@ -51,7 +51,8 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
     rtac (Drule.instantiate_normalize insts thm) 1
   end);
 
-fun unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
+fun unfold_thms_tac _ [] = all_tac
+  | unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
 

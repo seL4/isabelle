@@ -10,9 +10,9 @@ sig
   val mk_primcorec_taut_tac: Proof.context -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
-  val mk_primcorec_dtr_to_ctr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
-  val mk_primcorec_eq_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
-    thm list -> thm list -> thm list -> tactic
+  val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
+  val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
+    thm list list list -> thm list -> thm list -> thm list -> tactic
   val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
@@ -54,12 +54,12 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc k m exclsss =
   mk_primcorec_prelude ctxt defs disc THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_eq_tac ctxt defs eq_thm k m exclsss maps map_idents map_comps =
+fun mk_primcorec_ctr_or_sel_tac ctxt defs eq_thm k m exclsss maps map_idents map_comps =
   mk_primcorec_prelude ctxt defs (eq_thm RS trans) THEN mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False o_def split_def sum.cases} @
     maps @ map_comps @ map_idents) THEN HEADGOAL (rtac refl);
 
-fun mk_primcorec_dtr_to_ctr_tac ctxt m collapse disc sels =
+fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc sels =
   HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sels THEN HEADGOAL (rtac refl);
 

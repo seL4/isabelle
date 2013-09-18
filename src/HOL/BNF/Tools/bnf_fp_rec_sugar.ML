@@ -772,7 +772,7 @@ fun add_primcorec sequential fixes specs lthy =
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free (#fun_args sel_eqn));
           in
-            mk_primcorec_eq_tac lthy def_thms sel_corec k m exclsss
+            mk_primcorec_ctr_or_sel_tac lthy def_thms sel_corec k m exclsss
               nested_maps nested_map_idents nested_map_comps
             |> K |> Goal.prove lthy [] [] t
           end;
