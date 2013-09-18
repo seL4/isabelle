@@ -31,6 +31,8 @@ sig
      sels: term list,
      pred: int option,
      calls: corec_call list,
+     discI: thm,
+     sel_thms: thm list,
      collapse: thm,
      corec_thm: thm,
      disc_corec: thm,
@@ -96,6 +98,8 @@ type corec_ctr_spec =
    sels: term list,
    pred: int option,
    calls: corec_call list,
+   discI: thm,
+   sel_thms: thm list,
    collapse: thm,
    corec_thm: thm,
    disc_corec: thm,
@@ -431,11 +435,13 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
          else No_Corec) g_i
       | call_of _ [q_i] [g_i, g_i'] _ = Direct_Corec (q_i, g_i, g_i');
 
-    fun mk_ctr_spec ctr disc sels p_ho q_iss f_iss f_Tss collapse corec_thm disc_corec sel_corecs =
+    fun mk_ctr_spec ctr disc sels p_ho q_iss f_iss f_Tss discI sel_thms collapse corec_thm
+        disc_corec sel_corecs =
       let val nullary = not (can dest_funT (fastype_of ctr)) in
         {ctr = substA ctr, disc = substA disc, sels = map substA sels, pred = p_ho,
-         calls = map3 (call_of nullary) q_iss f_iss f_Tss, collapse = collapse,
-         corec_thm = corec_thm, disc_corec = disc_corec, sel_corecs = sel_corecs}
+         calls = map3 (call_of nullary) q_iss f_iss f_Tss, discI = discI, sel_thms = sel_thms,
+         collapse = collapse, corec_thm = corec_thm, disc_corec = disc_corec,
+         sel_corecs = sel_corecs}
       end;
 
     fun mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss disc_coitersss
@@ -445,14 +451,16 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
         val discs = #discs (nth ctr_sugars index);
         val selss = #selss (nth ctr_sugars index);
         val p_ios = map SOME p_is @ [NONE];
+        val discIs = #discIs (nth ctr_sugars index);
+        val sel_thmss = #sel_thmss (nth ctr_sugars index);
         val collapses = #collapses (nth ctr_sugars index);
         val corec_thms = co_rec_of (nth coiter_thmsss index);
         val disc_corecs = (case co_rec_of (nth disc_coitersss index) of [] => [TrueI]
           | thms => thms);
         val sel_corecss = co_rec_of (nth sel_coiterssss index);
       in
-        map11 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss collapses corec_thms
-          disc_corecs sel_corecss
+        map13 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss collapses
+          corec_thms disc_corecs sel_corecss
       end;
 
     fun mk_spec {T, index, ctr_sugars, co_iterss = coiterss, co_iter_thmsss = coiter_thmsss,
