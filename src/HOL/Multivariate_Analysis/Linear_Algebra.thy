@@ -15,7 +15,9 @@ lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
 
 notation inner (infix "\<bullet>" 70)
 
-lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
+lemma square_bound_lemma:
+  fixes x :: real
+  shows "x < (1 + x) * (1 + x)"
 proof -
   have "(x + 1/2)\<^sup>2 + 3/4 > 0"
     using zero_le_power2[of "x+1/2"] by arith
@@ -121,10 +123,10 @@ lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> x \<
   apply arith
   done
 
-lemma norm_lt_square: "norm(x) < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
+lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> x \<bullet> x < a\<^sup>2"
   by (metis not_le norm_ge_square)
 
-lemma norm_gt_square: "norm(x) > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
+lemma norm_gt_square: "norm x > a \<longleftrightarrow> a < 0 \<or> x \<bullet> x > a\<^sup>2"
   by (metis norm_le_square not_less)
 
 text{* Dot product in terms of the norm rather than conversely. *}
@@ -249,7 +251,7 @@ lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
 subsection {* Linear functions. *}
 
 lemma linear_iff:
-  "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *\<^sub>R x) = c *\<^sub>R f x)"
+  "linear f \<longleftrightarrow> (\<forall>x y. f (x + y) = f x + f y) \<and> (\<forall>c x. f (c *\<^sub>R x) = c *\<^sub>R f x)"
   (is "linear f \<longleftrightarrow> ?rhs")
 proof
   assume "linear f" then interpret f: linear f .
@@ -282,7 +284,7 @@ lemma linear_zero: "linear (\<lambda>x. 0)"
 lemma linear_compose_setsum:
   assumes fS: "finite S"
     and lS: "\<forall>a \<in> S. linear (f a)"
-  shows "linear(\<lambda>x. setsum (\<lambda>a. f a x) S)"
+  shows "linear (\<lambda>x. setsum (\<lambda>a. f a x) S)"
   using lS
   apply (induct rule: finite_induct[OF fS])
   apply (auto simp add: linear_zero intro: linear_compose_add)
@@ -301,10 +303,10 @@ lemma linear_cmul: "linear f \<Longrightarrow> f (c *\<^sub>R x) = c *\<^sub>R f
 lemma linear_neg: "linear f \<Longrightarrow> f (- x) = - f x"
   using linear_cmul [where c="-1"] by simp
 
-lemma linear_add: "linear f \<Longrightarrow> f(x + y) = f x + f y"
+lemma linear_add: "linear f \<Longrightarrow> f (x + y) = f x + f y"
   by (metis linear_iff)
 
-lemma linear_sub: "linear f \<Longrightarrow> f(x - y) = f x - f y"
+lemma linear_sub: "linear f \<Longrightarrow> f (x - y) = f x - f y"
   by (simp add: diff_minus linear_add linear_neg)
 
 lemma linear_setsum:
@@ -679,7 +681,7 @@ lemma forall_pos_mono:
 
 lemma forall_pos_mono_1:
   "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n. P(inverse(real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
+    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
   apply (rule forall_pos_mono)
   apply auto
   apply (atomize)
@@ -711,7 +713,7 @@ definition (in real_vector) subspace :: "'a set \<Rightarrow> bool"
   where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x\<in> S. \<forall>y \<in>S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in>S. c *\<^sub>R x \<in>S )"
 
 definition (in real_vector) "span S = (subspace hull S)"
-definition (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span(S - {a}))"
+definition (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span (S - {a}))"
 abbreviation (in real_vector) "independent s \<equiv> \<not> dependent s"
 
 text {* Closure properties of subspaces. *}
@@ -1085,7 +1087,7 @@ qed
 
 lemma in_span_delete:
   assumes a: "a \<in> span S"
-    and na: "a \<notin> span (S-{b})"
+    and na: "a \<notin> span (S - {b})"
   shows "b \<in> span (insert a (S - {b}))"
   apply (rule in_span_insert)
   apply (rule set_rev_mp)
@@ -1149,7 +1151,7 @@ proof -
     proof cases
       assume xS: "x \<in> S"
       have S1: "S = (S - {x}) \<union> {x}"
-        and Sss:"finite (S - {x})" "finite {x}" "(S -{x}) \<inter> {x} = {}"
+        and Sss:"finite (S - {x})" "finite {x}" "(S - {x}) \<inter> {x} = {}"
         using xS fS by auto
       have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S =(\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
         using xS
@@ -1407,11 +1409,11 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
       by auto
     have ?ths
     proof cases
-      assume stb: "s \<subseteq> span(t - {b})"
-      from ft have ftb: "finite (t -{b})"
+      assume stb: "s \<subseteq> span (t - {b})"
+      from ft have ftb: "finite (t - {b})"
         by auto
       from less(1)[OF cardlt ftb s stb]
-      obtain u where u: "card u = card (t-{b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u"
+      obtain u where u: "card u = card (t - {b})" "s \<subseteq> u" "u \<subseteq> s \<union> (t - {b})" "s \<subseteq> span u"
         and fu: "finite u" by blast
       let ?w = "insert b u"
       have th0: "s \<subseteq> insert b u"
@@ -1434,7 +1436,7 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
         by blast
       from th show ?thesis by blast
     next
-      assume stb: "\<not> s \<subseteq> span(t - {b})"
+      assume stb: "\<not> s \<subseteq> span (t - {b})"
       from stb obtain a where a: "a \<in> s" "a \<notin> span (t - {b})"
         by blast
       have ab: "a \<noteq> b"
@@ -1465,8 +1467,8 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
       then have sp': "s \<subseteq> span (insert a (t - {b}))"
         by blast
       from less(1)[OF mlt ft' s sp'] obtain u where u:
-        "card u = card (insert a (t -{b}))"
-        "finite u" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t -{b})"
+        "card u = card (insert a (t - {b}))"
+        "finite u" "s \<subseteq> u" "u \<subseteq> s \<union> insert a (t - {b})"
         "s \<subseteq> span u" by blast
       from u a b ft at ct0 have "?P u"
         by auto
@@ -1762,8 +1764,8 @@ qed
 subsection {* We continue. *}
 
 lemma independent_bound:
-  fixes S:: "('a::euclidean_space) set"
-  shows "independent S \<Longrightarrow> finite S \<and> card S \<le> DIM('a::euclidean_space)"
+  fixes S :: "'a::euclidean_space set"
+  shows "independent S \<Longrightarrow> finite S \<and> card S \<le> DIM('a)"
   using independent_span_bound[OF finite_Basis, of S] by auto
 
 lemma dependent_biggerset:
@@ -1910,29 +1912,29 @@ lemma card_le_dim_spanning:
 proof -
   {
     fix a
-    assume a: "a \<in> B" "a \<in> span (B -{a})"
+    assume a: "a \<in> B" "a \<in> span (B - {a})"
     from a fB have c0: "card B \<noteq> 0"
       by auto
-    from a fB have cb: "card (B -{a}) = card B - 1"
+    from a fB have cb: "card (B - {a}) = card B - 1"
       by auto
-    from BV a have th0: "B -{a} \<subseteq> V"
+    from BV a have th0: "B - {a} \<subseteq> V"
       by blast
     {
       fix x
       assume x: "x \<in> V"
-      from a have eq: "insert a (B -{a}) = B"
+      from a have eq: "insert a (B - {a}) = B"
         by blast
       from x VB have x': "x \<in> span B"
         by blast
       from span_trans[OF a(2), unfolded eq, OF x']
-      have "x \<in> span (B -{a})" .
+      have "x \<in> span (B - {a})" .
     }
-    then have th1: "V \<subseteq> span (B -{a})"
+    then have th1: "V \<subseteq> span (B - {a})"
       by blast
-    have th2: "finite (B -{a})"
+    have th2: "finite (B - {a})"
       using fB by auto
     from span_card_ge_dim[OF th0 th1 th2]
-    have c: "dim V \<le> card (B -{a})" .
+    have c: "dim V \<le> card (B - {a})" .
     from c c0 dVB cb have False by simp
   }
   then show ?thesis
@@ -2036,9 +2038,9 @@ proof -
     assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
     have eq: "f ` S - {f a} = f ` (S - {a})"
       using fi by (auto simp add: inj_on_def)
-    from a have "f a \<in> f ` span (S -{a})"
+    from a have "f a \<in> f ` span (S - {a})"
       unfolding eq span_linear_image[OF lf, of "S - {a}"] by blast
-    then have "a \<in> span (S -{a})"
+    then have "a \<in> span (S - {a})"
       using fi by (auto simp add: inj_on_def)
     with a(1) iS have False
       by (simp add: dependent_def)
@@ -2279,7 +2281,7 @@ next
   have "f (x - k*\<^sub>R a) \<in> span (f ` b)"
     unfolding span_linear_image[OF lf]
     apply (rule imageI)
-    using k span_mono[of "b-{a}" b]
+    using k span_mono[of "b - {a}" b]
     apply blast
     done
   then have "f x - k*\<^sub>R f a \<in> span (f ` b)"
@@ -2289,8 +2291,8 @@ next
   have xsb: "x \<in> span b"
   proof (cases "k = 0")
     case True
-    with k have "x \<in> span (b -{a})" by simp
-    then show ?thesis using span_mono[of "b-{a}" b]
+    with k have "x \<in> span (b - {a})" by simp
+    then show ?thesis using span_mono[of "b - {a}" b]
       by blast
   next
     case False
@@ -2729,7 +2731,7 @@ proof
       by auto
     have "x = y"
     proof (rule ccontr)
-      assume xy: "x \<noteq> y"
+      assume xy: "\<not> ?thesis"
       have th: "card S \<le> card (f ` (S - {y}))"
         unfolding c
         apply (rule card_mono)
@@ -2741,7 +2743,7 @@ proof
         apply (rule bexI[where x=x])
         apply auto
         done
-      also have " \<dots> \<le> card (S -{y})"
+      also have " \<dots> \<le> card (S - {y})"
         apply (rule card_image_le)
         using fS by simp
       also have "\<dots> \<le> card S - 1" using y fS by simp
@@ -2904,21 +2906,22 @@ qed
 
 subsection {* Infinity norm *}
 
-definition "infnorm (x::'a::euclidean_space) = Sup { abs (x \<bullet> b) |b. b \<in> Basis}"
-
-lemma numseg_dimindex_nonempty: "\<exists>i. i \<in> (UNIV :: 'n set)"
-  by auto
+definition "infnorm (x::'a::euclidean_space) = Sup {abs (x \<bullet> b) |b. b \<in> Basis}"
 
 lemma infnorm_set_image:
-  "{abs ((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis} = (\<lambda>i. abs(x \<bullet> i)) ` Basis"
+  fixes x :: "'a::euclidean_space"
+  shows "{abs (x \<bullet> i) |i. i \<in> Basis} = (\<lambda>i. abs (x \<bullet> i)) ` Basis"
   by blast
 
-lemma infnorm_Max: "infnorm (x::'a::euclidean_space) = Max ((\<lambda>i. abs(x \<bullet> i)) ` Basis)"
+lemma infnorm_Max:
+  fixes x :: "'a::euclidean_space"
+  shows "infnorm x = Max ((\<lambda>i. abs (x \<bullet> i)) ` Basis)"
   by (simp add: infnorm_def infnorm_set_image cSup_eq_Max)
 
 lemma infnorm_set_lemma:
-  "finite {abs((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis}"
-  "{abs(x \<bullet> i) |i. i \<in> Basis} \<noteq> {}"
+  fixes x :: "'a::euclidean_space"
+  shows "finite {abs (x \<bullet> i) |i. i \<in> Basis}"
+    and "{abs (x \<bullet> i) |i. i \<in> Basis} \<noteq> {}"
   unfolding infnorm_set_image
   by auto
 
@@ -2983,7 +2986,7 @@ lemma Basis_le_infnorm:
   shows "b \<in> Basis \<Longrightarrow> \<bar>x \<bullet> b\<bar> \<le> infnorm x"
   by (simp add: infnorm_Max)
 
-lemma infnorm_mul: "infnorm(a *\<^sub>R x) = abs a * infnorm x"
+lemma infnorm_mul: "infnorm (a *\<^sub>R x) = abs a * infnorm x"
   unfolding infnorm_Max
 proof (safe intro!: Max_eqI)
   let ?B = "(\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
@@ -3015,7 +3018,9 @@ lemma euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<b
   by (subst (1 2) euclidean_representation[symmetric, where 'a='a])
      (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
 
-lemma norm_le_infnorm: "norm x \<le> sqrt DIM('a) * infnorm(x::'a::euclidean_space)"
+lemma norm_le_infnorm:
+  fixes x :: "'a::euclidean_space"
+  shows "norm x \<le> sqrt DIM('a) * infnorm x"
 proof -
   let ?d = "DIM('a)"
   have "real ?d \<ge> 0"
@@ -3027,7 +3032,7 @@ proof -
   have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)\<^sup>2"
     unfolding power_mult_distrib d2
     unfolding real_of_nat_def
-    apply(subst euclidean_inner)
+    apply (subst euclidean_inner)
     apply (subst power2_abs[symmetric])
     apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<^sup>2"]])
     apply (auto simp add: power2_eq_square[symmetric])
@@ -3090,8 +3095,8 @@ proof -
 qed
 
 lemma norm_cauchy_schwarz_abs_eq:
-  "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow>
-    norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm(x) *\<^sub>R y = - norm y *\<^sub>R x"
+  "abs (x \<bullet> y) = norm x * norm y \<longleftrightarrow>
+    norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm x *\<^sub>R y = - norm y *\<^sub>R x"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   have th: "\<And>(x::real) a. a \<ge> 0 \<Longrightarrow> abs x = a \<longleftrightarrow> x = a \<or> x = - a"
