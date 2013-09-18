@@ -717,7 +717,7 @@ fun add_primcorec sequential fixes specs lthy =
     (* try to prove (automatically generated) tautologies by ourselves *)
     val exclss'' = exclss'
       |> map (map (apsnd
-        (`(try (fn t => Goal.prove lthy [] [] t (mk_primcorec_taut_tac lthy |> K))))));
+        (`(try (fn t => Goal.prove lthy [] [] t (mk_primcorec_assumption_tac lthy |> K))))));
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
     val (obligation_idxss, obligationss) = exclss''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
