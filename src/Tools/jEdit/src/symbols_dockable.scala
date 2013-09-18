@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.Font
 
 import scala.swing.event.ValueChanged
-import scala.swing.{Action, Button, FlowPanel, TabbedPane, TextField, BorderPanel, Label}
+import scala.swing.{Action, Button, TabbedPane, TextField, BorderPanel, Label, ScrollPane}
 
 import org.gjt.sp.jedit.View
 
@@ -60,16 +60,16 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     pages ++=
       Symbol.groups map { case (group, symbols) =>
         new TabbedPane.Page(group,
-          new FlowPanel {
+          new ScrollPane(new Wrap_Panel {
             contents ++= symbols.map(new Symbol_Component(_))
             if (group == "control") contents += new Reset_Component
-          }, null)
+          }), null)
       }
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
-      val results_panel = new FlowPanel
+      val results_panel = new Wrap_Panel
       add(search, BorderPanel.Position.North)
-      add(results_panel, BorderPanel.Position.Center)
+      add(new ScrollPane(results_panel), BorderPanel.Position.Center)
       listenTo(search)
       val delay_search =
         Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {

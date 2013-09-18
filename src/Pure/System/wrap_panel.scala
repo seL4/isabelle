@@ -11,9 +11,9 @@ package isabelle
 
 
 import java.awt.{FlowLayout, Container, Dimension}
-import javax.swing.{JPanel, JScrollPane, SwingUtilities}
+import javax.swing.{JComponent, JPanel, JScrollPane}
 
-import scala.swing.{Panel, FlowPanel, Component, SequentialContainer}
+import scala.swing.{Panel, FlowPanel, Component, SequentialContainer, ScrollPane}
 
 
 object Wrap_Panel
@@ -46,6 +46,9 @@ object Wrap_Panel
         val insets = target.getInsets
         val horizontal_insets_and_gap = insets.left + insets.right + (hgap * 2)
         val max_width = target_width - horizontal_insets_and_gap
+
+
+        /* fit components into rows */
 
         val dim = new Dimension(0, 0)
         var row_width = 0
@@ -80,11 +83,18 @@ object Wrap_Panel
         dim.width += horizontal_insets_and_gap
         dim.height += insets.top + insets.bottom + vgap * 2
 
-        SwingUtilities.getAncestorOfClass(classOf[JScrollPane], target) match {
-          case scroll_pane: Container if target.isValid =>
-            dim.width -= (hgap + 1)
-          case _ =>
-        }
+
+        /* special treatment for ScrollPane */
+
+        val scroll_pane =
+          GUI.ancestors(target).exists(
+            {
+              case _: JScrollPane => true
+              case c: JComponent if Component.wrap(c).isInstanceOf[ScrollPane] => true
+              case _ => false
+            })
+        if (scroll_pane && target.isValid)
+          dim.width -= (hgap + 1)
 
         dim
       }
