@@ -13,11 +13,6 @@ theory BNF_FP_Base
 imports BNF_Comp BNF_Ctr_Sugar
 begin
 
-definition code_unspec :: "(unit \<Rightarrow> 'a) \<Rightarrow> 'a" where
-[code del]: "code_unspec f = f ()"
-
-code_abort code_unspec
-
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
