@@ -159,6 +159,9 @@ lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f
    (\<And>x. x \<in> P \<Longrightarrow> f x \<in> Q)"
   unfolding Grp_def by rule auto
 
+lemma eq_ifI: "\<lbrakk>b \<Longrightarrow> t = x; \<not> b \<Longrightarrow> t = y\<rbrakk> \<Longrightarrow> t = (if b then x else y)"
+  by fastforce
+
 lemma if_if_True:
   "(if (if b then True else b') then (if b then x else x') else f (if b then y else y')) =
    (if b then x else if b' then x' else f y')"

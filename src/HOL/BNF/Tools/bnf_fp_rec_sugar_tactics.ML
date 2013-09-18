@@ -7,12 +7,14 @@ Tactics for recursor and corecursor sugar.
 
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
-  val mk_primcorec_taut_tac: Proof.context -> tactic
-  val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
-    tactic
+  val mk_primcorec_code_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
     thm list list list -> thm list -> thm list -> thm list -> tactic
+  val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
+    tactic
+  val mk_primcorec_taut_tac: Proof.context -> tactic
   val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
@@ -55,12 +57,30 @@ fun mk_primcorec_disc_tac ctxt defs disc k m exclsss =
   mk_primcorec_prelude ctxt defs disc THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
 fun mk_primcorec_ctr_or_sel_tac ctxt defs eq_thm k m exclsss maps map_idents map_comps =
-  mk_primcorec_prelude ctxt defs (eq_thm RS trans) THEN mk_primcorec_cases_tac ctxt k m exclsss THEN
-  unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False o_def split_def sum.cases} @
-    maps @ map_comps @ map_idents) THEN HEADGOAL (rtac refl);
+  mk_primcorec_prelude ctxt defs (eq_thm RS trans) THEN
+  mk_primcorec_cases_tac ctxt k m exclsss THEN
+  unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False if_cancel[of _ True]
+    if_cancel[of _ False] o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
+  HEADGOAL (rtac refl);
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc sels =
   HEADGOAL (rtac (collapse RS sym RS trans) THEN' rtac disc THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sels THEN HEADGOAL (rtac refl);
+
+fun mk_primcorec_code_of_ctr_case_tac ctxt defs ctr_thm =
+  HEADGOAL (REPEAT o rtac @{thm eq_ifI}) THEN
+  mk_primcorec_prelude ctxt defs (ctr_thm RS trans) THEN
+  REPEAT_DETERM_N 2 (HEADGOAL
+    (asm_simp_tac (ss_only @{thms if_True if_False not_False_eq_True} ctxt)));
+
+fun mk_primcorec_code_of_ctr_tac ctxt defs ctr_thms =
+  unfold_thms_tac ctxt defs THEN
+  EVERY (map (mk_primcorec_code_of_ctr_case_tac ctxt []) ctr_thms);
+
+fun mk_primcorec_code_tac ctxt raw collapses =
+  HEADGOAL (rtac (raw RS trans)) THEN unfold_thms_tac ctxt @{thms split_ifs} THEN
+  Method.intros_tac @{thms conjI impI} [] THEN
+  REPEAT (HEADGOAL (rtac refl ORELSE' (etac notE THEN' atac) ORELSE'
+    eresolve_tac (maps (fn thm => [thm, thm RS sym]) collapses)));
 
 end;
