@@ -7,6 +7,7 @@ Tactics for recursor and corecursor sugar.
 
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
+  val mk_primcorec_assumption_tac: Proof.context -> tactic
   val mk_primcorec_code_tac: Proof.context -> thm -> thm list -> tactic
   val mk_primcorec_code_of_ctr_tac: Proof.context -> int list -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm -> thm list -> tactic
@@ -14,7 +15,6 @@ sig
     thm list list list -> thm list -> thm list -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
-  val mk_primcorec_assumption_tac: Proof.context -> tactic
   val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
