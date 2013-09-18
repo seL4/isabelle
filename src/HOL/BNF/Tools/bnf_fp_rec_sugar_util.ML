@@ -190,17 +190,17 @@ fun massage_indirect_rec_call ctxt has_call massage_unapplied_direct_call bound_
           ill_formed_rec_call ctxt t
       | massage_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
   in
-    massage_call o Envir.beta_eta_contract
+    massage_call
   end;
 
-fun massage_let_and_if ctxt check_cond massage_else =
+fun massage_let_and_if ctxt check_cond massage_leaf =
   let
     fun massage_rec U T t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec U T (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), arg :: args) =>
         list_comb (If_const U $ tap check_cond arg, map (massage_rec U T) args)
-      | _ => massage_else U T t)
+      | _ => massage_leaf U T t)
   in
     massage_rec
   end;
@@ -208,7 +208,7 @@ fun massage_let_and_if ctxt check_cond massage_else =
 fun massage_direct_corec_call ctxt has_call massage_direct_call bound_Ts res_U t =
   let val typof = curry fastype_of1 bound_Ts in
     massage_let_and_if ctxt ((not o has_call) orf unexpected_corec_call ctxt) massage_direct_call
-      res_U (typof t) (Envir.beta_eta_contract t)
+      res_U (typof t) t
   end;
 
 fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U t =
@@ -266,7 +266,7 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts res_U
             | _ => ill_formed_corec_call ctxt t))
         U T
   in
-    massage_call res_U (typof t) (Envir.beta_eta_contract t)
+    massage_call res_U (typof t) t
   end;
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
