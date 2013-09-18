@@ -710,9 +710,15 @@ by (rule not_Cons_self [symmetric])
 lemma neq_Nil_conv: "(xs \<noteq> []) = (\<exists>y ys. xs = y # ys)"
 by (induct xs) auto
 
+lemma tl_Nil: "tl xs = [] \<longleftrightarrow> xs = [] \<or> (EX x. xs = [x])"
+by (cases xs) auto
+
+lemma Nil_tl: "[] = tl xs \<longleftrightarrow> xs = [] \<or> (EX x. xs = [x])"
+by (cases xs) auto
+
 lemma length_induct:
   "(\<And>xs. \<forall>ys. length ys < length xs \<longrightarrow> P ys \<Longrightarrow> P xs) \<Longrightarrow> P xs"
-by (rule measure_induct [of length]) iprover
+by (fact measure_induct)
 
 lemma list_nonempty_induct [consumes 1, case_names single cons]:
   assumes "xs \<noteq> []"
