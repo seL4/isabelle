@@ -754,6 +754,10 @@ The third and last subgroup revolves around discriminators and selectors:
 @{thm list.disc(1)[no_vars]} \\
 @{thm list.disc(2)[no_vars]}
 
+\item[@{text "t."}\hthm{discI}\rm:] ~ \\
+@{thm list.discI(1)[no_vars]} \\
+@{thm list.discI(2)[no_vars]}
+
 \item[@{text "t."}\hthm{sel} @{text "[simp]"}\rm:] ~ \\
 @{thm list.sel(1)[no_vars]} \\
 @{thm list.sel(2)[no_vars]}
@@ -1512,11 +1516,11 @@ used to prove $m$ properties simultaneously.
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_unfold} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc\_unfold}\rm:] ~ \\
 @{thm llist.disc_unfold(1)[no_vars]} \\
 @{thm llist.disc_unfold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_corec} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc\_corec}\rm:] ~ \\
 @{thm llist.disc_corec(1)[no_vars]} \\
 @{thm llist.disc_corec(2)[no_vars]}
 
