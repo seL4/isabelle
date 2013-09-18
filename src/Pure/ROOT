@@ -130,7 +130,6 @@ session Pure =
     "Isar/proof_display.ML"
     "Isar/proof_node.ML"
     "Isar/rule_cases.ML"
-    "Isar/rule_insts.ML"
     "Isar/runtime.ML"
     "Isar/spec_rules.ML"
     "Isar/specification.ML"

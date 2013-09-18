@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/rule_insts.ML
+(*  Title:      Pure/Tools/rule_insts.ML
     Author:     Makarius
 
 Rule instantiations -- operations within a rule/subgoal context.

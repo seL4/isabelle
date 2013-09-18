@@ -278,7 +278,6 @@ use "PIDE/document.ML";
 use "Thy/rail.ML";
 
 (*theory and proof operations*)
-use "Isar/rule_insts.ML";
 use "Thy/thm_deps.ML";
 use "Isar/isar_cmd.ML";
 
