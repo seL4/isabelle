@@ -170,21 +170,27 @@ class Plugin extends EBPlugin
             filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
 
           if (!files.isEmpty) {
-            val files_list = new ListView(files.sorted)
-            for (i <- 0 until files.length)
-              files_list.selection.indices += i
+            if (PIDE.options.bool("jedit_auto_load")) {
+              files.foreach(file => jEdit.openFile(null: View, file))
+            }
+            else {
+              val files_list = new ListView(files.sorted)
+              for (i <- 0 until files.length)
+                files_list.selection.indices += i
 
-            val answer =
-              GUI.confirm_dialog(view,
-                "Auto loading of required files",
-                JOptionPane.YES_NO_OPTION,
-                "The following files are required to resolve theory imports.",
-                "Reload selected files now?",
-                new ScrollPane(files_list))
-            if (answer == 0) {
-              files.foreach(file =>
-                if (files_list.selection.items.contains(file))
-                  jEdit.openFile(null: View, file))
+              val answer =
+                GUI.confirm_dialog(view,
+                  "Auto loading of required files",
+                  JOptionPane.YES_NO_OPTION,
+                  "The following files are required to resolve theory imports.",
+                  "Reload selected files now?",
+                  new ScrollPane(files_list),
+                  new Isabelle.Continuous_Checking)
+              if (answer == 0) {
+                files.foreach(file =>
+                  if (files_list.selection.items.contains(file))
+                    jEdit.openFile(null: View, file))
+              }
             }
           }
         }

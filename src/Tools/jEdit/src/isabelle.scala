@@ -9,6 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
+import scala.swing.CheckBox
+import scala.swing.event.ButtonClicked
+
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
@@ -111,6 +114,14 @@ object Isabelle
   def set_continuous_checking() { continuous_checking = true }
   def reset_continuous_checking() { continuous_checking = false }
   def toggle_continuous_checking() { continuous_checking = !continuous_checking }
+
+  class Continuous_Checking extends CheckBox("Continuous checking")
+  {
+    tooltip = "Continuous checking of proof document (visible and required parts)"
+    reactions += { case ButtonClicked(_) => continuous_checking = selected }
+    def load() { selected = continuous_checking }
+    load()
+  }
 
 
   /* required document nodes */

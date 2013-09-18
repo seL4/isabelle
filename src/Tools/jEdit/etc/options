@@ -3,6 +3,9 @@
 public option jedit_logic : string = ""
   -- "default logic session"
 
+public option jedit_auto_load : bool = false
+  -- "load all required files automatically to resolve theory imports"
+
 public option jedit_reset_font_size : int = 18
   -- "reset font size for main text area"
 
