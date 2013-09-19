@@ -519,9 +519,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           end;
 
         val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms, nontriv_discI_thms,
-             disc_exclude_thms, disc_exhaust_thms, collapse_thms, expand_thms, case_conv_thms) =
+             disc_exclude_thms, disc_exhaust_thms, all_collapse_thms, safe_collapse_thms,
+             expand_thms, case_conv_thms) =
           if no_discs_sels then
-            ([], [], [], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [], [], [])
           else
             let
               fun make_sel_thm xs' case_thm sel_def =
@@ -642,7 +643,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   |> Thm.close_derivation
                 end;
 
-              val (collapse_thms, collapse_thm_opts) =
+              val (safe_collapse_thms, all_collapse_thms) =
                 let
                   fun mk_goal ctr udisc usels =
                     let
@@ -650,17 +651,19 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                       val concl =
                         mk_Trueprop_eq ((null usels ? swap) (Term.list_comb (ctr, usels), u));
                     in
-                      if prem aconv concl then NONE
-                      else SOME (Logic.all u (Logic.mk_implies (prem, concl)))
+                      (prem aconv concl, Logic.all u (Logic.mk_implies (prem, concl)))
                     end;
-                  val goals = map3 mk_goal ctrs udiscs uselss;
+                  val (trivs, goals) = map3 mk_goal ctrs udiscs uselss |> split_list;
+                  val thms =
+                    map5 (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
+                        Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                          mk_collapse_tac ctxt m discD sel_thms ORELSE HEADGOAL atac)
+                        |> Thm.close_derivation
+                        |> not triv ? perhaps (try (fn thm => refl RS thm)))
+                      ms discD_thms sel_thmss trivs goals;
                 in
-                  map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
-                    Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                      mk_collapse_tac ctxt m discD sel_thms)
-                    |> Thm.close_derivation
-                    |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
-                  |> `(map_filter I)
+                  (map_filter (fn (true, _) => NONE | (false, thm) => SOME thm) (trivs ~~ thms),
+                   thms)
                 end;
 
               val expand_thms =
@@ -679,8 +682,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                     Library.foldr Logic.list_implies
                       (map5 mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
                   val uncollapse_thms =
-                    map2 (fn NONE => K asm_rl | SOME thm => fn [] => thm | _ => thm RS sym)
-                      collapse_thm_opts uselss;
+                    map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in
                   [Goal.prove_sorry lthy [] [] goal (fn _ =>
                      mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
@@ -702,8 +704,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
-               nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], collapse_thms,
-               expand_thms, case_conv_thms)
+               nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], all_collapse_thms,
+               safe_collapse_thms, expand_thms, case_conv_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
@@ -759,7 +761,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           [(caseN, case_thms, simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_convN, case_conv_thms, []),
-           (collapseN, collapse_thms, simp_attrs),
+           (collapseN, safe_collapse_thms, simp_attrs),
            (discN, nontriv_disc_thms, simp_attrs),
            (discIN, nontriv_discI_thms, []),
            (disc_excludeN, disc_exclude_thms, []),
@@ -787,7 +789,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
           split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
           discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
-          collapses = collapse_thms, expands = expand_thms, case_convs = case_conv_thms},
+          collapses = all_collapse_thms, expands = expand_thms, case_convs = case_conv_thms},
          lthy
          |> not rep_compat ?
             (Local_Theory.declaration {syntax = false, pervasive = true}
