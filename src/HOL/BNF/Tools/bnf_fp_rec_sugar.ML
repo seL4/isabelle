@@ -827,6 +827,10 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
               |> single
           end;
 
+        (* TODO: please reorganize so that the list looks like elsewhere in the BNF code.
+           This is important because we continually add new theorems, change attributes, etc., and
+           need to have a clear overview (and keep the documentation in sync). Also, it's confusing
+           that some variables called '_thmss' are actually pairs. *)
         val (disc_notes, disc_thmss) =
           fun_names ~~ map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss
           |> `(map (fn (fun_name, thms) =>
