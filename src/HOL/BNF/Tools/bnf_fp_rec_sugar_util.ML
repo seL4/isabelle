@@ -59,6 +59,7 @@ sig
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ -> term -> term
+  val simplify_bool_ifs: theory -> term -> term list
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list) * local_theory
@@ -296,6 +297,15 @@ fun expand_corec_code_rhs ctxt has_call bound_Ts t =
 
 fun massage_corec_code_rhs ctxt massage_ctr =
   massage_let_and_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
+
+fun add_conjuncts (Const (@{const_name conj}, _) $ t $ t') = add_conjuncts t o add_conjuncts t'
+  | add_conjuncts t = cons t;
+
+fun conjuncts t = add_conjuncts t [];
+
+fun simplify_bool_ifs thy =
+  Raw_Simplifier.rewrite_term thy @{thms bool_if_simps[THEN eq_reflection]} []
+  #> conjuncts #> (fn [@{term True}] => [] | ts => ts);
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
 fun indexedd xss = fold_map indexed xss;

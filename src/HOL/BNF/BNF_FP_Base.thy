@@ -172,6 +172,15 @@ lemma if_if_False:
    (if b then f y else if b' then x' else f y')"
   by simp
 
+lemma if_then_else_True_False:
+  "(if p then False else r) \<longleftrightarrow> \<not> p \<and> r"
+  "(if p then True else r) \<longleftrightarrow> p \<or> r"
+  "(if p then q else False) \<longleftrightarrow> p \<and> q"
+  "(if p then q else True) \<longleftrightarrow> \<not> p \<or> q"
+by simp_all
+
+lemmas bool_if_simps = bool_simps(7,8,15-17,19,21-24,29-32) if_then_else_True_False
+
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"
