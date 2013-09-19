@@ -9,7 +9,7 @@ signature BNF_FP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_assumption_tac: Proof.context -> tactic
   val mk_primcorec_code_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> tactic
+  val mk_primcorec_code_of_ctr_tac: Proof.context -> int list -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
     thm list list list -> thm list -> thm list -> thm list -> tactic
@@ -74,14 +74,14 @@ fun mk_primcorec_disc_of_ctr_tac discI f_ctr =
 fun mk_primcorec_sel_of_ctr_tac sel f_ctr =
   HEADGOAL (etac (f_ctr RS arg_cong RS trans) THEN' rtac sel);
 
-fun mk_primcorec_code_of_ctr_case_tac ctxt f_ctr =
+fun mk_primcorec_code_of_ctr_case_tac ctxt m f_ctr =
   HEADGOAL (REPEAT o rtac @{thm eq_ifI}) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
-  REPEAT_DETERM (mk_primcorec_assumption_tac ctxt) THEN
+  REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt) THEN
   HEADGOAL (asm_simp_tac (ss_only @{thms if_True if_False not_False_eq_True} ctxt));
 
-fun mk_primcorec_code_of_ctr_tac ctxt ctr_thms =
-  EVERY (map (mk_primcorec_code_of_ctr_case_tac ctxt) ctr_thms);
+fun mk_primcorec_code_of_ctr_tac ctxt ms ctr_thms =
+  EVERY (map2 (mk_primcorec_code_of_ctr_case_tac ctxt) ms ctr_thms);
 
 fun mk_primcorec_code_tac ctxt raw collapses =
   HEADGOAL (rtac (raw RS trans)) THEN unfold_thms_tac ctxt @{thms split_ifs} THEN
