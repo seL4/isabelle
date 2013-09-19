@@ -259,23 +259,27 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
 
     fun massage_call U T =
       massage_let_and_if ctxt has_call (fn t =>
-        (case U of
-          Type (s, Us) =>
-          (case try (dest_ctr ctxt s) t of
-            SOME (f, args) =>
-            let val f' = mk_ctr Us f in
-              list_comb (f', map3 massage_call (binder_types (typof f')) (map typof args) args)
-            end
-          | NONE =>
-            (case t of
-              t1 $ t2 =>
-              (if has_call t2 then
-                check_and_massage_direct_call U T t
-              else
-                massage_map U T t1 $ t2
-                handle AINT_NO_MAP _ => check_and_massage_direct_call U T t)
-            | _ => check_and_massage_direct_call U T t))
-        | _ => ill_formed_corec_call ctxt t)) U
+        if has_call t then
+          (case U of
+            Type (s, Us) =>
+            (case try (dest_ctr ctxt s) t of
+              SOME (f, args) =>
+              let val f' = mk_ctr Us f in
+                list_comb (f', map3 massage_call (binder_types (typof f')) (map typof args) args)
+              end
+            | NONE =>
+              (case t of
+                t1 $ t2 =>
+                (if has_call t2 then
+                  check_and_massage_direct_call U T t
+                else
+                  massage_map U T t1 $ t2
+                  handle AINT_NO_MAP _ => check_and_massage_direct_call U T t)
+              | Abs (s, T', t') => Abs (s, T', massage_call (range_type U) (range_type T) t')
+              | _ => check_and_massage_direct_call U T t))
+          | _ => ill_formed_corec_call ctxt t)
+        else
+          build_map_Inl (T, U) $ t) U
   in
     massage_call U (typof t) t
   end;
