@@ -996,10 +996,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         (map2 proves unfold_goalss unfold_tacss, map2 proves corec_goalss corec_tacss)
       end;
 
-    val is_triv_discI = is_triv_implies orf is_concl_refl;
-
-    fun mk_disc_coiter_thms coiters discIs =
-      map (op RS) (filter_out (is_triv_discI o snd) (coiters ~~ discIs));
+    fun mk_disc_coiter_thms coiters discIs = map (op RS) (coiters ~~ discIs);
 
     val disc_unfold_thmss = map2 mk_disc_coiter_thms unfold_thmss discIss;
     val disc_corec_thmss = map2 mk_disc_coiter_thms corec_thmss discIss;

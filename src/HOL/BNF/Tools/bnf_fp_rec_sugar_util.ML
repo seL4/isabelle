@@ -509,8 +509,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
         val sel_thmss = #sel_thmss (nth ctr_sugars index);
         val collapses = #collapses (nth ctr_sugars index);
         val corec_thms = co_rec_of (nth coiter_thmsss index);
-        val disc_corecs = (case co_rec_of (nth disc_coitersss index) of [] => [TrueI]
-          | thms => thms);
+        val disc_corecs = co_rec_of (nth disc_coitersss index);
         val sel_corecss = co_rec_of (nth sel_coiterssss index);
       in
         map13 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss collapses
