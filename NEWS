@@ -388,9 +388,13 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
+* Nitpick:
+  - Reduce incidence of "too high arity" errors
+
 * Sledgehammer:
   - Renamed option:
       isar_shrink ~> isar_compress
+    INCOMPATIBILITY.
   - Better support for "isar_proofs"
 
 * Imperative-HOL: The MREC combinator is considered legacy and no
