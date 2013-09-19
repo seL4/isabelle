@@ -59,6 +59,7 @@ sig
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ -> term -> term
+  val fold_rev_corec_code_rhs: (term -> term list -> 'a -> 'a) -> term -> 'a -> 'a
   val simplify_bool_ifs: theory -> term -> term list
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
@@ -209,6 +210,17 @@ fun massage_let_and_if ctxt has_call massage_leaf U =
     massage_rec
   end;
 
+fun fold_rev_let_and_if f =
+  let
+    fun fld t =
+      (case Term.strip_comb t of
+        (Const (@{const_name Let}, _), [arg1, arg2]) => fld (betapply (arg2, arg1))
+      | (Const (@{const_name If}, _), _ :: args) => fold_rev fld args
+      | _ => f t)
+  in
+    fld
+  end;
+
 fun massage_direct_corec_call ctxt has_call massage_direct_call U t =
   massage_let_and_if ctxt has_call massage_direct_call U t;
 
@@ -297,6 +309,8 @@ fun expand_corec_code_rhs ctxt has_call bound_Ts t =
 
 fun massage_corec_code_rhs ctxt massage_ctr =
   massage_let_and_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
+
+fun fold_rev_corec_code_rhs f = fold_rev_let_and_if (uncurry f o Term.strip_comb);
 
 fun add_conjuncts (Const (@{const_name conj}, _) $ t $ t') = add_conjuncts t o add_conjuncts t'
   | add_conjuncts t = cons t;
