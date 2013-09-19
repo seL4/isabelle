@@ -586,18 +586,17 @@ fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
     fun rewrite _ _ =
       let
         fun subst (Abs (v, T, b)) = Abs (v, T, subst b)
-          | subst (t as _ $ _) =
+          | subst t =
             let val (u, vs) = strip_comb t in
               if is_Free u andalso has_call u then
                 Const (@{const_name Inr}, dummyT) $
-                  (try (foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y)) vs
-                    |> the_default (hd vs))
+                  (if null vs then HOLogic.unit
+                   else foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y) vs)
               else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
                 list_comb (u |> map_types (K dummyT), map subst vs)
               else
                 list_comb (subst u, map subst vs)
-            end
-          | subst t = t;
+            end;
       in
         subst
       end;
