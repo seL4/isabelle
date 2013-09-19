@@ -827,7 +827,7 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
               |> single
           end;
 
-        (* TODO: please reorganize so that the list looks like elsewhere in the BNF code.
+        (* TODO: Reorganize so that the list looks like elsewhere in the BNF code.
            This is important because we continually add new theorems, change attributes, etc., and
            need to have a clear overview (and keep the documentation in sync). Also, it's confusing
            that some variables called '_thmss' are actually pairs. *)
@@ -839,14 +839,25 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
           fun_names ~~ map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss
           |> `(map (fn (fun_name, thms) =>
             ((Binding.qualify true fun_name (@{binding sel}), simp_attrs), [(map snd thms, [])])));
+
+        val ctr_thmss = map5 (maps oooo prove_ctr) disc_thmss sel_thmss disc_eqnss sel_eqnss
+          (map #ctr_specs corec_specs);
+        val safess = map (map (K false)) ctr_thmss; (* FIXME: "true" for non-corecursive theorems *)
+        val safe_ctr_thmss =
+          map2 (map_filter (fn (safe, thm) => if safe then SOME thm else NONE) oo curry (op ~~))
+            safess ctr_thmss;
+
         val ctr_notes =
-          fun_names ~~ map5 (maps oooo prove_ctr) disc_thmss sel_thmss
-            disc_eqnss sel_eqnss (map #ctr_specs corec_specs)
+          fun_names ~~ ctr_thmss
           |> map (fn (fun_name, thms) =>
             ((Binding.qualify true fun_name (@{binding ctr}), []), [(thms, [])]));
+
+        val anonymous_notes =
+          [(flat safe_ctr_thmss, simp_attrs)]
+          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        lthy |> snd o Local_Theory.notes
-          (filter (not o null o fst o the_single o snd) (disc_notes @ sel_notes @ ctr_notes))
+        lthy |> snd o Local_Theory.notes (anonymous_notes @
+          filter (not o null o fst o the_single o snd) (disc_notes @ sel_notes @ ctr_notes))
       end;
   in
     lthy'
