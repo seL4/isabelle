@@ -583,25 +583,23 @@ fun build_corec_arg_direct_call lthy has_call sel_eqns sel =
 fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-    fun rewrite _ _ =
-      let
-        fun subst (Abs (v, T, b)) = Abs (v, T, subst b)
-          | subst t =
-            let val (u, vs) = strip_comb t in
-              if is_Free u andalso has_call u then
-                Const (@{const_name Inr}, dummyT) $
-                  (if null vs then HOLogic.unit
-                   else foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y) vs)
-              else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
-                list_comb (u |> map_types (K dummyT), map subst vs)
-              else
-                list_comb (subst u, map subst vs)
-            end;
-      in
-        subst
-      end;
-    fun massage rhs_term t = massage_indirect_corec_call
-      lthy has_call rewrite [] (range_type (fastype_of t)) rhs_term;
+    fun rewrite (Abs (v, T, b)) = Abs (v, T, rewrite b)
+      | rewrite t =
+        let val (u, vs) = strip_comb t in
+          if is_Free u andalso has_call u then
+            Const (@{const_name Inr}, dummyT) $
+              (if null vs then HOLogic.unit
+               else foldr1 (fn (x, y) => Const (@{const_name Pair}, dummyT) $ x $ y) vs)
+          else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
+            list_comb (u |> map_types (K dummyT), map rewrite vs)
+          else if null vs then
+            u
+          else
+            list_comb (rewrite u, map rewrite vs)
+        end;
+    fun massage rhs_term t =
+      massage_indirect_corec_call lthy has_call (K (K rewrite)) [] (range_type (fastype_of t))
+        rhs_term;
   in
     if is_none maybe_sel_eqn then I else
       abs_tuple (#fun_args (the maybe_sel_eqn)) o massage (#rhs_term (the maybe_sel_eqn))

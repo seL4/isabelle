@@ -150,7 +150,7 @@ fun map_flattened_map_args ctxt s map_args fs =
     permute_like (op aconv) flat_fs fs flat_fs'
   end;
 
-fun massage_indirect_rec_call ctxt has_call massage_unapplied_direct_call bound_Ts y y' =
+fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
   let
     val typof = curry fastype_of1 bound_Ts;
     val build_map_fst = build_map ctxt (fst_const o fst);
@@ -161,11 +161,9 @@ fun massage_indirect_rec_call ctxt has_call massage_unapplied_direct_call bound_
     fun y_of_y' () = build_map_fst (yU, yT) $ y';
     val elim_y = Term.map_aterms (fn t => if t = y then y_of_y' () else t);
 
-    fun check_and_massage_unapplied_direct_call U T t =
-      if has_call t then
-        factor_out_types ctxt massage_unapplied_direct_call HOLogic.dest_prodT U T t
-      else
-        HOLogic.mk_comp (t, build_map_fst (U, T));
+    fun massage_direct_fun U T t =
+      if has_call t then factor_out_types ctxt raw_massage_fun HOLogic.dest_prodT U T t
+      else HOLogic.mk_comp (t, build_map_fst (U, T));
 
     fun massage_map (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -184,7 +182,7 @@ fun massage_indirect_rec_call ctxt has_call massage_unapplied_direct_call bound_
         if has_call t then unexpected_rec_call ctxt t else t
       else
         massage_map U T t
-        handle AINT_NO_MAP _ => check_and_massage_unapplied_direct_call U T t;
+        handle AINT_NO_MAP _ => massage_direct_fun U T t;
 
     fun massage_call (t as t1 $ t2) =
         if t2 = y then
@@ -221,21 +219,21 @@ fun fold_rev_let_and_if f =
     fld
   end;
 
-fun massage_direct_corec_call ctxt has_call massage_direct_call U t =
-  massage_let_and_if ctxt has_call massage_direct_call U t;
+fun massage_direct_corec_call ctxt has_call raw_massage_call U t =
+  massage_let_and_if ctxt has_call raw_massage_call U t;
 
-fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
+fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
     val typof = curry fastype_of1 bound_Ts;
     val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
 
-    fun check_and_massage_direct_call U T t =
-      if has_call t then factor_out_types ctxt massage_direct_call dest_sumT U T t
+    fun massage_direct_call U T t =
+      if has_call t then factor_out_types ctxt raw_massage_call dest_sumT U T t
       else build_map_Inl (T, U) $ t;
 
-    fun check_and_massage_unapplied_direct_call U T t =
+    fun massage_direct_fun U T t =
       let val var = Var ((Name.uu, Term.maxidx_of_term t + 1), domain_type (typof t)) in
-        Term.lambda var (check_and_massage_direct_call U T (t $ var))
+        Term.lambda var (massage_direct_call U T (t $ var))
       end;
 
     fun massage_map (Type (_, Us)) (Type (s, Ts)) t =
@@ -255,7 +253,7 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
         if has_call t then unexpected_corec_call ctxt t else t
       else
         massage_map U T t
-        handle AINT_NO_MAP _ => check_and_massage_unapplied_direct_call U T t;
+        handle AINT_NO_MAP _ => massage_direct_fun U T t;
 
     fun massage_call U T =
       massage_let_and_if ctxt has_call (fn t =>
@@ -271,12 +269,12 @@ fun massage_indirect_corec_call ctxt has_call massage_direct_call bound_Ts U t =
               (case t of
                 t1 $ t2 =>
                 (if has_call t2 then
-                  check_and_massage_direct_call U T t
+                  massage_direct_call U T t
                 else
                   massage_map U T t1 $ t2
-                  handle AINT_NO_MAP _ => check_and_massage_direct_call U T t)
+                  handle AINT_NO_MAP _ => massage_direct_call U T t)
               | Abs (s, T', t') => Abs (s, T', massage_call (range_type U) (range_type T) t')
-              | _ => check_and_massage_direct_call U T t))
+              | _ => massage_direct_call U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
           build_map_Inl (T, U) $ t) U
