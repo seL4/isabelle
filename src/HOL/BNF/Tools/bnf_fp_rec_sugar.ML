@@ -839,7 +839,7 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
           fun_names ~~ map5 (maps oooo prove_ctr) disc_thmss sel_thmss
             disc_eqnss sel_eqnss (map #ctr_specs corec_specs)
           |> map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding ctr}), simp_attrs), [(thms, [])]));
+            ((Binding.qualify true fun_name (@{binding ctr}), []), [(thms, [])]));
       in
         lthy |> snd o Local_Theory.notes
           (filter (not o null o fst o the_single o snd) (disc_notes @ sel_notes @ ctr_notes))
