@@ -1194,7 +1194,7 @@ text %mlref {*
   \item @{ML ML_Compiler.exn_trace}~@{ML_text "(fn () =>"}~@{text
   "e"}@{ML_text ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
-  depending on the ML platform).}
+  depending on the ML platform).
 
   Inserting @{ML ML_Compiler.exn_trace} into ML code temporarily is
   useful for debugging, but not suitable for production code.
