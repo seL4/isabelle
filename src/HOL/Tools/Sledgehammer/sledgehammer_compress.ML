@@ -14,7 +14,7 @@ sig
   type isar_proof = Sledgehammer_Proof.isar_proof
   type preplay_interface = Sledgehammer_Preplay.preplay_interface
 
-  val compress_proof : real -> int -> preplay_interface -> isar_proof -> isar_proof
+  val compress_proof : real -> preplay_interface -> isar_proof -> isar_proof
 end
 
 
@@ -116,11 +116,12 @@ fun try_merge
 
 (*** main function ***)
 
+val compress_degree = 2
 val merge_timeout_slack = 1.2
 
 (* PRE CONDITION: the proof must be labeled canocially, see
    Slegehammer_Proof.relabel_proof_canonically *)
-fun compress_proof isar_compress isar_compress_degree
+fun compress_proof isar_compress
         ({get_preplay_time, set_preplay_time, preplay_quietly, ...}
          : preplay_interface)
   proof =
@@ -320,7 +321,7 @@ fun compress_proof isar_compress isar_compress_degree
               let
                 val successors = get_successors l
               in
-                if length successors > isar_compress_degree
+                if length successors > compress_degree
                   then steps
                   else compression_loop candidates
                          (try_eliminate cand successors steps)
