@@ -184,8 +184,8 @@ to distinguish both when desired.
 
 * HOL/BNF:
   - Various improvements to BNF-based (co)datatype package, including new
-    commands "primrec_new", "primcorec", and "datatype_new_compat", and
-    documentation. See "datatypes.pdf" for details.
+    commands "primrec_new", "primcorecursive", and "datatype_new_compat",
+    as well as documentation. See "datatypes.pdf" for details.
   - Renamed keywords:
     data ~> datatype_new
     codata ~> codatatype
@@ -395,7 +395,9 @@ INCOMPATIBILITY.
   - Renamed option:
       isar_shrink ~> isar_compress
     INCOMPATIBILITY.
+  - Added option "isar_try0"
   - Better support for "isar_proofs"
+  - MaSh has been fined-tuned and now runs as a local server
 
 * Imperative-HOL: The MREC combinator is considered legacy and no
 longer included by default. INCOMPATIBILITY, use partial_function
