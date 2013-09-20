@@ -70,7 +70,7 @@ fun quotient_eq ({quot_thm = quot_thm1, pcr_info = pcr_info1},
                 {quot_thm = quot_thm2, pcr_info = pcr_info2}) =
                 Thm.eq_thm (quot_thm1, quot_thm2) andalso option_eq pcr_eq (pcr_info1, pcr_info2)
 
-fun join_restore_data key (rd1, rd2) =
+fun join_restore_data key (rd1:restore_data, rd2) =
   if pointer_eq (rd1, rd2) then raise Symtab.SAME else
   if not (quotient_eq (#quotient rd1, #quotient rd2)) then raise Symtab.DUP key else
     { quotient = #quotient rd1, 

@@ -925,7 +925,7 @@ fun filter_transfer_rules_by_rel transfer_rel transfer_rules =
 
 type restore_data = {quotient : Lifting_Info.quotient, transfer_rules: thm Item_Net.T}
 
-fun get_transfer_rel qinfo =
+fun get_transfer_rel (qinfo : Lifting_Info.quotient) =
   let
     fun get_pcrel pcr_def = pcr_def |> concl_of |> Logic.dest_equals |> fst |> head_of
   in
@@ -954,10 +954,7 @@ fun lifting_forget pointer lthy =
   let
     fun get_transfer_rules_to_delete qinfo ctxt =
       let
-        fun get_pcrel pcr_def = pcr_def |> concl_of |> Logic.dest_equals |> fst |> head_of
-        val transfer_rel = if is_some (#pcr_info qinfo) 
-          then get_pcrel (#pcrel_def (the (#pcr_info qinfo)))
-          else quot_thm_crel (#quot_thm qinfo)
+        val transfer_rel = get_transfer_rel qinfo
       in
          filter_transfer_rules_by_rel transfer_rel (Transfer.get_transfer_raw ctxt)
       end
@@ -990,7 +987,7 @@ val _ =
 
 fun update_transfer_rules pointer lthy =
   let
-    fun new_transfer_rules { quotient = qinfo, ... } lthy =
+    fun new_transfer_rules ({ quotient = qinfo, ... }:Lifting_Info.restore_data) lthy =
       let
         val transfer_rel = get_transfer_rel qinfo
         val transfer_rules = filter_transfer_rules_by_rel transfer_rel (Transfer.get_transfer_raw lthy)
