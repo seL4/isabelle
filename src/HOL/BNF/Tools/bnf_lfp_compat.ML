@@ -131,8 +131,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val all_notes =
       (case lfp_sugar_thms of
         NONE => []
-      | SOME ((induct_thms, induct_thm, induct_attrs), (fold_thmss, fold_attrs),
-              (rec_thmss, rec_attrs)) =>
+      | SOME ((induct_thms, induct_thm, induct_attrs), (fold_thmss, _), (rec_thmss, _)) =>
         let
           val common_notes =
             (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
@@ -141,9 +140,9 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
               ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
 
           val notes =
-            [(foldN, fold_thmss, fold_attrs),
+            [(foldN, fold_thmss, []),
              (inductN, map single induct_thms, induct_attrs),
-             (recN, rec_thmss, rec_attrs)]
+             (recN, rec_thmss, [])]
             |> filter_out (null o #2)
             |> maps (fn (thmN, thmss, attrs) =>
               if forall null thmss then
