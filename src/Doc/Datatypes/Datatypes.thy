@@ -583,14 +583,22 @@ text {* \blankline *}
     ML {* Datatype_Data.get_info @{theory} @{type_name even_nat} *}
 
 text {*
-For nested recursive datatypes, all types through which recursion takes place
-must be new-style datatypes. In principle, it should be possible to support
-old-style datatypes as well, but the command does not support this yet (and
-there is currently no way to register old-style datatypes as new-style
-datatypes).
+A few remarks concern nested recursive datatypes only:
 
-An alternative is to use the old package's \keyw{rep\_datatype} command. The
-associated proof obligations must then be discharged manually.
+\begin{itemize}
+\item The old-style, nested-as-mutual induction rule, iterator theorems, and
+recursor theorems are generated under their usual names but with ``@{text
+"compat_"}'' prefixed (e.g., @{text compat_tree.induct}).
+
+\item All types through which recursion takes place must be new-style datatypes
+or the function type. In principle, it should be possible to support old-style
+datatypes as well, but the command does not support this yet (and there is
+currently no way to register old-style datatypes as new-style datatypes).
+\end{itemize}
+
+An alternative to @{command datatype_new_compat} is to use the old package's
+\keyw{rep\_datatype} command. The associated proof obligations must then be
+discharged manually.
 *}
 
 
