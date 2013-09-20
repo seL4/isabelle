@@ -13,7 +13,6 @@ keywords
   "primcorec_notyet" :: thy_decl
 begin
 
-
 (*<*)
 (* FIXME: Temporary setup until "primcorec" is fully implemented. *)
 ML_command {*
@@ -1380,6 +1379,11 @@ Here is an example with many constructors:
     | Action (prefix: 'a) (cont: "'a process")
     | Choice (left: "'a process") (right: "'a process")
 
+text {*
+Notice that the @{const cont} selector is associated with both @{const Skip}
+and @{const Choice}.
+*}
+
 
 subsubsection {* Mutual Corecursion
   \label{sssec:codatatype-mutual-corecursion} *}
@@ -1796,8 +1800,12 @@ subsubsection {* Constructor View
 (*>*)
 
 text {*
-For the next example, the constructor view is slighlty more involved than the
-code equation:
+The constructor view is similar to the code view, but there is one separate
+conditional equation per constructor rather than a single unconditional
+equation. Examples that rely on a single constructor, such as @{const literate}
+and @{const siterate}, are identical in both styles.
+
+Here is an example where there is a difference:
 *}
 
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
@@ -1808,13 +1816,20 @@ code equation:
 
 text {*
 \noindent
-Recall the code view version presented in
+With the constructor view, we must now distinguish between the @{const LNil}
+case and the @{const LCons} case. The condition for the @{const LCons} case is
+left implicit, as the negation of the @{const LNil} case.
+
+For this example, the constructor view is slighlty more involved than the
+code equation. Recall the code view version presented in
 Section~\ref{sssec:primcorec-simple-corecursion}.
 % TODO: \[{thm code_view.lappend.code}\]
 The constructor view requires us to analyze the second argument (@{term ys}).
 The code equation generated for the constructor view also suffers from this
 complication.
 % TODO: \[{thm lappend.code}\]
+
+The next example is arguably more naturally expressed in the constructor view:
 *}
 
     primcorec_notyet random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process" where
@@ -1830,6 +1845,20 @@ complication.
 (*<*)
     end
 (*>*)
+
+text {*
+Since there is no sequentiality, we can apply the equation for @{const Choice}
+without having first to discharge @{term "n mod 4 \<noteq> 0"},
+@{term "n mod 4 \<noteq> 1"}, and @{term "n mod 4 \<noteq> 2"}.
+The price to pay for this elegance is that we must discharge exclusivity proof
+obligations, one for each pair of conditions
+@{term "(n mod 4 = i, n mod 4 = j)"}. If we prefer not to discharge any
+obligations, we can specify the option @{text "(sequential)"} after the
+@{command primcorec} keyword. This pushes the problem to the users of the
+generated properties, as with the code view.
+
+%Here are more examples to conclude:
+*}
 
 
 subsubsection {* Destructor View
@@ -1872,6 +1901,46 @@ formula is necessary, since the type has only one constructor. The last two
 formulas are equations specifying the value of the result for the relevant
 selectors. Corecursive calls appear directly to the right of the equal sign.
 Their arguments are unrestricted.
+
+The next example shows how to specify functions that rely on more than one
+constructor:
+*}
+
+    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
+      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
+      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
+    .
+
+text {*
+\noindent
+For a codatatype with $n$ constructors, it is sufficient to specify $n - 1$
+discriminator formulas. The command will then assume that the remaining
+constructor should be taken otherwise. This can be made explicit by adding
+*}
+
+(*<*)
+    end
+
+    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+      "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
+(*>*)
+      "_ \<Longrightarrow> \<not> lnull (lappend xs ys)" (*<*) |
+      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
+      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
+    .
+
+    context dest_view begin
+(*>*)
+
+text {*
+\noindent
+to the specification.
+In the generated theorems, the selector equations are conditional:
+\[@{thm lappend.sel}\]
+
+The next example shows how to cope with selectors defined for several
+constructors:
 *}
 
     primcorec_notyet random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process" where
@@ -1887,7 +1956,11 @@ Their arguments are unrestricted.
     (* FIXME: by auto *)
 
 text {*
+\noindent
+Using the @{text "of"} keyword, different equations are specified for @{const
+cont} depending on which constructor is selected.
 
+Here are more examples to conclude:
 *}
 
     primcorec
@@ -1907,6 +1980,7 @@ text {*
 (*<*)
     end
 (*>*)
+
 
 subsection {* Command Syntax
   \label{ssec:primcorec-command-syntax} *}
@@ -2146,6 +2220,5 @@ yet to be implemented. Florian Haftmann and Christian Urban provided general
 advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
 suggested an elegant proof to eliminate one of the BNF assumptions.
 *}
-
 
 end
