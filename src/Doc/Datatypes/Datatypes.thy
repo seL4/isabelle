@@ -1410,7 +1410,7 @@ The next examples feature \emph{nested corecursion}:
     codatatype 'a tree\<^sub>i\<^sub>s = Node\<^sub>i\<^sub>s (lbl\<^sub>i\<^sub>s: 'a) (sub\<^sub>i\<^sub>s: "'a tree\<^sub>i\<^sub>s fset")
 
     codatatype 'a state_machine =
-      State_Machine bool "'a \<Rightarrow> 'a state_machine"
+      State_Machine (accept: bool) (trans: "'a \<Rightarrow> 'a state_machine")
 
 
 subsection {* Command Syntax
@@ -1763,6 +1763,30 @@ function translates a DFA into a @{type state_machine}:
     primcorec of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine" where
       "of_dfa \<delta> F q = State_Machine (q \<in> F) (of_dfa \<delta> F o \<delta> q)"
     .
+
+text {*
+\noindent
+The map function for the function type (@{text \<Rightarrow>}) is composition
+(@{text "op \<circ>"}).
+
+\noindent
+For convenience, corecursion through functions can be expressed using
+@{text \<lambda>}-expressions and function application rather than composition.
+For example:
+*}
+
+    primcorec empty_machine :: "'a state_machine" where
+      "empty_machine = State_Machine False (\<lambda>_. empty_machine)"
+    .
+
+    primcorec not_machine :: "'a state_machine \<Rightarrow> 'a state_machine" where
+      "not_machine M = State_Machine (\<not> accept M) (\<lambda>a. not_machine (trans M a))"
+    .
+
+    primcorec_notyet plus_machine :: "'a state_machine \<Rightarrow> 'a state_machine" where
+      "or_machine M N =
+         State_Machine (accept M \<or> accept N)
+           (\<lambda>a. or_machine (trans M a) (trans N a))"
 
 
 subsubsection {* Nested-as-Mutual Corecursion
