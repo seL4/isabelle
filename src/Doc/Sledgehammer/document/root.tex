@@ -1298,6 +1298,11 @@ correspond to a group of up to $n$ consecutive proof steps in the ATP proof.
 \optrueonly{dont\_compress\_isar}
 Alias for ``\textit{isar\_compress} = 0''.
 
+\optrue{isar\_try0}
+Specifies whether standard proof methods such as \textit{auto} and
+\textit{blast} should be tried as alternatives to \textit{metis} and
+\textit{smt} in Isar proofs. The collection of methods is roughly the same as
+for the \keyw{try0} command.
 \end{enum}
 
 \subsection{Authentication}
