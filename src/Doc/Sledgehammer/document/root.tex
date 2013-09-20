@@ -144,8 +144,8 @@ imported---this is rarely a problem in practice since it is part of
 Comments and bug reports concerning Sledgehammer or this manual should be
 directed to the author at \authoremail.
 
-\vskip2.5\smallskipamount
-
+%\vskip2.5\smallskipamount
+%
 %\textbf{Acknowledgment.} The author would like to thank Mark Summerfield for
 %suggesting several textual improvements.
 
@@ -292,20 +292,16 @@ Sledgehammer: ``\textit{spass\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis list.inject}) (17 ms). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_waldmeister\/}'' on goal \\
-$[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}) (15 ms). \\[3\smallskipamount]
-%
 Sledgehammer: ``\textit{remote\_e\_sine\/}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this: \textbf{by} (\textit{metis hd.simps}) (18 ms).
 \postw
 
-Sledgehammer ran E, E-SInE, SPASS, Vampire, Waldmeister, and Z3 in parallel.
-Depending on which provers are installed and how many processor cores are
-available, some of the provers might be missing or present with a
-\textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
-where the goal's conclusion is a (universally quantified) equation.
+Sledgehammer ran E, E-SInE, SPASS, Vampire, and Z3 in parallel. Depending on
+which provers are installed and how many processor cores are available, some of
+the provers might be missing or present with a \textit{remote\_} prefix.
+Waldmeister is run only for unit equational problems, where the goal's
+conclusion is a (universally quantified) equation.
 
 For each successful prover, Sledgehammer gives a one-liner \textit{metis} or
 \textit{smt} method call. Rough timings are shown in parentheses, indicating how
@@ -338,7 +334,7 @@ For best results, first simplify your problem by calling \textit{auto} or at
 least \textit{safe} followed by \textit{simp\_all}. The SMT solvers provide
 arithmetic decision procedures, but the ATPs typically do not (or if they do,
 Sledgehammer does not use it yet). Apart from Waldmeister, they are not
-especially good at heavy rewriting, but because they regard equations as
+particularly good at heavy rewriting, but because they regard equations as
 undirected, they often prove theorems that require the reverse orientation of a
 \textit{simp} rule. Higher-order problems can be tackled, but the success rate
 is better for first-order problems. Hence, you may get better results if you
@@ -989,10 +985,10 @@ point).
 \end{enum}
 
 By default, Sledgehammer runs a selection of CVC3, E, E-SInE, SPASS, Vampire,
-Yices, Z3, and (if appropriate) Waldmeister in parallel---either locally or
-remotely, depending on the number of processor cores available. (For historical
-reasons, the default value of this option can be overridden using the option
-``Sledgehammer: Provers'' in Proof General's ``Isabelle'' menu.)
+Yices, and Z3 in parallel---either locally or remotely, depending on the number
+of processor cores available. (For historical reasons, the default value of this
+option can be overridden using the option ``Sledgehammer: Provers'' in Proof
+General's ``Isabelle'' menu.)
 
 It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the

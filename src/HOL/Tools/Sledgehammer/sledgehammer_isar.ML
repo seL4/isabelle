@@ -218,7 +218,7 @@ val max_default_remote_threads = 4
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
 fun default_provers_param_value ctxt =
-  [eN, spassN, vampireN, z3N, e_sineN, waldmeisterN, yicesN]
+  [eN, spassN, vampireN, z3N, e_sineN, yicesN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
                                   max_default_remote_threads)
