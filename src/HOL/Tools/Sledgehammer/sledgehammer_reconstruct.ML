@@ -12,7 +12,7 @@ sig
   type one_line_params = Sledgehammer_Print.one_line_params
 
   type isar_params =
-    bool * bool * Time.time option * real * int * real * bool * bool
+    bool * bool * Time.time option * real * int * bool * bool
     * string Symtab.table * (string * stature) list vector
     * (string * term) list * int Symtab.table * string atp_proof * thm
 
@@ -408,14 +408,14 @@ val chain_direct_proof =
   in chain_proof end
 
 type isar_params =
-  bool * bool * Time.time option * real * int * real * bool * bool
+  bool * bool * Time.time option * real * int * bool * bool
   * string Symtab.table * (string * stature) list vector
   * (string * term) list * int Symtab.table * string atp_proof * thm
 
 fun isar_proof_text ctxt isar_proofs
     (debug, verbose, preplay_timeout, isar_compress, isar_compress_degree,
-     merge_timeout_slack, isar_try0, isar_minimize, pool, fact_names, lifted,
-     sym_tab, atp_proof, goal)
+     isar_try0, isar_minimize, pool, fact_names, lifted, sym_tab, atp_proof,
+     goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -592,7 +592,7 @@ fun isar_proof_text ctxt isar_proofs
           |> compress_proof
                (if isar_proofs = SOME true then isar_compress else 1000.0)
                (if isar_proofs = SOME true then isar_compress_degree else 100)
-               merge_timeout_slack preplay_interface
+               preplay_interface
           |> isar_try0 ? try0 preplay_timeout preplay_interface
           |> minimize_dependencies_and_remove_unrefed_steps isar_minimize
                preplay_interface

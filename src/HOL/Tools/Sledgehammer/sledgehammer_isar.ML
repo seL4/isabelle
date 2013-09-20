@@ -94,8 +94,7 @@ val default_default_params =
    ("max_new_mono_instances", "smart"),
    ("isar_proofs", "smart"),
    ("isar_compress", "10"),
-   ("isar_compress_degree", "2"), (* TODO: document; right value?? *)
-   ("merge_timeout_slack", "1.2"), (* TODO: document *)
+   ("isar_compress_degree", "2"), (* TODO: document *)
    ("isar_try0", "true"), (* TODO: document *)
    ("isar_minimize", "true"), (* TODO: document *)
    ("slice", "true"),
@@ -306,7 +305,6 @@ fun extract_params mode default_params override_params =
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val isar_compress_degree = Int.max (1, lookup_int "isar_compress_degree")
-    val merge_timeout_slack = Real.max (1.0, lookup_real "merge_timeout_slack")
     val isar_try0 = lookup_bool "isar_try0"
     val isar_minimize = lookup_bool "isar_minimize"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
@@ -325,8 +323,7 @@ fun extract_params mode default_params override_params =
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
      isar_compress = isar_compress, isar_compress_degree = isar_compress_degree,
-     merge_timeout_slack = merge_timeout_slack, isar_try0 = isar_try0,
-     isar_minimize = isar_minimize, slice = slice,
+     isar_try0 = isar_try0, isar_minimize = isar_minimize, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
      expect = expect}
   end
