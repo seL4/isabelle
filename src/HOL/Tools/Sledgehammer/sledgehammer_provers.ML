@@ -37,7 +37,6 @@ sig
      isar_proofs : bool option,
      isar_compress : real,
      isar_try0 : bool,
-     isar_minimize : bool,
      slice : bool,
      minimize : bool option,
      timeout : Time.time option,
@@ -349,7 +348,6 @@ type params =
    isar_proofs : bool option,
    isar_compress : real,
    isar_try0 : bool,
-   isar_minimize : bool,
    slice : bool,
    minimize : bool option,
    timeout : Time.time option,
@@ -675,8 +673,7 @@ fun run_atp mode name
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, fact_filter, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proofs, isar_compress,
-                    isar_try0, isar_minimize, slice, timeout,
-                    preplay_timeout, ...})
+                    isar_try0, slice, timeout, preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -952,8 +949,7 @@ fun run_atp mode name
                     ()
                 val isar_params =
                   (debug, verbose, preplay_timeout, isar_compress, isar_try0,
-                  isar_minimize, pool, fact_names, lifted, sym_tab, atp_proof,
-                  goal)
+                   pool, fact_names, lifted, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command ctxt params minimize_command name

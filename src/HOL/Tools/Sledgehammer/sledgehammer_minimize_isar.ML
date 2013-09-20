@@ -49,8 +49,8 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
       mk_step_lfs_gfs min_lfs min_gfs
     end)
 
-fun minimize_dependencies_and_remove_unrefed_steps
-  isar_minimize preplay_interface proof =
+fun minimize_dependencies_and_remove_unrefed_steps isar_try0 preplay_interface
+        proof =
   let
     fun cons_to xs x = x :: xs
 
@@ -86,7 +86,7 @@ fun minimize_dependencies_and_remove_unrefed_steps
 
     and do_refed_step step =
       step
-      |> isar_minimize ? min_deps_of_step preplay_interface
+      |> isar_try0 ? min_deps_of_step preplay_interface
       |> do_refed_step'
 
     and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"
@@ -101,7 +101,6 @@ fun minimize_dependencies_and_remove_unrefed_steps
         in
           (refed, step)
         end
-
   in
     snd (do_proof proof)
   end

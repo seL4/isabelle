@@ -57,8 +57,8 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
-                 uncurried_aliases, isar_proofs, isar_compress,
-                 isar_try0, isar_minimize, preplay_timeout, ...} : params)
+                 uncurried_aliases, isar_proofs, isar_compress, isar_try0,
+                 preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
     val _ =
@@ -80,9 +80,8 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances,
        isar_proofs = isar_proofs, isar_compress = isar_compress,
-       isar_try0 = isar_try0, isar_minimize = isar_minimize, slice = false,
-       minimize = SOME false, timeout = timeout,
-       preplay_timeout = preplay_timeout, expect = ""}
+       isar_try0 = isar_try0, slice = false, minimize = SOME false,
+       timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
@@ -252,8 +251,8 @@ fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
          fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
-         isar_compress, isar_try0, isar_minimize, slice, minimize, timeout,
-         preplay_timeout, expect} : params) =
+         isar_compress, isar_try0, slice, minimize, timeout, preplay_timeout,
+         expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -270,9 +269,9 @@ fun adjust_reconstructor_params override_params
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, isar_try0 = isar_try0,
-     isar_minimize = isar_minimize, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
   end
 
 fun maybe_minimize ctxt mode do_learn name
