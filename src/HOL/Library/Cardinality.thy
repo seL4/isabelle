@@ -499,23 +499,18 @@ text {*
   Constrain the element type with sort @{class card_UNIV} to change this.
 *}
 
-definition card_coset_requires_card_UNIV :: "'a list \<Rightarrow> nat"
-where [code del, simp]: "card_coset_requires_card_UNIV xs = card (List.coset xs)"
-
-code_abort card_coset_requires_card_UNIV
-
 lemma card_coset_error [code]:
-  "card (List.coset xs) = card_coset_requires_card_UNIV xs"
+  "card (List.coset xs) = 
+   Code.abort (STR ''card (List.coset _) requires type class instance card_UNIV'')
+     (\<lambda>_. card (List.coset xs))"
 by(simp)
-
-definition coset_subseteq_set_requires_card_UNIV :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-where [code del, simp]: "coset_subseteq_set_requires_card_UNIV xs ys \<longleftrightarrow> List.coset xs \<subseteq> set ys"
-
-code_abort coset_subseteq_set_requires_card_UNIV
 
 lemma coset_subseteq_set_code [code]:
   "List.coset xs \<subseteq> set ys \<longleftrightarrow> 
-  (if xs = [] \<and> ys = [] then False else coset_subseteq_set_requires_card_UNIV xs ys)"
+  (if xs = [] \<and> ys = [] then False 
+   else Code.abort
+     (STR ''subset_eq (List.coset _) (List.set _) requires type class instance card_UNIV'')
+     (\<lambda>_. List.coset xs \<subseteq> set ys))"
 by simp
 
 notepad begin -- "test code setup"

@@ -628,20 +628,16 @@ lemma subset_code [code]:
   "A \<le> Coset t \<longleftrightarrow> (\<forall>y\<in>Set t. y \<notin> A)"
 by auto
 
-definition non_empty_trees where [code del]: "non_empty_trees t1 t2 \<longleftrightarrow> Coset t1 \<le> Set t2"
-
-code_abort non_empty_trees
-
 lemma subset_Coset_empty_Set_empty [code]:
   "Coset t1 \<le> Set t2 \<longleftrightarrow> (case (impl_of t1, impl_of t2) of 
     (rbt.Empty, rbt.Empty) => False |
-    (_, _) => non_empty_trees t1 t2)"
+    (_, _) => Code.abort (STR ''non_empty_trees'') (\<lambda>_. Coset t1 \<le> Set t2))"
 proof -
   have *: "\<And>t. impl_of t = rbt.Empty \<Longrightarrow> t = RBT rbt.Empty"
     by (subst(asm) RBT_inverse[symmetric]) (auto simp: impl_of_inject)
   have **: "Lifting.invariant is_rbt rbt.Empty rbt.Empty" unfolding Lifting.invariant_def by simp
   show ?thesis  
-    by (auto simp: Set_def lookup.abs_eq[OF **] dest!: * split: rbt.split simp: non_empty_trees_def)
+    by (auto simp: Set_def lookup.abs_eq[OF **] dest!: * split: rbt.split)
 qed
 
 text {* A frequent case – avoid intermediate sets *}
@@ -661,15 +657,11 @@ proof -
     by (auto simp add: setsum.eq_fold finite_fold_fold_keys o_def)
 qed
 
-definition not_a_singleton_tree  where [code del]: "not_a_singleton_tree x y = x y"
-
-code_abort not_a_singleton_tree
-
 lemma the_elem_set [code]:
   fixes t :: "('a :: linorder, unit) rbt"
   shows "the_elem (Set t) = (case impl_of t of 
     (Branch RBT_Impl.B RBT_Impl.Empty x () RBT_Impl.Empty) \<Rightarrow> x
-    | _ \<Rightarrow> not_a_singleton_tree the_elem (Set t))"
+    | _ \<Rightarrow> Code.abort (STR ''not_a_singleton_tree'') (\<lambda>_. the_elem (Set t)))"
 proof -
   {
     fix x :: "'a :: linorder"
@@ -681,7 +673,7 @@ proof -
       by (subst(asm) RBT_inverse[symmetric, OF *])
         (auto simp: Set_def the_elem_def lookup.abs_eq[OF **] impl_of_inject)
   }
-  then show ?thesis unfolding not_a_singleton_tree_def
+  then show ?thesis
     by(auto split: rbt.split unit.split color.split)
 qed
 
@@ -729,17 +721,16 @@ lemma wf_set [code]:
   "wf (Set t) = acyclic (Set t)"
 by (simp add: wf_iff_acyclic_if_finite)
 
-definition not_non_empty_tree  where [code del]: "not_non_empty_tree x y = x y"
-
-code_abort not_non_empty_tree
-
 lemma Min_fin_set_fold [code]:
-  "Min (Set t) = (if is_empty t then not_non_empty_tree Min (Set t) else r_min_opt t)"
+  "Min (Set t) = 
+  (if is_empty t
+   then Code.abort (STR ''not_non_empty_tree'') (\<lambda>_. Min (Set t))
+   else r_min_opt t)"
 proof -
   have *: "semilattice (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" ..
   with finite_fold1_fold1_keys [OF *, folded Min_def]
   show ?thesis
-    by (simp add: not_non_empty_tree_def r_min_alt_def r_min_eq_r_min_opt [symmetric])  
+    by (simp add: r_min_alt_def r_min_eq_r_min_opt [symmetric])  
 qed
 
 lemma Inf_fin_set_fold [code]:
@@ -771,12 +762,15 @@ proof -
 qed
 
 lemma Max_fin_set_fold [code]:
-  "Max (Set t) = (if is_empty t then not_non_empty_tree Max (Set t) else r_max_opt t)"
+  "Max (Set t) = 
+  (if is_empty t
+   then Code.abort (STR ''not_non_empty_tree'') (\<lambda>_. Max (Set t))
+   else r_max_opt t)"
 proof -
   have *: "semilattice (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" ..
   with finite_fold1_fold1_keys [OF *, folded Max_def]
   show ?thesis
-    by (simp add: not_non_empty_tree_def r_max_alt_def r_max_eq_r_max_opt [symmetric])  
+    by (simp add: r_max_alt_def r_max_eq_r_max_opt [symmetric])  
 qed
 
 lemma Sup_fin_set_fold [code]:
