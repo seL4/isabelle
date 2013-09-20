@@ -262,7 +262,7 @@ struct
 
 fun shutdown ctxt overlord =
   (trace_msg ctxt (K "MaSh shutdown");
-   run_mash_tool ctxt overlord [shutdown_server_arg] true ([], K "") (K ()))
+   run_mash_tool ctxt overlord [shutdown_server_arg] false ([], K "") (K ()))
 
 fun save ctxt overlord =
   (trace_msg ctxt (K "MaSh save");
@@ -1229,14 +1229,15 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       end
   end
 
-fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
-               run_prover =
+fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
+               chained run_prover =
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
     val facts =
       nearly_all_facts ctxt false fact_override Symtab.empty css chained []
                        @{prop True}
+      |> (case max_facts of NONE => I | SOME n => take n)
     val num_facts = length facts
     val prover = hd provers
     fun learn auto_level run_prover =
