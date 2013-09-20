@@ -348,9 +348,9 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val ((nontriv, missing_arg_Ts, perm0_kks,
+    val ((missing_arg_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = ctor_iters1 :: _, ...},
-            co_inducts = [induct_thm], ...} :: _), lthy') =
+            co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy') =
       nested_to_mutual_fps lose_co_rec Least_FP bs arg_Ts get_indices callssss0 lthy;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
@@ -423,16 +423,17 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars iter_thmsss};
   in
-    ((nontriv, map mk_spec fp_sugars, missing_arg_Ts, induct_thm, induct_thms), lthy')
+    ((is_some lfp_sugar_thms, map mk_spec fp_sugars, missing_arg_Ts, induct_thm, induct_thms),
+     lthy')
   end;
 
 fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
-    val ((nontriv, missing_res_Ts, perm0_kks,
+    val ((missing_res_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
-            co_inducts = coinduct_thms, ...} :: _), lthy') =
+            co_inducts = coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy') =
       nested_to_mutual_fps lose_co_rec Greatest_FP bs res_Ts get_indices callssss0 lthy;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
@@ -526,7 +527,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
          disc_coitersss sel_coiterssss};
   in
-    ((nontriv, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
+    ((is_some gfp_sugar_thms, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
       co_induct_of coinduct_thms, strong_co_induct_of coinduct_thms, co_induct_of coinduct_thmss,
       strong_co_induct_of coinduct_thmss), lthy')
   end;

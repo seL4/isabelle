@@ -82,17 +82,20 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
             " not associated with new-style datatype (cf. \"datatype_new\")"));
 
     val Ts = add_nested_types_of fpT1 [];
-    val bs = map (Binding.name o prefix compatN o base_name_of_typ) Ts;
+    val b_names = map base_name_of_typ Ts;
+    val compat_b_names = map (prefix compatN) b_names;
+    val compat_bs = map Binding.name compat_b_names;
+    val common_name = compatN ^ mk_common_name b_names;
     val nn_fp = length fpTs;
     val nn = length Ts;
     val get_indices = K [];
-    val fp_sugars0 =
-      if nn = 1 then [fp_sugar0] else map (lfp_sugar_of o fst o dest_Type) Ts;
+    val fp_sugars0 = if nn = 1 then [fp_sugar0] else map (lfp_sugar_of o fst o dest_Type) Ts;
     val callssss = pad_and_indexify_calls fp_sugars0 nn [];
     val has_nested = nn > nn_fp;
 
-    val ((_, fp_sugars), lthy) =
-      mutualize_fp_sugars false has_nested Least_FP bs Ts get_indices callssss fp_sugars0 lthy;
+    val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
+      mutualize_fp_sugars false has_nested Least_FP compat_bs Ts get_indices callssss fp_sugars0
+        lthy;
 
     val {ctr_sugars, co_inducts = [induct], co_iterss, co_iter_thmsss = iter_thmsss, ...} :: _ =
       fp_sugars;
@@ -125,11 +128,41 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
 
     val infos = map mk_info (take nn_fp fp_sugars);
 
-    val register_and_interpret =
+    val all_notes =
+      (case lfp_sugar_thms of
+        NONE => []
+      | SOME ((induct_thms, induct_thm, induct_attrs), (fold_thmss, fold_attrs),
+              (rec_thmss, rec_attrs)) =>
+        let
+          val common_notes =
+            (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
+            |> filter_out (null o #2)
+            |> map (fn (thmN, thms, attrs) =>
+              ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
+
+          val notes =
+            [(foldN, fold_thmss, fold_attrs),
+             (inductN, map single induct_thms, induct_attrs),
+             (recN, rec_thmss, rec_attrs)]
+            |> filter_out (null o #2)
+            |> maps (fn (thmN, thmss, attrs) =>
+              if forall null thmss then
+                []
+              else
+                map2 (fn b_name => fn thms =>
+                    ((Binding.qualify true b_name (Binding.name thmN), attrs), [(thms, [])]))
+                  compat_b_names thmss);
+        in
+          common_notes @ notes
+        end);
+
+    val register_interpret =
       Datatype_Data.register infos
       #> Datatype_Data.interpretation_data (Datatype_Aux.default_config, map fst infos)
   in
-    Local_Theory.raw_theory register_and_interpret lthy
+    lthy
+    |> Local_Theory.raw_theory register_interpret
+    |> Local_Theory.notes all_notes |> snd
   end;
 
 val _ =

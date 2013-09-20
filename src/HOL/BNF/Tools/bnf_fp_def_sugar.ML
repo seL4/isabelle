@@ -44,6 +44,19 @@ sig
   val build_rel: local_theory -> (typ * typ -> term) -> typ * typ -> term
   val dest_map: Proof.context -> string -> term -> term * term list
   val dest_ctr: Proof.context -> string -> term -> term * term list
+
+  type lfp_sugar_thms =
+    (thm list * thm * Args.src list)
+    * (thm list list * Args.src list)
+    * (thm list list * Args.src list)
+
+  type gfp_sugar_thms =
+    ((thm list * thm) list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
+    * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
+    * (thm list list list * thm list list list * Args.src list)
+
   val mk_co_iters_prelims: BNF_FP_Util.fp_kind -> typ list list list -> typ list -> typ list ->
     int list -> int list list -> term list list -> Proof.context ->
     (term list list
@@ -52,7 +65,6 @@ sig
      * (string * term list * term list list
         * ((term list list * term list list list) * (typ list * typ list list)) list) option)
     * Proof.context
-
   val mk_iter_fun_arg_types: typ list list list -> int list -> int list list -> term ->
     typ list list list list
   val mk_coiter_fun_arg_types: typ list list list -> typ list -> int list -> term ->
@@ -70,21 +82,13 @@ sig
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     thm -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> term list list -> thm list list -> term list list ->
-    thm list list -> local_theory ->
-    (thm list * thm * Args.src list) * (thm list list * Args.src list)
-    * (thm list list * Args.src list)
+    thm list list -> local_theory -> lfp_sugar_thms
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list ->
     string * term list * term list list * ((term list list * term list list list)
       * (typ list * typ list list)) list ->
     thm -> thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list ->
     int list list -> int list list -> int list -> thm list list -> BNF_Ctr_Sugar.ctr_sugar list ->
-    term list list -> thm list list -> (thm list -> thm list) -> local_theory ->
-    ((thm list * thm) list * Args.src list)
-    * (thm list list * thm list list * Args.src list)
-    * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
-    * (thm list list * thm list list * Args.src list)
-    * (thm list list list * thm list list list * Args.src list)
-
+    term list list -> thm list list -> (thm list -> thm list) -> local_theory -> gfp_sugar_thms
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
@@ -395,6 +399,18 @@ fun nesty_bnfs ctxt ctr_Tsss Us =
   map_filter (bnf_of ctxt) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_Tsss []);
 
 fun indexify proj xs f p = f (find_index (curry op = (proj p)) xs) p;
+
+type lfp_sugar_thms =
+  (thm list * thm * Args.src list)
+  * (thm list list * Args.src list)
+  * (thm list list * Args.src list);
+
+type gfp_sugar_thms =
+  ((thm list * thm) list * Args.src list)
+  * (thm list list * thm list list * Args.src list)
+  * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
+  * (thm list list * thm list list * Args.src list)
+  * (thm list list list * thm list list list * Args.src list);
 
 fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 

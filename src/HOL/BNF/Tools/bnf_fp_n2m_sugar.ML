@@ -9,12 +9,17 @@ signature BNF_FP_N2M_SUGAR =
 sig
   val mutualize_fp_sugars: bool -> bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
     (term -> int list) -> term list list list list -> BNF_FP_Def_Sugar.fp_sugar list ->
-    local_theory -> (bool * BNF_FP_Def_Sugar.fp_sugar list) * local_theory
+    local_theory ->
+    (BNF_FP_Def_Sugar.fp_sugar list
+     * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
+    * local_theory
   val pad_and_indexify_calls: BNF_FP_Def_Sugar.fp_sugar list -> int ->
     (term * term list list) list list -> term list list list list
   val nested_to_mutual_fps: bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
     (term -> int list) -> ((term * term list list) list) list -> local_theory ->
-    (bool * typ list * int list * BNF_FP_Def_Sugar.fp_sugar list) * local_theory
+    (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
+     * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
+    * local_theory
 end;
 
 structure BNF_FP_N2M_Sugar : BNF_FP_N2M_SUGAR =
@@ -146,23 +151,25 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
 
       val ctr_sugars = map inst_ctr_sugar ctr_sugars0;
 
-      val (co_inducts, un_fold_thmss, co_rec_thmss, disc_unfold_thmss, disc_corec_thmss,
-           sel_unfold_thmsss, sel_corec_thmsss) =
+      val ((co_inducts, un_fold_thmss, co_rec_thmss, disc_unfold_thmss, disc_corec_thmss,
+            sel_unfold_thmsss, sel_corec_thmsss), fp_sugar_thms) =
         if fp = Least_FP then
           derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
             xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
             co_iterss co_iter_defss lthy
-          |> (fn ((_, induct, _), (fold_thmss, _), (rec_thmss, _)) =>
+          |> `(fn ((_, induct, _), (fold_thmss, _), (rec_thmss, _)) =>
             ([induct], fold_thmss, rec_thmss, [], [], [], []))
+          ||> (fn info => (SOME info, NONE))
         else
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs kss mss ns ctr_defss
             ctr_sugars co_iterss co_iter_defss (Proof_Context.export lthy no_defs_lthy) lthy
-          |> (fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _), _,
+          |> `(fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _), _,
                   (disc_unfold_thmss, disc_corec_thmss, _), _,
                   (sel_unfold_thmsss, sel_corec_thmsss, _)) =>
             (map snd coinduct_thms_pairs, unfold_thmss, corec_thmss, disc_unfold_thmss,
-             disc_corec_thmss, sel_unfold_thmsss, sel_corec_thmsss));
+             disc_corec_thmss, sel_unfold_thmsss, sel_corec_thmsss))
+          ||> (fn info => (NONE, SOME info));
 
       val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
 
@@ -175,11 +182,11 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
          sel_co_iterssss = transpose [sel_unfold_thmsss, sel_corec_thmsss]}
         |> morph_fp_sugar phi;
     in
-      ((true, map_index mk_target_fp_sugar fpTs), lthy)
+      ((map_index mk_target_fp_sugar fpTs, fp_sugar_thms), lthy)
     end
   else
     (* TODO: reorder hypotheses and predicates in (co)induction rules? *)
-    ((false, fp_sugars0), no_defs_lthy0);
+    ((fp_sugars0, (NONE, NONE)), no_defs_lthy0);
 
 fun indexify_callsss fp_sugar callsss =
   let
@@ -256,13 +263,13 @@ fun nested_to_mutual_fps lose_co_rec fp actual_bs actual_Ts get_indices actual_c
 
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
-    val ((nontriv, perm_fp_sugars), lthy) =
+    val ((perm_fp_sugars, fp_sugar_thms), lthy) =
       mutualize_fp_sugars lose_co_rec mutualize fp perm_bs perm_Ts get_perm_indices perm_callssss
         perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
   in
-    ((nontriv, missing_Ts, perm_kks, fp_sugars), lthy)
+    ((missing_Ts, perm_kks, fp_sugars, fp_sugar_thms), lthy)
   end;
 
 end;
