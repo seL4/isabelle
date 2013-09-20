@@ -10,15 +10,20 @@ Tutorial for (co)datatype definitions with the new package.
 theory Datatypes
 imports Setup
 keywords
-  "primcorec_notyet" :: thy_decl
+  "primcorec" :: thy_goal and
+  "primcorecursive_notyet" :: thy_decl
 begin
 
 (*<*)
-(* FIXME: Temporary setup until "primcorec" is fully implemented. *)
+(* FIXME: Temporary setup until "primcorec" and "primcorecursive" are fully
+   implemented. *)
 ML_command {*
 fun add_dummy_cmd _ _ lthy = lthy;
 
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec_notyet"} ""
+val _ = Outer_Syntax.local_theory @{command_spec "primcorec"} ""
+  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
+
+val _ = Outer_Syntax.local_theory @{command_spec "primcorecursive_notyet"} ""
   (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 *}
 (*>*)
@@ -126,7 +131,7 @@ describes how to specify codatatypes using the \keyw{codatatype} command.
 
 \item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive
 Functions,'' describes how to specify corecursive functions using the
-@{command primcorec} command.
+@{command primcorecursive} command.
 
 \item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
 Bounded Natural Functors,'' explains how to use the @{command bnf} command
@@ -1565,10 +1570,11 @@ section {* Defining Corecursive Functions
   \label{sec:defining-corecursive-functions} *}
 
 text {*
-Corecursive functions can be specified using @{command primcorec}, which
-supports primitive corecursion, or using the more general
-\keyw{partial\_function} command. Here, the focus is on @{command primcorec}.
-More examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|.
+Corecursive functions can be specified using @{command primcorec} and
+@{command primcorecursive}, which support primitive corecursion, or using the
+more general \keyw{partial\_function} command. Here, the focus is on
+the former two. More examples can be found in the directory
+\verb|~~/src/HOL/BNF/Examples|.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -1598,16 +1604,15 @@ programming languages such as Haskell support a generalized version of this
 style.
 \end{itemize}
 
-All three styles are available as input syntax to @{command primcorec}.
-Whichever syntax is chosen, characteristic theorems for all three styles are
-generated.
+All three styles are available as input syntax. Whichever syntax is chosen,
+characteristic theorems for all three styles are generated.
 
 \begin{framed}
 \noindent
-\textbf{Warning:}\enskip The @{command primcorec} command is under development.
-Some of the functionality described here is vaporware. An alternative is to
-define corecursive functions directly using the generated @{text t_unfold} or
-@{text t_corec} combinators.
+\textbf{Warning:}\enskip The @{command primcorec} and @{command primcorecursive}
+commands are under development. Some of the functionality described here is
+vaporware. An alternative is to define corecursive functions directly using the
+generated @{text t_unfold} or @{text t_corec} combinators.
 \end{framed}
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
@@ -1641,13 +1646,13 @@ long as they occur under a constructor, which itself appears either directly to
 the right of the equal sign or in a conditional expression:
 *}
 
-    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+    primcorecursive literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "literate f x = LCons x (literate f (f x))"
     .
 
 text {* \blankline *}
 
-    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+    primcorecursive siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "siterate f x = SCons x (siterate f (f x))"
     .
 
@@ -1666,7 +1671,7 @@ from also consuming such values. The following function drops ever second
 element in a stream:
 *}
 
-    primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
+    primcorecursive every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "every_snd s = SCons (shd s) (stl (stl s))"
     .
 
@@ -1677,7 +1682,7 @@ Constructs such as @{text "let"}---@{text "in"}, @{text
 appear around constructors that guard corecursive calls:
 *}
 
-    primcorec_notyet lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+    primcorecursive_notyet lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lappend xs ys =
          (case xs of
             LNil \<Rightarrow> ys
@@ -1688,7 +1693,7 @@ text {*
 Corecursion is useful to specify not only functions but also infinite objects:
 *}
 
-    primcorec infty :: enat where
+    primcorecursive infty :: enat where
       "infty = ESuc infty"
     .
 
@@ -1699,7 +1704,7 @@ actions (@{text s}), a pseudorandom function generator (@{text f}), and a
 pseudorandom seed (@{text n}):
 *}
 
-    primcorec_notyet
+    primcorecursive_notyet
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "random_process s f n =
@@ -1729,7 +1734,7 @@ The syntax for mutually corecursive functions over mutually corecursive
 datatypes is unsurprising:
 *}
 
-    primcorec
+    primcorecursive
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
@@ -1748,13 +1753,13 @@ infinite trees in which subnodes are organized either as a lazy list (@{text
 tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
 *}
 
-    primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+    primcorecursive iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
     .
 
 text {* \blankline *}
 
-    primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
+    primcorecursive iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
       "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fmap (iterate\<^sub>i\<^sub>s f) (f x))"
     .
 
@@ -1767,7 +1772,7 @@ is an initial state, and @{text F} is a set of final states. The following
 function translates a DFA into a @{type state_machine}:
 *}
 
-    primcorec (*<*)(in early) (*>*)
+    primcorecursive (*<*)(in early) (*>*)
       sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
     where
       "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F o \<delta> q)"
@@ -1781,7 +1786,7 @@ expressed using @{text \<lambda>}-expressions and function application rather
 than composition. For example:
 *}
 
-    primcorec
+    primcorecursive
       sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
     where
       "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F o \<delta> q)"
@@ -1789,19 +1794,19 @@ than composition. For example:
 
 text {* \blankline *}
 
-    primcorec empty_sm :: "'a state_machine" where
+    primcorecursive empty_sm :: "'a state_machine" where
       "empty_sm = State_Machine False (\<lambda>_. empty_sm)"
     .
 
 text {* \blankline *}
 
-    primcorec not_sm :: "'a state_machine \<Rightarrow> 'a state_machine" where
+    primcorecursive not_sm :: "'a state_machine \<Rightarrow> 'a state_machine" where
       "not_sm M = State_Machine (\<not> accept M) (\<lambda>a. not_sm (trans M a))"
     .
 
 text {* \blankline *}
 
-    primcorec
+    primcorecursive
       or_sm :: "'a state_machine \<Rightarrow> 'a state_machine \<Rightarrow> 'a state_machine"
     where
       "or_sm M N =
@@ -1820,7 +1825,7 @@ were mutually recursive
 pretend that nested codatatypes are mutually corecursive. For example:
 *}
 
-    primcorec_notyet
+    primcorecursive_notyet
       iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
       iterates\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a llist \<Rightarrow> 'a tree\<^sub>i\<^sub>i llist"
     where
@@ -1852,7 +1857,7 @@ and @{const siterate}, are identical in both styles.
 Here is an example where there is a difference:
 *}
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+    primcorecursive lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lappend xs ys = LNil" |
       "_ \<Longrightarrow> lappend xs ys = LCons (lhd (if lnull xs then ys else xs))
          (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
@@ -1876,7 +1881,7 @@ In contrast, the next example is arguably more naturally expressed in the
 constructor view:
 *}
 
-    primcorec_notyet
+    primcorecursive_notyet
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail" |
@@ -1922,7 +1927,7 @@ sequentially or not depending on the @{text "sequential"} option.
 Consider the following examples:
 *}
 
-    primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
+    primcorecursive literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "\<not> lnull (literate _ x)" |
       "lhd (literate _ x) = x" |
       "ltl (literate f x) = literate f (f x)"
@@ -1930,14 +1935,14 @@ Consider the following examples:
 
 text {* \blankline *}
 
-    primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
+    primcorecursive siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "shd (siterate _ x) = x" |
       "stl (siterate f x) = siterate f (f x)"
     .
 
 text {* \blankline *}
 
-    primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
+    primcorecursive every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "shd (every_snd s) = shd s" |
       "stl (every_snd s) = stl (stl s)"
     .
@@ -1955,7 +1960,7 @@ The next example shows how to specify functions that rely on more than one
 constructor:
 *}
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+    primcorecursive lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
       "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
       "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
@@ -1971,7 +1976,7 @@ constructor should be taken otherwise. This can be made explicit by adding
 (*<*)
     end
 
-    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+    primcorecursive lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
 (*>*)
       "_ \<Longrightarrow> \<not> lnull (lappend xs ys)"
@@ -1991,7 +1996,7 @@ The next example illustrates how to cope with selectors defined for several
 constructors:
 *}
 
-    primcorec_notyet
+    primcorecursive_notyet
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "n mod 4 = 0 \<Longrightarrow> is_Fail (random_process s f n)" |
@@ -2014,7 +2019,7 @@ cont} depending on which constructor is selected.
 Here are more examples to conclude:
 *}
 
-    primcorec
+    primcorecursive
       even_infty :: even_enat and
       odd_infty :: odd_enat
     where
@@ -2025,7 +2030,7 @@ Here are more examples to conclude:
 
 text {* \blankline *}
 
-    primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+    primcorecursive iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i f x) = x" |
       "sub\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i f x) = lmap (iterate\<^sub>i\<^sub>i f) (f x)"
     .
@@ -2039,17 +2044,20 @@ subsection {* Command Syntax
   \label{ssec:primcorec-command-syntax} *}
 
 
-subsubsection {* \keyw{primcorec}
-  \label{sssec:primcorec} *}
+subsubsection {* \keyw{primcorecursive} and \keyw{primcorec}
+  \label{sssec:primcorecursive-and-primcorec} *}
 
 text {*
 Primitive corecursive definitions have the following general syntax:
 
 @{rail "
-  @@{command_def primcorec} target? @{syntax pcr_options}? fixes \\ @'where'
+  @@{command_def primcorecursive} target? @{syntax pcr_option}? fixes \\ @'where'
     (@{syntax pcr_formula} + '|')
   ;
-  @{syntax_def pcr_options}: '(' 'sequential' ')'
+  @@{command_def primcorec} target? fixes \\ @'where'
+    (@{syntax pcr_formula} + '|')
+  ;
+  @{syntax_def pcr_option}: '(' 'sequential' ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 "}
@@ -2065,6 +2073,9 @@ expressed using the constructor or destructor view are to be interpreted
 sequentially.
 \end{itemize}
 
+The @{command primcorec} command is an abbreviation for
+@{command primcorecursive} with @{text "sequential"} enabled. It has no proof
+obligations.
 *}
 
 
@@ -2239,7 +2250,7 @@ Known open issues of the package.
 *}
 
 text {*
-%* primcorec is unfinished
+%* primcorecursive and primcorec is unfinished
 %
 %* slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
 %

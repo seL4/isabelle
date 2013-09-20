@@ -9,7 +9,7 @@ signature BNF_FP_REC_SUGAR =
 sig
   val add_primrec_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> local_theory;
-  val add_primcorec_cmd: bool ->
+  val add_primcorecursive_cmd: bool ->
     (binding * string option * mixfix) list * (Attrib.binding * string) list -> Proof.context ->
     Proof.state
 end;
@@ -866,7 +866,7 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
     |> Seq.hd
   end
 
-fun add_primcorec_cmd seq (raw_fixes, raw_specs) lthy =
+fun add_primcorecursive_cmd seq (raw_fixes, raw_specs) lthy =
   let
     val (fixes, specs) = fst (Specification.read_spec raw_fixes raw_specs lthy);
   in
