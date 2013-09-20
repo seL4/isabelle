@@ -123,12 +123,9 @@ val negated_alias_params =
    ("dont_minimize_isar", "isar_minimize"),
    ("no_preplay_trace", "preplay_trace")] (* TODO: document *)
 
-val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
-   "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
-   "learn", "isar_proofs", "isar_compress", "timeout", "preplay_timeout"]
-(* TODO: add isar_compress_degree, merge_timeout_slack,  preplay_trace,
-   isar_try0, isar_minimize? *)
+val params_not_for_minimize =
+  ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice",
+   "minimize"];
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -345,7 +342,7 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 val default_minimize_prover = metisN
 
 fun is_raw_param_relevant_for_minimize (name, _) =
-  member (op =) params_for_minimize name
+  not (member (op =) params_not_for_minimize name)
 fun string_of_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 fun nice_string_of_raw_param (p as (key, ["false"])) =
