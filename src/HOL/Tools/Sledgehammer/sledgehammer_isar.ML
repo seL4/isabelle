@@ -100,8 +100,7 @@ val default_default_params =
    ("isar_minimize", "true"), (* TODO: document *)
    ("slice", "true"),
    ("minimize", "smart"),
-   ("preplay_timeout", "3"),
-   ("preplay_trace", "false")] (* TODO: document *)
+   ("preplay_timeout", "3")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
@@ -120,8 +119,7 @@ val negated_alias_params =
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize"),
    ("dont_try0_isar", "isar_try0"),
-   ("dont_minimize_isar", "isar_minimize"),
-   ("no_preplay_trace", "preplay_trace")] (* TODO: document *)
+   ("dont_minimize_isar", "isar_minimize")]
 
 val params_not_for_minimize =
   ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice",
@@ -318,7 +316,6 @@ fun extract_params mode default_params override_params =
     val preplay_timeout =
       if mode = Auto_Try then SOME Time.zeroTime
       else lookup_time "preplay_timeout"
-    val preplay_trace = lookup_bool "preplay_trace"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
@@ -331,7 +328,7 @@ fun extract_params mode default_params override_params =
      merge_timeout_slack = merge_timeout_slack, isar_try0 = isar_try0,
      isar_minimize = isar_minimize, slice = slice,
      minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-     preplay_trace = preplay_trace, expect = expect}
+     expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

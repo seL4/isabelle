@@ -12,7 +12,7 @@ sig
   type one_line_params = Sledgehammer_Print.one_line_params
 
   type isar_params =
-    bool * bool * Time.time option * bool * real * int * real * bool * bool
+    bool * bool * Time.time option * real * int * real * bool * bool
     * string Symtab.table * (string * stature) list vector
     * (string * term) list * int Symtab.table * string atp_proof * thm
 
@@ -408,14 +408,14 @@ val chain_direct_proof =
   in chain_proof end
 
 type isar_params =
-  bool * bool * Time.time option * bool * real * int * real * bool * bool
+  bool * bool * Time.time option * real * int * real * bool * bool
   * string Symtab.table * (string * stature) list vector
   * (string * term) list * int Symtab.table * string atp_proof * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
-     isar_compress_degree, merge_timeout_slack, isar_try0, isar_minimize, pool,
-     fact_names, lifted, sym_tab, atp_proof, goal)
+    (debug, verbose, preplay_timeout, isar_compress, isar_compress_degree,
+     merge_timeout_slack, isar_try0, isar_minimize, pool, fact_names, lifted,
+     sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -580,13 +580,13 @@ fun isar_proof_text ctxt isar_proofs
           chain_direct_proof
           #> kill_useless_labels_in_proof
           #> relabel_proof
-        val (preplay_interface as { overall_preplay_stats, ... }, isar_proof) =
+        val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph
           |> redirect_graph axioms tainted bot
           |> isar_proof_of_direct_proof
           |> relabel_proof_canonically
           |> `(proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
-               preplay_timeout preplay_trace)
+               preplay_timeout)
         val ((preplay_time, preplay_fail), isar_proof) =
           isar_proof
           |> compress_proof

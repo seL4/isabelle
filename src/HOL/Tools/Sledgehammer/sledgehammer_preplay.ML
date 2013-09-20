@@ -17,12 +17,11 @@ sig
     PplFail of exn |
     PplSucc of preplay_time
 
+  val trace : bool Config.T
   val zero_preplay_time : preplay_time
   val some_preplay_time : preplay_time
   val add_preplay_time : preplay_time -> preplay_time -> preplay_time
   val string_of_preplay_time : preplay_time -> string
-  (*val preplay_raw : bool -> bool -> string -> string -> Proof.context ->
-    Time.time -> isar_step -> preplay_time*)
 
   type preplay_interface =
   { get_preplay_result : label -> preplay_result,
@@ -34,9 +33,8 @@ sig
     overall_preplay_stats : isar_proof -> preplay_time * bool }
 
   val proof_preplay_interface :
-    bool -> Proof.context -> string -> string -> bool -> Time.time -> bool
+    bool -> Proof.context -> string -> string -> bool -> Time.time
     -> isar_proof -> preplay_interface
-
 end
 
 structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
@@ -44,6 +42,9 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Proof
+
+val trace =
+  Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
 (* The boolean flag encodes whether the time is exact (false) or an lower bound
    (true):
@@ -77,7 +78,7 @@ fun preplay_trace ctxt assms concl time =
                         |> nr_of_assms>0 ? cons (Pretty.str "\<Longrightarrow>")
                         |> cons assms
                         |> cons time
-    val pretty_trace = Pretty.blk(2, Pretty.breaks trace_list)
+    val pretty_trace = Pretty.blk (2, Pretty.breaks trace_list)
   in tracing (Pretty.string_of pretty_trace) end
 
 (* timing *)
@@ -132,8 +133,8 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
 
 
 (* main function for preplaying isar_steps; may throw exceptions *)
-fun preplay_raw _ _ _ _ _ _ (Let _) = zero_preplay_time
-  | preplay_raw debug trace type_enc lam_trans ctxt timeout
+fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
+  | preplay_raw debug type_enc lam_trans ctxt timeout
       (Prove (_, Fix xs, _, t, subproofs, By (fact_names, proof_method))) =
   let
     val (prop, obtain) =
@@ -171,10 +172,10 @@ fun preplay_raw _ _ _ _ _ _ (Let _) = zero_preplay_time
     val preplay_time = take_time timeout run_tac ()
   in
     (* tracing *)
-    (if trace then preplay_trace ctxt facts prop preplay_time else () ;
+    (if Config.get ctxt trace then preplay_trace ctxt facts prop preplay_time
+     else ();
      preplay_time)
   end
-
 
 
 (*** proof preplay interface ***)
@@ -216,13 +217,12 @@ fun enrich_context proof ctxt =
    The preplay results are caluclated lazyly and cached to avoid repeated
    calculation.
 
-   PRE CONDITION: the proof must be labeled canocially, see
+   PRECONDITION: the proof must be labeled canocially, see
    Slegehammer_Proof.relabel_proof_canonically
 *)
 
-
 fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
-      preplay_timeout preplay_trace proof : preplay_interface =
+      preplay_timeout proof : preplay_interface =
   if not do_preplay then
     (* the dont_preplay option pretends that everything works just fine *)
     { get_preplay_result = K (PplSucc zero_preplay_time),
@@ -238,7 +238,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
       val ctxt = enrich_context proof ctxt
 
       fun preplay quietly timeout step =
-        preplay_raw debug preplay_trace type_enc lam_trans ctxt timeout step
+        preplay_raw debug type_enc lam_trans ctxt timeout step
         |> PplSucc
         handle exn =>
           if Exn.is_interrupt exn then
