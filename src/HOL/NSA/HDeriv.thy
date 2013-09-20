@@ -342,34 +342,32 @@ by (simp add: NSDERIV_NSLIM_iff NSLIM_def del: divide_self_if)
 lemma NSDERIV_cmult_Id [simp]: "NSDERIV (op * c) x :> c"
 by (cut_tac c = c and x = x in NSDERIV_Id [THEN NSDERIV_cmult], simp)
 
-(*Can't get rid of x \<noteq> 0 because it isn't continuous at zero*)
 lemma NSDERIV_inverse:
-  fixes x :: "'a::{real_normed_field}"
-  shows "x \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))"
-apply (simp add: nsderiv_def)
-apply (rule ballI, simp, clarify)
-apply (frule (1) Infinitesimal_add_not_zero)
-apply (simp add: add_commute)
-(*apply (auto simp add: starfun_inverse_inverse realpow_two
-        simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])*)
-apply (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric] power_Suc
-              nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_minus
-            del: inverse_mult_distrib inverse_minus_eq
-                 minus_mult_left [symmetric] minus_mult_right [symmetric])
-apply (subst mult_commute, simp add: nonzero_mult_divide_cancel_right)
-apply (simp (no_asm_simp) add: mult_assoc [symmetric] distrib_right
-            del: minus_mult_left [symmetric] minus_mult_right [symmetric])
-apply (rule_tac y = "inverse (- (star_of x * star_of x))" in approx_trans)
-apply (rule inverse_add_Infinitesimal_approx2)
-apply (auto dest!: hypreal_of_real_HFinite_diff_Infinitesimal
-            simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
-apply (rule Infinitesimal_HFinite_mult, auto)
-done
+  fixes x :: "'a::real_normed_field"
+  assumes "x \<noteq> 0" -- {* can't get rid of @{term "x \<noteq> 0"} because it isn't continuous at zero *}
+  shows "NSDERIV (\<lambda>x. inverse x) x :> - (inverse x ^ Suc (Suc 0))"
+proof -
+  { fix h :: "'a star"
+    assume h_Inf: "h \<in> Infinitesimal"
+    from this assms have not_0: "star_of x + h \<noteq> 0" by (rule Infinitesimal_add_not_zero)
+    assume "h \<noteq> 0"
+    from h_Inf have "h * star_of x \<in> Infinitesimal" by (rule Infinitesimal_HFinite_mult) simp
+    with assms have "inverse (- (h * star_of x) + - (star_of x * star_of x)) \<approx>
+      inverse (- (star_of x * star_of x))"
+      by (auto intro: inverse_add_Infinitesimal_approx2
+        dest!: hypreal_of_real_HFinite_diff_Infinitesimal
+        simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
+    with not_0 `h \<noteq> 0` assms have "(inverse (star_of x + h) - inverse (star_of x)) / h \<approx>
+      - (inverse (star_of x) * inverse (star_of x))"
+      by (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric]
+        nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_minus ring_distribs)
+  } then show ?thesis by (simp add: nsderiv_def)
+qed
 
 subsubsection {* Equivalence of NS and Standard definitions *}
 
 lemma divideR_eq_divide: "x /\<^sub>R y = x / y"
-by (simp add: real_scaleR_def divide_inverse mult_commute)
+by (simp add: divide_inverse mult_commute)
 
 text{*Now equivalence between NSDERIV and DERIV*}
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"

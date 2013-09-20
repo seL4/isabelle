@@ -501,26 +501,29 @@ text{*Fundamental theorem of calculus (Part I)*}
 text{*"Straddle Lemma" : Swartz and Thompson: AMM 95(7) 1988 *}
 
 lemma strad1:
-       "\<lbrakk>\<forall>z::real. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow>
-             \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2;
-        0 < s; 0 < e; a \<le> x; x \<le> b\<rbrakk>
-       \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
-apply clarify
-apply (case_tac "z = x", simp)
-apply (drule_tac x = z in spec)
-apply (rule_tac z1 = "\<bar>inverse (z - x)\<bar>" 
-       in real_mult_le_cancel_iff2 [THEN iffD1])
- apply simp
-apply (simp del: abs_inverse add: abs_mult [symmetric]
-          mult_assoc [symmetric])
-apply (subgoal_tac "inverse (z - x) * (f z - f x - f' x * (z - x)) 
-                    = (f z - f x) / (z - x) - f' x")
- apply (simp add: abs_mult [symmetric] mult_ac diff_minus)
-apply (subst mult_commute)
-apply (simp add: distrib_right diff_minus)
-apply (simp add: mult_assoc divide_inverse)
-apply (simp add: distrib_right)
-done
+  fixes z x s e :: real
+  assumes P: "(\<And>z. z \<noteq> x \<Longrightarrow> \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e / 2)"
+  assumes "\<bar>z - x\<bar> < s"
+  shows "\<bar>f z - f x - f' x * (z - x)\<bar> \<le> e / 2 * \<bar>z - x\<bar>"
+proof (cases "z = x")
+  case True then show ?thesis by simp
+next
+  case False
+  then have "inverse (z - x) * (f z - f x - f' x * (z - x)) = (f z - f x) / (z - x) - f' x"
+    apply (subst mult_commute)
+    apply (simp add: distrib_right diff_minus)
+    apply (simp add: mult_assoc divide_inverse)
+    apply (simp add: distrib_right)
+    done
+  moreover from False `\<bar>z - x\<bar> < s` have "\<bar>(f z - f x) / (z - x) - f' x\<bar> < e / 2"
+    by (rule P)
+  ultimately have "\<bar>inverse (z - x)\<bar> * (\<bar>f z - f x - f' x * (z - x)\<bar> * 2)
+    \<le> \<bar>inverse (z - x)\<bar> * (e * \<bar>z - x\<bar>)"
+    using False by (simp del: abs_inverse add: abs_mult [symmetric] ac_simps)
+  with False have "\<bar>f z - f x - f' x * (z - x)\<bar> * 2 \<le> e * \<bar>z - x\<bar>"
+    by simp
+  then show ?thesis by simp
+qed
 
 lemma lemma_straddle:
   assumes f': "\<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x)" and "0 < e"
@@ -537,11 +540,11 @@ proof -
     then have "\<forall>r>0. \<exists>s>0. \<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < r"
       by (simp add: DERIV_iff2 LIM_eq)
     with `0 < e` obtain s
-    where "\<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s"
+    where "\<And>z. z \<noteq> x \<Longrightarrow> \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s"
       by (drule_tac x="e/2" in spec, auto)
-    then have strad [rule_format]:
-        "\<forall>z. \<bar>z - x\<bar> < s --> \<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
-      using `0 < e` `a \<le> x` `x \<le> b` by (rule strad1)
+    with strad1 [of x s f f' e] have strad:
+        "\<And>z. \<bar>z - x\<bar> < s \<Longrightarrow> \<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
+      by auto
     show "\<exists>d>0. \<forall>u v. u \<le> x \<and> x \<le> v \<and> v - u < d \<longrightarrow> \<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u)"
     proof (safe intro!: exI)
       show "0 < s" by fact
