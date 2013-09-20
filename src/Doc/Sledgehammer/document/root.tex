@@ -1079,6 +1079,11 @@ filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the prover. Typical values range between
 50 and 1000.
 
+For the MaSh-related commands \textit{learn\_isar}, \textit{learn\_prover},
+\textit{relearn\_isar}, and \textit{relearn\_prover}, this option specifies the
+maximum number of facts from the background library that should be learned
+($\infty$ by default).
+
 \opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
 relevance filter. The first threshold is used for the first iteration of the
