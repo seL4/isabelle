@@ -112,11 +112,6 @@ on a server at the TU M\"unchen.
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
 current theory context, filtered by relevance.
-%Because jobs are run in the
-%background, you can continue to work on your proof by other means. Provers can
-%be run in parallel.
-%Any reply (which may arrive half a minute later) will appear
-%in the Proof General response buffer.
 
 The result of a successful proof search is some source text that usually (but
 not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
@@ -124,12 +119,10 @@ proof relies on the general-purpose \textit{metis} proof method, which
 integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
 the kernel. Thus its results are correct by construction.
 
-In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
-For Proof General users, Sledgehammer also provides an automatic mode that can
-be enabled via the ``Auto Sledgehammer'' option in the ``Isabelle'' menu. In
-this mode, Sledgehammer is run on every newly entered theorem. The time limit
-for Auto Sledgehammer and other automatic tools can be set using the ``Auto
-Tools Time Limit'' option.
+For Isabelle/jEdit users, Sledgehammer provides an automatic mode that can be
+enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options >
+Isabelle > General.'' In this mode, Sledgehammer is run on every newly entered
+theorem.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
@@ -268,11 +261,9 @@ attempt to prove a simple lemma:
 \textbf{sledgehammer}
 \postw
 
-%Instead of issuing the \textbf{sledgehammer} command, you can also find
-%Sledgehammer in the ``Commands'' submenu of the ``Isabelle'' menu in Proof
-%General or press the Emacs key sequence C-c C-a C-s.
-%Either way,
-Sledgehammer produces the following output after a few seconds:
+Instead of issuing the \textbf{sledgehammer} command, you can also use the
+Sledgehammer panel in Isabelle/jEdit. Sledgehammer produces the following output
+after a few seconds:
 
 \prew
 \slshape
@@ -345,7 +336,7 @@ first simplify the problem to remove higher-order features.
 Locally installed provers are faster and more reliable than those running on
 servers. See \S\ref{installation} for details on how to install them.
 
-\point{Familiarize yourself with the most important options}
+\point{Familiarize yourself with the main options}
 
 Sledgehammer's options are fully documented in \S\ref{command-syntax}. Many of
 the options are very specialized, but serious users of the tool should at least
@@ -411,7 +402,7 @@ no information about how many times a particular fact has been used in a proof,
 and it cannot learn.
 
 \item[\labelitemi]
-An experimental, memoryful alternative to MePo is \emph{MaSh}
+An experimental alternative to MePo is \emph{MaSh}
 (\underline{Ma}chine Learner for \underline{S}ledge\underline{h}ammer). It
 relies on an external Python tool that applies machine learning to
 the problem of finding relevant facts.
@@ -529,7 +520,7 @@ meantime, you can avoid it by passing the \textit{strict} option
 
 The \textit{metis}~(\textit{full\_types}) proof method
 and its cousin \textit{metis}~(\textit{mono\_tags}) are fully-typed
-version of Metis. It is somewhat slower than \textit{metis}, but the proof
+versions of Metis. It is somewhat slower than \textit{metis}, but the proof
 search is fully typed, and it also includes more powerful rules such as the
 axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
 higher-order places (e.g., in set comprehensions). The method kicks in
@@ -635,12 +626,6 @@ follows:
 \textbf{sledgehammer} \qty{subcommand}$^?$ \qty{options}$^?$ \qty{facts\_override}$^?$ \qty{num}$^?$
 \postw
 
-For Proof General users,
-Sledgehammer is also available in the ``Commands'' submenu of
-the ``Isabelle'' menu or by pressing the Emacs key sequence C-c
-C-a C-s. This is equivalent to entering the \textbf{sledgehammer} command with
-no arguments in the theory text.
-
 In the general syntax, the \qty{subcommand} may be any of the following:
 
 \begin{enum}
@@ -731,16 +716,15 @@ facts are used. It may also be of the form ``(\textit{add}:\ \qty{facts\/_{\math
 proceed as usual except that it should consider \qty{facts\/_{\mathrm{1}}}
 highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
 
-If you use Proof General, you can instruct Sledgehammer to run automatically on
-newly entered theorems by enabling the ``Auto Sledgehammer'' option in the
-``Isabelle'' menu. For automatic runs, only the first prover set using
+If you use Isabelle/jEdit, Sledgehammer also provides an automatic mode that can
+be enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options
+> Isabelle > General.'' For automatic runs, only the first prover set using
 \textit{provers} (\S\ref{mode-of-operation}) is considered, fewer facts are
 passed to the prover, \textit{slice} (\S\ref{mode-of-operation}) is disabled,
 \textit{strict} (\S\ref{problem-encoding}) is enabled, \textit{verbose}
 (\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-and \textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Tools Time
-Limit'' in the ``Isabelle'' menu. Sledgehammer's output is also more
-concise.
+and \textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Time Limit''
+option in jEdit. Sledgehammer's output is also more concise.
 
 \subsection{Metis}
 
@@ -986,9 +970,7 @@ point).
 
 By default, Sledgehammer runs a selection of CVC3, E, E-SInE, SPASS, Vampire,
 Yices, and Z3 in parallel---either locally or remotely, depending on the number
-of processor cores available. (For historical reasons, the default value of this
-option can be overridden using the option ``Sledgehammer: Provers'' in Proof
-General's ``Isabelle'' menu.)
+of processor cores available.
 
 It is generally a good idea to run several provers in parallel. Running E,
 SPASS, and Vampire for 5~seconds yields a similar success rate to running the
@@ -1005,8 +987,8 @@ Specifies whether the \textbf{sledgehammer} command should operate
 synchronously. The asynchronous (non-blocking) mode lets the user start proving
 the putative theorem manually while Sledgehammer looks for a proof, but it can
 also be more confusing. Irrespective of the value of this option, Sledgehammer
-is always run synchronously for the new jEdit-based user interface or if
-\textit{debug} (\S\ref{output-format}) is enabled.
+is always run synchronously if \textit{debug} (\S\ref{output-format}) is
+enabled.
 
 \optrue{slice}{dont\_slice}
 Specifies whether the time allocated to a prover should be sliced into several
@@ -1057,10 +1039,10 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The experimental, memoryful MaSh machine learner. MaSh relies on the external
-Python program \texttt{mash.py}, which is part of Isabelle. To enable MaSh, set
-the environment variable \texttt{MASH} to \texttt{yes}. Persistent data is
-stored in the directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
+The experimental MaSh machine learner. MaSh relies on the external Python
+program \texttt{mash.py}, which is part of Isabelle. To enable MaSh, set the
+environment variable \texttt{MASH} to \texttt{yes}. Persistent data is stored in
+the directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} The MeSh filter, which combines the
 rankings from MePo and MaSh.
@@ -1090,8 +1072,8 @@ are relevant and 1 only theorems that refer to previously seen constants.
 
 \optrue{learn}{dont\_learn}
 Specifies whether MaSh should be run automatically by Sledgehammer to learn the
-available theories (and hence provide more accurate results). Learning only
-takes place if MaSh is enabled.
+available theories (and hence provide more accurate results). Learning takes
+place only if MaSh is enabled.
 
 \opdefault{max\_new\_mono\_instances}{int}{smart}
 Specifies the maximum number of monomorphic instances to generate beyond
@@ -1349,8 +1331,8 @@ is useful for regression testing.
 \opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
-(For historical reasons, the default value of this option can be overridden using
-the option ``Sledgehammer: Time Limit'' in Proof General's ``Isabelle'' menu.)
+For automatic runs, the ``Auto Time Limit'' option under ``Plugins > Plugin
+Options > Isabelle > General'' is used instead.
 
 \opdefault{preplay\_timeout}{float\_or\_none}{\upshape 3}
 Specifies the maximum number of seconds that \textit{metis} or \textit{smt}

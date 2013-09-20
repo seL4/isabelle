@@ -114,16 +114,9 @@ after the locale's \textbf{begin} keyword. To falsify \textit{False}, Nitpick
 must find a model for the axioms. If it finds no model, we have an indication
 that the axioms might be unsatisfiable.
 
-You can also invoke Nitpick from the ``Commands'' submenu of the
-``Isabelle'' menu in Proof General or by pressing the Emacs key sequence C-c C-a
-C-n. This is equivalent to entering the \textbf{nitpick} command with no
-arguments in the theory text.
-
-Throughout this manual, we will explicitly invoke the \textbf{nitpick} command.
-Nitpick also provides an automatic mode that can be enabled via the ``Auto
-Nitpick'' option from the ``Isabelle'' menu in Proof General. In this mode,
-Nitpick is run on every newly entered theorem. The time limit for Auto Nitpick
-and other automatic tools can be set using the ``Auto Tools Time Limit'' option.
+For Isabelle/jEdit users, Nitpick provides an automatic mode that can be enabled
+via the ``Auto Nitpick'' option under ``Plugins > Plugin Options > Isabelle >
+General.'' In this mode, Nitpick is run on every newly entered theorem.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
@@ -148,7 +141,7 @@ suggesting several textual improvements.
 \section{Installation}
 \label{installation}
 
-Sledgehammer is part of Isabelle, so you don't need to install it. However, it
+Nitpick is part of Isabelle, so you don't need to install it. However, it
 relies on a third-party Kodkod front-end called Kodkodi as well as a Java
 virtual machine called \texttt{java} (version 1.5 or above).
 
@@ -1874,17 +1867,18 @@ format (\S\ref{output-format}), automatic counterexample checks
 (\S\ref{authentication}), optimizations
 (\S\ref{optimizations}), and timeouts (\S\ref{timeouts}).
 
-You can instruct Nitpick to run automatically on newly entered theorems by
-enabling the ``Auto Nitpick'' option from the ``Isabelle'' menu in Proof
-General. For automatic runs, \textit{user\_axioms} (\S\ref{mode-of-operation}),
+If you use Isabelle/jEdit, Nitpick also provides an automatic mode that can
+be enabled via the ``Auto Nitpick'' option under ``Plugins > Plugin Options
+> Isabelle > General.'' For automatic runs,
+\textit{user\_axioms} (\S\ref{mode-of-operation}),
 \textit{assms} (\S\ref{mode-of-operation}), and \textit{mono}
 (\S\ref{scope-of-search}) are implicitly enabled, \textit{blocking}
 (\S\ref{mode-of-operation}), \textit{verbose} (\S\ref{output-format}), and
 \textit{debug} (\S\ref{output-format}) are disabled, \textit{max\_threads}
 (\S\ref{optimizations}) is taken to be 1, \textit{max\_potential}
 (\S\ref{output-format}) is taken to be 0, and \textit{timeout}
-(\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in
-Proof General's ``Isabelle'' menu. Nitpick's output is also more concise.
+(\S\ref{timeouts}) is superseded by the ``Auto Time Limit'' in jEdit. Nitpick's
+output is also more concise.
 
 The number of options can be overwhelming at first glance. Do not let that worry
 you: Nitpick's defaults have been chosen so that it almost always does the right
@@ -2523,10 +2517,9 @@ cores available. The option is implicitly set to 1 for automatic runs.
 \opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the \textbf{nitpick} command should
 spend looking for a counterexample. Nitpick tries to honor this constraint as
-well as it can but offers no guarantees. For automatic runs,
-\textit{timeout} is ignored; instead, Auto Quickcheck and Auto Nitpick share
-a time slot whose length is specified by the ``Auto Counterexample Time
-Limit'' option in Proof General.
+well as it can but offers no guarantees. For automatic runs, the ``Auto Time
+Limit'' option under ``Plugins > Plugin Options > Isabelle > General'' is used
+instead.
 
 \nopagebreak
 {\small See also \textit{max\_threads} (\S\ref{optimizations}).}
