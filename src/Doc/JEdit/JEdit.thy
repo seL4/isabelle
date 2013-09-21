@@ -45,7 +45,7 @@ text {*
   \begin{itemize}
 
   \item The original jEdit look-and-feel is generally preserved, although
-  some default properties have been changed to accommodate Isabelle (e.g.
+  some default properties have been changed to accommodate Isabelle (e.g.\
   the text area font).
 
   \item Formal Isabelle/Isar text is checked asynchronously while editing.
@@ -112,28 +112,28 @@ text {*
   \item use the \emph{Symbols} dockable window
   \item copy/paste from decoded source files
   \item copy/paste from prover output
-  \item completion provided by Isabelle plugin, e.g.
+  \item completion provided by Isabelle plugin, e.g.\
 
   \medskip
   \begin{tabular}{lll}
-    \textbf{backslash escape} & \textbf{abbreviation} & \textbf{symbol} \\[1ex]
+    \textbf{symbol} & \textbf{abbreviation} & \textbf{backslash escape} \\[1ex]
 
-    @{verbatim "\\lambda"}         & @{verbatim "%"}     & @{text "\<lambda>"} \\
-    @{verbatim "\\Rightarrow"}     & @{verbatim "=>"}    & @{text "\<Rightarrow>"} \\
-    @{verbatim "\\Longrightarrow"} & @{verbatim "==>"}   & @{text "\<Longrightarrow>"} \\
+    @{text "\<lambda>"}   & @{verbatim "%"}     &  @{verbatim "\\lambda"}         \\
+    @{text "\<Rightarrow>"}  & @{verbatim "=>"}    &  @{verbatim "\\Rightarrow"}     \\
+    @{text "\<Longrightarrow>"} & @{verbatim "==>"}   &  @{verbatim "\\Longrightarrow"} \\
 
-    @{verbatim "\\And"}            & @{verbatim "!!"}    & @{text "\<And>"} \\
-    @{verbatim "\\equiv"}          & @{verbatim "=="}    & @{text "\<equiv>"} \\
+    @{text "\<And>"}  & @{verbatim "!!"}    &  @{verbatim "\\And"}            \\
+    @{text "\<equiv>"}  & @{verbatim "=="}    &  @{verbatim "\\equiv"}          \\
 
-    @{verbatim "\\forall"}         & @{verbatim "!"}     & @{text "\<forall>"} \\
-    @{verbatim "\\exists"}         & @{verbatim "?"}     & @{text "\<exists>"} \\
-    @{verbatim "\\longrightarrow"} & @{verbatim "-->"}   & @{text "\<longrightarrow>"} \\
-    @{verbatim "\\and"}            & @{verbatim "&"}     & @{text "\<and>"} \\
-    @{verbatim "\\or"}             & @{verbatim "|"}     & @{text "\<or>"} \\
-    @{verbatim "\\not"}            & @{verbatim "~"}     & @{text "\<not>"} \\
-    @{verbatim "\\noteq"}          & @{verbatim "~="}    & @{text "\<noteq>"} \\
-    @{verbatim "\\in"}             & @{verbatim ":"}     & @{text "\<in>"} \\
-    @{verbatim "\\notin"}          & @{verbatim "~:"}    & @{text "\<notin>"} \\
+    @{text "\<forall>"}   & @{verbatim "!"}     &  @{verbatim "\\forall"}         \\
+    @{text "\<exists>"}   & @{verbatim "?"}     &  @{verbatim "\\exists"}         \\
+    @{text "\<longrightarrow>"} & @{verbatim "-->"}   &  @{verbatim "\\longrightarrow"} \\
+    @{text "\<and>"}   & @{verbatim "&"}     &  @{verbatim "\\and"}            \\
+    @{text "\<or>"}   & @{verbatim "|"}     &  @{verbatim "\\or"}             \\
+    @{text "\<not>"}   & @{verbatim "~"}     &  @{verbatim "\\not"}            \\
+    @{text "\<noteq>"}   & @{verbatim "~="}    &  @{verbatim "\\noteq"}          \\
+    @{text "\<in>"}   & @{verbatim ":"}     &  @{verbatim "\\in"}             \\
+    @{text "\<notin>"}   & @{verbatim "~:"}    &  @{verbatim "\\notin"}          \\
   \end{tabular}
 
   \end{enumerate}
@@ -150,7 +150,7 @@ text {*
   sequences coincide with the symbol mapping.
 
   \item Raw Unicode characters within prover source files should be
-  restricted to informal parts, e.g. to write text in non-latin alphabets.
+  restricted to informal parts, e.g.\ to write text in non-latin alphabets.
   Mathematical symbols should be defined via the official rendering tables.
 
   \end{itemize}
@@ -189,7 +189,7 @@ text {*
   jEdit Shortcuts options dialog.
 
   \item \textbf{Problem:} Lack of dependency management for auxiliary files
-  that contribute to a theory (e.g. @{command ML_file}).
+  that contribute to a theory (e.g.\ @{command ML_file}).
 
   \textbf{Workaround:} Re-load files manually within the prover.
 
