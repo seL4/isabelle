@@ -8,7 +8,7 @@ package isabelle
 
 
 import java.awt.{Image, Component, Container, Toolkit, Window}
-import javax.swing.{ImageIcon, JOptionPane, UIManager}
+import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow}
 
 import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
@@ -143,5 +143,12 @@ object GUI
 
   def parent_window(component: Component): Option[Window] =
     ancestors(component).collectFirst({ case x: Window => x })
+
+  def layered_pane(component: Component): Option[JLayeredPane] =
+    parent_window(component) match {
+      case Some(window: JWindow) => Some(window.getLayeredPane)
+      case Some(frame: JFrame) => Some(frame.getLayeredPane)
+      case _ => None
+    }
 }
 

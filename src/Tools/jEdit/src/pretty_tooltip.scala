@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Dimension}
 import java.awt.event.{FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, JComponent, SwingUtilities}
+import javax.swing.{JPanel, JComponent, SwingUtilities, JLayeredPane}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -42,25 +42,28 @@ object Pretty_Tooltip
     location: Point,
     rendering: Rendering,
     results: Command.Results,
-    info: Text.Info[XML.Body]): Pretty_Tooltip =
+    info: Text.Info[XML.Body])
   {
     Swing_Thread.require()
 
     stack match {
       case top :: _ if top.results == results && top.info == info => top
       case _ =>
-        val (old, rest) =
-          GUI.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
-            case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
-            case None => (stack, Nil)
-          }
-        old.foreach(_.hide_popup)
+        GUI.layered_pane(parent) match {
+          case None =>
+          case Some(layered) =>
+            val (old, rest) =
+              GUI.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
+                case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
+                case None => (stack, Nil)
+              }
+            old.foreach(_.hide_popup)
 
-        val loc = SwingUtilities.convertPoint(parent, location, view.getLayeredPane)
-        val tip = new Pretty_Tooltip(view, loc, rendering, results, info)
-        stack = tip :: rest
-        tip.show_popup
-        tip
+            val loc = SwingUtilities.convertPoint(parent, location, layered)
+            val tip = new Pretty_Tooltip(view, layered, loc, rendering, results, info)
+            stack = tip :: rest
+            tip.show_popup
+        }
     }
   }
 
@@ -139,6 +142,7 @@ object Pretty_Tooltip
 
 class Pretty_Tooltip private(
   view: View,
+  layered: JLayeredPane,
   location: Point,
   rendering: Rendering,
   private val results: Command.Results,
@@ -218,7 +222,6 @@ class Pretty_Tooltip private(
 
   private val popup =
   {
-    val layered = view.getLayeredPane
     val screen = JEdit_Lib.screen_location(layered, location)
     val size =
     {
