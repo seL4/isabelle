@@ -47,7 +47,7 @@ object Pretty_Tooltip
     Swing_Thread.require()
 
     stack match {
-      case top :: _ if top.results == results && top.info == info => top
+      case top :: _ if top.results == results && top.info == info =>
       case _ =>
         GUI.layered_pane(parent) match {
           case None =>
