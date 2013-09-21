@@ -80,7 +80,7 @@ case "$OUTPUT_NAME" in
 esac
 
 [ -z "$QUIET" ] && echo "${OUTPUT_NAME}.eps" >&2
-perl -p -e "s,<any>,$NAME," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "${OUTPUT_NAME}.eps"
+perl -p -e "s,<any>,$TEXT," "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "${OUTPUT_NAME}.eps"
 
 [ -z "$QUIET" ] && echo "${OUTPUT_NAME}.pdf" >&2
 "$ISABELLE_EPSTOPDF" "${OUTPUT_NAME}.eps"
