@@ -35,22 +35,33 @@ object Doc
   case class Doc(name: String, title: String) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
+  def text_file(name: String): Option[Text_File] =
+  {
+    val path = Path.variable("ISABELLE_HOME") + Path.explode(name)
+    if (path.is_file) Some(Text_File(name, path))
+    else None
+  }
+
   private val Section_Entry = new Regex("""^(\S.*)\s*$""")
   private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
 
   private def release_notes(): List[Entry] =
   {
-    def text_file(name: String): Option[Text_File] =
-    {
-      val path = Path.variable("ISABELLE_HOME") + Path.explode(name)
-      if (path.is_file) Some(Text_File(name, path))
-      else None
-    }
     val names =
       List("ANNOUNCE", "README", "NEWS", "COPYRIGHT", "CONTRIBUTORS",
         "contrib/README", "README_REPOSITORY")
     Section("Release notes") ::
       (for (name <- names; entry <- text_file(name)) yield entry)
+  }
+
+  private def examples(): List[Entry] =
+  {
+    val names =
+      List(
+        "src/HOL/ex/Seq.thy",
+        "src/HOL/Unix/Unix.thy",
+        "src/HOL/Isar_Examples/Drinker.thy")
+    Section("Examples") :: names.map(name => text_file(name).get)
   }
 
   def contents(): List[Entry] =
@@ -62,7 +73,7 @@ object Doc
           case Doc_Entry(name, title) => Some(Doc(name, title))
           case _ => None
         }
-    } yield entry) ::: release_notes()
+    } yield entry) ::: release_notes() ::: examples()
 
 
   /* view */
