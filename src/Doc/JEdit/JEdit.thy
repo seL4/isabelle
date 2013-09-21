@@ -38,6 +38,8 @@ experts alike.
 section {* The Isabelle/jEdit Prover IDE *}
 
 text {*
+  \includegraphics[width=\textwidth]{isabelle-jedit}
+
   Isabelle/jEdit consists of some plugins for the well-known jEdit text
   editor \url{http://www.jedit.org}, according to the following
   principles.
