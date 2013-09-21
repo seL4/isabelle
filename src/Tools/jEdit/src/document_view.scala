@@ -80,9 +80,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def perspective(): Text.Perspective =
   {
     Swing_Thread.require()
+
+    val active_caret =
+      if (text_area.getView != null && text_area.getView.getTextArea == text_area)
+        List(JEdit_Lib.point_range(model.buffer, text_area.getCaretPosition))
+      else Nil
+
     val buffer_range = JEdit_Lib.buffer_range(model.buffer)
-    Text.Perspective(
-      for {
+    val visible_lines =
+      (for {
         i <- 0 until text_area.getVisibleLines
         start = text_area.getScreenLineStartOffset(i)
         stop = text_area.getScreenLineEndOffset(i)
@@ -90,7 +96,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         range <- buffer_range.try_restrict(Text.Range(start, stop))
         if !range.is_singularity
       }
-      yield range)
+      yield range).toList
+
+    Text.Perspective(active_caret ::: visible_lines)
   }
 
   private def update_perspective = new TextAreaExtension
