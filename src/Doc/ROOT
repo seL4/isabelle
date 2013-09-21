@@ -143,6 +143,23 @@ session IsarRef (doc) in "IsarRef" = HOL +
     "document/showsymbols"
     "document/style.sty"
 
+session JEdit (doc) in "JEdit" = Pure +
+  options [document_variants = "jedit", thy_output_source]
+  theories
+    JEdit
+  files
+    "../prepare_document"
+    "../IsarRef/document/style.sty"
+    "../pdfsetup.sty"
+    "../iman.sty"
+    "../extra.sty"
+    "../isar.sty"
+    "../ttbox.sty"
+    "../underscore.sty"
+    "../manual.bib"
+    "document/build"
+    "document/root.tex"
+
 session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
   options [document_variants = "sugar"]
   theories [document = ""]

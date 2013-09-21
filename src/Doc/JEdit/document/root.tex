@@ -1,0 +1,41 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{supertabular}
+\usepackage{graphicx}
+\usepackage{iman,extra,isar,ttbox}
+\usepackage[nohyphen,strings]{underscore}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+\usepackage{style}
+\usepackage{pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
+
+\isabellestyle{literal}
+
+\title{\includegraphics[scale=0.5]{isabelle_pide} \\[4ex] Isabelle/jEdit}
+
+\author{\emph{Makarius Wenzel}}
+
+\makeindex
+
+
+\begin{document}
+
+\maketitle
+\pagenumbering{roman} \tableofcontents \clearfirst
+
+\input{JEdit.tex}
+
+\begingroup
+  \tocentry{\bibname}
+  \bibliographystyle{abbrv} \small\raggedright\frenchspacing
+  \bibliography{manual}
+\endgroup
+
+\tocentry{\indexname}
+\printindex
+
+\end{document}
