@@ -36,7 +36,6 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.output-panel \
   isabelle.protocol-panel \
   isabelle.raw-output-panel \
-  isabelle.readme-panel \
   isabelle.sledgehammer-panel \
   isabelle.symbols-panel \
   isabelle.syslog-panel \
@@ -48,7 +47,6 @@ isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
 isabelle.raw-output-panel.label=Raw Output panel
-isabelle.readme-panel.label=README panel
 isabelle.sledgehammer-panel.label=Sledgehammer panel
 isabelle.symbols-panel.label=Symbols panel
 isabelle.syslog-panel.label=Syslog panel
@@ -64,7 +62,6 @@ isabelle-output.title=Output
 isabelle-protocol.title=Protocol
 isabelle-raw-output.title=Raw Output
 isabelle-documentation.title=Documentation
-isabelle-readme.title=README
 isabelle-sledgehammer.title=Sledgehammer
 isabelle-symbols.title=Symbols
 isabelle-syslog.title=Syslog

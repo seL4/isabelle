@@ -186,7 +186,6 @@ isabelle-find.dock-position=bottom
 isabelle-output.dock-position=bottom
 isabelle-output.height=174
 isabelle-output.width=412
-isabelle-readme.dock-position=bottom
 isabelle-sledgehammer.dock-position=bottom
 isabelle-symbols.dock-position=bottom
 isabelle-theories.dock-position=right

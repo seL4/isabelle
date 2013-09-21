@@ -22,11 +22,6 @@
 			wm.addDockableWindow("isabelle-documentation");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.readme-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-readme");
-		</CODE>
-	</ACTION>
 	<ACTION NAME="isabelle.find-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-find");
