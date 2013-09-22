@@ -92,13 +92,6 @@ object JEdit_Lib
   }
 
 
-  /* basic tooltips, with multi-line support */
-
-  def wrap_tooltip(text: String): String =
-    if (text == "") null
-    else "<html><pre>" + HTML.encode(text) + "</pre></html>"
-
-
   /* buffers */
 
   def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =

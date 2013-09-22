@@ -109,6 +109,13 @@ object GUI
   }
 
 
+  /* tooltip with multi-line support */
+
+  def tooltip_lines(lines: List[String]): String =
+    if (lines.isEmpty) null
+    else "<html><pre>" + HTML.encode(cat_lines(lines)) + "</pre></html>"
+
+
   /* screen resolution */
 
   def resolution_scale(): Double = Toolkit.getDefaultToolkit.getScreenResolution.toDouble / 72
