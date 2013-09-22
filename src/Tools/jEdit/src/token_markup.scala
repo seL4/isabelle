@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Font, Color}
-import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
+import java.awt.font.TextAttribute
 import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
@@ -68,24 +68,6 @@ object Token_Markup
   }
 
 
-  /* font operations */
-
-  private def font_metrics(font: Font): LineMetrics =
-    font.getLineMetrics("", new FontRenderContext(null, false, false))
-
-  def imitate_font(family: String, font: Font): Font =
-  {
-    val font1 = new Font(family, font.getStyle, font.getSize)
-    font1.deriveFont(font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
-  }
-
-  def transform_font(font: Font, transform: AffineTransform): Font =
-  {
-    import scala.collection.JavaConversions._
-    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
-  }
-
-
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
@@ -109,10 +91,10 @@ object Token_Markup
         val font1 = font0.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i)))
 
         def shift(y: Float): Font =
-          transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
+          GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
 
-        val m0 = font_metrics(font0)
-        val m1 = font_metrics(font1)
+        val m0 = GUI.font_metrics(font0)
+        val m1 = GUI.font_metrics(font1)
         val a = m1.getAscent - m0.getAscent
         val b = (m1.getDescent + m1.getLeading) - (m0.getDescent + m0.getLeading)
         if (a > 0.0f) shift(a)
@@ -145,12 +127,12 @@ object Token_Markup
         for (idx <- 0 until max_user_fonts)
           new_styles(user_font(idx, i.toByte)) = style
         for ((family, idx) <- Symbol.font_index)
-          new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
+          new_styles(user_font(idx, i.toByte)) = font_style(style, GUI.imitate_font(family, _))
       }
       new_styles(hidden) =
         new SyntaxStyle(hidden_color, null,
           { val font = styles(0).getFont
-            transform_font(new Font(font.getFamily, 0, 1),
+            GUI.transform_font(new Font(font.getFamily, 0, 1),
               AffineTransform.getScaleInstance(1.0, font.getSize.toDouble)) })
       new_styles
     }

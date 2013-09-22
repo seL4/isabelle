@@ -7,7 +7,9 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 
-import java.awt.{Image, Component, Container, Toolkit, Window}
+import java.awt.{Image, Component, Container, Toolkit, Window, Font}
+import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
+import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow}
 
 import scala.swing.{ComboBox, TextArea, ScrollPane}
@@ -150,5 +152,23 @@ object GUI
       case Some(frame: JFrame) => Some(frame.getLayeredPane)
       case _ => None
     }
+
+
+  /* font operations */
+
+  def font_metrics(font: Font): LineMetrics =
+    font.getLineMetrics("", new FontRenderContext(null, false, false))
+
+  def imitate_font(family: String, font: Font): Font =
+  {
+    val font1 = new Font(family, font.getStyle, font.getSize)
+    font1.deriveFont(font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
+  }
+
+  def transform_font(font: Font, transform: AffineTransform): Font =
+  {
+    import scala.collection.JavaConversions._
+    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
+  }
 }
 

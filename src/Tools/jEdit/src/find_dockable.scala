@@ -117,7 +117,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
     setToolTipText(query_label.tooltip)
-    setFont(Token_Markup.imitate_font(Rendering.font_family(), getFont))
+    setFont(GUI.imitate_font(Rendering.font_family(), getFont))
   }
 
   private case class Context_Entry(val name: String, val description: String)
