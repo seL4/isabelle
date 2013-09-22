@@ -29,6 +29,15 @@ declare -a SOURCES=(
   General/time.scala
   General/timing.scala
   General/xz_file.scala
+  GUI/color_value.scala
+  GUI/gui.scala
+  GUI/gui_setup.scala
+  GUI/html5_panel.scala
+  GUI/jfx_thread.scala
+  GUI/popup.scala
+  GUI/swing_thread.scala
+  GUI/system_dialog.scala
+  GUI/wrap_panel.scala
   Isar/completion.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
@@ -45,27 +54,19 @@ declare -a SOURCES=(
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
-  System/color_value.scala
   System/command_line.scala
   System/event_bus.scala
-  System/gui.scala
-  System/gui_setup.scala
-  System/html5_panel.scala
   System/interrupt.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
   System/isabelle_font.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
-  System/jfx_thread.scala
   System/options.scala
   System/platform.scala
   System/session.scala
-  System/swing_thread.scala
   System/system_channel.scala
-  System/system_dialog.scala
   System/utf8.scala
-  System/wrap_panel.scala
   Thy/html.scala
   Thy/present.scala
   Thy/thy_header.scala

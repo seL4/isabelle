@@ -31,7 +31,6 @@ declare -a SOURCES=(
   "src/osx_adapter.scala"
   "src/output_dockable.scala"
   "src/plugin.scala"
-  "src/popup.scala"
   "src/pretty_text_area.scala"
   "src/pretty_tooltip.scala"
   "src/process_indicator.scala"

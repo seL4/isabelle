@@ -1,13 +1,11 @@
-/*  Title:      Tools/jEdit/src/popup.scala
+/*  Title:      Pure/GUI/popup.scala
     Author:     Makarius
 
 Popup within layered pane.
 */
 
-package isabelle.jedit
+package isabelle
 
-
-import isabelle._
 
 import java.awt.{Point, Dimension}
 import javax.swing.{JLayeredPane, JComponent}

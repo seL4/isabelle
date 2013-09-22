@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/html5_panel.scala
+/*  Title:      Pure/GUI/html5_panel.scala
     Author:     Makarius
 
 HTML5 panel based on Java FX WebView.

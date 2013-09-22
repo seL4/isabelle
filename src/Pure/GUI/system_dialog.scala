@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/system_dialog.scala
+/*  Title:      Pure/GUI/system_dialog.scala
     Author:     Makarius
 
 Dialog for system processes, with optional output window.

@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/wrap_panel.scala
+/*  Title:      Pure/GUI/wrap_panel.scala
     Author:     Makarius
 
 Panel with improved FlowLayout for wrapping of components over

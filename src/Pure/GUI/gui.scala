@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/gui.scala
+/*  Title:      Pure/GUI/gui.scala
     Author:     Makarius
 
 Basic GUI tools (for AWT/Swing).

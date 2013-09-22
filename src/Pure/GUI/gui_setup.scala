@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/gui_setup.scala
+/*  Title:      Pure/GUI/gui_setup.scala
     Author:     Makarius
 
 GUI for basic system setup.

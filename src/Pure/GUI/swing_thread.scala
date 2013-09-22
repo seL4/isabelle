@@ -1,7 +1,5 @@
-/*  Title:      Pure/System/swing_thread.scala
-    Module:     PIDE
+/*  Title:      Pure/GUI/swing_thread.scala
     Author:     Makarius
-    Author:     Fabian Immler, TU Munich
 
 Evaluation within the AWT/Swing thread.
 */
