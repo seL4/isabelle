@@ -13,13 +13,16 @@ import java.awt.{Dimension, Component, BorderLayout}
 import javax.swing.JPanel
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.DockableWindowManager
+import org.gjt.sp.jedit.gui.{DefaultFocusComponent, DockableWindowManager}
 
 
-class Dockable(view: View, position: String) extends JPanel(new BorderLayout)
+class Dockable(view: View, position: String)
+  extends JPanel(new BorderLayout) with DefaultFocusComponent
 {
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
+
+  def focusOnDefaultComponent { requestFocus }
 
   def set_content(c: Component) { add(c, BorderLayout.CENTER) }
   def set_content(c: scala.swing.Component) { add(c.peer, BorderLayout.CENTER) }

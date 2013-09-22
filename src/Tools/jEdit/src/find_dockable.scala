@@ -158,4 +158,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
       query_label, Component.wrap(query), context, limit, allow_dups,
       process_indicator.component, apply_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
+
+  override def focusOnDefaultComponent { query.requestFocus }
 }

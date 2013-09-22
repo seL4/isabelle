@@ -178,4 +178,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       provers_label, Component.wrap(provers), isar_proofs,
       process_indicator.component, apply_query, cancel_query, locate_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
+
+  override def focusOnDefaultComponent { apply_query.peer.requestFocus }
 }
