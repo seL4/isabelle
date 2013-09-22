@@ -10,12 +10,12 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension}
-import java.awt.event.{KeyEvent, KeyListener}
+import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.annotation.tailrec
 
-import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities}
+import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug}
 import org.gjt.sp.jedit.gui.KeyEventWorkaround
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
@@ -156,6 +156,10 @@ object JEdit_Lib
   def try_get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
+
+  def try_get_text(text: String, range: Text.Range): Option[String] =
+    try { Some(text.substring(range.start, range.stop)) }
+    catch { case _: IndexOutOfBoundsException => None }
 
 
   /* buffer range */
@@ -335,6 +339,16 @@ object JEdit_Lib
       def keyPressed(evt: KeyEvent) { process_key_event(evt, key_pressed) }
       def keyReleased(evt: KeyEvent) { process_key_event(evt, key_released) }
     }
+  }
+
+  def special_key(evt: KeyEvent): Boolean =
+  {
+    // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+    val mod = evt.getModifiers
+    (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
+    (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
+      !Debug.ALT_KEY_PRESSED_DISABLED ||
+    (mod & InputEvent.META_MASK) != 0
   }
 }
 

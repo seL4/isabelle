@@ -18,7 +18,6 @@ import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.HistoryTextField
 
 
 class Find_Dockable(view: View, position: String) extends Dockable(view, position)
@@ -109,7 +108,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     tooltip = "Search criteria for find operation"
   }
 
-  private val query = new HistoryTextField("isabelle-find-theorems") {
+  private val query = new Completion_Popup.History_Text_Field("isabelle-find-theorems") {
     override def processKeyEvent(evt: KeyEvent)
     {
       if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) clicked
@@ -118,6 +117,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
     setToolTipText(query_label.tooltip)
+    setFont(Token_Markup.imitate_font(Rendering.font_family(), getFont))
   }
 
   private case class Context_Entry(val name: String, val description: String)

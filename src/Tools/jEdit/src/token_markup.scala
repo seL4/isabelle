@@ -73,13 +73,13 @@ object Token_Markup
   private def font_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
-  private def imitate_font(family: String, font: Font): Font =
+  def imitate_font(family: String, font: Font): Font =
   {
-    val font1 = new Font (family, font.getStyle, font.getSize)
+    val font1 = new Font(family, font.getStyle, font.getSize)
     font1.deriveFont(font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
   }
 
-  private def transform_font(font: Font, transform: AffineTransform): Font =
+  def transform_font(font: Font, transform: AffineTransform): Font =
   {
     import scala.collection.JavaConversions._
     font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))

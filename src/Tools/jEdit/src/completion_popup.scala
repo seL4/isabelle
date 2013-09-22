@@ -10,20 +10,21 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Font, Point, BorderLayout, Dimension}
-import java.awt.event.{InputEvent, KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
+import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
-import org.gjt.sp.jedit.{View, Debug}
+import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
 object Completion_Popup
 {
-  /* setup for jEdit text area */
+  /** jEdit text area **/
 
   object Text_Area
   {
@@ -156,14 +157,7 @@ object Completion_Popup
         if (!evt.isConsumed) {
           dismissed()
           if (evt.getKeyChar != '\b') {
-            val mod = evt.getModifiers
-            val special =
-              // cf. 5.1.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
-              (mod & InputEvent.CTRL_MASK) != 0 && (mod & InputEvent.ALT_MASK) == 0 ||
-              (mod & InputEvent.CTRL_MASK) == 0 && (mod & InputEvent.ALT_MASK) != 0 &&
-                !Debug.ALT_KEY_PRESSED_DISABLED ||
-              (mod & InputEvent.META_MASK) != 0
-
+            val special = JEdit_Lib.special_key(evt)
             if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
               input_delay.revoke()
               action(immediate = PIDE.options.bool("jedit_completion_immediate"))
@@ -211,6 +205,143 @@ object Completion_Popup
     {
       dismissed()
       text_area.removeKeyListener(outer_key_listener)
+    }
+  }
+
+
+
+  /** history text field **/
+
+  class History_Text_Field(
+    name: String = null,
+    instant_popups: Boolean = false,
+    enter_adds_to_history: Boolean = true,
+    syntax: Outer_Syntax = Outer_Syntax.init) extends
+    HistoryTextField(name, instant_popups, enter_adds_to_history)
+  {
+    text_field =>
+
+
+    private var completion_popup: Option[Completion_Popup] = None
+
+
+    /* dismiss */
+
+    private def dismissed(): Boolean =
+    {
+      completion_popup match {
+        case Some(completion) =>
+          completion.hide_popup()
+          completion_popup = None
+          true
+        case None =>
+          false
+      }
+    }
+
+
+    /* insert */
+
+    private def insert(item: Completion.Item)
+    {
+      Swing_Thread.require()
+
+      val len = item.original.length
+      if (text_field.isEditable && len > 0) {
+        val caret = text_field.getCaret.getDot
+        val content = text_field.getText
+        JEdit_Lib.try_get_text(content, Text.Range(caret - len, caret)) match {
+          case Some(text) if text == item.original =>
+            text_field.setText(
+              content.substring(0, caret - len) +
+              item.replacement +
+              content.substring(caret))
+          case _ =>
+        }
+      }
+    }
+
+
+    /* completion action */
+
+    def action()
+    {
+      GUI.layered_pane(text_field) match {
+        case Some(layered) if text_field.isEditable =>
+          val history = PIDE.completion_history.value
+
+          val caret = text_field.getCaret.getDot
+          val text = text_field.getText.substring(0, caret)
+
+          syntax.completion.complete(history, decode = true, explicit = false, text) match {
+            case Some(result) =>
+              val fm = text_field.getFontMetrics(text_field.getFont)
+              val loc =
+                SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
+              val font =
+                text_field.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
+
+              val completion = new Completion_Popup(layered, loc, font, result.items)
+              {
+                override def complete(item: Completion.Item) {
+                  PIDE.completion_history.update(item)
+                  insert(item)
+                }
+                override def propagate(evt: KeyEvent) {
+                  if (!evt.isConsumed) text_field.processKeyEvent(evt)
+                }
+                override def refocus() { text_field.requestFocus }
+              }
+              completion_popup = Some(completion)
+              completion.show_popup()
+
+            case None =>
+          }
+        case _ =>
+      }
+    }
+
+
+    /* process key event */
+
+    private def process(evt: KeyEvent)
+    {
+      if (PIDE.options.bool("jedit_completion")) {
+        dismissed()
+        if (evt.getKeyChar != '\b') {
+          val special = JEdit_Lib.special_key(evt)
+          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+            process_delay.revoke()
+            action()
+          }
+          else process_delay.invoke()
+        }
+      }
+    }
+
+    private val process_delay =
+      Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_delay")) {
+        action()
+      }
+
+    override def processKeyEvent(evt0: KeyEvent)
+    {
+      val evt = KeyEventWorkaround.processKeyEvent(evt0)
+      if (evt != null) {
+        evt.getID match {
+          case KeyEvent.KEY_PRESSED =>
+            val key_code = evt.getKeyCode
+            if (key_code == KeyEvent.VK_ESCAPE) {
+              if (dismissed()) evt.consume
+            }
+          case KeyEvent.KEY_TYPED =>
+            super.processKeyEvent(evt)
+            process(evt)
+            evt.consume
+          case _ =>
+        }
+        if (!evt.isConsumed) super.processKeyEvent(evt)
+      }
     }
   }
 }
