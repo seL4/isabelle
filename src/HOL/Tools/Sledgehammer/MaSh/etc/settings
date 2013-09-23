@@ -1,3 +1,6 @@
 # -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_SLEDGEHAMMER_MASH="$COMPONENT"
+
+# MASH=yes
+MASH_PORT=9255
