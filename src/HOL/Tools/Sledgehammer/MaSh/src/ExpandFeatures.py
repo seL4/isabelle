@@ -5,7 +5,7 @@ Created on Aug 21, 2013
 '''
 
 from math import log
-from gensim import corpora, models, similarities
+#from gensim import corpora, models, similarities
 
 class ExpandFeatures(object):
 
@@ -16,7 +16,7 @@ class ExpandFeatures(object):
         self.featureCounts = {}
         self.counter = 0        
         self.corpus = []
-        self.LSIModel = models.lsimodel.LsiModel(self.corpus,num_topics=500)
+#        self.LSIModel = models.lsimodel.LsiModel(self.corpus,num_topics=500)
 
     def initialize(self,dicts):
         self.dicts = dicts
@@ -79,9 +79,9 @@ class ExpandFeatures(object):
         #print features.keys()        
         #tfidfcorpus = [tfidfmodel[x] for x in self.corpus]
         #newFeatures = LSI[[(x,1) for x in features.keys()]]
-        newFeatures = self.LSIModel[[(x,1) for x in features.keys()]]
-        print features
-        print newFeatures
+        #newFeatures = self.LSIModel[[(x,1) for x in features.keys()]]
+        #print features
+        #print newFeatures
         #print newFeatures
         
         """
@@ -154,7 +154,8 @@ class ExpandFeatures(object):
         """
         #print 'fold',len(features)
         #print 'fnew',len(newFeatures)
-        return dict(newFeatures)
+        #return dict(newFeatures)
+        return features
 
 if __name__ == "__main__":
     pass

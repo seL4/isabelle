@@ -81,9 +81,10 @@ def mash(argv = sys.argv[1:]):
 
     # Shutdown commands need not start the server fist.
     if args.shutdownServer:
-        logger.info('Shutting down server.')
+        logger.info('Sending shutdown command.')
         try:
-            communicate('shutdown',args.host,args.port)
+            received = communicate('shutdown',args.host,args.port)
+            logger.info(received)
         except:
             pass
         return

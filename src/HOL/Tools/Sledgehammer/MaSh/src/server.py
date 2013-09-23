@@ -15,7 +15,7 @@ from sparseNaiveBayes import sparseNBClassifier
 from KNN import KNN,euclidean
 from KNNs import KNNAdaptPointFeatures,KNNUrban
 from predefined import Predefined
-#from ExpandFeatures import ExpandFeatures
+from ExpandFeatures import ExpandFeatures
 from stats import Statistics
 
 
@@ -36,7 +36,7 @@ class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
             statsFile = os.path.join(self.args.outputDir,self.args.saveStats)
             self.stats.save(statsFile)   
                
-    def save_and_shutdown(self):     
+    def save_and_shutdown(self): 
         self.save()          
         self.shutdown()
 
@@ -64,9 +64,9 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             self.server.model = Predefined(self.server.args.predef)
         else: # Default case
             self.server.model = sparseNBClassifier(self.server.args.NBDefaultPriorWeight,self.server.args.NBPosWeight,self.server.args.NBDefVal)
-#        if self.server.args.expandFeatures:
-#            self.server.expandFeatures = ExpandFeatures(self.server.dicts)
-#            self.server.expandFeatures.initialize(self.server.dicts)
+        if self.server.args.expandFeatures:
+            self.server.expandFeatures = ExpandFeatures(self.server.dicts)
+            self.server.expandFeatures.initialize(self.server.dicts)
         # Create Model
         if os.path.isfile(self.server.args.modelFile):
             self.server.model.load(self.server.args.modelFile)          
@@ -104,8 +104,8 @@ class MaShHandler(SocketServer.BaseRequestHandler):
                 self.server.logger.debug('Poor predictions: %s',bp)
             self.server.statementCounter += 1
 
-#        if self.server.args.expandFeatures:
-#            self.server.expandFeatures.update(self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
+        if self.server.args.expandFeatures:
+            self.server.expandFeatures.update(self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
         # Update Dependencies, p proves p
         self.server.dicts.dependenciesDict[problemId] = [problemId]+self.server.dicts.dependenciesDict[problemId]
         self.server.model.update(problemId,self.server.dicts.featureDict[problemId],self.server.dicts.dependenciesDict[problemId])
@@ -126,8 +126,8 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             numberOfPredictions = self.server.args.numberOfPredictions
         if not hints == []:
             self.server.model.update('hints',features,hints)
-#        if self.server.args.expandFeatures:
-#            features = self.server.expandFeatures.expand(features)
+        if self.server.args.expandFeatures:
+            features = self.server.expandFeatures.expand(features)
         # Create predictions
         self.server.logger.debug('Starting computation for line %s',self.server.callCounter)
                 
@@ -148,12 +148,19 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         self.request.sendall('Shutting down server.')
         if saveModels:
             self.server.save()
-        self.server.shutdown()
-    
+        self.server.idle_timer.cancel()
+        self.server.idle_timer = Timer(0.5, self.server.shutdown)
+        self.server.idle_timer.start()    
+
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(4194304).strip()
         self.server.lock.acquire()
+        # Update idle shutdown timer
+        self.server.idle_timer.cancel()
+        self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
+        self.server.idle_timer.start()        
+
         self.startTime = time()  
         if self.data == 'shutdown':
             self.shutdown()         
@@ -176,21 +183,13 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         else:
             self.request.sendall('Unspecified input format: \n%s',self.data)
         self.server.callCounter += 1
-        # Update idle shutdown timer
-        self.server.idle_timer.cancel()
-        self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
-        self.server.idle_timer.start()        
         self.server.lock.release()
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9255
     SocketServer.TCPServer.allow_reuse_address = True
     server = ThreadingTCPServer((HOST, PORT), MaShHandler)
-
-    # Activate the server; this will keep running until you
-    # interrupt the program with Ctrl-C
     server.serve_forever()        
-
 
 
     
