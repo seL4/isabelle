@@ -1438,10 +1438,10 @@ proof -
   qed (insert e, auto)
 qed
 
-text {* Hence the following eccentric variant of the inverse function theorem.    *)
-(* This has no continuity assumptions, but we do need the inverse function.  *)
-(* We could put f' \<circ> g = I but this happens to fit with the minimal linear   *)
-(* algebra theory I've set up so far. *}
+text {* Hence the following eccentric variant of the inverse function theorem.
+  This has no continuity assumptions, but we do need the inverse function.
+  We could put @{text "f' \<circ> g = I"} but this happens to fit with the minimal linear
+  algebra theory I've set up so far. *}
 
 (* move  before left_inverse_linear in Euclidean_Space*)
 
