@@ -22,10 +22,13 @@ open BNF_FP_Util
 open BNF_FP_Rec_Sugar_Util
 open BNF_FP_Rec_Sugar_Tactics
 
+val codeN = "code"
 val ctrN = "ctr"
 val discN = "disc"
 val selN = "sel"
 
+val nitpick_attrs = @{attributes [nitpick_simp]};
+val code_nitpick_simp_attrs = Code.add_default_eqn_attrib :: nitpick_attrs;
 val simp_attrs = @{attributes [simp]};
 
 exception Primrec_Error of string * term list;
@@ -348,7 +351,7 @@ fun add_primrec fixes specs lthy =
 
         val notes =
           [(inductN, if nontriv then [induct_thm] else [], []),
-           (simpsN, simp_thms, simp_attrs)]
+           (simpsN, simp_thms, code_nitpick_simp_attrs @ simp_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]));
@@ -851,6 +854,7 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
 
         val notes =
           [(coinductN, map (if nontriv then single else K []) coinduct_thms, []),
+           (codeN, ctr_thmss(*FIXME*), code_nitpick_simp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (selN, sel_thmss, simp_attrs),
