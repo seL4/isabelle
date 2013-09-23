@@ -959,7 +959,7 @@ you can disable it by passing the \textit{dont\_star\_linear\_preds} option.
 A coinductive datatype is similar to an inductive datatype but
 allows infinite objects. Thus, the infinite lists $\textit{ps}$ $=$ $[a, a, a,
 \ldots]$, $\textit{qs}$ $=$ $[a, b, a, b, \ldots]$, and $\textit{rs}$ $=$ $[0,
-1, 2, 3, \ldots]$ can be defined as lazy lists using the
+1, 2, 3, \ldots]$ can be defined as coinductive lists, or ``lazy lists,'' using the
 $\textit{LNil}\mathbin{\Colon}{'}a~\textit{llist}$ and
 $\textit{LCons}\mathbin{\Colon}{'}a \mathbin{\Rightarrow} {'}a~\textit{llist}
 \mathbin{\Rightarrow} {'}a~\textit{llist}$ constructors.
@@ -2728,11 +2728,11 @@ definition.
 Nitpick provides a rich Standard ML interface used mainly for internal purposes
 and debugging. Among the most interesting functions exported by Nitpick are
 those that let you invoke the tool programmatically and those that let you
-register and unregister custom coinductive datatypes as well as term
-postprocessors.
+register and unregister custom term postprocessors as well as coinductive
+datatypes.
 
-\subsection{Invocation of Nitpick}
-\label{invocation-of-nitpick}
+\subsection{Invoking Nitpick}
+\label{invoking-nitpick}
 
 The \textit{Nitpick} structure offers the following functions for invoking your
 favorite counterexample generator:
@@ -2770,8 +2770,29 @@ $\hbox{}\quad\textit{Nitpick.pick\_nits\_in\_subgoal}~\textit{state}~\textit{par
 
 \let\antiq=\textrm
 
-\subsection{Registration of Coinductive Datatypes}
-\label{registration-of-coinductive-datatypes}
+\subsection{Registering Term Postprocessors}
+\label{registering-term-postprocessors}
+
+It is possible to change the output of any term that Nitpick considers a
+datatype by registering a term postprocessor. The interface for registering and
+unregistering postprocessors consists of the following pair of functions defined
+in the \textit{Nitpick\_Model} structure:
+
+\prew
+$\textbf{type}\,~\textit{term\_postprocessor}\,~{=} {}$ \\
+$\hbox{}\quad\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \rightarrow \textit{term}$ \\
+$\textbf{val}\,~\textit{register\_term\_postprocessor} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic}$ \\
+$\hbox{}\quad{\rightarrow}\; \textit{Context.generic}$ \\
+$\textbf{val}\,~\textit{unregister\_term\_postprocessor} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic} \rightarrow \textit{Context.generic}$
+\postw
+
+\S\ref{typedefs-quotient-types-records-rationals-and-reals} and
+\texttt{src/HOL/Library/Multiset.thy} illustrate this feature in context.
+
+\subsection{Registering Coinductive Datatypes}
+\label{registering-coinductive-datatypes}
 
 If you have defined a custom coinductive datatype, you can tell Nitpick about
 it, so that it can use an efficient Kodkod axiomatization similar to the one it
@@ -2818,27 +2839,6 @@ Inductive datatypes can be registered as coinductive datatypes, given
 appropriate coinductive constructors. However, doing so precludes
 the use of the inductive constructors---Nitpick will generate an error if they
 are needed.
-
-\subsection{Registration of Term Postprocessors}
-\label{registration-of-term-postprocessors}
-
-It is possible to change the output of any term that Nitpick considers a
-datatype by registering a term postprocessor. The interface for registering and
-unregistering postprocessors consists of the following pair of functions defined
-in the \textit{Nitpick\_Model} structure:
-
-\prew
-$\textbf{type}\,~\textit{term\_postprocessor}\,~{=} {}$ \\
-$\hbox{}\quad\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \rightarrow \textit{term}$ \\
-$\textbf{val}\,~\textit{register\_term\_postprocessor} : {}$ \\
-$\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic}$ \\
-$\hbox{}\quad{\rightarrow}\; \textit{Context.generic}$ \\
-$\textbf{val}\,~\textit{unregister\_term\_postprocessor} : {}$ \\
-$\hbox{}\quad\textit{typ} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic} \rightarrow \textit{Context.generic}$
-\postw
-
-\S\ref{typedefs-quotient-types-records-rationals-and-reals} and
-\texttt{src/HOL/Library/Multiset.thy} illustrate this feature in context.
 
 \section{Known Bugs and Limitations}
 \label{known-bugs-and-limitations}
