@@ -395,7 +395,7 @@ INCOMPATIBILITY.
   - Renamed option:
       isar_shrink ~> isar_compress
     INCOMPATIBILITY.
-  - Added option "isar_try0"
+  - Added options "isar_try0", "spy"
   - Better support for "isar_proofs"
   - MaSh has been fined-tuned and now runs as a local server
 

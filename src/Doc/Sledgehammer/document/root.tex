@@ -1016,6 +1016,18 @@ preplay it) or the proof involves an unreasonably large number of facts.
 {\small See also \textit{preplay\_timeout} (\S\ref{timeouts})
 and \textit{dont\_preplay} (\S\ref{timeouts}).}
 
+\opfalse{spy}{dont\_spy}
+Specifies whether Sledgehammer should record statistics in
+\texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak spy\_\allowbreak sledgehammer}.
+These statistics can be useful to the developers of Sledgehammer. If you are willing to have your
+interactions recorded in the name of science, please enable this feature and send the statistics
+file every now and then to the author of this manual (\authoremail).
+To change the default value of this option globally, set the environment variable
+\texttt{SLEDGEHAMMER\_SPY} to \texttt{yes}.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in
 \texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
@@ -1280,7 +1292,8 @@ behind the scenes. The \textit{debug} option is implicitly disabled for
 automatic runs.
 
 \nopagebreak
-{\small See also \textit{overlord} (\S\ref{mode-of-operation}).}
+{\small See also \textit{spy} (\S\ref{mode-of-operation}) and
+\textit{overlord} (\S\ref{mode-of-operation}).}
 
 \opsmart{isar\_proofs}{no\_isar\_proofs}
 Specifies whether Isar proofs should be output in addition to one-liner
