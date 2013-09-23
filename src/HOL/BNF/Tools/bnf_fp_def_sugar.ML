@@ -1432,11 +1432,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list4 o split_list)
         o split_list;
 
-    val mk_simp_thmss =
-      map7 (fn {injects, distincts, case_thms, ...} => fn un_folds => fn co_recs =>
-        fn mapsx => fn rel_injects => fn rel_distincts => fn setss =>
-          injects @ distincts @ case_thms @ co_recs @ un_folds @ mapsx @ rel_injects
-          @ rel_distincts @ flat setss);
+    fun mk_simp_thms {injects, distincts, case_thms, ...} un_folds co_recs mapsx rel_injects
+        rel_distincts setss =
+      injects @ distincts @ case_thms @ co_recs @ un_folds @ mapsx @ rel_injects @ rel_distincts
+      @ flat setss;
 
     fun derive_and_note_induct_iters_thms_for_types
         ((((mapss, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
@@ -1451,7 +1450,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
         val simp_thmss =
-          mk_simp_thmss ctr_sugars fold_thmss rec_thmss mapss rel_injects rel_distincts setss;
+          map7 mk_simp_thms ctr_sugars fold_thmss rec_thmss mapss rel_injects rel_distincts setss;
 
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
@@ -1494,7 +1493,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           coiters @ disc_coiters @ disc_coiter_iffs @ sel_coiters;
 
         val simp_thmss =
-          mk_simp_thmss ctr_sugars
+          map7 mk_simp_thms ctr_sugars
             (map4 flat_coiter_thms safe_unfold_thmss disc_unfold_thmss disc_unfold_iff_thmss
                sel_unfold_thmss)
             (map4 flat_coiter_thms safe_corec_thmss disc_corec_thmss disc_corec_iff_thmss
