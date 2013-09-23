@@ -26,6 +26,8 @@ val ctrN = "ctr"
 val discN = "disc"
 val selN = "sel"
 
+val simp_attrs = @{attributes [simp]};
+
 exception Primrec_Error of string * term list;
 
 fun primrec_error str = raise Primrec_Error (str, []);
@@ -63,7 +65,9 @@ fun abstract vs =
 fun mk_prod1 Ts (t, u) = HOLogic.pair_const (fastype_of1 (Ts, t)) (fastype_of1 (Ts, u)) $ t $ u;
 fun mk_tuple1 Ts = the_default HOLogic.unit o try (foldr1 (mk_prod1 Ts));
 
-val simp_attrs = @{attributes [simp]};
+fun get_indices fixes t = map (fst #>> Binding.name_of #> Free) fixes
+  |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
+  |> map_filter I;
 
 
 (* Primrec *)
@@ -317,11 +321,8 @@ fun add_primrec fixes specs lthy =
       |> map (partition_eq ((op =) o pairself #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
 
-    fun get_indices t = map (fst #>> Binding.name_of #> Free) fixes
-      |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
-      |> map_filter I;
     val ((nontriv, rec_specs, _, induct_thm, induct_thms), lthy') =
-      rec_specs_of bs arg_Ts res_Ts get_indices callssss lthy;
+      rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
 
     val actual_nn = length funs_data;
 
@@ -686,16 +687,11 @@ fun add_primcorec sequential fixes specs lthy =
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> HOLogic.mk_tupleT) fixes |> split_list;
 
-    (* copied from primrec_new *)
-    fun get_indices t = map (fst #>> Binding.name_of #> Free) fixes
-      |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
-      |> map_filter I;
-
     val callssss = []; (* FIXME *)
 
     val ((nontriv, corec_specs', _, coinduct_thm, strong_co_induct_thm, coinduct_thmss,
           strong_coinduct_thmss), lthy') =
-      corec_specs_of bs arg_Ts res_Ts get_indices callssss lthy;
+      corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
 
     val fun_names = map Binding.name_of bs;
     val corec_specs = take (length fun_names) corec_specs'; (*###*)
