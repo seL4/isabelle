@@ -347,7 +347,7 @@ fun add_primrec fixes specs lthy =
             |> K |> Goal.prove lthy [] [] user_eqn)
 
         val notes =
-          [(inductN, if actual_nn > 1 then [induct_thm] else [], []),
+          [(inductN, if nontriv then [induct_thm] else [], []),
            (simpsN, simp_thms, simp_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
@@ -359,7 +359,7 @@ fun add_primrec fixes specs lthy =
     val common_name = mk_common_name fun_names;
 
     val common_notes =
-      [(inductN, if nontriv andalso actual_nn > 1 then [induct_thm] else [], [])]
+      [(inductN, if nontriv then [induct_thm] else [], [])]
       |> filter_out (null o #2)
       |> map (fn (thmN, thms, attrs) =>
         ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
@@ -368,7 +368,7 @@ fun add_primrec fixes specs lthy =
     |> fold_map Local_Theory.define defs
     |-> snd oo (fn def_thms' => fold_map3 (prove def_thms') (take actual_nn rec_specs)
       (take actual_nn induct_thms) funs_data)
-    |> snd o Local_Theory.notes common_notes
+    |> Local_Theory.notes common_notes |> snd
   end;
 
 fun add_primrec_cmd raw_fixes raw_specs lthy =
@@ -689,8 +689,8 @@ fun add_primcorec sequential fixes specs lthy =
 
     val callssss = []; (* FIXME *)
 
-    val ((nontriv, corec_specs', _, coinduct_thm, strong_co_induct_thm, coinduct_thmss,
-          strong_coinduct_thmss), lthy') =
+    val ((nontriv, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
+          strong_coinduct_thms), lthy') =
       corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
 
     val fun_names = map Binding.name_of bs;
@@ -843,22 +843,33 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
 
         val simp_thmss = map3 mk_simp_thms disc_thmss sel_thmss safe_ctr_thmss;
 
+        val common_name = mk_common_name fun_names;
+
         val anonymous_notes =
           [(flat safe_ctr_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
-          [(ctrN, ctr_thmss, []),
+          [(coinductN, map (if nontriv then single else K []) coinduct_thms, []),
+           (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (selN, sel_thmss, simp_attrs),
-           (simpsN, simp_thmss, [])]
+           (simpsN, simp_thmss, []),
+           (strong_coinductN, map (if nontriv then single else K []) strong_coinduct_thms, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn fun_name => fn thms =>
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
               fun_names thmss)
           |> filter_out (null o fst o hd o snd);
+
+        val common_notes =
+          [(coinductN, if nontriv then [coinduct_thm] else [], []),
+           (strong_coinductN, if nontriv then [strong_coinduct_thm] else [], [])]
+          |> filter_out (null o #2)
+          |> map (fn (thmN, thms, attrs) =>
+            ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
       in
-        lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd
+        lthy |> Local_Theory.notes (anonymous_notes @ notes @ common_notes) |> snd
       end;
   in
     lthy'
