@@ -22,6 +22,10 @@ open BNF_FP_Util
 open BNF_FP_Rec_Sugar_Util
 open BNF_FP_Rec_Sugar_Tactics
 
+val ctrN = "ctr"
+val discN = "disc"
+val selN = "sel"
+
 exception Primrec_Error of string * term list;
 
 fun primrec_error str = raise Primrec_Error (str, []);
@@ -785,8 +789,7 @@ fun add_primcorec sequential fixes specs lthy =
             |> pair sel
           end;
 
-        fun prove_ctr (_, disc_thms) (_, sel_thms') disc_eqns sel_eqns
-            {ctr, disc, sels, collapse, ...} =
+        fun prove_ctr disc_alist sel_alist disc_eqns sel_eqns {ctr, disc, sels, collapse, ...} =
           if not (exists (equal ctr o #ctr) disc_eqns)
               andalso not (exists (equal ctr o #ctr) sel_eqns)
 andalso (warning ("no eqns for ctr " ^ Syntax.string_of_term lthy ctr); true)
@@ -814,8 +817,8 @@ val _ = tracing (the_default "no disc_eqn" (Option.map (curry (op ^) "disc = " o
                 |> HOLogic.mk_Trueprop
                 |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
-              val maybe_disc_thm = AList.lookup (op =) disc_thms disc;
-              val sel_thms = map snd (filter (member (op =) sels o fst) sel_thms');
+              val maybe_disc_thm = AList.lookup (op =) disc_alist disc;
+              val sel_thms = map snd (filter (member (op =) sels o fst) sel_alist);
 val _ = tracing ("t = " ^ Syntax.string_of_term lthy t);
 val _ = tracing ("m = " ^ @{make_string} m);
 val _ = tracing ("collapse = " ^ @{make_string} collapse);
@@ -827,37 +830,34 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
               |> single
           end;
 
-        (* TODO: Reorganize so that the list looks like elsewhere in the BNF code.
-           This is important because we continually add new theorems, change attributes, etc., and
-           need to have a clear overview (and keep the documentation in sync). Also, it's confusing
-           that some variables called '_thmss' are actually pairs. *)
-        val (disc_notes, disc_thmss) =
-          fun_names ~~ map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss
-          |> `(map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding disc}), simp_attrs), [(map snd thms, [])])));
-        val (sel_notes, sel_thmss) =
-          fun_names ~~ map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss
-          |> `(map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding sel}), simp_attrs), [(map snd thms, [])])));
+        val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
+        val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;
 
-        val ctr_thmss = map5 (maps oooo prove_ctr) disc_thmss sel_thmss disc_eqnss sel_eqnss
+        val disc_thmss = map (map snd) disc_alists;
+        val sel_thmss = map (map snd) sel_alists;
+        val ctr_thmss = map5 (maps oooo prove_ctr) disc_alists sel_alists disc_eqnss sel_eqnss
           (map #ctr_specs corec_specs);
+
         val safess = map (map (K false)) ctr_thmss; (* FIXME: "true" for non-corecursive theorems *)
         val safe_ctr_thmss =
           map2 (map_filter (fn (safe, thm) => if safe then SOME thm else NONE) oo curry (op ~~))
             safess ctr_thmss;
 
-        val ctr_notes =
-          fun_names ~~ ctr_thmss
-          |> map (fn (fun_name, thms) =>
-            ((Binding.qualify true fun_name (@{binding ctr}), []), [(thms, [])]));
-
         val anonymous_notes =
           [(flat safe_ctr_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
+        val notes =
+          [(ctrN, ctr_thmss, []),
+           (discN, disc_thmss, simp_attrs),
+           (selN, sel_thmss, simp_attrs)]
+          |> maps (fn (thmN, thmss, attrs) =>
+            map2 (fn fun_name => fn thms =>
+                ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
+              fun_names thmss)
+          |> filter_out (null o fst o hd o snd);
       in
-        lthy |> snd o Local_Theory.notes (anonymous_notes @
-          filter (not o null o fst o the_single o snd) (disc_notes @ sel_notes @ ctr_notes))
+        lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd
       end;
   in
     lthy'
