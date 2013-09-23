@@ -985,8 +985,8 @@ infinite list $[a_1, a_1, a_1, \ldots]$.
 The next example is more interesting:
 
 \prew
-\textbf{primcorecursive}~$\textit{iterates}$~\textbf{where} \\
-``$\textit{iterates}~f\>a = \textit{LCons}~a~(\textit{iterates}~f\>(f\>a))$'' \textbf{.} \\[2\smallskipamount]
+\textbf{primcorec}~$\textit{iterates}$~\textbf{where} \\
+``$\textit{iterates}~f\>a = \textit{LCons}~a~(\textit{iterates}~f\>(f\>a))$'' \\[2\smallskipamount]
 \textbf{lemma}~``$\lbrakk\textit{xs} = \textit{LCons}~a~\textit{xs};\>\,
 \textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
