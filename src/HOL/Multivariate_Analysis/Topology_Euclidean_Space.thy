@@ -5776,59 +5776,16 @@ lemma closed_scaling:
   fixes s :: "'a::real_normed_vector set"
   assumes "closed s"
   shows "closed ((\<lambda>x. c *\<^sub>R x) ` s)"
-proof (cases "s = {}")
-  case True
-  then show ?thesis by auto
+proof (cases "c = 0")
+  case True then show ?thesis
+    by (auto simp add: image_constant_conv)
 next
   case False
-  show ?thesis
-  proof (cases "c = 0")
-    have *: "(\<lambda>x. 0) ` s = {0}" using `s\<noteq>{}` by auto
-    case True
-    then show ?thesis
-      apply auto
-      unfolding *
-      apply auto
-      done
-  next
-    case False
-    {
-      fix x l
-      assume as: "\<forall>n::nat. x n \<in> scaleR c ` s"  "(x ---> l) sequentially"
-      {
-        fix n :: nat
-        have "scaleR (1 / c) (x n) \<in> s"
-          using as(1)[THEN spec[where x=n]]
-          using `c\<noteq>0`
-          by auto
-      }
-      moreover
-      {
-        fix e :: real
-        assume "e > 0"
-        then have "0 < e *\<bar>c\<bar>"
-          using `c\<noteq>0` mult_pos_pos[of e "abs c"] by auto
-        then obtain N where "\<forall>n\<ge>N. dist (x n) l < e * \<bar>c\<bar>"
-          using as(2)[unfolded LIMSEQ_def, THEN spec[where x="e * abs c"]] by auto
-        then have "\<exists>N. \<forall>n\<ge>N. dist (scaleR (1 / c) (x n)) (scaleR (1 / c) l) < e"
-          unfolding dist_norm
-          unfolding scaleR_right_diff_distrib[symmetric]
-          using mult_imp_div_pos_less[of "abs c" _ e] `c\<noteq>0` by auto
-      }
-      then have "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially"
-        unfolding LIMSEQ_def by auto
-      ultimately have "l \<in> scaleR c ` s"
-        using assms[unfolded closed_sequential_limits,
-          THEN spec[where x="\<lambda>n. scaleR (1/c) (x n)"],
-          THEN spec[where x="scaleR (1/c) l"]]
-        unfolding image_iff using `c\<noteq>0`
-          apply (rule_tac x="scaleR (1 / c) l" in bexI)
-          apply auto
-          done
-    }
-    then show ?thesis
-      unfolding closed_sequential_limits by fast
-  qed
+  from assms have "closed ((\<lambda>x. inverse c *\<^sub>R x) -` s)"
+    by (simp add: continuous_closed_vimage)
+  also have "(\<lambda>x. inverse c *\<^sub>R x) -` s = (\<lambda>x. c *\<^sub>R x) ` s"
+    using `c \<noteq> 0` by (auto elim: image_eqI [rotated])
+  finally show ?thesis .
 qed
 
 lemma closed_negations:
@@ -6576,58 +6533,6 @@ lemma inter_interval_mixed_eq_empty:
   unfolding closure_open_interval[OF assms, symmetric]
   unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
-
-(* Some stuff for half-infinite intervals too; FIXME: notation?  *)
-
-lemma closed_interval_left:
-  fixes b :: "'a::euclidean_space"
-  shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
-proof -
-  {
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    fix x :: "'a"
-    assume x: "\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>Basis. x \<bullet> i \<le> b \<bullet> i}. x' \<noteq> x \<and> dist x' x < e"
-    {
-      assume "x\<bullet>i > b\<bullet>i"
-      then obtain y where "y \<bullet> i \<le> b \<bullet> i"  "y \<noteq> x"  "dist y x < x\<bullet>i - b\<bullet>i"
-        using x[THEN spec[where x="x\<bullet>i - b\<bullet>i"]] using i by auto
-      then have False
-        using Basis_le_norm[OF i, of "y - x"]
-        unfolding dist_norm inner_simps
-        using i
-        by auto
-    }
-    then have "x\<bullet>i \<le> b\<bullet>i" by (rule ccontr)auto
-  }
-  then show ?thesis
-    unfolding closed_limpt unfolding islimpt_approachable by blast
-qed
-
-lemma closed_interval_right:
-  fixes a :: "'a::euclidean_space"
-  shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
-proof -
-  {
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    fix x :: "'a"
-    assume x: "\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i}. x' \<noteq> x \<and> dist x' x < e"
-    {
-      assume "a\<bullet>i > x\<bullet>i"
-      then obtain y where "a \<bullet> i \<le> y \<bullet> i"  "y \<noteq> x"  "dist y x < a\<bullet>i - x\<bullet>i"
-        using x[THEN spec[where x="a\<bullet>i - x\<bullet>i"]] i by auto
-      then have False
-        using Basis_le_norm[OF i, of "y - x"]
-        unfolding dist_norm inner_simps
-        by auto
-    }
-    then have "a\<bullet>i \<le> x\<bullet>i" by (rule ccontr) auto
-  }
-  then show ?thesis
-    unfolding closed_limpt unfolding islimpt_approachable by blast
-qed
-
 lemma open_box: "open (box a b)"
 proof -
   have "open (\<Inter>i\<in>Basis. (op \<bullet> i) -` {a \<bullet> i <..< b \<bullet> i})"
@@ -6776,6 +6681,16 @@ lemma closed_halfspace_component_le: "closed {x::'a::euclidean_space. x\<bullet>
 
 lemma closed_halfspace_component_ge: "closed {x::'a::euclidean_space. x\<bullet>i \<ge> a}"
   by (simp add: closed_Collect_le)
+
+lemma closed_interval_left:
+  fixes b :: "'a::euclidean_space"
+  shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le)
+
+lemma closed_interval_right:
+  fixes a :: "'a::euclidean_space"
+  shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
+  by (simp add: Collect_ball_eq closed_INT closed_Collect_le)
 
 text {* Openness of halfspaces. *}
 
@@ -7314,58 +7229,24 @@ qed
 lemma dim_substandard:
   assumes d: "d \<subseteq> Basis"
   shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
-proof -
-  let ?D = "Basis :: 'a set"
-  have "d \<subseteq> ?A" using d by (auto simp: inner_Basis)
-  moreover
-  {
-    fix x::"'a" assume "x \<in> ?A"
-    then have "finite d" "x \<in> ?A"
-      using assms by (auto intro: finite_subset[OF _ finite_Basis])
-    from this d have "x \<in> span d"
-    proof (induct d arbitrary: x)
-      case empty
-      then have "x = 0"
-        apply (rule_tac euclidean_eqI)
-        apply auto
-        done
-      then show ?case
-        using subspace_0[OF subspace_span[of "{}"]] by auto
-    next
-      case (insert k F)
-      then have *: "\<forall>i\<in>Basis. i \<notin> insert k F \<longrightarrow> x \<bullet> i = 0" by auto
-      have **: "F \<subseteq> insert k F" by auto
-      def y \<equiv> "x - (x\<bullet>k) *\<^sub>R k"
-      have y: "x = y + (x\<bullet>k) *\<^sub>R k" unfolding y_def by auto
-      { fix i assume i': "i \<notin> F" "i \<in> Basis"
-        then have "y \<bullet> i = 0" unfolding y_def
-          using *[THEN bspec[where x=i]] insert by (auto simp: inner_simps inner_Basis) }
-      then have "y \<in> span F" using insert by auto
-      then have "y \<in> span (insert k F)"
-        using span_mono[of F "insert k F"] using assms by auto
-      moreover
-      have "k \<in> span (insert k F)" by(rule span_superset, auto)
-      then have "(x\<bullet>k) *\<^sub>R k \<in> span (insert k F)"
-        using span_mul by auto
-      ultimately
-      have "y + (x\<bullet>k) *\<^sub>R k \<in> span (insert k F)"
-        using span_add by auto
-      then show ?case using y by auto
-    qed
-  }
-  then have "?A \<subseteq> span d" by auto
-  moreover
-  {
-    fix x
-    assume "x \<in> d"
-    then have "x \<in> ?D" using assms by auto
-  }
-  then have "independent d"
-    using independent_mono[OF independent_Basis, of d] and assms by auto
-  moreover
-  have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
-  ultimately show ?thesis using dim_unique[of d ?A] by auto
-qed
+proof (rule dim_unique)
+  show "d \<subseteq> ?A"
+    using d by (auto simp: inner_Basis)
+  show "independent d"
+    using independent_mono [OF independent_Basis d] .
+  show "?A \<subseteq> span d"
+  proof (clarify)
+    fix x assume x: "\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0"
+    have "finite d"
+      using finite_subset [OF d finite_Basis] .
+    then have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) \<in> span d"
+      by (simp add: span_setsum span_clauses)
+    also have "(\<Sum>i\<in>d. (x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
+      by (rule setsum_mono_zero_cong_left [OF finite_Basis d]) (auto simp add: x)
+    finally show "x \<in> span d"
+      unfolding euclidean_representation .
+  qed
+qed simp
 
 text{* Hence closure and completeness of all subspaces. *}
 
