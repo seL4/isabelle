@@ -1229,12 +1229,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val massage_multi_notes =
       maps (fn (thmN, thmss, attrs) =>
-        if forall null thmss then
-          []
-        else
-          map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
-              ((qualify true fp_b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
-            fp_b_names fpTs thmss);
+        map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
+            ((qualify true fp_b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
+          fp_b_names fpTs thmss)
+      #> filter_out (null o fst o hd o snd);
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctrXs_Tsss;
     val ns = map length ctr_Tsss;
