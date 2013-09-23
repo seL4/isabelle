@@ -772,7 +772,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ induct_simp_attrs),
            (nchotomyN, [nchotomy_thm], []),
-           (selN, all_sel_thms, simp_attrs),
+           (selN, all_sel_thms, code_simp_attrs),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
            (splitsN, [split_thm, split_asm_thm], []),

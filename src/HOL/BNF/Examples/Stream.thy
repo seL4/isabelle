@@ -33,7 +33,6 @@ declaration {*
 *}
 
 code_datatype Stream
-lemmas [code] = stream.sel stream.set stream.case
 
 lemma stream_case_cert:
   assumes "CASE \<equiv> stream_case c"
@@ -65,8 +64,6 @@ theorem sset_induct:
 lemma smap_simps[simp]:
   "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"
   by (case_tac [!] s) auto
-
-declare stream.map[code]
 
 theorem shd_sset: "shd s \<in> sset s"
   by (case_tac s) auto

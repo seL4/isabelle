@@ -764,7 +764,7 @@ The third and last subgroup revolves around discriminators and selectors:
 @{thm list.discI(1)[no_vars]} \\
 @{thm list.discI(2)[no_vars]}
 
-\item[@{text "t."}\hthm{sel} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{sel} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.sel(1)[no_vars]} \\
 @{thm list.sel(2)[no_vars]}
 
