@@ -389,6 +389,7 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 * Nitpick:
+  - Added option "spy"
   - Reduce incidence of "too high arity" errors
 
 * Sledgehammer:

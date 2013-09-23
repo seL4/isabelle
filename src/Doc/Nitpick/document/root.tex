@@ -1951,6 +1951,18 @@ considered. The option is implicitly enabled for automatic runs.
 \nopagebreak
 {\small See also \textit{user\_axioms} (\S\ref{mode-of-operation}).}
 
+\opfalse{spy}{dont\_spy}
+Specifies whether Nitpick should record statistics in
+\texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER/\allowbreak spy\_\allowbreak nitpick}.
+These statistics can be useful to the developer of Nitpick. If you are willing to have your
+interactions recorded in the name of science, please enable this feature and send the statistics
+file every now and then to the author of this manual (\authoremail).
+To change the default value of this option globally, set the environment variable
+\texttt{NITPICK\_SPY} to \texttt{yes}.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
 \opfalse{overlord}{no\_overlord}
 Specifies whether Nitpick should put its temporary files in
 \texttt{\$ISABELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
@@ -2190,7 +2202,8 @@ what \textit{verbose} already displays. Enabling \textit{debug} also enables
 option is implicitly disabled for automatic runs.
 
 \nopagebreak
-{\small See also \textit{overlord} (\S\ref{mode-of-operation}) and
+{\small See also \textit{spy} (\S\ref{mode-of-operation}),
+\textit{overlord} (\S\ref{mode-of-operation}), and
 \textit{batch\_size} (\S\ref{optimizations}).}
 
 \opfalse{show\_datatypes}{hide\_datatypes}
