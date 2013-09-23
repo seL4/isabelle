@@ -729,7 +729,7 @@ The next subgroup is concerned with the case combinator:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{case} @{text "[simp]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{case} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
@@ -802,19 +802,19 @@ The BNF-related theorem are as follows:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{set} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{set} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.set(1)[no_vars]} \\
 @{thm list.set(2)[no_vars]}
 
-\item[@{text "t."}\hthm{map} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{map} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_inject} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel\_inject} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
@@ -839,11 +839,11 @@ The inductive theorems are as follows:
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{fold} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{fold} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.fold(1)[no_vars]} \\
 @{thm list.fold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rec} @{text "[code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
 
