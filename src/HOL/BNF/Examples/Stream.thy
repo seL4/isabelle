@@ -17,19 +17,7 @@ codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
 
 declaration {*
   Nitpick_HOL.register_codatatype
-    @{typ "'stream_element_type stream"} @{const_name stream_case} [dest_Const @{term Stream}]
-    (*FIXME: long type variable name required to reduce the probability of
-        a name clash of Nitpick in context. E.g.:
-        context
-        fixes x :: 'stream_element_type
-        begin
-
-        lemma "sset s = {}"
-        nitpick
-        oops
-
-        end
-    *)
+    @{typ "'a stream"} @{const_name stream_case} [dest_Const @{term Stream}]
 *}
 
 code_datatype Stream

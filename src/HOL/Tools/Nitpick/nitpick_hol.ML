@@ -595,8 +595,8 @@ fun is_basic_datatype thy stds s =
                  @{type_name int}, @{type_name natural}, @{type_name integer}] s orelse
   (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
-fun repair_constr_type ctxt body_T' T =
-  varify_and_instantiate_type ctxt (body_type T) body_T' T
+fun repair_constr_type thy body_T' T =
+  varify_and_instantiate_type_global thy (body_type T) body_T' T
 
 fun register_frac_type_generic frac_s ersaetze generic =
   let
@@ -632,7 +632,7 @@ fun register_codatatype_generic co_T case_name constr_xs generic =
     val ctxt = Context.proof_of generic
     val thy = Context.theory_of generic
     val {frac_types, ersatz_table, codatatypes} = Data.get generic
-    val constr_xs = map (apsnd (repair_constr_type ctxt co_T)) constr_xs
+    val constr_xs = map (apsnd (repair_constr_type thy co_T)) constr_xs
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
       if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) andalso
@@ -783,13 +783,15 @@ fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
 fun is_coconstr ctxt (s, T) =
-  case body_type T of
-    co_T as Type (co_s, _) =>
-    let val {codatatypes, ...} = Data.get (Context.Proof ctxt) in
-      exists (fn (s', T') => s = s' andalso repair_constr_type ctxt co_T T' = T)
-             (AList.lookup (op =) codatatypes co_s |> Option.map snd |> these)
-    end
-  | _ => false
+  let val thy = Proof_Context.theory_of ctxt in
+    case body_type T of
+      co_T as Type (co_s, _) =>
+      let val {codatatypes, ...} = Data.get (Context.Proof ctxt) in
+        exists (fn (s', T') => s = s' andalso repair_constr_type thy co_T T' = T)
+               (AList.lookup (op =) codatatypes co_s |> Option.map snd |> these)
+      end
+    | _ => false
+  end
 fun is_constr_like ctxt (s, T) =
   member (op =) [@{const_name FunBox}, @{const_name PairBox},
                  @{const_name Quot}, @{const_name Zero_Rep},
@@ -923,7 +925,7 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
                               (T as Type (s, Ts)) =
     (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
                        s of
-       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type ctxt T)) xs'
+       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type thy T)) xs'
      | _ =>
        if is_frac_type ctxt T then
          case typedef_info ctxt s of

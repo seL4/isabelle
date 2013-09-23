@@ -66,6 +66,7 @@ sig
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
+  val varify_and_instantiate_type_global : theory -> typ -> typ -> typ -> typ
   val is_of_class_const : theory -> string * typ -> bool
   val get_class_def : theory -> string -> (string * term) option
   val monomorphic_term : Type.tyenv -> term -> term
@@ -281,6 +282,9 @@ val typ_of_dtyp = ATP_Util.typ_of_dtyp
 val varify_type = ATP_Util.varify_type
 val instantiate_type = ATP_Util.instantiate_type
 val varify_and_instantiate_type = ATP_Util.varify_and_instantiate_type
+
+fun varify_and_instantiate_type_global thy T1 T1' T2 =
+  instantiate_type thy (Logic.varifyT_global T1) T1' (Logic.varifyT_global T2)
 
 fun is_of_class_const thy (s, _) =
   member (op =) (map Logic.const_of_class (Sign.all_classes thy)) s
