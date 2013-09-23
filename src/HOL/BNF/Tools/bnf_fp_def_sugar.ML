@@ -1437,7 +1437,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       injects @ distincts @ case_thms @ co_recs @ un_folds @ mapsx @ rel_injects @ rel_distincts
       @ flat setss;
 
-    fun derive_and_note_induct_iters_thms_for_types
+    fun derive_note_induct_iters_thms_for_types
         ((((mapss, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (iterss, iter_defss)), lthy) =
       let
@@ -1469,7 +1469,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           iterss mapss [induct_thm] (transpose [fold_thmss, rec_thmss]) [] []
       end;
 
-    fun derive_and_note_coinduct_coiters_thms_for_types
+    fun derive_note_coinduct_coiters_thms_for_types
         ((((mapss, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
           (coiterss, coiter_defss)), lthy) =
       let
@@ -1526,6 +1526,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            (strong_coinductN, map single strong_coinduct_thms, K coinduct_attrs),
            (unfoldN, unfold_thmss, K coiter_attrs)]
           |> massage_multi_notes;
+
+        fun register_nitpick fpT {ctrs, casex, ...} =
+          Nitpick_HOL.register_codatatype fpT (fst (dest_Const casex))
+            (map (dest_Const o mk_ctr As) ctrs)
+          |> Generic_Target.theory_declaration;
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
@@ -1533,6 +1538,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
           (transpose [unfold_thmss, corec_thmss]) (transpose [disc_unfold_thmss, disc_corec_thmss])
           (transpose [sel_unfold_thmsss, sel_corec_thmsss])
+        |> fold2 register_nitpick fpTs ctr_sugars
       end;
 
     val lthy'' = lthy'
@@ -1542,8 +1548,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         kss ~~ mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~
         sel_bindingsss ~~ raw_sel_defaultsss)
       |> wrap_types_etc
-      |> fp_case fp derive_and_note_induct_iters_thms_for_types
-           derive_and_note_coinduct_coiters_thms_for_types;
+      |> fp_case fp derive_note_induct_iters_thms_for_types
+           derive_note_coinduct_coiters_thms_for_types;
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       co_prefix fp ^ "datatype"));
