@@ -225,7 +225,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = print "Sledgehammering..."
-      val _ = spying spy (fn () => ("***", "run"))
+      val _ = spying spy (fn () => ("***", "starting " ^ @{make_string} mode ^ " mode"))
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
