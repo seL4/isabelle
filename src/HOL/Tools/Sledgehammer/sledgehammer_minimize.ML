@@ -55,7 +55,7 @@ fun n_facts names =
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
-fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
+fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
                  uncurried_aliases, isar_proofs, isar_compress, isar_try0,
                  preplay_timeout, ...} : params)
@@ -73,18 +73,16 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val {goal, ...} = Proof.goal state
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
-      {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
-       provers = provers, type_enc = type_enc, strict = strict,
-       lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-       learn = false, fact_filter = NONE, max_facts = SOME (length facts),
-       fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
-       max_new_mono_instances = max_new_mono_instances,
-       isar_proofs = isar_proofs, isar_compress = isar_compress,
-       isar_try0 = isar_try0, slice = false, minimize = SOME false,
-       timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
+      {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = true,
+       provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
+       uncurried_aliases = uncurried_aliases, learn = false, fact_filter = NONE,
+       max_facts = SOME (length facts), fact_thresholds = (1.01, 1.01),
+       max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
+       isar_proofs = isar_proofs, isar_compress = isar_compress, isar_try0 = isar_try0,
+       slice = false, minimize = SOME false, timeout = timeout, preplay_timeout = preplay_timeout,
+       expect = ""}
     val problem =
-      {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)]}
+      {state = state, goal = goal, subgoal = i, subgoal_count = n, factss = [("", facts)]}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
@@ -248,7 +246,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
   end
 
 fun adjust_reconstructor_params override_params
-        ({debug, verbose, overlord, blocking, provers, type_enc, strict,
+        ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
          fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
          isar_compress, isar_try0, slice, minimize, timeout, preplay_timeout,
@@ -263,15 +261,13 @@ fun adjust_reconstructor_params override_params
     val type_enc = lookup_override "type_enc" type_enc
     val lam_trans = lookup_override "lam_trans" lam_trans
   in
-    {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_enc = type_enc, strict = strict,
-     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     learn = learn, fact_filter = fact_filter, max_facts = max_facts,
-     fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
+    {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
+     provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
+     uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
+     max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice,
-     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-     expect = expect}
+     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice, minimize = minimize,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun maybe_minimize ctxt mode do_learn name

@@ -30,6 +30,7 @@ struct
 
 open ATP_Util
 open ATP_Problem_Generate
+open ATP_Proof
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
@@ -64,29 +65,31 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    (if blocking then "."
     else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
-fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
+fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
                               timeout, expect, ...})
         mode output_result minimize_command only learn
         {state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
+
     val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
+    val _ = spying spy (fn () => (name, "launched"));
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
-    val max_facts =
-      max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
+    val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
     val num_facts = length facts |> not only ? Integer.min max_facts
-    fun desc () =
-      prover_description ctxt params name num_facts subgoal subgoal_count goal
+
+    fun desc () = prover_description ctxt params name num_facts subgoal subgoal_count goal
+
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
-       factss =
-         factss
+       factss = factss
          |> map (apsnd ((not (is_ho_atp ctxt name)
                          ? filter_out (fn ((_, (_, Induction)), _) => true
                                         | _ => false))
                         #> take num_facts))}
+
     fun print_used_facts used_facts used_from =
       tag_list 1 used_from
       |> map (fn (j, fact) => fact |> apsnd (K j))
@@ -96,6 +99,15 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
       |> Output.urgent_message
+
+    fun spying_str_of_res {outcome = NONE, used_facts, ...} =
+        let val num_used_facts = length used_facts in
+          "success: Found proof with " ^ string_of_int num_used_facts ^ " fact" ^
+          plural_s num_used_facts
+        end
+      | spying_str_of_res {outcome = SOME failure, ...} =
+        "failure: " ^ string_of_atp_failure failure
+
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode learn name params minimize_command
@@ -103,10 +115,13 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
          ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
                    print_used_facts used_facts used_from
                  | _ => ())
+      |> spy
+         ? tap (fn res => spying spy (fn () => (name, spying_str_of_res res)))
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
               else someN, fn () => message (Lazy.force preplay) ^ message_tail))
+
     fun go () =
       let
         val (outcome_code, message) =
@@ -182,8 +197,7 @@ fun string_of_factss factss =
     |> map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts)
     |> space_implode "\n\n"
 
-fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
-                                 slice, ...})
+fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_facts, slice, ...})
         mode output_result i (fact_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
@@ -211,9 +225,14 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = print "Sledgehammering..."
+      val _ = spying spy (fn () => ("***", "run"))
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
+
+      val spying_str_of_factss =
+        commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
+
       fun get_factss label is_appropriate_prop provers =
         let
           val max_max_facts =
@@ -223,6 +242,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
               0 |> fold (Integer.max o default_max_facts_of_prover ctxt slice)
                         provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
+          val _ = spying spy (fn () =>
+            (label ^ "s", "filtering " ^ string_of_int (length all_facts) ^ " facts"));
         in
           all_facts
           |> (case is_appropriate_prop of
@@ -237,7 +258,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                        |> print
                      else
                        ())
+          |> spy ? tap (fn factss =>
+            spying spy (fn () => (label ^ "s", "selected facts: " ^ spying_str_of_factss factss)))
         end
+
       fun launch_provers state label is_appropriate_prop provers =
         let
           val factss = get_factss label is_appropriate_prop provers
@@ -260,6 +284,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
             |> (if blocking then Par_List.map else map) (launch problem #> fst)
             |> max_outcome_code |> rpair state
         end
+
       fun launch_atps label is_appropriate_prop atps accum =
         if null atps then
           accum
@@ -274,15 +299,19 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
            accum)
         else
           launch_provers state label is_appropriate_prop atps
+
       fun launch_smts accum =
         if null smts then accum else launch_provers state "SMT solver" NONE smts
+
       val launch_full_atps = launch_atps "ATP" NONE full_atps
-      val launch_ueq_atps =
-        launch_atps "Unit-equational provers" (SOME is_unit_equality) ueq_atps
+
+      val launch_ueq_atps = launch_atps "Unit-equational provers" (SOME is_unit_equality) ueq_atps
+
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_smts, launch_ueq_atps]
         |> Par_List.map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
+
       fun maybe f (accum as (outcome_code, _)) =
         accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in

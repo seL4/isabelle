@@ -17,6 +17,7 @@ sig
   val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val spying : bool -> (unit -> string * string) -> unit
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof :
@@ -85,6 +86,15 @@ fun parse_time_option _ "none" = NONE
                \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
       else
         SOME (seconds (the secs))
+    end
+
+val spying_version = "a"
+
+fun spying false _ = ()
+  | spying true f =
+    let val (tool, message) = f () in
+      File.append (Path.explode "$ISABELLE_HOME_USER/spy_sledgehammer")
+        (spying_version ^ " " ^ timestamp () ^ ": " ^ tool ^ ": " ^ message ^ "\n")
     end
 
 val subgoal_count = Try.subgoal_count

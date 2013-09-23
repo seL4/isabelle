@@ -81,6 +81,7 @@ val default_default_params =
   [("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
+   ("spy", "false"),
    ("blocking", "false"),
    ("type_enc", "smart"),
    ("strict", "false"),
@@ -108,6 +109,7 @@ val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
+   ("dont_spy", "spy"),
    ("non_blocking", "blocking"),
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
@@ -184,7 +186,10 @@ val implode_param = strip_spaces_except_between_idents o space_implode " "
 structure Data = Theory_Data
 (
   type T = raw_param list
-  val empty = default_default_params |> map (apsnd single)
+  val empty =
+    default_default_params
+    |> getenv "SLEDGEHAMMER_SPY" = "yes" ? AList.update (op =) ("spy", "true")
+    |> map (apsnd single)
   val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
@@ -278,6 +283,7 @@ fun extract_params mode default_params override_params =
     val debug = mode <> Auto_Try andalso lookup_bool "debug"
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
+    val spy = lookup_bool "spy"
     val blocking =
       Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse
       lookup_bool "blocking"
@@ -311,15 +317,13 @@ fun extract_params mode default_params override_params =
       else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
-    {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_enc = type_enc, strict = strict,
-     lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
-     learn = learn, fact_filter = fact_filter, max_facts = max_facts,
-     fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
+    {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
+     provers = provers, type_enc = type_enc, strict = strict, lam_trans = lam_trans,
+     uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
+     max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice,
-     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-     expect = expect}
+     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice, minimize = minimize,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

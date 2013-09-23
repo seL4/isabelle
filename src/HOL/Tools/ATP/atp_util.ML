@@ -56,7 +56,11 @@ end;
 structure ATP_Util : ATP_UTIL =
 struct
 
-val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
+fun timestamp_format time =
+  Date.fmt "%Y-%m-%d %H:%M:%S." (Date.fromTimeLocal time) ^
+  (StringCvt.padLeft #"0" 3 (string_of_int (Time.toMilliseconds time - 1000 * Time.toSeconds time)))
+
+val timestamp = timestamp_format o Time.now
 
 (* This hash function is recommended in "Compilers: Principles, Techniques, and
    Tools" by Aho, Sethi, and Ullman. The "hashpjw" function, which they
