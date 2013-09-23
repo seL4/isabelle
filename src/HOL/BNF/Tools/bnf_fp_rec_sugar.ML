@@ -43,17 +43,17 @@ fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
 fun drop_All t = subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
   strip_qnt_body @{const_name all} t)
-fun mk_not @{const True} = @{const False}
-  | mk_not @{const False} = @{const True}
-  | mk_not (@{const Not} $ t) = t
-  | mk_not (@{const Trueprop} $ t) = @{const Trueprop} $ mk_not t
-  | mk_not t = HOLogic.mk_not t
+fun s_not @{const True} = @{const False}
+  | s_not @{const False} = @{const True}
+  | s_not (@{const Not} $ t) = t
+  | s_not (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not t = HOLogic.mk_not t
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
-fun invert_prems [t] = map mk_not (HOLogic.disjuncts t)
-  | invert_prems ts = [mk_disjs (map mk_not ts)];
-fun invert_prems_disj [t] = map mk_not (HOLogic.disjuncts t)
-  | invert_prems_disj ts = [mk_disjs (map (mk_conjs o map mk_not o HOLogic.disjuncts) ts)];
+fun invert_prems [t] = map s_not (HOLogic.disjuncts t)
+  | invert_prems ts = [mk_disjs (map s_not ts)];
+fun invert_prems_disj [t] = map s_not (HOLogic.disjuncts t)
+  | invert_prems_disj ts = [mk_disjs (map (mk_conjs o map s_not o HOLogic.disjuncts) ts)];
 fun abstract vs =
   let fun a n (t $ u) = a n t $ a n u
         | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
@@ -648,7 +648,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
       |> map (map (fn {fun_args, ctr_no, prems, ...} => (fun_args, ctr_no, prems))
         #> fst o (fn xs => fold_map (fn x => fn ys => ((x, ys), ys @ [x])) xs [])
         #> maps (uncurry (map o pair)
-          #> map (fn ((fun_args, c, x), (_, c', y)) => ((c, c'), (x, mk_not (mk_conjs y)))
+          #> map (fn ((fun_args, c, x), (_, c', y)) => ((c, c'), (x, s_not (mk_conjs y)))
             ||> apfst (map HOLogic.mk_Trueprop) o apsnd HOLogic.mk_Trueprop
             ||> Logic.list_implies
             ||> curry Logic.list_all (map dest_Free fun_args))))
