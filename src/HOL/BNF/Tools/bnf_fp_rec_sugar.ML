@@ -839,6 +839,10 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
           map2 (map_filter (fn (safe, thm) => if safe then SOME thm else NONE) oo curry (op ~~))
             safess ctr_thmss;
 
+        fun mk_simp_thms disc_thms sel_thms ctr_thms = disc_thms @ sel_thms @ ctr_thms;
+
+        val simp_thmss = map3 mk_simp_thms disc_thmss sel_thmss safe_ctr_thmss;
+
         val anonymous_notes =
           [(flat safe_ctr_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
@@ -846,7 +850,8 @@ val _ = tracing ("sel_thms = " ^ @{make_string} sel_thms);
         val notes =
           [(ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
-           (selN, sel_thmss, simp_attrs)]
+           (selN, sel_thmss, simp_attrs),
+           (simpsN, simp_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn fun_name => fn thms =>
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
