@@ -47,8 +47,7 @@ sig
 
   type lfp_sugar_thms =
     (thm list * thm * Args.src list)
-    * (thm list list * Args.src list)
-    * (thm list list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
 
   type gfp_sugar_thms =
     ((thm list * thm) list * Args.src list)
@@ -201,8 +200,9 @@ fun quasi_unambiguous_case_names names =
 val id_def = @{thm id_def};
 val mp_conj = @{thm mp_conj};
 
+val nitpick_attrs = @{attributes [nitpick_simp]};
+val code_nitpick_simp_attrs = Code.add_default_eqn_attrib :: nitpick_attrs;
 val simp_attrs = @{attributes [simp]};
-val code_simp_attrs = Code.add_default_eqn_attrib :: simp_attrs;
 
 fun tvar_subst thy Ts Us =
   Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];
@@ -402,8 +402,7 @@ fun indexify proj xs f p = f (find_index (curry op = (proj p)) xs) p;
 
 type lfp_sugar_thms =
   (thm list * thm * Args.src list)
-  * (thm list list * Args.src list)
-  * (thm list list * Args.src list);
+  * (thm list list * thm list list * Args.src list)
 
 type gfp_sugar_thms =
   ((thm list * thm) list * Args.src list)
@@ -774,7 +773,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
     val rec_thmss = mk_iter_thmss rec_args_types recs rec_defs (map co_rec_of ctor_iter_thmss);
   in
     ((induct_thms, induct_thm, [induct_case_names_attr]),
-     (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
+     (fold_thmss, rec_thmss, code_nitpick_simp_attrs @ simp_attrs))
   end;
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
@@ -1045,7 +1044,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
     ((coinduct_thms_pairs, coinduct_case_attrs),
-     (unfold_thmss, corec_thmss, []),
+     (unfold_thmss, corec_thmss, code_nitpick_simp_attrs),
      (safe_unfold_thmss, safe_corec_thmss),
      (disc_unfold_thmss, disc_corec_thmss, []),
      (disc_unfold_iff_thmss, disc_corec_iff_thmss, simp_attrs),
@@ -1403,10 +1402,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
               val notes =
-                [(mapN, map_thms, code_simp_attrs),
-                 (rel_distinctN, rel_distinct_thms, code_simp_attrs),
-                 (rel_injectN, rel_inject_thms, code_simp_attrs),
-                 (setN, flat set_thmss, code_simp_attrs)]
+                [(mapN, map_thms, code_nitpick_simp_attrs @ simp_attrs),
+                 (rel_distinctN, rel_distinct_thms, code_nitpick_simp_attrs @ simp_attrs),
+                 (rel_injectN, rel_inject_thms, code_nitpick_simp_attrs @ simp_attrs),
+                 (setN, flat set_thmss, code_nitpick_simp_attrs @ simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
@@ -1441,8 +1440,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ((((mapss, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (iterss, iter_defss)), lthy) =
       let
-        val ((induct_thms, induct_thm, induct_attrs), (fold_thmss, fold_attrs),
-             (rec_thmss, rec_attrs)) =
+        val ((induct_thms, induct_thm, induct_attrs), (fold_thmss, rec_thmss, iter_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
             xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss iterss
             iter_defss lthy;
@@ -1457,9 +1455,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> massage_simple_notes fp_common_name;
 
         val notes =
-          [(foldN, fold_thmss, K fold_attrs),
+          [(foldN, fold_thmss, K iter_attrs),
            (inductN, map single induct_thms, fn T_name => induct_attrs @ [induct_type_attr T_name]),
-           (recN, rec_thmss, K rec_attrs),
+           (recN, rec_thmss, K iter_attrs),
            (simpsN, simp_thmss, K [])]
           |> massage_multi_notes;
       in

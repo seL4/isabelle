@@ -956,15 +956,7 @@ you can disable it by passing the \textit{dont\_star\_linear\_preds} option.
 \subsection{Coinductive Datatypes}
 \label{coinductive-datatypes}
 
-While Isabelle regrettably lacks a high-level mechanism for defining coinductive
-datatypes, the \textit{Coinductive\_List} theory from Andreas Lochbihler's
-\textit{Coinductive} AFP entry \cite{lochbihler-2010} provides a coinductive
-``lazy list'' datatype, $'a~\textit{llist}$, defined the hard way. Nitpick
-supports these lazy lists seamlessly and provides a hook, described in
-\S\ref{registration-of-coinductive-datatypes}, to register custom coinductive
-datatypes.
-
-(Co)intuitively, a coinductive datatype is similar to an inductive datatype but
+A coinductive datatype is similar to an inductive datatype but
 allows infinite objects. Thus, the infinite lists $\textit{ps}$ $=$ $[a, a, a,
 \ldots]$, $\textit{qs}$ $=$ $[a, b, a, b, \ldots]$, and $\textit{rs}$ $=$ $[0,
 1, 2, 3, \ldots]$ can be defined as lazy lists using the
@@ -977,6 +969,7 @@ involving cyclic lists such as \textit{ps} and \textit{qs} above as well as
 finite lists:
 
 \prew
+\textbf{codatatype} $'a$ \textit{llist} = \textit{LNil}~$\mid$~\textit{LCons}~$'a$~``$'a\;\textit{llist}$'' \\[2\smallskipamount]
 \textbf{lemma} ``$\textit{xs} \not= \textit{LCons}~a~\textit{xs\/}$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for {\itshape card}~$'a$ = 1: \\[2\smallskipamount]
@@ -992,6 +985,8 @@ infinite list $[a_1, a_1, a_1, \ldots]$.
 The next example is more interesting:
 
 \prew
+\textbf{primcorecursive}~$\textit{iterates}$~\textbf{where} \\
+``$\textit{iterates}~f\>a = \textit{LCons}~a~(\textit{iterates}~f\>(f\>a))$'' \textbf{.} \\[2\smallskipamount]
 \textbf{lemma}~``$\lbrakk\textit{xs} = \textit{LCons}~a~\textit{xs};\>\,
 \textit{ys} = \textit{iterates}~(\lambda b.\> a)~b\rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
@@ -1072,15 +1067,14 @@ that the counterexample is genuine. \\[2\smallskipamount]
 
 In the first \textbf{nitpick} invocation, the after-the-fact check discovered
 that the two known elements of type $'a~\textit{llist}$ are bisimilar, prompting
-Nitpick to label the example ``quasi genuine.''
+Nitpick to label the example as only ``quasi genuine.''
 
 A compromise between leaving out the bisimilarity predicate from the Kodkod
-problem and performing the after-the-fact check is to specify a lower
-nonnegative \textit{bisim\_depth} value than the default one provided by
-Nitpick. In general, a value of $K$ means that Nitpick will require all lists to
-be distinguished from each other by their prefixes of length $K$. Be aware that
-setting $K$ to a too low value can overconstrain Nitpick, preventing it from
-finding any counterexamples.
+problem and performing the after-the-fact check is to specify a low
+nonnegative \textit{bisim\_depth} value. In general, a value of $K$ means that
+Nitpick will require all lists to be distinguished from each other by their
+prefixes of length $K$. However, setting $K$ to a too low value can
+overconstrain Nitpick, preventing it from finding any counterexamples.
 
 \subsection{Boxing}
 \label{boxing}

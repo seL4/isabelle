@@ -15,11 +15,6 @@ begin
 codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
   Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
-declaration {*
-  Nitpick_HOL.register_codatatype
-    @{typ "'a stream"} @{const_name stream_case} [dest_Const @{term Stream}]
-*}
-
 code_datatype Stream
 
 lemma stream_case_cert:

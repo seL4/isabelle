@@ -157,7 +157,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
           derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
             xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss
             co_iterss co_iter_defss lthy
-          |> `(fn ((_, induct, _), (fold_thmss, _), (rec_thmss, _)) =>
+          |> `(fn ((_, induct, _), (fold_thmss, rec_thmss, _)) =>
             ([induct], fold_thmss, rec_thmss, [], [], [], []))
           ||> (fn info => (SOME info, NONE))
         else

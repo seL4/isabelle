@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Manual_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009-2011
+    Copyright   2009-2013
 
 Examples from the Nitpick manual.
 *)
@@ -12,7 +12,7 @@ header {* Examples from the Nitpick Manual *}
    suite. *)
 
 theory Manual_Nits
-imports Main "~~/src/HOL/Library/Quotient_Product" Real
+imports Main Real "~~/src/HOL/Library/Quotient_Product" "~~/src/HOL/BNF/BNF"
 begin
 
 chapter {* 2. First Steps *}
@@ -193,35 +193,10 @@ oops
 
 subsection {* 2.9. Coinductive Datatypes *}
 
-(* Lazy lists are defined in Andreas Lochbihler's "Coinductive" AFP entry. Since
-   we cannot rely on its presence, we expediently provide our own
-   axiomatization. The examples also work unchanged with Lochbihler's
-   "Coinductive_List" theory. *)
+codatatype 'a llist = LNil | LCons 'a "'a llist"
 
-(* BEGIN LAZY LIST SETUP *)
-definition "llist = (UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set)"
-
-typedef 'a llist = "llist\<Colon>('a list + (nat \<Rightarrow> 'a)) set"
-unfolding llist_def by auto
-
-definition LNil where
-"LNil = Abs_llist (Inl [])"
-definition LCons where
-"LCons y ys = Abs_llist (case Rep_llist ys of
-                           Inl ys' \<Rightarrow> Inl (y # ys')
-                         | Inr f \<Rightarrow> Inr (\<lambda>n. case n of 0 \<Rightarrow> y | Suc m \<Rightarrow> f m))"
-
-axiomatization iterates :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist"
-
-lemma iterates_def [nitpick_simp]:
-"iterates f a = LCons a (iterates f (f a))"
-sorry
-
-declaration {*
-Nitpick_HOL.register_codatatype @{typ "'a llist"} ""
-    (map dest_Const [@{term LNil}, @{term LCons}])
-*}
-(* END LAZY LIST SETUP *)
+primcorecursive iterates where
+"iterates f a = LCons a (iterates f (f a))" .
 
 lemma "xs \<noteq> LCons a xs"
 nitpick [expect = genuine]
