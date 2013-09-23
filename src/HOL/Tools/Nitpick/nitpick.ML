@@ -29,6 +29,7 @@ sig
      debug: bool,
      verbose: bool,
      overlord: bool,
+     spy: bool,
      user_axioms: bool option,
      assms: bool,
      whacks: term list,
@@ -114,6 +115,7 @@ type params =
    debug: bool,
    verbose: bool,
    overlord: bool,
+   spy: bool,
    user_axioms: bool option,
    assms: bool,
    whacks: term list,
@@ -230,7 +232,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
-         verbose, overlord, user_axioms, assms, whacks, merge_type_vars,
+         verbose, overlord, spy, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
          total_consts, needs, peephole_optim, datatype_sym_break,
          kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
@@ -271,6 +273,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
                    "goal")) [Logic.list_implies (nondef_assm_ts, orig_t)]))
+    val _ = spying spy (fn () => "starting " ^ @{make_string} mode ^ " mode")
     val _ = print_v (enclose "Timestamp: " "." o Date.fmt "%H:%M:%S"
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
@@ -1052,6 +1055,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val _ = print_v (fn () =>
                 "Total time: " ^ string_of_time (Timer.checkRealTimer timer) ^
                 ".")
+    val _ = spying spy (fn () => "outcome: " ^ outcome_code)
   in (outcome_code, !state_ref) end
 
 (* Give the inner timeout a chance. *)

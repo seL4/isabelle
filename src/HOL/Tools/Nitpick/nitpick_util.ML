@@ -53,6 +53,7 @@ sig
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val string_of_time : Time.time -> string
+  val spying : bool -> (unit -> string) -> unit
   val nat_subscript : int -> string
   val flip_polarity : polarity -> polarity
   val prop_T : typ
@@ -94,6 +95,8 @@ exception NOT_SUPPORTED of string
 exception SAME of unit
 
 val nitpick_prefix = "Nitpick" ^ Long_Name.separator
+
+val timestamp = ATP_Util.timestamp
 
 fun curry3 f = fn x => fn y => fn z => f (x, y, z)
 
@@ -238,6 +241,15 @@ val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 val string_of_time = ATP_Util.string_of_time
 
+val spying_version = "a"
+
+fun spying false _ = ()
+  | spying true f =
+    let val message = f () in
+      File.append (Path.explode "$ISABELLE_HOME_USER/spy_nitpick")
+        (spying_version ^ " " ^ timestamp () ^ ": " ^ message ^ "\n")
+    end
+
 val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
 fun nat_subscript n =
   n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
@@ -299,9 +311,12 @@ fun pretty_maybe_quote pretty =
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
   end
 
-fun hashw_term (t1 $ t2) = ATP_Util.hashw (hashw_term t1, hashw_term t2)
-  | hashw_term (Const (s, _)) = ATP_Util.hashw_string (s, 0w0)
-  | hashw_term (Free (s, _)) = ATP_Util.hashw_string (s, 0w0)
+val hashw = ATP_Util.hashw
+val hashw_string = ATP_Util.hashw_string
+
+fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
+  | hashw_term (Const (s, _)) = hashw_string (s, 0w0)
+  | hashw_term (Free (s, _)) = hashw_string (s, 0w0)
   | hashw_term _ = 0w0
 
 val hash_term = Word.toInt o hashw_term

@@ -71,6 +71,7 @@ val default_default_params =
    ("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
+   ("spy", "false"),
    ("show_datatypes", "false"),
    ("show_skolems", "true"),
    ("show_consts", "false"),
@@ -100,6 +101,7 @@ val negated_params =
    ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
+   ("dont_spy", "spy"),
    ("hide_datatypes", "show_datatypes"),
    ("hide_skolems", "show_skolems"),
    ("hide_consts", "show_consts"),
@@ -142,7 +144,10 @@ fun normalize_raw_param (name, value) =
 structure Data = Theory_Data
 (
   type T = raw_param list
-  val empty = map (apsnd single) default_default_params
+  val empty =
+    default_default_params
+    |> getenv "NITPICK_SPY" = "yes" ? AList.update (op =) ("spy", "true")
+    |> map (apsnd single)
   val extend = I
   fun merge data = AList.merge (op =) (K true) data
 )
@@ -253,6 +258,7 @@ fun extract_params ctxt mode default_params override_params =
     val debug = (mode <> Auto_Try andalso lookup_bool "debug")
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
+    val spy = lookup_bool "spy"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
     val whacks = lookup_term_list_option_polymorphic "whack" |> these
@@ -287,24 +293,19 @@ fun extract_params ctxt mode default_params override_params =
       | NONE => if debug then 1 else 50
     val expect = lookup_string "expect"
   in
-    {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
-     iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
-     boxes = boxes, finitizes = finitizes, monos = monos, stds = stds,
-     wfs = wfs, sat_solver = sat_solver, blocking = blocking, falsify = falsify,
-     debug = debug, verbose = verbose, overlord = overlord,
-     user_axioms = user_axioms, assms = assms, whacks = whacks,
-     merge_type_vars = merge_type_vars, binary_ints = binary_ints,
-     destroy_constrs = destroy_constrs, specialize = specialize,
-     star_linear_preds = star_linear_preds, total_consts = total_consts,
-     needs = needs, peephole_optim = peephole_optim,
-     datatype_sym_break = datatype_sym_break,
-     kodkod_sym_break = kodkod_sym_break, timeout = timeout,
-     tac_timeout = tac_timeout, max_threads = max_threads,
-     show_datatypes = show_datatypes, show_skolems = show_skolems,
-     show_consts = show_consts, evals = evals, formats = formats,
-     atomss = atomss, max_potential = max_potential, max_genuine = max_genuine,
-     check_potential = check_potential, check_genuine = check_genuine,
-     batch_size = batch_size, expect = expect}
+    {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns, iters_assigns = iters_assigns,
+     bitss = bitss, bisim_depths = bisim_depths, boxes = boxes, finitizes = finitizes,
+     monos = monos, stds = stds, wfs = wfs, sat_solver = sat_solver, blocking = blocking,
+     falsify = falsify, debug = debug, verbose = verbose, overlord = overlord, spy = spy,
+     user_axioms = user_axioms, assms = assms, whacks = whacks, merge_type_vars = merge_type_vars,
+     binary_ints = binary_ints, destroy_constrs = destroy_constrs, specialize = specialize,
+     star_linear_preds = star_linear_preds, total_consts = total_consts, needs = needs,
+     peephole_optim = peephole_optim, datatype_sym_break = datatype_sym_break,
+     kodkod_sym_break = kodkod_sym_break, timeout = timeout, tac_timeout = tac_timeout,
+     max_threads = max_threads, show_datatypes = show_datatypes, show_skolems = show_skolems,
+     show_consts = show_consts, evals = evals, formats = formats, atomss = atomss,
+     max_potential = max_potential, max_genuine = max_genuine, check_potential = check_potential,
+     check_genuine = check_genuine, batch_size = batch_size, expect = expect}
   end
 
 fun default_params thy =
