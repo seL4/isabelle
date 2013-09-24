@@ -589,6 +589,24 @@ proof -
   then show ?thesis by (simp add: dom_map_of_conv_image_fst)
 qed
 
+lemma finite_set_of_finite_maps:
+assumes "finite A" "finite B"
+shows  "finite {m. dom m = A \<and> ran m \<subseteq> B}" (is "finite ?S")
+proof -
+  let ?S' = "{m. \<forall>x. (x \<in> A \<longrightarrow> m x \<in> Some ` B) \<and> (x \<notin> A \<longrightarrow> m x = None)}"
+  have "?S = ?S'"
+  proof
+    show "?S \<subseteq> ?S'" by(auto simp: dom_def ran_def image_def)
+    show "?S' \<subseteq> ?S"
+    proof
+      fix m assume "m \<in> ?S'"
+      hence 1: "dom m = A" by force
+      hence 2: "ran m \<subseteq> B" using `m \<in> ?S'` by(auto simp: dom_def ran_def)
+      from 1 2 show "m \<in> ?S" by blast
+    qed
+  qed
+  with assms show ?thesis by(simp add: finite_set_of_finite_funs)
+qed
 
 subsection {* @{term [source] ran} *}
 
