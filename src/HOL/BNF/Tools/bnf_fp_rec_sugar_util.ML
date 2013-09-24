@@ -195,7 +195,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun massage_let_and_if ctxt has_call massage_leaf U =
+fun massage_let_if ctxt has_call massage_leaf U =
   let
     val check_cond = ((not o has_call) orf unexpected_corec_call ctxt);
     fun massage_rec t =
@@ -208,7 +208,7 @@ fun massage_let_and_if ctxt has_call massage_leaf U =
     massage_rec
   end;
 
-fun fold_rev_let_and_if f =
+fun fold_rev_let_if f =
   let
     fun fld t =
       (case Term.strip_comb t of
@@ -220,7 +220,7 @@ fun fold_rev_let_and_if f =
   end;
 
 fun massage_direct_corec_call ctxt has_call raw_massage_call U t =
-  massage_let_and_if ctxt has_call raw_massage_call U t;
+  massage_let_if ctxt has_call raw_massage_call U t;
 
 fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
@@ -256,7 +256,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         handle AINT_NO_MAP _ => massage_direct_fun U T t;
 
     fun massage_call U T =
-      massage_let_and_if ctxt has_call (fn t =>
+      massage_let_if ctxt has_call (fn t =>
         if has_call t then
           (case U of
             Type (s, Us) =>
@@ -304,15 +304,15 @@ fun expand_ctr_term ctxt s Ts t =
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     T as Type (s, Ts) =>
-    massage_let_and_if ctxt has_call (fn t =>
+    massage_let_if ctxt has_call (fn t =>
       if can (dest_ctr ctxt s) t then t
-      else massage_let_and_if ctxt has_call I T (expand_ctr_term ctxt s Ts t)) T t
+      else massage_let_if ctxt has_call I T (expand_ctr_term ctxt s Ts t)) T t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
-  massage_let_and_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
+  massage_let_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
 
-fun fold_rev_corec_code_rhs f = fold_rev_let_and_if (uncurry f o Term.strip_comb);
+fun fold_rev_corec_code_rhs f = fold_rev_let_if (uncurry f o Term.strip_comb);
 
 fun add_conjuncts (Const (@{const_name conj}, _) $ t $ t') = add_conjuncts t o add_conjuncts t'
   | add_conjuncts t = cons t;
