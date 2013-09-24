@@ -81,10 +81,20 @@ object Thy_Syntax
   {
     val result = new mutable.ListBuffer[List[Token]]
     val span = new mutable.ListBuffer[Token]
+    val improper = new mutable.ListBuffer[Token]
 
-    def flush() { if (!span.isEmpty) { result += span.toList; span.clear } }
-    for (tok <- toks) { if (tok.is_command) flush(); span += tok }
+    def flush()
+    {
+      if (!span.isEmpty) { result += span.toList; span.clear }
+      if (!improper.isEmpty) { result += improper.toList; improper.clear }
+    }
+    for (tok <- toks) {
+      if (tok.is_command) { flush(); span += tok }
+      else if (tok.is_improper) improper += tok
+      else { span ++= improper; improper.clear; span += tok }
+    }
     flush()
+
     result.toList
   }
 
