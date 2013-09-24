@@ -814,16 +814,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_ctr disc_alist sel_alist disc_eqns sel_eqns {ctr, disc, sels, collapse, ...} =
           if not (exists (equal ctr o #ctr) disc_eqns)
               andalso not (exists (equal ctr o #ctr) sel_eqns)
-(*
-andalso (warning ("no eqns for ctr " ^ Syntax.string_of_term lthy ctr); true)
-*)
             orelse (* don't try to prove theorems when some sel_eqns are missing *)
               filter (equal ctr o #ctr) sel_eqns
               |> fst o finds ((op =) o apsnd #sel) sels
               |> exists (null o snd)
-(*
-andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr); true)
-*)
           then [] else
             let
               val (fun_name, fun_T, fun_args, prems) =
@@ -857,12 +851,13 @@ andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr
         val ctr_thmss = map5 (maps oooo prove_ctr) disc_alists sel_alists disc_eqnss sel_eqnss
           (map #ctr_specs corec_specs);
 
-        val safess = map (map (K false)) ctr_thmss; (* FIXME: "true" for non-corecursive theorems *)
+        val safess = map (map (not o exists_subterm (member (op =) (map SOME fun_names) o
+          try (fst o dest_Free)) o snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o
+          Logic.strip_imp_concl o drop_All o prop_of)) ctr_thmss;
         val safe_ctr_thmss = map (map snd o filter fst o (op ~~)) (safess ~~ ctr_thmss);
 
-        fun mk_simp_thms disc_thms sel_thms ctr_thms = disc_thms @ sel_thms @ ctr_thms;
-
-        val simp_thmss = map3 mk_simp_thms disc_thmss sel_thmss safe_ctr_thmss;
+        val simp_thmss =
+          map3 (fn x => fn y => fn z => x @ y @ z) disc_thmss sel_thmss safe_ctr_thmss;
 
         val common_name = mk_common_name fun_names;
 
