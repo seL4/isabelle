@@ -1528,7 +1528,7 @@ lemma at_within_interior:
   unfolding filter_eq_iff by (intro allI eventually_within_interior)
 
 lemma Lim_within_LIMSEQ:
-  fixes a :: "'a::metric_space"
+  fixes a :: "'a::first_countable_topology"
   assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
   shows "(X ---> L) (at a within T)"
   using assms unfolding tendsto_def [where l=L]
