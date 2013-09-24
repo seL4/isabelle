@@ -100,7 +100,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
       |> Output.urgent_message
 
-    fun spying_str_of_res {outcome = NONE, used_facts, ...} =
+    fun spying_str_of_res ({outcome = NONE, used_facts, ...} : prover_result) =
         let val num_used_facts = length used_facts in
           "success: Found proof with " ^ string_of_int num_used_facts ^ " fact" ^
           plural_s num_used_facts
