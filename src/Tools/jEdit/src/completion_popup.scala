@@ -13,6 +13,7 @@ import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
+import javax.swing.text.DefaultCaret
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
@@ -221,6 +222,8 @@ object Completion_Popup
   {
     text_field =>
 
+    // see https://forums.oracle.com/thread/1361677
+    if (GUI.is_macos_laf) text_field.setCaret(new DefaultCaret)
 
     private var completion_popup: Option[Completion_Popup] = None
 
