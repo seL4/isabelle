@@ -587,7 +587,7 @@ fun build_corec_args_direct_call lthy has_call sel_eqns sel =
     fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
     fun massage _ NONE t = t
       | massage f (SOME {fun_args, rhs_term, ...}) t =
-        massage_direct_corec_call lthy has_call f (range_type (fastype_of t)) rhs_term
+        massage_direct_corec_call lthy has_call f [] (range_type (fastype_of t)) rhs_term
         |> abs_tuple fun_args;
   in
     (massage rewrite_q maybe_sel_eqn,

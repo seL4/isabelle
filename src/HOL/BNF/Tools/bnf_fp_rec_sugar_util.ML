@@ -53,12 +53,13 @@ sig
 
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
-  val massage_direct_corec_call: Proof.context -> (term -> bool) -> (term -> term) -> typ -> term ->
-    term
+  val massage_direct_corec_call: Proof.context -> (term -> bool) -> (term -> term) -> typ list ->
+    typ -> term -> term
   val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
-  val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ -> term -> term
+  val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ list -> typ ->
+    term -> term
   val fold_rev_corec_code_rhs: (term -> term list -> 'a -> 'a) -> term -> 'a -> 'a
   val simplify_bool_ifs: theory -> term -> term list
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
@@ -195,14 +196,26 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun massage_let_if ctxt has_call massage_leaf U =
+fun massage_let_if ctxt has_call massage_leaf bound_Ts U =
   let
-    val check_cond = ((not o has_call) orf unexpected_corec_call ctxt);
+    val typof = curry fastype_of1 bound_Ts;
+    val check_obj = ((not o has_call) orf unexpected_corec_call ctxt);
+
     fun massage_rec t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
-      | (Const (@{const_name If}, _), arg :: args) =>
-        list_comb (If_const U $ tap check_cond arg, map massage_rec args)
+      | (Const (@{const_name If}, _), obj :: branches) =>
+        list_comb (If_const U $ tap check_obj obj, map massage_rec branches)
+      | (Const (@{const_name nat_case}, _), args) =>
+        (* Proof of concept -- should be extensible to all case-like constructs *)
+        let
+          val (branches, obj) = split_last args;
+          val branches' = map massage_rec branches
+          (* FIXME: bound_Ts *)
+          val casex' = Const (@{const_name nat_case}, map typof branches' ---> typof obj);
+        in
+          list_comb (casex', branches') $ tap check_obj obj
+        end
       | _ => massage_leaf t)
   in
     massage_rec
@@ -213,7 +226,8 @@ fun fold_rev_let_if f =
     fun fld t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => fld (betapply (arg2, arg1))
-      | (Const (@{const_name If}, _), _ :: args) => fold_rev fld args
+      | (Const (@{const_name If}, _), _ :: branches) => fold_rev fld branches
+      | (Const (@{const_name nat_case}, _), args) => fold_rev fld (fst (split_last args))
       | _ => f t)
   in
     fld
@@ -276,7 +290,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
               | _ => massage_direct_call U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
-          build_map_Inl (T, U) $ t) U
+          build_map_Inl (T, U) $ t) bound_Ts U
   in
     massage_call U (typof t) t
   end;
@@ -305,7 +319,7 @@ fun expand_corec_code_rhs ctxt has_call bound_Ts t =
     T as Type (s, Ts) =>
     massage_let_if ctxt has_call (fn t =>
       if can (dest_ctr ctxt s) t then t
-      else massage_let_if ctxt has_call I T (expand_ctr_term ctxt s Ts t)) T t
+      else massage_let_if ctxt has_call I bound_Ts T (expand_ctr_term ctxt s Ts t)) bound_Ts T t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
