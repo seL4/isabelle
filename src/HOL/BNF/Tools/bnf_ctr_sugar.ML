@@ -27,7 +27,7 @@ sig
      disc_exhausts: thm list,
      collapses: thm list,
      expands: thm list,
-     case_convs: thm list};
+     case_conv_ifs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
 
@@ -76,11 +76,11 @@ type ctr_sugar =
    disc_exhausts: thm list,
    collapses: thm list,
    expands: thm list,
-   case_convs: thm list};
+   case_conv_ifs: thm list};
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
-    disc_exhausts, collapses, expands, case_convs} =
+    disc_exhausts, collapses, expands, case_conv_ifs} =
   {ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -100,7 +100,7 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    disc_exhausts = map (Morphism.thm phi) disc_exhausts,
    collapses = map (Morphism.thm phi) collapses,
    expands = map (Morphism.thm phi) expands,
-   case_convs = map (Morphism.thm phi) case_convs};
+   case_conv_ifs = map (Morphism.thm phi) case_conv_ifs};
 
 val rep_compat_prefix = "new";
 
@@ -111,7 +111,7 @@ fun mk_unN 1 1 suf = unN ^ suf
 
 val caseN = "case";
 val case_congN = "case_cong";
-val case_convN = "case_conv";
+val case_conv_ifN = "case_conv_if";
 val collapseN = "collapse";
 val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
@@ -523,7 +523,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
         val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms, nontriv_discI_thms,
              disc_exclude_thms, disc_exhaust_thms, all_collapse_thms, safe_collapse_thms,
-             expand_thms, case_conv_thms) =
+             expand_thms, case_conv_if_thms) =
           if no_discs_sels then
             ([], [], [], [], [], [], [], [], [], [], [], [])
           else
@@ -695,20 +695,20 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   |> Proof_Context.export names_lthy lthy
                 end;
 
-              val case_conv_thms =
+              val case_conv_if_thms =
                 let
                   fun mk_body f usels = Term.list_comb (f, usels);
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
                 in
                   [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                     mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
+                     mk_case_conv_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
                   |> map Thm.close_derivation
                   |> Proof_Context.export names_lthy lthy
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
                nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], all_collapse_thms,
-               safe_collapse_thms, expand_thms, case_conv_thms)
+               safe_collapse_thms, expand_thms, case_conv_if_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
@@ -763,7 +763,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         val notes =
           [(caseN, case_thms, code_nitpick_simp_simp_attrs),
            (case_congN, [case_cong_thm], []),
-           (case_convN, case_conv_thms, []),
+           (case_conv_ifN, case_conv_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
            (discN, nontriv_disc_thms, simp_attrs),
            (discIN, nontriv_discI_thms, []),
@@ -792,7 +792,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
           split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
           discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
-          collapses = all_collapse_thms, expands = expand_thms, case_convs = case_conv_thms},
+          collapses = all_collapse_thms, expands = expand_thms, case_conv_ifs = case_conv_if_thms},
          lthy
          |> not rep_compat ?
             (Local_Theory.declaration {syntax = false, pervasive = true}

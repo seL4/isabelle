@@ -784,8 +784,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
-\item[@{text "t."}\hthm{case\_conv}\rm:] ~ \\
-@{thm list.case_conv[no_vars]}
+\item[@{text "t."}\hthm{case\_conv\_if}\rm:] ~ \\
+@{thm list.case_conv_if[no_vars]}
 
 \end{description}
 \end{indentblock}
