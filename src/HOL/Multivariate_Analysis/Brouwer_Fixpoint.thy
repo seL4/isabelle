@@ -24,9 +24,10 @@ begin
 
 (** move this **)
 lemma divide_nonneg_nonneg:
+  fixes a b :: real
   assumes "a \<ge> 0"
     and "b \<ge> 0"
-  shows "0 \<le> a / (b::real)"
+  shows "0 \<le> a / b"
 proof (cases "b = 0")
   case True
   then show ?thesis by auto
@@ -1390,7 +1391,8 @@ next
     fix x xa xb xc y
     assume as:
       "x = (\<lambda>(b, g) x. if x = a then b else g x) xa"
-      "xb \<in> UNIV - insert a s0" "xa = (xc, y)"
+      "xb \<in> UNIV - insert a s0"
+      "xa = (xc, y)"
       "xc \<in> t"
       "\<forall>x\<in>s0. y x \<in> t"
       "\<forall>x\<in>UNIV - s0. y x = d"
@@ -2220,7 +2222,7 @@ proof -
     ultimately have *: "?A = {s, insert a3 (s - {a0})}"
       by blast
     have "s \<noteq> insert a3 (s - {a0})"
-      using `a3\<notin>s` by auto
+      using `a3 \<notin> s` by auto
     then have ?thesis
       unfolding * by auto
   }
@@ -3344,7 +3346,9 @@ proof -
     moreover guess s using as(1)[unfolded simplex_top_face[OF assms(1) allp,symmetric]] ..
     then guess a ..
     ultimately show "\<exists>s a. ksimplex p (n + 1) s \<and>
-      a \<in> s \<and> f = s - {a} \<and> reduced lab (n + 1) ` f = {0..n} \<and> ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))" (is ?ex)
+        a \<in> s \<and> f = s - {a} \<and>
+        reduced lab (n + 1) ` f = {0..n} \<and>
+        ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))"
       apply (rule_tac x = s in exI)
       apply (rule_tac x = a in exI)
       unfolding complete_face_top[OF *]
@@ -3354,7 +3358,8 @@ proof -
   next
     fix f
     assume as: "\<exists>s a. ksimplex p (n + 1) s \<and>
-      a \<in> s \<and> f = s - {a} \<and> reduced lab (n + 1) ` f = {0..n} \<and> ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))" (is ?ex)
+      a \<in> s \<and> f = s - {a} \<and> reduced lab (n + 1) ` f = {0..n} \<and>
+      ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))"
     then guess s ..
     then guess a by (elim exE conjE) note sa = this
     {
@@ -3447,7 +3452,7 @@ lemma kuhn_induction_Suc:
     and "\<forall>x. \<forall>j\<in>{1..Suc n}. (\<forall>j. x j \<le> p) \<and> x j = 0 \<longrightarrow> lab x j = 0"
     and "\<forall>x. \<forall>j\<in>{1..Suc n}. (\<forall>j. x j \<le> p) \<and> x j = p \<longrightarrow> lab x j = 1"
     and "odd (card {f. ksimplex p n f \<and> reduced lab n ` f = {0..n}})"
-  shows "odd (card {s. ksimplex p (Suc n) s \<and> reduced lab (Suc n) `  s = {0..Suc n}})"
+  shows "odd (card {s. ksimplex p (Suc n) s \<and> reduced lab (Suc n) ` s = {0..Suc n}})"
   using assms
   unfolding Suc_eq_plus1
   by (rule kuhn_induction)
@@ -4255,7 +4260,7 @@ qed
 
 lemma interval_bij_bij:
   "\<forall>(i::'a::ordered_euclidean_space)\<in>Basis. a\<bullet>i < b\<bullet>i \<and> u\<bullet>i < v\<bullet>i \<Longrightarrow>
-    interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
+    interval_bij (a, b) (u, v) (interval_bij (u, v) (a, b) x) = x"
   by (auto simp: interval_bij_def euclidean_eq_iff[where 'a='a])
 
 end
