@@ -103,7 +103,8 @@ fun dissect_eqn lthy fun_names eqn' =
           else primrec_error_eqn "malformed function equation (does not start with free)" eqn);
     val (left_args, rest) = take_prefix is_Free args;
     val (nonfrees, right_args) = take_suffix is_Free rest;
-    val _ = length nonfrees = 1 orelse if length nonfrees = 0 then
+    val num_nonfrees = length nonfrees;
+    val _ = num_nonfrees = 1 orelse if num_nonfrees = 0 then
       primrec_error_eqn "constructor pattern missing in left-hand side" eqn else
       primrec_error_eqn "more than one non-variable argument in left-hand side" eqn;
     val _ = member (op =) fun_names fun_name orelse
@@ -327,7 +328,7 @@ fun add_primrec fixes specs lthy =
       |> map (partition_eq ((op =) o pairself #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
 
-    val ((nontriv, rec_specs, _, induct_thm, induct_thms), lthy') =
+    val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy') =
       rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
 
     val actual_nn = length funs_data;
@@ -353,7 +354,7 @@ fun add_primrec fixes specs lthy =
             |> K |> Goal.prove lthy [] [] user_eqn)
 
         val notes =
-          [(inductN, if nontriv then [induct_thm] else [], []),
+          [(inductN, if n2m then [induct_thm] else [], []),
            (simpsN, simp_thms, code_nitpick_simp_attrs @ simp_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
@@ -365,7 +366,7 @@ fun add_primrec fixes specs lthy =
     val common_name = mk_common_name fun_names;
 
     val common_notes =
-      [(inductN, if nontriv then [induct_thm] else [], [])]
+      [(inductN, if n2m then [induct_thm] else [], [])]
       |> filter_out (null o #2)
       |> map (fn (thmN, thms, attrs) =>
         ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
@@ -699,12 +700,13 @@ fun add_primcorec simple sequential fixes specs lthy =
 
     val callssss = []; (* FIXME *)
 
-    val ((nontriv, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
+    val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
           strong_coinduct_thms), lthy') =
       corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
 
+    val actual_nn = length bs;
     val fun_names = map Binding.name_of bs;
-    val corec_specs = take (length fun_names) corec_specs'; (*###*)
+    val corec_specs = take actual_nn corec_specs'; (*###*)
 
     val (eqns_data, _) =
       fold_map (co_dissect_eqn sequential fun_names corec_specs) (map snd specs) []
@@ -857,22 +859,22 @@ andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
-          [(coinductN, map (if nontriv then single else K []) coinduct_thms, []),
+          [(coinductN, map (if n2m then single else K []) coinduct_thms, []),
            (codeN, ctr_thmss(*FIXME*), code_nitpick_simp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
-           (strong_coinductN, map (if nontriv then single else K []) strong_coinduct_thms, [])]
+           (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map2 (fn fun_name => fn thms =>
                 ((Binding.qualify true fun_name (Binding.name thmN), attrs), [(thms, [])]))
-              fun_names thmss)
+              fun_names (take actual_nn thmss))
           |> filter_out (null o fst o hd o snd);
 
         val common_notes =
-          [(coinductN, if nontriv then [coinduct_thm] else [], []),
-           (strong_coinductN, if nontriv then [strong_coinduct_thm] else [], [])]
+          [(coinductN, if n2m then [coinduct_thm] else [], []),
+           (strong_coinductN, if n2m then [strong_coinduct_thm] else [], [])]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
