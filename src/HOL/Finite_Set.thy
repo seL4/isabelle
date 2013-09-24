@@ -440,6 +440,16 @@ by(simp only: finite_Pow_iff Pow_UNIV[symmetric])
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
   by (blast intro: finite_subset [OF subset_Pow_Union])
 
+lemma finite_set_of_finite_funs: assumes "finite A" "finite B"
+shows "finite{f. \<forall>x. (x \<in> A \<longrightarrow> f x \<in> B) \<and> (x \<notin> A \<longrightarrow> f x = d)}" (is "finite ?S")
+proof-
+  let ?F = "\<lambda>f. {(a,b). a \<in> A \<and> b = f a}"
+  have "?F ` ?S \<subseteq> Pow(A \<times> B)" by auto
+  from finite_subset[OF this] assms have 1: "finite (?F ` ?S)" by simp
+  have 2: "inj_on ?F ?S"
+    by(fastforce simp add: inj_on_def set_eq_iff fun_eq_iff)
+  show ?thesis by(rule finite_imageD[OF 1 2])
+qed
 
 subsubsection {* Further induction rules on finite sets *}
 
