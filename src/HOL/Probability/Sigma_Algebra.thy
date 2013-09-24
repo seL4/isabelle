@@ -74,6 +74,9 @@ proof (rule disjointI)
   qed
 qed
 
+lemma disjoint_singleton [simp]: "disjoint {A}"
+by(simp add: disjoint_def)
+
 locale semiring_of_sets = subset_class +
   assumes empty_sets[iff]: "{} \<in> M"
   assumes Int[intro]: "\<And>a b. a \<in> M \<Longrightarrow> b \<in> M \<Longrightarrow> a \<inter> b \<in> M"
@@ -1085,7 +1088,7 @@ interpretation sets!: sigma_algebra "space M" "sets M" for M :: "'a measure"
   using measure_space[of M] by (auto simp: measure_space_def)
 
 definition measure_of :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
-  "measure_of \<Omega> A \<mu> = Abs_measure (\<Omega>, sigma_sets \<Omega> A,
+  "measure_of \<Omega> A \<mu> = Abs_measure (\<Omega>, if A \<subseteq> Pow \<Omega> then sigma_sets \<Omega> A else {{}, \<Omega>},
     \<lambda>a. if a \<in> sigma_sets \<Omega> A \<and> measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> then \<mu> a else 0)"
 
 abbreviation "sigma \<Omega> A \<equiv> measure_of \<Omega> A (\<lambda>x. 0)"
@@ -1093,6 +1096,20 @@ abbreviation "sigma \<Omega> A \<equiv> measure_of \<Omega> A (\<lambda>x. 0)"
 lemma measure_space_0: "A \<subseteq> Pow \<Omega> \<Longrightarrow> measure_space \<Omega> (sigma_sets \<Omega> A) (\<lambda>x. 0)"
   unfolding measure_space_def
   by (auto intro!: sigma_algebra_sigma_sets simp: positive_def countably_additive_def)
+
+lemma sigma_algebra_trivial: "sigma_algebra \<Omega> {{}, \<Omega>}"
+by unfold_locales(fastforce intro: exI[where x="{{}}"] exI[where x="{\<Omega>}"])+
+
+lemma measure_space_0': "measure_space \<Omega> {{}, \<Omega>} (\<lambda>x. 0)"
+by(simp add: measure_space_def positive_def countably_additive_def sigma_algebra_trivial)
+
+lemma measure_space_closed:
+  assumes "measure_space \<Omega> M \<mu>"
+  shows "M \<subseteq> Pow \<Omega>"
+proof -
+  interpret sigma_algebra \<Omega> M using assms by(simp add: measure_space_def)
+  show ?thesis by(rule space_closed)
+qed
 
 lemma (in ring_of_sets) positive_cong_eq:
   "(\<And>a. a \<in> M \<Longrightarrow> \<mu>' a = \<mu> a) \<Longrightarrow> positive M \<mu>' = positive M \<mu>"
@@ -1123,25 +1140,36 @@ proof -
 qed
 
 lemma
-  assumes A: "A \<subseteq> Pow \<Omega>"
-  shows sets_measure_of[simp]: "sets (measure_of \<Omega> A \<mu>) = sigma_sets \<Omega> A" (is ?sets)
-    and space_measure_of[simp]: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
+  shows space_measure_of_conv: "space (measure_of \<Omega> A \<mu>) = \<Omega>" (is ?space)
+  and sets_measure_of_conv:
+  "sets (measure_of \<Omega> A \<mu>) = (if A \<subseteq> Pow \<Omega> then sigma_sets \<Omega> A else {{}, \<Omega>})" (is ?sets)
+  and emeasure_measure_of_conv: 
+  "emeasure (measure_of \<Omega> A \<mu>) = 
+  (\<lambda>B. if B \<in> sigma_sets \<Omega> A \<and> measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> then \<mu> B else 0)" (is ?emeasure)
 proof -
-  have "?sets \<and> ?space"
-  proof cases
-    assume "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu>"
-    moreover have "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> = measure_space \<Omega> (sigma_sets \<Omega> A)
-       (\<lambda>a. if a \<in> sigma_sets \<Omega> A then \<mu> a else 0)"
-      using A by (rule measure_space_eq) auto
-    ultimately show "?sets \<and> ?space"
-      by (auto simp: Abs_measure_inverse measure_of_def sets_def space_def)
+  have "?space \<and> ?sets \<and> ?emeasure"
+  proof(cases "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu>")
+    case True
+    from measure_space_closed[OF this] sigma_sets_superset_generator[of A \<Omega>]
+    have "A \<subseteq> Pow \<Omega>" by simp
+    hence "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu> = measure_space \<Omega> (sigma_sets \<Omega> A)
+      (\<lambda>a. if a \<in> sigma_sets \<Omega> A then \<mu> a else 0)"
+      by(rule measure_space_eq) auto
+    with True `A \<subseteq> Pow \<Omega>` show ?thesis
+      by(simp add: measure_of_def space_def sets_def emeasure_def Abs_measure_inverse)
   next
-    assume "\<not> measure_space \<Omega> (sigma_sets \<Omega> A) \<mu>"
-    with A show "?sets \<and> ?space"
-      by (auto simp: Abs_measure_inverse measure_of_def sets_def space_def measure_space_0)
+    case False thus ?thesis
+      by(cases "A \<subseteq> Pow \<Omega>")(simp_all add: Abs_measure_inverse measure_of_def sets_def space_def emeasure_def measure_space_0 measure_space_0')
   qed
-  then show ?sets ?space by auto
+  thus ?space ?sets ?emeasure by simp_all
 qed
+
+lemma [simp]:
+  assumes A: "A \<subseteq> Pow \<Omega>"
+  shows sets_measure_of: "sets (measure_of \<Omega> A \<mu>) = sigma_sets \<Omega> A"
+    and space_measure_of: "space (measure_of \<Omega> A \<mu>) = \<Omega>"
+using assms
+by(simp_all add: sets_measure_of_conv space_measure_of_conv)
 
 lemma (in sigma_algebra) sets_measure_of_eq[simp]:
   "sets (measure_of \<Omega> M \<mu>) = M"
@@ -1193,14 +1221,8 @@ proof -
   interpret sigma_algebra \<Omega> "sigma_sets \<Omega> A" by (rule sigma_algebra_sigma_sets) fact
   have "measure_space \<Omega> (sigma_sets \<Omega> A) \<mu>"
     using ms M by (simp add: measure_space_def sigma_algebra_sigma_sets)
-  moreover have "measure_space \<Omega> (sigma_sets \<Omega> A) (\<lambda>a. if a \<in> sigma_sets \<Omega> A then \<mu> a else 0)
-    = measure_space \<Omega> (sigma_sets \<Omega> A) \<mu>"
-    using ms(1) by (rule measure_space_eq) auto
-  moreover have "X \<in> sigma_sets \<Omega> A"
-    using X M ms by simp
-  ultimately show ?thesis
-    unfolding emeasure_def measure_of_def M
-    by (subst Abs_measure_inverse) (simp_all add: sigma_sets_eq)
+  thus ?thesis using X ms
+    by(simp add: M emeasure_measure_of_conv sets_measure_of_conv)
 qed
 
 lemma emeasure_measure_of_sigma:
@@ -1211,12 +1233,7 @@ proof -
   interpret sigma_algebra \<Omega> M by fact
   have "measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
     using ms sigma_sets_eq by (simp add: measure_space_def)
-  moreover have "measure_space \<Omega> (sigma_sets \<Omega> M) (\<lambda>a. if a \<in> sigma_sets \<Omega> M then \<mu> a else 0)
-    = measure_space \<Omega> (sigma_sets \<Omega> M) \<mu>"
-    using space_closed by (rule measure_space_eq) auto
-  ultimately show ?thesis using A
-    unfolding emeasure_def measure_of_def
-    by (subst Abs_measure_inverse) (simp_all add: sigma_sets_eq)
+  thus ?thesis by(simp add: emeasure_measure_of_conv A)
 qed
 
 lemma measure_cases[cases type: measure]:
