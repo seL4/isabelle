@@ -1485,9 +1485,6 @@ lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f
 
 text{* The expected monotonicity property. *}
 
-lemma Lim_within_empty: "(f ---> l) (at x within {})"
-  unfolding tendsto_def eventually_at_filter by simp
-
 lemma Lim_Un:
   assumes "(f ---> l) (at x within S)" "(f ---> l) (at x within T)"
   shows "(f ---> l) (at x within (S \<union> T))"
@@ -1551,7 +1548,7 @@ lemma Lim_right_bound:
   shows "(f ---> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"
 proof (cases "{x<..} \<inter> I = {}")
   case True
-  then show ?thesis by (simp add: Lim_within_empty)
+  then show ?thesis by simp
 next
   case False
   show ?thesis

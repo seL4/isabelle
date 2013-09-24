@@ -490,7 +490,7 @@ instance proof
     unfolding le_filter_def eventually_Sup by simp }
   { show "Inf {} = (top::'a filter)"
     by (auto simp: top_filter_def Inf_filter_def Sup_filter_def)
-      (metis (full_types) Topological_Spaces.top_filter_def always_eventually eventually_top) }
+      (metis (full_types) top_filter_def always_eventually eventually_top) }
   { show "Sup {} = (bot::'a filter)"
     by (auto simp: bot_filter_def Sup_filter_def) }
 qed
@@ -753,6 +753,9 @@ lemma eventually_at_topological:
 
 lemma at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a within S = at a"
   unfolding filter_eq_iff eventually_at_topological by (metis open_Int Int_iff UNIV_I)
+
+lemma at_within_empty [simp]: "at a within {} = bot"
+  unfolding at_within_def by simp
 
 lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
