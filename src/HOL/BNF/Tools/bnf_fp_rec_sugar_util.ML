@@ -219,8 +219,7 @@ fun fold_rev_let_if f =
     fld
   end;
 
-fun massage_direct_corec_call ctxt has_call raw_massage_call U t =
-  massage_let_if ctxt has_call raw_massage_call U t;
+val massage_direct_corec_call = massage_let_if;
 
 fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let

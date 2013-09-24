@@ -290,7 +290,7 @@ fun collect_instances ctxt max_thm_insts thm_infos consts =
 fun size_of_subst subst =
   Vartab.fold (Integer.add o size_of_typ o snd o snd) subst 0
 
-val subst_ord = int_ord o pairself size_of_subst
+fun subst_ord subst = int_ord (pairself size_of_subst subst)
 
 fun instantiated_thms _ _ (Ground thm) = [(0, thm)]
   | instantiated_thms _ _ Ignored = []
