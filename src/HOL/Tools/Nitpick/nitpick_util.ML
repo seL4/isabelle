@@ -53,7 +53,6 @@ sig
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val string_of_time : Time.time -> string
-  val spying : bool -> (unit -> string) -> unit
   val nat_subscript : int -> string
   val flip_polarity : polarity -> polarity
   val prop_T : typ
@@ -79,6 +78,7 @@ sig
   val unyxml : string -> string
   val pretty_maybe_quote : Pretty.T -> Pretty.T
   val hash_term : term -> int
+  val spying : bool -> (unit -> Proof.state * int * string) -> unit
 end;
 
 structure Nitpick_Util : NITPICK_UTIL =
@@ -242,15 +242,6 @@ val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 val string_of_time = ATP_Util.string_of_time
 
-val spying_version = "a"
-
-fun spying false _ = ()
-  | spying true f =
-    let val message = f () in
-      File.append (Path.explode "$ISABELLE_HOME_USER/spy_nitpick")
-        (spying_version ^ " " ^ timestamp () ^ ": " ^ message ^ "\n")
-    end
-
 val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
 fun nat_subscript n =
   n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
@@ -324,5 +315,21 @@ fun hashw_term (t1 $ t2) = hashw (hashw_term t1, hashw_term t2)
   | hashw_term _ = 0w0
 
 val hash_term = Word.toInt o hashw_term
+
+val hackish_string_of_term = Sledgehammer_Util.hackish_string_of_term
+
+val spying_version = "b"
+
+fun spying false _ = ()
+  | spying true f =
+    let
+      val (state, i, message) = f ()
+      val ctxt = Proof.context_of state
+      val goal = Logic.get_goal (prop_of (#goal (Proof.goal state))) i
+      val hash = String.substring (SHA1.rep (SHA1.digest (hackish_string_of_term ctxt goal)), 0, 12)
+    in
+      File.append (Path.explode "$ISABELLE_HOME_USER/spy_nitpick")
+        (spying_version ^ " " ^ timestamp () ^ ": " ^ hash ^ ": " ^ message ^ "\n")
+    end
 
 end;

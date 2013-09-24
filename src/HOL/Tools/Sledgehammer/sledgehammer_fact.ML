@@ -271,9 +271,6 @@ fun is_blacklisted_or_something ctxt ho_atp =
       is_package_def name orelse exists (fn s => String.isSuffix s name) blist
   in is_blisted end
 
-fun hackish_string_of_term ctxt =
-  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
-
 (* This is a terrible hack. Free variables are sometimes coded as "M__" when
    they are displayed as "M" and we want to avoid clashes with these. But
    sometimes it's even worse: "Ma__" encodes "M". So we simply reserve all
