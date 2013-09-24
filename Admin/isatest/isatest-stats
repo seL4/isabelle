@@ -14,6 +14,7 @@ ISABELLE_SESSIONS="
   HOL-Auth
   HOL-BNF
   HOL-BNF-Examples
+  HOL-BNF-Nitpick_Examples
   HOL-BNF-LFP
   HOL-Bali
   HOL-Boogie
@@ -45,7 +46,6 @@ ISABELLE_SESSIONS="
   HOL-NSA
   HOL-NSA-Examples
   HOL-NanoJava
-  HOL-Nitpick_Examples
   HOL-Nominal
   HOL-Nominal-Examples
   HOL-Number_Theory
