@@ -2921,14 +2921,17 @@ val _ =
 
 val option_parser = Parse.group (fn () => "option") (Parse.reserved "sequential" >> K true);
 
+val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
+  (Parse_Spec.spec -- Scan.option (Parse.reserved "of" |-- Parse.const)));
+
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
-    (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorecursive_cmd);
+    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
   "define primitive corecursive functions"
   ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
-    (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorec_cmd);
+    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
 
 end;

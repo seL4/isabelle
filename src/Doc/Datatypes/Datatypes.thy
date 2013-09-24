@@ -1877,7 +1877,7 @@ In contrast, the next example is arguably more naturally expressed in the
 constructor view:
 *}
 
-    primcorec_notyet
+    primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "n mod 4 = 0 \<Longrightarrow> random_process s f n = Fail" |
@@ -1987,19 +1987,18 @@ The next example illustrates how to cope with selectors defined for several
 constructors:
 *}
 
-    primcorec_notyet
+    primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "n mod 4 = 0 \<Longrightarrow> is_Fail (random_process s f n)" |
       "n mod 4 = 1 \<Longrightarrow> is_Skip (random_process s f n)" |
       "n mod 4 = 2 \<Longrightarrow> is_Action (random_process s f n)" |
       "n mod 4 = 3 \<Longrightarrow> is_Choice (random_process s f n)" |
-      "cont (random_process s f n) = random_process s f (f n)" (* of Skip FIXME *) |
+      "cont (random_process s f n) = random_process s f (f n)" of Skip |
       "prefix (random_process s f n) = shd s" |
-      "cont (random_process s f n) = random_process (stl s) f (f n)" (* of Action FIXME *) |
+      "cont (random_process s f n) = random_process (stl s) f (f n)" of Action |
       "left (random_process s f n) = random_process (every_snd s) f (f n)" |
-      "right (random_process s f n) = random_process (every_snd (stl s)) f (f n)" (*<*)
-(*>*)
+      "right (random_process s f n) = random_process (every_snd (stl s)) f (f n)"
 
 text {*
 \noindent
