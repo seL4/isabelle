@@ -116,7 +116,7 @@ val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
 (* asynchronous print function (PIDE) *)
 
 fun print_function ((name, (weight, auto, tool)): tool) =
-  Command.print_function name
+  Command.print_function ("auto_" ^ name)
     (fn {command_name, ...} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
         SOME
