@@ -22,14 +22,11 @@ object GUI
 
   def get_laf(): String =
   {
-    def laf(name: String): Option[String] =
-      UIManager.getInstalledLookAndFeels().find(_.getName == name).map(_.getClassName)
-
     if (Platform.is_windows || Platform.is_macos)
       UIManager.getSystemLookAndFeelClassName()
     else
-      laf("Nimbus") orElse laf("GTK+") getOrElse
-        UIManager.getCrossPlatformLookAndFeelClassName()
+      UIManager.getInstalledLookAndFeels().find(_.getName == "Nimbus").map(_.getClassName)
+        .getOrElse(UIManager.getCrossPlatformLookAndFeelClassName())
   }
 
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
