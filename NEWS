@@ -57,6 +57,9 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Separate manual "jedit" for Isabelle/jEdit, see isabelle doc or
+Documentation panel.
+
 * Improved "Theories" panel: Continuous checking of proof document
 (visible and required parts) may be controlled explicitly, using check
 box or shortcut "C+e ENTER".  Individual theory nodes may be marked
