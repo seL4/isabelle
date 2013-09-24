@@ -1,4 +1,5 @@
 /*  Title:      Pure/GUI/wrap_panel.scala
+    Module:     PIDE-GUI
     Author:     Makarius
 
 Panel with improved FlowLayout for wrapping of components over

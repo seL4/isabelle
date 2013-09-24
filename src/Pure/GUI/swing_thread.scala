@@ -1,4 +1,5 @@
 /*  Title:      Pure/GUI/swing_thread.scala
+    Module:     PIDE-GUI
     Author:     Makarius
 
 Evaluation within the AWT/Swing thread.

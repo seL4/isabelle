@@ -1,4 +1,5 @@
 /*  Title:      Pure/GUI/jfx_thread.scala
+    Module:     PIDE-GUI
     Author:     Makarius
 
 Evaluation within the Java FX application thread.
