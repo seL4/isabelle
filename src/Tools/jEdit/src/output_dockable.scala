@@ -55,7 +55,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
             PIDE.editor.current_command(view, snapshot) match {
-              case Some((cmd, _)) =>
+              case Some(cmd) =>
                 (snapshot, snapshot.state.command_state(snapshot.version, cmd))
               case None =>
                 (Document.Snapshot.init, Command.empty.init_state)

@@ -62,8 +62,7 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  override def current_command(view: View, snapshot: Document.Snapshot)
-    : Option[(Command, Text.Offset)] =
+  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
   {
     Swing_Thread.require()
 
@@ -74,7 +73,11 @@ class JEdit_Editor extends Editor[View]
         case Some(doc_view) =>
           val node = snapshot.version.nodes(doc_view.model.node_name)
           val caret_commands = node.command_range(text_area.getCaretPosition)
-          if (caret_commands.hasNext) Some(caret_commands.next) else None
+          if (caret_commands.hasNext) {
+            val (cmd0, _) = caret_commands.next
+            node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
+          }
+          else None
         case None => None
       }
     }
