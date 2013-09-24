@@ -1614,14 +1614,6 @@ next
   qed
 qed
 
-lemma Lim_inv: (* TODO: delete *)
-  fixes f :: "'a \<Rightarrow> real"
-    and A :: "'a filter"
-  assumes "(f ---> l) A"
-    and "l \<noteq> 0"
-  shows "((inverse \<circ> f) ---> inverse l) A"
-  unfolding o_def using assms by (rule tendsto_inverse)
-
 lemma Lim_null:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) ---> 0) net"
