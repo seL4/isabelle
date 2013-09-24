@@ -683,7 +683,7 @@ subsubsection {* Free Constructor Theorems
   \label{sssec:free-constructor-theorems} *}
 
 (*<*)
-    consts is_Cons :: 'a
+    consts nonnull :: 'a
 (*>*)
 
 text {*
@@ -771,12 +771,12 @@ The third and last subgroup revolves around discriminators and selectors:
 @{thm list.collapse(1)[no_vars]} \\
 @{thm list.collapse(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_exclude}\rm:] ~ \\
+\item[@{text "t."}\hthm{disc\_exclude} @{text "[dest]"}\rm:] ~ \\
 These properties are missing for @{typ "'a list"} because there is only one
 proper discriminator. Had the datatype been introduced with a second
-discriminator called @{const is_Cons}, they would have read thusly: \\[\jot]
-@{prop "null list \<Longrightarrow> \<not> is_Cons list"} \\
-@{prop "is_Cons list \<Longrightarrow> \<not> null list"}
+discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
+@{prop "null list \<Longrightarrow> \<not> nonnull list"} \\
+@{prop "nonnull list \<Longrightarrow> \<not> null list"}
 
 \item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
