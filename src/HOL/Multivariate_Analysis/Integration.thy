@@ -2479,7 +2479,7 @@ lemma has_integral_unique:
     and "(f has_integral k2) i"
   shows "k1 = k2"
 proof (rule ccontr)
-  let ?e = "norm(k1 - k2) / 2"
+  let ?e = "norm (k1 - k2) / 2"
   assume as:"k1 \<noteq> k2"
   then have e: "?e > 0"
     by auto
@@ -5082,7 +5082,7 @@ lemma has_integral_component_le:
     and "\<forall>x\<in>s. (f x)\<bullet>k \<le> (g x)\<bullet>k"
   shows "i\<bullet>k \<le> j\<bullet>k"
 proof -
-  have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_integral i) ({a..b}) \<Longrightarrow>
+  have lem: "\<And>a b i j::'b. \<And>g f::'a \<Rightarrow> 'b. (f has_integral i) {a..b} \<Longrightarrow>
     (g has_integral j) ({a..b}) \<Longrightarrow> \<forall>x\<in>{a..b}. (f x)\<bullet>k \<le> (g x)\<bullet>k \<Longrightarrow> i\<bullet>k \<le> j\<bullet>k"
   proof (rule ccontr)
     case goal1
@@ -7345,7 +7345,8 @@ proof -
           by auto
         have same: "(x, k) = (x', k')"
           apply -
-          apply (rule ccontr,drule p(5)[OF xk xk'])
+          apply (rule ccontr)
+          apply (drule p(5)[OF xk xk'])
         proof -
           assume as: "interior k \<inter> interior k' = {}"
           from nonempty_witness[OF *] guess z .
@@ -8037,7 +8038,7 @@ proof -
                   using p(2-3)[OF goal1(1)] unfolding uv by auto
                 have "u \<ge> a"
                   using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto
-                moreover assume "u \<noteq> a"
+                moreover assume "\<not> ?thesis"
                 ultimately have "u > a" by auto
                 then show False
                   using p(2)[OF goal1(1)] unfolding uv by (auto simp add:)
@@ -8061,7 +8062,7 @@ proof -
                   using p(2-3)[OF goal1(1)] unfolding uv by auto
                 have "v \<le> b"
                   using p(2-3)[OF goal1(1)] unfolding uv subset_eq by auto
-                moreover assume "v \<noteq> b"
+                moreover assume "\<not> ?thesis"
                 ultimately have "v < b" by auto
                 then show False
                   using p(2)[OF goal1(1)] unfolding uv by (auto simp add:)
@@ -8098,7 +8099,7 @@ proof -
                 apply auto
                 done
               { assume "x \<in> k" then show "x \<in> k'" unfolding * . }
-              { assume "x \<in> k'" then show "x\<in>k" unfolding * . }
+              { assume "x \<in> k'" then show "x \<in> k" unfolding * . }
             qed
             show "\<forall>x y. x \<in> ?B b \<and> y \<in> ?B b \<longrightarrow> x = y"
               apply rule
@@ -8473,7 +8474,7 @@ proof -
         unfolding subset_eq
         apply (erule_tac x="c + ((k + w)/2)" in ballE)
         unfolding d_def
-        using `k>0` `w>0`
+        using `k > 0` `w > 0`
         apply (auto simp add: field_simps not_le not_less dist_real_def)
         done
       ultimately show ?thesis using `t < c`
@@ -11788,7 +11789,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
     case goal2
     have "\<exists>y\<in>setsum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> i - e"
     proof (rule ccontr)
-      case goal1
+      assume "\<not> ?thesis"
       then have "i \<le> i - e"
         apply -
         apply (rule isLub_le_isUb[OF i])
@@ -12451,7 +12452,7 @@ proof -
 
       have "\<exists>y\<in>?S. \<not> y \<ge> i + r"
       proof(rule ccontr)
-        case goal1
+        assume "\<not> ?thesis"
         then have "i \<ge> i + r"
           apply -
           apply (rule isGlb_le_isLb[OF i])
@@ -12554,7 +12555,7 @@ proof -
 
       have "\<exists>y\<in>?S. \<not> y \<le> i - r"
       proof (rule ccontr)
-        case goal1
+        assume "\<not> ?thesis"
         then have "i \<le> i - r"
           apply -
           apply (rule isLub_le_isUb[OF i])

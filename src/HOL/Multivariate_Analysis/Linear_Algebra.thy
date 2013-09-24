@@ -165,7 +165,7 @@ lemma norm_triangle_half_r:
 
 lemma norm_triangle_half_l:
   assumes "norm (x - y) < e / 2"
-    and "norm (x' - (y)) < e / 2"
+    and "norm (x' - y) < e / 2"
   shows "norm (x - x') < e"
   using dist_triangle_half_l[OF assms[unfolded dist_norm[symmetric]]]
   unfolding dist_norm[symmetric] .
@@ -227,17 +227,17 @@ subsection {* Orthogonality. *}
 context real_inner
 begin
 
-definition "orthogonal x y \<longleftrightarrow> (x \<bullet> y = 0)"
+definition "orthogonal x y \<longleftrightarrow> x \<bullet> y = 0"
 
 lemma orthogonal_clauses:
   "orthogonal a 0"
   "orthogonal a x \<Longrightarrow> orthogonal a (c *\<^sub>R x)"
-  "orthogonal a x \<Longrightarrow> orthogonal a (-x)"
+  "orthogonal a x \<Longrightarrow> orthogonal a (- x)"
   "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x + y)"
   "orthogonal a x \<Longrightarrow> orthogonal a y \<Longrightarrow> orthogonal a (x - y)"
   "orthogonal 0 a"
   "orthogonal x a \<Longrightarrow> orthogonal (c *\<^sub>R x) a"
-  "orthogonal x a \<Longrightarrow> orthogonal (-x) a"
+  "orthogonal x a \<Longrightarrow> orthogonal (- x) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x + y) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x - y) a"
   unfolding orthogonal_def inner_add inner_diff by auto
