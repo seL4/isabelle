@@ -122,7 +122,7 @@ Functions,'' describes how to specify recursive functions using
 @{command primrec_new}, \keyw{fun}, and \keyw{function}.
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
-describes how to specify codatatypes using the \keyw{codatatype} command.
+describes how to specify codatatypes using the @{command codatatype} command.
 
 \item Section \ref{sec:defining-corecursive-functions}, ``Defining Corecursive
 Functions,'' describes how to specify corecursive functions using the
@@ -137,7 +137,7 @@ to register arbitrary type constructors as BNFs.
 ``Deriving Destructors and Theorems for Free Constructors,'' explains how to
 use the command @{command wrap_free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by @{command
-datatype_new} and \keyw{codatatype}.
+datatype_new} and @{command codatatype}.
 
 %\item Section \ref{sec:standard-ml-interface}, ``Standard ML Interface,''
 %describes the package's programmatic interface.
@@ -341,7 +341,7 @@ type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 
 Type constructors must be registered as BNFs to have live arguments. This is
 done automatically for datatypes and codatatypes introduced by the @{command
-datatype_new} and \keyw{codatatype} commands.
+datatype_new} and @{command codatatype} commands.
 Section~\ref{sec:registering-bounded-natural-functors} explains how to register
 arbitrary type constructors as BNFs.
 *}
@@ -439,10 +439,12 @@ subsubsection {* \keyw{datatype\_new}
   \label{sssec:datatype-new} *}
 
 text {*
-Datatype definitions have the following general syntax:
+\begin{matharray}{rcl}
+  @{command_def "datatype_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
 
 @{rail "
-  @@{command_def datatype_new} target? @{syntax dt_options}? \\
+  @@{command datatype_new} target? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'rep_compat') + ',') ')'
@@ -534,6 +536,15 @@ subsubsection {* \keyw{datatype\_new\_compat}
   \label{sssec:datatype-new-compat} *}
 
 text {*
+\begin{matharray}{rcl}
+  @{command_def "datatype_new_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail "
+  @@{command datatype_new_compat} names
+"}
+
+\noindent
 The old datatype package provides some functionality that is not yet replicated
 in the new package:
 
@@ -550,15 +561,8 @@ and other packages.
 
 \noindent
 New-style datatypes can in most case be registered as old-style datatypes using
-the command
-
-@{rail "
-  @@{command_def datatype_new_compat} names
-"}
-
-\noindent
-where the \textit{names} argument is simply a space-separated list of type names
-that are mutually recursive. For example:
+@{command datatype_new_compat}. The \textit{names} argument is a space-separated
+list of type names that are mutually recursive. For example:
 *}
 
     datatype_new_compat even_nat odd_nat
@@ -1211,13 +1215,14 @@ subsubsection {* \keyw{primrec\_new}
   \label{sssec:primrec-new} *}
 
 text {*
-Primitive recursive functions have the following general syntax:
+\begin{matharray}{rcl}
+  @{command_def "primrec_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
 
 @{rail "
-  @@{command_def primrec_new} target? fixes \\ @'where'
-    (@{syntax primrec_equation} + '|')
+  @@{command primrec_new} target? fixes \\ @'where' (@{syntax pr_equation} + '|')
   ;
-  @{syntax_def primrec_equation}: thmdecl? prop
+  @{syntax_def pr_equation}: thmdecl? prop
 "}
 *}
 
@@ -1322,7 +1327,7 @@ section {* Defining Codatatypes
   \label{sec:defining-codatatypes} *}
 
 text {*
-Codatatypes can be specified using the \keyw{codatatype} command. The
+Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
 \verb|~~/src/HOL/BNF/Examples|. The \emph{Archive of Formal Proofs} also
@@ -1382,6 +1387,7 @@ Here is an example with many constructors:
     | Choice (left: "'a process") (right: "'a process")
 
 text {*
+\noindent
 Notice that the @{const cont} selector is associated with both @{const Skip}
 and @{const Choice}.
 *}
@@ -1427,10 +1433,19 @@ subsubsection {* \keyw{codatatype}
   \label{sssec:codatatype} *}
 
 text {*
+\begin{matharray}{rcl}
+  @{command_def "codatatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail "
+  @@{command codatatype} target? \\
+    (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
+"}
+
+\noindent
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
-(Section~\ref{ssec:datatype-command-syntax}), with two exceptions: The command
-is called \keyw{codatatype}. The @{text "no_discs_sels"} option is not
-available, because destructors are a crucial notion for codatatypes.
+(Section~\ref{ssec:datatype-command-syntax}). The @{text "no_discs_sels"} option
+is not available, because destructors are a crucial notion for codatatypes.
 *}
 
 
@@ -1459,7 +1474,7 @@ subsection {* Generated Theorems
   \label{ssec:codatatype-generated-theorems} *}
 
 text {*
-The characteristic theorems generated by \keyw{codatatype} are grouped in
+The characteristic theorems generated by @{command codatatype} are grouped in
 three broad categories:
 
 \begin{itemize}
@@ -1547,7 +1562,7 @@ used to prove $m$ properties simultaneously.
 \end{indentblock}
 
 \noindent
-For convenience, \keyw{codatatype} also provides the following collection:
+For convenience, @{command codatatype} also provides the following collection:
 
 \begin{indentblock}
 \begin{description}
@@ -2020,10 +2035,13 @@ subsubsection {* \keyw{primcorec} and \keyw{primcorecursive}
   \label{sssec:primcorecursive-and-primcorec} *}
 
 text {*
-Primitive corecursive definitions have the following general syntax:
+\begin{matharray}{rcl}
+  @{command_def "primcorec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+  @{command_def "primcorecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+\end{matharray}
 
 @{rail "
-  (@@{command_def primcorec} | @@{command_def primcorecursive}) target? \\ @{syntax pcr_option}? fixes @'where'
+  (@@{command primcorec} | @@{command primcorecursive}) target? \\ @{syntax pcr_option}? fixes @'where'
     (@{syntax pcr_formula} + '|')
   ;
   @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
@@ -2101,8 +2119,12 @@ subsubsection {* \keyw{bnf}
   \label{sssec:bnf} *}
 
 text {*
+\begin{matharray}{rcl}
+  @{command_def "bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+\end{matharray}
+
 @{rail "
-  @@{command_def bnf} target? (name ':')? term \\
+  @@{command bnf} target? (name ':')? term \\
     term_list term term_list term?
   ;
   X_list: '[' (X + ',') ']'
@@ -2114,8 +2136,12 @@ subsubsection {* \keyw{print\_bnfs}
   \label{sssec:print-bnfs} *}
 
 text {*
+\begin{matharray}{rcl}
+  @{command_def "print_bnfs"} & : & @{text "local_theory \<rightarrow>"}
+\end{matharray}
+
 @{rail "
-  @@{command_def print_bnfs}
+  @@{command print_bnfs}
 "}
 *}
 
@@ -2125,7 +2151,7 @@ section {* Deriving Destructors and Theorems for Free Constructors
 
 text {*
 The derivation of convenience theorems for types equipped with free constructors,
-as performed internally by @{command datatype_new} and \keyw{codatatype},
+as performed internally by @{command datatype_new} and @{command codatatype},
 is available as a stand-alone command called @{command wrap_free_constructors}.
 
 %  * need for this is rare but may arise if you want e.g. to add destructors to
@@ -2154,10 +2180,12 @@ subsubsection {* \keyw{wrap\_free\_constructors}
   \label{sssec:wrap-free-constructors} *}
 
 text {*
-Free constructor wrapping has the following general syntax:
+\begin{matharray}{rcl}
+  @{command_def "wrap_free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+\end{matharray}
 
 @{rail "
-  @@{command_def wrap_free_constructors} target? @{syntax dt_options} \\
+  @@{command wrap_free_constructors} target? @{syntax dt_options} \\
     term_list name @{syntax fc_discs_sels}?
   ;
   @{syntax_def fc_discs_sels}: name_list (name_list_list name_term_list_list? )?
@@ -2169,6 +2197,7 @@ Free constructor wrapping has the following general syntax:
 
 % X_list is as for BNF
 
+\noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 *}
 
