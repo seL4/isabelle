@@ -281,10 +281,8 @@ object Completion_Popup
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
-              val font =
-                text_field.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
-              val completion = new Completion_Popup(layered, loc, font, result.items)
+              val completion = new Completion_Popup(layered, loc, text_field.getFont, result.items)
               {
                 override def complete(item: Completion.Item) {
                   PIDE.completion_history.update(item)
