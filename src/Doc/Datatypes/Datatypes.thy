@@ -10,18 +10,13 @@ Tutorial for (co)datatype definitions with the new package.
 theory Datatypes
 imports Setup
 keywords
-  "primcorec" :: thy_goal and
   "primcorecursive_notyet" :: thy_decl
 begin
 
 (*<*)
-(* FIXME: Temporary setup until "primcorec" and "primcorecursive" are fully
-   implemented. *)
+(* FIXME: Temporary setup until "primcorec" and "primcorecursive" are fully implemented. *)
 ML_command {*
 fun add_dummy_cmd _ _ lthy = lthy;
-
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec"} ""
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primcorecursive_notyet"} ""
   (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);

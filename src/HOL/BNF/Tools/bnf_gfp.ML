@@ -2926,4 +2926,9 @@ val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
     (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorecursive_cmd);
 
+val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
+  "define primitive corecursive functions"
+  ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
+    (Parse.fixes -- Parse_Spec.where_alt_specs) >> uncurry add_primcorec_cmd);
+
 end;
