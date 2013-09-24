@@ -2023,10 +2023,10 @@ text {*
 Primitive corecursive definitions have the following general syntax:
 
 @{rail "
-  (@@{command_def primcorec} | @@{command_def primcorecursive}) target? @{syntax pcr_option}? fixes \\ @'where'
+  (@@{command_def primcorec} | @@{command_def primcorecursive}) target? \\ @{syntax pcr_option}? fixes @'where'
     (@{syntax pcr_formula} + '|')
   ;
-  @{syntax_def pcr_option}: '(' 'sequential' | 'exhaustive' ')'
+  @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 "}
