@@ -1,3 +1,12 @@
+23d01cdabb599769b54210e40617eea3d6c91e30 8 0
+#2 := false
+#1 := true
+#7 := (not true)
+#29 := (iff #7 false)
+#30 := [rewrite]: #29
+#28 := [asserted]: #7
+[mp #28 #30]: false
+unsat
 22e23526a38d50ce23abbe4dbfb697891cbcd840 22 0
 #2 := false
 decl f1 :: S1
@@ -20,15 +29,6 @@ decl f3 :: S1
 #41 := [trans #37 #39]: #40
 #32 := [asserted]: #11
 [mp #32 #41]: false
-unsat
-23d01cdabb599769b54210e40617eea3d6c91e30 8 0
-#2 := false
-#1 := true
-#7 := (not true)
-#29 := (iff #7 false)
-#30 := [rewrite]: #29
-#28 := [asserted]: #7
-[mp #28 #30]: false
 unsat
 121552dd328e0993a2c6099c592d9c3db7fff190 28 0
 #2 := false
@@ -477,6 +477,74 @@ decl f5 :: S4
 #216 := (or #130 #23)
 #131 := [quant-inst #16 #19]: #216
 [unit-resolution #131 #552 #62]: false
+unsat
+53042978396971446eabf6039172bd47071e3fd3 67 0
+#2 := false
+decl f1 :: S1
+#3 := f1
+decl f3 :: (-> Int S1)
+decl ?v0!0 :: Int
+#55 := ?v0!0
+#56 := (f3 ?v0!0)
+#57 := (= #56 f1)
+#58 := (not #57)
+decl ?v1!1 :: Int
+#66 := ?v1!1
+#67 := (f3 ?v1!1)
+#68 := (= #67 f1)
+#69 := (or #57 #68)
+#70 := (not #69)
+#86 := (and #57 #70)
+#63 := (not #58)
+#76 := (and #63 #70)
+#87 := (iff #76 #86)
+#84 := (iff #63 #57)
+#85 := [rewrite]: #84
+#88 := [monotonicity #85]: #87
+#7 := (:var 0 Int)
+#8 := (f3 #7)
+#9 := (= #8 f1)
+#10 := (:var 1 Int)
+#11 := (f3 #10)
+#12 := (= #11 f1)
+#13 := (or #12 #9)
+#14 := (forall (vars (?v1 Int)) #13)
+#39 := (not #9)
+#40 := (or #39 #14)
+#43 := (forall (vars (?v0 Int)) #40)
+#46 := (not #43)
+#79 := (~ #46 #76)
+#50 := (or #57 #9)
+#52 := (forall (vars (?v1 Int)) #50)
+#59 := (or #58 #52)
+#60 := (not #59)
+#77 := (~ #60 #76)
+#71 := (not #52)
+#72 := (~ #71 #70)
+#73 := [sk]: #72
+#64 := (~ #63 #63)
+#65 := [refl]: #64
+#78 := [nnf-neg #65 #73]: #77
+#61 := (~ #46 #60)
+#62 := [sk]: #61
+#80 := [trans #62 #78]: #79
+#15 := (implies #9 #14)
+#16 := (forall (vars (?v0 Int)) #15)
+#17 := (not #16)
+#47 := (iff #17 #46)
+#44 := (iff #16 #43)
+#41 := (iff #15 #40)
+#42 := [rewrite]: #41
+#45 := [quant-intro #42]: #44
+#48 := [monotonicity #45]: #47
+#38 := [asserted]: #17
+#51 := [mp #38 #48]: #46
+#81 := [mp~ #51 #80]: #76
+#82 := [mp #81 #88]: #86
+#89 := [and-elim #82]: #70
+#90 := [not-or-elim #89]: #58
+#83 := [and-elim #82]: #57
+[unit-resolution #83 #90]: false
 unsat
 d97439af6f5bc7794ab403d0f6cc318d103016a1 1288 0
 #2 := false
@@ -1767,74 +1835,6 @@ decl f5 :: S1
 #1532 := [unit-resolution #769 #1531]: #20
 [unit-resolution #606 #1532 #1528]: false
 unsat
-53042978396971446eabf6039172bd47071e3fd3 67 0
-#2 := false
-decl f1 :: S1
-#3 := f1
-decl f3 :: (-> Int S1)
-decl ?v0!0 :: Int
-#55 := ?v0!0
-#56 := (f3 ?v0!0)
-#57 := (= #56 f1)
-#58 := (not #57)
-decl ?v1!1 :: Int
-#66 := ?v1!1
-#67 := (f3 ?v1!1)
-#68 := (= #67 f1)
-#69 := (or #57 #68)
-#70 := (not #69)
-#86 := (and #57 #70)
-#63 := (not #58)
-#76 := (and #63 #70)
-#87 := (iff #76 #86)
-#84 := (iff #63 #57)
-#85 := [rewrite]: #84
-#88 := [monotonicity #85]: #87
-#7 := (:var 0 Int)
-#8 := (f3 #7)
-#9 := (= #8 f1)
-#10 := (:var 1 Int)
-#11 := (f3 #10)
-#12 := (= #11 f1)
-#13 := (or #12 #9)
-#14 := (forall (vars (?v1 Int)) #13)
-#39 := (not #9)
-#40 := (or #39 #14)
-#43 := (forall (vars (?v0 Int)) #40)
-#46 := (not #43)
-#79 := (~ #46 #76)
-#50 := (or #57 #9)
-#52 := (forall (vars (?v1 Int)) #50)
-#59 := (or #58 #52)
-#60 := (not #59)
-#77 := (~ #60 #76)
-#71 := (not #52)
-#72 := (~ #71 #70)
-#73 := [sk]: #72
-#64 := (~ #63 #63)
-#65 := [refl]: #64
-#78 := [nnf-neg #65 #73]: #77
-#61 := (~ #46 #60)
-#62 := [sk]: #61
-#80 := [trans #62 #78]: #79
-#15 := (implies #9 #14)
-#16 := (forall (vars (?v0 Int)) #15)
-#17 := (not #16)
-#47 := (iff #17 #46)
-#44 := (iff #16 #43)
-#41 := (iff #15 #40)
-#42 := [rewrite]: #41
-#45 := [quant-intro #42]: #44
-#48 := [monotonicity #45]: #47
-#38 := [asserted]: #17
-#51 := [mp #38 #48]: #46
-#81 := [mp~ #51 #80]: #76
-#82 := [mp #81 #88]: #86
-#89 := [and-elim #82]: #70
-#90 := [not-or-elim #89]: #58
-#83 := [and-elim #82]: #57
-[unit-resolution #83 #90]: false
-unsat
 a69a9e8c5e31ec6b9da4cf96f47b52cf6b9404d9 117 0
 #2 := false
 decl f3 :: (-> S3 S2 S1)
@@ -2071,6 +2071,24 @@ decl ?v0!3 :: S2
 #603 := [unit-resolution #271 #618]: #602
 [unit-resolution #603 #601 #297]: false
 unsat
+0ce3a745d60cdbf0fe26b07c5e76de09d459dd25 17 0
+#2 := false
+#7 := 3::Int
+#8 := (= 3::Int 3::Int)
+#9 := (not #8)
+#38 := (iff #9 false)
+#1 := true
+#33 := (not true)
+#36 := (iff #33 false)
+#37 := [rewrite]: #36
+#34 := (iff #9 #33)
+#31 := (iff #8 true)
+#32 := [rewrite]: #31
+#35 := [monotonicity #32]: #34
+#39 := [trans #35 #37]: #38
+#30 := [asserted]: #9
+[mp #30 #39]: false
+unsat
 5c792581e65682628e5c59ca9f3f8801e6aeba72 61 0
 #2 := false
 decl f1 :: S1
@@ -2132,24 +2150,6 @@ decl f5 :: S2
 #221 := (or #135 #45)
 #136 := [quant-inst #7]: #221
 [unit-resolution #136 #556 #52]: false
-unsat
-0ce3a745d60cdbf0fe26b07c5e76de09d459dd25 17 0
-#2 := false
-#7 := 3::Int
-#8 := (= 3::Int 3::Int)
-#9 := (not #8)
-#38 := (iff #9 false)
-#1 := true
-#33 := (not true)
-#36 := (iff #33 false)
-#37 := [rewrite]: #36
-#34 := (iff #9 #33)
-#31 := (iff #8 true)
-#32 := [rewrite]: #31
-#35 := [monotonicity #32]: #34
-#39 := [trans #35 #37]: #38
-#30 := [asserted]: #9
-[mp #30 #39]: false
 unsat
 1532b1dde71eb42ca0a012bb62d9bbadf37fa326 17 0
 #2 := false
@@ -3229,6 +3229,59 @@ decl f5 :: Int
 #496 := [unit-resolution #362 #495]: #104
 #497 := [unit-resolution #456 #496 #490]: #20
 [unit-resolution #497 #501]: false
+unsat
+70bd6436662c1fd4b8c8a6f696914593051990e6 52 0
+#2 := false
+#11 := 1::Real
+decl f3 :: Real
+#7 := f3
+#9 := 2::Real
+#10 := (* 2::Real f3)
+#12 := (+ #10 1::Real)
+#8 := (+ f3 f3)
+#13 := (< #8 #12)
+#14 := (or false #13)
+#15 := (or #13 #14)
+#16 := (not #15)
+#72 := (iff #16 false)
+#40 := (+ 1::Real #10)
+#43 := (< #10 #40)
+#60 := (not #43)
+#70 := (iff #60 false)
+#1 := true
+#65 := (not true)
+#68 := (iff #65 false)
+#69 := [rewrite]: #68
+#66 := (iff #60 #65)
+#63 := (iff #43 true)
+#64 := [rewrite]: #63
+#67 := [monotonicity #64]: #66
+#71 := [trans #67 #69]: #70
+#61 := (iff #16 #60)
+#58 := (iff #15 #43)
+#53 := (or #43 #43)
+#56 := (iff #53 #43)
+#57 := [rewrite]: #56
+#54 := (iff #15 #53)
+#51 := (iff #14 #43)
+#46 := (or false #43)
+#49 := (iff #46 #43)
+#50 := [rewrite]: #49
+#47 := (iff #14 #46)
+#44 := (iff #13 #43)
+#41 := (= #12 #40)
+#42 := [rewrite]: #41
+#38 := (= #8 #10)
+#39 := [rewrite]: #38
+#45 := [monotonicity #39 #42]: #44
+#48 := [monotonicity #45]: #47
+#52 := [trans #48 #50]: #51
+#55 := [monotonicity #45 #52]: #54
+#59 := [trans #55 #57]: #58
+#62 := [monotonicity #59]: #61
+#73 := [trans #62 #71]: #72
+#37 := [asserted]: #16
+[mp #37 #73]: false
 unsat
 6e7ef563e385e00340c905e5fb44172a278ff733 2215 0
 #2 := false
@@ -5445,59 +5498,6 @@ decl f7 :: Int
 #2263 := [unit-resolution #2122 #2248 #2251 #2024 #2260 #2243]: #739
 #2264 := [unit-resolution #1544 #2263 #2262]: #65
 [unit-resolution #658 #2264 #2259]: false
-unsat
-70bd6436662c1fd4b8c8a6f696914593051990e6 52 0
-#2 := false
-#11 := 1::Real
-decl f3 :: Real
-#7 := f3
-#9 := 2::Real
-#10 := (* 2::Real f3)
-#12 := (+ #10 1::Real)
-#8 := (+ f3 f3)
-#13 := (< #8 #12)
-#14 := (or false #13)
-#15 := (or #13 #14)
-#16 := (not #15)
-#72 := (iff #16 false)
-#40 := (+ 1::Real #10)
-#43 := (< #10 #40)
-#60 := (not #43)
-#70 := (iff #60 false)
-#1 := true
-#65 := (not true)
-#68 := (iff #65 false)
-#69 := [rewrite]: #68
-#66 := (iff #60 #65)
-#63 := (iff #43 true)
-#64 := [rewrite]: #63
-#67 := [monotonicity #64]: #66
-#71 := [trans #67 #69]: #70
-#61 := (iff #16 #60)
-#58 := (iff #15 #43)
-#53 := (or #43 #43)
-#56 := (iff #53 #43)
-#57 := [rewrite]: #56
-#54 := (iff #15 #53)
-#51 := (iff #14 #43)
-#46 := (or false #43)
-#49 := (iff #46 #43)
-#50 := [rewrite]: #49
-#47 := (iff #14 #46)
-#44 := (iff #13 #43)
-#41 := (= #12 #40)
-#42 := [rewrite]: #41
-#38 := (= #8 #10)
-#39 := [rewrite]: #38
-#45 := [monotonicity #39 #42]: #44
-#48 := [monotonicity #45]: #47
-#52 := [trans #48 #50]: #51
-#55 := [monotonicity #45 #52]: #54
-#59 := [trans #55 #57]: #58
-#62 := [monotonicity #59]: #61
-#73 := [trans #62 #71]: #72
-#37 := [asserted]: #16
-[mp #37 #73]: false
 unsat
 68356683e9cf34e34d65674fa3c8a62835e193a4 341 0
 #2 := false
@@ -10828,6 +10828,36 @@ decl f5 :: S3
 #71 := [not-or-elim #70]: #69
 [unit-resolution #71 #525]: false
 unsat
+8fa5494ea43f950aa9add5e070d1d34c34426a1b 29 0
+#2 := false
+#1 := true
+decl f1 :: S1
+#3 := f1
+decl f3 :: (-> S1 S1)
+decl f2 :: S1
+#4 := f2
+decl f4 :: (-> S2 S1)
+#7 := (:var 0 S2)
+#8 := (f4 #7)
+#9 := (= #8 f1)
+#10 := (forall (vars (?v0 S2)) #9)
+#11 := (if #10 f1 f2)
+#12 := (f3 #11)
+#13 := (= #12 f1)
+#14 := (implies #13 true)
+#15 := (not #14)
+#44 := (iff #15 false)
+#39 := (not true)
+#42 := (iff #39 false)
+#43 := [rewrite]: #42
+#40 := (iff #15 #39)
+#37 := (iff #14 true)
+#38 := [rewrite]: #37
+#41 := [monotonicity #38]: #40
+#45 := [trans #41 #43]: #44
+#36 := [asserted]: #15
+[mp #36 #45]: false
+unsat
 2fd48adc6f5c51aec7f5f7945dc6937d8ac8fd61 424 0
 #2 := false
 decl f9 :: (-> S6 S7 S7)
@@ -11277,36 +11307,6 @@ decl f3 :: (-> S2 S1)
 #43 := [trans #39 #41]: #42
 #34 := [asserted]: #13
 [mp #34 #43]: false
-unsat
-8fa5494ea43f950aa9add5e070d1d34c34426a1b 29 0
-#2 := false
-#1 := true
-decl f1 :: S1
-#3 := f1
-decl f3 :: (-> S1 S1)
-decl f2 :: S1
-#4 := f2
-decl f4 :: (-> S2 S1)
-#7 := (:var 0 S2)
-#8 := (f4 #7)
-#9 := (= #8 f1)
-#10 := (forall (vars (?v0 S2)) #9)
-#11 := (if #10 f1 f2)
-#12 := (f3 #11)
-#13 := (= #12 f1)
-#14 := (implies #13 true)
-#15 := (not #14)
-#44 := (iff #15 false)
-#39 := (not true)
-#42 := (iff #39 false)
-#43 := [rewrite]: #42
-#40 := (iff #15 #39)
-#37 := (iff #14 true)
-#38 := [rewrite]: #37
-#41 := [monotonicity #38]: #40
-#45 := [trans #41 #43]: #44
-#36 := [asserted]: #15
-[mp #36 #45]: false
 unsat
 5e86b4c9726ef5b2868f22c9ea608e9e3558803e 344 0
 #2 := false
