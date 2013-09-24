@@ -35,6 +35,7 @@ object GUI
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
 
   def is_macos_laf(): Boolean =
+    Platform.is_macos &&
     UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
 
 
