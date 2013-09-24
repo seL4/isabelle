@@ -757,6 +757,10 @@ lemma at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a
 lemma at_within_empty [simp]: "at a within {} = bot"
   unfolding at_within_def by simp
 
+lemma at_within_union: "at x within (S \<union> T) = sup (at x within S) (at x within T)"
+  unfolding filter_eq_iff eventually_sup eventually_at_filter
+  by (auto elim!: eventually_rev_mp)
+
 lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
   by (safe, case_tac "S = {a}", simp, fast, fast)

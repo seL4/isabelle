@@ -1488,13 +1488,7 @@ text{* The expected monotonicity property. *}
 lemma Lim_Un:
   assumes "(f ---> l) (at x within S)" "(f ---> l) (at x within T)"
   shows "(f ---> l) (at x within (S \<union> T))"
-  using assms
-  unfolding tendsto_def eventually_at_filter
-  apply clarify
-  apply (drule spec, drule (1) mp, drule (1) mp)
-  apply (drule spec, drule (1) mp, drule (1) mp)
-  apply (auto elim: eventually_elim2)
-  done
+  using assms unfolding at_within_union by (rule filterlim_sup)
 
 lemma Lim_Un_univ:
   "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>
