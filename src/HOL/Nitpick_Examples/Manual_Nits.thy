@@ -195,8 +195,8 @@ subsection {* 2.9. Coinductive Datatypes *}
 
 codatatype 'a llist = LNil | LCons 'a "'a llist"
 
-primcorecursive iterates where
-"iterates f a = LCons a (iterates f (f a))" .
+primcorec iterates where
+"iterates f a = LCons a (iterates f (f a))"
 
 lemma "xs \<noteq> LCons a xs"
 nitpick [expect = genuine]
