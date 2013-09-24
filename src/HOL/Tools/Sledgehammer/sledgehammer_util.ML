@@ -17,7 +17,6 @@ sig
   val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
-  val spying : bool -> (unit -> string * string) -> unit
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof :
@@ -27,6 +26,8 @@ sig
   val one_year : Time.time
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
+  val hackish_string_of_term : Proof.context -> term -> string
+  val spying : bool -> (unit -> Proof.state * int * string * string) -> unit
 
   (** extrema **)
   val max : ('a * 'a -> order) -> 'a -> 'a -> 'a
@@ -86,15 +87,6 @@ fun parse_time_option _ "none" = NONE
                \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
       else
         SOME (seconds (the secs))
-    end
-
-val spying_version = "a"
-
-fun spying false _ = ()
-  | spying true f =
-    let val (tool, message) = f () in
-      File.append (Path.explode "$ISABELLE_HOME_USER/spy_sledgehammer")
-        (spying_version ^ " " ^ timestamp () ^ ": " ^ tool ^ ": " ^ message ^ "\n")
     end
 
 val subgoal_count = Try.subgoal_count
@@ -166,6 +158,23 @@ fun time_limit NONE = I
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                            (print_mode_value ())) f x
+
+fun hackish_string_of_term ctxt =
+  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
+
+val spying_version = "b"
+
+fun spying false _ = ()
+  | spying true f =
+    let
+      val (state, i, tool, message) = f ()
+      val ctxt = Proof.context_of state
+      val goal = Logic.get_goal (prop_of (#goal (Proof.goal state))) i
+      val hash = String.substring (SHA1.rep (SHA1.digest (hackish_string_of_term ctxt goal)), 0, 12)
+    in
+      File.append (Path.explode "$ISABELLE_HOME_USER/spy_sledgehammer")
+        (spying_version ^ " " ^ timestamp () ^ ": " ^ hash ^ ": " ^ tool ^ ": " ^ message ^ "\n")
+    end
 
 (** extrema **)
 

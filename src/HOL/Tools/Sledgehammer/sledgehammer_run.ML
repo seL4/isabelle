@@ -73,7 +73,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
     val ctxt = Proof.context_of state
 
     val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
-    val _ = spying spy (fn () => (name, "launched"));
+    val _ = spying spy (fn () => (state, subgoal, name, "launched"));
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
@@ -116,7 +116,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
                    print_used_facts used_facts used_from
                  | _ => ())
       |> spy
-         ? tap (fn res => spying spy (fn () => (name, spying_str_of_res res)))
+         ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
@@ -225,7 +225,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = print "Sledgehammering..."
-      val _ = spying spy (fn () => ("***", "starting " ^ @{make_string} mode ^ " mode"))
+      val _ =
+        spying spy (fn () => (state, i, "***", "starting " ^ @{make_string} mode ^ " mode"))
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
@@ -242,8 +243,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
               0 |> fold (Integer.max o default_max_facts_of_prover ctxt slice)
                         provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
-          val _ = spying spy (fn () =>
-            (label ^ "s", "filtering " ^ string_of_int (length all_facts) ^ " facts"));
+          val _ = spying spy (fn () => (state, i, label ^ "s",
+            "filtering " ^ string_of_int (length all_facts) ^ " facts"));
         in
           all_facts
           |> (case is_appropriate_prop of
@@ -259,7 +260,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                      else
                        ())
           |> spy ? tap (fn factss =>
-            spying spy (fn () => (label ^ "s", "selected facts: " ^ spying_str_of_factss factss)))
+            spying spy (fn () =>
+              (state, i, label ^ "s", "selected facts: " ^ spying_str_of_factss factss)))
         end
 
       fun launch_provers state label is_appropriate_prop provers =

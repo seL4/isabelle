@@ -629,7 +629,6 @@ val register_ersatz_global = Context.theory_map o register_ersatz_generic
 
 fun register_codatatype_generic co_T case_name constr_xs generic =
   let
-    val ctxt = Context.proof_of generic
     val thy = Context.theory_of generic
     val {frac_types, ersatz_table, codatatypes} = Data.get generic
     val constr_xs = map (apsnd (repair_constr_type thy co_T)) constr_xs

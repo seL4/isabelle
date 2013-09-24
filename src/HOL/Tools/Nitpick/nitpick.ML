@@ -273,7 +273,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
                    "goal")) [Logic.list_implies (nondef_assm_ts, orig_t)]))
-    val _ = spying spy (fn () => "starting " ^ @{make_string} mode ^ " mode")
+    val _ = spying spy (fn () => (state, i, "starting " ^ @{make_string} mode ^ " mode"))
     val _ = print_v (enclose "Timestamp: " "." o Date.fmt "%H:%M:%S"
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
@@ -1055,7 +1055,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val _ = print_v (fn () =>
                 "Total time: " ^ string_of_time (Timer.checkRealTimer timer) ^
                 ".")
-    val _ = spying spy (fn () => "outcome: " ^ outcome_code)
+    val _ = spying spy (fn () => (state, i, "outcome: " ^ outcome_code))
   in (outcome_code, !state_ref) end
 
 (* Give the inner timeout a chance. *)
