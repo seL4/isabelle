@@ -526,9 +526,11 @@ fun co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs m
     val sel_imp_rhss = (sels ~~ ctr_args)
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg));
 
+(*
 val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} imp_rhs ^ "\nto\n    \<cdot> " ^
  (is_some maybe_eqn_data_disc ? K (Syntax.string_of_term @{context} disc_imp_rhs ^ "\n    \<cdot> ")) "" ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) sel_imp_rhss));
+*)
 
     val eqns_data_sel =
       map (co_dissect_eqn_sel fun_names corec_specs eqn' (SOME ctr)) sel_imp_rhss;
@@ -652,8 +654,10 @@ fun co_build_defs lthy bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss 
       | currys Ts t = t $ mk_tuple1 (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
 
+(*
 val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
+*)
 
     val exclss' =
       disc_eqnss
@@ -739,8 +743,10 @@ fun add_primcorec simple sequential fixes specs of_specs lthy =
       else if simple then SOME (K (auto_tac lthy))
       else NONE;
 
+(*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) exclss'));
+*)
 
     val exclss'' = exclss' |> map (map (fn (idx, t) =>
       (idx, (Option.map (Goal.prove lthy [] [] t) (prove_excl_tac idx), t))));
@@ -808,12 +814,16 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_ctr disc_alist sel_alist disc_eqns sel_eqns {ctr, disc, sels, collapse, ...} =
           if not (exists (equal ctr o #ctr) disc_eqns)
               andalso not (exists (equal ctr o #ctr) sel_eqns)
+(*
 andalso (warning ("no eqns for ctr " ^ Syntax.string_of_term lthy ctr); true)
+*)
             orelse (* don't try to prove theorems when some sel_eqns are missing *)
               filter (equal ctr o #ctr) sel_eqns
               |> fst o finds ((op =) o apsnd #sel) sels
               |> exists (null o snd)
+(*
 andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr); true)
+*)
           then [] else
             let
               val (fun_name, fun_T, fun_args, prems) =
