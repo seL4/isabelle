@@ -1,4 +1,5 @@
 /*  Title:      Pure/GUI/color_value.scala
+    Module:     PIDE-GUI
     Author:     Makarius
 
 Cached color values.

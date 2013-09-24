@@ -123,14 +123,21 @@ fun make_span toks =
   else if forall Token.is_improper toks then Span (Ignored, toks)
   else Span (Malformed, toks);
 
-fun flush (result, span) = if null span then (result, span) else (rev span :: result, []);
+fun flush (result, span, improper) =
+  result
+  |> not (null span) ? cons (rev span)
+  |> not (null improper) ? cons (rev improper);
+
+fun parse tok (result, span, improper) =
+  if Token.is_command tok then (flush (result, span, improper), [tok], [])
+  else if Token.is_improper tok then (result, span, tok :: improper)
+  else (result, tok :: (improper @ span), []);
 
 in
 
 fun parse_spans toks =
-  fold (fn tok => Token.is_command tok ? flush #> apsnd (cons tok)) toks ([], [])
-  |> flush
-  |> #1 |> rev |> map make_span;
+  fold parse toks ([], [], [])
+  |> flush |> rev |> map make_span;
 
 end;
 

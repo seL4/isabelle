@@ -31,7 +31,6 @@ declare -a SOURCES=(
   General/xz_file.scala
   GUI/color_value.scala
   GUI/gui.scala
-  GUI/gui_setup.scala
   GUI/html5_panel.scala
   GUI/jfx_thread.scala
   GUI/popup.scala
@@ -222,7 +221,7 @@ then
 
   cp "$ISABELLE_HOME/lib/logo/isabelle.gif" isabelle/.
 
-  isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
+  isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.Main META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
   cp "$SCALA_HOME/lib/scala-compiler.jar" \

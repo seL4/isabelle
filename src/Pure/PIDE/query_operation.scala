@@ -153,7 +153,7 @@ class Query_Operation[Editor_Context](
         reset_state()
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
         editor.current_command(editor_context, snapshot) match {
-          case Some((command, _)) =>
+          case Some(command) =>
             current_location = Some(command)
             current_query = query
             current_status = Query_Operation.Status.WAITING
@@ -198,7 +198,9 @@ class Query_Operation[Editor_Context](
     }
   }
 
-  def activate() { editor.session.commands_changed += main_actor }
+  def activate() {
+    editor.session.commands_changed += main_actor
+  }
 
   def deactivate() {
     editor.session.commands_changed -= main_actor

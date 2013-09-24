@@ -15,7 +15,7 @@ abstract class Editor[Context]
   def current_node(context: Context): Option[Document.Node.Name]
   def current_node_snapshot(context: Context): Option[Document.Snapshot]
   def node_snapshot(name: Document.Node.Name): Document.Snapshot
-  def current_command(context: Context, snapshot: Document.Snapshot): Option[(Command, Text.Offset)]
+  def current_command(context: Context, snapshot: Document.Snapshot): Option[Command]
 
   def node_overlays(name: Document.Node.Name): Document.Node.Overlays
   def insert_overlay(command: Command, fn: String, args: List[String]): Unit

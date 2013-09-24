@@ -13,6 +13,7 @@ import java.awt.{Color, Font, Point, BorderLayout, Dimension}
 import java.awt.event.{KeyEvent, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
 import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
 import javax.swing.border.LineBorder
+import javax.swing.text.DefaultCaret
 
 import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
@@ -221,6 +222,8 @@ object Completion_Popup
   {
     text_field =>
 
+    // see https://forums.oracle.com/thread/1361677
+    if (GUI.is_macos_laf) text_field.setCaret(new DefaultCaret)
 
     private var completion_popup: Option[Completion_Popup] = None
 
@@ -278,10 +281,8 @@ object Completion_Popup
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
-              val font =
-                text_field.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
-              val completion = new Completion_Popup(layered, loc, font, result.items)
+              val completion = new Completion_Popup(layered, loc, text_field.getFont, result.items)
               {
                 override def complete(item: Completion.Item) {
                   PIDE.completion_history.update(item)

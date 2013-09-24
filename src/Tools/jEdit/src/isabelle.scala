@@ -187,13 +187,7 @@ object Isabelle
             JEdit_Lib.buffer_edit(buffer) {
               val range = command.proper_range + start
               if (padding) {
-                val pad =
-                  JEdit_Lib.try_get_text(buffer, Text.Range(range.length - 1, range.length))
-                    match {
-                      case None => ""
-                      case Some(s) => if (Symbol.is_blank(s)) "" else " "
-                    }
-                buffer.insert(start + range.length, pad + s)
+                buffer.insert(start + range.length, "\n" + s)
               }
               else {
                 buffer.remove(start, range.length)

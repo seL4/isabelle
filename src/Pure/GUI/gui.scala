@@ -1,4 +1,5 @@
 /*  Title:      Pure/GUI/gui.scala
+    Module:     PIDE-GUI
     Author:     Makarius
 
 Basic GUI tools (for AWT/Swing).
@@ -22,17 +23,18 @@ object GUI
 
   def get_laf(): String =
   {
-    def laf(name: String): Option[String] =
-      UIManager.getInstalledLookAndFeels().find(_.getName == name).map(_.getClassName)
-
     if (Platform.is_windows || Platform.is_macos)
       UIManager.getSystemLookAndFeelClassName()
     else
-      laf("Nimbus") orElse laf("GTK+") getOrElse
-        UIManager.getCrossPlatformLookAndFeelClassName()
+      UIManager.getInstalledLookAndFeels().find(_.getName == "Nimbus").map(_.getClassName)
+        .getOrElse(UIManager.getCrossPlatformLookAndFeelClassName())
   }
 
   def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
+
+  def is_macos_laf(): Boolean =
+    Platform.is_macos &&
+    UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
 
 
   /* simple dialogs */
