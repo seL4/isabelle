@@ -50,6 +50,7 @@ sig
   end
 
   val mash_unlearn : Proof.context -> params -> unit
+  val is_mash_enabled : unit -> bool
   val nickname_of_thm : thm -> string
   val find_suggested_facts :
     Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
@@ -89,7 +90,7 @@ sig
     -> unit
   val mash_learn :
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
-  val is_mash_enabled : unit -> bool
+
   val mash_can_suggest_facts : Proof.context -> bool -> bool
   val generous_max_facts : int -> int
   val mepo_weight : real
@@ -459,6 +460,8 @@ fun mash_unlearn ctxt ({overlord, ...} : params) =
 
 
 (*** Isabelle helpers ***)
+
+fun is_mash_enabled () = (getenv "MASH" = "yes")
 
 val local_prefix = "local" ^ Long_Name.separator
 
@@ -1042,25 +1045,28 @@ fun launch_thread timeout task =
 
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
                      used_ths =
-  launch_thread (timeout |> the_default one_day) (fn () =>
-      let
-        val thy = Proof_Context.theory_of ctxt
-        val name = freshish_name ()
-        val feats =
-          features_of ctxt prover thy 0 Symtab.empty (Local, General) [t]
-          |> map fst
-      in
-        peek_state ctxt overlord (fn {access_G, ...} =>
-            let
-              val parents = maximal_wrt_access_graph access_G facts
-              val deps =
-                used_ths |> filter (is_fact_in_graph access_G)
-                         |> map nickname_of_thm
-            in
-              MaSh.learn ctxt overlord true [(name, parents, feats, deps)]
-            end);
-        (true, "")
-      end)
+  if is_mash_enabled () then
+    launch_thread (timeout |> the_default one_day) (fn () =>
+        let
+          val thy = Proof_Context.theory_of ctxt
+          val name = freshish_name ()
+          val feats =
+            features_of ctxt prover thy 0 Symtab.empty (Local, General) [t]
+            |> map fst
+        in
+          peek_state ctxt overlord (fn {access_G, ...} =>
+              let
+                val parents = maximal_wrt_access_graph access_G facts
+                val deps =
+                  used_ths |> filter (is_fact_in_graph access_G)
+                           |> map nickname_of_thm
+              in
+                MaSh.learn ctxt overlord true [(name, parents, feats, deps)]
+              end);
+          (true, "")
+        end)
+  else
+    ()
 
 fun sendback sub =
   Active.sendback_markup [Markup.padding_command] (sledgehammerN ^ " " ^ sub)
@@ -1264,7 +1270,6 @@ fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
        learn 0 false)
   end
 
-fun is_mash_enabled () = (getenv "MASH" = "yes")
 fun mash_can_suggest_facts ctxt overlord =
   not (Graph.is_empty (#access_G (peek_state ctxt overlord I)))
 
@@ -1310,7 +1315,7 @@ fun relevant_facts ctxt
         else
           ()
       fun maybe_learn () =
-        if learn then
+        if is_mash_enabled () andalso learn then
           let
             val {access_G, num_known_facts, ...} = peek_state ctxt overlord I
             val is_in_access_G = is_fact_in_graph access_G o snd
