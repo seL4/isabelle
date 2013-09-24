@@ -129,6 +129,7 @@ val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
 val cong_attrs = @{attributes [cong]};
+val dest_attrs = @{attributes [dest]};
 val safe_elim_attrs = @{attributes [elim!]};
 val iff_attrs = @{attributes [iff]};
 val induct_simp_attrs = @{attributes [induct_simp]};
@@ -766,7 +767,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (collapseN, safe_collapse_thms, simp_attrs),
            (discN, nontriv_disc_thms, simp_attrs),
            (discIN, nontriv_discI_thms, []),
-           (disc_excludeN, disc_exclude_thms, []),
+           (disc_excludeN, disc_exclude_thms, dest_attrs),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
            (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
