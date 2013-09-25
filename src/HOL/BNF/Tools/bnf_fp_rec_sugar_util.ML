@@ -266,20 +266,23 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           end
         | (Const (c, _), args as _ :: _) =>
           let val n = num_binder_types (Sign.the_const_type thy c) in
-            (case fastype_of1 (bound_Ts, nth args (n - 1)) of
-              Type (s, Ts) =>
-              if case_of ctxt s = SOME c then
-                let
-                  val (branches, obj_leftovers) = chop n args;
-                  val branches' = map (massage_rec bound_Ts) branches;
-                  val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
-                    typof t);
-                in
-                  betapplys (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
-                end
-              else
-                massage_leaf bound_Ts t
-            | _ => massage_leaf bound_Ts t)
+            if length args >= n then
+              (case fastype_of1 (bound_Ts, nth args (n - 1)) of
+                Type (s, Ts) =>
+                if case_of ctxt s = SOME c then
+                  let
+                    val (branches, obj_leftovers) = chop n args;
+                    val branches' = map (massage_rec bound_Ts) branches;
+                    val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
+                      typof t);
+                  in
+                    betapplys (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
+                  end
+                else
+                  massage_leaf bound_Ts t
+              | _ => massage_leaf bound_Ts t)
+            else
+              massage_leaf bound_Ts t
           end
         | _ => massage_leaf bound_Ts t)
       end
