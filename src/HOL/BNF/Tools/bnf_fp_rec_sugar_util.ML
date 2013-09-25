@@ -255,7 +255,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
-    fun massage_abs bound_Ts (Abs (s, T, t)) = massage_abs (T :: bound_Ts) t
+    fun massage_abs bound_Ts (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) t)
       | massage_abs bound_Ts t = massage_rec bound_Ts t
     and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
@@ -269,7 +269,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
         | (Const (c, _), args as _ :: _) =>
           let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
             if n < length args then
-              (case fastype_of1 (bound_Ts, nth args n) of
+              (case typof (nth args n) of
                 Type (s, Ts) =>
                 if case_of ctxt s = SOME c then
                   let
@@ -278,7 +278,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                     val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
                       typof t);
                   in
-                    betapplys (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
+                    Term.list_comb (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
                   end
                 else
                   massage_leaf bound_Ts t
