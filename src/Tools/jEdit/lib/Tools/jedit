@@ -206,9 +206,8 @@ JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/MacOSX.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
-  "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
 )

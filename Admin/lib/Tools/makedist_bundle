@@ -171,9 +171,11 @@ case "$PLATFORM_FAMILY" in
     purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
     mv "$ISABELLE_TARGET/contrib/macos_app" "$TMP/."
 
-    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
+    perl -pi \
+      -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
       -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
+      -e "s,plugin-blacklist.MacOSX.jar=true,plugin-blacklist.MacOSX.jar=,g;" \
       "$ISABELLE_TARGET/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
