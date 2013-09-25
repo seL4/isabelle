@@ -577,9 +577,9 @@ fun build_corec_args_direct_call lthy has_call sel_eqns sel =
     if is_none maybe_sel_eqn then (I, I, I) else
     let
       val {fun_args, rhs_term, ... } = the maybe_sel_eqn;
-      fun rewrite_q t = if has_call t then @{term False} else @{term True};
-      fun rewrite_g t = if has_call t then undef_const else t;
-      fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
+      fun rewrite_q _ t = if has_call t then @{term False} else @{term True};
+      fun rewrite_g _ t = if has_call t then undef_const else t;
+      fun rewrite_h _ t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
       fun massage f t = massage_direct_corec_call lthy has_call f [] rhs_term |> abs_tuple fun_args;
     in
       (massage rewrite_q,
@@ -604,8 +604,7 @@ fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
       | rewrite _ U T t = if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
     fun massage NONE t = t
       | massage (SOME {fun_args, rhs_term, ...}) t =
-        massage_indirect_corec_call lthy has_call (rewrite []) []
-          (range_type (fastype_of t)) rhs_term
+        massage_indirect_corec_call lthy has_call rewrite [] (range_type (fastype_of t)) rhs_term
         |> abs_tuple fun_args;
   in
     massage maybe_sel_eqn
