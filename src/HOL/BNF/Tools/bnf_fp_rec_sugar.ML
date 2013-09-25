@@ -579,17 +579,21 @@ fun build_corec_arg_no_call sel_eqns sel =
 fun build_corec_args_direct_call lthy has_call sel_eqns sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-    fun rewrite_q t = if has_call t then @{term False} else @{term True};
-    fun rewrite_g t = if has_call t then undef_const else t;
-    fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
-    fun massage _ NONE t = t
-      | massage f (SOME {fun_args, rhs_term, ...}) t =
-        massage_direct_corec_call lthy has_call f [] (range_type (fastype_of t)) rhs_term
-        |> abs_tuple fun_args;
   in
-    (massage rewrite_q maybe_sel_eqn,
-     massage rewrite_g maybe_sel_eqn,
-     massage rewrite_h maybe_sel_eqn)
+    if is_none maybe_sel_eqn then (I, I, I) else
+    let
+      val {fun_args, rhs_term, ... } = the maybe_sel_eqn;
+      fun rewrite_q t = if has_call t then @{term False} else @{term True};
+      fun rewrite_g t = if has_call t then undef_const else t;
+      fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
+      fun massage f t =
+          massage_direct_corec_call lthy has_call f [] (range_type (fastype_of t)) rhs_term
+          |> abs_tuple fun_args;
+    in
+      (massage rewrite_q,
+       massage rewrite_g,
+       massage rewrite_h)
+    end
   end;
 
 fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
@@ -809,16 +813,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_ctr disc_alist sel_alist disc_eqns sel_eqns {ctr, disc, sels, collapse, ...} =
           if not (exists (equal ctr o #ctr) disc_eqns)
               andalso not (exists (equal ctr o #ctr) sel_eqns)
-(*
-andalso (warning ("no eqns for ctr " ^ Syntax.string_of_term lthy ctr); true)
-*)
             orelse (* don't try to prove theorems when some sel_eqns are missing *)
               filter (equal ctr o #ctr) sel_eqns
               |> fst o finds ((op =) o apsnd #sel) sels
               |> exists (null o snd)
-(*
-andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr); true)
-*)
           then [] else
             let
               val (fun_name, fun_T, fun_args, prems) =
@@ -842,7 +840,7 @@ andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr
               mk_primcorec_ctr_of_dtr_tac lthy m collapse maybe_disc_thm sel_thms
               |> K |> Goal.prove lthy [] [] t
               |> single
-          end;
+            end;
 
         val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;
@@ -852,12 +850,13 @@ andalso (warning ("sel_eqn(s) missing for ctr " ^ Syntax.string_of_term lthy ctr
         val ctr_thmss = map5 (maps oooo prove_ctr) disc_alists sel_alists disc_eqnss sel_eqnss
           (map #ctr_specs corec_specs);
 
-        val safess = map (map (K false)) ctr_thmss; (* FIXME: "true" for non-corecursive theorems *)
+        val safess = map (map (not o exists_subterm (member (op =) (map SOME fun_names) o
+          try (fst o dest_Free)) o snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o
+          Logic.strip_imp_concl o drop_All o prop_of)) ctr_thmss;
         val safe_ctr_thmss = map (map snd o filter fst o (op ~~)) (safess ~~ ctr_thmss);
 
-        fun mk_simp_thms disc_thms sel_thms ctr_thms = disc_thms @ sel_thms @ ctr_thms;
-
-        val simp_thmss = map3 mk_simp_thms disc_thmss sel_thmss safe_ctr_thmss;
+        val simp_thmss =
+          map3 (fn x => fn y => fn z => x @ y @ z) disc_thmss sel_thmss safe_ctr_thmss;
 
         val common_name = mk_common_name fun_names;
 
