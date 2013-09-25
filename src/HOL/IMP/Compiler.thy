@@ -167,15 +167,15 @@ lemma acomp_correct[intro]:
 by (induction a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
-"bcomp (Bc v) c n = (if v=c then [JMP n] else [])" |
-"bcomp (Not b) c n = bcomp b (\<not>c) n" |
-"bcomp (And b1 b2) c n =
- (let cb2 = bcomp b2 c n;
-        m = (if c then size cb2 else (size cb2::int)+n);
+"bcomp (Bc v) f n = (if v=f then [JMP n] else [])" |
+"bcomp (Not b) f n = bcomp b (\<not>f) n" |
+"bcomp (And b1 b2) f n =
+ (let cb2 = bcomp b2 f n;
+        m = (if f then size cb2 else (size cb2::int)+n);
       cb1 = bcomp b1 False m
   in cb1 @ cb2)" |
-"bcomp (Less a1 a2) c n =
- acomp a1 @ acomp a2 @ (if c then [JMPLESS n] else [JMPGE n])"
+"bcomp (Less a1 a2) f n =
+ acomp a1 @ acomp a2 @ (if f then [JMPLESS n] else [JMPGE n])"
 
 value
   "bcomp (And (Less (V ''x'') (V ''y'')) (Not(Less (V ''u'') (V ''v''))))
@@ -185,16 +185,16 @@ lemma bcomp_correct[intro]:
   fixes n :: int
   shows
   "0 \<le> n \<Longrightarrow>
-  bcomp b c n \<turnstile>
- (0,s,stk)  \<rightarrow>*  (size(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
-proof(induction b arbitrary: c n)
+  bcomp b f n \<turnstile>
+ (0,s,stk)  \<rightarrow>*  (size(bcomp b f n) + (if f = bval b s then n else 0),s,stk)"
+proof(induction b arbitrary: f n)
   case Not
-  from Not(1)[where c="~c"] Not(2) show ?case by fastforce
+  from Not(1)[where f="~f"] Not(2) show ?case by fastforce
 next
   case (And b1 b2)
-  from And(1)[of "if c then size(bcomp b2 c n) else size(bcomp b2 c n) + n" 
+  from And(1)[of "if f then size(bcomp b2 f n) else size(bcomp b2 f n) + n" 
                  "False"] 
-       And(2)[of n  "c"] And(3) 
+       And(2)[of n f] And(3) 
   show ?case by fastforce
 qed fastforce+
 
