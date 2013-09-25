@@ -21,16 +21,16 @@ text {*
   where @{term i} is an @{typ int}.
 *}
 fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
-"(x # xs) !! n = (if n = 0 then x else xs !! (n - 1))"
+"(x # xs) !! i = (if i = 0 then x else xs !! (i - 1))"
 
 text {*
   The only additional lemma we need about this function 
   is indexing over append:
 *}
 lemma inth_append [simp]:
-  "0 \<le> n \<Longrightarrow>
-  (xs @ ys) !! n = (if n < size xs then xs !! n else ys !! (n - size xs))"
-by (induction xs arbitrary: n) (auto simp: algebra_simps)
+  "0 \<le> i \<Longrightarrow>
+  (xs @ ys) !! i = (if i < size xs then xs !! i else ys !! (i - size xs))"
+by (induction xs arbitrary: i) (auto simp: algebra_simps)
 
 subsection "Instructions and Stack Machine"
 
