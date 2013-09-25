@@ -134,6 +134,8 @@ sig
   val list_all_free: term list -> term -> term
   val list_exists_free: term list -> term -> term
 
+  val fo_match: Proof.context -> term -> term -> Type.tyenv * Envir.tenv
+
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
 
@@ -644,6 +646,11 @@ fun list_quant_free quant_const =
 
 val list_all_free = list_quant_free HOLogic.all_const;
 val list_exists_free = list_quant_free HOLogic.exists_const;
+
+fun fo_match ctxt t pat =
+  let val thy = Proof_Context.theory_of ctxt in
+    Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty)
+  end;
 
 fun find_indices eq xs ys = map_filter I
   (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);

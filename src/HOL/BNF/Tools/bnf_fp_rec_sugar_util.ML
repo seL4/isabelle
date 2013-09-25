@@ -251,24 +251,28 @@ fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 
 fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     val typof = curry fastype_of1 bound_Ts;
-    val check_obj = ((not o has_call) orf unexpected_corec_call ctxt);
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
     fun massage_rec t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), obj :: branches) =>
-        Term.list_comb (If_const U $ tap check_obj obj, map massage_rec branches)
+        Term.list_comb (If_const U $ tap check_no_call obj, map massage_rec branches)
       | (Const (c, _), args as _ :: _) =>
-        let val (branches, obj) = split_last args in
-          (case fastype_of1 (bound_Ts, obj) of
-            Type (T_name, _) =>
-            if case_of ctxt T_name = SOME c then
+        let val n = num_binder_types (Sign.the_const_type thy c) in
+          (case fastype_of1 (bound_Ts, nth args (n - 1)) of
+            Type (s, Ts) =>
+            if case_of ctxt s = SOME c then
               let
+                val (branches, obj_leftovers) = chop n args;
                 val branches' = map massage_rec branches;
-                val casex' = Const (c, map typof branches' ---> typof obj);
+                val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
+                  typof t);
               in
-                Term.list_comb (casex', branches') $ tap check_obj obj
+                betapplys (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
               end
             else
               massage_leaf t

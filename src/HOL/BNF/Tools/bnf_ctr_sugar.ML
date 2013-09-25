@@ -42,6 +42,7 @@ sig
   val mk_disc_or_sel: typ list -> term -> term
   val name_of_ctr: term -> string
   val name_of_disc: term -> string
+  val dest_ctr: Proof.context -> string -> term -> term * term list
   val dest_case: Proof.context -> string -> typ list -> term -> (term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
@@ -214,6 +215,18 @@ fun name_of_disc t =
   | t' => name_of_const "destructor" t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
+
+fun dest_ctr ctxt s t =
+  let
+    val (f, args) = Term.strip_comb t;
+  in
+    (case ctr_sugar_of ctxt s of
+      SOME {ctrs, ...} =>
+      (case find_first (can (fo_match ctxt f)) ctrs of
+        SOME f' => (f', args)
+      | NONE => raise Fail "dest_ctr")
+    | NONE => raise Fail "dest_ctr")
+  end;
 
 fun dest_case ctxt s Ts t =
   (case Term.strip_comb t of

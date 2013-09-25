@@ -319,11 +319,6 @@ val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
 
 end;
 
-fun fo_match ctxt t pat =
-  let val thy = Proof_Context.theory_of ctxt in
-    Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty)
-  end;
-
 val dummy_var_name = "?f"
 
 fun mk_map_pattern ctxt s =
@@ -343,18 +338,6 @@ fun dest_map ctxt s call =
     val (_, tenv) = fo_match ctxt call pat;
   in
     (map0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
-  end;
-
-fun dest_ctr ctxt s t =
-  let
-    val (f, args) = Term.strip_comb t;
-  in
-    (case fp_sugar_of ctxt s of
-      SOME fp_sugar =>
-      (case find_first (can (fo_match ctxt f)) (#ctrs (of_fp_sugar #ctr_sugars fp_sugar)) of
-        SOME f' => (f', args)
-      | NONE => raise Fail "dest_ctr")
-    | NONE => raise Fail "dest_ctr")
   end;
 
 fun liveness_of_fp_bnf n bnf =
