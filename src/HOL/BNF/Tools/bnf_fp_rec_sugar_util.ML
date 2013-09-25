@@ -197,7 +197,29 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun massage_let_if ctxt has_call massage_leaf bound_Ts U =
+(* TODO: also support old-style datatypes.
+   (Ideally, we would have a proper registry for these things.) *)
+fun case_of ctxt =
+  fp_sugar_of ctxt #> Option.map (fst o dest_Const o #casex o of_fp_sugar #ctr_sugars);
+
+fun fold_rev_let_if_case ctxt f bound_Ts =
+  let
+    fun fld t =
+      (case Term.strip_comb t of
+        (Const (@{const_name Let}, _), [arg1, arg2]) => fld (betapply (arg2, arg1))
+      | (Const (@{const_name If}, _), _ :: branches) => fold_rev fld branches
+      | (Const (c, _), args as _ :: _) =>
+        let val (branches, obj) = split_last args in
+          (case fastype_of1 (bound_Ts, obj) of
+            Type (T_name, _) => if case_of ctxt T_name = SOME c then fold_rev fld branches else f t
+          | _ => f t)
+        end
+      | _ => f t)
+  in
+    fld
+  end;
+
+fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
   let
     val typof = curry fastype_of1 bound_Ts;
     val check_obj = ((not o has_call) orf unexpected_corec_call ctxt);
@@ -207,22 +229,27 @@ fun massage_let_if ctxt has_call massage_leaf bound_Ts U =
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), obj :: branches) =>
         list_comb (If_const U $ tap check_obj obj, map massage_rec branches)
-      | (Const (@{const_name nat_case}, _), args) =>
-        (* Proof of concept -- should be extensible to all case-like constructs *)
-        let
-          val (branches, obj) = split_last args;
-          val branches' = map massage_rec branches
-          (* FIXME: bound_Ts *)
-          val casex' = Const (@{const_name nat_case}, map typof branches' ---> typof obj);
-        in
-          list_comb (casex', branches') $ tap check_obj obj
+      | (Const (c, _), args as _ :: _) =>
+        let val (branches, obj) = split_last args in
+          (case fastype_of1 (bound_Ts, obj) of
+            Type (T_name, _) =>
+            if case_of ctxt T_name = SOME c then
+              let
+                val branches' = map massage_rec branches;
+                val casex' = Const (c, map typof branches' ---> typof obj);
+              in
+                list_comb (casex', branches') $ tap check_obj obj
+              end
+            else
+              massage_leaf t
+          | _ => massage_leaf t)
         end
       | _ => massage_leaf t)
   in
     massage_rec
   end;
 
-val massage_direct_corec_call = massage_let_if;
+val massage_direct_corec_call = massage_let_if_case;
 
 fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
@@ -258,7 +285,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         handle AINT_NO_MAP _ => massage_direct_fun U T t;
 
     fun massage_call U T =
-      massage_let_if ctxt has_call (fn t =>
+      massage_let_if_case ctxt has_call (fn t =>
         if has_call t then
           (case U of
             Type (s, Us) =>
@@ -300,37 +327,17 @@ fun expand_ctr_term ctxt s Ts t =
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     T as Type (s, Ts) =>
-    massage_let_if ctxt has_call (fn t =>
-      if can (dest_ctr ctxt s) t then t
-      else massage_let_if ctxt has_call I bound_Ts T (expand_ctr_term ctxt s Ts t)) bound_Ts T t
+    massage_let_if_case ctxt has_call (fn t =>
+      if can (dest_ctr ctxt s) t then
+        t
+      else
+        massage_let_if_case ctxt has_call I bound_Ts T (expand_ctr_term ctxt s Ts t)) bound_Ts T t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
-  massage_let_if ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
+  massage_let_if_case ctxt (K false) (uncurry massage_ctr o Term.strip_comb);
 
-(* TODO: also support old-style datatypes.
-   (Ideally, we would have a proper registry for these things.) *)
-fun case_of ctxt =
-  fp_sugar_of ctxt #> Option.map (fst o dest_Const o #casex o of_fp_sugar #ctr_sugars);
-
-fun fold_rev_let_if ctxt f bound_Ts =
-  let
-    fun fld t =
-      (case Term.strip_comb t of
-        (Const (@{const_name Let}, _), [arg1, arg2]) => fld (betapply (arg2, arg1))
-      | (Const (@{const_name If}, _), _ :: branches) => fold_rev fld branches
-      | (Const (c, _), args as _ :: _) =>
-        let val (branches, obj) = split_last args in
-          (case fastype_of1 (bound_Ts, obj) of
-            Type (T_name, _) => if case_of ctxt T_name = SOME c then fold_rev fld branches else f t
-          | _ => f t)
-        end
-      | _ => f t)
-  in
-    fld
-  end;
-
-fun fold_rev_corec_code_rhs ctxt f = fold_rev_let_if ctxt (uncurry f o Term.strip_comb);
+fun fold_rev_corec_code_rhs ctxt f = fold_rev_let_if_case ctxt (uncurry f o Term.strip_comb);
 
 fun add_conjuncts (Const (@{const_name conj}, _) $ t $ t') = add_conjuncts t o add_conjuncts t'
   | add_conjuncts t = cons t;
