@@ -371,10 +371,7 @@ fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     Type (s, Ts) =>
     massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
-      if can (dest_ctr ctxt s) t then
-        t
-      else
-        massage_let_if_case ctxt has_call (K I) bound_Ts (expand_ctr_term ctxt s Ts t)) bound_Ts t
+      if can (dest_ctr ctxt s) t then t else expand_ctr_term ctxt s Ts t) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
