@@ -206,7 +206,7 @@ fun build_rec_arg lthy funs_data has_call ctr_spec maybe_eqn_data =
       val indirect_calls' = tag_list 0 calls
         |> map_filter (try (apsnd (fn Indirect_Rec n => n)));
 
-      fun make_direct_type T = dummyT; (* FIXME? *)
+      fun make_direct_type _ = dummyT; (* FIXME? *)
 
       val rec_res_type_list = map (fn (x :: _) => (#rec_type x, #res_type x)) funs_data;
 
@@ -801,8 +801,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
           in
-            mk_primcorec_ctr_or_sel_tac lthy def_thms sel_corec k m exclsss
-              nested_maps nested_map_idents nested_map_comps [] []
+            mk_primcorec_sel_tac lthy def_thms sel_corec k m exclsss nested_maps nested_map_idents
+              nested_map_comps [] []
             |> K |> Goal.prove lthy [] [] t
             |> pair sel
           end;

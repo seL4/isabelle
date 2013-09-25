@@ -67,7 +67,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
 
             val mutual_Ts = map substT mutual_Ts0;
 
-            fun add_interesting_subtypes (U as Type (s, Us)) =
+            fun add_interesting_subtypes (U as Type (_, Us)) =
                 (case filter (exists_subtype_in mutual_Ts) Us of [] => I
                 | Us' => insert (op =) U #> fold add_interesting_subtypes Us')
               | add_interesting_subtypes _ = I;

@@ -273,11 +273,11 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
 val mk_fp_iter_fun_types = binder_fun_types o fastype_of;
 
 fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
-  | unzip_recT _ (T as Type (@{type_name prod}, Ts)) = Ts
+  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
   | unzip_recT _ T = [T];
 
 fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
-  | unzip_corecT _ (T as Type (@{type_name sum}, Ts)) = Ts
+  | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
   | unzip_corecT _ T = [T];
 
 fun mk_map live Ts Us t =
@@ -458,7 +458,7 @@ fun mk_coiter_fun_arg_types ctr_Tsss Cs ns dtor_coiter =
   (mk_coiter_p_pred_types Cs ns,
    mk_fp_iter_fun_types dtor_coiter |> mk_coiter_fun_arg_types0 ctr_Tsss Cs ns);
 
-fun mk_coiters_args_types ctr_Tsss Cs ns mss dtor_coiter_fun_Tss lthy =
+fun mk_coiters_args_types ctr_Tsss Cs ns dtor_coiter_fun_Tss lthy =
   let
     val p_Tss = mk_coiter_p_pred_types Cs ns;
 
@@ -524,7 +524,7 @@ fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
       if fp = Least_FP then
         mk_iters_args_types ctr_Tsss Cs ns mss xtor_co_iter_fun_Tss lthy |>> (rpair NONE o SOME)
       else
-        mk_coiters_args_types ctr_Tsss Cs ns mss xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME)
+        mk_coiters_args_types ctr_Tsss Cs ns xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME)
   in
     ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy')
   end;
