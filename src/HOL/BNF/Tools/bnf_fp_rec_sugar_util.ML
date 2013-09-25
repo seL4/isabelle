@@ -232,15 +232,18 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
       | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
         fld (conds @ HOLogic.conjuncts cond) then_branch
         o fld (conds @ s_not_disj cond) else_branch
-      | (Const (c, _), args as _ :: _) =>
-        let val n = num_binder_types (Sign.the_const_type thy c) in
-          (case fastype_of1 (bound_Ts, nth args (n - 1)) of
-            Type (s, Ts) =>
-            (case dest_case ctxt s Ts t of
-              NONE => f conds t
-            | SOME (conds', branches) =>
-              fold_rev (uncurry fld) (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
-          | _ => f conds t)
+      | (Const (c, _), args as _ :: _ :: _) =>
+        let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
+          if length args > n then
+            (case fastype_of1 (bound_Ts, nth args n) of
+              Type (s, Ts) =>
+              (case dest_case ctxt s Ts t of
+                NONE => f conds t
+              | SOME (conds', branches) =>
+                fold_rev (uncurry fld) (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
+            | _ => f conds t)
+          else
+            f conds t
         end
       | _ => f conds t)
   in
@@ -266,17 +269,22 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
-        | (Const (c, _), args as _ :: _) =>
-          let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
-            if n < length args then
-              (case typof (nth args n) of
-                Type (s, Ts) =>
-                if case_of ctxt s = SOME c then
+        | (Const (c, _), args as _ :: _ :: _) =>
+          let
+            val gen_T = Sign.the_const_type thy c;
+            val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
+            val n = length gen_branch_Ts;
+          in
+            if length args > n then
+              (case gen_body_fun_T of
+                Type (_, [Type (T_name, _), _]) =>
+                if case_of ctxt T_name = SOME c then
                   let
                     val (branches, obj_leftovers) = chop n args;
                     val branches' = map (massage_abs bound_Ts o Envir.eta_long bound_Ts) branches;
-                    val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
-                      typof t);
+                    val branch_Ts' = map typof branches';
+                    val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers --->
+                      snd (strip_typeN (num_binder_types (hd gen_branch_Ts)) (hd branch_Ts')));
                   in
                     Term.list_comb (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
                   end
