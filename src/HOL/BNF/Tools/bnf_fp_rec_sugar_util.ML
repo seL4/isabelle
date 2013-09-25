@@ -52,6 +52,12 @@ sig
      ctr_specs: corec_ctr_spec list}
 
   val s_not: term -> term
+  val mk_conjs: term list -> term
+  val mk_disjs: term list -> term
+  val s_not_disj: term -> term list
+  val negate_conj: term list -> term list
+  val negate_disj: term list -> term list
+
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
   val massage_direct_corec_call: Proof.context -> (term -> bool) -> (term -> term) -> typ list ->
@@ -63,6 +69,7 @@ sig
     term -> term
   val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
     typ list -> term -> 'a -> 'a
+
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list) * local_theory
@@ -142,8 +149,20 @@ fun unexpected_corec_call ctxt t =
 fun s_not @{const True} = @{const False}
   | s_not @{const False} = @{const True}
   | s_not (@{const Not} $ t) = t
+  (* TODO: is the next case really needed? *)
   | s_not (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not t = HOLogic.mk_not t
+
+val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
+val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
+
+val s_not_disj = map s_not o HOLogic.disjuncts;
+
+fun negate_conj [t] = s_not_disj t
+  | negate_conj ts = [mk_disjs (map s_not ts)];
+
+fun negate_disj [t] = s_not_disj t
+  | negate_disj ts = [mk_disjs (map (mk_conjs o s_not_disj) ts)];
 
 fun factor_out_types ctxt massage destU U T =
   (case try destU U of

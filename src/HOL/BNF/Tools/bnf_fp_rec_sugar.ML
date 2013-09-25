@@ -51,12 +51,6 @@ fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
 fun drop_All t = subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
   strip_qnt_body @{const_name all} t)
-val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
-val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
-fun invert_prems [t] = map s_not (HOLogic.disjuncts t)
-  | invert_prems ts = [mk_disjs (map s_not ts)];
-fun invert_prems_disj [t] = map s_not (HOLogic.disjuncts t)
-  | invert_prems_disj ts = [mk_disjs (map (mk_conjs o map s_not o HOLogic.disjuncts) ts)];
 fun abstract vs =
   let fun a n (t $ u) = a n t $ a n u
         | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
@@ -450,7 +444,7 @@ fun co_dissect_eqn_disc sequential fun_names corec_specs prems' concl matchedsss
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
     val prems = map (abstract (List.rev fun_args)) prems';
     val real_prems =
-      (if catch_all orelse sequential then maps invert_prems_disj matchedss else []) @
+      (if catch_all orelse sequential then maps negate_disj matchedss else []) @
       (if catch_all then [] else prems);
 
     val matchedsss' = AList.delete (op =) fun_name matchedsss
@@ -691,7 +685,7 @@ fun mk_real_disc_eqns fun_binding arg_Ts {ctr_specs, ...} sel_eqns disc_eqns =
         ctr = #ctr (nth ctr_specs n),
         ctr_no = n,
         disc = #disc (nth ctr_specs n),
-        prems = maps (invert_prems o #prems) disc_eqns,
+        prems = maps (negate_conj o #prems) disc_eqns,
         auto_gen = true,
         user_eqn = undef_const};
     in
@@ -790,7 +784,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           let
             val (SOME ctr_spec) = find_first (equal ctr o #ctr) ctr_specs;
             val ctr_no = find_index (equal ctr o #ctr) ctr_specs;
-            val prems = the_default (maps (invert_prems o #prems) disc_eqns)
+            val prems = the_default (maps (negate_conj o #prems) disc_eqns)
                 (find_first (equal ctr_no o #ctr_no) disc_eqns |> Option.map #prems);
             val sel_corec = find_index (equal sel) (#sels ctr_spec)
               |> nth (#sel_corecs ctr_spec);
