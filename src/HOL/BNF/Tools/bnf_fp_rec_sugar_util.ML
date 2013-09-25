@@ -255,12 +255,14 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
-    fun massage_rec bound_Ts t =
+    fun massage_abs bound_Ts (Abs (s, T, t)) = massage_abs (T :: bound_Ts) t
+      | massage_abs bound_Ts t = massage_rec bound_Ts t
+    and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
         (case Term.strip_comb t of
           (Const (@{const_name Let}, _), [arg1, arg2]) =>
           massage_rec bound_Ts (betapply (arg2, arg1))
-        | (Const (@{const_name If}, _), obj :: (branches as [then_branch, _])) =>
+        | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
@@ -272,7 +274,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                 if case_of ctxt s = SOME c then
                   let
                     val (branches, obj_leftovers) = chop n args;
-                    val branches' = map (massage_rec bound_Ts) branches;
+                    val branches' = map (massage_abs bound_Ts o Envir.eta_long bound_Ts) branches;
                     val casex' = Const (c, map typof branches' ---> map typof obj_leftovers --->
                       typof t);
                   in
@@ -370,7 +372,7 @@ fun expand_ctr_term ctxt s Ts t =
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     Type (s, Ts) =>
-    massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
+    massage_let_if_case ctxt has_call (fn _ => fn t =>
       if can (dest_ctr ctxt s) t then t else expand_ctr_term ctxt s Ts t) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
