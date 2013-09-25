@@ -85,10 +85,10 @@ fun mk_primcorec_code_of_ctr_tac ctxt eq_caseIs ms ctr_thms =
   EVERY (map2 (mk_primcorec_code_of_ctr_case_tac ctxt eq_caseIs) ms ctr_thms);
 
 fun mk_primcorec_code_tac eq_caseIs disc_excludes raw collapses =
-  HEADGOAL (rtac (raw RS trans) THEN'
-    REPEAT o (resolve_tac (maps (fn thm => [thm, thm RS sym]) (@{thm eq_ifI} :: eq_caseIs)) ORELSE'
-      rtac refl ORELSE' (etac notE THEN' atac) ORELSE'
-      (dresolve_tac disc_excludes THEN' etac notE THEN' atac) ORELSE'
-      eresolve_tac (maps (fn thm => [thm, thm RS sym]) collapses)));
+  HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT o
+    (resolve_tac (maps (fn thm => [thm, thm RS sym]) (@{thm eq_ifI} :: eq_caseIs)) ORELSE'
+     rtac refl ORELSE' etac notE THEN' atac ORELSE'
+     dresolve_tac disc_excludes THEN' etac notE THEN' atac ORELSE'
+     eresolve_tac (maps (fn thm => [thm, thm RS sym]) collapses)));
 
 end;
