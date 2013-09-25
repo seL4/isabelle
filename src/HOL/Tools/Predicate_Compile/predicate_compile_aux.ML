@@ -43,7 +43,6 @@ sig
   val dest_indprem : indprem -> term
   val map_indprem : (term -> term) -> indprem -> indprem
   (* general syntactic functions *)
-  val conjuncts : term -> term list
   val is_equationlike : thm -> bool
   val is_pred_equation : thm -> bool
   val is_intro : string -> thm -> bool
@@ -455,12 +454,6 @@ fun map_indprem f (Prem t) = Prem (f t)
   | map_indprem f (Generator (v, T)) = Generator (dest_Free (f (Free (v, T))))
 
 (* general syntactic functions *)
-
-(*Like dest_conj, but flattens conjunctions however nested*)
-fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
-  | conjuncts_aux t conjs = t::conjs;
-
-fun conjuncts t = conjuncts_aux t [];
 
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
   | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true

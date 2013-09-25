@@ -230,7 +230,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => fld conds (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
-        fld (conds @ conjuncts cond) then_branch
+        fld (conds @ HOLogic.conjuncts cond) then_branch
         o fld (conds @ s_not_disj cond) else_branch
       | (Const (c, _), args as _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) in
@@ -239,7 +239,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
             (case dest_case ctxt s Ts t of
               NONE => f conds t
             | SOME (conds', branches) =>
-              fold_rev (uncurry fld) (map (append conds o conjuncts) conds' ~~ branches))
+              fold_rev (uncurry fld) (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
           | _ => f conds t)
         end
       | _ => f conds t)

@@ -38,6 +38,7 @@ sig
   val mk_imp: term * term -> term
   val mk_not: term -> term
   val dest_conj: term -> term list
+  val conjuncts: term -> term list
   val dest_disj: term -> term list
   val disjuncts: term -> term list
   val dest_imp: term -> term * term
@@ -243,6 +244,12 @@ and mk_not t = Not $ t;
 
 fun dest_conj (Const ("HOL.conj", _) $ t $ t') = t :: dest_conj t'
   | dest_conj t = [t];
+
+(*Like dest_conj, but flattens conjunctions however nested*)
+fun conjuncts_aux (Const ("HOL.conj", _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+  | conjuncts_aux t conjs = t::conjs;
+
+fun conjuncts t = conjuncts_aux t [];
 
 fun dest_disj (Const ("HOL.disj", _) $ t $ t') = t :: dest_disj t'
   | dest_disj t = [t];
