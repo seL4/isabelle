@@ -584,17 +584,21 @@ fun build_corec_arg_no_call sel_eqns sel =
 fun build_corec_args_direct_call lthy has_call sel_eqns sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-    fun rewrite_q t = if has_call t then @{term False} else @{term True};
-    fun rewrite_g t = if has_call t then undef_const else t;
-    fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
-    fun massage _ NONE t = t
-      | massage f (SOME {fun_args, rhs_term, ...}) t =
-        massage_direct_corec_call lthy has_call f [] (range_type (fastype_of t)) rhs_term
-        |> abs_tuple fun_args;
   in
-    (massage rewrite_q maybe_sel_eqn,
-     massage rewrite_g maybe_sel_eqn,
-     massage rewrite_h maybe_sel_eqn)
+    if is_none maybe_sel_eqn then (I, I, I) else
+    let
+      val {fun_args, rhs_term, ... } = the maybe_sel_eqn;
+      fun rewrite_q t = if has_call t then @{term False} else @{term True};
+      fun rewrite_g t = if has_call t then undef_const else t;
+      fun rewrite_h t = if has_call t then HOLogic.mk_tuple (snd (strip_comb t)) else undef_const;
+      fun massage f t =
+          massage_direct_corec_call lthy has_call f [] (range_type (fastype_of t)) rhs_term
+          |> abs_tuple fun_args;
+    in
+      (massage rewrite_q,
+       massage rewrite_g,
+       massage rewrite_h)
+    end
   end;
 
 fun build_corec_arg_indirect_call lthy has_call sel_eqns sel =
@@ -841,7 +845,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               mk_primcorec_ctr_of_dtr_tac lthy m collapse maybe_disc_thm sel_thms
               |> K |> Goal.prove lthy [] [] t
               |> single
-          end;
+            end;
 
         val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;
