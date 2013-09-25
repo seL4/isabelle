@@ -38,7 +38,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
         process_indicator.update("Waiting for evaluation of context ...", 5)
       case Query_Operation.Status.RUNNING =>
         process_indicator.update("Sledgehammering ...", 15)
-      case Query_Operation.Status.FINISHED =>
+      case _ =>
         process_indicator.update(null, 0)
     }
   }
