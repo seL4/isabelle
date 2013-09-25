@@ -13,6 +13,9 @@ theory BNF_FP_Base
 imports BNF_Comp BNF_Ctr_Sugar
 begin
 
+lemma not_TrueE: "\<not> True \<Longrightarrow> P"
+by (erule notE, rule TrueI)
+
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
@@ -161,16 +164,6 @@ lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f
 
 lemma eq_ifI: "\<lbrakk>b \<Longrightarrow> t = x; \<not> b \<Longrightarrow> t = y\<rbrakk> \<Longrightarrow> t = (if b then x else y)"
   by fastforce
-
-lemma if_if_True:
-  "(if (if b then True else b') then (if b then x else x') else f (if b then y else y')) =
-   (if b then x else if b' then x' else f y')"
-  by simp
-
-lemma if_if_False:
-  "(if (if b then False else b') then (if b then x else x') else f (if b then y else y')) =
-   (if b then f y else if b' then x' else f y')"
-  by simp
 
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"

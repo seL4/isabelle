@@ -802,7 +802,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> curry Logic.list_all (map dest_Free fun_args);
           in
             mk_primcorec_ctr_or_sel_tac lthy def_thms sel_corec k m exclsss
-              nested_maps nested_map_idents nested_map_comps
+              nested_maps nested_map_idents nested_map_comps [] []
             |> K |> Goal.prove lthy [] [] t
             |> pair sel
           end;

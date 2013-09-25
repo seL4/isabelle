@@ -12,7 +12,7 @@ sig
   val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> int list -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_ctr_or_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
-    thm list list list -> thm list -> thm list -> thm list -> tactic
+    thm list list list -> thm list -> thm list -> thm list -> thm list -> thm list ->tactic
   val mk_primcorec_disc_of_ctr_tac: thm -> thm -> tactic;
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
@@ -56,12 +56,17 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_ctr_or_sel_tac ctxt defs f_eq k m exclsss maps map_idents map_comps =
+fun mk_primcorec_ctr_or_sel_tac ctxt defs f_eq k m exclsss maps map_idents map_comps splits
+    split_asms =
   mk_primcorec_prelude ctxt defs (f_eq RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
-  unfold_thms_tac ctxt (@{thms if_if_True if_if_False if_True if_False if_cancel[of _ True]
-    if_cancel[of _ False] o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
-  HEADGOAL (rtac refl);
+  unfold_thms_tac ctxt (@{thms o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
+  HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
+    eresolve_tac @{thms not_TrueE FalseE} ORELSE'
+    resolve_tac @{thms allI impI conjI} ORELSE'
+    Splitter.split_asm_tac (@{thm split_if_asm} :: split_asms) ORELSE'
+    Splitter.split_tac (@{thm split_if} :: splits) ORELSE'
+    etac notE THEN' atac));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
   HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
