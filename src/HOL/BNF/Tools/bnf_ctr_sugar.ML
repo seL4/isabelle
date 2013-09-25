@@ -30,6 +30,7 @@ sig
      case_conv_ifs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
+  val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
 
   val rep_compat_prefix: string
 
@@ -102,6 +103,27 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    collapses = map (Morphism.thm phi) collapses,
    expands = map (Morphism.thm phi) expands,
    case_conv_ifs = map (Morphism.thm phi) case_conv_ifs};
+
+fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
+    {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
+  ctrs1 = ctrs2 andalso case1 = case2 andalso discs1 = discs2 andalso selss1 = selss2;
+
+structure Data = Generic_Data
+(
+  type T = ctr_sugar Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  val merge = Symtab.merge eq_ctr_sugar;
+);
+
+fun ctr_sugar_of ctxt =
+  Symtab.lookup (Data.get (Context.Proof ctxt))
+  #> Option.map (morph_ctr_sugar
+    (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
+
+fun register_ctr_sugar key ctr_sugar =
+  Local_Theory.declaration {syntax = false, pervasive = true}
+    (fn phi => Data.map (Symtab.default (key, morph_ctr_sugar phi ctr_sugar)));
 
 val rep_compat_prefix = "new";
 
@@ -787,19 +809,23 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         val notes' =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
+        val ctr_sugar =
+          {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
+           nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
+           case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
+           split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
+           discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
+           collapses = all_collapse_thms, expands = expand_thms, case_conv_ifs = case_conv_if_thms};
       in
-        ({ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
-          nchotomy = nchotomy_thm, injects = inject_thms, distincts = distinct_thms,
-          case_thms = case_thms, case_cong = case_cong_thm, weak_case_cong = weak_case_cong_thm,
-          split = split_thm, split_asm = split_asm_thm, disc_thmss = disc_thmss,
-          discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
-          collapses = all_collapse_thms, expands = expand_thms, case_conv_ifs = case_conv_if_thms},
+        (ctr_sugar,
          lthy
          |> not rep_compat ?
             (Local_Theory.declaration {syntax = false, pervasive = true}
                (fn phi => Case_Translation.register
                   (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
-         |> Local_Theory.notes (notes' @ notes) |> snd)
+         |> Local_Theory.notes (notes' @ notes) |> snd
+         |> register_ctr_sugar dataT_name ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')

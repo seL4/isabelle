@@ -197,10 +197,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-(* TODO: also support old-style datatypes.
-   (Ideally, we would have a proper registry for these things.) *)
-fun case_of ctxt =
-  fp_sugar_of ctxt #> Option.map (fst o dest_Const o #casex o of_fp_sugar #ctr_sugars);
+fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 
 fun fold_rev_let_if_case ctxt f bound_Ts =
   let
@@ -312,16 +309,8 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   end;
 
 fun expand_ctr_term ctxt s Ts t =
-  (case fp_sugar_of ctxt s of
-    SOME fp_sugar =>
-    let
-      val T = Type (s, Ts);
-      val {ctrs = ctrs0, casex = case0, ...} = of_fp_sugar #ctr_sugars fp_sugar;
-      val ctrs = map (mk_ctr Ts) ctrs0;
-      val casex = mk_case Ts T case0;
-    in
-      list_comb (casex, ctrs) $ t
-    end
+  (case ctr_sugar_of ctxt s of
+    SOME {ctrs, casex, ...} => list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
   | NONE => raise Fail "expand_ctr_term");
 
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
