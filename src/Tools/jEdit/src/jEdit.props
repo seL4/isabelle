@@ -225,6 +225,7 @@ line-home.shortcut=HOME
 lookAndFeel=javax.swing.plaf.nimbus.NimbusLookAndFeel
 match-bracket.shortcut2=C+9
 next-bracket.shortcut2=C+e C+9
+plugin-blacklist.MacOSX.jar=true
 plugin.MacOSXPlugin.altDispatcher=false
 plugin.MacOSXPlugin.disableOption=true
 prev-bracket.shortcut2=C+e C+8
