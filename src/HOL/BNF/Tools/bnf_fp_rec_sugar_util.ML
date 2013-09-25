@@ -149,8 +149,6 @@ fun unexpected_corec_call ctxt t =
 fun s_not @{const True} = @{const False}
   | s_not @{const False} = @{const True}
   | s_not (@{const Not} $ t) = t
-  (* TODO: is the next case really needed? *)
-  | s_not (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
   | s_not t = HOLogic.mk_not t
 
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
