@@ -24,6 +24,10 @@ struct
 open BNF_Util
 open BNF_Tactics
 
+val split_if = @{thm split_if};
+val split_if_asm = @{thm split_if_asm};
+val split_connectI = @{thms allI impI conjI};
+
 fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
   unfold_thms_tac ctxt fun_defs THEN
   HEADGOAL (rtac (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
@@ -60,9 +64,9 @@ fun mk_primcorec_sel_tac ctxt defs f_sel k m exclsss maps map_idents map_comps s
   unfold_thms_tac ctxt (@{thms o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
     eresolve_tac @{thms not_TrueE FalseE} ORELSE'
-    resolve_tac @{thms allI impI conjI} ORELSE'
-    Splitter.split_asm_tac (@{thm split_if_asm} :: split_asms) ORELSE'
-    Splitter.split_tac (@{thm split_if} :: splits) ORELSE'
+    resolve_tac split_connectI ORELSE'
+    Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
+    Splitter.split_tac (split_if :: splits) ORELSE'
     etac notE THEN' atac));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
@@ -70,12 +74,11 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
     (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
-fun mk_primcorec_code_of_ctr_case_tac ctxt eq_caseIs m f_ctr =
-  HEADGOAL (REPEAT o resolve_tac (@{thm eq_ifI} :: eq_caseIs)) THEN
+fun mk_primcorec_code_of_ctr_case_tac ctxt splits m f_ctr =
+  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
   REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt) THEN
-  (* FIXME: Something like (ss_only @{thms if_True if_False not_False_eq_True simp_thms} ctxt) *)
-  HEADGOAL (asm_simp_tac ctxt);
+  HEADGOAL (rtac refl);
 
 fun mk_primcorec_code_of_ctr_tac ctxt eq_caseIs ms ctr_thms =
   EVERY (map2 (mk_primcorec_code_of_ctr_case_tac ctxt eq_caseIs) ms ctr_thms);
