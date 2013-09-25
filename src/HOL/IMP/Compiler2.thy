@@ -199,13 +199,13 @@ lemma acomp_exits [simp]:
 
 lemma bcomp_succs:
   "0 \<le> i \<Longrightarrow>
-  succs (bcomp b c i) n \<subseteq> {n .. n + size (bcomp b c i)}
-                           \<union> {n + i + size (bcomp b c i)}" 
-proof (induction b arbitrary: c i n)
+  succs (bcomp b f i) n \<subseteq> {n .. n + size (bcomp b f i)}
+                           \<union> {n + i + size (bcomp b f i)}" 
+proof (induction b arbitrary: f i n)
   case (And b1 b2)
   from And.prems
   show ?case 
-    by (cases c)
+    by (cases f)
        (auto dest: And.IH(1) [THEN subsetD, rotated] 
                    And.IH(2) [THEN subsetD, rotated])
 qed auto
@@ -216,12 +216,12 @@ lemma bcomp_exits:
   fixes i :: int
   shows
   "0 \<le> i \<Longrightarrow>
-  exits (bcomp b c i) \<subseteq> {size (bcomp b c i), i + size (bcomp b c i)}" 
+  exits (bcomp b f i) \<subseteq> {size (bcomp b f i), i + size (bcomp b f i)}" 
   by (auto simp: exits_def)
   
 lemma bcomp_exitsD [dest!]:
-  "p \<in> exits (bcomp b c i) \<Longrightarrow> 0 \<le> i \<Longrightarrow> 
-  p = size (bcomp b c i) \<or> p = i + size (bcomp b c i)"
+  "p \<in> exits (bcomp b f i) \<Longrightarrow> 0 \<le> i \<Longrightarrow> 
+  p = size (bcomp b f i) \<or> p = i + size (bcomp b f i)"
   using bcomp_exits by auto
 
 lemma ccomp_succs:
@@ -444,22 +444,22 @@ qed (auto simp: exec_n_simps exec1_def)
 
 lemma bcomp_split:
   fixes i j :: int
-  assumes "bcomp b c i @ P' \<turnstile> (0, s, stk) \<rightarrow>^n (j, s', stk')" 
-          "j \<notin> {0..<size (bcomp b c i)}" "0 \<le> i"
+  assumes "bcomp b f i @ P' \<turnstile> (0, s, stk) \<rightarrow>^n (j, s', stk')" 
+          "j \<notin> {0..<size (bcomp b f i)}" "0 \<le> i"
   shows "\<exists>s'' stk'' (i'::int) k m. 
-           bcomp b c i \<turnstile> (0, s, stk) \<rightarrow>^k (i', s'', stk'') \<and>
-           (i' = size (bcomp b c i) \<or> i' = i + size (bcomp b c i)) \<and>
-           bcomp b c i @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^m (j, s', stk') \<and>
+           bcomp b f i \<turnstile> (0, s, stk) \<rightarrow>^k (i', s'', stk'') \<and>
+           (i' = size (bcomp b f i) \<or> i' = i + size (bcomp b f i)) \<and>
+           bcomp b f i @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^m (j, s', stk') \<and>
            n = k + m"
-  using assms by (cases "bcomp b c i = []") (fastforce dest!: exec_n_drop_right)+
+  using assms by (cases "bcomp b f i = []") (fastforce dest!: exec_n_drop_right)+
 
 lemma bcomp_exec_n [dest]:
   fixes i j :: int
-  assumes "bcomp b c j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk')"
-          "size (bcomp b c j) \<le> i" "0 \<le> j"
-  shows "i = size(bcomp b c j) + (if c = bval b s then j else 0) \<and>
+  assumes "bcomp b f j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk')"
+          "size (bcomp b f j) \<le> i" "0 \<le> j"
+  shows "i = size(bcomp b f j) + (if f = bval b s then j else 0) \<and>
          s' = s \<and> stk' = stk"
-using assms proof (induction b arbitrary: c j i n s' stk')
+using assms proof (induction b arbitrary: f j i n s' stk')
   case Bc thus ?case 
     by (simp split: split_if_asm add: exec_n_simps exec1_def)
 next
@@ -469,11 +469,11 @@ next
 next
   case (And b1 b2)
   
-  let ?b2 = "bcomp b2 c j" 
-  let ?m  = "if c then size ?b2 else size ?b2 + j"
+  let ?b2 = "bcomp b2 f j" 
+  let ?m  = "if f then size ?b2 else size ?b2 + j"
   let ?b1 = "bcomp b1 False ?m" 
 
-  have j: "size (bcomp (And b1 b2) c j) \<le> i" "0 \<le> j" by fact+
+  have j: "size (bcomp (And b1 b2) f j) \<le> i" "0 \<le> j" by fact+
   
   from And.prems
   obtain s'' stk'' and i'::int and k m where 
@@ -563,8 +563,7 @@ next
       with "1.prems"
       have ?case
         by simp
-           (fastforce dest!: bcomp_exec_n bcomp_split 
-                     simp: exec_n_simps)
+           (fastforce dest!: bcomp_exec_n bcomp_split simp: exec_n_simps)
     } moreover {
       assume b: "bval b s"
       let ?c0 = "WHILE b DO c"
