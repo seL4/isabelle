@@ -61,12 +61,12 @@ sig
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
   val massage_direct_corec_call: Proof.context -> (term -> bool) -> (term -> term) -> typ list ->
-    typ -> term -> term
+    term -> term
   val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
     (typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
-  val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ list -> typ ->
-    term -> term
+  val massage_corec_code_rhs: Proof.context -> (term -> term list -> term) -> typ list -> term ->
+    term
   val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
     typ list -> term -> 'a -> 'a
 
@@ -249,18 +249,20 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
 
 fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 
-fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
+fun massage_let_if_case ctxt has_call massage_leaf bound_Ts =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val typof = curry fastype_of1 bound_Ts;
+    val typof = curry fastype_of1 bound_Ts; (*###*)
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
     fun massage_rec t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
-      | (Const (@{const_name If}, _), obj :: branches) =>
-        Term.list_comb (If_const U $ tap check_no_call obj, map massage_rec branches)
+      | (Const (@{const_name If}, _), obj :: (branches as [then_branch, _])) =>
+        let val branches' = map massage_rec branches in
+          Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
+        end
       | (Const (c, _), args as _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) in
           (case fastype_of1 (bound_Ts, nth args (n - 1)) of
@@ -341,7 +343,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
               | _ => massage_direct_call U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
-          build_map_Inl (T, U) $ t) bound_Ts U
+          build_map_Inl (T, U) $ t) bound_Ts;
   in
     massage_call U (typof t) t
   end;
@@ -354,12 +356,12 @@ fun expand_ctr_term ctxt s Ts t =
 
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
-    T as Type (s, Ts) =>
+    Type (s, Ts) =>
     massage_let_if_case ctxt has_call (fn t =>
       if can (dest_ctr ctxt s) t then
         t
       else
-        massage_let_if_case ctxt has_call I bound_Ts T (expand_ctr_term ctxt s Ts t)) bound_Ts T t
+        massage_let_if_case ctxt has_call I bound_Ts (expand_ctr_term ctxt s Ts t)) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
