@@ -174,7 +174,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
             val map' = mk_map (length fs) Us ran_Ts map0;
             val fs' = map_flattened_map_args ctxt s (map3 massage_map_or_map_arg Us Ts) fs;
           in
-            list_comb (map', fs')
+            Term.list_comb (map', fs')
           end
         | NONE => raise AINT_NO_MAP t)
       | massage_map _ _ t = raise AINT_NO_MAP t
@@ -196,24 +196,29 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
-
 fun fold_rev_let_if_case ctxt f bound_Ts =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     fun fld t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => fld (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), _ :: branches) => fold_rev fld branches
       | (Const (c, _), args as _ :: _) =>
-        let val (branches, obj) = split_last args in
-          (case fastype_of1 (bound_Ts, obj) of
-            Type (T_name, _) => if case_of ctxt T_name = SOME c then fold_rev fld branches else f t
+        let val n = num_binder_types (Sign.the_const_type thy c) in
+          (case fastype_of1 (bound_Ts, nth args (n - 1)) of
+            Type (s, Ts) =>
+            (case dest_case ctxt s Ts t of
+              NONE => f t
+            | SOME (conds, branches) => fold_rev fld branches)
           | _ => f t)
         end
       | _ => f t)
   in
     fld
   end;
+
+fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 
 fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
   let
@@ -224,7 +229,7 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => massage_rec (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), obj :: branches) =>
-        list_comb (If_const U $ tap check_obj obj, map massage_rec branches)
+        Term.list_comb (If_const U $ tap check_obj obj, map massage_rec branches)
       | (Const (c, _), args as _ :: _) =>
         let val (branches, obj) = split_last args in
           (case fastype_of1 (bound_Ts, obj) of
@@ -234,7 +239,7 @@ fun massage_let_if_case ctxt has_call massage_leaf bound_Ts U =
                 val branches' = map massage_rec branches;
                 val casex' = Const (c, map typof branches' ---> typof obj);
               in
-                list_comb (casex', branches') $ tap check_obj obj
+                Term.list_comb (casex', branches') $ tap check_obj obj
               end
             else
               massage_leaf t
@@ -269,7 +274,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
             val map' = mk_map (length fs) dom_Ts Us map0;
             val fs' = map_flattened_map_args ctxt s (map3 massage_map_or_map_arg Us Ts) fs;
           in
-            list_comb (map', fs')
+            Term.list_comb (map', fs')
           end
         | NONE => raise AINT_NO_MAP t)
       | massage_map _ _ t = raise AINT_NO_MAP t
@@ -288,7 +293,8 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
             (case try (dest_ctr ctxt s) t of
               SOME (f, args) =>
               let val f' = mk_ctr Us f in
-                list_comb (f', map3 massage_call (binder_types (typof f')) (map typof args) args)
+                Term.list_comb (f',
+                  map3 massage_call (binder_types (typof f')) (map typof args) args)
               end
             | NONE =>
               (case t of
@@ -309,7 +315,8 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
 
 fun expand_ctr_term ctxt s Ts t =
   (case ctr_sugar_of ctxt s of
-    SOME {ctrs, casex, ...} => list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
+    SOME {ctrs, casex, ...} =>
+    Term.list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
   | NONE => raise Fail "expand_ctr_term");
 
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =

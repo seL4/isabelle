@@ -40,9 +40,9 @@ sig
   val mk_ctr: typ list -> term -> term
   val mk_case: typ list -> typ -> term -> term
   val mk_disc_or_sel: typ list -> term -> term
-
   val name_of_ctr: term -> string
   val name_of_disc: term -> string
+  val dest_case: Proof.context -> string -> typ list -> term -> (term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * binding) *
@@ -214,6 +214,28 @@ fun name_of_disc t =
   | t' => name_of_const "destructor" t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
+
+fun dest_case ctxt s Ts t =
+  (case Term.strip_comb t of
+    (Const (c, _), args as _ :: _) =>
+    (case ctr_sugar_of ctxt s of
+      SOME {casex = Const (case_name, _), discs = discs0, selss = selss0, ...} =>
+      if case_name = c then
+        let
+          val n = length discs0;
+          val (branches, obj :: leftovers) = chop n args;
+          val discs = map (mk_disc_or_sel Ts) discs0;
+          val selss = map (map (mk_disc_or_sel Ts)) selss0;
+          val conds = map (rapp obj) discs;
+          val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
+          val branches' = map2 (curry Term.betapplys) branches branch_argss;
+        in
+          SOME (conds, branches')
+        end
+      else
+        NONE
+    | _ => NONE)
+  | _ => NONE);
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
