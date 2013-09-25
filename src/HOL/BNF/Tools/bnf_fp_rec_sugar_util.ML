@@ -267,9 +267,9 @@ fun massage_let_if_case ctxt has_call massage_leaf =
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
         | (Const (c, _), args as _ :: _) =>
-          let val n = num_binder_types (Sign.the_const_type thy c) in
-            if length args >= n then
-              (case fastype_of1 (bound_Ts, nth args (n - 1)) of
+          let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
+            if n < length args then
+              (case fastype_of1 (bound_Ts, nth args n) of
                 Type (s, Ts) =>
                 if case_of ctxt s = SOME c then
                   let
