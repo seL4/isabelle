@@ -18,6 +18,7 @@ object Query_Operation
     val WAITING = Value("waiting")
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
+    val REMOVED = Value("removed")
   }
 }
 
@@ -37,7 +38,7 @@ class Query_Operation[Editor_Context](
   private var current_query: List[String] = Nil
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
-  private var current_status = Query_Operation.Status.FINISHED
+  private var current_status = Query_Operation.Status.REMOVED
   private var current_exec_id = Document_ID.none
 
   private def reset_state()
@@ -46,7 +47,7 @@ class Query_Operation[Editor_Context](
     current_query = Nil
     current_update_pending = false
     current_output = Nil
-    current_status = Query_Operation.Status.FINISHED
+    current_status = Query_Operation.Status.REMOVED
     current_exec_id = Document_ID.none
   }
 
@@ -100,7 +101,7 @@ class Query_Operation[Editor_Context](
       results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      if (removed) Query_Operation.Status.FINISHED
+      if (removed) Query_Operation.Status.REMOVED
       else
         get_status(Markup.FINISHED, Query_Operation.Status.FINISHED) orElse
         get_status(Markup.RUNNING, Query_Operation.Status.RUNNING) getOrElse
@@ -128,7 +129,7 @@ class Query_Operation[Editor_Context](
         if (current_status != new_status) {
           current_status = new_status
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.FINISHED) {
+          if (new_status == Query_Operation.Status.REMOVED) {
             remove_overlay()
             editor.flush()
           }
@@ -187,7 +188,7 @@ class Query_Operation[Editor_Context](
           current_location match {
             case Some(command)
             if current_update_pending ||
-              (current_status != Query_Operation.Status.FINISHED &&
+              (current_status != Query_Operation.Status.REMOVED &&
                 changed.commands.contains(command)) =>
               Swing_Thread.later { content_update() }
             case _ =>
