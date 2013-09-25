@@ -51,11 +51,6 @@ fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
 fun drop_All t = subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
   strip_qnt_body @{const_name all} t)
-fun s_not @{const True} = @{const False}
-  | s_not @{const False} = @{const True}
-  | s_not (@{const Not} $ t) = t
-  | s_not (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not t = HOLogic.mk_not t
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
 fun invert_prems [t] = map s_not (HOLogic.disjuncts t)
