@@ -164,7 +164,7 @@ in.\allowbreak tum.\allowbreak de}}
 in.\allowbreak tum.\allowbreak de}}
 
 The commands @{command datatype_new} and @{command primrec_new} are expected to
-displace \keyw{datatype} and \keyw{primrec} in a future release. Authors of new
+replace \keyw{datatype} and \keyw{primrec} in a future release. Authors of new
 theories are encouraged to use the new commands, and maintainers of older
 theories may want to consider upgrading.
 
@@ -175,7 +175,7 @@ and \authoremailiv.
 \begin{framed}
 \noindent
 \textbf{Warning:}\enskip This tutorial and the package it describes are under
-construction. Please apologise for their appearance. Should you have suggestions
+construction. Please forgive their appearance. Should you have suggestions
 or comments regarding either, please let the authors know.
 \end{framed}
 *}
@@ -242,6 +242,12 @@ is also possible:
 
     datatype_new ('a, 'b, 'c) triple\<^sub>u = Triple\<^sub>u "'a * 'b * 'c"
 
+text {*
+\noindent
+Occurrences of nonatomic types on the right-hand side of the equal sign must be
+enclosed in double quotes, as is customary in Isabelle.
+*}
+
 
 subsubsection {* Simple Recursion
   \label{sssec:datatype-simple-recursion} *}
@@ -258,12 +264,6 @@ Lists were shown in the introduction. Terminated lists are a variant:
 *}
 
     datatype_new (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
-
-text {*
-\noindent
-Occurrences of nonatomic types on the right-hand side of the equal sign must be
-enclosed in double quotes, as is customary in Isabelle.
-*}
 
 
 subsubsection {* Mutual Recursion
@@ -402,8 +402,8 @@ may look appealing, the mixture of constructors and selectors in the
 characteristic theorems can lead Isabelle's automation to switch between the
 constructor and the destructor view in surprising ways.
 
-The usual mixfix syntaxes are available for both types and constructors. For
-example:
+The usual mixfix syntax annotations are available for both types and
+constructors. For example:
 *}
 
 (*<*)
@@ -419,7 +419,7 @@ text {* \blankline *}
 
 text {*
 \noindent
-Incidentally, this is how the traditional syntaxes can be set up:
+Incidentally, this is how the traditional syntax can be set up:
 *}
 
     syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
@@ -450,7 +450,7 @@ text {*
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'rep_compat') + ',') ')'
 "}
 
-The syntactic quantity \synt{target} can be used to specify a local
+The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
 manual \cite{isabelle-isar-ref}.
 %
@@ -482,7 +482,7 @@ define, its type parameters, and additional information:
 "}
 
 \noindent
-The syntactic quantity \synt{name} denotes an identifier, \synt{typefree}
+The syntactic entity \synt{name} denotes an identifier, \synt{typefree}
 denotes fixed type variable (@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix}
 denotes the usual parenthesized mixfix notation. They are documented in the Isar
 reference manual \cite{isabelle-isar-ref}.
@@ -500,7 +500,7 @@ mention exactly the same type variables in the same order.
 \medskip
 
 \noindent
-The main constituents of a constructor specification is the name of the
+The main constituents of a constructor specification are the name of the
 constructor and the list of its argument types. An optional discriminator name
 can be supplied at the front to override the default name
 (@{text t.is_C\<^sub>j}).
@@ -528,7 +528,7 @@ default values can be specified for any selector
 @{text "un_D \<Colon> \<sigma> \<Rightarrow> \<tau>"}
 associated with other constructors. The specified default value must be of type
 @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<tau>"}
-(i.e., it may depends on @{text C}'s arguments).
+(i.e., it may depend on @{text C}'s arguments).
 *}
 
 
@@ -560,7 +560,7 @@ and other packages.
 \end{itemize}
 
 \noindent
-New-style datatypes can in most case be registered as old-style datatypes using
+New-style datatypes can in most cases be registered as old-style datatypes using
 @{command datatype_new_compat}. The \textit{names} argument is a space-separated
 list of type names that are mutually recursive. For example:
 *}
@@ -687,7 +687,7 @@ subsubsection {* Free Constructor Theorems
 (*>*)
 
 text {*
-The first subgroup of properties are concerned with the constructors.
+The first subgroup of properties is concerned with the constructors.
 They are listed below for @{typ "'a list"}:
 
 \begin{indentblock}
@@ -895,7 +895,7 @@ on demand using @{command primrec_new}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
-\item \emph{The internal constructions are completely different.} Proofs texts
+\item \emph{The internal constructions are completely different.} Proof texts
 that unfold the definition of constants introduced by \keyw{datatype} will be
 difficult to port.
 
@@ -1343,8 +1343,8 @@ subsubsection {* Simple Corecursion
   \label{sssec:codatatype-simple-corecursion} *}
 
 text {*
-Noncorecursive codatatypes coincide with the corresponding datatypes, so
-they have no practical uses. \emph{Corecursive codatatypes} have the same syntax
+Noncorecursive codatatypes coincide with the corresponding datatypes, so they
+are useless in practice. \emph{Corecursive codatatypes} have the same syntax
 as recursive datatypes, except for the command name. For example, here is the
 definition of lazy lists:
 *}
@@ -1671,11 +1671,10 @@ The constructor ensures that progress is made---i.e., the function is
 @{text "[x, f x, f (f x), \<dots>]"}. Productivity guarantees that prefixes
 @{text "[x, f x, f (f x), \<dots>, (f ^^ k) x]"} of arbitrary finite length
 @{text k} can be computed by unfolding the code equation a finite number of
-times. The period (\keyw{.}) at the end of the commands discharge the zero proof
-obligations.
+times.
 
 Corecursive functions construct codatatype values, but nothing prevents them
-from also consuming such values. The following function drops ever second
+from also consuming such values. The following function drops every second
 element in a stream:
 *}
 
@@ -2185,9 +2184,9 @@ text {*
 
 @{rail "
   @@{command wrap_free_constructors} target? @{syntax dt_options} \\
-    term_list name @{syntax fc_discs_sels}?
+    term_list name @{syntax wfc_discs_sels}?
   ;
-  @{syntax_def fc_discs_sels}: name_list (name_list_list name_term_list_list? )?
+  @{syntax_def wfc_discs_sels}: name_list (name_list_list name_term_list_list? )?
   ;
   @{syntax_def name_term}: (name ':' term)
 "}
@@ -2273,17 +2272,17 @@ text {*
 *)
 
 
-section {* Acknowledgments
-  \label{sec:acknowledgments} *}
-
 text {*
+\section*{Acknowledgment}
+
 Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 (co)datatype package. Andreas Lochbihler provided lots of comments on earlier
 versions of the package, especially for the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions, much of which has
 yet to be implemented. Florian Haftmann and Christian Urban provided general
 advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
-suggested an elegant proof to eliminate one of the BNF assumptions.
+found an elegant proof to eliminate one of the BNF assumptions. Christian
+Sternagel suggested many textual improvements to this tutorial.
 *}
 
 end
