@@ -300,17 +300,11 @@ fun expand_ctr_term ctxt s Ts t =
     SOME fp_sugar =>
     let
       val T = Type (s, Ts);
-      val x = Bound 0;
-      val {ctrs = ctrs0, discs = discs0, selss = selss0, ...} = of_fp_sugar #ctr_sugars fp_sugar;
+      val {ctrs = ctrs0, casex = case0, ...} = of_fp_sugar #ctr_sugars fp_sugar;
       val ctrs = map (mk_ctr Ts) ctrs0;
-      val discs = map (mk_disc_or_sel Ts) discs0;
-      val selss = map (map (mk_disc_or_sel Ts)) selss0;
-      val xdiscs = map (rapp x) discs;
-      val xselss = map (map (rapp x)) selss;
-      val xsel_ctrs = map2 (curry Term.list_comb) ctrs xselss;
-      val xif = mk_IfN T xdiscs xsel_ctrs;
+      val casex = mk_case Ts T case0;
     in
-      Const (@{const_name Let}, T --> (T --> T) --> T) $ t $ Abs (Name.uu, T, xif)
+      list_comb (casex, ctrs) $ t
     end
   | NONE => raise Fail "expand_ctr_term");
 

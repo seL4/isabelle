@@ -37,6 +37,7 @@ sig
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
 
   val mk_ctr: typ list -> term -> term
+  val mk_case: typ list -> typ -> term -> term
   val mk_disc_or_sel: typ list -> term -> term
 
   val name_of_ctr: term -> string
@@ -160,13 +161,13 @@ fun mk_ctr Ts t =
     Term.subst_atomic_types (Ts0 ~~ Ts) t
   end;
 
-fun mk_disc_or_sel Ts t =
-  Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
-
 fun mk_case Ts T t =
   let val (Type (_, Ts0), body) = strip_type (fastype_of t) |>> List.last in
     Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) t
   end;
+
+fun mk_disc_or_sel Ts t =
+  Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
 fun name_of_const what t =
   (case head_of t of
