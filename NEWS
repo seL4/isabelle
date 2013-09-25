@@ -57,6 +57,8 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Improved support of native Mac OS X functionality.
+
 * Separate manual "jedit" for Isabelle/jEdit, see isabelle doc or
 Documentation panel.
 

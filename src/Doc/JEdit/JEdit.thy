@@ -219,11 +219,12 @@ text {*
 
   \textbf{Workaround:} Use regular re-parenting window manager.
 
-  \item \textbf{Problem:} Mac OS X: the native MacOSX plugin for jEdit tends
-  to be disruptive and is off by default. Enabling it might or might not
-  improve the user experience.
+  \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
+  "COMMAND+COMMA"} for Preferences is in conflict with the jEdit default
+  binding for @{verbatim "quick-search"}.
 
-  \textbf{Workaround:} Disable @{verbatim MacOSX} plugin.
+  \textbf{Workaround:} Remap in jEdit manually according to national
+  keyboard, e.g.\ @{verbatim "COMMAND+SLASH"} on English ones.
 
   \item \textbf{Problem:} Mac OS X: Java 7 is officially supported on Lion
   and Mountain Lion, but not Snow Leopard. It usually works on the latter,
