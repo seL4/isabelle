@@ -134,6 +134,8 @@ sig
   val list_all_free: term list -> term -> term
   val list_exists_free: term list -> term -> term
 
+  val conjuncts: term -> term list
+
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
 
@@ -637,15 +639,19 @@ fun mk_collect xs defT =
 
 fun rapp u t = betapply (t, u);
 
-val list_all_free =
+fun list_quant_free quant_const =
   fold_rev (fn free => fn P =>
     let val (x, T) = Term.dest_Free free;
-    in HOLogic.all_const T $ Term.absfree (x, T) P end);
+    in quant_const T $ Term.absfree (x, T) P end);
 
-val list_exists_free =
-  fold_rev (fn free => fn P =>
-    let val (x, T) = Term.dest_Free free;
-    in HOLogic.exists_const T $ Term.absfree (x, T) P end);
+val list_all_free = list_quant_free HOLogic.all_const;
+val list_exists_free = list_quant_free HOLogic.exists_const;
+
+(*Like dest_conj, but flattens conjunctions however nested*)
+fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+ | conjuncts_aux t conjs = t::conjs;
+
+fun conjuncts t = conjuncts_aux t [];
 
 fun find_indices eq xs ys = map_filter I
   (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);
