@@ -106,7 +106,7 @@ proof
     from `0 < e` have "y \<noteq> x"
       unfolding y_def by (auto intro!: nonzero_Basis)
     from `0 < e` have "dist y x < e"
-      unfolding y_def by (simp add: dist_norm norm_Basis)
+      unfolding y_def by (simp add: dist_norm)
     from `y \<noteq> x` and `dist y x < e` show "False"
       using e by simp
   qed
@@ -123,7 +123,7 @@ definition
   [simp]: "Basis = {1::real}"
 
 instance
-  by default (auto simp add: Basis_real_def)
+  by default auto
 
 end
 

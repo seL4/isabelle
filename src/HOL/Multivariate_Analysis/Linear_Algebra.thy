@@ -193,7 +193,7 @@ lemma setsum_norm_bound:
 
 lemma setsum_group:
   assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
-  shows "setsum (\<lambda>y. setsum g {x. x\<in> S \<and> f x = y}) T = setsum g S"
+  shows "setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) T = setsum g S"
   apply (subst setsum_image_gen[OF fS, of g f])
   apply (rule setsum_mono_zero_right[OF fT fST])
   apply (auto intro: setsum_0')
@@ -475,7 +475,7 @@ lemma adjoint_linear:
   assumes lf: "linear f"
   shows "linear (adjoint f)"
   by (simp add: lf linear_iff euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
-    adjoint_clauses[OF lf] inner_simps)
+    adjoint_clauses[OF lf] inner_distrib)
 
 lemma adjoint_adjoint:
   fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
@@ -1505,13 +1505,9 @@ lemma independent_Basis: "independent Basis"
   apply (simp add: inner_Basis inner_setsum_right eq_commute)
   done
 
-lemma span_Basis[simp]: "span Basis = (UNIV :: 'a::euclidean_space set)"
-  apply (subst span_finite)
-  apply simp
-  apply (safe intro!: UNIV_I)
-  apply (rule_tac x="inner x" in exI)
-  apply (simp add: euclidean_representation)
-  done
+lemma span_Basis [simp]: "span Basis = UNIV"
+  unfolding span_finite [OF finite_Basis]
+  by (fast intro: euclidean_representation)
 
 lemma in_span_Basis: "x \<in> span Basis"
   unfolding span_Basis ..
@@ -1566,70 +1562,33 @@ lemma linear_bounded:
   fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
-proof -
+proof
   let ?B = "\<Sum>b\<in>Basis. norm (f b)"
-  {
+  show "\<forall>x. norm (f x) \<le> ?B * norm x"
+  proof
     fix x :: 'a
     let ?g = "\<lambda>b. (x \<bullet> b) *\<^sub>R f b"
     have "norm (f x) = norm (f (\<Sum>b\<in>Basis. (x \<bullet> b) *\<^sub>R b))"
       unfolding euclidean_representation ..
     also have "\<dots> = norm (setsum ?g Basis)"
-      using linear_setsum[OF lf finite_Basis, of "\<lambda>b. (x \<bullet> b) *\<^sub>R b", unfolded o_def] linear_cmul[OF lf]
-      by auto
+      by (simp add: linear_setsum [OF lf] linear_cmul [OF lf])
     finally have th0: "norm (f x) = norm (setsum ?g Basis)" .
-    {
+    have th: "\<forall>b\<in>Basis. norm (?g b) \<le> norm (f b) * norm x"
+    proof
       fix i :: 'a
       assume i: "i \<in> Basis"
       from Basis_le_norm[OF i, of x]
-      have "norm (?g i) \<le> norm (f i) * norm x"
+      show "norm (?g i) \<le> norm (f i) * norm x"
         unfolding norm_scaleR
         apply (subst mult_commute)
         apply (rule mult_mono)
         apply (auto simp add: field_simps)
         done
-    }
-    then have th: "\<forall>b\<in>Basis. norm (?g b) \<le> norm (f b) * norm x"
-      by metis
+    qed
     from setsum_norm_le[of _ ?g, OF th]
-    have "norm (f x) \<le> ?B * norm x"
+    show "norm (f x) \<le> ?B * norm x"
       unfolding th0 setsum_left_distrib by metis
-  }
-  then show ?thesis by blast
-qed
-
-lemma linear_bounded_pos:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
-  assumes lf: "linear f"
-  shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
-proof -
-  from linear_bounded[OF lf] obtain B where
-    B: "\<forall>x. norm (f x) \<le> B * norm x" by blast
-  let ?K = "\<bar>B\<bar> + 1"
-  have Kp: "?K > 0" by arith
-  {
-    assume C: "B < 0"
-    def One \<equiv> "\<Sum>Basis ::'a"
-    then have "One \<noteq> 0"
-      unfolding euclidean_eq_iff[where 'a='a]
-      by (simp add: inner_setsum_left inner_Basis setsum_cases)
-    then have "norm One > 0" by auto
-    with C have "B * norm One < 0"
-      by (simp add: mult_less_0_iff)
-    with B[rule_format, of One] norm_ge_zero[of "f One"]
-    have False by simp
-  }
-  then have Bp: "B \<ge> 0"
-    by (metis not_leE)
-  {
-    fix x::"'a"
-    have "norm (f x) \<le> ?K *  norm x"
-      using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp
-      apply (auto simp add: field_simps split add: abs_split)
-      apply (erule order_trans, simp)
-      done
-  }
-  then show ?thesis
-    using Kp by blast
+  qed
 qed
 
 lemma linear_conv_bounded_linear:
@@ -1637,16 +1596,9 @@ lemma linear_conv_bounded_linear:
   shows "linear f \<longleftrightarrow> bounded_linear f"
 proof
   assume "linear f"
+  then interpret f: linear f .
   show "bounded_linear f"
   proof
-    fix x y
-    show "f (x + y) = f x + f y"
-      using `linear f` unfolding linear_iff by simp
-  next
-    fix r x
-    show "f (scaleR r x) = scaleR r (f x)"
-      using `linear f` unfolding linear_iff by simp
-  next
     have "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
       using `linear f` by (rule linear_bounded)
     then show "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
@@ -1655,7 +1607,19 @@ proof
 next
   assume "bounded_linear f"
   then interpret f: bounded_linear f .
-  show "linear f" by (simp add: f.add f.scaleR linear_iff)
+  show "linear f" ..
+qed
+
+lemma linear_bounded_pos:
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  assumes lf: "linear f"
+  shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
+proof -
+  have "\<exists>B > 0. \<forall>x. norm (f x) \<le> norm x * B"
+    using lf unfolding linear_conv_bounded_linear
+    by (rule bounded_linear.pos_bounded)
+  then show ?thesis
+    by (simp only: mult_commute)
 qed
 
 lemma bounded_linearI':
@@ -1694,30 +1658,6 @@ proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i
     done
 qed
 
-lemma bilinear_bounded_pos:
-  fixes h:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
-  assumes bh: "bilinear h"
-  shows "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
-proof -
-  from bilinear_bounded[OF bh] obtain B where
-    B: "\<forall>x y. norm (h x y) \<le> B * norm x * norm y" by blast
-  let ?K = "\<bar>B\<bar> + 1"
-  have Kp: "?K > 0" by arith
-  have KB: "B < ?K" by arith
-  {
-    fix x :: 'a
-    fix y :: 'b
-    from KB Kp have "B * norm x * norm y \<le> ?K * norm x * norm y"
-      apply -
-      apply (rule mult_right_mono, rule mult_right_mono)
-      apply auto
-      done
-    then have "norm (h x y) \<le> ?K * norm x * norm y"
-      using B[rule_format, of x y] by simp
-  }
-  with Kp show ?thesis by blast
-qed
-
 lemma bilinear_conv_bounded_bilinear:
   fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
   shows "bilinear h \<longleftrightarrow> bounded_bilinear h"
@@ -1754,6 +1694,18 @@ next
   show "bilinear h"
     unfolding bilinear_def linear_conv_bounded_linear
     using h.bounded_linear_left h.bounded_linear_right by simp
+qed
+
+lemma bilinear_bounded_pos:
+  fixes h:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
+  assumes bh: "bilinear h"
+  shows "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
+proof -
+  have "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> norm x * norm y * B"
+    using bh [unfolded bilinear_conv_bounded_bilinear]
+    by (rule bounded_bilinear.pos_bounded)
+  then show ?thesis
+    by (simp only: mult_ac)
 qed
 
 
