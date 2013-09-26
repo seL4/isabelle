@@ -19,6 +19,7 @@ sig
   val mk_half_disc_exclude_tac: Proof.context -> int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
+  val mk_sel_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_split_tac: Proof.context ->
     thm -> thm list -> thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
@@ -56,10 +57,16 @@ fun mk_half_disc_exclude_tac ctxt m discD disc' =
 
 fun mk_other_half_disc_exclude_tac half = HEADGOAL (etac @{thm contrapos_pn} THEN' etac half);
 
-fun mk_disc_exhaust_tac n exhaust discIs =
+fun mk_disc_or_sel_exhaust_tac n exhaust destIs =
   HEADGOAL (rtac exhaust THEN'
-    EVERY' (map2 (fn k => fn discI =>
-      dtac discI THEN' select_prem_tac n (etac meta_mp) k THEN' atac) (1 upto n) discIs));
+    EVERY' (map2 (fn k => fn destI => dtac destI THEN'
+      select_prem_tac n (etac meta_mp) k THEN' atac) (1 upto n) destIs));
+
+val mk_disc_exhaust_tac = mk_disc_or_sel_exhaust_tac;
+
+fun mk_sel_exhaust_tac n disc_exhaust collapses =
+  if n = 1 then HEADGOAL (etac meta_mp THEN' resolve_tac collapses)
+  else mk_disc_or_sel_exhaust_tac n disc_exhaust collapses;
 
 fun mk_collapse_tac ctxt m discD sels =
   HEADGOAL (dtac discD THEN'
