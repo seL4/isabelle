@@ -314,12 +314,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
     val raw_disc_bindings' = pad_list Binding.empty n raw_disc_bindings;
 
-    fun can_definitely_rely_on_disc k =
-      not (Binding.is_empty (nth raw_disc_bindings' (k - 1)));
+    fun can_definitely_rely_on_disc k = not (Binding.is_empty (nth raw_disc_bindings' (k - 1)));
     fun can_rely_on_disc k =
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
-    fun should_omit_disc_binding k =
-      n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
+    fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
@@ -388,10 +386,9 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
     fun mk_case_disj xctr xf xs =
       list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (u, xctr), HOLogic.mk_eq (w, xf)));
 
-    val case_rhs =
-      fold_rev (fold_rev Term.lambda) [fs, [u]]
-        (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
-           Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
+    val case_rhs = fold_rev (fold_rev Term.lambda) [fs, [u]]
+      (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
+         Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
       |> Local_Theory.define ((case_binding, NoSyn), ((Thm.def_binding case_binding, []), case_rhs))
