@@ -65,8 +65,8 @@ fun mk_disc_or_sel_exhaust_tac n exhaust destIs =
 val mk_disc_exhaust_tac = mk_disc_or_sel_exhaust_tac;
 
 fun mk_sel_exhaust_tac n disc_exhaust collapses =
-  if n = 1 then HEADGOAL (etac meta_mp THEN' resolve_tac collapses)
-  else mk_disc_or_sel_exhaust_tac n disc_exhaust collapses;
+  mk_disc_or_sel_exhaust_tac n disc_exhaust collapses ORELSE
+  HEADGOAL (etac meta_mp THEN' resolve_tac collapses);
 
 fun mk_collapse_tac ctxt m discD sels =
   HEADGOAL (dtac discD THEN'
