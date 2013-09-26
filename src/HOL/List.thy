@@ -6002,7 +6002,8 @@ lemma eq_Nil_null: (* FIXME delete candidate *)
 
 lemma equal_Nil_null [code_unfold]:
   "HOL.equal xs [] \<longleftrightarrow> null xs"
-  by (simp add: equal eq_Nil_null)
+  "HOL.equal [] = null"
+  by (auto simp add: equal null_def)
 
 definition maps :: "('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
   [code_abbrev]: "maps f xs = concat (map f xs)"

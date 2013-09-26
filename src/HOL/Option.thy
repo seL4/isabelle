@@ -187,7 +187,8 @@ lemma is_none_code [code]:
 
 lemma [code_unfold]:
   "HOL.equal x None \<longleftrightarrow> is_none x"
-  by (simp add: equal is_none_def)
+  "HOL.equal None = is_none"
+  by (auto simp add: equal is_none_def)
 
 hide_const (open) is_none
 
