@@ -40,7 +40,7 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
 fun mk_primcorec_assumption_tac ctxt discIs =
   HEADGOAL (SELECT_GOAL (unfold_thms_tac ctxt
       @{thms not_not not_False_eq_True de_Morgan_conj de_Morgan_disj} THEN
-    SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE'
+    SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE' etac conjE ORELSE'
     resolve_tac @{thms TrueI conjI disjI1 disjI2} ORELSE'
     dresolve_tac discIs THEN' atac)))));
 
