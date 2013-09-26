@@ -59,6 +59,7 @@ object Doc
     val names =
       List(
         "src/HOL/ex/Seq.thy",
+        "src/HOL/ex/ML.thy",
         "src/HOL/Unix/Unix.thy",
         "src/HOL/Isar_Examples/Drinker.thy")
     Section("Examples") :: names.map(name => text_file(name).get)
