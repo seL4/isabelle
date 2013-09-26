@@ -272,13 +272,12 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
     val sel_defaultss =
       pad_list [] n (map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss);
 
-    val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
-    val data_b_name = Long_Name.base_name dataT_name;
-    val data_b = Binding.name data_b_name;
+    val Type (fcT_name, As0) = body_type (fastype_of (hd ctrs0));
+    val fc_b_name = Long_Name.base_name fcT_name;
+    val fc_b = Binding.name fc_b_name;
 
     fun qualify mandatory =
-      Binding.qualify mandatory data_b_name o
-      (rep_compat ? Binding.qualify false rep_compat_prefix);
+      Binding.qualify mandatory fc_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
 
     fun dest_TFree_or_TVar (TFree p) = p
       | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
@@ -291,7 +290,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
     val As = map2 (resort_tfree o snd o dest_TFree_or_TVar) As0 unsorted_As;
 
-    val dataT = Type (dataT_name, As);
+    val fcT = Type (fcT_name, As);
     val ctrs = map (mk_ctr As) ctrs0;
     val ctr_Tss = map (binder_types o fastype_of) ctrs;
 
@@ -343,7 +342,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> (apfst (map (rpair dataT)) oo Variable.variant_fixes) [data_b_name, data_b_name ^ "'"]
+      ||>> (apfst (map (rpair fcT)) oo Variable.variant_fixes) [fc_b_name, fc_b_name ^ "'"]
       ||>> mk_Frees "z" [B]
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
@@ -366,7 +365,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
       qualify false
         (if Binding.is_empty raw_case_binding orelse
             Binding.eq_name (raw_case_binding, standard_binding) then
-           Binding.suffix_name ("_" ^ caseN) data_b
+           Binding.suffix_name ("_" ^ caseN) fc_b
          else
            raw_case_binding);
 
@@ -422,7 +421,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         (true, [], [], [], [], [], [], [], [], [], lthy)
       else
         let
-          fun disc_free b = Free (Binding.name_of b, mk_pred1T dataT);
+          fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
 
           fun disc_spec b exist_xs_u_eq_ctr = mk_Trueprop_eq (disc_free b $ u, exist_xs_u_eq_ctr);
 
@@ -453,7 +452,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                     quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ lthy T) ^ " vs. "
                     ^ quote (Syntax.string_of_typ lthy T')));
             in
-              mk_Trueprop_eq (Free (Binding.name_of b, dataT --> T) $ u,
+              mk_Trueprop_eq (Free (Binding.name_of b, fcT --> T) $ u,
                 Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T) $ u)
             end;
 
@@ -822,7 +821,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
-        val cases_type_attr = Attrib.internal (K (Induct.cases_type dataT_name));
+        val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
         val notes =
           [(caseN, case_thms, code_nitpick_simp_simp_attrs),
@@ -866,7 +865,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                (fn phi => Case_Translation.register
                   (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
          |> Local_Theory.notes (notes' @ notes) |> snd
-         |> register_ctr_sugar dataT_name ctr_sugar)
+         |> register_ctr_sugar fcT_name ctr_sugar)
       end;
   in
     (goalss, after_qed, lthy')

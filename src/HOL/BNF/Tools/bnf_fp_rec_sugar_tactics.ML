@@ -80,6 +80,8 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
     (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
+(* TODO: do we need "collapses"? "distincts"? *)
+(* TODO: reduce code duplication with selector tactic above *)
 fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits split_asms m f_ctr =
   HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
