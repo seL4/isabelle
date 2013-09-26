@@ -25,6 +25,7 @@ struct
 open BNF_Util
 open BNF_Tactics
 
+val falseEs = @{thms not_TrueE FalseE};
 val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
@@ -68,7 +69,7 @@ fun mk_primcorec_sel_tac ctxt defs f_sel k m exclsss maps map_idents map_comps s
   mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
-    eresolve_tac @{thms not_TrueE FalseE} ORELSE'
+    eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
     Splitter.split_tac (split_if :: splits) ORELSE'
@@ -79,25 +80,22 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
     (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
-fun mk_primcorec_split distincts discIs collapses splits split_asms =
+fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits split_asms m f_ctr =
+  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
+  mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
+  REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt discIs) THEN
   HEADGOAL (SELECT_GOAL (HEADGOAL (REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'
-     eresolve_tac (@{thms not_TrueE FalseE} @ map (fn thm => thm RS trans) collapses) ORELSE'
+     eresolve_tac (falseEs @ map (fn thm => thm RS trans) collapses) ORELSE'
      resolve_tac split_connectI ORELSE'
      Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
      eresolve_tac (map (fn thm => thm RS @{thm neq_eq_eq_contradict}) distincts) THEN' atac ORELSE'
      (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac))));
 
-fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits split_asms m f_ctr =
-  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
-  mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
-  REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt discIs) THEN
-  mk_primcorec_split distincts discIs collapses splits split_asms;
-
-fun mk_primcorec_code_of_ctr_tac ctxt distincs discIs collapses splits split_asms ms ctr_thms =
-  EVERY (map2 (mk_primcorec_code_of_ctr_single_tac ctxt distincs discIs collapses splits split_asms)
-    ms ctr_thms);
+fun mk_primcorec_code_of_ctr_tac ctxt distincts discIs collapses splits split_asms ms ctr_thms =
+  EVERY (map2 (mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits
+    split_asms) ms ctr_thms);
 
 fun mk_primcorec_code_of_raw_tac splits disc_excludes raw collapses =
   HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT_DETERM o
