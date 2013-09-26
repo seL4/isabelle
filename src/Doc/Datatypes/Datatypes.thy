@@ -787,6 +787,12 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
 
+\item[@{text "t."}\hthm{sel\_split}\rm:] ~ \\
+@{thm list.sel_split[no_vars]}
+
+\item[@{text "t."}\hthm{sel\_split\_asm}\rm:] ~ \\
+@{thm list.sel_split_asm[no_vars]}
+
 \item[@{text "t."}\hthm{case\_conv\_if}\rm:] ~ \\
 @{thm list.case_conv_if[no_vars]}
 

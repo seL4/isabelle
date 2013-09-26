@@ -20,8 +20,8 @@ sig
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
   val mk_sel_exhaust_tac: int -> thm -> thm list -> tactic
-  val mk_split_tac: Proof.context ->
-    thm -> thm list -> thm list list -> thm list list list -> tactic
+  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> thm list
+    list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
@@ -141,10 +141,10 @@ fun mk_case_cong_tac ctxt uexhaust cases =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases));
 
-fun mk_split_tac ctxt uexhaust cases injectss distinctsss =
+fun mk_split_tac ctxt uexhaust cases selss injectss distinctsss =
   HEADGOAL (rtac uexhaust) THEN
   ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
-     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth injectss (k - 1) @
+     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
        flat (nth distinctsss (k - 1))) ctxt)) k) THEN
   ALLGOALS (blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt));
 
