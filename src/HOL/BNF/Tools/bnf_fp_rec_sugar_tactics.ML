@@ -42,7 +42,9 @@ fun mk_primcorec_assumption_tac ctxt discIs =
       @{thms not_not not_False_eq_True de_Morgan_conj de_Morgan_disj} THEN
     SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE' etac conjE ORELSE'
     resolve_tac @{thms TrueI conjI disjI1 disjI2} ORELSE'
-    dresolve_tac discIs THEN' atac)))));
+    dresolve_tac discIs THEN' atac ORELSE'
+    etac notE THEN' atac ORELSE'
+    etac disjE)))));
 
 fun mk_primcorec_same_case_tac m =
   HEADGOAL (if m = 0 then rtac TrueI
@@ -88,13 +90,14 @@ fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs splits split_asms 
   HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
   REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt discIs) THEN
-  HEADGOAL (SELECT_GOAL (HEADGOAL (REPEAT_DETERM o
+  HEADGOAL (SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'
      resolve_tac split_connectI ORELSE'
      Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
+     K (mk_primcorec_assumption_tac ctxt discIs) ORELSE'
      eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
-     (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac))));
+     (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))));
 
 fun mk_primcorec_code_of_ctr_tac ctxt distincts discIs splits split_asms ms ctr_thms =
   EVERY (map2 (mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
