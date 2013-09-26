@@ -498,7 +498,7 @@ fun co_dissect_eqn_sel fun_names corec_specs eqn' of_spec eqn =
   end;
 
 fun co_dissect_eqn_ctr sequential fun_names corec_specs eqn' imp_prems imp_rhs matchedsss =
-  let 
+  let
     val (lhs, rhs) = HOLogic.dest_eq imp_rhs;
     val fun_name = head_of lhs |> fst o dest_Free;
     val {ctr_specs, ...} = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
@@ -800,10 +800,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
-            val (_, _, _, splits, split_asms) = case_thms_of_term lthy [] rhs_term;
+            val (distincts, _, _, splits, split_asms) = case_thms_of_term lthy [] rhs_term;
           in
-            mk_primcorec_sel_tac lthy def_thms sel_corec k m exclsss nested_maps nested_map_idents
-              nested_map_comps splits split_asms
+            mk_primcorec_sel_tac lthy def_thms distincts splits split_asms nested_maps
+              nested_map_idents nested_map_comps sel_corec k m exclsss
             |> K |> Goal.prove lthy [] [] t
             |> pair sel
           end;

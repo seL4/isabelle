@@ -236,8 +236,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
-    val rel_eqs = map rel_eq_of_bnf bnfs;
-    val rel_monos = map rel_mono_of_bnf bnfs;
     val rel_OOs = map rel_OO_of_bnf bnfs;
     val rel_OO_Grps = map rel_OO_Grp_of_bnf bnfs;
 

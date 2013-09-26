@@ -14,8 +14,8 @@ sig
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
-  val mk_primcorec_sel_tac: Proof.context -> thm list -> thm -> int -> int ->
-    thm list list list -> thm list -> thm list -> thm list -> thm list -> thm list ->tactic
+  val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
   val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
@@ -26,6 +26,7 @@ open BNF_Util
 open BNF_Tactics
 
 val falseEs = @{thms not_TrueE FalseE};
+val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
 val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
@@ -64,7 +65,8 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_sel_tac ctxt defs f_sel k m exclsss maps map_idents map_comps splits split_asms =
+fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms maps map_idents map_comps f_sel k m
+    exclsss =
   mk_primcorec_prelude ctxt defs (f_sel RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
   unfold_thms_tac ctxt (@{thms o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
@@ -73,6 +75,7 @@ fun mk_primcorec_sel_tac ctxt defs f_sel k m exclsss maps map_idents map_comps s
     resolve_tac split_connectI ORELSE'
     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
     Splitter.split_tac (split_if :: splits) ORELSE'
+    eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
@@ -80,7 +83,7 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
     (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
-(* TODO: do we need "collapses"? "distincts"? *)
+(* TODO: do we need "collapses"? *)
 (* TODO: reduce code duplication with selector tactic above *)
 fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits split_asms m f_ctr =
   HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
@@ -92,7 +95,7 @@ fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits s
      resolve_tac split_connectI ORELSE'
      Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
-     eresolve_tac (map (fn thm => thm RS @{thm neq_eq_eq_contradict}) distincts) THEN' atac ORELSE'
+     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
      (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac))));
 
 fun mk_primcorec_code_of_ctr_tac ctxt distincts discIs collapses splits split_asms ms ctr_thms =
