@@ -18,22 +18,21 @@ where
 
 text {* The possible successor PCs of an instruction at position @{term n} *}
 text_raw{*\snip{isuccsdef}{0}{1}{% *}
-definition
-  "isuccs i n \<equiv> case i of 
-     JMP j \<Rightarrow> {n + 1 + j}
-   | JMPLESS j \<Rightarrow> {n + 1 + j, n + 1}
-   | JMPGE j \<Rightarrow> {n + 1 + j, n + 1}
-   | _ \<Rightarrow> {n +1}"
+definition isuccs :: "instr \<Rightarrow> int \<Rightarrow> int set" where
+"isuccs i n = (case i of
+  JMP j \<Rightarrow> {n + 1 + j} |
+  JMPLESS j \<Rightarrow> {n + 1 + j, n + 1} |
+  JMPGE j \<Rightarrow> {n + 1 + j, n + 1} |
+  _ \<Rightarrow> {n +1})"
 text_raw{*}%endsnip*}
 
 text {* The possible successors PCs of an instruction list *}
-definition
-  succs :: "instr list \<Rightarrow> int \<Rightarrow> int set" where
-  "succs P n = {s. \<exists>i::int. 0 \<le> i \<and> i < size P \<and> s \<in> isuccs (P!!i) (n+i)}" 
+definition succs :: "instr list \<Rightarrow> int \<Rightarrow> int set" where
+"succs P n = {s. \<exists>i::int. 0 \<le> i \<and> i < size P \<and> s \<in> isuccs (P!!i) (n+i)}" 
 
 text {* Possible exit PCs of a program *}
-definition
-  "exits P = succs P 0 - {0..< size P}"
+definition exits :: "instr list \<Rightarrow> int set" where
+"exits P = succs P 0 - {0..< size P}"
 
   
 subsection {* Basic properties of @{term exec_n} *}
