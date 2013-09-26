@@ -16,13 +16,16 @@ begin
 lemma not_TrueE: "\<not> True \<Longrightarrow> P"
 by (erule notE, rule TrueI)
 
+lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
+by fast
+
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
 lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
 by blast
 
-lemma unit_case_Unity: "(case u of () => f) = f"
+lemma unit_case_Unity: "(case u of () \<Rightarrow> f) = f"
 by (cases u) (hypsubst, rule unit.cases)
 
 lemma prod_case_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
