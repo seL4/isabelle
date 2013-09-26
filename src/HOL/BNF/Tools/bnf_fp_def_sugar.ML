@@ -27,6 +27,7 @@ sig
   val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
+  val fp_sugars_of: Proof.context -> fp_sugar list
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -150,6 +151,9 @@ fun morph_fp_sugar phi {T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_re
    disc_co_itersss = map (map (map (Morphism.thm phi))) disc_co_itersss,
    sel_co_iterssss = map (map (map (map (Morphism.thm phi)))) sel_co_iterssss};
 
+val transfer_fp_sugar =
+  morph_fp_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+
 structure Data = Generic_Data
 (
   type T = fp_sugar Symtab.table;
@@ -160,8 +164,10 @@ structure Data = Generic_Data
 
 fun fp_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (morph_fp_sugar
-    (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
+  #> Option.map (transfer_fp_sugar ctxt);
+
+fun fp_sugars_of ctxt =
+  Symtab.fold (cons o transfer_fp_sugar ctxt o snd) (Data.get (Context.Proof ctxt)) [];
 
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
