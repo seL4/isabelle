@@ -170,7 +170,7 @@ case "$PLATFORM_FAMILY" in
     mv "$ISABELLE_TARGET/contrib/macos_app" "$TMP/."
 
     perl -pi \
-      -e "s,action-bar.shortcut=.*,action-bar.shortcut2=,g;" \
+      -e 's,\Qaction-bar.shortcut=C+ENTER\E,action-bar.shortcut=\naction-bar.shortcut2=C+ENTER,g;' \
       -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
       -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
