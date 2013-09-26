@@ -398,7 +398,7 @@ fun case_thms_of_term ctxt bound_Ts t =
     val ctr_sugars = map (the o ctr_sugar_of ctxt) caseT_names;
   in
     (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #collapses ctr_sugars,
-     map #split ctr_sugars, map #split_asm ctr_sugars)
+     maps #sel_splits ctr_sugars, maps #sel_split_asms ctr_sugars)
   end;
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
