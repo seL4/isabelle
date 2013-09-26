@@ -252,16 +252,20 @@ fun dest_case ctxt s Ts t =
     (case ctr_sugar_of ctxt s of
       SOME {casex = Const (case_name, _), discs = discs0, selss = selss0, ...} =>
       if case_name = c then
-        let
-          val n = length discs0;
-          val (branches, obj :: leftovers) = chop n args;
-          val discs = map (mk_disc_or_sel Ts) discs0;
-          val selss = map (map (mk_disc_or_sel Ts)) selss0;
-          val conds = map (rapp obj) discs;
-          val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
-          val branches' = map2 (curry Term.betapplys) branches branch_argss;
-        in
-          SOME (conds, branches')
+        let val n = length discs0 in
+          if n < length args then
+            let
+              val (branches, obj :: leftovers) = chop n args;
+              val discs = map (mk_disc_or_sel Ts) discs0;
+              val selss = map (map (mk_disc_or_sel Ts)) selss0;
+              val conds = map (rapp obj) discs;
+              val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
+              val branches' = map2 (curry Term.betapplys) branches branch_argss;
+            in
+              SOME (conds, branches')
+            end
+          else
+            NONE
         end
       else
         NONE
@@ -310,12 +314,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
     val raw_disc_bindings' = pad_list Binding.empty n raw_disc_bindings;
 
-    fun can_definitely_rely_on_disc k =
-      not (Binding.is_empty (nth raw_disc_bindings' (k - 1)));
+    fun can_definitely_rely_on_disc k = not (Binding.is_empty (nth raw_disc_bindings' (k - 1)));
     fun can_rely_on_disc k =
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
-    fun should_omit_disc_binding k =
-      n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
+    fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
     fun is_disc_binding_valid b =
       not (Binding.is_empty b orelse Binding.eq_name (b, equal_binding));
@@ -384,10 +386,9 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
     fun mk_case_disj xctr xf xs =
       list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (u, xctr), HOLogic.mk_eq (w, xf)));
 
-    val case_rhs =
-      fold_rev (fold_rev Term.lambda) [fs, [u]]
-        (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
-           Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
+    val case_rhs = fold_rev (fold_rev Term.lambda) [fs, [u]]
+      (Const (@{const_name The}, (B --> HOLogic.boolT) --> B) $
+         Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
       |> Local_Theory.define ((case_binding, NoSyn), ((Thm.def_binding case_binding, []), case_rhs))
@@ -811,7 +812,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   |> Thm.close_derivation
                 end;
 
-              val expand_thms =
+              val expand_thm =
                 let
                   fun mk_prems k udisc usels vdisc vsels =
                     (if k = n then [] else [mk_Trueprop_eq (udisc, vdisc)]) @
@@ -829,12 +830,12 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   val uncollapse_thms =
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in
-                  [Goal.prove_sorry lthy [] [] goal (fn _ =>
-                     mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
-                       (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
-                       disc_exclude_thmsss')]
-                  |> map Thm.close_derivation
-                  |> Proof_Context.export names_lthy lthy
+                  Goal.prove_sorry lthy [] [] goal (fn _ =>
+                    mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
+                      (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
+                      disc_exclude_thmsss')
+                  |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
 
               val (sel_split_thm, sel_split_asm_thm) =
@@ -849,20 +850,20 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   (thm, asm_thm)
                 end;
 
-              val case_conv_if_thms =
+              val case_conv_if_thm =
                 let
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs usel_fs);
                 in
-                  [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                     mk_case_conv_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
-                  |> map Thm.close_derivation
-                  |> Proof_Context.export names_lthy lthy
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                    mk_case_conv_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
+                  |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
                nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], [sel_exhaust_thm],
-               all_collapse_thms, safe_collapse_thms, expand_thms, [sel_split_thm],
-               [sel_split_asm_thm], case_conv_if_thms)
+               all_collapse_thms, safe_collapse_thms, [expand_thm], [sel_split_thm],
+               [sel_split_asm_thm], [case_conv_if_thm])
             end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));

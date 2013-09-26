@@ -734,7 +734,7 @@ fun add_primcorec simple sequential fixes specs of_specs lthy =
     val (defs, exclss') =
       co_build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
-    fun prove_excl_tac (c, c', a) =
+    fun excl_tac (c, c', a) =
       if a orelse c = c' orelse sequential then SOME (K (mk_primcorec_assumption_tac lthy []))
       else if simple then SOME (K (auto_tac lthy))
       else NONE;
@@ -745,7 +745,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 *)
 
     val exclss'' = exclss' |> map (map (fn (idx, t) =>
-      (idx, (Option.map (Goal.prove lthy [] [] t) (prove_excl_tac idx), t))));
+      (idx, (Option.map (Goal.prove lthy [] [] t) (excl_tac idx), t))));
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
     val (obligation_idxss, obligationss) = exclss''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
@@ -800,7 +800,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
-            val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
+            val (distincts, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
           in
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
               nested_map_idents nested_map_comps sel_corec k m exclsss
