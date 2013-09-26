@@ -8,9 +8,9 @@ Tactics for recursor and corecursor sugar.
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_assumption_tac: Proof.context -> thm list -> tactic
-  val mk_primcorec_code_tac: thm list -> thm list -> thm -> thm list -> tactic
   val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
     thm list -> int list -> thm list -> tactic
+  val mk_primcorec_code_of_raw_tac: thm list -> thm list -> thm -> thm list -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
@@ -80,13 +80,14 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
   unfold_thms_tac ctxt sel_fs THEN HEADGOAL (rtac refl);
 
 fun mk_primcorec_split distincts discIs collapses splits split_asms =
-  HEADGOAL (SELECT_GOAL (HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' atac ORELSE'
-    eresolve_tac (@{thms not_TrueE FalseE} @ map (fn thm => thm RS trans) collapses) ORELSE'
-    resolve_tac split_connectI ORELSE'
-    Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
-    Splitter.split_tac (split_if :: splits) ORELSE'
-    eresolve_tac (map (fn thm => thm RS @{thm neq_eq_eq_contradict}) distincts) THEN' atac ORELSE'
-    (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac))));
+  HEADGOAL (SELECT_GOAL (HEADGOAL (REPEAT_DETERM o
+    (rtac refl ORELSE' atac ORELSE'
+     eresolve_tac (@{thms not_TrueE FalseE} @ map (fn thm => thm RS trans) collapses) ORELSE'
+     resolve_tac split_connectI ORELSE'
+     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
+     Splitter.split_tac (split_if :: splits) ORELSE'
+     eresolve_tac (map (fn thm => thm RS @{thm neq_eq_eq_contradict}) distincts) THEN' atac ORELSE'
+     (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac))));
 
 fun mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs collapses splits split_asms m f_ctr =
   HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
@@ -98,10 +99,13 @@ fun mk_primcorec_code_of_ctr_tac ctxt distincs discIs collapses splits split_asm
   EVERY (map2 (mk_primcorec_code_of_ctr_single_tac ctxt distincs discIs collapses splits split_asms)
     ms ctr_thms);
 
-fun mk_primcorec_code_tac eq_caseIs disc_excludes raw collapses =
-  HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT o
-    (resolve_tac (maps (fn thm => [thm, thm RS sym]) (@{thm eq_ifI} :: eq_caseIs)) ORELSE'
-     rtac refl ORELSE' etac notE THEN' atac ORELSE'
+fun mk_primcorec_code_of_raw_tac splits disc_excludes raw collapses =
+  HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT_DETERM o
+    (rtac refl ORELSE'
+     (TRY o rtac sym) THEN' atac ORELSE'
+     resolve_tac split_connectI ORELSE'
+     Splitter.split_tac (split_if :: splits) ORELSE'
+     etac notE THEN' atac ORELSE'
      dresolve_tac disc_excludes THEN' etac notE THEN' atac ORELSE'
      eresolve_tac (maps (fn thm => [thm, thm RS sym]) collapses)));
 

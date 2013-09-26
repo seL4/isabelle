@@ -165,9 +165,6 @@ lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f
    (\<And>x. x \<in> P \<Longrightarrow> f x \<in> Q)"
   unfolding Grp_def by rule auto
 
-lemma eq_ifI: "\<lbrakk>b \<Longrightarrow> t = x; \<not> b \<Longrightarrow> t = y\<rbrakk> \<Longrightarrow> t = (if b then x else y)"
-  by fastforce
-
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"
