@@ -11,6 +11,11 @@ set -o allexport
 
 ISABELLE_SETTINGS_PRESENT=true
 
+#GNU tar (notably on Mac OS X)
+if [ -x /usr/bin/gnutar ]; then
+  function tar() { /usr/bin/gnutar "$@"; }
+fi
+
 #Cygwin vs. POSIX
 if [ "$OSTYPE" = cygwin ]
 then

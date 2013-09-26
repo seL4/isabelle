@@ -7,7 +7,7 @@ Main Isabelle application entry point.
 package isabelle
 
 
-import java.lang.{System, ClassLoader}
+import java.lang.{System, Class, ClassLoader}
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 import java.nio.file.Files
 
@@ -116,7 +116,8 @@ object Main
           System.setProperty("scala.home",
             Isabelle_System.platform_path(Path.explode("$SCALA_HOME")))
 
-          val jedit = ClassLoader.getSystemClassLoader.loadClass("org.gjt.sp.jedit.jEdit")
+          val jedit =
+            Class.forName("org.gjt.sp.jedit.jEdit", true, ClassLoader.getSystemClassLoader)
           val jedit_main = jedit.getDeclaredMethod("main", classOf[Array[String]])
 
           () => jedit_main.invoke(null, jedit_options ++ jedit_settings ++ more_args)

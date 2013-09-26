@@ -325,8 +325,6 @@ class Plugin extends EBPlugin
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()
 
-      // FIXME if (Platform.is_macos) OSX_Adapter.init
-
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
         ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)

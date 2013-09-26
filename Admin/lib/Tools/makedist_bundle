@@ -41,8 +41,6 @@ ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
 
 ## main
 
-export COPYFILE_DISABLE=true
-
 TMP="/var/tmp/isabelle-makedist$$"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
 
