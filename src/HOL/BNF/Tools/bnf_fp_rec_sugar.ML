@@ -785,7 +785,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_sel {ctr_specs, nested_maps, nested_map_idents, nested_map_comps, ...}
             disc_eqns exclsss {fun_name, fun_T, fun_args, ctr, sel, rhs_term, ...} =
           let
-            val (SOME ctr_spec) = find_first (equal ctr o #ctr) ctr_specs;
+            val SOME ctr_spec = find_first (equal ctr o #ctr) ctr_specs;
             val ctr_no = find_index (equal ctr o #ctr) ctr_specs;
             val prems = the_default (maps (negate_conj o #prems) disc_eqns)
                 (find_first (equal ctr_no o #ctr_no) disc_eqns |> Option.map #prems);
@@ -800,9 +800,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
+            val (_, _, _, splits, split_asms) = case_thms_of_term lthy [] rhs_term;
           in
             mk_primcorec_sel_tac lthy def_thms sel_corec k m exclsss nested_maps nested_map_idents
-              nested_map_comps [] []
+              nested_map_comps splits split_asms
             |> K |> Goal.prove lthy [] [] t
             |> pair sel
           end;

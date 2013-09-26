@@ -69,6 +69,8 @@ sig
     typ list -> term -> term
   val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
     typ list -> term -> 'a -> 'a
+  val case_thms_of_term: Proof.context -> typ list -> term ->
+    thm list * thm list * thm list * thm list * thm list
 
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
@@ -220,7 +222,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun fold_rev_let_if_case ctxt f bound_Ts =
+fun fold_rev_let_if_case ctxt f bound_Ts t =
   let
     val thy = Proof_Context.theory_of ctxt;
 
@@ -236,16 +238,17 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
             (case fastype_of1 (bound_Ts, nth args n) of
               Type (s, Ts) =>
               (case dest_case ctxt s Ts t of
-                NONE => f conds t
+                NONE => apsnd (f conds t)
               | SOME (conds', branches) =>
-                fold_rev (uncurry fld) (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
-            | _ => f conds t)
+                apfst (cons s) o fold_rev (uncurry fld)
+                  (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
+            | _ => apsnd (f conds t))
           else
-            f conds t
+            apsnd (f conds t)
         end
-      | _ => f conds t)
+      | _ => apsnd (f conds t))
   in
-    fld []
+    fld [] t o pair []
   end;
 
 fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
@@ -387,7 +390,16 @@ fun massage_corec_code_rhs ctxt massage_ctr =
     (fn bound_Ts => uncurry (massage_ctr bound_Ts) o Term.strip_comb);
 
 fun fold_rev_corec_code_rhs ctxt f =
-  fold_rev_let_if_case ctxt (fn conds => uncurry (f conds) o Term.strip_comb);
+  snd ooo fold_rev_let_if_case ctxt (fn conds => uncurry (f conds) o Term.strip_comb);
+
+fun case_thms_of_term ctxt bound_Ts t =
+  let
+    val (caseT_names, _) = fold_rev_let_if_case ctxt (K (K I)) bound_Ts t ();
+    val ctr_sugars = map (the o ctr_sugar_of ctxt) caseT_names;
+  in
+    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #collapses ctr_sugars,
+     map #split ctr_sugars, map #split_asm ctr_sugars)
+  end;
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
 fun indexedd xss = fold_map indexed xss;
