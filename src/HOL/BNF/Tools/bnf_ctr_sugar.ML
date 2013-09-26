@@ -252,16 +252,20 @@ fun dest_case ctxt s Ts t =
     (case ctr_sugar_of ctxt s of
       SOME {casex = Const (case_name, _), discs = discs0, selss = selss0, ...} =>
       if case_name = c then
-        let
-          val n = length discs0;
-          val (branches, obj :: leftovers) = chop n args;
-          val discs = map (mk_disc_or_sel Ts) discs0;
-          val selss = map (map (mk_disc_or_sel Ts)) selss0;
-          val conds = map (rapp obj) discs;
-          val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
-          val branches' = map2 (curry Term.betapplys) branches branch_argss;
-        in
-          SOME (conds, branches')
+        let val n = length discs0 in
+          if n < length args then
+            let
+              val (branches, obj :: leftovers) = chop n args;
+              val discs = map (mk_disc_or_sel Ts) discs0;
+              val selss = map (map (mk_disc_or_sel Ts)) selss0;
+              val conds = map (rapp obj) discs;
+              val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
+              val branches' = map2 (curry Term.betapplys) branches branch_argss;
+            in
+              SOME (conds, branches')
+            end
+          else
+            NONE
         end
       else
         NONE

@@ -234,7 +234,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
         o fld (conds @ s_not_disj cond) else_branch
       | (Const (c, _), args as _ :: _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
-          if length args > n then
+          if n >= 0 andalso n < length args then
             (case fastype_of1 (bound_Ts, nth args n) of
               Type (s, Ts) =>
               (case dest_case ctxt s Ts t of
@@ -276,7 +276,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
             val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
             val n = length gen_branch_Ts;
           in
-            if length args > n then
+            if n < length args then
               (case gen_body_fun_T of
                 Type (_, [Type (T_name, _), _]) =>
                 if case_of ctxt T_name = SOME c then
