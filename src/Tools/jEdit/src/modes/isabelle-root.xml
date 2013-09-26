@@ -4,6 +4,8 @@
 <!-- Isabelle session root mode -->
 <MODE>
   <PROPS>
+    <PROPERTY NAME="commentStart" VALUE="(*"/>
+    <PROPERTY NAME="commentEnd" VALUE="*)"/>
     <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
     <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹⟨⌈⌊⦇⟦⦃" />
     <PROPERTY NAME="unalignedCloseBrackets" VALUE="⦄⟧⦈⌋⌉⟩›»)]}" />
