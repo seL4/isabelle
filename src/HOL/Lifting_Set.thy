@@ -19,6 +19,10 @@ lemma set_relI:
   shows "set_rel R A B"
   using assms unfolding set_rel_def by simp
 
+lemma set_relD1: "\<lbrakk> set_rel R A B; x \<in> A \<rbrakk> \<Longrightarrow> \<exists>y \<in> B. R x y"
+  and set_relD2: "\<lbrakk> set_rel R A B; y \<in> B \<rbrakk> \<Longrightarrow> \<exists>x \<in> A. R x y"
+by(simp_all add: set_rel_def)
+
 lemma set_rel_conversep: "set_rel (conversep R) = conversep (set_rel R)"
   unfolding set_rel_def by auto
 
@@ -153,6 +157,15 @@ lemma set_rel_transfer [transfer_rule]:
     set_rel set_rel"
   unfolding fun_rel_def set_rel_def by fast
 
+lemma SUPR_parametric [transfer_rule]:
+  "(set_rel R ===> (R ===> op =) ===> op =) SUPR SUPR"
+proof(rule fun_relI)+
+  fix A B f and g :: "'b \<Rightarrow> 'c"
+  assume AB: "set_rel R A B"
+    and fg: "(R ===> op =) f g"
+  show "SUPR A f = SUPR B g"
+    by(rule SUPR_eq)(auto 4 4 dest: set_relD1[OF AB] set_relD2[OF AB] fun_relD[OF fg] intro: rev_bexI)
+qed
 
 subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
 
@@ -267,6 +280,47 @@ lemma finite_transfer [transfer_rule]:
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (set_rel A ===> op =) card card"
   by (rule fun_relI, erule (1) bi_unique_set_rel_lemma, simp add: card_image)
+
+lemma vimage_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_total A" "bi_unique B"
+  shows "((A ===> B) ===> set_rel B ===> set_rel A) vimage vimage"
+unfolding vimage_def[abs_def] by transfer_prover
+
+lemma setsum_parametric [transfer_rule]:
+  assumes "bi_unique A"
+  shows "((A ===> op =) ===> set_rel A ===> op =) setsum setsum"
+proof(rule fun_relI)+
+  fix f :: "'a \<Rightarrow> 'c" and g S T
+  assume fg: "(A ===> op =) f g"
+    and ST: "set_rel A S T"
+  show "setsum f S = setsum g T"
+  proof(rule setsum_reindex_cong)
+    let ?f = "\<lambda>t. THE s. A s t"
+    show "S = ?f ` T"
+      by(blast dest: set_relD1[OF ST] set_relD2[OF ST] bi_uniqueDl[OF assms] 
+           intro: rev_image_eqI the_equality[symmetric] subst[rotated, where P="\<lambda>x. x \<in> S"])
+
+    show "inj_on ?f T"
+    proof(rule inj_onI)
+      fix t1 t2
+      assume "t1 \<in> T" "t2 \<in> T" "?f t1 = ?f t2"
+      from ST `t1 \<in> T` obtain s1 where "A s1 t1" "s1 \<in> S" by(auto dest: set_relD2)
+      hence "?f t1 = s1" by(auto dest: bi_uniqueDl[OF assms])
+      moreover
+      from ST `t2 \<in> T` obtain s2 where "A s2 t2" "s2 \<in> S" by(auto dest: set_relD2)
+      hence "?f t2 = s2" by(auto dest: bi_uniqueDl[OF assms])
+      ultimately have "s1 = s2" using `?f t1 = ?f t2` by simp
+      with `A s1 t1` `A s2 t2` show "t1 = t2" by(auto dest: bi_uniqueDr[OF assms])
+    qed
+
+    fix t
+    assume "t \<in> T"
+    with ST obtain s where "A s t" "s \<in> S" by(auto dest: set_relD2)
+    hence "?f t = s" by(auto dest: bi_uniqueDl[OF assms])
+    moreover from fg `A s t` have "f s = g t" by(rule fun_relD)
+    ultimately show "g t = f (?f t)" by simp
+  qed
+qed
 
 end
 

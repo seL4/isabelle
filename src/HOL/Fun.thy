@@ -491,8 +491,11 @@ apply (unfold bij_def)
 apply (blast del: subsetI intro: vimage_subsetI vimage_subsetD)
 done
 
+lemma inj_on_image_eq_iff: "\<lbrakk> inj_on f C; A \<subseteq> C; B \<subseteq> C \<rbrakk> \<Longrightarrow> f ` A = f ` B \<longleftrightarrow> A = B"
+by(fastforce simp add: inj_on_def)
+
 lemma inj_on_Un_image_eq_iff: "inj_on f (A \<union> B) \<Longrightarrow> f ` A = f ` B \<longleftrightarrow> A = B"
-by(blast dest: inj_onD)
+by(erule inj_on_image_eq_iff) simp_all
 
 lemma inj_on_image_Int:
    "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A Int B) = f`A Int f`B"
