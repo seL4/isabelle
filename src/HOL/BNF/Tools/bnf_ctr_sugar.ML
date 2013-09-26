@@ -31,6 +31,7 @@ sig
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
+  val ctr_sugars_of: Proof.context -> ctr_sugar list
 
   val rep_compat_prefix: string
 
@@ -81,6 +82,10 @@ type ctr_sugar =
    expands: thm list,
    case_conv_ifs: thm list};
 
+fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
+    {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
+  ctrs1 = ctrs2 andalso case1 = case2 andalso discs1 = discs2 andalso selss1 = selss2;
+
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
     disc_exhausts, collapses, expands, case_conv_ifs} =
@@ -105,9 +110,8 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    expands = map (Morphism.thm phi) expands,
    case_conv_ifs = map (Morphism.thm phi) case_conv_ifs};
 
-fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
-    {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
-  ctrs1 = ctrs2 andalso case1 = case2 andalso discs1 = discs2 andalso selss1 = selss2;
+val transfer_ctr_sugar =
+  morph_ctr_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
 
 structure Data = Generic_Data
 (
@@ -119,8 +123,10 @@ structure Data = Generic_Data
 
 fun ctr_sugar_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (morph_ctr_sugar
-    (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
+  #> Option.map (transfer_ctr_sugar ctxt);
+
+fun ctr_sugars_of ctxt =
+  Symtab.fold (cons o transfer_ctr_sugar ctxt o snd) (Data.get (Context.Proof ctxt)) [];
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
