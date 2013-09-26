@@ -811,7 +811,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   |> Thm.close_derivation
                 end;
 
-              val expand_thms =
+              val expand_thm =
                 let
                   fun mk_prems k udisc usels vdisc vsels =
                     (if k = n then [] else [mk_Trueprop_eq (udisc, vdisc)]) @
@@ -829,12 +829,12 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   val uncollapse_thms =
                     map2 (fn thm => fn [] => thm | _ => thm RS sym) all_collapse_thms uselss;
                 in
-                  [Goal.prove_sorry lthy [] [] goal (fn _ =>
-                     mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
-                       (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
-                       disc_exclude_thmsss')]
-                  |> map Thm.close_derivation
-                  |> Proof_Context.export names_lthy lthy
+                  Goal.prove_sorry lthy [] [] goal (fn _ =>
+                    mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
+                      (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
+                      disc_exclude_thmsss')
+                  |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
 
               val (sel_split_thm, sel_split_asm_thm) =
@@ -849,20 +849,20 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   (thm, asm_thm)
                 end;
 
-              val case_conv_if_thms =
+              val case_conv_if_thm =
                 let
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs usel_fs);
                 in
-                  [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                     mk_case_conv_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
-                  |> map Thm.close_derivation
-                  |> Proof_Context.export names_lthy lthy
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
+                    mk_case_conv_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
+                  |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
                nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], [sel_exhaust_thm],
-               all_collapse_thms, safe_collapse_thms, expand_thms, [sel_split_thm],
-               [sel_split_asm_thm], case_conv_if_thms)
+               all_collapse_thms, safe_collapse_thms, [expand_thm], [sel_split_thm],
+               [sel_split_asm_thm], [case_conv_if_thm])
             end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
