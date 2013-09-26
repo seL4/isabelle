@@ -49,7 +49,7 @@ fun mk_primcorec_same_case_tac m =
     else REPEAT_DETERM_N (m - 1) o (rtac conjI THEN' atac) THEN' atac);
 
 fun mk_primcorec_different_case_tac ctxt excl =
-  unfold_thms_tac ctxt @{thms not_not not_False_eq_True} THEN
+  unfold_thms_tac ctxt @{thms not_not not_False_eq_True not_True_eq_False} THEN
   HEADGOAL (rtac excl THEN_ALL_NEW SELECT_GOAL (mk_primcorec_assumption_tac ctxt []));
 
 fun mk_primcorec_cases_tac ctxt k m exclsss =
