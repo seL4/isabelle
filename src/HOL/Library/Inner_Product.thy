@@ -114,6 +114,9 @@ proof (rule power2_le_imp_le)
     by (intro mult_nonneg_nonneg real_sqrt_ge_zero inner_ge_zero)
 qed
 
+lemma norm_cauchy_schwarz: "inner x y \<le> norm x * norm y"
+  using Cauchy_Schwarz_ineq2 [of x y] by auto
+
 subclass real_normed_vector
 proof
   fix a :: real and x y :: 'a
@@ -122,7 +125,7 @@ proof
   show "norm (x + y) \<le> norm x + norm y"
     proof (rule power2_le_imp_le)
       have "inner x y \<le> norm x * norm y"
-        by (rule order_trans [OF abs_ge_self Cauchy_Schwarz_ineq2])
+        by (rule norm_cauchy_schwarz)
       thus "(norm (x + y))\<^sup>2 \<le> (norm x + norm y)\<^sup>2"
         unfolding power2_sum power2_norm_eq_inner
         by (simp add: inner_add inner_commute)

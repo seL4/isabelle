@@ -69,10 +69,6 @@ text{* Hence derive more interesting properties of the norm. *}
 lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
   by simp (* TODO: delete *)
 
-lemma norm_cauchy_schwarz: "x \<bullet> y \<le> norm x * norm y"
-  (* TODO: move to Inner_Product.thy *)
-  using Cauchy_Schwarz_ineq2[of x y] by auto
-
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
   shows "norm x \<le> norm y + norm (x - y)"
