@@ -231,12 +231,7 @@ proof
   hence "fst x \<noteq> fst y \<or> snd x \<noteq> snd y"
     by (simp add: prod_eq_iff)
   thus "\<exists>U. open U \<and> (x \<in> U) \<noteq> (y \<in> U)"
-    apply (rule disjE)
-    apply (drule t0_space, erule exE, rule_tac x="U \<times> UNIV" in exI)
-    apply (simp add: open_Times mem_Times_iff)
-    apply (drule t0_space, erule exE, rule_tac x="UNIV \<times> U" in exI)
-    apply (simp add: open_Times mem_Times_iff)
-    done
+    by (fast dest: t0_space elim: open_vimage_fst open_vimage_snd)
 qed
 
 instance prod :: (t1_space, t1_space) t1_space
@@ -245,12 +240,7 @@ proof
   hence "fst x \<noteq> fst y \<or> snd x \<noteq> snd y"
     by (simp add: prod_eq_iff)
   thus "\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U"
-    apply (rule disjE)
-    apply (drule t1_space, erule exE, rule_tac x="U \<times> UNIV" in exI)
-    apply (simp add: open_Times mem_Times_iff)
-    apply (drule t1_space, erule exE, rule_tac x="UNIV \<times> U" in exI)
-    apply (simp add: open_Times mem_Times_iff)
-    done
+    by (fast dest: t1_space elim: open_vimage_fst open_vimage_snd)
 qed
 
 instance prod :: (t2_space, t2_space) t2_space
@@ -259,14 +249,7 @@ proof
   hence "fst x \<noteq> fst y \<or> snd x \<noteq> snd y"
     by (simp add: prod_eq_iff)
   thus "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    apply (rule disjE)
-    apply (drule hausdorff, clarify)
-    apply (rule_tac x="U \<times> UNIV" in exI, rule_tac x="V \<times> UNIV" in exI)
-    apply (simp add: open_Times mem_Times_iff disjoint_iff_not_equal)
-    apply (drule hausdorff, clarify)
-    apply (rule_tac x="UNIV \<times> U" in exI, rule_tac x="UNIV \<times> V" in exI)
-    apply (simp add: open_Times mem_Times_iff disjoint_iff_not_equal)
-    done
+    by (fast dest: hausdorff elim: open_vimage_fst open_vimage_snd)
 qed
 
 subsection {* Product is a metric space *}
@@ -281,10 +264,10 @@ lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d
   unfolding dist_prod_def by simp
 
 lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
-unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge1)
+  unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge1)
 
 lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
-unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge2)
+  unfolding dist_prod_def by (rule real_sqrt_sum_squares_ge2)
 
 instance proof
   fix x y :: "'a \<times> 'b"
@@ -362,10 +345,10 @@ qed
 end
 
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
-unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
+  unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
 
 lemma Cauchy_snd: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. snd (X n))"
-unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_snd_le])
+  unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_snd_le])
 
 lemma Cauchy_Pair:
   assumes "Cauchy X" and "Cauchy Y"
