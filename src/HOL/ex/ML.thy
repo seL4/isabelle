@@ -55,9 +55,11 @@ section {* IDE support *}
 text {*
   ML embedded into the Isabelle environment is connected to the Prover IDE.
   Poly/ML provides:
-    \<bullet> precise positions for warnings / errors
-    \<bullet> markup for defining positions of identifiers
-    \<bullet> markup for inferred types of sub-expressions
+  \begin{itemize}
+    \item precise positions for warnings / errors
+    \item markup for defining positions of identifiers
+    \item markup for inferred types of sub-expressions
+  \end{itemize}
 *}
 
 ML {* fn i => fn list => length list + i *}
