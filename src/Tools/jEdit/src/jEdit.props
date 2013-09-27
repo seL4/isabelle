@@ -1,4 +1,5 @@
 #jEdit properties
+action-bar.shortcut=C+ENTER
 buffer.deepIndent=false
 buffer.encoding=UTF-8-Isabelle
 buffer.indentSize=2

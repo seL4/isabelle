@@ -70,7 +70,7 @@ sig
   val fold_rev_corec_code_rhs: Proof.context -> (term list -> term -> term list -> 'a -> 'a) ->
     typ list -> term -> 'a -> 'a
   val case_thms_of_term: Proof.context -> typ list -> term ->
-    thm list * thm list * thm list * thm list * thm list
+    thm list * thm list * thm list * thm list
 
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
@@ -234,7 +234,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
         o fld (conds @ s_not_disj cond) else_branch
       | (Const (c, _), args as _ :: _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
-          if length args > n then
+          if n >= 0 andalso n < length args then
             (case fastype_of1 (bound_Ts, nth args n) of
               Type (s, Ts) =>
               (case dest_case ctxt s Ts t of
@@ -276,7 +276,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
             val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
             val n = length gen_branch_Ts;
           in
-            if length args > n then
+            if n < length args then
               (case gen_body_fun_T of
                 Type (_, [Type (T_name, _), _]) =>
                 if case_of ctxt T_name = SOME c then
@@ -397,8 +397,8 @@ fun case_thms_of_term ctxt bound_Ts t =
     val (caseT_names, _) = fold_rev_let_if_case ctxt (K (K I)) bound_Ts t ();
     val ctr_sugars = map (the o ctr_sugar_of ctxt) caseT_names;
   in
-    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #collapses ctr_sugars,
-     map #split ctr_sugars, map #split_asm ctr_sugars)
+    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #sel_splits ctr_sugars,
+     maps #sel_split_asms ctr_sugars)
   end;
 
 fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;

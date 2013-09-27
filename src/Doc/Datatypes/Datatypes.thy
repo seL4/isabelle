@@ -781,8 +781,17 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{disc\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
 @{thm list.disc_exhaust[no_vars]}
 
+\item[@{text "t."}\hthm{sel\_exhaust} @{text "[case_names C\<^sub>1 \<dots> C\<^sub>n]"}\rm:] ~ \\
+@{thm list.sel_exhaust[no_vars]}
+
 \item[@{text "t."}\hthm{expand}\rm:] ~ \\
 @{thm list.expand[no_vars]}
+
+\item[@{text "t."}\hthm{sel\_split}\rm:] ~ \\
+@{thm list.sel_split[no_vars]}
+
+\item[@{text "t."}\hthm{sel\_split\_asm}\rm:] ~ \\
+@{thm list.sel_split_asm[no_vars]}
 
 \item[@{text "t."}\hthm{case\_conv\_if}\rm:] ~ \\
 @{thm list.case_conv_if[no_vars]}

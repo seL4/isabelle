@@ -1,3 +1,17 @@
+diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java
+--- 5.1.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2013-07-28 19:03:32.000000000 +0200
++++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/textarea/TextArea.java	2013-09-26 16:09:50.131780476 +0200
+@@ -1610,8 +1615,8 @@
+ 		}
+ 
+ 		// Scan backwards, trying to find a bracket
+-		String openBrackets = "([{";
+-		String closeBrackets = ")]}";
++		String openBrackets = "([{«‹⟨⌈⌊⦇⟦⦃";
++		String closeBrackets = ")]}»›⟩⌉⌋⦈⟧⦄'";
+ 		int count = 1;
+ 		char openBracket = '\0';
+ 		char closeBracket = '\0';
 diff -ru 5.1.0/jEdit/org/gjt/sp/jedit/TextUtilities.java 5.1.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java
 --- 5.1.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2013-07-28 19:03:24.000000000 +0200
 +++ 5.1.0/jEdit-patched/org/gjt/sp/jedit/TextUtilities.java	2013-09-05 10:51:09.996193290 +0200

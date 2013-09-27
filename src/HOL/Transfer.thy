@@ -158,6 +158,18 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
     (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z) \<and>
     (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
+lemma bi_uniqueDr: "\<lbrakk> bi_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
+by(simp add: bi_unique_def)
+
+lemma bi_uniqueDl: "\<lbrakk> bi_unique A; A x y; A z y \<rbrakk> \<Longrightarrow> x = z"
+by(simp add: bi_unique_def)
+
+lemma right_uniqueI: "(\<And>x y z. \<lbrakk> A x y; A x z \<rbrakk> \<Longrightarrow> y = z) \<Longrightarrow> right_unique A"
+unfolding right_unique_def by blast
+
+lemma right_uniqueD: "\<lbrakk> right_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
+unfolding right_unique_def by blast
+
 lemma right_total_alt_def:
   "right_total R \<longleftrightarrow> ((R ===> op \<longrightarrow>) ===> op \<longrightarrow>) All All"
   unfolding right_total_def fun_rel_def

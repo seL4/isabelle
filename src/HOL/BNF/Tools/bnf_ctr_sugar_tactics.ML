@@ -19,8 +19,9 @@ sig
   val mk_half_disc_exclude_tac: Proof.context -> int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
-  val mk_split_tac: Proof.context ->
-    thm -> thm list -> thm list list -> thm list list list -> tactic
+  val mk_sel_exhaust_tac: int -> thm -> thm list -> tactic
+  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> thm list
+    list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
@@ -56,10 +57,16 @@ fun mk_half_disc_exclude_tac ctxt m discD disc' =
 
 fun mk_other_half_disc_exclude_tac half = HEADGOAL (etac @{thm contrapos_pn} THEN' etac half);
 
-fun mk_disc_exhaust_tac n exhaust discIs =
+fun mk_disc_or_sel_exhaust_tac n exhaust destIs =
   HEADGOAL (rtac exhaust THEN'
-    EVERY' (map2 (fn k => fn discI =>
-      dtac discI THEN' select_prem_tac n (etac meta_mp) k THEN' atac) (1 upto n) discIs));
+    EVERY' (map2 (fn k => fn destI => dtac destI THEN'
+      select_prem_tac n (etac meta_mp) k THEN' atac) (1 upto n) destIs));
+
+val mk_disc_exhaust_tac = mk_disc_or_sel_exhaust_tac;
+
+fun mk_sel_exhaust_tac n disc_exhaust collapses =
+  mk_disc_or_sel_exhaust_tac n disc_exhaust collapses ORELSE
+  HEADGOAL (etac meta_mp THEN' resolve_tac collapses);
 
 fun mk_collapse_tac ctxt m discD sels =
   HEADGOAL (dtac discD THEN'
@@ -134,10 +141,10 @@ fun mk_case_cong_tac ctxt uexhaust cases =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases));
 
-fun mk_split_tac ctxt uexhaust cases injectss distinctsss =
+fun mk_split_tac ctxt uexhaust cases selss injectss distinctsss =
   HEADGOAL (rtac uexhaust) THEN
   ALLGOALS (fn k => (hyp_subst_tac ctxt THEN'
-     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth injectss (k - 1) @
+     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth selss (k - 1) @ nth injectss (k - 1) @
        flat (nth distinctsss (k - 1))) ctxt)) k) THEN
   ALLGOALS (blast_tac (put_claset (claset_of @{theory_context HOL}) ctxt));
 

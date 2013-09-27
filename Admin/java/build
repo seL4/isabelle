@@ -71,7 +71,10 @@ EOF
 
 # content
 
-export COPYFILE_DISABLE=true
+#GNU tar (notably on Mac OS X)
+if [ -x /usr/bin/gnutar ]; then
+  function tar() { /usr/bin/gnutar "$@"; }
+fi
 
 mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86_64-darwin" "$DIR/x86-cygwin"
 

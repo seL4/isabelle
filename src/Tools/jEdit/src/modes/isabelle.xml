@@ -7,27 +7,9 @@
     <PROPERTY NAME="commentStart" VALUE="(*"/>
     <PROPERTY NAME="commentEnd" VALUE="*)"/>
     <PROPERTY NAME="noWordSep" VALUE="_'.?"/>
-    <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹" />
-    <PROPERTY NAME="unalignedCloseBrackets" VALUE="›»)]}" />
+    <PROPERTY NAME="unalignedOpenBrackets" VALUE="{[(«‹⟨⌈⌊⦇⟦⦃" />
+    <PROPERTY NAME="unalignedCloseBrackets" VALUE="⦄⟧⦈⌋⌉⟩›»)]}" />
     <PROPERTY NAME="tabSize" VALUE="2" />
     <PROPERTY NAME="indentSize" VALUE="2" />
   </PROPS>
-  <RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="FALSE" ESCAPE="\">
-    <SPAN TYPE="COMMENT1">
-      <BEGIN>(*</BEGIN>
-      <END>*)</END>
-    </SPAN>
-    <SPAN TYPE="COMMENT3">
-      <BEGIN>{*</BEGIN>
-      <END>*}</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL1">
-      <BEGIN>`</BEGIN>
-      <END>`</END>
-    </SPAN>
-    <SPAN TYPE="LITERAL3">
-      <BEGIN>"</BEGIN>
-      <END>"</END>
-    </SPAN>
-  </RULES>
 </MODE>

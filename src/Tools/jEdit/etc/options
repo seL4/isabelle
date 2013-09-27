@@ -30,12 +30,6 @@ public option jedit_text_overview_limit : int = 65536
 public option jedit_symbols_search_limit : int = 50
   -- "maximum number of symbols in search result"
 
-option jedit_macos_application : bool = false
-  -- "some native Mac OS X application support (potential conflict with MacOSX plugin)"
-
-option jedit_macos_preferences : bool = false
-  -- "native Mac OS X preferences menu"
-
 public option jedit_timing_threshold : real = 0.1
   -- "default threshold for timing display"
 

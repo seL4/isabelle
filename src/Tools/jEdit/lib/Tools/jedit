@@ -28,7 +28,6 @@ declare -a SOURCES=(
   "src/jedit_options.scala"
   "src/jedit_thy_load.scala"
   "src/monitor_dockable.scala"
-  "src/osx_adapter.scala"
   "src/output_dockable.scala"
   "src/plugin.scala"
   "src/pretty_text_area.scala"

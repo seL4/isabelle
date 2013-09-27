@@ -38,8 +38,20 @@ lemma left_totalE:
   obtains "(\<And>x. \<exists>y. R x y)"
 using assms unfolding left_total_def by blast
 
+lemma bi_total_conv_left_right: "bi_total R \<longleftrightarrow> left_total R \<and> right_total R"
+by(simp add: left_total_def right_total_def bi_total_def)
+
 definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
+lemma bi_unique_conv_left_right: "bi_unique R \<longleftrightarrow> left_unique R \<and> right_unique R"
+by(auto simp add: left_unique_def right_unique_def bi_unique_def)
+
+lemma left_uniqueI: "(\<And>x y z. \<lbrakk> A x z; A y z \<rbrakk> \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
+unfolding left_unique_def by blast
+
+lemma left_uniqueD: "\<lbrakk> left_unique A; A x z; A y z \<rbrakk> \<Longrightarrow> x = y"
+unfolding left_unique_def by blast
 
 lemma left_total_fun:
   "\<lbrakk>left_unique A; left_total B\<rbrakk> \<Longrightarrow> left_total (A ===> B)"
