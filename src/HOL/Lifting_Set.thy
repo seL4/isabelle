@@ -162,6 +162,10 @@ proof(rule fun_relI)+
     by(rule SUPR_eq)(auto 4 4 dest: set_relD1[OF AB] set_relD2[OF AB] fun_relD[OF fg] intro: rev_bexI)
 qed
 
+lemma bind_transfer [transfer_rule]:
+  "(set_rel A ===> (A ===> set_rel B) ===> set_rel B) Set.bind Set.bind"
+unfolding bind_UNION[abs_def] by transfer_prover
+
 subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
 
 lemma member_transfer [transfer_rule]:

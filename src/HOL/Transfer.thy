@@ -292,6 +292,17 @@ lemma bi_unique_fun [transfer_rule]:
 
 subsection {* Transfer rules *}
 
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
+
+lemma Domainp_forall_transfer [transfer_rule]:
+  assumes "right_total A"
+  shows "((A ===> op =) ===> op =)
+    (transfer_bforall (Domainp A)) transfer_forall"
+  using assms unfolding right_total_def
+  unfolding transfer_forall_def transfer_bforall_def fun_rel_def Domainp_iff
+  by metis
+
 text {* Transfer rules using implication instead of equality on booleans. *}
 
 lemma transfer_forall_transfer [transfer_rule]:
@@ -323,9 +334,6 @@ lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> A ===> op =) (op =) (op =)"
   using assms unfolding bi_unique_def fun_rel_def by auto
-
-lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
-  by auto
 
 lemma right_total_Ex_transfer[transfer_rule]:
   assumes "right_total A"
@@ -379,17 +387,50 @@ lemma funpow_transfer [transfer_rule]:
   "(op = ===> (A ===> A) ===> (A ===> A)) compow compow"
   unfolding funpow_def by transfer_prover
 
-lemma Domainp_forall_transfer [transfer_rule]:
-  assumes "right_total A"
-  shows "((A ===> op =) ===> op =)
-    (transfer_bforall (Domainp A)) transfer_forall"
-  using assms unfolding right_total_def
-  unfolding transfer_forall_def transfer_bforall_def fun_rel_def Domainp_iff
-  by metis
+lemma mono_transfer[transfer_rule]:
+  assumes [transfer_rule]: "bi_total A"
+  assumes [transfer_rule]: "(A ===> A ===> op=) op\<le> op\<le>"
+  assumes [transfer_rule]: "(B ===> B ===> op=) op\<le> op\<le>"
+  shows "((A ===> B) ===> op=) mono mono"
+unfolding mono_def[abs_def] by transfer_prover
 
-lemma forall_transfer [transfer_rule]:
-  "bi_total A \<Longrightarrow> ((A ===> op =) ===> op =) transfer_forall transfer_forall"
-  unfolding transfer_forall_def by (rule All_transfer)
+lemma right_total_relcompp_transfer[transfer_rule]: 
+  assumes [transfer_rule]: "right_total B"
+  shows "((A ===> B ===> op=) ===> (B ===> C ===> op=) ===> A ===> C ===> op=) 
+    (\<lambda>R S x z. \<exists>y\<in>Collect (Domainp B). R x y \<and> S y z) op OO"
+unfolding OO_def[abs_def] by transfer_prover
+
+lemma relcompp_transfer[transfer_rule]: 
+  assumes [transfer_rule]: "bi_total B"
+  shows "((A ===> B ===> op=) ===> (B ===> C ===> op=) ===> A ===> C ===> op=) op OO op OO"
+unfolding OO_def[abs_def] by transfer_prover
+
+lemma right_total_Domainp_transfer[transfer_rule]:
+  assumes [transfer_rule]: "right_total B"
+  shows "((A ===> B ===> op=) ===> A ===> op=) (\<lambda>T x. \<exists>y\<in>Collect(Domainp B). T x y) Domainp"
+apply(subst(2) Domainp_iff[abs_def]) by transfer_prover
+
+lemma Domainp_transfer[transfer_rule]:
+  assumes [transfer_rule]: "bi_total B"
+  shows "((A ===> B ===> op=) ===> A ===> op=) Domainp Domainp"
+unfolding Domainp_iff[abs_def] by transfer_prover
+
+lemma reflp_transfer[transfer_rule]: 
+  "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> op=) reflp reflp"
+  "right_total A \<Longrightarrow> ((A ===> A ===> implies) ===> implies) reflp reflp"
+  "right_total A \<Longrightarrow> ((A ===> A ===> op=) ===> implies) reflp reflp"
+  "bi_total A \<Longrightarrow> ((A ===> A ===> rev_implies) ===> rev_implies) reflp reflp"
+  "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> rev_implies) reflp reflp"
+using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def fun_rel_def 
+by fast+
+
+lemma right_unique_transfer [transfer_rule]:
+  assumes [transfer_rule]: "right_total A"
+  assumes [transfer_rule]: "right_total B"
+  assumes [transfer_rule]: "bi_unique B"
+  shows "((A ===> B ===> op=) ===> implies) right_unique right_unique"
+using assms unfolding right_unique_def[abs_def] right_total_def bi_unique_def fun_rel_def
+by metis
 
 end
 
