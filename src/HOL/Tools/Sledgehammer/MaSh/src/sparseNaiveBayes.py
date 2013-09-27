@@ -76,7 +76,7 @@ class sparseNBClassifier(object):
         """
         for dep in dependencies:
             self.counts[dep][0] -= 1
-            for f,_w in features:
+            for f,_w in features.items():
                 self.counts[dep][1][f] -= 1
 
 
@@ -97,7 +97,6 @@ class sparseNBClassifier(object):
         """
         tau = 0.05 # Jasmin, change value here
         predictions = []
-        #observedFeatures = [f for f,_w in features]
         observedFeatures = features.keys()
         for a in accessibles:
             posA = self.counts[a][0]

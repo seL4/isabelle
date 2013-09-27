@@ -156,34 +156,35 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(4194304).strip()
         self.server.lock.acquire()
-        # Update idle shutdown timer
-        self.server.idle_timer.cancel()
-        self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
-        self.server.idle_timer.start()        
+        try:
+            # Update idle shutdown timer
+            self.server.idle_timer.cancel()
+            self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
+            self.server.idle_timer.start()        
 
-        self.startTime = time()  
-        if self.data == 'shutdown':
-            self.shutdown()         
-        elif self.data == 'save':
-            self.server.save()       
-        elif self.data.startswith('i'):            
-            self.init(self.data[2:])
-        elif self.data.startswith('!'):
-            self.update()
-        elif self.data.startswith('p'):
-            self.overwrite()
-        elif self.data.startswith('?'):               
-            self.predict()
-        elif self.data == '':
-            # Empty Socket
+            self.startTime = time()  
+            if self.data == 'shutdown':
+                self.shutdown()         
+            elif self.data == 'save':
+                self.server.save()       
+            elif self.data.startswith('i'):            
+                self.init(self.data[2:])
+            elif self.data.startswith('!'):
+                self.update()
+            elif self.data.startswith('p'):
+                self.overwrite()
+            elif self.data.startswith('?'):               
+                self.predict()
+            elif self.data == '':
+                # Empty Socket
+                return
+            elif self.data == 'avgStats':
+                self.request.sendall(self.server.stats.printAvg())            
+            else:
+                self.request.sendall('Unspecified input format: \n%s',self.data)
+            self.server.callCounter += 1
+        finally:
             self.server.lock.release()
-            return
-        elif self.data == 'avgStats':
-            self.request.sendall(self.server.stats.printAvg())            
-        else:
-            self.request.sendall('Unspecified input format: \n%s',self.data)
-        self.server.callCounter += 1
-        self.server.lock.release()
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9255
