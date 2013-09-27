@@ -32,6 +32,14 @@ lemma inth_append [simp]:
   (xs @ ys) !! i = (if i < size xs then xs !! i else ys !! (i - size xs))"
 by (induction xs arbitrary: i) (auto simp: algebra_simps)
 
+text{* We hide coercion @{const int} applied to @{const length}: *}
+
+abbreviation (output)
+  "isize xs == int (length xs)"
+
+notation isize ("size")
+
+
 subsection "Instructions and Stack Machine"
 
 text_raw{*\snip{instrdef}{0}{1}{% *}
