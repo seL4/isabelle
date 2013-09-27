@@ -84,6 +84,8 @@ local
 
 val theory_name = Parse.group (fn () => "theory name") (Parse.position Parse.name);
 
+val imports = Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name);
+
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
 
@@ -105,11 +107,10 @@ val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 in
 
 val args =
-  theory_name --
-  Scan.optional (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) [] --
-  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
-  Parse.$$$ beginN >>
-  (fn ((name, imports), keywords) => make name imports keywords);
+  theory_name :|-- (fn (name, pos) =>
+    (if name = Context.PureN then Scan.succeed [] else imports) --
+    Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
+    Parse.$$$ beginN >> (fn (imports, keywords) => make (name, pos) imports keywords));
 
 end;
 
