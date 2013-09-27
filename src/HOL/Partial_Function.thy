@@ -248,21 +248,21 @@ abbreviation "tailrec_ord \<equiv> flat_ord undefined"
 abbreviation "mono_tailrec \<equiv> monotone (fun_ord tailrec_ord) tailrec_ord"
 
 lemma tailrec_admissible:
-  "ccpo.admissible (fun_lub (flat_lub undefined)) (fun_ord tailrec_ord)
-     (\<lambda>a. \<forall>x. a x \<noteq> undefined \<longrightarrow> P x (a x))"
+  "ccpo.admissible (fun_lub (flat_lub c)) (fun_ord (flat_ord c))
+     (\<lambda>a. \<forall>x. a x \<noteq> c \<longrightarrow> P x (a x))"
 proof(intro ccpo.admissibleI strip)
   fix A x
-  assume chain: "Complete_Partial_Order.chain (fun_ord tailrec_ord) A"
-    and P [rule_format]: "\<forall>f\<in>A. \<forall>x. f x \<noteq> undefined \<longrightarrow> P x (f x)"
-    and defined: "fun_lub (flat_lub undefined) A x \<noteq> undefined"
-  from defined obtain f where f: "f \<in> A" "f x \<noteq> undefined"
+  assume chain: "Complete_Partial_Order.chain (fun_ord (flat_ord c)) A"
+    and P [rule_format]: "\<forall>f\<in>A. \<forall>x. f x \<noteq> c \<longrightarrow> P x (f x)"
+    and defined: "fun_lub (flat_lub c) A x \<noteq> c"
+  from defined obtain f where f: "f \<in> A" "f x \<noteq> c"
     by(auto simp add: fun_lub_def flat_lub_def split: split_if_asm)
   hence "P x (f x)" by(rule P)
-  moreover from chain f have "\<forall>f' \<in> A. f' x = undefined \<or> f' x = f x"
+  moreover from chain f have "\<forall>f' \<in> A. f' x = c \<or> f' x = f x"
     by(auto 4 4 simp add: Complete_Partial_Order.chain_def flat_ord_def fun_ord_def)
-  hence "fun_lub (flat_lub undefined) A x = f x"
+  hence "fun_lub (flat_lub c) A x = f x"
     using f by(auto simp add: fun_lub_def flat_lub_def)
-  ultimately show "P x (fun_lub (flat_lub undefined) A x)" by simp
+  ultimately show "P x (fun_lub (flat_lub c) A x)" by simp
 qed
 
 lemma fixp_induct_tailrec:
@@ -271,16 +271,17 @@ lemma fixp_induct_tailrec:
     C :: "('b \<Rightarrow> 'a) \<Rightarrow> 'c" and
     P :: "'b \<Rightarrow> 'a \<Rightarrow> bool" and
     x :: "'b"
-  assumes mono: "\<And>x. mono_tailrec (\<lambda>f. U (F (C f)) x)"
-  assumes eq: "f \<equiv> C (ccpo.fixp (fun_lub (flat_lub undefined)) (fun_ord tailrec_ord) (\<lambda>f. U (F (C f))))"
+  assumes mono: "\<And>x. monotone (fun_ord (flat_ord c)) (flat_ord c) (\<lambda>f. U (F (C f)) x)"
+  assumes eq: "f \<equiv> C (ccpo.fixp (fun_lub (flat_lub c)) (fun_ord (flat_ord c)) (\<lambda>f. U (F (C f))))"
   assumes inverse2: "\<And>f. U (C f) = f"
-  assumes step: "\<And>f x y. (\<And>x y. U f x = y \<Longrightarrow> y \<noteq> undefined \<Longrightarrow> P x y) \<Longrightarrow> U (F f) x = y \<Longrightarrow> y \<noteq> undefined \<Longrightarrow> P x y"
+  assumes step: "\<And>f x y. (\<And>x y. U f x = y \<Longrightarrow> y \<noteq> c \<Longrightarrow> P x y) \<Longrightarrow> U (F f) x = y \<Longrightarrow> y \<noteq> c \<Longrightarrow> P x y"
   assumes result: "U f x = y"
-  assumes defined: "y \<noteq> undefined"
+  assumes defined: "y \<noteq> c"
   shows "P x y"
 proof -
-  have "\<forall>x y. U f x = y \<longrightarrow> y \<noteq> undefined \<longrightarrow> P x y"
-    by(rule tailrec.fixp_induct_uc[of U F C, OF mono eq inverse2])(auto intro: step tailrec_admissible)
+  have "\<forall>x y. U f x = y \<longrightarrow> y \<noteq> c \<longrightarrow> P x y"
+    by(rule partial_function_definitions.fixp_induct_uc[OF flat_interpretation, of _ U F C, OF mono eq inverse2])
+      (auto intro: step tailrec_admissible)
   thus ?thesis using result defined by blast
 qed
 
@@ -391,7 +392,7 @@ lemma fixp_induct_option:
 
 declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
   @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}
-  (SOME @{thm fixp_induct_tailrec}) *}
+  (SOME @{thm fixp_induct_tailrec[where c=undefined]}) *}
 
 declaration {* Partial_Function.init "option" @{term option.fixp_fun}
   @{term option.mono_body} @{thm option.fixp_rule_uc} @{thm option.fixp_induct_uc}
