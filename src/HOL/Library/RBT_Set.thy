@@ -135,6 +135,9 @@ lemma [code, code del]:
 lemma [code, code del]: 
   "List.map_project = List.map_project" ..
 
+lemma [code, code del]: 
+  "List.Bleast = List.Bleast" ..
+
 section {* Lemmas *}
 
 
@@ -804,6 +807,28 @@ qed
 lemma sorted_list_set[code]:
   "sorted_list_of_set (Set t) = keys t"
 by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
+
+lemma Bleast_code [code]:
+ "Bleast (Set t) P = (case filter P (keys t) of
+    x#xs \<Rightarrow> x |
+    [] \<Rightarrow> abort_Bleast (Set t) P)"
+proof (cases "filter P (keys t)")
+  case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
+next
+  case (Cons x ys)
+  have "(LEAST x. x \<in> Set t \<and> P x) = x"
+  proof (rule Least_equality)
+    show "x \<in> Set t \<and> P x" using Cons[symmetric]
+      by(auto simp add: set_keys Cons_eq_filter_iff)
+    next
+      fix y assume "y : Set t \<and> P y"
+      then show "x \<le> y" using Cons[symmetric]
+        by(auto simp add: set_keys Cons_eq_filter_iff)
+          (metis sorted_Cons sorted_append sorted_keys)
+  qed
+  thus ?thesis using Cons by (simp add: Bleast_def)
+qed
+
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset
 
