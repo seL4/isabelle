@@ -201,6 +201,12 @@ lemma bi_unique_alt_def:
   "bi_unique R \<longleftrightarrow> (R ===> R ===> op =) (op =) (op =)"
   unfolding bi_unique_def fun_rel_def by auto
 
+lemma bi_unique_conversep [simp]: "bi_unique R\<inverse>\<inverse> = bi_unique R"
+by(auto simp add: bi_unique_def)
+
+lemma bi_total_conversep [simp]: "bi_total R\<inverse>\<inverse> = bi_total R"
+by(auto simp add: bi_total_def)
+
 text {* Properties are preserved by relation composition. *}
 
 lemma OO_def: "R OO S = (\<lambda>x z. \<exists>y. R x y \<and> S y z)"
