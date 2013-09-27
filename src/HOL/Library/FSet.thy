@@ -189,6 +189,8 @@ by (subst(asm) compose_rel_to_Domainp [OF _ finite_transfer])
 lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer ..
 lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer ..
 
+lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold ..
+
 subsection {* Transferred lemmas from Set.thy *}
 
 lemmas fset_eqI = set_eqI[Transfer.transferred]
@@ -445,23 +447,25 @@ lemma femptyE [elim!]: "a |\<in>| {||} \<Longrightarrow> P"
 
 subsubsection {* fset *}
 
-lemmas fset_simp[simp] = bot_fset.rep_eq finsert.rep_eq
+lemmas fset_simps[simp] = bot_fset.rep_eq finsert.rep_eq
 
 lemma finite_fset [simp]: 
   shows "finite (fset S)"
   by transfer simp
 
-lemmas fset_cong[simp] = fset_inject
+lemmas fset_cong = fset_inject
 
 lemma filter_fset [simp]:
   shows "fset (ffilter P xs) = Collect P \<inter> fset xs"
   by transfer auto
 
-lemmas inter_fset [simp] = inf_fset.rep_eq
+lemma notin_fset: "x |\<notin>| S \<longleftrightarrow> x \<notin> fset S" by (simp add: fmember.rep_eq)
 
-lemmas union_fset [simp] = sup_fset.rep_eq
+lemmas inter_fset[simp] = inf_fset.rep_eq
 
-lemmas minus_fset [simp] = minus_fset.rep_eq
+lemmas union_fset[simp] = sup_fset.rep_eq
+
+lemmas minus_fset[simp] = minus_fset.rep_eq
 
 subsubsection {* filter_fset *}
 
@@ -478,7 +482,7 @@ lemma psubset_ffilter:
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 
-subsubsection {* insert *}
+subsubsection {* finsert *}
 
 (* FIXME, transferred doesn't work here *)
 lemma set_finsert:
@@ -489,7 +493,7 @@ using assms by transfer (metis Set.set_insert finite_insert)
 lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finsert a B \<and> a |\<notin>| B"
   by (rule_tac x = "A |-| {|a|}" in exI, blast)
 
-subsubsection {* image *}
+subsubsection {* fimage *}
 
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
@@ -521,6 +525,146 @@ lemma atomize_fBall:
 apply (simp only: atomize_all atomize_imp)
 apply (rule equal_intr_rule)
 by (transfer, simp)+
+
+end
+
+subsubsection {* fcard *}
+
+lemma fcard_fempty:
+  "fcard {||} = 0"
+  by transfer (rule card_empty)
+
+lemma fcard_finsert_disjoint:
+  "x |\<notin>| A \<Longrightarrow> fcard (finsert x A) = Suc (fcard A)"
+  by transfer (rule card_insert_disjoint)
+
+lemma fcard_finsert_if:
+  "fcard (finsert x A) = (if x |\<in>| A then fcard A else Suc (fcard A))"
+  by transfer (rule card_insert_if)
+
+lemma card_0_eq [simp, no_atp]:
+  "fcard A = 0 \<longleftrightarrow> A = {||}"
+  by transfer (rule card_0_eq)
+
+lemma fcard_Suc_fminus1:
+  "x |\<in>| A \<Longrightarrow> Suc (fcard (A |-| {|x|})) = fcard A"
+  by transfer (rule card_Suc_Diff1)
+
+lemma fcard_fminus_fsingleton:
+  "x |\<in>| A \<Longrightarrow> fcard (A |-| {|x|}) = fcard A - 1"
+  by transfer (rule card_Diff_singleton)
+
+lemma fcard_fminus_fsingleton_if:
+  "fcard (A |-| {|x|}) = (if x |\<in>| A then fcard A - 1 else fcard A)"
+  by transfer (rule card_Diff_singleton_if)
+
+lemma fcard_fminus_finsert[simp]:
+  assumes "a |\<in>| A" and "a |\<notin>| B"
+  shows "fcard (A |-| finsert a B) = fcard (A |-| B) - 1"
+using assms by transfer (rule card_Diff_insert)
+
+lemma fcard_finsert: "fcard (finsert x A) = Suc (fcard (A |-| {|x|}))"
+by transfer (rule card_insert)
+
+lemma fcard_finsert_le: "fcard A \<le> fcard (finsert x A)"
+by transfer (rule card_insert_le)
+
+lemma fcard_mono:
+  "A |\<subseteq>| B \<Longrightarrow> fcard A \<le> fcard B"
+by transfer (rule card_mono)
+
+lemma fcard_seteq: "A |\<subseteq>| B \<Longrightarrow> fcard B \<le> fcard A \<Longrightarrow> A = B"
+by transfer (rule card_seteq)
+
+lemma pfsubset_fcard_mono: "A |\<subset>| B \<Longrightarrow> fcard A < fcard B"
+by transfer (rule psubset_card_mono)
+
+lemma fcard_funion_finter: 
+  "fcard A + fcard B = fcard (A |\<union>| B) + fcard (A |\<inter>| B)"
+by transfer (rule card_Un_Int)
+
+lemma fcard_funion_disjoint:
+  "A |\<inter>| B = {||} \<Longrightarrow> fcard (A |\<union>| B) = fcard A + fcard B"
+by transfer (rule card_Un_disjoint)
+
+lemma fcard_funion_fsubset:
+  "B |\<subseteq>| A \<Longrightarrow> fcard (A |-| B) = fcard A - fcard B"
+by transfer (rule card_Diff_subset)
+
+lemma diff_fcard_le_fcard_fminus:
+  "fcard A - fcard B \<le> fcard(A |-| B)"
+by transfer (rule diff_card_le_card_Diff)
+
+lemma fcard_fminus1_less: "x |\<in>| A \<Longrightarrow> fcard (A |-| {|x|}) < fcard A"
+by transfer (rule card_Diff1_less)
+
+lemma fcard_fminus2_less:
+  "x |\<in>| A \<Longrightarrow> y |\<in>| A \<Longrightarrow> fcard (A |-| {|x|} |-| {|y|}) < fcard A"
+by transfer (rule card_Diff2_less)
+
+lemma fcard_fminus1_le: "fcard (A |-| {|x|}) \<le> fcard A"
+by transfer (rule card_Diff1_le)
+
+lemma fcard_pfsubset: "A |\<subseteq>| B \<Longrightarrow> fcard A < fcard B \<Longrightarrow> A < B"
+by transfer (rule card_psubset)
+
+subsubsection {* ffold *}
+
+(* FIXME: improve transferred to handle bounded meta quantification *)
+
+context comp_fun_commute
+begin
+  lemmas ffold_empty[simp] = fold_empty[Transfer.transferred]
+
+  lemma ffold_finsert [simp]:
+    assumes "x |\<notin>| A"
+    shows "ffold f z (finsert x A) = f x (ffold f z A)"
+    using assms by (transfer fixing: f) (rule fold_insert)
+
+  lemma ffold_fun_left_comm:
+    "f x (ffold f z A) = ffold f (f x z) A"
+    by (transfer fixing: f) (rule fold_fun_left_comm)
+
+  lemma ffold_finsert2:
+    "x |\<notin>| A \<Longrightarrow> ffold f z (finsert x A)  = ffold f (f x z) A"
+    by (transfer fixing: f) (rule fold_insert2)
+
+  lemma ffold_rec:
+    assumes "x |\<in>| A"
+    shows "ffold f z A = f x (ffold f z (A |-| {|x|}))"
+    using assms by (transfer fixing: f) (rule fold_rec)
+  
+  lemma ffold_finsert_fremove:
+    "ffold f z (finsert x A) = f x (ffold f z (A |-| {|x|}))"
+     by (transfer fixing: f) (rule fold_insert_remove)
+end
+
+lemma ffold_fimage:
+  assumes "inj_on g (fset A)"
+  shows "ffold f z (g |`| A) = ffold (f \<circ> g) z A"
+using assms by transfer' (rule fold_image)
+
+lemma ffold_cong:
+  assumes "comp_fun_commute f" "comp_fun_commute g"
+  "\<And>x. x |\<in>| A \<Longrightarrow> f x = g x"
+    and "s = t" and "A = B"
+  shows "ffold f s A = ffold g t B"
+using assms by transfer (metis Finite_Set.fold_cong)
+
+context comp_fun_idem
+begin
+
+  lemma ffold_finsert_idem:
+    "ffold f z (finsert x A)  = f x (ffold f z A)"
+    by (transfer fixing: f) (rule fold_insert_idem)
+  
+  declare ffold_finsert [simp del] ffold_finsert_idem [simp]
+  
+  lemma ffold_finsert_idem2:
+    "ffold f z (finsert x A) = ffold f (f x z) A"
+    by (transfer fixing: f) (rule fold_insert_idem2)
+
+end
 
 subsection {* Choice in fsets *}
 
@@ -705,6 +849,11 @@ subsubsection {* Transfer rules for the Transfer package *}
 
 text {* Unconditional transfer rules *}
 
+context
+begin
+
+interpretation lifting_syntax .
+
 lemmas fempty_transfer [transfer_rule] = empty_transfer[Transfer.transferred]
 
 lemma finsert_transfer [transfer_rule]:
@@ -763,7 +912,7 @@ lemma finter_transfer [transfer_rule]:
   using assms unfolding fun_rel_def
   using inter_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
 
-lemma fDiff_transfer [transfer_rule]:
+lemma fminus_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(fset_rel A ===> fset_rel A ===> fset_rel A) (op |-|) (op |-|)"
   using assms unfolding fun_rel_def
@@ -809,4 +958,3 @@ lifting_update fset.lifting
 lifting_forget fset.lifting
 
 end
-
