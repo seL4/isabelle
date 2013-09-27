@@ -71,7 +71,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms maps map_idents m
     exclsss =
   mk_primcorec_prelude ctxt defs (f_sel RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
-  unfold_thms_tac ctxt (@{thms o_def split_def sum.cases} @ maps @ map_comps @ map_idents) THEN
+  unfold_thms_tac ctxt (@{thms id_apply o_def split_def sum.cases} @ maps @ map_comps @
+    map_idents) THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
     eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
@@ -111,6 +112,5 @@ fun mk_primcorec_code_of_raw_tac splits disc_excludes raw =
      Splitter.split_tac (split_if :: splits) ORELSE'
      etac notE THEN' atac ORELSE'
      (TRY o dresolve_tac disc_excludes) THEN' etac notE THEN' atac));
-
 
 end;
