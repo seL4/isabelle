@@ -12,6 +12,7 @@ sig
   val content: 'a T -> 'a list
   val length: 'a T -> int
   val retrieve: 'a T -> term -> 'a list
+  val retrieve_matching: 'a T -> term -> 'a list
   val member: 'a T -> 'a -> bool
   val merge: 'a T * 'a T -> 'a T
   val remove: 'a -> 'a T -> 'a T
@@ -39,6 +40,7 @@ fun init eq index = mk_items eq index [] ~1 Net.empty;
 fun content (Items {content, ...}) = content;
 fun length items = List.length (content items);
 fun retrieve (Items {net, ...}) = order_list o Net.unify_term net;
+fun retrieve_matching (Items {net, ...}) = order_list o Net.match_term net;
 
 
 (* standard operations *)
