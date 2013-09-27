@@ -23,7 +23,7 @@ lemma set_relD1: "\<lbrakk> set_rel R A B; x \<in> A \<rbrakk> \<Longrightarrow>
   and set_relD2: "\<lbrakk> set_rel R A B; y \<in> B \<rbrakk> \<Longrightarrow> \<exists>x \<in> A. R x y"
 by(simp_all add: set_rel_def)
 
-lemma set_rel_conversep: "set_rel (conversep R) = conversep (set_rel R)"
+lemma set_rel_conversep [simp]: "set_rel A\<inverse>\<inverse> = (set_rel A)\<inverse>\<inverse>"
   unfolding set_rel_def by auto
 
 lemma set_rel_eq [relator_eq]: "set_rel (op =) = (op =)"
@@ -71,8 +71,7 @@ lemma left_unique_set_rel[reflexivity_rule]:
 
 lemma right_total_set_rel [transfer_rule]:
   "right_total A \<Longrightarrow> right_total (set_rel A)"
-  unfolding right_total_def set_rel_def
-  by (rule allI, rename_tac Y, rule_tac x="{x. \<exists>y\<in>Y. A x y}" in exI, fast)
+using left_total_set_rel[of "A\<inverse>\<inverse>"] by simp
 
 lemma right_unique_set_rel [transfer_rule]:
   "right_unique A \<Longrightarrow> right_unique (set_rel A)"
@@ -80,11 +79,7 @@ lemma right_unique_set_rel [transfer_rule]:
 
 lemma bi_total_set_rel [transfer_rule]:
   "bi_total A \<Longrightarrow> bi_total (set_rel A)"
-  unfolding bi_total_def set_rel_def
-  apply safe
-  apply (rename_tac X, rule_tac x="{y. \<exists>x\<in>X. A x y}" in exI, fast)
-  apply (rename_tac Y, rule_tac x="{x. \<exists>y\<in>Y. A x y}" in exI, fast)
-  done
+by(simp add: bi_total_conv_left_right left_total_set_rel right_total_set_rel)
 
 lemma bi_unique_set_rel [transfer_rule]:
   "bi_unique A \<Longrightarrow> bi_unique (set_rel A)"
@@ -100,7 +95,7 @@ lemma Quotient_set[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (set_rel R) (image Abs) (image Rep) (set_rel T)"
   using assms unfolding Quotient_alt_def4
-  apply (simp add: set_rel_OO[symmetric] set_rel_conversep)
+  apply (simp add: set_rel_OO[symmetric])
   apply (simp add: set_rel_def, fast)
   done
 
