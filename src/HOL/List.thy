@@ -5961,6 +5961,37 @@ lemma setsum_set_upt_conv_listsum_nat [code_unfold]:
   "setsum f (set [m..<n]) = listsum (map f [m..<n])"
   by (simp add: interv_listsum_conv_setsum_set_nat)
 
+text{* Bounded @{text LEAST} operator: *}
+
+definition "Bleast S P = (LEAST x. x \<in> S \<and> P x)"
+
+definition "abort_Bleast S P = (LEAST x. x \<in> S \<and> P x)"
+
+code_abort abort_Bleast
+
+lemma Bleast_code [code]:
+ "Bleast (set xs) P = (case filter P (sort xs) of
+    x#xs \<Rightarrow> x |
+    [] \<Rightarrow> abort_Bleast (set xs) P)"
+proof (cases "filter P (sort xs)")
+  case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
+next
+  case (Cons x ys)
+  have "(LEAST x. x \<in> set xs \<and> P x) = x"
+  proof (rule Least_equality)
+    show "x \<in> set xs \<and> P x"
+      by (metis Cons Cons_eq_filter_iff in_set_conv_decomp set_sort)
+    next
+      fix y assume "y : set xs \<and> P y"
+      hence "y : set (filter P xs)" by auto
+      thus "x \<le> y"
+        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted_Cons sorted_sort)
+  qed
+  thus ?thesis using Cons by (simp add: Bleast_def)
+qed
+
+declare Bleast_def[symmetric, code_unfold]
+
 text {* Summation over ints. *}
 
 lemma greaterThanLessThan_upto [code_unfold]:
