@@ -23,6 +23,7 @@ imports
   Float
   Formal_Power_Series
   Fraction_Field
+  FSet
   FuncSet
   Function_Division
   Function_Growth
