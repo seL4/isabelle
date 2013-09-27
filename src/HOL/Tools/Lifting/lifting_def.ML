@@ -10,10 +10,10 @@ sig
     Proof.context -> thm -> thm -> thm
 
   val add_lift_def:
-    (binding * mixfix) -> typ -> term -> thm -> thm option -> local_theory -> local_theory
+    (binding * mixfix) -> typ -> term -> thm -> thm list -> local_theory -> local_theory
 
   val lift_def_cmd:
-    (binding * string option * mixfix) * string * (Facts.ref * Args.src list) option -> local_theory -> Proof.state
+    (binding * string option * mixfix) * string * (Facts.ref * Args.src list) list -> local_theory -> Proof.state
 
   val can_generate_code_cert: thm -> bool
 end
@@ -135,14 +135,17 @@ fun print_generate_transfer_info msg =
     error error_msg
   end
 
-fun generate_transfer_rule lthy quot_thm rsp_thm def_thm opt_par_thm =
+fun map_ter _ x [] = x
+    | map_ter f _ xs = map f xs
+
+fun generate_transfer_rules lthy quot_thm rsp_thm def_thm par_thms =
   let
     val transfer_rule =
       ([quot_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer})
       |> Lifting_Term.parametrize_transfer_rule lthy
   in
-    (option_fold transfer_rule (generate_parametric_transfer_rule lthy transfer_rule) opt_par_thm
-    handle Lifting_Term.MERGE_TRANSFER_REL msg => (print_generate_transfer_info msg; transfer_rule))
+    (map_ter (generate_parametric_transfer_rule lthy transfer_rule) [transfer_rule] par_thms
+    handle Lifting_Term.MERGE_TRANSFER_REL msg => (print_generate_transfer_info msg; [transfer_rule]))
   end
 
 (* Generation of the code certificate from the rsp theorem *)
@@ -399,7 +402,7 @@ fun define_code abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
     i.e. "(Lifting_Term.equiv_relation (fastype_of rhs, qty)) $ rhs $ rhs"
 *)
 
-fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
+fun add_lift_def var qty rhs rsp_thm par_thms lthy =
   let
     val rty = fastype_of rhs
     val quot_thm = Lifting_Term.prove_quot_thm lthy (rty, qty)
@@ -414,7 +417,7 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
-    val transfer_rule = generate_transfer_rule lthy' quot_thm rsp_thm def_thm opt_par_thm
+    val transfer_rules = generate_transfer_rules lthy' quot_thm rsp_thm def_thm par_thms
 
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
     val opt_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)
@@ -430,7 +433,7 @@ fun add_lift_def var qty rhs rsp_thm opt_par_thm lthy =
   in
     lthy'
       |> (snd oo Local_Theory.note) ((rsp_thm_name, []), [rsp_thm])
-      |> (snd oo Local_Theory.note) ((transfer_rule_name, [transfer_attr]), [transfer_rule])
+      |> (snd oo Local_Theory.note) ((transfer_rule_name, [transfer_attr]), transfer_rules)
       |> (snd oo Local_Theory.note) ((abs_eq_thm_name, []), [abs_eq_thm])
       |> (case opt_rep_eq_thm of 
             SOME rep_eq_thm => (snd oo Local_Theory.note) ((rep_eq_thm_name, []), [rep_eq_thm])
@@ -495,7 +498,7 @@ fun rename_to_tnames ctxt term =
 
 *)
 
-fun lift_def_cmd (raw_var, rhs_raw, opt_par_xthm) lthy =
+fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
   let
     val ((binding, SOME qty, mx), lthy) = yield_singleton Proof_Context.read_vars raw_var lthy 
     val rhs = (Syntax.check_term lthy o Syntax.parse_term lthy) rhs_raw
@@ -504,10 +507,10 @@ fun lift_def_cmd (raw_var, rhs_raw, opt_par_xthm) lthy =
     val forced_rhs = force_rty_type lthy rty_forced rhs;
     val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
     val opt_proven_rsp_thm = try_prove_reflexivity lthy internal_rsp_tm
-    val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
+    val par_thms = Attrib.eval_thms lthy par_xthms
     
     fun after_qed internal_rsp_thm lthy = 
-      add_lift_def (binding, mx) qty rhs internal_rsp_thm opt_par_thm lthy
+      add_lift_def (binding, mx) qty rhs internal_rsp_thm par_thms lthy
 
   in
     case opt_proven_rsp_thm of
@@ -567,8 +570,8 @@ fun check_rty_err ctxt (rty_schematic, rty_forced) (raw_var, rhs_raw) =
       error error_msg
     end
 
-fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, opt_par_xthm) lthy =
-  (lift_def_cmd (raw_var, rhs_raw, opt_par_xthm) lthy
+fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, par_xthms) lthy =
+  (lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy
     handle Lifting_Term.QUOT_THM (rty, qty, msg) => quot_thm_err lthy (rty, qty) msg)
     handle Lifting_Term.CHECK_RTY (rty_schematic, rty_forced) => 
       check_rty_err lthy (rty_schematic, rty_forced) (raw_var, rhs_raw)
@@ -576,7 +579,8 @@ fun lift_def_cmd_with_err_handling (raw_var, rhs_raw, opt_par_xthm) lthy =
 (* parser and command *)
 val liftdef_parser =
   (((Parse.binding -- (@{keyword "::"} |-- (Parse.typ >> SOME) -- Parse.opt_mixfix')) >> Parse.triple2)
-    --| @{keyword "is"} -- Parse.term -- Scan.option (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthm)) >> Parse.triple1
+    --| @{keyword "is"} -- Parse.term -- 
+      Scan.optional (@{keyword "parametric"} |-- Parse.!!! Parse_Spec.xthms1) []) >> Parse.triple1
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "lift_definition"}
     "definition for constants over the quotient type"
