@@ -368,8 +368,10 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
           | _ => ill_formed_corec_call ctxt t)
         else
           build_map_Inl (T, U) $ t) bound_Ts;
+
+    val T = fastype_of1 (bound_Ts, t);
   in
-    massage_call bound_Ts U (fastype_of1 (bound_Ts, t)) t
+    if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
   end;
 
 fun expand_ctr_term ctxt s Ts t =
