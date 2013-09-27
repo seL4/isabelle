@@ -2282,5 +2282,224 @@ proof -
     using I[of a x] I[of x b] x less_trans[OF x] by (auto simp add: le_less less_imp_neq neq_iff)
 qed
 
+subsection {* Setup @{typ "'a filter"} for lifting and transfer *}
+
+context begin interpretation lifting_syntax .
+
+definition filter_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool"
+where "filter_rel R F G = ((R ===> op =) ===> op =) (Rep_filter F) (Rep_filter G)"
+
+lemma filter_rel_eventually:
+  "filter_rel R F G \<longleftrightarrow> 
+  ((R ===> op =) ===> op =) (\<lambda>P. eventually P F) (\<lambda>P. eventually P G)"
+by(simp add: filter_rel_def eventually_def)
+
+lemma filtermap_id [simp, id_simps]: "filtermap id = id"
+by(simp add: fun_eq_iff id_def filtermap_ident)
+
+lemma filtermap_id' [simp]: "filtermap (\<lambda>x. x) = (\<lambda>F. F)"
+using filtermap_id unfolding id_def .
+
+lemma Quotient_filter [quot_map]:
+  assumes Q: "Quotient R Abs Rep T"
+  shows "Quotient (filter_rel R) (filtermap Abs) (filtermap Rep) (filter_rel T)"
+unfolding Quotient_alt_def
+proof(intro conjI strip)
+  from Q have *: "\<And>x y. T x y \<Longrightarrow> Abs x = y"
+    unfolding Quotient_alt_def by blast
+
+  fix F G
+  assume "filter_rel T F G"
+  thus "filtermap Abs F = G" unfolding filter_eq_iff
+    by(auto simp add: eventually_filtermap filter_rel_eventually * fun_relI del: iffI elim!: fun_relD)
+next
+  from Q have *: "\<And>x. T (Rep x) x" unfolding Quotient_alt_def by blast
+
+  fix F
+  show "filter_rel T (filtermap Rep F) F" 
+    by(auto elim: fun_relD intro: * intro!: ext arg_cong[where f="\<lambda>P. eventually P F"] fun_relI
+            del: iffI simp add: eventually_filtermap filter_rel_eventually)
+qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_iff filter_rel_eventually
+         fun_quotient[OF fun_quotient[OF Q identity_quotient] identity_quotient, unfolded Quotient_alt_def])
+
+lemma eventually_parametric [transfer_rule]:
+  "((A ===> op =) ===> filter_rel A ===> op =) eventually eventually"
+by(simp add: fun_rel_def filter_rel_eventually)
+
+lemma filter_rel_eq [relator_eq]: "filter_rel op = = op ="
+by(auto simp add: filter_rel_eventually fun_rel_eq fun_eq_iff filter_eq_iff)
+
+lemma filter_rel_mono [relator_mono]:
+  "A \<le> B \<Longrightarrow> filter_rel A \<le> filter_rel B"
+unfolding filter_rel_eventually[abs_def]
+by(rule le_funI)+(intro fun_mono fun_mono[THEN le_funD, THEN le_funD] order.refl)
+
+lemma reflp_filter_rel [reflexivity_rule]: "reflp R \<Longrightarrow> reflp (filter_rel R)"
+unfolding filter_rel_eventually[abs_def]
+by(blast intro!: reflpI eventually_subst always_eventually dest: fun_relD reflpD)
+
+lemma filter_rel_conversep [simp]: "filter_rel A\<inverse>\<inverse> = (filter_rel A)\<inverse>\<inverse>"
+by(auto simp add: filter_rel_eventually fun_eq_iff fun_rel_def)
+
+lemma is_filter_parametric_aux:
+  assumes "is_filter F"
+  assumes [transfer_rule]: "bi_total A" "bi_unique A"
+  and [transfer_rule]: "((A ===> op =) ===> op =) F G"
+  shows "is_filter G"
+proof -
+  interpret is_filter F by fact
+  show ?thesis
+  proof
+    have "F (\<lambda>_. True) = G (\<lambda>x. True)" by transfer_prover
+    thus "G (\<lambda>x. True)" by(simp add: True)
+  next
+    fix P' Q'
+    assume "G P'" "G Q'"
+    moreover
+    from bi_total_fun[OF `bi_unique A` bi_total_eq, unfolded bi_total_def]
+    obtain P Q where [transfer_rule]: "(A ===> op =) P P'" "(A ===> op =) Q Q'" by blast
+    have "F P = G P'" "F Q = G Q'" by transfer_prover+
+    ultimately have "F (\<lambda>x. P x \<and> Q x)" by(simp add: conj)
+    moreover have "F (\<lambda>x. P x \<and> Q x) = G (\<lambda>x. P' x \<and> Q' x)" by transfer_prover
+    ultimately show "G (\<lambda>x. P' x \<and> Q' x)" by simp
+  next
+    fix P' Q'
+    assume "\<forall>x. P' x \<longrightarrow> Q' x" "G P'"
+    moreover
+    from bi_total_fun[OF `bi_unique A` bi_total_eq, unfolded bi_total_def]
+    obtain P Q where [transfer_rule]: "(A ===> op =) P P'" "(A ===> op =) Q Q'" by blast
+    have "F P = G P'" by transfer_prover
+    moreover have "(\<forall>x. P x \<longrightarrow> Q x) \<longleftrightarrow> (\<forall>x. P' x \<longrightarrow> Q' x)" by transfer_prover
+    ultimately have "F Q" by(simp add: mono)
+    moreover have "F Q = G Q'" by transfer_prover
+    ultimately show "G Q'" by simp
+  qed
+qed
+
+lemma is_filter_parametric [transfer_rule]:
+  "\<lbrakk> bi_total A; bi_unique A \<rbrakk>
+  \<Longrightarrow> (((A ===> op =) ===> op =) ===> op =) is_filter is_filter"
+apply(rule fun_relI)
+apply(rule iffI)
+ apply(erule (3) is_filter_parametric_aux)
+apply(erule is_filter_parametric_aux[where A="conversep A"])
+apply(auto simp add: fun_rel_def)
+done
+
+lemma left_total_filter_rel [reflexivity_rule]:
+  assumes [transfer_rule]: "bi_total A" "bi_unique A"
+  shows "left_total (filter_rel A)"
+proof(rule left_totalI)
+  fix F :: "'a filter"
+  from bi_total_fun[OF bi_unique_fun[OF `bi_total A` bi_unique_eq] bi_total_eq]
+  obtain G where [transfer_rule]: "((A ===> op =) ===> op =) (\<lambda>P. eventually P F) G" 
+    unfolding  bi_total_def by blast
+  moreover have "is_filter (\<lambda>P. eventually P F) \<longleftrightarrow> is_filter G" by transfer_prover
+  hence "is_filter G" by(simp add: eventually_def is_filter_Rep_filter)
+  ultimately have "filter_rel A F (Abs_filter G)"
+    by(simp add: filter_rel_eventually eventually_Abs_filter)
+  thus "\<exists>G. filter_rel A F G" ..
+qed
+
+lemma right_total_filter_rel [transfer_rule]:
+  "\<lbrakk> bi_total A; bi_unique A \<rbrakk> \<Longrightarrow> right_total (filter_rel A)"
+using left_total_filter_rel[of "A\<inverse>\<inverse>"] by simp
+
+lemma bi_total_filter_rel [transfer_rule]:
+  assumes "bi_total A" "bi_unique A"
+  shows "bi_total (filter_rel A)"
+unfolding bi_total_conv_left_right using assms
+by(simp add: left_total_filter_rel right_total_filter_rel)
+
+lemma left_unique_filter_rel [reflexivity_rule]:
+  assumes "left_unique A"
+  shows "left_unique (filter_rel A)"
+proof(rule left_uniqueI)
+  fix F F' G
+  assume [transfer_rule]: "filter_rel A F G" "filter_rel A F' G"
+  show "F = F'"
+    unfolding filter_eq_iff
+  proof
+    fix P :: "'a \<Rightarrow> bool"
+    obtain P' where [transfer_rule]: "(A ===> op =) P P'"
+      using left_total_fun[OF assms left_total_eq] unfolding left_total_def by blast
+    have "eventually P F = eventually P' G" 
+      and "eventually P F' = eventually P' G" by transfer_prover+
+    thus "eventually P F = eventually P F'" by simp
+  qed
+qed
+
+lemma right_unique_filter_rel [transfer_rule]:
+  "right_unique A \<Longrightarrow> right_unique (filter_rel A)"
+using left_unique_filter_rel[of "A\<inverse>\<inverse>"] by simp
+
+lemma bi_unique_filter_rel [transfer_rule]:
+  "bi_unique A \<Longrightarrow> bi_unique (filter_rel A)"
+by(simp add: bi_unique_conv_left_right left_unique_filter_rel right_unique_filter_rel)
+
+lemma top_filter_parametric [transfer_rule]:
+  "bi_total A \<Longrightarrow> (filter_rel A) top top"
+by(simp add: filter_rel_eventually All_transfer)
+
+lemma bot_filter_parametric [transfer_rule]: "(filter_rel A) bot bot"
+by(simp add: filter_rel_eventually fun_rel_def)
+
+lemma sup_filter_parametric [transfer_rule]:
+  "(filter_rel A ===> filter_rel A ===> filter_rel A) sup sup"
+by(fastforce simp add: filter_rel_eventually[abs_def] eventually_sup dest: fun_relD)
+
+lemma Sup_filter_parametric [transfer_rule]:
+  "(set_rel (filter_rel A) ===> filter_rel A) Sup Sup"
+proof(rule fun_relI)
+  fix S T
+  assume [transfer_rule]: "set_rel (filter_rel A) S T"
+  show "filter_rel A (Sup S) (Sup T)"
+    by(simp add: filter_rel_eventually eventually_Sup) transfer_prover
+qed
+
+lemma principal_parametric [transfer_rule]:
+  "(set_rel A ===> filter_rel A) principal principal"
+proof(rule fun_relI)
+  fix S S'
+  assume [transfer_rule]: "set_rel A S S'"
+  show "filter_rel A (principal S) (principal S')"
+    by(simp add: filter_rel_eventually eventually_principal) transfer_prover
+qed
+
+context
+  fixes A :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
+  assumes [transfer_rule]: "bi_unique A" 
+begin
+
+lemma le_filter_parametric [transfer_rule]:
+  "(filter_rel A ===> filter_rel A ===> op =) op \<le> op \<le>"
+unfolding le_filter_def[abs_def] by transfer_prover
+
+lemma less_filter_parametric [transfer_rule]:
+  "(filter_rel A ===> filter_rel A ===> op =) op < op <"
+unfolding less_filter_def[abs_def] by transfer_prover
+
+context
+  assumes [transfer_rule]: "bi_total A"
+begin
+
+lemma Inf_filter_parametric [transfer_rule]:
+  "(set_rel (filter_rel A) ===> filter_rel A) Inf Inf"
+unfolding Inf_filter_def[abs_def] by transfer_prover
+
+lemma inf_filter_parametric [transfer_rule]:
+  "(filter_rel A ===> filter_rel A ===> filter_rel A) inf inf"
+proof(intro fun_relI)+
+  fix F F' G G'
+  assume [transfer_rule]: "filter_rel A F F'" "filter_rel A G G'"
+  have "filter_rel A (Inf {F, G}) (Inf {F', G'})" by transfer_prover
+  thus "filter_rel A (inf F G) (inf F' G')" by simp
+qed
+
 end
 
+end
+
+end
+
+end
