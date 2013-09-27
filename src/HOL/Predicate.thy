@@ -5,7 +5,7 @@
 header {* Predicates as enumerations *}
 
 theory Predicate
-imports List
+imports String
 begin
 
 subsection {* The type of predicate enumerations (a monad) *}
@@ -590,13 +590,8 @@ lemma the_eqI:
   "(THE x. eval P x) = x \<Longrightarrow> the P = x"
   by (simp add: the_def)
 
-definition not_unique :: "'a pred \<Rightarrow> 'a" where
-  [code del]: "not_unique A = (THE x. eval A x)"
-
-code_abort not_unique
-
-lemma the_eq [code]: "the A = singleton (\<lambda>x. not_unique A) A"
-  by (rule the_eqI) (simp add: singleton_def not_unique_def)
+lemma the_eq [code]: "the A = singleton (\<lambda>x. Code.abort (STR ''not_unique'') (\<lambda>_. the A)) A"
+  by (rule the_eqI) (simp add: singleton_def the_def)
 
 code_reflect Predicate
   datatypes pred = Seq and seq = Empty | Insert | Join
@@ -722,7 +717,7 @@ no_notation
 
 hide_type (open) pred seq
 hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map not_unique the
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct null the_only eq map the
   iterate_upto
 hide_fact (open) null_def member_def
 
