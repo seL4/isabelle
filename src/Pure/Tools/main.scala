@@ -222,14 +222,23 @@ object Main
 
   def update_environment()
   {
-    val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
     val update =
-      if (Platform.is_windows)
-        List("ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home), "INI_DIR" -> "")
-      else
-        List("ISABELLE_HOME" -> isabelle_home)
+    {
+      val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
+      val upd =
+        if (Platform.is_windows)
+          List("ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home), "INI_DIR" -> "")
+        else
+          List("ISABELLE_HOME" -> isabelle_home)
 
-    val official_env = System.getenv()
+      (env0: Any) => {
+        val env = env0.asInstanceOf[java.util.Map[String, String]]
+        upd.foreach {
+          case (x, "") => env.remove(x)
+          case (x, y) => env.put(x, y)
+        }
+      }
+    }
 
     classOf[java.util.Collections].getDeclaredClasses
       .find(c => c.getName == "java.util.Collections$UnmodifiableMap") match
@@ -237,12 +246,17 @@ object Main
       case Some(c) =>
         val m = c.getDeclaredField("m")
         m.setAccessible(true)
-        val env = m.get(official_env).asInstanceOf[java.util.Map[String, String]]
-        update.foreach {
-          case (x, "") => env.remove(x)
-          case (x, y) => env.put(x, y)
+        update(m.get(System.getenv()))
+
+        if (Platform.is_windows) {
+          val ProcessEnvironment = Class.forName("java.lang.ProcessEnvironment")
+          val field = ProcessEnvironment.getDeclaredField("theCaseInsensitiveEnvironment")
+          field.setAccessible(true)
+          update(field.get(null))
         }
-      case None => error("Failed to update JVM environment -- platform incompatibility")
+
+      case None =>
+        error("Failed to update JVM environment -- platform incompatibility")
     }
   }
 }
