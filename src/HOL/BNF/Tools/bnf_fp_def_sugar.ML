@@ -131,14 +131,15 @@ type fp_sugar =
    disc_co_itersss: thm list list list,
    sel_co_iterssss: thm list list list list};
 
-fun of_fp_sugar f (fp_sugar as {index, ...}) = nth (f fp_sugar) index;
+fun of_fp_sugar f (fp_sugar as ({index, ...}: fp_sugar)) = nth (f fp_sugar) index;
 
 fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_res, ctr_defss,
-    ctr_sugars, co_iterss, mapss, co_inducts, co_iter_thmsss, disc_co_itersss, sel_co_iterssss} =
+fun morph_fp_sugar phi ({T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_res, ctr_defss,
+    ctr_sugars, co_iterss, mapss, co_inducts, co_iter_thmsss, disc_co_itersss, sel_co_iterssss}
+    : fp_sugar) =
   {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
     nested_bnfs = map (morph_bnf phi) nested_bnfs, nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
    fp_res = morph_fp_result phi fp_res,
@@ -768,7 +769,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
     dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs kss mss ns
-    ctr_defss ctr_sugars coiterss coiter_defss export_args lthy =
+    ctr_defss (ctr_sugars : ctr_sugar list) coiterss coiter_defss export_args lthy =
   let
     fun mk_ctor_dtor_coiter_thm dtor_inject dtor_ctor coiter =
       iffD1 OF [dtor_inject, trans OF [coiter, dtor_ctor RS sym]];
@@ -1420,8 +1421,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       |>> apsnd split_list o apfst (apsnd split_list4 o apfst split_list4 o split_list)
         o split_list;
 
-    fun mk_simp_thms {injects, distincts, case_thms, ...} un_folds co_recs mapsx rel_injects
-        rel_distincts setss =
+    fun mk_simp_thms ({injects, distincts, case_thms, ...} : ctr_sugar) un_folds co_recs
+        mapsx rel_injects rel_distincts setss =
       injects @ distincts @ case_thms @ co_recs @ un_folds @ mapsx @ rel_injects @ rel_distincts
       @ flat setss;
 
@@ -1514,7 +1515,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            (unfoldN, unfold_thmss, K coiter_attrs)]
           |> massage_multi_notes;
 
-        fun register_nitpick fpT {ctrs, casex, ...} =
+        fun register_nitpick fpT ({ctrs, casex, ...} : ctr_sugar) =
           Nitpick_HOL.register_codatatype fpT (fst (dest_Const casex))
             (map (dest_Const o mk_ctr As) ctrs)
           |> Generic_Target.theory_declaration;
@@ -1544,10 +1545,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     timer; lthy''
   end;
 
-val co_datatypes = define_co_datatypes (K I) (K I) (K I);
+fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) x;
 
-val co_datatype_cmd =
-  define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term;
+fun co_datatype_cmd x =
+  define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term x;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||

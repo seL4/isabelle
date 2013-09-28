@@ -471,7 +471,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val perm_Cs' = map substCT perm_Cs;
 
     fun offset_of_ctr 0 _ = 0
-      | offset_of_ctr n ({ctrs, ...} :: ctr_sugars) =
+      | offset_of_ctr n (({ctrs, ...} : ctr_sugar) :: ctr_sugars) =
         length ctrs + offset_of_ctr (n - 1) ctr_sugars;
 
     fun call_of [i] [T] = (if exists_subtype_in Cs T then Indirect_Rec else No_Rec) i
@@ -487,7 +487,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
          rec_thm = rec_thm}
       end;
 
-    fun mk_ctr_specs index ctr_sugars iter_thmsss =
+    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) iter_thmsss =
       let
         val ctrs = #ctrs (nth ctr_sugars index);
         val rec_thmss = co_rec_of (nth iter_thmsss index);
@@ -497,7 +497,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
         map4 mk_ctr_spec ctrs (k upto k + n - 1) (nth perm_fun_arg_Tssss index) rec_thmss
       end;
 
-    fun mk_spec {T, index, ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...} =
+    fun mk_spec ({T, index, ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...}
+      : fp_sugar) =
       {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of (nth iterss index)),
        nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
@@ -579,8 +580,8 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
          sel_corecs = sel_corecs}
       end;
 
-    fun mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss disc_coitersss
-        sel_coiterssss =
+    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) p_is q_isss f_isss f_Tsss
+        coiter_thmsss disc_coitersss sel_coiterssss =
       let
         val ctrs = #ctrs (nth ctr_sugars index);
         val discs = #discs (nth ctr_sugars index);
@@ -597,8 +598,8 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
           corec_thms disc_corecs sel_corecss
       end;
 
-    fun mk_spec {T, index, ctr_sugars, co_iterss = coiterss, co_iter_thmsss = coiter_thmsss,
-          disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...}
+    fun mk_spec ({T, index, ctr_sugars, co_iterss = coiterss, co_iter_thmsss = coiter_thmsss,
+          disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...} : fp_sugar)
         p_is q_isss f_isss f_Tsss =
       {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
        nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,

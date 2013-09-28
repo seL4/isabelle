@@ -55,7 +55,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
 
       val nn = length fpTs;
 
-      fun target_ctr_sugar_of_fp_sugar fpT {T, index, ctr_sugars, ...} =
+      fun target_ctr_sugar_of_fp_sugar fpT ({T, index, ctr_sugars, ...} : fp_sugar) =
         let
           val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (T, fpT) Vartab.empty) [];
           val phi = Morphism.term_morphism (Term.subst_TVars rho);
