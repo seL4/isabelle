@@ -1,10 +1,17 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2013-1 (November 2013)
+-------------------------------------
 
 *** General ***
+
+* Discontinued obsolete 'uses' within theory header.  Note that
+commands like 'ML_file' work without separate declaration of file
+dependencies.  Minor INCOMPATIBILITY.
+
+* Discontinued redundant 'use' command, which was superseded by
+'ML_file' in Isabelle2013.  Minor INCOMPATIBILITY.
 
 * Simplified subscripts within identifiers, using plain \<^sub>
 instead of the second copy \<^isub> and \<^isup>.  Superscripts are
@@ -29,23 +36,6 @@ quick_and_dirty, instead of historical poking into mutable reference.
 * Renamed command 'print_configs' to 'print_options'.  Minor
 INCOMPATIBILITY.
 
-* Sessions may be organized via 'chapter' specifications in the ROOT
-file, which determines a two-level hierarchy of browser info.  The old
-tree-like organization via implicit sub-session relation, with its
-tendency towards erratic fluctuation of URLs, has been discontinued.
-The default chapter is "Unsorted".  Potential INCOMPATIBILITY for HTML
-presentation of theories.
-
-* Discontinued obsolete 'uses' within theory header.  Note that
-commands like 'ML_file' work without separate declaration of file
-dependencies.  Minor INCOMPATIBILITY.
-
-* Discontinued redundant 'use' command, which was superseded by
-'ML_file' in Isabelle2013.  Minor INCOMPATIBILITY.
-
-* Updated and extended "isar-ref" and "implementation" manual,
-eliminated old "ref" manual.
-
 * Proper diagnostic command 'print_state'.  Old 'pr' (with its
 implicit change of some global references) is retained for now as
 control command, e.g. for ProofGeneral 3.7.x.
@@ -54,39 +44,20 @@ control command, e.g. for ProofGeneral 3.7.x.
 and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 'display_drafts' instead and print via the regular document viewer.
 
+* Updated and extended "isar-ref" and "implementation" manual,
+eliminated old "ref" manual.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
-* File specifications in jEdit (e.g. file browser) may refer to
-$ISABELLE_HOME on all platforms.  Discontinued obsolete
-$ISABELLE_HOME_WINDOWS variable.
-
-* Improved support of native Mac OS X functionality.
-
-* Separate manual "jedit" for Isabelle/jEdit, see isabelle doc or
+* New manual "jedit" for Isabelle/jEdit, see isabelle doc or
 Documentation panel.
-
-* Improved "Theories" panel: Continuous checking of proof document
-(visible and required parts) may be controlled explicitly, using check
-box or shortcut "C+e ENTER".  Individual theory nodes may be marked
-explicitly as required and checked in full, using check box or
-shortcut "C+e SPACE".
-
-* Strictly monotonic document update, without premature cancelation of
-running transactions that are still needed: avoid reset/restart of
-such command executions while editing.
-
-* Support for asynchronous print functions, as overlay to existing
-document content.
-
-* Support for automatic tools in HOL, which try to prove or disprove
-toplevel theorem statements.
-
-* Dockable window "Find" provides query operations for formal entities
-(GUI front-end to 'find_theorems' command).
 
 * Dockable window "Documentation" provides access to Isabelle
 documentation.
+
+* Dockable window "Find" provides query operations for formal entities
+(GUI front-end to 'find_theorems' command).
 
 * Dockable window "Sledgehammer" manages asynchronous / parallel
 sledgehammer runs over existing document sources, independently of
@@ -95,17 +66,20 @@ normal editing and checking process.
 * Dockable window "Timing" provides an overview of relevant command
 timing information.
 
-* Action isabelle.reset-font-size resets main text area font size
-according to Isabelle/Scala plugin option "jedit_font_reset_size"
-(cf. keyboard shortcut C+0).
+* Improved dockable window "Theories": Continuous checking of proof
+document (visible and required parts) may be controlled explicitly,
+using check box or shortcut "C+e ENTER".  Individual theory nodes may
+be marked explicitly as required and checked in full, using check box
+or shortcut "C+e SPACE".
 
-* Improved support for Linux look-and-feel "GTK+", see also "Utilities
-/ Global Options / Appearance".
+* Strictly monotonic document update, without premature cancellation of
+running transactions that are still needed: avoid reset/restart of
+such command executions while editing.
 
 * Improved completion mechanism, which is now managed by the
 Isabelle/jEdit plugin instead of SideKick.
 
-  - Various Isabelle plugin options to control popup behaviour and
+  - Various Isabelle plugin options to control popup behavior and
     immediate insertion into buffer.
 
   - Light-weight popup, which avoids explicit window (more reactive
@@ -134,29 +108,31 @@ Isabelle/jEdit plugin instead of SideKick.
   - Refined table of Isabelle symbol abbreviations (see
     $ISABELLE_HOME/etc/symbols).
 
+* Support for asynchronous print functions, as overlay to existing
+document content.
+
+* Support for automatic tools in HOL, which try to prove or disprove
+toplevel theorem statements.
+
+* Action isabelle.reset-font-size resets main text area font size
+according to Isabelle/Scala plugin option "jedit_font_reset_size"
+(cf. keyboard shortcut C+0).
+
+* File specifications in jEdit (e.g. file browser) may refer to
+$ISABELLE_HOME on all platforms.  Discontinued obsolete
+$ISABELLE_HOME_WINDOWS variable.
+
+* Improved support for Linux look-and-feel "GTK+", see also "Utilities
+/ Global Options / Appearance".
+
+* Improved support of native Mac OS X functionality via "MacOSX"
+plugin, which is now enabled by default.
+
 
 *** Pure ***
 
-* Former global reference trace_unify_fail is now available as
-configuration option "unify_trace_failure" (global context only).
-
-* Type theory is now immutable, without any special treatment of
-drafts or linear updates (which could lead to "stale theory" errors in
-the past).  Discontinued obsolete operations like Theory.copy,
-Theory.checkpoint, and the auxiliary type theory_ref.  Minor
-INCOMPATIBILITY.
-
-* System option "proofs" has been discontinued.  Instead the global
-state of Proofterm.proofs is persistently compiled into logic images
-as required, notably HOL-Proofs.  Users no longer need to change
-Proofterm.proofs dynamically.  Minor INCOMPATIBILITY.
-
-* Syntax translation functions (print_translation etc.) always depend
-on Proof.context.  Discontinued former "(advanced)" option -- this is
-now the default.  Minor INCOMPATIBILITY.
-
 * Target-sensitive commands 'interpretation' and 'sublocale'.
-Particulary, 'interpretation' now allows for non-persistent
+Particularly, 'interpretation' now allows for non-persistent
 interpretation within "context ... begin ... end" blocks.  See
 "isar-ref" manual for details.
 
@@ -168,6 +144,18 @@ instead, while observing its uniform scope for polymorphism.
 
 * Discontinued empty name bindings in 'axiomatization'.
 INCOMPATIBILITY.
+
+* System option "proofs" has been discontinued.  Instead the global
+state of Proofterm.proofs is persistently compiled into logic images
+as required, notably HOL-Proofs.  Users no longer need to change
+Proofterm.proofs dynamically.  Minor INCOMPATIBILITY.
+
+* Syntax translation functions (print_translation etc.) always depend
+on Proof.context.  Discontinued former "(advanced)" option -- this is
+now the default.  Minor INCOMPATIBILITY.
+
+* Former global reference trace_unify_fail is now available as
+configuration option "unify_trace_failure" (global context only).
 
 * SELECT_GOAL now retains the syntactic context of the overall goal
 state (schematic variables etc.).  Potential INCOMPATIBILITY in rare
@@ -421,28 +409,28 @@ with HOL's type classes for rings.  INCOMPATIBILITY.
 
 *** ML ***
 
+* Spec_Check is a Quickcheck tool for Isabelle/ML.  The ML function
+"check_property" allows to check specifications of the form "ALL x y
+z. prop x y z".  See also ~~/src/Tools/Spec_Check/ with its
+Examples.thy in particular.
+
 * Improved printing of exception trace in Poly/ML 5.5.1, with regular
 tracing output in the command transaction context instead of physical
 stdout.  See also Toplevel.debug, Toplevel.debugging and
 ML_Compiler.exn_trace.
 
-* Spec_Check is a Quickcheck tool for Isabelle/ML.  The ML function
-"check_property" allows to check specifications of the form "ALL x y
-z. prop x y z".  See also ~~/src/Tools/Spec_Check/ with its
-Examples.thy in particular.
+* ML type "theory" is now immutable, without any special treatment of
+drafts or linear updates (which could lead to "stale theory" errors in
+the past).  Discontinued obsolete operations like Theory.copy,
+Theory.checkpoint, and the auxiliary type theory_ref.  Minor
+INCOMPATIBILITY.
 
 * More uniform naming of goal functions for skipped proofs:
 
     Skip_Proof.prove  ~>  Goal.prove_sorry
     Skip_Proof.prove_global  ~>  Goal.prove_sorry_global
 
-* Antiquotation @{theory_context A} is similar to @{theory A}, but
-presents the result as initial Proof.context.
-
-* Modifiers for classical wrappers (e.g. addWrapper, delWrapper)
-operate on Proof.context instead of claset, for uniformity with addIs,
-addEs, addDs etc. Note that claset_of and put_claset allow to manage
-clasets separately from the context.
+Minor INCOMPATIBILITY.
 
 * Simplifier tactics and tools use proper Proof.context instead of
 historic type simpset.  Old-style declarations like addsimps,
@@ -452,8 +440,16 @@ simpset_of and put_simpset on Proof.context.  INCOMPATIBILITY -- port
 old tools by making them depend on (ctxt : Proof.context) instead of
 (ss : simpset), then turn (simpset_of ctxt) into ctxt.
 
+* Modifiers for classical wrappers (e.g. addWrapper, delWrapper)
+operate on Proof.context instead of claset, for uniformity with addIs,
+addEs, addDs etc. Note that claset_of and put_claset allow to manage
+clasets separately from the context.
+
 * Discontinued obsolete ML antiquotations @{claset} and @{simpset}.
 INCOMPATIBILITY, use @{context} instead.
+
+* Antiquotation @{theory_context A} is similar to @{theory A}, but
+presents the result as initial Proof.context.
 
 
 *** System ***
@@ -480,6 +476,13 @@ to run Isabelle/Scala source files as standalone programs.
 * Improved "isabelle keywords" tool (for old-style ProofGeneral
 keyword tables): use Isabelle/Scala operations, which inspect outer
 syntax without requiring to build sessions first.
+
+* Sessions may be organized via 'chapter' specifications in the ROOT
+file, which determines a two-level hierarchy of browser info.  The old
+tree-like organization via implicit sub-session relation (with its
+tendency towards erratic fluctuation of URLs) has been discontinued.
+The default chapter is called "Unsorted".  Potential INCOMPATIBILITY
+for HTML presentation of theories.
 
 
 
