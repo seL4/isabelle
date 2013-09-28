@@ -110,6 +110,8 @@ object Main
 
           /* startup */
 
+          update_environment()
+
           System.setProperty("jedit.home",
             Isabelle_System.platform_path(Path.explode("$JEDIT_HOME/dist")))
 
@@ -212,6 +214,36 @@ object Main
 
     system_dialog.echo("init ...")
     Isabelle_System.init()
+  }
+
+
+
+  /** adhoc update of JVM environment variables **/
+
+  def update_environment()
+  {
+    val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
+    val update =
+      if (Platform.is_windows)
+        List("ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home), "INI_DIR" -> "")
+      else
+        List("ISABELLE_HOME" -> isabelle_home)
+
+    val official_env = System.getenv()
+
+    classOf[java.util.Collections].getDeclaredClasses
+      .find(c => c.getName == "java.util.Collections$UnmodifiableMap") match
+    {
+      case Some(c) =>
+        val m = c.getDeclaredField("m")
+        m.setAccessible(true)
+        val env = m.get(official_env).asInstanceOf[java.util.Map[String, String]]
+        update.foreach {
+          case (x, "") => env.remove(x)
+          case (x, y) => env.put(x, y)
+        }
+      case None => error("Failed to update JVM environment -- platform incompatibility")
+    }
   }
 }
 
