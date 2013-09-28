@@ -298,19 +298,17 @@ fun emptyin def xs = if null xs then (def,xs) else Scan.fail xs
  val decimal = signed decimalsig -- (emptyin rat_0|| exponent)
     >> (fn (h, x) => h */ pow10 (int_of_rat x));
 
- fun mkparser p s =
-  let val (x,rst) = p (raw_explode s)
-  in if null rst then x
-     else error "mkparser: unparsed input"
-  end;;
-
 (* Parse back csdp output.                                                      *)
 
  fun ignore _ = ((),[])
  fun csdpoutput inp =
    ((decimal -- Scan.repeat (Scan.$$ " " |-- Scan.option decimal) >>
     (fn (h,to) => map_filter I ((SOME h)::to))) --| ignore >> vector_of_list) inp
- val parse_csdpoutput = mkparser csdpoutput
+
+ fun parse_csdpoutput s =
+  (case Scan.read Symbol.stopper csdpoutput (raw_explode s) of
+    SOME x => x
+  | NONE => error ("Failed to parse CSDP output: " ^ quote s))
 
 (* Try some apparently sensible scaling first. Note that this is purely to   *)
 (* get a cleaner translation to floating-point, and doesn't affect any of    *)
