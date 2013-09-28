@@ -133,7 +133,7 @@ object Main
       try {
         GUI.init_laf()
 
-        val isabelle_home0 = System.getenv("ISABELLE_HOME_WINDOWS")
+        val isabelle_home0 = System.getenv("ISABELLE_HOME")
         val isabelle_home = System.getProperty("isabelle.home")
 
         if (isabelle_home0 == null || isabelle_home0 == "") {
