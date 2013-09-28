@@ -432,11 +432,11 @@ lemmas fequalityI = equalityI[Transfer.transferred]
 
 subsection {* Additional lemmas*}
 
-subsubsection {* fsingleton *}
+subsubsection {* @{text fsingleton} *}
 
 lemmas fsingletonE = fsingletonD [elim_format]
 
-subsubsection {* femepty *}
+subsubsection {* @{text femepty} *}
 
 lemma fempty_ffilter[simp]: "ffilter (\<lambda>_. False) A = {||}"
 by transfer auto
@@ -445,7 +445,7 @@ by transfer auto
 lemma femptyE [elim!]: "a |\<in>| {||} \<Longrightarrow> P"
   by simp
 
-subsubsection {* fset *}
+subsubsection {* @{text fset} *}
 
 lemmas fset_simps[simp] = bot_fset.rep_eq finsert.rep_eq
 
@@ -467,7 +467,7 @@ lemmas union_fset[simp] = sup_fset.rep_eq
 
 lemmas minus_fset[simp] = minus_fset.rep_eq
 
-subsubsection {* filter_fset *}
+subsubsection {* @{text filter_fset} *}
 
 lemma subset_ffilter: 
   "ffilter P A |\<subseteq>| ffilter Q A = (\<forall> x. x |\<in>| A \<longrightarrow> P x \<longrightarrow> Q x)"
@@ -482,7 +482,7 @@ lemma pfsubset_ffilter:
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 
-subsubsection {* finsert *}
+subsubsection {* @{text finsert} *}
 
 (* FIXME, transferred doesn't work here *)
 lemma set_finsert:
@@ -493,7 +493,7 @@ using assms by transfer (metis Set.set_insert finite_insert)
 lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finsert a B \<and> a |\<notin>| B"
   by (rule_tac x = "A |-| {|a|}" in exI, blast)
 
-subsubsection {* fimage *}
+subsubsection {* @{text fimage} *}
 
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
@@ -528,7 +528,7 @@ by (transfer, simp)+
 
 end
 
-subsubsection {* fcard *}
+subsubsection {* @{text fcard} *}
 
 (* FIXME: improve transferred to handle bounded meta quantification *)
 
@@ -610,7 +610,7 @@ by transfer (rule card_Diff1_le)
 lemma fcard_pfsubset: "A |\<subseteq>| B \<Longrightarrow> fcard A < fcard B \<Longrightarrow> A < B"
 by transfer (rule card_psubset)
 
-subsubsection {* ffold *}
+subsubsection {* @{text ffold} *}
 
 (* FIXME: improve transferred to handle bounded meta quantification *)
 
