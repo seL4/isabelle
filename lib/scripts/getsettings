@@ -19,6 +19,8 @@ fi
 #Cygwin vs. POSIX
 if [ "$OSTYPE" = cygwin ]
 then
+  unset INI_DIR
+
   if [ -z "$USER_HOME" ]; then
     USER_HOME="$(cygpath -u "$HOMEDRIVE\\$HOMEPATH")"
   fi
