@@ -57,6 +57,10 @@ and Unix command-line print spooling.  Minor INCOMPATIBILITY: use
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* File specifications in jEdit (e.g. file browser) may refer to
+$ISABELLE_HOME on all platforms.  Discontinued obsolete
+$ISABELLE_HOME_WINDOWS variable.
+
 * Improved support of native Mac OS X functionality.
 
 * Separate manual "jedit" for Isabelle/jEdit, see isabelle doc or
