@@ -30,7 +30,8 @@ object Isabelle_Sidekick
     protected var _end = int_to_pos(end)
     override def getIcon: Icon = null
     override def getShortString: String =
-      "<html><span style=\"font-family: IsabelleText;\">" + HTML.encode(_name) + "</span></html>"
+      "<html><span style=\"font-family: " + Rendering.font_family() + ";\">" +
+      HTML.encode(_name) + "</span></html>"
     override def getLongString: String = _name
     override def getName: String = _name
     override def setName(name: String) = _name = name
