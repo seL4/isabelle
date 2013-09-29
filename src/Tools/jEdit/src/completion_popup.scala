@@ -259,6 +259,7 @@ object Completion_Popup
               content.substring(0, caret - len) +
               item.replacement +
               content.substring(caret))
+            text_field.getCaret.setDot(caret - len + item.replacement.length)
           case _ =>
         }
       }
