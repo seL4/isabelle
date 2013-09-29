@@ -1564,38 +1564,44 @@ context order
 begin
 
 lemma lift_Suc_mono_le:
-  assumes mono: "!!n. f n \<le> f(Suc n)" and "n\<le>n'"
+  assumes mono: "\<And>n. f n \<le> f (Suc n)" and "n \<le> n'"
   shows "f n \<le> f n'"
 proof (cases "n < n'")
   case True
-  thus ?thesis
-    by (induct n n' rule: less_Suc_induct[consumes 1]) (auto intro: mono)
-qed (insert `n \<le> n'`, auto) -- {*trivial for @{prop "n = n'"} *}
+  then show ?thesis
+    by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
+qed (insert `n \<le> n'`, auto) -- {* trivial for @{prop "n = n'"} *}
 
 lemma lift_Suc_mono_less:
-  assumes mono: "!!n. f n < f(Suc n)" and "n < n'"
+  assumes mono: "\<And>n. f n < f (Suc n)" and "n < n'"
   shows "f n < f n'"
 using `n < n'`
-by (induct n n' rule: less_Suc_induct[consumes 1]) (auto intro: mono)
+by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
 
 lemma lift_Suc_mono_less_iff:
-  "(!!n. f n < f(Suc n)) \<Longrightarrow> f(n) < f(m) \<longleftrightarrow> n<m"
-by(blast intro: less_asym' lift_Suc_mono_less[of f]
-         dest: linorder_not_less[THEN iffD1] le_eq_less_or_eq[THEN iffD1])
+  "(\<And>n. f n < f (Suc n)) \<Longrightarrow> f n < f m \<longleftrightarrow> n < m"
+  by (blast intro: less_asym' lift_Suc_mono_less [of f]
+    dest: linorder_not_less[THEN iffD1] le_eq_less_or_eq [THEN iffD1])
 
 end
 
-lemma mono_iff_le_Suc: "mono f = (\<forall>n. f n \<le> f (Suc n))"
+lemma mono_iff_le_Suc:
+  "mono f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
   unfolding mono_def by (auto intro: lift_Suc_mono_le [of f])
 
 lemma mono_nat_linear_lb:
-  "(!!m n::nat. m<n \<Longrightarrow> f m < f n) \<Longrightarrow> f(m)+k \<le> f(m+k)"
-apply(induct_tac k)
- apply simp
-apply(erule_tac x="m+n" in meta_allE)
-apply(erule_tac x="Suc(m+n)" in meta_allE)
-apply simp
-done
+  fixes f :: "nat \<Rightarrow> nat"
+  assumes "\<And>m n. m < n \<Longrightarrow> f m < f n"
+  shows "f m + k \<le> f (m + k)"
+proof (induct k)
+  case 0 then show ?case by simp
+next
+  case (Suc k)
+  then have "Suc (f m + k) \<le> Suc (f (m + k))" by simp
+  also from assms [of "m + k" "Suc (m + k)"] have "Suc (f (m + k)) \<le> f (Suc (m + k))"
+    by (simp add: Suc_le_eq)
+  finally show ?case by simp
+qed
 
 
 text{*Subtraction laws, mostly by Clemens Ballarin*}
@@ -1840,11 +1846,11 @@ next
     case False then have "s < r" by (simp add: not_le)
     with * have "m * r + q - m * s = m * s - m * s" by simp
     then have "m * r + q - m * s = 0" by simp
-    with `m > 0` `s < r` have "m * r - m * s + q = 0" by simp
+    with `m > 0` `s < r` have "m * r - m * s + q = 0" by (unfold less_le_not_le) auto
     then have "m * (r - s) + q = 0" by auto
     then have "m * (r - s) = 0" by simp
     then have "m = 0 \<or> r - s = 0" by simp
-    with `s < r` have "m = 0" by arith
+    with `s < r` have "m = 0" by (simp add: less_le_not_le)
     with `m > 0` show thesis by auto
   next
     case True with * have "m * r + q - m * r = m * s - m * r" by simp
