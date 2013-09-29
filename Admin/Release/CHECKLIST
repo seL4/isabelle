@@ -17,8 +17,6 @@ Checklist for official releases
 
 - check HTML header of library;
 
-- check file positions within logic images (hyperlinks etc.);
-
 - check ML sources: isabelle build -nal;
 
 - run isabelle update_keywords;
@@ -29,7 +27,9 @@ Checklist for official releases
 
 - diff NEWS wrt. last official release, which is read-only;
 
-- update https://isabelle.in.tum.de/repos/website;
+- update https://bitbucket.org/isabelle_project/isabelle-release/wiki/Home
+
+- update https://bitbucket.org/isabelle_project/isabelle-website
 
 - maintain doc/Contents;
 
