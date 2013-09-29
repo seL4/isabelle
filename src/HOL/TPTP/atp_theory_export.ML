@@ -31,6 +31,7 @@ open ATP_Systems
 datatype inference_policy =
   No_Inferences | Unchecked_Inferences | Checked_Inferences
 
+val prefix = Library.prefix
 val fact_name_of = prefix fact_prefix o ascii_of
 
 fun atp_of_format (THF (Polymorphic, _, _)) = dummy_thfN
@@ -262,7 +263,7 @@ val prelude_name = prelude_base_name ^ include_suffix
 
 val encode_meta = Sledgehammer_MaSh.encode_str
 
-val include_base_name_of_fact = encode_meta o theory_name_of_fact
+fun include_base_name_of_fact x = encode_meta (theory_name_of_fact x)
 
 fun include_line base_name =
   "include('" ^ include_name ^ "/" ^ base_name ^ include_suffix ^ "').\n"

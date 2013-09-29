@@ -31,6 +31,8 @@ open Sledgehammer_MaSh
 open Sledgehammer_Provers
 open Sledgehammer_Isar
 
+val prefix = Library.prefix
+
 val MaSh_IsarN = MaShN ^ "-Isar"
 val MaSh_ProverN = MaShN ^ "-Prover"
 val MeSh_IsarN = MeShN ^ "-Isar"

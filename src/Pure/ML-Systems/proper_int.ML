@@ -275,3 +275,15 @@ struct
   fun fromAddr adr = let val (a, b) = INetSock.fromAddr adr in (a, mk_int b) end;
 end;
 
+
+(* OS.FileSys *)
+
+structure OS =
+struct
+  open OS;
+  structure FileSys =
+  struct
+    open FileSys;
+    fun fileSize a = mk_int (FileSys.fileSize a);
+  end;
+end;
