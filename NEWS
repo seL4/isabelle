@@ -148,8 +148,9 @@ to distinguish both when desired.
     'code_instance'.
   - 'code_identifier' declares name hints for arbitrary identifiers in
     generated code, subsuming 'code_modulename'.
-  See the isar-ref manual for syntax diagrams, and the HOL theories
-  for examples.
+
+See the isar-ref manual for syntax diagrams, and the HOL theories for
+examples.
 
 * HOL/BNF:
   - Various improvements to BNF-based (co)datatype package, including new
@@ -177,9 +178,9 @@ in the case that the unusable rule was used nevertheless.
 automatically generated, which eliminate equalities of the form "f x =
 t".
 
-* New command "fun_cases" derives ad-hoc elimination rules for
+* New command 'fun_cases' derives ad-hoc elimination rules for
 function equations as simplified instances of f.elims, analogous to
-inductive_cases.  See HOL/ex/Fundefs.thy for some examples.
+inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
 
 * Library/Polynomial.thy:
   - Use lifting for primitive definitions.
@@ -200,8 +201,9 @@ IMCOMPATIBILITY.
   - The whole reflection stack has been decomposed into conversions.
 INCOMPATIBILITY.
 
-* Stronger precedence of syntax for big intersection and union on sets,
-in accordance with corresponding lattice operations.  INCOMPATIBILITY.
+* Stronger precedence of syntax for big intersection and union on
+sets, in accordance with corresponding lattice operations.
+INCOMPATIBILITY.
 
 * Nested case expressions are now translated in a separate check phase
 rather than during parsing. The data for case combinators is separated
@@ -230,7 +232,7 @@ expressions on the rhs. See also Ex/Simps_Case_Conv_Examples.thy.
     semilattice_set.F correspond to former combinators fold_image
     and fold1 respectively.  These are now gone.  You may use
     those foundational constants as substitutes, but it is
-    preferable to interpret the above locales accordingly. 
+    preferable to interpret the above locales accordingly.
   - Dropped class ab_semigroup_idem_mult (special case of lattice,
     no longer needed in connection with Finite_Set.fold etc.)
   - Fact renames:
@@ -241,9 +243,6 @@ INCOMPATIBILITY.
 * Locale hierarchy for abstract orderings and (semi)lattices.
 
 * Discontinued theory src/HOL/Library/Eval_Witness.  INCOMPATIBILITY.
-
-* Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
-Isabelle2013).  Use "isabelle build" to operate on Isabelle sessions.
 
 * Numeric types mapped by default to target language numerals: natural
 (replaces former code_numeral) and integer (replaces former code_int).
@@ -275,9 +274,9 @@ lemmas.
 conditionally-complete lattices and inner dense linorders which have
 more than one element.  INCOMPATIBILITY.
 
-* Introduced type classes order_top and order_bot. The old classes top 
-and bot only contain the syntax without assumptions. 
-INCOMPATIBILITY: Rename bot -> order_bot, top -> order_top
+* Introduced type classes order_top and order_bot. The old classes top
+and bot only contain the syntax without assumptions.  INCOMPATIBILITY:
+Rename bot -> order_bot, top -> order_top
 
 * Introduce type classes "no_top" and "no_bot" for orderings without
 top and bottom elements.
@@ -287,34 +286,36 @@ top and bottom elements.
 * Complex_Main: Unify and move various concepts from
 HOL-Multivariate_Analysis to HOL-Complex_Main.
 
- - Introduce type class (lin)order_topology and linear_continuum_topology.
-   Allows to generalize theorems about limits and order.
-   Instances are reals and extended reals.
+ - Introduce type class (lin)order_topology and
+   linear_continuum_topology.  Allows to generalize theorems about
+   limits and order.  Instances are reals and extended reals.
 
  - continuous and continuos_on from Multivariate_Analysis:
-   "continuous" is the continuity of a function at a filter.
-   "isCont" is now an abbrevitation: "isCont x f == continuous (at _) f".
+   "continuous" is the continuity of a function at a filter.  "isCont"
+   is now an abbrevitation: "isCont x f == continuous (at _) f".
 
-   Generalized continuity lemmas from isCont to continuous on an arbitrary
-   filter.
+   Generalized continuity lemmas from isCont to continuous on an
+   arbitrary filter.
 
- - compact from Multivariate_Analysis. Use Bolzano's lemma
-   to prove compactness of closed intervals on reals. Continuous functions
-   attain infimum and supremum on compact sets. The inverse of a continuous
-   function is continuous, when the function is continuous on a compact set.
+ - compact from Multivariate_Analysis. Use Bolzano's lemma to prove
+   compactness of closed intervals on reals. Continuous functions
+   attain infimum and supremum on compact sets. The inverse of a
+   continuous function is continuous, when the function is continuous
+   on a compact set.
 
  - connected from Multivariate_Analysis. Use it to prove the
    intermediate value theorem. Show connectedness of intervals on
    linear_continuum_topology).
 
  - first_countable_topology from Multivariate_Analysis. Is used to
-   show equivalence of properties on the neighbourhood filter of x and on
-   all sequences converging to x.
+   show equivalence of properties on the neighbourhood filter of x and
+   on all sequences converging to x.
 
- - FDERIV: Definition of has_derivative moved to Deriv.thy. Moved theorems
-   from Library/FDERIV.thy to Deriv.thy and base the definition of DERIV on
-   FDERIV. Add variants of DERIV and FDERIV which are restricted to sets,
-   i.e. to represent derivatives from left or right.
+ - FDERIV: Definition of has_derivative moved to Deriv.thy. Moved
+   theorems from Library/FDERIV.thy to Deriv.thy and base the
+   definition of DERIV on FDERIV. Add variants of DERIV and FDERIV
+   which are restricted to sets, i.e. to represent derivatives from
+   left or right.
 
  - Removed the within-filter. It is replaced by the principal filter:
 
@@ -323,12 +324,12 @@ HOL-Multivariate_Analysis to HOL-Complex_Main.
  - Introduce "at x within U" as a single constant, "at x" is now an
    abbreviation for "at x within UNIV"
 
- - Introduce named theorem collections tendsto_intros, continuous_intros,
-   continuous_on_intros and FDERIV_intros. Theorems in tendsto_intros (or
-   FDERIV_intros) are also available as tendsto_eq_intros (or
-   FDERIV_eq_intros) where the right-hand side is replaced by a congruence
-   rule. This allows to apply them as intro rules and then proving
-   equivalence by the simplifier.
+ - Introduce named theorem collections tendsto_intros,
+   continuous_intros, continuous_on_intros and FDERIV_intros. Theorems
+   in tendsto_intros (or FDERIV_intros) are also available as
+   tendsto_eq_intros (or FDERIV_eq_intros) where the right-hand side
+   is replaced by a congruence rule. This allows to apply them as
+   intro rules and then proving equivalence by the simplifier.
 
  - Restructured theories in HOL-Complex_Main:
 
@@ -339,8 +340,8 @@ HOL-Multivariate_Analysis to HOL-Complex_Main.
 
    + Renamed RealVector to Real_Vector_Spaces
 
-   + Split Lim, SEQ, Series into Topological_Spaces, Real_Vector_Spaces, and
-     Limits
+   + Split Lim, SEQ, Series into Topological_Spaces,
+     Real_Vector_Spaces, and Limits
 
    + Moved Ln and Log to Transcendental
 
@@ -373,10 +374,10 @@ INCOMPATIBILITY.
 longer included by default. INCOMPATIBILITY, use partial_function
 instead, or import theory Legacy_Mrec as a fallback.
 
-* HOL-Algebra: Discontinued theories src/HOL/Algebra/abstract and
-.../poly.  Existing theories should be based on
-src/HOL/Library/Polynomial instead.  The latter provides integration
-with HOL's type classes for rings.  INCOMPATIBILITY.
+* HOL-Algebra: Discontinued theories ~~/src/HOL/Algebra/abstract and
+~~/src/HOL/Algebra/poly.  Existing theories should be based on
+~~/src/HOL/Library/Polynomial instead.  The latter provides
+integration with HOL's type classes for rings.  INCOMPATIBILITY.
 
 
 *** ML ***
