@@ -104,7 +104,7 @@ text {*
   \medskip
 
   A default mapping relates some Isabelle symbols to Unicode points (see
-  @{file "~~/etc/symbols"} and @{verbatim
+  @{file "$ISABELLE_HOME/etc/symbols"} and @{verbatim
   "$ISABELLE_HOME_USER/etc/symbols"}.
 
   The \emph{IsabelleText} font ensures that Unicode points are actually seen
@@ -191,8 +191,9 @@ text {*
 
   Isabelle Symbols are completed in backslashed forms, e.g. @{verbatim
   "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the Isabelle
-  symbol @{text "\<forall>"} in its Unicode rendering.  Alternatively, symbol
-  abbreviations may be used as specified in @{file "~~/etc/symbols"}.
+  symbol @{text "\<forall>"} in its Unicode rendering. Alternatively, symbol
+  abbreviations may be used as specified in @{file
+  "$ISABELLE_HOME/etc/symbols"}.
 
   \emph{Explicit completion} works via standard jEdit shortcut @{verbatim
   "C+b"}, which is remapped to action @{verbatim "isabelle.complete"}, with a

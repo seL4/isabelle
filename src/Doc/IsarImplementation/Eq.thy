@@ -63,7 +63,7 @@ text %mlref {*
   @{index_ML Thm.equal_elim: "thm -> thm -> thm"} \\
   \end{mldecls}
 
-  See also @{"file" "~~/src/Pure/thm.ML" } for further description of
+  See also @{file "~~/src/Pure/thm.ML" } for further description of
   these inference rules, and a few more for primitive @{text "\<beta>"} and
   @{text "\<eta>"} conversions.  Note that @{text "\<alpha>"} conversion is
   implicit due to the representation of terms with de-Bruijn indices

@@ -1887,7 +1887,7 @@ lemma collinear_inv_rotation:
   using assms by (algebra add: collinear.simps)
 
 text {*
- See also @{"file" "~~/src/HOL/ex/Groebner_Examples.thy"}.
+ See also @{file "~~/src/HOL/ex/Groebner_Examples.thy"}.
 *}
 
 

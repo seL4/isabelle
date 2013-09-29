@@ -90,7 +90,7 @@ Console.println("browser_info = " + options.bool("browser_info"))
 Console.println("document = " + options.string("document"))
 \end{alltt}
 
-  Alternatively the full @{"file"
+  Alternatively the full @{file
   "$ISABELLE_HOME/bin/isabelle_scala_script"} may be specified in
   expanded form.  *}
 

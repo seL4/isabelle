@@ -451,7 +451,7 @@ text {*
 
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
-  @{"file" "~~/lib/texinputs/pdfsetup.sty"}, which can be used via
+  @{file "~~/lib/texinputs/pdfsetup.sty"}, which can be used via
   @{verbatim "\\usepackage{pdfsetup}"} in @{verbatim "root.tex"}, for
   example.
 

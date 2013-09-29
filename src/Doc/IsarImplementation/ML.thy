@@ -2086,7 +2086,7 @@ subsection {* Lazy evaluation *}
 text {*
   %FIXME
 
-  See also @{"file" "~~/src/Pure/Concurrent/lazy.ML"}.
+  See also @{file "~~/src/Pure/Concurrent/lazy.ML"}.
 *}
 
 
@@ -2095,7 +2095,7 @@ subsection {* Future values \label{sec:futures} *}
 text {*
   %FIXME
 
-  See also @{"file" "~~/src/Pure/Concurrent/future.ML"}.
+  See also @{file "~~/src/Pure/Concurrent/future.ML"}.
 *}
 
 
