@@ -16,7 +16,8 @@ Contributions to this Isabelle version
 * Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
   Jasmin Blanchette, TUM
   Various improvements to BNF-based (co)datatype package, including
-  "primrec_new" and "primcorecursive" commands and a compatibility layer.
+  "primrec_new" and "primcorecursive" commands and a compatibility
+  layer.
 
 * Summer 2013: Daniel Kühlwein, ICIS, Radboud University Nijmegen
   Jasmin Blanchette, TUM

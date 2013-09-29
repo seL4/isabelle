@@ -1,27 +1,13 @@
-Subject: Announcing Isabelle2013
+Subject: Announcing Isabelle2013-1
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2013 is now available.
+Isabelle2013-1 is now available.
 
-This version consolidates Isabelle2012 and introduces numerous
+This version consolidates Isabelle2013-1 and introduces numerous
 improvements, see the NEWS file in the distribution for more details.
 Some highlights are:
 
-* Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
-
-* Advanced build tool based on Isabelle/Scala.
-
-* Updated manuals: isar-ref, implementation, system.
-
-* Pure: improved support for block-structured specification contexts.
-
-* HOL tool enhancements: Sledgehammer, Lifting, Quickcheck.
-
-* HOL library enhancements: HOL-Library, HOL-Probability, HOL-Cardinals.
-
-* HOL: New BNF-based (co)datatype package.
-
-* Improved performance thanks to Poly/ML 5.5.0.
+* FIXME
 
 
 You may get Isabelle2013 from the following mirror sites:

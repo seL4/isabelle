@@ -10,9 +10,9 @@ Version information
 Installation
 
    Isabelle works on the three main platform families: Linux, Windows,
-   and Mac OS X.  The fully integrated application bundles from the
-   Isabelle web page include sources, documentation, and add-on tools
-   for all supported platforms.
+   and Mac OS X.  The application bundles from the Isabelle web page
+   include sources, documentation, and add-on tools for all supported
+   platforms.
 
    Some background information may be found in the Isabelle System
    Manual (directory doc).
