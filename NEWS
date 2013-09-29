@@ -77,36 +77,8 @@ running transactions that are still needed: avoid reset/restart of
 such command executions while editing.
 
 * Improved completion mechanism, which is now managed by the
-Isabelle/jEdit plugin instead of SideKick.
-
-  - Various Isabelle plugin options to control popup behavior and
-    immediate insertion into buffer.
-
-  - Light-weight popup, which avoids explicit window (more reactive
-    and more robust).  Interpreted key events include TAB, ESCAPE, UP,
-    DOWN, PAGE_UP, PAGE_DOWN.  All other key events are passed to
-    the jEdit text area.
-
-  - Explicit completion via standard jEdit shortcut C+b, which has
-    been remapped to action "isabelle.complete" (fall-back on regular
-    "complete-word" for non-Isabelle buffers).
-
-  - Implicit completion via keyboard input on text area, with popup or
-    immediate insertion into buffer.
-
-  - Implicit completion of plain words requires at least 3 characters
-    (was 2 before).
-
-  - Immediate completion ignores plain words; it requires > 1
-    characters of symbol abbreviation to complete, otherwise fall-back
-    on completion popup.
-
-  - Isabelle Symbols are only completed in backslashed forms,
-    e.g. \forall or \<forall> that both produce the Isabelle symbol
-    \<forall> in its Unicode rendering.
-
-  - Refined table of Isabelle symbol abbreviations (see
-    $ISABELLE_HOME/etc/symbols).
+Isabelle/jEdit plugin instead of SideKick.  Refined table of Isabelle
+symbol abbreviations (see $ISABELLE_HOME/etc/symbols).
 
 * Support for asynchronous print functions, as overlay to existing
 document content.

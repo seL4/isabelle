@@ -1,3 +1,5 @@
+(*:wrap=hard:maxLineLen=78:*)
+
 theory JEdit
 imports Base
 begin
@@ -175,7 +177,36 @@ text {*
 
 section {* Text completion *}
 
-text {* FIXME *}
+text {*
+  Text completion works via some light-weight GUI popup, which is triggered by
+  keyboard events during the normal editing process in the main jEdit text
+  area and a few additional text fields. The popup interprets special keys:
+  @{verbatim TAB}, @{verbatim ESCAPE}, @{verbatim UP}, @{verbatim DOWN},
+  @{verbatim PAGE_UP}, @{verbatim PAGE_DOWN}. All other key events are passed
+  to the jEdit text area --- this allows to ignore unwanted completions most
+  of the time and continue typing quickly.
+
+  Various Isabelle plugin options control the popup behavior and immediate
+  insertion into buffer.
+
+  Isabelle Symbols are completed in backslashed forms, e.g. @{verbatim
+  "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the Isabelle
+  symbol @{text "\<forall>"} in its Unicode rendering.  Alternatively, symbol
+  abbreviations may be used as specified in @{file "~~/etc/symbols"}.
+
+  \emph{Explicit completion} works via standard jEdit shortcut @{verbatim
+  "C+b"}, which is remapped to action @{verbatim "isabelle.complete"}, with a
+  fall-back on regular @{verbatim "complete-word"} for non-Isabelle buffers.
+
+  \emph{Implicit completion} works via keyboard input on text area, with popup
+  or immediate insertion into buffer. Plain words require at least 3
+  characters to be completed.
+
+  \emph{Immediate completion} means the (unique) replacement text is inserted
+  into the buffer without popup. This mode ignores plain words and requires
+  more than one characters for symbol abbreviations. Otherwise it falls back
+  on completion popup.
+*}
 
 
 chapter {* Known problems and workarounds *}
