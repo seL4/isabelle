@@ -30,13 +30,18 @@ sig
   val get_monos: Proof.context -> thm list
   val mono_add: attribute
   val mono_del: attribute
+  val mk_cases_tac: Proof.context -> tactic
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
   val rulify: Proof.context -> thm -> thm
   val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
   val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
+  val inductive_simps: (Attrib.binding * string list) list -> local_theory ->
+    (string * thm list) list * local_theory
+  val inductive_simps_i: (Attrib.binding * term list) list -> local_theory ->
+    (string * thm list) list * local_theory
   type inductive_flags =
     {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
       no_elim: bool, no_ind: bool, skip_mono: bool}
@@ -540,6 +545,8 @@ fun simp_case_tac ctxt i =
 
 in
 
+fun mk_cases_tac ctxt = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
+
 fun mk_cases ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -551,9 +558,9 @@ fun mk_cases ctxt prop =
     val elims = Induct.find_casesP ctxt prop;
 
     val cprop = Thm.cterm_of thy prop;
-    val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
     fun mk_elim rl =
-      Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
+      Thm.implies_intr cprop
+        (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
       |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of
@@ -575,7 +582,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
     val facts =
       map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
         args thmss;
-  in lthy |> Local_Theory.notes facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
@@ -631,7 +638,7 @@ fun gen_inductive_simps prep_att prep_prop args lthy =
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
-  in lthy |> Local_Theory.notes facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts end;
 
 val inductive_simps = gen_inductive_simps Attrib.intern_src Syntax.read_prop;
 val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
