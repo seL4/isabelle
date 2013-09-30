@@ -6,6 +6,9 @@ Tables of types and terms directly supported by SMT solvers.
 
 signature SMT_BUILTIN =
 sig
+  (*for experiments*)
+  val clear_builtins: Proof.context -> Proof.context
+
   (*built-in types*)
   val add_builtin_typ: SMT_Utils.class ->
     typ * (typ -> string option) * (typ -> int -> string option) ->
@@ -105,6 +108,9 @@ structure Builtins = Generic_Data
   fun merge ((t1, b1), (t2, b2)) = (merge_ttab (t1, t2), merge_btab (b1, b2))
 )
 
+val clear_builtins = Context.proof_map (Builtins.put ([], Symtab.empty))
+
+
 (* built-in types *)
 
 fun add_builtin_typ cs (T, f, g) =
@@ -196,7 +202,7 @@ fun dest_builtin_conn ctxt =
   special_builtin_fun (forall (equal @{typ bool}) o (op ::)) ctxt
 
 fun dest_builtin ctxt c ts =
-  let val t =Term.list_comb (Const c, ts)
+  let val t = Term.list_comb (Const c, ts)
   in
     (case dest_builtin_num ctxt t of
       SOME (n, _) => SOME (n, 0, [], K t)
