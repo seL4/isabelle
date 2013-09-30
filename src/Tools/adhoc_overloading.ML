@@ -165,12 +165,15 @@ fun insert_variants ctxt t (oconst as Const (c, T)) =
       | _ => oconst)
   | insert_variants _ _ oconst = oconst;
 
-fun insert_overloaded ctxt variant =
-  (case try Term.type_of variant of
-    NONE => variant
-  | SOME T =>
-    Pattern.rewrite_term (Proof_Context.theory_of ctxt) []
-      [Option.map (Const o rpair T) o get_overloaded ctxt o Term.map_types (K dummyT)] variant);
+fun insert_overloaded ctxt =
+  let
+    fun proc t =
+      Term.map_types (K dummyT) t
+      |> get_overloaded ctxt
+      |> Option.map (Const o rpair (Term.type_of t));
+  in
+    Pattern.rewrite_term (Proof_Context.theory_of ctxt) [] [proc]
+  end;
 
 fun check ctxt =
   map (fn t => Term.map_aterms (insert_variants ctxt t) t);
