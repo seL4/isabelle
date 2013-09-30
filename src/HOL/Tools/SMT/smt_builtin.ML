@@ -91,27 +91,30 @@ fun lookup_btab ctxt btab (n, T) =
     NONE => NONE
   | SOME ttab => lookup_ttab ctxt ttab T)
 
+type 'a bfun = Proof.context -> typ -> term list -> 'a
+
+type bfunr = string * int * term list * (term list -> term)
+
+structure Builtins = Generic_Data
+(
+  type T =
+    (typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab *
+    (term list bfun, bfunr option bfun) btab
+  val empty = ([], Symtab.empty)
+  val extend = I
+  fun merge ((t1, b1), (t2, b2)) = (merge_ttab (t1, t2), merge_btab (b1, b2))
+)
 
 (* built-in types *)
 
-(* FIXME just one data slot (record) per program unit *)
-structure Builtin_Types = Generic_Data
-(
-  type T =
-    (typ -> bool, (typ -> string option) * (typ -> int -> string option)) ttab
-  val empty = []
-  val extend = I
-  val merge = merge_ttab
-)
-
 fun add_builtin_typ cs (T, f, g) =
-  Builtin_Types.map (insert_ttab cs T (Int (f, g)))
+  Builtins.map (apfst (insert_ttab cs T (Int (f, g))))
 
 fun add_builtin_typ_ext (T, f) =
-  Builtin_Types.map (insert_ttab SMT_Utils.basicC T (Ext f))
+  Builtins.map (apfst (insert_ttab SMT_Utils.basicC T (Ext f)))
 
 fun lookup_builtin_typ ctxt =
-  lookup_ttab ctxt (Builtin_Types.get (Context.Proof ctxt))
+  lookup_ttab ctxt (fst (Builtins.get (Context.Proof ctxt)))
 
 fun dest_builtin_typ ctxt T =
   (case lookup_builtin_typ ctxt T of
@@ -145,21 +148,8 @@ fun is_builtin_num_ext ctxt t =
 
 (* built-in functions *)
 
-type 'a bfun = Proof.context -> typ -> term list -> 'a
-
-type bfunr = string * int * term list * (term list -> term)
-
-(* FIXME just one data slot (record) per program unit *)
-structure Builtin_Funcs = Generic_Data
-(
-  type T = (term list bfun, bfunr option bfun) btab
-  val empty = Symtab.empty
-  val extend = I
-  val merge = merge_btab
-)
-
 fun add_builtin_fun cs ((n, T), f) =
-  Builtin_Funcs.map (insert_btab cs n T (Int f))
+  Builtins.map (apsnd (insert_btab cs n T (Int f)))
 
 fun add_builtin_fun' cs (t, n) =
   let
@@ -169,7 +159,7 @@ fun add_builtin_fun' cs (t, n) =
   in add_builtin_fun cs (c, bfun) end
 
 fun add_builtin_fun_ext ((n, T), f) =
-  Builtin_Funcs.map (insert_btab SMT_Utils.basicC n T (Ext f))
+  Builtins.map (apsnd (insert_btab SMT_Utils.basicC n T (Ext f)))
 
 fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, fn _ => fn _ => I)
 
@@ -178,7 +168,7 @@ fun add_builtin_fun_ext'' n context =
   in add_builtin_fun_ext' (n, Sign.the_const_type thy n) context end
 
 fun lookup_builtin_fun ctxt =
-  lookup_btab ctxt (Builtin_Funcs.get (Context.Proof ctxt))
+  lookup_btab ctxt (snd (Builtins.get (Context.Proof ctxt)))
 
 fun dest_builtin_fun ctxt (c as (_, T)) ts =
   (case lookup_builtin_fun ctxt c of
