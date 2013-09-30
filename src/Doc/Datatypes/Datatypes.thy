@@ -876,8 +876,8 @@ subsection {* Compatibility Issues
   \label{ssec:datatype-compatibility-issues} *}
 
 text {*
-The command @{command datatype_new} was designed to be highly compatible with
-\keyw{datatype}, to ease migration. There are nonetheless a number of
+The command @{command datatype_new} has been designed to be highly compatible
+with the old \keyw{datatype}, to ease migration. There are nonetheless a few
 incompatibilities that may arise when porting to the new package:
 
 \begin{itemize}
@@ -909,11 +909,11 @@ that unfold the definition of constants introduced by \keyw{datatype} will be
 difficult to port.
 
 \item \emph{A few theorems have different names.}
-The properties @{text t.cases} and @{text t.recs} have been renamed to
+The properties @{text t.cases} and @{text t.recs} have been renamed
 @{text t.case} and @{text t.rec}. For non-mutually recursive datatypes,
 @{text t.inducts} is available as @{text t.induct}.
 For $m > 1$ mutually recursive datatypes,
-@{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed to
+@{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed
 @{text "t\<^sub>i.induct"}.
 
 \item \emph{The @{text t.simps} collection has been extended.}
@@ -1316,20 +1316,23 @@ text {* \blankline *}
     by (cases xs) auto
 
 
-(*
 subsection {* Compatibility Issues
   \label{ssec:primrec-compatibility-issues} *}
 
 text {*
-%  * different induction in nested case
-%    * solution: define nested-as-mutual functions with primrec,
-%      and look at .induct
-%
-%  * different induction and recursor in nested case
-%    * only matters to low-level users; they can define a dummy function to force
-%      generation of mutualized recursor
+The command @{command primrec_new} has been designed to be highly compatible
+with the old \keyw{primrec}, to ease migration. There is nonetheless at least
+one incompatibility that may arise when porting to the new package:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item \emph{Theorems sometimes have different names.}
+For $m > 1$ mutually recursive functions,
+@{text "f\<^sub>1_\<dots>_f\<^sub>m.simps(k\<^sub>i,\<dots>,k\<^sub>i+n\<^sub>i-1)"} have
+been renamed @{text "f\<^sub>i.simps(1,\<dots>,n\<^sub>i-1)"}.
+\end{itemize}
 *}
-*)
 
 
 section {* Defining Codatatypes
@@ -1339,8 +1342,9 @@ text {*
 Codatatypes can be specified using the @{command codatatype} command. The
 command is first illustrated through concrete examples featuring different
 flavors of corecursion. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|. The \emph{Archive of Formal Proofs} also
-includes some useful codatatypes, notably for lazy lists \cite{lochbihler-2010}.
+\verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|. The
+\emph{Archive of Formal Proofs} also includes some useful codatatypes, notably
+for lazy lists \cite{lochbihler-2010}.
 *}
 
 
