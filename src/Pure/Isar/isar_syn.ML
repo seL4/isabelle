@@ -409,7 +409,7 @@ val _ =
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Expression.add_locale_cmd I name Binding.empty expr elems #> snd)));
 
-fun parse_interpretation_arguments mandatory =
+fun interpretation_args mandatory =
   Parse.!!! (Parse_Spec.locale_expression mandatory) --
     Scan.optional
       (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) [];
@@ -418,26 +418,26 @@ val _ =
   Outer_Syntax.command @{command_spec "sublocale"}
     "prove sublocale relation between a locale and a locale expression"
     ((Parse.position Parse.xname --| (@{keyword "\<subseteq>"} || @{keyword "<"}) --
-      parse_interpretation_arguments false
-      >> (fn (loc, (expr, equations)) =>
-          Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_global_cmd I loc expr equations)))
-    || parse_interpretation_arguments false
-      >> (fn (expr, equations) => Toplevel.print o
-          Toplevel.local_theory_to_proof NONE (Expression.sublocale_cmd expr equations)));
+      interpretation_args false >> (fn (loc, (expr, equations)) =>
+        Toplevel.print o
+        Toplevel.theory_to_proof (Expression.sublocale_global_cmd I loc expr equations)))
+    || interpretation_args false >> (fn (expr, equations) =>
+        Toplevel.print o
+        Toplevel.local_theory_to_proof NONE (Expression.sublocale_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpretation"}
     "prove interpretation of locale expression in local theory"
-    (parse_interpretation_arguments true
-      >> (fn (expr, equations) => Toplevel.print o
-          Toplevel.local_theory_to_proof NONE (Expression.interpretation_cmd expr equations)));
+    (interpretation_args true >> (fn (expr, equations) =>
+      Toplevel.print o
+      Toplevel.local_theory_to_proof NONE (Expression.interpretation_cmd expr equations)));
 
 val _ =
   Outer_Syntax.command @{command_spec "interpret"}
     "prove interpretation of locale expression in proof context"
-    (parse_interpretation_arguments true
-      >> (fn (expr, equations) => Toplevel.print o
-          Toplevel.proof' (Expression.interpret_cmd expr equations)));
+    (interpretation_args true >> (fn (expr, equations) =>
+      Toplevel.print o
+      Toplevel.proof' (Expression.interpret_cmd expr equations)));
 
 
 (* classes *)
@@ -498,7 +498,7 @@ val _ =
 
 (* statements *)
 
-fun gen_theorem spec schematic kind =
+fun theorem spec schematic kind =
   Outer_Syntax.local_theory_to_proof' spec
     ("state " ^ (if schematic then "schematic " ^ kind else kind))
     (Scan.optional (Parse_Spec.opt_thm_name ":" --|
@@ -509,12 +509,12 @@ fun gen_theorem spec schematic kind =
         ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
           kind NONE (K I) a includes elems concl)));
 
-val _ = gen_theorem @{command_spec "theorem"} false Thm.theoremK;
-val _ = gen_theorem @{command_spec "lemma"} false Thm.lemmaK;
-val _ = gen_theorem @{command_spec "corollary"} false Thm.corollaryK;
-val _ = gen_theorem @{command_spec "schematic_theorem"} true Thm.theoremK;
-val _ = gen_theorem @{command_spec "schematic_lemma"} true Thm.lemmaK;
-val _ = gen_theorem @{command_spec "schematic_corollary"} true Thm.corollaryK;
+val _ = theorem @{command_spec "theorem"} false Thm.theoremK;
+val _ = theorem @{command_spec "lemma"} false Thm.lemmaK;
+val _ = theorem @{command_spec "corollary"} false Thm.corollaryK;
+val _ = theorem @{command_spec "schematic_theorem"} true Thm.theoremK;
+val _ = theorem @{command_spec "schematic_lemma"} true Thm.lemmaK;
+val _ = theorem @{command_spec "schematic_corollary"} true Thm.corollaryK;
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "notepad"} "begin proof context"
@@ -743,8 +743,7 @@ val opt_modes =
 
 val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
 
-(*Proof General legacy*)
-val _ =
+val _ = (*Proof General legacy*)
   Outer_Syntax.improper_command @{command_spec "pretty_setmargin"}
     "change default margin for pretty printing"
     (Parse.nat >> (fn n => Toplevel.imperative (fn () => Pretty.margin_default := n)));
