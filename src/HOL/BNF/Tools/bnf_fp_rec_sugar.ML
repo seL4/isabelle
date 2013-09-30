@@ -189,7 +189,7 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args direct_calls indirect_cal
       primrec_error_eqn "recursive call not directly applied to constructor argument" t)
   end;
 
-fun build_rec_arg lthy funs_data has_call ctr_spec maybe_eqn_data =
+fun build_rec_arg lthy (funs_data : eqn_data list) has_call ctr_spec maybe_eqn_data =
   if is_none maybe_eqn_data then undef_const else
     let
       val eqn_data = the maybe_eqn_data;
@@ -243,7 +243,7 @@ fun build_rec_arg lthy funs_data has_call ctr_spec maybe_eqn_data =
       |> fold_rev lambda abstractions
     end;
 
-fun build_defs lthy bs mxs funs_data rec_specs has_call =
+fun build_defs lthy bs mxs (funs_data : eqn_data list) rec_specs has_call =
   let
     val n_funs = length funs_data;
 
@@ -275,7 +275,7 @@ fun build_defs lthy bs mxs funs_data rec_specs has_call =
     |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
   end;
 
-fun find_rec_calls has_call eqn_data =
+fun find_rec_calls has_call (eqn_data : eqn_data) =
   let
     fun find (Abs (_, _, b)) ctr_arg = find b ctr_arg
       | find (t as _ $ _) ctr_arg =
@@ -329,8 +329,8 @@ fun add_primrec fixes specs lthy =
 
     val defs = build_defs lthy' bs mxs funs_data rec_specs has_call;
 
-    fun prove def_thms' {ctr_specs, nested_map_idents, nested_map_comps, ...} induct_thm fun_data
-        lthy =
+    fun prove def_thms' ({nested_map_idents, nested_map_comps, ctr_specs, ...} : rec_spec)
+        induct_thm fun_data lthy =
       let
         val fun_name = #fun_name (hd fun_data);
         val def_thms = map (snd o snd) def_thms';
@@ -397,6 +397,7 @@ type co_eqn_data_disc = {
   auto_gen: bool,
   user_eqn: term
 };
+
 type co_eqn_data_sel = {
   fun_name: string,
   fun_T: typ,
@@ -406,6 +407,7 @@ type co_eqn_data_sel = {
   rhs_term: term,
   user_eqn: term
 };
+
 datatype co_eqn_data =
   Disc of co_eqn_data_disc |
   Sel of co_eqn_data_sel;
