@@ -88,6 +88,8 @@ sig
   val problem_prefix : string Config.T
   val completish : bool Config.T
   val atp_full_names : bool Config.T
+  val smt_builtin_facts : bool Config.T
+  val smt_builtin_trans : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -156,6 +158,31 @@ open Sledgehammer_Reconstruct
 
 
 (** The Sledgehammer **)
+
+(* Empty string means create files in Isabelle's temporary files directory. *)
+val dest_dir =
+  Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
+val problem_prefix =
+  Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
+val completish =
+  Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
+
+(* In addition to being easier to read, readable names are often much shorter,
+   especially if types are mangled in names. This makes a difference for some
+   provers (e.g., E). For these reason, short names are enabled by default. *)
+val atp_full_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
+
+val smt_builtin_facts =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_facts} (K true)
+val smt_builtin_trans =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_trans} (K true)
+val smt_triggers =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
+val smt_weights =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
+val smt_weight_min_facts =
+  Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
 datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
@@ -252,7 +279,7 @@ val atp_irrelevant_const_tab =
   Symtab.make (map (rpair ()) atp_irrelevant_consts)
 
 fun is_built_in_const_of_prover ctxt name =
-  if is_smt_prover ctxt name then
+  if is_smt_prover ctxt name andalso Config.get ctxt smt_builtin_facts then
     let val ctxt = ctxt |> select_smt_solver name in
       fn x => fn ts =>
          if SMT_Builtin.is_builtin_num_ext ctxt (list_comb (Const x, ts)) then
@@ -395,29 +422,6 @@ type prover_result =
 type prover =
   params -> ((string * string list) list -> string -> minimize_command)
   -> prover_problem -> prover_result
-
-(* configuration attributes *)
-
-(* Empty string means create files in Isabelle's temporary files directory. *)
-val dest_dir =
-  Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-val problem_prefix =
-  Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val completish =
-  Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
-
-(* In addition to being easier to read, readable names are often much shorter,
-   especially if types are mangled in names. This makes a difference for some
-   provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_full_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
-
-val smt_triggers =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
-val smt_weights =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
-val smt_weight_min_facts =
-  Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
 (* FUDGE *)
 val smt_min_weight =
@@ -1021,6 +1025,9 @@ val smt_slice_time_frac =
 val smt_slice_min_secs =
   Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 3)
 
+val is_boring_builtin_typ =
+  not o exists_subtype (member (op =) [@{typ nat}, @{typ int}, HOLogic.realT])
+
 fun smt_filter_loop name
                     ({debug, verbose, overlord, max_mono_iters,
                       max_new_mono_instances, timeout, slice, ...} : params)
@@ -1037,6 +1044,9 @@ fun smt_filter_loop name
                  I)
            |> Config.put SMT_Config.infer_triggers
                          (Config.get ctxt smt_triggers)
+           |> not (Config.get ctxt smt_builtin_trans)
+              ? (SMT_Builtin.filter_builtins is_boring_builtin_typ
+                 #> Config.put SMT_Config.datatypes false)
            |> repair_monomorph_context max_mono_iters default_max_mono_iters
                   max_new_mono_instances default_max_new_mono_instances
     val state = Proof.map_context (repair_context) state

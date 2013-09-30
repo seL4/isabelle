@@ -7,7 +7,7 @@ Tables of types and terms directly supported by SMT solvers.
 signature SMT_BUILTIN =
 sig
   (*for experiments*)
-  val clear_builtins: Proof.context -> Proof.context
+  val filter_builtins: (typ -> bool) -> Proof.context -> Proof.context
 
   (*built-in types*)
   val add_builtin_typ: SMT_Utils.class ->
@@ -108,7 +108,11 @@ structure Builtins = Generic_Data
   fun merge ((t1, b1), (t2, b2)) = (merge_ttab (t1, t2), merge_btab (b1, b2))
 )
 
-val clear_builtins = Context.proof_map (Builtins.put ([], Symtab.empty))
+fun filter_ttab keep_T = map (apsnd (filter (keep_T o fst)))
+
+fun filter_builtins keep_T =
+  Context.proof_map (Builtins.map (fn (ttab, btab) =>
+    (filter_ttab keep_T ttab, Symtab.map (K (filter_ttab keep_T)) btab)))
 
 
 (* built-in types *)
