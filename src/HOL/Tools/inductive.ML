@@ -30,6 +30,7 @@ sig
   val get_monos: Proof.context -> thm list
   val mono_add: attribute
   val mono_del: attribute
+  val mk_cases_tac: Proof.context -> tactic
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
   val rulify: Proof.context -> thm -> thm
@@ -540,6 +541,8 @@ fun simp_case_tac ctxt i =
 
 in
 
+fun mk_cases_tac ctxt = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
+
 fun mk_cases ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -551,9 +554,9 @@ fun mk_cases ctxt prop =
     val elims = Induct.find_casesP ctxt prop;
 
     val cprop = Thm.cterm_of thy prop;
-    val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
     fun mk_elim rl =
-      Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
+      Thm.implies_intr cprop
+        (Tactic.rule_by_tactic ctxt (mk_cases_tac ctxt) (Thm.assume cprop RS rl))
       |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) elims of

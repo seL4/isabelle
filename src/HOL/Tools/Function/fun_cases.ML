@@ -17,19 +17,6 @@ end;
 structure Fun_Cases : FUN_CASES =
 struct
 
-local
-
-val refl_thin =
-  Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
-    (fn _ => assume_tac 1);
-val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
-val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
-
-fun simp_case_tac ctxt i =
-  EVERY' [elim_tac, TRY o asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac ctxt] i;
-
-in
-
 fun mk_fun_cases ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt;
@@ -44,18 +31,15 @@ fun mk_fun_cases ctxt prop =
     val {elims, pelims, is_partial, ...} = info;
     val elims = if is_partial then pelims else the elims;
     val cprop = cterm_of thy prop;
-    val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
     fun mk_elim rl =
-      Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
+      Thm.implies_intr cprop
+        (Tactic.rule_by_tactic ctxt (Inductive.mk_cases_tac ctxt) (Thm.assume cprop RS rl))
       |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
     (case get_first (try mk_elim) (flat elims) of
       SOME r => r
     | NONE => err ())
   end;
-
-end;
-
 
 fun gen_fun_cases prep_att prep_prop args lthy =
   let
