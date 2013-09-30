@@ -35,9 +35,13 @@ sig
   val inductive_forall_def: thm
   val rulify: Proof.context -> thm -> thm
   val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
   val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
+  val inductive_simps: (Attrib.binding * string list) list -> local_theory ->
+    (string * thm list) list * local_theory
+  val inductive_simps_i: (Attrib.binding * term list) list -> local_theory ->
+    (string * thm list) list * local_theory
   type inductive_flags =
     {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
       no_elim: bool, no_ind: bool, skip_mono: bool}
@@ -578,7 +582,7 @@ fun gen_inductive_cases prep_att prep_prop args lthy =
     val facts =
       map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
         args thmss;
-  in lthy |> Local_Theory.notes facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
@@ -634,7 +638,7 @@ fun gen_inductive_simps prep_att prep_prop args lthy =
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
-  in lthy |> Local_Theory.notes facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts end;
 
 val inductive_simps = gen_inductive_simps Attrib.intern_src Syntax.read_prop;
 val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;

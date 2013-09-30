@@ -9,9 +9,9 @@ signature FUN_CASES =
 sig
   val mk_fun_cases: Proof.context -> term -> thm
   val fun_cases: (Attrib.binding * term list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
   val fun_cases_cmd: (Attrib.binding * string list) list -> local_theory ->
-    thm list list * local_theory
+    (string * thm list) list * local_theory
 end;
 
 structure Fun_Cases : FUN_CASES =
@@ -50,14 +50,14 @@ fun gen_fun_cases prep_att prep_prop args lthy =
     val facts =
       map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
         args thmss;
-  in lthy |> Local_Theory.notes facts |>> map snd end;
+  in lthy |> Local_Theory.notes facts end;
 
 val fun_cases = gen_fun_cases (K I) Syntax.check_prop;
 val fun_cases_cmd = gen_fun_cases Attrib.intern_src Syntax.read_prop;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "fun_cases"}
-    "automatic derivation of simplified elimination rules for function equations"
+    "create simplified instances of elimination rules for function equations"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases_cmd));
 
 end;
