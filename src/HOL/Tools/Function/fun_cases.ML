@@ -19,8 +19,9 @@ struct
 
 local
 
-val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
-  (fn _ => assume_tac 1);
+val refl_thin =
+  Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
+    (fn _ => assume_tac 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
@@ -30,25 +31,27 @@ fun simp_case_tac ctxt i =
 in
 
 fun mk_fun_cases ctxt prop =
-  let val thy = Proof_Context.theory_of ctxt;
-      fun err () =
-        error (Pretty.string_of (Pretty.block
-          [Pretty.str "Proposition is not a function equation:",
-           Pretty.fbrk, Syntax.pretty_term ctxt prop]));
-      val ((f,_),_) = Function_Elims.dest_funprop (HOLogic.dest_Trueprop prop)
-              handle TERM _ => err ();
-      val info = Function.get_info ctxt f handle List.Empty => err ();
-      val {elims, pelims, is_partial, ...} = info;
-      val elims = if is_partial then pelims else the elims
-      val cprop = cterm_of thy prop;
-      val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
-      fun mk_elim rl =
-        Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
-        |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    fun err () =
+      error (Pretty.string_of (Pretty.block
+        [Pretty.str "Proposition is not a function equation:",
+         Pretty.fbrk, Syntax.pretty_term ctxt prop]));
+    val ((f, _), _) =
+      Function_Elims.dest_funprop (HOLogic.dest_Trueprop prop)
+        handle TERM _ => err ();
+    val info = Function.get_info ctxt f handle List.Empty => err ();
+    val {elims, pelims, is_partial, ...} = info;
+    val elims = if is_partial then pelims else the elims;
+    val cprop = cterm_of thy prop;
+    val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
+    fun mk_elim rl =
+      Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
+      |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
   in
-    case get_first (try mk_elim) (flat elims) of
+    (case get_first (try mk_elim) (flat elims) of
       SOME r => r
-    | NONE => err ()
+    | NONE => err ())
   end;
 
 end;
