@@ -14,6 +14,7 @@ structure BNF_LFP_Compat : BNF_LFP_COMPAT =
 struct
 
 open BNF_Util
+open BNF_Ctr_Sugar
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
@@ -106,14 +107,14 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
 
     fun mk_ctr_descr (Const (s, T)) =
       (s, map mk_dtyp (binder_types (Type.legacy_freeze_type T)));
-    fun mk_typ_descr index (Type (T_name, Ts)) {ctrs, ...} =
+    fun mk_typ_descr index (Type (T_name, Ts)) ({ctrs, ...} : ctr_sugar) =
       (index, (T_name, map mk_dtyp Ts, map mk_ctr_descr ctrs));
 
     val descr = map3 mk_typ_descr (0 upto nn - 1) frozen_Ts ctr_sugars;
     val recs = map (fst o dest_Const o co_rec_of) co_iterss;
     val rec_thms = flat (map co_rec_of iter_thmsss);
 
-    fun mk_info {T = Type (T_name0, _), index, ...} =
+    fun mk_info ({T = Type (T_name0, _), index, ...} : fp_sugar) =
       let
         val {casex, exhaust, nchotomy, injects, distincts, case_thms, case_cong, weak_case_cong,
           split, split_asm, ...} = nth ctr_sugars index;

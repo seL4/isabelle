@@ -189,7 +189,8 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args direct_calls indirect_cal
       primrec_error_eqn "recursive call not directly applied to constructor argument" t)
   end;
 
-fun build_rec_arg lthy (funs_data : eqn_data list list) has_call ctr_spec maybe_eqn_data =
+fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
+    (maybe_eqn_data : eqn_data option) =
   if is_none maybe_eqn_data then undef_const else
     let
       val eqn_data = the maybe_eqn_data;
@@ -243,7 +244,7 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call ctr_spec maybe_
       |> fold_rev lambda abstractions
     end;
 
-fun build_defs lthy bs mxs (funs_data : eqn_data list list) rec_specs has_call =
+fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spec list) has_call =
   let
     val n_funs = length funs_data;
 
@@ -330,7 +331,7 @@ fun add_primrec fixes specs lthy =
     val defs = build_defs lthy' bs mxs funs_data rec_specs has_call;
 
     fun prove def_thms' ({nested_map_idents, nested_map_comps, ctr_specs, ...} : rec_spec)
-        induct_thm fun_data lthy =
+        induct_thm (fun_data : eqn_data list) lthy =
       let
         val fun_name = #fun_name (hd fun_data);
         val def_thms = map (snd o snd) def_thms';
