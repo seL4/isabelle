@@ -251,7 +251,7 @@ fun list_to_option :: "'a list \<Rightarrow> 'a option" where
 "list_to_option _ = None"
 
 fun_cases list_to_option_NoneE: "list_to_option xs = None"
-      and list_to_option_SomeE: "list_to_option xs = Some _"
+      and list_to_option_SomeE: "list_to_option xs = Some x"
 
 lemma "list_to_option xs = Some y \<Longrightarrow> xs = [y]"
 by (erule list_to_option_SomeE)

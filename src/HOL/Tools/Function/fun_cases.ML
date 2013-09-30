@@ -8,9 +8,10 @@ rules for function package functions.
 signature FUN_CASES =
 sig
   val mk_fun_cases : Proof.context -> term -> thm
-  val fun_cases_cmd: ((binding * Args.src list) * string list) list -> local_theory ->
-    (string * thm list) list * local_theory
-  (* FIXME regular ML interface for fun_cases *)
+  val fun_cases: (Attrib.binding * string list) list -> local_theory ->
+    thm list list * local_theory
+  val fun_cases_i: (Attrib.binding * term list) list -> local_theory ->
+    thm list list * local_theory
 end;
 
 structure Fun_Cases : FUN_CASES =
@@ -53,48 +54,24 @@ fun mk_fun_cases ctxt prop =
 end;
 
 
-(* Setting up the fun_cases command *)
-
-local
-
-(* Convert the schematic variables and type variables in a term into free
-   variables and takes care of schematic variables originating from dummy
-   patterns by renaming them to something sensible. *)
-fun pat_to_term ctxt t =
+fun gen_fun_cases prep_att prep_prop args lthy =
   let
-     fun prep_var ((x,_),T) =
-          if x = "_dummy_" then ("x",T) else (x,T);
-     val schem_vars = Term.add_vars t [];
-     val prepped_vars = map prep_var schem_vars;
-     val fresh_vars = map Free (Variable.variant_frees ctxt [t] prepped_vars);
-     val subst = ListPair.zip (map fst schem_vars, fresh_vars);
-  in fst (yield_singleton (Variable.import_terms true)
-         (subst_Vars subst t) ctxt)
-  end;
+    val thy = Proof_Context.theory_of lthy;
+    val thmss =
+      map snd args
+      |> burrow (grouped 10 Par_List.map (mk_fun_cases lthy o prep_prop lthy));
+    val facts =
+      map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
+        args thmss;
+  in lthy |> Local_Theory.notes facts |>> map snd end;
 
-in
-
-fun fun_cases_cmd args lthy =
-  let
-    val thy = Proof_Context.theory_of lthy
-    val thmss = map snd args
-                |> burrow (grouped 10 Par_List.map
-                    (mk_fun_cases lthy
-                     o pat_to_term lthy
-                     o HOLogic.mk_Trueprop
-                     o Proof_Context.read_term_pattern lthy));
-    val facts = map2 (fn ((a,atts), _) => fn thms =>
-      ((a, map (Attrib.intern_src thy) atts), [(thms, [])])) args thmss;
-  in
-    lthy |> Local_Theory.notes facts
-  end;
+val fun_cases = gen_fun_cases Attrib.intern_src Syntax.read_prop;
+val fun_cases_i = gen_fun_cases (K I) Syntax.check_prop;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "fun_cases"}
     "automatic derivation of simplified elimination rules for function equations"
-    (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases_cmd));
-
-end;
+    (Parse.and_list1 Parse_Spec.specs >> (snd oo fun_cases));
 
 end;
 
