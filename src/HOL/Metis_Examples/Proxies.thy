@@ -14,6 +14,9 @@ theory Proxies
 imports Type_Encodings
 begin
 
+sledgehammer_params [prover = spass, blocking, fact_filter = mepo, timeout = 30,
+                     preplay_timeout = 0, dont_minimize]
+
 text {* Extensionality and set constants *}
 
 lemma plus_1_not_0: "n + (1\<Colon>nat) \<noteq> 0"

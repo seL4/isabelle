@@ -710,7 +710,7 @@ fun run_atp mode name
             SOME path => path
           | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ ".")
         end
-      | NONE => error ("The environment variable " ^ quote (hd (fst exec)) ^
+      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^
                        " is not set.")
     fun split_time s =
       let

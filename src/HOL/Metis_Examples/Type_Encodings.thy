@@ -14,9 +14,6 @@ begin
 
 declare [[metis_new_skolem]]
 
-sledgehammer_params [prover = spass, blocking, fact_filter = mepo, timeout = 30,
-                     preplay_timeout = 0, dont_minimize]
-
 text {* Setup for testing Metis exhaustively *}
 
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
