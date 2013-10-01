@@ -63,6 +63,12 @@ abbreviation funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (in
 abbreviation finter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "|\<inter>|" 65) where "xs |\<inter>| ys \<equiv> inf xs ys"
 abbreviation fminus :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "|-|" 65) where "xs |-| ys \<equiv> minus xs ys"
 
+instantiation fset :: (equal) equal
+begin
+definition "HOL.equal A B \<longleftrightarrow> A |\<subseteq>| B \<and> B |\<subseteq>| A"
+instance by intro_classes (auto simp add: equal_fset_def)
+end 
+
 instantiation fset :: (type) conditionally_complete_lattice
 begin
 

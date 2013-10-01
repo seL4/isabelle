@@ -1776,7 +1776,7 @@ tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
 text {* \blankline *}
 
     primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
-      "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fmap (iterate\<^sub>i\<^sub>s f) (f x))"
+      "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fimage (iterate\<^sub>i\<^sub>s f) (f x))"
 
 text {*
 \noindent

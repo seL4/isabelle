@@ -13,7 +13,7 @@ header {* Registration of Various Types as Bounded Natural Functors *}
 theory More_BNFs
 imports
   Basic_BNFs
-  "~~/src/HOL/Quotient_Examples/Lift_FSet"
+  "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Multiset"
   Countable_Type
 begin
@@ -119,42 +119,6 @@ qed (simp add: wpull_map)+
 
 (* Finite sets *)
 
-definition fset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" where
-"fset_rel R a b \<longleftrightarrow>
- (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and>
- (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
-
-
-lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
-  by (rule f_the_inv_into_f[unfolded inj_on_def])
-    (transfer, simp,
-     transfer, metis Collect_finite_eq_lists lists_UNIV mem_Collect_eq)
-
-
-lemma fset_rel_aux:
-"(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
- ((Grp {a. fset a \<subseteq> {(a, b). R a b}} (fmap fst))\<inverse>\<inverse> OO
-  Grp {a. fset a \<subseteq> {(a, b). R a b}} (fmap snd)) a b" (is "?L = ?R")
-proof
-  assume ?L
-  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
-  have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
-  hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
-  show ?R unfolding Grp_def relcompp.simps conversep.simps
-  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
-    from * show "a = fmap fst R'" using conjunct1[OF `?L`]
-      by (transfer, auto simp add: image_def Int_def split: prod.splits)
-    from * show "b = fmap snd R'" using conjunct2[OF `?L`]
-      by (transfer, auto simp add: image_def Int_def split: prod.splits)
-  qed (auto simp add: *)
-next
-  assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (transfer, clarsimp, metis snd_conv)
-  by (transfer, clarsimp, metis fst_conv)
-qed
-
 lemma wpull_image:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull (Pow A) (Pow B1) (Pow B2) (image f1) (image f2) (image p1) (image p2)"
@@ -188,14 +152,51 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
   qed(unfold X_def, auto)
 qed
 
+context
+includes fset.lifting
+begin
+
+lemma fset_rel_alt: "fset_rel R a b \<longleftrightarrow> (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and>
+                                        (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
+  by transfer (simp add: set_rel_def)
+
+lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
+  apply (rule f_the_inv_into_f[unfolded inj_on_def])
+  apply (simp add: fset_inject) apply (rule range_eqI Abs_fset_inverse[symmetric] CollectI)+
+  .
+
+lemma fset_rel_aux:
+"(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
+ ((Grp {a. fset a \<subseteq> {(a, b). R a b}} (fimage fst))\<inverse>\<inverse> OO
+  Grp {a. fset a \<subseteq> {(a, b). R a b}} (fimage snd)) a b" (is "?L = ?R")
+proof
+  assume ?L
+  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
+  have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
+  hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
+  show ?R unfolding Grp_def relcompp.simps conversep.simps
+  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
+    from * show "a = fimage fst R'" using conjunct1[OF `?L`]
+      by (transfer, auto simp add: image_def Int_def split: prod.splits)
+    from * show "b = fimage snd R'" using conjunct2[OF `?L`]
+      by (transfer, auto simp add: image_def Int_def split: prod.splits)
+  qed (auto simp add: *)
+next
+  assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
+  apply (simp add: subset_eq Ball_def)
+  apply (rule conjI)
+  apply (transfer, clarsimp, metis snd_conv)
+  by (transfer, clarsimp, metis fst_conv)
+qed
+
 lemma wpull_fmap:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
-              (fmap f1) (fmap f2) (fmap p1) (fmap p2)"
+              (fimage f1) (fimage f2) (fimage p1) (fimage p2)"
 unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
   fix y1 y2
   assume Y1: "fset y1 \<subseteq> B1" and Y2: "fset y2 \<subseteq> B2"
-  assume "fmap f1 y1 = fmap f2 y2"
+  assume "fimage f1 y1 = fimage f2 y2"
   hence EQ: "f1 ` (fset y1) = f2 ` (fset y2)" by transfer simp
   with Y1 Y2 obtain X where X: "X \<subseteq> A" and Y1: "p1 ` X = fset y1" and Y2: "p2 ` X = fset y2"
     using wpull_image[OF assms] unfolding wpull_def Pow_def
@@ -208,29 +209,31 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
   have X': "X' \<subseteq> A" and Y1: "p1 ` X' = fset y1" and Y2: "p2 ` X' = fset y2"
   using X Y1 Y2 q1 q2 unfolding X'_def by auto
   have fX': "finite X'" unfolding X'_def by transfer simp
-  then obtain x where X'eq: "X' = fset x" by transfer (metis finite_list)
-  show "\<exists>x. fset x \<subseteq> A \<and> fmap p1 x = y1 \<and> fmap p2 x = y2"
-     using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, simp)+
+  then obtain x where X'eq: "X' = fset x" by transfer simp
+  show "\<exists>x. fset x \<subseteq> A \<and> fimage p1 x = y1 \<and> fimage p2 x = y2"
+     using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, blast)+
 qed
 
-bnf fmap [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
+bnf fimage [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
 apply -
           apply transfer' apply simp
-         apply transfer' apply simp
+         apply transfer' apply force
         apply transfer apply force
-       apply transfer apply force
+       apply transfer' apply force
       apply (rule natLeq_card_order)
      apply (rule natLeq_cinfinite)
-    apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite_set)
+    apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
   apply (erule wpull_fmap)
- apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_def fset_rel_aux) 
+ apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_alt fset_rel_aux) 
 apply transfer apply simp
 done
 
-lemmas [simp] = fset.map_comp fset.map_id fset.set_map
-
 lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
-  unfolding fset_rel_def set_rel_def by auto
+  by transfer (rule refl)
+
+end
+
+lemmas [simp] = fset.map_comp fset.map_id fset.set_map
 
 (* Countable sets *)
 
