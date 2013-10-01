@@ -5,7 +5,7 @@
 Wrapping existing freely generated type's constructors.
 *)
 
-signature BNF_CTR_SUGAR =
+signature CTR_SUGAR =
 sig
   type ctr_sugar =
     {ctrs: term list,
@@ -57,11 +57,11 @@ sig
   val parse_bound_term: (binding * string) parser
 end;
 
-structure BNF_Ctr_Sugar : BNF_CTR_SUGAR =
+structure Ctr_Sugar : CTR_SUGAR =
 struct
 
 open BNF_Util
-open BNF_Ctr_Sugar_Tactics
+open Ctr_Sugar_Tactics
 
 type ctr_sugar =
   {ctrs: term list,

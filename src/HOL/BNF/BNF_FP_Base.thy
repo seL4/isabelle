@@ -10,7 +10,7 @@ Shared fixed point operations on bounded natural functors, including
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP_Base
-imports BNF_Comp BNF_Ctr_Sugar
+imports BNF_Comp Ctr_Sugar
 begin
 
 lemma not_TrueE: "\<not> True \<Longrightarrow> P"

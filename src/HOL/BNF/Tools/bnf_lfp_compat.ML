@@ -13,8 +13,8 @@ end;
 structure BNF_LFP_Compat : BNF_LFP_COMPAT =
 struct
 
+open Ctr_Sugar
 open BNF_Util
-open BNF_Ctr_Sugar
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar

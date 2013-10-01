@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/BNF_Ctr_Sugar.thy
+(*  Title:      HOL/BNF/Ctr_Sugar.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
@@ -7,7 +7,7 @@ Wrapping existing freely generated type's constructors.
 
 header {* Wrapping Existing Freely Generated Type's Constructors *}
 
-theory BNF_Ctr_Sugar
+theory Ctr_Sugar
 imports BNF_Util
 keywords
   "wrap_free_constructors" :: thy_goal and

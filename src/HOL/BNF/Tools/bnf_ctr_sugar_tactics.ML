@@ -5,7 +5,7 @@
 Tactics for wrapping existing freely generated type's constructors.
 *)
 
-signature BNF_CTR_SUGAR_TACTICS =
+signature CTR_SUGAR_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
@@ -26,7 +26,7 @@ sig
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
 
-structure BNF_Ctr_Sugar_Tactics : BNF_CTR_SUGAR_TACTICS =
+structure Ctr_Sugar_Tactics : CTR_SUGAR_TACTICS =
 struct
 
 open BNF_Util

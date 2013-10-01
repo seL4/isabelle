@@ -25,9 +25,9 @@ end;
 structure BNF_FP_N2M_Sugar : BNF_FP_N2M_SUGAR =
 struct
 
+open Ctr_Sugar
 open BNF_Util
 open BNF_Def
-open BNF_Ctr_Sugar
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_FP_N2M

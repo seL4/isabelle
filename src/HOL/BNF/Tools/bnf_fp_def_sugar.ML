@@ -16,7 +16,7 @@ sig
      nesting_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP_Util.fp_result,
      ctr_defss: thm list list,
-     ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
+     ctr_sugars: Ctr_Sugar.ctr_sugar list,
      co_iterss: term list list,
      mapss: thm list list,
      co_inducts: thm list,
@@ -87,7 +87,7 @@ sig
     string * term list * term list list * ((term list list * term list list list)
       * (typ list * typ list list)) list ->
     thm -> thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list ->
-    int list list -> int list list -> int list -> thm list list -> BNF_Ctr_Sugar.ctr_sugar list ->
+    int list list -> int list list -> int list -> thm list list -> Ctr_Sugar.ctr_sugar list ->
     term list list -> thm list list -> (thm list -> thm list) -> local_theory -> gfp_sugar_thms
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
@@ -105,8 +105,8 @@ end;
 structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =
 struct
 
+open Ctr_Sugar
 open BNF_Util
-open BNF_Ctr_Sugar
 open BNF_Comp
 open BNF_Def
 open BNF_FP_Util
