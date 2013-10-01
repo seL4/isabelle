@@ -21,6 +21,7 @@ object System_Channel
 
 abstract class System_Channel
 {
+  def params: List[String]
   def isabelle_args: List[String]
   def rendezvous(): (OutputStream, InputStream)
   def accepted(): Unit
@@ -57,6 +58,8 @@ private class Fifo_Channel extends System_Channel
   private val fifo1 = mk_fifo()
   private val fifo2 = mk_fifo()
 
+  def params: List[String] = List(fifo1, fifo2)
+
   val isabelle_args: List[String] = List ("-W", fifo1 + ":" + fifo2)
 
   def rendezvous(): (OutputStream, InputStream) =
@@ -75,6 +78,8 @@ private class Fifo_Channel extends System_Channel
 private class Socket_Channel extends System_Channel
 {
   private val server = new ServerSocket(0, 2, InetAddress.getByName("127.0.0.1"))
+
+  def params: List[String] = List("127.0.0.1", server.getLocalPort.toString)
 
   def isabelle_args: List[String] = List("-T", "127.0.0.1:" + server.getLocalPort)
 
