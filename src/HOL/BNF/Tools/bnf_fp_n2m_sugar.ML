@@ -7,7 +7,7 @@ Suggared flattening of nested to mutual (co)recursion.
 
 signature BNF_FP_N2M_SUGAR =
 sig
-  val mutualize_fp_sugars: bool -> bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
+  val mutualize_fp_sugars: bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
     (term -> int list) -> term list list list list -> BNF_FP_Def_Sugar.fp_sugar list ->
     local_theory ->
     (BNF_FP_Def_Sugar.fp_sugar list
@@ -15,8 +15,8 @@ sig
     * local_theory
   val pad_and_indexify_calls: BNF_FP_Def_Sugar.fp_sugar list -> int ->
     (term * term list list) list list -> term list list list list
-  val nested_to_mutual_fps: bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
-    (term -> int list) -> ((term * term list list) list) list -> local_theory ->
+  val nested_to_mutual_fps: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
+    (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
@@ -37,9 +37,7 @@ val n2mN = "n2m_"
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
-fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp_sugars0
-    no_defs_lthy0 =
-  (* TODO: Also check whether there's any lost recursion? *)
+fun mutualize_fp_sugars mutualize fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
   if mutualize orelse has_duplicates (op =) fpTs then
     let
       val thy = Proof_Context.theory_of no_defs_lthy0;
@@ -79,11 +77,6 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
         |> mk_TFrees nn
         ||>> variant_tfrees fp_b_names;
 
-      (* If "lose_co_rec" is "true", the function "null" on "'a list" gives rise to
-           'list = unit + 'a list
-         instead of
-           'list = unit + 'list
-         resulting in a simpler (co)induction rule and (co)recursor. *)
       fun freeze_fp_default (T as Type (s, Ts)) =
           (case find_index (curry (op =) T) fpTs of
             ~1 => Type (s, map freeze_fp_default Ts)
@@ -100,7 +93,7 @@ fun mutualize_fp_sugars lose_co_rec mutualize fp bs fpTs get_indices callssss fp
             [] =>
             (case union (op = o pairself fst)
                 (maps (fn call => map (rpair call) (get_indices_checked call)) calls) [] of
-              [] => T |> not lose_co_rec ? freeze_fp_default
+              [] => freeze_fp_default T
             | [(kk, _)] => nth Xs kk
             | (_, call1) :: (_, call2) :: _ => incompatible_calls call1 call2)
           | callss =>
@@ -201,7 +194,7 @@ fun indexify_callsss fp_sugar callsss =
 
 fun pad_and_indexify_calls fp_sugars0 = map2 indexify_callsss fp_sugars0 oo pad_list [];
 
-fun nested_to_mutual_fps lose_co_rec fp actual_bs actual_Ts get_indices actual_callssss0 lthy =
+fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
     val qsotys = space_implode " or " o map qsoty;
@@ -264,7 +257,7 @@ fun nested_to_mutual_fps lose_co_rec fp actual_bs actual_Ts get_indices actual_c
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
-      mutualize_fp_sugars lose_co_rec mutualize fp perm_bs perm_Ts get_perm_indices perm_callssss
+      mutualize_fp_sugars mutualize fp perm_bs perm_Ts get_perm_indices perm_callssss
         perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;

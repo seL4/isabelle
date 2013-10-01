@@ -422,8 +422,6 @@ fun map_thms_of_typ ctxt (Type (s, _)) =
       | NONE => [])
   | map_thms_of_typ _ _ = [];
 
-val lose_co_rec = false (*FIXME: try true?*);
-
 fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -431,7 +429,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val ((missing_arg_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = ctor_iters1 :: _, ...},
             co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy') =
-      nested_to_mutual_fps lose_co_rec Least_FP bs arg_Ts get_indices callssss0 lthy;
+      nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
 
@@ -515,7 +513,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val ((missing_res_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
             co_inducts = coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy') =
-      nested_to_mutual_fps lose_co_rec Greatest_FP bs res_Ts get_indices callssss0 lthy;
+      nested_to_mutual_fps Greatest_FP bs res_Ts get_indices callssss0 lthy;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
 

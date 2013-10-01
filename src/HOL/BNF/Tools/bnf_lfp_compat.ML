@@ -95,8 +95,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val has_nested = nn > nn_fp;
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
-      mutualize_fp_sugars false has_nested Least_FP compat_bs Ts get_indices callssss fp_sugars0
-        lthy;
+      mutualize_fp_sugars has_nested Least_FP compat_bs Ts get_indices callssss fp_sugars0 lthy;
 
     val {ctr_sugars, co_inducts = [induct], co_iterss, co_iter_thmsss = iter_thmsss, ...} :: _ =
       fp_sugars;
