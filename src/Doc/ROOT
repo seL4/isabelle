@@ -53,7 +53,7 @@ session Datatypes (doc) in "Datatypes" = "HOL-BNF" +
     "document/style.sty"
 
 session Functions (doc) in "Functions" = HOL +
-  options [document_variants = "functions", skip_proofs = false]
+  options [document_variants = "functions", skip_proofs = false, quick_and_dirty]
   theories Functions
   files
     "../prepare_document"

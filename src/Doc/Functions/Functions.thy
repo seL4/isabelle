@@ -446,6 +446,61 @@ txt {*
 
 oops
 
+section {* Elimination *}
+
+text {* 
+  A definition of function @{text f} gives rise to two kinds of elimination rules. Rule @{text f.cases}
+  simply describes case analysis according to the patterns used in the definition:
+*}
+
+fun list_to_option :: "'a list \<Rightarrow> 'a option"
+where
+  "list_to_option [x] = Some x"
+| "list_to_option _ = None"
+
+thm list_to_option.cases
+text {*
+  @{thm[display] list_to_option.cases}
+
+  Note that this rule does not mention the function at all, but only describes the cases used for
+  defining it. In contrast, the rule @{thm[source] list_to_option.elims} also tell us what the function
+  value will be in each case:
+*}
+thm list_to_option.elims
+text {*
+  @{thm[display] list_to_option.elims}
+
+  \noindent
+  This lets us eliminate an assumption of the form @{prop "list_to_option xs = y"} and replace it
+  with the two cases, e.g.:
+*}
+
+lemma "list_to_option xs = y \<Longrightarrow> P"
+proof (erule list_to_option.elims)
+  fix x assume "xs = [x]" "y = Some x" thus P sorry
+next
+  assume "xs = []" "y = None" thus P sorry
+next
+  fix a b xs' assume "xs = a # b # xs'" "y = None" thus P sorry
+qed
+
+
+text {*
+  Sometimes it is convenient to derive specialized versions of the @{text elim} rules above and
+  keep them around as facts explicitly. For example, it is natural to show that if 
+  @{prop "list_to_option xs = Some y"}, then @{term xs} must be a singleton. The command 
+  \cmd{fun\_cases} derives such facts automatically, by instantiating and simplifying the general 
+  elimination rules given some pattern:
+*}
+
+fun_cases list_to_option_SomeE[elim]: "list_to_option xs = Some y"
+
+thm list_to_option_SomeE
+text {*
+  @{thm[display] list_to_option_SomeE}
+*}
+
+
 section {* General pattern matching *}
 text{*\label{genpats} *}
 

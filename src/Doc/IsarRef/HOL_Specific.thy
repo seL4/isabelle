@@ -261,6 +261,7 @@ text {*
     @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def (HOL) "function"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
     @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "fun_cases"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail "
@@ -275,6 +276,8 @@ text {*
     functionopts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
     @@{command (HOL) termination} @{syntax term}?
+    ;
+    @@{command (HOL) fun_cases} (@{syntax thmdecl}? @{syntax prop} + @'and')
   "}
 
   \begin{description}
@@ -329,6 +332,10 @@ text {*
   definition.  After the proof is closed, the recursive equations and
   the induction principle is established.
 
+  \item @{command (HOL) "fun_cases"} generates specialized elimination
+  rules for function equations. It expects one or more function equations
+  and produces rules that eliminate the given equalities, following the cases
+  given in the function definition.
   \end{description}
 
   Recursive definitions introduced by the @{command (HOL) "function"}
