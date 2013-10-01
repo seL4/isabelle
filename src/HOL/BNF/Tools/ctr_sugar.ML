@@ -60,7 +60,7 @@ end;
 structure Ctr_Sugar : CTR_SUGAR =
 struct
 
-open BNF_Util
+open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
 
 type ctr_sugar =
@@ -779,14 +779,14 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
               val (safe_collapse_thms, all_collapse_thms) =
                 let
-                  fun mk_goal m ctr udisc usel_ctr =
+                  fun mk_goal m udisc usel_ctr =
                     let
                       val prem = HOLogic.mk_Trueprop udisc;
                       val concl = mk_Trueprop_eq ((usel_ctr, u) |> m = 0 ? swap);
                     in
                       (prem aconv concl, Logic.all u (Logic.mk_implies (prem, concl)))
                     end;
-                  val (trivs, goals) = map4 mk_goal ms ctrs udiscs usel_ctrs |> split_list;
+                  val (trivs, goals) = map3 mk_goal ms udiscs usel_ctrs |> split_list;
                   val thms =
                     map5 (fn m => fn discD => fn sel_thms => fn triv => fn goal =>
                         Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>

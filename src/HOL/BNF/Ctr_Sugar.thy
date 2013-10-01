@@ -8,7 +8,7 @@ Wrapping existing freely generated type's constructors.
 header {* Wrapping Existing Freely Generated Type's Constructors *}
 
 theory Ctr_Sugar
-imports BNF_Util
+imports Main
 keywords
   "wrap_free_constructors" :: thy_goal and
   "no_discs_sels" and
@@ -23,6 +23,7 @@ lemma iff_contradict:
 "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
 by blast+
 
+ML_file "Tools/ctr_sugar_util.ML"
 ML_file "Tools/ctr_sugar_tactics.ML"
 ML_file "Tools/ctr_sugar.ML"
 

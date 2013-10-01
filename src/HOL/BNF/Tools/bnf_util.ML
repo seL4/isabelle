@@ -7,10 +7,8 @@ Library for bounded natural functors.
 
 signature BNF_UTIL =
 sig
-  val map3: ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
-  val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
-  val map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f) ->
-    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list
+  include CTR_SUGAR_UTIL
+
   val map6: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list
   val map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h) ->
@@ -32,9 +30,6 @@ sig
   val map13: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list
-  val fold_map2: ('a -> 'b -> 'c -> 'd * 'c) -> 'a list -> 'b list -> 'c -> 'd list * 'c
-  val fold_map3: ('a -> 'b -> 'c -> 'd -> 'e * 'd) ->
-    'a list -> 'b list -> 'c list -> 'd -> 'e list * 'd
   val fold_map4: ('a -> 'b -> 'c -> 'd -> 'e -> 'f * 'e) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e -> 'f list * 'e
   val fold_map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g * 'f) ->
@@ -50,35 +45,16 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j -> 'k list * 'j
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
-  val splice: 'a list -> 'a list -> 'a list
-  val transpose: 'a list list -> 'a list list
-  val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
-  val pad_list: 'a -> int -> 'a list -> 'a list
-
   val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
-  val permute_like: ('a * 'b -> bool) -> 'a list -> 'b list -> 'c list -> 'c list
 
-  val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
-  val mk_TFrees: int -> Proof.context -> typ list * Proof.context
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
-  val mk_TFrees': sort list -> Proof.context -> typ list * Proof.context
-  val mk_Frees: string -> typ list -> Proof.context -> term list * Proof.context
-  val mk_Freess: string -> typ list list -> Proof.context -> term list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
     term list list list * Proof.context
   val mk_Freessss: string -> typ list list list list -> Proof.context ->
     term list list list list * Proof.context
-  val mk_Frees': string -> typ list -> Proof.context ->
-    (term list * (string * typ) list) * Proof.context
-  val mk_Freess': string -> typ list list -> Proof.context ->
-    (term list list * (string * typ) list list) * Proof.context
   val nonzero_string_of_int: int -> string
-  val resort_tfree: sort -> typ -> typ
   val retype_free: typ -> term -> term
   val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
-  val variant_types: string list -> sort list -> Proof.context ->
-    (string * sort) list * Proof.context
-  val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
   val binder_fun_types: typ -> typ list
   val body_fun_type: typ -> typ
@@ -86,8 +62,6 @@ sig
   val strip_fun_type: typ -> typ list * typ
   val strip_typeN: int -> typ -> typ list * typ
 
-  val mk_predT: typ list -> typ
-  val mk_pred1T: typ -> typ
   val mk_pred2T: typ -> typ -> typ
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
@@ -105,8 +79,6 @@ sig
   val mk_Field: term -> term
   val mk_Gr: term -> term -> term
   val mk_Grp: term -> term -> term
-  val mk_IfN: typ -> term list -> term list -> term
-  val mk_Trueprop_eq: term * term -> term
   val mk_UNION: term -> term -> term
   val mk_Union: typ -> term
   val mk_card_binop: string -> (typ * typ -> typ) -> term -> term -> term
@@ -129,13 +101,6 @@ sig
   val mk_rel_compp: term * term -> term
   val mk_wpull: term -> term -> term -> term -> term -> (term * term) option -> term -> term -> term
 
-  val rapp: term -> term -> term
-
-  val list_all_free: term list -> term -> term
-  val list_exists_free: term list -> term -> term
-
-  val fo_match: Proof.context -> term -> term -> Type.tyenv * Envir.tenv
-
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
 
@@ -144,7 +109,6 @@ sig
   val mk_conjIN: int -> thm
   val mk_conjunctN: int -> int -> thm
   val conj_dests: int -> thm -> thm list
-  val mk_disjIN: int -> int -> thm
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
   val mk_ordLeq_csum: int -> int -> thm -> thm
@@ -162,7 +126,6 @@ sig
   val subset_UNIV: thm
   val mk_sym: thm -> thm
   val mk_trans: thm -> thm -> thm
-  val mk_unabs_def: int -> thm -> thm
 
   val is_triv_implies: thm -> bool
   val is_refl: thm -> bool
@@ -172,14 +135,7 @@ sig
 
   val cterm_instantiate_pos: cterm option list -> thm -> thm
   val fold_thms: Proof.context -> thm list -> thm -> thm
-  val unfold_thms: Proof.context -> thm list -> thm -> thm
 
-  val certifyT: Proof.context -> typ -> ctyp
-  val certify: Proof.context -> term -> cterm
-
-  val standard_binding: binding
-  val equal_binding: binding
-  val parse_binding: binding parser
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
 
@@ -198,20 +154,9 @@ end;
 structure BNF_Util : BNF_UTIL =
 struct
 
+open Ctr_Sugar_Util
+
 (* Library proper *)
-
-fun map3 _ [] [] [] = []
-  | map3 f (x1::x1s) (x2::x2s) (x3::x3s) = f x1 x2 x3 :: map3 f x1s x2s x3s
-  | map3 _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun map4 _ [] [] [] [] = []
-  | map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) = f x1 x2 x3 x4 :: map4 f x1s x2s x3s x4s
-  | map4 _ _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun map5 _ [] [] [] [] [] = []
-  | map5 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) =
-    f x1 x2 x3 x4 x5 :: map5 f x1s x2s x3s x4s x5s
-  | map5 _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map6 _ [] [] [] [] [] [] = []
   | map6 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) =
@@ -259,22 +204,6 @@ fun map13 _ [] [] [] [] [] [] [] [] [] [] [] [] [] = []
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 ::
       map13 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s
   | map13 _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun fold_map2 _ [] [] acc = ([], acc)
-  | fold_map2 f (x1::x1s) (x2::x2s) acc =
-    let
-      val (x, acc') = f x1 x2 acc;
-      val (xs, acc'') = fold_map2 f x1s x2s acc';
-    in (x :: xs, acc'') end
-  | fold_map2 _ _ _ _ = raise ListPair.UnequalLengths;
-
-fun fold_map3 _ [] [] [] acc = ([], acc)
-  | fold_map3 f (x1::x1s) (x2::x2s) (x3::x3s) acc =
-    let
-      val (x, acc') = f x1 x2 x3 acc;
-      val (xs, acc'') = fold_map3 f x1s x2s x3s acc';
-    in (x :: xs, acc'') end
-  | fold_map3 _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_map4 _ [] [] [] [] acc = ([], acc)
   | fold_map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) acc =
@@ -331,17 +260,6 @@ fun split_list4 [] = ([], [], [], [])
     let val (xs1, xs2, xs3, xs4) = split_list4 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
-(*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
-fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
-fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
-
-(* The standard binding stands for a name generated following the canonical convention (e.g.,
-   "is_Nil" from "Nil"). The smart binding is either the standard binding or no binding at all,
-   depending on the context. *)
-val standard_binding = @{binding _};
-val equal_binding = @{binding "="};
-
-val parse_binding = Parse.binding || @{keyword "="} >> K equal_binding;
 val parse_binding_colon = parse_binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
@@ -387,12 +305,7 @@ fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 fun nonzero_string_of_int 0 = ""
   | nonzero_string_of_int n = string_of_int n;
 
-val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
-
-fun mk_TFrees n = mk_TFrees' (replicate n HOLogic.typeS);
 val mk_TFreess = fold_map mk_TFrees;
-
-fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
 (*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
 fun typ_subst_nonatomic [] = I
@@ -402,31 +315,11 @@ fun typ_subst_nonatomic [] = I
         | subst T = perhaps (AList.lookup (op =) inst) T;
     in subst end;
 
-fun mk_names n x = if n = 1 then [x] else map (fn i => x ^ string_of_int i) (1 upto n);
-
-fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;
-fun mk_Frees x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => map2 (curry Free) xs Ts);
-fun mk_Freess x Tss = fold_map2 mk_Frees (mk_names (length Tss) x) Tss;
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
-fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
-fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
 fun retype_free T (Free (s, _)) = Free (s, T)
   | retype_free _ t = raise TERM ("retype_free", [t]);
-
-fun ensure_prefix pre s = s |> not (String.isPrefix pre s) ? prefix pre;
-
-fun variant_types ss Ss ctxt =
-  let
-    val (tfrees, _) =
-      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
-    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
-  in (tfrees, ctxt') end;
-
-fun variant_tfrees ss =
-  apfst (map TFree) o
-    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) HOLogic.typeS);
 
 
 (** Types **)
@@ -447,8 +340,6 @@ fun strip_fun_type T = strip_typeN (num_binder_types T - 1) T;
 val binder_fun_types = fst o strip_fun_type;
 val body_fun_type = snd o strip_fun_type;
 
-fun mk_predT Ts = Ts ---> HOLogic.boolT;
-fun mk_pred1T T = mk_predT [T];
 fun mk_pred2T T U = mk_predT [T, U];
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
@@ -464,12 +355,6 @@ fun Id_const T = Const (@{const_name Id}, mk_relT (T, T));
 
 
 (** Operators **)
-
-val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
-
-fun mk_IfN _ _ [t] = t
-  | mk_IfN T (c :: cs) (t :: ts) =
-    Const (@{const_name If}, HOLogic.boolT --> T --> T --> T) $ c $ t $ mk_IfN T cs ts;
 
 fun mk_converse R =
   let
@@ -637,21 +522,6 @@ fun mk_collect xs defT =
   let val T = (case xs of [] => defT | (x::_) => fastype_of x);
   in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
 
-fun rapp u t = betapply (t, u);
-
-fun list_quant_free quant_const =
-  fold_rev (fn free => fn P =>
-    let val (x, T) = Term.dest_Free free;
-    in quant_const T $ Term.absfree (x, T) P end);
-
-val list_all_free = list_quant_free HOLogic.all_const;
-val list_exists_free = list_quant_free HOLogic.exists_const;
-
-fun fo_match ctxt t pat =
-  let val thy = Proof_Context.theory_of ctxt in
-    Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty)
-  end;
-
 fun find_indices eq xs ys = map_filter I
   (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);
 
@@ -699,11 +569,6 @@ fun conj_dests n thm = map (fn k => thm RS mk_conjunctN n k) (1 upto n);
 fun mk_conjIN 1 = @{thm TrueE[OF TrueI]}
   | mk_conjIN n = mk_conjIN (n - 1) RSN (2, conjI);
 
-fun mk_disjIN 1 1 = @{thm TrueE[OF TrueI]}
-  | mk_disjIN _ 1 = disjI1
-  | mk_disjIN 2 2 = disjI2
-  | mk_disjIN n m = (mk_disjIN (n - 1) (m - 1)) RS disjI2;
-
 fun mk_ordLeq_csum 1 1 thm = thm
   | mk_ordLeq_csum _ 1 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum1}]
   | mk_ordLeq_csum 2 2 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum2}]
@@ -729,26 +594,6 @@ in
     | mk_UnIN n 1 = Library.foldr1 (op RS o swap) (replicate (n - 1) @{thm UnI1})
     | mk_UnIN n m = mk_UnIN' (n - m)
 end;
-
-fun splice xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
-
-fun transpose [] = []
-  | transpose ([] :: xss) = transpose xss
-  | transpose xss = map hd xss :: transpose (map tl xss);
-
-fun permute_like eq xs xs' ys = map (nth ys o (fn y => find_index (fn x => eq (x, y)) xs)) xs';
-
-fun seq_conds f n k xs =
-  if k = n then
-    map (f false) (take (k - 1) xs)
-  else
-    let val (negs, pos) = split_last (take k xs) in
-      map (f false) negs @ [f true pos]
-    end;
-
-fun pad_list x n xs = xs @ replicate (n - length xs) x;
-
-fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 
 fun is_triv_implies thm =
   op aconv (Logic.dest_implies (Thm.prop_of thm))
@@ -776,6 +621,5 @@ fun cterm_instantiate_pos cts thm =
   end;
 
 fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
-fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
 end;

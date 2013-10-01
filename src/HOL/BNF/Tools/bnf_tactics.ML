@@ -8,11 +8,9 @@ General tactics for bounded natural functors.
 
 signature BNF_TACTICS =
 sig
-  val ss_only : thm list -> Proof.context -> Proof.context
+  include CTR_SUGAR_GENERAL_TACTICS
 
-  val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
-  val unfold_thms_tac: Proof.context -> thm list -> tactic
   val mk_unfold_thms_then_tac: Proof.context -> thm list -> ('a -> tactic) -> 'a -> tactic
 
   val mk_flatten_assoc_tac: (int -> tactic) -> thm -> thm -> thm -> tactic
@@ -35,12 +33,8 @@ end;
 structure BNF_Tactics : BNF_TACTICS =
 struct
 
+open Ctr_Sugar_General_Tactics
 open BNF_Util
-
-fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths
-
-fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
-  tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);
 
 (*stolen from Christian Urban's Cookbook*)
 fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
@@ -50,9 +44,6 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
   in
     rtac (Drule.instantiate_normalize insts thm) 1
   end);
-
-fun unfold_thms_tac _ [] = all_tac
-  | unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
 

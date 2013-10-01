@@ -5,8 +5,16 @@
 Tactics for wrapping existing freely generated type's constructors.
 *)
 
+signature CTR_SUGAR_GENERAL_TACTICS =
+sig
+  val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
+  val unfold_thms_tac: Proof.context -> thm list -> tactic
+end;
+
 signature CTR_SUGAR_TACTICS =
 sig
+  include CTR_SUGAR_GENERAL_TACTICS
+
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
@@ -29,10 +37,15 @@ end;
 structure Ctr_Sugar_Tactics : CTR_SUGAR_TACTICS =
 struct
 
-open BNF_Util
-open BNF_Tactics
+open Ctr_Sugar_Util
 
 val meta_mp = @{thm meta_mp};
+
+fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
+  tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);
+
+fun unfold_thms_tac _ [] = all_tac
+  | unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun if_P_or_not_P_OF pos thm = thm RS (if pos then @{thm if_P} else @{thm if_not_P});
 
@@ -155,3 +168,5 @@ fun mk_split_asm_tac ctxt split =
   HEADGOAL (rtac refl);
 
 end;
+
+structure Ctr_Sugar_General_Tactics: CTR_SUGAR_GENERAL_TACTICS = Ctr_Sugar_Tactics;

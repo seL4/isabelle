@@ -9,7 +9,7 @@ Library for bounded natural functors.
 header {* Library for Bounded Natural Functors *}
 
 theory BNF_Util
-imports "../Cardinals/Cardinal_Arithmetic"
+imports Ctr_Sugar "../Cardinals/Cardinal_Arithmetic"
 begin
 
 lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
