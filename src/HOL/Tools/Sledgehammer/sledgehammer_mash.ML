@@ -1320,12 +1320,17 @@ fun relevant_facts ctxt
             val {access_G, num_known_facts, ...} = peek_state ctxt overlord I
             val is_in_access_G = is_fact_in_graph access_G o snd
           in
-            if length facts - num_known_facts <= max_facts_to_learn_before_query
-               andalso length (filter_out is_in_access_G facts)
-                       <= max_facts_to_learn_before_query then
-              (mash_learn_facts ctxt params prover false 2 false timeout facts
-               |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
-               true)
+            if length facts - num_known_facts
+               <= max_facts_to_learn_before_query then
+              case length (filter_out is_in_access_G facts) of
+                0 => false
+              | num_facts_to_learn =>
+                if num_facts_to_learn <= max_facts_to_learn_before_query then
+                  (mash_learn_facts ctxt params prover false 2 false timeout facts
+                   |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
+                   true)
+                else
+                  (maybe_launch_thread (); false)
             else
               (maybe_launch_thread (); false)
           end
