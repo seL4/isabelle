@@ -71,14 +71,14 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms maps map_idents m
     exclsss =
   mk_primcorec_prelude ctxt defs (f_sel RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
-  unfold_thms_tac ctxt (@{thms id_apply o_def split_def sum.cases} @ maps @ map_comps @
-    map_idents) THEN
-  HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE'
+  unfold_thms_tac ctxt (@{thms id_apply o_def split_def} @ maps @ map_comps @ map_idents) THEN
+  HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' rtac ext ORELSE'
     eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
     Splitter.split_tac (split_if :: splits) ORELSE'
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
+    (CHANGED o SELECT_GOAL (unfold_tac @{thms sum.cases} ctxt)) ORELSE'
     etac notE THEN' atac));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
