@@ -23,7 +23,7 @@ lemma iff_contradict:
 "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
 by blast+
 
-ML_file "Tools/bnf_ctr_sugar_tactics.ML"
-ML_file "Tools/bnf_ctr_sugar.ML"
+ML_file "Tools/ctr_sugar_tactics.ML"
+ML_file "Tools/ctr_sugar.ML"
 
 end

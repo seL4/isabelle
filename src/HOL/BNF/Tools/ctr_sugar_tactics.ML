@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_ctr_sugar_tactics.ML
+(*  Title:      HOL/BNF/Tools/ctr_sugar_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
