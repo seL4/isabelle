@@ -45,13 +45,13 @@ primrec_new shuffle_sp :: "('a, 'b, 'c, 'd) some_passive \<Rightarrow> ('d, 'a, 
 primrec_new
   hf_size :: "hfset \<Rightarrow> nat"
 where
-  "hf_size (HFset X) = 1 + setsum id (fset (fmap hf_size X))"
+  "hf_size (HFset X) = 1 + setsum id (fset (fimage hf_size X))"
 
 primrec_new rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Rightarrow> lambda" where
   "rename_lam f (Var s) = Var (f s)" |
   "rename_lam f (App l l') = App (rename_lam f l) (rename_lam f l')" |
   "rename_lam f (Abs s l) = Abs (f s) (rename_lam f l)" |
-  "rename_lam f (Let SL l) = Let (fmap (map_pair f (rename_lam f)) SL) (rename_lam f l)"
+  "rename_lam f (Let SL l) = Let (fimage (map_pair f (rename_lam f)) SL) (rename_lam f l)"
 
 primrec_new
   sum_i1 :: "('a\<Colon>{zero,plus}) I1 \<Rightarrow> 'a" and
