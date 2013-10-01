@@ -39,7 +39,7 @@ def start_server(host,port):
     logger = logging.getLogger('start_server')
     logger.info('Starting Server.')
     path = dirname(realpath(__file__))
-    spawnDaemon(os.path.join(path,'server.py'))
+    spawnDaemon(os.path.join(path,'server.py'),os.path.join(path,'server.py'),host,str(port))
     serverIsUp=False
     for _i in range(20):
         # Test if server is up
@@ -91,13 +91,17 @@ def mash(argv = sys.argv[1:]):
 
     # If server is not running, start it.
     startedServer = False
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((args.host,args.port))       
-        sock.close()
-    except:
+    received = communicate(' '.join(('ping',args.modelFile,args.dictsFile)),args.host,args.port)
+    if received == -1:
         startedServer = start_server(args.host,args.port)
-        
+    elif received.startswith('Files do not match'):
+        logger.error('Filesnames do not match!')
+        logger.error('Modelfile server: '+ received.split()[-2])
+        logger.error('Modelfile argument: '+ args.modelFile)
+        logger.error('Dictsfile server: '+ received.split()[-1])
+        logger.error('Dictsfile argument: '+ args.dictsFile)
+        return
+    
     if args.init or startedServer:
         logger.info('Initializing Server.')
         data = "i "+";".join(argv)

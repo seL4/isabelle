@@ -28,8 +28,9 @@ def spawnDaemon(path_to_executable, *args):
         os._exit(0)
 
     # and finally let's execute the executable for the daemon!
-    try:
-        os.execv(path_to_executable, [path_to_executable])
+    try:        
+        #os.execv(path_to_executable, [path_to_executable])
+        os.execv(path_to_executable, args)
     except Exception, e:
         # oops, we're cut off from the world, let's just give up
         os._exit(255)

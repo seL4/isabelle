@@ -5,7 +5,7 @@
 #
 # The MaSh Server.
 
-import SocketServer,os,string,logging
+import SocketServer,os,string,logging,sys
 from multiprocessing import Manager
 from threading import Timer
 from time import time
@@ -167,6 +167,12 @@ class MaShHandler(SocketServer.BaseRequestHandler):
                 self.shutdown()         
             elif self.data == 'save':
                 self.server.save()       
+            elif self.data.startswith('ping'):
+                mFile, dFile = self.data.split()[1:]
+                if mFile == self.server.args.modelFile and dFile == self.server.args.dictsFile:
+                    self.request.sendall('All good.')
+                else:
+                    self.request.sendall('Files do not match '+' '.join((self.server.args.modelFile,self.server.args.dictsFile)))
             elif self.data.startswith('i'):            
                 self.init(self.data[2:])
             elif self.data.startswith('!'):
@@ -187,9 +193,10 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             self.server.lock.release()
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 9255
+    HOST, PORT = sys.argv[1:]    
+    #HOST, PORT = "localhost", 9255
     SocketServer.TCPServer.allow_reuse_address = True
-    server = ThreadingTCPServer((HOST, PORT), MaShHandler)
+    server = ThreadingTCPServer((HOST, int(PORT)), MaShHandler)
     server.serve_forever()        
 
 
