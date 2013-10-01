@@ -154,7 +154,7 @@ examples.
 
 * HOL/BNF:
   - Various improvements to BNF-based (co)datatype package, including new
-    commands "primrec_new", "primcorecursive", and "datatype_new_compat",
+    commands "primrec_new", "primcorec", and "datatype_new_compat",
     as well as documentation. See "datatypes.pdf" for details.
   - Renamed keywords:
     data ~> datatype_new
