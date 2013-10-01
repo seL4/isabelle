@@ -1889,6 +1889,6 @@ val _ =
 
 val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"}
   "define primitive recursive functions"
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_primrec_cmd);
+  (Parse.fixes -- Parse_Spec.where_alt_specs >> (snd oo uncurry add_primrec_cmd));
 
 end;
