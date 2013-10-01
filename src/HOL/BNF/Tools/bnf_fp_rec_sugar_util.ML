@@ -303,6 +303,8 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
 val massage_direct_corec_call = massage_let_if_case;
 
+fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
+
 fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
     val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
@@ -356,7 +358,14 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
               end
             | NONE =>
               (case t of
-                t1 $ t2 =>
+                Const (@{const_name prod_case}, _) $ t' =>
+                let
+                  val U' = curried_type U;
+                  val T' = curried_type T;
+                in
+                  Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
+                end
+              | t1 $ t2 =>
                 (if has_call t2 then
                   massage_direct_call bound_Ts U T t
                 else
