@@ -539,11 +539,14 @@ fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else
 
 val smart_max_inline_size = 25; (*FUDGE*)
 
-fun note_bnf_thms fact_policy qualify bnf_b bnf =
+fun note_bnf_thms fact_policy qualify' bnf_b bnf =
   let
     val axioms = axioms_of_bnf bnf;
     val facts = facts_of_bnf bnf;
     val wits = wits_of_bnf bnf;
+    val qualify =
+      let val (_, qs, _) = Binding.dest bnf_b;
+      in fold_rev (fn (s, mand) => Binding.qualify mand s) qs #> qualify' end;
   in
     (if fact_policy = Note_All then
       let
