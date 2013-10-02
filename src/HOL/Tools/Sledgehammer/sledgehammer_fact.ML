@@ -251,7 +251,7 @@ fun is_likely_tautology_too_meta_or_too_technical th =
       | interest_of_prop Ts (@{const "==>"} $ t $ u) =
         combine_interests (interest_of_prop Ts t) (interest_of_prop Ts u)
       | interest_of_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
-        interest_of_prop (T :: Ts) t
+        if type_has_top_sort T then Deal_Breaker else interest_of_prop (T :: Ts) t
       | interest_of_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
         interest_of_prop Ts (t $ eta_expand Ts u 1)
       | interest_of_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
