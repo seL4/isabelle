@@ -71,19 +71,10 @@ section{* Examples of corecursive definitions: *}
 
 subsection{* Single-guard fixpoint definition *}
 
-definition
-"BX \<equiv>
- process_unfold
-   (\<lambda> P. True)
-   (\<lambda> P. ''a'')
-   (\<lambda> P. P)
-   undefined
-   undefined
-   ()"
-
-lemma BX: "BX = Action ''a'' BX"
-unfolding BX_def
-using process.unfold(1)[of "\<lambda> P. True" "()"  "\<lambda> P. ''a''" "\<lambda> P. P"] by simp
+primcorec BX where
+  "isAction BX"
+| "prefOf BX = ''a''"
+| "contOf BX = BX"
 
 
 subsection{* Multi-guard fixpoint definitions, simulated with auxiliary arguments *}
@@ -172,28 +163,9 @@ fun CH2 where
 
 definition "guarded sys \<equiv> \<forall> X Y. sys X \<noteq> VAR Y"
 
-definition
-"solution sys \<equiv>
- process_unfold
-   (isACT sys)
-   (PREF sys)
-   (CONT sys)
-   (CH1 sys)
-   (CH2 sys)"
-
-lemma solution_Action:
-assumes "isACT sys T"
-shows "solution sys T = Action (PREF sys T) (solution sys (CONT sys T))"
-unfolding solution_def
-using process.unfold(1)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
-  assms by simp
-
-lemma solution_Choice:
-assumes "\<not> isACT sys T"
-shows "solution sys T = Choice (solution sys (CH1 sys T)) (solution sys (CH2 sys T))"
-unfolding solution_def
-using process.unfold(2)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
-  assms by simp
+primcorec solution where
+  "isACT sys T \<Longrightarrow> solution sys T = Action (PREF sys T) (solution sys (CONT sys T))"
+| "_ \<Longrightarrow> solution sys T = Choice (solution sys (CH1 sys T)) (solution sys (CH2 sys T))"
 
 lemma isACT_VAR:
 assumes g: "guarded sys"
@@ -207,13 +179,13 @@ proof(cases "isACT sys (VAR X)")
   case True
   hence T: "isACT sys (sys X)" unfolding isACT_VAR[OF g] .
   show ?thesis
-  unfolding solution_Action[OF T] using solution_Action[of sys "VAR X"] True g
+  unfolding solution.ctr(1)[OF T] using solution.ctr(1)[of sys "VAR X"] True g
   unfolding guarded_def by (cases "sys X", auto)
 next
   case False note FFalse = False
   hence TT: "\<not> isACT sys (sys X)" unfolding isACT_VAR[OF g] .
   show ?thesis
-  unfolding solution_Choice[OF TT] using solution_Choice[of sys "VAR X"] FFalse g
+  unfolding solution.ctr(2)[OF TT] using solution.ctr(2)[of sys "VAR X"] FFalse g
   unfolding guarded_def by (cases "sys X", auto)
 qed
 
@@ -222,29 +194,27 @@ lemma solution_PROC[simp]:
 proof-
   {fix q assume "q = solution sys (PROC p)"
    hence "p = q"
-   proof(induct rule: process_coind)
+   proof (coinduct rule: process_coind)
      case (iss p p')
      from isAction_isChoice[of p] show ?case
      proof
        assume p: "isAction p"
        hence 0: "isACT sys (PROC p)" by simp
-       thus ?thesis using iss not_isAction_isChoice
-       unfolding solution_Action[OF 0] by auto
+       thus ?thesis using iss not_isAction_isChoice by auto
      next
        assume "isChoice p"
        hence 0: "\<not> isACT sys (PROC p)"
        using not_isAction_isChoice by auto
-       thus ?thesis using iss isAction_isChoice
-       unfolding solution_Choice[OF 0] by auto
+       thus ?thesis using iss isAction_isChoice by auto
      qed
    next
      case (Action a a' p p')
      hence 0: "isACT sys (PROC (Action a p))" by simp
-     show ?case using Action unfolding solution_Action[OF 0] by simp
+     show ?case using Action unfolding solution.ctr(1)[OF 0] by simp
    next
      case (Choice p q p' q')
      hence 0: "\<not> isACT sys (PROC (Choice p q))" using not_isAction_isChoice by auto
-     show ?case using Choice unfolding solution_Choice[OF 0] by simp
+     show ?case using Choice unfolding solution.ctr(2)[OF 0] by simp
    qed
   }
   thus ?thesis by metis
@@ -252,11 +222,11 @@ qed
 
 lemma solution_ACT[simp]:
 "solution sys (ACT a T) = Action a (solution sys T)"
-by (metis CONT.simps(3) PREF.simps(3) isACT.simps(3) solution_Action)
+by (metis CONT.simps(3) PREF.simps(3) isACT.simps(3) solution.ctr(1))
 
 lemma solution_CH[simp]:
 "solution sys (CH T1 T2) = Choice (solution sys T1) (solution sys T2)"
-by (metis CH1.simps(3) CH2.simps(3) isACT.simps(4) solution_Choice)
+by (metis CH1.simps(3) CH2.simps(3) isACT.simps(4) solution.ctr(2))
 
 
 (* Example: *)

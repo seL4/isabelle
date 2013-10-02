@@ -28,9 +28,6 @@ by (cases z) auto
 abbreviation sum_case_abbrev ("[[_,_]]" 800)
 where "[[f,g]] \<equiv> Sum_Type.sum_case f g"
 
-lemma inj_Inl[simp]: "inj Inl" unfolding inj_on_def by auto
-lemma inj_Inr[simp]: "inj Inr" unfolding inj_on_def by auto
-
 lemma Inl_oplus_elim:
 assumes "Inl tr \<in> (id \<oplus> f) ` tns"
 shows "Inl tr \<in> tns"

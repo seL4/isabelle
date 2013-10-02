@@ -101,14 +101,8 @@ lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Lon
 lemma sset_streams:
   assumes "sset s \<subseteq> A"
   shows "s \<in> streams A"
-proof (coinduct rule: streams.coinduct[of "\<lambda>s'. \<exists>a s. s' = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A"])
-  case streams from assms show ?case by (cases s) auto
-next
-  fix s' assume "\<exists>a s. s' = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A"
-  then guess a s by (elim exE)
-  with assms show "\<exists>a l. s' = a ## l \<and>
-    a \<in> A \<and> ((\<exists>a s. l = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A) \<or> l \<in> streams A)"
-    by (cases s) auto
+using assms proof (coinduction arbitrary: s)
+  case streams then show ?case by (cases s) simp
 qed
 
 
@@ -175,9 +169,9 @@ lemma id_stake_snth_sdrop:
 lemma smap_alt: "smap f s = s' \<longleftrightarrow> (\<forall>n. f (s !! n) = s' !! n)" (is "?L = ?R")
 proof
   assume ?R
-  thus ?L 
-    by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>n. s1 = smap f (sdrop n s) \<and> s2 = sdrop n s'", consumes 0])
-      (auto intro: exI[of _ 0] simp del: sdrop.simps(2))
+  then have "\<And>n. smap f (sdrop n s) = sdrop n s'"
+    by coinduction (auto intro: exI[of _ 0] simp del: sdrop.simps(2))
+  then show ?L using sdrop.simps(1) by metis
 qed auto
 
 lemma stake_invert_Nil[iff]: "stake n s = [] \<longleftrightarrow> n = 0"
@@ -218,15 +212,15 @@ proof -
   qed (metis comp_apply sdrop.simps(1) sdrop_while.simps snth.simps(1))
 qed
 
-definition "sfilter P = stream_unfold (shd o sdrop_while (Not o P)) (stl o sdrop_while (Not o P))"
+primcorec sfilter where
+  "shd (sfilter P s) = shd (sdrop_while (Not o P) s)"
+| "stl (sfilter P s) = sfilter P (stl (sdrop_while (Not o P) s))"
 
 lemma sfilter_Stream: "sfilter P (x ## s) = (if P x then x ## sfilter P s else sfilter P s)"
 proof (cases "P x")
-  case True thus ?thesis unfolding sfilter_def
-    by (subst stream.unfold) (simp add: sdrop_while_Stream)
+  case True thus ?thesis by (subst sfilter.ctr) (simp add: sdrop_while_Stream)
 next
-  case False thus ?thesis unfolding sfilter_def
-    by (subst (1 2) stream.unfold) (simp add: sdrop_while_Stream)
+  case False thus ?thesis by (subst (1 2) sfilter.ctr) (simp add: sdrop_while_Stream)
 qed
 
 
@@ -243,28 +237,17 @@ lemma stream_all_shift[simp]: "stream_all P (xs @- s) = (list_all P xs \<and> st
 
 subsection {* recurring stream out of a list *}
 
-definition cycle :: "'a list \<Rightarrow> 'a stream" where
-  "cycle = stream_unfold hd (\<lambda>xs. tl xs @ [hd xs])"
-
-lemma cycle_simps[simp]:
-  "shd (cycle u) = hd u"
-  "stl (cycle u) = cycle (tl u @ [hd u])"
-  by (auto simp: cycle_def)
-
+primcorec cycle :: "'a list \<Rightarrow> 'a stream" where
+  "shd (cycle xs) = hd xs"
+| "stl (cycle xs) = cycle (tl xs @ [hd xs])"
 lemma cycle_decomp: "u \<noteq> [] \<Longrightarrow> cycle u = u @- cycle u"
-proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>u. s1 = cycle u \<and> s2 = u @- cycle u \<and> u \<noteq> []", consumes 0, case_names _ Eq_stream])
-  case (Eq_stream s1 s2)
-  then obtain u where "s1 = cycle u \<and> s2 = u @- cycle u \<and> u \<noteq> []" by blast
-  thus ?case using stream.unfold[of hd "\<lambda>xs. tl xs @ [hd xs]" u] by (auto simp: cycle_def)
-qed auto
+proof (coinduction arbitrary: u)
+  case Eq_stream then show ?case using stream.collapse[of "cycle u"]
+    by (auto intro!: exI[of _ "tl u @ [hd u]"])
+qed
 
 lemma cycle_Cons[code]: "cycle (x # xs) = x ## cycle (xs @ [x])"
-proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])", consumes 0, case_names _ Eq_stream])
-  case (Eq_stream s1 s2)
-  then obtain x xs where "s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])" by blast
-  thus ?case
-    by (auto simp: cycle_def intro!: exI[of _ "hd (xs @ [x])"] exI[of _ "tl (xs @ [x])"] stream.unfold)
-qed auto
+  by (subst cycle.ctr) simp
 
 lemma cycle_rotated: "\<lbrakk>v \<noteq> []; cycle u = v @- s\<rbrakk> \<Longrightarrow> cycle (tl u @ [hd u]) = tl v @- s"
   by (auto dest: arg_cong[of _ _ stl])
@@ -304,13 +287,9 @@ lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (r
 
 subsection {* stream repeating a single element *}
 
-definition "same x = stream_unfold (\<lambda>_. x) id ()"
-
-lemma same_simps[simp]: "shd (same x) = x" "stl (same x) = same x"
-  unfolding same_def by auto
-
-lemma same_unfold[code]: "same x = x ## same x"
-  by (metis same_simps stream.collapse)
+primcorec same where
+  "shd (same x) = x"
+| "stl (same x) = same x"
 
 lemma snth_same[simp]: "same x !! n = x"
   unfolding same_def by (induct n) auto
@@ -328,18 +307,13 @@ lemma stream_all_same[simp]: "stream_all P (same x) \<longleftrightarrow> P x"
   unfolding stream_all_def by auto
 
 lemma same_cycle: "same x = cycle [x]"
-  by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. s1 = same x \<and> s2 = cycle [x]"]) auto
+  by coinduction auto
 
 
 subsection {* stream of natural numbers *}
 
-definition "fromN n = stream_unfold id Suc n"
-
-lemma fromN_simps[simp]: "shd (fromN n) = n" "stl (fromN n) = fromN (Suc n)"
-  unfolding fromN_def by auto
-
-lemma fromN_unfold[code]: "fromN n = n ## fromN (Suc n)"
-  unfolding fromN_def by (metis id_def stream.unfold)
+primcorec fromN :: "nat \<Rightarrow> nat stream" where
+  "fromN n = n ## fromN (n + 1)"
 
 lemma snth_fromN[simp]: "fromN n !! m = n + m"
   unfolding fromN_def by (induct m arbitrary: n) auto
@@ -352,12 +326,12 @@ lemma sdrop_fromN[simp]: "sdrop m (fromN n) = fromN (n + m)"
 
 lemma sset_fromN[simp]: "sset (fromN n) = {n ..}" (is "?L = ?R")
 proof safe
-  fix m assume "m : ?L"
+  fix m assume "m \<in> ?L"
   moreover
   { fix s assume "m \<in> sset s" "\<exists>n'\<ge>n. s = fromN n'"
-    hence "n \<le> m" by (induct arbitrary: n rule: sset_induct1) fastforce+
+    hence "n \<le> m"  by (induct arbitrary: n rule: sset_induct1) fastforce+
   }
-  ultimately show "n \<le> m" by blast
+  ultimately show "n \<le> m" by auto
 next
   fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_sset)
 qed
@@ -367,16 +341,12 @@ abbreviation "nats \<equiv> fromN 0"
 
 subsection {* flatten a stream of lists *}
 
-definition flat where
-  "flat \<equiv> stream_unfold (hd o shd) (\<lambda>s. if tl (shd s) = [] then stl s else tl (shd s) ## stl s)"
-
-lemma flat_simps[simp]:
+primcorec flat where
   "shd (flat ws) = hd (shd ws)"
-  "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
-  unfolding flat_def by auto
+| "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
 
 lemma flat_Cons[simp, code]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
-  unfolding flat_def using stream.unfold[of "hd o shd" _ "(x # xs) ## ws"] by auto
+  by (subst flat.ctr) simp
 
 lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs @- flat ws"
   by (induct xs) auto
@@ -465,17 +435,13 @@ lemma sset_sproduct: "sset (sproduct s1 s2) = sset s1 \<times> sset s2"
 
 subsection {* interleave two streams *}
 
-definition sinterleave :: "'a stream \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where
-  [code del]: "sinterleave s1 s2 =
-    stream_unfold (\<lambda>(s1, s2). shd s1) (\<lambda>(s1, s2). (s2, stl s1)) (s1, s2)"
-
-lemma sinterleave_simps[simp]:
-  "shd (sinterleave s1 s2) = shd s1" "stl (sinterleave s1 s2) = sinterleave s2 (stl s1)"
-  unfolding sinterleave_def by auto
+primcorec sinterleave where
+  "shd (sinterleave s1 s2) = shd s1"
+| "stl (sinterleave s1 s2) = sinterleave s2 (stl s1)"
 
 lemma sinterleave_code[code]:
   "sinterleave (x ## s1) s2 = x ## sinterleave s2 s1"
-  by (metis sinterleave_simps stream.exhaust stream.sel)
+  by (subst sinterleave.ctr) simp
 
 lemma sinterleave_snth[simp]:
   "even n \<Longrightarrow> sinterleave s1 s2 !! n = s1 !! (n div 2)"
@@ -507,15 +473,12 @@ qed
 
 subsection {* zip *}
 
-definition "szip s1 s2 =
-  stream_unfold (map_pair shd shd) (map_pair stl stl) (s1, s2)"
-
-lemma szip_simps[simp]:
-  "shd (szip s1 s2) = (shd s1, shd s2)" "stl (szip s1 s2) = szip (stl s1) (stl s2)"
-  unfolding szip_def by auto
+primcorec szip where
+  "shd (szip s1 s2) = (shd s1, shd s2)"
+| "stl (szip s1 s2) = szip (stl s1) (stl s2)"
 
 lemma szip_unfold[code]: "szip (Stream a s1) (Stream b s2) = Stream (a, b) (szip s1 s2)"
-  unfolding szip_def by (subst stream.unfold) simp
+  by (subst szip.ctr) simp
 
 lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
   by (induct n arbitrary: s1 s2) auto
@@ -523,35 +486,24 @@ lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
 
 subsection {* zip via function *}
 
-definition "smap2 f s1 s2 =
-  stream_unfold (\<lambda>(s1,s2). f (shd s1) (shd s2)) (map_pair stl stl) (s1, s2)"
-
-lemma smap2_simps[simp]:
+primcorec smap2 where
   "shd (smap2 f s1 s2) = f (shd s1) (shd s2)"
-  "stl (smap2 f s1 s2) = smap2 f (stl s1) (stl s2)"
-  unfolding smap2_def by auto
+| "stl (smap2 f s1 s2) = smap2 f (stl s1) (stl s2)"
 
 lemma smap2_unfold[code]:
   "smap2 f (Stream a s1) (Stream b s2) = Stream (f a b) (smap2 f s1 s2)"
-  unfolding smap2_def by (subst stream.unfold) simp
+  by (subst smap2.ctr) simp
 
 lemma smap2_szip:
   "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
-  by (coinduct rule: stream.coinduct[of
-    "\<lambda>s1 s2. \<exists>s1' s2'. s1 = smap2 f s1' s2' \<and> s2 = smap (split f) (szip s1' s2')"])
-    fastforce+
+  by (coinduction arbitrary: s1 s2) auto
 
 
 subsection {* iterated application of a function *}
 
-definition siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
-  "siterate f x = x ## stream_unfold f f x"
-
-lemma siterate_simps[simp]: "shd (siterate f x) = x" "stl (siterate f x) = siterate f (f x)"
-  unfolding siterate_def by (auto intro: stream.unfold)
-
-lemma siterate_code[code]: "siterate f x = x ## siterate f (f x)"
-  by (metis siterate_def stream.unfold)
+primcorec siterate where
+  "shd (siterate f x) = x"
+| "stl (siterate f x) = siterate f (f x)"
 
 lemma stake_Suc: "stake (Suc n) s = stake n s @ [s !! n]"
   by (induct n arbitrary: s) auto

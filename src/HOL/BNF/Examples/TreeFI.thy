@@ -14,17 +14,10 @@ begin
 
 codatatype 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
 
-definition pair_fun (infixr "\<odot>" 50) where
-  "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
-
 (* Tree reverse:*)
-definition "trev \<equiv> treeFI_unfold lab (lrev o sub)"
-
-lemma trev_simps1[simp]: "lab (trev t) = lab t"
-  unfolding trev_def by simp
-
-lemma trev_simps2[simp]: "sub (trev t) = mapF trev (lrev (sub t))"
-  unfolding trev_def by simp
+primcorec trev where
+  "lab (trev t) = lab t"
+| "sub (trev t) = mapF trev (lrev (sub t))"
 
 lemma treeFI_coinduct:
   assumes *: "phi x y"
@@ -33,9 +26,10 @@ lemma treeFI_coinduct:
      lengthh (sub a) = lengthh (sub b) \<and>
      (\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i))"
   shows "x = y"
-using * proof (coinduct rule: treeFI.coinduct)
-  fix t1 t2 assume "phi t1 t2" note * = step[OF this] and ** = conjunct2[OF *]
-  from conjunct1[OF **] conjunct2[OF **] have "relF phi (sub t1) (sub t2)"
+using * proof (coinduction arbitrary: x y)
+  case (Eq_treeFI t1 t2)
+  from conjunct1[OF conjunct2[OF step[OF Eq_treeFI]]] conjunct2[OF conjunct2[OF step[OF Eq_treeFI]]]
+  have "relF phi (sub t1) (sub t2)"
   proof (induction "sub t1" "sub t2" arbitrary: t1 t2 rule: listF_induct2)
     case (Conss x xs y ys)
     note sub = Conss(2,3)[symmetric] and phi = mp[OF spec[OF Conss(4)], unfolded sub]
@@ -43,10 +37,10 @@ using * proof (coinduct rule: treeFI.coinduct)
         unfolded sub, simplified]
     from phi[of 0] show ?case unfolding sub by (auto intro!: IH dest: phi[simplified, OF Suc_mono])
   qed simp
-  with conjunct1[OF *] show "lab t1 = lab t2 \<and> relF phi (sub t1) (sub t2)" ..
+  with conjunct1[OF step[OF Eq_treeFI]] show ?case by simp
 qed
 
 lemma trev_trev: "trev (trev tr) = tr"
-  by (rule treeFI_coinduct[of "%a b. trev (trev b) = a"]) auto
+  by (coinduction arbitrary: tr rule: treeFI_coinduct) auto
 
 end

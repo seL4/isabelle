@@ -16,22 +16,12 @@ hide_fact (open) Lifting_Product.prod_rel_def
 
 codatatype 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
 
-definition pair_fun (infixr "\<odot>" 50) where
-  "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
-
 (* tree map (contrived example): *)
-definition tmap where
-"tmap f = treeFsetI_unfold (f o lab) sub"
-
-lemma tmap_simps[simp]:
-"lab (tmap f t) = f (lab t)"
+primcorec tmap where
+"lab (tmap f t) = f (lab t)" |
 "sub (tmap f t) = fimage (tmap f) (sub t)"
-unfolding tmap_def treeFsetI.sel_unfold by simp+
 
 lemma "tmap (f o g) x = tmap f (tmap g x)"
-apply (rule treeFsetI.coinduct[of "%x1 x2. \<exists>x. x1 = tmap (f o g) x \<and> x2 = tmap f (tmap g x)"])
-apply auto
-apply (unfold fset_rel_alt)
-by auto
+  by (coinduction arbitrary: x) (auto simp: fset_rel_alt)
 
 end
