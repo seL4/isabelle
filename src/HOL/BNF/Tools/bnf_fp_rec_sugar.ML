@@ -394,7 +394,7 @@ fun add_primrec_simple fixes ts lthy =
 
 local
 
-fun gen_primrec prep_spec raw_fixes raw_spec lthy =
+fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec lthy =
   let
     val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
     val _ = null d orelse primrec_error ("duplicate function name(s): " ^ commas d);
