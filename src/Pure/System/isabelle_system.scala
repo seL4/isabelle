@@ -127,6 +127,7 @@ object Isabelle_System
   def get_cygwin_root(): String = getenv_strict("CYGWIN_ROOT")
 
 
+
   /** file-system operations **/
 
   /* jvm_path */
