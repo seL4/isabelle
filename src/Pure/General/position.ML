@@ -146,7 +146,7 @@ fun value k i = if valid i then [(k, Markup.print_int i)] else [];
 fun properties_of (Pos ((i, j, k), props)) =
   value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
 
-val def_properties_of = properties_of #> (map (fn (x, y) => ("def_" ^ x, y)));
+val def_properties_of = properties_of #> map (fn (x, y) => ("def_" ^ x, y));
 
 fun entity_properties_of def id pos =
   if def then (Markup.defN, Markup.print_int id) :: properties_of pos
