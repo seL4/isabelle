@@ -62,7 +62,8 @@ fun mk_primcorec_cases_tac ctxt k m exclsss =
   end;
 
 fun mk_primcorec_prelude ctxt defs thm =
-  unfold_thms_tac ctxt defs THEN HEADGOAL (rtac thm) THEN unfold_thms_tac ctxt @{thms split};
+  unfold_thms_tac ctxt defs THEN HEADGOAL (rtac thm) THEN
+  unfold_thms_tac ctxt @{thms Let_def split};
 
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
