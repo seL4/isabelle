@@ -1329,8 +1329,8 @@ one incompatibility that may arise when porting to the new package:
 
 \item \emph{Theorems sometimes have different names.}
 For $m > 1$ mutually recursive functions,
-@{text "f\<^sub>1_\<dots>_f\<^sub>m.simps(k\<^sub>i,\<dots>,k\<^sub>i+n\<^sub>i-1)"} have
-been renamed @{text "f\<^sub>i.simps(1,\<dots>,n\<^sub>i-1)"}.
+@{text "f\<^sub>1_\<dots>_f\<^sub>m.simps"} has been broken down into separate
+subcollections @{text "f\<^sub>i.simps"}.
 \end{itemize}
 *}
 
