@@ -10,7 +10,7 @@ sig
   val mk_primcorec_assumption_tac: Proof.context -> thm list -> tactic
   val mk_primcorec_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
     int list -> thm list -> tactic
-  val mk_primcorec_code_of_raw_tac: thm list -> thm list -> thm -> tactic
+  val mk_primcorec_code_of_raw_tac: thm list -> thm -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
@@ -105,13 +105,12 @@ fun mk_primcorec_code_of_ctr_tac ctxt distincts discIs splits split_asms ms ctr_
   EVERY (map2 (mk_primcorec_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
     ms ctr_thms);
 
-fun mk_primcorec_code_of_raw_tac splits disc_excludes raw =
+fun mk_primcorec_code_of_raw_tac splits raw =
   HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT_DETERM o
     (rtac refl ORELSE'
      (TRY o rtac sym) THEN' atac ORELSE'
      resolve_tac split_connectI ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
-     etac notE THEN' atac ORELSE'
-     (TRY o dresolve_tac disc_excludes) THEN' etac notE THEN' atac));
+     etac notE THEN' atac));
 
 end;
