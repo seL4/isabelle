@@ -1124,15 +1124,28 @@ recursion is possible. Notably, the map function for the function type
 (@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
 *}
 
-    primrec_new ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec_new (*<*)(in early) (*>*)ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
       "ftree_map f (FTNode g) = FTNode (ftree_map f \<circ> g)"
 
 text {*
 \noindent
-(No such function is defined by the package because @{typ 'a} is dead in
-@{typ "'a ftree"}, but we can easily do it ourselves.)
+(No such map function is defined by the package because the type
+variable @{typ 'a} is dead in @{typ "'a ftree"}.)
+
+Using \keyw{fun} or \keyw{function}, recursion through functions can be
+expressed using $\lambda$-expressions and function application rather
+than through composition. For example:
 *}
+
+    datatype_new_compat ftree
+
+text {* \blankline *}
+
+    function ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+      "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
+      "ftree_map f (FTNode g) = FTNode (\<lambda>x. ftree_map f (g x))"
+    by auto (metis ftree.exhaust)
 
 
 subsubsection {* Nested-as-Mutual Recursion
@@ -1165,9 +1178,9 @@ datatypes. For example:
 text {*
 \noindent
 Appropriate induction principles are generated under the names
-@{thm [source] "at\<^sub>f\<^sub>f.induct"},
-@{thm [source] "ats\<^sub>f\<^sub>f.induct"}, and
-@{thm [source] "at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct"}.
+@{thm [source] at\<^sub>f\<^sub>f.induct},
+@{thm [source] ats\<^sub>f\<^sub>f.induct}, and
+@{thm [source] at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct}.
 
 %%% TODO: Add recursors.
 
@@ -1514,7 +1527,7 @@ subsubsection {* Coinductive Theorems
   \label{sssec:coinductive-theorems} *}
 
 text {*
-The coinductive theorems are as follows:
+The coinductive theorems are listed below for @{typ "'a llist"}:
 
 \begin{indentblock}
 \begin{description}
@@ -1539,11 +1552,11 @@ The coinductive theorems are as follows:
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{unfold} \rm(@{text "[simp]"})\rm:] ~ \\
+\item[@{text "t."}\hthm{unfold}\rm:] ~ \\
 @{thm llist.unfold(1)[no_vars]} \\
 @{thm llist.unfold(2)[no_vars]}
 
-\item[@{text "t."}\hthm{corec} (@{text "[simp]"})\rm:] ~ \\
+\item[@{text "t."}\hthm{corec}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
 
@@ -1580,9 +1593,9 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.corec}$^*$ @{text t.disc_corec}] ~ \\
-@{text t.disc_corec_iff} @{text t.sel_corec} @{text t.unfold}$^*$ @{text t.disc_unfold} @{text t.disc_unfold_iff} ~ \\
-@{text t.sel_unfold} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.disc_corec} @{text t.disc_corec_iff}] ~ \\
+@{text t.sel_corec} @{text t.disc_unfold} @{text t.disc_unfold_iff} @{text t.sel_unfold} @{text t.map} \\
+@{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
 \end{indentblock}
@@ -1780,7 +1793,7 @@ text {* \blankline *}
 
 text {*
 \noindent
-Deterministic finite automata (DFAs) are usually defined as 5-tuples
+Deterministic finite automata (DFAs) are traditionally defined as 5-tuples
 @{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
 @{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
 is an initial state, and @{text F} is a set of final states. The following
@@ -1796,8 +1809,8 @@ text {*
 \noindent
 The map function for the function type (@{text \<Rightarrow>}) is composition
 (@{text "op \<circ>"}). For convenience, corecursion through functions can be
-expressed using @{text \<lambda>}-expressions and function application rather
-than composition. For example:
+expressed using $\lambda$-expressions and function application rather
+than through composition. For example:
 *}
 
     primcorec
