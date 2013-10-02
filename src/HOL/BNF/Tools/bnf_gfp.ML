@@ -2914,7 +2914,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "codatatype"} "define BNF-based coinductive datatypes"
+  Outer_Syntax.local_theory @{command_spec "codatatype"} "define coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
 val option_parser = Parse.group (fn () => "option") (Parse.reserved "sequential" >> K true);

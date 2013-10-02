@@ -166,7 +166,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_new_compat"}
-    "register a new-style datatype as an old-style datatype"
+    "register new-style datatypes as old-style datatypes"
     (Scan.repeat1 Parse.type_const >> datatype_new_compat_cmd);
 
 end;
