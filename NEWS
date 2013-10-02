@@ -156,6 +156,7 @@ examples.
   - Various improvements to BNF-based (co)datatype package, including new
     commands "primrec_new", "primcorec", and "datatype_new_compat",
     as well as documentation. See "datatypes.pdf" for details.
+  - New "coinduction" method to avoid some boilerplate (compared to coinduct).
   - Renamed keywords:
     data ~> datatype_new
     codata ~> codatatype

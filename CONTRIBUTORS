@@ -9,6 +9,9 @@ Contributions to Isabelle2013-1
 * September 2013: Nik Sultana, University of Cambridge
   Improvements to HOL/TPTP parser and import facilities.
 
+* September 2013: Johannes Hölzl and Dmitriy Traytel, TUM
+  New "coinduction" method (residing in HOL-BNF) to avoid boilerplate.
+
 * Summer 2013: Makarius Wenzel, Université Paris-Sud / LRI
   Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
 
