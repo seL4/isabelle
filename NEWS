@@ -136,12 +136,18 @@ situations.
 
 *** HOL ***
 
-* Improved support for ad hoc overloading of constants (see also
-isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).
+* Stronger precedence of syntax for big intersection and union on
+sets, in accordance with corresponding lattice operations.
+INCOMPATIBILITY.
 
-* Attibute 'code': 'code' now declares concrete and abstract code
-equations uniformly.  Use explicit 'code equation' and 'code abstract'
-to distinguish both when desired.
+* Notation "{p:A. P}" now allows tuple patterns as well.
+
+* Nested case expressions are now translated in a separate check phase
+rather than during parsing. The data for case combinators is separated
+from the datatype package. The declaration attribute
+"case_translation" can be used to register new case combinators:
+
+  declare [[case_translation case_combinator constructor1 ... constructorN]]
 
 * Code generator:
   - 'code_printing' unifies 'code_const' / 'code_type' / 'code_class' /
@@ -152,23 +158,33 @@ to distinguish both when desired.
 See the isar-ref manual for syntax diagrams, and the HOL theories for
 examples.
 
-* HOL/BNF:
-  - Various improvements to BNF-based (co)datatype package, including new
-    commands "primrec_new", "primcorec", and "datatype_new_compat",
-    as well as documentation. See "datatypes.pdf" for details.
-  - New "coinduction" method to avoid some boilerplate (compared to coinduct).
-  - Renamed keywords:
-    data ~> datatype_new
-    codata ~> codatatype
-    bnf_def ~> bnf
-  - Renamed many generated theorems, including
-    discs ~> disc
-    map_comp' ~> map_comp
-    map_id' ~> map_id
-    sels ~> sel
-    set_map' ~> set_map
-    sets ~> set
-IMCOMPATIBILITY.
+* Attibute 'code': 'code' now declares concrete and abstract code
+equations uniformly.  Use explicit 'code equation' and 'code abstract'
+to distinguish both when desired.
+
+* Discontinued theories Code_Integer and Efficient_Nat by a more
+fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
+Code_Target_Nat and Code_Target_Numeral.  See the tutorial on code
+generation for details.  INCOMPATIBILITY.
+
+* Numeric types are mapped by default to target language numerals:
+natural (replaces former code_numeral) and integer (replaces former
+code_int).  Conversions are available as integer_of_natural /
+natural_of_integer / integer_of_nat / nat_of_integer (in HOL) and
+Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in
+ML).  INCOMPATIBILITY.
+
+* Function package: For mutually recursive functions f and g, separate
+cases rules f.cases and g.cases are generated instead of unusable
+f_g.cases which exposed internal sum types. Potential INCOMPATIBILITY,
+in the case that the unusable rule was used nevertheless.
+
+* Function package: For each function f, new rules f.elims are
+generated, which eliminate equalities of the form "f x = t".
+
+* New command 'fun_cases' derives ad-hoc elimination rules for
+function equations as simplified instances of f.elims, analogous to
+inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
 
 * Lifting:
   - parametrized correspondence relations are now supported:
@@ -200,35 +216,6 @@ IMCOMPATIBILITY.
   - Experimental support for transferring from the raw level to the
     abstract level: Transfer.transferred attribute
   - Attribute version of the transfer method: untransferred attribute
-  
-
-* Function package: For mutually recursive functions f and g, separate
-cases rules f.cases and g.cases are generated instead of unusable
-f_g.cases which exposed internal sum types. Potential INCOMPATIBILITY,
-in the case that the unusable rule was used nevertheless.
-
-* Function package: For each function f, new rules f.elims are
-automatically generated, which eliminate equalities of the form "f x =
-t".
-
-* New command 'fun_cases' derives ad-hoc elimination rules for
-function equations as simplified instances of f.elims, analogous to
-inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
-
-* Library/Polynomial.thy:
-  - Use lifting for primitive definitions.
-  - Explicit conversions from and to lists of coefficients, used for
-    generated code.
-  - Replaced recursion operator poly_rec by fold_coeffs.
-  - Prefer pre-existing gcd operation for gcd.
-  - Fact renames:
-    poly_eq_iff ~> poly_eq_poly_eq_iff
-    poly_ext ~> poly_eqI
-    expand_poly_eq ~> poly_eq_iff
-IMCOMPATIBILITY.
-
-* New Library/FSet.thy: type of finite sets defined as a subtype of
-  sets defined by Lifting/Transfer
 
 * Reification and reflection:
   - Reification is now directly available in HOL-Main in structure
@@ -236,24 +223,6 @@ IMCOMPATIBILITY.
   - Reflection now handles multiple lists with variables also.
   - The whole reflection stack has been decomposed into conversions.
 INCOMPATIBILITY.
-
-* Stronger precedence of syntax for big intersection and union on
-sets, in accordance with corresponding lattice operations.
-INCOMPATIBILITY.
-
-* Nested case expressions are now translated in a separate check phase
-rather than during parsing. The data for case combinators is separated
-from the datatype package. The declaration attribute
-"case_translation" can be used to register new case combinators:
-
-  declare [[case_translation case_combinator constructor1 ... constructorN]]
-
-* New Library/Simps_Case_Conv.thy: Provides commands simps_of_case and
-case_of_simps to convert function definitions between a list of
-equations with patterns on the lhs and a single equation with case
-expressions on the rhs. See also Ex/Simps_Case_Conv_Examples.thy.
-
-* Notation "{p:A. P}" now allows tuple patterns as well.
 
 * Revised devices for recursive definitions over finite sets:
   - Only one fundamental fold combinator on finite set remains:
@@ -277,20 +246,6 @@ expressions on the rhs. See also Ex/Simps_Case_Conv_Examples.thy.
 INCOMPATIBILITY.
 
 * Locale hierarchy for abstract orderings and (semi)lattices.
-
-* Discontinued theory src/HOL/Library/Eval_Witness.  INCOMPATIBILITY.
-
-* Numeric types mapped by default to target language numerals: natural
-(replaces former code_numeral) and integer (replaces former code_int).
-Conversions are available as integer_of_natural / natural_of_integer /
-integer_of_nat / nat_of_integer (in HOL) and
-Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in
-ML).  INCOMPATIBILITY.
-
-* Discontinued theories Code_Integer and Efficient_Nat by a more
-fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
-Code_Target_Nat and Code_Target_Numeral.  See the tutorial on code
-generation for details.  INCOMPATIBILITY.
 
 * Complete_Partial_Order.admissible is defined outside the type class
 ccpo, but with mandatory prefix ccpo. Admissibility theorems lose the
@@ -387,13 +342,6 @@ HOL-Multivariate_Analysis to HOL-Complex_Main.
 
 INCOMPATIBILITY.
 
-* Consolidation of library theories on product orders:
-
-    Product_Lattice ~> Product_Order -- pointwise order on products
-    Product_ord ~> Product_Lexorder -- lexicographic order on products
-
-INCOMPATIBILITY.
-
 * Nitpick:
   - Added option "spy"
   - Reduce incidence of "too high arity" errors
@@ -406,6 +354,38 @@ INCOMPATIBILITY.
   - Better support for "isar_proofs"
   - MaSh has been fined-tuned and now runs as a local server
 
+* Improved support for ad hoc overloading of constants (see also
+isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).
+
+* Library/Polynomial.thy:
+  - Use lifting for primitive definitions.
+  - Explicit conversions from and to lists of coefficients, used for
+    generated code.
+  - Replaced recursion operator poly_rec by fold_coeffs.
+  - Prefer pre-existing gcd operation for gcd.
+  - Fact renames:
+    poly_eq_iff ~> poly_eq_poly_eq_iff
+    poly_ext ~> poly_eqI
+    expand_poly_eq ~> poly_eq_iff
+IMCOMPATIBILITY.
+
+* New Library/Simps_Case_Conv.thy: Provides commands simps_of_case and
+case_of_simps to convert function definitions between a list of
+equations with patterns on the lhs and a single equation with case
+expressions on the rhs. See also Ex/Simps_Case_Conv_Examples.thy.
+
+* New Library/FSet.thy: type of finite sets defined as a subtype of
+sets defined by Lifting/Transfer.
+
+* Discontinued theory src/HOL/Library/Eval_Witness.  INCOMPATIBILITY.
+
+* Consolidation of library theories on product orders:
+
+    Product_Lattice ~> Product_Order -- pointwise order on products
+    Product_ord ~> Product_Lexorder -- lexicographic order on products
+
+INCOMPATIBILITY.
+
 * Imperative-HOL: The MREC combinator is considered legacy and no
 longer included by default. INCOMPATIBILITY, use partial_function
 instead, or import theory Legacy_Mrec as a fallback.
@@ -414,6 +394,26 @@ instead, or import theory Legacy_Mrec as a fallback.
 ~~/src/HOL/Algebra/poly.  Existing theories should be based on
 ~~/src/HOL/Library/Polynomial instead.  The latter provides
 integration with HOL's type classes for rings.  INCOMPATIBILITY.
+
+* HOL/BNF:
+  - Various improvements to BNF-based (co)datatype package, including
+    new commands "primrec_new", "primcorec", and
+    "datatype_new_compat", as well as documentation. See
+    "datatypes.pdf" for details.
+  - New "coinduction" method to avoid some boilerplate (compared to
+    coinduct).
+  - Renamed keywords:
+    data ~> datatype_new
+    codata ~> codatatype
+    bnf_def ~> bnf
+  - Renamed many generated theorems, including
+    discs ~> disc
+    map_comp' ~> map_comp
+    map_id' ~> map_id
+    sels ~> sel
+    set_map' ~> set_map
+    sets ~> set
+IMCOMPATIBILITY.
 
 
 *** ML ***
