@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/While_Combinator.thy
     Author:     Tobias Nipkow
     Author:     Alexander Krauss
-    Copyright   2000 TU Muenchen
 *)
 
 header {* A general ``while'' combinator *}
@@ -257,7 +256,7 @@ where "rtrancl_while p f x =
   while_option (%(ws,_). ws \<noteq> [] \<and> p(hd ws))
     ((%(ws,Z).
      let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
-     in (new @ tl ws, set new \<union> insert x Z)))
+     in (new @ tl ws, set new \<union> Z)))
     ([x],{x})"
 
 lemma rtrancl_while_Some: assumes "rtrancl_while p f x = Some(ws,Z)"
@@ -268,7 +267,7 @@ proof-
   let ?test = "(%(ws,_). ws \<noteq> [] \<and> p(hd ws))"
   let ?step = "(%(ws,Z).
      let x = hd ws; new = filter (\<lambda>y. y \<notin> Z) (f x)
-     in (new @ tl ws, set new \<union> insert x Z))"
+     in (new @ tl ws, set new \<union> Z))"
   let ?R = "{(x,y). y \<in> set(f x)}"
   let ?Inv = "%(ws,Z). x \<in> Z \<and> set ws \<subseteq> Z \<and> ?R `` (Z - set ws) \<subseteq> Z \<and>
                        Z \<subseteq> ?R^* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z)"
