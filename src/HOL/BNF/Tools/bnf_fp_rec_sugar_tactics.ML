@@ -7,7 +7,7 @@ Tactics for recursor and corecursor sugar.
 
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
-  val mk_primcorec_assumption_tac: Proof.context -> thm list -> tactic
+  val mk_primcorec_assumption_tac: Proof.context -> thm list -> int -> tactic
   val mk_primcorec_code_of_raw_code_tac: thm list -> thm -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
@@ -38,13 +38,13 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
   HEADGOAL (rtac refl);
 
 fun mk_primcorec_assumption_tac ctxt discIs =
-  HEADGOAL (SELECT_GOAL (unfold_thms_tac ctxt
+  SELECT_GOAL (unfold_thms_tac ctxt
       @{thms not_not not_False_eq_True de_Morgan_conj de_Morgan_disj} THEN
     SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE' etac conjE ORELSE'
     resolve_tac @{thms TrueI conjI disjI1 disjI2} ORELSE'
     dresolve_tac discIs THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
-    etac disjE)))));
+    etac disjE))));
 
 fun mk_primcorec_same_case_tac m =
   HEADGOAL (if m = 0 then rtac TrueI
@@ -52,7 +52,7 @@ fun mk_primcorec_same_case_tac m =
 
 fun mk_primcorec_different_case_tac ctxt excl =
   unfold_thms_tac ctxt @{thms not_not not_False_eq_True not_True_eq_False} THEN
-  HEADGOAL (rtac excl THEN_ALL_NEW SELECT_GOAL (mk_primcorec_assumption_tac ctxt []));
+  HEADGOAL (rtac excl THEN_ALL_NEW mk_primcorec_assumption_tac ctxt []);
 
 fun mk_primcorec_cases_tac ctxt k m exclsss =
   let val n = length exclsss in
@@ -72,15 +72,15 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms maps map_idents m
     exclsss =
   mk_primcorec_prelude ctxt defs (f_sel RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
-  unfold_thms_tac ctxt (@{thms id_apply o_def split_def} @ maps @ map_comps @ map_idents) THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' rtac ext ORELSE'
     eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
     Splitter.split_tac (split_if :: splits) ORELSE'
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
-    (CHANGED o SELECT_GOAL (unfold_tac @{thms sum.cases} ctxt)) ORELSE'
-    etac notE THEN' atac));
+    etac notE THEN' atac ORELSE'
+    (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt
+      (@{thms id_apply o_def split_def sum.cases} @ maps @ map_comps @ map_idents)))));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
   HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
@@ -91,13 +91,13 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
 fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m f_ctr =
   HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
-  REPEAT_DETERM_N m (mk_primcorec_assumption_tac ctxt discIs) THEN
-  HEADGOAL (SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
+  HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
+    SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'
      resolve_tac split_connectI ORELSE'
      Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
-     K (mk_primcorec_assumption_tac ctxt discIs) ORELSE'
+     mk_primcorec_assumption_tac ctxt discIs ORELSE'
      eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
      (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))));
 
