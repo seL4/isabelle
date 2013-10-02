@@ -21,6 +21,12 @@ Contributions to Isabelle2013-1
   Various improvements to BNF-based (co)datatype package, including
   "primrec_new" and "primcorec" commands and a compatibility layer.
 
+* Spring and Summer 2013: Ondrej Kuncar, TUM
+  Various improvments of Lifting and Transfer packages
+
+* Spring 2013: Brian Huffman, Galois Inc.
+  Improvments of the Transfer package
+  
 * Summer 2013: Daniel Kühlwein, ICIS, Radboud University Nijmegen
   Jasmin Blanchette, TUM
   Various improvements to MaSh, including a server mode.

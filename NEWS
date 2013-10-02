@@ -169,6 +169,38 @@ examples.
     sets ~> set
 IMCOMPATIBILITY.
 
+* Lifting:
+  - parametrized correspondence relations are now supported:
+    + parametricity theorems for the raw term can be specified in 
+      the command lift_definition, which allow us to generate stronger
+      transfer rules
+    + setup_lifting generates stronger transfer rules if parametric
+      correspondence relation can be generated
+    + various new properties of the relator must be specified to support
+      parametricity
+    + parametricity theorem for the Quotient relation can be specified
+  - setup_lifting generates domain rules for the Transfer package
+  - stronger reflexivity prover of respectfulness theorems for type
+    copies
+  - ===> and --> are now local. The symbols can be introduced
+    by interpreting the locale lifting_syntax (typically in an
+    anonymous context)
+  - Lifting/Transfer relevant parts of Library/Quotient_* are now in 
+    Main. Potential INCOMPATIBILITY
+  - new commands for restoring and deleting Lifting/Transfer context:
+    lifting_forget, lifting_update
+  - the command print_quotmaps was renamed to print_quot_maps. 
+    INCOMPATIBILITY
+
+* Transfer:
+  - better support for domains in Transfer: replace Domainp T 
+    by the actual invariant in a transferred goal
+  - transfer rules can have as assumptions other transfer rules
+  - Experimental support for transferring from the raw level to the
+    abstract level: Transfer.transferred attribute
+  - Attribute version of the transfer method: untransferred attribute
+  
+
 * Function package: For mutually recursive functions f and g, separate
 cases rules f.cases and g.cases are generated instead of unusable
 f_g.cases which exposed internal sum types. Potential INCOMPATIBILITY,
@@ -193,6 +225,9 @@ inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
     poly_ext ~> poly_eqI
     expand_poly_eq ~> poly_eq_iff
 IMCOMPATIBILITY.
+
+* New Library/FSet.thy: type of finite sets defined as a subtype of
+  sets defined by Lifting/Transfer
 
 * Reification and reflection:
   - Reification is now directly available in HOL-Main in structure
