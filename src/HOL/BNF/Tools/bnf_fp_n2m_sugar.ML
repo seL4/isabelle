@@ -157,7 +157,7 @@ fun mutualize_fp_sugars mutualize fp bs fpTs get_indices callssss fp_sugars0 no_
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs kss mss ns ctr_defss
             ctr_sugars co_iterss co_iter_defss (Proof_Context.export lthy no_defs_lthy) lthy
-          |> `(fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _), _,
+          |> `(fn ((coinduct_thms_pairs, _), (unfold_thmss, corec_thmss, _),
                   (disc_unfold_thmss, disc_corec_thmss, _), _,
                   (sel_unfold_thmsss, sel_corec_thmsss, _)) =>
             (map snd coinduct_thms_pairs, unfold_thmss, corec_thmss, disc_unfold_thmss,

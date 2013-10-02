@@ -918,19 +918,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val ctr_thmss = map5 (maps oooo prove_ctr) disc_alists sel_alists disc_eqnss sel_eqnss
           (map #ctr_specs corec_specs);
 
-        val safess = map (map (not o exists_subterm (member (op =) (map SOME fun_names) o
-          try (fst o dest_Free)) o snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o
-          Logic.strip_imp_concl o drop_All o prop_of)) ctr_thmss;
-        val safe_ctr_thmss = map (map snd o filter fst o (op ~~)) (safess ~~ ctr_thmss);
-
-        val simp_thmss =
-          map3 (fn x => fn y => fn z => x @ y @ z) disc_thmss sel_thmss safe_ctr_thmss;
+        val simp_thmss = map2 append disc_thmss sel_thmss
 
         val common_name = mk_common_name fun_names;
-
-        val anonymous_notes =
-          [(flat safe_ctr_thmss, simp_attrs)]
-          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, []),
@@ -953,7 +943,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
       in
-        lthy |> Local_Theory.notes (anonymous_notes @ notes @ common_notes) |> snd
+        lthy |> Local_Theory.notes (notes @ common_notes) |> snd
       end;
 
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
