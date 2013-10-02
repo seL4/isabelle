@@ -22,6 +22,9 @@ classpath "$ISABELLE_HOME/lib/classes/scala-actors.jar"
 classpath "$ISABELLE_HOME/lib/classes/scala-compiler.jar"
 classpath "$ISABELLE_HOME/lib/classes/scala-reflect.jar"
 
+#paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
+unset XMODIFIERS
+
 
 ###
 ### Interactive sessions (cf. isabelle tty)

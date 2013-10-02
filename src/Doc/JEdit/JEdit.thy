@@ -244,6 +244,13 @@ text {*
 
   \textbf{Workaround:} Disable such effects.
 
+  \item \textbf{Problem:} Linux: some X11 input methods such as IBus tend
+  to disrupt key event handling of Java/Swing.
+
+  \textbf{Workaround:} Do not use input methods, reset the environment
+  variable @{verbatim XMODIFIERS} within Isabelle settings (default in
+  Isabelle2013-1).
+
   \item \textbf{Problem:} Linux: some X11 window managers that are not
   ``re-parenting'' cause problems with additional windows opened by the Java
   VM. This affects either historic or neo-minimalistic window managers like
