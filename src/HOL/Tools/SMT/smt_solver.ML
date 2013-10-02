@@ -257,11 +257,13 @@ val has_topsort = Term.exists_type (Term.exists_subtype (fn
   | _ => false))
 
 (* without this test, we would run into problems when atomizing the rules: *)
-fun check_topsort iwthms =
-  if exists (has_topsort o Thm.prop_of o snd o snd) iwthms then
-    raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("proof state " ^
-      "contains the universal sort {}"))
-  else ()
+fun check_topsort ctxt thm =
+  if has_topsort (Thm.prop_of thm) then
+    (SMT_Normalize.drop_fact_warning ctxt thm; TrueI)
+  else
+    thm
+
+fun check_topsorts ctxt iwthms = map (apsnd (apsnd (check_topsort ctxt))) iwthms
 
 
 (* filter *)
@@ -277,7 +279,6 @@ fun smt_filter_preprocess ctxt facts goal xwthms i =
     val ctxt =
       ctxt
       |> Config.put SMT_Config.oracle false
-      |> Config.put SMT_Config.drop_bad_facts true
       |> Config.put SMT_Config.filter_only_facts true
 
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
@@ -291,7 +292,7 @@ fun smt_filter_preprocess ctxt facts goal xwthms i =
     map snd xwthms
     |> map_index I
     |> append (map (pair ~1 o pair NONE) (Thm.assume cprop :: prems @ facts))
-    |> tap check_topsort
+    |> check_topsorts ctxt'
     |> gen_preprocess ctxt'
     |> pair (map (apsnd snd) xwthms)
   end
@@ -332,7 +333,7 @@ local
 
   fun solve ctxt iwthms =
     iwthms
-    |> tap check_topsort
+    |> check_topsorts ctxt
     |> apply_solver ctxt
     |>> trace_assumptions ctxt iwthms
     |> snd

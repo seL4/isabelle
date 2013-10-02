@@ -6,6 +6,7 @@ Normalization steps on theorems required by SMT solvers.
 
 signature SMT_NORMALIZE =
 sig
+  val drop_fact_warning: Proof.context -> thm -> unit
   val atomize_conv: Proof.context -> conv
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT_Utils.class * extra_norm -> Context.generic ->
@@ -17,6 +18,10 @@ end
 
 structure SMT_Normalize: SMT_NORMALIZE =
 struct
+
+fun drop_fact_warning ctxt =
+  SMT_Config.verbose_msg ctxt (prefix "Warning: dropping assumption: " o
+    Display.string_of_thm ctxt)
 
 
 (* general theorem normalizations *)
@@ -329,16 +334,10 @@ fun gen_normalize1 ctxt weight thm =
   |> Drule.forall_intr_vars
   |> Conv.fconv_rule (gen_normalize1_conv ctxt weight)
 
-fun drop_fact_warning ctxt =
-  let val pre = prefix "Warning: dropping assumption: "
-  in SMT_Config.verbose_msg ctxt (pre o Display.string_of_thm ctxt) end
-
 fun gen_norm1_safe ctxt (i, (weight, thm)) =
-  if Config.get ctxt SMT_Config.drop_bad_facts then
-    (case try (gen_normalize1 ctxt weight) thm of
-      SOME thm' => SOME (i, thm')
-    | NONE => (drop_fact_warning ctxt thm; NONE))
-  else SOME (i, gen_normalize1 ctxt weight thm)
+  (case try (gen_normalize1 ctxt weight) thm of
+    SOME thm' => SOME (i, thm')
+  | NONE => (drop_fact_warning ctxt thm; NONE))
 
 fun gen_normalize ctxt iwthms = map_filter (gen_norm1_safe ctxt) iwthms
 

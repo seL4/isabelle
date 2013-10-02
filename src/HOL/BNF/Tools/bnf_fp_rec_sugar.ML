@@ -803,9 +803,12 @@ fun add_primcorec simple sequential fixes specs of_specs lthy =
       co_build_defs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     fun excl_tac (c, c', a) =
-      if a orelse c = c' orelse sequential then SOME (K (mk_primcorec_assumption_tac lthy []))
-      else if simple then SOME (K (auto_tac lthy))
-      else NONE;
+      if a orelse c = c' orelse sequential then
+        SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
+      else if simple then
+        SOME (K (auto_tac lthy))
+      else
+        NONE;
 
 (*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
