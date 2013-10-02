@@ -33,7 +33,6 @@ sig
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
   val infer_triggers: bool Config.T
-  val drop_bad_facts: bool Config.T
   val filter_only_facts: bool Config.T
   val debug_files: string Config.T
 
@@ -161,7 +160,6 @@ val trace_used_facts = Attrib.setup_config_bool @{binding smt_trace_used_facts} 
 val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
 val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
 val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
-val drop_bad_facts = Attrib.setup_config_bool @{binding smt_drop_bad_facts} (K false)
 val filter_only_facts = Attrib.setup_config_bool @{binding smt_filter_only_facts} (K false)
 val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
 
