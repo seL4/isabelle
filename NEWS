@@ -103,10 +103,11 @@ plugin, which is now enabled by default.
 
 *** Pure ***
 
-* Target-sensitive commands 'interpretation' and 'sublocale'.
-Particularly, 'interpretation' now allows for non-persistent
-interpretation within "context ... begin ... end" blocks.  See
-"isar-ref" manual for details.
+* Commands 'interpretation' and 'sublocale' are now target-sensitive.
+In particular, 'interpretation' allows for non-persistent
+interpretation within "context ... begin ... end" blocks offering a
+light-weight alternative to 'sublocale'.  See "isar-ref" manual for
+details.
 
 * Improved locales diagnostic command 'print_dependencies'.
 

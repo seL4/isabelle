@@ -257,7 +257,7 @@ lemma "x = x"
   including trace by metis
 
 
-section {* Basic specification elements *}
+section {* Basic specification elements \label{sec:basic-spec} *}
 
 text {*
   \begin{matharray}{rcll}
@@ -400,23 +400,36 @@ text {*
 section {* Locales \label{sec:locale} *}
 
 text {*
-  Locales are parametric named local contexts, consisting of a list of
-  declaration elements that are modeled after the Isar proof context
-  commands (cf.\ \secref{sec:proof-context}).
+  A locale is a functor that maps parameters (including implicit type
+  parameters) and a specification to a list of declarations.  The
+  syntax of locales is modeled after the Isar proof context commands
+  (cf.\ \secref{sec:proof-context}).
+
+  Locale hierarchies are supported by maintaining a graph of
+  dependencies between locale instances in the global theory.
+  Dependencies may be introduced through import (where a locale is
+  defined as sublocale of the imported instances) or by proving that
+  an existing locale is a sublocale of one or several locale
+  instances.
+
+  A locale may be opened with the purpose of appending to its list of
+  declarations (cf.\ \secref{sec:target}).  When opening a locale
+  declarations from all dependencies are collected and are presented
+  as a local theory.  In this process, which is called \emph{roundup},
+  redundant locale instances are omitted.  A locale instance is
+  redundant if it is subsumed by an instance encountered earlier.  A
+  more detailed description of this process is available elsewhere
+  \cite{Ballarin2013}.
 *}
 
 
 subsection {* Locale expressions \label{sec:locale-expr} *}
 
 text {*
-  A \emph{locale expression} denotes a structured context composed of
-  instances of existing locales.  The context consists of a list of
-  instances of declaration elements from the locales.  Two locale
-  instances are equal if they are of the same locale and the
-  parameters are instantiated with equivalent terms.  Declaration
-  elements from equal instances are never repeated, thus avoiding
-  duplicate declarations.  More precisely, declarations from instances
-  that are subsumed by earlier instances are omitted.
+  A \emph{locale expression} denotes a context composed of instances
+  of existing locales.  The context consists of the declaration
+  elements from the locale instances.  Redundant locale instances are
+  omitted according to roundup.
 
   @{rail "
     @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax \"fixes\"} + @'and'))?
@@ -432,7 +445,7 @@ text {*
 
   A locale instance consists of a reference to a locale and either
   positional or named parameter instantiations.  Identical
-  instantiations (that is, those that instante a parameter by itself)
+  instantiations (that is, those that instantiate a parameter by itself)
   may be omitted.  The notation `@{text "_"}' enables to omit the
   instantiation for a parameter inside a positional instantiation.
 
@@ -451,7 +464,8 @@ text {*
   ``\texttt{?}'' nor ``\texttt{!}'' are present, the command's default
   is used.  For @{command "interpretation"} and @{command "interpret"}
   the default is ``mandatory'', for @{command "locale"} and @{command
-  "sublocale"} the default is ``optional''.
+  "sublocale"} the default is ``optional''.  Qualifiers play no role
+  in determining whether one locale instance subsumes another.
 *}
 
 
@@ -497,14 +511,15 @@ text {*
   care of the most general typing that the combined context elements
   may acquire.
 
-  The @{text import} consists of a structured locale expression; see
-  \secref{sec:proof-context} above.  Its for clause defines the local
-  parameters of the @{text import}.  In addition, locale parameters
-  whose instantance is omitted automatically extend the (possibly
-  empty) for clause: they are inserted at its beginning.  This means
-  that these parameters may be referred to from within the expression
-  and also in the subsequent context elements and provides a
-  notational convenience for the inheritance of parameters in locale
+  The @{text import} consists of a locale expression; see
+  \secref{sec:proof-context} above.  Its @{keyword "for"} clause defines
+  the parameters of @{text import}.  These are parameters of
+  the defined locale.  Locale parameters whose instantiation is
+  omitted automatically extend the (possibly empty) @{keyword "for"}
+  clause: they are inserted at its beginning.  This means that these
+  parameters may be referred to from within the expression and also in
+  the subsequent context elements and provides a notational
+  convenience for the inheritance of parameters in locale
   declarations.
 
   The @{text body} consists of context elements.
@@ -520,7 +535,7 @@ text {*
   \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
   constraint @{text \<tau>} on the local parameter @{text x}.  This
   element is deprecated.  The type constraint should be introduced in
-  the for clause or the relevant @{element "fixes"} element.
+  the @{keyword "for"} clause or the relevant @{element "fixes"} element.
 
   \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
   introduces local premises, similar to @{command "assume"} within a
@@ -538,11 +553,12 @@ text {*
   include arbitrary declarations in any attribute specifications
   included here, e.g.\ a local @{attribute simp} rule.
 
-  The initial @{text import} specification of a locale expression
-  maintains a dynamic relation to the locales being referenced
-  (benefiting from any later fact declarations in the obvious manner).
-
   \end{description}
+
+  Both @{element "assumes"} and @{element "defines"} elements
+  contribute to the locale specification.  When defining an operation
+  derived from the parameters, @{command "definition"}
+  (\secref{sec:basic-spec}) is usually more appropriate.
   
   Note that ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}'' patterns given
   in the syntax of @{element "assumes"} and @{element "defines"} above
@@ -560,8 +576,8 @@ text {*
   specification text.
   
   In any case, the predicate arguments are those locale parameters
-  that actually occur in the respective piece of text.  Also note that
-  these predicates operate at the meta-level in theory, but the locale
+  that actually occur in the respective piece of text.  Also these
+  predicates operate at the meta-level in theory, but the locale
   packages attempts to internalize statements according to the
   object-logic setup (e.g.\ replacing @{text \<And>} by @{text \<forall>}, and
   @{text "\<Longrightarrow>"} by @{text "\<longrightarrow>"} in HOL; see also
@@ -578,12 +594,13 @@ text {*
 
   \item @{command "locale_deps"} visualizes all locales and their
   relations as a Hasse diagram. This includes locales defined as type
-  classes (\secref{sec:class}).
+  classes (\secref{sec:class}).  See also @{command
+  "print_dependencies"} below.
 
   \item @{method intro_locales} and @{method unfold_locales}
   repeatedly expand all introduction rules of locale predicates of the
   theory.  While @{method intro_locales} only applies the @{text
-  loc.intro} introduction rules and therefore does not decend to
+  loc.intro} introduction rules and therefore does not descend to
   assumptions, @{method unfold_locales} is more aggressive and applies
   @{text loc_axioms.intro} as well.  Both methods are aware of locale
   specifications entailed by the context, both from target statements,
@@ -605,12 +622,12 @@ text {*
     @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  Locale expressions may be instantiated, and the instantiated facts
-  added to the current context.  This requires a proof of the
-  instantiated specification and is called \emph{locale
-  interpretation}.  Interpretation is possible in locales (command
-  @{command "sublocale"}), theories and local theories (command @{command
-  "interpretation"}) and also within proof bodies (command @{command
+  Locales may be instantiated, and the resulting instantiated
+  declarations added to the current context.  This requires proof (of
+  the instantiated specification) and is called \emph{locale
+  interpretation}.  Interpretation is possible in locales (@{command
+  "sublocale"}), global and local theories (@{command
+  "interpretation"}) and also within proof bodies (@{command
   "interpret"}).
 
   @{rail "
@@ -632,40 +649,40 @@ text {*
   \begin{description}
 
   \item @{command "interpretation"}~@{text "expr \<WHERE> eqns"}
-  interprets @{text expr} in a theory or local theory.  The command
-  generates proof obligations for the instantiated specifications
-  (assumes and defines elements).  Once these are discharged by the
-  user, instantiated declarations (in particular, facts) are added to
-  the theory in a post-processing phase.
+  interprets @{text expr} in a global or local theory.  The command
+  generates proof obligations for the instantiated specifications.
+  Once these are discharged by the user, instantiated declarations (in
+  particular, facts) are added to the theory in a post-processing
+  phase.
 
-  The command is aware of interpretations that are already active, but
-  does not simplify the goal automatically.  In order to simplify the
-  proof obligations use methods @{method intro_locales} or @{method
-  unfold_locales}.  Post-processing is not applied to declarations of
-  interpretations that are already active.  This avoids duplication of
-  interpreted declarations, in particular.  Note that, in the case of a
-  locale with import, parts of the interpretation may already be
-  active.  The command will only process declarations for new parts.
+  The command is aware of interpretations that are already active.
+  Post-processing is achieved through a variant of roundup that takes
+  the interpretations of the current global or local theory into
+  account.  In order to simplify the proof obligations according to
+  existing interpretations use methods @{method intro_locales} or
+  @{method unfold_locales}.
 
   When adding declarations to locales, interpreted versions of these
   declarations are added to the global theory for all interpretations
   in the global theory as well. That is, interpretations in global
   theories dynamically participate in any declarations added to
-  locales.  (Note that if a global theory inherits additional
-  declarations for a locale through one parent and an interpretation
-  of that locale through another parent, the additional declarations
-  will not be interpreted.)  In contrast, the lifetime of an
-  interpretation in a local theory is limited to the current context
-  block.  At the closing @{command end} of the block the
-  interpretation and its declarations disappear.  This enables local
-  interpretations, which are useful for auxilliary contructions,
-  without polluting the class or locale with interpreted declarations.
+  locales.
+
+  In contrast, the lifetime of an interpretation in a local theory is
+  limited to the current context block.  At the closing @{command end}
+  of the block the interpretation and its declarations disappear.
+  This enables establishing facts based on interpretations without
+  creating permanent links to the interpreted locale instances, as
+  would be the case with @{command sublocale}.
+  While @{command "interpretation"}~@{text "(\<IN> c)
+  \<dots>"} is technically possible, it is not useful since its result is
+  discarded immediately.
 
   Free variables in the interpreted expression are allowed.  They are
   turned into schematic variables in the generated declarations.  In
   order to use a free variable whose name is already bound in the
   context --- for example, because a constant of that name exists ---
-  it may be added to the @{keyword "for"} clause.
+  add it to the @{keyword "for"} clause.
 
   The equations @{text eqns} yield \emph{rewrite morphisms}, which are
   unfolded during post-processing and are useful for interpreting
@@ -687,16 +704,14 @@ text {*
   the proof obligation has been discharged, the locale hierarchy is
   changed as if @{text name} imported @{text expr} (hence the name
   @{command "sublocale"}).  When the context of @{text name} is
-  subsequently entered, traversing the locale hierachy will involve
+  subsequently entered, traversing the locale hierarchy will involve
   the locale instances of @{text expr}, and their declarations will be
   added to the context.  This makes @{command "sublocale"}
   dynamic: extensions of a locale that is instantiated in @{text expr}
   may take place after the @{command "sublocale"} declaration and
   still become available in the context.  Circular @{command
   "sublocale"} declarations are allowed as long as they do not lead to
-  infinite chains.  A detailed description of the \emph{roundup}
-  algorithm that administers traversing locale hierarchies is available
-  \cite{Ballarin2013}.
+  infinite chains.
 
   If interpretations of @{text name} exist in the current global
   theory, the command adds interpretations for @{text expr} as well,
@@ -706,20 +721,22 @@ text {*
   The equations @{text eqns} amend the morphism through
   which @{text expr} is interpreted.  This enables mapping definitions
   from the interpreted locales to entities of @{text name} and can
-  help break infinite chains induced by circular sublocale declarations.
+  help break infinite chains induced by circular @{command
+  "sublocale"} declarations.
 
   In a named context block the @{command sublocale} command may also
   be used, but the locale argument must be omitted.  The command then
   refers to the locale (or class) target of the context block.
 
   \item @{command "print_dependencies"}~@{text "expr"} is useful for
-  understanding the effect of an interpretation of @{text "expr"}.  It
-  lists all locale instances for which interpretations would be added
-  to the current context.  Variant @{command
-  "print_dependencies"}@{text "!"} does not generalize parameters and
-  assumes an empty context --- that is, it prints all locale instances
-  that would be considered for interpretation.  The latter is useful
-  for understanding the dependencies of a locale expression.
+  understanding the effect of an interpretation of @{text "expr"} in
+  the current context.  It lists all locale instances for which
+  interpretations would be added to the current context.  Variant
+  @{command "print_dependencies"}@{text "!"} does not generalize
+  parameters and assumes an empty context --- that is, it prints all
+  locale instances that would be considered for interpretation.  The
+  latter is useful for understanding the dependencies of a locale
+  expression.
 
   \item @{command "print_interps"}~@{text "locale"} lists all
   interpretations of @{text "locale"} in the current theory or proof
@@ -728,6 +745,13 @@ text {*
   @{command "sublocale"} declarations.
 
   \end{description}
+
+  \begin{warn}
+    If a global theory inherits declarations (body elements) for a
+    locale from one parent and an interpretation of that locale from
+    another parent, the interpretation will not be applied to the
+    declarations.
+  \end{warn}
 
   \begin{warn}
     Since attributes are applied to interpreted theorems,
