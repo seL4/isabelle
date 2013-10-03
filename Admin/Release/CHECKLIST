@@ -50,6 +50,16 @@ Checklist for official releases
   PolyML.Compiler.reportExhaustiveHandlers := true;
 
 
+Repository fork
+===============
+
+- isabelle: finalize NEWS / CONTRIBUTORS -- proper headers for named release;
+
+- isabelle-release: hg tag;
+
+- isabelle: back to back to post-release mode -- after fork point;
+
+
 Packaging
 =========
 
