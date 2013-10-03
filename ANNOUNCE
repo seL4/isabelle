@@ -7,20 +7,21 @@ This version consolidates Isabelle2013 and introduces numerous
 improvements, see the NEWS file in the distribution for more details.
 Some highlights are:
 
-* Improved Isabelle/jEdit Prover IDE.
+* Significantly improved Isabelle/jEdit Prover IDE.
 
 * Consolidated multi-platform support: Linux, Windows, Mac OS X.
 
-* New and updated manuals: datatypes, isar-ref, implementation, jedit.
+* Added and updated manuals: datatypes, implementation, isar-ref, jedit.
 
-* New Spec_Check: Quickcheck tool for Isabelle/ML.
+* New Spec_Check tool: Quickcheck for Isabelle/ML.
+
+* HOL library enhancements: Complex_Main, HOL-Library,
+  HOL-Multivariate_Analysis.
 
 * HOL tool enhancements: Codegenerator, Function, Lifting, Transfer,
   Nitpick, Sledgehammer,
 
-* HOL library enhancements: HOL-Library, HOL-Multivariate_Analysis.
-
-* HOL: improved BNF-based (co)datatype package.
+* HOL-BNF: significantly improved BNF-based (co)datatype package.
 
 
 You may get Isabelle2013-1 from the following mirror sites:

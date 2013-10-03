@@ -19,6 +19,10 @@ Contributions to Isabelle2013-1
   Generation of elimination rules in the function package.
   New command "fun_cases".
 
+* Summer 2013: Christian Sternagel, JAIST
+  Improved support for ad hoc overloading of constants, including
+  documentation and examples.
+
 * Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
   Jasmin Blanchette, TUM
   Various improvements to BNF-based (co)datatype package, including
@@ -29,17 +33,13 @@ Contributions to Isabelle2013-1
 
 * Spring 2013: Brian Huffman, Galois Inc.
   Improvements of the Transfer package.
-  
+
 * Summer 2013: Daniel Kühlwein, ICIS, Radboud University Nijmegen
   Jasmin Blanchette, TUM
   Various improvements to MaSh, including a server mode.
 
 * First half of 2013: Steffen Smolka, TUM
   Further improvements to Sledgehammer's Isar proof generator.
-
-* Summer 2013: Christian Sternagel, JAIST
-  Improved support for ad hoc overloading of constants, including
-  documentation and examples.
 
 * May 2013: Florian Haftmann, TUM
   Ephemeral interpretation in local theories.
