@@ -80,71 +80,117 @@ lemma funpow_commute:
   "\<lbrakk>\<forall>k' < k. f (c ((c^^k') s)) = c' (f ((c^^k') s))\<rbrakk> \<Longrightarrow> f ((c^^k) s) = (c'^^k) (f s)"
 by (induct k arbitrary: s) auto
 
-lemma while_option_commute:
-  assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)" 
-  shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
+lemma while_option_commute_invariant:
+assumes Invariant: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P (c s)"
+assumes TestCommute: "\<And>s. P s \<Longrightarrow> b s = b' (f s)"
+assumes BodyCommute: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> f (c s) = c' (f s)"
+assumes Initial: "P s"
+shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
 unfolding while_option_def
 proof (rule trans[OF if_distrib if_cong], safe, unfold option.inject)
-  fix k assume "\<not> b ((c ^^ k) s)"
-  thus "\<exists>k. \<not> b' ((c' ^^ k) (f s))"
+  fix k
+  assume "\<not> b ((c ^^ k) s)"
+  with Initial show "\<exists>k. \<not> b' ((c' ^^ k) (f s))"
   proof (induction k arbitrary: s)
-    case 0 thus ?case by (auto simp: assms(1) intro: exI[of _ 0])
+    case 0 thus ?case by (auto simp: TestCommute intro: exI[of _ 0])
   next
-    case (Suc k)
-    hence "\<not> b ((c^^k) (c s))" by (auto simp: funpow_swap1)
-    from Suc.IH[OF this] obtain k where "\<not> b' ((c' ^^ k) (f (c s)))" ..
-    with assms show ?case
-      by (cases "b s") (auto simp: funpow_swap1 intro: exI[of _ "Suc k"] exI[of _ "0"])
-  qed
-next
-  fix k assume "\<not> b' ((c' ^^ k) (f s))"
-  thus "\<exists>k. \<not> b ((c ^^ k) s)"
-  proof (induction k arbitrary: s)
-    case 0 thus ?case by (auto simp: assms(1) intro: exI[of _ 0])
-  next
-    case (Suc k)
-    hence *: "\<not> b' ((c'^^k) (c' (f s)))" by (auto simp: funpow_swap1)
-    show ?case
+    case (Suc k) thus ?case
     proof (cases "b s")
-      case True
-      with assms(2) * have "\<not> b' ((c'^^k) (f (c s)))" by simp
-      from Suc.IH[OF this] obtain k where "\<not> b ((c ^^ k) (c s))" ..
-      thus ?thesis by (auto simp: funpow_swap1 intro: exI[of _ "Suc k"])
-    qed (auto intro: exI[of _ "0"])
+      assume "b s"
+      with Suc.IH[of "c s"] Suc.prems show ?thesis
+        by (metis BodyCommute Invariant comp_apply funpow.simps(2) funpow_swap1)
+    next
+      assume "\<not> b s"
+      with Suc show ?thesis by (auto simp: TestCommute intro: exI [of _ 0])
+    qed
   qed
 next
-  fix k assume k: "\<not> b' ((c' ^^ k) (f s))"
-  have *: "(LEAST k. \<not> b' ((c' ^^ k) (f s))) = (LEAST k. \<not> b ((c ^^ k) s))" (is "?k' = ?k")
+  fix k
+  assume "\<not> b' ((c' ^^ k) (f s))"
+  with Initial show "\<exists>k. \<not> b ((c ^^ k) s)"
+  proof (induction k arbitrary: s)
+    case 0 thus ?case by (auto simp: TestCommute intro: exI[of _ 0])
+  next
+    case (Suc k) thus ?case
+    proof (cases "b s")
+       assume "b s"
+      with Suc.IH[of "c s"] Suc.prems show ?thesis
+        by (metis BodyCommute Invariant comp_apply funpow.simps(2) funpow_swap1)
+    next
+      assume "\<not> b s"
+      with Suc show ?thesis by (auto simp: TestCommute intro: exI [of _ 0])
+    qed
+  qed
+next
+  fix k
+  assume k: "\<not> b' ((c' ^^ k) (f s))"
+  have *: "(LEAST k. \<not> b' ((c' ^^ k) (f s))) = (LEAST k. \<not> b ((c ^^ k) s))"
+          (is "?k' = ?k")
   proof (cases ?k')
     case 0
-    have "\<not> b' ((c'^^0) (f s))" unfolding 0[symmetric] by (rule LeastI[of _ k]) (rule k)
-    hence "\<not> b s" unfolding assms(1) by simp
+    have "\<not> b' ((c' ^^ 0) (f s))"
+      unfolding 0[symmetric] by (rule LeastI[of _ k]) (rule k)
+    hence "\<not> b s" by (auto simp: TestCommute Initial)
     hence "?k = 0" by (intro Least_equality) auto
     with 0 show ?thesis by auto
   next
     case (Suc k')
-    have "\<not> b' ((c'^^Suc k') (f s))" unfolding Suc[symmetric] by (rule LeastI) (rule k)
+    have "\<not> b' ((c' ^^ Suc k') (f s))"
+      unfolding Suc[symmetric] by (rule LeastI) (rule k)
     moreover
     { fix k assume "k \<le> k'"
       hence "k < ?k'" unfolding Suc by simp
       hence "b' ((c' ^^ k) (f s))" by (rule iffD1[OF not_not, OF not_less_Least])
-    } note b' = this
+    }
+    note b' = this
     { fix k assume "k \<le> k'"
-      hence "f ((c ^^ k) s) = (c'^^k) (f s)" by (induct k) (auto simp: b' assms)
-      with `k \<le> k'` have "b ((c^^k) s)"
-      proof (induct k)
-        case (Suc k) thus ?case unfolding assms(1) by (simp only: b')
-      qed (simp add: b'[of 0, simplified] assms(1))
-    } note b = this
-    hence k': "f ((c^^k') s) = (c'^^k') (f s)" by (induct k') (auto simp: assms(2))
+      hence "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+      and "b ((c ^^ k) s) = b' ((c' ^^ k) (f s))"
+      and "P ((c ^^ k) s)"
+        by (induct k) (auto simp: b' assms)
+      with `k \<le> k'`
+      have "b ((c ^^ k) s)"
+      and "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+      and "P ((c ^^ k) s)"
+        by (auto simp: b')
+    }
+    note b = this(1) and body = this(2) and inv = this(3)
+    hence k': "f ((c ^^ k') s) = (c' ^^ k') (f s)" by auto
     ultimately show ?thesis unfolding Suc using b
-    by (intro sym[OF Least_equality])
-       (auto simp add: assms(1) assms(2)[OF b] k' not_less_eq_eq[symmetric])
+    proof (intro Least_equality[symmetric])
+      case goal1
+      hence Test: "\<not> b' (f ((c ^^ Suc k') s))"
+        by (auto simp: BodyCommute inv b)
+      have "P ((c ^^ Suc k') s)" by (auto simp: Invariant inv b)
+      with Test show ?case by (auto simp: TestCommute)
+    next
+      case goal2 thus ?case by (metis not_less_eq_eq)
+    qed
   qed
   have "f ((c ^^ ?k) s) = (c' ^^ ?k') (f s)" unfolding *
-    by (auto intro: funpow_commute assms(2) dest: not_less_Least)
+  proof (rule funpow_commute, clarify)
+    fix k assume "k < ?k"
+    hence TestTrue: "b ((c ^^ k) s)" by (auto dest: not_less_Least)
+    from `k < ?k` have "P ((c ^^ k) s)"
+    proof (induct k)
+      case 0 thus ?case by (auto simp: assms)
+    next
+      case (Suc h)
+      hence "P ((c ^^ h) s)" by auto
+      with Suc show ?case
+        by (auto, metis (lifting, no_types) Invariant Suc_lessD not_less_Least)
+    qed
+    with TestTrue show "f (c ((c ^^ k) s)) = c' (f ((c ^^ k) s))"
+      by (metis BodyCommute)
+  qed
   thus "\<exists>z. (c ^^ ?k) s = z \<and> f z = (c' ^^ ?k') (f s)" by blast
 qed
+
+lemma while_option_commute:
+  assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)" 
+  shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
+by(rule while_option_commute_invariant[where P = "\<lambda>_. True"])
+  (auto simp add: assms)
 
 subsection {* Total version *}
 
@@ -199,11 +245,22 @@ theorem wf_while_option_Some:
   and "!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s)" and "P s"
   shows "EX t. while_option b c s = Some t"
 using assms(1,3)
-apply (induct s)
-using assms(2)
-apply (subst while_option_unfold)
-apply simp
-done
+proof (induction s)
+  case less thus ?case using assms(2)
+    by (subst while_option_unfold) simp
+qed
+
+lemma wf_rel_while_option_Some:
+assumes wf: "wf R"
+assumes smaller: "\<And>s. P s \<and> b s \<Longrightarrow> (c s, s) \<in> R"
+assumes inv: "\<And>s. P s \<and> b s \<Longrightarrow> P(c s)"
+assumes init: "P s"
+shows "\<exists>t. while_option b c s = Some t"
+proof -
+ from smaller have "{(t,s). P s \<and> b s \<and> t = c s} \<subseteq> R" by auto
+ with wf have "wf {(t,s). P s \<and> b s \<and> t = c s}" by (auto simp: wf_subset)
+ with inv init show ?thesis by (auto simp: wf_while_option_Some)
+qed
 
 theorem measure_while_option_Some: fixes f :: "'s \<Rightarrow> nat"
 shows "(!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < f s)
