@@ -57,7 +57,7 @@ Repository fork
 
 - isabelle-release: hg tag;
 
-- isabelle: back to back to post-release mode -- after fork point;
+- isabelle: back to post-release mode -- after fork point;
 
 
 Packaging
