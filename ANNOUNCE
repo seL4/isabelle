@@ -19,7 +19,7 @@ Some highlights are:
   HOL-Multivariate_Analysis.
 
 * HOL tool enhancements: Codegenerator, Function, Lifting, Transfer,
-  Nitpick, Sledgehammer,
+  Nitpick, Sledgehammer.
 
 * HOL-BNF: significantly improved BNF-based (co)datatype package.
 
