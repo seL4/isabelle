@@ -36,6 +36,7 @@ sig
   val max_rounds: int Config.T
   val max_new_instances: int Config.T
   val max_thm_instances: int Config.T
+  val max_new_const_instances_per_round: int Config.T
 
   (* monomorphization *)
   val monomorph: (term -> typ list Symtab.table) -> Proof.context ->
@@ -69,7 +70,11 @@ val max_new_instances =
   Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
 
 val max_thm_instances =
-  Attrib.setup_config_int @{binding max_thm_instances} (K 20)
+  Attrib.setup_config_int @{binding monomorph_max_thm_instances} (K 20)
+
+val max_new_const_instances_per_round =
+  Attrib.setup_config_int @{binding monomorph_max_new_const_instances_per_round}
+    (K 5)
 
 fun limit_rounds ctxt f =
   let
@@ -247,9 +252,14 @@ fun is_new round initial_round = (round = initial_round)
 fun is_active round initial_round = (round > initial_round)
 
 
-fun find_instances max_instances max_thm_insts thm_infos ctxt round
-    (known_grounds, new_grounds, insts) =
+fun find_instances max_instances max_thm_insts max_new_grounds thm_infos ctxt
+    round (known_grounds, new_grounds0, insts) =
   let
+    val new_grounds =
+      Symtab.map (fn _ => fn grounds =>
+        if length grounds <= max_new_grounds then grounds
+        else take max_new_grounds (sort Term_Ord.typ_ord grounds)) new_grounds0
+
     val add_new = add_insts max_instances max_thm_insts ctxt round
     fun consider_all pred f (cx as (_, (n, _))) =
       if n >= max_instances then cx else fold_schematics pred f thm_infos cx
@@ -270,7 +280,7 @@ fun add_ground_types thm =
   in Term.fold_aterms (fn Const c => add c | _ => I) (Thm.prop_of thm) end
 
 
-fun collect_instances ctxt max_thm_insts thm_infos consts =
+fun collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts =
   let
     val known_grounds = fold_grounds add_ground_types thm_infos consts
     val empty_grounds = clear_grounds known_grounds
@@ -278,7 +288,8 @@ fun collect_instances ctxt max_thm_insts thm_infos consts =
       |> fold (fn Schematic _ => Integer.add 1 | _ => I) thm_infos
   in
     (empty_grounds, known_grounds, (0, Inttab.empty))
-    |> limit_rounds ctxt (find_instances max_instances max_thm_insts thm_infos)
+    |> limit_rounds ctxt (find_instances max_instances max_thm_insts
+      max_new_grounds thm_infos)
     |> (fn (_, _, (_, insts)) => insts)
   end
 
@@ -304,10 +315,11 @@ fun instantiated_thms _ _ (Ground thm) = [(0, thm)]
 fun monomorph schematic_consts_of ctxt rthms =
   let
     val max_thm_insts = Config.get ctxt max_thm_instances
+    val max_new_grounds = Config.get ctxt max_new_const_instances_per_round
     val (thm_infos, consts) = prepare schematic_consts_of rthms
     val insts =
       if Symtab.is_empty consts then Inttab.empty
-      else collect_instances ctxt max_thm_insts thm_infos consts
+      else collect_instances ctxt max_thm_insts max_new_grounds thm_infos consts
   in map (instantiated_thms max_thm_insts insts) thm_infos end
 
 end
