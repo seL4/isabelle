@@ -19,7 +19,8 @@ from ExpandFeatures import ExpandFeatures
 from stats import Statistics
 
 
-class ThreadingTCPServer(SocketServer.ThreadingTCPServer): 
+class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
+    
     def __init__(self, *args, **kwargs):
         SocketServer.ThreadingTCPServer.__init__(self,*args, **kwargs)
         self.manager = Manager()
@@ -27,8 +28,17 @@ class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
         self.idle_timeout = 28800.0 # 8 hours in seconds
         self.idle_timer = Timer(self.idle_timeout, self.shutdown)
         self.idle_timer.start()        
+        self.model = None
+        self.dicts = None
+        self.callCounter = 0
         
     def save(self):
+        if self.model == None or self.dicts == None:
+            try:
+                self.logger.warning('Cannot save nonexisting models.')
+            except:
+                pass
+            return
         # Save Models
         self.model.save(self.args.modelFile)
         self.dicts.save(self.args.dictsFile)
@@ -193,8 +203,11 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             self.server.lock.release()
 
 if __name__ == "__main__":
-    HOST, PORT = sys.argv[1:]    
-    #HOST, PORT = "localhost", 9255
+    if not len(sys.argv[1:]) == 2:
+        print 'No Arguments for HOST and PORT found. Using localhost and 9255'
+        HOST, PORT = "localhost", 9255
+    else:
+        HOST, PORT = sys.argv[1:]
     SocketServer.TCPServer.allow_reuse_address = True
     server = ThreadingTCPServer((HOST, int(PORT)), MaShHandler)
     server.serve_forever()        
