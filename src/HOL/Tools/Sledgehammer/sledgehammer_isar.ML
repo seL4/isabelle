@@ -194,33 +194,12 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
-fun avoid_too_many_threads _ _ [] = []
-  | avoid_too_many_threads _ (0, 0) _ = []
-  | avoid_too_many_threads ctxt (0, max_remote) provers =
-    provers
-    |> map_filter (remotify_prover_if_supported_and_not_already_remote ctxt)
-    |> take max_remote
-  | avoid_too_many_threads _ (max_local, 0) provers =
-    provers
-    |> filter_out (String.isPrefix remote_prefix)
-    |> take max_local
-  | avoid_too_many_threads ctxt max_local_and_remote (prover :: provers) =
-    let
-      val max_local_and_remote =
-        max_local_and_remote
-        |> (if String.isPrefix remote_prefix prover then apsnd else apfst)
-               (Integer.add ~1)
-    in prover :: avoid_too_many_threads ctxt max_local_and_remote provers end
-
-val max_default_remote_threads = 4
-
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
 fun default_provers_param_value ctxt =
   [eN, spassN, vampireN, z3N, e_sineN, yicesN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
-  |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
-                                  max_default_remote_threads)
+  |> take (Multithreading.max_threads_value ())
   |> implode_param
 
 fun set_default_raw_param param thy =
