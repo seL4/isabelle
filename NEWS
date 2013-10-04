@@ -72,13 +72,16 @@ using check box or shortcut "C+e ENTER".  Individual theory nodes may
 be marked explicitly as required and checked in full, using check box
 or shortcut "C+e SPACE".
 
-* Strictly monotonic document update, without premature cancellation of
-running transactions that are still needed: avoid reset/restart of
-such command executions while editing.
-
 * Improved completion mechanism, which is now managed by the
 Isabelle/jEdit plugin instead of SideKick.  Refined table of Isabelle
 symbol abbreviations (see $ISABELLE_HOME/etc/symbols).
+
+* Improved support of various "minor modes" for Isabelle NEWS,
+options, session ROOT etc., with completion and SideKick tree view.
+
+* Strictly monotonic document update, without premature cancellation of
+running transactions that are still needed: avoid reset/restart of
+such command executions while editing.
 
 * Support for asynchronous print functions, as overlay to existing
 document content.
