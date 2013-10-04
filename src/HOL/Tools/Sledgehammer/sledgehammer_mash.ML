@@ -974,7 +974,7 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
     val (access_G, suggs) =
       peek_state ctxt overlord (fn {access_G, ...} =>
           if Graph.is_empty access_G then
-            (access_G, [])
+            (trace_msg ctxt (K "Nothing has been learned yet"); (access_G, []))
           else
             let
               val parents = maximal_wrt_access_graph access_G facts
