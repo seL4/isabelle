@@ -183,6 +183,7 @@ fun normalize_raw_param ctxt =
    read correctly. *)
 val implode_param = strip_spaces_except_between_idents o space_implode " "
 
+(* FIXME: use "Generic_Data" *)
 structure Data = Theory_Data
 (
   type T = raw_param list
@@ -196,22 +197,24 @@ structure Data = Theory_Data
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
-fun default_provers_param_value ctxt =
-  [eN, spassN, vampireN, z3N, e_sineN, yicesN]
+fun default_provers_param_value mode ctxt =
+  [eN, spassN, z3N, vampireN, e_sineN, yicesN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
-  |> take (Multithreading.max_threads_value ())
+  (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
+  |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
   |> implode_param
 
 fun set_default_raw_param param thy =
   let val ctxt = Proof_Context.init_global thy in
     thy |> Data.map (AList.update (op =) (normalize_raw_param ctxt param))
   end
-fun default_raw_params ctxt =
+
+fun default_raw_params mode ctxt =
   let val thy = Proof_Context.theory_of ctxt in
     Data.get thy
     |> fold (AList.default (op =))
             [("provers", [case !provers of
-                            "" => default_provers_param_value ctxt
+                            "" => default_provers_param_value mode ctxt
                           | s => s]),
              ("timeout", let val timeout = Options.default_int @{option sledgehammer_timeout} in
                            [if timeout <= 0 then "none"
@@ -305,7 +308,7 @@ fun extract_params mode default_params override_params =
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
-fun get_params mode = extract_params mode o default_raw_params
+fun get_params mode = extract_params mode o default_raw_params mode
 fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
@@ -415,7 +418,7 @@ fun sledgehammer_params_trans params =
        #> tap (fn thy =>
                   let val ctxt = Proof_Context.init_global thy in
                     writeln ("Default parameters for Sledgehammer:\n" ^
-                             (case default_raw_params ctxt |> rev of
+                             (case rev (default_raw_params Normal ctxt) of
                                 [] => "none"
                               | params =>
                                 params |> map string_of_raw_param
