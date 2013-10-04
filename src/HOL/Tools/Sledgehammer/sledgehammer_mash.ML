@@ -935,23 +935,22 @@ fun weight_facts_steeply facts =
 
 val max_proximity_facts = 100
 
-fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
-  | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
-    let
-      val inter_fact = inter (eq_snd Thm.eq_thm_prop)
-      val raw_mash = find_suggested_facts ctxt facts suggs
-      val proximate = take max_proximity_facts facts
-      val unknown_chained = inter_fact raw_unknown chained
-      val unknown_proximate = inter_fact raw_unknown proximate
-      val mess =
-        [(0.9 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
-         (0.4 (* FUDGE *), (weight_facts_smoothly unknown_proximate, [])),
-         (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
-      val unknown =
-        raw_unknown
-        |> fold (subtract (eq_snd Thm.eq_thm_prop))
-                [unknown_chained, unknown_proximate]
-    in (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown) end
+fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
+  let
+    val inter_fact = inter (eq_snd Thm.eq_thm_prop)
+    val raw_mash = find_suggested_facts ctxt facts suggs
+    val proximate = take max_proximity_facts facts
+    val unknown_chained = inter_fact raw_unknown chained
+    val unknown_proximate = inter_fact raw_unknown proximate
+    val mess =
+      [(0.9 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
+       (0.4 (* FUDGE *), (weight_facts_smoothly unknown_proximate, [])),
+       (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
+    val unknown =
+      raw_unknown
+      |> fold (subtract (eq_snd Thm.eq_thm_prop))
+              [unknown_chained, unknown_proximate]
+  in (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown) end
 
 fun add_const_counts t =
   fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
