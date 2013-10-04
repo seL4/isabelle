@@ -309,20 +309,21 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
 
       val launch_ueq_atps = launch_atps "Unit-equational provers" (SOME is_unit_equality) ueq_atps
 
-      fun launch_atps_and_smt_solvers () =
+      fun launch_atps_and_smt_solvers p =
         [launch_full_atps, launch_smts, launch_ueq_atps]
-        |> Par_List.map (fn f => ignore (f (unknownN, state)))
+        |> Par_List.map (fn f => fst (f p))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
 
       fun maybe f (accum as (outcome_code, _)) =
         accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in
       (unknownN, state)
-      |> (if blocking then
+      |> (if mode = Auto_Try then
             launch_full_atps
-            #> mode <> Auto_Try ? (maybe launch_ueq_atps #> maybe launch_smts)
+          else if blocking then
+            launch_atps_and_smt_solvers #> max_outcome_code #> rpair state
           else
-            (fn p => Future.fork (tap launch_atps_and_smt_solvers) |> K p))
+            (fn p => (Future.fork (tap (fn () => launch_atps_and_smt_solvers p)); p)))
       handle TimeLimit.TimeOut =>
              (print "Sledgehammer ran out of time."; (unknownN, state))
     end
