@@ -162,7 +162,7 @@ fun with_vanilla_print_mode f x =
 fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
 
-val spying_version = "b"
+val spying_version = "c"
 
 fun spying false _ = ()
   | spying true f =

@@ -73,7 +73,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
     val ctxt = Proof.context_of state
 
     val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
-    val _ = spying spy (fn () => (state, subgoal, name, "launched"));
+    val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
@@ -100,13 +100,21 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
                   " proof (of " ^ string_of_int (length facts) ^ "): ") "."
       |> Output.urgent_message
 
-    fun spying_str_of_res ({outcome = NONE, used_facts, ...} : prover_result) =
-        let val num_used_facts = length used_facts in
+    fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
+        let
+          val num_used_facts = length used_facts
+          val indices =
+            tag_list 1 used_from
+            |> map (fn (j, fact) => fact |> apsnd (K j))
+            |> filter_used_facts false used_facts
+            |> map (prefix "@" o string_of_int o snd)
+        in
           "success: Found proof with " ^ string_of_int num_used_facts ^ " fact" ^
-          plural_s num_used_facts
+          plural_s num_used_facts ^
+          (if num_used_facts = 0 then "" else " (" ^ commas indices ^ ")")
         end
       | spying_str_of_res {outcome = SOME failure, ...} =
-        "failure: " ^ string_of_atp_failure failure
+        "Failure: " ^ string_of_atp_failure failure
 
     fun really_go () =
       problem
@@ -226,7 +234,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
               | NONE => ()
       val _ = print "Sledgehammering..."
       val _ =
-        spying spy (fn () => (state, i, "***", "starting " ^ @{make_string} mode ^ " mode"))
+        spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
@@ -250,8 +258,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
           |> (case is_appropriate_prop of
                 SOME is_app => filter (is_app o prop_of o snd)
               | NONE => I)
-          |> relevant_facts ctxt params (hd provers) max_max_facts fact_override
-                            hyp_ts concl_t
+          |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t
           |> tap (fn factss =>
                      if verbose then
                        label ^ plural_s (length provers) ^ ": " ^
@@ -259,9 +266,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                        |> print
                      else
                        ())
-          |> spy ? tap (fn factss =>
-            spying spy (fn () =>
-              (state, i, label ^ "s", "selected facts: " ^ spying_str_of_factss factss)))
+          |> spy ? tap (fn factss => spying spy (fn () =>
+            (state, i, label ^ "s", "Selected facts: " ^ spying_str_of_factss factss)))
         end
 
       fun launch_provers state label is_appropriate_prop provers =
