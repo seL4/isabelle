@@ -103,15 +103,27 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
     fun spying_str_of_res ({outcome = NONE, used_facts, used_from, ...} : prover_result) =
         let
           val num_used_facts = length used_facts
-          val indices =
-            tag_list 1 used_from
+
+          fun find_indices facts =
+            tag_list 1 facts
             |> map (fn (j, fact) => fact |> apsnd (K j))
             |> filter_used_facts false used_facts
             |> map (prefix "@" o string_of_int o snd)
+
+          fun filter_info (fact_filter, facts) =
+            let
+              val indices = find_indices facts
+              val unknowns = replicate (num_used_facts - length indices) "?"
+            in (commas (indices @ unknowns), fact_filter) end
+
+          val filter_infos =
+            map filter_info (("actual", used_from) :: factss)
+            |> AList.group (op =)
+            |> map (fn (indices, fact_filters) => commas fact_filters ^ ": " ^ indices)
         in
-          "success: Found proof with " ^ string_of_int num_used_facts ^ " fact" ^
-          plural_s num_used_facts ^
-          (if num_used_facts = 0 then "" else " (" ^ commas indices ^ ")")
+          "Success: Found proof with " ^ string_of_int num_used_facts ^
+          " of " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
+          (if num_used_facts = 0 then "" else ": " ^ commas filter_infos)
         end
       | spying_str_of_res {outcome = SOME failure, ...} =
         "Failure: " ^ string_of_atp_failure failure
@@ -252,7 +264,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                         provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
           val _ = spying spy (fn () => (state, i, label ^ "s",
-            "filtering " ^ string_of_int (length all_facts) ^ " facts"));
+            "Filtering " ^ string_of_int (length all_facts) ^ " facts"));
         in
           all_facts
           |> (case is_appropriate_prop of
