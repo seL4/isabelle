@@ -157,7 +157,6 @@ fun s_not @{const True} = @{const False}
   | s_not (@{const Not} $ t) = t
   | s_not (@{const conj} $ t $ u) = @{const disj} $ s_not t $ s_not u
   | s_not (@{const disj} $ t $ u) = @{const conj} $ s_not t $ s_not u
-  | s_not (@{const implies} $ t $ u) = @{const conj} $ t $ s_not u
   | s_not t = @{const Not} $ t;
 
 val s_not_conj = conjuncts_s o s_not o mk_conjs;

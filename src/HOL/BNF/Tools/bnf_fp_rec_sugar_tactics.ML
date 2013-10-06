@@ -39,7 +39,7 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
 
 fun mk_primcorec_assumption_tac ctxt discIs =
   SELECT_GOAL (unfold_thms_tac ctxt
-      @{thms not_not not_False_eq_True de_Morgan_conj de_Morgan_disj} THEN
+      @{thms not_not not_False_eq_True not_True_eq_False de_Morgan_conj de_Morgan_disj} THEN
     SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE' etac conjE ORELSE'
     resolve_tac @{thms TrueI conjI disjI1 disjI2} ORELSE'
     dresolve_tac discIs THEN' atac ORELSE'
@@ -50,14 +50,14 @@ fun mk_primcorec_same_case_tac m =
   HEADGOAL (if m = 0 then rtac TrueI
     else REPEAT_DETERM_N (m - 1) o (rtac conjI THEN' atac) THEN' atac);
 
-fun mk_primcorec_different_case_tac ctxt excl =
-  unfold_thms_tac ctxt @{thms not_not not_False_eq_True not_True_eq_False} THEN
-  HEADGOAL (rtac excl THEN_ALL_NEW mk_primcorec_assumption_tac ctxt []);
+fun mk_primcorec_different_case_tac ctxt m excl =
+  HEADGOAL (if m = 0 then mk_primcorec_assumption_tac ctxt []
+    else dtac excl THEN' (REPEAT_DETERM_N (m - 1) o atac) THEN' mk_primcorec_assumption_tac ctxt []);
 
 fun mk_primcorec_cases_tac ctxt k m exclsss =
   let val n = length exclsss in
     EVERY (map (fn [] => if k = n then all_tac else mk_primcorec_same_case_tac m
-        | [excl] => mk_primcorec_different_case_tac ctxt excl)
+        | [excl] => mk_primcorec_different_case_tac ctxt m excl)
       (take k (nth exclsss (k - 1))))
   end;
 
