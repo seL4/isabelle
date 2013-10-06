@@ -51,12 +51,10 @@ sig
      nested_map_comps: thm list,
      ctr_specs: corec_ctr_spec list}
 
-  val s_not: term -> term
   val mk_conjs: term list -> term
   val mk_disjs: term list -> term
-  val s_not_disj: term -> term list
-  val negate_conj: term list -> term list
-  val negate_disj: term list -> term list
+  val s_not: term -> term
+  val s_not_conj: term list -> term list
 
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
@@ -148,21 +146,20 @@ fun unexpected_rec_call ctxt t =
 fun unexpected_corec_call ctxt t =
   error ("Unexpected corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
 
-fun s_not @{const True} = @{const False}
-  | s_not @{const False} = @{const True}
-  | s_not (@{const Not} $ t) = t
-  | s_not t = HOLogic.mk_not t
-
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
 
-val s_not_disj = map s_not o HOLogic.disjuncts;
+val conjuncts_s = filter_out (curry (op =) @{const True}) o HOLogic.conjuncts;
 
-fun negate_conj [t] = s_not_disj t
-  | negate_conj ts = [mk_disjs (map s_not ts)];
+fun s_not @{const True} = @{const False}
+  | s_not @{const False} = @{const True}
+  | s_not (@{const Not} $ t) = t
+  | s_not (@{const conj} $ t $ u) = @{const disj} $ s_not t $ s_not u
+  | s_not (@{const disj} $ t $ u) = @{const conj} $ s_not t $ s_not u
+  | s_not (@{const implies} $ t $ u) = @{const conj} $ t $ s_not u
+  | s_not t = @{const Not} $ t;
 
-fun negate_disj [t] = s_not_disj t
-  | negate_disj ts = [mk_disjs (map (mk_conjs o s_not_disj) ts)];
+val s_not_conj = conjuncts_s o s_not o mk_conjs;
 
 fun factor_out_types ctxt massage destU U T =
   (case try destU U of
@@ -230,8 +227,8 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
       (case Term.strip_comb t of
         (Const (@{const_name Let}, _), [arg1, arg2]) => fld conds (betapply (arg2, arg1))
       | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
-        fld (conds @ HOLogic.conjuncts cond) then_branch
-        o fld (conds @ s_not_disj cond) else_branch
+        fld (conds @ conjuncts_s cond) then_branch
+        o fld (conds @ s_not_conj [cond]) else_branch
       | (Const (c, _), args as _ :: _ :: _) =>
         let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
           if n >= 0 andalso n < length args then
@@ -241,7 +238,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
                 NONE => apsnd (f conds t)
               | SOME (conds', branches) =>
                 apfst (cons s) o fold_rev (uncurry fld)
-                  (map (append conds o HOLogic.conjuncts) conds' ~~ branches))
+                  (map (append conds o conjuncts_s) conds' ~~ branches))
             | _ => apsnd (f conds t))
           else
             apsnd (f conds t)

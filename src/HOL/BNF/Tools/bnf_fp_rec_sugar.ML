@@ -507,7 +507,7 @@ fun co_dissect_eqn_disc seq fun_names (corec_specs : corec_spec list) prems' con
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
     val prems = map (abstract (List.rev fun_args)) prems';
     val real_prems =
-      (if catch_all orelse seq then maps negate_disj matchedss else []) @
+      (if catch_all orelse seq then maps s_not_conj matchedss else []) @
       (if catch_all then [] else prems);
 
     val matchedsss' = AList.delete (op =) fun_name matchedsss
@@ -784,7 +784,7 @@ fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
         ctr = #ctr (nth ctr_specs n),
         ctr_no = n,
         disc = #disc (nth ctr_specs n),
-        prems = maps (negate_conj o #prems) disc_eqns,
+        prems = maps (s_not_conj o #prems) disc_eqns,
         auto_gen = true,
         user_eqn = undef_const};
     in
@@ -888,7 +888,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           let
             val SOME ctr_spec = find_first (equal ctr o #ctr) ctr_specs;
             val ctr_no = find_index (equal ctr o #ctr) ctr_specs;
-            val prems = the_default (maps (negate_conj o #prems) disc_eqns)
+            val prems = the_default (maps (s_not_conj o #prems) disc_eqns)
                 (find_first (equal ctr_no o #ctr_no) disc_eqns |> Option.map #prems);
             val sel_corec = find_index (equal sel) (#sels ctr_spec)
               |> nth (#sel_corecs ctr_spec);
