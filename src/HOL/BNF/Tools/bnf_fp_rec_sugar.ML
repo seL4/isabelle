@@ -602,7 +602,7 @@ fun co_dissect_eqn_code lthy has_call fun_names corec_specs eqn' concl matchedss
         else primrec_error_eqn "not a constructor" ctr) [] rhs' []
       |> AList.group (op =);
 
-    val ctr_premss = map (single o mk_disjs o map mk_conjs o snd) cond_ctrs;
+    val ctr_premss = (case cond_ctrs of [_] => [[]] | _ => map (s_dnf o snd) cond_ctrs);
     val ctr_concls = cond_ctrs |> map (fn (ctr, _) =>
         binder_types (fastype_of ctr)
         |> map_index (fn (n, T) => massage_corec_code_rhs lthy (fn _ => fn ctr' => fn args =>
@@ -652,7 +652,7 @@ fun co_dissect_eqn lthy has_call seq fun_names (corec_specs : corec_spec list) e
 fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
     ({fun_args, ctr_no, prems, ...} : co_eqn_data_disc) =
   if is_none (#pred (nth ctr_specs ctr_no)) then I else
-    mk_conjs prems
+    s_conjs prems
     |> curry subst_bounds (List.rev fun_args)
     |> HOLogic.tupled_lambda (HOLogic.mk_tuple fun_args)
     |> K |> nth_map (the (#pred (nth ctr_specs ctr_no)));
@@ -756,7 +756,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
         #> fst o (fn xs => fold_map (fn x => fn ys => ((x, ys), ys @ [x])) xs [])
         #> maps (uncurry (map o pair)
           #> map (fn ((fun_args, c, x, a), (_, c', y, a')) =>
-              ((c, c', a orelse a'), (x, s_not (mk_conjs y)))
+              ((c, c', a orelse a'), (x, s_not (s_conjs y)))
             ||> apfst (map HOLogic.mk_Trueprop) o apsnd HOLogic.mk_Trueprop
             ||> Logic.list_implies
             ||> curry Logic.list_all (map dest_Free fun_args))))

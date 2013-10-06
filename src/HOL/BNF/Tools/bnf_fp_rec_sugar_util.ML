@@ -51,10 +51,11 @@ sig
      nested_map_comps: thm list,
      ctr_specs: corec_ctr_spec list}
 
-  val mk_conjs: term list -> term
-  val mk_disjs: term list -> term
   val s_not: term -> term
   val s_not_conj: term list -> term list
+  val s_conjs: term list -> term
+  val s_disjs: term list -> term
+  val s_dnf: term list list -> term list
 
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
@@ -160,6 +161,41 @@ fun s_not @{const True} = @{const False}
   | s_not t = @{const Not} $ t;
 
 val s_not_conj = conjuncts_s o s_not o mk_conjs;
+
+fun s_conj c @{const True} = c
+  | s_conj c d = HOLogic.mk_conj (c, d);
+
+fun propagate_unit_pos u cs = if member (op aconv) cs u then [@{const False}] else cs;
+
+fun propagate_unit_neg not_u cs = remove (op aconv) not_u cs;
+
+fun propagate_units css =
+  (case List.partition (can the_single) css of
+     ([], _) => css
+   | ([u] :: uss, css') =>
+     [u] :: propagate_units (map (propagate_unit_neg (s_not u))
+       (map (propagate_unit_pos u) (uss @ css'))));
+
+fun s_conjs cs =
+  if member (op aconv) cs @{const False} then @{const False}
+  else mk_conjs (remove (op aconv) @{const True} cs);
+
+fun s_disjs ds =
+  if member (op aconv) ds @{const True} then @{const True}
+  else mk_disjs (remove (op aconv) @{const False} ds);
+
+fun s_dnf css0 =
+  let val css = propagate_units css0 in
+    if null css then
+      [@{const False}]
+    else if exists null css then
+      []
+    else
+      map (fn c :: cs => (c, cs)) css
+      |> AList.coalesce (op =)
+      |> map (fn (c, css) => c :: s_dnf css)
+      |> (fn [cs] => cs | css => [s_disjs (map s_conjs css)])
+  end;
 
 fun factor_out_types ctxt massage destU U T =
   (case try destU U of
