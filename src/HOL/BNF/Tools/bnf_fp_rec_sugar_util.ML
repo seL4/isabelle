@@ -59,6 +59,7 @@ sig
 
   val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
+  val unfold_let: term -> term
   val massage_direct_corec_call: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
     typ list -> term -> term
   val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
@@ -282,6 +283,9 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
   in
     fld [] t o pair []
   end;
+
+fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
+  | unfold_let t = t;
 
 fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 

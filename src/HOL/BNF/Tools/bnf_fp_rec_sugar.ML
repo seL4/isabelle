@@ -566,7 +566,7 @@ fun co_dissect_eqn_ctr seq fun_names (corec_specs : corec_spec list) eqn' prems 
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val fun_name = head_of lhs |> fst o dest_Free;
     val {ctr_specs, ...} = the (AList.lookup (op =) (fun_names ~~ corec_specs) fun_name);
-    val (ctr, ctr_args) = strip_comb rhs;
+    val (ctr, ctr_args) = strip_comb (unfold_let rhs);
     val {disc, sels, ...} = the (find_first (equal ctr o #ctr) ctr_specs)
       handle Option.Option => primrec_error_eqn "not a constructor" ctr;
 
@@ -639,7 +639,7 @@ fun co_dissect_eqn lthy has_call seq fun_names (corec_specs : corec_spec list) e
     else if member (op =) sels head then
       ([co_dissect_eqn_sel fun_names corec_specs eqn' of_spec concl], matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
-      member (op =) ctrs (head_of (the maybe_rhs)) then
+      member (op =) ctrs (head_of (unfold_let (the maybe_rhs))) then
       co_dissect_eqn_ctr seq fun_names corec_specs eqn' prems concl matchedsss
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       null prems then
