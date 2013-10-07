@@ -53,8 +53,12 @@ class Query_Operation[Editor_Context](
 
   private def remove_overlay()
   {
-    current_location.foreach(command =>
-      editor.remove_overlay(command, operation_name, instance :: current_query))
+    current_location match {
+      case None =>
+      case Some(command) =>
+        editor.remove_overlay(command, operation_name, instance :: current_query)
+        editor.flush()
+    }
   }
 
 
@@ -129,10 +133,8 @@ class Query_Operation[Editor_Context](
         if (current_status != new_status) {
           current_status = new_status
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.REMOVED) {
+          if (new_status == Query_Operation.Status.REMOVED)
             remove_overlay()
-            editor.flush()
-          }
         }
       }
     }
