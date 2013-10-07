@@ -1800,8 +1800,8 @@ is an initial state, and @{text F} is a set of final states. The following
 function translates a DFA into a @{type state_machine}:
 *}
 
-    primcorec (*<*)(in early) (*>*)
-      sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
+    primcorec
+      (*<*)(in early) (*>*)sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
     where
       "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F o \<delta> q)"
 
