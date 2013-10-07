@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+cc -static -m32 Isabelle.c -o Isabelle
+
