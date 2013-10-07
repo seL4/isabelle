@@ -160,10 +160,13 @@ case "$PLATFORM_FAMILY" in
         LINUX_CLASSPATH="$LINUX_CLASSPATH:\\\$ISABELLE_HOME/$ENTRY"
       fi
     done
-    cat "$ISABELLE_HOME/Admin/Linux/Isabelle" | \
-      perl -p > "$ISABELLE_TARGET/$ISABELLE_NAME" \
+    cat "$ISABELLE_HOME/Admin/Linux/Isabelle.run" | \
+      perl -p > "$ISABELLE_TARGET/${ISABELLE_NAME}.run" \
         -e "s,{JAVA_ARGS},$JEDIT_JAVA_OPTIONS $JEDIT_SYSTEM_OPTIONS,g; s,{CLASSPATH},$LINUX_CLASSPATH,;"
-    chmod +x "$ISABELLE_TARGET/$ISABELLE_NAME"
+    chmod +x "$ISABELLE_TARGET/${ISABELLE_NAME}.run"
+
+    mv "$ISABELLE_TARGET/contrib/linux_app" "$TMP/."
+    cp "$TMP/linux_app/Isabelle" "$ISABELLE_TARGET/$ISABELLE_NAME"
     ;;
   macos)
     purge_contrib '-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
