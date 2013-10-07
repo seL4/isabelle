@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
   char **cmd_line = NULL;
   int i = 0;
 
-  cmd_line = malloc(sizeof(char *) * argc);
+  cmd_line = malloc(sizeof(char *) * (argc + 1));
   if (cmd_line == NULL) fail("Failed to allocate command line");
 
   cmd_line[0] = malloc(strlen(argv[0]) + 5);
@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
   strcat(cmd_line[0], ".run");
 
   for (i = 1; i < argc; i++) cmd_line[i] = argv[i];
+
+  cmd_line[argc] = NULL;
 
   execvp(cmd_line[0], cmd_line);
   fail("Failed to execute application script");
