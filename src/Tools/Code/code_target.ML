@@ -639,12 +639,13 @@ fun gen_set_identifiers prep_name_decl raw_name_decls thy =
 val set_identifiers = gen_set_identifiers cert_name_decls;
 val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
-fun add_module_alias_cmd target aliasses =
+fun add_module_alias_cmd target aliasses thy =
   let
     val _ = legacy_feature "prefer \"code_identifier\" over \"code_modulename\"";
   in
     fold (fn (sym, name) => set_identifier
-      (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name)))) aliasses
+      (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name))))
+      aliasses thy
   end;
 
 
