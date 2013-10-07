@@ -9,20 +9,7 @@ Tutorial for (co)datatype definitions with the new package.
 
 theory Datatypes
 imports Setup
-keywords
-  "primcorec_notyet" :: thy_decl
 begin
-
-(*<*)
-(* FIXME: Temporary setup until "primcorec" and "primcorecursive" are fully implemented. *)
-ML_command {*
-fun add_dummy_cmd _ _ lthy = lthy;
-
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec_notyet"} ""
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> uncurry add_dummy_cmd);
-*}
-(*>*)
-
 
 section {* Introduction
   \label{sec:introduction} *}
@@ -65,6 +52,7 @@ finite and infinite values:
 
 (*<*)
     locale early
+    locale late
 (*>*)
     codatatype (*<*)(in early) (*>*)'a llist = LNil | LCons 'a "'a llist"
 
@@ -636,7 +624,7 @@ following auxiliary constants are introduced:
 \noindent
 The case combinator, discriminators, and selectors are collectively called
 \emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
-name and is normally hidden. 
+name and is normally hidden.
 *}
 
 
@@ -1683,19 +1671,19 @@ the right of the equal sign or in a conditional expression:
 *}
 
     primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
-      "literate f x = LCons x (literate f (f x))"
+      "literate g x = LCons x (literate g (g x))"
 
 text {* \blankline *}
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
-      "siterate f x = SCons x (siterate f (f x))"
+      "siterate g x = SCons x (siterate g (g x))"
 
 text {*
 \noindent
 The constructor ensures that progress is made---i.e., the function is
 \emph{productive}. The above functions compute the infinite lazy list or stream
-@{text "[x, f x, f (f x), \<dots>]"}. Productivity guarantees that prefixes
-@{text "[x, f x, f (f x), \<dots>, (f ^^ k) x]"} of arbitrary finite length
+@{text "[x, g x, g (g x), \<dots>]"}. Productivity guarantees that prefixes
+@{text "[x, g x, g (g x), \<dots>, (g ^^ k) x]"} of arbitrary finite length
 @{text k} can be computed by unfolding the code equation a finite number of
 times.
 
@@ -1714,7 +1702,7 @@ Constructs such as @{text "let"}---@{text "in"}, @{text
 appear around constructors that guard corecursive calls:
 *}
 
-    primcorec_notyet lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
+    primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lappend xs ys =
          (case xs of
             LNil \<Rightarrow> ys
@@ -1735,7 +1723,7 @@ actions (@{text s}), a pseudorandom function generator (@{text f}), and a
 pseudorandom seed (@{text n}):
 *}
 
-    primcorec_notyet
+    primcorec
       random_process :: "'a stream \<Rightarrow> (int \<Rightarrow> int) \<Rightarrow> int \<Rightarrow> 'a process"
     where
       "random_process s f n =
@@ -1780,21 +1768,47 @@ text {*
 The next pair of examples generalize the @{const literate} and @{const siterate}
 functions (Section~\ref{sssec:primcorec-nested-corecursion}) to possibly
 infinite trees in which subnodes are organized either as a lazy list (@{text
-tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}):
+tree\<^sub>i\<^sub>i}) or as a finite set (@{text tree\<^sub>i\<^sub>s}). They rely on the map functions of
+the nesting type constructors to lift the corecursive calls:
 *}
 
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
-      "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i f) (f x))"
+      "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (lmap (iterate\<^sub>i\<^sub>i g) (g x))"
 
 text {* \blankline *}
 
     primcorec iterate\<^sub>i\<^sub>s :: "('a \<Rightarrow> 'a fset) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>s" where
-      "iterate\<^sub>i\<^sub>s f x = Node\<^sub>i\<^sub>s x (fimage (iterate\<^sub>i\<^sub>s f) (f x))"
+      "iterate\<^sub>i\<^sub>s g x = Node\<^sub>i\<^sub>s x (fimage (iterate\<^sub>i\<^sub>s g) (g x))"
 
 text {*
 \noindent
-Deterministic finite automata (DFAs) are traditionally defined as 5-tuples
-@{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
+Both examples follow the usual format for constructor arguments associated
+with nested recursive occurrences of the datatype. Consider
+@{const iterate\<^sub>i\<^sub>i}. The term @{term "g x"} constructs an @{typ "'a llist"}
+value, which is turned into an @{typ "'a tree\<^sub>i\<^sub>i llist"} value using
+@{const lmap}.
+
+This format may sometimes feel artificial. The following function constructs
+a tree with a single, infinite branch from a stream:
+*}
+
+    primcorec tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+      "tree\<^sub>i\<^sub>i_of_stream s =
+         Node\<^sub>i\<^sub>i (shd s) (lmap tree\<^sub>i\<^sub>i_of_stream (LCons (stl s) LNil))"
+
+text {*
+\noindent
+A more natural syntax, also supported by Isabelle, is to move corecursive calls
+under constructors:
+*}
+
+    primcorec (*<*)(in late) (*>*)tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
+      "tree\<^sub>i\<^sub>i_of_stream s = Node\<^sub>i\<^sub>i (shd s) (LCons (tree\<^sub>i\<^sub>i_of_stream (stl s)) LNil)"
+
+text {*
+The next example illustrates corecursion through functions, which is a bit
+special. Deterministic finite automata (DFAs) are traditionally defined as
+5-tuples @{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
 @{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
 is an initial state, and @{text F} is a set of final states. The following
 function translates a DFA into a @{type state_machine}:
@@ -1833,9 +1847,8 @@ text {* \blankline *}
     primcorec
       or_sm :: "'a state_machine \<Rightarrow> 'a state_machine \<Rightarrow> 'a state_machine"
     where
-      "or_sm M N =
-         State_Machine (accept M \<or> accept N)
-           (\<lambda>a. or_sm (trans M a) (trans N a))"
+      "or_sm M N = State_Machine (accept M \<or> accept N)
+         (\<lambda>a. or_sm (trans M a) (trans N a))"
 
 
 subsubsection {* Nested-as-Mutual Corecursion
@@ -1848,15 +1861,15 @@ were mutually recursive
 pretend that nested codatatypes are mutually corecursive. For example:
 *}
 
-    primcorec_notyet
-      iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
+    primcorec
+      (*<*)(in late) (*>*)iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
       iterates\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a llist \<Rightarrow> 'a tree\<^sub>i\<^sub>i llist"
     where
-      "iterate\<^sub>i\<^sub>i f x = Node\<^sub>i\<^sub>i x (iterates\<^sub>i\<^sub>i f (f x))" |
-      "iterates\<^sub>i\<^sub>i f xs =
+      "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (iterates\<^sub>i\<^sub>i g (g x))" |
+      "iterates\<^sub>i\<^sub>i g xs =
          (case xs of
             LNil \<Rightarrow> LNil
-          | LCons x xs' \<Rightarrow> LCons (iterate\<^sub>i\<^sub>i f x) (iterates\<^sub>i\<^sub>i f xs'))"
+          | LCons x xs' \<Rightarrow> LCons (iterate\<^sub>i\<^sub>i g x) (iterates\<^sub>i\<^sub>i g xs'))"
 (*<*)
     end
 (*>*)
@@ -1951,13 +1964,13 @@ Consider the following examples:
     primcorec literate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a llist" where
       "\<not> lnull (literate _ x)" |
       "lhd (literate _ x) = x" |
-      "ltl (literate f x) = literate f (f x)"
+      "ltl (literate g x) = literate g (g x)"
 
 text {* \blankline *}
 
     primcorec siterate :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a stream" where
       "shd (siterate _ x) = x" |
-      "stl (siterate f x) = siterate f (f x)"
+      "stl (siterate g x) = siterate g (g x)"
 
 text {* \blankline *}
 
@@ -2044,8 +2057,8 @@ Here are more examples to conclude:
 text {* \blankline *}
 
     primcorec iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
-      "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i f x) = x" |
-      "sub\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i f x) = lmap (iterate\<^sub>i\<^sub>i f) (f x)"
+      "lbl\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = x" |
+      "sub\<^sub>i\<^sub>i (iterate\<^sub>i\<^sub>i g x) = lmap (iterate\<^sub>i\<^sub>i g) (g x)"
 (*<*)
     end
 (*>*)
