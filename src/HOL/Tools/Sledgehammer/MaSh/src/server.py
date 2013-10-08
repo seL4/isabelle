@@ -150,7 +150,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         #predictionValues = [str(x) for x in predictionValues[:numberOfPredictions]]
         #predictionsStringList = ['%s=%s' % (predictionNames[i],predictionValues[i]) for i in range(len(predictionNames))]
         #predictionsString = string.join(predictionsStringList,' ')
-        predictionsString = string.join(predictionNames,' ')
+        predictionsString = string.join(predictionNames,' ')        
         outString = '%s: %s' % (name,predictionsString)
         self.request.sendall(outString)
     
@@ -164,7 +164,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(4194304).strip()
+        self.data = self.request.recv(134217728).strip()
         self.server.lock.acquire()
         try:
             # Update idle shutdown timer
@@ -199,6 +199,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             else:
                 self.request.sendall('Unspecified input format: \n%s',self.data)
             self.server.callCounter += 1
+            self.request.sendall('stop')
         finally:
             self.server.lock.release()
 

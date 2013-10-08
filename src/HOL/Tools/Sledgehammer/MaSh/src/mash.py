@@ -26,7 +26,19 @@ def communicate(data,host,port):
     try:
         sock.connect((host,port))
         sock.sendall(data)
-        received = sock.recv(4194304)
+        received = ''
+        cont = True
+        counter = 0
+        while cont and counter < 100000:
+            rec = sock.recv(4096)
+            if rec == 'stop':
+                cont = False
+            elif rec.endswith('stop'):
+                cont = False
+                received += rec[:-4]
+            else:
+                received += rec
+            counter += 1
     except:
         logger = logging.getLogger('communicate')
         logger.warning('Communication with server failed.')
