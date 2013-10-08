@@ -378,9 +378,12 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
+(* The function would have slightly cleaner semantics if it called "Pattern.equiv" instead of
+   "Pattern.matches", but it would also be slower. "Pattern.matches" throws out theorems that are
+   strict instances of other theorems, but only if the instance is met after the general version. *)
 fun fact_distinct thy facts =
   fold (fn fact as (_, th) =>
-      Net.insert_term_safe (Pattern.equiv thy o pairself (normalize_eq o prop_of o snd))
+      Net.insert_term_safe (Pattern.matches thy o swap o pairself (normalize_eq o prop_of o snd))
         (normalize_eq (prop_of th), fact))
     facts Net.empty
   |> Net.entries
