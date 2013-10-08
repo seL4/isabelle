@@ -126,23 +126,28 @@ fun normalize_vars t =
   in fst (norm t (([], 0), ([], 0))) end
 
 fun status_of_thm css name th =
-  let val t = normalize_vars (prop_of th) in
+  let val t = prop_of th in
     (* FIXME: use structured name *)
     if String.isSubstring ".induct" name andalso may_be_induction t then
       Induction
-    else case Termtab.lookup css t of
-      SOME status => status
-    | NONE =>
-      let val concl = Logic.strip_imp_concl t in
-        case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
-          SOME lrhss =>
-          let
-            val prems = Logic.strip_imp_prems t
-            val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
-          in
-            Termtab.lookup css t' |> the_default General
+    else if Termtab.is_empty css then
+      General
+    else
+      let val t = normalize_vars t in
+        case Termtab.lookup css t of
+          SOME status => status
+        | NONE =>
+          let val concl = Logic.strip_imp_concl t in
+            case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+              SOME lrhss =>
+              let
+                val prems = Logic.strip_imp_prems t
+                val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
+              in
+                Termtab.lookup css t' |> the_default General
+              end
+            | NONE => General
           end
-        | NONE => General
       end
   end
 
@@ -346,8 +351,6 @@ fun normalize_eq (t as @{const Trueprop}
     else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
   | normalize_eq t = t
 
-val normalize_eq_vars = normalize_eq #> normalize_vars
-
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
 
@@ -362,7 +365,7 @@ fun un_class_ify s =
 fun build_name_tables name_of facts =
   let
     fun cons_thm (_, th) =
-      Termtab.cons_list (normalize_eq_vars (prop_of th), th)
+      Termtab.cons_list (normalize_vars (normalize_eq (prop_of th)), th)
     fun add_plain canon alias =
       Symtab.update (Thm.get_name_hint alias,
                      name_of (if_thm_before canon alias))
@@ -374,17 +377,18 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-fun keyed_distinct key_of xs =
-  let val tab = fold (Termtab.default o `key_of) xs Termtab.empty in
-    Termtab.fold (cons o snd) tab []
-  end
+fun keyed_distinct key1_of key2_of ths =
+  fold (fn fact as (_, th) =>
+      Net.insert_term_safe (op aconv o pairself (key2_of o key1_of o prop_of o snd)) (key1_of (prop_of th), fact))
+    ths Net.empty
+  |> Net.entries
 
-fun hashed_keyed_distinct hash_of key_of xs =
+fun hashed_keyed_distinct hash_of key1_of key2_of facts =
   let
-    val ys = map (`hash_of) xs
+    val ys = map (`(hash_of o prop_of o snd)) facts
     val sorted_ys = sort (int_ord o pairself fst) ys
     val grouped_ys = AList.coalesce (op =) sorted_ys
-  in maps (keyed_distinct key_of o snd) grouped_ys end
+  in maps (keyed_distinct key1_of key2_of o snd) grouped_ys end
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -540,10 +544,8 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt false ho_atp reserved add chained css
-           |> filter_out
-                  ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
-           |> hashed_keyed_distinct (size_of_term o prop_of o snd)
-                  (normalize_eq_vars o prop_of o snd)
+           |> filter_out ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
+           |> hashed_keyed_distinct size_of_term normalize_eq normalize_vars
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
