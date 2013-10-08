@@ -133,30 +133,31 @@ fun normalize_vars t =
   in fst (norm t (([], 0), ([], 0))) end
 
 fun status_of_thm css name th =
-  let val t = prop_of th in
-    (* FIXME: use structured name *)
-    if String.isSubstring ".induct" name andalso may_be_induction t then
-      Induction
-    else if Termtab.is_empty css then
-      General
-    else
-      let val t = normalize_vars t in
-        case Termtab.lookup css t of
-          SOME status => status
-        | NONE =>
-          let val concl = Logic.strip_imp_concl t in
-            case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
-              SOME lrhss =>
-              let
-                val prems = Logic.strip_imp_prems t
-                val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
-              in
-                Termtab.lookup css t' |> the_default General
-              end
-            | NONE => General
-          end
-      end
-  end
+  if Termtab.is_empty css then
+    General
+  else
+    let val t = prop_of th in
+      (* FIXME: use structured name *)
+      if String.isSubstring ".induct" name andalso may_be_induction t then
+        Induction
+      else
+        let val t = normalize_vars t in
+          case Termtab.lookup css t of
+            SOME status => status
+          | NONE =>
+            let val concl = Logic.strip_imp_concl t in
+              case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+                SOME lrhss =>
+                let
+                  val prems = Logic.strip_imp_prems t
+                  val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
+                in
+                  Termtab.lookup css t' |> the_default General
+                end
+              | NONE => General
+            end
+        end
+    end
 
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
@@ -231,10 +232,11 @@ fun is_low_level_class_const (s, _) =
 
 val sep_that = Long_Name.separator ^ Obtain.thatN
 
+val skolem_thesis = Name.skolem Auto_Bind.thesisN
+
 fun is_that_fact th =
-  String.isSuffix sep_that (Thm.get_name_hint th)
-  andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
-                           | _ => false) (prop_of th)
+  exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (prop_of th)
+  andalso String.isSuffix sep_that (Thm.get_name_hint th)
 
 datatype interest = Deal_Breaker | Interesting | Boring
 
@@ -472,12 +474,12 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
     fun add_facts global foldx facts =
-      foldx (fn (name0, ths) =>
+      foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (not generous andalso is_blacklisted_or_something name0)) then
-          I
+          accum
         else
           let
             val n = length ths
@@ -487,32 +489,30 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
-            pair n
-            #> fold_rev (fn th => fn (j, accum) =>
-                   (j - 1,
-                    if not (member Thm.eq_thm_prop add_ths th) andalso
-                       (is_likely_tautology_too_meta_or_too_technical th orelse
-                        is_too_complex (prop_of th)) then
-                      accum
-                    else
-                      let
-                        val new =
-                          (((fn () =>
-                                if name0 = "" then
-                                  backquote_thm ctxt th
-                                else
-                                  [Facts.extern ctxt facts name0,
-                                   Name_Space.extern ctxt full_space name0]
-                                  |> distinct (op =)
-                                  |> find_first check_thms
-                                  |> the_default name0
-                                  |> make_name reserved multi j),
-                             stature_of_thm global assms chained css name0 th),
-                           th)
-                      in
-                        accum |> (if multi then apsnd else apfst) (cons new)
-                      end)) ths
-            #> snd
+            snd (fold_rev (fn th => fn (j, accum as (uni_accum, multi_accum)) =>
+              (j - 1,
+               if not (member Thm.eq_thm_prop add_ths th) andalso
+                  (is_likely_tautology_too_meta_or_too_technical th orelse
+                   is_too_complex (prop_of th)) then
+                 accum
+               else
+                 let
+                   val new =
+                     (((fn () =>
+                           if name0 = "" then
+                             backquote_thm ctxt th
+                           else
+                             [Facts.extern ctxt facts name0,
+                              Name_Space.extern ctxt full_space name0]
+                             |> find_first check_thms
+                             |> the_default name0
+                             |> make_name reserved multi j),
+                        stature_of_thm global assms chained css name0 th),
+                      th)
+                 in
+                   if multi then (uni_accum, new :: multi_accum)
+                   else (new :: uni_accum, multi_accum)
+                 end)) ths (n, accum))
           end)
   in
     (* The single-theorem names go before the multiple-theorem ones (e.g.,
