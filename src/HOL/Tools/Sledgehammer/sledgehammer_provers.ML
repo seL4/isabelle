@@ -311,7 +311,7 @@ val atp_relevance_fudge =
    max_imperfect = 11.5,
    max_imperfect_exp = 1.0,
    threshold_divisor = 2.0,
-   ridiculous_threshold = 0.01}
+   ridiculous_threshold = 0.1}
 
 (* FUDGE (FIXME) *)
 val smt_relevance_fudge =
