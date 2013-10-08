@@ -102,6 +102,7 @@ val may_be_induction =
                      body_type T = @{typ bool}
                    | _ => false)
 
+(* TODO: get rid of *)
 fun normalize_vars t =
   let
     fun normT (Type (s, Ts)) = fold_map normT Ts #>> curry Type s
@@ -377,18 +378,12 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-fun keyed_distinct key1_of key2_of ths =
+fun fact_distinct thy facts =
   fold (fn fact as (_, th) =>
-      Net.insert_term_safe (op aconv o pairself (key2_of o key1_of o prop_of o snd)) (key1_of (prop_of th), fact))
-    ths Net.empty
+      Net.insert_term_safe (Pattern.equiv thy o pairself (normalize_eq o prop_of o snd))
+        (normalize_eq (prop_of th), fact))
+    facts Net.empty
   |> Net.entries
-
-fun hashed_keyed_distinct hash_of key1_of key2_of facts =
-  let
-    val ys = map (`(hash_of o prop_of o snd)) facts
-    val sorted_ys = sort (int_ord o pairself fst) ys
-    val grouped_ys = AList.coalesce (op =) sorted_ys
-  in maps (keyed_distinct key1_of key2_of o snd) grouped_ys end
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -534,6 +529,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
     []
   else
     let
+      val thy = Proof_Context.theory_of ctxt
       val chained =
         chained
         |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
@@ -545,7 +541,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
            all_facts ctxt false ho_atp reserved add chained css
            |> filter_out ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
-           |> hashed_keyed_distinct size_of_term normalize_eq normalize_vars
+           |> fact_distinct thy
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
