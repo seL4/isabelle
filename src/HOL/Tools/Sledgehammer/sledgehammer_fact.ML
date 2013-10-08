@@ -57,6 +57,12 @@ type fact_override =
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
 
+(* gracefully handle huge background theories *)
+val max_facts_for_duplicates = 50000
+val max_facts_for_duplicate_matching = 25000
+val max_facts_for_complex_check = 25000
+val max_simps_for_clasimpset = 5000
+
 (* experimental feature *)
 val instantiate_inducts =
   Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
@@ -301,9 +307,6 @@ fun close_form t =
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
 fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
-(* gracefully handle huge background theories *)
-val max_simps_for_clasimpset = 10000
-
 fun clasimpset_rule_table_of ctxt =
   let val simps = ctxt |> simpset_of |> dest_ss |> #simps in
     if length simps >= max_simps_for_clasimpset then
@@ -378,12 +381,9 @@ fun build_name_tables name_of facts =
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-(* The function would have slightly cleaner semantics if it called "Pattern.equiv" instead of
-   "Pattern.matches", but it would also be slower. "Pattern.matches" throws out theorems that are
-   strict instances of other theorems, but only if the instance is met after the general version. *)
-fun fact_distinct thy facts =
+fun fact_distinct eq facts =
   fold (fn fact as (_, th) =>
-      Net.insert_term_safe (Pattern.matches thy o swap o pairself (normalize_eq o prop_of o snd))
+      Net.insert_term_safe (eq o pairself (normalize_eq o prop_of o snd))
         (normalize_eq (prop_of th), fact))
     facts Net.empty
   |> Net.entries
@@ -448,9 +448,6 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
-
-(* gracefully handle huge background theories *)
-val max_facts_for_complex_check = 25000
 
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let
@@ -541,10 +538,21 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
                o fact_of_ref ctxt reserved chained css) add
        else
-         let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
-           all_facts ctxt false ho_atp reserved add chained css
-           |> filter_out ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
-           |> fact_distinct thy
+        (* The "fact_distinct" call would have cleaner semantics if it called "Pattern.equiv"
+           instead of "Pattern.matches", but it would also be slower and less precise.
+           "Pattern.matches" throws out theorems that are strict instances of other theorems, but
+           only if the instance is met after the general version. *)
+         let
+           val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
+           val facts =
+             all_facts ctxt false ho_atp reserved add chained css
+             |> filter_out ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
+            val num_facts = length facts
+         in
+           facts
+           |> num_facts <= max_facts_for_duplicates
+              ? fact_distinct (if num_facts > max_facts_for_duplicate_matching then op aconv
+                  else Pattern.matches thy o swap)
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
