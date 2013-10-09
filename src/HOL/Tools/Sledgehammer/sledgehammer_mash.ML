@@ -1329,26 +1329,17 @@ fun relevant_facts ctxt
                 (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
-        mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
-                             facts
-        |> weight_facts_steeply
+        (mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t facts
+         |> weight_facts_steeply, [])
       fun mash () =
-        mash_suggested_facts ctxt params prover (generous_max_facts max_facts)
-            hyp_ts concl_t facts
+        mash_suggested_facts ctxt params prover (generous_max_facts max_facts) hyp_ts concl_t facts
         |>> weight_facts_steeply
       val mess =
         (* the order is important for the "case" expression below *)
-        [] |> (if effective_fact_filter <> mepoN then
-                 cons (mash_weight, (mash ()))
-               else
-                 I)
-           |> (if effective_fact_filter <> mashN then
-                 cons (mepo_weight, (mepo (), []))
-               else
-                 I)
-      val mesh =
-        mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess
-        |> add_and_take
+        [] |> effective_fact_filter <> mepoN ? cons (mash_weight, mash)
+           |> effective_fact_filter <> mashN ? cons (mepo_weight, mepo)
+           |> Par_List.map (apsnd (fn f => f ()))
+      val mesh = mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess |> add_and_take
     in
       if save then MaSh.save ctxt overlord else ();
       case (fact_filter, mess) of
