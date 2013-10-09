@@ -61,7 +61,7 @@ type fact_override =
 val max_facts_for_duplicates = 50000
 val max_facts_for_duplicate_matching = 25000
 val max_facts_for_complex_check = 25000
-val max_simps_for_clasimpset = 5000
+val max_simps_for_clasimpset = 10000
 
 (* experimental feature *)
 val instantiate_inducts =
