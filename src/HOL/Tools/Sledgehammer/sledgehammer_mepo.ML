@@ -43,13 +43,19 @@ fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
 
 (* An abstraction of Isabelle types and first-order terms *)
 datatype pattern = PVar | PApp of string * pattern list
-datatype ptype = PType of int * pattern list
+datatype patternT = PVarT | PAppT of string * patternT list
+datatype ptype = PType of int * patternT list
 
 fun string_of_pattern PVar = "_"
   | string_of_pattern (PApp (s, ps)) =
     if null ps then s else s ^ string_of_patterns ps
 and string_of_patterns ps = "(" ^ commas (map string_of_pattern ps) ^ ")"
-fun string_of_ptype (PType (_, ps)) = string_of_patterns ps
+
+fun string_of_patternT PVarT = "_"
+  | string_of_patternT (PAppT (s, ps)) =
+    if null ps then s else s ^ string_of_patternsT ps
+and string_of_patternsT ps = "(" ^ commas (map string_of_patternT ps) ^ ")"
+fun string_of_ptype (PType (_, ps)) = string_of_patternsT ps
 
 (*Is the second type an instance of the first one?*)
 fun match_pattern (PVar, _) = true
@@ -60,7 +66,17 @@ and match_patterns (_, []) = true
   | match_patterns ([], _) = false
   | match_patterns (p :: ps, q :: qs) =
     match_pattern (p, q) andalso match_patterns (ps, qs)
-fun match_ptype (PType (_, ps), PType (_, qs)) = match_patterns (ps, qs)
+
+(*Is the second type an instance of the first one?*)
+fun match_patternT (PVarT, _) = true
+  | match_patternT (PAppT _, PVarT) = false
+  | match_patternT (PAppT (s, ps), PAppT (t, qs)) =
+    s = t andalso match_patternsT (ps, qs)
+and match_patternsT (_, []) = true
+  | match_patternsT ([], _) = false
+  | match_patternsT (p :: ps, q :: qs) =
+    match_patternT (p, q) andalso match_patternsT (ps, qs)
+fun match_ptype (PType (_, ps), PType (_, qs)) = match_patternsT (ps, qs)
 
 (* Is there a unifiable constant? *)
 fun pconst_mem f consts (s, ps) =
@@ -69,13 +85,13 @@ fun pconst_mem f consts (s, ps) =
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
 
-fun pattern_of_type (Type (s, Ts)) = PApp (s, map pattern_of_type Ts)
-  | pattern_of_type (TFree (s, _)) = PApp (s, [])
-  | pattern_of_type (TVar _) = PVar
+fun patternT_of_type (Type (s, Ts)) = PAppT (s, map patternT_of_type Ts)
+  | patternT_of_type (TFree (s, _)) = PAppT (s, [])
+  | patternT_of_type (TVar _) = PVarT
 
 (* Pairs a constant with the list of its type instantiations. *)
 fun ptype thy const x =
-  (if const then map pattern_of_type (these (try (Sign.const_typargs thy) x))
+  (if const then map patternT_of_type (these (try (Sign.const_typargs thy) x))
    else [])
 fun rich_ptype thy const (s, T) =
   PType (order_of_type T, ptype thy const (s, T))
@@ -177,15 +193,15 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
    first by constant name and second by its list of type instantiations. For the
    latter, we need a linear ordering on "pattern list". *)
 
-fun pattern_ord p =
+fun patternT_ord p =
   case p of
-    (PVar, PVar) => EQUAL
-  | (PVar, PApp _) => LESS
-  | (PApp _, PVar) => GREATER
-  | (PApp q1, PApp q2) =>
-    prod_ord fast_string_ord (dict_ord pattern_ord) (q1, q2)
+    (PVarT, PVarT) => EQUAL
+  | (PVarT, PAppT _) => LESS
+  | (PAppT _, PVarT) => GREATER
+  | (PAppT q1, PAppT q2) =>
+    prod_ord fast_string_ord (dict_ord patternT_ord) (q1, q2)
 fun ptype_ord (PType p, PType q) =
-  prod_ord (dict_ord pattern_ord) int_ord (swap p, swap q)
+  prod_ord (dict_ord patternT_ord) int_ord (swap p, swap q)
 
 structure PType_Tab = Table(type key = ptype val ord = ptype_ord)
 
