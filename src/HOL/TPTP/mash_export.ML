@@ -72,6 +72,7 @@ fun generate_accessibility ctxt thys linearize file_name =
 
 fun generate_features ctxt prover thys file_name =
   let
+    val is_built_in_const = Sledgehammer_Provers.is_built_in_const_of_prover ctxt prover
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = all_facts ctxt |> filter_out (has_thys thys o snd)
@@ -79,8 +80,7 @@ fun generate_features ctxt prover thys file_name =
       let
         val name = nickname_of_thm th
         val feats =
-          features_of ctxt prover (theory_of_thm th) 0 Symtab.empty stature
-                      [prop_of th]
+          features_of ctxt is_built_in_const (theory_of_thm th) 0 Symtab.empty stature [prop_of th]
           |> map fst
         val s =
           encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
@@ -150,6 +150,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                                      linearize max_suggs file_name =
   let
+    val is_built_in_const = Sledgehammer_Provers.is_built_in_const_of_prover ctxt prover
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
@@ -164,8 +165,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
           val goal_feats =
-            features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
-                        const_tab stature [prop_of th]
+            features_of ctxt is_built_in_const (theory_of_thm th) (num_old_facts + j) const_tab
+              stature [prop_of th]
             |> sort_wrt fst
           val access_facts =
             (if linearize then take (j - 1) new_facts
@@ -176,8 +177,8 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val parents = if linearize then prevs else parents
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
-            |> features_of ctxt prover (theory_of_thm th) (num_old_facts + j)
-                           const_tab stature
+            |> features_of ctxt is_built_in_const (theory_of_thm th) (num_old_facts + j) const_tab
+              stature
             |> map (apsnd (fn r => weight * extra_feature_factor * r))
           val query =
             if do_query then

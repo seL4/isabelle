@@ -63,8 +63,8 @@ sig
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
   val features_of :
-    Proof.context -> string -> theory -> int -> int Symtab.table -> stature
-    -> term list -> (string * real) list
+    Proof.context -> (string * typ -> term list -> bool * term list) -> theory ->
+    int -> int Symtab.table -> stature -> term list -> (string * real) list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of :
     string Symtab.table * string Symtab.table -> thm -> string list
@@ -608,14 +608,14 @@ fun maybe_singleton_str _ "" = []
 
 val max_pat_breadth = 10 (* FUDGE *)
 
-fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
+fun term_features_of ctxt is_built_in_const thy_name num_facts const_tab term_max_depth
                      type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
 
     fun is_built_in (x as (s, _)) args =
       if member (op =) logical_consts s then (true, args)
-      else is_built_in_const_of_prover ctxt prover x args
+      else is_built_in_const x args
 
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
@@ -715,11 +715,11 @@ val term_max_depth = 2
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt prover thy num_facts const_tab (scope, _) ts =
+fun features_of ctxt is_built_in_const thy num_facts const_tab (scope, _) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
-                     type_max_depth ts
+    term_features_of ctxt is_built_in_const thy_name num_facts const_tab term_max_depth
+      type_max_depth ts
     |> scope <> Global ? cons local_feature
   end
 
@@ -961,16 +961,19 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
   let
     val thy = Proof_Context.theory_of ctxt
     val thy_name = Context.theory_name thy
+    val is_built_in_const = is_built_in_const_of_prover ctxt prover
     val facts = facts |> sort (crude_thm_ord o pairself snd o swap)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val num_facts = length facts
     val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
+
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
-      |> features_of ctxt prover (theory_of_thm th) num_facts const_tab stature
+      |> features_of ctxt is_built_in_const (theory_of_thm th) num_facts const_tab stature
       |> map (apsnd (fn r => weight * factor * r))
+
     val (access_G, suggs) =
       peek_state ctxt overlord (fn {access_G, ...} =>
           if Graph.is_empty access_G then
@@ -979,8 +982,8 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
             let
               val parents = maximal_wrt_access_graph access_G facts
               val goal_feats =
-                features_of ctxt prover thy num_facts const_tab (Local, General)
-                            (concl_t :: hyp_ts)
+                features_of ctxt is_built_in_const thy num_facts const_tab (Local, General)
+                  (concl_t :: hyp_ts)
               val chained_feats =
                 chained
                 |> map (rpair 1.0)
@@ -1050,7 +1053,8 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val thy = Proof_Context.theory_of ctxt
           val name = freshish_name ()
           val feats =
-            features_of ctxt prover thy 0 Symtab.empty (Local, General) [t]
+            features_of ctxt (is_built_in_const_of_prover ctxt prover) thy 0 Symtab.empty
+              (Local, General) [t]
             |> map fst
         in
           peek_state ctxt overlord (fn {access_G, ...} =>
@@ -1096,6 +1100,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         ""
     else
       let
+        val is_built_in_const = is_built_in_const_of_prover ctxt prover
         val name_tabs = build_name_tables nickname_of_thm facts
         fun deps_of status th =
           if no_dependencies_for_status status then
@@ -1150,8 +1155,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             let
               val name = nickname_of_thm th
               val feats =
-                features_of ctxt prover (theory_of_thm th) 0 Symtab.empty
-                            stature [prop_of th]
+                features_of ctxt is_built_in_const (theory_of_thm th) 0 Symtab.empty stature
+                  [prop_of th]
                 |> map fst
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
