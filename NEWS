@@ -76,6 +76,11 @@ or shortcut "C+e SPACE".
 Isabelle/jEdit plugin instead of SideKick.  Refined table of Isabelle
 symbol abbreviations (see $ISABELLE_HOME/etc/symbols).
 
+* Standard jEdit keyboard shortcut C+b complete-word is remapped to
+isabelle.complete for explicit completion in Isabelle sources.
+INCOMPATIBILITY wrt. jEdit defaults, may have to invent new shortcuts
+to resolve conflict.
+
 * Improved support of various "minor modes" for Isabelle NEWS,
 options, session ROOT etc., with completion and SideKick tree view.
 
