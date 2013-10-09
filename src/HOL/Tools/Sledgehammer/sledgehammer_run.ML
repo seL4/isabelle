@@ -229,8 +229,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
       val _ = Proof.assert_backward state
       val print =
         if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
-      val state =
-        state |> Proof.map_context (Config.put SMT_Config.verbose debug)
+      val state = state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val {facts = chained, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
@@ -245,11 +244,9 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = print "Sledgehammering..."
-      val _ =
-        spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
-      val (smts, (ueq_atps, full_atps)) =
-        provers |> List.partition (is_smt_prover ctxt)
-                ||> List.partition (is_unit_equational_atp ctxt)
+      val _ = spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
+
+      val (ueq_atps, full_provers) = List.partition (is_unit_equational_atp ctxt) provers
 
       val spying_str_of_factss =
         commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
@@ -305,30 +302,26 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
             |> max_outcome_code |> rpair state
         end
 
-      fun launch_atps label is_appropriate_prop atps accum =
-        if null atps then
+      fun maybe_launch_provers label is_appropriate_prop provers_to_launch accum =
+        if null provers_to_launch then
           accum
         else if is_some is_appropriate_prop andalso
                 not (the is_appropriate_prop concl_t) then
-          (if verbose orelse length atps = length provers then
+          (if verbose orelse length provers_to_launch = length provers then
              "Goal outside the scope of " ^
-             space_implode " " (serial_commas "and" (map quote atps)) ^ "."
+             space_implode " " (serial_commas "and" (map quote provers_to_launch)) ^ "."
              |> Output.urgent_message
            else
              ();
            accum)
         else
-          launch_provers state label is_appropriate_prop atps
+          launch_provers state label is_appropriate_prop provers_to_launch
 
-      fun launch_smts accum =
-        if null smts then accum else launch_provers state "SMT solver" NONE smts
-
-      val launch_full_atps = launch_atps "ATP" NONE full_atps
-
-      val launch_ueq_atps = launch_atps "Unit-equational provers" (SOME is_unit_equality) ueq_atps
+      val launch_full_provers = maybe_launch_provers "ATP/SMT" NONE full_provers
+      val launch_ueq_atps = maybe_launch_provers "Unit-equational provers" (SOME is_unit_equality) ueq_atps
 
       fun launch_atps_and_smt_solvers p =
-        [launch_full_atps, launch_smts, launch_ueq_atps]
+        [launch_full_provers, launch_ueq_atps]
         |> Par_List.map (fn f => fst (f p))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
 
@@ -336,14 +329,9 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
         accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in
       (unknownN, state)
-      |> (if mode = Auto_Try then
-            launch_full_atps
-          else if blocking then
-            launch_atps_and_smt_solvers #> max_outcome_code #> rpair state
-          else
-            (fn p => (Future.fork (tap (fn () => launch_atps_and_smt_solvers p)); p)))
-      handle TimeLimit.TimeOut =>
-             (print "Sledgehammer ran out of time."; (unknownN, state))
+      |> (if blocking then launch_full_provers
+          else (fn p => (Future.fork (tap (fn () => launch_full_provers p)); p)))
+      handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, state))
     end
     |> `(fn (outcome_code, _) => outcome_code = someN)
 

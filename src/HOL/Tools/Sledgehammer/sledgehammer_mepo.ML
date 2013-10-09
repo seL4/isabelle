@@ -45,11 +45,6 @@ fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
 datatype pattern = PVar | PApp of string * pattern list
 datatype ptype = PType of int * typ list
 
-fun string_of_pattern PVar = "_"
-  | string_of_pattern (PApp (s, ps)) =
-    if null ps then s else s ^ string_of_patterns ps
-and string_of_patterns ps = "(" ^ commas (map string_of_pattern ps) ^ ")"
-
 fun string_of_patternT (TVar _) = "_"
   | string_of_patternT (Type (s, ps)) =
     if null ps then s else s ^ string_of_patternsT ps
