@@ -120,8 +120,6 @@ sig
   val default_max_facts_of_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
-  val is_built_in_const_of_prover :
-    Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_of_prover : Proof.context -> string -> relevance_fudge
@@ -274,23 +272,6 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
 
 fun is_appropriate_prop_of_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
-
-val atp_irrelevant_const_tab =
-  Symtab.make (map (rpair ()) atp_irrelevant_consts)
-
-fun is_built_in_const_of_prover ctxt name =
-  if is_smt_prover ctxt name andalso Config.get ctxt smt_builtin_facts then
-    let val ctxt = ctxt |> select_smt_solver name in
-      fn x => fn ts =>
-         if SMT_Builtin.is_builtin_num_ext ctxt (list_comb (Const x, ts)) then
-           (true, [])
-         else if SMT_Builtin.is_builtin_fun_ext ctxt x ts then
-           (true, ts)
-         else
-           (false, ts)
-    end
-  else
-    fn (s, _) => fn ts => (Symtab.defined atp_irrelevant_const_tab s, ts)
 
 (* FUDGE *)
 val atp_relevance_fudge =
@@ -1028,10 +1009,8 @@ val smt_slice_min_secs =
 val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [@{typ nat}, @{typ int}, HOLogic.realT])
 
-fun smt_filter_loop name
-                    ({debug, verbose, overlord, max_mono_iters,
-                      max_new_mono_instances, timeout, slice, ...} : params)
-                    state goal i =
+fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instances, timeout, slice,
+      ...} : params) state goal i =
   let
     fun repair_context ctxt =
       ctxt |> select_smt_solver name

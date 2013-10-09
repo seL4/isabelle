@@ -58,16 +58,6 @@ and string_of_patternsT ps = "(" ^ commas (map string_of_patternT ps) ^ ")"
 fun string_of_ptype (PType (_, ps)) = string_of_patternsT ps
 
 (*Is the second type an instance of the first one?*)
-fun match_pattern (PVar, _) = true
-  | match_pattern (_, PVar) = false
-  | match_pattern (PApp (s, ps), PApp (t, qs)) =
-    s = t andalso match_patterns (ps, qs)
-and match_patterns (_, []) = true
-  | match_patterns ([], _) = false
-  | match_patterns (p :: ps, q :: qs) =
-    match_pattern (p, q) andalso match_patterns (ps, qs)
-
-(*Is the second type an instance of the first one?*)
 fun match_patternT (TVar _, _) = true
   | match_patternT (Type (s, ps), Type (t, qs)) =
     s = t andalso match_patternsT (ps, qs)
@@ -116,21 +106,18 @@ fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert ptype_eq p)
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
-fun add_pconsts_in_term thy is_built_in_const =
+fun add_pconsts_in_term thy =
   let
-    fun do_const const ext_arg (x as (s, _)) ts =
-      let val (built_in, ts) = is_built_in_const x ts in
-        if member (op =) set_consts s then
-          fold (do_term ext_arg) ts
-        else
-          (not built_in
-           ? add_pconst_to_table (rich_pconst thy const x))
-          #> fold (do_term false) ts
-      end
+    fun do_const const (x as (s, _)) ts =
+      if member (op =) set_consts s then
+        fold (do_term false) ts
+      else
+        (not (is_irrelevant_const s) ? add_pconst_to_table (rich_pconst thy const x))
+        #> fold (do_term false) ts
     and do_term ext_arg t =
       case strip_comb t of
-        (Const x, ts) => do_const true ext_arg x ts
-      | (Free x, ts) => do_const false ext_arg x ts
+        (Const x, ts) => do_const true x ts
+      | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         ((null ts andalso not ext_arg)
          (* Since lambdas on the right-hand side of equalities are usually
@@ -144,7 +131,7 @@ fun add_pconsts_in_term thy is_built_in_const =
       if T = HOLogic.boolT then do_formula else do_term ext_arg
     and do_formula t =
       case t of
-        Const (@{const_name all}, _) $ Abs (_, T, t') => do_formula t'
+        Const (@{const_name all}, _) $ Abs (_, _, t') => do_formula t'
       | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
@@ -152,8 +139,8 @@ fun add_pconsts_in_term thy is_built_in_const =
       | @{const False} => I
       | @{const True} => I
       | @{const Not} $ t1 => do_formula t1
-      | Const (@{const_name All}, _) $ Abs (_, T, t') => do_formula t'
-      | Const (@{const_name Ex}, _) $ Abs (_, T, t') => do_formula t'
+      | Const (@{const_name All}, _) $ Abs (_, _, t') => do_formula t'
+      | Const (@{const_name Ex}, _) $ Abs (_, _, t') => do_formula t'
       | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
@@ -162,19 +149,19 @@ fun add_pconsts_in_term thy is_built_in_const =
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
         do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
-      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') => do_formula t'
-      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, T, t') =>
+      | Const (@{const_name Ex1}, _) $ Abs (_, _, t') => do_formula t'
+      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
-      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, T, t') =>
+      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t
   in do_formula end
 
-fun pconsts_in_fact thy is_built_in_const t =
+fun pconsts_in_fact thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const t) []
+              (Symtab.empty |> add_pconsts_in_term thy t) []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)
@@ -189,9 +176,9 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
 fun theory_const_prop_of fudge th =
   theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
 
-fun pair_consts_fact thy is_built_in_const fudge fact =
+fun pair_consts_fact thy fudge fact =
   case fact |> snd |> theory_const_prop_of fudge
-            |> pconsts_in_fact thy is_built_in_const of
+            |> pconsts_in_fact thy of
     [] => NONE
   | consts => SOME ((fact, consts), NONE)
 
@@ -206,13 +193,11 @@ fun patternT_ord p =
       EQUAL => dict_ord patternT_ord (ps, qs)
     | ord => ord)
   | (TVar _, TVar _) => EQUAL
-  | (TVar _, Type _) => LESS
-  | (TVar _, TFree _) => LESS
+  | (TVar _, _) => LESS
   | (Type _, TVar _) => GREATER
-  | (TFree _, TVar _) => GREATER
   | (Type _, TFree _) => LESS
-  | (TFree _, Type _) => GREATER
   | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
+  | (TFree _, _) => GREATER
 fun ptype_ord (PType (m, ps), PType (n, qs)) =
   (case dict_ord patternT_ord (ps, qs) of
     EQUAL => int_ord (m, n)
@@ -357,23 +342,23 @@ fun take_most_relevant ctxt max_facts remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
+fun if_empty_replace_with_scope thy facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy is_built_in_const)
+    |> fold (add_pconsts_in_term thy)
             (map_filter (fn ((_, (sc', _)), th) =>
                             if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
-fun consider_arities is_built_in_const th =
+fun consider_arities th =
   let
     fun aux _ _ NONE = NONE
       | aux t args (SOME tab) =
         case t of
           t1 $ t2 => SOME tab |> aux t1 (t2 :: args) |> aux t2 []
-        | Const (x as (s, _)) =>
-          (if is_built_in_const x args |> fst then
+        | Const (s, _) =>
+          (if is_widely_irrelevant_const s then
              SOME tab
            else case Symtab.lookup tab s of
              NONE => SOME (Symtab.update (s, length args) tab)
@@ -382,9 +367,8 @@ fun consider_arities is_built_in_const th =
   in aux (prop_of th) [] end
 
 (* FIXME: This is currently only useful for polymorphic type encodings. *)
-fun could_benefit_from_ext is_built_in_const facts =
-  fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
-  |> is_none
+fun could_benefit_from_ext facts =
+  fold (consider_arities o snd) facts (SOME Symtab.empty) |> is_none
 
 (* High enough so that it isn't wrongly considered as very relevant (e.g., for E
    weights), but low enough so that it is unlikely to be truncated away if few
@@ -395,13 +379,12 @@ fun eq_prod eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2)
 
 val really_hopeless_get_kicked_out_iter = 5 (* FUDGE *)
 
-fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
-        (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
-        concl_t =
+fun relevance_filter ctxt thres0 decay max_facts
+        (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
-    val add_pconsts = add_pconsts_in_term thy is_built_in_const
+    val add_pconsts = add_pconsts_in_term thy
     val chained_ts =
       facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
                             | _ => NONE)
@@ -411,8 +394,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
       |> fold add_pconsts hyp_ts
       |> add_pconsts concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
-      |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
-              [Chained, Assum, Local]
+      |> fold (if_empty_replace_with_scope thy facts) [Chained, Assum, Local]
     fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
         val hopeless =
@@ -509,11 +491,11 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
         in bef @ add @ after end
     fun insert_special_facts accepts =
       (* FIXME: get rid of "ext" here once it is treated as a helper *)
-      [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
+      [] |> could_benefit_from_ext accepts ? cons @{thm ext}
          |> add_set_const_thms accepts
          |> insert_into_facts accepts
   in
-    facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
+    facts |> map_filter (pair_consts_fact thy fudge)
           |> iter 0 max_facts thres0 goal_const_tab []
           |> insert_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
@@ -525,8 +507,6 @@ fun mepo_suggested_facts ctxt
         max_facts fudge hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val is_built_in_const =
-      Sledgehammer_Provers.is_built_in_const_of_prover ctxt prover
     val fudge =
       case fudge of
         SOME fudge => fudge
@@ -534,16 +514,14 @@ fun mepo_suggested_facts ctxt
     val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0),
                           1.0 / Real.fromInt (max_facts + 1))
   in
-    trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^
-                             " facts");
+    trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^ " facts");
     (if thres1 < 0.0 then
        facts
      else if thres0 > 1.0 orelse thres0 > thres1 then
        []
      else
-       relevance_filter ctxt thres0 decay max_facts is_built_in_const fudge
-           facts hyp_ts
-           (concl_t |> theory_constify fudge (Context.theory_name thy)))
+       relevance_filter ctxt thres0 decay max_facts fudge facts hyp_ts
+         (concl_t |> theory_constify fudge (Context.theory_name thy)))
     |> map fact_of_raw_fact
   end
 

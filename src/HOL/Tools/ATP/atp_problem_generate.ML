@@ -91,6 +91,8 @@ sig
   val atp_logical_consts : string list
   val atp_irrelevant_consts : string list
   val atp_widely_irrelevant_consts : string list
+  val is_irrelevant_const : string -> bool
+  val is_widely_irrelevant_const : string -> bool
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_type_enc_higher_order : type_enc -> bool
   val is_type_enc_polymorphic : type_enc -> bool
@@ -405,18 +407,24 @@ fun new_skolem_var_name_of_const s =
 (* These are ignored anyway by the relevance filter (unless they appear in
    higher-order places) but not by the monomorphizer. *)
 val atp_logical_consts =
-  [@{const_name all}, @{const_name "==>"}, @{const_name "=="},
-   @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
+  [@{const_name prop}, @{const_name Pure.conjunction}, @{const_name all}, @{const_name "==>"},
+   @{const_name "=="}, @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
    handled specially via "fFalse", "fTrue", ..., "fequal". *)
 val atp_irrelevant_consts =
-  [@{const_name False}, @{const_name True}, @{const_name Not},
-   @{const_name conj}, @{const_name disj}, @{const_name implies},
-   @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
+  [@{const_name False}, @{const_name True}, @{const_name Not}, @{const_name conj},
+   @{const_name disj}, @{const_name implies}, @{const_name HOL.eq}, @{const_name If},
+   @{const_name Let}]
 
 val atp_widely_irrelevant_consts = atp_logical_consts @ atp_irrelevant_consts
+
+val atp_irrelevant_const_tab = Symtab.make (map (rpair ()) atp_irrelevant_consts)
+val atp_widely_irrelevant_const_tab = Symtab.make (map (rpair ()) atp_widely_irrelevant_consts)
+
+val is_irrelevant_const = Symtab.defined atp_irrelevant_const_tab
+val is_widely_irrelevant_const = Symtab.defined atp_widely_irrelevant_const_tab
 
 fun add_schematic_const (x as (_, T)) =
   Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
