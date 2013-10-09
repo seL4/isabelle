@@ -11,7 +11,6 @@ sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type params = Sledgehammer_Provers.params
-  type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
@@ -776,9 +775,8 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
         | NONE => accum (* shouldn't happen *)
       val facts =
         facts
-        |> mepo_suggested_facts ctxt params prover
-               (max_facts |> the_default prover_default_max_facts) NONE hyp_ts
-               concl_t
+        |> mepo_suggested_facts ctxt params (max_facts |> the_default prover_default_max_facts) NONE
+             hyp_ts concl_t
         |> fold (add_isar_dep facts) isar_deps
         |> map nickify
     in
@@ -1329,7 +1327,7 @@ fun relevant_facts ctxt
                 (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
-        (mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t facts
+        (mepo_suggested_facts ctxt params max_facts NONE hyp_ts concl_t facts
          |> weight_facts_steeply, [])
       fun mash () =
         mash_suggested_facts ctxt params prover (generous_max_facts max_facts) hyp_ts concl_t facts

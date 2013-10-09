@@ -44,26 +44,6 @@ sig
      preplay_timeout : Time.time option,
      expect : string}
 
-  type relevance_fudge =
-    {local_const_multiplier : real,
-     worse_irrel_freq : real,
-     higher_order_irrel_weight : real,
-     abs_rel_weight : real,
-     abs_irrel_weight : real,
-     theory_const_rel_weight : real,
-     theory_const_irrel_weight : real,
-     chained_const_irrel_weight : real,
-     intro_bonus : real,
-     elim_bonus : real,
-     simp_bonus : real,
-     local_bonus : real,
-     assum_bonus : real,
-     chained_bonus : real,
-     max_imperfect : real,
-     max_imperfect_exp : real,
-     threshold_divisor : real,
-     ridiculous_threshold : real}
-
   type prover_problem =
     {state : Proof.state,
      goal : thm,
@@ -119,9 +99,6 @@ sig
   val default_max_facts_of_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
-  val atp_relevance_fudge : relevance_fudge
-  val smt_relevance_fudge : relevance_fudge
-  val relevance_fudge_of_prover : Proof.context -> string -> relevance_fudge
   val weight_smt_fact :
     Proof.context -> int -> ((string * stature) * thm) * int
     -> (string * stature) * (int option * thm)
@@ -263,51 +240,6 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
 fun is_appropriate_prop_of_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
-(* FUDGE *)
-val atp_relevance_fudge =
-  {local_const_multiplier = 1.5,
-   worse_irrel_freq = 100.0,
-   higher_order_irrel_weight = 1.05,
-   abs_rel_weight = 0.5,
-   abs_irrel_weight = 2.0,
-   theory_const_rel_weight = 0.5,
-   theory_const_irrel_weight = 0.25,
-   chained_const_irrel_weight = 0.25,
-   intro_bonus = 0.15,
-   elim_bonus = 0.15,
-   simp_bonus = 0.15,
-   local_bonus = 0.55,
-   assum_bonus = 1.05,
-   chained_bonus = 1.5,
-   max_imperfect = 11.5,
-   max_imperfect_exp = 1.0,
-   threshold_divisor = 2.0,
-   ridiculous_threshold = 0.1}
-
-(* FUDGE (FIXME) *)
-val smt_relevance_fudge =
-  {local_const_multiplier = #local_const_multiplier atp_relevance_fudge,
-   worse_irrel_freq = #worse_irrel_freq atp_relevance_fudge,
-   higher_order_irrel_weight = #higher_order_irrel_weight atp_relevance_fudge,
-   abs_rel_weight = #abs_rel_weight atp_relevance_fudge,
-   abs_irrel_weight = #abs_irrel_weight atp_relevance_fudge,
-   theory_const_rel_weight = #theory_const_rel_weight atp_relevance_fudge,
-   theory_const_irrel_weight = #theory_const_irrel_weight atp_relevance_fudge,
-   chained_const_irrel_weight = #chained_const_irrel_weight atp_relevance_fudge,
-   intro_bonus = #intro_bonus atp_relevance_fudge,
-   elim_bonus = #elim_bonus atp_relevance_fudge,
-   simp_bonus = #simp_bonus atp_relevance_fudge,
-   local_bonus = #local_bonus atp_relevance_fudge,
-   assum_bonus = #assum_bonus atp_relevance_fudge,
-   chained_bonus = #chained_bonus atp_relevance_fudge,
-   max_imperfect = #max_imperfect atp_relevance_fudge,
-   max_imperfect_exp = #max_imperfect_exp atp_relevance_fudge,
-   threshold_divisor = #threshold_divisor atp_relevance_fudge,
-   ridiculous_threshold = #ridiculous_threshold atp_relevance_fudge}
-
-fun relevance_fudge_of_prover ctxt name =
-  if is_smt_prover ctxt name then smt_relevance_fudge else atp_relevance_fudge
-
 fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -353,26 +285,6 @@ type params =
    timeout : Time.time option,
    preplay_timeout : Time.time option,
    expect : string}
-
-type relevance_fudge =
-  {local_const_multiplier : real,
-   worse_irrel_freq : real,
-   higher_order_irrel_weight : real,
-   abs_rel_weight : real,
-   abs_irrel_weight : real,
-   theory_const_rel_weight : real,
-   theory_const_irrel_weight : real,
-   chained_const_irrel_weight : real,
-   intro_bonus : real,
-   elim_bonus : real,
-   simp_bonus : real,
-   local_bonus : real,
-   assum_bonus : real,
-   chained_bonus : real,
-   max_imperfect : real,
-   max_imperfect_exp : real,
-   threshold_divisor : real,
-   ridiculous_threshold : real}
 
 type prover_problem =
   {state : Proof.state,

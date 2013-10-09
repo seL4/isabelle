@@ -11,13 +11,33 @@ sig
   type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type params = Sledgehammer_Provers.params
-  type relevance_fudge = Sledgehammer_Provers.relevance_fudge
+
+  type relevance_fudge =
+    {local_const_multiplier : real,
+     worse_irrel_freq : real,
+     higher_order_irrel_weight : real,
+     abs_rel_weight : real,
+     abs_irrel_weight : real,
+     theory_const_rel_weight : real,
+     theory_const_irrel_weight : real,
+     chained_const_irrel_weight : real,
+     intro_bonus : real,
+     elim_bonus : real,
+     simp_bonus : real,
+     local_bonus : real,
+     assum_bonus : real,
+     chained_bonus : real,
+     max_imperfect : real,
+     max_imperfect_exp : real,
+     threshold_divisor : real,
+     ridiculous_threshold : real}
 
   val trace : bool Config.T
   val pseudo_abs_name : string
+  val default_relevance_fudge : relevance_fudge
   val mepo_suggested_facts :
-    Proof.context -> params -> string -> int -> relevance_fudge option
-    -> term list -> term -> raw_fact list -> fact list
+    Proof.context -> params -> int -> relevance_fudge option -> term list -> term ->
+    raw_fact list -> fact list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
@@ -35,6 +55,47 @@ fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val pseudo_abs_name = sledgehammer_prefix ^ "abs"
 val theory_const_suffix = Long_Name.separator ^ " 1"
+
+type relevance_fudge =
+  {local_const_multiplier : real,
+   worse_irrel_freq : real,
+   higher_order_irrel_weight : real,
+   abs_rel_weight : real,
+   abs_irrel_weight : real,
+   theory_const_rel_weight : real,
+   theory_const_irrel_weight : real,
+   chained_const_irrel_weight : real,
+   intro_bonus : real,
+   elim_bonus : real,
+   simp_bonus : real,
+   local_bonus : real,
+   assum_bonus : real,
+   chained_bonus : real,
+   max_imperfect : real,
+   max_imperfect_exp : real,
+   threshold_divisor : real,
+   ridiculous_threshold : real}
+
+(* FUDGE *)
+val default_relevance_fudge =
+  {local_const_multiplier = 1.5,
+   worse_irrel_freq = 100.0,
+   higher_order_irrel_weight = 1.05,
+   abs_rel_weight = 0.5,
+   abs_irrel_weight = 2.0,
+   theory_const_rel_weight = 0.5,
+   theory_const_irrel_weight = 0.25,
+   chained_const_irrel_weight = 0.25,
+   intro_bonus = 0.15,
+   elim_bonus = 0.15,
+   simp_bonus = 0.15,
+   local_bonus = 0.55,
+   assum_bonus = 1.05,
+   chained_bonus = 1.5,
+   max_imperfect = 11.5,
+   max_imperfect_exp = 1.0,
+   threshold_divisor = 2.0,
+   ridiculous_threshold = 0.1}
 
 fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
     Int.max (order_of_type T1 + 1, order_of_type T2)
@@ -497,15 +558,11 @@ fun relevance_filter ctxt thres0 decay max_facts
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
 
-fun mepo_suggested_facts ctxt
-        ({fact_thresholds = (thres0, thres1), ...} : params) prover
-        max_facts fudge hyp_ts concl_t facts =
+fun mepo_suggested_facts ctxt ({fact_thresholds = (thres0, thres1), ...} : params) max_facts fudge
+      hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fudge =
-      case fudge of
-        SOME fudge => fudge
-      | NONE => Sledgehammer_Provers.relevance_fudge_of_prover ctxt prover
+    val fudge = fudge |> the_default default_relevance_fudge
     val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0),
                           1.0 / Real.fromInt (max_facts + 1))
   in
