@@ -43,23 +43,23 @@ fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
 
 (* An abstraction of Isabelle types and first-order terms *)
 datatype pattern = PVar | PApp of string * pattern list
-datatype patternT = PVarT | PAppT of string * patternT list
-datatype ptype = PType of int * patternT list
+datatype ptype = PType of int * typ list
 
 fun string_of_pattern PVar = "_"
   | string_of_pattern (PApp (s, ps)) =
     if null ps then s else s ^ string_of_patterns ps
 and string_of_patterns ps = "(" ^ commas (map string_of_pattern ps) ^ ")"
 
-fun string_of_patternT PVarT = "_"
-  | string_of_patternT (PAppT (s, ps)) =
+fun string_of_patternT (TVar _) = "_"
+  | string_of_patternT (Type (s, ps)) =
     if null ps then s else s ^ string_of_patternsT ps
+  | string_of_patternT (TFree (s, _)) = s
 and string_of_patternsT ps = "(" ^ commas (map string_of_patternT ps) ^ ")"
 fun string_of_ptype (PType (_, ps)) = string_of_patternsT ps
 
 (*Is the second type an instance of the first one?*)
 fun match_pattern (PVar, _) = true
-  | match_pattern (PApp _, PVar) = false
+  | match_pattern (_, PVar) = false
   | match_pattern (PApp (s, ps), PApp (t, qs)) =
     s = t andalso match_patterns (ps, qs)
 and match_patterns (_, []) = true
@@ -68,10 +68,11 @@ and match_patterns (_, []) = true
     match_pattern (p, q) andalso match_patterns (ps, qs)
 
 (*Is the second type an instance of the first one?*)
-fun match_patternT (PVarT, _) = true
-  | match_patternT (PAppT _, PVarT) = false
-  | match_patternT (PAppT (s, ps), PAppT (t, qs)) =
+fun match_patternT (TVar _, _) = true
+  | match_patternT (Type (s, ps), Type (t, qs)) =
     s = t andalso match_patternsT (ps, qs)
+  | match_patternT (TFree (s, _), TFree (t, _)) = s = t
+  | match_patternT (_, _) = false
 and match_patternsT (_, []) = true
   | match_patternsT ([], _) = false
   | match_patternsT (p :: ps, q :: qs) =
@@ -85,14 +86,9 @@ fun pconst_mem f consts (s, ps) =
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
 
-fun patternT_of_type (Type (s, Ts)) = PAppT (s, map patternT_of_type Ts)
-  | patternT_of_type (TFree (s, _)) = PAppT (s, [])
-  | patternT_of_type (TVar _) = PVarT
-
 (* Pairs a constant with the list of its type instantiations. *)
 fun ptype thy const x =
-  (if const then map patternT_of_type (these (try (Sign.const_typargs thy) x))
-   else [])
+  (if const then these (try (Sign.const_typargs thy) x) else [])
 fun rich_ptype thy const (s, T) =
   PType (order_of_type T, ptype thy const (s, T))
 fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
@@ -100,9 +96,19 @@ fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
 fun string_of_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_of_ptype ps) ^ "}"
 
-(* Add a pconstant to the table, but a [] entry means a standard
-   connective, which we ignore.*)
-fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
+fun patternT_eq (TVar _, TVar _) = true
+  | patternT_eq (Type (s, Ts), Type (t, Us)) = s = t andalso patternsT_eq (Ts, Us)
+  | patternT_eq (TFree (s, _), TFree (t, _)) = (s = t)
+  | patternT_eq _ = false
+and patternsT_eq ([], []) = true
+  | patternsT_eq ([], _) = false
+  | patternsT_eq (_, []) = false
+  | patternsT_eq (T :: Ts, U :: Us) = patternT_eq (T, U) andalso patternsT_eq (Ts, Us)
+fun ptype_eq (PType (m, Ts), PType (n, Us)) = m = n andalso patternsT_eq (Ts, Us)
+
+ (* Add a pconstant to the table, but a [] entry means a standard connective,
+    which we ignore. *)
+fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert ptype_eq p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage
    by treating them more or less as if they were built-in but add their
@@ -195,11 +201,16 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
 
 fun patternT_ord p =
   case p of
-    (PVarT, PVarT) => EQUAL
-  | (PVarT, PAppT _) => LESS
-  | (PAppT _, PVarT) => GREATER
-  | (PAppT q1, PAppT q2) =>
+    (TVar _, TVar _) => EQUAL
+  | (TVar _, Type _) => LESS
+  | (TVar _, TFree _) => LESS
+  | (Type _, TVar _) => GREATER
+  | (TFree _, TVar _) => GREATER
+  | (Type q1, Type q2) =>
     prod_ord fast_string_ord (dict_ord patternT_ord) (q1, q2)
+  | (Type _, TFree _) => LESS
+  | (TFree _, Type _) => GREATER
+  | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
 fun ptype_ord (PType p, PType q) =
   prod_ord (dict_ord patternT_ord) int_ord (swap p, swap q)
 
@@ -376,6 +387,8 @@ fun could_benefit_from_ext is_built_in_const facts =
    facts are included. *)
 val special_fact_index = 45 (* FUDGE *)
 
+fun eq_prod eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2)
+
 val really_hopeless_get_kicked_out_iter = 5 (* FUDGE *)
 
 fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
@@ -437,7 +450,8 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               trace_msg ctxt (fn () => "New or updated constants: " ^
                   commas (rel_const_tab'
                           |> Symtab.dest
-                          |> subtract (op =) (rel_const_tab |> Symtab.dest)
+                          |> subtract (eq_prod (op =) (eq_list ptype_eq))
+                                      (rel_const_tab |> Symtab.dest)
                           |> map string_of_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
