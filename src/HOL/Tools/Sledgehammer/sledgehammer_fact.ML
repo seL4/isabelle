@@ -309,6 +309,7 @@ fun close_form t =
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
 fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
+(* TODO: rewrite to use nets and/or to reuse existing data structures *)
 fun clasimpset_rule_table_of ctxt =
   let val simps = ctxt |> simpset_of |> dest_ss |> #simps in
     if length simps >= max_simps_for_clasimpset then
