@@ -88,8 +88,7 @@ sig
   val problem_prefix : string Config.T
   val completish : bool Config.T
   val atp_full_names : bool Config.T
-  val smt_builtin_facts : bool Config.T
-  val smt_builtin_trans : bool Config.T
+  val smt_builtins : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -158,27 +157,18 @@ open Sledgehammer_Reconstruct
 (** The Sledgehammer **)
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
-val dest_dir =
-  Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-val problem_prefix =
-  Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val completish =
-  Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
+val dest_dir = Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
+val problem_prefix = Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
+val completish = Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
 
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_full_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
+val atp_full_names = Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
 
-val smt_builtin_facts =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_facts} (K true)
-val smt_builtin_trans =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_trans} (K true)
-val smt_triggers =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
-val smt_weights =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
+val smt_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt_builtins} (K true)
+val smt_triggers = Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
+val smt_weights = Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
 val smt_weight_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
@@ -1023,7 +1013,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
                  I)
            |> Config.put SMT_Config.infer_triggers
                          (Config.get ctxt smt_triggers)
-           |> not (Config.get ctxt smt_builtin_trans)
+           |> not (Config.get ctxt smt_builtins)
               ? (SMT_Builtin.filter_builtins is_boring_builtin_typ
                  #> Config.put SMT_Config.datatypes false)
            |> repair_monomorph_context max_mono_iters default_max_mono_iters
