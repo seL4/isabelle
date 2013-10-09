@@ -348,14 +348,14 @@ fun clasimpset_rule_table_of ctxt =
       end
   end
 
-fun normalize_eq (t as @{const Trueprop}
-        $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
-    else HOLogic.mk_Trueprop (t0 $ t2 $ t1)
-  | normalize_eq (t as @{const Trueprop} $ (@{const Not}
+fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else t0 $ t2 $ t1
+  | normalize_eq (@{const Trueprop} $ (t as @{const Not}
         $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2))) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
-    else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else HOLogic.mk_not (t0 $ t2 $ t1)
+  | normalize_eq (Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2) =
+    (if Term_Ord.fast_term_ord (t1, t2) <> GREATER then (t1, t2) else (t2, t1))
+    |> (fn (t1, t2) => HOLogic.eq_const T $ t1 $ t2)
   | normalize_eq t = t
 
 fun if_thm_before th th' =
@@ -371,14 +371,11 @@ fun un_class_ify s =
 
 fun build_name_tables name_of facts =
   let
-    fun cons_thm (_, th) =
-      Termtab.cons_list (normalize_vars (normalize_eq (prop_of th)), th)
+    fun cons_thm (_, th) = Termtab.cons_list (normalize_vars (normalize_eq (prop_of th)), th)
     fun add_plain canon alias =
-      Symtab.update (Thm.get_name_hint alias,
-                     name_of (if_thm_before canon alias))
+      Symtab.update (Thm.get_name_hint alias, name_of (if_thm_before canon alias))
     fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
-    fun add_inclass (name, target) =
-      fold (fn s => Symtab.update (s, target)) (un_class_ify name)
+    fun add_inclass (name, target) = fold (fn s => Symtab.update (s, target)) (un_class_ify name)
     val prop_tab = fold cons_thm facts Termtab.empty
     val plain_name_tab = Termtab.fold add_plains prop_tab Symtab.empty
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
