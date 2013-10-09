@@ -201,18 +201,22 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
 
 fun patternT_ord p =
   case p of
-    (TVar _, TVar _) => EQUAL
+    (Type (s, ps), Type (t, qs)) =>
+    (case fast_string_ord (s, t) of
+      EQUAL => dict_ord patternT_ord (ps, qs)
+    | ord => ord)
+  | (TVar _, TVar _) => EQUAL
   | (TVar _, Type _) => LESS
   | (TVar _, TFree _) => LESS
   | (Type _, TVar _) => GREATER
   | (TFree _, TVar _) => GREATER
-  | (Type q1, Type q2) =>
-    prod_ord fast_string_ord (dict_ord patternT_ord) (q1, q2)
   | (Type _, TFree _) => LESS
   | (TFree _, Type _) => GREATER
   | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
-fun ptype_ord (PType p, PType q) =
-  prod_ord (dict_ord patternT_ord) int_ord (swap p, swap q)
+fun ptype_ord (PType (m, ps), PType (n, qs)) =
+  (case dict_ord patternT_ord (ps, qs) of
+    EQUAL => int_ord (m, n)
+  | ord => ord)
 
 structure PType_Tab = Table(type key = ptype val ord = ptype_ord)
 
