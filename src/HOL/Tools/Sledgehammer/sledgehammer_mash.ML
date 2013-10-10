@@ -1344,7 +1344,7 @@ fun relevant_facts ctxt
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
         [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
          (mashN, mash |> map fst |> add_and_take)]
-      | (SOME fact_filter, _) => [(fact_filter, mesh)]
+      | _ => [(effective_fact_filter, mesh)]
     end
 
 fun kill_learners ctxt ({overlord, ...} : params) =
