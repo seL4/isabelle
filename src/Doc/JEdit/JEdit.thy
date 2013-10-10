@@ -25,9 +25,10 @@ Isabelle/Scala. It is built around a concept of \emph{asynchronous document
 processing}, which is supported natively by the \emph{parallel proof engine}
 that is implemented in Isabelle/ML.
 
-\item [jEdit] is a sophisticated text editor \url{http://www.jedit.org}
-implemented in Java. It is easily extensible by plugins written in any
-language that works on the JVM, e.g.\ Scala.
+\item [jEdit] is a sophisticated text
+editor\footnote{\url{http://www.jedit.org}} implemented in Java. It is easily
+extensible by plugins written in languages that work on the JVM, e.g.\
+Scala\footnote{\url{http://www.scala-lang.org/}}.
 
 \item [Isabelle/jEdit] is the main example application of the PIDE framework
 and the default user-interface for Isabelle. It is targeted at beginners and
@@ -80,7 +81,7 @@ text {*
 
   \item The logic image of the prover session may be specified within
   Isabelle/jEdit, but this requires restart. The new image is provided
-  automatically by the Isabelle build process.
+  automatically by the Isabelle build tool.
 
   \end{itemize}
 *}
@@ -189,7 +190,7 @@ text {*
   Various Isabelle plugin options control the popup behavior and immediate
   insertion into buffer.
 
-  Isabelle Symbols are completed in backslashed forms, e.g. @{verbatim
+  Isabelle Symbols are completed in backslashed forms, e.g.\ @{verbatim
   "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the Isabelle
   symbol @{text "\<forall>"} in its Unicode rendering. Alternatively, symbol
   abbreviations may be used as specified in @{file
