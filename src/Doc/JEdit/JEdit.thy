@@ -195,7 +195,7 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
 *}
 
 
-section {* Platform look-and-feel *}
+subsection {* Look-and-feel *}
 
 text {* jEdit is a Java/Swing application with some ambition to
   support ``native'' platform look-and-feel, within the limits of what
@@ -207,11 +207,9 @@ text {* jEdit is a Java/Swing application with some ambition to
   \begin{description}
 
   \item[Linux] The platform-independent \emph{Nimbus} is used by
-  default, but the classic \emph{Metal} also works.
-
-  Quasi-native \emph{GTK+} works under the side-condition that the
-  overall GTK theme is selected in a Java/Swing friendly way: the
-  success rate is @{text "\<approx>"} 50\%.
+  default, but the classic \emph{Metal} also works.  \emph{GTK+} works
+  under the side-condition that the overall GTK theme is selected in a
+  Java/Swing friendly way: the success rate is @{text "\<approx>"} 50\%.
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   platform-independent \emph{Nimbus} and \emph{Metal} also work.
@@ -240,30 +238,75 @@ text {* jEdit is a Java/Swing application with some ambition to
 
 chapter {* Prover IDE functionality *}
 
-section {* Main text area *}
+section {* Buffers and theories *}
 
-text {*
+text {* jEdit maintains a collection of open \emph{text buffers} to
+  store source files.  Each buffer may be associated with any number
+  of \emph{text areas} as visible GUI representation of the content.
 
-  Source files with \texttt{.thy} extension are treated specifically:
-  Isabelle/jEdit adds them to the formal document-model of Isabelle/PIDE, that
-  maintains semantic information provided by the prover in the background,
-  while the user is editing the text in the foreground.
+  Buffers are subject to a \emph{mode} that is determined from the
+  file type.  Files with extension \texttt{.thy} are assigned to the
+  mode \emph{isabelle} and treated specifically as follows.
 
-  \medskip Physical rendering of document content draws from the
-  standard repertoire of known IDEs for programming languages, with
-  highlighting, squiggles, tooltips, hyperlinks etc.  In the above
-  screenshot, only the bold keywords of the Isar language use
-  traditional syntax-highlighting in jEdit with static tables; all
-  other coloring is based on dynamic information from the logical
-  context of the prover.
+  \begin{itemize}
 
-  Such annotated text regions can be explored further by using the
-  \texttt{CONTROL} modifier key (or \texttt{COMMAND} on Mac OS X),
-  together with mouse hovering or clicking.  It reveals tooltips and
-  hyperlinks, e.g.\ see \texttt{constant "Example.path"} above, and
-  thus explains how a certain piece of source text has been
-  interpreted.
- *}
+  \item Theory files are implicitly added to the formal document model
+  of Isabelle/jEdit, which maintains a family of versions of all
+  sources for the prover in the background.  The \emph{Theories} panel
+  provides an overview of the status of continuous checking of theory
+  sources.  Unlike batch sessions \cite{isabelle-sys}, full theory
+  file names are used to identify theory nodes; this allows to
+  experiment with multiple (disjoint) Isabelle sessions
+  simultaneously.
+
+  \item Certain events to open or update buffers containing theory
+  files cause Isabelle/jEdit to resolve dependencies of \emph{theory
+  imports}.  The system will request to load further files into jEdit
+  editor buffers, which will eventually be added to the theory
+  document model for further checking.  It is also possible to resolve
+  dependencies automatically, depending on the option @{system_option
+  jedit_auto_load}.
+
+  \item Physical rendering of jEdit buffer content within the visible
+  text areas is augmented by information from the formal document
+  model.  Thus the prover can provide additional markup to help the
+  user understanding the meaning of the text, and to produce more text
+  with some add-on tools (e.g.\ information messages produced by
+  automated provers or disprovers in the background).
+
+  \end{itemize}
+
+  The text area views on theory buffers define the visible part of the
+  \emph{perspective} of Isabelle/jEdit.  This is taken as a hint for
+  document processing: the prover will ensure that those parts of a
+  theory where the user is looking are checked, while invisible parts
+  that are presently not required are left alone.
+
+  The perspective can may changed by opening or closing text areas, or
+  scrolling the corresponding windows.  It is also possible to
+  indicate theory nodes as \emph{required} for continuous checking in
+  the \emph{Theories} panel.  This means such nodes and all their
+  imports are always processed, independently of the visibility
+  status.  This can have significant impact on performance, though.
+
+  \medskip Formal markup of checked theory content is turned into GUI
+  rendering, based on a standard repertoire known from IDEs for
+  programming languages: colors, icons, highlighting, squiggly
+  underline, tooltips, hyperlinks etc.  There is some traditional
+  syntax-highlighting for the outer syntax of Isabelle/Isar, based on
+  static keyword tables.  The coloring of inner syntax (term language
+  etc.) is based on dynamic information from the logical context of
+  the prover.
+
+  Such formally annotated text can be explored further by using the
+  @{verbatim CONTROL} modifier key on Linux or Windows, and @{verbatim
+  COMMAND} on Mac OS X.  Hovering with the mouse while the modifier is
+  pressed reveals \emph{tooltips} (grey box within the text with a
+  yellow popup) and/or \emph{hyperlinks} (dark grey rectangle within
+  the text).  Tooltip popups use the same rendering principles as the
+  main text area, and further tooltips and/or hyperlinks may be
+  exposed recursively by the same mechanism.
+*}
 
 
 section {* Isabelle symbols and fonts *}
