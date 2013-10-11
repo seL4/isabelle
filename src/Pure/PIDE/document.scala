@@ -416,7 +416,7 @@ object Document
         case Some(st) =>
           val command = st.command
           val node = version.nodes(command.node_name)
-          Some((node, command))
+          if (node.commands.contains(command)) Some((node, command)) else None
       }
 
     def the_version(id: Document_ID.Version): Version = versions.getOrElse(id, fail)
