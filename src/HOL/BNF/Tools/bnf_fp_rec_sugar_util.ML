@@ -49,6 +49,9 @@ sig
      nested_maps: thm list,
      nested_map_idents: thm list,
      nested_map_comps: thm list,
+     distincts: thm list,
+     sel_splits: thm list,
+     sel_split_asms: thm list,
      ctr_specs: corec_ctr_spec list}
 
   val s_not: term -> term
@@ -131,6 +134,9 @@ type corec_spec =
    nested_maps: thm list,
    nested_map_idents: thm list,
    nested_map_comps: thm list,
+   distincts: thm list,
+   sel_splits: thm list,
+   sel_split_asms: thm list,
    ctr_specs: corec_ctr_spec list};
 
 val id_def = @{thm id_def};
@@ -295,6 +301,8 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
+    fun beta_contract (t as Abs (_, T, f $ Bound 0)) = incr_boundvars ~1 f
+      | beta_contract (t as Abs (v, T, b)) = Abs (v, T, beta_contract b);
     fun massage_abs bound_Ts (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) t)
       | massage_abs bound_Ts t = massage_rec bound_Ts t
     and massage_rec bound_Ts t =
@@ -306,11 +314,12 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
-        | (Const (c, _), args as _ :: _ :: _) =>
+        | (Const (c, c_T), args as _ :: _ :: _) =>
           let
             val gen_T = Sign.the_const_type thy c;
             val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
             val n = length gen_branch_Ts;
+            val n_res_T = strip_typeN n c_T |> length o binder_types o snd;
           in
             if n < length args then
               (case gen_body_fun_T of
@@ -318,7 +327,8 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                 if case_of ctxt T_name = SOME c then
                   let
                     val (branches, obj_leftovers) = chop n args;
-                    val branches' = map (massage_abs bound_Ts o Envir.eta_long bound_Ts) branches;
+                    val branches' = map (massage_abs bound_Ts o funpow (n_res_T - 1) beta_contract o
+                      Envir.eta_long bound_Ts) branches;
                     val branch_Ts' = map typof branches';
                     val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers --->
                       snd (strip_typeN (num_binder_types (hd gen_branch_Ts)) (hd branch_Ts')));
@@ -648,6 +658,9 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
        nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
+       distincts = #distincts (nth ctr_sugars index),
+       sel_splits = #sel_splits (nth ctr_sugars index),
+       sel_split_asms = #sel_split_asms (nth ctr_sugars index),
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
          disc_coitersss sel_coiterssss};
   in
