@@ -962,10 +962,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code disc_eqns sel_eqns ctr_alist
-            {distincts, sel_splits, sel_split_asms, ctr_specs, ...} =
-(* FIXME doesn't work reliably yet *)
-[](*          let
+        fun prove_code disc_eqns sel_eqns ctr_alist {ctr_specs, ...} =
+          let
             val (fun_name, fun_T, fun_args, maybe_rhs) =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
                find_first (member (op =) (map #ctr ctr_specs) o #ctr) sel_eqns)
@@ -975,16 +973,14 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
             val maybe_rhs' = if is_some maybe_rhs then maybe_rhs else
               let
-                fun prove_code_ctr {ctr, disc, sels, ...} =
+                fun prove_code_ctr {ctr, sels, ...} =
                   if not (exists (equal ctr o fst) ctr_alist) then NONE else
                     let
-                      val (fun_name, fun_T, fun_args, prems) =
+                      val prems =
                         (find_first (equal ctr o #ctr) disc_eqns,
                          find_first (equal ctr o #ctr) sel_eqns)
-                        |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #prems x))
-                        ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, []))
+                        |>> Option.map #prems ||> Option.map #prems
                         |> the o merge_options;
-                      val m = length prems;
                       val t =
                         filter (equal ctr o #ctr) sel_eqns
                         |> fst o finds ((op =) o apsnd #sel) sels
@@ -1005,26 +1001,32 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               let
                 val rhs = the maybe_rhs';
                 val bound_Ts = List.rev (map fastype_of fun_args);
-                val rhs' = expand_corec_code_rhs lthy has_call bound_Ts rhs;
-                val cond_ctrs = fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts rhs' [];
+                val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
+                val cond_ctrs =
+                  fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
                 val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
                 val ms = map (Logic.count_prems o prop_of) ctr_thms;
-                val (t', t) = (rhs', rhs)
+                val (raw_t, t) = (raw_rhs, rhs)
                   |> pairself
                     (curry HOLogic.mk_eq (list_comb (Free (fun_name, fun_T),
                       map Bound (length fun_args - 1 downto 0)))
                     #> HOLogic.mk_Trueprop
                     #> curry Logic.list_all (map dest_Free fun_args));
-                val discIs = map #discI ctr_specs;
-                val raw_code = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
+                val (distincts, discIs, sel_splits, sel_split_asms) =
+                  case_thms_of_term lthy bound_Ts raw_rhs;
+
+                val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
                     sel_split_asms ms ctr_thms
-                  |> K |> Goal.prove lthy [] [] t';
+                  |> K |> Goal.prove lthy [] [] raw_t;
+val _ = tracing ("raw code theorem: " ^ Syntax.string_of_term lthy (prop_of raw_code_thm));
               in
-                mk_primcorec_code_of_raw_code_tac sel_splits raw_code
+                mk_primcorec_code_of_raw_code_tac sel_splits raw_code_thm
                 |> K |> Goal.prove lthy [] [] t
+|> tap (tracing o curry (op ^) "code theorem: " o Syntax.string_of_term lthy o prop_of)
                 |> single
               end
-          end;*)
+handle ERROR s => (warning s; []) (*###*)
+          end;
 
         val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;

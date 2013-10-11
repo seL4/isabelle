@@ -49,9 +49,6 @@ sig
      nested_maps: thm list,
      nested_map_idents: thm list,
      nested_map_comps: thm list,
-     distincts: thm list,
-     sel_splits: thm list,
-     sel_split_asms: thm list,
      ctr_specs: corec_ctr_spec list}
 
   val s_not: term -> term
@@ -134,9 +131,6 @@ type corec_spec =
    nested_maps: thm list,
    nested_map_idents: thm list,
    nested_map_comps: thm list,
-   distincts: thm list,
-   sel_splits: thm list,
-   sel_split_asms: thm list,
    ctr_specs: corec_ctr_spec list};
 
 val id_def = @{thm id_def};
@@ -658,9 +652,6 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
        nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy [id_def] o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
-       distincts = #distincts (nth ctr_sugars index),
-       sel_splits = #sel_splits (nth ctr_sugars index),
-       sel_split_asms = #sel_split_asms (nth ctr_sugars index),
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
          disc_coitersss sel_coiterssss};
   in
