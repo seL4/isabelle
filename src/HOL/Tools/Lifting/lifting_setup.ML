@@ -758,7 +758,11 @@ fun setup_lifting_cmd gen_code xthm opt_reflp_xthm opt_par_xthm lthy =
     fun setup_typedef () = 
       case opt_reflp_xthm of
         SOME _ => error "The reflexivity theorem cannot be specified if the type_definition theorem is used."
-        | NONE => setup_by_typedef_thm gen_code input_thm lthy
+        | NONE => (
+          case opt_par_xthm of
+            SOME _ => error "The parametricity theorem cannot be specified if the type_definition theorem is used."
+            | NONE => setup_by_typedef_thm gen_code input_thm lthy
+        )
   in
     case input_term of
       (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_quotient ()
