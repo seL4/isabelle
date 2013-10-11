@@ -155,13 +155,15 @@ class Query_Operation[Editor_Context](
         remove_overlay()
         reset_state()
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-        editor.current_command(editor_context, snapshot) match {
-          case Some(command) =>
-            current_location = Some(command)
-            current_query = query
-            current_status = Query_Operation.Status.WAITING
-            editor.insert_overlay(command, operation_name, instance :: query)
-          case None =>
+        if (!snapshot.is_outdated) {
+          editor.current_command(editor_context, snapshot) match {
+            case Some(command) =>
+              current_location = Some(command)
+              current_query = query
+              current_status = Query_Operation.Status.WAITING
+              editor.insert_overlay(command, operation_name, instance :: query)
+            case None =>
+          }
         }
         consume_status(current_status)
         editor.flush()

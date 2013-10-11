@@ -100,10 +100,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     Swing_Thread.require()
 
     if (Isabelle.continuous_checking) {
+      val snapshot = this.snapshot()
       Document.Node.Perspective(node_required, Text.Perspective(
         for {
           doc_view <- PIDE.document_views(buffer)
-          range <- doc_view.perspective().ranges
+          range <- doc_view.perspective(snapshot).ranges
         } yield range), PIDE.editor.node_overlays(node_name))
     }
     else empty_perspective
