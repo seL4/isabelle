@@ -976,11 +976,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 fun prove_code_ctr {ctr, sels, ...} =
                   if not (exists (equal ctr o fst) ctr_alist) then NONE else
                     let
-                      val prems =
-                        (find_first (equal ctr o #ctr) disc_eqns,
-                         find_first (equal ctr o #ctr) sel_eqns)
-                        |>> Option.map #prems ||> Option.map #prems
-                        |> the o merge_options;
+                      val prems = find_first (equal ctr o #ctr) disc_eqns
+                        |> Option.map #prems |> the_default [];
                       val t =
                         filter (equal ctr o #ctr) sel_eqns
                         |> fst o finds ((op =) o apsnd #sel) sels
