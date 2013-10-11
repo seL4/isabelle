@@ -210,5 +210,8 @@ class Query_Operation[Editor_Context](
   def deactivate() {
     editor.session.commands_changed -= main_actor
     remove_overlay()
+    reset_state()
+    consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+    consume_status(current_status)
   }
 }
