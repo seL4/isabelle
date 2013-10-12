@@ -55,11 +55,10 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
   \end{description}
 
   The subtle differences of Isabelle/ML versus Standard ML,
-  Isabelle/Scala versus Scala, Isabelle/jEdit versus regular jEdit
-  need to be taken into account when discussing any of these PIDE
-  building blocks on public forums, mailing lists, or even scientific
-  publications.
-*}
+  Isabelle/Scala versus Scala, Isabelle/jEdit versus jEdit need to be
+  taken into account when discussing any of these PIDE building blocks
+  in public forums, mailing lists, or even scientific publications.
+  *}
 
 
 section {* The Isabelle/jEdit Prover IDE *}
@@ -164,8 +163,8 @@ text {* Both jEdit and Isabelle have distinctive management of
   \cite{isabelle-sys}, especially the coverage of sessions and
   command-line tools like @{tool build} or @{tool options}.  Isabelle
   options that are declared as \textbf{public} are exposed to the
-  jEdit \emph{Plugin Options} dialog, in its section \emph{Isabelle /
-  General}.  This provides a view on Isabelle options and persistent
+  jEdit \emph{Plugin Options} dialog, section \emph{Isabelle /
+  General}.  This provides a view on Isabelle options with persistent
   preferences in @{verbatim "$ISABELLE_HOME_USER/etc/preferences"},
   independently of the jEdit properties in its settings directory.
 
@@ -175,20 +174,20 @@ text {* Both jEdit and Isabelle have distinctive management of
   @{system_option parallel_proofs} for the Isabelle build tool
   \cite{isabelle-sys}.
 
-  \medskip Options are loaded once on startup and saved on shutdown of
+  \medskip Options are loaded on startup and saved on shutdown of
   Isabelle/jEdit.  Editing the machine-generated files @{verbatim
   "$ISABELLE_HOME_USER/jedit/properties"} or @{verbatim
   "$ISABELLE_HOME_USER/etc/preferences"} manually while the
-  application is running is likely to cause a lost-update!  *}
+  application is running is likely to cause a lost update!  *}
 
 
 subsection {* Keymaps *}
 
 text {* Keyboard shortcuts used to be managed as jEdit properties in
   the past, but recent versions (2013) have a separate concept of
-  \emph{keymap}.  The ``imported'' keymap is produced initially from
-  the environment of properties that is available at the first start
-  of the editor.
+  \emph{keymap}.  The @{verbatim imported} keymap is derived from the
+  initial environment of properties that is available at the first
+  start of the editor.
 
   This is relevant for Isabelle/jEdit due to various fine-tuning of
   default properties, and additional keyboard shortcuts for Isabelle
@@ -199,20 +198,20 @@ text {* Keyboard shortcuts used to be managed as jEdit properties in
 
 subsection {* Look-and-feel *}
 
-text {* jEdit is a Java/Swing application with some ambition to
+text {* jEdit is a Java/AWT/Swing application with some ambition to
   support ``native'' look-and-feel on all platforms, within the limits
-  of what Oracle as Java provider and major operating system vendors
-  and distributors allow (see also \secref{sec:problems}).
+  of what Oracle as Java provider and major operating system
+  distributors allow (see also \secref{sec:problems}).
 
   Isabelle/jEdit enables platform-specific look-and-feel by default as
-  follows.
+  follows:
 
   \begin{description}
 
   \item[Linux] The platform-independent \emph{Nimbus} is used by
   default, but the classic \emph{Metal} also works.  \emph{GTK+} works
   under the side-condition that the overall GTK theme is selected in a
-  Java/Swing friendly way.
+  Swing-friendly way.
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   platform-independent \emph{Nimbus} and \emph{Metal} also work.
@@ -243,10 +242,10 @@ section {* Buffers and theories *}
 
 text {* jEdit maintains a collection of open \emph{text buffers} to
   store source files.  Each buffer may be associated with any number
-  of visible \emph{text areas}.  Buffers are subject to an
-  \emph{editor mode} that is determined from the file type.  Files
-  with extension \texttt{.thy} are assigned to the mode
-  \emph{isabelle} and treated specifically.
+  of visible \emph{text areas}.  Buffers are subject to an \emph{edit
+  mode} that is determined from the file type.  Files with extension
+  \texttt{.thy} are assigned to the mode \emph{isabelle} and treated
+  specifically.
 
   \medskip Isabelle theory files are automatically added to the formal
   document model of Isabelle/Scala, which maintains a family of
@@ -259,23 +258,28 @@ text {* jEdit maintains a collection of open \emph{text buffers} to
 
   Certain events to open or update buffers with theory files cause
   Isabelle/jEdit to resolve dependencies of \emph{theory imports}.
-  The system requests to load further files into jEdit editor buffers,
-  to be added to the theory document model for further checking.  It
-  is also possible to resolve dependencies automatically, depending on
-  the option @{system_option jedit_auto_load}.
+  The system requests to load further files into editor buffers, in
+  order to be added to the theory document model for further checking.
+  It is also possible to resolve dependencies automatically, depending
+  on the option @{system_option jedit_auto_load}.
 
   \medskip The open text area views on theory buffers define the
   visible \emph{perspective} of Isabelle/jEdit.  This is taken as a
   hint for document processing: the prover ensures that those parts of
   a theory where the user is looking are checked, while other parts
-  that are presently not required are ignored.
+  that are presently not required are ignored.  The perspective can be
+  changed by opening or closing text area windows, or scrolling within
+  some window.
 
-  The perspective can be changed by opening or closing text areas
-  windows, or scrolling within some window.  It is also possible to
-  indicate theory nodes as \emph{required} for continuous checking in
-  the \emph{Theories} panel.  This means such nodes and all their
-  imports are always processed, independently of the visibility
-  status.  This can have significant impact on performance, though.
+  The \emph{Theories} panel provides some further options to influence
+  the process of continuous checking: it may be switched off globally
+  to perform superficial processing of command syntax only.  It is
+  also possible to indicate theory nodes as \emph{required} for
+  continuous checking: this means such nodes and all their imports are
+  always processed independently of the visibility status (if
+  continuous checking is enabled).  Big theory libraries that are
+  marked as required can have significant impact on performance,
+  though.
 
   \medskip Formal markup of checked theory content is turned into GUI
   rendering, based on a standard repertoire known from IDEs for
@@ -306,52 +310,51 @@ text {* jEdit maintains a collection of open \emph{text buffers} to
 section {* Isabelle symbols and fonts *}
 
 text {* Isabelle sources consist of \emph{symbols} that extend plain
-  ASCII and UTF-8 (for informal text) to allow infinitely many
-  mathematical symbols within the formal sources.  This works without
-  depending on particular encodings or varying Unicode standards
-  \cite{Wenzel:2011:CICM}.
+  ASCII to allow infinitely many mathematical symbols within the
+  formal sources.  This works without depending on particular
+  encodings or varying Unicode standards \cite{Wenzel:2011:CICM}.
 
   For the prover back-end, formal text consists of ASCII characters
   that are grouped according to some simple rules, e.g.\ as plain
   ``@{verbatim a}'' or symbolic ``@{verbatim "\<alpha>"}''.
 
   For the editor front-end, a certain subset of symbols is rendered as
-  Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}'' as actual
-  ``@{text "\<alpha>"}''.  This symbol interpretation is specified by the
-  Isabelle system distribution (in @{file
-  "$ISABELLE_HOME/etc/symbols"}) or by the user (in @{verbatim
-  "$ISABELLE_HOME_USER/etc/symbols"}).
+  Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}'' as ``@{text
+  "\<alpha>"}'', for example.  This symbol interpretation is specified by the
+  Isabelle system distribution (@{file "$ISABELLE_HOME/etc/symbols"})
+  or by the user (@{verbatim "$ISABELLE_HOME_USER/etc/symbols"}).
 
   The appendix of \cite{isabelle-isar-ref} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
-  collection.  Uninterpreted symbols are shown literally.
+  collection.  Uninterpreted symbols are shown literally, e.g.\
+  ``@{verbatim "\<foobar>"}''.
 
   \medskip Technically, the Unicode view on Isabelle symbols is an
   \emph{encoding} in Isabelle/jEdit, which is called @{verbatim
   "UTF-8-Isabelle"} and enabled by default.  Sometimes such defaults
   are reset accidentally, or malformed UTF-8 sequences in the text
   force jEdit to fall back on a different encoding like @{verbatim
-  "ISO-8859-15"}.  In the latter case, raw @{verbatim "\<alpha>"} will be
-  shown in the text buffer instead of its Unicode rendering @{text
-  "\<alpha>"}.  The jEdit menu operation \emph{File / Reload with Encoding /
-  UTF-8-Isabelle} helps to resolve such problems, potentially after
+  "ISO-8859-15"}.  In that case, verbatim ``@{verbatim "\<alpha>"}'' will be
+  shown in the text buffer instead of its Unicode rendering ``@{text
+  "\<alpha>"}''.  The jEdit menu operation \emph{File / Reload with Encoding
+  / UTF-8-Isabelle} helps to resolve such problems, potentially after
   repairing malformed parts of the text.
 
   \medskip Correct rendering via Unicode requires a font that contains
   glyphs for the corresponding codepoints.  Most system fonts lack
   that, so Isabelle/jEdit prefers its own application font @{verbatim
-  IsabelleText} by default, which ensures that standard collection of
-  Isabelle symbols are actually seen on the screen (or printer).
+  IsabelleText}, which ensures that standard collection of Isabelle
+  symbols are actually seen on the screen (or printer).
 
-  Note that a Java/Swing application can load additional fonts only if
-  they are not installed as system font already!  This means some old
-  version of @{verbatim IsabelleText} that happens to be already
-  present prevents Isabelle/jEdit from using its current bundled
-  version.  This might result in missing glyphs (black rectangles),
-  since obsolete versions of @{verbatim IsabelleText} lack recent
-  improvements of Unicode glyph coverage.  This problem can be avoided
-  by refraining to ``install'' any version of @{verbatim IsabelleText}
-  in the first place.
+  Note that a Java/AWT/Swing application can load additional fonts
+  only if they are not installed as system font already!  This means
+  some old version of @{verbatim IsabelleText} that happens to be
+  already present prevents Isabelle/jEdit from using its current
+  bundled version.  This might result in missing glyphs (black
+  rectangles), since obsolete versions of @{verbatim IsabelleText}
+  lack recent improvements of Unicode glyph coverage.  This problem
+  can be avoided by refraining to ``install'' any version of
+  @{verbatim IsabelleText} in the first place.
 
   \medskip \paragraph{Input methods.} In principle, Isabelle/jEdit
   could delegate the problem to produce Isabelle symbols in their
@@ -363,17 +366,17 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   Isabelle, various specific Isabelle/jEdit mechanisms are provided.
 
   Here is a summary for practically relevant input methods for
-  Isabelle symbols.
+  Isabelle symbols:
 
   \begin{enumerate}
 
-  \item The \emph{Symbols} panel with some GUI buttoms to insert
+  \item The \emph{Symbols} panel with some GUI buttons to insert
   certain symbols in the text buffer.  There are also tooltips to
   reveal to official Isabelle representation with some additional
   information about \emph{symbol abbreviations} (see below).
 
   \item Copy / paste from decoded source files: text that is rendered
-  as Unicode already may get re-used to produce further such text.
+  as Unicode already can be re-used to produce further such text.
   This also works between different applications, e.g.\ Isabelle/jEdit
   and some web browser or mail client, as long as the same Unicode
   view on Isabelle symbols is used uniformly.
@@ -381,7 +384,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   \item Copy / paste from prover output within Isabelle/jEdit.  The
   same principles as for text buffers apply, but note that \emph{copy}
   in Isabelle \emph{Output} works via the keyboard shortcut @{verbatim
-  "C+c"}, not the jEdit menu.
+  "C+c"}, not jEdit menu actions.
 
   \item Completion provided by Isabelle plugin (see
   \secref{sec:completion}).  Isabelle symbols have a canonical name
@@ -389,7 +392,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   completion mechanism of Isabelle/jEdit, to replace a prefix of the
   actual symbol like @{verbatim "\<lambda>"}, or its backslashed name
   @{verbatim "\\"}@{verbatim "lambda"}, or its ASCII abbreviation
-  @{verbatim "%"}.
+  @{verbatim "%"} by the Unicode rendering.
 
   The following table is an extract of the information provided by the
   standard @{file "$ISABELLE_HOME/etc/symbols"} file:
@@ -420,7 +423,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   logical notation provides ASCII alternatives that often coincide,
   but deviate occasionally.  Writing formal sources directly with
   ASCII replacement notation like @{verbatim "!"} or @{verbatim "ALL"}
-  or @{verbatim "-->"} is considered very old fashioned in 2013!
+  is considered old-fashioned in 2013!
 
   \end{enumerate}
 
@@ -435,7 +438,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   symbols may be applied to a region of selected text, either using
   the \emph{Symbols} panel or keyboard shortcuts; these editor
   operations produce a separate control symbol for each symbol in the
-  text.
+  text, in order to make the whole text appear in a certain style.
 
   \medskip
   \begin{tabular}{lll}
@@ -495,7 +498,8 @@ text {*
   \item \textbf{Problem:} Lack of dependency management for auxiliary files
   that contribute to a theory (e.g.\ @{command ML_file}).
 
-  \textbf{Workaround:} Re-load files manually within the prover.
+  \textbf{Workaround:} Re-load files manually within the prover, by
+  editing corresponding command in the text.
 
   \item \textbf{Problem:} Odd behavior of some diagnostic commands with
   global side-effects, like writing a physical file.
@@ -508,13 +512,6 @@ text {*
   \textbf{Workaround:} Ignore unused files.  Restart whole
   Isabelle/jEdit session in worst-case situation.
 
-  \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
-  "COMMAND+COMMA"} for Preferences is in conflict with the jEdit default
-  binding for @{verbatim "quick-search"}.
-
-  \textbf{Workaround:} Remap in jEdit manually according to national
-  keyboard, e.g.\ @{verbatim "COMMAND+SLASH"} on English ones.
-
   \item \textbf{Problem:} Keyboard shortcuts @{verbatim "C+PLUS"} and
   @{verbatim "C+MINUS"} for adjusting the editor font size depend on
   platform details and national keyboards.
@@ -522,8 +519,15 @@ text {*
   \textbf{Workaround:} Use numeric keypad or rebind keys in the
   jEdit Shortcuts options dialog.
 
+  \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
+  "COMMAND+COMMA"} for Preferences is in conflict with the jEdit default
+  binding for @{verbatim "quick-search"}.
+
+  \textbf{Workaround:} Remap in jEdit manually according to national
+  keyboard, e.g.\ @{verbatim "COMMAND+SLASH"} on English ones.
+
   \item \textbf{Problem:} Some Linux / X11 input methods such as IBus
-  tend to disrupt key event handling of Java/Swing.
+  tend to disrupt key event handling of Java/AWT/Swing.
 
   \textbf{Workaround:} Do not use input methods, reset the environment
   variable @{verbatim XMODIFIERS} within Isabelle settings (default in
