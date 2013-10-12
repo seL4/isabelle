@@ -148,16 +148,19 @@ session JEdit (doc) in "JEdit" = Pure +
   theories
     JEdit
   files
-    "../prepare_document"
     "../IsarRef/document/style.sty"
-    "../pdfsetup.sty"
-    "../iman.sty"
     "../extra.sty"
+    "../iman.sty"
     "../isar.sty"
+    "../manual.bib"
+    "../pdfsetup.sty"
+    "../prepare_document"
     "../ttbox.sty"
     "../underscore.sty"
-    "../manual.bib"
     "document/build"
+    "document/isabelle-jedit.png"
+    "document/popup1.png"
+    "document/popup2.png"
     "document/root.tex"
 
 session LaTeXsugar (doc) in "LaTeXsugar" = HOL +

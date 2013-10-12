@@ -64,7 +64,12 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
 section {* The Isabelle/jEdit Prover IDE *}
 
 text {*
+  \begin{figure}[htbp]
+  \begin{center}
   \includegraphics[width=\textwidth]{isabelle-jedit}
+  \end{center}
+  \caption{The Isabelle/jEdit Prover IDE}
+  \end{figure}
 
   Isabelle/jEdit consists of some plugins for the well-known jEdit
   text editor \url{http://www.jedit.org}, according to the following
@@ -299,11 +304,25 @@ text {* jEdit maintains a collection of open \emph{text buffers} to
   COMMAND} on Mac OS X.  Hovering with the mouse while the modifier is
   pressed reveals \emph{tooltips} (grey box within the text with a
   yellow popup) and/or \emph{hyperlinks} (dark grey rectangle within
-  the text).  Tooltip popups use the same rendering principles as the
+  the text).
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[scale=0.3]{popup1}
+  \end{center}
+  \caption{Hyperlink and tooltip for some formal entity.}
+  \end{figure}
+
+  Tooltip popups use the same rendering principles as the
   main text area, and further tooltips and/or hyperlinks may be
   exposed recursively by the same mechanism.
 
-  %FIXME screenshot of term "x = x" with typing/sorting
+  \begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[scale=0.3]{popup2}
+  \end{center}
+  \caption{Nested tooltips over formal entities.}
+  \end{figure}
 *}
 
 
@@ -430,7 +449,7 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   Raw Unicode characters within prover source files should be
   restricted to informal parts, e.g.\ to write text in non-latin
   alphabets.  Mathematical symbols should be defined via the official
-  rendering tables, to avoid problems with portability and longterm
+  rendering tables, to avoid problems with portability and long-term
   storage of formal text.
 
   \paragraph{Control symbols.} There are some special control symbols
@@ -535,8 +554,8 @@ text {*
 
   \item \textbf{Problem:} Some Linux / X11 window managers that are
   not ``re-parenting'' cause problems with additional windows opened
-  by the Java VM. This affects either historic or neo-minimalistic
-  window managers like @{verbatim awesome} or @{verbatim xmonad}.
+  by Java. This affects either historic or neo-minimalistic window
+  managers like @{verbatim awesome} or @{verbatim xmonad}.
 
   \textbf{Workaround:} Use regular re-parenting window manager.
 
