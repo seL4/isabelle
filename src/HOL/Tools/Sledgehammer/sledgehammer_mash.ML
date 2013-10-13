@@ -179,11 +179,10 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
       (if background then " &" else "")
     fun run_on () =
       (Isabelle_System.bash command
-       |> tap (fn _ => trace_msg ctxt (fn () =>
-              case try File.read (Path.explode err_file) of
-                NONE => "Done"
-              | SOME "" => "Done"
-              | SOME s => "Error: " ^ elide_string 1000 s));
+       |> tap (fn _ =>
+            case try File.read (Path.explode err_file) |> the_default "" of
+              "" => trace_msg ctxt (K "Done")
+            | s => warning ("MaSh error: " ^ elide_string 1000 s));
        read_suggs (fn () => try File.read_lines sugg_path |> these))
     fun clean_up () =
       if overlord then ()
