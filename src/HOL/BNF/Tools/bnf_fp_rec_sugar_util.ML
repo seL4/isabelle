@@ -295,8 +295,8 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
-    fun beta_contract (t as Abs (_, T, f $ Bound 0)) = incr_boundvars ~1 f
-      | beta_contract (t as Abs (v, T, b)) = Abs (v, T, beta_contract b);
+    fun eta_contr (t as Abs (_, T, f $ Bound 0)) = incr_boundvars ~1 f
+      | eta_contr (t as Abs (v, T, b)) = Abs (v, T, eta_contr b);
     fun massage_abs bound_Ts (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) t)
       | massage_abs bound_Ts t = massage_rec bound_Ts t
     and massage_rec bound_Ts t =
@@ -308,12 +308,12 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
-        | (Const (c, c_T), args as _ :: _ :: _) =>
+        | (Const (c, T), args as _ :: _ :: _) =>
           let
             val gen_T = Sign.the_const_type thy c;
             val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
             val n = length gen_branch_Ts;
-            val n_res_T = strip_typeN n c_T |> length o binder_types o snd;
+            val n_res_T = strip_typeN n T |> length o binder_types o snd;
           in
             if n < length args then
               (case gen_body_fun_T of
@@ -321,7 +321,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                 if case_of ctxt T_name = SOME c then
                   let
                     val (branches, obj_leftovers) = chop n args;
-                    val branches' = map (massage_abs bound_Ts o funpow (n_res_T - 1) beta_contract o
+                    val branches' = map (massage_abs bound_Ts o funpow (n_res_T - 1) eta_contr o
                       Envir.eta_long bound_Ts) branches;
                     val branch_Ts' = map typof branches';
                     val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers --->
