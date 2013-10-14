@@ -15,7 +15,7 @@ import java.net.{ServerSocket, InetAddress}
 
 object System_Channel
 {
-  def apply(use_socket: Boolean = false): System_Channel =
+  def apply(): System_Channel =
     if (Platform.is_windows) new Socket_Channel else new Fifo_Channel
 }
 
