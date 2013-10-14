@@ -64,7 +64,10 @@ sledgehammer runs over existing document sources, independently of
 normal editing and checking process.
 
 * Dockable window "Timing" provides an overview of relevant command
-timing information.
+timing information, depending on option jedit_timing_threshold.  The
+same timing information is shown in the extended tooltip of the
+command keyword, when hovering the mouse over it while the CONTROL or
+COMMAND modifier is pressed.
 
 * Improved dockable window "Theories": Continuous checking of proof
 document (visible and required parts) may be controlled explicitly,
