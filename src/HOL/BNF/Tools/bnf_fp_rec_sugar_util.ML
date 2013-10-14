@@ -295,10 +295,12 @@ fun massage_let_if_case ctxt has_call massage_leaf =
 
     fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
 
-    fun eta_contr (t as Abs (_, T, f $ Bound 0)) = incr_boundvars ~1 f
-      | eta_contr (t as Abs (v, T, b)) = Abs (v, T, eta_contr b);
-    fun massage_abs bound_Ts (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) t)
-      | massage_abs bound_Ts t = massage_rec bound_Ts t
+    fun massage_abs bound_Ts 0 t = massage_rec bound_Ts t
+      | massage_abs bound_Ts m (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) (m - 1) t)
+      | massage_abs bound_Ts m t =
+        let val T = domain_type (fastype_of1 (bound_Ts, t)) in
+          Abs (Name.uu, T, massage_abs (T :: bound_Ts) (m - 1) (incr_boundvars 1 t $ Bound 0))
+        end
     and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
         (case Term.strip_comb t of
@@ -308,12 +310,11 @@ fun massage_let_if_case ctxt has_call massage_leaf =
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
-        | (Const (c, T), args as _ :: _ :: _) =>
+        | (Const (c, _), args as _ :: _ :: _) =>
           let
             val gen_T = Sign.the_const_type thy c;
-            val (gen_branch_Ts, gen_body_fun_T) = strip_fun_type gen_T;
-            val n = length gen_branch_Ts;
-            val n_res_T = strip_typeN n T |> length o binder_types o snd;
+            val (gen_branch_ms, gen_body_fun_T) = strip_fun_type gen_T |>> map num_binder_types;
+            val n = length gen_branch_ms;
           in
             if n < length args then
               (case gen_body_fun_T of
@@ -321,11 +322,10 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                 if case_of ctxt T_name = SOME c then
                   let
                     val (branches, obj_leftovers) = chop n args;
-                    val branches' = map (massage_abs bound_Ts o funpow (n_res_T - 1) eta_contr o
-                      Envir.eta_long bound_Ts) branches;
+                    val branches' = map2 (massage_abs bound_Ts) gen_branch_ms branches;
                     val branch_Ts' = map typof branches';
-                    val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers --->
-                      snd (strip_typeN (num_binder_types (hd gen_branch_Ts)) (hd branch_Ts')));
+                    val body_T' = snd (strip_typeN (hd gen_branch_ms) (hd branch_Ts'));
+                    val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
                   in
                     Term.list_comb (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
                   end
