@@ -1496,6 +1496,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            (unfoldN, unfold_thmss, K coiter_attrs)]
           |> massage_multi_notes;
 
+        fun is_codatatype (Type (s, _)) =
+            (case fp_sugar_of lthy s of SOME {fp = Greatest_FP, ...} => true | _ => false)
+          | is_codatatype _ = false;
+
+        val nitpick_supported = forall (is_codatatype o T_of_bnf) nested_bnfs;
+
         fun register_nitpick fpT ({ctrs, casex, ...} : ctr_sugar) =
           Nitpick_HOL.register_codatatype fpT (fst (dest_Const casex))
             (map (dest_Const o mk_ctr As) ctrs)
@@ -1507,7 +1513,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
           (transpose [unfold_thmss, corec_thmss]) (transpose [disc_unfold_thmss, disc_corec_thmss])
           (transpose [sel_unfold_thmsss, sel_corec_thmsss])
-        |> fold2 register_nitpick fpTs ctr_sugars
+        |> nitpick_supported ? fold2 register_nitpick fpTs ctr_sugars
       end;
 
     val lthy'' = lthy'
