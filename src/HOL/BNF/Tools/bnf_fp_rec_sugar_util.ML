@@ -10,14 +10,14 @@ signature BNF_FP_REC_SUGAR_UTIL =
 sig
   datatype rec_call =
     No_Rec of int |
-    Direct_Rec of int (*before*) * int (*after*) |
-    Indirect_Rec of int
+    Mutual_Rec of int (*before*) * int (*after*) |
+    Nested_Rec of int
 
   datatype corec_call =
     Dummy_No_Corec of int |
     No_Corec of int |
-    Direct_Corec of int (*stop?*) * int (*end*) * int (*continue*) |
-    Indirect_Corec of int
+    Mutual_Corec of int (*stop?*) * int (*end*) * int (*continue*) |
+    Nested_Corec of int
 
   type rec_ctr_spec =
     {ctr: term,
@@ -57,12 +57,12 @@ sig
   val s_disjs: term list -> term
   val s_dnf: term list list -> term list
 
-  val massage_indirect_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
+  val massage_nested_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
   val unfold_let: term -> term
-  val massage_direct_corec_call: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
+  val massage_mutual_corec_call: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
     typ list -> term -> term
-  val massage_indirect_corec_call: Proof.context -> (term -> bool) ->
+  val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> typ list -> typ -> term -> term
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
@@ -92,14 +92,14 @@ open BNF_FP_N2M_Sugar
 
 datatype rec_call =
   No_Rec of int |
-  Direct_Rec of int * int |
-  Indirect_Rec of int;
+  Mutual_Rec of int * int |
+  Nested_Rec of int;
 
 datatype corec_call =
   Dummy_No_Corec of int |
   No_Corec of int |
-  Direct_Corec of int * int * int |
-  Indirect_Corec of int;
+  Mutual_Corec of int * int * int |
+  Nested_Corec of int;
 
 type rec_ctr_spec =
   {ctr: term,
@@ -210,7 +210,7 @@ fun map_flattened_map_args ctxt s map_args fs =
     permute_like (op aconv) flat_fs fs flat_fs'
   end;
 
-fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
+fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
   let
     val typof = curry fastype_of1 bound_Ts;
     val build_map_fst = build_map ctxt (fst_const o fst);
@@ -221,7 +221,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     fun y_of_y' () = build_map_fst (yU, yT) $ y';
     val elim_y = Term.map_aterms (fn t => if t = y then y_of_y' () else t);
 
-    fun massage_direct_fun U T t =
+    fun massage_mutual_fun U T t =
       if has_call t then factor_out_types ctxt raw_massage_fun HOLogic.dest_prodT U T t
       else HOLogic.mk_comp (t, build_map_fst (U, T));
 
@@ -242,7 +242,7 @@ fun massage_indirect_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         if has_call t then unexpected_rec_call ctxt t else t
       else
         massage_map U T t
-        handle AINT_NO_MAP _ => massage_direct_fun U T t;
+        handle AINT_NO_MAP _ => massage_mutual_fun U T t;
 
     fun massage_call (t as t1 $ t2) =
         if t2 = y then
@@ -341,24 +341,24 @@ fun massage_let_if_case ctxt has_call massage_leaf =
     massage_rec
   end;
 
-val massage_direct_corec_call = massage_let_if_case;
+val massage_mutual_corec_call = massage_let_if_case;
 
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
-fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
+fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
     val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
 
-    fun massage_direct_call bound_Ts U T t =
+    fun massage_mutual_call bound_Ts U T t =
       if has_call t then factor_out_types ctxt (raw_massage_call bound_Ts) dest_sumT U T t
       else build_map_Inl (T, U) $ t;
 
-    fun massage_direct_fun bound_Ts U T t =
+    fun massage_mutual_fun bound_Ts U T t =
       let
         val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
           domain_type (fastype_of1 (bound_Ts, t)));
       in
-        Term.lambda var (massage_direct_call bound_Ts U T (t $ var))
+        Term.lambda var (massage_mutual_call bound_Ts U T (t $ var))
       end;
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
@@ -379,7 +379,7 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         if has_call t then unexpected_corec_call ctxt t else t
       else
         massage_map bound_Ts U T t
-        handle AINT_NO_MAP _ => massage_direct_fun bound_Ts U T t;
+        handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t;
 
     fun massage_call bound_Ts U T =
       massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
@@ -407,13 +407,13 @@ fun massage_indirect_corec_call ctxt has_call raw_massage_call bound_Ts U t =
                 end
               | t1 $ t2 =>
                 (if has_call t2 then
-                  massage_direct_call bound_Ts U T t
+                  massage_mutual_call bound_Ts U T t
                 else
                   massage_map bound_Ts U T t1 $ t2
-                  handle AINT_NO_MAP _ => massage_direct_call bound_Ts U T t)
+                  handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
               | Abs (s, T', t') =>
                 Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
-              | _ => massage_direct_call bound_Ts U T t))
+              | _ => massage_mutual_call bound_Ts U T t))
           | _ => ill_formed_corec_call ctxt t)
         else
           build_map_Inl (T, U) $ t) bound_Ts;
@@ -521,8 +521,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
       | offset_of_ctr n (({ctrs, ...} : ctr_sugar) :: ctr_sugars) =
         length ctrs + offset_of_ctr (n - 1) ctr_sugars;
 
-    fun call_of [i] [T] = (if exists_subtype_in Cs T then Indirect_Rec else No_Rec) i
-      | call_of [i, i'] _ = Direct_Rec (i, i');
+    fun call_of [i] [T] = (if exists_subtype_in Cs T then Nested_Rec else No_Rec) i
+      | call_of [i, i'] _ = Mutual_Rec (i, i');
 
     fun mk_ctr_spec ctr offset fun_arg_Tss rec_thm =
       let
@@ -613,10 +613,10 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val perm_Cs' = map substCT perm_Cs;
 
     fun call_of nullary [] [g_i] [Type (@{type_name fun}, [_, T])] =
-        (if exists_subtype_in Cs T then Indirect_Corec
+        (if exists_subtype_in Cs T then Nested_Corec
          else if nullary then Dummy_No_Corec
          else No_Corec) g_i
-      | call_of _ [q_i] [g_i, g_i'] _ = Direct_Corec (q_i, g_i, g_i');
+      | call_of _ [q_i] [g_i, g_i'] _ = Mutual_Corec (q_i, g_i, g_i');
 
     fun mk_ctr_spec ctr disc sels p_ho q_iss f_iss f_Tss discI sel_thms collapse corec_thm
         disc_corec sel_corecs =

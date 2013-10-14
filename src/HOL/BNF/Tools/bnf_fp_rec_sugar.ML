@@ -168,13 +168,13 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
     subst (SOME ~1)
   end;
 
-fun subst_rec_calls lthy get_ctr_pos has_call ctr_args direct_calls indirect_calls t =
+fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls t =
   let
     fun subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
       | subst bound_Ts (t as g' $ y) =
         let
-          val maybe_direct_y' = AList.lookup (op =) direct_calls y;
-          val maybe_indirect_y' = AList.lookup (op =) indirect_calls y;
+          val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
+          val maybe_nested_y' = AList.lookup (op =) nested_calls y;
           val (g, g_args) = strip_comb g';
           val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
           val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
@@ -183,11 +183,11 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args direct_calls indirect_cal
           if not (member (op =) ctr_args y) then
             pairself (subst bound_Ts) (g', y) |> (op $)
           else if ctr_pos >= 0 then
-            list_comb (the maybe_direct_y', g_args)
-          else if is_some maybe_indirect_y' then
+            list_comb (the maybe_mutual_y', g_args)
+          else if is_some maybe_nested_y' then
             (if has_call g' then t else y)
-            |> massage_indirect_rec_call lthy has_call
-              (rewrite_map_arg get_ctr_pos) bound_Ts y (the maybe_indirect_y')
+            |> massage_nested_rec_call lthy has_call
+              (rewrite_map_arg get_ctr_pos) bound_Ts y (the maybe_nested_y')
             |> (if has_call g' then I else curry (op $) g')
           else
             t
@@ -208,25 +208,25 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val ctr_args = #ctr_args eqn_data;
 
       val calls = #calls ctr_spec;
-      val n_args = fold (curry (op +) o (fn Direct_Rec _ => 2 | _ => 1)) calls 0;
+      val n_args = fold (curry (op +) o (fn Mutual_Rec _ => 2 | _ => 1)) calls 0;
 
       val no_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn No_Rec n => n | Direct_Rec (n, _) => n)));
-      val direct_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Direct_Rec (_, n) => n)));
-      val indirect_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Indirect_Rec n => n)));
+        |> map_filter (try (apsnd (fn No_Rec n => n | Mutual_Rec (n, _) => n)));
+      val mutual_calls' = tag_list 0 calls
+        |> map_filter (try (apsnd (fn Mutual_Rec (_, n) => n)));
+      val nested_calls' = tag_list 0 calls
+        |> map_filter (try (apsnd (fn Nested_Rec n => n)));
 
-      fun make_direct_type _ = dummyT; (* FIXME? *)
+      fun make_mutual_type _ = dummyT; (* FIXME? *)
 
       val rec_res_type_list = map (fn (x :: _) => (#rec_type x, #res_type x)) funs_data;
 
-      fun make_indirect_type (Type (Tname, Ts)) = Type (Tname, Ts |> map (fn T =>
+      fun make_nested_type (Type (Tname, Ts)) = Type (Tname, Ts |> map (fn T =>
         let val maybe_res_type = AList.lookup (op =) rec_res_type_list T in
           if is_some maybe_res_type
           then HOLogic.mk_prodT (T, the maybe_res_type)
-          else make_indirect_type T end))
-        | make_indirect_type T = T;
+          else make_nested_type T end))
+        | make_nested_type T = T;
 
       val args = replicate n_args ("", dummyT)
         |> Term.rename_wrt_term t
@@ -235,22 +235,22 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
             nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))
           no_calls'
         |> fold (fn (ctr_arg_idx, arg_idx) =>
-            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_direct_type)))
-          direct_calls'
+            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_mutual_type)))
+          mutual_calls'
         |> fold (fn (ctr_arg_idx, arg_idx) =>
-            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_indirect_type)))
-          indirect_calls';
+            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_nested_type)))
+          nested_calls';
 
       val fun_name_ctr_pos_list =
         map (fn (x :: _) => (#fun_name x, length (#left_args x))) funs_data;
       val get_ctr_pos = try (the o AList.lookup (op =) fun_name_ctr_pos_list) #> the_default ~1;
-      val direct_calls = map (apfst (nth ctr_args) o apsnd (nth args)) direct_calls';
-      val indirect_calls = map (apfst (nth ctr_args) o apsnd (nth args)) indirect_calls';
+      val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args)) mutual_calls';
+      val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args)) nested_calls';
 
       val abstractions = args @ #left_args eqn_data @ #right_args eqn_data;
     in
       t
-      |> subst_rec_calls lthy get_ctr_pos has_call ctr_args direct_calls indirect_calls
+      |> subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
       |> fold_rev lambda abstractions
     end;
 
@@ -671,7 +671,7 @@ fun build_corec_arg_no_call (sel_eqns : co_eqn_data_sel list) sel =
   |> the_default undef_const
   |> K;
 
-fun build_corec_args_direct_call lthy has_call (sel_eqns : co_eqn_data_sel list) sel =
+fun build_corec_args_mutual_call lthy has_call (sel_eqns : co_eqn_data_sel list) sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
   in
@@ -683,7 +683,7 @@ fun build_corec_args_direct_call lthy has_call (sel_eqns : co_eqn_data_sel list)
       fun rewrite_g _ t = if has_call t then undef_const else t;
       fun rewrite_h bound_Ts t =
         if has_call t then mk_tuple1 bound_Ts (snd (strip_comb t)) else undef_const;
-      fun massage f _ = massage_direct_corec_call lthy has_call f bound_Ts rhs_term
+      fun massage f _ = massage_mutual_corec_call lthy has_call f bound_Ts rhs_term
         |> abs_tuple fun_args;
     in
       (massage rewrite_q,
@@ -692,7 +692,7 @@ fun build_corec_args_direct_call lthy has_call (sel_eqns : co_eqn_data_sel list)
     end
   end;
 
-fun build_corec_arg_indirect_call lthy has_call (sel_eqns : co_eqn_data_sel list) sel =
+fun build_corec_arg_nested_call lthy has_call (sel_eqns : co_eqn_data_sel list) sel =
   let
     val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
   in
@@ -714,7 +714,7 @@ fun build_corec_arg_indirect_call lthy has_call (sel_eqns : co_eqn_data_sel list
           if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
       fun massage t =
         rhs_term
-        |> massage_indirect_corec_call lthy has_call rewrite bound_Ts (range_type (fastype_of t))
+        |> massage_nested_corec_call lthy has_call rewrite bound_Ts (range_type (fastype_of t))
         |> abs_tuple fun_args;
     in
       massage
@@ -729,16 +729,16 @@ fun build_corec_args_sel lthy has_call (all_sel_eqns : co_eqn_data_sel list)
         val sel_call_list = #sels ctr_spec ~~ #calls ctr_spec;
 
         val no_calls' = map_filter (try (apsnd (fn No_Corec n => n))) sel_call_list;
-        val direct_calls' = map_filter (try (apsnd (fn Direct_Corec n => n))) sel_call_list;
-        val indirect_calls' = map_filter (try (apsnd (fn Indirect_Corec n => n))) sel_call_list;
+        val mutual_calls' = map_filter (try (apsnd (fn Mutual_Corec n => n))) sel_call_list;
+        val nested_calls' = map_filter (try (apsnd (fn Nested_Corec n => n))) sel_call_list;
       in
         I
         #> fold (fn (sel, n) => nth_map n (build_corec_arg_no_call sel_eqns sel)) no_calls'
         #> fold (fn (sel, (q, g, h)) =>
-          let val (fq, fg, fh) = build_corec_args_direct_call lthy has_call sel_eqns sel in
-            nth_map q fq o nth_map g fg o nth_map h fh end) direct_calls'
+          let val (fq, fg, fh) = build_corec_args_mutual_call lthy has_call sel_eqns sel in
+            nth_map q fq o nth_map g fg o nth_map h fh end) mutual_calls'
         #> fold (fn (sel, n) => nth_map n
-          (build_corec_arg_indirect_call lthy has_call sel_eqns sel)) indirect_calls'
+          (build_corec_arg_nested_call lthy has_call sel_eqns sel)) nested_calls'
       end
   end;
 
