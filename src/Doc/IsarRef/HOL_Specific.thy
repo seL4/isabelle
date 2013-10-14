@@ -2529,7 +2529,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     ;
 
     @@{command (HOL) code_include} target ( @{syntax string} ( @{syntax string} | '-') )
-    ;cite
+    ;
 
     @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
       | symbol_class | symbol_class_relation | symbol_class_instance
