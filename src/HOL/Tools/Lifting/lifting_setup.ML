@@ -477,6 +477,7 @@ fun get_Domainp_thm quot_thm =
   quot_thm - a quotient theorem (Quotient R Abs Rep T)
   opt_reflp_thm - a theorem saying that a relation from quot_thm is reflexive
     (in the form "reflp R")
+  opt_par_thm - a parametricity theorem for R
 *)
 
 fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
@@ -851,6 +852,10 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
   handle PCR_ERROR errs => error (cat_lines (["Sanity check failed:"] 
                                             @ (map (Pretty.string_of o Pretty.item o single) errs)))
 end
+
+(*
+  Registers the data in qinfo in the Lifting infrastructure.
+*)
 
 fun lifting_restore qinfo ctxt =
   let
