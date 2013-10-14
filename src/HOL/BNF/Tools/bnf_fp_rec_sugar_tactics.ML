@@ -8,7 +8,7 @@ Tactics for recursor and corecursor sugar.
 signature BNF_FP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_assumption_tac: Proof.context -> thm list -> int -> tactic
-  val mk_primcorec_code_of_raw_code_tac: thm list -> thm -> tactic
+  val mk_primcorec_code_of_raw_code_tac: Proof.context -> thm list -> thm -> tactic
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
@@ -89,7 +89,8 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
 
 (* TODO: reduce code duplication with selector tactic above *)
 fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m f_ctr =
-  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE' split_tac (split_if :: splits))) THEN
+  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE'
+    Splitter.split_tac (split_if :: splits))) THEN
   mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
   HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
     SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
@@ -105,8 +106,9 @@ fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms 
   EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
     ms ctr_thms);
 
-fun mk_primcorec_code_of_raw_code_tac splits raw =
-  HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN' REPEAT_DETERM o
+fun mk_primcorec_code_of_raw_code_tac ctxt splits raw =
+  HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN'
+    SELECT_GOAL (unfold_thms_tac ctxt @{thms Let_def}) THEN' REPEAT_DETERM o
     (rtac refl ORELSE'
      (TRY o rtac sym) THEN' atac ORELSE'
      resolve_tac split_connectI ORELSE'

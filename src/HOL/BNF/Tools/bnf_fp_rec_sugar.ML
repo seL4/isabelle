@@ -1015,14 +1015,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
                     sel_split_asms ms ctr_thms
                   |> K |> Goal.prove lthy [] [] raw_t;
-val _ = tracing ("raw code theorem: " ^ Syntax.string_of_term lthy (prop_of raw_code_thm));
               in
-                mk_primcorec_code_of_raw_code_tac sel_splits raw_code_thm
+                mk_primcorec_code_of_raw_code_tac lthy sel_splits raw_code_thm
                 |> K |> Goal.prove lthy [] [] t
-|> tap (tracing o curry (op ^) "code theorem: " o Syntax.string_of_term lthy o prop_of)
                 |> single
               end
-handle ERROR s => (warning s; []) (*###*)
           end;
 
         val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
