@@ -95,7 +95,7 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
   HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
     SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'
-     resolve_tac split_connectI ORELSE'
+     resolve_tac (@{thm Code.abort_def} :: split_connectI) ORELSE'
      Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
      Splitter.split_tac (split_if :: splits) ORELSE'
      mk_primcorec_assumption_tac ctxt discIs ORELSE'
