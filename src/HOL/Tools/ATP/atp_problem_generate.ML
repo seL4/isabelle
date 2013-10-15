@@ -1565,8 +1565,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                   end
                 | NONE =>
                   let
-                    val pred_sym = top_level andalso not bool_vars
-                    val ary =
+                    val max_ary =
                       case unprefix_and_unascii const_prefix s of
                         SOME s =>
                         (if String.isSubstring uncurried_alias_sep s then
@@ -1576,15 +1575,16 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                            SOME ary0 => Int.min (ary0, ary)
                          | NONE => ary)
                       | NONE => ary
+                    val pred_sym = top_level andalso max_ary = ary andalso not bool_vars
                     val min_ary =
                       case app_op_level of
-                        Min_App_Op => ary
+                        Min_App_Op => max_ary
                       | Full_App_Op_And_Predicator => 0
-                      | _ => fold (consider_var_ary T) fun_var_Ts ary
+                      | _ => fold (consider_var_ary T) fun_var_Ts max_ary
                   in
                     Symtab.update_new (s,
                         {pred_sym = pred_sym, min_ary = min_ary,
-                         max_ary = ary, types = [T], in_conj = conj_fact})
+                         max_ary = max_ary, types = [T], in_conj = conj_fact})
                         sym_tab
                   end)
              end
@@ -2750,12 +2750,10 @@ fun ctrs_of_datatype descr (_, (s, Ds, ctrs)) =
   else
     NONE
 
-fun ctrss_of_descr descr =
-  map_filter (ctrs_of_datatype descr) descr
+fun ctrss_of_descr descr = map_filter (ctrs_of_datatype descr) descr
 
 fun all_ctrss_of_datatypes thy =
-  Symtab.fold (snd #> #descr #> ctrss_of_descr #> append) (Datatype.get_all thy)
-              []
+  Symtab.fold (snd #> #descr #> ctrss_of_descr #> append) (Datatype.get_all thy) []
 
 val app_op_and_predicator_threshold = 45
 
@@ -2765,35 +2763,26 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
+    val exporter = (mode = Exporter)
+    val completish = (mode = Sledgehammer_Completish)
     (* Forcing explicit applications is expensive for polymorphic encodings,
        because it takes only one existential variable ranging over "'a => 'b" to
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if mode = Sledgehammer_Completish then
+      if completish then
         Full_App_Op_And_Predicator
-      else if length facts + length hyp_ts
-              > app_op_and_predicator_threshold then
-        if is_type_enc_polymorphic type_enc then Min_App_Op
-        else Sufficient_App_Op
+      else if length facts + length hyp_ts >= app_op_and_predicator_threshold then
+        if is_type_enc_polymorphic type_enc then Min_App_Op else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator
-    val exporter = (mode = Exporter)
-    val completish = (mode = Sledgehammer_Completish)
     val lam_trans =
-      if lam_trans = keep_lamsN andalso
-         not (is_type_enc_higher_order type_enc) then
-        liftingN
-      else
-        lam_trans
-    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses,
-         lifted) =
-      translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts
-                         concl_t facts
-    val (_, sym_tab0) =
-      sym_table_of_facts ctxt type_enc app_op_level conjs facts
-    val mono =
-      conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
+      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
+      else lam_trans
+    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
+      translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts concl_t facts
+    val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
+    val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes thy
     fun firstorderize in_helper =
       firstorderize_fact thy ctrss type_enc
