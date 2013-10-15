@@ -660,8 +660,8 @@ Id\ \isasymequiv\ \isacharbraceleft p.\ \isasymexists x.\ p\ =\ (x,x){\isacharbr
 \textbf{Composition} of relations (the infix \sdx{O}) is also
 available: 
 \begin{isabelle}
-r\ O\ s\ \isasymequiv\ \isacharbraceleft(x,z).\ \isasymexists y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
-\rulenamedx{relcomp_def}
+r\ O\ s\ = \isacharbraceleft(x,z).\ \isasymexists y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
+\rulenamedx{relcomp_unfold}
 \end{isabelle}
 %
 This is one of the many lemmas proved about these concepts: 
