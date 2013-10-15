@@ -14,7 +14,7 @@ sig
   val generate_features :
     Proof.context -> string -> theory list -> string -> unit
   val generate_isar_dependencies :
-    Proof.context -> theory list -> bool -> string -> unit
+    Proof.context -> int * int option -> theory list -> bool -> string -> unit
   val generate_prover_dependencies :
     Proof.context -> params -> int * int option -> theory list -> bool -> string
     -> unit
@@ -134,7 +134,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys linearize
   in File.write_list path lines end
 
 fun generate_isar_dependencies ctxt =
-  generate_isar_or_prover_dependencies ctxt NONE (1, NONE)
+  generate_isar_or_prover_dependencies ctxt NONE
 
 fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
