@@ -41,6 +41,7 @@ fun mk_primcorec_assumption_tac ctxt discIs =
   SELECT_GOAL (unfold_thms_tac ctxt
       @{thms not_not not_False_eq_True not_True_eq_False de_Morgan_conj de_Morgan_disj} THEN
     SOLVE (HEADGOAL (REPEAT o (rtac refl ORELSE' atac ORELSE' etac conjE ORELSE'
+    eresolve_tac falseEs ORELSE'
     resolve_tac @{thms TrueI conjI disjI1 disjI2} ORELSE'
     dresolve_tac discIs THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
