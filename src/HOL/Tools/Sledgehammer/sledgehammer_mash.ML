@@ -1216,6 +1216,7 @@ fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
     val facts =
       nearly_all_facts ctxt false fact_override Symtab.empty css chained []
                        @{prop True}
+      |> sort (crude_thm_ord o pairself snd o swap)
       |> (case max_facts of NONE => I | SOME n => take n)
     val num_facts = length facts
     val prover = hd provers
