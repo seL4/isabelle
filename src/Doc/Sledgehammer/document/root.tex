@@ -121,8 +121,8 @@ the kernel. Thus its results are correct by construction.
 
 For Isabelle/jEdit users, Sledgehammer provides an automatic mode that can be
 enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options >
-Isabelle > General.'' In this mode, Sledgehammer is run on every newly entered
-theorem.
+Isabelle > General.'' In this mode, a reduced version of Sledgehammer is run on
+every newly entered theorem for a few seconds.
 
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{NOSPAM}}
@@ -719,12 +719,16 @@ highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
 If you use Isabelle/jEdit, Sledgehammer also provides an automatic mode that can
 be enabled via the ``Auto Sledgehammer'' option under ``Plugins > Plugin Options
 > Isabelle > General.'' For automatic runs, only the first prover set using
-\textit{provers} (\S\ref{mode-of-operation}) is considered, fewer facts are
-passed to the prover, \textit{slice} (\S\ref{mode-of-operation}) is disabled,
-\textit{strict} (\S\ref{problem-encoding}) is enabled, \textit{verbose}
-(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-and \textit{timeout} (\S\ref{timeouts}) is superseded by the ``Auto Time Limit''
-option in jEdit. Sledgehammer's output is also more concise.
+\textit{provers} (\S\ref{mode-of-operation}) is considered (typically E),
+\textit{slice} (\S\ref{mode-of-operation}) is disabled,
+\textit{minimize} (\S\ref{mode-of-operation}) is disabled, fewer facts are
+passed to the prover, \textit{fact\_filter} (\S\ref{relevance-filter}) is set to
+\textit{mepo}, \textit{strict} (\S\ref{problem-encoding}) is enabled,
+\textit{verbose} (\S\ref{output-format}) and \textit{debug}
+(\S\ref{output-format}) are disabled, \textit{preplay\_timeout}
+(\S\ref{timeouts}) is set to 0, and \textit{timeout} (\S\ref{timeouts}) is
+superseded by the ``Auto Time Limit'' option in jEdit. Sledgehammer's output is
+also more concise.
 
 \subsection{Metis}
 
@@ -999,8 +1003,7 @@ up to three slices are tried, with different weighted search strategies and
 number of facts. For SMT solvers, several slices are tried with the same options
 each time but fewer and fewer facts. According to benchmarks with a timeout of
 30 seconds, slicing is a valuable optimization, and you should probably leave it
-enabled unless you are conducting experiments. This option is implicitly
-disabled for (short) automatic runs.
+enabled unless you are conducting experiments.
 
 \nopagebreak
 {\small See also \textit{verbose} (\S\ref{output-format}).}
@@ -1282,14 +1285,12 @@ deliberately set to an unsound encoding.
 
 \opfalse{verbose}{quiet}
 Specifies whether the \textbf{sledgehammer} command should explain what it does.
-This option is implicitly disabled for automatic runs.
 
 \opfalse{debug}{no\_debug}
 Specifies whether Sledgehammer should display additional debugging information
 beyond what \textit{verbose} already displays. Enabling \textit{debug} also
 enables \textit{verbose} and \textit{blocking} (\S\ref{mode-of-operation})
-behind the scenes. The \textit{debug} option is implicitly disabled for
-automatic runs.
+behind the scenes.
 
 \nopagebreak
 {\small See also \textit{spy} (\S\ref{mode-of-operation}) and
@@ -1349,8 +1350,6 @@ is useful for regression testing.
 \opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
-For automatic runs, the ``Auto Time Limit'' option under ``Plugins > Plugin
-Options > Isabelle > General'' is used instead.
 
 \opdefault{preplay\_timeout}{float\_or\_none}{\upshape 3}
 Specifies the maximum number of seconds that \textit{metis} or \textit{smt}
