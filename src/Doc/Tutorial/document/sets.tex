@@ -661,7 +661,7 @@ Id\ \isasymequiv\ \isacharbraceleft p.\ \isasymexists x.\ p\ =\ (x,x){\isacharbr
 available: 
 \begin{isabelle}
 r\ O\ s\ \isasymequiv\ \isacharbraceleft(x,z).\ \isasymexists y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
-\rulenamedx{rel_comp_def}
+\rulenamedx{relcomp_def}
 \end{isabelle}
 %
 This is one of the many lemmas proved about these concepts: 
@@ -677,7 +677,7 @@ one:
 \isasymlbrakk r\isacharprime\ \isasymsubseteq\ r;\ s\isacharprime\
 \isasymsubseteq\ s\isasymrbrakk\ \isasymLongrightarrow\ r\isacharprime\ O\
 s\isacharprime\ \isasymsubseteq\ r\ O\ s%
-\rulename{rel_comp_mono}
+\rulename{relcomp_mono}
 \end{isabelle}
 
 \indexbold{converse!of a relation}%
@@ -695,7 +695,7 @@ notation~\isa{r\isasyminverse} or
 Here is a typical law proved about converse and composition: 
 \begin{isabelle}
 (r\ O\ s)\isasyminverse\ =\ s\isasyminverse\ O\ r\isasyminverse
-\rulename{converse_rel_comp}
+\rulename{converse_relcomp}
 \end{isabelle}
 
 \indexbold{image!under a relation}%
