@@ -281,7 +281,9 @@ fun extract_params mode default_params override_params =
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
     val learn = lookup_bool "learn"
-    val fact_filter = lookup_option lookup_string "fact_filter"
+    val fact_filter =
+      lookup_option lookup_string "fact_filter"
+      |> mode = Auto_Try ? (fn NONE => SOME mepoN | sf => sf)
     val max_facts = lookup_option lookup_int "max_facts"
     val fact_thresholds = lookup_real_pair "fact_thresholds"
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
@@ -291,12 +293,10 @@ fun extract_params mode default_params override_params =
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val isar_try0 = lookup_bool "isar_try0"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
-    val minimize =
-      if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
+    val minimize = if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
     val timeout = if mode = Auto_Try then NONE else lookup_time "timeout"
     val preplay_timeout =
-      if mode = Auto_Try then SOME Time.zeroTime
-      else lookup_time "preplay_timeout"
+      if mode = Auto_Try then SOME Time.zeroTime else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,
