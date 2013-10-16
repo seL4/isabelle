@@ -86,6 +86,7 @@ private class Socket_Channel extends System_Channel
   def rendezvous(): (OutputStream, InputStream) =
   {
     val socket = server.accept
+    socket.setTcpNoDelay(true)
     (socket.getOutputStream, socket.getInputStream)
   }
 

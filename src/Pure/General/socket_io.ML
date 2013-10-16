@@ -81,6 +81,7 @@ fun open_streams socket_name =
       | _ => err ());
     val socket: Socket.active INetSock.stream_sock = INetSock.TCP.socket ();
     val _ = Socket.connect (socket, INetSock.toAddr (NetHostDB.addr host, port));
+    val _ = INetSock.TCP.setNODELAY (socket, true);
   in make_streams socket end;
 
 end;
