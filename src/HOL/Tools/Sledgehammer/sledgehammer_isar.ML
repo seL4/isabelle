@@ -388,6 +388,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
        else
          ();
        mash_learn ctxt
+           (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params" *)
            (get_params Normal ctxt
                 ([("timeout",
                    [string_of_real default_learn_prover_timeout]),
