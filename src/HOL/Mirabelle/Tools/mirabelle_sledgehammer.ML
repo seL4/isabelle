@@ -439,7 +439,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                   term_order |> the_default I)
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
-    val params as {max_facts, slice, ...} =
+    val params as {max_facts, ...} =
       Sledgehammer_Isar.default_params ctxt
          ([("verbose", "true"),
            ("fact_filter", fact_filter),

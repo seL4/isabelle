@@ -111,7 +111,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        let
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover" |> the_default default_prover
-         val params as {max_facts, slice, ...} =
+         val params as {max_facts, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val default_max_facts = Sledgehammer_Provers.default_max_facts_of_prover ctxt prover
          val is_appropriate_prop =
