@@ -971,6 +971,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, NONE))
               |> the o merge_options;
 
+            val lhs = list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
             val maybe_rhs' = if is_some maybe_rhs then maybe_rhs else
               let
                 fun prove_code_ctr {ctr, sels, ...} =
@@ -990,7 +991,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               in
                 if exists is_none maybe_ctr_conds_argss then NONE else
                   fold_rev (fn SOME (prems, u) => fn t => mk_If (s_conjs prems) u t)
-                    maybe_ctr_conds_argss (Const (@{const_name undefined}, body_type fun_T))
+                    maybe_ctr_conds_argss
+                    (Const (@{const_name Code.abort}, @{typ String.literal} -->
+                        (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
+                      @{term "STR []"} $ (* FIXME *)
+                      absdummy @{typ unit} (incr_boundvars 1 lhs))
                   |> SOME
               end;
           in
@@ -1004,13 +1009,12 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
                 val ms = map (Logic.count_prems o prop_of) ctr_thms;
                 val (raw_t, t) = (raw_rhs, rhs)
-                  |> pairself
-                    (curry HOLogic.mk_eq (list_comb (Free (fun_name, fun_T),
-                      map Bound (length fun_args - 1 downto 0)))
+                  |> pairself (curry HOLogic.mk_eq lhs
                     #> HOLogic.mk_Trueprop
                     #> curry Logic.list_all (map dest_Free fun_args));
                 val (distincts, discIs, sel_splits, sel_split_asms) =
                   case_thms_of_term lthy bound_Ts raw_rhs;
+val _ = tracing ("code equation: " ^ Syntax.string_of_term lthy t);
 
                 val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
                     sel_split_asms ms ctr_thms
