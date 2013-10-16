@@ -96,7 +96,7 @@ sig
     Proof.context -> string -> string option
   val remotify_prover_if_not_installed :
     Proof.context -> string -> string option
-  val default_max_facts_of_prover : Proof.context -> bool -> string -> int
+  val default_max_facts_of_prover : Proof.context -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
   val weight_smt_fact :
@@ -207,13 +207,12 @@ val reconstructor_default_max_facts = 20
 
 fun slice_max_facts (_, ( ((max_facts, _), _, _, _, _), _)) = max_facts
 
-fun default_max_facts_of_prover ctxt slice name =
+fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o slice_max_facts o snd)
-           (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
+      fold (Integer.max o slice_max_facts) (#best_slices (get_atp thy name ()) ctxt) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end

@@ -76,7 +76,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
-    val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt slice name)
+    val max_facts = max_facts |> the_default (default_max_facts_of_prover ctxt name)
     val num_facts = length facts |> not only ? Integer.min max_facts
 
     fun desc () = prover_description ctxt params name num_facts subgoal subgoal_count goal
@@ -257,8 +257,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
             case max_facts of
               SOME n => n
             | NONE =>
-              0 |> fold (Integer.max o default_max_facts_of_prover ctxt slice)
-                        provers
+              0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
                 |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
           val _ = spying spy (fn () => (state, i, label ^ "s",
             "Filtering " ^ string_of_int (length all_facts) ^ " facts"));
