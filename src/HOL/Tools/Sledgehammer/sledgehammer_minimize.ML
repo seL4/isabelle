@@ -314,7 +314,7 @@ fun maybe_minimize ctxt mode do_learn name
                preplay)
             end
         else
-          ((false, (name, params)), preplay)
+          ((mode = MaSh, (name, params)), preplay)
       val minimize = minimize |> the_default perhaps_minimize
       val (used_facts, (preplay, message, _)) =
         if minimize then
