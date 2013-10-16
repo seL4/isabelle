@@ -314,13 +314,13 @@ fun maybe_minimize ctxt mode do_learn name
                preplay)
             end
         else
-          ((mode = MaSh, (name, params)), preplay)
+          ((false, (name, params)), preplay)
       val minimize = minimize |> the_default perhaps_minimize
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts do_learn minimize_name params
-              (mode <> Normal orelse not verbose) subgoal subgoal_count state
-              (SOME preplay)
+              (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal
+              subgoal_count state (SOME preplay)
               (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
