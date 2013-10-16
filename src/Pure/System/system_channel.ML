@@ -68,7 +68,9 @@ fun socket_rendezvous name =
   in
     System_Channel
      {input_line = fn () => read_line in_stream,
-      inputN = fn n => if n = 0 then "" else Byte.bytesToString (BinIO.inputN (in_stream, n)),
+      inputN = fn n =>
+        if n = 0 then ""  (*workaround for polyml-5.5.1 or earlier*)
+        else Byte.bytesToString (BinIO.inputN (in_stream, n)),
       output = fn s => BinIO.output (out_stream, Byte.stringToBytes s),
       flush = fn () => BinIO.flushOut out_stream}
   end;
