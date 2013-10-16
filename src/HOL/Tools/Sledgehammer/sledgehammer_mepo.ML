@@ -570,7 +570,7 @@ fun mepo_suggested_facts ctxt ({fact_thresholds = (thres0, thres1), ...} : param
     trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^ " facts");
     (if thres1 < 0.0 then
        facts
-     else if thres0 > 1.0 orelse thres0 > thres1 then
+     else if thres0 > 1.0 orelse thres0 > thres1 orelse max_facts <= 0 then
        []
      else
        relevance_filter ctxt thres0 decay max_facts fudge facts hyp_ts
