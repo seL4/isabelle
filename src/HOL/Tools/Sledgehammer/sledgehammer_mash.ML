@@ -704,7 +704,7 @@ fun features_of ctxt thy num_facts const_tab (scope, _) ts =
    isn't much to learn from such proofs. *)
 val max_dependencies = 20
 
-val prover_default_max_facts = 50
+val prover_default_max_facts = 25
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}

@@ -205,14 +205,14 @@ fun get_slices slice slices =
 
 val reconstructor_default_max_facts = 20
 
-fun slice_max_facts (_, (_, ( ((max_facts, _), _, _, _, _), _))) = max_facts
+fun slice_max_facts (_, ( ((max_facts, _), _, _, _, _), _)) = max_facts
 
 fun default_max_facts_of_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o slice_max_facts)
+      fold (Integer.max o slice_max_facts o snd)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -617,15 +617,15 @@ fun run_atp mode name
       let
         (* If slicing is disabled, we expand the last slice to fill the entire
            time available. *)
-        val actual_slices = get_slices slice (best_slices ctxt)
+        val all_slices = best_slices ctxt
+        val actual_slices = get_slices slice all_slices
+        fun max_facts_of_slices f slices = fold (Integer.max o slice_max_facts o f) slices 0
         val num_actual_slices = length actual_slices
         val max_fact_factor =
-          case max_facts of
-            NONE => 1.0
-          | SOME max =>
-            Real.fromInt max
-            / Real.fromInt (fold (Integer.max o slice_max_facts)
-                                 actual_slices 0)
+          Real.fromInt (case max_facts of
+              NONE => max_facts_of_slices I all_slices
+            | SOME max => max)
+          / Real.fromInt (max_facts_of_slices snd actual_slices)
         fun monomorphize_facts facts =
           let
             val ctxt =
