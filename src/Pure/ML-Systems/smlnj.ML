@@ -3,6 +3,7 @@
 Compatibility file for Standard ML of New Jersey.
 *)
 
+val io_buffer_size = 4096;
 use "ML-Systems/proper_int.ML";
 
 exception Interrupt;

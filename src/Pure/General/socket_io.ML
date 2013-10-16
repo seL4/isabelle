@@ -25,7 +25,7 @@ fun make_streams socket =
     val rd =
       BinPrimIO.RD {
         name = name,
-        chunkSize = 4096,
+        chunkSize = io_buffer_size,
         readVec = SOME (fn n => Socket.recvVec (socket, n)),
         readArr = SOME (fn buffer => Socket.recvArr (socket, buffer)),
         readVecNB = NONE,
@@ -44,7 +44,7 @@ fun make_streams socket =
     val wr =
       BinPrimIO.WR {
         name = name,
-        chunkSize = 4096,
+        chunkSize = io_buffer_size,
         writeVec = SOME (fn buffer => Socket.sendVec (socket, buffer)),
         writeArr = SOME (fn buffer => Socket.sendArr (socket, buffer)),
         writeVecNB = NONE,
