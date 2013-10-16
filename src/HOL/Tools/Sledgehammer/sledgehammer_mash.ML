@@ -772,20 +772,21 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
         else case find_first (is_dep dep) facts of
           SOME ((_, status), th) => accum @ [(("", status), th)]
         | NONE => accum (* shouldn't happen *)
-      val facts =
+      val mepo_facts =
         facts
         |> mepo_suggested_facts ctxt params (max_facts |> the_default prover_default_max_facts) NONE
              hyp_ts concl_t
+      val facts =
+        mepo_facts
         |> fold (add_isar_dep facts) isar_deps
         |> map nickify
+      val num_isar_deps = length isar_deps
     in
       if verbose andalso auto_level = 0 then
-        let val num_facts = length facts in
-          "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of_thm th) ^
-          " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
-          "."
-          |> Output.urgent_message
-        end
+        "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of_thm th) ^
+        " with " ^ string_of_int num_isar_deps ^ " + " ^
+        string_of_int (length facts - num_isar_deps) ^ " facts."
+        |> Output.urgent_message
       else
         ();
       case run_prover_for_mash ctxt params prover facts goal of
@@ -1208,8 +1209,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       end
   end
 
-fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
-               chained run_prover =
+fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained run_prover =
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
@@ -1217,7 +1217,6 @@ fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
       nearly_all_facts ctxt false fact_override Symtab.empty css chained []
                        @{prop True}
       |> sort (crude_thm_ord o pairself snd o swap)
-      |> (case max_facts of NONE => I | SOME n => take n)
     val num_facts = length facts
     val prover = hd provers
     fun learn auto_level run_prover =
