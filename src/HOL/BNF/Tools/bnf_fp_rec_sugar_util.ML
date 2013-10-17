@@ -269,13 +269,17 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
   end;
 
 fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
-  | unfold_let (Const (@{const_name prod_case}, _) $ (t as Abs (s1, T1, Abs (s2, T2, t'))) $ u) =
-    let
-      val x = (s1 ^ s2, Term.maxidx_of_term t + 1);
-      val v = Var (x, HOLogic.mk_prodT (T1, T2));
-    in
-      unfold_let (Term.subst_Vars [(x, u)] (betapplys (t, [HOLogic.mk_fst v, HOLogic.mk_snd v])))
-    end
+  | unfold_let (Const (@{const_name prod_case}, _) $ t) =
+    (case unfold_let t of
+      t' as Abs (s1, T1, Abs (s2, T2, _)) =>
+      let
+        val x = (s1 ^ s2, Term.maxidx_of_term t + 1);
+        val v = Var (x, HOLogic.mk_prodT (T1, T2));
+      in
+        lambda v (unfold_let (betapplys (t', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
+      end
+    | _ => t)
+  | unfold_let (t $ u) = betapply (unfold_let t, u)
   | unfold_let t = t;
 
 fun fold_rev_let_if_case ctxt f bound_Ts t =
