@@ -103,9 +103,11 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
      eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
      (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))));
 
-fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms ctr_thms =
-  EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
-    ms ctr_thms);
+fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs =
+  EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms) ms
+    f_ctrs) THEN
+  IF_UNSOLVED (unfold_thms_tac ctxt @{thms Code.abort_def} THEN
+    HEADGOAL (REPEAT_DETERM o resolve_tac (refl :: split_connectI)));
 
 fun mk_primcorec_code_of_raw_code_tac ctxt splits raw =
   HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN'
