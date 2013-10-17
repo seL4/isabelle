@@ -68,7 +68,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
                               timeout, expect, ...})
         mode output_result minimize_command only learn
-        {state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
+        {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
 
@@ -82,7 +82,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
     fun desc () = prover_description ctxt params name num_facts subgoal subgoal_count goal
 
     val problem =
-      {state = state, goal = goal, subgoal = subgoal,
+      {comment = comment, state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
        factss = factss
          |> map (apsnd ((not (is_ho_atp ctxt name)
@@ -282,7 +282,7 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
         let
           val factss = get_factss label is_appropriate_prop provers
           val problem =
-            {state = state, goal = goal, subgoal = i, subgoal_count = n,
+            {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
              factss = factss}
           fun learn prover =
             mash_learn_proof ctxt params prover (prop_of goal) all_facts

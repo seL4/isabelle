@@ -60,7 +60,7 @@ sig
   val thm_less : thm * thm -> bool
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
-    Proof.context -> params -> string -> fact list -> thm -> prover_result
+    Proof.context -> params -> string -> string -> fact list -> thm -> prover_result
   val features_of :
     Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
     (string * real) list
@@ -565,11 +565,11 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun run_prover_for_mash ctxt params prover facts goal =
+fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       factss = [("", facts)]}
+      {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
+       subgoal_count = 1, factss = [("", facts)]}
   in
     get_minimizing_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
                           problem
@@ -762,6 +762,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
     let
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
+      val name = nickname_of_thm th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
       val facts = facts |> filter (fn (_, th') => thm_less (th', th))
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
@@ -783,13 +784,12 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val num_isar_deps = length isar_deps
     in
       if verbose andalso auto_level = 0 then
-        "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of_thm th) ^
-        " with " ^ string_of_int num_isar_deps ^ " + " ^
-        string_of_int (length facts - num_isar_deps) ^ " facts."
+        "MaSh: " ^ quote prover ^ " on " ^ quote name ^ " with " ^ string_of_int num_isar_deps ^
+        " + " ^ string_of_int (length facts - num_isar_deps) ^ " facts."
         |> Output.urgent_message
       else
         ();
-      case run_prover_for_mash ctxt params prover facts goal of
+      case run_prover_for_mash ctxt params prover name facts goal of
         {outcome = NONE, used_facts, ...} =>
         (if verbose andalso auto_level = 0 then
            let val num_facts = length used_facts in

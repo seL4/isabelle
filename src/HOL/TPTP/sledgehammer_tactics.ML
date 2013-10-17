@@ -42,7 +42,7 @@ fun run_prover override_params fact_override i n ctxt goal =
              concl_t
       |> hd |> snd
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
+      {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
   in
     (case prover params (K (K (K ""))) problem of

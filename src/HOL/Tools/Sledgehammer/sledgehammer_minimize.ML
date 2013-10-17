@@ -81,7 +81,8 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters,
        slice = false, minimize = SOME false, timeout = timeout, preplay_timeout = preplay_timeout,
        expect = ""}
     val problem =
-      {state = state, goal = goal, subgoal = i, subgoal_count = n, factss = [("", facts)]}
+      {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
+       factss = [("", facts)]}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in

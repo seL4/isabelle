@@ -45,7 +45,8 @@ sig
      expect : string}
 
   type prover_problem =
-    {state : Proof.state,
+    {comment : string,
+     state : Proof.state,
      goal : thm,
      subgoal : int,
      subgoal_count : int,
@@ -286,7 +287,8 @@ type params =
    expect : string}
 
 type prover_problem =
-  {state : Proof.state,
+  {comment : string,
+   state : Proof.state,
    goal : thm,
    subgoal : int,
    subgoal_count : int,
@@ -563,7 +565,7 @@ fun run_atp mode name
                     max_new_mono_instances, isar_proofs, isar_compress,
                     isar_try0, slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+        ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -727,7 +729,8 @@ fun run_atp mode name
             val _ =
               atp_problem
               |> lines_of_atp_problem format ord ord_info
-              |> cons ("% " ^ command ^ "\n")
+              |> cons ("% " ^ command ^ "\n" ^
+                (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
             val ((output, run_time), (atp_proof, outcome)) =
               time_limit generous_slice_timeout Isabelle_System.bash_output
