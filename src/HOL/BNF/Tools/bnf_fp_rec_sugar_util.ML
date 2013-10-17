@@ -268,13 +268,23 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
+fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
+  | unfold_let (Const (@{const_name prod_case}, _) $ (t as Abs (s1, T1, Abs (s2, T2, t'))) $ u) =
+    let
+      val x = (s1 ^ s2, Term.maxidx_of_term t + 1);
+      val v = Var (x, HOLogic.mk_prodT (T1, T2));
+    in
+      unfold_let (Term.subst_Vars [(x, u)] (betapplys (t, [HOLogic.mk_fst v, HOLogic.mk_snd v])))
+    end
+  | unfold_let t = t;
+
 fun fold_rev_let_if_case ctxt f bound_Ts t =
   let
     val thy = Proof_Context.theory_of ctxt;
 
     fun fld conds t =
       (case Term.strip_comb t of
-        (Const (@{const_name Let}, _), [arg1, arg2]) => fld conds (betapply (arg2, arg1))
+        (Const (@{const_name Let}, _), [_, _]) => fld conds (unfold_let t)
       | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
         fld (conds @ conjuncts_s cond) then_branch
         o fld (conds @ s_not_conj [cond]) else_branch
@@ -297,9 +307,6 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
     fld [] t o pair []
   end;
 
-fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
-  | unfold_let t = t;
-
 fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
 
 fun massage_let_if_case ctxt has_call massage_leaf =
@@ -317,8 +324,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
     and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
         (case Term.strip_comb t of
-          (Const (@{const_name Let}, _), [arg1, arg2]) =>
-          massage_rec bound_Ts (betapply (arg2, arg1))
+          (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_let t)
         | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
