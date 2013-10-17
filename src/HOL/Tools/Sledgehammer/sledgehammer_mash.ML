@@ -1188,7 +1188,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                      Isar_Proof => 0
                    | Automatic_Proof => 2 * max_isar
                    | Isar_Proof_wegen_Prover_Flop => max_isar)
-                - 500 * length (isar_dependencies_of name_tabs th)
+                - 100 * length (isar_dependencies_of name_tabs th)
               val old_facts =
                 facts |> filter is_in_access_G
                       |> map (`priority_of)
