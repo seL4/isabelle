@@ -25,6 +25,11 @@ sig
      calls: rec_call list,
      rec_thm: thm}
 
+  type basic_corec_ctr_spec =
+    {ctr: term,
+     disc: term,
+     sels: term list}
+
   type corec_ctr_spec =
     {ctr: term,
      disc: term,
@@ -75,6 +80,7 @@ sig
   val rec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
     (bool * rec_spec list * typ list * thm * thm list) * local_theory
+  val basic_corec_specs_of: Proof.context -> typ -> basic_corec_ctr_spec list
   val corec_specs_of: binding list -> typ list -> typ list -> (term -> int list) ->
     ((term * term list list) list) list -> local_theory ->
     (bool * corec_spec list * typ list * thm * thm * thm list * thm list) * local_theory
@@ -107,6 +113,11 @@ type rec_ctr_spec =
    calls: rec_call list,
    rec_thm: thm};
 
+type basic_corec_ctr_spec =
+  {ctr: term,
+   disc: term,
+   sels: term list};
+
 type corec_ctr_spec =
   {ctr: term,
    disc: term,
@@ -137,6 +148,8 @@ val id_def = @{thm id_def};
 
 exception AINT_NO_MAP of term;
 
+fun not_codatatype ctxt T =
+  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
 fun ill_formed_rec_call ctxt t =
   error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
 fun ill_formed_corec_call ctxt t =
@@ -487,10 +500,10 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val perm_ctrss = map (#ctrs o of_fp_sugar #ctr_sugars) perm_fp_sugars;
     val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
-    val perm_fpTs = map (body_type o fastype_of o hd) perm_ctrss;
+    val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
 
     val nn0 = length arg_Ts;
-    val nn = length perm_fpTs;
+    val nn = length perm_lfpTs;
     val kks = 0 upto nn - 1;
     val perm_ns = map length perm_ctr_Tsss;
     val perm_mss = map (map length) perm_ctr_Tsss;
@@ -505,10 +518,10 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val induct_thms = unpermute0 (conj_dests nn induct_thm);
 
-    val fpTs = unpermute perm_fpTs;
+    val lfpTs = unpermute perm_lfpTs;
     val Cs = unpermute perm_Cs;
 
-    val As_rho = tvar_subst thy (take nn0 fpTs) arg_Ts;
+    val As_rho = tvar_subst thy (take nn0 lfpTs) arg_Ts;
     val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn res_Ts;
 
     val substA = Term.subst_TVars As_rho;
@@ -555,6 +568,24 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
      lthy')
   end;
 
+fun basic_corec_specs_of ctxt res_T =
+  (case res_T of
+    Type (T_name, _) =>
+    (case Ctr_Sugar.ctr_sugar_of ctxt T_name of
+      NONE => not_codatatype ctxt res_T
+    | SOME {ctrs, discs, selss, ...} =>
+      let
+        val thy = Proof_Context.theory_of ctxt;
+        val gfpT = body_type (fastype_of (hd ctrs));
+        val As_rho = tvar_subst thy [gfpT] [res_T];
+        val substA = Term.subst_TVars As_rho;
+
+        fun mk_spec ctr disc sels = {ctr = substA ctr, disc = substA disc, sels = map substA sels};
+      in
+        map3 mk_spec ctrs discs selss
+      end)
+  | _ => not_codatatype ctxt res_T);
+
 fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -571,10 +602,10 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
 
     val perm_ctrss = map (#ctrs o of_fp_sugar #ctr_sugars) perm_fp_sugars;
     val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
-    val perm_fpTs = map (body_type o fastype_of o hd) perm_ctrss;
+    val perm_gfpTs = map (body_type o fastype_of o hd) perm_ctrss;
 
     val nn0 = length res_Ts;
-    val nn = length perm_fpTs;
+    val nn = length perm_gfpTs;
     val kks = 0 upto nn - 1;
     val perm_ns = map length perm_ctr_Tsss;
 
@@ -600,10 +631,10 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val f_issss = map (map (map (map (find_index_eq fun_arg_hs)))) (unpermute perm_f_hssss);
 
     val f_Tssss = unpermute perm_f_Tssss;
-    val fpTs = unpermute perm_fpTs;
+    val gfpTs = unpermute perm_gfpTs;
     val Cs = unpermute perm_Cs;
 
-    val As_rho = tvar_subst thy (take nn0 fpTs) res_Ts;
+    val As_rho = tvar_subst thy (take nn0 gfpTs) res_Ts;
     val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn arg_Ts;
 
     val substA = Term.subst_TVars As_rho;
