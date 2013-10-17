@@ -1201,7 +1201,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       in
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
-          (if run_prover then "automatic" else "Isar") ^ " proof" ^ plural_s n ^
+          (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s n ^
           (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer)
            else "") ^ "."
         else
