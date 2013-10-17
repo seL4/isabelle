@@ -245,6 +245,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
               val suggs =
                 old_facts
                 |> linearize ? filter_accessible_from th
+                |> Sledgehammer_Fact.drop_duplicate_facts
                 |> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t
                 |> map (nickname_of_thm o snd)
             in encode_str name ^ ": " ^ encode_strs suggs ^ "\n" end

@@ -128,6 +128,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
                hyp_ts concl_t
            |> filter (is_appropriate_prop o prop_of o snd)
+           |> Sledgehammer_Fact.drop_duplicate_facts
            |> Sledgehammer_MePo.mepo_suggested_facts ctxt params
                   (the_default default_max_facts max_facts) (SOME relevance_fudge) hyp_ts concl_t
             |> map (fst o fst)

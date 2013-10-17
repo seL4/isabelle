@@ -1317,16 +1317,19 @@ fun relevant_facts ctxt
              if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
           else
             (false, mepoN)
+
+      val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add
+
       fun in_add (_, th) = member Thm.eq_thm_prop add_ths th
       fun add_and_take accepts =
         (case add_ths of
            [] => accepts
-         | _ => (facts |> filter in_add |> map fact_of_raw_fact) @
+         | _ => (unique_facts |> filter in_add |> map fact_of_raw_fact) @
                 (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
-        (mepo_suggested_facts ctxt params max_facts NONE hyp_ts concl_t facts
+        (mepo_suggested_facts ctxt params max_facts NONE hyp_ts concl_t unique_facts
          |> weight_facts_steeply, [])
       fun mash () =
         mash_suggested_facts ctxt params prover (generous_max_facts max_facts) hyp_ts concl_t facts

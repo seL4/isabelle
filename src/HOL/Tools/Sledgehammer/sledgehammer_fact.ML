@@ -544,7 +544,8 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
            val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
            val facts =
              all_facts ctxt false ho_atp reserved add chained css
-             |> filter_out ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
+             |> filter_out ((member Thm.eq_thm_prop del orf
+               (No_ATPs.member ctxt andf not o member Thm.eq_thm_prop add)) o snd)
          in
            facts
          end)
