@@ -156,7 +156,7 @@ order. For example,
 
 fun div2 :: "nat \<Rightarrow> nat" where
 "div2 0 = 0" |
-"div2 (Suc 0) = Suc 0" |
+"div2 (Suc 0) = 0" |
 "div2 (Suc(Suc n)) = Suc(div2 n)"
 
 text{* does not just define @{const div2} but also proves a
@@ -199,6 +199,15 @@ If @{text "f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>
 where typically there is a call @{text"f x\<^sub>1 \<dots> x\<^sub>n"} in the goal.
 But note that the induction rule does not mention @{text f} at all,
 except in its name, and is applicable independently of @{text f}.
+
+
+\subsection{Exercises}
+
+\begin{exercise}
+Prove that @{const div2} defined above divides every number by @{text 2},
+not just those of the form @{text"n+n"}: @{prop "div2 n = n div 2"}.
+\end{exercise}
+
 
 \section{Induction Heuristics}
 
@@ -306,6 +315,18 @@ However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
 matters in some cases. The variables that need to be quantified are typically
 those that change in recursive calls.
+
+
+\subsection{Exercises}
+
+\begin{exercise}
+Write a tail-recursive variant of the @{text add} function on @{typ nat}:
+@{term "itadd :: nat \<Rightarrow> nat \<Rightarrow> nat"}.
+Tail-recursive means that in the recursive case, @{text itadd} needs to call
+itself directly: \mbox{@{term"itadd (Suc m) n"}} @{text"= itadd \<dots>"}.
+Prove @{prop "itadd m n = add m n"}.
+\end{exercise}
+
 
 \section{Simplification}
 
