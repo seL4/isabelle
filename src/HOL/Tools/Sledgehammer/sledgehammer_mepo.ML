@@ -439,7 +439,7 @@ fun relevance_filter ctxt thres0 decay max_facts
         (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
-    val facts = drop_duplicate_facts thy facts
+    val facts = drop_duplicate_facts facts
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val add_pconsts = add_pconsts_in_term thy
     val chained_ts =

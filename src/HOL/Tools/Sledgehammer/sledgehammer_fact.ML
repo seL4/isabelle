@@ -39,7 +39,7 @@ sig
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
     -> status Termtab.table -> thm list -> term list -> term -> raw_fact list
-  val drop_duplicate_facts: theory -> raw_fact list -> raw_fact list
+  val drop_duplicate_facts : raw_fact list -> raw_fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -60,7 +60,6 @@ type fact_override =
 
 (* gracefully handle huge background theories *)
 val max_facts_for_duplicates = 50000
-val max_facts_for_duplicate_matching = 25000
 val max_facts_for_complex_check = 25000
 val max_simps_for_clasimpset = 10000
 
@@ -552,11 +551,9 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
 
-fun drop_duplicate_facts thy facts =
+fun drop_duplicate_facts facts =
   let val num_facts = length facts in
-    facts |> num_facts <= max_facts_for_duplicates
-      ? fact_distinct (if num_facts > max_facts_for_duplicate_matching then op aconv
-          else Pattern.matches thy o swap)
+    facts |> num_facts <= max_facts_for_duplicates ? fact_distinct (op aconv)
   end
 
 end;
