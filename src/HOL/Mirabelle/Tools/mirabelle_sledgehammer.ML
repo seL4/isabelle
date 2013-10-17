@@ -583,6 +583,7 @@ fun run_minimize args reconstructor named_thms id
         ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     val ctxt = Proof.context_of st
+    val {goal, ...} = Proof.goal st
     val n0 = length (these (!named_thms))
     val prover_name = get_prover_name ctxt args
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
@@ -612,7 +613,7 @@ fun run_minimize args reconstructor named_thms id
           true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =
-      minimize st NONE (these (!named_thms))
+      minimize st goal NONE (these (!named_thms))
     val msg = message (Lazy.force preplay) ^ message_tail
   in
     case used_facts of
