@@ -88,20 +88,35 @@ fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
     (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt (@{thm Let_def} :: sel_fs) THEN HEADGOAL (rtac refl);
 
+fun inst_split_eq ctxt split =
+  (case prop_of split of
+    @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ (Var (_, Type (_, [T, _])) $ _) $ _) =>
+    let
+      val s = Name.uu;
+      val eq = Abs (Name.uu, T, HOLogic.mk_eq (Free (s, T), Bound 0));
+      val split' = Drule.instantiate' [] [SOME (certify ctxt eq)] split;
+    in
+      Thm.generalize ([], [s]) (Thm.maxidx_of split' + 1) split'
+    end
+  | _ => split);
+
 (* TODO: reduce code duplication with selector tactic above *)
 fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m f_ctr =
-  HEADGOAL (REPEAT o (resolve_tac split_connectI ORELSE'
-    Splitter.split_tac (split_if :: splits))) THEN
-  mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
-  HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
-    SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
-    (rtac refl ORELSE' atac ORELSE'
-     resolve_tac (@{thm Code.abort_def} :: split_connectI) ORELSE'
-     Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
-     Splitter.split_tac (split_if :: splits) ORELSE'
-     mk_primcorec_assumption_tac ctxt discIs ORELSE'
-     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
-     (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))));
+  let
+    val splits' =
+      map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits)
+  in
+    HEADGOAL (REPEAT o (resolve_tac (splits' @ split_connectI))) THEN
+    mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
+    HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
+      SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
+      (rtac refl ORELSE' atac ORELSE'
+       resolve_tac (@{thm Code.abort_def} :: splits' @ split_connectI) ORELSE'
+       Splitter.split_asm_tac (split_if_asm :: split_asms) ORELSE'
+       mk_primcorec_assumption_tac ctxt discIs ORELSE'
+       eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
+       (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))))
+  end;
 
 fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs =
   EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms) ms
