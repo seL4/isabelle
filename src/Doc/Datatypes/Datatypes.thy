@@ -806,16 +806,20 @@ The BNF-related theorem are as follows:
 @{thm list.map(1)[no_vars]} \\
 @{thm list.map(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_inject} @{text "[simp, code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel\_inject} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_inject(1)[no_vars]} \\
 @{thm list.rel_inject(2)[no_vars]}
 
-\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp, code]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{rel\_distinct} @{text "[simp]"}\rm:] ~ \\
 @{thm list.rel_distinct(1)[no_vars]} \\
 @{thm list.rel_distinct(2)[no_vars]}
 
 \end{description}
 \end{indentblock}
+
+\noindent
+In addition, equational versions of @{text t.rel_inject} and @{text
+rel_distinct} are registered with the @{text "[code]"} attribute.
 *}
 
 
@@ -1403,7 +1407,7 @@ Here is an example with many constructors:
 text {*
 \noindent
 Notice that the @{const cont} selector is associated with both @{const Skip}
-and @{const Choice}.
+and @{const Action}.
 *}
 
 
@@ -2320,8 +2324,9 @@ versions of the package, especially for the coinductive part. Brian Huffman
 suggested major simplifications to the internal constructions, much of which has
 yet to be implemented. Florian Haftmann and Christian Urban provided general
 advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
-found an elegant proof to eliminate one of the BNF assumptions. Christian
-Sternagel suggested many textual improvements to this tutorial.
+found an elegant proof to eliminate one of the BNF assumptions. Andreas
+Lochbihler and Christian Sternagel suggested many textual improvements to this
+tutorial.
 *}
 
 end
