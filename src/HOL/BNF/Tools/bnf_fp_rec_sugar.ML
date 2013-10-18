@@ -184,17 +184,18 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
               val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
                 primrec_error_eqn "too few arguments in recursive call" t;
             in
-              if ctr_pos >= 0 then
-                list_comb (the maybe_mutual_y', g_args)
-              else if is_some maybe_nested_y_head' then
+              if is_some maybe_nested_y_head' then
                 (if has_call g' then t else y)
                 |> massage_nested_rec_call lthy has_call
                   (rewrite_map_arg get_ctr_pos) bound_Ts y_head (the maybe_nested_y_head')
                 |> (if has_call g' then I else curry (op $) g')
+              else if ctr_pos >= 0 then
+                (case maybe_mutual_y' of
+                  NONE => t
+                | SOME y' => list_comb (y', g_args))
               else
                 t
             end
-            |> tap (fn t => tracing ("*** " ^ Syntax.string_of_term lthy t)) (*###*)
         end
       | subst _ t = t
   in
