@@ -127,7 +127,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_0_left_iff [no_atp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
+lemma dvd_0_left_iff [simp]: "0 dvd a \<longleftrightarrow> a = 0"
 by (auto intro: dvd_refl elim!: dvdE)
 
 lemma dvd_0_right [iff]: "a dvd 0"
@@ -233,8 +233,8 @@ lemma minus_mult_right: "- (a * b) = a * - b"
 by (rule minus_unique) (simp add: distrib_left [symmetric]) 
 
 text{*Extract signs from products*}
-lemmas mult_minus_left [simp, no_atp] = minus_mult_left [symmetric]
-lemmas mult_minus_right [simp,no_atp] = minus_mult_right [symmetric]
+lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
+lemmas mult_minus_right [simp] = minus_mult_right [symmetric]
 
 lemma minus_mult_minus [simp]: "- a * - b = a * b"
 by simp
@@ -248,7 +248,7 @@ by (simp add: distrib_left diff_minus)
 lemma left_diff_distrib[algebra_simps, field_simps]: "(a - b) * c = a * c - b * c"
 by (simp add: distrib_right diff_minus)
 
-lemmas ring_distribs[no_atp] =
+lemmas ring_distribs =
   distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 lemma eq_add_iff1:
@@ -261,7 +261,7 @@ by (simp add: algebra_simps)
 
 end
 
-lemmas ring_distribs[no_atp] =
+lemmas ring_distribs =
   distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 class comm_ring = comm_semiring + ab_group_add
@@ -336,7 +336,7 @@ next
 qed
 
 text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp, no_atp]:
+lemma mult_cancel_right [simp]:
   "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(a * c = b * c) = ((a - b) * c = 0)"
@@ -344,7 +344,7 @@ proof -
   thus ?thesis by (simp add: disj_commute)
 qed
 
-lemma mult_cancel_left [simp, no_atp]:
+lemma mult_cancel_left [simp]:
   "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(c * a = c * b) = (c * (a - b) = 0)"
@@ -1048,7 +1048,7 @@ end
 
 text {* Simprules for comparisons where common factors can be cancelled. *}
 
-lemmas mult_compare_simps[no_atp] =
+lemmas mult_compare_simps =
     mult_le_cancel_right mult_le_cancel_left
     mult_le_cancel_right1 mult_le_cancel_right2
     mult_le_cancel_left1 mult_le_cancel_left2

@@ -902,7 +902,7 @@ by (induct xs) auto
 lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
 by (induct xs) auto
 
-lemma append_eq_append_conv [simp, no_atp]:
+lemma append_eq_append_conv [simp]:
  "length xs = length ys \<or> length us = length vs
  ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
 apply (induct xs arbitrary: ys)
@@ -934,7 +934,7 @@ using append_same_eq [of _ _ "[]"] by auto
 lemma self_append_conv2 [iff]: "(ys = xs @ ys) = (xs = [])"
 using append_same_eq [of "[]"] by auto
 
-lemma hd_Cons_tl [simp,no_atp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
+lemma hd_Cons_tl [simp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
 by (induct xs) auto
 
 lemma hd_append: "hd (xs @ ys) = (if xs = [] then hd ys else hd xs)"
@@ -1178,7 +1178,7 @@ by (cases xs) auto
 lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
-lemma rev_is_rev_conv [iff, no_atp]: "(rev xs = rev ys) = (xs = ys)"
+lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
 apply (induct xs arbitrary: ys, force)
 apply (case_tac ys, simp, force)
 done
@@ -5084,10 +5084,10 @@ inductive_set
   for A :: "'a set"
 where
     Nil [intro!, simp]: "[]: lists A"
-  | Cons [intro!, simp, no_atp]: "[| a: A; l: lists A|] ==> a#l : lists A"
+  | Cons [intro!, simp]: "[| a: A; l: lists A|] ==> a#l : lists A"
 
-inductive_cases listsE [elim!,no_atp]: "x#l : lists A"
-inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
+inductive_cases listsE [elim!]: "x#l : lists A"
+inductive_cases listspE [elim!]: "listsp A (x # l)"
 
 inductive_simps listsp_simps[code]:
   "listsp A []"
@@ -5129,15 +5129,15 @@ by (induct xs) auto
 
 lemmas in_lists_conv_set [code_unfold] = in_listsp_conv_set [to_set]
 
-lemma in_listspD [dest!,no_atp]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
+lemma in_listspD [dest!]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
 by (rule in_listsp_conv_set [THEN iffD1])
 
-lemmas in_listsD [dest!,no_atp] = in_listspD [to_set]
+lemmas in_listsD [dest!] = in_listspD [to_set]
 
-lemma in_listspI [intro!,no_atp]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
+lemma in_listspI [intro!]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
 by (rule in_listsp_conv_set [THEN iffD2])
 
-lemmas in_listsI [intro!,no_atp] = in_listspI [to_set]
+lemmas in_listsI [intro!] = in_listspI [to_set]
 
 lemma lists_eq_set: "lists A = {xs. set xs <= A}"
 by auto

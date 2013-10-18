@@ -1999,35 +1999,35 @@ context
   assumes fin_nonempty: "finite A" "A \<noteq> {}"
 begin
 
-lemma Min_ge_iff [simp, no_atp]:
+lemma Min_ge_iff [simp]:
   "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
   using fin_nonempty by (fact Min.bounded_iff)
 
-lemma Max_le_iff [simp, no_atp]:
+lemma Max_le_iff [simp]:
   "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
   using fin_nonempty by (fact Max.bounded_iff)
 
-lemma Min_gr_iff [simp, no_atp]:
+lemma Min_gr_iff [simp]:
   "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
   using fin_nonempty  by (induct rule: finite_ne_induct) simp_all
 
-lemma Max_less_iff [simp, no_atp]:
+lemma Max_less_iff [simp]:
   "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
   using fin_nonempty by (induct rule: finite_ne_induct) simp_all
 
-lemma Min_le_iff [no_atp]:
+lemma Min_le_iff:
   "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
   using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: min_le_iff_disj)
 
-lemma Max_ge_iff [no_atp]:
+lemma Max_ge_iff:
   "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
   using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: le_max_iff_disj)
 
-lemma Min_less_iff [no_atp]:
+lemma Min_less_iff:
   "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
   using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: min_less_iff_disj)
 
-lemma Max_gr_iff [no_atp]:
+lemma Max_gr_iff:
   "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
   using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: less_max_iff_disj)
 

@@ -450,7 +450,7 @@ text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Rings}.
       But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split [arith_split,no_atp]:
+lemma abs_split [arith_split, no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
@@ -1158,32 +1158,32 @@ lemmas minus_equation_iff_numeral [simp, no_atp] =
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
-lemma less_minus_iff_1 [simp,no_atp]:
+lemma less_minus_iff_1 [simp]:
   fixes b::"'b::linordered_idom"
   shows "(1 < - b) = (b < -1)"
 by auto
 
-lemma le_minus_iff_1 [simp,no_atp]:
+lemma le_minus_iff_1 [simp]:
   fixes b::"'b::linordered_idom"
   shows "(1 \<le> - b) = (b \<le> -1)"
 by auto
 
-lemma equation_minus_iff_1 [simp,no_atp]:
+lemma equation_minus_iff_1 [simp]:
   fixes b::"'b::ring_1"
   shows "(1 = - b) = (b = -1)"
 by (subst equation_minus_iff, auto)
 
-lemma minus_less_iff_1 [simp,no_atp]:
+lemma minus_less_iff_1 [simp]:
   fixes a::"'b::linordered_idom"
   shows "(- a < 1) = (-1 < a)"
 by auto
 
-lemma minus_le_iff_1 [simp,no_atp]:
+lemma minus_le_iff_1 [simp]:
   fixes a::"'b::linordered_idom"
   shows "(- a \<le> 1) = (-1 \<le> a)"
 by auto
 
-lemma minus_equation_iff_1 [simp,no_atp]:
+lemma minus_equation_iff_1 [simp]:
   fixes a::"'b::ring_1"
   shows "(- a = 1) = (a = -1)"
 by (subst minus_equation_iff, auto)

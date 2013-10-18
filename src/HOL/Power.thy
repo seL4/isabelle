@@ -530,7 +530,7 @@ lemma abs_power_minus [simp]:
   "abs ((-a) ^ n) = abs (a ^ n)"
   by (simp add: power_abs)
 
-lemma zero_less_power_abs_iff [simp, no_atp]:
+lemma zero_less_power_abs_iff [simp]:
   "0 < abs a ^ n \<longleftrightarrow> a \<noteq> 0 \<or> n = 0"
 proof (induct n)
   case 0 show ?case by simp

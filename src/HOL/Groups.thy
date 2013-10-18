@@ -1341,7 +1341,7 @@ end
 
 subsection {* Tools setup *}
 
-lemma add_mono_thms_linordered_semiring [no_atp]:
+lemma add_mono_thms_linordered_semiring:
   fixes i j k :: "'a\<Colon>ordered_ab_semigroup_add"
   shows "i \<le> j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
     and "i = j \<and> k \<le> l \<Longrightarrow> i + k \<le> j + l"
@@ -1349,7 +1349,7 @@ lemma add_mono_thms_linordered_semiring [no_atp]:
     and "i = j \<and> k = l \<Longrightarrow> i + k = j + l"
 by (rule add_mono, clarify+)+
 
-lemma add_mono_thms_linordered_field [no_atp]:
+lemma add_mono_thms_linordered_field:
   fixes i j k :: "'a\<Colon>ordered_cancel_ab_semigroup_add"
   shows "i < j \<and> k = l \<Longrightarrow> i + k < j + l"
     and "i = j \<and> k < l \<Longrightarrow> i + k < j + l"

@@ -93,12 +93,12 @@ print_translation {*
 context complete_lattice
 begin
 
-lemma INF_foundation_dual [no_atp]:
+lemma INF_foundation_dual:
   "complete_lattice.SUPR Inf = INFI"
   by (simp add: fun_eq_iff INF_def
     complete_lattice.SUP_def [OF dual_complete_lattice])
 
-lemma SUP_foundation_dual [no_atp]:
+lemma SUP_foundation_dual:
   "complete_lattice.INFI Sup = SUPR"
   by (simp add: fun_eq_iff SUP_def
     complete_lattice.INF_def [OF dual_complete_lattice])
@@ -306,7 +306,7 @@ next
   show "?R \<le> ?L" by (rule SUP_least) (auto intro: le_supI1 le_supI2 SUP_upper)
 qed
 
-lemma Inf_top_conv [simp, no_atp]:
+lemma Inf_top_conv [simp]:
   "\<Sqinter>A = \<top> \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
   "\<top> = \<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<top>)"
 proof -
@@ -333,7 +333,7 @@ lemma INF_top_conv [simp]:
  "\<top> = (\<Sqinter>x\<in>A. B x) \<longleftrightarrow> (\<forall>x\<in>A. B x = \<top>)"
   by (auto simp add: INF_def)
 
-lemma Sup_bot_conv [simp, no_atp]:
+lemma Sup_bot_conv [simp]:
   "\<Squnion>A = \<bottom> \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?P)
   "\<bottom> = \<Squnion>A \<longleftrightarrow> (\<forall>x\<in>A. x = \<bottom>)" (is ?Q)
   using dual_complete_lattice
@@ -769,7 +769,7 @@ proof (rule set_eqI)
     by (simp add: Inf_set_def image_def)
 qed
 
-lemma Inter_iff [simp,no_atp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in>C. A \<in> X)"
+lemma Inter_iff [simp]: "A \<in> \<Inter>C \<longleftrightarrow> (\<forall>X\<in>C. A \<in> X)"
   by (unfold Inter_eq) blast
 
 lemma InterI [intro!]: "(\<And>X. X \<in> C \<Longrightarrow> A \<in> X) \<Longrightarrow> A \<in> \<Inter>C"
@@ -814,7 +814,7 @@ lemma Inter_Un_subset: "\<Inter>A \<union> \<Inter>B \<subseteq> \<Inter>(A \<in
 lemma Inter_Un_distrib: "\<Inter>(A \<union> B) = \<Inter>A \<inter> \<Inter>B"
   by (fact Inf_union_distrib)
 
-lemma Inter_UNIV_conv [simp, no_atp]:
+lemma Inter_UNIV_conv [simp]:
   "\<Inter>A = UNIV \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   "UNIV = \<Inter>A \<longleftrightarrow> (\<forall>x\<in>A. x = UNIV)"
   by (fact Inf_top_conv)+
@@ -952,7 +952,7 @@ proof (rule set_eqI)
     by (simp add: Sup_set_def image_def)
 qed
 
-lemma Union_iff [simp, no_atp]:
+lemma Union_iff [simp]:
   "A \<in> \<Union>C \<longleftrightarrow> (\<exists>X\<in>C. A\<in>X)"
   by (unfold Union_eq) blast
 
@@ -987,10 +987,10 @@ lemma Union_Un_distrib [simp]: "\<Union>(A \<union> B) = \<Union>A \<union> \<Un
 lemma Union_Int_subset: "\<Union>(A \<inter> B) \<subseteq> \<Union>A \<inter> \<Union>B"
   by (fact Sup_inter_less_eq)
 
-lemma Union_empty_conv [no_atp]: "(\<Union>A = {}) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
+lemma Union_empty_conv: "(\<Union>A = {}) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
   by (fact Sup_bot_conv) (* already simp *)
 
-lemma empty_Union_conv [no_atp]: "({} = \<Union>A) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
+lemma empty_Union_conv: "({} = \<Union>A) \<longleftrightarrow> (\<forall>x\<in>A. x = {})"
   by (fact Sup_bot_conv) (* already simp *)
 
 lemma subset_Pow_Union: "A \<subseteq> Pow (\<Union>A)"
@@ -1044,7 +1044,7 @@ print_translation {*
   [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
 *} -- {* to avoid eta-contraction of body *}
 
-lemma UNION_eq [no_atp]:
+lemma UNION_eq:
   "(\<Union>x\<in>A. B x) = {y. \<exists>x\<in>A. y \<in> B x}"
   by (auto simp add: SUP_def)
 
@@ -1088,13 +1088,13 @@ lemma UN_upper: "a \<in> A \<Longrightarrow> B a \<subseteq> (\<Union>x\<in>A. B
 lemma UN_least: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C) \<Longrightarrow> (\<Union>x\<in>A. B x) \<subseteq> C"
   by (fact SUP_least)
 
-lemma Collect_bex_eq [no_atp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
+lemma Collect_bex_eq: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. {x. P x y})"
   by blast
 
 lemma UN_insert_distrib: "u \<in> A \<Longrightarrow> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
-lemma UN_empty [no_atp]: "(\<Union>x\<in>{}. B x) = {}"
+lemma UN_empty: "(\<Union>x\<in>{}. B x) = {}"
   by (fact SUP_empty)
 
 lemma UN_empty2: "(\<Union>x\<in>A. {}) = {}"
@@ -1126,7 +1126,7 @@ lemma UNION_empty_conv:
   "(\<Union>x\<in>A. B x) = {} \<longleftrightarrow> (\<forall>x\<in>A. B x = {})"
   by (fact SUP_bot_conv)+ (* already simp *)
 
-lemma Collect_ex_eq [no_atp]: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
+lemma Collect_ex_eq: "{x. \<exists>y. P x y} = (\<Union>y. {x. P x y})"
   by blast
 
 lemma ball_UN: "(\<forall>z \<in> UNION A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>z \<in> B x. P z)"
@@ -1248,7 +1248,7 @@ lemma INT_simps [simp]:
   "\<And>A B f. (\<Inter>x\<in>f`A. B x) = (\<Inter>a\<in>A. B (f a))"
   by auto
 
-lemma UN_ball_bex_simps [simp, no_atp]:
+lemma UN_ball_bex_simps [simp]:
   "\<And>A P. (\<forall>x\<in>\<Union>A. P x) \<longleftrightarrow> (\<forall>y\<in>A. \<forall>x\<in>y. P x)"
   "\<And>A B P. (\<forall>x\<in>UNION A B. P x) = (\<forall>a\<in>A. \<forall>x\<in> B a. P x)"
   "\<And>A P. (\<exists>x\<in>\<Union>A. P x) \<longleftrightarrow> (\<exists>y\<in>A. \<exists>x\<in>y. P x)"

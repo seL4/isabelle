@@ -1620,8 +1620,7 @@ proof
   show False by simp (blast dest: Suc_neq_Zero surjD)
 qed
 
-(* Often leads to bogus ATP proofs because of reduced type information, hence no_atp *)
-lemma infinite_UNIV_char_0 [no_atp]:
+lemma infinite_UNIV_char_0:
   "\<not> finite (UNIV :: 'a::semiring_char_0 set)"
 proof
   assume "finite (UNIV :: 'a set)"

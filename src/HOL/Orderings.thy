@@ -998,7 +998,7 @@ lemma xt9 [no_atp]: "(a::'a::order) > b ==> (f b::'b::order) > c ==>
     (!!x y. x > y ==> f x > f y) ==> f a > c"
 by (subgoal_tac "f a > f b", force, force)
 
-lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9 [no_atp]
+lemmas xtrans = xt1 xt2 xt3 xt4 xt5 xt6 xt7 xt8 xt9
 
 (* 
   Since "a >= b" abbreviates "b <= a", the abbreviation "..." stands

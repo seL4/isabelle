@@ -327,7 +327,7 @@ lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = Suc 0 & n = Suc 0)"
    apply auto
   done
 
-lemma one_eq_mult_iff [simp,no_atp]: "(Suc 0 = m * n) = (m = Suc 0 & n = Suc 0)"
+lemma one_eq_mult_iff [simp]: "(Suc 0 = m * n) = (m = Suc 0 & n = Suc 0)"
   apply (rule trans)
   apply (rule_tac [2] mult_eq_1_iff, fastforce)
   done
@@ -491,7 +491,7 @@ lemma less_Suc_eq: "(m < Suc n) = (m < n | m = n)"
 lemma less_Suc0 [iff]: "(n < Suc 0) = (n = 0)"
   by (simp add: less_Suc_eq)
 
-lemma less_one [iff, no_atp]: "(n < (1::nat)) = (n = 0)"
+lemma less_one [iff]: "(n < (1::nat)) = (n = 0)"
   unfolding One_nat_def by (rule less_Suc0)
 
 lemma Suc_mono: "m < n ==> Suc m < Suc n"
@@ -659,7 +659,7 @@ by (rule neq0_conv[THEN iffD1], iprover)
 lemma gr0_conv_Suc: "(0 < n) = (\<exists>m. n = Suc m)"
 by (fast intro: not0_implies_Suc)
 
-lemma not_gr0 [iff,no_atp]: "!!n::nat. (~ (0 < n)) = (n = 0)"
+lemma not_gr0 [iff]: "!!n::nat. (~ (0 < n)) = (n = 0)"
 using neq0_conv by blast
 
 lemma Suc_le_D: "(Suc n \<le> m') ==> (? m. m' = Suc m)"
@@ -1396,10 +1396,10 @@ lemma of_nat_eq_iff [simp]: "of_nat m = of_nat n \<longleftrightarrow> m = n"
 
 text{*Special cases where either operand is zero*}
 
-lemma of_nat_0_eq_iff [simp, no_atp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
+lemma of_nat_0_eq_iff [simp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
   by (fact of_nat_eq_iff [of 0 n, unfolded of_nat_0])
 
-lemma of_nat_eq_0_iff [simp, no_atp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
+lemma of_nat_eq_0_iff [simp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
   by (fact of_nat_eq_iff [of m 0, unfolded of_nat_0])
 
 end
@@ -1432,7 +1432,7 @@ qed (auto intro!: injI simp add: eq_iff)
 
 text{*Special cases where either operand is zero*}
 
-lemma of_nat_le_0_iff [simp, no_atp]: "of_nat m \<le> 0 \<longleftrightarrow> m = 0"
+lemma of_nat_le_0_iff [simp]: "of_nat m \<le> 0 \<longleftrightarrow> m = 0"
   by (rule of_nat_le_iff [of _ 0, simplified])
 
 lemma of_nat_0_less_iff [simp]: "0 < of_nat n \<longleftrightarrow> 0 < n"
