@@ -139,6 +139,7 @@ sig
   val mk_sumTN_balanced: typ list -> typ
 
   val mk_convol: term * term -> term
+  val mk_tupled_fun: term -> term -> term list -> term
 
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
@@ -380,6 +381,9 @@ fun mk_convol (f, g) =
     val ((gT, gU), gTU) = `dest_funT (fastype_of g);
     val convolT = fTU --> gTU --> gT --> HOLogic.mk_prodT (fU, gU);
   in Const (@{const_name convol}, convolT) $ f $ g end;
+
+fun mk_tupled_fun x f xs =
+  if xs = [x] then f else HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
 fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;

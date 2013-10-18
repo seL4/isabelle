@@ -215,6 +215,19 @@ fun factor_out_types ctxt massage destU U T =
     SOME (U1, U2) => if U1 = T then massage T U2 else invalid_map ctxt
   | NONE => invalid_map ctxt);
 
+fun expand_to_comp bound_Ts f t =
+  let
+    val (g, xs) = Term.strip_comb t;
+    val m = length xs;
+    val j = Term.maxidx_of_term t;
+    val us = map2 (fn k => fn x => Var ((Name.uu, j + k), fastype_of1 (bound_Ts, x))) (1 upto m) xs;
+    val u_tuple = HOLogic.mk_tuple us;
+    val unc_g = mk_tupled_fun u_tuple g us;
+    val x_tuple = HOLogic.mk_tuple xs;
+  in
+    (HOLogic.mk_comp (f, unc_g), x_tuple)
+  end;
+
 fun map_flattened_map_args ctxt s map_args fs =
   let
     val flat_fs = flatten_type_args_of_bnf (the (bnf_of ctxt s)) Term.dummy fs;
@@ -261,6 +274,11 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         if t2 = y then
           massage_map yU yT (elim_y t1) $ y'
           handle AINT_NO_MAP t' => invalid_map ctxt t'
+        else if head_of t2 = y then
+          let val (u1, u2) = expand_to_comp bound_Ts t1 t2 in
+            if has_call u2 then unexpected_rec_call ctxt u2
+            else massage_call u1 $ u2
+          end
         else
           ill_formed_rec_call ctxt t
       | massage_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
@@ -446,17 +464,17 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
     if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
   end;
 
-fun expand_ctr_term ctxt s Ts t =
+fun expand_to_ctr_term ctxt s Ts t =
   (case ctr_sugar_of ctxt s of
     SOME {ctrs, casex, ...} =>
     Term.list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
-  | NONE => raise Fail "expand_ctr_term");
+  | NONE => raise Fail "expand_to_ctr_term");
 
 fun expand_corec_code_rhs ctxt has_call bound_Ts t =
   (case fastype_of1 (bound_Ts, t) of
     Type (s, Ts) =>
     massage_let_if_case ctxt has_call (fn _ => fn t =>
-      if can (dest_ctr ctxt s) t then t else expand_ctr_term ctxt s Ts t) bound_Ts t
+      if can (dest_ctr ctxt s) t then t else expand_to_ctr_term ctxt s Ts t) bound_Ts t
   | _ => raise Fail "expand_corec_code_rhs");
 
 fun massage_corec_code_rhs ctxt massage_ctr =
