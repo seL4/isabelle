@@ -177,7 +177,8 @@ val iff_attrs = @{attributes [iff]};
 val inductsimp_attrs = @{attributes [induct_simp]};
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
+val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
+val code_nitpicksimp_simp_attrs = code_nitpicksimp_attrs @ simp_attrs;
 
 fun unflat_lookup eq xs ys = map (fn xs' => permute_like eq xs xs' ys);
 
@@ -869,6 +870,13 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
+        val anonymous_notes =
+          [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs),
+           (map (fn th => th RS @{thm eq_False[THEN iffD2]}
+              handle THM _ => th RS @{thm eq_True[THEN iffD2]}) nontriv_disc_thms,
+            code_nitpicksimp_attrs)]
+          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
         val notes =
           [(caseN, case_thms, code_nitpicksimp_simp_attrs),
            (case_congN, [case_cong_thm], []),
@@ -894,10 +902,6 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
-
-        val anonymous_notes =
-          [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
-          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val ctr_sugar =
           {ctrs = ctrs, casex = casex, discs = discs, selss = selss, exhaust = exhaust_thm,
