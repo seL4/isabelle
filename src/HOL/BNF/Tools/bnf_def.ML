@@ -841,12 +841,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val rel = mk_bnf_rel pred2RTs CA' CB';
     val relAsAs = mk_bnf_rel self_pred2RTs CA' CA';
 
-    val _ = case no_reflexive (raw_map_def :: raw_set_defs @ [raw_bd_def] @
-        raw_wit_defs @ [raw_rel_def]) of
-        [] => ()
-      | defs => Proof_Display.print_consts true lthy_old (K false)
-          (map (dest_Free o fst o Logic.dest_equals o prop_of) defs);
-
     val map_id0_goal =
       let val bnf_map_app_id = Term.list_comb (bnf_map_AsAs, map HOLogic.id_const As') in
         mk_Trueprop_eq (bnf_map_app_id, HOLogic.id_const CA')
