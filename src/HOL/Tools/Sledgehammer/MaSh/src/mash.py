@@ -22,7 +22,8 @@ from spawnDaemon import spawnDaemon
 from parameters import init_parser
 
 def communicate(data,host,port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    logger = logging.getLogger('communicate')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)    
     try:
         sock.connect((host,port))
         sock.sendall(data+'\n')        
@@ -37,8 +38,9 @@ def communicate(data,host,port):
             else:
                 received += rec
             counter += 1
-    except:
-        logger = logging.getLogger('communicate')
+        if rec == '':
+            logger.warning('No response from server. Check server log for details.')
+    except:        
         logger.warning('Communication with server failed.')
         received = -1
     finally:

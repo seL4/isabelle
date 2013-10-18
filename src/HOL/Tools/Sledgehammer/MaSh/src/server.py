@@ -198,8 +198,11 @@ class MaShHandler(SocketServer.StreamRequestHandler):
                 self.request.sendall(self.server.stats.printAvg())            
             else:
                 self.request.sendall('Unspecified input format: \n%s',self.data)
-            self.server.callCounter += 1            
-            self.request.sendall('stop')
+            self.server.callCounter += 1
+            self.request.sendall('stop')                       
+        except: # catch exceptions
+            #print 'Caught an error. Check %s for more details' % (self.server.args.log+'server')
+            logging.exception('')
         finally:
             self.server.lock.release()
 
