@@ -283,7 +283,8 @@ fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spe
     (recs, ctr_poss)
     |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
     |> Syntax.check_terms lthy
-    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
+    |> map3 (fn b => fn mx => fn t =>
+      ((b, mx), ((Binding.conceal (Binding.map_name Thm.def_name b), []), t))) bs mxs
   end;
 
 fun find_rec_calls has_call (eqn_data : eqn_data) =
@@ -777,7 +778,8 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
     |> Syntax.check_terms lthy
-    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.map_name Thm.def_name b, []), t))) bs mxs
+    |> map3 (fn b => fn mx => fn t =>
+      ((b, mx), ((Binding.conceal (Binding.map_name Thm.def_name b), []), t))) bs mxs
     |> rpair exclss'
   end;
 
