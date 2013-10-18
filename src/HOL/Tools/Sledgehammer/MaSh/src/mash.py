@@ -25,15 +25,13 @@ def communicate(data,host,port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect((host,port))
-        sock.sendall(data)
+        sock.sendall(data+'\n')        
         received = ''
         cont = True
         counter = 0
         while cont and counter < 100000:
             rec = sock.recv(4096)
-            if rec == 'stop':
-                cont = False
-            elif rec.endswith('stop'):
+            if rec.endswith('stop'):
                 cont = False
                 received += rec[:-4]
             else:

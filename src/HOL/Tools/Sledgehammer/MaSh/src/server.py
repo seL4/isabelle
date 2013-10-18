@@ -50,7 +50,7 @@ class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
         self.save()          
         self.shutdown()
 
-class MaShHandler(SocketServer.BaseRequestHandler):
+class MaShHandler(SocketServer.StreamRequestHandler):
 
     def init(self,argv):
         if argv == '':
@@ -164,15 +164,15 @@ class MaShHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(134217728).strip()
         self.server.lock.acquire()
+        self.data = self.rfile.readline().strip()
         try:
             # Update idle shutdown timer
             self.server.idle_timer.cancel()
             self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
             self.server.idle_timer.start()        
 
-            self.startTime = time()  
+            self.startTime = time()
             if self.data == 'shutdown':
                 self.shutdown()         
             elif self.data == 'save':
@@ -198,7 +198,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
                 self.request.sendall(self.server.stats.printAvg())            
             else:
                 self.request.sendall('Unspecified input format: \n%s',self.data)
-            self.server.callCounter += 1
+            self.server.callCounter += 1            
             self.request.sendall('stop')
         finally:
             self.server.lock.release()
