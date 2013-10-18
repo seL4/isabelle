@@ -786,6 +786,10 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 
 \end{description}
 \end{indentblock}
+
+\noindent
+In addition, equational versions of @{text t.disc} are registered with the @{text "[code]"}
+attribute.
 *}
 
 
