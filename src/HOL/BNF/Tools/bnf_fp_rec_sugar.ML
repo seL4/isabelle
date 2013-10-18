@@ -172,27 +172,30 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
   let
     fun subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
       | subst bound_Ts (t as g' $ y) =
-        if not (member (op =) ctr_args y) then
-          pairself (subst bound_Ts) (g', y) |> op $
-        else
-          let
-            val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
-            val maybe_nested_y' = AList.lookup (op =) nested_calls y;
-            val (g, g_args) = strip_comb g';
-            val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
-            val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
-              primrec_error_eqn "too few arguments in recursive call" t;
-          in
-            if ctr_pos >= 0 then
-              list_comb (the maybe_mutual_y', g_args)
-            else if is_some maybe_nested_y' then
-              (if has_call g' then t else y)
-              |> massage_nested_rec_call lthy has_call
-                (rewrite_map_arg get_ctr_pos) bound_Ts y (the maybe_nested_y')
-              |> (if has_call g' then I else curry (op $) g')
-            else
-              t
-          end
+        let val y_head = head_of y in
+          if not (member (op =) ctr_args y_head) then
+            pairself (subst bound_Ts) (g', y) |> op $
+          else
+            let
+              val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
+              val maybe_nested_y_head' = AList.lookup (op =) nested_calls y_head;
+              val (g, g_args) = strip_comb g';
+              val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
+              val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
+                primrec_error_eqn "too few arguments in recursive call" t;
+            in
+              if ctr_pos >= 0 then
+                list_comb (the maybe_mutual_y', g_args)
+              else if is_some maybe_nested_y_head' then
+                (if has_call g' then t else y)
+                |> massage_nested_rec_call lthy has_call
+                  (rewrite_map_arg get_ctr_pos) bound_Ts y_head (the maybe_nested_y_head')
+                |> (if has_call g' then I else curry (op $) g')
+              else
+                t
+            end
+            |> tap (fn t => tracing ("*** " ^ Syntax.string_of_term lthy t)) (*###*)
+        end
       | subst _ t = t
   in
     subst [] t
@@ -582,7 +585,7 @@ fun dissect_coeqn_ctr seq fun_names (ctr_specss : corec_ctr_spec list list) eqn'
       else apfst SOME (dissect_coeqn_disc seq fun_names ctr_specss
           (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs prems disc_concl matchedsss);
 
-    val sel_concls = (sels ~~ ctr_args)
+    val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg));
 
 (*
