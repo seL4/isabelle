@@ -172,26 +172,27 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
   let
     fun subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
       | subst bound_Ts (t as g' $ y) =
-        let
-          val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
-          val maybe_nested_y' = AList.lookup (op =) nested_calls y;
-          val (g, g_args) = strip_comb g';
-          val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
-          val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
-            primrec_error_eqn "too few arguments in recursive call" t;
-        in
-          if not (member (op =) ctr_args y) then
-            pairself (subst bound_Ts) (g', y) |> (op $)
-          else if ctr_pos >= 0 then
-            list_comb (the maybe_mutual_y', g_args)
-          else if is_some maybe_nested_y' then
-            (if has_call g' then t else y)
-            |> massage_nested_rec_call lthy has_call
-              (rewrite_map_arg get_ctr_pos) bound_Ts y (the maybe_nested_y')
-            |> (if has_call g' then I else curry (op $) g')
-          else
-            t
-        end
+        if not (member (op =) ctr_args y) then
+          pairself (subst bound_Ts) (g', y) |> op $
+        else
+          let
+            val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
+            val maybe_nested_y' = AList.lookup (op =) nested_calls y;
+            val (g, g_args) = strip_comb g';
+            val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
+            val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
+              primrec_error_eqn "too few arguments in recursive call" t;
+          in
+            if ctr_pos >= 0 then
+              list_comb (the maybe_mutual_y', g_args)
+            else if is_some maybe_nested_y' then
+              (if has_call g' then t else y)
+              |> massage_nested_rec_call lthy has_call
+                (rewrite_map_arg get_ctr_pos) bound_Ts y (the maybe_nested_y')
+              |> (if has_call g' then I else curry (op $) g')
+            else
+              t
+          end
       | subst _ t = t
   in
     subst [] t
