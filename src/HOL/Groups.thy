@@ -517,7 +517,7 @@ by (simp add: diff_minus add_ac)
 
 (* FIXME: duplicates right_minus_eq from class group_add *)
 (* but only this one is declared as a simp rule. *)
-lemma diff_eq_0_iff_eq [simp, no_atp]: "a - b = 0 \<longleftrightarrow> a = b"
+lemma diff_eq_0_iff_eq [simp]: "a - b = 0 \<longleftrightarrow> a = b"
   by (rule right_minus_eq)
 
 lemma add_diff_cancel_left: "(c + a) - (c + b) = a - b"
@@ -896,7 +896,7 @@ qed
 lemma minus_le_iff: "- a \<le> b \<longleftrightarrow> - b \<le> a"
 by (auto simp add: le_less minus_less_iff)
 
-lemma diff_less_0_iff_less [simp, no_atp]:
+lemma diff_less_0_iff_less [simp]:
   "a - b < 0 \<longleftrightarrow> a < b"
 proof -
   have "a - b < 0 \<longleftrightarrow> a + (- b) < b + (- b)" by (simp add: diff_minus)
@@ -924,7 +924,7 @@ by (auto simp add: le_less diff_less_eq diff_add_cancel add_diff_cancel)
 lemma le_diff_eq[algebra_simps, field_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
 by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
 
-lemma diff_le_0_iff_le [simp, no_atp]:
+lemma diff_le_0_iff_le [simp]:
   "a - b \<le> 0 \<longleftrightarrow> a \<le> b"
   by (simp add: algebra_simps)
 
@@ -1231,7 +1231,7 @@ qed
 lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
 by simp
 
-lemma abs_0_eq [simp, no_atp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
+lemma abs_0_eq [simp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
 proof -
   have "0 = \<bar>a\<bar> \<longleftrightarrow> \<bar>a\<bar> = 0" by (simp only: eq_ac)
   thus ?thesis by simp

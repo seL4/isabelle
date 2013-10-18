@@ -156,11 +156,11 @@ lemma [code]:
   "Id = image (\<lambda>x. (x, x)) (set Enum.enum)"
   by (auto intro: imageI in_enum)
 
-lemma tranclp_unfold [code, no_atp]:
+lemma tranclp_unfold [code]:
   "tranclp r a b \<longleftrightarrow> (a, b) \<in> trancl {(x, y). r x y}"
   by (simp add: trancl_def)
 
-lemma rtranclp_rtrancl_eq [code, no_atp]:
+lemma rtranclp_rtrancl_eq [code]:
   "rtranclp r x y \<longleftrightarrow> (x, y) \<in> rtrancl {(x, y). r x y}"
   by (simp add: rtrancl_def)
 

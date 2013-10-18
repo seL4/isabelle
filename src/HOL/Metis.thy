@@ -16,7 +16,7 @@ ML_file "~~/src/Tools/Metis/metis.ML"
 subsection {* Literal selection and lambda-lifting helpers *}
 
 definition select :: "'a \<Rightarrow> 'a" where
-[no_atp]: "select = (\<lambda>x. x)"
+"select = (\<lambda>x. x)"
 
 lemma not_atomize: "(\<not> A \<Longrightarrow> False) \<equiv> Trueprop A"
 by (cut_tac atomize_not [of "\<not> A"]) simp
@@ -30,7 +30,7 @@ unfolding select_def by (rule not_atomize)
 lemma select_FalseI: "False \<Longrightarrow> select False" by simp
 
 definition lambda :: "'a \<Rightarrow> 'a" where
-[no_atp]: "lambda = (\<lambda>x. x)"
+"lambda = (\<lambda>x. x)"
 
 lemma eq_lambdaI: "x \<equiv> y \<Longrightarrow> x \<equiv> lambda y"
 unfolding lambda_def by assumption

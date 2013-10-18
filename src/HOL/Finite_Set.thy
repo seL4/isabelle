@@ -1188,7 +1188,7 @@ lemma card_ge_0_finite:
   "card A > 0 \<Longrightarrow> finite A"
   by (rule ccontr) simp
 
-lemma card_0_eq [simp, no_atp]:
+lemma card_0_eq [simp]:
   "finite A \<Longrightarrow> card A = 0 \<longleftrightarrow> A = {}"
   by (auto dest: mk_disjoint_insert)
 

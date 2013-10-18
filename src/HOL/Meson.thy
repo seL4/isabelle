@@ -132,45 +132,45 @@ by auto
 text{* Combinator translation helpers *}
 
 definition COMBI :: "'a \<Rightarrow> 'a" where
-[no_atp]: "COMBI P = P"
+"COMBI P = P"
 
 definition COMBK :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where
-[no_atp]: "COMBK P Q = P"
+"COMBK P Q = P"
 
-definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where [no_atp]:
+definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where
 "COMBB P Q R = P (Q R)"
 
 definition COMBC :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBC P Q R = P R Q"
+"COMBC P Q R = P R Q"
 
 definition COMBS :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBS P Q R = P R (Q R)"
+"COMBS P Q R = P R (Q R)"
 
-lemma abs_S [no_atp]: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
+lemma abs_S: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBS_def) 
 done
 
-lemma abs_I [no_atp]: "\<lambda>x. x \<equiv> COMBI"
+lemma abs_I: "\<lambda>x. x \<equiv> COMBI"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBI_def) 
 done
 
-lemma abs_K [no_atp]: "\<lambda>x. y \<equiv> COMBK y"
+lemma abs_K: "\<lambda>x. y \<equiv> COMBK y"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBK_def) 
 done
 
-lemma abs_B [no_atp]: "\<lambda>x. a (g x) \<equiv> COMBB a g"
+lemma abs_B: "\<lambda>x. a (g x) \<equiv> COMBB a g"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBB_def) 
 done
 
-lemma abs_C [no_atp]: "\<lambda>x. (f x) b \<equiv> COMBC f b"
+lemma abs_C: "\<lambda>x. (f x) b \<equiv> COMBC f b"
 apply (rule eq_reflection)
 apply (rule ext) 
 apply (simp add: COMBC_def) 
@@ -180,7 +180,7 @@ done
 subsection {* Skolemization helpers *}
 
 definition skolem :: "'a \<Rightarrow> 'a" where
-[no_atp]: "skolem = (\<lambda>x. x)"
+"skolem = (\<lambda>x. x)"
 
 lemma skolem_COMBK_iff: "P \<longleftrightarrow> skolem (COMBK P (i\<Colon>nat))"
 unfolding skolem_def COMBK_def by (rule refl)

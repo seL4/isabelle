@@ -18,34 +18,34 @@ ML_file "Tools/ATP/atp_proof_redirect.ML"
 
 subsection {* Higher-order reasoning helpers *}
 
-definition fFalse :: bool where [no_atp]:
+definition fFalse :: bool where
 "fFalse \<longleftrightarrow> False"
 
-definition fTrue :: bool where [no_atp]:
+definition fTrue :: bool where
 "fTrue \<longleftrightarrow> True"
 
-definition fNot :: "bool \<Rightarrow> bool" where [no_atp]:
+definition fNot :: "bool \<Rightarrow> bool" where
 "fNot P \<longleftrightarrow> \<not> P"
 
-definition fComp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
+definition fComp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool" where
 "fComp P = (\<lambda>x. \<not> P x)"
 
-definition fconj :: "bool \<Rightarrow> bool \<Rightarrow> bool" where [no_atp]:
+definition fconj :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "fconj P Q \<longleftrightarrow> P \<and> Q"
 
-definition fdisj :: "bool \<Rightarrow> bool \<Rightarrow> bool" where [no_atp]:
+definition fdisj :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "fdisj P Q \<longleftrightarrow> P \<or> Q"
 
-definition fimplies :: "bool \<Rightarrow> bool \<Rightarrow> bool" where [no_atp]:
+definition fimplies :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
 "fimplies P Q \<longleftrightarrow> (P \<longrightarrow> Q)"
 
-definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
+definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "fequal x y \<longleftrightarrow> (x = y)"
 
-definition fAll :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where [no_atp]:
+definition fAll :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "fAll P \<longleftrightarrow> All P"
 
-definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where [no_atp]:
+definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "fEx P \<longleftrightarrow> Ex P"
 
 lemma fTrue_ne_fFalse: "fFalse \<noteq> fTrue"
