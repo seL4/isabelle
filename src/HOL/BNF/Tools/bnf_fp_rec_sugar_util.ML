@@ -215,25 +215,28 @@ fun factor_out_types ctxt massage destU U T =
     SOME (U1, U2) => if U1 = T then massage T U2 else invalid_map ctxt
   | NONE => invalid_map ctxt);
 
-fun expand_to_comp bound_Ts f t =
-  let
-    val (g, xs) = Term.strip_comb t;
-    val m = length xs;
-    val j = Term.maxidx_of_term t;
-    val us = map2 (fn k => fn x => Var ((Name.uu, j + k), fastype_of1 (bound_Ts, x))) (1 upto m) xs;
-    val u_tuple = HOLogic.mk_tuple us;
-    val unc_g = mk_tupled_fun u_tuple g us;
-    val x_tuple = HOLogic.mk_tuple xs;
-  in
-    (HOLogic.mk_comp (f, unc_g), x_tuple)
-  end;
-
 fun map_flattened_map_args ctxt s map_args fs =
   let
     val flat_fs = flatten_type_args_of_bnf (the (bnf_of ctxt s)) Term.dummy fs;
     val flat_fs' = map_args flat_fs;
   in
     permute_like (op aconv) flat_fs fs flat_fs'
+  end;
+
+fun mk_partial_comp gT fT g =
+  let val T = domain_type fT --> range_type gT in
+    Const (@{const_name Fun.comp}, gT --> fT --> T) $ g
+  end;
+
+fun mk_compN' 0 _ _ g = g
+  | mk_compN' n gT fT g =
+    let val g' = mk_compN' (n - 1) gT (range_type fT) g in
+      mk_partial_comp (fastype_of g') fT g'
+    end;
+
+fun mk_compN bound_Ts n (g, f) =
+  let val typof = curry fastype_of1 bound_Ts in
+    mk_compN' n (typof g) (typof f) g $ f
   end;
 
 fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
@@ -274,13 +277,14 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         if t2 = y then
           massage_map yU yT (elim_y t1) $ y'
           handle AINT_NO_MAP t' => invalid_map ctxt t'
-        else if head_of t2 = y then
-          let val (u1, u2) = expand_to_comp bound_Ts t1 t2 in
-            if has_call u2 then unexpected_rec_call ctxt u2
-            else massage_call u1 $ u2
-          end
         else
-          ill_formed_rec_call ctxt t
+          let val (g, xs) = Term.strip_comb t2 in
+            if g = y then
+              if exists has_call xs then unexpected_rec_call ctxt t2
+              else Term.list_comb (massage_call (mk_compN bound_Ts (length xs) (t1, y)), xs)
+            else
+              ill_formed_rec_call ctxt t
+          end
       | massage_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
   in
     massage_call
