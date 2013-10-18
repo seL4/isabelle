@@ -392,7 +392,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
          Term.lambda w (Library.foldr1 HOLogic.mk_disj (map3 mk_case_disj xctrs xfs xss)));
 
     val ((raw_case, (_, raw_case_def)), (lthy', lthy)) = no_defs_lthy
-      |> Local_Theory.define ((case_binding, NoSyn), ((Thm.def_binding case_binding, []), case_rhs))
+      |> Local_Theory.define ((case_binding, NoSyn),
+        ((Binding.conceal (Thm.def_binding case_binding), []), case_rhs))
       ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy lthy';
