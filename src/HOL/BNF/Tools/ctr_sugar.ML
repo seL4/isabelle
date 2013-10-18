@@ -174,10 +174,10 @@ val cong_attrs = @{attributes [cong]};
 val dest_attrs = @{attributes [dest]};
 val safe_elim_attrs = @{attributes [elim!]};
 val iff_attrs = @{attributes [iff]};
-val induct_simp_attrs = @{attributes [induct_simp]};
-val nitpick_attrs = @{attributes [nitpick_simp]};
+val inductsimp_attrs = @{attributes [induct_simp]};
+val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpick_simp_simp_attrs = Code.add_default_eqn_attrib :: nitpick_attrs @ simp_attrs;
+val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
 fun unflat_lookup eq xs ys = map (fn xs' => permute_like eq xs xs' ys);
 
@@ -870,7 +870,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
         val notes =
-          [(caseN, case_thms, code_nitpick_simp_simp_attrs),
+          [(caseN, case_thms, code_nitpicksimp_simp_attrs),
            (case_congN, [case_cong_thm], []),
            (case_conv_ifN, case_conv_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
@@ -878,12 +878,12 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            (discIN, nontriv_discI_thms, []),
            (disc_excludeN, disc_exclude_thms, dest_attrs),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
-           (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
+           (distinctN, distinct_thms, simp_attrs @ inductsimp_attrs),
            (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
            (expandN, expand_thms, []),
-           (injectN, inject_thms, iff_attrs @ induct_simp_attrs),
+           (injectN, inject_thms, iff_attrs @ inductsimp_attrs),
            (nchotomyN, [nchotomy_thm], []),
-           (selN, all_sel_thms, code_nitpick_simp_simp_attrs),
+           (selN, all_sel_thms, code_nitpicksimp_simp_attrs),
            (sel_exhaustN, sel_exhaust_thms, [exhaust_case_names_attr]),
            (sel_splitN, sel_split_thms, []),
            (sel_split_asmN, sel_split_asm_thms, []),
@@ -895,7 +895,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
 
-        val notes' =
+        val anonymous_notes =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
@@ -915,7 +915,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
             (Local_Theory.declaration {syntax = false, pervasive = true}
                (fn phi => Case_Translation.register
                   (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
-         |> Local_Theory.notes (notes' @ notes) |> snd
+         |> Local_Theory.notes (anonymous_notes @ notes) |> snd
          |> register_ctr_sugar fcT_name ctr_sugar)
       end;
   in

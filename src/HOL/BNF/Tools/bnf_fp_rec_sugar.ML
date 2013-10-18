@@ -39,10 +39,10 @@ val ctrN = "ctr";
 val discN = "disc";
 val selN = "sel";
 
-val nitpick_attrs = @{attributes [nitpick_simp]};
+val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
-val code_nitpick_attrs = Code.add_default_eqn_attrib :: nitpick_attrs;
-val code_nitpick_simp_attrs = Code.add_default_eqn_attrib :: nitpick_attrs @ simp_attrs;
+val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
+val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
 exception Primrec_Error of string * term list;
 
@@ -407,7 +407,7 @@ fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_
           val (bs, attrss) = map_split (fst o nth specs) poss;
           val notes =
             map3 (fn b => fn attrs => fn thm =>
-              ((Binding.qualify false prefix b, code_nitpick_simp_attrs @ attrs), [([thm], [])]))
+              ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs), [([thm], [])]))
             bs attrss thms;
         in
           ((Binding.qualify true prefix (Binding.name simpsN), []), [(thms, [])]) :: notes
@@ -1039,7 +1039,7 @@ handle ERROR s => (warning s; []) (*###*)
 
         val notes =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, []),
-           (codeN, code_thmss, code_nitpick_attrs),
+           (codeN, code_thmss, code_nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (selN, sel_thmss, simp_attrs),

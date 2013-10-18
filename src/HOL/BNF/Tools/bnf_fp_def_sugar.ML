@@ -207,8 +207,8 @@ fun quasi_unambiguous_case_names names =
 val id_def = @{thm id_def};
 val mp_conj = @{thm mp_conj};
 
-val nitpick_attrs = @{attributes [nitpick_simp]};
-val code_nitpick_simp_attrs = Code.add_default_eqn_attrib :: nitpick_attrs;
+val nitpicksimp_attrs = @{attributes [nitpick_simp]};
+val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val simp_attrs = @{attributes [simp]};
 
 fun tvar_subst thy Ts Us =
@@ -763,7 +763,7 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
     val rec_thmss = mk_iter_thmss rec_args_types recs rec_defs (map co_rec_of ctor_iter_thmss);
   in
     ((induct_thms, induct_thm, [induct_case_names_attr]),
-     (fold_thmss, rec_thmss, code_nitpick_simp_attrs @ simp_attrs))
+     (fold_thmss, rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
@@ -1024,7 +1024,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
   in
     ((coinduct_thms_pairs, coinduct_case_attrs),
-     (unfold_thmss, corec_thmss, code_nitpick_simp_attrs),
+     (unfold_thmss, corec_thmss, code_nitpicksimp_attrs),
      (disc_unfold_thmss, disc_corec_thmss, []),
      (disc_unfold_iff_thmss, disc_corec_iff_thmss, simp_attrs),
      (sel_unfold_thmsss, sel_corec_thmsss, simp_attrs))
@@ -1380,15 +1380,22 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val (rel_distinct_thms, _) =
                 join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
+              val anonymous_notes =
+                [(map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms,
+                  code_nitpicksimp_attrs),
+                 (map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
+                    rel_inject_thms ms, code_nitpicksimp_attrs)]
+                |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
               val notes =
-                [(mapN, map_thms, code_nitpick_simp_attrs @ simp_attrs),
-                 (rel_distinctN, rel_distinct_thms, code_nitpick_simp_attrs @ simp_attrs),
-                 (rel_injectN, rel_inject_thms, code_nitpick_simp_attrs @ simp_attrs),
-                 (setN, flat set_thmss, code_nitpick_simp_attrs @ simp_attrs)]
+                [(mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
+                 (rel_distinctN, rel_distinct_thms, simp_attrs),
+                 (rel_injectN, rel_inject_thms, simp_attrs),
+                 (setN, flat set_thmss, code_nitpicksimp_attrs @ simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
-               lthy |> Local_Theory.notes notes |> snd)
+               lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
             end;
 
         fun mk_binding suf = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
