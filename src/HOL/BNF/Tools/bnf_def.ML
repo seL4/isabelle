@@ -633,7 +633,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
         | T => err T)
       else (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
 
-    val def_qualify = Binding.qualify false (Binding.name_of bnf_b);
+    val def_qualify = Binding.conceal o Binding.qualify false (Binding.name_of bnf_b);
 
     fun mk_suffix_binding suf = Binding.suffix_name ("_" ^ suf) bnf_b;
 
