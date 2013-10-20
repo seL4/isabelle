@@ -1040,22 +1040,37 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               let
                 val rhs = the maybe_rhs';
                 val bound_Ts = List.rev (map fastype_of fun_args);
-                val ctr_thms = map snd ctr_alist;
-                val ms = map (Logic.count_prems o prop_of) ctr_thms;
-                val t = HOLogic.mk_eq (lhs, rhs)
-                  |> HOLogic.mk_Trueprop
-                  |> curry Logic.list_all (map dest_Free fun_args);
-                val (distincts, discIs, sel_splits, sel_split_asms) =
-                  case_thms_of_term lthy bound_Ts rhs;
-val _ = tracing ("code equation: " ^ Syntax.string_of_term lthy t);
+                val (raw_rhs, ctr_thms) =
+                  if is_some maybe_rhs then
+                    let
+                      val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
+                      val cond_ctrs =
+                        fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
+                      val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
+                    in (raw_rhs, ctr_thms) end
+                  else
+                    (rhs, map snd ctr_alist);
 
-                val code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
+                val ms = map (Logic.count_prems o prop_of) ctr_thms;
+                val (raw_t, t) = (raw_rhs, rhs)
+                  |> pairself
+                    (curry HOLogic.mk_eq (list_comb (Free (fun_name, fun_T),
+                      map Bound (length fun_args - 1 downto 0)))
+                    #> HOLogic.mk_Trueprop
+                    #> curry Logic.list_all (map dest_Free fun_args));
+                val (distincts, discIs, sel_splits, sel_split_asms) =
+                  case_thms_of_term lthy bound_Ts raw_rhs;
+
+                val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
                     sel_split_asms ms ctr_thms
-                  |> K |> Goal.prove lthy [] [] t;
-val _ = tracing ("code theorem: " ^ Syntax.string_of_term lthy (prop_of code_thm));
-               in
-                 [code_thm]
-               end
+                  |> K |> Goal.prove lthy [] [] raw_t;
+val _ = tracing ("raw code theorem: " ^ Syntax.string_of_term lthy (prop_of raw_code_thm));
+              in
+                mk_primcorec_code_of_raw_code_tac lthy sel_splits raw_code_thm
+                |> K |> Goal.prove lthy [] [] t
+|> tap (tracing o curry (op ^) "code theorem: " o Syntax.string_of_term lthy o prop_of)
+                |> single
+              end
 handle ERROR s => (warning s; []) (*###*)
            end;
 
