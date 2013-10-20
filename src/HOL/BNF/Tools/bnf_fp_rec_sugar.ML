@@ -1068,7 +1068,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                   |> K |> Goal.prove lthy [] [] raw_t;
 val _ = tracing ("raw code theorem: " ^ Syntax.string_of_term lthy (prop_of raw_code_thm));
               in
-                mk_primcorec_code_of_raw_code_tac lthy sel_splits raw_code_thm
+                mk_primcorec_code_of_raw_code_tac lthy distincts sel_splits raw_code_thm
                 |> K |> Goal.prove lthy [] [] t
 |> tap (tracing o curry (op ^) "code theorem: " o Syntax.string_of_term lthy o prop_of)
                 |> single
