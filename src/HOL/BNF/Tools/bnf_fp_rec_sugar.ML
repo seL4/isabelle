@@ -176,22 +176,22 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
             subst bound_Ts g' $ subst bound_Ts y
           else
             let
-              val maybe_mutual_y' = AList.lookup (op =) mutual_calls y;
-              val maybe_nested_y_head' = AList.lookup (op =) nested_calls y_head;
               val (g, g_args) = strip_comb g';
               val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
               val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
                 primrec_error_eqn "too few arguments in recursive call" t;
             in
-              if is_some maybe_nested_y_head' then
+              (case AList.lookup (op =) nested_calls y_head of
+                SOME y_head' =>
                 massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y_head
-                  (the maybe_nested_y_head') t
-              else if ctr_pos >= 0 then
-                (case maybe_mutual_y' of
-                  NONE => t
-                | SOME y' => list_comb (y', g_args))
-              else
-                t
+                  y_head' t
+              | NONE =>
+                if ctr_pos >= 0 then
+                  (case AList.lookup (op =) mutual_calls y of
+                    NONE => t
+                  | SOME y' => list_comb (y', g_args))
+                else
+                  t)
             end
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
