@@ -81,7 +81,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms maps map_idents m
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt
-      (@{thms id_apply o_def split_def sum.cases} @ maps @ map_comps @ map_idents)))));
+      (@{thms id_def o_def split_def sum.cases} @ maps @ map_comps @ map_idents)))));
 
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
   HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
