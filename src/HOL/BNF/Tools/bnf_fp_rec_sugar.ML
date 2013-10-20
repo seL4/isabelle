@@ -170,15 +170,18 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
 
 fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls t =
   let
+    fun try_nested_rec bound_Ts y t =
+      AList.lookup (op =) nested_calls y
+      |> Option.map (fn y' =>
+        massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y y' t);
+
     fun subst bound_Ts (t as g' $ y) =
         let val y_head = head_of y in
           if not (member (op =) ctr_args y_head) then
             subst bound_Ts g' $ subst bound_Ts y
           else
-            (case AList.lookup (op =) nested_calls y_head of
-              SOME y_head' =>
-              massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y_head
-                y_head' t
+            (case try_nested_rec bound_Ts y_head t of
+              SOME t' => t'
             | NONE =>
               let val (g, g_args) = strip_comb g' in
                 (case try (get_ctr_pos o the) (free_name g) of
