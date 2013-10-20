@@ -175,24 +175,21 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
           if not (member (op =) ctr_args y_head) then
             subst bound_Ts g' $ subst bound_Ts y
           else
-            let
-              val (g, g_args) = strip_comb g';
-              val ctr_pos = try (get_ctr_pos o the) (free_name g) |> the_default ~1;
-              val _ = ctr_pos < 0 orelse length g_args >= ctr_pos orelse
-                primrec_error_eqn "too few arguments in recursive call" t;
-            in
-              (case AList.lookup (op =) nested_calls y_head of
-                SOME y_head' =>
-                massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y_head
-                  y_head' t
-              | NONE =>
-                if ctr_pos >= 0 then
-                  (case AList.lookup (op =) mutual_calls y of
-                    NONE => t
-                  | SOME y' => list_comb (y', g_args))
-                else
-                  t)
-            end
+            (case AList.lookup (op =) nested_calls y_head of
+              SOME y_head' =>
+              massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y_head
+                y_head' t
+            | NONE =>
+              let val (g, g_args) = strip_comb g' in
+                (case try (get_ctr_pos o the) (free_name g) of
+                  SOME ctr_pos =>
+                  (length g_args >= ctr_pos orelse
+                   primrec_error_eqn "too few arguments in recursive call" t;
+                   (case AList.lookup (op =) mutual_calls y of
+                     SOME y' => list_comb (y', g_args)
+                   | NONE => t))
+                | NONE => t)
+              end)
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
       | subst _ t = t
