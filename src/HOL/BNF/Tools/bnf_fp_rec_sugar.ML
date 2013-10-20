@@ -168,7 +168,7 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
     subst (SOME ~1)
   end;
 
-fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls t =
+fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls =
   let
     fun try_nested_rec bound_Ts y t =
       AList.lookup (op =) nested_calls y
@@ -176,9 +176,12 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
         massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y y' t);
 
     fun subst bound_Ts (t as g' $ y) =
-        let val y_head = head_of y in
+        let
+          fun subst_rec () = subst bound_Ts g' $ subst bound_Ts y;
+          val y_head = head_of y;
+        in
           if not (member (op =) ctr_args y_head) then
-            subst bound_Ts g' $ subst bound_Ts y
+            subst_rec ()
           else
             (case try_nested_rec bound_Ts y_head t of
               SOME t' => t'
@@ -190,16 +193,21 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
                    primrec_error_eqn "too few arguments in recursive call" t;
                    (case AList.lookup (op =) mutual_calls y of
                      SOME y' => list_comb (y', g_args)
-                   | NONE => t))
-                | NONE => t)
+                   | NONE => subst_rec ()))
+                | NONE => subst_rec ())
               end)
         end
       | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
       | subst _ t = t
+
+    fun subst' t =
+      if has_call t then
+        (* FIXME detect this case earlier? *)
+        primrec_error_eqn "recursive call not directly applied to constructor argument" t
+      else
+        try_nested_rec [] (head_of t) t |> the_default t
   in
-    subst [] t
-    |> tap (fn u => has_call u andalso (* FIXME detect this case earlier *)
-      primrec_error_eqn "recursive call not directly applied to constructor argument" t)
+    subst' o subst []
   end;
 
 fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)

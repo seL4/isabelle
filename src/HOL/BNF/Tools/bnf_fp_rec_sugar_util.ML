@@ -274,17 +274,20 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
         handle AINT_NO_MAP _ => massage_mutual_fun U T t;
 
     fun massage_call (t as t1 $ t2) =
-        if t2 = y then
-          massage_map yU yT (elim_y t1) $ y'
-          handle AINT_NO_MAP t' => invalid_map ctxt t'
+        if has_call t then
+          if t2 = y then
+            massage_map yU yT (elim_y t1) $ y'
+            handle AINT_NO_MAP t' => invalid_map ctxt t'
+          else
+            let val (g, xs) = Term.strip_comb t2 in
+              if g = y then
+                if exists has_call xs then unexpected_rec_call ctxt t2
+                else Term.list_comb (massage_call (mk_compN bound_Ts (length xs) (t1, y)), xs)
+              else
+                ill_formed_rec_call ctxt t
+            end
         else
-          let val (g, xs) = Term.strip_comb t2 in
-            if g = y then
-              if exists has_call xs then unexpected_rec_call ctxt t2
-              else Term.list_comb (massage_call (mk_compN bound_Ts (length xs) (t1, y)), xs)
-            else
-              ill_formed_rec_call ctxt t
-          end
+          elim_y t
       | massage_call t = if t = y then y_of_y' () else ill_formed_rec_call ctxt t;
   in
     massage_call
