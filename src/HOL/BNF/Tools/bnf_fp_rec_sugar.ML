@@ -1008,49 +1008,51 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, NONE))
               |> the o merge_options;
 
-            val lhs = list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
-            val maybe_rhs' = if is_some maybe_rhs then maybe_rhs else
-              let
-                fun prove_code_ctr {ctr, sels, ...} =
-                  if not (exists (equal ctr o fst) ctr_alist) then NONE else
-                    let
-                      val prems = find_first (equal ctr o #ctr) disc_eqns
-                        |> Option.map #prems |> the_default [];
-                      val t =
-                        filter (equal ctr o #ctr) sel_eqns
-                        |> fst o finds ((op =) o apsnd #sel) sels
-                        |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
-                        |> curry list_comb ctr;
-                    in
-                      SOME (prems, t)
-                    end;
-                val maybe_ctr_conds_argss = map prove_code_ctr ctr_specs;
-              in
-                if exists is_none maybe_ctr_conds_argss then NONE else
-                  fold_rev (fn SOME (prems, u) => fn t => mk_If (s_conjs prems) u t)
-                    maybe_ctr_conds_argss
-                    (Const (@{const_name Code.abort}, @{typ String.literal} -->
-                        (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
-                      @{term "STR []"} $ (* FIXME *)
-                      absdummy @{typ unit} (incr_boundvars 1 lhs))
-                  |> SOME
-              end;
-          in
-            if is_none maybe_rhs' then [] else
-              let
-                val rhs = the maybe_rhs';
-                val bound_Ts = List.rev (map fastype_of fun_args);
-                val (raw_rhs, ctr_thms) =
-                  if is_some maybe_rhs then
-                    let
-                      val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
-                      val cond_ctrs =
-                        fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
-                      val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
-                    in (raw_rhs, ctr_thms) end
-                  else
-                    (rhs, map snd ctr_alist);
+            val bound_Ts = List.rev (map fastype_of fun_args);
 
+            val lhs = list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
+            val maybe_rhs_info =
+              (case maybe_rhs of
+                SOME rhs =>
+                let
+                  val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
+                  val cond_ctrs =
+                    fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
+                  val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
+                in SOME (rhs, raw_rhs, ctr_thms) end
+              | NONE =>
+                let
+                  fun prove_code_ctr {ctr, sels, ...} =
+                    if not (exists (equal ctr o fst) ctr_alist) then NONE else
+                      let
+                        val prems = find_first (equal ctr o #ctr) disc_eqns
+                          |> Option.map #prems |> the_default [];
+                        val t =
+                          filter (equal ctr o #ctr) sel_eqns
+                          |> fst o finds ((op =) o apsnd #sel) sels
+                          |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x))
+                            #-> abstract)
+                          |> curry list_comb ctr;
+                      in
+                        SOME (prems, t)
+                      end;
+                  val maybe_ctr_conds_argss = map prove_code_ctr ctr_specs;
+                in
+                  if exists is_none maybe_ctr_conds_argss then NONE else
+                    let
+                      val rhs = fold_rev (fn SOME (prems, u) => fn t => mk_If (s_conjs prems) u t)
+                        maybe_ctr_conds_argss
+                        (Const (@{const_name Code.abort}, @{typ String.literal} -->
+                            (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
+                          @{term "STR []"} $ (* FIXME *)
+                          absdummy @{typ unit} (incr_boundvars 1 lhs));
+                    in SOME (rhs, rhs, map snd ctr_alist) end
+                end);
+          in
+            (case maybe_rhs_info of
+              NONE => []
+            | SOME (rhs, raw_rhs, ctr_thms) =>
+              let
                 val ms = map (Logic.count_prems o prop_of) ctr_thms;
                 val (raw_t, t) = (raw_rhs, rhs)
                   |> pairself
@@ -1070,9 +1072,9 @@ val _ = tracing ("raw code theorem: " ^ Syntax.string_of_term lthy (prop_of raw_
                 |> K |> Goal.prove lthy [] [] t
 |> tap (tracing o curry (op ^) "code theorem: " o Syntax.string_of_term lthy o prop_of)
                 |> single
-              end
+              end)
 handle ERROR s => (warning s; []) (*###*)
-           end;
+          end;
 
         val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;
