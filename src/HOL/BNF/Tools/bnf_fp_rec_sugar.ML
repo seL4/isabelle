@@ -832,7 +832,7 @@ fun find_corec_calls has_call basic_ctr_specs {ctr, sel, rhs_term, ...} =
     |> K |> nth_map sel_no |> AList.map_entry (op =) ctr
   end;
 
-fun add_primcorec simple seq fixes specs of_specs lthy =
+fun add_primcorec_ursive maybe_tac seq fixes specs of_specs lthy =
   let
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> HOLogic.mk_tupleT) fixes |> split_list;
@@ -884,12 +884,8 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     fun excl_tac (c, c', a) =
-      if a orelse c = c' orelse seq then
-        SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
-      else if simple then
-        SOME (K (auto_tac lthy))
-      else
-        NONE;
+      if a orelse c = c' orelse seq then SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
+      else maybe_tac;
 
 (*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
@@ -897,9 +893,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 *)
 
     val exclss'' = exclss' |> map (map (fn (idx, t) =>
-      (idx, (Option.map (Goal.prove lthy [] [] t |> Thm.close_derivation) (excl_tac idx), t))));
+      (idx, (Option.map (Goal.prove lthy [] [] t #> Thm.close_derivation) (excl_tac idx), t))));
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
-    val (obligation_idxss, obligationss) = exclss''
+    val (obligation_idxss, goalss) = exclss''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
@@ -1119,28 +1115,16 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       end;
 
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
-
-    val _ = if not simple orelse forall null obligationss then () else
-      primrec_error "need exclusiveness proofs - use primcorecursive instead of primcorec";
   in
-    if simple then
-      lthy'
-      |> after_qed (map (fn [] => []) obligationss)
-      |> pair NONE o SOME
-    else
-      lthy'
-      |> Proof.theorem NONE after_qed obligationss
-      |> Proof.refine (Method.primitive_text I)
-      |> Seq.hd
-      |> rpair NONE o SOME
+    (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd simple seq (raw_fixes, raw_specs') lthy =
+fun add_primcorec_ursive_cmd maybe_tac seq (raw_fixes, raw_specs') lthy =
   let
     val (raw_specs, of_specs) = split_list raw_specs' ||> map (Option.map (Syntax.read_term lthy));
     val ((fixes, specs), _) = Specification.read_spec raw_fixes raw_specs lthy;
   in
-    add_primcorec simple seq fixes specs of_specs lthy
+    add_primcorec_ursive maybe_tac seq fixes specs of_specs lthy
     handle ERROR str => primrec_error str
   end
   handle Primrec_Error (str, eqns) =>
@@ -1149,7 +1133,16 @@ fun add_primcorec_ursive_cmd simple seq (raw_fixes, raw_specs') lthy =
     else error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
       space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
-val add_primcorecursive_cmd = (the o fst) ooo add_primcorec_ursive_cmd false;
-val add_primcorec_cmd = (the o snd) ooo add_primcorec_ursive_cmd true;
+val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
+  lthy
+  |> Proof.theorem NONE after_qed goalss
+  |> Proof.refine (Method.primitive_text I)
+  |> Seq.hd) ooo add_primcorec_ursive_cmd NONE;
+
+val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
+  lthy
+  |> after_qed (map (fn [] => []
+      | _ => primrec_error "need exclusiveness proofs - use primcorecursive instead of primcorec")
+    goalss)) ooo add_primcorec_ursive_cmd (SOME (fn {context = ctxt, ...} => auto_tac ctxt));
 
 end;
