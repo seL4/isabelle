@@ -1120,22 +1120,41 @@ recursion is possible. Notably, the map function for the function type
 (@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
 *}
 
-    primrec_new (*<*)(in early) (*>*)ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
-      "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
-      "ftree_map f (FTNode g) = FTNode (ftree_map f \<circ> g)"
+    primrec_new (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+      "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
+      "relabel_ft f (FTNode g) = FTNode (relabel_ft f \<circ> g)"
 
 text {*
 \noindent
-(No such map function is defined by the package because the type
-variable @{typ 'a} is dead in @{typ "'a ftree"}.)
 For convenience, recursion through functions can also be expressed using
-$\lambda$-expressions and function application rather than through composition.
+$\lambda$-abstractions and function application rather than through composition.
 For example:
 *}
 
-    primrec_new ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
-      "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
-      "ftree_map f (FTNode g) = FTNode (\<lambda>x. ftree_map f (g x))"
+    primrec_new relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+      "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
+      "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
+
+text {*
+\noindent
+For recursion through curried $n$-ary functions, $n$ applications of
+@{term "op \<circ>"} are necessary. The examples below illustrate the case where
+$n = 2$:
+*}
+
+    datatype_new 'a ftree2 = FTLeaf2 'a | FTNode2 "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2"
+
+text {* \blankline *}
+
+    primrec_new (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
+      "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
+
+text {* \blankline *}
+
+    primrec_new relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+      "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
+      "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
 
 
 subsubsection {* Nested-as-Mutual Recursion
@@ -1658,11 +1677,6 @@ view is favored in the examples below. Sections
 present the same examples expressed using the constructor and destructor views.
 *}
 
-(*<*)
-    locale code_view
-    begin
-(*>*)
-
 subsubsection {* Simple Corecursion
   \label{sssec:primcorec-simple-corecursion} *}
 
@@ -1819,20 +1833,20 @@ function translates a DFA into a @{type state_machine}:
     primcorec
       (*<*)(in early) (*>*)sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
     where
-      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F o \<delta> q)"
+      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F \<circ> \<delta> q)"
 
 text {*
 \noindent
 The map function for the function type (@{text \<Rightarrow>}) is composition
 (@{text "op \<circ>"}). For convenience, corecursion through functions can
-also be expressed using $\lambda$-expressions and function application rather
+also be expressed using $\lambda$-abstractions and function application rather
 than through composition. For example:
 *}
 
     primcorec
       sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
     where
-      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F o \<delta> q)"
+      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (\<lambda>a. sm_of_dfa \<delta> F (\<delta> q a))"
 
 text {* \blankline *}
 
@@ -1851,6 +1865,30 @@ text {* \blankline *}
     where
       "or_sm M N = State_Machine (accept M \<or> accept N)
          (\<lambda>a. or_sm (trans M a) (trans N a))"
+
+text {*
+\noindent
+For recursion through curried $n$-ary functions, $n$ applications of
+@{term "op \<circ>"} are necessary. The examples below illustrate the case where
+$n = 2$:
+*}
+
+    codatatype ('a, 'b) state_machine2 =
+      State_Machine2 (accept2: bool) (trans2: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) state_machine2")
+
+text {* \blankline *}
+
+    primcorec
+      (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) state_machine2"
+    where
+      "sm2_of_dfa \<delta> F q = State_Machine2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
+
+text {* \blankline *}
+
+    primcorec
+      sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) state_machine2"
+    where
+      "sm2_of_dfa \<delta> F q = State_Machine2 (q \<in> F) (\<lambda>a b. sm2_of_dfa \<delta> F (\<delta> q a b))"
 
 
 subsubsection {* Nested-as-Mutual Corecursion
@@ -1872,16 +1910,13 @@ pretend that nested codatatypes are mutually corecursive. For example:
          (case xs of
             LNil \<Rightarrow> LNil
           | LCons x xs' \<Rightarrow> LCons (iterate\<^sub>i\<^sub>i g x) (iterates\<^sub>i\<^sub>i g xs'))"
-(*<*)
-    end
-(*>*)
 
 
 subsubsection {* Constructor View
   \label{ssec:primrec-constructor-view} *}
 
 (*<*)
-    locale ctr_view = code_view
+    locale ctr_view
     begin
 (*>*)
 
@@ -1952,7 +1987,7 @@ subsubsection {* Destructor View
   \label{ssec:primrec-destructor-view} *}
 
 (*<*)
-    locale dest_view
+    locale dtr_view
     begin
 (*>*)
 
@@ -2008,6 +2043,9 @@ constructor should be taken otherwise. This can be made explicit by adding
 (*<*)
     end
 
+    locale dtr_view2
+    begin
+
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
 (*>*)
@@ -2015,8 +2053,6 @@ constructor should be taken otherwise. This can be made explicit by adding
 (*<*) |
       "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
       "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
-
-    context dest_view begin
 (*>*)
 
 text {*
