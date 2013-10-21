@@ -1128,20 +1128,14 @@ text {*
 \noindent
 (No such map function is defined by the package because the type
 variable @{typ 'a} is dead in @{typ "'a ftree"}.)
-
-Using \keyw{fun} or \keyw{function}, recursion through functions can be
-expressed using $\lambda$-expressions and function application rather
-than through composition. For example:
+For convenience, recursion through functions can also be expressed using
+$\lambda$-expressions and function application rather than through composition.
+For example:
 *}
 
-    datatype_new_compat ftree
-
-text {* \blankline *}
-
-    function ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec_new ftree_map :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "ftree_map f (FTLeaf x) = FTLeaf (f x)" |
       "ftree_map f (FTNode g) = FTNode (\<lambda>x. ftree_map f (g x))"
-    by auto (metis ftree.exhaust)
 
 
 subsubsection {* Nested-as-Mutual Recursion
@@ -1830,8 +1824,8 @@ function translates a DFA into a @{type state_machine}:
 text {*
 \noindent
 The map function for the function type (@{text \<Rightarrow>}) is composition
-(@{text "op \<circ>"}). For convenience, corecursion through functions can be
-expressed using $\lambda$-expressions and function application rather
+(@{text "op \<circ>"}). For convenience, corecursion through functions can
+also be expressed using $\lambda$-expressions and function application rather
 than through composition. For example:
 *}
 
