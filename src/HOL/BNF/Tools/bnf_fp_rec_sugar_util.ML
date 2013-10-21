@@ -69,6 +69,8 @@ sig
     typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> typ list -> typ -> term -> term
+  val fold_rev_corec_call:  Proof.context -> (term list -> term -> 'a -> 'a) -> typ list -> term ->
+    'a -> string list * 'a
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
     typ list -> term -> term
@@ -470,6 +472,8 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   in
     if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
   end;
+
+val fold_rev_corec_call = fold_rev_let_if_case;
 
 fun expand_to_ctr_term ctxt s Ts t =
   (case ctr_sugar_of ctxt s of
