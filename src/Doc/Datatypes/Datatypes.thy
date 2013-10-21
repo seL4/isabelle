@@ -936,9 +936,9 @@ section {* Defining Recursive Functions
   \label{sec:defining-recursive-functions} *}
 
 text {*
-Recursive functions over datatypes can be specified using @{command
-primrec_new}, which supports primitive recursion, or using the more general
-\keyw{fun} and \keyw{function} commands. Here, the focus is on @{command
+Recursive functions over datatypes can be specified using the @{command
+primrec_new} command, which supports primitive recursion, or using the more
+general \keyw{fun} and \keyw{function} commands. Here, the focus is on @{command
 primrec_new}; the other two commands are described in a separate tutorial
 \cite{isabelle-function}.
 
@@ -1135,6 +1135,11 @@ For example:
       "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
       "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
 
+text {* \blankline *}
+
+    primrec_new subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+      "subtree_ft x (FTNode g) = g x"
+
 text {*
 \noindent
 For recursion through curried $n$-ary functions, $n$ applications of
@@ -1155,6 +1160,11 @@ text {* \blankline *}
     primrec_new relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
       "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
+
+text {* \blankline *}
+
+    primrec_new subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+      "subtree_ft2 x y (FTNode2 g) = g x y"
 
 
 subsubsection {* Nested-as-Mutual Recursion
@@ -1615,10 +1625,10 @@ section {* Defining Corecursive Functions
   \label{sec:defining-corecursive-functions} *}
 
 text {*
-Corecursive functions can be specified using @{command primcorec} and
-@{command primcorecursive}, which support primitive corecursion, or using the
-more general \keyw{partial\_function} command. Here, the focus is on
-the former two. More examples can be found in the directory
+Corecursive functions can be specified using the @{command primcorec} and
+\keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
+using the more general \keyw{partial\_function} command. Here, the focus is on
+the first two. More examples can be found in the directory
 \verb|~~/src/HOL/BNF/Examples|.
 
 Whereas recursive functions consume datatypes one constructor at a time,
@@ -1639,7 +1649,7 @@ equations of the form
 This style is popular in the coalgebraic literature.
 
 \item The \emph{constructor view} specifies $f$ by equations of the form
-\[@{text "\<dots> \<Longrightarrow> f x\<^sub>1 \<dots> x\<^sub>n = C \<dots>"}\]
+\[@{text "\<dots> \<Longrightarrow> f x\<^sub>1 \<dots> x\<^sub>n = C\<^sub>j \<dots>"}\]
 This style is often more concise than the previous one.
 
 \item The \emph{code view} specifies $f$ by a single equation of the form
@@ -1651,14 +1661,6 @@ style.
 
 All three styles are available as input syntax. Whichever syntax is chosen,
 characteristic theorems for all three styles are generated.
-
-\begin{framed}
-\noindent
-\textbf{Warning:}\enskip The @{command primcorec} and @{command primcorecursive}
-commands are under development. Some of the functionality described here is
-vaporware. An alternative is to define corecursive functions directly using the
-generated @{text t_unfold} or @{text t_corec} combinators.
-\end{framed}
 
 %%% TODO: partial_function? E.g. for defining tail recursive function on lazy
 %%% lists (cf. terminal0 in TLList.thy)
