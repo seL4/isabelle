@@ -863,6 +863,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
     val actual_nn = length bs;
     val corec_specs = take actual_nn corec_specs'; (*###*)
+    val ctr_specss = map #ctr_specs corec_specs;
 
     val disc_eqnss' = map_filter (try (fn Disc x => x)) eqns_data
       |> partition_eq ((op =) o pairself #fun_name)
@@ -999,7 +1000,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code disc_eqns sel_eqns ctr_alist {ctr_specs, ...} =
+        fun prove_code disc_eqns sel_eqns ctr_alist ctr_specs =
           let
             val (fun_name, fun_T, fun_args, maybe_rhs) =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
@@ -1044,7 +1045,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                         maybe_ctr_conds_argss
                         (Const (@{const_name Code.abort}, @{typ String.literal} -->
                             (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
-                          @{term "STR []"} $ (* FIXME *)
+                          HOLogic.mk_literal fun_name $
                           absdummy @{typ unit} (incr_boundvars 1 lhs));
                     in SOME (rhs, rhs, map snd ctr_alist) end
                 end);
@@ -1081,10 +1082,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val sel_thmss = map (map snd) sel_alists;
 
         val ctr_alists = map5 (maps oooo prove_ctr) disc_alists sel_alists disc_eqnss sel_eqnss
-          (map #ctr_specs corec_specs);
+          ctr_specss;
         val ctr_thmss = map (map snd) ctr_alists;
 
-        val code_thmss = map4 prove_code disc_eqnss sel_eqnss ctr_alists corec_specs;
+        val code_thmss = map4 prove_code disc_eqnss sel_eqnss ctr_alists ctr_specss;
 
         val simp_thmss = map2 append disc_thmss sel_thmss
 
