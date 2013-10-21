@@ -577,6 +577,10 @@ recursor theorems are generated under their usual names but with ``@{text
 or the function type. In principle, it should be possible to support old-style
 datatypes as well, but the command does not support this yet (and there is
 currently no way to register old-style datatypes as new-style datatypes).
+
+\item The recursor produced for types that recurse through functions has a
+different signature than with the old package. This makes it impossible to use
+the old \keyw{primrec} command.
 \end{itemize}
 
 An alternative to @{command datatype_new_compat} is to use the old package's
@@ -1022,9 +1026,10 @@ text {* \blankline *}
 
 text {*
 \noindent
-The next example is not primitive recursive, but it can be defined easily using
-\keyw{fun}. The @{command datatype_new_compat} command is needed to register
-new-style datatypes for use with \keyw{fun} and \keyw{function}
+The next example is defined using \keyw{fun} to escape the syntactic
+restrictions imposed on primitive recursive functions. The
+@{command datatype_new_compat} command is needed to register new-style datatypes
+for use with \keyw{fun} and \keyw{function}
 (Section~\ref{sssec:datatype-new-compat}):
 *}
 
