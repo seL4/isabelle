@@ -140,15 +140,15 @@ datatype_new} and @{command codatatype}.
 
 
 \newbox\boxA
-\setbox\boxA=\hbox{\texttt{nospam}}
+\setbox\boxA=\hbox{\texttt{NOSPAM}}
 
-\newcommand\authoremaili{\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+\newcommand\authoremaili{\texttt{blan{\color{white}NOSPAM}\kern-\wd\boxA{}chette@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
-\newcommand\authoremailii{\texttt{lore{\color{white}nospam}\kern-\wd\boxA{}nz.panny@\allowbreak
+\newcommand\authoremailii{\texttt{lore{\color{white}NOSPAM}\kern-\wd\boxA{}nz.panny@\allowbreak
 \allowbreak tum.\allowbreak de}}
-\newcommand\authoremailiii{\texttt{pope{\color{white}nospam}\kern-\wd\boxA{}scua@\allowbreak
+\newcommand\authoremailiii{\texttt{pope{\color{white}NOSPAM}\kern-\wd\boxA{}scua@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
-\newcommand\authoremailiv{\texttt{tray{\color{white}nospam}\kern-\wd\boxA{}tel@\allowbreak
+\newcommand\authoremailiv{\texttt{tray{\color{white}NOSPAM}\kern-\wd\boxA{}tel@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
 
 The commands @{command datatype_new} and @{command primrec_new} are expected to
@@ -159,13 +159,6 @@ theories may want to consider upgrading.
 Comments and bug reports concerning either the tool or this tutorial should be
 directed to the authors at \authoremaili, \authoremailii, \authoremailiii,
 and \authoremailiv.
-
-\begin{framed}
-\noindent
-\textbf{Warning:}\enskip This tutorial and the package it describes are under
-construction. Please forgive their appearance. Should you have suggestions
-or comments regarding either, please let the authors know.
-\end{framed}
 *}
 
 
@@ -183,7 +176,7 @@ subsection {* Introductory Examples
 text {*
 Datatypes are illustrated through concrete examples featuring different flavors
 of recursion. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|.
+\verb|~~/src/HOL/|\allowbreak\verb|BNF/Examples|.
 *}
 
 subsubsection {* Nonrecursive Types
@@ -890,11 +883,12 @@ is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
 \item \emph{The recursor @{text "t_rec"} has a different signature for nested
-recursive datatypes.} In the old package, nested recursion was internally
-reduced to mutual recursion. This reduction was visible in the type of the
-recursor, used by \keyw{primrec}. In the new package, nested recursion is
-handled in a more modular fashion. The old-style recursor can be generated on
-demand using @{command primrec_new}, as explained in
+recursive datatypes.} In the old package, nested recursion through non-functions
+was internally reduced to mutual recursion. This reduction was visible in the
+type of the recursor, used by \keyw{primrec}. Recursion through functions was
+handled specially. In the new package, nested recursion (for functions and
+non-functions) is handled in a more modular fashion. The old-style recursor can
+be generated on demand using @{command primrec_new}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
@@ -1364,7 +1358,7 @@ one incompatibility that may arise when porting to the new package:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \emph{Theorems sometimes have different names.}
+\item \emph{Some theorems have different names.}
 For $m > 1$ mutually recursive functions,
 @{text "f\<^sub>1_\<dots>_f\<^sub>m.simps"} has been broken down into separate
 subcollections @{text "f\<^sub>i.simps"}.
