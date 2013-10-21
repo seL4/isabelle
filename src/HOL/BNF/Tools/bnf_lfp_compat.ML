@@ -57,8 +57,10 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val fpTs as fpT1 :: _ = map (fn s => Type (s, As)) fpT_names';
 
     fun add_nested_types_of (T as Type (s, _)) seen =
-      if member (op =) seen T orelse s = @{type_name fun} then
+      if member (op =) seen T then
         seen
+      else if s = @{type_name fun} then
+        (warning "Partial support for recursion through functions -- 'primrec' will fail"; seen)
       else
         (case try lfp_sugar_of s of
           SOME ({T = T0, fp_res = {Ts = mutual_Ts0, ...}, ctr_sugars, ...}) =>
