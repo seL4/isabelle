@@ -896,7 +896,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
     val exclss'' = exclss' |> map (map (fn (idx, t) =>
       (idx, (Option.map (Goal.prove lthy [] [] t #> Thm.close_derivation) (excl_tac idx), t))));
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
-    val (obligation_idxss, goalss) = exclss''
+    val (goal_idxss, goalss) = exclss''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
@@ -904,7 +904,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val exclss' = map (op ~~) (obligation_idxss ~~ thmss');
+        val exclss' = map (op ~~) (goal_idxss ~~ thmss');
         fun mk_exclsss excls n =
           (excls, map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1))
           |-> fold (fn ((c, c', _), thm) => nth_map c (nth_map c' (K [thm])));

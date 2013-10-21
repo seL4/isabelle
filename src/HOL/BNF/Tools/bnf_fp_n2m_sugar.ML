@@ -37,8 +37,8 @@ val n2mN = "n2m_"
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
-fun mutualize_fp_sugars mutualize fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
-  if mutualize orelse has_duplicates (op =) fpTs then
+fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
+  if has_nested orelse has_duplicates (op =) fpTs then
     let
       val thy = Proof_Context.theory_of no_defs_lthy0;
 
@@ -251,13 +251,13 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val perm_kks = permute kks;
     val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
 
-    val mutualize = exists (fn Type (_, ty_args) => ty_args <> ty_args0) Ts;
+    val has_nested = exists (fn Type (_, ty_args) => ty_args <> ty_args0) Ts;
     val perm_callssss = pad_and_indexify_calls perm_fp_sugars0 nn actual_callssss0;
 
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
-      mutualize_fp_sugars mutualize fp perm_bs perm_Ts get_perm_indices perm_callssss
+      mutualize_fp_sugars has_nested fp perm_bs perm_Ts get_perm_indices perm_callssss
         perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
