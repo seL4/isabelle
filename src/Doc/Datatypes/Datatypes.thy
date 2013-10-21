@@ -41,13 +41,14 @@ Another strong point is the support for local definitions:
 
 text {*
 \noindent
-The package also provides some convenience, notably automatically generated
-discriminators and selectors.
+Furthermore, the package provides a lot of convenience, including automatically
+generated discriminators, selectors, and relators as well as a wealth of
+properties about them.
 
-In addition to plain inductive datatypes, the new package supports coinductive
-datatypes, or \emph{codatatypes}, which may have infinite values. For example,
-the following command introduces the type of lazy lists, which comprises both
-finite and infinite values:
+In addition to inductive datatypes, the new package supports coinductive
+datatypes, or \emph{codatatypes}, which allow infinite values. For example, the
+following command introduces the type of lazy lists, which comprises both finite
+and infinite values:
 *}
 
 (*<*)
@@ -68,10 +69,10 @@ following four Rose tree examples:
     codatatype (*<*)(in early) (*>*)'a tree\<^sub>i\<^sub>i = Node\<^sub>i\<^sub>i 'a "'a tree\<^sub>i\<^sub>i llist"
 
 text {*
-The first two tree types allow only finite branches, whereas the last two allow
-branches of infinite length. Orthogonally, the nodes in the first and third
-types have finite branching, whereas those of the second and fourth may have
-infinitely many direct subtrees.
+The first two tree types allow only paths of finite length, whereas the last two
+allow infinite paths. Orthogonally, the nodes in the first and third types have
+finitely many direct subtrees, whereas those of the second and fourth may have
+infinite branching.
 
 To use the package, it is necessary to import the @{theory BNF} theory, which
 can be precompiled into the \texttt{HOL-BNF} image. The following commands show
@@ -241,7 +242,8 @@ Natural numbers are the simplest example of a recursive type:
 
 text {*
 \noindent
-Lists were shown in the introduction. Terminated lists are a variant:
+Lists were shown in the introduction. Terminated lists are a variant that
+stores a value of type @{typ 'b} at the very end:
 *}
 
     datatype_new (*<*)(in early) (*>*)('a, 'b) tlist = TNil 'b | TCons 'a "('a, 'b) tlist"
@@ -291,7 +293,7 @@ text {*
 Not all nestings are admissible. For example, this command will fail:
 *}
 
-    datatype_new 'a wrong = Wrong (*<*)'a
+    datatype_new 'a wrong = W1 | W2 (*<*)'a
     typ (*>*)"'a wrong \<Rightarrow> 'a"
 
 text {*
@@ -302,7 +304,7 @@ datatypes defined in terms of~@{text "\<Rightarrow>"}:
 *}
 
     datatype_new ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
-    datatype_new 'a also_wrong = Also_Wrong (*<*)'a
+    datatype_new 'a also_wrong = W1 | W2 (*<*)'a
     typ (*>*)"('a also_wrong, 'a) fn"
 
 text {*
@@ -325,20 +327,30 @@ done automatically for datatypes and codatatypes introduced by the @{command
 datatype_new} and @{command codatatype} commands.
 Section~\ref{sec:registering-bounded-natural-functors} explains how to register
 arbitrary type constructors as BNFs.
+
+Here is another example that fails:
 *}
 
+    datatype_new 'a pow_list = PNil 'a (*<*)'a
+    datatype_new 'a pow_list' = PNil' 'a (*>*)| PCons "('a * 'a) pow_list"
 
-subsubsection {* Custom Names and Syntaxes
-  \label{sssec:datatype-custom-names-and-syntaxes} *}
+text {*
+\noindent
+This one features a different flavor of nesting, where the recursive call in the
+type specification occurs around (rather than inside) another type constructor.
+*}
+
+subsubsection {* Auxiliary Constants and Properties
+  \label{sssec:datatype-auxiliary-constants-and-properties} *}
 
 text {*
 The @{command datatype_new} command introduces various constants in addition to
 the constructors. With each datatype are associated set functions, a map
 function, a relator, discriminators, and selectors, all of which can be given
-custom names. In the example below, the traditional names
-@{text set}, @{text map}, @{text list_all2}, @{text null}, @{text hd}, and
-@{text tl} override the default names @{text list_set}, @{text list_map}, @{text
-list_rel}, @{text is_Nil}, @{text un_Cons1}, and @{text un_Cons2}:
+custom names. In the example below, the familiar names @{text null}, @{text hd},
+@{text tl}, @{text set}, @{text map}, and @{text list_all2}, override the
+default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
+@{text list_set}, @{text list_map}, and @{text list_rel}:
 *}
 
 (*<*)
@@ -361,14 +373,34 @@ list_rel}, @{text is_Nil}, @{text un_Cons1}, and @{text un_Cons2}:
 
 text {*
 \noindent
-The command introduces a discriminator @{const null} and a pair of selectors
-@{const hd} and @{const tl} characterized as follows:
+
+\begin{tabular}{@ {}ll@ {}}
+Constructors: &
+  @{text "Nil \<Colon> 'a list"} \\
+&
+  @{text "Cons \<Colon> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list"} \\
+Discriminator: &
+  @{text "null \<Colon> 'a list \<Rightarrow> bool"} \\
+Selectors: &
+  @{text "hd \<Colon> 'a list \<Rightarrow> 'a"} \\
+&
+  @{text "tl \<Colon> 'a list \<Rightarrow> 'a list"} \\
+Set function: &
+  @{text "set \<Colon> 'a list \<Rightarrow> 'a set"} \\
+Map function: &
+  @{text "map \<Colon> ('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"} \\
+Relator: &
+  @{text "list_all2 \<Colon> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"}
+\end{tabular}
+
+The discriminator @{const null} and the selectors @{const hd} and @{const tl}
+are characterized as follows:
 %
 \[@{thm list.collapse(1)[of xs, no_vars]}
   \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
 %
-For two-constructor datatypes, a single discriminator constant suffices. The
-discriminator associated with @{const Cons} is simply
+For two-constructor datatypes, a single discriminator constant is sufficient.
+The discriminator associated with @{const Cons} is simply
 @{term "\<lambda>xs. \<not> null xs"}.
 
 The @{text defaults} clause following the @{const Nil} constructor specifies a
@@ -2204,6 +2236,21 @@ text {*
     term_list term term_list term?
   ;
   X_list: '[' (X + ',') ']'
+"}
+*}
+
+
+subsubsection {* \keyw{bnf\_decl}
+  \label{sssec:bnf-decl} *}
+
+text {*
+%%% TODO: use command_def once the command is available
+\begin{matharray}{rcl}
+  @{text "bnf_decl"} & : & @{text "local_theory \<rightarrow> local_theory"}
+\end{matharray}
+
+@{rail "
+  @@{command bnf} target? dt_name
 "}
 *}
 
