@@ -362,7 +362,8 @@ fun prepare_primrec fixes specs lthy =
             (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map (fn (user_eqn, num_extra_args, rec_thm) =>
             mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
-            |> K |> Goal.prove lthy [] [] user_eqn);
+            |> K |> Goal.prove lthy [] [] user_eqn
+            |> Thm.close_derivation);
         val poss = find_indices (fn (x, y) => #ctr x = #ctr y) fun_data eqns_data;
       in
         (poss, simp_thmss)
@@ -896,7 +897,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 *)
 
     val exclss'' = exclss' |> map (map (fn (idx, t) =>
-      (idx, (Option.map (Goal.prove lthy [] [] t) (excl_tac idx), t))));
+      (idx, (Option.map (Goal.prove lthy [] [] t |> Thm.close_derivation) (excl_tac idx), t))));
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
     val (obligation_idxss, obligationss) = exclss''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
@@ -930,6 +931,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               if prems = [@{term False}] then [] else
               mk_primcorec_disc_tac lthy def_thms disc_corec k m exclsss
               |> K |> Goal.prove lthy [] [] t
+              |> Thm.close_derivation
               |> pair (#disc (nth ctr_specs ctr_no))
               |> single
             end;
@@ -958,6 +960,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
               nested_map_idents nested_map_comps sel_corec k m exclsss
             |> K |> Goal.prove lthy [] [] t
+            |> Thm.close_derivation
             |> pair sel
           end;
 
@@ -995,6 +998,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               if prems = [@{term False}] then [] else
                 mk_primcorec_ctr_of_dtr_tac lthy m collapse maybe_disc_thm sel_thms
                 |> K |> Goal.prove lthy [] [] t
+                |> Thm.close_derivation
                 |> pair ctr
                 |> single
             end;
@@ -1065,10 +1069,12 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
                 val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs sel_splits
                     sel_split_asms ms ctr_thms
-                  |> K |> Goal.prove lthy [] [] raw_t;
+                  |> K |> Goal.prove lthy [] [] raw_t
+                  |> Thm.close_derivation;
               in
                 mk_primcorec_code_of_raw_code_tac lthy distincts sel_splits raw_code_thm
                 |> K |> Goal.prove lthy [] [] t
+                |> Thm.close_derivation
                 |> single
               end)
           end;
