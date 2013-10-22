@@ -229,7 +229,7 @@ proof -
   moreover have "?f ` ?LHS \<subseteq> ?RHS" unfolding Func_def by fastforce
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
-declare [[bnf_note_all]]
+
 bnf "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|"
   "fun_rel op ="
 proof
@@ -278,7 +278,5 @@ next
   unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps  subset_iff image_iff
   by auto (force, metis pair_collapse)
 qed
-term fun_wit
-print_bnfs
-find_theorems fun_wit
+
 end
