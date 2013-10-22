@@ -27,15 +27,14 @@ unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
   unfolding wpull_def Grp_def by auto
 
-bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
+bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq"
   "id :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
 apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
 apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
 done
 
-bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
-  "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
+bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
 by (auto simp add: wpull_Grp_def Grp_def
   card_order_csum natLeq_card_order card_of_card_order_on
   cinfinite_csum natLeq_cinfinite)
@@ -148,7 +147,7 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
-bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. natLeq" [Pair] prod_rel
+bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. natLeq" prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -193,7 +192,7 @@ next
         Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair snd snd)"
   unfolding prod_set_defs prod_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
-qed simp+
+qed
 
 (* Categorical version of pullback: *)
 lemma wpull_cat:
@@ -230,8 +229,8 @@ proof -
   moreover have "?f ` ?LHS \<subseteq> ?RHS" unfolding Func_def by fastforce
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
-
-bnf "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
+declare [[bnf_note_all]]
+bnf "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|"
   "fun_rel op ="
 proof
   fix f show "id \<circ> f = id f" by simp
@@ -278,6 +277,8 @@ next
          Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
   unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps  subset_iff image_iff
   by auto (force, metis pair_collapse)
-qed auto
-
+qed
+term fun_wit
+print_bnfs
+find_theorems fun_wit
 end

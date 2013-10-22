@@ -164,10 +164,9 @@ val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def SUP_def
 fun mk_comp_wit_tac ctxt Gwit_thms collect_set_map Fwit_thms =
   ALLGOALS (dtac @{thm in_Union_o_assoc}) THEN
   unfold_thms_tac ctxt (collect_set_map :: comp_wit_thms) THEN
-  REPEAT_DETERM (
-    atac 1 ORELSE
-    REPEAT_DETERM (eresolve_tac @{thms UnionE UnE imageE} 1) THEN
-    (TRY o dresolve_tac Gwit_thms THEN'
+  REPEAT_DETERM ((atac ORELSE'
+    REPEAT_DETERM o eresolve_tac @{thms UnionE UnE} THEN'
+    etac imageE THEN' TRY o dresolve_tac Gwit_thms THEN'
     (etac FalseE ORELSE'
     hyp_subst_tac ctxt THEN'
     dresolve_tac Fwit_thms THEN'
