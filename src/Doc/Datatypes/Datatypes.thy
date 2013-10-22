@@ -2233,7 +2233,7 @@ text {*
 
 @{rail "
   @@{command bnf} target? (name ':')? term \\
-    term_list term term_list term?
+    term_list term term_list? term?
   ;
   X_list: '[' (X + ',') ']'
 "}
