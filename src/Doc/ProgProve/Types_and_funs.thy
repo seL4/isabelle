@@ -204,6 +204,25 @@ except in its name, and is applicable independently of @{text f}.
 \subsection{Exercises}
 
 \begin{exercise}
+Starting from the type @{text "'a tree"} defined in the text, define
+a function @{text "contents ::"} @{typ "'a tree \<Rightarrow> 'a list"}
+that collects all values in a tree in a list, in any order,
+without removing duplicates.
+Then define a function @{text "treesum ::"} @{typ "nat tree \<Rightarrow> nat"}
+that sums up all values in a tree of natural numbers
+and prove @{prop "treesum t = listsum(contents t)"}.
+\end{exercise}
+
+\begin{exercise}
+Define a new type @{text "'a tree2"} of binary trees where values are also
+stored in the leaves of the tree.  Also reformulate the
+@{const mirror} function accordingly. Define two functions
+@{text "pre_order"} and @{text "post_order"} of type @{text "'a tree2 \<Rightarrow> 'a list"}
+that traverse a tree and collect all stored values in the respective order in
+a list. Prove @{prop "pre_order (mirror t) = rev (post_order t)"}.
+\end{exercise}
+
+\begin{exercise}
 Prove that @{const div2} defined above divides every number by @{text 2},
 not just those of the form @{text"n+n"}: @{prop "div2 n = n div 2"}.
 \end{exercise}
