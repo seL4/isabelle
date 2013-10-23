@@ -525,6 +525,31 @@ Method @{text auto} can be modified in exactly the same way.
 
 \subsection{Exercises}
 
+\exercise\label{exe:tree0}
+Define a datatype @{text tree0} of binary tree skeletons which do not store
+any information, neither in the inner nodes nor in the leaves.
+Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the total number
+all nodes (inner nodes and leaves) in such a tree.
+Consider the following recursive function:
+*}
+(*<*)
+datatype tree0 = Tip | Node tree0 tree0
+(*>*)
+fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
+"explode 0 t = t" |
+"explode (Suc n) t = explode n (Node t t)"
+
+text {*
+Find an equation expressing the size of a tree after exploding it
+(\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
+of @{term "nodes t"} and @{text n}. Prove your equation.
+You may use the usual arithmetic operators including the exponentiation
+operator ``@{text"^"}''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
+
+Hint: simplifying with the list of theorems @{thm[source] algebra_simps}
+takes care of common algebraic properties of the arithmetic operators.
+\endexercise
+
 \exercise
 Define arithmetic expressions in one variable over integers (type @{typ int})
 as a data type:
@@ -546,8 +571,7 @@ Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list
 that transforms an expression into a polynomial. This may require auxiliary
 functions. Prove that @{text coeffs} preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
-Hint: simplifying with @{thm[source] algebra_simps} takes care of
-common algebraic properties of @{text "+"} and @{text "*"}.
+Hint: consider the hint in \autoref{exe:tree0}.
 \endexercise
 *}
 (*<*)
