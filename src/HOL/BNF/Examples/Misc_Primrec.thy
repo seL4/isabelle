@@ -14,7 +14,7 @@ begin
 primrec_new nat_of_simple :: "simple \<Rightarrow> nat" where
   "nat_of_simple X1 = 1" |
   "nat_of_simple X2 = 2" |
-  "nat_of_simple X3 = 2" |
+  "nat_of_simple X3 = 3" |
   "nat_of_simple X4 = 4"
 
 primrec_new simple_of_simple' :: "simple' \<Rightarrow> simple" where

@@ -19,9 +19,9 @@ codatatype simple' = X1' unit | X2' unit | X3' unit | X4' unit
 
 codatatype simple'' = X1'' nat int | X2''
 
-codatatype 'a stream = Stream 'a "'a stream"
+codatatype 'a stream = Stream (shd: 'a) (stl: "'a stream")
 
-codatatype 'a mylist = MyNil | MyCons 'a "'a mylist"
+codatatype 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 
 codatatype ('b, 'c, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
