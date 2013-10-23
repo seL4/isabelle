@@ -4,7 +4,6 @@ theory Small_Step imports Star Big_Step begin
 
 subsection "The transition relation"
 
-text_raw{*\snip{SmallStepDef}{0}{2}{% *}
 inductive
   small_step :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>" 55)
 where
@@ -18,7 +17,6 @@ IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^sub>1 ELSE c\<^sub>2,s
 
 While:   "(WHILE b DO c,s) \<rightarrow>
             (IF b THEN c;; WHILE b DO c ELSE SKIP,s)"
-text_raw{*}%endsnip*}
 
 
 abbreviation
