@@ -33,14 +33,13 @@ sig
 
   datatype polymorphism = Monomorphic | Polymorphic
   datatype thf_choice = THF_Without_Choice | THF_With_Choice
-  datatype thf_defs = THF_Without_Defs | THF_With_Defs
 
   datatype atp_format =
     CNF |
     CNF_UEQ |
     FOF |
     TFF of polymorphism |
-    THF of polymorphism * thf_choice * thf_defs |
+    THF of polymorphism * thf_choice |
     DFG of polymorphism
 
   datatype atp_formula_role =
@@ -179,14 +178,13 @@ type term_order =
 
 datatype polymorphism = Monomorphic | Polymorphic
 datatype thf_choice = THF_Without_Choice | THF_With_Choice
-datatype thf_defs = THF_Without_Defs | THF_With_Defs
 
 datatype atp_format =
   CNF |
   CNF_UEQ |
   FOF |
   TFF of polymorphism |
-  THF of polymorphism * thf_choice * thf_defs |
+  THF of polymorphism * thf_choice |
   DFG of polymorphism
 
 datatype atp_formula_role =

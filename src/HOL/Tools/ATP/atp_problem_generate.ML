@@ -697,11 +697,9 @@ fun no_type_classes Type_Class_Polymorphic =
     Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
-fun adjust_type_enc (THF (Polymorphic, choice, _))
-                    (Native (order, poly, level)) =
+fun adjust_type_enc (THF (Polymorphic, choice)) (Native (order, poly, level)) =
     Native (adjust_order choice order, no_type_classes poly, level)
-  | adjust_type_enc (THF (Monomorphic, choice, _))
-                         (Native (order, _, level)) =
+  | adjust_type_enc (THF (Monomorphic, choice)) (Native (order, _, level)) =
     Native (adjust_order choice order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF Monomorphic) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
@@ -1317,7 +1315,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
      atomic_types = atomic_Ts}
   end
 
-fun is_format_with_defs (THF (_, _, THF_With_Defs)) = true
+fun is_format_with_defs (THF _) = true
   | is_format_with_defs _ = false
 
 fun make_fact ctxt format type_enc iff_for_eq
