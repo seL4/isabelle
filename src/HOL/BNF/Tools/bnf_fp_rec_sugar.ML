@@ -219,44 +219,33 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val ctr_args = #ctr_args eqn_data;
 
       val calls = #calls ctr_spec;
-      val n_args = fold (curry (op +) o (fn Mutual_Rec _ => 2 | _ => 1)) calls 0;
+      val n_args = fold (Integer.add o (fn Mutual_Rec _ => 2 | _ => 1)) calls 0;
 
       val no_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn No_Rec n => n | Mutual_Rec (n, _) => n)));
+        |> map_filter (try (apsnd (fn No_Rec p => p | Mutual_Rec (p, _) => p)));
       val mutual_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Mutual_Rec (_, n) => n)));
+        |> map_filter (try (apsnd (fn Mutual_Rec (_, p) => p)));
       val nested_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Nested_Rec n => n)));
-
-      fun make_mutual_type _ = dummyT; (* FIXME? *)
-
-      val rec_res_type_list = map (fn (x :: _) => (#rec_type x, #res_type x)) funs_data;
-
-      fun make_nested_type (Type (Tname, Ts)) = Type (Tname, Ts |> map (fn T =>
-        let val maybe_res_type = AList.lookup (op =) rec_res_type_list T in
-          if is_some maybe_res_type
-          then HOLogic.mk_prodT (T, the maybe_res_type)
-          else make_nested_type T end))
-        | make_nested_type T = T;
+        |> map_filter (try (apsnd (fn Nested_Rec p => p)));
 
       val args = replicate n_args ("", dummyT)
         |> Term.rename_wrt_term t
         |> map Free
-        |> fold (fn (ctr_arg_idx, arg_idx) =>
+        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
             nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))
           no_calls'
-        |> fold (fn (ctr_arg_idx, arg_idx) =>
-            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_mutual_type)))
+        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
+            nth_map arg_idx (K (retype_free T (nth ctr_args ctr_arg_idx))))
           mutual_calls'
-        |> fold (fn (ctr_arg_idx, arg_idx) =>
-            nth_map arg_idx (K (nth ctr_args ctr_arg_idx |> map_types make_nested_type)))
+        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
+            nth_map arg_idx (K (retype_free T (nth ctr_args ctr_arg_idx))))
           nested_calls';
 
       val fun_name_ctr_pos_list =
         map (fn (x :: _) => (#fun_name x, length (#left_args x))) funs_data;
       val get_ctr_pos = try (the o AList.lookup (op =) fun_name_ctr_pos_list) #> the_default ~1;
-      val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args)) mutual_calls';
-      val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args)) nested_calls';
+      val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) mutual_calls';
+      val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) nested_calls';
 
       val abstractions = args @ #left_args eqn_data @ #right_args eqn_data;
     in

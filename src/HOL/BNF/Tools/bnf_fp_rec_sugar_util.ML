@@ -9,9 +9,9 @@ Library for recursor and corecursor sugar.
 signature BNF_FP_REC_SUGAR_UTIL =
 sig
   datatype rec_call =
-    No_Rec of int |
-    Mutual_Rec of int (*before*) * int (*after*) |
-    Nested_Rec of int
+    No_Rec of int * typ |
+    Mutual_Rec of (int * typ) (*before*) * (int * typ) (*after*) |
+    Nested_Rec of int * typ
 
   datatype corec_call =
     Dummy_No_Corec of int |
@@ -99,9 +99,9 @@ open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 
 datatype rec_call =
-  No_Rec of int |
-  Mutual_Rec of int * int |
-  Nested_Rec of int;
+  No_Rec of int * typ |
+  Mutual_Rec of (int * typ) * (int * typ) |
+  Nested_Rec of int * typ;
 
 datatype corec_call =
   Dummy_No_Corec of int |
@@ -567,6 +567,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     val substA = Term.subst_TVars As_rho;
     val substAT = Term.typ_subst_TVars As_rho;
     val substCT = Term.typ_subst_TVars Cs_rho;
+    val substACT = substAT o substCT;
 
     val perm_Cs' = map substCT perm_Cs;
 
@@ -574,8 +575,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
       | offset_of_ctr n (({ctrs, ...} : ctr_sugar) :: ctr_sugars) =
         length ctrs + offset_of_ctr (n - 1) ctr_sugars;
 
-    fun call_of [i] [T] = (if exists_subtype_in Cs T then Nested_Rec else No_Rec) i
-      | call_of [i, i'] _ = Mutual_Rec (i, i');
+    fun call_of [i] [T] = (if exists_subtype_in Cs T then Nested_Rec else No_Rec) (i, substACT T)
+      | call_of [i, i'] [T, T'] = Mutual_Rec ((i, substACT T), (i', substACT T'));
 
     fun mk_ctr_spec ctr offset fun_arg_Tss rec_thm =
       let
