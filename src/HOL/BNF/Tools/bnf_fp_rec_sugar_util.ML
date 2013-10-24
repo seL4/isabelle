@@ -62,6 +62,8 @@ sig
   val s_disjs: term list -> term
   val s_dnf: term list list -> term list
 
+  val mk_partial_compN: int -> typ -> typ -> term -> term
+
   val massage_nested_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
   val unfold_let: term -> term
@@ -212,6 +214,22 @@ fun s_dnf css0 =
       |> (fn [cs] => cs | css => [s_disjs (map s_conjs css)])
   end;
 
+fun mk_partial_comp gT fT g =
+  let val T = domain_type fT --> range_type gT in
+    Const (@{const_name Fun.comp}, gT --> fT --> T) $ g
+  end;
+
+fun mk_partial_compN 0 _ _ g = g
+  | mk_partial_compN n gT fT g =
+    let val g' = mk_partial_compN (n - 1) gT (range_type fT) g in
+      mk_partial_comp (fastype_of g') fT g'
+    end;
+
+fun mk_compN bound_Ts n (g, f) =
+  let val typof = curry fastype_of1 bound_Ts in
+    mk_partial_compN n (typof g) (typof f) g $ f
+  end;
+
 fun factor_out_types ctxt massage destU U T =
   (case try destU U of
     SOME (U1, U2) => if U1 = T then massage T U2 else invalid_map ctxt
@@ -223,22 +241,6 @@ fun map_flattened_map_args ctxt s map_args fs =
     val flat_fs' = map_args flat_fs;
   in
     permute_like (op aconv) flat_fs fs flat_fs'
-  end;
-
-fun mk_partial_comp gT fT g =
-  let val T = domain_type fT --> range_type gT in
-    Const (@{const_name Fun.comp}, gT --> fT --> T) $ g
-  end;
-
-fun mk_compN' 0 _ _ g = g
-  | mk_compN' n gT fT g =
-    let val g' = mk_compN' (n - 1) gT (range_type fT) g in
-      mk_partial_comp (fastype_of g') fT g'
-    end;
-
-fun mk_compN bound_Ts n (g, f) =
-  let val typof = curry fastype_of1 bound_Ts in
-    mk_compN' n (typof g) (typof f) g $ f
   end;
 
 fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =

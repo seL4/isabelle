@@ -287,27 +287,35 @@ fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spe
       bs mxs
   end;
 
-fun find_rec_calls has_call (eqn_data : eqn_data) =
+fun massage_comp ctxt has_call bound_Ts t =
+  massage_nested_corec_call ctxt has_call (K (K (K I))) bound_Ts (fastype_of1 (bound_Ts, t)) t;
+
+fun find_rec_calls ctxt has_call (eqn_data : eqn_data) =
   let
-    fun find (Abs (_, _, b)) ctr_arg = find b ctr_arg
-      | find (t as _ $ _) ctr_arg =
+    fun find bound_Ts (Abs (_, T, b)) ctr_arg = find (T :: bound_Ts) b ctr_arg
+      | find bound_Ts (t as _ $ _) ctr_arg =
         let
+          val typof = curry fastype_of1 bound_Ts;
           val (f', args') = strip_comb t;
-          val n = find_index (equal ctr_arg) args';
+          val n = find_index (equal ctr_arg o head_of) args';
         in
           if n < 0 then
-            find f' ctr_arg @ maps (fn x => find x ctr_arg) args'
+            find bound_Ts f' ctr_arg @ maps (fn x => find bound_Ts x ctr_arg) args'
           else
-            let val (f, args) = chop n args' |>> curry list_comb f' in
+            let
+              val (f, args as arg :: _) = chop n args' |>> curry list_comb f'
+              val (arg_head, arg_args) = Term.strip_comb arg;
+            in
               if has_call f then
-                f :: maps (fn x => find x ctr_arg) args
+                mk_partial_compN (length arg_args) (typof f) (typof arg_head) f ::
+                maps (fn x => find bound_Ts x ctr_arg) args
               else
-                find f ctr_arg @ maps (fn x => find x ctr_arg) args
+                find bound_Ts f ctr_arg @ maps (fn x => find bound_Ts x ctr_arg) args
             end
         end
-      | find _ _ = [];
+      | find _ _ _ = [];
   in
-    map (find (#rhs_term eqn_data)) (#ctr_args eqn_data)
+    map (find [] (#rhs_term eqn_data)) (#ctr_args eqn_data)
     |> (fn [] => NONE | callss => SOME (#ctr eqn_data, callss))
   end;
 
@@ -327,7 +335,7 @@ fun prepare_primrec fixes specs lthy =
     val res_Ts = map (#res_type o hd) funs_data;
     val callssss = funs_data
       |> map (partition_eq ((op =) o pairself #ctr))
-      |> map (maps (map_filter (find_rec_calls has_call)));
+      |> map (maps (map_filter (find_rec_calls lthy has_call)));
 
     val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy') =
       rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
