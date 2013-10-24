@@ -231,7 +231,7 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val args = replicate n_args ("", dummyT)
         |> Term.rename_wrt_term t
         |> map Free
-        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
+        |> fold (fn (ctr_arg_idx, (arg_idx, _)) =>
             nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))
           no_calls'
         |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
