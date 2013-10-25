@@ -769,6 +769,17 @@ transitive closure merely simplifies the form of the induction rule.
 \subsection{Exercises}
 
 \begin{exercise}
+In \autoref{sec:AExp} we defined a recursive evaluation function
+@{text "aval :: aexp \<Rightarrow> state \<Rightarrow> val"}.
+Define an inductive evaluation predicate
+@{text "aval_rel :: aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool"}
+and prove that it agrees with the recursive function:
+@{prop "aval_rel a s v \<Longrightarrow> aval a s = v"}, 
+@{prop "aval a s = v \<Longrightarrow> aval_rel a s v"} and thus
+\noquotes{@{prop [source] "aval_rel a s v \<longleftrightarrow> aval a s = v"}}.
+\end{exercise}
+
+\begin{exercise}
 Consider the stack machine from \autoref{sec:aexp_comp}.
 A \concept{stack underflow} occurs when executing an instruction
 on a stack containing too few values, e.g., executing an @{text ADD}
