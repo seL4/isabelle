@@ -400,19 +400,25 @@ fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = 
 
 fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
   let
-    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd)
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
+
+    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd);
 
     fun massage_mutual_call bound_Ts U T t =
       if has_call t then factor_out_types ctxt (raw_massage_call bound_Ts) dest_sumT U T t
       else build_map_Inl (T, U) $ t;
 
     fun massage_mutual_fun bound_Ts U T t =
-      let
-        val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
-          domain_type (fastype_of1 (bound_Ts, t)));
-      in
-        Term.lambda var (massage_mutual_call bound_Ts U T (t $ var))
-      end;
+      (case t of
+        Const (@{const_name comp}, comp_T) $ t1 $ t2 =>
+        mk_compN bound_Ts 1 (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
+      | _ =>
+        let
+          val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
+            domain_type (fastype_of1 (bound_Ts, t)));
+        in
+          Term.lambda var (massage_mutual_call bound_Ts U T (t $ var))
+        end);
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -429,7 +435,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
       | massage_map _ _ _ t = raise AINT_NO_MAP t
     and massage_map_or_map_arg bound_Ts U T t =
       if T = U then
-        if has_call t then unexpected_corec_call ctxt t else t
+        tap check_no_call t
       else
         massage_map bound_Ts U T t
         handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t;
