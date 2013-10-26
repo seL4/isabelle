@@ -210,12 +210,10 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
 
 fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
     (maybe_eqn_data : eqn_data option) =
-  if is_none maybe_eqn_data then undef_const else
+  (case maybe_eqn_data of
+    NONE => undef_const
+  | SOME {ctr_args, left_args, right_args, rhs_term = t, ...} =>
     let
-      val eqn_data = the maybe_eqn_data;
-      val t = #rhs_term eqn_data;
-      val ctr_args = #ctr_args eqn_data;
-
       val calls = #calls ctr_spec;
       val n_args = fold (Integer.add o (fn Mutual_Rec _ => 2 | _ => 1)) calls 0;
 
@@ -244,13 +242,11 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       val get_ctr_pos = try (the o AList.lookup (op =) fun_name_ctr_pos_list) #> the_default ~1;
       val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) mutual_calls';
       val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) nested_calls';
-
-      val abstractions = args @ #left_args eqn_data @ #right_args eqn_data;
     in
       t
       |> subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
-      |> fold_rev lambda abstractions
-    end;
+      |> fold_rev lambda (args @ left_args @ right_args)
+    end);
 
 fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spec list) has_call =
   let
@@ -682,12 +678,10 @@ fun build_corec_arg_no_call (sel_eqns : coeqn_data_sel list) sel =
   |> K;
 
 fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) sel =
-  let
-    val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-  in
-    if is_none maybe_sel_eqn then (I, I, I) else
+  (case find_first (equal sel o #sel) sel_eqns of
+    NONE => (I, I, I)
+  | SOME {fun_args, rhs_term, ... } =>
     let
-      val {fun_args, rhs_term, ... } = the maybe_sel_eqn;
       val bound_Ts = List.rev (map fastype_of fun_args);
       fun rewrite_stop _ t = if has_call t then @{term False} else @{term True};
       fun rewrite_end _ t = if has_call t then undef_const else t;
@@ -697,16 +691,13 @@ fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) 
         |> abs_tuple fun_args;
     in
       (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
-    end
-  end;
+    end);
 
 fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) sel =
-  let
-    val maybe_sel_eqn = find_first (equal sel o #sel) sel_eqns;
-  in
-    if is_none maybe_sel_eqn then I else
+  (case find_first (equal sel o #sel) sel_eqns of
+    NONE => I
+  | SOME {fun_args, rhs_term, ...} =>
     let
-      val {fun_args, rhs_term, ...} = the maybe_sel_eqn;
       val bound_Ts = List.rev (map fastype_of fun_args);
       fun rewrite bound_Ts U T (Abs (v, V, b)) = Abs (v, V, rewrite (V :: bound_Ts) U T b)
         | rewrite bound_Ts U T (t as _ $ _) =
@@ -726,29 +717,27 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
         |> abs_tuple fun_args;
     in
       massage
-    end
-  end;
+    end);
 
 fun build_corec_args_sel lthy has_call (all_sel_eqns : coeqn_data_sel list)
     (ctr_spec : corec_ctr_spec) =
-  let val sel_eqns = filter (equal (#ctr ctr_spec) o #ctr) all_sel_eqns in
-    if null sel_eqns then I else
-      let
-        val sel_call_list = #sels ctr_spec ~~ #calls ctr_spec;
-
-        val no_calls' = map_filter (try (apsnd (fn No_Corec n => n))) sel_call_list;
-        val mutual_calls' = map_filter (try (apsnd (fn Mutual_Corec n => n))) sel_call_list;
-        val nested_calls' = map_filter (try (apsnd (fn Nested_Corec n => n))) sel_call_list;
-      in
-        I
-        #> fold (fn (sel, n) => nth_map n (build_corec_arg_no_call sel_eqns sel)) no_calls'
-        #> fold (fn (sel, (q, g, h)) =>
-          let val (fq, fg, fh) = build_corec_args_mutual_call lthy has_call sel_eqns sel in
-            nth_map q fq o nth_map g fg o nth_map h fh end) mutual_calls'
-        #> fold (fn (sel, n) => nth_map n
-          (build_corec_arg_nested_call lthy has_call sel_eqns sel)) nested_calls'
-      end
-  end;
+  (case filter (equal (#ctr ctr_spec) o #ctr) all_sel_eqns of
+    [] => I
+  | sel_eqns =>
+    let
+      val sel_call_list = #sels ctr_spec ~~ #calls ctr_spec;
+      val no_calls' = map_filter (try (apsnd (fn No_Corec n => n))) sel_call_list;
+      val mutual_calls' = map_filter (try (apsnd (fn Mutual_Corec n => n))) sel_call_list;
+      val nested_calls' = map_filter (try (apsnd (fn Nested_Corec n => n))) sel_call_list;
+    in
+      I
+      #> fold (fn (sel, n) => nth_map n (build_corec_arg_no_call sel_eqns sel)) no_calls'
+      #> fold (fn (sel, (q, g, h)) =>
+        let val (fq, fg, fh) = build_corec_args_mutual_call lthy has_call sel_eqns sel in
+          nth_map q fq o nth_map g fg o nth_map h fh end) mutual_calls'
+      #> fold (fn (sel, n) => nth_map n
+        (build_corec_arg_nested_call lthy has_call sel_eqns sel)) nested_calls'
+    end);
 
 fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     (disc_eqnss : coeqn_data_disc list list) (sel_eqnss : coeqn_data_sel list list) =
