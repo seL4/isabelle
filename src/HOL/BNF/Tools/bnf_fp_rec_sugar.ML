@@ -495,7 +495,7 @@ fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec li
     val applied_fun = concl
       |> find_subterm (member ((op =) o apsnd SOME) fun_names o try (fst o dest_Free o head_of))
       |> the
-      handle Option.Option => primrec_error_eqn "malformed discriminator equation" concl;
+      handle Option.Option => primrec_error_eqn "malformed discriminator formula" concl;
     val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name);
 
@@ -868,7 +868,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       |> map (sort ((op <) o pairself #ctr_no |> make_ord) o flat o snd);
     val _ = disc_eqnss' |> map (fn x =>
       let val d = duplicates ((op =) o pairself #ctr_no) x in null d orelse
-        primrec_error_eqns "excess discriminator equations in definition"
+        primrec_error_eqns "excess discriminator formula in definition"
           (maps (fn t => filter (equal (#ctr_no t) o #ctr_no) x) d |> map #user_eqn) end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
