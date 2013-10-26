@@ -689,16 +689,14 @@ fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) 
     let
       val {fun_args, rhs_term, ... } = the maybe_sel_eqn;
       val bound_Ts = List.rev (map fastype_of fun_args);
-      fun rewrite_q _ t = if has_call t then @{term False} else @{term True};
-      fun rewrite_g _ t = if has_call t then undef_const else t;
-      fun rewrite_h bound_Ts t =
+      fun rewrite_stop _ t = if has_call t then @{term False} else @{term True};
+      fun rewrite_end _ t = if has_call t then undef_const else t;
+      fun rewrite_cont bound_Ts t =
         if has_call t then mk_tuple1 bound_Ts (snd (strip_comb t)) else undef_const;
       fun massage f _ = massage_mutual_corec_call lthy has_call f bound_Ts rhs_term
         |> abs_tuple fun_args;
     in
-      (massage rewrite_q,
-       massage rewrite_g,
-       massage rewrite_h)
+      (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
     end
   end;
 
