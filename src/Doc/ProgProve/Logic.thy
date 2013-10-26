@@ -780,10 +780,10 @@ and prove that it agrees with the recursive function:
 \end{exercise}
 
 \begin{exercise}
-Consider the stack machine from \autoref{sec:aexp_comp}.
-A \concept{stack underflow} occurs when executing an instruction
-on a stack containing too few values, e.g., executing an @{text ADD}
-instruction on a stack of size less than two. Define an inductive predicate
+Consider the stack machine from Chapter~3
+and recall the concept of \concept{stack underflow}
+from Exercise~\ref{exe:stack-underflow}.
+Define an inductive predicate
 @{text "ok :: nat \<Rightarrow> instr list \<Rightarrow> nat \<Rightarrow> bool"}
 such that @{text "ok n is n'"} means that with any initial stack of length
 @{text n} the instructions @{text "is"} can be executed
