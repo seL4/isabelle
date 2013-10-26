@@ -225,10 +225,12 @@ fun mk_partial_compN 0 _ _ g = g
       mk_partial_comp (fastype_of g') fT g'
     end;
 
-fun mk_compN bound_Ts n (g, f) =
+fun mk_compN n bound_Ts (g, f) =
   let val typof = curry fastype_of1 bound_Ts in
     mk_partial_compN n (typof g) (typof f) g $ f
   end;
+
+val mk_comp = mk_compN 1;
 
 fun factor_out_types ctxt massage destU U T =
   (case try destU U of
@@ -245,6 +247,8 @@ fun map_flattened_map_args ctxt s map_args fs =
 
 fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
   let
+    fun check_no_call t = if has_call t then unexpected_rec_call ctxt t else ();
+
     val typof = curry fastype_of1 bound_Ts;
     val build_map_fst = build_map ctxt (fst_const o fst);
 
@@ -255,8 +259,12 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     val elim_y = Term.map_aterms (fn t => if t = y then y_of_y' () else t);
 
     fun massage_mutual_fun U T t =
-      if has_call t then factor_out_types ctxt raw_massage_fun HOLogic.dest_prodT U T t
-      else HOLogic.mk_comp (t, build_map_fst (U, T));
+      (case t of
+        Const (@{const_name comp}, comp_T) $ t1 $ t2 =>
+        mk_comp bound_Ts (tap check_no_call t1, massage_mutual_fun U T t2)
+      | _ =>
+        if has_call t then factor_out_types ctxt raw_massage_fun HOLogic.dest_prodT U T t
+        else mk_comp bound_Ts (t, build_map_fst (U, T)));
 
     fun massage_map (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -272,7 +280,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
       | massage_map _ _ t = raise AINT_NO_MAP t
     and massage_map_or_map_arg U T t =
       if T = U then
-        if has_call t then unexpected_rec_call ctxt t else t
+        tap check_no_call t
       else
         massage_map U T t
         handle AINT_NO_MAP _ => massage_mutual_fun U T t;
@@ -286,7 +294,7 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
             let val (g, xs) = Term.strip_comb t2 in
               if g = y then
                 if exists has_call xs then unexpected_rec_call ctxt t2
-                else Term.list_comb (massage_call (mk_compN bound_Ts (length xs) (t1, y)), xs)
+                else Term.list_comb (massage_call (mk_compN (length xs) bound_Ts (t1, y)), xs)
               else
                 ill_formed_rec_call ctxt t
             end
@@ -411,7 +419,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
     fun massage_mutual_fun bound_Ts U T t =
       (case t of
         Const (@{const_name comp}, comp_T) $ t1 $ t2 =>
-        mk_compN bound_Ts 1 (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
+        mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
       | _ =>
         let
           val var = Var ((Name.uu, Term.maxidx_of_term t + 1),

@@ -159,8 +159,6 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
               list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
             else
               primrec_error_eqn ("recursive call not directly applied to constructor argument") t
-          else if d = SOME ~1 andalso const_name u = SOME @{const_name comp} then
-            list_comb (map_types (K dummyT) u, map2 subst [NONE, d] vs)
           else
             list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
         end
