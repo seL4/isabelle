@@ -2744,8 +2744,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-       (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
-         dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_common_notes @ Jbnf_notes, lthy)
+        (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
+          dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_common_notes @ Jbnf_notes, lthy)
       end;
 
       val dtor_unfold_o_map_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
