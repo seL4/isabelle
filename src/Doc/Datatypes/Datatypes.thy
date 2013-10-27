@@ -2240,6 +2240,7 @@ text {*
 *}
 
 
+(* NOTYET
 subsubsection {* \keyw{bnf\_decl}
   \label{sssec:bnf-decl} *}
 
@@ -2253,6 +2254,7 @@ text {*
   @@{command bnf} target? dt_name
 "}
 *}
+*)
 
 
 subsubsection {* \keyw{print\_bnfs}
