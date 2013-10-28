@@ -6,6 +6,11 @@ distribution.
 Contributions to Isabelle2013-1
 -------------------------------
 
+* September 2013: Lars Noschinski, TUM
+  Conversion between function definitions as list of equations and case
+  expressions in HOL
+  New library Simps_Case_Conv with commands case_of_simps, simps_of_case.
+
 * September 2013: Nik Sultana, University of Cambridge
   Improvements to HOL/TPTP parser and import facilities.
 
