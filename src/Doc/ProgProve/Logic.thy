@@ -459,12 +459,12 @@ by(blast dest: Suc_leD)
 text{* In this particular example we could have backchained with
 @{thm[source] Suc_leD}, too, but because the premise is more complicated than the conclusion this can easily lead to nontermination.
 
-\subsection{Finding Theorems}
-
-Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
-theory. Search criteria include pattern matching on terms and on names.
-For details see the Isabelle/Isar Reference Manual~\cite{IsarRef}.
-\bigskip
+%\subsection{Finding Theorems}
+%
+%Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
+%theory. Search criteria include pattern matching on terms and on names.
+%For details see the Isabelle/Isar Reference Manual~\cite{IsarRef}.
+%\bigskip
 
 \begin{warn}
 To ease readability we will drop the question marks
@@ -708,8 +708,8 @@ defer
 apply(rename_tac u x y)
 defer
 (*>*)
-txt{* The induction is over @{prop"star r x y"} and we try to prove
-\mbox{@{prop"star r y z \<Longrightarrow> star r x z"}},
+txt{* The induction is over @{prop"star r x y"} (the first matching assumption)
+and we try to prove \mbox{@{prop"star r y z \<Longrightarrow> star r x z"}},
 which we abbreviate by @{prop"P x y"}. These are our two subgoals:
 @{subgoals[display,indent=0]}
 The first one is @{prop"P x x"}, the result of case @{thm[source]refl},
@@ -765,9 +765,27 @@ conditions}. In rule inductions, these side-conditions appear as additional
 assumptions. The \isacom{for} clause seen in the definition of the reflexive
 transitive closure merely simplifies the form of the induction rule.
 
-\ifsem
 \subsection{Exercises}
 
+\exercise
+We also could have defined @{const star} as follows:
+*}
+
+inductive star' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
+refl': "star' r x x" |
+step': "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
+
+text{*
+The single @{text r} step is performer after rather than before the @{text star'}
+steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"}. You may need a lemma.
+The other direction can also be proved but
+you have to be careful how to formulate the lemma it will require:
+make sure that the assumption about the inductive predicate
+is the first assumption. Assumptions preceding the inductive predicate do not
+take part in the induction.
+\endexercise
+
+\ifsem
 \begin{exercise}
 In \autoref{sec:AExp} we defined a recursive evaluation function
 @{text "aval :: aexp \<Rightarrow> state \<Rightarrow> val"}.
