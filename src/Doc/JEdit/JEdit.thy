@@ -543,11 +543,18 @@ text {*
   jEdit Shortcuts options dialog.
 
   \item \textbf{Problem:} The Mac OS X keyboard shortcut @{verbatim
-  "COMMAND+COMMA"} for Preferences is in conflict with the jEdit default
-  binding for @{verbatim "quick-search"}.
+  "COMMAND+COMMA"} for application \emph{Preferences} is in conflict
+  with the jEdit default shortcut for \emph{Incremental Search Bar}
+  (action @{verbatim "quick-search"}).
 
   \textbf{Workaround:} Remap in jEdit manually according to national
   keyboard, e.g.\ @{verbatim "COMMAND+SLASH"} on English ones.
+
+  \item \textbf{Problem:} Mac OS X system fonts sometimes lead to
+  character drop-outs in the main text area.
+
+  \textbf{Workaround:} Use the default @{verbatim IsabelleText} font.
+  (Do not install that font on the system.)
 
   \item \textbf{Problem:} Some Linux / X11 input methods such as IBus
   tend to disrupt key event handling of Java/AWT/Swing.
@@ -568,6 +575,19 @@ text {*
   menu popups and mouse positions of Java/AWT/Swing.
 
   \textbf{Workaround:} Use mainstream versions of Linux desktops.
+
+  \item \textbf{Problem:} Full-screen mode via jEdit action @{verbatim
+  "toggle-full-screen"} (default shortcut @{verbatim F11}) works on
+  Windows, but not on Mac OS X or various Linux / X11 window managers.
+
+  \textbf{Workaround:} Use native full-screen control of the window
+  manager, if available (notably on Mac OS X).
+
+  \item \textbf{Problem:} Full-screen mode and dockable windows in
+  \emph{floating} state may lead to confusion about window placement
+  (depending on platform characteristics).
+
+  \textbf{Workaround:} Avoid this combination.
 
   \end{itemize}
 *}
