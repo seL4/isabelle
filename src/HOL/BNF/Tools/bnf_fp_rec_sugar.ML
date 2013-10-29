@@ -281,10 +281,10 @@ fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spe
       bs mxs
   end;
 
-fun massage_comp ctxt has_call bound_Ts t =
+fun massage_comp ctxt has_call bound_Ts t = (* FIXME unused *)
   massage_nested_corec_call ctxt has_call (K (K (K I))) bound_Ts (fastype_of1 (bound_Ts, t)) t;
 
-fun find_rec_calls ctxt has_call (eqn_data : eqn_data) =
+fun find_rec_calls ctxt has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
   let
     fun find bound_Ts (Abs (_, T, b)) ctr_arg = find (T :: bound_Ts) b ctr_arg
       | find bound_Ts (t as _ $ _) ctr_arg =
@@ -309,8 +309,8 @@ fun find_rec_calls ctxt has_call (eqn_data : eqn_data) =
         end
       | find _ _ _ = [];
   in
-    map (find [] (#rhs_term eqn_data)) (#ctr_args eqn_data)
-    |> (fn [] => NONE | callss => SOME (#ctr eqn_data, callss))
+    map (find [] rhs_term) ctr_args
+    |> (fn [] => NONE | callss => SOME (ctr, callss))
   end;
 
 fun prepare_primrec fixes specs lthy =
@@ -704,7 +704,7 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
           let val (u, vs) = strip_comb t in
             if is_Free u andalso has_call u then
               Inr_const U T $ mk_tuple1 bound_Ts vs
-            else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
+            else if const_name u = SOME @{const_name prod_case} then
               map (rewrite bound_Ts U T) vs |> chop 1 |>> HOLogic.mk_split o the_single |> list_comb
             else
               list_comb (rewrite bound_Ts U T u, map (rewrite bound_Ts U T) vs)
@@ -807,7 +807,13 @@ fun find_corec_calls has_call basic_ctr_specs {ctr, sel, rhs_term, ...} =
     val sel_no = find_first (equal ctr o #ctr) basic_ctr_specs
       |> find_index (equal sel) o #sels o the;
     fun find (Abs (_, _, b)) = find b
-      | find (t as _ $ _) = strip_comb t |>> find ||> maps find |> (op @)
+      | find (t as _ $ _) =
+        let val (f, args as arg :: _) = strip_comb t in
+          if is_Free f andalso has_call f orelse is_Free arg andalso has_call arg then
+            [t]
+          else
+            find f @ maps find args
+        end
       | find f = if is_Free f andalso has_call f then [f] else [];
   in
     find rhs_term
