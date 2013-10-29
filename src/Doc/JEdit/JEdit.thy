@@ -37,7 +37,7 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
   Isabelle. It extends the pure logical environment of Isabelle/ML
   towards the ``real world'' of graphical user interfaces, text
   editors, IDE frameworks, web services etc.  Special infrastructure
-  allows to transfer algebraic datatypes values and formatted text
+  allows to transfer algebraic datatype values and formatted text
   easily between ML and Scala, using asynchronous protocol commands.
 
   \item [jEdit] is a sophisticated text editor implemented in
@@ -78,15 +78,15 @@ text {*
   \begin{itemize}
 
   \item The original jEdit look-and-feel is generally preserved,
-  although some default properties have been changed to accommodate
-  Isabelle (e.g.\ the text area font).
+  although some default properties are changed to accommodate Isabelle
+  (e.g.\ the text area font).
 
   \item Formal Isabelle/Isar text is checked asynchronously while
   editing.  The user is in full command of the editor, and the prover
   refrains from locking portions of the buffer.
 
   \item Prover feedback works via colors, boxes, squiggly underline,
-  hyperlinks, popup windows, icons, clickable output, all based on
+  hyperlinks, popup windows, icons, clickable output --- all based on
   semantic markup produced by Isabelle in the background.
 
   \item Using the mouse together with the modifier key @{verbatim
@@ -102,16 +102,16 @@ text {*
 
   \item The prover process and source files are managed on the editor
   side.  The prover operates on timeless and stateless document
-  content via Isabelle/Scala.
+  content as provided via Isabelle/Scala.
 
   \item Plugin options of jEdit (for the \emph{Isabelle} plugin) give
-  access to a selection of Isabelle/Scala options and its persistence
+  access to a selection of Isabelle/Scala options and its persistent
   preferences, usually with immediate effect on the prover back-end or
   editor front-end.
 
   \item The logic image of the prover session may be specified within
-  Isabelle/jEdit, but this requires restart. The new image is provided
-  automatically by the Isabelle build tool.
+  Isabelle/jEdit.  The new image is provided automatically by the
+  Isabelle build tool after restart of the application.
 
   \end{itemize}
 *}
@@ -135,70 +135,74 @@ subsection {* Plugins *}
 
 text {* The \emph{Plugin Manager} of jEdit allows to augment editor
   functionality by JVM modules (jars) that are provided by the central
-  plugin repository, or one of various mirror sites. The main
-  \emph{Isabelle} plugin is an integral part of Isabelle/jEdit needs
-  to remain active at all times! A few additional plugins are bundled
-  with Isabelle/jEdit for convenience or out of necessity, notably
-  \emph{Console} with its Isabelle/Scala sub-plugin and
-  \emph{SideKick} with some Isabelle-specific parsers for document
-  tree structure.
+  plugin repository, which is accessible by various mirror sites.
 
   Connecting to the plugin server infrastructure of the jEdit project
-  allows to update bundled plugins or to add further
-  functionality. This needs to be done with the usual care for such an
-  open bazaar, with contributions of very mixed quality. Arbitrary
-  combinations of add-on features are apt to cause problems.
+  allows to update bundled plugins or to add further functionality.
+  This needs to be done with the usual care for such an open bazaar of
+  contributions. Arbitrary combinations of add-on features are apt to
+  cause problems.  It is advisable to start with the default
+  configuration of Isabelle/jEdit and develop some understanding how
+  it is supposed to work, before loading additional plugins at a grand
+  scale.
 
-  It is advisable to start with the default configuration of
-  Isabelle/jEdit and develop some understanding how it is supposed to
-  work, before loading additional plugins at a grand scale.
-*}
+  \medskip The main \emph{Isabelle} plugin is an integral part of
+  Isabelle/jEdit and needs to remain active at all times! A few
+  additional plugins are bundled with Isabelle/jEdit for convenience
+  or out of necessity, notably \emph{Console} with its Isabelle/Scala
+  sub-plugin and \emph{SideKick} with some Isabelle-specific parsers
+  for document tree structure.  The \emph{ErrorList} plugin is
+  required by \emph{SideKick}, but not used specifically in
+  Isabelle/jEdit. *}
 
 
 subsection {* Options *}
 
 text {* Both jEdit and Isabelle have distinctive management of
-  persistent options.  Regular jEdit options are accessible via the
-  dialogs for \emph{Global Options} and \emph{Plugin Options}.  This
-  results in an environment of properties that is stored within the
-  \emph{settings directory} of jEdit; see also the menu
-  \emph{Utilities / Settings Directory}.
+  persistent options.
 
-  Isabelle system options are managed by Isabelle/Scala; see also
-  \cite{isabelle-sys}, especially the coverage of sessions and
-  command-line tools like @{tool build} or @{tool options}.  Isabelle
-  options that are declared as \textbf{public} are exposed to the
-  jEdit \emph{Plugin Options} dialog, section \emph{Isabelle /
-  General}.  This provides a view on Isabelle options with persistent
-  preferences in @{verbatim "$ISABELLE_HOME_USER/etc/preferences"},
-  independently of the jEdit properties in its settings directory.
+  Regular jEdit options are accessible via the dialogs for
+  \emph{Global Options} and \emph{Plugin Options}.  Changed properties
+  are stored eventually in @{verbatim
+  "$ISABELLE_HOME_USER/jedit/properties"}.  In contrast, Isabelle
+  system options are managed by Isabelle/Scala and changes stored in
+  @{verbatim "$ISABELLE_HOME_USER/etc/preferences"}, independently of
+  the jEdit properties.  See also \cite{isabelle-sys}, especially the
+  coverage of sessions and command-line tools like @{tool build} or
+  @{tool options}.
 
-  Some Isabelle options that are accessible in the Isabelle/jEdit
-  Plugin Options dialog affect general parameters that are relevant
-  outside Isabelle/jEdit as well, e.g.\ @{system_option threads} or
+  Those Isabelle options that are declared as \textbf{public} are
+  configurable in jEdit via \emph{Plugin Options / Isabelle /
+  General}.  Moreover, there are various options for rendering of
+  document content, which are configurable via \emph{Plugin Options /
+  Isabelle / Rendering}.  Thus \emph{Plugin Options / Isabelle} in
+  jEdit provides a view on certain Isabelle options.  Note that some
+  of these options affect general parameters that are relevant outside
+  Isabelle/jEdit as well, e.g.\ @{system_option threads} or
   @{system_option parallel_proofs} for the Isabelle build tool
   \cite{isabelle-sys}.
 
-  \medskip Options are loaded on startup and saved on shutdown of
+  \medskip All options are loaded on startup and saved on shutdown of
   Isabelle/jEdit.  Editing the machine-generated files @{verbatim
   "$ISABELLE_HOME_USER/jedit/properties"} or @{verbatim
   "$ISABELLE_HOME_USER/etc/preferences"} manually while the
-  application is running is likely to cause a lost update!  *}
+  application is running is likely to cause surprise due to lost
+  update!  *}
 
 
 subsection {* Keymaps *}
 
 text {* Keyboard shortcuts used to be managed as jEdit properties in
   the past, but recent versions (2013) have a separate concept of
-  \emph{keymap}.  The @{verbatim imported} keymap is derived from the
+  \emph{keymap} that is configurable via \emph{Global Options /
+  Shortcuts}.  The @{verbatim imported} keymap is derived from the
   initial environment of properties that is available at the first
-  start of the editor.
+  start of the editor; afterwards the keymap file takes precedence.
 
   This is relevant for Isabelle/jEdit due to various fine-tuning of
   default properties, and additional keyboard shortcuts for Isabelle
-  specific functionality. Users may change their keymap later on, but
-  may need to copy Isabelle-specific key bindings manually.
-*}
+  specific functionality. Users may change their keymap, but need to
+  copy Isabelle-specific key bindings manually.  *}
 
 
 subsection {* Look-and-feel *}
@@ -216,12 +220,15 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   \item[Linux] The platform-independent \emph{Nimbus} is used by
   default, but the classic \emph{Metal} also works.  \emph{GTK+} works
   under the side-condition that the overall GTK theme is selected in a
-  Swing-friendly way.
+  Swing-friendly way.\footnote{GTK support in Java/Swing was once
+  marketed aggressively by Sun, but never quite finished, and is today
+  (2013) lagging a bit behind further development of Swing and GTK.}
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   platform-independent \emph{Nimbus} and \emph{Metal} also work.
 
-  \item[Mac OS X] Standard \emph{Apple Aqua} is used by default.
+  \item[Mac OS X] Regular \emph{Mac OS X} is used by default, but
+  platform-independent \emph{Nimbus} and \emph{Metal} also work.
   Moreover the bundled \emph{MacOSX} plugin provides various functions
   that are expected from applications on that particular platform:
   quit from menu or dock, preferences menu, drag-and-drop of text
@@ -232,13 +239,10 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
 
   Users may experiment with different look-and-feels, but need to keep
   in mind that this extra variance of GUI functionality is unlikely to
-  work in arbitrary combinations.  The \emph{GTK+} look-and-feel is
-  particularly critical due to its additional dimension of ``themes''.
-
-  After changing the look-and-feel in \emph{Global Options /
-  Appearance}, it is advisable to restart Isabelle/jEdit in order to
-  take full effect.
-*}
+  work in arbitrary combinations.  The historic \emph{CDE/Motif} is
+  better avoided.  After changing the look-and-feel in \emph{Global
+  Options / Appearance}, it is advisable to restart Isabelle/jEdit in
+  order to take full effect.  *}
 
 
 chapter {* Prover IDE functionality *}
