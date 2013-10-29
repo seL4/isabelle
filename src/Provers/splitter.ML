@@ -79,6 +79,8 @@ in
   fold add_thm splits []
 end;
 
+val abss = fold (Term.abs o pair "");
+
 (* ------------------------------------------------------------------------- *)
 (* mk_case_split_tac                                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -100,31 +102,36 @@ val lift = Goal.prove_global Pure.thy ["P", "Q", "R"]
   (Syntax.read_prop_global Pure.thy "P(%x. Q(x)) == P(%x. R(x))")
   (fn {prems, ...} => rewrite_goals_tac prems THEN rtac reflexive_thm 1)
 
+val _ $ _ $ (_ $ (_ $ abs_lift) $ _) = prop_of lift;
+
 val trlift = lift RS transitive_thm;
-val _ $ (P $ _) $ _ = concl_of trlift;
 
 
 (************************************************************************
    Set up term for instantiation of P in the lift-theorem
 
-   Ts    : types of parameters (i.e. variables bound by meta-quantifiers)
    t     : lefthand side of meta-equality in subgoal
            the lift theorem is applied to (see select)
    pos   : "path" leading to abstraction, coded as a list
    T     : type of body of P(...)
-   maxi  : maximum index of Vars
 *************************************************************************)
 
-fun mk_cntxt Ts t pos T maxi =
-  let fun var (t,i) = Var(("X",i),type_of1(Ts,t));
-      fun down [] t i = Bound 0
-        | down (p::ps) t i =
-            let val (h,ts) = strip_comb t
-                val v1 = ListPair.map var (take p ts, i upto (i+p-1))
-                val u::us = drop p ts
-                val v2 = ListPair.map var (us, (i+p) upto (i+length(ts)-2))
-      in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
-  in Abs("", T, down (rev pos) t maxi) end;
+fun mk_cntxt t pos T =
+  let
+    fun down [] t = (Bound 0, t)
+      | down (p :: ps) t =
+          let
+            val (h, ts) = strip_comb t
+            val (ts1, u :: ts2) = chop p ts
+            val (u1, u2) = down ps u
+          in
+            (list_comb (incr_boundvars 1 h,
+               map (incr_boundvars 1) ts1 @ u1 ::
+               map (incr_boundvars 1) ts2),
+             u2)
+          end;
+    val (u1, u2) = down (rev pos) t
+  in (Abs ("", T, u1), u2) end;
 
 
 (************************************************************************
@@ -301,15 +308,18 @@ fun exported_split_posns cmap thy Ts t =
              the split theorem is applied to (see cmap)
    T,U,pos : see mk_split_pack
    state   : current proof state
-   lift    : the lift theorem
    i       : no. of subgoal
 **************************************************************)
 
 fun inst_lift Ts t (T, U, pos) state i =
   let
     val cert = cterm_of (Thm.theory_of_thm state);
-    val cntxt = mk_cntxt Ts t pos (T --> U) (Thm.maxidx_of trlift);
-  in cterm_instantiate [(cert P, cert cntxt)] trlift
+    val (cntxt, u) = mk_cntxt t pos (T --> U);
+    val trlift' = Thm.lift_rule (Thm.cprem_of state i)
+      (Thm.rename_boundvars abs_lift u trlift);
+    val (P, _) = strip_comb (fst (Logic.dest_equals
+      (Logic.strip_assums_concl (Thm.prop_of trlift'))));
+  in cterm_instantiate [(cert P, cert (abss Ts cntxt))] trlift'
   end;
 
 
@@ -333,7 +343,6 @@ fun inst_split Ts t tt thm TB state i =
       (Logic.strip_assums_concl (Thm.prop_of thm'))));
     val cert = cterm_of (Thm.theory_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
-    val abss = fold (fn T => fn t => Abs ("", T, t));
   in cterm_instantiate [(cert P, cert (abss Ts cntxt))] thm'
   end;
 
@@ -348,7 +357,7 @@ fun inst_split Ts t tt thm TB state i =
 fun split_tac [] i = no_tac
   | split_tac splits i =
   let val cmap = cmap_of_split_thms splits
-      fun lift_tac Ts t p st = rtac (inst_lift Ts t p st i) i st
+      fun lift_tac Ts t p st = compose_tac (false, inst_lift Ts t p st i, 2) i st
       fun lift_split_tac state =
             let val (Ts, t, splits) = select cmap state i
             in case splits of
