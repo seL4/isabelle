@@ -247,14 +247,14 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
 
 chapter {* Prover IDE functionality *}
 
-section {* Buffers and theories *}
+section {* Text buffers and theories *}
 
-text {* jEdit maintains a collection of open \emph{text buffers} to
-  store source files.  Each buffer may be associated with any number
-  of visible \emph{text areas}.  Buffers are subject to an \emph{edit
-  mode} that is determined from the file type.  Files with extension
-  \texttt{.thy} are assigned to the mode \emph{isabelle} and treated
-  specifically.
+text {* As regular text editor, jEdit maintains a collection of open
+  \emph{text buffers} to store source files; each buffer may be
+  associated with any number of visible \emph{text areas}.  Buffers
+  are subject to an \emph{edit mode} that is determined from the file
+  type.  Files with extension \texttt{.thy} are assigned to the mode
+  \emph{isabelle} and treated specifically.
 
   \medskip Isabelle theory files are automatically added to the formal
   document model of Isabelle/Scala, which maintains a family of
@@ -267,23 +267,25 @@ text {* jEdit maintains a collection of open \emph{text buffers} to
 
   Certain events to open or update buffers with theory files cause
   Isabelle/jEdit to resolve dependencies of \emph{theory imports}.
-  The system requests to load further files into editor buffers, in
-  order to be added to the theory document model for further checking.
-  It is also possible to resolve dependencies automatically, depending
-  on the option @{system_option jedit_auto_load}.
+  The system requests to load additional files into editor buffers, in
+  order to be included in the theory document model for further
+  checking.  It is also possible to resolve dependencies
+  automatically, depending on \emph{Plugin Options / Isabelle /
+  General / Auto load} (Isabelle system option @{system_option
+  jedit_auto_load}).
 
   \medskip The open text area views on theory buffers define the
   visible \emph{perspective} of Isabelle/jEdit.  This is taken as a
   hint for document processing: the prover ensures that those parts of
   a theory where the user is looking are checked, while other parts
-  that are presently not required are ignored.  The perspective can be
+  that are presently not required are ignored.  The perspective is
   changed by opening or closing text area windows, or scrolling within
   some window.
 
   The \emph{Theories} panel provides some further options to influence
   the process of continuous checking: it may be switched off globally
-  to perform superficial processing of command syntax only.  It is
-  also possible to indicate theory nodes as \emph{required} for
+  to restrict the prover to superficial processing of command syntax.
+  It is also possible to indicate theory nodes as \emph{required} for
   continuous checking: this means such nodes and all their imports are
   always processed independently of the visibility status (if
   continuous checking is enabled).  Big theory libraries that are
@@ -294,40 +296,48 @@ text {* jEdit maintains a collection of open \emph{text buffers} to
   rendering, based on a standard repertoire known from IDEs for
   programming languages: colors, icons, highlighting, squiggly
   underline, tooltips, hyperlinks etc.  For outer syntax of
-  Isabelle/Isar there is some traditional syntax-highlighting, based
-  on static keyword tables and tokenization within the editor.  In
-  contrast, the painting of inner syntax (term language etc.)  is
-  based on semantic information that is reported dynamically from the
-  logical context.  Thus the prover can provide additional markup to
-  help the user understanding the meaning of the text, and to produce
-  more text with some add-on tools (e.g.\ information messages by
-  automated provers or disprovers running in the background).
+  Isabelle/Isar there is some traditional syntax-highlighting via
+  static keyword tables and tokenization within the editor.  In
+  contrast, the painting of inner syntax (term language etc.)\ uses
+  semantic information that is reported dynamically from the logical
+  context.  Thus the prover can provide additional markup to help the
+  user to understand the meaning of formal text, and to produce more
+  text with some add-on tools (e.g.\ information messages by automated
+  provers or disprovers running in the background).
 
-  Such formally annotated text can be explored further by using the
-  @{verbatim CONTROL} modifier key on Linux and Windows, or @{verbatim
-  COMMAND} on Mac OS X.  Hovering with the mouse while the modifier is
-  pressed reveals \emph{tooltips} (grey box within the text with a
-  yellow popup) and/or \emph{hyperlinks} (dark grey rectangle within
-  the text).
+  Such annotated text can be explored further by using the @{verbatim
+  CONTROL} modifier key on Linux and Windows, or @{verbatim COMMAND}
+  on Mac OS X.  Hovering with the mouse while the modifier is pressed
+  reveals a \emph{tooltip} (grey box over the text with a yellow
+  popup) and/or a \emph{hyperlink} (black rectangle over the text);
+  see \figref{fig:tooltip}.
 
   \begin{figure}[htbp]
   \begin{center}
   \includegraphics[scale=0.3]{popup1}
   \end{center}
-  \caption{Hyperlink and tooltip for some formal entity.}
+  \caption{Tooltip and hyperlink for some formal entity.}
+  \label{fig:tooltip}
   \end{figure}
 
-  Tooltip popups use the same rendering principles as the
-  main text area, and further tooltips and/or hyperlinks may be
-  exposed recursively by the same mechanism.
+  Tooltip popups use the same rendering principles as the main text
+  area, and further tooltips and/or hyperlinks may be exposed
+  recursively by the same mechanism; see
+  \figref{fig:nested-tooltips}.
 
   \begin{figure}[htbp]
   \begin{center}
   \includegraphics[scale=0.3]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities.}
+  \label{fig:nested-tooltips}
   \end{figure}
-*}
+
+  The tooltip popup window provides some controls to \emph{close} or
+  \emph{detach} the window, turning it into a separate \emph{Info}
+  dockable window managed by jEdit.  The @{verbatim ESCAPE} key closes
+  \emph{all} popups, which is particularly relevant for nested
+  tooltips stacking up. *}
 
 
 section {* Isabelle symbols and fonts *}
