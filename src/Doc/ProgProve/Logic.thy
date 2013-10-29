@@ -141,6 +141,28 @@ Some other frequently useful functions on sets are the following:
 See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
 @{theory Main}.
 
+
+\subsection{Exercises}
+
+\exercise
+Start from the data type of binary trees defined earlier:
+*}
+
+datatype 'a tree = Tip | Node "'a tree" 'a "'a tree"
+
+text{*
+Define a function @{text "set ::"} @{typ "'a tree \<Rightarrow> 'a set"}
+that returns the elements in a tree and a function
+@{text "ord ::"} @{typ "int tree \<Rightarrow> bool"}
+the tests if an @{typ "int tree"} is ordered.
+
+Define a function @{text ins} that inserts an element into an ordered @{typ "int tree"}
+while maintaining the order of the tree. If the element is already in the tree, the
+same tree should be returned. Prove correctness of @{text ins}:
+@{prop "set(ins x t) = {x} \<union> set t"} and @{prop "ord t \<Longrightarrow> ord(ins i t)"}.
+\endexercise
+
+
 \section{Proof Automation}
 
 So far we have only seen @{text simp} and @{text auto}: Both perform
