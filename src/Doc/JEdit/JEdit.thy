@@ -289,14 +289,14 @@ text {* File specifications in jEdit follow various formats and
 
   Moreover note that path specifications in prover input or output
   usually include formal markup that turns it into a hyperlink (see
-  also \secref{sec:theory-source}).  This allows to open the
+  also \secref{sec:tooltips-hyperlinks}).  This allows to open the
   corresponding file in the text editor, independently of the path
   notation.  *}
 
 
 chapter {* Prover IDE functionality *}
 
-section {* Text buffers and theories \label{sec:theory-source} *}
+section {* Text buffers and theories *}
 
 text {* As regular text editor, jEdit maintains a collection of open
   \emph{text buffers} to store source files; each buffer may be
@@ -353,17 +353,22 @@ text {* As regular text editor, jEdit maintains a collection of open
   user to understand the meaning of formal text, and to produce more
   text with some add-on tools (e.g.\ information messages by automated
   provers or disprovers running in the background).
+*}
 
-  Such annotated text can be explored further by using the @{verbatim
-  CONTROL} modifier key on Linux and Windows, or @{verbatim COMMAND}
-  on Mac OS X.  Hovering with the mouse while the modifier is pressed
-  reveals a \emph{tooltip} (grey box over the text with a yellow
-  popup) and/or a \emph{hyperlink} (black rectangle over the text);
-  see \figref{fig:tooltip}.
+
+section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
+
+text {* Formally processed text (prover input or output) contains rich
+  markup information that can be explored further by using the
+  @{verbatim CONTROL} modifier key on Linux and Windows, or @{verbatim
+  COMMAND} on Mac OS X.  Hovering with the mouse while the modifier is
+  pressed reveals a \emph{tooltip} (grey box over the text with a
+  yellow popup) and/or a \emph{hyperlink} (black rectangle over the
+  text); see also \figref{fig:tooltip}.
 
   \begin{figure}[htbp]
   \begin{center}
-  \includegraphics[scale=0.3]{popup1}
+  \includegraphics[scale=0.6]{popup1}
   \end{center}
   \caption{Tooltip and hyperlink for some formal entity.}
   \label{fig:tooltip}
@@ -376,7 +381,7 @@ text {* As regular text editor, jEdit maintains a collection of open
 
   \begin{figure}[htbp]
   \begin{center}
-  \includegraphics[scale=0.3]{popup2}
+  \includegraphics[scale=0.6]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities.}
   \label{fig:nested-tooltips}
@@ -385,58 +390,80 @@ text {* As regular text editor, jEdit maintains a collection of open
   The tooltip popup window provides some controls to \emph{close} or
   \emph{detach} the window, turning it into a separate \emph{Info}
   dockable window managed by jEdit.  The @{verbatim ESCAPE} key closes
-  \emph{all} popups, which is particularly relevant for nested
-  tooltips stacking up. *}
+  \emph{all} popups, which is particularly relevant when nested
+  tooltips are stacking up.
+
+  \medskip A black rectangle in the text indicates a hyperlink that
+  may be followed by a mouse click (while the @{verbatim CONTROL} or
+  @{verbatim COMMAND} modifier key is still pressed). Presently (2013)
+  there is no systematic way to return to the original location within
+  the editor.
+
+  Also note that the link target may be a file that is itself not
+  subject to formal document processing of the editor session and thus
+  prevents further exploration: the chain of hyperlinks may end in
+  some source file of the underlying logic image, even within the
+  Isabelle/ML bootstrap sources of Isabelle/Pure, where the formal
+  markup is less detailed. *}
 
 
-section {* Isabelle symbols and fonts *}
+section {* Isabelle symbols *}
 
 text {* Isabelle sources consist of \emph{symbols} that extend plain
   ASCII to allow infinitely many mathematical symbols within the
   formal sources.  This works without depending on particular
-  encodings or varying Unicode standards \cite{Wenzel:2011:CICM}.
+  encodings or varying Unicode standards
+  \cite{Wenzel:2011:CICM}.\footnote{Raw Unicode characters within
+  formal sources would compromise portability and reliability in the
+  face of changing interpretation of various unexpected features of
+  Unicode.}
 
   For the prover back-end, formal text consists of ASCII characters
   that are grouped according to some simple rules, e.g.\ as plain
   ``@{verbatim a}'' or symbolic ``@{verbatim "\<alpha>"}''.
 
-  For the editor front-end, a certain subset of symbols is rendered as
-  Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}'' as ``@{text
-  "\<alpha>"}'', for example.  This symbol interpretation is specified by the
-  Isabelle system distribution (@{file "$ISABELLE_HOME/etc/symbols"})
-  or by the user (@{verbatim "$ISABELLE_HOME_USER/etc/symbols"}).
+  For the editor front-end, a certain subset of symbols is rendered
+  physically via Unicode glyphs, in order to show ``@{verbatim "\<alpha>"}''
+  as ``@{text "\<alpha>"}'', for example.  This symbol interpretation is
+  specified by the Isabelle system distribution in @{file
+  "$ISABELLE_HOME/etc/symbols"} and may be augmented by the user in
+  @{verbatim "$ISABELLE_HOME_USER/etc/symbols"}.
 
   The appendix of \cite{isabelle-isar-ref} gives an overview of the
   standard interpretation of finitely many symbols from the infinite
-  collection.  Uninterpreted symbols are shown literally, e.g.\
-  ``@{verbatim "\<foobar>"}''.
+  collection.  Uninterpreted symbols are displayed literally, e.g.\
+  ``@{verbatim "\<foobar>"}''.  Overlap of Unicode characters used in
+  symbol interpretation with informal ones that might appear e.g.\ in
+  comments needs to be avoided!
 
-  \medskip Technically, the Unicode view on Isabelle symbols is an
-  \emph{encoding} in Isabelle/jEdit, which is called @{verbatim
-  "UTF-8-Isabelle"} and enabled by default.  Sometimes such defaults
-  are reset accidentally, or malformed UTF-8 sequences in the text
-  force jEdit to fall back on a different encoding like @{verbatim
-  "ISO-8859-15"}.  In that case, verbatim ``@{verbatim "\<alpha>"}'' will be
-  shown in the text buffer instead of its Unicode rendering ``@{text
-  "\<alpha>"}''.  The jEdit menu operation \emph{File / Reload with Encoding
-  / UTF-8-Isabelle} helps to resolve such problems, potentially after
-  repairing malformed parts of the text.
+  \medskip \paragraph{Encoding.} Technically, the Unicode view on
+  Isabelle symbols is an \emph{encoding} in jEdit (not in the
+  underlying JVM) that is called @{verbatim "UTF-8-Isabelle"}.  It is
+  provided by the Isabelle/jEdit plugin and enabled by default for all
+  source files.  Sometimes such defaults are reset accidentally, or
+  malformed UTF-8 sequences in the text force jEdit to fall back on a
+  different encoding like @{verbatim "ISO-8859-15"}.  In that case,
+  verbatim ``@{verbatim "\<alpha>"}'' will be shown in the text buffer
+  instead of its Unicode rendering ``@{text "\<alpha>"}''.  The jEdit menu
+  operation \emph{File / Reload with Encoding / UTF-8-Isabelle} helps
+  to resolve such problems, potentially after repairing malformed
+  parts of the text.
 
-  \medskip Correct rendering via Unicode requires a font that contains
-  glyphs for the corresponding codepoints.  Most system fonts lack
-  that, so Isabelle/jEdit prefers its own application font @{verbatim
-  IsabelleText}, which ensures that standard collection of Isabelle
-  symbols are actually seen on the screen (or printer).
+  \medskip \paragraph{Font.} Correct rendering via Unicode requires a
+  font that contains glyphs for the corresponding codepoints.  Most
+  system fonts lack that, so Isabelle/jEdit prefers its own
+  application font @{verbatim IsabelleText}, which ensures that
+  standard collection of Isabelle symbols are actually seen on the
+  screen (or printer).
 
   Note that a Java/AWT/Swing application can load additional fonts
   only if they are not installed as system font already!  This means
   some old version of @{verbatim IsabelleText} that happens to be
   already present prevents Isabelle/jEdit from using its current
-  bundled version.  This might result in missing glyphs (black
-  rectangles), since obsolete versions of @{verbatim IsabelleText}
-  lack recent improvements of Unicode glyph coverage.  This problem
-  can be avoided by refraining to ``install'' any version of
-  @{verbatim IsabelleText} in the first place.
+  bundled version.  This results in missing glyphs (black rectangles),
+  when some obsolete version of @{verbatim IsabelleText} is used by
+  accident.  This problem can be avoided by refraining to ``install''
+  any version of @{verbatim IsabelleText} in the first place.
 
   \medskip \paragraph{Input methods.} In principle, Isabelle/jEdit
   could delegate the problem to produce Isabelle symbols in their
@@ -458,15 +485,16 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   information about \emph{symbol abbreviations} (see below).
 
   \item Copy / paste from decoded source files: text that is rendered
-  as Unicode already can be re-used to produce further such text.
-  This also works between different applications, e.g.\ Isabelle/jEdit
-  and some web browser or mail client, as long as the same Unicode
-  view on Isabelle symbols is used uniformly.
+  as Unicode already can be re-used to produce further text.  This
+  also works between different applications, e.g.\ Isabelle/jEdit and
+  some web browser or mail client, as long as the same Unicode view on
+  Isabelle symbols is used uniformly.
 
   \item Copy / paste from prover output within Isabelle/jEdit.  The
   same principles as for text buffers apply, but note that \emph{copy}
-  in Isabelle \emph{Output} works via the keyboard shortcut @{verbatim
-  "C+c"}, not jEdit menu actions.
+  in secondary Isabelle/jEdit windows works via the keyboard shortcut
+  @{verbatim "C+c"}.  The jEdit menu actions always refer to the
+  primary text area!
 
   \item Completion provided by Isabelle plugin (see
   \secref{sec:completion}).  Isabelle symbols have a canonical name
@@ -503,9 +531,9 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
 
   Note that the above abbreviations refer to the input method. The
   logical notation provides ASCII alternatives that often coincide,
-  but deviate occasionally.  Writing formal sources directly with
-  ASCII replacement notation like @{verbatim "!"} or @{verbatim "ALL"}
-  is considered old-fashioned in 2013!
+  but deviate occasionally.  This occasionally causes user confusion
+  with very old-fashioned Isabelle source that use ASCII replacement
+  notation like @{verbatim "!"} or @{verbatim "ALL"} directly.
 
   \end{enumerate}
 
@@ -518,23 +546,24 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   \paragraph{Control symbols.} There are some special control symbols
   to modify the style of a single symbol (without nesting). Control
   symbols may be applied to a region of selected text, either using
-  the \emph{Symbols} panel or keyboard shortcuts; these editor
-  operations produce a separate control symbol for each symbol in the
-  text, in order to make the whole text appear in a certain style.
+  the \emph{Symbols} panel or keyboard shortcuts or jEdit actions.
+  These editor operations produce a separate control symbol for each
+  symbol in the text, in order to make the whole text appear in a
+  certain style.
 
   \medskip
-  \begin{tabular}{lll}
-    \textbf{symbol}      & style       & keyboard shortcut \\\hline
-    @{verbatim "\<^sup>"} & superscript & @{verbatim "C+e UP"} \\
-    @{verbatim "\<^sub>"} & subscript   & @{verbatim "C+e DOWN"} \\
-    @{verbatim "\<^bold>"} & bold face  & @{verbatim "C+e RIGHT"} \\
-                          & reset      & @{verbatim "C+e LEFT"} \\
+  \begin{tabular}{llll}
+    style & \textbf{symbol} & shortcut & action \\\hline
+    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{verbatim "isabelle.control-sup"} \\
+    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{verbatim "isabelle.control-sub"} \\
+    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{verbatim "isabelle.control-bold"} \\
+    reset & & @{verbatim "C+e LEFT"} & @{verbatim "isabelle.control-reset"} \\
   \end{tabular}
+  \medskip
 
-  It is also possible to complete on @{verbatim "\\"}@{verbatim sup},
-  @{verbatim "\\"}@{verbatim sub}, @{verbatim "\\"}@{verbatim bold} as
-  for regular symbols.
-*}
+  To produce a single control symbol, it is also possible to complete
+  on @{verbatim "\\"}@{verbatim sup}, @{verbatim "\\"}@{verbatim sub},
+  @{verbatim "\\"}@{verbatim bold} as for regular symbols.  *}
 
 
 section {* Text completion \label{sec:completion} *}
