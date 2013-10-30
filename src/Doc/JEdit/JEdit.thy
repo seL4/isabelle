@@ -245,9 +245,58 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   order to take full effect.  *}
 
 
+subsection {* File-system access *}
+
+text {* File specifications in jEdit follow various formats and
+  conventions according to \emph{Virtual File Systems}, which may be
+  also provided by additional plugins.  This allows to access remote
+  files via the @{verbatim "http:"} protocol prefix, for example.
+  Isabelle/jEdit attempts to work with the file-system access model of
+  jEdit as far as possible.  In particular, theory sources are passed
+  directly from the editor to the prover, without indirection via
+  files.
+
+  Despite the flexibility of URLs in jEdit, local files are
+  particularly important and are accessible without protocol prefix.
+  Here the path notation is that of the Java Virtual Machine on the
+  underlying platform.  On Windows the preferred form uses
+  backslashes, but happens to accept Unix/POSIX forward slashes, too.
+  Further differences arise due to drive letters and network shares.
+
+  The Java notation for files needs to be distinguished from the one
+  of Isabelle, which uses POSIX notation with forward slashes on
+  \emph{all} platforms.\footnote{Isabelle on Windows uses Cygwin
+  file-system access.}  Moreover, environment variables from the
+  Isabelle process may be used freely, e.g.\ @{file
+  "$ISABELLE_HOME/etc/symbols"} or @{file
+  "$ISABELLE_JDK_HOME/README.html"}.  There are special shortcuts:
+  @{verbatim "~"} for @{file "$USER_HOME"}, and @{verbatim "~~"} for
+  @{file "$ISABELLE_HOME"}.
+
+  \medskip Since jEdit happens to support environment variables within
+  file specifications as well, it is natural to use similar notation
+  within the editor, e.g.\ in the file-browser.  This does not work in
+  full generality, though, due to the bias of jEdit towards
+  platform-specific notation and of Isabelle towards POSIX.  Moreover,
+  the Isabelle settings environment is not yet active when starting
+  Isabelle/jEdit via its standard application wrapper (in contrast to
+  @{verbatim "isabelle jedit"} run from the command line).
+
+  For convenience, Isabelle/jEdit imitates at least @{verbatim
+  "$ISABELLE_HOME"} and @{verbatim "$ISABELLE_HOME_USER"} within the
+  Java process environment, in order to allow easy access to these
+  important places from the editor.
+
+  Moreover note that path specifications in prover input or output
+  usually include formal markup that turns it into a hyperlink (see
+  also \secref{sec:theory-source}).  This allows to open the
+  corresponding file in the text editor, independently of the path
+  notation.  *}
+
+
 chapter {* Prover IDE functionality *}
 
-section {* Text buffers and theories *}
+section {* Text buffers and theories \label{sec:theory-source} *}
 
 text {* As regular text editor, jEdit maintains a collection of open
   \emph{text buffers} to store source files; each buffer may be

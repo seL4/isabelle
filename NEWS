@@ -102,8 +102,8 @@ according to Isabelle/Scala plugin option "jedit_font_reset_size"
 (cf. keyboard shortcut C+0).
 
 * File specifications in jEdit (e.g. file browser) may refer to
-$ISABELLE_HOME on all platforms.  Discontinued obsolete
-$ISABELLE_HOME_WINDOWS variable.
+$ISABELLE_HOME and $ISABELLE_HOME_USER on all platforms.  Discontinued
+obsolete $ISABELLE_HOME_WINDOWS variable.
 
 * Improved support for Linux look-and-feel "GTK+", see also "Utilities
 / Global Options / Appearance".
