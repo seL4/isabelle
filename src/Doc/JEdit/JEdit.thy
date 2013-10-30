@@ -296,7 +296,7 @@ text {* File specifications in jEdit follow various formats and
 
 chapter {* Prover IDE functionality *}
 
-section {* Text buffers and theories *}
+section {* Text buffers and theories \label{sec:buffers-theories} *}
 
 text {* As regular text editor, jEdit maintains a collection of open
   \emph{text buffers} to store source files; each buffer may be
@@ -354,6 +354,68 @@ text {* As regular text editor, jEdit maintains a collection of open
   text with some add-on tools (e.g.\ information messages by automated
   provers or disprovers running in the background).
 *}
+
+
+section {* Prover output *}
+
+text {* Prover output consists of \emph{markup} and \emph{messages}.
+  Both are directly attached to the corresponding positions in the
+  original source text, and visualized in the text area, e.g.\ as text
+  colours for free and bound variables, or as squiggly underline for
+  warnings, errors etc.  In the latter case, the corresponding
+  messages are shown by hovering with the mouse over the highlighted
+  text --- although in many situations the user should already get
+  some clue by looking at the text highlighting alone.
+
+  The ``gutter area'' on the left-hand-side of the text area uses
+  icons to provide a summary of the messages within the corresponding
+  line of text.  Message priorities are used to prefer errors over
+  warnings, warnings over information messages etc.  Plain output is
+  ignored here.
+
+  The ``overview area'' on the right-hand-side of the text area uses
+  similar information to paint small rectangles for the overall status
+  of the whole text buffer.  The graphics is scaled to fit the logical
+  buffer length into the given window height.  Mouse clicks on the
+  overview area position the cursor approximately to the corresponding
+  line of text in the buffer.
+
+  Another course-grained overview is provided by the \emph{Theories}
+  panel (\secref{sec:buffers-theories}), but without direct
+  correspondence to text positions.  A double-click on one of the
+  theory entries with their status overview opens the corresponding
+  text buffer, without changing the cursor position.
+
+  \medskip In addition, the \emph{Output} panel displays prover
+  messages that correspond to a given command, within a separate
+  window.
+
+  The cursor position in the presently active text area determines the
+  prover commands whose cumulative message output is appended an shown
+  in that window (in canonical order according to the processing of
+  the command).  There are also control elements to modify the update
+  policy of the output wrt.\ continued editor movements.  This is
+  particularly useful with several independent instances of the
+  \emph{Output} panel, which the Dockable Window Manager of jEdit can
+  handle conveniently.
+
+  Former users of the old TTY interaction model (e.g.\ Proof~General)
+  might find a separate window for prover messages familiar, but it is
+  important to understand that the main Prover IDE feedback happens
+  elsewhere.  It is possible to do meaningful proof editing
+  efficiently while using the secondary window only rarely.
+
+  The main purpose of the output window is to ``debug'' unclear
+  situations by inspecting internal state of the prover.\footnote{In
+  that sense, unstructured tactic scripts depend on continous
+  debugging with internal state inspection.} Consequently, some
+  special messages for \emph{tracing} or \emph{proof state} only
+  appear here, and are not attached to the original source.
+
+  \medskip In any case, prover messages also contain markup that may
+  be explored recursively via tooltips or hyperlinks (see
+  \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate
+  certain actions (e.g.\ see \secref{sec:sledgehammer}).  *}
 
 
 section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
@@ -598,6 +660,27 @@ text {*
   into the buffer without popup. This mode ignores plain words and requires
   more than one characters for symbol abbreviations. Otherwise it falls back
   on completion popup.
+*}
+
+
+section {* Automatically tried tools *}
+
+text {*
+  FIXME
+*}
+
+
+section {* Sledgehammer \label{sec:sledgehammer} *}
+
+text {*
+  FIXME
+*}
+
+
+section {* Find theorems *}
+
+text {*
+  FIXME
 *}
 
 
