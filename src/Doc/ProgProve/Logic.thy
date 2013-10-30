@@ -799,12 +799,10 @@ step': "star' r x y \<Longrightarrow> r y z \<Longrightarrow> star' r x z"
 
 text{*
 The single @{text r} step is performer after rather than before the @{text star'}
-steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"}. You may need a lemma.
-The other direction can also be proved but
-you have to be careful how to formulate the lemma it will require:
-make sure that the assumption about the inductive predicate
-is the first assumption. Assumptions preceding the inductive predicate do not
-take part in the induction.
+steps. Prove @{prop "star' r x y \<Longrightarrow> star r x y"} and
+@{prop "star r x y \<Longrightarrow> star r' x y"}. You may need lemmas.
+Note that rule induction fails
+if the assumption about the inductive predicate is not the first assumption.
 \endexercise
 
 \ifsem
