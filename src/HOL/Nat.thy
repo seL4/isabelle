@@ -1872,12 +1872,12 @@ lemma dvd_plus_eq_left:
   shows "m dvd n + q \<longleftrightarrow> m dvd n"
   using assms by (simp add: dvd_plus_eq_right add_commute [of n])
 
-lemma less_dvd_minus:
+lemma less_eq_dvd_minus:
   fixes m n :: nat
-  assumes "m < n"
-  shows "m dvd n \<longleftrightarrow> m dvd (n - m)"
+  assumes "m \<le> n"
+  shows "m dvd n \<longleftrightarrow> m dvd n - m"
 proof -
-  from assms have "n = m + (n - m)" by arith
+  from assms have "n = m + (n - m)" by simp
   then obtain q where "n = m + q" ..
   then show ?thesis by (simp add: dvd_reduce add_commute [of m])
 qed

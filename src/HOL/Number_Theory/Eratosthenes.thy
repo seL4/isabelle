@@ -75,7 +75,7 @@ lemma length_mark_out [simp]:
 lemma numbers_of_marks_mark_out:
   "numbers_of_marks n (mark_out m bs) = {q \<in> numbers_of_marks n bs. \<not> Suc m dvd Suc q - n}"
   by (auto simp add: numbers_of_marks_def mark_out_def in_set_enumerate_eq image_iff
-    nth_enumerate_eq less_dvd_minus)
+    nth_enumerate_eq less_eq_dvd_minus)
 
 
 text {* Auxiliary operation for efficient implementation  *}
@@ -128,7 +128,7 @@ proof -
     by (simp add: mark_out_aux_def)
   show ?thesis2
     by (auto simp add: mark_out_code [symmetric] mark_out_aux_def mark_out_def
-      enumerate_Suc_eq in_set_enumerate_eq less_dvd_minus)
+      enumerate_Suc_eq in_set_enumerate_eq less_eq_dvd_minus)
   { def v \<equiv> "Suc m" and w \<equiv> "Suc n"
     fix q
     assume "m + n \<le> q"
