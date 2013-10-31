@@ -86,7 +86,20 @@ begin
 lemma one_neq_zero [simp]: "1 \<noteq> 0"
 by (rule not_sym) (rule zero_neq_one)
 
-end
+definition of_bool :: "bool \<Rightarrow> 'a"
+where
+  "of_bool p = (if p then 1 else 0)" 
+
+lemma of_bool_eq [simp, code]:
+  "of_bool False = 0"
+  "of_bool True = 1"
+  by (simp_all add: of_bool_def)
+
+lemma of_bool_eq_iff:
+  "of_bool p = of_bool q \<longleftrightarrow> p = q"
+  by (simp add: of_bool_def)
+
+end  
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 

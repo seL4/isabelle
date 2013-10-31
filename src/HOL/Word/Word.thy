@@ -506,10 +506,6 @@ definition word_rsplit :: "'a :: len0 word => 'b :: len word list" where
 definition max_word :: "'a::len word" -- "Largest representable machine integer." where
   "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
 
-primrec of_bool :: "bool \<Rightarrow> 'a::len word" where
-  "of_bool False = 0"
-| "of_bool True = 1"
-
 (* FIXME: only provide one theorem name *)
 lemmas of_nth_def = word_set_bits_def
 
