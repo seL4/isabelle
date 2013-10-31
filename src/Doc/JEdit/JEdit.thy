@@ -407,7 +407,7 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
 
   The main purpose of the output window is to ``debug'' unclear
   situations by inspecting internal state of the prover.\footnote{In
-  that sense, unstructured tactic scripts depend on continous
+  that sense, unstructured tactic scripts depend on continuous
   debugging with internal state inspection.} Consequently, some
   special messages for \emph{tracing} or \emph{proof state} only
   appear here, and are not attached to the original source.
@@ -415,7 +415,8 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   \medskip In any case, prover messages also contain markup that may
   be explored recursively via tooltips or hyperlinks (see
   \secref{sec:tooltips-hyperlinks}), or clicked directly to initiate
-  certain actions (e.g.\ see \secref{sec:sledgehammer}).  *}
+  certain actions (see \secref{sec:auto-tools} and
+  \secref{sec:sledgehammer}).  *}
 
 
 section {* Tooltips and hyperlinks \label{sec:tooltips-hyperlinks} *}
@@ -663,7 +664,7 @@ text {*
 *}
 
 
-section {* Automatically tried tools *}
+section {* Automatically tried tools \label{sec:auto-tools} *}
 
 text {* Continuous document processing works asynchronously in the
   background.  Visible document source that has been evaluated already
@@ -761,16 +762,39 @@ text {* Continuous document processing works asynchronously in the
 
 section {* Sledgehammer \label{sec:sledgehammer} *}
 
-text {*
-  FIXME
-*}
+text {* The \emph{Sledgehammer} panel provides a view on some
+  independent execution of @{command sledgehammer}, with process
+  indicator (spinning wheel) and GUI elements for important
+  Sledgehammer arguments and options.  Any number of Sledgehammer
+  panels may be active, according to the standard policies of Dockable
+  Window Management in jEdit.  Closing a window also cancels the
+  corresponding prover tasks.
+
+  The \emph{Apply} button attaches a fresh invocation of @{command
+  sledgehammer} to the command where the cursor is pointing in the
+  text --- this should be some pending proof problem.  Further buttons
+  like \emph{Cancel} and \emph{Locate} help to manage the running
+  process.
+
+  Results appear incrementally in the output window of the panel.
+  Proposed proof snippets are marked up as \emph{sendback}, which
+  means a single mouse click inserts the text into a suitable place of
+  the original source.  Some manual editing may be required
+  nonetheless, say to remove earlier proof attempts. *}
 
 
 section {* Find theorems *}
 
-text {*
-  FIXME
-*}
+text {* The \emph{Find} panel provides an independent view for
+  @{command find_theorems}.  The main text field accepts search
+  criteria according to the syntax @{syntax thmcriterium} given in
+  \cite{isabelle-isar-ref}.  Further options of @{command
+  find_theorems} are available via GUI elements.
+
+  The \emph{Apply} button attaches a fresh invocation of @{command
+  find_theorems} to the current context of the command where the
+  cursor is pointing in the text, unless an alternative theory context
+  (from the underlying logic image) is specified explicitly. *}
 
 
 chapter {* Known problems and workarounds \label{sec:problems} *}
