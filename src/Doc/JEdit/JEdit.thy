@@ -356,7 +356,7 @@ text {* As regular text editor, jEdit maintains a collection of open
 *}
 
 
-section {* Prover output *}
+section {* Prover output \label{sec:prover-output} *}
 
 text {* Prover output consists of \emph{markup} and \emph{messages}.
   Both are directly attached to the corresponding positions in the
@@ -665,9 +665,98 @@ text {*
 
 section {* Automatically tried tools *}
 
-text {*
-  FIXME
-*}
+text {* Continuous document processing works asynchronously in the
+  background.  Visible document source that has been evaluated already
+  may get augmented by additional results of \emph{asynchronous print
+  functions}.  The canonical example is proof state output, which is
+  always enabled.  More heavy-weight print functions may be applied,
+  in order to prove or disprove parts of the formal text by other
+  means.
+
+  Isabelle/HOL provides various automatically tried tools that operate
+  on outermost goal statements (e.g.\ @{command lemma}, @{command
+  theorem}), independently of the state of the current proof attempt.
+  They work implicitly without any arguments.  Results are output as
+  \emph{information messages}, which are indicated in the text area by
+  blue squiggles and a blue information sign in the gutter.  The
+  message content may be shown as for any other message, see also
+  \secref{sec:prover-output}.  Some tools produce output with
+  \emph{sendback} markup, which means that clicking on certain parts
+  of the output inserts that text into the source in the proper place.
+
+  \medskip The following Isabelle system options control the behaviour
+  of automatically tried tools (see also the jEdit dialog window
+  \emph{Plugin Options / Isabelle / General / Automatically tried
+  tools}):
+
+  \begin{itemize}
+
+  \item @{system_option auto_methods} controls automatic use of a
+  combination of standard proof methods (@{method auto}, @{method
+  simp}, @{method blast}, etc.).  This corresponds to the command
+  @{command "try0"}.
+
+  The tool is disabled by default, since unparameterized invocation of
+  standard proof methods often consumes substantial CPU resources
+  without leading to success.
+
+  \item @{system_option auto_nitpick} controls a slightly reduced
+  version of @{command nitpick}, which tests for counterexamples using
+  first-order relational logic. See also the Nitpick manual
+  \cite{isabelle-nitpick}.
+
+  This tool is disabled by default, due to the extra overhead of
+  invoking an external Java process for each attempt to disprove a
+  subgoal.
+
+  \item @{system_option auto_quickcheck} controls automatic use of
+  @{command quickcheck}, which tests for counterexamples using a
+  series of assignments for free variables of a subgoal.
+
+  This tool is \emph{enabled} by default.  It requires little
+  overhead, but is a bit weaker than @{command nitpick}.
+
+  \item @{system_option auto_sledgehammer} controls a significantly
+  reduced version of @{command sledgehammer}, which attempts to prove
+  a subgoal using external automatic provers. See also the
+  Sledgehammer manual \cite{isabelle-sledgehammer}.
+
+  This tool is disabled by default, due to the relatively heavy nature
+  of Sledgehammer.
+
+  \item @{system_option auto_solve_direct} controls automatic use of
+  @{command solve_direct}, which checks whether the current subgoals
+  can be solved directly by an existing theorem.  This also helps to
+  detect duplicate lemmas.
+
+  This tool is \emph{enabled} by default.
+
+  \end{itemize}
+
+  Invocation of automatically tried tools is subject to some global
+  policies of parallel execution, which may be configured as follows:
+
+  \begin{itemize}
+
+  \item @{system_option auto_time_limit} (default 2.0) determines the
+  timeout (in seconds) for each tool execution individually.
+
+  \item @{system_option auto_time_start} (default 1.0) determines the
+  start delay (in seconds) for automatically tried tools, after the
+  main command evaluation is finished.
+
+  \end{itemize}
+
+  Each tool is submitted independently to the pool of parallel
+  execution tasks in Isabelle/ML, using hardwired priorities according
+  to its relative ``heaviness''.  The main stages of evaluation and
+  printing of proof states take precedence, but an already running
+  tool is not canceled and may thus reduce reactivity of proof
+  document processing.
+
+  Users should experiment how the available CPU resources (number of
+  cores) are best invested to get additional feedback from prover in
+  the background, by using weaker or stronger tools.  *}
 
 
 section {* Sledgehammer \label{sec:sledgehammer} *}

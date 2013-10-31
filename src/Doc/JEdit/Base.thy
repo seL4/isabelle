@@ -1,5 +1,5 @@
 theory Base
-imports Pure
+imports Main
 begin
 
 ML_file "../antiquote_setup.ML"
