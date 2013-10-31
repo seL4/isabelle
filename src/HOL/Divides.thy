@@ -509,6 +509,26 @@ qed
 
 end
 
+class semiring_div_parity = semiring_div + semiring_numeral +
+  assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
+begin
+
+lemma parity_cases [case_names even odd]:
+  assumes "a mod 2 = 0 \<Longrightarrow> P"
+  assumes "a mod 2 = 1 \<Longrightarrow> P"
+  shows P
+  using assms parity by blast
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
+  by (cases a rule: parity_cases) simp_all
+
+end
+
 
 subsection {* Generic numeral division with a pragmatic type class *}
 
@@ -519,7 +539,6 @@ text {*
   could surely be formulated using a more fine-grained, more algebraic
   and less technical class hierarchy.
 *}
-
 
 class semiring_numeral_div = linordered_semidom + minus + semiring_div +
   assumes diff_invert_add1: "a + b = c \<Longrightarrow> a = c - b"
@@ -540,18 +559,21 @@ lemma diff_zero [simp]:
   "a - 0 = a"
   by (rule diff_invert_add1 [symmetric]) simp
 
-lemma parity:
-  "a mod 2 = 0 \<or> a mod 2 = 1"
-proof (rule ccontr)
-  assume "\<not> (a mod 2 = 0 \<or> a mod 2 = 1)"
-  then have "a mod 2 \<noteq> 0" and "a mod 2 \<noteq> 1" by simp_all
-  have "0 < 2" by simp
-  with pos_mod_bound pos_mod_sign have "0 \<le> a mod 2" "a mod 2 < 2" by simp_all
-  with `a mod 2 \<noteq> 0` have "0 < a mod 2" by simp
-  with discrete have "1 \<le> a mod 2" by simp
-  with `a mod 2 \<noteq> 1` have "1 < a mod 2" by simp
-  with discrete have "2 \<le> a mod 2" by simp
-  with `a mod 2 < 2` show False by simp
+subclass semiring_div_parity
+proof
+  fix a
+  show "a mod 2 = 0 \<or> a mod 2 = 1"
+  proof (rule ccontr)
+    assume "\<not> (a mod 2 = 0 \<or> a mod 2 = 1)"
+    then have "a mod 2 \<noteq> 0" and "a mod 2 \<noteq> 1" by simp_all
+    have "0 < 2" by simp
+    with pos_mod_bound pos_mod_sign have "0 \<le> a mod 2" "a mod 2 < 2" by simp_all
+    with `a mod 2 \<noteq> 0` have "0 < a mod 2" by simp
+    with discrete have "1 \<le> a mod 2" by simp
+    with `a mod 2 \<noteq> 1` have "1 < a mod 2" by simp
+    with discrete have "2 \<le> a mod 2" by simp
+    with `a mod 2 < 2` show False by simp
+  qed
 qed
 
 lemma divmod_digit_1:
