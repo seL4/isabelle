@@ -64,16 +64,17 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
 section {* The Isabelle/jEdit Prover IDE *}
 
 text {*
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
   \includegraphics[width=\textwidth]{isabelle-jedit}
   \end{center}
   \caption{The Isabelle/jEdit Prover IDE}
+  \label{fig:isabelle-jedit}
   \end{figure}
 
-  Isabelle/jEdit consists of some plugins for the well-known jEdit
-  text editor \url{http://www.jedit.org}, according to the following
-  principles.
+  Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some
+  plugins for the well-known jEdit text editor
+  \url{http://www.jedit.org}, according to the following principles.
 
   \begin{itemize}
 
@@ -362,10 +363,20 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
   Both are directly attached to the corresponding positions in the
   original source text, and visualized in the text area, e.g.\ as text
   colours for free and bound variables, or as squiggly underline for
-  warnings, errors etc.  In the latter case, the corresponding
-  messages are shown by hovering with the mouse over the highlighted
-  text --- although in many situations the user should already get
-  some clue by looking at the text highlighting alone.
+  warnings, errors etc.\ (see also \figref{fig:output}).  In the
+  latter case, the corresponding messages are shown by hovering with
+  the mouse over the highlighted text --- although in many situations
+  the user should already get some clue by looking at the text
+  highlighting alone.
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[scale=0.3]{output}
+  \end{center}
+  \caption{Multiple views on prover output: gutter area, text area
+    with popup, overview area, Theories panel, Output panel}
+  \label{fig:output}
+  \end{figure}
 
   The ``gutter area'' on the left-hand-side of the text area uses
   icons to provide a summary of the messages within the corresponding
@@ -429,9 +440,9 @@ text {* Formally processed text (prover input or output) contains rich
   yellow popup) and/or a \emph{hyperlink} (black rectangle over the
   text); see also \figref{fig:tooltip}.
 
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.6]{popup1}
+  \includegraphics[scale=0.5]{popup1}
   \end{center}
   \caption{Tooltip and hyperlink for some formal entity}
   \label{fig:tooltip}
@@ -439,12 +450,11 @@ text {* Formally processed text (prover input or output) contains rich
 
   Tooltip popups use the same rendering principles as the main text
   area, and further tooltips and/or hyperlinks may be exposed
-  recursively by the same mechanism; see
-  \figref{fig:nested-tooltips}.
+  recursively by the same mechanism; see \figref{fig:nested-tooltips}.
 
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.6]{popup2}
+  \includegraphics[scale=0.5]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities}
   \label{fig:nested-tooltips}
@@ -686,7 +696,7 @@ text {* Continuous document processing works asynchronously in the
   clicking on certain parts of the output inserts that text into the
   source in the proper place.
 
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
   \includegraphics[scale=0.5]{auto-tools}
   \end{center}
@@ -779,7 +789,7 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   standard policies of Dockable Window Management in jEdit.  Closing a
   window also cancels the corresponding prover tasks.
 
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
   \includegraphics[scale=0.3]{sledgehammer}
   \end{center}
@@ -808,7 +818,7 @@ text {* The \emph{Find} panel (\figref{fig:find}) provides an
   thmcriterium} given in \cite{isabelle-isar-ref}.  Further options of
   @{command find_theorems} are available via GUI elements.
 
-  \begin{figure}[htbp]
+  \begin{figure}[htb]
   \begin{center}
   \includegraphics[scale=0.3]{find}
   \end{center}
