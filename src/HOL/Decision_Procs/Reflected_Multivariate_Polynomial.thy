@@ -5,7 +5,7 @@
 header {* Implementation and verification of multivariate polynomials *}
 
 theory Reflected_Multivariate_Polynomial
-imports Complex_Main "~~/src/HOL/Library/Abstract_Rat" Polynomial_List
+imports Complex_Main Rat_Pair Polynomial_List
 begin
 
 subsection{* Datatype of polynomial expressions *}

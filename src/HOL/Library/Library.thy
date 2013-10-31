@@ -1,7 +1,6 @@
 (*<*)
 theory Library
 imports
-  Abstract_Rat
   AList
   BigO
   Binomial

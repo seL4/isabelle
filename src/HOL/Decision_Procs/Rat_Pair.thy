@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Abstract_Rat.thy
+(*  Title:      HOL/Decision_Procs/Rat_Pair.thy
     Author:     Amine Chaieb
 *)
 
-header {* Abstract rational numbers *}
+header {* Rational numbers as pairs *}
 
-theory Abstract_Rat
+theory Rat_Pair
 imports Complex_Main
 begin
 
