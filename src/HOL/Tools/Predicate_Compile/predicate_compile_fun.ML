@@ -286,7 +286,9 @@ fun define_predicates specs thy =
           (map (fn Const (name, T) => (Binding.name (Long_Name.base_name name), T, NoSyn))
            dst_preds)
         |> fold_map Specification.axiom
-            (map (fn t => ((Binding.name ("unnamed_axiom_" ^ serial_string ()), []), t)) intr_ts)
+            (map_index (fn (j, (predname, t)) =>
+                ((Binding.name (Long_Name.base_name predname ^ "_intro_" ^ string_of_int (j + 1)), []), t))
+              (prednames ~~ intr_ts))
       val specs = map (fn predname => (predname,
           map Drule.export_without_context (filter (Predicate_Compile_Aux.is_intro predname) intrs)))
         dst_prednames
