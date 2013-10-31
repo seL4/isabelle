@@ -369,8 +369,8 @@ primrec less_eq_nat where
 | "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
 
 declare less_eq_nat.simps [simp del]
-lemma [code]: "(0\<Colon>nat) \<le> n \<longleftrightarrow> True" by (simp add: less_eq_nat.simps)
 lemma le0 [iff]: "0 \<le> (n\<Colon>nat)" by (simp add: less_eq_nat.simps)
+lemma [code]: "(0\<Colon>nat) \<le> n \<longleftrightarrow> True" by simp
 
 definition less_nat where
   less_eq_Suc_le: "n < m \<longleftrightarrow> Suc n \<le> m"

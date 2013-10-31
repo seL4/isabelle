@@ -349,12 +349,33 @@ lemma nonneg_eq_int:
   shows P
   using assms by (blast dest: nat_0_le sym)
 
-lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
+lemma nat_eq_iff:
+  "nat w = m \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
   by transfer (clarsimp simp add: le_imp_diff_is_add)
+ 
+corollary nat_eq_iff2:
+  "m = nat w \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
+  using nat_eq_iff [of w m] by auto
 
-corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
-by (simp only: eq_commute [of m] nat_eq_iff)
+lemma nat_0 [simp]:
+  "nat 0 = 0"
+  by (simp add: nat_eq_iff)
 
+lemma nat_1 [simp]:
+  "nat 1 = Suc 0"
+  by (simp add: nat_eq_iff)
+
+lemma nat_numeral [simp]:
+  "nat (numeral k) = numeral k"
+  by (simp add: nat_eq_iff)
+
+lemma nat_neg_numeral [simp]:
+  "nat (neg_numeral k) = 0"
+  by simp
+
+lemma nat_2: "nat 2 = Suc (Suc 0)"
+  by simp
+ 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
   by transfer (clarsimp, arith)
 
@@ -374,12 +395,16 @@ lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
 by (insert zless_nat_conj [of 0], auto)
 
 lemma nat_add_distrib:
-     "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
+  "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> nat (z + z') = nat z + nat z'"
   by transfer clarsimp
 
-lemma nat_diff_distrib:
-     "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
+lemma nat_diff_distrib':
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> nat (x - y) = nat x - nat y"
   by transfer clarsimp
+ 
+lemma nat_diff_distrib:
+  "0 \<le> z' \<Longrightarrow> z' \<le> z \<Longrightarrow> nat (z - z') = nat z - nat z'"
+  by (rule nat_diff_distrib') auto
 
 lemma nat_zminus_int [simp]: "nat (- int n) = 0"
   by transfer simp
@@ -770,15 +795,6 @@ subsection{*The functions @{term nat} and @{term int}*}
 text{*Simplify the term @{term "w + - z"}*}
 lemmas diff_int_def_symmetric = diff_def [where 'a=int, symmetric, simp]
 
-lemma nat_0 [simp]: "nat 0 = 0"
-by (simp add: nat_eq_iff)
-
-lemma nat_1 [simp]: "nat 1 = Suc 0"
-by (subst nat_eq_iff, simp)
-
-lemma nat_2: "nat 2 = Suc (Suc 0)"
-by (subst nat_eq_iff, simp)
-
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
 apply (insert zless_nat_conj [of 1 z])
 apply auto
@@ -859,21 +875,6 @@ lemma diff_nat_eq_if:
          else let d = z-z' in     
               if d < 0 then 0 else nat d)"
 by (simp add: Let_def nat_diff_distrib [symmetric])
-
-(* nat_diff_distrib has too-strong premises *)
-lemma nat_diff_distrib': "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x - y) = nat x - nat y"
-apply (rule int_int_eq [THEN iffD1], clarsimp)
-apply (subst of_nat_diff)
-apply (rule nat_mono, simp_all)
-done
-
-lemma nat_numeral [simp]:
-  "nat (numeral k) = numeral k"
-  by (simp add: nat_eq_iff)
-
-lemma nat_neg_numeral [simp]:
-  "nat (neg_numeral k) = 0"
-  by simp
 
 lemma diff_nat_numeral [simp]: 
   "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
