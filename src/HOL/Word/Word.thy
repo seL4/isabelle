@@ -4238,7 +4238,7 @@ lemma max_word_eq: "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
 
 lemma max_word_max [simp,intro!]: "n \<le> max_word"
   by (cases n rule: word_int_cases)
-     (simp add: max_word_def word_le_def int_word_uint int_mod_eq')
+    (simp add: max_word_def word_le_def int_word_uint int_mod_eq' del: minus_mod_self1)
   
 lemma word_of_int_2p_len: "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) simp

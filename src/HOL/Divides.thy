@@ -53,6 +53,16 @@ lemma div_mult_self2 [simp]:
   shows "(a + b * c) div b = c + a div b"
   using assms div_mult_self1 [of b a c] by (simp add: mult_commute)
 
+lemma div_mult_self3 [simp]:
+  assumes "b \<noteq> 0"
+  shows "(c * b + a) div b = c + a div b"
+  using assms by (simp add: add.commute)
+
+lemma div_mult_self4 [simp]:
+  assumes "b \<noteq> 0"
+  shows "(b * c + a) div b = c + a div b"
+  using assms by (simp add: add.commute)
+
 lemma mod_mult_self1 [simp]: "(a + c * b) mod b = a mod b"
 proof (cases "b = 0")
   case True then show ?thesis by simp
@@ -70,8 +80,17 @@ next
   then show ?thesis by simp
 qed
 
-lemma mod_mult_self2 [simp]: "(a + b * c) mod b = a mod b"
+lemma mod_mult_self2 [simp]: 
+  "(a + b * c) mod b = a mod b"
   by (simp add: mult_commute [of b])
+
+lemma mod_mult_self3 [simp]:
+  "(c * b + a) mod b = a mod b"
+  by (simp add: add.commute)
+
+lemma mod_mult_self4 [simp]:
+  "(b * c + a) mod b = a mod b"
+  by (simp add: add.commute)
 
 lemma div_mult_self1_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
   using div_mult_self2 [of b 0 a] by simp
@@ -476,6 +495,17 @@ lemma div_minus1_right [simp]: "a div (-1) = -a"
 
 lemma mod_minus1_right [simp]: "a mod (-1) = 0"
   using mod_minus_right [of a 1] by simp
+
+lemma minus_mod_self2 [simp]: 
+  "(a - b) mod b = a mod b"
+  by (simp add: mod_diff_right_eq)
+
+lemma minus_mod_self1 [simp]: 
+  "(b - a) mod b = - a mod b"
+proof -
+  have "b - a = - a + b" by (simp add: diff_minus add.commute)
+  then show ?thesis by simp
+qed
 
 end
 
