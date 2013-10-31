@@ -9,29 +9,52 @@ theory Parity
 imports Main
 begin
 
-class even_odd = 
-  fixes even :: "'a \<Rightarrow> bool"
+class even_odd = semiring_div_parity
 begin
+
+definition even :: "'a \<Rightarrow> bool"
+where
+  even_def [presburger]: "even a \<longleftrightarrow> a mod 2 = 0"
+
+lemma even_iff_2_dvd [algebra]:
+  "even a \<longleftrightarrow> 2 dvd a"
+  by (simp add: even_def dvd_eq_mod_eq_0)
+
+lemma even_zero [simp]:
+  "even 0"
+  by (simp add: even_def)
+
+lemma even_times_anything:
+  "even a \<Longrightarrow> even (a * b)"
+  by (simp add: even_iff_2_dvd)
+
+lemma anything_times_even:
+  "even a \<Longrightarrow> even (b * a)"
+  by (simp add: even_iff_2_dvd)
 
 abbreviation odd :: "'a \<Rightarrow> bool"
 where
-  "odd x \<equiv> \<not> even x"
+  "odd a \<equiv> \<not> even a"
+
+lemma odd_times_odd:
+  "odd a \<Longrightarrow> odd b \<Longrightarrow> odd (a * b)" 
+  by (auto simp add: even_def mod_mult_left_eq)
+
+lemma even_product [simp, presburger]:
+  "even (a * b) \<longleftrightarrow> even a \<or> even b"
+  apply (auto simp add: even_times_anything anything_times_even)
+  apply (rule ccontr)
+  apply (auto simp add: odd_times_odd)
+  done
 
 end
 
-instantiation nat and int  :: even_odd
-begin
+instance nat and int  :: even_odd ..
 
-definition
-  even_def [presburger]: "even x \<longleftrightarrow> (x\<Colon>int) mod 2 = 0"
-
-definition
-  even_nat_def [presburger]: "even x \<longleftrightarrow> even (int x)"
-
-instance ..
-
-end
-
+lemma even_nat_def [presburger]:
+  "even x \<longleftrightarrow> even (int x)"
+  by (auto simp add: even_def int_eq_iff int_mult nat_mult_distrib)
+  
 lemma transfer_int_nat_relations:
   "even (int x) \<longleftrightarrow> even x"
   by (simp add: even_nat_def)
@@ -40,13 +63,13 @@ declare transfer_morphism_int_nat[transfer add return:
   transfer_int_nat_relations
 ]
 
-lemma even_zero_int[simp]: "even (0::int)" by presburger
+lemma odd_one_int [simp]:
+  "odd (1::int)"
+  by presburger
 
-lemma odd_one_int[simp]: "odd (1::int)" by presburger
-
-lemma even_zero_nat[simp]: "even (0::nat)" by presburger
-
-lemma odd_1_nat [simp]: "odd (1::nat)" by presburger
+lemma odd_1_nat [simp]:
+  "odd (1::nat)"
+  by presburger
 
 lemma even_numeral_int [simp]: "even (numeral (Num.Bit0 k) :: int)"
   unfolding even_def by simp
@@ -67,25 +90,6 @@ subsection {* Even and odd are mutually exclusive *}
 
 
 subsection {* Behavior under integer arithmetic operations *}
-declare dvd_def[algebra]
-lemma nat_even_iff_2_dvd[algebra]: "even (x::nat) \<longleftrightarrow> 2 dvd x"
-  by presburger
-lemma int_even_iff_2_dvd[algebra]: "even (x::int) \<longleftrightarrow> 2 dvd x"
-  by presburger
-
-lemma even_times_anything: "even (x::int) ==> even (x * y)"
-  by algebra
-
-lemma anything_times_even: "even (y::int) ==> even (x * y)" by algebra
-
-lemma odd_times_odd: "odd (x::int) ==> odd y ==> odd (x * y)" 
-  by (simp add: even_def mod_mult_right_eq)
-
-lemma even_product[simp,presburger]: "even((x::int) * y) = (even x | even y)"
-  apply (auto simp add: even_times_anything anything_times_even)
-  apply (rule ccontr)
-  apply (auto simp add: odd_times_odd)
-  done
 
 lemma even_plus_even: "even (x::int) ==> even y ==> even (x + y)"
 by presburger
@@ -181,45 +185,19 @@ by presburger
 
 subsection {* Parity and powers *}
 
-lemma  minus_one_even_odd_power:
-     "(even x --> (- 1::'a::{comm_ring_1})^x = 1) &
-      (odd x --> (- 1::'a)^x = - 1)"
-  apply (induct x)
-  apply (rule conjI)
-  apply simp
-  apply (insert even_zero_nat, blast)
-  apply simp
-  done
+lemma (in comm_ring_1) neg_power_if:
+  "(- a) ^ n = (if even n then (a ^ n) else - (a ^ n))"
+  by (induct n) simp_all
 
-lemma minus_one_even_power [simp]:
-    "even x ==> (- 1::'a::{comm_ring_1})^x = 1"
-  using minus_one_even_odd_power by blast
+lemma (in comm_ring_1)
+  shows minus_one_even_power [simp]: "even n \<Longrightarrow> (- 1) ^ n = 1"
+  and minus_one_odd_power [simp]: "odd n \<Longrightarrow> (- 1) ^ n = - 1"
+  by (simp_all add: neg_power_if del: minus_one)
 
-lemma minus_one_odd_power [simp]:
-    "odd x ==> (- 1::'a::{comm_ring_1})^x = - 1"
-  using minus_one_even_odd_power by blast
-
-lemma neg_one_even_odd_power:
-     "(even x --> (-1::'a::{comm_ring_1})^x = 1) &
-      (odd x --> (-1::'a)^x = -1)"
-  apply (induct x)
-  apply (simp, simp)
-  done
-
-lemma neg_one_even_power [simp]:
-    "even x ==> (-1::'a::{comm_ring_1})^x = 1"
-  using neg_one_even_odd_power by blast
-
-lemma neg_one_odd_power [simp]:
-    "odd x ==> (-1::'a::{comm_ring_1})^x = -1"
-  using neg_one_even_odd_power by blast
-
-lemma neg_power_if:
-     "(-x::'a::{comm_ring_1}) ^ n =
-      (if even n then (x ^ n) else -(x ^ n))"
-  apply (induct n)
-  apply simp_all
-  done
+lemma (in comm_ring_1)
+  shows neg_one_even_power [simp]: "even n \<Longrightarrow> (-1) ^ n = 1"
+  and neg_one_odd_power [simp]: "odd n \<Longrightarrow> (-1) ^ n = - 1"
+  by (simp_all add: minus_one [symmetric] del: minus_one)
 
 lemma zero_le_even_power: "even n ==>
     0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"
