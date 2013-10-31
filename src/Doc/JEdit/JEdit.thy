@@ -433,7 +433,7 @@ text {* Formally processed text (prover input or output) contains rich
   \begin{center}
   \includegraphics[scale=0.6]{popup1}
   \end{center}
-  \caption{Tooltip and hyperlink for some formal entity.}
+  \caption{Tooltip and hyperlink for some formal entity}
   \label{fig:tooltip}
   \end{figure}
 
@@ -446,7 +446,7 @@ text {* Formally processed text (prover input or output) contains rich
   \begin{center}
   \includegraphics[scale=0.6]{popup2}
   \end{center}
-  \caption{Nested tooltips over formal entities.}
+  \caption{Nested tooltips over formal entities}
   \label{fig:nested-tooltips}
   \end{figure}
 
@@ -679,11 +679,20 @@ text {* Continuous document processing works asynchronously in the
   theorem}), independently of the state of the current proof attempt.
   They work implicitly without any arguments.  Results are output as
   \emph{information messages}, which are indicated in the text area by
-  blue squiggles and a blue information sign in the gutter.  The
-  message content may be shown as for any other message, see also
-  \secref{sec:prover-output}.  Some tools produce output with
-  \emph{sendback} markup, which means that clicking on certain parts
-  of the output inserts that text into the source in the proper place.
+  blue squiggles and a blue information sign in the gutter (see
+  \figref{fig:auto-tools}).  The message content may be shown as for
+  any other message, see also \secref{sec:prover-output}.  Some tools
+  produce output with \emph{sendback} markup, which means that
+  clicking on certain parts of the output inserts that text into the
+  source in the proper place.
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[scale=0.5]{auto-tools}
+  \end{center}
+  \caption{Results of automatically tried tools}
+  \label{fig:auto-tools}
+  \end{figure}
 
   \medskip The following Isabelle system options control the behaviour
   of automatically tried tools (see also the jEdit dialog window
@@ -762,13 +771,21 @@ text {* Continuous document processing works asynchronously in the
 
 section {* Sledgehammer \label{sec:sledgehammer} *}
 
-text {* The \emph{Sledgehammer} panel provides a view on some
-  independent execution of @{command sledgehammer}, with process
-  indicator (spinning wheel) and GUI elements for important
-  Sledgehammer arguments and options.  Any number of Sledgehammer
-  panels may be active, according to the standard policies of Dockable
-  Window Management in jEdit.  Closing a window also cancels the
-  corresponding prover tasks.
+text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
+  provides a view on some independent execution of @{command
+  sledgehammer}, with process indicator (spinning wheel) and GUI
+  elements for important Sledgehammer arguments and options.  Any
+  number of Sledgehammer panels may be active, according to the
+  standard policies of Dockable Window Management in jEdit.  Closing a
+  window also cancels the corresponding prover tasks.
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[scale=0.3]{sledgehammer}
+  \end{center}
+  \caption{An instance of the Sledgehammer panel}
+  \label{fig:sledgehammer}
+  \end{figure}
 
   The \emph{Apply} button attaches a fresh invocation of @{command
   sledgehammer} to the command where the cursor is pointing in the
@@ -785,11 +802,19 @@ text {* The \emph{Sledgehammer} panel provides a view on some
 
 section {* Find theorems *}
 
-text {* The \emph{Find} panel provides an independent view for
-  @{command find_theorems}.  The main text field accepts search
-  criteria according to the syntax @{syntax thmcriterium} given in
-  \cite{isabelle-isar-ref}.  Further options of @{command
-  find_theorems} are available via GUI elements.
+text {* The \emph{Find} panel (\figref{fig:find}) provides an
+  independent view for @{command find_theorems}.  The main text field
+  accepts search criteria according to the syntax @{syntax
+  thmcriterium} given in \cite{isabelle-isar-ref}.  Further options of
+  @{command find_theorems} are available via GUI elements.
+
+  \begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[scale=0.3]{find}
+  \end{center}
+  \caption{An instance of the Find panel}
+  \label{fig:find}
+  \end{figure}
 
   The \emph{Apply} button attaches a fresh invocation of @{command
   find_theorems} to the current context of the command where the
