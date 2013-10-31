@@ -11,10 +11,13 @@ begin
 
 class even_odd = 
   fixes even :: "'a \<Rightarrow> bool"
+begin
 
-abbreviation
-  odd :: "'a\<Colon>even_odd \<Rightarrow> bool" where
+abbreviation odd :: "'a \<Rightarrow> bool"
+where
   "odd x \<equiv> \<not> even x"
+
+end
 
 instantiation nat and int  :: even_odd
 begin
@@ -52,7 +55,7 @@ lemma odd_numeral_int [simp]: "odd (numeral (Num.Bit1 k) :: int)"
   unfolding even_def by simp
 
 (* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
-declare even_def[of "neg_numeral v", simp] for v
+declare even_def [of "neg_numeral v", simp] for v
 
 lemma even_numeral_nat [simp]: "even (numeral (Num.Bit0 k) :: nat)"
   unfolding even_nat_def by simp
@@ -61,13 +64,6 @@ lemma odd_numeral_nat [simp]: "odd (numeral (Num.Bit1 k) :: nat)"
   unfolding even_nat_def by simp
 
 subsection {* Even and odd are mutually exclusive *}
-
-lemma int_pos_lt_two_imp_zero_or_one:
-    "0 <= x ==> (x::int) < 2 ==> x = 0 | x = 1"
-  by presburger
-
-lemma neq_one_mod_two [simp, presburger]: 
-  "((x::int) mod 2 ~= 0) = (x mod 2 = 1)" by presburger
 
 
 subsection {* Behavior under integer arithmetic operations *}
@@ -158,10 +154,6 @@ by (simp add: even_nat_def int_power)
 
 subsection {* Equivalent definitions *}
 
-lemma nat_lt_two_imp_zero_or_one:
-  "(x::nat) < Suc (Suc 0) ==> x = 0 | x = Suc 0"
-by presburger
-
 lemma even_nat_mod_two_eq_zero: "even (x::nat) ==> x mod (Suc (Suc 0)) = 0"
 by presburger
 
@@ -244,7 +236,7 @@ apply (auto simp: odd_nat_equiv_def2 power_add zero_le_mult_iff)
 apply (metis field_power_not_zero divisors_zero order_antisym_conv zero_le_square)
 done
 
-lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
+lemma zero_le_power_eq [presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =
     (even n | (odd n & 0 <= x))"
   apply auto
   apply (subst zero_le_odd_power [symmetric])
@@ -276,9 +268,6 @@ lemma power_even_abs: "even n ==>
   apply (subst power_abs [symmetric])
   apply (simp add: zero_le_even_power)
   done
-
-lemma zero_less_power_nat_eq[presburger]: "(0 < (x::nat) ^ n) = (n = 0 | 0 < x)"
-  by (induct n) auto
 
 lemma power_minus_even [simp]: "even n ==>
     (- x)^n = (x^n::'a::{comm_ring_1})"
@@ -336,13 +325,6 @@ lemma even_add [simp]: "even(m + n::nat) = (even m = even n)"  by presburger
 
 lemma odd_add [simp]: "odd(m + n::nat) = (odd m \<noteq> odd n)" by presburger
 
-lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
-    (a mod c + Suc 0 mod c) div c" 
-  apply (subgoal_tac "Suc a = a + Suc 0")
-  apply (erule ssubst)
-  apply (rule div_add1_eq, simp)
-  done
-
 lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2" by presburger
 
 lemma lemma_not_even_div2 [simp]: "~even n ==> (n + 1) div 2 = Suc (n div 2)"
@@ -359,30 +341,28 @@ lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
 text {* Simplify, when the exponent is a numeral *}
 
 lemmas zero_le_power_eq_numeral [simp] =
-    zero_le_power_eq [of _ "numeral w"] for w
+  zero_le_power_eq [of _ "numeral w"] for w
 
 lemmas zero_less_power_eq_numeral [simp] =
-    zero_less_power_eq [of _ "numeral w"] for w
+  zero_less_power_eq [of _ "numeral w"] for w
 
 lemmas power_le_zero_eq_numeral [simp] =
-    power_le_zero_eq [of _ "numeral w"] for w
+  power_le_zero_eq [of _ "numeral w"] for w
 
 lemmas power_less_zero_eq_numeral [simp] =
-    power_less_zero_eq [of _ "numeral w"] for w
+  power_less_zero_eq [of _ "numeral w"] for w
 
 lemmas zero_less_power_nat_eq_numeral [simp] =
-    zero_less_power_nat_eq [of _ "numeral w"] for w
+  nat_zero_less_power_iff [of _ "numeral w"] for w
 
-lemmas power_eq_0_iff_numeral [simp] = power_eq_0_iff [of _ "numeral w"] for w
+lemmas power_eq_0_iff_numeral [simp] =
+  power_eq_0_iff [of _ "numeral w"] for w
 
-lemmas power_even_abs_numeral [simp] = power_even_abs [of "numeral w" _] for w
+lemmas power_even_abs_numeral [simp] =
+  power_even_abs [of "numeral w" _] for w
 
 
 subsection {* An Equivalence for @{term [source] "0 \<le> a^n"} *}
-
-lemma even_power_le_0_imp_0:
-    "a ^ (2*k) \<le> (0::'a::{linordered_idom}) ==> a=0"
-  by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
 
 lemma zero_le_power_iff[presburger]:
   "(0 \<le> a^n) = (0 \<le> (a::'a::{linordered_idom}) | even n)"
@@ -395,9 +375,10 @@ next
   assume odd: "odd n"
   then obtain k where "n = Suc(2*k)"
     by (auto simp add: odd_nat_equiv_def2 numeral_2_eq_2)
-  thus ?thesis
-    by (auto simp add: zero_le_mult_iff zero_le_even_power
-             dest!: even_power_le_0_imp_0)
+  moreover have "a ^ (2 * k) \<le> 0 \<Longrightarrow> a = 0"
+    by (induct k) (auto simp add: zero_le_mult_iff mult_le_0_iff)
+  ultimately show ?thesis
+    by (auto simp add: zero_le_mult_iff zero_le_even_power)
 qed
 
 
@@ -409,7 +390,6 @@ lemma even_plus_one_div_two: "even (x::int) ==> (x + 1) div 2 = x div 2"  by pre
 lemma odd_plus_one_div_two: "odd (x::int) ==> (x + 1) div 2 = x div 2 + 1" by presburger
 
 lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
-lemma [presburger]: "(Suc x) div Suc (Suc 0) = x div Suc (Suc 0) \<longleftrightarrow> even x" by presburger
 lemma even_nat_plus_one_div_two: "even (x::nat) ==>
     (Suc x) div Suc (Suc 0) = x div Suc (Suc 0)" by presburger
 
@@ -417,3 +397,4 @@ lemma odd_nat_plus_one_div_two: "odd (x::nat) ==>
     (Suc x) div Suc (Suc 0) = Suc (x div Suc (Suc 0))" by presburger
 
 end
+

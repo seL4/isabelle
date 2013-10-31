@@ -2620,11 +2620,6 @@ lemma one_mod_nat_numeral [simp]:
   "Suc 0 mod numeral v' = nat (1 mod numeral v')"
   by (subst nat_mod_distrib) simp_all
 
-lemma mod_2_not_eq_zero_eq_one_int:
-  fixes k :: int
-  shows "k mod 2 \<noteq> 0 \<longleftrightarrow> k mod 2 = 1"
-  by auto
-
 instance int :: semiring_numeral_div
   by intro_classes (auto intro: zmod_le_nonneg_dividend
     simp add: zmult_div_cancel

@@ -4,6 +4,11 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Fact name generalization and consolidation:
+  neq_one_mod_two, mod_2_not_eq_zero_eq_one_int ~> not_mod_2_eq_0_eq_1
+
 
 
 New in Isabelle2013-1 (November 2013)
