@@ -832,6 +832,107 @@ text {* The \emph{Find} panel (\figref{fig:find}) provides an
   (from the underlying logic image) is specified explicitly. *}
 
 
+chapter {* Miscellaneous tools *}
+
+section {* SideKick *}
+
+text {* The \emph{SideKick} plugin of jEdit provides some general
+  services to display buffer structure in a tree view.
+
+  Isabelle/jEdit provides SideKick parsers for its main mode for
+  theory files, as well as some minor modes for the @{verbatim NEWS}
+  file, session @{verbatim ROOT} files, and @{verbatim options}.
+
+  Moreover, the special SideKick parser @{verbatim "isabelle-markup"}
+  provides access to the full (uninterpreted) markup tree of the PIDE
+  document model of the current buffer.  This is occasionally useful
+  for informative purposes, but the amount of displayed information
+  might cause problems for large buffers, both for the human and the
+  machine.
+*}
+
+
+section {* Isabelle/Scala console *}
+
+text {* The \emph{Console} plugin of jEdit manages various shells
+  (command interpreters), e.g.\ \emph{BeanShell}, which is the
+  official jEdit scripting language, and the somewhat
+  platform-independent \emph{System} shell.  Thus the console provides
+  similar functionality than the special buffers @{verbatim
+  "*scratch*"} and @{verbatim "*shell*"} in Emacs.
+
+  Isabelle/jEdit extends the repertoire of the console by
+  \emph{Scala}, which is the regular Scala toplevel loop running
+  inside the \emph{same} JVM process as Isabelle/jEdit itself.  This
+  means the Scala command interpreter has access to the JVM name space
+  and state of the running Prover IDE application: the main entry
+  points are @{verbatim view} (the current editor view of jEdit) and
+  @{verbatim PIDE} (the Isabelle/jEdit plugin object).
+
+  For example, the subsequent Scala snippet gets the PIDE document
+  model of the current buffer within the current editor view:
+
+  \begin{center}
+  @{verbatim "PIDE.document_model(view.getBuffer).get"}
+  \end{center}
+
+  This helps to explore Isabelle/Scala functionality interactively.
+  Some care is required to avoid interference with the internals of
+  the running application, especially in production use.  *}
+
+
+section {* Low-level output *}
+
+text {* Prover output is normally shown directly in the main text area
+  or adjacent \emph{Output} panels, as explained in
+  \secref{sec:prover-output}.
+
+  Beyond this, it is occasionally useful to inspect low-level output
+  channels via some of the following additional panels:
+
+  \begin{itemize}
+
+  \item \emph{Protocol} shows internal messages between the
+  Isabelle/Scala and Isabelle/ML side of the PIDE editing protocol.
+  Recording of messages starts with the first activation of the
+  corresponding dockable window; earlier messages are lost.
+
+  Actual display of protocol messages causes considerable slowdown, so
+  it is important to ``undock'' the \emph{Protocol} panel for
+  production work.
+
+  \item \emph{Raw Output} shows chunks of text from the @{verbatim
+  stdout} and @{verbatim stderr} channels of the prover process.
+  Recording of output starts with the first activation of the
+  corresponding dockable window; earlier output is lost.
+
+  The implicit stateful nature of physical I/O channels makes it
+  difficult to relate raw output to the actual command from where it
+  was originating.  Parallel execution may add to the confusion.
+  Peeking at physical process I/O is only the last resort to diagnose
+  problems with tools that are not fully PIDE compliant.
+
+  Under normal circumstances, prover output always works via managed
+  message channels (corresponding to @{ML writeln}, @{ML warning},
+  @{ML error} etc.\ in Isabelle/ML), which are displayed by regular
+  means within the document model (\secref{sec:prover-output}).
+
+  \item \emph{Syslog} shows system messages that might be relevant to
+  diagnose problems with the startup or shutdown phase of the prover
+  process; this also includes raw output on @{verbatim stderr}.
+
+  A limited amount of syslog messages are buffered, independently of
+  the docking state of the \emph{Syslog} panel.  This allows to
+  diagnose serious problems with Isabelle/PIDE process management,
+  outside of the actual protocol layer.
+
+  Under normal situations, such low-level system output can be
+  ignored.
+
+  \end{itemize}
+*}
+
+
 chapter {* Known problems and workarounds \label{sec:problems} *}
 
 text {*
