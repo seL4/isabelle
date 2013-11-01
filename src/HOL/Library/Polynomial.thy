@@ -667,7 +667,7 @@ instance proof
   show "- p + p = 0"
     by (simp add: poly_eq_iff)
   show "p - q = p + - q"
-    by (simp add: poly_eq_iff diff_minus)
+    by (simp add: poly_eq_iff)
 qed
 
 end
@@ -714,15 +714,15 @@ lemma degree_minus [simp]: "degree (- p) = degree p"
 
 lemma degree_diff_le_max: "degree (p - q) \<le> max (degree p) (degree q)"
   using degree_add_le [where p=p and q="-q"]
-  by (simp add: diff_minus)
+  by simp
 
 lemma degree_diff_le:
   "\<lbrakk>degree p \<le> n; degree q \<le> n\<rbrakk> \<Longrightarrow> degree (p - q) \<le> n"
-  by (simp add: diff_minus degree_add_le)
+  using degree_add_le [of p n "- q"] by simp
 
 lemma degree_diff_less:
   "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p - q) < n"
-  by (simp add: diff_minus degree_add_less)
+  using degree_add_less [of p n "- q"] by simp
 
 lemma add_monom: "monom a n + monom b n = monom (a + b) n"
   by (rule poly_eqI) simp
@@ -793,7 +793,7 @@ lemma poly_minus [simp]:
 lemma poly_diff [simp]:
   fixes x :: "'a::comm_ring"
   shows "poly (p - q) x = poly p x - poly q x"
-  by (simp add: diff_minus)
+  using poly_add [of p "- q" x] by simp
 
 lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all

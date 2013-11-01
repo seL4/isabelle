@@ -231,7 +231,7 @@ instance fps :: (group_add) group_add
 proof
   fix a b :: "'a fps"
   show "- a + a = 0" by (simp add: fps_ext)
-  show "a - b = a + - b" by (simp add: fps_ext diff_minus)
+  show "a + - b = a - b" by (simp add: fps_ext)
 qed
 
 instance fps :: (ab_group_add) ab_group_add
@@ -348,10 +348,10 @@ subsection {* Formal power series form an integral domain*}
 instance fps :: (ring) ring ..
 
 instance fps :: (ring_1) ring_1
-  by (intro_classes, auto simp add: diff_minus distrib_right)
+  by (intro_classes, auto simp add: distrib_right)
 
 instance fps :: (comm_ring_1) comm_ring_1
-  by (intro_classes, auto simp add: diff_minus distrib_right)
+  by (intro_classes, auto simp add: distrib_right)
 
 instance fps :: (ring_no_zero_divisors) ring_no_zero_divisors
 proof
@@ -888,7 +888,7 @@ lemma fps_deriv_add[simp]: "fps_deriv ((f:: ('a::comm_ring_1) fps) + g) = fps_de
   using fps_deriv_linear[of 1 f 1 g] by simp
 
 lemma fps_deriv_sub[simp]: "fps_deriv ((f:: ('a::comm_ring_1) fps) - g) = fps_deriv f - fps_deriv g"
-  unfolding diff_minus by simp
+  using fps_deriv_add [of f "- g"] by simp
 
 lemma fps_deriv_const[simp]: "fps_deriv (fps_const c) = 0"
   by (simp add: fps_ext fps_deriv_def fps_const_def)
@@ -978,7 +978,7 @@ lemma fps_nth_deriv_add[simp]:
 
 lemma fps_nth_deriv_sub[simp]:
   "fps_nth_deriv n ((f:: ('a::comm_ring_1) fps) - g) = fps_nth_deriv n f - fps_nth_deriv n g"
-  unfolding diff_minus fps_nth_deriv_add by simp
+  using fps_nth_deriv_add [of n f "- g"] by simp
 
 lemma fps_nth_deriv_0[simp]: "fps_nth_deriv n 0 = 0"
   by (induct n) simp_all
@@ -2634,7 +2634,7 @@ lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
   by (simp add: fps_eq_iff fps_compose_nth field_simps setsum_negf[symmetric])
 
 lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
-  unfolding diff_minus fps_compose_uminus fps_compose_add_distrib ..
+  using fps_compose_add_distrib [of a "- b" c] by (simp add: fps_compose_uminus)
 
 lemma X_fps_compose: "X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)

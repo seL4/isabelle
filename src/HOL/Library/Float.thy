@@ -88,7 +88,7 @@ lemma times_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longri
   done
 
 lemma minus_float[simp]: "x \<in> float \<Longrightarrow> y \<in> float \<Longrightarrow> x - y \<in> float"
-  unfolding ab_diff_minus by (intro uminus_float plus_float)
+  using plus_float [of x "- y"] by simp
 
 lemma abs_float[simp]: "x \<in> float \<Longrightarrow> abs x \<in> float"
   by (cases x rule: linorder_cases[of 0]) auto
@@ -960,7 +960,7 @@ proof -
   also have "... < (1 / 2) * 2 powr real (rat_precision n (int x) (int y))"
     apply (rule mult_strict_right_mono) by (insert assms) auto
   also have "\<dots> = 2 powr real (rat_precision n (int x) (int y) - 1)"
-    by (simp add: powr_add diff_def powr_neg_numeral)
+    using powr_add [of 2 _ "- 1", simplified add_uminus_conv_diff] by (simp add: powr_neg_numeral)
   also have "\<dots> = 2 ^ nat (rat_precision n (int x) (int y) - 1)"
     using rat_precision_pos[of x y n] assms by (simp add: powr_realpow[symmetric])
   also have "\<dots> \<le> 2 ^ nat (rat_precision n (int x) (int y)) - 1"

@@ -493,8 +493,10 @@ by (unfold bigo_def, auto)
 
 lemma bigo_compose2:
 "f =o g +o O(h) \<Longrightarrow> (\<lambda>x. f(k x)) =o (\<lambda>x. g(k x)) +o O(\<lambda>x. h(k x))"
-apply (simp only: set_minus_plus [symmetric] diff_minus fun_Compl_def func_plus)
-by (erule bigo_compose1)
+apply (simp only: set_minus_plus [symmetric] fun_Compl_def func_plus)
+apply (drule bigo_compose1 [of "f - g" h k])
+apply (simp add: fun_diff_def)
+done
 
 subsection {* Setsum *}
 

@@ -41,7 +41,7 @@ lemma inner_minus_left [simp]: "inner (- x) y = - inner x y"
   using inner_add_left [of x "- x" y] by simp
 
 lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
-  by (simp add: diff_minus inner_add_left)
+  using inner_add_left [of x "- y" z] by simp
 
 lemma inner_setsum_left: "inner (\<Sum>x\<in>A. f x) y = (\<Sum>x\<in>A. inner (f x) y)"
   by (cases "finite A", induct set: finite, simp_all add: inner_add_left)

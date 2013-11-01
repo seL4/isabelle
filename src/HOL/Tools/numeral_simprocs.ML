@@ -220,7 +220,7 @@ val non_add_simps =
 val minus_simps = [@{thm minus_zero}, @{thm minus_one}, @{thm minus_numeral}, @{thm minus_neg_numeral}];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
+val diff_simps = [@{thm diff_conv_add_uminus}, @{thm minus_add_distrib}, @{thm minus_minus}];
 
 (*To let us treat division as multiplication*)
 val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
@@ -719,7 +719,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
            @{thm "times_divide_times_eq"},
            @{thm "divide_divide_eq_right"},
-           @{thm "diff_minus"}, @{thm "minus_divide_left"},
+           @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
            @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
            Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   

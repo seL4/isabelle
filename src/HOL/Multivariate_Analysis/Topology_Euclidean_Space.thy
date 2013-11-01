@@ -4858,8 +4858,8 @@ lemma uniformly_continuous_on_diff[continuous_on_intros]:
   assumes "uniformly_continuous_on s f"
     and "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f x - g x)"
-  unfolding ab_diff_minus using assms
-  by (intro uniformly_continuous_on_add uniformly_continuous_on_minus)
+  using assms uniformly_continuous_on_add [of s f "- g"]
+    by (simp add: fun_Compl_def uniformly_continuous_on_minus)
 
 text{* Continuity of all kinds is preserved under composition. *}
 
@@ -5679,8 +5679,6 @@ proof-
   have "{x - y | x y. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
     apply auto
     apply (rule_tac x= xa in exI)
-    apply auto
-    apply (rule_tac x=xa in exI)
     apply auto
     done
   then show ?thesis
@@ -7032,7 +7030,8 @@ lemma homeomorphic_translation:
   unfolding homeomorphic_minimal
   apply (rule_tac x="\<lambda>x. a + x" in exI)
   apply (rule_tac x="\<lambda>x. -a + x" in exI)
-  using continuous_on_add[OF continuous_on_const continuous_on_id]
+  using continuous_on_add [OF continuous_on_const continuous_on_id, of s a]
+    continuous_on_add [OF continuous_on_const continuous_on_id, of "plus a ` s" "- a"]
   apply auto
   done
 

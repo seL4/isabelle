@@ -255,11 +255,13 @@ by simp
 lemma minus_mult_commute: "- a * b = a * - b"
 by simp
 
-lemma right_diff_distrib[algebra_simps, field_simps]: "a * (b - c) = a * b - a * c"
-by (simp add: distrib_left diff_minus)
+lemma right_diff_distrib [algebra_simps, field_simps]:
+  "a * (b - c) = a * b - a * c"
+  using distrib_left [of a b "-c "] by simp
 
-lemma left_diff_distrib[algebra_simps, field_simps]: "(a - b) * c = a * c - b * c"
-by (simp add: distrib_right diff_minus)
+lemma left_diff_distrib [algebra_simps, field_simps]:
+  "(a - b) * c = a * c - b * c"
+  using distrib_right [of a "- b" c] by simp
 
 lemmas ring_distribs =
   distrib_left distrib_right left_diff_distrib right_diff_distrib
@@ -331,8 +333,9 @@ next
   then show "- x dvd y" ..
 qed
 
-lemma dvd_diff[simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
-by (simp only: diff_minus dvd_add dvd_minus_iff)
+lemma dvd_diff [simp]:
+  "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
+  using dvd_add [of x y "- z"] by simp
 
 end
 
@@ -755,9 +758,7 @@ subclass ordered_ab_group_add_abs
 proof
   fix a b
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
-    by (auto simp add: abs_if not_less)
-    (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric],
-     auto intro!: less_imp_le add_neg_neg)
+    by (auto simp add: abs_if not_le not_less algebra_simps simp del: add.commute dest: add_neg_neg add_nonneg_nonneg)
 qed (auto simp add: abs_if)
 
 lemma zero_le_square [simp]: "0 \<le> a * a"

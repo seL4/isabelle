@@ -858,9 +858,10 @@ lemma affine_parallel_commut:
   assumes "affine_parallel A B"
   shows "affine_parallel B A"
 proof -
-  from assms obtain a where "B = (\<lambda>x. a + x) ` A"
+  from assms obtain a where B: "B = (\<lambda>x. a + x) ` A"
     unfolding affine_parallel_def by auto
-  then show ?thesis
+  have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
+  from B show ?thesis
     using translation_galois [of B a A]
     unfolding affine_parallel_def by auto
 qed
@@ -980,6 +981,7 @@ lemma affine_diffs_subspace:
   assumes "affine S" "a \<in> S"
   shows "subspace ((\<lambda>x. (-a)+x) ` S)"
 proof -
+  have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
   have "affine ((\<lambda>x. (-a)+x) ` S)"
     using  affine_translation assms by auto
   moreover have "0 : ((\<lambda>x. (-a)+x) ` S)"
@@ -992,15 +994,12 @@ lemma parallel_subspace_explicit:
   assumes "L \<equiv> {y. \<exists>x \<in> S. (-a)+x=y}"
   shows "subspace L & affine_parallel S L"
 proof -
-  have par: "affine_parallel S L"
-    unfolding affine_parallel_def using assms by auto
+  from assms have "L = plus (- a) ` S" by auto
+  then have par: "affine_parallel S L"
+    unfolding affine_parallel_def .. 
   then have "affine L" using assms parallel_is_affine by auto
   moreover have "0 \<in> L"
-    using assms
-    apply auto
-    using exI[of "(\<lambda>x. x:S \<and> -a+x=0)" a]
-    apply auto
-    done
+    using assms by auto
   ultimately show ?thesis
     using subspace_affine par by auto
 qed
@@ -2390,7 +2389,7 @@ proof -
   ultimately have h1: "affine hull ((\<lambda>x. a + x) `  S) \<subseteq> (\<lambda>x. a + x) ` (affine hull S)"
     by (metis hull_minimal)
   have "affine((\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S)))"
-    using affine_translation affine_affine_hull by auto
+    using affine_translation affine_affine_hull by (auto simp del: uminus_add_conv_diff)
   moreover have "(\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S \<subseteq> (\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S))"
     using hull_subset[of "(\<lambda>x. a + x) `  S"] by auto
   moreover have "S = (\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S"
@@ -2478,7 +2477,7 @@ proof -
     using affine_dependent_translation_eq[of "(insert a S)" "-a"]
       affine_dependent_imp_dependent2 assms
       dependent_imp_affine_dependent[of a S]
-    by auto
+    by (auto simp del: uminus_add_conv_diff)
 qed
 
 lemma affine_dependent_iff_dependent2:
@@ -2512,7 +2511,7 @@ proof -
     then have "insert 0 ((\<lambda>x. -a+x) ` (s - {a})) = (\<lambda>x. -a+x) ` s"
       by auto
     then have "span ((\<lambda>x. -a+x) ` (s - {a}))=span ((\<lambda>x. -a+x) ` s)"
-      using span_insert_0[of "op + (- a) ` (s - {a})"] by auto
+      using span_insert_0[of "op + (- a) ` (s - {a})"] by (auto simp del: uminus_add_conv_diff)
     moreover have "{x - a |x. x \<in> (s - {a})} = ((\<lambda>x. -a+x) ` (s - {a}))"
       by auto
     moreover have "insert a (s - {a}) = insert a s"
@@ -2652,7 +2651,7 @@ proof -
     moreover have h1: "card ((\<lambda>x. -a + x) ` (B-{a})) = card (B-{a})"
        apply (rule card_image)
        using translate_inj_on
-       apply auto
+       apply (auto simp del: uminus_add_conv_diff)
        done
     ultimately have "card (B-{a}) > 0" by auto
     then have *: "finite (B - {a})"

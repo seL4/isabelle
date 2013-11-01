@@ -1520,14 +1520,14 @@ proof -
   have "z + x - (z + y) = (z + -z) + (x - y)" 
     by (simp add: algebra_simps) 
   with le show ?thesis 
-    by (simp add: real_le_eq_diff[of x] real_le_eq_diff[of "z+x"] diff_minus)
+    by (simp add: real_le_eq_diff[of x] real_le_eq_diff[of "z+x"])
 qed
 
 lemma real_sum_gt_zero_less: "(0 < S + (-W::real)) ==> (W < S)"
-by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S] diff_minus)
+by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S])
 
 lemma real_less_sum_gt_zero: "(W < S) ==> (0 < S + (-W::real))"
-by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S] diff_minus)
+by (simp add: linorder_not_le [symmetric] real_le_eq_diff [of S])
 
 lemma real_mult_order: "[| 0 < x; 0 < y |] ==> (0::real) < x * y"
 apply (cases x, cases y)
@@ -1543,7 +1543,7 @@ lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
 apply (rule real_sum_gt_zero_less)
 apply (drule real_less_sum_gt_zero [of x y])
 apply (drule real_mult_order, assumption)
-apply (simp add: distrib_left)
+apply (simp add: algebra_simps)
 done
 
 instantiation real :: distrib_lattice

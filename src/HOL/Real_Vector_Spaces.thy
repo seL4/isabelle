@@ -31,7 +31,7 @@ proof -
 qed
 
 lemma diff: "f (x - y) = f x - f y"
-by (simp add: add minus diff_minus)
+  using add [of x "- y"] by (simp add: minus)
 
 lemma setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
 apply (cases "finite A")
@@ -553,8 +553,7 @@ lemma norm_triangle_ineq4:
 proof -
   have "norm (a + - b) \<le> norm a + norm (- b)"
     by (rule norm_triangle_ineq)
-  thus ?thesis
-    by (simp only: diff_minus norm_minus_cancel)
+  then show ?thesis by simp
 qed
 
 lemma norm_diff_ineq:
@@ -571,7 +570,7 @@ lemma norm_diff_triangle_ineq:
   shows "norm ((a + b) - (c + d)) \<le> norm (a - c) + norm (b - d)"
 proof -
   have "norm ((a + b) - (c + d)) = norm ((a - c) + (b - d))"
-    by (simp add: diff_minus add_ac)
+    by (simp add: algebra_simps)
   also have "\<dots> \<le> norm (a - c) + norm (b - d)"
     by (rule norm_triangle_ineq)
   finally show ?thesis .

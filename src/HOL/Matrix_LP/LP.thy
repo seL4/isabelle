@@ -72,8 +72,7 @@ lemma le_ge_imp_abs_diff_1:
 proof -
   have "0 <= A - A1"    
   proof -
-    have 1: "A - A1 = A + (- A1)" by simp
-    show ?thesis by (simp only: 1 add_right_mono[of A1 A "-A1", simplified, simplified assms])
+    from assms add_right_mono [of A1 A "- A1"] show ?thesis by simp
   qed
   then have "abs (A-A1) = A-A1" by (rule abs_of_nonneg)
   with assms show "abs (A-A1) <= (A2-A1)" by simp
@@ -147,9 +146,9 @@ proof -
   then have "c * x <= y * b - (y * A - c) * x" by (simp add: le_diff_eq)
   then have cx: "c * x <= y * b + (c - y * A) * x" by (simp add: algebra_simps)
   have s2: "c - y * A <= c2 - y * A1"
-    by (simp add: diff_minus assms add_mono mult_left_mono)
+    by (simp add: assms add_mono mult_left_mono algebra_simps)
   have s1: "c1 - y * A2 <= c - y * A"
-    by (simp add: diff_minus assms add_mono mult_left_mono)
+    by (simp add: assms add_mono mult_left_mono algebra_simps)
   have prts: "(c - y * A) * x <= ?C"
     apply (simp add: Let_def)
     apply (rule mult_le_prts)

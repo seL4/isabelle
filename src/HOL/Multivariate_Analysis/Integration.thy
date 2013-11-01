@@ -44,9 +44,7 @@ proof -
     by auto
   also have "\<dots> \<le> e"
     apply (rule cSup_asclose)
-    apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b add_commute diff_minus)
-    done
+    using abs_minus_add_cancel b by (auto simp add: S)
   finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
   then show ?thesis
     by (simp add: Inf_real_def)
@@ -380,7 +378,7 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
                 using Basis_le_norm[OF k, of "?z - y"] unfolding dist_norm by auto
               then have "y\<bullet>k < a\<bullet>k"
                 using e[THEN conjunct1] k
-                by (auto simp add: field_simps as inner_Basis inner_simps)
+                by (auto simp add: field_simps abs_less_iff as inner_Basis inner_simps)
               then have "y \<notin> i"
                 unfolding ab mem_interval by (auto intro!: bexI[OF _ k])
               then show False using yi by auto
@@ -11975,7 +11973,7 @@ lemma absolutely_integrable_sub[intro]:
     and "g absolutely_integrable_on s"
   shows "(\<lambda>x. f x - g x) absolutely_integrable_on s"
   using absolutely_integrable_add[OF assms(1) absolutely_integrable_neg[OF assms(2)]]
-  by (simp only: algebra_simps)
+  by (simp add: algebra_simps)
 
 lemma absolutely_integrable_linear:
   fixes f :: "'m::ordered_euclidean_space \<Rightarrow> 'n::ordered_euclidean_space"

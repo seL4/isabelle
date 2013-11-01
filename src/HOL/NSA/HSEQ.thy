@@ -73,14 +73,14 @@ by (auto simp add: NSLIMSEQ_def)
 lemma NSLIMSEQ_minus_cancel: "(%n. -(X n)) ----NS> -a ==> X ----NS> a"
 by (drule NSLIMSEQ_minus, simp)
 
+lemma NSLIMSEQ_diff:
+     "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n - Y n) ----NS> a - b"
+  using NSLIMSEQ_add [of X a "- Y" "- b"] by (simp add: NSLIMSEQ_minus fun_Compl_def)
+
 (* FIXME: delete *)
 lemma NSLIMSEQ_add_minus:
      "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n + -Y n) ----NS> a + -b"
-by (simp add: NSLIMSEQ_add NSLIMSEQ_minus)
-
-lemma NSLIMSEQ_diff:
-     "[| X ----NS> a; Y ----NS> b |] ==> (%n. X n - Y n) ----NS> a - b"
-by (simp add: diff_minus NSLIMSEQ_add NSLIMSEQ_minus)
+  by (simp add: NSLIMSEQ_diff)
 
 lemma NSLIMSEQ_diff_const: "f ----NS> a ==> (%n.(f n - b)) ----NS> a - b"
 by (simp add: NSLIMSEQ_diff NSLIMSEQ_const)
@@ -233,11 +233,11 @@ by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add)
 
 lemma NSLIMSEQ_inverse_real_of_nat_add_minus:
      "(%n. r + -inverse(real(Suc n))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus)
+  using LIMSEQ_inverse_real_of_nat_add_minus by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 lemma NSLIMSEQ_inverse_real_of_nat_add_minus_mult:
      "(%n. r*( 1 + -inverse(real(Suc n)))) ----NS> r"
-by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric] LIMSEQ_inverse_real_of_nat_add_minus_mult)
+  using LIMSEQ_inverse_real_of_nat_add_minus_mult by (simp add: LIMSEQ_NSLIMSEQ_iff [symmetric])
 
 
 subsection {* Convergence *}

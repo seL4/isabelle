@@ -190,12 +190,12 @@ lemma set_zero_plus2: "(0::'a::comm_monoid_add) : A ==> B <= A + B"
   done
 
 lemma set_plus_imp_minus: "(a::'a::ab_group_add) : b +o C ==> (a - b) : C"
-  by (auto simp add: elt_set_plus_def add_ac diff_minus)
+  by (auto simp add: elt_set_plus_def add_ac)
 
 lemma set_minus_imp_plus: "(a::'a::ab_group_add) - b : C ==> a : b +o C"
-  apply (auto simp add: elt_set_plus_def add_ac diff_minus)
+  apply (auto simp add: elt_set_plus_def add_ac)
   apply (subgoal_tac "a = (a + - b) + b")
-   apply (rule bexI, assumption, assumption)
+   apply (rule bexI, assumption)
   apply (auto simp add: add_ac)
   done
 

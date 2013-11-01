@@ -22,11 +22,11 @@ text{*Changing the quantified variable. Install earlier?*}
 lemma all_shift: "(\<forall>x::'a::comm_ring_1. P x) = (\<forall>x. P (x-a))";
 apply auto 
 apply (drule_tac x="x+a" in spec) 
-apply (simp add: diff_minus add_assoc) 
+apply (simp add: add_assoc) 
 done
 
 lemma complex_add_minus_iff [simp]: "(x + - a = (0::complex)) = (x=a)"
-by (simp add: diff_eq_eq diff_minus [symmetric])
+by (simp add: diff_eq_eq)
 
 lemma complex_add_eq_0_iff [iff]: "(x+y = (0::complex)) = (y = -x)"
 apply auto

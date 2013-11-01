@@ -156,7 +156,7 @@ lemma divide_minus_left [simp]: "(-a) / b = - (a / b)"
   by (simp add: divide_inverse)
 
 lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
-  by (simp add: diff_minus add_divide_distrib)
+  using add_divide_distrib [of a "- b" c] by simp
 
 lemma nonzero_eq_divide_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
 proof -
@@ -845,7 +845,7 @@ proof
   fix x y :: 'a
   from less_add_one show "\<exists>y. x < y" .. 
   from less_add_one have "x + (- 1) < (x + 1) + (- 1)" by (rule add_strict_right_mono)
-  then have "x - 1 < x + 1 - 1" by (simp only: diff_minus [symmetric])
+  then have "x - 1 < x + 1 - 1" by simp
   then have "x - 1 < x" by (simp add: algebra_simps)
   then show "\<exists>y. y < x" ..
   show "x < y \<Longrightarrow> \<exists>z>x. z < y" by (blast intro!: less_half_sum gt_half_sum)

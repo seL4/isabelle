@@ -696,11 +696,7 @@ qed
 lemma setsum_subtractf:
   "setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
     setsum f A - setsum g A"
-proof (cases "finite A")
-  case True thus ?thesis by (simp add: diff_minus setsum_addf setsum_negf)
-next
-  case False thus ?thesis by simp
-qed
+  using setsum_addf [of f "- g" A] by (simp add: setsum_negf)
 
 lemma setsum_nonneg:
   assumes nn: "\<forall>x\<in>A. (0::'a::{ordered_ab_semigroup_add,comm_monoid_add}) \<le> f x"

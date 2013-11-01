@@ -220,7 +220,7 @@ lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
   by (transfer fixing: uminus) clarsimp
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
-by (simp add: diff_minus Groups.diff_minus)
+  using of_int_add [of w "- z"] by simp
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
   by (transfer fixing: times) (clarsimp simp add: algebra_simps of_nat_mult)
@@ -749,7 +749,7 @@ subsection {* Setting up simplification procedures *}
 
 lemmas int_arith_rules =
   neg_le_iff_le numeral_One
-  minus_zero diff_minus left_minus right_minus
+  minus_zero left_minus right_minus
   mult_zero_left mult_zero_right mult_1_left mult_1_right
   mult_minus_left mult_minus_right
   minus_add_distrib minus_minus mult_assoc
@@ -793,7 +793,6 @@ by arith
 subsection{*The functions @{term nat} and @{term int}*}
 
 text{*Simplify the term @{term "w + - z"}*}
-lemmas diff_int_def_symmetric = diff_def [where 'a=int, symmetric, simp]
 
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
 apply (insert zless_nat_conj [of 1 z])
@@ -1510,10 +1509,13 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
   "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
-  unfolding sub_def dup_def numeral.simps Pos_def Neg_def
-    neg_numeral_def numeral_BitM
-  by (simp_all only: algebra_simps)
-
+  apply (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def
+    neg_numeral_def numeral_BitM)
+  apply (simp_all only: algebra_simps minus_diff_eq)
+  apply (simp_all only: add.commute [of _ "- (numeral n + numeral n)"])
+  apply (simp_all only: minus_add add.assoc left_minus)
+  apply (simp_all only: algebra_simps right_minus)
+  done
 
 text {* Implementations *}
 

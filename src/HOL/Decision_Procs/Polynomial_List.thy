@@ -419,7 +419,7 @@ lemma (in comm_ring_1) poly_add_minus_zero_iff:
 
 lemma (in comm_ring_1) poly_add_minus_mult_eq:
   "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
-  by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult distrib_left)
+  by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult algebra_simps)
 
 subclass (in idom_char_0) comm_ring_1 ..
 
@@ -445,10 +445,7 @@ lemma (in idom) poly_exp_eq_zero[simp]:
 lemma (in comm_ring_1) poly_prime_eq_zero[simp]: "poly [a,1] \<noteq> poly []"
   apply (simp add: fun_eq)
   apply (rule_tac x = "minus one a" in exI)
-  apply (unfold diff_minus)
-  apply (subst add_commute)
-  apply (subst add_assoc)
-  apply simp
+  apply (simp add: add_commute [of a])
   done
 
 lemma (in idom) poly_exp_prime_eq_zero: "poly ([a, 1] %^ n) \<noteq> poly []"
@@ -639,7 +636,7 @@ proof -
   have "[- a, 1] %^ n divides mulexp n [- a, 1] q"
   proof (rule dividesI)
     show "poly (mulexp n [- a, 1] q) = poly ([- a, 1] %^ n *** q)"
-      by (induct n) (simp_all add: poly_add poly_cmult poly_mult distrib_left mult_ac)
+      by (induct n) (simp_all add: poly_add poly_cmult poly_mult algebra_simps)
   qed
   moreover have "\<not> [- a, 1] %^ Suc n divides mulexp n [- a, 1] q"
   proof
@@ -873,7 +870,7 @@ lemma (in idom_char_0) poly_Cons_eq:
 proof
   assume eq: ?lhs
   hence "\<And>x. poly ((c#cs) +++ -- (d#ds)) x = 0"
-    by (simp only: poly_minus poly_add algebra_simps) simp
+    by (simp only: poly_minus poly_add algebra_simps) (simp add: algebra_simps)
   hence "poly ((c#cs) +++ -- (d#ds)) = poly []" by(simp add: fun_eq_iff)
   hence "c = d \<and> list_all (\<lambda>x. x=0) ((cs +++ -- ds))"
     unfolding poly_zero by (simp add: poly_minus_def algebra_simps)

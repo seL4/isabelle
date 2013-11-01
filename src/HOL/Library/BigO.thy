@@ -215,7 +215,7 @@ lemma bigo_bounded2: "ALL x. lb x <= f x ==> ALL x. f x <= lb x + g x ==>
     f : lb +o O(g)"
   apply (rule set_minus_imp_plus)
   apply (rule bigo_bounded)
-  apply (auto simp add: diff_minus fun_Compl_def func_plus)
+  apply (auto simp add: fun_Compl_def func_plus)
   apply (drule_tac x = x in spec)+
   apply force
   apply (drule_tac x = x in spec)+
@@ -390,7 +390,7 @@ lemma bigo_minus2: "f : g +o O(h) ==> -f : -g +o O(h)"
   apply (rule set_minus_imp_plus)
   apply (drule set_plus_imp_minus)
   apply (drule bigo_minus)
-  apply (simp add: diff_minus)
+  apply simp
   done
 
 lemma bigo_minus3: "O(-f) = O(f)"
@@ -446,7 +446,7 @@ lemma bigo_add_commute_imp: "f : g +o O(h) ==> g : f +o O(h)"
   apply (rule bigo_minus)
   apply (subst set_minus_plus)
   apply assumption
-  apply  (simp add: diff_minus add_ac)
+  apply (simp add: add_ac)
   done
 
 lemma bigo_add_commute: "(f : g +o O(h)) = (g : f +o O(h))"
@@ -545,10 +545,9 @@ by (unfold bigo_def, auto)
 
 lemma bigo_compose2: "f =o g +o O(h) ==> (%x. f(k x)) =o (%x. g(k x)) +o 
     O(%x. h(k x))"
-  apply (simp only: set_minus_plus [symmetric] diff_minus fun_Compl_def
-      func_plus)
-  apply (erule bigo_compose1)
-done
+  apply (simp only: set_minus_plus [symmetric] fun_Compl_def func_plus)
+  apply (drule bigo_compose1) apply (simp add: fun_diff_def)
+  done
 
 
 subsection {* Setsum *}
@@ -779,7 +778,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
   apply (simp add: algebra_simps)
-  apply (subst diff_minus)+
+  apply (subst diff_conv_add_uminus)+
   apply (rule add_right_mono)
   apply (erule spec)
   apply (rule order_trans) 
@@ -803,7 +802,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
   apply (simp add: algebra_simps)
-  apply (subst diff_minus)+
+  apply (subst diff_conv_add_uminus)+
   apply (rule add_left_mono)
   apply (rule le_imp_neg_le)
   apply (erule spec)

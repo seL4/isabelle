@@ -15,6 +15,39 @@ INCOMPATIBILITY.
     even_zero_(nat|int) ~> even_zero
 INCOMPATIBILITY.
 
+*** HOL ***
+
+* Elimination of fact duplicates:
+    equals_zero_I ~> minus_unique
+    diff_eq_0_iff_eq ~> right_minus_eq
+INCOMPATIBILITY.
+
+* Fact name consolidation:
+    diff_def, diff_minus, ab_diff_minus ~> diff_conv_add_uminus
+INCOMPATIBILITY.
+
+* More simplification rules on unary and binary minus:
+add_diff_cancel, add_diff_cancel_left, add_le_same_cancel1,
+add_le_same_cancel2, add_less_same_cancel1, add_less_same_cancel2,
+add_minus_cancel, diff_add_cancel, le_add_same_cancel1,
+le_add_same_cancel2, less_add_same_cancel1, less_add_same_cancel2,
+minus_add_cancel, uminus_add_conv_diff.  These correspondingly
+have been taken away from fact collections algebra_simps and
+field_simps.  INCOMPATIBILITY.
+
+To restore proofs, the following patterns are helpful:
+
+a) Arbitrary failing proof not involving "diff_def":
+Consider simplification with algebra_simps or field_simps.
+
+b) Lifting rules from addition to subtraction:
+Try with "using <rule for addition> of [… "- _" …]" by simp".
+
+c) Simplification with "diff_def": just drop "diff_def".
+Consider simplification with algebra_simps or field_simps;
+or the brute way with
+"simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
+
 
 New in Isabelle2013-1 (November 2013)
 -------------------------------------

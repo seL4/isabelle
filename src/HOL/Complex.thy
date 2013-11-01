@@ -587,7 +587,7 @@ lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
   by (simp add: cis_def)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
-  by (simp add: complex_divide_def cis_mult diff_minus)
+  by (simp add: complex_divide_def cis_mult)
 
 lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re(cis a ^ n)"
   by (auto simp add: DeMoivre)

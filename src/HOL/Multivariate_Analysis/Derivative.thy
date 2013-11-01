@@ -516,7 +516,7 @@ proof -
       unfolding e_def
       using c[THEN conjunct1]
       using norm_minus_cancel[of "f' i - f'' i"]
-      by (auto simp add: add.commute ab_diff_minus)
+      by auto
     finally show False
       using c
       using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R i"]

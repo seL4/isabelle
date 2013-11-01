@@ -1542,8 +1542,8 @@ proof
   fix A B :: "'a matrix"
   show "- A + A = 0" 
     by (simp add: plus_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
-  show "A - B = A + - B"
-    by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject [symmetric] ext diff_minus)
+  show "A + - B = A - B"
+    by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject [symmetric] ext)
 qed
 
 instance matrix :: (ab_group_add) ab_group_add

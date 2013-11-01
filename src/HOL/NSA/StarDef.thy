@@ -803,7 +803,7 @@ instance star :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..
 instance star :: (ab_group_add) ab_group_add
 apply (intro_classes)
 apply (transfer, rule left_minus)
-apply (transfer, rule diff_minus)
+apply (transfer, rule diff_conv_add_uminus)
 done
 
 instance star :: (ordered_ab_semigroup_add) ordered_ab_semigroup_add

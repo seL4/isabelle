@@ -132,7 +132,7 @@ definition diff_fract_def: "q - r = q + - (r::'a fract)"
 lemma diff_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
   shows "Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
-  using assms by (simp add: diff_fract_def diff_minus)
+  using assms by (simp add: diff_fract_def)
 
 definition mult_fract_def:
   "q * r = Abs_fract (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.

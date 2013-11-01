@@ -468,7 +468,7 @@ instance proof
     unfolding less_eq_rat_def less_rat_def
     by (auto, drule (1) positive_add, simp add: positive_zero)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    unfolding less_eq_rat_def less_rat_def by (auto simp: diff_minus)
+    unfolding less_eq_rat_def less_rat_def by auto
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
     by (rule sgn_rat_def)
   show "a \<le> b \<or> b \<le> a"
@@ -665,7 +665,7 @@ lemma of_rat_minus: "of_rat (- a) = - of_rat a"
   by transfer simp
 
 lemma of_rat_diff: "of_rat (a - b) = of_rat a - of_rat b"
-by (simp only: diff_minus of_rat_add of_rat_minus)
+  using of_rat_add [of a "- b"] by (simp add: of_rat_minus)
 
 lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
 apply transfer

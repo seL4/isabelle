@@ -179,7 +179,7 @@ apply (rule_tac [2] x = "k + norm x" in exI)
 apply (rule_tac x = K in exI, simp)
 apply (rule exI [where x = 0], auto)
 apply (erule order_less_le_trans, simp)
-apply (drule_tac x=n in spec, fold diff_minus)
+apply (drule_tac x=n in spec)
 apply (drule order_trans [OF norm_triangle_ineq2])
 apply simp
 done
@@ -192,9 +192,11 @@ proof
   then obtain K
     where *: "0 < K" and **: "\<And>n. norm (X n) \<le> K" by (auto simp add: Bseq_def)
   from * have "0 < K + norm (X 0)" by (rule order_less_le_trans) simp
-  moreover from ** have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
-    by (auto intro: order_trans norm_triangle_ineq)
-  ultimately show ?Q by blast
+  from ** have "\<forall>n. norm (X n - X 0) \<le> K + norm (X 0)"
+    by (auto intro: order_trans norm_triangle_ineq4)
+  then have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
+    by simp
+  with `0 < K + norm (X 0)` show ?Q by blast
 next
   assume ?Q then show ?P by (auto simp add: Bseq_iff2)
 qed
@@ -204,6 +206,7 @@ apply (simp add: Bseq_def)
 apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
 apply (drule_tac x = n in spec, arith)
 done
+
 
 subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
 
@@ -342,7 +345,7 @@ lemma Zfun_minus: "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. - f x) F"
   unfolding Zfun_def by simp
 
 lemma Zfun_diff: "\<lbrakk>Zfun f F; Zfun g F\<rbrakk> \<Longrightarrow> Zfun (\<lambda>x. f x - g x) F"
-  by (simp only: diff_minus Zfun_add Zfun_minus)
+  using Zfun_add [of f F "\<lambda>x. - g x"] by (simp add: Zfun_minus)
 
 lemma (in bounded_linear) Zfun:
   assumes g: "Zfun g F"
@@ -532,7 +535,7 @@ lemma tendsto_minus_cancel_left:
 lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) F"
-  by (simp add: diff_minus tendsto_add tendsto_minus)
+  using tendsto_add [of f a F "\<lambda>x. - g x" "- b"] by (simp add: tendsto_minus)
 
 lemma continuous_diff [continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"

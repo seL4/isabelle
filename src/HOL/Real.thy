@@ -98,7 +98,7 @@ qed
 lemma vanishes_diff:
   assumes X: "vanishes X" and Y: "vanishes Y"
   shows "vanishes (\<lambda>n. X n - Y n)"
-unfolding diff_minus by (intro vanishes_add vanishes_minus X Y)
+  unfolding diff_conv_add_uminus by (intro vanishes_add vanishes_minus X Y)
 
 lemma vanishes_mult_bounded:
   assumes X: "\<exists>a>0. \<forall>n. \<bar>X n\<bar> < a"
@@ -170,7 +170,7 @@ unfolding minus_diff_minus abs_minus_cancel .
 lemma cauchy_diff [simp]:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "cauchy (\<lambda>n. X n - Y n)"
-using assms unfolding diff_minus by simp
+  using assms unfolding diff_conv_add_uminus by (simp del: add_uminus_conv_diff)
 
 lemma cauchy_imp_bounded:
   assumes "cauchy X" shows "\<exists>b>0. \<forall>n. \<bar>X n\<bar> < b"
@@ -456,7 +456,7 @@ lemma minus_Real:
 lemma diff_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X - Real Y = Real (\<lambda>n. X n - Y n)"
-  unfolding minus_real_def diff_minus
+  unfolding minus_real_def
   by (simp add: minus_Real add_Real X Y)
 
 lemma mult_Real:
@@ -607,7 +607,7 @@ instance proof
     unfolding less_eq_real_def less_real_def
     by (auto, drule (1) positive_add, simp add: positive_zero)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    unfolding less_eq_real_def less_real_def by (auto simp: diff_minus) (* by auto *)
+    unfolding less_eq_real_def less_real_def by auto
     (* FIXME: Procedure int_combine_numerals: c + b - (c + a) \<equiv> b + - a *)
     (* Should produce c + b - (c + a) \<equiv> b - a *)
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"

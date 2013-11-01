@@ -636,12 +636,12 @@ lemma sbintrunc_inc:
   unfolding no_sbintr_alt2 by (drule sb_inc_lem') simp
 
 lemma sb_dec_lem:
-  "(0::int) <= - (2^k) + a ==> (a + 2^k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
-  by (rule int_mod_le' [where n = "2 ^ (Suc k)" and b = "a + 2 ^ k", simplified])
+  "(0::int) \<le> - (2 ^ k) + a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
+  using int_mod_le'[where n = "2 ^ (Suc k)" and b = "a + 2 ^ k"] by simp
 
 lemma sb_dec_lem':
-  "(2::int) ^ k <= a ==> (a + 2 ^ k) mod (2 * 2 ^ k) <= - (2 ^ k) + a"
-  by (rule iffD1 [OF diff_le_eq', THEN sb_dec_lem, simplified])
+  "(2::int) ^ k \<le> a \<Longrightarrow> (a + 2 ^ k) mod (2 * 2 ^ k) \<le> - (2 ^ k) + a"
+  by (rule sb_dec_lem) simp
 
 lemma sbintrunc_dec:
   "x >= (2 ^ n) ==> x - 2 ^ (Suc n) >= sbintrunc n x"

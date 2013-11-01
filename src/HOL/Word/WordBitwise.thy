@@ -65,7 +65,7 @@ lemma rbl_word_not:
 
 lemma bl_word_sub:
   "to_bl (x - y) = to_bl (x + (- y))"
-  by (simp add: diff_def)
+  by simp
 
 lemma rbl_word_1:
   "rev (to_bl (1 :: ('a :: len0) word))

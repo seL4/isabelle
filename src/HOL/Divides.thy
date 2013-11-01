@@ -439,24 +439,23 @@ qed
 
 text {* Subtraction respects modular equivalence. *}
 
-lemma mod_diff_left_eq: "(a - b) mod c = (a mod c - b) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_left_eq:
+  "(a - b) mod c = (a mod c - b) mod c"
+  using mod_add_cong [of a c "a mod c" "- b" "- b"] by simp
 
-lemma mod_diff_right_eq: "(a - b) mod c = (a - b mod c) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_right_eq:
+  "(a - b) mod c = (a - b mod c) mod c"
+  using mod_add_cong [of a c a "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b] by simp
 
-lemma mod_diff_eq: "(a - b) mod c = (a mod c - b mod c) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_eq:
+  "(a - b) mod c = (a mod c - b mod c) mod c"
+  using mod_add_cong [of a c "a mod c" "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b] by simp
 
 lemma mod_diff_cong:
   assumes "a mod c = a' mod c"
   assumes "b mod c = b' mod c"
   shows "(a - b) mod c = (a' - b') mod c"
-  unfolding diff_minus using assms
-  by (intro mod_add_cong mod_minus_cong)
+  using assms mod_add_cong [of a c a' "- b" "- b'"] mod_minus_cong [of b c "b'"] by simp
 
 lemma dvd_neg_div: "y dvd x \<Longrightarrow> -x div y = - (x div y)"
 apply (case_tac "y = 0") apply simp
@@ -502,10 +501,7 @@ lemma minus_mod_self2 [simp]:
 
 lemma minus_mod_self1 [simp]: 
   "(b - a) mod b = - a mod b"
-proof -
-  have "b - a = - a + b" by (simp add: diff_minus add.commute)
-  then show ?thesis by simp
-qed
+  using mod_add_self2 [of "- a" b] by simp
 
 end
 
@@ -1749,7 +1745,7 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
-    (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))
+    (@{thm diff_conv_add_uminus} :: @{thms add_0s} @ @{thms add_ac}))
 )
 *}
 
