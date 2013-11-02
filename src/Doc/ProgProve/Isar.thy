@@ -1079,9 +1079,21 @@ the induction hypotheses are instead found under the name @{text hyps}, like for
 
 \subsection{Exercises}
 
+
+\exercise
+Give a structured proof of @{prop "ev(Suc(Suc n)) \<Longrightarrow> ev n"}
+by rule inversion:
+*}
+
+lemma assumes a: "ev(Suc(Suc n))" shows "ev n"
+(*<*)oops(*>*)
+
+text{*
+\endexercise
+
 \begin{exercise}
-Give a structured proof of @{prop "\<not> ev(Suc(Suc(Suc 0)))"}.
-Rule inversion is sufficient. If there are no cases to be proved you can close
+Give a structured proof of @{prop "\<not> ev(Suc(Suc(Suc 0)))"}
+by rule inversions. If there are no cases to be proved you can close
 a proof immediateley with \isacom{qed}.
 \end{exercise}
 
