@@ -787,10 +787,21 @@ conditions}. In rule inductions, these side-conditions appear as additional
 assumptions. The \isacom{for} clause seen in the definition of the reflexive
 transitive closure merely simplifies the form of the induction rule.
 
+
 \subsection{Exercises}
 
+\begin{exercise}
+Formalise the following definition of palindromes
+\begin{itemize}
+\item The empty list and a singleton list are palindromes.
+\item If @{text xs} is a palindrome, so is @{term "a # xs @ [a]"}.
+\end{itemize}
+as an inductive predicate @{text "palindrome ::"} @{typ "'a list \<Rightarrow> bool"}
+and prove that @{prop "rev xs = xs"} if @{text xs} is a palindrome.
+\end{exercise}
+
 \exercise
-We also could have defined @{const star} as follows:
+We could also have defined @{const star} as follows:
 *}
 
 inductive star' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" for r where
