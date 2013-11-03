@@ -877,7 +877,16 @@ text {* Managed evaluation of commands within PIDE documents includes
   modifier key as explained in \secref{sec:tooltips-hyperlinks}.
   Actual display of timing depends on the global option
   @{system_option jedit_timing_threshold}, which can be configured in
-  "Plugin Options / Isabelle / General".  *}
+  "Plugin Options / Isabelle / General".
+
+  \medskip The \emph{Monitor} panel provides a general impression of
+  recent activity of the farm of worker threads in Isabelle/ML.  Its
+  display is continuously updated according to @{system_option
+  editor_chart_delay}.  Note that the painting of the chart takes
+  considerable runtime itself --- on the Java Virtual Machine that
+  runs Isabelle/Scala, not Isabelle/ML.  Internally, the
+  Isabelle/Scala module @{verbatim isabelle.ML_Statistics} provides
+  further access runtime statistics of Isabelle/ML.  *}
 
 
 section {* Isabelle/Scala console *}
