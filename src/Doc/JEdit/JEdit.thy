@@ -482,40 +482,107 @@ text {* Formally processed text (prover input or output) contains rich
 
 section {* Text completion \label{sec:completion} *}
 
-text {*
-  Text completion works via some light-weight GUI popup, which is triggered by
-  keyboard events during the normal editing process in the main jEdit text
-  area and a few additional text fields. The popup interprets special keys:
-  @{verbatim TAB}, @{verbatim ESCAPE}, @{verbatim UP}, @{verbatim DOWN},
-  @{verbatim PAGE_UP}, @{verbatim PAGE_DOWN}. All other key events are passed
-  to the jEdit text area --- this allows to ignore unwanted completions most
-  of the time and continue typing quickly.
+text {* \paragraph{Completion tables} are determined statically from
+  the ``outer syntax'' of the underlying edit mode (for theory files
+  this is the syntax of Isar commands) and specifications of Isabelle
+  symbols (see also \secref{sec:symbols}).
 
-  Various Isabelle plugin options control the popup behavior and immediate
-  insertion into buffer.
+  Symbols are completed in backslashed forms, e.g.\ @{verbatim
+  "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the
+  Isabelle symbol @{text "\<forall>"} in its Unicode rendering.\footnote{The
+  extra backslash avoids overlap with keywords of the buffer syntax,
+  and facilitates to produce Isabelle symbols in arbitrary syntactic
+  contexts.}  Alternatively, symbol abbreviations may be used as
+  specified in @{file "$ISABELLE_HOME/etc/symbols"}.
 
-  Isabelle Symbols are completed in backslashed forms, e.g.\ @{verbatim
-  "\\"}@{verbatim "forall"} or @{verbatim "\<forall>"} that both produce the Isabelle
-  symbol @{text "\<forall>"} in its Unicode rendering. Alternatively, symbol
-  abbreviations may be used as specified in @{file
-  "$ISABELLE_HOME/etc/symbols"}.
+  \paragraph{Completion popups} are required in situations of
+  ambiguous completion results or where explicit confirmation is
+  demanded before inserting completed text into the buffer.
 
-  \emph{Explicit completion} works via standard jEdit shortcut @{verbatim
-  "C+b"}, which is remapped to action @{verbatim "isabelle.complete"}, with a
-  fall-back on regular @{verbatim "complete-word"} for non-Isabelle buffers.
+  The popup is some minimally invasive GUI component over the text
+  area.  It interprets special keys @{verbatim TAB}, @{verbatim
+  ESCAPE}, @{verbatim UP}, @{verbatim DOWN}, @{verbatim PAGE_UP},
+  @{verbatim PAGE_DOWN}, but all other key events are passed to the
+  underlying text area.  This allows to ignore unwanted completions
+  most of the time and continue typing quickly.
 
-  \emph{Implicit completion} works via keyboard input on text area, with popup
-  or immediate insertion into buffer. Plain words require at least 3
-  characters to be completed.
+  The meaning of special keys is as follows:
 
-  \emph{Immediate completion} means the (unique) replacement text is inserted
-  into the buffer without popup. This mode ignores plain words and requires
-  more than one characters for symbol abbreviations. Otherwise it falls back
-  on completion popup.
+  \medskip
+  \begin{tabular}{ll}
+  @{verbatim "TAB"} & select completion \\
+  @{verbatim "ESCAPE"} & dismiss popup \\
+  @{verbatim "UP"} & move up one item \\
+  @{verbatim "DOWN"} & move down one item \\
+  @{verbatim "PAGE_UP"} & move up one page of items \\
+  @{verbatim "PAGE_DOWN"} & move down one page of items \\
+  \end{tabular}
+  \medskip
+
+  Movement within the popup is only active for multiple items.
+  Otherwise the corresponding key event retains its standard meaning
+  within the underlying text area.
+
+  \paragraph{Explicit completion} is triggered by the keyword shortcut
+  @{verbatim "C+b"} for action @{verbatim "isabelle.complete"}.  This
+  overrides the original jEdit action @{verbatim "complete-word"} on
+  that key sequence, but the latter is used as fall-back for
+  non-Isabelle edit modes.  It is also possible to restore the
+  original jEdit keyboard mapping of @{verbatim "complete-word"}.
+
+  Replacement text is inserted immediately into the buffer, unless
+  ambiguous results demand an explicit popup.
+
+  \paragraph{Implicit completion} is triggered by regular keyboard
+  input events during of the editing process in the main jEdit text
+  area (and a few additional text fields like the search criterium of
+  the Find panel, see \secref{sec:find}).  Implicit completion depends
+  on on further side-conditions:
+
+  \begin{enumerate}
+
+  \item The system option @{system_option jedit_completion} needs to
+  be enabled (default).
+
+  \item Completion of syntax keywords requires at least 3 characters
+  in the text.
+
+  \item The system option @{system_option jedit_completion} determines
+  an additional delay (0.0 by default), before opening a completion
+  popup.
+
+  \item The system option @{system_option jedit_completion_immediate}
+  (disabled by default) controls whether replacement text should be
+  inserted immediately without popup, if possible.  This only works
+  for Isabelle symbols (\secref{sec:symbols}).
+
+  \item Completion of symbol abbreviations with only 1 character in
+  the text always enforces and explicit popup, independently of
+  @{system_option jedit_completion_immediate}.
+
+  \end{enumerate}
+
+  These completion options may be configured in \emph{Plugin Options /
+  Isabelle / General / Completion}.  The default is quite moderate in
+  showing occasional popups and refraining from immediate insertion.
+  An additional of e.g.\ 0.3 seconds will make it even less ambitious.
+
+  A more aggressive configuration is @{system_option
+  jedit_completion_delay}~@{verbatim "= 0.0"} and @{system_option
+  jedit_completion_immediate}~@{verbatim "= true"}.  Thus the editing
+  process becomes more dependent on the system guessing correctly what
+  the user had in mind.  It requires some practice and study of the
+  symbol abbreviation tables to be productive in this mode.
+
+  Unintended completions can be reverted by the regular @{verbatim
+  undo} operation of jEdit.  When editing embedded languages such as
+  ML works, it is better to disable either @{system_option
+  jedit_completion} or @{system_option jedit_completion_immediate}
+  temporarily.
 *}
 
 
-section {* Isabelle symbols *}
+section {* Isabelle symbols \label{sec:symbols} *}
 
 text {* Isabelle sources consist of \emph{symbols} that extend plain
   ASCII to allow infinitely many mathematical symbols within the
@@ -810,7 +877,7 @@ text {* The \emph{Sledgehammer} panel (\figref{fig:sledgehammer})
   nonetheless, say to remove earlier proof attempts. *}
 
 
-section {* Find theorems *}
+section {* Find theorems \label{sec:find} *}
 
 text {* The \emph{Find} panel (\figref{fig:find}) provides an
   independent view for @{command find_theorems}.  The main text field
