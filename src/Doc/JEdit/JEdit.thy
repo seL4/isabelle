@@ -852,6 +852,34 @@ text {* The \emph{SideKick} plugin of jEdit provides some general
 *}
 
 
+section {* Timing *}
+
+text {* Managed evaluation of commands within PIDE documents includes
+  timing information, which consists of elapsed (wall-clock) time, CPU
+  time, and GC (garbage collection) time.  Note that in a
+  multithreaded system it is difficult to measure execution time
+  precisely: elapsed time is closer to the real requirements of
+  runtime resources than CPU or GC time, which are both subject to
+  influences from the parallel environment that are outside the scope
+  of the current command transaction.
+
+  The \emph{Timing} panel provides an overview of cumulative command
+  timings for each document node.  Commands with elapsed time below
+  the given threshold are ignored in the grand total.  Nodes are
+  sorted according to their overall timing.  For the document node
+  that corresponds to the current buffer, individual command timings
+  are shown as well.  A double-click on a theory node or command moves
+  the editor focus to that particular source position.
+
+  It is also possible to reveal individual timing information via some
+  tooltip for the corresponding command keyword, using the technique
+  of mouse hovering with @{verbatim CONTROL}/@{verbatim COMMAND}
+  modifier key as explained in \secref{sec:tooltips-hyperlinks}.
+  Actual display of timing depends on the global option
+  @{system_option jedit_timing_threshold}, which can be configured in
+  "Plugin Options / Isabelle / General".  *}
+
+
 section {* Isabelle/Scala console *}
 
 text {* The \emph{Console} plugin of jEdit manages various shells
