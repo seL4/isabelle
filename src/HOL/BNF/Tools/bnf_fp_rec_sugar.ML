@@ -802,19 +802,11 @@ fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
       chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
     end;
 
-fun find_corec_calls has_call basic_ctr_specs {ctr, sel, rhs_term, ...} =
+fun find_corec_calls has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : coeqn_data_sel) =
   let
     val sel_no = find_first (equal ctr o #ctr) basic_ctr_specs
       |> find_index (equal sel) o #sels o the;
-    fun find (Abs (_, _, b)) = find b
-      | find (t as _ $ _) =
-        let val (f, args as arg :: _) = strip_comb t in
-          if is_Free f andalso has_call f orelse is_Free arg andalso has_call arg then
-            [t]
-          else
-            find f @ maps find args
-        end
-      | find f = if is_Free f andalso has_call f then [f] else [];
+    fun find t = if has_call t then [t] else [];
   in
     find rhs_term
     |> K |> nth_map sel_no |> AList.map_entry (op =) ctr

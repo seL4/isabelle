@@ -34,6 +34,20 @@ open BNF_FP_N2M
 
 val n2mN = "n2m_"
 
+fun dest_applied_map_or_ctr ctxt s (t as t1 $ _) =
+  (case try (dest_map ctxt s) t1 of
+    SOME res => res
+  | NONE =>
+    let
+      val thy = Proof_Context.theory_of ctxt;
+      val map_thms = of_fp_sugar #mapss (the (fp_sugar_of ctxt s))
+      val map_thms' = map (fn thm => thm RS sym RS eq_reflection) map_thms;
+      val t' = Raw_Simplifier.rewrite_term thy map_thms' [] t;
+    in
+      if t aconv t' then raise Fail "dest_applied_map_or_ctr"
+      else dest_map ctxt s (fst (dest_comb t'))
+    end);
+
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
@@ -94,7 +108,7 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
       and freeze_fp calls (T as Type (s, Ts)) =
           (case map_filter (try (snd o dest_map no_defs_lthy s)) calls of
             [] =>
-            (case map_filter (try (snd o dest_map no_defs_lthy s o fst o dest_comb)) calls of
+            (case map_filter (try (snd o dest_applied_map_or_ctr no_defs_lthy s)) calls of
               [] =>
               (case union (op = o pairself fst)
                   (maps (fn call => map (rpair call) (get_indices_checked call)) calls) [] of
