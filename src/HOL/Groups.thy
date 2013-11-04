@@ -1073,63 +1073,6 @@ begin
 
 subclass linordered_cancel_ab_semigroup_add ..
 
-lemma neg_less_eq_nonneg [simp]:
-  "- a \<le> a \<longleftrightarrow> 0 \<le> a"
-proof
-  assume A: "- a \<le> a" show "0 \<le> a"
-  proof (rule classical)
-    assume "\<not> 0 \<le> a"
-    then have "a < 0" by auto
-    with A have "- a < 0" by (rule le_less_trans)
-    then show ?thesis by auto
-  qed
-next
-  assume A: "0 \<le> a" show "- a \<le> a"
-  proof (rule order_trans)
-    show "- a \<le> 0" using A by (simp add: minus_le_iff)
-  next
-    show "0 \<le> a" using A .
-  qed
-qed
-
-lemma neg_less_nonneg [simp]:
-  "- a < a \<longleftrightarrow> 0 < a"
-proof
-  assume A: "- a < a" show "0 < a"
-  proof (rule classical)
-    assume "\<not> 0 < a"
-    then have "a \<le> 0" by auto
-    with A have "- a < 0" by (rule less_le_trans)
-    then show ?thesis by auto
-  qed
-next
-  assume A: "0 < a" show "- a < a"
-  proof (rule less_trans)
-    show "- a < 0" using A by (simp add: minus_le_iff)
-  next
-    show "0 < a" using A .
-  qed
-qed
-
-lemma less_eq_neg_nonpos [simp]:
-  "a \<le> - a \<longleftrightarrow> a \<le> 0"
-proof
-  assume A: "a \<le> - a" show "a \<le> 0"
-  proof (rule classical)
-    assume "\<not> a \<le> 0"
-    then have "0 < a" by auto
-    then have "0 < - a" using A by (rule less_le_trans)
-    then show ?thesis by auto
-  qed
-next
-  assume A: "a \<le> 0" show "a \<le> - a"
-  proof (rule order_trans)
-    show "0 \<le> - a" using A by (simp add: minus_le_iff)
-  next
-    show "a \<le> 0" using A .
-  qed
-qed
-
 lemma equal_neg_zero [simp]:
   "a = - a \<longleftrightarrow> a = 0"
 proof
@@ -1151,6 +1094,37 @@ lemma neg_equal_zero [simp]:
   "- a = a \<longleftrightarrow> a = 0"
   by (auto dest: sym)
 
+lemma neg_less_eq_nonneg [simp]:
+  "- a \<le> a \<longleftrightarrow> 0 \<le> a"
+proof
+  assume A: "- a \<le> a" show "0 \<le> a"
+  proof (rule classical)
+    assume "\<not> 0 \<le> a"
+    then have "a < 0" by auto
+    with A have "- a < 0" by (rule le_less_trans)
+    then show ?thesis by auto
+  qed
+next
+  assume A: "0 \<le> a" show "- a \<le> a"
+  proof (rule order_trans)
+    show "- a \<le> 0" using A by (simp add: minus_le_iff)
+  next
+    show "0 \<le> a" using A .
+  qed
+qed
+
+lemma neg_less_pos [simp]:
+  "- a < a \<longleftrightarrow> 0 < a"
+  by (auto simp add: less_le)
+
+lemma less_eq_neg_nonpos [simp]:
+  "a \<le> - a \<longleftrightarrow> a \<le> 0"
+  using neg_less_eq_nonneg [of "- a"] by simp
+
+lemma less_neg_neg [simp]:
+  "a < - a \<longleftrightarrow> a < 0"
+  using neg_less_pos [of "- a"] by simp
+
 lemma double_zero [simp]:
   "a + a = 0 \<longleftrightarrow> a = 0"
 proof
@@ -1169,7 +1143,7 @@ proof
   assume "0 < a + a"
   then have "0 - a < a" by (simp only: diff_less_eq)
   then have "- a < a" by simp
-  then show "0 < a" by (simp only: neg_less_nonneg)
+  then show "0 < a" by simp
 next
   assume "0 < a"
   with this have "0 + 0 < a + a"
@@ -1196,14 +1170,6 @@ proof -
     by (simp add: not_le)
   then show ?thesis by simp
 qed
-
-lemma le_minus_self_iff:
-  "a \<le> - a \<longleftrightarrow> a \<le> 0"
-  by (fact less_eq_neg_nonpos)
-
-lemma minus_le_self_iff:
-  "- a \<le> a \<longleftrightarrow> 0 \<le> a"
-  by (fact neg_less_eq_nonneg)
 
 lemma minus_max_eq_min:
   "- max x y = min (-x) (-y)"

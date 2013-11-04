@@ -24,6 +24,10 @@ INCOMPATIBILITY.
 
 * Fact name consolidation:
     diff_def, diff_minus, ab_diff_minus ~> diff_conv_add_uminus
+    minus_le_self_iff ~> neg_less_eq_nonneg
+    le_minus_self_iff ~> less_eq_neg_nonpos
+    neg_less_nonneg ~> neg_less_pos
+    less_minus_self_iff ~> less_neg_neg [simp]
 INCOMPATIBILITY.
 
 * More simplification rules on unary and binary minus:
@@ -47,7 +51,6 @@ c) Simplification with "diff_def": just drop "diff_def".
 Consider simplification with algebra_simps or field_simps;
 or the brute way with
 "simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
-
 
 New in Isabelle2013-1 (November 2013)
 -------------------------------------

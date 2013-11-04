@@ -1145,10 +1145,6 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
-lemma less_minus_self_iff:
-  "a < - a \<longleftrightarrow> a < 0"
-  by (simp only: less_le less_eq_neg_nonpos equal_neg_zero)
-
 lemma abs_less_iff:
   "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < b" 
   by (simp add: less_le abs_le_iff) (auto simp add: abs_if)
