@@ -308,6 +308,8 @@ lemma convol_image_image2p: "<f o fst, g o snd> ` Collect (split R) \<subseteq> 
 lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
   unfolding fun_rel_def image2p_def by auto
 
+ML_file "Tools/bnf_gfp_rec_sugar_tactics.ML"
+ML_file "Tools/bnf_gfp_rec_sugar.ML"
 ML_file "Tools/bnf_gfp_util.ML"
 ML_file "Tools/bnf_gfp_tactics.ML"
 ML_file "Tools/bnf_gfp.ML"

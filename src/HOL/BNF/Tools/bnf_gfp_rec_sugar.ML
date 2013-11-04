@@ -1,23 +1,13 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_rec_sugar.ML
+(*  Title:      HOL/BNF/Tools/bnf_gfp_rec_sugar.ML
     Author:     Lorenz Panny, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-Recursor and corecursor sugar.
+Corecursor sugar.
 *)
 
-signature BNF_FP_REC_SUGAR =
+signature BNF_GFP_REC_SUGAR =
 sig
-  val add_primrec: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory
-  val add_primrec_cmd: (binding * string option * mixfix) list ->
-    (Attrib.binding * string) list -> local_theory -> (term list * thm list list) * local_theory
-  val add_primrec_global: (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list list) * theory
-  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
-    (binding * typ option * mixfix) list ->
-    (Attrib.binding * term) list -> theory -> (term list * thm list list) * theory
-  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
-    local_theory -> (string list * (term list * (int list list * thm list list))) * local_theory
   val add_primcorecursive_cmd: bool ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
@@ -26,42 +16,466 @@ sig
     local_theory -> local_theory
 end;
 
-structure BNF_FP_Rec_Sugar : BNF_FP_REC_SUGAR =
+structure BNF_GFP_Rec_Sugar : BNF_GFP_REC_SUGAR =
 struct
 
+open Ctr_Sugar
 open BNF_Util
+open BNF_Def
 open BNF_FP_Util
+open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 open BNF_FP_Rec_Sugar_Util
-open BNF_FP_Rec_Sugar_Tactics
+open BNF_GFP_Rec_Sugar_Tactics
 
-val codeN = "code";
-val ctrN = "ctr";
-val discN = "disc";
-val selN = "sel";
+val codeN = "code"
+val ctrN = "ctr"
+val discN = "disc"
+val selN = "sel"
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
-val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
-exception Primrec_Error of string * term list;
+exception Primcorec_Error of string * term list;
 
-fun primrec_error str = raise Primrec_Error (str, []);
-fun primrec_error_eqn str eqn = raise Primrec_Error (str, [eqn]);
-fun primrec_error_eqns str eqns = raise Primrec_Error (str, eqns);
+fun primcorec_error str = raise Primcorec_Error (str, []);
+fun primcorec_error_eqn str eqn = raise Primcorec_Error (str, [eqn]);
+fun primcorec_error_eqns str eqns = raise Primcorec_Error (str, eqns);
 
-fun finds eq = fold_map (fn x => List.partition (curry eq x) #>> pair x);
+datatype corec_call =
+  Dummy_No_Corec of int |
+  No_Corec of int |
+  Mutual_Corec of int * int * int |
+  Nested_Corec of int;
 
-val free_name = try (fn Free (v, _) => v);
+type basic_corec_ctr_spec =
+  {ctr: term,
+   disc: term,
+   sels: term list};
+
+type corec_ctr_spec =
+  {ctr: term,
+   disc: term,
+   sels: term list,
+   pred: int option,
+   calls: corec_call list,
+   discI: thm,
+   sel_thms: thm list,
+   collapse: thm,
+   corec_thm: thm,
+   disc_corec: thm,
+   sel_corecs: thm list};
+
+type corec_spec =
+  {corec: term,
+   nested_maps: thm list,
+   nested_map_idents: thm list,
+   nested_map_comps: thm list,
+   ctr_specs: corec_ctr_spec list};
+
+exception AINT_NO_MAP of term;
+
+fun not_codatatype ctxt T =
+  error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
+fun ill_formed_corec_call ctxt t =
+  error ("Ill-formed corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
+fun invalid_map ctxt t =
+  error ("Invalid map function in " ^ quote (Syntax.string_of_term ctxt t));
+fun unexpected_corec_call ctxt t =
+  error ("Unexpected corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
+
+val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
+val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
+
+val conjuncts_s = filter_out (curry (op =) @{const True}) o HOLogic.conjuncts;
+
+fun s_not @{const True} = @{const False}
+  | s_not @{const False} = @{const True}
+  | s_not (@{const Not} $ t) = t
+  | s_not (@{const conj} $ t $ u) = @{const disj} $ s_not t $ s_not u
+  | s_not (@{const disj} $ t $ u) = @{const conj} $ s_not t $ s_not u
+  | s_not t = @{const Not} $ t;
+
+val s_not_conj = conjuncts_s o s_not o mk_conjs;
+
+fun propagate_unit_pos u cs = if member (op aconv) cs u then [@{const False}] else cs;
+
+fun propagate_unit_neg not_u cs = remove (op aconv) not_u cs;
+
+fun propagate_units css =
+  (case List.partition (can the_single) css of
+     ([], _) => css
+   | ([u] :: uss, css') =>
+     [u] :: propagate_units (map (propagate_unit_neg (s_not u))
+       (map (propagate_unit_pos u) (uss @ css'))));
+
+fun s_conjs cs =
+  if member (op aconv) cs @{const False} then @{const False}
+  else mk_conjs (remove (op aconv) @{const True} cs);
+
+fun s_disjs ds =
+  if member (op aconv) ds @{const True} then @{const True}
+  else mk_disjs (remove (op aconv) @{const False} ds);
+
+fun s_dnf css0 =
+  let val css = propagate_units css0 in
+    if null css then
+      [@{const False}]
+    else if exists null css then
+      []
+    else
+      map (fn c :: cs => (c, cs)) css
+      |> AList.coalesce (op =)
+      |> map (fn (c, css) => c :: s_dnf css)
+      |> (fn [cs] => cs | css => [s_disjs (map s_conjs css)])
+  end;
+
+fun fold_rev_let_if_case ctxt f bound_Ts t =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+
+    fun fld conds t =
+      (case Term.strip_comb t of
+        (Const (@{const_name Let}, _), [_, _]) => fld conds (unfold_let t)
+      | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
+        fld (conds @ conjuncts_s cond) then_branch o fld (conds @ s_not_conj [cond]) else_branch
+      | (Const (c, _), args as _ :: _ :: _) =>
+        let val n = num_binder_types (Sign.the_const_type thy c) - 1 in
+          if n >= 0 andalso n < length args then
+            (case fastype_of1 (bound_Ts, nth args n) of
+              Type (s, Ts) =>
+              (case dest_case ctxt s Ts t of
+                NONE => apsnd (f conds t)
+              | SOME (conds', branches) =>
+                apfst (cons s) o fold_rev (uncurry fld)
+                  (map (append conds o conjuncts_s) conds' ~~ branches))
+            | _ => apsnd (f conds t))
+          else
+            apsnd (f conds t)
+        end
+      | _ => apsnd (f conds t))
+  in
+    fld [] t o pair []
+  end;
+
+fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
+
+fun massage_let_if_case ctxt has_call massage_leaf =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
+
+    fun massage_abs bound_Ts 0 t = massage_rec bound_Ts t
+      | massage_abs bound_Ts m (Abs (s, T, t)) = Abs (s, T, massage_abs (T :: bound_Ts) (m - 1) t)
+      | massage_abs bound_Ts m t =
+        let val T = domain_type (fastype_of1 (bound_Ts, t)) in
+          Abs (Name.uu, T, massage_abs (T :: bound_Ts) (m - 1) (incr_boundvars 1 t $ Bound 0))
+        end
+    and massage_rec bound_Ts t =
+      let val typof = curry fastype_of1 bound_Ts in
+        (case Term.strip_comb t of
+          (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_let t)
+        | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
+          let val branches' = map (massage_rec bound_Ts) branches in
+            Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
+          end
+        | (Const (c, _), args as _ :: _ :: _) =>
+          (case try strip_fun_type (Sign.the_const_type thy c) of
+            SOME (gen_branch_Ts, gen_body_fun_T) =>
+            let
+              val gen_branch_ms = map num_binder_types gen_branch_Ts;
+              val n = length gen_branch_ms;
+            in
+              if n < length args then
+                (case gen_body_fun_T of
+                  Type (_, [Type (T_name, _), _]) =>
+                  if case_of ctxt T_name = SOME c then
+                    let
+                      val (branches, obj_leftovers) = chop n args;
+                      val branches' = map2 (massage_abs bound_Ts) gen_branch_ms branches;
+                      val branch_Ts' = map typof branches';
+                      val body_T' = snd (strip_typeN (hd gen_branch_ms) (hd branch_Ts'));
+                      val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
+                    in
+                      Term.list_comb (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
+                    end
+                  else
+                    massage_leaf bound_Ts t
+                | _ => massage_leaf bound_Ts t)
+              else
+                massage_leaf bound_Ts t
+            end
+          | NONE => massage_leaf bound_Ts t)
+        | _ => massage_leaf bound_Ts t)
+      end
+  in
+    massage_rec
+  end;
+
+val massage_mutual_corec_call = massage_let_if_case;
+
+fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
+
+fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
+  let
+    fun check_no_call t = if has_call t then unexpected_corec_call ctxt t else ();
+
+    val build_map_Inl = build_map ctxt (uncurry Inl_const o dest_sumT o snd);
+
+    fun massage_mutual_call bound_Ts U T t =
+      if has_call t then
+        (case try dest_sumT U of
+          SOME (U1, U2) => if U1 = T then raw_massage_call bound_Ts T U2 t else invalid_map ctxt t
+        | NONE => invalid_map ctxt t)
+      else
+        build_map_Inl (T, U) $ t;
+
+    fun massage_mutual_fun bound_Ts U T t =
+      (case t of
+        Const (@{const_name comp}, _) $ t1 $ t2 =>
+        mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
+      | _ =>
+        let
+          val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
+            domain_type (fastype_of1 (bound_Ts, t)));
+        in
+          Term.lambda var (massage_mutual_call bound_Ts U T (t $ var))
+        end);
+
+    fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
+        (case try (dest_map ctxt s) t of
+          SOME (map0, fs) =>
+          let
+            val Type (_, dom_Ts) = domain_type (fastype_of1 (bound_Ts, t));
+            val map' = mk_map (length fs) dom_Ts Us map0;
+            val fs' =
+              map_flattened_map_args ctxt s (map3 (massage_map_or_map_arg bound_Ts) Us Ts) fs;
+          in
+            Term.list_comb (map', fs')
+          end
+        | NONE => raise AINT_NO_MAP t)
+      | massage_map _ _ _ t = raise AINT_NO_MAP t
+    and massage_map_or_map_arg bound_Ts U T t =
+      if T = U then
+        tap check_no_call t
+      else
+        massage_map bound_Ts U T t
+        handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t;
+
+    fun massage_call bound_Ts U T =
+      massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
+        if has_call t then
+          (case U of
+            Type (s, Us) =>
+            (case try (dest_ctr ctxt s) t of
+              SOME (f, args) =>
+              let
+                val typof = curry fastype_of1 bound_Ts;
+                val f' = mk_ctr Us f
+                val f'_T = typof f';
+                val arg_Ts = map typof args;
+              in
+                Term.list_comb (f', map3 (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
+              end
+            | NONE =>
+              (case t of
+                Const (@{const_name prod_case}, _) $ t' =>
+                let
+                  val U' = curried_type U;
+                  val T' = curried_type T;
+                in
+                  Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
+                end
+              | t1 $ t2 =>
+                (if has_call t2 then
+                  massage_mutual_call bound_Ts U T t
+                else
+                  massage_map bound_Ts U T t1 $ t2
+                  handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
+              | Abs (s, T', t') =>
+                Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
+              | _ => massage_mutual_call bound_Ts U T t))
+          | _ => ill_formed_corec_call ctxt t)
+        else
+          build_map_Inl (T, U) $ t) bound_Ts;
+
+    val T = fastype_of1 (bound_Ts, t);
+  in
+    if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
+  end;
+
+val fold_rev_corec_call = fold_rev_let_if_case;
+
+fun expand_to_ctr_term ctxt s Ts t =
+  (case ctr_sugar_of ctxt s of
+    SOME {ctrs, casex, ...} =>
+    Term.list_comb (mk_case Ts (Type (s, Ts)) casex, map (mk_ctr Ts) ctrs) $ t
+  | NONE => raise Fail "expand_to_ctr_term");
+
+fun expand_corec_code_rhs ctxt has_call bound_Ts t =
+  (case fastype_of1 (bound_Ts, t) of
+    Type (s, Ts) =>
+    massage_let_if_case ctxt has_call (fn _ => fn t =>
+      if can (dest_ctr ctxt s) t then t else expand_to_ctr_term ctxt s Ts t) bound_Ts t
+  | _ => raise Fail "expand_corec_code_rhs");
+
+fun massage_corec_code_rhs ctxt massage_ctr =
+  massage_let_if_case ctxt (K false)
+    (fn bound_Ts => uncurry (massage_ctr bound_Ts) o Term.strip_comb);
+
+fun fold_rev_corec_code_rhs ctxt f =
+  snd ooo fold_rev_let_if_case ctxt (fn conds => uncurry (f conds) o Term.strip_comb);
+
+fun case_thms_of_term ctxt bound_Ts t =
+  let
+    val (caseT_names, _) = fold_rev_let_if_case ctxt (K (K I)) bound_Ts t ();
+    val ctr_sugars = map (the o ctr_sugar_of ctxt) caseT_names;
+  in
+    (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #sel_splits ctr_sugars,
+     maps #sel_split_asms ctr_sugars)
+  end;
+
+fun basic_corec_specs_of ctxt res_T =
+  (case res_T of
+    Type (T_name, _) =>
+    (case Ctr_Sugar.ctr_sugar_of ctxt T_name of
+      NONE => not_codatatype ctxt res_T
+    | SOME {ctrs, discs, selss, ...} =>
+      let
+        val thy = Proof_Context.theory_of ctxt;
+        val gfpT = body_type (fastype_of (hd ctrs));
+        val As_rho = tvar_subst thy [gfpT] [res_T];
+        val substA = Term.subst_TVars As_rho;
+
+        fun mk_spec ctr disc sels = {ctr = substA ctr, disc = substA disc, sels = map substA sels};
+      in
+        map3 mk_spec ctrs discs selss
+      end)
+  | _ => not_codatatype ctxt res_T);
+
+(*FIXME: remove special cases for product and sum once they are registered as datatypes*)
+fun map_thms_of_typ ctxt (Type (s, _)) =
+    if s = @{type_name prod} then
+      @{thms map_pair_simp}
+    else if s = @{type_name sum} then
+      @{thms sum_map.simps}
+    else
+      (case fp_sugar_of ctxt s of
+        SOME {index, mapss, ...} => nth mapss index
+      | NONE => [])
+  | map_thms_of_typ _ _ = [];
+
+fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+
+    val ((missing_res_Ts, perm0_kks,
+          fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
+            co_inducts = coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy') =
+      nested_to_mutual_fps Greatest_FP bs res_Ts get_indices callssss0 lthy;
+
+    val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
+
+    val indices = map #index fp_sugars;
+    val perm_indices = map #index perm_fp_sugars;
+
+    val perm_ctrss = map (#ctrs o of_fp_sugar #ctr_sugars) perm_fp_sugars;
+    val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
+    val perm_gfpTs = map (body_type o fastype_of o hd) perm_ctrss;
+
+    val nn0 = length res_Ts;
+    val nn = length perm_gfpTs;
+    val kks = 0 upto nn - 1;
+    val perm_ns = map length perm_ctr_Tsss;
+
+    val perm_Cs = map (domain_type o body_fun_type o fastype_of o co_rec_of o
+      of_fp_sugar (#xtor_co_iterss o #fp_res)) perm_fp_sugars;
+    val (perm_p_Tss, (perm_q_Tssss, _, perm_f_Tssss, _)) =
+      mk_coiter_fun_arg_types perm_ctr_Tsss perm_Cs perm_ns (co_rec_of dtor_coiters1);
+
+    val (perm_p_hss, h) = indexedd perm_p_Tss 0;
+    val (perm_q_hssss, h') = indexedddd perm_q_Tssss h;
+    val (perm_f_hssss, _) = indexedddd perm_f_Tssss h';
+
+    val fun_arg_hs =
+      flat (map3 flat_corec_preds_predsss_gettersss perm_p_hss perm_q_hssss perm_f_hssss);
+
+    fun unpermute0 perm0_xs = permute_like (op =) perm0_kks kks perm0_xs;
+    fun unpermute perm_xs = permute_like (op =) perm_indices indices perm_xs;
+
+    val coinduct_thmss = map (unpermute0 o conj_dests nn) coinduct_thms;
+
+    val p_iss = map (map (find_index_eq fun_arg_hs)) (unpermute perm_p_hss);
+    val q_issss = map (map (map (map (find_index_eq fun_arg_hs)))) (unpermute perm_q_hssss);
+    val f_issss = map (map (map (map (find_index_eq fun_arg_hs)))) (unpermute perm_f_hssss);
+
+    val f_Tssss = unpermute perm_f_Tssss;
+    val gfpTs = unpermute perm_gfpTs;
+    val Cs = unpermute perm_Cs;
+
+    val As_rho = tvar_subst thy (take nn0 gfpTs) res_Ts;
+    val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn arg_Ts;
+
+    val substA = Term.subst_TVars As_rho;
+    val substAT = Term.typ_subst_TVars As_rho;
+    val substCT = Term.typ_subst_TVars Cs_rho;
+
+    val perm_Cs' = map substCT perm_Cs;
+
+    fun call_of nullary [] [g_i] [Type (@{type_name fun}, [_, T])] =
+        (if exists_subtype_in Cs T then Nested_Corec
+         else if nullary then Dummy_No_Corec
+         else No_Corec) g_i
+      | call_of _ [q_i] [g_i, g_i'] _ = Mutual_Corec (q_i, g_i, g_i');
+
+    fun mk_ctr_spec ctr disc sels p_ho q_iss f_iss f_Tss discI sel_thms collapse corec_thm
+        disc_corec sel_corecs =
+      let val nullary = not (can dest_funT (fastype_of ctr)) in
+        {ctr = substA ctr, disc = substA disc, sels = map substA sels, pred = p_ho,
+         calls = map3 (call_of nullary) q_iss f_iss f_Tss, discI = discI, sel_thms = sel_thms,
+         collapse = collapse, corec_thm = corec_thm, disc_corec = disc_corec,
+         sel_corecs = sel_corecs}
+      end;
+
+    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) p_is q_isss f_isss f_Tsss coiter_thmsss
+        disc_coitersss sel_coiterssss =
+      let
+        val ctrs = #ctrs (nth ctr_sugars index);
+        val discs = #discs (nth ctr_sugars index);
+        val selss = #selss (nth ctr_sugars index);
+        val p_ios = map SOME p_is @ [NONE];
+        val discIs = #discIs (nth ctr_sugars index);
+        val sel_thmss = #sel_thmss (nth ctr_sugars index);
+        val collapses = #collapses (nth ctr_sugars index);
+        val corec_thms = co_rec_of (nth coiter_thmsss index);
+        val disc_corecs = co_rec_of (nth disc_coitersss index);
+        val sel_corecss = co_rec_of (nth sel_coiterssss index);
+      in
+        map13 mk_ctr_spec ctrs discs selss p_ios q_isss f_isss f_Tsss discIs sel_thmss collapses
+          corec_thms disc_corecs sel_corecss
+      end;
+
+    fun mk_spec ({T, index, ctr_sugars, co_iterss = coiterss, co_iter_thmsss = coiter_thmsss,
+          disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...} : fp_sugar)
+        p_is q_isss f_isss f_Tsss =
+      {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
+       nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
+       nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
+       nested_map_comps = map map_comp_of_bnf nested_bnfs,
+       ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
+         disc_coitersss sel_coiterssss};
+  in
+    ((is_some gfp_sugar_thms, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
+      co_induct_of coinduct_thms, strong_co_induct_of coinduct_thms, co_induct_of coinduct_thmss,
+      strong_co_induct_of coinduct_thmss), lthy')
+  end;
+
 val const_name = try (fn Const (v, _) => v);
 val undef_const = Const (@{const_name undefined}, dummyT);
 
-fun permute_args n t = list_comb (t, map Bound (0 :: (n downto 1)))
-  |> fold (K (Term.abs (Name.uu, dummyT))) (0 upto n);
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
-fun drop_All t = subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
-  strip_qnt_body @{const_name all} t)
 fun abstract vs =
   let fun a n (t $ u) = a n t $ a n u
         | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
@@ -70,383 +484,6 @@ fun abstract vs =
   in a 0 end;
 fun mk_prod1 Ts (t, u) = HOLogic.pair_const (fastype_of1 (Ts, t)) (fastype_of1 (Ts, u)) $ t $ u;
 fun mk_tuple1 Ts = the_default HOLogic.unit o try (foldr1 (mk_prod1 Ts));
-
-fun get_indices fixes t = map (fst #>> Binding.name_of #> Free) fixes
-  |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
-  |> map_filter I;
-
-
-(* Primrec *)
-
-type eqn_data = {
-  fun_name: string,
-  rec_type: typ,
-  ctr: term,
-  ctr_args: term list,
-  left_args: term list,
-  right_args: term list,
-  res_type: typ,
-  rhs_term: term,
-  user_eqn: term
-};
-
-fun dissect_eqn lthy fun_names eqn' =
-  let
-    val eqn = drop_All eqn' |> HOLogic.dest_Trueprop
-      handle TERM _ =>
-        primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
-    val (lhs, rhs) = HOLogic.dest_eq eqn
-        handle TERM _ =>
-          primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
-    val (fun_name, args) = strip_comb lhs
-      |>> (fn x => if is_Free x then fst (dest_Free x)
-          else primrec_error_eqn "malformed function equation (does not start with free)" eqn);
-    val (left_args, rest) = take_prefix is_Free args;
-    val (nonfrees, right_args) = take_suffix is_Free rest;
-    val num_nonfrees = length nonfrees;
-    val _ = num_nonfrees = 1 orelse if num_nonfrees = 0 then
-      primrec_error_eqn "constructor pattern missing in left-hand side" eqn else
-      primrec_error_eqn "more than one non-variable argument in left-hand side" eqn;
-    val _ = member (op =) fun_names fun_name orelse
-      primrec_error_eqn "malformed function equation (does not start with function name)" eqn
-
-    val (ctr, ctr_args) = strip_comb (the_single nonfrees);
-    val _ = try (num_binder_types o fastype_of) ctr = SOME (length ctr_args) orelse
-      primrec_error_eqn "partially applied constructor in pattern" eqn;
-    val _ = let val d = duplicates (op =) (left_args @ ctr_args @ right_args) in null d orelse
-      primrec_error_eqn ("duplicate variable \"" ^ Syntax.string_of_term lthy (hd d) ^
-        "\" in left-hand side") eqn end;
-    val _ = forall is_Free ctr_args orelse
-      primrec_error_eqn "non-primitive pattern in left-hand side" eqn;
-    val _ =
-      let val b = fold_aterms (fn x as Free (v, _) =>
-        if (not (member (op =) (left_args @ ctr_args @ right_args) x) andalso
-        not (member (op =) fun_names v) andalso
-        not (Variable.is_fixed lthy v)) then cons x else I | _ => I) rhs []
-      in
-        null b orelse
-        primrec_error_eqn ("extra variable(s) in right-hand side: " ^
-          commas (map (Syntax.string_of_term lthy) b)) eqn
-      end;
-  in
-    {fun_name = fun_name,
-     rec_type = body_type (type_of ctr),
-     ctr = ctr,
-     ctr_args = ctr_args,
-     left_args = left_args,
-     right_args = right_args,
-     res_type = map fastype_of (left_args @ right_args) ---> fastype_of rhs,
-     rhs_term = rhs,
-     user_eqn = eqn'}
-  end;
-
-fun rewrite_map_arg get_ctr_pos rec_type res_type =
-  let
-    val pT = HOLogic.mk_prodT (rec_type, res_type);
-
-    val maybe_suc = Option.map (fn x => x + 1);
-    fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const pT)
-      | subst d (Abs (v, T, b)) = Abs (v, if d = SOME ~1 then pT else T, subst (maybe_suc d) b)
-      | subst d t =
-        let
-          val (u, vs) = strip_comb t;
-          val ctr_pos = try (get_ctr_pos o the) (free_name u) |> the_default ~1;
-        in
-          if ctr_pos >= 0 then
-            if d = SOME ~1 andalso length vs = ctr_pos then
-              list_comb (permute_args ctr_pos (snd_const pT), vs)
-            else if length vs > ctr_pos andalso is_some d
-                andalso d = try (fn Bound n => n) (nth vs ctr_pos) then
-              list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
-            else
-              primrec_error_eqn ("recursive call not directly applied to constructor argument") t
-          else
-            list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
-        end
-  in
-    subst (SOME ~1)
-  end;
-
-fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls =
-  let
-    fun try_nested_rec bound_Ts y t =
-      AList.lookup (op =) nested_calls y
-      |> Option.map (fn y' =>
-        massage_nested_rec_call lthy has_call (rewrite_map_arg get_ctr_pos) bound_Ts y y' t);
-
-    fun subst bound_Ts (t as g' $ y) =
-        let
-          fun subst_rec () = subst bound_Ts g' $ subst bound_Ts y;
-          val y_head = head_of y;
-        in
-          if not (member (op =) ctr_args y_head) then
-            subst_rec ()
-          else
-            (case try_nested_rec bound_Ts y_head t of
-              SOME t' => t'
-            | NONE =>
-              let val (g, g_args) = strip_comb g' in
-                (case try (get_ctr_pos o the) (free_name g) of
-                  SOME ctr_pos =>
-                  (length g_args >= ctr_pos orelse
-                   primrec_error_eqn "too few arguments in recursive call" t;
-                   (case AList.lookup (op =) mutual_calls y of
-                     SOME y' => list_comb (y', g_args)
-                   | NONE => subst_rec ()))
-                | NONE => subst_rec ())
-              end)
-        end
-      | subst bound_Ts (Abs (v, T, b)) = Abs (v, T, subst (T :: bound_Ts) b)
-      | subst _ t = t
-
-    fun subst' t =
-      if has_call t then
-        (* FIXME detect this case earlier? *)
-        primrec_error_eqn "recursive call not directly applied to constructor argument" t
-      else
-        try_nested_rec [] (head_of t) t |> the_default t
-  in
-    subst' o subst []
-  end;
-
-fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
-    (maybe_eqn_data : eqn_data option) =
-  (case maybe_eqn_data of
-    NONE => undef_const
-  | SOME {ctr_args, left_args, right_args, rhs_term = t, ...} =>
-    let
-      val calls = #calls ctr_spec;
-      val n_args = fold (Integer.add o (fn Mutual_Rec _ => 2 | _ => 1)) calls 0;
-
-      val no_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn No_Rec p => p | Mutual_Rec (p, _) => p)));
-      val mutual_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Mutual_Rec (_, p) => p)));
-      val nested_calls' = tag_list 0 calls
-        |> map_filter (try (apsnd (fn Nested_Rec p => p)));
-
-      val args = replicate n_args ("", dummyT)
-        |> Term.rename_wrt_term t
-        |> map Free
-        |> fold (fn (ctr_arg_idx, (arg_idx, _)) =>
-            nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))
-          no_calls'
-        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
-            nth_map arg_idx (K (retype_free T (nth ctr_args ctr_arg_idx))))
-          mutual_calls'
-        |> fold (fn (ctr_arg_idx, (arg_idx, T)) =>
-            nth_map arg_idx (K (retype_free T (nth ctr_args ctr_arg_idx))))
-          nested_calls';
-
-      val fun_name_ctr_pos_list =
-        map (fn (x :: _) => (#fun_name x, length (#left_args x))) funs_data;
-      val get_ctr_pos = try (the o AList.lookup (op =) fun_name_ctr_pos_list) #> the_default ~1;
-      val mutual_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) mutual_calls';
-      val nested_calls = map (apfst (nth ctr_args) o apsnd (nth args o fst)) nested_calls';
-    in
-      t
-      |> subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
-      |> fold_rev lambda (args @ left_args @ right_args)
-    end);
-
-fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spec list) has_call =
-  let
-    val n_funs = length funs_data;
-
-    val ctr_spec_eqn_data_list' =
-      (take n_funs rec_specs |> map #ctr_specs) ~~ funs_data
-      |> maps (uncurry (finds (fn (x, y) => #ctr x = #ctr y))
-          ##> (fn x => null x orelse
-            primrec_error_eqns "excess equations in definition" (map #rhs_term x)) #> fst);
-    val _ = ctr_spec_eqn_data_list' |> map (fn (_, x) => length x <= 1 orelse
-      primrec_error_eqns ("multiple equations for constructor") (map #user_eqn x));
-
-    val ctr_spec_eqn_data_list =
-      ctr_spec_eqn_data_list' @ (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
-
-    val recs = take n_funs rec_specs |> map #recx;
-    val rec_args = ctr_spec_eqn_data_list
-      |> sort ((op <) o pairself (#offset o fst) |> make_ord)
-      |> map (uncurry (build_rec_arg lthy funs_data has_call) o apsnd (try the_single));
-    val ctr_poss = map (fn x =>
-      if length (distinct ((op =) o pairself (length o #left_args)) x) <> 1 then
-        primrec_error ("inconstant constructor pattern position for function " ^
-          quote (#fun_name (hd x)))
-      else
-        hd x |> #left_args |> length) funs_data;
-  in
-    (recs, ctr_poss)
-    |-> map2 (fn recx => fn ctr_pos => list_comb (recx, rec_args) |> permute_args ctr_pos)
-    |> Syntax.check_terms lthy
-    |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
-      bs mxs
-  end;
-
-fun find_rec_calls ctxt has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
-  let
-    fun find bound_Ts (Abs (_, T, b)) ctr_arg = find (T :: bound_Ts) b ctr_arg
-      | find bound_Ts (t as _ $ _) ctr_arg =
-        let
-          val typof = curry fastype_of1 bound_Ts;
-          val (f', args') = strip_comb t;
-          val n = find_index (equal ctr_arg o head_of) args';
-        in
-          if n < 0 then
-            find bound_Ts f' ctr_arg @ maps (fn x => find bound_Ts x ctr_arg) args'
-          else
-            let
-              val (f, args as arg :: _) = chop n args' |>> curry list_comb f'
-              val (arg_head, arg_args) = Term.strip_comb arg;
-            in
-              if has_call f then
-                mk_partial_compN (length arg_args) (typof f) (typof arg_head) f ::
-                maps (fn x => find bound_Ts x ctr_arg) args
-              else
-                find bound_Ts f ctr_arg @ maps (fn x => find bound_Ts x ctr_arg) args
-            end
-        end
-      | find _ _ _ = [];
-  in
-    map (find [] rhs_term) ctr_args
-    |> (fn [] => NONE | callss => SOME (ctr, callss))
-  end;
-
-fun prepare_primrec fixes specs lthy =
-  let
-    val (bs, mxs) = map_split (apfst fst) fixes;
-    val fun_names = map Binding.name_of bs;
-    val eqns_data = map (dissect_eqn lthy fun_names) specs;
-    val funs_data = eqns_data
-      |> partition_eq ((op =) o pairself #fun_name)
-      |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
-      |> map (fn (x, y) => the_single y handle List.Empty =>
-          primrec_error ("missing equations for function " ^ quote x));
-
-    val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
-    val arg_Ts = map (#rec_type o hd) funs_data;
-    val res_Ts = map (#res_type o hd) funs_data;
-    val callssss = funs_data
-      |> map (partition_eq ((op =) o pairself #ctr))
-      |> map (maps (map_filter (find_rec_calls lthy has_call)));
-
-    val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy') =
-      rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
-
-    val actual_nn = length funs_data;
-
-    val _ = let val ctrs = (maps (map #ctr o #ctr_specs) rec_specs) in
-      map (fn {ctr, user_eqn, ...} => member (op =) ctrs ctr orelse
-        primrec_error_eqn ("argument " ^ quote (Syntax.string_of_term lthy' ctr) ^
-          " is not a constructor in left-hand side") user_eqn) eqns_data end;
-
-    val defs = build_defs lthy' bs mxs funs_data rec_specs has_call;
-
-    fun prove lthy def_thms' ({ctr_specs, nested_map_idents, nested_map_comps, ...} : rec_spec)
-        (fun_data : eqn_data list) =
-      let
-        val def_thms = map (snd o snd) def_thms';
-        val simp_thmss = finds (fn (x, y) => #ctr x = #ctr y) fun_data ctr_specs
-          |> fst
-          |> map_filter (try (fn (x, [y]) =>
-            (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
-          |> map (fn (user_eqn, num_extra_args, rec_thm) =>
-            mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
-            |> K |> Goal.prove lthy [] [] user_eqn
-            |> Thm.close_derivation);
-        val poss = find_indices (fn (x, y) => #ctr x = #ctr y) fun_data eqns_data;
-      in
-        (poss, simp_thmss)
-      end;
-
-    val notes =
-      (if n2m then map2 (fn name => fn thm =>
-        (name, inductN, [thm], [])) fun_names (take actual_nn induct_thms) else [])
-      |> map (fn (prefix, thmN, thms, attrs) =>
-        ((Binding.qualify true prefix (Binding.name thmN), attrs), [(thms, [])]));
-
-    val common_name = mk_common_name fun_names;
-
-    val common_notes =
-      (if n2m then [(inductN, [induct_thm], [])] else [])
-      |> map (fn (thmN, thms, attrs) =>
-        ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
-  in
-    (((fun_names, defs),
-      fn lthy => fn defs =>
-        split_list (map2 (prove lthy defs) (take actual_nn rec_specs) funs_data)),
-      lthy' |> Local_Theory.notes (notes @ common_notes) |> snd)
-  end;
-
-(* primrec definition *)
-
-fun add_primrec_simple fixes ts lthy =
-  let
-    val (((names, defs), prove), lthy) = prepare_primrec fixes ts lthy
-      handle ERROR str => primrec_error str;
-  in
-    lthy
-    |> fold_map Local_Theory.define defs
-    |-> (fn defs => `(fn lthy => (names, (map fst defs, prove lthy defs))))
-  end
-  handle Primrec_Error (str, eqns) =>
-    if null eqns
-    then error ("primrec_new error:\n  " ^ str)
-    else error ("primrec_new error:\n  " ^ str ^ "\nin\n  " ^
-      space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
-
-local
-
-fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec lthy =
-  let
-    val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
-    val _ = null d orelse primrec_error ("duplicate function name(s): " ^ commas d);
-
-    val (fixes, specs) = fst (prep_spec raw_fixes raw_spec lthy);
-
-    val mk_notes =
-      flat ooo map3 (fn poss => fn prefix => fn thms =>
-        let
-          val (bs, attrss) = map_split (fst o nth specs) poss;
-          val notes =
-            map3 (fn b => fn attrs => fn thm =>
-              ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs), [([thm], [])]))
-            bs attrss thms;
-        in
-          ((Binding.qualify true prefix (Binding.name simpsN), []), [(thms, [])]) :: notes
-        end);
-  in
-    lthy
-    |> add_primrec_simple fixes (map snd specs)
-    |-> (fn (names, (ts, (posss, simpss))) =>
-      Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
-      #> Local_Theory.notes (mk_notes posss names simpss)
-      #>> pair ts o map snd)
-  end;
-
-in
-
-val add_primrec = gen_primrec Specification.check_spec;
-val add_primrec_cmd = gen_primrec Specification.read_spec;
-
-end;
-
-fun add_primrec_global fixes specs thy =
-  let
-    val lthy = Named_Target.theory_init thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = burrow (Proof_Context.export lthy' lthy) simps;
-  in ((ts, simps'), Local_Theory.exit_global lthy') end;
-
-fun add_primrec_overloaded ops fixes specs thy =
-  let
-    val lthy = Overloading.overloading ops thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = burrow (Proof_Context.export lthy' lthy) simps;
-  in ((ts, simps'), Local_Theory.exit_global lthy') end;
-
-
-
-(* Primcorec *)
 
 type coeqn_data_disc = {
   fun_name: string,
@@ -487,7 +524,7 @@ fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec li
     val applied_fun = concl
       |> find_subterm (member ((op =) o apsnd SOME) fun_names o try (fst o dest_Free o head_of))
       |> the
-      handle Option.Option => primrec_error_eqn "malformed discriminator formula" concl;
+      handle Option.Option => primcorec_error_eqn "malformed discriminator formula" concl;
     val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
     val SOME basic_ctr_specs = AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name;
 
@@ -495,13 +532,13 @@ fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec li
     val ctrs = map #ctr basic_ctr_specs;
     val not_disc = head_of concl = @{term Not};
     val _ = not_disc andalso length ctrs <> 2 andalso
-      primrec_error_eqn "negated discriminator for a type with \<noteq> 2 constructors" concl;
+      primcorec_error_eqn "negated discriminator for a type with \<noteq> 2 constructors" concl;
     val disc' = find_subterm (member (op =) discs o head_of) concl;
     val eq_ctr0 = concl |> perhaps (try HOLogic.dest_not) |> try (HOLogic.dest_eq #> snd)
         |> (fn SOME t => let val n = find_index (equal t) ctrs in
           if n >= 0 then SOME n else NONE end | _ => NONE);
     val _ = is_some disc' orelse is_some eq_ctr0 orelse
-      primrec_error_eqn "no discriminator in equation" concl;
+      primcorec_error_eqn "no discriminator in equation" concl;
     val ctr_no' =
       if is_none disc' then the eq_ctr0 else find_index (equal (head_of (the disc'))) discs;
     val ctr_no = if not_disc then 1 - ctr_no' else ctr_no';
@@ -542,18 +579,18 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ =>
-        primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
+        primcorec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
     val sel = head_of lhs;
     val ((fun_name, fun_T), fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst dest_Free
       handle TERM _ =>
-        primrec_error_eqn "malformed selector argument in left-hand side" eqn;
+        primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name)
-      handle Option.Option => primrec_error_eqn "malformed selector argument in left-hand side" eqn;
+      handle Option.Option => primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val {ctr, ...} =
       (case maybe_of_spec of
         SOME of_spec => the (find_first (equal of_spec o #ctr) basic_ctr_specs)
       | NONE => filter (exists (equal sel) o #sels) basic_ctr_specs |> the_single
-          handle List.Empty => primrec_error_eqn "ambiguous selector - use \"of\"" eqn);
+          handle List.Empty => primcorec_error_eqn "ambiguous selector - use \"of\"" eqn);
     val user_eqn = drop_All eqn';
   in
     Sel {
@@ -575,7 +612,7 @@ fun dissect_coeqn_ctr seq fun_names (basic_ctr_specss : basic_corec_ctr_spec lis
     val SOME basic_ctr_specs = AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name;
     val (ctr, ctr_args) = strip_comb (unfold_let rhs);
     val {disc, sels, ...} = the (find_first (equal ctr o #ctr) basic_ctr_specs)
-      handle Option.Option => primrec_error_eqn "not a constructor" ctr;
+      handle Option.Option => primcorec_error_eqn "not a constructor" ctr;
 
     val disc_concl = betapply (disc, lhs);
     val (maybe_eqn_data_disc, matchedsss') = if length basic_ctr_specs = 1
@@ -609,7 +646,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl match
     val cond_ctrs = fold_rev_corec_code_rhs lthy (fn cs => fn ctr => fn _ =>
         if member ((op =) o apsnd #ctr) basic_ctr_specs ctr
         then cons (ctr, cs)
-        else primrec_error_eqn "not a constructor" ctr) [] rhs' []
+        else primcorec_error_eqn "not a constructor" ctr) [] rhs' []
       |> AList.group (op =);
 
     val ctr_premss = (case cond_ctrs of [_] => [[]] | _ => map (s_dnf o snd) cond_ctrs);
@@ -629,7 +666,7 @@ fun dissect_coeqn lthy seq has_call fun_names (basic_ctr_specss : basic_corec_ct
     eqn' maybe_of_spec matchedsss =
   let
     val eqn = drop_All eqn'
-      handle TERM _ => primrec_error_eqn "malformed function equation" eqn';
+      handle TERM _ => primcorec_error_eqn "malformed function equation" eqn';
     val (prems, concl) = Logic.strip_horn eqn
       |> apfst (map HOLogic.dest_Trueprop) o apsnd HOLogic.dest_Trueprop;
 
@@ -658,7 +695,7 @@ fun dissect_coeqn lthy seq has_call fun_names (basic_ctr_specss : basic_corec_ct
       dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl matchedsss
       |>> flat
     else
-      primrec_error_eqn "malformed function equation" eqn
+      primcorec_error_eqn "malformed function equation" eqn
   end;
 
 fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
@@ -849,7 +886,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       |> map (sort ((op <) o pairself #ctr_no |> make_ord) o flat o snd);
     val _ = disc_eqnss' |> map (fn x =>
       let val d = duplicates ((op =) o pairself #ctr_no) x in null d orelse
-        primrec_error_eqns "excess discriminator formula in definition"
+        primcorec_error_eqns "excess discriminator formula in definition"
           (maps (fn t => filter (equal (#ctr_no t) o #ctr_no) x) d |> map #user_eqn) end);
 
     val sel_eqnss = map_filter (try (fn Sel x => x)) eqns_data
@@ -1105,9 +1142,9 @@ fun add_primcorec_ursive_cmd maybe_tac seq (raw_fixes, raw_specs') lthy =
     val ((fixes, specs), _) = Specification.read_spec raw_fixes raw_specs lthy;
   in
     add_primcorec_ursive maybe_tac seq fixes specs maybe_of_specs lthy
-    handle ERROR str => primrec_error str
+    handle ERROR str => primcorec_error str
   end
-  handle Primrec_Error (str, eqns) =>
+  handle Primcorec_Error (str, eqns) =>
     if null eqns
     then error ("primcorec error:\n  " ^ str)
     else error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
@@ -1122,7 +1159,7 @@ val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
 val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> after_qed (map (fn [] => []
-      | _ => primrec_error "need exclusiveness proofs - use primcorecursive instead of primcorec")
+      | _ => primcorec_error "need exclusiveness proofs - use primcorecursive instead of primcorec")
     goalss)) ooo add_primcorec_ursive_cmd (SOME (fn {context = ctxt, ...} => auto_tac ctxt));
 
 end;

@@ -81,14 +81,15 @@ sig
   val mk_rel: int -> typ list -> typ list -> term -> term
   val build_map: Proof.context -> (typ * typ -> term) -> typ * typ -> term
   val build_rel: Proof.context -> (typ * typ -> term) -> typ * typ -> term
+  val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
+  val map_flattened_map_args: Proof.context -> string -> (term list -> 'a list) -> term list ->
+    'a list
 
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: bnf -> nonemptiness_witness list
 
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
-
-  val flatten_type_args_of_bnf: bnf -> 'a -> 'a list -> 'a list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy = Dont_Note | Note_Some | Note_All
@@ -523,6 +524,14 @@ fun build_map_or_rel mk const of_bnf dest ctxt build_simple =
 
 val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
 val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
+
+fun map_flattened_map_args ctxt s map_args fs =
+  let
+    val flat_fs = flatten_type_args_of_bnf (the (bnf_of ctxt s)) Term.dummy fs;
+    val flat_fs' = map_args flat_fs;
+  in
+    permute_like (op aconv) flat_fs fs flat_fs'
+  end;
 
 
 (* Names *)

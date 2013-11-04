@@ -172,7 +172,5 @@ ML_file "Tools/bnf_fp_n2m_tactics.ML"
 ML_file "Tools/bnf_fp_n2m.ML"
 ML_file "Tools/bnf_fp_n2m_sugar.ML"
 ML_file "Tools/bnf_fp_rec_sugar_util.ML"
-ML_file "Tools/bnf_fp_rec_sugar_tactics.ML"
-ML_file "Tools/bnf_fp_rec_sugar.ML"
 
 end

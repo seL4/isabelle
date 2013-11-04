@@ -1,11 +1,11 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_rec_sugar_tactics.ML
+(*  Title:      HOL/BNF/Tools/bnf_gfp_rec_sugar_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-Tactics for recursor and corecursor sugar.
+Tactics for corecursor sugar.
 *)
 
-signature BNF_FP_REC_SUGAR_TACTICS =
+signature BNF_GFP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_assumption_tac: Proof.context -> thm list -> int -> tactic
   val mk_primcorec_code_of_raw_code_tac: Proof.context -> thm list -> thm list -> thm -> tactic
@@ -16,10 +16,9 @@ sig
     thm list -> int list -> thm list -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
-  val mk_primrec_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> tactic
 end;
 
-structure BNF_FP_Rec_Sugar_Tactics : BNF_FP_REC_SUGAR_TACTICS =
+structure BNF_GFP_Rec_Sugar_Tactics : BNF_GFP_REC_SUGAR_TACTICS =
 struct
 
 open BNF_Util
@@ -31,12 +30,6 @@ val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
 val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
-
-fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
-  unfold_thms_tac ctxt fun_defs THEN
-  HEADGOAL (rtac (funpow num_extra_args (fn thm => thm RS fun_cong) recx RS trans)) THEN
-  unfold_thms_tac ctxt (@{thms id_def split o_def fst_conv snd_conv} @ map_comps @ map_idents) THEN
-  HEADGOAL (rtac refl);
 
 fun mk_primcorec_assumption_tac ctxt discIs =
   SELECT_GOAL (unfold_thms_tac ctxt
