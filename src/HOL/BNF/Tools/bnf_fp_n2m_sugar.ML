@@ -88,15 +88,24 @@ fun dest_abs_or_applied_map_or_ctr _ _ (Abs (_, _, t)) = (Term.dummy, [t])
         else dest_map ctxt s (fst (dest_comb t'))
       end);
 
+fun map_partition f xs =
+  fold_rev (fn x => fn (ys, (good, bad)) =>
+      case f x of SOME y => (y :: ys, (x :: good, bad)) | NONE => (ys, (good, x :: bad)))
+    xs ([], ([], []));
+
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
-fun mutualize_fp_sugars has_nested fp bs fpTs _ callssss fp_sugars0 no_defs_lthy0 =
+fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
   if has_nested orelse has_duplicates (op =) fpTs then
     let
       val thy = Proof_Context.theory_of no_defs_lthy0;
 
       val qsotm = quote o Syntax.string_of_term no_defs_lthy0;
+
+      fun incompatible_calls t1 t2 =
+        error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ qsotm t1 ^ " vs. " ^
+          qsotm t2);
 
       val b_names = map Binding.name_of bs;
       val fp_b_names = map base_name_of_typ fpTs;
@@ -133,16 +142,20 @@ fun mutualize_fp_sugars has_nested fp bs fpTs _ callssss fp_sugars0 no_defs_lthy
           | kk => nth Xs kk)
         | freeze_fp_default T = T;
 
-      fun freeze_fp_map callss s Ts =
-        Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
-          (transpose callss)) Ts)
+      fun check_call_dead live_call call =
+        if null (get_indices call) then () else incompatible_calls live_call call;
+
+      fun freeze_fp_map (callss, (live_call :: _, dead_calls)) s Ts =
+        (List.app (check_call_dead live_call) dead_calls;
+         Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
+           (transpose callss)) Ts))
       and freeze_fp calls (T as Type (s, Ts)) =
-          (case map_filter (try (snd o dest_map no_defs_lthy s)) calls of
-            [] =>
-            (case map_filter (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
-              [] => freeze_fp_default T
-            | callss => freeze_fp_map callss s Ts)
-          | callss => freeze_fp_map callss s Ts)
+          (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
+            ([], _) =>
+            (case map_partition (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
+              ([], _) => freeze_fp_default T
+            | callsp => freeze_fp_map callsp s Ts)
+          | callsp => freeze_fp_map callsp s Ts)
         | freeze_fp _ T = T;
 
       val ctr_Tsss = map (map binder_types) ctr_Tss;
