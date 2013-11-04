@@ -66,12 +66,11 @@ sig
 
   val massage_nested_rec_call: Proof.context -> (term -> bool) -> (typ -> typ -> term -> term) ->
     typ list -> term -> term -> term -> term
-  val unfold_let: term -> term
   val massage_mutual_corec_call: Proof.context -> (term -> bool) -> (typ list -> term -> term) ->
     typ list -> term -> term
   val massage_nested_corec_call: Proof.context -> (term -> bool) ->
     (typ list -> typ -> typ -> term -> term) -> typ list -> typ -> term -> term
-  val fold_rev_corec_call:  Proof.context -> (term list -> term -> 'a -> 'a) -> typ list -> term ->
+  val fold_rev_corec_call: Proof.context -> (term list -> term -> 'a -> 'a) -> typ list -> term ->
     'a -> string list * 'a
   val expand_corec_code_rhs: Proof.context -> (term -> bool) -> typ list -> term -> term
   val massage_corec_code_rhs: Proof.context -> (typ list -> term -> term list -> term) ->
@@ -304,20 +303,6 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
   in
     massage_call
   end;
-
-fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
-  | unfold_let (Const (@{const_name prod_case}, _) $ t) =
-    (case unfold_let t of
-      t' as Abs (s1, T1, Abs (s2, T2, _)) =>
-      let
-        val x = (s1 ^ s2, Term.maxidx_of_term t + 1);
-        val v = Var (x, HOLogic.mk_prodT (T1, T2));
-      in
-        lambda v (unfold_let (betapplys (t', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
-      end
-    | _ => t)
-  | unfold_let (t $ u) = betapply (unfold_let t, u)
-  | unfold_let t = t;
 
 fun fold_rev_let_if_case ctxt f bound_Ts t =
   let

@@ -7,6 +7,9 @@ Suggared flattening of nested to mutual (co)recursion.
 
 signature BNF_FP_N2M_SUGAR =
 sig
+  val unfold_let: term -> term
+  val dest_map: Proof.context -> string -> term -> term * term list
+
   val mutualize_fp_sugars: bool -> BNF_FP_Util.fp_kind -> binding list -> typ list ->
     (term -> int list) -> term list list list list -> BNF_FP_Def_Sugar.fp_sugar list ->
     local_theory ->
@@ -34,24 +37,61 @@ open BNF_FP_N2M
 
 val n2mN = "n2m_"
 
-fun dest_applied_map_or_ctr ctxt s (t as t1 $ _) =
-  (case try (dest_map ctxt s) t1 of
-    SOME res => res
-  | NONE =>
-    let
-      val thy = Proof_Context.theory_of ctxt;
-      val map_thms = of_fp_sugar #mapss (the (fp_sugar_of ctxt s))
-      val map_thms' = map (fn thm => thm RS sym RS eq_reflection) map_thms;
-      val t' = Raw_Simplifier.rewrite_term thy map_thms' [] t;
-    in
-      if t aconv t' then raise Fail "dest_applied_map_or_ctr"
-      else dest_map ctxt s (fst (dest_comb t'))
-    end);
+fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
+  | unfold_let (Const (@{const_name prod_case}, _) $ t) =
+    (case unfold_let t of
+      t' as Abs (s1, T1, Abs (s2, T2, _)) =>
+      let
+        val x = (s1 ^ s2, Term.maxidx_of_term t + 1);
+        val v = Var (x, HOLogic.mk_prodT (T1, T2));
+      in
+        lambda v (unfold_let (betapplys (t', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
+      end
+    | _ => t)
+  | unfold_let (t $ u) = betapply (unfold_let t, unfold_let u)
+  | unfold_let (Abs (s, T, t)) = Abs (s, T, unfold_let t)
+  | unfold_let t = t;
+
+val dummy_var_name = "?f"
+
+fun mk_map_pattern ctxt s =
+  let
+    val bnf = the (bnf_of ctxt s);
+    val mapx = map_of_bnf bnf;
+    val live = live_of_bnf bnf;
+    val (f_Ts, _) = strip_typeN live (fastype_of mapx);
+    val fs = map_index (fn (i, T) => Var ((dummy_var_name, i), T)) f_Ts;
+  in
+    (mapx, betapplys (mapx, fs))
+  end;
+
+fun dest_map ctxt s call =
+  let
+    val (map0, pat) = mk_map_pattern ctxt s;
+    val (_, tenv) = fo_match ctxt call pat;
+  in
+    (map0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
+  end;
+
+fun dest_abs_or_applied_map_or_ctr _ _ (Abs (_, _, t)) = (Term.dummy, [t])
+  | dest_abs_or_applied_map_or_ctr ctxt s (t as t1 $ _) =
+    (case try (dest_map ctxt s) t1 of
+      SOME res => res
+    | NONE =>
+      let
+        val thy = Proof_Context.theory_of ctxt;
+        val map_thms = of_fp_sugar #mapss (the (fp_sugar_of ctxt s))
+        val map_thms' = map (fn thm => thm RS sym RS eq_reflection) map_thms;
+        val t' = Raw_Simplifier.rewrite_term thy map_thms' [] t;
+      in
+        if t aconv t' then raise Fail "dest_applied_map_or_ctr"
+        else dest_map ctxt s (fst (dest_comb t'))
+      end);
 
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
-fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
+fun mutualize_fp_sugars has_nested fp bs fpTs _ callssss fp_sugars0 no_defs_lthy0 =
   if has_nested orelse has_duplicates (op =) fpTs then
     let
       val thy = Proof_Context.theory_of no_defs_lthy0;
@@ -99,7 +139,7 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
       and freeze_fp calls (T as Type (s, Ts)) =
           (case map_filter (try (snd o dest_map no_defs_lthy s)) calls of
             [] =>
-            (case map_filter (try (snd o dest_applied_map_or_ctr no_defs_lthy s)) calls of
+            (case map_filter (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
               [] => freeze_fp_default T
             | callss => freeze_fp_map callss s Ts)
           | callss => freeze_fp_map callss s Ts)
@@ -192,7 +232,7 @@ fun indexify_callsss fp_sugar callsss =
     fun do_ctr ctr =
       (case AList.lookup Term.aconv_untyped callsss ctr of
         NONE => replicate (num_binder_types (fastype_of ctr)) []
-      | SOME callss => map (map Envir.beta_eta_contract) callss);
+      | SOME callss => map (map (Envir.beta_eta_contract o unfold_let)) callss);
   in
     map do_ctr ctrs
   end;

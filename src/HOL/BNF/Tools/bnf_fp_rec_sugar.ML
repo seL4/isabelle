@@ -31,6 +31,7 @@ struct
 
 open BNF_Util
 open BNF_FP_Util
+open BNF_FP_N2M_Sugar
 open BNF_FP_Rec_Sugar_Util
 open BNF_FP_Rec_Sugar_Tactics
 
@@ -280,9 +281,6 @@ fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spe
     |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
   end;
-
-fun massage_comp ctxt has_call bound_Ts t = (* FIXME unused *)
-  massage_nested_corec_call ctxt has_call (K (K (K I))) bound_Ts (fastype_of1 (bound_Ts, t)) t;
 
 fun find_rec_calls ctxt has_call ({ctr, ctr_args, rhs_term, ...} : eqn_data) =
   let
@@ -802,11 +800,11 @@ fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
       chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
     end;
 
-fun find_corec_calls has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : coeqn_data_sel) =
+fun find_corec_calls ctxt has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : coeqn_data_sel) =
   let
     val sel_no = find_first (equal ctr o #ctr) basic_ctr_specs
       |> find_index (equal sel) o #sels o the;
-    fun find t = if has_call t then [t] else [];
+    fun find t = if has_call t then snd (fold_rev_corec_call ctxt (K cons) [] t []) else [];
   in
     find rhs_term
     |> K |> nth_map sel_no |> AList.map_entry (op =) ctr
@@ -830,7 +828,7 @@ fun add_primcorec_ursive maybe_tac seq fixes specs maybe_of_specs lthy =
       |> partition_eq ((op =) o pairself #fun_name)
       |> fst o finds (fn (x, ({fun_name, ...} :: _)) => x = fun_name) fun_names
       |> map (flat o snd)
-      |> map2 (fold o find_corec_calls has_call) basic_ctr_specss
+      |> map2 (fold o find_corec_calls lthy has_call) basic_ctr_specss
       |> map2 (curry (op |>)) (map (map (fn {ctr, sels, ...} =>
         (ctr, map (K []) sels))) basic_ctr_specss);
 
