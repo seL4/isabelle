@@ -87,8 +87,9 @@ sig
     string * term list * term list list * ((term list list * term list list list)
       * (typ list * typ list list)) list ->
     thm -> thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list ->
-    int list list -> int list list -> int list -> thm list list -> Ctr_Sugar.ctr_sugar list ->
-    term list list -> thm list list -> (thm list -> thm list) -> local_theory -> gfp_sugar_thms
+    typ list -> typ list list list -> int list list -> int list list -> int list -> thm list list ->
+    Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> (thm list -> thm list) ->
+    local_theory -> gfp_sugar_thms
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
@@ -299,8 +300,6 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-local
-
 fun build_map_or_rel mk const of_bnf dest lthy build_simple =
   let
     fun build (TU as (T, U)) =
@@ -321,12 +320,8 @@ fun build_map_or_rel mk const of_bnf dest lthy build_simple =
         | _ => build_simple TU);
   in build end;
 
-in
-
 val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
 val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
-
-end;
 
 val dummy_var_name = "?f"
 
@@ -770,8 +765,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
-    dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs kss mss ns
-    ctr_defss (ctr_sugars : ctr_sugar list) coiterss coiter_defss export_args lthy =
+    dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
+    mss ns ctr_defss (ctr_sugars : ctr_sugar list) coiterss coiter_defss export_args lthy =
   let
     fun mk_ctor_dtor_coiter_thm dtor_inject dtor_ctor coiter =
       iffD1 OF [dtor_inject, trans OF [coiter, dtor_ctor RS sym]];
@@ -823,7 +818,6 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
           map4 (fn u => fn v => fn uvr => fn uv_eq =>
             fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
 
-        (* TODO: generalize (cf. "build_map") *)
         fun build_rel rs' T =
           (case find_index (curry op = T) fpTs of
             ~1 =>
@@ -1466,8 +1460,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_coiter_iff_attrs),
              (sel_unfold_thmsss, sel_corec_thmsss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
-            dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs kss mss ns ctr_defss
-            ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy) lthy;
+            dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
+            ctr_defss ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy)
+            lthy;
 
         val sel_unfold_thmss = map flat sel_unfold_thmsss;
         val sel_corec_thmss = map flat sel_corec_thmsss;
