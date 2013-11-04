@@ -715,8 +715,8 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
          sel_corecs = sel_corecs}
       end;
 
-    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) p_is q_isss f_isss f_Tsss
-        coiter_thmsss disc_coitersss sel_coiterssss =
+    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) p_is q_isss f_isss f_Tsss coiter_thmsss
+        disc_coitersss sel_coiterssss =
       let
         val ctrs = #ctrs (nth ctr_sugars index);
         val discs = #discs (nth ctr_sugars index);
