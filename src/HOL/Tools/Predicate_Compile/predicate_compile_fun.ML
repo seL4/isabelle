@@ -280,7 +280,7 @@ fun define_predicates specs thy =
             |> map (fn (resultt, (_, prems)) =>
               Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
           end
-      val intr_ts = maps mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))
+      val intr_tss = map mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))
       val (intrs, thy') = thy
         |> Sign.add_consts_i
           (map (fn Const (name, T) => (Binding.name (Long_Name.base_name name), T, NoSyn))
@@ -288,7 +288,7 @@ fun define_predicates specs thy =
         |> fold_map Specification.axiom
             (map_index (fn (j, (predname, t)) =>
                 ((Binding.name (Long_Name.base_name predname ^ "_intro_" ^ string_of_int (j + 1)), []), t))
-              (prednames ~~ intr_ts))
+              (maps (uncurry (map o pair)) (prednames ~~ intr_tss)))
       val specs = map (fn predname => (predname,
           map Drule.export_without_context (filter (Predicate_Compile_Aux.is_intro predname) intrs)))
         dst_prednames
