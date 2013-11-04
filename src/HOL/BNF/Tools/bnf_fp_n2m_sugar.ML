@@ -88,17 +88,21 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
           _ :: _ :: _ => heterogeneous_call call
         | kks => kks);
 
-      fun freeze_fp calls (T as Type (s, Ts)) =
+      fun freeze_fp_map callss s Ts =
+        Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
+          (transpose callss)) Ts)
+      and freeze_fp calls (T as Type (s, Ts)) =
           (case map_filter (try (snd o dest_map no_defs_lthy s)) calls of
             [] =>
-            (case union (op = o pairself fst)
-                (maps (fn call => map (rpair call) (get_indices_checked call)) calls) [] of
-              [] => freeze_fp_default T
-            | [(kk, _)] => nth Xs kk
-            | (_, call1) :: (_, call2) :: _ => incompatible_calls call1 call2)
-          | callss =>
-            Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
-              (transpose callss)) Ts))
+            (case map_filter (try (snd o dest_map no_defs_lthy s o fst o dest_comb)) calls of
+              [] =>
+              (case union (op = o pairself fst)
+                  (maps (fn call => map (rpair call) (get_indices_checked call)) calls) [] of
+                [] => freeze_fp_default T
+              | [(kk, _)] => nth Xs kk
+              | (_, call1) :: (_, call2) :: _ => incompatible_calls call1 call2)
+            | callss => freeze_fp_map callss s Ts)
+          | callss => freeze_fp_map callss s Ts)
         | freeze_fp _ T = T;
 
       val ctr_Tsss = map (map binder_types) ctr_Tss;
