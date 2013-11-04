@@ -77,6 +77,11 @@ sig
   val wit_thms_of_bnf: bnf -> thm list
   val wit_thmss_of_bnf: bnf -> thm list list
 
+  val mk_map: int -> typ list -> typ list -> term -> term
+  val mk_rel: int -> typ list -> typ list -> term -> term
+  val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
+  val build_rel: local_theory -> (typ * typ -> term) -> typ * typ -> term
+
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: bnf -> nonemptiness_witness list
@@ -447,7 +452,6 @@ fun bnf_of ctxt =
   #> Option.map (morph_bnf (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
 
 
-
 (* Utilities *)
 
 fun normalize_set insts instA set =
@@ -487,6 +491,38 @@ fun minimize_wits wits =
        else minimize ((I, wit) :: done) todo;
  in minimize [] wits end;
 
+fun mk_map live Ts Us t =
+  let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last in
+    Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
+  end;
+
+fun mk_rel live Ts Us t =
+  let val [Type (_, Ts0), Type (_, Us0)] = binder_types (snd (strip_typeN live (fastype_of t))) in
+    Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
+  end;
+
+fun build_map_or_rel mk const of_bnf dest lthy build_simple =
+  let
+    fun build (TU as (T, U)) =
+      if T = U then
+        const T
+      else
+        (case TU of
+          (Type (s, Ts), Type (s', Us)) =>
+          if s = s' then
+            let
+              val bnf = the (bnf_of lthy s);
+              val live = live_of_bnf bnf;
+              val mapx = mk live Ts Us (of_bnf bnf);
+              val TUs' = map dest (fst (strip_typeN live (fastype_of mapx)));
+            in Term.list_comb (mapx, map build TUs') end
+          else
+            build_simple TU
+        | _ => build_simple TU);
+  in build end;
+
+val build_map = build_map_or_rel mk_map HOLogic.id_const map_of_bnf dest_funT;
+val build_rel = build_map_or_rel mk_rel HOLogic.eq_const rel_of_bnf dest_pred2T;
 
 
 (* Names *)
