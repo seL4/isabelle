@@ -376,6 +376,6 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
        |> morph_fp_result (Morphism.term_morphism (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)
-  end
+  end;
 
 end;
