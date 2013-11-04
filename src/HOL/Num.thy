@@ -1072,6 +1072,16 @@ lemmas arith_simps =
   BitM.simps dbl_simps dbl_inc_simps dbl_dec_simps
   abs_zero abs_one arith_extra_simps
 
+lemmas more_arith_simps =
+  neg_le_iff_le
+  minus_zero left_minus right_minus
+  mult_1_left mult_1_right
+  mult_minus_left mult_minus_right
+  minus_add_distrib minus_minus mult_assoc
+
+lemmas of_nat_simps =
+  of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
+
 text {* Simplification of relational operations *}
 
 lemmas eq_numeral_extra =
@@ -1082,6 +1092,38 @@ lemmas rel_simps =
   le_numeral_simps le_neg_numeral_simps le_numeral_extra
   less_numeral_simps less_neg_numeral_simps less_numeral_extra
   eq_numeral_simps eq_neg_numeral_simps eq_numeral_extra
+
+lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
+  -- {* Unfold all @{text let}s involving constants *}
+  unfolding Let_def ..
+
+lemma Let_neg_numeral [simp]: "Let (neg_numeral v) f = f (neg_numeral v)"
+  -- {* Unfold all @{text let}s involving constants *}
+  unfolding Let_def ..
+
+declaration {*
+let 
+  fun number_of thy T n =
+    if not (Sign.of_sort thy (T, @{sort numeral}))
+    then raise CTERM ("number_of", [])
+    else Numeral.mk_cnumber (Thm.ctyp_of thy T) n;
+in
+  K (
+    Lin_Arith.add_simps (@{thms arith_simps} @ @{thms more_arith_simps}
+      @ @{thms rel_simps}
+      @ @{thms pred_numeral_simps}
+      @ @{thms arith_special numeral_One}
+      @ @{thms of_nat_simps})
+    #> Lin_Arith.add_simps [@{thm Suc_numeral},
+      @{thm Let_numeral}, @{thm Let_neg_numeral}, @{thm Let_0}, @{thm Let_1},
+      @{thm le_Suc_numeral}, @{thm le_numeral_Suc},
+      @{thm less_Suc_numeral}, @{thm less_numeral_Suc},
+      @{thm Suc_eq_numeral}, @{thm eq_numeral_Suc},
+      @{thm mult_Suc}, @{thm mult_Suc_right},
+      @{thm of_nat_numeral}]
+    #> Lin_Arith.set_number_of number_of)
+end
+*}
 
 
 subsubsection {* Simplification of arithmetic when nested to the right. *}
@@ -1112,5 +1154,4 @@ code_identifier
   code_module Num \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-
 

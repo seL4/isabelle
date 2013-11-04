@@ -424,6 +424,11 @@ lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
 
 end
 
+lemma diff_nat_numeral [simp]: 
+  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
+  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
+
+
 text {* For termination proofs: *}
 lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
 
@@ -747,14 +752,11 @@ lemmas numeral_1_eq_1 = numeral_One
 
 subsection {* Setting up simplification procedures *}
 
-lemmas int_arith_rules =
-  neg_le_iff_le numeral_One
-  minus_zero left_minus right_minus
-  mult_zero_left mult_zero_right mult_1_left mult_1_right
-  mult_minus_left mult_minus_right
-  minus_add_distrib minus_minus mult_assoc
-  of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
+lemmas of_int_simps =
   of_int_0 of_int_1 of_int_add of_int_mult
+
+lemmas int_arith_rules =
+  numeral_One more_arith_simps of_nat_simps of_int_simps
 
 ML_file "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
@@ -875,15 +877,9 @@ lemma diff_nat_eq_if:
               if d < 0 then 0 else nat d)"
 by (simp add: Let_def nat_diff_distrib [symmetric])
 
-lemma diff_nat_numeral [simp]: 
-  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
-  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
-
 lemma nat_numeral_diff_1 [simp]:
   "numeral v - (1::nat) = nat (numeral v - 1)"
   using diff_nat_numeral [of v Num.One] by simp
-
-lemmas nat_arith = diff_nat_numeral
 
 
 subsection "Induction principles for int"

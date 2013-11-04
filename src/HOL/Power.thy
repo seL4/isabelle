@@ -730,8 +730,18 @@ lemma power2_nat_le_imp_le:
   fixes m n :: nat
   assumes "m\<^sup>2 \<le> n"
   shows "m \<le> n"
-  using assms by (cases m) (simp_all add: power2_eq_square)
-
+proof (cases m)
+  case 0 then show ?thesis by simp
+next
+  case (Suc k)
+  show ?thesis
+  proof (rule ccontr)
+    assume "\<not> m \<le> n"
+    then have "n < m" by simp
+    with assms Suc show False
+      by (auto simp add: algebra_simps) (simp add: power2_eq_square)
+  qed
+qed
 
 
 subsection {* Code generator tweak *}

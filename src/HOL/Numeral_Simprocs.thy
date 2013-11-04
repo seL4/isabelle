@@ -13,7 +13,7 @@ ML_file "~~/src/Provers/Arith/cancel_numeral_factor.ML"
 ML_file "~~/src/Provers/Arith/extract_common_term.ML"
 
 lemmas semiring_norm =
-  Let_def arith_simps nat_arith rel_simps
+  Let_def arith_simps diff_nat_numeral rel_simps
   if_False if_True
   add_0 add_Suc add_numeral_left
   add_neg_numeral_left mult_numeral_left
@@ -278,27 +278,8 @@ simproc_setup nat_dvd_cancel_factor
   ("((l::nat) * m) dvd n" | "(l::nat) dvd (m * n)") =
   {* fn phi => Nat_Numeral_Simprocs.dvd_cancel_factor *}
 
-(* FIXME: duplicate rule warnings for:
-  ring_distribs
-  numeral_plus_numeral numeral_times_numeral
-  numeral_eq_iff numeral_less_iff numeral_le_iff
-  numeral_neq_zero zero_neq_numeral zero_less_numeral
-  if_True if_False *)
 declaration {* 
-  K (Lin_Arith.add_simps ([@{thm Suc_numeral}, @{thm int_numeral}])
-  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_numeral}, @{thm Let_neg_numeral}, @{thm Let_0}, @{thm Let_1},
-     @{thm nat_0}, @{thm nat_1},
-     @{thm numeral_plus_numeral}, @{thm diff_nat_numeral}, @{thm numeral_times_numeral},
-     @{thm numeral_eq_iff}, @{thm numeral_less_iff}, @{thm numeral_le_iff},
-     @{thm le_Suc_numeral}, @{thm le_numeral_Suc},
-     @{thm less_Suc_numeral}, @{thm less_numeral_Suc},
-     @{thm Suc_eq_numeral}, @{thm eq_numeral_Suc},
-     @{thm mult_Suc}, @{thm mult_Suc_right},
-     @{thm add_Suc}, @{thm add_Suc_right},
-     @{thm numeral_neq_zero}, @{thm zero_neq_numeral}, @{thm zero_less_numeral},
-     @{thm of_int_numeral}, @{thm of_nat_numeral}, @{thm nat_numeral},
-     @{thm if_True}, @{thm if_False}])
-  #> Lin_Arith.add_simprocs
+  K (Lin_Arith.add_simprocs
       [@{simproc semiring_assoc_fold},
        @{simproc int_combine_numerals},
        @{simproc inteq_cancel_numerals},

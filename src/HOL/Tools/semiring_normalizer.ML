@@ -848,7 +848,7 @@ end;
 val nat_exp_ss =
   simpset_of
    (put_simpset HOL_basic_ss @{context}
-    addsimps (@{thms eval_nat_numeral} @ @{thms nat_arith} @ @{thms arith_simps} @ @{thms rel_simps})
+    addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 
 fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
