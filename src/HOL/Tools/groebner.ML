@@ -21,11 +21,6 @@ end
 structure Groebner : GROEBNER =
 struct
 
-fun is_comb ct =
-  (case Thm.term_of ct of
-    _ $ _ => true
-  | _ => false);
-
 val concl = Thm.cprop_of #> Thm.dest_arg;
 
 fun is_binop ct ct' =
@@ -36,8 +31,6 @@ fun is_binop ct ct' =
 fun dest_binary ct ct' =
   if is_binop ct ct' then Thm.dest_binop ct'
   else raise CTERM ("dest_binary: bad binop", [ct, ct'])
-
-fun inst_thm inst = Thm.instantiate ([], inst);
 
 val rat_0 = Rat.zero;
 val rat_1 = Rat.one;
@@ -76,10 +69,6 @@ fun morder_lt m1 m2=
         val n2 = Integer.sum m2 in
     n1 < n2 orelse n1 = n2 andalso lexorder m1 m2
     end;
-
-fun morder_le m1 m2 = morder_lt m1 m2 orelse (m1 = m2);
-
-fun morder_gt m1 m2 = morder_lt m2 m1;
 
 (* Arithmetic on canonical polynomials. *)
 
@@ -125,32 +114,8 @@ fun grob_div l1 l2 =
 
 fun grob_pow vars l n =
   if n < 0 then error "grob_pow: negative power"
-  else if n = 0 then [(rat_1,map (fn v => 0) vars)]
+  else if n = 0 then [(rat_1,map (K 0) vars)]
   else grob_mul l (grob_pow vars l (n - 1));
-
-fun degree vn p =
- case p of
-  [] => error "Zero polynomial"
-| [(c,ns)] => nth ns vn
-| (c,ns)::p' => Int.max (nth ns vn, degree vn p');
-
-fun head_deg vn p = let val d = degree vn p in
- (d,fold (fn (c,r) => fn q => grob_add q [(c, map_index (fn (i,n) => if i = vn then 0 else n) r)]) (filter (fn (c,ns) => c <>/ rat_0 andalso nth ns vn = d) p) []) end;
-
-val is_zerop = forall (fn (c,ns) => c =/ rat_0 andalso forall (curry (op =) 0) ns);
-val grob_pdiv =
- let fun pdiv_aux vn (n,a) p k s =
-  if is_zerop s then (k,s) else
-  let val (m,b) = head_deg vn s
-  in if m < n then (k,s) else
-     let val p' = grob_mul p [(rat_1, map_index (fn (i,v) => if i = vn then m - n else 0)
-                                                (snd (hd s)))]
-     in if a = b then pdiv_aux vn (n,a) p k (grob_sub s p')
-        else pdiv_aux vn (n,a) p (k + 1) (grob_sub (grob_mul a s) (grob_mul b p'))
-     end
-  end
- in fn vn => fn s => fn p => pdiv_aux vn (head_deg vn p) p 0 s
- end;
 
 (* Monomial division operation. *)
 
@@ -160,7 +125,7 @@ fun mdiv (c1,m1) (c2,m2) =
 
 (* Lowest common multiple of two monomials. *)
 
-fun mlcm (c1,m1) (c2,m2) = (rat_1, ListPair.map Int.max (m1, m2));
+fun mlcm (_,m1) (_,m2) = (rat_1, ListPair.map Int.max (m1, m2));
 
 (* Reduce monomial cm by polynomial pol, returning replacement for cm.  *)
 
@@ -200,8 +165,8 @@ fun orthogonal l p1 p2 =
 
 fun spoly cm ph1 ph2 =
   case (ph1,ph2) of
-    (([],h),p) => ([],h)
-  | (p,([],h)) => ([],h)
+    (([],h),_) => ([],h)
+  | (_,([],h)) => ([],h)
   | ((cm1::ptl1,his1),(cm2::ptl2,his2)) =>
         (grob_sub (grob_cmul (mdiv cm cm1) ptl1)
                   (grob_cmul (mdiv cm cm2) ptl2),
@@ -218,12 +183,12 @@ fun monic (pol,hist) =
 
 (* The most popular heuristic is to order critical pairs by LCM monomial.    *)
 
-fun forder ((c1,m1),_) ((c2,m2),_) = morder_lt m1 m2;
+fun forder ((_,m1),_) ((_,m2),_) = morder_lt m1 m2;
 
 fun poly_lt  p q =
   case (p,q) of
-    (p,[]) => false
-  | ([],q) => true
+    (_,[]) => false
+  | ([],_) => true
   | ((c1,m1)::o1,(c2,m2)::o2) =>
         c1 </ c2 orelse
         c1 =/ c2 andalso ((morder_lt m1 m2) orelse m1 = m2 andalso poly_lt o1 o2);
@@ -234,7 +199,7 @@ fun align  ((p,hp),(q,hq)) =
 fun poly_eq p1 p2 =
   eq_list (fn ((c1, m1), (c2, m2)) => c1 =/ c2 andalso (m1: int list) = m2) (p1, p2);
 
-fun memx ((p1,h1),(p2,h2)) ppairs =
+fun memx ((p1,_),(p2,_)) ppairs =
   not (exists (fn ((q1,_),(q2,_)) => poly_eq p1 q1 andalso poly_eq p2 q2) ppairs);
 
 (* Buchberger's second criterion.                                            *)
@@ -277,7 +242,7 @@ fun grobner_basis basis pairs =
  case pairs of
    [] => basis
  | (l,(p1,p2))::opairs =>
-   let val (sph as (sp,hist)) = monic (reduce basis (spoly l p1 p2))
+   let val (sph as (sp,_)) = monic (reduce basis (spoly l p1 p2))
    in
     if null sp orelse criterion2 basis (l,(p1,p2)) opairs
     then grobner_basis basis opairs
@@ -324,7 +289,7 @@ fun find p l =
 
 fun grobner_refute pols =
   let val gb = grobner pols in
-  snd(find (fn (p,h) => length p = 1 andalso forall (fn x=> x=0) (snd(hd p))) gb)
+  snd(find (fn (p,_) => length p = 1 andalso forall (fn x=> x=0) (snd(hd p))) gb)
   end;
 
 (* Turn proof into a certificate as sum of multipliers.                      *)
@@ -366,8 +331,8 @@ fun grobner_ideal vars pols pol =
 
 fun grobner_strong vars pols pol =
     let val vars' = @{cterm "True"}::vars
-        val grob_z = [(rat_1,1::(map (fn x => 0) vars))]
-        val grob_1 = [(rat_1,(map (fn x => 0) vars'))]
+        val grob_z = [(rat_1,1::(map (K 0) vars))]
+        val grob_1 = [(rat_1,(map (K 0) vars'))]
         fun augment p= map (fn (c,m) => (c,0::m)) p
         val pols' = map augment pols
         val pol' = augment pol
@@ -387,7 +352,7 @@ fun grobner_strong vars pols pol =
 
 fun refute_disj rfn tm =
  case term_of tm of
-  Const(@{const_name HOL.disj},_)$l$r =>
+  Const(@{const_name HOL.disj},_)$_$_ =>
    Drule.compose
     (refute_disj rfn (Thm.dest_arg tm), 2,
       Drule.compose (refute_disj rfn (Thm.dest_arg1 tm), 2, disjE))
@@ -398,7 +363,7 @@ fun mk_binop ct x y = Thm.apply (Thm.apply ct x) y
 
 fun is_neg t =
     case term_of t of
-      (Const(@{const_name Not},_)$p) => true
+      (Const(@{const_name Not},_)$_) => true
     | _  => false;
 fun is_eq t =
  case term_of t of
@@ -423,7 +388,7 @@ val list_dest_binop = fn b =>
 val strip_exists =
  let fun h (acc, t) =
       case term_of t of
-       Const (@{const_name Ex}, _) $ Abs (x, T, p) =>
+       Const (@{const_name Ex}, _) $ Abs _ =>
         h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
  in fn t => h ([],t)
@@ -435,10 +400,7 @@ fun is_forall t =
 | _ => false;
 
 val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
-val bool_simps = @{thms bool_simps};
 val nnf_simps = @{thms nnf_simps};
-fun nnf_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps bool_simps addsimps nnf_simps)
 
 fun weak_dnf_conv ctxt =
   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms weak_dnf_simps});
@@ -484,12 +446,10 @@ fun conjuncts ct =
 
 fun fold1 f = foldr1 (uncurry f);
 
-val list_conj = fold1 (fn c => fn c' => Thm.apply (Thm.apply @{cterm HOL.conj} c) c') ;
-
 fun mk_conj_tab th =
  let fun h acc th =
    case prop_of th of
-   @{term "Trueprop"}$(@{term HOL.conj}$p$q) =>
+   @{term "Trueprop"}$(@{term HOL.conj}$_$_) =>
      h (h acc (th RS conjunct2)) (th RS conjunct1)
   | @{term "Trueprop"}$p => (p,th)::acc
 in fold (Termtab.insert Thm.eq_thm) (h [] th) Termtab.empty end;
@@ -567,8 +527,7 @@ fun simple_choose v th =
  | Var ((s,_),_) => s
  | _ => "x"
  fun mk_eq s t = Thm.apply (Thm.apply @{cterm "op == :: bool => _"} s) t
- fun mkeq s t = Thm.apply @{cterm Trueprop} (Thm.apply (Thm.apply @{cterm "op = :: bool => _"} s) t)
- fun mk_exists v th = Drule.arg_cong_rule (ext (ctyp_of_term v))
+  fun mk_exists v th = Drule.arg_cong_rule (ext (ctyp_of_term v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
@@ -585,8 +544,8 @@ in fold vsubst end;
 (** main **)
 
 fun ring_and_ideal_conv
-  {vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
-   field = (f_ops, f_rules), idom, ideal}
+  {vars = _, semiring = (sr_ops, _), ring = (r_ops, _),
+   field = (f_ops, _), idom, ideal}
   dest_const mk_const ring_eq_conv ring_normalize_conv =
 let
   val [add_pat, mul_pat, pow_pat, zero_tm, one_tm] = sr_ops;
@@ -612,7 +571,6 @@ let
        else raise CTERM ("ring_dest_neg", [t])
     end
 
- val ring_mk_neg = fn tm => Thm.apply (ring_neg_tm) (tm);
  fun field_dest_inv t =
     let val (l,r) = Thm.dest_comb t in
         if Term.could_unify(term_of l, term_of field_inv_tm) then r
@@ -621,11 +579,9 @@ let
  val ring_dest_add = dest_binary ring_add_tm;
  val ring_mk_add = mk_binop ring_add_tm;
  val ring_dest_sub = dest_binary ring_sub_tm;
- val ring_mk_sub = mk_binop ring_sub_tm;
  val ring_dest_mul = dest_binary ring_mul_tm;
  val ring_mk_mul = mk_binop ring_mul_tm;
  val field_dest_div = dest_binary field_div_tm;
- val field_mk_div = mk_binop field_div_tm;
  val ring_dest_pow = dest_binary ring_pow_tm;
  val ring_mk_pow = mk_binop ring_pow_tm ;
  fun grobvars tm acc =
@@ -652,7 +608,7 @@ fun grobify_term vars tm =
      [(rat_1,map (fn i => if i aconvc tm then 1 else 0) vars)])
 handle  CTERM _ =>
  ((let val x = dest_const tm
- in if x =/ rat_0 then [] else [(x,map (fn v => 0) vars)]
+ in if x =/ rat_0 then [] else [(x,map (K 0) vars)]
  end)
  handle ERROR _ =>
   ((grob_neg(grobify_term vars (ring_dest_neg tm)))
@@ -732,7 +688,7 @@ fun refute ctxt tm =
         Conv.fconv_rule
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
       val conc = th2 |> concl |> Thm.dest_arg
-      val (l,r) = conc |> dest_eq
+      val (l,_) = conc |> dest_eq
     in Thm.implies_intr (Thm.apply cTrp tm)
                     (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
                            (Thm.reflexive l |> mk_object_eq))
@@ -756,9 +712,9 @@ fun refute ctxt tm =
        val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
-    val cert_pos = map (fn (i,p) => (i,filter (fn (c,m) => c >/ rat_0) p)) cert
+    val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c >/ rat_0) p)) cert
     val cert_neg = map (fn (i,p) => (i,map (fn (c,m) => (minus_rat c,m))
-                                            (filter (fn (c,m) => c </ rat_0) p))) cert
+                                            (filter (fn (c,_) => c </ rat_0) p))) cert
     val  herts_pos = map (fn (i,p) => (i,holify_polynomial vars p)) cert_pos
     val  herts_neg = map (fn (i,p) => (i,holify_polynomial vars p)) cert_neg
     fun thm_fn pols =
@@ -772,7 +728,7 @@ fun refute ctxt tm =
     val th4 =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
-    val (l,r) = dest_eq(Thm.dest_arg(concl th4))
+    val (l, _) = dest_eq(Thm.dest_arg(concl th4))
    in Thm.implies_intr (Thm.apply cTrp tm)
                         (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
                    (Thm.reflexive l |> mk_object_eq))
@@ -873,7 +829,6 @@ fun poly_eq_conv t =
       (Drule.binop_cong_rule @{cterm HOL.conj} th1
         (Thm.reflexive (Thm.dest_arg (Thm.rhs_of th2))))
   val v = Thm.dest_arg1(Thm.dest_arg1(Thm.rhs_of th3))
-  val vars' = (remove op aconvc v vars) @ [v]
   val th4 = Conv.fconv_rule (Conv.arg_conv (simp_ex_conv ctxt)) (mk_exists v th3)
   val th5 = ex_eq_conv (mk_eq tm (fold mk_ex (remove op aconvc v vars) (Thm.lhs_of th4)))
  in Thm.transitive th5 (fold mk_exists (remove op aconvc v vars) th4)
@@ -961,22 +916,11 @@ fun get_ring_ideal_convs ctxt form =
 | SOME tm =>
   (case Semiring_Normalizer.match ctxt tm of
     NONE => NONE
-  | SOME (res as (theory, {is_const, dest_const,
+  | SOME (res as (theory, {is_const = _, dest_const,
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
           (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)))
-
-fun ring_solve ctxt form =
-  (case try (find_term 0 (* FIXME !? *)) form of
-    NONE => Thm.reflexive form
-  | SOME tm =>
-      (case Semiring_Normalizer.match ctxt tm of
-        NONE => Thm.reflexive form
-      | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
-        #ring_conv (ring_and_ideal_conv theory
-          dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)) ctxt form));
 
 fun presimplify ctxt add_thms del_thms =
   asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
@@ -1014,7 +958,7 @@ fun ideal_tac add_ths del_ths ctxt =
  | SOME thy =>
   let
    fun poly_exists_tac {asms = asms, concl = concl, prems = prems,
-            params = params, context = ctxt, schematics = scs} =
+            params = _, context = ctxt, schematics = _} =
     let
      val (evs,bod) = strip_exists (Thm.dest_arg concl)
      val ps = map_filter (try (lhs o Thm.dest_arg)) asms
