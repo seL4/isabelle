@@ -23,7 +23,7 @@ open BNF_Tactics
 open BNF_FP_N2M_Tactics
 
 fun force_typ ctxt T =
-  map_types Type_Infer.paramify_vars 
+  map_types Type_Infer.paramify_vars
   #> Type.constraint T
   #> Syntax.check_term ctxt
   #> singleton (Variable.polymorphic ctxt);
@@ -224,7 +224,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
         fun mk_s TU' =
           let
             val i = find_index (fn T => co_alg_argT TU' = T) Xs;
-            val sF = co_alg_funT TU'; 
+            val sF = co_alg_funT TU';
             val F = nth iter_preTs i;
             val s = nth iter_strs i;
           in
@@ -238,7 +238,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
                   |> force_typ names_lthy smapT
                   |> hidden_to_unit;
                 val smap_argTs = strip_typeN live (fastype_of smap) |> fst;
-                fun mk_smap_arg TU =              
+                fun mk_smap_arg TU =
                   (if domain_type TU = range_type TU then
                     HOLogic.id_const (domain_type TU)
                   else if is_rec then
@@ -265,7 +265,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
       in
         (case b_opt of
           NONE => ((t, Drule.dummy_thm), lthy)
-        | SOME b => Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), 
+        | SOME b => Local_Theory.define ((b, NoSyn), ((Binding.conceal (Thm.def_binding b), []),
             fold_rev Term.absfree (if is_rec then rec_strs' else fold_strs') t)) lthy |>> apsnd snd)
       end;
 
