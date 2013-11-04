@@ -108,12 +108,16 @@ val named_methods =
    ("presburger", ((false, true), no_attrs))]
 val do_methods = map do_named_method named_methods
 
-fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
+fun time_string ms = string_of_int ms ^ " ms"
+fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
 
 fun do_try0 mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactic.verbose false #>
       Config.put Lin_Arith.verbose false)
+    fun par_map f =
+      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself snd)
+      else Par_List.get_some f #> the_list
   in
     if mode = Normal then
       "Trying " ^ space_implode " " (Try.serial_commas "and"
@@ -121,8 +125,7 @@ fun do_try0 mode timeout_opt quad st =
       |> Output.urgent_message
     else
       ();
-    case do_methods |> Par_List.map (fn f => f mode timeout_opt quad st)
-                    |> map_filter I |> sort (int_ord o pairself snd) of
+    case par_map (fn f => f mode timeout_opt quad st) do_methods of
       [] =>
       (if mode = Normal then Output.urgent_message "No proof found." else ();
        (false, (noneN, st)))
@@ -140,7 +143,9 @@ fun do_try0 mode timeout_opt quad st =
           Active.sendback_markup [Markup.padding_command]
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
-          "\n(" ^ space_implode "; " (map time_string xs) ^ ")."
+          (case xs of
+            [(_, ms)] => " (" ^ time_string ms ^ ")."
+          | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ").")
       in
         (true, (s, st |> (if mode = Auto_Try then
                             Proof.goal_message
