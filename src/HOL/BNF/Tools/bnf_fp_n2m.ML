@@ -121,7 +121,8 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
               in
                 Term.list_comb (rel, rels)
               end
-          | mk_rel (T as TFree _) _ = nth phis (find_index (curry op = T) As)
+          | mk_rel (T as TFree _) _ = (nth phis (find_index (curry op = T) As)
+              handle General.Subscript => HOLogic.eq_const T)
           | mk_rel _ _ = raise Fail "fpTs contains schematic type variables";
       in
         map2 (abstract oo mk_rel) fpTs fpTs'
