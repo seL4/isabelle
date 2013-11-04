@@ -528,7 +528,7 @@ fun indexedddd xssss = fold_map indexeddd xssss;
 
 fun find_index_eq hs h = find_index (curry (op =) h) hs;
 
-(*FIXME: remove special cases for products and sum once they are registered as datatypes*)
+(*FIXME: remove special cases for product and sum once they are registered as datatypes*)
 fun map_thms_of_typ ctxt (Type (s, _)) =
     if s = @{type_name prod} then
       @{thms map_pair_simp}
