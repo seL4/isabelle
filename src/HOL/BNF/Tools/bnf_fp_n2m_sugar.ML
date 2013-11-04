@@ -58,10 +58,6 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
 
       val qsotm = quote o Syntax.string_of_term no_defs_lthy0;
 
-      fun heterogeneous_call t = error ("Heterogeneous recursive call: " ^ qsotm t);
-      fun incompatible_calls t1 t2 =
-        error ("Incompatible recursive calls: " ^ qsotm t1 ^ " vs. " ^ qsotm t2);
-
       val b_names = map Binding.name_of bs;
       val fp_b_names = map base_name_of_typ fpTs;
 
@@ -97,11 +93,6 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
           | kk => nth Xs kk)
         | freeze_fp_default T = T;
 
-      fun get_indices_checked call =
-        (case get_indices call of
-          _ :: _ :: _ => heterogeneous_call call
-        | kks => kks);
-
       fun freeze_fp_map callss s Ts =
         Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
           (transpose callss)) Ts)
@@ -109,12 +100,7 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
           (case map_filter (try (snd o dest_map no_defs_lthy s)) calls of
             [] =>
             (case map_filter (try (snd o dest_applied_map_or_ctr no_defs_lthy s)) calls of
-              [] =>
-              (case union (op = o pairself fst)
-                  (maps (fn call => map (rpair call) (get_indices_checked call)) calls) [] of
-                [] => freeze_fp_default T
-              | [(kk, _)] => nth Xs kk
-              | (_, call1) :: (_, call2) :: _ => incompatible_calls call1 call2)
+              [] => freeze_fp_default T
             | callss => freeze_fp_map callss s Ts)
           | callss => freeze_fp_map callss s Ts)
         | freeze_fp _ T = T;
