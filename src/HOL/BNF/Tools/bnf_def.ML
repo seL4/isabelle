@@ -79,8 +79,8 @@ sig
 
   val mk_map: int -> typ list -> typ list -> term -> term
   val mk_rel: int -> typ list -> typ list -> term -> term
-  val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
-  val build_rel: local_theory -> (typ * typ -> term) -> typ * typ -> term
+  val build_map: Proof.context -> (typ * typ -> term) -> typ * typ -> term
+  val build_rel: Proof.context -> (typ * typ -> term) -> typ * typ -> term
 
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
@@ -501,7 +501,7 @@ fun mk_rel live Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
-fun build_map_or_rel mk const of_bnf dest lthy build_simple =
+fun build_map_or_rel mk const of_bnf dest ctxt build_simple =
   let
     fun build (TU as (T, U)) =
       if T = U then
@@ -511,7 +511,7 @@ fun build_map_or_rel mk const of_bnf dest lthy build_simple =
           (Type (s, Ts), Type (s', Us)) =>
           if s = s' then
             let
-              val bnf = the (bnf_of lthy s);
+              val bnf = the (bnf_of ctxt s);
               val live = live_of_bnf bnf;
               val mapx = mk live Ts Us (of_bnf bnf);
               val TUs' = map dest (fst (strip_typeN live (fastype_of mapx)));
