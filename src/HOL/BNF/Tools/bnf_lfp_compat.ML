@@ -93,7 +93,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val nn = length Ts;
     val get_indices = K [];
     val fp_sugars0 = if nn = 1 then [fp_sugar0] else map (lfp_sugar_of o fst o dest_Type) Ts;
-    val callssss = pad_and_indexify_calls fp_sugars0 nn [];
+    val callssss = map (fn fp_sugar0 => indexify_callsss fp_sugar0 []) fp_sugars0;
     val has_nested = nn > nn_fp;
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =

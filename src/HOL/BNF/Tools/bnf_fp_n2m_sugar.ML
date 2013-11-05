@@ -16,8 +16,8 @@ sig
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
-  val pad_and_indexify_calls: BNF_FP_Def_Sugar.fp_sugar list -> int ->
-    (term * term list list) list list -> term list list list list
+  val indexify_callsss: BNF_FP_Def_Sugar.fp_sugar -> (term * term list list) list ->
+    term list list list
   val nested_to_mutual_fps: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
     (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
@@ -118,7 +118,7 @@ fun map_partition f xs =
     xs ([], ([], []));
 
 fun key_of_fp_eqs fp fpTs fp_eqs =
-  Type (fp_case fp "l" "g", fpTs @ maps (fn (z, T) => [TFree z, T]) fp_eqs);
+  Type (fp_case fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs);
 
 (* TODO: test with sort constraints on As *)
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
@@ -284,8 +284,6 @@ fun indexify_callsss fp_sugar callsss =
     map do_ctr ctrs
   end;
 
-fun pad_and_indexify_calls fp_sugars0 = map2 indexify_callsss fp_sugars0 oo pad_list [];
-
 fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
@@ -351,6 +349,8 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val nn = length Ts;
     val kks = 0 upto nn - 1;
 
+    val callssss0 = pad_list [] nn actual_callssss0;
+
     val common_name = mk_common_name (map Binding.name_of actual_bs);
     val bs = pad_list (Binding.name common_name) nn actual_bs;
 
@@ -359,10 +359,11 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
 
     val perm_bs = permute bs;
     val perm_kks = permute kks;
+    val perm_callssss0 = permute callssss0;
     val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
 
     val has_nested = exists (fn Type (_, ty_args) => ty_args <> ty_args0) Ts;
-    val perm_callssss = pad_and_indexify_calls perm_fp_sugars0 nn actual_callssss0;
+    val perm_callssss = map2 indexify_callsss perm_fp_sugars0 perm_callssss0;
 
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
