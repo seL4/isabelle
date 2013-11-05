@@ -104,11 +104,11 @@ fun dest_abs_or_applied_map_or_ctr _ _ (Abs (_, _, t)) = (Term.dummy, [t])
     | NONE =>
       let
         val thy = Proof_Context.theory_of ctxt;
-        val map_thms = of_fp_sugar #mapss (the (fp_sugar_of ctxt s))
+        val map_thms = flat (#mapss (the (fp_sugar_of ctxt s)));
         val map_thms' = map (fn thm => thm RS sym RS eq_reflection) map_thms;
         val t' = Raw_Simplifier.rewrite_term thy map_thms' [] t;
       in
-        if t aconv t' then raise Fail "dest_applied_map_or_ctr"
+        if t aconv t' then raise Fail "dest_abs_or_applied_map_or_ctr"
         else dest_map ctxt s (fst (dest_comb t'))
       end);
 
