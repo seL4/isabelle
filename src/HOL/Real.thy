@@ -919,13 +919,6 @@ proof -
     using 1 2 3 by (rule_tac x="Real B" in exI, simp)
 qed
 
-(* TODO: generalize to ordered group *)
-lemma bdd_above_uminus[simp]: "bdd_above (uminus ` X) \<longleftrightarrow> bdd_below (X::real set)"
-  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
-
-lemma bdd_below_uminus[simp]: "bdd_below (uminus ` X) \<longleftrightarrow> bdd_above (X::real set)"
-  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
-
 instantiation real :: linear_continuum
 begin
 

@@ -96,6 +96,16 @@ lemma (in order_top) bdd_above_top[simp, intro!]: "bdd_above A"
 lemma (in order_bot) bdd_above_bot[simp, intro!]: "bdd_below A"
   by (rule bdd_belowI[of _ bot]) simp
 
+lemma bdd_above_uminus[simp]:
+  fixes X :: "'a::ordered_ab_group_add set"
+  shows "bdd_above (uminus ` X) \<longleftrightarrow> bdd_below X"
+  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
+
+lemma bdd_below_uminus[simp]:
+  fixes X :: "'a::ordered_ab_group_add set"
+  shows"bdd_below (uminus ` X) \<longleftrightarrow> bdd_above X"
+  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
+
 context lattice
 begin
 
