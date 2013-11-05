@@ -15,8 +15,6 @@ INCOMPATIBILITY.
     even_zero_(nat|int) ~> even_zero
 INCOMPATIBILITY.
 
-*** HOL ***
-
 * Elimination of fact duplicates:
     equals_zero_I ~> minus_unique
     diff_eq_0_iff_eq ~> right_minus_eq
@@ -51,6 +49,15 @@ c) Simplification with "diff_def": just drop "diff_def".
 Consider simplification with algebra_simps or field_simps;
 or the brute way with
 "simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
+
+* SUP and INF generalized to conditionally_complete_lattice
+
+* Theory Lubs moved HOL image to HOL-Library. It is replaced by
+Conditionally_Complete_Lattices.   INCOMPATIBILITY.
+
+* Introduce bdd_above and bdd_below in Conditionally_Complete_Lattices, use them
+instead of explicitly stating boundedness of sets.
+
 
 New in Isabelle2013-1 (November 2013)
 -------------------------------------
