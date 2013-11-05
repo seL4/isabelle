@@ -339,8 +339,8 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
         SOME U => (U, seen_lthy)
       | NONE =>
         (case T of
-          Type (s, Ts) =>
-          if exists_subtype_in Ts T then fold_map generalize_type Ts seen_lthy |>> curry Type s
+          Type (s, Ts') =>
+          if exists_subtype_in Ts T then fold_map generalize_type Ts' seen_lthy |>> curry Type s
           else generalize_simple_type T seen_lthy
         | _ => generalize_simple_type T seen_lthy));
 
