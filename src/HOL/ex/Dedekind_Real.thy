@@ -1506,7 +1506,6 @@ done
 instance real :: linorder
   by (intro_classes, rule real_le_linear)
 
-
 lemma real_le_eq_diff: "(x \<le> y) = (x-y \<le> (0::real))"
 apply (cases x, cases y) 
 apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
@@ -1657,7 +1656,6 @@ by (auto elim: order_le_imp_less_or_eq [THEN disjE]
 lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
-
 subsection {* Completeness of Positive Reals *}
 
 text {*
@@ -1759,107 +1757,23 @@ proof (rule exI, rule allI)
 qed
 
 text {*
-  \medskip Completeness properties using @{text "isUb"}, @{text "isLub"} etc.
-*}
-
-lemma posreals_complete:
-  assumes positive_S: "\<forall>x \<in> S. 0 < x"
-    and not_empty_S: "\<exists>x. x \<in> S"
-    and upper_bound_Ex: "\<exists>u. isUb (UNIV::real set) S u"
-  shows "\<exists>t. isLub (UNIV::real set) S t"
-proof
-  let ?pS = "{w. real_of_preal w \<in> S}"
-
-  obtain u where "isUb UNIV S u" using upper_bound_Ex ..
-  hence sup: "\<forall>x \<in> S. x \<le> u" by (simp add: isUb_def setle_def)
-
-  obtain x where x_in_S: "x \<in> S" using not_empty_S ..
-  hence x_gt_zero: "0 < x" using positive_S by simp
-  have  "x \<le> u" using sup and x_in_S ..
-  hence "0 < u" using x_gt_zero by arith
-
-  then obtain pu where u_is_pu: "u = real_of_preal pu"
-    by (auto simp add: real_gt_zero_preal_Ex)
-
-  have pS_less_pu: "\<forall>pa \<in> ?pS. pa \<le> pu"
-  proof
-    fix pa
-    assume "pa \<in> ?pS"
-    then obtain a where a: "a \<in> S" "a = real_of_preal pa"
-      by simp
-    then have "a \<le> u" using sup by simp
-    with a show "pa \<le> pu"
-      using sup and u_is_pu by (simp add: real_of_preal_le_iff)
-  qed
-
-  have "\<forall>y \<in> S. y \<le> real_of_preal (psup ?pS)"
-  proof
-    fix y
-    assume y_in_S: "y \<in> S"
-    hence "0 < y" using positive_S by simp
-    then obtain py where y_is_py: "y = real_of_preal py"
-      by (auto simp add: real_gt_zero_preal_Ex)
-    hence py_in_pS: "py \<in> ?pS" using y_in_S by simp
-    with pS_less_pu have "py \<le> psup ?pS"
-      by (rule preal_psup_le)
-    thus "y \<le> real_of_preal (psup ?pS)"
-      using y_is_py by (simp add: real_of_preal_le_iff)
-  qed
-
-  moreover {
-    fix x
-    assume x_ub_S: "\<forall>y\<in>S. y \<le> x"
-    have "real_of_preal (psup ?pS) \<le> x"
-    proof -
-      obtain "s" where s_in_S: "s \<in> S" using not_empty_S ..
-      hence s_pos: "0 < s" using positive_S by simp
-
-      hence "\<exists> ps. s = real_of_preal ps" by (simp add: real_gt_zero_preal_Ex)
-      then obtain "ps" where s_is_ps: "s = real_of_preal ps" ..
-      hence ps_in_pS: "ps \<in> {w. real_of_preal w \<in> S}" using s_in_S by simp
-
-      from x_ub_S have "s \<le> x" using s_in_S ..
-      hence "0 < x" using s_pos by simp
-      hence "\<exists> px. x = real_of_preal px" by (simp add: real_gt_zero_preal_Ex)
-      then obtain "px" where x_is_px: "x = real_of_preal px" ..
-
-      have "\<forall>pe \<in> ?pS. pe \<le> px"
-      proof
-        fix pe
-        assume "pe \<in> ?pS"
-        hence "real_of_preal pe \<in> S" by simp
-        hence "real_of_preal pe \<le> x" using x_ub_S by simp
-        thus "pe \<le> px" using x_is_px by (simp add: real_of_preal_le_iff)
-      qed
-
-      moreover have "?pS \<noteq> {}" using ps_in_pS by auto
-      ultimately have "(psup ?pS) \<le> px" by (simp add: psup_le_ub)
-      thus "real_of_preal (psup ?pS) \<le> x" using x_is_px by (simp add: real_of_preal_le_iff)
-    qed
-  }
-  ultimately show "isLub UNIV S (real_of_preal (psup ?pS))"
-    by (simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-qed
-
-text {*
-  \medskip reals Completeness (again!)
+  \medskip Completeness
 *}
 
 lemma reals_complete:
+  fixes S :: "real set"
   assumes notempty_S: "\<exists>X. X \<in> S"
-    and exists_Ub: "\<exists>Y. isUb (UNIV::real set) S Y"
-  shows "\<exists>t. isLub (UNIV :: real set) S t"
+    and exists_Ub: "bdd_above S"
+  shows "\<exists>x. (\<forall>s\<in>S. s \<le> x) \<and> (\<forall>y. (\<forall>s\<in>S. s \<le> y) \<longrightarrow> x \<le> y)"
 proof -
   obtain X where X_in_S: "X \<in> S" using notempty_S ..
-  obtain Y where Y_isUb: "isUb (UNIV::real set) S Y"
-    using exists_Ub ..
+  obtain Y where Y_isUb: "\<forall>s\<in>S. s \<le> Y"
+    using exists_Ub by (auto simp: bdd_above_def)
   let ?SHIFT = "{z. \<exists>x \<in>S. z = x + (-X) + 1} \<inter> {x. 0 < x}"
 
   {
     fix x
-    assume "isUb (UNIV::real set) S x"
-    hence S_le_x: "\<forall> y \<in> S. y <= x"
-      by (simp add: isUb_def setle_def)
+    assume S_le_x: "\<forall>s\<in>S. s \<le> x"
     {
       fix s
       assume "s \<in> {z. \<exists>x\<in>S. z = x + - X + 1}"
@@ -1868,85 +1782,73 @@ proof -
       then have "x1 \<le> x" using S_le_x by simp
       with x1 have "s \<le> x + - X + 1" by arith
     }
-    then have "isUb (UNIV::real set) ?SHIFT (x + (-X) + 1)"
-      by (auto simp add: isUb_def setle_def)
+    then have "\<forall>s\<in>?SHIFT. s \<le> x + (-X) + 1"
+      by auto
   } note S_Ub_is_SHIFT_Ub = this
 
-  hence "isUb UNIV ?SHIFT (Y + (-X) + 1)" using Y_isUb by simp
-  hence "\<exists>Z. isUb UNIV ?SHIFT Z" ..
+  have *: "\<forall>s\<in>?SHIFT. s \<le> Y + (-X) + 1" using Y_isUb by (rule S_Ub_is_SHIFT_Ub)
+  have "\<forall>s\<in>?SHIFT. s < Y + (-X) + 2"
+  proof
+    fix s assume "s\<in>?SHIFT"
+    with * have "s \<le> Y + (-X) + 1" by simp
+    also have "\<dots> < Y + (-X) + 2" by simp
+    finally show "s < Y + (-X) + 2" .
+  qed
   moreover have "\<forall>y \<in> ?SHIFT. 0 < y" by auto
   moreover have shifted_not_empty: "\<exists>u. u \<in> ?SHIFT"
     using X_in_S and Y_isUb by auto
-  ultimately obtain t where t_is_Lub: "isLub UNIV ?SHIFT t"
-    using posreals_complete [of ?SHIFT] by blast
+  ultimately obtain t where t_is_Lub: "\<forall>y. (\<exists>x\<in>?SHIFT. y < x) = (y < t)"
+    using posreal_complete [of ?SHIFT] unfolding bdd_above_def by blast
 
   show ?thesis
   proof
-    show "isLub UNIV S (t + X + (-1))"
-    proof (rule isLubI2)
-      {
-        fix x
-        assume "isUb (UNIV::real set) S x"
-        hence "isUb (UNIV::real set) (?SHIFT) (x + (-X) + 1)"
-          using S_Ub_is_SHIFT_Ub by simp
-        hence "t \<le> (x + (-X) + 1)"
-          using t_is_Lub by (simp add: isLub_le_isUb)
-        hence "t + X + -1 \<le> x" by arith
-      }
-      then show "(t + X + -1) <=* Collect (isUb UNIV S)"
-        by (simp add: setgeI)
+    show "(\<forall>s\<in>S. s \<le> (t + X + (-1))) \<and> (\<forall>y. (\<forall>s\<in>S. s \<le> y) \<longrightarrow> (t + X + (-1)) \<le> y)"
+    proof safe
+      fix x
+      assume "\<forall>s\<in>S. s \<le> x"
+      hence "\<forall>s\<in>?SHIFT. s \<le> x + (-X) + 1"
+        using S_Ub_is_SHIFT_Ub by simp
+      then have "\<not> x + (-X) + 1 < t"
+        by (subst t_is_Lub[rule_format, symmetric]) (simp add: not_less)
+      thus "t + X + -1 \<le> x" by arith
     next
-      show "isUb UNIV S (t + X + -1)"
-      proof -
-        {
-          fix y
-          assume y_in_S: "y \<in> S"
-          have "y \<le> t + X + -1"
-          proof -
-            obtain "u" where u_in_shift: "u \<in> ?SHIFT" using shifted_not_empty ..
-            hence "\<exists> x \<in> S. u = x + - X + 1" by simp
-            then obtain "x" where x_and_u: "u = x + - X + 1" ..
-            have u_le_t: "u \<le> t" using u_in_shift and t_is_Lub by (simp add: isLubD2)
+      fix y
+      assume y_in_S: "y \<in> S"
+      obtain "u" where u_in_shift: "u \<in> ?SHIFT" using shifted_not_empty ..
+      hence "\<exists> x \<in> S. u = x + - X + 1" by simp
+      then obtain "x" where x_and_u: "u = x + - X + 1" ..
+      have u_le_t: "u \<le> t"
+      proof (rule dense_le)
+        fix x assume "x < u" then have "x < t"
+          using u_in_shift t_is_Lub by auto
+        then show "x \<le> t"  by simp
+      qed
 
-            show ?thesis
-            proof cases
-              assume "y \<le> x"
-              moreover have "x = u + X + - 1" using x_and_u by arith
-              moreover have "u + X + - 1  \<le> t + X + -1" using u_le_t by arith
-              ultimately show "y  \<le> t + X + -1" by arith
-            next
-              assume "~(y \<le> x)"
-              hence x_less_y: "x < y" by arith
+      show "y \<le> t + X + -1"
+      proof cases
+        assume "y \<le> x"
+        moreover have "x = u + X + - 1" using x_and_u by arith
+        moreover have "u + X + - 1  \<le> t + X + -1" using u_le_t by arith
+        ultimately show "y  \<le> t + X + -1" by arith
+      next
+        assume "~(y \<le> x)"
+        hence x_less_y: "x < y" by arith
 
-              have "x + (-X) + 1 \<in> ?SHIFT" using x_and_u and u_in_shift by simp
-              hence "0 < x + (-X) + 1" by simp
-              hence "0 < y + (-X) + 1" using x_less_y by arith
-              hence "y + (-X) + 1 \<in> ?SHIFT" using y_in_S by simp
-              hence "y + (-X) + 1 \<le> t" using t_is_Lub  by (simp add: isLubD2)
-              thus ?thesis by simp
-            qed
-          qed
-        }
-        then show ?thesis by (simp add: isUb_def setle_def)
+        have "x + (-X) + 1 \<in> ?SHIFT" using x_and_u and u_in_shift by simp
+        hence "0 < x + (-X) + 1" by simp
+        hence "0 < y + (-X) + 1" using x_less_y by arith
+        hence *: "y + (-X) + 1 \<in> ?SHIFT" using y_in_S by simp
+        have "y + (-X) + 1 \<le> t"
+        proof (rule dense_le)
+          fix x assume "x < y + (-X) + 1" then have "x < t"
+            using * t_is_Lub by auto
+          then show "x \<le> t"  by simp
+        qed
+        thus ?thesis by simp
       qed
     qed
   qed
 qed
-
-text{*A version of the same theorem without all those predicates!*}
-lemma reals_complete2:
-  fixes S :: "(real set)"
-  assumes "\<exists>y. y\<in>S" and "\<exists>(x::real). \<forall>y\<in>S. y \<le> x"
-  shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) & 
-               (\<forall>z. ((\<forall>y\<in>S. y \<le> z) --> x \<le> z))"
-proof -
-  have "\<exists>x. isLub UNIV S x" 
-    by (rule reals_complete)
-       (auto simp add: isLub_def isUb_def leastP_def setle_def setge_def assms)
-  thus ?thesis
-    by (metis UNIV_I isLub_isUb isLub_le_isUb isUbD isUb_def setleI)
-qed
-
 
 subsection {* The Archimedean Property of the Reals *}
 
@@ -1969,34 +1871,30 @@ proof (rule ccontr)
       by (rule mult_right_mono)
     thus "x * of_nat (Suc n) \<le> 1" by (simp del: of_nat_Suc)
   qed
-  hence "{z. \<exists>n. z = x * (of_nat (Suc n))} *<= 1"
-    by (simp add: setle_def del: of_nat_Suc, safe, rule spec)
-  hence "isUb (UNIV::real set) {z. \<exists>n. z = x * (of_nat (Suc n))} 1"
-    by (simp add: isUbI)
-  hence "\<exists>Y. isUb (UNIV::real set) {z. \<exists>n. z = x* (of_nat (Suc n))} Y" ..
-  moreover have "\<exists>X. X \<in> {z. \<exists>n. z = x* (of_nat (Suc n))}" by auto
-  ultimately have "\<exists>t. isLub UNIV {z. \<exists>n. z = x * of_nat (Suc n)} t"
-    by (simp add: reals_complete)
-  then obtain "t" where
-    t_is_Lub: "isLub UNIV {z. \<exists>n. z = x * of_nat (Suc n)} t" ..
+  hence 2: "bdd_above {z. \<exists>n. z = x * (of_nat (Suc n))}"
+    by (auto intro!: bdd_aboveI[of _ 1])
+  have 1: "\<exists>X. X \<in> {z. \<exists>n. z = x* (of_nat (Suc n))}" by auto
+  obtain t where
+    upper: "\<And>z. z \<in> {z. \<exists>n. z = x * of_nat (Suc n)} \<Longrightarrow> z \<le> t" and
+    least: "\<And>y. (\<And>a. a \<in> {z. \<exists>n. z = x * of_nat (Suc n)} \<Longrightarrow> a \<le> y) \<Longrightarrow> t \<le> y"
+    using reals_complete[OF 1 2] by auto
 
-  have "\<forall>n::nat. x * of_nat n \<le> t + - x"
-  proof
-    fix n
-    from t_is_Lub have "x * of_nat (Suc n) \<le> t"
-      by (simp add: isLubD2)
-    hence  "x * (of_nat n) + x \<le> t"
-      by (simp add: distrib_left)
-    thus  "x * (of_nat n) \<le> t + - x" by arith
+
+  have "t \<le> t + - x"
+  proof (rule least)
+    fix a assume a: "a \<in> {z. \<exists>n. z = x * (of_nat (Suc n))}"
+    have "\<forall>n::nat. x * of_nat n \<le> t + - x"
+    proof
+      fix n
+      have "x * of_nat (Suc n) \<le> t"
+        by (simp add: upper)
+      hence  "x * (of_nat n) + x \<le> t"
+        by (simp add: distrib_left)
+      thus  "x * (of_nat n) \<le> t + - x" by arith
+    qed    hence "\<forall>m. x * of_nat (Suc m) \<le> t + - x" by (simp del: of_nat_Suc)
+    with a show "a \<le> t + - x"
+      by auto
   qed
-
-  hence "\<forall>m. x * of_nat (Suc m) \<le> t + - x" by (simp del: of_nat_Suc)
-  hence "{z. \<exists>n. z = x * (of_nat (Suc n))}  *<= (t + - x)"
-    by (auto simp add: setle_def)
-  hence "isUb (UNIV::real set) {z. \<exists>n. z = x * (of_nat (Suc n))} (t + (-x))"
-    by (simp add: isUbI)
-  hence "t \<le> t + - x"
-    using t_is_Lub by (simp add: isLub_le_isUb)
   thus False using x_pos by arith
 qed
 

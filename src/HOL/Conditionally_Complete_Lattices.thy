@@ -7,7 +7,7 @@
 header {* Conditionally-complete Lattices *}
 
 theory Conditionally_Complete_Lattices
-imports Main Lubs
+imports Main
 begin
 
 lemma (in linorder) Sup_fin_eq_Max: "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
@@ -27,6 +27,12 @@ lemma bdd_aboveI[intro]: "(\<And>x. x \<in> A \<Longrightarrow> x \<le> M) \<Lon
 
 lemma bdd_belowI[intro]: "(\<And>x. x \<in> A \<Longrightarrow> m \<le> x) \<Longrightarrow> bdd_below A"
   by (auto simp: bdd_below_def)
+
+lemma bdd_aboveI2: "(\<And>x. x \<in> A \<Longrightarrow> f x \<le> M) \<Longrightarrow> bdd_above (f`A)"
+  by force
+
+lemma bdd_belowI2: "(\<And>x. x \<in> A \<Longrightarrow> m \<le> f x) \<Longrightarrow> bdd_below (f`A)"
+  by force
 
 lemma bdd_above_empty [simp, intro]: "bdd_above {}"
   unfolding bdd_above_def by auto
@@ -298,6 +304,12 @@ lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrigh
 lemma cSUP_le_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> SUPR A f \<le> u \<longleftrightarrow> (\<forall>x\<in>A. f x \<le> u)"
   by (metis cSUP_least cSUP_upper assms order_trans)
 
+lemma less_cINF_D: "bdd_below (f`A) \<Longrightarrow> y < (INF i:A. f i) \<Longrightarrow> i \<in> A \<Longrightarrow> y < f i"
+  by (metis cINF_lower less_le_trans)
+
+lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (SUP i:A. f i) < y \<Longrightarrow> i \<in> A \<Longrightarrow> f i < y"
+  by (metis cSUP_upper le_less_trans)
+
 lemma cINF_insert: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> INFI (insert a A) f = inf (f a) (INFI A f)"
   by (metis INF_def cInf_insert assms empty_is_image image_insert)
 
@@ -347,11 +359,6 @@ end
 instance complete_lattice \<subseteq> conditionally_complete_lattice
   by default (auto intro: Sup_upper Sup_least Inf_lower Inf_greatest)
 
-lemma isLub_cSup: 
-  "(S::'a :: conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> (\<exists>b. S *<= b) \<Longrightarrow> isLub UNIV S (Sup S)"
-  by  (auto simp add: isLub_def setle_def leastP_def isUb_def
-            intro!: setgeI cSup_upper cSup_least)
-
 lemma cSup_eq:
   fixes a :: "'a :: {conditionally_complete_lattice, no_bot}"
   assumes upper: "\<And>x. x \<in> X \<Longrightarrow> x \<le> a"
@@ -370,12 +377,6 @@ proof cases
   assume "X = {}" with gt_ex[of a] least show ?thesis by (auto simp: less_le_not_le)
 qed (intro cInf_eq_non_empty assms)
 
-lemma cSup_le: "(S::'a::conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> S *<= b \<Longrightarrow> Sup S \<le> b"
-  by (metis cSup_least setle_def)
-
-lemma cInf_ge: "(S::'a :: conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> b <=* S \<Longrightarrow> Inf S \<ge> b"
-  by (metis cInf_greatest setge_def)
-
 class conditionally_complete_linorder = conditionally_complete_lattice + linorder
 begin
 
@@ -385,6 +386,12 @@ lemma less_cSup_iff : (*REAL_SUP_LE in HOL4*)
 
 lemma cInf_less_iff: "X \<noteq> {} \<Longrightarrow> bdd_below X \<Longrightarrow> Inf X < y \<longleftrightarrow> (\<exists>x\<in>X. x < y)"
   by (rule iffI) (metis cInf_greatest not_less, metis cInf_lower le_less_trans)
+
+lemma cINF_less_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i:A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
+  unfolding INF_def using cInf_less_iff[of "f`A"] by auto
+
+lemma less_cSUP_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> a < (SUP i:A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
+  unfolding SUP_def using less_cSup_iff[of "f`A"] by auto
 
 lemma less_cSupE:
   assumes "y < Sup X" "X \<noteq> {}" obtains x where "x \<in> X" "y < x"
@@ -436,27 +443,6 @@ lemma cSup_eq_Max: "finite (X::'a::conditionally_complete_linorder set) \<Longri
 
 lemma cInf_eq_Min: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf X = Min X"
   using cInf_eq_Inf_fin[of X] Inf_fin_eq_Min[of X] by simp
-
-lemma cSup_bounds:
-  fixes S :: "'a :: conditionally_complete_lattice set"
-  assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
-  shows "a \<le> Sup S \<and> Sup S \<le> b"
-proof-
-  from isLub_cSup[OF Se] u have lub: "isLub UNIV S (Sup S)" by blast
-  hence b: "Sup S \<le> b" using u 
-    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def) 
-  from Se obtain y where y: "y \<in> S" by blast
-  from lub l have "a \<le> Sup S"
-    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def)
-       (metis le_iff_sup le_sup_iff y)
-  with b show ?thesis by blast
-qed
-
-lemma cSup_unique: "(S::'a :: {conditionally_complete_linorder, no_bot} set) *<= b \<Longrightarrow> (\<forall>b'<b. \<exists>x\<in>S. b' < x) \<Longrightarrow> Sup S = b"
-  by (rule cSup_eq) (auto simp: not_le[symmetric] setle_def)
-
-lemma cInf_unique: "b <=* (S::'a :: {conditionally_complete_linorder, no_top} set) \<Longrightarrow> (\<forall>b'>b. \<exists>x\<in>S. b' > x) \<Longrightarrow> Inf S = b"
-  by (rule cInf_eq) (auto simp: not_le[symmetric] setge_def)
 
 lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq_non_empty intro: dense_le)

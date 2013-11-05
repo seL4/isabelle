@@ -756,7 +756,8 @@ declare Inf'_def[symmetric, code_unfold]
 declare Inf_Set_fold[folded Inf'_def, code]
 
 lemma INFI_Set_fold [code]:
-  "INFI (Set t) f = fold_keys (inf \<circ> f) t top"
+  fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
+  shows "INFI (Set t) f = fold_keys (inf \<circ> f) t top"
 proof -
   have "comp_fun_commute ((inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
     by default (auto simp add: fun_eq_iff ac_simps)
@@ -796,7 +797,8 @@ declare Sup'_def[symmetric, code_unfold]
 declare Sup_Set_fold[folded Sup'_def, code]
 
 lemma SUPR_Set_fold [code]:
-  "SUPR (Set t) f = fold_keys (sup \<circ> f) t bot"
+  fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
+  shows "SUPR (Set t) f = fold_keys (sup \<circ> f) t bot"
 proof -
   have "comp_fun_commute ((sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
     by default (auto simp add: fun_eq_iff ac_simps)

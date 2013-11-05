@@ -970,13 +970,6 @@ proof
 qed
 end
 
-text {*
-  \medskip Completeness properties using @{text "isUb"}, @{text "isLub"}:
-*}
-
-lemma reals_complete: "\<exists>X. X \<in> S \<Longrightarrow> \<exists>Y. isUb (UNIV::real set) S Y \<Longrightarrow> \<exists>t. isLub (UNIV :: real set) S t"
-  by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro!: cSup_upper)
-
 
 subsection {* Hiding implementation details *}
 

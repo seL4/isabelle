@@ -4506,38 +4506,30 @@ next
     apply (erule_tac x="x - y" in ballE)
     apply (auto simp add: inner_diff)
     done
-  def k \<equiv> "Sup ((\<lambda>x. inner a x) ` t)"
+  def k \<equiv> "SUP x:t. a \<bullet> x"
   show ?thesis
     apply (rule_tac x="-a" in exI)
     apply (rule_tac x="-(k + b / 2)" in exI)
-    apply rule
-    apply rule
-    defer
-    apply rule
+    apply (intro conjI ballI)
     unfolding inner_minus_left and neg_less_iff_less
   proof -
-    from ab have "((\<lambda>x. inner a x) ` t) *<= (inner a y - b)"
-      apply (erule_tac x=y in ballE)
-      apply (rule setleI)
-      using `y \<in> s`
-      apply auto
-      done
-    then have k: "isLub UNIV ((\<lambda>x. inner a x) ` t) k"
+    fix x assume "x \<in> t"
+    then have "inner a x - b / 2 < k"
       unfolding k_def
-      apply (rule_tac isLub_cSup)
-      using assms(5)
-      apply auto
-      done
-    fix x
-    assume "x \<in> t"
-    then show "inner a x < (k + b / 2)"
-      using `0<b` and isLubD2[OF k, of "inner a x"] by auto
+    proof (subst less_cSUP_iff)
+      show "t \<noteq> {}" by fact
+      show "bdd_above (op \<bullet> a ` t)"
+        using ab[rule_format, of y] `y \<in> s`
+        by (intro bdd_aboveI2[where M="inner a y - b"]) (auto simp: field_simps intro: less_imp_le)
+    qed (auto intro!: bexI[of _ x] `0<b`)
+    then show "inner a x < k + b / 2"
+      by auto
   next
     fix x
     assume "x \<in> s"
     then have "k \<le> inner a x - b"
       unfolding k_def
-      apply (rule_tac cSup_least)
+      apply (rule_tac cSUP_least)
       using assms(5)
       using ab[THEN bspec[where x=x]]
       apply auto
@@ -4626,20 +4618,14 @@ proof -
   from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
   obtain a where "a \<noteq> 0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x"
     using assms(3-5) by auto
-  then have "\<forall>x\<in>t. \<forall>y\<in>s. inner a y \<le> inner a x"
+  then have *: "\<And>x y. x \<in> t \<Longrightarrow> y \<in> s \<Longrightarrow> inner a y \<le> inner a x"
     by (force simp add: inner_diff)
-  then show ?thesis
-    apply (rule_tac x=a in exI)
-    apply (rule_tac x="Sup ((\<lambda>x. inner a x) ` s)" in exI)
+  then have bdd: "bdd_above ((op \<bullet> a)`s)"
+    using `t \<noteq> {}` by (auto intro: bdd_aboveI2[OF *])
+  show ?thesis
     using `a\<noteq>0`
-    apply auto
-    apply (rule isLub_cSup[THEN isLubD2])
-    prefer 4
-    apply (rule cSup_least)
-    using assms(3-5)
-    apply (auto simp add: setle_def)
-    apply metis
-    done
+    by (intro exI[of _ a] exI[of _ "SUP x:s. a \<bullet> x"])
+       (auto intro!: cSUP_upper bdd cSUP_least `a \<noteq> 0` `s \<noteq> {}` *)
 qed
 
 

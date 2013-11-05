@@ -131,17 +131,15 @@ proof -
 
   -- "A denotes the set of all left-most points of all the intervals ..."
   moreover obtain A where Adef: "A = ?g ` \<nat>" by simp
-  ultimately have "\<exists>x. x\<in>A"
+  ultimately have "A \<noteq> {}"
   proof -
     have "(0::nat) \<in> \<nat>" by simp
-    moreover have "?g 0 = ?g 0" by simp
-    ultimately have "?g 0 \<in> ?g ` \<nat>" by (rule  rev_image_eqI)
-    with Adef have "?g 0 \<in> A" by simp
-    thus ?thesis ..
+    with Adef show ?thesis
+      by blast
   qed
 
   -- "Now show that A is bounded above ..."
-  moreover have "\<exists>y. isUb (UNIV::real set) A y"
+  moreover have "bdd_above A"
   proof -
     {
       fix n
@@ -177,18 +175,11 @@ proof -
       obtain a and b where "f 0 = closed_int a b" and alb: "a \<le> b" by blast
     ultimately have "\<forall>n. ?g n \<in> closed_int a b" by auto
     with alb have "\<forall>n. ?g n \<le> b" using closed_int_most by blast
-    with Adef have "\<forall>y\<in>A. y\<le>b" by auto
-    hence "A *<= b" by (unfold setle_def)
-    moreover have "b \<in> (UNIV::real set)" by simp
-    ultimately have "A *<= b \<and> b \<in> (UNIV::real set)" by simp
-    hence "isUb (UNIV::real set) A b" by (unfold isUb_def)
-    thus ?thesis by auto
+    with Adef show "bdd_above A" by auto
   qed
-  -- "by the Axiom Of Completeness, A has a least upper bound ..."
-  ultimately have "\<exists>t. isLub UNIV A t" by (rule reals_complete)
 
   -- "denote this least upper bound as t ..."
-  then obtain t where tdef: "isLub UNIV A t" ..
+  def tdef: t == "Sup A"
 
   -- "and finally show that this least upper bound is in all the intervals..."
   have "\<forall>n. t \<in> f n"
@@ -229,82 +220,76 @@ proof -
         with Adef have "(?g n) \<in> A" by auto
         ultimately show ?thesis by simp
       qed 
-      with tdef show "a \<le> t" by (rule isLubD2)
+      with `bdd_above A` show "a \<le> t"
+        unfolding tdef by (intro cSup_upper)
     qed
     moreover have "t \<le> b"
-    proof -
-      have "isUb UNIV A b"
-      proof -
-        {
-          from alb int have
-            ain: "b\<in>f n \<and> (\<forall>x\<in>f n. x \<le> b)" using closed_int_most by blast
-          
-          have subsetd: "\<forall>m. \<forall>n. f (n + m) \<subseteq> f n"
-          proof (rule allI, induct_tac m)
-            show "\<forall>n. f (n + 0) \<subseteq> f n" by simp
-          next
-            fix m n
-            assume pp: "\<forall>p. f (p + n) \<subseteq> f p"
-            {
-              fix p
-              from pp have "f (p + n) \<subseteq> f p" by simp
-              moreover from subset have "f (Suc (p + n)) \<subseteq> f (p + n)" by auto
-              hence "f (p + (Suc n)) \<subseteq> f (p + n)" by simp
-              ultimately have "f (p + (Suc n)) \<subseteq> f p" by simp
-            }
-            thus "\<forall>p. f (p + Suc n) \<subseteq> f p" ..
-          qed 
-          have subsetm: "\<forall>\<alpha> \<beta>. \<alpha> \<ge> \<beta> \<longrightarrow> (f \<alpha>) \<subseteq> (f \<beta>)"
-          proof ((rule allI)+, rule impI)
-            fix \<alpha>::nat and \<beta>::nat
-            assume "\<beta> \<le> \<alpha>"
-            hence "\<exists>k. \<alpha> = \<beta> + k" by (simp only: le_iff_add)
-            then obtain k where "\<alpha> = \<beta> + k" ..
-            moreover
-            from subsetd have "f (\<beta> + k) \<subseteq> f \<beta>" by simp
-            ultimately show "f \<alpha> \<subseteq> f \<beta>" by auto
-          qed 
-          
-          fix m   
+      unfolding tdef
+    proof (rule cSup_least)
+      {
+        from alb int have
+          ain: "b\<in>f n \<and> (\<forall>x\<in>f n. x \<le> b)" using closed_int_most by blast
+        
+        have subsetd: "\<forall>m. \<forall>n. f (n + m) \<subseteq> f n"
+        proof (rule allI, induct_tac m)
+          show "\<forall>n. f (n + 0) \<subseteq> f n" by simp
+        next
+          fix m n
+          assume pp: "\<forall>p. f (p + n) \<subseteq> f p"
           {
-            assume "m \<ge> n"
-            with subsetm have "f m \<subseteq> f n" by simp
-            with ain have "\<forall>x\<in>f m. x \<le> b" by auto
-            moreover
-            from gdef have "?g m \<in> f m \<and> (\<forall>x\<in>f m. ?g m \<le> x)" by simp
-            ultimately have "?g m \<le> b" by auto
+            fix p
+            from pp have "f (p + n) \<subseteq> f p" by simp
+            moreover from subset have "f (Suc (p + n)) \<subseteq> f (p + n)" by auto
+            hence "f (p + (Suc n)) \<subseteq> f (p + n)" by simp
+            ultimately have "f (p + (Suc n)) \<subseteq> f p" by simp
           }
+          thus "\<forall>p. f (p + Suc n) \<subseteq> f p" ..
+        qed 
+        have subsetm: "\<forall>\<alpha> \<beta>. \<alpha> \<ge> \<beta> \<longrightarrow> (f \<alpha>) \<subseteq> (f \<beta>)"
+        proof ((rule allI)+, rule impI)
+          fix \<alpha>::nat and \<beta>::nat
+          assume "\<beta> \<le> \<alpha>"
+          hence "\<exists>k. \<alpha> = \<beta> + k" by (simp only: le_iff_add)
+          then obtain k where "\<alpha> = \<beta> + k" ..
           moreover
-          {
-            assume "\<not>(m \<ge> n)"
-            hence "m < n" by simp
-            with subsetm have sub: "(f n) \<subseteq> (f m)" by simp
-            from closed obtain ma and mb where
-              "f m = closed_int ma mb \<and> ma \<le> mb" by blast
-            hence one: "ma \<le> mb" and fm: "f m = closed_int ma mb" by auto 
-            from one alb sub fm int have "ma \<le> b" using closed_subset by blast
-            moreover have "(?g m) = ma"
-            proof -
-              from gdef have "?g m \<in> f m \<and> (\<forall>x\<in>f m. ?g m \<le> x)" ..
-              moreover from one have
-                "ma \<in> closed_int ma mb \<and> (\<forall>x\<in>closed_int ma mb. ma \<le> x)"
-                by (rule closed_int_least)
-              with fm have "ma\<in>f m \<and> (\<forall>x\<in>f m. ma \<le> x)" by simp
-              ultimately have "ma \<le> ?g m \<and> ?g m \<le> ma" by auto
-              thus "?g m = ma" by auto
-            qed
-            ultimately have "?g m \<le> b" by simp
-          } 
-          ultimately have "?g m \<le> b" by (rule case_split)
+          from subsetd have "f (\<beta> + k) \<subseteq> f \<beta>" by simp
+          ultimately show "f \<alpha> \<subseteq> f \<beta>" by auto
+        qed 
+        
+        fix m   
+        {
+          assume "m \<ge> n"
+          with subsetm have "f m \<subseteq> f n" by simp
+          with ain have "\<forall>x\<in>f m. x \<le> b" by auto
+          moreover
+          from gdef have "?g m \<in> f m \<and> (\<forall>x\<in>f m. ?g m \<le> x)" by simp
+          ultimately have "?g m \<le> b" by auto
         }
-        with Adef have "\<forall>y\<in>A. y\<le>b" by auto
-        hence "A *<= b" by (unfold setle_def)
-        moreover have "b \<in> (UNIV::real set)" by simp
-        ultimately have "A *<= b \<and> b \<in> (UNIV::real set)" by simp
-        thus "isUb (UNIV::real set) A b" by (unfold isUb_def)
-      qed
-      with tdef show "t \<le> b" by (rule isLub_le_isUb)
-    qed
+        moreover
+        {
+          assume "\<not>(m \<ge> n)"
+          hence "m < n" by simp
+          with subsetm have sub: "(f n) \<subseteq> (f m)" by simp
+          from closed obtain ma and mb where
+            "f m = closed_int ma mb \<and> ma \<le> mb" by blast
+          hence one: "ma \<le> mb" and fm: "f m = closed_int ma mb" by auto 
+          from one alb sub fm int have "ma \<le> b" using closed_subset by blast
+          moreover have "(?g m) = ma"
+          proof -
+            from gdef have "?g m \<in> f m \<and> (\<forall>x\<in>f m. ?g m \<le> x)" ..
+            moreover from one have
+              "ma \<in> closed_int ma mb \<and> (\<forall>x\<in>closed_int ma mb. ma \<le> x)"
+              by (rule closed_int_least)
+            with fm have "ma\<in>f m \<and> (\<forall>x\<in>f m. ma \<le> x)" by simp
+            ultimately have "ma \<le> ?g m \<and> ?g m \<le> ma" by auto
+            thus "?g m = ma" by auto
+          qed
+          ultimately have "?g m \<le> b" by simp
+        } 
+        ultimately have "?g m \<le> b" by (rule case_split)
+      }
+      with Adef show "\<And>y. y \<in> A \<Longrightarrow> y \<le> b" by auto
+    qed fact
     ultimately have "t \<in> closed_int a b" by (rule closed_mem)
     with int show "t \<in> f n" by simp
   qed

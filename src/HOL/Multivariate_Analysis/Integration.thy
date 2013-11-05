@@ -28,10 +28,10 @@ lemma cSup_asclose: (* TODO: is this really needed? *)
 proof -
   have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e"
     by arith
-  then show ?thesis
-    using S b cSup_bounds[of S "l - e" "l+e"]
-    unfolding th
-    by (auto simp add: setge_def setle_def)
+  have "bdd_above S"
+    using b by (auto intro!: bdd_aboveI[of _ "l + e"])
+  with S b show ?thesis
+    unfolding th by (auto intro!: cSup_upper2 cSup_least)
 qed
 
 lemma cInf_asclose: (* TODO: is this really needed? *)
@@ -69,39 +69,6 @@ lemma cInf_finite_le_iff:
   fixes S :: "real set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists>x\<in>S. a \<ge> x)"
   by (metis cInf_eq_Min Min_le_iff)
-
-lemma Inf: (* rename *)
-  fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<exists>b. b <=* S) \<Longrightarrow> isGlb UNIV S (Inf S)"
-  by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def
-    intro: cInf_lower cInf_greatest)
-
-lemma real_le_inf_subset:
-  assumes "t \<noteq> {}"
-    and "t \<subseteq> s"
-    and "\<exists>b. b <=* s"
-  shows "Inf s \<le> Inf (t::real set)"
-  apply (rule isGlb_le_isLb)
-  apply (rule Inf[OF assms(1)])
-  apply (insert assms)
-  apply (erule exE)
-  apply (rule_tac x = b in exI)
-  apply (auto simp: isLb_def setge_def intro!: cInf_lower cInf_greatest)
-  done
-
-lemma real_ge_sup_subset:
-  fixes t :: "real set"
-  assumes "t \<noteq> {}"
-    and "t \<subseteq> s"
-    and "\<exists>b. s *<= b"
-  shows "Sup s \<ge> Sup t"
-  apply (rule isLub_le_isUb)
-  apply (rule isLub_cSup[OF assms(1)])
-  apply (insert assms)
-  apply (erule exE)
-  apply (rule_tac x = b in exI)
-  apply (auto simp: isUb_def setle_def intro!: cSup_upper cSup_least)
-  done
 
 (*declare not_less[simp] not_le[simp]*)
 
@@ -486,24 +453,24 @@ qed
 subsection {* Bounds on intervals where they exist. *}
 
 definition interval_upperbound :: "('a::ordered_euclidean_space) set \<Rightarrow> 'a"
-  where "interval_upperbound s = (\<Sum>i\<in>Basis. Sup {a. \<exists>x\<in>s. x\<bullet>i = a} *\<^sub>R i)"
+  where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
 
 definition interval_lowerbound :: "('a::ordered_euclidean_space) set \<Rightarrow> 'a"
-  where "interval_lowerbound s = (\<Sum>i\<in>Basis. Inf {a. \<exists>x\<in>s. x\<bullet>i = a} *\<^sub>R i)"
+  where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x:s. x\<bullet>i) *\<^sub>R i)"
 
 lemma interval_upperbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_upperbound {a..b} = (b::'a::ordered_euclidean_space)"
   unfolding interval_upperbound_def euclidean_representation_setsum
-  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] setle_def
-      intro!: cSup_unique)
+  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] SUP_def
+           intro!: cSup_eq)
 
 lemma interval_lowerbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_lowerbound {a..b} = (a::'a::ordered_euclidean_space)"
   unfolding interval_lowerbound_def euclidean_representation_setsum
-  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] setge_def
-      intro!: cInf_unique)
+  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] INF_def
+           intro!: cInf_eq)
 
 lemmas interval_bounds = interval_upperbound interval_lowerbound
 
@@ -6627,7 +6594,7 @@ subsection {* Special case of additivity we need for the FCT. *}
 lemma interval_bound_sing[simp]:
   "interval_upperbound {a} = a"
   "interval_lowerbound {a} = a"
-  unfolding interval_upperbound_def interval_lowerbound_def
+  unfolding interval_upperbound_def interval_lowerbound_def SUP_def INF_def
   by (auto simp: euclidean_representation)
 
 lemma additive_tagged_division_1:
@@ -11236,37 +11203,26 @@ lemma helplemma:
 lemma bounded_variation_absolutely_integrable_interval:
   fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'm::ordered_euclidean_space"
   assumes "f integrable_on {a..b}"
-    and "\<forall>d. d division_of {a..b} \<longrightarrow> setsum (\<lambda>k. norm(integral k f)) d \<le> B"
+    and *: "\<forall>d. d division_of {a..b} \<longrightarrow> setsum (\<lambda>k. norm(integral k f)) d \<le> B"
   shows "f absolutely_integrable_on {a..b}"
 proof -
-  let ?S = "(\<lambda>d. setsum (\<lambda>k. norm(integral k f)) d) ` {d. d division_of {a..b} }"
-  def i \<equiv> "Sup ?S"
-  have i: "isLub UNIV ?S i"
-    unfolding i_def
-    apply (rule isLub_cSup)
-    apply (rule elementary_interval)
-    defer
-    apply (rule_tac x=B in exI)
-    apply (rule setleI)
-    using assms(2)
-    apply auto
-    done
+  let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of {a..b}}"
+  have D_1: "?D \<noteq> {}"
+    by (rule elementary_interval[of a b]) auto
+  have D_2: "bdd_above (?f`?D)"
+    by (metis * mem_Collect_eq bdd_aboveI2)
+  note D = D_1 D_2
+  let ?S = "SUP x:?D. ?f x"
   show ?thesis
     apply rule
     apply (rule assms)
     apply rule
-    apply (subst has_integral[of _ i])
+    apply (subst has_integral[of _ ?S])
   proof safe
     case goal1
-    then have "i - e / 2 \<notin> Collect (isUb UNIV (setsum (\<lambda>k. norm (integral k f)) `
-      {d. d division_of {a..b}}))"
-      using isLub_ubs[OF i,rule_format]
-      unfolding setge_def ubs_def
-      by auto
-    then have "\<exists>y. y division_of {a..b} \<and> i - e / 2 < (\<Sum>k\<in>y. norm (integral k f))"
-      unfolding mem_Collect_eq isUb_def setle_def
-      by (simp add: not_le)
-    then guess d .. note d=conjunctD2[OF this]
+    then have "?S - e / 2 < ?S" by simp
+    then obtain d where d: "d division_of {a..b}" "?S - e / 2 < (\<Sum>k\<in>d. norm (integral k f))"
+      unfolding less_cSUP_iff[OF D] by auto
     note d' = division_ofD[OF this(1)]
 
     have "\<forall>x. \<exists>e>0. \<forall>i\<in>d. x \<notin> i \<longrightarrow> ball x e \<inter> i = {}"
@@ -11451,21 +11407,17 @@ proof -
         done
       note snd_p = division_ofD[OF division_of_tagged_division[OF p(1)]]
 
-      have *: "\<And>sni sni' sf sf'. abs (sf' - sni') < e / 2 \<longrightarrow> i - e / 2 < sni \<and> sni' \<le> i \<and>
-        sni \<le> sni' \<and> sf' = sf \<longrightarrow> abs (sf - i) < e"
+      have *: "\<And>sni sni' sf sf'. abs (sf' - sni') < e / 2 \<longrightarrow> ?S - e / 2 < sni \<and> sni' \<le> ?S \<and>
+        sni \<le> sni' \<and> sf' = sf \<longrightarrow> abs (sf - ?S) < e"
         by arith
-      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - i) < e"
+      show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - ?S) < e"
         unfolding real_norm_def
         apply (rule *[rule_format,OF **])
         apply safe
         apply(rule d(2))
       proof -
-        case goal1
-        show ?case unfolding sum_p'
-          apply (rule isLubD2[OF i])
-          using division_of_tagged_division[OF p'']
-          apply auto
-          done
+        case goal1 show ?case
+          by (auto simp: sum_p' division_of_tagged_division[OF p''] D intro!: cSUP_upper)
       next
         case goal2
         have *: "{k \<inter> l | k l. k \<in> d \<and> l \<in> snd ` p} =
@@ -11756,18 +11708,13 @@ lemma bounded_variation_absolutely_integrable:
     and "\<forall>d. d division_of (\<Union>d) \<longrightarrow> setsum (\<lambda>k. norm (integral k f)) d \<le> B"
   shows "f absolutely_integrable_on UNIV"
 proof (rule absolutely_integrable_onI, fact, rule)
-  let ?S = "(\<lambda>d. setsum (\<lambda>k. norm(integral k f)) d) ` {d. d division_of  (\<Union>d)}"
-  def i \<equiv> "Sup ?S"
-  have i: "isLub UNIV ?S i"
-    unfolding i_def
-    apply (rule isLub_cSup)
-    apply (rule elementary_interval)
-    defer
-    apply (rule_tac x=B in exI)
-    apply (rule setleI)
-    using assms(2)
-    apply auto
-    done
+  let ?f = "\<lambda>d. \<Sum>k\<in>d. norm (integral k f)" and ?D = "{d. d division_of  (\<Union>d)}"
+  have D_1: "?D \<noteq> {}"
+    by (rule elementary_interval) auto
+  have D_2: "bdd_above (?f`?D)"
+    by (intro bdd_aboveI2[where M=B] assms(2)[rule_format]) simp
+  note D = D_1 D_2
+  let ?S = "SUP d:?D. ?f d"
   have f_int: "\<And>a b. f absolutely_integrable_on {a..b}"
     apply (rule bounded_variation_absolutely_integrable_interval[where B=B])
     apply (rule integrable_on_subinterval[OF assms(1)])
@@ -11776,7 +11723,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
     apply (rule assms(2)[rule_format])
     apply auto
     done
-  show "((\<lambda>x. norm (f x)) has_integral i) UNIV"
+  show "((\<lambda>x. norm (f x)) has_integral ?S) UNIV"
     apply (subst has_integral_alt')
     apply safe
   proof -
@@ -11785,16 +11732,11 @@ proof (rule absolutely_integrable_onI, fact, rule)
       using f_int[of a b] by auto
   next
     case goal2
-    have "\<exists>y\<in>setsum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> i - e"
+    have "\<exists>y\<in>setsum (\<lambda>k. norm (integral k f)) ` {d. d division_of \<Union>d}. \<not> y \<le> ?S - e"
     proof (rule ccontr)
       assume "\<not> ?thesis"
-      then have "i \<le> i - e"
-        apply -
-        apply (rule isLub_le_isUb[OF i])
-        apply (rule isUbI)
-        unfolding setle_def
-        apply auto
-        done
+      then have "?S \<le> ?S - e"
+        by (intro cSUP_least[OF D(1)]) auto
       then show False
         using goal2 by auto
     qed
@@ -11811,9 +11753,9 @@ proof (rule absolutely_integrable_onI, fact, rule)
     proof -
       fix a b :: 'n
       assume ab: "ball 0 (K + 1) \<subseteq> {a..b}"
-      have *: "\<forall>s s1. i - e < s1 \<and> s1 \<le> s \<and> s < i + e \<longrightarrow> abs (s - i) < e"
+      have *: "\<forall>s s1. ?S - e < s1 \<and> s1 \<le> s \<and> s < ?S + e \<longrightarrow> abs (s - ?S) < e"
         by arith
-      show "norm (integral {a..b} (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) - i) < e"
+      show "norm (integral {a..b} (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) - ?S) < e"
         unfolding real_norm_def
         apply (rule *[rule_format])
         apply safe
@@ -11865,10 +11807,10 @@ proof (rule absolutely_integrable_onI, fact, rule)
         from henstock_lemma[OF f(1) `e/2>0`] guess d2 . note d2=this
         from fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] guess p .
         note p=this(1) conjunctD2[OF this(2)[unfolded fine_inter]]
-        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> i \<longrightarrow> abs (sf - si) < e / 2 \<longrightarrow>
-          abs (sf' - di) < e / 2 \<longrightarrow> di < i + e"
+        have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> abs (sf - si) < e / 2 \<longrightarrow>
+          abs (sf' - di) < e / 2 \<longrightarrow> di < ?S + e"
           by arith
-        show "integral {a..b} (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < i + e"
+        show "integral {a..b} (\<lambda>x. if x \<in> UNIV then norm (f x) else 0) < ?S + e"
           apply (subst if_P)
           apply rule
         proof (rule *[rule_format])
@@ -11891,18 +11833,12 @@ proof (rule absolutely_integrable_onI, fact, rule)
             apply (subst abs_of_nonneg)
             apply auto
             done
-          show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> i"
+          show "(\<Sum>(x, k)\<in>p. norm (integral k f)) \<le> ?S"
+            using partial_division_of_tagged_division[of p "{a..b}"] p(1)
             apply (subst setsum_over_tagged_division_lemma[OF p(1)])
-            defer
-            apply (rule isLubD2[OF i])
-            unfolding image_iff
-            apply (rule_tac x="snd ` p" in bexI)
-            unfolding mem_Collect_eq
-            defer
-            apply (rule partial_division_of_tagged_division[of _ "{a..b}"])
-            using p(1)
-            unfolding tagged_division_of_def
-            apply auto
+            apply (simp add: integral_null)
+            apply (intro cSUP_upper2[OF D(2), of "snd ` p"])
+            apply (auto simp: tagged_partial_division_of_def)
             done
         qed
       qed
@@ -12378,11 +12314,22 @@ subsection {* Dominated convergence *}
 lemma dominated_convergence:
   fixes f :: "nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k) integrable_on s" "h integrable_on s"
-    and "\<And>k. \<forall>x \<in> s. norm(f k x) \<le> (h x)"
+    and "\<And>k. \<forall>x \<in> s. norm (f k x) \<le> h x"
     and "\<forall>x \<in> s. ((\<lambda>k. f k x) ---> g x) sequentially"
   shows "g integrable_on s"
     and "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
 proof -
+  have bdd_below[simp]: "\<And>x P. x \<in> s \<Longrightarrow> bdd_below {f n x |n. P n}"
+  proof (safe intro!: bdd_belowI)
+    fix n x show "x \<in> s \<Longrightarrow> - h x \<le> f n x"
+      using assms(3)[rule_format, of x n] by simp
+  qed
+  have bdd_above[simp]: "\<And>x P. x \<in> s \<Longrightarrow> bdd_above {f n x |n. P n}"
+  proof (safe intro!: bdd_aboveI)
+    fix n x show "x \<in> s \<Longrightarrow> f n x \<le> h x"
+      using assms(3)[rule_format, of x n] by simp
+  qed
+
   have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<and>
     ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) --->
     integral s (\<lambda>x. Inf {f j x |j. m \<le> j}))sequentially"
@@ -12422,66 +12369,32 @@ proof -
     fix x
     assume x: "x \<in> s"
     show "Inf {f j x |j. j \<in> {m..m + Suc k}} \<le> Inf {f j x |j. j \<in> {m..m + k}}"
-      apply (rule cInf_ge)
-      unfolding setge_def
-      defer
-      apply rule
-      apply (subst cInf_finite_le_iff)
-      prefer 3
-      apply (rule_tac x=xa in bexI)
-      apply auto
-      done
-    let ?S = "{f j x| j.  m \<le> j}"
-    def i \<equiv> "Inf ?S"
-    show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
+      by (rule cInf_superset_mono) auto
+    let ?S = "{f j x| j. m \<le> j}"
+    show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> Inf ?S) sequentially"
     proof (rule LIMSEQ_I)
       case goal1
       note r = this
-      have i: "isGlb UNIV ?S i"
-        unfolding i_def
-        apply (rule Inf)
-        defer
-        apply (rule_tac x="- h x - 1" in exI)
-        unfolding setge_def
-      proof safe
-        case goal1
-        then show ?case using assms(3)[rule_format,OF x, of j] by auto
-      qed auto
 
-      have "\<exists>y\<in>?S. \<not> y \<ge> i + r"
-      proof(rule ccontr)
-        assume "\<not> ?thesis"
-        then have "i \<ge> i + r"
-          apply -
-          apply (rule isGlb_le_isLb[OF i])
-          apply (rule isLbI)
-          unfolding setge_def
-          apply fastforce+
-          done
-        then show False using r by auto
-      qed
-      then guess y .. note y=this[unfolded not_le]
-      from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
+      have "\<exists>y\<in>?S. y < Inf ?S + r"
+        by (subst cInf_less_iff[symmetric]) (auto simp: `x\<in>s` r)
+      then obtain N where N: "f N x < Inf ?S + r" "m \<le> N"
+        by blast
 
       show ?case
         apply (rule_tac x=N in exI)
       proof safe
         case goal1
-        have *: "\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r"
+        have *: "\<And>y ix. y < Inf ?S + r \<longrightarrow> Inf ?S \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - Inf ?S) < r"
           by arith
         show ?case
           unfolding real_norm_def
-            apply (rule *[rule_format,OF y(2)])
-            unfolding i_def
-            apply (rule real_le_inf_subset)
-            prefer 3
-            apply (rule,rule isGlbD1[OF i])
-            prefer 3
-            apply (subst cInf_finite_le_iff)
-            prefer 3
-            apply (rule_tac x=y in bexI)
+            apply (rule *[rule_format, OF N(1)])
+            apply (rule cInf_superset_mono, auto simp: `x\<in>s`) []
+            apply (rule cInf_lower)
             using N goal1
-            apply auto
+            apply auto []
+            apply simp
             done
       qed
     qed
@@ -12525,65 +12438,27 @@ proof -
     fix x
     assume x: "x\<in>s"
     show "Sup {f j x |j. j \<in> {m..m + Suc k}} \<ge> Sup {f j x |j. j \<in> {m..m + k}}"
-      apply (rule cSup_le)
-      unfolding setle_def
-      defer
-      apply rule
-      apply (subst cSup_finite_ge_iff)
-      prefer 3
-      apply (rule_tac x=y in bexI)
-      apply auto
-      done
-    let ?S = "{f j x| j.  m \<le> j}"
-    def i \<equiv> "Sup ?S"
-    show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
+      by (rule cSup_subset_mono) auto
+    let ?S = "{f j x| j. m \<le> j}"
+    show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> Sup ?S) sequentially"
     proof (rule LIMSEQ_I)
       case goal1 note r=this
-      have i: "isLub UNIV ?S i"
-        unfolding i_def
-        apply (rule isLub_cSup)
-        defer
-        apply (rule_tac x="h x" in exI)
-        unfolding setle_def
-      proof safe
-        case goal1
-        then show ?case
-          using assms(3)[rule_format,OF x, of j] by auto
-      qed auto
-
-      have "\<exists>y\<in>?S. \<not> y \<le> i - r"
-      proof (rule ccontr)
-        assume "\<not> ?thesis"
-        then have "i \<le> i - r"
-          apply -
-          apply (rule isLub_le_isUb[OF i])
-          apply (rule isUbI)
-          unfolding setle_def
-          apply fastforce+
-          done
-        then show False
-          using r by auto
-      qed
-      then guess y .. note y=this[unfolded not_le]
-      from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
+      have "\<exists>y\<in>?S. Sup ?S - r < y"
+        by (subst less_cSup_iff[symmetric]) (auto simp: r `x\<in>s`)
+      then obtain N where N: "Sup ?S - r < f N x" "m \<le> N"
+        by blast
 
       show ?case
         apply (rule_tac x=N in exI)
       proof safe
         case goal1
-        have *: "\<And>y ix. i - r < y \<longrightarrow> ix \<le> i \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - i) < r"
+        have *: "\<And>y ix. Sup ?S - r < y \<longrightarrow> ix \<le> Sup ?S \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - Sup ?S) < r"
           by arith
         show ?case
-          unfolding real_norm_def
-          apply (rule *[rule_format,OF y(2)])
-          unfolding i_def
-          apply (rule real_ge_sup_subset)
-          prefer 3
-          apply (rule, rule isLubD1[OF i])
-          prefer 3
-          apply (subst cSup_finite_ge_iff)
-          prefer 3
-          apply (rule_tac x = y in bexI)
+          apply simp
+          apply (rule *[rule_format, OF N(1)])
+          apply (rule cSup_subset_mono, auto simp: `x\<in>s`) []
+          apply (subst cSup_upper)
           using N goal1
           apply auto
           done
@@ -12616,17 +12491,7 @@ proof -
 
     have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
     show "Inf {f j x |j. k \<le> j} \<le> Inf {f j x |j. Suc k \<le> j}"
-      apply -
-      apply (rule real_le_inf_subset)
-      prefer 3
-      unfolding setge_def
-      apply (rule_tac x="- h x" in exI)
-      apply safe
-      apply (rule *)
-      using assms(3)[rule_format,OF x]
-      unfolding real_norm_def abs_le_iff
-      apply auto
-      done
+      by (intro cInf_superset_mono) (auto simp: `x\<in>s`)
 
     show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) ----> g x"
     proof (rule LIMSEQ_I)
@@ -12674,16 +12539,7 @@ proof -
     assume x: "x \<in> s"
 
     show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}"
-      apply -
-      apply (rule real_ge_sup_subset)
-      prefer 3
-      unfolding setle_def
-      apply (rule_tac x="h x" in exI)
-      apply safe
-      using assms(3)[rule_format,OF x]
-      unfolding real_norm_def abs_le_iff
-      apply auto
-      done
+      by (rule cSup_subset_mono) (auto simp: `x\<in>s`)
     show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
     proof (rule LIMSEQ_I)
       case goal1
@@ -12712,41 +12568,18 @@ proof -
     from LIMSEQ_D [OF inc2(2) goal1] guess N1 .. note N1=this[unfolded real_norm_def]
     from LIMSEQ_D [OF dec2(2) goal1] guess N2 .. note N2=this[unfolded real_norm_def]
     show ?case
-      apply (rule_tac x="N1+N2" in exI, safe)
-    proof -
+    proof (rule_tac x="N1+N2" in exI, safe)
       fix n
       assume n: "n \<ge> N1 + N2"
       have *: "\<And>i0 i i1 g. \<bar>i0 - g\<bar> < r \<longrightarrow> \<bar>i1 - g\<bar> < r \<longrightarrow> i0 \<le> i \<longrightarrow> i \<le> i1 \<longrightarrow> \<bar>i - g\<bar> < r"
         by arith
       show "norm (integral s (f n) - integral s g) < r"
         unfolding real_norm_def
-        apply (rule *[rule_format,OF N1[rule_format] N2[rule_format], of n n])
-      proof -
+      proof (rule *[rule_format,OF N1[rule_format] N2[rule_format], of n n])
         show "integral s (\<lambda>x. Inf {f j x |j. n \<le> j}) \<le> integral s (f n)"
-        proof (rule integral_le[OF dec1(1) assms(1)], safe)
-          fix x
-          assume x: "x \<in> s"
-          have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
-          show "Inf {f j x |j. n \<le> j} \<le> f n x"
-            apply (intro cInf_lower bdd_belowI)
-            apply auto []
-            apply (rule *)
-            using assms(3)[rule_format,OF x]
-            unfolding real_norm_def abs_le_iff
-            apply auto
-            done
-        qed
+          by (rule integral_le[OF dec1(1) assms(1)]) (auto intro!: cInf_lower)
         show "integral s (f n) \<le> integral s (\<lambda>x. Sup {f j x |j. n \<le> j})"
-        proof (rule integral_le[OF assms(1) inc1(1)], safe)
-          fix x
-          assume x: "x \<in> s"
-          show "f n x \<le> Sup {f j x |j. n \<le> j}"
-            apply (rule cSup_upper)
-            using assms(3)[rule_format,OF x]
-            unfolding real_norm_def abs_le_iff
-            apply auto
-            done
-        qed
+          by (rule integral_le[OF assms(1) inc1(1)]) (auto intro!: cSup_upper)
       qed (insert n, auto)
     qed
   qed

@@ -10,7 +10,6 @@ theory Topology_Euclidean_Space
 imports
   Complex_Main
   "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/Glbs"
   "~~/src/HOL/Library/FuncSet"
   Linear_Algebra
   Norm_Arith
@@ -27,8 +26,6 @@ lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longri
 (* LEGACY *)
 lemma lim_subseq: "subseq r \<Longrightarrow> s ----> l \<Longrightarrow> (s \<circ> r) ----> l"
   by (rule LIMSEQ_subseq_LIMSEQ)
-
-lemmas real_isGlb_unique = isGlb_unique[where 'a=real]
 
 lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
@@ -1555,7 +1552,7 @@ next
       fix y
       assume "y \<in> {x<..} \<inter> I"
       with False bnd have "Inf (f ` ({x<..} \<inter> I)) \<le> f y"
-        by (auto intro: cInf_lower)
+        by (auto intro!: cInf_lower bdd_belowI2)
       with a have "a < f y"
         by (blast intro: less_le_trans)
     }

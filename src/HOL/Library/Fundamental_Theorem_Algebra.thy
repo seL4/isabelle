@@ -156,28 +156,11 @@ qed
 text{* An alternative useful formulation of completeness of the reals *}
 lemma real_sup_exists: assumes ex: "\<exists>x. P x" and bz: "\<exists>z. \<forall>x. P x \<longrightarrow> x < z"
   shows "\<exists>(s::real). \<forall>y. (\<exists>x. P x \<and> y < x) \<longleftrightarrow> y < s"
-proof-
-  from ex bz obtain x Y where x: "P x" and Y: "\<And>x. P x \<Longrightarrow> x < Y"  by blast
-  from ex have thx:"\<exists>x. x \<in> Collect P" by blast
-  from bz have thY: "\<exists>Y. isUb UNIV (Collect P) Y"
-    by(auto simp add: isUb_def isLub_def setge_def setle_def leastP_def Ball_def order_le_less)
-  from reals_complete[OF thx thY] obtain L where L: "isLub UNIV (Collect P) L"
-    by blast
-  from Y[OF x] have xY: "x < Y" .
-  from L have L': "\<forall>x. P x \<longrightarrow> x \<le> L" by (auto simp add: isUb_def isLub_def setge_def setle_def leastP_def Ball_def)
-  from Y have Y': "\<forall>x. P x \<longrightarrow> x \<le> Y"
-    apply (clarsimp, atomize (full)) by auto
-  from L Y' have "L \<le> Y" by (auto simp add: isUb_def isLub_def setge_def setle_def leastP_def Ball_def)
-  {fix y
-    {fix z assume z: "P z" "y < z"
-      from L' z have "y < L" by auto }
-    moreover
-    {assume yL: "y < L" "\<forall>z. P z \<longrightarrow> \<not> y < z"
-      hence nox: "\<forall>z. P z \<longrightarrow> y \<ge> z" by auto
-      from nox L have "y \<ge> L" by (auto simp add: isUb_def isLub_def setge_def setle_def leastP_def Ball_def)
-      with yL(1) have False  by arith}
-    ultimately have "(\<exists>x. P x \<and> y < x) \<longleftrightarrow> y < L" by blast}
-  thus ?thesis by blast
+proof
+  from bz have "bdd_above (Collect P)"
+    by (force intro: less_imp_le)
+  then show "\<forall>y. (\<exists>x. P x \<and> y < x) \<longleftrightarrow> y < Sup (Collect P)"
+    using ex bz by (subst less_cSup_iff) auto
 qed
 
 subsection {* Fundamental theorem of algebra *}

@@ -57,25 +57,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma lub_compat: "lub A x = isLub UNIV A x"
-proof -
-  have "isUb UNIV A = (\<lambda>x. A *<= x \<and> x \<in> UNIV)"
-    by (rule ext) (simp only: isUb_def)
-  then show ?thesis
-    by (simp only: lub_def isLub_def leastP_def setge_def setle_def) blast
-qed
-
-lemma real_complete:
-  fixes A :: "real set"
-  assumes nonempty: "\<exists>a. a \<in> A"
-    and ex_upper: "\<exists>y. \<forall>a \<in> A. a \<le> y"
-  shows "\<exists>x. lub A x"
-proof -
-  from ex_upper have "\<exists>y. isUb UNIV A y"
-    unfolding isUb_def setle_def by blast
-  with nonempty have "\<exists>x. isLub UNIV A x"
-    by (rule reals_complete)
-  then show ?thesis by (simp only: lub_compat)
-qed
+lemma real_complete: "\<exists>a::real. a \<in> A \<Longrightarrow> \<exists>y. \<forall>a \<in> A. a \<le> y \<Longrightarrow> \<exists>x. lub A x"
+  by (intro exI[of _ "Sup A"]) (auto intro!: cSup_upper cSup_least simp: lub_def)
 
 end
