@@ -139,27 +139,27 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
       fun check_call_dead live_call call =
         if null (get_indices call) then () else incompatible_calls live_call call;
 
-      fun freeze_fp_simple (T as Type (s, Ts)) =
+      fun freeze_fpTs_simple (T as Type (s, Ts)) =
           (case find_index (curry (op =) T) fpTs of
-            ~1 => Type (s, map freeze_fp_simple Ts)
+            ~1 => Type (s, map freeze_fpTs_simple Ts)
           | kk => nth Xs kk)
-        | freeze_fp_simple T = T;
+        | freeze_fpTs_simple T = T;
 
-      fun freeze_fp_map (callss, (live_call :: _, dead_calls)) s Ts =
+      fun freeze_fpTs_map (callss, (live_call :: _, dead_calls)) s Ts =
         (List.app (check_call_dead live_call) dead_calls;
-         Type (s, map2 freeze_fp (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
+         Type (s, map2 freeze_fpTs (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
            (transpose callss)) Ts))
-      and freeze_fp calls (T as Type (s, Ts)) =
+      and freeze_fpTs calls (T as Type (s, Ts)) =
           (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
             ([], _) =>
             (case map_partition (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
-              ([], _) => freeze_fp_simple T
-            | callsp => freeze_fp_map callsp s Ts)
-          | callsp => freeze_fp_map callsp s Ts)
-        | freeze_fp _ T = T;
+              ([], _) => freeze_fpTs_simple T
+            | callsp => freeze_fpTs_map callsp s Ts)
+          | callsp => freeze_fpTs_map callsp s Ts)
+        | freeze_fpTs _ T = T;
 
       val ctr_Tsss = map (map binder_types) ctr_Tss;
-      val ctrXs_Tsss = map2 (map2 (map2 freeze_fp)) callssss ctr_Tsss;
+      val ctrXs_Tsss = map2 (map2 (map2 freeze_fpTs)) callssss ctr_Tsss;
       val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
       val Ts = map (body_type o hd) ctr_Tss;
 
@@ -298,13 +298,18 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val missing_Ts = perm_Ts |> subtract (op =) actual_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
-    fun generalize_type (T as Type (s, Ts)) (seen_lthy as (seen, lthy)) =
-        (case AList.lookup (op =) seen T of
-          SOME U => (U, seen_lthy)
-        | NONE =>
+    fun generalize_simple_type T (seen, lthy) =
+      mk_TFrees 1 lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy)));
+
+    fun generalize_type T (seen_lthy as (seen, _)) =
+      (case AList.lookup (op =) seen T of
+        SOME U => (U, seen_lthy)
+      | NONE =>
+        (case T of
+          Type (s, Ts) =>
           if exists_subtype_in Ts T then fold_map generalize_type Ts seen_lthy |>> curry Type s
-          else mk_TFrees 1 lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy))))
-      | generalize_type T seen_lthy = (T, seen_lthy);
+          else generalize_simple_type T seen_lthy
+        | _ => generalize_simple_type T seen_lthy));
 
     val (perm_Us, _) = fold_map generalize_type perm_Ts ([], lthy);
 
