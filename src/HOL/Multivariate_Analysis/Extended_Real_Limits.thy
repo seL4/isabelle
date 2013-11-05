@@ -1193,12 +1193,12 @@ next
 qed
 
 lemma Liminf_at:
-  fixes f :: "'a::metric_space \<Rightarrow> _"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
   using Liminf_within[of x UNIV f] by simp
 
 lemma Limsup_at:
-  fixes f :: "'a::metric_space \<Rightarrow> _"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
   using Limsup_within[of x UNIV f] by simp
 

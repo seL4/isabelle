@@ -283,22 +283,22 @@ lemma cSup_eq_Max: "finite (X::'a::conditionally_complete_linorder set) \<Longri
 lemma cInf_eq_Min: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf X = Min X"
   using cInf_eq_Inf_fin[of X] Inf_fin_eq_Min[of X] by simp
 
-lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, unbounded_dense_linorder}} = x"
+lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq_non_empty intro: dense_le)
 
-lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditionally_complete_linorder, unbounded_dense_linorder}} = x"
+lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq intro: dense_le_bounded)
 
-lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditionally_complete_linorder, unbounded_dense_linorder}} = x"
+lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditionally_complete_linorder, no_bot, dense_linorder}} = x"
   by (auto intro!: cSup_eq intro: dense_le_bounded)
 
-lemma cInf_greaterThan[simp]: "Inf {x::'a::{conditionally_complete_linorder, unbounded_dense_linorder} <..} = x"
+lemma cInf_greaterThan[simp]: "Inf {x::'a::{conditionally_complete_linorder, no_top, dense_linorder} <..} = x"
   by (auto intro!: cInf_eq intro: dense_ge)
 
-lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditionally_complete_linorder, unbounded_dense_linorder}} = y"
+lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditionally_complete_linorder, no_top, dense_linorder}} = y"
   by (auto intro!: cInf_eq intro: dense_ge_bounded)
 
-lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, unbounded_dense_linorder}} = y"
+lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, no_top, dense_linorder}} = y"
   by (auto intro!: cInf_eq intro: dense_ge_bounded)
 
 end

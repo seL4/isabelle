@@ -21,11 +21,13 @@ lemma Inf_le_iff_less:
   by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
 lemma SUPR_pair:
-  "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
+  shows "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: SUP_least SUP_upper2)
 
 lemma INFI_pair:
-  "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
+  shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
 subsubsection {* @{text Liminf} and @{text Limsup} *}
@@ -41,12 +43,14 @@ abbreviation "liminf \<equiv> Liminf sequentially"
 abbreviation "limsup \<equiv> Limsup sequentially"
 
 lemma Liminf_eqI:
-  "(\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> x) \<Longrightarrow>  
+  fixes f :: "_ \<Rightarrow> _ :: complete_lattice"
+  shows "(\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> x) \<Longrightarrow>  
     (\<And>y. (\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> Liminf F f = x"
   unfolding Liminf_def by (auto intro!: SUP_eqI)
 
 lemma Limsup_eqI:
-  "(\<And>P. eventually P F \<Longrightarrow> x \<le> SUPR (Collect P) f) \<Longrightarrow>  
+  fixes f :: "_ \<Rightarrow> _ :: complete_lattice"
+  shows "(\<And>P. eventually P F \<Longrightarrow> x \<le> SUPR (Collect P) f) \<Longrightarrow>  
     (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
   unfolding Limsup_def by (auto intro!: INF_eqI)
 

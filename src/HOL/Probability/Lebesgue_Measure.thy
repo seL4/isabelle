@@ -1138,7 +1138,7 @@ proof -
     show "\<And>i x. 0 \<le> ?f i x"
       using nonneg by (auto split: split_indicator)
   qed
-  also have "\<dots> = (SUP i::nat. F (a + real i) - F a)"
+  also have "\<dots> = (SUP i::nat. ereal (F (a + real i) - F a))"
     by (subst positive_integral_FTC_atLeastAtMost[OF f_borel f nonneg]) auto
   also have "\<dots> = T - F a"
   proof (rule SUP_Lim_ereal)

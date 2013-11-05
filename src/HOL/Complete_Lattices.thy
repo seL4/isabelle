@@ -15,10 +15,54 @@ subsection {* Syntactic infimum and supremum operations *}
 
 class Inf =
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+begin
+
+definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  INF_def: "INFI A f = \<Sqinter>(f ` A)"
+
+end
 
 class Sup =
   fixes Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+begin
 
+definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  SUP_def: "SUPR A f = \<Squnion>(f ` A)"
+
+end
+
+text {*
+  Note: must use names @{const INFI} and @{const SUPR} here instead of
+  @{text INF} and @{text SUP} to allow the following syntax coexist
+  with the plain constant names.
+*}
+
+syntax
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
+  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "INF x y. B"   == "INF x. INF y. B"
+  "INF x. B"     == "CONST INFI CONST UNIV (%x. B)"
+  "INF x. B"     == "INF x:CONST UNIV. B"
+  "INF x:A. B"   == "CONST INFI A (%x. B)"
+  "SUP x y. B"   == "SUP x. SUP y. B"
+  "SUP x. B"     == "CONST SUPR CONST UNIV (%x. B)"
+  "SUP x. B"     == "SUP x:CONST UNIV. B"
+  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
+
+print_translation {*
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
+*} -- {* to avoid eta-contraction of body *}
 
 subsection {* Abstract complete lattices *}
 
@@ -49,59 +93,17 @@ lemma dual_complete_lattice:
     (unfold_locales, (fact Inf_empty Sup_empty
         Sup_upper Sup_least Inf_lower Inf_greatest)+)
 
-definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  INF_def: "INFI A f = \<Sqinter>(f ` A)"
-
-definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  SUP_def: "SUPR A f = \<Squnion>(f ` A)"
-
-text {*
-  Note: must use names @{const INFI} and @{const SUPR} here instead of
-  @{text INF} and @{text SUP} to allow the following syntax coexist
-  with the plain constant names.
-*}
-
 end
-
-syntax
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3INF _:_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3SUP _:_./ _)" [0, 0, 10] 10)
-
-syntax (xsymbols)
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Squnion>_./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Squnion>_\<in>_./ _)" [0, 0, 10] 10)
-
-translations
-  "INF x y. B"   == "INF x. INF y. B"
-  "INF x. B"     == "CONST INFI CONST UNIV (%x. B)"
-  "INF x. B"     == "INF x:CONST UNIV. B"
-  "INF x:A. B"   == "CONST INFI A (%x. B)"
-  "SUP x y. B"   == "SUP x. SUP y. B"
-  "SUP x. B"     == "CONST SUPR CONST UNIV (%x. B)"
-  "SUP x. B"     == "SUP x:CONST UNIV. B"
-  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
-
-print_translation {*
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
-*} -- {* to avoid eta-contraction of body *}
 
 context complete_lattice
 begin
 
 lemma INF_foundation_dual:
-  "complete_lattice.SUPR Inf = INFI"
-  by (simp add: fun_eq_iff INF_def
-    complete_lattice.SUP_def [OF dual_complete_lattice])
+  "Sup.SUPR Inf = INFI"
+  by (simp add: fun_eq_iff INF_def Sup.SUP_def)
 
 lemma SUP_foundation_dual:
-  "complete_lattice.INFI Sup = SUPR"
-  by (simp add: fun_eq_iff SUP_def
-    complete_lattice.INF_def [OF dual_complete_lattice])
+  "Inf.INFI Sup = SUPR" by (simp add: fun_eq_iff SUP_def Inf.INF_def)
 
 lemma Sup_eqI:
   "(\<And>y. y \<in> A \<Longrightarrow> y \<le> x) \<Longrightarrow> (\<And>y. (\<And>z. z \<in> A \<Longrightarrow> z \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> \<Squnion>A = x"
