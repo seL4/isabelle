@@ -90,6 +90,12 @@ lemma bdd_below_Ici [simp, intro]: "bdd_below {a ..}"
 
 end
 
+lemma (in order_top) bdd_above_top[simp, intro!]: "bdd_above A"
+  by (rule bdd_aboveI[of _ top]) simp
+
+lemma (in order_bot) bdd_above_bot[simp, intro!]: "bdd_below A"
+  by (rule bdd_belowI[of _ bot]) simp
+
 context lattice
 begin
 
@@ -269,6 +275,12 @@ lemma cINF_lower2: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarr
 
 lemma cSUP_upper2: "bdd_above (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> u \<le> f x \<Longrightarrow> u \<le> SUPR A f"
   by (auto intro: cSUP_upper assms order_trans)
+
+lemma cSUP_const: "A \<noteq> {} \<Longrightarrow> (SUP x:A. c) = c"
+  by (intro antisym cSUP_least) (auto intro: cSUP_upper)
+
+lemma cINF_const: "A \<noteq> {} \<Longrightarrow> (INF x:A. c) = c"
+  by (intro antisym cINF_greatest) (auto intro: cINF_lower)
 
 lemma le_cINF_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> u \<le> INFI A f \<longleftrightarrow> (\<forall>x\<in>A. u \<le> f x)"
   by (metis cINF_greatest cINF_lower assms order_trans)
