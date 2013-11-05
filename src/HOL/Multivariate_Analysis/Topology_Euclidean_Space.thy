@@ -2686,7 +2686,7 @@ qed (metis cInf_lower assms(1) bounded_imp_bdd_below)
 lemma Inf_insert:
   fixes S :: "real set"
   shows "bounded S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
-  by (auto simp: bounded_imp_bdd_below inf_min cInf_insert_if)
+  by (auto simp: bounded_imp_bdd_below inf_min cInf_insert_If)
 
 lemma Inf_insert_finite:
   fixes S :: "real set"

@@ -20,6 +20,12 @@ begin
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   INF_def: "INFI A f = \<Sqinter>(f ` A)"
 
+lemma INF_image [simp]: "INFI (f`A) g = INFI A (\<lambda>x. g (f x))"
+  by (simp add: INF_def image_image)
+
+lemma INF_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFI A C = INFI B D"
+  by (simp add: INF_def image_def)
+
 end
 
 class Sup =
@@ -28,6 +34,12 @@ begin
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   SUP_def: "SUPR A f = \<Squnion>(f ` A)"
+
+lemma SUP_image [simp]: "SUPR (f`A) g = SUPR A (%x. g (f x))"
+  by (simp add: SUP_def image_image)
+
+lemma SUP_cong: "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPR A C = SUPR B D"
+  by (simp add: SUP_def image_def)
 
 end
 
@@ -183,12 +195,6 @@ lemma Sup_UNIV [simp]:
   "\<Squnion>UNIV = \<top>"
   by (auto intro!: antisym Sup_upper)
 
-lemma INF_image [simp]: "(\<Sqinter>x\<in>f`A. g x) = (\<Sqinter>x\<in>A. g (f x))"
-  by (simp add: INF_def image_image)
-
-lemma SUP_image [simp]: "(\<Squnion>x\<in>f`A. g x) = (\<Squnion>x\<in>A. g (f x))"
-  by (simp add: SUP_def image_image)
-
 lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<sqsubseteq> a}"
   by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
 
@@ -200,14 +206,6 @@ lemma Inf_superset_mono: "B \<subseteq> A \<Longrightarrow> \<Sqinter>A \<sqsubs
 
 lemma Sup_subset_mono: "A \<subseteq> B \<Longrightarrow> \<Squnion>A \<sqsubseteq> \<Squnion>B"
   by (auto intro: Sup_least Sup_upper)
-
-lemma INF_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Sqinter>x\<in>A. C x) = (\<Sqinter>x\<in>B. D x)"
-  by (simp add: INF_def image_def)
-
-lemma SUP_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Squnion>x\<in>A. C x) = (\<Squnion>x\<in>B. D x)"
-  by (simp add: SUP_def image_def)
 
 lemma Inf_mono:
   assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<sqsubseteq> b"
