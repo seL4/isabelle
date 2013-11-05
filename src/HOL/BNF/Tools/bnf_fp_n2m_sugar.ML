@@ -78,15 +78,13 @@ fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapp
   | unfold_let (Abs (s, T, t)) = Abs (s, T, unfold_let t)
   | unfold_let t = t;
 
-val dummy_var_name = "?f"
-
 fun mk_map_pattern ctxt s =
   let
     val bnf = the (bnf_of ctxt s);
     val mapx = map_of_bnf bnf;
     val live = live_of_bnf bnf;
     val (f_Ts, _) = strip_typeN live (fastype_of mapx);
-    val fs = map_index (fn (i, T) => Var ((dummy_var_name, i), T)) f_Ts;
+    val fs = map_index (fn (i, T) => Var (("?f", i), T)) f_Ts;
   in
     (mapx, betapplys (mapx, fs))
   end;

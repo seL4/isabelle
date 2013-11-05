@@ -139,7 +139,7 @@ fun ctr_sugars_of ctxt =
   Symtab.fold (cons o transfer_ctr_sugar ctxt o snd) (Data.get (Context.Proof ctxt)) [];
 
 fun register_ctr_sugar key ctr_sugar =
-  Local_Theory.declaration {syntax = false, pervasive = true}
+  Local_Theory.declaration {syntax = false, pervasive = false}
     (fn phi => Data.map (Symtab.default (key, morph_ctr_sugar phi ctr_sugar)));
 
 val rep_compat_prefix = "new";
@@ -918,7 +918,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         (ctr_sugar,
          lthy
          |> not rep_compat ?
-            (Local_Theory.declaration {syntax = false, pervasive = true}
+            (Local_Theory.declaration {syntax = false, pervasive = false}
                (fn phi => Case_Translation.register
                   (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
          |> Local_Theory.notes (anonymous_notes @ notes) |> snd
