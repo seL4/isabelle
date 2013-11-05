@@ -97,7 +97,7 @@ fun map_partition f xs =
 (* TODO: use right sorting order for "fp_sort" w.r.t. original BNFs (?) -- treat new variables
    as deads? *)
 fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
-  if has_nested orelse has_duplicates (op =) fpTs then
+  if has_nested then
     let
       val thy = Proof_Context.theory_of no_defs_lthy0;
 
@@ -136,14 +136,14 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
         |> mk_TFrees nn
         ||>> variant_tfrees fp_b_names;
 
-      fun freeze_fp_default (T as Type (s, Ts)) =
-          (case find_index (curry (op =) T) fpTs of
-            ~1 => Type (s, map freeze_fp_default Ts)
-          | kk => nth Xs kk)
-        | freeze_fp_default T = T;
-
       fun check_call_dead live_call call =
         if null (get_indices call) then () else incompatible_calls live_call call;
+
+      fun freeze_fp_simple (T as Type (s, Ts)) =
+          (case find_index (curry (op =) T) fpTs of
+            ~1 => Type (s, map freeze_fp_simple Ts)
+          | kk => nth Xs kk)
+        | freeze_fp_simple T = T;
 
       fun freeze_fp_map (callss, (live_call :: _, dead_calls)) s Ts =
         (List.app (check_call_dead live_call) dead_calls;
@@ -153,7 +153,7 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
           (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
             ([], _) =>
             (case map_partition (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
-              ([], _) => freeze_fp_default T
+              ([], _) => freeze_fp_simple T
             | callsp => freeze_fp_map callsp s Ts)
           | callsp => freeze_fp_map callsp s Ts)
         | freeze_fp _ T = T;
@@ -257,6 +257,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val qsoty = quote o Syntax.string_of_typ lthy;
     val qsotys = space_implode " or " o map qsoty;
 
+    fun duplicate_datatype T = error (qsoty T ^ " is not mutually recursive with itself");
     fun not_co_datatype0 T = error (qsoty T ^ " is not a " ^ co_prefix fp ^ "datatype");
     fun not_co_datatype (T as Type (s, _)) =
         if fp = Least_FP andalso
@@ -268,6 +269,8 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     fun not_mutually_nested_rec Ts1 Ts2 =
       error (qsotys Ts1 ^ " is neither mutually recursive with nor nested recursive via " ^
         qsotys Ts2);
+
+    val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
 
     val perm_actual_Ts as Type (_, ty_args0) :: _ =
       sort (int_ord o pairself Term.size_of_typ) actual_Ts;

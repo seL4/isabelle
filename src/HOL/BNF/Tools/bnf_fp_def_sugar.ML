@@ -1000,7 +1000,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val qsoty = quote o Syntax.string_of_typ fake_lthy;
 
-    val _ = (case duplicates (op =) unsorted_As of [] => ()
+    val _ = (case Library.duplicates (op =) unsorted_As of [] => ()
       | A :: _ => error ("Duplicate type parameter " ^ qsoty A ^ " in " ^ co_prefix fp ^
           "datatype specification"));
 
@@ -1013,7 +1013,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val mixfixes = map mixfix_of specs;
 
-    val _ = (case duplicates Binding.eq_name fp_bs of [] => ()
+    val _ = (case Library.duplicates Binding.eq_name fp_bs of [] => ()
       | b :: _ => error ("Duplicate type name declaration " ^ quote (Binding.name_of b)));
 
     val ctr_specss = map ctr_specs_of specs;
