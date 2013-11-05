@@ -33,6 +33,7 @@ sig
      case_conv_ifs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
+  val transfer_ctr_sugar: Proof.context -> ctr_sugar -> ctr_sugar
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
   val ctr_sugars_of: Proof.context -> ctr_sugar list
 

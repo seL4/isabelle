@@ -200,11 +200,11 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
     fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) iter_thmsss =
       let
         val ctrs = #ctrs (nth ctr_sugars index);
-        val rec_thmss = co_rec_of (nth iter_thmsss index);
+        val rec_thms = co_rec_of (nth iter_thmsss index);
         val k = offset_of_ctr index ctr_sugars;
         val n = length ctrs;
       in
-        map4 mk_ctr_spec ctrs (k upto k + n - 1) (nth perm_fun_arg_Tssss index) rec_thmss
+        map4 mk_ctr_spec ctrs (k upto k + n - 1) (nth perm_fun_arg_Tssss index) rec_thms
       end;
 
     fun mk_spec ({T, index, ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...}

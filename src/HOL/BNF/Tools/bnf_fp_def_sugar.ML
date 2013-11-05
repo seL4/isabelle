@@ -25,7 +25,9 @@ sig
      sel_co_iterssss: thm list list list list};
 
   val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
+  val eq_fp_sugar: fp_sugar * fp_sugar -> bool
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
+  val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
   val fp_sugars_of: Proof.context -> fp_sugar list
 
@@ -44,12 +46,18 @@ sig
     (thm list * thm * Args.src list)
     * (thm list list * thm list list * Args.src list)
 
+  val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
+  val transfer_lfp_sugar_thms: Proof.context -> lfp_sugar_thms -> lfp_sugar_thms
+
   type gfp_sugar_thms =
     ((thm list * thm) list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list list * thm list list list * Args.src list)
+
+  val morph_gfp_sugar_thms: morphism -> gfp_sugar_thms -> gfp_sugar_thms
+  val transfer_gfp_sugar_thms: Proof.context -> gfp_sugar_thms -> gfp_sugar_thms
 
   val mk_co_iters_prelims: BNF_FP_Util.fp_kind -> typ list list list -> typ list -> typ list ->
     int list -> int list list -> term list list -> Proof.context ->
@@ -331,12 +339,36 @@ type lfp_sugar_thms =
   (thm list * thm * Args.src list)
   * (thm list list * thm list list * Args.src list)
 
+fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (foldss, recss, iter_attrs)) =
+  ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
+   (map (map (Morphism.thm phi)) foldss, map (map (Morphism.thm phi)) recss, iter_attrs));
+
+val transfer_lfp_sugar_thms =
+  morph_lfp_sugar_thms o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+
 type gfp_sugar_thms =
   ((thm list * thm) list * Args.src list)
   * (thm list list * thm list list * Args.src list)
   * (thm list list * thm list list * Args.src list)
   * (thm list list * thm list list * Args.src list)
   * (thm list list list * thm list list list * Args.src list);
+
+fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
+    (unfoldss, corecss, coiter_attrs), (disc_unfoldss, disc_corecss, disc_iter_attrs),
+    (disc_unfold_iffss, disc_corec_iffss, disc_iter_iff_attrs),
+    (sel_unfoldsss, sel_corecsss, sel_iter_attrs)) =
+  ((map (apfst (map (Morphism.thm phi)) o apsnd (Morphism.thm phi)) coinducts_pairs,
+    coinduct_attrs),
+   (map (map (Morphism.thm phi)) unfoldss, map (map (Morphism.thm phi)) corecss, coiter_attrs),
+   (map (map (Morphism.thm phi)) disc_unfoldss, map (map (Morphism.thm phi)) disc_corecss,
+    disc_iter_attrs),
+   (map (map (Morphism.thm phi)) disc_unfold_iffss, map (map (Morphism.thm phi)) disc_corec_iffss,
+    disc_iter_iff_attrs),
+   (map (map (map (Morphism.thm phi))) sel_unfoldsss,
+    map (map (map (Morphism.thm phi))) sel_corecsss, sel_iter_attrs));
+
+val transfer_gfp_sugar_thms =
+  morph_gfp_sugar_thms o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
 
 fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
