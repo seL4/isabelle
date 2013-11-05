@@ -199,7 +199,8 @@ fun massage_let_if_case ctxt has_call massage_leaf =
                       val body_T' = snd (strip_typeN (hd gen_branch_ms) (hd branch_Ts'));
                       val casex' = Const (c, branch_Ts' ---> map typof obj_leftovers ---> body_T');
                     in
-                      Term.list_comb (casex', branches' @ tap (List.app check_no_call) obj_leftovers)
+                      Term.list_comb (casex',
+                        branches' @ tap (List.app check_no_call) obj_leftovers)
                     end
                   else
                     massage_leaf bound_Ts t
@@ -345,6 +346,7 @@ fun basic_corec_specs_of ctxt res_T =
     | SOME {ctrs, discs, selss, ...} =>
       let
         val thy = Proof_Context.theory_of ctxt;
+
         val gfpT = body_type (fastype_of (hd ctrs));
         val As_rho = tvar_subst thy [gfpT] [res_T];
         val substA = Term.subst_TVars As_rho;
@@ -517,10 +519,11 @@ datatype coeqn_data =
 fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec list list)
     maybe_ctr_rhs maybe_code_rhs prems' concl matchedsss =
   let
-    fun find_subterm p = let (* FIXME \<exists>? *)
-      fun f (t as u $ v) = if p t then SOME t else merge_options (f u, f v)
-        | f t = if p t then SOME t else NONE
-      in f end;
+    fun find_subterm p =
+      let (* FIXME \<exists>? *)
+        fun find (t as u $ v) = if p t then SOME t else merge_options (find u, find v)
+          | find t = if p t then SOME t else NONE;
+      in find end;
 
     val applied_fun = concl
       |> find_subterm (member ((op =) o apsnd SOME) fun_names o try (fst o dest_Free o head_of))
@@ -586,7 +589,8 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
       handle TERM _ =>
         primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name)
-      handle Option.Option => primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
+      handle Option.Option =>
+        primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val {ctr, ...} =
       (case maybe_of_spec of
         SOME of_spec => the (find_first (equal of_spec o #ctr) basic_ctr_specs)
@@ -850,8 +854,14 @@ fun find_corec_calls ctxt has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : 
 
 fun add_primcorec_ursive maybe_tac seq fixes specs maybe_of_specs lthy =
   let
+    val thy = Proof_Context.theory_of lthy;
+
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> HOLogic.mk_tupleT) fixes |> split_list;
+
+    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ arg_Ts) of
+        [] => ()
+      | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
@@ -929,7 +939,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         fun prove_disc ({ctr_specs, ...} : corec_spec) exclsss
             ({fun_name, fun_T, fun_args, ctr_no, prems, ...} : coeqn_data_disc) =
-          if Term.aconv_untyped (#disc (nth ctr_specs ctr_no), @{term "\<lambda>x. x = x"}) then [] else
+          if Term.aconv_untyped (#disc (nth ctr_specs ctr_no), @{term "\<lambda>x. x = x"}) then
+            []
+          else
             let
               val {disc_corec, ...} = nth ctr_specs ctr_no;
               val k = 1 + ctr_no;

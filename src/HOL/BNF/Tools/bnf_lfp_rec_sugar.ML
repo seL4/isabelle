@@ -464,6 +464,8 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
 
 fun prepare_primrec fixes specs lthy =
   let
+    val thy = Proof_Context.theory_of lthy;
+
     val (bs, mxs) = map_split (apfst fst) fixes;
     val fun_names = map Binding.name_of bs;
     val eqns_data = map (dissect_eqn lthy fun_names) specs;
@@ -479,6 +481,10 @@ fun prepare_primrec fixes specs lthy =
     val callssss = funs_data
       |> map (partition_eq ((op =) o pairself #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
+
+    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ res_Ts) of
+        [] => ()
+      | (b, _) :: _ => primrec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
     val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy') =
       rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
