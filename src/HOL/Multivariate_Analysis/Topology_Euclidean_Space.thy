@@ -1909,17 +1909,17 @@ lemma closed_approachable:
 
 lemma closure_contains_Inf:
   fixes S :: "real set"
-  assumes "S \<noteq> {}" "\<forall>x\<in>S. B \<le> x"
+  assumes "S \<noteq> {}" "bdd_below S"
   shows "Inf S \<in> closure S"
 proof -
   have *: "\<forall>x\<in>S. Inf S \<le> x"
-    using cInf_lower_EX[of _ S] assms by metis
+    using cInf_lower[of _ S] assms by metis
   {
     fix e :: real
     assume "e > 0"
     then have "Inf S < Inf S + e" by simp
     with assms obtain x where "x \<in> S" "x < Inf S + e"
-      by (subst (asm) cInf_less_iff[of _ B]) auto
+      by (subst (asm) cInf_less_iff) auto
     with * have "\<exists>x\<in>S. dist x (Inf S) < e"
       by (intro bexI[of _ x]) (auto simp add: dist_real_def)
   }
@@ -1928,11 +1928,8 @@ qed
 
 lemma closed_contains_Inf:
   fixes S :: "real set"
-  assumes "S \<noteq> {}" "\<forall>x\<in>S. B \<le> x"
-    and "closed S"
-  shows "Inf S \<in> S"
+  shows "S \<noteq> {} \<Longrightarrow> bdd_below S \<Longrightarrow> closed S \<Longrightarrow> Inf S \<in> S"
   by (metis closure_contains_Inf closure_closed assms)
-
 
 lemma not_trivial_limit_within_ball:
   "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"
@@ -1977,27 +1974,20 @@ subsection {* Infimum Distance *}
 
 definition "infdist x A = (if A = {} then 0 else Inf {dist x a|a. a \<in> A})"
 
+lemma bdd_below_infdist[intro, simp]: "bdd_below {dist x a|a. a \<in> A}"
+  by (auto intro!: zero_le_dist)
+
 lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = Inf {dist x a|a. a \<in> A}"
   by (simp add: infdist_def)
 
 lemma infdist_nonneg: "0 \<le> infdist x A"
   by (auto simp add: infdist_def intro: cInf_greatest)
 
-lemma infdist_le:
-  assumes "a \<in> A"
-    and "d = dist x a"
-  shows "infdist x A \<le> d"
-  using assms by (auto intro!: cInf_lower[where z=0] simp add: infdist_def)
+lemma infdist_le: "a \<in> A \<Longrightarrow> d = dist x a \<Longrightarrow> infdist x A \<le> d"
+  using assms by (auto intro: cInf_lower simp add: infdist_def)
 
-lemma infdist_zero[simp]:
-  assumes "a \<in> A"
-  shows "infdist a A = 0"
-proof -
-  from infdist_le[OF assms, of "dist a a"] have "infdist a A \<le> 0"
-    by auto
-  with infdist_nonneg[of a A] assms show "infdist a A = 0"
-    by auto
-qed
+lemma infdist_zero[simp]: "a \<in> A \<Longrightarrow> infdist a A = 0"
+  by (auto intro!: antisym infdist_nonneg infdist_le)
 
 lemma infdist_triangle: "infdist x A \<le> infdist y A + dist x y"
 proof (cases "A = {}")
@@ -2021,13 +2011,7 @@ next
         using `a \<in> A` by auto
       show "dist x a \<le> d"
         unfolding d by (rule dist_triangle)
-      fix d
-      assume "d \<in> {dist x a |a. a \<in> A}"
-      then obtain a where "a \<in> A" "d = dist x a"
-        by auto
-      then show "infdist x A \<le> d"
-        by (rule infdist_le)
-    qed
+    qed simp
   qed
   also have "\<dots> = dist x y + infdist y A"
   proof (rule cInf_eq, safe)
@@ -2651,10 +2635,18 @@ qed
 
 text{* Some theorems on sups and infs using the notion "bounded". *}
 
-lemma bounded_real:
-  fixes S :: "real set"
-  shows "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. abs x \<le> a)"
+lemma bounded_real: "bounded (S::real set) \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. \<bar>x\<bar> \<le> a)"
   by (simp add: bounded_iff)
+
+lemma bounded_imp_bdd_above: "bounded S \<Longrightarrow> bdd_above (S :: real set)"
+  by (auto simp: bounded_def bdd_above_def dist_real_def)
+     (metis abs_le_D1 abs_minus_commute diff_le_eq)
+
+lemma bounded_imp_bdd_below: "bounded S \<Longrightarrow> bdd_below (S :: real set)"
+  by (auto simp: bounded_def bdd_below_def dist_real_def)
+     (metis abs_le_D1 add_commute diff_le_eq)
+
+(* TODO: remove the following lemmas about Inf and Sup, is now in conditionally complete lattice *)
 
 lemma bounded_has_Sup:
   fixes S :: "real set"
@@ -2663,22 +2655,14 @@ lemma bounded_has_Sup:
   shows "\<forall>x\<in>S. x \<le> Sup S"
     and "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> Sup S \<le> b"
 proof
-  fix x
-  assume "x\<in>S"
-  then show "x \<le> Sup S"
-    by (metis cSup_upper abs_le_D1 assms(1) bounded_real)
-next
   show "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> Sup S \<le> b"
     using assms by (metis cSup_least)
-qed
+qed (metis cSup_upper assms(1) bounded_imp_bdd_above)
 
 lemma Sup_insert:
   fixes S :: "real set"
   shows "bounded S \<Longrightarrow> Sup (insert x S) = (if S = {} then x else max x (Sup S))"
-  apply (subst cSup_insert_If)
-  apply (rule bounded_has_Sup(1)[of S, rule_format])
-  apply (auto simp: sup_max)
-  done
+  by (auto simp: bounded_imp_bdd_above sup_max cSup_insert_If)
 
 lemma Sup_insert_finite:
   fixes S :: "real set"
@@ -2695,24 +2679,14 @@ lemma bounded_has_Inf:
   shows "\<forall>x\<in>S. x \<ge> Inf S"
     and "\<forall>b. (\<forall>x\<in>S. x \<ge> b) \<longrightarrow> Inf S \<ge> b"
 proof
-  fix x
-  assume "x \<in> S"
-  from assms(1) obtain a where a: "\<forall>x\<in>S. \<bar>x\<bar> \<le> a"
-    unfolding bounded_real by auto
-  then show "x \<ge> Inf S" using `x \<in> S`
-    by (metis cInf_lower_EX abs_le_D2 minus_le_iff)
-next
   show "\<forall>b. (\<forall>x\<in>S. x \<ge> b) \<longrightarrow> Inf S \<ge> b"
     using assms by (metis cInf_greatest)
-qed
+qed (metis cInf_lower assms(1) bounded_imp_bdd_below)
 
 lemma Inf_insert:
   fixes S :: "real set"
   shows "bounded S \<Longrightarrow> Inf (insert x S) = (if S = {} then x else min x (Inf S))"
-  apply (subst cInf_insert_if)
-  apply (rule bounded_has_Inf(1)[of S, rule_format])
-  apply (auto simp: inf_min)
-  done
+  by (auto simp: bounded_imp_bdd_below inf_min cInf_insert_if)
 
 lemma Inf_insert_finite:
   fixes S :: "real set"
@@ -5738,12 +5712,16 @@ proof -
   from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
     unfolding bounded_def by auto
   have "dist x y \<le> Sup ?D"
-  proof (rule cSup_upper, safe)
-    fix a b
-    assume "a \<in> s" "b \<in> s"
-    with z[of a] z[of b] dist_triangle[of a b z]
-    show "dist a b \<le> 2 * d"
-      by (simp add: dist_commute)
+  proof (rule cSup_upper)
+    show "bdd_above ?D"
+      unfolding bdd_above_def
+    proof (safe intro!: exI)
+      fix a b
+      assume "a \<in> s" "b \<in> s"
+      with z[of a] z[of b] dist_triangle[of a b z]
+      show "dist a b \<le> 2 * d"
+        by (simp add: dist_commute)
+    qed
   qed (insert s, auto)
   with `x \<in> s` show ?thesis
     by (auto simp add: diameter_def)

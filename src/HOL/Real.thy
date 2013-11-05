@@ -919,6 +919,12 @@ proof -
     using 1 2 3 by (rule_tac x="Real B" in exI, simp)
 qed
 
+(* TODO: generalize to ordered group *)
+lemma bdd_above_uminus[simp]: "bdd_above (uminus ` X) \<longleftrightarrow> bdd_below (X::real set)"
+  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
+
+lemma bdd_below_uminus[simp]: "bdd_below (uminus ` X) \<longleftrightarrow> bdd_above (X::real set)"
+  by (auto simp: bdd_above_def bdd_below_def intro: le_imp_neg_le) (metis le_imp_neg_le minus_minus)
 
 instantiation real :: linear_continuum
 begin
@@ -933,10 +939,10 @@ definition
 
 instance
 proof
-  { fix z x :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
+  { fix x :: real and X :: "real set"
+    assume x: "x \<in> X" "bdd_above X"
     then obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
-      using complete_real[of X] by blast
+      using complete_real[of X] unfolding bdd_above_def by blast
     then show "x \<le> Sup X"
       unfolding Sup_real_def by (rule LeastI2_order) (auto simp: x) }
   note Sup_upper = this
@@ -953,9 +959,9 @@ proof
   note Sup_least = this
 
   { fix x z :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
+    assume x: "x \<in> X" and [simp]: "bdd_below X"
     have "-x \<le> Sup (uminus ` X)"
-      by (rule Sup_upper[of _ _ "- z"]) (auto simp add: image_iff x z)
+      by (rule Sup_upper) (auto simp add: image_iff x)
     then show "Inf X \<le> x" 
       by (auto simp add: Inf_real_def) }
 
@@ -976,7 +982,7 @@ text {*
 *}
 
 lemma reals_complete: "\<exists>X. X \<in> S \<Longrightarrow> \<exists>Y. isUb (UNIV::real set) S Y \<Longrightarrow> \<exists>t. isLub (UNIV :: real set) S t"
-  by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro: cSup_upper)
+  by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro!: cSup_upper)
 
 
 subsection {* Hiding implementation details *}

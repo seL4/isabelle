@@ -13,7 +13,7 @@ begin
 lemma cSup_abs_le: (* TODO: is this really needed? *)
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
-  by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2)
+  by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2 bdd_aboveI)
 
 lemma cInf_abs_ge: (* TODO: is this really needed? *)
   fixes S :: "real set"
@@ -86,7 +86,7 @@ lemma real_le_inf_subset:
   apply (insert assms)
   apply (erule exE)
   apply (rule_tac x = b in exI)
-  apply (auto simp: isLb_def setge_def intro: cInf_lower cInf_greatest)
+  apply (auto simp: isLb_def setge_def intro!: cInf_lower cInf_greatest)
   done
 
 lemma real_ge_sup_subset:
@@ -100,7 +100,7 @@ lemma real_ge_sup_subset:
   apply (insert assms)
   apply (erule exE)
   apply (rule_tac x = b in exI)
-  apply (auto simp: isUb_def setle_def intro: cSup_upper cSup_least)
+  apply (auto simp: isUb_def setle_def intro!: cSup_upper cSup_least)
   done
 
 (*declare not_less[simp] not_le[simp]*)
@@ -12728,8 +12728,8 @@ proof -
           assume x: "x \<in> s"
           have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
           show "Inf {f j x |j. n \<le> j} \<le> f n x"
-            apply (rule cInf_lower[where z="- h x"])
-            defer
+            apply (intro cInf_lower bdd_belowI)
+            apply auto []
             apply (rule *)
             using assms(3)[rule_format,OF x]
             unfolding real_norm_def abs_le_iff
@@ -12741,8 +12741,7 @@ proof -
           fix x
           assume x: "x \<in> s"
           show "f n x \<le> Sup {f j x |j. n \<le> j}"
-            apply (rule cSup_upper[where z="h x"])
-            defer
+            apply (rule cSup_upper)
             using assms(3)[rule_format,OF x]
             unfolding real_norm_def abs_le_iff
             apply auto

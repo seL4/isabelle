@@ -660,7 +660,7 @@ proof -
     assume "S \<noteq> {}"
     { assume ex: "\<exists>B. \<forall>x\<in>S. B \<le> x"
       then have *: "\<forall>x\<in>S. Inf S \<le> x"
-        using cInf_lower_EX[of _ S] ex by metis
+        using cInf_lower[of _ S] ex by (metis bdd_below_def)
       then have "Inf S \<in> S"
         apply (subst closed_contains_Inf)
         using ex `S \<noteq> {}` `closed S`

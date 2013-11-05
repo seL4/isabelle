@@ -8724,7 +8724,7 @@ proof (cases rule: linorder_cases)
     using interior_subset[of I] `x \<in> interior I` by auto
 
   have "Inf (?F x) \<le> (f x - f y) / (x - y)"
-  proof (rule cInf_lower2)
+  proof (intro bdd_belowI cInf_lower2)
     show "(f x - f t) / (x - t) \<in> ?F x"
       using `t \<in> I` `x < t` by auto
     show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"

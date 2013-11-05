@@ -101,19 +101,25 @@ parametric Sup_fset_transfer by simp
 lemma finite_Sup: "\<exists>z. finite z \<and> (\<forall>a. a \<in> X \<longrightarrow> a \<le> z) \<Longrightarrow> finite (Sup X)"
 by (auto intro: finite_subset)
 
+lemma transfer_bdd_below[transfer_rule]: "(set_rel (pcr_fset op =) ===> op =) bdd_below bdd_below"
+  by auto
+
 instance
 proof 
   fix x z :: "'a fset"
   fix X :: "'a fset set"
   {
-    assume "x \<in> X" "(\<And>a. a \<in> X \<Longrightarrow> z |\<subseteq>| a)" 
+    assume "x \<in> X" "bdd_below X" 
     then show "Inf X |\<subseteq>| x"  by transfer auto
   next
     assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> z |\<subseteq>| x)"
     then show "z |\<subseteq>| Inf X" by transfer (clarsimp, blast)
   next
-    assume "x \<in> X" "(\<And>a. a \<in> X \<Longrightarrow> a |\<subseteq>| z)"
-    then show "x |\<subseteq>| Sup X" by transfer (auto intro!: finite_Sup)
+    assume "x \<in> X" "bdd_above X"
+    then obtain z where "x \<in> X" "(\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z)"
+      by (auto simp: bdd_above_def)
+    then show "x |\<subseteq>| Sup X"
+      by transfer (auto intro!: finite_Sup)
   next
     assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z)"
     then show "Sup X |\<subseteq>| z" by transfer (clarsimp, blast)
