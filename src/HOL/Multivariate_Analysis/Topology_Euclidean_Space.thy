@@ -1972,22 +1972,25 @@ qed
 
 subsection {* Infimum Distance *}
 
-definition "infdist x A = (if A = {} then 0 else Inf {dist x a|a. a \<in> A})"
+definition "infdist x A = (if A = {} then 0 else INF a:A. dist x a)"
 
-lemma bdd_below_infdist[intro, simp]: "bdd_below {dist x a|a. a \<in> A}"
+lemma bdd_below_infdist[intro, simp]: "bdd_below (dist x`A)"
   by (auto intro!: zero_le_dist)
 
-lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = Inf {dist x a|a. a \<in> A}"
+lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = (INF a:A. dist x a)"
   by (simp add: infdist_def)
 
 lemma infdist_nonneg: "0 \<le> infdist x A"
-  by (auto simp add: infdist_def intro: cInf_greatest)
+  by (auto simp add: infdist_def intro: cINF_greatest)
 
-lemma infdist_le: "a \<in> A \<Longrightarrow> d = dist x a \<Longrightarrow> infdist x A \<le> d"
-  using assms by (auto intro: cInf_lower simp add: infdist_def)
+lemma infdist_le: "a \<in> A \<Longrightarrow> infdist x A \<le> dist x a"
+  by (auto intro: cINF_lower simp add: infdist_def)
+
+lemma infdist_le2: "a \<in> A \<Longrightarrow> dist x a \<le> d \<Longrightarrow> infdist x A \<le> d"
+  by (auto intro!: cINF_lower2 simp add: infdist_def)
 
 lemma infdist_zero[simp]: "a \<in> A \<Longrightarrow> infdist a A = 0"
-  by (auto intro!: antisym infdist_nonneg infdist_le)
+  by (auto intro!: antisym infdist_nonneg infdist_le2)
 
 lemma infdist_triangle: "infdist x A \<le> infdist y A + dist x y"
 proof (cases "A = {}")
@@ -2006,9 +2009,8 @@ next
       by auto
     show "infdist x A \<le> d"
       unfolding infdist_notempty[OF `A \<noteq> {}`]
-    proof (rule cInf_lower2)
-      show "dist x a \<in> {dist x a |a. a \<in> A}"
-        using `a \<in> A` by auto
+    proof (rule cINF_lower2)
+      show "a \<in> A" by fact
       show "dist x a \<le> d"
         unfolding d by (rule dist_triangle)
     qed simp
@@ -2024,7 +2026,7 @@ next
     assume inf: "\<And>d. d \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> d"
     then have "i - dist x y \<le> infdist y A"
       unfolding infdist_notempty[OF `A \<noteq> {}`] using `a \<in> A`
-      by (intro cInf_greatest) (auto simp: field_simps)
+      by (intro cINF_greatest) (auto simp: field_simps)
     then show "i \<le> dist x y + infdist y A"
       by simp
   qed
@@ -2063,7 +2065,7 @@ next
     assume "\<not> (\<exists>y\<in>A. dist y x < e)"
     then have "infdist x A \<ge> e" using `a \<in> A`
       unfolding infdist_def
-      by (force simp: dist_commute intro: cInf_greatest)
+      by (force simp: dist_commute intro: cINF_greatest)
     with x `e > 0` show False by auto
   qed
 qed
@@ -5701,28 +5703,27 @@ qed
 
 text {* We can state this in terms of diameter of a set. *}
 
-definition "diameter s = (if s = {} then 0::real else Sup {dist x y | x y. x \<in> s \<and> y \<in> s})"
+definition diameter :: "'a::metric_space set \<Rightarrow> real" where
+  "diameter S = (if S = {} then 0 else SUP (x,y):S\<times>S. dist x y)"
 
 lemma diameter_bounded_bound:
   fixes s :: "'a :: metric_space set"
   assumes s: "bounded s" "x \<in> s" "y \<in> s"
   shows "dist x y \<le> diameter s"
 proof -
-  let ?D = "{dist x y |x y. x \<in> s \<and> y \<in> s}"
   from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
     unfolding bounded_def by auto
-  have "dist x y \<le> Sup ?D"
-  proof (rule cSup_upper)
-    show "bdd_above ?D"
-      unfolding bdd_above_def
-    proof (safe intro!: exI)
-      fix a b
-      assume "a \<in> s" "b \<in> s"
-      with z[of a] z[of b] dist_triangle[of a b z]
-      show "dist a b \<le> 2 * d"
-        by (simp add: dist_commute)
-    qed
-  qed (insert s, auto)
+  have "bdd_above (split dist ` (s\<times>s))"
+  proof (intro bdd_aboveI, safe)
+    fix a b
+    assume "a \<in> s" "b \<in> s"
+    with z[of a] z[of b] dist_triangle[of a b z]
+    show "dist a b \<le> 2 * d"
+      by (simp add: dist_commute)
+  qed
+  moreover have "(x,y) \<in> s\<times>s" using s by auto
+  ultimately have "dist x y \<le> (SUP (x,y):s\<times>s. dist x y)"
+    by (rule cSUP_upper2) simp
   with `x \<in> s` show ?thesis
     by (auto simp add: diameter_def)
 qed
@@ -5733,16 +5734,12 @@ lemma diameter_lower_bounded:
     and d: "0 < d" "d < diameter s"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. d < dist x y"
 proof (rule ccontr)
-  let ?D = "{dist x y |x y. x \<in> s \<and> y \<in> s}"
   assume contr: "\<not> ?thesis"
-  moreover
-  from d have "s \<noteq> {}"
-    by (auto simp: diameter_def)
-  then have "?D \<noteq> {}" by auto
-  ultimately have "Sup ?D \<le> d"
-    by (intro cSup_least) (auto simp: not_less)
-  with `d < diameter s` `s \<noteq> {}` show False
-    by (auto simp: diameter_def)
+  moreover have "s \<noteq> {}"
+    using d by (auto simp add: diameter_def)
+  ultimately have "diameter s \<le> d"
+    by (auto simp: not_less diameter_def intro!: cSUP_least)
+  with `d < diameter s` show False by auto
 qed
 
 lemma diameter_bounded:
@@ -5765,7 +5762,7 @@ proof -
   then have "diameter s \<le> dist x y"
     unfolding diameter_def
     apply clarsimp
-    apply (rule cSup_least)
+    apply (rule cSUP_least)
     apply fast+
     done
   then show ?thesis

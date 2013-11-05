@@ -1209,7 +1209,7 @@ lemma min_Liminf_at:
   apply (subst inf_commute)
   apply (subst SUP_inf)
   apply (intro SUP_cong[OF refl])
-  apply (cut_tac A="ball x b - {x}" and B="{x}" and M=f in INF_union)
+  apply (cut_tac A="ball x xa - {x}" and B="{x}" and M=f in INF_union)
   apply (simp add: INF_def del: inf_ereal_def)
   done
 
