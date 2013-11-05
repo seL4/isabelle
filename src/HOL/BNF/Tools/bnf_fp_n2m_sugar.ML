@@ -307,7 +307,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
 
     val perm_actual_Ts as Type (_, ty_args0) :: _ =
-      sort (int_ord o pairself Term.size_of_typ) actual_Ts;
+      sort (prod_ord int_ord Term_Ord.typ_ord o pairself (`Term.size_of_typ)) actual_Ts;
 
     fun check_enrich_with_mutuals _ [] = []
       | check_enrich_with_mutuals seen ((T as Type (T_name, ty_args)) :: Ts) =
@@ -332,8 +332,9 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val missing_Ts = perm_Ts |> subtract (op =) actual_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
+    (* The name "'z" is likely not to clash with the context, resulting in more cache hits. *)
     fun generalize_simple_type T (seen, lthy) =
-      variant_tfrees ["aa"] lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy)));
+      variant_tfrees ["z"] lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy)));
 
     fun generalize_type T (seen_lthy as (seen, _)) =
       (case AList.lookup (op =) seen T of
