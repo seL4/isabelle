@@ -924,11 +924,8 @@ begin
 
 subsection{*Supremum of a set of reals*}
 
-definition
-  Sup_real_def: "Sup X \<equiv> LEAST z::real. \<forall>x\<in>X. x\<le>z"
-
-definition
-  Inf_real_def: "Inf (X::real set) \<equiv> - Sup (uminus ` X)"
+definition "Sup X = (LEAST z::real. \<forall>x\<in>X. x \<le> z)"
+definition "Inf (X::real set) = - Sup (uminus ` X)"
 
 instance
 proof
@@ -951,20 +948,10 @@ proof
     finally show "Sup X \<le> z" . }
   note Sup_least = this
 
-  { fix x z :: real and X :: "real set"
-    assume x: "x \<in> X" and [simp]: "bdd_below X"
-    have "-x \<le> Sup (uminus ` X)"
-      by (rule Sup_upper) (auto simp add: image_iff x)
-    then show "Inf X \<le> x" 
-      by (auto simp add: Inf_real_def) }
-
-  { fix z :: real and X :: "real set"
-    assume x: "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
-    have "Sup (uminus ` X) \<le> -z"
-      using x z by (force intro: Sup_least)
-    then show "z \<le> Inf X" 
-        by (auto simp add: Inf_real_def) }
-
+  { fix x :: real and X :: "real set" assume x: "x \<in> X" "bdd_below X" then show "Inf X \<le> x"
+      using Sup_upper[of "-x" "uminus ` X"] by (auto simp: Inf_real_def) }
+  { fix z :: real and X :: "real set" assume "X \<noteq> {}" "\<And>x. x \<in> X \<Longrightarrow> z \<le> x" then show "z \<le> Inf X"
+      using Sup_least[of "uminus ` X" "- z"] by (force simp: Inf_real_def) }
   show "\<exists>a b::real. a \<noteq> b"
     using zero_neq_one by blast
 qed

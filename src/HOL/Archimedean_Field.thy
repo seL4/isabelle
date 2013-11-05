@@ -129,12 +129,8 @@ next
   fix y z assume
     "of_int y \<le> x \<and> x < of_int (y + 1)"
     "of_int z \<le> x \<and> x < of_int (z + 1)"
-  then have
-    "of_int y \<le> x" "x < of_int (y + 1)"
-    "of_int z \<le> x" "x < of_int (z + 1)"
-    by simp_all
-  from le_less_trans [OF `of_int y \<le> x` `x < of_int (z + 1)`]
-       le_less_trans [OF `of_int z \<le> x` `x < of_int (y + 1)`]
+  with le_less_trans [of "of_int y" "x" "of_int (z + 1)"]
+       le_less_trans [of "of_int z" "x" "of_int (y + 1)"]
   show "y = z" by (simp del: of_int_add)
 qed
 

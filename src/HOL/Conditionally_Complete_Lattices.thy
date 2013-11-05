@@ -471,4 +471,92 @@ lemma ex_gt_or_lt: "\<exists>b. a < b \<or> b < a"
 
 end
 
+instantiation nat :: conditionally_complete_linorder
+begin
+
+definition "Sup (X::nat set) = Max X"
+definition "Inf (X::nat set) = (LEAST n. n \<in> X)"
+
+lemma bdd_above_nat: "bdd_above X \<longleftrightarrow> finite (X::nat set)"
+proof
+  assume "bdd_above X"
+  then obtain z where "X \<subseteq> {.. z}"
+    by (auto simp: bdd_above_def)
+  then show "finite X"
+    by (rule finite_subset) simp
+qed simp
+
+instance
+proof
+  fix x :: nat and X :: "nat set"
+  { assume "x \<in> X" "bdd_below X" then show "Inf X \<le> x"
+      by (simp add: Inf_nat_def Least_le) }
+  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y" then show "x \<le> Inf X"
+      unfolding Inf_nat_def ex_in_conv[symmetric] by (rule LeastI2_ex) }
+  { assume "x \<in> X" "bdd_above X" then show "x \<le> Sup X"
+      by (simp add: Sup_nat_def bdd_above_nat) }
+  { assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x" 
+    moreover then have "bdd_above X"
+      by (auto simp: bdd_above_def)
+    ultimately show "Sup X \<le> x"
+      by (simp add: Sup_nat_def bdd_above_nat) }
+qed
+end
+
+instantiation int :: conditionally_complete_linorder
+begin
+
+definition "Sup (X::int set) = (THE x. x \<in> X \<and> (\<forall>y\<in>X. y \<le> x))"
+definition "Inf (X::int set) = - (Sup (uminus ` X))"
+
+instance
+proof
+  { fix x :: int and X :: "int set" assume "X \<noteq> {}" "bdd_above X"
+    then obtain x y where "X \<subseteq> {..y}" "x \<in> X"
+      by (auto simp: bdd_above_def)
+    then have *: "finite (X \<inter> {x..y})" "X \<inter> {x..y} \<noteq> {}" and "x \<le> y"
+      by (auto simp: subset_eq)
+    have "\<exists>!x\<in>X. (\<forall>y\<in>X. y \<le> x)"
+    proof
+      { fix z assume "z \<in> X"
+        have "z \<le> Max (X \<inter> {x..y})"
+        proof cases
+          assume "x \<le> z" with `z \<in> X` `X \<subseteq> {..y}` *(1) show ?thesis
+            by (auto intro!: Max_ge)
+        next
+          assume "\<not> x \<le> z"
+          then have "z < x" by simp
+          also have "x \<le> Max (X \<inter> {x..y})"
+            using `x \<in> X` *(1) `x \<le> y` by (intro Max_ge) auto
+          finally show ?thesis by simp
+        qed }
+      note le = this
+      with Max_in[OF *] show ex: "Max (X \<inter> {x..y}) \<in> X \<and> (\<forall>z\<in>X. z \<le> Max (X \<inter> {x..y}))" by auto
+
+      fix z assume *: "z \<in> X \<and> (\<forall>y\<in>X. y \<le> z)"
+      with le have "z \<le> Max (X \<inter> {x..y})"
+        by auto
+      moreover have "Max (X \<inter> {x..y}) \<le> z"
+        using * ex by auto
+      ultimately show "z = Max (X \<inter> {x..y})"
+        by auto
+    qed
+    then have "Sup X \<in> X \<and> (\<forall>y\<in>X. y \<le> Sup X)"
+      unfolding Sup_int_def by (rule theI') }
+  note Sup_int = this
+
+  { fix x :: int and X :: "int set" assume "x \<in> X" "bdd_above X" then show "x \<le> Sup X"
+      using Sup_int[of X] by auto }
+  note le_Sup = this
+  { fix x :: int and X :: "int set" assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> y \<le> x" then show "Sup X \<le> x"
+      using Sup_int[of X] by (auto simp: bdd_above_def) }
+  note Sup_le = this
+
+  { fix x :: int and X :: "int set" assume "x \<in> X" "bdd_below X" then show "Inf X \<le> x"
+      using le_Sup[of "-x" "uminus ` X"] by (auto simp: Inf_int_def) }
+  { fix x :: int and X :: "int set" assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y" then show "x \<le> Inf X"
+      using Sup_le[of "uminus ` X" "-x"] by (force simp: Inf_int_def) }
+qed
+end
+
 end
