@@ -472,7 +472,6 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
       strong_co_induct_of coinduct_thmss), lthy')
   end;
 
-val const_name = try (fn Const (v, _) => v);
 val undef_const = Const (@{const_name undefined}, dummyT);
 
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
@@ -482,8 +481,10 @@ fun abstract vs =
         | a n t = let val idx = find_index (equal t) vs in
             if idx < 0 then t else Bound (n + idx) end
   in a 0 end;
-fun mk_prod1 Ts (t, u) = HOLogic.pair_const (fastype_of1 (Ts, t)) (fastype_of1 (Ts, u)) $ t $ u;
-fun mk_tuple1 Ts = the_default HOLogic.unit o try (foldr1 (mk_prod1 Ts));
+
+fun mk_prod1 bound_Ts (t, u) =
+  HOLogic.pair_const (fastype_of1 (bound_Ts, t)) (fastype_of1 (bound_Ts, u)) $ t $ u;
+fun mk_tuple1 bound_Ts = the_default HOLogic.unit o try (foldr1 (mk_prod1 bound_Ts));
 
 type coeqn_data_disc = {
   fun_name: string,
@@ -739,7 +740,7 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
           let val (u, vs) = strip_comb t in
             if is_Free u andalso has_call u then
               Inr_const U T $ mk_tuple1 bound_Ts vs
-            else if const_name u = SOME @{const_name prod_case} then
+            else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
               map (rewrite bound_Ts U T) vs |> chop 1 |>> HOLogic.mk_split o the_single |> list_comb
             else
               list_comb (rewrite bound_Ts U T u, map (rewrite bound_Ts U T) vs)
