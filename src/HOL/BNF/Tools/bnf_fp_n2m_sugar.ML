@@ -330,22 +330,6 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val missing_Ts = perm_Ts |> subtract (op =) actual_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
-    (* The name "'z" is likely not to clash with the context, resulting in more cache hits. *)
-    fun generalize_simple_type T (seen, lthy) =
-      variant_tfrees ["z"] lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy)));
-
-    fun generalize_type T (seen_lthy as (seen, _)) =
-      (case AList.lookup (op =) seen T of
-        SOME U => (U, seen_lthy)
-      | NONE =>
-        (case T of
-          Type (s, tyargs) =>
-          if exists_subtype_in Ts T then fold_map generalize_type tyargs seen_lthy |>> curry Type s
-          else generalize_simple_type T seen_lthy
-        | _ => generalize_simple_type T seen_lthy));
-
-    val (perm_Us, _) = fold_map generalize_type perm_Ts ([], lthy);
-
     val nn = length Ts;
     val kks = 0 upto nn - 1;
 
@@ -368,7 +352,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
-      mutualize_fp_sugars has_nested fp perm_bs perm_Us get_perm_indices perm_callssss
+      mutualize_fp_sugars has_nested fp perm_bs perm_Ts get_perm_indices perm_callssss
         perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
