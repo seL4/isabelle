@@ -94,10 +94,12 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val get_indices = K [];
     val fp_sugars0 = if nn = 1 then [fp_sugar0] else map (lfp_sugar_of o fst o dest_Type) Ts;
     val callssss = map (fn fp_sugar0 => indexify_callsss fp_sugar0 []) fp_sugars0;
-    val has_nested = nn > nn_fp;
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
-      mutualize_fp_sugars has_nested Least_FP compat_bs Ts get_indices callssss fp_sugars0 lthy;
+      if nn > nn_fp then
+        mutualize_fp_sugars Least_FP compat_bs Ts get_indices callssss fp_sugars0 lthy
+      else
+        ((fp_sugars0, (NONE, NONE)), lthy);
 
     val {ctr_sugars, co_inducts = [induct], co_iterss, co_iter_thmsss = iter_thmsss, ...} :: _ =
       fp_sugars;
