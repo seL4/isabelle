@@ -177,9 +177,12 @@ fun result_commit (Result {commit, ...}) = commit;
 fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
 
 fun join_theory (Result {theory, exec_id, ...}) =
-  Exn.capture Thm.join_theory_proofs theory ::
-  map Exn.Exn (maps Task_Queue.group_status (Execution.peek exec_id));
-
+  let
+    (*toplevel proofs and diags*)
+    val _ = Future.join_tasks (maps Future.group_snapshot (Execution.peek exec_id));
+    (*fully nested proofs*)
+    val res = Exn.capture Thm.join_theory_proofs theory;
+  in res :: map Exn.Exn (maps Task_Queue.group_status (Execution.peek exec_id)) end;
 
 datatype task =
   Task of string list * (theory list -> result) |
@@ -236,7 +239,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
     val results3 = futures
       |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
-    (* FIXME avoid global reset_futures (!??) *)
+    (* FIXME avoid global Execution.reset (!??) *)
     val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
     val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
