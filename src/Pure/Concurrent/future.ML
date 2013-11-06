@@ -68,6 +68,7 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
+  val join_tasks: task list -> unit
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val cond_forks: params -> (unit -> 'a) list -> 'a future list
@@ -76,6 +77,7 @@ sig
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
+  val group_snapshot: group -> task list
   val terminate: group -> unit
   val shutdown: unit -> unit
 end;
@@ -575,6 +577,14 @@ fun join_result x = singleton join_results x;
 fun joins xs = Par_Exn.release_all (join_results xs);
 fun join x = Exn.release (join_result x);
 
+fun join_tasks tasks =
+  if null tasks then ()
+  else
+    (singleton o forks)
+      {name = "join_tasks", group = SOME (new_group NONE),
+        deps = tasks, pri = 0, interrupts = false} I
+    |> join;
+
 
 (* fast-path operations -- bypass task queue if possible *)
 
@@ -663,22 +673,20 @@ fun fulfill_result (Future {promised, task, result}) res =
 fun fulfill x res = fulfill_result x (Exn.Res res);
 
 
+(* group snapshot *)
+
+fun group_snapshot group =
+  SYNCHRONIZED "group_snapshot" (fn () =>
+    Task_Queue.group_tasks (! queue) group);
+
+
 (* terminate *)
 
 fun terminate group =
-  let
-    val tasks =
-      SYNCHRONIZED "terminate" (fn () =>
-        let val _ = cancel_group_unsynchronized group;
-        in Task_Queue.group_tasks (! queue) group end);
-  in
-    if null tasks then ()
-    else
-      (singleton o forks)
-        {name = "terminate", group = SOME (new_group NONE),
-          deps = tasks, pri = 0, interrupts = false} I
-      |> join
-  end;
+  SYNCHRONIZED "terminate" (fn () =>
+    let val _ = cancel_group_unsynchronized group;
+    in Task_Queue.group_tasks (! queue) group end)
+  |> join_tasks;
 
 
 (* shutdown *)
