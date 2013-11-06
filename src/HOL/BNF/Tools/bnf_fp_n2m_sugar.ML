@@ -286,9 +286,6 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
         else
           not_co_datatype0 T
       | not_co_datatype T = not_co_datatype0 T;
-    fun not_mutually_nested_rec Ts1 Ts2 =
-      error (qsotys Ts1 ^ " is neither mutually recursive with nor nested recursive via " ^
-        qsotys Ts2);
 
     val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
 
@@ -302,9 +299,6 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
           if fp = fp' then
             let
               val mutual_Ts = map (fn Type (s, _) => Type (s, tyargs)) Ts';
-              val _ =
-                seen = [] orelse exists (exists_subtype_in seen) mutual_Ts orelse
-                not_mutually_nested_rec mutual_Ts seen;
               val (seen', Ts') = List.partition (member (op =) mutual_Ts) Ts;
             in
               mutual_Ts @ check_enrich_with_mutuals (seen @ T :: seen') Ts'
