@@ -179,7 +179,7 @@ fun strong_co_induct_of [_, s] = s;
 (* TODO: register "sum" and "prod" as datatypes to enable N2M reduction for them *)
 
 fun register_fp_sugar key fp_sugar =
-  Local_Theory.declaration {syntax = false, pervasive = false}
+  Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.default (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars fp pre_bnfs nested_bnfs nesting_bnfs (fp_res as {Ts, ...}) ctr_defss

@@ -1313,7 +1313,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
   end;
 
 fun register_bnf key (bnf, lthy) =
-  (bnf, Local_Theory.declaration {syntax = false, pervasive = false}
+  (bnf, Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.default (key, morph_bnf phi bnf))) lthy);
 
 fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs =
