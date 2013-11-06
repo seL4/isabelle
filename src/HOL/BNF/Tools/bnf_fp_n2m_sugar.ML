@@ -97,20 +97,8 @@ fun dest_map ctxt s call =
     (map0, Vartab.fold_rev (fn (_, (_, f)) => cons f) tenv [])
   end;
 
-fun dest_abs_or_applied_map_or_ctr _ _ (Abs (_, _, t)) = (Term.dummy, [t])
-  | dest_abs_or_applied_map_or_ctr ctxt s (t as t1 $ _) =
-    (case try (dest_map ctxt s) t1 of
-      SOME res => res
-    | NONE =>
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val map_thms = flat (#mapss (the (fp_sugar_of ctxt s)));
-        val map_thms' = map (fn thm => thm RS sym RS eq_reflection) map_thms;
-        val t' = Raw_Simplifier.rewrite_term thy map_thms' [] t;
-      in
-        if t aconv t' then raise Fail "dest_abs_or_applied_map_or_ctr"
-        else dest_map ctxt s (fst (dest_comb t'))
-      end);
+fun dest_abs_or_applied_map _ _ (Abs (_, _, t)) = (Term.dummy, [t])
+  | dest_abs_or_applied_map ctxt s (t1 $ _) = dest_map ctxt s t1;
 
 fun map_partition f xs =
   fold_rev (fn x => fn (ys, (good, bad)) =>
@@ -179,7 +167,7 @@ fun mutualize_fp_sugars has_nested fp bs fpTs get_indices callssss fp_sugars0 no
       and freeze_fpTs calls (T as Type (s, Ts)) =
           (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
             ([], _) =>
-            (case map_partition (try (snd o dest_abs_or_applied_map_or_ctr no_defs_lthy s)) calls of
+            (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
               ([], _) => freeze_fpTs_simple T
             | callsp => freeze_fpTs_map callsp s Ts)
           | callsp => freeze_fpTs_map callsp s Ts)
