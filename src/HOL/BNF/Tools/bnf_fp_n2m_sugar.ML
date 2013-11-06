@@ -304,16 +304,16 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
 
     val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
 
-    val perm_actual_Ts as Type (_, ty_args0) :: _ =
+    val perm_actual_Ts as Type (_, tyargs0) :: _ =
       sort (prod_ord int_ord Term_Ord.typ_ord o pairself (`Term.size_of_typ)) actual_Ts;
 
     fun check_enrich_with_mutuals _ [] = []
-      | check_enrich_with_mutuals seen ((T as Type (T_name, ty_args)) :: Ts) =
+      | check_enrich_with_mutuals seen ((T as Type (T_name, tyargs)) :: Ts) =
         (case fp_sugar_of lthy T_name of
           SOME ({fp = fp', fp_res = {Ts = Ts', ...}, ...}) =>
           if fp = fp' then
             let
-              val mutual_Ts = map (fn Type (s, _) => Type (s, ty_args)) Ts';
+              val mutual_Ts = map (fn Type (s, _) => Type (s, tyargs)) Ts';
               val _ =
                 seen = [] orelse exists (exists_subtype_in seen) mutual_Ts orelse
                 not_mutually_nested_rec mutual_Ts seen;
@@ -330,21 +330,18 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val missing_Ts = perm_Ts |> subtract (op =) actual_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
-    (* The name "'z" is likely not to clash with the context, resulting in more cache hits. *)
-    fun generalize_simple_type T (seen, lthy) =
-      variant_tfrees ["z"] lthy |> (fn ([U], lthy) => (U, ((T, U) :: seen, lthy)));
+    fun generalize_subtype T (tyarps_lthy as (tyarps, lthy)) =
+      (* The name "'z" is unlikely to clash with the context, resulting in more cache hits. *)
+      if exists_subtype_in Ts T then generalize_Type T tyarps_lthy
+      else variant_tfrees ["z"] lthy |> (fn ([U], lthy) => (U, (tyarps, lthy)))
+    and generalize_Type (Type (s, tyargs)) (tyarps_lthy as (tyarps, _)) =
+      (case AList.lookup (op =) tyarps tyargs of
+        SOME tyargs' => (Type (s, tyargs'), tyarps_lthy)
+      | NONE => fold_map generalize_subtype tyargs tyarps_lthy
+        |> (fn (tyargs', (tyarps, lthy)) =>
+          (Type (s, tyargs'), ((tyargs, tyargs') :: tyarps, lthy))));
 
-    fun generalize_type T (seen_lthy as (seen, _)) =
-      (case AList.lookup (op =) seen T of
-        SOME U => (U, seen_lthy)
-      | NONE =>
-        (case T of
-          Type (s, Ts') =>
-          if exists_subtype_in Ts T then fold_map generalize_type Ts' seen_lthy |>> curry Type s
-          else generalize_simple_type T seen_lthy
-        | _ => generalize_simple_type T seen_lthy));
-
-    val (perm_Us, _) = fold_map generalize_type perm_Ts ([], lthy);
+    val (perm_Us, _) = fold_map generalize_Type perm_Ts ([], lthy);
 
     val nn = length Ts;
     val kks = 0 upto nn - 1;
@@ -362,7 +359,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val perm_callssss0 = permute callssss0;
     val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
 
-    val has_nested = exists (fn Type (_, ty_args) => ty_args <> ty_args0) Ts;
+    val has_nested = exists (fn Type (_, tyargs) => tyargs <> tyargs0) Ts;
     val perm_callssss = map2 indexify_callsss perm_fp_sugars0 perm_callssss0;
 
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
