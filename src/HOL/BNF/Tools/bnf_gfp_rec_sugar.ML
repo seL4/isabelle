@@ -268,37 +268,23 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
     fun massage_call bound_Ts U T =
       massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
         if has_call t then
-          (case U of
-            Type (s, Us) =>
-            (case try (dest_ctr ctxt s) t of
-              SOME (f, args) =>
-              let
-                val typof = curry fastype_of1 bound_Ts;
-                val f' = mk_ctr Us f
-                val f'_T = typof f';
-                val arg_Ts = map typof args;
-              in
-                Term.list_comb (f', map3 (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
-              end
-            | NONE =>
-              (case t of
-                Const (@{const_name prod_case}, _) $ t' =>
-                let
-                  val U' = curried_type U;
-                  val T' = curried_type T;
-                in
-                  Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
-                end
-              | t1 $ t2 =>
-                (if has_call t2 then
-                  massage_mutual_call bound_Ts U T t
-                else
-                  massage_map bound_Ts U T t1 $ t2
-                  handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
-              | Abs (s, T', t') =>
-                Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
-              | _ => massage_mutual_call bound_Ts U T t))
-          | _ => ill_formed_corec_call ctxt t)
+          (case t of
+            Const (@{const_name prod_case}, _) $ t' =>
+            let
+              val U' = curried_type U;
+              val T' = curried_type T;
+            in
+              Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
+            end
+          | t1 $ t2 =>
+            (if has_call t2 then
+              massage_mutual_call bound_Ts U T t
+            else
+              massage_map bound_Ts U T t1 $ t2
+              handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
+          | Abs (s, T', t') =>
+            Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
+          | _ => massage_mutual_call bound_Ts U T t)
         else
           build_map_Inl (T, U) $ t) bound_Ts;
 
