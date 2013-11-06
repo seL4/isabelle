@@ -69,7 +69,6 @@ type corec_ctr_spec =
 
 type corec_spec =
   {corec: term,
-   nested_maps: thm list,
    nested_map_idents: thm list,
    nested_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
@@ -343,18 +342,6 @@ fun basic_corec_specs_of ctxt res_T =
       end)
   | _ => not_codatatype ctxt res_T);
 
-(*FIXME: remove special cases for product and sum once they are registered as datatypes*)
-fun map_thms_of_typ ctxt (Type (s, _)) =
-    if s = @{type_name prod} then
-      @{thms map_pair_simp}
-    else if s = @{type_name sum} then
-      @{thms sum_map.simps}
-    else
-      (case fp_sugar_of ctxt s of
-        SOME {index, mapss, ...} => nth mapss index
-      | NONE => [])
-  | map_thms_of_typ _ _ = [];
-
 fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -449,7 +436,6 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
           disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...} : fp_sugar)
         p_is q_isss f_isss f_Tsss =
       {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
-       nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
@@ -947,8 +933,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> single
             end;
 
-        fun prove_sel ({nested_maps, nested_map_idents, nested_map_comps, ctr_specs, ...}
-            : corec_spec) (disc_eqns : coeqn_data_disc list) exclsss
+        fun prove_sel ({nested_map_idents, nested_map_comps, ctr_specs, ...} : corec_spec)
+            (disc_eqns : coeqn_data_disc list) exclsss
             ({fun_name, fun_T, fun_args, ctr, sel, rhs_term, ...} : coeqn_data_sel) =
           let
             val SOME ctr_spec = find_first (equal ctr o #ctr) ctr_specs;
@@ -968,8 +954,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> curry Logic.list_all (map dest_Free fun_args);
             val (distincts, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
           in
-            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
-              nested_map_idents nested_map_comps sel_corec k m exclsss
+            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_map_idents
+              nested_map_comps sel_corec k m exclsss
             |> K |> Goal.prove lthy [] [] t
             |> Thm.close_derivation
             |> pair sel
