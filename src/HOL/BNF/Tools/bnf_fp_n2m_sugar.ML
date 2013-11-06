@@ -292,20 +292,20 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val perm_actual_Ts as Type (_, tyargs0) :: _ =
       sort (prod_ord int_ord Term_Ord.typ_ord o pairself (`Term.size_of_typ)) actual_Ts;
 
+    fun the_fp_sugar_of (T as Type (T_name, _)) =
+      (case fp_sugar_of lthy T_name of
+        SOME (fp_sugar as {fp = fp', ...}) => if fp = fp' then fp_sugar else not_co_datatype T
+      | NONE => not_co_datatype T);
+
     fun check_enrich_with_mutuals _ [] = []
-      | check_enrich_with_mutuals seen ((T as Type (T_name, tyargs)) :: Ts) =
-        (case fp_sugar_of lthy T_name of
-          SOME ({fp = fp', fp_res = {Ts = Ts', ...}, ...}) =>
-          if fp = fp' then
-            let
-              val mutual_Ts = map (fn Type (s, _) => Type (s, tyargs)) Ts';
-              val (seen', Ts') = List.partition (member (op =) mutual_Ts) Ts;
-            in
-              mutual_Ts @ check_enrich_with_mutuals (seen @ T :: seen') Ts'
-            end
-          else
-            not_co_datatype T
-        | NONE => not_co_datatype T)
+      | check_enrich_with_mutuals seen ((T as Type (_, tyargs)) :: Ts) =
+        let
+          val {fp_res = {Ts = Ts', ...}, ...} = the_fp_sugar_of T
+          val mutual_Ts = map (fn Type (s, _) => Type (s, tyargs)) Ts';
+          val (seen', Ts') = List.partition (member (op =) mutual_Ts) Ts;
+        in
+          mutual_Ts @ check_enrich_with_mutuals (seen @ T :: seen') Ts'
+        end
       | check_enrich_with_mutuals _ (T :: _) = not_co_datatype T;
 
     val perm_Ts = check_enrich_with_mutuals [] perm_actual_Ts;
