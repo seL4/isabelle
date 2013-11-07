@@ -376,7 +376,7 @@ text {* Prover output consists of \emph{markup} and \emph{messages}.
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.3]{output}
+  \includegraphics[width=\textwidth]{output}
   \end{center}
   \caption{Multiple views on prover output: gutter area with icon,
     text area with popup, overview area, Theories panel, Output panel}
@@ -450,7 +450,7 @@ text {* Formally processed text (prover input or output) contains rich
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.5]{popup1}
+  \includegraphics[scale=0.3]{popup1}
   \end{center}
   \caption{Tooltip and hyperlink for some formal entity}
   \label{fig:tooltip}
@@ -462,7 +462,7 @@ text {* Formally processed text (prover input or output) contains rich
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.5]{popup2}
+  \includegraphics[scale=0.3]{popup2}
   \end{center}
   \caption{Nested tooltips over formal entities}
   \label{fig:nested-tooltips}
@@ -778,7 +778,7 @@ text {* Continuous document processing works asynchronously in the
 
   \begin{figure}[htb]
   \begin{center}
-  \includegraphics[scale=0.5]{auto-tools}
+  \includegraphics[scale=0.3]{auto-tools}
   \end{center}
   \caption{Results of automatically tried tools}
   \label{fig:auto-tools}
