@@ -924,9 +924,9 @@ be generated on demand using @{command primrec_new}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
-\item \emph{Accordingly, the induction principle is different for nested
-recursive datatypes.} Again, the old-style induction principle can be generated
-on demand using @{command primrec_new}, as explained in
+\item \emph{Accordingly, the induction rule is different for nested recursive
+datatypes.} Again, the old-style induction rule can be generated on demand using
+@{command primrec_new}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
@@ -1227,12 +1227,12 @@ datatypes. For example:
 
 text {*
 \noindent
-Appropriate induction principles are generated under the names
+Appropriate induction rules are generated as
 @{thm [source] at\<^sub>f\<^sub>f.induct},
 @{thm [source] ats\<^sub>f\<^sub>f.induct}, and
-@{thm [source] at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct}.
-
-%%% TODO: Add recursors.
+@{thm [source] at\<^sub>f\<^sub>f_ats\<^sub>f\<^sub>f.induct}. The
+induction rules and the underlying recursors are generated on a per-need basis
+and are kept in a cache to speed up subsequent definitions.
 
 Here is a second example:
 *}
@@ -1936,8 +1936,12 @@ were mutually recursive
 pretend that nested codatatypes are mutually corecursive. For example:
 *}
 
+(*<*)
+    context late
+    begin
+(*>*)
     primcorec
-      (*<*)(in late) (*>*)iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
+      iterate\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a \<Rightarrow> 'a tree\<^sub>i\<^sub>i" and
       iterates\<^sub>i\<^sub>i :: "('a \<Rightarrow> 'a llist) \<Rightarrow> 'a llist \<Rightarrow> 'a tree\<^sub>i\<^sub>i llist"
     where
       "iterate\<^sub>i\<^sub>i g x = Node\<^sub>i\<^sub>i x (iterates\<^sub>i\<^sub>i g (g x))" |
@@ -1945,6 +1949,21 @@ pretend that nested codatatypes are mutually corecursive. For example:
          (case xs of
             LNil \<Rightarrow> LNil
           | LCons x xs' \<Rightarrow> LCons (iterate\<^sub>i\<^sub>i g x) (iterates\<^sub>i\<^sub>i g xs'))"
+
+text {*
+\noindent
+Coinduction rules are generated as
+@{thm [source] iterate\<^sub>i\<^sub>i.coinduct},
+@{thm [source] iterates\<^sub>i\<^sub>i.coinduct}, and
+@{thm [source] iterate\<^sub>i\<^sub>i_iterates\<^sub>i\<^sub>i.coinduct}
+and analogously for @{text strong_coinduct}. These rules and the
+underlying corecursors are generated on a per-need basis and are kept in a cache
+to speed up subsequent definitions.
+*}
+
+(*<*)
+    end
+(*>*)
 
 
 subsubsection {* Constructor View
