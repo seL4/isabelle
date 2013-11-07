@@ -33,6 +33,7 @@ syntax
   "_State" :: "updbinds => 'a" ("<_>")
 translations
   "_State ms" == "_Update <> ms"
+  "_State (_updbinds b bs)" <= "_Update (_State b) bs"
 
 text {* \noindent
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
