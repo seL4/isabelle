@@ -115,13 +115,13 @@ object Pretty_Tooltip
     deactivate()
     hierarchy(tip) match {
       case Some((old, _ :: rest)) =>
-        old.foreach(_.hide_popup)
-        tip.hide_popup
-        stack = rest
         rest match {
           case top :: _ => top.request_focus
           case Nil => JEdit_Lib.request_focus_view
         }
+        old.foreach(_.hide_popup)
+        tip.hide_popup
+        stack = rest
       case _ =>
     }
   }
@@ -131,9 +131,9 @@ object Pretty_Tooltip
     deactivate()
     if (stack.isEmpty) false
     else {
+      JEdit_Lib.request_focus_view
       stack.foreach(_.hide_popup)
       stack = Nil
-      JEdit_Lib.request_focus_view
       true
     }
   }

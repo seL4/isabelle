@@ -490,9 +490,8 @@ class Completion_Popup private(
 
   private def hide_popup()
   {
-    val had_focus = list_view.peer.isFocusOwner
+    if (list_view.peer.isFocusOwner) refocus()
     popup.hide
-    if (had_focus) refocus()
   }
 }
 
