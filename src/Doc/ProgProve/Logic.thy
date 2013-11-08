@@ -816,7 +816,7 @@ Note that rule induction fails
 if the assumption about the inductive predicate is not the first assumption.
 \endexercise
 
-\begin{exercise}
+\begin{exercise}\label{exe:iter}
 Analogous to @{const star}, give an inductive definition of the @{text n}-fold iteration
 of a relation @{text r}: @{term "iter r n x y"} should hold if there are @{text x\<^sub>0}, \dots, @{text x\<^sub>n}
 such that @{prop"x = x\<^sub>0"}, @{prop"x\<^sub>n = y"} and @{text"r x\<^bsub>i\<^esub> x\<^bsub>i+1\<^esub>"} for
