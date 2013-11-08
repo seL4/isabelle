@@ -488,10 +488,18 @@ class Completion_Popup private(
     list_view.requestFocus
   }
 
+  private val hide_popup_delay =
+    Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_dismiss_delay")) {
+      popup.hide
+    }
+
   private def hide_popup()
   {
     if (list_view.peer.isFocusOwner) refocus()
-    popup.hide
+
+    if (PIDE.options.seconds("jedit_completion_dismiss_delay").is_zero)
+      popup.hide
+    else hide_popup_delay.invoke()
   }
 }
 
