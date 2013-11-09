@@ -229,7 +229,8 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   finished, and is today (2013) lagging a bit behind further
   development of Swing and GTK.}
 
-  \item[Windows] Regular \emph{Windows} is used by default.
+  \item[Windows] Regular \emph{Windows} is used by default, but
+  \emph{Windows Classic} also works.
 
   \item[Mac OS X] Regular \emph{Mac OS X} is used by default.
 
