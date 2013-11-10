@@ -1648,8 +1648,7 @@ fun unfold_defs_in_term
     fun do_numeral depth Ts mult T t0 t1 =
       (if is_number_type ctxt T then
          let
-           val j = mult * (HOLogic.dest_num t1)
-                   |> T = nat_T ? Integer.max 0
+           val j = mult * HOLogic.dest_num t1
          in
            if j = 1 then
              raise SAME ()
