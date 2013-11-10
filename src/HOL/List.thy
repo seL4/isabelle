@@ -5514,15 +5514,15 @@ qed
 text{* Accessible part and wellfoundedness: *}
 
 lemma Cons_acc_listrel1I [intro!]:
-  "x \<in> acc r \<Longrightarrow> xs \<in> acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> acc (listrel1 r)"
-apply (induct arbitrary: xs set: acc)
+  "x \<in> Wellfounded.acc r \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> Wellfounded.acc (listrel1 r)"
+apply (induct arbitrary: xs set: Wellfounded.acc)
 apply (erule thin_rl)
 apply (erule acc_induct)
 apply (rule accI)
 apply (blast)
 done
 
-lemma lists_accD: "xs \<in> lists (acc r) \<Longrightarrow> xs \<in> acc (listrel1 r)"
+lemma lists_accD: "xs \<in> lists (Wellfounded.acc r) \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r)"
 apply (induct set: lists)
  apply (rule accI)
  apply simp
@@ -5530,8 +5530,8 @@ apply (rule accI)
 apply (fast dest: acc_downward)
 done
 
-lemma lists_accI: "xs \<in> acc (listrel1 r) \<Longrightarrow> xs \<in> lists (acc r)"
-apply (induct set: acc)
+lemma lists_accI: "xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> xs \<in> lists (Wellfounded.acc r)"
+apply (induct set: Wellfounded.acc)
 apply clarify
 apply (rule accI)
 apply (fastforce dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)

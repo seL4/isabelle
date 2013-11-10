@@ -178,12 +178,8 @@ lemma mlex_eq [code]:
 
 lemma [code]:
   fixes xs :: "('a::finite \<times> 'a) list"
-  shows "acc (set xs) = bacc (set xs) (card_UNIV TYPE('a))"
+  shows "Wellfounded.acc (set xs) = bacc (set xs) (card_UNIV TYPE('a))"
   by (simp add: card_UNIV_def acc_bacc_eq)
-
-lemma [code]:
-  "accp r = (\<lambda>x. x \<in> acc {(x, y). r x y})"
-  by (simp add: acc_def)
 
 
 subsection {* Default instances for @{class enum} *}

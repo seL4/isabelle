@@ -741,7 +741,7 @@ where
 | "bacc r (Suc n) = (bacc r n \<union> {x. \<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r n})"
 
 lemma bacc_subseteq_acc:
-  "bacc r n \<subseteq> acc r"
+  "bacc r n \<subseteq> Wellfounded.acc r"
   by (induct n) (auto intro: acc.intros)
 
 lemma bacc_mono:
@@ -761,10 +761,10 @@ qed
 
 lemma acc_subseteq_bacc:
   assumes "finite r"
-  shows "acc r \<subseteq> (\<Union>n. bacc r n)"
+  shows "Wellfounded.acc r \<subseteq> (\<Union>n. bacc r n)"
 proof
   fix x
-  assume "x : acc r"
+  assume "x : Wellfounded.acc r"
   then have "\<exists> n. x : bacc r n"
   proof (induct x arbitrary: rule: acc.induct)
     case (accI x)
@@ -788,7 +788,7 @@ qed
 lemma acc_bacc_eq:
   fixes A :: "('a :: finite \<times> 'a) set"
   assumes "finite A"
-  shows "acc A = bacc A (card (UNIV :: 'a set))"
+  shows "Wellfounded.acc A = bacc A (card (UNIV :: 'a set))"
   using assms by (metis acc_subseteq_bacc bacc_subseteq_acc bacc_upper_bound order_eq_iff)
 
 

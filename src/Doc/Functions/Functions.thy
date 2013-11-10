@@ -1003,13 +1003,13 @@ text {*
   recursive calls. In general, there is one introduction rule for each
   recursive call.
 
-  The predicate @{term "accp findzero_rel"} is the accessible part of
+  The predicate @{term "Wellfounded.accp findzero_rel"} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
   be reached in a finite number of steps (cf.~its definition in @{text
   "Wellfounded.thy"}).
 
   Since the domain predicate is just an abbreviation, you can use
-  lemmas for @{const accp} and @{const findzero_rel} directly. Some
+  lemmas for @{const Wellfounded.accp} and @{const findzero_rel} directly. Some
   lemmas which are occasionally useful are @{thm [source] accpI}, @{thm [source]
   accp_downward}, and of course the introduction and elimination rules
   for the recursion relation @{thm [source] "findzero_rel.intros"} and @{thm

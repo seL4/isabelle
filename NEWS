@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** HOL ***
 
+* Qualified constant names Wellfounded.acc, Wellfounded.accp.
+INCOMPATIBILITY.
+
 * Fact generalization and consolidation:
     neq_one_mod_two, mod_2_not_eq_zero_eq_one_int ~> not_mod_2_eq_0_eq_1
 INCOMPATIBILITY.
