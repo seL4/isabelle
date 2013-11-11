@@ -269,7 +269,7 @@ fun setup_messages () =
   Output.Internal.urgent_message_fn := message (special "I") (special "J") "";
   Output.Internal.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.Internal.warning_fn := message (special "K") (special "L") "### ";
-  Output.Internal.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
+  Output.Internal.error_message_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
   Output.Internal.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
 
 

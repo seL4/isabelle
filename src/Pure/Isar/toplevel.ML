@@ -242,7 +242,7 @@ fun controlled_execution f = Runtime.controlled_execution ML_Compiler.exn_messag
 fun program body =
  (body
   |> controlled_execution
-  |> Runtime.toplevel_error (Output.error_msg o ML_Compiler.exn_message)) ();
+  |> Runtime.toplevel_error ML_Compiler.exn_error_message) ();
 
 fun thread interrupts body =
   Thread.fork

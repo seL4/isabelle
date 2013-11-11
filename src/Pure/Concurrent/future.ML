@@ -447,7 +447,7 @@ fun error_msg pos ((serial, msg), exec_id) =
   Position.setmp_thread_data pos (fn () =>
     let val id = Position.get_id pos in
       if is_none id orelse is_none exec_id orelse id = exec_id
-      then Output.error_msg' (serial, msg) else ()
+      then Output.error_message' (serial, msg) else ()
     end) ();
 
 fun identify_result pos res =
