@@ -162,7 +162,10 @@ final class Options private(
 {
   override def toString: String = options.iterator.mkString("Options (", ",", ")")
 
-  def print: String = cat_lines(options.toList.sortBy(_._1).map(p => p._2.print))
+  private def print_opt(opt: Options.Opt): String =
+    if (opt.public) "public " + opt.print else opt.print
+
+  def print: String = cat_lines(options.toList.sortBy(_._1).map(p => print_opt(p._2)))
 
   def description(name: String): String = check_name(name).description
 

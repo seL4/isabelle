@@ -105,7 +105,11 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
   private val query_label = new Label("Search criteria:") {
-    tooltip = "Search criteria for find operation"
+    tooltip =
+      GUI.tooltip_lines(List(
+        "Search criteria for find operation, e.g.",
+        "",
+        "  \"_ = _\" \"op +\" name: Group -name: monoid"))
   }
 
   private val query = new Completion_Popup.History_Text_Field("isabelle-find-theorems") {
@@ -117,7 +121,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
     setToolTipText(query_label.tooltip)
-    setFont(GUI.imitate_font(Rendering.font_family(), getFont))
+    setFont(GUI.imitate_font(Rendering.font_family(), getFont, 1.2))
   }
 
   private case class Context_Entry(val name: String, val description: String)

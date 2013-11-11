@@ -289,8 +289,16 @@ fun prove_quot_thm ctxt (rty, qty) =
     quot_thm
   end
 
+(*
+  Computes the composed abstraction function for rty and qty.
+*)
+
 fun abs_fun ctxt (rty, qty) =
   quot_thm_abs (prove_quot_thm ctxt (rty, qty))
+
+(*
+  Computes the composed equivalence relation for rty and qty.
+*)
 
 fun equiv_relation ctxt (rty, qty) =
   quot_thm_rel (prove_quot_thm ctxt (rty, qty))
@@ -323,6 +331,16 @@ val get_fresh_Q_t =
       (renamed_Q_t, ctxt)
     end
   end
+
+(*
+  For the given type, it proves a composed Quotient map theorem, where for each type variable
+  extra Quotient assumption is generated. E.g., for 'a list it generates exactly
+  the Quotient map theorem for the list type. The function generalizes this for the whole
+  type universe. New fresh variables in the assumptions are fixed in the returned context.
+
+  Returns: the composed Quotient map theorem and list mapping each type variable in ty
+  to the corresponding assumption in the returned theorem.
+*)
 
 fun prove_param_quot_thm ctxt ty = 
   let 
@@ -359,6 +377,13 @@ fun prove_param_quot_thm ctxt ty =
     (param_quot_thm, rev table, ctxt)
   end
   handle QUOT_THM_INTERNAL pretty_msg => raise PARAM_QUOT_THM (ty, pretty_msg)
+
+(*
+  It computes a parametrized relator for the given type ty. E.g., for 'a dlist:
+  list_all2 ?R OO cr_dlist with parameters [?R].
+  
+  Returns: the definitional term and list of parameters (relations).
+*)
 
 fun generate_parametrized_relator ctxt ty =
   let
@@ -412,6 +437,15 @@ local
       map_interrupt' f l []
     end
 in
+
+  (*
+    ctm - of the form (par_R OO T) t f, where par_R is a parametricity transfer relation for t
+      and T is a transfer relation between t and f.
+    
+    The function merges par_R OO T using definitions of parametrized correspondence relations
+    (e.g., rel_T R OO cr_T == pcr_T R).
+  *)
+
   fun merge_transfer_relations ctxt ctm =
     let
       val ctm = Thm.dest_arg ctm
@@ -487,6 +521,14 @@ in
     end
     handle QUOT_THM_INTERNAL pretty_msg => raise MERGE_TRANSFER_REL pretty_msg
 end
+
+(*
+  It replaces cr_T by pcr_T op= in the transfer relation. For composed
+  abstract types, it replaces T_rel R OO cr_T by pcr_T R. If the parametrized
+  correspondce relation does not exist, the original relation is kept.
+
+  thm - a transfer rule
+*)
 
 fun parametrize_transfer_rule ctxt thm =
   let

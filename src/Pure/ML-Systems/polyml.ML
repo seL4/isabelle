@@ -51,6 +51,8 @@ val chr = SML90.chr;
 val raw_explode = SML90.explode;
 val implode = SML90.implode;
 
+val io_buffer_size = 4096;
+
 fun quit () = exit 0;
 
 

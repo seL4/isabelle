@@ -77,14 +77,25 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /* perspective */
 
-  def perspective(): Text.Perspective =
+  def perspective(snapshot: Document.Snapshot): Text.Perspective =
   {
     Swing_Thread.require()
 
-    val active_caret =
-      if (text_area.getView != null && text_area.getView.getTextArea == text_area)
-        List(JEdit_Lib.point_range(model.buffer, text_area.getCaretPosition))
+    val active_command =
+    {
+      val view = text_area.getView
+      if (view != null && view.getTextArea == text_area) {
+        PIDE.editor.current_command(view, snapshot) match {
+          case Some(command) =>
+            snapshot.node.command_start(command) match {
+              case Some(start) => List(command.proper_range + start)
+              case None => Nil
+            }
+          case None => Nil
+        }
+      }
       else Nil
+    }
 
     val buffer_range = JEdit_Lib.buffer_range(model.buffer)
     val visible_lines =
@@ -98,7 +109,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       }
       yield range).toList
 
-    Text.Perspective(active_caret ::: visible_lines)
+    Text.Perspective(active_command ::: visible_lines)
   }
 
   private def update_perspective = new TextAreaExtension

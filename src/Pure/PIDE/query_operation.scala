@@ -53,8 +53,12 @@ class Query_Operation[Editor_Context](
 
   private def remove_overlay()
   {
-    current_location.foreach(command =>
-      editor.remove_overlay(command, operation_name, instance :: current_query))
+    current_location match {
+      case None =>
+      case Some(command) =>
+        editor.remove_overlay(command, operation_name, instance :: current_query)
+        editor.flush()
+    }
   }
 
 
@@ -129,10 +133,8 @@ class Query_Operation[Editor_Context](
         if (current_status != new_status) {
           current_status = new_status
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.REMOVED) {
+          if (new_status == Query_Operation.Status.REMOVED)
             remove_overlay()
-            editor.flush()
-          }
         }
       }
     }
@@ -153,13 +155,15 @@ class Query_Operation[Editor_Context](
         remove_overlay()
         reset_state()
         consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
-        editor.current_command(editor_context, snapshot) match {
-          case Some(command) =>
-            current_location = Some(command)
-            current_query = query
-            current_status = Query_Operation.Status.WAITING
-            editor.insert_overlay(command, operation_name, instance :: query)
-          case None =>
+        if (!snapshot.is_outdated) {
+          editor.current_command(editor_context, snapshot) match {
+            case Some(command) =>
+              current_location = Some(command)
+              current_query = query
+              current_status = Query_Operation.Status.WAITING
+              editor.insert_overlay(command, operation_name, instance :: query)
+            case None =>
+          }
         }
         consume_status(current_status)
         editor.flush()
@@ -206,5 +210,8 @@ class Query_Operation[Editor_Context](
   def deactivate() {
     editor.session.commands_changed -= main_actor
     remove_overlay()
+    reset_state()
+    consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+    consume_status(current_status)
   }
 }

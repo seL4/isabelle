@@ -5,17 +5,17 @@ begin
 chapter {* Document preparation \label{ch:document-prep} *}
 
 text {* Isabelle/Isar provides a simple document preparation system
-  based on regular {PDF-\LaTeX} technology, with support for
-  hyper-links and bookmarks within that format.  Thus the results are
-  well suited for WWW browsing and as printed copies.
+  based on {PDF-\LaTeX}, with support for hyperlinks and bookmarks
+  within that format.  This allows to produce papers, books, theses
+  etc.\ from Isabelle theory sources.
 
   {\LaTeX} output is generated while processing a \emph{session} in
   batch mode, as explained in the \emph{The Isabelle System Manual}
   \cite{isabelle-sys}.  The main Isabelle tools to get started with
-  document prepation are @{tool_ref mkroot} and @{tool_ref build}.
+  document preparation are @{tool_ref mkroot} and @{tool_ref build}.
 
-  The Isabelle/HOL tutorial \cite{isabelle-hol-book} also covers
-  theory presentation to some extent.  *}
+  The classic Isabelle/HOL tutorial \cite{isabelle-hol-book} also
+  explains some aspects of theory presentation.  *}
 
 
 section {* Markup commands \label{sec:markup} *}
@@ -302,8 +302,8 @@ text {* The antiquotations @{text thm}, @{text prop} and @{text
 subsection {* General options *}
 
 text {* The following options are available to tune the printed output
-  of antiquotations.  Note that many of these coincide with global ML
-  flags of the same names.
+  of antiquotations.  Note that many of these coincide with system and
+  configuration options of the same names.
 
   \begin{description}
 

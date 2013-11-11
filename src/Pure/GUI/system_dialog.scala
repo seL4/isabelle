@@ -1,5 +1,4 @@
 /*  Title:      Pure/GUI/system_dialog.scala
-    Module:     PIDE-GUI
     Author:     Makarius
 
 Dialog for system processes, with optional output window.

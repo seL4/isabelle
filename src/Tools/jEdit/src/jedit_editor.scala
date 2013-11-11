@@ -66,24 +66,21 @@ class JEdit_Editor extends Editor[View]
   {
     Swing_Thread.require()
 
-    if (snapshot.is_outdated) None
-    else {
-      val text_area = view.getTextArea
-      PIDE.document_view(text_area) match {
-        case Some(doc_view) =>
-          val node = snapshot.version.nodes(doc_view.model.node_name)
-          val caret = text_area.getCaretPosition
-          if (caret < text_area.getBuffer.getLength) {
-            val caret_commands = node.command_range(caret)
-            if (caret_commands.hasNext) {
-              val (cmd0, _) = caret_commands.next
-              node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
-            }
-            else None
+    val text_area = view.getTextArea
+    PIDE.document_view(text_area) match {
+      case Some(doc_view) =>
+        val node = snapshot.version.nodes(doc_view.model.node_name)
+        val caret = snapshot.revert(text_area.getCaretPosition)
+        if (caret < text_area.getBuffer.getLength) {
+          val caret_commands = node.command_range(caret)
+          if (caret_commands.hasNext) {
+            val (cmd0, _) = caret_commands.next
+            node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
           }
-          else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
-        case None => None
-      }
+          else None
+        }
+        else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
+      case None => None
     }
   }
 

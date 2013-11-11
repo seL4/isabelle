@@ -249,6 +249,8 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
   \secref{sec:tool-build}.
 
   Option @{verbatim "-g"} prints the value of the given option.
+  Option @{verbatim "-l"} lists all options with their declaration and
+  current value.
 
   Option @{verbatim "-x"} specifies a file to export the result in
   YXML format, instead of printing it in human-readable form.

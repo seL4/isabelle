@@ -75,7 +75,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
             map3 (fn name => fn T => fn (_, rhs) =>
               HOLogic.mk_eq (Free (name, T), rhs))
             names Ts raw_eqs;
-          val phi = map (HOLogic.dest_Trueprop o prop_of) prems @ eqs
+          val phi = eqs @ map (HOLogic.dest_Trueprop o prop_of) prems
             |> try (Library.foldr1 HOLogic.mk_conj)
             |> the_default @{term True}
             |> list_exists_free vars
@@ -89,8 +89,8 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
           HEADGOAL (EVERY' [rtac thm,
             EVERY' (map (fn var =>
               rtac (cterm_instantiate_pos [NONE, SOME (certify ctxt var)] exI)) vars),
-            EVERY' (map (fn prem => rtac conjI THEN' rtac prem) prems),
-            CONJ_WRAP' (K (rtac refl)) eqs,
+            if p = 0 then CONJ_WRAP' (K (rtac refl)) eqs
+            else REPEAT_DETERM_N e o (rtac conjI THEN' rtac refl) THEN' CONJ_WRAP' rtac prems,
             K (ALLGOALS_SKIP skip
                (REPEAT_DETERM_N (length vars) o (etac exE THEN' rotate_tac ~1) THEN'
                DELETE_PREMS_AFTER 0 (Subgoal.FOCUS (fn {prems, params, context = ctxt, ...} =>
@@ -100,11 +100,11 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
                      let
                        val (init, last) = funpow_yield (p + e - 1) HOLogic.conj_elim inv;
                        val inv_thms = init @ [last];
-                       val eqs = drop p inv_thms;
+                       val eqs = take e inv_thms;
                        fun is_local_var t = 
                          member (fn (t, (_, t')) => t aconv (term_of t')) params t;
                         val (eqs, assms') = filter_in_out (is_local_var o lhs_of_eq o prop_of) eqs;
-                        val assms = assms' @ take p inv_thms
+                        val assms = assms' @ drop e inv_thms
                       in
                         HEADGOAL (Method.insert_tac (assms @ case_prems)) THEN
                         unfold_thms_tac ctxt eqs

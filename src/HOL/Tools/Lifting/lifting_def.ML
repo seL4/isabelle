@@ -50,7 +50,15 @@ fun try_prove_reflexivity ctxt prop =
   SOME (Goal.prove ctxt [] [] prop (fn {context, ...} => refl_tac context 1))
     handle ERROR _ => NONE
 
-(* Generation of a transfer rule *)
+(* 
+  Generates a parametrized transfer rule.
+  transfer_rule - of the form T t f
+  parametric_transfer_rule - of the form par_R t' t
+  
+  Result: par_T t' f, after substituing op= for relations in par_T that relate
+    a type constructor to the same type constructor, it is a merge of (par_R' OO T) t' f
+    using Lifting_Term.merge_transfer_relations
+*)
 
 fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rule =
   let
@@ -400,6 +408,7 @@ fun define_code abs_eq_thm opt_rep_eq_thm (rty, qty) lthy =
   rhs - a term representing the new constant on the raw level
   rsp_thm - a respectfulness theorem in the internal tagged form (like '(R ===> R ===> R) f f'),
     i.e. "(Lifting_Term.equiv_relation (fastype_of rhs, qty)) $ rhs $ rhs"
+  par_thms - a parametricity theorem for rhs
 *)
 
 fun add_lift_def var qty rhs rsp_thm par_thms lthy =

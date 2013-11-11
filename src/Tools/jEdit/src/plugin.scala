@@ -228,26 +228,6 @@ class Plugin extends EBPlugin
   }
 
 
-  /* Mac OS X application hooks */
-
-  def handleQuit(): Boolean =
-  {
-    jEdit.exit(jEdit.getActiveView(), true)
-    false
-  }
-
-  def handlePreferences()
-  {
-    CombinedOptions.combinedOptions(jEdit.getActiveView())
-  }
-
-  def handleAbout(): Boolean =
-  {
-    new AboutDialog(jEdit.getActiveView())
-    true
-  }
-
-
   /* main plugin plumbing */
 
   override def handleMessage(message: EBMessage)

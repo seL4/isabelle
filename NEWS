@@ -125,7 +125,10 @@ sledgehammer runs over existing document sources, independently of
 normal editing and checking process.
 
 * Dockable window "Timing" provides an overview of relevant command
-timing information.
+timing information, depending on option jedit_timing_threshold.  The
+same timing information is shown in the extended tooltip of the
+command keyword, when hovering the mouse over it while the CONTROL or
+COMMAND modifier is pressed.
 
 * Improved dockable window "Theories": Continuous checking of proof
 document (visible and required parts) may be controlled explicitly,
@@ -133,13 +136,21 @@ using check box or shortcut "C+e ENTER".  Individual theory nodes may
 be marked explicitly as required and checked in full, using check box
 or shortcut "C+e SPACE".
 
-* Strictly monotonic document update, without premature cancellation of
-running transactions that are still needed: avoid reset/restart of
-such command executions while editing.
-
 * Improved completion mechanism, which is now managed by the
 Isabelle/jEdit plugin instead of SideKick.  Refined table of Isabelle
 symbol abbreviations (see $ISABELLE_HOME/etc/symbols).
+
+* Standard jEdit keyboard shortcut C+b complete-word is remapped to
+isabelle.complete for explicit completion in Isabelle sources.
+INCOMPATIBILITY wrt. jEdit defaults, may have to invent new shortcuts
+to resolve conflict.
+
+* Improved support of various "minor modes" for Isabelle NEWS,
+options, session ROOT etc., with completion and SideKick tree view.
+
+* Strictly monotonic document update, without premature cancellation of
+running transactions that are still needed: avoid reset/restart of
+such command executions while editing.
 
 * Support for asynchronous print functions, as overlay to existing
 document content.
@@ -148,12 +159,13 @@ document content.
 toplevel theorem statements.
 
 * Action isabelle.reset-font-size resets main text area font size
-according to Isabelle/Scala plugin option "jedit_font_reset_size"
-(cf. keyboard shortcut C+0).
+according to Isabelle/Scala plugin option "jedit_font_reset_size" (see
+also "Plugin Options / Isabelle / General").  It can be bound to some
+keyboard shortcut by the user (e.g. C+0 and/or C+NUMPAD0).
 
 * File specifications in jEdit (e.g. file browser) may refer to
-$ISABELLE_HOME on all platforms.  Discontinued obsolete
-$ISABELLE_HOME_WINDOWS variable.
+$ISABELLE_HOME and $ISABELLE_HOME_USER on all platforms.  Discontinued
+obsolete $ISABELLE_HOME_WINDOWS variable.
 
 * Improved support for Linux look-and-feel "GTK+", see also "Utilities
 / Global Options / Appearance".
@@ -250,7 +262,7 @@ inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
 
 * Lifting:
   - parametrized correspondence relations are now supported:
-    + parametricity theorems for the raw term can be specified in 
+    + parametricity theorems for the raw term can be specified in
       the command lift_definition, which allow us to generate stronger
       transfer rules
     + setup_lifting generates stronger transfer rules if parametric
@@ -264,15 +276,15 @@ inductive_cases.  See ~~/src/HOL/ex/Fundefs.thy for some examples.
   - ===> and --> are now local. The symbols can be introduced
     by interpreting the locale lifting_syntax (typically in an
     anonymous context)
-  - Lifting/Transfer relevant parts of Library/Quotient_* are now in 
+  - Lifting/Transfer relevant parts of Library/Quotient_* are now in
     Main. Potential INCOMPATIBILITY
   - new commands for restoring and deleting Lifting/Transfer context:
     lifting_forget, lifting_update
-  - the command print_quotmaps was renamed to print_quot_maps. 
+  - the command print_quotmaps was renamed to print_quot_maps.
     INCOMPATIBILITY
 
 * Transfer:
-  - better support for domains in Transfer: replace Domainp T 
+  - better support for domains in Transfer: replace Domainp T
     by the actual invariant in a transferred goal
   - transfer rules can have as assumptions other transfer rules
   - Experimental support for transferring from the raw level to the

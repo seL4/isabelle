@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# Main Isabelle application wrapper.
+# Main Isabelle application script.
 
 # dereference executable
 if [ -L "$0" ]; then

@@ -168,10 +168,11 @@ object GUI
   def font_metrics(font: Font): LineMetrics =
     font.getLineMetrics("", new FontRenderContext(null, false, false))
 
-  def imitate_font(family: String, font: Font): Font =
+  def imitate_font(family: String, font: Font, scale: Double = 1.0): Font =
   {
     val font1 = new Font(family, font.getStyle, font.getSize)
-    font1.deriveFont(font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
+    val size = scale * (font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
+    font1.deriveFont(size.round.toInt)
   }
 
   def transform_font(font: Font, transform: AffineTransform): Font =

@@ -225,11 +225,17 @@ object Main
     val update =
     {
       val isabelle_home = Isabelle_System.getenv("ISABELLE_HOME")
+      val isabelle_home_user = Isabelle_System.getenv("ISABELLE_HOME_USER")
       val upd =
         if (Platform.is_windows)
-          List("ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home), "INI_DIR" -> "")
+          List(
+            "ISABELLE_HOME" -> Isabelle_System.jvm_path(isabelle_home),
+            "ISABELLE_HOME_USER" -> Isabelle_System.jvm_path(isabelle_home_user),
+            "INI_DIR" -> "")
         else
-          List("ISABELLE_HOME" -> isabelle_home)
+          List(
+            "ISABELLE_HOME" -> isabelle_home,
+            "ISABELLE_HOME_USER" -> isabelle_home_user)
 
       (env0: Any) => {
         val env = env0.asInstanceOf[java.util.Map[String, String]]

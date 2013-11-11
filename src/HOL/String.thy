@@ -425,7 +425,12 @@ setup {* Sign.map_naming (Name_Space.mandatory_path "Code") *}
 definition abort :: "literal \<Rightarrow> (unit \<Rightarrow> 'a) \<Rightarrow> 'a"
 where [simp, code del]: "abort _ f = f ()"
 
+lemma abort_cong: "msg = msg' ==> Code.abort msg f = Code.abort msg' f"
+by simp
+
 setup {* Sign.map_naming Name_Space.parent_path *}
+
+setup {* Code_Simp.map_ss (Simplifier.add_cong @{thm Code.abort_cong}) *}
 
 code_printing constant Code.abort \<rightharpoonup>
     (SML) "!(raise/ Fail/ _)"

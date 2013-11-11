@@ -5,6 +5,13 @@
 Type of finite sets.
 *)
 
+(********************************************************************
+  WARNING: There is a formalization of 'a fset as a subtype of sets in
+  HOL/Library/FSet.thy using Lifting/Transfer. The user should use
+  that file rather than this file unless there are some very specific
+  reasons.
+*********************************************************************)
+
 theory FSet
 imports "~~/src/HOL/Library/Multiset" "~~/src/HOL/Library/Quotient_List"
 begin
