@@ -105,7 +105,7 @@ fun eval verbose pos toks =
 
     val writeln_buffer = Unsynchronized.ref Buffer.empty;
     fun write s = Unsynchronized.change writeln_buffer (Buffer.add s);
-    fun output_writeln () = writeln (Buffer.content (! writeln_buffer));
+    fun output_writeln () = writeln (trim_line (Buffer.content (! writeln_buffer)));
 
     val warnings = Unsynchronized.ref ([]: string list);
     fun warn msg = Unsynchronized.change warnings (cons msg);
