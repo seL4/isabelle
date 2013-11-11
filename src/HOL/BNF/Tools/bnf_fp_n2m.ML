@@ -99,10 +99,6 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val fp_nesty_bnfss = fp_bnfs :: nesty_bnfss;
     val fp_nesty_bnfs = distinct eq_bnf (flat fp_nesty_bnfss);
 
-    fun abstract t =
-      let val Ts = Term.add_frees t [];
-      in fold_rev Term.absfree (filter (member op = Ts) phis') t end;
-
     val rels =
       let
         fun find_rel T As Bs = fp_nesty_bnfss
@@ -125,7 +121,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
               handle General.Subscript => HOLogic.eq_const T)
           | mk_rel _ _ = raise Fail "fpTs contains schematic type variables";
       in
-        map2 (abstract oo mk_rel) fpTs fpTs'
+        map2 (fold_rev Term.absfree phis' oo mk_rel) fpTs fpTs'
       end;
 
     val pre_rels = map2 (fn Ds => mk_rel_of_bnf Ds (As @ fpTs) (Bs @ fpTs')) Dss bnfs;
