@@ -221,7 +221,9 @@ val nat_cancel =
 
 end;
 
-Addsimprocs ArithData.nat_cancel;
+val _ =
+  Theory.setup (Simplifier.map_theory_simpset (fn ctxt =>
+    ctxt addsimprocs ArithData.nat_cancel));
 
 
 (*examples:
