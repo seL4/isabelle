@@ -258,7 +258,7 @@ then
       (
         cd "$TMP"
 
-        APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS/App3"
+        APP_TEMPLATE="$ISABELLE_HOME/Admin/MacOS"
         APP="${ISABELLE_NAME}.app"
 
         for NAME in Java MacOS PlugIns Resources
@@ -286,7 +286,6 @@ then
         done
 
         cp -R "$APP_TEMPLATE/Resources/." "$APP/Contents/Resources/."
-        cp "$APP_TEMPLATE/../isabelle.icns" "$APP/Contents/Resources/."
 
         ln -sf "../Resources/${ISABELLE_NAME}/contrib/jdk/x86_64-darwin" \
           "$APP/Contents/PlugIns/jdk"
