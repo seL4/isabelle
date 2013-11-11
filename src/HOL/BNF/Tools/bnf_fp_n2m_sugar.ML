@@ -134,9 +134,9 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
     val ctr_defss = map (of_fp_sugar #ctr_defss) fp_sugars0;
     val mapss = map (of_fp_sugar #mapss) fp_sugars0;
-    val ctr_sugars0 = map2 target_ctr_sugar_of_fp_sugar fpTs fp_sugars0;
+    val ctr_sugars = map2 target_ctr_sugar_of_fp_sugar fpTs fp_sugars0;
 
-    val ctrss = map #ctrs ctr_sugars0;
+    val ctrss = map #ctrs ctr_sugars;
     val ctr_Tss = map (map fastype_of) ctrss;
 
     val As' = fold (fold Term.add_tfreesT) ctr_Tss [];
@@ -213,13 +213,6 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
              else define_coiters [unfoldN, corecN] (the coiters_args_types))
               (mk_binding b) fpTs Cs) fp_bs xtor_co_iterss lthy
           |>> split_list;
-
-        val rho = tvar_subst thy ctr_Ts fpTs;
-        val ctr_sugar_phi = Morphism.compose (Morphism.typ_morphism (Term.typ_subst_TVars rho))
-            (Morphism.term_morphism (Term.subst_TVars rho));
-        val inst_ctr_sugar = morph_ctr_sugar ctr_sugar_phi;
-
-        val ctr_sugars = map inst_ctr_sugar ctr_sugars0;
 
         val ((co_inducts, un_fold_thmss, co_rec_thmss, disc_unfold_thmss, disc_corec_thmss,
               sel_unfold_thmsss, sel_corec_thmsss), fp_sugar_thms) =
