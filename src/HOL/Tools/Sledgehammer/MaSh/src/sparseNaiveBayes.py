@@ -78,6 +78,8 @@ class sparseNBClassifier(object):
             self.counts[dep][0] -= 1
             for f,_w in features.items():
                 self.counts[dep][1][f] -= 1
+                if self.counts[dep][1][f] == 0:
+                    del self.counts[dep][1][f]
 
 
     def overwrite(self,problemId,newDependencies,dicts):

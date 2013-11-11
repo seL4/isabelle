@@ -478,7 +478,7 @@ lemma Id_on_empty [simp]: "Id_on {} = {}"
 lemma Id_on_eqI: "a = b ==> a : A ==> (a, b) : Id_on A"
   by (simp add: Id_on_def)
 
-lemma Id_onI [intro!,no_atp]: "a : A ==> (a, a) : Id_on A"
+lemma Id_onI [intro!]: "a : A ==> (a, a) : Id_on A"
   by (rule Id_on_eqI) (rule refl)
 
 lemma Id_onE [elim!]:
@@ -939,8 +939,6 @@ definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b 
 where
   "r `` s = {y. \<exists>x\<in>s. (x, y) \<in> r}"
 
-declare Image_def [no_atp]
-
 lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
   by (simp add: Image_def)
 
@@ -950,7 +948,7 @@ lemma Image_singleton: "r``{a} = {b. (a, b) : r}"
 lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a, b) : r)"
   by (rule Image_iff [THEN trans]) simp
 
-lemma ImageI [intro,no_atp]: "(a, b) : r ==> a : A ==> b : r``A"
+lemma ImageI [intro]: "(a, b) : r ==> a : A ==> b : r``A"
   by (unfold Image_def) blast
 
 lemma ImageE [elim!]:

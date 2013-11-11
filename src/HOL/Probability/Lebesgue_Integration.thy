@@ -1528,7 +1528,7 @@ proof -
     using mono by auto
   ultimately show ?thesis using fg
     by (auto intro!: add_mono positive_integral_mono_AE real_of_ereal_positive_mono
-             simp: positive_integral_positive lebesgue_integral_def diff_minus)
+             simp: positive_integral_positive lebesgue_integral_def algebra_simps)
 qed
 
 lemma integral_mono:
@@ -1732,7 +1732,7 @@ lemma integral_diff[simp, intro]:
   shows "integrable M (\<lambda>t. f t - g t)"
   and "(\<integral> t. f t - g t \<partial>M) = integral\<^sup>L M f - integral\<^sup>L M g"
   using integral_add[OF f integral_minus(1)[OF g]]
-  unfolding diff_minus integral_minus(2)[OF g]
+  unfolding integral_minus(2)[OF g]
   by auto
 
 lemma integral_indicator[simp, intro]:

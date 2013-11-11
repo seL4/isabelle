@@ -87,9 +87,9 @@ fun number_of thy T n =
 val setup =
   Lin_Arith.add_inj_thms [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
   #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
-  #> Lin_Arith.add_simps (@{thms simp_thms} @ @{thms arith_simps} @ @{thms rel_simps}
-      @ @{thms pred_numeral_simps}
-      @ @{thms arith_special} @ @{thms int_arith_rules})
+  #> Lin_Arith.add_simps @{thms of_nat_simps of_int_simps}
+  #> Lin_Arith.add_simps
+      [@{thm of_int_numeral}, @{thm nat_0}, @{thm nat_1}, @{thm diff_nat_numeral}, @{thm nat_numeral}]
   #> Lin_Arith.add_simprocs [zero_one_idom_simproc]
   #> Lin_Arith.set_number_of number_of
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT)

@@ -27,24 +27,22 @@ open Sledgehammer_Isar
 fun run_prover override_params fact_override i n ctxt goal =
   let
     val mode = Normal
-    val params as {provers, max_facts, slice, ...} =
-      default_params ctxt override_params
+    val params as {provers, max_facts, ...} = default_params ctxt override_params
     val name = hd provers
     val prover = get_prover ctxt mode name
-    val default_max_facts = default_max_facts_of_prover ctxt slice name
+    val default_max_facts = default_max_facts_of_prover ctxt name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val ho_atp = exists (is_ho_atp ctxt) provers
     val reserved = reserved_isar_keyword_table ()
     val css_table = clasimpset_rule_table_of ctxt
     val facts =
-      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts
-                       concl_t
+      nearly_all_facts ctxt ho_atp fact_override reserved css_table [] hyp_ts concl_t
       |> relevant_facts ctxt params name
              (the_default default_max_facts max_facts) fact_override hyp_ts
              concl_t
       |> hd |> snd
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
+      {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        factss = [("", facts)]}
   in
     (case prover params (K (K (K ""))) problem of

@@ -31,7 +31,7 @@ proof -
 qed
 
 lemma diff: "f (x - y) = f x - f y"
-by (simp add: add minus diff_minus)
+  using add [of x "- y"] by (simp add: minus)
 
 lemma setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
 apply (cases "finite A")
@@ -553,8 +553,7 @@ lemma norm_triangle_ineq4:
 proof -
   have "norm (a + - b) \<le> norm a + norm (- b)"
     by (rule norm_triangle_ineq)
-  thus ?thesis
-    by (simp only: diff_minus norm_minus_cancel)
+  then show ?thesis by simp
 qed
 
 lemma norm_diff_ineq:
@@ -571,7 +570,7 @@ lemma norm_diff_triangle_ineq:
   shows "norm ((a + b) - (c + d)) \<le> norm (a - c) + norm (b - d)"
 proof -
   have "norm ((a + b) - (c + d)) = norm ((a - c) + (b - d))"
-    by (simp add: diff_minus add_ac)
+    by (simp add: algebra_simps)
   also have "\<dots> \<le> norm (a - c) + norm (b - d)"
     by (rule norm_triangle_ineq)
   finally show ?thesis .
@@ -1426,9 +1425,6 @@ text {*
   @{term "{r::real. \<exists>N. \<forall>n\<ge>N. r < X n}"}
 *}
 
-lemma isUb_UNIV_I: "(\<And>y. y \<in> S \<Longrightarrow> y \<le> u) \<Longrightarrow> isUb UNIV S u"
-by (simp add: isUbI setleI)
-
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"
   assumes inc: "\<And>n. f n \<le> f (Suc n)"
@@ -1455,40 +1451,33 @@ proof -
   then have mem_S: "\<And>N x. \<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S" by auto
 
   { fix N x assume N: "\<forall>n\<ge>N. X n < x"
-  have "isUb UNIV S x"
-  proof (rule isUb_UNIV_I)
   fix y::real assume "y \<in> S"
   hence "\<exists>M. \<forall>n\<ge>M. y < X n"
     by (simp add: S_def)
   then obtain M where "\<forall>n\<ge>M. y < X n" ..
   hence "y < X (max M N)" by simp
   also have "\<dots> < x" using N by simp
-  finally show "y \<le> x"
-    by (rule order_less_imp_le)
-  qed }
+  finally have "y \<le> x"
+    by (rule order_less_imp_le) }
   note bound_isUb = this 
 
-  have "\<exists>u. isLub UNIV S u"
-  proof (rule reals_complete)
   obtain N where "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m) (X n) < 1"
     using X[THEN metric_CauchyD, OF zero_less_one] by auto
   hence N: "\<forall>n\<ge>N. dist (X n) (X N) < 1" by simp
-  show "\<exists>x. x \<in> S"
-  proof
+  have [simp]: "S \<noteq> {}"
+  proof (intro exI ex_in_conv[THEN iffD1])
     from N have "\<forall>n\<ge>N. X N - 1 < X n"
       by (simp add: abs_diff_less_iff dist_real_def)
     thus "X N - 1 \<in> S" by (rule mem_S)
   qed
-  show "\<exists>u. isUb UNIV S u"
+  have [simp]: "bdd_above S"
   proof
     from N have "\<forall>n\<ge>N. X n < X N + 1"
       by (simp add: abs_diff_less_iff dist_real_def)
-    thus "isUb UNIV S (X N + 1)"
+    thus "\<And>s. s \<in> S \<Longrightarrow>  s \<le> X N + 1"
       by (rule bound_isUb)
   qed
-  qed
-  then obtain x where x: "isLub UNIV S x" ..
-  have "X ----> x"
+  have "X ----> Sup S"
   proof (rule metric_LIMSEQ_I)
   fix r::real assume "0 < r"
   hence r: "0 < r/2" by simp
@@ -1500,17 +1489,18 @@ proof -
 
   from N have "\<forall>n\<ge>N. X N - r/2 < X n" by fast
   hence "X N - r/2 \<in> S" by (rule mem_S)
-  hence 1: "X N - r/2 \<le> x" using x isLub_isUb isUbD by fast
+  hence 1: "X N - r/2 \<le> Sup S" by (simp add: cSup_upper)
 
   from N have "\<forall>n\<ge>N. X n < X N + r/2" by fast
-  hence "isUb UNIV S (X N + r/2)" by (rule bound_isUb)
-  hence 2: "x \<le> X N + r/2" using x isLub_le_isUb by fast
+  from bound_isUb[OF this]
+  have 2: "Sup S \<le> X N + r/2"
+    by (intro cSup_least) simp_all
 
-  show "\<exists>N. \<forall>n\<ge>N. dist (X n) x < r"
+  show "\<exists>N. \<forall>n\<ge>N. dist (X n) (Sup S) < r"
   proof (intro exI allI impI)
     fix n assume n: "N \<le> n"
     from N n have "X n < X N + r/2" and "X N - r/2 < X n" by simp+
-    thus "dist (X n) x < r" using 1 2
+    thus "dist (X n) (Sup S) < r" using 1 2
       by (simp add: abs_diff_less_iff dist_real_def)
   qed
   qed

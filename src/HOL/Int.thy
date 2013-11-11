@@ -220,7 +220,7 @@ lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
   by (transfer fixing: uminus) clarsimp
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
-by (simp add: diff_minus Groups.diff_minus)
+  using of_int_add [of w "- z"] by simp
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
   by (transfer fixing: times) (clarsimp simp add: algebra_simps of_nat_mult)
@@ -349,12 +349,33 @@ lemma nonneg_eq_int:
   shows P
   using assms by (blast dest: nat_0_le sym)
 
-lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
+lemma nat_eq_iff:
+  "nat w = m \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
   by transfer (clarsimp simp add: le_imp_diff_is_add)
+ 
+corollary nat_eq_iff2:
+  "m = nat w \<longleftrightarrow> (if 0 \<le> w then w = int m else m = 0)"
+  using nat_eq_iff [of w m] by auto
 
-corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
-by (simp only: eq_commute [of m] nat_eq_iff)
+lemma nat_0 [simp]:
+  "nat 0 = 0"
+  by (simp add: nat_eq_iff)
 
+lemma nat_1 [simp]:
+  "nat 1 = Suc 0"
+  by (simp add: nat_eq_iff)
+
+lemma nat_numeral [simp]:
+  "nat (numeral k) = numeral k"
+  by (simp add: nat_eq_iff)
+
+lemma nat_neg_numeral [simp]:
+  "nat (neg_numeral k) = 0"
+  by simp
+
+lemma nat_2: "nat 2 = Suc (Suc 0)"
+  by simp
+ 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
   by transfer (clarsimp, arith)
 
@@ -374,12 +395,16 @@ lemma zero_less_nat_eq [simp]: "(0 < nat z) = (0 < z)"
 by (insert zless_nat_conj [of 0], auto)
 
 lemma nat_add_distrib:
-     "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
+  "0 \<le> z \<Longrightarrow> 0 \<le> z' \<Longrightarrow> nat (z + z') = nat z + nat z'"
   by transfer clarsimp
 
-lemma nat_diff_distrib:
-     "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
+lemma nat_diff_distrib':
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> nat (x - y) = nat x - nat y"
   by transfer clarsimp
+ 
+lemma nat_diff_distrib:
+  "0 \<le> z' \<Longrightarrow> z' \<le> z \<Longrightarrow> nat (z - z') = nat z - nat z'"
+  by (rule nat_diff_distrib') auto
 
 lemma nat_zminus_int [simp]: "nat (- int n) = 0"
   by transfer simp
@@ -398,6 +423,11 @@ lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
   by transfer (clarsimp simp add: of_nat_diff)
 
 end
+
+lemma diff_nat_numeral [simp]: 
+  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
+  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
+
 
 text {* For termination proofs: *}
 lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
@@ -450,7 +480,7 @@ text{*This version is proved for all ordered rings, not just integers!
       It is proved here because attribute @{text arith_split} is not available
       in theory @{text Rings}.
       But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split [arith_split,no_atp]:
+lemma abs_split [arith_split, no_atp]:
      "P(abs(a::'a::linordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
@@ -722,14 +752,11 @@ lemmas numeral_1_eq_1 = numeral_One
 
 subsection {* Setting up simplification procedures *}
 
-lemmas int_arith_rules =
-  neg_le_iff_le numeral_One
-  minus_zero diff_minus left_minus right_minus
-  mult_zero_left mult_zero_right mult_1_left mult_1_right
-  mult_minus_left mult_minus_right
-  minus_add_distrib minus_minus mult_assoc
-  of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
+lemmas of_int_simps =
   of_int_0 of_int_1 of_int_add of_int_mult
+
+lemmas int_arith_rules =
+  numeral_One more_arith_simps of_nat_simps of_int_simps
 
 ML_file "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
@@ -768,16 +795,6 @@ by arith
 subsection{*The functions @{term nat} and @{term int}*}
 
 text{*Simplify the term @{term "w + - z"}*}
-lemmas diff_int_def_symmetric = diff_def [where 'a=int, symmetric, simp]
-
-lemma nat_0 [simp]: "nat 0 = 0"
-by (simp add: nat_eq_iff)
-
-lemma nat_1 [simp]: "nat 1 = Suc 0"
-by (subst nat_eq_iff, simp)
-
-lemma nat_2: "nat 2 = Suc (Suc 0)"
-by (subst nat_eq_iff, simp)
 
 lemma one_less_nat_eq [simp]: "(Suc 0 < nat z) = (1 < z)"
 apply (insert zless_nat_conj [of 1 z])
@@ -860,30 +877,9 @@ lemma diff_nat_eq_if:
               if d < 0 then 0 else nat d)"
 by (simp add: Let_def nat_diff_distrib [symmetric])
 
-(* nat_diff_distrib has too-strong premises *)
-lemma nat_diff_distrib': "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x - y) = nat x - nat y"
-apply (rule int_int_eq [THEN iffD1], clarsimp)
-apply (subst of_nat_diff)
-apply (rule nat_mono, simp_all)
-done
-
-lemma nat_numeral [simp]:
-  "nat (numeral k) = numeral k"
-  by (simp add: nat_eq_iff)
-
-lemma nat_neg_numeral [simp]:
-  "nat (neg_numeral k) = 0"
-  by simp
-
-lemma diff_nat_numeral [simp]: 
-  "(numeral v :: nat) - numeral v' = nat (numeral v - numeral v')"
-  by (simp only: nat_diff_distrib' zero_le_numeral nat_numeral)
-
 lemma nat_numeral_diff_1 [simp]:
   "numeral v - (1::nat) = nat (numeral v - 1)"
   using diff_nat_numeral [of v Num.One] by simp
-
-lemmas nat_arith = diff_nat_numeral
 
 
 subsection "Induction principles for int"
@@ -1158,32 +1154,32 @@ lemmas minus_equation_iff_numeral [simp, no_atp] =
 
 text{*To Simplify Inequalities Where One Side is the Constant 1*}
 
-lemma less_minus_iff_1 [simp,no_atp]:
+lemma less_minus_iff_1 [simp]:
   fixes b::"'b::linordered_idom"
   shows "(1 < - b) = (b < -1)"
 by auto
 
-lemma le_minus_iff_1 [simp,no_atp]:
+lemma le_minus_iff_1 [simp]:
   fixes b::"'b::linordered_idom"
   shows "(1 \<le> - b) = (b \<le> -1)"
 by auto
 
-lemma equation_minus_iff_1 [simp,no_atp]:
+lemma equation_minus_iff_1 [simp]:
   fixes b::"'b::ring_1"
   shows "(1 = - b) = (b = -1)"
 by (subst equation_minus_iff, auto)
 
-lemma minus_less_iff_1 [simp,no_atp]:
+lemma minus_less_iff_1 [simp]:
   fixes a::"'b::linordered_idom"
   shows "(- a < 1) = (-1 < a)"
 by auto
 
-lemma minus_le_iff_1 [simp,no_atp]:
+lemma minus_le_iff_1 [simp]:
   fixes a::"'b::linordered_idom"
   shows "(- a \<le> 1) = (-1 \<le> a)"
 by auto
 
-lemma minus_equation_iff_1 [simp,no_atp]:
+lemma minus_equation_iff_1 [simp]:
   fixes a::"'b::ring_1"
   shows "(- a = 1) = (a = -1)"
 by (subst minus_equation_iff, auto)
@@ -1509,10 +1505,13 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
   "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
-  unfolding sub_def dup_def numeral.simps Pos_def Neg_def
-    neg_numeral_def numeral_BitM
-  by (simp_all only: algebra_simps)
-
+  apply (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def
+    neg_numeral_def numeral_BitM)
+  apply (simp_all only: algebra_simps minus_diff_eq)
+  apply (simp_all only: add.commute [of _ "- (numeral n + numeral n)"])
+  apply (simp_all only: minus_add add.assoc left_minus)
+  apply (simp_all only: algebra_simps right_minus)
+  done
 
 text {* Implementations *}
 

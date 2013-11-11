@@ -31,7 +31,10 @@ sig
     {prems: thm list, context: Proof.context} -> tactic
 
   val mk_in_bd_tac: int -> thm -> thm -> thm -> thm -> thm list -> thm list -> thm -> thm -> thm ->
-    thm -> {prems: 'a, context: Proof.context} -> tactic
+    thm -> {prems: thm list, context: Proof.context} -> tactic
+
+  val mk_trivial_wit_tac: thm list -> thm list -> {prems: thm list, context: Proof.context} ->
+    tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -301,5 +304,9 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_maps se
         rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
            map_comp RS sym, map_id])] 1
   end;
+
+fun mk_trivial_wit_tac wit_defs set_maps {context = ctxt, prems = _} =
+  unfold_thms_tac ctxt wit_defs THEN HEADGOAL (EVERY' (map (fn thm =>
+    dtac (thm RS equalityD1 RS set_mp) THEN' etac imageE THEN' atac) set_maps)) THEN ALLGOALS atac;
 
 end;

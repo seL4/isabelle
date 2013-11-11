@@ -1965,6 +1965,8 @@ simultaneously. The files are identified by the extensions
 \texttt{.kki}, \texttt{.cnf}, \texttt{.out}, and
 \texttt{.err}; you may safely remove them after Nitpick has run.
 
+\textbf{Warning:} This option is not thread-safe. Use at your own risks.
+
 \nopagebreak
 {\small See also \textit{debug} (\S\ref{output-format}).}
 \end{enum}
@@ -2794,11 +2796,12 @@ $\hbox{}\quad\textit{typ} \rightarrow \textit{morphism} \rightarrow \textit{Cont
 \subsection{Registering Coinductive Datatypes}
 \label{registering-coinductive-datatypes}
 
+Coinductive datatypes defined using the \textbf{codatatype} command that do not
+involve nested recursion through non-codatatypes are supported by Nitpick.
 If you have defined a custom coinductive datatype, you can tell Nitpick about
-it, so that it can use an efficient Kodkod axiomatization similar to the one it
-uses for lazy lists. The interface for registering and unregistering coinductive
-datatypes consists of the following pair of functions defined in the
-\textit{Nitpick\_HOL} structure:
+it, so that it can use an efficient Kodkod axiomatization. The interface for
+registering and unregistering coinductive datatypes consists of the following
+pair of functions defined in the \textit{Nitpick\_HOL} structure:
 
 \prew
 $\textbf{val}\,~\textit{register\_codatatype\/} : {}$ \\
@@ -2885,6 +2888,12 @@ $0.51$).
 
 \item[\labelitemi] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.
+
+\item[\labelitemi] Datatypes defined using \textbf{datatype\_new} are not
+supported.
+
+\item[\labelitemi] Codatatypes defined using \textbf{codatatype} that
+involve nested recursion through non-codatatypes are not supported.
 
 \item[\labelitemi] The \textit{nitpick\_xxx} attributes and the
 \textit{Nitpick\_xxx.register\_yyy} functions can cause havoc if used

@@ -19,7 +19,7 @@ datatype_new simple' = X1' unit | X2' unit | X3' unit | X4' unit
 
 datatype_new simple'' = X1'' nat int | X2''
 
-datatype_new 'a mylist = MyNil | MyCons 'a "'a mylist"
+datatype_new 'a mylist = MyNil | MyCons (myhd: 'a) (mytl: "'a mylist")
 
 datatype_new ('b, 'c, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e

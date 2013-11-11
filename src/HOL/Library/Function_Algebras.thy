@@ -83,10 +83,10 @@ instance "fun" :: (type, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
 instance "fun" :: (type, group_add) group_add
   by default
-    (simp_all add: fun_eq_iff diff_minus)
+    (simp_all add: fun_eq_iff)
 
 instance "fun" :: (type, ab_group_add) ab_group_add
-  by default (simp_all add: diff_minus)
+  by default simp_all
 
 
 text {* Multiplicative structures *}

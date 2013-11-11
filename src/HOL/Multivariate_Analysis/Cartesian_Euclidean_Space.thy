@@ -1099,8 +1099,8 @@ lemma affinity_inverses:
   shows "(\<lambda>x. m *s x + c) o (\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) = id"
   "(\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) o (\<lambda>x. m *s x + c) = id"
   using m0
-  apply (auto simp add: fun_eq_iff vector_add_ldistrib)
-  apply (simp_all add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1[symmetric])
+  apply (auto simp add: fun_eq_iff vector_add_ldistrib diff_conv_add_uminus simp del: add_uminus_conv_diff)
+  apply (simp_all add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1 [symmetric])
   done
 
 lemma vector_affinity_eq:
@@ -1114,7 +1114,7 @@ proof
     using m0 by (simp add: vector_smult_assoc vector_ssub_ldistrib)
 next
   assume h: "x = inverse m *s y + - (inverse m *s c)"
-  show "m *s x + c = y" unfolding h diff_minus[symmetric]
+  show "m *s x + c = y" unfolding h
     using m0 by (simp add: vector_smult_assoc vector_ssub_ldistrib)
 qed
 

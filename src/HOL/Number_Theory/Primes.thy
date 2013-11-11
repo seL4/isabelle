@@ -74,8 +74,9 @@ declare transfer_morphism_int_nat[transfer add return:
 subsection {* Primes *}
 
 lemma prime_odd_nat: "prime (p::nat) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
-  unfolding prime_nat_def
-  by (metis gcd_lcm_complete_lattice_nat.bot_least nat_even_iff_2_dvd nat_neq_iff odd_1_nat)
+  apply (auto simp add: prime_nat_def even_def dvd_eq_mod_eq_0)
+  apply (metis dvd_eq_mod_eq_0 even_Suc even_def mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
+  done
 
 lemma prime_odd_int: "prime (p::int) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   unfolding prime_int_def

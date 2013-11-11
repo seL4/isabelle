@@ -13,9 +13,7 @@ lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)"
   apply (rule antisym)
   apply (simp_all add: le_infI)
   apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add_assoc [symmetric], simp)
-  apply rule
-  apply (rule add_le_imp_le_left[of "a"], simp only: add_assoc[symmetric], simp)+
+  apply (simp only: add_assoc [symmetric], simp add: diff_le_eq add.commute)
   done
 
 lemma add_inf_distrib_right: "inf a b + c = inf (a + c) (b + c)"
@@ -33,11 +31,10 @@ begin
 lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)"
   apply (rule antisym)
   apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add_assoc[symmetric], simp)
-  apply rule
-  apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
+  apply (simp only: add_assoc [symmetric], simp)
+  apply (simp add: le_diff_eq add.commute)
   apply (rule le_supI)
-  apply (simp_all)
+  apply (rule add_le_imp_le_left [of "a"], simp only: add_assoc[symmetric], simp)+
   done
 
 lemma add_sup_distrib_right: "sup a b + c = sup (a+c) (b+c)"
@@ -87,8 +84,14 @@ qed
 lemma neg_inf_eq_sup: "- inf a b = sup (-a) (-b)"
   by (simp add: inf_eq_neg_sup)
 
+lemma diff_inf_eq_sup: "a - inf b c = a + sup (- b) (- c)"
+  using neg_inf_eq_sup [of b c, symmetric] by simp
+
 lemma neg_sup_eq_inf: "- sup a b = inf (-a) (-b)"
   by (simp add: sup_eq_neg_inf)
+
+lemma diff_sup_eq_inf: "a - sup b c = a + inf (- b) (- c)"
+  using neg_sup_eq_inf [of b c, symmetric] by simp
 
 lemma add_eq_inf_sup: "a + b = sup a b + inf a b"
 proof -
@@ -97,8 +100,8 @@ proof -
   hence "0 = sup 0 (b-a) + inf (a-b) 0"
     by (simp add: inf_eq_neg_sup)
   hence "0 = (-a + sup a b) + (inf a b + (-b))"
-    by (simp add: add_sup_distrib_left add_inf_distrib_right) (simp add: algebra_simps)
-  thus ?thesis by (simp add: algebra_simps)
+    by (simp only: add_sup_distrib_left add_inf_distrib_right) simp
+  then show ?thesis by (simp add: algebra_simps)
 qed
 
 
@@ -251,7 +254,7 @@ next
     apply assumption
     apply (rule notI)
     unfolding double_zero [symmetric, of a]
-    apply simp
+    apply blast
     done
 qed
 
@@ -259,7 +262,8 @@ lemma double_add_le_zero_iff_single_add_le_zero [simp]:
   "a + a \<le> 0 \<longleftrightarrow> a \<le> 0"
 proof -
   have "a + a \<le> 0 \<longleftrightarrow> 0 \<le> - (a + a)" by (subst le_minus_iff, simp)
-  moreover have "\<dots> \<longleftrightarrow> a \<le> 0" by simp
+  moreover have "\<dots> \<longleftrightarrow> a \<le> 0"
+    by (simp only: minus_add_distrib zero_le_double_add_iff_zero_le_single_add) simp
   ultimately show ?thesis by blast
 qed
 
@@ -267,11 +271,12 @@ lemma double_add_less_zero_iff_single_less_zero [simp]:
   "a + a < 0 \<longleftrightarrow> a < 0"
 proof -
   have "a + a < 0 \<longleftrightarrow> 0 < - (a + a)" by (subst less_minus_iff, simp)
-  moreover have "\<dots> \<longleftrightarrow> a < 0" by simp
+  moreover have "\<dots> \<longleftrightarrow> a < 0"
+    by (simp only: minus_add_distrib zero_less_double_add_iff_zero_less_single_add) simp
   ultimately show ?thesis by blast
 qed
 
-declare neg_inf_eq_sup [simp] neg_sup_eq_inf [simp]
+declare neg_inf_eq_sup [simp] neg_sup_eq_inf [simp] diff_inf_eq_sup [simp] diff_sup_eq_inf [simp]
 
 lemma le_minus_self_iff: "a \<le> - a \<longleftrightarrow> a \<le> 0"
 proof -
@@ -326,7 +331,7 @@ proof -
   then have "0 \<le> sup a (- a)" unfolding abs_lattice .
   then have "sup (sup a (- a)) 0 = sup a (- a)" by (rule sup_absorb1)
   then show ?thesis
-    by (simp add: add_sup_inf_distribs sup_aci pprt_def nprt_def diff_minus abs_lattice)
+    by (simp add: add_sup_inf_distribs ac_simps pprt_def nprt_def abs_lattice)
 qed
 
 subclass ordered_ab_group_add_abs
@@ -355,16 +360,17 @@ proof
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
   proof -
     have g:"abs a + abs b = sup (a+b) (sup (-a-b) (sup (-a+b) (a + (-b))))" (is "_=sup ?m ?n")
-      by (simp add: abs_lattice add_sup_inf_distribs sup_aci diff_minus)
+      by (simp add: abs_lattice add_sup_inf_distribs sup_aci ac_simps)
     have a: "a + b <= sup ?m ?n" by simp
     have b: "- a - b <= ?n" by simp
     have c: "?n <= sup ?m ?n" by simp
     from b c have d: "-a-b <= sup ?m ?n" by (rule order_trans)
-    have e:"-a-b = -(a+b)" by (simp add: diff_minus)
+    have e:"-a-b = -(a+b)" by simp
     from a d e have "abs(a+b) <= sup ?m ?n"
       apply -
       apply (drule abs_leI)
-      apply auto
+      apply (simp_all only: algebra_simps ac_simps minus_add)
+      apply (metis add_uminus_conv_diff d sup_commute uminus_add_conv_diff)
       done
     with g[symmetric] show ?thesis by simp
   qed
@@ -421,14 +427,12 @@ proof -
   }
   note b = this[OF refl[of a] refl[of b]]
   have xy: "- ?x <= ?y"
-    apply (simp)
-    apply (rule order_trans [OF add_nonpos_nonpos add_nonneg_nonneg])
-    apply (simp_all add: mult_nonneg_nonneg mult_nonpos_nonpos)
+    apply simp
+    apply (metis (full_types) add_increasing add_uminus_conv_diff lattice_ab_group_add_class.minus_le_self_iff minus_add_distrib mult_nonneg_nonneg mult_nonpos_nonpos nprt_le_zero zero_le_pprt)
     done
   have yx: "?y <= ?x"
-    apply (simp add:diff_minus)
-    apply (rule order_trans [OF add_nonpos_nonpos add_nonneg_nonneg])
-    apply (simp_all add: mult_nonneg_nonpos mult_nonpos_nonneg)
+    apply simp
+    apply (metis (full_types) add_nonpos_nonpos add_uminus_conv_diff lattice_ab_group_add_class.le_minus_self_iff minus_add_distrib mult_nonneg_nonpos mult_nonpos_nonneg nprt_le_zero zero_le_pprt)
     done
   have i1: "a*b <= abs a * abs b" by (simp only: a b yx)
   have i2: "- (abs a * abs b) <= a*b" by (simp only: a b xy)
@@ -549,7 +553,7 @@ proof -
     by simp
   then have "-(- nprt a1 * pprt b2 + - nprt a2 * nprt b2 + - pprt a1 * pprt b1 + - pprt a2 * nprt b1) <= a * b"
     by (simp only: minus_le_iff)
-  then show ?thesis by simp
+  then show ?thesis by (simp add: algebra_simps)
 qed
 
 instance int :: lattice_ring
@@ -567,3 +571,4 @@ proof
 qed
 
 end
+

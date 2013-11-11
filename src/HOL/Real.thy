@@ -98,7 +98,7 @@ qed
 lemma vanishes_diff:
   assumes X: "vanishes X" and Y: "vanishes Y"
   shows "vanishes (\<lambda>n. X n - Y n)"
-unfolding diff_minus by (intro vanishes_add vanishes_minus X Y)
+  unfolding diff_conv_add_uminus by (intro vanishes_add vanishes_minus X Y)
 
 lemma vanishes_mult_bounded:
   assumes X: "\<exists>a>0. \<forall>n. \<bar>X n\<bar> < a"
@@ -170,7 +170,7 @@ unfolding minus_diff_minus abs_minus_cancel .
 lemma cauchy_diff [simp]:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "cauchy (\<lambda>n. X n - Y n)"
-using assms unfolding diff_minus by simp
+  using assms unfolding diff_conv_add_uminus by (simp del: add_uminus_conv_diff)
 
 lemma cauchy_imp_bounded:
   assumes "cauchy X" shows "\<exists>b>0. \<forall>n. \<bar>X n\<bar> < b"
@@ -456,7 +456,7 @@ lemma minus_Real:
 lemma diff_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X - Real Y = Real (\<lambda>n. X n - Y n)"
-  unfolding minus_real_def diff_minus
+  unfolding minus_real_def
   by (simp add: minus_Real add_Real X Y)
 
 lemma mult_Real:
@@ -607,7 +607,7 @@ instance proof
     unfolding less_eq_real_def less_real_def
     by (auto, drule (1) positive_add, simp add: positive_zero)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    unfolding less_eq_real_def less_real_def by (auto simp: diff_minus) (* by auto *)
+    unfolding less_eq_real_def less_real_def by auto
     (* FIXME: Procedure int_combine_numerals: c + b - (c + a) \<equiv> b + - a *)
     (* Should produce c + b - (c + a) \<equiv> b - a *)
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
@@ -919,24 +919,20 @@ proof -
     using 1 2 3 by (rule_tac x="Real B" in exI, simp)
 qed
 
-
 instantiation real :: linear_continuum
 begin
 
 subsection{*Supremum of a set of reals*}
 
-definition
-  Sup_real_def: "Sup X \<equiv> LEAST z::real. \<forall>x\<in>X. x\<le>z"
-
-definition
-  Inf_real_def: "Inf (X::real set) \<equiv> - Sup (uminus ` X)"
+definition "Sup X = (LEAST z::real. \<forall>x\<in>X. x \<le> z)"
+definition "Inf (X::real set) = - Sup (uminus ` X)"
 
 instance
 proof
-  { fix z x :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
+  { fix x :: real and X :: "real set"
+    assume x: "x \<in> X" "bdd_above X"
     then obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
-      using complete_real[of X] by blast
+      using complete_real[of X] unfolding bdd_above_def by blast
     then show "x \<le> Sup X"
       unfolding Sup_real_def by (rule LeastI2_order) (auto simp: x) }
   note Sup_upper = this
@@ -952,31 +948,14 @@ proof
     finally show "Sup X \<le> z" . }
   note Sup_least = this
 
-  { fix x z :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
-    have "-x \<le> Sup (uminus ` X)"
-      by (rule Sup_upper[of _ _ "- z"]) (auto simp add: image_iff x z)
-    then show "Inf X \<le> x" 
-      by (auto simp add: Inf_real_def) }
-
-  { fix z :: real and X :: "real set"
-    assume x: "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
-    have "Sup (uminus ` X) \<le> -z"
-      using x z by (force intro: Sup_least)
-    then show "z \<le> Inf X" 
-        by (auto simp add: Inf_real_def) }
-
+  { fix x :: real and X :: "real set" assume x: "x \<in> X" "bdd_below X" then show "Inf X \<le> x"
+      using Sup_upper[of "-x" "uminus ` X"] by (auto simp: Inf_real_def) }
+  { fix z :: real and X :: "real set" assume "X \<noteq> {}" "\<And>x. x \<in> X \<Longrightarrow> z \<le> x" then show "z \<le> Inf X"
+      using Sup_least[of "uminus ` X" "- z"] by (force simp: Inf_real_def) }
   show "\<exists>a b::real. a \<noteq> b"
     using zero_neq_one by blast
 qed
 end
-
-text {*
-  \medskip Completeness properties using @{text "isUb"}, @{text "isLub"}:
-*}
-
-lemma reals_complete: "\<exists>X. X \<in> S \<Longrightarrow> \<exists>Y. isUb (UNIV::real set) S Y \<Longrightarrow> \<exists>t. isLub (UNIV :: real set) S t"
-  by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro: cSup_upper)
 
 
 subsection {* Hiding implementation details *}

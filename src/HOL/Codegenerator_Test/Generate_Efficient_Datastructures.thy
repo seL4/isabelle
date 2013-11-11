@@ -26,7 +26,7 @@ lemma [code, code del]:
   "pred_of_set = pred_of_set" ..
 
 lemma [code, code del]:
-  "acc = acc" ..
+  "Wellfounded.acc = Wellfounded.acc" ..
 
 lemma [code, code del]:
   "Cardinality.card' = Cardinality.card'" ..

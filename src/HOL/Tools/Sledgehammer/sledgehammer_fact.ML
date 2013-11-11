@@ -39,6 +39,7 @@ sig
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
     -> status Termtab.table -> thm list -> term list -> term -> raw_fact list
+  val drop_duplicate_facts : raw_fact list -> raw_fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -56,6 +57,11 @@ type fact_override =
   {add : (Facts.ref * Attrib.src list) list,
    del : (Facts.ref * Attrib.src list) list,
    only : bool}
+
+(* gracefully handle huge background theories *)
+val max_facts_for_duplicates = 50000
+val max_facts_for_complex_check = 25000
+val max_simps_for_clasimpset = 10000
 
 (* experimental feature *)
 val instantiate_inducts =
@@ -102,6 +108,7 @@ val may_be_induction =
                      body_type T = @{typ bool}
                    | _ => false)
 
+(* TODO: get rid of *)
 fun normalize_vars t =
   let
     fun normT (Type (s, Ts)) = fold_map normT Ts #>> curry Type s
@@ -126,25 +133,31 @@ fun normalize_vars t =
   in fst (norm t (([], 0), ([], 0))) end
 
 fun status_of_thm css name th =
-  let val t = normalize_vars (prop_of th) in
-    (* FIXME: use structured name *)
-    if String.isSubstring ".induct" name andalso may_be_induction t then
-      Induction
-    else case Termtab.lookup css t of
-      SOME status => status
-    | NONE =>
-      let val concl = Logic.strip_imp_concl t in
-        case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
-          SOME lrhss =>
-          let
-            val prems = Logic.strip_imp_prems t
-            val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
-          in
-            Termtab.lookup css t' |> the_default General
-          end
-        | NONE => General
-      end
-  end
+  if Termtab.is_empty css then
+    General
+  else
+    let val t = prop_of th in
+      (* FIXME: use structured name *)
+      if String.isSubstring ".induct" name andalso may_be_induction t then
+        Induction
+      else
+        let val t = normalize_vars t in
+          case Termtab.lookup css t of
+            SOME status => status
+          | NONE =>
+            let val concl = Logic.strip_imp_concl t in
+              case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+                SOME lrhss =>
+                let
+                  val prems = Logic.strip_imp_prems t
+                  val t' = Logic.list_implies (prems, Logic.mk_equals lrhss)
+                in
+                  Termtab.lookup css t' |> the_default General
+                end
+              | NONE => General
+            end
+        end
+    end
 
 fun stature_of_thm global assms chained css name th =
   (scope_of_thm global assms chained th, status_of_thm css name th)
@@ -219,10 +232,11 @@ fun is_low_level_class_const (s, _) =
 
 val sep_that = Long_Name.separator ^ Obtain.thatN
 
+val skolem_thesis = Name.skolem Auto_Bind.thesisN
+
 fun is_that_fact th =
-  String.isSuffix sep_that (Thm.get_name_hint th)
-  andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
-                           | _ => false) (prop_of th)
+  exists_subterm (fn Free (s, _) => s = skolem_thesis | _ => false) (prop_of th)
+  andalso String.isSuffix sep_that (Thm.get_name_hint th)
 
 datatype interest = Deal_Breaker | Interesting | Boring
 
@@ -295,9 +309,7 @@ fun close_form t =
 fun backquote_term ctxt = close_form #> hackish_string_of_term ctxt #> backquote
 fun backquote_thm ctxt = backquote_term ctxt o prop_of
 
-(* gracefully handle huge background theories *)
-val max_simps_for_clasimpset = 10000
-
+(* TODO: rewrite to use nets and/or to reuse existing data structures *)
 fun clasimpset_rule_table_of ctxt =
   let val simps = ctxt |> simpset_of |> dest_ss |> #simps in
     if length simps >= max_simps_for_clasimpset then
@@ -336,17 +348,15 @@ fun clasimpset_rule_table_of ctxt =
       end
   end
 
-fun normalize_eq (t as @{const Trueprop}
-        $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
-    else HOLogic.mk_Trueprop (t0 $ t2 $ t1)
-  | normalize_eq (t as @{const Trueprop} $ (@{const Not}
+fun normalize_eq (@{const Trueprop} $ (t as (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else t0 $ t2 $ t1
+  | normalize_eq (@{const Trueprop} $ (t as @{const Not}
         $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2))) =
-    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
-    else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t else HOLogic.mk_not (t0 $ t2 $ t1)
+  | normalize_eq (Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2) =
+    (if Term_Ord.fast_term_ord (t1, t2) <> GREATER then (t1, t2) else (t2, t1))
+    |> (fn (t1, t2) => HOLogic.eq_const T $ t1 $ t2)
   | normalize_eq t = t
-
-val normalize_eq_vars = normalize_eq #> normalize_vars
 
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
@@ -361,30 +371,22 @@ fun un_class_ify s =
 
 fun build_name_tables name_of facts =
   let
-    fun cons_thm (_, th) =
-      Termtab.cons_list (normalize_eq_vars (prop_of th), th)
+    fun cons_thm (_, th) = Termtab.cons_list (normalize_vars (normalize_eq (prop_of th)), th)
     fun add_plain canon alias =
-      Symtab.update (Thm.get_name_hint alias,
-                     name_of (if_thm_before canon alias))
+      Symtab.update (Thm.get_name_hint alias, name_of (if_thm_before canon alias))
     fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
-    fun add_inclass (name, target) =
-      fold (fn s => Symtab.update (s, target)) (un_class_ify name)
+    fun add_inclass (name, target) = fold (fn s => Symtab.update (s, target)) (un_class_ify name)
     val prop_tab = fold cons_thm facts Termtab.empty
     val plain_name_tab = Termtab.fold add_plains prop_tab Symtab.empty
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
 
-fun keyed_distinct key_of xs =
-  let val tab = fold (Termtab.default o `key_of) xs Termtab.empty in
-    Termtab.fold (cons o snd) tab []
-  end
-
-fun hashed_keyed_distinct hash_of key_of xs =
-  let
-    val ys = map (`hash_of) xs
-    val sorted_ys = sort (int_ord o pairself fst) ys
-    val grouped_ys = AList.coalesce (op =) sorted_ys
-  in maps (keyed_distinct key_of o snd) grouped_ys end
+fun fact_distinct eq facts =
+  fold (fn fact as (_, th) =>
+      Net.insert_term_safe (eq o pairself (normalize_eq o prop_of o snd))
+        (normalize_eq (prop_of th), fact))
+    facts Net.empty
+  |> Net.entries
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -447,9 +449,6 @@ fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
 
-(* gracefully handle huge background theories *)
-val max_facts_for_complex_check = 25000
-
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -473,12 +472,12 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
     fun add_facts global foldx facts =
-      foldx (fn (name0, ths) =>
+      foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (not generous andalso is_blacklisted_or_something name0)) then
-          I
+          accum
         else
           let
             val n = length ths
@@ -488,32 +487,30 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
-            pair n
-            #> fold_rev (fn th => fn (j, accum) =>
-                   (j - 1,
-                    if not (member Thm.eq_thm_prop add_ths th) andalso
-                       (is_likely_tautology_too_meta_or_too_technical th orelse
-                        is_too_complex (prop_of th)) then
-                      accum
-                    else
-                      let
-                        val new =
-                          (((fn () =>
-                                if name0 = "" then
-                                  backquote_thm ctxt th
-                                else
-                                  [Facts.extern ctxt facts name0,
-                                   Name_Space.extern ctxt full_space name0]
-                                  |> distinct (op =)
-                                  |> find_first check_thms
-                                  |> the_default name0
-                                  |> make_name reserved multi j),
-                             stature_of_thm global assms chained css name0 th),
-                           th)
-                      in
-                        accum |> (if multi then apsnd else apfst) (cons new)
-                      end)) ths
-            #> snd
+            snd (fold_rev (fn th => fn (j, accum as (uni_accum, multi_accum)) =>
+              (j - 1,
+               if not (member Thm.eq_thm_prop add_ths th) andalso
+                  (is_likely_tautology_too_meta_or_too_technical th orelse
+                   is_too_complex (prop_of th)) then
+                 accum
+               else
+                 let
+                   val new =
+                     (((fn () =>
+                           if name0 = "" then
+                             backquote_thm ctxt th
+                           else
+                             [Facts.extern ctxt facts name0,
+                              Name_Space.extern ctxt full_space name0]
+                             |> find_first check_thms
+                             |> the_default name0
+                             |> make_name reserved multi j),
+                        stature_of_thm global assms chained css name0 th),
+                      th)
+                 in
+                   if multi then (uni_accum, new :: multi_accum)
+                   else (new :: uni_accum, multi_accum)
+                 end)) ths (n, accum))
           end)
   in
     (* The single-theorem names go before the multiple-theorem ones (e.g.,
@@ -530,6 +527,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
     []
   else
     let
+      val thy = Proof_Context.theory_of ctxt
       val chained =
         chained
         |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
@@ -538,14 +536,25 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
                o fact_of_ref ctxt reserved chained css) add
        else
-         let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
-           all_facts ctxt false ho_atp reserved add chained css
-           |> filter_out
-                  ((member Thm.eq_thm_prop del orf No_ATPs.member ctxt) o snd)
-           |> hashed_keyed_distinct (size_of_term o prop_of o snd)
-                  (normalize_eq_vars o prop_of o snd)
+        (* The "fact_distinct" call would have cleaner semantics if it called "Pattern.equiv"
+           instead of "Pattern.matches", but it would also be slower and less precise.
+           "Pattern.matches" throws out theorems that are strict instances of other theorems, but
+           only if the instance is met after the general version. *)
+         let
+           val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
+           val facts =
+             all_facts ctxt false ho_atp reserved add chained css
+             |> filter_out ((member Thm.eq_thm_prop del orf
+               (No_ATPs.member ctxt andf not o member Thm.eq_thm_prop add)) o snd)
+         in
+           facts
          end)
       |> maybe_instantiate_inducts ctxt hyp_ts concl_t
     end
+
+fun drop_duplicate_facts facts =
+  let val num_facts = length facts in
+    facts |> num_facts <= max_facts_for_duplicates ? fact_distinct (op aconv)
+  end
 
 end;

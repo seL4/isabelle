@@ -231,7 +231,7 @@ instance fps :: (group_add) group_add
 proof
   fix a b :: "'a fps"
   show "- a + a = 0" by (simp add: fps_ext)
-  show "a - b = a + - b" by (simp add: fps_ext diff_minus)
+  show "a + - b = a - b" by (simp add: fps_ext)
 qed
 
 instance fps :: (ab_group_add) ab_group_add
@@ -348,10 +348,10 @@ subsection {* Formal power series form an integral domain*}
 instance fps :: (ring) ring ..
 
 instance fps :: (ring_1) ring_1
-  by (intro_classes, auto simp add: diff_minus distrib_right)
+  by (intro_classes, auto simp add: distrib_right)
 
 instance fps :: (comm_ring_1) comm_ring_1
-  by (intro_classes, auto simp add: diff_minus distrib_right)
+  by (intro_classes, auto simp add: distrib_right)
 
 instance fps :: (ring_no_zero_divisors) ring_no_zero_divisors
 proof
@@ -451,7 +451,7 @@ begin
 
 definition
   dist_fps_def: "dist (a::'a fps) b =
-    (if (\<exists>n. a$n \<noteq> b$n) then inverse (2 ^ The (leastP (\<lambda>n. a$n \<noteq> b$n))) else 0)"
+    (if (\<exists>n. a$n \<noteq> b$n) then inverse (2 ^ (LEAST n. a$n \<noteq> b$n)) else 0)"
 
 lemma dist_fps_ge0: "dist (a::'a fps) b \<ge> 0"
   by (simp add: dist_fps_def)
@@ -466,34 +466,6 @@ lemma dist_fps_sym: "dist (a::'a fps) b = dist b a"
 instance ..
 
 end
-
-lemma fps_nonzero_least_unique:
-  assumes a0: "a \<noteq> 0"
-  shows "\<exists>!n. leastP (\<lambda>n. a$n \<noteq> 0) n"
-proof -
-  from fps_nonzero_nth_minimal [of a] a0
-  obtain n where "a$n \<noteq> 0" "\<forall>m < n. a$m = 0" by blast
-  then have ln: "leastP (\<lambda>n. a$n \<noteq> 0) n"
-    by (auto simp add: leastP_def setge_def not_le [symmetric])
-  moreover
-  {
-    fix m
-    assume "leastP (\<lambda>n. a $ n \<noteq> 0) m"
-    then have "m = n" using ln
-      apply (auto simp add: leastP_def setge_def)
-      apply (erule allE[where x=n])
-      apply (erule allE[where x=m])
-      apply simp
-      done
-  }
-  ultimately show ?thesis by blast
-qed
-
-lemma fps_eq_least_unique:
-  assumes "(a::('a::ab_group_add) fps) \<noteq> b"
-  shows "\<exists>! n. leastP (\<lambda>n. a$n \<noteq> b$n) n"
-  using fps_nonzero_least_unique[of "a - b"] assms
-  by auto
 
 instantiation fps :: (comm_ring_1) metric_space
 begin
@@ -540,31 +512,15 @@ next
   moreover
   {
     assume ab: "a \<noteq> b" and ac: "a \<noteq> c" and bc: "b \<noteq> c"
-    let ?P = "\<lambda>a b n. a$n \<noteq> b$n"
-    from fps_eq_least_unique[OF ab] fps_eq_least_unique[OF ac]
-      fps_eq_least_unique[OF bc]
-    obtain nab nac nbc where nab: "leastP (?P a b) nab"
-      and nac: "leastP (?P a c) nac"
-      and nbc: "leastP (?P b c) nbc" by blast
-    from nab have nab': "\<And>m. m < nab \<Longrightarrow> a$m = b$m" "a$nab \<noteq> b$nab"
-      by (auto simp add: leastP_def setge_def)
-    from nac have nac': "\<And>m. m < nac \<Longrightarrow> a$m = c$m" "a$nac \<noteq> c$nac"
-      by (auto simp add: leastP_def setge_def)
-    from nbc have nbc': "\<And>m. m < nbc \<Longrightarrow> b$m = c$m" "b$nbc \<noteq> c$nbc"
-      by (auto simp add: leastP_def setge_def)
+    def n \<equiv> "\<lambda>a b::'a fps. LEAST n. a$n \<noteq> b$n"
+    then have n': "\<And>m a b. m < n a b \<Longrightarrow> a$m = b$m"
+      by (auto dest: not_less_Least)
 
-    have th0: "\<And>(a::'a fps) b. a \<noteq> b \<longleftrightarrow> (\<exists>n. a$n \<noteq> b$n)"
-      by (simp add: fps_eq_iff)
-    from ab ac bc nab nac nbc
-    have dab: "dist a b = inverse (2 ^ nab)"
-      and dac: "dist a c = inverse (2 ^ nac)"
-      and dbc: "dist b c = inverse (2 ^ nbc)"
-      unfolding th0
-      apply (simp_all add: dist_fps_def)
-      apply (erule the1_equality[OF fps_eq_least_unique[OF ab]])
-      apply (erule the1_equality[OF fps_eq_least_unique[OF ac]])
-      apply (erule the1_equality[OF fps_eq_least_unique[OF bc]])
-      done
+    from ab ac bc
+    have dab: "dist a b = inverse (2 ^ n a b)"
+      and dac: "dist a c = inverse (2 ^ n a c)"
+      and dbc: "dist b c = inverse (2 ^ n b c)"
+      by (simp_all add: dist_fps_def n_def fps_eq_iff)
     from ab ac bc have nz: "dist a b \<noteq> 0" "dist a c \<noteq> 0" "dist b c \<noteq> 0"
       unfolding th by simp_all
     from nz have pos: "dist a b > 0" "dist a c > 0" "dist b c > 0"
@@ -575,11 +531,13 @@ next
       assume h: "dist a b > dist a c + dist b c"
       then have gt: "dist a b > dist a c" "dist a b > dist b c"
         using pos by auto
-      from gt have gtn: "nab < nbc" "nab < nac"
+      from gt have gtn: "n a b < n b c" "n a b < n a c"
         unfolding dab dbc dac by (auto simp add: th1)
-      from nac'(1)[OF gtn(2)] nbc'(1)[OF gtn(1)]
-      have "a $ nab = b $ nab" by simp
-      with nab'(2) have False  by simp
+      from n'[OF gtn(2)] n'(1)[OF gtn(1)]
+      have "a $ n a b = b $ n a b" by simp
+      moreover have "a $ n a b \<noteq> b $ n a b"
+         unfolding n_def by (rule LeastI_ex) (insert ab, simp add: fps_eq_iff)
+      ultimately have False by contradiction
     }
     then have "dist a b \<le> dist a c + dist b c"
       by (auto simp add: not_le[symmetric])
@@ -649,17 +607,12 @@ proof -
       moreover
       {
         assume neq: "?s n \<noteq> a"
-        from fps_eq_least_unique[OF neq]
-        obtain k where k: "leastP (\<lambda>i. ?s n $ i \<noteq> a$i) k" by blast
-        have th0: "\<And>(a::'a fps) b. a \<noteq> b \<longleftrightarrow> (\<exists>n. a$n \<noteq> b$n)"
-          by (simp add: fps_eq_iff)
+        def k \<equiv> "LEAST i. ?s n $ i \<noteq> a $ i"
         from neq have dth: "dist (?s n) a = (1/2)^k"
-          unfolding th0 dist_fps_def
-          unfolding the1_equality[OF fps_eq_least_unique[OF neq], OF k]
-          by (auto simp add: inverse_eq_divide power_divide)
+          by (auto simp add: dist_fps_def inverse_eq_divide power_divide k_def fps_eq_iff)
 
-        from k have kn: "k > n"
-          by (simp add: leastP_def setge_def fps_sum_rep_nth split:split_if_asm)
+        from neq have kn: "k > n"
+          by (auto simp: fps_sum_rep_nth not_le k_def fps_eq_iff split: split_if_asm intro: LeastI2_ex)
         then have "dist (?s n) a < (1/2)^n" unfolding dth
           by (auto intro: power_strict_decreasing)
         also have "\<dots> <= (1/2)^n0" using nn0
@@ -888,7 +841,7 @@ lemma fps_deriv_add[simp]: "fps_deriv ((f:: ('a::comm_ring_1) fps) + g) = fps_de
   using fps_deriv_linear[of 1 f 1 g] by simp
 
 lemma fps_deriv_sub[simp]: "fps_deriv ((f:: ('a::comm_ring_1) fps) - g) = fps_deriv f - fps_deriv g"
-  unfolding diff_minus by simp
+  using fps_deriv_add [of f "- g"] by simp
 
 lemma fps_deriv_const[simp]: "fps_deriv (fps_const c) = 0"
   by (simp add: fps_ext fps_deriv_def fps_const_def)
@@ -978,7 +931,7 @@ lemma fps_nth_deriv_add[simp]:
 
 lemma fps_nth_deriv_sub[simp]:
   "fps_nth_deriv n ((f:: ('a::comm_ring_1) fps) - g) = fps_nth_deriv n f - fps_nth_deriv n g"
-  unfolding diff_minus fps_nth_deriv_add by simp
+  using fps_nth_deriv_add [of n f "- g"] by simp
 
 lemma fps_nth_deriv_0[simp]: "fps_nth_deriv n 0 = 0"
   by (induct n) simp_all
@@ -2634,7 +2587,7 @@ lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
   by (simp add: fps_eq_iff fps_compose_nth field_simps setsum_negf[symmetric])
 
 lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
-  unfolding diff_minus fps_compose_uminus fps_compose_add_distrib ..
+  using fps_compose_add_distrib [of a "- b" c] by (simp add: fps_compose_uminus)
 
 lemma X_fps_compose: "X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)
@@ -3797,20 +3750,14 @@ lemma dist_less_imp_nth_equal:
   assumes "dist f g < inverse (2 ^ i)"
     and"j \<le> i"
   shows "f $ j = g $ j"
-proof (cases "f = g")
-  case False
-  hence "\<exists>n. f $ n \<noteq> g $ n" by (simp add: fps_eq_iff)
-  with assms have "i < The (leastP (\<lambda>n. f $ n \<noteq> g $ n))"
+proof (rule ccontr)
+  assume "f $ j \<noteq> g $ j"
+  then have "\<exists>n. f $ n \<noteq> g $ n" by auto
+  with assms have "i < (LEAST n. f $ n \<noteq> g $ n)"
     by (simp add: split_if_asm dist_fps_def)
-  moreover
-  from fps_eq_least_unique[OF `f \<noteq> g`]
-  obtain n where n: "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
-  moreover from n have "\<And>m. m < n \<Longrightarrow> f$m = g$m" "f$n \<noteq> g$n"
-    by (auto simp add: leastP_def setge_def)
-  ultimately show ?thesis using `j \<le> i` by simp
-next
-  case True
-  then show ?thesis by simp
+  also have "\<dots> \<le> j"
+    using `f $ j \<noteq> g $ j` by (auto intro: Least_le)
+  finally show False using `j \<le> i` by simp
 qed
 
 lemma nth_equal_imp_dist_less:
@@ -3819,18 +3766,13 @@ lemma nth_equal_imp_dist_less:
 proof (cases "f = g")
   case False
   hence "\<exists>n. f $ n \<noteq> g $ n" by (simp add: fps_eq_iff)
-  with assms have "dist f g = inverse (2 ^ (The (leastP (\<lambda>n. f $ n \<noteq> g $ n))))"
+  with assms have "dist f g = inverse (2 ^ (LEAST n. f $ n \<noteq> g $ n))"
     by (simp add: split_if_asm dist_fps_def)
   moreover
-  from fps_eq_least_unique[OF `f \<noteq> g`]
-  obtain n where "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
-  with assms have "i < The (leastP (\<lambda>n. f $ n \<noteq> g $ n))"
-    by (metis (full_types) leastPD1 not_le)
+  from assms `\<exists>n. f $ n \<noteq> g $ n` have "i < (LEAST n. f $ n \<noteq> g $ n)"
+    by (metis (mono_tags) LeastI not_less)
   ultimately show ?thesis by simp
-next
-  case True
-  then show ?thesis by simp
-qed
+qed simp
 
 lemma dist_less_eq_nth_equal: "dist f g < inverse (2 ^ i) \<longleftrightarrow> (\<forall>j \<le> i. f $ j = g $ j)"
   using dist_less_imp_nth_equal nth_equal_imp_dist_less by blast

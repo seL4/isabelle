@@ -75,10 +75,10 @@ text {*
   f} rather than by @{term [source] "%u. f ()"}.
 *}
 
-lemma unit_abs_eta_conv [simp, no_atp]: "(%u::unit. f ()) = f"
+lemma unit_abs_eta_conv [simp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
 
-lemma UNIV_unit [no_atp]:
+lemma UNIV_unit:
   "UNIV = {()}" by auto
 
 instantiation unit :: default
@@ -586,10 +586,10 @@ end;
    to quite time-consuming computations (in particular for nested tuples) *)
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", split_conv_tac)) *}
 
-lemma split_eta_SetCompr [simp,no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
+lemma split_eta_SetCompr [simp, no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp,no_atp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
+lemma split_eta_SetCompr2 [simp, no_atp]: "(%u. EX x y. u = (x, y) & P x y) = split P"
   by (rule ext) fast
 
 lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"

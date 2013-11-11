@@ -33,11 +33,12 @@ syntax
   "_State" :: "updbinds => 'a" ("<_>")
 translations
   "_State ms" == "_Update <> ms"
+  "_State (_updbinds b bs)" <= "_Update (_State b) bs"
 
 text {* \noindent
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
 *}
-lemma "<a := Suc 0, b := 2> = (<> (a := Suc 0)) (b := 2)"
+lemma "<a := 1, b := 2> = (<> (a := 1)) (b := (2::int))"
   by (rule refl)
 
 value "aval (Plus (V ''x'') (N 5)) <''x'' := 7>"

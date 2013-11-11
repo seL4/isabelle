@@ -9,7 +9,7 @@
 header {* Bitwise Operations on Binary Integers *}
 
 theory Bit_Int
-imports Bit_Representation Bit_Operations
+imports Bit_Representation Bit_Bit
 begin
 
 subsection {* Logical operations *}

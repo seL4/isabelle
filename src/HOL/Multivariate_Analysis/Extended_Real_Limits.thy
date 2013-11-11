@@ -660,7 +660,7 @@ proof -
     assume "S \<noteq> {}"
     { assume ex: "\<exists>B. \<forall>x\<in>S. B \<le> x"
       then have *: "\<forall>x\<in>S. Inf S \<le> x"
-        using cInf_lower_EX[of _ S] ex by metis
+        using cInf_lower[of _ S] ex by (metis bdd_below_def)
       then have "Inf S \<in> S"
         apply (subst closed_contains_Inf)
         using ex `S \<noteq> {}` `closed S`
@@ -1193,12 +1193,12 @@ next
 qed
 
 lemma Liminf_at:
-  fixes f :: "'a::metric_space \<Rightarrow> _"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
   using Liminf_within[of x UNIV f] by simp
 
 lemma Limsup_at:
-  fixes f :: "'a::metric_space \<Rightarrow> _"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
   using Limsup_within[of x UNIV f] by simp
 
@@ -1209,7 +1209,7 @@ lemma min_Liminf_at:
   apply (subst inf_commute)
   apply (subst SUP_inf)
   apply (intro SUP_cong[OF refl])
-  apply (cut_tac A="ball x b - {x}" and B="{x}" and M=f in INF_union)
+  apply (cut_tac A="ball x xa - {x}" and B="{x}" and M=f in INF_union)
   apply (simp add: INF_def del: inf_ereal_def)
   done
 

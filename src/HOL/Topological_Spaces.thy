@@ -2112,7 +2112,7 @@ proof
   with dense[of b "Inf A"] obtain c where "c < Inf A" "c \<in> A"
     by (auto simp: subset_eq)
   then show False
-    using cInf_lower[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+    using cInf_lower[OF `c \<in> A`] bnd by (metis not_le less_imp_le bdd_belowI)
 qed
 
 lemma Sup_notin_open:
@@ -2125,7 +2125,7 @@ proof
   with dense[of "Sup A" b] obtain c where "Sup A < c" "c \<in> A"
     by (auto simp: subset_eq)
   then show False
-    using cSup_upper[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+    using cSup_upper[OF `c \<in> A`] bnd by (metis less_imp_le not_le bdd_aboveI)
 qed
 
 end
@@ -2151,7 +2151,7 @@ proof (rule connectedI)
     let ?z = "Inf (B \<inter> {x <..})"
 
     have "x \<le> ?z" "?z \<le> y"
-      using `y \<in> B` `x < y` by (auto intro: cInf_lower[where z=x] cInf_greatest)
+      using `y \<in> B` `x < y` by (auto intro: cInf_lower cInf_greatest)
     with `x \<in> U` `y \<in> U` have "?z \<in> U"
       by (rule *)
     moreover have "?z \<notin> B \<inter> {x <..}"
@@ -2163,11 +2163,11 @@ proof (rule connectedI)
       obtain a where "?z < a" "{?z ..< a} \<subseteq> A"
         using open_right[OF `open A` `?z \<in> A` `?z < y`] by auto
       moreover obtain b where "b \<in> B" "x < b" "b < min a y"
-        using cInf_less_iff[of "B \<inter> {x <..}" x "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
+        using cInf_less_iff[of "B \<inter> {x <..}" "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
         by (auto intro: less_imp_le)
       moreover have "?z \<le> b"
         using `b \<in> B` `x < b`
-        by (intro cInf_lower[where z=x]) auto
+        by (intro cInf_lower) auto
       moreover have "b \<in> U"
         using `x \<le> ?z` `?z \<le> b` `b < min a y`
         by (intro *[OF `x \<in> U` `y \<in> U`]) (auto simp: less_imp_le)

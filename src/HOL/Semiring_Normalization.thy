@@ -137,7 +137,7 @@ lemma normalizing_ring_ops: shows "TERM (x- y)" and "TERM (- x)" .
 lemma normalizing_ring_rules:
   "- x = (- 1) * x"
   "x - y = x + (- y)"
-  by (simp_all add: diff_minus)
+  by simp_all
 
 lemmas normalizing_comm_ring_1_axioms =
   comm_ring_1_axioms [normalizer

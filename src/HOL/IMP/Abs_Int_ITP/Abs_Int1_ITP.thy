@@ -135,8 +135,6 @@ end
 
 subsubsection "Ascending Chain Condition"
 
-hide_const (open) acc
-
 abbreviation "strict r == r \<inter> -(r^-1)"
 abbreviation "acc r == wf((strict r)^-1)"
 

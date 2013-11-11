@@ -8,10 +8,6 @@ theory Misc_Numeric
 imports Main Parity
 begin
 
-lemma zmod_zsub_self [simp]: (* FIXME move to Divides.thy *) 
-  "((b :: int) - a) mod a = b mod a"
-  by (simp add: mod_diff_right_eq)
-
 declare iszero_0 [iff]
 
 lemma min_pm [simp]: "min a b + (a - b) = (a :: nat)" by arith

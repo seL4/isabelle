@@ -165,7 +165,7 @@ by (auto intro!: approx_mult2 Standard_subset_HFinite [THEN subsetD]
 
 lemma approx_hcmod_approx_zero: "(x @= y) = (hcmod (y - x) @= 0)"
 apply (subst hnorm_minus_commute)
-apply (simp add: approx_def Infinitesimal_hcmod_iff diff_minus)
+apply (simp add: approx_def Infinitesimal_hcmod_iff)
 done
 
 lemma approx_approx_zero_iff: "(x @= 0) = (hcmod x @= 0)"
@@ -178,14 +178,14 @@ lemma Infinitesimal_hcmod_add_diff:
      "u @= 0 ==> hcmod(x + u) - hcmod x \<in> Infinitesimal"
 apply (drule approx_approx_zero_iff [THEN iffD1])
 apply (rule_tac e = "hcmod u" and e' = "- hcmod u" in Infinitesimal_interval2)
-apply (auto simp add: mem_infmal_iff [symmetric] diff_minus)
+apply (auto simp add: mem_infmal_iff [symmetric])
 apply (rule_tac c1 = "hcmod x" in add_le_cancel_left [THEN iffD1])
-apply (auto simp add: diff_minus [symmetric])
+apply auto
 done
 
 lemma approx_hcmod_add_hcmod: "u @= 0 ==> hcmod(x + u) @= hcmod x"
 apply (rule approx_minus_iff [THEN iffD2])
-apply (auto intro: Infinitesimal_hcmod_add_diff simp add: mem_infmal_iff [symmetric] diff_minus [symmetric])
+apply (auto intro: Infinitesimal_hcmod_add_diff simp add: mem_infmal_iff [symmetric])
 done
 
 

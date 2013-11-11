@@ -104,7 +104,7 @@ instance prod ::
   (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
 instance prod :: (group_add, group_add) group_add
-  by default (simp_all add: prod_eq_iff diff_minus)
+  by default (simp_all add: prod_eq_iff)
 
 instance prod :: (ab_group_add, ab_group_add) ab_group_add
   by default (simp_all add: prod_eq_iff)

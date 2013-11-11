@@ -10,19 +10,22 @@ begin
 
 subsection {* Groebner Bases *}
 
-lemmas bool_simps = simp_thms(1-34)
+lemmas bool_simps = simp_thms(1-34) -- {* FIXME move to @{theory HOL} *}
+
+lemma nnf_simps: -- {* FIXME shadows fact binding in @{theory HOL} *}
+  "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)"
+  "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
+  "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
+  by blast+
 
 lemma dnf:
-    "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
-    "(P \<and> Q) = (Q \<and> P)" "(P \<or> Q) = (Q \<or> P)"
+  "(P & (Q | R)) = ((P&Q) | (P&R))"
+  "((Q | R) & P) = ((Q&P) | (R&P))"
+  "(P \<and> Q) = (Q \<and> P)"
+  "(P \<or> Q) = (Q \<or> P)"
   by blast+
 
 lemmas weak_dnf_simps = dnf bool_simps
-
-lemma nnf_simps:
-    "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
-    "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
-  by blast+
 
 lemma PFalse:
     "P \<equiv> False \<Longrightarrow> \<not> P"

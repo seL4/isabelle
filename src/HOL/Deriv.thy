@@ -98,7 +98,7 @@ lemma FDERIV_minus[simp, FDERIV_intros]: "(f has_derivative f') F \<Longrightarr
 
 lemma FDERIV_diff[simp, FDERIV_intros]:
   "(f has_derivative f') F \<Longrightarrow> (g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f x - g x) has_derivative (\<lambda>x. f' x - g' x)) F"
-  by (simp only: diff_minus FDERIV_add FDERIV_minus)
+  by (simp only: diff_conv_add_uminus FDERIV_add FDERIV_minus)
 
 abbreviation
   -- {* Frechet derivative: D is derivative of function f at x within s *}
@@ -718,13 +718,13 @@ lemma DERIV_LIM_iff:
       ((%x. (f(x)-f(a)) / (x-a)) -- a --> D)"
 apply (rule iffI)
 apply (drule_tac k="- a" in LIM_offset)
-apply (simp add: diff_minus)
+apply simp
 apply (drule_tac k="a" in LIM_offset)
 apply (simp add: add_commute)
 done
 
 lemma DERIV_iff2: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>z. (f z - f x) / (z - x)) --x --> D"
-  by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
+  by (simp add: deriv_def DERIV_LIM_iff)
 
 lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
@@ -758,8 +758,7 @@ proof
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
     show "\<forall>z. f z - f x = ?g z * (z-x)" by simp
     show "isCont ?g x" using der
-      by (simp add: isCont_iff DERIV_iff diff_minus
-               cong: LIM_equal [rule_format])
+      by (simp add: isCont_iff DERIV_iff cong: LIM_equal [rule_format])
     show "?g x = l" by simp
   qed
 next
@@ -787,7 +786,7 @@ lemma DERIV_pos_inc_right:
 proof -
   from l der [THEN DERIV_D, THEN LIM_D [where r = "l"]]
   have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l)"
-    by (simp add: diff_minus)
+    by simp
   then obtain s
         where s:   "0 < s"
           and all: "!!z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l"
@@ -798,8 +797,7 @@ proof -
     fix h::real
     assume "0 < h" "h < s"
     with all [of h] show "f x < f (x+h)"
-    proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
-    split add: split_if_asm)
+    proof (simp add: abs_if pos_less_divide_eq split add: split_if_asm)
       assume "~ (f (x+h) - f x) / h < l" and h: "0 < h"
       with l
       have "0 < (f (x+h) - f x) / h" by arith
@@ -817,7 +815,7 @@ lemma DERIV_neg_dec_left:
 proof -
   from l der [THEN DERIV_D, THEN LIM_D [where r = "-l"]]
   have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l)"
-    by (simp add: diff_minus)
+    by simp
   then obtain s
         where s:   "0 < s"
           and all: "!!z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l"
@@ -828,8 +826,7 @@ proof -
     fix h::real
     assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
-    proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
-    split add: split_if_asm)
+    proof (simp add: abs_if pos_less_divide_eq split add: split_if_asm)
       assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l
       have "0 < (f (x-h) - f x) / h" by arith
@@ -1131,7 +1128,7 @@ lemma DERIV_const_ratio_const:
 apply (rule linorder_cases [of a b], auto)
 apply (drule_tac [!] f = f in MVT)
 apply (auto dest: DERIV_isCont DERIV_unique simp add: differentiable_def)
-apply (auto dest: DERIV_unique simp add: ring_distribs diff_minus)
+apply (auto dest: DERIV_unique simp add: ring_distribs)
 done
 
 lemma DERIV_const_ratio_const2:

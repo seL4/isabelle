@@ -1,7 +1,6 @@
 (*<*)
 theory Library
 imports
-  Abstract_Rat
   AList
   BigO
   Binomial
@@ -65,7 +64,6 @@ imports
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table
-  Univ_Poly
   Wfrec
   While_Combinator
   Zorn

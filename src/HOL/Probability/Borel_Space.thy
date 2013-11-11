@@ -677,7 +677,7 @@ lemma borel_measurable_diff[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-  unfolding diff_minus using assms by simp
+  using borel_measurable_add [of f M "- g"] assms by (simp add: fun_Compl_def)
 
 lemma borel_measurable_times[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_algebra}"
@@ -719,7 +719,8 @@ proof (rule borel_measurableI)
   proof cases
     assume "b \<noteq> 0"
     with `open S` have "open ((\<lambda>x. (- a + x) /\<^sub>R b) ` S)" (is "open ?S")
-      by (auto intro!: open_affinity simp: scaleR_add_right)
+      using open_affinity [of S "inverse b" "- a /\<^sub>R b"]
+      by (auto simp: algebra_simps)
     hence "?S \<in> sets borel" by auto
     moreover
     from `b \<noteq> 0` have "(\<lambda>x. a + b *\<^sub>R f x) -` S = f -` ?S"

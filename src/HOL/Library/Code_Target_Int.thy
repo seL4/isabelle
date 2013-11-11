@@ -99,7 +99,7 @@ lemma (in ring_1) of_int_code:
 proof -
   from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
   show ?thesis
-    by (simp add: Let_def divmod_int_mod_div mod_2_not_eq_zero_eq_one_int
+    by (simp add: Let_def divmod_int_mod_div not_mod_2_eq_0_eq_1
       of_int_add [symmetric]) (simp add: * mult_commute)
 qed
 

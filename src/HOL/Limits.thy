@@ -138,6 +138,18 @@ by (simp add: Bseq_def)
 lemma BseqI: "[| 0 < K; \<forall>n. norm (X n) \<le> K |] ==> Bseq X"
 by (auto simp add: Bseq_def)
 
+lemma Bseq_bdd_above: "Bseq (X::nat \<Rightarrow> real) \<Longrightarrow> bdd_above (range X)"
+proof (elim BseqE, intro bdd_aboveI2)
+  fix K n assume "0 < K" "\<forall>n. norm (X n) \<le> K" then show "X n \<le> K"
+    by (auto elim!: allE[of _ n])
+qed
+
+lemma Bseq_bdd_below: "Bseq (X::nat \<Rightarrow> real) \<Longrightarrow> bdd_below (range X)"
+proof (elim BseqE, intro bdd_belowI2)
+  fix K n assume "0 < K" "\<forall>n. norm (X n) \<le> K" then show "- K \<le> X n"
+    by (auto elim!: allE[of _ n])
+qed
+
 lemma lemma_NBseq_def:
   "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
 proof safe
@@ -179,7 +191,7 @@ apply (rule_tac [2] x = "k + norm x" in exI)
 apply (rule_tac x = K in exI, simp)
 apply (rule exI [where x = 0], auto)
 apply (erule order_less_le_trans, simp)
-apply (drule_tac x=n in spec, fold diff_minus)
+apply (drule_tac x=n in spec)
 apply (drule order_trans [OF norm_triangle_ineq2])
 apply simp
 done
@@ -192,9 +204,11 @@ proof
   then obtain K
     where *: "0 < K" and **: "\<And>n. norm (X n) \<le> K" by (auto simp add: Bseq_def)
   from * have "0 < K + norm (X 0)" by (rule order_less_le_trans) simp
-  moreover from ** have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
-    by (auto intro: order_trans norm_triangle_ineq)
-  ultimately show ?Q by blast
+  from ** have "\<forall>n. norm (X n - X 0) \<le> K + norm (X 0)"
+    by (auto intro: order_trans norm_triangle_ineq4)
+  then have "\<forall>n. norm (X n + - X 0) \<le> K + norm (X 0)"
+    by simp
+  with `0 < K + norm (X 0)` show ?Q by blast
 next
   assume ?Q then show ?P by (auto simp add: Bseq_iff2)
 qed
@@ -205,19 +219,8 @@ apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
 apply (drule_tac x = n in spec, arith)
 done
 
+
 subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
-
-lemma Bseq_isUb:
-  "!!(X::nat=>real). Bseq X ==> \<exists>U. isUb (UNIV::real set) {x. \<exists>n. X n = x} U"
-by (auto intro: isUbI setleI simp add: Bseq_def abs_le_iff)
-
-text{* Use completeness of reals (supremum property)
-   to show that any bounded sequence has a least upper bound*}
-
-lemma Bseq_isLub:
-  "!!(X::nat=>real). Bseq X ==>
-   \<exists>U. isLub (UNIV::real set) {x. \<exists>n. X n = x} U"
-by (blast intro: reals_complete Bseq_isUb)
 
 lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
   by (simp add: Bseq_def)
@@ -342,7 +345,7 @@ lemma Zfun_minus: "Zfun f F \<Longrightarrow> Zfun (\<lambda>x. - f x) F"
   unfolding Zfun_def by simp
 
 lemma Zfun_diff: "\<lbrakk>Zfun f F; Zfun g F\<rbrakk> \<Longrightarrow> Zfun (\<lambda>x. f x - g x) F"
-  by (simp only: diff_minus Zfun_add Zfun_minus)
+  using Zfun_add [of f F "\<lambda>x. - g x"] by (simp add: Zfun_minus)
 
 lemma (in bounded_linear) Zfun:
   assumes g: "Zfun g F"
@@ -532,7 +535,7 @@ lemma tendsto_minus_cancel_left:
 lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) F"
-  by (simp add: diff_minus tendsto_add tendsto_minus)
+  using tendsto_add [of f a F "\<lambda>x. - g x" "- b"] by (simp add: tendsto_minus)
 
 lemma continuous_diff [continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
@@ -1355,40 +1358,29 @@ done
 
 text {* A monotone sequence converges to its least upper bound. *}
 
-lemma isLub_mono_imp_LIMSEQ:
-  fixes X :: "nat \<Rightarrow> real"
-  assumes u: "isLub UNIV {x. \<exists>n. X n = x} u" (* FIXME: use 'range X' *)
-  assumes X: "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
-  shows "X ----> u"
-proof (rule LIMSEQ_I)
-  have 1: "\<forall>n. X n \<le> u"
-    using isLubD2 [OF u] by auto
-  have "\<forall>y. (\<forall>n. X n \<le> y) \<longrightarrow> u \<le> y"
-    using isLub_le_isUb [OF u] by (auto simp add: isUb_def setle_def)
-  hence 2: "\<forall>y<u. \<exists>n. y < X n"
-    by (metis not_le)
-  fix r :: real assume "0 < r"
-  hence "u - r < u" by simp
-  hence "\<exists>m. u - r < X m" using 2 by simp
-  then obtain m where "u - r < X m" ..
-  with X have "\<forall>n\<ge>m. u - r < X n"
-    by (fast intro: less_le_trans)
-  hence "\<exists>m. \<forall>n\<ge>m. u - r < X n" ..
-  thus "\<exists>m. \<forall>n\<ge>m. norm (X n - u) < r"
-    using 1 by (simp add: diff_less_eq add_commute)
-qed
+lemma LIMSEQ_incseq_SUP:
+  fixes X :: "nat \<Rightarrow> 'a::{conditionally_complete_linorder, linorder_topology}"
+  assumes u: "bdd_above (range X)"
+  assumes X: "incseq X"
+  shows "X ----> (SUP i. X i)"
+  by (rule order_tendstoI)
+     (auto simp: eventually_sequentially u less_cSUP_iff intro: X[THEN incseqD] less_le_trans cSUP_lessD[OF u])
 
-text{*A standard proof of the theorem for monotone increasing sequence*}
-
-lemma Bseq_mono_convergent:
-   "Bseq X \<Longrightarrow> \<forall>m. \<forall>n \<ge> m. X m \<le> X n \<Longrightarrow> convergent (X::nat=>real)"
-  by (metis Bseq_isLub isLub_mono_imp_LIMSEQ convergentI)
+lemma LIMSEQ_decseq_INF:
+  fixes X :: "nat \<Rightarrow> 'a::{conditionally_complete_linorder, linorder_topology}"
+  assumes u: "bdd_below (range X)"
+  assumes X: "decseq X"
+  shows "X ----> (INF i. X i)"
+  by (rule order_tendstoI)
+     (auto simp: eventually_sequentially u cINF_less_iff intro: X[THEN decseqD] le_less_trans less_cINF_D[OF u])
 
 text{*Main monotonicity theorem*}
 
 lemma Bseq_monoseq_convergent: "Bseq X \<Longrightarrow> monoseq X \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
-  by (metis monoseq_iff incseq_def decseq_eq_incseq convergent_minus_iff Bseq_minus_iff
-            Bseq_mono_convergent)
+  by (auto simp: monoseq_iff convergent_def intro: LIMSEQ_decseq_INF LIMSEQ_incseq_SUP dest: Bseq_bdd_above Bseq_bdd_below)
+
+lemma Bseq_mono_convergent: "Bseq X \<Longrightarrow> (\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n) \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
+  by (auto intro!: Bseq_monoseq_convergent incseq_imp_monoseq simp: incseq_def)
 
 lemma Cauchy_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"

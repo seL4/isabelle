@@ -19,7 +19,8 @@ from ExpandFeatures import ExpandFeatures
 from stats import Statistics
 
 
-class ThreadingTCPServer(SocketServer.ThreadingTCPServer): 
+class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
+    
     def __init__(self, *args, **kwargs):
         SocketServer.ThreadingTCPServer.__init__(self,*args, **kwargs)
         self.manager = Manager()
@@ -27,8 +28,17 @@ class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
         self.idle_timeout = 28800.0 # 8 hours in seconds
         self.idle_timer = Timer(self.idle_timeout, self.shutdown)
         self.idle_timer.start()        
+        self.model = None
+        self.dicts = None
+        self.callCounter = 0
         
     def save(self):
+        if self.model == None or self.dicts == None:
+            try:
+                self.logger.warning('Cannot save nonexisting models.')
+            except:
+                pass
+            return
         # Save Models
         self.model.save(self.args.modelFile)
         self.dicts.save(self.args.dictsFile)
@@ -40,7 +50,7 @@ class ThreadingTCPServer(SocketServer.ThreadingTCPServer):
         self.save()          
         self.shutdown()
 
-class MaShHandler(SocketServer.BaseRequestHandler):
+class MaShHandler(SocketServer.StreamRequestHandler):
 
     def init(self,argv):
         if argv == '':
@@ -140,7 +150,7 @@ class MaShHandler(SocketServer.BaseRequestHandler):
         #predictionValues = [str(x) for x in predictionValues[:numberOfPredictions]]
         #predictionsStringList = ['%s=%s' % (predictionNames[i],predictionValues[i]) for i in range(len(predictionNames))]
         #predictionsString = string.join(predictionsStringList,' ')
-        predictionsString = string.join(predictionNames,' ')
+        predictionsString = string.join(predictionNames,' ')        
         outString = '%s: %s' % (name,predictionsString)
         self.request.sendall(outString)
     
@@ -154,15 +164,15 @@ class MaShHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(4194304).strip()
         self.server.lock.acquire()
+        self.data = self.rfile.readline().strip()
         try:
             # Update idle shutdown timer
             self.server.idle_timer.cancel()
             self.server.idle_timer = Timer(self.server.idle_timeout, self.server.save_and_shutdown)
             self.server.idle_timer.start()        
 
-            self.startTime = time()  
+            self.startTime = time()
             if self.data == 'shutdown':
                 self.shutdown()         
             elif self.data == 'save':
@@ -189,12 +199,19 @@ class MaShHandler(SocketServer.BaseRequestHandler):
             else:
                 self.request.sendall('Unspecified input format: \n%s',self.data)
             self.server.callCounter += 1
+            self.request.sendall('stop')                       
+        except: # catch exceptions
+            #print 'Caught an error. Check %s for more details' % (self.server.args.log+'server')
+            logging.exception('')
         finally:
             self.server.lock.release()
 
 if __name__ == "__main__":
-    HOST, PORT = sys.argv[1:]    
-    #HOST, PORT = "localhost", 9255
+    if not len(sys.argv[1:]) == 2:
+        print 'No Arguments for HOST and PORT found. Using localhost and 9255'
+        HOST, PORT = "localhost", 9255
+    else:
+        HOST, PORT = sys.argv[1:]
     SocketServer.TCPServer.allow_reuse_address = True
     server = ThreadingTCPServer((HOST, int(PORT)), MaShHandler)
     server.serve_forever()        

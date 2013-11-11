@@ -8,7 +8,7 @@ theory Operator_Norm
 imports Linear_Algebra
 begin
 
-definition "onorm f = Sup {norm (f x)| x. norm x = 1}"
+definition "onorm f = (SUP x:{x. norm x = 1}. norm (f x))"
 
 lemma norm_bound_generalize:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -67,25 +67,22 @@ lemma onorm:
   shows "norm (f x) \<le> onorm f * norm x"
     and "\<forall>x. norm (f x) \<le> b * norm x \<Longrightarrow> onorm f \<le> b"
 proof -
-  let ?S = "{norm (f x) |x. norm x = 1}"
+  let ?S = "(\<lambda>x. norm (f x))`{x. norm x = 1}"
   have "norm (f (SOME i. i \<in> Basis)) \<in> ?S"
     by (auto intro!: exI[of _ "SOME i. i \<in> Basis"] norm_Basis SOME_Basis)
   then have Se: "?S \<noteq> {}"
     by auto
-  from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
-    unfolding norm_bound_generalize[OF lf, symmetric]
-    by (auto simp add: setle_def)
-  from isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
-  show "norm (f x) \<le> onorm f * norm x"
+  from linear_bounded[OF lf] have b: "bdd_above ?S"
+    unfolding norm_bound_generalize[OF lf, symmetric] by auto
+  then show "norm (f x) \<le> onorm f * norm x"
     apply -
     apply (rule spec[where x = x])
     unfolding norm_bound_generalize[OF lf, symmetric]
-    apply (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)
+    apply (auto simp: onorm_def intro!: cSUP_upper)
     done
   show "\<forall>x. norm (f x) \<le> b * norm x \<Longrightarrow> onorm f \<le> b"
-    using isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
     unfolding norm_bound_generalize[OF lf, symmetric]
-    by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)
+    using Se by (auto simp: onorm_def intro!: cSUP_least b)
 qed
 
 lemma onorm_pos_le:
@@ -107,18 +104,8 @@ lemma onorm_eq_0:
   apply arith
   done
 
-lemma onorm_const:
-  "onorm (\<lambda>x::'a::euclidean_space. y::'b::euclidean_space) = norm y"
-proof -
-  let ?f = "\<lambda>x::'a. y::'b"
-  have th: "{norm (?f x)| x. norm x = 1} = {norm y}"
-    by (auto simp: SOME_Basis intro!: exI[of _ "SOME i. i \<in> Basis"])
-  show ?thesis
-    unfolding onorm_def th
-    apply (rule cSup_unique)
-    apply (simp_all  add: setle_def)
-    done
-qed
+lemma onorm_const: "onorm (\<lambda>x::'a::euclidean_space. y::'b::euclidean_space) = norm y"
+  using SOME_Basis by (auto simp add: onorm_def intro!: cSUP_const norm_Basis)
 
 lemma onorm_pos_lt:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"

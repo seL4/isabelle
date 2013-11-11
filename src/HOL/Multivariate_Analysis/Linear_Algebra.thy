@@ -303,7 +303,7 @@ lemma linear_add: "linear f \<Longrightarrow> f (x + y) = f x + f y"
   by (metis linear_iff)
 
 lemma linear_sub: "linear f \<Longrightarrow> f (x - y) = f x - f y"
-  by (simp add: diff_minus linear_add linear_neg)
+  using linear_add [of f x "- y"] by (simp add: linear_neg)
 
 lemma linear_setsum:
   assumes lin: "linear f"
@@ -384,10 +384,10 @@ lemma bilinear_rzero:
   using bilinear_radd [OF assms, of x 0 0 ] by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_lsub: "bilinear h \<Longrightarrow> h (x - y) z = h x z - h y z"
-  by (simp  add: diff_minus bilinear_ladd bilinear_lneg)
+  using bilinear_ladd [of h x "- y"] by (simp add: bilinear_lneg)
 
 lemma bilinear_rsub: "bilinear h \<Longrightarrow> h z (x - y) = h z x - h z y"
-  by (simp  add: diff_minus bilinear_radd bilinear_rneg)
+  using bilinear_radd [of h _ x "- y"] by (simp add: bilinear_rneg)
 
 lemma bilinear_setsum:
   assumes bh: "bilinear h"
@@ -730,7 +730,7 @@ lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - 
   by (metis scaleR_minus1_left subspace_mul)
 
 lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
-  by (metis diff_minus subspace_add subspace_neg)
+  using subspace_add [of S x "- y"] by (simp add: subspace_neg)
 
 lemma (in real_vector) subspace_setsum:
   assumes sA: "subspace A"
@@ -1021,8 +1021,7 @@ proof -
     apply safe
     apply (rule_tac x=k in exI, simp)
     apply (erule rev_image_eqI [OF SigmaI [OF rangeI]])
-    apply simp
-    apply (rule right_minus)
+    apply auto
     done
   then show ?thesis by simp
 qed
@@ -2064,7 +2063,7 @@ next
       using C by simp
     have "orthogonal ?a y"
       unfolding orthogonal_def
-      unfolding inner_diff inner_setsum_left diff_eq_0_iff_eq
+      unfolding inner_diff inner_setsum_left right_minus_eq
       unfolding setsum_diff1' [OF `finite C` `y \<in> C`]
       apply (clarsimp simp add: inner_commute[of y a])
       apply (rule setsum_0')
@@ -3026,7 +3025,7 @@ proof -
         norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
       using x y
       unfolding inner_simps
-      unfolding power2_norm_eq_inner[symmetric] power2_eq_square diff_eq_0_iff_eq
+      unfolding power2_norm_eq_inner[symmetric] power2_eq_square right_minus_eq
       apply (simp add: inner_commute)
       apply (simp add: field_simps)
       apply metis

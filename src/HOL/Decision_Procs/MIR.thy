@@ -1727,7 +1727,7 @@ proof(induct p rule: zlfm.induct)
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Lt a) = (real (?c * i) + (?N ?r) < 0)" using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (?I (?l (Lt a)))" apply (simp only: split_int_less_real'[where a="?c*i" and b="?N ?r"]) by (simp add: Ia cp cnz Let_def split_def diff_minus)
+    also have "\<dots> = (?I (?l (Lt a)))" apply (simp only: split_int_less_real'[where a="?c*i" and b="?N ?r"]) by (simp add: Ia cp cnz Let_def split_def)
     finally have ?case using l by simp}
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Lt a))" 
@@ -1752,13 +1752,13 @@ next
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Le a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Le a) = (real (?c * i) + (?N ?r) \<le> 0)" using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def diff_minus)
+    also have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def)
     finally have ?case using l by simp}
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Le a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Le a) = (real (?c * i) + (?N ?r) \<le> 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def diff_minus[symmetric] add_ac ,arith)
+    also from cn cnz have "\<dots> = (?I (?l (Le a)))" by (simp only: split_int_le_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1777,13 +1777,13 @@ next
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Gt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Gt a) = (real (?c * i) + (?N ?r) > 0)" using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def diff_minus)
+    also have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def)
     finally have ?case using l by simp}
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Gt a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Gt a) = (real (?c * i) + (?N ?r) > 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def diff_minus[symmetric] add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Gt a)))" by (simp only: split_int_gt_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -1802,13 +1802,13 @@ next
   {assume cp: "?c > 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Ge a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Ge a) = (real (?c * i) + (?N ?r) \<ge> 0)" using Ia by (simp add: Let_def split_def)
-    also have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def diff_minus)
+    also have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia cp cnz Let_def split_def)
     finally have ?case using l by simp}
   moreover
   {assume cn: "?c < 0" and cnz: "?c\<noteq>0" hence l: "?L (?l (Ge a))" 
       by (simp add: nb Let_def split_def isint_Floor isint_neg)
     have "?I (Ge a) = (real (?c * i) + (?N ?r) \<ge> 0)" using Ia by (simp add: Let_def split_def)
-    also from cn cnz have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def diff_minus[symmetric] add_ac, arith)
+    also from cn cnz have "\<dots> = (?I (?l (Ge a)))" by (simp only: split_int_ge_real'[where a="?c*i" and b="?N ?r"]) (simp add: Ia Let_def split_def add_ac, arith)
     finally have ?case using l by simp}
   ultimately show ?case by blast
 next
@@ -3125,7 +3125,8 @@ next
     hence pid: "c*i + ?fe \<le> c*d" by (simp only: real_of_int_le_iff)
     with pi' have "\<exists> j1\<in> {1 .. c*d}. c*i + ?fe = j1" by auto
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = - ?N i e + real j1" 
-      by (simp only: real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] algebra_simps)
+      by (simp only: real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff])
+        (simp add: algebra_simps)
     with nob  have ?case by blast }
   ultimately show ?case by blast
 next
@@ -3148,11 +3149,12 @@ next
     hence pid: "c*i + 1 + ?fe \<le> c*d" by (simp only: real_of_int_le_iff)
     with pi' have "\<exists> j1\<in> {1 .. c*d}. c*i + 1+ ?fe = j1" by auto
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) + 1= - ?N i e + real j1"
-      by (simp only: real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] algebra_simps real_of_one) 
+      by (simp only: real_of_int_mult real_of_int_add real_of_int_inject[symmetric] ei[simplified isint_iff] real_of_one) 
+        (simp add: algebra_simps)
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = (- ?N i e + real j1) - 1"
       by (simp only: algebra_simps)
         hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = - 1 - ?N i e + real j1"
-          by (simp only: add_ac diff_minus)
+          by (simp add: algebra_simps minus_one [symmetric] del: minus_one)
     with nob  have ?case by blast }
   ultimately show ?case by blast
 next
@@ -3477,10 +3479,7 @@ proof(induct t rule: rsplit0.induct)
   qed
 next
   case (3 a b) then show ?case
-    apply auto
-    apply (erule_tac x = "(aa, aaa, ba)" in ballE) apply simp_all
-    apply (erule_tac x = "(ab, ac, baa)" in ballE) apply simp_all
-    done
+    by auto
 qed (auto simp add: Let_def split_def algebra_simps)
 
 lemma real_in_int_intervals: 
@@ -3615,7 +3614,7 @@ next
       by(simp only: myle[of _ "real n * x + Inum (x # bs) s - Inum (x # bs) (Floor s)"] less_iff_diff_less_0[where a="real n *x + ?N s - ?N (Floor s)"]) 
     hence "\<exists> j\<in> {n .. 0}. 0 \<ge> - (real n *x + ?N s - ?N (Floor s) - real j) \<and> - (real n *x + ?N s - ?N (Floor s) - real (j+1)) > 0" by (simp only: th1[rule_format] th2[rule_format])
     hence "\<exists> j\<in> {n.. 0}. ?I (?p (p,n,s) j)"
-      using pns by (simp add: fp_def nn diff_minus add_ac mult_ac
+      using pns by (simp add: fp_def nn algebra_simps
         del: diff_less_0_iff_less diff_le_0_iff_le) 
     then obtain "j" where j_def: "j\<in> {n .. 0} \<and> ?I (?p (p,n,s) j)" by blast
     hence "\<exists>x \<in> {?p (p,n,s) j |j. n\<le> j \<and> j \<le> 0 }. ?I x" by auto
@@ -4832,7 +4831,7 @@ lemma splitex:
   shows "(Ifm bs (E p)) = (\<exists> (i::int). Ifm (real i#bs) (E (And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) (exsplit p))))" (is "?lhs = ?rhs")
 proof-
   have "?rhs = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm (x#(real i)#bs) (exsplit p))"
-    by (simp add: myless[of _ "1"] myless[of _ "0"] add_ac diff_minus)
+    by (simp add: myless[of _ "1"] myless[of _ "0"] add_ac)
   also have "\<dots> = (\<exists> (i::int). \<exists> x. 0\<le> x \<and> x < 1 \<and> Ifm ((real i + x) #bs) p)"
     by (simp only: exsplit[OF qf] add_ac)
   also have "\<dots> = (\<exists> x. Ifm (x#bs) p)" 
@@ -5196,7 +5195,7 @@ proof-
   hence "\<forall> j\<in> set ?js. bound0 (subst0 (C j) ?smq)" 
     by (auto simp only: subst0_bound0[OF qfmq])
   hence th: "\<forall> j\<in> set ?js. bound0 (simpfm (subst0 (C j) ?smq))"
-    by (auto simp add: simpfm_bound0)
+    by auto
   from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp 
   from Bn jsnb have "\<forall> (b,j) \<in> set ?bjs. numbound0 (Add b (C j))"
     by simp

@@ -23,7 +23,7 @@ open BNF_Tactics
 open BNF_FP_N2M_Tactics
 
 fun force_typ ctxt T =
-  map_types Type_Infer.paramify_vars 
+  map_types Type_Infer.paramify_vars
   #> Type.constraint T
   #> Syntax.check_term ctxt
   #> singleton (Variable.polymorphic ctxt);
@@ -99,10 +99,6 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val fp_nesty_bnfss = fp_bnfs :: nesty_bnfss;
     val fp_nesty_bnfs = distinct eq_bnf (flat fp_nesty_bnfss);
 
-    fun abstract t =
-      let val Ts = Term.add_frees t [];
-      in fold_rev Term.absfree (filter (member op = Ts) phis') t end;
-
     val rels =
       let
         fun find_rel T As Bs = fp_nesty_bnfss
@@ -121,10 +117,11 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
               in
                 Term.list_comb (rel, rels)
               end
-          | mk_rel (T as TFree _) _ = nth phis (find_index (curry op = T) As)
+          | mk_rel (T as TFree _) _ = (nth phis (find_index (curry op = T) As)
+              handle General.Subscript => HOLogic.eq_const T)
           | mk_rel _ _ = raise Fail "fpTs contains schematic type variables";
       in
-        map2 (abstract oo mk_rel) fpTs fpTs'
+        map2 (fold_rev Term.absfree phis' oo mk_rel) fpTs fpTs'
       end;
 
     val pre_rels = map2 (fn Ds => mk_rel_of_bnf Ds (As @ fpTs) (Bs @ fpTs')) Dss bnfs;
@@ -224,7 +221,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
         fun mk_s TU' =
           let
             val i = find_index (fn T => co_alg_argT TU' = T) Xs;
-            val sF = co_alg_funT TU'; 
+            val sF = co_alg_funT TU';
             val F = nth iter_preTs i;
             val s = nth iter_strs i;
           in
@@ -238,7 +235,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
                   |> force_typ names_lthy smapT
                   |> hidden_to_unit;
                 val smap_argTs = strip_typeN live (fastype_of smap) |> fst;
-                fun mk_smap_arg TU =              
+                fun mk_smap_arg TU =
                   (if domain_type TU = range_type TU then
                     HOLogic.id_const (domain_type TU)
                   else if is_rec then
@@ -265,7 +262,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
       in
         (case b_opt of
           NONE => ((t, Drule.dummy_thm), lthy)
-        | SOME b => Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), 
+        | SOME b => Local_Theory.define ((b, NoSyn), ((Binding.conceal (Thm.def_binding b), []),
             fold_rev Term.absfree (if is_rec then rec_strs' else fold_strs') t)) lthy |>> apsnd snd)
       end;
 
@@ -376,6 +373,6 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
        |> morph_fp_result (Morphism.term_morphism (singleton (Variable.polymorphic lthy))));
   in
     (fp_res, lthy)
-  end
+  end;
 
 end;

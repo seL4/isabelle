@@ -44,28 +44,9 @@ sig
      preplay_timeout : Time.time option,
      expect : string}
 
-  type relevance_fudge =
-    {local_const_multiplier : real,
-     worse_irrel_freq : real,
-     higher_order_irrel_weight : real,
-     abs_rel_weight : real,
-     abs_irrel_weight : real,
-     theory_const_rel_weight : real,
-     theory_const_irrel_weight : real,
-     chained_const_irrel_weight : real,
-     intro_bonus : real,
-     elim_bonus : real,
-     simp_bonus : real,
-     local_bonus : real,
-     assum_bonus : real,
-     chained_bonus : real,
-     max_imperfect : real,
-     max_imperfect_exp : real,
-     threshold_divisor : real,
-     ridiculous_threshold : real}
-
   type prover_problem =
-    {state : Proof.state,
+    {comment : string,
+     state : Proof.state,
      goal : thm,
      subgoal : int,
      subgoal_count : int,
@@ -88,8 +69,7 @@ sig
   val problem_prefix : string Config.T
   val completish : bool Config.T
   val atp_full_names : bool Config.T
-  val smt_builtin_facts : bool Config.T
-  val smt_builtin_trans : bool Config.T
+  val smt_builtins : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -117,14 +97,9 @@ sig
     Proof.context -> string -> string option
   val remotify_prover_if_not_installed :
     Proof.context -> string -> string option
-  val default_max_facts_of_prover : Proof.context -> bool -> string -> int
+  val default_max_facts_of_prover : Proof.context -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
-  val is_built_in_const_of_prover :
-    Proof.context -> string -> string * typ -> term list -> bool * term list
-  val atp_relevance_fudge : relevance_fudge
-  val smt_relevance_fudge : relevance_fudge
-  val relevance_fudge_of_prover : Proof.context -> string -> relevance_fudge
   val weight_smt_fact :
     Proof.context -> int -> ((string * stature) * thm) * int
     -> (string * stature) * (int option * thm)
@@ -160,27 +135,18 @@ open Sledgehammer_Reconstruct
 (** The Sledgehammer **)
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
-val dest_dir =
-  Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-val problem_prefix =
-  Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val completish =
-  Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
+val dest_dir = Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
+val problem_prefix = Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
+val completish = Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
 
 (* In addition to being easier to read, readable names are often much shorter,
    especially if types are mangled in names. This makes a difference for some
    provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_full_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
+val atp_full_names = Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
 
-val smt_builtin_facts =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_facts} (K true)
-val smt_builtin_trans =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_builtin_trans} (K true)
-val smt_triggers =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
-val smt_weights =
-  Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
+val smt_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt_builtins} (K true)
+val smt_triggers = Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
+val smt_weights = Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
 val smt_weight_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
@@ -240,15 +206,14 @@ fun get_slices slice slices =
 
 val reconstructor_default_max_facts = 20
 
-fun slice_max_facts (_, (_, ( ((max_facts, _), _, _, _, _), _))) = max_facts
+fun slice_max_facts (_, ( ((max_facts, _), _, _, _, _), _)) = max_facts
 
-fun default_max_facts_of_prover ctxt slice name =
+fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o slice_max_facts)
-           (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
+      fold (Integer.max o slice_max_facts) (#best_slices (get_atp thy name ()) ctxt) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end
@@ -274,68 +239,6 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
 
 fun is_appropriate_prop_of_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
-
-val atp_irrelevant_const_tab =
-  Symtab.make (map (rpair ()) atp_irrelevant_consts)
-
-fun is_built_in_const_of_prover ctxt name =
-  if is_smt_prover ctxt name andalso Config.get ctxt smt_builtin_facts then
-    let val ctxt = ctxt |> select_smt_solver name in
-      fn x => fn ts =>
-         if SMT_Builtin.is_builtin_num_ext ctxt (list_comb (Const x, ts)) then
-           (true, [])
-         else if SMT_Builtin.is_builtin_fun_ext ctxt x ts then
-           (true, ts)
-         else
-           (false, ts)
-    end
-  else
-    fn (s, _) => fn ts => (Symtab.defined atp_irrelevant_const_tab s, ts)
-
-(* FUDGE *)
-val atp_relevance_fudge =
-  {local_const_multiplier = 1.5,
-   worse_irrel_freq = 100.0,
-   higher_order_irrel_weight = 1.05,
-   abs_rel_weight = 0.5,
-   abs_irrel_weight = 2.0,
-   theory_const_rel_weight = 0.5,
-   theory_const_irrel_weight = 0.25,
-   chained_const_irrel_weight = 0.25,
-   intro_bonus = 0.15,
-   elim_bonus = 0.15,
-   simp_bonus = 0.15,
-   local_bonus = 0.55,
-   assum_bonus = 1.05,
-   chained_bonus = 1.5,
-   max_imperfect = 11.5,
-   max_imperfect_exp = 1.0,
-   threshold_divisor = 2.0,
-   ridiculous_threshold = 0.01}
-
-(* FUDGE (FIXME) *)
-val smt_relevance_fudge =
-  {local_const_multiplier = #local_const_multiplier atp_relevance_fudge,
-   worse_irrel_freq = #worse_irrel_freq atp_relevance_fudge,
-   higher_order_irrel_weight = #higher_order_irrel_weight atp_relevance_fudge,
-   abs_rel_weight = #abs_rel_weight atp_relevance_fudge,
-   abs_irrel_weight = #abs_irrel_weight atp_relevance_fudge,
-   theory_const_rel_weight = #theory_const_rel_weight atp_relevance_fudge,
-   theory_const_irrel_weight = #theory_const_irrel_weight atp_relevance_fudge,
-   chained_const_irrel_weight = #chained_const_irrel_weight atp_relevance_fudge,
-   intro_bonus = #intro_bonus atp_relevance_fudge,
-   elim_bonus = #elim_bonus atp_relevance_fudge,
-   simp_bonus = #simp_bonus atp_relevance_fudge,
-   local_bonus = #local_bonus atp_relevance_fudge,
-   assum_bonus = #assum_bonus atp_relevance_fudge,
-   chained_bonus = #chained_bonus atp_relevance_fudge,
-   max_imperfect = #max_imperfect atp_relevance_fudge,
-   max_imperfect_exp = #max_imperfect_exp atp_relevance_fudge,
-   threshold_divisor = #threshold_divisor atp_relevance_fudge,
-   ridiculous_threshold = #ridiculous_threshold atp_relevance_fudge}
-
-fun relevance_fudge_of_prover ctxt name =
-  if is_smt_prover ctxt name then smt_relevance_fudge else atp_relevance_fudge
 
 fun supported_provers ctxt =
   let
@@ -383,28 +286,9 @@ type params =
    preplay_timeout : Time.time option,
    expect : string}
 
-type relevance_fudge =
-  {local_const_multiplier : real,
-   worse_irrel_freq : real,
-   higher_order_irrel_weight : real,
-   abs_rel_weight : real,
-   abs_irrel_weight : real,
-   theory_const_rel_weight : real,
-   theory_const_irrel_weight : real,
-   chained_const_irrel_weight : real,
-   intro_bonus : real,
-   elim_bonus : real,
-   simp_bonus : real,
-   local_bonus : real,
-   assum_bonus : real,
-   chained_bonus : real,
-   max_imperfect : real,
-   max_imperfect_exp : real,
-   threshold_divisor : real,
-   ridiculous_threshold : real}
-
 type prover_problem =
-  {state : Proof.state,
+  {comment : string,
+   state : Proof.state,
    goal : thm,
    subgoal : int,
    subgoal_count : int,
@@ -681,7 +565,7 @@ fun run_atp mode name
                     max_new_mono_instances, isar_proofs, isar_compress,
                     isar_try0, slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+        ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -734,15 +618,15 @@ fun run_atp mode name
       let
         (* If slicing is disabled, we expand the last slice to fill the entire
            time available. *)
-        val actual_slices = get_slices slice (best_slices ctxt)
+        val all_slices = best_slices ctxt
+        val actual_slices = get_slices slice all_slices
+        fun max_facts_of_slices f slices = fold (Integer.max o slice_max_facts o f) slices 0
         val num_actual_slices = length actual_slices
         val max_fact_factor =
-          case max_facts of
-            NONE => 1.0
-          | SOME max =>
-            Real.fromInt max
-            / Real.fromInt (fold (Integer.max o slice_max_facts)
-                                 actual_slices 0)
+          Real.fromInt (case max_facts of
+              NONE => max_facts_of_slices I all_slices
+            | SOME max => max)
+          / Real.fromInt (max_facts_of_slices snd actual_slices)
         fun monomorphize_facts facts =
           let
             val ctxt =
@@ -845,7 +729,8 @@ fun run_atp mode name
             val _ =
               atp_problem
               |> lines_of_atp_problem format ord ord_info
-              |> cons ("% " ^ command ^ "\n")
+              |> cons ("% " ^ command ^ "\n" ^
+                (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
             val ((output, run_time), (atp_proof, outcome)) =
               time_limit generous_slice_timeout Isabelle_System.bash_output
@@ -1028,10 +913,8 @@ val smt_slice_min_secs =
 val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [@{typ nat}, @{typ int}, HOLogic.realT])
 
-fun smt_filter_loop name
-                    ({debug, verbose, overlord, max_mono_iters,
-                      max_new_mono_instances, timeout, slice, ...} : params)
-                    state goal i =
+fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instances, timeout, slice,
+      ...} : params) state goal i =
   let
     fun repair_context ctxt =
       ctxt |> select_smt_solver name
@@ -1044,7 +927,7 @@ fun smt_filter_loop name
                  I)
            |> Config.put SMT_Config.infer_triggers
                          (Config.get ctxt smt_triggers)
-           |> not (Config.get ctxt smt_builtin_trans)
+           |> not (Config.get ctxt smt_builtins)
               ? (SMT_Builtin.filter_builtins is_boring_builtin_typ
                  #> Config.put SMT_Config.datatypes false)
            |> repair_monomorph_context max_mono_iters default_max_mono_iters

@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Abstract_Rat.thy
+(*  Title:      HOL/Decision_Procs/Rat_Pair.thy
     Author:     Amine Chaieb
 *)
 
-header {* Abstract rational numbers *}
+header {* Rational numbers as pairs *}
 
-theory Abstract_Rat
+theory Rat_Pair
 imports Complex_Main
 begin
 
@@ -266,12 +266,13 @@ proof -
         by (simp add: x y th Nadd_def normNum_def INum_def split_def) }
     moreover {
       assume z: "a * b' + b * a' \<noteq> 0"
-      let ?g = "gcd (a * b' + b * a') (b*b')"
+      let ?g = "gcd (a * b' + b * a') (b * b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
         of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]
         of_int_div[where ?'a = 'a, OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
-        by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib) }
+        by (simp add: x y Nadd_def INum_def normNum_def Let_def) (simp add: field_simps)
+    }
     ultimately have ?thesis using aa' bb'
       by (simp add: x y Nadd_def INum_def normNum_def Let_def) }
   ultimately show ?thesis by blast

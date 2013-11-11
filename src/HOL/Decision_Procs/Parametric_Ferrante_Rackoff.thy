@@ -1959,7 +1959,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Eq (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r = 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r [of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) =0 "
       using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r =0" 
@@ -2041,7 +2041,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (NEq (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r \<noteq> 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r [of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) \<noteq> 0 "
       using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0" 
@@ -2106,7 +2106,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r < 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) < 0"
       
       using dc' dc'' mult_less_cancel_left_disj[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
@@ -2127,7 +2127,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Lt (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r < 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
 
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) > 0"
       
@@ -2251,7 +2251,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r <= 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) <= 0"
       
       using dc' dc'' mult_le_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
@@ -2272,7 +2272,7 @@ proof-
       by (simp add: field_simps)
     have "?rhs \<longleftrightarrow> Ifm vs (- (?d * ?t + ?c* ?s )/ (2*?c*?d) # bs) (Le (CNP 0 a r))" by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r <= 0" 
-      by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"])
+      by (simp add: r[of "(- (?d * ?t) - (?c *?s)) / (2 * ?c * ?d)"])
 
     also have "\<dots> \<longleftrightarrow> (2 * ?c * ?d) * (?a * (- (?d * ?t + ?c* ?s )/ (2*?c*?d)) + ?r) >= 0"
       
@@ -2356,8 +2356,11 @@ fun msubst :: "fm \<Rightarrow> (poly \<times> tm) \<times> (poly \<times> tm) \
 
 lemma msubst_I: assumes lp: "islin p" and nc: "isnpoly c" and nd: "isnpoly d"
   shows "Ifm vs (x#bs) (msubst p ((c,t),(d,s))) = Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) p"
-  using lp
-by (induct p rule: islin.induct, auto simp add: tmbound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2" and b'=x and bs = bs and vs=vs] bound0_I[where b="(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) + - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2" and b'=x and bs = bs and vs=vs] msubsteq msubstneq msubstlt[OF nc nd] msubstle[OF nc nd])
+  using lp by (induct p rule: islin.induct)
+    (auto simp add: tmbound0_I
+    [where b = "(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2"
+      and b' = x and bs = bs and vs = vs]
+    msubsteq msubstneq msubstlt [OF nc nd] msubstle [OF nc nd])
 
 lemma msubst_nb: assumes lp: "islin p" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubst p ((c,t),(d,s)))"
@@ -2429,7 +2432,7 @@ proof-
   with evaldjf_bound0[of ?Up "(simpfm o (msubst (simpfm p)))"]
   have "bound0 (evaldjf (simpfm o (msubst (simpfm p))) ?Up)" by blast
   with mp_nb pp_nb 
-  have th1: "bound0 (disj ?mp (disj ?pp (evaldjf (simpfm o (msubst ?q)) ?Up )))" by (simp add: disj_nb)
+  have th1: "bound0 (disj ?mp (disj ?pp (evaldjf (simpfm o (msubst ?q)) ?Up )))" by simp
   from decr0_qf[OF th1] have thqf: "qfree (ferrack p)" by (simp add: ferrack_def Let_def)
   have "?lhs \<longleftrightarrow> (\<exists>x. Ifm vs (x#bs) ?q)" by simp
   also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> (\<exists>(c, t)\<in>set ?U. \<exists>(d, s)\<in>set ?U. ?I (msubst (simpfm p) ((c, t), d, s)))" using fr_eq_msubst[OF lq, of vs bs x] by simp
@@ -2612,7 +2615,7 @@ by (induct p c t rule: msubstneg.induct, auto simp add: msubsteq2_nb msubstltneg
 lemma msubst2_nb: assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})" and lp: "islin p" and tnb: "tmbound0 t"
   shows "bound0 (msubst2 p c t)"
 using lp tnb
-by (simp add: msubst2_def msubstneg_nb msubstpos_nb conj_nb disj_nb lt_nb simpfm_bound0)
+by (simp add: msubst2_def msubstneg_nb msubstpos_nb lt_nb simpfm_bound0)
 
 lemma mult_minus2_left: "-2 * (x::'a::comm_ring_1) = - (2 * x)"
   by simp
@@ -2666,8 +2669,8 @@ proof-
         using H(3) by (auto simp add: msubst2_def lt[OF stupid(1)]  lt[OF stupid(2)] zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn'(1), of x bs ] H(3) nn'
       have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
-        apply (simp add: add_divide_distrib mult_minus2_left)
-        by (simp add: mult_commute)}
+        by (simp add: add_divide_distrib diff_divide_distrib mult_minus2_left mult_commute)
+    }
     moreover
     {fix c t d s assume H: "(c,t) \<in> set (uset p)" "(d,s) \<in> set (uset p)" 
       "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "\<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0" "Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
@@ -2675,7 +2678,9 @@ proof-
       hence nn: "isnpoly (C (-2, 1) *\<^sub>p c*\<^sub>p d)" "\<lparr>(C (-2, 1) *\<^sub>p c*\<^sub>p d)\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
         using H(3,4) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs ] H(3,4,5) 
-      have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))" apply (simp add: add_divide_distrib mult_minus2_left) by (simp add: mult_commute)}
+      have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))"
+        by (simp add: diff_divide_distrib add_divide_distrib mult_minus2_left mult_commute)
+    }
     ultimately show ?thesis by blast
   qed
   from fr_eq2[OF lp, of vs bs x] show ?thesis

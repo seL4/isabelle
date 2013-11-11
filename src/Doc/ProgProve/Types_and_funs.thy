@@ -156,7 +156,7 @@ order. For example,
 
 fun div2 :: "nat \<Rightarrow> nat" where
 "div2 0 = 0" |
-"div2 (Suc 0) = Suc 0" |
+"div2 (Suc 0) = 0" |
 "div2 (Suc(Suc n)) = Suc(div2 n)"
 
 text{* does not just define @{const div2} but also proves a
@@ -199,6 +199,34 @@ If @{text "f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>
 where typically there is a call @{text"f x\<^sub>1 \<dots> x\<^sub>n"} in the goal.
 But note that the induction rule does not mention @{text f} at all,
 except in its name, and is applicable independently of @{text f}.
+
+
+\subsection{Exercises}
+
+\begin{exercise}
+Starting from the type @{text "'a tree"} defined in the text, define
+a function @{text "contents ::"} @{typ "'a tree \<Rightarrow> 'a list"}
+that collects all values in a tree in a list, in any order,
+without removing duplicates.
+Then define a function @{text "treesum ::"} @{typ "nat tree \<Rightarrow> nat"}
+that sums up all values in a tree of natural numbers
+and prove @{prop "treesum t = listsum(contents t)"}.
+\end{exercise}
+
+\begin{exercise}
+Define a new type @{text "'a tree2"} of binary trees where values are also
+stored in the leaves of the tree.  Also reformulate the
+@{const mirror} function accordingly. Define two functions
+@{text "pre_order"} and @{text "post_order"} of type @{text "'a tree2 \<Rightarrow> 'a list"}
+that traverse a tree and collect all stored values in the respective order in
+a list. Prove @{prop "pre_order (mirror t) = rev (post_order t)"}.
+\end{exercise}
+
+\begin{exercise}
+Prove that @{const div2} defined above divides every number by @{text 2},
+not just those of the form @{text"n+n"}: @{prop "div2 n = n div 2"}.
+\end{exercise}
+
 
 \section{Induction Heuristics}
 
@@ -306,6 +334,18 @@ However, it should not be applied blindly.
 It is not always required, and the additional quantifiers can complicate
 matters in some cases. The variables that need to be quantified are typically
 those that change in recursive calls.
+
+
+\subsection{Exercises}
+
+\begin{exercise}
+Write a tail-recursive variant of the @{text add} function on @{typ nat}:
+@{term "itadd :: nat \<Rightarrow> nat \<Rightarrow> nat"}.
+Tail-recursive means that in the recursive case, @{text itadd} needs to call
+itself directly: \mbox{@{term"itadd (Suc m) n"}} @{text"= itadd \<dots>"}.
+Prove @{prop "itadd m n = add m n"}.
+\end{exercise}
+
 
 \section{Simplification}
 
@@ -485,6 +525,31 @@ Method @{text auto} can be modified in exactly the same way.
 
 \subsection{Exercises}
 
+\exercise\label{exe:tree0}
+Define a datatype @{text tree0} of binary tree skeletons which do not store
+any information, neither in the inner nodes nor in the leaves.
+Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the total number
+all nodes (inner nodes and leaves) in such a tree.
+Consider the following recursive function:
+*}
+(*<*)
+datatype tree0 = Tip | Node tree0 tree0
+(*>*)
+fun explode :: "nat \<Rightarrow> tree0 \<Rightarrow> tree0" where
+"explode 0 t = t" |
+"explode (Suc n) t = explode n (Node t t)"
+
+text {*
+Find an equation expressing the size of a tree after exploding it
+(\noquotes{@{term [source] "nodes (explode n t)"}}) as a function
+of @{term "nodes t"} and @{text n}. Prove your equation.
+You may use the usual arithmetic operators including the exponentiation
+operator ``@{text"^"}''. For example, \noquotes{@{prop [source] "2 ^ 2 = 4"}}.
+
+Hint: simplifying with the list of theorems @{thm[source] algebra_simps}
+takes care of common algebraic properties of the arithmetic operators.
+\endexercise
+
 \exercise
 Define arithmetic expressions in one variable over integers (type @{typ int})
 as a data type:
@@ -506,8 +571,7 @@ Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list
 that transforms an expression into a polynomial. This may require auxiliary
 functions. Prove that @{text coeffs} preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
-Hint: simplifying with @{thm[source] algebra_simps} takes care of
-common algebraic properties of @{text "+"} and @{text "*"}.
+Hint: consider the hint in \autoref{exe:tree0}.
 \endexercise
 *}
 (*<*)

@@ -268,11 +268,9 @@ lemma sim_trans: "c \<sim> c' \<Longrightarrow> c' \<sim> c'' \<Longrightarrow> 
 subsection "Execution is deterministic"
 
 text {* This proof is automatic. *}
-text_raw{*\snip{BigStepDeterministic}{0}{1}{% *}
+
 theorem big_step_determ: "\<lbrakk> (c,s) \<Rightarrow> t; (c,s) \<Rightarrow> u \<rbrakk> \<Longrightarrow> u = t"
   by (induction arbitrary: u rule: big_step.induct) blast+
-text_raw{*}%endsnip*}
-
 
 text {*
   This is the proof as you might present it in a lecture. The remaining

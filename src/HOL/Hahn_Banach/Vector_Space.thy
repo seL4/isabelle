@@ -112,7 +112,7 @@ lemma diff_mult_distrib2: "x \<in> V \<Longrightarrow> (a - b) \<cdot> x = a \<c
 proof -
   assume x: "x \<in> V"
   have " (a - b) \<cdot> x = (a + - b) \<cdot> x"
-    by (simp add: diff_minus)
+    by simp
   also from x have "\<dots> = a \<cdot> x + (- b) \<cdot> x"
     by (rule add_mult_distrib2)
   also from x have "\<dots> = a \<cdot> x + - (b \<cdot> x)"

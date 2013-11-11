@@ -422,10 +422,16 @@ From now on lists are always the predefined lists.
 \subsection{Exercises}
 
 \begin{exercise}
+Use the \isacom{value} command to evaluate the following expressions:
+@{term[source] "1 + (2::nat)"}, @{term[source] "1 + (2::int)"},
+@{term[source] "1 - (2::nat)"} and @{term[source] "1 - (2::int)"}.
+\end{exercise}
+
+\begin{exercise}
 Start from the definition of @{const add} given above.
-Prove it is associative (@{prop"add (add m n) p = add m (add n p)"})
-and commutative (@{prop"add m n = add n m"}). Define a recursive function
-@{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"} and prove that @{prop"double m = add m m"}.
+Prove that @{const add} it is associative and commutative.
+Define a recursive function @{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"}
+and prove @{prop"double m = add m m"}.
 \end{exercise}
 
 \begin{exercise}
@@ -436,11 +442,15 @@ that counts the number of occurrences of an element in a list. Prove
 
 \begin{exercise}
 Define a recursive function @{text "snoc ::"} @{typ"'a list \<Rightarrow> 'a \<Rightarrow> 'a list"}
-that appends an element to the end of a list. Do not use the predefined append
-operator @{text"@"}. With the help of @{text snoc} define a recursive function
-@{text "reverse ::"} @{typ"'a list \<Rightarrow> 'a list"} that reverses a list. Do not
-use the predefined function @{const rev}.
-Prove @{prop"reverse(reverse xs) = xs"}.
+that appends an element to the end of a list. With the help of @{text snoc}
+define a recursive function @{text "reverse ::"} @{typ"'a list \<Rightarrow> 'a list"}
+that reverses a list. Prove @{prop"reverse(reverse xs) = xs"}.
+\end{exercise}
+
+\begin{exercise}
+Define a recursive function @{text "sum ::"} @{typ"nat \<Rightarrow> nat"} such that
+\mbox{@{text"sum n"}} @{text"="} @{text"0 + ... + n"} and prove
+@{prop" sum(n::nat) = n * (n+1) div 2"}.
 \end{exercise}
 *}
 (*<*)

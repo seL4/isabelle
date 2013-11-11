@@ -532,9 +532,7 @@ local
   *)
 
   fun is_strange_number ctxt (t as Const (@{const_name neg_numeral}, _) $ _) =
-        (case try HOLogic.dest_number t of
-          SOME (_, i) => SMT_Builtin.is_builtin_num ctxt t andalso i < 2
-        | NONE => false)
+        SMT_Builtin.is_builtin_num ctxt t
     | is_strange_number _ _ = false
 
   val pos_num_ss =

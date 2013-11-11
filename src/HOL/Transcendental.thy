@@ -453,7 +453,7 @@ lemma lemma_termdiff2:
   apply simp
   apply (simp only: lemma_termdiff1 setsum_right_distrib)
   apply (rule setsum_cong [OF refl])
-  apply (simp add: diff_minus [symmetric] less_iff_Suc_add)
+  apply (simp add: less_iff_Suc_add)
   apply (clarify)
   apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac
               del: setsum_op_ivl_Suc power_Suc)
@@ -1129,8 +1129,7 @@ lemma exp_minus: "exp (- x) = inverse (exp x)"
   by (rule inverse_unique [symmetric], simp add: mult_exp_exp)
 
 lemma exp_diff: "exp (x - y) = exp x / exp y"
-  unfolding diff_minus divide_inverse
-  by (simp add: exp_add exp_minus)
+  using exp_add [of x "- y"] by (simp add: exp_minus divide_inverse)
 
 
 subsubsection {* Properties of the Exponential Function on Reals *}
@@ -2410,13 +2409,13 @@ lemma cos_minus [simp]: "cos (-x) = cos(x)"
   using sin_cos_minus_lemma [where x=x] by simp
 
 lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
-  by (simp add: diff_minus sin_add)
+  using sin_add [of x "- y"] by simp
 
 lemma sin_diff2: "sin (x - y) = cos y * sin x - sin y * cos x"
   by (simp add: sin_diff mult_commute)
 
 lemma cos_diff: "cos (x - y) = cos x * cos y + sin x * sin y"
-  by (simp add: diff_minus cos_add)
+  using cos_add [of x "- y"] by simp
 
 lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
   by (simp add: cos_diff mult_commute)
@@ -2526,8 +2525,9 @@ proof -
         by (simp add: inverse_eq_divide less_divide_eq)
     }
     note *** = this
+    have [simp]: "\<And>x y::real. 0 < x - y \<longleftrightarrow> y < x" by arith
     from ** show ?thesis by (rule sumr_pos_lt_pair)
-      (simp add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] ***)
+      (simp add: divide_inverse mult_assoc [symmetric] ***)
   qed
   ultimately have "0 < (\<Sum>n. - (-1 ^ n * 2 ^ (2 * n) / real (fact (2 * n))))"
     by (rule order_less_trans)
@@ -2810,7 +2810,7 @@ apply (drule cos_zero_lemma, assumption+)
 apply (cut_tac x="-x" in cos_zero_lemma, simp, simp)
 apply (force simp add: minus_equation_iff [of x])
 apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc distrib_right)
-apply (auto simp add: cos_add)
+apply (auto simp add: cos_diff cos_add)
 done
 
 (* ditto: but to a lesser extent *)
@@ -3833,7 +3833,7 @@ proof -
               by (rule DERIV_arctan_suminf[OF `0 < r` `r < 1` `\<bar>x\<bar> < r`])
             from DERIV_add_minus[OF this DERIV_arctan]
             show "DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0"
-              unfolding diff_minus by auto
+              by auto
           qed
           hence DERIV_in_rball: "\<forall> y. a \<le> y \<and> y \<le> b \<longrightarrow> DERIV (\<lambda> x. suminf (?c x) - arctan x) y :> 0"
             using `-r < a` `b < r` by auto
@@ -3922,9 +3922,10 @@ proof -
       }
       hence "\<forall> x \<in> { 0 <..< 1 }. 0 \<le> ?a x n - ?diff x n" by auto
       moreover have "\<And>x. isCont (\<lambda> x. ?a x n - ?diff x n) x"
-        unfolding diff_minus divide_inverse
+        unfolding diff_conv_add_uminus divide_inverse
         by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan
-          isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum)
+          isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum
+          simp del: add_uminus_conv_diff)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n"
         by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto

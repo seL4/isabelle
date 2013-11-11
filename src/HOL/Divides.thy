@@ -53,6 +53,16 @@ lemma div_mult_self2 [simp]:
   shows "(a + b * c) div b = c + a div b"
   using assms div_mult_self1 [of b a c] by (simp add: mult_commute)
 
+lemma div_mult_self3 [simp]:
+  assumes "b \<noteq> 0"
+  shows "(c * b + a) div b = c + a div b"
+  using assms by (simp add: add.commute)
+
+lemma div_mult_self4 [simp]:
+  assumes "b \<noteq> 0"
+  shows "(b * c + a) div b = c + a div b"
+  using assms by (simp add: add.commute)
+
 lemma mod_mult_self1 [simp]: "(a + c * b) mod b = a mod b"
 proof (cases "b = 0")
   case True then show ?thesis by simp
@@ -70,8 +80,17 @@ next
   then show ?thesis by simp
 qed
 
-lemma mod_mult_self2 [simp]: "(a + b * c) mod b = a mod b"
+lemma mod_mult_self2 [simp]: 
+  "(a + b * c) mod b = a mod b"
   by (simp add: mult_commute [of b])
+
+lemma mod_mult_self3 [simp]:
+  "(c * b + a) mod b = a mod b"
+  by (simp add: add.commute)
+
+lemma mod_mult_self4 [simp]:
+  "(b * c + a) mod b = a mod b"
+  by (simp add: add.commute)
 
 lemma div_mult_self1_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
   using div_mult_self2 [of b 0 a] by simp
@@ -420,24 +439,23 @@ qed
 
 text {* Subtraction respects modular equivalence. *}
 
-lemma mod_diff_left_eq: "(a - b) mod c = (a mod c - b) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_left_eq:
+  "(a - b) mod c = (a mod c - b) mod c"
+  using mod_add_cong [of a c "a mod c" "- b" "- b"] by simp
 
-lemma mod_diff_right_eq: "(a - b) mod c = (a - b mod c) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_right_eq:
+  "(a - b) mod c = (a - b mod c) mod c"
+  using mod_add_cong [of a c a "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b] by simp
 
-lemma mod_diff_eq: "(a - b) mod c = (a mod c - b mod c) mod c"
-  unfolding diff_minus
-  by (intro mod_add_cong mod_minus_cong) simp_all
+lemma mod_diff_eq:
+  "(a - b) mod c = (a mod c - b mod c) mod c"
+  using mod_add_cong [of a c "a mod c" "- b" "- (b mod c)"] mod_minus_cong [of "b mod c" c b] by simp
 
 lemma mod_diff_cong:
   assumes "a mod c = a' mod c"
   assumes "b mod c = b' mod c"
   shows "(a - b) mod c = (a' - b') mod c"
-  unfolding diff_minus using assms
-  by (intro mod_add_cong mod_minus_cong)
+  using assms mod_add_cong [of a c a' "- b" "- b'"] mod_minus_cong [of b c "b'"] by simp
 
 lemma dvd_neg_div: "y dvd x \<Longrightarrow> -x div y = - (x div y)"
 apply (case_tac "y = 0") apply simp
@@ -477,6 +495,34 @@ lemma div_minus1_right [simp]: "a div (-1) = -a"
 lemma mod_minus1_right [simp]: "a mod (-1) = 0"
   using mod_minus_right [of a 1] by simp
 
+lemma minus_mod_self2 [simp]: 
+  "(a - b) mod b = a mod b"
+  by (simp add: mod_diff_right_eq)
+
+lemma minus_mod_self1 [simp]: 
+  "(b - a) mod b = - a mod b"
+  using mod_add_self2 [of "- a" b] by simp
+
+end
+
+class semiring_div_parity = semiring_div + semiring_numeral +
+  assumes parity: "a mod 2 = 0 \<or> a mod 2 = 1"
+begin
+
+lemma parity_cases [case_names even odd]:
+  assumes "a mod 2 = 0 \<Longrightarrow> P"
+  assumes "a mod 2 = 1 \<Longrightarrow> P"
+  shows P
+  using assms parity by blast
+
+lemma not_mod_2_eq_0_eq_1 [simp]:
+  "a mod 2 \<noteq> 0 \<longleftrightarrow> a mod 2 = 1"
+  by (cases a rule: parity_cases) simp_all
+
+lemma not_mod_2_eq_1_eq_0 [simp]:
+  "a mod 2 \<noteq> 1 \<longleftrightarrow> a mod 2 = 0"
+  by (cases a rule: parity_cases) simp_all
+
 end
 
 
@@ -489,7 +535,6 @@ text {*
   could surely be formulated using a more fine-grained, more algebraic
   and less technical class hierarchy.
 *}
-
 
 class semiring_numeral_div = linordered_semidom + minus + semiring_div +
   assumes diff_invert_add1: "a + b = c \<Longrightarrow> a = c - b"
@@ -510,18 +555,21 @@ lemma diff_zero [simp]:
   "a - 0 = a"
   by (rule diff_invert_add1 [symmetric]) simp
 
-lemma parity:
-  "a mod 2 = 0 \<or> a mod 2 = 1"
-proof (rule ccontr)
-  assume "\<not> (a mod 2 = 0 \<or> a mod 2 = 1)"
-  then have "a mod 2 \<noteq> 0" and "a mod 2 \<noteq> 1" by simp_all
-  have "0 < 2" by simp
-  with pos_mod_bound pos_mod_sign have "0 \<le> a mod 2" "a mod 2 < 2" by simp_all
-  with `a mod 2 \<noteq> 0` have "0 < a mod 2" by simp
-  with discrete have "1 \<le> a mod 2" by simp
-  with `a mod 2 \<noteq> 1` have "1 < a mod 2" by simp
-  with discrete have "2 \<le> a mod 2" by simp
-  with `a mod 2 < 2` show False by simp
+subclass semiring_div_parity
+proof
+  fix a
+  show "a mod 2 = 0 \<or> a mod 2 = 1"
+  proof (rule ccontr)
+    assume "\<not> (a mod 2 = 0 \<or> a mod 2 = 1)"
+    then have "a mod 2 \<noteq> 0" and "a mod 2 \<noteq> 1" by simp_all
+    have "0 < 2" by simp
+    with pos_mod_bound pos_mod_sign have "0 \<le> a mod 2" "a mod 2 < 2" by simp_all
+    with `a mod 2 \<noteq> 0` have "0 < a mod 2" by simp
+    with discrete have "1 \<le> a mod 2" by simp
+    with `a mod 2 \<noteq> 1` have "1 < a mod 2" by simp
+    with discrete have "2 \<le> a mod 2" by simp
+    with `a mod 2 < 2` show False by simp
+  qed
 qed
 
 lemma divmod_digit_1:
@@ -1697,7 +1745,7 @@ structure Cancel_Div_Mod_Int = Cancel_Div_Mod
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
-    (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))
+    (@{thm diff_conv_add_uminus} :: @{thms add_0s} @ @{thms add_ac}))
 )
 *}
 
@@ -2567,11 +2615,6 @@ lemma mod_nat_numeral [simp]:
 lemma one_mod_nat_numeral [simp]:
   "Suc 0 mod numeral v' = nat (1 mod numeral v')"
   by (subst nat_mod_distrib) simp_all
-
-lemma mod_2_not_eq_zero_eq_one_int:
-  fixes k :: int
-  shows "k mod 2 \<noteq> 0 \<longleftrightarrow> k mod 2 = 1"
-  by auto
 
 instance int :: semiring_numeral_div
   by intro_classes (auto intro: zmod_le_nonneg_dividend

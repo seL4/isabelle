@@ -41,10 +41,10 @@ fun can_apply timeout_opt pre post tac st =
   end
   handle TimeLimit.TimeOut => false
 
-fun do_generic timeout_opt command pre post apply st =
+fun do_generic timeout_opt name command pre post apply st =
   let val timer = Timer.startRealTimer () in
     if can_apply timeout_opt pre post apply st then
-      SOME (command, Time.toMilliseconds (Timer.checkRealTimer timer))
+      SOME (name, command, Time.toMilliseconds (Timer.checkRealTimer timer))
     else
       NONE
   end
@@ -75,16 +75,11 @@ fun do_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode
                     timeout_opt quad st =
   if mode <> Auto_Try orelse run_if_auto_try then
     let val attrs = attrs_text attrs quad in
-      do_generic timeout_opt
-                 (name ^ attrs ^
-                  (if all_goals andalso
-                      nprems_of (#goal (Proof.goal st)) > 1 then
-                     " [1]"
-                   else
-                     ""))
-                 I (#goal o Proof.goal)
-                 (apply_named_method_on_first_goal (name ^ attrs)
-                                                   (Proof.theory_of st)) st
+      do_generic timeout_opt name
+        ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
+         (if all_goals andalso nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
+        I (#goal o Proof.goal)
+        (apply_named_method_on_first_goal (name ^ attrs) (Proof.theory_of st)) st
     end
   else
     NONE
@@ -108,12 +103,16 @@ val named_methods =
    ("presburger", ((false, true), no_attrs))]
 val do_methods = map do_named_method named_methods
 
-fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
+fun time_string ms = string_of_int ms ^ " ms"
+fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
 
 fun do_try0 mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactic.verbose false #>
       Config.put Lin_Arith.verbose false)
+    fun par_map f =
+      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself #3)
+      else Par_List.get_some f #> the_list
   in
     if mode = Normal then
       "Trying " ^ space_implode " " (Try.serial_commas "and"
@@ -121,17 +120,15 @@ fun do_try0 mode timeout_opt quad st =
       |> Output.urgent_message
     else
       ();
-    case do_methods |> Par_List.map (fn f => f mode timeout_opt quad st)
-                    |> map_filter I |> sort (int_ord o pairself snd) of
+    (case par_map (fn f => f mode timeout_opt quad st) do_methods of
       [] =>
       (if mode = Normal then Output.urgent_message "No proof found." else ();
        (false, (noneN, st)))
-    | xs as (s, _) :: _ =>
+    | xs as (name, command, _) :: _ =>
       let
-        val xs = xs |> map (fn (s, n) => (n, hd (space_explode " " s)))
+        val xs = xs |> map (fn (name, _, n) => (n, name))
                     |> AList.coalesce (op =)
                     |> map (swap o apsnd commas)
-        val need_parens = exists_string (curry (op =) " ") s
         val message =
           (case mode of
              Auto_Try => "Auto Try0 found a proof"
@@ -139,16 +136,18 @@ fun do_try0 mode timeout_opt quad st =
            | Normal => "Try this") ^ ": " ^
           Active.sendback_markup [Markup.padding_command]
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
-                else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
-          "\n(" ^ space_implode "; " (map time_string xs) ^ ")."
+                else "apply") ^ " " ^ command) ^
+          (case xs of
+            [(_, ms)] => " (" ^ time_string ms ^ ")."
+          | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ").")
       in
-        (true, (s, st |> (if mode = Auto_Try then
-                            Proof.goal_message
-                                (fn () => Pretty.markup Markup.information
-                                                        [Pretty.str message])
-                          else
-                            tap (fn _ => Output.urgent_message message))))
-      end
+        (true, (name,
+           st |> (if mode = Auto_Try then
+                    Proof.goal_message
+                      (fn () => Pretty.markup Markup.information [Pretty.str message])
+                  else
+                    tap (fn _ => Output.urgent_message message))))
+      end)
   end
 
 fun try0 timeout_opt = fst oo do_try0 Normal timeout_opt

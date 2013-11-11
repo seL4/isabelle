@@ -8,6 +8,7 @@ theory Word
 imports
   Type_Length
   "~~/src/HOL/Library/Boolean_Algebra"
+  Bit_Bit
   Bool_List_Representation
   Misc_Typedef
   Word_Miscellaneous
@@ -504,10 +505,6 @@ definition word_rsplit :: "'a :: len0 word => 'b :: len word list" where
 
 definition max_word :: "'a::len word" -- "Largest representable machine integer." where
   "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
-
-primrec of_bool :: "bool \<Rightarrow> 'a::len word" where
-  "of_bool False = 0"
-| "of_bool True = 1"
 
 (* FIXME: only provide one theorem name *)
 lemmas of_nth_def = word_set_bits_def
@@ -4238,7 +4235,7 @@ lemma max_word_eq: "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
 
 lemma max_word_max [simp,intro!]: "n \<le> max_word"
   by (cases n rule: word_int_cases)
-     (simp add: max_word_def word_le_def int_word_uint int_mod_eq')
+    (simp add: max_word_def word_le_def int_word_uint int_mod_eq' del: minus_mod_self1)
   
 lemma word_of_int_2p_len: "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) simp

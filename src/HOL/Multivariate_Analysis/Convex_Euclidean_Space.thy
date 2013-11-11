@@ -858,9 +858,10 @@ lemma affine_parallel_commut:
   assumes "affine_parallel A B"
   shows "affine_parallel B A"
 proof -
-  from assms obtain a where "B = (\<lambda>x. a + x) ` A"
+  from assms obtain a where B: "B = (\<lambda>x. a + x) ` A"
     unfolding affine_parallel_def by auto
-  then show ?thesis
+  have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
+  from B show ?thesis
     using translation_galois [of B a A]
     unfolding affine_parallel_def by auto
 qed
@@ -980,6 +981,7 @@ lemma affine_diffs_subspace:
   assumes "affine S" "a \<in> S"
   shows "subspace ((\<lambda>x. (-a)+x) ` S)"
 proof -
+  have [simp]: "(\<lambda>x. x - a) = plus (- a)" by (simp add: fun_eq_iff)
   have "affine ((\<lambda>x. (-a)+x) ` S)"
     using  affine_translation assms by auto
   moreover have "0 : ((\<lambda>x. (-a)+x) ` S)"
@@ -992,15 +994,12 @@ lemma parallel_subspace_explicit:
   assumes "L \<equiv> {y. \<exists>x \<in> S. (-a)+x=y}"
   shows "subspace L & affine_parallel S L"
 proof -
-  have par: "affine_parallel S L"
-    unfolding affine_parallel_def using assms by auto
+  from assms have "L = plus (- a) ` S" by auto
+  then have par: "affine_parallel S L"
+    unfolding affine_parallel_def .. 
   then have "affine L" using assms parallel_is_affine by auto
   moreover have "0 \<in> L"
-    using assms
-    apply auto
-    using exI[of "(\<lambda>x. x:S \<and> -a+x=0)" a]
-    apply auto
-    done
+    using assms by auto
   ultimately show ?thesis
     using subspace_affine par by auto
 qed
@@ -2390,7 +2389,7 @@ proof -
   ultimately have h1: "affine hull ((\<lambda>x. a + x) `  S) \<subseteq> (\<lambda>x. a + x) ` (affine hull S)"
     by (metis hull_minimal)
   have "affine((\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S)))"
-    using affine_translation affine_affine_hull by auto
+    using affine_translation affine_affine_hull by (auto simp del: uminus_add_conv_diff)
   moreover have "(\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S \<subseteq> (\<lambda>x. -a + x) ` (affine hull ((\<lambda>x. a + x) `  S))"
     using hull_subset[of "(\<lambda>x. a + x) `  S"] by auto
   moreover have "S = (\<lambda>x. -a + x) ` (\<lambda>x. a + x) `  S"
@@ -2478,7 +2477,7 @@ proof -
     using affine_dependent_translation_eq[of "(insert a S)" "-a"]
       affine_dependent_imp_dependent2 assms
       dependent_imp_affine_dependent[of a S]
-    by auto
+    by (auto simp del: uminus_add_conv_diff)
 qed
 
 lemma affine_dependent_iff_dependent2:
@@ -2512,7 +2511,7 @@ proof -
     then have "insert 0 ((\<lambda>x. -a+x) ` (s - {a})) = (\<lambda>x. -a+x) ` s"
       by auto
     then have "span ((\<lambda>x. -a+x) ` (s - {a}))=span ((\<lambda>x. -a+x) ` s)"
-      using span_insert_0[of "op + (- a) ` (s - {a})"] by auto
+      using span_insert_0[of "op + (- a) ` (s - {a})"] by (auto simp del: uminus_add_conv_diff)
     moreover have "{x - a |x. x \<in> (s - {a})} = ((\<lambda>x. -a+x) ` (s - {a}))"
       by auto
     moreover have "insert a (s - {a}) = insert a s"
@@ -2652,7 +2651,7 @@ proof -
     moreover have h1: "card ((\<lambda>x. -a + x) ` (B-{a})) = card (B-{a})"
        apply (rule card_image)
        using translate_inj_on
-       apply auto
+       apply (auto simp del: uminus_add_conv_diff)
        done
     ultimately have "card (B-{a}) > 0" by auto
     then have *: "finite (B - {a})"
@@ -4507,38 +4506,30 @@ next
     apply (erule_tac x="x - y" in ballE)
     apply (auto simp add: inner_diff)
     done
-  def k \<equiv> "Sup ((\<lambda>x. inner a x) ` t)"
+  def k \<equiv> "SUP x:t. a \<bullet> x"
   show ?thesis
     apply (rule_tac x="-a" in exI)
     apply (rule_tac x="-(k + b / 2)" in exI)
-    apply rule
-    apply rule
-    defer
-    apply rule
+    apply (intro conjI ballI)
     unfolding inner_minus_left and neg_less_iff_less
   proof -
-    from ab have "((\<lambda>x. inner a x) ` t) *<= (inner a y - b)"
-      apply (erule_tac x=y in ballE)
-      apply (rule setleI)
-      using `y \<in> s`
-      apply auto
-      done
-    then have k: "isLub UNIV ((\<lambda>x. inner a x) ` t) k"
+    fix x assume "x \<in> t"
+    then have "inner a x - b / 2 < k"
       unfolding k_def
-      apply (rule_tac isLub_cSup)
-      using assms(5)
-      apply auto
-      done
-    fix x
-    assume "x \<in> t"
-    then show "inner a x < (k + b / 2)"
-      using `0<b` and isLubD2[OF k, of "inner a x"] by auto
+    proof (subst less_cSUP_iff)
+      show "t \<noteq> {}" by fact
+      show "bdd_above (op \<bullet> a ` t)"
+        using ab[rule_format, of y] `y \<in> s`
+        by (intro bdd_aboveI2[where M="inner a y - b"]) (auto simp: field_simps intro: less_imp_le)
+    qed (auto intro!: bexI[of _ x] `0<b`)
+    then show "inner a x < k + b / 2"
+      by auto
   next
     fix x
     assume "x \<in> s"
     then have "k \<le> inner a x - b"
       unfolding k_def
-      apply (rule_tac cSup_least)
+      apply (rule_tac cSUP_least)
       using assms(5)
       using ab[THEN bspec[where x=x]]
       apply auto
@@ -4627,20 +4618,14 @@ proof -
   from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
   obtain a where "a \<noteq> 0" "\<forall>x\<in>{x - y |x y. x \<in> t \<and> y \<in> s}. 0 \<le> inner a x"
     using assms(3-5) by auto
-  then have "\<forall>x\<in>t. \<forall>y\<in>s. inner a y \<le> inner a x"
+  then have *: "\<And>x y. x \<in> t \<Longrightarrow> y \<in> s \<Longrightarrow> inner a y \<le> inner a x"
     by (force simp add: inner_diff)
-  then show ?thesis
-    apply (rule_tac x=a in exI)
-    apply (rule_tac x="Sup ((\<lambda>x. inner a x) ` s)" in exI)
+  then have bdd: "bdd_above ((op \<bullet> a)`s)"
+    using `t \<noteq> {}` by (auto intro: bdd_aboveI2[OF *])
+  show ?thesis
     using `a\<noteq>0`
-    apply auto
-    apply (rule isLub_cSup[THEN isLubD2])
-    prefer 4
-    apply (rule cSup_least)
-    using assms(3-5)
-    apply (auto simp add: setle_def)
-    apply metis
-    done
+    by (intro exI[of _ a] exI[of _ "SUP x:s. a \<bullet> x"])
+       (auto intro!: cSUP_upper bdd cSUP_least `a \<noteq> 0` `s \<noteq> {}` *)
 qed
 
 
@@ -8725,7 +8710,7 @@ proof (cases rule: linorder_cases)
     using interior_subset[of I] `x \<in> interior I` by auto
 
   have "Inf (?F x) \<le> (f x - f y) / (x - y)"
-  proof (rule cInf_lower2)
+  proof (intro bdd_belowI cInf_lower2)
     show "(f x - f t) / (x - t) \<in> ?F x"
       using `t \<in> I` `x < t` by auto
     show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
