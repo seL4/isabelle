@@ -116,6 +116,8 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
     fun incompatible_calls t1 t2 =
       error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ qsotm t1 ^ " vs. " ^ qsotm t2);
+    fun nested_self_call t =
+      error ("Unsupported nested self-call " ^ qsotm t);
 
     val b_names = map Binding.name_of bs;
     val fp_b_names = map base_name_of_typ fpTs;
@@ -155,23 +157,27 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
         | kk => nth Xs kk)
       | freeze_fpTs_simple T = T;
 
-    fun freeze_fpTs_map (callss, (live_call :: _, dead_calls)) s Ts =
-      (List.app (check_call_dead live_call) dead_calls;
-       Type (s, map2 freeze_fpTs (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
-         (transpose callss)) Ts))
-    and freeze_fpTs calls (T as Type (s, Ts)) =
+    fun freeze_fpTs_map (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
+        (T as Type (s, Ts)) =
+      if Ts' = Ts then
+        nested_self_call live_call
+      else
+        (List.app (check_call_dead live_call) dead_calls;
+         Type (s, map2 (freeze_fpTs fpT) (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
+           (transpose callss)) Ts))
+    and freeze_fpTs fpT calls (T as Type (s, _)) =
         (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
           ([], _) =>
           (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
             ([], _) => freeze_fpTs_simple T
-          | callsp => freeze_fpTs_map callsp s Ts)
-        | callsp => freeze_fpTs_map callsp s Ts)
-      | freeze_fpTs _ T = T;
+          | callsp => freeze_fpTs_map fpT callsp T)
+        | callsp => freeze_fpTs_map fpT callsp T)
+      | freeze_fpTs _ _ T = T;
 
     val ctr_Tsss = map (map binder_types) ctr_Tss;
-    val ctrXs_Tsss = map2 (map2 (map2 freeze_fpTs)) callssss ctr_Tsss;
+    val ctrXs_Tsss = map3 (map2 o map2 o freeze_fpTs) fpTs callssss ctr_Tsss;
     val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
-    val Ts = map (body_type o hd) ctr_Tss;
+    val ctr_Ts = map (body_type o hd) ctr_Tss;
 
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;
@@ -208,7 +214,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
               (mk_binding b) fpTs Cs) fp_bs xtor_co_iterss lthy
           |>> split_list;
 
-        val rho = tvar_subst thy Ts fpTs;
+        val rho = tvar_subst thy ctr_Ts fpTs;
         val ctr_sugar_phi = Morphism.compose (Morphism.typ_morphism (Term.typ_subst_TVars rho))
             (Morphism.term_morphism (Term.subst_TVars rho));
         val inst_ctr_sugar = morph_ctr_sugar ctr_sugar_phi;
