@@ -283,6 +283,9 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
         else
           not_co_datatype0 T
       | not_co_datatype T = not_co_datatype0 T;
+    fun not_mutually_nested_rec Ts1 Ts2 =
+      error (qsotys Ts1 ^ " is neither mutually recursive with " ^ qsotys Ts2 ^
+        " nor nested recursive via " ^ qsotys Ts2);
 
     val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
 
@@ -314,6 +317,9 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
         let
           val {fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
+
+          val _ = seen = [] orelse exists (exists_subtype_in seen) mutual_Ts orelse
+            not_mutually_nested_rec mutual_Ts seen;
 
           fun fresh_tyargs () =
             let
