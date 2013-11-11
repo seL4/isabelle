@@ -732,7 +732,7 @@ In addition, these nameless theorems are registered as safe elimination rules:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{list.distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rm:] ~ \\
+\item[@{text "t."}\hthm{distinct {\upshape[}THEN notE}@{text ", elim!"}\hthm{\upshape]}\rm:] ~ \\
 @{thm list.distinct(1)[THEN notE, elim!, no_vars]} \\
 @{thm list.distinct(2)[THEN notE, elim!, no_vars]}
 

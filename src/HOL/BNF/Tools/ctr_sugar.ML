@@ -297,7 +297,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
     fun qualify mandatory =
       Binding.qualify mandatory fc_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
 
-    fun dest_TFree_or_TVar (TFree p) = p
+    fun dest_TFree_or_TVar (TFree sS) = sS
       | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
       | dest_TFree_or_TVar _ = error "Invalid type argument";
 
