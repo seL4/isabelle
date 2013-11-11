@@ -10,7 +10,7 @@ signature BNF_FP_REC_SUGAR_UTIL =
 sig
   val indexed: 'a list -> int -> int list * int
   val indexedd: 'a list list -> int -> int list list * int
-  val indexeddd: ''a list list list -> int -> int list list list * int
+  val indexeddd: 'a list list list -> int -> int list list list * int
   val indexedddd: 'a list list list list -> int -> int list list list list * int
   val find_index_eq: ''a list -> ''a -> int
   val finds: ('a * 'b -> bool) -> 'a list -> 'b list -> ('a * 'b list) list * 'b list
