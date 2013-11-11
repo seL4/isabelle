@@ -1033,7 +1033,7 @@ text %mlref {*
   without any message output.
 
   \begin{warn}
-  The actual error channel is accessed via @{ML Output.error_msg}, but
+  The actual error channel is accessed via @{ML Output.error_message}, but
   the old interaction protocol of Proof~General \emph{crashes} if that
   function is used in regular ML code: error output and toplevel
   command failure always need to coincide in classic TTY interaction.

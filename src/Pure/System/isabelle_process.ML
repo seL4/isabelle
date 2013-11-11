@@ -119,7 +119,7 @@ fun init_channels channel =
     Output.Internal.tracing_fn :=
       (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
     Output.Internal.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
-    Output.Internal.error_fn :=
+    Output.Internal.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
     Output.Internal.protocol_message_fn := message Markup.protocolN;
     Output.Internal.urgent_message_fn := ! Output.Internal.writeln_fn;
@@ -167,10 +167,10 @@ in
 fun loop channel =
   let val continue =
     (case read_command channel of
-      [] => (Output.error_msg "Isabelle process: no input"; true)
+      [] => (Output.error_message "Isabelle process: no input"; true)
     | name :: args => (worker_guest (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
-      | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
+      | exn => (ML_Compiler.exn_error_message exn handle crash => recover crash; true);
   in
     if continue then loop channel
     else (Future.shutdown (); Execution.reset (); ())

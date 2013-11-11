@@ -36,6 +36,8 @@ val exn_info = {exn_position = exn_position, pretty_exn = pretty_exn};
 val exn_messages_ids = Runtime.exn_messages_ids exn_info;
 val exn_messages = Runtime.exn_messages exn_info;
 val exn_message = Runtime.exn_message exn_info;
+
+val exn_error_message = Output.error_message o exn_message;
 fun exn_trace e = print_exception_trace exn_message e;
 
 
@@ -103,7 +105,7 @@ fun eval verbose pos toks =
 
     val writeln_buffer = Unsynchronized.ref Buffer.empty;
     fun write s = Unsynchronized.change writeln_buffer (Buffer.add s);
-    fun output_writeln () = writeln (Buffer.content (! writeln_buffer));
+    fun output_writeln () = writeln (trim_line (Buffer.content (! writeln_buffer)));
 
     val warnings = Unsynchronized.ref ([]: string list);
     fun warn msg = Unsynchronized.change warnings (cons msg);
