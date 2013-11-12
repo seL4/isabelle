@@ -1,6 +1,6 @@
-(*  Title:      HOL/BNF/Ctr_Sugar.thy
+(*  Title:      HOL/Ctr_Sugar.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
 Wrapping existing freely generated type's constructors.
 *)

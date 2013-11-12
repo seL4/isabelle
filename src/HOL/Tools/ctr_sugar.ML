@@ -1,6 +1,6 @@
-(*  Title:      HOL/BNF/Tools/ctr_sugar.ML
+(*  Title:      HOL/Tools/ctr_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
 Wrapping existing freely generated type's constructors.
 *)

@@ -1,6 +1,7 @@
-(*  Title:      HOL/BNF/Tools/ctr_sugar_util.ML
+(*  Title:      HOL/Tools/ctr_sugar_util.ML
+    Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
 Library for wrapping existing freely generated type's constructors.
 *)
