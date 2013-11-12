@@ -8,7 +8,7 @@ Tutorial for (co)datatype definitions with the new package.
 *)
 
 theory Datatypes
-imports Setup
+imports Setup "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
 section {* Introduction
@@ -1052,6 +1052,20 @@ text {* \blankline *}
 
 text {*
 \noindent
+Pattern matching is only available for the argument on which the recursion takes
+place. Fortunately, it is easy to generate pattern-maching equations using the
+\keyw{simps\_of\_case} command provided by the theory
+\verb|~~/src/HOL/Library/Simps_Case_Conv|.
+*}
+
+    simps_of_case at_simps: at.simps
+
+text {*
+This generates the lemma collection @{thm [source] at_simps}:
+%
+\[@{thm at_simps(1)[no_vars]}
+  \qquad @{thm at_simps(2)[no_vars]}\]
+%
 The next example is defined using \keyw{fun} to escape the syntactic
 restrictions imposed on primitive recursive functions. The
 @{command datatype_new_compat} command is needed to register new-style datatypes
@@ -1759,6 +1773,19 @@ appear around constructors that guard corecursive calls:
 
 text {*
 \noindent
+Pattern matching is not supported by @{command primcorec}. Fortunately, it is
+easy to generate pattern-maching equations using the \keyw{simps\_of\_case}
+command provided by the theory \verb|~~/src/HOL/Library/Simps_Case_Conv|.
+*}
+
+    simps_of_case lappend_simps: lappend.code
+
+text {*
+This generates the lemma collection @{thm [source] lappend_simps}:
+%
+\[@{thm lappend_simps(1)[no_vars]}
+  \qquad @{thm lappend_simps(2)[no_vars]}\]
+%
 Corecursion is useful to specify not only functions but also infinite objects:
 *}
 
