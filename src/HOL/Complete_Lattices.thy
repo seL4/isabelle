@@ -418,6 +418,22 @@ lemma Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
 lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
   unfolding INF_def SUP_def by (rule Inf_le_Sup) auto
 
+lemma SUP_eq_const:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPR I f = x"
+  by (auto intro: SUP_eqI)
+
+lemma INF_eq_const:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> INFI I f = x"
+  by (auto intro: INF_eqI)
+
+lemma SUP_eq_iff:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> (SUPR I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+  using SUP_eq_const[of I f c] SUP_upper[of _ I f] by (auto intro: antisym)
+
+lemma INF_eq_iff:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> (INFI I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+  using INF_eq_const[of I f c] INF_lower[of _ I f] by (auto intro: antisym)
+
 end
 
 class complete_distrib_lattice = complete_lattice +
