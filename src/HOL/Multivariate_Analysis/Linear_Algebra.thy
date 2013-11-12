@@ -36,34 +36,6 @@ lemma square_continuous:
   apply auto
   done
 
-lemma real_le_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y\<^sup>2 \<Longrightarrow> sqrt x \<le> y"
-  using real_sqrt_le_iff[of x "y\<^sup>2"] by simp
-
-lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
-  using real_sqrt_le_mono[of "x\<^sup>2" y] by simp
-
-lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
-  using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
-
-lemma sqrt_even_pow2:
-  assumes n: "even n"
-  shows "sqrt (2 ^ n) = 2 ^ (n div 2)"
-proof -
-  from n obtain m where m: "n = 2 * m"
-    unfolding even_mult_two_ex ..
-  from m have "sqrt (2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
-    by (simp only: power_mult[symmetric] mult_commute)
-  then show ?thesis
-    using m by simp
-qed
-
-lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
-  apply (cases "x = 0")
-  apply simp_all
-  using sqrt_divide_self_eq[of x]
-  apply (simp add: inverse_eq_divide field_simps)
-  done
-
 text{* Hence derive more interesting properties of the norm. *}
 
 lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
@@ -2405,58 +2377,6 @@ proof -
 qed
 
 text {* Can construct an isomorphism between spaces of same dimension. *}
-
-lemma card_le_inj:
-  assumes fA: "finite A"
-    and fB: "finite B"
-    and c: "card A \<le> card B"
-  shows "\<exists>f. f ` A \<subseteq> B \<and> inj_on f A"
-  using fA fB c
-proof (induct arbitrary: B rule: finite_induct)
-  case empty
-  then show ?case by simp
-next
-  case (insert x s t)
-  then show ?case
-  proof (induct rule: finite_induct[OF "insert.prems"(1)])
-    case 1
-    then show ?case by simp
-  next
-    case (2 y t)
-    from "2.prems"(1,2,5) "2.hyps"(1,2) have cst: "card s \<le> card t"
-      by simp
-    from "2.prems"(3) [OF "2.hyps"(1) cst]
-    obtain f where "f ` s \<subseteq> t" "inj_on f s"
-      by blast
-    with "2.prems"(2) "2.hyps"(2) show ?case
-      apply -
-      apply (rule exI[where x = "\<lambda>z. if z = x then y else f z"])
-      apply (auto simp add: inj_on_def)
-      done
-  qed
-qed
-
-lemma card_subset_eq:
-  assumes fB: "finite B"
-    and AB: "A \<subseteq> B"
-    and c: "card A = card B"
-  shows "A = B"
-proof -
-  from fB AB have fA: "finite A"
-    by (auto intro: finite_subset)
-  from fA fB have fBA: "finite (B - A)"
-    by auto
-  have e: "A \<inter> (B - A) = {}"
-    by blast
-  have eq: "A \<union> (B - A) = B"
-    using AB by blast
-  from card_Un_disjoint[OF fA fBA e, unfolded eq c] have "card (B - A) = 0"
-    by arith
-  then have "B - A = {}"
-    unfolding card_eq_0_iff using fA fB by simp
-  with AB show "A = B"
-    by blast
-qed
 
 lemma subspace_isomorphism:
   fixes S :: "'a::euclidean_space set"

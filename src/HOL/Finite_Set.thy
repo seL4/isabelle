@@ -518,7 +518,6 @@ proof -
   then show ?thesis by simp
 qed
 
-
 subsection {* Class @{text finite}  *}
 
 class finite =
@@ -1333,6 +1332,58 @@ done
 lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
 by (erule psubsetI, blast)
 
+lemma card_le_inj:
+  assumes fA: "finite A"
+    and fB: "finite B"
+    and c: "card A \<le> card B"
+  shows "\<exists>f. f ` A \<subseteq> B \<and> inj_on f A"
+  using fA fB c
+proof (induct arbitrary: B rule: finite_induct)
+  case empty
+  then show ?case by simp
+next
+  case (insert x s t)
+  then show ?case
+  proof (induct rule: finite_induct[OF "insert.prems"(1)])
+    case 1
+    then show ?case by simp
+  next
+    case (2 y t)
+    from "2.prems"(1,2,5) "2.hyps"(1,2) have cst: "card s \<le> card t"
+      by simp
+    from "2.prems"(3) [OF "2.hyps"(1) cst]
+    obtain f where "f ` s \<subseteq> t" "inj_on f s"
+      by blast
+    with "2.prems"(2) "2.hyps"(2) show ?case
+      apply -
+      apply (rule exI[where x = "\<lambda>z. if z = x then y else f z"])
+      apply (auto simp add: inj_on_def)
+      done
+  qed
+qed
+
+lemma card_subset_eq:
+  assumes fB: "finite B"
+    and AB: "A \<subseteq> B"
+    and c: "card A = card B"
+  shows "A = B"
+proof -
+  from fB AB have fA: "finite A"
+    by (auto intro: finite_subset)
+  from fA fB have fBA: "finite (B - A)"
+    by auto
+  have e: "A \<inter> (B - A) = {}"
+    by blast
+  have eq: "A \<union> (B - A) = B"
+    using AB by blast
+  from card_Un_disjoint[OF fA fBA e, unfolded eq c] have "card (B - A) = 0"
+    by arith
+  then have "B - A = {}"
+    unfolding card_eq_0_iff using fA fB by simp
+  with AB show "A = B"
+    by blast
+qed
+
 lemma insert_partition:
   "\<lbrakk> x \<notin> F; \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<rbrakk>
   \<Longrightarrow> x \<inter> \<Union> F = {}"
@@ -1357,6 +1408,32 @@ proof (induct A taking: card rule: measure_induct_rule)
     have "P B" using ih by simp
   }
   with fin show "P A" using major by blast
+qed
+
+lemma finite_induct_select[consumes 1, case_names empty select]:
+  assumes "finite S"
+  assumes "P {}"
+  assumes select: "\<And>T. T \<subset> S \<Longrightarrow> P T \<Longrightarrow> \<exists>s\<in>S - T. P (insert s T)"
+  shows "P S"
+proof -
+  have "0 \<le> card S" by simp
+  then have "\<exists>T \<subseteq> S. card T = card S \<and> P T"
+  proof (induct rule: dec_induct)
+    case base with `P {}` show ?case
+      by (intro exI[of _ "{}"]) auto
+  next
+    case (step n)
+    then obtain T where T: "T \<subseteq> S" "card T = n" "P T"
+      by auto
+    with `n < card S` have "T \<subset> S" "P T"
+      by auto
+    with select[of T] obtain s where "s \<in> S" "s \<notin> T" "P (insert s T)"
+      by auto
+    with step(2) T `finite S` show ?case
+      by (intro exI[of _ "insert s T"]) (auto dest: finite_subset)
+  qed
+  with `finite S` show "P S"
+    by (auto dest: card_subset_eq)
 qed
 
 text{* main cardinality theorem *}
