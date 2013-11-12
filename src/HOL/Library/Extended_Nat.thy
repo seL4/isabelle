@@ -60,10 +60,10 @@ declare [[coercion "enat::nat\<Rightarrow>enat"]]
 lemmas enat2_cases = enat.exhaust[case_product enat.exhaust]
 lemmas enat3_cases = enat.exhaust[case_product enat.exhaust enat.exhaust]
 
-lemma not_infinity_eq [iff]: "(x \<noteq> \<infinity>) = (EX i. x = enat i)"
+lemma not_infinity_eq [iff]: "(x \<noteq> \<infinity>) = (\<exists>i. x = enat i)"
   by (cases x) auto
 
-lemma not_enat_eq [iff]: "(ALL y. x ~= enat y) = (x = \<infinity>)"
+lemma not_enat_eq [iff]: "(\<forall>y. x \<noteq> enat y) = (x = \<infinity>)"
   by (cases x) auto
 
 primrec the_enat :: "enat \<Rightarrow> nat"
@@ -93,6 +93,12 @@ lemma enat_0 [code_post]: "enat 0 = 0"
 
 lemma enat_1 [code_post]: "enat 1 = 1"
   by (simp add: one_enat_def)
+
+lemma enat_0_iff: "enat x = 0 \<longleftrightarrow> x = 0" "0 = enat x \<longleftrightarrow> x = 0"
+  by (auto simp add: zero_enat_def)
+
+lemma enat_1_iff: "enat x = 1 \<longleftrightarrow> x = 1" "1 = enat x \<longleftrightarrow> x = 1"
+  by (auto simp add: one_enat_def)
 
 lemma one_eSuc: "1 = eSuc 0"
   by (simp add: zero_enat_def one_enat_def eSuc_def)
