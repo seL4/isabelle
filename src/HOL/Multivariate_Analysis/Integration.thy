@@ -2336,12 +2336,11 @@ proof -
   qed
   {
     fix n m :: nat
-    assume "m \<le> n"
-    then have "{A n..B n} \<subseteq> {A m..B m}"
-    proof (induct rule: inc_induct)
+    assume "m \<le> n" then have "{A n..B n} \<subseteq> {A m..B m}"
+    proof (induction rule: inc_induct)
       case (step i)
       show ?case
-        using AB(4) by (intro order_trans[OF step(2)] subset_interval_imp) auto
+        using AB(4) by (intro order_trans[OF step.IH] subset_interval_imp) auto
     qed simp
   } note ABsubset = this
   have "\<exists>a. \<forall>n. a\<in>{A n..B n}"

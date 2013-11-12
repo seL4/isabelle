@@ -1718,20 +1718,20 @@ by (cases m) auto
 text {* Specialized induction principles that work "backwards": *}
 
 lemma inc_induct[consumes 1, case_names base step]:
-  assumes less: "i <= j"
+  assumes less: "i \<le> j"
   assumes base: "P j"
-  assumes step: "!!i. [| i < j; P (Suc i) |] ==> P i"
+  assumes step: "\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P (Suc n) \<Longrightarrow> P n"
   shows "P i"
-  using less
-proof (induct d=="j - i" arbitrary: i)
+  using less step
+proof (induct d\<equiv>"j - i" arbitrary: i)
   case (0 i)
   hence "i = j" by simp
   with base show ?case by simp
 next
-  case (Suc d i)
-  hence "i < j" "P (Suc i)"
+  case (Suc d n)
+  hence "n \<le> n" "n < j" "P (Suc n)"
     by simp_all
-  thus "P i" by (rule step)
+  then show "P n" by fact
 qed
 
 lemma strict_inc_induct[consumes 1, case_names base step]:
@@ -1760,9 +1760,8 @@ lemma zero_induct: "P k ==> (!!n. P (Suc n) ==> P n) ==> P 0"
 text {* Further induction rule similar to @{thm inc_induct} *}
 
 lemma dec_induct[consumes 1, case_names base step]:
-  "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
+  "i \<le> j \<Longrightarrow> P i \<Longrightarrow> (\<And>n. i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n \<Longrightarrow> P (Suc n)) \<Longrightarrow> P j"
   by (induct j arbitrary: i) (auto simp: le_Suc_eq)
-
  
 subsection {* The divides relation on @{typ nat} *}
 
