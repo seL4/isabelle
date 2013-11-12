@@ -499,7 +499,7 @@ lemmas dprod_subset_Sigma = subset_trans [OF dprod_mono dprod_Sigma]
 
 (*Dependent version*)
 lemma dprod_subset_Sigma2:
-     "(dprod (Sigma A B) (Sigma C D)) <= 
+     "(dprod (Sigma A B) (Sigma C D)) <=
       Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))"
 by auto
 
@@ -522,4 +522,3 @@ ML_file "Tools/Datatype/datatype_realizer.ML"
 setup Datatype_Realizer.setup
 
 end
-

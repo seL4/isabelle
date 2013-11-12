@@ -4,12 +4,12 @@
 
 header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 
-theory Inductive 
-imports Complete_Lattices
+theory Inductive
+imports Complete_Lattices Ctr_Sugar
 keywords
   "inductive" "coinductive" :: thy_decl and
   "inductive_cases" "inductive_simps" :: thy_script and "monos" and
-  "print_inductives" "print_case_translations" :: diag and
+  "print_inductives" :: diag and
   "rep_datatype" :: thy_goal and
   "primrec" :: thy_decl
 begin
@@ -30,7 +30,7 @@ definition
 
 subsection{* Proof of Knaster-Tarski Theorem using @{term lfp} *}
 
-text{*@{term "lfp f"} is the least upper bound of 
+text{*@{term "lfp f"} is the least upper bound of
       the set @{term "{u. f(u) \<le> u}"} *}
 
 lemma lfp_lowerbound: "f A \<le> A ==> lfp f \<le> A"
@@ -273,21 +273,6 @@ text {* Package setup. *}
 ML_file "Tools/Datatype/datatype_aux.ML"
 ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
-
-consts
-  case_guard :: "bool \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
-  case_nil :: "'a \<Rightarrow> 'b"
-  case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-  case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
-  case_abs :: "('c \<Rightarrow> 'b) \<Rightarrow> 'b"
-declare [[coercion_args case_guard - + -]]
-declare [[coercion_args case_cons - -]]
-declare [[coercion_args case_abs -]]
-declare [[coercion_args case_elem - +]]
-
-ML_file "Tools/case_translation.ML"
-setup Case_Translation.setup
-
 ML_file "Tools/Datatype/rep_datatype.ML"
 ML_file "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
 ML_file "Tools/Datatype/primrec.ML"
