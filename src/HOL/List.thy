@@ -542,7 +542,6 @@ datatype termlets = If | Case of (typ * int)
 
 fun simproc ctxt redex =
   let
-    val thy = Proof_Context.theory_of ctxt
     val set_Nil_I = @{thm trans} OF [@{thm set.simps(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
     val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
@@ -563,21 +562,22 @@ fun simproc ctxt redex =
       in
         fold_index check cases (SOME NONE) |> the_default NONE
       end
-    (* returns (case_expr type index chosen_case) option  *)
+    (* returns (case_expr type index chosen_case constr_name) option  *)
     fun dest_case case_term =
       let
         val (case_const, args) = strip_comb case_term
       in
         (case try dest_Const case_const of
           SOME (c, T) =>
-            (case Datatype.info_of_case thy c of
-              SOME _ =>
+            (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
+              SOME {ctrs, ...} =>
                 (case possible_index_of_singleton_case (fst (split_last args)) of
                   SOME i =>
                     let
+                      val constr_names = map (fst o dest_Const) ctrs
                       val (Ts, _) = strip_type T
                       val T' = List.last Ts
-                    in SOME (List.last args, T', i, nth args i) end
+                    in SOME (List.last args, T', i, nth args i, nth constr_names i) end
                 | NONE => NONE)
             | NONE => NONE)
         | NONE => NONE)
@@ -605,12 +605,13 @@ fun simproc ctxt redex =
           THEN rtac set_Nil_I 1
       | tac ctxt (Case (T, i) :: cont) =
           let
-            val info = Datatype.the_info thy (fst (dest_Type T))
+            val SOME {injects, distincts, case_thms, split, ...} =
+              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
           in
             (* do case distinction *)
-            Splitter.split_tac [#split info] 1
+            Splitter.split_tac [split] 1
             THEN EVERY (map_index (fn (i', _) =>
-              (if i' < length (#case_rewrites info) - 1 then rtac @{thm conjI} 1 else all_tac)
+              (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
               THEN REPEAT_DETERM (rtac @{thm allI} 1)
               THEN rtac @{thm impI} 1
               THEN (if i' = i then
@@ -619,7 +620,7 @@ fun simproc ctxt redex =
                   CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
                       ((HOLogic.conj_conv
                         (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
-                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq (#inject info)))))
+                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
                         Conv.all_conv)
                         then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                         then_conv conjunct_assoc_conv)) context
@@ -636,7 +637,7 @@ fun simproc ctxt redex =
                       (HOLogic.conj_conv
                         ((HOLogic.eq_conv Conv.all_conv
                           (rewr_conv' (List.last prems))) then_conv
-                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
+                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
                         Conv.all_conv then_conv
                         (rewr_conv' @{lemma "(False & P) = False" by simp}))) context then_conv
                       HOLogic.Trueprop_conv
@@ -646,16 +647,15 @@ fun simproc ctxt redex =
                               (Conv.bottom_conv
                                 (K (rewr_conv'
                                   @{lemma "(EX x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
-                THEN rtac set_Nil_I 1)) (#case_rewrites info))
+                THEN rtac set_Nil_I 1)) case_thms)
           end
     fun make_inner_eqs bound_vs Tis eqs t =
       (case dest_case t of
-        SOME (x, T, i, cont) =>
+        SOME (x, T, i, cont, constr_name) =>
           let
             val (vs, body) = strip_abs (Envir.eta_long (map snd bound_vs) cont)
             val x' = incr_boundvars (length vs) x
             val eqs' = map (incr_boundvars (length vs)) eqs
-            val (constr_name, _) = nth (the (Datatype.get_constrs thy (fst (dest_Type T)))) i
             val constr_t =
               list_comb
                 (Const (constr_name, map snd vs ---> T), map Bound (((length vs) - 1) downto 0))
