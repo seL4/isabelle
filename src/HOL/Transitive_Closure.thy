@@ -1181,6 +1181,17 @@ lemma acyclic_irrefl [code]:
 lemma acyclicI: "ALL x. (x, x) ~: r^+ ==> acyclic r"
   by (simp add: acyclic_def)
 
+lemma (in order) acyclicI_order:
+  assumes *: "\<And>a b. (a, b) \<in> r \<Longrightarrow> f b < f a"
+  shows "acyclic r"
+proof -
+  { fix a b assume "(a, b) \<in> r\<^sup>+"
+    then have "f b < f a"
+      by induct (auto intro: * less_trans) }
+  then show ?thesis
+    by (auto intro!: acyclicI)
+qed
+
 lemma acyclic_insert [iff]:
      "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)"
 apply (simp add: acyclic_def trancl_insert)
