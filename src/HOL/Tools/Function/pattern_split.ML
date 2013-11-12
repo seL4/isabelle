@@ -49,7 +49,7 @@ fun pattern_subtract_subst ctxt vs t t' =
                 map (fn (vs, subst) => (vs, (v,t)::subst)) substs
               end
           in
-            maps aux (inst_constrs_of (Proof_Context.theory_of ctxt) T)
+            maps aux (inst_constrs_of ctxt T)
           end
      | pattern_subtract_subst_aux vs t t' =
          let

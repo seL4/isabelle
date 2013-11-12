@@ -6,9 +6,9 @@ Method "pat_completeness" to prove completeness of datatype patterns.
 
 signature PAT_COMPLETENESS =
 sig
-    val pat_completeness_tac: Proof.context -> int -> tactic
-    val prove_completeness : Proof.context -> term list -> term -> term list list ->
-      term list list -> thm
+  val pat_completeness_tac: Proof.context -> int -> tactic
+  val prove_completeness: Proof.context -> term list -> term -> term list list ->
+    term list list -> thm
 end
 
 structure Pat_Completeness : PAT_COMPLETENESS =
@@ -94,10 +94,9 @@ and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
   else (* Cons case *)
     let
       val thy = Proof_Context.theory_of ctxt
-      val T = fastype_of v
-      val (tname, _) = dest_Type T
-      val {exhaust=case_thm, ...} = Datatype.the_info thy tname
-      val constrs = inst_constrs_of thy T
+      val T as Type (tname, _) = fastype_of v
+      val SOME {exhaust=case_thm, ...} = Ctr_Sugar.ctr_sugar_of ctxt tname
+      val constrs = inst_constrs_of ctxt T
       val c_cases = map (constr_case ctxt P idx (v :: vs) pts) constrs
     in
       inst_case_thm thy v P case_thm

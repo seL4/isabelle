@@ -28,7 +28,7 @@ sig
   val regroup_conv: string -> string -> thm list -> int list -> conv
   val regroup_union_conv: int list -> conv
 
-  val inst_constrs_of : theory -> typ -> term list
+  val inst_constrs_of: Proof.context -> typ -> term list
 end
 
 structure Function_Lib: FUNCTION_LIB =
@@ -133,10 +133,8 @@ val regroup_union_conv =
       (@{thms Un_ac} @ @{thms Un_empty_right} @ @{thms Un_empty_left}))
 
 
-fun inst_constrs_of thy (T as Type (name, _)) =
-  map (fn CnCT as (_, CT) =>
-          Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const CnCT))
-      (the (Datatype.get_constrs thy name))
-  | inst_constrs_of thy _ = raise Match
+fun inst_constrs_of ctxt (Type (name, Ts)) =
+    map (Ctr_Sugar.mk_ctr Ts) (#ctrs (the (Ctr_Sugar.ctr_sugar_of ctxt name)))
+  | inst_constrs_of _ _ = raise Match
 
 end
