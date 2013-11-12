@@ -6,7 +6,7 @@
 header {* Extended natural numbers (i.e. with infinity) *}
 
 theory Extended_Nat
-imports Main
+imports Main Countable
 begin
 
 class infinity =
@@ -26,7 +26,9 @@ text {*
 *}
 
 typedef enat = "UNIV :: nat option set" ..
- 
+
+text {* TODO: introduce enat as coinductive datatype, enat is just of_nat *}
+
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"
  
@@ -35,6 +37,12 @@ begin
   definition "\<infinity> = Abs_enat None"
   instance proof qed
 end
+
+instance enat :: countable
+proof
+  show "\<exists>to_nat::enat \<Rightarrow> nat. inj to_nat"
+    by (rule exI[of _ "to_nat \<circ> Rep_enat"]) (simp add: inj_on_def Rep_enat_inject)
+qed
  
 rep_datatype enat "\<infinity> :: enat"
 proof -
@@ -555,7 +563,6 @@ text {* TODO: add regression tests for these simprocs *}
 
 text {* TODO: add simprocs for combining and cancelling numerals *}
 
-
 subsection {* Well-ordering *}
 
 lemma less_enatE:
@@ -595,6 +602,8 @@ proof
 qed
 
 subsection {* Complete Lattice *}
+
+text {* TODO: enat as order topology? *}
 
 instantiation enat :: complete_lattice
 begin
