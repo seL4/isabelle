@@ -22,6 +22,12 @@ lemma indicator_pos_le[intro, simp]: "(0::'a::linordered_semidom) \<le> indicato
 lemma indicator_abs_le_1: "\<bar>indicator S x\<bar> \<le> (1::'a::linordered_idom)"
   unfolding indicator_def by auto
 
+lemma indicator_eq_0_iff: "indicator A x = (0::_::zero_neq_one) \<longleftrightarrow> x \<notin> A"
+  by (auto simp: indicator_def)
+
+lemma indicator_eq_1_iff: "indicator A x = (1::_::zero_neq_one) \<longleftrightarrow> x \<in> A"
+  by (auto simp: indicator_def)
+
 lemma split_indicator:
   "P (indicator S x) \<longleftrightarrow> ((x \<in> S \<longrightarrow> P 1) \<and> (x \<notin> S \<longrightarrow> P 0))"
   unfolding indicator_def by auto

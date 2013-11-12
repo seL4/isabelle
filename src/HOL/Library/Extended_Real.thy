@@ -156,7 +156,7 @@ lemma ereal_infinity_cases:
 
 subsubsection "Addition"
 
-instantiation ereal :: "{one,comm_monoid_add}"
+instantiation ereal :: "{one,comm_monoid_add,zero_neq_one}"
 begin
 
 definition "0 = ereal 0"
@@ -197,6 +197,8 @@ proof
     by (cases rule: ereal2_cases[of a b]) simp_all
   show "a + b + c = a + (b + c)"
     by (cases rule: ereal3_cases[of a b c]) simp_all
+  show "0 \<noteq> (1::ereal)"
+    by (simp add: one_ereal_def zero_ereal_def)
 qed
 
 end
