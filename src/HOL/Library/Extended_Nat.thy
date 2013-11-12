@@ -27,7 +27,7 @@ text {*
 
 typedef enat = "UNIV :: nat option set" ..
 
-text {* TODO: introduce enat as coinductive datatype, enat is just of_nat *}
+text {* TODO: introduce enat as coinductive datatype, enat is just @{const of_nat} *}
 
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"
