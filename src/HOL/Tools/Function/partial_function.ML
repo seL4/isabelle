@@ -70,18 +70,18 @@ fun rewrite_with_asm_tac ctxt k =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
     Local_Defs.unfold_tac ctxt' [nth prems k]) ctxt;
 
-fun dest_case thy t =
+fun dest_case ctxt t =
   case strip_comb t of
     (Const (case_comb, _), args) =>
-      (case Datatype.info_of_case thy case_comb of
+      (case Ctr_Sugar.ctr_sugar_of_case ctxt case_comb of
          NONE => NONE
-       | SOME {case_rewrites, ...} =>
+       | SOME {case_thms, ...} =>
            let
-             val lhs = prop_of (hd case_rewrites)
+             val lhs = prop_of (hd case_thms)
                |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst;
              val arity = length (snd (strip_comb lhs));
              val conv = funpow (length args - arity) Conv.fun_conv
-               (Conv.rewrs_conv (map mk_meta_eq case_rewrites));
+               (Conv.rewrs_conv (map mk_meta_eq case_thms));
            in
              SOME (nth args (arity - 1), conv)
            end)
@@ -91,7 +91,7 @@ fun dest_case thy t =
 val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
   SUBGOAL (fn (t, i) => case t of
     _ $ (_ $ Abs (_, _, body)) =>
-      (case dest_case (Proof_Context.theory_of ctxt) body of
+      (case dest_case ctxt body of
          NONE => no_tac
        | SOME (arg, conv) =>
            let open Conv in
