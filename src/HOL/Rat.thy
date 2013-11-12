@@ -702,6 +702,18 @@ apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
 apply (simp only: of_int_mult [symmetric] of_int_eq_iff)
 done
 
+lemma of_rat_eq_0_iff [simp]: "(of_rat a = 0) = (a = 0)"
+  using of_rat_eq_iff [of _ 0] by simp
+
+lemma zero_eq_of_rat_iff [simp]: "(0 = of_rat a) = (0 = a)"
+  by simp
+
+lemma of_rat_eq_1_iff [simp]: "(of_rat a = 1) = (a = 1)"
+  using of_rat_eq_iff [of _ 1] by simp
+
+lemma one_eq_of_rat_iff [simp]: "(1 = of_rat a) = (1 = a)"
+  by simp
+
 lemma of_rat_less:
   "(of_rat r :: 'a::linordered_field) < of_rat s \<longleftrightarrow> r < s"
 proof (induct r, induct s)
@@ -722,7 +734,29 @@ lemma of_rat_less_eq:
   "(of_rat r :: 'a::linordered_field) \<le> of_rat s \<longleftrightarrow> r \<le> s"
   unfolding le_less by (auto simp add: of_rat_less)
 
-lemmas of_rat_eq_0_iff [simp] = of_rat_eq_iff [of _ 0, simplified]
+lemma of_rat_le_0_iff [simp]: "((of_rat r :: 'a::linordered_field) \<le> 0) = (r \<le> 0)"
+  using of_rat_less_eq [of r 0, where 'a='a] by simp
+
+lemma zero_le_of_rat_iff [simp]: "(0 \<le> (of_rat r :: 'a::linordered_field)) = (0 \<le> r)"
+  using of_rat_less_eq [of 0 r, where 'a='a] by simp
+
+lemma of_rat_le_1_iff [simp]: "((of_rat r :: 'a::linordered_field) \<le> 1) = (r \<le> 1)"
+  using of_rat_less_eq [of r 1] by simp
+
+lemma one_le_of_rat_iff [simp]: "(1 \<le> (of_rat r :: 'a::linordered_field)) = (1 \<le> r)"
+  using of_rat_less_eq [of 1 r] by simp
+
+lemma of_rat_less_0_iff [simp]: "((of_rat r :: 'a::linordered_field) < 0) = (r < 0)"
+  using of_rat_less [of r 0, where 'a='a] by simp
+
+lemma zero_less_of_rat_iff [simp]: "(0 < (of_rat r :: 'a::linordered_field)) = (0 < r)"
+  using of_rat_less [of 0 r, where 'a='a] by simp
+
+lemma of_rat_less_1_iff [simp]: "((of_rat r :: 'a::linordered_field) < 1) = (r < 1)"
+  using of_rat_less [of r 1] by simp
+
+lemma one_less_of_rat_iff [simp]: "(1 < (of_rat r :: 'a::linordered_field)) = (1 < r)"
+  using of_rat_less [of 1 r] by simp
 
 lemma of_rat_eq_id [simp]: "of_rat = id"
 proof
