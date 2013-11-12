@@ -30,14 +30,6 @@ fun saturate ctxt vs t =
     (binder_types (fastype_of t)) (vs, t)
 
 
-(* This is copied from "pat_completeness.ML" *)
-fun inst_constrs_of thy (T as Type (name, _)) =
-  map (fn (Cn,CT) =>
-    Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-    (the (Datatype.get_constrs thy name))
-  | inst_constrs_of thy T = raise TYPE ("inst_constrs_of", [T], [])
-
-
 fun join ((vs1,sub1), (vs2,sub2)) = (merge (op aconv) (vs1,vs2), sub1 @ sub2)
 fun join_product (xs, ys) = map_product (curry join) xs ys
 
@@ -49,7 +41,7 @@ fun pattern_subtract_subst ctxt vs t t' =
     fun pattern_subtract_subst_aux vs _ (Free v2) = []
       | pattern_subtract_subst_aux vs (v as (Free (_, T))) t' =
           let
-            fun foo constr =
+            fun aux constr =
               let
                 val (vs', t) = saturate ctxt vs constr
                 val substs = pattern_subtract_subst ctxt vs' t t'
@@ -57,7 +49,7 @@ fun pattern_subtract_subst ctxt vs t t' =
                 map (fn (vs, subst) => (vs, (v,t)::subst)) substs
               end
           in
-            maps foo (inst_constrs_of (Proof_Context.theory_of ctxt) T)
+            maps aux (inst_constrs_of (Proof_Context.theory_of ctxt) T)
           end
      | pattern_subtract_subst_aux vs t t' =
          let
