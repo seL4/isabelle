@@ -37,6 +37,7 @@ sig
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
   val ctr_sugars_of: Proof.context -> ctr_sugar list
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
+  val register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
   val rep_compat_prefix: string
 
@@ -142,6 +143,9 @@ fun ctr_sugars_of ctxt =
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.default (key, morph_ctr_sugar phi ctr_sugar)));
+
+fun register_ctr_sugar_global key ctr_sugar =
+  Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
 
 val rep_compat_prefix = "new";
 
