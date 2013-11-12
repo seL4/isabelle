@@ -1171,16 +1171,13 @@ lemma [simp]:
 using assms
 by(simp_all add: sets_measure_of_conv space_measure_of_conv)
 
-lemma (in sigma_algebra) sets_measure_of_eq[simp]:
-  "sets (measure_of \<Omega> M \<mu>) = M"
+lemma (in sigma_algebra) sets_measure_of_eq[simp]: "sets (measure_of \<Omega> M \<mu>) = M"
   using space_closed by (auto intro!: sigma_sets_eq)
 
-lemma (in sigma_algebra) space_measure_of_eq[simp]:
-  "space (measure_of \<Omega> M \<mu>) = \<Omega>"
-  using space_closed by (auto intro!: sigma_sets_eq)
+lemma (in sigma_algebra) space_measure_of_eq[simp]: "space (measure_of \<Omega> M \<mu>) = \<Omega>"
+  by (rule space_measure_of_conv)
 
-lemma measure_of_subset:
-  "M \<subseteq> Pow \<Omega> \<Longrightarrow> M' \<subseteq> M \<Longrightarrow> sets (measure_of \<Omega> M' \<mu>) \<subseteq> sets (measure_of \<Omega> M \<mu>')"
+lemma measure_of_subset: "M \<subseteq> Pow \<Omega> \<Longrightarrow> M' \<subseteq> M \<Longrightarrow> sets (measure_of \<Omega> M' \<mu>) \<subseteq> sets (measure_of \<Omega> M \<mu>')"
   by (auto intro!: sigma_sets_subseteq)
 
 lemma sigma_sets_mono'':
@@ -1724,6 +1721,42 @@ next
     finally show ?case .
   qed auto
 qed
+
+subsection {* Restricted Space \<sigma>-Algebra *}
+
+definition "restrict_space M \<Omega> = measure_of \<Omega> ((op \<inter> \<Omega>) ` sets M) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
+
+lemma space_restrict_space: "space (restrict_space M \<Omega>) = \<Omega>"
+  unfolding restrict_space_def by (subst space_measure_of) auto
+
+lemma sets_restrict_space: "\<Omega> \<subseteq> space M \<Longrightarrow> sets (restrict_space M \<Omega>) = (op \<inter> \<Omega>) ` sets M"
+  using sigma_sets_vimage[of "\<lambda>x. x" \<Omega> "space M" "sets M"]
+  unfolding restrict_space_def
+  by (subst sets_measure_of) (auto simp: sets.sigma_sets_eq Int_commute[of _ \<Omega>] sets.space_closed)
+
+lemma sets_restrict_space_iff:
+  "\<Omega> \<in> sets M \<Longrightarrow> A \<in> sets (restrict_space M \<Omega>) \<longleftrightarrow> (A \<subseteq> \<Omega> \<and> A \<in> sets M)"
+  by (subst sets_restrict_space) (auto dest: sets.sets_into_space)
+
+lemma measurable_restrict_space1:
+  assumes \<Omega>: "\<Omega> \<in> sets M" and f: "f \<in> measurable M N" shows "f \<in> measurable (restrict_space M \<Omega>) N"
+  unfolding measurable_def
+proof (intro CollectI conjI ballI)
+  show sp: "f \<in> space (restrict_space M \<Omega>) \<rightarrow> space N"
+    using measurable_space[OF f] sets.sets_into_space[OF \<Omega>] by (auto simp: space_restrict_space)
+
+  fix A assume "A \<in> sets N"
+  have "f -` A \<inter> space (restrict_space M \<Omega>) = (f -` A \<inter> space M) \<inter> \<Omega>"
+    using sets.sets_into_space[OF \<Omega>] by (auto simp: space_restrict_space)
+  also have "\<dots> \<in> sets (restrict_space M \<Omega>)"
+    unfolding sets_restrict_space_iff[OF \<Omega>]
+    using measurable_sets[OF f `A \<in> sets N`] \<Omega> by blast
+  finally show "f -` A \<inter> space (restrict_space M \<Omega>) \<in> sets (restrict_space M \<Omega>)" .
+qed
+
+lemma measurable_restrict_space2:
+  "\<Omega> \<in> sets N \<Longrightarrow> f \<in> space M \<rightarrow> \<Omega> \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> f \<in> measurable M (restrict_space N \<Omega>)"
+  by (simp add: measurable_def space_restrict_space sets_restrict_space_iff)
 
 subsection {* A Two-Element Series *}
 

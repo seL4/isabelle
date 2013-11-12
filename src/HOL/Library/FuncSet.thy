@@ -183,18 +183,20 @@ lemma surj_compose: "[| f ` A = B; g ` B = C |] ==> compose A g f ` A = C"
 
 subsection{*Bounded Abstraction: @{term restrict}*}
 
-lemma restrict_in_funcset: "(!!x. x \<in> A ==> f x \<in> B) ==> (\<lambda>x\<in>A. f x) \<in> A -> B"
+lemma restrict_in_funcset: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> (\<lambda>x\<in>A. f x) \<in> A \<rightarrow> B"
   by (simp add: Pi_def restrict_def)
 
-lemma restrictI[intro!]: "(!!x. x \<in> A ==> f x \<in> B x) ==> (\<lambda>x\<in>A. f x) \<in> Pi A B"
+lemma restrictI[intro!]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> (\<lambda>x\<in>A. f x) \<in> Pi A B"
   by (simp add: Pi_def restrict_def)
 
-lemma restrict_apply [simp]:
-    "(\<lambda>y\<in>A. f y) x = (if x \<in> A then f x else undefined)"
+lemma restrict_apply[simp]: "(\<lambda>y\<in>A. f y) x = (if x \<in> A then f x else undefined)"
   by (simp add: restrict_def)
 
+lemma restrict_apply': "x \<in> A \<Longrightarrow> (\<lambda>y\<in>A. f y) x = f x"
+  by simp
+
 lemma restrict_ext:
-    "(!!x. x \<in> A ==> f x = g x) ==> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
+    "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
   by (simp add: fun_eq_iff Pi_def restrict_def)
 
 lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
@@ -362,6 +364,9 @@ lemma extensional_funcset_def: "extensional_funcset S T = (S -> T) \<inter> exte
   by (simp add: PiE_def)
 
 lemma PiE_empty_domain[simp]: "PiE {} T = {%x. undefined}"
+  unfolding PiE_def by simp
+
+lemma PiE_UNIV_domain: "PiE UNIV T = Pi UNIV T"
   unfolding PiE_def by simp
 
 lemma PiE_empty_range[simp]: "i \<in> I \<Longrightarrow> F i = {} \<Longrightarrow> (PIE i:I. F i) = {}"

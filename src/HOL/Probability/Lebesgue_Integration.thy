@@ -2521,6 +2521,36 @@ lemma borel_measurable_count_space[simp, intro!]:
   "f \<in> borel_measurable (count_space A)"
   by simp
 
+section {* Measures with Restricted Space *}
+
+lemma positive_integral_restrict_space:
+  assumes \<Omega>: "\<Omega> \<in> sets M" and f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "\<And>x. x \<in> space M - \<Omega> \<Longrightarrow> f x = 0"
+  shows "positive_integral (restrict_space M \<Omega>) f = positive_integral M f"
+using f proof (induct rule: borel_measurable_induct)
+  case (cong f g) then show ?case
+    using positive_integral_cong[of M f g] positive_integral_cong[of "restrict_space M \<Omega>" f g]
+      sets.sets_into_space[OF `\<Omega> \<in> sets M`]
+    by (simp add: subset_eq space_restrict_space)
+next
+  case (set A)
+  then have "A \<subseteq> \<Omega>"
+    unfolding indicator_eq_0_iff by (auto dest: sets.sets_into_space)
+  with set `\<Omega> \<in> sets M` sets.sets_into_space[OF `\<Omega> \<in> sets M`] show ?case
+    by (subst positive_integral_indicator')
+       (auto simp add: sets_restrict_space_iff space_restrict_space
+                  emeasure_restrict_space Int_absorb2
+                dest: sets.sets_into_space)
+next
+  case (mult f c) then show ?case
+    by (cases "c = 0") (simp_all add: measurable_restrict_space1 \<Omega> positive_integral_cmult)
+next
+  case (add f g) then show ?case
+    by (simp add: measurable_restrict_space1 \<Omega> positive_integral_add ereal_add_nonneg_eq_0_iff)
+next
+  case (seq F) then show ?case
+    by (auto simp add: SUP_eq_iff measurable_restrict_space1 \<Omega> positive_integral_monotone_convergence_SUP)
+qed
+
 section {* Measure spaces with an associated density *}
 
 definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
