@@ -994,6 +994,9 @@ lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subset
 lemma Image_UN: "(r `` (UNION A B)) = (\<Union>x\<in>A. r `` (B x))"
   by blast
 
+lemma UN_Image: "(\<Union>i\<in>I. X i) `` S = (\<Union>i\<in>I. X i `` S)"
+  by auto
+
 lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
   by blast
 
@@ -1011,6 +1014,11 @@ lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B))
 lemma Image_Collect_split [simp]: "{(x, y). P x y} `` A = {y. EX x:A. P x y}"
   by auto
 
+lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
+  by auto
+
+lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
+  by auto
 
 subsubsection {* Inverse image *}
 
