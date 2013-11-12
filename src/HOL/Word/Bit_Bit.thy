@@ -2,7 +2,7 @@
     Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 
-header {* Bit operations in \<Z>\<^sub>2*}
+header {* Bit operations in $\cal Z_2$ *}
 
 theory Bit_Bit
 imports Bit_Operations "~~/src/HOL/Library/Bit"
