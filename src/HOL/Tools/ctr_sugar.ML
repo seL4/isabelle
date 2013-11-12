@@ -36,6 +36,7 @@ sig
   val transfer_ctr_sugar: Proof.context -> ctr_sugar -> ctr_sugar
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
   val ctr_sugars_of: Proof.context -> ctr_sugar list
+  val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
@@ -139,6 +140,9 @@ fun ctr_sugar_of ctxt =
 
 fun ctr_sugars_of ctxt =
   Symtab.fold (cons o transfer_ctr_sugar ctxt o snd) (Data.get (Context.Proof ctxt)) [];
+
+fun ctr_sugar_of_case ctxt s =
+  find_first (fn {casex = Const (s', _), ...} => s' = s | _ => false) (ctr_sugars_of ctxt);
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
