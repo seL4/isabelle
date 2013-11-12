@@ -22,9 +22,9 @@ fun collect_Tcons (Type (name,Ts)) = name :: maps collect_Tcons Ts
   | collect_Tcons (TFree _) = []
   | collect_Tcons (TVar _) = []
 
-fun get_split_ths thy = collect_Tcons
+fun get_split_ths ctxt = collect_Tcons
     #> distinct (op =)
-    #> map_filter (Datatype_Data.get_info thy)
+    #> map_filter (Ctr_Sugar.ctr_sugar_of ctxt)
     #> map #split
 
 val strip_eq = prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq
@@ -80,7 +80,7 @@ fun build_case_t fun_t lhss rhss ctxt =
     val case_arg = HOLogic.mk_tuple (flat def_frees)
     val cases = Case_Translation.make_case ctxt' Case_Translation.Warning Name.context
       case_arg (pattern ~~ rhss)
-    val split_thms = get_split_ths (Proof_Context.theory_of ctxt') (fastype_of case_arg)
+    val split_thms = get_split_ths ctxt' (fastype_of case_arg)
     val t = (list_comb (fun_t, def_pats), cases)
       |> HOLogic.mk_eq
       |> HOLogic.mk_Trueprop
@@ -194,7 +194,7 @@ fun gen_to_simps ctxt splitthms thm =
 fun to_simps ctxt thm =
   let
     val T = thm |> strip_eq |> fst |> strip_comb |> fst |> fastype_of
-    val splitthms = get_split_ths (Proof_Context.theory_of ctxt) T
+    val splitthms = get_split_ths ctxt T
   in gen_to_simps ctxt splitthms thm end
 
 
