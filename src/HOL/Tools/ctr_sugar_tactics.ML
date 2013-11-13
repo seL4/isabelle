@@ -18,8 +18,8 @@ sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_case_conv_if_tac: Proof.context -> int -> thm -> thm list -> thm list list ->
-    thm list list -> tactic
+  val mk_case_if_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
+    tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
@@ -143,7 +143,7 @@ fun mk_case_tac ctxt n k case_def injects distinctss =
          else mk_case_distinct_ctrs_tac ctxt distincts)) ks distinctss))
   end;
 
-fun mk_case_conv_if_tac ctxt n uexhaust cases discss' selss =
+fun mk_case_if_tac ctxt n uexhaust cases discss' selss =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (map3 (fn casex => fn if_discs => fn sels =>
         EVERY' [hyp_subst_tac ctxt, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)),
