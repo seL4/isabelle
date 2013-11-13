@@ -202,5 +202,4 @@ lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g 
 ML_file "Tools/bnf_def_tactics.ML"
 ML_file "Tools/bnf_def.ML"
 
-
 end

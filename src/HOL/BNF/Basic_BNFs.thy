@@ -27,14 +27,20 @@ unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
   unfolding wpull_def Grp_def by auto
 
-bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq"
-  "id :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+bnf ID: 'a
+  map: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+  sets: "\<lambda>x. {x}"
+  bd: natLeq
+  rel: "id :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
 apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
 apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
 done
 
-bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
+bnf DEADID: 'a
+  map: "id :: 'a \<Rightarrow> 'a"
+  bd: "natLeq +c |UNIV :: 'a set|"
+  rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
 by (auto simp add: wpull_Grp_def Grp_def
   card_order_csum natLeq_card_order card_of_card_order_on
   cinfinite_csum natLeq_cinfinite)
@@ -47,7 +53,12 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-bnf sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
+bnf "'a + 'b"
+  map: sum_map
+  sets: setl setr
+  bd: natLeq
+  wits: Inl Inr
+  rel: sum_rel
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -147,7 +158,11 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
-bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. natLeq" prod_rel
+bnf "'a \<times> 'b"
+  map: map_pair
+  sets: fsts snds
+  bd: natLeq
+  rel: prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -230,8 +245,11 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-bnf "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|"
-  "fun_rel op ="
+bnf "'a \<Rightarrow> 'b"
+  map: "op \<circ>"
+  sets: range
+  bd: "natLeq +c |UNIV :: 'a set|"
+  rel: "fun_rel op ="
 proof
   fix f show "id \<circ> f = id f" by simp
 next

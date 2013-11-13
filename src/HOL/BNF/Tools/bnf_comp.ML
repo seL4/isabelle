@@ -147,7 +147,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val (sets, sets_alt) = map_split mk_set (0 upto ilive - 1);
 
     (*(inner_1.bd +c ... +c inner_m.bd) *c outer.bd*)
-    val bd = Term.absdummy CCA (mk_cprod (Library.foldr1 (uncurry mk_csum) inner_bds) outer_bd);
+    val bd = mk_cprod (Library.foldr1 (uncurry mk_csum) inner_bds) outer_bd;
 
     fun map_id0_tac _ =
       mk_comp_map_id0_tac (map_id0_of_bnf outer) (map_cong0_of_bnf outer)
@@ -257,7 +257,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
 
     val (bnf', lthy') =
       bnf_def const_policy (K Dont_Note) qualify tacs wit_tac (SOME (oDs @ flat Dss)) Binding.empty
-        Binding.empty [] (((((b, mapx), sets), bd), wits), SOME rel) lthy;
+        Binding.empty [] ((((((b, CCA), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -351,7 +351,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME (killedAs @ Ds)) Binding.empty
-        Binding.empty [] (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
+        Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -433,7 +433,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds) Binding.empty Binding.empty
-        [] (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
+        [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -506,7 +506,7 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds) Binding.empty Binding.empty
-        [] (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
+        [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -643,7 +643,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val (bnf', lthy') =
       bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME deads)
         Binding.empty Binding.empty []
-        (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
+        ((((((b, T), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
     ((bnf', deads), lthy')
   end;

@@ -2280,10 +2280,9 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command bnf} target? (name ':')? term \\
-    term_list term term_list? term?
-  ;
-  X_list: '[' (X + ',') ']'
+  @@{command bnf} target? (name ':')? typ \\
+    'map:' term ('sets:' (term +))? 'bd:' term \\
+    ('wits:' (term +))? ('rel:' term)?
 "}
 *}
 
@@ -2364,6 +2363,8 @@ text {*
   @{syntax_def wfc_discs_sels}: name_list (name_list_list name_term_list_list? )?
   ;
   @{syntax_def name_term}: (name ':' term)
+  ;
+  X_list: '[' (X + ',') ']'
 "}
 
 % options: no_discs_sels rep_compat

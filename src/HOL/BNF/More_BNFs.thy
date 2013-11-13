@@ -21,7 +21,12 @@ begin
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-bnf Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
+bnf "'a option"
+  map: Option.map
+  sets: Option.set
+  bd: natLeq 
+  wits: None
+  rel: option_rel
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
 next
@@ -94,7 +99,11 @@ proof (unfold wpull_def)
     (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
 qed
 
-bnf map [set] "\<lambda>_::'a list. natLeq" ["[]"]
+bnf "'a list"
+  map: map
+  sets: set
+  bd: natLeq
+  wits: Nil
 proof -
   show "map id = id" by (rule List.map.id)
 next
@@ -214,7 +223,12 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
      using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, blast)+
 qed
 
-bnf fimage [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
+bnf "'a fset"
+  map: fimage
+  sets: fset 
+  bd: natLeq
+  wits: "{||}"
+  rel: fset_rel
 apply -
           apply transfer' apply simp
          apply transfer' apply force
@@ -300,7 +314,12 @@ next
     by transfer force
 qed
 
-bnf cimage [rcset] "\<lambda>_::'a cset. natLeq" ["cempty"] cset_rel
+bnf "'a cset"
+  map: cimage
+  sets: rcset
+  bd: natLeq
+  wits: "cempty"
+  rel: cset_rel
 proof -
   show "cimage id = id" by transfer' simp
 next
@@ -874,7 +893,11 @@ lemma set_of_bd: "|set_of x| \<le>o natLeq"
   by transfer
     (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
 
-bnf mmap [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
+bnf "'a multiset"
+  map: mmap
+  sets: set_of 
+  bd: natLeq
+  wits: "{#}"
 by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
   intro: mmap_cong wpull_mmap)
 

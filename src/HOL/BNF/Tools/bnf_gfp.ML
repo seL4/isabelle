@@ -2678,7 +2678,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac thms) (SOME deads) map_b
               rel_b set_bs
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), bd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts all_witss lthy;
 

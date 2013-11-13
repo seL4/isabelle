@@ -105,7 +105,7 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
-    ((((binding * term) * term list) * term) * term list) * term option ->
+    (((((binding * typ) * term) * term list) * term) * term list) * term option ->
     local_theory -> bnf * local_theory
 end;
 
@@ -651,18 +651,18 @@ fun note_bnf_thms fact_policy qualify' bnf_b bnf =
 
 (* Define new BNFs *)
 
-fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b set_bs
-  (((((raw_bnf_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
+fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt map_b rel_b set_bs
+  ((((((raw_bnf_b, raw_bnf_T), raw_map), raw_sets), raw_bd), raw_wits), raw_rel_opt)
+  no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
     val bnf_b = qualify raw_bnf_b;
     val live = length raw_sets;
 
+    val bnf_rhs_T = prep_typ no_defs_lthy raw_bnf_T;
     val map_rhs = prep_term no_defs_lthy raw_map;
     val set_rhss = map (prep_term no_defs_lthy) raw_sets;
-    val (bd_rhsT, bd_rhs) = (case prep_term no_defs_lthy raw_bd_Abs of
-      Abs (_, T, t) => (T, t)
-    | _ => error "Bad bound constant");
+    val bd_rhs = prep_term no_defs_lthy raw_bd;
 
     fun err T =
       error ("Trying to register the type " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
@@ -670,9 +670,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
 
     val (bnf_b, key) =
       if Binding.eq_name (bnf_b, Binding.empty) then
-        (case bd_rhsT of
+        (case bnf_rhs_T of
           Type (C, Ts) => if forall (can dest_TFree) Ts
-            then (Binding.qualified_name C, C) else err bd_rhsT
+            then (Binding.qualified_name C, C) else err bnf_rhs_T
         | T => err T)
       else (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
 
@@ -745,9 +745,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
     val CA_params = map TVar (Term.add_tvarsT CA []);
 
     val bnf_sets = map2 (normalize_set CA_params) alphas (map (Morphism.term phi) bnf_set_terms);
-    val bdT = Morphism.typ phi bd_rhsT;
+    val bnf_T = Morphism.typ phi bnf_rhs_T;
     val bnf_bd =
-      Term.subst_TVars (Term.add_tvar_namesT bdT [] ~~ CA_params) (Morphism.term phi bnf_bd_term);
+      Term.subst_TVars (Term.add_tvar_namesT bnf_T [] ~~ CA_params) (Morphism.term phi bnf_bd_term);
 
     (*TODO: assert Ds = (TVars of bnf_map) \ (alphas @ betas) as sets*)
     val deads = (case Ds_opt of
@@ -1334,7 +1334,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs 
     map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
       goals (map (mk_unfold_thms_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed mk_wit_thms (map single thms) lthy)
-  end) oo prepare_def const_policy fact_policy qualify (K I) Ds map_b rel_b set_bs;
+  end) oo prepare_def const_policy fact_policy qualify (K I) (K I) Ds map_b rel_b set_bs;
 
 val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs) =>
   let
@@ -1353,7 +1353,7 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
     Proof.unfolding ([[(defs, [])]])
       (Proof.theorem NONE (snd o register_bnf key oo after_qed mk_wit_thms)
         (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
-  end) oo prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE
+  end) oo prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_typ Syntax.read_term NONE
     Binding.empty Binding.empty [];
 
 fun print_bnfs ctxt =
@@ -1389,11 +1389,14 @@ val _ =
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf"}
     "register a type as a bounded natural functor"
-    ((parse_opt_binding_colon -- Parse.term --
-       (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
-       (Scan.option ((@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}))
-         >> the_default []) --
-       Scan.option Parse.term)
+    (parse_opt_binding_colon -- Parse.typ --|
+       (Parse.reserved "map" -- @{keyword ":"}) -- Parse.term --
+       (Scan.option ((Parse.reserved "sets" -- @{keyword ":"}) |--
+         Scan.repeat1 (Scan.unless (Parse.reserved "bd") Parse.term)) >> the_default []) --|
+       (Parse.reserved "bd" -- @{keyword ":"}) -- Parse.term --
+       (Scan.option ((Parse.reserved "wits" -- @{keyword ":"}) |--
+         Scan.repeat1 (Scan.unless (Parse.reserved "rel") Parse.term)) >> the_default []) --
+       Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term)
        >> bnf_cmd);
 
 end;
