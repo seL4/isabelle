@@ -659,7 +659,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
     val bnf_b = qualify raw_bnf_b;
     val live = length raw_sets;
 
-    val bnf_rhs_T = prep_typ no_defs_lthy raw_bnf_T;
+    val T_rhs = prep_typ no_defs_lthy raw_bnf_T;
     val map_rhs = prep_term no_defs_lthy raw_map;
     val set_rhss = map (prep_term no_defs_lthy) raw_sets;
     val bd_rhs = prep_term no_defs_lthy raw_bd;
@@ -670,9 +670,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
 
     val (bnf_b, key) =
       if Binding.eq_name (bnf_b, Binding.empty) then
-        (case bnf_rhs_T of
+        (case T_rhs of
           Type (C, Ts) => if forall (can dest_TFree) Ts
-            then (Binding.qualified_name C, C) else err bnf_rhs_T
+            then (Binding.qualified_name C, C) else err T_rhs
         | T => err T)
       else (bnf_b, Local_Theory.full_name no_defs_lthy bnf_b);
 
@@ -745,7 +745,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
     val CA_params = map TVar (Term.add_tvarsT CA []);
 
     val bnf_sets = map2 (normalize_set CA_params) alphas (map (Morphism.term phi) bnf_set_terms);
-    val bnf_T = Morphism.typ phi bnf_rhs_T;
+    val bnf_T = Morphism.typ phi T_rhs;
     val bnf_bd =
       Term.subst_TVars (Term.add_tvar_namesT bnf_T [] ~~ CA_params) (Morphism.term phi bnf_bd_term);
 
