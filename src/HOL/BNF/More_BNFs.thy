@@ -104,6 +104,7 @@ bnf "'a list"
   sets: set
   bd: natLeq
   wits: Nil
+  rel: list_all2
 proof -
   show "map id = id" by (rule List.map.id)
 next
@@ -124,6 +125,13 @@ next
   fix x
   show "|set x| \<le>o natLeq"
     by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
+next
+  fix R
+  show "list_all2 R =
+         (Grp {x. set x \<subseteq> {(x, y). R x y}} (map fst))\<inverse>\<inverse> OO
+         Grp {x. set x \<subseteq> {(x, y). R x y}} (map snd)"
+    unfolding list_all2_def[abs_def] Grp_def fun_eq_iff relcompp.simps conversep.simps
+    by (force simp: zip_map_fst_snd)
 qed (simp add: wpull_map)+
 
 (* Finite sets *)
