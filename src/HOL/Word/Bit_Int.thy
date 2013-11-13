@@ -632,5 +632,46 @@ lemma ex_eq_or:
   "(EX m. n = Suc m & (m = k | P m)) = (n = Suc k | (EX m. n = Suc m & P m))"
   by auto
 
+lemma power_BIT: "2 ^ (Suc n) - 1 = (2 ^ n - 1) BIT 1"
+  unfolding Bit_B1
+  by (induct n) simp_all
+
+lemma mod_BIT:
+  "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
+proof -
+  have "bin mod 2 ^ n < 2 ^ n" by simp
+  then have "bin mod 2 ^ n \<le> 2 ^ n - 1" by simp
+  then have "2 * (bin mod 2 ^ n) \<le> 2 * (2 ^ n - 1)"
+    by (rule mult_left_mono) simp
+  then have "2 * (bin mod 2 ^ n) + 1 < 2 * 2 ^ n" by simp
+  then show ?thesis
+    by (auto simp add: Bit_def bitval_def mod_mult_mult1 mod_add_left_eq [of "2 * bin"]
+      mod_pos_pos_trivial split add: bit.split)
+qed
+
+lemma AND_mod:
+  fixes x :: int
+  shows "x AND 2 ^ n - 1 = x mod 2 ^ n"
+proof (induct x arbitrary: n rule: bin_induct)
+  case 1
+  then show ?case
+    by simp
+next
+  case 2
+  then show ?case
+    by (simp, simp add: m1mod2k)
+next
+  case (3 bin bit)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by (simp add: int_and_extra_simps)
+  next
+    case (Suc m)
+    with 3 show ?thesis
+      by (simp only: power_BIT mod_BIT int_and_Bits) simp
+  qed
+qed
+
 end
 
