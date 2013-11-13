@@ -1756,7 +1756,7 @@ next
   qed auto
 qed
 
-subsection {* Restricted Space \<sigma>-Algebra *}
+subsection {* Restricted Space Sigma Algebra *}
 
 definition "restrict_space M \<Omega> = measure_of \<Omega> ((op \<inter> \<Omega>) ` sets M) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
 
