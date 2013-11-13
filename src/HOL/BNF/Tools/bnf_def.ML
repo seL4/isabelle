@@ -744,8 +744,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
 
     val CA_params = map TVar (Term.add_tvarsT CA []);
 
-    val bnf_sets = map2 (normalize_set CA_params) alphas (map (Morphism.term phi) bnf_set_terms);
     val bnf_T = Morphism.typ phi T_rhs;
+    val bad_args = Term.add_tfreesT bnf_T [];
+    val _ = if null bad_args then () else error ("Locally fixed type arguments " ^
+      commas_quote (map (Syntax.string_of_typ no_defs_lthy o TFree) bad_args));
+
+    val bnf_sets = map2 (normalize_set CA_params) alphas (map (Morphism.term phi) bnf_set_terms);
     val bnf_bd =
       Term.subst_TVars (Term.add_tvar_namesT bnf_T [] ~~ CA_params) (Morphism.term phi bnf_bd_term);
 
