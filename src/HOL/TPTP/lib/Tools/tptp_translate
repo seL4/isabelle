@@ -11,7 +11,7 @@ function usage() {
   echo
   echo "Usage: isabelle $PRG FORMAT IN_FILE OUT_FILE"
   echo
-  echo "  Translates TPTP input file to specified TPTP format (\"FOF\", \"TFF0\", \"TFF1\", or \"THF0\")."
+  echo "  Translates TPTP input file to the specified format (\"FOF\", \"TFF0\", \"THF0\", or \"DFG\")."
   echo
   exit 1
 }
@@ -23,6 +23,6 @@ SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
 args=("$@")
 
 echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.translate_tptp_file \"${args[0]}\" \"${args[1]}\" \"${args[2]}\" *} end;" \
+ML {* ATP_Problem_Import.translate_tptp_file @{theory} \"${args[0]}\" \"${args[1]}\" \"${args[2]}\" *} end;" \
   > /tmp/$SCRATCH.thy
-"$ISABELLE_PROCESS" -q -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val it = (): unit"
+"$ISABELLE_PROCESS" -q -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val \|^Loading theory"

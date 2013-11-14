@@ -15,7 +15,7 @@ sig
   type atp_formula_role = ATP_Problem.atp_formula_role
   type 'a atp_problem = 'a ATP_Problem.atp_problem
 
-  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
+  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
   datatype scope = Global | Local | Assum | Chained
   datatype status =
@@ -127,7 +127,7 @@ struct
 open ATP_Util
 open ATP_Problem
 
-datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
+datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
 datatype scope = Global | Local | Assum | Chained
 datatype status =
@@ -2756,12 +2756,11 @@ fun all_ctrss_of_datatypes thy =
 val app_op_and_predicator_threshold = 45
 
 fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
-                        uncurried_aliases readable_names preproc hyp_ts concl_t
+                        uncurried_aliases readable_names presimp hyp_ts concl_t
                         facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
-    val exporter = (mode = Exporter)
     val completish = (mode = Sledgehammer_Completish)
     (* Forcing explicit applications is expensive for polymorphic encodings,
        because it takes only one existential variable ranging over "'a => 'b" to
@@ -2778,7 +2777,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
       else lam_trans
     val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
-      translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts concl_t facts
+      translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes thy
@@ -2811,10 +2810,12 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val datatype_decl_lines = map decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
+    val freshen = mode <> Exporter andalso mode <> Translator
+    val pos = mode <> Exporter
+    val rank_of = rank_of_fact_num num_facts
     val fact_lines =
-      map (line_of_fact ctxt fact_prefix ascii_of I (not exporter)
-               (not exporter) mono type_enc (rank_of_fact_num num_facts))
-          (0 upto num_facts - 1 ~~ facts)
+      map (line_of_fact ctxt fact_prefix ascii_of I freshen pos mono type_enc rank_of)
+        (0 upto num_facts - 1 ~~ facts)
     val subclass_lines = maps (lines_of_subclass_pair type_enc) subclass_pairs
     val tcon_lines = map (line_of_tcon_clause type_enc) tcon_clauses
     val helper_lines =

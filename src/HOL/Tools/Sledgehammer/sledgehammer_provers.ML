@@ -505,9 +505,9 @@ fun is_dangerous_prop ctxt =
    them each time. *)
 val atp_important_message_keep_quotient = 25
 
-fun choose_type_enc soundness best_type_enc format =
+fun choose_type_enc strictness best_type_enc format =
   the_default best_type_enc
-  #> type_enc_of_string soundness
+  #> type_enc_of_string strictness
   #> adjust_type_enc format
 
 fun isar_proof_reconstructor ctxt name =
@@ -663,9 +663,9 @@ fun run_atp mode name
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) +
               max_fact_factor_fudge
               |> Integer.min (length facts)
-            val soundness = if strict then Strict else Non_Strict
+            val strictness = if strict then Strict else Non_Strict
             val type_enc =
-              type_enc |> choose_type_enc soundness best_type_enc format
+              type_enc |> choose_type_enc strictness best_type_enc format
             val sound = is_type_enc_sound type_enc
             val real_ms = Real.fromInt o Time.toMilliseconds
             val slice_timeout =
