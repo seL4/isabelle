@@ -8,6 +8,9 @@ Immutable byte vectors versus UTF8 strings.
 package isabelle
 
 
+import java.io.{File => JFile, OutputStream, FileInputStream}
+
+
 object Bytes
 {
   val empty: Bytes = new Bytes(Array[Byte](), 0, 0)
@@ -17,9 +20,31 @@ object Bytes
     val str = s.toString
     if (str.isEmpty) empty
     else {
-      val bytes = UTF8.string_bytes(str)
+      val bytes = str.getBytes(UTF8.charset)
       new Bytes(bytes, 0, bytes.length)
     }
+  }
+
+
+  /* read */
+
+  def read(file: JFile): Bytes =
+  {
+    var i = 0
+    var m = 0
+    val n = file.length.toInt
+    val bytes = new Array[Byte](n)
+
+    val stream = new FileInputStream(file)
+    try {
+      do {
+        m = stream.read(bytes, i, n - i)
+        if (m != -1) i += m
+      } while (m != -1 && n > i)
+    }
+    finally { stream.close }
+
+    new Bytes(bytes, 0, bytes.length)
   }
 }
 
@@ -29,6 +54,17 @@ final class Bytes private(
   val length: Int)
 {
   /* equality */
+
+  override def equals(that: Any): Boolean =
+  {
+    that match {
+      case other: Bytes =>
+        if (this eq other) true
+        else if (length != other.length) false
+        else (0 until length).forall(i => bytes(offset + i) == other.bytes(other.offset + i))
+      case _ => false
+    }
+  }
 
   private lazy val hash: Int =
   {
@@ -42,32 +78,28 @@ final class Bytes private(
 
   override def hashCode(): Int = hash
 
-  override def equals(that: Any): Boolean =
-  {
-    that match {
-      case other: Bytes =>
-        if (this eq other) true
-        else if (length != other.length) false
-        else (0 until length).forall(i => bytes(offset + i) == other.bytes(other.offset + i))
-      case _ => false
-    }
-  }
-
 
   /* content */
 
+  def sha1_digest: SHA1.Digest = SHA1.digest(bytes)
+
   override def toString: String = new String(bytes, offset, length, UTF8.charset)
 
-  def is_empty: Boolean = length == 0
+  def isEmpty: Boolean = length == 0
 
   def +(other: Bytes): Bytes =
-    if (other.is_empty) this
-    else if (is_empty) other
+    if (other.isEmpty) this
+    else if (isEmpty) other
     else {
       val new_bytes = new Array[Byte](length + other.length)
       java.lang.System.arraycopy(bytes, offset, new_bytes, 0, length)
       java.lang.System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
       new Bytes(new_bytes, 0, new_bytes.length)
     }
+
+
+  /* write */
+
+  def write(stream: OutputStream): Unit = stream.write(bytes, offset, length)
 }
 

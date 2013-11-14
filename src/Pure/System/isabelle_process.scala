@@ -110,7 +110,7 @@ class Isabelle_Process(
 
   /* command input actor */
 
-  private case class Input_Chunks(chunks: List[Array[Byte]])
+  private case class Input_Chunks(chunks: List[Bytes])
 
   private case object Close
   private def close(p: (Thread, Actor))
@@ -261,8 +261,8 @@ class Isabelle_Process(
           //{{{
           receive {
             case Input_Chunks(chunks) =>
-              stream.write(UTF8.string_bytes(chunks.map(_.length).mkString("", ",", "\n")))
-              chunks.foreach(stream.write(_))
+              Bytes(chunks.map(_.length).mkString("", ",", "\n")).write(stream)
+              chunks.foreach(_.write(stream))
               stream.flush
             case Close =>
               stream.close
@@ -362,13 +362,13 @@ class Isabelle_Process(
 
   /** main methods **/
 
-  def protocol_command_raw(name: String, args: Array[Byte]*): Unit =
-    command_input._2 ! Input_Chunks(UTF8.string_bytes(name) :: args.toList)
+  def protocol_command_raw(name: String, args: Bytes*): Unit =
+    command_input._2 ! Input_Chunks(Bytes(name) :: args.toList)
 
   def protocol_command(name: String, args: String*)
   {
     receiver(new Input(name, args.toList))
-    protocol_command_raw(name, args.map(UTF8.string_bytes): _*)
+    protocol_command_raw(name, args.map(Bytes(_)): _*)
   }
 
   def options(opts: Options): Unit =
