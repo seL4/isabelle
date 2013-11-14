@@ -110,8 +110,9 @@ fun do_try0 mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactic.verbose false #>
       Config.put Lin_Arith.verbose false)
+    fun trd (_, _, t) = t
     fun par_map f =
-      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself #3)
+      if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself trd)
       else Par_List.get_some f #> the_list
   in
     if mode = Normal then
