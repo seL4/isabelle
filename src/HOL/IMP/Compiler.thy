@@ -138,11 +138,12 @@ lemma exec_Cons_1 [intro]:
 by (drule exec_appendL[where P'="[instr]"]) simp
 
 lemma exec_appendL_if[intro]:
-  fixes i i' :: int
+  fixes i i' j :: int
   shows
   "size P' <= i
-   \<Longrightarrow> P \<turnstile> (i - size P',s,stk) \<rightarrow>* (i',s',stk')
-   \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (size P' + i',s',stk')"
+   \<Longrightarrow> P \<turnstile> (i - size P',s,stk) \<rightarrow>* (j,s',stk')
+   \<Longrightarrow> i' = size P' + j
+   \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')"
 by (drule exec_appendL[where P'=P']) simp
 
 text{* Split the execution of a compound program up into the excution of its
