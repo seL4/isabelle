@@ -43,6 +43,7 @@ session "HOL-Library" (main) in Library = HOL +
     Code_Real_Approx_By_Float
     Code_Target_Numeral
     DAList
+    DAList_Multiset
     RBT_Mapping
     RBT_Set
     (*legacy tools*)
