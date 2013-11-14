@@ -22,7 +22,7 @@ class Dictionaries(object):
         self.nameIdDict = {}
         self.idNameDict = {}
         self.featureIdDict={}
-        self.maxNameId = 0
+        self.maxNameId = 1
         self.maxFeatureId = 0
         self.featureDict = {}
         self.dependenciesDict = {}
@@ -30,6 +30,9 @@ class Dictionaries(object):
         self.expandedAccessibles = {}
         self.accFile =  ''
         self.changed = True
+        # Unnamed facts
+        self.nameIdDict[''] = 0
+        self.idNameDict[0] = 'Unnamed Fact'
 
     """
     Init functions. nameIdDict, idNameDict, featureIdDict, articleDict get filled!
@@ -153,13 +156,18 @@ class Dictionaries(object):
         name = line[0].strip()
         nameId = self.get_name_id(name)
         line = line[1].split(';')
-        # Accessible Ids
-        #unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
-        #self.accessibleDict[nameId] = unExpAcc
-        self.accessibleDict[nameId] = self.parse_unExpAcc(line[0])
         features = self.get_features(line)
         self.featureDict[nameId] = features
-        self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
+        try:
+            self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
+        except:
+            unknownDeps = []
+            for d in line[2].split():
+                if not self.nameIdDict.has_key(d):
+                    unknownDeps.append(d)
+            raise LookupError('Unknown fact used as dependency: %s. Facts need to be introduced before being used as depedency.' % ','.join(unknownDeps))
+        self.accessibleDict[nameId] = self.parse_unExpAcc(line[0])
+
         self.changed = True
         return nameId
 
@@ -173,9 +181,18 @@ class Dictionaries(object):
         # line = name:dependencies
         line = line.split(':')
         name = line[0].strip()
-        nameId = self.get_name_id(name)
-
-        dependencies = [self.nameIdDict[d.strip()] for d in line[1].split()]
+        try:
+            nameId = self.nameIdDict[name]
+        except:
+            raise LookupError('Trying to overwrite dependencies for unknown fact: %s. Facts need to be introduced before overwriting them.' % name)
+        try:
+            dependencies = [self.nameIdDict[d.strip()] for d in line[1].split()]
+        except:
+            unknownDeps = []
+            for d in line[1].split():
+                if not self.nameIdDict.has_key(d):
+                    unknownDeps.append(d)
+            raise LookupError('Unknown fact used as dependency: %s. Facts need to be introduced before being used as depedency.' % ','.join(unknownDeps))
         self.changed = True
         return nameId,dependencies
 

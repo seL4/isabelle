@@ -216,10 +216,6 @@ val unencode_str = String.explode #> unmeta_chars []
 val unencode_strs =
   space_explode " " #> filter_out (curry (op =) "") #> map unencode_str
 
-fun freshish_name () =
-  Date.fmt ".%Y%m%d_%H%M%S__" (Date.fromTimeLocal (Time.now ())) ^
-  serial_string ()
-
 (* Avoid scientific notation *)
 fun safe_str_of_real r =
   if r < 0.00001 then "0.00001"
@@ -282,10 +278,11 @@ fun unlearn ctxt overlord =
 
 fun learn _ _ _ [] = ()
   | learn ctxt overlord save learns =
-    (trace_msg ctxt (fn () => "MaSh learn " ^
-         elide_string 1000 (space_implode " " (map #1 learns)));
-     run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
-                   (learns, str_of_learn) (K ()))
+    let val names = elide_string 1000 (space_implode " " (map #1 learns)) in
+      (trace_msg ctxt (fn () => "MaSh learn" ^ (if names = "" then "" else " " ^ names));
+       run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
+                     (learns, str_of_learn) (K ()))
+    end
 
 fun relearn _ _ _ [] = ()
   | relearn ctxt overlord save relearns =
@@ -1026,7 +1023,6 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
     launch_thread (timeout |> the_default one_day) (fn () =>
         let
           val thy = Proof_Context.theory_of ctxt
-          val name = freshish_name ()
           val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t] |> map fst
         in
           peek_state ctxt overlord (fn {access_G, ...} =>
@@ -1036,7 +1032,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
                   used_ths |> filter (is_fact_in_graph access_G)
                            |> map nickname_of_thm
               in
-                MaSh.learn ctxt overlord true [(name, parents, feats, deps)]
+                MaSh.learn ctxt overlord true [("", parents, feats, deps)]
               end);
           (true, "")
         end)
