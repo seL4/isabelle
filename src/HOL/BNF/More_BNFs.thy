@@ -206,7 +206,7 @@ next
   by (transfer, clarsimp, metis fst_conv)
 qed
 
-lemma wpull_fmap:
+lemma wpull_fimage:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
               (fimage f1) (fimage f2) (fimage p1) (fimage p2)"
@@ -245,7 +245,7 @@ apply -
       apply (rule natLeq_card_order)
      apply (rule natLeq_cinfinite)
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
-  apply (erule wpull_fmap)
+  apply (erule wpull_fimage)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_alt fset_rel_aux) 
 apply transfer apply simp
 done
