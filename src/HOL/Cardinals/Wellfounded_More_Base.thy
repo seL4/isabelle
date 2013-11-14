@@ -8,7 +8,7 @@ More on well-founded relations (base).
 header {* More on Well-Founded Relations (Base) *}
 
 theory Wellfounded_More_Base
-imports Wellfounded Order_Relation_More_Base "~~/src/HOL/Library/Wfrec"
+imports Order_Relation_More_Base "~~/src/HOL/Library/Wfrec"
 begin
 
 

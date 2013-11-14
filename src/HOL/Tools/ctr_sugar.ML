@@ -210,16 +210,16 @@ fun mk_undefined T = Const (@{const_name undefined}, T);
 
 fun mk_ctr Ts t =
   let val Type (_, Ts0) = body_type (fastype_of t) in
-    Term.subst_atomic_types (Ts0 ~~ Ts) t
+    subst_nonatomic_types (Ts0 ~~ Ts) t
   end;
 
 fun mk_case Ts T t =
   let val (Type (_, Ts0), body) = strip_type (fastype_of t) |>> List.last in
-    Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) t
+    subst_nonatomic_types ((body, T) :: (Ts0 ~~ Ts)) t
   end;
 
 fun mk_disc_or_sel Ts t =
-  Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
+  subst_nonatomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
 fun name_of_const what t =
   (case head_of t of

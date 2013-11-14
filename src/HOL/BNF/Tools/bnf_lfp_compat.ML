@@ -49,7 +49,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
         SOME (fp_sugar as {fp = Least_FP, ...}) => fp_sugar
       | _ => not_datatype s);
 
-    val fp_sugar0 as {fp_res = {Ts = fpTs0, ...}, ...} = lfp_sugar_of fpT_name1;
+    val {fp_res = {Ts = fpTs0, ...}, ...} = lfp_sugar_of fpT_name1;
     val fpT_names' = map (fst o dest_Type) fpTs0;
 
     val _ = eq_set (op =) (fpT_names, fpT_names') orelse not_mutually_recursive fpT_names;
@@ -82,7 +82,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
             fold add_nested_types_of subTs (seen @ mutual_Ts)
           end
         | NONE => error ("Unsupported recursion via type constructor " ^ quote s ^
-            " not associated with new-style datatype (cf. \"datatype_new\")"));
+            " not corresponding to new-style datatype (cf. \"datatype_new\")"));
 
     val Ts = add_nested_types_of fpT1 [];
     val b_names = map base_name_of_typ Ts;
@@ -92,7 +92,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val nn_fp = length fpTs;
     val nn = length Ts;
     val get_indices = K [];
-    val fp_sugars0 = if nn = 1 then [fp_sugar0] else map (lfp_sugar_of o fst o dest_Type) Ts;
+    val fp_sugars0 = map (lfp_sugar_of o fst o dest_Type) Ts;
     val callssss = map (fn fp_sugar0 => indexify_callsss fp_sugar0 []) fp_sugars0;
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
@@ -105,15 +105,13 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
       fp_sugars;
     val inducts = conj_dests nn induct;
 
-    val frozen_Ts = map Type.legacy_freeze_type Ts;
-    val mk_dtyp = dtyp_of_typ frozen_Ts;
+    val mk_dtyp = dtyp_of_typ Ts;
 
-    fun mk_ctr_descr (Const (s, T)) =
-      (s, map mk_dtyp (binder_types (Type.legacy_freeze_type T)));
+    fun mk_ctr_descr Ts = mk_ctr Ts #> dest_Const ##> (binder_types #> map mk_dtyp);
     fun mk_typ_descr index (Type (T_name, Ts)) ({ctrs, ...} : ctr_sugar) =
-      (index, (T_name, map mk_dtyp Ts, map mk_ctr_descr ctrs));
+      (index, (T_name, map mk_dtyp Ts, map (mk_ctr_descr Ts) ctrs));
 
-    val descr = map3 mk_typ_descr (0 upto nn - 1) frozen_Ts ctr_sugars;
+    val descr = map3 mk_typ_descr (0 upto nn - 1) Ts ctr_sugars;
     val recs = map (fst o dest_Const o co_rec_of) co_iterss;
     val rec_thms = flat (map co_rec_of iter_thmsss);
 

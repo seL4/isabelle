@@ -36,6 +36,9 @@ sig
     (string * sort) list * Proof.context
   val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
+  val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
+  val subst_nonatomic_types: (typ * typ) list -> term -> term
+
   val mk_predT: typ list -> typ
   val mk_pred1T: typ -> typ
 
@@ -142,6 +145,17 @@ fun variant_types ss Ss ctxt =
 fun variant_tfrees ss =
   apfst (map TFree) o
     variant_types (map (ensure_prefix "'") ss) (replicate (length ss) HOLogic.typeS);
+
+(*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
+fun typ_subst_nonatomic [] = I
+  | typ_subst_nonatomic inst =
+    let
+      fun subst (Type (s, Ts)) = perhaps (AList.lookup (op =) inst) (Type (s, map subst Ts))
+        | subst T = perhaps (AList.lookup (op =) inst) T;
+    in subst end;
+
+fun subst_nonatomic_types [] = I
+  | subst_nonatomic_types inst = map_types (typ_subst_nonatomic inst);
 
 fun mk_predT Ts = Ts ---> HOLogic.boolT;
 fun mk_pred1T T = mk_predT [T];

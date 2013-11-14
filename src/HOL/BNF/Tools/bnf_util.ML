@@ -54,7 +54,6 @@ sig
     term list list list list * Proof.context
   val nonzero_string_of_int: int -> string
   val retype_free: typ -> term -> term
-  val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
 
   val binder_fun_types: typ -> typ list
   val body_fun_type: typ -> typ
@@ -306,14 +305,6 @@ fun nonzero_string_of_int 0 = ""
   | nonzero_string_of_int n = string_of_int n;
 
 val mk_TFreess = fold_map mk_TFrees;
-
-(*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
-fun typ_subst_nonatomic [] = I
-  | typ_subst_nonatomic inst =
-    let
-      fun subst (Type (s, Ts)) = perhaps (AList.lookup (op =) inst) (Type (s, map subst Ts))
-        | subst T = perhaps (AList.lookup (op =) inst) T;
-    in subst end;
 
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
