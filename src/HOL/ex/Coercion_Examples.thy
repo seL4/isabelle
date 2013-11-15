@@ -37,10 +37,9 @@ term "[1::int] = func"
 
 (* Coercion/type maps definitions *)
 
-primrec nat_of_bool :: "bool \<Rightarrow> nat"
+abbreviation nat_of_bool :: "bool \<Rightarrow> nat"
 where
-  "nat_of_bool False = 0"
-| "nat_of_bool True = 1"
+  "nat_of_bool \<equiv> of_bool"
 
 declare [[coercion nat_of_bool]]
 
@@ -201,5 +200,5 @@ term "- (n + m)"
 declare [[coercion_args uminus -]]
 declare [[coercion_args plus + +]]
 term "- (n + m)"
- 
+
 end
