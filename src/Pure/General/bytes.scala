@@ -20,10 +20,18 @@ object Bytes
     val str = s.toString
     if (str.isEmpty) empty
     else {
-      val bytes = str.getBytes(UTF8.charset)
-      new Bytes(bytes, 0, bytes.length)
+      val b = str.getBytes(UTF8.charset)
+      new Bytes(b, 0, b.length)
     }
   }
+
+  def apply(a: Array[Byte], offset: Int, length: Int): Bytes =
+    if (length == 0) empty
+    else {
+      val b = new Array[Byte](length)
+      java.lang.System.arraycopy(a, offset, b, 0, length)
+      new Bytes(b, 0, b.length)
+    }
 
 
   /* read */
