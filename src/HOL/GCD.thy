@@ -1654,11 +1654,11 @@ apply clarsimp
 apply (metis Lcm0_iff dvd_Lcm_nat dvd_imp_le neq0_conv)
 done
 
-lemma Lcm_set_nat [code_unfold]:
+lemma Lcm_set_nat [code, code_unfold]:
   "Lcm (set ns) = fold lcm ns (1::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Sup_set_fold)
 
-lemma Gcd_set_nat [code_unfold]:
+lemma Gcd_set_nat [code, code_unfold]:
   "Gcd (set ns) = fold gcd ns (0::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Inf_set_fold)
 
@@ -1730,11 +1730,11 @@ lemma dvd_Gcd_int[simp]:
   assumes "\<forall>m\<in>M. n dvd m" shows "n dvd Gcd M"
   using assms by (simp add: Gcd_int_def dvd_int_iff)
 
-lemma Lcm_set_int [code_unfold]:
+lemma Lcm_set_int [code, code_unfold]:
   "Lcm (set xs) = fold lcm xs (1::int)"
   by (induct xs rule: rev_induct, simp_all add: lcm_commute_int)
 
-lemma Gcd_set_int [code_unfold]:
+lemma Gcd_set_int [code, code_unfold]:
   "Gcd (set xs) = fold gcd xs (0::int)"
   by (induct xs rule: rev_induct, simp_all add: gcd_commute_int)
 
