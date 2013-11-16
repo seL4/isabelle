@@ -281,17 +281,16 @@ class Session(val thy_load: Thy_Load)
         msg match {
           case _: Isabelle_Process.Input =>
             buffer += msg
+          case output: Isabelle_Process.Protocol_Output if output.properties == Markup.Flush =>
+            flush()
           case output: Isabelle_Process.Output =>
-            if (output.is_protocol && output.properties == Markup.Flush) flush()
-            else {
-              buffer += msg
-              if (output.is_syslog)
-                syslog >> (queue =>
-                  {
-                    val queue1 = queue.enqueue(output.message)
-                    if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-                  })
-            }
+            buffer += msg
+            if (output.is_syslog)
+              syslog >> (queue =>
+                {
+                  val queue1 = queue.enqueue(output.message)
+                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+                })
         }
       }
 

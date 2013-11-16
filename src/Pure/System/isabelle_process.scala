@@ -43,13 +43,12 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
-    def is_protocol = kind == Markup.PROTOCOL
     def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {
       val res =
-        if (is_status || is_report || is_protocol) message.body.map(_.toString).mkString
+        if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
