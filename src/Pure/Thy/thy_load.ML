@@ -18,7 +18,7 @@ sig
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
-  val load_current: theory -> bool
+  val loaded_files_current: theory -> bool
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
@@ -170,11 +170,12 @@ fun use_file src_path thy =
     val thy' = provide (src_path, id) thy;
   in (text, thy') end;
 
+(*Proof General legacy*)
 fun loaded_files thy =
   let val {master_dir, provided, ...} = Files.get thy
   in map (File.full_path master_dir o #1) provided end;
 
-fun load_current thy =
+fun loaded_files_current thy =
   #provided (Files.get thy) |>
     forall (fn (src_path, id) =>
       (case try (load_file thy) src_path of
