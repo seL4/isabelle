@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_load.ML
     Author:     Makarius
 
-Loading files that contribute to a theory.  Global master path for TTY loop.
+Loading files that contribute to a theory.
 *)
 
 signature THY_LOAD =
@@ -122,17 +122,17 @@ fun load_file thy src_path =
     val id = SHA1.digest text;
   in ((full_path, id), text) end;
 
-(*Proof General legacy*)
-fun loaded_files thy =
-  let val {master_dir, provided, ...} = Files.get thy
-  in map (File.full_path master_dir o #1) provided end;
-
 fun loaded_files_current thy =
   #provided (Files.get thy) |>
     forall (fn (src_path, id) =>
       (case try (load_file thy) src_path of
         NONE => false
       | SOME ((_, id'), _) => id = id'));
+
+(*Proof General legacy*)
+fun loaded_files thy =
+  let val {master_dir, provided, ...} = Files.get thy
+  in map (File.full_path master_dir o #1) provided end;
 
 
 (* load_thy *)
