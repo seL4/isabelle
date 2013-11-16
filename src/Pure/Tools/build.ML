@@ -97,18 +97,18 @@ fun protocol_message props output =
 
 local
 
-fun no_document options =
-  (case Options.string options "document" of "" => true | "false" => true | _ => false);
-
 fun use_theories last_timing options =
-  Thy_Info.use_theories {last_timing = last_timing, master_dir = Path.current}
+  Thy_Info.use_theories {
+      document =
+        (case Options.string options "document" of "" => false | "false" => false | _ => true),
+      last_timing = last_timing,
+      master_dir = Path.current}
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
     |> Unsynchronized.setmp Future.ML_statistics true
-    |> no_document options ? Present.no_document
     |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 

@@ -7,7 +7,6 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 signature PRESENT =
 sig
   val session_name: theory -> string
-  val no_document: ('a -> 'b) -> 'a -> 'b  (*not thread-safe!*)
   val read_variant: string -> string * string
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     string * string -> bool * string -> bool -> theory list -> unit  (*not thread-safe!*)
@@ -138,9 +137,6 @@ val browser_info = Unsynchronized.ref empty_browser_info;
 fun change_browser_info f =
   CRITICAL (fn () => Unsynchronized.change browser_info (map_browser_info f));
 
-val suppress_tex_source = Unsynchronized.ref false;
-fun no_document f x = Unsynchronized.setmp suppress_tex_source true f x;
-
 fun init_theory_info name info =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
     (Symtab.update (name, info) theories, tex_index, html_index, graph));
@@ -164,10 +160,6 @@ fun add_html_index txt =
 fun add_graph_entry entry =
   change_browser_info (fn (theories, tex_index, html_index, graph) =>
     (theories, tex_index, html_index, ins_graph_entry entry graph));
-
-fun put_tex_source name tex_source =
-  if ! suppress_tex_source then ()
-  else change_theory_info name (fn (_, html_source) => (tex_source, html_source));
 
 
 
@@ -380,7 +372,8 @@ fun finish () =
 (* theory elements *)
 
 fun theory_output name s =
-  with_session_info () (fn _ => put_tex_source name (Latex.isabelle_file name s));
+  with_session_info () (fn _ =>
+    change_theory_info name (fn (_, html_source) => (Latex.isabelle_file name s, html_source)));
 
 fun begin_theory update_time mk_text thy =
   with_session_info thy (fn {name = session_name, chapter, ...} =>

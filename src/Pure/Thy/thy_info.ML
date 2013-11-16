@@ -17,7 +17,8 @@ sig
   val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
-  val use_theories: {last_timing: Toplevel.transition -> Time.time option, master_dir: Path.T} ->
+  val use_theories:
+    {document: bool, last_timing: Toplevel.transition -> Time.time option, master_dir: Path.T} ->
     (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
@@ -265,7 +266,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy last_timing initiators update_time deps text (name, pos) keywords parents =
+fun load_thy document last_timing initiators update_time deps text (name, pos) keywords parents =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -284,7 +285,7 @@ fun load_thy last_timing initiators update_time deps text (name, pos) keywords p
 
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      Thy_Load.load_thy last_timing update_time dir header text_pos text
+      Thy_Load.load_thy document last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in
@@ -311,9 +312,9 @@ fun check_deps dir name =
 
 in
 
-fun require_thys last_timing initiators dir strs tasks =
-      fold_map (require_thy last_timing initiators dir) strs tasks |>> forall I
-and require_thy last_timing initiators dir (str, require_pos) tasks =
+fun require_thys document last_timing initiators dir strs tasks =
+      fold_map (require_thy document last_timing initiators dir) strs tasks |>> forall I
+and require_thy document last_timing initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -332,7 +333,7 @@ and require_thy last_timing initiators dir (str, require_pos) tasks =
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
-            require_thys last_timing (name :: initiators)
+            require_thys document last_timing (name :: initiators)
               (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
@@ -345,7 +346,7 @@ and require_thy last_timing initiators dir (str, require_pos) tasks =
                   let
                     val update_time = serial ();
                     val load =
-                      load_thy last_timing initiators update_time dep
+                      load_thy document last_timing initiators update_time dep
                         text (name, theory_pos) keywords;
                   in Task (parents, load) end);
 
@@ -358,10 +359,10 @@ end;
 
 (* use_thy *)
 
-fun use_theories {last_timing, master_dir} imports =
-  schedule_tasks (snd (require_thys last_timing [] master_dir imports String_Graph.empty));
+fun use_theories {document, last_timing, master_dir} imports =
+  schedule_tasks (snd (require_thys document last_timing [] master_dir imports String_Graph.empty));
 
-val use_thys = use_theories {last_timing = K NONE, master_dir = Path.current};
+val use_thys = use_theories {document = false, last_timing = K NONE, master_dir = Path.current};
 val use_thy = use_thys o single;
 
 
@@ -371,7 +372,7 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
   let
     val {name = (name, _), imports, ...} = header;
     val _ = kill_thy name;
-    val _ = use_theories {last_timing = K NONE, master_dir = master_dir} imports;
+    val _ = use_theories {document = false, last_timing = K NONE, master_dir = master_dir} imports;
     val _ = Thy_Header.define_keywords header;
     val parents = map (get_theory o base_name o fst) imports;
   in Thy_Load.begin_theory master_dir header parents end;

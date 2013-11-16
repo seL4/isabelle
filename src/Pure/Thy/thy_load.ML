@@ -20,8 +20,8 @@ sig
   val loaded_files: theory -> Path.T list
   val loaded_files_current: theory -> bool
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
-  val load_thy: (Toplevel.transition -> Time.time option) -> int -> Path.T -> Thy_Header.header ->
-    Position.T -> string -> theory list -> theory * (unit -> unit) * int
+  val load_thy: bool -> (Toplevel.transition -> Time.time option) -> int -> Path.T ->
+    Thy_Header.header -> Position.T -> string -> theory list -> theory * (unit -> unit) * int
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -162,7 +162,7 @@ fun excursion last_timing init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (results, thy) end;
 
-fun load_thy last_timing update_time master_dir header text_pos text parents =
+fun load_thy document last_timing update_time master_dir header text_pos text parents =
   let
     val time = ! Toplevel.timing;
 
@@ -191,10 +191,11 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
         if exists (Toplevel.is_skipped_proof o #2) res then
           warning ("Cannot present theory with skipped proofs: " ^ quote name)
         else
-          Thy_Output.present_thy minor Keyword.command_tags
-            (Outer_Syntax.is_markup outer_syntax) res toks
-          |> Buffer.content
-          |> Present.theory_output name
+          let val tex_source =
+            Thy_Output.present_thy minor Keyword.command_tags
+              (Outer_Syntax.is_markup outer_syntax) res toks
+            |> Buffer.content;
+          in if document then Present.theory_output name tex_source else () end
       end;
 
   in (thy, present, size text) end;
