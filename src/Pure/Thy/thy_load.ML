@@ -18,8 +18,6 @@ sig
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
   val loaded_files: theory -> Path.T list
   val loaded_files_current: theory -> bool
-  val use_ml: Path.T -> unit
-  val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: (Toplevel.transition -> Time.time option) -> int -> Path.T -> Thy_Header.header ->
     Position.T -> string -> theory list -> theory * (unit -> unit) * int
@@ -174,29 +172,6 @@ fun loaded_files_current thy =
       (case try (load_file thy) src_path of
         NONE => false
       | SOME ((_, id'), _) => id = id'));
-
-
-(* provide files *)
-
-fun eval_file path text = ML_Context.eval_text true (Path.position path) text;
-
-fun use_ml src_path =
-  if is_none (Context.thread_data ()) then
-    let val path = check_file Path.current src_path
-    in eval_file path (File.read path) end
-  else
-    let
-      val thy = ML_Context.the_global_context ();
-
-      val ((path, id), text) = load_file thy src_path;
-      val _ = eval_file path text;
-      val _ = Context.>> Local_Theory.propagate_ml_env;
-
-      val provide = provide (src_path, id);
-      val _ = Context.>> (Context.mapping provide (Local_Theory.background_theory provide));
-    in () end;
-
-fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 
 (* load_thy *)
