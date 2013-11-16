@@ -9,6 +9,7 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
+  val read_files: Path.T -> string -> Path.T * Position.T -> Token.file list
   val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
@@ -55,11 +56,11 @@ val imports_of = #imports o Files.get;
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 
-(* inlined files *)
+(* auxiliary files *)
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
-fun read_files cmd dir (path, pos) =
+fun read_files dir cmd (path, pos) =
   let
     fun make_file file =
       let
@@ -76,48 +77,10 @@ fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       SOME files => files
-    | NONE => read_files cmd (master_directory thy) (Path.explode name, Token.position_of tok)));
-
-local
-
-fun clean ((i1, t1) :: (i2, t2) :: toks) =
-      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
-      else (i1, t1) :: clean ((i2, t2) :: toks)
-  | clean toks = toks;
-
-fun clean_tokens toks =
-  ((0 upto length toks - 1) ~~ toks)
-  |> filter (fn (_, tok) => Token.is_proper tok)
-  |> clean;
-
-fun find_file toks =
-  rev (clean_tokens toks) |> get_first (fn (i, tok) =>
-    if Token.is_name tok then
-      SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
-        handle ERROR msg => error (msg ^ Token.pos_of tok)
-    else NONE);
-
-in
-
-fun resolve_files master_dir span =
-  (case span of
-    Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks) =>
-      if Keyword.is_theory_load cmd then
-        (case find_file toks of
-          NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
-        | SOME (i, path) =>
-            let
-              val toks' = toks |> map_index (fn (j, tok) =>
-                if i = j then Token.put_files (read_files cmd master_dir path) tok
-                else tok);
-            in Thy_Syntax.Span (Thy_Syntax.Command (cmd, pos), toks') end)
-      else span
-  | span => span);
-
-end;
+    | NONE => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)));
 
 
-(* check files *)
+(* theory files *)
 
 val thy_path = Path.ext "thy";
 
@@ -213,7 +176,7 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
     val lexs = Keyword.get_lexicons ();
 
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans = map (resolve_files master_dir) (Thy_Syntax.parse_spans toks);
+    val spans = map (Thy_Syntax.resolve_files (read_files master_dir)) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
     val _ = Present.theory_source name
