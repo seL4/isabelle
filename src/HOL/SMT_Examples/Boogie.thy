@@ -6,6 +6,7 @@ header {* Proving Boogie-generated verification conditions *}
 
 theory Boogie
 imports Main
+keywords "boogie_file" :: thy_load ("b2i")
 begin
 
 text {*
@@ -56,17 +57,17 @@ declare [[smt_read_only_certificates = true]]
 
 declare [[smt_certificates = "Boogie_Max.certs"]]
 
-setup {* Boogie.boogie_prove "Boogie_Max.b2i" *}
+boogie_file Boogie_Max
 
 
 declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
 
-setup {* Boogie.boogie_prove "Boogie_Dijkstra.b2i" *}
+boogie_file Boogie_Dijkstra
 
 
 declare [[z3_with_extensions = true]]
 declare [[smt_certificates = "VCC_Max.certs"]]
 
-setup {* Boogie.boogie_prove "VCC_Max.b2i" *}
+boogie_file VCC_Max
 
 end

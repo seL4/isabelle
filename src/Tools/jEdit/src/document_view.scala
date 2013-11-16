@@ -10,21 +10,15 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.collection.mutable
-import scala.collection.immutable.SortedMap
 import scala.actors.Actor._
 
-import java.lang.System
-import java.text.BreakIterator
-import java.awt.{Color, Graphics2D, Point}
+import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.{jEdit, Debug}
-import org.gjt.sp.jedit.gui.RolloverButton
+import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.SyntaxStyle
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 
 
 object Document_View
@@ -244,7 +238,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             }
           }
 
-        case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
+        case bad =>
+          java.lang.System.err.println("command_change_actor: ignoring bad message " + bad)
       }
     }
   }

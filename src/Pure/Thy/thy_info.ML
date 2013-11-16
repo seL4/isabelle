@@ -126,6 +126,7 @@ fun get_theory name =
 
 val get_imports = Thy_Load.imports_of o get_theory;
 
+(*Proof General legacy*)
 fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
   (case get_deps name of
     NONE => []
@@ -305,7 +306,7 @@ fun check_deps dir name =
           #2 master = #2 master' andalso
             (case lookup_theory name of
               NONE => false
-            | SOME theory => Thy_Load.load_current theory);
+            | SOME theory => Thy_Load.loaded_files_current theory);
       in (current, deps', theory_pos', imports', keywords') end);
 
 in

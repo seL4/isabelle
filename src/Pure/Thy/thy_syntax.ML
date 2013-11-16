@@ -15,6 +15,7 @@ sig
   val span_content: span -> Token.T list
   val present_span: span -> Output.output
   val parse_spans: Token.T list -> span list
+  val resolve_files: (string -> Path.T * Position.T -> Token.file list) -> span -> span
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
   val map_element: ('a -> 'b) -> 'a element -> 'b element
@@ -138,6 +139,47 @@ in
 fun parse_spans toks =
   fold parse toks ([], [], [])
   |> flush |> rev |> map make_span;
+
+end;
+
+
+(* inlined files *)
+
+local
+
+fun clean ((i1, t1) :: (i2, t2) :: toks) =
+      if Token.keyword_with (fn s => s = "%" orelse s = "--") t1 then clean toks
+      else (i1, t1) :: clean ((i2, t2) :: toks)
+  | clean toks = toks;
+
+fun clean_tokens toks =
+  ((0 upto length toks - 1) ~~ toks)
+  |> filter (fn (_, tok) => Token.is_proper tok)
+  |> clean;
+
+fun find_file toks =
+  rev (clean_tokens toks) |> get_first (fn (i, tok) =>
+    if Token.is_name tok then
+      SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
+        handle ERROR msg => error (msg ^ Token.pos_of tok)
+    else NONE);
+
+in
+
+fun resolve_files read_files span =
+  (case span of
+    Span (Command (cmd, pos), toks) =>
+      if Keyword.is_theory_load cmd then
+        (case find_file toks of
+          NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
+        | SOME (i, path) =>
+            let
+              val toks' = toks |> map_index (fn (j, tok) =>
+                if i = j then Token.put_files (read_files cmd path) tok
+                else tok);
+            in Span (Command (cmd, pos), toks') end)
+      else span
+  | _ => span);
 
 end;
 

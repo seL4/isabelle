@@ -341,8 +341,6 @@ toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
 
 (* ML toplevel commands *)
 
-fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
-
 fun use_thys args = Toplevel.program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
 val use_thy = use_thys o single;
 

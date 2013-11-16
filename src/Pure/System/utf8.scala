@@ -20,13 +20,11 @@ object UTF8
   val charset: Charset = Charset.forName(charset_name)
   def codec(): Codec = Codec(charset)
 
-  def string_bytes(s: String): Array[Byte] = s.getBytes(charset)
-
 
   /* permissive UTF-8 decoding */
 
   // see also http://en.wikipedia.org/wiki/UTF-8#Description
-  // overlong encodings enable byte-stuffing
+  // overlong encodings enable byte-stuffing of low-ASCII
 
   def decode_permissive(text: CharSequence): String =
   {

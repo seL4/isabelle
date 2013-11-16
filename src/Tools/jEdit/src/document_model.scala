@@ -14,9 +14,6 @@ import scala.collection.mutable
 
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
-import org.gjt.sp.jedit.textarea.TextArea
-
-import java.awt.font.TextAttribute
 
 
 object Document_Model

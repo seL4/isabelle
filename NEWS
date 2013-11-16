@@ -62,6 +62,15 @@ Conditionally_Complete_Lattices.   INCOMPATIBILITY.
 instead of explicitly stating boundedness of sets.
 
 
+*** ML ***
+
+* Toplevel function "use" refers to raw ML bootstrap environment,
+without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
+Note that 'ML_file' is the canonical command to load ML files into the
+formal context.
+
+
+
 New in Isabelle2013-1 (November 2013)
 -------------------------------------
 
