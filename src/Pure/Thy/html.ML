@@ -53,7 +53,6 @@ local
   (* FIXME proper unicode -- produced on Scala side *)
   val html_syms = Symtab.make
    [("", (0, "")),
-    ("\n", (0, "<br/>")),
     ("'", (1, "&#39;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
     ("\\<cent>", (1, "&cent;")),
