@@ -16,7 +16,6 @@ sig
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
-  val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
   val loaded_files_current: theory -> bool
   val use_ml: Path.T -> unit
@@ -163,12 +162,6 @@ fun load_file thy src_path =
     val text = File.read full_path;
     val id = SHA1.digest text;
   in ((full_path, id), text) end;
-
-fun use_file src_path thy =
-  let
-    val ((_, id), text) = load_file thy src_path;
-    val thy' = provide (src_path, id) thy;
-  in (text, thy') end;
 
 (*Proof General legacy*)
 fun loaded_files thy =
