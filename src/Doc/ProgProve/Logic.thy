@@ -142,7 +142,7 @@ See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
 @{theory Main}.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \exercise
 Start from the data type of binary trees defined earlier:
@@ -788,7 +788,7 @@ assumptions. The \isacom{for} clause seen in the definition of the reflexive
 transitive closure merely simplifies the form of the induction rule.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \begin{exercise}
 Formalise the following definition of palindromes

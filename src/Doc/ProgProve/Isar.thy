@@ -590,7 +590,7 @@ This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
 \isacom{note} introduces a new name for one or more facts.
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \exercise
 Give a readable, structured proof of the following lemma:
@@ -1077,7 +1077,7 @@ the induction hypotheses are instead found under the name @{text hyps}, like for
 \end{warn}
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 
 \exercise

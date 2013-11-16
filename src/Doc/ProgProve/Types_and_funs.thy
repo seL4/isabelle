@@ -201,7 +201,7 @@ But note that the induction rule does not mention @{text f} at all,
 except in its name, and is applicable independently of @{text f}.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \begin{exercise}
 Starting from the type @{text "'a tree"} defined in the text, define
@@ -336,7 +336,7 @@ matters in some cases. The variables that need to be quantified are typically
 those that change in recursive calls.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \begin{exercise}
 Write a tail-recursive variant of the @{text add} function on @{typ nat}:
@@ -523,7 +523,7 @@ datatype @{text t} it is @{text "t.split"} instead of @{thm[source] nat.split}.
 Method @{text auto} can be modified in exactly the same way.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \exercise\label{exe:tree0}
 Define a datatype @{text tree0} of binary tree skeletons which do not store

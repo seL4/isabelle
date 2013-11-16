@@ -419,7 +419,7 @@ but underdefined.
 From now on lists are always the predefined lists.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
 
 \begin{exercise}
 Use the \isacom{value} command to evaluate the following expressions:
