@@ -91,7 +91,8 @@ final class Bytes private(
 
   def sha1_digest: SHA1.Digest = SHA1.digest(bytes)
 
-  override def toString: String = new String(bytes, offset, length, UTF8.charset)
+  override def toString: String =
+    UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
 
   def isEmpty: Boolean = length == 0
 

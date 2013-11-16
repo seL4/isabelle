@@ -24,7 +24,7 @@ object UTF8
   /* permissive UTF-8 decoding */
 
   // see also http://en.wikipedia.org/wiki/UTF-8#Description
-  // overlong encodings enable byte-stuffing
+  // overlong encodings enable byte-stuffing of low-ASCII
 
   def decode_permissive(text: CharSequence): String =
   {
