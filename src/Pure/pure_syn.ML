@@ -14,7 +14,7 @@ val _ =
     (Thy_Header.args >> (fn header =>
       Toplevel.print o
         Toplevel.init_theory
-          (fn () => Thy_Info.toplevel_begin_theory (Thy_Load.get_master_path ()) header)));
+          (fn () => Thy_Info.toplevel_begin_theory (! ProofGeneral.master_path) header)));
 
 val _ =
   Outer_Syntax.command

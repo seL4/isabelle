@@ -21,8 +21,6 @@ sig
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: (Toplevel.transition -> Time.time option) -> int -> Path.T -> Thy_Header.header ->
     Position.T -> string -> theory list -> theory * (unit -> unit) * int
-  val set_master_path: Path.T -> unit
-  val get_master_path: unit -> Path.T
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -259,17 +257,5 @@ val _ = Theory.setup
         |> map Thy_Output.verb_text
         |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
       end));
-
-
-(* global master path *)  (*Proof General legacy*)
-
-local
-  val master_path = Unsynchronized.ref Path.current;
-in
-
-fun set_master_path path = master_path := path;
-fun get_master_path () = ! master_path;
-
-end;
 
 end;
