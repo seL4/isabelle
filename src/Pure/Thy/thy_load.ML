@@ -171,7 +171,7 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
     val _ = Present.init_theory name;
     fun init () =
       begin_theory master_dir header parents
-      |> Present.begin_theory update_time master_dir;
+      |> Present.begin_theory update_time;
 
     val lexs = Keyword.get_lexicons ();
 

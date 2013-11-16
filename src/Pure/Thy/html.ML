@@ -12,8 +12,6 @@ sig
   val name: string -> text
   val keyword: string -> text
   val command: string -> text
-  val file_name: string -> text
-  val file_path: Url.T -> text
   val href_name: string -> text -> text
   val href_path: Url.T -> text -> text
   val href_opt_path: Url.T option -> text -> text
@@ -26,9 +24,7 @@ sig
   val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
   val theory_source: text -> text
-  val begin_theory: string -> (Url.T option * string) list ->
-    (Url.T * Url.T * bool) list -> text -> text
-  val external_file: Url.T -> string -> text
+  val begin_theory: string -> (Url.T option * string) list -> text -> text
 end;
 
 structure HTML: HTML =
@@ -246,8 +242,6 @@ val plain = output;
 val name = enclose "<span class=\"name\">" "</span>" o output;
 val keyword = enclose "<span class=\"keyword\">" "</span>" o output;
 val command = enclose "<span class=\"command\">" "</span>" o output;
-val file_name = enclose "<span class=\"filename\">" "</span>" o output;
-val file_path = file_name o Url.implode;
 
 
 (* misc *)
@@ -330,36 +324,9 @@ val theory_source = enclose
   "\n</div>\n<div class=\"source\">\n<pre>"
   "</pre>\n";
 
-
-local
-  fun file (href, path, loadit) =
-    href_path href (if loadit then file_path path else enclose "(" ")" (file_path path));
-
-  fun theory A =
-    begin_document ("Theory " ^ A) ^ "\n" ^ command "theory" ^ " " ^ name A;
-
-  fun imports Bs =
-    keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
-
-  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps) ^ "<br/>\n";
-in
-
-fun begin_theory A Bs Ps body =
-  theory A ^ "<br/>\n" ^
-  imports Bs ^ "<br/>\n" ^
-  (if null Ps then "" else uses Ps) ^
-  body;
-
-end;
-
-
-(* external file *)
-
-fun external_file path str =
-  begin_document ("File " ^ Url.implode path) ^
-  "\n</div><div class=\"external_source\">\n" ^
-  verbatim str ^
-  "\n</div>\n<div class=\"external_footer\">" ^
-  end_document;
+fun begin_theory A Bs body =
+  begin_document ("Theory " ^ A) ^ "\n" ^ command "theory" ^ " " ^ name A ^ "<br/>\n" ^
+  keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs) ^
+  "<br/>\n" ^ body;
 
 end;
