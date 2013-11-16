@@ -168,19 +168,16 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
 
     val {name = (name, _), ...} = header;
     val _ = Thy_Header.define_keywords header;
-    val _ = Present.init_theory name;
-    fun init () =
-      begin_theory master_dir header parents
-      |> Present.begin_theory update_time;
 
     val lexs = Keyword.get_lexicons ();
-
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
     val spans = map (Thy_Syntax.resolve_files (read_files master_dir)) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
-    val _ = Present.theory_source name
-      (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
+    fun init () =
+      begin_theory master_dir header parents
+      |> Present.begin_theory update_time
+          (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val (results, thy) = cond_timeit time "" (fn () => excursion last_timing init elements);

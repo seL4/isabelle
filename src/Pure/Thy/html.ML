@@ -23,8 +23,7 @@ sig
   val begin_session_index: string -> (Url.T * string) list -> Url.T -> text
   val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
-  val theory_source: text -> text
-  val begin_theory: string -> (Url.T option * string) list -> text -> text
+  val theory: string -> (Url.T option * string) list -> text -> text
 end;
 
 structure HTML: HTML =
@@ -320,13 +319,12 @@ fun theory_entry (p, s) = "<li>" ^ href_path p (plain s) ^ "</li>\n";
 
 (* theory *)
 
-val theory_source = enclose
-  "\n</div>\n<div class=\"source\">\n<pre>"
-  "</pre>\n";
-
-fun begin_theory A Bs body =
-  begin_document ("Theory " ^ A) ^ "\n" ^ command "theory" ^ " " ^ name A ^ "<br/>\n" ^
+fun theory A Bs txt =
+  begin_document ("Theory " ^ A) ^ "\n" ^
+  command "theory" ^ " " ^ name A ^ "<br/>\n" ^
   keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs) ^
-  "<br/>\n" ^ body;
+  "<br/>\n" ^
+  enclose "\n</div>\n<div class=\"source\">\n<pre>" "</pre>\n" txt ^
+  end_document;
 
 end;
