@@ -156,8 +156,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     def flushed_edits(): List[Document.Edit_Text] =
     {
-      Swing_Thread.require()
-
       val clear = pending_clear
       val edits = snapshot()
       val perspective = node_perspective()
@@ -172,8 +170,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     def edit(clear: Boolean, e: Text.Edit)
     {
-      Swing_Thread.require()
-
       if (clear) {
         pending_clear = true
         pending.clear
@@ -183,16 +179,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
-  def flushed_edits(): List[Document.Edit_Text] = pending_edits.flushed_edits()
-
-
-  /* snapshot */
-
   def snapshot(): Document.Snapshot =
-  {
-    Swing_Thread.require()
-    session.snapshot(node_name, pending_edits.snapshot())
-  }
+    Swing_Thread.require { session.snapshot(node_name, pending_edits.snapshot()) }
+
+  def flushed_edits(): List[Document.Edit_Text] =
+    Swing_Thread.require { pending_edits.flushed_edits() }
 
 
   /* buffer listener */
