@@ -278,10 +278,9 @@ text {* File specifications in jEdit follow various formats and
   \emph{all} platforms.\footnote{Isabelle on Windows uses Cygwin
   file-system access.}  Moreover, environment variables from the
   Isabelle process may be used freely, e.g.\ @{file
-  "$ISABELLE_HOME/etc/symbols"} or @{file
-  "$ISABELLE_JDK_HOME/README.html"}.  There are special shortcuts:
-  @{file "~"} for @{file "$USER_HOME"} and @{file "~~"} for @{file
-  "$ISABELLE_HOME"}.
+  "$ISABELLE_HOME/etc/symbols"} or @{file "$POLYML_HOME/README"}.
+  There are special shortcuts: @{file "~"} for @{file "$USER_HOME"}
+  and @{file "~~"} for @{file "$ISABELLE_HOME"}.
 
   \medskip Since jEdit happens to support environment variables within
   file specifications as well, it is natural to use similar notation
