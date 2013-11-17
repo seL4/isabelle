@@ -124,16 +124,23 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       node_name -> perspective)
   }
 
-  def node_edits(perspective: Document.Node.Perspective_Text, text_edits: List[Text.Edit])
-    : List[Document.Edit_Text] =
+  def node_edits(
+    clear: Boolean,
+    text_edits: List[Text.Edit],
+    perspective: Document.Node.Perspective_Text): List[Document.Edit_Text] =
   {
     Swing_Thread.require()
 
-    val header = node_header()
-
-    List(session.header_edit(node_name, header),
-      node_name -> Document.Node.Edits(text_edits),
-      node_name -> perspective)
+    val header_edit = session.header_edit(node_name, node_header())
+    if (clear)
+      List(header_edit,
+        node_name -> Document.Node.Clear(),
+        node_name -> Document.Node.Edits(text_edits),
+        node_name -> perspective)
+    else
+      List(header_edit,
+        node_name -> Document.Node.Edits(text_edits),
+        node_name -> perspective)
   }
 
 
@@ -141,6 +148,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   private object pending_edits  // owned by Swing thread
   {
+    private var pending_clear = false
     private val pending = new mutable.ListBuffer[Text.Edit]
     private var last_perspective = empty_perspective
 
@@ -150,44 +158,32 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     {
       Swing_Thread.require()
 
+      val clear = pending_clear
       val edits = snapshot()
-      val new_perspective = node_perspective()
-      if (!edits.isEmpty || last_perspective != new_perspective) {
+      val perspective = node_perspective()
+      if (clear || !edits.isEmpty || last_perspective != perspective) {
+        pending_clear = false
         pending.clear
-        last_perspective = new_perspective
-        node_edits(new_perspective, edits)
+        last_perspective = perspective
+        node_edits(clear, edits, perspective)
       }
       else Nil
     }
 
-    def flush(): Unit = session.update(flushed_edits())
-
-    val delay_flush =
-      Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
-
-    def +=(edit: Text.Edit)
+    def edit(clear: Boolean, e: Text.Edit)
     {
       Swing_Thread.require()
-      pending += edit
-      delay_flush.invoke()
-    }
 
-    def init()
-    {
-      flush()
-      session.update(init_edits())
-    }
-
-    def exit()
-    {
-      delay_flush.revoke()
-      flush()
+      if (clear) {
+        pending_clear = true
+        pending.clear
+      }
+      pending += e
+      PIDE.editor.invoke()
     }
   }
 
   def flushed_edits(): List[Document.Edit_Text] = pending_edits.flushed_edits()
-
-  def update_perspective(): Unit = pending_edits.delay_flush.invoke()
 
 
   /* snapshot */
@@ -205,21 +201,21 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     override def bufferLoaded(buffer: JEditBuffer)
     {
-      pending_edits.init()
+      pending_edits.edit(true, Text.Edit.insert(0, buffer.getText(0, buffer.getLength)))
     }
 
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
       if (!buffer.isLoading)
-        pending_edits += Text.Edit.insert(offset, buffer.getText(offset, length))
+        pending_edits.edit(false, Text.Edit.insert(offset, buffer.getText(offset, length)))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, removed_length: Int)
     {
       if (!buffer.isLoading)
-        pending_edits += Text.Edit.remove(offset, buffer.getText(offset, removed_length))
+        pending_edits.edit(false, Text.Edit.remove(offset, buffer.getText(offset, removed_length)))
     }
   }
 
@@ -229,13 +225,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   private def activate()
   {
     buffer.addBufferListener(buffer_listener)
-    pending_edits.flush()
     Token_Markup.refresh_buffer(buffer)
   }
 
   private def deactivate()
   {
-    pending_edits.exit()
     buffer.removeBufferListener(buffer_listener)
     Token_Markup.refresh_buffer(buffer)
   }

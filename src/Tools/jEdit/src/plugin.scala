@@ -80,6 +80,7 @@ object PIDE
   def exit_models(buffers: List[Buffer])
   {
     Swing_Thread.now {
+      PIDE.editor.flush()
       buffers.foreach(buffer =>
         JEdit_Lib.buffer_lock(buffer) {
           JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
@@ -91,6 +92,7 @@ object PIDE
   def init_models(buffers: List[Buffer])
   {
     Swing_Thread.now {
+      PIDE.editor.flush()
       val init_edits =
         (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
           JEdit_Lib.buffer_lock(buffer) {

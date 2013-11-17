@@ -106,14 +106,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     Text.Perspective(active_command ::: visible_lines)
   }
 
-  private def update_perspective = new TextAreaExtension
+  private def update_view = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       // no robust_body
-      model.update_perspective()
+      PIDE.editor.invoke()
     }
   }
 
@@ -251,7 +251,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   {
     val painter = text_area.getPainter
 
-    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_view)
     rich_text_area.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
@@ -272,6 +272,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
     rich_text_area.deactivate()
-    painter.removeExtension(update_perspective)
+    painter.removeExtension(update_view)
   }
 }
