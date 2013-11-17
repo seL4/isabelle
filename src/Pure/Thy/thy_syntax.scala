@@ -68,7 +68,7 @@ object Thy_Syntax
       /* result structure */
 
       val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command(Document_ID.none, node_name, span)))
+      spans.foreach(span => add(Command(Document_ID.none, node_name, span, syntax.thy_load(span))))
       result()
     }
   }
@@ -255,7 +255,8 @@ object Thy_Syntax
         commands
       case cmd :: _ =>
         val hook = commands.prev(cmd)
-        val inserted = spans2.map(span => Command(Document_ID.make(), name, span))
+        val inserted =
+          spans2.map(span => Command(Document_ID.make(), name, span, syntax.thy_load(span)))
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
     }
   }

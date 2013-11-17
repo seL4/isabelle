@@ -141,12 +141,14 @@ object Command
 
   /* make commands */
 
-  type Span = List[Token]
+  def name(span: List[Token]): String =
+    span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
-    span: Span,
+    span: List[Token],
+    thy_load: Option[List[String]],
     results: Results = Results.empty,
     markup: Markup_Tree = Markup_Tree.empty): Command =
   {
@@ -165,14 +167,15 @@ object Command
       i += n
     }
 
-    new Command(id, node_name, span1.toList, source, results, markup)
+    new Command(id, node_name, span1.toList, source, thy_load, results, markup)
   }
 
-  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil)
+  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil, None)
 
   def unparsed(id: Document_ID.Command, source: String, results: Results, markup: Markup_Tree)
       : Command =
-    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), results, markup)
+    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), None,
+      results, markup)
 
   def unparsed(source: String): Command =
     unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
@@ -212,6 +215,7 @@ final class Command private(
     val node_name: Document.Node.Name,
     val span: List[Token],
     val source: String,
+    val thy_load: Option[List[String]],
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
@@ -225,8 +229,7 @@ final class Command private(
   val is_malformed: Boolean = !is_ignored && (!span.head.is_command || span.exists(_.is_error))
   def is_command: Boolean = !is_ignored && !is_malformed
 
-  def name: String =
-    span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
+  def name: String = Command.name(span)
 
   override def toString =
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")

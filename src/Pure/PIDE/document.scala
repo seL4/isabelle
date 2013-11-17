@@ -148,6 +148,9 @@ object Document
 
     final class Commands private(val commands: Linear_Set[Command])
     {
+      lazy val thy_load_commands: List[Command] =
+        commands.iterator.filter(_.thy_load.isDefined).toList
+
       private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
       {
         val blocks = new mutable.ListBuffer[(Command, Text.Offset)]
@@ -197,6 +200,7 @@ object Document
       perspective.overlays == other_perspective.overlays
 
     def commands: Linear_Set[Command] = _commands.commands
+    def thy_load_commands: List[Command] = _commands.thy_load_commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
