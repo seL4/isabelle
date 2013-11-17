@@ -41,14 +41,14 @@ proof (rule transI, unfold split_paired_all)
   ultimately have "a * b'' = a'' * b" by simp
   with A B show "((a, b), (a'', b'')) \<in> fractrel" by auto
 qed
-  
+
 lemma equiv_fractrel: "equiv {x. snd x \<noteq> 0} fractrel"
   by (rule equivI [OF refl_fractrel sym_fractrel trans_fractrel])
 
 lemmas UN_fractrel = UN_equiv_class [OF equiv_fractrel]
 lemmas UN_fractrel2 = UN_equiv_class2 [OF equiv_fractrel equiv_fractrel]
 
-lemma equiv_fractrel_iff [iff]: 
+lemma equiv_fractrel_iff [iff]:
   assumes "snd x \<noteq> 0" and "snd y \<noteq> 0"
   shows "fractrel `` {x} = fractrel `` {y} \<longleftrightarrow> (x, y) \<in> fractrel"
   by (rule eq_equiv_class_iff, rule equiv_fractrel) (auto simp add: assms)
@@ -59,7 +59,8 @@ typedef 'a fract = "fract :: ('a * 'a::idom) set set"
   unfolding fract_def
 proof
   have "(0::'a, 1::'a) \<in> {x. snd x \<noteq> 0}" by simp
-  then show "fractrel `` {(0::'a, 1)} \<in> {x. snd x \<noteq> 0} // fractrel" by (rule quotientI)
+  then show "fractrel `` {(0::'a, 1)} \<in> {x. snd x \<noteq> 0} // fractrel"
+    by (rule quotientI)
 qed
 
 lemma fractrel_in_fract [simp]: "snd x \<noteq> 0 \<Longrightarrow> fractrel `` {x} \<in> fract"
@@ -70,8 +71,8 @@ declare Abs_fract_inject [simp] Abs_fract_inverse [simp]
 
 subsubsection {* Representation and basic operations *}
 
-definition Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract" where
-  "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
+definition Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract"
+  where "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
 
 code_datatype Fract
 
@@ -80,7 +81,7 @@ lemma Fract_cases [cases type: fract]:
   by (cases q) (clarsimp simp add: Fract_def fract_def quotient_def)
 
 lemma Fract_induct [case_names Fract, induct type: fract]:
-  shows "(\<And>a b. b \<noteq> 0 \<Longrightarrow> P (Fract a b)) \<Longrightarrow> P q"
+  "(\<And>a b. b \<noteq> 0 \<Longrightarrow> P (Fract a b)) \<Longrightarrow> P q"
   by (cases q) simp
 
 lemma eq_fract:
@@ -105,19 +106,17 @@ lemma add_fract [simp]:
     and "d \<noteq> 0"
   shows "Fract a b + Fract c d = Fract (a * d + c * b) (b * d)"
 proof -
-  have "(\<lambda>x y. fractrel``{(fst x * snd y + fst y * snd x, snd x * snd y :: 'a)})
-    respects2 fractrel"
-    apply (rule equiv_fractrel [THEN congruent2_commuteI])
-    apply (auto simp add: algebra_simps)
-    unfolding mult_assoc[symmetric]
-    done
+  have "(\<lambda>x y. fractrel``{(fst x * snd y + fst y * snd x, snd x * snd y :: 'a)}) respects2 fractrel"
+    by (rule equiv_fractrel [THEN congruent2_commuteI]) (simp_all add: algebra_simps)
   with assms show ?thesis by (simp add: Fract_def add_fract_def UN_fractrel2)
 qed
 
 definition minus_fract_def:
   "- q = Abs_fract (\<Union>x \<in> Rep_fract q. fractrel `` {(- fst x, snd x)})"
 
-lemma minus_fract [simp, code]: "- Fract a b = Fract (- a) (b::'a::idom)"
+lemma minus_fract [simp, code]:
+  fixes a b :: "'a::idom"
+  shows "- Fract a b = Fract (- a) b"
 proof -
   have "(\<lambda>x. fractrel `` {(- fst x, snd x :: 'a)}) respects fractrel"
     by (simp add: congruent_def split_paired_all)
@@ -130,7 +129,8 @@ lemma minus_fract_cancel [simp]: "Fract (- a) (- b) = Fract a b"
 definition diff_fract_def: "q - r = q + - (r::'a fract)"
 
 lemma diff_fract [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  assumes "b \<noteq> 0"
+    and "d \<noteq> 0"
   shows "Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
   using assms by (simp add: diff_fract_def)
 
@@ -141,9 +141,7 @@ definition mult_fract_def:
 lemma mult_fract [simp]: "Fract (a::'a::idom) b * Fract c d = Fract (a * c) (b * d)"
 proof -
   have "(\<lambda>x y. fractrel `` {(fst x * fst y, snd x * snd y :: 'a)}) respects2 fractrel"
-    apply (rule equiv_fractrel [THEN congruent2_commuteI])
-    apply (auto simp add: algebra_simps)
-    done
+    by (rule equiv_fractrel [THEN congruent2_commuteI]) (simp_all add: algebra_simps)
   then show ?thesis by (simp add: Fract_def mult_fract_def UN_fractrel2)
 qed
 
@@ -151,14 +149,16 @@ lemma mult_fract_cancel:
   assumes "c \<noteq> (0::'a)"
   shows "Fract (c * a) (c * b) = Fract a b"
 proof -
-  from assms have "Fract c c = Fract 1 1" by (simp add: Fract_def)
-  then show ?thesis by (simp add: mult_fract [symmetric])
+  from assms have "Fract c c = Fract 1 1"
+    by (simp add: Fract_def)
+  then show ?thesis
+    by (simp add: mult_fract [symmetric])
 qed
 
 instance
 proof
   fix q r s :: "'a fract"
-  show "(q * r) * s = q * (r * s)" 
+  show "(q * r) * s = q * (r * s)"
     by (cases q, cases r, cases s) (simp add: eq_fract algebra_simps)
   show "q * r = r * q"
     by (cases q, cases r) (simp add: eq_fract algebra_simps)
@@ -201,7 +201,7 @@ lemma fract_expand [code_unfold]:
   by (simp_all add: fract_collapse)
 
 lemma Fract_cases_nonzero:
-  obtains (Fract) a b where "q = Fract a b" "b \<noteq> 0" "a \<noteq> 0"
+  obtains (Fract) a b where "q = Fract a b" and "b \<noteq> 0" and "a \<noteq> 0"
     | (0) "q = 0"
 proof (cases "q = 0")
   case True
@@ -213,7 +213,7 @@ next
   with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_fract_def eq_fract)
   with Fract `q = Fract a b` `b \<noteq> 0` show thesis by auto
 qed
-  
+
 
 subsubsection {* The field of rational numbers *}
 
@@ -233,10 +233,12 @@ definition inverse_fract_def:
 
 lemma inverse_fract [simp]: "inverse (Fract a b) = Fract (b::'a::idom) a"
 proof -
-  have *: "\<And>x. (0::'a) = x \<longleftrightarrow> x = 0" by auto
+  have *: "\<And>x. (0::'a) = x \<longleftrightarrow> x = 0"
+    by auto
   have "(\<lambda>x. fractrel `` {if fst x = 0 then (0, 1) else (snd x, fst x :: 'a)}) respects fractrel"
     by (auto simp add: congruent_def * algebra_simps)
-  then show ?thesis by (simp add: Fract_def inverse_fract_def UN_fractrel)
+  then show ?thesis
+    by (simp add: Fract_def inverse_fract_def UN_fractrel)
 qed
 
 definition divide_fract_def: "q / r = q * inverse (r:: 'a fract)"
@@ -276,10 +278,12 @@ proof (clarsimp simp add: congruent2_def)
 
   let ?le = "\<lambda>a b c d. ((a * d) * (b * d) \<le> (c * b) * (b * d))"
   {
-    fix a b c d x :: 'a assume x: "x \<noteq> 0"
+    fix a b c d x :: 'a
+    assume x: "x \<noteq> 0"
     have "?le a b c d = ?le (a * x) (b * x) c d"
     proof -
-      from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
+      from x have "0 < x * x"
+        by (auto simp add: zero_less_mult_iff)
       then have "?le a b c d =
           ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
         by (simp add: mult_le_cancel_right)
@@ -315,23 +319,27 @@ definition le_fract_def:
 definition less_fract_def: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
 
 lemma le_fract [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  assumes "b \<noteq> 0"
+    and "d \<noteq> 0"
   shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
   by (simp add: Fract_def le_fract_def le_congruent2 UN_fractrel2 assms)
 
 lemma less_fract [simp]:
-  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  assumes "b \<noteq> 0"
+    and "d \<noteq> 0"
   shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
   by (simp add: less_fract_def less_le_not_le mult_ac assms)
 
 instance
 proof
   fix q r s :: "'a fract"
-  assume "q \<le> r" and "r \<le> s" thus "q \<le> s"
+  assume "q \<le> r" and "r \<le> s"
+  then show "q \<le> s"
   proof (induct q, induct r, induct s)
     fix a b c d e f :: 'a
-    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
-    assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract e f"
+    assume neq: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0"
+    assume 1: "Fract a b \<le> Fract c d"
+    assume 2: "Fract c d \<le> Fract e f"
     show "Fract a b \<le> Fract e f"
     proof -
       from neq obtain bb: "0 < b * b" and dd: "0 < d * d" and ff: "0 < f * f"
@@ -359,11 +367,13 @@ proof
   qed
 next
   fix q r :: "'a fract"
-  assume "q \<le> r" and "r \<le> q" thus "q = r"
+  assume "q \<le> r" and "r \<le> q"
+  then show "q = r"
   proof (induct q, induct r)
     fix a b c d :: 'a
-    assume neq: "b \<noteq> 0"  "d \<noteq> 0"
-    assume 1: "Fract a b \<le> Fract c d" and 2: "Fract c d \<le> Fract a b"
+    assume neq: "b \<noteq> 0" "d \<noteq> 0"
+    assume 1: "Fract a b \<le> Fract c d"
+    assume 2: "Fract c d \<le> Fract a b"
     show "Fract a b = Fract c d"
     proof -
       from neq 1 have "(a * d) * (b * d) \<le> (c * b) * (b * d)"
@@ -372,7 +382,7 @@ next
       proof -
         from neq 2 have "(c * b) * (d * b) \<le> (a * d) * (d * b)"
           by simp
-        thus ?thesis by (simp only: mult_ac)
+        then show ?thesis by (simp only: mult_ac)
       qed
       finally have "(a * d) * (b * d) = (c * b) * (b * d)" .
       moreover from neq have "b * d \<noteq> 0" by simp
@@ -393,13 +403,13 @@ qed
 
 end
 
-instantiation fract :: (linordered_idom) "{distrib_lattice, abs_if, sgn_if}"
+instantiation fract :: (linordered_idom) "{distrib_lattice,abs_if,sgn_if}"
 begin
 
 definition abs_fract_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::'a fract))"
 
 definition sgn_fract_def:
-  "sgn (q::'a fract) = (if q=0 then 0 else if 0<q then 1 else - 1)"
+  "sgn (q::'a fract) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
 
 theorem abs_fract [simp]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (auto simp add: abs_fract_def Zero_fract_def le_less
@@ -444,7 +454,7 @@ next
   then show "s * q < s * r"
   proof (induct q, induct r, induct s)
     fix a b c d e f :: 'a
-    assume neq: "b \<noteq> 0"  "d \<noteq> 0"  "f \<noteq> 0"
+    assume neq: "b \<noteq> 0" "d \<noteq> 0" "f \<noteq> 0"
     assume le: "Fract a b < Fract c d"
     assume gt: "0 < Fract e f"
     show "Fract e f * Fract a b < Fract e f * Fract c d"
@@ -469,16 +479,21 @@ lemma fract_induct_pos [case_names Fract]:
   assumes step: "\<And>a b. 0 < b \<Longrightarrow> P (Fract a b)"
   shows "P q"
 proof (cases q)
-  have step': "\<And>a b. b < 0 \<Longrightarrow> P (Fract a b)"
-  proof -
-    fix a::'a and b::'a
-    assume b: "b < 0"
-    then have "0 < -b" by simp
-    then have "P (Fract (-a) (-b))" by (rule step)
-    thus "P (Fract a b)" by (simp add: order_less_imp_not_eq [OF b])
-  qed
   case (Fract a b)
-  thus "P q" by (force simp add: linorder_neq_iff step step')
+  {
+    fix a b :: 'a
+    assume b: "b < 0"
+    have "P (Fract a b)"
+    proof -
+      from b have "0 < - b" by simp
+      then have "P (Fract (- a) (- b))"
+        by (rule step)
+      then show "P (Fract a b)"
+        by (simp add: order_less_imp_not_eq [OF b])
+    qed
+  }
+  with Fract show "P q"
+    by (auto simp add: linorder_neq_iff step)
 qed
 
 lemma zero_less_Fract_iff: "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
