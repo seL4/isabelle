@@ -597,8 +597,8 @@ fun process_constraints ctxt err cs tye_idx =
           val assignment =
             if null bound orelse null not_params then NONE
             else SOME (tightest lower S styps_and_sorts (map nameT not_params)
-                handle BOUND_ERROR msg =>
-                  err_bound ctxt (gen_msg err msg) tye (find_error_pack lower key))
+                handle BOUND_ERROR msg => err_bound ctxt (gen_msg err msg) tye
+                  (maps (find_error_pack (not lower)) raw_bound))
         in
           (case assignment of
             NONE => tye_idx
@@ -614,7 +614,8 @@ fun process_constraints ctxt err cs tye_idx =
                   else err_bound ctxt (gen_msg err ("assigned base type " ^
                     quote (Syntax.string_of_typ ctxt T) ^
                     " clashes with the upper bound of variable " ^
-                    Syntax.string_of_typ ctxt (TVar(xi, S)))) tye (find_error_pack (not lower) key)
+                    Syntax.string_of_typ ctxt (TVar(xi, S)))) tye
+                    (maps (find_error_pack lower) other_bound)
                 end
               else apfst (Vartab.update (xi, T)) tye_idx)
         end
