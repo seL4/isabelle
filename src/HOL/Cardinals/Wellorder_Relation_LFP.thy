@@ -419,7 +419,7 @@ proof-
 qed
 
 
-subsubsection {* Properties of order filters  *}
+subsubsection {* Properties of order filters *}
 
 
 lemma under_ofilter:
@@ -511,44 +511,6 @@ next
     thus ?thesis by simp
   qed
 qed
-
-
-lemma ofilter_Under:
-assumes "A \<le> Field r"
-shows "ofilter(Under A)"
-proof(unfold ofilter_def, auto)
-  fix x assume "x \<in> Under A"
-  thus "x \<in> Field r"
-  using Under_Field assms by auto
-next
-  fix a x
-  assume "a \<in> Under A" and "x \<in> under a"
-  thus "x \<in> Under A"
-  using TRANS under_Under_trans by auto
-qed
-
-
-lemma ofilter_UnderS:
-assumes "A \<le> Field r"
-shows "ofilter(UnderS A)"
-proof(unfold ofilter_def, auto)
-  fix x assume "x \<in> UnderS A"
-  thus "x \<in> Field r"
-  using UnderS_Field assms by auto
-next
-  fix a x
-  assume "a \<in> UnderS A" and "x \<in> under a"
-  thus "x \<in> UnderS A"
-  using TRANS ANTISYM under_UnderS_trans by auto
-qed
-
-
-lemma ofilter_Int: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow> ofilter(A Int B)"
-unfolding ofilter_def by blast
-
-
-lemma ofilter_Un: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow> ofilter(A \<union> B)"
-unfolding ofilter_def by blast
 
 
 lemma ofilter_UNION:

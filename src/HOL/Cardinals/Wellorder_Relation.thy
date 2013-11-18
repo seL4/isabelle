@@ -64,17 +64,7 @@ subsubsection{* Properties of minim *}
 
 lemma minim_Under:
 "\<lbrakk>B \<le> Field r; B \<noteq> {}\<rbrakk> \<Longrightarrow> minim B \<in> Under B"
-by(auto simp add: Under_def
-minim_in
-minim_inField
-minim_least
-under_ofilter
-underS_ofilter
-Field_ofilter
-ofilter_Under
-ofilter_UnderS
-ofilter_Un
-)
+by(auto simp add: Under_def minim_inField minim_least)
 
 lemma equals_minim_Under:
 "\<lbrakk>B \<le> Field r; a \<in> B; a \<in> Under B\<rbrakk>
@@ -410,7 +400,41 @@ proof-
 qed
 
 
-subsubsection {* Properties of order filters  *}
+subsubsection {* Properties of order filters *}
+
+lemma ofilter_Under[simp]:
+assumes "A \<le> Field r"
+shows "ofilter(Under A)"
+proof(unfold ofilter_def, auto)
+  fix x assume "x \<in> Under A"
+  thus "x \<in> Field r"
+  using Under_Field assms by auto
+next
+  fix a x
+  assume "a \<in> Under A" and "x \<in> under a"
+  thus "x \<in> Under A"
+  using TRANS under_Under_trans by auto
+qed
+
+lemma ofilter_UnderS[simp]:
+assumes "A \<le> Field r"
+shows "ofilter(UnderS A)"
+proof(unfold ofilter_def, auto)
+  fix x assume "x \<in> UnderS A"
+  thus "x \<in> Field r"
+  using UnderS_Field assms by auto
+next
+  fix a x
+  assume "a \<in> UnderS A" and "x \<in> under a"
+  thus "x \<in> UnderS A"
+  using TRANS ANTISYM under_UnderS_trans by auto
+qed
+
+lemma ofilter_Int[simp]: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow> ofilter(A Int B)"
+unfolding ofilter_def by blast
+
+lemma ofilter_Un[simp]: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow> ofilter(A \<union> B)"
+unfolding ofilter_def by blast
 
 lemma ofilter_INTER:
 "\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> ofilter(A i)\<rbrakk> \<Longrightarrow> ofilter (\<Inter> i \<in> I. A i)"
@@ -496,10 +520,6 @@ declare
   under_ofilter[simp]
   underS_ofilter[simp]
   Field_ofilter[simp]
-  ofilter_Under[simp]
-  ofilter_UnderS[simp]
-  ofilter_Int[simp]
-  ofilter_Un[simp]
 
 end
 
