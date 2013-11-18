@@ -9,13 +9,13 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.io.{File => JFile, IOException}
+import java.io.{File => JFile, IOException, ByteArrayOutputStream}
 import javax.swing.text.Segment
 
 import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.{View, Buffer}
-
+import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
   extends Thy_Load(loaded_theories, base_syntax)
@@ -88,6 +88,29 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
       try { vfs._endVFSSession(session, view) }
       catch { case _: IOException => }
     }
+  }
+
+
+  /* file content */
+
+  def file_content(buffer: Buffer): Bytes =
+  {
+    val path = buffer.getPath
+    val vfs = VFSManager.getVFSForPath(path)
+    val content =
+      new BufferIORequest(null, buffer, null, vfs, path) {
+        def _run() { }
+        def apply(): Bytes =
+        {
+          val out =
+            new ByteArrayOutputStream(buffer.getLength + 1) {
+              def content(): Bytes = Bytes(this.buf, 0, this.count)
+            }
+          write(buffer, out)
+          out.content()
+        }
+      }
+    content()
   }
 }
 

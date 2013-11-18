@@ -116,10 +116,20 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* blob */
 
-  // FIXME caching
-  // FIXME precise file content (encoding)
+  private var _blob: Option[Bytes] = None  // owned by Swing thread
+
+  private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
+
   def blob(): Bytes =
-    Swing_Thread.require { Bytes(buffer.getText(0, buffer.getLength)) }
+    Swing_Thread.require {
+      _blob match {
+        case Some(b) => b
+        case None =>
+          val b = PIDE.thy_load.file_content(buffer)
+          _blob = Some(b)
+          b
+      }
+    }
 
 
   /* edits */
@@ -191,6 +201,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     def edit(clear: Boolean, e: Text.Edit)
     {
+      reset_blob()
+
       if (clear) {
         pending_clear = true
         pending.clear
