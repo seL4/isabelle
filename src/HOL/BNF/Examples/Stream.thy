@@ -319,61 +319,59 @@ lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (r
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])
 
 
+subsection {* iterated application of a function *}
+
+primcorec siterate where
+  "shd (siterate f x) = x"
+| "stl (siterate f x) = siterate f (f x)"
+
+lemma stake_Suc: "stake (Suc n) s = stake n s @ [s !! n]"
+  by (induct n arbitrary: s) auto
+
+lemma snth_siterate[simp]: "siterate f x !! n = (f^^n) x"
+  by (induct n arbitrary: x) (auto simp: funpow_swap1)
+
+lemma sdrop_siterate[simp]: "sdrop n (siterate f x) = siterate f ((f^^n) x)"
+  by (induct n arbitrary: x) (auto simp: funpow_swap1)
+
+lemma stake_siterate[simp]: "stake n (siterate f x) = map (\<lambda>n. (f^^n) x) [0 ..< n]"
+  by (induct n arbitrary: x) (auto simp del: stake.simps(2) simp: stake_Suc)
+
+lemma sset_siterate: "sset (siterate f x) = {(f^^n) x | n. True}"
+  by (auto simp: sset_range)
+
+lemma smap_siterate: "smap f (siterate f x) = siterate f (f x)"
+  by (coinduction arbitrary: x) auto
+
+
 subsection {* stream repeating a single element *}
 
-primcorec same where
-  "shd (same x) = x"
-| "stl (same x) = same x"
+abbreviation "sconst \<equiv> siterate id"
 
-lemma snth_same[simp]: "same x !! n = x"
-  unfolding same_def by (induct n) auto
+lemma shift_replicate_sconst[simp]: "replicate n x @- sconst x = sconst x"
+  by (subst (3) stake_sdrop[symmetric]) (simp add: map_replicate_trivial)
 
-lemma stake_same[simp]: "stake n (same x) = replicate n x"
-  unfolding same_def by (induct n) (auto simp: upt_rec)
+lemma stream_all_same[simp]: "sset (sconst x) = {x}"
+  by (simp add: sset_siterate)
 
-lemma sdrop_same[simp]: "sdrop n (same x) = same x"
-  unfolding same_def by (induct n) auto
-
-lemma shift_replicate_same[simp]: "replicate n x @- same x = same x"
-  by (metis sdrop_same stake_same stake_sdrop)
-
-lemma stream_all_same[simp]: "stream_all P (same x) \<longleftrightarrow> P x"
-  unfolding stream_all_def by auto
-
-lemma same_cycle: "same x = cycle [x]"
+lemma same_cycle: "sconst x = cycle [x]"
   by coinduction auto
+
+lemma smap_sconst: "smap f (sconst x) = sconst (f x)"
+  by coinduction auto
+
+lemma sconst_streams: "x \<in> A \<Longrightarrow> sconst x \<in> streams A"
+  by (simp add: streams_iff_sset)
 
 
 subsection {* stream of natural numbers *}
 
-primcorec fromN :: "nat \<Rightarrow> nat stream" where
-  "fromN n = n ## fromN (n + 1)"
-
-lemma snth_fromN[simp]: "fromN n !! m = n + m"
-  unfolding fromN_def by (induct m arbitrary: n) auto
-
-lemma stake_fromN[simp]: "stake m (fromN n) = [n ..< m + n]"
-  unfolding fromN_def by (induct m arbitrary: n) (auto simp: upt_rec)
-
-lemma sdrop_fromN[simp]: "sdrop m (fromN n) = fromN (n + m)"
-  unfolding fromN_def by (induct m arbitrary: n) auto
-
-lemma sset_fromN[simp]: "sset (fromN n) = {n ..}" (is "?L = ?R")
-proof safe
-  fix m assume "m \<in> ?L"
-  moreover
-  { fix s assume "m \<in> sset s" "\<exists>n'\<ge>n. s = fromN n'"
-    hence "n \<le> m"  by (induct arbitrary: n rule: sset_induct1) fastforce+
-  }
-  ultimately show "n \<le> m" by auto
-next
-  fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_sset)
-qed
-
-lemma fromN_Suc_eq_smap: "fromN (Suc n) = smap Suc (fromN n)"
-  by (coinduction arbitrary: n) auto
+abbreviation "fromN \<equiv> siterate Suc"
 
 abbreviation "nats \<equiv> fromN 0"
+
+lemma sset_fromN[simp]: "sset (fromN n) = {n ..}"
+  by (auto simp add: sset_siterate) arith
 
 
 subsection {* flatten a stream of lists *}
@@ -534,27 +532,5 @@ lemma smap2_unfold[code]:
 lemma smap2_szip:
   "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
   by (coinduction arbitrary: s1 s2) auto
-
-
-subsection {* iterated application of a function *}
-
-primcorec siterate where
-  "shd (siterate f x) = x"
-| "stl (siterate f x) = siterate f (f x)"
-
-lemma stake_Suc: "stake (Suc n) s = stake n s @ [s !! n]"
-  by (induct n arbitrary: s) auto
-
-lemma snth_siterate[simp]: "siterate f x !! n = (f^^n) x"
-  by (induct n arbitrary: x) (auto simp: funpow_swap1)
-
-lemma sdrop_siterate[simp]: "sdrop n (siterate f x) = siterate f ((f^^n) x)"
-  by (induct n arbitrary: x) (auto simp: funpow_swap1)
-
-lemma stake_siterate[simp]: "stake n (siterate f x) = map (\<lambda>n. (f^^n) x) [0 ..< n]"
-  by (induct n arbitrary: x) (auto simp del: stake.simps(2) simp: stake_Suc)
-
-lemma sset_siterate: "sset (siterate f x) = {(f^^n) x | n. True}"
-  by (auto simp: sset_range)
 
 end
