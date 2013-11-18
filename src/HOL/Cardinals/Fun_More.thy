@@ -132,6 +132,18 @@ qed
 subsection {* Properties involving Hilbert choice *}
 
 
+(*1*)lemma bij_betw_inv_into_LEFT:
+assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
+shows "(inv_into A f)`(f ` B) = B"
+using assms unfolding bij_betw_def using inv_into_image_cancel by force
+
+(*1*)lemma bij_betw_inv_into_LEFT_RIGHT:
+assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A" and
+        IM: "f ` B = B'"
+shows "(inv_into A f) ` B' = B"
+using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
+
+
 subsection {* Other facts *}
 
 (*3*)lemma atLeastLessThan_injective:
