@@ -89,7 +89,7 @@ final class Bytes private(
 
   /* content */
 
-  def sha1_digest: SHA1.Digest = SHA1.digest(bytes)
+  lazy val sha1_digest: SHA1.Digest = SHA1.digest(bytes)
 
   override def toString: String =
     UTF8.decode_chars(s => s, bytes, offset, offset + length).toString
