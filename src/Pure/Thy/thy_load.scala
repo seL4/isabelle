@@ -21,23 +21,23 @@ object Thy_Load
   def is_ok(str: String): Boolean =
     try { thy_path(Path.explode(str)); true }
     catch { case ERROR(_) => false }
-
-
-  /* document node names */
-
-  def path_node_name(raw_path: Path): Document.Node.Name =
-  {
-    val path = raw_path.expand
-    val node = path.implode
-    val dir = path.dir.implode
-    val theory = Thy_Header.thy_name(node) getOrElse error("Bad theory file name: " + path)
-    Document.Node.Name(node, dir, theory)
-  }
 }
 
 
 class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Outer_Syntax)
 {
+  /* document node names */
+
+  def node_name(raw_path: Path): Document.Node.Name =
+  {
+    val path = raw_path.expand
+    val node = path.implode
+    val dir = path.dir.implode
+    val theory = Thy_Header.thy_name(node).getOrElse("")
+    Document.Node.Name(node, dir, theory)
+  }
+
+
   /* file-system operations */
 
   def append(dir: String, source_path: Path): String =

@@ -417,7 +417,8 @@ object Build
                 val parent = deps(parent_name)
                 (parent.loaded_theories, parent.syntax)
             }
-          val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
+          val thy_load = new Thy_Load(preloaded, parent_syntax)
+          val thy_info = new Thy_Info(thy_load)
 
           if (verbose || list_files) {
             val groups =
@@ -429,7 +430,7 @@ object Build
           val thy_deps =
             thy_info.dependencies(
               info.theories.map(_._2).flatten.
-                map(thy => Thy_Load.path_node_name(info.dir + Thy_Load.thy_path(thy))))
+                map(thy => thy_load.node_name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = thy_deps.loaded_theories
           val keywords = thy_deps.keywords
