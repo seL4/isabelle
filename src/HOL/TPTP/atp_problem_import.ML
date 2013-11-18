@@ -20,7 +20,7 @@ sig
   val sledgehammer_tptp_file : theory -> int -> string -> unit
   val isabelle_tptp_file : theory -> int -> string -> unit
   val isabelle_hot_tptp_file : theory -> int -> string -> unit
-  val translate_tptp_file : theory -> string -> string -> string -> unit
+  val translate_tptp_file : theory -> string -> string -> unit
 end;
 
 structure ATP_Problem_Import : ATP_PROBLEM_IMPORT =
@@ -301,9 +301,9 @@ val isabelle_hot_tptp_file = generic_isabelle_tptp_file true
 
 (** Translator between TPTP(-like) file formats **)
 
-fun translate_tptp_file thy format_str in_file_name out_file_name =
+fun translate_tptp_file thy format_str file_name =
   let
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I in_file_name
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
     val conj = make_conj ([], []) (map snd conjs)
 
     val (format, type_enc, lam_trans) =
@@ -327,7 +327,7 @@ fun translate_tptp_file thy format_str in_file_name out_file_name =
     val ord_info = K []
     val lines = lines_of_atp_problem format ord ord_info atp_problem
   in
-    File.write_list (exploded_absolute_path out_file_name) lines
+    List.app Output.physical_stdout lines
   end
 
 end;
