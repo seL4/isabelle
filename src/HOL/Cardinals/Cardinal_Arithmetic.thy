@@ -8,7 +8,7 @@ Cardinal arithmetic.
 header {* Cardinal Arithmetic  *}
 
 theory Cardinal_Arithmetic
-imports Cardinal_Arithmetic_GFP
+imports Cardinal_Arithmetic_GFP Cardinal_Order_Relation
 begin
 
 
@@ -99,7 +99,7 @@ qed
 lemma Cinfinite_ctwo_cexp:
   "Cinfinite r \<Longrightarrow> Cinfinite (ctwo ^c r)"
 unfolding ctwo_def cexp_def cinfinite_def Field_card_of
-by (rule conjI, rule infinite_Func, auto, rule card_of_card_order_on)
+by (rule conjI, rule infinite_Func, auto)
 
 lemma cone_ordLeq_iff_Field:
   assumes "cone \<le>o r"
@@ -202,6 +202,6 @@ lemma Card_order_clists: "Card_order (clists r)"
 unfolding clists_def by (rule card_of_Card_order)
 
 lemma Cnotzero_clists: "Cnotzero (clists r)"
-by (simp add: clists_def card_of_ordIso_czero_iff_empty lists_not_empty) (rule card_of_Card_order)
+by (simp add: clists_def card_of_ordIso_czero_iff_empty lists_not_empty)
 
 end

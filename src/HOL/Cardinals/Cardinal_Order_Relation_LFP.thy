@@ -156,7 +156,7 @@ using card_of_Card_order Card_order_ordIso by blast
 
 
 lemma card_of_Well_order: "Well_order |A|"
-using card_of_Card_order unfolding  card_order_on_def by auto
+using card_of_Card_order unfolding card_order_on_def by auto
 
 
 lemma card_of_refl: "|A| =o |A|"
@@ -481,22 +481,9 @@ using card_of_ordLess2[of "Pow A" A]  Cantors_paradox[of A]
       Pow_not_empty[of A] by auto
 
 
-lemma infinite_Pow:
-assumes "infinite A"
-shows "infinite (Pow A)"
-proof-
-  have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
-  thus ?thesis by (metis assms finite_Pow_iff)
-qed
-
-
 corollary Card_order_Pow:
 "Card_order r \<Longrightarrow> r <o |Pow(Field r)|"
 using card_of_Pow card_of_Field_ordIso ordIso_ordLess_trans ordIso_symmetric by blast
-
-
-corollary card_of_set_type: "|UNIV::'a set| <o |UNIV::'a set set|"
-using card_of_Pow[of "UNIV::'a set"] by simp
 
 
 lemma card_of_Plus1: "|A| \<le>o |A <+> B|"
@@ -681,16 +668,6 @@ shows "|(Field r) <+> (Field p)| =o |(Field r') <+> (Field p')|"
 using assms card_of_cong[of r r'] card_of_cong[of p p'] card_of_Plus_cong by blast
 
 
-lemma card_of_Un1:
-shows "|A| \<le>o |A \<union> B| "
-using inj_on_id[of A] card_of_ordLeq[of A _] by fastforce
-
-
-lemma card_of_diff:
-shows "|A - B| \<le>o |A|"
-using inj_on_id[of "A - B"] card_of_ordLeq[of "A - B" _] by fastforce
-
-
 lemma card_of_Un_Plus_ordLeq:
 "|A \<union> B| \<le>o |A <+> B|"
 proof-
@@ -712,12 +689,6 @@ proof(cases "B = {}", simp add: card_of_empty)
 qed
 
 
-corollary Card_order_Times1:
-"\<lbrakk>Card_order r; B \<noteq> {}\<rbrakk> \<Longrightarrow> r \<le>o |(Field r) \<times> B|"
-using card_of_Times1[of B] card_of_Field_ordIso
-      ordIso_ordLeq_trans ordIso_symmetric by blast
-
-
 lemma card_of_Times_commute: "|A \<times> B| =o |B \<times> A|"
 proof-
   let ?f = "\<lambda>(a::'a,b::'b). (b,a)"
@@ -731,6 +702,12 @@ lemma card_of_Times2:
 assumes "A \<noteq> {}"   shows "|B| \<le>o |A \<times> B|"
 using assms card_of_Times1[of A B] card_of_Times_commute[of B A]
       ordLeq_ordIso_trans by blast
+
+
+corollary Card_order_Times1:
+"\<lbrakk>Card_order r; B \<noteq> {}\<rbrakk> \<Longrightarrow> r \<le>o |(Field r) \<times> B|"
+using card_of_Times1[of B] card_of_Field_ordIso
+      ordIso_ordLeq_trans ordIso_symmetric by blast
 
 
 corollary Card_order_Times2:
@@ -809,24 +786,6 @@ corollary ordLeq_Times_mono2:
 assumes "r \<le>o r'"
 shows "|A \<times> (Field r)| \<le>o |A \<times> (Field r')|"
 using assms card_of_mono2 card_of_Times_mono2 by blast
-
-
-lemma card_of_Times_cong1:
-assumes "|A| =o |B|"
-shows "|A \<times> C| =o |B \<times> C|"
-using assms by (simp add: ordIso_iff_ordLeq card_of_Times_mono1)
-
-
-lemma card_of_Times_cong2:
-assumes "|A| =o |B|"
-shows "|C \<times> A| =o |C \<times> B|"
-using assms by (simp add: ordIso_iff_ordLeq card_of_Times_mono2)
-
-
-corollary ordIso_Times_cong2:
-assumes "r =o r'"
-shows "|A \<times> (Field r)| =o |A \<times> (Field r')|"
-using assms card_of_cong card_of_Times_cong2 by blast
 
 
 lemma card_of_Sigma_mono1:
@@ -973,21 +932,6 @@ at page 47 in \cite{card-book}. Then everything else follows fairly easily.  *}
 lemma infinite_iff_card_of_nat:
 "infinite A = ( |UNIV::nat set| \<le>o |A| )"
 by (auto simp add: infinite_iff_countable_subset card_of_ordLeq)
-
-
-lemma finite_iff_cardOf_nat:
-"finite A = ( |A| <o |UNIV :: nat set| )"
-using infinite_iff_card_of_nat[of A]
-not_ordLeq_iff_ordLess[of "|A|" "|UNIV :: nat set|"]
-by (fastforce simp: card_of_Well_order)
-
-lemma finite_ordLess_infinite2:
-assumes "finite A" and "infinite B"
-shows "|A| <o |B|"
-using assms
-finite_ordLess_infinite[of "|A|" "|B|"]
-card_of_Well_order[of A] card_of_Well_order[of B]
-Field_card_of[of A] Field_card_of[of B] by auto
 
 
 text{* The next two results correspond to the ZF fact that all infinite cardinals are
@@ -1158,14 +1102,6 @@ proof-
 qed
 
 
-corollary card_of_Times_infinite_simps:
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A \<times> B| =o |A|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |A \<times> B|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |B \<times> A| =o |A|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |B \<times> A|"
-by (auto simp add: card_of_Times_infinite ordIso_symmetric)
-
-
 corollary Card_order_Times_infinite:
 assumes INF: "infinite(Field r)" and CARD: "Card_order r" and
         NE: "Field p \<noteq> {}" and LEQ: "p \<le>o r"
@@ -1214,6 +1150,14 @@ lemma card_of_Times_ordLeq_infinite_Field:
 "\<lbrakk>infinite (Field r); |A| \<le>o r; |B| \<le>o r; Card_order r\<rbrakk>
  \<Longrightarrow> |A <*> B| \<le>o r"
 by(simp add: card_of_Sigma_ordLeq_infinite_Field)
+
+
+lemma card_of_Times_infinite_simps:
+"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A \<times> B| =o |A|"
+"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |A \<times> B|"
+"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |B \<times> A| =o |A|"
+"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |B \<times> A|"
+by (auto simp add: card_of_Times_infinite ordIso_symmetric)
 
 
 lemma card_of_UNION_ordLeq_infinite:
@@ -1313,226 +1257,6 @@ proof-
 qed
 
 
-lemma card_of_Un_infinite:
-assumes INF: "infinite A" and LEQ: "|B| \<le>o |A|"
-shows "|A \<union> B| =o |A| \<and> |B \<union> A| =o |A|"
-proof-
-  have "|A \<union> B| \<le>o |A <+> B|" by (rule card_of_Un_Plus_ordLeq)
-  moreover have "|A <+> B| =o |A|"
-  using assms by (metis card_of_Plus_infinite)
-  ultimately have "|A \<union> B| \<le>o |A|" using ordLeq_ordIso_trans by blast
-  hence "|A \<union> B| =o |A|" using card_of_Un1 ordIso_iff_ordLeq by blast
-  thus ?thesis using Un_commute[of B A] by auto
-qed
-
-
-lemma card_of_Un_diff_infinite:
-assumes INF: "infinite A" and LESS: "|B| <o |A|"
-shows "|A - B| =o |A|"
-proof-
-  obtain C where C_def: "C = A - B" by blast
-  have "|A \<union> B| =o |A|"
-  using assms ordLeq_iff_ordLess_or_ordIso card_of_Un_infinite by blast
-  moreover have "C \<union> B = A \<union> B" unfolding C_def by auto
-  ultimately have 1: "|C \<union> B| =o |A|" by auto
-  (*  *)
-  {assume *: "|C| \<le>o |B|"
-   moreover
-   {assume **: "finite B"
-    hence "finite C"
-    using card_of_ordLeq_finite * by blast
-    hence False using ** INF card_of_ordIso_finite 1 by blast
-   }
-   hence "infinite B" by auto
-   ultimately have False
-   using card_of_Un_infinite 1 ordIso_equivalence(1,3) LESS not_ordLess_ordIso by metis
-  }
-  hence 2: "|B| \<le>o |C|" using card_of_Well_order ordLeq_total by blast
-  {assume *: "finite C"
-    hence "finite B" using card_of_ordLeq_finite 2 by blast
-    hence False using * INF card_of_ordIso_finite 1 by blast
-  }
-  hence "infinite C" by auto
-  hence "|C| =o |A|"
-  using  card_of_Un_infinite 1 2 ordIso_equivalence(1,3) by metis
-  thus ?thesis unfolding C_def .
-qed
-
-
-lemma card_of_Plus_ordLess_infinite:
-assumes INF: "infinite C" and
-        LESS1: "|A| <o |C|" and LESS2: "|B| <o |C|"
-shows "|A <+> B| <o |C|"
-proof(cases "A = {} \<or> B = {}")
-  assume Case1: "A = {} \<or> B = {}"
-  hence "|A| =o |A <+> B| \<or> |B| =o |A <+> B|"
-  using card_of_Plus_empty1 card_of_Plus_empty2 by blast
-  hence "|A <+> B| =o |A| \<or> |A <+> B| =o |B|"
-  using ordIso_symmetric[of "|A|"] ordIso_symmetric[of "|B|"] by blast
-  thus ?thesis using LESS1 LESS2
-       ordIso_ordLess_trans[of "|A <+> B|" "|A|"]
-       ordIso_ordLess_trans[of "|A <+> B|" "|B|"] by blast
-next
-  assume Case2: "\<not>(A = {} \<or> B = {})"
-  {assume *: "|C| \<le>o |A <+> B|"
-   hence "infinite (A <+> B)" using INF card_of_ordLeq_finite by blast
-   hence 1: "infinite A \<or> infinite B" using finite_Plus by blast
-   {assume Case21: "|A| \<le>o |B|"
-    hence "infinite B" using 1 card_of_ordLeq_finite by blast
-    hence "|A <+> B| =o |B|" using Case2 Case21
-    by (auto simp add: card_of_Plus_infinite)
-    hence False using LESS2 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
-   }
-   moreover
-   {assume Case22: "|B| \<le>o |A|"
-    hence "infinite A" using 1 card_of_ordLeq_finite by blast
-    hence "|A <+> B| =o |A|" using Case2 Case22
-    by (auto simp add: card_of_Plus_infinite)
-    hence False using LESS1 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
-   }
-   ultimately have False using ordLeq_total card_of_Well_order[of A]
-   card_of_Well_order[of B] by blast
-  }
-  thus ?thesis using ordLess_or_ordLeq[of "|A <+> B|" "|C|"]
-  card_of_Well_order[of "A <+> B"] card_of_Well_order[of "C"] by auto
-qed
-
-
-lemma card_of_Plus_ordLess_infinite_Field:
-assumes INF: "infinite (Field r)" and r: "Card_order r" and
-        LESS1: "|A| <o r" and LESS2: "|B| <o r"
-shows "|A <+> B| <o r"
-proof-
-  let ?C  = "Field r"
-  have 1: "r =o |?C| \<and> |?C| =o r" using r card_of_Field_ordIso
-  ordIso_symmetric by blast
-  hence "|A| <o |?C|"  "|B| <o |?C|"
-  using LESS1 LESS2 ordLess_ordIso_trans by blast+
-  hence  "|A <+> B| <o |?C|" using INF
-  card_of_Plus_ordLess_infinite by blast
-  thus ?thesis using 1 ordLess_ordIso_trans by blast
-qed
-
-
-lemma infinite_card_of_insert:
-assumes "infinite A"
-shows "|insert a A| =o |A|"
-proof-
-  have iA: "insert a A = A \<union> {a}" by simp
-  show ?thesis
-  using infinite_imp_bij_betw2[OF assms] unfolding iA
-  by (metis bij_betw_inv card_of_ordIso)
-qed
-
-
-subsection {* Cardinals versus lists  *}
-
-
-text{* The next is an auxiliary operator, which shall be used for inductive
-proofs of facts concerning the cardinality of @{text "List"} : *}
-
-definition nlists :: "'a set \<Rightarrow> nat \<Rightarrow> 'a list set"
-where "nlists A n \<equiv> {l. set l \<le> A \<and> length l = n}"
-
-
-lemma lists_def2: "lists A = {l. set l \<le> A}"
-using in_listsI by blast
-
-
-lemma lists_UNION_nlists: "lists A = (\<Union> n. nlists A n)"
-unfolding lists_def2 nlists_def by blast
-
-
-lemma card_of_lists: "|A| \<le>o |lists A|"
-proof-
-  let ?h = "\<lambda> a. [a]"
-  have "inj_on ?h A \<and> ?h ` A \<le> lists A"
-  unfolding inj_on_def lists_def2 by auto
-  thus ?thesis by (metis card_of_ordLeq)
-qed
-
-
-lemma nlists_0: "nlists A 0 = {[]}"
-unfolding nlists_def by auto
-
-
-lemma nlists_not_empty:
-assumes "A \<noteq> {}"
-shows "nlists A n \<noteq> {}"
-proof(induct n, simp add: nlists_0)
-  fix n assume "nlists A n \<noteq> {}"
-  then obtain a and l where "a \<in> A \<and> l \<in> nlists A n" using assms by auto
-  hence "a # l \<in> nlists A (Suc n)" unfolding nlists_def by auto
-  thus "nlists A (Suc n) \<noteq> {}" by auto
-qed
-
-
-lemma Nil_in_lists: "[] \<in> lists A"
-unfolding lists_def2 by auto
-
-
-lemma lists_not_empty: "lists A \<noteq> {}"
-using Nil_in_lists by blast
-
-
-lemma card_of_nlists_Succ: "|nlists A (Suc n)| =o |A \<times> (nlists A n)|"
-proof-
-  let ?B = "A \<times> (nlists A n)"   let ?h = "\<lambda>(a,l). a # l"
-  have "inj_on ?h ?B \<and> ?h ` ?B \<le> nlists A (Suc n)"
-  unfolding inj_on_def nlists_def by auto
-  moreover have "nlists A (Suc n) \<le> ?h ` ?B"
-  proof(auto)
-    fix l assume "l \<in> nlists A (Suc n)"
-    hence 1: "length l = Suc n \<and> set l \<le> A" unfolding nlists_def by auto
-    then obtain a and l' where 2: "l = a # l'" by (auto simp: length_Suc_conv)
-    hence "a \<in> A \<and> set l' \<le> A \<and> length l' = n" using 1 by auto
-    thus "l \<in> ?h ` ?B"  using 2 unfolding nlists_def by auto
-  qed
-  ultimately have "bij_betw ?h ?B (nlists A (Suc n))"
-  unfolding bij_betw_def by auto
-  thus ?thesis using card_of_ordIso ordIso_symmetric by blast
-qed
-
-
-lemma card_of_nlists_infinite:
-assumes "infinite A"
-shows "|nlists A n| \<le>o |A|"
-proof(induct n)
-  have "A \<noteq> {}" using assms by auto
-  thus "|nlists A 0| \<le>o |A|" by (simp add: nlists_0 card_of_singl_ordLeq)
-next
-  fix n assume IH: "|nlists A n| \<le>o |A|"
-  have "|nlists A (Suc n)| =o |A \<times> (nlists A n)|"
-  using card_of_nlists_Succ by blast
-  moreover
-  {have "nlists A n \<noteq> {}" using assms nlists_not_empty[of A] by blast
-   hence "|A \<times> (nlists A n)| =o |A|"
-   using assms IH by (auto simp add: card_of_Times_infinite)
-  }
-  ultimately show "|nlists A (Suc n)| \<le>o |A|"
-  using ordIso_transitive ordIso_iff_ordLeq by blast
-qed
-
-
-lemma card_of_lists_infinite:
-assumes "infinite A"
-shows "|lists A| =o |A|"
-proof-
-  have "|lists A| \<le>o |A|"
-  using assms
-  by (auto simp add: lists_UNION_nlists card_of_UNION_ordLeq_infinite
-                     infinite_iff_card_of_nat card_of_nlists_infinite)
-  thus ?thesis using card_of_lists ordIso_iff_ordLeq by blast
-qed
-
-
-lemma Card_order_lists_infinite:
-assumes "Card_order r" and "infinite(Field r)"
-shows "|lists(Field r)| =o r"
-using assms card_of_lists_infinite card_of_Field_ordIso ordIso_transitive by blast
-
-
-
 subsection {* The cardinal $\omega$ and the finite cardinals  *}
 
 
@@ -1557,7 +1281,6 @@ proof
   with `finite (A \<times> B)` have "finite B" using finite_cartesian_productD2 by auto
   with assms(2) show False by simp
 qed
-
 
 
 subsubsection {* First as well-orders *}
@@ -1605,18 +1328,6 @@ by auto
 lemma natLeq_Well_order: "Well_order natLeq"
 unfolding well_order_on_def
 using natLeq_Linear_order wf_less natLeq_natLess_Id by auto
-
-
-corollary natLeq_well_order_on: "well_order_on UNIV natLeq"
-using natLeq_Well_order Field_natLeq by auto
-
-
-lemma natLeq_wo_rel: "wo_rel natLeq"
-unfolding wo_rel_def using natLeq_Well_order .
-
-
-lemma natLeq_UNIV_ofilter: "wo_rel.ofilter natLeq UNIV"
-using natLeq_wo_rel Field_natLeq wo_rel.Field_ofilter[of natLeq] by auto
 
 
 lemma closed_nat_set_iff:
@@ -1786,7 +1497,7 @@ natLeq_on_Well_order natLeq_on_ordLeq_less_eq by auto
 
 
 
-subsubsection {* "Backwards compatibility" with the numeric cardinal operator for finite sets *}
+subsubsection {* "Backward compatibility" with the numeric cardinal operator for finite sets *}
 
 
 lemma finite_card_of_iff_card2:
@@ -2048,6 +1759,61 @@ proof-
 qed
 
 
+lemma card_of_Plus_ordLess_infinite:
+assumes INF: "infinite C" and
+        LESS1: "|A| <o |C|" and LESS2: "|B| <o |C|"
+shows "|A <+> B| <o |C|"
+proof(cases "A = {} \<or> B = {}")
+  assume Case1: "A = {} \<or> B = {}"
+  hence "|A| =o |A <+> B| \<or> |B| =o |A <+> B|"
+  using card_of_Plus_empty1 card_of_Plus_empty2 by blast
+  hence "|A <+> B| =o |A| \<or> |A <+> B| =o |B|"
+  using ordIso_symmetric[of "|A|"] ordIso_symmetric[of "|B|"] by blast
+  thus ?thesis using LESS1 LESS2
+       ordIso_ordLess_trans[of "|A <+> B|" "|A|"]
+       ordIso_ordLess_trans[of "|A <+> B|" "|B|"] by blast
+next
+  assume Case2: "\<not>(A = {} \<or> B = {})"
+  {assume *: "|C| \<le>o |A <+> B|"
+   hence "infinite (A <+> B)" using INF card_of_ordLeq_finite by blast
+   hence 1: "infinite A \<or> infinite B" using finite_Plus by blast
+   {assume Case21: "|A| \<le>o |B|"
+    hence "infinite B" using 1 card_of_ordLeq_finite by blast
+    hence "|A <+> B| =o |B|" using Case2 Case21
+    by (auto simp add: card_of_Plus_infinite)
+    hence False using LESS2 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
+   }
+   moreover
+   {assume Case22: "|B| \<le>o |A|"
+    hence "infinite A" using 1 card_of_ordLeq_finite by blast
+    hence "|A <+> B| =o |A|" using Case2 Case22
+    by (auto simp add: card_of_Plus_infinite)
+    hence False using LESS1 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
+   }
+   ultimately have False using ordLeq_total card_of_Well_order[of A]
+   card_of_Well_order[of B] by blast
+  }
+  thus ?thesis using ordLess_or_ordLeq[of "|A <+> B|" "|C|"]
+  card_of_Well_order[of "A <+> B"] card_of_Well_order[of "C"] by auto
+qed
+
+
+lemma card_of_Plus_ordLess_infinite_Field:
+assumes INF: "infinite (Field r)" and r: "Card_order r" and
+        LESS1: "|A| <o r" and LESS2: "|B| <o r"
+shows "|A <+> B| <o r"
+proof-
+  let ?C  = "Field r"
+  have 1: "r =o |?C| \<and> |?C| =o r" using r card_of_Field_ordIso
+  ordIso_symmetric by blast
+  hence "|A| <o |?C|"  "|B| <o |?C|"
+  using LESS1 LESS2 ordLess_ordIso_trans by blast+
+  hence  "|A <+> B| <o |?C|" using INF
+  card_of_Plus_ordLess_infinite by blast
+  thus ?thesis using 1 ordLess_ordIso_trans by blast
+qed
+
+
 lemma card_of_Plus_ordLeq_infinite_Field:
 assumes r: "infinite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
 and c: "Card_order r"
@@ -2198,11 +1964,6 @@ qed
 
 
 subsection {* Others *}
-
-lemma card_of_infinite_diff_finite:
-assumes "infinite A" and "finite B"
-shows "|A - B| =o |A|"
-by (metis assms card_of_Un_diff_infinite finite_ordLess_infinite2)
 
 (* function space *)
 definition Func where
@@ -2382,44 +2143,6 @@ proof-
   qed
   thus ?thesis unfolding card_of_ordIso[symmetric] by blast
 qed
-
-lemma card_of_Func_mono:
-fixes A1 A2 :: "'a set" and B :: "'b set"
-assumes A12: "A1 \<subseteq> A2" and B: "B \<noteq> {}"
-shows "|Func A1 B| \<le>o |Func A2 B|"
-proof-
-  obtain bb where bb: "bb \<in> B" using B by auto
-  def F \<equiv> "\<lambda> (f1::'a \<Rightarrow> 'b) a. if a \<in> A2 then (if a \<in> A1 then f1 a else bb)
-                                                else undefined"
-  show ?thesis unfolding card_of_ordLeq[symmetric] proof(intro exI[of _ F] conjI)
-    show "inj_on F (Func A1 B)" unfolding inj_on_def proof safe
-      fix f g assume f: "f \<in> Func A1 B" and g: "g \<in> Func A1 B" and eq: "F f = F g"
-      show "f = g"
-      proof(rule ext)
-        fix a show "f a = g a"
-        proof(cases "a \<in> A1")
-          case True
-          thus ?thesis using eq A12 unfolding F_def fun_eq_iff
-          by (elim allE[of _ a]) auto
-        qed(insert f g, unfold Func_def, fastforce)
-      qed
-    qed
-  qed(insert bb, unfold Func_def F_def, force)
-qed
-
-lemma ordLeq_Func:
-assumes "{b1,b2} \<subseteq> B" "b1 \<noteq> b2"
-shows "|A| \<le>o |Func A B|"
-unfolding card_of_ordLeq[symmetric] proof(intro exI conjI)
-  let ?F = "\<lambda> aa a. if a \<in> A then (if a = aa then b1 else b2) else undefined"
-  show "inj_on ?F A" using assms unfolding inj_on_def fun_eq_iff by auto
-  show "?F ` A \<subseteq> Func A B" using assms unfolding Func_def by auto
-qed
-
-lemma infinite_Func:
-assumes A: "infinite A" and B: "{b1,b2} \<subseteq> B" "b1 \<noteq> b2"
-shows "infinite (Func A B)"
-using ordLeq_Func[OF B] by (metis A card_of_ordLeq_finite)
 
 lemma card_of_Func_UNIV:
 "|Func (UNIV::'a set) (B::'b set)| =o |{f::'a \<Rightarrow> 'b. range f \<subseteq> B}|"
