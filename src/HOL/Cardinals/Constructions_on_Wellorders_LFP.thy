@@ -330,7 +330,7 @@ qed
 
 
 
-subsection {* Ordering the  well-orders by existence of embeddings *}
+subsection {* Ordering the well-orders by existence of embeddings *}
 
 
 text {* We define three relations between well-orders:
@@ -381,18 +381,6 @@ lemma ordLeq_Well_order_simp:
 assumes "r \<le>o r'"
 shows "Well_order r \<and> Well_order r'"
 using assms unfolding ordLeq_def by simp
-
-
-lemma ordLess_Well_order_simp:
-assumes "r <o r'"
-shows "Well_order r \<and> Well_order r'"
-using assms unfolding ordLess_def by simp
-
-
-lemma ordIso_Well_order_simp:
-assumes "r =o r'"
-shows "Well_order r \<and> Well_order r'"
-using assms unfolding ordIso_def by simp
 
 
 text{* Notice that the relations @{text "\<le>o"}, @{text "<o"}, @{text "=o"} connect well-orders
