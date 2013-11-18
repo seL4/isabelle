@@ -8,7 +8,7 @@ Cardinal arithmetic.
 header {* Cardinal Arithmetic  *}
 
 theory Cardinal_Arithmetic
-imports Cardinal_Arithmetic_GFP Cardinal_Order_Relation
+imports Cardinal_Arithmetic_LFP Cardinal_Order_Relation
 begin
 
 
