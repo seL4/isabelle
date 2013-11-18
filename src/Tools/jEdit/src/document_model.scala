@@ -190,7 +190,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       val clear = pending_clear
       val edits = snapshot()
       val perspective = node_perspective()
-      if (clear || !edits.isEmpty || last_perspective != perspective) {
+      if (!is_theory || clear || !edits.isEmpty || last_perspective != perspective) {
         pending_clear = false
         pending.clear
         last_perspective = perspective

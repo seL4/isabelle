@@ -154,7 +154,7 @@ object Document
     final class Commands private(val commands: Linear_Set[Command])
     {
       lazy val thy_load_commands: List[Command] =
-        commands.iterator.filter(_.thy_load.isDefined).toList
+        commands.iterator.filter(cmd => !cmd.blobs.isEmpty).toList
 
       private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
       {
@@ -189,31 +189,27 @@ object Document
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
-    val blob: Bytes = Bytes.empty,
     _commands: Node.Commands = Node.Commands.empty)
   {
     def clear: Node = new Node(header = header)
 
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, blob, _commands)
+      new Node(new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(header, new_perspective, blob, _commands)
+      new Node(header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
       perspective.overlays == other_perspective.overlays
 
-    def update_blob(new_blob: Bytes): Node =
-      new Node(header, perspective, new_blob, _commands)
-
     def commands: Linear_Set[Command] = _commands.commands
     def thy_load_commands: List[Command] = _commands.thy_load_commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(header, perspective, blob, Node.Commands(new_commands))
+      else new Node(header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)
