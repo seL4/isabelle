@@ -121,10 +121,6 @@ text{* Note:  In the definitions of @{text "Above[S]"} and @{text "Under[S]"},
   the case of @{text "A"} being empty. *}
 
 
-lemma UnderS_subset_Under: "UnderS A \<le> Under A"
-by(auto simp add: UnderS_def Under_def)
-
-
 lemma underS_subset_under: "underS a \<le> under a"
 by(auto simp add: underS_def under_def)
 
@@ -172,14 +168,6 @@ using assms underS_notIn underS_Field by blast
 lemma underS_Field3:
 "Field r \<noteq> {} \<Longrightarrow> underS a < Field r"
 by(cases "a \<in> Field r", simp add: underS_Field2, auto simp add: underS_empty)
-
-
-lemma Under_Field: "Under A \<le> Field r"
-by(unfold Under_def Field_def, auto)
-
-
-lemma UnderS_Field: "UnderS A \<le> Field r"
-by(unfold UnderS_def Field_def, auto)
 
 
 lemma AboveS_Field: "AboveS A \<le> Field r"
@@ -234,50 +222,6 @@ next
   ultimately
   show "(a,b) \<in> r" using assms
   order_on_defs[of "Field r" r] total_on_def[of "Field r" r] by blast
-qed
-
-
-lemma under_Under_trans:
-assumes TRANS: "trans r" and
-        IN1: "a \<in> under b" and IN2: "b \<in> Under C"
-shows "a \<in> Under C"
-proof-
-  have "(a,b) \<in> r \<and> (\<forall>c \<in> C. (b,c) \<in> r)"
-  using IN1 IN2 under_def Under_def by blast
-  hence "\<forall>c \<in> C. (a,c) \<in> r"
-  using TRANS trans_def[of r] by blast
-  moreover
-  have "a \<in> Field r" using IN1 unfolding Field_def under_def by blast
-  ultimately
-  show ?thesis unfolding Under_def by blast
-qed
-
-
-lemma under_UnderS_trans:
-assumes TRANS: "trans r" and ANTISYM: "antisym r" and
-        IN1: "a \<in> under b" and IN2: "b \<in> UnderS C"
-shows "a \<in> UnderS C"
-proof-
-  from IN2 have "b \<in> Under C"
-  using UnderS_subset_Under[of C] by blast
-  with assms under_Under_trans
-  have "a \<in> Under C" by blast
-  (*  *)
-  moreover
-  have "a \<notin> C"
-  proof
-    assume *: "a \<in> C"
-    have 1: "(a,b) \<in> r"
-    using IN1 under_def[of b] by auto
-    have "\<forall>c \<in> C. b \<noteq> c \<and> (b,c) \<in> r"
-    using IN2 UnderS_def[of C] by blast
-    with * have "b \<noteq> a \<and> (b,a) \<in> r" by blast
-    with 1 ANTISYM antisym_def[of r]
-    show False by blast
-  qed
-  (*  *)
-  ultimately
-  show ?thesis unfolding UnderS_def Under_def by fast
 qed
 
 
