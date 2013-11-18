@@ -528,7 +528,7 @@ Method @{text auto} can be modified in exactly the same way.
 \exercise\label{exe:tree0}
 Define a datatype @{text tree0} of binary tree skeletons which do not store
 any information, neither in the inner nodes nor in the leaves.
-Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the total number
+Define a function @{text "nodes :: tree0 \<Rightarrow> nat"} that counts the number of
 all nodes (inner nodes and leaves) in such a tree.
 Consider the following recursive function:
 *}
@@ -571,7 +571,7 @@ Define a function \noquotes{@{term[source] "coeffs :: exp \<Rightarrow> int list
 that transforms an expression into a polynomial. This may require auxiliary
 functions. Prove that @{text coeffs} preserves the value of the expression:
 \mbox{@{prop"evalp (coeffs e) x = eval e x"}.}
-Hint: consider the hint in \autoref{exe:tree0}.
+Hint: consider the hint in Exercise~\ref{exe:tree0}.
 \endexercise
 *}
 (*<*)

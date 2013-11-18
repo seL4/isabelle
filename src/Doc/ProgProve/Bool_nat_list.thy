@@ -372,10 +372,10 @@ simplification at all! In the base case it is @{prop"app ys zs = app Nil (app
 ys zs)"}. It appears almost mysterious because we suddenly complicate the
 term by appending @{text Nil} on the left. What is really going on is this:
 when proving some equality \mbox{@{prop"s = t"}}, both @{text s} and @{text t} are
-simplified to some common term @{text u}.  This heuristic for equality proofs
+simplified until they ``meet in the middle''. This heuristic for equality proofs
 works well for a functional programming context like ours. In the base case
-@{text s} is @{term"app (app Nil ys) zs"}, @{text t} is @{term"app Nil (app
-ys zs)"}, and @{text u} is @{term"app ys zs"}.
+both @{term"app (app Nil ys) zs"} and @{term"app Nil (app
+ys zs)"} are simplified to @{term"app ys zs"}, the term in the middle.
 
 \subsection{Predefined Lists}
 \label{sec:predeflists}
@@ -429,7 +429,7 @@ Use the \isacom{value} command to evaluate the following expressions:
 
 \begin{exercise}
 Start from the definition of @{const add} given above.
-Prove that @{const add} it is associative and commutative.
+Prove that @{const add} is associative and commutative.
 Define a recursive function @{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"}
 and prove @{prop"double m = add m m"}.
 \end{exercise}
