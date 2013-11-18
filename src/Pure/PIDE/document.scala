@@ -84,9 +84,9 @@ object Document
           case other: Name => node == other.node
           case _ => false
         }
-      override def toString: String = theory
 
       def is_theory: Boolean = !theory.isEmpty
+      override def toString: String = if (is_theory) theory else node
     }
 
 
