@@ -7,7 +7,7 @@ The ordinal-like sum of two orders with disjoint fields
 header {* Order Union *}
 
 theory Order_Union
-imports "~~/src/HOL/Cardinals/Wellfounded_More_Base" 
+imports "~~/src/HOL/Cardinals/Wellfounded_More_LFP" 
 begin
 
 definition Osum :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel"  (infix "Osum" 60) where

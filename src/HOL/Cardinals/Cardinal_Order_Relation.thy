@@ -8,7 +8,7 @@ Cardinal-order relations.
 header {* Cardinal-Order Relations *}
 
 theory Cardinal_Order_Relation
-imports Cardinal_Order_Relation_Base Constructions_on_Wellorders
+imports Cardinal_Order_Relation_LFP Constructions_on_Wellorders
 begin
 
 declare

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Constructions_on_Wellorders_Base.thy
+(*  Title:      HOL/Cardinals/Constructions_on_Wellorders_LFP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Constructions on wellorders (base).
+Constructions on wellorders (LFP).
 *)
 
-header {* Constructions on Wellorders (Base) *}
+header {* Constructions on Wellorders (LFP) *}
 
-theory Constructions_on_Wellorders_Base
-imports Wellorder_Embedding_Base
+theory Constructions_on_Wellorders_LFP
+imports Wellorder_Embedding_LFP
 begin
 
 

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Wellorder_Embedding_Base.thy
+(*  Title:      HOL/Cardinals/Wellorder_Embedding_LFP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (base).
+Well-order embeddings (LFP).
 *)
 
-header {* Well-Order Embeddings (Base) *}
+header {* Well-Order Embeddings (LFP) *}
 
-theory Wellorder_Embedding_Base
-imports "~~/src/HOL/Library/Zorn" Fun_More_Base Wellorder_Relation_Base
+theory Wellorder_Embedding_LFP
+imports "~~/src/HOL/Library/Zorn" Fun_More_LFP Wellorder_Relation_LFP
 begin
 
 

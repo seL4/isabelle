@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Cardinal_Order_Relation_Base.thy
+(*  Title:      HOL/Cardinals/Cardinal_Order_Relation_LFP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Cardinal-order relations (base).
+Cardinal-order relations (LFP).
 *)
 
-header {* Cardinal-Order Relations (Base)  *}
+header {* Cardinal-Order Relations (LFP)  *}
 
-theory Cardinal_Order_Relation_Base
-imports Constructions_on_Wellorders_Base
+theory Cardinal_Order_Relation_LFP
+imports Constructions_on_Wellorders_LFP
 begin
 
 

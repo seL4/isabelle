@@ -1,13 +1,13 @@
-(*  Title:      HOL/Cardinals/Order_Relation_More_Base.thy
+(*  Title:      HOL/Cardinals/Order_Relation_More_LFP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Basics on order-like relations (base).
+Basics on order-like relations (LFP).
 *)
 
-header {* Basics on Order-Like Relations (Base) *}
+header {* Basics on Order-Like Relations (LFP) *}
 
-theory Order_Relation_More_Base
+theory Order_Relation_More_LFP
 imports "~~/src/HOL/Library/Order_Relation"
 begin
 

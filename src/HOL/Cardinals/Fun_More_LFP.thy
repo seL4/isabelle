@@ -1,13 +1,13 @@
-(*  Title:      HOL/Cardinals/Fun_More_Base.thy
+(*  Title:      HOL/Cardinals/Fun_More_LFP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-More on injections, bijections and inverses (base).
+More on injections, bijections and inverses (LFP).
 *)
 
-header {* More on Injections, Bijections and Inverses (Base) *}
+header {* More on Injections, Bijections and Inverses (LFP) *}
 
-theory Fun_More_Base
+theory Fun_More_LFP
 imports "~~/src/HOL/Library/Infinite_Set"
 begin
 

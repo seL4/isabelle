@@ -8,7 +8,7 @@ Well-order embeddings.
 header {* Well-Order Embeddings *}
 
 theory Wellorder_Embedding
-imports Wellorder_Embedding_Base Fun_More Wellorder_Relation
+imports Wellorder_Embedding_LFP Fun_More Wellorder_Relation
 begin
 
 
