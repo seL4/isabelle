@@ -89,15 +89,16 @@ for "working mathematicians":
 Minor technicalities and naming issues:
 ---------------------------------------
 
-1. Most of the definitions and theorems are proved in files suffixed with
-"_LFP" or "_GFP". Bootstrapping considerations (for the (co)datatype package) made
-this division desirable.
+1. Most of the definitions and theorems are proved in files suffixed with "_FP".
+Bootstrapping considerations (for the (co)datatype package) made this division
+desirable.
 
 
-2. Even though we would have preferred to use "initial segment" instead of 
-"order filter", we chose the latter to avoid terminological clash with 
-the operator "init_seg_of" from Zorn.thy.  The latter expresses a related, but different 
-concept -- it considers a relation, rather than a set, as initial segment of a relation.  
+2. Even though we would have preferred to use "initial segment" instead of
+"order filter", we chose the latter to avoid terminological clash with the
+operator "init_seg_of" from Zorn.thy. The latter expresses a related, but
+different concept -- it considers a relation, rather than a set, as initial
+segment of a relation.
 
 
 3. We prefer to define the upper-bound operations under, underS,
@@ -148,7 +149,7 @@ theory for just a couple of minor facts.
 Notes for anyone who would like to enrich these theories in the future
 --------------------------------------------------------------------------------------
 
-Theory Fun_More (and Fun_More_*):
+Theory Fun_More (and Fun_More_FP):
 - Careful: "inj" is an abbreviation for "inj_on UNIV", while  
   "bij" is not an abreviation for "bij_betw UNIV UNIV", but 
   a defined constant; there is no "surj_betw", but only "surj". 
@@ -166,7 +167,7 @@ Theory Fun_More (and Fun_More_*):
 - In subsection "Other facts": 
 -- Does the lemma "atLeastLessThan_injective" already exist anywhere? 
 
-Theory Order_Relation_More (and Order_Relation_More_*):
+Theory Order_Relation_More (and Order_Relation_More_FP):
 - In subsection "Auxiliaries": 
 -- Recall the lemmas "order_on_defs", "Field_def", "Domain_def", "Range_def", "converse_def". 
 -- Recall that "refl_on r A" forces r to not be defined outside A.  
@@ -181,16 +182,16 @@ Theory Order_Relation_More (and Order_Relation_More_*):
    abbreviation "Linear_order r ≡ linear_order_on (Field r) r"
    abbreviation "Well_order r ≡ well_order_on (Field r) r"
 
-Theory Wellorder_Relation (and Wellorder_Relation_*):
+Theory Wellorder_Relation (and Wellorder_Relation_FP):
 - In subsection "Auxiliaries": recall lemmas "order_on_defs"
 - In subsection "The notions of maximum, minimum, supremum, successor and order filter": 
   Should we define all constants from "wo_rel" in "rel" instead, 
   so that their outside definition not be conditional in "wo_rel r"? 
 
-Theory Wellfounded_More (and Wellfounded_More_*):
+Theory Wellfounded_More (and Wellfounded_More_FP):
   Recall the lemmas "wfrec" and "wf_induct". 
 
-Theory Wellorder_Embedding (and Wellorder_Embedding_*):
+Theory Wellorder_Embedding (and Wellorder_Embedding_FP):
 - Recall "inj_on_def" and "bij_betw_def". 
 - Line 5 in the proof of lemma embed_in_Field: we have to figure out for this and many other 
   situations:  Why did it work without annotations to Refl_under_in?
@@ -200,7 +201,7 @@ Theory Wellorder_Embedding (and Wellorder_Embedding_*):
   making impossible to debug theorem instantiations.  
 - At lemma "embed_unique": If we add the attribute "rule format" at lemma, we get an error at qed.
 
-Theory Constructions_on_Wellorders (and Constructions_on_Wellorders_*):
+Theory Constructions_on_Wellorders (and Constructions_on_Wellorders_FP):
 - Some of the lemmas in this section are about more general kinds of relations than 
   well-orders, but it is not clear whether they are useful in such more general contexts.
 - Recall that "equiv" does not have the "equiv_on" and "Equiv" versions, 
@@ -208,7 +209,7 @@ Theory Constructions_on_Wellorders (and Constructions_on_Wellorders_*):
 - The lemmas "ord_trans" are not clearly useful together, as their employment within blast or auto 
 tends to diverge.  
 
-Theory Cardinal_Order_Relation (and Cardinal_Order_Relation_*):
+Theory Cardinal_Order_Relation (and Cardinal_Order_Relation_FP):
 - Careful: if "|..|" meets an outer parehthesis, an extra space needs to be inserted, as in
   "( |A| )". 
 - At lemma like ordLeq_Sigma_mono1: Not worth stating something like ordLeq_Sigma_mono2 -- 

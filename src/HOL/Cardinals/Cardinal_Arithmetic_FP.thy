@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Cardinal_Arithmetic_LFP.thy
+(*  Title:      HOL/Cardinals/Cardinal_Arithmetic_FP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
-Cardinal arithmetic.
+Cardinal arithmetic (FP).
 *)
 
-header {* Cardinal Arithmetic  *}
+header {* Cardinal Arithmetic (FP) *}
 
-theory Cardinal_Arithmetic_LFP
-imports Cardinal_Order_Relation_LFP
+theory Cardinal_Arithmetic_FP
+imports Cardinal_Order_Relation_FP
 begin
 
 (*library candidate*)
@@ -732,6 +732,9 @@ by (simp only: cpow_def Field_card_order Pow_UNIV card_of_card_order_on)
 
 lemma cpow_greater_eq: "Card_order r \<Longrightarrow> r \<le>o cpow r"
 by (rule ordLess_imp_ordLeq) (simp only: cpow_def Card_order_Pow)
+
+lemma Cinfinite_cpow: "Cinfinite r \<Longrightarrow> Cinfinite (cpow r)"
+unfolding cpow_def cinfinite_def by (metis Field_card_of card_of_Card_order infinite_Pow)
 
 subsection {* Lists *}
 

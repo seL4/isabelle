@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Wellorder_Embedding_LFP.thy
+(*  Title:      HOL/Cardinals/Wellorder_Embedding_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (LFP).
+Well-order embeddings (FP).
 *)
 
-header {* Well-Order Embeddings (LFP) *}
+header {* Well-Order Embeddings (FP) *}
 
-theory Wellorder_Embedding_LFP
-imports "~~/src/HOL/Library/Zorn" Fun_More_LFP Wellorder_Relation_LFP
+theory Wellorder_Embedding_FP
+imports "~~/src/HOL/Library/Zorn" Fun_More_FP Wellorder_Relation_FP
 begin
 
 

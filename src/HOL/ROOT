@@ -687,21 +687,14 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
-session "HOL-Cardinals-LFP" in Cardinals = HOL +
+session "HOL-Cardinals-FP" in Cardinals = HOL +
   description {*
-    Ordinals and Cardinals, Theories Needed for BNF LFP Construction.
+    Ordinals and Cardinals, Theories Needed for BNF FP Constructions.
   *}
   options [document = false]
-  theories Cardinal_Arithmetic_LFP
+  theories Cardinal_Arithmetic_FP
 
-session "HOL-Cardinals-GFP" in Cardinals = "HOL-Cardinals-LFP" +
-  description {*
-    Ordinals and Cardinals, Theories Needed for BNF GFP Construction.
-  *}
-  options [document = false]
-  theories Cardinal_Arithmetic_GFP
-
-session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-GFP" +
+session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-FP" +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
@@ -712,23 +705,16 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-GFP" +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-BNF-LFP" in BNF = "HOL-Cardinals-LFP" +
-  description {*
-    Bounded Natural Functors for Datatypes.
-  *}
-  options [document = false]
-  theories BNF_LFP
-
-session "HOL-BNF-GFP" in BNF = "HOL-Cardinals-GFP" +
-  description {*
-    Bounded Natural Functors for Codatatypes.
-  *}
-  options [document = false]
-  theories BNF_GFP
-
-session "HOL-BNF" in BNF = "HOL-Cardinals-GFP" +
+session "HOL-BNF-FP" in BNF = "HOL-Cardinals-FP" +
   description {*
     Bounded Natural Functors for (Co)datatypes.
+  *}
+  options [document = false]
+  theories BNF_LFP BNF_GFP
+
+session "HOL-BNF" in BNF = "HOL-BNF-FP" +
+  description {*
+    Bounded Natural Functors for (Co)datatypes, Including More BNFs.
   *}
   options [document = false]
   theories BNF

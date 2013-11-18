@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Cardinal_Order_Relation_LFP.thy
+(*  Title:      HOL/Cardinals/Cardinal_Order_Relation_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Cardinal-order relations (LFP).
+Cardinal-order relations (FP).
 *)
 
-header {* Cardinal-Order Relations (LFP)  *}
+header {* Cardinal-Order Relations (FP)  *}
 
-theory Cardinal_Order_Relation_LFP
-imports Constructions_on_Wellorders_LFP
+theory Cardinal_Order_Relation_FP
+imports Constructions_on_Wellorders_FP
 begin
 
 
@@ -484,6 +484,15 @@ using card_of_ordLess2[of "Pow A" A]  Cantors_paradox[of A]
 corollary Card_order_Pow:
 "Card_order r \<Longrightarrow> r <o |Pow(Field r)|"
 using card_of_Pow card_of_Field_ordIso ordIso_ordLess_trans ordIso_symmetric by blast
+
+
+lemma infinite_Pow:
+assumes "infinite A"
+shows "infinite (Pow A)"
+proof-
+  have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
+  thus ?thesis by (metis assms finite_Pow_iff)
+qed
 
 
 lemma card_of_Plus1: "|A| \<le>o |A <+> B|"

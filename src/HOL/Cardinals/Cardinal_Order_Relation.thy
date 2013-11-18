@@ -8,7 +8,7 @@ Cardinal-order relations.
 header {* Cardinal-Order Relations *}
 
 theory Cardinal_Order_Relation
-imports Cardinal_Order_Relation_LFP Constructions_on_Wellorders
+imports Cardinal_Order_Relation_FP Constructions_on_Wellorders
 begin
 
 declare
@@ -136,15 +136,7 @@ qed
 
 subsection {* Cardinals versus set operations on arbitrary sets *}
 
-lemma infinite_Pow:
-assumes "infinite A"
-shows "infinite (Pow A)"
-proof-
-  have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
-  thus ?thesis by (metis assms finite_Pow_iff)
-qed
-
-corollary card_of_set_type[simp]: "|UNIV::'a set| <o |UNIV::'a set set|"
+lemma card_of_set_type[simp]: "|UNIV::'a set| <o |UNIV::'a set set|"
 using card_of_Pow[of "UNIV::'a set"] by simp
 
 lemma card_of_Un1[simp]:

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Wellorder_Relation_LFP.thy
+(*  Title:      HOL/Cardinals/Wellorder_Relation_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order relations (LFP).
+Well-order relations (FP).
 *)
 
-header {* Well-Order Relations (LFP) *}
+header {* Well-Order Relations (FP) *}
 
-theory Wellorder_Relation_LFP
-imports Wellfounded_More_LFP
+theory Wellorder_Relation_FP
+imports Wellfounded_More_FP
 begin
 
 

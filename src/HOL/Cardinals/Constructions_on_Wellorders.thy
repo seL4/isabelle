@@ -8,7 +8,7 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports Constructions_on_Wellorders_LFP Wellorder_Embedding
+imports Constructions_on_Wellorders_FP Wellorder_Embedding
 begin
 
 declare

@@ -8,7 +8,7 @@ Cardinal arithmetic.
 header {* Cardinal Arithmetic  *}
 
 theory Cardinal_Arithmetic
-imports Cardinal_Arithmetic_LFP Cardinal_Order_Relation
+imports Cardinal_Arithmetic_FP Cardinal_Order_Relation
 begin
 
 
@@ -176,9 +176,6 @@ subsection {* Powerset *}
 
 lemma Card_order_cpow: "Card_order (cpow r)"
 unfolding cpow_def by (rule card_of_Card_order)
-
-lemma Cinfinite_cpow: "Cinfinite r \<Longrightarrow> Cinfinite (cpow r)"
-unfolding cpow_def cinfinite_def by (metis Field_card_of card_of_Card_order infinite_Pow)
 
 lemma cardSuc_ordLeq_cpow: "Card_order r \<Longrightarrow> cardSuc r \<le>o cpow r"
 unfolding cpow_def by (metis Card_order_Pow cardSuc_ordLess_ordLeq card_of_Card_order)

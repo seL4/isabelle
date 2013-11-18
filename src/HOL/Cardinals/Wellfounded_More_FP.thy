@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Wellfounded_More_LFP.thy
+(*  Title:      HOL/Cardinals/Wellfounded_More_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-More on well-founded relations (LFP).
+More on well-founded relations (FP).
 *)
 
-header {* More on Well-Founded Relations (LFP) *}
+header {* More on Well-Founded Relations (FP) *}
 
-theory Wellfounded_More_LFP
-imports Order_Relation_More_LFP "~~/src/HOL/Library/Wfrec"
+theory Wellfounded_More_FP
+imports Order_Relation_More_FP "~~/src/HOL/Library/Wfrec"
 begin
 
 
