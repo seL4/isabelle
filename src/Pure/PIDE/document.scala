@@ -64,6 +64,8 @@ object Document
 
     def bad_header(msg: String): Header = Header(Nil, Nil, List(msg))
 
+    val no_header = bad_header("No theory header")
+
     object Name
     {
       val empty = Name("", "", "")
@@ -83,6 +85,8 @@ object Document
           case _ => false
         }
       override def toString: String = theory
+
+      def is_theory: Boolean = !theory.isEmpty
     }
 
 
@@ -121,6 +125,7 @@ object Document
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
     case class Perspective[A, B](required: Boolean, visible: B, overlays: Overlays) extends Edit[A, B]
+    case class Blob[A, B](blob: Bytes) extends Edit[A, B]
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 
@@ -184,27 +189,31 @@ object Document
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
+    val blob: Bytes = Bytes.empty,
     _commands: Node.Commands = Node.Commands.empty)
   {
     def clear: Node = new Node(header = header)
 
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, _commands)
+      new Node(new_header, perspective, blob, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(header, new_perspective, _commands)
+      new Node(header, new_perspective, blob, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
       perspective.visible.same(other_perspective.visible) &&
       perspective.overlays == other_perspective.overlays
 
+    def update_blob(new_blob: Bytes): Node =
+      new Node(header, perspective, new_blob, _commands)
+
     def commands: Linear_Set[Command] = _commands.commands
     def thy_load_commands: List[Command] = _commands.thy_load_commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(header, perspective, Node.Commands(new_commands))
+      else new Node(header, perspective, blob, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)

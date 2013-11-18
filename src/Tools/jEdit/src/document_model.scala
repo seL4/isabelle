@@ -60,17 +60,23 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 {
   /* header */
 
+  def is_theory: Boolean = node_name.is_theory
+
   def node_header(): Document.Node.Header =
   {
     Swing_Thread.require()
-    JEdit_Lib.buffer_lock(buffer) {
-      Exn.capture {
-        PIDE.thy_load.check_thy_text(node_name, buffer.getSegment(0, buffer.getLength))
-      } match {
-        case Exn.Res(header) => header
-        case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
+
+    if (is_theory) {
+      JEdit_Lib.buffer_lock(buffer) {
+        Exn.capture {
+          PIDE.thy_load.check_thy_text(node_name, buffer.getSegment(0, buffer.getLength))
+        } match {
+          case Exn.Res(header) => header
+          case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
+        }
       }
     }
+    else Document.Node.no_header
   }
 
 
@@ -96,7 +102,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     Swing_Thread.require()
 
-    if (Isabelle.continuous_checking) {
+    if (Isabelle.continuous_checking && is_theory) {
       val snapshot = this.snapshot()
       Document.Node.Perspective(node_required, Text.Perspective(
         for {
@@ -106,6 +112,14 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
     else empty_perspective
   }
+
+
+  /* blob */
+
+  // FIXME caching
+  // FIXME precise file content (encoding)
+  def blob(): Bytes =
+    Swing_Thread.require { Bytes(buffer.getText(0, buffer.getLength)) }
 
 
   /* edits */
@@ -118,10 +132,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     val text = JEdit_Lib.buffer_text(buffer)
     val perspective = node_perspective()
 
-    List(session.header_edit(node_name, header),
-      node_name -> Document.Node.Clear(),
-      node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
-      node_name -> perspective)
+    if (is_theory)
+      List(session.header_edit(node_name, header),
+        node_name -> Document.Node.Clear(),
+        node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
+        node_name -> perspective)
+    else
+      List(node_name -> Document.Node.Blob(blob()))
   }
 
   def node_edits(
@@ -131,16 +148,20 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     Swing_Thread.require()
 
-    val header_edit = session.header_edit(node_name, node_header())
-    if (clear)
-      List(header_edit,
-        node_name -> Document.Node.Clear(),
-        node_name -> Document.Node.Edits(text_edits),
-        node_name -> perspective)
+    if (is_theory) {
+      val header_edit = session.header_edit(node_name, node_header())
+      if (clear)
+        List(header_edit,
+          node_name -> Document.Node.Clear(),
+          node_name -> Document.Node.Edits(text_edits),
+          node_name -> perspective)
+      else
+        List(header_edit,
+          node_name -> Document.Node.Edits(text_edits),
+          node_name -> perspective)
+    }
     else
-      List(header_edit,
-        node_name -> Document.Node.Edits(text_edits),
-        node_name -> perspective)
+      List(node_name -> Document.Node.Blob(blob()))
   }
 
 

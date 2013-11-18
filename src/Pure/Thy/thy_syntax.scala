@@ -355,6 +355,8 @@ object Thy_Syntax
         else
           node.update_perspective(perspective).update_commands(
             consolidate_spans(syntax, reparse_limit, name, visible, node.commands))
+
+      case (_, Document.Node.Blob(blob)) => node.update_blob(blob)
     }
   }
 

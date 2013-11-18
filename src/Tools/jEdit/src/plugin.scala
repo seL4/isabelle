@@ -96,21 +96,18 @@ object PIDE
       val init_edits =
         (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
-            val (model_edits, opt_model) =
-              thy_load.buffer_node_name(buffer) match {
-                case Some(node_name) =>
-                  document_model(buffer) match {
-                    case Some(model) if model.node_name == node_name => (Nil, Some(model))
-                    case _ =>
-                      val model = Document_Model.init(session, buffer, node_name)
-                      (model.init_edits(), Some(model))
-                  }
-                case None => (Nil, None)
+            val node_name = thy_load.node_name(buffer)
+            val (model_edits, model) =
+              document_model(buffer) match {
+                case Some(model) if model.node_name == node_name => (Nil, model)
+                case _ =>
+                  val model = Document_Model.init(session, buffer, node_name)
+                  (model.init_edits(), model)
               }
-            if (opt_model.isDefined) {
+            if (model.is_theory) {
               for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-                if (document_view(text_area).map(_.model) != opt_model)
-                  Document_View.init(opt_model.get, text_area)
+                if (document_view(text_area).map(_.model) != Some(model))
+                  Document_View.init(model, text_area)
               }
             }
             model_edits ::: edits
@@ -124,8 +121,8 @@ object PIDE
   {
     JEdit_Lib.swing_buffer_lock(buffer) {
       document_model(buffer) match {
-        case Some(model) => Document_View.init(model, text_area)
-        case None =>
+        case Some(model) if model.is_theory => Document_View.init(model, text_area)
+        case _ =>
       }
     }
   }
@@ -163,8 +160,11 @@ class Plugin extends EBPlugin
             buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
           val thys =
-            for (buffer <- buffers; model <- PIDE.document_model(buffer))
-              yield model.node_name
+            for {
+              buffer <- buffers
+              model <- PIDE.document_model(buffer)
+              if model.is_theory
+            } yield model.node_name
 
           val thy_info = new Thy_Info(PIDE.thy_load)
           // FIXME avoid I/O in Swing thread!?!
