@@ -1315,6 +1315,11 @@ lemma comp_funpow:
   shows "comp f ^^ n = comp (f ^^ n)"
   by (induct n) simp_all
 
+lemma Suc_funpow[simp]: "Suc ^^ n = (op + n)"
+  by (induct n) simp_all
+
+lemma id_funpow[simp]: "id ^^ n = id"
+  by (induct n) simp_all
 
 subsection {* Kleene iteration *}
 
