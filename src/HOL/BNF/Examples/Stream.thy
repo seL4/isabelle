@@ -87,16 +87,25 @@ lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
   by (induct xs) auto
 
 
-subsection {* set of streams with elements in some fixes set *}
+subsection {* set of streams with elements in some fixed set *}
 
 coinductive_set
-  streams :: "'a set => 'a stream set"
+  streams :: "'a set \<Rightarrow> 'a stream set"
   for A :: "'a set"
 where
   Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> a ## s \<in> streams A"
 
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"
   by (induct w) auto
+
+lemma streams_Stream: "x ## s \<in> streams A \<longleftrightarrow> x \<in> A \<and> s \<in> streams A"
+  by (auto elim: streams.cases)
+
+lemma streams_stl: "s \<in> streams A \<Longrightarrow> stl s \<in> streams A"
+  by (cases s) (auto simp: streams_Stream)
+
+lemma streams_shd: "s \<in> streams A \<Longrightarrow> shd s \<in> A"
+  by (cases s) (auto simp: streams_Stream)
 
 lemma sset_streams:
   assumes "sset s \<subseteq> A"
@@ -105,6 +114,28 @@ using assms proof (coinduction arbitrary: s)
   case streams then show ?case by (cases s) simp
 qed
 
+lemma streams_sset:
+  assumes "s \<in> streams A"
+  shows "sset s \<subseteq> A"
+proof
+  fix x assume "x \<in> sset s" from this `s \<in> streams A` show "x \<in> A"
+    by (induct s) (auto intro: streams_shd streams_stl)
+qed
+
+lemma streams_iff_sset: "s \<in> streams A \<longleftrightarrow> sset s \<subseteq> A"
+  by (metis sset_streams streams_sset)
+
+lemma streams_mono:  "s \<in> streams A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> s \<in> streams B"
+  unfolding streams_iff_sset by auto
+
+lemma smap_streams: "s \<in> streams A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> smap f s \<in> streams B"
+  unfolding streams_iff_sset stream.set_map by auto
+
+lemma streams_empty: "streams {} = {}"
+  by (auto elim: streams.cases)
+
+lemma streams_UNIV[simp]: "streams UNIV = UNIV"
+  by (auto simp: streams_iff_sset)
 
 subsection {* nth, take, drop for streams *}
 
@@ -234,6 +265,9 @@ lemma stream_all_iff[iff]: "stream_all P s \<longleftrightarrow> Ball (sset s) P
 lemma stream_all_shift[simp]: "stream_all P (xs @- s) = (list_all P xs \<and> stream_all P s)"
   unfolding stream_all_iff list_all_iff by auto
 
+lemma stream_all_Stream: "stream_all P (x ## X) \<longleftrightarrow> P x \<and> stream_all P X"
+  by simp
+
 
 subsection {* recurring stream out of a list *}
 
@@ -335,6 +369,9 @@ proof safe
 next
   fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_sset)
 qed
+
+lemma fromN_Suc_eq_smap: "fromN (Suc n) = smap Suc (fromN n)"
+  by (coinduction arbitrary: n) auto
 
 abbreviation "nats \<equiv> fromN 0"
 
