@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinals/Wellorder_Embedding_Base.thy
+(*  Title:      HOL/Cardinals/Wellorder_Embedding_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (base).
+Well-order embeddings (FP).
 *)
 
-header {* Well-Order Embeddings (Base) *}
+header {* Well-Order Embeddings (FP) *}
 
-theory Wellorder_Embedding_Base
-imports "~~/src/HOL/Library/Zorn" Fun_More_Base Wellorder_Relation_Base
+theory Wellorder_Embedding_FP
+imports "~~/src/HOL/Library/Zorn" Fun_More_FP Wellorder_Relation_FP
 begin
 
 
@@ -331,8 +331,7 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
   show "bij_betw f (rel.under r a) (rel.under r' (f a))"
   proof(unfold bij_betw_def, auto)
     show  "inj_on f (rel.under r a)"
-    using *
-    by (auto simp add: rel.under_Field subset_inj_on)
+    using * by (metis (no_types) rel.under_Field subset_inj_on)
   next
     fix b assume "b \<in> rel.under r a"
     thus "f b \<in> rel.under r' (f a)"
@@ -395,7 +394,7 @@ proof-
      unfolding rel.under_def using 11 Refl
      by (auto simp add: refl_on_def)
      hence "b1 = b2" using BIJ * ** ***
-     by (auto simp add: bij_betw_def inj_on_def)
+     by (simp add: bij_betw_def inj_on_def)
     }
     moreover
      {assume "(b2,b1) \<in> r"
@@ -403,7 +402,7 @@ proof-
      unfolding rel.under_def using 11 Refl
      by (auto simp add: refl_on_def)
      hence "b1 = b2" using BIJ * ** ***
-     by (auto simp add: bij_betw_def inj_on_def)
+     by (simp add: bij_betw_def inj_on_def)
     }
     ultimately
     show "b1 = b2"
@@ -578,7 +577,7 @@ proof-
     fix b assume *: "b \<in> rel.underS r a"
     have "f b \<noteq> f a \<and> (f b, f a) \<in> r'"
     using subField Well' SUC NE *
-          wo_rel.suc_greater[of r' "f`(rel.underS r a)" "f b"] by auto
+          wo_rel.suc_greater[of r' "f`(rel.underS r a)" "f b"] by force
     thus "f b \<in> rel.underS r' (f a)"
     unfolding rel.underS_def by simp
   qed
@@ -800,7 +799,7 @@ proof-
     then obtain a where "?chi a" by blast
     hence "\<exists>f'. embed r' r f'"
     using wellorders_totally_ordered_aux2[of r r' g f a]
-          WELL WELL' Main1 Main2 test_def by blast
+          WELL WELL' Main1 Main2 test_def by fast
     thus ?thesis by blast
   qed
 qed
@@ -1091,7 +1090,7 @@ next
    have "bij_betw f (rel.under r a) (rel.under r' (f a))"
    proof(unfold bij_betw_def, auto)
      show "inj_on f (rel.under r a)"
-     using 1 2 by (auto simp add: subset_inj_on)
+     using 1 2 by (metis subset_inj_on)
    next
      fix b assume "b \<in> rel.under r a"
      hence "a \<in> Field r \<and> b \<in> Field r \<and> (b,a) \<in> r"

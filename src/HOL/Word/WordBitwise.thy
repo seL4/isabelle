@@ -461,18 +461,18 @@ lemma rev_bin_to_bl_simps:
     = True # rev (bin_to_bl n (numeral nm))"
   "rev (bin_to_bl (Suc n) (numeral (num.One)))
     = True # replicate n False"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.Bit0 nm)))
-    = False # rev (bin_to_bl n (neg_numeral nm))"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.Bit1 nm)))
-    = True # rev (bin_to_bl n (neg_numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.One)))
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm)))
+    = False # rev (bin_to_bl n (- numeral nm))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm)))
+    = True # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.One)))
     = True # replicate n True"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.Bit0 nm + num.One)))
-    = True # rev (bin_to_bl n (neg_numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.Bit1 nm + num.One)))
-    = False # rev (bin_to_bl n (neg_numeral (nm + num.One)))"
-  "rev (bin_to_bl (Suc n) (neg_numeral (num.One + num.One)))
-    = False # rev (bin_to_bl n (neg_numeral num.One))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit0 nm + num.One)))
+    = True # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.Bit1 nm + num.One)))
+    = False # rev (bin_to_bl n (- numeral (nm + num.One)))"
+  "rev (bin_to_bl (Suc n) (- numeral (num.One + num.One)))
+    = False # rev (bin_to_bl n (- numeral num.One))"
   apply (simp_all add: bin_to_bl_def)
   apply (simp_all only: bin_to_bl_aux_alt)
   apply (simp_all)

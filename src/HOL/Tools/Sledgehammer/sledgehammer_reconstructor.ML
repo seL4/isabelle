@@ -7,7 +7,6 @@ Reconstructors.
 
 signature SLEDGEHAMMER_RECONSTRUCTOR =
 sig
-
   type stature = ATP_Problem_Generate.stature
 
   datatype reconstructor =
@@ -25,8 +24,7 @@ sig
     play * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
-
-end
+end;
 
 structure Sledgehammer_Reconstructor : SLEDGEHAMMER_RECONSTRUCTOR =
 struct
@@ -49,4 +47,4 @@ type one_line_params =
 
 val smtN = "smt"
 
-end
+end;

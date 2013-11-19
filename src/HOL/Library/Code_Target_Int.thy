@@ -30,7 +30,7 @@ lemma [code_abbrev]:
   by transfer simp
 
 lemma [code_abbrev]:
-  "int_of_integer (neg_numeral k) = Int.Neg k"
+  "int_of_integer (- numeral k) = Int.Neg k"
   by transfer simp
   
 lemma [code, symmetric, code_post]:

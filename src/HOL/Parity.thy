@@ -78,7 +78,7 @@ lemma odd_numeral_int [simp]: "odd (numeral (Num.Bit1 k) :: int)"
   unfolding even_def by simp
 
 (* TODO: proper simp rules for Num.Bit0, Num.Bit1 *)
-declare even_def [of "neg_numeral v", simp] for v
+declare even_def [of "- numeral v", simp] for v
 
 lemma even_numeral_nat [simp]: "even (numeral (Num.Bit0 k) :: nat)"
   unfolding even_nat_def by simp
@@ -190,14 +190,9 @@ lemma (in comm_ring_1) neg_power_if:
   by (induct n) simp_all
 
 lemma (in comm_ring_1)
-  shows minus_one_even_power [simp]: "even n \<Longrightarrow> (- 1) ^ n = 1"
-  and minus_one_odd_power [simp]: "odd n \<Longrightarrow> (- 1) ^ n = - 1"
-  by (simp_all add: neg_power_if del: minus_one)
-
-lemma (in comm_ring_1)
-  shows neg_one_even_power [simp]: "even n \<Longrightarrow> (-1) ^ n = 1"
-  and neg_one_odd_power [simp]: "odd n \<Longrightarrow> (-1) ^ n = - 1"
-  by (simp_all add: minus_one [symmetric] del: minus_one)
+  shows neg_one_even_power [simp]: "even n \<Longrightarrow> (- 1) ^ n = 1"
+  and neg_one_odd_power [simp]: "odd n \<Longrightarrow> (- 1) ^ n = - 1"
+  by (simp_all add: neg_power_if)
 
 lemma zero_le_even_power: "even n ==>
     0 <= (x::'a::{linordered_ring,monoid_mult}) ^ n"

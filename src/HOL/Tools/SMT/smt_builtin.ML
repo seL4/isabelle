@@ -144,9 +144,10 @@ fun dest_builtin_num ctxt t =
   (case try HOLogic.dest_number t of
     NONE => NONE
   | SOME (T, i) =>
-      (case lookup_builtin_typ ctxt T of
-        SOME (_, Int (_, g)) => g T i |> Option.map (rpair T)
-      | _ => NONE))
+      if i < 0 then NONE else
+        (case lookup_builtin_typ ctxt T of
+          SOME (_, Int (_, g)) => g T i |> Option.map (rpair T)
+        | _ => NONE))
 
 val is_builtin_num = is_some oo dest_builtin_num
 

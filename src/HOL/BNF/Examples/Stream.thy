@@ -18,7 +18,7 @@ codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
 code_datatype Stream
 
 lemma stream_case_cert:
-  assumes "CASE \<equiv> stream_case c"
+  assumes "CASE \<equiv> case_stream c"
   shows "CASE (a ## s) \<equiv> c a s"
   using assms by simp_all
 

@@ -8,64 +8,70 @@ Basics on order-like relations.
 header {* Basics on Order-Like Relations *}
 
 theory Order_Relation_More
-imports Order_Relation_More_Base
+imports Order_Relation_More_FP
 begin
 
 
 subsection {* The upper and lower bounds operators  *}
 
-lemma (in rel) aboveS_subset_above: "aboveS a \<le> above a"
+context rel
+begin
+
+lemma aboveS_subset_above: "aboveS a \<le> above a"
 by(auto simp add: aboveS_def above_def)
 
-lemma (in rel) AboveS_subset_Above: "AboveS A \<le> Above A"
+lemma AboveS_subset_Above: "AboveS A \<le> Above A"
 by(auto simp add: AboveS_def Above_def)
 
-lemma (in rel) UnderS_disjoint: "A Int (UnderS A) = {}"
+lemma UnderS_disjoint: "A Int (UnderS A) = {}"
 by(auto simp add: UnderS_def)
 
-lemma (in rel) aboveS_notIn: "a \<notin> aboveS a"
+lemma aboveS_notIn: "a \<notin> aboveS a"
 by(auto simp add: aboveS_def)
 
-lemma (in rel) Refl_above_in: "\<lbrakk>Refl r; a \<in> Field r\<rbrakk> \<Longrightarrow> a \<in> above a"
+lemma Refl_above_in: "\<lbrakk>Refl r; a \<in> Field r\<rbrakk> \<Longrightarrow> a \<in> above a"
 by(auto simp add: refl_on_def above_def)
 
-lemma (in rel) in_Above_under: "a \<in> Field r \<Longrightarrow> a \<in> Above (under a)"
+lemma in_Above_under: "a \<in> Field r \<Longrightarrow> a \<in> Above (under a)"
 by(auto simp add: Above_def under_def)
 
-lemma (in rel) in_Under_above: "a \<in> Field r \<Longrightarrow> a \<in> Under (above a)"
+lemma in_Under_above: "a \<in> Field r \<Longrightarrow> a \<in> Under (above a)"
 by(auto simp add: Under_def above_def)
 
-lemma (in rel) in_UnderS_aboveS: "a \<in> Field r \<Longrightarrow> a \<in> UnderS (aboveS a)"
+lemma in_UnderS_aboveS: "a \<in> Field r \<Longrightarrow> a \<in> UnderS (aboveS a)"
 by(auto simp add: UnderS_def aboveS_def)
 
-lemma (in rel) subset_Above_Under: "B \<le> Field r \<Longrightarrow> B \<le> Above (Under B)"
+lemma UnderS_subset_Under: "UnderS A \<le> Under A"
+by(auto simp add: UnderS_def Under_def)
+
+lemma subset_Above_Under: "B \<le> Field r \<Longrightarrow> B \<le> Above (Under B)"
 by(auto simp add: Above_def Under_def)
 
-lemma (in rel) subset_Under_Above: "B \<le> Field r \<Longrightarrow> B \<le> Under (Above B)"
+lemma subset_Under_Above: "B \<le> Field r \<Longrightarrow> B \<le> Under (Above B)"
 by(auto simp add: Under_def Above_def)
 
-lemma (in rel) subset_AboveS_UnderS: "B \<le> Field r \<Longrightarrow> B \<le> AboveS (UnderS B)"
+lemma subset_AboveS_UnderS: "B \<le> Field r \<Longrightarrow> B \<le> AboveS (UnderS B)"
 by(auto simp add: AboveS_def UnderS_def)
 
-lemma (in rel) subset_UnderS_AboveS: "B \<le> Field r \<Longrightarrow> B \<le> UnderS (AboveS B)"
+lemma subset_UnderS_AboveS: "B \<le> Field r \<Longrightarrow> B \<le> UnderS (AboveS B)"
 by(auto simp add: UnderS_def AboveS_def)
 
-lemma (in rel) Under_Above_Galois:
+lemma Under_Above_Galois:
 "\<lbrakk>B \<le> Field r; C \<le> Field r\<rbrakk> \<Longrightarrow> (B \<le> Above C) = (C \<le> Under B)"
 by(unfold Above_def Under_def, blast)
 
-lemma (in rel) UnderS_AboveS_Galois:
+lemma UnderS_AboveS_Galois:
 "\<lbrakk>B \<le> Field r; C \<le> Field r\<rbrakk> \<Longrightarrow> (B \<le> AboveS C) = (C \<le> UnderS B)"
 by(unfold AboveS_def UnderS_def, blast)
 
-lemma (in rel) Refl_above_aboveS:
+lemma Refl_above_aboveS:
 assumes REFL: "Refl r" and IN: "a \<in> Field r"
 shows "above a = aboveS a \<union> {a}"
 proof(unfold above_def aboveS_def, auto)
   show "(a,a) \<in> r" using REFL IN refl_on_def[of _ r] by blast
 qed
 
-lemma (in rel) Linear_order_under_aboveS_Field:
+lemma Linear_order_under_aboveS_Field:
 assumes LIN: "Linear_order r" and IN: "a \<in> Field r"
 shows "Field r = under a \<union> aboveS a"
 proof(unfold under_def aboveS_def, auto)
@@ -88,7 +94,7 @@ next
   using LIN order_on_defs[of "Field r" r] refl_on_def[of "Field r" r] by blast
 qed
 
-lemma (in rel) Linear_order_underS_above_Field:
+lemma Linear_order_underS_above_Field:
 assumes LIN: "Linear_order r" and IN: "a \<in> Field r"
 shows "Field r = underS a \<union> above a"
 proof(unfold underS_def above_def, auto)
@@ -111,19 +117,25 @@ next
   using LIN order_on_defs[of "Field r" r] refl_on_def[of "Field r" r] by blast
 qed
 
-lemma (in rel) under_empty: "a \<notin> Field r \<Longrightarrow> under a = {}"
+lemma under_empty: "a \<notin> Field r \<Longrightarrow> under a = {}"
 unfolding Field_def under_def by auto
 
-lemma (in rel) above_Field: "above a \<le> Field r"
+lemma Under_Field: "Under A \<le> Field r"
+by(unfold Under_def Field_def, auto)
+
+lemma UnderS_Field: "UnderS A \<le> Field r"
+by(unfold UnderS_def Field_def, auto)
+
+lemma above_Field: "above a \<le> Field r"
 by(unfold above_def Field_def, auto)
 
-lemma (in rel) aboveS_Field: "aboveS a \<le> Field r"
+lemma aboveS_Field: "aboveS a \<le> Field r"
 by(unfold aboveS_def Field_def, auto)
 
-lemma (in rel) Above_Field: "Above A \<le> Field r"
+lemma Above_Field: "Above A \<le> Field r"
 by(unfold Above_def Field_def, auto)
 
-lemma (in rel) Refl_under_Under:
+lemma Refl_under_Under:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
 shows "Under A = (\<Inter> a \<in> A. under a)"
 proof
@@ -147,7 +159,7 @@ next
   qed
 qed
 
-lemma (in rel) Refl_underS_UnderS:
+lemma Refl_underS_UnderS:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
 shows "UnderS A = (\<Inter> a \<in> A. underS a)"
 proof
@@ -171,7 +183,7 @@ next
   qed
 qed
 
-lemma (in rel) Refl_above_Above:
+lemma Refl_above_Above:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
 shows "Above A = (\<Inter> a \<in> A. above a)"
 proof
@@ -195,7 +207,7 @@ next
   qed
 qed
 
-lemma (in rel) Refl_aboveS_AboveS:
+lemma Refl_aboveS_AboveS:
 assumes REFL: "Refl r" and NE: "A \<noteq> {}"
 shows "AboveS A = (\<Inter> a \<in> A. aboveS a)"
 proof
@@ -219,31 +231,31 @@ next
   qed
 qed
 
-lemma (in rel) under_Under_singl: "under a = Under {a}"
+lemma under_Under_singl: "under a = Under {a}"
 by(unfold Under_def under_def, auto simp add: Field_def)
 
-lemma (in rel) underS_UnderS_singl: "underS a = UnderS {a}"
+lemma underS_UnderS_singl: "underS a = UnderS {a}"
 by(unfold UnderS_def underS_def, auto simp add: Field_def)
 
-lemma (in rel) above_Above_singl: "above a = Above {a}"
+lemma above_Above_singl: "above a = Above {a}"
 by(unfold Above_def above_def, auto simp add: Field_def)
 
-lemma (in rel) aboveS_AboveS_singl: "aboveS a = AboveS {a}"
+lemma aboveS_AboveS_singl: "aboveS a = AboveS {a}"
 by(unfold AboveS_def aboveS_def, auto simp add: Field_def)
 
-lemma (in rel) Under_decr: "A \<le> B \<Longrightarrow> Under B \<le> Under A"
+lemma Under_decr: "A \<le> B \<Longrightarrow> Under B \<le> Under A"
 by(unfold Under_def, auto)
 
-lemma (in rel) UnderS_decr: "A \<le> B \<Longrightarrow> UnderS B \<le> UnderS A"
+lemma UnderS_decr: "A \<le> B \<Longrightarrow> UnderS B \<le> UnderS A"
 by(unfold UnderS_def, auto)
 
-lemma (in rel) Above_decr: "A \<le> B \<Longrightarrow> Above B \<le> Above A"
+lemma Above_decr: "A \<le> B \<Longrightarrow> Above B \<le> Above A"
 by(unfold Above_def, auto)
 
-lemma (in rel) AboveS_decr: "A \<le> B \<Longrightarrow> AboveS B \<le> AboveS A"
+lemma AboveS_decr: "A \<le> B \<Longrightarrow> AboveS B \<le> AboveS A"
 by(unfold AboveS_def, auto)
 
-lemma (in rel) under_incl_iff:
+lemma under_incl_iff:
 assumes TRANS: "trans r" and REFL: "Refl r" and IN: "a \<in> Field r"
 shows "(under a \<le> under b) = ((a,b) \<in> r)"
 proof
@@ -259,7 +271,7 @@ next
   by (auto simp add: under_def)
 qed
 
-lemma (in rel) above_decr:
+lemma above_decr:
 assumes TRANS: "trans r" and REL: "(a,b) \<in> r"
 shows "above b \<le> above a"
 proof(unfold above_def, auto)
@@ -268,7 +280,7 @@ proof(unfold above_def, auto)
   show "(a,x) \<in> r" by blast
 qed
 
-lemma (in rel) aboveS_decr:
+lemma aboveS_decr:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         REL: "(a,b) \<in> r"
 shows "aboveS b \<le> aboveS a"
@@ -282,7 +294,7 @@ next
   show "(a,x) \<in> r" by blast
 qed
 
-lemma (in rel) under_trans:
+lemma under_trans:
 assumes TRANS: "trans r" and
         IN1: "a \<in> under b" and IN2: "b \<in> under c"
 shows "a \<in> under c"
@@ -294,7 +306,7 @@ proof-
   thus ?thesis unfolding under_def by simp
 qed
 
-lemma (in rel) under_underS_trans:
+lemma under_underS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> under b" and IN2: "b \<in> underS c"
 shows "a \<in> underS c"
@@ -312,7 +324,7 @@ proof-
   from 1 3 show ?thesis unfolding underS_def by simp
 qed
 
-lemma (in rel) underS_under_trans:
+lemma underS_under_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> underS b" and IN2: "b \<in> under c"
 shows "a \<in> underS c"
@@ -330,7 +342,7 @@ proof-
   from 1 3 show ?thesis unfolding underS_def by simp
 qed
 
-lemma (in rel) underS_underS_trans:
+lemma underS_underS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> underS b" and IN2: "b \<in> underS c"
 shows "a \<in> underS c"
@@ -340,7 +352,7 @@ proof-
   with assms under_underS_trans show ?thesis by auto
 qed
 
-lemma (in rel) above_trans:
+lemma above_trans:
 assumes TRANS: "trans r" and
         IN1: "b \<in> above a" and IN2: "c \<in> above b"
 shows "c \<in> above a"
@@ -352,7 +364,7 @@ proof-
   thus ?thesis unfolding above_def by simp
 qed
 
-lemma (in rel) above_aboveS_trans:
+lemma above_aboveS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "b \<in> above a" and IN2: "c \<in> aboveS b"
 shows "c \<in> aboveS a"
@@ -370,7 +382,7 @@ proof-
   from 1 3 show ?thesis unfolding aboveS_def by simp
 qed
 
-lemma (in rel) aboveS_above_trans:
+lemma aboveS_above_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "b \<in> aboveS a" and IN2: "c \<in> above b"
 shows "c \<in> aboveS a"
@@ -388,7 +400,7 @@ proof-
   from 1 3 show ?thesis unfolding aboveS_def by simp
 qed
 
-lemma (in rel) aboveS_aboveS_trans:
+lemma aboveS_aboveS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "b \<in> aboveS a" and IN2: "c \<in> aboveS b"
 shows "c \<in> aboveS a"
@@ -398,7 +410,22 @@ proof-
   with assms above_aboveS_trans show ?thesis by auto
 qed
 
-lemma (in rel) underS_Under_trans:
+lemma under_Under_trans:
+assumes TRANS: "trans r" and
+        IN1: "a \<in> under b" and IN2: "b \<in> Under C"
+shows "a \<in> Under C"
+proof-
+  have "(a,b) \<in> r \<and> (\<forall>c \<in> C. (b,c) \<in> r)"
+  using IN1 IN2 under_def Under_def by blast
+  hence "\<forall>c \<in> C. (a,c) \<in> r"
+  using TRANS trans_def[of r] by blast
+  moreover
+  have "a \<in> Field r" using IN1 unfolding Field_def under_def by blast
+  ultimately
+  show ?thesis unfolding Under_def by blast
+qed
+
+lemma underS_Under_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> underS b" and IN2: "b \<in> Under C"
 shows "a \<in> UnderS C"
@@ -426,7 +453,7 @@ proof-
   using Under_def by auto
 qed
 
-lemma (in rel) underS_UnderS_trans:
+lemma underS_UnderS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> underS b" and IN2: "b \<in> UnderS C"
 shows "a \<in> UnderS C"
@@ -437,7 +464,7 @@ proof-
   show ?thesis by auto
 qed
 
-lemma (in rel) above_Above_trans:
+lemma above_Above_trans:
 assumes TRANS: "trans r" and
         IN1: "a \<in> above b" and IN2: "b \<in> Above C"
 shows "a \<in> Above C"
@@ -452,7 +479,7 @@ proof-
   show ?thesis unfolding Above_def by auto
 qed
 
-lemma (in rel) aboveS_Above_trans:
+lemma aboveS_Above_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> aboveS b" and IN2: "b \<in> Above C"
 shows "a \<in> AboveS C"
@@ -480,7 +507,7 @@ proof-
   using Above_def by auto
 qed
 
-lemma (in rel) above_AboveS_trans:
+lemma above_AboveS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> above b" and IN2: "b \<in> AboveS C"
 shows "a \<in> AboveS C"
@@ -508,7 +535,7 @@ proof-
   using Above_def by auto
 qed
 
-lemma (in rel) aboveS_AboveS_trans:
+lemma aboveS_AboveS_trans:
 assumes TRANS: "trans r" and ANTISYM: "antisym r" and
         IN1: "a \<in> aboveS b" and IN2: "b \<in> AboveS C"
 shows "a \<in> AboveS C"
@@ -518,6 +545,35 @@ proof-
   with aboveS_Above_trans assms
   show ?thesis by auto
 qed
+
+lemma under_UnderS_trans:
+assumes TRANS: "trans r" and ANTISYM: "antisym r" and
+        IN1: "a \<in> under b" and IN2: "b \<in> UnderS C"
+shows "a \<in> UnderS C"
+proof-
+  from IN2 have "b \<in> Under C"
+  using UnderS_subset_Under[of C] by blast
+  with assms under_Under_trans
+  have "a \<in> Under C" by blast
+  (*  *)
+  moreover
+  have "a \<notin> C"
+  proof
+    assume *: "a \<in> C"
+    have 1: "(a,b) \<in> r"
+    using IN1 under_def[of b] by auto
+    have "\<forall>c \<in> C. b \<noteq> c \<and> (b,c) \<in> r"
+    using IN2 UnderS_def[of C] by blast
+    with * have "b \<noteq> a \<and> (b,a) \<in> r" by blast
+    with 1 ANTISYM antisym_def[of r]
+    show False by blast
+  qed
+  (*  *)
+  ultimately
+  show ?thesis unfolding UnderS_def Under_def by fast
+qed
+
+end  (* context rel *)
 
 
 subsection {* Properties depending on more than one relation  *}

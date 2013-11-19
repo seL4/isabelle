@@ -544,10 +544,10 @@ fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
 
     val fpT_to_C as Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of (hd ctor_iters)));
 
-    fun generate_iter suf (f_Tss, _, fss, xssss) ctor_iter =
+    fun generate_iter pre (f_Tss, _, fss, xssss) ctor_iter =
       let
         val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
-        val b = mk_binding suf;
+        val b = mk_binding pre;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of b, res_T)),
             mk_iter_body ctor_iter fss xssss);
@@ -563,10 +563,10 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
 
     val C_to_fpT as Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
 
-    fun generate_coiter suf ((pfss, cqfsss), (f_sum_prod_Ts, pf_Tss)) dtor_coiter =
+    fun generate_coiter pre ((pfss, cqfsss), (f_sum_prod_Ts, pf_Tss)) dtor_coiter =
       let
         val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
-        val b = mk_binding suf;
+        val b = mk_binding pre;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
             mk_coiter_body cs cpss f_sum_prod_Ts cqfsss dtor_coiter);
@@ -1356,7 +1356,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
             end;
 
-        fun mk_binding suf = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
+        fun mk_binding pre = qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
 
         fun massage_res (((maps_sets_rels, ctr_sugar), co_iter_res), lthy) =
           (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_iter_res), lthy);

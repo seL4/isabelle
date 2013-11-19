@@ -12,10 +12,8 @@ ML_file "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
 
 section {* Setup for Numerals *}
 
-setup {* Predicate_Compile_Data.ignore_consts
-  [@{const_name numeral}, @{const_name neg_numeral}] *}
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name numeral}] *}
 
-setup {* Predicate_Compile_Data.keep_functions
-  [@{const_name numeral}, @{const_name neg_numeral}] *}
+setup {* Predicate_Compile_Data.keep_functions [@{const_name numeral}] *}
 
 end

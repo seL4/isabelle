@@ -1058,6 +1058,34 @@ lemma dvd_if_abs_eq:
   "\<bar>l\<bar> = \<bar>k\<bar> \<Longrightarrow> l dvd k"
 by(subst abs_dvd_iff[symmetric]) simp
 
+text {* The following lemmas can be proven in more generale structures, but
+are dangerous as simp rules in absence of @{thm neg_equal_zero}, 
+@{thm neg_less_pos}, @{thm neg_less_eq_nonneg}. *}
+
+lemma equation_minus_iff_1 [simp, no_atp]:
+  "1 = - a \<longleftrightarrow> a = - 1"
+  by (fact equation_minus_iff)
+
+lemma minus_equation_iff_1 [simp, no_atp]:
+  "- a = 1 \<longleftrightarrow> a = - 1"
+  by (subst minus_equation_iff, auto)
+
+lemma le_minus_iff_1 [simp, no_atp]:
+  "1 \<le> - b \<longleftrightarrow> b \<le> - 1"
+  by (fact le_minus_iff)
+
+lemma minus_le_iff_1 [simp, no_atp]:
+  "- a \<le> 1 \<longleftrightarrow> - 1 \<le> a"
+  by (fact minus_le_iff)
+
+lemma less_minus_iff_1 [simp, no_atp]:
+  "1 < - b \<longleftrightarrow> b < - 1"
+  by (fact less_minus_iff)
+
+lemma minus_less_iff_1 [simp, no_atp]:
+  "- a < 1 \<longleftrightarrow> - 1 < a"
+  by (fact minus_less_iff)
+
 end
 
 text {* Simprules for comparisons where common factors can be cancelled. *}

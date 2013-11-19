@@ -838,9 +838,10 @@ fun run_atp mode name
                     Output.urgent_message "Generating proof text..."
                   else
                     ()
+                val atp_proof = (fn () => termify_atp_proof ctxt pool lifted sym_tab atp_proof)
                 val isar_params =
-                  (debug, verbose, preplay_timeout, isar_compress, isar_try0,
-                   pool, fact_names, lifted, sym_tab, atp_proof, goal)
+                  (debug, verbose, preplay_timeout, isar_compress, isar_try0, fact_names, atp_proof,
+                   goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command ctxt params minimize_command name

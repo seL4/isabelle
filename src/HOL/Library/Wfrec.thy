@@ -48,7 +48,7 @@ apply (rule_tac g = "%x. THE y. wfrec_rel R F x y" in wfrec_rel.wfrecI)
 apply (fast dest!: theI')
 apply (erule wfrec_rel.cases, simp)
 apply (erule allE, erule allE, erule allE, erule mp)
-apply (fast intro: the_equality [symmetric])
+apply (blast intro: the_equality [symmetric])
 done
 
 lemma adm_lemma: "adm_wf R (%f x. F (cut f R x) x)"

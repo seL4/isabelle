@@ -134,6 +134,14 @@ lemma gcd_neg1_int [simp]: "gcd (-x::int) y = gcd x y"
 lemma gcd_neg2_int [simp]: "gcd (x::int) (-y) = gcd x y"
   by (simp add: gcd_int_def)
 
+lemma gcd_neg_numeral_1_int [simp]:
+  "gcd (- numeral n :: int) x = gcd (numeral n) x"
+  by (fact gcd_neg1_int)
+
+lemma gcd_neg_numeral_2_int [simp]:
+  "gcd x (- numeral n :: int) = gcd x (numeral n)"
+  by (fact gcd_neg2_int)
+
 lemma abs_gcd_int[simp]: "abs(gcd (x::int) y) = gcd x y"
 by(simp add: gcd_int_def)
 

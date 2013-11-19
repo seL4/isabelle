@@ -11,8 +11,10 @@ imports
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
-declare powr_numeral[simp]
-declare powr_neg_numeral[simp]
+declare powr_one [simp]
+declare powr_numeral [simp]
+declare powr_neg_one [simp]
+declare powr_neg_numeral [simp]
 
 section "Horner Scheme"
 
@@ -1261,8 +1263,8 @@ proof ((rule allI | rule impI | erule conjE) +)
         unfolding cos_periodic_int ..
       also have "\<dots> \<le> cos ((?ux - 2 * ?lpi))"
         using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
-        by (simp only: minus_float.rep_eq real_of_int_minus real_of_one minus_one[symmetric]
-            mult_minus_left mult_1_left) simp
+        by (simp only: minus_float.rep_eq real_of_int_minus real_of_one
+          mult_minus_left mult_1_left) simp
       also have "\<dots> = cos ((- (?ux - 2 * ?lpi)))"
         unfolding uminus_float.rep_eq cos_minus ..
       also have "\<dots> \<le> (ub_cos prec (- (?ux - 2 * ?lpi)))"
@@ -1306,7 +1308,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos ((?lx + 2 * ?lpi))"
         using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
         by (simp only: minus_float.rep_eq real_of_int_minus real_of_one
-          minus_one[symmetric] mult_minus_left mult_1_left) simp
+          mult_minus_left mult_1_left) simp
       also have "\<dots> \<le> (ub_cos prec (?lx + 2 * ?lpi))"
         using lb_cos[OF lx_0 pi_lx] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
@@ -2104,8 +2106,9 @@ lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln
 lemma interpret_floatarith_num:
   shows "interpret_floatarith (Num (Float 0 0)) vs = 0"
   and "interpret_floatarith (Num (Float 1 0)) vs = 1"
+  and "interpret_floatarith (Num (Float (- 1) 0)) vs = - 1"
   and "interpret_floatarith (Num (Float (numeral a) 0)) vs = numeral a"
-  and "interpret_floatarith (Num (Float (neg_numeral a) 0)) vs = neg_numeral a" by auto
+  and "interpret_floatarith (Num (Float (- numeral a) 0)) vs = - numeral a" by auto
 
 subsection "Implement approximation function"
 

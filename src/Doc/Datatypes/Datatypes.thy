@@ -350,7 +350,7 @@ function, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
 @{text tl}, @{text set}, @{text map}, and @{text list_all2}, override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
-@{text list_set}, @{text list_map}, and @{text list_rel}:
+@{text set_list}, @{text map_list}, and @{text rel_list}:
 *}
 
 (*<*)
@@ -363,7 +363,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
       Cons (infixr "#" 65)
 
     hide_type list
-    hide_const Nil Cons hd tl set map list_all2 list_case list_rec
+    hide_const Nil Cons hd tl set map list_all2
 
     context early begin
 (*>*)
@@ -501,7 +501,7 @@ denotes the usual parenthesized mixfix notation. They are documented in the Isar
 reference manual \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text t_set1}, \ldots, @{text t_setM}).
+names of the set functions (@{text set1_t}, \ldots, @{text setM_t}).
 Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
@@ -626,7 +626,7 @@ following auxiliary constants are introduced:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Case combinator}: @{text t_case} (rendered using the familiar
+\item \relax{Case combinator}: @{text t.case_t} (rendered using the familiar
 @{text case}--@{text of} syntax)
 
 \item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
@@ -638,22 +638,22 @@ following auxiliary constants are introduced:
 \phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
 
 \item \relax{Set functions} (or \relax{natural transformations}):
-@{text t_set1}, \ldots, @{text t_setm}
+@{text set1_t}, \ldots, @{text t.setm_t}
 
-\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
+\item \relax{Map function} (or \relax{functorial action}): @{text t.map_t}
 
-\item \relax{Relator}: @{text t_rel}
+\item \relax{Relator}: @{text t.rel_t}
 
-\item \relax{Iterator}: @{text t_fold}
+\item \relax{Iterator}: @{text t.fold_t}
 
-\item \relax{Recursor}: @{text t_rec}
+\item \relax{Recursor}: @{text t.rec_t}
 
 \end{itemize}
 
 \noindent
 The case combinator, discriminators, and selectors are collectively called
 \emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
-name and is normally hidden.
+names and is normally hidden.
 *}
 
 
@@ -810,8 +810,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{sel\_split\_asm}\rm:] ~ \\
 @{thm list.sel_split_asm[no_vars]}
 
-\item[@{text "t."}\hthm{case\_if}\rm:] ~ \\
-@{thm list.case_if[no_vars]}
+\item[@{text "t."}\hthm{case\_eq\_if}\rm:] ~ \\
+@{thm list.case_eq_if[no_vars]}
 
 \end{description}
 \end{indentblock}
@@ -914,7 +914,10 @@ interfaces. Little has been done so far in this direction. Whenever possible, it
 is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
-\item \emph{The recursor @{text "t_rec"} has a different signature for nested
+\item \emph{The constants @{text "t_case"} and @{text "t_rec"} are now called
+@{text "case_t"} and @{text "rec_t"}.
+
+\item \emph{The recursor @{text "rec_t"} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
 was internally reduced to mutual recursion. This reduction was visible in the
 type of the recursor, used by \keyw{primrec}. Recursion through functions was
@@ -1150,13 +1153,13 @@ text {*
 \noindent
 The next example features recursion through the @{text option} type. Although
 @{text option} is not a new-style datatype, it is registered as a BNF with the
-map function @{const option_map}:
+map function @{const map_option}:
 *}
 
     primrec_new (*<*)(in early) (*>*)sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
-         a + the_default 0 (option_map sum_btree lt) +
-           the_default 0 (option_map sum_btree rt)"
+         a + the_default 0 (map_option sum_btree lt) +
+           the_default 0 (map_option sum_btree rt)"
 
 text {*
 \noindent
@@ -1552,9 +1555,9 @@ iterator and the recursor are replaced by dual concepts:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Coiterator}: @{text t_unfold}
+\item \relax{Coiterator}: @{text unfold_t}
 
-\item \relax{Corecursor}: @{text t_corec}
+\item \relax{Corecursor}: @{text corec_t}
 
 \end{itemize}
 *}

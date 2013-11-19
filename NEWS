@@ -18,6 +18,14 @@ INCOMPATIBILITY.
     even_zero_(nat|int) ~> even_zero
 INCOMPATIBILITY.
 
+* Abolished neg_numeral.
+  * Canonical representation for minus one is "- 1".
+  * Canonical representation for other negative numbers is "- (numeral _)".
+  * When devising rules set for number calculation, consider the
+    following cases: 0, 1, numeral _, - 1, - numeral _.
+  * Syntax for negative numerals is mere input syntax.
+INCOMPATBILITY.
+
 * Elimination of fact duplicates:
     equals_zero_I ~> minus_unique
     diff_eq_0_iff_eq ~> right_minus_eq

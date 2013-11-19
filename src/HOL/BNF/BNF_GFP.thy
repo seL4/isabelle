@@ -15,14 +15,22 @@ keywords
   "primcorec" :: thy_decl
 begin
 
+lemma not_TrueE: "\<not> True \<Longrightarrow> P"
+by (erule notE, rule TrueI)
+
+lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
+by fast
+
 lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"
 by (auto split: sum.splits)
 
 lemma sum_case_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> sum_case g h = f"
-by (metis sum_case_o_inj(1,2) surjective_sum)
+apply rule
+ apply (rule ext, force split: sum.split)
+by (rule ext, metis sum_case_o_inj(2))
 
 lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
-by auto
+by fast
 
 lemma equiv_proj:
   assumes e: "equiv A R" and "z \<in> R"
@@ -36,7 +44,6 @@ qed
 
 (* Operators: *)
 definition image2 where "image2 A f g = {(f a, g a) | a. a \<in> A}"
-
 
 lemma Id_onD: "(a, b) \<in> Id_on A \<Longrightarrow> a = b"
 unfolding Id_on_def by simp
@@ -56,9 +63,6 @@ unfolding Id_on_def by auto
 lemma Id_on_Gr: "Id_on A = Gr A id"
 unfolding Id_on_def Gr_def by auto
 
-lemma Id_on_UNIV_I: "x = y \<Longrightarrow> (x, y) \<in> Id_on UNIV"
-unfolding Id_on_def by auto
-
 lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarrow> (b, c) \<in> image2 A f g"
 unfolding image2_def by auto
 
@@ -76,6 +80,12 @@ unfolding Gr_def by simp
 
 lemma Gr_incl: "Gr A f \<subseteq> A <*> B \<longleftrightarrow> f ` A \<subseteq> B"
 unfolding Gr_def by auto
+
+lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
+by blast
+
+lemma subset_CollectI: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> Q x \<Longrightarrow> P x) \<Longrightarrow> ({x \<in> B. Q x} \<subseteq> {x \<in> A. P x})"
+by blast
 
 lemma in_rel_Collect_split_eq: "in_rel (Collect (split X)) = X"
 unfolding fun_eq_iff by auto
@@ -130,9 +140,6 @@ lemma relInvImage_UNIV_relImage:
 "R \<subseteq> relInvImage UNIV (relImage R f) f"
 unfolding relInvImage_def relImage_def by auto
 
-lemma equiv_Image: "equiv A R \<Longrightarrow> (\<And>a b. (a, b) \<in> R \<Longrightarrow> a \<in> A \<and> b \<in> A \<and> R `` {a} = R `` {b})"
-unfolding equiv_def refl_on_def Image_def by (auto intro: transD symD)
-
 lemma relImage_proj:
 assumes "equiv A R"
 shows "relImage R (proj R) \<subseteq> Id_on (A//R)"
@@ -143,7 +150,7 @@ by (auto simp: proj_preserves)
 lemma relImage_relInvImage:
 assumes "R \<subseteq> f ` A <*> f ` A"
 shows "relImage (relInvImage A R f) f = R"
-using assms unfolding relImage_def relInvImage_def by fastforce
+using assms unfolding relImage_def relInvImage_def by fast
 
 lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
 by simp
@@ -255,13 +262,18 @@ assumes "wpull A B1 B2 f1 f2 p1 p2" and
 shows "\<exists> a. a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
 using assms unfolding wpull_def by blast
 
-lemma pickWP:
+lemma pickWP_raw:
 assumes "wpull A B1 B2 f1 f2 p1 p2" and
 "b1 \<in> B1" and "b2 \<in> B2" and "f1 b1 = f2 b2"
-shows "pickWP A p1 p2 b1 b2 \<in> A"
-      "p1 (pickWP A p1 p2 b1 b2) = b1"
-      "p2 (pickWP A p1 p2 b1 b2) = b2"
-unfolding pickWP_def using assms someI_ex[OF pickWP_pred] by fastforce+
+shows "pickWP A p1 p2 b1 b2 \<in> A
+       \<and> p1 (pickWP A p1 p2 b1 b2) = b1
+       \<and> p2 (pickWP A p1 p2 b1 b2) = b2"
+unfolding pickWP_def using assms someI_ex[OF pickWP_pred] by fastforce
+
+lemmas pickWP =
+  pickWP_raw[THEN conjunct1]
+  pickWP_raw[THEN conjunct2, THEN conjunct1]
+  pickWP_raw[THEN conjunct2, THEN conjunct2]
 
 lemma Inl_Field_csum: "a \<in> Field r \<Longrightarrow> Inl a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
@@ -293,17 +305,11 @@ definition image2p where
 lemma image2pI: "R x y \<Longrightarrow> (image2p f g R) (f x) (g y)"
   unfolding image2p_def by blast
 
-lemma image2p_eqI: "\<lbrakk>fx = f x; gy = g y; R x y\<rbrakk> \<Longrightarrow> (image2p f g R) fx gy"
-  unfolding image2p_def by blast
-
 lemma image2pE: "\<lbrakk>(image2p f g R) fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
   unfolding image2p_def by blast
 
 lemma fun_rel_iff_geq_image2p: "(fun_rel R S) f g = (image2p f g R \<le> S)"
   unfolding fun_rel_def image2p_def by auto
-
-lemma convol_image_image2p: "<f o fst, g o snd> ` Collect (split R) \<subseteq> Collect (split (image2p f g R))"
-  unfolding convol_def image2p_def by fastforce
 
 lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
   unfolding fun_rel_def image2p_def by auto

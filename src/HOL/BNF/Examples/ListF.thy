@@ -62,7 +62,7 @@ lemma nthh_listF_map[simp]:
   "i < lengthh xs \<Longrightarrow> nthh (mapF f xs) i = f (nthh xs i)"
   by (induct rule: nthh.induct) auto
 
-lemma nthh_listF_set[simp]: "i < lengthh xs \<Longrightarrow> nthh xs i \<in> listF_set xs"
+lemma nthh_listF_set[simp]: "i < lengthh xs \<Longrightarrow> nthh xs i \<in> set_listF xs"
   by (induct rule: nthh.induct) auto
 
 lemma NilF_iff[iff]: "(lengthh xs = 0) = (xs = NilF)"
@@ -105,7 +105,7 @@ using assms proof (induct arbitrary: i rule: listF_induct2)
 qed simp
 
 lemma list_set_nthh[simp]:
-  "(x \<in> listF_set xs) \<Longrightarrow> (\<exists>i < lengthh xs. nthh xs i = x)"
+  "(x \<in> set_listF xs) \<Longrightarrow> (\<exists>i < lengthh xs. nthh xs i = x)"
   by (induct xs) (auto, induct rule: nthh.induct, auto)
 
 end

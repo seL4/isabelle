@@ -7,14 +7,14 @@ Isar proof reconstruction from ATP proofs.
 
 signature SLEDGEHAMMER_RECONSTRUCT =
 sig
+  type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
   type stature = ATP_Problem_Generate.stature
-  type one_line_params = Sledgehammer_Print.one_line_params
+  type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   type isar_params =
-    bool * bool * Time.time option * real * bool * string Symtab.table
-    * (string * stature) list vector * (string * term) list * int Symtab.table
-    * string atp_proof * thm
+    bool * bool * Time.time option * real * bool * (string * stature) list vector
+    * (unit -> (term, string) atp_step list) * thm
 
   val lam_trans_of_atp_proof : string atp_proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
@@ -24,6 +24,9 @@ sig
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * stature) list vector -> 'a atp_proof ->
     string list option
+  val termify_atp_proof :
+    Proof.context -> string Symtab.table -> (string * term) list ->
+    int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
@@ -407,14 +410,19 @@ val chain_direct_proof =
     and chain_proofs proofs = map (chain_proof) proofs
   in chain_proof end
 
+fun termify_atp_proof ctxt pool lifted sym_tab =
+  clean_up_atp_proof_dependencies
+  #> nasty_atp_proof pool
+  #> map_term_names_in_atp_proof repair_name
+  #> map (decode_line ctxt lifted sym_tab)
+  #> repair_waldmeister_endgame
+
 type isar_params =
-  bool * bool * Time.time option * real * bool * string Symtab.table
-  * (string * stature) list vector * (string * term) list * int Symtab.table
-  * string atp_proof * thm
+  bool * bool * Time.time option * real * bool * (string * stature) list vector
+  * (unit -> (term, string) atp_step list) * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, isar_compress, isar_try0, pool,
-     fact_names, lifted, sym_tab, atp_proof, goal)
+    (debug, verbose, preplay_timeout, isar_compress, isar_try0, fact_names, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -425,6 +433,7 @@ fun isar_proof_text ctxt isar_proofs
              ctxt |> Variable.set_body false
                   |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
+    val atp_proof = atp_proof ()
     val type_enc =
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
@@ -435,11 +444,6 @@ fun isar_proof_text ctxt isar_proofs
       let
         val atp_proof =
           atp_proof
-          |> clean_up_atp_proof_dependencies
-          |> nasty_atp_proof pool
-          |> map_term_names_in_atp_proof repair_name
-          |> map (decode_line ctxt lifted sym_tab)
-          |> repair_waldmeister_endgame
           |> rpair [] |-> fold_rev (add_line fact_names)
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])

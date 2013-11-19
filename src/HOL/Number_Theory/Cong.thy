@@ -323,8 +323,6 @@ lemma cong_square_int:
     \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
   apply (simp only: cong_altdef_int)
   apply (subst prime_dvd_mult_eq_int [symmetric], assumption)
-  (* any way around this? *)
-  apply (subgoal_tac "a * a - 1 = (a - 1) * (a - -1)")
   apply (auto simp add: field_simps)
   done
 
@@ -665,7 +663,6 @@ lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x
   apply auto
   apply (cases "n \<ge> 0")
   apply auto
-  apply (subst cong_int_def, auto)
   apply (frule cong_solve_int [of a n])
   apply auto
   done

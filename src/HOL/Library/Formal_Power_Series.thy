@@ -384,8 +384,8 @@ lemma numeral_fps_const: "numeral k = fps_const (numeral k)"
   by (induct k) (simp_all only: numeral.simps fps_const_1_eq_1
     fps_const_add [symmetric])
 
-lemma neg_numeral_fps_const: "neg_numeral k = fps_const (neg_numeral k)"
-  by (simp only: neg_numeral_def numeral_fps_const fps_const_neg)
+lemma neg_numeral_fps_const: "- numeral k = fps_const (- numeral k)"
+  by (simp only: numeral_fps_const fps_const_neg)
 
 subsection{* The eXtractor series X*}
 
@@ -1202,7 +1202,7 @@ proof-
   have eq: "(1 + X) * ?r = 1"
     unfolding minus_one_power_iff
     by (auto simp add: field_simps fps_eq_iff)
-  show ?thesis by (auto simp add: eq intro: fps_inverse_unique simp del: minus_one)
+  show ?thesis by (auto simp add: eq intro: fps_inverse_unique)
 qed
 
 
@@ -1245,7 +1245,7 @@ lemma fps_const_compose[simp]:
 lemma numeral_compose[simp]: "(numeral k::('a::{comm_ring_1}) fps) oo b = numeral k"
   unfolding numeral_fps_const by simp
 
-lemma neg_numeral_compose[simp]: "(neg_numeral k::('a::{comm_ring_1}) fps) oo b = neg_numeral k"
+lemma neg_numeral_compose[simp]: "(- numeral k::('a::{comm_ring_1}) fps) oo b = - numeral k"
   unfolding neg_numeral_fps_const by simp
 
 lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: ('a :: comm_ring_1) fps)"
@@ -2363,7 +2363,7 @@ proof -
       next
         case (Suc n1)
         have "?i $ n = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
-          by (simp add: fps_compose_nth Suc startsby_zero_power_nth_same[OF a0] del: power_Suc)
+          by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
         also have "\<dots> = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} +
           (X$ Suc n1 - setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
           using a0 a1 Suc by (simp add: fps_inv_def)
@@ -2404,7 +2404,7 @@ proof -
       next
         case (Suc n1)
         have "?i $ n = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
-          by (simp add: fps_compose_nth Suc startsby_zero_power_nth_same[OF a0] del: power_Suc)
+          by (simp only: fps_compose_nth) (simp add: Suc startsby_zero_power_nth_same [OF a0] del: power_Suc)
         also have "\<dots> = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} +
           (b$ Suc n1 - setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
           using a0 a1 Suc by (simp add: fps_ginv_def)
@@ -2564,9 +2564,9 @@ lemma fps_compose_mult_distrib_lemma:
 
 
 lemma fps_compose_mult_distrib:
-  assumes c0: "c$0 = (0::'a::idom)"
-  shows "(a * b) oo c = (a oo c) * (b oo c)" (is "?l = ?r")
-  apply (simp add: fps_eq_iff fps_compose_mult_distrib_lemma[OF c0])
+  assumes c0: "c $ 0 = (0::'a::idom)"
+  shows "(a * b) oo c = (a oo c) * (b oo c)"
+  apply (simp add: fps_eq_iff fps_compose_mult_distrib_lemma [OF c0])
   apply (simp add: fps_compose_nth fps_mult_nth setsum_left_distrib)
   done
 
@@ -2941,7 +2941,7 @@ lemma inverse_one_plus_X:
   (is "inverse ?l = ?r")
 proof -
   have th: "?l * ?r = 1"
-    by (auto simp add: field_simps fps_eq_iff minus_one_power_iff simp del: minus_one)
+    by (auto simp add: field_simps fps_eq_iff minus_one_power_iff)
   have th': "?l $ 0 \<noteq> 0" by (simp add: )
   from fps_inverse_unique[OF th' th] show ?thesis .
 qed
@@ -3165,7 +3165,7 @@ proof-
   have th: "?r$0 \<noteq> 0" by simp
   have th': "fps_deriv (inverse ?r) = fps_const (- 1) * inverse ?r / (1 + X)"
     by (simp add: fps_inverse_deriv[OF th] fps_divide_def
-      power2_eq_square mult_commute fps_const_neg[symmetric] del: fps_const_neg minus_one)
+      power2_eq_square mult_commute fps_const_neg[symmetric] del: fps_const_neg)
   have eq: "inverse ?r $ 0 = 1"
     by (simp add: fps_inverse_def)
   from iffD1[OF fps_binomial_ODE_unique[of "inverse (1 + X)" "- 1"] th'] eq
@@ -3276,7 +3276,7 @@ proof -
         have th1: "(?m1 k * ?p (of_nat n) k) / ?f n = 1 / of_nat(fact (n - k))"
           unfolding m1nk
           unfolding m h pochhammer_Suc_setprod
-          apply (simp add: field_simps del: fact_Suc minus_one)
+          apply (simp add: field_simps del: fact_Suc)
           unfolding fact_altdef_nat id_def
           unfolding of_nat_setprod
           unfolding setprod_timesf[symmetric]
@@ -3593,7 +3593,7 @@ proof -
         unfolding even_mult_two_ex by blast
 
       have "?l $n = ?r$n"
-        by (simp add: m fps_sin_def fps_cos_def power_mult_distrib power_mult power_minus)
+        by (simp add: m fps_sin_def fps_cos_def power_mult_distrib power_mult power_minus [of "c ^ 2"])
     }
     moreover
     {
@@ -3602,7 +3602,7 @@ proof -
         unfolding odd_nat_equiv_def2 by (auto simp add: mult_2)
       have "?l $n = ?r$n"
         by (simp add: m fps_sin_def fps_cos_def power_mult_distrib
-          power_mult power_minus)
+          power_mult power_minus [of "c ^ 2"])
     }
     ultimately have "?l $n = ?r$n"  by blast
   } then show ?thesis by (simp add: fps_eq_iff)

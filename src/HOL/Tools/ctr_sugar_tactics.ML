@@ -18,8 +18,8 @@ sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_tac: Proof.context -> int -> int -> thm -> thm list -> thm list list -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_case_if_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
-    tactic
+  val mk_case_eq_if_tac: Proof.context -> int -> thm -> thm list -> thm list list ->
+    thm list list -> tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
   val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
@@ -28,8 +28,8 @@ sig
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
   val mk_sel_exhaust_tac: int -> thm -> thm list -> tactic
-  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list -> thm list
-    list list -> tactic
+  val mk_split_tac: Proof.context -> thm -> thm list -> thm list list -> thm list list ->
+    thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
@@ -143,16 +143,16 @@ fun mk_case_tac ctxt n k case_def injects distinctss =
          else mk_case_distinct_ctrs_tac ctxt distincts)) ks distinctss))
   end;
 
-fun mk_case_if_tac ctxt n uexhaust cases discss' selss =
+fun mk_case_cong_tac ctxt uexhaust cases =
+  HEADGOAL (rtac uexhaust THEN'
+    EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases));
+
+fun mk_case_eq_if_tac ctxt n uexhaust cases discss' selss =
   HEADGOAL (rtac uexhaust THEN'
     EVERY' (map3 (fn casex => fn if_discs => fn sels =>
         EVERY' [hyp_subst_tac ctxt, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)),
           rtac casex])
       cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss));
-
-fun mk_case_cong_tac ctxt uexhaust cases =
-  HEADGOAL (rtac uexhaust THEN'
-    EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases));
 
 fun mk_split_tac ctxt uexhaust cases selss injectss distinctsss =
   HEADGOAL (rtac uexhaust) THEN
@@ -169,4 +169,4 @@ fun mk_split_asm_tac ctxt split =
 
 end;
 
-structure Ctr_Sugar_General_Tactics: CTR_SUGAR_GENERAL_TACTICS = Ctr_Sugar_Tactics;
+structure Ctr_Sugar_General_Tactics : CTR_SUGAR_GENERAL_TACTICS = Ctr_Sugar_Tactics;

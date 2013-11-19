@@ -1,13 +1,13 @@
-(*  Title:      HOL/Cardinals/Fun_More_Base.thy
+(*  Title:      HOL/Cardinals/Fun_More_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-More on injections, bijections and inverses (base).
+More on injections, bijections and inverses (FP).
 *)
 
-header {* More on Injections, Bijections and Inverses (Base) *}
+header {* More on Injections, Bijections and Inverses (FP) *}
 
-theory Fun_More_Base
+theory Fun_More_FP
 imports "~~/src/HOL/Library/Infinite_Set"
 begin
 
@@ -210,19 +210,6 @@ shows "f(inv_into A f a') = a'"
 using assms unfolding bij_betw_def using f_inv_into_f by force
 
 
-(*1*)lemma bij_betw_inv_into_LEFT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
-shows "(inv_into A f)`(f ` B) = B"
-using assms unfolding bij_betw_def using inv_into_image_cancel by force
-
-
-(*1*)lemma bij_betw_inv_into_LEFT_RIGHT:
-assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A" and
-        IM: "f ` B = B'"
-shows "(inv_into A f) ` B' = B"
-using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
-
-
 (*1*)lemma bij_betw_inv_into_subset:
 assumes BIJ: "bij_betw f A A'" and
         SUB: "B \<le> A" and IM: "f ` B = B'"
@@ -245,7 +232,7 @@ shows "m \<le> n"
 using assms
 using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
       card_atLeastLessThan[of m] card_atLeastLessThan[of n]
-      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by auto
+      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by fastforce
 
 
 

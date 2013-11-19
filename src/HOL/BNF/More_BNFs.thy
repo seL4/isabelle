@@ -909,18 +909,18 @@ bnf "'a multiset"
 by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
   intro: mmap_cong wpull_mmap)
 
-inductive multiset_rel' where
-Zero: "multiset_rel' R {#} {#}"
+inductive rel_multiset' where
+Zero: "rel_multiset' R {#} {#}"
 |
-Plus: "\<lbrakk>R a b; multiset_rel' R M N\<rbrakk> \<Longrightarrow> multiset_rel' R (M + {#a#}) (N + {#b#})"
+Plus: "\<lbrakk>R a b; rel_multiset' R M N\<rbrakk> \<Longrightarrow> rel_multiset' R (M + {#a#}) (N + {#b#})"
 
-lemma multiset_map_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
+lemma map_multiset_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
 by (metis image_is_empty multiset.set_map set_of_eq_empty_iff)
 
-lemma multiset_map_Zero[simp]: "mmap f {#} = {#}" by simp
+lemma map_multiset_Zero[simp]: "mmap f {#} = {#}" by simp
 
-lemma multiset_rel_Zero: "multiset_rel R {#} {#}"
-unfolding multiset_rel_def Grp_def by auto
+lemma rel_multiset_Zero: "rel_multiset R {#} {#}"
+unfolding rel_multiset_def Grp_def by auto
 
 declare multiset.count[simp]
 declare Abs_multiset_inverse[simp]
@@ -928,7 +928,7 @@ declare multiset.count_inverse[simp]
 declare union_preserves_multiset[simp]
 
 
-lemma multiset_map_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
+lemma map_multiset_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
 proof (intro multiset_eqI, transfer fixing: f)
   fix x :: 'a and M1 M2 :: "'b \<Rightarrow> nat"
   assume "M1 \<in> multiset" "M2 \<in> multiset"
@@ -941,12 +941,12 @@ proof (intro multiset_eqI, transfer fixing: f)
     by (auto simp: setsum.distrib[symmetric])
 qed
 
-lemma multiset_map_singl[simp]: "mmap f {#a#} = {#f a#}"
+lemma map_multiset_singl[simp]: "mmap f {#a#} = {#f a#}"
   by transfer auto
 
-lemma multiset_rel_Plus:
-assumes ab: "R a b" and MN: "multiset_rel R M N"
-shows "multiset_rel R (M + {#a#}) (N + {#b#})"
+lemma rel_multiset_Plus:
+assumes ab: "R a b" and MN: "rel_multiset R M N"
+shows "rel_multiset R (M + {#a#}) (N + {#b#})"
 proof-
   {fix y assume "R a b" and "set_of y \<subseteq> {(x, y). R x y}"
    hence "\<exists>ya. mmap fst y + {#a#} = mmap fst ya \<and>
@@ -956,13 +956,13 @@ proof-
   }
   thus ?thesis
   using assms
-  unfolding multiset_rel_def Grp_def by force
+  unfolding rel_multiset_def Grp_def by force
 qed
 
-lemma multiset_rel'_imp_multiset_rel:
-"multiset_rel' R M N \<Longrightarrow> multiset_rel R M N"
-apply(induct rule: multiset_rel'.induct)
-using multiset_rel_Zero multiset_rel_Plus by auto
+lemma rel_multiset'_imp_rel_multiset:
+"rel_multiset' R M N \<Longrightarrow> rel_multiset R M N"
+apply(induct rule: rel_multiset'.induct)
+using rel_multiset_Zero rel_multiset_Plus by auto
 
 lemma mcard_mmap[simp]: "mcard (mmap f M) = mcard M"
 proof -
@@ -973,8 +973,7 @@ proof -
   using finite_Collect_mem .
   ultimately have fin: "finite {b. \<exists>a. f a = b \<and> a \<in># M}" by(rule finite_subset)
   have i: "inj_on A ?B" unfolding inj_on_def A_def apply clarsimp
-  by (metis (lifting, mono_tags) mem_Collect_eq rel_simps(54)
-                                 setsum_gt_0_iff setsum_infinite)
+    by (metis (lifting, full_types) mem_Collect_eq neq0_conv setsum.neutral)
   have 0: "\<And> b. 0 < setsum (count M) (A b) \<longleftrightarrow> (\<exists> a \<in> A b. count M a > 0)"
   apply safe
     apply (metis less_not_refl setsum_gt_0_iff setsum_infinite)
@@ -995,10 +994,10 @@ proof -
   then show ?thesis unfolding mcard_unfold_setsum A_def by transfer
 qed
 
-lemma multiset_rel_mcard:
-assumes "multiset_rel R M N"
+lemma rel_multiset_mcard:
+assumes "rel_multiset R M N"
 shows "mcard M = mcard N"
-using assms unfolding multiset_rel_def Grp_def by auto
+using assms unfolding rel_multiset_def Grp_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
 assumes empty: "P {#} {#}"
@@ -1053,67 +1052,67 @@ proof-
 qed
 
 lemma msed_rel_invL:
-assumes "multiset_rel R (M + {#a#}) N"
-shows "\<exists> N1 b. N = N1 + {#b#} \<and> R a b \<and> multiset_rel R M N1"
+assumes "rel_multiset R (M + {#a#}) N"
+shows "\<exists> N1 b. N = N1 + {#b#} \<and> R a b \<and> rel_multiset R M N1"
 proof-
   obtain K where KM: "mmap fst K = M + {#a#}"
   and KN: "mmap snd K = N" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_rel_def Grp_def by auto
+  unfolding rel_multiset_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and a: "fst ab = a"
   and K1M: "mmap fst K1 = M" using msed_map_invR[OF KM] by auto
   obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "mmap snd K1 = N1"
   using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
-  have "multiset_rel R M N1" using sK K1M K1N1
-  unfolding K multiset_rel_def Grp_def by auto
+  have "rel_multiset R M N1" using sK K1M K1N1
+  unfolding K rel_multiset_def Grp_def by auto
   thus ?thesis using N Rab by auto
 qed
 
 lemma msed_rel_invR:
-assumes "multiset_rel R M (N + {#b#})"
-shows "\<exists> M1 a. M = M1 + {#a#} \<and> R a b \<and> multiset_rel R M1 N"
+assumes "rel_multiset R M (N + {#b#})"
+shows "\<exists> M1 a. M = M1 + {#a#} \<and> R a b \<and> rel_multiset R M1 N"
 proof-
   obtain K where KN: "mmap snd K = N + {#b#}"
   and KM: "mmap fst K = M" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_rel_def Grp_def by auto
+  unfolding rel_multiset_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and b: "snd ab = b"
   and K1N: "mmap snd K1 = N" using msed_map_invR[OF KN] by auto
   obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "mmap fst K1 = M1"
   using msed_map_invL[OF KM[unfolded K]] by auto
   have Rab: "R (fst ab) b" using sK b unfolding K by auto
-  have "multiset_rel R M1 N" using sK K1N K1M1
-  unfolding K multiset_rel_def Grp_def by auto
+  have "rel_multiset R M1 N" using sK K1N K1M1
+  unfolding K rel_multiset_def Grp_def by auto
   thus ?thesis using M Rab by auto
 qed
 
-lemma multiset_rel_imp_multiset_rel':
-assumes "multiset_rel R M N"
-shows "multiset_rel' R M N"
+lemma rel_multiset_imp_rel_multiset':
+assumes "rel_multiset R M N"
+shows "rel_multiset' R M N"
 using assms proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
   case (less M)
-  have c: "mcard M = mcard N" using multiset_rel_mcard[OF less.prems] .
+  have c: "mcard M = mcard N" using rel_multiset_mcard[OF less.prems] .
   show ?case
   proof(cases "M = {#}")
     case True hence "N = {#}" using c by simp
-    thus ?thesis using True multiset_rel'.Zero by auto
+    thus ?thesis using True rel_multiset'.Zero by auto
   next
     case False then obtain M1 a where M: "M = M1 + {#a#}" by (metis multi_nonempty_split)
-    obtain N1 b where N: "N = N1 + {#b#}" and R: "R a b" and ms: "multiset_rel R M1 N1"
+    obtain N1 b where N: "N = N1 + {#b#}" and R: "R a b" and ms: "rel_multiset R M1 N1"
     using msed_rel_invL[OF less.prems[unfolded M]] by auto
-    have "multiset_rel' R M1 N1" using less.hyps[of M1 N1] ms unfolding M by simp
-    thus ?thesis using multiset_rel'.Plus[of R a b, OF R] unfolding M N by simp
+    have "rel_multiset' R M1 N1" using less.hyps[of M1 N1] ms unfolding M by simp
+    thus ?thesis using rel_multiset'.Plus[of R a b, OF R] unfolding M N by simp
   qed
 qed
 
-lemma multiset_rel_multiset_rel':
-"multiset_rel R M N = multiset_rel' R M N"
-using  multiset_rel_imp_multiset_rel' multiset_rel'_imp_multiset_rel by auto
+lemma rel_multiset_rel_multiset':
+"rel_multiset R M N = rel_multiset' R M N"
+using  rel_multiset_imp_rel_multiset' rel_multiset'_imp_rel_multiset by auto
 
-(* The main end product for multiset_rel: inductive characterization *)
-theorems multiset_rel_induct[case_names empty add, induct pred: multiset_rel] =
-         multiset_rel'.induct[unfolded multiset_rel_multiset_rel'[symmetric]]
+(* The main end product for rel_multiset: inductive characterization *)
+theorems rel_multiset_induct[case_names empty add, induct pred: rel_multiset] =
+         rel_multiset'.induct[unfolded rel_multiset_rel_multiset'[symmetric]]
 
 
 
@@ -1183,6 +1182,5 @@ next
     qed
   qed
 qed
-
 
 end
