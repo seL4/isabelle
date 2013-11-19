@@ -89,9 +89,9 @@ fun resolve_files blobs toks =
   (case Thy_Syntax.parse_spans toks of
     [span] => span
       |> Thy_Syntax.resolve_files (fn _ => fn (path, pos) =>
-        blobs |> map (Exn.release #> (fn (file, text) =>
+        blobs |> (map o Exn.map_result) (fn (file, text) =>
           let val _ = Position.report pos (Markup.path file);
-          in {src_path = path (* FIXME *), text = text, pos = Position.file file} end)))
+          in {src_path = path (* FIXME *), text = text, pos = Position.file file} end))
       |> Thy_Syntax.span_content
   | _ => toks);
 

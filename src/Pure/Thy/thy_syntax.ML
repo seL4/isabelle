@@ -15,7 +15,7 @@ sig
   val span_content: span -> Token.T list
   val present_span: span -> Output.output
   val parse_spans: Token.T list -> span list
-  val resolve_files: (string -> Path.T * Position.T -> Token.file list) -> span -> span
+  val resolve_files: (string -> Path.T * Position.T -> Token.file Exn.result list) -> span -> span
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
   val map_element: ('a -> 'b) -> 'a element -> 'b element

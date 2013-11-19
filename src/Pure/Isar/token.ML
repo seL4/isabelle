@@ -13,7 +13,7 @@ sig
   type file = {src_path: Path.T, text: string, pos: Position.T}
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
-    Attribute of morphism -> attribute | Files of file list
+    Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
   val position_of: T -> Position.T
@@ -46,8 +46,8 @@ sig
   val content_of: T -> string
   val unparse: T -> string
   val text_of: T -> string * string
-  val get_files: T -> file list
-  val put_files: file list -> T -> T
+  val get_files: T -> file Exn.result list
+  val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
   val mk_text: string -> T
@@ -88,7 +88,7 @@ datatype value =
   Term of term |
   Fact of thm list |
   Attribute of morphism -> attribute |
-  Files of file list;
+  Files of file Exn.result list;
 
 datatype slot =
   Slot |

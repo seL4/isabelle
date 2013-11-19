@@ -76,7 +76,7 @@ fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
       [] => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)
-    | files => files));
+    | files => map Exn.release files));
 
 
 (* theory files *)
@@ -170,7 +170,9 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val lexs = Keyword.get_lexicons ();
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans = map (Thy_Syntax.resolve_files (read_files master_dir)) (Thy_Syntax.parse_spans toks);
+    val spans =
+      map (Thy_Syntax.resolve_files (map Exn.Res oo read_files master_dir))
+        (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
     fun init () =
