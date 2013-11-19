@@ -47,18 +47,10 @@ structure String_Redirect = ATP_Proof_Redirect(
 
 open String_Redirect
 
-val assume_prefix = "a"
-val have_prefix = "f"
-val raw_prefix = "x"
+fun raw_label_of_num num = (num, 0)
 
-fun raw_label_of_name (num, ss) =
-  case resolve_conjecture ss of
-    [j] => (conjecture_prefix, j)
-  | _ => (raw_prefix ^ ascii_of num, 0)
-
-fun label_of_clause [name] = raw_label_of_name name
-  | label_of_clause c =
-    (space_implode "___" (map (fst o raw_label_of_name) c), 0)
+fun label_of_clause [(num, _)] = raw_label_of_num num
+  | label_of_clause c = (space_implode "___" (map (fst o raw_label_of_num o fst) c), 0)
 
 fun add_fact_of_dependencies fact_names (names as [(_, ss)]) =
     if is_fact fact_names ss then
@@ -150,13 +142,16 @@ fun kill_useless_labels_in_proof proof =
     fun do_label l = if member (op =) used_ls l then l else no_label
     fun do_assms (Assume assms) = Assume (map (apfst do_label) assms)
     fun do_step (Prove (qs, xs, l, t, subproofs, by)) =
-          Prove (qs, xs, do_label l, t, map do_proof subproofs, by)
+        Prove (qs, xs, do_label l, t, map do_proof subproofs, by)
       | do_step step = step
     and do_proof (Proof (fix, assms, steps)) =
-          Proof (fix, do_assms assms, map do_step steps)
+      Proof (fix, do_assms assms, map do_step steps)
   in do_proof proof end
 
 fun prefix_of_depth n = replicate_string (n + 1)
+
+val assume_prefix = "a"
+val have_prefix = "f"
 
 val relabel_proof =
   let
@@ -258,11 +253,11 @@ fun isar_proof_text ctxt isar_proofs
               | _ => NONE)
         val assms =
           atp_proof |> map_filter
-            (fn (name as (_, ss), _, _, _, []) =>
+            (fn ((num, ss), _, _, _, []) =>
                 (case resolve_conjecture ss of
                    [j] =>
                    if j = length hyp_ts then NONE
-                   else SOME (raw_label_of_name name, nth hyp_ts j)
+                   else SOME (raw_label_of_num num, nth hyp_ts j)
                  | _ => NONE)
               | _ => NONE)
         val bot = atp_proof |> List.last |> #1
@@ -312,13 +307,11 @@ fun isar_proof_text ctxt isar_proofs
               (outer andalso length c = 1 andalso subset (op =) (c, conjs))
               ? cons Show
             val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
-            fun skolems_of t =
-              Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
+            fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
             fun do_steps outer predecessor accum [] =
                 accum
                 |> (if tainted = [] then
-                      cons (Prove (if outer then [Show] else [],
-                                   Fix [], no_label, concl_t, [],
+                      cons (Prove (if outer then [Show] else [], Fix [], no_label, concl_t, [],
                                    By_Metis ([the predecessor], [])))
                     else
                       I)
@@ -327,26 +320,19 @@ fun isar_proof_text ctxt isar_proofs
                 let
                   val l = label_of_clause c
                   val t = prop_of_clause c
-                  val by =
-                    By_Metis
-                      (fold (add_fact_of_dependencies fact_names) gamma no_facts)
-                  fun prove sub by =
-                    Prove (maybe_show outer c [], Fix [], l, t, sub, by)
-                  fun do_rest l step =
-                    do_steps outer (SOME l) (step :: accum) infs
+                  val by = By_Metis (fold (add_fact_of_dependencies fact_names) gamma no_facts)
+                  fun prove sub by = Prove (maybe_show outer c [], Fix [], l, t, sub, by)
+                  fun do_rest l step = do_steps outer (SOME l) (step :: accum) infs
                 in
                   if is_clause_tainted c then
                     case gamma of
                       [g] =>
-                      if is_clause_skolemize_rule g andalso
-                         is_clause_tainted g then
+                      if is_clause_skolemize_rule g andalso is_clause_tainted g then
                         let
                           val subproof =
-                            Proof (Fix (skolems_of (prop_of_clause g)),
-                                   Assume [], rev accum)
+                            Proof (Fix (skolems_of (prop_of_clause g)), Assume [], rev accum)
                         in
-                          do_steps outer (SOME l)
-                              [prove [subproof] (By_Metis no_facts)] []
+                          do_steps outer (SOME l) [prove [subproof] (By_Metis no_facts)] []
                         end
                       else
                         do_rest l (prove [] by)
@@ -360,14 +346,13 @@ fun isar_proof_text ctxt isar_proofs
               | do_steps outer predecessor accum (Cases cases :: infs) =
                 let
                   fun do_case (c, infs) =
-                    do_proof false [] [(label_of_clause c, prop_of_clause c)]
-                             infs
+                    do_proof false [] [(label_of_clause c, prop_of_clause c)] infs
                   val c = succedent_of_cases cases
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val step =
-                    Prove (maybe_show outer c [], Fix [], l, t,
-                      map do_case cases, By_Metis (the_list predecessor, []))
+                    Prove (maybe_show outer c [], Fix [], l, t,  map do_case cases,
+                      By_Metis (the_list predecessor, []))
                 in
                   do_steps outer (SOME l) (step :: accum) infs
                 end
@@ -393,12 +378,10 @@ fun isar_proof_text ctxt isar_proofs
                preplay_timeout)
         val ((preplay_time, preplay_fail), isar_proof) =
           isar_proof
-          |> compress_proof
-               (if isar_proofs = SOME true then isar_compress else 1000.0)
+          |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
                preplay_interface
           |> isar_try0 ? try0 preplay_timeout preplay_interface
-          |> minimize_dependencies_and_remove_unrefed_steps isar_try0
-               preplay_interface
+          |> minimize_dependencies_and_remove_unrefed_steps isar_try0 preplay_interface
           |> `overall_preplay_stats
           ||> clean_up_labels_in_proof
         val isar_text =

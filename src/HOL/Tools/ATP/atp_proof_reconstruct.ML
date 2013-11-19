@@ -36,10 +36,12 @@ sig
     Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) atp_term, string) atp_formula -> term
 
+  (* FIXME: eliminate *)
   val resolve_fact : (string * 'a) list vector -> string list -> (string * 'a) list
   val resolve_conjecture : string list -> int list
   val is_fact : (string * 'a) list vector -> string list -> bool
   val is_conjecture : string list -> bool
+
   val used_facts_in_atp_proof :
     Proof.context -> (string * stature) list vector -> string atp_proof ->
     (string * stature) list
