@@ -390,7 +390,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
       qualify false
         (if Binding.is_empty raw_case_binding orelse
             Binding.eq_name (raw_case_binding, standard_binding) then
-           Binding.suffix_name ("_" ^ caseN) fc_b
+           Binding.prefix_name (caseN ^ "_") fc_b
          else
            raw_case_binding);
 
