@@ -25,10 +25,12 @@ lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o 
 by (auto split: sum.splits)
 
 lemma sum_case_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> sum_case g h = f"
-by (metis sum_case_o_inj(1,2) surjective_sum)
+apply rule
+ apply (rule ext, force split: sum.split)
+by (rule ext, metis sum_case_o_inj(2))
 
 lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
-by auto
+by fast
 
 lemma equiv_proj:
   assumes e: "equiv A R" and "z \<in> R"
@@ -148,7 +150,7 @@ by (auto simp: proj_preserves)
 lemma relImage_relInvImage:
 assumes "R \<subseteq> f ` A <*> f ` A"
 shows "relImage (relInvImage A R f) f = R"
-using assms unfolding relImage_def relInvImage_def by fastforce
+using assms unfolding relImage_def relInvImage_def by fast
 
 lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
 by simp
@@ -260,13 +262,18 @@ assumes "wpull A B1 B2 f1 f2 p1 p2" and
 shows "\<exists> a. a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
 using assms unfolding wpull_def by blast
 
-lemma pickWP:
+lemma pickWP_raw:
 assumes "wpull A B1 B2 f1 f2 p1 p2" and
 "b1 \<in> B1" and "b2 \<in> B2" and "f1 b1 = f2 b2"
-shows "pickWP A p1 p2 b1 b2 \<in> A"
-      "p1 (pickWP A p1 p2 b1 b2) = b1"
-      "p2 (pickWP A p1 p2 b1 b2) = b2"
-unfolding pickWP_def using assms someI_ex[OF pickWP_pred] by fastforce+
+shows "pickWP A p1 p2 b1 b2 \<in> A
+       \<and> p1 (pickWP A p1 p2 b1 b2) = b1
+       \<and> p2 (pickWP A p1 p2 b1 b2) = b2"
+unfolding pickWP_def using assms someI_ex[OF pickWP_pred] by fastforce
+
+lemmas pickWP =
+  pickWP_raw[THEN conjunct1]
+  pickWP_raw[THEN conjunct2, THEN conjunct1]
+  pickWP_raw[THEN conjunct2, THEN conjunct2]
 
 lemma Inl_Field_csum: "a \<in> Field r \<Longrightarrow> Inl a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
