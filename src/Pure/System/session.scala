@@ -25,7 +25,7 @@ object Session
   case class Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
-  case class Raw_Edits(edits: List[Document.Edit_Text])
+  case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   case class Dialog_Result(id: Document_ID.Generic, serial: Long, result: String)
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
@@ -167,6 +167,7 @@ class Session(val thy_load: Thy_Load)
   //{{{
   private case class Text_Edits(
     previous: Future[Document.Version],
+    doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
     version_result: Promise[Document.Version])
 
@@ -177,14 +178,14 @@ class Session(val thy_load: Thy_Load)
       receive {
         case Stop => finished = true; reply(())
 
-        case Text_Edits(previous, text_edits, version_result) =>
+        case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (all_blobs, doc_edits, version) =
+          val (doc_edits, version) =
             Timing.timeit("Thy_Load.text_edits", timing) {
-              thy_load.text_edits(reparse_limit, prev, text_edits)
+              thy_load.text_edits(reparse_limit, prev, doc_blobs, text_edits)
             }
           version_result.fulfill(version)
-          sender ! Change(all_blobs, doc_edits, prev, version)
+          sender ! Change(doc_blobs, doc_edits, prev, version)
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -250,7 +251,7 @@ class Session(val thy_load: Thy_Load)
   private case class Start(args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Change(
-    all_blobs: Map[Document.Node.Name, Bytes],
+    doc_blobs: Document.Blobs,
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -349,7 +350,7 @@ class Session(val thy_load: Thy_Load)
 
     /* raw edits */
 
-    def handle_raw_edits(edits: List[Document.Edit_Text])
+    def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
     //{{{
     {
       prover.get.discontinue_execution()
@@ -358,8 +359,8 @@ class Session(val thy_load: Thy_Load)
       val version = Future.promise[Document.Version]
       val change = global_state >>> (_.continue_history(previous, edits, version))
 
-      raw_edits.event(Session.Raw_Edits(edits))
-      change_parser ! Text_Edits(previous, edits, version)
+      raw_edits.event(Session.Raw_Edits(doc_blobs, edits))
+      change_parser ! Text_Edits(previous, doc_blobs, edits, version)
     }
     //}}}
 
@@ -379,7 +380,7 @@ class Session(val thy_load: Thy_Load)
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          change.all_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
+          change.doc_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
@@ -523,7 +524,7 @@ class Session(val thy_load: Thy_Load)
         case Update_Options(options) if prover.isDefined =>
           if (is_ready) {
             prover.get.options(options)
-            handle_raw_edits(Nil)
+            handle_raw_edits(Map.empty, Nil)
           }
           global_options.event(Session.Global_Options(options))
           reply(())
@@ -531,8 +532,8 @@ class Session(val thy_load: Thy_Load)
         case Cancel_Exec(exec_id) if prover.isDefined =>
           prover.get.cancel_exec(exec_id)
 
-        case Session.Raw_Edits(edits) if prover.isDefined =>
-          handle_raw_edits(edits)
+        case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
+          handle_raw_edits(doc_blobs, edits)
           reply(())
 
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
@@ -585,8 +586,8 @@ class Session(val thy_load: Thy_Load)
 
   def cancel_exec(exec_id: Document_ID.Exec) { session_actor ! Cancel_Exec(exec_id) }
 
-  def update(edits: List[Document.Edit_Text])
-  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(edits) }
+  def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
+  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(doc_blobs, edits) }
 
   def update_options(options: Options)
   { session_actor !? Update_Options(options) }

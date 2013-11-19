@@ -113,7 +113,7 @@ object PIDE
             model_edits ::: edits
           }
         }
-      session.update(init_edits)
+      session.update(PIDE.editor.document_blobs(), init_edits)
     }
   }
 

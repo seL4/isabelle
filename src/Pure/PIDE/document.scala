@@ -47,6 +47,8 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
+  type Blobs = Map[Node.Name, Bytes]
+
   object Node
   {
     val empty: Node = new Node()
@@ -125,7 +127,7 @@ object Document
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
     case class Perspective[A, B](required: Boolean, visible: B, overlays: Overlays) extends Edit[A, B]
-    case class Blob[A, B](blob: Bytes) extends Edit[A, B]
+    case class Blob[A, B]() extends Edit[A, B]
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 

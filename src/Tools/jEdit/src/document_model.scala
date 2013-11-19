@@ -148,7 +148,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
         node_name -> perspective)
     else
-      List(node_name -> Document.Node.Blob(blob()))
+      List(node_name -> Document.Node.Blob())
   }
 
   def node_edits(
@@ -171,7 +171,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           node_name -> perspective)
     }
     else
-      List(node_name -> Document.Node.Blob(blob()))
+      List(node_name -> Document.Node.Blob())
   }
 
 
@@ -190,7 +190,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       val clear = pending_clear
       val edits = snapshot()
       val perspective = node_perspective()
-      if (!is_theory || clear || !edits.isEmpty || last_perspective != perspective) {
+      if (clear || !edits.isEmpty || last_perspective != perspective) {
         pending_clear = false
         pending.clear
         last_perspective = perspective

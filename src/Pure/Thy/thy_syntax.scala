@@ -256,14 +256,14 @@ object Thy_Syntax
       syntax: Outer_Syntax,
       node_name: Document.Node.Name,
       span: List[Token],
-      all_blobs: Map[Document.Node.Name, Bytes])
+      doc_blobs: Document.Blobs)
     : List[Command.Blob] =
   {
     span_files(syntax, span).map(file =>
       Exn.capture {
         val name =
           Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file)))
-        all_blobs.get(name) match {
+        doc_blobs.get(name) match {
           case Some(blob) => (name, blob.sha1_digest)
           case None => error("No such file: " + quote(name.toString))
         }
@@ -286,7 +286,7 @@ object Thy_Syntax
   private def reparse_spans(
     thy_load: Thy_Load,
     syntax: Outer_Syntax,
-    all_blobs: Map[Document.Node.Name, Bytes],
+    doc_blobs: Document.Blobs,
     name: Document.Node.Name,
     commands: Linear_Set[Command],
     first: Command, last: Command): Linear_Set[Command] =
@@ -294,7 +294,7 @@ object Thy_Syntax
     val cmds0 = commands.iterator(first, last).toList
     val spans0 =
       parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString)).
-        map(span => (resolve_files(thy_load, syntax, name, span, all_blobs), span))
+        map(span => (resolve_files(thy_load, syntax, name, span, doc_blobs), span))
 
     val (cmds1, spans1) = chop_common(cmds0, spans0)
 
@@ -321,7 +321,7 @@ object Thy_Syntax
   private def recover_spans(
     thy_load: Thy_Load,
     syntax: Outer_Syntax,
-    all_blobs: Map[Document.Node.Name, Bytes],
+    doc_blobs: Document.Blobs,
     name: Document.Node.Name,
     perspective: Command.Perspective,
     commands: Linear_Set[Command]): Linear_Set[Command] =
@@ -337,7 +337,7 @@ object Thy_Syntax
         case Some(first_unparsed) =>
           val first = next_invisible_command(cmds.reverse, first_unparsed)
           val last = next_invisible_command(cmds, first_unparsed)
-          recover(reparse_spans(thy_load, syntax, all_blobs, name, cmds, first, last))
+          recover(reparse_spans(thy_load, syntax, doc_blobs, name, cmds, first, last))
         case None => cmds
       }
     recover(commands)
@@ -349,7 +349,7 @@ object Thy_Syntax
   private def consolidate_spans(
     thy_load: Thy_Load,
     syntax: Outer_Syntax,
-    all_blobs: Map[Document.Node.Name, Bytes],
+    doc_blobs: Document.Blobs,
     reparse_limit: Int,
     name: Document.Node.Name,
     perspective: Command.Perspective,
@@ -369,7 +369,7 @@ object Thy_Syntax
                 last = it.next
                 i += last.length
               }
-              reparse_spans(thy_load, syntax, all_blobs, name, commands, first_unfinished, last)
+              reparse_spans(thy_load, syntax, doc_blobs, name, commands, first_unfinished, last)
             case None => commands
           }
         case None => commands
@@ -393,7 +393,7 @@ object Thy_Syntax
   private def text_edit(
     thy_load: Thy_Load,
     syntax: Outer_Syntax,
-    all_blobs: Map[Document.Node.Name, Bytes],
+    doc_blobs: Document.Blobs,
     reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =
   {
@@ -404,7 +404,7 @@ object Thy_Syntax
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
         val commands2 =
-          recover_spans(thy_load, syntax, all_blobs, name, node.perspective.visible, commands1)
+          recover_spans(thy_load, syntax, doc_blobs, name, node.perspective.visible, commands1)
         node.update_commands(commands2)
 
       case (_, Document.Node.Deps(_)) => node
@@ -416,10 +416,10 @@ object Thy_Syntax
         if (node.same_perspective(perspective)) node
         else
           node.update_perspective(perspective).update_commands(
-            consolidate_spans(thy_load, syntax, all_blobs, reparse_limit,
+            consolidate_spans(thy_load, syntax, doc_blobs, reparse_limit,
               name, visible, node.commands))
 
-      case (_, Document.Node.Blob(_)) => node
+      case (_, Document.Node.Blob()) => node
     }
   }
 
@@ -427,56 +427,53 @@ object Thy_Syntax
       thy_load: Thy_Load,
       reparse_limit: Int,
       previous: Document.Version,
+      doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text])
-    : (Map[Document.Node.Name, Bytes], List[Document.Edit_Command], Document.Version) =
+    : (List[Document.Edit_Command], Document.Version) =
   {
     val (syntax, reparse0, nodes0, doc_edits0) =
       header_edits(thy_load.base_syntax, previous, edits)
 
-    val reparse =
-      (reparse0 /: nodes0.entries)({
-        case (reparse, (name, node)) =>
-          if (node.thy_load_commands.isEmpty) reparse
-          else name :: reparse
-        })
-    val reparse_set = reparse.toSet
+    if (edits.isEmpty)
+      (Nil, Document.Version.make(syntax, previous.nodes))
+    else {
+      val reparse =
+        (reparse0 /: nodes0.entries)({
+          case (reparse, (name, node)) =>
+            if (node.thy_load_commands.isEmpty) reparse
+            else name :: reparse
+          })
+      val reparse_set = reparse.toSet
 
-    var nodes = nodes0
-    val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
+      var nodes = nodes0
+      val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
 
-    val node_edits =
-      (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
-        .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
+      val node_edits =
+        (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
+          .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
 
-    val all_blobs: Map[Document.Node.Name, Bytes] =
-      (Map.empty[Document.Node.Name, Bytes] /: node_edits) {
-        case (bs1, (_, es)) => (bs1 /: es) {
-          case (bs, (name, Document.Node.Blob(blob))) => bs + (name -> blob)
-          case (bs, _) => bs
-        }
+      node_edits foreach {
+        case (name, edits) =>
+          val node = nodes(name)
+          val commands = node.commands
+
+          val node1 =
+            if (reparse_set(name) && !commands.isEmpty)
+              node.update_commands(
+                reparse_spans(thy_load, syntax, doc_blobs,
+                  name, commands, commands.head, commands.last))
+            else node
+          val node2 = (node1 /: edits)(text_edit(thy_load, syntax, doc_blobs, reparse_limit, _, _))
+
+          if (!(node.same_perspective(node2.perspective)))
+            doc_edits += (name -> node2.perspective)
+
+          doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
+
+          nodes += (name -> node2)
       }
 
-    node_edits foreach {
-      case (name, edits) =>
-        val node = nodes(name)
-        val commands = node.commands
-
-        val node1 =
-          if (reparse_set(name) && !commands.isEmpty)
-            node.update_commands(
-              reparse_spans(thy_load, syntax, all_blobs,
-                name, commands, commands.head, commands.last))
-          else node
-        val node2 = (node1 /: edits)(text_edit(thy_load, syntax, all_blobs, reparse_limit, _, _))
-
-        if (!(node.same_perspective(node2.perspective)))
-          doc_edits += (name -> node2.perspective)
-
-        doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
-
-        nodes += (name -> node2)
+      (doc_edits.toList, Document.Version.make(syntax, nodes))
     }
-
-    (all_blobs, doc_edits.toList, Document.Version.make(syntax, nodes))
   }
 }
