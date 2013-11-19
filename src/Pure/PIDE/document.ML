@@ -391,6 +391,11 @@ fun make_required nodes =
         Symtab.update (a, ())) all_visible all_required
   end;
 
+fun loaded_theory name =
+  (case try (unsuffix ".thy") name of
+    SOME a => Thy_Info.lookup_theory a
+  | NONE => NONE);
+
 fun init_theory deps node span =
   let
     (* FIXME provide files via Isabelle/Scala, not master_dir *)
@@ -402,7 +407,7 @@ fun init_theory deps node span =
     val imports = #imports header;
     val parents =
       imports |> map (fn (import, _) =>
-        (case Thy_Info.lookup_theory import of
+        (case loaded_theory import of
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
@@ -413,7 +418,7 @@ fun init_theory deps node span =
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
-  is_some (Thy_Info.lookup_theory name) orelse
+  is_some (loaded_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
 fun last_common state node_required node0 node =
