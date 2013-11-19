@@ -78,10 +78,7 @@ fun add_line (name as (_, ss), role, t, rule, []) lines =
       (name, role, t, rule, []) :: lines
     else if role = Axiom then
       (* Facts are not proof lines. *)
-      if is_only_type_information t then
-        map (replace_dependencies_in_line (name, [])) lines
-      else
-        lines
+      lines |> is_only_type_information t ? map (replace_dependencies_in_line (name, []))
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line (line as (name, role, t, _, _)) lines =
@@ -96,8 +93,7 @@ fun add_line (name as (_, ss), role, t, rule, []) lines =
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
-    if is_only_type_information t then delete_dependency name lines
-    else line :: lines
+    if is_only_type_information t then delete_dependency name lines else line :: lines
   | add_nontrivial_line line lines = line :: lines
 and delete_dependency name lines =
   fold_rev add_nontrivial_line
@@ -154,24 +150,17 @@ val relabel_proof =
         let val l' = (prefix_of_depth depth prefix, next) in
           (l', (l, l') :: subst, next + 1)
         end
-    fun do_facts subst =
-      apfst (maps (the_list o AList.lookup (op =) subst))
+    fun do_facts subst = apfst (maps (the_list o AList.lookup (op =) subst))
     fun do_assm depth (l, t) (subst, next) =
-      let
-        val (l, subst, next) =
-          (l, subst, next) |> fresh_label depth assume_prefix
-      in
+      let val (l, subst, next) = (l, subst, next) |> fresh_label depth assume_prefix in
         ((l, t), (subst, next))
       end
     fun do_assms subst depth (Assume assms) =
-      fold_map (do_assm depth) assms (subst, 1)
-      |> apfst Assume
-      |> apsnd fst
+      fold_map (do_assm depth) assms (subst, 1) |>> Assume ||> fst
     fun do_steps _ _ _ [] = []
       | do_steps subst depth next (Prove (qs, xs, l, t, sub, by) :: steps) =
         let
-          val (l, subst, next) =
-            (l, subst, next) |> fresh_label depth have_prefix
+          val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
           val sub = do_proofs subst depth sub
           val by = by |> do_byline subst
         in Prove (qs, xs, l, t, sub, by) :: do_steps subst depth next steps end
@@ -224,9 +213,7 @@ fun isar_proof_text ctxt isar_proofs
     val (_, ctxt) =
       params
       |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
-      |> (fn fixes =>
-             ctxt |> Variable.set_body false
-                  |> Proof_Context.add_fixes fixes)
+      |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
     val do_preplay = preplay_timeout <> SOME Time.zeroTime
 
@@ -265,8 +252,7 @@ fun isar_proof_text ctxt isar_proofs
         fun is_clause_skolemize_rule [(s, _)] =
             Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) = SOME true
           | is_clause_skolemize_rule _ = false
-        (* The assumptions and conjecture are "prop"s; the other formulas are
-           "bool"s. *)
+        (* The assumptions and conjecture are "prop"s; the other formulas are "bool"s. *)
         fun prop_of_clause [(num, _)] =
             Symtab.lookup steps num |> the |> snd |> maybe_mk_Trueprop |> close_form
           | prop_of_clause names =
@@ -275,16 +261,14 @@ fun isar_proof_text ctxt isar_proofs
             in
               case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
-                s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs),
-                       Library.foldr1 s_disj pos)
+                s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False}
             end
             |> HOLogic.mk_Trueprop |> close_form
         fun isar_proof_of_direct_proof infs =
           let
             fun maybe_show outer c =
-              (outer andalso length c = 1 andalso subset (op =) (c, conjs))
-              ? cons Show
+              (outer andalso length c = 1 andalso subset (op =) (c, conjs)) ? cons Show
             val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
             fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
             fun do_steps outer predecessor accum [] =
@@ -387,10 +371,8 @@ fun isar_proof_text ctxt isar_proofs
                else
                  [])
           in
-            "\n\nStructured proof"
-              ^ (commas msg |> not (null msg) ? enclose " (" ")")
-              ^ ":\n" ^
-              Active.sendback_markup [Markup.padding_command] isar_text
+            "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
+            Active.sendback_markup [Markup.padding_command] isar_text
           end
       end
     val isar_proof =

@@ -29,19 +29,15 @@ sig
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
   val unalias_type_enc : string -> string list
-  val term_of_atp :
-    Proof.context -> bool -> int Symtab.table -> typ option ->
+  val term_of_atp : Proof.context -> bool -> int Symtab.table -> typ option ->
     (string, string) atp_term -> term
-  val prop_of_atp :
-    Proof.context -> bool -> int Symtab.table ->
+  val prop_of_atp : Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) atp_term, string) atp_formula -> term
 
   val used_facts_in_atp_proof :
-    Proof.context -> (string * stature) list vector -> string atp_proof ->
-    (string * stature) list
-  val used_facts_in_unsound_atp_proof :
-    Proof.context -> (string * stature) list vector -> 'a atp_proof ->
-    string list option
+    Proof.context -> (string * stature) list vector -> string atp_proof -> (string * stature) list
+  val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list vector ->
+    'a atp_proof -> string list option
   val lam_trans_of_atp_proof : string atp_proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val termify_atp_proof : Proof.context -> string Symtab.table -> (string * term) list ->
