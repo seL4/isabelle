@@ -844,10 +844,13 @@ fun run_atp mode name
                       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
                       else partial_typesN
                     val metis_lam_trans = lam_trans_of_atp_proof atp_proof default_metis_lam_trans
-                    val atp_proof = atp_proof |> termify_atp_proof ctxt pool lifted sym_tab
+                    val atp_proof =
+                      atp_proof
+                      |> termify_atp_proof ctxt pool lifted sym_tab
+                      |> factify_atp_proof fact_names hyp_ts concl_t
                   in
                     (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout,
-                     isar_compress, isar_try0, fact_names, atp_proof, goal)
+                     isar_compress, isar_try0, atp_proof, goal)
                   end
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,

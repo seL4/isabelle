@@ -13,8 +13,8 @@ sig
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   type isar_params =
-    bool * bool * string * string * Time.time option * real * bool * (string * stature) list vector
-    * (term, string) atp_step list * thm
+    bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
+    thm
 
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
@@ -52,13 +52,8 @@ fun raw_label_of_num num = (num, 0)
 fun label_of_clause [(num, _)] = raw_label_of_num num
   | label_of_clause c = (space_implode "___" (map (fst o raw_label_of_num o fst) c), 0)
 
-fun add_fact_of_dependencies fact_names (names as [(_, ss)]) =
-    if is_fact fact_names ss then
-      apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
-    else
-      apfst (insert (op =) (label_of_clause names))
-  | add_fact_of_dependencies _ names =
-    apfst (insert (op =) (label_of_clause names))
+fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
+  | add_fact_of_dependencies names = apfst (insert (op =) (label_of_clause names))
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
@@ -76,12 +71,12 @@ fun is_same_inference (role, t) (_, role', t', _, _) =
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
-fun add_line fact_names (name as (_, ss), role, t, rule, []) lines =
+fun add_line (name as (_, ss), role, t, rule, []) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if is_conjecture ss then
+    if role = Conjecture orelse role = Hypothesis then
       (name, role, t, rule, []) :: lines
-    else if is_fact fact_names ss then
+    else if role = Axiom then
       (* Facts are not proof lines. *)
       if is_only_type_information t then
         map (replace_dependencies_in_line (name, [])) lines
@@ -89,7 +84,7 @@ fun add_line fact_names (name as (_, ss), role, t, rule, []) lines =
         lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ (line as (name, role, t, _, _)) lines =
+  | add_line (line as (name, role, t, _, _)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
       line :: lines
@@ -114,12 +109,9 @@ val vampire_skolemisation_rule = "skolemisation"
 val is_skolemize_rule =
   member (op =) [e_skolemize_rule, vampire_skolemisation_rule]
 
-fun add_desired_line fact_names (name as (_, ss), role, t, rule, deps)
-                     (j, lines) =
+fun add_desired_line (name as (_, ss), role, t, rule, deps) (j, lines) =
   (j + 1,
-   if is_fact fact_names ss orelse
-      is_conjecture ss orelse
-      is_skolemize_rule rule orelse
+   if role <> Plain orelse is_skolemize_rule rule orelse
       (* the last line must be kept *)
       j = 0 orelse
       (not (is_only_type_information t) andalso
@@ -217,13 +209,15 @@ val chain_direct_proof =
     and chain_proofs proofs = map (chain_proof) proofs
   in chain_proof end
 
+fun maybe_mk_Trueprop t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
+
 type isar_params =
-  bool * bool * string * string * Time.time option * real * bool * (string * stature) list vector
-  * (term, string) atp_step list * thm
+  bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
+  thm
 
 fun isar_proof_text ctxt isar_proofs
     (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
-     isar_try0, fact_names, atp_proof, goal)
+     isar_try0, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -240,26 +234,15 @@ fun isar_proof_text ctxt isar_proofs
       let
         val atp_proof =
           atp_proof
-          |> rpair [] |-> fold_rev (add_line fact_names)
+          |> rpair [] |-> fold_rev add_line
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
-          |-> fold_rev (add_desired_line fact_names)
+          |-> fold_rev add_desired_line
           |> snd
-        val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
-        val conjs =
-          atp_proof |> map_filter
-            (fn (name as (_, ss), _, _, _, []) =>
-                if member (op =) ss conj_name then SOME name else NONE
-              | _ => NONE)
+        val conjs = atp_proof |> map_filter (try (fn (name, Conjecture, _, _, []) => name))
         val assms =
-          atp_proof |> map_filter
-            (fn ((num, ss), _, _, _, []) =>
-                (case resolve_conjecture ss of
-                   [j] =>
-                   if j = length hyp_ts then NONE
-                   else SOME (raw_label_of_num num, nth hyp_ts j)
-                 | _ => NONE)
-              | _ => NONE)
+          atp_proof
+          |> map_filter (try (fn ((num, _), Hypothesis, t, _, []) => (raw_label_of_num num, t)))
         val bot = atp_proof |> List.last |> #1
         val refute_graph =
           atp_proof
@@ -280,16 +263,12 @@ fun isar_proof_text ctxt isar_proofs
                                 I))))
                   atp_proof
         fun is_clause_skolemize_rule [(s, _)] =
-            Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) =
-            SOME true
+            Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) = SOME true
           | is_clause_skolemize_rule _ = false
         (* The assumptions and conjecture are "prop"s; the other formulas are
            "bool"s. *)
-        fun prop_of_clause [(s, ss)] =
-            (case resolve_conjecture ss of
-               [j] => if j = length hyp_ts then concl_t else nth hyp_ts j
-             | _ => the_default ("", @{term False}) (Symtab.lookup steps s)
-                    |> snd |> HOLogic.mk_Trueprop |> close_form)
+        fun prop_of_clause [(num, _)] =
+            Symtab.lookup steps num |> the |> snd |> maybe_mk_Trueprop |> close_form
           | prop_of_clause names =
             let
               val lits = map snd (map_filter (Symtab.lookup steps o fst) names)
@@ -320,7 +299,7 @@ fun isar_proof_text ctxt isar_proofs
                 let
                   val l = label_of_clause c
                   val t = prop_of_clause c
-                  val by = By ((fold (add_fact_of_dependencies fact_names) gamma no_facts), MetisM)
+                  val by = By (fold add_fact_of_dependencies gamma no_facts, MetisM)
                   fun prove sub by = Prove (maybe_show outer c [], Fix [], l, t, sub, by)
                   fun do_rest l step = do_steps outer (SOME l) (step :: accum) infs
                 in

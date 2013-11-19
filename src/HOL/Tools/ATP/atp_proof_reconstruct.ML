@@ -36,12 +36,6 @@ sig
     Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) atp_term, string) atp_formula -> term
 
-  (* FIXME: eliminate *)
-  val resolve_fact : (string * 'a) list vector -> string list -> (string * 'a) list
-  val resolve_conjecture : string list -> int list
-  val is_fact : (string * 'a) list vector -> string list -> bool
-  val is_conjecture : string list -> bool
-
   val used_facts_in_atp_proof :
     Proof.context -> (string * stature) list vector -> string atp_proof ->
     (string * stature) list
@@ -50,9 +44,10 @@ sig
     string list option
   val lam_trans_of_atp_proof : string atp_proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
-  val termify_atp_proof :
-    Proof.context -> string Symtab.table -> (string * term) list ->
+  val termify_atp_proof : Proof.context -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
+  val factify_atp_proof : (string * 'a) list vector -> term list -> term ->
+    (term, string) atp_step list -> (term, string) atp_step list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -537,5 +532,29 @@ fun termify_atp_proof ctxt pool lifted sym_tab =
   #> map_term_names_in_atp_proof repair_name
   #> map (decode_line ctxt lifted sym_tab)
   #> repair_waldmeister_endgame
+
+fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
+  let
+    fun factify_step ((num, ss), role, t, rule, deps) =
+      let
+        val (ss', role', t') =
+          (case resolve_conjecture ss of
+            [j] =>
+            if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
+           | _ =>
+             (case resolve_fact fact_names ss of
+               [] => (ss, Plain, t)
+             | facts => (map fst facts, Axiom, t)))
+      in
+        ((num, ss'), role', t', rule, deps)
+      end
+
+    val atp_proof = map factify_step atp_proof
+    val names = map #1 atp_proof
+
+    fun repair_dep (num, ss) = (num, the_default ss (AList.lookup (op =) names num))
+    fun repair_deps (name, role, t, rule, deps) = (name, role, t, rule, map repair_dep deps)
+
+  in map repair_deps atp_proof end
 
 end;
