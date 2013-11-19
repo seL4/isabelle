@@ -30,7 +30,7 @@ sig
      expands: thm list,
      sel_splits: thm list,
      sel_split_asms: thm list,
-     case_ifs: thm list};
+     case_eq_ifs: thm list};
 
   val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
   val transfer_ctr_sugar: Proof.context -> ctr_sugar -> ctr_sugar
@@ -90,7 +90,7 @@ type ctr_sugar =
    expands: thm list,
    sel_splits: thm list,
    sel_split_asms: thm list,
-   case_ifs: thm list};
+   case_eq_ifs: thm list};
 
 fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
     {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
@@ -98,7 +98,7 @@ fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, 
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
-    disc_exhausts, sel_exhausts, collapses, expands, sel_splits, sel_split_asms, case_ifs} =
+    disc_exhausts, sel_exhausts, collapses, expands, sel_splits, sel_split_asms, case_eq_ifs} =
   {ctrs = map (Morphism.term phi) ctrs,
    casex = Morphism.term phi casex,
    discs = map (Morphism.term phi) discs,
@@ -121,7 +121,7 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    expands = map (Morphism.thm phi) expands,
    sel_splits = map (Morphism.thm phi) sel_splits,
    sel_split_asms = map (Morphism.thm phi) sel_split_asms,
-   case_ifs = map (Morphism.thm phi) case_ifs};
+   case_eq_ifs = map (Morphism.thm phi) case_eq_ifs};
 
 val transfer_ctr_sugar =
   morph_ctr_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
@@ -160,7 +160,7 @@ fun mk_unN 1 1 suf = unN ^ suf
 
 val caseN = "case";
 val case_congN = "case_cong";
-val case_ifN = "case_if";
+val case_eq_ifN = "case_eq_if";
 val collapseN = "collapse";
 val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
@@ -657,7 +657,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
 
         val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms, nontriv_discI_thms,
              disc_exclude_thms, disc_exhaust_thms, sel_exhaust_thms, all_collapse_thms,
-             safe_collapse_thms, expand_thms, sel_split_thms, sel_split_asm_thms, case_if_thms) =
+             safe_collapse_thms, expand_thms, sel_split_thms, sel_split_asm_thms, case_eq_if_thms) =
           if no_discs_sels then
             ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
@@ -861,12 +861,12 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                   (thm, asm_thm)
                 end;
 
-              val case_if_thm =
+              val case_eq_if_thm =
                 let
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs usel_fs);
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                    mk_case_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
+                    mk_case_eq_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
                   |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
                 end;
@@ -874,7 +874,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
                nontriv_discI_thms, disc_exclude_thms, [disc_exhaust_thm], [sel_exhaust_thm],
                all_collapse_thms, safe_collapse_thms, [expand_thm], [sel_split_thm],
-               [sel_split_asm_thm], [case_if_thm])
+               [sel_split_asm_thm], [case_eq_if_thm])
             end;
 
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
@@ -890,7 +890,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         val notes =
           [(caseN, case_thms, code_nitpicksimp_simp_attrs),
            (case_congN, [case_cong_thm], []),
-           (case_ifN, case_if_thms, []),
+           (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
            (discN, nontriv_disc_thms, simp_attrs),
            (discIN, nontriv_discI_thms, []),
@@ -921,7 +921,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
            discIs = discI_thms, sel_thmss = sel_thmss, disc_exhausts = disc_exhaust_thms,
            sel_exhausts = sel_exhaust_thms, collapses = all_collapse_thms, expands = expand_thms,
            sel_splits = sel_split_thms, sel_split_asms = sel_split_asm_thms,
-           case_ifs = case_if_thms};
+           case_eq_ifs = case_eq_if_thms};
       in
         (ctr_sugar,
          lthy

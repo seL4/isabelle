@@ -350,7 +350,7 @@ function, a relator, discriminators, and selectors, all of which can be given
 custom names. In the example below, the familiar names @{text null}, @{text hd},
 @{text tl}, @{text set}, @{text map}, and @{text list_all2}, override the
 default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
-@{text list_set}, @{text list_map}, and @{text list_rel}:
+@{text set_list}, @{text map_list}, and @{text rel_list}:
 *}
 
 (*<*)
@@ -501,7 +501,7 @@ denotes the usual parenthesized mixfix notation. They are documented in the Isar
 reference manual \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text t_set1}, \ldots, @{text t_setM}).
+names of the set functions (@{text set1_t}, \ldots, @{text setM_t}).
 Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
@@ -626,7 +626,7 @@ following auxiliary constants are introduced:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Case combinator}: @{text t_case} (rendered using the familiar
+\item \relax{Case combinator}: @{text t.t_case} (rendered using the familiar
 @{text case}--@{text of} syntax)
 
 \item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
@@ -638,22 +638,22 @@ following auxiliary constants are introduced:
 \phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
 
 \item \relax{Set functions} (or \relax{natural transformations}):
-@{text t_set1}, \ldots, @{text t_setm}
+@{text set1_t}, \ldots, @{text t.setm_t}
 
-\item \relax{Map function} (or \relax{functorial action}): @{text t_map}
+\item \relax{Map function} (or \relax{functorial action}): @{text t.map_t}
 
-\item \relax{Relator}: @{text t_rel}
+\item \relax{Relator}: @{text t.rel_t}
 
-\item \relax{Iterator}: @{text t_fold}
+\item \relax{Iterator}: @{text t.t_fold}
 
-\item \relax{Recursor}: @{text t_rec}
+\item \relax{Recursor}: @{text t.t_rec}
 
 \end{itemize}
 
 \noindent
 The case combinator, discriminators, and selectors are collectively called
 \emph{destructors}. The prefix ``@{text "t."}'' is an optional component of the
-name and is normally hidden.
+names and is normally hidden.
 *}
 
 
@@ -810,8 +810,8 @@ discriminator called @{const nonnull}, they would have read thusly: \\[\jot]
 \item[@{text "t."}\hthm{sel\_split\_asm}\rm:] ~ \\
 @{thm list.sel_split_asm[no_vars]}
 
-\item[@{text "t."}\hthm{case\_if}\rm:] ~ \\
-@{thm list.case_if[no_vars]}
+\item[@{text "t."}\hthm{case\_eq\_if}\rm:] ~ \\
+@{thm list.case_eq_if[no_vars]}
 
 \end{description}
 \end{indentblock}
@@ -1150,13 +1150,13 @@ text {*
 \noindent
 The next example features recursion through the @{text option} type. Although
 @{text option} is not a new-style datatype, it is registered as a BNF with the
-map function @{const option_map}:
+map function @{const map_option}:
 *}
 
     primrec_new (*<*)(in early) (*>*)sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
-         a + the_default 0 (option_map sum_btree lt) +
-           the_default 0 (option_map sum_btree rt)"
+         a + the_default 0 (map_option sum_btree lt) +
+           the_default 0 (map_option sum_btree rt)"
 
 text {*
 \noindent

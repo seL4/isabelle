@@ -118,7 +118,7 @@ fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case
    expands = [],
    sel_splits = [],
    sel_split_asms = [],
-   case_ifs = []};
+   case_eq_ifs = []};
 
 fun register dt_infos =
   Data.map (fn {types, constrs, cases} =>

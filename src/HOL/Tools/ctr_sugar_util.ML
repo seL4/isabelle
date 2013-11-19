@@ -176,9 +176,7 @@ val mk_Trueprop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 fun rapp u t = betapply (t, u);
 
 fun list_quant_free quant_const =
-  fold_rev (fn free => fn P =>
-    let val (x, T) = Term.dest_Free free;
-    in quant_const T $ Term.absfree (x, T) P end);
+  fold_rev (fn Free (xT as (_, T)) => fn P => quant_const T $ Term.absfree xT P);
 
 val list_all_free = list_quant_free HOLogic.all_const;
 val list_exists_free = list_quant_free HOLogic.exists_const;
