@@ -13,13 +13,7 @@ theory Basic_BNFs
 imports BNF_Def
 begin
 
-lemma wpull_id: "wpull UNIV B1 B2 id id id id"
-unfolding wpull_def by simp
-
 lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
-
-lemma ctwo_card_order: "card_order ctwo"
-using Card_order_ctwo by (unfold ctwo_def Field_card_of)
 
 lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
@@ -227,22 +221,6 @@ proof-
   qed
   then obtain h where "!! d. h d \<in> A & p1 (h d) = q1 d & p2 (h d) = q2 d" by metis
   thus ?thesis using that by fastforce
-qed
-
-lemma card_of_bounded_range:
-  "|{f :: 'd \<Rightarrow> 'a. range f \<subseteq> B}| \<le>o |Func (UNIV :: 'd set) B|" (is "|?LHS| \<le>o |?RHS|")
-proof -
-  let ?f = "\<lambda>f. %x. if f x \<in> B then f x else undefined"
-  have "inj_on ?f ?LHS" unfolding inj_on_def
-  proof (unfold fun_eq_iff, safe)
-    fix g :: "'d \<Rightarrow> 'a" and f :: "'d \<Rightarrow> 'a" and x
-    assume "range f \<subseteq> B" "range g \<subseteq> B" and eq: "\<forall>x. ?f f x = ?f g x"
-    hence "f x \<in> B" "g x \<in> B" by auto
-    with eq have "Some (f x) = Some (g x)" by metis
-    thus "f x = g x" by simp
-  qed
-  moreover have "?f ` ?LHS \<subseteq> ?RHS" unfolding Func_def by fastforce
-  ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
 bnf "'a \<Rightarrow> 'b"

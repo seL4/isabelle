@@ -190,9 +190,6 @@ definition vimage2p where
 lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
   unfolding vimage2p_def by -
 
-lemma vimage2pD: "vimage2p f g R x y \<Longrightarrow> R (f x) (g y)"
-  unfolding vimage2p_def by -
-
 lemma fun_rel_iff_leq_vimage2p: "(fun_rel R S) f g = (R \<le> vimage2p f g S)"
   unfolding fun_rel_def vimage2p_def by auto
 

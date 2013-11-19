@@ -15,6 +15,12 @@ keywords
   "primcorec" :: thy_decl
 begin
 
+lemma not_TrueE: "\<not> True \<Longrightarrow> P"
+by (erule notE, rule TrueI)
+
+lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
+by fast
+
 lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"
 by (auto split: sum.splits)
 
@@ -36,7 +42,6 @@ qed
 
 (* Operators: *)
 definition image2 where "image2 A f g = {(f a, g a) | a. a \<in> A}"
-
 
 lemma Id_onD: "(a, b) \<in> Id_on A \<Longrightarrow> a = b"
 unfolding Id_on_def by simp
@@ -73,6 +78,12 @@ unfolding Gr_def by simp
 
 lemma Gr_incl: "Gr A f \<subseteq> A <*> B \<longleftrightarrow> f ` A \<subseteq> B"
 unfolding Gr_def by auto
+
+lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
+by blast
+
+lemma subset_CollectI: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> Q x \<Longrightarrow> P x) \<Longrightarrow> ({x \<in> B. Q x} \<subseteq> {x \<in> A. P x})"
+by blast
 
 lemma in_rel_Collect_split_eq: "in_rel (Collect (split X)) = X"
 unfolding fun_eq_iff by auto

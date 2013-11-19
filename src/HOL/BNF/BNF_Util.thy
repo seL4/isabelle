@@ -12,12 +12,6 @@ theory BNF_Util
 imports "../Cardinals/Cardinal_Arithmetic_FP"
 begin
 
-lemma subset_Collect_iff: "B \<subseteq> A \<Longrightarrow> (B \<subseteq> {x \<in> A. P x}) = (\<forall>x \<in> B. P x)"
-by blast
-
-lemma subset_CollectI: "B \<subseteq> A \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> Q x \<Longrightarrow> P x) \<Longrightarrow> ({x \<in> B. Q x} \<subseteq> {x \<in> A. P x})"
-by blast
-
 definition collect where
 "collect F x = (\<Union>f \<in> F. f x)"
 
