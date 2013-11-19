@@ -56,9 +56,6 @@ unfolding Id_on_def by auto
 lemma Id_on_Gr: "Id_on A = Gr A id"
 unfolding Id_on_def Gr_def by auto
 
-lemma Id_on_UNIV_I: "x = y \<Longrightarrow> (x, y) \<in> Id_on UNIV"
-unfolding Id_on_def by auto
-
 lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarrow> (b, c) \<in> image2 A f g"
 unfolding image2_def by auto
 
@@ -129,9 +126,6 @@ unfolding relInvImage_def Id_on_def by auto
 lemma relInvImage_UNIV_relImage:
 "R \<subseteq> relInvImage UNIV (relImage R f) f"
 unfolding relInvImage_def relImage_def by auto
-
-lemma equiv_Image: "equiv A R \<Longrightarrow> (\<And>a b. (a, b) \<in> R \<Longrightarrow> a \<in> A \<and> b \<in> A \<and> R `` {a} = R `` {b})"
-unfolding equiv_def refl_on_def Image_def by (auto intro: transD symD)
 
 lemma relImage_proj:
 assumes "equiv A R"
@@ -293,17 +287,11 @@ definition image2p where
 lemma image2pI: "R x y \<Longrightarrow> (image2p f g R) (f x) (g y)"
   unfolding image2p_def by blast
 
-lemma image2p_eqI: "\<lbrakk>fx = f x; gy = g y; R x y\<rbrakk> \<Longrightarrow> (image2p f g R) fx gy"
-  unfolding image2p_def by blast
-
 lemma image2pE: "\<lbrakk>(image2p f g R) fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
   unfolding image2p_def by blast
 
 lemma fun_rel_iff_geq_image2p: "(fun_rel R S) f g = (image2p f g R \<le> S)"
   unfolding fun_rel_def image2p_def by auto
-
-lemma convol_image_image2p: "<f o fst, g o snd> ` Collect (split R) \<subseteq> Collect (split (image2p f g R))"
-  unfolding convol_def image2p_def by fastforce
 
 lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
   unfolding fun_rel_def image2p_def by auto
