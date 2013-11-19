@@ -68,7 +68,7 @@ object Thy_Syntax
       /* result structure */
 
       val spans = parse_spans(syntax.scan(text))
-      spans.foreach(span => add(Command(Document_ID.none, node_name, span, Nil)))
+      spans.foreach(span => add(Command(Document_ID.none, node_name, Nil, span)))
       result()
     }
   }
@@ -257,7 +257,7 @@ object Thy_Syntax
       node_name: Document.Node.Name,
       span: List[Token],
       all_blobs: Map[Document.Node.Name, Bytes])
-    : Command.Blobs =
+    : List[Command.Blob] =
   {
     span_files(syntax, span).map(file =>
       Exn.capture {
@@ -265,7 +265,7 @@ object Thy_Syntax
           Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file)))
         all_blobs.get(name) match {
           case Some(blob) => (name, blob.sha1_digest)
-          case None => error("Bad file: " + quote(name.toString))
+          case None => error("No such file: " + quote(name.toString))
         }
       }
     )
@@ -275,10 +275,10 @@ object Thy_Syntax
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
-      cmds: List[Command], spans: List[(List[Token], Command.Blobs)])
-      : (List[Command], List[(List[Token], Command.Blobs)]) =
+      cmds: List[Command], spans: List[(List[Command.Blob], List[Token])])
+      : (List[Command], List[(List[Command.Blob], List[Token])]) =
     (cmds, spans) match {
-      case (c :: cs, (span, blobs) :: ps) if c.span == span && c.blobs == blobs =>
+      case (c :: cs, (blobs, span) :: ps) if c.blobs == blobs && c.span == span =>
         chop_common(cs, ps)
       case _ => (cmds, spans)
     }
@@ -294,7 +294,7 @@ object Thy_Syntax
     val cmds0 = commands.iterator(first, last).toList
     val spans0 =
       parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString)).
-        map(span => (span, resolve_files(thy_load, syntax, name, span, all_blobs)))
+        map(span => (resolve_files(thy_load, syntax, name, span, all_blobs), span))
 
     val (cmds1, spans1) = chop_common(cmds0, spans0)
 
@@ -309,7 +309,7 @@ object Thy_Syntax
       case cmd :: _ =>
         val hook = commands.prev(cmd)
         val inserted =
-          spans2.map({ case (span, blobs) => Command(Document_ID.make(), name, span, blobs) })
+          spans2.map({ case (blobs, span) => Command(Document_ID.make(), name, blobs, span) })
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
     }
   }
@@ -428,7 +428,7 @@ object Thy_Syntax
       reparse_limit: Int,
       previous: Document.Version,
       edits: List[Document.Edit_Text])
-    : (List[Document.Edit_Command], Document.Version) =
+    : (Map[Document.Node.Name, Bytes], List[Document.Edit_Command], Document.Version) =
   {
     val (syntax, reparse0, nodes0, doc_edits0) =
       header_edits(thy_load.base_syntax, previous, edits)
@@ -477,6 +477,6 @@ object Thy_Syntax
         nodes += (name -> node2)
     }
 
-    (doc_edits.toList, Document.Version.make(syntax, nodes))
+    (all_blobs, doc_edits.toList, Document.Version.make(syntax, nodes))
   }
 }

@@ -6,13 +6,14 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  val read: (unit -> theory) -> Token.T list -> Toplevel.transition
+  type blob = (string * string) Exn.result
+  val read: (unit -> theory) -> blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> Token.T list -> eval -> eval
+  val eval: (unit -> theory) -> blob list -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
@@ -82,7 +83,19 @@ end;
 
 (* read *)
 
-fun read init span =
+type blob = (string * string) Exn.result;  (*file node name, digest or text*)
+
+fun resolve_files blobs toks =
+  (case Thy_Syntax.parse_spans toks of
+    [span] => span
+      |> Thy_Syntax.resolve_files (fn _ => fn (path, pos) =>
+        blobs |> map (Exn.release #> (fn (file, text) =>
+          let val _ = Position.report pos (Markup.path file);
+          in {src_path = path (* FIXME *), text = text, pos = Position.file file} end)))
+      |> Thy_Syntax.span_content
+  | _ => toks);
+
+fun read init blobs span =
   let
     val outer_syntax = #2 (Outer_Syntax.get_syntax ());
     val command_reports = Outer_Syntax.command_reports outer_syntax;
@@ -99,7 +112,7 @@ fun read init span =
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
-      (case Outer_Syntax.read_spans outer_syntax span of
+      (case Outer_Syntax.read_spans outer_syntax (resolve_files blobs span) of
         [tr] =>
           if Keyword.is_control (Toplevel.name_of tr) then
             Toplevel.malformed pos "Illegal control command"
@@ -180,14 +193,14 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
 
 in
 
-fun eval init span eval0 =
+fun eval init blobs span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
       let
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read init span |> Toplevel.exec_id exec_id) ();
+            (fn () => read init blobs span |> Toplevel.exec_id exec_id) ();
       in eval_state span tr (eval_result eval0) end;
   in Eval {exec_id = exec_id, eval_process = memo exec_id process} end;
 

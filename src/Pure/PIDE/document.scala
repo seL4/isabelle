@@ -397,6 +397,7 @@ object Document
 
   final case class State private(
     val versions: Map[Document_ID.Version, Version] = Map.empty,
+    val blobs: Set[SHA1.Digest] = Set.empty,   // inlined files
     val commands: Map[Document_ID.Command, Command.State] = Map.empty,  // static markup from define_command
     val execs: Map[Document_ID.Exec, Command.State] = Map.empty,  // dynamic markup from execution
     val assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
@@ -410,6 +411,9 @@ object Document
       copy(versions = versions + (id -> version),
         assignments = assignments + (id -> assignment.unfinished))
     }
+
+    def define_blob(digest: SHA1.Digest): State = copy(blobs = blobs + digest)
+    def defined_blob(digest: SHA1.Digest): Boolean = blobs.contains(digest)
 
     def define_command(command: Command): State =
     {
@@ -514,6 +518,7 @@ object Document
     {
       val versions1 = versions -- removed
       val assignments1 = assignments -- removed
+      var blobs1 = Set.empty[SHA1.Digest]
       var commands1 = Map.empty[Document_ID.Command, Command.State]
       var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {
@@ -522,14 +527,19 @@ object Document
         (_, node) <- version.nodes.entries
         command <- node.commands.iterator
       } {
+        for (digest <- command.blobs_digests; if !blobs1.contains(digest))
+          blobs1 += digest
+
         if (!commands1.isDefinedAt(command.id))
           commands.get(command.id).foreach(st => commands1 += (command.id -> st))
+
         for (exec_id <- command_execs.getOrElse(command.id, Nil)) {
           if (!execs1.isDefinedAt(exec_id))
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
       }
-      copy(versions = versions1, commands = commands1, execs = execs1, assignments = assignments1)
+      copy(versions = versions1, blobs = blobs1, commands = commands1, execs = execs1,
+        assignments = assignments1)
     }
 
     def command_state(version: Version, command: Command): Command.State =

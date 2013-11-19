@@ -9,7 +9,6 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
-  val read_files: Path.T -> string -> Path.T * Position.T -> Token.file list
   val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
@@ -76,8 +75,8 @@ fun read_files dir cmd (path, pos) =
 fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
-      SOME files => files
-    | NONE => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)));
+      [] => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)
+    | files => files));
 
 
 (* theory files *)
@@ -146,7 +145,7 @@ fun excursion last_timing init elements =
   let
     fun prepare_span span =
       Thy_Syntax.span_content span
-      |> Command.read init
+      |> Command.read init []
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =

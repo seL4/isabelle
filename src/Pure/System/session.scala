@@ -179,12 +179,12 @@ class Session(val thy_load: Thy_Load)
 
         case Text_Edits(previous, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (doc_edits, version) =
+          val (all_blobs, doc_edits, version) =
             Timing.timeit("Thy_Load.text_edits", timing) {
               thy_load.text_edits(reparse_limit, prev, text_edits)
             }
           version_result.fulfill(version)
-          sender ! Change(doc_edits, prev, version)
+          sender ! Change(all_blobs, doc_edits, prev, version)
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -250,6 +250,7 @@ class Session(val thy_load: Thy_Load)
   private case class Start(args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Change(
+    all_blobs: Map[Document.Node.Name, Bytes],
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -374,6 +375,18 @@ class Session(val thy_load: Thy_Load)
 
       def id_command(command: Command)
       {
+        for {
+          digest <- command.blobs_digests
+          if !global_state().defined_blob(digest)
+        } {
+          change.all_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
+            case Some(blob) =>
+              global_state >> (_.define_blob(digest))
+              prover.get.define_blob(blob)
+            case None => System.err.println("Missing blob for SHA1 digest " + digest)
+          }
+        }
+
         if (!global_state().defined_command(command.id)) {
           global_state >> (_.define_command(command))
           prover.get.define_command(command)

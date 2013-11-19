@@ -308,11 +308,27 @@ object Protocol
 
 trait Protocol extends Isabelle_Process
 {
+  /* inlined files */
+
+  def define_blob(blob: Bytes): Unit =
+    protocol_command_raw("Document.define_blob", Bytes(blob.sha1_digest.toString), blob)
+
+
   /* commands */
 
   def define_command(command: Command): Unit =
+  {
+    val blobs_yxml =
+    { import XML.Encode._
+      val encode_blob: T[Command.Blob] =
+        variant(List(
+          { case Exn.Res((a, b)) => (List(a.node, b.toString), Nil) },
+          { case Exn.Exn(e) => (List(Exn.message(e)), Nil) }))
+      YXML.string_of_body(list(encode_blob)(command.blobs))
+    }
     protocol_command("Document.define_command",
-      Document_ID(command.id), encode(command.name), encode(command.source))
+      Document_ID(command.id), encode(command.name), blobs_yxml, encode(command.source))
+  }
 
 
   /* execution */
