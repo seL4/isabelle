@@ -67,7 +67,7 @@ sig
 
   structure Canonical_Lbl_Tab : TABLE
 
-end
+end;
 
 structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF =
 struct
@@ -196,4 +196,4 @@ fun relabel_proof_canonically proof =
     fst (do_proof proof (0, []))
   end
 
-end
+end;

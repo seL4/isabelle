@@ -15,8 +15,7 @@ sig
   type preplay_interface = Sledgehammer_Preplay.preplay_interface
 
   val compress_proof : real -> preplay_interface -> isar_proof -> isar_proof
-end
-
+end;
 
 structure Sledgehammer_Compress : SLEDGEHAMMER_COMPRESS =
 struct
@@ -370,5 +369,4 @@ fun compress_proof isar_compress
     do_proof proof
   end
 
-
-end
+end;

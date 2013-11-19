@@ -17,7 +17,7 @@ syntax.
 signature SLEDGEHAMMER_ANNOTATE =
 sig
   val annotate_types : Proof.context -> term -> term
-end
+end;
 
 structure Sledgehammer_Annotate : SLEDGEHAMMER_ANNOTATE =
 struct
@@ -215,4 +215,4 @@ fun annotate_types ctxt t =
          |> sort int_ord
   in introduce_annotations subst typing_spots t t' end
 
-end
+end;

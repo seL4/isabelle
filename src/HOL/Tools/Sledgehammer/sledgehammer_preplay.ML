@@ -35,7 +35,7 @@ sig
   val proof_preplay_interface :
     bool -> Proof.context -> string -> string -> bool -> Time.time
     -> isar_proof -> preplay_interface
-end
+end;
 
 structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
 struct
@@ -312,4 +312,4 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
         overall_preplay_stats = overall_preplay_stats}
     end
 
-end
+end;
