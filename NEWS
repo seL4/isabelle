@@ -21,7 +21,7 @@ INCOMPATIBILITY.
 * Abolished neg_numeral.
   * Canonical representation for minus one is "- 1".
   * Canonical representation for other negative numbers is "- (numeral _)".
-  * When devising rules set for number calculation, consider the
+  * When devising rule sets for number calculation, consider the
     following cases: 0, 1, numeral _, - 1, - numeral _.
   * Syntax for negative numerals is mere input syntax.
 INCOMPATBILITY.
