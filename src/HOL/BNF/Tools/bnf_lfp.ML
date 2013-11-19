@@ -1354,7 +1354,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val cTs = map (SOME o certifyT lthy o TFree) induct_params;
 
     val weak_ctor_induct_thms =
-      let fun insts i = (replicate (i - 1) TrueI) @ (@{thm asm_rl} :: replicate (n - i) TrueI);
+      let fun insts i = (replicate (i - 1) TrueI) @ (asm_rl :: replicate (n - i) TrueI);
       in map (fn i => (ctor_induct_thm OF insts i) RS mk_conjunctN n i) ks end;
 
     val (ctor_induct2_thm, induct2_params) =
