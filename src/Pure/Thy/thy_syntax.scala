@@ -430,8 +430,15 @@ object Thy_Syntax
       edits: List[Document.Edit_Text])
     : (List[Document.Edit_Command], Document.Version) =
   {
-    val (syntax, reparse, nodes0, doc_edits0) =
+    val (syntax, reparse0, nodes0, doc_edits0) =
       header_edits(thy_load.base_syntax, previous, edits)
+
+    val reparse =
+      (reparse0 /: nodes0.entries)({
+        case (reparse, (name, node)) =>
+          if (node.thy_load_commands.isEmpty) reparse
+          else name :: reparse
+        })
     val reparse_set = reparse.toSet
 
     var nodes = nodes0
