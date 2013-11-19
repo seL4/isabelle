@@ -678,7 +678,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
 
     val def_qualify = Binding.conceal o Binding.qualify false (Binding.name_of bnf_b);
 
-    fun mk_suffix_binding suf = Binding.suffix_name ("_" ^ suf) bnf_b;
+    fun mk_prefix_binding pre = Binding.prefix_name (pre ^ "_") bnf_b;
 
     fun maybe_define user_specified (b, rhs) lthy =
       let
@@ -703,7 +703,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
       lthy |> not (pointer_eq (lthy_old, lthy)) ? Local_Theory.restore;
 
     val map_bind_def =
-      (fn () => def_qualify (if Binding.is_empty map_b then mk_suffix_binding mapN else map_b),
+      (fn () => def_qualify (if Binding.is_empty map_b then mk_prefix_binding mapN else map_b),
          map_rhs);
     val set_binds_defs =
       let
@@ -711,10 +711,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
           (case try (nth set_bs) (i - 1) of
             SOME b => if Binding.is_empty b then get_b else K b
           | NONE => get_b) #> def_qualify;
-        val bs = if live = 1 then [set_name 1 (fn () => mk_suffix_binding setN)]
-          else map (fn i => set_name i (fn () => mk_suffix_binding (mk_setN i))) (1 upto live);
+        val bs = if live = 1 then [set_name 1 (fn () => mk_prefix_binding setN)]
+          else map (fn i => set_name i (fn () => mk_prefix_binding (mk_setN i))) (1 upto live);
       in bs ~~ set_rhss end;
-    val bd_bind_def = (fn () => def_qualify (mk_suffix_binding bdN), bd_rhs);
+    val bd_bind_def = (fn () => def_qualify (mk_prefix_binding bdN), bd_rhs);
 
     val ((((bnf_map_term, raw_map_def),
       (bnf_set_terms, raw_set_defs)),
@@ -861,7 +861,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
       | SOME raw_rel => prep_term no_defs_lthy raw_rel);
 
     val rel_bind_def =
-      (fn () => def_qualify (if Binding.is_empty rel_b then mk_suffix_binding relN else rel_b),
+      (fn () => def_qualify (if Binding.is_empty rel_b then mk_prefix_binding relN else rel_b),
          rel_rhs);
 
     val wit_rhss =
@@ -873,8 +873,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
     val nwits = length wit_rhss;
     val wit_binds_defs =
       let
-        val bs = if nwits = 1 then [fn () => def_qualify (mk_suffix_binding witN)]
-          else map (fn i => fn () => def_qualify (mk_suffix_binding (mk_witN i))) (1 upto nwits);
+        val bs = if nwits = 1 then [fn () => def_qualify (mk_prefix_binding witN)]
+          else map (fn i => fn () => def_qualify (mk_prefix_binding (mk_witN i))) (1 upto nwits);
       in bs ~~ wit_rhss end;
 
     val (((bnf_rel_term, raw_rel_def), (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =

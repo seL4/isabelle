@@ -22,7 +22,7 @@ section {* Customization *}
 subsection {* Basic properties *}
 
 declare
-  pre_process_rel_def[simp]
+  rel_pre_process_def[simp]
   sum_rel_def[simp]
   prod_rel_def[simp]
 
