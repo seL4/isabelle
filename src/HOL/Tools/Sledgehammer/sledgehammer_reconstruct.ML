@@ -24,9 +24,6 @@ sig
   val used_facts_in_unsound_atp_proof :
     Proof.context -> (string * stature) list vector -> 'a atp_proof ->
     string list option
-  val termify_atp_proof :
-    Proof.context -> string Symtab.table -> (string * term) list ->
-    int Symtab.table -> string atp_proof -> (term, string) atp_step list
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
@@ -187,63 +184,6 @@ fun add_fact_of_dependencies fact_names (names as [(_, ss)]) =
   | add_fact_of_dependencies _ names =
     apfst (insert (op =) (label_of_clause names))
 
-fun repair_name "$true" = "c_True"
-  | repair_name "$false" = "c_False"
-  | repair_name "$$e" = tptp_equal (* seen in Vampire proofs *)
-  | repair_name s =
-    if is_tptp_equal s orelse
-       (* seen in Vampire proofs *)
-       (String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s) then
-      tptp_equal
-    else
-      s
-
-fun infer_formula_types ctxt =
-  Type.constraint HOLogic.boolT
-  #> Syntax.check_term
-         (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
-
-val combinator_table =
-  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
-   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def [abs_def]}),
-   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def [abs_def]}),
-   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def [abs_def]}),
-   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def [abs_def]})]
-
-fun uncombine_term thy =
-  let
-    fun aux (t1 $ t2) = betapply (pairself aux (t1, t2))
-      | aux (Abs (s, T, t')) = Abs (s, T, aux t')
-      | aux (t as Const (x as (s, _))) =
-        (case AList.lookup (op =) combinator_table s of
-           SOME thm => thm |> prop_of |> specialize_type thy x
-                           |> Logic.dest_equals |> snd
-         | NONE => t)
-      | aux t = t
-  in aux end
-
-fun unlift_term lifted =
-  map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix lam_lifted_prefix s then
-                   case AList.lookup (op =) lifted s of
-                     SOME t =>
-                     (* FIXME: do something about the types *)
-                     unlift_term lifted t
-                   | NONE => t
-                 else
-                   t
-               | t => t)
-
-fun decode_line ctxt lifted sym_tab (name, role, u, rule, deps) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val t =
-      u |> prop_of_atp ctxt true sym_tab
-        |> uncombine_term thy
-        |> unlift_term lifted
-        |> infer_formula_types ctxt
-  in (name, role, t, rule, deps) end
-
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
 fun replace_dependencies_in_line p (name, role, t, rule, deps) =
@@ -282,18 +222,6 @@ fun add_line fact_names (name as (_, ss), role, t, rule, []) lines =
       (_, []) => line :: lines
     | (pre, (name', _, _, _, _) :: post) =>
       line :: pre @ map (replace_dependencies_in_line (name', [name])) post
-
-val waldmeister_conjecture_num = "1.0.0.0"
-
-fun repair_waldmeister_endgame arg =
-  let
-    fun do_tail (name, _, t, rule, deps) =
-      (name, Negated_Conjecture, s_not t, rule, deps)
-    fun do_body [] = []
-      | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
-        if num = waldmeister_conjecture_num then map do_tail (line :: lines)
-        else line :: do_body lines
-  in do_body arg end
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
@@ -409,13 +337,6 @@ val chain_direct_proof =
              chain_steps (try (List.last #> fst) assms) steps)
     and chain_proofs proofs = map (chain_proof) proofs
   in chain_proof end
-
-fun termify_atp_proof ctxt pool lifted sym_tab =
-  clean_up_atp_proof_dependencies
-  #> nasty_atp_proof pool
-  #> map_term_names_in_atp_proof repair_name
-  #> map (decode_line ctxt lifted sym_tab)
-  #> repair_waldmeister_endgame
 
 type isar_params =
   bool * bool * Time.time option * real * bool * (string * stature) list vector

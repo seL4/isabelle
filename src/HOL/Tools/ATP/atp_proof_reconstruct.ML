@@ -10,6 +10,8 @@ signature ATP_PROOF_RECONSTRUCT =
 sig
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
+  type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
+  type 'a atp_proof = 'a ATP_Proof.atp_proof
 
   val metisN : string
   val full_typesN : string
@@ -32,6 +34,10 @@ sig
   val prop_of_atp :
     Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) atp_term, string) atp_formula -> term
+
+  val termify_atp_proof :
+    Proof.context -> string Symtab.table -> (string * term) list ->
+    int Symtab.table -> string atp_proof -> (term, string) atp_step list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -338,5 +344,81 @@ fun prop_of_atp ctxt textual sym_tab phi =
       | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
       | _ => raise ATP_FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
+
+fun repair_name "$true" = "c_True"
+  | repair_name "$false" = "c_False"
+  | repair_name "$$e" = tptp_equal (* seen in Vampire proofs *)
+  | repair_name s =
+    if is_tptp_equal s orelse
+       (* seen in Vampire proofs *)
+       (String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s) then
+      tptp_equal
+    else
+      s
+
+fun infer_formula_types ctxt =
+  Type.constraint HOLogic.boolT
+  #> Syntax.check_term
+         (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+
+val combinator_table =
+  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
+   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def [abs_def]}),
+   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def [abs_def]}),
+   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def [abs_def]}),
+   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def [abs_def]})]
+
+fun uncombine_term thy =
+  let
+    fun aux (t1 $ t2) = betapply (pairself aux (t1, t2))
+      | aux (Abs (s, T, t')) = Abs (s, T, aux t')
+      | aux (t as Const (x as (s, _))) =
+        (case AList.lookup (op =) combinator_table s of
+           SOME thm => thm |> prop_of |> specialize_type thy x
+                           |> Logic.dest_equals |> snd
+         | NONE => t)
+      | aux t = t
+  in aux end
+
+fun unlift_term lifted =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix lam_lifted_prefix s then
+                   case AList.lookup (op =) lifted s of
+                     SOME t =>
+                     (* FIXME: do something about the types *)
+                     unlift_term lifted t
+                   | NONE => t
+                 else
+                   t
+               | t => t)
+
+fun decode_line ctxt lifted sym_tab (name, role, u, rule, deps) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val t =
+      u |> prop_of_atp ctxt true sym_tab
+        |> uncombine_term thy
+        |> unlift_term lifted
+        |> infer_formula_types ctxt
+  in (name, role, t, rule, deps) end
+
+val waldmeister_conjecture_num = "1.0.0.0"
+
+fun repair_waldmeister_endgame arg =
+  let
+    fun do_tail (name, _, t, rule, deps) =
+      (name, Negated_Conjecture, s_not t, rule, deps)
+    fun do_body [] = []
+      | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
+        if num = waldmeister_conjecture_num then map do_tail (line :: lines)
+        else line :: do_body lines
+  in do_body arg end
+
+fun termify_atp_proof ctxt pool lifted sym_tab =
+  clean_up_atp_proof_dependencies
+  #> nasty_atp_proof pool
+  #> map_term_names_in_atp_proof repair_name
+  #> map (decode_line ctxt lifted sym_tab)
+  #> repair_waldmeister_endgame
 
 end;
