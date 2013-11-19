@@ -77,6 +77,15 @@ object PIDE
       if doc_view.isDefined
     } yield doc_view.get
 
+  def document_models(): List[Document_Model] =
+    for {
+      buffer <- JEdit_Lib.jedit_buffers().toList
+      model <- document_model(buffer)
+    } yield model
+
+  def document_blobs(): Document.Blobs =
+    document_models().filterNot(_.is_theory).map(model => (model.node_name -> model.blob())).toMap
+
   def exit_models(buffers: List[Buffer])
   {
     Swing_Thread.now {
@@ -113,7 +122,7 @@ object PIDE
             model_edits ::: edits
           }
         }
-      session.update(PIDE.editor.document_blobs(), init_edits)
+      session.update(document_blobs(), init_edits)
     }
   }
 

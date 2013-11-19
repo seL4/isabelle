@@ -19,21 +19,12 @@ class JEdit_Editor extends Editor[View]
 
   override def session: Session = PIDE.session
 
-  def document_models(): List[Document_Model] =
-    for {
-      buffer <- JEdit_Lib.jedit_buffers().toList
-      model <- PIDE.document_model(buffer)
-    } yield model
-
-  def document_blobs(): Document.Blobs =
-    document_models().filterNot(_.is_theory).map(model => (model.node_name -> model.blob())).toMap
-
   override def flush()
   {
     Swing_Thread.require()
 
-    val edits = document_models().flatMap(_.flushed_edits())
-    if (!edits.isEmpty) session.update(document_blobs(), edits)
+    val edits = PIDE.document_models().flatMap(_.flushed_edits())
+    if (!edits.isEmpty) session.update(PIDE.document_blobs(), edits)
   }
 
   private val delay_flush =
