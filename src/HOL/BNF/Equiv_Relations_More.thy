@@ -59,7 +59,7 @@ unfolding quotient_def using equiv_class_self by fast
 
 lemma in_quotient_imp_in_rel:
 "\<lbrakk>equiv A r; X \<in> A//r; {x,y} \<subseteq> X\<rbrakk> \<Longrightarrow> (x,y) \<in> r"
-using quotient_eq_iff by fastforce
+using quotient_eq_iff[THEN iffD1] by fastforce
 
 lemma in_quotient_imp_closed:
 "\<lbrakk>equiv A r; X \<in> A//r; x \<in> X; (x,y) \<in> r\<rbrakk> \<Longrightarrow> y \<in> X"

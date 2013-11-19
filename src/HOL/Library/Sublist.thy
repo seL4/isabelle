@@ -107,16 +107,22 @@ theorem prefixeq_append:
 
 lemma append_one_prefixeq:
   "prefixeq xs ys \<Longrightarrow> length xs < length ys \<Longrightarrow> prefixeq (xs @ [ys ! length xs]) ys"
-  unfolding prefixeq_def
-  by (metis Cons_eq_appendI append_eq_appendI append_eq_conv_conj
-    eq_Nil_appendI nth_drop')
+  proof (unfold prefixeq_def)
+    assume a1: "\<exists>zs. ys = xs @ zs"
+    then obtain sk :: "'a list" where sk: "ys = xs @ sk" by fastforce
+    assume a2: "length xs < length ys"
+    have f1: "\<And>v. ([]\<Colon>'a list) @ v = v" using append_Nil2 by simp
+    have "[] \<noteq> sk" using a1 a2 sk less_not_refl by force
+    hence "\<exists>v. xs @ hd sk # v = ys" using sk by (metis hd_Cons_tl)
+    thus "\<exists>zs. ys = (xs @ [ys ! length xs]) @ zs" using f1 by fastforce
+  qed
 
 theorem prefixeq_length_le: "prefixeq xs ys \<Longrightarrow> length xs \<le> length ys"
   by (auto simp add: prefixeq_def)
 
 lemma prefixeq_same_cases:
   "prefixeq (xs\<^sub>1::'a list) ys \<Longrightarrow> prefixeq xs\<^sub>2 ys \<Longrightarrow> prefixeq xs\<^sub>1 xs\<^sub>2 \<or> prefixeq xs\<^sub>2 xs\<^sub>1"
-  unfolding prefixeq_def by (metis append_eq_append_conv2)
+  unfolding prefixeq_def by (force simp: append_eq_append_conv2)
 
 lemma set_mono_prefixeq: "prefixeq xs ys \<Longrightarrow> set xs \<subseteq> set ys"
   by (auto simp add: prefixeq_def)
@@ -224,9 +230,9 @@ next
       then show ?thesis by (metis append_Nil2 parallelE prefixeqI snoc.prems ys)
     next
       fix c cs assume ys': "ys' = c # cs"
-      then show ?thesis
-        by (metis Cons_eq_appendI eq_Nil_appendI parallelE prefixeqI
-          same_prefixeq_prefixeq snoc.prems ys)
+      have "x \<noteq> c" using snoc.prems ys ys' by fastforce
+      thus "\<exists>as b bs c cs. b \<noteq> c \<and> xs @ [x] = as @ b # bs \<and> ys = as @ c # cs"
+        using ys ys' by blast
     qed
   next
     assume "prefix ys xs"
@@ -464,7 +470,7 @@ proof (induct x \<equiv> "x # xs" ys arbitrary: x xs)
   then show ?case by (metis append_Cons)
 next
   case (list_hembeq_Cons2 x y xs ys)
-  then show ?case by (cases xs) (auto, blast+)
+  then show ?case by blast
 qed
 
 lemma list_hembeq_appendD:
@@ -475,9 +481,14 @@ proof (induction xs arbitrary: ys zs)
   case Nil then show ?case by auto
 next
   case (Cons x xs)
-  then obtain us v vs where "zs = us @ v # vs"
-    and "P\<^sup>=\<^sup>= x v" and "list_hembeq P (xs @ ys) vs" by (auto dest: list_hembeq_ConsD)
-  with Cons show ?case by (metis append_Cons append_assoc list_hembeq_Cons2 list_hembeq_append2)
+  then obtain us v vs where
+    zs: "zs = us @ v # vs" and p: "P\<^sup>=\<^sup>= x v" and lh: "list_hembeq P (xs @ ys) vs"
+    by (auto dest: list_hembeq_ConsD)
+  obtain sk\<^sub>0 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" and sk\<^sub>1 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+    sk: "\<forall>x\<^sub>0 x\<^sub>1. \<not> list_hembeq P (xs @ x\<^sub>0) x\<^sub>1 \<or> sk\<^sub>0 x\<^sub>0 x\<^sub>1 @ sk\<^sub>1 x\<^sub>0 x\<^sub>1 = x\<^sub>1 \<and> list_hembeq P xs (sk\<^sub>0 x\<^sub>0 x\<^sub>1) \<and> list_hembeq P x\<^sub>0 (sk\<^sub>1 x\<^sub>0 x\<^sub>1)"
+    using Cons(1) by (metis (no_types))
+  hence "\<forall>x\<^sub>2. list_hembeq P (x # xs) (x\<^sub>2 @ v # sk\<^sub>0 ys vs)" using p lh by auto
+  thus ?case using lh zs sk by (metis (no_types) append_Cons append_assoc)
 qed
 
 lemma list_hembeq_suffix:
@@ -550,7 +561,7 @@ lemma [code]:
   by (simp_all)
 
 lemma sublisteq_Cons': "sublisteq (x#xs) ys \<Longrightarrow> sublisteq xs ys"
-  by (induct xs) (auto dest: list_hembeq_ConsD)
+  by (induct xs, simp, blast dest: list_hembeq_ConsD)
 
 lemma sublisteq_Cons2':
   assumes "sublisteq (x#xs) (x#ys)" shows "sublisteq xs ys"
@@ -579,11 +590,11 @@ proof (induct)
   from list_hembeq_Nil2 [OF this] show ?case by simp
 next
   case list_hembeq_Cons2
-  then show ?case by simp
+  thus ?case by simp
 next
   case list_hembeq_Cons
-  then show ?case
-    by (metis sublisteq_Cons' list_hembeq_length Suc_length_conv Suc_n_not_le_n)
+  hence False using sublisteq_Cons' by fastforce
+  thus ?case ..
 qed
 
 lemma sublisteq_trans: "sublisteq xs ys \<Longrightarrow> sublisteq ys zs \<Longrightarrow> sublisteq xs zs"
@@ -650,7 +661,7 @@ lemma sublisteq_filter_left [simp]: "sublisteq (filter P xs) xs"
 
 lemma sublisteq_filter [simp]:
   assumes "sublisteq xs ys" shows "sublisteq (filter P xs) (filter P ys)"
-  using assms by (induct) auto
+  using assms by induct auto
 
 lemma "sublisteq xs ys \<longleftrightarrow> (\<exists>N. xs = sublist ys N)" (is "?L = ?R")
 proof
