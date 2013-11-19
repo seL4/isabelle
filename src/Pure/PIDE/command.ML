@@ -88,10 +88,20 @@ type blob = (string * string) Exn.result;  (*file node name, digest or text*)
 fun resolve_files blobs toks =
   (case Thy_Syntax.parse_spans toks of
     [span] => span
-      |> Thy_Syntax.resolve_files (fn _ => fn (path, pos) =>
-        blobs |> (map o Exn.map_result) (fn (file, text) =>
-          let val _ = Position.report pos (Markup.path file);
-          in {src_path = path (* FIXME *), text = text, pos = Position.file file} end))
+      |> Thy_Syntax.resolve_files (fn cmd => fn (path, pos) =>
+        let
+          fun make_file src_path (Exn.Res (file, text)) =
+                let val _ = Position.report pos (Markup.path file);
+                in Exn.Res {src_path = src_path, text = text, pos = Position.file file} end
+            | make_file _ (Exn.Exn e) = Exn.Exn e;
+
+          val src_paths = Keyword.command_files cmd path;
+        in
+          if null blobs then []
+          else if length src_paths <> length blobs then
+            error ("Misalignment of inlined files" ^ Position.here pos)
+          else map2 make_file src_paths blobs
+        end)
       |> Thy_Syntax.span_content
   | _ => toks);
 

@@ -51,7 +51,7 @@ sig
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
   val is_keyword: string -> bool
   val command_keyword: string -> T option
-  val command_files: string -> string list
+  val command_files: string -> Path.T -> Path.T list
   val command_tags: string -> string list
   val dest: unit -> string list * string list
   val define: string * T option -> unit
@@ -196,7 +196,15 @@ fun is_keyword s =
   in Scan.is_literal minor syms orelse Scan.is_literal major syms end;
 
 fun command_keyword name = Symtab.lookup (get_commands ()) name;
-val command_files = these o Option.map (#2 o kind_files_of) o command_keyword;
+
+fun command_files name path =
+  (case command_keyword name of
+    NONE => []
+  | SOME (Keyword {kind, files, ...}) =>
+      if kind <> kind_of thy_load then []
+      else if null files then [path]
+      else map (fn ext => Path.ext ext path) files);
+
 val command_tags = these o Option.map tags_of o command_keyword;
 
 fun dest () = pairself (sort_strings o Scan.dest_lexicon) (get_lexicons ());

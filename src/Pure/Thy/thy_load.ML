@@ -61,16 +61,12 @@ fun check_file dir file = File.check_file (File.full_path dir file);
 
 fun read_files dir cmd (path, pos) =
   let
-    fun make_file file =
+    fun make_file src_path =
       let
-        val _ = Position.report pos (Markup.path (Path.implode file));
-        val full_path = check_file dir file;
-      in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
-    val paths =
-      (case Keyword.command_files cmd of
-        [] => [path]
-      | exts => map (fn ext => Path.ext ext path) exts);
-  in map make_file paths end;
+        val full_path = check_file dir src_path;
+        val _ = Position.report pos (Markup.path (Path.implode full_path));
+      in {src_path = src_path, text = File.read full_path, pos = Path.position full_path} end;
+  in map make_file (Keyword.command_files cmd path) end;
 
 fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
