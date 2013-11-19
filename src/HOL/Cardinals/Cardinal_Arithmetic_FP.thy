@@ -17,7 +17,7 @@ by (rule dir_image_ordIso) (auto simp add: inj_on_def card_order_on_def)
 
 (*should supersede a weaker lemma from the library*)
 lemma dir_image_Field: "Field (dir_image r f) = f ` Field r"
-unfolding dir_image_def Field_def Range_def Domain_def by fastforce
+unfolding dir_image_def Field_def Range_def Domain_def by fast
 
 lemma card_order_dir_image:
   assumes bij: "bij f" and co: "card_order r"
@@ -64,11 +64,15 @@ proof -
                   \<lambda>x. if x \<in> A then snd (fg x) else undefined)"
   let ?G = "\<lambda>(f, g) x. if x \<in> A then (f x, g x) else undefined"
   have "bij_betw ?F ?LHS ?RHS" unfolding bij_betw_def inj_on_def
-  proof safe
+  apply safe
+     apply (simp add: Func_def fun_eq_iff)
+     apply (metis (no_types) pair_collapse)
+    apply (auto simp: Func_def fun_eq_iff)[2]
+  proof -
     fix f g assume "f \<in> Func A B" "g \<in> Func A C"
     thus "(f, g) \<in> ?F ` Func A (B \<times> C)"
       by (intro image_eqI[of _ _ "?G (f, g)"]) (auto simp: Func_def)
-  qed (auto simp: Func_def fun_eq_iff, metis pair_collapse)
+  qed
   thus ?thesis using card_of_ordIso by blast
 qed
 
@@ -169,7 +173,7 @@ unfolding csum_def by (simp add: card_of_Card_order)
 lemma csum_Cnotzero1:
   "Cnotzero r1 \<Longrightarrow> Cnotzero (r1 +c r2)"
 unfolding csum_def
-by (metis Cnotzero_imp_not_empty Field_card_of Plus_eq_empty_conv card_of_card_order_on czeroE)
+by (metis Cnotzero_imp_not_empty Plus_eq_empty_conv card_of_Card_order card_of_ordIso_czero_iff_empty)
 
 lemma card_order_csum:
   assumes "card_order r1" "card_order r2"
@@ -463,7 +467,7 @@ proof -
     and p: "r2 =o czero \<Longrightarrow> p2 =o czero"
      using 0 Cr Cp czeroE czeroI by auto
   show ?thesis using 0 1 2 unfolding ordIso_iff_ordLeq
-    using r p cexp_mono[OF _ _ _ Cp] cexp_mono[OF _ _ _ Cr] by blast
+    using r p cexp_mono[OF _ _ _ Cp] cexp_mono[OF _ _ _ Cr] by metis
 qed
 
 lemma cexp_cong1:

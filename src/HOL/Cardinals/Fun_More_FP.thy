@@ -232,7 +232,7 @@ shows "m \<le> n"
 using assms
 using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
       card_atLeastLessThan[of m] card_atLeastLessThan[of n]
-      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by auto
+      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by fastforce
 
 
 

@@ -5,7 +5,7 @@
 Cardinal-order relations (FP).
 *)
 
-header {* Cardinal-Order Relations (FP)  *}
+header {* Cardinal-Order Relations (FP) *}
 
 theory Cardinal_Order_Relation_FP
 imports Constructions_on_Wellorders_FP
@@ -466,7 +466,7 @@ proof-
   let ?h = "\<lambda> b'::'b. if b' = b then a else undefined"
   have "inj_on ?h {b} \<and> ?h ` {b} \<le> A"
   using * unfolding inj_on_def by auto
-  thus ?thesis using card_of_ordLeq by blast
+  thus ?thesis using card_of_ordLeq by fast
 qed
 
 
@@ -576,7 +576,7 @@ proof -
     qed
   qed
   hence "bij_betw f ((A <+> B) <+> C) (A <+> B <+> C)"
-  unfolding bij_betw_def inj_on_def f_def by force
+  unfolding bij_betw_def inj_on_def f_def by fastforce
   thus ?thesis using card_of_ordIso by blast
 qed
 
@@ -593,8 +593,7 @@ proof-
   proof-
     {fix d1 and d2 assume "d1 \<in> A <+> C \<and> d2 \<in> A <+> C" and
                           "g d1 = g d2"
-     hence "d1 = d2" using 1 unfolding inj_on_def
-     by(case_tac d1, case_tac d2, auto simp add: g_def)
+     hence "d1 = d2" using 1 unfolding inj_on_def g_def by force
     }
     moreover
     {fix d assume "d \<in> A <+> C"
@@ -962,9 +961,9 @@ proof(auto)
     let ?r' = "Restr r (rel.underS r a)"
     assume Case2: "a \<in> Field r"
     hence 1: "rel.under r a = rel.underS r a \<union> {a} \<and> a \<notin> rel.underS r a"
-    using 0 rel.Refl_under_underS rel.underS_notIn by fastforce
+    using 0 rel.Refl_under_underS rel.underS_notIn by metis
     have 2: "wo_rel.ofilter r (rel.underS r a) \<and> rel.underS r a < Field r"
-    using 0 wo_rel.underS_ofilter * 1 Case2 by auto
+    using 0 wo_rel.underS_ofilter * 1 Case2 by fast
     hence "?r' <o r" using 0 using ofilter_ordLess by blast
     moreover
     have "Field ?r' = rel.underS r a \<and> Well_order ?r'"
@@ -1370,7 +1369,7 @@ unfolding rel.underS_def by auto
 
 
 lemma Restr_natLeq: "Restr natLeq {0 ..< n} = natLeq_on n"
-by auto
+by force
 
 
 lemma Restr_natLeq2:
@@ -1393,9 +1392,9 @@ unfolding wo_rel_def using natLeq_on_Well_order .
 
 lemma natLeq_on_ofilter_less_eq:
 "n \<le> m \<Longrightarrow> wo_rel.ofilter (natLeq_on m) {0 ..< n}"
-by (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def,
-    simp add: Field_natLeq_on, unfold rel.under_def, auto)
-
+apply (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def)
+apply (simp add: Field_natLeq_on)
+by (auto simp add: rel.under_def)
 
 lemma natLeq_on_ofilter_iff:
 "wo_rel.ofilter (natLeq_on m) A = (\<exists>n \<le> m. A = {0 ..< n})"
@@ -1450,8 +1449,8 @@ using infinite_iff_card_of_nat[of A] card_of_nat
 corollary finite_iff_ordLess_natLeq:
 "finite A = ( |A| <o natLeq)"
 using infinite_iff_natLeq_ordLeq not_ordLeq_iff_ordLess
-      card_of_Well_order natLeq_Well_order by blast
-
+      card_of_Well_order natLeq_Well_order
+by auto
 
 lemma ordIso_natLeq_on_imp_finite:
 "|A| =o natLeq_on n \<Longrightarrow> finite A"
@@ -1502,7 +1501,8 @@ qed
 lemma natLeq_on_ordLeq_less:
 "((natLeq_on m) <o (natLeq_on n)) = (m < n)"
 using not_ordLeq_iff_ordLess[of "natLeq_on m" "natLeq_on n"]
-natLeq_on_Well_order natLeq_on_ordLeq_less_eq by auto
+  natLeq_on_Well_order natLeq_on_ordLeq_less_eq
+by fastforce
 
 
 
@@ -1845,7 +1845,7 @@ assumes C: "infinite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
 and "Card_order r"
 shows "|A Un B| \<le>o r"
 using assms card_of_Plus_ordLeq_infinite_Field card_of_Un_Plus_ordLeq
-ordLeq_transitive by blast
+ordLeq_transitive by fast
 
 
 
@@ -2039,7 +2039,11 @@ qed
 lemma bij_betw_curr:
 "bij_betw (curr A) (Func (A <*> B) C) (Func A (Func B C))"
 unfolding bij_betw_def inj_on_def image_def
-using curr_in curr_inj curr_surj by blast
+apply (intro impI conjI ballI)
+apply (erule curr_inj[THEN iffD1], assumption+)
+apply auto
+apply (erule curr_in)
+using curr_surj by blast
 
 lemma card_of_Func_Times:
 "|Func (A <*> B) C| =o |Func A (Func B C)|"
@@ -2075,8 +2079,8 @@ next
   moreover
   {fix f assume "f \<in> Func A B"
    moreover obtain a where "a \<in> A" using R by blast
-   ultimately obtain b where "b \<in> B" unfolding Func_def by(cases "f a = undefined", force+)
-   with R have False by auto
+   ultimately obtain b where "b \<in> B" unfolding Func_def by blast
+   with R have False by blast
   }
   thus ?L by blast
 qed

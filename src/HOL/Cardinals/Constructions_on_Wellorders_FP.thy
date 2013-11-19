@@ -90,7 +90,7 @@ by (auto simp add: Field_def)
 
 lemma Refl_Field_Restr:
 "Refl r \<Longrightarrow> Field(Restr r A) = (Field r) Int A"
-by (auto simp add: refl_on_def Field_def)
+unfolding refl_on_def Field_def by blast
 
 
 lemma Refl_Field_Restr2:
@@ -807,7 +807,7 @@ proof
   have "wo_rel.ofilter r (rel.underS r a)" using 0
   by (simp add: wo_rel_def wo_rel.underS_ofilter)
   hence "Field ?p = rel.underS r a" using 0 Field_Restr_ofilter by blast
-  hence "Field ?p < Field r" using rel.underS_Field2 1 by fastforce
+  hence "Field ?p < Field r" using rel.underS_Field2 1 by fast
   moreover have "?p <o r" using underS_Restr_ordLess[of r a] 0 1 by blast
   ultimately
   show "\<exists>p. Field p < Field r \<and> r' =o p \<and> p <o r" using 2 by blast
@@ -894,7 +894,7 @@ proof-
     hence "bij_betw f A A" unfolding bij_betw_def using FIN endo_inj_surj by blast
     thus "r =o r'" unfolding ordIso_def iso_def[abs_def] using 1 2 by auto
   qed
-  ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by blast
+  ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by metis
 qed
 
 

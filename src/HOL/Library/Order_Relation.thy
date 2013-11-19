@@ -93,7 +93,7 @@ shows "Field r = Field(r - Id)"
 using mono_Field[of "r - Id" r] Diff_subset[of r Id]
 proof(auto)
   have "r \<noteq> {}" using NID by fast
-  then obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" using NID by fast
+  then obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" using NID by auto
   hence 1: "b \<noteq> c \<and> {b,c} \<le> Field r" by (auto simp: Field_def)
   (*  *)
   fix a assume *: "a \<in> Field r"
