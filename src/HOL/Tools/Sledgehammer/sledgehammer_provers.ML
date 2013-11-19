@@ -367,7 +367,7 @@ fun extract_reconstructor ({type_enc, lam_trans, ...} : params)
            []
          else
            [("type_enc", [hd (unalias_type_enc type_enc')])]) @
-        (if is_none lam_trans andalso lam_trans' = metis_default_lam_trans then
+        (if is_none lam_trans andalso lam_trans' = default_metis_lam_trans then
            []
          else
            [("lam_trans", [lam_trans'])])
@@ -820,7 +820,7 @@ fun run_atp mode name
             bunch_of_reconstructors needs_full_types
                 (lam_trans_of_atp_proof atp_proof
                  o (fn desperate => if desperate then hide_lamsN
-                                    else metis_default_lam_trans))
+                                    else default_metis_lam_trans))
         in
           (used_facts,
            Lazy.lazy (fn () =>
@@ -838,19 +838,24 @@ fun run_atp mode name
                     Output.urgent_message "Generating proof text..."
                   else
                     ()
-                val atp_proof = (fn () => termify_atp_proof ctxt pool lifted sym_tab atp_proof)
-                val isar_params =
-                  (debug, verbose, preplay_timeout, isar_compress, isar_try0, fact_names, atp_proof,
-                   goal)
+                fun isar_params () =
+                  let
+                    val metis_type_enc =
+                      if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
+                      else partial_typesN
+                    val metis_lam_trans = lam_trans_of_atp_proof atp_proof default_metis_lam_trans
+                    val atp_proof = atp_proof |> termify_atp_proof ctxt pool lifted sym_tab
+                  in
+                    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout,
+                     isar_compress, isar_try0, fact_names, atp_proof, goal)
+                  end
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command ctxt params minimize_command name
-                                           preplay,
+                   choose_minimize_command ctxt params minimize_command name preplay,
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt isar_proofs isar_params
-                           num_chained one_line_params
+                proof_text ctxt isar_proofs isar_params num_chained one_line_params
               end,
            (if verbose then
               "\nATP real CPU time: " ^ string_of_time run_time ^ "."
@@ -1048,7 +1053,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
            play_one_line_proof mode debug verbose preplay_timeout used_pairs
                state subgoal SMT
                (bunch_of_reconstructors false (fn desperate =>
-                  if desperate then liftingN else metis_default_lam_trans))),
+                  if desperate then liftingN else default_metis_lam_trans))),
          fn preplay =>
             let
               val one_line_params =
@@ -1082,7 +1087,7 @@ fun run_reconstructor mode name
     val reconstr =
       if name = metisN then
         Metis (type_enc |> the_default (hd partial_type_encs),
-               lam_trans |> the_default metis_default_lam_trans)
+               lam_trans |> the_default default_metis_lam_trans)
       else if name = smtN then
         SMT
       else

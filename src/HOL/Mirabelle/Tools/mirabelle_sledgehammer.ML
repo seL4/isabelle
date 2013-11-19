@@ -665,7 +665,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           SMT_Solver.smt_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
-            ATP_Proof_Reconstruct.metis_default_lam_trans ctxt thms
+            ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
         else if String.isPrefix "metis (" (!reconstructor) then
           let
             val (type_encs, lam_trans) =
@@ -674,10 +674,10 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
-              ||> the_default ATP_Proof_Reconstruct.metis_default_lam_trans
+              ||> the_default ATP_Proof_Reconstruct.default_metis_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.metis_default_lam_trans ctxt
+          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt
             thms
         else
           K all_tac

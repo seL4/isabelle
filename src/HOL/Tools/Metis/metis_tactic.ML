@@ -294,7 +294,7 @@ fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
         ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
     val type_encs = override_type_encs |> the_default default_type_encs
-    val lam_trans = lam_trans |> the_default metis_default_lam_trans
+    val lam_trans = lam_trans |> the_default default_metis_lam_trans
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
               CHANGED_PROP o generic_metis_tac type_encs lam_trans ctxt

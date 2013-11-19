@@ -13,22 +13,13 @@ sig
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   type isar_params =
-    bool * bool * Time.time option * real * bool * (string * stature) list vector
-    * (unit -> (term, string) atp_step list) * thm
+    bool * bool * string * string * Time.time option * real * bool * (string * stature) list vector
+    * (term, string) atp_step list * thm
 
-  val lam_trans_of_atp_proof : string atp_proof -> string -> string
-  val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
-  val used_facts_in_atp_proof :
-    Proof.context -> (string * stature) list vector -> string atp_proof ->
-    (string * stature) list
-  val used_facts_in_unsound_atp_proof :
-    Proof.context -> (string * stature) list vector -> 'a atp_proof ->
-    string list option
   val isar_proof_text :
     Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool option -> isar_params -> int -> one_line_params
-    -> string
+    Proof.context -> bool option -> (unit -> isar_params) -> int -> one_line_params -> string
 end;
 
 structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
@@ -55,113 +46,6 @@ structure String_Redirect = ATP_Proof_Redirect(
   val string_of = fst)
 
 open String_Redirect
-
-(** fact extraction from ATP proofs **)
-
-fun find_first_in_list_vector vec key =
-  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
-                 | (_, value) => value) NONE vec
-
-val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
-
-fun resolve_one_named_fact fact_names s =
-  case try (unprefix fact_prefix) s of
-    SOME s' =>
-    let val s' = s' |> unprefix_fact_number |> unascii_of in
-      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
-    end
-  | NONE => NONE
-fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
-fun is_fact fact_names = not o null o resolve_fact fact_names
-
-fun resolve_one_named_conjecture s =
-  case try (unprefix conjecture_prefix) s of
-    SOME s' => Int.fromString s'
-  | NONE => NONE
-
-val resolve_conjecture = map_filter resolve_one_named_conjecture
-val is_conjecture = not o null o resolve_conjecture
-
-val ascii_of_lam_fact_prefix = ascii_of lam_fact_prefix
-
-(* overapproximation (good enough) *)
-fun is_lam_lifted s =
-  String.isPrefix fact_prefix s andalso
-  String.isSubstring ascii_of_lam_fact_prefix s
-
-val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
-
-fun is_axiom_used_in_proof pred =
-  exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
-
-fun lam_trans_of_atp_proof atp_proof default =
-  case (is_axiom_used_in_proof is_combinator_def atp_proof,
-        is_axiom_used_in_proof is_lam_lifted atp_proof) of
-    (false, false) => default
-  | (false, true) => liftingN
-(*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
-  | (true, _) => combsN
-
-val is_typed_helper_name =
-  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
-
-fun is_typed_helper_used_in_atp_proof atp_proof =
-  is_axiom_used_in_proof is_typed_helper_name atp_proof
-
-fun add_non_rec_defs fact_names accum =
-  Vector.foldl (fn (facts, facts') =>
-      union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts)
-            facts')
-    accum fact_names
-
-val isa_ext = Thm.get_name_hint @{thm ext}
-val isa_short_ext = Long_Name.base_name isa_ext
-
-fun ext_name ctxt =
-  if Thm.eq_thm_prop (@{thm ext},
-       singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
-    isa_short_ext
-  else
-    isa_ext
-
-val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
-val leo2_unfold_def_rule = "unfold_def"
-
-fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
-  (if rule = leo2_extcnf_equal_neg_rule then
-     insert (op =) (ext_name ctxt, (Global, General))
-   else if rule = leo2_unfold_def_rule then
-     (* LEO 1.3.3 does not record definitions properly, leading to missing
-        dependencies in the TSTP proof. Remove the next line once this is
-        fixed. *)
-     add_non_rec_defs fact_names
-   else if rule = agsyhol_coreN orelse rule = satallax_coreN then
-     (fn [] =>
-         (* agsyHOL and Satallax don't include definitions in their
-            unsatisfiable cores, so we assume the worst and include them all
-            here. *)
-         [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
-       | facts => facts)
-   else
-     I)
-  #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
-
-fun used_facts_in_atp_proof ctxt fact_names atp_proof =
-  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
-  else fold (add_fact ctxt fact_names) atp_proof []
-
-fun used_facts_in_unsound_atp_proof _ _ [] = NONE
-  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
-    let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
-      if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
-         not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
-        SOME (map fst used_facts)
-      else
-        NONE
-    end
-
-
-(** Isar proof construction and manipulation **)
 
 val assume_prefix = "a"
 val have_prefix = "f"
@@ -339,11 +223,12 @@ val chain_direct_proof =
   in chain_proof end
 
 type isar_params =
-  bool * bool * Time.time option * real * bool * (string * stature) list vector
-  * (unit -> (term, string) atp_step list) * thm
+  bool * bool * string * string * Time.time option * real * bool * (string * stature) list vector
+  * (term, string) atp_step list * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, isar_compress, isar_try0, fact_names, atp_proof, goal)
+    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
+     isar_try0, fact_names, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
@@ -354,11 +239,6 @@ fun isar_proof_text ctxt isar_proofs
              ctxt |> Variable.set_body false
                   |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
-    val atp_proof = atp_proof ()
-    val type_enc =
-      if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
-      else partial_typesN
-    val lam_trans = lam_trans_of_atp_proof atp_proof metis_default_lam_trans
     val do_preplay = preplay_timeout <> SOME Time.zeroTime
 
     fun isar_proof_of () =
@@ -509,7 +389,7 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted bot
           |> isar_proof_of_direct_proof
           |> relabel_proof_canonically
-          |> `(proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
+          |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
         val ((preplay_time, preplay_fail), isar_proof) =
           isar_proof
@@ -521,8 +401,8 @@ fun isar_proof_text ctxt isar_proofs
                preplay_interface
           |> `overall_preplay_stats
           ||> clean_up_labels_in_proof
-        val isar_text = string_of_proof ctxt type_enc lam_trans subgoal
-          subgoal_count isar_proof
+        val isar_text =
+          string_of_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
       in
         case isar_text of
           "" =>
@@ -572,7 +452,7 @@ fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
-     isar_proof_text ctxt isar_proofs isar_params
+     isar_proof_text ctxt isar_proofs (isar_params ())
    else
      one_line_proof_text num_chained) one_line_params
 
