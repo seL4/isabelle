@@ -368,8 +368,8 @@ fun resolve_one_named_fact fact_names s =
       s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
     end
   | NONE => NONE
+
 fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
-fun is_fact fact_names = not o null o resolve_fact fact_names
 
 fun resolve_one_named_conjecture s =
   case try (unprefix conjecture_prefix) s of
@@ -377,7 +377,6 @@ fun resolve_one_named_conjecture s =
   | NONE => NONE
 
 val resolve_conjecture = map_filter resolve_one_named_conjecture
-val is_conjecture = not o null o resolve_conjecture
 
 fun is_axiom_used_in_proof pred =
   exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
@@ -428,7 +427,7 @@ fun used_facts_in_unsound_atp_proof _ _ [] = NONE
   | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
     let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
       if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
-         not (is_axiom_used_in_proof (is_conjecture o single) atp_proof) then
+         not (is_axiom_used_in_proof (not o null o resolve_conjecture o single) atp_proof) then
         SOME (map fst used_facts)
       else
         NONE
