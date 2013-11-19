@@ -56,11 +56,11 @@ bnf "'a + 'b"
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
-  fix f1 f2 g1 g2
+  fix f1 :: "'o \<Rightarrow> 's" and f2 :: "'p \<Rightarrow> 't" and g1 :: "'s \<Rightarrow> 'q" and g2 :: "'t \<Rightarrow> 'r"
   show "sum_map (g1 o f1) (g2 o f2) = sum_map g1 g2 o sum_map f1 f2"
     by (rule sum_map.comp[symmetric])
 next
-  fix x f1 f2 g1 g2
+  fix x and f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r" and g1 g2
   assume a1: "\<And>z. z \<in> setl x \<Longrightarrow> f1 z = g1 z" and
          a2: "\<And>z. z \<in> setr x \<Longrightarrow> f2 z = g2 z"
   thus "sum_map f1 f2 x = sum_map g1 g2 x"
@@ -70,11 +70,11 @@ next
     case Inr thus ?thesis using a2 by (clarsimp simp: setr_def)
   qed
 next
-  fix f1 f2
+  fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
   show "setl o sum_map f1 f2 = image f1 o setl"
     by (rule ext, unfold o_apply) (simp add: setl_def split: sum.split)
 next
-  fix f1 f2
+  fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
   show "setr o sum_map f1 f2 = image f2 o setr"
     by (rule ext, unfold o_apply) (simp add: setr_def split: sum.split)
 next
@@ -82,13 +82,13 @@ next
 next
   show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
-  fix x
+  fix x :: "'o + 'p"
   show "|setl x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
     by (simp add: setl_def split: sum.split)
 next
-  fix x
+  fix x :: "'o + 'p"
   show "|setr x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
@@ -253,7 +253,7 @@ next
 next
   fix f :: "'d => 'a"
   have "|range f| \<le>o | (UNIV::'d set) |" (is "_ \<le>o ?U") by (rule card_of_image)
-  also have "?U \<le>o natLeq +c ?U"  by (rule ordLeq_csum2) (rule card_of_Card_order)
+  also have "?U \<le>o natLeq +c ?U" by (rule ordLeq_csum2) (rule card_of_Card_order)
   finally show "|range f| \<le>o natLeq +c ?U" .
 next
   fix A B1 B2 f1 f2 p1 p2 assume p: "wpull A B1 B2 f1 f2 p1 p2"
@@ -272,7 +272,7 @@ next
         (Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> fst))\<inverse>\<inverse> OO
          Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
   unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps  subset_iff image_iff
-  by auto (force, metis pair_collapse)
+  by auto (force, metis (no_types) pair_collapse)
 qed
 
 end
