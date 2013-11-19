@@ -144,7 +144,7 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blob = Exn.Result[(Document.Node.Name, SHA1.Digest)]
+  type Blob = Exn.Result[(Document.Node.Name, Option[SHA1.Digest])]
 
   def apply(
     id: Document_ID.Command,
@@ -240,7 +240,7 @@ final class Command private(
   /* blobs */
 
   def blobs_digests: List[SHA1.Digest] =
-    for (Exn.Res((_, digest)) <- blobs) yield digest
+    for (Exn.Res((_, Some(digest))) <- blobs) yield digest
 
 
   /* source */

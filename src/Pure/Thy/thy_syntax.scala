@@ -263,10 +263,7 @@ object Thy_Syntax
       Exn.capture {
         val name =
           Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file)))
-        doc_blobs.get(name) match {
-          case Some(blob) => (name, blob.sha1_digest)
-          case None => error("No such file: " + quote(name.toString))
-        }
+        (name, doc_blobs.get(name).map(_.sha1_digest))
       }
     )
   }
