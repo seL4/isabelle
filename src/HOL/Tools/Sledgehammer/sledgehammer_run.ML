@@ -284,10 +284,8 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
           val problem =
             {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
              factss = factss}
-          fun learn prover =
-            mash_learn_proof ctxt params prover (prop_of goal) all_facts
-          val launch =
-            launch_prover params mode output_result minimize_command only learn
+          val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
+          val launch = launch_prover params mode output_result minimize_command only learn
         in
           if mode = Auto_Try then
             (unknownN, state)

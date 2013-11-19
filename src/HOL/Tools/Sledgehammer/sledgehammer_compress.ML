@@ -148,10 +148,9 @@ fun compress_proof isar_compress
     val (get_successors : label -> label list,
          replace_successor: label -> label list -> label -> unit) =
       let
-
         fun add_refs (Let _) tab = tab
-          | add_refs (Prove (_, _, l as v, _, _, By ((lfs, _), _))) tab =
-              fold (fn lf as key => Canonical_Lbl_Tab.cons_list (key, v)) lfs tab
+          | add_refs (Prove (_, _, v, _, _, By ((lfs, _), _))) tab =
+              fold (fn key => Canonical_Lbl_Tab.cons_list (key, v)) lfs tab
 
         val tab =
           Canonical_Lbl_Tab.empty
@@ -180,7 +179,7 @@ fun compress_proof isar_compress
       if null subs orelse not (compress_further ()) then
         (set_preplay_time l (false, time);
          Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs),
-                By_Metis (lfs, gfs)) )
+                By ((lfs, gfs), MetisM)))
       else
         case subs of
           ((sub as Proof(_, Assume assms, sub_steps)) :: subs) =>
@@ -199,7 +198,7 @@ fun compress_proof isar_compress
                 subtract (op =) (map fst assms) lfs'
                 |> union (op =) lfs
               val gfs'' = union (op =) gfs' gfs
-              val by = By_Metis (lfs'', gfs'')
+              val by = By ((lfs'', gfs''), MetisM)
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
@@ -251,7 +250,7 @@ fun compress_proof isar_compress
 
         val candidates =
           let
-            fun add_cand (i, Let _) = I
+            fun add_cand (_, Let _) = I
               | add_cand (i, Prove (_, _, l, t, _, _)) =
                   cons (i, l, size_of_term t)
           in
@@ -260,7 +259,7 @@ fun compress_proof isar_compress
             |> fold_index add_cand) []
           end
 
-        fun try_eliminate (cand as (i, l, _)) succ_lbls steps =
+        fun try_eliminate (i, l, _) succ_lbls steps =
           let
             (* only touch steps that can be preplayed successfully *)
             val (false, time) = get_preplay_time l

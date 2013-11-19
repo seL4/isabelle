@@ -312,7 +312,7 @@ fun isar_proof_text ctxt isar_proofs
                 accum
                 |> (if tainted = [] then
                       cons (Prove (if outer then [Show] else [], Fix [], no_label, concl_t, [],
-                                   By_Metis ([the predecessor], [])))
+                                   By (([the predecessor], []), MetisM)))
                     else
                       I)
                 |> rev
@@ -320,7 +320,7 @@ fun isar_proof_text ctxt isar_proofs
                 let
                   val l = label_of_clause c
                   val t = prop_of_clause c
-                  val by = By_Metis (fold (add_fact_of_dependencies fact_names) gamma no_facts)
+                  val by = By ((fold (add_fact_of_dependencies fact_names) gamma no_facts), MetisM)
                   fun prove sub by = Prove (maybe_show outer c [], Fix [], l, t, sub, by)
                   fun do_rest l step = do_steps outer (SOME l) (step :: accum) infs
                 in
@@ -332,7 +332,7 @@ fun isar_proof_text ctxt isar_proofs
                           val subproof =
                             Proof (Fix (skolems_of (prop_of_clause g)), Assume [], rev accum)
                         in
-                          do_steps outer (SOME l) [prove [subproof] (By_Metis no_facts)] []
+                          do_steps outer (SOME l) [prove [subproof] (By (no_facts, MetisM))] []
                         end
                       else
                         do_rest l (prove [] by)
@@ -352,7 +352,7 @@ fun isar_proof_text ctxt isar_proofs
                   val t = prop_of_clause c
                   val step =
                     Prove (maybe_show outer c [], Fix [], l, t,  map do_case cases,
-                      By_Metis (the_list predecessor, []))
+                      By ((the_list predecessor, []), MetisM))
                 in
                   do_steps outer (SOME l) (step :: accum) infs
                 end

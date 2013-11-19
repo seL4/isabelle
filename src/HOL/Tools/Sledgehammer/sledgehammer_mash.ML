@@ -82,11 +82,8 @@ sig
     -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val add_const_counts : term -> int Symtab.table -> int Symtab.table
   val mash_suggested_facts :
-    Proof.context -> params -> string -> int -> term list -> term
-    -> raw_fact list -> fact list * fact list
-  val mash_learn_proof :
-    Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
-    -> unit
+    Proof.context -> params -> int -> term list -> term -> raw_fact list -> fact list * fact list
+  val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
   val mash_learn :
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
 
@@ -568,8 +565,7 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
       {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
        subgoal_count = 1, factss = [("", facts)]}
   in
-    get_minimizing_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
-                          problem
+    get_minimizing_prover ctxt MaSh (K ()) prover params (K (K (K ""))) problem
   end
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
@@ -930,8 +926,7 @@ fun add_const_counts t =
   fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
        (Term.add_const_names t [])
 
-fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
-                         hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val thy_name = Context.theory_name thy
@@ -1017,8 +1012,7 @@ fun launch_thread timeout task =
     val desc = ("Machine learner for Sledgehammer", "")
   in Async_Manager.thread MaShN birth_time death_time desc task end
 
-fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
-                     used_ths =
+fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
   if is_mash_enabled () then
     launch_thread (timeout |> the_default one_day) (fn () =>
         let
@@ -1328,7 +1322,7 @@ fun relevant_facts ctxt
         (mepo_suggested_facts ctxt params max_facts NONE hyp_ts concl_t unique_facts
          |> weight_facts_steeply, [])
       fun mash () =
-        mash_suggested_facts ctxt params prover (generous_max_facts max_facts) hyp_ts concl_t facts
+        mash_suggested_facts ctxt params (generous_max_facts max_facts) hyp_ts concl_t facts
         |>> weight_facts_steeply
       val mess =
         (* the order is important for the "case" expression below *)

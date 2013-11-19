@@ -527,7 +527,6 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
     []
   else
     let
-      val thy = Proof_Context.theory_of ctxt
       val chained =
         chained
         |> maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
@@ -536,10 +535,6 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
          maps (map (fn ((name, stature), th) => ((K name, stature), th))
                o fact_of_ref ctxt reserved chained css) add
        else
-        (* The "fact_distinct" call would have cleaner semantics if it called "Pattern.equiv"
-           instead of "Pattern.matches", but it would also be slower and less precise.
-           "Pattern.matches" throws out theorems that are strict instances of other theorems, but
-           only if the instance is met after the general version. *)
          let
            val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del)
            val facts =

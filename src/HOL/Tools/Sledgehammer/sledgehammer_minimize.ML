@@ -17,16 +17,14 @@ sig
   val auto_minimize_min_facts : int Config.T
   val auto_minimize_max_time : real Config.T
   val minimize_facts :
-    (string -> thm list -> unit) -> string -> params -> bool -> int -> int
+    (thm list -> unit) -> string -> params -> bool -> int -> int
     -> Proof.state -> thm -> play Lazy.lazy option
     -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
        * (play Lazy.lazy * (play -> string) * string)
-  val get_minimizing_prover :
-    Proof.context -> mode -> (string -> thm list -> unit) -> string -> prover
-  val run_minimize :
-    params -> (string -> thm list -> unit) -> int
-    -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
+  val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
+  val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
+    Proof.state -> unit
 end;
 
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
@@ -221,7 +219,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
               (case min_facts |> filter is_fact_chained |> length of
                  0 => ""
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
-         (if learn then do_learn prover_name (maps snd min_facts) else ());
+         (if learn then do_learn (maps snd min_facts) else ());
          (SOME min_facts,
           (if is_some preplay0 andalso length min_facts = length facts then
              the preplay0

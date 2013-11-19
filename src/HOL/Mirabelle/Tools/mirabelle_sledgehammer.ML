@@ -374,8 +374,7 @@ fun get_prover_name ctxt args =
 
 fun get_prover ctxt name params goal all_facts =
   let
-    fun learn prover =
-      Sledgehammer_MaSh.mash_learn_proof ctxt params prover (prop_of goal) all_facts
+    val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (prop_of goal) all_facts
   in
     Sledgehammer_Minimize.get_minimizing_prover ctxt Sledgehammer_Provers.Normal
       learn name
@@ -609,8 +608,8 @@ fun run_minimize args reconstructor named_thms id
       |> max_new_mono_instancesLST
       |> max_mono_itersLST)
     val minimize =
-      Sledgehammer_Minimize.minimize_facts (K (K ())) prover_name params
-          true 1 (Sledgehammer_Util.subgoal_count st)
+      Sledgehammer_Minimize.minimize_facts (K ()) prover_name params true 1
+        (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =
       minimize st goal NONE (these (!named_thms))

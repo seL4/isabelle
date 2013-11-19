@@ -33,9 +33,6 @@ sig
     ArithM |
     BlastM
 
-  (* legacy *)
-  val By_Metis : facts -> byline
-
   val no_label : label
   val no_facts : facts
 
@@ -99,9 +96,6 @@ and proof_method =
   ForceM |
   ArithM |
   BlastM
-
-(* legacy *)
-fun By_Metis facts = By (facts, MetisM)
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
