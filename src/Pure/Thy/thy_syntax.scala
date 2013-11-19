@@ -33,7 +33,7 @@ object Thy_Syntax
 
       def buffer(): mutable.ListBuffer[Entry] = new mutable.ListBuffer[Entry]
       var stack: List[(Int, String, mutable.ListBuffer[Entry])] =
-        List((0, node_name.theory, buffer()))
+        List((0, node_name.toString, buffer()))
 
       @tailrec def close(level: Int => Boolean)
       {
@@ -260,7 +260,7 @@ object Thy_Syntax
     val files = span_files(syntax, span)
     files.map(file => {
       // FIXME proper thy_load append
-      val file_name = Document.Node.Name(name.dir + file, name.dir, "")
+      val file_name = Document.Node.Name(name.master_dir + file)
       (file_name, all_blobs.get(file_name).map(_.sha1_digest))
     })
   }

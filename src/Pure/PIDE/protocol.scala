@@ -339,7 +339,7 @@ trait Protocol extends Isabelle_Process
           { case Document.Node.Clear() => (Nil, Nil) },  // FIXME unused !?
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
-              val dir = Isabelle_System.posix_path(name.dir)
+              val master_dir = Isabelle_System.posix_path(name.master_dir)
               val imports = header.imports.map(_.node)
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
@@ -347,7 +347,7 @@ trait Protocol extends Isabelle_Process
                   pair(list(pair(Encode.string,
                     option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   list(Encode.string)))))(
-                (dir, (name.theory, (imports, (keywords, header.errors)))))) },
+                (master_dir, (name.theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(Encode.string, list(Encode.string))))(c.dest)) }))

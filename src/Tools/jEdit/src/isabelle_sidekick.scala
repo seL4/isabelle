@@ -137,11 +137,11 @@ class Isabelle_Sidekick_Default extends
 
 
 class Isabelle_Sidekick_Options extends
-  Isabelle_Sidekick_Structure("isabelle-options", b => Some(PIDE.thy_load.dummy_node_name(b)))
+  Isabelle_Sidekick_Structure("isabelle-options", _ => Some(Document.Node.Name("options")))
 
 
 class Isabelle_Sidekick_Root extends
-  Isabelle_Sidekick_Structure("isabelle-root", b => Some(PIDE.thy_load.dummy_node_name(b)))
+  Isabelle_Sidekick_Structure("isabelle-root", _ => Some(Document.Node.Name("ROOT")))
 
 
 class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")

@@ -22,13 +22,12 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
 {
   /* document node names */
 
-  def dummy_node_name(buffer: Buffer): Document.Node.Name =
-    Document.Node.Name(JEdit_Lib.buffer_name(buffer), buffer.getDirectory, buffer.getName)
-
   def node_name(buffer: Buffer): Document.Node.Name =
   {
-    val name = JEdit_Lib.buffer_name(buffer)
-    Document.Node.Name(name, buffer.getDirectory, Thy_Header.thy_name(name).getOrElse(""))
+    val node = JEdit_Lib.buffer_name(buffer)
+    val theory = Thy_Header.thy_name(node).getOrElse("")
+    val master_dir = if (theory == "") "" else buffer.getDirectory
+    Document.Node.Name(node, master_dir, theory)
   }
 
   def theory_node_name(buffer: Buffer): Option[Document.Node.Name] =

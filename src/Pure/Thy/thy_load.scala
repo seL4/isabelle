@@ -32,9 +32,9 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
   {
     val path = raw_path.expand
     val node = path.implode
-    val dir = path.dir.implode
     val theory = Thy_Header.thy_name(node).getOrElse("")
-    Document.Node.Name(node, dir, theory)
+    val master_dir = if (theory == "") "" else path.dir.implode
+    Document.Node.Name(node, master_dir, theory)
   }
 
 
@@ -68,12 +68,12 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
   def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
   {
     val theory = Thy_Header.base_name(s)
-    if (loaded_theories(theory)) Document.Node.Name(theory, "", theory)
+    if (loaded_theories(theory)) Document.Node.Name(theory + ".thy", "", theory)
     else {
       val path = Path.explode(s)
-      val node = append(master.dir, Thy_Load.thy_path(path))
-      val dir = append(master.dir, path.dir)
-      Document.Node.Name(node, dir, theory)
+      val node = append(master.master_dir, Thy_Load.thy_path(path))
+      val master_dir = append(master.master_dir, path.dir)
+      Document.Node.Name(node, master_dir, theory)
     }
   }
 
