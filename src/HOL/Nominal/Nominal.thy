@@ -3517,7 +3517,7 @@ lemma numeral_int_eqvt:
 by (simp add: perm_int_def perm_int_def)
 
 lemma neg_numeral_int_eqvt:
- shows "pi\<bullet>((neg_numeral n)::int) = neg_numeral n"
+ shows "pi\<bullet>((- numeral n)::int) = - numeral n"
 by (simp add: perm_int_def perm_int_def)
 
 lemma max_int_eqvt:

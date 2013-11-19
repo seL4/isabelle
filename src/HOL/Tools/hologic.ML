@@ -104,7 +104,6 @@ sig
   val mk_numeral: int -> term
   val dest_num: term -> int
   val numeral_const: typ -> term
-  val neg_numeral_const: typ -> term
   val add_numerals: term -> (term * typ) list -> (term * typ) list
   val mk_number: typ -> int -> term
   val dest_number: term -> typ * int
@@ -548,7 +547,6 @@ fun dest_num (Const ("Num.num.One", _)) = 1
   | dest_num t = raise TERM ("dest_num", [t]);
 
 fun numeral_const T = Const ("Num.numeral_class.numeral", numT --> T);
-fun neg_numeral_const T = Const ("Num.neg_numeral_class.neg_numeral", numT --> T);
 
 fun add_numerals (Const ("Num.numeral_class.numeral", Type (_, [_, T])) $ t) = cons (t, T)
   | add_numerals (t $ u) = add_numerals t #> add_numerals u
@@ -559,14 +557,14 @@ fun mk_number T 0 = Const ("Groups.zero_class.zero", T)
   | mk_number T 1 = Const ("Groups.one_class.one", T)
   | mk_number T i =
     if i > 0 then numeral_const T $ mk_numeral i
-    else neg_numeral_const T $ mk_numeral (~ i);
+    else Const ("Groups.uminus_class.uminus", T --> T) $ mk_number T (~ i);
 
 fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Groups.one_class.one", T)) = (T, 1)
   | dest_number (Const ("Num.numeral_class.numeral", Type ("fun", [_, T])) $ t) =
       (T, dest_num t)
-  | dest_number (Const ("Num.neg_numeral_class.neg_numeral", Type ("fun", [_, T])) $ t) =
-      (T, ~ (dest_num t))
+  | dest_number (Const ("Groups.uminus_class.uminus", Type ("fun", [_, T])) $ t) =
+      apsnd (op ~) (dest_number t)
   | dest_number t = raise TERM ("dest_number", [t]);
 
 

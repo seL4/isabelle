@@ -228,7 +228,10 @@ next
   then show ?case by vector
 qed
 
-lemma one_index[simp]: "(1 :: 'a::one ^'n)$i = 1"
+lemma one_index [simp]: "(1 :: 'a :: one ^ 'n) $ i = 1"
+  by vector
+
+lemma neg_one_index [simp]: "(- 1 :: 'a :: {one, uminus} ^ 'n) $ i = - 1"
   by vector
 
 instance vec :: (semiring_char_0, finite) semiring_char_0
@@ -244,8 +247,8 @@ instance vec :: (semiring_numeral, finite) semiring_numeral ..
 lemma numeral_index [simp]: "numeral w $ i = numeral w"
   by (induct w) (simp_all only: numeral.simps vector_add_component one_index)
 
-lemma neg_numeral_index [simp]: "neg_numeral w $ i = neg_numeral w"
-  by (simp only: neg_numeral_def vector_uminus_component numeral_index)
+lemma neg_numeral_index [simp]: "- numeral w $ i = - numeral w"
+  by (simp only: vector_uminus_component numeral_index)
 
 instance vec :: (comm_ring_1, finite) comm_ring_1 ..
 instance vec :: (ring_char_0, finite) ring_char_0 ..

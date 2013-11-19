@@ -232,9 +232,8 @@ by (induct n) auto
 lemma of_int_numeral [simp, code_post]: "of_int (numeral k) = numeral k"
   by (simp add: of_nat_numeral [symmetric] of_int_of_nat_eq [symmetric])
 
-lemma of_int_neg_numeral [simp, code_post]: "of_int (neg_numeral k) = neg_numeral k"
-  unfolding neg_numeral_def neg_numeral_class.neg_numeral_def
-  by (simp only: of_int_minus of_int_numeral)
+lemma of_int_neg_numeral [code_post]: "of_int (- numeral k) = - numeral k"
+  by simp
 
 lemma of_int_power:
   "of_int (z ^ n) = of_int z ^ n"
@@ -370,7 +369,7 @@ lemma nat_numeral [simp]:
   by (simp add: nat_eq_iff)
 
 lemma nat_neg_numeral [simp]:
-  "nat (neg_numeral k) = 0"
+  "nat (- numeral k) = 0"
   by simp
 
 lemma nat_2: "nat 2 = Suc (Suc 0)"
@@ -511,13 +510,13 @@ theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
 
 lemma nonneg_int_cases:
   assumes "0 \<le> k" obtains n where "k = int n"
-  using assms by (cases k, simp, simp del: of_nat_Suc)
+  using assms by (rule nonneg_eq_int)
 
 lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
   unfolding Let_def ..
 
-lemma Let_neg_numeral [simp]: "Let (neg_numeral v) f = f (neg_numeral v)"
+lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
   -- {* Unfold all @{text let}s involving constants *}
   unfolding Let_def ..
 
@@ -525,15 +524,15 @@ text {* Unfold @{text min} and @{text max} on numerals. *}
 
 lemmas max_number_of [simp] =
   max_def [of "numeral u" "numeral v"]
-  max_def [of "numeral u" "neg_numeral v"]
-  max_def [of "neg_numeral u" "numeral v"]
-  max_def [of "neg_numeral u" "neg_numeral v"] for u v
+  max_def [of "numeral u" "- numeral v"]
+  max_def [of "- numeral u" "numeral v"]
+  max_def [of "- numeral u" "- numeral v"] for u v
 
 lemmas min_number_of [simp] =
   min_def [of "numeral u" "numeral v"]
-  min_def [of "numeral u" "neg_numeral v"]
-  min_def [of "neg_numeral u" "numeral v"]
-  min_def [of "neg_numeral u" "neg_numeral v"] for u v
+  min_def [of "numeral u" "- numeral v"]
+  min_def [of "- numeral u" "numeral v"]
+  min_def [of "- numeral u" "- numeral v"] for u v
 
 
 subsubsection {* Binary comparisons *}
@@ -1070,8 +1069,6 @@ proof -
     by auto
 qed
 
-ML_val {* @{const_name neg_numeral} *}
-
 lemma pos_zmult_eq_1_iff_lemma: "(m * n = 1) ==> m = (1::int) | m = -1"
 by (insert abs_zmult_eq_1 [of m n], arith)
 
@@ -1127,62 +1124,30 @@ lemmas inverse_eq_divide_numeral [simp] =
   inverse_eq_divide [of "numeral w"] for w
 
 lemmas inverse_eq_divide_neg_numeral [simp] =
-  inverse_eq_divide [of "neg_numeral w"] for w
+  inverse_eq_divide [of "- numeral w"] for w
 
 text {*These laws simplify inequalities, moving unary minus from a term
 into the literal.*}
 
-lemmas le_minus_iff_numeral [simp, no_atp] =
-  le_minus_iff [of "numeral v"]
-  le_minus_iff [of "neg_numeral v"] for v
+lemmas equation_minus_iff_numeral [no_atp] =
+  equation_minus_iff [of "numeral v"] for v
 
-lemmas equation_minus_iff_numeral [simp, no_atp] =
-  equation_minus_iff [of "numeral v"]
-  equation_minus_iff [of "neg_numeral v"] for v
+lemmas minus_equation_iff_numeral [no_atp] =
+  minus_equation_iff [of _ "numeral v"] for v
 
-lemmas minus_less_iff_numeral [simp, no_atp] =
-  minus_less_iff [of _ "numeral v"]
-  minus_less_iff [of _ "neg_numeral v"] for v
+lemmas le_minus_iff_numeral [no_atp] =
+  le_minus_iff [of "numeral v"] for v
 
-lemmas minus_le_iff_numeral [simp, no_atp] =
-  minus_le_iff [of _ "numeral v"]
-  minus_le_iff [of _ "neg_numeral v"] for v
+lemmas minus_le_iff_numeral [no_atp] =
+  minus_le_iff [of _ "numeral v"] for v
 
-lemmas minus_equation_iff_numeral [simp, no_atp] =
-  minus_equation_iff [of _ "numeral v"]
-  minus_equation_iff [of _ "neg_numeral v"] for v
+lemmas less_minus_iff_numeral [no_atp] =
+  less_minus_iff [of "numeral v"] for v
 
-text{*To Simplify Inequalities Where One Side is the Constant 1*}
+lemmas minus_less_iff_numeral [no_atp] =
+  minus_less_iff [of _ "numeral v"] for v
 
-lemma less_minus_iff_1 [simp]:
-  fixes b::"'b::linordered_idom"
-  shows "(1 < - b) = (b < -1)"
-by auto
-
-lemma le_minus_iff_1 [simp]:
-  fixes b::"'b::linordered_idom"
-  shows "(1 \<le> - b) = (b \<le> -1)"
-by auto
-
-lemma equation_minus_iff_1 [simp]:
-  fixes b::"'b::ring_1"
-  shows "(1 = - b) = (b = -1)"
-by (subst equation_minus_iff, auto)
-
-lemma minus_less_iff_1 [simp]:
-  fixes a::"'b::linordered_idom"
-  shows "(- a < 1) = (-1 < a)"
-by auto
-
-lemma minus_le_iff_1 [simp]:
-  fixes a::"'b::linordered_idom"
-  shows "(- a \<le> 1) = (-1 \<le> a)"
-by auto
-
-lemma minus_equation_iff_1 [simp]:
-  fixes a::"'b::ring_1"
-  shows "(- a = 1) = (a = -1)"
-by (subst minus_equation_iff, auto)
+-- {* FIXME maybe simproc *}
 
 
 text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
@@ -1197,27 +1162,28 @@ text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<
 
 lemmas le_divide_eq_numeral1 [simp] =
   pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_le_divide_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+  neg_le_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
 lemmas divide_le_eq_numeral1 [simp] =
   pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_le_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+  neg_divide_le_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
 lemmas less_divide_eq_numeral1 [simp] =
   pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_less_divide_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+  neg_less_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
 lemmas divide_less_eq_numeral1 [simp] =
   pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_less_eq [of "neg_numeral w", OF neg_numeral_less_zero] for w
+  neg_divide_less_eq [of "- numeral w", OF neg_numeral_less_zero] for w
 
 lemmas eq_divide_eq_numeral1 [simp] =
   eq_divide_eq [of _ _ "numeral w"]
-  eq_divide_eq [of _ _ "neg_numeral w"] for w
+  eq_divide_eq [of _ _ "- numeral w"] for w
 
 lemmas divide_eq_eq_numeral1 [simp] =
   divide_eq_eq [of _ "numeral w"]
-  divide_eq_eq [of _ "neg_numeral w"] for w
+  divide_eq_eq [of _ "- numeral w"] for w
+
 
 subsubsection{*Optional Simplification Rules Involving Constants*}
 
@@ -1225,27 +1191,27 @@ text{*Simplify quotients that are compared with a literal constant.*}
 
 lemmas le_divide_eq_numeral =
   le_divide_eq [of "numeral w"]
-  le_divide_eq [of "neg_numeral w"] for w
+  le_divide_eq [of "- numeral w"] for w
 
 lemmas divide_le_eq_numeral =
   divide_le_eq [of _ _ "numeral w"]
-  divide_le_eq [of _ _ "neg_numeral w"] for w
+  divide_le_eq [of _ _ "- numeral w"] for w
 
 lemmas less_divide_eq_numeral =
   less_divide_eq [of "numeral w"]
-  less_divide_eq [of "neg_numeral w"] for w
+  less_divide_eq [of "- numeral w"] for w
 
 lemmas divide_less_eq_numeral =
   divide_less_eq [of _ _ "numeral w"]
-  divide_less_eq [of _ _ "neg_numeral w"] for w
+  divide_less_eq [of _ _ "- numeral w"] for w
 
 lemmas eq_divide_eq_numeral =
   eq_divide_eq [of "numeral w"]
-  eq_divide_eq [of "neg_numeral w"] for w
+  eq_divide_eq [of "- numeral w"] for w
 
 lemmas divide_eq_eq_numeral =
   divide_eq_eq [of _ _ "numeral w"]
-  divide_eq_eq [of _ _ "neg_numeral w"] for w
+  divide_eq_eq [of _ _ "- numeral w"] for w
 
 
 text{*Not good as automatic simprules because they cause case splits.*}
@@ -1257,21 +1223,20 @@ lemmas divide_const_simps =
 text{*Division By @{text "-1"}*}
 
 lemma divide_minus1 [simp]: "(x::'a::field) / -1 = - x"
-  unfolding minus_one [symmetric]
   unfolding nonzero_minus_divide_right [OF one_neq_zero, symmetric]
   by simp
 
 lemma minus1_divide [simp]: "-1 / (x::'a::field) = - (1 / x)"
-  unfolding minus_one [symmetric] by (rule divide_minus_left)
+  by (fact divide_minus_left)
 
 lemma half_gt_zero_iff:
-     "(0 < r/2) = (0 < (r::'a::linordered_field_inverse_zero))"
-by auto
+  "(0 < r/2) = (0 < (r::'a::linordered_field_inverse_zero))"
+  by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2]
 
 lemma divide_Numeral1: "(x::'a::field) / Numeral1 = x"
-  by simp
+  by (fact divide_numeral_1)
 
 
 subsection {* The divides relation *}
@@ -1475,7 +1440,7 @@ definition Pos :: "num \<Rightarrow> int" where
   [simp, code_abbrev]: "Pos = numeral"
 
 definition Neg :: "num \<Rightarrow> int" where
-  [simp, code_abbrev]: "Neg = neg_numeral"
+  [simp, code_abbrev]: "Neg n = - (Pos n)"
 
 code_datatype "0::int" Pos Neg
 
@@ -1489,7 +1454,7 @@ lemma dup_code [code]:
   "dup 0 = 0"
   "dup (Pos n) = Pos (Num.Bit0 n)"
   "dup (Neg n) = Neg (Num.Bit0 n)"
-  unfolding Pos_def Neg_def neg_numeral_def
+  unfolding Pos_def Neg_def
   by (simp_all add: numeral_Bit0)
 
 definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
@@ -1505,12 +1470,10 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
   "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
-  apply (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def
-    neg_numeral_def numeral_BitM)
+  apply (simp_all only: sub_def dup_def numeral.simps Pos_def Neg_def numeral_BitM)
   apply (simp_all only: algebra_simps minus_diff_eq)
   apply (simp_all only: add.commute [of _ "- (numeral n + numeral n)"])
   apply (simp_all only: minus_add add.assoc left_minus)
-  apply (simp_all only: algebra_simps right_minus)
   done
 
 text {* Implementations *}
@@ -1606,10 +1569,10 @@ lemma nat_code [code]:
   "nat (Int.Neg k) = 0"
   "nat 0 = 0"
   "nat (Int.Pos k) = nat_of_num k"
-  by (simp_all add: nat_of_num_numeral nat_numeral)
+  by (simp_all add: nat_of_num_numeral)
 
 lemma (in ring_1) of_int_code [code]:
-  "of_int (Int.Neg k) = neg_numeral k"
+  "of_int (Int.Neg k) = - numeral k"
   "of_int 0 = 0"
   "of_int (Int.Pos k) = numeral k"
   by simp_all
@@ -1653,7 +1616,7 @@ lemma zpower_zpower:
 
 lemma int_power:
   "int (m ^ n) = int m ^ n"
-  by (rule of_nat_power)
+  by (fact of_nat_power)
 
 lemmas zpower_int = int_power [symmetric]
 

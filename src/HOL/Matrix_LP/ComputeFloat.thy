@@ -79,8 +79,8 @@ qed
 lemma real_is_int_numeral[simp]: "real_is_int (numeral x)"
   by (auto simp: real_is_int_def intro!: exI[of _ "numeral x"])
 
-lemma real_is_int_neg_numeral[simp]: "real_is_int (neg_numeral x)"
-  by (auto simp: real_is_int_def intro!: exI[of _ "neg_numeral x"])
+lemma real_is_int_neg_numeral[simp]: "real_is_int (- numeral x)"
+  by (auto simp: real_is_int_def intro!: exI[of _ "- numeral x"])
 
 lemma int_of_real_0[simp]: "int_of_real (0::real) = (0::int)"
 by (simp add: int_of_real_def)
@@ -96,7 +96,7 @@ lemma int_of_real_numeral[simp]: "int_of_real (numeral b) = numeral b"
   by (intro some_equality)
      (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)
 
-lemma int_of_real_neg_numeral[simp]: "int_of_real (neg_numeral b) = neg_numeral b"
+lemma int_of_real_neg_numeral[simp]: "int_of_real (- numeral b) = - numeral b"
   unfolding int_of_real_def
   by (intro some_equality)
      (auto simp add: real_of_int_inject[symmetric] simp del: real_of_int_inject)

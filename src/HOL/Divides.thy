@@ -1919,10 +1919,9 @@ local
   val zero = @{term "0 :: int"}
   val less = @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"}
   val le = @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"}
-  val simps = @{thms arith_simps} @ @{thms rel_simps} @
-    map (fn th => th RS sym) [@{thm numeral_1_eq_1}]
-  fun prove ctxt goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
-    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps))));
+  val simps = @{thms arith_simps} @ @{thms rel_simps} @ [@{thm numeral_1_eq_1 [symmetric]}]
+  fun prove ctxt goal = (writeln "prove"; Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
+    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps)))));
   fun binary_proc proc ctxt ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
@@ -1945,23 +1944,23 @@ end
 
 simproc_setup binary_int_div
   ("numeral m div numeral n :: int" |
-   "numeral m div neg_numeral n :: int" |
-   "neg_numeral m div numeral n :: int" |
-   "neg_numeral m div neg_numeral n :: int") =
+   "numeral m div - numeral n :: int" |
+   "- numeral m div numeral n :: int" |
+   "- numeral m div - numeral n :: int") =
   {* K (divmod_proc @{thm int_div_pos_eq} @{thm int_div_neg_eq}) *}
 
 simproc_setup binary_int_mod
   ("numeral m mod numeral n :: int" |
-   "numeral m mod neg_numeral n :: int" |
-   "neg_numeral m mod numeral n :: int" |
-   "neg_numeral m mod neg_numeral n :: int") =
+   "numeral m mod - numeral n :: int" |
+   "- numeral m mod numeral n :: int" |
+   "- numeral m mod - numeral n :: int") =
   {* K (divmod_proc @{thm int_mod_pos_eq} @{thm int_mod_neg_eq}) *}
 
 lemmas posDivAlg_eqn_numeral [simp] =
     posDivAlg_eqn [of "numeral v" "numeral w", OF zero_less_numeral] for v w
 
 lemmas negDivAlg_eqn_numeral [simp] =
-    negDivAlg_eqn [of "numeral v" "neg_numeral w", OF zero_less_numeral] for v w
+    negDivAlg_eqn [of "numeral v" "- numeral w", OF zero_less_numeral] for v w
 
 
 text{*Special-case simplification *}
@@ -1973,14 +1972,14 @@ lemmas div_pos_pos_1_numeral [simp] =
   div_pos_pos [OF zero_less_one, of "numeral w", OF zero_le_numeral] for w
 
 lemmas div_pos_neg_1_numeral [simp] =
-  div_pos_neg [OF zero_less_one, of "neg_numeral w",
+  div_pos_neg [OF zero_less_one, of "- numeral w",
   OF neg_numeral_less_zero] for w
 
 lemmas mod_pos_pos_1_numeral [simp] =
   mod_pos_pos [OF zero_less_one, of "numeral w", OF zero_le_numeral] for w
 
 lemmas mod_pos_neg_1_numeral [simp] =
-  mod_pos_neg [OF zero_less_one, of "neg_numeral w",
+  mod_pos_neg [OF zero_less_one, of "- numeral w",
   OF neg_numeral_less_zero] for w
 
 lemmas posDivAlg_eqn_1_numeral [simp] =
@@ -2290,6 +2289,8 @@ lemma pos_divmod_int_rel_mult_2:
   shows "divmod_int_rel (1 + 2*a) (2*b) (q, 1 + 2*r)"
   using assms unfolding divmod_int_rel_def by auto
 
+declaration {* K (Lin_Arith.add_simps @{thms uminus_numeral_One}) *}
+
 lemma neg_divmod_int_rel_mult_2:
   assumes "b \<le> 0"
   assumes "divmod_int_rel (a + 1) b (q, r)"
@@ -2427,13 +2428,13 @@ subsubsection {* The Divides Relation *}
 
 lemma dvd_neg_numeral_left [simp]:
   fixes y :: "'a::comm_ring_1"
-  shows "(neg_numeral k) dvd y \<longleftrightarrow> (numeral k) dvd y"
-  unfolding neg_numeral_def minus_dvd_iff ..
+  shows "(- numeral k) dvd y \<longleftrightarrow> (numeral k) dvd y"
+  by (fact minus_dvd_iff)
 
 lemma dvd_neg_numeral_right [simp]:
   fixes x :: "'a::comm_ring_1"
-  shows "x dvd (neg_numeral k) \<longleftrightarrow> x dvd (numeral k)"
-  unfolding neg_numeral_def dvd_minus_iff ..
+  shows "x dvd (- numeral k) \<longleftrightarrow> x dvd (numeral k)"
+  by (fact dvd_minus_iff)
 
 lemmas dvd_eq_mod_eq_0_numeral [simp] =
   dvd_eq_mod_eq_0 [of "numeral x" "numeral y"] for x y

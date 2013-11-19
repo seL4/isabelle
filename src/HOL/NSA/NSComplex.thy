@@ -635,7 +635,7 @@ lemma hcomplex_hypreal_numeral:
 by transfer (rule of_real_numeral [symmetric])
 
 lemma hcomplex_hypreal_neg_numeral:
-  "hcomplex_of_complex (neg_numeral w) = hcomplex_of_hypreal(neg_numeral w)"
+  "hcomplex_of_complex (- numeral w) = hcomplex_of_hypreal(- numeral w)"
 by transfer (rule of_real_neg_numeral [symmetric])
 
 lemma hcomplex_numeral_hcnj [simp]:
@@ -647,7 +647,7 @@ lemma hcomplex_numeral_hcmod [simp]:
 by transfer (rule norm_numeral)
 
 lemma hcomplex_neg_numeral_hcmod [simp]: 
-      "hcmod(neg_numeral v :: hcomplex) = (numeral v :: hypreal)"
+      "hcmod(- numeral v :: hcomplex) = (numeral v :: hypreal)"
 by transfer (rule norm_neg_numeral)
 
 lemma hcomplex_numeral_hRe [simp]: 

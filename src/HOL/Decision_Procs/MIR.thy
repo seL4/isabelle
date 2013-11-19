@@ -3154,7 +3154,7 @@ next
     hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = (- ?N i e + real j1) - 1"
       by (simp only: algebra_simps)
         hence "\<exists> j1\<in> {1 .. c*d}. real (c*i) = - 1 - ?N i e + real j1"
-          by (simp add: algebra_simps minus_one [symmetric] del: minus_one)
+          by (simp add: algebra_simps)
     with nob  have ?case by blast }
   ultimately show ?case by blast
 next
@@ -5549,6 +5549,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
   | num_of_term vs @{term "real (1::int)"} = mk_C 1
   | num_of_term vs @{term "0::real"} = mk_C 0
   | num_of_term vs @{term "1::real"} = mk_C 1
+  | num_of_term vs @{term "- 1::real"} = mk_C (~ 1)
   | num_of_term vs (Bound i) = mk_Bound i
   | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
@@ -5561,7 +5562,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
         | _ => error "num_of_term: unsupported Multiplication")
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t')) =
       mk_C (HOLogic.dest_num t')
-  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t')) =
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t')) =
       mk_C (~ (HOLogic.dest_num t'))
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
       @{code Floor} (num_of_term vs t')
@@ -5569,7 +5570,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> real"} $ t') =
       mk_C (HOLogic.dest_num t')
-  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> real"} $ t') =
+  | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> real"} $ t') =
       mk_C (~ (HOLogic.dest_num t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
@@ -5583,7 +5584,7 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
   | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
       mk_Dvd (HOLogic.dest_num t1, num_of_term vs t2)
-  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
+  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "- numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
       mk_Dvd (~ (HOLogic.dest_num t1), num_of_term vs t2)
   | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)

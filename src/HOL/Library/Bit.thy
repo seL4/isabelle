@@ -147,11 +147,11 @@ subsection {* Numerals at type @{typ bit} *}
 
 text {* All numerals reduce to either 0 or 1. *}
 
-lemma bit_minus1 [simp]: "-1 = (1 :: bit)"
-  by (simp only: minus_one [symmetric] uminus_bit_def)
+lemma bit_minus1 [simp]: "- 1 = (1 :: bit)"
+  by (simp only: uminus_bit_def)
 
-lemma bit_neg_numeral [simp]: "(neg_numeral w :: bit) = numeral w"
-  by (simp only: neg_numeral_def uminus_bit_def)
+lemma bit_neg_numeral [simp]: "(- numeral w :: bit) = numeral w"
+  by (simp only: uminus_bit_def)
 
 lemma bit_numeral_even [simp]: "numeral (Num.Bit0 w) = (0 :: bit)"
   by (simp only: numeral_Bit0 bit_add_self)

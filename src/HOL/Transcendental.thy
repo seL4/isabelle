@@ -2000,8 +2000,8 @@ lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
   apply (subst powr_add, simp, simp)
   done
 
-lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x^(numeral n)"
-  unfolding real_of_nat_numeral[symmetric] by (rule powr_realpow)
+lemma powr_realpow_numeral: "0 < x \<Longrightarrow> x powr (numeral n :: real) = x ^ (numeral n)"
+  unfolding real_of_nat_numeral [symmetric] by (rule powr_realpow)
 
 lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
   apply (case_tac "x = 0", simp, simp)
@@ -2020,11 +2020,17 @@ next
   then show ?thesis by (simp add: assms powr_realpow[symmetric])
 qed
 
-lemma powr_numeral: "0 < x \<Longrightarrow> x powr numeral n = x^numeral n"
-  using powr_realpow[of x "numeral n"] by simp
+lemma powr_one: "0 < x \<Longrightarrow> x powr 1 = x"
+  using powr_realpow [of x 1] by simp
 
-lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr neg_numeral n = 1 / x^numeral n"
-  using powr_int[of x "neg_numeral n"] by simp
+lemma powr_numeral: "0 < x \<Longrightarrow> x powr numeral n = x ^ numeral n"
+  by (fact powr_realpow_numeral)
+
+lemma powr_neg_one: "0 < x \<Longrightarrow> x powr - 1 = 1 / x"
+  using powr_int [of x "- 1"] by simp
+
+lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr - numeral n = 1 / x ^ numeral n"
+  using powr_int [of x "- numeral n"] by simp
 
 lemma root_powr_inverse: "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
   by (rule real_root_pos_unique) (auto simp: powr_realpow[symmetric] powr_powr)
@@ -4047,7 +4053,7 @@ proof (rule arctan_unique)
   show "sgn x * pi / 2 - arctan x < pi / 2"
     using arctan_bounded [of "- x"] assms
     unfolding sgn_real_def arctan_minus
-    by auto
+    by (auto simp add: algebra_simps)
   show "tan (sgn x * pi / 2 - arctan x) = 1 / x"
     unfolding tan_inverse [of "arctan x", unfolded tan_arctan]
     unfolding sgn_real_def

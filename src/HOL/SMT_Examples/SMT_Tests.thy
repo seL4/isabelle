@@ -374,7 +374,6 @@ section {* Integers *}
 
 lemma
   "(0::int) = 0"
-  "(0::int) = -0"
   "(0::int) = (- 0)"
   "(1::int) = 1"
   "\<not>(-1 = (1::int))"

@@ -1447,13 +1447,13 @@ subsection{*Numerals and Arithmetic*}
 
 lemma [code_abbrev]:
   "real_of_int (numeral k) = numeral k"
-  "real_of_int (neg_numeral k) = neg_numeral k"
+  "real_of_int (- numeral k) = - numeral k"
   by simp_all
 
-text{*Collapse applications of @{term real} to @{term number_of}*}
+text{*Collapse applications of @{const real} to @{const numeral}*}
 lemma real_numeral [simp]:
   "real (numeral v :: int) = numeral v"
-  "real (neg_numeral v :: int) = neg_numeral v"
+  "real (- numeral v :: int) = - numeral v"
 by (simp_all add: real_of_int_def)
 
 lemma real_of_nat_numeral [simp]:
@@ -1559,11 +1559,11 @@ lemma real_of_int_le_numeral_power_cancel_iff[simp]:
   unfolding real_of_int_le_iff[symmetric] by simp
 
 lemma neg_numeral_power_le_real_of_int_cancel_iff[simp]:
-  "(neg_numeral x::real) ^ n \<le> real a \<longleftrightarrow> (neg_numeral x::int) ^ n \<le> a"
+  "(- numeral x::real) ^ n \<le> real a \<longleftrightarrow> (- numeral x::int) ^ n \<le> a"
   unfolding real_of_int_le_iff[symmetric] by simp
 
 lemma real_of_int_le_neg_numeral_power_cancel_iff[simp]:
-  "real a \<le> (neg_numeral x::real) ^ n \<longleftrightarrow> a \<le> (neg_numeral x::int) ^ n"
+  "real a \<le> (- numeral x::real) ^ n \<longleftrightarrow> a \<le> (- numeral x::int) ^ n"
   unfolding real_of_int_le_iff[symmetric] by simp
 
 subsection{*Density of the Reals*}
@@ -2051,7 +2051,7 @@ lemma [code_abbrev]:
   by simp
 
 lemma [code_abbrev]:
-  "(of_rat (neg_numeral k) :: real) = neg_numeral k"
+  "(of_rat (- numeral k) :: real) = - numeral k"
   by simp
 
 lemma [code_post]:
@@ -2059,14 +2059,14 @@ lemma [code_post]:
   "(of_rat (r / 0)  :: real) = 0"
   "(of_rat (1 / 1)  :: real) = 1"
   "(of_rat (numeral k / 1) :: real) = numeral k"
-  "(of_rat (neg_numeral k / 1) :: real) = neg_numeral k"
+  "(of_rat (- numeral k / 1) :: real) = - numeral k"
   "(of_rat (1 / numeral k) :: real) = 1 / numeral k"
-  "(of_rat (1 / neg_numeral k) :: real) = 1 / neg_numeral k"
+  "(of_rat (1 / - numeral k) :: real) = 1 / - numeral k"
   "(of_rat (numeral k / numeral l)  :: real) = numeral k / numeral l"
-  "(of_rat (numeral k / neg_numeral l)  :: real) = numeral k / neg_numeral l"
-  "(of_rat (neg_numeral k / numeral l)  :: real) = neg_numeral k / numeral l"
-  "(of_rat (neg_numeral k / neg_numeral l)  :: real) = neg_numeral k / neg_numeral l"
-  by (simp_all add: of_rat_divide)
+  "(of_rat (numeral k / - numeral l)  :: real) = numeral k / - numeral l"
+  "(of_rat (- numeral k / numeral l)  :: real) = - numeral k / numeral l"
+  "(of_rat (- numeral k / - numeral l)  :: real) = - numeral k / - numeral l"
+  by (simp_all add: of_rat_divide of_rat_minus)
 
 
 text {* Operations *}

@@ -875,7 +875,6 @@ val known_sos_constants =
    @{term "0::real"}, @{term "1::real"},
    @{term "numeral :: num => nat"},
    @{term "numeral :: num => real"},
-   @{term "neg_numeral :: num => real"},
    @{term "Num.Bit0"}, @{term "Num.Bit1"}, @{term "Num.One"}];
 
 fun check_sos kcts ct =

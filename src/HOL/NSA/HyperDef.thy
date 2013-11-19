@@ -425,7 +425,7 @@ by simp
 declare power_hypreal_of_real_numeral [of _ "numeral w", simp] for w
 
 lemma power_hypreal_of_real_neg_numeral:
-     "(neg_numeral v :: hypreal) ^ n = hypreal_of_real ((neg_numeral v) ^ n)"
+     "(- numeral v :: hypreal) ^ n = hypreal_of_real ((- numeral v) ^ n)"
 by simp
 declare power_hypreal_of_real_neg_numeral [of _ "numeral w", simp] for w
 (*

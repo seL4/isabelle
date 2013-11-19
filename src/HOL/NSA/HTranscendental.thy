@@ -258,7 +258,7 @@ apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (rule approx_add_right_cancel [where d="-1"])
 apply (rule approx_sym [THEN [2] approx_trans2])
-apply (auto simp add: mem_infmal_iff minus_one [symmetric] simp del: minus_one)
+apply (auto simp add: mem_infmal_iff)
 done
 
 lemma STAR_exp_epsilon [simp]: "( *f* exp) epsilon @= 1"
@@ -450,7 +450,7 @@ apply (drule approx_mult1 [where c = x])
 apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
             simp add: mult_assoc)
 apply (rule approx_add_right_cancel [where d = "-1"])
-apply (simp add: minus_one [symmetric] del: minus_one)
+apply simp
 done
 
 lemma STAR_tan_zero [simp]: "( *f* tan) 0 = 0"

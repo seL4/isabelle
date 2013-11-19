@@ -2006,9 +2006,10 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       | SOME n => @{code Bound} (@{code nat_of_integer} n))
   | num_of_term vs @{term "0::int"} = @{code C} (@{code int_of_integer} 0)
   | num_of_term vs @{term "1::int"} = @{code C} (@{code int_of_integer} 1)
+  | num_of_term vs @{term "- 1::int"} = @{code C} (@{code int_of_integer} (~ 1))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) =
       @{code C} (@{code int_of_integer} (HOLogic.dest_num t))
-  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t) =
+  | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> int"} $ t) =
       @{code C} (@{code int_of_integer} (~(HOLogic.dest_num t)))
   | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')

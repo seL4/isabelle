@@ -3072,9 +3072,9 @@ declare upto.simps[simp del]
 
 lemmas upto_rec_numeral [simp] =
   upto.simps[of "numeral m" "numeral n"]
-  upto.simps[of "numeral m" "neg_numeral n"]
-  upto.simps[of "neg_numeral m" "numeral n"]
-  upto.simps[of "neg_numeral m" "neg_numeral n"] for m n
+  upto.simps[of "numeral m" "- numeral n"]
+  upto.simps[of "- numeral m" "numeral n"]
+  upto.simps[of "- numeral m" "- numeral n"] for m n
 
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)

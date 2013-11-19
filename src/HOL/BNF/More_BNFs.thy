@@ -973,8 +973,7 @@ proof -
   using finite_Collect_mem .
   ultimately have fin: "finite {b. \<exists>a. f a = b \<and> a \<in># M}" by(rule finite_subset)
   have i: "inj_on A ?B" unfolding inj_on_def A_def apply clarsimp
-  by (metis (lifting, mono_tags) mem_Collect_eq rel_simps(54)
-                                 setsum_gt_0_iff setsum_infinite)
+    by (metis (lifting, full_types) mem_Collect_eq neq0_conv setsum.neutral)
   have 0: "\<And> b. 0 < setsum (count M) (A b) \<longleftrightarrow> (\<exists> a \<in> A b. count M a > 0)"
   apply safe
     apply (metis less_not_refl setsum_gt_0_iff setsum_infinite)

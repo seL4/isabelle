@@ -209,14 +209,6 @@ lemma power_minus_Bit1:
   "(- x) ^ numeral (Num.Bit1 k) = - (x ^ numeral (Num.Bit1 k))"
   by (simp only: eval_nat_numeral(3) power_Suc power_minus_Bit0 mult_minus_left)
 
-lemma power_neg_numeral_Bit0 [simp]:
-  "neg_numeral k ^ numeral (Num.Bit0 l) = numeral (Num.pow k (Num.Bit0 l))"
-  by (simp only: neg_numeral_def power_minus_Bit0 power_numeral)
-
-lemma power_neg_numeral_Bit1 [simp]:
-  "neg_numeral k ^ numeral (Num.Bit1 l) = neg_numeral (Num.pow k (Num.Bit1 l))"
-  by (simp only: neg_numeral_def power_minus_Bit1 power_numeral pow.simps)
-
 lemma power2_minus [simp]:
   "(- a)\<^sup>2 = a\<^sup>2"
   by (rule power_minus_Bit0)

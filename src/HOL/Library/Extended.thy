@@ -161,8 +161,8 @@ lemma Fin_numeral: "Fin(numeral w) = numeral w"
   apply (simp only: numeral_inc one_extended_def plus_extended.simps(1)[symmetric])
   done
 
-lemma Fin_neg_numeral: "Fin(neg_numeral w) = - numeral w"
-by (simp only: Fin_numeral minus_numeral[symmetric] uminus_extended.simps[symmetric])
+lemma Fin_neg_numeral: "Fin (- numeral w) = - numeral w"
+by (simp only: Fin_numeral uminus_extended.simps[symmetric])
 
 
 instantiation extended :: (lattice)bounded_lattice

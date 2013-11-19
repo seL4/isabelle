@@ -45,8 +45,8 @@ val oneT = Thm.ctyp_of_term one;
 val numeral = @{cpat "numeral"};
 val numeralT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term numeral)));
 
-val neg_numeral = @{cpat "neg_numeral"};
-val neg_numeralT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term neg_numeral)));
+val uminus = @{cpat "uminus"};
+val uminusT = Thm.ctyp_of @{theory} (Term.range_type (Thm.typ_of (Thm.ctyp_of_term uminus)));
 
 fun instT T V = Thm.instantiate_cterm ([(V, T)], []);
 
@@ -56,7 +56,7 @@ fun mk_cnumber T 0 = instT T zeroT zero
   | mk_cnumber T 1 = instT T oneT one
   | mk_cnumber T i =
     if i > 0 then Thm.apply (instT T numeralT numeral) (mk_cnumeral i)
-    else Thm.apply (instT T neg_numeralT neg_numeral) (mk_cnumeral (~i));
+    else Thm.apply (instT T uminusT uminus) (Thm.apply (instT T numeralT numeral) (mk_cnumeral (~i)));
 
 end;
 

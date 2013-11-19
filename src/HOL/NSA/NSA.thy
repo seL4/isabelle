@@ -654,7 +654,7 @@ by (blast intro: approx_sym)
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 simproc_setup approx_reorient_simproc
-  ("0 @= x" | "1 @= y" | "numeral w @= z" | "neg_numeral w @= r") =
+  ("0 @= x" | "1 @= y" | "numeral w @= z" | "- 1 @= y" | "- numeral w @= r") =
 {*
   let val rule = @{thm approx_reorient} RS eq_reflection
       fun proc phi ss ct = case term_of ct of
@@ -1849,13 +1849,20 @@ by (simp add: st_unique st_SReal st_approx_self approx_add)
 lemma st_numeral [simp]: "st (numeral w) = numeral w"
 by (rule Reals_numeral [THEN st_SReal_eq])
 
-lemma st_neg_numeral [simp]: "st (neg_numeral w) = neg_numeral w"
-by (rule Reals_neg_numeral [THEN st_SReal_eq])
+lemma st_neg_numeral [simp]: "st (- numeral w) = - numeral w"
+proof -
+  from Reals_numeral have "numeral w \<in> \<real>" .
+  then have "- numeral w \<in> \<real>" by simp
+  with st_SReal_eq show ?thesis .
+qed
 
 lemma st_0 [simp]: "st 0 = 0"
 by (simp add: st_SReal_eq)
 
 lemma st_1 [simp]: "st 1 = 1"
+by (simp add: st_SReal_eq)
+
+lemma st_neg_1 [simp]: "st (- 1) = - 1"
 by (simp add: st_SReal_eq)
 
 lemma st_minus: "x \<in> HFinite \<Longrightarrow> st (- x) = - st x"

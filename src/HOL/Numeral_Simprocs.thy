@@ -17,7 +17,7 @@ lemmas semiring_norm =
   if_False if_True
   add_0 add_Suc add_numeral_left
   add_neg_numeral_left mult_numeral_left
-  numeral_1_eq_1 [symmetric] Suc_eq_plus1
+  numeral_One [symmetric] uminus_numeral_One [symmetric] Suc_eq_plus1
   eq_numeral_iff_iszero not_iszero_Numeral1
 
 declare split_div [of _ _ "numeral k", arith_split] for k
@@ -85,18 +85,19 @@ by(auto)
 
 text {* For @{text cancel_factor} *}
 
-lemma nat_mult_le_cancel_disj: "(k*m <= k*n) = ((0::nat) < k --> m<=n)"
-by auto
+lemmas nat_mult_le_cancel_disj = mult_le_cancel1
 
-lemma nat_mult_less_cancel_disj: "(k*m < k*n) = ((0::nat) < k & m<n)"
-by auto
+lemmas nat_mult_less_cancel_disj = mult_less_cancel1
 
-lemma nat_mult_eq_cancel_disj: "(k*m = k*n) = (k = (0::nat) | m=n)"
-by auto
+lemma nat_mult_eq_cancel_disj:
+  fixes k m n :: nat
+  shows "k * m = k * n \<longleftrightarrow> k = 0 \<or> m = n"
+  by auto
 
-lemma nat_mult_div_cancel_disj[simp]:
-     "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
-by (simp add: nat_mult_div_cancel1)
+lemma nat_mult_div_cancel_disj [simp]:
+  fixes k m n :: nat
+  shows "(k * m) div (k * n) = (if k = 0 then 0 else m div n)"
+  by (fact div_mult_mult1_if)
 
 ML_file "Tools/numeral_simprocs.ML"
 

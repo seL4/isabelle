@@ -45,7 +45,7 @@ lemma floatI: fixes m e :: int shows "m * 2 powr e = x \<Longrightarrow> x \<in>
 lemma zero_float[simp]: "0 \<in> float" by (auto simp: float_def)
 lemma one_float[simp]: "1 \<in> float" by (intro floatI[of 1 0]) simp
 lemma numeral_float[simp]: "numeral i \<in> float" by (intro floatI[of "numeral i" 0]) simp
-lemma neg_numeral_float[simp]: "neg_numeral i \<in> float" by (intro floatI[of "neg_numeral i" 0]) simp
+lemma neg_numeral_float[simp]: "- numeral i \<in> float" by (intro floatI[of "- numeral i" 0]) simp
 lemma real_of_int_float[simp]: "real (x :: int) \<in> float" by (intro floatI[of x 0]) simp
 lemma real_of_nat_float[simp]: "real (x :: nat) \<in> float" by (intro floatI[of x 0]) simp
 lemma two_powr_int_float[simp]: "2 powr (real (i::int)) \<in> float" by (intro floatI[of 1 i]) simp
@@ -53,7 +53,7 @@ lemma two_powr_nat_float[simp]: "2 powr (real (i::nat)) \<in> float" by (intro f
 lemma two_powr_minus_int_float[simp]: "2 powr - (real (i::int)) \<in> float" by (intro floatI[of 1 "-i"]) simp
 lemma two_powr_minus_nat_float[simp]: "2 powr - (real (i::nat)) \<in> float" by (intro floatI[of 1 "-i"]) simp
 lemma two_powr_numeral_float[simp]: "2 powr numeral i \<in> float" by (intro floatI[of 1 "numeral i"]) simp
-lemma two_powr_neg_numeral_float[simp]: "2 powr neg_numeral i \<in> float" by (intro floatI[of 1 "neg_numeral i"]) simp
+lemma two_powr_neg_numeral_float[simp]: "2 powr - numeral i \<in> float" by (intro floatI[of 1 "- numeral i"]) simp
 lemma two_pow_float[simp]: "2 ^ n \<in> float" by (intro floatI[of 1 "n"]) (simp add: powr_realpow)
 lemma real_of_float_float[simp]: "real (f::float) \<in> float" by (cases f) simp
 
@@ -121,11 +121,11 @@ proof -
 qed
 
 lemma div_neg_numeral_Bit0_float[simp]:
-  assumes x: "x / numeral n \<in> float" shows "x / (neg_numeral (Num.Bit0 n)) \<in> float"
+  assumes x: "x / numeral n \<in> float" shows "x / (- numeral (Num.Bit0 n)) \<in> float"
 proof -
   have "- (x / numeral (Num.Bit0 n)) \<in> float" using x by simp
-  also have "- (x / numeral (Num.Bit0 n)) = x / neg_numeral (Num.Bit0 n)"
-    unfolding neg_numeral_def by (simp del: minus_numeral)
+  also have "- (x / numeral (Num.Bit0 n)) = x / - numeral (Num.Bit0 n)"
+    by simp
   finally show ?thesis .
 qed
 
@@ -197,7 +197,7 @@ proof
   then show "\<exists>c. a < c \<and> c < b"
     apply (intro exI[of _ "(a + b) * Float 1 -1"])
     apply transfer
-    apply (simp add: powr_neg_numeral)
+    apply (simp add: powr_minus)
     done
 qed
 
@@ -226,16 +226,16 @@ lemma transfer_numeral [transfer_rule]:
   "fun_rel (op =) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
   unfolding fun_rel_def float.pcr_cr_eq  cr_float_def by simp
 
-lemma float_neg_numeral[simp]: "real (neg_numeral x :: float) = neg_numeral x"
-  by (simp add: minus_numeral[symmetric] del: minus_numeral)
+lemma float_neg_numeral[simp]: "real (- numeral x :: float) = - numeral x"
+  by simp
 
 lemma transfer_neg_numeral [transfer_rule]:
-  "fun_rel (op =) pcr_float (neg_numeral :: _ \<Rightarrow> real) (neg_numeral :: _ \<Rightarrow> float)"
+  "fun_rel (op =) pcr_float (- numeral :: _ \<Rightarrow> real) (- numeral :: _ \<Rightarrow> float)"
   unfolding fun_rel_def float.pcr_cr_eq cr_float_def by simp
 
 lemma
   shows float_of_numeral[simp]: "numeral k = float_of (numeral k)"
-    and float_of_neg_numeral[simp]: "neg_numeral k = float_of (neg_numeral k)"
+    and float_of_neg_numeral[simp]: "- numeral k = float_of (- numeral k)"
   unfolding real_of_float_eq by simp_all
 
 subsection {* Represent floats as unique mantissa and exponent *}
@@ -439,7 +439,7 @@ lemma compute_float_numeral[code_abbrev]: "Float (numeral k) 0 = numeral k"
   by transfer simp
 hide_fact (open) compute_float_numeral
 
-lemma compute_float_neg_numeral[code_abbrev]: "Float (neg_numeral k) 0 = neg_numeral k"
+lemma compute_float_neg_numeral[code_abbrev]: "Float (- numeral k) 0 = - numeral k"
   by transfer simp
 hide_fact (open) compute_float_neg_numeral
 
@@ -960,7 +960,7 @@ proof -
   also have "... < (1 / 2) * 2 powr real (rat_precision n (int x) (int y))"
     apply (rule mult_strict_right_mono) by (insert assms) auto
   also have "\<dots> = 2 powr real (rat_precision n (int x) (int y) - 1)"
-    using powr_add [of 2 _ "- 1", simplified add_uminus_conv_diff] by (simp add: powr_neg_numeral)
+    using powr_add [of 2 _ "- 1", simplified add_uminus_conv_diff] by (simp add: powr_minus)
   also have "\<dots> = 2 ^ nat (rat_precision n (int x) (int y) - 1)"
     using rat_precision_pos[of x y n] assms by (simp add: powr_realpow[symmetric])
   also have "\<dots> \<le> 2 ^ nat (rat_precision n (int x) (int y)) - 1"

@@ -183,9 +183,6 @@ let
     | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_num n)))
         handle TERM _ => (SOME t, m))
-    | demult (t as Const ("Num.neg_numeral_class.neg_numeral", _) $ n, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (~ (HOLogic.dest_num n))))
-        handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
         handle TERM _ => (SOME t, m))
@@ -212,6 +209,10 @@ let
         pi
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
+    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
+        (let val k = HOLogic.dest_num t
+        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
+        handle TERM _ => add_atom all m pi)
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add i m))
     | poly (all as Const (@{const_name Groups.times}, _) $ _ $ _, m, pi as (p, i)) =
@@ -222,14 +223,6 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_num t
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
-        handle TERM _ => add_atom all m pi)
-    | poly (all as Const ("Num.neg_numeral_class.neg_numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_num t
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int (~ k)))) end
-        handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
         if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =

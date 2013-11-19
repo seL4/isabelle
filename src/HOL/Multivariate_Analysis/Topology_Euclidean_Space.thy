@@ -5163,9 +5163,8 @@ lemma minus_image_eq_vimage:
 
 lemma open_negations:
   fixes s :: "'a::real_normed_vector set"
-  shows "open s \<Longrightarrow> open ((\<lambda> x. -x) ` s)"
-  unfolding scaleR_minus1_left [symmetric]
-  by (rule open_scaling, auto)
+  shows "open s \<Longrightarrow> open ((\<lambda>x. - x) ` s)"
+  using open_scaling [of "- 1" s] by simp
 
 lemma open_translation:
   fixes s :: "'a::real_normed_vector set"

@@ -207,12 +207,14 @@ proof(induct n rule: nat_less_induct)
     from unimodular_reduce_norm[OF th0] o
     have "\<exists>v. cmod (complex_of_real (cmod b) / b + v^n) < 1"
       apply (cases "cmod (complex_of_real (cmod b) / b + 1) < 1", rule_tac x="1" in exI, simp)
-      apply (cases "cmod (complex_of_real (cmod b) / b - 1) < 1", rule_tac x="-1" in exI, simp del: minus_one add: minus_one [symmetric])
+      apply (cases "cmod (complex_of_real (cmod b) / b - 1) < 1", rule_tac x="-1" in exI, simp)
       apply (cases "cmod (complex_of_real (cmod b) / b + ii) < 1")
       apply (cases "even m", rule_tac x="ii" in exI, simp add: m power_mult)
       apply (rule_tac x="- ii" in exI, simp add: m power_mult)
       apply (cases "even m", rule_tac x="- ii" in exI, simp add: m power_mult)
-      apply (rule_tac x="ii" in exI, simp add: m power_mult)
+      apply (auto simp add: m power_mult)
+      apply (rule_tac x="ii" in exI)
+      apply (auto simp add: m power_mult)
       done
     then obtain v where v: "cmod (complex_of_real (cmod b) / b + v^n) < 1" by blast
     let ?w = "v / complex_of_real (root n (cmod b))"

@@ -337,10 +337,10 @@ lemma bilinear_rmul: "bilinear h \<Longrightarrow> h x (c *\<^sub>R y) = c *\<^s
   by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_lneg: "bilinear h \<Longrightarrow> h (- x) y = - h x y"
-  by (simp only: scaleR_minus1_left [symmetric] bilinear_lmul)
+  by (drule bilinear_lmul [of _ "- 1"]) simp
 
 lemma bilinear_rneg: "bilinear h \<Longrightarrow> h x (- y) = - h x y"
-  by (simp only: scaleR_minus1_left [symmetric] bilinear_rmul)
+  by (drule bilinear_rmul [of _ _ "- 1"]) simp
 
 lemma (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
   using add_imp_eq[of x y 0] by auto
