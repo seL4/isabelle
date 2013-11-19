@@ -144,7 +144,7 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blobs = List[(Document.Node.Name, Option[SHA1.Digest])]
+  type Blobs = List[Exn.Result[(Document.Node.Name, SHA1.Digest)]]
 
   def apply(
     id: Document_ID.Command,

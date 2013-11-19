@@ -101,6 +101,6 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
 
   def text_edits(reparse_limit: Int, previous: Document.Version, edits: List[Document.Edit_Text])
       : (List[Document.Edit_Command], Document.Version) =
-    Thy_Syntax.text_edits(base_syntax, reparse_limit, previous, edits)
+    Thy_Syntax.text_edits(this, reparse_limit, previous, edits)
 }
 

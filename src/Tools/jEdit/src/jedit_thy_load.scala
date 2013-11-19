@@ -42,7 +42,7 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
-    if (path.is_absolute) Isabelle_System.platform_path(path)
+    if (dir == "" || path.is_absolute) Isabelle_System.platform_path(path)
     else {
       val vfs = VFSManager.getVFSForPath(dir)
       if (vfs.isInstanceOf[FileVFS])
