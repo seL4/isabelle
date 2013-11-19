@@ -363,7 +363,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
       Cons (infixr "#" 65)
 
     hide_type list
-    hide_const Nil Cons hd tl set map list_all2 list_case list_rec
+    hide_const Nil Cons hd tl set map list_all2
 
     context early begin
 (*>*)
@@ -626,7 +626,7 @@ following auxiliary constants are introduced:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Case combinator}: @{text t.t_case} (rendered using the familiar
+\item \relax{Case combinator}: @{text t.case_t} (rendered using the familiar
 @{text case}--@{text of} syntax)
 
 \item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
@@ -644,9 +644,9 @@ following auxiliary constants are introduced:
 
 \item \relax{Relator}: @{text t.rel_t}
 
-\item \relax{Iterator}: @{text t.t_fold}
+\item \relax{Iterator}: @{text t.fold_t}
 
-\item \relax{Recursor}: @{text t.t_rec}
+\item \relax{Recursor}: @{text t.rec_t}
 
 \end{itemize}
 
@@ -914,7 +914,10 @@ interfaces. Little has been done so far in this direction. Whenever possible, it
 is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
-\item \emph{The recursor @{text "t_rec"} has a different signature for nested
+\item \emph{The constants @{text "t_case"} and @{text "t_rec"} are now called
+@{text "case_t"} and @{text "rec_t"}.
+
+\item \emph{The recursor @{text "rec_t"} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
 was internally reduced to mutual recursion. This reduction was visible in the
 type of the recursor, used by \keyw{primrec}. Recursion through functions was
@@ -1552,9 +1555,9 @@ iterator and the recursor are replaced by dual concepts:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item \relax{Coiterator}: @{text t_unfold}
+\item \relax{Coiterator}: @{text unfold_t}
 
-\item \relax{Corecursor}: @{text t_corec}
+\item \relax{Corecursor}: @{text corec_t}
 
 \end{itemize}
 *}
