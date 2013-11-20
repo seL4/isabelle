@@ -358,6 +358,8 @@ subsection {* Strings as dedicated type *}
 typedef literal = "UNIV :: string set"
   morphisms explode STR ..
 
+setup_lifting (no_code) type_definition_literal
+
 instantiation literal :: size
 begin
 
@@ -372,15 +374,13 @@ end
 instantiation literal :: equal
 begin
 
-definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool"
-where
-  "equal_literal s1 s2 \<longleftrightarrow> explode s1 = explode s2"
+lift_definition equal_literal :: "literal \<Rightarrow> literal \<Rightarrow> bool" is "op =" .
 
-instance
-proof
-qed (auto simp add: equal_literal_def explode_inject)
+instance by intro_classes (transfer, simp)
 
 end
+
+declare equal_literal.rep_eq[code]
 
 lemma [code nbe]:
   fixes s :: "String.literal"
@@ -390,7 +390,6 @@ lemma [code nbe]:
 lemma STR_inject' [simp]:
   "STR xs = STR ys \<longleftrightarrow> xs = ys"
   by (simp add: STR_inject)
-
 
 subsection {* Code generator *}
 
