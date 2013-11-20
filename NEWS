@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
+Open text buffers take precedence over copies within the file-system.
+
+
 *** HOL ***
 
 * Qualified constant names Wellfounded.acc, Wellfounded.accp.
