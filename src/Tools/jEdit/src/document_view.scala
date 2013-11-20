@@ -82,7 +82,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         PIDE.editor.current_command(view, snapshot) match {
           case Some(command) =>
             snapshot.node.command_start(command) match {
-              case Some(start) => List(command.proper_range + start)
+              case Some(start) => List(snapshot.convert(command.proper_range + start))
               case None => Nil
             }
           case None => Nil

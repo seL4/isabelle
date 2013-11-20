@@ -104,11 +104,26 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     if (Isabelle.continuous_checking && is_theory) {
       val snapshot = this.snapshot()
-      Document.Node.Perspective(node_required, Text.Perspective(
+
+      val document_view_ranges =
         for {
           doc_view <- PIDE.document_views(buffer)
           range <- doc_view.perspective(snapshot).ranges
-        } yield range), PIDE.editor.node_overlays(node_name))
+        } yield range
+
+      val thy_load_ranges =
+        for {
+          cmd <- snapshot.node.thy_load_commands
+          blob_name <- cmd.blobs_names
+          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name.node)
+          if !JEdit_Lib.jedit_text_areas(blob_buffer).isEmpty
+          start <- snapshot.node.command_start(cmd)
+          range = snapshot.convert(cmd.proper_range + start)
+        } yield range
+
+      Document.Node.Perspective(node_required,
+        Text.Perspective(document_view_ranges ::: thy_load_ranges),
+        PIDE.editor.node_overlays(node_name))
     }
     else empty_perspective
   }

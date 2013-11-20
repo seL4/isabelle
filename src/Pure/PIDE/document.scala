@@ -257,7 +257,7 @@ object Document
       (for {
         (_, node) <- entries
         cmd <- node.thy_load_commands.iterator
-        Exn.Res((name, _)) <- cmd.blobs.iterator
+        name <- cmd.blobs_names.iterator
         if name == file_name
       } yield cmd).toList
 

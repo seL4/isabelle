@@ -239,6 +239,9 @@ final class Command private(
 
   /* blobs */
 
+  def blobs_names: List[Document.Node.Name] =
+    for (Exn.Res((name, _)) <- blobs) yield name
+
   def blobs_digests: List[SHA1.Digest] =
     for (Exn.Res((_, Some(digest))) <- blobs) yield digest
 
