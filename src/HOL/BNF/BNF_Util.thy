@@ -41,9 +41,6 @@ by simp
 lemma bijI: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); \<And>y. \<exists>x. y = f x\<rbrakk> \<Longrightarrow> bij f"
 unfolding bij_def inj_on_def by auto blast
 
-lemma Collect_pair_mem_eq: "{(x, y). (x, y) \<in> R} = R"
-by simp
-
 (* Operator: *)
 definition "Gr A f = {(a, f a) | a. a \<in> A}"
 
