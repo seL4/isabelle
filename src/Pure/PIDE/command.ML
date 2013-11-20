@@ -106,10 +106,11 @@ fun resolve_files master_dir blobs toks =
 
           val src_paths = Keyword.command_files cmd path;
         in
-          if null blobs then []
-          else if length src_paths <> length blobs then
-            error ("Misalignment of inlined files" ^ Position.here pos)
-          else map2 make_file src_paths blobs
+          if null blobs then
+            map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
+          else if length src_paths = length blobs then
+            map2 make_file src_paths blobs
+          else error ("Misalignment of inlined files" ^ Position.here pos)
         end)
       |> Thy_Syntax.span_content
   | _ => toks);
