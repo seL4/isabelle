@@ -914,10 +914,10 @@ interfaces. Little has been done so far in this direction. Whenever possible, it
 is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
-\item \emph{The constants @{text "t_case"} and @{text "t_rec"} are now called
-@{text "case_t"} and @{text "rec_t"}.
+\item \emph{The constants @{text t_case} and @{text t_rec} are now called
+@{text case_t} and @{text rec_t}.}
 
-\item \emph{The recursor @{text "rec_t"} has a different signature for nested
+\item \emph{The recursor @{text rec_t} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
 was internally reduced to mutual recursion. This reduction was visible in the
 type of the recursor, used by \keyw{primrec}. Recursion through functions was
