@@ -1,11 +1,11 @@
-Subject: Announcing Isabelle2013-1
+Subject: Announcing Isabelle2013-2
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2013-1 is now available.
+Isabelle2013-2 is now available.
 
-This version consolidates Isabelle2013 and introduces numerous
-improvements, see the NEWS file in the distribution for more details.
-Some highlights are:
+This version supersedes Isabelle2013-1, which in turn consolidated
+Isabelle2013 and introduced numerous improvements.  See the NEWS file
+in the distribution for more details.  Some highlights are:
 
 * Significantly improved Isabelle/jEdit Prover IDE.
 
@@ -24,7 +24,7 @@ Some highlights are:
 * HOL-BNF: significantly improved BNF-based (co)datatype package.
 
 
-You may get Isabelle2013-1 from the following mirror sites:
+You may get Isabelle2013-2 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/

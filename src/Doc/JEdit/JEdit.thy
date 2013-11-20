@@ -477,7 +477,7 @@ text {* Formally processed text (prover input or output) contains rich
   \medskip A black rectangle in the text indicates a hyperlink that
   may be followed by a mouse click (while the @{verbatim CONTROL} or
   @{verbatim COMMAND} modifier key is still pressed). Presently
-  (Isabelle2013-1) there is no systematic navigation within the
+  (Isabelle2013-2) there is no systematic navigation within the
   editor to return to the original location.
 
   Also note that the link target may be a file that is itself not
@@ -1109,7 +1109,7 @@ text {*
 
   \textbf{Workaround:} Do not use input methods, reset the environment
   variable @{verbatim XMODIFIERS} within Isabelle settings (default in
-  Isabelle2013-1).
+  Isabelle2013-2).
 
   \item \textbf{Problem:} Some Linux / X11 window managers that are
   not ``re-parenting'' cause problems with additional windows opened
