@@ -68,7 +68,7 @@ class Thy_Info(thy_load: Thy_Load)
       val dep_files =
         rev_deps.par.map(dep =>
           Exn.capture {
-            dep.load_files(syntax).map(a => Path.explode(dep.name.dir) + Path.explode(a))
+            dep.load_files(syntax).map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
           }).toList
       ((Nil: List[Path]) /: dep_files) {
         case (acc_files, files) => Exn.release(files) ::: acc_files

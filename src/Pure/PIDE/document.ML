@@ -18,7 +18,9 @@ sig
   type edit = string * node_edit
   type state
   val init_state: state
-  val define_command: Document_ID.command -> string -> string -> state -> state
+  val define_blob: string -> string -> state -> state
+  val define_command: Document_ID.command -> string -> Command.blob list -> string ->
+    state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
   val update: Document_ID.version -> Document_ID.version -> edit list -> state ->
@@ -70,7 +72,7 @@ fun make_perspective (required, command_ids, overlays) : perspective =
   visible_last = try List.last command_ids,
   overlays = Inttab.make_list overlays};
 
-val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
+val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["No theory header"]);
 val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
@@ -88,9 +90,14 @@ fun get_header (Node {header = (master, header, errors), ...}) =
 
 fun read_header node span =
   let
-    val (dir, {name = (name, _), imports, keywords}) = get_header node;
+    val {name = (name, _), imports, keywords} = #2 (get_header node);
     val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
-  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords) end;
+  in Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords end;
+
+fun master_directory node =
+  (case try Url.explode (#1 (get_header node)) of
+    SOME (Url.File path) => path
+  | _ => Path.current);
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective args =
@@ -231,29 +238,32 @@ fun new_execution version_id delay_request frontier : execution =
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
-  commands: (string * Token.T list lazy) Inttab.table,  (*command id -> named command span*)
+  blobs: string Symtab.table,  (*digest -> text*)
+  commands: (string * Command.blob list * Token.T list lazy) Inttab.table,
+    (*command id -> name, inlined files, command span*)
   execution: execution}  (*current execution process*)
 with
 
-fun make_state (versions, commands, execution) =
-  State {versions = versions, commands = commands, execution = execution};
+fun make_state (versions, blobs, commands, execution) =
+  State {versions = versions, blobs = blobs, commands = commands, execution = execution};
 
-fun map_state f (State {versions, commands, execution}) =
-  make_state (f (versions, commands, execution));
+fun map_state f (State {versions, blobs, commands, execution}) =
+  make_state (f (versions, blobs, commands, execution));
 
 val init_state =
-  make_state (Inttab.make [(Document_ID.none, empty_version)], Inttab.empty, no_execution);
+  make_state (Inttab.make [(Document_ID.none, empty_version)],
+    Symtab.empty, Inttab.empty, no_execution);
 
 
 (* document versions *)
 
 fun define_version version_id version =
-  map_state (fn (versions, commands, {delay_request, frontier, ...}) =>
+  map_state (fn (versions, blobs, commands, {delay_request, frontier, ...}) =>
     let
       val versions' = Inttab.update_new (version_id, version) versions
         handle Inttab.DUP dup => err_dup "document version" dup;
       val execution' = new_execution version_id delay_request frontier;
-    in (versions', commands, execution') end);
+    in (versions', blobs, commands, execution') end);
 
 fun the_version (State {versions, ...}) version_id =
   (case Inttab.lookup versions version_id of
@@ -265,10 +275,23 @@ fun delete_version version_id versions =
     handle Inttab.UNDEF _ => err_undef "document version" version_id;
 
 
+(* inlined files *)
+
+fun define_blob digest text =
+  map_state (fn (versions, blobs, commands, execution) =>
+    let val blobs' = Symtab.update (digest, text) blobs
+    in (versions, blobs', commands, execution) end);
+
+fun the_blob (State {blobs, ...}) digest =
+  (case Symtab.lookup blobs digest of
+    NONE => error ("Undefined blob: " ^ digest)
+  | SOME text => text);
+
+
 (* commands *)
 
-fun define_command command_id name text =
-  map_state (fn (versions, commands, execution) =>
+fun define_command command_id name command_blobs text =
+  map_state (fn (versions, blobs, commands, execution) =>
     let
       val id = Document_ID.print command_id;
       val span =
@@ -279,9 +302,9 @@ fun define_command command_id name text =
         Position.setmp_thread_data (Position.id_only id)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
       val commands' =
-        Inttab.update_new (command_id, (name, span)) commands
+        Inttab.update_new (command_id, (name, command_blobs, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;
-    in (versions, commands', execution) end);
+    in (versions, blobs, commands', execution) end);
 
 fun the_command (State {commands, ...}) command_id =
   (case Inttab.lookup commands command_id of
@@ -295,7 +318,7 @@ end;
 
 (* remove_versions *)
 
-fun remove_versions version_ids state = state |> map_state (fn (versions, _, execution) =>
+fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, execution) =>
   let
     val _ =
       member (op =) version_ids (#version_id execution) andalso
@@ -308,12 +331,17 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, exe
           String_Graph.fold (fn (_, (node, _)) => node |>
             iterate_entries (fn ((_, command_id), _) =>
               SOME o Inttab.insert (K true) (command_id, the_command state command_id))));
-  in (versions', commands', execution) end);
+    val blobs' =
+      (commands', Symtab.empty) |->
+        Inttab.fold (fn (_, (_, blobs, _)) => blobs |>
+          fold (fn Exn.Res (_, SOME b) => Symtab.update (b, the_blob state b) | _ => I));
+
+  in (versions', blobs', commands', execution) end);
 
 
 (* document execution *)
 
-fun start_execution state = state |> map_state (fn (versions, commands, execution) =>
+fun start_execution state = state |> map_state (fn (versions, blobs, commands, execution) =>
   timeit "Document.start_execution" (fn () =>
     let
       val {version_id, execution_id, delay_request, frontier} = execution;
@@ -350,7 +378,7 @@ fun start_execution state = state |> map_state (fn (versions, commands, executio
       val execution' =
         {version_id = version_id, execution_id = execution_id,
          delay_request = delay_request', frontier = frontier'};
-    in (versions, commands, execution') end));
+    in (versions, blobs, commands, execution') end));
 
 
 
@@ -391,18 +419,19 @@ fun make_required nodes =
         Symtab.update (a, ())) all_visible all_required
   end;
 
+fun loaded_theory name =
+  (case try (unsuffix ".thy") name of
+    SOME a => Thy_Info.lookup_theory a
+  | NONE => NONE);
+
 fun init_theory deps node span =
   let
-    (* FIXME provide files via Isabelle/Scala, not master_dir *)
-    val (dir, header) = read_header node span;
-    val master_dir =
-      (case try Url.explode dir of
-        SOME (Url.File path) => path
-      | _ => Path.current);
+    val master_dir = master_directory node;
+    val header = read_header node span;
     val imports = #imports header;
     val parents =
       imports |> map (fn (import, _) =>
-        (case Thy_Info.lookup_theory import of
+        (case loaded_theory import of
           SOME thy => thy
         | NONE =>
             Toplevel.end_theory (Position.file_only import)
@@ -413,7 +442,7 @@ fun init_theory deps node span =
   in Thy_Load.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
-  is_some (Thy_Info.lookup_theory name) orelse
+  is_some (loaded_theory name) orelse
   can get_header node andalso (not full orelse is_some (get_result node));
 
 fun last_common state node_required node0 node =
@@ -471,9 +500,13 @@ fun new_exec state node proper_init command_id' (assign_update, command_exec, in
 
       val command_visible = visible_command node command_id';
       val command_overlays = overlays node command_id';
-      val (command_name, span) = the_command state command_id' ||> Lazy.force;
+      val (command_name, blobs0, span0) = the_command state command_id';
+      val blobs = (map o Exn.map_result o apsnd o Option.map) (the_blob state) blobs0;
+      val span = Lazy.force span0;
 
-      val eval' = Command.eval (fn () => the_default illegal_init init span) span eval;
+      val eval' =
+        Command.eval (fn () => the_default illegal_init init span)
+          (master_directory node) blobs span eval;
       val prints' = perhaps (Command.print command_visible command_overlays command_name eval') [];
       val exec' = (eval', prints');
 

@@ -6,13 +6,15 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  val read: (unit -> theory) -> Token.T list -> Toplevel.transition
+  type blob = (string * string option) Exn.result
+  val read_file: Path.T -> Position.T -> Path.T -> Token.file
+  val read: (unit -> theory) -> Path.T -> blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> Token.T list -> eval -> eval
+  val eval: (unit -> theory) -> Path.T -> blob list -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
@@ -82,7 +84,38 @@ end;
 
 (* read *)
 
-fun read init span =
+type blob = (string * string option) Exn.result;  (*file node name, digest or text*)
+
+fun read_file master_dir pos src_path =
+  let
+    val full_path = File.check_file (File.full_path master_dir src_path);
+    val _ = Position.report pos (Markup.path (Path.implode full_path));
+  in {src_path = src_path, text = File.read full_path, pos = Path.position full_path} end;
+
+fun resolve_files master_dir blobs toks =
+  (case Thy_Syntax.parse_spans toks of
+    [span] => span
+      |> Thy_Syntax.resolve_files (fn cmd => fn (path, pos) =>
+        let
+          fun make_file src_path (Exn.Res (_, NONE)) =
+                Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
+            | make_file src_path (Exn.Res (file, SOME text)) =
+                let val _ = Position.report pos (Markup.path file)
+                in Exn.Res {src_path = src_path, text = text, pos = Position.file file} end
+            | make_file _ (Exn.Exn e) = Exn.Exn e;
+
+          val src_paths = Keyword.command_files cmd path;
+        in
+          if null blobs then
+            map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
+          else if length src_paths = length blobs then
+            map2 make_file src_paths blobs
+          else error ("Misalignment of inlined files" ^ Position.here pos)
+        end)
+      |> Thy_Syntax.span_content
+  | _ => toks);
+
+fun read init master_dir blobs span =
   let
     val outer_syntax = #2 (Outer_Syntax.get_syntax ());
     val command_reports = Outer_Syntax.command_reports outer_syntax;
@@ -99,7 +132,7 @@ fun read init span =
   in
     if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
-      (case Outer_Syntax.read_spans outer_syntax span of
+      (case Outer_Syntax.read_spans outer_syntax (resolve_files master_dir blobs span) of
         [tr] =>
           if Keyword.is_control (Toplevel.name_of tr) then
             Toplevel.malformed pos "Illegal control command"
@@ -180,14 +213,14 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
 
 in
 
-fun eval init span eval0 =
+fun eval init master_dir blobs span eval0 =
   let
     val exec_id = Document_ID.make ();
     fun process () =
       let
         val tr =
           Position.setmp_thread_data (Position.id_only (Document_ID.print exec_id))
-            (fn () => read init span |> Toplevel.exec_id exec_id) ();
+            (fn () => read init master_dir blobs span |> Toplevel.exec_id exec_id) ();
       in eval_state span tr (eval_result eval0) end;
   in Eval {exec_id = exec_id, eval_process = memo exec_id process} end;
 

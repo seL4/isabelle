@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_load.ML
     Author:     Makarius
 
-Loading files that contribute to a theory.
+Management of theory sources and auxiliary files.
 *)
 
 signature THY_LOAD =
@@ -9,11 +9,10 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
-  val read_files: Path.T -> string -> Path.T * Position.T -> Token.file list
-  val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
+  val parse_files: string -> (theory -> Token.file list) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -56,33 +55,11 @@ val imports_of = #imports o Files.get;
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 
-(* auxiliary files *)
-
-fun check_file dir file = File.check_file (File.full_path dir file);
-
-fun read_files dir cmd (path, pos) =
-  let
-    fun make_file file =
-      let
-        val _ = Position.report pos (Markup.path (Path.implode file));
-        val full_path = check_file dir file;
-      in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
-    val paths =
-      (case Keyword.command_files cmd of
-        [] => [path]
-      | exts => map (fn ext => Path.ext ext path) exts);
-  in map make_file paths end;
-
-fun parse_files cmd =
-  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
-    (case Token.get_files tok of
-      SOME files => files
-    | NONE => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)));
-
-
 (* theory files *)
 
 val thy_path = Path.ext "thy";
+
+fun check_file dir file = File.check_file (File.full_path dir file);
 
 fun check_thy dir thy_name =
   let
@@ -101,6 +78,17 @@ fun check_thy dir thy_name =
 
 
 (* load files *)
+
+fun parse_files cmd =
+  Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
+    (case Token.get_files tok of
+      [] =>
+        let
+          val master_dir = master_directory thy;
+          val pos = Token.position_of tok;
+          val src_paths = Keyword.command_files cmd (Path.explode name);
+        in map (Command.read_file master_dir pos) src_paths end
+    | files => map Exn.release files));
 
 fun provide (src_path, id) =
   map_files (fn (master_dir, imports, provided) =>
@@ -135,18 +123,18 @@ fun loaded_files thy =
   in map (File.full_path master_dir o #1) provided end;
 
 
-(* load_thy *)
+(* load theory *)
 
 fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
   |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords;
 
-fun excursion last_timing init elements =
+fun excursion master_dir last_timing init elements =
   let
     fun prepare_span span =
       Thy_Syntax.span_content span
-      |> Command.read init
+      |> Command.read init master_dir []
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
@@ -171,7 +159,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val lexs = Keyword.get_lexicons ();
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans = map (Thy_Syntax.resolve_files (read_files master_dir)) (Thy_Syntax.parse_spans toks);
+    val spans = Thy_Syntax.parse_spans toks;
     val elements = Thy_Syntax.parse_elements spans;
 
     fun init () =
@@ -180,7 +168,8 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
           (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => excursion last_timing init elements);
+    val (results, thy) =
+      cond_timeit time "" (fn () => excursion master_dir last_timing init elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     fun present () =

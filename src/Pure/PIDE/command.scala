@@ -144,11 +144,13 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
+  type Blob = Exn.Result[(Document.Node.Name, Option[SHA1.Digest])]
+
   def apply(
     id: Document_ID.Command,
     node_name: Document.Node.Name,
+    blobs: List[Blob],
     span: List[Token],
-    thy_load: Option[List[String]],
     results: Results = Results.empty,
     markup: Markup_Tree = Markup_Tree.empty): Command =
   {
@@ -167,14 +169,14 @@ object Command
       i += n
     }
 
-    new Command(id, node_name, span1.toList, source, thy_load, results, markup)
+    new Command(id, node_name, blobs, span1.toList, source, results, markup)
   }
 
-  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil, None)
+  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
 
   def unparsed(id: Document_ID.Command, source: String, results: Results, markup: Markup_Tree)
       : Command =
-    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), None,
+    Command(id, Document.Node.Name.empty, Nil, List(Token(Token.Kind.UNPARSED, source)),
       results, markup)
 
   def unparsed(source: String): Command =
@@ -213,9 +215,9 @@ object Command
 final class Command private(
     val id: Document_ID.Command,
     val node_name: Document.Node.Name,
+    val blobs: List[Command.Blob],
     val span: List[Token],
     val source: String,
-    val thy_load: Option[List[String]],
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
@@ -233,6 +235,15 @@ final class Command private(
 
   override def toString =
     id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
+
+
+  /* blobs */
+
+  def blobs_names: List[Document.Node.Name] =
+    for (Exn.Res((name, _)) <- blobs) yield name
+
+  def blobs_digests: List[SHA1.Digest] =
+    for (Exn.Res((_, Some(digest))) <- blobs) yield digest
 
 
   /* source */
