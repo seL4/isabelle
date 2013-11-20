@@ -510,7 +510,7 @@ fun mk_nthN 1 t 1 = t
 
 fun mk_nth_conv n m =
   let
-    fun thm b = if b then @{thm fst_snd} else @{thm snd_snd}
+    fun thm b = if b then @{thm fstI} else @{thm sndI}
     fun mk_nth_conv _ 1 1 = refl
       | mk_nth_conv _ _ 1 = @{thm fst_conv}
       | mk_nth_conv _ 2 2 = @{thm snd_conv}

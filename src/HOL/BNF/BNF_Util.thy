@@ -26,12 +26,6 @@ definition wppull where
  (\<forall> b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<longrightarrow>
            (\<exists> a \<in> A. e1 (p1 a) = e1 b1 \<and> e2 (p2 a) = e2 b2))"
 
-lemma fst_snd: "\<lbrakk>snd x = (y, z)\<rbrakk> \<Longrightarrow> fst (snd x) = y"
-by simp
-
-lemma snd_snd: "\<lbrakk>snd x = (y, z)\<rbrakk> \<Longrightarrow> snd (snd x) = z"
-by simp
-
 lemma fstI: "x = (y, z) \<Longrightarrow> fst x = y"
 by simp
 
