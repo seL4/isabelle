@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Order_Union.thy
+(*  Title:      HOL/Cardinals/Order_Union.thy
     Author:     Andrei Popescu, TU Muenchen
 
 The ordinal-like sum of two orders with disjoint fields
@@ -7,7 +7,7 @@ The ordinal-like sum of two orders with disjoint fields
 header {* Order Union *}
 
 theory Order_Union
-imports "~~/src/HOL/Cardinals/Wellfounded_More_FP" 
+imports Wellfounded_More_FP
 begin
 
 definition Osum :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel"  (infix "Osum" 60) where
@@ -368,4 +368,3 @@ proof-
 qed
 
 end
-
