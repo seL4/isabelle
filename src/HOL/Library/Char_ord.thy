@@ -94,6 +94,30 @@ qed (auto simp add: inf_char_def sup_char_def min_max.sup_inf_distrib1)
 
 end
 
+instantiation String.literal :: linorder
+begin
+
+lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp op <" .
+lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp_eq op <" .
+
+instance
+proof -
+  interpret linorder "ord.lexordp_eq op <" "ord.lexordp op < :: string \<Rightarrow> string \<Rightarrow> bool"
+    by(rule linorder.lexordp_linorder[where less_eq="op \<le>"])(unfold_locales)
+  show "PROP ?thesis"
+    by(intro_classes)(transfer, simp add: less_le_not_le linear)+
+qed
+
+end
+
+lemma less_literal_code [code]: 
+  "op < = (\<lambda>xs ys. ord.lexordp op < (explode xs) (explode ys))"
+by(simp add: less_literal.rep_eq fun_eq_iff)
+
+lemma less_eq_literal_code [code]:
+  "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (explode xs) (explode ys))"
+by(simp add: less_eq_literal.rep_eq fun_eq_iff)
+
 text {* Legacy aliasses *}
 
 lemmas nibble_less_eq_def = less_eq_nibble_def
