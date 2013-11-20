@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/coinduction.ML
+(*  Title:      HOL/Tools/coinduction.ML
     Author:     Johannes Hölzl, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
@@ -15,8 +15,8 @@ end;
 structure Coinduction : COINDUCTION =
 struct
 
-open BNF_Util
-open BNF_Tactics
+open Ctr_Sugar_Util
+open Ctr_Sugar_General_Tactics
 
 fun filter_in_out _ [] = ([], [])
   | filter_in_out P (x :: xs) = (let

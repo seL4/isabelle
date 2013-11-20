@@ -132,7 +132,6 @@ sig
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
-  val cterm_instantiate_pos: cterm option list -> thm -> thm
   val fold_thms: Proof.context -> thm list -> thm -> thm
 
   val parse_binding_colon: binding parser
@@ -140,14 +139,6 @@ sig
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
-
-  val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
-  val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
-    tactic
-  val CONJ_WRAP_GEN: tactic -> ('a -> tactic) -> 'a list -> tactic
-  val CONJ_WRAP_GEN': (int -> tactic) -> ('a -> int -> tactic) -> 'a list -> int -> tactic
-  val CONJ_WRAP: ('a -> tactic) -> 'a list -> tactic
-  val CONJ_WRAP': ('a -> int -> tactic) -> 'a list -> int -> tactic
 end;
 
 structure BNF_Util : BNF_UTIL =
@@ -275,25 +266,6 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   in
     ((name, Typedef.transform_info phi info), lthy)
   end;
-
-(*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
-fun WRAP gen_before gen_after xs core_tac =
-  fold_rev (fn x => fn tac => gen_before x THEN tac THEN gen_after x) xs core_tac;
-
-fun WRAP' gen_before gen_after xs core_tac =
-  fold_rev (fn x => fn tac => gen_before x THEN' tac THEN' gen_after x) xs core_tac;
-
-fun CONJ_WRAP_GEN conj_tac gen_tac xs =
-  let val (butlast, last) = split_last xs;
-  in WRAP (fn thm => conj_tac THEN gen_tac thm) (K all_tac) butlast (gen_tac last) end;
-
-fun CONJ_WRAP_GEN' conj_tac gen_tac xs =
-  let val (butlast, last) = split_last xs;
-  in WRAP' (fn thm => conj_tac THEN' gen_tac thm) (K (K all_tac)) butlast (gen_tac last) end;
-
-(*not eta-converted because of monotype restriction*)
-fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (rtac conjI 1) gen_tac;
-fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 
 
 
@@ -599,17 +571,6 @@ val is_concl_refl = is_refl_prop o Logic.strip_imp_concl o Thm.prop_of;
 
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
-
-fun cterm_instantiate_pos cts thm =
-  let
-    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
-    val vars = Term.add_vars (prop_of thm) [];
-    val vars' = rev (drop (length vars - length cts) vars);
-    val ps = map_filter (fn (_, NONE) => NONE
-      | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);
-  in
-    Drule.cterm_instantiate ps thm
-  end;
 
 fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
 

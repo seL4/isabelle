@@ -56,6 +56,7 @@ sig
 
   val fo_match: Proof.context -> term -> term -> Type.tyenv * Envir.tenv
 
+  val cterm_instantiate_pos: cterm option list -> thm -> thm
   val unfold_thms: Proof.context -> thm list -> thm -> thm
 
   val certifyT: Proof.context -> typ -> ctyp
@@ -66,6 +67,14 @@ sig
   val parse_binding: binding parser
 
   val ss_only: thm list -> Proof.context -> Proof.context
+
+  val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
+  val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
+    tactic
+  val CONJ_WRAP_GEN: tactic -> ('a -> tactic) -> 'a list -> tactic
+  val CONJ_WRAP_GEN': (int -> tactic) -> ('a -> int -> tactic) -> 'a list -> int -> tactic
+  val CONJ_WRAP: ('a -> tactic) -> 'a list -> tactic
+  val CONJ_WRAP': ('a -> int -> tactic) -> 'a list -> int -> tactic
 end;
 
 structure Ctr_Sugar_Util : CTR_SUGAR_UTIL =
@@ -186,6 +195,17 @@ fun fo_match ctxt t pat =
     Pattern.first_order_match thy (pat, t) (Vartab.empty, Vartab.empty)
   end;
 
+fun cterm_instantiate_pos cts thm =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+    val vars = Term.add_vars (prop_of thm) [];
+    val vars' = rev (drop (length vars - length cts) vars);
+    val ps = map_filter (fn (_, NONE) => NONE
+      | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);
+  in
+    Drule.cterm_instantiate ps thm
+  end;
+
 fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
@@ -201,5 +221,24 @@ val equal_binding = @{binding "="};
 val parse_binding = Parse.binding || @{keyword "="} >> K equal_binding;
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
+
+(*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
+fun WRAP gen_before gen_after xs core_tac =
+  fold_rev (fn x => fn tac => gen_before x THEN tac THEN gen_after x) xs core_tac;
+
+fun WRAP' gen_before gen_after xs core_tac =
+  fold_rev (fn x => fn tac => gen_before x THEN' tac THEN' gen_after x) xs core_tac;
+
+fun CONJ_WRAP_GEN conj_tac gen_tac xs =
+  let val (butlast, last) = split_last xs;
+  in WRAP (fn thm => conj_tac THEN gen_tac thm) (K all_tac) butlast (gen_tac last) end;
+
+fun CONJ_WRAP_GEN' conj_tac gen_tac xs =
+  let val (butlast, last) = split_last xs;
+  in WRAP' (fn thm => conj_tac THEN' gen_tac thm) (K (K all_tac)) butlast (gen_tac last) end;
+
+(*not eta-converted because of monotype restriction*)
+fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (rtac conjI 1) gen_tac;
+fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 
 end;
