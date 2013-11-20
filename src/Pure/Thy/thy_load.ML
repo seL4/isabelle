@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_load.ML
     Author:     Makarius
 
-Loading files that contribute to a theory.
+Management of theory sources and auxiliary files.
 *)
 
 signature THY_LOAD =
@@ -9,10 +9,10 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
   val thy_path: Path.T -> Path.T
-  val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
     imports: (string * Position.T) list, keywords: Thy_Header.keywords}
+  val parse_files: string -> (theory -> Token.file list) parser
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -55,9 +55,29 @@ val imports_of = #imports o Files.get;
 fun put_deps master_dir imports = map_files (fn _ => (master_dir, imports, []));
 
 
-(* auxiliary files *)
+(* theory files *)
+
+val thy_path = Path.ext "thy";
 
 fun check_file dir file = File.check_file (File.full_path dir file);
+
+fun check_thy dir thy_name =
+  let
+    val path = thy_path (Path.basic thy_name);
+    val master_file = check_file dir path;
+    val text = File.read master_file;
+
+    val {name = (name, pos), imports, keywords} =
+      Thy_Header.read (Path.position master_file) text;
+    val _ = thy_name <> name andalso
+      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
+  in
+   {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
+    imports = imports, keywords = keywords}
+  end;
+
+
+(* inlined files *)
 
 fun read_files dir cmd (path, pos) =
   let
@@ -74,25 +94,8 @@ fun parse_files cmd =
       [] => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)
     | files => map Exn.release files));
 
-
-(* theory files *)
-
-val thy_path = Path.ext "thy";
-
-fun check_thy dir thy_name =
-  let
-    val path = thy_path (Path.basic thy_name);
-    val master_file = check_file dir path;
-    val text = File.read master_file;
-
-    val {name = (name, pos), imports, keywords} =
-      Thy_Header.read (Path.position master_file) text;
-    val _ = thy_name <> name andalso
-      error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
-  in
-   {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
-    imports = imports, keywords = keywords}
-  end;
+fun resolve_files master_dir =
+  Thy_Syntax.resolve_files (map Exn.Res oo read_files master_dir);
 
 
 (* load files *)
@@ -130,7 +133,7 @@ fun loaded_files thy =
   in map (File.full_path master_dir o #1) provided end;
 
 
-(* load_thy *)
+(* load theory *)
 
 fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
@@ -166,9 +169,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val lexs = Keyword.get_lexicons ();
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans =
-      map (Thy_Syntax.resolve_files (map Exn.Res oo read_files master_dir))
-        (Thy_Syntax.parse_spans toks);
+    val spans = map (resolve_files master_dir) (Thy_Syntax.parse_spans toks);
     val elements = Thy_Syntax.parse_elements spans;
 
     fun init () =
