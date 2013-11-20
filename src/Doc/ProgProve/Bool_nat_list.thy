@@ -99,10 +99,10 @@ interchangeably for propositions that have been proved.
   For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
   that @{term x} is of some arbitrary type where @{text 0} and @{text"+"}
-  exist. As a consequence, you will be unable to prove the
-  goal. To alert you to such pitfalls, Isabelle flags numerals without a
-  fixed type in its output: @{prop"x+0 = x"}.  In this particular example,
-  you need to include
+  exist. As a consequence, you will be unable to prove the goal.
+%  To alert you to such pitfalls, Isabelle flags numerals without a
+%  fixed type in its output: @ {prop"x+0 = x"}.
+  In this particular example, you need to include
   an explicit type constraint, for example @{text"x+0 = (x::nat)"}. If there
   is enough contextual information this may not be necessary: @{prop"Suc x =
   x"} automatically implies @{text"x::nat"} because @{term Suc} is not
