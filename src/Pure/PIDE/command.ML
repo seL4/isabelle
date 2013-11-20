@@ -57,15 +57,17 @@ fun memo_exec execution_id (Memo v) =
       (case expr of
         Expr (exec_id, body) =>
           uninterruptible (fn restore_attributes => fn () =>
-            if Execution.running execution_id exec_id [Future.the_worker_group ()] then
-              let
-                val res =
-                  (body
-                    |> restore_attributes
-                    |> Future.worker_nest "Command.memo_exec"
-                    |> Exn.interruptible_capture) ();
-              in SOME ((), Result res) end
-            else SOME ((), expr)) ()
+            let val group = Future.worker_subgroup () in
+              if Execution.running execution_id exec_id [group] then
+                let
+                  val res =
+                    (body
+                      |> restore_attributes
+                      |> Future.worker_context "Command.memo_exec" group
+                      |> Exn.interruptible_capture) ();
+                in SOME ((), Result res) end
+              else SOME ((), expr)
+            end) ()
       | Result _ => SOME ((), expr)))
   |> (fn NONE => error "Conflicting command execution" | _ => ());
 
