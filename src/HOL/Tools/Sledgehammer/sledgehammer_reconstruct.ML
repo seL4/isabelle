@@ -74,7 +74,7 @@ fun is_same_inference (role, t) (_, role', t', _, _) =
 fun add_line (name as (_, ss), role, t, rule, []) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if role = Conjecture orelse role = Hypothesis then
+    if role = Conjecture orelse role = Negated_Conjecture orelse role = Hypothesis then
       (name, role, t, rule, []) :: lines
     else if role = Axiom then
       (* Facts are not proof lines. *)
@@ -226,10 +226,12 @@ fun isar_proof_text ctxt isar_proofs
           |> rpair (0, [])
           |-> fold_rev add_desired_line
           |> snd
-        val conjs = atp_proof |> map_filter (try (fn (name, Conjecture, _, _, []) => name))
+        val conjs =
+          atp_proof |> map_filter (fn (name, role, _, _, _) =>
+            if role = Conjecture orelse role = Negated_Conjecture then SOME name else NONE)
         val assms =
           atp_proof
-          |> map_filter (try (fn ((num, _), Hypothesis, t, _, []) => (raw_label_of_num num, t)))
+          |> map_filter (try (fn ((num, _), Hypothesis, t, _, _) => (raw_label_of_num num, t)))
         val bot = atp_proof |> List.last |> #1
         val refute_graph =
           atp_proof
