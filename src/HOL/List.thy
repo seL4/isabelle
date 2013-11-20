@@ -5390,6 +5390,176 @@ lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrighta
   apply (rule allI, case_tac x, simp, simp) 
   by blast
 
+text {*
+  Predicate version of lexicographic order integrated with Isabelle's order type classes.
+  Author: Andreas Lochbihler
+*}
+
+thm not_less
+context ord begin
+
+inductive lexordp :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+where
+  Nil: "lexordp [] (y # ys)"
+| Cons: "x < y \<Longrightarrow> lexordp (x # xs) (y # ys)"
+| Cons_eq:
+  "\<lbrakk> \<not> x < y; \<not> y < x; lexordp xs ys \<rbrakk> \<Longrightarrow> lexordp (x # xs) (y # ys)"
+
+lemma lexordp_simps [simp]:
+  "lexordp [] ys = (ys \<noteq> [])"
+  "lexordp xs [] = False"
+  "lexordp (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp xs ys"
+by(subst lexordp.simps, fastforce simp add: neq_Nil_conv)+
+
+inductive lexordp_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  Nil: "lexordp_eq [] ys"
+| Cons: "x < y \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
+| Cons_eq: "\<lbrakk> \<not> x < y; \<not> y < x; lexordp_eq xs ys \<rbrakk> \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
+
+lemma lexordp_eq_simps [simp]:
+  "lexordp_eq [] ys = True"
+  "lexordp_eq xs [] \<longleftrightarrow> xs = []"
+  "lexordp_eq (x # xs) [] = False"
+  "lexordp_eq (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp_eq xs ys"
+by(subst lexordp_eq.simps, fastforce)+
+
+lemma lexordp_append_rightI: "ys \<noteq> Nil \<Longrightarrow> lexordp xs (xs @ ys)"
+by(induct xs)(auto simp add: neq_Nil_conv)
+
+lemma lexordp_append_left_rightI: "x < y \<Longrightarrow> lexordp (us @ x # xs) (us @ y # ys)"
+by(induct us) auto
+
+lemma lexordp_eq_refl: "lexordp_eq xs xs"
+by(induct xs) simp_all
+
+lemma lexordp_append_leftI: "lexordp us vs \<Longrightarrow> lexordp (xs @ us) (xs @ vs)"
+by(induct xs) auto
+
+lemma lexordp_append_leftD: "\<lbrakk> lexordp (xs @ us) (xs @ vs); \<forall>a. \<not> a < a \<rbrakk> \<Longrightarrow> lexordp us vs"
+by(induct xs) auto
+
+lemma lexordp_irreflexive: 
+  assumes irrefl: "\<forall>x. \<not> x < x"
+  shows "\<not> lexordp xs xs"
+proof
+  assume "lexordp xs xs"
+  thus False by(induct xs ys\<equiv>xs)(simp_all add: irrefl)
+qed
+
+lemma lexordp_into_lexordp_eq:
+  assumes "lexordp xs ys"
+  shows "lexordp_eq xs ys"
+using assms by induct simp_all
+
+end
+
+declare ord.lexordp_simps [simp, code]
+declare ord.lexordp_eq_simps [code, simp]
+
+lemma lexord_code [code, code_unfold]: "lexordp = ord.lexordp less"
+unfolding lexordp_def ord.lexordp_def ..
+
+context order begin
+
+lemma lexordp_antisym:
+  assumes "lexordp xs ys" "lexordp ys xs"
+  shows False
+using assms by induct auto
+
+lemma lexordp_irreflexive': "\<not> lexordp xs xs"
+by(rule lexordp_irreflexive) simp
+
+end
+
+context linorder begin
+
+lemma lexordp_cases [consumes 1, case_names Nil Cons Cons_eq, cases pred: lexordp]:
+  assumes "lexordp xs ys"
+  obtains (Nil) y ys' where "xs = []" "ys = y # ys'"
+  | (Cons) x xs' y ys' where "xs = x # xs'" "ys = y # ys'" "x < y"
+  | (Cons_eq) x xs' ys' where "xs = x # xs'" "ys = x # ys'" "lexordp xs' ys'"
+using assms by cases (fastforce simp add: not_less_iff_gr_or_eq)+
+
+lemma lexordp_induct [consumes 1, case_names Nil Cons Cons_eq, induct pred: lexordp]:
+  assumes major: "lexordp xs ys"
+  and Nil: "\<And>y ys. P [] (y # ys)"
+  and Cons: "\<And>x xs y ys. x < y \<Longrightarrow> P (x # xs) (y # ys)"
+  and Cons_eq: "\<And>x xs ys. \<lbrakk> lexordp xs ys; P xs ys \<rbrakk> \<Longrightarrow> P (x # xs) (x # ys)"
+  shows "P xs ys"
+using major by induct (simp_all add: Nil Cons not_less_iff_gr_or_eq Cons_eq)
+
+lemma lexordp_iff:
+  "lexordp xs ys \<longleftrightarrow> (\<exists>x vs. ys = xs @ x # vs) \<or> (\<exists>us a b vs ws. a < b \<and> xs = us @ a # vs \<and> ys = us @ b # ws)"
+  (is "?lhs = ?rhs")
+proof
+  assume ?lhs thus ?rhs
+  proof induct
+    case Cons_eq thus ?case by simp (metis append.simps(2))
+  qed(fastforce intro: disjI2 del: disjCI intro: exI[where x="[]"])+
+next
+  assume ?rhs thus ?lhs
+    by(auto intro: lexordp_append_leftI[where us="[]", simplified] lexordp_append_leftI)
+qed
+
+lemma lexordp_conv_lexord:
+  "lexordp xs ys \<longleftrightarrow> (xs, ys) \<in> lexord {(x, y). x < y}"
+by(simp add: lexordp_iff lexord_def)
+
+lemma lexordp_eq_antisym: 
+  assumes "lexordp_eq xs ys" "lexordp_eq ys xs" 
+  shows "xs = ys"
+using assms by induct simp_all
+
+lemma lexordp_eq_trans:
+  assumes "lexordp_eq xs ys" and "lexordp_eq ys zs"
+  shows "lexordp_eq xs zs"
+using assms
+apply(induct arbitrary: zs)
+apply(case_tac [2-3] zs)
+apply auto
+done
+
+lemma lexordp_trans:
+  assumes "lexordp xs ys" "lexordp ys zs"
+  shows "lexordp xs zs"
+using assms
+apply(induct arbitrary: zs)
+apply(case_tac [2-3] zs)
+apply auto
+done
+
+lemma lexordp_linear: "lexordp xs ys \<or> xs = ys \<or> lexordp ys xs"
+proof(induct xs arbitrary: ys)
+  case Nil thus ?case by(cases ys) simp_all
+next
+  case Cons thus ?case by(cases ys) auto
+qed
+
+lemma lexordp_conv_lexordp_eq: "lexordp xs ys \<longleftrightarrow> lexordp_eq xs ys \<and> \<not> lexordp_eq ys xs"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  moreover hence "\<not> lexordp_eq ys xs" by induct simp_all
+  ultimately show ?rhs by(simp add: lexordp_into_lexordp_eq)
+next
+  assume ?rhs
+  hence "lexordp_eq xs ys" "\<not> lexordp_eq ys xs" by simp_all
+  thus ?lhs by induct simp_all
+qed
+
+lemma lexordp_eq_conv_lexord: "lexordp_eq xs ys \<longleftrightarrow> xs = ys \<or> lexordp xs ys"
+by(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl dest: lexordp_eq_antisym)
+
+lemma lexordp_eq_linear: "lexordp_eq xs ys \<or> lexordp_eq ys xs"
+apply(induct xs arbitrary: ys)
+apply(case_tac [!] ys)
+apply auto
+done
+
+lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
+by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
+
+end
 
 subsubsection {* Lexicographic combination of measure functions *}
 
