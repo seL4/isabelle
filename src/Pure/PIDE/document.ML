@@ -90,9 +90,14 @@ fun get_header (Node {header = (master, header, errors), ...}) =
 
 fun read_header node span =
   let
-    val (dir, {name = (name, _), imports, keywords}) = get_header node;
+    val {name = (name, _), imports, keywords} = #2 (get_header node);
     val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
-  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords) end;
+  in Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords end;
+
+fun master_directory node =
+  (case try Url.explode (#1 (get_header node)) of
+    SOME (Url.File path) => path
+  | _ => Path.current);
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective args =
@@ -329,7 +334,7 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
     val blobs' =
       (commands', Symtab.empty) |->
         Inttab.fold (fn (_, (_, blobs, _)) => blobs |>
-          fold (fn Exn.Res (_, digest) => Symtab.update (digest, the_blob state digest) | _ => I));
+          fold (fn Exn.Res (_, SOME b) => Symtab.update (b, the_blob state b) | _ => I));
 
   in (versions', blobs', commands', execution) end);
 
@@ -421,12 +426,8 @@ fun loaded_theory name =
 
 fun init_theory deps node span =
   let
-    (* FIXME provide files via Isabelle/Scala, not master_dir *)
-    val (dir, header) = read_header node span;
-    val master_dir =
-      (case try Url.explode dir of
-        SOME (Url.File path) => path
-      | _ => Path.current);
+    val master_dir = master_directory node;
+    val header = read_header node span;
     val imports = #imports header;
     val parents =
       imports |> map (fn (import, _) =>
@@ -500,11 +501,12 @@ fun new_exec state node proper_init command_id' (assign_update, command_exec, in
       val command_visible = visible_command node command_id';
       val command_overlays = overlays node command_id';
       val (command_name, blobs0, span0) = the_command state command_id';
-      val blobs = map (Exn.map_result (apsnd (the_blob state))) blobs0;
+      val blobs = (map o Exn.map_result o apsnd o Option.map) (the_blob state) blobs0;
       val span = Lazy.force span0;
 
       val eval' =
-        Command.eval (fn () => the_default illegal_init init span) blobs span eval;
+        Command.eval (fn () => the_default illegal_init init span)
+          (master_directory node) blobs span eval;
       val prints' = perhaps (Command.print command_visible command_overlays command_name eval') [];
       val exec' = (eval', prints');
 

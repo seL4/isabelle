@@ -34,8 +34,8 @@ val _ =
           YXML.parse_body blobs_yxml |>
             let open XML.Decode in
               list (variant
-               [fn ([a, b], []) => Exn.Res (a, b),
-                fn ([a], []) => Exn.Exn (ERROR a)])
+               [fn ([], a) => Exn.Res (pair string (option string) a),
+                fn ([], a) => Exn.Exn (ERROR (string a))])
             end;
       in
         Document.change_state (Document.define_command (Document_ID.parse id) name blobs text)

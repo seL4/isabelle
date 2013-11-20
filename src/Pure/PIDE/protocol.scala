@@ -322,9 +322,9 @@ trait Protocol extends Isabelle_Process
     { import XML.Encode._
       val encode_blob: T[Command.Blob] =
         variant(List(
-          { case Exn.Res((a, Some(b))) => (List(a.node, b.toString), Nil) },
-          { case Exn.Res((a, None)) => (List("Missing file: " + quote(a.toString)), Nil)
-            case Exn.Exn(e) => (List(Exn.message(e)), Nil) }))
+          { case Exn.Res((a, b)) =>
+              (Nil, pair(string, option(string))((a.node, b.map(_.toString)))) },
+          { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }
     protocol_command("Document.define_command",

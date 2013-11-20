@@ -77,28 +77,18 @@ fun check_thy dir thy_name =
   end;
 
 
-(* inlined files *)
-
-fun read_files dir cmd (path, pos) =
-  let
-    fun make_file src_path =
-      let
-        val full_path = check_file dir src_path;
-        val _ = Position.report pos (Markup.path (Path.implode full_path));
-      in {src_path = src_path, text = File.read full_path, pos = Path.position full_path} end;
-  in map make_file (Keyword.command_files cmd path) end;
+(* load files *)
 
 fun parse_files cmd =
   Scan.ahead Parse.not_eof -- Parse.path >> (fn (tok, name) => fn thy =>
     (case Token.get_files tok of
-      [] => read_files (master_directory thy) cmd (Path.explode name, Token.position_of tok)
+      [] =>
+        let
+          val master_dir = master_directory thy;
+          val pos = Token.position_of tok;
+          val src_paths = Keyword.command_files cmd (Path.explode name);
+        in map (Command.read_file master_dir pos) src_paths end
     | files => map Exn.release files));
-
-fun resolve_files master_dir =
-  Thy_Syntax.resolve_files (map Exn.Res oo read_files master_dir);
-
-
-(* load files *)
 
 fun provide (src_path, id) =
   map_files (fn (master_dir, imports, provided) =>
@@ -140,11 +130,11 @@ fun begin_theory master_dir {name, imports, keywords} parents =
   |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords;
 
-fun excursion last_timing init elements =
+fun excursion master_dir last_timing init elements =
   let
     fun prepare_span span =
       Thy_Syntax.span_content span
-      |> Command.read init []
+      |> Command.read init master_dir []
       |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
     fun element_result span_elem (st, _) =
@@ -169,7 +159,7 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
     val lexs = Keyword.get_lexicons ();
     val toks = Thy_Syntax.parse_tokens lexs text_pos text;
-    val spans = map (resolve_files master_dir) (Thy_Syntax.parse_spans toks);
+    val spans = Thy_Syntax.parse_spans toks;
     val elements = Thy_Syntax.parse_elements spans;
 
     fun init () =
@@ -178,7 +168,8 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
           (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => excursion last_timing init elements);
+    val (results, thy) =
+      cond_timeit time "" (fn () => excursion master_dir last_timing init elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     fun present () =
