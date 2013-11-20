@@ -73,9 +73,8 @@ object PIDE
   def document_views(buffer: Buffer): List[Document_View] =
     for {
       text_area <- JEdit_Lib.jedit_text_areas(buffer).toList
-      doc_view = document_view(text_area)
-      if doc_view.isDefined
-    } yield doc_view.get
+      doc_view <- document_view(text_area)
+    } yield doc_view
 
   def document_models(): List[Document_Model] =
     for {
