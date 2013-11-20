@@ -63,11 +63,13 @@ class JEdit_Editor extends Editor[View]
     Swing_Thread.require()
 
     val text_area = view.getTextArea
+    val buffer = view.getBuffer
+
     PIDE.document_view(text_area) match {
       case Some(doc_view) =>
         val node = snapshot.version.nodes(doc_view.model.node_name)
         val caret = snapshot.revert(text_area.getCaretPosition)
-        if (caret < text_area.getBuffer.getLength) {
+        if (caret < buffer.getLength) {
           val caret_commands = node.command_range(caret)
           if (caret_commands.hasNext) {
             val (cmd0, _) = caret_commands.next
@@ -76,7 +78,15 @@ class JEdit_Editor extends Editor[View]
           else None
         }
         else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
-      case None => None
+      case None =>
+        PIDE.document_model(buffer) match {
+          case Some(model) if !model.node_name.is_theory =>
+            snapshot.version.nodes.thy_load_commands(model.node_name) match {
+              case cmd :: _ => Some(cmd)
+              case Nil => None
+            }
+          case _ => None
+        }
     }
   }
 

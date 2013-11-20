@@ -253,6 +253,14 @@ object Document
     def entries: Iterator[(Node.Name, Node)] =
       graph.entries.map({ case (name, (node, _)) => (name, node) })
 
+    def thy_load_commands(file_name: Node.Name): List[Command] =
+      (for {
+        (_, node) <- entries
+        cmd <- node.thy_load_commands.iterator
+        Exn.Res((name, _)) <- cmd.blobs.iterator
+        if name == file_name
+      } yield cmd).toList
+
     def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
   }
