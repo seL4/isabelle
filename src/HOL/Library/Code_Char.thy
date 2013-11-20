@@ -97,6 +97,18 @@ code_printing
     and (Haskell) infix 4 "<"
     and (Scala) infixl 4 "<"
     and (Eval) infixl 6 "<"
+|  constant "Orderings.less_eq :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : string) <= _)"
+    and (OCaml) "!((_ : string) <= _)"
+    and (Haskell) infix 4 "<="
+    and (Scala) infixl 4 "<="
+    and (Eval) infixl 6 "<="
+| constant "Orderings.less :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
+    (SML) "!((_ : string) < _)"
+    and (OCaml) "!((_ : string) < _)"
+    and (Haskell) infix 4 "<"
+    and (Scala) infixl 4 "<"
+    and (Eval) infixl 6 "<"
 
 end
 
