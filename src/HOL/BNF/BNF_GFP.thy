@@ -8,7 +8,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base Equiv_Relations_More "~~/src/HOL/Library/Sublist"
+imports BNF_FP_Base Equiv_Relations_More
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and

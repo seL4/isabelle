@@ -5,7 +5,7 @@
 header {* Prefix order on lists as order class instance *}
 
 theory Prefix_Order
-imports Sublist
+imports List_Prefix
 begin
 
 instantiation list :: (type) order
