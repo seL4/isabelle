@@ -80,7 +80,7 @@ class JEdit_Editor extends Editor[View]
         else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
       case None =>
         PIDE.document_model(buffer) match {
-          case Some(model) if !model.node_name.is_theory =>
+          case Some(model) if !model.is_theory =>
             snapshot.version.nodes.thy_load_commands(model.node_name) match {
               case cmd :: _ => Some(cmd)
               case Nil => None

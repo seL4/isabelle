@@ -88,7 +88,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   def node_required_=(b: Boolean)
   {
     Swing_Thread.require()
-    if (_node_required != b) {
+    if (_node_required != b && is_theory) {
       _node_required = b
       PIDE.options_changed()
       PIDE.editor.flush()
