@@ -9,7 +9,7 @@ Coinduction method that avoids some boilerplate compared to coinduct.
 header {* Coinduction Method *}
 
 theory Coinduction
-imports Inductive
+imports Ctr_Sugar
 begin
 
 ML_file "Tools/coinduction.ML"

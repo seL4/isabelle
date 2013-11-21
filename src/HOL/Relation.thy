@@ -5,7 +5,7 @@
 header {* Relations – as sets of pairs, and binary predicates *}
 
 theory Relation
-imports Datatype Finite_Set
+imports Finite_Set
 begin
 
 text {* A preliminary: classical rules for reasoning on predicates *}
