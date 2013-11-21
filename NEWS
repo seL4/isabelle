@@ -9,6 +9,9 @@ New in Isabelle2013-2 (December 2013)
 * More robust editing of running commands with internal forks,
 e.g. non-terminating 'by' steps.
 
+* More relaxed Sledgehammer panel: avoid repeated application of query
+after edits surrounding the command location.
+
 
 
 New in Isabelle2013-1 (November 2013)
