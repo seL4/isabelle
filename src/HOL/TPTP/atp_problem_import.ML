@@ -309,11 +309,11 @@ fun translate_tptp_file thy format_str file_name =
     val (format, type_enc, lam_trans) =
       (case format_str of
         "FOF" => (FOF, "mono_guards??", liftingN)
-      | "TFF0" => (TFF Monomorphic, "mono_native", liftingN)
-      | "THF0" => (THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+      | "TF0" => (TFF Monomorphic, "mono_native", liftingN)
+      | "TH0" => (THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
       | "DFG" => (DFG Monomorphic, "mono_native", liftingN)
       | _ => error ("Unknown format " ^ quote format_str ^
-        " (expected \"FOF\", \"TFF0\", \"THF0\", or \"DFG\")"))
+        " (expected \"FOF\", \"TF0\", \"TH0\", or \"DFG\")"))
     val uncurried_aliases = false
     val readable_names = true
     val presimp = true

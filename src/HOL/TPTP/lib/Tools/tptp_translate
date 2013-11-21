@@ -11,7 +11,7 @@ function usage() {
   echo
   echo "Usage: isabelle $PRG FORMAT FILE"
   echo
-  echo "  Translates TPTP input file to the specified format (\"FOF\", \"TFF0\", \"THF0\", or \"DFG\")."
+  echo "  Translates TPTP input file to the specified format (\"FOF\", \"TF0\", \"TH0\", or \"DFG\")."
   echo "  Emits the result to standard output."
   echo
   exit 1
