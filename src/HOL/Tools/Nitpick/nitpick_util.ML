@@ -269,7 +269,15 @@ fun is_real_constr thy (s, T) =
      | NONE => false)
   | _  => false
 
-val typ_of_dtyp = ATP_Util.typ_of_dtyp
+fun typ_of_dtyp _ typ_assoc (Datatype.DtTFree a) =
+    the (AList.lookup (op =) typ_assoc (Datatype.DtTFree a))
+  | typ_of_dtyp descr typ_assoc (Datatype.DtType (s, Us)) =
+    Type (s, map (typ_of_dtyp descr typ_assoc) Us)
+  | typ_of_dtyp descr typ_assoc (Datatype.DtRec i) =
+    let val (s, ds, _) = the (AList.lookup (op =) descr i) in
+      Type (s, map (typ_of_dtyp descr typ_assoc) ds)
+    end
+
 val varify_type = ATP_Util.varify_type
 val instantiate_type = ATP_Util.instantiate_type
 val varify_and_instantiate_type = ATP_Util.varify_and_instantiate_type

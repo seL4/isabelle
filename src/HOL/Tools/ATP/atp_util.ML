@@ -29,7 +29,6 @@ sig
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
-  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val is_type_surely_finite : Proof.context -> typ -> bool
   val is_type_surely_infinite : Proof.context -> bool -> typ list -> typ -> bool
   val s_not : term -> term
@@ -191,24 +190,11 @@ fun varify_and_instantiate_type ctxt T1 T1' T2 =
     instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
   end
 
-fun typ_of_dtyp _ typ_assoc (Datatype.DtTFree a) =
-    the (AList.lookup (op =) typ_assoc (Datatype.DtTFree a))
-  | typ_of_dtyp descr typ_assoc (Datatype.DtType (s, Us)) =
-    Type (s, map (typ_of_dtyp descr typ_assoc) Us)
-  | typ_of_dtyp descr typ_assoc (Datatype.DtRec i) =
-    let val (s, ds, _) = the (AList.lookup (op =) descr i) in
-      Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-    end
-
-fun datatype_constrs thy (T as Type (s, Ts)) =
-    (case Datatype.get_info thy s of
-       SOME {index, descr, ...} =>
-       let val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the in
-         map (apsnd (fn Us => map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
-             constrs
-       end
-     | NONE => [])
-  | datatype_constrs _ _ = []
+fun free_constructors_of ctxt (Type (s, Ts)) =
+    (case Ctr_Sugar.ctr_sugar_of ctxt s of
+      SOME {ctrs, ...} => map_filter (try dest_Const o Ctr_Sugar.mk_ctr Ts) ctrs
+    | NONE => [])
+  | free_constructors_of _ _ = []
 
 (* Similar to "Nitpick_HOL.bounded_exact_card_of_type".
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
@@ -239,12 +225,11 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
         | @{typ nat} => 0 (* optimization *)
         | Type ("Int.int", []) => 0 (* optimization *)
         | Type (s, _) =>
-          (case datatype_constrs thy T of
+          (case free_constructors_of ctxt T of
              constrs as _ :: _ =>
              let
                val constr_cards =
-                 map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
-                      o snd) constrs
+                 map (Integer.prod o map (aux slack (T :: avoid)) o binder_types o snd) constrs
              in
                if exists (curry (op =) 0) constr_cards then 0
                else Int.min (max, Integer.sum constr_cards)
@@ -270,10 +255,10 @@ fun tiny_card_of_type ctxt sound assigns default_card T =
                else
                  default_card
              | [] => default_card)
+        | TFree _ =>
           (* Very slightly unsound: Type variables are assumed not to be
              constrained to cardinality 1. (In practice, the user would most
              likely have used "unit" directly anyway.) *)
-        | TFree _ =>
           if not sound andalso default_card = 1 then 2 else default_card
         | TVar _ => default_card
   in Int.min (max, aux false [] T) end

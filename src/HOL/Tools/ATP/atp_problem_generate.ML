@@ -335,9 +335,7 @@ val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
 val const_trans_table =
-  [(@{type_name Product_Type.prod}, "prod"),
-   (@{type_name Sum_Type.sum}, "sum"),
-   (@{const_name False}, "False"),
+  [(@{const_name False}, "False"),
    (@{const_name True}, "True"),
    (@{const_name Not}, "Not"),
    (@{const_name conj}, "conj"),
@@ -2738,20 +2736,8 @@ fun declare_undeclared_in_problem heading problem =
                   syms []
   in (heading, decls) :: problem end
 
-val typ_of_dtyp = Logic.varifyT_global oo Datatype_Aux.typ_of_dtyp
-
-fun ctrs_of_datatype descr (_, (s, Ds, ctrs)) =
-  if forall (can Datatype_Aux.dest_DtTFree) Ds then
-    let val dataT = Type (s, map (typ_of_dtyp descr) Ds) in
-      SOME (map (fn (s, Ds) => (s, map (typ_of_dtyp descr) Ds ---> dataT)) ctrs)
-    end
-  else
-    NONE
-
-fun ctrss_of_descr descr = map_filter (ctrs_of_datatype descr) descr
-
-fun all_ctrss_of_datatypes thy =
-  Symtab.fold (snd #> #descr #> ctrss_of_descr #> append) (Datatype.get_all thy) []
+fun all_ctrss_of_datatypes ctxt =
+  map (map_filter (try dest_Const) o #ctrs) (Ctr_Sugar.ctr_sugars_of ctxt)
 
 val app_op_and_predicator_threshold = 45
 
@@ -2780,7 +2766,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
     val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
-    val ctrss = all_ctrss_of_datatypes thy
+    val ctrss = all_ctrss_of_datatypes ctxt
     fun firstorderize in_helper =
       firstorderize_fact thy ctrss type_enc
           (uncurried_aliases andalso not in_helper) completish sym_tab0
