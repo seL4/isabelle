@@ -8,7 +8,7 @@
 header {* MESON Proof Method *}
 
 theory Meson
-imports Datatype
+imports Nat
 begin
 
 subsection {* Negation Normal Form *}
