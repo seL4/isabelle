@@ -8,7 +8,7 @@ Basic setup and documentation for the 'refute' (and 'refute_params') command.
 header {* Refute *}
 
 theory Refute
-imports Hilbert_Choice List Sledgehammer
+imports Main
 keywords "refute" :: diag and "refute_params" :: thy_decl
 begin
 
