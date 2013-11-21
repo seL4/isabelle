@@ -144,10 +144,7 @@ fun normalize_raw_param (name, value) =
 structure Data = Theory_Data
 (
   type T = raw_param list
-  val empty =
-    default_default_params
-    |> getenv "NITPICK_SPY" = "yes" ? AList.update (op =) ("spy", "true")
-    |> map (apsnd single)
+  val empty = default_default_params |> map (apsnd single)
   val extend = I
   fun merge data = AList.merge (op =) (K true) data
 )
@@ -258,7 +255,7 @@ fun extract_params ctxt mode default_params override_params =
     val debug = (mode <> Auto_Try andalso lookup_bool "debug")
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
-    val spy = lookup_bool "spy"
+    val spy = getenv "NITPICK_SPY" = "yes" orelse lookup_bool "spy"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
     val whacks = lookup_term_list_option_polymorphic "whack" |> these

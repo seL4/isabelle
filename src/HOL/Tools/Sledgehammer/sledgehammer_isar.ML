@@ -187,10 +187,7 @@ val implode_param = strip_spaces_except_between_idents o space_implode " "
 structure Data = Theory_Data
 (
   type T = raw_param list
-  val empty =
-    default_default_params
-    |> getenv "SLEDGEHAMMER_SPY" = "yes" ? AList.update (op =) ("spy", "true")
-    |> map (apsnd single)
+  val empty = default_default_params |> map (apsnd single)
   val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
@@ -265,7 +262,7 @@ fun extract_params mode default_params override_params =
     val debug = mode <> Auto_Try andalso lookup_bool "debug"
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
-    val spy = lookup_bool "spy"
+    val spy = getenv "SLEDGEHAMMER_SPY" = "yes" orelse lookup_bool "spy"
     val blocking =
       Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse
       lookup_bool "blocking"
