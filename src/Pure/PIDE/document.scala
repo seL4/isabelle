@@ -62,6 +62,9 @@ object Document
       errors: List[String] = Nil)
     {
       def error(msg: String): Header = copy(errors = errors ::: List(msg))
+
+      def cat_errors(msg2: String): Header =
+        copy(errors = errors.map(msg1 => Library.cat_message(msg1, msg2)))
     }
 
     def bad_header(msg: String): Header = Header(Nil, Nil, List(msg))
