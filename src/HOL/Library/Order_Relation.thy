@@ -111,6 +111,6 @@ abbreviation "strict_linear_order \<equiv> strict_linear_order_on UNIV"
 
 abbreviation "linear_order \<equiv> linear_order_on UNIV"
 
-abbreviation "well_order r \<equiv> well_order_on UNIV"
+abbreviation "well_order \<equiv> well_order_on UNIV"
 
 end
