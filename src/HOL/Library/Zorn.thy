@@ -10,7 +10,7 @@ The well-ordering theorem.
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Order_Relation
+imports Main
 begin
 
 subsection {* Zorn's Lemma for the Subset Relation *}

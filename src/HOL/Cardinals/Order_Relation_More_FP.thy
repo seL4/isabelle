@@ -8,7 +8,7 @@ Basics on order-like relations (FP).
 header {* Basics on Order-Like Relations (FP) *}
 
 theory Order_Relation_More_FP
-imports "~~/src/HOL/Library/Order_Relation"
+imports Order_Relation
 begin
 
 

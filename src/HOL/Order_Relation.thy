@@ -1,9 +1,11 @@
-(* Author: Tobias Nipkow *)
+(*  Title:      HOL/Order_Relation.thy
+    Author:     Tobias Nipkow
+*)
 
 header {* Orders as Relations *}
 
 theory Order_Relation
-imports Main
+imports Wellfounded
 begin
 
 subsection{* Orders on a set *}
@@ -80,8 +82,15 @@ lemma subset_Image1_Image1_iff:
 by(simp add:subset_Image_Image_iff)
 
 lemma Refl_antisym_eq_Image1_Image1_iff:
-  "\<lbrakk>Refl r; antisym r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"
-by(simp add: set_eq_iff antisym_def refl_on_def) metis
+  assumes r: "Refl r" and as: "antisym r" and abf: "a \<in> Field r" "b \<in> Field r"
+  shows "r `` {a} = r `` {b} \<longleftrightarrow> a = b"
+proof
+  assume "r `` {a} = r `` {b}"
+  hence e: "\<And>x. (a, x) \<in> r \<longleftrightarrow> (b, x) \<in> r" by (simp add: set_eq_iff)
+  have "(a, a) \<in> r" "(b, b) \<in> r" using r abf by (simp_all add: refl_on_def)
+  hence "(a, b) \<in> r" "(b, a) \<in> r" using e[of a] e[of b] by simp_all
+  thus "a = b" using as[unfolded antisym_def] by blast
+qed fast
 
 lemma Partial_order_eq_Image1_Image1_iff:
   "\<lbrakk>Partial_order r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"
@@ -95,7 +104,7 @@ proof(auto)
   have "r \<noteq> {}" using NID by fast
   then obtain b and c where "b \<noteq> c \<and> (b,c) \<in> r" using NID by auto
   hence 1: "b \<noteq> c \<and> {b,c} \<le> Field r" by (auto simp: Field_def)
-  (*  *)
+
   fix a assume *: "a \<in> Field r"
   obtain d where 2: "d \<in> Field r" and 3: "d \<noteq> a"
   using * 1 by auto
