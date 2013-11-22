@@ -397,6 +397,8 @@ object Thy_Syntax
     edit match {
       case (_, Document.Node.Clear()) => node.clear
 
+      case (_, Document.Node.Blob()) => node
+
       case (name, Document.Node.Edits(text_edits)) =>
         val commands0 = node.commands
         val commands1 = edit_text(text_edits, commands0)
@@ -415,8 +417,6 @@ object Thy_Syntax
           node.update_perspective(perspective).update_commands(
             consolidate_spans(thy_load, syntax, doc_blobs, reparse_limit,
               name, visible, node.commands))
-
-      case (_, Document.Node.Blob()) => node
     }
   }
 

@@ -127,10 +127,11 @@ object Document
       }
     }
     case class Clear[A, B]() extends Edit[A, B]
+    case class Blob[A, B]() extends Edit[A, B]
+
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
     case class Perspective[A, B](required: Boolean, visible: B, overlays: Overlays) extends Edit[A, B]
-    case class Blob[A, B]() extends Edit[A, B]
     type Perspective_Text = Perspective[Text.Edit, Text.Perspective]
     type Perspective_Command = Perspective[Command.Edit, Command.Perspective]
 

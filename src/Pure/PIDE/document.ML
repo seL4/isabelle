@@ -11,7 +11,6 @@ sig
   type node_header = string * Thy_Header.header * string list
   type overlay = Document_ID.command * (string * string list)
   datatype node_edit =
-    Clear |    (* FIXME unused !? *)
     Edits of (Document_ID.command option * Document_ID.command option) list |
     Deps of node_header |
     Perspective of bool * Document_ID.command list * overlay list
@@ -76,7 +75,6 @@ val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["No theory head
 val no_perspective = make_perspective (false, [], []);
 
 val empty_node = make_node (no_header, no_perspective, Entries.empty, NONE);
-val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entries.empty, NONE));
 
 
 (* basic components *)
@@ -145,7 +143,6 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 type overlay = Document_ID.command * (string * string list);
 
 datatype node_edit =
-  Clear |
   Edits of (Document_ID.command option * Document_ID.command option) list |
   Deps of node_header |
   Perspective of bool * Document_ID.command list * overlay list;
@@ -193,8 +190,7 @@ fun cycle_msg names = "Cyclic dependency of " ^ space_implode " via " (map quote
 fun edit_nodes (name, node_edit) (Version nodes) =
   Version
     (case node_edit of
-      Clear => update_node name clear_node nodes
-    | Edits edits => update_node name (edit_node edits) nodes
+      Edits edits => update_node name (edit_node edits) nodes
     | Deps (master, header, errors) =>
         let
           val imports = map fst (#imports header);
