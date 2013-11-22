@@ -6,6 +6,7 @@ syntax: glob
 *.orig
 *.rej
 .DS_Store
+.swp
 
 
 syntax: regexp
