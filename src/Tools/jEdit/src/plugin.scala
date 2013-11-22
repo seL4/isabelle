@@ -104,21 +104,24 @@ object PIDE
       val init_edits =
         (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
-            val node_name = thy_load.node_name(buffer)
-            val (model_edits, model) =
-              document_model(buffer) match {
-                case Some(model) if model.node_name == node_name => (Nil, model)
-                case _ =>
-                  val model = Document_Model.init(session, buffer, node_name)
-                  (model.init_edits(), model)
+            if (buffer.getBooleanProperty(Buffer.GZIPPED)) edits
+            else {
+              val node_name = thy_load.node_name(buffer)
+              val (model_edits, model) =
+                document_model(buffer) match {
+                  case Some(model) if model.node_name == node_name => (Nil, model)
+                  case _ =>
+                    val model = Document_Model.init(session, buffer, node_name)
+                    (model.init_edits(), model)
+                }
+              if (model.is_theory) {
+                for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
+                  if (document_view(text_area).map(_.model) != Some(model))
+                    Document_View.init(model, text_area)
+                }
               }
-            if (model.is_theory) {
-              for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-                if (document_view(text_area).map(_.model) != Some(model))
-                  Document_View.init(model, text_area)
-              }
+              model_edits ::: edits
             }
-            model_edits ::: edits
           }
         }
       session.update(document_blobs(), init_edits)
