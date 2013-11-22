@@ -27,7 +27,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -1743,6 +1743,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         fun wit_tac {context = ctxt, prems = _} =
           mk_wit_tac ctxt n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
+
+        val set_bss =
+          map (flat o map2 (fn B => fn b =>
+            if member (op =) resDs (TFree B) then [] else [b]) resBs) set_bss0;
 
         val (Ibnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>

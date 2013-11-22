@@ -56,7 +56,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -2672,6 +2672,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           |> map (apsnd (map snd o minimize_wits));
 
         val wit_tac = mk_wit_tac n dtor_ctor_thms (flat dtor_set_thmss) (maps wit_thms_of_bnf bnfs);
+
+        val set_bss =
+          map (flat o map2 (fn B => fn b =>
+            if member (op =) resDs (TFree B) then [] else [b]) resBs) set_bss0;
 
         val (Jbnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>

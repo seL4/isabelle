@@ -11,7 +11,7 @@ begin
 subsection "Infinite Sets"
 
 text {*
-  Some elementary facts about infinite sets, mostly by Stefan Merz.
+  Some elementary facts about infinite sets, mostly by Stephan Merz.
   Beware! Because "infinite" merely abbreviates a negation, these
   lemmas may not work well with @{text "blast"}.
 *}
