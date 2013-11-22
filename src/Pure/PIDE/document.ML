@@ -81,6 +81,11 @@ val clear_node = map_node (fn (header, _, _, _) => (header, no_perspective, Entr
 
 (* basic components *)
 
+fun master_directory (Node {header = (master, _, _), ...}) =
+  (case try Url.explode master of
+    SOME (Url.File path) => path
+  | _ => Path.current);
+
 fun set_header header =
   map_node (fn (_, perspective, entries, result) => (header, perspective, entries, result));
 
@@ -93,11 +98,6 @@ fun read_header node span =
     val {name = (name, _), imports, keywords} = #2 (get_header node);
     val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
   in Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords end;
-
-fun master_directory node =
-  (case try Url.explode (#1 (get_header node)) of
-    SOME (Url.File path) => path
-  | _ => Path.current);
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective args =
