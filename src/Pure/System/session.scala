@@ -240,7 +240,7 @@ class Session(val thy_load: Thy_Load)
   {
     val header1 =
       if (thy_load.loaded_theories(name.theory))
-        header.error("Attempt to update loaded theory " + quote(name.theory))
+        header.error("Cannot update finished theory " + quote(name.theory))
       else header
     (name, Document.Node.Deps(header1))
   }

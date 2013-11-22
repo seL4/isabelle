@@ -140,7 +140,7 @@ fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
 (* main loader actions *)
 
 fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  if is_finished name then error (loader_msg "attempt to change finished theory" [name])
+  if is_finished name then error (loader_msg "cannot update finished theory" [name])
   else
     let
       val succs = thy_graph String_Graph.all_succs [name];
