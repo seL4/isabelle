@@ -187,8 +187,10 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
       | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
       | _ => raise General.Fail "Too many conditions"
 
+    val (_, simp_ctxt) = ctxt
+      |> Assumption.add_assumes (#hyps (Thm.crep_thm simp))
   in
-    Goal.prove ctxt [] []
+    Goal.prove simp_ctxt [] []
       (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
       (fn _ =>
         Local_Defs.unfold_tac ctxt all_orig_fdefs
