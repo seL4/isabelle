@@ -227,7 +227,8 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   theme is selected in a Swing-friendly way.\footnote{GTK support in
   Java/Swing was once marketed aggressively by Sun, but never quite
   finished, and is today (2013) lagging a bit behind further
-  development of Swing and GTK.}
+  development of Swing and GTK.  The graphics rendering performance
+  can be worse than for other Swing look-and-feels.}
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
