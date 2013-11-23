@@ -26,6 +26,11 @@ lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
 lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
   by simp
 
+lemma choose_reduce_nat: 
+  "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
+    (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
+  by (metis Suc_diff_1 binomial.simps(2) nat_add_commute neq0_conv)
+
 lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
   by (induct n arbitrary: k) auto
 
@@ -44,10 +49,7 @@ lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
   by (induct n k rule: diff_induct) simp_all
 
 lemma binomial_eq_0_iff: "n choose k = 0 \<longleftrightarrow> n < k"
-  apply (safe intro!: binomial_eq_0)
-  apply (erule contrapos_pp)
-  apply (simp add: zero_less_binomial)
-  done
+  by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
 
 lemma zero_less_binomial_iff: "n choose k > 0 \<longleftrightarrow> k \<le> n"
   by (simp add: linorder_not_less binomial_eq_0_iff neq0_conv[symmetric] del: neq0_conv)
@@ -90,19 +92,7 @@ lemma choose_deconstruct: "finite M \<Longrightarrow> x \<notin> M \<Longrightar
   apply safe
      apply (auto intro: finite_subset [THEN card_insert_disjoint])
   apply (drule_tac x = "xa - {x}" in spec)
-  apply (subgoal_tac "x \<notin> xa")
-   apply auto
-  apply (erule rev_mp, subst card_Diff_singleton)
-    apply (auto intro: finite_subset)
-  done
-(*
-lemma "finite(UN y. {x. P x y})"
-apply simp
-lemma Collect_ex_eq
-
-lemma "{x. \<exists>y. P x y} = (UN y. {x. P x y})"
-apply blast
-*)
+  by (metis card_Diff_singleton_if card_infinite diff_Suc_1 in_mono insert_Diff_single insert_absorb lessI less_nat_zero_code subset_insert_iff)
 
 lemma finite_bex_subset [simp]:
   assumes "finite B"
@@ -120,71 +110,75 @@ lemma constr_bij:
    "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow>
     card {B. \<exists>C. C \<subseteq> A \<and> card C = k \<and> B = insert x C} =
     card {B. B \<subseteq> A & card(B) = k}"
-  apply (rule_tac f = "\<lambda>s. s - {x}" and g = "insert x" in card_bij_eq)
-       apply (auto elim!: equalityE simp add: inj_on_def)
-  apply (subst Diff_insert0)
-   apply auto
+  apply (rule card_bij_eq [where f = "\<lambda>s. s - {x}" and g = "insert x"])
+  apply (auto elim!: equalityE simp add: inj_on_def)
+  apply (metis card_Diff_singleton_if finite_subset in_mono)
   done
 
 text {*
   Main theorem: combinatorial statement about number of subsets of a set.
 *}
 
-lemma n_sub_lemma:
-    "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
-  apply (induct k arbitrary: A)
-   apply (simp add: card_s_0_eq_empty)
-   apply atomize
-  apply (rotate_tac -1)
-  apply (erule finite_induct)
-   apply (simp_all (no_asm_simp) cong add: conj_cong
-     add: card_s_0_eq_empty choose_deconstruct)
-  apply (subst card_Un_disjoint)
-     prefer 4 apply (force simp add: constr_bij)
-    prefer 3 apply force
-   prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
-     finite_subset [of _ "Pow (insert x F)", standard])
-  apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
-  done
-
 theorem n_subsets: "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
-  by (simp add: n_sub_lemma)
+proof (induct k arbitrary: A)
+  case 0 then show ?case by (simp add: card_s_0_eq_empty)
+next
+  case (Suc k)
+  show ?case using `finite A`
+  proof (induct A)
+    case empty show ?case by (simp add: card_s_0_eq_empty)
+  next
+    case (insert x A)
+    then show ?case using Suc.hyps
+      apply (simp add: card_s_0_eq_empty choose_deconstruct)
+      apply (subst card_Un_disjoint)
+         prefer 4 apply (force simp add: constr_bij)
+        prefer 3 apply force
+       prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
+         finite_subset [of _ "Pow (insert x F)", standard])
+      apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
+      done
+  qed
+qed
 
 
 text{* The binomial theorem (courtesy of Tobias Nipkow): *}
 
-theorem binomial: "(a + b::nat)^n = (\<Sum>k=0..n. (n choose k) * a^k * b^(n - k))"
+(* Avigad's version, generalized to any commutative semiring *)
+theorem binomial: "(a+b::'a::{comm_ring_1,power})^n = 
+  (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
 proof (induct n)
-  case 0
-  then show ?case by simp
+  case 0 then show "?P 0" by simp
 next
   case (Suc n)
-  have decomp: "{0..n+1} = {0} \<union> {n+1} \<union> {1..n}"
-    by (auto simp add:atLeastAtMost_def atLeast_def atMost_def)
-  have decomp2: "{0..n} = {0} \<union> {1..n}"
-    by (auto simp add:atLeastAtMost_def atLeast_def atMost_def)
-  have "(a + b)^(n + 1) = (a + b) * (\<Sum>k=0..n. (n choose k) * a^k * b^(n - k))"
-    using Suc by simp
-  also have "\<dots> =  a*(\<Sum>k=0..n. (n choose k) * a^k * b^(n-k)) +
-                   b*(\<Sum>k=0..n. (n choose k) * a^k * b^(n-k))"
-    by (rule nat_distrib)
-  also have "\<dots> = (\<Sum>k=0..n. (n choose k) * a^(k+1) * b^(n-k)) +
-                  (\<Sum>k=0..n. (n choose k) * a^k * b^(n-k+1))"
-    by (simp add: setsum_right_distrib mult_ac)
-  also have "\<dots> = (\<Sum>k=0..n. (n choose k) * a^k * b^(n+1-k)) +
-                  (\<Sum>k=1..n+1. (n choose (k - 1)) * a^k * b^(n+1-k))"
-    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le
-             del:setsum_cl_ivl_Suc)
+  have decomp: "{0..n+1} = {0} Un {n+1} Un {1..n}"
+    by auto
+  have decomp2: "{0..n} = {0} Un {1..n}"
+    by auto
+  have "(a+b)^(n+1) = 
+      (a+b) * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    using Suc.hyps by simp
+  also have "\<dots> = a*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
+                   b*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    by (rule distrib)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
+                  (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
+    by (auto simp add: setsum_right_distrib mult_ac)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
+    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps  
+        del:setsum_cl_ivl_Suc)
   also have "\<dots> = a^(n+1) + b^(n+1) +
-                  (\<Sum>k=1..n. (n choose (k - 1)) * a^k * b^(n+1-k)) +
-                  (\<Sum>k=1..n. (n choose k) * a^k * b^(n+1-k))"
+                  (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
     by (simp add: decomp2)
   also have
-      "\<dots> = a^(n+1) + b^(n+1) + (\<Sum>k=1..n. (n+1 choose k) * a^k * b^(n+1-k))"
-    by (simp add: nat_distrib setsum_addf binomial.simps)
-  also have "\<dots> = (\<Sum>k=0..n+1. (n+1 choose k) * a^k * b^(n+1-k))"
-    using decomp by simp
-  finally show ?case by simp
+      "\<dots> = a^(n+1) + b^(n+1) + 
+            (\<Sum>k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
+    by (auto simp add: field_simps setsum_addf [symmetric] choose_reduce_nat)
+  also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
+    using decomp by (simp add: field_simps)
+  finally show "?P (Suc n)" by simp
 qed
 
 subsection{* Pochhammer's symbol : generalized raising factorial*}
