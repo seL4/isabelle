@@ -1488,12 +1488,10 @@ qed
 lemma card_Suc_eq:
   "(card A = Suc k) =
    (\<exists>b B. A = insert b B & b \<notin> B & card B = k & (k=0 \<longrightarrow> B={}))"
-apply(rule iffI)
- apply(erule card_eq_SucD)
-apply(auto)
-apply(subst card.insert)
- apply(auto intro:ccontr)
-done
+ apply(auto elim!: card_eq_SucD)
+ apply(subst card.insert)
+ apply(auto simp add: intro:ccontr)
+ done
 
 lemma card_le_Suc_iff: "finite A \<Longrightarrow>
   Suc n \<le> card A = (\<exists>a B. A = insert a B \<and> a \<notin> B \<and> n \<le> card B \<and> finite B)"
@@ -1520,11 +1518,8 @@ lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
 
 subsubsection {* Cardinality of image *}
 
-lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-apply (induct rule: finite_induct)
- apply simp
-apply (simp add: le_SucI card_insert_if)
-done
+lemma card_image_le: "finite A ==> card (f ` A) \<le> card A"
+  by (induct rule: finite_induct) (simp_all add: le_SucI card_insert_if)
 
 lemma card_image:
   assumes "inj_on f A"
@@ -1543,24 +1538,27 @@ lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A 
 by (simp add: card_seteq card_image)
 
 lemma eq_card_imp_inj_on:
-  "[| finite A; card(f ` A) = card A |] ==> inj_on f A"
-apply (induct rule:finite_induct)
-apply simp
-apply(frule card_image_le[where f = f])
-apply(simp add:card_insert_if split:if_splits)
-done
+  assumes "finite A" "card(f ` A) = card A" shows "inj_on f A"
+using assms
+proof (induct rule:finite_induct)
+  case empty show ?case by simp
+next
+  case (insert x A)
+  then show ?case using card_image_le [of A f]
+    by (simp add: card_insert_if split: if_splits)
+qed
 
-lemma inj_on_iff_eq_card:
-  "finite A ==> inj_on f A = (card(f ` A) = card A)"
-by(blast intro: card_image eq_card_imp_inj_on)
-
+lemma inj_on_iff_eq_card: "finite A \<Longrightarrow> inj_on f A \<longleftrightarrow> card(f ` A) = card A"
+  by (blast intro: card_image eq_card_imp_inj_on)
 
 lemma card_inj_on_le:
-  "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
-apply (subgoal_tac "finite A") 
- apply (force intro: card_mono simp add: card_image [symmetric])
-apply (blast intro: finite_imageD dest: finite_subset) 
-done
+  assumes "inj_on f A" "f ` A \<subseteq> B" "finite B" shows "card A \<le> card B"
+proof -
+  have "finite A" using assms
+    by (blast intro: finite_imageD dest: finite_subset)
+  then show ?thesis using assms 
+   by (force intro: card_mono simp: card_image [symmetric])
+qed
 
 lemma card_bij_eq:
   "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
@@ -1642,44 +1640,52 @@ lemma card_Plus_conv_if:
 
 subsubsection {* Cardinality of the Powerset *}
 
-lemma card_Pow: "finite A ==> card (Pow A) = 2 ^ card A"
-apply (induct rule: finite_induct)
- apply (simp_all add: Pow_insert)
-apply (subst card_Un_disjoint, blast)
-  apply (blast, blast)
-apply (subgoal_tac "inj_on (insert x) (Pow F)")
- apply (subst mult_2)
- apply (simp add: card_image Pow_insert)
-apply (unfold inj_on_def)
-apply (blast elim!: equalityE)
-done
+lemma card_Pow: "finite A \<Longrightarrow> card (Pow A) = 2 ^ card A"
+proof (induct rule: finite_induct)
+  case empty 
+    show ?case by auto
+next
+  case (insert x A)
+  then have "inj_on (insert x) (Pow A)" 
+    unfolding inj_on_def by (blast elim!: equalityE)
+  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A" 
+    by (simp add: mult_2 card_image Pow_insert insert.hyps)
+  then show ?case using insert
+    apply (simp add: Pow_insert)
+    apply (subst card_Un_disjoint, auto)
+    done
+qed
 
 text {* Relates to equivalence classes.  Based on a theorem of F. Kamm\"uller.  *}
 
 lemma dvd_partition:
-  "finite (Union C) ==>
-    ALL c : C. k dvd card c ==>
-    (ALL c1: C. ALL c2: C. c1 \<noteq> c2 --> c1 Int c2 = {}) ==>
-  k dvd card (Union C)"
-apply (frule finite_UnionD)
-apply (rotate_tac -1)
-apply (induct rule: finite_induct)
-apply simp_all
-apply clarify
-apply (subst card_Un_disjoint)
-   apply (auto simp add: disjoint_eq_subset_Compl)
-done
-
+  assumes f: "finite (\<Union>C)" and "\<forall>c\<in>C. k dvd card c" "\<forall>c1\<in>C. \<forall>c2\<in>C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {}"
+    shows "k dvd card (\<Union>C)"
+proof -
+  have "finite C" 
+    by (rule finite_UnionD [OF f])
+  then show ?thesis using assms
+  proof (induct rule: finite_induct)
+    case empty show ?case by simp
+  next
+    case (insert c C)
+    then show ?case 
+      apply simp
+      apply (subst card_Un_disjoint)
+      apply (auto simp add: disjoint_eq_subset_Compl)
+      done
+  qed
+qed
 
 subsubsection {* Relating injectivity and surjectivity *}
 
-lemma finite_surj_inj: "finite A \<Longrightarrow> A \<subseteq> f ` A \<Longrightarrow> inj_on f A"
-apply(rule eq_card_imp_inj_on, assumption)
-apply(frule finite_imageI)
-apply(drule (1) card_seteq)
- apply(erule card_image_le)
-apply simp
-done
+lemma finite_surj_inj: assumes "finite A" "A \<subseteq> f ` A" shows "inj_on f A"
+proof -
+  have "f ` A = A" 
+    by (rule card_seteq [THEN sym]) (auto simp add: assms card_image_le)
+  then show ?thesis using assms
+    by (simp add: eq_card_imp_inj_on)
+qed
 
 lemma finite_UNIV_surj_inj: fixes f :: "'a \<Rightarrow> 'a"
 shows "finite(UNIV:: 'a set) \<Longrightarrow> surj f \<Longrightarrow> inj f"
