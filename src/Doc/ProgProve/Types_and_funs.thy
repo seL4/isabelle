@@ -171,15 +171,24 @@ customized induction rule:
 This customized induction rule can simplify inductive proofs. For example,
 *}
 
-lemma "div2(n+n) = n"
+lemma "div2(n) = n div 2"
 apply(induction n rule: div2.induct)
 
-txt{* yields the 3 subgoals
+txt{* (where the infix @{text div} is the predefined division operation)
+yields the 3 subgoals
 @{subgoals[display,margin=65]}
 An application of @{text auto} finishes the proof.
 Had we used ordinary structural induction on @{text n},
 the proof would have needed an additional
 case analysis in the induction step.
+
+This example leads to the following induction heuristic:
+\begin{quote}
+\emph{Let @{text f} be a recursive function.
+If the definition of @{text f} is more complicated
+than having one equation for each constructor of some datatype,
+then properties of @{text f} are best proved via @{text "f.induct"}.}
+\end{quote}
 
 The general case is often called \concept{computation induction},
 because the induction follows the (terminating!) computation.
@@ -223,8 +232,9 @@ a list. Prove @{prop "pre_order (mirror t) = rev (post_order t)"}.
 \end{exercise}
 
 \begin{exercise}
-Prove that @{const div2} defined above divides every number by @{text 2},
-not just those of the form @{text"n+n"}: @{prop "div2 n = n div 2"}.
+Define a function @{text "intersperse ::"} @{typ "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"}
+such that @{text "intersperse a [x\<^sub>1, ..., x\<^sub>n] = [x\<^sub>1, a, x\<^sub>2, a, ..., a, x\<^sub>n]"}.
+Now prove that @{prop "map f (intersperse a xs) = intersperse (f a) (map f xs)"}.
 \end{exercise}
 
 
