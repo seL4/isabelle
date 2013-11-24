@@ -33,24 +33,31 @@ lemma lemma_realpow_diff_sumr2:
   shows
     "x ^ (Suc n) - y ^ (Suc n) =
       (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
-  apply (induct n)
-  apply simp
-  apply (simp del: setsum_op_ivl_Suc)
-  apply (subst setsum_op_ivl_Suc)
-  apply (subst lemma_realpow_diff_sumr)
-  apply (simp add: distrib_left del: setsum_op_ivl_Suc)
-  apply (subst mult_left_commute [of "x - y"])
-  apply (erule subst)
-  apply (simp add: algebra_simps)
-  done
+proof (induct n)
+  case 0 show ?case
+    by simp
+next
+  case (Suc n)
+  have "x ^ Suc (Suc n) - y ^ Suc (Suc n) = x * (x * x ^ n) - y * (y * y ^ n)"
+    by simp
+  also have "... = y * (x ^ (Suc n) - y ^ (Suc n)) + (x - y) * (x * x ^ n)"
+    by (simp add: algebra_simps)
+  also have "... = y * ((x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
+    by (simp only: Suc)
+  also have "... = (x - y) * (y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))) + (x - y) * (x * x ^ n)"
+    by (simp only: mult_left_commute)
+  also have "... = (x - y) * (\<Sum>p = 0..<Suc (Suc n). x ^ p * y ^ (Suc n - p))"
+    by (simp add: setsum_op_ivl_Suc [where n = "Suc n"] distrib_left lemma_realpow_diff_sumr
+             del: setsum_op_ivl_Suc)
+  finally show ?case .
+qed
 
 lemma lemma_realpow_rev_sumr:
-  "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =
+   "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =
     (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p))"
   apply (rule setsum_reindex_cong [where f="\<lambda>i. n - i"])
-  apply (rule inj_onI, simp)
-  apply auto
-  apply (rule_tac x="n - x" in image_eqI, simp, simp)
+  apply (rule inj_onI, auto)
+  apply (metis atLeastLessThan_iff diff_diff_cancel diff_less_Suc imageI le0 less_Suc_eq_le)
   done
 
 text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
@@ -388,12 +395,9 @@ proof -
       by auto
     ultimately show ?thesis by auto
   qed
-  from this[THEN conjunct1]
-    this[THEN conjunct2, THEN conjunct1]
-    this[THEN conjunct2, THEN conjunct2, THEN conjunct1]
-    this[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
-    this[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
-  show ?summable and ?pos and ?neg and ?f and ?g .
+  then
+  show ?summable and ?pos and ?neg and ?f and ?g 
+    by safe
 qed
 
 subsection {* Term-by-Term Differentiability of Power Series *}
@@ -420,9 +424,7 @@ lemma diffs_equiv:
       (\<lambda>n. of_nat n * c(n) * (x ^ (n - Suc 0))) sums
          (\<Sum>n. (diffs c)(n) * (x ^ n))"
   unfolding diffs_def
-  apply (drule summable_sums)
-  apply (rule sums_Suc_imp, simp_all)
-  done
+  by (simp add: summable_sums sums_Suc_imp)
 
 lemma lemma_termdiff1:
   fixes z :: "'a :: {monoid_mult,comm_ring}" shows
@@ -482,10 +484,7 @@ proof -
   have "norm (((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0)) =
         norm (\<Sum>p = 0..<n - Suc 0. \<Sum>q = 0..<n - Suc 0 - p.
           (z + h) ^ q * z ^ (n - 2 - q)) * norm h"
-    apply (subst lemma_termdiff2 [OF 1])
-    apply (subst norm_mult)
-    apply (rule mult_commute)
-    done
+    by (metis (lifting, no_types) lemma_termdiff2 [OF 1] mult_commute norm_mult)
   also have "\<dots> \<le> of_nat n * (of_nat (n - Suc 0) * K ^ (n - 2)) * norm h"
   proof (rule mult_right_mono [OF _ norm_ge_zero])
     from norm_ge_zero 2 have K: "0 \<le> K"
@@ -3705,8 +3704,8 @@ lemma less_one_imp_sqr_less_one:
   assumes "\<bar>x\<bar> < 1"
   shows "x\<^sup>2 < 1"
 proof -
-  from mult_left_mono[OF less_imp_le[OF `\<bar>x\<bar> < 1`] abs_ge_zero[of x]]
-  have "\<bar>x\<^sup>2\<bar> < 1" using `\<bar>x\<bar> < 1` unfolding numeral_2_eq_2 power_Suc2 by auto
+  have "\<bar>x\<^sup>2\<bar> < 1"
+    by (metis abs_power2 assms pos2 power2_abs power_0 power_strict_decreasing zero_eq_power2 zero_less_abs_iff) 
   thus ?thesis using zero_le_power2 by auto
 qed
 
@@ -3867,7 +3866,7 @@ proof -
         moreover
         have "suminf (?c x) - arctan x = suminf (?c (-\<bar>x\<bar>)) - arctan (-\<bar>x\<bar>)"
           by (rule suminf_eq_arctan_bounded[where x="x" and a="-\<bar>x\<bar>" and b="\<bar>x\<bar>"])
-            (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
+             (simp_all only: `\<bar>x\<bar> < r` `-\<bar>x\<bar> < \<bar>x\<bar>` neg_less_iff_less)
         ultimately
         show ?thesis using suminf_arctan_zero by auto
       qed
@@ -4085,28 +4084,28 @@ lemmas cos_arccos_lemma1 = cos_arccos_abs [OF cos_x_y_le_one]
 
 lemmas sin_arccos_lemma1 = sin_arccos_abs [OF cos_x_y_le_one]
 
-lemma polar_ex1: "0 < y \<Longrightarrow> \<exists>r a. x = r * cos a & y = r * sin a"
-  apply (rule_tac x = "sqrt (x\<^sup>2 + y\<^sup>2)" in exI)
-  apply (rule_tac x = "arccos (x / sqrt (x\<^sup>2 + y\<^sup>2))" in exI)
-  apply (simp add: cos_arccos_lemma1)
-  apply (simp add: sin_arccos_lemma1)
-  apply (simp add: power_divide)
-  apply (simp add: real_sqrt_mult [symmetric])
-  apply (simp add: right_diff_distrib)
-  done
-
-lemma polar_ex2: "y < 0 ==> \<exists>r a. x = r * cos a & y = r * sin a"
-  using polar_ex1 [where x=x and y="-y"]
-  apply simp
-  apply clarify
-  apply (metis cos_minus minus_minus minus_mult_right sin_minus)
-  done
-
 lemma polar_Ex: "\<exists>r a. x = r * cos a & y = r * sin a"
-  apply (rule_tac x=0 and y=y in linorder_cases)
-  apply (erule polar_ex1)
-  apply (rule_tac x=x in exI, rule_tac x=0 in exI, simp)
-  apply (erule polar_ex2)
-  done
+proof -
+  have polar_ex1: "\<And>y. 0 < y \<Longrightarrow> \<exists>r a. x = r * cos a & y = r * sin a"
+    apply (rule_tac x = "sqrt (x\<^sup>2 + y\<^sup>2)" in exI)
+    apply (rule_tac x = "arccos (x / sqrt (x\<^sup>2 + y\<^sup>2))" in exI)
+    apply (simp add: cos_arccos_lemma1 sin_arccos_lemma1 power_divide
+                     real_sqrt_mult [symmetric] right_diff_distrib)
+    done
+  show ?thesis
+  proof (cases "0::real" y rule: linorder_cases)
+    case less 
+      then show ?thesis by (rule polar_ex1)
+  next
+    case equal
+      then show ?thesis
+        by (force simp add: intro!: cos_zero sin_zero)
+  next
+    case greater
+      then show ?thesis 
+     using polar_ex1 [where y="-y"]
+    by auto (metis cos_minus minus_minus minus_mult_right sin_minus)
+  qed
+qed
 
 end
