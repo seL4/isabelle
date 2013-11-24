@@ -641,11 +641,8 @@ proof -
           \<le> norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2) * norm h"
       apply (simp only: norm_mult mult_assoc)
       apply (rule mult_left_mono [OF _ norm_ge_zero])
-      apply (simp (no_asm) add: mult_assoc [symmetric])
-      apply (rule lemma_termdiff3)
-      apply (rule h)
-      apply (rule r1 [THEN order_less_imp_le])
-      apply (rule xh [THEN order_less_imp_le])
+      apply (simp add: mult_assoc [symmetric])
+      apply (metis h lemma_termdiff3 less_eq_real_def r1 xh)
       done
   qed
 qed
@@ -653,9 +650,9 @@ qed
 lemma termdiffs:
   fixes K x :: "'a::{real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. c n * K ^ n)"
-    and 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
-    and 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
-    and 4: "norm x < norm K"
+      and 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
+      and 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
+      and 4: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
   unfolding deriv_def
 proof (rule LIM_zero_cancel)
@@ -676,20 +673,23 @@ proof (rule LIM_zero_cancel)
       by (rule powser_inside [OF 1 5])
     have C: "summable (\<lambda>n. diffs c n * x ^ n)"
       by (rule powser_inside [OF 2 4])
-    show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h
-             - (\<Sum>n. diffs c n * x ^ n) =
-          (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
-      apply (subst sums_unique [OF diffs_equiv [OF C]])
-      apply (subst suminf_diff [OF B A])
-      apply (subst suminf_divide [symmetric])
-      apply (rule summable_diff [OF B A])
+    let ?dp = "(\<Sum>n. of_nat n * c n * x ^ (n - Suc 0))"
+    have "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
+          ((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - ?dp"  
+      by (metis sums_unique [OF diffs_equiv [OF C]])
+    also have "... = (\<Sum>n. c n * (x + h) ^ n - c n * x ^ n) / h - ?dp"  
+      by (metis suminf_diff [OF B A])
+    also have "... = (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h)  - ?dp"
+      by (metis suminf_divide [OF summable_diff [OF B A]] )  
+    also have "... = (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h - of_nat n * c n * x ^ (n - Suc 0))"
       apply (subst suminf_diff)
-      apply (rule summable_divide)
-      apply (rule summable_diff [OF B A])
-      apply (rule sums_summable [OF diffs_equiv [OF C]])
-      apply (rule arg_cong [where f="suminf"], rule ext)
-      apply (simp add: algebra_simps)
+      apply (auto intro: summable_divide summable_diff [OF B A] sums_summable [OF diffs_equiv [OF C]])
       done
+    also have "... = (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
+      by (simp add: algebra_simps)
+    finally show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h
+                   - (\<Sum>n. diffs c n * x ^ n) =
+                  (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))" . 
   next
     show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
       by (rule termdiffs_aux [OF 3 4])
@@ -1159,13 +1159,25 @@ lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 
 text {* Strict monotonicity of exponential. *}
 
-lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) \<Longrightarrow> (1 + x) \<le> exp(x)"
-  apply (drule order_le_imp_less_or_eq, auto)
-  apply (simp add: exp_def)
-  apply (rule order_trans)
-  apply (rule_tac [2] n = 2 and f = "(\<lambda>n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
-  apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
-  done
+lemma exp_ge_add_one_self_aux: 
+  assumes "0 \<le> (x::real)" shows "1+x \<le> exp(x)"
+using order_le_imp_less_or_eq [OF assms]
+proof 
+  assume "0 < x"
+  have "1+x \<le> (\<Sum>n = 0..<2. inverse (real (fact n)) * x ^ n)"
+    by (auto simp add: numeral_2_eq_2)
+  also have "... \<le> (\<Sum>n. inverse (real (fact n)) * x ^ n)"
+    apply (rule series_pos_le [OF summable_exp])
+    using `0 < x`
+    apply (auto  simp add:  zero_le_mult_iff)
+    done
+  finally show "1+x \<le> exp x" 
+    by (simp add: exp_def)
+next
+  assume "0 = x"
+  then show "1 + x \<le> exp x"
+    by auto
+qed
 
 lemma exp_gt_one: "0 < (x::real) \<Longrightarrow> 1 < exp x"
 proof -
@@ -1188,9 +1200,8 @@ proof -
 qed
 
 lemma exp_less_cancel: "exp (x::real) < exp y \<Longrightarrow> x < y"
-  apply (simp add: linorder_not_le [symmetric])
-  apply (auto simp add: order_le_less exp_less_mono)
-  done
+  unfolding linorder_not_le [symmetric]
+  by (auto simp add: order_le_less exp_less_mono)
 
 lemma exp_less_cancel_iff [iff]: "exp (x::real) < exp y \<longleftrightarrow> x < y"
   by (auto intro: exp_less_mono exp_less_cancel)
@@ -2090,55 +2101,32 @@ lemma powr_less_mono2_neg: "a < 0 ==> 0 < x ==> x < y ==> y powr a < x powr a"
 lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
   apply (case_tac "a = 0", simp)
   apply (case_tac "x = y", simp)
-  apply (rule order_less_imp_le)
-  apply (rule powr_less_mono2, auto)
+  apply (metis less_eq_real_def powr_less_mono2)
   done
 
 lemma powr_inj: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
   unfolding powr_def exp_inj_iff by simp
 
 lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
-  apply (rule mult_imp_le_div_pos)
-  apply (assumption)
-  apply (subst mult_commute)
-  apply (subst ln_powr [THEN sym])
-  apply auto
-  apply (rule ln_bound)
-  apply (erule ge_one_powr_ge_zero)
-  apply (erule order_less_imp_le)
-  done
+  by (metis less_eq_real_def ln_less_self mult_imp_le_div_pos ln_powr mult_commute 
+            order.strict_trans2 powr_gt_zero zero_less_one)
 
 lemma ln_powr_bound2:
   assumes "1 < x" and "0 < a"
   shows "(ln x) powr a <= (a powr a) * x"
 proof -
   from assms have "ln x <= (x powr (1 / a)) / (1 / a)"
-    apply (intro ln_powr_bound)
-    apply (erule order_less_imp_le)
-    apply (rule divide_pos_pos)
-    apply simp_all
-    done
+    by (metis less_eq_real_def ln_powr_bound zero_less_divide_1_iff)
   also have "... = a * (x powr (1 / a))"
     by simp
   finally have "(ln x) powr a <= (a * (x powr (1 / a))) powr a"
-    apply (intro powr_mono2)
-    apply (rule order_less_imp_le, rule assms)
-    apply (rule ln_gt_zero)
-    apply (rule assms)
-    apply assumption
-    done
+    by (metis assms less_imp_le ln_gt_zero powr_mono2)
   also have "... = (a powr a) * ((x powr (1 / a)) powr a)"
-    apply (rule powr_mult)
-    apply (rule assms)
-    apply (rule powr_gt_zero)
-    done
+    by (metis assms(2) powr_mult powr_gt_zero)
   also have "(x powr (1 / a)) powr a = x powr ((1 / a) * a)"
     by (rule powr_powr)
-  also have "... = x"
-    apply simp
-    apply (subgoal_tac "a ~= 0")
-    using assms apply auto
-    done
+  also have "... = x" using assms
+    by auto
   finally show ?thesis .
 qed
 
@@ -2488,12 +2476,7 @@ qed
 lemma real_mult_inverse_cancel:
      "[|(0::real) < x; 0 < x1; x1 * y < x * u |]
       ==> inverse x * y < inverse x1 * u"
-  apply (rule_tac c=x in mult_less_imp_less_left)
-  apply (auto simp add: mult_assoc [symmetric])
-  apply (simp (no_asm) add: mult_ac)
-  apply (rule_tac c=x1 in mult_less_imp_less_right)
-  apply (auto simp add: mult_ac)
-  done
+  by (metis field_divide_inverse mult_commute mult_assoc pos_divide_less_eq pos_less_divide_eq)
 
 lemma real_mult_inverse_cancel2:
      "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
@@ -2574,7 +2557,7 @@ lemma cos_pi_half [simp]: "cos (pi / 2) = 0"
 lemma pi_half_gt_zero [simp]: "0 < pi / 2"
   apply (rule order_le_neq_trans)
   apply (simp add: pi_half cos_is_zero [THEN theI'])
-  apply (rule notI, drule arg_cong [where f=cos], simp)
+  apply (metis cos_pi_half cos_zero zero_neq_one)
   done
 
 lemmas pi_half_neq_zero [simp] = pi_half_gt_zero [THEN less_imp_neq, symmetric]
@@ -2583,7 +2566,7 @@ lemmas pi_half_ge_zero [simp] = pi_half_gt_zero [THEN order_less_imp_le]
 lemma pi_half_less_two [simp]: "pi / 2 < 2"
   apply (rule order_le_neq_trans)
   apply (simp add: pi_half cos_is_zero [THEN theI'])
-  apply (rule notI, drule arg_cong [where f=cos], simp)
+  apply (metis cos_pi_half cos_two_neq_zero)
   done
 
 lemmas pi_half_neq_two [simp] = pi_half_less_two [THEN less_imp_neq]
@@ -2646,11 +2629,7 @@ lemma cos_npi [simp]: "cos (real n * pi) = -1 ^ n"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
 
 lemma cos_npi2 [simp]: "cos (pi * real n) = -1 ^ n"
-proof -
-  have "cos (pi * real n) = cos (real n * pi)" by (simp only: mult_commute)
-  also have "... = -1 ^ n" by (rule cos_npi)
-  finally show ?thesis .
-qed
+  by (metis cos_npi mult_commute)
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
   by (induct n) (auto simp add: real_of_nat_Suc distrib_right)
@@ -2665,10 +2644,7 @@ lemma sin_two_pi [simp]: "sin (2 * pi) = 0"
   by simp
 
 lemma sin_gt_zero2: "[| 0 < x; x < pi/2 |] ==> 0 < sin x"
-  apply (rule sin_gt_zero, assumption)
-  apply (rule order_less_trans, assumption)
-  apply (rule pi_half_less_two)
-  done
+  by (metis sin_gt_zero order_less_trans pi_half_less_two)
 
 lemma sin_less_zero:
   assumes "- pi/2 < x" and "x < 0"
@@ -2692,8 +2668,7 @@ lemma cos_gt_zero: "[| 0 < x; x < pi/2 |] ==> 0 < cos x"
 
 lemma cos_gt_zero_pi: "[| -(pi/2) < x; x < pi/2 |] ==> 0 < cos x"
   apply (rule_tac x = x and y = 0 in linorder_cases)
-  apply (rule cos_minus [THEN subst])
-  apply (rule cos_gt_zero)
+  apply (metis cos_gt_zero cos_minus minus_less_iff neg_0_less_iff_less)
   apply (auto intro: cos_gt_zero)
   done
 
