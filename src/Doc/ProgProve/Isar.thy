@@ -1019,7 +1019,7 @@ not all arguments @{text r}, @{text s}, @{text t} are variables:
 \isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}
 \end{isabelle}
 Applying the standard form of
-rule induction in such a situation will lead to strange and typically unproveable goals.
+rule induction in such a situation will lead to strange and typically unprovable goals.
 We can easily reduce this situation to the standard one by introducing
 new variables @{text x}, @{text y}, @{text z} and reformulating the goal like this:
 \begin{isabelle}
@@ -1041,7 +1041,7 @@ lemma "ev (Suc m) \<Longrightarrow> \<not> ev m"
 proof(induction "Suc m" arbitrary: m rule: ev.induct)
   fix n assume IH: "\<And>m. n = Suc m \<Longrightarrow> \<not> ev m"
   show "\<not> ev (Suc n)"
-  proof --"contradition"
+  proof --"contradiction"
     assume "ev(Suc n)"
     thus False
     proof cases --"rule inversion"
