@@ -12,6 +12,14 @@ e.g. non-terminating 'by' steps.
 * More relaxed Sledgehammer panel: avoid repeated application of query
 after edits surrounding the command location.
 
+* More status information about commands that are interrupted
+accidentally (via physical event or Poly/ML runtime system signal,
+e.g. out-of-memory).
+
+* Reactivated Isabelle/Scala kill command for external processes on
+Mac OS X, which was accidentally broken in Isabelle2013-1 due to a
+workaround for some Debian/Ubuntu Linux versions from 2013.
+
 
 
 New in Isabelle2013-1 (November 2013)
