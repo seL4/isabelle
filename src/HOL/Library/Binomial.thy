@@ -91,17 +91,14 @@ lemma choose_deconstruct: "finite M \<Longrightarrow> x \<notin> M \<Longrightar
     {s. s \<subseteq> M \<and> card s = Suc k} \<union> {s. \<exists>t. t \<subseteq> M \<and> card t = k \<and> s = insert x t}"
   apply safe
      apply (auto intro: finite_subset [THEN card_insert_disjoint])
-  apply (drule_tac x = "xa - {x}" in spec)
-  by (metis card_Diff_singleton_if card_infinite diff_Suc_1 in_mono insert_Diff_single insert_absorb lessI less_nat_zero_code subset_insert_iff)
+  by (metis (full_types) Diff_insert_absorb Set.set_insert Zero_neq_Suc card_Diff_singleton_if 
+     card_eq_0_iff diff_Suc_1 in_mono subset_insert_iff)
 
 lemma finite_bex_subset [simp]:
   assumes "finite B"
     and "\<And>A. A \<subseteq> B \<Longrightarrow> finite {x. P x A}"
   shows "finite {x. \<exists>A \<subseteq> B. P x A}"
-proof -
-  have "{x. \<exists>A\<subseteq>B. P x A} = (\<Union>A \<in> Pow B. {x. P x A})" by blast
-  with assms show ?thesis by simp
-qed
+  by (metis (no_types) assms finite_Collect_bounded_ex finite_Collect_subsets)
 
 text{*There are as many subsets of @{term A} having cardinality @{term k}
  as there are sets obtained from the former by inserting a fixed element
@@ -259,11 +256,8 @@ next
   case False
   from assms obtain h where "k = Suc h" by (cases k) auto
   then show ?thesis
-    apply (simp add: pochhammer_Suc_setprod)
-    apply (rule_tac x="n" in bexI)
-    using assms
-    apply auto
-    done
+    by (simp add: pochhammer_Suc_setprod)
+       (metis Suc_leI Suc_le_mono assms atLeastAtMost_iff less_eq_nat.simps(1))
 qed
 
 lemma pochhammer_of_nat_eq_0_lemma':
@@ -292,8 +286,7 @@ lemma pochhammer_eq_0_iff: "pochhammer a n = (0::'a::field_char_0) \<longleftrig
   apply (auto simp add: pochhammer_of_nat_eq_0_iff)
   apply (cases n)
    apply (auto simp add: pochhammer_def algebra_simps group_add_class.eq_neg_iff_add_eq_0)
-  apply (rule_tac x=x in exI)
-  apply auto
+  apply (metis leD not_less_eq)
   done
 
 
