@@ -125,14 +125,22 @@ val is_identity = fn (Abs (_, _, Bound 0)) => true | _ => false;
 fun instantiate t Ts = Term.subst_TVars
   ((Term.add_tvar_namesT (fastype_of t) []) ~~ rev Ts) t;
 
-exception COERCION_GEN_ERROR of unit -> string;
+exception COERCION_GEN_ERROR of unit -> (string * Pretty.T list);
+
+infixr ++> +@> (* lazy error msg composition *)
+
+fun err ++> prt = err #> apsnd (cons prt);
+val op +@> = Library.foldl op ++>;
+
+fun eval_err err = err ()
+  |> (fn (str, errs) => str ^ Pretty.string_of (Pretty.text_fold (rev errs)));
 
 fun inst_collect tye err T U =
   (case (T, Type_Infer.deref tye U) of
-    (TVar (xi, S), U) => [(xi, U)]
+    (TVar (xi, _), U) => [(xi, U)]
   | (Type (a, Ts), Type (b, Us)) =>
-      if a <> b then raise error (err ()) else inst_collects tye err Ts Us
-  | (_, U') => if T <> U' then error (err ()) else [])
+      if a <> b then raise error (eval_err err) else inst_collects tye err Ts Us
+  | (_, U') => if T <> U' then error (eval_err err) else [])
 and inst_collects tye err Ts Us =
   fold2 (fn T => fn U => fn is => inst_collect tye err T U @ is) Ts Us [];
 
@@ -234,13 +242,12 @@ fun maybe_new_nodes ss G = fold maybe_new_node ss G
 
 (** error messages **)
 
-infixr ++> (* lazy error msg composition *)
+fun gen_err err msg =
+  err +@> [Pretty.fbrk, Pretty.str "Now trying to infer coercions globally.", Pretty.fbrk,
+     Pretty.fbrk, Pretty.str "Coercion inference failed",
+     Pretty.str (if msg = "" then "" else ":\n" ^ msg), Pretty.fbrk];
 
-fun err ++> str = err #> suffix str
-
-fun gen_msg err msg =
-  err () ^ "\nNow trying to infer coercions globally.\n\nCoercion inference failed" ^
-  (if msg = "" then "" else ":\n" ^ msg) ^ "\n";
+val gen_msg = eval_err oo gen_err
 
 fun prep_output ctxt tye bs ts Ts =
   let
@@ -258,34 +265,34 @@ fun unif_failed msg =
 
 fun err_appl_msg ctxt msg tye bs t T u U () =
   let val ([t', u'], [T', U']) = prep_output ctxt tye bs [t, u] [T, U]
-  in unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n" end;
+  in (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n\n", [Pretty.fbrk, Pretty.fbrk,
+    Pretty.str "Coercion Inference:"]) end;
 
-fun err_list ctxt msg tye Ts =
+fun err_list ctxt err tye Ts =
   let
     val (_, Ts') = prep_output ctxt tye [] [] Ts;
-    val text =
-      msg ^ "\nCannot unify a list of types that should be the same:\n" ^
-        Pretty.string_of (Pretty.list "[" "]" (map (Syntax.pretty_typ ctxt) Ts'));
+    val text = eval_err (err +@> [Pretty.fbrk,
+      Pretty.str "Cannot unify a list of types that should be the same:", Pretty.fbrk,
+      Pretty.list "[" "]" (map (Syntax.pretty_typ ctxt) Ts')]);
   in
     error text
   end;
 
-fun err_bound ctxt msg tye packs =
+fun err_bound ctxt err tye packs =
   let
     val (ts, Ts) = fold
       (fn (bs, t $ u, U, _, U') => fn (ts, Ts) =>
         let val (t', T') = prep_output ctxt tye bs [t, u] [U', U]
         in (t' :: ts, T' :: Ts) end)
       packs ([], []);
-    val text = msg ^ "\n" ^ Pretty.string_of (
-        Pretty.big_list "Cannot fulfil subtype constraints:"
+    val text = eval_err (err +@> [Pretty.fbrk, Pretty.big_list "Cannot fulfil subtype constraints:"
         (map2 (fn [t, u] => fn [T, U] =>
           Pretty.block [
             Syntax.pretty_typ ctxt T, Pretty.brk 2, Pretty.str "<:", Pretty.brk 2,
             Syntax.pretty_typ ctxt U, Pretty.brk 3,
             Pretty.str "from function application", Pretty.brk 2,
             Pretty.block [Syntax.pretty_term ctxt (t $ u)]])
-        ts Ts))
+        ts Ts)])
   in
     error text
   end;
@@ -385,8 +392,9 @@ fun process_constraints ctxt err cs tye_idx =
               | CONTRAVARIANT => (swap constraint :: cs, tye_idx)
               | INVARIANT_TO T => (cs, unify_list [T, fst constraint, snd constraint] tye_idx
                   handle NO_UNIFIER (msg, _) =>
-                    err_list ctxt (gen_msg err
-                      "failed to unify invariant arguments w.r.t. to the known map function\n" ^ msg)
+                    err_list ctxt (gen_err err
+                      ("failed to unify invariant arguments w.r.t. to the known map function\n" ^
+                        msg))
                       (fst tye_idx) (T :: Ts))
               | INVARIANT => (cs, strong_unify ctxt constraint tye_idx
                   handle NO_UNIFIER (msg, _) =>
@@ -541,7 +549,7 @@ fun process_constraints ctxt err cs tye_idx =
                       (fn cycle => fn tye_idx' => (unify_list cycle tye_idx'
                         handle NO_UNIFIER (msg, _) =>
                           err_bound ctxt
-                            (gen_msg err ("constraint cycle not unifiable\n" ^ msg)) (fst tye_idx)
+                            (gen_err err ("constraint cycle not unifiable\n" ^ msg)) (fst tye_idx)
                             (find_cycle_packs cycle)))
                       cycles tye_idx
                 in
@@ -569,7 +577,7 @@ fun process_constraints ctxt err cs tye_idx =
                 Graph.is_edge coes_graph (nameT T, nameT U) then (hd nodes, T')
               else if not super andalso
                 Graph.is_edge coes_graph (nameT U, nameT T) then (T', hd nodes)
-              else err_bound ctxt (gen_msg err "cycle elimination produces inconsistent graph")
+              else err_bound ctxt (gen_err err "cycle elimination produces inconsistent graph")
                     (fst tye_idx)
                     (maps find_cycle_packs cycles @ find_error_pack super T')
           end;
@@ -597,7 +605,7 @@ fun process_constraints ctxt err cs tye_idx =
           val assignment =
             if null bound orelse null not_params then NONE
             else SOME (tightest lower S styps_and_sorts (map nameT not_params)
-                handle BOUND_ERROR msg => err_bound ctxt (gen_msg err msg) tye
+                handle BOUND_ERROR msg => err_bound ctxt (gen_err err msg) tye
                   (maps (find_error_pack (not lower)) raw_bound))
         in
           (case assignment of
@@ -611,7 +619,7 @@ fun process_constraints ctxt err cs tye_idx =
                 in
                   if subset (op = o apfst nameT) (filter is_typeT other_bound, s :: styps true s)
                   then apfst (Vartab.update (xi, T)) tye_idx
-                  else err_bound ctxt (gen_msg err ("assigned base type " ^
+                  else err_bound ctxt (gen_err err ("assigned base type " ^
                     quote (Syntax.string_of_typ ctxt T) ^
                     " clashes with the upper bound of variable " ^
                     Syntax.string_of_typ ctxt (TVar(xi, S)))) tye
@@ -646,7 +654,7 @@ fun process_constraints ctxt err cs tye_idx =
       in
         fold
           (fn Ts => fn tye_idx' => unify_list Ts tye_idx'
-            handle NO_UNIFIER (msg, _) => err_list ctxt (gen_msg err msg) (fst tye_idx) Ts)
+            handle NO_UNIFIER (msg, _) => err_list ctxt (gen_err err msg) (fst tye_idx) Ts)
           to_unify tye_idx
       end;
 
@@ -670,21 +678,24 @@ fun gen_coercion ctxt err tye TU =
             then mk_identity T1
             else
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
-                NONE => raise COERCION_GEN_ERROR (err ++> quote (Syntax.string_of_typ ctxt T1) ^
-                  " is not a subtype of " ^ quote (Syntax.string_of_typ ctxt T2))
+                NONE => raise COERCION_GEN_ERROR (err +@> 
+                  [Pretty.quote (Syntax.pretty_typ ctxt T1), Pretty.brk 1,
+                    Pretty.str "is not a subtype of", Pretty.brk 1,
+                    Pretty.quote (Syntax.pretty_typ ctxt T2)])
               | SOME (co, _) => co)
       | (T1 as Type (a, Ts), T2 as Type (b, Us)) =>
             if a <> b
             then
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
                 (*immediate error - cannot fix complex coercion with the global algorithm*)
-                NONE => error (err () ^ "No coercion known for type constructors: " ^
-                  quote a ^ " and " ^ quote b)
+                NONE => error (eval_err (err ++> Pretty.strs
+                  ["No coercion known for type constructors:", quote a, "and", quote b]))
               | SOME (co, ((Ts', Us'), _)) =>
                   let
                     val co_before = gen (T1, Type (a, Ts'));
                     val coT = range_type (fastype_of co_before);
-                    val insts = inst_collect tye (err ++> "Could not insert complex coercion")
+                    val insts = inst_collect tye
+                      (err ++> Pretty.str "Could not insert complex coercion")
                       (domain_type (fastype_of co)) coT;
                     val co' = Term.subst_TVars insts co;
                     val co_after = gen (Type (b, (map (typ_subst_TVars insts) Us')), T2);
@@ -706,7 +717,7 @@ fun gen_coercion ctxt err tye TU =
                     if Type.could_unify (T1, T2)
                     then mk_identity T1
                     else raise COERCION_GEN_ERROR
-                      (err ++> "No map function for " ^ quote a ^ " known")
+                      (err ++> Pretty.strs ["No map function for", quote a, "known"])
                 | SOME (tmap, variances) =>
                     let
                       val (used_coes, invarTs) =
@@ -723,9 +734,10 @@ fun gen_coercion ctxt err tye TU =
       | (T, U) =>
             if Type.could_unify (T, U)
             then mk_identity T
-            else raise COERCION_GEN_ERROR (err ++> "Cannot generate coercion from " ^
-              quote (Syntax.string_of_typ ctxt T) ^ " to " ^
-              quote (Syntax.string_of_typ ctxt U)));
+            else raise COERCION_GEN_ERROR (err +@>
+              [Pretty.str "Cannot generate coercion from", Pretty.brk 1,
+              Pretty.quote (Syntax.pretty_typ ctxt T), Pretty.brk 1, Pretty.str "to", Pretty.brk 1,
+              Pretty.quote (Syntax.pretty_typ ctxt U)]));
   in
     gen TU
   end;
@@ -734,20 +746,21 @@ fun function_of ctxt err tye T =
   (case Type_Infer.deref tye T of
     Type (C, Ts) =>
       (case Symreltab.lookup (coes_of ctxt) (C, "fun") of
-        NONE => error (err () ^ "No complex coercion from " ^ quote C ^ " to fun")
+        NONE => error (eval_err (err ++> Pretty.strs
+          ["No complex coercion from", quote C, "to fun"]))
       | SOME (co, ((Ts', _), _)) =>
         let
           val co_before = gen_coercion ctxt err tye (Type (C, Ts), Type (C, Ts'));
           val coT = range_type (fastype_of co_before);
-          val insts = inst_collect tye (err ++> "Could not insert complex coercion")
+          val insts = inst_collect tye (err ++> Pretty.str "Could not insert complex coercion")
             (domain_type (fastype_of co)) coT;
           val co' = Term.subst_TVars insts co;
         in
           Abs (Name.uu, Type (C, Ts), Library.foldr (op $)
             (filter (not o is_identity) [co', co_before], Bound 0))
         end)
-  | T' => error (err () ^ "No complex coercion from " ^
-      quote (Syntax.string_of_typ ctxt T') ^ " to fun"));
+  | T' => error (eval_err (err +@> [Pretty.str "No complex coercion from", Pretty.brk 1,
+      Pretty.quote (Syntax.pretty_typ ctxt T'), Pretty.brk 1, Pretty.str "to fun"])));
 
 fun insert_coercions ctxt (tye, idx) ts =
   let
@@ -767,7 +780,7 @@ fun insert_coercions ctxt (tye, idx) ts =
           in
             if can (fn TU => strong_unify ctxt TU (tye, 0)) (U, U')
             then (t' $ u', T)
-            else (t' $ (gen_coercion ctxt (K "") tye (U', U) $ u'), T)
+            else (t' $ (gen_coercion ctxt (K ("", [])) tye (U', U) $ u'), T)
           end
   in
     map (fst o insert []) ts
@@ -804,21 +817,22 @@ fun coercion_infer_types ctxt raw_ts =
                     (t', strong_unify ctxt (W --> V, T) (tye, idx + 2))
                       handle NO_UNIFIER _ =>
                         let
-                          val err' =
-                            err ++> "\nLocal coercion insertion on the operator failed:\n";
+                          val err' = err ++>
+                            Pretty.str "Local coercion insertion on the operator failed:\n";
                           val co = function_of ctxt err' tye T;
                           val (t'', T'', tye_idx'') = inf coerce bs (co $ t') (tye, idx + 2);
                         in
                           (t'', strong_unify ctxt (W --> V, T'') tye_idx''
-                             handle NO_UNIFIER (msg, _) => error (err' () ^ msg))
+                             handle NO_UNIFIER (msg, _) =>
+                               error (eval_err (err' ++> Pretty.str msg)))
                         end;
-                  val err' = err ++>
-                    (if t' aconv t'' then ""
-                    else "\nSuccessfully coerced the operator to a function of type:\n" ^
+                  val err' = err ++> Pretty.str
+                    ((if t' aconv t'' then ""
+                    else "Successfully coerced the operator to a function of type:\n" ^
                       Syntax.string_of_typ ctxt
                         (the_single (snd (prep_output ctxt tye' bs [] [W --> V]))) ^ "\n") ^
-                    (if coerce' then "\nLocal coercion insertion on the operand failed:\n"
-                    else "\nLocal coercion insertion on the operand disallowed:\n");
+                    (if coerce' then "Local coercion insertion on the operand failed:\n"
+                    else "Local coercion insertion on the operand disallowed:\n"));
                   val (u'', U', tye_idx') =
                     if coerce' then
                       let val co = gen_coercion ctxt err' tye' (U, W);
@@ -826,7 +840,8 @@ fun coercion_infer_types ctxt raw_ts =
                     else (u, U, (tye', idx'));
                 in
                   (t'' $ u'', strong_unify ctxt (U', W) tye_idx'
-                    handle NO_UNIFIER (msg, _) => raise COERCION_GEN_ERROR (err' ++> msg))
+                    handle NO_UNIFIER (msg, _) =>
+                      raise COERCION_GEN_ERROR (err' ++> Pretty.str msg))
                 end;
           in (tu, V, tye_idx'') end;
 
@@ -839,11 +854,11 @@ fun coercion_infer_types ctxt raw_ts =
         let
           fun gen_single t (tye_idx, constraints) =
             let val (_, tye_idx', constraints') =
-              generate_constraints ctxt (err ++> "\n") t tye_idx
+              generate_constraints ctxt (err ++> Pretty.str "\n") t tye_idx
             in (tye_idx', constraints' @ constraints) end;
 
           val (tye_idx, constraints) = fold gen_single ts ((Vartab.empty, idx), []);
-          val (tye, idx) = process_constraints ctxt (err ++> "\n") constraints tye_idx;
+          val (tye, idx) = process_constraints ctxt (err ++> Pretty.str "\n") constraints tye_idx;
         in
           (insert_coercions ctxt (tye, idx) ts, (tye, idx))
         end);
@@ -984,10 +999,10 @@ fun delete_coercion raw_t context =
     val (T1, T2) = Term.dest_funT (fastype_of t)
       handle TYPE _ => err_coercion false;
 
-    val (a, Ts) = dest_Type T1
+    val (a, _) = dest_Type T1
       handle TYPE _ => err_coercion false;
 
-    val (b, Us) = dest_Type T2
+    val (b, _) = dest_Type T2
       handle TYPE _ => err_coercion false;
 
     fun delete_and_insert tab G =
