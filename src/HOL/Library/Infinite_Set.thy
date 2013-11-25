@@ -193,10 +193,6 @@ proof -
     by (auto simp add: infinite_nat_iff_unbounded)
 qed
 
-(* duplicates Finite_Set.infinite_UNIV_nat *)
-lemma nat_infinite: "infinite (UNIV :: nat set)"
-  by (auto simp add: infinite_nat_iff_unbounded)
-
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
 
@@ -207,17 +203,6 @@ proof
   then have "finite (UNIV::nat set)"
     by (rule finite_imageD)
   then show False by simp
-qed
-
-(* duplicates Int.infinite_UNIV_int *)
-lemma int_infinite [simp]: "infinite (UNIV::int set)"
-proof -
-  from inj_int have "infinite (range int)"
-    by (rule range_inj_infinite)
-  moreover 
-  have "range int \<subseteq> (UNIV::int set)" by simp
-  ultimately show "infinite (UNIV::int set)"
-    by (simp add: infinite_super)
 qed
 
 text {*
