@@ -121,7 +121,7 @@ done
 subsection {* (In)finite cardinals *}
 
 definition cinfinite where
-  "cinfinite r = infinite (Field r)"
+  "cinfinite r = (\<not> finite (Field r))"
 
 abbreviation Cinfinite where
   "Cinfinite r \<equiv> cinfinite r \<and> Card_order r"
@@ -140,7 +140,7 @@ lemma natLeq_ordLeq_cinfinite:
   assumes inf: "Cinfinite r"
   shows "natLeq \<le>o r"
 proof -
-  from inf have "natLeq \<le>o |Field r|" by (simp add: cinfinite_def infinite_iff_natLeq_ordLeq)
+  from inf have "natLeq \<le>o |Field r|" by (metis cinfinite_def infinite_iff_natLeq_ordLeq)
   also from inf have "|Field r| =o r" by (simp add: card_of_unique ordIso_symmetric)
   finally show ?thesis .
 qed

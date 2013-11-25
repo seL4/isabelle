@@ -861,7 +861,7 @@ qed
 
 lemma finite_ordLess_infinite:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
-        FIN: "finite(Field r)" and INF: "infinite(Field r')"
+        FIN: "finite(Field r)" and INF: "\<not>finite(Field r')"
 shows "r <o r'"
 proof-
   {assume "r' \<le>o r"

@@ -487,8 +487,8 @@ using card_of_Pow card_of_Field_ordIso ordIso_ordLess_trans ordIso_symmetric by 
 
 
 lemma infinite_Pow:
-assumes "infinite A"
-shows "infinite (Pow A)"
+assumes "\<not> finite A"
+shows "\<not> finite (Pow A)"
 proof-
   have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
   thus ?thesis by (metis assms finite_Pow_iff)
@@ -908,8 +908,8 @@ using embed_inj_on[of "|A|" "|B|"]  embed_Field[of "|A|" "|B|"]
 
 
 lemma card_of_ordLeq_infinite:
-assumes "|A| \<le>o |B|" and "infinite A"
-shows "infinite B"
+assumes "|A| \<le>o |B|" and "\<not> finite A"
+shows "\<not> finite B"
 using assms card_of_ordLeq_finite by auto
 
 
@@ -938,15 +938,14 @@ at page 47 in \cite{card-book}. Then everything else follows fairly easily.  *}
 
 
 lemma infinite_iff_card_of_nat:
-"infinite A = ( |UNIV::nat set| \<le>o |A| )"
-by (auto simp add: infinite_iff_countable_subset card_of_ordLeq)
-
+"\<not> finite A \<longleftrightarrow> ( |UNIV::nat set| \<le>o |A| )"
+unfolding infinite_iff_countable_subset card_of_ordLeq ..
 
 text{* The next two results correspond to the ZF fact that all infinite cardinals are
 limit ordinals: *}
 
 lemma Card_order_infinite_not_under:
-assumes CARD: "Card_order r" and INF: "infinite (Field r)"
+assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
 shows "\<not> (\<exists>a. Field r = rel.under r a)"
 proof(auto)
   have 0: "Well_order r \<and> wo_rel r \<and> Refl r"
@@ -983,7 +982,7 @@ qed
 
 
 lemma infinite_Card_order_limit:
-assumes r: "Card_order r" and "infinite (Field r)"
+assumes r: "Card_order r" and "\<not>finite (Field r)"
 and a: "a : Field r"
 shows "EX b : Field r. a \<noteq> b \<and> (a,b) : r"
 proof-
@@ -1005,11 +1004,11 @@ qed
 
 
 theorem Card_order_Times_same_infinite:
-assumes CO: "Card_order r" and INF: "infinite(Field r)"
+assumes CO: "Card_order r" and INF: "\<not>finite(Field r)"
 shows "|Field r \<times> Field r| \<le>o r"
 proof-
   obtain phi where phi_def:
-  "phi = (\<lambda>r::'a rel. Card_order r \<and> infinite(Field r) \<and>
+  "phi = (\<lambda>r::'a rel. Card_order r \<and> \<not>finite(Field r) \<and>
                       \<not> |Field r \<times> Field r| \<le>o r )" by blast
   have temp1: "\<forall>r. phi r \<longrightarrow> Well_order r"
   unfolding phi_def card_order_on_def by auto
@@ -1060,15 +1059,15 @@ proof-
     }
     ultimately have 11: "|A1| <o r" using ordLeq_ordLess_trans by blast
     (*  *)
-    have "infinite (Field r)" using 1 unfolding phi_def by simp
-    hence "infinite ?B" using 8 3 card_of_ordIso_finite_Field[of r ?B] by blast
-    hence "infinite A1" using 9 infinite_super finite_cartesian_product by blast
+    have "\<not> finite (Field r)" using 1 unfolding phi_def by simp
+    hence "\<not> finite ?B" using 8 3 card_of_ordIso_finite_Field[of r ?B] by blast
+    hence "\<not> finite A1" using 9 finite_cartesian_product finite_subset by metis
     moreover have temp4: "Field |A1| = A1 \<and> Well_order |A1| \<and> Card_order |A1|"
     using card_of_Card_order[of A1] card_of_Well_order[of A1]
     by (simp add: Field_card_of)
     moreover have "\<not> r \<le>o | A1 |"
     using temp4 11 3 using not_ordLeq_iff_ordLess by blast
-    ultimately have "infinite(Field |A1| ) \<and> Card_order |A1| \<and> \<not> r \<le>o | A1 |"
+    ultimately have "\<not> finite(Field |A1| ) \<and> Card_order |A1| \<and> \<not> r \<le>o | A1 |"
     by (simp add: card_of_card_order_on)
     hence "|Field |A1| \<times> Field |A1| | \<le>o |A1|"
     using 2 unfolding phi_def by blast
@@ -1081,7 +1080,7 @@ qed
 
 
 corollary card_of_Times_same_infinite:
-assumes "infinite A"
+assumes "\<not>finite A"
 shows "|A \<times> A| =o |A|"
 proof-
   let ?r = "|A|"
@@ -1094,7 +1093,7 @@ qed
 
 
 lemma card_of_Times_infinite:
-assumes INF: "infinite A" and NE: "B \<noteq> {}" and LEQ: "|B| \<le>o |A|"
+assumes INF: "\<not>finite A" and NE: "B \<noteq> {}" and LEQ: "|B| \<le>o |A|"
 shows "|A \<times> B| =o |A| \<and> |B \<times> A| =o |A|"
 proof-
   have "|A| \<le>o |A \<times> B| \<and> |A| \<le>o |B \<times> A|"
@@ -1111,7 +1110,7 @@ qed
 
 
 corollary Card_order_Times_infinite:
-assumes INF: "infinite(Field r)" and CARD: "Card_order r" and
+assumes INF: "\<not>finite(Field r)" and CARD: "Card_order r" and
         NE: "Field p \<noteq> {}" and LEQ: "p \<le>o r"
 shows "| (Field r) \<times> (Field p) | =o r \<and> | (Field p) \<times> (Field r) | =o r"
 proof-
@@ -1125,7 +1124,7 @@ qed
 
 
 lemma card_of_Sigma_ordLeq_infinite:
-assumes INF: "infinite B" and
+assumes INF: "\<not>finite B" and
         LEQ_I: "|I| \<le>o |B|" and LEQ: "\<forall>i \<in> I. |A i| \<le>o |B|"
 shows "|SIGMA i : I. A i| \<le>o |B|"
 proof(cases "I = {}", simp add: card_of_empty)
@@ -1139,7 +1138,7 @@ qed
 
 
 lemma card_of_Sigma_ordLeq_infinite_Field:
-assumes INF: "infinite (Field r)" and r: "Card_order r" and
+assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
         LEQ_I: "|I| \<le>o r" and LEQ: "\<forall>i \<in> I. |A i| \<le>o r"
 shows "|SIGMA i : I. A i| \<le>o r"
 proof-
@@ -1155,21 +1154,21 @@ qed
 
 
 lemma card_of_Times_ordLeq_infinite_Field:
-"\<lbrakk>infinite (Field r); |A| \<le>o r; |B| \<le>o r; Card_order r\<rbrakk>
+"\<lbrakk>\<not>finite (Field r); |A| \<le>o r; |B| \<le>o r; Card_order r\<rbrakk>
  \<Longrightarrow> |A <*> B| \<le>o r"
 by(simp add: card_of_Sigma_ordLeq_infinite_Field)
 
 
 lemma card_of_Times_infinite_simps:
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A \<times> B| =o |A|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |A \<times> B|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |B \<times> A| =o |A|"
-"\<lbrakk>infinite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |B \<times> A|"
+"\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A \<times> B| =o |A|"
+"\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |A \<times> B|"
+"\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |B \<times> A| =o |A|"
+"\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |B \<times> A|"
 by (auto simp add: card_of_Times_infinite ordIso_symmetric)
 
 
 lemma card_of_UNION_ordLeq_infinite:
-assumes INF: "infinite B" and
+assumes INF: "\<not>finite B" and
         LEQ_I: "|I| \<le>o |B|" and LEQ: "\<forall>i \<in> I. |A i| \<le>o |B|"
 shows "|\<Union> i \<in> I. A i| \<le>o |B|"
 proof(cases "I = {}", simp add: card_of_empty)
@@ -1183,7 +1182,7 @@ qed
 
 
 corollary card_of_UNION_ordLeq_infinite_Field:
-assumes INF: "infinite (Field r)" and r: "Card_order r" and
+assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
         LEQ_I: "|I| \<le>o r" and LEQ: "\<forall>i \<in> I. |A i| \<le>o r"
 shows "|\<Union> i \<in> I. A i| \<le>o r"
 proof-
@@ -1199,7 +1198,7 @@ qed
 
 
 lemma card_of_Plus_infinite1:
-assumes INF: "infinite A" and LEQ: "|B| \<le>o |A|"
+assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
 shows "|A <+> B| =o |A|"
 proof(cases "B = {}", simp add: card_of_Plus_empty1 card_of_Plus_empty2 ordIso_symmetric)
   let ?Inl = "Inl::'a \<Rightarrow> 'a + 'b"  let ?Inr = "Inr::'b \<Rightarrow> 'a + 'b"
@@ -1210,7 +1209,7 @@ proof(cases "B = {}", simp add: card_of_Plus_empty1 card_of_Plus_empty2 ordIso_s
     assume Case1: "B = {b1}"
     have 2: "bij_betw ?Inl A ((?Inl ` A))"
     unfolding bij_betw_def inj_on_def by auto
-    hence 3: "infinite (?Inl ` A)"
+    hence 3: "\<not>finite (?Inl ` A)"
     using INF bij_betw_finite[of ?Inl A] by blast
     let ?A' = "?Inl ` A \<union> {?Inr b1}"
     obtain g where "bij_betw g (?Inl ` A) ?A'"
@@ -1238,20 +1237,20 @@ qed
 
 
 lemma card_of_Plus_infinite2:
-assumes INF: "infinite A" and LEQ: "|B| \<le>o |A|"
+assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
 shows "|B <+> A| =o |A|"
 using assms card_of_Plus_commute card_of_Plus_infinite1
 ordIso_equivalence by blast
 
 
 lemma card_of_Plus_infinite:
-assumes INF: "infinite A" and LEQ: "|B| \<le>o |A|"
+assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
 shows "|A <+> B| =o |A| \<and> |B <+> A| =o |A|"
 using assms by (auto simp: card_of_Plus_infinite1 card_of_Plus_infinite2)
 
 
 corollary Card_order_Plus_infinite:
-assumes INF: "infinite(Field r)" and CARD: "Card_order r" and
+assumes INF: "\<not>finite(Field r)" and CARD: "Card_order r" and
         LEQ: "p \<le>o r"
 shows "| (Field r) <+> (Field p) | =o r \<and> | (Field p) <+> (Field r) | =o r"
 proof-
@@ -1281,8 +1280,8 @@ abbreviation natLeq_on :: "nat \<Rightarrow> (nat * nat) set"
 where "natLeq_on n \<equiv> {(x,y). x < n \<and> y < n \<and> x \<le> y}"
 
 lemma infinite_cartesian_product:
-assumes "infinite A" "infinite B"
-shows "infinite (A \<times> B)"
+assumes "\<not>finite A" "\<not>finite B"
+shows "\<not>finite (A \<times> B)"
 proof
   assume "finite (A \<times> B)"
   from assms(1) have "A \<noteq> {}" by auto
@@ -1421,7 +1420,7 @@ proof(auto simp add: natLeq_Well_order
       Card_order_iff_Restr_underS Restr_natLeq2, simp add:  Field_natLeq)
   fix n have "finite(Field (natLeq_on n))"
   unfolding Field_natLeq_on by auto
-  moreover have "infinite(UNIV::nat set)" by auto
+  moreover have "\<not>finite(UNIV::nat set)" by auto
   ultimately show "natLeq_on n <o |UNIV::nat set|"
   using finite_ordLess_infinite[of "natLeq_on n" "|UNIV::nat set|"]
         Field_card_of[of "UNIV::nat set"]
@@ -1441,7 +1440,7 @@ using Field_natLeq card_of_Field_natLeq by auto
 
 
 corollary infinite_iff_natLeq_ordLeq:
-"infinite A = ( natLeq \<le>o |A| )"
+"\<not>finite A = ( natLeq \<le>o |A| )"
 using infinite_iff_card_of_nat[of A] card_of_nat
       ordIso_ordLeq_trans ordLeq_ordIso_trans ordIso_symmetric by blast
 
@@ -1769,7 +1768,7 @@ qed
 
 
 lemma card_of_Plus_ordLess_infinite:
-assumes INF: "infinite C" and
+assumes INF: "\<not>finite C" and
         LESS1: "|A| <o |C|" and LESS2: "|B| <o |C|"
 shows "|A <+> B| <o |C|"
 proof(cases "A = {} \<or> B = {}")
@@ -1784,17 +1783,17 @@ proof(cases "A = {} \<or> B = {}")
 next
   assume Case2: "\<not>(A = {} \<or> B = {})"
   {assume *: "|C| \<le>o |A <+> B|"
-   hence "infinite (A <+> B)" using INF card_of_ordLeq_finite by blast
-   hence 1: "infinite A \<or> infinite B" using finite_Plus by blast
+   hence "\<not>finite (A <+> B)" using INF card_of_ordLeq_finite by blast
+   hence 1: "\<not>finite A \<or> \<not>finite B" using finite_Plus by blast
    {assume Case21: "|A| \<le>o |B|"
-    hence "infinite B" using 1 card_of_ordLeq_finite by blast
+    hence "\<not>finite B" using 1 card_of_ordLeq_finite by blast
     hence "|A <+> B| =o |B|" using Case2 Case21
     by (auto simp add: card_of_Plus_infinite)
     hence False using LESS2 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
    }
    moreover
    {assume Case22: "|B| \<le>o |A|"
-    hence "infinite A" using 1 card_of_ordLeq_finite by blast
+    hence "\<not>finite A" using 1 card_of_ordLeq_finite by blast
     hence "|A <+> B| =o |A|" using Case2 Case22
     by (auto simp add: card_of_Plus_infinite)
     hence False using LESS1 not_ordLess_ordLeq * ordLeq_ordIso_trans by blast
@@ -1808,7 +1807,7 @@ qed
 
 
 lemma card_of_Plus_ordLess_infinite_Field:
-assumes INF: "infinite (Field r)" and r: "Card_order r" and
+assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
         LESS1: "|A| <o r" and LESS2: "|B| <o r"
 shows "|A <+> B| <o r"
 proof-
@@ -1824,12 +1823,12 @@ qed
 
 
 lemma card_of_Plus_ordLeq_infinite_Field:
-assumes r: "infinite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
+assumes r: "\<not>finite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
 and c: "Card_order r"
 shows "|A <+> B| \<le>o r"
 proof-
   let ?r' = "cardSuc r"
-  have "Card_order ?r' \<and> infinite (Field ?r')" using assms
+  have "Card_order ?r' \<and> \<not>finite (Field ?r')" using assms
   by (simp add: cardSuc_Card_order cardSuc_finite)
   moreover have "|A| <o ?r'" and "|B| <o ?r'" using A B c
   by (auto simp: card_of_card_order_on Field_card_of cardSuc_ordLeq_ordLess)
@@ -1841,7 +1840,7 @@ qed
 
 
 lemma card_of_Un_ordLeq_infinite_Field:
-assumes C: "infinite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
+assumes C: "\<not>finite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
 and "Card_order r"
 shows "|A Un B| \<le>o r"
 using assms card_of_Plus_ordLeq_infinite_Field card_of_Un_Plus_ordLeq
@@ -1904,7 +1903,7 @@ qed
 
 
 lemma infinite_cardSuc_regular:
-assumes r_inf: "infinite (Field r)" and r_card: "Card_order r"
+assumes r_inf: "\<not>finite (Field r)" and r_card: "Card_order r"
 shows "regular (cardSuc r)"
 proof-
   let ?r' = "cardSuc r"
@@ -1955,7 +1954,7 @@ proof-
 qed
 
 lemma cardSuc_UNION:
-assumes r: "Card_order r" and "infinite (Field r)"
+assumes r: "Card_order r" and "\<not>finite (Field r)"
 and As: "relChain (cardSuc r) As"
 and Bsub: "B \<le> (UN i : Field (cardSuc r). As i)"
 and cardB: "|B| <=o r"

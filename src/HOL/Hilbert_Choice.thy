@@ -272,6 +272,41 @@ proof -
   ultimately show "finite (UNIV :: 'a set)" by simp
 qed
 
+text {*
+  Every infinite set contains a countable subset. More precisely we
+  show that a set @{text S} is infinite if and only if there exists an
+  injective function from the naturals into @{text S}.
+
+  The ``only if'' direction is harder because it requires the
+  construction of a sequence of pairwise different elements of an
+  infinite set @{text S}. The idea is to construct a sequence of
+  non-empty and infinite subsets of @{text S} obtained by successively
+  removing elements of @{text S}.
+*}
+
+lemma infinite_countable_subset:
+  assumes inf: "\<not> finite (S::'a set)"
+  shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
+  -- {* Courtesy of Stephan Merz *}
+proof -
+  def Sseq \<equiv> "nat_rec S (\<lambda>n T. T - {SOME e. e \<in> T})"
+  def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
+  { fix n have "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" by (induct n) (auto simp add: Sseq_def inf) }
+  moreover then have *: "\<And>n. pick n \<in> Sseq n" by (metis someI_ex pick_def ex_in_conv finite.simps)
+  ultimately have "range pick \<subseteq> S" by auto
+  moreover
+  { fix n m                 
+    have "pick n \<notin> Sseq (n + Suc m)" by (induct m) (auto simp add: Sseq_def pick_def)
+    hence "pick n \<noteq> pick (n + Suc m)" by (metis *)
+  }
+  then have "inj pick" by (intro linorder_injI) (auto simp add: less_iff_Suc_add)
+  ultimately show ?thesis by blast
+qed
+
+lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
+  -- {* Courtesy of Stephan Merz *}
+  by (metis finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset)
+
 lemma image_inv_into_cancel:
   assumes SURJ: "f`A=A'" and SUB: "B' \<le> A'"
   shows "f `((inv_into A f)`B') = B'"

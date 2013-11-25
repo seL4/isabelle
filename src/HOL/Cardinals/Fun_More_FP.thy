@@ -8,12 +8,12 @@ More on injections, bijections and inverses (FP).
 header {* More on Injections, Bijections and Inverses (FP) *}
 
 theory Fun_More_FP
-imports "~~/src/HOL/Library/Infinite_Set"
+imports Main
 begin
 
 
 text {* This section proves more facts (additional to those in @{text "Fun.thy"},
-@{text "Hilbert_Choice.thy"}, @{text "Finite_Set.thy"} and @{text "Infinite_Set.thy"}),
+@{text "Hilbert_Choice.thy"}, and @{text "Finite_Set.thy"}),
 mainly concerning injections, bijections, inverses and (numeric) cardinals of
 finite sets. *}
 
@@ -97,18 +97,19 @@ subsection {* Properties involving finite and infinite sets *}
 (*3*)lemma inj_on_finite:
 assumes "inj_on f A" "f ` A \<le> B" "finite B"
 shows "finite A"
-using assms infinite_super by (fast dest: finite_imageD)
+using assms by (metis finite_imageD finite_subset)
 
 
 (*3*)lemma infinite_imp_bij_betw:
-assumes INF: "infinite A"
+assumes INF: "\<not> finite A"
 shows "\<exists>h. bij_betw h A (A - {a})"
 proof(cases "a \<in> A")
   assume Case1: "a \<notin> A"  hence "A - {a} = A" by blast
   thus ?thesis using bij_betw_id[of A] by auto
 next
   assume Case2: "a \<in> A"
-  have "infinite (A - {a})" using INF infinite_remove by auto
+find_theorems "\<not> finite _"
+  have "\<not> finite (A - {a})" using INF by auto
   with infinite_iff_countable_subset[of "A - {a}"] obtain f::"nat \<Rightarrow> 'a"
   where 1: "inj f" and 2: "f ` UNIV \<le> A - {a}" by blast
   obtain g where g_def: "g = (\<lambda> n. if n = 0 then a else f (Suc n))" by blast
@@ -179,7 +180,7 @@ qed
 
 
 (*3*)lemma infinite_imp_bij_betw2:
-assumes INF: "infinite A"
+assumes INF: "\<not> finite A"
 shows "\<exists>h. bij_betw h A (A \<union> {a})"
 proof(cases "a \<in> A")
   assume Case1: "a \<in> A"  hence "A \<union> {a} = A" by blast
@@ -187,7 +188,7 @@ proof(cases "a \<in> A")
 next
   let ?A' = "A \<union> {a}"
   assume Case2: "a \<notin> A" hence "A = ?A' - {a}" by blast
-  moreover have "infinite ?A'" using INF by auto
+  moreover have "\<not> finite ?A'" using INF by auto
   ultimately obtain f where "bij_betw f ?A' A"
   using infinite_imp_bij_betw[of ?A' a] by auto
   hence "bij_betw(inv_into ?A' f) A ?A'" using bij_betw_inv_into by blast

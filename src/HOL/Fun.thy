@@ -308,6 +308,16 @@ proof -
   show ?thesis ..
 qed
 
+lemma linorder_injI:
+  assumes hyp: "\<And>x y. x < (y::'a::linorder) \<Longrightarrow> f x \<noteq> f y"
+  shows "inj f"
+  -- {* Courtesy of Stephan Merz *}
+proof (rule inj_onI)
+  fix x y
+  assume f_eq: "f x = f y"
+  show "x = y" by (rule linorder_cases) (auto dest: hyp simp: f_eq)
+qed
+
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
   by auto
 
