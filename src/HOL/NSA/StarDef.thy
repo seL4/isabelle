@@ -18,7 +18,7 @@ lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
 apply (unfold FreeUltrafilterNat_def)
 apply (rule someI_ex)
 apply (rule freeultrafilter_Ex)
-apply (rule nat_infinite)
+apply (rule infinite_UNIV_nat)
 done
 
 interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
