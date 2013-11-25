@@ -395,8 +395,7 @@ proof -
       by auto
     ultimately show ?thesis by auto
   qed
-  then
-  show ?summable and ?pos and ?neg and ?f and ?g 
+  then show ?summable and ?pos and ?neg and ?f and ?g 
     by safe
 qed
 
@@ -1353,8 +1352,7 @@ lemma continuous_on_ln [continuous_on_intros]:
 
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
   apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
-  apply (erule DERIV_cong [OF DERIV_exp exp_ln])
-  apply (simp_all add: abs_if isCont_ln)
+  apply (auto intro: DERIV_cong [OF DERIV_exp exp_ln] isCont_ln)
   done
 
 lemma DERIV_ln_divide: "0 < x \<Longrightarrow> DERIV ln x :> 1 / x"
@@ -1475,24 +1473,13 @@ proof -
   ultimately have "1 - x <= 1 / (1 + x + x\<^sup>2)"
     by (elim mult_imp_le_div_pos)
   also have "... <= 1 / exp x"
-    apply (rule divide_left_mono)
-    apply (rule exp_bound, rule a)
-    apply (rule b [THEN less_imp_le])
-    apply simp
-    apply (rule mult_pos_pos)
-    apply (rule c)
-    apply simp
-    done
+    by (metis a abs_one b exp_bound exp_gt_zero frac_le less_eq_real_def real_sqrt_abs 
+              real_sqrt_pow2_iff real_sqrt_power)
   also have "... = exp (-x)"
     by (auto simp add: exp_minus divide_inverse)
   finally have "1 - x <= exp (- x)" .
   also have "1 - x = exp (ln (1 - x))"
-  proof -
-    have "0 < 1 - x"
-      by (insert b, auto)
-    thus ?thesis
-      by (auto simp only: exp_ln_iff [THEN sym])
-  qed
+    by (metis b diff_0 exp_ln_iff less_iff_diff_less_0 minus_diff_eq)
   finally have "exp (ln (1 - x)) <= exp (- x)" .
   thus ?thesis by (auto simp only: exp_le_cancel_iff)
 qed
@@ -1520,17 +1507,9 @@ proof -
   have "exp (x - x\<^sup>2) = exp x / exp (x\<^sup>2)"
     by (rule exp_diff)
   also have "... <= (1 + x + x\<^sup>2) / exp (x \<^sup>2)"
-    apply (rule divide_right_mono)
-    apply (rule exp_bound)
-    apply (rule a, rule b)
-    apply simp
-    done
+    by (metis a b divide_right_mono exp_bound exp_ge_zero)
   also have "... <= (1 + x + x\<^sup>2) / (1 + x\<^sup>2)"
-    apply (rule divide_left_mono)
-    apply (simp add: exp_ge_add_one_self_aux)
-    apply (simp add: a)
-    apply (simp add: mult_pos_pos add_pos_nonneg)
-    done
+    by (simp add: a divide_left_mono mult_pos_pos add_pos_nonneg)
   also from a have "... <= 1 + x"
     by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
   finally have "exp (x - x\<^sup>2) <= 1 + x" .
@@ -1541,26 +1520,8 @@ proof -
       by (auto simp only: exp_ln_iff [THEN sym])
   qed
   finally have "exp (x - x\<^sup>2) <= exp (ln (1 + x))" .
-  thus ?thesis by (auto simp only: exp_le_cancel_iff)
-qed
-
-lemma aux5: "x < 1 \<Longrightarrow> ln(1 - x) = - ln(1 + x / (1 - x))"
-proof -
-  assume a: "x < 1"
-  have "ln(1 - x) = - ln(1 / (1 - x))"
-  proof -
-    have "ln(1 - x) = - (- ln (1 - x))"
-      by auto
-    also have "- ln(1 - x) = ln 1 - ln(1 - x)"
-      by simp
-    also have "... = ln(1 / (1 - x))"
-      apply (rule ln_div [THEN sym])
-      using a apply auto
-      done
-    finally show ?thesis .
-  qed
-  also have " 1 / (1 - x) = 1 + x / (1 - x)" using a by(simp add:field_simps)
-  finally show ?thesis .
+  thus ?thesis
+    by (metis exp_le_cancel_iff) 
 qed
 
 lemma ln_one_minus_pos_lower_bound:
@@ -1569,7 +1530,11 @@ proof -
   assume a: "0 <= x" and b: "x <= (1 / 2)"
   from b have c: "x < 1" by auto
   then have "ln (1 - x) = - ln (1 + x / (1 - x))"
-    by (rule aux5)
+    apply (subst ln_inverse [symmetric])
+    apply (simp add: field_simps)
+    apply (rule arg_cong [where f=ln])
+    apply (simp add: field_simps)
+    done
   also have "- (x / (1 - x)) <= ..."
   proof -
     have "ln (1 + x / (1 - x)) <= x / (1 - x)"
