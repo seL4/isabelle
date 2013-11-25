@@ -104,17 +104,18 @@ fun fork {name, pos, pri} e =
               val result =
                 Exn.capture (Future.interruptible_task e) ()
                 |> Future.identify_result pos;
-              val _ = status task [Markup.finished, Markup.joined];
+              val _ = status task [Markup.joined];
               val _ =
                 (case result of
                   Exn.Res _ => ()
                 | Exn.Exn exn =>
-                    if exec_id = 0 orelse Exn.is_interrupt exn then ()
-                    else
-                      (status task [Markup.failed];
-                       Output.report (Markup.markup_only Markup.bad);
-                       List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
+                   (status task [Markup.failed];
+                    Output.report (Markup.markup_only Markup.bad);
+                    if exec_id = 0 then ()
+                    else List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
+              val _ = status task [Markup.finished];
             in Exn.release result end);
+
       val _ = status (Future.task_of future) [Markup.forked];
     in future end)) ();
 
