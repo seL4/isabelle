@@ -1,4 +1,4 @@
-%!TEX root = ../tutorial.tex
+%!TEX root = root.tex
 \chapter{The Rules of the Game}
 \label{chap:rules}
  
@@ -33,6 +33,8 @@ consequences from this symbol. Ideally each rule should mention
 one symbol only.  For predicate logic this can be 
 done, but when users define their own concepts they typically 
 have to refer to other symbols as well.  It is best not to be dogmatic.
+Our system is not based on pure natural deduction, but includes elements from the sequent calculus 
+and free-variable tableaux.
 
 Natural deduction generally deserves its name.  It is easy to use.  Each
 proof step consists of identifying the outermost symbol of a formula and
@@ -240,13 +242,14 @@ Recall that the conjunction elimination rules --- whose Isabelle names are
 of a conjunction.  Rules of this sort (where the conclusion is a subformula of a
 premise) are called \textbf{destruction} rules because they take apart and destroy
 a premise.%
-\footnote{This Isabelle terminology has no counterpart in standard logic texts, 
+\footnote{This Isabelle terminology is not used in standard logic texts, 
 although the distinction between the two forms of elimination rule is well known. 
 Girard \cite[page 74]{girard89},\index{Girard, Jean-Yves|fnote}
 for example, writes ``The elimination rules 
 [for $\disj$ and $\exists$] are very
 bad.  What is catastrophic about them is the parasitic presence of a formula [$R$]
-which has no structural link with the formula which is eliminated.''}
+which has no structural link with the formula which is eliminated.''
+These Isabelle rules are inspired by the sequent calculus.}
 
 The first proof step applies conjunction introduction, leaving 
 two subgoals: 
