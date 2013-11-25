@@ -28,7 +28,9 @@ INCOMPATIBILITY.
   * Canonical representation for minus one is "- 1".
   * Canonical representation for other negative numbers is "- (numeral _)".
   * When devising rule sets for number calculation, consider the
-    following cases: 0, 1, numeral _, - 1, - numeral _.
+    following canonical cases: 0, 1, numeral _, - 1, - numeral _.
+  * HOLogic.dest_number also recognizes numerals in non-canonical forms
+    like "numeral One", "- numeral One", "- 0" and even "- … - _".
   * Syntax for negative numerals is mere input syntax.
 INCOMPATBILITY.
 
