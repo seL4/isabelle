@@ -165,18 +165,19 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
-      val _ = Toplevel.status tr Markup.finished;
       val _ = List.app (Future.error_msg (Toplevel.pos_of tr)) errs;
     in
       (case result of
         NONE =>
           let
-            val _ = if null errs then Exn.interrupt () else ();
             val _ = Toplevel.status tr Markup.failed;
+            val _ = Toplevel.status tr Markup.finished;
+            val _ = if null errs then Exn.interrupt () else ();
           in {failed = true, malformed = malformed', command = tr, state = st} end
       | SOME st' =>
           let
             val _ = proof_status tr st';
+            val _ = Toplevel.status tr Markup.finished;
           in {failed = false, malformed = malformed', command = tr, state = st'} end)
     end;
 
