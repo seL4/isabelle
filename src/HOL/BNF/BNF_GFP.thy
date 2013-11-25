@@ -8,7 +8,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base Equiv_Relations_More
+imports BNF_FP_Base Equiv_Relations_More List_Prefix
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and
@@ -165,6 +165,8 @@ lemma image_convolD: "\<lbrakk>(a, b) \<in> <f, g> ` X\<rbrakk> \<Longrightarrow
 unfolding convol_def by auto
 
 (*Extended Sublist*)
+
+definition clists where "clists r = |lists (Field r)|"
 
 definition prefCl where
   "prefCl Kl = (\<forall> kl1 kl2. prefixeq kl1 kl2 \<and> kl2 \<in> Kl \<longrightarrow> kl1 \<in> Kl)"

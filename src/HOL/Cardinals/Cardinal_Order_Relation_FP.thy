@@ -1337,37 +1337,15 @@ unfolding well_order_on_def
 using natLeq_Linear_order wf_less natLeq_natLess_Id by auto
 
 
-lemma closed_nat_set_iff:
-assumes "\<forall>(m::nat) n. n \<in> A \<and> m \<le> n \<longrightarrow> m \<in> A"
-shows "A = UNIV \<or> (\<exists>n. A = {0 ..< n})"
-proof-
-  {assume "A \<noteq> UNIV" hence "\<exists>n. n \<notin> A" by blast
-   moreover obtain n where n_def: "n = (LEAST n. n \<notin> A)" by blast
-   ultimately have 1: "n \<notin> A \<and> (\<forall>m. m < n \<longrightarrow> m \<in> A)"
-   using LeastI_ex[of "\<lambda> n. n \<notin> A"] n_def Least_le[of "\<lambda> n. n \<notin> A"] by fastforce
-   have "A = {0 ..< n}"
-   proof(auto simp add: 1)
-     fix m assume *: "m \<in> A"
-     {assume "n \<le> m" with assms * have "n \<in> A" by blast
-      hence False using 1 by auto
-     }
-     thus "m < n" by fastforce
-   qed
-   hence "\<exists>n. A = {0 ..< n}" by blast
-  }
-  thus ?thesis by blast
-qed
-
-
-lemma Field_natLeq_on: "Field (natLeq_on n) = {0 ..< n}"
+lemma Field_natLeq_on: "Field (natLeq_on n) = {x. x < n}"
 unfolding Field_def by auto
 
 
-lemma natLeq_underS_less: "rel.underS natLeq n = {0 ..< n}"
+lemma natLeq_underS_less: "rel.underS natLeq n = {x. x < n}"
 unfolding rel.underS_def by auto
 
 
-lemma Restr_natLeq: "Restr natLeq {0 ..< n} = natLeq_on n"
+lemma Restr_natLeq: "Restr natLeq {x. x < n} = natLeq_on n"
 by force
 
 
@@ -1378,37 +1356,15 @@ by (auto simp add: Restr_natLeq natLeq_underS_less)
 
 lemma natLeq_on_Well_order: "Well_order(natLeq_on n)"
 using Restr_natLeq[of n] natLeq_Well_order
-      Well_order_Restr[of natLeq "{0..<n}"] by auto
+      Well_order_Restr[of natLeq "{x. x < n}"] by auto
 
 
-corollary natLeq_on_well_order_on: "well_order_on {0 ..< n} (natLeq_on n)"
+corollary natLeq_on_well_order_on: "well_order_on {x. x < n} (natLeq_on n)"
 using natLeq_on_Well_order Field_natLeq_on by auto
 
 
 lemma natLeq_on_wo_rel: "wo_rel(natLeq_on n)"
 unfolding wo_rel_def using natLeq_on_Well_order .
-
-
-lemma natLeq_on_ofilter_less_eq:
-"n \<le> m \<Longrightarrow> wo_rel.ofilter (natLeq_on m) {0 ..< n}"
-apply (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def)
-apply (simp add: Field_natLeq_on)
-by (auto simp add: rel.under_def)
-
-lemma natLeq_on_ofilter_iff:
-"wo_rel.ofilter (natLeq_on m) A = (\<exists>n \<le> m. A = {0 ..< n})"
-proof(rule iffI)
-  assume *: "wo_rel.ofilter (natLeq_on m) A"
-  hence 1: "A \<le> {0..<m}"
-  by (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def rel.under_def Field_natLeq_on)
-  hence "\<forall>n1 n2. n2 \<in> A \<and> n1 \<le> n2 \<longrightarrow> n1 \<in> A"
-  using * by(fastforce simp add: natLeq_on_wo_rel wo_rel.ofilter_def rel.under_def)
-  hence "A = UNIV \<or> (\<exists>n. A = {0 ..< n})" using closed_nat_set_iff by blast
-  thus "\<exists>n \<le> m. A = {0 ..< n}" using 1 atLeastLessThan_less_eq by blast
-next
-  assume "(\<exists>n\<le>m. A = {0 ..< n})"
-  thus "wo_rel.ofilter (natLeq_on m) A" by (auto simp add: natLeq_on_ofilter_less_eq)
-qed
 
 
 
@@ -1418,8 +1374,7 @@ subsubsection {* Then as cardinals *}
 lemma natLeq_Card_order: "Card_order natLeq"
 proof(auto simp add: natLeq_Well_order
       Card_order_iff_Restr_underS Restr_natLeq2, simp add:  Field_natLeq)
-  fix n have "finite(Field (natLeq_on n))"
-  unfolding Field_natLeq_on by auto
+  fix n have "finite(Field (natLeq_on n))" by (auto simp: Field_def)
   moreover have "\<not>finite(UNIV::nat set)" by auto
   ultimately show "natLeq_on n <o |UNIV::nat set|"
   using finite_ordLess_infinite[of "natLeq_on n" "|UNIV::nat set|"]
@@ -1444,91 +1399,10 @@ corollary infinite_iff_natLeq_ordLeq:
 using infinite_iff_card_of_nat[of A] card_of_nat
       ordIso_ordLeq_trans ordLeq_ordIso_trans ordIso_symmetric by blast
 
-
 corollary finite_iff_ordLess_natLeq:
 "finite A = ( |A| <o natLeq)"
 using infinite_iff_natLeq_ordLeq not_ordLeq_iff_ordLess
-      card_of_Well_order natLeq_Well_order
-by auto
-
-lemma ordIso_natLeq_on_imp_finite:
-"|A| =o natLeq_on n \<Longrightarrow> finite A"
-unfolding ordIso_def iso_def[abs_def]
-by (auto simp: Field_natLeq_on bij_betw_finite Field_card_of)
-
-
-lemma natLeq_on_Card_order: "Card_order (natLeq_on n)"
-proof(unfold card_order_on_def,
-      auto simp add: natLeq_on_Well_order, simp add: Field_natLeq_on)
-  fix r assume "well_order_on {0..<n} r"
-  thus "natLeq_on n \<le>o r"
-  using finite_atLeastLessThan natLeq_on_well_order_on
-        finite_well_order_on_ordIso ordIso_iff_ordLeq by blast
-qed
-
-
-corollary card_of_Field_natLeq_on:
-"|Field (natLeq_on n)| =o natLeq_on n"
-using Field_natLeq_on natLeq_on_Card_order
-      Card_order_iff_ordIso_card_of[of "natLeq_on n"]
-      ordIso_symmetric[of "natLeq_on n"] by blast
-
-
-corollary card_of_less:
-"|{0 ..< n}| =o natLeq_on n"
-using Field_natLeq_on card_of_Field_natLeq_on by auto
-
-
-lemma natLeq_on_ordLeq_less_eq:
-"((natLeq_on m) \<le>o (natLeq_on n)) = (m \<le> n)"
-proof
-  assume "natLeq_on m \<le>o natLeq_on n"
-  then obtain f where "inj_on f {0..<m} \<and> f ` {0..<m} \<le> {0..<n}"
-  unfolding ordLeq_def using
-    embed_inj_on[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on]
-     embed_Field[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on] by blast
-  thus "m \<le> n" using atLeastLessThan_less_eq2 by blast
-next
-  assume "m \<le> n"
-  hence "inj_on id {0..<m} \<and> id ` {0..<m} \<le> {0..<n}" unfolding inj_on_def by auto
-  hence "|{0..<m}| \<le>o |{0..<n}|" using card_of_ordLeq by blast
-  thus "natLeq_on m \<le>o natLeq_on n"
-  using card_of_less ordIso_ordLeq_trans ordLeq_ordIso_trans ordIso_symmetric by blast
-qed
-
-
-lemma natLeq_on_ordLeq_less:
-"((natLeq_on m) <o (natLeq_on n)) = (m < n)"
-using not_ordLeq_iff_ordLess[of "natLeq_on m" "natLeq_on n"]
-  natLeq_on_Well_order natLeq_on_ordLeq_less_eq
-by fastforce
-
-
-
-subsubsection {* "Backward compatibility" with the numeric cardinal operator for finite sets *}
-
-
-lemma finite_card_of_iff_card2:
-assumes FIN: "finite A" and FIN': "finite B"
-shows "( |A| \<le>o |B| ) = (card A \<le> card B)"
-using assms card_of_ordLeq[of A B] inj_on_iff_card_le[of A B] by blast
-
-
-lemma finite_imp_card_of_natLeq_on:
-assumes "finite A"
-shows "|A| =o natLeq_on (card A)"
-proof-
-  obtain h where "bij_betw h A {0 ..< card A}"
-  using assms ex_bij_betw_finite_nat by blast
-  thus ?thesis using card_of_ordIso card_of_less ordIso_equivalence by blast
-qed
-
-
-lemma finite_iff_card_of_natLeq_on:
-"finite A = (\<exists>n. |A| =o natLeq_on n)"
-using finite_imp_card_of_natLeq_on[of A]
-by(auto simp add: ordIso_natLeq_on_imp_finite)
-
+      card_of_Well_order natLeq_Well_order by metis
 
 
 subsection {* The successor of a cardinal *}
@@ -1667,55 +1541,6 @@ proof-
 qed
 
 
-lemma cardSuc_natLeq_on_Suc:
-"cardSuc(natLeq_on n) =o natLeq_on(Suc n)"
-proof-
-  obtain r r' p where r_def: "r = natLeq_on n" and
-                      r'_def: "r' = cardSuc(natLeq_on n)"  and
-                      p_def: "p = natLeq_on(Suc n)" by blast
-  (* Preliminary facts:  *)
-  have CARD: "Card_order r \<and> Card_order r' \<and> Card_order p" unfolding r_def r'_def p_def
-  using cardSuc_ordLess_ordLeq natLeq_on_Card_order cardSuc_Card_order by blast
-  hence WELL: "Well_order r \<and> Well_order r' \<and>  Well_order p"
-  unfolding card_order_on_def by force
-  have FIELD: "Field r = {0..<n} \<and> Field p = {0..<(Suc n)}"
-  unfolding r_def p_def Field_natLeq_on by simp
-  hence FIN: "finite (Field r)" by force
-  have "r <o r'" using CARD unfolding r_def r'_def using cardSuc_greater by blast
-  hence "|Field r| <o r'" using CARD card_of_Field_ordIso ordIso_ordLess_trans by blast
-  hence LESS: "|Field r| <o |Field r'|"
-  using CARD card_of_Field_ordIso ordLess_ordIso_trans ordIso_symmetric by blast
-  (* Main proof: *)
-  have "r' \<le>o p" using CARD unfolding r_def r'_def p_def
-  using natLeq_on_ordLeq_less cardSuc_ordLess_ordLeq by blast
-  moreover have "p \<le>o r'"
-  proof-
-    {assume "r' <o p"
-     then obtain f where 0: "embedS r' p f" unfolding ordLess_def by force
-     let ?q = "Restr p (f ` Field r')"
-     have 1: "embed r' p f" using 0 unfolding embedS_def by force
-     hence 2: "f ` Field r' < {0..<(Suc n)}"
-     using WELL FIELD 0 by (auto simp add: embedS_iff)
-     have "wo_rel.ofilter p (f ` Field r')" using embed_Field_ofilter 1 WELL by blast
-     then obtain m where "m \<le> Suc n" and 3: "f ` (Field r') = {0..<m}"
-     unfolding p_def by (auto simp add: natLeq_on_ofilter_iff)
-     hence 4: "m \<le> n" using 2 by force
-     (*  *)
-     have "bij_betw f (Field r') (f ` (Field r'))"
-     using 1 WELL embed_inj_on unfolding bij_betw_def by force
-     moreover have "finite(f ` (Field r'))" using 3 finite_atLeastLessThan[of 0 m] by force
-     ultimately have 5: "finite (Field r') \<and> card(Field r') = card (f ` (Field r'))"
-     using bij_betw_same_card bij_betw_finite by metis
-     hence "card(Field r') \<le> card(Field r)" using 3 4 FIELD by force
-     hence "|Field r'| \<le>o |Field r|" using FIN 5 finite_card_of_iff_card2 by blast
-     hence False using LESS not_ordLess_ordLeq by auto
-    }
-    thus ?thesis using WELL CARD by (fastforce simp: not_ordLess_iff_ordLeq)
-  qed
-  ultimately show ?thesis using ordIso_iff_ordLeq unfolding r'_def p_def by blast
-qed
-
-
 lemma card_of_cardSuc_finite:
 "finite(Field(cardSuc |A| )) = finite A"
 proof
@@ -1728,18 +1553,12 @@ proof
   thus "finite A" using * card_of_ordLeq_finite by blast
 next
   assume "finite A"
-  then obtain n where "|A| =o natLeq_on n" using finite_iff_card_of_natLeq_on by blast
-  hence "cardSuc |A| =o cardSuc(natLeq_on n)"
-  using card_of_Card_order cardSuc_invar_ordIso natLeq_on_Card_order by blast
-  hence "cardSuc |A| =o natLeq_on(Suc n)"
-  using cardSuc_natLeq_on_Suc ordIso_transitive by blast
-  hence "cardSuc |A| =o |{0..<(Suc n)}|" using card_of_less ordIso_equivalence by blast
-  moreover have "|Field (cardSuc |A| ) | =o cardSuc |A|"
-  using card_of_Field_ordIso cardSuc_Card_order card_of_Card_order by blast
-  ultimately have "|Field (cardSuc |A| ) | =o |{0..<(Suc n)}|"
-  using ordIso_equivalence by blast
-  thus "finite (Field (cardSuc |A| ))"
-  using card_of_ordIso_finite finite_atLeastLessThan by blast
+  then have "finite ( Field |Pow A| )" unfolding Field_card_of by simp
+  then show "finite (Field (cardSuc |A| ))"
+  proof (rule card_of_ordLeq_finite[OF card_of_mono2, rotated])
+    show "cardSuc |A| \<le>o |Pow A|"
+      by (metis cardSuc_ordLess_ordLeq card_of_Card_order card_of_Pow)
+  qed
 qed
 
 

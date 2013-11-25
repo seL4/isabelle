@@ -11,12 +11,11 @@ header {* Registration of Basic Types as Bounded Natural Functors *}
 
 theory Basic_BNFs
 imports BNF_Def
+   (*FIXME: define relators here, reuse in Lifting_* once this theory is in HOL*)
+  Lifting_Sum
+  Lifting_Product
+  Main
 begin
-
-lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
-
-lemma natLeq_cinfinite: "cinfinite natLeq"
-unfolding cinfinite_def Field_natLeq by (metis infinite_UNIV_nat)
 
 lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
   unfolding wpull_def Grp_def by auto

@@ -136,6 +136,11 @@ lemma Cfinite_ordLess_Cinfinite: "\<lbrakk>Cfinite r; Cinfinite s\<rbrakk> \<Lon
   unfolding cfinite_def cinfinite_def
   by (metis card_order_on_well_order_on finite_ordLess_infinite)
 
+lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
+
+lemma natLeq_cinfinite: "cinfinite natLeq"
+unfolding cinfinite_def Field_natLeq by (metis infinite_UNIV_nat)
+
 lemma natLeq_ordLeq_cinfinite:
   assumes inf: "Cinfinite r"
   shows "natLeq \<le>o r"
@@ -583,7 +588,8 @@ lemma Cinfinite_cexp:
 by (simp add: cinfinite_cexp Card_order_cexp)
 
 lemma ctwo_ordLess_natLeq: "ctwo <o natLeq"
-unfolding ctwo_def using finite_iff_ordLess_natLeq finite_UNIV by fast
+unfolding ctwo_def using finite_UNIV natLeq_cinfinite natLeq_Card_order
+by (intro Cfinite_ordLess_Cinfinite) (auto simp: cfinite_def card_of_Card_order)
 
 lemma ctwo_ordLess_Cinfinite: "Cinfinite r \<Longrightarrow> ctwo <o r"
 by (metis ctwo_ordLess_natLeq natLeq_ordLeq_cinfinite ordLess_ordLeq_trans)
@@ -739,9 +745,5 @@ by (rule ordLess_imp_ordLeq) (simp only: cpow_def Card_order_Pow)
 
 lemma Cinfinite_cpow: "Cinfinite r \<Longrightarrow> Cinfinite (cpow r)"
 unfolding cpow_def cinfinite_def by (metis Field_card_of card_of_Card_order infinite_Pow)
-
-subsection {* Lists *}
-
-definition clists where "clists r = |lists (Field r)|"
 
 end

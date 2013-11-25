@@ -183,22 +183,4 @@ unfolding cpow_def by (metis Card_order_Pow cardSuc_ordLess_ordLeq card_of_Card_
 lemma cpow_cexp_ctwo: "cpow r =o ctwo ^c r"
 unfolding cpow_def ctwo_def cexp_def Field_card_of by (rule card_of_Pow_Func)
 
-
-subsection {* Lists *}
-
-text {*
-  The following collection of lemmas should be seen as an user interface to the HOL theory
-  of cardinals. It is not expected to be complete in any sense, since its
-  development was driven by demand arising from the development of the (co)datatype package.
-*}
-
-lemma clists_Cinfinite: "Cinfinite r \<Longrightarrow> clists r =o r"
-unfolding cinfinite_def clists_def by (blast intro: Card_order_lists_infinite)
-
-lemma Card_order_clists: "Card_order (clists r)"
-unfolding clists_def by (rule card_of_Card_order)
-
-lemma Cnotzero_clists: "Cnotzero (clists r)"
-by (simp add: clists_def card_of_ordIso_czero_iff_empty lists_not_empty)
-
 end

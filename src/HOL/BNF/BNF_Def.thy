@@ -9,6 +9,8 @@ header {* Definition of Bounded Natural Functors *}
 
 theory BNF_Def
 imports BNF_Util
+   (*FIXME: register fundef_cong attribute in an interpretation to remove this dependency*)
+  FunDef
 keywords
   "print_bnfs" :: diag and
   "bnf" :: thy_goal
@@ -195,6 +197,10 @@ lemma fun_rel_iff_leq_vimage2p: "(fun_rel R S) f g = (R \<le> vimage2p f g S)"
 
 lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
   unfolding vimage2p_def convol_def by auto
+
+(*FIXME: duplicates lemma from Record.thy*)
+lemma o_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
+  by clarsimp
 
 ML_file "Tools/bnf_def_tactics.ML"
 ML_file "Tools/bnf_def.ML"

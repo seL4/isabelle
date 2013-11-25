@@ -8,7 +8,7 @@ More on injections, bijections and inverses (FP).
 header {* More on Injections, Bijections and Inverses (FP) *}
 
 theory Fun_More_FP
-imports Main
+imports Hilbert_Choice
 begin
 
 
@@ -217,23 +217,6 @@ assumes BIJ: "bij_betw f A A'" and
 shows "bij_betw (inv_into A f) B' B"
 using assms unfolding bij_betw_def
 by (auto intro: inj_on_inv_into)
-
-
-subsection {* Other facts  *}
-
-
-(*2*)lemma atLeastLessThan_less_eq:
-"({0..<m} \<le> {0..<n}) = ((m::nat) \<le> n)"
-unfolding ivl_subset by arith
-
-
-(*2*)lemma atLeastLessThan_less_eq2:
-assumes "inj_on f {0..<(m::nat)} \<and> f ` {0..<m} \<le> {0..<n}"
-shows "m \<le> n"
-using assms
-using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
-      card_atLeastLessThan[of m] card_atLeastLessThan[of n]
-      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by fastforce
 
 
 
