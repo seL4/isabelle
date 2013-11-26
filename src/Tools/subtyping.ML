@@ -129,7 +129,8 @@ exception COERCION_GEN_ERROR of unit -> (string * Pretty.T list);
 
 infixr ++> +@> (* lazy error msg composition *)
 
-fun err ++> prt = err #> apsnd (cons prt);
+fun (err : unit -> string * Pretty.T list) ++> (prt : Pretty.T) =
+  err #> apsnd (cons prt);
 val op +@> = Library.foldl op ++>;
 
 fun eval_err err = err ()
