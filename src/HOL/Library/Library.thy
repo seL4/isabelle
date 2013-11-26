@@ -65,6 +65,7 @@ imports
   Transitive_Closure_Table
   Wfrec
   While_Combinator
+  Zorn
 begin
 end
 (*>*)
