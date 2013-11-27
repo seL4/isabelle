@@ -118,6 +118,4 @@ lemma less_eq_list_code [code]:
   "(x\<Colon>'a\<Colon>{equal, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
   by simp_all
 
-code_printing class_instance String.literal :: ord \<rightharpoonup> (Haskell) -
-
 end

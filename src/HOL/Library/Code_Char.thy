@@ -100,6 +100,9 @@ code_printing
 |  constant "Orderings.less_eq :: String.literal \<Rightarrow> String.literal \<Rightarrow> bool" \<rightharpoonup>
     (SML) "!((_ : string) <= _)"
     and (OCaml) "!((_ : string) <= _)"
+    -- {* Order operations for @{typ String.literal} work in Haskell only 
+          if no type class instance needs to be generated, because String = [Char] in Haskell
+          and @{typ "char list"} need not have the same order as @{typ String.literal}. *}
     and (Haskell) infix 4 "<="
     and (Scala) infixl 4 "<="
     and (Eval) infixl 6 "<="
