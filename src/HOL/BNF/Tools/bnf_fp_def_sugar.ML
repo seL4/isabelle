@@ -1515,23 +1515,12 @@ val parse_type_arg_constrained =
 
 val parse_type_arg_named_constrained = parse_opt_binding_colon -- parse_type_arg_constrained;
 
+(*FIXME: use parse_type_args_named_constrained from BNF_Util and thus 
+  allow users to kill certain arguments of a (co)datatype*)
 val parse_type_args_named_constrained =
   parse_type_arg_constrained >> (single o pair Binding.empty) ||
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
-
-val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_binding;
-
-val no_map_rel = (Binding.empty, Binding.empty);
-
-fun extract_map_rel ("map", b) = apfst (K b)
-  | extract_map_rel ("rel", b) = apsnd (K b)
-  | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
-
-val parse_map_rel_bindings =
-  @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
-    >> (fn ps => fold extract_map_rel ps no_map_rel) ||
-  Scan.succeed no_map_rel;
 
 val parse_ctr_spec =
   parse_opt_binding_colon -- parse_binding -- Scan.repeat parse_ctr_arg --

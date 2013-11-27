@@ -136,6 +136,8 @@ sig
 
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
+  val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
+  val parse_map_rel_bindings: (binding * binding) parser
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
@@ -252,6 +254,32 @@ fun split_list4 [] = ([], [], [], [])
 
 val parse_binding_colon = parse_binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
+
+val parse_type_arg_constrained =
+  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
+
+val parse_type_arg_named_constrained =
+   (Parse.minus --| @{keyword ":"} >> K NONE || parse_opt_binding_colon >> SOME) --
+   parse_type_arg_constrained;
+
+val parse_type_args_named_constrained =
+  parse_type_arg_constrained >> (single o pair (SOME Binding.empty)) ||
+  @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
+  Scan.succeed [];
+
+val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_binding;
+
+val no_map_rel = (Binding.empty, Binding.empty);
+
+fun extract_map_rel ("map", b) = apfst (K b)
+  | extract_map_rel ("rel", b) = apsnd (K b)
+  | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
+
+val parse_map_rel_bindings =
+  @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
+    >> (fn ps => fold extract_map_rel ps no_map_rel) ||
+  Scan.succeed no_map_rel;
+
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =

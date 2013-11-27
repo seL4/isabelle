@@ -101,6 +101,15 @@ sig
     Proof.context
 
   val print_bnfs: Proof.context -> unit
+  val prepare_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
+    (Proof.context -> 'a -> typ) -> (Proof.context -> 'b -> term) -> typ list option ->
+    binding -> binding -> binding list ->
+    (((((binding * 'a) * 'b) * 'b list) * 'b) * 'b list) * 'b option -> Proof.context ->
+    string * term list *
+    ((thm list -> {context: Proof.context, prems: thm list} -> tactic) option * term list list) *
+    ((thm list -> thm list list) -> thm list list -> Proof.context -> bnf * local_theory) *
+    local_theory * thm list
+
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     ({prems: thm list, context: Proof.context} -> tactic) list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding ->
