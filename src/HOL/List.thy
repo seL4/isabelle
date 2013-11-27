@@ -5395,7 +5395,6 @@ text {*
   Author: Andreas Lochbihler
 *}
 
-thm not_less
 context ord begin
 
 inductive lexordp :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
