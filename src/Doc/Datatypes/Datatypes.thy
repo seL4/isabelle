@@ -2290,7 +2290,6 @@ text {*
 *}
 
 
-(* NOTYET
 subsubsection {* \keyw{bnf\_decl}
   \label{sssec:bnf-decl} *}
 
@@ -2301,10 +2300,23 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command bnf} target? dt_name
+  @@{command bnf_decl} target? @{syntax dt_name}
+  ;
+  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
+  ;
+  @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
+  ;
+  @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 "}
+
+Declares a fresh type and fresh constants (map, set, relator, cardinal bound)
+and asserts the bnf properties for these constants as axioms. Additionally,
+type arguments may be marked as dead (by using @{syntax "-"} instead of a name for the
+set function)---this is the only difference of @{syntax dt_name} compared to
+the syntax used by the @{command datatype_new}/@{command codatatype} commands.
+
+The axioms are sound, since one there exists a bnf of any given arity.
 *}
-*)
 
 
 subsubsection {* \keyw{print\_bnfs}
