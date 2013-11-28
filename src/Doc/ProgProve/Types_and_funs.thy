@@ -531,6 +531,9 @@ can be instructed to do so:
 splits all case-expressions over natural numbers. For an arbitrary
 datatype @{text t} it is @{text "t.split"} instead of @{thm[source] nat.split}.
 Method @{text auto} can be modified in exactly the same way.
+The modifier @{text "split:"} can be followed by multiple names.
+Splitting if or case-expressions in the assumptions requires 
+@{text "split: if_splits"} or @{text "split: t.splits"}.
 
 
 \subsection*{Exercises}
