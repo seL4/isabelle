@@ -5,7 +5,7 @@
 header {* Infinite Sets and Related Concepts *}
 
 theory Infinite_Set
-imports Main
+imports Set_Interval
 begin
 
 subsection "Infinite Sets"
@@ -554,4 +554,3 @@ lemma atmost_one_unique [elim]: "atmost_one S \<Longrightarrow> x \<in> S \<Long
   by (simp add: atmost_one_def)
 
 end
-
