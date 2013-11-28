@@ -14,7 +14,7 @@ Examples: Ico = {_ ..< _} and Ici = {_ ..}
 header {* Set intervals *}
 
 theory Set_Interval
-imports Int Nat_Transfer
+imports Nat_Transfer
 begin
 
 context ord
