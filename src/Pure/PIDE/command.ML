@@ -63,7 +63,7 @@ fun memo_exec execution_id (Memo v) =
                   val res =
                     (body
                       |> restore_attributes
-                      |> Future.worker_context "Command.memo_exec" group
+                      |> Future.task_context "Command.memo_exec" group
                       |> Exn.interruptible_capture) ();
                 in SOME ((), Result res) end
               else SOME ((), expr)

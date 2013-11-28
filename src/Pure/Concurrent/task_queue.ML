@@ -17,7 +17,6 @@ sig
   val str_of_groups: group -> string
   type task
   val dummy_task: task
-  val new_task: group -> string -> int option -> task
   val group_of_task: task -> group
   val name_of_task: task -> string
   val pri_of_task: task -> int
@@ -36,6 +35,7 @@ sig
   val cancel: queue -> group -> Thread.thread list
   val cancel_all: queue -> group list * Thread.thread list
   val finish: task -> queue -> bool * queue
+  val enroll: Thread.thread -> string -> group -> queue -> task * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
@@ -293,6 +293,16 @@ fun finish task (Queue {groups, jobs}) =
     val jobs' = Task_Graph.del_node task jobs;
     val maximal = Task_Graph.is_maximal jobs task;
   in (maximal, make_queue groups' jobs') end;
+
+
+(* enroll *)
+
+fun enroll thread name group (Queue {groups, jobs}) =
+  let
+    val task = new_task group name NONE;
+    val groups' = fold_groups (fn g => add_task (group_id g, task)) group groups;
+    val jobs' = jobs |> Task_Graph.new_node (task, Running thread);
+  in (task, make_queue groups' jobs') end;
 
 
 (* enqueue *)
