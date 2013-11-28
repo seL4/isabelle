@@ -140,7 +140,7 @@ fun check_bare_const thy t = case try dest_Const t
 fun check_unoverload thy (c, ty) =
   let
     val c' = Axclass.unoverload_const thy (c, ty);
-    val ty_decl = Sign.the_const_type thy c';
+    val ty_decl = const_typ thy c';
   in
     if typscheme_equiv (ty_decl, Logic.varifyT_global ty)
     then c'
@@ -450,7 +450,7 @@ fun is_linear thm =
 
 fun check_decl_ty thy (c, ty) =
   let
-    val ty_decl = Sign.the_const_type thy c;
+    val ty_decl = const_typ thy c;
   in if typscheme_equiv (ty_decl, ty) then ()
     else bad_thm ("Type\n" ^ string_of_typ thy ty
       ^ "\nof constant " ^ quote c
@@ -1124,7 +1124,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     val ([x, y], ctxt) = fold_map Name.variant ["A", "A'"] Name.context;
     val (zs, _) = fold_map Name.variant (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
-    val T = devarify (Sign.the_const_type thy case_const);
+    val T = devarify (const_typ thy case_const);
     val Ts = binder_types T;
     val T_cong = nth Ts pos;
     fun mk_prem z = Free (z, T_cong);
