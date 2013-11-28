@@ -31,7 +31,6 @@ datatype sat_solver_info =
 (* for compatibility with "SatSolver" *)
 val berkmin_exec = getenv "BERKMIN_EXE"
 
-(* (string * sat_solver_info) list *)
 val static_list =
   [("Lingeling_JNI", Internal (JNI [1, 5], Batch, ["Lingeling"])),
    ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
@@ -44,6 +43,7 @@ val static_list =
                           "Instance Unsatisfiable")),
    ("RSat", ExternalV2 (ToStdout, "RSAT_HOME", "rsat", ["-s"],
                         "s SATISFIABLE", "v ", "s UNSATISFIABLE")),
+   ("Riss3g", External ("RISS3G_HOME", "riss3g", [])),
    ("BerkMin", ExternalV2 (ToStdout, "BERKMIN_HOME",
                            if berkmin_exec = "" then "BerkMin561"
                            else berkmin_exec, [], "Satisfiable          !!",
