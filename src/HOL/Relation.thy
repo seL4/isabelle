@@ -760,7 +760,8 @@ lemma total_on_converse [simp]: "total_on A (r^-1) = total_on A r"
   by (auto simp: total_on_def)
 
 lemma finite_converse [iff]: "finite (r^-1) = finite r"  
-  unfolding converse_def conversep_iff by (auto elim: finite_imageD simp: inj_on_def)
+  unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
+  by (auto elim: finite_imageD simp: inj_on_def)
 
 lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
   by (auto simp add: fun_eq_iff)

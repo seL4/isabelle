@@ -9,6 +9,8 @@ theory Set_Comprehension_Pointfree_Tests
 imports Main
 begin
 
+declare [[simproc add: finite_Collect]]
+
 lemma
   "finite (UNIV::'a set) ==> finite {p. EX x::'a. p = (x, x)}"
   by simp
@@ -113,6 +115,8 @@ schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(b :: ?'B, a:: ?'A). Pair_Rep a b) ` (UNIV \<times> UNIV))"
   by simp
+
+declare [[simproc del: finite_Collect]]
 
 
 section {* Testing simproc in code generation *}

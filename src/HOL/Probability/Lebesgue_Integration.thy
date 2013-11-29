@@ -2860,7 +2860,6 @@ lemma simple_function_point_measure[simp]:
   "simple_function (point_measure A f) g \<longleftrightarrow> finite (g ` A)"
   by (simp add: point_measure_def)
 
-declare [[simproc del: finite_Collect]]
 lemma emeasure_point_measure:
   assumes A: "finite {a\<in>X. 0 < f a}" "X \<subseteq> A"
   shows "emeasure (point_measure A f) X = (\<Sum>a|a\<in>X \<and> 0 < f a. f a)"
@@ -2871,7 +2870,6 @@ proof -
     by (simp add: emeasure_density positive_integral_count_space ereal_zero_le_0_iff
                   point_measure_def indicator_def)
 qed
-declare [[simproc add: finite_Collect]]
 
 lemma emeasure_point_measure_finite:
   "finite A \<Longrightarrow> (\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"

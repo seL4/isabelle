@@ -18,6 +18,8 @@ inductive finite :: "'a set \<Rightarrow> bool"
 
 simproc_setup finite_Collect ("finite (Collect P)") = {* K Set_Comprehension_Pointfree.simproc *}
 
+declare [[simproc del: finite_Collect]]
+
 lemma finite_induct [case_names empty insert, induct set: finite]:
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
   assumes "finite F"
