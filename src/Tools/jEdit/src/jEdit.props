@@ -264,4 +264,5 @@ view.height=787
 view.middleMousePaste=true
 view.showToolbar=false
 view.thickCaret=true
+view.title=Isabelle/jEdit -\u0020
 view.width=1072
