@@ -121,9 +121,12 @@ text {*
 subsection {* Documentation *}
 
 text {* Regular jEdit documentation is accessible via its @{verbatim
-  Help} menu or @{verbatim F1} keyboard shortcut. This includes a full
-  \emph{User's Guide} and \emph{Frequently Asked Questions} for this
-  sophisticated text editor.
+  Help} menu or @{verbatim F1} keyboard shortcut.  This includes a
+  full \emph{User's Guide} and \emph{Frequently Asked Questions} for
+  this sophisticated text editor.  The same can be browsed without the
+  technical restrictions of the built-in Java HTML viewer here:
+  \url{http://www.jedit.org/index.php?page=docs} (potentially for a
+  different version of jEdit).
 
   Most of this information about jEdit is relevant for Isabelle/jEdit
   as well, but one needs to keep in mind that defaults sometimes
