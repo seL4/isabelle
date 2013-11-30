@@ -16,6 +16,14 @@ after edits surrounding the command location.
 accidentally (via physical event or Poly/ML runtime system signal,
 e.g. out-of-memory).
 
+
+*** System ***
+
+* More robust termination of external processes managed by
+Isabelle/ML: support cancellation of tasks in within the range of
+milliseconds, as required for PIDE document editing with add-on tools
+(e.g. auto Sledgehammer).
+
 * Reactivated Isabelle/Scala kill command for external processes on
 Mac OS X, which was accidentally broken in Isabelle2013-1 due to a
 workaround for some Debian/Ubuntu Linux versions from 2013.
