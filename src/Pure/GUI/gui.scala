@@ -127,7 +127,7 @@ object GUI
   /* icon */
 
   def isabelle_icon(): ImageIcon =
-    new ImageIcon(getClass.getClassLoader.getResource("isabelle/isabelle.gif"))
+    new ImageIcon(getClass.getClassLoader.getResource("isabelle/isabelle-icon.gif"))
 
   def isabelle_image(): Image = isabelle_icon().getImage
 
