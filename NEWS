@@ -20,9 +20,9 @@ e.g. out-of-memory).
 *** System ***
 
 * More robust termination of external processes managed by
-Isabelle/ML: support cancellation of tasks in within the range of
-milliseconds, as required for PIDE document editing with add-on tools
-(e.g. auto Sledgehammer).
+Isabelle/ML: support cancellation of tasks within the range of
+milliseconds, as required for PIDE document editing with automatically
+tried tools (e.g. Sledgehammer).
 
 * Reactivated Isabelle/Scala kill command for external processes on
 Mac OS X, which was accidentally broken in Isabelle2013-1 due to a
