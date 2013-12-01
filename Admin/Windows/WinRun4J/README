@@ -5,5 +5,5 @@ Java application wrapper for Windows
 
 cp winrun4j/bin/WinRun4J.exe Isabelle.exe
 winrun4j/bin/RCEDIT /C Isabelle.exe
-winrun4j/bin/RCEDIT /I Isabelle.exe isabelle.ico
+winrun4j/bin/RCEDIT /I Isabelle.exe isabelle_transparent.ico
 
