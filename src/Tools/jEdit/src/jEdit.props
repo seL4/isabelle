@@ -223,6 +223,7 @@ lang.usedefaultlocale=false
 largefilemode=full
 line-end.shortcut=END
 line-home.shortcut=HOME
+logo.icon.medium=32x32/apps/isabelle.gif
 lookAndFeel=javax.swing.plaf.nimbus.NimbusLookAndFeel
 match-bracket.shortcut2=C+9
 next-bracket.shortcut2=C+e C+9
