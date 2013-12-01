@@ -13,7 +13,7 @@ sig
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
   val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
-    thm list -> int list -> thm list -> tactic
+    thm list -> int list -> thm list -> thm option -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
 end;
@@ -116,7 +116,8 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
        (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))))
   end;
 
-fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs =
+(* TODO: implement "exhaustive" (maybe_exh) *)
+fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs maybe_exh =
   EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms) ms
     f_ctrs) THEN
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms Code.abort_def} THEN
