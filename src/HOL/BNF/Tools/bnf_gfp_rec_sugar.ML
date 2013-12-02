@@ -1026,20 +1026,21 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         fun prove_code disc_eqns sel_eqns maybe_exh ctr_alist ctr_specs =
           let
-            val fun_data =
+            val maybe_fun_data =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
                find_first (member (op =) (map #ctr ctr_specs) o #ctr) sel_eqns)
               |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #maybe_code_rhs x))
               ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, NONE))
               |> merge_options;
           in
-            (case fun_data of
+            (case maybe_fun_data of
               NONE => []
             | SOME (fun_name, fun_T, fun_args, maybe_rhs) =>
               let
                 val bound_Ts = List.rev (map fastype_of fun_args);
 
-                val lhs = list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
+                val lhs =
+                  list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
                 val maybe_rhs_info =
                   (case maybe_rhs of
                     SOME rhs =>
@@ -1067,18 +1068,19 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                           end;
                       val maybe_ctr_conds_argss = map prove_code_ctr ctr_specs;
                     in
-                      if exists is_none maybe_ctr_conds_argss then NONE else
-                        let
-                          val rhs = (if exhaustive then
-                              split_last maybe_ctr_conds_argss ||> snd o the
-                            else
-                              Const (@{const_name Code.abort}, @{typ String.literal} -->
-                                  (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
-                                HOLogic.mk_literal fun_name $
-                                absdummy @{typ unit} (incr_boundvars 1 lhs)
-                              |> pair maybe_ctr_conds_argss)
-                            |-> fold_rev (fn SOME (prems, u) => fn t => mk_If (s_conjs prems) u t)
-                        in SOME (rhs, rhs, map snd ctr_alist) end
+                      let
+                        val rhs = (if exhaustive
+                              orelse forall is_some maybe_ctr_conds_argss
+                                andalso exists #auto_gen disc_eqns then
+                            split_last (map_filter I maybe_ctr_conds_argss) ||> snd
+                          else
+                            Const (@{const_name Code.abort}, @{typ String.literal} -->
+                                (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
+                              HOLogic.mk_literal fun_name $
+                              absdummy @{typ unit} (incr_boundvars 1 lhs)
+                            |> pair (map_filter I maybe_ctr_conds_argss))
+                          |-> fold_rev (fn (prems, u) => mk_If (s_conjs prems) u)
+                      in SOME (rhs, rhs, map snd ctr_alist) end
                     end);
               in
                 (case maybe_rhs_info of
