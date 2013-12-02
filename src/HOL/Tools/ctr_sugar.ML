@@ -932,8 +932,9 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
          |> Local_Theory.notes (anonymous_notes @ notes) |> snd
          |> register_ctr_sugar fcT_name ctr_sugar
-         |> Local_Theory.background_theory
-           (add_ctr_code fcT_name As (map dest_Const ctrs) inject_thms distinct_thms case_thms))
+         |> null (Thm.hyps_of (hd case_thms))
+           ? Local_Theory.background_theory
+             (add_ctr_code fcT_name As (map dest_Const ctrs) inject_thms distinct_thms case_thms))
       end;
   in
     (goalss, after_qed, lthy')
