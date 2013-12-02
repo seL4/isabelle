@@ -2350,6 +2350,8 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %  * @{command wrap_free_constructors}
 %    * @{text "no_discs_sels"}, @{text "rep_compat"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
+%  * code generator
+%     * eq, refl, simps
 *}
 
 
@@ -2383,8 +2385,6 @@ text {*
 "}
 
 % options: no_discs_sels rep_compat
-
-% X_list is as for BNF
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
