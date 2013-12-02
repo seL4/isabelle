@@ -125,7 +125,7 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Def_Tactics
 
-val fundef_cong_attrs = @{attributes [fundef_cong]};
+val cong_fundefcong_attrs = @{attributes [cong, fundef_cong]};
 
 type axioms = {
   map_id0: thm,
@@ -636,7 +636,7 @@ fun note_bnf_thms fact_policy qualify' bnf_b bnf =
           val notes =
             [(map_compN, [Lazy.force (#map_comp facts)], []),
             (map_cong0N, [#map_cong0 axioms], []),
-            (map_congN, [Lazy.force (#map_cong facts)], fundef_cong_attrs),
+            (map_congN, [Lazy.force (#map_cong facts)], cong_fundefcong_attrs),
             (map_idN, [Lazy.force (#map_id facts)], []),
             (rel_eqN, [Lazy.force (#rel_eq facts)], []),
             (rel_flipN, [Lazy.force (#rel_flip facts)], []),
