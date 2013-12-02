@@ -95,8 +95,8 @@ sig
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
-    (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
-      ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
+    (bool * (bool * bool)) * (((((binding * (typ * sort)) list * binding) * (binding * binding))
+      * mixfix) * ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
@@ -975,7 +975,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    (wrap_opts as (no_discs_sels, rep_compat), specs) no_defs_lthy0 =
+    (wrap_opts as (no_discs_sels, (_, rep_compat)), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 

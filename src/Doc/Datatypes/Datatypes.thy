@@ -460,7 +460,7 @@ text {*
   @@{command datatype_new} target? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'rep_compat') + ',') ')'
+  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
 "}
 
 The syntactic entity \synt{target} can be used to specify a local
@@ -475,6 +475,10 @@ The optional target is optionally followed by datatype-specific options:
 \item
 The @{text "no_discs_sels"} option indicates that no discriminators or selectors
 should be generated.
+
+\item
+The @{text "no_code"} option indicates that the datatype should not be
+registered for code generation.
 
 \item
 The @{text "rep_compat"} option indicates that the generated names should
@@ -2387,7 +2391,7 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %    old \keyw{datatype}
 %
 %  * @{command wrap_free_constructors}
-%    * @{text "no_discs_sels"}, @{text "rep_compat"}
+%    * @{text "no_discs_sels"}, @{text "no_code"}, @{text "rep_compat"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
 %  * code generator
 %     * eq, refl, simps
@@ -2423,7 +2427,7 @@ text {*
   X_list: '[' (X + ',') ']'
 "}
 
-% options: no_discs_sels rep_compat
+% options: no_discs_sels no_code rep_compat
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.

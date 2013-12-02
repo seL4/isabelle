@@ -54,10 +54,10 @@ sig
   val dest_case: Proof.context -> string -> typ list -> term -> (term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * bool) * term list) * binding) *
+    (((bool * (bool * bool)) * term list) * binding) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_free_constructors_options: (bool * bool) parser
+  val parse_wrap_free_constructors_options: (bool * (bool * bool)) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -286,7 +286,7 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw_ctrs),
+fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_compat)), raw_ctrs),
     raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -931,7 +931,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
          |> Local_Theory.notes (anonymous_notes @ notes) |> snd
          |> register_ctr_sugar fcT_name ctr_sugar
-         |> null (Thm.hyps_of (hd case_thms))
+         |> (not no_code andalso null (Thm.hyps_of (hd case_thms)))
            ? Local_Theory.background_theory
              (add_ctr_code fcT_name As (map dest_Const ctrs) inject_thms distinct_thms case_thms))
       end;
@@ -957,9 +957,11 @@ val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_free_constructors_options =
-  Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_discs_sels"} >> K (true, false)) ||
-      (@{keyword "rep_compat"} >> K (false, true))) --| @{keyword ")"}
-    >> (pairself (exists I) o split_list)) (false, false);
+  Scan.optional (@{keyword "("} |-- Parse.list1
+        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1 ||
+         Parse.reserved "rep_compat" >> K 2) --| @{keyword ")"}
+      >> (fn js => (member (op =) js 0, (member (op =) js 1, member (op =) js 2))))
+    (false, (false, false));
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}
