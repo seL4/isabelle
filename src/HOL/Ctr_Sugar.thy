@@ -40,6 +40,7 @@ by blast+
 
 ML_file "Tools/ctr_sugar_util.ML"
 ML_file "Tools/ctr_sugar_tactics.ML"
+ML_file "Tools/ctr_sugar_code.ML"
 ML_file "Tools/ctr_sugar.ML"
 
 end
