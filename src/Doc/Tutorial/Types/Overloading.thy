@@ -7,7 +7,7 @@ have multiple definitions at non-overlapping types. *}
 
 subsubsection {* Overloading *}
 
-text {* We can introduce a binary infix addition operator @{text "\<otimes>"}
+text {* We can introduce a binary infix addition operator @{text "\<oplus>"}
 for arbitrary types by means of a type class: *}
 
 class plus =
