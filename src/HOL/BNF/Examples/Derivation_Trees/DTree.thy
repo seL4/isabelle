@@ -11,8 +11,6 @@ theory DTree
 imports Prelim
 begin
 
-hide_fact (open) Lifting_Product.prod_rel_def
-
 typedecl N
 typedecl T
 
