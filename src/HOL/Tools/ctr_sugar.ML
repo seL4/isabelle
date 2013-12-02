@@ -503,7 +503,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                     if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
                     else pair (alternate_disc k, alternate_disc_no_def)
                   else if Binding.eq_name (b, equal_binding) then
-                    pair (rhs, refl)
+                    pair (rhs, Thm.reflexive (certify lthy rhs))
                   else
                     Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd
                 end) ks exist_xs_u_eq_ctrs disc_bindings
