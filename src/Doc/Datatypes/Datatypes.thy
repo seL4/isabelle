@@ -866,7 +866,7 @@ the map function, and the relator:
 \item[@{text "t."}\hthm{map\_comp}\rm:] ~ \\
 @{thm list.map_cong0[no_vars]}
 
-\item[@{text "t."}\hthm{map\_cong} @{text "[cong, fundef_cong]"}\rm:] ~ \\
+\item[@{text "t."}\hthm{map\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.map_cong[no_vars]}
 
 \item[@{text "t."}\hthm{map\_id}\rm:] ~ \\
