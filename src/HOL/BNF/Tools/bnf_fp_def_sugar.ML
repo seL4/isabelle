@@ -505,17 +505,11 @@ fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
     ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy')
   end;
 
-fun mk_iter_body ctor_iter fss xssss =
-  Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss);
-
 fun mk_preds_getterss_join c cps sum_prod_T cqfss =
   let val n = length cqfss in
     Term.lambda c (mk_IfN sum_prod_T cps
       (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)))
   end;
-
-fun mk_coiter_body cs cpss f_sum_prod_Ts cqfsss dtor_coiter =
-  Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss);
 
 fun define_co_iters fp fpT Cs binding_specs lthy0 =
   let
@@ -525,8 +519,8 @@ fun define_co_iters fp fpT Cs binding_specs lthy0 =
       #> Config.get lthy0 bnf_note_all = false ? Binding.conceal;
 
     val ((csts, defs), (lthy', lthy)) = lthy0
-      |> apfst split_list o fold_map (fn (b, spec) =>
-        Specification.definition (SOME (b, NONE, NoSyn), ((maybe_conceal_def_binding b, []), spec))
+      |> apfst split_list o fold_map (fn (b, rhs) =>
+        Local_Theory.define ((b, NoSyn), ((maybe_conceal_def_binding b, []), rhs))
         #>> apsnd snd) binding_specs
       ||> `Local_Theory.restore;
 
@@ -544,14 +538,10 @@ fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
 
     val fpT_to_C as Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of (hd ctor_iters)));
 
-    fun generate_iter pre (f_Tss, _, fss, xssss) ctor_iter =
-      let
-        val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
-        val b = mk_binding pre;
-        val spec =
-          mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of b, res_T)),
-            mk_iter_body ctor_iter fss xssss);
-      in (b, spec) end;
+    fun generate_iter pre (_, _, fss, xssss) ctor_iter =
+      (mk_binding pre,
+       fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_iter,
+         map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss)));
   in
     define_co_iters Least_FP fpT Cs (map3 generate_iter iterNs iter_args_typess' ctor_iters) lthy
   end;
@@ -564,13 +554,9 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
     val C_to_fpT as Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
 
     fun generate_coiter pre ((pfss, cqfsss), (f_sum_prod_Ts, pf_Tss)) dtor_coiter =
-      let
-        val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
-        val b = mk_binding pre;
-        val spec =
-          mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of b, res_T)),
-            mk_coiter_body cs cpss f_sum_prod_Ts cqfsss dtor_coiter);
-      in (b, spec) end;
+      (mk_binding pre,
+       fold_rev (fold_rev Term.lambda) pfss (Term.list_comb (dtor_coiter,
+         map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)));
   in
     define_co_iters Greatest_FP fpT Cs
       (map3 generate_coiter coiterNs coiter_args_typess' dtor_coiters) lthy
