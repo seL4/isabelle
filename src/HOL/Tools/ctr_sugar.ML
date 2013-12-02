@@ -448,8 +448,6 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         let
           fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
 
-          fun disc_spec b exist_xs_u_eq_ctr = mk_Trueprop_eq (disc_free b $ u, exist_xs_u_eq_ctr);
-
           fun alternate_disc k =
             Term.lambda u (alternate_disc_lhs (K o rapp u o disc_free) (3 - k));
 
@@ -462,7 +460,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                 | SOME t => t |> Type.constraint (Ts ---> T) |> Syntax.check_term lthy)
               | SOME (xs, x) => fold_rev Term.lambda xs x)) ctr_Tss ks;
 
-          fun sel_spec b proto_sels =
+          fun sel_rhs b proto_sels =
             let
               val _ =
                 (case duplicates (op =) (map fst proto_sels) of
@@ -477,8 +475,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                     quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ lthy T) ^ " vs. "
                     ^ quote (Syntax.string_of_typ lthy T')));
             in
-              mk_Trueprop_eq (Free (Binding.name_of b, fcT --> T) $ u,
-                Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T) $ u)
+              Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T)
             end;
 
           val sel_bindings = flat sel_bindingss;
@@ -501,18 +498,18 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             lthy
             |> apfst split_list o fold_map3 (fn k => fn exist_xs_u_eq_ctr => fn b =>
-                if Binding.is_empty b then
-                  if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
-                  else pair (alternate_disc k, alternate_disc_no_def)
-                else if Binding.eq_name (b, equal_binding) then
-                  pair (Term.lambda u exist_xs_u_eq_ctr, refl)
-                else
-                  Specification.definition (SOME (b, NONE, NoSyn),
-                    ((Thm.def_binding b, []), disc_spec b exist_xs_u_eq_ctr)) #>> apsnd snd)
-              ks exist_xs_u_eq_ctrs disc_bindings
+                let val rhs = Term.lambda u exist_xs_u_eq_ctr in
+                  if Binding.is_empty b then
+                    if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
+                    else pair (alternate_disc k, alternate_disc_no_def)
+                  else if Binding.eq_name (b, equal_binding) then
+                    pair (rhs, refl)
+                  else
+                    Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd
+                end) ks exist_xs_u_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
-              Specification.definition (SOME (b, NONE, NoSyn),
-                ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
+              Local_Theory.define ((b, NoSyn),
+                ((Thm.def_binding b, []), sel_rhs b proto_sels)) #>> apsnd snd) sel_infos
             ||> `Local_Theory.restore;
 
           val phi = Proof_Context.export_morphism lthy lthy';
@@ -671,9 +668,11 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
               val vdiscs = map (rapp v) discs;
               val vselss = map (map (rapp v)) selss;
 
+              fun massage_dest_def def = def RS meta_eq_to_obj_eq RS fun_cong;
+
               fun make_sel_thm xs' case_thm sel_def =
                 zero_var_indexes (Drule.gen_all (Drule.rename_bvars' (map (SOME o fst) xs')
-                    (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
+                  (Drule.forall_intr_vars (case_thm RS (massage_dest_def sel_def RS trans)))));
 
               val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
 
@@ -707,7 +706,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                       nth exist_xs_u_eq_ctrs (k - 1));
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                    mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
+                    mk_alternate_disc_def_tac ctxt k (massage_dest_def (nth disc_defs (2 - k)))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
                   |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
@@ -720,7 +719,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                 map2 (fn k => fn def =>
                   if Thm.eq_thm_prop (def, unique_disc_no_def) then mk_unique_disc_def ()
                   else if Thm.eq_thm_prop (def, alternate_disc_no_def) then mk_alternate_disc_def k
-                  else def) ks disc_defs;
+                  else massage_dest_def def) ks disc_defs;
 
               val discD_thms = map (fn def => def RS iffD1) disc_defs';
               val discI_thms =
