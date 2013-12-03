@@ -28,7 +28,8 @@ end;
 structure BNF_FP_Rec_Sugar_Util : BNF_FP_REC_SUGAR_UTIL =
 struct
 
-fun indexed xs h = let val h' = h + length xs in (h upto h' - 1, h') end;
+fun indexe _ h = (h, h + 1);
+fun indexed xs = fold_map indexe xs;
 fun indexedd xss = fold_map indexed xss;
 fun indexeddd xsss = fold_map indexedd xsss;
 fun indexedddd xssss = fold_map indexeddd xssss;

@@ -11,9 +11,7 @@ theory Ctr_Sugar
 imports HOL
 keywords
   "print_case_translations" :: diag and
-  "wrap_free_constructors" :: thy_goal and
-  "no_discs_sels" and
-  "rep_compat"
+  "wrap_free_constructors" :: thy_goal
 begin
 
 consts
@@ -40,6 +38,7 @@ by blast+
 
 ML_file "Tools/ctr_sugar_util.ML"
 ML_file "Tools/ctr_sugar_tactics.ML"
+ML_file "Tools/ctr_sugar_code.ML"
 ML_file "Tools/ctr_sugar.ML"
 
 end

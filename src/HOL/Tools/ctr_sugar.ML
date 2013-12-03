@@ -54,10 +54,10 @@ sig
   val dest_case: Proof.context -> string -> typ list -> term -> (term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * bool) * term list) * binding) *
+    (((bool * (bool * bool)) * term list) * binding) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_free_constructors_options: (bool * bool) parser
+  val parse_wrap_free_constructors_options: (bool * (bool * bool)) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -66,6 +66,7 @@ struct
 
 open Ctr_Sugar_Util
 open Ctr_Sugar_Tactics
+open Ctr_Sugar_Code
 
 type ctr_sugar =
   {ctrs: term list,
@@ -285,7 +286,7 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw_ctrs),
+fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_compat)), raw_ctrs),
     raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -447,8 +448,6 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         let
           fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
 
-          fun disc_spec b exist_xs_u_eq_ctr = mk_Trueprop_eq (disc_free b $ u, exist_xs_u_eq_ctr);
-
           fun alternate_disc k =
             Term.lambda u (alternate_disc_lhs (K o rapp u o disc_free) (3 - k));
 
@@ -461,7 +460,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                 | SOME t => t |> Type.constraint (Ts ---> T) |> Syntax.check_term lthy)
               | SOME (xs, x) => fold_rev Term.lambda xs x)) ctr_Tss ks;
 
-          fun sel_spec b proto_sels =
+          fun sel_rhs b proto_sels =
             let
               val _ =
                 (case duplicates (op =) (map fst proto_sels) of
@@ -476,8 +475,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                     quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ lthy T) ^ " vs. "
                     ^ quote (Syntax.string_of_typ lthy T')));
             in
-              mk_Trueprop_eq (Free (Binding.name_of b, fcT --> T) $ u,
-                Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T) $ u)
+              Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T)
             end;
 
           val sel_bindings = flat sel_bindingss;
@@ -500,18 +498,18 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             lthy
             |> apfst split_list o fold_map3 (fn k => fn exist_xs_u_eq_ctr => fn b =>
-                if Binding.is_empty b then
-                  if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
-                  else pair (alternate_disc k, alternate_disc_no_def)
-                else if Binding.eq_name (b, equal_binding) then
-                  pair (Term.lambda u exist_xs_u_eq_ctr, refl)
-                else
-                  Specification.definition (SOME (b, NONE, NoSyn),
-                    ((Thm.def_binding b, []), disc_spec b exist_xs_u_eq_ctr)) #>> apsnd snd)
-              ks exist_xs_u_eq_ctrs disc_bindings
+                let val rhs = Term.lambda u exist_xs_u_eq_ctr in
+                  if Binding.is_empty b then
+                    if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
+                    else pair (alternate_disc k, alternate_disc_no_def)
+                  else if Binding.eq_name (b, equal_binding) then
+                    pair (rhs, Thm.reflexive (certify lthy rhs))
+                  else
+                    Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs)) #>> apsnd snd
+                end) ks exist_xs_u_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
-              Specification.definition (SOME (b, NONE, NoSyn),
-                ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
+              Local_Theory.define ((b, NoSyn),
+                ((Thm.def_binding b, []), sel_rhs b proto_sels)) #>> apsnd snd) sel_infos
             ||> `Local_Theory.restore;
 
           val phi = Proof_Context.export_morphism lthy lthy';
@@ -670,9 +668,11 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
               val vdiscs = map (rapp v) discs;
               val vselss = map (map (rapp v)) selss;
 
+              fun massage_dest_def def = def RS meta_eq_to_obj_eq RS fun_cong;
+
               fun make_sel_thm xs' case_thm sel_def =
                 zero_var_indexes (Drule.gen_all (Drule.rename_bvars' (map (SOME o fst) xs')
-                    (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
+                  (Drule.forall_intr_vars (case_thm RS (massage_dest_def sel_def RS trans)))));
 
               val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
 
@@ -706,7 +706,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                       nth exist_xs_u_eq_ctrs (k - 1));
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                    mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
+                    mk_alternate_disc_def_tac ctxt k (massage_dest_def (nth disc_defs (2 - k)))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
                   |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
@@ -719,7 +719,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
                 map2 (fn k => fn def =>
                   if Thm.eq_thm_prop (def, unique_disc_no_def) then mk_unique_disc_def ()
                   else if Thm.eq_thm_prop (def, alternate_disc_no_def) then mk_alternate_disc_def k
-                  else def) ks disc_defs;
+                  else massage_dest_def def) ks disc_defs;
 
               val discD_thms = map (fn def => def RS iffD1) disc_defs';
               val discI_thms =
@@ -926,11 +926,14 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, rep_compat), raw
         (ctr_sugar,
          lthy
          |> not rep_compat ?
-            (Local_Theory.declaration {syntax = false, pervasive = true}
-               (fn phi => Case_Translation.register
-                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
+            Local_Theory.declaration {syntax = false, pervasive = true}
+              (fn phi => Case_Translation.register
+                 (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
          |> Local_Theory.notes (anonymous_notes @ notes) |> snd
-         |> register_ctr_sugar fcT_name ctr_sugar)
+         |> register_ctr_sugar fcT_name ctr_sugar
+         |> (not no_code andalso null (Thm.hyps_of (hd case_thms)))
+           ? Local_Theory.background_theory
+             (add_ctr_code fcT_name As (map dest_Const ctrs) inject_thms distinct_thms case_thms))
       end;
   in
     (goalss, after_qed, lthy')
@@ -954,9 +957,11 @@ val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_free_constructors_options =
-  Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_discs_sels"} >> K (true, false)) ||
-      (@{keyword "rep_compat"} >> K (false, true))) --| @{keyword ")"}
-    >> (pairself (exists I) o split_list)) (false, false);
+  Scan.optional (@{keyword "("} |-- Parse.list1
+        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1 ||
+         Parse.reserved "rep_compat" >> K 2) --| @{keyword ")"}
+      >> (fn js => (member (op =) js 0, (member (op =) js 1, member (op =) js 2))))
+    (false, (false, false));
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}

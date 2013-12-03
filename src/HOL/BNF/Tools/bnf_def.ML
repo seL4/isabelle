@@ -125,7 +125,7 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Def_Tactics
 
-val fundef_cong_attrs = @{attributes [fundef_cong]};
+val fundefcong_attrs = @{attributes [fundef_cong]};
 
 type axioms = {
   map_id0: thm,
@@ -579,8 +579,8 @@ val rel_GrpN = "rel_Grp";
 val rel_conversepN = "rel_conversep";
 val rel_monoN = "rel_mono"
 val rel_mono_strongN = "rel_mono_strong"
-val rel_OON = "rel_compp";
-val rel_OO_GrpN = "rel_compp_Grp";
+val rel_comppN = "rel_compp";
+val rel_compp_GrpN = "rel_compp_Grp";
 
 datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
@@ -636,16 +636,16 @@ fun note_bnf_thms fact_policy qualify' bnf_b bnf =
           val notes =
             [(map_compN, [Lazy.force (#map_comp facts)], []),
             (map_cong0N, [#map_cong0 axioms], []),
-            (map_congN, [Lazy.force (#map_cong facts)], fundef_cong_attrs),
+            (map_congN, [Lazy.force (#map_cong facts)], fundefcong_attrs),
             (map_idN, [Lazy.force (#map_id facts)], []),
+            (rel_comppN, [Lazy.force (#rel_OO facts)], []),
+            (rel_compp_GrpN, no_refl [#rel_OO_Grp axioms], []),
+            (rel_conversepN, [Lazy.force (#rel_conversep facts)], []),
             (rel_eqN, [Lazy.force (#rel_eq facts)], []),
             (rel_flipN, [Lazy.force (#rel_flip facts)], []),
-            (set_mapN, map Lazy.force (#set_map facts), []),
-            (rel_OO_GrpN, no_refl [#rel_OO_Grp axioms], []),
             (rel_GrpN, [Lazy.force (#rel_Grp facts)], []),
-            (rel_conversepN, [Lazy.force (#rel_conversep facts)], []),
             (rel_monoN, [Lazy.force (#rel_mono facts)], []),
-            (rel_OON, [Lazy.force (#rel_OO facts)], [])]
+            (set_mapN, map Lazy.force (#set_map facts), [])]
             |> filter_out (null o #2)
             |> map (fn (thmN, thms, attrs) =>
               ((qualify (Binding.qualify true (Binding.name_of bnf_b) (Binding.name thmN)),

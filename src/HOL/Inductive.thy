@@ -274,7 +274,7 @@ ML_file "Tools/Datatype/datatype_aux.ML"
 ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 ML_file "Tools/Datatype/rep_datatype.ML"
-ML_file "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
+ML_file "Tools/Datatype/datatype_codegen.ML"
 ML_file "Tools/Datatype/primrec.ML"
 
 text{* Lambda-abstractions with pattern matching: *}

@@ -460,7 +460,7 @@ text {*
   @@{command datatype_new} target? @{syntax dt_options}? \\
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'rep_compat') + ',') ')'
+  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
 "}
 
 The syntactic entity \synt{target} can be used to specify a local
@@ -475,6 +475,10 @@ The optional target is optionally followed by datatype-specific options:
 \item
 The @{text "no_discs_sels"} option indicates that no discriminators or selectors
 should be generated.
+
+\item
+The @{text "no_code"} option indicates that the datatype should not be
+registered for code generation.
 
 \item
 The @{text "rep_compat"} option indicates that the generated names should
@@ -704,8 +708,9 @@ subsubsection {* Free Constructor Theorems
 (*>*)
 
 text {*
-The first subgroup of properties is concerned with the constructors.
-They are listed below for @{typ "'a list"}:
+The free constructor theorems are partitioned in three subgroups. The first
+subgroup of properties is concerned with the constructors. They are listed below
+for @{typ "'a list"}:
 
 \begin{indentblock}
 \begin{description}
@@ -767,7 +772,7 @@ The next subgroup is concerned with the case combinator:
 \end{indentblock}
 
 \noindent
-The third and last subgroup revolves around discriminators and selectors:
+The third subgroup revolves around discriminators and selectors:
 
 \begin{indentblock}
 \begin{description}
@@ -826,7 +831,9 @@ subsubsection {* Functorial Theorems
   \label{sssec:functorial-theorems} *}
 
 text {*
-The BNF-related theorem are as follows:
+The functorial theorems are partitioned in two subgroups. The first subgroup
+consists of properties involving the constructors and either a set function, the
+map function, or the relator:
 
 \begin{indentblock}
 \begin{description}
@@ -853,6 +860,42 @@ The BNF-related theorem are as follows:
 \noindent
 In addition, equational versions of @{text t.rel_inject} and @{text
 rel_distinct} are registered with the @{text "[code]"} attribute.
+
+The second subgroup consists of more abstract properties of the set functions,
+the map function, and the relator:
+
+\begin{indentblock}
+\begin{description}
+
+\item[@{text "t."}\hthm{map\_comp}\rm:] ~ \\
+@{thm list.map_cong0[no_vars]}
+
+\item[@{text "t."}\hthm{map\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
+@{thm list.map_cong[no_vars]}
+
+\item[@{text "t."}\hthm{map\_id}\rm:] ~ \\
+@{thm list.map_id[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_compp}\rm:] ~ \\
+@{thm list.rel_compp[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_conversep}\rm:] ~ \\
+@{thm list.rel_conversep[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_eq}\rm:] ~ \\
+@{thm list.rel_eq[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_flip}\rm:] ~ \\
+@{thm list.rel_flip[no_vars]}
+
+\item[@{text "t."}\hthm{rel\_mono}\rm:] ~ \\
+@{thm list.rel_mono[no_vars]}
+
+\item[@{text "t."}\hthm{set\_map}\rm:] ~ \\
+@{thm list.set_map[no_vars]}
+
+\end{description}
+\end{indentblock}
 *}
 
 
@@ -2348,8 +2391,10 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %    old \keyw{datatype}
 %
 %  * @{command wrap_free_constructors}
-%    * @{text "no_discs_sels"}, @{text "rep_compat"}
+%    * @{text "no_discs_sels"}, @{text "no_code"}, @{text "rep_compat"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
+%  * code generator
+%     * eq, refl, simps
 *}
 
 
@@ -2382,9 +2427,7 @@ text {*
   X_list: '[' (X + ',') ']'
 "}
 
-% options: no_discs_sels rep_compat
-
-% X_list is as for BNF
+% options: no_discs_sels no_code rep_compat
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
