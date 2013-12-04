@@ -287,7 +287,7 @@ then
   cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
     "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
   isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
-  rm -rf org
+  rm -rf META-INF org
   cd ..
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
