@@ -286,7 +286,7 @@ then
     "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
   cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
     "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
-  isabelle_jdk jar cf jedit.jar org || failed
+  isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
   rm -rf org
   cd ..
 
