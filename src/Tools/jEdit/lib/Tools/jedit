@@ -282,9 +282,9 @@ then
 
   cd dist
   isabelle_jdk jar xf jedit.jar
-  cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
     "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
-  cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
+  cp "$ISABELLE_HOME/lib/logo/isabelle_transparent-32.gif" \
     "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
   isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
   rm -rf META-INF org
