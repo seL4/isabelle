@@ -84,6 +84,11 @@ more syntax-directed proof rules; the case of the empty chain
 shows up as additional case in fixpoint induction proofs.
 INCOMPATIBILITY
 
+* Nitpick:
+  - Fixed soundness bug whereby mutually recursive datatypes could take
+    infinite values.
+
+
 *** ML ***
 
 * Toplevel function "use" refers to raw ML bootstrap environment,
@@ -548,10 +553,6 @@ integration with HOL's type classes for rings.  INCOMPATIBILITY.
     set_map' ~> set_map
     sets ~> set
 IMCOMPATIBILITY.
-
-* Nitpick:
-  - Fixed soundness bug whereby mutually recursive datatypes could take
-    infinite values.
 
 
 *** ML ***
