@@ -520,6 +520,10 @@ integration with HOL's type classes for rings.  INCOMPATIBILITY.
     sets ~> set
 IMCOMPATIBILITY.
 
+* Nitpick:
+  - Fixed soundness bug whereby mutually recursive datatypes could take
+    infinite values.
+
 
 *** ML ***
 

@@ -1545,16 +1545,16 @@ fun strongly_connected_sub_nfas nfa =
   |> Typ_Graph.strong_conn
   |> map (fn keys => filter (member (op =) keys o fst) nfa)
 
-fun acyclicity_axiom_for_datatype (kk as {kk_no, kk_intersect, ...}) nfa
-                                  start_T =
-  kk_no (kk_intersect
-             (loop_path_rel_expr kk nfa (pull start_T (map fst nfa)) start_T)
-             KK.Iden)
 (* Cycle breaking in the bounds takes care of singly recursive datatypes, hence
    the first equation. *)
-fun acyclicity_axioms_for_datatypes _ [_] = []
-  | acyclicity_axioms_for_datatypes kk nfas =
-    maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa) nfas
+fun acyclicity_axioms_for_datatype _ [_] _ = []
+  | acyclicity_axioms_for_datatype (kk as {kk_no, kk_intersect, ...}) nfa
+                                   start_T =
+    [kk_no (kk_intersect
+                (loop_path_rel_expr kk nfa (pull start_T (map fst nfa)) start_T)
+                KK.Iden)]
+fun acyclicity_axioms_for_datatypes kk =
+  maps (fn nfa => maps (acyclicity_axioms_for_datatype kk nfa o fst) nfa)
 
 fun atom_equation_for_nut ofs kk (u, j) =
   let val dummy_u = RelReg (0, type_of u, rep_of u) in
