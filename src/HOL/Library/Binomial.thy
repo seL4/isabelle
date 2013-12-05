@@ -12,6 +12,8 @@ begin
 text {* This development is based on the work of Andy Gordon and
   Florian Kammueller. *}
 
+subsection {* Basic definitions and lemmas *}
+
 primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
 where
   "0 choose k = (if k = 0 then 1 else 0)"
@@ -48,11 +50,11 @@ lemma binomial_1 [simp]: "n choose Suc 0 = n"
 lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
   by (induct n k rule: diff_induct) simp_all
 
-lemma binomial_eq_0_iff: "n choose k = 0 \<longleftrightarrow> n < k"
+lemma binomial_eq_0_iff [simp]: "n choose k = 0 \<longleftrightarrow> n < k"
   by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
 
-lemma zero_less_binomial_iff: "n choose k > 0 \<longleftrightarrow> k \<le> n"
-  by (simp add: linorder_not_less binomial_eq_0_iff neq0_conv[symmetric] del: neq0_conv)
+lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<le> n"
+  by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
 
 (*Might be more useful if re-oriented*)
 lemma Suc_times_binomial_eq:
@@ -76,12 +78,9 @@ lemma times_binomial_minus1_eq:
   by (auto split add: nat_diff_split)
 
 
-subsection {* Theorems about @{text "choose"} *}
+subsection {* Combinatorial theorems involving @{text "choose"} *}
 
-text {*
-  \medskip Basic theorem about @{text "choose"}.  By Florian
-  Kamm\"uller, tidied by LCP.
-*}
+text {*By Florian Kamm\"uller, tidied by LCP.*}
 
 lemma card_s_0_eq_empty: "finite A \<Longrightarrow> card {B. B \<subseteq> A & card B = 0} = 1"
   by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
@@ -139,10 +138,10 @@ next
 qed
 
 
-text{* The binomial theorem (courtesy of Tobias Nipkow): *}
+subsection {* The binomial theorem (courtesy of Tobias Nipkow): *}
 
-(* Avigad's version, generalized to any commutative semiring *)
-theorem binomial: "(a+b::'a::{comm_ring_1,power})^n = 
+text{* Avigad's version, generalized to any commutative ring *}
+theorem binomial_ring: "(a+b::'a::{comm_ring_1,power})^n = 
   (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
 proof (induct n)
   case 0 then show "?P 0" by simp
@@ -178,7 +177,15 @@ next
   finally show "?P (Suc n)" by simp
 qed
 
-subsection{* Pochhammer's symbol : generalized raising factorial*}
+text{* Original version for the naturals *}
+corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))"
+    using binomial_ring [of "int a" "int b" n]
+  by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
+           of_nat_setsum [symmetric]
+           of_nat_eq_iff of_nat_id)
+
+subsection{* Pochhammer's symbol : generalized rising factorial 
+          See http://en.wikipedia.org/wiki/Pochhammer_symbol *}
 
 definition "pochhammer (a::'a::comm_semiring_1) n =
   (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
@@ -313,9 +320,8 @@ next
     unfolding Suc pochhammer_Suc_setprod eq setprod_timesf[symmetric]
     apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
     using Suc
-    apply (auto simp add: inj_on_def image_def)
-    apply (rule_tac x="h - x" in bexI)
-    apply (auto simp add: fun_eq_iff of_nat_diff)
+    apply (auto simp add: inj_on_def image_def of_nat_diff)
+    apply (metis atLeast0AtMost atMost_iff diff_diff_cancel diff_le_self)
     done
 qed
 
@@ -402,8 +408,9 @@ lemma binomial_fact:
 lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
 proof -
   { assume kn: "k > n"
-    from kn binomial_eq_0[OF kn] have ?thesis
-      by (simp add: gbinomial_pochhammer field_simps  pochhammer_of_nat_eq_0_iff) }
+    then have ?thesis
+      by (subst binomial_eq_0[OF kn]) 
+         (simp add: gbinomial_pochhammer field_simps  pochhammer_of_nat_eq_0_iff) }
   moreover
   { assume "k=0" then have ?thesis by simp }
   moreover
