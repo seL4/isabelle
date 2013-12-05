@@ -729,6 +729,9 @@ lemma curry_split [simp]: "curry (split f) = f"
 lemma split_curry [simp]: "split (curry f) = f"
   by (simp add: curry_def split_def)
 
+lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
+by(simp add: fun_eq_iff)
+
 text {*
   The composition-uncurry combinator.
 *}

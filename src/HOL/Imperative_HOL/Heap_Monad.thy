@@ -415,6 +415,9 @@ definition Heap_ord :: "'a Heap \<Rightarrow> 'a Heap \<Rightarrow> bool" where
 definition Heap_lub :: "'a Heap set \<Rightarrow> 'a Heap" where
   "Heap_lub = img_lub execute Heap (fun_lub (flat_lub None))"
 
+lemma Heap_lub_empty: "Heap_lub {} = Heap Map.empty"
+by(simp add: Heap_lub_def img_lub_def fun_lub_def flat_lub_def)
+
 lemma heap_interpretation: "partial_function_definitions Heap_ord Heap_lub"
 proof -
   have "partial_function_definitions (fun_ord option_ord) (fun_lub (flat_lub None))"
@@ -427,7 +430,8 @@ proof -
 qed
 
 interpretation heap!: partial_function_definitions Heap_ord Heap_lub
-by (fact heap_interpretation)
+  where "Heap_lub {} \<equiv> Heap Map.empty"
+by (fact heap_interpretation)(simp add: Heap_lub_empty)
 
 lemma heap_step_admissible: 
   "option.admissible
@@ -473,6 +477,7 @@ lemma fixp_induct_heap:
   assumes defined: "effect (U f x) h h' r"
   shows "P x h h' r"
   using step defined heap.fixp_induct_uc[of U F C, OF mono eq inverse2 admissible_heap, of P]
+  unfolding effect_def execute.simps
   by blast
 
 declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
