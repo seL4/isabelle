@@ -37,7 +37,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
         process_indicator.update("Waiting for evaluation of context ...", 5)
       case Query_Operation.Status.RUNNING =>
         process_indicator.update("Running find operation ...", 15)
-      case _ =>
+      case Query_Operation.Status.FINISHED =>
         process_indicator.update(null, 0)
     }
   }

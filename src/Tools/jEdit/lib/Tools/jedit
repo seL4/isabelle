@@ -280,6 +280,16 @@ then
       print qq,<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n,; }
     print; }' dist/modes/catalog
 
+  cd dist
+  isabelle_jdk jar xf jedit.jar
+  cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
+    "org/gjt/sp/jedit/icons/themes/classic/32x32/apps/isabelle.gif" || failed
+  cp "$ISABELLE_HOME/lib/logo/isabelle-32.gif" \
+    "org/gjt/sp/jedit/icons/themes/tango/32x32/apps/isabelle.gif" || failed
+  isabelle_jdk jar cfe jedit.jar org.gjt.sp.jedit.jEdit org || failed
+  rm -rf META-INF org
+  cd ..
+
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
     #workaround for scalac 2.10.2

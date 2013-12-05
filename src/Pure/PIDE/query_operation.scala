@@ -18,7 +18,6 @@ object Query_Operation
     val WAITING = Value("waiting")
     val RUNNING = Value("running")
     val FINISHED = Value("finished")
-    val REMOVED = Value("removed")
   }
 }
 
@@ -38,7 +37,7 @@ class Query_Operation[Editor_Context](
   private var current_query: List[String] = Nil
   private var current_update_pending = false
   private var current_output: List[XML.Tree] = Nil
-  private var current_status = Query_Operation.Status.REMOVED
+  private var current_status = Query_Operation.Status.FINISHED
   private var current_exec_id = Document_ID.none
 
   private def reset_state()
@@ -47,7 +46,7 @@ class Query_Operation[Editor_Context](
     current_query = Nil
     current_update_pending = false
     current_output = Nil
-    current_status = Query_Operation.Status.REMOVED
+    current_status = Query_Operation.Status.FINISHED
     current_exec_id = Document_ID.none
   }
 
@@ -89,13 +88,40 @@ class Query_Operation[Editor_Context](
       } yield elem).toList
 
 
+    /* resolve sendback: static command id */
+
+    def resolve_sendback(body: XML.Body): XML.Body =
+    {
+      current_location match {
+        case None => body
+        case Some(command) =>
+          def resolve(body: XML.Body): XML.Body =
+            body map {
+              case XML.Wrapped_Elem(m, b1, b2) => XML.Wrapped_Elem(m, resolve(b1), resolve(b2))
+              case XML.Elem(Markup(Markup.SENDBACK, props), b) =>
+                val props1 =
+                  props.map({
+                    case (Markup.ID, Properties.Value.Long(id)) if id == current_exec_id =>
+                      (Markup.ID, Properties.Value.Long(command.id))
+                    case p => p
+                  })
+                XML.Elem(Markup(Markup.SENDBACK, props1), resolve(b))
+              case XML.Elem(m, b) => XML.Elem(m, resolve(b))
+              case t => t
+            }
+          resolve(body)
+      }
+    }
+
+
     /* output */
 
     val new_output =
       for {
         XML.Elem(_, List(XML.Elem(markup, body))) <- results
         if Markup.messages.contains(markup.name)
-      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body)
+        body1 = resolve_sendback(body)
+      } yield XML.Elem(Markup(Markup.message(markup.name), markup.properties), body1)
 
 
     /* status */
@@ -105,7 +131,7 @@ class Query_Operation[Editor_Context](
       results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
-      if (removed) Query_Operation.Status.REMOVED
+      if (removed) Query_Operation.Status.FINISHED
       else
         get_status(Markup.FINISHED, Query_Operation.Status.FINISHED) orElse
         get_status(Markup.RUNNING, Query_Operation.Status.RUNNING) getOrElse
@@ -133,7 +159,7 @@ class Query_Operation[Editor_Context](
         if (current_status != new_status) {
           current_status = new_status
           consume_status(new_status)
-          if (new_status == Query_Operation.Status.REMOVED)
+          if (new_status == Query_Operation.Status.FINISHED)
             remove_overlay()
         }
       }
@@ -192,7 +218,7 @@ class Query_Operation[Editor_Context](
           current_location match {
             case Some(command)
             if current_update_pending ||
-              (current_status != Query_Operation.Status.REMOVED &&
+              (current_status != Query_Operation.Status.FINISHED &&
                 changed.commands.contains(command)) =>
               Swing_Thread.later { content_update() }
             case _ =>

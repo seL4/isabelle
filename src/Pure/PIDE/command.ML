@@ -59,15 +59,17 @@ fun memo_exec execution_id (Memo v) =
       (case expr of
         Expr (exec_id, body) =>
           uninterruptible (fn restore_attributes => fn () =>
-            if Execution.running execution_id exec_id [Future.the_worker_group ()] then
-              let
-                val res =
-                  (body
-                    |> restore_attributes
-                    |> Future.worker_nest "Command.memo_exec"
-                    |> Exn.interruptible_capture) ();
-              in SOME ((), Result res) end
-            else SOME ((), expr)) ()
+            let val group = Future.worker_subgroup () in
+              if Execution.running execution_id exec_id [group] then
+                let
+                  val res =
+                    (body
+                      |> restore_attributes
+                      |> Future.task_context "Command.memo_exec" group
+                      |> Exn.interruptible_capture) ();
+                in SOME ((), Result res) end
+              else SOME ((), expr)
+            end) ()
       | Result _ => SOME ((), expr)))
   |> (fn NONE => error "Conflicting command execution" | _ => ());
 
@@ -196,18 +198,19 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
-      val _ = Toplevel.status tr Markup.finished;
       val _ = List.app (Future.error_msg (Toplevel.pos_of tr)) errs;
     in
       (case result of
         NONE =>
           let
-            val _ = if null errs then Exn.interrupt () else ();
             val _ = Toplevel.status tr Markup.failed;
+            val _ = Toplevel.status tr Markup.finished;
+            val _ = if null errs then Exn.interrupt () else ();
           in {failed = true, malformed = malformed', command = tr, state = st} end
       | SOME st' =>
           let
             val _ = proof_status tr st';
+            val _ = Toplevel.status tr Markup.finished;
           in {failed = false, malformed = malformed', command = tr, state = st'} end)
     end;
 

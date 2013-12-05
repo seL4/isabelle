@@ -302,11 +302,14 @@ object Isabelle_System
 
     private val pid = stdout.readLine
 
+    private def kill_cmd(signal: String): Int =
+      execute(true, "/bin/bash", "-c", "kill -" + signal + " -" + pid).waitFor
+
     private def kill(signal: String): Boolean =
     {
       try {
-        execute(true, "kill", "-" + signal, "--", "-" + pid).waitFor
-        execute(true, "kill", "-0", "--", "-" + pid).waitFor == 0
+        kill_cmd(signal)
+        kill_cmd("0") == 0
       }
       catch { case _: InterruptedException => true }
     }

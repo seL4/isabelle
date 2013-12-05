@@ -121,9 +121,12 @@ text {*
 subsection {* Documentation *}
 
 text {* Regular jEdit documentation is accessible via its @{verbatim
-  Help} menu or @{verbatim F1} keyboard shortcut. This includes a full
-  \emph{User's Guide} and \emph{Frequently Asked Questions} for this
-  sophisticated text editor.
+  Help} menu or @{verbatim F1} keyboard shortcut.  This includes a
+  full \emph{User's Guide} and \emph{Frequently Asked Questions} for
+  this sophisticated text editor.  The same can be browsed without the
+  technical restrictions of the built-in Java HTML viewer here:
+  \url{http://www.jedit.org/index.php?page=docs} (potentially for a
+  different version of jEdit).
 
   Most of this information about jEdit is relevant for Isabelle/jEdit
   as well, but one needs to keep in mind that defaults sometimes
@@ -227,7 +230,8 @@ text {* jEdit is a Java/AWT/Swing application with some ambition to
   theme is selected in a Swing-friendly way.\footnote{GTK support in
   Java/Swing was once marketed aggressively by Sun, but never quite
   finished, and is today (2013) lagging a bit behind further
-  development of Swing and GTK.}
+  development of Swing and GTK.  The graphics rendering performance
+  can be worse than for other Swing look-and-feels.}
 
   \item[Windows] Regular \emph{Windows} is used by default, but
   \emph{Windows Classic} also works.
@@ -477,7 +481,7 @@ text {* Formally processed text (prover input or output) contains rich
   \medskip A black rectangle in the text indicates a hyperlink that
   may be followed by a mouse click (while the @{verbatim CONTROL} or
   @{verbatim COMMAND} modifier key is still pressed). Presently
-  (Isabelle2013-1) there is no systematic navigation within the
+  (Isabelle2013-2) there is no systematic navigation within the
   editor to return to the original location.
 
   Also note that the link target may be a file that is itself not
@@ -1103,7 +1107,7 @@ text {*
 
   \textbf{Workaround:} Do not use input methods, reset the environment
   variable @{verbatim XMODIFIERS} within Isabelle settings (default in
-  Isabelle2013-1).
+  Isabelle2013-2).
 
   \item \textbf{Problem:} Some Linux / X11 window managers that are
   not ``re-parenting'' cause problems with additional windows opened

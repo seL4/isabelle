@@ -48,8 +48,6 @@ sig
   val worker_group: unit -> group option
   val the_worker_group: unit -> group
   val worker_subgroup: unit -> group
-  val worker_nest: string -> ('a -> 'b) -> 'a -> 'b
-  val worker_guest: string -> group -> ('a -> 'b) -> 'a -> 'b
   type 'a future
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
@@ -69,6 +67,7 @@ sig
   val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
   val join_tasks: task list -> unit
+  val task_context: string -> group -> ('a -> 'b) -> 'a -> 'b
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val cond_forks: params -> (unit -> 'a) list -> 'a future list
@@ -109,14 +108,6 @@ fun the_worker_group () =
   | NONE => raise Fail "Missing worker thread context");
 
 fun worker_subgroup () = new_group (worker_group ());
-
-fun worker_nest name f x =
-  setmp_worker_task (Task_Queue.new_task (the_worker_group ()) name NONE) f x;
-
-fun worker_guest name group f x =
-  if is_some (worker_task ()) then
-    raise Fail "Already running as worker thread"
-  else setmp_worker_task (Task_Queue.new_task group name NONE) f x;
 
 fun worker_joining e =
   (case worker_task () of
@@ -477,7 +468,7 @@ fun assign_result group result res =
 
 (* future jobs *)
 
-fun future_job group interrupts (e: unit -> 'a) =
+fun future_job group atts (e: unit -> 'a) =
   let
     val result = Single_Assignment.var "future" : 'a result;
     val pos = Position.thread_data ();
@@ -486,10 +477,7 @@ fun future_job group interrupts (e: unit -> 'a) =
         val res =
           if ok then
             Exn.capture (fn () =>
-              Multithreading.with_attributes
-                (if interrupts
-                 then Multithreading.private_interrupts else Multithreading.no_interrupts)
-                (fn _ => Position.setmp_thread_data pos e ())) ()
+              Multithreading.with_attributes atts (fn _ => Position.setmp_thread_data pos e ())) ()
           else Exn.interrupt_exn;
       in assign_result group result (identify_result pos res) end;
   in (result, job) end;
@@ -510,7 +498,11 @@ fun forks ({name, group, deps, pri, interrupts}: params) es =
         | SOME grp => grp);
       fun enqueue e queue =
         let
-          val (result, job) = future_job grp interrupts e;
+          val atts =
+            if interrupts
+            then Multithreading.private_interrupts
+            else Multithreading.no_interrupts;
+          val (result, job) = future_job grp atts e;
           val (task, queue') = Task_Queue.enqueue name grp deps pri job queue;
           val future = Future {promised = false, task = task, result = result};
         in (future, queue') end;
@@ -586,6 +578,23 @@ fun join_tasks tasks =
     |> join;
 
 
+(* task context for running thread *)
+
+fun task_context name group f x =
+  Multithreading.with_attributes Multithreading.no_interrupts (fn orig_atts =>
+    let
+      val (result, job) = future_job group orig_atts (fn () => f x);
+      val task =
+        SYNCHRONIZED "enroll" (fn () =>
+          Unsynchronized.change_result queue (Task_Queue.enroll (Thread.self ()) name group));
+      val _ = worker_exec (task, [job]);
+    in
+      (case Single_Assignment.peek result of
+        NONE => raise Fail "Missing task context result"
+      | SOME res => Exn.release res)
+    end);
+
+
 (* fast-path operations -- bypass task queue if possible *)
 
 fun value_result (res: 'a Exn.result) =
@@ -608,7 +617,8 @@ fun map_future f x =
     let
       val task = task_of x;
       val group = Task_Queue.group_of_task task;
-      val (result, job) = future_job group true (fn () => f (join x));
+      val (result, job) =
+        future_job group Multithreading.private_interrupts (fn () => f (join x));
 
       val extended = SYNCHRONIZED "extend" (fn () =>
         (case Task_Queue.extend task job (! queue) of

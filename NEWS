@@ -84,12 +84,46 @@ more syntax-directed proof rules; the case of the empty chain
 shows up as additional case in fixpoint induction proofs.
 INCOMPATIBILITY
 
+* Nitpick:
+  - Fixed soundness bug whereby mutually recursive datatypes could take
+    infinite values.
+
+
 *** ML ***
 
 * Toplevel function "use" refers to raw ML bootstrap environment,
 without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
 Note that 'ML_file' is the canonical command to load ML files into the
 formal context.
+
+
+
+New in Isabelle2013-2 (December 2013)
+-------------------------------------
+
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* More robust editing of running commands with internal forks,
+e.g. non-terminating 'by' steps.
+
+* More relaxed Sledgehammer panel: avoid repeated application of query
+after edits surrounding the command location.
+
+* More status information about commands that are interrupted
+accidentally (via physical event or Poly/ML runtime system signal,
+e.g. out-of-memory).
+
+
+*** System ***
+
+* More robust termination of external processes managed by
+Isabelle/ML: support cancellation of tasks within the range of
+milliseconds, as required for PIDE document editing with automatically
+tried tools (e.g. Sledgehammer).
+
+* Reactivated Isabelle/Scala kill command for external processes on
+Mac OS X, which was accidentally broken in Isabelle2013-1 due to a
+workaround for some Debian/Ubuntu Linux versions from 2013.
 
 
 
@@ -519,10 +553,6 @@ integration with HOL's type classes for rings.  INCOMPATIBILITY.
     set_map' ~> set_map
     sets ~> set
 IMCOMPATIBILITY.
-
-* Nitpick:
-  - Fixed soundness bug whereby mutually recursive datatypes could take
-    infinite values.
 
 
 *** ML ***

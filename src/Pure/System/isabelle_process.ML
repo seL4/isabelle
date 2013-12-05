@@ -159,8 +159,8 @@ fun read_command channel =
     NONE => raise Runtime.TERMINATE
   | SOME line => map (read_chunk channel) (space_explode "," line));
 
-fun worker_guest e =
-  Future.worker_guest "Isabelle_Process.loop" (Future.new_group NONE) e ();
+fun task_context e =
+  Future.task_context "Isabelle_Process.loop" (Future.new_group NONE) e ();
 
 in
 
@@ -168,7 +168,7 @@ fun loop channel =
   let val continue =
     (case read_command channel of
       [] => (Output.error_message "Isabelle process: no input"; true)
-    | name :: args => (worker_guest (fn () => run_command name args); true))
+    | name :: args => (task_context (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
       | exn => (ML_Compiler.exn_error_message exn handle crash => recover crash; true);
   in

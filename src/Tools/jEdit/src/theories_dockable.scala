@@ -74,6 +74,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val continuous_checking = new Isabelle.Continuous_Checking
+  continuous_checking.focusable = false
 
   private val logic = Isabelle_Logic.logic_selector(true)
 

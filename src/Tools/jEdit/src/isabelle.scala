@@ -177,26 +177,28 @@ object Isabelle
     snapshot: Document.Snapshot,
     buffer: Buffer,
     padding: Boolean,
-    exec_id: Document_ID.Exec,
+    id: Document_ID.Generic,
     s: String)
   {
-    snapshot.state.execs.get(exec_id).map(_.command) match {
-      case Some(command) =>
-        snapshot.node.command_start(command) match {
-          case Some(start) =>
-            JEdit_Lib.buffer_edit(buffer) {
-              val range = command.proper_range + start
-              if (padding) {
-                buffer.insert(start + range.length, "\n" + s)
+    if (!snapshot.is_outdated) {
+      snapshot.state.find_command(snapshot.version, id) match {
+        case Some((node, command)) =>
+          node.command_start(command) match {
+            case Some(start) =>
+              JEdit_Lib.buffer_edit(buffer) {
+                val range = command.proper_range + start
+                if (padding) {
+                  buffer.insert(start + range.length, "\n" + s)
+                }
+                else {
+                  buffer.remove(start, range.length)
+                  buffer.insert(start, s)
+                }
               }
-              else {
-                buffer.remove(start, range.length)
-                buffer.insert(start, s)
-              }
-            }
-          case None =>
-        }
-      case None =>
+            case None =>
+          }
+        case None =>
+      }
     }
   }
 
