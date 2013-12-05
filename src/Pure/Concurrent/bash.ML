@@ -40,14 +40,10 @@ val process = uninterruptible (fn restore_attributes => fn script =>
                 File.shell_path script_path ^
                 " > " ^ File.shell_path out_path ^
                 " 2> " ^ File.shell_path err_path;
+            val _ = getenv_strict "EXEC_PROCESS";
             val status =
               OS.Process.system
-                (if getenv "EXEC_PROCESS" = "" then
-                  ("exec \"$ISABELLE_HOME/lib/scripts/process\" group " ^
-                    File.shell_path pid_path ^ " script " ^ quote bash_script)
-                 else
-                  ("exec \"$EXEC_PROCESS\" " ^
-                    File.shell_path pid_path ^ " " ^ quote bash_script));
+                ("exec \"$EXEC_PROCESS\" " ^ File.shell_path pid_path ^ " " ^ quote bash_script);
             val res =
               (case Posix.Process.fromStatus status of
                 Posix.Process.W_EXITED => Result 0
