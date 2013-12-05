@@ -179,9 +179,15 @@ fun check_cmts span tr st' =
             if Exn.is_interrupt exn then reraise exn
             else ML_Compiler.exn_messages_ids exn)) ();
 
+fun report tr m =
+  Toplevel.setmp_thread_position tr (fn () => Output.report (Markup.markup_only m)) ();
+
+fun status tr m =
+  Toplevel.setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
+
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
-    SOME prf => Toplevel.status tr (Proof.status_markup prf)
+    SOME prf => status tr (Proof.status_markup prf)
   | NONE => ());
 
 fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
@@ -194,7 +200,7 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
       val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
       val _ = Multithreading.interrupted ();
-      val _ = Toplevel.status tr Markup.running;
+      val _ = status tr Markup.running;
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
@@ -203,14 +209,14 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
       (case result of
         NONE =>
           let
-            val _ = Toplevel.status tr Markup.failed;
-            val _ = Toplevel.status tr Markup.finished;
-            val _ = if null errs then Exn.interrupt () else ();
+            val _ = status tr Markup.failed;
+            val _ = status tr Markup.finished;
+            val _ = if null errs then (report tr Markup.bad; Exn.interrupt ()) else ();
           in {failed = true, malformed = malformed', command = tr, state = st} end
       | SOME st' =>
           let
             val _ = proof_status tr st';
-            val _ = Toplevel.status tr Markup.finished;
+            val _ = status tr Markup.finished;
           in {failed = false, malformed = malformed', command = tr, state = st'} end)
     end;
 

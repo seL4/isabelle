@@ -88,7 +88,6 @@ sig
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
-  val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
   val get_timing: transition -> Time.time option
   val put_timing: Time.time option -> transition -> transition
@@ -585,9 +584,6 @@ fun exec_id id (tr as Transition {pos, ...}) =
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
-
-fun status tr m =
-  setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
 
 
 (* post-transition hooks *)

@@ -107,13 +107,14 @@ fun fork {name, pos, pri} e =
               val _ = status task [Markup.joined];
               val _ =
                 (case result of
-                  Exn.Res _ => ()
-                | Exn.Exn exn =>
+                  Exn.Exn exn =>
                    (status task [Markup.failed];
+                    status task [Markup.finished];
                     Output.report (Markup.markup_only Markup.bad);
                     if exec_id = 0 then ()
-                    else List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
-              val _ = status task [Markup.finished];
+                    else List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn))
+                | Exn.Res _ =>
+                    status task [Markup.finished])
             in Exn.release result end);
 
       val _ = status (Future.task_of future) [Markup.forked];
