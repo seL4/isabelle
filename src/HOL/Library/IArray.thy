@@ -31,6 +31,14 @@ definition length :: "'a iarray \<Rightarrow> nat" where
 [simp]: "length as = List.length (IArray.list_of as)"
 hide_const (open) length
 
+fun all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+"all p (IArray as) = (ALL a : set as. p a)"
+hide_const (open) all
+
+fun exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a iarray \<Rightarrow> bool" where
+"exists p (IArray as) = (EX a : set as. p a)"
+hide_const (open) exists
+
 lemma list_of_code [code]:
 "IArray.list_of as = map (\<lambda>n. as !! n) [0 ..< IArray.length as]"
 by (cases as) (simp add: map_nth)
@@ -43,6 +51,8 @@ code_reserved SML Vector
 code_printing
   type_constructor iarray \<rightharpoonup> (SML) "_ Vector.vector"
 | constant IArray \<rightharpoonup> (SML) "Vector.fromList"
+| constant IArray.all \<rightharpoonup> (SML) "Vector.all"
+| constant IArray.exists \<rightharpoonup> (SML) "Vector.exists"
 
 lemma [code]:
 "size (as :: 'a iarray) = 0"

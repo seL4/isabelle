@@ -22,8 +22,8 @@ the type of mathematical integers ($\mathbb{Z}$).
 \item[type constructors,]
  in particular @{text list}, the type of
 lists, and @{text set}, the type of sets. Type constructors are written
-postfix, e.g.\ @{typ "nat list"} is the type of lists whose elements are
-natural numbers.
+postfix, i.e., after their arguments. For example,
+@{typ "nat list"} is the type of lists whose elements are natural numbers.
 \item[function types,]
 denoted by @{text"\<Rightarrow>"}.
 \item[type variables,]
@@ -41,8 +41,8 @@ applying functions to arguments. If @{text f} is a function of type
 \begin{warn}
 There are many predefined infix symbols like @{text "+"} and @{text"\<le>"}.
 The name of the corresponding binary function is @{term"op +"},
-not just @{text"+"}. That is, @{term"x + y"} is syntactic sugar for
-\noquotes{@{term[source]"op + x y"}}.
+not just @{text"+"}. That is, @{term"x + y"} is nice surface syntax
+(``syntactic sugar'') for \noquotes{@{term[source]"op + x y"}}.
 \end{warn}
 
 HOL also supports some basic constructs from functional programming:

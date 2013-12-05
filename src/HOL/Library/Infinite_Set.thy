@@ -11,7 +11,7 @@ begin
 subsection "Infinite Sets"
 
 text {*
-  Some elementary facts about infinite sets, mostly by Stefan Merz.
+  Some elementary facts about infinite sets, mostly by Stephan Merz.
   Beware! Because "infinite" merely abbreviates a negation, these
   lemmas may not work well with @{text "blast"}.
 *}
@@ -193,18 +193,8 @@ proof -
     by (auto simp add: infinite_nat_iff_unbounded)
 qed
 
-(* duplicates Finite_Set.infinite_UNIV_nat *)
-lemma nat_infinite: "infinite (UNIV :: nat set)"
-  by (auto simp add: infinite_nat_iff_unbounded)
-
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
-
-text {*
-  Every infinite set contains a countable subset. More precisely we
-  show that a set @{text S} is infinite if and only if there exists an
-  injective function from the naturals into @{text S}.
-*}
 
 lemma range_inj_infinite:
   "inj (f::nat \<Rightarrow> 'a) \<Longrightarrow> infinite (range f)"
@@ -214,118 +204,6 @@ proof
     by (rule finite_imageD)
   then show False by simp
 qed
-
-lemma int_infinite [simp]: "infinite (UNIV::int set)"
-proof -
-  from inj_int have "infinite (range int)"
-    by (rule range_inj_infinite)
-  moreover 
-  have "range int \<subseteq> (UNIV::int set)" by simp
-  ultimately show "infinite (UNIV::int set)"
-    by (simp add: infinite_super)
-qed
-
-text {*
-  The ``only if'' direction is harder because it requires the
-  construction of a sequence of pairwise different elements of an
-  infinite set @{text S}. The idea is to construct a sequence of
-  non-empty and infinite subsets of @{text S} obtained by successively
-  removing elements of @{text S}.
-*}
-
-lemma linorder_injI:
-  assumes hyp: "\<And>x y. x < (y::'a::linorder) \<Longrightarrow> f x \<noteq> f y"
-  shows "inj f"
-proof (rule inj_onI)
-  fix x y
-  assume f_eq: "f x = f y"
-  show "x = y"
-  proof (rule linorder_cases)
-    assume "x < y"
-    with hyp have "f x \<noteq> f y" by blast
-    with f_eq show ?thesis by simp
-  next
-    assume "x = y"
-    then show ?thesis .
-  next
-    assume "y < x"
-    with hyp have "f y \<noteq> f x" by blast
-    with f_eq show ?thesis by simp
-  qed
-qed
-
-lemma infinite_countable_subset:
-  assumes inf: "infinite (S::'a set)"
-  shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
-proof -
-  def Sseq \<equiv> "nat_rec S (\<lambda>n T. T - {SOME e. e \<in> T})"
-  def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
-  have Sseq_inf: "\<And>n. infinite (Sseq n)"
-  proof -
-    fix n
-    show "infinite (Sseq n)"
-    proof (induct n)
-      from inf show "infinite (Sseq 0)"
-        by (simp add: Sseq_def)
-    next
-      fix n
-      assume "infinite (Sseq n)" then show "infinite (Sseq (Suc n))"
-        by (simp add: Sseq_def infinite_remove)
-    qed
-  qed
-  have Sseq_S: "\<And>n. Sseq n \<subseteq> S"
-  proof -
-    fix n
-    show "Sseq n \<subseteq> S"
-      by (induct n) (auto simp add: Sseq_def)
-  qed
-  have Sseq_pick: "\<And>n. pick n \<in> Sseq n"
-  proof -
-    fix n
-    show "pick n \<in> Sseq n"
-      unfolding pick_def
-    proof (rule someI_ex)
-      from Sseq_inf have "infinite (Sseq n)" .
-      then have "Sseq n \<noteq> {}" by auto
-      then show "\<exists>x. x \<in> Sseq n" by auto
-    qed
-  qed
-  with Sseq_S have rng: "range pick \<subseteq> S"
-    by auto
-  have pick_Sseq_gt: "\<And>n m. pick n \<notin> Sseq (n + Suc m)"
-  proof -
-    fix n m
-    show "pick n \<notin> Sseq (n + Suc m)"
-      by (induct m) (auto simp add: Sseq_def pick_def)
-  qed
-  have pick_pick: "\<And>n m. pick n \<noteq> pick (n + Suc m)"
-  proof -
-    fix n m
-    from Sseq_pick have "pick (n + Suc m) \<in> Sseq (n + Suc m)" .
-    moreover from pick_Sseq_gt
-    have "pick n \<notin> Sseq (n + Suc m)" .
-    ultimately show "pick n \<noteq> pick (n + Suc m)"
-      by auto
-  qed
-  have inj: "inj pick"
-  proof (rule linorder_injI)
-    fix i j :: nat
-    assume "i < j"
-    show "pick i \<noteq> pick j"
-    proof
-      assume eq: "pick i = pick j"
-      from `i < j` obtain k where "j = i + Suc k"
-        by (auto simp add: less_iff_Suc_add)
-      with pick_pick have "pick i \<noteq> pick j" by simp
-      with eq show False by simp
-    qed
-  qed
-  from rng inj show ?thesis by auto
-qed
-
-lemma infinite_iff_countable_subset:
-    "infinite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
-  by (auto simp add: infinite_countable_subset range_inj_infinite infinite_super)
 
 text {*
   For any function with infinite domain and finite range there is some

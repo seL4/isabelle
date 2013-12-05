@@ -13,7 +13,7 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] IMAGE THYNAME CMD"
   echo
   echo "  Options are:"
-  echo "    -q    run in quick'n'dirty mode"
+  echo "    -q    run in quick_and_dirty mode"
   echo
   echo "  Issues code generation using image IMAGE,"
   echo "  theory THYNAME,"

@@ -14,11 +14,9 @@ ISABELLE_SESSIONS="
   HOL-Auth
   HOL-BNF
   HOL-BNF-Examples
-  HOL-BNF-Nitpick_Examples
   HOL-BNF-LFP
+  HOL-BNF-Nitpick_Examples
   HOL-Bali
-  HOL-Boogie
-  HOL-Boogie-Examples
   HOL-Cardinals
   HOL-Cardinals-Base
   HOL-Codegenerator_Test

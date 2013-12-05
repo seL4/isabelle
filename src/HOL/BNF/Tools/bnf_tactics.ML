@@ -91,7 +91,7 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
 fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context = ctxt, prems = _} =
   unfold_thms_tac ctxt IJrel_defs THEN
   rtac (unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
-    @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
+    @{thms Collect_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
   unfold_thms_tac ctxt (srel_def ::
     @{thms pair_collapse Collect_mem_eq mem_Collect_eq prod.cases fst_conv snd_conv
       split_conv}) THEN

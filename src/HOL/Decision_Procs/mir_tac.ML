@@ -34,7 +34,7 @@ val nT = HOLogic.natT;
              @{thm "divide_zero"}, 
              @{thm "divide_divide_eq_left"}, @{thm "times_divide_eq_right"}, 
              @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
-             @{thm "diff_minus"}, @{thm "minus_divide_left"}]
+             @{thm uminus_add_conv_diff [symmetric]}, @{thm "minus_divide_left"}]
 val comp_ths = ths @ comp_arith @ @{thms simp_thms};
 
 

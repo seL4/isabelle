@@ -6,7 +6,7 @@ Proving Boogie-generated verification conditions.
 
 signature BOOGIE =
 sig
-  val boogie_prove: string -> theory -> theory
+  val boogie_prove: theory -> string -> unit
 end
 
 structure Boogie: BOOGIE =
@@ -299,21 +299,33 @@ fun boogie_tac ctxt axioms =
   ALLGOALS (SMT_Solver.smt_tac ctxt (boogie_rules @ axioms))
 
 
-fun boogie_prove file_name thy =
+fun boogie_prove thy text =
   let
-    val (text, thy') = Thy_Load.use_file (Path.explode file_name) thy
     val lines = explode_lines text
 
     val ((axioms, vc), ctxt) =
       empty_context
       |> parse_lines lines
       |> add_unique_axioms
-      |> build_proof_context thy'
+      |> build_proof_context thy
 
     val _ = Goal.prove ctxt [] axioms vc (fn {prems, context} =>
       boogie_tac context prems)
     val _ = writeln "Verification condition proved successfully"
 
-  in thy' end
+  in () end
+
+
+(* Isar command *)
+
+val _ =
+  Outer_Syntax.command @{command_spec "boogie_file"}
+    "prove verification condition from .b2i file"
+    (Thy_Load.provide_parse_files "boogie_file" >> (fn files =>
+      Toplevel.theory (fn thy =>
+        let
+          val ([{text, ...}], thy') = files thy;
+          val _ = boogie_prove thy' text;
+        in thy' end)))
 
 end

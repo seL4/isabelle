@@ -5,13 +5,12 @@
 
 Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF).
 The well-ordering theorem.
-The extension of any well-founded relation to a well-order. 
 *)
 
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Order_Union
+imports Main
 begin
 
 subsection {* Zorn's Lemma for the Subset Relation *}
@@ -71,7 +70,7 @@ lemma not_maxchain_Some:
 
 lemma suc_not_equals:
   "chain C \<Longrightarrow> \<not> maxchain C \<Longrightarrow> suc C \<noteq> C"
-  by (auto simp: suc_def) (metis less_irrefl not_maxchain_Some)
+  by (auto simp: suc_def) (metis (no_types) less_irrefl not_maxchain_Some)
 
 lemma subset_suc:
   assumes "X \<subseteq> Y" shows "X \<subseteq> suc Y"
@@ -258,7 +257,7 @@ lemma suc_Union_closed_chain:
   shows "chain X"
 using assms
 proof (induct)
-  case (suc X) then show ?case by (simp add: suc_def) (metis not_maxchain_Some)
+  case (suc X) then show ?case by (simp add: suc_def) (metis (no_types) not_maxchain_Some)
 next
   case (Union X)
   then have "\<Union>X \<subseteq> A" by (auto dest: suc_Union_closed_in_carrier)
@@ -378,7 +377,7 @@ proof -
         using `subset.maxchain A M` by (auto simp: subset.maxchain_def)
     qed
   qed
-  ultimately show ?thesis by blast
+  ultimately show ?thesis by metis
 qed
 
 text{*Alternative version of Zorn's lemma for the subset relation.*}
@@ -423,7 +422,7 @@ lemma mono_Chains: "r \<subseteq> s \<Longrightarrow> Chains r \<subseteq> Chain
   unfolding Chains_def by blast
 
 lemma chain_subset_alt_def: "chain\<^sub>\<subseteq> C = subset.chain UNIV C"
-  by (auto simp add: chain_subset_def subset.chain_def)
+  unfolding chain_subset_def subset.chain_def by fast
 
 lemma chains_alt_def: "chains A = {C. subset.chain A C}"
   by (simp add: chains_def chain_subset_alt_def subset.chain_def)
@@ -487,7 +486,7 @@ proof -
       fix a B assume aB: "B \<in> C" "a \<in> B"
       with 1 obtain x where "x \<in> Field r" and "B = r\<inverse> `` {x}" by auto
       thus "(a, u) \<in> r" using uA and aB and `Preorder r`
-        by (auto simp add: preorder_on_def refl_on_def) (metis transD)
+        unfolding preorder_on_def refl_on_def by simp (fast dest: transD)
     qed
     then have "\<exists>u\<in>Field r. ?P u" using `u \<in> Field r` by blast
   }
@@ -524,8 +523,7 @@ lemma refl_on_init_seg_of [simp]: "r initial_segment_of r"
 
 lemma trans_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of t \<Longrightarrow> r initial_segment_of t"
-  by (simp (no_asm_use) add: init_seg_of_def)
-     (metis UnCI Un_absorb2 subset_trans)
+  by (simp (no_asm_use) add: init_seg_of_def) blast
 
 lemma antisym_init_seg_of:
   "r initial_segment_of s \<Longrightarrow> s initial_segment_of r \<Longrightarrow> r = s"
@@ -539,14 +537,13 @@ lemma chain_subset_trans_Union:
   "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans (\<Union>R)"
 apply (auto simp add: chain_subset_def)
 apply (simp (no_asm_use) add: trans_def)
-apply (metis subsetD)
-done
+by (metis subsetD)
 
 lemma chain_subset_antisym_Union:
   "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym (\<Union>R)"
-apply (auto simp add: chain_subset_def antisym_def)
-apply (metis subsetD)
-done
+unfolding chain_subset_def antisym_def
+apply simp
+by (metis (no_types) subsetD)
 
 lemma chain_subset_Total_Union:
   assumes "chain\<^sub>\<subseteq> R" and "\<forall>r\<in>R. Total r"
@@ -558,11 +555,11 @@ proof (simp add: total_on_def Ball_def, auto del: disjCI)
   thus "(\<exists>r\<in>R. (a, b) \<in> r) \<or> (\<exists>r\<in>R. (b, a) \<in> r)"
   proof
     assume "r \<subseteq> s" hence "(a, b) \<in> s \<or> (b, a) \<in> s" using assms(2) A
-      by (simp add: total_on_def) (metis mono_Field subsetD)
+      by (simp add: total_on_def) (metis (no_types) mono_Field subsetD)
     thus ?thesis using `s \<in> R` by blast
   next
     assume "s \<subseteq> r" hence "(a, b) \<in> r \<or> (b, a) \<in> r" using assms(2) A
-      by (simp add: total_on_def) (metis mono_Field subsetD)
+      by (simp add: total_on_def) (metis (no_types) mono_Field subsetD)
     thus ?thesis using `r \<in> R` by blast
   qed
 qed
@@ -604,7 +601,7 @@ proof -
   def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
   have I_init: "I \<subseteq> init_seg_of" by (auto simp: I_def)
   hence subch: "\<And>R. R \<in> Chains I \<Longrightarrow> chain\<^sub>\<subseteq> R"
-    by (auto simp: init_seg_of_def chain_subset_def Chains_def)
+    unfolding init_seg_of_def chain_subset_def Chains_def by blast
   have Chains_wo: "\<And>R r. R \<in> Chains I \<Longrightarrow> r \<in> R \<Longrightarrow> Well_order r"
     by (simp add: Chains_def I_def) blast
   have FI: "Field I = ?WO" by (auto simp add: I_def init_seg_of_def Field_def)
@@ -619,7 +616,7 @@ proof -
     have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r"
       and "\<forall>r\<in>R. Total r" and "\<forall>r\<in>R. wf (r - Id)"
       using Chains_wo [OF `R \<in> Chains I`] by (simp_all add: order_on_defs)
-    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by (auto simp: refl_on_def)
+    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` unfolding refl_on_def by fastforce
     moreover have "trans (\<Union>R)"
       by (rule chain_subset_trans_Union [OF subch `\<forall>r\<in>R. trans r`])
     moreover have "antisym (\<Union>R)"
@@ -630,7 +627,7 @@ proof -
     proof -
       have "(\<Union>R) - Id = \<Union>{r - Id | r. r \<in> R}" by blast
       with `\<forall>r\<in>R. wf (r - Id)` and wf_Union_wf_init_segs [OF Chains_inits_DiffI [OF Ris]]
-      show ?thesis by (simp (no_asm_simp)) blast
+      show ?thesis by fastforce
     qed
     ultimately have "Well_order (\<Union>R)" by(simp add:order_on_defs)
     moreover have "\<forall>r \<in> R. r initial_segment_of \<Union>R" using Ris
@@ -643,7 +640,7 @@ proof -
 --{*Zorn's Lemma yields a maximal well-order m:*}
   then obtain m::"'a rel" where "Well_order m" and
     max: "\<forall>r. Well_order r \<and> (m, r) \<in> I \<longrightarrow> r = m"
-    using Zorns_po_lemma[OF 0 1] by (auto simp:FI)
+    using Zorns_po_lemma[OF 0 1] unfolding FI by fastforce
 --{*Now show by contradiction that m covers the whole type:*}
   { fix x::'a assume "x \<notin> Field m"
 --{*We assume that x is not covered and extend m at the top with x*}
@@ -666,7 +663,7 @@ proof -
     have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
       using `Well_order m` by (simp_all add: order_on_defs)
 --{*We show that the extension is a well-order*}
-    have "Refl ?m" using `Refl m` Fm by (auto simp: refl_on_def)
+    have "Refl ?m" using `Refl m` Fm unfolding refl_on_def by blast
     moreover have "trans ?m" using `trans m` and `x \<notin> Field m`
       unfolding trans_def Field_def by blast
     moreover have "antisym ?m" using `antisym m` and `x \<notin> Field m`
@@ -678,7 +675,7 @@ proof -
         by (auto simp add: wf_eq_minimal Field_def) metis
       thus ?thesis using `wf (m - Id)` and `x \<notin> Field m`
         wf_subset [OF `wf ?s` Diff_subset]
-        by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
+        unfolding Un_Diff Field_def by (auto intro: wf_Un)
     qed
     ultimately have "Well_order ?m" by (simp add: order_on_defs)
 --{*We show that the extension is above m*}
@@ -709,208 +706,7 @@ proof -
   moreover have "Total ?r" using `Total r` by (simp add:total_on_def 1 univ)
   moreover have "wf (?r - Id)" by (rule wf_subset [OF `wf (r - Id)`]) blast
   ultimately have "Well_order ?r" by (simp add: order_on_defs)
-  with 1 show ?thesis by metis
-qed
-
-subsection {* Extending Well-founded Relations to Well-Orders *}
-
-text {*A \emph{downset} (also lower set, decreasing set, initial segment, or
-downward closed set) is closed w.r.t.\ smaller elements.*}
-definition downset_on where
-  "downset_on A r = (\<forall>x y. (x, y) \<in> r \<and> y \<in> A \<longrightarrow> x \<in> A)"
-
-(*
-text {*Connection to order filters of the @{theory Cardinals} theory.*}
-lemma (in wo_rel) ofilter_downset_on_conv:
-  "ofilter A \<longleftrightarrow> downset_on A r \<and> A \<subseteq> Field r"
-  by (auto simp: downset_on_def ofilter_def under_def)
-*)
-
-lemma downset_onI:
-  "(\<And>x y. (x, y) \<in> r \<Longrightarrow> y \<in> A \<Longrightarrow> x \<in> A) \<Longrightarrow> downset_on A r"
-  by (auto simp: downset_on_def)
-
-lemma downset_onD:
-  "downset_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> y \<in> A \<Longrightarrow> x \<in> A"
-  by (auto simp: downset_on_def)
-
-text {*Extensions of relations w.r.t.\ a given set.*}
-definition extension_on where
-  "extension_on A r s = (\<forall>x\<in>A. \<forall>y\<in>A. (x, y) \<in> s \<longrightarrow> (x, y) \<in> r)"
-
-lemma extension_onI:
-  "(\<And>x y. \<lbrakk>x \<in> A; y \<in> A; (x, y) \<in> s\<rbrakk> \<Longrightarrow> (x, y) \<in> r) \<Longrightarrow> extension_on A r s"
-  by (auto simp: extension_on_def)
-
-lemma extension_onD:
-  "extension_on A r s \<Longrightarrow> x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> s \<Longrightarrow> (x, y) \<in> r"
-  by (auto simp: extension_on_def)
-
-lemma downset_on_Union:
-  assumes "\<And>r. r \<in> R \<Longrightarrow> downset_on (Field r) p"
-  shows "downset_on (Field (\<Union>R)) p"
-  using assms by (auto intro: downset_onI dest: downset_onD)
-
-lemma chain_subset_extension_on_Union:
-  assumes "chain\<^sub>\<subseteq> R" and "\<And>r. r \<in> R \<Longrightarrow> extension_on (Field r) r p"
-  shows "extension_on (Field (\<Union>R)) (\<Union>R) p"
-  using assms
-  by (simp add: chain_subset_def extension_on_def) (metis mono_Field set_mp)
-
-lemma downset_on_empty [simp]: "downset_on {} p"
-  by (auto simp: downset_on_def)
-
-lemma extension_on_empty [simp]: "extension_on {} p q"
-  by (auto simp: extension_on_def)
-
-text {*Every well-founded relation can be extended to a well-order.*}
-theorem well_order_extension:
-  assumes "wf p"
-  shows "\<exists>w. p \<subseteq> w \<and> Well_order w"
-proof -
-  let ?K = "{r. Well_order r \<and> downset_on (Field r) p \<and> extension_on (Field r) r p}"
-  def I \<equiv> "init_seg_of \<inter> ?K \<times> ?K"
-  have I_init: "I \<subseteq> init_seg_of" by (simp add: I_def)
-  then have subch: "\<And>R. R \<in> Chains I \<Longrightarrow> chain\<^sub>\<subseteq> R"
-    by (auto simp: init_seg_of_def chain_subset_def Chains_def)
-  have Chains_wo: "\<And>R r. R \<in> Chains I \<Longrightarrow> r \<in> R \<Longrightarrow>
-      Well_order r \<and> downset_on (Field r) p \<and> extension_on (Field r) r p"
-    by (simp add: Chains_def I_def) blast
-  have FI: "Field I = ?K" by (auto simp: I_def init_seg_of_def Field_def)
-  then have 0: "Partial_order I"
-    by (auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def
-      trans_def I_def elim: trans_init_seg_of)
-  { fix R assume "R \<in> Chains I"
-    then have Ris: "R \<in> Chains init_seg_of" using mono_Chains [OF I_init] by blast
-    have subch: "chain\<^sub>\<subseteq> R" using `R \<in> Chains I` I_init
-      by (auto simp: init_seg_of_def chain_subset_def Chains_def)
-    have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r" and
-      "\<forall>r\<in>R. Total r" and "\<forall>r\<in>R. wf (r - Id)" and
-      "\<And>r. r \<in> R \<Longrightarrow> downset_on (Field r) p" and
-      "\<And>r. r \<in> R \<Longrightarrow> extension_on (Field r) r p"
-      using Chains_wo [OF `R \<in> Chains I`] by (simp_all add: order_on_defs)
-    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by (auto simp: refl_on_def)
-    moreover have "trans (\<Union>R)"
-      by (rule chain_subset_trans_Union [OF subch `\<forall>r\<in>R. trans r`])
-    moreover have "antisym (\<Union>R)"
-      by (rule chain_subset_antisym_Union [OF subch `\<forall>r\<in>R. antisym r`])
-    moreover have "Total (\<Union>R)"
-      by (rule chain_subset_Total_Union [OF subch `\<forall>r\<in>R. Total r`])
-    moreover have "wf ((\<Union>R) - Id)"
-    proof -
-      have "(\<Union>R) - Id = \<Union>{r - Id | r. r \<in> R}" by blast
-      with `\<forall>r\<in>R. wf (r - Id)` wf_Union_wf_init_segs [OF Chains_inits_DiffI [OF Ris]]
-      show ?thesis by (simp (no_asm_simp)) blast
-    qed
-    ultimately have "Well_order (\<Union>R)" by (simp add: order_on_defs)
-    moreover have "\<forall>r\<in>R. r initial_segment_of \<Union>R" using Ris
-      by (simp add: Chains_init_seg_of_Union)
-    moreover have "downset_on (Field (\<Union>R)) p"
-      by (rule downset_on_Union [OF `\<And>r. r \<in> R \<Longrightarrow> downset_on (Field r) p`])
-    moreover have "extension_on (Field (\<Union>R)) (\<Union>R) p"
-      by (rule chain_subset_extension_on_Union [OF subch `\<And>r. r \<in> R \<Longrightarrow> extension_on (Field r) r p`])
-    ultimately have "\<Union>R \<in> ?K \<and> (\<forall>r\<in>R. (r,\<Union>R) \<in> I)"
-      using mono_Chains [OF I_init] and `R \<in> Chains I`
-      by (simp (no_asm) add: I_def del: Field_Union) (metis Chains_wo)
-  }
-  then have 1: "\<forall>R\<in>Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" by (subst FI) blast
-  txt {*Zorn's Lemma yields a maximal well-order m.*}
-  from Zorns_po_lemma [OF 0 1] obtain m :: "('a \<times> 'a) set"
-    where "Well_order m" and "downset_on (Field m) p" and "extension_on (Field m) m p" and
-    max: "\<forall>r. Well_order r \<and> downset_on (Field r) p \<and> extension_on (Field r) r p \<and>
-      (m, r) \<in> I \<longrightarrow> r = m"
-    by (auto simp: FI)
-  have "Field p \<subseteq> Field m"
-  proof (rule ccontr)
-    let ?Q = "Field p - Field m"
-    assume "\<not> (Field p \<subseteq> Field m)"
-    with assms [unfolded wf_eq_minimal, THEN spec, of ?Q]
-      obtain x where "x \<in> Field p" and "x \<notin> Field m" and
-      min: "\<forall>y. (y, x) \<in> p \<longrightarrow> y \<notin> ?Q" by blast
-    txt {*Add @{term x} as topmost element to @{term m}.*}
-    let ?s = "{(y, x) | y. y \<in> Field m}"
-    let ?m = "insert (x, x) m \<union> ?s"
-    have Fm: "Field ?m = insert x (Field m)" by (auto simp: Field_def)
-    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
-      using `Well_order m` by (simp_all add: order_on_defs)
-    txt {*We show that the extension is a well-order.*}
-    have "Refl ?m" using `Refl m` Fm by (auto simp: refl_on_def)
-    moreover have "trans ?m" using `trans m` `x \<notin> Field m`
-      unfolding trans_def Field_def Domain_unfold Domain_converse [symmetric] by blast
-    moreover have "antisym ?m" using `antisym m` `x \<notin> Field m`
-      unfolding antisym_def Field_def Domain_unfold Domain_converse [symmetric] by blast
-    moreover have "Total ?m" using `Total m` Fm by (auto simp: Relation.total_on_def)
-    moreover have "wf (?m - Id)"
-    proof -
-      have "wf ?s" using `x \<notin> Field m`
-        by (simp add: wf_eq_minimal Field_def Domain_unfold Domain_converse [symmetric]) metis
-      thus ?thesis using `wf (m - Id)` `x \<notin> Field m`
-        wf_subset [OF `wf ?s` Diff_subset]
-        by (fastforce intro!: wf_Un simp add: Un_Diff Field_def)
-    qed
-    ultimately have "Well_order ?m" by (simp add: order_on_defs)
-    moreover have "extension_on (Field ?m) ?m p"
-      using `extension_on (Field m) m p` `downset_on (Field m) p`
-      by (subst Fm) (auto simp: extension_on_def dest: downset_onD)
-    moreover have "downset_on (Field ?m) p"
-      using `downset_on (Field m) p` and min
-      by (subst Fm, simp add: downset_on_def Field_def) (metis Domain_iff)
-    moreover have "(m, ?m) \<in> I"
-      using `Well_order m` and `Well_order ?m` and
-      `downset_on (Field m) p` and `downset_on (Field ?m) p` and
-      `extension_on (Field m) m p` and `extension_on (Field ?m) ?m p` and
-      `Refl m` and `x \<notin> Field m`
-      by (auto simp: I_def init_seg_of_def refl_on_def)
-    ultimately
-    --{*This contradicts maximality of m:*}
-    show False using max and `x \<notin> Field m` unfolding Field_def by blast
-  qed
-  have "p \<subseteq> m"
-    using `Field p \<subseteq> Field m` and `extension_on (Field m) m p`
-    by (force simp: Field_def extension_on_def)
-  with `Well_order m` show ?thesis by blast
-qed
-
-text {*Every well-founded relation can be extended to a total well-order.*}
-corollary total_well_order_extension:
-  assumes "wf p"
-  shows "\<exists>w. p \<subseteq> w \<and> Well_order w \<and> Field w = UNIV"
-proof -
-  from well_order_extension [OF assms] obtain w
-    where "p \<subseteq> w" and wo: "Well_order w" by blast
-  let ?A = "UNIV - Field w"
-  from well_order_on [of ?A] obtain w' where wo': "well_order_on ?A w'" ..
-  have [simp]: "Field w' = ?A" using rel.well_order_on_Well_order [OF wo'] by simp
-  have *: "Field w \<inter> Field w' = {}" by simp
-  let ?w = "w \<union>o w'"
-  have "p \<subseteq> ?w" using `p \<subseteq> w` by (auto simp: Osum_def)
-  moreover have "Well_order ?w" using Osum_Well_order [OF * wo] and wo' by simp
-  moreover have "Field ?w = UNIV" by (simp add: Field_Osum)
-  ultimately show ?thesis by blast
-qed
-
-corollary well_order_on_extension:
-  assumes "wf p" and "Field p \<subseteq> A"
-  shows "\<exists>w. p \<subseteq> w \<and> well_order_on A w"
-proof -
-  from total_well_order_extension [OF `wf p`] obtain r
-    where "p \<subseteq> r" and wo: "Well_order r" and univ: "Field r = UNIV" by blast
-  let ?r = "{(x, y). x \<in> A \<and> y \<in> A \<and> (x, y) \<in> r}"
-  from `p \<subseteq> r` have "p \<subseteq> ?r" using `Field p \<subseteq> A` by (auto simp: Field_def)
-  have 1: "Field ?r = A" using wo univ
-    by (fastforce simp: Field_def order_on_defs refl_on_def)
-  have "Refl r" "trans r" "antisym r" "Total r" "wf (r - Id)"
-    using `Well_order r` by (simp_all add: order_on_defs)
-  have "refl_on A ?r" using `Refl r` by (auto simp: refl_on_def univ)
-  moreover have "trans ?r" using `trans r`
-    unfolding trans_def by blast
-  moreover have "antisym ?r" using `antisym r`
-    unfolding antisym_def by blast
-  moreover have "total_on A ?r" using `Total r` by (simp add: total_on_def univ)
-  moreover have "wf (?r - Id)" by (rule wf_subset [OF `wf(r - Id)`]) blast
-  ultimately have "well_order_on A ?r" by (simp add: order_on_defs)
-  with `p \<subseteq> ?r` show ?thesis by blast
+  with 1 show ?thesis by auto
 qed
 
 end
-

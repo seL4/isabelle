@@ -215,17 +215,19 @@ lemma rat_number_collapse:
   "Fract 0 k = 0"
   "Fract 1 1 = 1"
   "Fract (numeral w) 1 = numeral w"
-  "Fract (neg_numeral w) 1 = neg_numeral w"
+  "Fract (- numeral w) 1 = - numeral w"
+  "Fract (- 1) 1 = - 1"
   "Fract k 0 = 0"
   using Fract_of_int_eq [of "numeral w"]
-  using Fract_of_int_eq [of "neg_numeral w"]
+  using Fract_of_int_eq [of "- numeral w"]
   by (simp_all add: Zero_rat_def One_rat_def eq_rat)
 
 lemma rat_number_expand:
   "0 = Fract 0 1"
   "1 = Fract 1 1"
   "numeral k = Fract (numeral k) 1"
-  "neg_numeral k = Fract (neg_numeral k) 1"
+  "- 1 = Fract (- 1) 1"
+  "- numeral k = Fract (- numeral k) 1"
   by (simp_all add: rat_number_collapse)
 
 lemma Rat_cases_nonzero [case_names Fract 0]:
@@ -356,7 +358,8 @@ lemma quotient_of_number [simp]:
   "quotient_of 0 = (0, 1)"
   "quotient_of 1 = (1, 1)"
   "quotient_of (numeral k) = (numeral k, 1)"
-  "quotient_of (neg_numeral k) = (neg_numeral k, 1)"
+  "quotient_of (- 1) = (- 1, 1)"
+  "quotient_of (- numeral k) = (- numeral k, 1)"
   by (simp_all add: rat_number_expand quotient_of_Fract)
 
 lemma quotient_of_eq: "quotient_of (Fract a b) = (p, q) \<Longrightarrow> Fract p q = Fract a b"
@@ -468,7 +471,7 @@ instance proof
     unfolding less_eq_rat_def less_rat_def
     by (auto, drule (1) positive_add, simp add: positive_zero)
   show "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    unfolding less_eq_rat_def less_rat_def by (auto simp: diff_minus)
+    unfolding less_eq_rat_def less_rat_def by auto
   show "sgn a = (if a = 0 then 0 else if 0 < a then 1 else - 1)"
     by (rule sgn_rat_def)
   show "a \<le> b \<or> b \<le> a"
@@ -620,7 +623,7 @@ declaration {*
   #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
       @{thm True_implies_equals},
       read_instantiate @{context} [(("a", 0), "(numeral ?v)")] @{thm distrib_left},
-      read_instantiate @{context} [(("a", 0), "(neg_numeral ?v)")] @{thm distrib_left},
+      read_instantiate @{context} [(("a", 0), "(- numeral ?v)")] @{thm distrib_left},
       @{thm divide_1}, @{thm divide_zero_left},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
@@ -664,8 +667,12 @@ lemma of_rat_add: "of_rat (a + b) = of_rat a + of_rat b"
 lemma of_rat_minus: "of_rat (- a) = - of_rat a"
   by transfer simp
 
+lemma of_rat_neg_one [simp]:
+  "of_rat (- 1) = - 1"
+  by (simp add: of_rat_minus)
+
 lemma of_rat_diff: "of_rat (a - b) = of_rat a - of_rat b"
-by (simp only: diff_minus of_rat_add of_rat_minus)
+  using of_rat_add [of a "- b"] by (simp add: of_rat_minus)
 
 lemma of_rat_mult: "of_rat (a * b) = of_rat a * of_rat b"
 apply transfer
@@ -702,6 +709,18 @@ apply (simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
 apply (simp only: of_int_mult [symmetric] of_int_eq_iff)
 done
 
+lemma of_rat_eq_0_iff [simp]: "(of_rat a = 0) = (a = 0)"
+  using of_rat_eq_iff [of _ 0] by simp
+
+lemma zero_eq_of_rat_iff [simp]: "(0 = of_rat a) = (0 = a)"
+  by simp
+
+lemma of_rat_eq_1_iff [simp]: "(of_rat a = 1) = (a = 1)"
+  using of_rat_eq_iff [of _ 1] by simp
+
+lemma one_eq_of_rat_iff [simp]: "(1 = of_rat a) = (1 = a)"
+  by simp
+
 lemma of_rat_less:
   "(of_rat r :: 'a::linordered_field) < of_rat s \<longleftrightarrow> r < s"
 proof (induct r, induct s)
@@ -722,7 +741,29 @@ lemma of_rat_less_eq:
   "(of_rat r :: 'a::linordered_field) \<le> of_rat s \<longleftrightarrow> r \<le> s"
   unfolding le_less by (auto simp add: of_rat_less)
 
-lemmas of_rat_eq_0_iff [simp] = of_rat_eq_iff [of _ 0, simplified]
+lemma of_rat_le_0_iff [simp]: "((of_rat r :: 'a::linordered_field) \<le> 0) = (r \<le> 0)"
+  using of_rat_less_eq [of r 0, where 'a='a] by simp
+
+lemma zero_le_of_rat_iff [simp]: "(0 \<le> (of_rat r :: 'a::linordered_field)) = (0 \<le> r)"
+  using of_rat_less_eq [of 0 r, where 'a='a] by simp
+
+lemma of_rat_le_1_iff [simp]: "((of_rat r :: 'a::linordered_field) \<le> 1) = (r \<le> 1)"
+  using of_rat_less_eq [of r 1] by simp
+
+lemma one_le_of_rat_iff [simp]: "(1 \<le> (of_rat r :: 'a::linordered_field)) = (1 \<le> r)"
+  using of_rat_less_eq [of 1 r] by simp
+
+lemma of_rat_less_0_iff [simp]: "((of_rat r :: 'a::linordered_field) < 0) = (r < 0)"
+  using of_rat_less [of r 0, where 'a='a] by simp
+
+lemma zero_less_of_rat_iff [simp]: "(0 < (of_rat r :: 'a::linordered_field)) = (0 < r)"
+  using of_rat_less [of 0 r, where 'a='a] by simp
+
+lemma of_rat_less_1_iff [simp]: "((of_rat r :: 'a::linordered_field) < 1) = (r < 1)"
+  using of_rat_less [of r 1] by simp
+
+lemma one_less_of_rat_iff [simp]: "(1 < (of_rat r :: 'a::linordered_field)) = (1 < r)"
+  using of_rat_less [of 1 r] by simp
 
 lemma of_rat_eq_id [simp]: "of_rat = id"
 proof
@@ -744,8 +785,8 @@ lemma of_rat_numeral_eq [simp]:
 using of_rat_of_int_eq [of "numeral w"] by simp
 
 lemma of_rat_neg_numeral_eq [simp]:
-  "of_rat (neg_numeral w) = neg_numeral w"
-using of_rat_of_int_eq [of "neg_numeral w"] by simp
+  "of_rat (- numeral w) = - numeral w"
+using of_rat_of_int_eq [of "- numeral w"] by simp
 
 lemmas zero_rat = Zero_rat_def
 lemmas one_rat = One_rat_def
@@ -785,9 +826,6 @@ by (subst of_rat_of_nat_eq [symmetric], rule Rats_of_rat)
 
 lemma Rats_number_of [simp]: "numeral w \<in> Rats"
 by (subst of_rat_numeral_eq [symmetric], rule Rats_of_rat)
-
-lemma Rats_neg_number_of [simp]: "neg_numeral w \<in> Rats"
-by (subst of_rat_neg_numeral_eq [symmetric], rule Rats_of_rat)
 
 lemma Rats_0 [simp]: "0 \<in> Rats"
 apply (unfold Rats_def)
@@ -909,7 +947,7 @@ lemma [code_unfold]:
   by (simp add: Rat.of_int_def)
 
 lemma [code_unfold]:
-  "neg_numeral k = Rat.of_int (neg_numeral k)"
+  "- numeral k = Rat.of_int (- numeral k)"
   by (simp add: Rat.of_int_def)
 
 lemma Frct_code_post [code_post]:
@@ -917,13 +955,13 @@ lemma Frct_code_post [code_post]:
   "Frct (a, 0) = 0"
   "Frct (1, 1) = 1"
   "Frct (numeral k, 1) = numeral k"
-  "Frct (neg_numeral k, 1) = neg_numeral k"
+  "Frct (- numeral k, 1) = - numeral k"
   "Frct (1, numeral k) = 1 / numeral k"
-  "Frct (1, neg_numeral k) = 1 / neg_numeral k"
+  "Frct (1, - numeral k) = 1 / - numeral k"
   "Frct (numeral k, numeral l) = numeral k / numeral l"
-  "Frct (numeral k, neg_numeral l) = numeral k / neg_numeral l"
-  "Frct (neg_numeral k, numeral l) = neg_numeral k / numeral l"
-  "Frct (neg_numeral k, neg_numeral l) = neg_numeral k / neg_numeral l"
+  "Frct (numeral k, - numeral l) = numeral k / - numeral l"
+  "Frct (- numeral k, numeral l) = - numeral k / numeral l"
+  "Frct (- numeral k, - numeral l) = - numeral k / - numeral l"
   by (simp_all add: Fract_of_int_quotient)
 
 
@@ -1122,7 +1160,7 @@ parse_translation {*
       in
         if i = 0 then Syntax.const @{const_syntax Groups.zero}
         else if i > 0 then Syntax.const @{const_syntax Num.numeral} $ mk i
-        else Syntax.const @{const_syntax Num.neg_numeral} $ mk (~i)
+        else Syntax.const @{const_syntax Groups.uminus} $ (Syntax.const @{const_syntax Num.numeral} $ mk (~i))
       end;
 
     fun mk_frac str =

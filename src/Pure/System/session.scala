@@ -25,7 +25,7 @@ object Session
   case class Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
-  case class Raw_Edits(edits: List[Document.Edit_Text])
+  case class Raw_Edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
   case class Dialog_Result(id: Document_ID.Generic, serial: Long, result: String)
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
@@ -46,12 +46,12 @@ object Session
   abstract class Protocol_Handler
   {
     def stop(prover: Prover): Unit = {}
-    val functions: Map[String, (Prover, Isabelle_Process.Output) => Boolean]
+    val functions: Map[String, (Prover, Isabelle_Process.Protocol_Output) => Boolean]
   }
 
   class Protocol_Handlers(
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
-    functions: Map[String, Isabelle_Process.Output => Boolean] = Map.empty)
+    functions: Map[String, Isabelle_Process.Protocol_Output => Boolean] = Map.empty)
   {
     def get(name: String): Option[Protocol_Handler] = handlers.get(name)
 
@@ -71,7 +71,7 @@ object Session
           val new_handler = Class.forName(name).newInstance.asInstanceOf[Protocol_Handler]
           val new_functions =
             for ((a, f) <- new_handler.functions.toList) yield
-              (a, (output: Isabelle_Process.Output) => f(prover, output))
+              (a, (msg: Isabelle_Process.Protocol_Output) => f(prover, msg))
 
           val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
           if (!dups.isEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
@@ -88,10 +88,10 @@ object Session
       new Protocol_Handlers(handlers2, functions2)
     }
 
-    def invoke(output: Isabelle_Process.Output): Boolean =
-      output.properties match {
+    def invoke(msg: Isabelle_Process.Protocol_Output): Boolean =
+      msg.properties match {
         case Markup.Function(a) if functions.isDefinedAt(a) =>
-          try { functions(a)(output) }
+          try { functions(a)(msg) }
           catch {
             case exn: Throwable =>
               System.err.println("Failed invocation of protocol function: " +
@@ -167,6 +167,7 @@ class Session(val thy_load: Thy_Load)
   //{{{
   private case class Text_Edits(
     previous: Future[Document.Version],
+    doc_blobs: Document.Blobs,
     text_edits: List[Document.Edit_Text],
     version_result: Promise[Document.Version])
 
@@ -177,14 +178,14 @@ class Session(val thy_load: Thy_Load)
       receive {
         case Stop => finished = true; reply(())
 
-        case Text_Edits(previous, text_edits, version_result) =>
+        case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
           val (doc_edits, version) =
             Timing.timeit("Thy_Load.text_edits", timing) {
-              thy_load.text_edits(reparse_limit, prev, text_edits)
+              thy_load.text_edits(reparse_limit, prev, doc_blobs, text_edits)
             }
           version_result.fulfill(version)
-          sender ! Change(doc_edits, prev, version)
+          sender ! Change(doc_blobs, doc_edits, prev, version)
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -239,7 +240,7 @@ class Session(val thy_load: Thy_Load)
   {
     val header1 =
       if (thy_load.loaded_theories(name.theory))
-        header.error("Attempt to update loaded theory " + quote(name.theory))
+        header.error("Cannot update finished theory " + quote(name.theory))
       else header
     (name, Document.Node.Deps(header1))
   }
@@ -250,6 +251,7 @@ class Session(val thy_load: Thy_Load)
   private case class Start(args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Change(
+    doc_blobs: Document.Blobs,
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -281,17 +283,16 @@ class Session(val thy_load: Thy_Load)
         msg match {
           case _: Isabelle_Process.Input =>
             buffer += msg
+          case output: Isabelle_Process.Protocol_Output if output.properties == Markup.Flush =>
+            flush()
           case output: Isabelle_Process.Output =>
-            if (output.is_protocol && output.properties == Markup.Flush) flush()
-            else {
-              buffer += msg
-              if (output.is_syslog)
-                syslog >> (queue =>
-                  {
-                    val queue1 = queue.enqueue(output.message)
-                    if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
-                  })
-            }
+            buffer += msg
+            if (output.is_syslog)
+              syslog >> (queue =>
+                {
+                  val queue1 = queue.enqueue(output.message)
+                  if (queue1.length > syslog_limit) queue1.dequeue._2 else queue1
+                })
         }
       }
 
@@ -349,7 +350,7 @@ class Session(val thy_load: Thy_Load)
 
     /* raw edits */
 
-    def handle_raw_edits(edits: List[Document.Edit_Text])
+    def handle_raw_edits(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
     //{{{
     {
       prover.get.discontinue_execution()
@@ -358,8 +359,8 @@ class Session(val thy_load: Thy_Load)
       val version = Future.promise[Document.Version]
       val change = global_state >>> (_.continue_history(previous, edits, version))
 
-      raw_edits.event(Session.Raw_Edits(edits))
-      change_parser ! Text_Edits(previous, edits, version)
+      raw_edits.event(Session.Raw_Edits(doc_blobs, edits))
+      change_parser ! Text_Edits(previous, doc_blobs, edits, version)
     }
     //}}}
 
@@ -375,6 +376,18 @@ class Session(val thy_load: Thy_Load)
 
       def id_command(command: Command)
       {
+        for {
+          digest <- command.blobs_digests
+          if !global_state().defined_blob(digest)
+        } {
+          change.doc_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
+            case Some(blob) =>
+              global_state >> (_.define_blob(digest))
+              prover.get.define_blob(blob)
+            case None => System.err.println("Missing blob for SHA1 digest " + digest)
+          }
+        }
+
         if (!global_state().defined_command(command.id)) {
           global_state >> (_.define_command(command))
           prover.get.define_command(command)
@@ -414,69 +427,69 @@ class Session(val thy_load: Thy_Load)
         }
       }
 
-      if (output.is_protocol) {
-        val handled = _protocol_handlers.invoke(output)
-        if (!handled) {
+      output match {
+        case msg: Isabelle_Process.Protocol_Output =>
+          val handled = _protocol_handlers.invoke(msg)
+          if (!handled) {
+            msg.properties match {
+              case Markup.Protocol_Handler(name) =>
+                _protocol_handlers = _protocol_handlers.add(prover.get, name)
+
+              case Protocol.Command_Timing(state_id, timing) =>
+                val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
+                accumulate(state_id, prover.get.xml_cache.elem(message))
+
+              case Markup.Assign_Update =>
+                msg.text match {
+                  case Protocol.Assign_Update(id, update) =>
+                    try {
+                      val cmds = global_state >>> (_.assign(id, update))
+                      delay_commands_changed.invoke(true, cmds)
+                    }
+                    catch { case _: Document.State.Fail => bad_output() }
+                  case _ => bad_output()
+                }
+                // FIXME separate timeout event/message!?
+                if (prover.isDefined && System.currentTimeMillis() > prune_next) {
+                  val old_versions = global_state >>> (_.prune_history(prune_size))
+                  if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
+                  prune_next = System.currentTimeMillis() + prune_delay.ms
+                }
+
+              case Markup.Removed_Versions =>
+                msg.text match {
+                  case Protocol.Removed(removed) =>
+                    try {
+                      global_state >> (_.removed_versions(removed))
+                    }
+                    catch { case _: Document.State.Fail => bad_output() }
+                  case _ => bad_output()
+                }
+
+              case Markup.ML_Statistics(props) =>
+                statistics.event(Session.Statistics(props))
+
+              case Markup.Task_Statistics(props) =>
+                // FIXME
+
+              case _ => bad_output()
+            }
+          }
+        case _ =>
           output.properties match {
-            case Markup.Protocol_Handler(name) =>
-              _protocol_handlers = _protocol_handlers.add(prover.get, name)
-
-            case Protocol.Command_Timing(state_id, timing) =>
-              val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
-              accumulate(state_id, prover.get.xml_cache.elem(message))
-
-            case Markup.Assign_Update =>
-              XML.content(output.body) match {
-                case Protocol.Assign_Update(id, update) =>
-                  try {
-                    val cmds = global_state >>> (_.assign(id, update))
-                    delay_commands_changed.invoke(true, cmds)
-                  }
-                  catch { case _: Document.State.Fail => bad_output() }
-                case _ => bad_output()
-              }
-              // FIXME separate timeout event/message!?
-              if (prover.isDefined && System.currentTimeMillis() > prune_next) {
-                val old_versions = global_state >>> (_.prune_history(prune_size))
-                if (!old_versions.isEmpty) prover.get.remove_versions(old_versions)
-                prune_next = System.currentTimeMillis() + prune_delay.ms
-              }
-
-            case Markup.Removed_Versions =>
-              XML.content(output.body) match {
-                case Protocol.Removed(removed) =>
-                  try {
-                    global_state >> (_.removed_versions(removed))
-                  }
-                  catch { case _: Document.State.Fail => bad_output() }
-                case _ => bad_output()
-              }
-
-            case Markup.ML_Statistics(props) =>
-              statistics.event(Session.Statistics(props))
-
-            case Markup.Task_Statistics(props) =>
-              // FIXME
-
-            case _ => bad_output()
+            case Position.Id(state_id) =>
+              accumulate(state_id, output.message)
+  
+            case _ if output.is_init =>
+              phase = Session.Ready
+  
+            case Markup.Return_Code(rc) if output.is_exit =>
+              if (rc == 0) phase = Session.Inactive
+              else phase = Session.Failed
+  
+            case _ => raw_output_messages.event(output)
           }
         }
-      }
-      else {
-        output.properties match {
-          case Position.Id(state_id) =>
-            accumulate(state_id, output.message)
-
-          case _ if output.is_init =>
-            phase = Session.Ready
-
-          case Markup.Return_Code(rc) if output.is_exit =>
-            if (rc == 0) phase = Session.Inactive
-            else phase = Session.Failed
-
-          case _ => raw_output_messages.event(output)
-        }
-      }
     }
     //}}}
 
@@ -511,7 +524,7 @@ class Session(val thy_load: Thy_Load)
         case Update_Options(options) if prover.isDefined =>
           if (is_ready) {
             prover.get.options(options)
-            handle_raw_edits(Nil)
+            handle_raw_edits(Map.empty, Nil)
           }
           global_options.event(Session.Global_Options(options))
           reply(())
@@ -519,8 +532,8 @@ class Session(val thy_load: Thy_Load)
         case Cancel_Exec(exec_id) if prover.isDefined =>
           prover.get.cancel_exec(exec_id)
 
-        case Session.Raw_Edits(edits) if prover.isDefined =>
-          handle_raw_edits(edits)
+        case Session.Raw_Edits(doc_blobs, edits) if prover.isDefined =>
+          handle_raw_edits(doc_blobs, edits)
           reply(())
 
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
@@ -573,8 +586,8 @@ class Session(val thy_load: Thy_Load)
 
   def cancel_exec(exec_id: Document_ID.Exec) { session_actor ! Cancel_Exec(exec_id) }
 
-  def update(edits: List[Document.Edit_Text])
-  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(edits) }
+  def update(doc_blobs: Document.Blobs, edits: List[Document.Edit_Text])
+  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(doc_blobs, edits) }
 
   def update_options(options: Options)
   { session_actor !? Update_Options(options) }

@@ -14,6 +14,12 @@ by eval
 lemma "IArray.list_of (IArray.of_fun (%n. n*n) 5) = [0,1,4,9,16]"
 by eval
 
+lemma "\<not> IArray.all (\<lambda>x. x > 2) (IArray [1,3::int])"
+by eval
+
+lemma "IArray.exists (\<lambda>x. x > 2) (IArray [1,3::int])"
+by eval
+
 fun sum2 :: "'a::monoid_add iarray \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
 "sum2 A n s = (if n=0 then s else sum2 A (n - 1) (s + A!!(n - 1)))"
 

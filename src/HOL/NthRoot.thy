@@ -410,6 +410,27 @@ unfolding sqrt_def by (rule real_root_le_iff [OF pos2])
 lemma real_sqrt_eq_iff [simp]: "(sqrt x = sqrt y) = (x = y)"
 unfolding sqrt_def by (rule real_root_eq_iff [OF pos2])
 
+lemma real_le_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y\<^sup>2 \<Longrightarrow> sqrt x \<le> y"
+  using real_sqrt_le_iff[of x "y\<^sup>2"] by simp
+
+lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
+  using real_sqrt_le_mono[of "x\<^sup>2" y] by simp
+
+lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
+  using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
+
+lemma sqrt_even_pow2:
+  assumes n: "even n"
+  shows "sqrt (2 ^ n) = 2 ^ (n div 2)"
+proof -
+  from n obtain m where m: "n = 2 * m"
+    unfolding even_mult_two_ex ..
+  from m have "sqrt (2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
+    by (simp only: power_mult[symmetric] mult_commute)
+  then show ?thesis
+    using m by simp
+qed
+
 lemmas real_sqrt_gt_0_iff [simp] = real_sqrt_less_iff [where x=0, unfolded real_sqrt_zero]
 lemmas real_sqrt_lt_0_iff [simp] = real_sqrt_less_iff [where y=0, unfolded real_sqrt_zero]
 lemmas real_sqrt_ge_0_iff [simp] = real_sqrt_le_iff [where x=0, unfolded real_sqrt_zero]
@@ -489,6 +510,13 @@ next
                   power2_eq_square [symmetric] real_inv_sqrt_pow2 pos nz) 
   qed
 qed
+
+lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
+  apply (cases "x = 0")
+  apply simp_all
+  using sqrt_divide_self_eq[of x]
+  apply (simp add: inverse_eq_divide field_simps)
+  done
 
 lemma real_divide_square_eq [simp]: "(((r::real) * a) / (r * r)) = a / r"
 apply (simp add: divide_inverse)

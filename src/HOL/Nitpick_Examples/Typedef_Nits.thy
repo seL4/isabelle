@@ -11,7 +11,7 @@ theory Typedef_Nits
 imports Complex_Main
 begin
 
-nitpick_params [verbose, card = 1\<emdash>4, sat_solver = MiniSat_JNI, max_threads = 1,
+nitpick_params [verbose, card = 1\<emdash>4, sat_solver = Riss3g, max_threads = 1,
                 timeout = 240]
 
 definition "three = {0\<Colon>nat, 1, 2}"

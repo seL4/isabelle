@@ -110,18 +110,14 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        SOME proofs =>
        let
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
-         val prover = AList.lookup (op =) args "prover"
-                      |> the_default default_prover
-         val params as {max_facts, slice, ...} =
+         val prover = AList.lookup (op =) args "prover" |> the_default default_prover
+         val params as {max_facts, ...} =
            Sledgehammer_Isar.default_params ctxt args
-         val default_max_facts =
-           Sledgehammer_Provers.default_max_facts_of_prover ctxt slice prover
+         val default_max_facts = Sledgehammer_Provers.default_max_facts_of_prover ctxt prover
          val is_appropriate_prop =
-           Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt
-               default_prover
+           Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt default_prover
          val relevance_fudge =
-           extract_relevance_fudge args
-               (Sledgehammer_Provers.relevance_fudge_of_prover ctxt prover)
+           extract_relevance_fudge args Sledgehammer_MePo.default_relevance_fudge
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal subgoal ctxt
          val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
@@ -132,9 +128,9 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
                hyp_ts concl_t
            |> filter (is_appropriate_prop o prop_of o snd)
+           |> Sledgehammer_Fact.drop_duplicate_facts
            |> Sledgehammer_MePo.mepo_suggested_facts ctxt params
-                  default_prover (the_default default_max_facts max_facts)
-                  (SOME relevance_fudge) hyp_ts concl_t
+                  (the_default default_max_facts max_facts) (SOME relevance_fudge) hyp_ts concl_t
             |> map (fst o fst)
          val (found_facts, lost_facts) =
            flat proofs |> sort_distinct string_ord

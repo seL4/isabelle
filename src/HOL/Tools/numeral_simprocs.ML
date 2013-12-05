@@ -56,9 +56,6 @@ val mk_sum = Arith_Data.mk_sum;
 val long_mk_sum = Arith_Data.long_mk_sum;
 val dest_sum = Arith_Data.dest_sum;
 
-val mk_diff = HOLogic.mk_binop @{const_name Groups.minus};
-val dest_diff = HOLogic.dest_bin @{const_name Groups.minus} dummyT;
-
 val mk_times = HOLogic.mk_binop @{const_name Groups.times};
 
 fun one_of T = Const(@{const_name Groups.one}, T);
@@ -181,7 +178,7 @@ val numeral_syms = [@{thm numeral_1_eq_1} RS sym];
 
 (*Simplify 0+n, n+0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  @{thms add_0s};
-val mult_1s = @{thms mult_1s mult_1_left mult_1_right divide_1};
+val mult_1s = @{thms mult_1s divide_numeral_1 mult_1_left mult_1_right mult_minus1 mult_minus1_right divide_1};
 
 (* For post-simplification of the rhs of simproc-generated rules *)
 val post_simps =
@@ -194,9 +191,8 @@ val post_simps =
 val field_post_simps =
     post_simps @ [@{thm divide_zero_left}, @{thm divide_1}]
                       
-(*Simplify inverse Numeral1, a/Numeral1*)
+(*Simplify inverse Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];
-val divide_1s = [@{thm divide_numeral_1}];
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
   created by the Numeral_Simprocs, such as 3 * (5 * x). *)
@@ -217,16 +213,13 @@ val non_add_simps =
      @{thms add_neg_numeral_simps}) simps;
 
 (*To evaluate binary negations of coefficients*)
-val minus_simps = [@{thm minus_zero}, @{thm minus_one}, @{thm minus_numeral}, @{thm minus_neg_numeral}];
+val minus_simps = [@{thm minus_zero}, @{thm minus_minus}];
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];
+val diff_simps = [@{thm diff_conv_add_uminus}, @{thm minus_add_distrib}, @{thm minus_minus}];
 
 (*To let us treat division as multiplication*)
 val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm inverse_inverse_eq}];
-
-(*push the unary minus down*)
-val minus_mult_eq_1_to_2 = @{lemma "- (a::'a::ring) * b = a * - b" by simp};
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
@@ -234,7 +227,7 @@ val minus_from_mult_simps =
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
-    [@{thm mult_assoc}, @{thm minus_mult_left}, minus_mult_eq_1_to_2];
+    [@{thm mult_assoc}, @{thm minus_mult_right}, @{thm minus_mult_commute}];
 
 val norm_ss1 =
   simpset_of (put_simpset num_ss @{context}
@@ -247,7 +240,7 @@ val norm_ss2 =
 
 val norm_ss3 =
   simpset_of (put_simpset num_ss @{context}
-    addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac})
+    addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac minus_mult_commute})
 
 structure CancelNumeralsCommon =
 struct
@@ -330,7 +323,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 structure FieldCombineNumeralsData =
 struct
   type coeff = int * int
-  val iszero = (fn (p, q) => p = 0)
+  val iszero = (fn (p, _) => p = 0)
   val add = add_frac
   val mk_sum = long_mk_sum
   val dest_sum = dest_sum
@@ -368,7 +361,7 @@ fun field_combine_numerals ctxt ct = FieldCombineNumerals.proc ctxt (term_of ct)
 
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val assoc_ss = simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac})
+  val assoc_ss = simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac minus_mult_commute})
   val eq_reflection = eq_reflection
   val is_numeral = can HOLogic.dest_number
 end;
@@ -388,7 +381,7 @@ struct
   val norm_ss2 =
     simpset_of (put_simpset HOL_basic_ss @{context} addsimps simps @ mult_minus_simps)
   val norm_ss3 =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac})
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms mult_ac minus_mult_commute})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -463,9 +456,9 @@ val field_cancel_numeral_factors =
      ["((l::'a::field_inverse_zero) * m) / n",
       "(l::'a::field_inverse_zero) / (m * n)",
       "((numeral v)::'a::field_inverse_zero) / (numeral w)",
-      "((numeral v)::'a::field_inverse_zero) / (neg_numeral w)",
-      "((neg_numeral v)::'a::field_inverse_zero) / (numeral w)",
-      "((neg_numeral v)::'a::field_inverse_zero) / (neg_numeral w)"],
+      "((numeral v)::'a::field_inverse_zero) / (- numeral w)",
+      "((- numeral v)::'a::field_inverse_zero) / (numeral w)",
+      "((- numeral v)::'a::field_inverse_zero) / (- numeral w)"],
      DivideCancelNumeralFactor.proc)]
 
 
@@ -516,7 +509,7 @@ struct
   val find_first = find_first_t []
   val trans_tac = trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss @{context} addsimps mult_1s @ @{thms mult_ac})
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps mult_1s @ @{thms mult_ac minus_mult_commute})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq 
@@ -719,7 +712,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
            @{thm "times_divide_times_eq"},
            @{thm "divide_divide_eq_right"},
-           @{thm "diff_minus"}, @{thm "minus_divide_left"},
+           @{thm diff_conv_add_uminus}, @{thm "minus_divide_left"},
            @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
            Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   

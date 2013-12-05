@@ -29,17 +29,8 @@ struct
 type descr = Datatype_Aux.descr;
 
 
-fun indexify_names names =
-  let
-    fun index (x :: xs) tab =
-        (case AList.lookup (op =) tab x of
-          NONE =>
-            if member (op =) xs x
-            then (x ^ "1") :: index xs ((x, 2) :: tab)
-            else x :: index xs tab
-        | SOME i => (x ^ string_of_int i) :: index xs ((x, i + 1) :: tab))
-      | index [] _ = [];
-  in index names [] end;
+val indexify_names = Case_Translation.indexify_names;
+val make_tnames = Case_Translation.make_tnames;
 
 fun make_tnames Ts =
   let

@@ -89,15 +89,15 @@ lemma Snoc_step1_SnocD:
   done
 
 lemma Cons_acc_step1I [intro!]:
-    "accp r x ==> accp (step1 r) xs \<Longrightarrow> accp (step1 r) (x # xs)"
-  apply (induct arbitrary: xs set: accp)
+    "Wellfounded.accp r x ==> Wellfounded.accp (step1 r) xs \<Longrightarrow> Wellfounded.accp (step1 r) (x # xs)"
+  apply (induct arbitrary: xs set: Wellfounded.accp)
   apply (erule thin_rl)
   apply (erule accp_induct)
   apply (rule accp.accI)
   apply blast
   done
 
-lemma lists_accD: "listsp (accp r) xs ==> accp (step1 r) xs"
+lemma lists_accD: "listsp (Wellfounded.accp r) xs ==> Wellfounded.accp (step1 r) xs"
   apply (induct set: listsp)
    apply (rule accp.accI)
    apply simp
@@ -113,8 +113,8 @@ lemma ex_step1I:
   apply force
   done
 
-lemma lists_accI: "accp (step1 r) xs ==> listsp (accp r) xs"
-  apply (induct set: accp)
+lemma lists_accI: "Wellfounded.accp (step1 r) xs ==> listsp (Wellfounded.accp r) xs"
+  apply (induct set: Wellfounded.accp)
   apply clarify
   apply (rule accp.accI)
   apply (drule_tac r=r in ex_step1I, assumption)

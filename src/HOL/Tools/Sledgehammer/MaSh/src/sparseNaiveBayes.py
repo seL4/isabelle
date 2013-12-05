@@ -41,10 +41,11 @@ class sparseNBClassifier(object):
             self.counts[d] = [self.defaultPriorWeight,dFeatureCounts]
 
         for key,keyDeps in dicts.dependenciesDict.iteritems():
+            keyFeatures = dicts.featureDict[key]
             for dep in keyDeps:
                 self.counts[dep][0] += 1
-                depFeatures = dicts.featureDict[key]
-                for f in depFeatures.iterkeys():
+                #depFeatures = dicts.featureDict[key]
+                for f in keyFeatures.iterkeys():
                     if self.counts[dep][1].has_key(f):
                         self.counts[dep][1][f] += 1
                     else:
@@ -55,7 +56,7 @@ class sparseNBClassifier(object):
         """
         Updates the Model.
         """
-        if not self.counts.has_key(dataPoint):
+        if (not self.counts.has_key(dataPoint)) and (not dataPoint == 0):
             dFeatureCounts = {}            
             # Give p |- p a higher weight
             if not self.defaultPriorWeight == 0:               
@@ -78,13 +79,18 @@ class sparseNBClassifier(object):
             self.counts[dep][0] -= 1
             for f,_w in features.items():
                 self.counts[dep][1][f] -= 1
+                if self.counts[dep][1][f] == 0:
+                    del self.counts[dep][1][f]
 
 
     def overwrite(self,problemId,newDependencies,dicts):
         """
         Deletes the old dependencies of problemId and replaces them with the new ones. Updates the model accordingly.
         """
-        assert self.counts.has_key(problemId)
+        try:
+            assert self.counts.has_key(problemId)
+        except:
+            raise LookupError('Trying to overwrite dependencies for unknown fact: %s. Facts need to be introduced before overwriting them.' % dicts.idNameDict[problemId])
         oldDeps = dicts.dependenciesDict[problemId]
         features = dicts.featureDict[problemId]
         self.delete(problemId,features,oldDeps)

@@ -275,16 +275,6 @@ declare numeral_One [code_post]
 
 end
 
-text {* Negative numerals. *}
-
-class neg_numeral = numeral + group_add
-begin
-
-definition neg_numeral :: "num \<Rightarrow> 'a" where
-  "neg_numeral k = - numeral k"
-
-end
-
 text {* Numeral syntax. *}
 
 syntax
@@ -299,8 +289,8 @@ parse_translation {*
         | (n, 0) => Syntax.const @{const_name Bit0} $ num_of_int n
         | (n, 1) => Syntax.const @{const_name Bit1} $ num_of_int n)
       else raise Match
-    val pos = Syntax.const @{const_name numeral}
-    val neg = Syntax.const @{const_name neg_numeral}
+    val numeral = Syntax.const @{const_name numeral}
+    val uminus = Syntax.const @{const_name uminus}
     val one = Syntax.const @{const_name Groups.one}
     val zero = Syntax.const @{const_name Groups.zero}
     fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
@@ -311,8 +301,9 @@ parse_translation {*
           in
             if value = 0 then zero else
             if value > 0
-            then pos $ num_of_int value
-            else neg $ num_of_int (~value)
+            then numeral $ num_of_int value
+            else if value = ~1 then uminus $ one
+            else uminus $ (numeral $ num_of_int (~value))
           end
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
   in [("_Numeral", K numeral_tr)] end
@@ -323,12 +314,12 @@ typed_print_translation {*
     fun dest_num (Const (@{const_syntax Bit0}, _) $ n) = 2 * dest_num n
       | dest_num (Const (@{const_syntax Bit1}, _) $ n) = 2 * dest_num n + 1
       | dest_num (Const (@{const_syntax One}, _)) = 1;
-    fun num_tr' sign ctxt T [n] =
+    fun num_tr' ctxt T [n] =
       let
         val k = dest_num n;
         val t' =
           Syntax.const @{syntax_const "_Numeral"} $
-            Syntax.free (sign ^ string_of_int k);
+            Syntax.free (string_of_int k);
       in
         (case T of
           Type (@{type_name fun}, [_, T']) =>
@@ -339,8 +330,7 @@ typed_print_translation {*
         | _ => if T = dummyT then t' else raise Match)
       end;
   in
-   [(@{const_syntax numeral}, num_tr' ""),
-    (@{const_syntax neg_numeral}, num_tr' "-")]
+   [(@{const_syntax numeral}, num_tr')]
   end
 *}
 
@@ -383,8 +373,12 @@ subsubsection {*
   Structures with negation: class @{text neg_numeral}
 *}
 
-context neg_numeral
+class neg_numeral = numeral + group_add
 begin
+
+lemma uminus_numeral_One:
+  "- Numeral1 = - 1"
+  by (simp add: numeral_One)
 
 text {* Numerals form an abelian subgroup. *}
 
@@ -403,11 +397,11 @@ lemma is_num_add_commute:
   apply simp
   apply (rule_tac a=x in add_left_imp_eq)
   apply (rule_tac a=x in add_right_imp_eq)
-  apply (simp add: add_assoc minus_add_cancel)
+  apply (simp add: add_assoc)
   apply (simp add: add_assoc [symmetric], simp add: add_assoc)
   apply (rule_tac a=x in add_left_imp_eq)
   apply (rule_tac a=x in add_right_imp_eq)
-  apply (simp add: add_assoc minus_add_cancel add_minus_cancel)
+  apply (simp add: add_assoc)
   apply (simp add: add_assoc, simp add: add_assoc [symmetric])
   done
 
@@ -418,7 +412,7 @@ lemma is_num_add_left_commute:
 lemmas is_num_normalize =
   add_assoc is_num_add_commute is_num_add_left_commute
   is_num.intros is_num_numeral
-  diff_minus minus_add add_minus_cancel minus_add_cancel
+  minus_add
 
 definition dbl :: "'a \<Rightarrow> 'a" where "dbl x = x + x"
 definition dbl_inc :: "'a \<Rightarrow> 'a" where "dbl_inc x = x + x + 1"
@@ -431,83 +425,85 @@ lemma numeral_BitM: "numeral (BitM n) = numeral (Bit0 n) - 1"
   by (simp only: BitM_plus_one [symmetric] numeral_add numeral_One eq_diff_eq)
 
 lemma dbl_simps [simp]:
-  "dbl (neg_numeral k) = neg_numeral (Bit0 k)"
+  "dbl (- numeral k) = - dbl (numeral k)"
   "dbl 0 = 0"
   "dbl 1 = 2"
+  "dbl (- 1) = - 2"
   "dbl (numeral k) = numeral (Bit0 k)"
-  unfolding dbl_def neg_numeral_def numeral.simps
-  by (simp_all add: minus_add)
+  by (simp_all add: dbl_def numeral.simps minus_add)
 
 lemma dbl_inc_simps [simp]:
-  "dbl_inc (neg_numeral k) = neg_numeral (BitM k)"
+  "dbl_inc (- numeral k) = - dbl_dec (numeral k)"
   "dbl_inc 0 = 1"
   "dbl_inc 1 = 3"
+  "dbl_inc (- 1) = - 1"
   "dbl_inc (numeral k) = numeral (Bit1 k)"
-  unfolding dbl_inc_def neg_numeral_def numeral.simps numeral_BitM
-  by (simp_all add: is_num_normalize)
+  by (simp_all add: dbl_inc_def dbl_dec_def numeral.simps numeral_BitM is_num_normalize algebra_simps del: add_uminus_conv_diff)
 
 lemma dbl_dec_simps [simp]:
-  "dbl_dec (neg_numeral k) = neg_numeral (Bit1 k)"
-  "dbl_dec 0 = -1"
+  "dbl_dec (- numeral k) = - dbl_inc (numeral k)"
+  "dbl_dec 0 = - 1"
   "dbl_dec 1 = 1"
+  "dbl_dec (- 1) = - 3"
   "dbl_dec (numeral k) = numeral (BitM k)"
-  unfolding dbl_dec_def neg_numeral_def numeral.simps numeral_BitM
-  by (simp_all add: is_num_normalize)
+  by (simp_all add: dbl_dec_def dbl_inc_def numeral.simps numeral_BitM is_num_normalize)
 
 lemma sub_num_simps [simp]:
   "sub One One = 0"
-  "sub One (Bit0 l) = neg_numeral (BitM l)"
-  "sub One (Bit1 l) = neg_numeral (Bit0 l)"
+  "sub One (Bit0 l) = - numeral (BitM l)"
+  "sub One (Bit1 l) = - numeral (Bit0 l)"
   "sub (Bit0 k) One = numeral (BitM k)"
   "sub (Bit1 k) One = numeral (Bit0 k)"
   "sub (Bit0 k) (Bit0 l) = dbl (sub k l)"
   "sub (Bit0 k) (Bit1 l) = dbl_dec (sub k l)"
   "sub (Bit1 k) (Bit0 l) = dbl_inc (sub k l)"
   "sub (Bit1 k) (Bit1 l) = dbl (sub k l)"
-  unfolding dbl_def dbl_dec_def dbl_inc_def sub_def
-  unfolding neg_numeral_def numeral.simps numeral_BitM
-  by (simp_all add: is_num_normalize)
+  by (simp_all add: dbl_def dbl_dec_def dbl_inc_def sub_def numeral.simps
+    numeral_BitM is_num_normalize del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma add_neg_numeral_simps:
-  "numeral m + neg_numeral n = sub m n"
-  "neg_numeral m + numeral n = sub n m"
-  "neg_numeral m + neg_numeral n = neg_numeral (m + n)"
-  unfolding sub_def diff_minus neg_numeral_def numeral_add numeral.simps
-  by (simp_all add: is_num_normalize)
+  "numeral m + - numeral n = sub m n"
+  "- numeral m + numeral n = sub n m"
+  "- numeral m + - numeral n = - (numeral m + numeral n)"
+  by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize
+    del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma add_neg_numeral_special:
-  "1 + neg_numeral m = sub One m"
-  "neg_numeral m + 1 = sub One m"
-  unfolding sub_def diff_minus neg_numeral_def numeral_add numeral.simps
-  by (simp_all add: is_num_normalize)
+  "1 + - numeral m = sub One m"
+  "- numeral m + 1 = sub One m"
+  "numeral m + - 1 = sub m One"
+  "- 1 + numeral n = sub n One"
+  "- 1 + - numeral n = - numeral (inc n)"
+  "- numeral m + - 1 = - numeral (inc m)"
+  "1 + - 1 = 0"
+  "- 1 + 1 = 0"
+  "- 1 + - 1 = - 2"
+  by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize right_minus numeral_inc
+    del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma diff_numeral_simps:
   "numeral m - numeral n = sub m n"
-  "numeral m - neg_numeral n = numeral (m + n)"
-  "neg_numeral m - numeral n = neg_numeral (m + n)"
-  "neg_numeral m - neg_numeral n = sub n m"
-  unfolding neg_numeral_def sub_def diff_minus numeral_add numeral.simps
-  by (simp_all add: is_num_normalize)
+  "numeral m - - numeral n = numeral (m + n)"
+  "- numeral m - numeral n = - numeral (m + n)"
+  "- numeral m - - numeral n = sub n m"
+  by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize
+    del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma diff_numeral_special:
   "1 - numeral n = sub One n"
-  "1 - neg_numeral n = numeral (One + n)"
   "numeral m - 1 = sub m One"
-  "neg_numeral m - 1 = neg_numeral (m + One)"
-  unfolding neg_numeral_def sub_def diff_minus numeral_add numeral.simps
-  by (simp_all add: is_num_normalize)
-
-lemma minus_one: "- 1 = -1"
-  unfolding neg_numeral_def numeral.simps ..
-
-lemma minus_numeral: "- numeral n = neg_numeral n"
-  unfolding neg_numeral_def ..
-
-lemma minus_neg_numeral: "- neg_numeral n = numeral n"
-  unfolding neg_numeral_def by simp
-
-lemmas minus_numeral_simps [simp] =
-  minus_one minus_numeral minus_neg_numeral
+  "1 - - numeral n = numeral (One + n)"
+  "- numeral m - 1 = - numeral (m + One)"
+  "- 1 - numeral n = - numeral (inc n)"
+  "numeral m - - 1 = numeral (inc m)"
+  "- 1 - - numeral n = sub n One"
+  "- numeral m - - 1 = sub One m"
+  "1 - 1 = 0"
+  "- 1 - 1 = - 2"
+  "1 - - 1 = 2"
+  "- 1 - - 1 = 0"
+  by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize numeral_inc
+    del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 end
 
@@ -681,17 +677,17 @@ begin
 subclass neg_numeral ..
 
 lemma mult_neg_numeral_simps:
-  "neg_numeral m * neg_numeral n = numeral (m * n)"
-  "neg_numeral m * numeral n = neg_numeral (m * n)"
-  "numeral m * neg_numeral n = neg_numeral (m * n)"
-  unfolding neg_numeral_def mult_minus_left mult_minus_right
+  "- numeral m * - numeral n = numeral (m * n)"
+  "- numeral m * numeral n = - numeral (m * n)"
+  "numeral m * - numeral n = - numeral (m * n)"
+  unfolding mult_minus_left mult_minus_right
   by (simp_all only: minus_minus numeral_mult)
 
-lemma mult_minus1 [simp]: "-1 * z = - z"
-  unfolding neg_numeral_def numeral.simps mult_minus_left by simp
+lemma mult_minus1 [simp]: "- 1 * z = - z"
+  unfolding numeral.simps mult_minus_left by simp
 
-lemma mult_minus1_right [simp]: "z * -1 = - z"
-  unfolding neg_numeral_def numeral.simps mult_minus_right by simp
+lemma mult_minus1_right [simp]: "z * - 1 = - z"
+  unfolding numeral.simps mult_minus_right by simp
 
 end
 
@@ -714,9 +710,15 @@ lemma not_iszero_1 [simp]: "\<not> iszero 1"
 lemma not_iszero_Numeral1: "\<not> iszero Numeral1"
   by (simp add: numeral_One)
 
+lemma not_iszero_neg_1 [simp]: "\<not> iszero (- 1)"
+  by (simp add: iszero_def)
+
+lemma not_iszero_neg_Numeral1: "\<not> iszero (- Numeral1)"
+  by (simp add: numeral_One)
+
 lemma iszero_neg_numeral [simp]:
-  "iszero (neg_numeral w) \<longleftrightarrow> iszero (numeral w)"
-  unfolding iszero_def neg_numeral_def
+  "iszero (- numeral w) \<longleftrightarrow> iszero (numeral w)"
+  unfolding iszero_def
   by (rule neg_equal_0_iff_equal)
 
 lemma eq_iff_iszero_diff: "x = y \<longleftrightarrow> iszero (x - y)"
@@ -736,17 +738,17 @@ the @{text "ring_char_0"} rules in the simplifier.
 
 lemma eq_numeral_iff_iszero:
   "numeral x = numeral y \<longleftrightarrow> iszero (sub x y)"
-  "numeral x = neg_numeral y \<longleftrightarrow> iszero (numeral (x + y))"
-  "neg_numeral x = numeral y \<longleftrightarrow> iszero (numeral (x + y))"
-  "neg_numeral x = neg_numeral y \<longleftrightarrow> iszero (sub y x)"
+  "numeral x = - numeral y \<longleftrightarrow> iszero (numeral (x + y))"
+  "- numeral x = numeral y \<longleftrightarrow> iszero (numeral (x + y))"
+  "- numeral x = - numeral y \<longleftrightarrow> iszero (sub y x)"
   "numeral x = 1 \<longleftrightarrow> iszero (sub x One)"
   "1 = numeral y \<longleftrightarrow> iszero (sub One y)"
-  "neg_numeral x = 1 \<longleftrightarrow> iszero (numeral (x + One))"
-  "1 = neg_numeral y \<longleftrightarrow> iszero (numeral (One + y))"
+  "- numeral x = 1 \<longleftrightarrow> iszero (numeral (x + One))"
+  "1 = - numeral y \<longleftrightarrow> iszero (numeral (One + y))"
   "numeral x = 0 \<longleftrightarrow> iszero (numeral x)"
   "0 = numeral y \<longleftrightarrow> iszero (numeral y)"
-  "neg_numeral x = 0 \<longleftrightarrow> iszero (numeral x)"
-  "0 = neg_numeral y \<longleftrightarrow> iszero (numeral y)"
+  "- numeral x = 0 \<longleftrightarrow> iszero (numeral x)"
+  "0 = - numeral y \<longleftrightarrow> iszero (numeral y)"
   unfolding eq_iff_iszero_diff diff_numeral_simps diff_numeral_special
   by simp_all
 
@@ -762,33 +764,69 @@ begin
 lemma not_iszero_numeral [simp]: "\<not> iszero (numeral w)"
   by (simp add: iszero_def)
 
-lemma neg_numeral_eq_iff: "neg_numeral m = neg_numeral n \<longleftrightarrow> m = n"
-  by (simp only: neg_numeral_def neg_equal_iff_equal numeral_eq_iff)
+lemma neg_numeral_eq_iff: "- numeral m = - numeral n \<longleftrightarrow> m = n"
+  by simp
 
-lemma numeral_neq_neg_numeral: "numeral m \<noteq> neg_numeral n"
-  unfolding neg_numeral_def eq_neg_iff_add_eq_0
+lemma numeral_neq_neg_numeral: "numeral m \<noteq> - numeral n"
+  unfolding eq_neg_iff_add_eq_0
   by (simp add: numeral_plus_numeral)
 
-lemma neg_numeral_neq_numeral: "neg_numeral m \<noteq> numeral n"
+lemma neg_numeral_neq_numeral: "- numeral m \<noteq> numeral n"
   by (rule numeral_neq_neg_numeral [symmetric])
 
-lemma zero_neq_neg_numeral: "0 \<noteq> neg_numeral n"
-  unfolding neg_numeral_def neg_0_equal_iff_equal by simp
+lemma zero_neq_neg_numeral: "0 \<noteq> - numeral n"
+  unfolding neg_0_equal_iff_equal by simp
 
-lemma neg_numeral_neq_zero: "neg_numeral n \<noteq> 0"
-  unfolding neg_numeral_def neg_equal_0_iff_equal by simp
+lemma neg_numeral_neq_zero: "- numeral n \<noteq> 0"
+  unfolding neg_equal_0_iff_equal by simp
 
-lemma one_neq_neg_numeral: "1 \<noteq> neg_numeral n"
+lemma one_neq_neg_numeral: "1 \<noteq> - numeral n"
   using numeral_neq_neg_numeral [of One n] by (simp add: numeral_One)
 
-lemma neg_numeral_neq_one: "neg_numeral n \<noteq> 1"
+lemma neg_numeral_neq_one: "- numeral n \<noteq> 1"
   using neg_numeral_neq_numeral [of n One] by (simp add: numeral_One)
+
+lemma neg_one_neq_numeral:
+  "- 1 \<noteq> numeral n"
+  using neg_numeral_neq_numeral [of One n] by (simp add: numeral_One)
+
+lemma numeral_neq_neg_one:
+  "numeral n \<noteq> - 1"
+  using numeral_neq_neg_numeral [of n One] by (simp add: numeral_One)
+
+lemma neg_one_eq_numeral_iff:
+  "- 1 = - numeral n \<longleftrightarrow> n = One"
+  using neg_numeral_eq_iff [of One n] by (auto simp add: numeral_One)
+
+lemma numeral_eq_neg_one_iff:
+  "- numeral n = - 1 \<longleftrightarrow> n = One"
+  using neg_numeral_eq_iff [of n One] by (auto simp add: numeral_One)
+
+lemma neg_one_neq_zero:
+  "- 1 \<noteq> 0"
+  by simp
+
+lemma zero_neq_neg_one:
+  "0 \<noteq> - 1"
+  by simp
+
+lemma neg_one_neq_one:
+  "- 1 \<noteq> 1"
+  using neg_numeral_neq_numeral [of One One] by (simp only: numeral_One not_False_eq_True)
+
+lemma one_neq_neg_one:
+  "1 \<noteq> - 1"
+  using numeral_neq_neg_numeral [of One One] by (simp only: numeral_One not_False_eq_True)
 
 lemmas eq_neg_numeral_simps [simp] =
   neg_numeral_eq_iff
   numeral_neq_neg_numeral neg_numeral_neq_numeral
   one_neq_neg_numeral neg_numeral_neq_one
   zero_neq_neg_numeral neg_numeral_neq_zero
+  neg_one_neq_numeral numeral_neq_neg_one
+  neg_one_eq_numeral_iff numeral_eq_neg_one_iff
+  neg_one_neq_zero zero_neq_neg_one
+  neg_one_neq_one one_neq_neg_one
 
 end
 
@@ -801,47 +839,71 @@ begin
 
 subclass ring_char_0 ..
 
-lemma neg_numeral_le_iff: "neg_numeral m \<le> neg_numeral n \<longleftrightarrow> n \<le> m"
-  by (simp only: neg_numeral_def neg_le_iff_le numeral_le_iff)
+lemma neg_numeral_le_iff: "- numeral m \<le> - numeral n \<longleftrightarrow> n \<le> m"
+  by (simp only: neg_le_iff_le numeral_le_iff)
 
-lemma neg_numeral_less_iff: "neg_numeral m < neg_numeral n \<longleftrightarrow> n < m"
-  by (simp only: neg_numeral_def neg_less_iff_less numeral_less_iff)
+lemma neg_numeral_less_iff: "- numeral m < - numeral n \<longleftrightarrow> n < m"
+  by (simp only: neg_less_iff_less numeral_less_iff)
 
-lemma neg_numeral_less_zero: "neg_numeral n < 0"
-  by (simp only: neg_numeral_def neg_less_0_iff_less zero_less_numeral)
+lemma neg_numeral_less_zero: "- numeral n < 0"
+  by (simp only: neg_less_0_iff_less zero_less_numeral)
 
-lemma neg_numeral_le_zero: "neg_numeral n \<le> 0"
-  by (simp only: neg_numeral_def neg_le_0_iff_le zero_le_numeral)
+lemma neg_numeral_le_zero: "- numeral n \<le> 0"
+  by (simp only: neg_le_0_iff_le zero_le_numeral)
 
-lemma not_zero_less_neg_numeral: "\<not> 0 < neg_numeral n"
+lemma not_zero_less_neg_numeral: "\<not> 0 < - numeral n"
   by (simp only: not_less neg_numeral_le_zero)
 
-lemma not_zero_le_neg_numeral: "\<not> 0 \<le> neg_numeral n"
+lemma not_zero_le_neg_numeral: "\<not> 0 \<le> - numeral n"
   by (simp only: not_le neg_numeral_less_zero)
 
-lemma neg_numeral_less_numeral: "neg_numeral m < numeral n"
+lemma neg_numeral_less_numeral: "- numeral m < numeral n"
   using neg_numeral_less_zero zero_less_numeral by (rule less_trans)
 
-lemma neg_numeral_le_numeral: "neg_numeral m \<le> numeral n"
+lemma neg_numeral_le_numeral: "- numeral m \<le> numeral n"
   by (simp only: less_imp_le neg_numeral_less_numeral)
 
-lemma not_numeral_less_neg_numeral: "\<not> numeral m < neg_numeral n"
+lemma not_numeral_less_neg_numeral: "\<not> numeral m < - numeral n"
   by (simp only: not_less neg_numeral_le_numeral)
 
-lemma not_numeral_le_neg_numeral: "\<not> numeral m \<le> neg_numeral n"
+lemma not_numeral_le_neg_numeral: "\<not> numeral m \<le> - numeral n"
   by (simp only: not_le neg_numeral_less_numeral)
   
-lemma neg_numeral_less_one: "neg_numeral m < 1"
+lemma neg_numeral_less_one: "- numeral m < 1"
   by (rule neg_numeral_less_numeral [of m One, unfolded numeral_One])
 
-lemma neg_numeral_le_one: "neg_numeral m \<le> 1"
+lemma neg_numeral_le_one: "- numeral m \<le> 1"
   by (rule neg_numeral_le_numeral [of m One, unfolded numeral_One])
 
-lemma not_one_less_neg_numeral: "\<not> 1 < neg_numeral m"
+lemma not_one_less_neg_numeral: "\<not> 1 < - numeral m"
   by (simp only: not_less neg_numeral_le_one)
 
-lemma not_one_le_neg_numeral: "\<not> 1 \<le> neg_numeral m"
+lemma not_one_le_neg_numeral: "\<not> 1 \<le> - numeral m"
   by (simp only: not_le neg_numeral_less_one)
+
+lemma not_numeral_less_neg_one: "\<not> numeral m < - 1"
+  using not_numeral_less_neg_numeral [of m One] by (simp add: numeral_One)
+
+lemma not_numeral_le_neg_one: "\<not> numeral m \<le> - 1"
+  using not_numeral_le_neg_numeral [of m One] by (simp add: numeral_One)
+
+lemma neg_one_less_numeral: "- 1 < numeral m"
+  using neg_numeral_less_numeral [of One m] by (simp add: numeral_One)
+
+lemma neg_one_le_numeral: "- 1 \<le> numeral m"
+  using neg_numeral_le_numeral [of One m] by (simp add: numeral_One)
+
+lemma neg_numeral_less_neg_one_iff: "- numeral m < - 1 \<longleftrightarrow> m \<noteq> One"
+  by (cases m) simp_all
+
+lemma neg_numeral_le_neg_one: "- numeral m \<le> - 1"
+  by simp
+
+lemma not_neg_one_less_neg_numeral: "\<not> - 1 < - numeral m"
+  by simp
+
+lemma not_neg_one_le_neg_numeral_iff: "\<not> - 1 \<le> - numeral m \<longleftrightarrow> m \<noteq> One"
+  by (cases m) simp_all
 
 lemma sub_non_negative:
   "sub n m \<ge> 0 \<longleftrightarrow> n \<ge> m"
@@ -864,18 +926,40 @@ lemmas le_neg_numeral_simps [simp] =
   neg_numeral_le_numeral not_numeral_le_neg_numeral
   neg_numeral_le_zero not_zero_le_neg_numeral
   neg_numeral_le_one not_one_le_neg_numeral
+  neg_one_le_numeral not_numeral_le_neg_one
+  neg_numeral_le_neg_one not_neg_one_le_neg_numeral_iff
+
+lemma le_minus_one_simps [simp]:
+  "- 1 \<le> 0"
+  "- 1 \<le> 1"
+  "\<not> 0 \<le> - 1"
+  "\<not> 1 \<le> - 1"
+  by simp_all
 
 lemmas less_neg_numeral_simps [simp] =
   neg_numeral_less_iff
   neg_numeral_less_numeral not_numeral_less_neg_numeral
   neg_numeral_less_zero not_zero_less_neg_numeral
   neg_numeral_less_one not_one_less_neg_numeral
+  neg_one_less_numeral not_numeral_less_neg_one
+  neg_numeral_less_neg_one_iff not_neg_one_less_neg_numeral
+
+lemma less_minus_one_simps [simp]:
+  "- 1 < 0"
+  "- 1 < 1"
+  "\<not> 0 < - 1"
+  "\<not> 1 < - 1"
+  by (simp_all add: less_le)
 
 lemma abs_numeral [simp]: "abs (numeral n) = numeral n"
   by simp
 
-lemma abs_neg_numeral [simp]: "abs (neg_numeral n) = numeral n"
-  by (simp only: neg_numeral_def abs_minus_cancel abs_numeral)
+lemma abs_neg_numeral [simp]: "abs (- numeral n) = numeral n"
+  by (simp only: abs_minus_cancel abs_numeral)
+
+lemma abs_neg_one [simp]:
+  "abs (- 1) = 1"
+  by simp
 
 end
 
@@ -1038,31 +1122,36 @@ lemma inverse_numeral_1:
 text{*Theorem lists for the cancellation simprocs. The use of a binary
 numeral for 1 reduces the number of special cases.*}
 
-lemmas mult_1s =
-  mult_numeral_1 mult_numeral_1_right 
-  mult_minus1 mult_minus1_right
+lemma mult_1s:
+  fixes a :: "'a::semiring_numeral"
+    and b :: "'b::ring_1"
+  shows "Numeral1 * a = a"
+    "a * Numeral1 = a"
+    "- Numeral1 * b = - b"
+    "b * - Numeral1 = - b"
+  by simp_all
 
 setup {*
   Reorient_Proc.add
     (fn Const (@{const_name numeral}, _) $ _ => true
-    | Const (@{const_name neg_numeral}, _) $ _ => true
+    | Const (@{const_name uminus}, _) $ (Const (@{const_name numeral}, _) $ _) => true
     | _ => false)
 *}
 
 simproc_setup reorient_numeral
-  ("numeral w = x" | "neg_numeral w = y") = Reorient_Proc.proc
+  ("numeral w = x" | "- numeral w = y") = Reorient_Proc.proc
 
 
 subsubsection {* Simplification of arithmetic operations on integer constants. *}
 
 lemmas arith_special = (* already declared simp above *)
   add_numeral_special add_neg_numeral_special
-  diff_numeral_special minus_one
+  diff_numeral_special
 
 (* rules already in simpset *)
 lemmas arith_extra_simps =
   numeral_plus_numeral add_neg_numeral_simps add_0_left add_0_right
-  minus_numeral minus_neg_numeral minus_zero minus_one
+  minus_zero
   diff_numeral_simps diff_0 diff_0_right
   numeral_times_numeral mult_neg_numeral_simps
   mult_zero_left mult_zero_right
@@ -1078,6 +1167,16 @@ lemmas arith_simps =
   BitM.simps dbl_simps dbl_inc_simps dbl_dec_simps
   abs_zero abs_one arith_extra_simps
 
+lemmas more_arith_simps =
+  neg_le_iff_le
+  minus_zero left_minus right_minus
+  mult_1_left mult_1_right
+  mult_minus_left mult_minus_right
+  minus_add_distrib minus_minus mult_assoc
+
+lemmas of_nat_simps =
+  of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
+
 text {* Simplification of relational operations *}
 
 lemmas eq_numeral_extra =
@@ -1085,9 +1184,41 @@ lemmas eq_numeral_extra =
 
 lemmas rel_simps =
   le_num_simps less_num_simps eq_num_simps
-  le_numeral_simps le_neg_numeral_simps le_numeral_extra
-  less_numeral_simps less_neg_numeral_simps less_numeral_extra
+  le_numeral_simps le_neg_numeral_simps le_minus_one_simps le_numeral_extra
+  less_numeral_simps less_neg_numeral_simps less_minus_one_simps less_numeral_extra
   eq_numeral_simps eq_neg_numeral_simps eq_numeral_extra
+
+lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
+  -- {* Unfold all @{text let}s involving constants *}
+  unfolding Let_def ..
+
+lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
+  -- {* Unfold all @{text let}s involving constants *}
+  unfolding Let_def ..
+
+declaration {*
+let 
+  fun number_of thy T n =
+    if not (Sign.of_sort thy (T, @{sort numeral}))
+    then raise CTERM ("number_of", [])
+    else Numeral.mk_cnumber (Thm.ctyp_of thy T) n;
+in
+  K (
+    Lin_Arith.add_simps (@{thms arith_simps} @ @{thms more_arith_simps}
+      @ @{thms rel_simps}
+      @ @{thms pred_numeral_simps}
+      @ @{thms arith_special numeral_One}
+      @ @{thms of_nat_simps})
+    #> Lin_Arith.add_simps [@{thm Suc_numeral},
+      @{thm Let_numeral}, @{thm Let_neg_numeral}, @{thm Let_0}, @{thm Let_1},
+      @{thm le_Suc_numeral}, @{thm le_numeral_Suc},
+      @{thm less_Suc_numeral}, @{thm less_numeral_Suc},
+      @{thm Suc_eq_numeral}, @{thm eq_numeral_Suc},
+      @{thm mult_Suc}, @{thm mult_Suc_right},
+      @{thm of_nat_numeral}]
+    #> Lin_Arith.set_number_of number_of)
+end
+*}
 
 
 subsubsection {* Simplification of arithmetic when nested to the right. *}
@@ -1097,16 +1228,16 @@ lemma add_numeral_left [simp]:
   by (simp_all add: add_assoc [symmetric])
 
 lemma add_neg_numeral_left [simp]:
-  "numeral v + (neg_numeral w + y) = (sub v w + y)"
-  "neg_numeral v + (numeral w + y) = (sub w v + y)"
-  "neg_numeral v + (neg_numeral w + y) = (neg_numeral(v + w) + y)"
+  "numeral v + (- numeral w + y) = (sub v w + y)"
+  "- numeral v + (numeral w + y) = (sub w v + y)"
+  "- numeral v + (- numeral w + y) = (- numeral(v + w) + y)"
   by (simp_all add: add_assoc [symmetric])
 
 lemma mult_numeral_left [simp]:
   "numeral v * (numeral w * z) = (numeral(v * w) * z :: 'a::semiring_numeral)"
-  "neg_numeral v * (numeral w * y) = (neg_numeral(v * w) * y :: 'b::ring_1)"
-  "numeral v * (neg_numeral w * y) = (neg_numeral(v * w) * y :: 'b::ring_1)"
-  "neg_numeral v * (neg_numeral w * y) = (numeral(v * w) * y :: 'b::ring_1)"
+  "- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
+  "numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'b::ring_1)"
+  "- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'b::ring_1)"
   by (simp_all add: mult_assoc [symmetric])
 
 hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
@@ -1118,5 +1249,4 @@ code_identifier
   code_module Num \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-
 

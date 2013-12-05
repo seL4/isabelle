@@ -226,7 +226,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
-            val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
             Some(Text.Info(snapshot.convert(info_range), link) :: links)
 
@@ -369,7 +369,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
-            val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             Some(add(prev, r, (true, XML.Text("file " + quote(jedit_file)))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>

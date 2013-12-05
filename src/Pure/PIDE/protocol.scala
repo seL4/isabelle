@@ -308,11 +308,28 @@ object Protocol
 
 trait Protocol extends Isabelle_Process
 {
+  /* inlined files */
+
+  def define_blob(blob: Bytes): Unit =
+    protocol_command_raw("Document.define_blob", Bytes(blob.sha1_digest.toString), blob)
+
+
   /* commands */
 
   def define_command(command: Command): Unit =
+  {
+    val blobs_yxml =
+    { import XML.Encode._
+      val encode_blob: T[Command.Blob] =
+        variant(List(
+          { case Exn.Res((a, b)) =>
+              (Nil, pair(string, option(string))((a.node, b.map(_.toString)))) },
+          { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
+      YXML.string_of_body(list(encode_blob)(command.blobs))
+    }
     protocol_command("Document.define_command",
-      Document_ID(command.id), encode(command.name), encode(command.source))
+      Document_ID(command.id), encode(command.name), blobs_yxml, encode(command.source))
+  }
 
 
   /* execution */
@@ -335,10 +352,9 @@ trait Protocol extends Isabelle_Process
       def encode_edit(name: Document.Node.Name)
           : T[Document.Node.Edit[Command.Edit, Command.Perspective]] =
         variant(List(
-          { case Document.Node.Clear() => (Nil, Nil) },  // FIXME unused !?
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
-              val dir = Isabelle_System.posix_path(name.dir)
+              val master_dir = Isabelle_System.posix_path(name.master_dir)
               val imports = header.imports.map(_.node)
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,
@@ -346,7 +362,7 @@ trait Protocol extends Isabelle_Process
                   pair(list(pair(Encode.string,
                     option(pair(pair(Encode.string, list(Encode.string)), list(Encode.string))))),
                   list(Encode.string)))))(
-                (dir, (name.theory, (imports, (keywords, header.errors)))))) },
+                (master_dir, (name.theory, (imports, (keywords, header.errors)))))) },
           { case Document.Node.Perspective(a, b, c) =>
               (bool_atom(a) :: b.commands.map(cmd => long_atom(cmd.id)),
                 list(pair(id, pair(Encode.string, list(Encode.string))))(c.dest)) }))

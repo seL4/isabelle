@@ -26,7 +26,7 @@ lemma [code, code del]:
   "pred_of_set = pred_of_set" ..
 
 lemma [code, code del]:
-  "acc = acc" ..
+  "Wellfounded.acc = Wellfounded.acc" ..
 
 lemma [code, code del]:
   "Cardinality.card' = Cardinality.card'" ..
@@ -40,6 +40,18 @@ lemma [code, code del]:
 lemma [code, code del]:
   "Cardinality.eq_set = Cardinality.eq_set" ..
 
+lemma [code, code del]:
+  "(Gcd :: nat set \<Rightarrow> nat) = Gcd" ..
+
+lemma [code, code del]:
+  "(Lcm :: nat set \<Rightarrow> nat) = Lcm" ..
+
+lemma [code, code del]:
+  "(Gcd :: int set \<Rightarrow> int) = Gcd" ..
+
+lemma [code, code del]:
+  "(Lcm :: int set \<Rightarrow> int) = Lcm" ..
+  
 (*
   If the code generation ends with an exception with the following message:
   '"List.set" is not a constructor, on left hand side of equation: ...',

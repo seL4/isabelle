@@ -320,10 +320,12 @@ val combine_numerals_prod =
 
 end;
 
-
-Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
-Addsimprocs [Int_Numeral_Simprocs.combine_numerals,
-             Int_Numeral_Simprocs.combine_numerals_prod];
+val _ =
+  Theory.setup (Simplifier.map_theory_simpset (fn ctxt =>
+    ctxt addsimprocs
+      (Int_Numeral_Simprocs.cancel_numerals @
+       [Int_Numeral_Simprocs.combine_numerals,
+        Int_Numeral_Simprocs.combine_numerals_prod])));
 
 
 (*examples:*)

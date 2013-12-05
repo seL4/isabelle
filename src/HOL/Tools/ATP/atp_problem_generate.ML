@@ -15,7 +15,7 @@ sig
   type atp_formula_role = ATP_Problem.atp_formula_role
   type 'a atp_problem = 'a ATP_Problem.atp_problem
 
-  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
+  datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
   datatype scope = Global | Local | Assum | Chained
   datatype status =
@@ -91,6 +91,8 @@ sig
   val atp_logical_consts : string list
   val atp_irrelevant_consts : string list
   val atp_widely_irrelevant_consts : string list
+  val is_irrelevant_const : string -> bool
+  val is_widely_irrelevant_const : string -> bool
   val atp_schematic_consts_of : term -> typ list Symtab.table
   val is_type_enc_higher_order : type_enc -> bool
   val is_type_enc_polymorphic : type_enc -> bool
@@ -125,7 +127,7 @@ struct
 open ATP_Util
 open ATP_Problem
 
-datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter
+datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
 datatype scope = Global | Local | Assum | Chained
 datatype status =
@@ -333,9 +335,7 @@ val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
 val const_trans_table =
-  [(@{type_name Product_Type.prod}, "prod"),
-   (@{type_name Sum_Type.sum}, "sum"),
-   (@{const_name False}, "False"),
+  [(@{const_name False}, "False"),
    (@{const_name True}, "True"),
    (@{const_name Not}, "Not"),
    (@{const_name conj}, "conj"),
@@ -405,18 +405,24 @@ fun new_skolem_var_name_of_const s =
 (* These are ignored anyway by the relevance filter (unless they appear in
    higher-order places) but not by the monomorphizer. *)
 val atp_logical_consts =
-  [@{const_name all}, @{const_name "==>"}, @{const_name "=="},
-   @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
+  [@{const_name prop}, @{const_name Pure.conjunction}, @{const_name all}, @{const_name "==>"},
+   @{const_name "=="}, @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
    handled specially via "fFalse", "fTrue", ..., "fequal". *)
 val atp_irrelevant_consts =
-  [@{const_name False}, @{const_name True}, @{const_name Not},
-   @{const_name conj}, @{const_name disj}, @{const_name implies},
-   @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
+  [@{const_name False}, @{const_name True}, @{const_name Not}, @{const_name conj},
+   @{const_name disj}, @{const_name implies}, @{const_name HOL.eq}, @{const_name If},
+   @{const_name Let}]
 
 val atp_widely_irrelevant_consts = atp_logical_consts @ atp_irrelevant_consts
+
+val atp_irrelevant_const_tab = Symtab.make (map (rpair ()) atp_irrelevant_consts)
+val atp_widely_irrelevant_const_tab = Symtab.make (map (rpair ()) atp_widely_irrelevant_consts)
+
+val is_irrelevant_const = Symtab.defined atp_irrelevant_const_tab
+val is_widely_irrelevant_const = Symtab.defined atp_widely_irrelevant_const_tab
 
 fun add_schematic_const (x as (_, T)) =
   Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
@@ -689,11 +695,9 @@ fun no_type_classes Type_Class_Polymorphic =
     Raw_Polymorphic With_Phantom_Type_Vars
   | no_type_classes poly = poly
 
-fun adjust_type_enc (THF (Polymorphic, choice, _))
-                    (Native (order, poly, level)) =
+fun adjust_type_enc (THF (Polymorphic, choice)) (Native (order, poly, level)) =
     Native (adjust_order choice order, no_type_classes poly, level)
-  | adjust_type_enc (THF (Monomorphic, choice, _))
-                         (Native (order, _, level)) =
+  | adjust_type_enc (THF (Monomorphic, choice)) (Native (order, _, level)) =
     Native (adjust_order choice order, Mangled_Monomorphic, level)
   | adjust_type_enc (TFF Monomorphic) (Native (_, _, level)) =
     Native (First_Order, Mangled_Monomorphic, level)
@@ -1309,7 +1313,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
      atomic_types = atomic_Ts}
   end
 
-fun is_format_with_defs (THF (_, _, THF_With_Defs)) = true
+fun is_format_with_defs (THF _) = true
   | is_format_with_defs _ = false
 
 fun make_fact ctxt format type_enc iff_for_eq
@@ -1557,8 +1561,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                   end
                 | NONE =>
                   let
-                    val pred_sym = top_level andalso not bool_vars
-                    val ary =
+                    val max_ary =
                       case unprefix_and_unascii const_prefix s of
                         SOME s =>
                         (if String.isSubstring uncurried_alias_sep s then
@@ -1568,15 +1571,16 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                            SOME ary0 => Int.min (ary0, ary)
                          | NONE => ary)
                       | NONE => ary
+                    val pred_sym = top_level andalso max_ary = ary andalso not bool_vars
                     val min_ary =
                       case app_op_level of
-                        Min_App_Op => ary
+                        Min_App_Op => max_ary
                       | Full_App_Op_And_Predicator => 0
-                      | _ => fold (consider_var_ary T) fun_var_Ts ary
+                      | _ => fold (consider_var_ary T) fun_var_Ts max_ary
                   in
                     Symtab.update_new (s,
                         {pred_sym = pred_sym, min_ary = min_ary,
-                         max_ary = ary, types = [T], in_conj = conj_fact})
+                         max_ary = max_ary, types = [T], in_conj = conj_fact})
                         sym_tab
                   end)
              end
@@ -2732,61 +2736,37 @@ fun declare_undeclared_in_problem heading problem =
                   syms []
   in (heading, decls) :: problem end
 
-val typ_of_dtyp = Logic.varifyT_global oo Datatype_Aux.typ_of_dtyp
-
-fun ctrs_of_datatype descr (_, (s, Ds, ctrs)) =
-  if forall (can Datatype_Aux.dest_DtTFree) Ds then
-    let val dataT = Type (s, map (typ_of_dtyp descr) Ds) in
-      SOME (map (fn (s, Ds) => (s, map (typ_of_dtyp descr) Ds ---> dataT)) ctrs)
-    end
-  else
-    NONE
-
-fun ctrss_of_descr descr =
-  map_filter (ctrs_of_datatype descr) descr
-
-fun all_ctrss_of_datatypes thy =
-  Symtab.fold (snd #> #descr #> ctrss_of_descr #> append) (Datatype.get_all thy)
-              []
+fun all_ctrss_of_datatypes ctxt =
+  map (map_filter (try dest_Const) o #ctrs) (Ctr_Sugar.ctr_sugars_of ctxt)
 
 val app_op_and_predicator_threshold = 45
 
 fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
-                        uncurried_aliases readable_names preproc hyp_ts concl_t
+                        uncurried_aliases readable_names presimp hyp_ts concl_t
                         facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format
+    val completish = (mode = Sledgehammer_Completish)
     (* Forcing explicit applications is expensive for polymorphic encodings,
        because it takes only one existential variable ranging over "'a => 'b" to
        ruin everything. Hence we do it only if there are few facts (which is
        normally the case for "metis" and the minimizer). *)
     val app_op_level =
-      if mode = Sledgehammer_Completish then
+      if completish then
         Full_App_Op_And_Predicator
-      else if length facts + length hyp_ts
-              > app_op_and_predicator_threshold then
-        if is_type_enc_polymorphic type_enc then Min_App_Op
-        else Sufficient_App_Op
+      else if length facts + length hyp_ts >= app_op_and_predicator_threshold then
+        if is_type_enc_polymorphic type_enc then Min_App_Op else Sufficient_App_Op
       else
         Sufficient_App_Op_And_Predicator
-    val exporter = (mode = Exporter)
-    val completish = (mode = Sledgehammer_Completish)
     val lam_trans =
-      if lam_trans = keep_lamsN andalso
-         not (is_type_enc_higher_order type_enc) then
-        liftingN
-      else
-        lam_trans
-    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses,
-         lifted) =
-      translate_formulas ctxt prem_role format type_enc lam_trans preproc hyp_ts
-                         concl_t facts
-    val (_, sym_tab0) =
-      sym_table_of_facts ctxt type_enc app_op_level conjs facts
-    val mono =
-      conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
-    val ctrss = all_ctrss_of_datatypes thy
+      if lam_trans = keep_lamsN andalso not (is_type_enc_higher_order type_enc) then liftingN
+      else lam_trans
+    val (fact_names, classes, conjs, facts, subclass_pairs, tcon_clauses, lifted) =
+      translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts concl_t facts
+    val (_, sym_tab0) = sym_table_of_facts ctxt type_enc app_op_level conjs facts
+    val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
+    val ctrss = all_ctrss_of_datatypes ctxt
     fun firstorderize in_helper =
       firstorderize_fact thy ctrss type_enc
           (uncurried_aliases andalso not in_helper) completish sym_tab0
@@ -2816,10 +2796,12 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val datatype_decl_lines = map decl_line_of_datatype datatypes
     val decl_lines = class_decl_lines @ sym_decl_lines @ datatype_decl_lines
     val num_facts = length facts
+    val freshen = mode <> Exporter andalso mode <> Translator
+    val pos = mode <> Exporter
+    val rank_of = rank_of_fact_num num_facts
     val fact_lines =
-      map (line_of_fact ctxt fact_prefix ascii_of I (not exporter)
-               (not exporter) mono type_enc (rank_of_fact_num num_facts))
-          (0 upto num_facts - 1 ~~ facts)
+      map (line_of_fact ctxt fact_prefix ascii_of I freshen pos mono type_enc rank_of)
+        (0 upto num_facts - 1 ~~ facts)
     val subclass_lines = maps (lines_of_subclass_pair type_enc) subclass_pairs
     val tcon_lines = map (line_of_tcon_clause type_enc) tcon_clauses
     val helper_lines =

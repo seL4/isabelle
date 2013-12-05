@@ -293,4 +293,4 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
             of_indent 0 ^ (if n <> 1 then "next" else "qed")
   end
 
-end
+end;

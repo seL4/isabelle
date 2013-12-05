@@ -12,7 +12,7 @@ sig
   val assume: cterm -> thm
   val all_assms_of: Proof.context -> cterm list
   val all_prems_of: Proof.context -> thm list
-  val extra_hyps: Proof.context -> thm -> term list
+  val check_hyps: Proof.context -> thm -> thm
   val local_assms_of: Proof.context -> Proof.context -> cterm list
   val local_prems_of: Proof.context -> Proof.context -> thm list
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
@@ -76,8 +76,12 @@ val all_assumptions_of = #assms o rep_data;
 val all_assms_of = maps #2 o all_assumptions_of;
 val all_prems_of = #prems o rep_data;
 
-fun extra_hyps ctxt th =
-  subtract (op aconv) (map Thm.term_of (all_assms_of ctxt)) (Thm.hyps_of th);
+fun check_hyps ctxt th =
+  let
+    val extra_hyps = subtract (op aconv) (map Thm.term_of (all_assms_of ctxt)) (Thm.hyps_of th);
+    val _ = null extra_hyps orelse
+      error ("Additional hypotheses:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) extra_hyps));
+  in th end;
 
 
 (* local assumptions *)

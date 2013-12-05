@@ -1118,6 +1118,10 @@ lemma
     and measurable_distr_eq2[simp]: "measurable Mg' (distr Mg Ng g) = measurable Mg' Ng"
   by (auto simp: measurable_def)
 
+lemma distr_cong:
+  "M = K \<Longrightarrow> sets N = sets L \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x = g x) \<Longrightarrow> distr M N f = distr K L g"
+  using sets_eq_imp_space_eq[of N L] by (simp add: distr_def Int_def cong: rev_conj_cong)
+
 lemma emeasure_distr:
   fixes f :: "'a \<Rightarrow> 'b"
   assumes f: "f \<in> measurable M N" and A: "A \<in> sets N"
@@ -1647,6 +1651,51 @@ lemma sigma_finite_measure_count_space_finite:
 proof -
   interpret finite_measure "count_space A" using A by (rule finite_measure_count_space)
   show "sigma_finite_measure (count_space A)" ..
+qed
+
+section {* Measure restricted to space *}
+
+lemma emeasure_restrict_space:
+  assumes "\<Omega> \<in> sets M" "A \<subseteq> \<Omega>"
+  shows "emeasure (restrict_space M \<Omega>) A = emeasure M A"
+proof cases
+  assume "A \<in> sets M"
+  
+  have "emeasure (restrict_space M \<Omega>) A = emeasure M (A \<inter> \<Omega>)"
+  proof (rule emeasure_measure_of[OF restrict_space_def])
+    show "op \<inter> \<Omega> ` sets M \<subseteq> Pow \<Omega>" "A \<in> sets (restrict_space M \<Omega>)"
+      using assms `A \<in> sets M` by (auto simp: sets_restrict_space sets.sets_into_space)
+    show "positive (sets (restrict_space M \<Omega>)) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
+      by (auto simp: positive_def emeasure_nonneg)
+    show "countably_additive (sets (restrict_space M \<Omega>)) (\<lambda>A. emeasure M (A \<inter> \<Omega>))"
+    proof (rule countably_additiveI)
+      fix A :: "nat \<Rightarrow> _" assume "range A \<subseteq> sets (restrict_space M \<Omega>)" "disjoint_family A"
+      with assms have "\<And>i. A i \<in> sets M" "\<And>i. A i \<subseteq> space M" "disjoint_family A"
+        by (auto simp: sets_restrict_space_iff subset_eq dest: sets.sets_into_space)
+      with `\<Omega> \<in> sets M` show "(\<Sum>i. emeasure M (A i \<inter> \<Omega>)) = emeasure M ((\<Union>i. A i) \<inter> \<Omega>)"
+        by (subst suminf_emeasure) (auto simp: disjoint_family_subset)
+    qed
+  qed
+  with `A \<subseteq> \<Omega>` show ?thesis
+    by (simp add: Int_absorb2)
+next
+  assume "A \<notin> sets M"
+  moreover with assms have "A \<notin> sets (restrict_space M \<Omega>)"
+    by (simp add: sets_restrict_space_iff)
+  ultimately show ?thesis
+    by (simp add: emeasure_notin_sets)
+qed
+
+lemma restrict_count_space:
+  assumes "A \<subseteq> B" shows "restrict_space (count_space B) A = count_space A"
+proof (rule measure_eqI)
+  show "sets (restrict_space (count_space B) A) = sets (count_space A)"
+    using `A \<subseteq> B` by (subst sets_restrict_space) auto
+  moreover fix X assume "X \<in> sets (restrict_space (count_space B) A)"
+  moreover note `A \<subseteq> B`
+  ultimately have "X \<subseteq> A" by auto
+  with `A \<subseteq> B` show "emeasure (restrict_space (count_space B) A) X = emeasure (count_space A) X"
+    by (cases "finite X") (auto simp add: emeasure_restrict_space)
 qed
 
 end

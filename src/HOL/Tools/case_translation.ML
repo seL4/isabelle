@@ -8,6 +8,9 @@ Nested case expressions via a generic data slot for case combinators and constru
 
 signature CASE_TRANSLATION =
 sig
+  val indexify_names: string list -> string list
+  val make_tnames: typ list -> string list
+
   datatype config = Error | Warning | Quiet
   val case_tr: bool -> Proof.context -> term list -> term
   val lookup_by_constr: Proof.context -> string * typ -> (term * term list) option
@@ -24,6 +27,30 @@ end;
 
 structure Case_Translation: CASE_TRANSLATION =
 struct
+
+(** general utilities **)
+
+fun indexify_names names =
+  let
+    fun index (x :: xs) tab =
+        (case AList.lookup (op =) tab x of
+          NONE =>
+            if member (op =) xs x
+            then (x ^ "1") :: index xs ((x, 2) :: tab)
+            else x :: index xs tab
+        | SOME i => (x ^ string_of_int i) :: index xs ((x, i + 1) :: tab))
+      | index [] _ = [];
+  in index names [] end;
+
+fun make_tnames Ts =
+  let
+    fun type_name (TFree (name, _)) = unprefix "'" name
+      | type_name (Type (name, _)) =
+          let val name' = Long_Name.base_name name
+          in if Symbol_Pos.is_identifier name' then name' else "x" end;
+  in indexify_names (map type_name Ts) end;
+
+
 
 (** data management **)
 
@@ -228,8 +255,7 @@ fun fresh_constr colty used c =
     val (_, T) = dest_Const c;
     val Ts = binder_types T;
     val (names, _) =
-      fold_map Name.variant
-        (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts)) used;
+      fold_map Name.variant (make_tnames (map Logic.unvarifyT_global Ts)) used;
     val ty = body_type T;
     val ty_theta = Type.raw_match (ty, colty) Vartab.empty
       handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);

@@ -11,8 +11,6 @@ theory DTree
 imports Prelim
 begin
 
-hide_fact (open) Lifting_Product.prod_rel_def
-
 typedecl N
 typedecl T
 
@@ -22,8 +20,8 @@ subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{tex
 
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"
-definition "unfold rt ct \<equiv> dtree_unfold rt (the_inv fset o ct)"
-definition "corec rt ct \<equiv> dtree_corec rt (the_inv fset o ct)"
+definition "unfold rt ct \<equiv> unfold_dtree rt (the_inv fset o ct)"
+definition "corec rt ct \<equiv> corec_dtree rt (the_inv fset o ct)"
 
 lemma finite_cont[simp]: "finite (cont tr)"
   unfolding cont_def o_apply by (cases tr, clarsimp)

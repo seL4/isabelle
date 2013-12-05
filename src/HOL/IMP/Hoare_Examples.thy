@@ -2,17 +2,6 @@
 
 theory Hoare_Examples imports Hoare begin
 
-text{* Improves proof automation for negative numerals: *}
-
-lemma add_neg1R[simp]:
-  "x + -1 = x - (1 :: int)"
-by arith
-
-lemma add_neg_numeralR[simp]:
-  "x + neg_numeral n = (x::'a::neg_numeral) - numeral(n)"
-by (simp only: diff_minus_eq_add[symmetric] minus_neg_numeral)
-
-
 text{* Summing up the first @{text x} natural numbers in variable @{text y}. *}
 
 fun sum :: "int \<Rightarrow> int" where

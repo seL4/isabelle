@@ -392,7 +392,7 @@ fun actual_params ctxt override =
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
 
-val typ_of_dtyp = ATP_Util.typ_of_dtyp
+val typ_of_dtyp = Nitpick_Util.typ_of_dtyp
 
 (* ------------------------------------------------------------------------- *)
 (* close_form: universal closure over schematic variables in 't'             *)

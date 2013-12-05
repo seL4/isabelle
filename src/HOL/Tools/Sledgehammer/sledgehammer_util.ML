@@ -97,44 +97,29 @@ fun reserved_isar_keyword_table () =
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
    not doing the same? *)
-fun fold_body_thms outer_name (map_plain_name, map_inclass_name) =
+fun fold_body_thm outer_name (map_plain_name, map_inclass_name) =
   let
-    fun app map_name n (PBody {thms, ...}) =
-      thms |> fold (fn (_, (name, _, body)) => fn accum =>
-          let
-            val collect = union (op =) o the_list o map_name
-            (* The "name = outer_name" case caters for the uncommon case where
-               the proved theorem occurs in its own proof (e.g.,
-               "Transitive_Closure.trancl_into_trancl"). *)
-            val (anonymous, enter_class) =
-              if name = "" orelse (n = 1 andalso name = outer_name) then
-                (true, false)
-              else if n = 1 andalso map_inclass_name name = SOME outer_name then
-                (true, true)
-              else
-                (false, false)
-            val accum =
-              accum |> (if n = 1 andalso not anonymous then collect name else I)
-            val n = n + (if anonymous then 0 else 1)
-          in
-            accum
-            |> (if n <= 1 then
-                  app (if enter_class then map_inclass_name else map_name) n
-                      (Future.join body)
-                else
-                  I)
-          end)
-  in fold (app map_plain_name 0) end
+    fun app_thm map_name (_, (name, _, body)) accum =
+      let
+        val (anonymous, enter_class) =
+          (* The "name = outer_name" case caters for the uncommon case where the proved theorem
+             occurs in its own proof (e.g., "Transitive_Closure.trancl_into_trancl"). *)
+          if name = "" orelse name = outer_name then (true, false)
+          else if map_inclass_name name = SOME outer_name then (true, true)
+          else (false, false)
+      in
+        if anonymous then
+          accum |> app_body (if enter_class then map_inclass_name else map_name) (Future.join body)
+        else
+          accum |> union (op =) (the_list (map_name name))
+      end
+    and app_body map_name (PBody {thms, ...}) = fold (app_thm map_name) thms
+  in app_body map_plain_name end
 
 fun thms_in_proof name_tabs th =
-  let
-    val map_names =
-      case name_tabs of
-        SOME p => pairself Symtab.lookup p
-      | NONE => `I SOME
-    val names =
-      fold_body_thms (Thm.get_name_hint th) map_names [Thm.proof_body_of th] []
-  in names end
+  let val map_names = (case name_tabs of SOME p => pairself Symtab.lookup p | NONE => `I SOME) in
+    fold_body_thm (Thm.get_name_hint th) map_names (Proofterm.strip_thm (Thm.proof_body_of th)) []
+  end
 
 fun thms_of_name ctxt name =
   let
@@ -162,7 +147,7 @@ fun with_vanilla_print_mode f x =
 fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
 
-val spying_version = "b"
+val spying_version = "c"
 
 fun spying false _ = ()
   | spying true f =

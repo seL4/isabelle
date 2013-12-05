@@ -1,8 +1,10 @@
-header "Semantic Equivalence up to a Condition"
+header "Constant Folding"
 
 theory Sem_Equiv
 imports Big_Step
 begin
+
+subsection "Semantic Equivalence up to a Condition"
 
 type_synonym assn = "state \<Rightarrow> bool"
 

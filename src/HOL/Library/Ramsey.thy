@@ -247,7 +247,7 @@ next
     then obtain s' and n'
       where s': "s' = ?gt n'"
         and infeqs': "infinite {n. ?gt n = s'}"
-      by (rule inf_img_fin_domE) (auto simp add: vimage_def intro: nat_infinite)
+      by (rule inf_img_fin_domE) (auto simp add: vimage_def intro: infinite_UNIV_nat)
     with pg [of n'] have less': "s'<s" by (cases "g n'") auto
     have inj_gy: "inj ?gy"
     proof (rule linorder_injI)
@@ -410,7 +410,7 @@ proof (simp only: wf_iff_no_infinite_down_chain, rule notI)
   have
    "\<exists>K k. K \<subseteq> UNIV & infinite K & k < n &
           (\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k)"
-    by (rule Ramsey2) (auto intro: trless nat_infinite)
+    by (rule Ramsey2) (auto intro: trless infinite_UNIV_nat)
   then obtain K and k
     where infK: "infinite K" and less: "k < n" and
           allk: "\<forall>i\<in>K. \<forall>j\<in>K. i\<noteq>j --> transition_idx s T {i,j} = k"

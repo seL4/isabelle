@@ -29,5 +29,5 @@ do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
 ML {* ATP_Problem_Import.isabelle_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end;" \
     > /tmp/$SCRATCH.thy
-  "$ISABELLE_PROCESS" -q -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val it = (): unit"
+  "$ISABELLE_PROCESS" -q -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val \|^Loading theory"
 done

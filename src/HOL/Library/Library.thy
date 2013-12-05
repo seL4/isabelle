@@ -1,7 +1,6 @@
 (*<*)
 theory Library
 imports
-  Abstract_Rat
   AList
   BigO
   Binomial
@@ -42,7 +41,6 @@ imports
   Numeral_Type
   OptionalSugar
   Option_ord
-  Order_Union
   Parallel
   Permutation
   Permutations
@@ -65,7 +63,6 @@ imports
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table
-  Univ_Poly
   Wfrec
   While_Combinator
   Zorn

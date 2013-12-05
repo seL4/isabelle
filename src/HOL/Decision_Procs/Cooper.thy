@@ -1400,9 +1400,8 @@ proof (induct p rule: iszlfm.induct)
   also have "\<dots> = (j dvd (- (c*x - ?e)))"
     by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
-    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus add_ac minus_add_distrib)
-    apply (simp add: algebra_simps)
-    done
+    by (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] add_ac minus_add_distrib)
+      (simp add: algebra_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CN 0 c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"] by simp
   finally show ?case .
@@ -1413,9 +1412,8 @@ next
   also have "\<dots> = (j dvd (- (c*x - ?e)))"
     by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
-    apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_minus add_ac minus_add_distrib)
-    apply (simp add: algebra_simps)
-    done
+    by (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] add_ac minus_add_distrib)
+      (simp add: algebra_simps)
   also have "\<dots> = Ifm bbs ((- x)#bs) (Dvd j (CN 0 c e))"
     using numbound0_I[OF nb, where bs="bs" and b="x" and b'="- x"] by simp
   finally show ?case by simp
@@ -2008,9 +2006,10 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       | SOME n => @{code Bound} (@{code nat_of_integer} n))
   | num_of_term vs @{term "0::int"} = @{code C} (@{code int_of_integer} 0)
   | num_of_term vs @{term "1::int"} = @{code C} (@{code int_of_integer} 1)
+  | num_of_term vs @{term "- 1::int"} = @{code C} (@{code int_of_integer} (~ 1))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) =
       @{code C} (@{code int_of_integer} (HOLogic.dest_num t))
-  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t) =
+  | num_of_term vs (@{term "- numeral :: _ \<Rightarrow> int"} $ t) =
       @{code C} (@{code int_of_integer} (~(HOLogic.dest_num t)))
   | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')

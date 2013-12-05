@@ -209,14 +209,6 @@ lemma power_minus_Bit1:
   "(- x) ^ numeral (Num.Bit1 k) = - (x ^ numeral (Num.Bit1 k))"
   by (simp only: eval_nat_numeral(3) power_Suc power_minus_Bit0 mult_minus_left)
 
-lemma power_neg_numeral_Bit0 [simp]:
-  "neg_numeral k ^ numeral (Num.Bit0 l) = numeral (Num.pow k (Num.Bit0 l))"
-  by (simp only: neg_numeral_def power_minus_Bit0 power_numeral)
-
-lemma power_neg_numeral_Bit1 [simp]:
-  "neg_numeral k ^ numeral (Num.Bit1 l) = neg_numeral (Num.pow k (Num.Bit1 l))"
-  by (simp only: neg_numeral_def power_minus_Bit1 power_numeral pow.simps)
-
 lemma power2_minus [simp]:
   "(- a)\<^sup>2 = a\<^sup>2"
   by (rule power_minus_Bit0)
@@ -530,7 +522,7 @@ lemma abs_power_minus [simp]:
   "abs ((-a) ^ n) = abs (a ^ n)"
   by (simp add: power_abs)
 
-lemma zero_less_power_abs_iff [simp, no_atp]:
+lemma zero_less_power_abs_iff [simp]:
   "0 < abs a ^ n \<longleftrightarrow> a \<noteq> 0 \<or> n = 0"
 proof (induct n)
   case 0 show ?case by simp
@@ -730,8 +722,18 @@ lemma power2_nat_le_imp_le:
   fixes m n :: nat
   assumes "m\<^sup>2 \<le> n"
   shows "m \<le> n"
-  using assms by (cases m) (simp_all add: power2_eq_square)
-
+proof (cases m)
+  case 0 then show ?thesis by simp
+next
+  case (Suc k)
+  show ?thesis
+  proof (rule ccontr)
+    assume "\<not> m \<le> n"
+    then have "n < m" by simp
+    with assms Suc show False
+      by (auto simp add: algebra_simps) (simp add: power2_eq_square)
+  qed
+qed
 
 
 subsection {* Code generator tweak *}

@@ -29,7 +29,10 @@ def create_dependencies_dict(nameIdDict,inputFile):
         nameId = nameIdDict[name]
         dependenciesIds = [nameIdDict[f.strip()] for f in line[1].split()]
         # Store results, add p proves p
-        dependenciesDict[nameId] = [nameId] + dependenciesIds
+        if nameId == 0:
+            dependenciesDict[nameId] = dependenciesIds
+        else:
+            dependenciesDict[nameId] = [nameId] + dependenciesIds
     IS.close()
     return dependenciesDict
 

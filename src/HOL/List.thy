@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Presburger Code_Numeral Quotient ATP Lifting_Set Lifting_Option Lifting_Product
+imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
 datatype 'a list =
@@ -542,7 +542,6 @@ datatype termlets = If | Case of (typ * int)
 
 fun simproc ctxt redex =
   let
-    val thy = Proof_Context.theory_of ctxt
     val set_Nil_I = @{thm trans} OF [@{thm set.simps(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
     val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
@@ -563,21 +562,22 @@ fun simproc ctxt redex =
       in
         fold_index check cases (SOME NONE) |> the_default NONE
       end
-    (* returns (case_expr type index chosen_case) option  *)
+    (* returns (case_expr type index chosen_case constr_name) option  *)
     fun dest_case case_term =
       let
         val (case_const, args) = strip_comb case_term
       in
         (case try dest_Const case_const of
           SOME (c, T) =>
-            (case Datatype.info_of_case thy c of
-              SOME _ =>
+            (case Ctr_Sugar.ctr_sugar_of_case ctxt c of
+              SOME {ctrs, ...} =>
                 (case possible_index_of_singleton_case (fst (split_last args)) of
                   SOME i =>
                     let
+                      val constr_names = map (fst o dest_Const) ctrs
                       val (Ts, _) = strip_type T
                       val T' = List.last Ts
-                    in SOME (List.last args, T', i, nth args i) end
+                    in SOME (List.last args, T', i, nth args i, nth constr_names i) end
                 | NONE => NONE)
             | NONE => NONE)
         | NONE => NONE)
@@ -605,12 +605,13 @@ fun simproc ctxt redex =
           THEN rtac set_Nil_I 1
       | tac ctxt (Case (T, i) :: cont) =
           let
-            val info = Datatype.the_info thy (fst (dest_Type T))
+            val SOME {injects, distincts, case_thms, split, ...} =
+              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type T))
           in
             (* do case distinction *)
-            Splitter.split_tac [#split info] 1
+            Splitter.split_tac [split] 1
             THEN EVERY (map_index (fn (i', _) =>
-              (if i' < length (#case_rewrites info) - 1 then rtac @{thm conjI} 1 else all_tac)
+              (if i' < length case_thms - 1 then rtac @{thm conjI} 1 else all_tac)
               THEN REPEAT_DETERM (rtac @{thm allI} 1)
               THEN rtac @{thm impI} 1
               THEN (if i' = i then
@@ -619,7 +620,7 @@ fun simproc ctxt redex =
                   CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
                       ((HOLogic.conj_conv
                         (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
-                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq (#inject info)))))
+                          (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq injects))))
                         Conv.all_conv)
                         then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                         then_conv conjunct_assoc_conv)) context
@@ -636,7 +637,7 @@ fun simproc ctxt redex =
                       (HOLogic.conj_conv
                         ((HOLogic.eq_conv Conv.all_conv
                           (rewr_conv' (List.last prems))) then_conv
-                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
+                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) distincts)))
                         Conv.all_conv then_conv
                         (rewr_conv' @{lemma "(False & P) = False" by simp}))) context then_conv
                       HOLogic.Trueprop_conv
@@ -646,16 +647,15 @@ fun simproc ctxt redex =
                               (Conv.bottom_conv
                                 (K (rewr_conv'
                                   @{lemma "(EX x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
-                THEN rtac set_Nil_I 1)) (#case_rewrites info))
+                THEN rtac set_Nil_I 1)) case_thms)
           end
     fun make_inner_eqs bound_vs Tis eqs t =
       (case dest_case t of
-        SOME (x, T, i, cont) =>
+        SOME (x, T, i, cont, constr_name) =>
           let
             val (vs, body) = strip_abs (Envir.eta_long (map snd bound_vs) cont)
             val x' = incr_boundvars (length vs) x
             val eqs' = map (incr_boundvars (length vs)) eqs
-            val (constr_name, _) = nth (the (Datatype.get_constrs thy (fst (dest_Type T)))) i
             val constr_t =
               list_comb
                 (Const (constr_name, map snd vs ---> T), map Bound (((length vs) - 1) downto 0))
@@ -902,7 +902,7 @@ by (induct xs) auto
 lemma self_append_conv [iff]: "(xs = xs @ ys) = (ys = [])"
 by (induct xs) auto
 
-lemma append_eq_append_conv [simp, no_atp]:
+lemma append_eq_append_conv [simp]:
  "length xs = length ys \<or> length us = length vs
  ==> (xs@us = ys@vs) = (xs=ys \<and> us=vs)"
 apply (induct xs arbitrary: ys)
@@ -934,7 +934,7 @@ using append_same_eq [of _ _ "[]"] by auto
 lemma self_append_conv2 [iff]: "(ys = xs @ ys) = (xs = [])"
 using append_same_eq [of "[]"] by auto
 
-lemma hd_Cons_tl [simp,no_atp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
+lemma hd_Cons_tl [simp]: "xs \<noteq> [] ==> hd xs # tl xs = xs"
 by (induct xs) auto
 
 lemma hd_append: "hd (xs @ ys) = (if xs = [] then hd ys else hd xs)"
@@ -1178,7 +1178,7 @@ by (cases xs) auto
 lemma singleton_rev_conv [simp]: "([x] = rev xs) = (xs = [x])"
 by (cases xs) auto
 
-lemma rev_is_rev_conv [iff, no_atp]: "(rev xs = rev ys) = (xs = ys)"
+lemma rev_is_rev_conv [iff]: "(rev xs = rev ys) = (xs = ys)"
 apply (induct xs arbitrary: ys, force)
 apply (case_tac ys, simp, force)
 done
@@ -2988,6 +2988,9 @@ done
 lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..<Suc n]"
 by (induct n) auto
 
+lemma map_add_upt: "map (\<lambda>i. i + n) [0..<m] = [n..<m + n]"
+  by (induct m) simp_all
+
 lemma nth_map_upt: "i < n-m ==> (map f [m..<n]) ! i = f(m+i)"
 apply (induct n m  arbitrary: i rule: diff_induct)
 prefer 3 apply (subst map_Suc_upt[symmetric])
@@ -3072,9 +3075,9 @@ declare upto.simps[simp del]
 
 lemmas upto_rec_numeral [simp] =
   upto.simps[of "numeral m" "numeral n"]
-  upto.simps[of "numeral m" "neg_numeral n"]
-  upto.simps[of "neg_numeral m" "numeral n"]
-  upto.simps[of "neg_numeral m" "neg_numeral n"] for m n
+  upto.simps[of "numeral m" "- numeral n"]
+  upto.simps[of "- numeral m" "numeral n"]
+  upto.simps[of "- numeral m" "- numeral n"] for m n
 
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
@@ -5084,10 +5087,10 @@ inductive_set
   for A :: "'a set"
 where
     Nil [intro!, simp]: "[]: lists A"
-  | Cons [intro!, simp, no_atp]: "[| a: A; l: lists A|] ==> a#l : lists A"
+  | Cons [intro!, simp]: "[| a: A; l: lists A|] ==> a#l : lists A"
 
-inductive_cases listsE [elim!,no_atp]: "x#l : lists A"
-inductive_cases listspE [elim!,no_atp]: "listsp A (x # l)"
+inductive_cases listsE [elim!]: "x#l : lists A"
+inductive_cases listspE [elim!]: "listsp A (x # l)"
 
 inductive_simps listsp_simps[code]:
   "listsp A []"
@@ -5129,15 +5132,15 @@ by (induct xs) auto
 
 lemmas in_lists_conv_set [code_unfold] = in_listsp_conv_set [to_set]
 
-lemma in_listspD [dest!,no_atp]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
+lemma in_listspD [dest!]: "listsp A xs ==> \<forall>x\<in>set xs. A x"
 by (rule in_listsp_conv_set [THEN iffD1])
 
-lemmas in_listsD [dest!,no_atp] = in_listspD [to_set]
+lemmas in_listsD [dest!] = in_listspD [to_set]
 
-lemma in_listspI [intro!,no_atp]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
+lemma in_listspI [intro!]: "\<forall>x\<in>set xs. A x ==> listsp A xs"
 by (rule in_listsp_conv_set [THEN iffD2])
 
-lemmas in_listsI [intro!,no_atp] = in_listspI [to_set]
+lemmas in_listsI [intro!] = in_listspI [to_set]
 
 lemma lists_eq_set: "lists A = {xs. set xs <= A}"
 by auto
@@ -5387,6 +5390,175 @@ lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrighta
   apply (rule allI, case_tac x, simp, simp) 
   by blast
 
+text {*
+  Predicate version of lexicographic order integrated with Isabelle's order type classes.
+  Author: Andreas Lochbihler
+*}
+
+context ord begin
+
+inductive lexordp :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+where
+  Nil: "lexordp [] (y # ys)"
+| Cons: "x < y \<Longrightarrow> lexordp (x # xs) (y # ys)"
+| Cons_eq:
+  "\<lbrakk> \<not> x < y; \<not> y < x; lexordp xs ys \<rbrakk> \<Longrightarrow> lexordp (x # xs) (y # ys)"
+
+lemma lexordp_simps [simp]:
+  "lexordp [] ys = (ys \<noteq> [])"
+  "lexordp xs [] = False"
+  "lexordp (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp xs ys"
+by(subst lexordp.simps, fastforce simp add: neq_Nil_conv)+
+
+inductive lexordp_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+  Nil: "lexordp_eq [] ys"
+| Cons: "x < y \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
+| Cons_eq: "\<lbrakk> \<not> x < y; \<not> y < x; lexordp_eq xs ys \<rbrakk> \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
+
+lemma lexordp_eq_simps [simp]:
+  "lexordp_eq [] ys = True"
+  "lexordp_eq xs [] \<longleftrightarrow> xs = []"
+  "lexordp_eq (x # xs) [] = False"
+  "lexordp_eq (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp_eq xs ys"
+by(subst lexordp_eq.simps, fastforce)+
+
+lemma lexordp_append_rightI: "ys \<noteq> Nil \<Longrightarrow> lexordp xs (xs @ ys)"
+by(induct xs)(auto simp add: neq_Nil_conv)
+
+lemma lexordp_append_left_rightI: "x < y \<Longrightarrow> lexordp (us @ x # xs) (us @ y # ys)"
+by(induct us) auto
+
+lemma lexordp_eq_refl: "lexordp_eq xs xs"
+by(induct xs) simp_all
+
+lemma lexordp_append_leftI: "lexordp us vs \<Longrightarrow> lexordp (xs @ us) (xs @ vs)"
+by(induct xs) auto
+
+lemma lexordp_append_leftD: "\<lbrakk> lexordp (xs @ us) (xs @ vs); \<forall>a. \<not> a < a \<rbrakk> \<Longrightarrow> lexordp us vs"
+by(induct xs) auto
+
+lemma lexordp_irreflexive: 
+  assumes irrefl: "\<forall>x. \<not> x < x"
+  shows "\<not> lexordp xs xs"
+proof
+  assume "lexordp xs xs"
+  thus False by(induct xs ys\<equiv>xs)(simp_all add: irrefl)
+qed
+
+lemma lexordp_into_lexordp_eq:
+  assumes "lexordp xs ys"
+  shows "lexordp_eq xs ys"
+using assms by induct simp_all
+
+end
+
+declare ord.lexordp_simps [simp, code]
+declare ord.lexordp_eq_simps [code, simp]
+
+lemma lexord_code [code, code_unfold]: "lexordp = ord.lexordp less"
+unfolding lexordp_def ord.lexordp_def ..
+
+context order begin
+
+lemma lexordp_antisym:
+  assumes "lexordp xs ys" "lexordp ys xs"
+  shows False
+using assms by induct auto
+
+lemma lexordp_irreflexive': "\<not> lexordp xs xs"
+by(rule lexordp_irreflexive) simp
+
+end
+
+context linorder begin
+
+lemma lexordp_cases [consumes 1, case_names Nil Cons Cons_eq, cases pred: lexordp]:
+  assumes "lexordp xs ys"
+  obtains (Nil) y ys' where "xs = []" "ys = y # ys'"
+  | (Cons) x xs' y ys' where "xs = x # xs'" "ys = y # ys'" "x < y"
+  | (Cons_eq) x xs' ys' where "xs = x # xs'" "ys = x # ys'" "lexordp xs' ys'"
+using assms by cases (fastforce simp add: not_less_iff_gr_or_eq)+
+
+lemma lexordp_induct [consumes 1, case_names Nil Cons Cons_eq, induct pred: lexordp]:
+  assumes major: "lexordp xs ys"
+  and Nil: "\<And>y ys. P [] (y # ys)"
+  and Cons: "\<And>x xs y ys. x < y \<Longrightarrow> P (x # xs) (y # ys)"
+  and Cons_eq: "\<And>x xs ys. \<lbrakk> lexordp xs ys; P xs ys \<rbrakk> \<Longrightarrow> P (x # xs) (x # ys)"
+  shows "P xs ys"
+using major by induct (simp_all add: Nil Cons not_less_iff_gr_or_eq Cons_eq)
+
+lemma lexordp_iff:
+  "lexordp xs ys \<longleftrightarrow> (\<exists>x vs. ys = xs @ x # vs) \<or> (\<exists>us a b vs ws. a < b \<and> xs = us @ a # vs \<and> ys = us @ b # ws)"
+  (is "?lhs = ?rhs")
+proof
+  assume ?lhs thus ?rhs
+  proof induct
+    case Cons_eq thus ?case by simp (metis append.simps(2))
+  qed(fastforce intro: disjI2 del: disjCI intro: exI[where x="[]"])+
+next
+  assume ?rhs thus ?lhs
+    by(auto intro: lexordp_append_leftI[where us="[]", simplified] lexordp_append_leftI)
+qed
+
+lemma lexordp_conv_lexord:
+  "lexordp xs ys \<longleftrightarrow> (xs, ys) \<in> lexord {(x, y). x < y}"
+by(simp add: lexordp_iff lexord_def)
+
+lemma lexordp_eq_antisym: 
+  assumes "lexordp_eq xs ys" "lexordp_eq ys xs" 
+  shows "xs = ys"
+using assms by induct simp_all
+
+lemma lexordp_eq_trans:
+  assumes "lexordp_eq xs ys" and "lexordp_eq ys zs"
+  shows "lexordp_eq xs zs"
+using assms
+apply(induct arbitrary: zs)
+apply(case_tac [2-3] zs)
+apply auto
+done
+
+lemma lexordp_trans:
+  assumes "lexordp xs ys" "lexordp ys zs"
+  shows "lexordp xs zs"
+using assms
+apply(induct arbitrary: zs)
+apply(case_tac [2-3] zs)
+apply auto
+done
+
+lemma lexordp_linear: "lexordp xs ys \<or> xs = ys \<or> lexordp ys xs"
+proof(induct xs arbitrary: ys)
+  case Nil thus ?case by(cases ys) simp_all
+next
+  case Cons thus ?case by(cases ys) auto
+qed
+
+lemma lexordp_conv_lexordp_eq: "lexordp xs ys \<longleftrightarrow> lexordp_eq xs ys \<and> \<not> lexordp_eq ys xs"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  moreover hence "\<not> lexordp_eq ys xs" by induct simp_all
+  ultimately show ?rhs by(simp add: lexordp_into_lexordp_eq)
+next
+  assume ?rhs
+  hence "lexordp_eq xs ys" "\<not> lexordp_eq ys xs" by simp_all
+  thus ?lhs by induct simp_all
+qed
+
+lemma lexordp_eq_conv_lexord: "lexordp_eq xs ys \<longleftrightarrow> xs = ys \<or> lexordp xs ys"
+by(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl dest: lexordp_eq_antisym)
+
+lemma lexordp_eq_linear: "lexordp_eq xs ys \<or> lexordp_eq ys xs"
+apply(induct xs arbitrary: ys)
+apply(case_tac [!] ys)
+apply auto
+done
+
+lemma lexordp_linorder: "class.linorder lexordp_eq lexordp"
+by unfold_locales(auto simp add: lexordp_conv_lexordp_eq lexordp_eq_refl lexordp_eq_antisym intro: lexordp_eq_trans del: disjCI intro: lexordp_eq_linear)
+
+end
 
 subsubsection {* Lexicographic combination of measure functions *}
 
@@ -5514,15 +5686,15 @@ qed
 text{* Accessible part and wellfoundedness: *}
 
 lemma Cons_acc_listrel1I [intro!]:
-  "x \<in> acc r \<Longrightarrow> xs \<in> acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> acc (listrel1 r)"
-apply (induct arbitrary: xs set: acc)
+  "x \<in> Wellfounded.acc r \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> (x # xs) \<in> Wellfounded.acc (listrel1 r)"
+apply (induct arbitrary: xs set: Wellfounded.acc)
 apply (erule thin_rl)
 apply (erule acc_induct)
 apply (rule accI)
 apply (blast)
 done
 
-lemma lists_accD: "xs \<in> lists (acc r) \<Longrightarrow> xs \<in> acc (listrel1 r)"
+lemma lists_accD: "xs \<in> lists (Wellfounded.acc r) \<Longrightarrow> xs \<in> Wellfounded.acc (listrel1 r)"
 apply (induct set: lists)
  apply (rule accI)
  apply simp
@@ -5530,8 +5702,8 @@ apply (rule accI)
 apply (fast dest: acc_downward)
 done
 
-lemma lists_accI: "xs \<in> acc (listrel1 r) \<Longrightarrow> xs \<in> lists (acc r)"
-apply (induct set: acc)
+lemma lists_accI: "xs \<in> Wellfounded.acc (listrel1 r) \<Longrightarrow> xs \<in> lists (Wellfounded.acc r)"
+apply (induct set: Wellfounded.acc)
 apply clarify
 apply (rule accI)
 apply (fastforce dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)

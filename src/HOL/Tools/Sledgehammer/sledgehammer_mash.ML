@@ -11,7 +11,6 @@ sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type params = Sledgehammer_Provers.params
-  type relevance_fudge = Sledgehammer_Provers.relevance_fudge
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
@@ -61,10 +60,10 @@ sig
   val thm_less : thm * thm -> bool
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
-    Proof.context -> params -> string -> fact list -> thm -> prover_result
+    Proof.context -> params -> string -> string -> fact list -> thm -> prover_result
   val features_of :
-    Proof.context -> string -> theory -> int -> int Symtab.table -> stature
-    -> term list -> (string * real) list
+    Proof.context -> theory -> int -> int Symtab.table -> stature -> term list ->
+    (string * real) list
   val trim_dependencies : string list -> string list option
   val isar_dependencies_of :
     string Symtab.table * string Symtab.table -> thm -> string list
@@ -83,11 +82,8 @@ sig
     -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val add_const_counts : term -> int Symtab.table -> int Symtab.table
   val mash_suggested_facts :
-    Proof.context -> params -> string -> int -> term list -> term
-    -> raw_fact list -> fact list * fact list
-  val mash_learn_proof :
-    Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
-    -> unit
+    Proof.context -> params -> int -> term list -> term -> raw_fact list -> fact list * fact list
+  val mash_learn_proof : Proof.context -> params -> term -> ('a * thm) list -> thm list -> unit
   val mash_learn :
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
 
@@ -180,11 +176,10 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
       (if background then " &" else "")
     fun run_on () =
       (Isabelle_System.bash command
-       |> tap (fn _ => trace_msg ctxt (fn () =>
-              case try File.read (Path.explode err_file) of
-                NONE => "Done"
-              | SOME "" => "Done"
-              | SOME s => "Error: " ^ elide_string 1000 s));
+       |> tap (fn _ =>
+            case try File.read (Path.explode err_file) |> the_default "" of
+              "" => trace_msg ctxt (K "Done")
+            | s => warning ("MaSh error: " ^ elide_string 1000 s));
        read_suggs (fn () => try File.read_lines sugg_path |> these))
     fun clean_up () =
       if overlord then ()
@@ -217,10 +212,6 @@ val encode_strs = map encode_str #> space_implode " "
 val unencode_str = String.explode #> unmeta_chars []
 val unencode_strs =
   space_explode " " #> filter_out (curry (op =) "") #> map unencode_str
-
-fun freshish_name () =
-  Date.fmt ".%Y%m%d_%H%M%S__" (Date.fromTimeLocal (Time.now ())) ^
-  serial_string ()
 
 (* Avoid scientific notation *)
 fun safe_str_of_real r =
@@ -284,10 +275,11 @@ fun unlearn ctxt overlord =
 
 fun learn _ _ _ [] = ()
   | learn ctxt overlord save learns =
-    (trace_msg ctxt (fn () => "MaSh learn " ^
-         elide_string 1000 (space_implode " " (map #1 learns)));
-     run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
-                   (learns, str_of_learn) (K ()))
+    let val names = elide_string 1000 (space_implode " " (map #1 learns)) in
+      (trace_msg ctxt (fn () => "MaSh learn" ^ (if names = "" then "" else " " ^ names));
+       run_mash_tool ctxt overlord ([] |> save ? cons save_models_arg) false
+                     (learns, str_of_learn) (K ()))
+    end
 
 fun relearn _ _ _ [] = ()
   | relearn ctxt overlord save relearns =
@@ -514,20 +506,14 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
       val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
       fun score_in fact (global_weight, (sels, unks)) =
         let
-          fun score_at j =
-            case try (nth sels) j of
-              SOME (_, score) => SOME (global_weight * score)
-            | NONE => NONE
+          val score_at = try (nth sels) #> Option.map (fn (_, score) => global_weight * score)
         in
           case find_index (curry fact_eq fact o fst) sels of
-            ~1 => (case find_index (curry fact_eq fact) unks of
-                     ~1 => SOME 0.0
-                   | _ => NONE)
+            ~1 => if member fact_eq unks fact then NONE else SOME 0.0
           | rank => score_at rank
         end
       fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
-      val facts =
-        fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
+      val facts = fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
     in
       facts |> map (`weight_of) |> sort (int_ord o swap o pairself fst)
             |> map snd |> take max_facts
@@ -573,20 +559,16 @@ fun freeze (t $ u) = freeze t $ freeze u
 
 fun goal_of_thm thy = prop_of #> freeze #> cterm_of thy #> Goal.init
 
-fun run_prover_for_mash ctxt params prover facts goal =
+fun run_prover_for_mash ctxt params prover goal_name facts goal =
   let
     val problem =
-      {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       factss = [("", facts)]}
+      {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
+       subgoal_count = 1, factss = [("", facts)]}
   in
-    get_minimizing_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
-                          problem
+    get_minimizing_prover ctxt MaSh (K ()) prover params (K (K (K ""))) problem
   end
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
-
-val logical_consts =
-  [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
 
 val pat_tvar_prefix = "_"
 val pat_var_prefix = "_"
@@ -608,14 +590,9 @@ fun maybe_singleton_str _ "" = []
 
 val max_pat_breadth = 10 (* FUDGE *)
 
-fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
-                     type_max_depth ts =
+fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
-
-    fun is_built_in (x as (s, _)) args =
-      if member (op =) logical_consts s then (true, args)
-      else is_built_in_const_of_prover ctxt prover x args
 
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
@@ -660,11 +637,10 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
          let val count = Symtab.lookup const_tab s |> the_default 1 in
            Real.fromInt num_facts / Real.fromInt count (* FUDGE *)
          end)
-    fun pattify_term _ _ 0 _ = []
-      | pattify_term _ args _ (Const (x as (s, _))) =
-        if fst (is_built_in x args) then []
-        else [(massage_long_name s, weight_of_const s)]
-      | pattify_term _ _ _ (Free (s, T)) =
+    fun pattify_term _ 0 _ = []
+      | pattify_term _ _ (Const (s, _)) =
+        if is_widely_irrelevant_const s then [] else [(massage_long_name s, weight_of_const s)]
+      | pattify_term _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
         |> map (rpair 0.0)
         |> (if member (op =) fixes s then
@@ -672,36 +648,31 @@ fun term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
                   (thy_name ^ Long_Name.separator ^ s)))
             else
               I)
-      | pattify_term _ _ _ (Var (_, T)) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> map (rpair 0.0)
-      | pattify_term Ts _ _ (Bound j) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j))
-        |> map (rpair 0.0)
-      | pattify_term Ts args depth (t $ u) =
+      | pattify_term _ _ (Var (_, T)) =
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ T) |> map (rpair 0.0)
+      | pattify_term Ts _ (Bound j) =
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j)) |> map (rpair 0.0)
+      | pattify_term Ts depth (t $ u) =
         let
-          val ps = take max_pat_breadth (pattify_term Ts (u :: args) depth t)
-          val qs =
-            take max_pat_breadth (("", 0.0) :: pattify_term Ts [] (depth - 1) u)
+          val ps = take max_pat_breadth (pattify_term Ts depth t)
+          val qs = take max_pat_breadth (("", 0.0) :: pattify_term Ts (depth - 1) u)
         in
           map_product (fn ppw as (p, pw) =>
               fn ("", _) => ppw
                | (q, qw) => (p ^ "(" ^ q ^ ")", pw + qw)) ps qs
         end
-      | pattify_term _ _ _ _ = []
-    fun add_term_pat Ts = union (eq_fst (op =)) oo pattify_term Ts []
+      | pattify_term _ _ _ = []
+    fun add_term_pat Ts = union (eq_fst (op =)) oo pattify_term Ts
     fun add_term_pats _ 0 _ = I
       | add_term_pats Ts depth t =
         add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
     fun add_term Ts = add_term_pats Ts term_max_depth
     fun add_subterms Ts t =
       case strip_comb t of
-        (Const (x as (_, T)), args) =>
-        let val (built_in, args) = is_built_in x args in
-          (not built_in ? add_term Ts t)
-          #> add_subtypes T
-          #> fold (add_subterms Ts) args
-        end
+        (Const (s, T), args) =>
+        (not (is_widely_irrelevant_const s) ? add_term Ts t)
+        #> add_subtypes T
+        #> fold (add_subterms Ts) args
       | (head, args) =>
         (case head of
            Free (_, T) => add_term Ts t #> add_subtypes T
@@ -715,11 +686,10 @@ val term_max_depth = 2
 val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
-fun features_of ctxt prover thy num_facts const_tab (scope, _) ts =
+fun features_of ctxt thy num_facts const_tab (scope, _) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    term_features_of ctxt prover thy_name num_facts const_tab term_max_depth
-                     type_max_depth ts
+    term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth ts
     |> scope <> Global ? cons local_feature
   end
 
@@ -727,7 +697,7 @@ fun features_of ctxt prover thy num_facts const_tab (scope, _) ts =
    isn't much to learn from such proofs. *)
 val max_dependencies = 20
 
-val prover_default_max_facts = 50
+val prover_default_max_facts = 25
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}
@@ -785,6 +755,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
     let
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
+      val name = nickname_of_thm th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal 1 ctxt
       val facts = facts |> filter (fn (_, th') => thm_less (th', th))
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
@@ -795,24 +766,23 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
         else case find_first (is_dep dep) facts of
           SOME ((_, status), th) => accum @ [(("", status), th)]
         | NONE => accum (* shouldn't happen *)
-      val facts =
+      val mepo_facts =
         facts
-        |> mepo_suggested_facts ctxt params prover
-               (max_facts |> the_default prover_default_max_facts) NONE hyp_ts
-               concl_t
+        |> mepo_suggested_facts ctxt params (max_facts |> the_default prover_default_max_facts) NONE
+             hyp_ts concl_t
+      val facts =
+        mepo_facts
         |> fold (add_isar_dep facts) isar_deps
         |> map nickify
+      val num_isar_deps = length isar_deps
     in
       if verbose andalso auto_level = 0 then
-        let val num_facts = length facts in
-          "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of_thm th) ^
-          " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
-          "."
-          |> Output.urgent_message
-        end
+        "MaSh: " ^ quote prover ^ " on " ^ quote name ^ " with " ^ string_of_int num_isar_deps ^
+        " + " ^ string_of_int (length facts - num_isar_deps) ^ " facts."
+        |> Output.urgent_message
       else
         ();
-      case run_prover_for_mash ctxt params prover facts goal of
+      case run_prover_for_mash ctxt params prover name facts goal of
         {outcome = NONE, used_facts, ...} =>
         (if verbose andalso auto_level = 0 then
            let val num_facts = length used_facts in
@@ -935,30 +905,28 @@ fun weight_facts_steeply facts =
 
 val max_proximity_facts = 100
 
-fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
-  | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
-    let
-      val inter_fact = inter (eq_snd Thm.eq_thm_prop)
-      val raw_mash = find_suggested_facts ctxt facts suggs
-      val proximate = take max_proximity_facts facts
-      val unknown_chained = inter_fact raw_unknown chained
-      val unknown_proximate = inter_fact raw_unknown proximate
-      val mess =
-        [(0.9 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
-         (0.4 (* FUDGE *), (weight_facts_smoothly unknown_proximate, [])),
-         (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
-      val unknown =
-        raw_unknown
-        |> fold (subtract (eq_snd Thm.eq_thm_prop))
-                [unknown_chained, unknown_proximate]
-    in (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown) end
+fun find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
+  let
+    val inter_fact = inter (eq_snd Thm.eq_thm_prop)
+    val raw_mash = find_suggested_facts ctxt facts suggs
+    val proximate = take max_proximity_facts facts
+    val unknown_chained = inter_fact raw_unknown chained
+    val unknown_proximate = inter_fact raw_unknown proximate
+    val mess =
+      [(0.9 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
+       (0.4 (* FUDGE *), (weight_facts_smoothly unknown_proximate, [])),
+       (0.1 (* FUDGE *), (weight_facts_steeply raw_mash, raw_unknown))]
+    val unknown =
+      raw_unknown
+      |> fold (subtract (eq_snd Thm.eq_thm_prop))
+              [unknown_chained, unknown_proximate]
+  in (mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess, unknown) end
 
 fun add_const_counts t =
   fold (fn s => Symtab.map_default (s, 0) (Integer.add 1))
        (Term.add_const_names t [])
 
-fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
-                         hyp_ts concl_t facts =
+fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) max_facts hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val thy_name = Context.theory_name thy
@@ -966,22 +934,23 @@ fun mash_suggested_facts ctxt ({debug, overlord, ...} : params) prover max_facts
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val num_facts = length facts
     val const_tab = fold (add_const_counts o prop_of o snd) facts Symtab.empty
+
     fun fact_has_right_theory (_, th) =
       thy_name = Context.theory_name (theory_of_thm th)
     fun chained_or_extra_features_of factor (((_, stature), th), weight) =
       [prop_of th]
-      |> features_of ctxt prover (theory_of_thm th) num_facts const_tab stature
+      |> features_of ctxt (theory_of_thm th) num_facts const_tab stature
       |> map (apsnd (fn r => weight * factor * r))
+
     val (access_G, suggs) =
       peek_state ctxt overlord (fn {access_G, ...} =>
           if Graph.is_empty access_G then
-            (access_G, [])
+            (trace_msg ctxt (K "Nothing has been learned yet"); (access_G, []))
           else
             let
               val parents = maximal_wrt_access_graph access_G facts
               val goal_feats =
-                features_of ctxt prover thy num_facts const_tab (Local, General)
-                            (concl_t :: hyp_ts)
+                features_of ctxt thy num_facts const_tab (Local, General) (concl_t :: hyp_ts)
               val chained_feats =
                 chained
                 |> map (rpair 1.0)
@@ -1043,16 +1012,12 @@ fun launch_thread timeout task =
     val desc = ("Machine learner for Sledgehammer", "")
   in Async_Manager.thread MaShN birth_time death_time desc task end
 
-fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
-                     used_ths =
+fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
   if is_mash_enabled () then
     launch_thread (timeout |> the_default one_day) (fn () =>
         let
           val thy = Proof_Context.theory_of ctxt
-          val name = freshish_name ()
-          val feats =
-            features_of ctxt prover thy 0 Symtab.empty (Local, General) [t]
-            |> map fst
+          val feats = features_of ctxt thy 0 Symtab.empty (Local, General) [t] |> map fst
         in
           peek_state ctxt overlord (fn {access_G, ...} =>
               let
@@ -1061,7 +1026,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
                   used_ths |> filter (is_fact_in_graph access_G)
                            |> map nickname_of_thm
               in
-                MaSh.learn ctxt overlord true [(name, parents, feats, deps)]
+                MaSh.learn ctxt overlord true [("", parents, feats, deps)]
               end);
           (true, "")
         end)
@@ -1151,9 +1116,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             let
               val name = nickname_of_thm th
               val feats =
-                features_of ctxt prover (theory_of_thm th) 0 Symtab.empty
-                            stature [prop_of th]
-                |> map fst
+                features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th] |> map fst
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
               val learns = (name, parents, feats, deps) :: learns
@@ -1215,7 +1178,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                      Isar_Proof => 0
                    | Automatic_Proof => 2 * max_isar
                    | Isar_Proof_wegen_Prover_Flop => max_isar)
-                - 500 * length (isar_dependencies_of name_tabs th)
+                - 100 * length (isar_dependencies_of name_tabs th)
               val old_facts =
                 facts |> filter is_in_access_G
                       |> map (`priority_of)
@@ -1228,7 +1191,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       in
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
-          (if run_prover then "automatic" else "Isar") ^ " proof" ^ plural_s n ^
+          (if run_prover then "automatic and " else "") ^ "Isar proof" ^ plural_s n ^
           (if verbose then " in " ^ string_of_time (Timer.checkRealTimer timer)
            else "") ^ "."
         else
@@ -1236,15 +1199,14 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       end
   end
 
-fun mash_learn ctxt (params as {provers, timeout, max_facts, ...}) fact_override
-               chained run_prover =
+fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained run_prover =
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
     val facts =
       nearly_all_facts ctxt false fact_override Symtab.empty css chained []
                        @{prop True}
-      |> (case max_facts of NONE => I | SOME n => take n)
+      |> sort (crude_thm_ord o pairself snd o swap)
     val num_facts = length facts
     val prover = hd provers
     fun learn auto_level run_prover =
@@ -1345,42 +1307,36 @@ fun relevant_facts ctxt
              if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
           else
             (false, mepoN)
+
+      val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add
+
       fun in_add (_, th) = member Thm.eq_thm_prop add_ths th
       fun add_and_take accepts =
         (case add_ths of
            [] => accepts
-         | _ => (facts |> filter in_add |> map fact_of_raw_fact) @
+         | _ => (unique_facts |> filter in_add |> map fact_of_raw_fact) @
                 (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
-        mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
-                             facts
-        |> weight_facts_steeply
+        (mepo_suggested_facts ctxt params max_facts NONE hyp_ts concl_t unique_facts
+         |> weight_facts_steeply, [])
       fun mash () =
-        mash_suggested_facts ctxt params prover (generous_max_facts max_facts)
-            hyp_ts concl_t facts
+        mash_suggested_facts ctxt params (generous_max_facts max_facts) hyp_ts concl_t facts
         |>> weight_facts_steeply
       val mess =
         (* the order is important for the "case" expression below *)
-        [] |> (if effective_fact_filter <> mepoN then
-                 cons (mash_weight, (mash ()))
-               else
-                 I)
-           |> (if effective_fact_filter <> mashN then
-                 cons (mepo_weight, (mepo (), []))
-               else
-                 I)
-      val mesh =
-        mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess
-        |> add_and_take
+        [] |> effective_fact_filter <> mepoN ? cons (mash_weight, mash)
+           |> effective_fact_filter <> mashN ? cons (mepo_weight, mepo)
+           |> Par_List.map (apsnd (fn f => f ()))
+      val mesh = mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess |> add_and_take
     in
       if save then MaSh.save ctxt overlord else ();
       case (fact_filter, mess) of
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
         [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
          (mashN, mash |> map fst |> add_and_take)]
-      | _ => [("", mesh)]
+      | _ => [(effective_fact_filter, mesh)]
     end
 
 fun kill_learners ctxt ({overlord, ...} : params) =

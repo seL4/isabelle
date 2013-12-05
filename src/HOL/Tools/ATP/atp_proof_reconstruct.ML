@@ -10,6 +10,9 @@ signature ATP_PROOF_RECONSTRUCT =
 sig
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
+  type stature = ATP_Problem_Generate.stature
+  type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
+  type 'a atp_proof = 'a ATP_Proof.atp_proof
 
   val metisN : string
   val full_typesN : string
@@ -21,17 +24,26 @@ sig
   val no_type_enc : string
   val full_type_encs : string list
   val partial_type_encs : string list
-  val metis_default_lam_trans : string
+  val default_metis_lam_trans : string
   val metis_call : string -> string -> string
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
   val unalias_type_enc : string -> string list
-  val term_of_atp :
-    Proof.context -> bool -> int Symtab.table -> typ option ->
+  val term_of_atp : Proof.context -> bool -> int Symtab.table -> typ option ->
     (string, string) atp_term -> term
-  val prop_of_atp :
-    Proof.context -> bool -> int Symtab.table ->
+  val prop_of_atp : Proof.context -> bool -> int Symtab.table ->
     (string, string, (string, string) atp_term, string) atp_formula -> term
+
+  val used_facts_in_atp_proof :
+    Proof.context -> (string * stature) list vector -> string atp_proof -> (string * stature) list
+  val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list vector ->
+    'a atp_proof -> string list option
+  val lam_trans_of_atp_proof : string atp_proof -> string -> string
+  val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
+  val termify_atp_proof : Proof.context -> string Symtab.table -> (string * term) list ->
+    int Symtab.table -> string atp_proof -> (term, string) atp_step list
+  val factify_atp_proof : (string * 'a) list vector -> term list -> term ->
+    (term, string) atp_step list -> (term, string) atp_step list
 end;
 
 structure ATP_Proof_Reconstruct : ATP_PROOF_RECONSTRUCT =
@@ -64,7 +76,7 @@ val type_enc_aliases =
 fun unalias_type_enc s =
   AList.lookup (op =) type_enc_aliases s |> the_default [s]
 
-val metis_default_lam_trans = combsN
+val default_metis_lam_trans = combsN
 
 fun metis_call type_enc lam_trans =
   let
@@ -74,7 +86,7 @@ fun metis_call type_enc lam_trans =
         [alias] => alias
       | _ => type_enc
     val opts = [] |> type_enc <> partial_typesN ? cons type_enc
-                  |> lam_trans <> metis_default_lam_trans ? cons lam_trans
+                  |> lam_trans <> default_metis_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
@@ -338,5 +350,206 @@ fun prop_of_atp ctxt textual sym_tab phi =
       | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
       | _ => raise ATP_FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
+
+fun find_first_in_list_vector vec key =
+  Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
+                 | (_, value) => value) NONE vec
+
+val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
+
+fun resolve_one_named_fact fact_names s =
+  case try (unprefix fact_prefix) s of
+    SOME s' =>
+    let val s' = s' |> unprefix_fact_number |> unascii_of in
+      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
+    end
+  | NONE => NONE
+
+fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
+
+fun resolve_one_named_conjecture s =
+  case try (unprefix conjecture_prefix) s of
+    SOME s' => Int.fromString s'
+  | NONE => NONE
+
+val resolve_conjecture = map_filter resolve_one_named_conjecture
+
+fun is_axiom_used_in_proof pred =
+  exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
+
+fun add_non_rec_defs fact_names accum =
+  Vector.foldl (fn (facts, facts') =>
+      union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts)
+            facts')
+    accum fact_names
+
+val isa_ext = Thm.get_name_hint @{thm ext}
+val isa_short_ext = Long_Name.base_name isa_ext
+
+fun ext_name ctxt =
+  if Thm.eq_thm_prop (@{thm ext},
+       singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
+    isa_short_ext
+  else
+    isa_ext
+
+val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
+val leo2_unfold_def_rule = "unfold_def"
+
+fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
+  (if rule = leo2_extcnf_equal_neg_rule then
+     insert (op =) (ext_name ctxt, (Global, General))
+   else if rule = leo2_unfold_def_rule then
+     (* LEO 1.3.3 does not record definitions properly, leading to missing
+        dependencies in the TSTP proof. Remove the next line once this is
+        fixed. *)
+     add_non_rec_defs fact_names
+   else if rule = agsyhol_coreN orelse rule = satallax_coreN then
+     (fn [] =>
+         (* agsyHOL and Satallax don't include definitions in their
+            unsatisfiable cores, so we assume the worst and include them all
+            here. *)
+         [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
+       | facts => facts)
+   else
+     I)
+  #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
+
+fun used_facts_in_atp_proof ctxt fact_names atp_proof =
+  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
+  else fold (add_fact ctxt fact_names) atp_proof []
+
+fun used_facts_in_unsound_atp_proof _ _ [] = NONE
+  | used_facts_in_unsound_atp_proof ctxt fact_names atp_proof =
+    let val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof in
+      if forall (fn (_, (sc, _)) => sc = Global) used_facts andalso
+         not (is_axiom_used_in_proof (not o null o resolve_conjecture o single) atp_proof) then
+        SOME (map fst used_facts)
+      else
+        NONE
+    end
+
+val ascii_of_lam_fact_prefix = ascii_of lam_fact_prefix
+
+(* overapproximation (good enough) *)
+fun is_lam_lifted s =
+  String.isPrefix fact_prefix s andalso
+  String.isSubstring ascii_of_lam_fact_prefix s
+
+val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
+
+fun lam_trans_of_atp_proof atp_proof default =
+  case (is_axiom_used_in_proof is_combinator_def atp_proof,
+        is_axiom_used_in_proof is_lam_lifted atp_proof) of
+    (false, false) => default
+  | (false, true) => liftingN
+(*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
+  | (true, _) => combsN
+
+val is_typed_helper_name =
+  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+
+fun is_typed_helper_used_in_atp_proof atp_proof =
+  is_axiom_used_in_proof is_typed_helper_name atp_proof
+
+fun repair_name "$true" = "c_True"
+  | repair_name "$false" = "c_False"
+  | repair_name "$$e" = tptp_equal (* seen in Vampire proofs *)
+  | repair_name s =
+    if is_tptp_equal s orelse
+       (* seen in Vampire proofs *)
+       (String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s) then
+      tptp_equal
+    else
+      s
+
+fun infer_formula_types ctxt =
+  Type.constraint HOLogic.boolT
+  #> Syntax.check_term
+         (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+
+val combinator_table =
+  [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
+   (@{const_name Meson.COMBK}, @{thm Meson.COMBK_def [abs_def]}),
+   (@{const_name Meson.COMBB}, @{thm Meson.COMBB_def [abs_def]}),
+   (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def [abs_def]}),
+   (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def [abs_def]})]
+
+fun uncombine_term thy =
+  let
+    fun aux (t1 $ t2) = betapply (pairself aux (t1, t2))
+      | aux (Abs (s, T, t')) = Abs (s, T, aux t')
+      | aux (t as Const (x as (s, _))) =
+        (case AList.lookup (op =) combinator_table s of
+           SOME thm => thm |> prop_of |> specialize_type thy x
+                           |> Logic.dest_equals |> snd
+         | NONE => t)
+      | aux t = t
+  in aux end
+
+fun unlift_term lifted =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix lam_lifted_prefix s then
+                   case AList.lookup (op =) lifted s of
+                     SOME t =>
+                     (* FIXME: do something about the types *)
+                     unlift_term lifted t
+                   | NONE => t
+                 else
+                   t
+               | t => t)
+
+fun decode_line ctxt lifted sym_tab (name, role, u, rule, deps) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val t =
+      u |> prop_of_atp ctxt true sym_tab
+        |> uncombine_term thy
+        |> unlift_term lifted
+        |> infer_formula_types ctxt
+  in (name, role, t, rule, deps) end
+
+val waldmeister_conjecture_num = "1.0.0.0"
+
+fun repair_waldmeister_endgame arg =
+  let
+    fun do_tail (name, _, t, rule, deps) =
+      (name, Negated_Conjecture, s_not t, rule, deps)
+    fun do_body [] = []
+      | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
+        if num = waldmeister_conjecture_num then map do_tail (line :: lines)
+        else line :: do_body lines
+  in do_body arg end
+
+fun termify_atp_proof ctxt pool lifted sym_tab =
+  clean_up_atp_proof_dependencies
+  #> nasty_atp_proof pool
+  #> map_term_names_in_atp_proof repair_name
+  #> map (decode_line ctxt lifted sym_tab)
+  #> repair_waldmeister_endgame
+
+fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
+  let
+    fun factify_step ((num, ss), role, t, rule, deps) =
+      let
+        val (ss', role', t') =
+          (case resolve_conjecture ss of
+            [j] =>
+            if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
+           | _ =>
+             (case resolve_fact fact_names ss of
+               [] => (ss, Plain, t)
+             | facts => (map fst facts, Axiom, t)))
+      in
+        ((num, ss'), role', t', rule, deps)
+      end
+
+    val atp_proof = map factify_step atp_proof
+    val names = map #1 atp_proof
+
+    fun repair_dep (num, ss) = (num, the_default ss (AList.lookup (op =) names num))
+    fun repair_deps (name, role, t, rule, deps) = (name, role, t, rule, map repair_dep deps)
+
+  in map repair_deps atp_proof end
 
 end;

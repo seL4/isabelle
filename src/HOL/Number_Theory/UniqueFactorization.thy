@@ -359,7 +359,6 @@ lemma primes_characterization'_int [rule_format]:
   apply auto
   done
 
-declare [[simproc del: finite_Collect]]
 lemma prime_factors_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarrow> 
     finite S \<Longrightarrow> (ALL p:S. prime p) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
       prime_factors n = S"
@@ -831,8 +830,6 @@ lemma gcd_lcm_distrib_int: "gcd (x::int) (lcm y z) = lcm (gcd x y) (gcd x z)"
   apply (rule gcd_lcm_distrib_nat [transferred])
   apply auto
   done
-
-declare [[simproc add: finite_Collect]]
 
 end
 

@@ -18,7 +18,7 @@ lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
 apply (unfold FreeUltrafilterNat_def)
 apply (rule someI_ex)
 apply (rule freeultrafilter_Ex)
-apply (rule nat_infinite)
+apply (rule infinite_UNIV_nat)
 done
 
 interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
@@ -803,7 +803,7 @@ instance star :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..
 instance star :: (ab_group_add) ab_group_add
 apply (intro_classes)
 apply (transfer, rule left_minus)
-apply (transfer, rule diff_minus)
+apply (transfer, rule diff_conv_add_uminus)
 done
 
 instance star :: (ordered_ab_semigroup_add) ordered_ab_semigroup_add
@@ -968,13 +968,13 @@ lemma star_of_numeral [simp]: "star_of (numeral k) = numeral k"
 by transfer (rule refl)
 
 lemma star_neg_numeral_def [transfer_unfold]:
-  "neg_numeral k = star_of (neg_numeral k)"
-by (simp only: neg_numeral_def star_of_minus star_of_numeral)
+  "- numeral k = star_of (- numeral k)"
+by (simp only: star_of_minus star_of_numeral)
 
-lemma Standard_neg_numeral [simp]: "neg_numeral k \<in> Standard"
-by (simp add: star_neg_numeral_def)
+lemma Standard_neg_numeral [simp]: "- numeral k \<in> Standard"
+  using star_neg_numeral_def [of k] by simp
 
-lemma star_of_neg_numeral [simp]: "star_of (neg_numeral k) = neg_numeral k"
+lemma star_of_neg_numeral [simp]: "star_of (- numeral k) = - numeral k"
 by transfer (rule refl)
 
 lemma star_of_nat_def [transfer_unfold]: "of_nat n = star_of (of_nat n)"
@@ -987,12 +987,12 @@ lemmas star_of_compare_numeral [simp] =
   star_of_less [of _ "numeral k", simplified star_of_numeral]
   star_of_le   [of _ "numeral k", simplified star_of_numeral]
   star_of_eq   [of _ "numeral k", simplified star_of_numeral]
-  star_of_less [of "neg_numeral k", simplified star_of_numeral]
-  star_of_le   [of "neg_numeral k", simplified star_of_numeral]
-  star_of_eq   [of "neg_numeral k", simplified star_of_numeral]
-  star_of_less [of _ "neg_numeral k", simplified star_of_numeral]
-  star_of_le   [of _ "neg_numeral k", simplified star_of_numeral]
-  star_of_eq   [of _ "neg_numeral k", simplified star_of_numeral] for k
+  star_of_less [of "- numeral k", simplified star_of_numeral]
+  star_of_le   [of "- numeral k", simplified star_of_numeral]
+  star_of_eq   [of "- numeral k", simplified star_of_numeral]
+  star_of_less [of _ "- numeral k", simplified star_of_numeral]
+  star_of_le   [of _ "- numeral k", simplified star_of_numeral]
+  star_of_eq   [of _ "- numeral k", simplified star_of_numeral] for k
 
 lemma Standard_of_nat [simp]: "of_nat n \<in> Standard"
 by (simp add: star_of_nat_def)

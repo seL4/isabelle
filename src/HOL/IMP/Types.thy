@@ -113,10 +113,10 @@ fun type :: "val \<Rightarrow> ty" where
 "type (Iv i) = Ity" |
 "type (Rv r) = Rty"
 
-lemma [simp]: "type v = Ity \<longleftrightarrow> (\<exists>i. v = Iv i)"
+lemma type_eq_Ity[simp]: "type v = Ity \<longleftrightarrow> (\<exists>i. v = Iv i)"
 by (cases v) simp_all
 
-lemma [simp]: "type v = Rty \<longleftrightarrow> (\<exists>r. v = Rv r)"
+lemma type_eq_Rty[simp]: "type v = Rty \<longleftrightarrow> (\<exists>r. v = Rv r)"
 by (cases v) simp_all
 
 definition styping :: "tyenv \<Rightarrow> state \<Rightarrow> bool" (infix "\<turnstile>" 50)

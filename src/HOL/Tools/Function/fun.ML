@@ -37,12 +37,17 @@ fun check_pats ctxt geq =
       let
         val (hd, args) = strip_comb t
       in
-        (((case Datatype.info_of_constr thy (dest_Const hd) of
-             SOME _ => ()
-           | NONE => err "Non-constructor pattern")
-          handle TERM ("dest_Const", _) => err "Non-constructor patterns");
-         map check_constr_pattern args;
-         ())
+        (case hd of
+          Const (hd_s, hd_T) =>
+          (case body_type hd_T of
+            Type (Tname, _) =>
+            (case Ctr_Sugar.ctr_sugar_of ctxt Tname of
+              SOME {ctrs, ...} => exists (fn Const (s, _) => s = hd_s) ctrs
+            | NONE => false)
+          | _ => false)
+        | _ => false) orelse err "Non-constructor pattern";
+        map check_constr_pattern args;
+        ()
       end
 
     val (_, qs, gs, args, _) = split_def ctxt (K true) geq

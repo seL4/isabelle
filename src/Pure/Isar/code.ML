@@ -140,7 +140,7 @@ fun check_bare_const thy t = case try dest_Const t
 fun check_unoverload thy (c, ty) =
   let
     val c' = Axclass.unoverload_const thy (c, ty);
-    val ty_decl = Sign.the_const_type thy c';
+    val ty_decl = const_typ thy c';
   in
     if typscheme_equiv (ty_decl, Logic.varifyT_global ty)
     then c'
@@ -356,7 +356,7 @@ fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of
 fun analyze_constructor thy (c, ty) =
   let
     val _ = Thm.cterm_of thy (Const (c, ty));
-    val ty_decl = Logic.unvarifyT_global (const_typ thy c);
+    val ty_decl = devarify (const_typ thy c);
     fun last_typ c_ty ty =
       let
         val tfrees = Term.add_tfreesT ty [];
@@ -450,7 +450,7 @@ fun is_linear thm =
 
 fun check_decl_ty thy (c, ty) =
   let
-    val ty_decl = Sign.the_const_type thy c;
+    val ty_decl = const_typ thy c;
   in if typscheme_equiv (ty_decl, ty) then ()
     else bad_thm ("Type\n" ^ string_of_typ thy ty
       ^ "\nof constant " ^ quote c
@@ -664,7 +664,7 @@ fun check_abstype_cert thy proto_thm =
       handle TERM _ => bad_thm "Not an abstype certificate";
     val _ = if param = rhs then () else bad_thm "Not an abstype certificate";
     val ((tyco, sorts), (abs, (vs, ty'))) =
-      analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
+      analyze_constructor thy (abs, devarify raw_ty);
     val ty = domain_type ty';
     val (vs', _) = typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
@@ -729,7 +729,7 @@ with
 
 fun empty_cert thy c = 
   let
-    val raw_ty = Logic.unvarifyT_global (const_typ thy c);
+    val raw_ty = devarify (const_typ thy c);
     val (vs, _) = typscheme thy (c, raw_ty);
     val sortargs = case Axclass.class_of_param thy c
      of SOME class => [[class]]
@@ -1124,7 +1124,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     val ([x, y], ctxt) = fold_map Name.variant ["A", "A'"] Name.context;
     val (zs, _) = fold_map Name.variant (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
-    val T = Logic.unvarifyT_global (Sign.the_const_type thy case_const);
+    val T = devarify (const_typ thy case_const);
     val Ts = binder_types T;
     val T_cong = nth Ts pos;
     fun mk_prem z = Free (z, T_cong);

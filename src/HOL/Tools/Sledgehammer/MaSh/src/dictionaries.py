@@ -4,11 +4,12 @@
 #
 # Persistent dictionaries: accessibility, dependencies, and features.
 
-import logging,sys
+import sys
 from os.path import join
 from Queue import Queue
 from readData import create_accessible_dict,create_dependencies_dict
 from cPickle import load,dump
+from exceptions import LookupError
 
 class Dictionaries(object):
     '''
@@ -21,7 +22,7 @@ class Dictionaries(object):
         self.nameIdDict = {}
         self.idNameDict = {}
         self.featureIdDict={}
-        self.maxNameId = 0
+        self.maxNameId = 1
         self.maxFeatureId = 0
         self.featureDict = {}
         self.dependenciesDict = {}
@@ -29,6 +30,9 @@ class Dictionaries(object):
         self.expandedAccessibles = {}
         self.accFile =  ''
         self.changed = True
+        # Unnamed facts
+        self.nameIdDict[''] = 0
+        self.idNameDict[0] = 'Unnamed Fact'
 
     """
     Init functions. nameIdDict, idNameDict, featureIdDict, articleDict get filled!
@@ -56,7 +60,6 @@ class Dictionaries(object):
         self.changed = True
 
     def create_feature_dict(self,inputFile):
-        logger = logging.getLogger('create_feature_dict')
         self.featureDict = {}
         IS = open(inputFile,'r')
         for line in IS:
@@ -64,7 +67,7 @@ class Dictionaries(object):
             name = line[0]
             # Name Id
             if self.nameIdDict.has_key(name):
-                logger.warning('%s appears twice in the feature file. Aborting.',name)
+                raise LookupError('%s appears twice in the feature file. Aborting.'% name)
                 sys.exit(-1)
             else:
                 self.nameIdDict[name] = self.maxNameId
@@ -134,6 +137,13 @@ class Dictionaries(object):
                         unexpandedQueue.put(a)
         return list(accessibles)
 
+    def parse_unExpAcc(self,line):
+        try:
+            unExpAcc = [self.nameIdDict[a.strip()] for a in line.split()]            
+        except:
+            raise LookupError('Cannot find the accessibles:%s. Accessibles need to be introduced before referring to them.' % line)
+        return unExpAcc
+
     def parse_fact(self,line):
         """
         Parses a single line, extracting accessibles, features, and dependencies.
@@ -146,12 +156,18 @@ class Dictionaries(object):
         name = line[0].strip()
         nameId = self.get_name_id(name)
         line = line[1].split(';')
-        # Accessible Ids
-        unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
-        self.accessibleDict[nameId] = unExpAcc
         features = self.get_features(line)
         self.featureDict[nameId] = features
-        self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
+        try:
+            self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
+        except:
+            unknownDeps = []
+            for d in line[2].split():
+                if not self.nameIdDict.has_key(d):
+                    unknownDeps.append(d)
+            raise LookupError('Unknown fact used as dependency: %s. Facts need to be introduced before being used as depedency.' % ','.join(unknownDeps))
+        self.accessibleDict[nameId] = self.parse_unExpAcc(line[0])
+
         self.changed = True
         return nameId
 
@@ -165,9 +181,18 @@ class Dictionaries(object):
         # line = name:dependencies
         line = line.split(':')
         name = line[0].strip()
-        nameId = self.get_name_id(name)
-
-        dependencies = [self.nameIdDict[d.strip()] for d in line[1].split()]
+        try:
+            nameId = self.nameIdDict[name]
+        except:
+            raise LookupError('Trying to overwrite dependencies for unknown fact: %s. Facts need to be introduced before overwriting them.' % name)
+        try:
+            dependencies = [self.nameIdDict[d.strip()] for d in line[1].split()]
+        except:
+            unknownDeps = []
+            for d in line[1].split():
+                if not self.nameIdDict.has_key(d):
+                    unknownDeps.append(d)
+            raise LookupError('Unknown fact used as dependency: %s. Facts need to be introduced before being used as depedency.' % ','.join(unknownDeps))
         self.changed = True
         return nameId,dependencies
 
@@ -180,7 +205,7 @@ class Dictionaries(object):
         name = None
         numberOfPredictions = None
 
-        # Check whether there is a problem name:
+        # How many predictions should be returned:
         tmp = line.split('#')
         if len(tmp) == 2:
             numberOfPredictions = int(tmp[0].strip())
@@ -194,8 +219,11 @@ class Dictionaries(object):
 
         # line = accessibles;features
         line = line.split(';')
+        features = self.get_features(line)
+        
         # Accessible Ids, expand and store the accessibles.
-        unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
+        #unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
+        unExpAcc = self.parse_unExpAcc(line[0])        
         if len(self.expandedAccessibles.keys())>=100:
             self.expandedAccessibles = {}
             self.changed = True
@@ -205,7 +233,7 @@ class Dictionaries(object):
                 self.expandedAccessibles[accId] = self.expand_accessibles(accIdAcc)
                 self.changed = True
         accessibles = self.expand_accessibles(unExpAcc)
-        features = self.get_features(line)
+        
         # Get hints:
         if len(line) == 3:
             hints = [self.nameIdDict[d.strip()] for d in line[2].split()]

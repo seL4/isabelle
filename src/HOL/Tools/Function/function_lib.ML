@@ -27,6 +27,8 @@ sig
   val dest_binop_list: string -> term -> term list
   val regroup_conv: string -> string -> thm list -> int list -> conv
   val regroup_union_conv: int list -> conv
+
+  val inst_constrs_of: Proof.context -> typ -> term list
 end
 
 structure Function_Lib: FUNCTION_LIB =
@@ -48,9 +50,7 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
   | dest_all_all t = ([],t)
 
 
-fun map4 _ [] [] [] [] = []
-  | map4 f (x :: xs) (y :: ys) (z :: zs) (u :: us) = f x y z u :: map4 f xs ys zs us
-  | map4 _ _ _ _ _ = raise ListPair.UnequalLengths;
+fun map4 f = Ctr_Sugar_Util.map4 f
 
 fun map7 _ [] [] [] [] [] [] [] = []
   | map7 f (x :: xs) (y :: ys) (z :: zs) (u :: us) (v :: vs) (w :: ws) (b :: bs) = f x y z u v w b :: map7 f xs ys zs us vs ws bs
@@ -132,5 +132,9 @@ val regroup_union_conv =
     (map (fn t => t RS eq_reflection)
       (@{thms Un_ac} @ @{thms Un_empty_right} @ @{thms Un_empty_left}))
 
+
+fun inst_constrs_of ctxt (Type (name, Ts)) =
+    map (Ctr_Sugar.mk_ctr Ts) (#ctrs (the (Ctr_Sugar.ctr_sugar_of ctxt name)))
+  | inst_constrs_of _ _ = raise Match
 
 end

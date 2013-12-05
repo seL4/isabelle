@@ -36,34 +36,6 @@ lemma square_continuous:
   apply auto
   done
 
-lemma real_le_lsqrt: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y\<^sup>2 \<Longrightarrow> sqrt x \<le> y"
-  using real_sqrt_le_iff[of x "y\<^sup>2"] by simp
-
-lemma real_le_rsqrt: "x\<^sup>2 \<le> y \<Longrightarrow> x \<le> sqrt y"
-  using real_sqrt_le_mono[of "x\<^sup>2" y] by simp
-
-lemma real_less_rsqrt: "x\<^sup>2 < y \<Longrightarrow> x < sqrt y"
-  using real_sqrt_less_mono[of "x\<^sup>2" y] by simp
-
-lemma sqrt_even_pow2:
-  assumes n: "even n"
-  shows "sqrt (2 ^ n) = 2 ^ (n div 2)"
-proof -
-  from n obtain m where m: "n = 2 * m"
-    unfolding even_mult_two_ex ..
-  from m have "sqrt (2 ^ n) = sqrt ((2 ^ m)\<^sup>2)"
-    by (simp only: power_mult[symmetric] mult_commute)
-  then show ?thesis
-    using m by simp
-qed
-
-lemma real_div_sqrt: "0 \<le> x \<Longrightarrow> x / sqrt x = sqrt x"
-  apply (cases "x = 0")
-  apply simp_all
-  using sqrt_divide_self_eq[of x]
-  apply (simp add: inverse_eq_divide field_simps)
-  done
-
 text{* Hence derive more interesting properties of the norm. *}
 
 lemma norm_eq_0_dot: "norm x = 0 \<longleftrightarrow> x \<bullet> x = (0::real)"
@@ -303,7 +275,7 @@ lemma linear_add: "linear f \<Longrightarrow> f (x + y) = f x + f y"
   by (metis linear_iff)
 
 lemma linear_sub: "linear f \<Longrightarrow> f (x - y) = f x - f y"
-  by (simp add: diff_minus linear_add linear_neg)
+  using linear_add [of f x "- y"] by (simp add: linear_neg)
 
 lemma linear_setsum:
   assumes lin: "linear f"
@@ -365,10 +337,10 @@ lemma bilinear_rmul: "bilinear h \<Longrightarrow> h x (c *\<^sub>R y) = c *\<^s
   by (simp add: bilinear_def linear_iff)
 
 lemma bilinear_lneg: "bilinear h \<Longrightarrow> h (- x) y = - h x y"
-  by (simp only: scaleR_minus1_left [symmetric] bilinear_lmul)
+  by (drule bilinear_lmul [of _ "- 1"]) simp
 
 lemma bilinear_rneg: "bilinear h \<Longrightarrow> h x (- y) = - h x y"
-  by (simp only: scaleR_minus1_left [symmetric] bilinear_rmul)
+  by (drule bilinear_rmul [of _ _ "- 1"]) simp
 
 lemma (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
   using add_imp_eq[of x y 0] by auto
@@ -384,10 +356,10 @@ lemma bilinear_rzero:
   using bilinear_radd [OF assms, of x 0 0 ] by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_lsub: "bilinear h \<Longrightarrow> h (x - y) z = h x z - h y z"
-  by (simp  add: diff_minus bilinear_ladd bilinear_lneg)
+  using bilinear_ladd [of h x "- y"] by (simp add: bilinear_lneg)
 
 lemma bilinear_rsub: "bilinear h \<Longrightarrow> h z (x - y) = h z x - h z y"
-  by (simp  add: diff_minus bilinear_radd bilinear_rneg)
+  using bilinear_radd [of h _ x "- y"] by (simp add: bilinear_rneg)
 
 lemma bilinear_setsum:
   assumes bh: "bilinear h"
@@ -730,7 +702,7 @@ lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - 
   by (metis scaleR_minus1_left subspace_mul)
 
 lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
-  by (metis diff_minus subspace_add subspace_neg)
+  using subspace_add [of S x "- y"] by (simp add: subspace_neg)
 
 lemma (in real_vector) subspace_setsum:
   assumes sA: "subspace A"
@@ -1021,8 +993,7 @@ proof -
     apply safe
     apply (rule_tac x=k in exI, simp)
     apply (erule rev_image_eqI [OF SigmaI [OF rangeI]])
-    apply simp
-    apply (rule right_minus)
+    apply auto
     done
   then show ?thesis by simp
 qed
@@ -2064,7 +2035,7 @@ next
       using C by simp
     have "orthogonal ?a y"
       unfolding orthogonal_def
-      unfolding inner_diff inner_setsum_left diff_eq_0_iff_eq
+      unfolding inner_diff inner_setsum_left right_minus_eq
       unfolding setsum_diff1' [OF `finite C` `y \<in> C`]
       apply (clarsimp simp add: inner_commute[of y a])
       apply (rule setsum_0')
@@ -2406,58 +2377,6 @@ proof -
 qed
 
 text {* Can construct an isomorphism between spaces of same dimension. *}
-
-lemma card_le_inj:
-  assumes fA: "finite A"
-    and fB: "finite B"
-    and c: "card A \<le> card B"
-  shows "\<exists>f. f ` A \<subseteq> B \<and> inj_on f A"
-  using fA fB c
-proof (induct arbitrary: B rule: finite_induct)
-  case empty
-  then show ?case by simp
-next
-  case (insert x s t)
-  then show ?case
-  proof (induct rule: finite_induct[OF "insert.prems"(1)])
-    case 1
-    then show ?case by simp
-  next
-    case (2 y t)
-    from "2.prems"(1,2,5) "2.hyps"(1,2) have cst: "card s \<le> card t"
-      by simp
-    from "2.prems"(3) [OF "2.hyps"(1) cst]
-    obtain f where "f ` s \<subseteq> t" "inj_on f s"
-      by blast
-    with "2.prems"(2) "2.hyps"(2) show ?case
-      apply -
-      apply (rule exI[where x = "\<lambda>z. if z = x then y else f z"])
-      apply (auto simp add: inj_on_def)
-      done
-  qed
-qed
-
-lemma card_subset_eq:
-  assumes fB: "finite B"
-    and AB: "A \<subseteq> B"
-    and c: "card A = card B"
-  shows "A = B"
-proof -
-  from fB AB have fA: "finite A"
-    by (auto intro: finite_subset)
-  from fA fB have fBA: "finite (B - A)"
-    by auto
-  have e: "A \<inter> (B - A) = {}"
-    by blast
-  have eq: "A \<union> (B - A) = B"
-    using AB by blast
-  from card_Un_disjoint[OF fA fBA e, unfolded eq c] have "card (B - A) = 0"
-    by arith
-  then have "B - A = {}"
-    unfolding card_eq_0_iff using fA fB by simp
-  with AB show "A = B"
-    by blast
-qed
 
 lemma subspace_isomorphism:
   fixes S :: "'a::euclidean_space set"
@@ -3026,7 +2945,7 @@ proof -
         norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
       using x y
       unfolding inner_simps
-      unfolding power2_norm_eq_inner[symmetric] power2_eq_square diff_eq_0_iff_eq
+      unfolding power2_norm_eq_inner[symmetric] power2_eq_square right_minus_eq
       apply (simp add: inner_commute)
       apply (simp add: field_simps)
       apply metis

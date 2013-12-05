@@ -1528,7 +1528,7 @@ proof -
     using mono by auto
   ultimately show ?thesis using fg
     by (auto intro!: add_mono positive_integral_mono_AE real_of_ereal_positive_mono
-             simp: positive_integral_positive lebesgue_integral_def diff_minus)
+             simp: positive_integral_positive lebesgue_integral_def algebra_simps)
 qed
 
 lemma integral_mono:
@@ -1732,7 +1732,7 @@ lemma integral_diff[simp, intro]:
   shows "integrable M (\<lambda>t. f t - g t)"
   and "(\<integral> t. f t - g t \<partial>M) = integral\<^sup>L M f - integral\<^sup>L M g"
   using integral_add[OF f integral_minus(1)[OF g]]
-  unfolding diff_minus integral_minus(2)[OF g]
+  unfolding integral_minus(2)[OF g]
   by auto
 
 lemma integral_indicator[simp, intro]:
@@ -2521,6 +2521,91 @@ lemma borel_measurable_count_space[simp, intro!]:
   "f \<in> borel_measurable (count_space A)"
   by simp
 
+lemma lessThan_eq_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
+  by auto
+
+lemma emeasure_UN_countable:
+  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets M" and I: "countable I" 
+  assumes disj: "disjoint_family_on X I"
+  shows "emeasure M (UNION I X) = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
+proof cases
+  assume "finite I" with sets disj show ?thesis
+    by (subst setsum_emeasure[symmetric])
+       (auto intro!: setsum_cong simp add: max_def subset_eq positive_integral_count_space_finite emeasure_nonneg)
+next
+  assume f: "\<not> finite I"
+  then have [intro]: "I \<noteq> {}" by auto
+  from from_nat_into_inj_infinite[OF I f] from_nat_into[OF this] disj
+  have disj2: "disjoint_family (\<lambda>i. X (from_nat_into I i))"
+    unfolding disjoint_family_on_def by metis
+
+  from f have "bij_betw (from_nat_into I) UNIV I"
+    using bij_betw_from_nat_into[OF I] by simp
+  then have "(\<Union>i\<in>I. X i) = (\<Union>i. (X \<circ> from_nat_into I) i)"
+    unfolding SUP_def image_compose by (simp add: bij_betw_def)
+  then have "emeasure M (UNION I X) = emeasure M (\<Union>i. X (from_nat_into I i))"
+    by simp
+  also have "\<dots> = (\<Sum>i. emeasure M (X (from_nat_into I i)))"
+    by (intro suminf_emeasure[symmetric] disj disj2) (auto intro!: sets from_nat_into[OF `I \<noteq> {}`])
+  also have "\<dots> = (\<Sum>n. \<integral>\<^sup>+i. emeasure M (X i) * indicator {from_nat_into I n} i \<partial>count_space I)"
+  proof (intro arg_cong[where f=suminf] ext)
+    fix i
+    have eq: "{a \<in> I. 0 < emeasure M (X a) * indicator {from_nat_into I i} a}
+     = (if 0 < emeasure M (X (from_nat_into I i)) then {from_nat_into I i} else {})"
+     using ereal_0_less_1
+     by (auto simp: ereal_zero_less_0_iff indicator_def from_nat_into `I \<noteq> {}` simp del: ereal_0_less_1)
+    have "(\<integral>\<^sup>+ ia. emeasure M (X ia) * indicator {from_nat_into I i} ia \<partial>count_space I) =
+      (if 0 < emeasure M (X (from_nat_into I i)) then emeasure M (X (from_nat_into I i)) else 0)"
+      by (subst positive_integral_count_space) (simp_all add: eq)
+    also have "\<dots> = emeasure M (X (from_nat_into I i))"
+      by (simp add: less_le emeasure_nonneg)
+    finally show "emeasure M (X (from_nat_into I i)) =
+         \<integral>\<^sup>+ ia. emeasure M (X ia) * indicator {from_nat_into I i} ia \<partial>count_space I" ..
+  qed
+  also have "\<dots> = (\<integral>\<^sup>+i. emeasure M (X i) \<partial>count_space I)"
+    apply (subst positive_integral_suminf[symmetric])
+    apply (auto simp: emeasure_nonneg intro!: positive_integral_cong)
+  proof -
+    fix x assume "x \<in> I"
+    then have "(\<Sum>i. emeasure M (X x) * indicator {from_nat_into I i} x) = (\<Sum>i\<in>{to_nat_on I x}. emeasure M (X x) * indicator {from_nat_into I i} x)"
+      by (intro suminf_finite) (auto simp: indicator_def I f)
+    also have "\<dots> = emeasure M (X x)"
+      by (simp add: I f `x\<in>I`)
+    finally show "(\<Sum>i. emeasure M (X x) * indicator {from_nat_into I i} x) = emeasure M (X x)" .
+  qed
+  finally show ?thesis .
+qed
+
+section {* Measures with Restricted Space *}
+
+lemma positive_integral_restrict_space:
+  assumes \<Omega>: "\<Omega> \<in> sets M" and f: "f \<in> borel_measurable M" "\<And>x. 0 \<le> f x" "\<And>x. x \<in> space M - \<Omega> \<Longrightarrow> f x = 0"
+  shows "positive_integral (restrict_space M \<Omega>) f = positive_integral M f"
+using f proof (induct rule: borel_measurable_induct)
+  case (cong f g) then show ?case
+    using positive_integral_cong[of M f g] positive_integral_cong[of "restrict_space M \<Omega>" f g]
+      sets.sets_into_space[OF `\<Omega> \<in> sets M`]
+    by (simp add: subset_eq space_restrict_space)
+next
+  case (set A)
+  then have "A \<subseteq> \<Omega>"
+    unfolding indicator_eq_0_iff by (auto dest: sets.sets_into_space)
+  with set `\<Omega> \<in> sets M` sets.sets_into_space[OF `\<Omega> \<in> sets M`] show ?case
+    by (subst positive_integral_indicator')
+       (auto simp add: sets_restrict_space_iff space_restrict_space
+                  emeasure_restrict_space Int_absorb2
+                dest: sets.sets_into_space)
+next
+  case (mult f c) then show ?case
+    by (cases "c = 0") (simp_all add: measurable_restrict_space1 \<Omega> positive_integral_cmult)
+next
+  case (add f g) then show ?case
+    by (simp add: measurable_restrict_space1 \<Omega> positive_integral_add ereal_add_nonneg_eq_0_iff)
+next
+  case (seq F) then show ?case
+    by (auto simp add: SUP_eq_iff measurable_restrict_space1 \<Omega> positive_integral_monotone_convergence_SUP)
+qed
+
 section {* Measure spaces with an associated density *}
 
 definition density :: "'a measure \<Rightarrow> ('a \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
@@ -2775,7 +2860,6 @@ lemma simple_function_point_measure[simp]:
   "simple_function (point_measure A f) g \<longleftrightarrow> finite (g ` A)"
   by (simp add: point_measure_def)
 
-declare [[simproc del: finite_Collect]]
 lemma emeasure_point_measure:
   assumes A: "finite {a\<in>X. 0 < f a}" "X \<subseteq> A"
   shows "emeasure (point_measure A f) X = (\<Sum>a|a\<in>X \<and> 0 < f a. f a)"
@@ -2786,7 +2870,6 @@ proof -
     by (simp add: emeasure_density positive_integral_count_space ereal_zero_le_0_iff
                   point_measure_def indicator_def)
 qed
-declare [[simproc add: finite_Collect]]
 
 lemma emeasure_point_measure_finite:
   "finite A \<Longrightarrow> (\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"

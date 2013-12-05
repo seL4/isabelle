@@ -107,9 +107,10 @@ struct
  val conv = Simplifier.simproc_global @{theory} "data_free" ["(x::i) = y"] proc;
 
 end;
+*}
 
-
-Addsimprocs [DataFree.conv];
+setup {*
+  Simplifier.map_theory_simpset (fn ctxt => ctxt addsimprocs [DataFree.conv])
 *}
 
 end

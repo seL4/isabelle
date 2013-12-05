@@ -19,7 +19,8 @@ definition
   "continuous F \<longleftrightarrow> (\<forall>M. chain M \<longrightarrow> F (SUP i. M i) = (SUP i. F (M i)))"
 
 lemma SUP_nat_conv:
-  "(SUP n. M n) = sup (M 0) (SUP n. M(Suc n))"
+  fixes M :: "nat \<Rightarrow> 'a::complete_lattice"
+  shows "(SUP n. M n) = sup (M 0) (SUP n. M(Suc n))"
 apply(rule order_antisym)
  apply(rule SUP_least)
  apply(case_tac n)

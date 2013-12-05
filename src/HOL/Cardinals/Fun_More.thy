@@ -8,7 +8,7 @@ More on injections, bijections and inverses.
 header {* More on Injections, Bijections and Inverses *}
 
 theory Fun_More
-imports Fun_More_Base
+imports Fun_More_FP Main
 begin
 
 
@@ -132,6 +132,18 @@ qed
 subsection {* Properties involving Hilbert choice *}
 
 
+(*1*)lemma bij_betw_inv_into_LEFT:
+assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
+shows "(inv_into A f)`(f ` B) = B"
+using assms unfolding bij_betw_def using inv_into_image_cancel by force
+
+(*1*)lemma bij_betw_inv_into_LEFT_RIGHT:
+assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A" and
+        IM: "f ` B = B'"
+shows "(inv_into A f) ` B' = B"
+using assms bij_betw_inv_into_LEFT[of f A A' B] by fast
+
+
 subsection {* Other facts *}
 
 (*3*)lemma atLeastLessThan_injective:
@@ -157,6 +169,20 @@ qed
 using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
       card_atLeastLessThan[of m] card_atLeastLessThan[of n]
       bij_betw_iff_card[of "{0 ..< m}" "{0 ..< n}"] by auto
+
+
+(*2*)lemma atLeastLessThan_less_eq:
+"({0..<m} \<le> {0..<n}) = ((m::nat) \<le> n)"
+unfolding ivl_subset by arith
+
+
+(*2*)lemma atLeastLessThan_less_eq2:
+assumes "inj_on f {0..<(m::nat)} \<and> f ` {0..<m} \<le> {0..<n}"
+shows "m \<le> n"
+using assms
+using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
+      card_atLeastLessThan[of m] card_atLeastLessThan[of n]
+      card_inj_on_le[of f "{0 ..< m}" "{0 ..< n}"] by fastforce
 
 (* unused *)
 (*2*)lemma atLeastLessThan_less_eq3:

@@ -31,7 +31,7 @@ sig
     val urgent_message_fn: (output -> unit) Unsynchronized.ref
     val tracing_fn: (output -> unit) Unsynchronized.ref
     val warning_fn: (output -> unit) Unsynchronized.ref
-    val error_fn: (serial * output -> unit) Unsynchronized.ref
+    val error_message_fn: (serial * output -> unit) Unsynchronized.ref
     val prompt_fn: (output -> unit) Unsynchronized.ref
     val status_fn: (output -> unit) Unsynchronized.ref
     val report_fn: (output -> unit) Unsynchronized.ref
@@ -39,8 +39,8 @@ sig
     val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
   end
   val urgent_message: string -> unit
-  val error_msg': serial * string -> unit
-  val error_msg: string -> unit
+  val error_message': serial * string -> unit
+  val error_message: string -> unit
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
@@ -98,7 +98,8 @@ struct
   val urgent_message_fn = Unsynchronized.ref (fn s => ! writeln_fn s);  (*Proof General legacy*)
   val tracing_fn = Unsynchronized.ref (fn s => ! writeln_fn s);
   val warning_fn = Unsynchronized.ref (physical_writeln o prefix_lines "### ");
-  val error_fn = Unsynchronized.ref (fn (_: serial, s) => physical_writeln (prefix_lines "*** " s));
+  val error_message_fn =
+    Unsynchronized.ref (fn (_: serial, s) => physical_writeln (prefix_lines "*** " s));
   val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
@@ -111,8 +112,8 @@ fun writeln s = ! Internal.writeln_fn (output s);
 fun urgent_message s = ! Internal.urgent_message_fn (output s);  (*Proof General legacy*)
 fun tracing s = ! Internal.tracing_fn (output s);
 fun warning s = ! Internal.warning_fn (output s);
-fun error_msg' (i, s) = ! Internal.error_fn (i, output s);
-fun error_msg s = error_msg' (serial (), s);
+fun error_message' (i, s) = ! Internal.error_message_fn (i, output s);
+fun error_message s = error_message' (serial (), s);
 fun prompt s = ! Internal.prompt_fn (output s);
 fun status s = ! Internal.status_fn (output s);
 fun report s = ! Internal.report_fn (output s);

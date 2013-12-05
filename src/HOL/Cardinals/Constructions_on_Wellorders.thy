@@ -8,13 +8,11 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports Constructions_on_Wellorders_Base Wellorder_Embedding
+imports Constructions_on_Wellorders_FP Wellorder_Embedding Order_Union
 begin
 
 declare
   ordLeq_Well_order_simp[simp]
-  ordLess_Well_order_simp[simp]
-  ordIso_Well_order_simp[simp]
   not_ordLeq_iff_ordLess[simp]
   not_ordLess_iff_ordLeq[simp]
 
@@ -88,7 +86,7 @@ using assms
 by (auto simp add: ofilter_subset_embedS_iso)
 
 
-subsection {* Ordering the  well-orders by existence of embeddings *}
+subsection {* Ordering the well-orders by existence of embeddings *}
 
 corollary ordLeq_refl_on: "refl_on {r. Well_order r} ordLeq"
 using ordLeq_reflexive unfolding ordLeq_def refl_on_def
@@ -112,6 +110,16 @@ by (auto simp add: sym_def ordIso_symmetric)
 
 corollary ordIso_equiv: "equiv {r. Well_order r} ordIso"
 by (auto simp add:  equiv_def ordIso_sym ordIso_refl_on ordIso_trans)
+
+lemma ordLess_Well_order_simp[simp]:
+assumes "r <o r'"
+shows "Well_order r \<and> Well_order r'"
+using assms unfolding ordLess_def by simp
+
+lemma ordIso_Well_order_simp[simp]:
+assumes "r =o r'"
+shows "Well_order r \<and> Well_order r'"
+using assms unfolding ordIso_def by simp
 
 lemma ordLess_irrefl: "irrefl ordLess"
 by(unfold irrefl_def, auto simp add: ordLess_irreflexive)

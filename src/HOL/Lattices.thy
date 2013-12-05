@@ -5,7 +5,7 @@
 header {* Abstract lattices *}
 
 theory Lattices
-imports Orderings Groups
+imports Groups
 begin
 
 subsection {* Abstract semilattice *}

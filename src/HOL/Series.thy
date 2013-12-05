@@ -34,7 +34,7 @@ lemma [trans]: "f=g ==> g sums z ==> f sums z"
 
 lemma sumr_diff_mult_const:
  "setsum f {0..<n} - (real n*r) = setsum (%i. f i - r) {0..<n::nat}"
-by (simp add: diff_minus setsum_addf real_of_nat_def)
+  by (simp add: setsum_subtractf real_of_nat_def)
 
 lemma real_setsum_nat_ivl_bounded:
      "(!!p. p < n \<Longrightarrow> f(p) \<le> K)

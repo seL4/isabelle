@@ -310,7 +310,7 @@ ML_file "Tools/Function/scnp_solve.ML"
 ML_file "Tools/Function/scnp_reconstruct.ML"
 ML_file "Tools/Function/fun_cases.ML"
 
-setup {* ScnpReconstruct.setup *}
+setup ScnpReconstruct.setup
 
 ML_val -- "setup inactive"
 {*

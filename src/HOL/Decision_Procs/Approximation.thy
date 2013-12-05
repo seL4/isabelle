@@ -11,8 +11,10 @@ imports
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
-declare powr_numeral[simp]
-declare powr_neg_numeral[simp]
+declare powr_one [simp]
+declare powr_numeral [simp]
+declare powr_neg_one [simp]
+declare powr_neg_numeral [simp]
 
 section "Horner Scheme"
 
@@ -29,7 +31,7 @@ proof -
   have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)"
     by auto
   show ?thesis
-    unfolding setsum_right_distrib shift_pow diff_minus setsum_negf[symmetric]
+    unfolding setsum_right_distrib shift_pow uminus_add_conv_diff [symmetric] setsum_negf[symmetric]
     setsum_head_upt_Suc[OF zero_less_Suc]
     setsum_reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
@@ -132,14 +134,7 @@ definition get_even :: "nat \<Rightarrow> nat" where
 lemma get_odd[simp]: "odd (get_odd n)" unfolding get_odd_def by (cases "odd n", auto)
 lemma get_even[simp]: "even (get_even n)" unfolding get_even_def by (cases "even n", auto)
 lemma get_odd_ex: "\<exists> k. Suc k = get_odd n \<and> odd (Suc k)"
-proof (cases "odd n")
-  case True hence "0 < n" by (rule odd_pos)
-  from gr0_implies_Suc[OF this] obtain k where "Suc k = n" by auto
-  thus ?thesis unfolding get_odd_def if_P[OF True] using True[unfolded `Suc k = n`[symmetric]] by blast
-next
-  case False hence "odd (Suc n)" by auto
-  thus ?thesis unfolding get_odd_def if_not_P[OF False] by blast
-qed
+  by (auto simp: get_odd_def odd_pos intro!: exI[of _ "n - 1"])
 
 lemma get_even_double: "\<exists>i. get_even n = 2 * i" using get_even[unfolded even_mult_two_ex] .
 lemma get_odd_double: "\<exists>i. get_odd n = 2 * i + 1" using get_odd[unfolded odd_Suc_mult_two_ex] by auto
@@ -151,47 +146,9 @@ definition float_power_bnds :: "nat \<Rightarrow> float \<Rightarrow> float \<Ri
                       else if u < 0         then (u ^ n, l ^ n)
                                             else (0, (max (-l) u) ^ n))"
 
-lemma float_power_bnds: fixes x :: real
-  assumes "(l1, u1) = float_power_bnds n l u" and "x \<in> {l .. u}"
-  shows "x ^ n \<in> {l1..u1}"
-proof (cases "even n")
-  case True
-  show ?thesis
-  proof (cases "0 < l")
-    case True hence "odd n \<or> 0 < l" and "0 \<le> real l" by auto
-    have u1: "u1 = u ^ n" and l1: "l1 = l ^ n" using assms
-      unfolding float_power_bnds_def if_P[OF `odd n \<or> 0 < l`] by auto
-    have "real l ^ n \<le> x ^ n" and "x ^ n \<le> real u ^ n " using `0 \<le> real l` assms
-      by (auto simp: power_mono)
-    thus ?thesis using assms `0 < l` unfolding l1 u1 by auto
-  next
-    case False hence P: "\<not> (odd n \<or> 0 < l)" using `even n` by auto
-    show ?thesis
-    proof (cases "u < 0")
-      case True hence "0 \<le> - real u" and "- real u \<le> - x" and "0 \<le> - x" and "-x \<le> - real l" using assms  by auto
-      hence "real u ^ n \<le> x ^ n" and "x ^ n \<le> real l ^ n" using power_mono[of  "-x" "-real l" n] power_mono[of "-real u" "-x" n]
-        unfolding power_minus_even[OF `even n`] by auto
-      moreover have u1: "u1 = l ^ n" and l1: "l1 = u ^ n" using assms unfolding float_power_bnds_def if_not_P[OF P] if_P[OF True] by auto
-      ultimately show ?thesis by auto
-    next
-      case False
-      have "\<bar>x\<bar> \<le> real (max (-l) u)"
-      proof (cases "-l \<le> u")
-        case True thus ?thesis unfolding max_def if_P[OF True] using assms by auto
-      next
-        case False thus ?thesis unfolding max_def if_not_P[OF False] using assms by auto
-      qed
-      hence x_abs: "\<bar>x\<bar> \<le> \<bar>real (max (-l) u)\<bar>" by auto
-      have u1: "u1 = (max (-l) u) ^ n" and l1: "l1 = 0" using assms unfolding float_power_bnds_def if_not_P[OF P] if_not_P[OF False] by auto
-      show ?thesis unfolding atLeastAtMost_iff l1 u1 using zero_le_even_power[OF `even n`] power_mono_even[OF `even n` x_abs] by auto
-    qed
-  qed
-next
-  case False hence "odd n \<or> 0 < l" by auto
-  have u1: "u1 = u ^ n" and l1: "l1 = l ^ n" using assms unfolding float_power_bnds_def if_P[OF `odd n \<or> 0 < l`] by auto
-  have "real l ^ n \<le> x ^ n" and "x ^ n \<le> real u ^ n " using assms unfolding atLeastAtMost_iff using power_mono_odd[OF False] by auto
-  thus ?thesis unfolding atLeastAtMost_iff l1 u1 less_float_def by auto
-qed
+lemma float_power_bnds: "(l1, u1) = float_power_bnds n l u \<Longrightarrow> x \<in> {l .. u} \<Longrightarrow> (x::real) ^ n \<in> {l1..u1}"
+  by (auto simp: float_power_bnds_def max_def split: split_if_asm
+           intro: power_mono_odd power_mono power_mono_even zero_le_even_power)
 
 lemma bnds_power: "\<forall> (x::real) l u. (l1, u1) = float_power_bnds n l u \<and> x \<in> {l .. u} \<longrightarrow> l1 \<le> x ^ n \<and> x ^ n \<le> u1"
   using float_power_bnds by auto
@@ -244,7 +201,7 @@ proof -
 qed
 
 lemma sqrt_iteration_bound: assumes "0 < real x"
-  shows "sqrt x < (sqrt_iteration prec n x)"
+  shows "sqrt x < sqrt_iteration prec n x"
 proof (induct n)
   case 0
   show ?case
@@ -356,20 +313,8 @@ proof -
   note ub = this
 
   show ?thesis
-  proof (cases "0 < x")
-    case True with lb ub show ?thesis by auto
-  next case False show ?thesis
-  proof (cases "real x = 0")
-    case True thus ?thesis
-      by (auto simp add: lb_sqrt.simps ub_sqrt.simps)
-  next
-    case False with `\<not> 0 < x` have "x < 0" and "0 < -x"
-      by auto
-
-    with `\<not> 0 < x`
-    show ?thesis using lb[OF `0 < -x`] ub[OF `0 < -x`]
-      by (auto simp add: real_sqrt_minus lb_sqrt.simps ub_sqrt.simps)
-  qed qed
+    using lb[of "-x"] ub[of "-x"] lb[of x] ub[of x]
+    by (auto simp add: lb_sqrt.simps ub_sqrt.simps real_sqrt_minus)
 qed
 
 lemma bnds_sqrt: "\<forall> (x::real) lx ux. (l, u) = (lb_sqrt prec lx, ub_sqrt prec ux) \<and> x \<in> {lx .. ux} \<longrightarrow> l \<le> sqrt x \<and> sqrt x \<le> u"
@@ -412,8 +357,8 @@ lemma arctan_0_1_bounds':
   assumes "0 \<le> real x" "real x \<le> 1" and "even n"
   shows "arctan x \<in> {(x * lb_arctan_horner prec n 1 (x * x)) .. (x * ub_arctan_horner prec (Suc n) 1 (x * x))}"
 proof -
-  let "?c i" = "-1^i * (1 / (i * 2 + (1::nat)) * real x ^ (i * 2 + 1))"
-  let "?S n" = "\<Sum> i=0..<n. ?c i"
+  let ?c = "\<lambda>i. -1^i * (1 / (i * 2 + (1::nat)) * real x ^ (i * 2 + 1))"
+  let ?S = "\<lambda>n. \<Sum> i=0..<n. ?c i"
 
   have "0 \<le> real (x * x)" by auto
   from `even n` obtain m where "2 * m = n" unfolding even_mult_two_ex by auto
@@ -457,30 +402,11 @@ qed
 
 lemma arctan_0_1_bounds: assumes "0 \<le> real x" "real x \<le> 1"
   shows "arctan x \<in> {(x * lb_arctan_horner prec (get_even n) 1 (x * x)) .. (x * ub_arctan_horner prec (get_odd n) 1 (x * x))}"
-proof (cases "even n")
-  case True
-  obtain n' where "Suc n' = get_odd n" and "odd (Suc n')" using get_odd_ex by auto
-  hence "even n'" unfolding even_Suc by auto
-  have "arctan x \<le> x * ub_arctan_horner prec (get_odd n) 1 (x * x)"
-    unfolding `Suc n' = get_odd n`[symmetric] using arctan_0_1_bounds'[OF `0 \<le> real x` `real x \<le> 1` `even n'`] by auto
-  moreover
-  have "x * lb_arctan_horner prec (get_even n) 1 (x * x) \<le> arctan x"
-    unfolding get_even_def if_P[OF True] using arctan_0_1_bounds'[OF `0 \<le> real x` `real x \<le> 1` `even n`] by auto
-  ultimately show ?thesis by auto
-next
-  case False hence "0 < n" by (rule odd_pos)
-  from gr0_implies_Suc[OF this] obtain n' where "n = Suc n'" ..
-  from False[unfolded this even_Suc]
-  have "even n'" and "even (Suc (Suc n'))" by auto
-  have "get_odd n = Suc n'" unfolding get_odd_def if_P[OF False] using `n = Suc n'` .
-
-  have "arctan x \<le> x * ub_arctan_horner prec (get_odd n) 1 (x * x)"
-    unfolding `get_odd n = Suc n'` using arctan_0_1_bounds'[OF `0 \<le> real x` `real x \<le> 1` `even n'`] by auto
-  moreover
-  have "(x * lb_arctan_horner prec (get_even n) 1 (x * x)) \<le> arctan x"
-    unfolding get_even_def if_not_P[OF False] unfolding `n = Suc n'` using arctan_0_1_bounds'[OF `0 \<le> real x` `real x \<le> 1` `even (Suc (Suc n'))`] by auto
-  ultimately show ?thesis by auto
-qed
+  using
+    arctan_0_1_bounds'[OF assms, of n prec]
+    arctan_0_1_bounds'[OF assms, of "n + 1" prec]
+    arctan_0_1_bounds'[OF assms, of "n - 1" prec]
+  by (auto simp: get_even_def get_odd_def odd_pos simp del: ub_arctan_horner.simps lb_arctan_horner.simps)
 
 subsection "Compute \<pi>"
 
@@ -530,16 +456,11 @@ proof -
     finally have "?k * lb_arctan_horner prec (get_even n) 1 (?k * ?k) \<le> arctan (1 / k)" .
   } note lb_arctan = this
 
-  have "pi \<le> ub_pi n"
-    unfolding ub_pi_def machin_pi Let_def unfolding Float_num
-    using lb_arctan[of 239] ub_arctan[of 5] powr_realpow[of 2 2]
-    by (auto intro!: mult_left_mono add_mono simp add: diff_minus)
-  moreover
-  have "lb_pi n \<le> pi"
-    unfolding lb_pi_def machin_pi Let_def Float_num
-    using lb_arctan[of 5] ub_arctan[of 239] powr_realpow[of 2 2]
-    by (auto intro!: mult_left_mono add_mono simp add: diff_minus)
-  ultimately show ?thesis by auto
+  have "pi \<le> ub_pi n \<and> lb_pi n \<le> pi"
+    unfolding lb_pi_def ub_pi_def machin_pi Let_def unfolding Float_num
+    using lb_arctan[of 5] ub_arctan[of 239] lb_arctan[of 239] ub_arctan[of 5] powr_realpow[of 2 2]
+    by (auto intro!: mult_left_mono add_mono simp add: uminus_add_conv_diff [symmetric] simp del: uminus_add_conv_diff)
+  then show ?thesis by auto
 qed
 
 subsection "Compute arcus tangens in the entire domain"
@@ -1208,8 +1129,8 @@ proof ((rule allI | rule impI | erule conjE) +)
     using x unfolding k[symmetric]
     by (cases "k = 0")
        (auto intro!: add_mono
-                simp add: diff_minus k[symmetric]
-                simp del: float_of_numeral)
+                simp add: k [symmetric] uminus_add_conv_diff [symmetric]
+                simp del: float_of_numeral uminus_add_conv_diff)
   note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
   hence lx_less_ux: "?lx \<le> real ?ux" by (rule order_trans)
 
@@ -1223,7 +1144,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + (-k) * (2 * pi))"
       using cos_monotone_minus_pi_0'[OF pi_lx lx x_le_0]
       by (simp only: uminus_float.rep_eq real_of_int_minus
-        cos_minus diff_minus mult_minus_left)
+        cos_minus mult_minus_left) simp
     finally have "(lb_cos prec (- ?lx)) \<le> cos x"
       unfolding cos_periodic_int . }
   note negative_lx = this
@@ -1236,7 +1157,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + (-k) * (2 * pi)) \<le> cos ?lx"
       using cos_monotone_0_pi'[OF lx_0 lx pi_x]
       by (simp only: real_of_int_minus
-        cos_minus diff_minus mult_minus_left)
+        cos_minus mult_minus_left) simp
     also have "\<dots> \<le> (ub_cos prec ?lx)"
       using lb_cos[OF lx_0 pi_lx] by simp
     finally have "cos x \<le> (ub_cos prec ?lx)"
@@ -1251,7 +1172,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + (-k) * (2 * pi)) \<le> cos (real (- ?ux))"
       using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
       by (simp only: uminus_float.rep_eq real_of_int_minus
-          cos_minus diff_minus mult_minus_left)
+          cos_minus mult_minus_left) simp
     also have "\<dots> \<le> (ub_cos prec (- ?ux))"
       using lb_cos_minus[OF pi_ux ux_0, of prec] by simp
     finally have "cos x \<le> (ub_cos prec (- ?ux))"
@@ -1268,7 +1189,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + (-k) * (2 * pi))"
       using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
       by (simp only: real_of_int_minus
-        cos_minus diff_minus mult_minus_left)
+        cos_minus mult_minus_left) simp
     finally have "(lb_cos prec ?ux) \<le> cos x"
       unfolding cos_periodic_int . }
   note positive_ux = this
@@ -1342,8 +1263,8 @@ proof ((rule allI | rule impI | erule conjE) +)
         unfolding cos_periodic_int ..
       also have "\<dots> \<le> cos ((?ux - 2 * ?lpi))"
         using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
-        by (simp only: minus_float.rep_eq real_of_int_minus real_of_one minus_one[symmetric]
-            diff_minus mult_minus_left mult_1_left)
+        by (simp only: minus_float.rep_eq real_of_int_minus real_of_one
+          mult_minus_left mult_1_left) simp
       also have "\<dots> = cos ((- (?ux - 2 * ?lpi)))"
         unfolding uminus_float.rep_eq cos_minus ..
       also have "\<dots> \<le> (ub_cos prec (- (?ux - 2 * ?lpi)))"
@@ -1387,7 +1308,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos ((?lx + 2 * ?lpi))"
         using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
         by (simp only: minus_float.rep_eq real_of_int_minus real_of_one
-          minus_one[symmetric] diff_minus mult_minus_left mult_1_left)
+          mult_minus_left mult_1_left) simp
       also have "\<dots> \<le> (ub_cos prec (?lx + 2 * ?lpi))"
         using lb_cos[OF lx_0 pi_lx] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
@@ -1808,10 +1729,8 @@ lemma float_pos_eq_mantissa_pos:  "x > 0 \<longleftrightarrow> mantissa x > 0"
   done
 
 lemma Float_pos_eq_mantissa_pos:  "Float m e > 0 \<longleftrightarrow> m > 0"
-  apply (auto simp add: zero_less_mult_iff zero_float_def powr_gt_zero[of 2 "exponent x"] dest: less_zeroE)
   using powr_gt_zero[of 2 "e"]
-  apply simp
-  done
+  by (auto simp add: zero_less_mult_iff zero_float_def simp del: powr_gt_zero dest: less_zeroE)
 
 lemma Float_representation_aux:
   fixes m e
@@ -2164,12 +2083,12 @@ lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs
   unfolding divide_inverse interpret_floatarith.simps ..
 
 lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
-  unfolding diff_minus interpret_floatarith.simps ..
+  unfolding interpret_floatarith.simps by simp
 
 lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs =
   sin (interpret_floatarith a vs)"
   unfolding sin_cos_eq interpret_floatarith.simps
-            interpret_floatarith_divide interpret_floatarith_diff diff_minus
+            interpret_floatarith_divide interpret_floatarith_diff
   by auto
 
 lemma interpret_floatarith_tan:
@@ -2187,8 +2106,9 @@ lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln
 lemma interpret_floatarith_num:
   shows "interpret_floatarith (Num (Float 0 0)) vs = 0"
   and "interpret_floatarith (Num (Float 1 0)) vs = 1"
+  and "interpret_floatarith (Num (Float (- 1) 0)) vs = - 1"
   and "interpret_floatarith (Num (Float (numeral a) 0)) vs = numeral a"
-  and "interpret_floatarith (Num (Float (neg_numeral a) 0)) vs = neg_numeral a" by auto
+  and "interpret_floatarith (Num (Float (- numeral a) 0)) vs = - numeral a" by auto
 
 subsection "Implement approximation function"
 
@@ -3192,7 +3112,7 @@ proof -
 
   from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
   have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
-    by (auto simp add: diff_minus)
+    by auto
   from order_less_le_trans[OF _ this, of 0] `0 < ly`
   show ?thesis by auto
 qed
@@ -3214,7 +3134,7 @@ proof -
 
   from approx_tse[OF this _ _ _ _ tse[symmetric], of l' u'] x'
   have "ly \<le> interpret_floatarith a [x] - interpret_floatarith b [x]"
-    by (auto simp add: diff_minus)
+    by auto
   from order_trans[OF _ this, of 0] `0 \<le> ly`
   show ?thesis by auto
 qed

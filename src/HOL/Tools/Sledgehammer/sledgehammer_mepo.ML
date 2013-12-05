@@ -11,13 +11,33 @@ sig
   type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type params = Sledgehammer_Provers.params
-  type relevance_fudge = Sledgehammer_Provers.relevance_fudge
+
+  type relevance_fudge =
+    {local_const_multiplier : real,
+     worse_irrel_freq : real,
+     higher_order_irrel_weight : real,
+     abs_rel_weight : real,
+     abs_irrel_weight : real,
+     theory_const_rel_weight : real,
+     theory_const_irrel_weight : real,
+     chained_const_irrel_weight : real,
+     intro_bonus : real,
+     elim_bonus : real,
+     simp_bonus : real,
+     local_bonus : real,
+     assum_bonus : real,
+     chained_bonus : real,
+     max_imperfect : real,
+     max_imperfect_exp : real,
+     threshold_divisor : real,
+     ridiculous_threshold : real}
 
   val trace : bool Config.T
   val pseudo_abs_name : string
+  val default_relevance_fudge : relevance_fudge
   val mepo_suggested_facts :
-    Proof.context -> params -> string -> int -> relevance_fudge option
-    -> term list -> term -> raw_fact list -> fact list
+    Proof.context -> params -> int -> relevance_fudge option -> term list -> term ->
+    raw_fact list -> fact list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
@@ -36,6 +56,47 @@ val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 val pseudo_abs_name = sledgehammer_prefix ^ "abs"
 val theory_const_suffix = Long_Name.separator ^ " 1"
 
+type relevance_fudge =
+  {local_const_multiplier : real,
+   worse_irrel_freq : real,
+   higher_order_irrel_weight : real,
+   abs_rel_weight : real,
+   abs_irrel_weight : real,
+   theory_const_rel_weight : real,
+   theory_const_irrel_weight : real,
+   chained_const_irrel_weight : real,
+   intro_bonus : real,
+   elim_bonus : real,
+   simp_bonus : real,
+   local_bonus : real,
+   assum_bonus : real,
+   chained_bonus : real,
+   max_imperfect : real,
+   max_imperfect_exp : real,
+   threshold_divisor : real,
+   ridiculous_threshold : real}
+
+(* FUDGE *)
+val default_relevance_fudge =
+  {local_const_multiplier = 1.5,
+   worse_irrel_freq = 100.0,
+   higher_order_irrel_weight = 1.05,
+   abs_rel_weight = 0.5,
+   abs_irrel_weight = 2.0,
+   theory_const_rel_weight = 0.5,
+   theory_const_irrel_weight = 0.25,
+   chained_const_irrel_weight = 0.25,
+   intro_bonus = 0.15,
+   elim_bonus = 0.15,
+   simp_bonus = 0.15,
+   local_bonus = 0.55,
+   assum_bonus = 1.05,
+   chained_bonus = 1.5,
+   max_imperfect = 11.5,
+   max_imperfect_exp = 1.0,
+   threshold_divisor = 2.0,
+   ridiculous_threshold = 0.1}
+
 fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
     Int.max (order_of_type T1 + 1, order_of_type T2)
   | order_of_type (Type (_, Ts)) = fold (Integer.max o order_of_type) Ts 0
@@ -43,24 +104,26 @@ fun order_of_type (Type (@{type_name fun}, [T1, T2])) =
 
 (* An abstraction of Isabelle types and first-order terms *)
 datatype pattern = PVar | PApp of string * pattern list
-datatype ptype = PType of int * pattern list
+datatype ptype = PType of int * typ list
 
-fun string_of_pattern PVar = "_"
-  | string_of_pattern (PApp (s, ps)) =
-    if null ps then s else s ^ string_of_patterns ps
-and string_of_patterns ps = "(" ^ commas (map string_of_pattern ps) ^ ")"
-fun string_of_ptype (PType (_, ps)) = string_of_patterns ps
+fun string_of_patternT (TVar _) = "_"
+  | string_of_patternT (Type (s, ps)) =
+    if null ps then s else s ^ string_of_patternsT ps
+  | string_of_patternT (TFree (s, _)) = s
+and string_of_patternsT ps = "(" ^ commas (map string_of_patternT ps) ^ ")"
+fun string_of_ptype (PType (_, ps)) = string_of_patternsT ps
 
 (*Is the second type an instance of the first one?*)
-fun match_pattern (PVar, _) = true
-  | match_pattern (PApp _, PVar) = false
-  | match_pattern (PApp (s, ps), PApp (t, qs)) =
-    s = t andalso match_patterns (ps, qs)
-and match_patterns (_, []) = true
-  | match_patterns ([], _) = false
-  | match_patterns (p :: ps, q :: qs) =
-    match_pattern (p, q) andalso match_patterns (ps, qs)
-fun match_ptype (PType (_, ps), PType (_, qs)) = match_patterns (ps, qs)
+fun match_patternT (TVar _, _) = true
+  | match_patternT (Type (s, ps), Type (t, qs)) =
+    s = t andalso match_patternsT (ps, qs)
+  | match_patternT (TFree (s, _), TFree (t, _)) = s = t
+  | match_patternT (_, _) = false
+and match_patternsT (_, []) = true
+  | match_patternsT ([], _) = false
+  | match_patternsT (p :: ps, q :: qs) =
+    match_patternT (p, q) andalso match_patternsT (ps, qs)
+fun match_ptype (PType (_, ps), PType (_, qs)) = match_patternsT (ps, qs)
 
 (* Is there a unifiable constant? *)
 fun pconst_mem f consts (s, ps) =
@@ -69,14 +132,9 @@ fun pconst_mem f consts (s, ps) =
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
 
-fun pattern_of_type (Type (s, Ts)) = PApp (s, map pattern_of_type Ts)
-  | pattern_of_type (TFree (s, _)) = PApp (s, [])
-  | pattern_of_type (TVar _) = PVar
-
 (* Pairs a constant with the list of its type instantiations. *)
 fun ptype thy const x =
-  (if const then map pattern_of_type (these (try (Sign.const_typargs thy) x))
-   else [])
+  (if const then these (try (Sign.const_typargs thy) x) else [])
 fun rich_ptype thy const (s, T) =
   PType (order_of_type T, ptype thy const (s, T))
 fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
@@ -84,9 +142,19 @@ fun rich_pconst thy const (s, T) = (s, rich_ptype thy const (s, T))
 fun string_of_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_of_ptype ps) ^ "}"
 
-(* Add a pconstant to the table, but a [] entry means a standard
-   connective, which we ignore.*)
-fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
+fun patternT_eq (TVar _, TVar _) = true
+  | patternT_eq (Type (s, Ts), Type (t, Us)) = s = t andalso patternsT_eq (Ts, Us)
+  | patternT_eq (TFree (s, _), TFree (t, _)) = (s = t)
+  | patternT_eq _ = false
+and patternsT_eq ([], []) = true
+  | patternsT_eq ([], _) = false
+  | patternsT_eq (_, []) = false
+  | patternsT_eq (T :: Ts, U :: Us) = patternT_eq (T, U) andalso patternsT_eq (Ts, Us)
+fun ptype_eq (PType (m, Ts), PType (n, Us)) = m = n andalso patternsT_eq (Ts, Us)
+
+ (* Add a pconstant to the table, but a [] entry means a standard connective,
+    which we ignore. *)
+fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert ptype_eq p)
 
 (* Set constants tend to pull in too many irrelevant facts. We limit the damage
    by treating them more or less as if they were built-in but add their
@@ -94,21 +162,18 @@ fun add_pconst_to_table (s, p) = Symtab.map_default (s, [p]) (insert (op =) p)
 val set_consts = [@{const_name Collect}, @{const_name Set.member}]
 val set_thms = @{thms Collect_mem_eq mem_Collect_eq Collect_cong}
 
-fun add_pconsts_in_term thy is_built_in_const =
+fun add_pconsts_in_term thy =
   let
-    fun do_const const ext_arg (x as (s, _)) ts =
-      let val (built_in, ts) = is_built_in_const x ts in
-        if member (op =) set_consts s then
-          fold (do_term ext_arg) ts
-        else
-          (not built_in
-           ? add_pconst_to_table (rich_pconst thy const x))
-          #> fold (do_term false) ts
-      end
+    fun do_const const (x as (s, _)) ts =
+      if member (op =) set_consts s then
+        fold (do_term false) ts
+      else
+        (not (is_irrelevant_const s) ? add_pconst_to_table (rich_pconst thy const x))
+        #> fold (do_term false) ts
     and do_term ext_arg t =
       case strip_comb t of
-        (Const x, ts) => do_const true ext_arg x ts
-      | (Free x, ts) => do_const false ext_arg x ts
+        (Const x, ts) => do_const true x ts
+      | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
         ((null ts andalso not ext_arg)
          (* Since lambdas on the right-hand side of equalities are usually
@@ -122,7 +187,7 @@ fun add_pconsts_in_term thy is_built_in_const =
       if T = HOLogic.boolT then do_formula else do_term ext_arg
     and do_formula t =
       case t of
-        Const (@{const_name all}, _) $ Abs (_, T, t') => do_formula t'
+        Const (@{const_name all}, _) $ Abs (_, _, t') => do_formula t'
       | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
@@ -130,8 +195,8 @@ fun add_pconsts_in_term thy is_built_in_const =
       | @{const False} => I
       | @{const True} => I
       | @{const Not} $ t1 => do_formula t1
-      | Const (@{const_name All}, _) $ Abs (_, T, t') => do_formula t'
-      | Const (@{const_name Ex}, _) $ Abs (_, T, t') => do_formula t'
+      | Const (@{const_name All}, _) $ Abs (_, _, t') => do_formula t'
+      | Const (@{const_name Ex}, _) $ Abs (_, _, t') => do_formula t'
       | @{const HOL.conj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.disj} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | @{const HOL.implies} $ t1 $ t2 => do_formula t1 #> do_formula t2
@@ -140,19 +205,19 @@ fun add_pconsts_in_term thy is_built_in_const =
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
         do_formula t1 #> fold (do_term_or_formula false T) [t2, t3]
-      | Const (@{const_name Ex1}, _) $ Abs (_, T, t') => do_formula t'
-      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, T, t') =>
+      | Const (@{const_name Ex1}, _) $ Abs (_, _, t') => do_formula t'
+      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
-      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, T, t') =>
+      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, _, t') =>
         do_formula (t1 $ Bound ~1) #> do_formula t'
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term false t0 #> do_formula t1  (* theory constant *)
       | _ => do_term false t
   in do_formula end
 
-fun pconsts_in_fact thy is_built_in_const t =
+fun pconsts_in_fact thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const t) []
+              (Symtab.empty |> add_pconsts_in_term thy t) []
 
 (* Inserts a dummy "constant" referring to the theory name, so that relevance
    takes the given theory into account. *)
@@ -167,9 +232,9 @@ fun theory_constify ({theory_const_rel_weight, theory_const_irrel_weight, ...}
 fun theory_const_prop_of fudge th =
   theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
 
-fun pair_consts_fact thy is_built_in_const fudge fact =
+fun pair_consts_fact thy fudge fact =
   case fact |> snd |> theory_const_prop_of fudge
-            |> pconsts_in_fact thy is_built_in_const of
+            |> pconsts_in_fact thy of
     [] => NONE
   | consts => SOME ((fact, consts), NONE)
 
@@ -177,15 +242,22 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
    first by constant name and second by its list of type instantiations. For the
    latter, we need a linear ordering on "pattern list". *)
 
-fun pattern_ord p =
+fun patternT_ord p =
   case p of
-    (PVar, PVar) => EQUAL
-  | (PVar, PApp _) => LESS
-  | (PApp _, PVar) => GREATER
-  | (PApp q1, PApp q2) =>
-    prod_ord fast_string_ord (dict_ord pattern_ord) (q1, q2)
-fun ptype_ord (PType p, PType q) =
-  prod_ord (dict_ord pattern_ord) int_ord (swap p, swap q)
+    (Type (s, ps), Type (t, qs)) =>
+    (case fast_string_ord (s, t) of
+      EQUAL => dict_ord patternT_ord (ps, qs)
+    | ord => ord)
+  | (TVar _, TVar _) => EQUAL
+  | (TVar _, _) => LESS
+  | (Type _, TVar _) => GREATER
+  | (Type _, TFree _) => LESS
+  | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
+  | (TFree _, _) => GREATER
+fun ptype_ord (PType (m, ps), PType (n, qs)) =
+  (case dict_ord patternT_ord (ps, qs) of
+    EQUAL => int_ord (m, n)
+  | ord => ord)
 
 structure PType_Tab = Table(type key = ptype val ord = ptype_ord)
 
@@ -326,23 +398,23 @@ fun take_most_relevant ctxt max_facts remaining_max
     (accepts, more_rejects @ rejects)
   end
 
-fun if_empty_replace_with_scope thy is_built_in_const facts sc tab =
+fun if_empty_replace_with_scope thy facts sc tab =
   if Symtab.is_empty tab then
     Symtab.empty
-    |> fold (add_pconsts_in_term thy is_built_in_const)
+    |> fold (add_pconsts_in_term thy)
             (map_filter (fn ((_, (sc', _)), th) =>
                             if sc' = sc then SOME (prop_of th) else NONE) facts)
   else
     tab
 
-fun consider_arities is_built_in_const th =
+fun consider_arities th =
   let
     fun aux _ _ NONE = NONE
       | aux t args (SOME tab) =
         case t of
           t1 $ t2 => SOME tab |> aux t1 (t2 :: args) |> aux t2 []
-        | Const (x as (s, _)) =>
-          (if is_built_in_const x args |> fst then
+        | Const (s, _) =>
+          (if is_widely_irrelevant_const s then
              SOME tab
            else case Symtab.lookup tab s of
              NONE => SOME (Symtab.update (s, length args) tab)
@@ -351,24 +423,24 @@ fun consider_arities is_built_in_const th =
   in aux (prop_of th) [] end
 
 (* FIXME: This is currently only useful for polymorphic type encodings. *)
-fun could_benefit_from_ext is_built_in_const facts =
-  fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
-  |> is_none
+fun could_benefit_from_ext facts =
+  fold (consider_arities o snd) facts (SOME Symtab.empty) |> is_none
 
 (* High enough so that it isn't wrongly considered as very relevant (e.g., for E
    weights), but low enough so that it is unlikely to be truncated away if few
    facts are included. *)
 val special_fact_index = 45 (* FUDGE *)
 
+fun eq_prod eqx eqy ((x1, y1), (x2, y2)) = eqx (x1, x2) andalso eqy (y1, y2)
+
 val really_hopeless_get_kicked_out_iter = 5 (* FUDGE *)
 
-fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
-        (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts
-        concl_t =
+fun relevance_filter ctxt thres0 decay max_facts
+        (fudge as {threshold_divisor, ridiculous_threshold, ...}) facts hyp_ts concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
-    val add_pconsts = add_pconsts_in_term thy is_built_in_const
+    val add_pconsts = add_pconsts_in_term thy
     val chained_ts =
       facts |> map_filter (fn ((_, (Chained, _)), th) => SOME (prop_of th)
                             | _ => NONE)
@@ -378,8 +450,7 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
       |> fold add_pconsts hyp_ts
       |> add_pconsts concl_t
       |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
-      |> fold (if_empty_replace_with_scope thy is_built_in_const facts)
-              [Chained, Assum, Local]
+      |> fold (if_empty_replace_with_scope thy facts) [Chained, Assum, Local]
     fun iter j remaining_max thres rel_const_tab hopeless hopeful =
       let
         val hopeless =
@@ -421,7 +492,8 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
               trace_msg ctxt (fn () => "New or updated constants: " ^
                   commas (rel_const_tab'
                           |> Symtab.dest
-                          |> subtract (op =) (rel_const_tab |> Symtab.dest)
+                          |> subtract (eq_prod (op =) (eq_list ptype_eq))
+                                      (rel_const_tab |> Symtab.dest)
                           |> map string_of_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
@@ -475,41 +547,33 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
         in bef @ add @ after end
     fun insert_special_facts accepts =
       (* FIXME: get rid of "ext" here once it is treated as a helper *)
-      [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
+      [] |> could_benefit_from_ext accepts ? cons @{thm ext}
          |> add_set_const_thms accepts
          |> insert_into_facts accepts
   in
-    facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
+    facts |> map_filter (pair_consts_fact thy fudge)
           |> iter 0 max_facts thres0 goal_const_tab []
           |> insert_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
 
-fun mepo_suggested_facts ctxt
-        ({fact_thresholds = (thres0, thres1), ...} : params) prover
-        max_facts fudge hyp_ts concl_t facts =
+fun mepo_suggested_facts ctxt ({fact_thresholds = (thres0, thres1), ...} : params) max_facts fudge
+      hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val is_built_in_const =
-      Sledgehammer_Provers.is_built_in_const_of_prover ctxt prover
-    val fudge =
-      case fudge of
-        SOME fudge => fudge
-      | NONE => Sledgehammer_Provers.relevance_fudge_of_prover ctxt prover
+    val fudge = fudge |> the_default default_relevance_fudge
     val decay = Math.pow ((1.0 - thres1) / (1.0 - thres0),
                           1.0 / Real.fromInt (max_facts + 1))
   in
-    trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^
-                             " facts");
+    trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^ " facts");
     (if thres1 < 0.0 then
        facts
-     else if thres0 > 1.0 orelse thres0 > thres1 then
+     else if thres0 > 1.0 orelse thres0 > thres1 orelse max_facts <= 0 then
        []
      else
-       relevance_filter ctxt thres0 decay max_facts is_built_in_const fudge
-           facts hyp_ts
-           (concl_t |> theory_constify fudge (Context.theory_name thy)))
+       relevance_filter ctxt thres0 decay max_facts fudge facts hyp_ts
+         (concl_t |> theory_constify fudge (Context.theory_name thy)))
     |> map fact_of_raw_fact
   end
 

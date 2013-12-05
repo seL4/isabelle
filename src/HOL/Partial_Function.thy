@@ -176,11 +176,12 @@ lemma fixp_induct_uc:
   assumes eq: "f \<equiv> C (fixp_fun (\<lambda>f. U (F (C f))))"
   assumes inverse: "\<And>f. U (C f) = f"
   assumes adm: "ccpo.admissible lub_fun le_fun P"
+  and bot: "P (\<lambda>_. lub {})"
   assumes step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
   shows "P (U f)"
 unfolding eq inverse
 apply (rule ccpo.fixp_induct[OF ccpo adm])
-apply (insert mono, auto simp: monotone_def fun_ord_def)[1]
+apply (insert mono, auto simp: monotone_def fun_ord_def bot fun_lub_def)[2]
 by (rule_tac f="C x" in step, simp add: inverse)
 
 
@@ -237,11 +238,13 @@ qed (auto simp: flat_ord_def)
 
 interpretation tailrec!:
   partial_function_definitions "flat_ord undefined" "flat_lub undefined"
-by (rule flat_interpretation)
+  where "flat_lub undefined {} \<equiv> undefined"
+by (rule flat_interpretation)(simp add: flat_lub_def)
 
 interpretation option!:
   partial_function_definitions "flat_ord None" "flat_lub None"
-by (rule flat_interpretation)
+  where "flat_lub None {} \<equiv> None"
+by (rule flat_interpretation)(simp add: flat_lub_def)
 
 
 abbreviation "tailrec_ord \<equiv> flat_ord undefined"
@@ -281,7 +284,7 @@ lemma fixp_induct_tailrec:
 proof -
   have "\<forall>x y. U f x = y \<longrightarrow> y \<noteq> c \<longrightarrow> P x y"
     by(rule partial_function_definitions.fixp_induct_uc[OF flat_interpretation, of _ U F C, OF mono eq inverse2])
-      (auto intro: step tailrec_admissible)
+      (auto intro: step tailrec_admissible simp add: fun_lub_def flat_lub_def)
   thus ?thesis using result defined by blast
 qed
 
@@ -293,14 +296,15 @@ lemma admissible_image:
   shows "ccpo.admissible (img_lub f g lub) (img_ord f le) P"
 proof (rule ccpo.admissibleI)
   fix A assume "chain (img_ord f le) A"
-   then have ch': "chain le (f ` A)"
-      by (auto simp: img_ord_def intro: chainI dest: chainD)
+  then have ch': "chain le (f ` A)"
+    by (auto simp: img_ord_def intro: chainI dest: chainD)
+  assume "A \<noteq> {}"
   assume P_A: "\<forall>x\<in>A. P x"
   have "(P o g) (lub (f ` A))" using adm ch'
   proof (rule ccpo.admissibleD)
     fix x assume "x \<in> f ` A"
     with P_A show "(P o g) x" by (auto simp: inj[OF inv])
-  qed
+  qed(simp add: `A \<noteq> {}`)
   thus "P (img_lub f g lub A)" unfolding img_lub_def by simp
 qed
 
@@ -312,9 +316,11 @@ proof (rule ccpo.admissibleI)
   fix A :: "('b \<Rightarrow> 'a) set"
   assume Q: "\<forall>f\<in>A. \<forall>x. Q x (f x)"
   assume ch: "chain (fun_ord le) A"
+  assume "A \<noteq> {}"
+  hence non_empty: "\<And>a. {y. \<exists>f\<in>A. y = f a} \<noteq> {}" by auto
   show "\<forall>x. Q x (fun_lub lub A x)"
     unfolding fun_lub_def
-    by (rule allI, rule ccpo.admissibleD[OF adm chain_fun[OF ch]])
+    by (rule allI, rule ccpo.admissibleD[OF adm chain_fun[OF ch] non_empty])
       (auto simp: Q)
 qed
 
@@ -388,7 +394,7 @@ lemma fixp_induct_option:
   assumes defined: "U f x = Some y"
   shows "P x y"
   using step defined option.fixp_induct_uc[of U F C, OF mono eq inverse2 option_admissible]
-  by blast
+  unfolding fun_lub_def flat_lub_def by(auto 9 2)
 
 declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
   @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} @{thm tailrec.fixp_induct_uc}

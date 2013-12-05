@@ -409,64 +409,68 @@ object Build
       verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
-          val (preloaded, parent_syntax) =
-            info.parent match {
-              case None =>
-                (Set.empty[String], Outer_Syntax.init())
-              case Some(parent_name) =>
-                val parent = deps(parent_name)
-                (parent.loaded_theories, parent.syntax)
+          try {
+            val (preloaded, parent_syntax) =
+              info.parent match {
+                case None =>
+                  (Set.empty[String], Outer_Syntax.init())
+                case Some(parent_name) =>
+                  val parent = deps(parent_name)
+                  (parent.loaded_theories, parent.syntax)
+              }
+            val thy_load = new Thy_Load(preloaded, parent_syntax)
+            val thy_info = new Thy_Info(thy_load)
+
+            if (verbose || list_files) {
+              val groups =
+                if (info.groups.isEmpty) ""
+                else info.groups.mkString(" (", " ", ")")
+              progress.echo("Session " + info.chapter + "/" + name + groups)
             }
-          val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
 
-          if (verbose || list_files) {
-            val groups =
-              if (info.groups.isEmpty) ""
-              else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + info.chapter + "/" + name + groups)
-          }
+            val thy_deps =
+              thy_info.dependencies(
+                info.theories.map(_._2).flatten.
+                  map(thy => thy_load.node_name(info.dir + Thy_Load.thy_path(thy))))
 
-          val thy_deps =
-            thy_info.dependencies(
-              info.theories.map(_._2).flatten.
-                map(thy => Thy_Load.path_node_name(info.dir + Thy_Load.thy_path(thy))))
+            thy_deps.errors match {
+              case Nil =>
+              case errs => error(cat_lines(errs))
+            }
 
-          val loaded_theories = thy_deps.loaded_theories
-          val keywords = thy_deps.keywords
-          val syntax = thy_deps.syntax
+            val loaded_theories = thy_deps.loaded_theories
+            val keywords = thy_deps.keywords
+            val syntax = thy_deps.syntax
 
-          val body_files = if (inlined_files) thy_deps.load_files else Nil
+            val body_files = if (inlined_files) thy_deps.load_files else Nil
 
-          val all_files =
-            (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: body_files :::
-              info.files.map(file => info.dir + file)).map(_.expand)
+            val all_files =
+              (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: body_files :::
+                info.files.map(file => info.dir + file)).map(_.expand)
 
-          if (list_files) {
-            progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
-            for {
-              file <- all_files
-              if file.split_ext._2 == "ML"
-            } {
-              val path = info.dir + file
-              try { Symbol.decode_strict(File.read(path)) }
-              catch {
-                case ERROR(msg) =>
-                  cat_error(msg,
-                    "The error(s) above occurred in session " + quote(name) +
-                      " file " + path.toString)
+            if (list_files) {
+              progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+              for {
+                file <- all_files
+                if file.split_ext._2 == "ML"
+              } {
+                val path = info.dir + file
+                try { Symbol.decode_strict(File.read(path)) }
+                catch {
+                  case ERROR(msg) => cat_error(msg, "The error(s) above occurred in file " + path)
+                }
               }
             }
+
+            val sources = all_files.map(p => (p, SHA1.digest(p.file)))
+
+            deps + (name -> Session_Content(loaded_theories, keywords, syntax, sources))
           }
-
-          val sources =
-            try { all_files.map(p => (p, SHA1.digest(p.file))) }
-            catch {
-              case ERROR(msg) =>
-                error(msg + "\nThe error(s) above occurred in session " +
-                  quote(name) + Position.here(info.pos))
-            }
-
-          deps + (name -> Session_Content(loaded_theories, keywords, syntax, sources))
+          catch {
+            case ERROR(msg) =>
+              cat_error(msg, "The error(s) above occurred in session " +
+                quote(name) + Position.here(info.pos))
+          }
       }))
 
   def session_dependencies(

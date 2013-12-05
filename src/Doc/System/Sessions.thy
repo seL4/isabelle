@@ -399,7 +399,7 @@ isabelle build -a -j8 -o threads=4
   \smallskip Build some session images with cleanup of their
   descendants, while retaining their ancestry:
 \begin{ttbox}
-isabelle build -b -c HOL-Boogie HOL-SPARK
+isabelle build -b -c HOL-Algebra HOL-Word
 \end{ttbox}
 
   \smallskip Clean all sessions without building anything:

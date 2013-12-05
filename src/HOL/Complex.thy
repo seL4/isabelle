@@ -108,7 +108,12 @@ definition complex_inverse_def:
 definition complex_divide_def:
   "x / (y\<Colon>complex) = x * inverse y"
 
-lemma Complex_eq_1 [simp]: "(Complex a b = 1) = (a = 1 \<and> b = 0)"
+lemma Complex_eq_1 [simp]:
+  "Complex a b = 1 \<longleftrightarrow> a = 1 \<and> b = 0"
+  by (simp add: complex_one_def)
+
+lemma Complex_eq_neg_1 [simp]:
+  "Complex a b = - 1 \<longleftrightarrow> a = - 1 \<and> b = 0"
   by (simp add: complex_one_def)
 
 lemma complex_Re_one [simp]: "Re 1 = 1"
@@ -166,21 +171,21 @@ lemma complex_Im_of_int [simp]: "Im (of_int z) = 0"
 lemma complex_Re_numeral [simp]: "Re (numeral v) = numeral v"
   using complex_Re_of_int [of "numeral v"] by simp
 
-lemma complex_Re_neg_numeral [simp]: "Re (neg_numeral v) = neg_numeral v"
-  using complex_Re_of_int [of "neg_numeral v"] by simp
+lemma complex_Re_neg_numeral [simp]: "Re (- numeral v) = - numeral v"
+  using complex_Re_of_int [of "- numeral v"] by simp
 
 lemma complex_Im_numeral [simp]: "Im (numeral v) = 0"
   using complex_Im_of_int [of "numeral v"] by simp
 
-lemma complex_Im_neg_numeral [simp]: "Im (neg_numeral v) = 0"
-  using complex_Im_of_int [of "neg_numeral v"] by simp
+lemma complex_Im_neg_numeral [simp]: "Im (- numeral v) = 0"
+  using complex_Im_of_int [of "- numeral v"] by simp
 
 lemma Complex_eq_numeral [simp]:
-  "(Complex a b = numeral w) = (a = numeral w \<and> b = 0)"
+  "Complex a b = numeral w \<longleftrightarrow> a = numeral w \<and> b = 0"
   by (simp add: complex_eq_iff)
 
 lemma Complex_eq_neg_numeral [simp]:
-  "(Complex a b = neg_numeral w) = (a = neg_numeral w \<and> b = 0)"
+  "Complex a b = - numeral w \<longleftrightarrow> a = - numeral w \<and> b = 0"
   by (simp add: complex_eq_iff)
 
 
@@ -421,7 +426,7 @@ lemma complex_i_not_one [simp]: "ii \<noteq> 1"
 lemma complex_i_not_numeral [simp]: "ii \<noteq> numeral w"
   by (simp add: complex_eq_iff)
 
-lemma complex_i_not_neg_numeral [simp]: "ii \<noteq> neg_numeral w"
+lemma complex_i_not_neg_numeral [simp]: "ii \<noteq> - numeral w"
   by (simp add: complex_eq_iff)
 
 lemma i_mult_Complex [simp]: "ii * Complex a b = Complex (- b) a"
@@ -508,7 +513,7 @@ lemma complex_cnj_of_int [simp]: "cnj (of_int z) = of_int z"
 lemma complex_cnj_numeral [simp]: "cnj (numeral w) = numeral w"
   by (simp add: complex_eq_iff)
 
-lemma complex_cnj_neg_numeral [simp]: "cnj (neg_numeral w) = neg_numeral w"
+lemma complex_cnj_neg_numeral [simp]: "cnj (- numeral w) = - numeral w"
   by (simp add: complex_eq_iff)
 
 lemma complex_cnj_scaleR: "cnj (scaleR r x) = scaleR r (cnj x)"
@@ -587,7 +592,7 @@ lemma cis_inverse [simp]: "inverse(cis a) = cis (-a)"
   by (simp add: cis_def)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
-  by (simp add: complex_divide_def cis_mult diff_minus)
+  by (simp add: complex_divide_def cis_mult)
 
 lemma cos_n_Re_cis_pow_n: "cos (real n * a) = Re(cis a ^ n)"
   by (auto simp add: DeMoivre)

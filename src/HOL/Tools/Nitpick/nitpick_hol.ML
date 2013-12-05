@@ -1645,11 +1645,10 @@ fun unfold_defs_in_term
         (hol_ctxt as {thy, ctxt, stds, whacks, total_consts, case_names,
                       def_tables, ground_thm_table, ersatz_table, ...}) =
   let
-    fun do_numeral depth Ts mult T t0 t1 =
+    fun do_numeral depth Ts mult T some_t0 t1 t2 =
       (if is_number_type ctxt T then
          let
-           val j = mult * (HOLogic.dest_num t1)
-                   |> T = nat_T ? Integer.max 0
+           val j = mult * HOLogic.dest_num t2
          in
            if j = 1 then
              raise SAME ()
@@ -1668,15 +1667,16 @@ fun unfold_defs_in_term
          handle TERM _ => raise SAME ()
        else
          raise SAME ())
-      handle SAME () => s_betapply [] (do_term depth Ts t0, do_term depth Ts t1)
+      handle SAME () => (case some_t0 of NONE => s_betapply [] (do_term depth Ts t1, do_term depth Ts t2)
+         | SOME t0 => s_betapply [] (do_term depth Ts t0, s_betapply [] (do_term depth Ts t1, do_term depth Ts t2)))
     and do_term depth Ts t =
       case t of
-        (t0 as Const (@{const_name Num.neg_numeral_class.neg_numeral},
-                      Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
-        do_numeral depth Ts ~1 ran_T t0 t1
-      | (t0 as Const (@{const_name Num.numeral_class.numeral},
-                      Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
-        do_numeral depth Ts 1 ran_T t0 t1
+        (t0 as Const (@{const_name uminus}, _) $ ((t1 as Const (@{const_name numeral},
+                      Type (@{type_name fun}, [_, ran_T]))) $ t2)) =>
+        do_numeral depth Ts ~1 ran_T (SOME t0) t1 t2
+      | (t1 as Const (@{const_name numeral},
+                      Type (@{type_name fun}, [_, ran_T]))) $ t2 =>
+        do_numeral depth Ts 1 ran_T NONE t1 t2
       | Const (@{const_name refl_on}, T) $ Const (@{const_name top}, _) $ t2 =>
         do_const depth Ts t (@{const_name refl'}, range_type T) [t2]
       | (t0 as Const (@{const_name Sigma}, Type (_, [T1, Type (_, [T2, T3])])))

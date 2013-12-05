@@ -6,7 +6,7 @@
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
-imports HyperDef
+imports HyperDef "~~/src/HOL/Library/Lubs_Glbs"
 begin
 
 definition
@@ -368,7 +368,7 @@ by (subst Infinitesimal_hnorm_iff [symmetric], simp)
 
 lemma Infinitesimal_diff:
      "[| x \<in> Infinitesimal;  y \<in> Infinitesimal |] ==> x-y \<in> Infinitesimal"
-by (simp add: diff_minus Infinitesimal_add)
+  using Infinitesimal_add [of x "- y"] by simp
 
 lemma Infinitesimal_mult:
   fixes x y :: "'a::real_normed_algebra star"
@@ -491,7 +491,9 @@ lemma HInfinite_add_le_zero:
      "[|(x::hypreal) \<in> HInfinite; y \<le> 0; x \<le> 0|] ==> (x + y): HInfinite"
 apply (drule HInfinite_minus_iff [THEN iffD2])
 apply (rule HInfinite_minus_iff [THEN iffD1])
-apply (auto intro: HInfinite_add_ge_zero)
+apply (simp only: minus_add add.commute)
+apply (rule HInfinite_add_ge_zero)
+apply simp_all
 done
 
 lemma HInfinite_add_lt_zero:
@@ -620,7 +622,7 @@ lemma approx_minus_iff: " (x @= y) = (x - y @= 0)"
 by (simp add: approx_def)
 
 lemma approx_minus_iff2: " (x @= y) = (-y + x @= 0)"
-by (simp add: approx_def diff_minus add_commute)
+by (simp add: approx_def add_commute)
 
 lemma approx_refl [iff]: "x @= x"
 by (simp add: approx_def Infinitesimal_def)
@@ -637,7 +639,7 @@ done
 lemma approx_trans: "[| x @= y; y @= z |] ==> x @= z"
 apply (simp add: approx_def)
 apply (drule (1) Infinitesimal_add)
-apply (simp add: diff_minus)
+apply simp
 done
 
 lemma approx_trans2: "[| r @= x; s @= x |] ==> r @= s"
@@ -652,7 +654,7 @@ by (blast intro: approx_sym)
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
 simproc_setup approx_reorient_simproc
-  ("0 @= x" | "1 @= y" | "numeral w @= z" | "neg_numeral w @= r") =
+  ("0 @= x" | "1 @= y" | "numeral w @= z" | "- 1 @= y" | "- numeral w @= r") =
 {*
   let val rule = @{thm approx_reorient} RS eq_reflection
       fun proc phi ss ct = case term_of ct of
@@ -687,7 +689,7 @@ qed
 lemma approx_minus: "a @= b ==> -a @= -b"
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: add_commute diff_minus)
+apply (simp add: add_commute)
 done
 
 lemma approx_minus2: "-a @= -b ==> a @= b"
@@ -700,7 +702,7 @@ lemma approx_add_minus: "[| a @= b; c @= d |] ==> a + -c @= b + -d"
 by (blast intro!: approx_add approx_minus)
 
 lemma approx_diff: "[| a @= b; c @= d |] ==> a - c @= b - d"
-by (simp only: diff_minus approx_add approx_minus)
+  using approx_add [of a b "- c" "- d"] by simp
 
 lemma approx_mult1:
   fixes a b c :: "'a::real_normed_algebra star"
@@ -1213,7 +1215,9 @@ lemma lemma_st_part2a:
          r \<in> Reals;  0 < r |]
       ==> -(x + -t) \<le> r"
 apply (subgoal_tac "(t + -r \<le> x)") 
-apply (auto intro: lemma_st_part_le2)
+apply simp
+apply (rule lemma_st_part_le2)
+apply auto
 done
 
 lemma lemma_SReal_ub:
@@ -1238,7 +1242,7 @@ lemma lemma_st_part_not_eq1:
       ==> x + -t \<noteq> r"
 apply auto
 apply (frule isLubD1a [THEN Reals_minus])
-apply (drule Reals_add_cancel, assumption)
+using Reals_add_cancel [of x "- t"] apply simp
 apply (drule_tac x = x in lemma_SReal_lub)
 apply (drule hypreal_isLub_unique, assumption, auto)
 done
@@ -1250,8 +1254,7 @@ lemma lemma_st_part_not_eq2:
       ==> -(x + -t) \<noteq> r"
 apply (auto)
 apply (frule isLubD1a)
-apply (drule Reals_add_cancel, assumption)
-apply (drule_tac a = "-x" in Reals_minus, simp)
+using Reals_add_cancel [of "- x" t] apply simp
 apply (drule_tac x = x in lemma_SReal_lub)
 apply (drule hypreal_isLub_unique, assumption, auto)
 done
@@ -1846,13 +1849,20 @@ by (simp add: st_unique st_SReal st_approx_self approx_add)
 lemma st_numeral [simp]: "st (numeral w) = numeral w"
 by (rule Reals_numeral [THEN st_SReal_eq])
 
-lemma st_neg_numeral [simp]: "st (neg_numeral w) = neg_numeral w"
-by (rule Reals_neg_numeral [THEN st_SReal_eq])
+lemma st_neg_numeral [simp]: "st (- numeral w) = - numeral w"
+proof -
+  from Reals_numeral have "numeral w \<in> \<real>" .
+  then have "- numeral w \<in> \<real>" by simp
+  with st_SReal_eq show ?thesis .
+qed
 
 lemma st_0 [simp]: "st 0 = 0"
 by (simp add: st_SReal_eq)
 
 lemma st_1 [simp]: "st 1 = 1"
+by (simp add: st_SReal_eq)
+
+lemma st_neg_1 [simp]: "st (- 1) = - 1"
 by (simp add: st_SReal_eq)
 
 lemma st_minus: "x \<in> HFinite \<Longrightarrow> st (- x) = - st x"

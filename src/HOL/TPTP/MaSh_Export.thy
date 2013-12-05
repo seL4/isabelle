@@ -63,7 +63,7 @@ else
 
 ML {*
 if do_it then
-  generate_isar_dependencies @{context} thys linearize
+  generate_isar_dependencies @{context} range thys linearize
       (prefix ^ "mash_dependencies")
 else
   ()

@@ -8,8 +8,6 @@ raw_simplifier.ML for the actual meta-level rewriting engine).
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
-  val Addsimprocs: simproc list -> unit
-  val Delsimprocs: simproc list -> unit
   val simp_tac: Proof.context -> int -> tactic
   val asm_simp_tac: Proof.context -> int -> tactic
   val full_simp_tac: Proof.context -> int -> tactic
@@ -124,16 +122,6 @@ val simp_add = attrib add_simp;
 val simp_del = attrib del_simp;
 val cong_add = attrib add_cong;
 val cong_del = attrib del_cong;
-
-
-(* global simprocs *)
-
-fun Addsimprocs args =
-  Theory.setup (map_theory_simpset (fn ctxt => ctxt addsimprocs args));
-
-fun Delsimprocs args =
-  Theory.setup (map_theory_simpset (fn ctxt => ctxt delsimprocs args));
-
 
 
 (** named simprocs **)

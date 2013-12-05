@@ -96,10 +96,6 @@ proof -
 qed
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer (neg_numeral :: num \<Rightarrow> int) (neg_numeral :: num \<Rightarrow> integer)"
-  by (unfold neg_numeral_def [abs_def]) transfer_prover
-
-lemma [transfer_rule]:
   "fun_rel HOL.eq (fun_rel HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold Num.sub_def [abs_def]) transfer_prover
 
@@ -145,10 +141,6 @@ lemma of_int_integer_of [simp]:
 
 lemma int_of_integer_numeral [simp]:
   "int_of_integer (numeral k) = numeral k"
-  by transfer rule
-
-lemma int_of_integer_neg_numeral [simp]:
-  "int_of_integer (neg_numeral k) = neg_numeral k"
   by transfer rule
 
 lemma int_of_integer_sub [simp]:
@@ -253,11 +245,11 @@ lemma [transfer_rule]:
 
 definition Neg :: "num \<Rightarrow> integer"
 where
-  [simp, code_abbrev]: "Neg = neg_numeral"
+  [simp, code_abbrev]: "Neg n = - Pos n"
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer neg_numeral Neg"
-  by simp transfer_prover
+  "fun_rel HOL.eq pcr_integer (\<lambda>n. - numeral n) Neg"
+  by (simp add: Neg_def [abs_def]) transfer_prover
 
 code_datatype "0::integer" Pos Neg
 
@@ -272,7 +264,7 @@ lemma dup_code [code]:
   "dup 0 = 0"
   "dup (Pos n) = Pos (Num.Bit0 n)"
   "dup (Neg n) = Neg (Num.Bit0 n)"
-  by (transfer, simp only: neg_numeral_def numeral_Bit0 minus_add_distrib)+
+  by (transfer, simp only: numeral_Bit0 minus_add_distrib)+
 
 lift_definition sub :: "num \<Rightarrow> num \<Rightarrow> integer"
   is "\<lambda>m n. numeral m - numeral n :: int"

@@ -131,10 +131,8 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
 lemma finite [iff]: "finite (carrier R)"
   by (subst res_carrier_eq, auto)
 
-declare [[simproc del: finite_Collect]]
 lemma finite_Units [iff]: "finite (Units R)"
   by (subst res_units_eq) auto
-declare [[simproc add: finite_Collect]]
 
 (* The function a -> a mod m maps the integers to the
    residue classes. The following lemmas show that this mapping
@@ -455,6 +453,7 @@ lemma wilson_theorem: "prime (p::int) \<Longrightarrow> [fact (p - 1) = - 1] (mo
   apply (subst fact_altdef_int, simp)
   apply (subst cong_int_def)
   apply simp
+  apply arith
   apply (rule residues_prime.wilson_theorem1)
   apply (rule residues_prime.intro)
   apply auto

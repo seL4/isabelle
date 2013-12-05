@@ -183,9 +183,6 @@ let
     | demult (t as Const ("Num.numeral_class.numeral", _) $ n, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_num n)))
         handle TERM _ => (SOME t, m))
-    | demult (t as Const ("Num.neg_numeral_class.neg_numeral", _) $ n, m) =
-      ((NONE, Rat.mult m (Rat.rat_of_int (~ (HOLogic.dest_num n))))
-        handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_nat t)))
         handle TERM _ => (SOME t, m))
@@ -212,6 +209,10 @@ let
         pi
     | poly (Const (@{const_name Groups.one}, _), m, (p, i)) =
         (p, Rat.add i m)
+    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
+        (let val k = HOLogic.dest_num t
+        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
+        handle TERM _ => add_atom all m pi)
     | poly (Const (@{const_name Suc}, _) $ t, m, (p, i)) =
         poly (t, m, (p, Rat.add i m))
     | poly (all as Const (@{const_name Groups.times}, _) $ _ $ _, m, pi as (p, i)) =
@@ -222,14 +223,6 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const ("Num.numeral_class.numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_num t
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k))) end
-        handle TERM _ => add_atom all m pi)
-    | poly (all as Const ("Num.neg_numeral_class.neg_numeral", Type(_,[_,_])) $ t, m, pi as (p, i)) =
-        (let val k = HOLogic.dest_num t
-        in (p, Rat.add i (Rat.mult m (Rat.rat_of_int (~ k)))) end
-        handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
         if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
@@ -791,37 +784,16 @@ val lin_arith_tac = Fast_Arith.lin_arith_tac;
    Most of the work is done by the cancel tactics. *)
 
 val init_arith_data =
-  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, number_of, ...} =>
-   {add_mono_thms = @{thms add_mono_thms_linordered_semiring} @
-      @{thms add_mono_thms_linordered_field} @ add_mono_thms,
-    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} ::
-      @{lemma "a = b ==> c*a = c*b" by (rule arg_cong)} :: mult_mono_thms,
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, number_of, ...} =>
+   {add_mono_thms = @{thms add_mono_thms_linordered_semiring}
+      @ @{thms add_mono_thms_linordered_field} @ add_mono_thms,
+    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono}
+      :: @{lemma "a = b ==> c * a = c * b" by (rule arg_cong)} :: mult_mono_thms,
     inj_thms = inj_thms,
-    lessD = lessD @ [@{thm "Suc_leI"}],
-    neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_linordered_idom}],
-    simpset =
-      put_simpset HOL_basic_ss @{context}
-      addsimps @{thms ring_distribs}
-      addsimps [@{thm if_True}, @{thm if_False}]
-      addsimps
-       [@{thm add_0_left}, @{thm add_0_right},
-        @{thm add_Suc}, @{thm add_Suc_right},
-        @{thm nat.inject}, @{thm Suc_le_mono}, @{thm Suc_less_eq},
-        @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
-        @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
-        @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},
-        @{thm "not_one_less_zero"}]
-      addsimprocs [@{simproc group_cancel_add}, @{simproc group_cancel_diff},
-                   @{simproc group_cancel_eq}, @{simproc group_cancel_le},
-                   @{simproc group_cancel_less}]
-       (*abel_cancel helps it work in abstract algebraic domains*)
-      addsimprocs [@{simproc nateq_cancel_sums},
-                   @{simproc natless_cancel_sums},
-                   @{simproc natle_cancel_sums}]
-      |> Simplifier.add_cong @{thm if_weak_cong}
-      |> simpset_of,
-    number_of = number_of}) #>
-  add_discrete_type @{type_name nat};
+    lessD = lessD,
+    neqE = @{thm linorder_neqE_nat} :: @{thm linorder_neqE_linordered_idom} :: neqE,
+    simpset = put_simpset HOL_basic_ss @{context} |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
+    number_of = number_of});
 
 (* FIXME !?? *)
 fun add_arith_facts ctxt =
@@ -909,9 +881,6 @@ end;
 
 (* context setup *)
 
-val setup =
-  init_arith_data;
-
 val global_setup =
   map_theory_simpset (fn ctxt => ctxt
     addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac))) #>
@@ -923,5 +892,23 @@ val global_setup =
         HEADGOAL (Method.insert_tac (Arith_Data.get_arith_facts ctxt @ facts)
           THEN' tac ctxt)))) "linear arithmetic" #>
   Arith_Data.add_tactic "linear arithmetic" gen_tac;
+
+val setup =
+  init_arith_data
+  #> add_discrete_type @{type_name nat}
+  #> add_lessD @{thm Suc_leI}
+  #> add_simps (@{thms simp_thms} @ @{thms ring_distribs} @ [@{thm if_True}, @{thm if_False},
+      @{thm add_0_left}, @{thm add_0_right}, @{thm order_less_irrefl},
+      @{thm zero_neq_one}, @{thm zero_less_one}, @{thm zero_le_one},
+      @{thm zero_neq_one} RS not_sym, @{thm not_one_le_zero}, @{thm not_one_less_zero}])
+  #> add_simps [@{thm add_Suc}, @{thm add_Suc_right}, @{thm nat.inject},
+      @{thm Suc_le_mono}, @{thm Suc_less_eq}, @{thm Zero_not_Suc},
+      @{thm Suc_not_Zero}, @{thm le_0_eq}, @{thm One_nat_def}]
+  #> add_simprocs [@{simproc group_cancel_add}, @{simproc group_cancel_diff},
+      @{simproc group_cancel_eq}, @{simproc group_cancel_le},
+      @{simproc group_cancel_less}]
+     (*abel_cancel helps it work in abstract algebraic domains*)
+  #> add_simprocs [@{simproc nateq_cancel_sums},@{simproc natless_cancel_sums},
+      @{simproc natle_cancel_sums}];
 
 end;

@@ -15,13 +15,17 @@ imports
   Basic_BNFs
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Multiset"
-  Countable_Type
 begin
 
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-bnf Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
+bnf "'a option"
+  map: Option.map
+  sets: Option.set
+  bd: natLeq 
+  wits: None
+  rel: option_rel
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
 next
@@ -94,7 +98,12 @@ proof (unfold wpull_def)
     (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
 qed
 
-bnf map [set] "\<lambda>_::'a list. natLeq" ["[]"]
+bnf "'a list"
+  map: map
+  sets: set
+  bd: natLeq
+  wits: Nil
+  rel: list_all2
 proof -
   show "map id = id" by (rule List.map.id)
 next
@@ -115,7 +124,15 @@ next
   fix x
   show "|set x| \<le>o natLeq"
     by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
+next
+  fix R
+  show "list_all2 R =
+         (Grp {x. set x \<subseteq> {(x, y). R x y}} (map fst))\<inverse>\<inverse> OO
+         Grp {x. set x \<subseteq> {(x, y). R x y}} (map snd)"
+    unfolding list_all2_def[abs_def] Grp_def fun_eq_iff relcompp.simps conversep.simps
+    by (force simp: zip_map_fst_snd)
 qed (simp add: wpull_map)+
+
 
 (* Finite sets *)
 
@@ -189,7 +206,7 @@ next
   by (transfer, clarsimp, metis fst_conv)
 qed
 
-lemma wpull_fmap:
+lemma wpull_fimage:
   assumes "wpull A B1 B2 f1 f2 p1 p2"
   shows "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
               (fimage f1) (fimage f2) (fimage p1) (fimage p2)"
@@ -214,7 +231,12 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
      using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, blast)+
 qed
 
-bnf fimage [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
+bnf "'a fset"
+  map: fimage
+  sets: fset 
+  bd: natLeq
+  wits: "{||}"
+  rel: fset_rel
 apply -
           apply transfer' apply simp
          apply transfer' apply force
@@ -223,7 +245,7 @@ apply -
       apply (rule natLeq_card_order)
      apply (rule natLeq_cinfinite)
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
-  apply (erule wpull_fmap)
+  apply (erule wpull_fimage)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_alt fset_rel_aux) 
 apply transfer apply simp
 done
@@ -234,121 +256,6 @@ lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2
 end
 
 lemmas [simp] = fset.map_comp fset.map_id fset.set_map
-
-(* Countable sets *)
-
-lemma card_of_countable_sets_range:
-fixes A :: "'a set"
-shows "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |{f::nat \<Rightarrow> 'a. range f \<subseteq> A}|"
-apply(rule card_of_ordLeqI[of from_nat_into]) using inj_on_from_nat_into
-unfolding inj_on_def by auto
-
-lemma card_of_countable_sets_Func:
-"|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |A| ^c natLeq"
-using card_of_countable_sets_range card_of_Func_UNIV[THEN ordIso_symmetric]
-unfolding cexp_def Field_natLeq Field_card_of
-by (rule ordLeq_ordIso_trans)
-
-lemma ordLeq_countable_subsets:
-"|A| \<le>o |{X. X \<subseteq> A \<and> countable X}|"
-apply (rule card_of_ordLeqI[of "\<lambda> a. {a}"]) unfolding inj_on_def by auto
-
-lemma finite_countable_subset:
-"finite {X. X \<subseteq> A \<and> countable X} \<longleftrightarrow> finite A"
-apply default
- apply (erule contrapos_pp)
- apply (rule card_of_ordLeq_infinite)
- apply (rule ordLeq_countable_subsets)
- apply assumption
-apply (rule finite_Collect_conjI)
-apply (rule disjI1)
-by (erule finite_Collect_subsets)
-
-lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
-  apply (rule f_the_inv_into_f[unfolded inj_on_def image_iff])
-   apply transfer' apply simp
-  apply transfer' apply simp
-  done
-
-lemma Collect_Int_Times:
-"{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
-by auto
-
-definition cset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a cset \<Rightarrow> 'b cset \<Rightarrow> bool" where
-"cset_rel R a b \<longleftrightarrow>
- (\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and>
- (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t)"
-
-lemma cset_rel_aux:
-"(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
- ((Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage fst))\<inverse>\<inverse> OO
-          Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage snd)) a b" (is "?L = ?R")
-proof
-  assume ?L
-  def R' \<equiv> "the_inv rcset (Collect (split R) \<inter> (rcset a \<times> rcset b))"
-  (is "the_inv rcset ?L'")
-  have L: "countable ?L'" by auto
-  hence *: "rcset R' = ?L'" unfolding R'_def using fset_to_fset by (intro rcset_to_rcset)
-  thus ?R unfolding Grp_def relcompp.simps conversep.simps
-  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
-    from * `?L` show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)
-  next
-    from * `?L` show "b = cimage snd R'" by transfer (auto simp: image_def Collect_Int_Times)
-  qed simp_all
-next
-  assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
-    by transfer force
-qed
-
-bnf cimage [rcset] "\<lambda>_::'a cset. natLeq" ["cempty"] cset_rel
-proof -
-  show "cimage id = id" by transfer' simp
-next
-  fix f g show "cimage (g \<circ> f) = cimage g \<circ> cimage f" by transfer' fastforce
-next
-  fix C f g assume eq: "\<And>a. a \<in> rcset C \<Longrightarrow> f a = g a"
-  thus "cimage f C = cimage g C" by transfer force
-next
-  fix f show "rcset \<circ> cimage f = op ` f \<circ> rcset" by transfer' fastforce
-next
-  show "card_order natLeq" by (rule natLeq_card_order)
-next
-  show "cinfinite natLeq" by (rule natLeq_cinfinite)
-next
-  fix C show "|rcset C| \<le>o natLeq" by transfer (unfold countable_card_le_natLeq)
-next
-  fix A B1 B2 f1 f2 p1 p2
-  assume wp: "wpull A B1 B2 f1 f2 p1 p2"
-  show "wpull {x. rcset x \<subseteq> A} {x. rcset x \<subseteq> B1} {x. rcset x \<subseteq> B2}
-              (cimage f1) (cimage f2) (cimage p1) (cimage p2)"
-  unfolding wpull_def proof safe
-    fix y1 y2
-    assume Y1: "rcset y1 \<subseteq> B1" and Y2: "rcset y2 \<subseteq> B2"
-    assume "cimage f1 y1 = cimage f2 y2"
-    hence EQ: "f1 ` (rcset y1) = f2 ` (rcset y2)" by transfer
-    with Y1 Y2 obtain X where X: "X \<subseteq> A"
-    and Y1: "p1 ` X = rcset y1" and Y2: "p2 ` X = rcset y2"
-    using wpull_image[OF wp] unfolding wpull_def Pow_def Bex_def mem_Collect_eq
-      by (auto elim!: allE[of _ "rcset y1"] allE[of _ "rcset y2"])
-    have "\<forall> y1' \<in> rcset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
-    then obtain q1 where q1: "\<forall> y1' \<in> rcset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
-    have "\<forall> y2' \<in> rcset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
-    then obtain q2 where q2: "\<forall> y2' \<in> rcset y2. q2 y2' \<in> X \<and> y2' = p2 (q2 y2')" by metis
-    def X' \<equiv> "q1 ` (rcset y1) \<union> q2 ` (rcset y2)"
-    have X': "X' \<subseteq> A" and Y1: "p1 ` X' = rcset y1" and Y2: "p2 ` X' = rcset y2"
-    using X Y1 Y2 q1 q2 unfolding X'_def by fast+
-    have fX': "countable X'" unfolding X'_def by simp
-    then obtain x where X'eq: "X' = rcset x" by transfer blast
-    show "\<exists>x\<in>{x. rcset x \<subseteq> A}. cimage p1 x = y1 \<and> cimage p2 x = y2"
-      using X' Y1 Y2 unfolding X'eq by (intro bexI[of _ "x"]) (transfer, auto)
-  qed
-next
-  fix R
-  show "cset_rel R =
-        (Grp {x. rcset x \<subseteq> Collect (split R)} (cimage fst))\<inverse>\<inverse> OO
-         Grp {x. rcset x \<subseteq> Collect (split R)} (cimage snd)"
-  unfolding cset_rel_def[abs_def] cset_rel_aux by simp
-qed (transfer, simp)
 
 
 (* Multisets *)
@@ -874,22 +781,26 @@ lemma set_of_bd: "|set_of x| \<le>o natLeq"
   by transfer
     (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
 
-bnf mmap [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
+bnf "'a multiset"
+  map: mmap
+  sets: set_of 
+  bd: natLeq
+  wits: "{#}"
 by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
   intro: mmap_cong wpull_mmap)
 
-inductive multiset_rel' where
-Zero: "multiset_rel' R {#} {#}"
+inductive rel_multiset' where
+Zero: "rel_multiset' R {#} {#}"
 |
-Plus: "\<lbrakk>R a b; multiset_rel' R M N\<rbrakk> \<Longrightarrow> multiset_rel' R (M + {#a#}) (N + {#b#})"
+Plus: "\<lbrakk>R a b; rel_multiset' R M N\<rbrakk> \<Longrightarrow> rel_multiset' R (M + {#a#}) (N + {#b#})"
 
-lemma multiset_map_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
+lemma map_multiset_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
 by (metis image_is_empty multiset.set_map set_of_eq_empty_iff)
 
-lemma multiset_map_Zero[simp]: "mmap f {#} = {#}" by simp
+lemma map_multiset_Zero[simp]: "mmap f {#} = {#}" by simp
 
-lemma multiset_rel_Zero: "multiset_rel R {#} {#}"
-unfolding multiset_rel_def Grp_def by auto
+lemma rel_multiset_Zero: "rel_multiset R {#} {#}"
+unfolding rel_multiset_def Grp_def by auto
 
 declare multiset.count[simp]
 declare Abs_multiset_inverse[simp]
@@ -897,7 +808,7 @@ declare multiset.count_inverse[simp]
 declare union_preserves_multiset[simp]
 
 
-lemma multiset_map_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
+lemma map_multiset_Plus[simp]: "mmap f (M1 + M2) = mmap f M1 + mmap f M2"
 proof (intro multiset_eqI, transfer fixing: f)
   fix x :: 'a and M1 M2 :: "'b \<Rightarrow> nat"
   assume "M1 \<in> multiset" "M2 \<in> multiset"
@@ -910,12 +821,12 @@ proof (intro multiset_eqI, transfer fixing: f)
     by (auto simp: setsum.distrib[symmetric])
 qed
 
-lemma multiset_map_singl[simp]: "mmap f {#a#} = {#f a#}"
+lemma map_multiset_singl[simp]: "mmap f {#a#} = {#f a#}"
   by transfer auto
 
-lemma multiset_rel_Plus:
-assumes ab: "R a b" and MN: "multiset_rel R M N"
-shows "multiset_rel R (M + {#a#}) (N + {#b#})"
+lemma rel_multiset_Plus:
+assumes ab: "R a b" and MN: "rel_multiset R M N"
+shows "rel_multiset R (M + {#a#}) (N + {#b#})"
 proof-
   {fix y assume "R a b" and "set_of y \<subseteq> {(x, y). R x y}"
    hence "\<exists>ya. mmap fst y + {#a#} = mmap fst ya \<and>
@@ -925,13 +836,13 @@ proof-
   }
   thus ?thesis
   using assms
-  unfolding multiset_rel_def Grp_def by force
+  unfolding rel_multiset_def Grp_def by force
 qed
 
-lemma multiset_rel'_imp_multiset_rel:
-"multiset_rel' R M N \<Longrightarrow> multiset_rel R M N"
-apply(induct rule: multiset_rel'.induct)
-using multiset_rel_Zero multiset_rel_Plus by auto
+lemma rel_multiset'_imp_rel_multiset:
+"rel_multiset' R M N \<Longrightarrow> rel_multiset R M N"
+apply(induct rule: rel_multiset'.induct)
+using rel_multiset_Zero rel_multiset_Plus by auto
 
 lemma mcard_mmap[simp]: "mcard (mmap f M) = mcard M"
 proof -
@@ -942,8 +853,7 @@ proof -
   using finite_Collect_mem .
   ultimately have fin: "finite {b. \<exists>a. f a = b \<and> a \<in># M}" by(rule finite_subset)
   have i: "inj_on A ?B" unfolding inj_on_def A_def apply clarsimp
-  by (metis (lifting, mono_tags) mem_Collect_eq rel_simps(54)
-                                 setsum_gt_0_iff setsum_infinite)
+    by (metis (lifting, full_types) mem_Collect_eq neq0_conv setsum.neutral)
   have 0: "\<And> b. 0 < setsum (count M) (A b) \<longleftrightarrow> (\<exists> a \<in> A b. count M a > 0)"
   apply safe
     apply (metis less_not_refl setsum_gt_0_iff setsum_infinite)
@@ -964,10 +874,10 @@ proof -
   then show ?thesis unfolding mcard_unfold_setsum A_def by transfer
 qed
 
-lemma multiset_rel_mcard:
-assumes "multiset_rel R M N"
+lemma rel_multiset_mcard:
+assumes "rel_multiset R M N"
 shows "mcard M = mcard N"
-using assms unfolding multiset_rel_def Grp_def by auto
+using assms unfolding rel_multiset_def Grp_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
 assumes empty: "P {#} {#}"
@@ -1022,68 +932,67 @@ proof-
 qed
 
 lemma msed_rel_invL:
-assumes "multiset_rel R (M + {#a#}) N"
-shows "\<exists> N1 b. N = N1 + {#b#} \<and> R a b \<and> multiset_rel R M N1"
+assumes "rel_multiset R (M + {#a#}) N"
+shows "\<exists> N1 b. N = N1 + {#b#} \<and> R a b \<and> rel_multiset R M N1"
 proof-
   obtain K where KM: "mmap fst K = M + {#a#}"
   and KN: "mmap snd K = N" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_rel_def Grp_def by auto
+  unfolding rel_multiset_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and a: "fst ab = a"
   and K1M: "mmap fst K1 = M" using msed_map_invR[OF KM] by auto
   obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "mmap snd K1 = N1"
   using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
-  have "multiset_rel R M N1" using sK K1M K1N1
-  unfolding K multiset_rel_def Grp_def by auto
+  have "rel_multiset R M N1" using sK K1M K1N1
+  unfolding K rel_multiset_def Grp_def by auto
   thus ?thesis using N Rab by auto
 qed
 
 lemma msed_rel_invR:
-assumes "multiset_rel R M (N + {#b#})"
-shows "\<exists> M1 a. M = M1 + {#a#} \<and> R a b \<and> multiset_rel R M1 N"
+assumes "rel_multiset R M (N + {#b#})"
+shows "\<exists> M1 a. M = M1 + {#a#} \<and> R a b \<and> rel_multiset R M1 N"
 proof-
   obtain K where KN: "mmap snd K = N + {#b#}"
   and KM: "mmap fst K = M" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_rel_def Grp_def by auto
+  unfolding rel_multiset_def Grp_def by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and b: "snd ab = b"
   and K1N: "mmap snd K1 = N" using msed_map_invR[OF KN] by auto
   obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "mmap fst K1 = M1"
   using msed_map_invL[OF KM[unfolded K]] by auto
   have Rab: "R (fst ab) b" using sK b unfolding K by auto
-  have "multiset_rel R M1 N" using sK K1N K1M1
-  unfolding K multiset_rel_def Grp_def by auto
+  have "rel_multiset R M1 N" using sK K1N K1M1
+  unfolding K rel_multiset_def Grp_def by auto
   thus ?thesis using M Rab by auto
 qed
 
-lemma multiset_rel_imp_multiset_rel':
-assumes "multiset_rel R M N"
-shows "multiset_rel' R M N"
+lemma rel_multiset_imp_rel_multiset':
+assumes "rel_multiset R M N"
+shows "rel_multiset' R M N"
 using assms proof(induct M arbitrary: N rule: measure_induct_rule[of mcard])
   case (less M)
-  have c: "mcard M = mcard N" using multiset_rel_mcard[OF less.prems] .
+  have c: "mcard M = mcard N" using rel_multiset_mcard[OF less.prems] .
   show ?case
   proof(cases "M = {#}")
     case True hence "N = {#}" using c by simp
-    thus ?thesis using True multiset_rel'.Zero by auto
+    thus ?thesis using True rel_multiset'.Zero by auto
   next
     case False then obtain M1 a where M: "M = M1 + {#a#}" by (metis multi_nonempty_split)
-    obtain N1 b where N: "N = N1 + {#b#}" and R: "R a b" and ms: "multiset_rel R M1 N1"
+    obtain N1 b where N: "N = N1 + {#b#}" and R: "R a b" and ms: "rel_multiset R M1 N1"
     using msed_rel_invL[OF less.prems[unfolded M]] by auto
-    have "multiset_rel' R M1 N1" using less.hyps[of M1 N1] ms unfolding M by simp
-    thus ?thesis using multiset_rel'.Plus[of R a b, OF R] unfolding M N by simp
+    have "rel_multiset' R M1 N1" using less.hyps[of M1 N1] ms unfolding M by simp
+    thus ?thesis using rel_multiset'.Plus[of R a b, OF R] unfolding M N by simp
   qed
 qed
 
-lemma multiset_rel_multiset_rel':
-"multiset_rel R M N = multiset_rel' R M N"
-using  multiset_rel_imp_multiset_rel' multiset_rel'_imp_multiset_rel by auto
+lemma rel_multiset_rel_multiset':
+"rel_multiset R M N = rel_multiset' R M N"
+using  rel_multiset_imp_rel_multiset' rel_multiset'_imp_rel_multiset by auto
 
-(* The main end product for multiset_rel: inductive characterization *)
-theorems multiset_rel_induct[case_names empty add, induct pred: multiset_rel] =
-         multiset_rel'.induct[unfolded multiset_rel_multiset_rel'[symmetric]]
-
+(* The main end product for rel_multiset: inductive characterization *)
+theorems rel_multiset_induct[case_names empty add, induct pred: rel_multiset] =
+         rel_multiset'.induct[unfolded rel_multiset_rel_multiset'[symmetric]]
 
 
 (* Advanced relator customization *)
@@ -1152,6 +1061,5 @@ next
     qed
   qed
 qed
-
 
 end

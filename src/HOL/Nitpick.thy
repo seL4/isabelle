@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports Hilbert_Choice List Map Quotient Record Sledgehammer
+imports Map Record Sledgehammer
 keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
 begin
 
@@ -33,7 +33,7 @@ text {*
 Alternative definitions.
 *}
 
-lemma Ex1_unfold [nitpick_unfold, no_atp]:
+lemma Ex1_unfold [nitpick_unfold]:
 "Ex1 P \<equiv> \<exists>x. {x. P x} = {x}"
 apply (rule eq_reflection)
 apply (simp add: Ex1_def set_eq_iff)
@@ -46,18 +46,18 @@ apply (rule iffI)
  apply (erule_tac x = y in allE)
 by auto
 
-lemma rtrancl_unfold [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
+lemma rtrancl_unfold [nitpick_unfold]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
   by (simp only: rtrancl_trancl_reflcl)
 
-lemma rtranclp_unfold [nitpick_unfold, no_atp]:
+lemma rtranclp_unfold [nitpick_unfold]:
 "rtranclp r a b \<equiv> (a = b \<or> tranclp r a b)"
 by (rule eq_reflection) (auto dest: rtranclpD)
 
-lemma tranclp_unfold [nitpick_unfold, no_atp]:
+lemma tranclp_unfold [nitpick_unfold]:
 "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
 by (simp add: trancl_def)
 
-lemma [nitpick_simp, no_atp]:
+lemma [nitpick_simp]:
 "of_nat n = (if n = 0 then 0 else 1 + of_nat (n - 1))"
 by (cases n) auto
 
@@ -85,18 +85,18 @@ The following lemmas are not strictly necessary but they help the
 \textit{specialize} optimization.
 *}
 
-lemma The_psimp [nitpick_psimp, no_atp]:
+lemma The_psimp [nitpick_psimp]:
   "P = (op =) x \<Longrightarrow> The P = x"
   by auto
 
-lemma Eps_psimp [nitpick_psimp, no_atp]:
+lemma Eps_psimp [nitpick_psimp]:
 "\<lbrakk>P x; \<not> P y; Eps P = y\<rbrakk> \<Longrightarrow> Eps P = x"
 apply (cases "P (Eps P)")
  apply auto
 apply (erule contrapos_np)
 by (rule someI)
 
-lemma unit_case_unfold [nitpick_unfold, no_atp]:
+lemma unit_case_unfold [nitpick_unfold]:
 "unit_case x u \<equiv> x"
 apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
@@ -104,14 +104,14 @@ by simp
 
 declare unit.cases [nitpick_simp del]
 
-lemma nat_case_unfold [nitpick_unfold, no_atp]:
+lemma nat_case_unfold [nitpick_unfold]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (cases n) auto
 
 declare nat.cases [nitpick_simp del]
 
-lemma list_size_simp [nitpick_simp, no_atp]:
+lemma list_size_simp [nitpick_simp]:
 "list_size f xs = (if xs = [] then 0
                    else Suc (f (hd xs) + list_size f (tl xs)))"
 "size xs = (if xs = [] then 0 else Suc (size (tl xs)))"

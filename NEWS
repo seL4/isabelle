@@ -1,6 +1,98 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle version
+----------------------------
+
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
+Open text buffers take precedence over copies within the file-system.
+
+
+*** HOL ***
+
+* Qualified constant names Wellfounded.acc, Wellfounded.accp.
+INCOMPATIBILITY.
+
+* Fact generalization and consolidation:
+    neq_one_mod_two, mod_2_not_eq_zero_eq_one_int ~> not_mod_2_eq_0_eq_1
+INCOMPATIBILITY.
+
+* Purely algebraic definition of even.  Fact generalization and consolidation:
+    nat_even_iff_2_dvd, int_even_iff_2_dvd ~> even_iff_2_dvd
+    even_zero_(nat|int) ~> even_zero
+INCOMPATIBILITY.
+
+* Abolished neg_numeral.
+  * Canonical representation for minus one is "- 1".
+  * Canonical representation for other negative numbers is "- (numeral _)".
+  * When devising rule sets for number calculation, consider the
+    following canonical cases: 0, 1, numeral _, - 1, - numeral _.
+  * HOLogic.dest_number also recognizes numerals in non-canonical forms
+    like "numeral One", "- numeral One", "- 0" and even "- … - _".
+  * Syntax for negative numerals is mere input syntax.
+INCOMPATBILITY.
+
+* Elimination of fact duplicates:
+    equals_zero_I ~> minus_unique
+    diff_eq_0_iff_eq ~> right_minus_eq
+    nat_infinite ~> infinite_UNIV_nat
+    int_infinite ~> infinite_UNIV_int
+INCOMPATIBILITY.
+
+* Fact name consolidation:
+    diff_def, diff_minus, ab_diff_minus ~> diff_conv_add_uminus
+    minus_le_self_iff ~> neg_less_eq_nonneg
+    le_minus_self_iff ~> less_eq_neg_nonpos
+    neg_less_nonneg ~> neg_less_pos
+    less_minus_self_iff ~> less_neg_neg [simp]
+INCOMPATIBILITY.
+
+* More simplification rules on unary and binary minus:
+add_diff_cancel, add_diff_cancel_left, add_le_same_cancel1,
+add_le_same_cancel2, add_less_same_cancel1, add_less_same_cancel2,
+add_minus_cancel, diff_add_cancel, le_add_same_cancel1,
+le_add_same_cancel2, less_add_same_cancel1, less_add_same_cancel2,
+minus_add_cancel, uminus_add_conv_diff.  These correspondingly
+have been taken away from fact collections algebra_simps and
+field_simps.  INCOMPATIBILITY.
+
+To restore proofs, the following patterns are helpful:
+
+a) Arbitrary failing proof not involving "diff_def":
+Consider simplification with algebra_simps or field_simps.
+
+b) Lifting rules from addition to subtraction:
+Try with "using <rule for addition> of [… "- _" …]" by simp".
+
+c) Simplification with "diff_def": just drop "diff_def".
+Consider simplification with algebra_simps or field_simps;
+or the brute way with
+"simp add: diff_conv_add_uminus del: add_uminus_conv_diff".
+
+* SUP and INF generalized to conditionally_complete_lattice
+
+* Theory Lubs moved HOL image to HOL-Library. It is replaced by
+Conditionally_Complete_Lattices.   INCOMPATIBILITY.
+
+* Introduce bdd_above and bdd_below in Conditionally_Complete_Lattices, use them
+instead of explicitly stating boundedness of sets.
+
+* ccpo.admissible quantifies only over non-empty chains to allow
+more syntax-directed proof rules; the case of the empty chain
+shows up as additional case in fixpoint induction proofs.
+INCOMPATIBILITY
+
+*** ML ***
+
+* Toplevel function "use" refers to raw ML bootstrap environment,
+without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
+Note that 'ML_file' is the canonical command to load ML files into the
+formal context.
+
+
+
 New in Isabelle2013-2 (December 2013)
 -------------------------------------
 
@@ -456,6 +548,10 @@ integration with HOL's type classes for rings.  INCOMPATIBILITY.
     set_map' ~> set_map
     sets ~> set
 IMCOMPATIBILITY.
+
+* Nitpick:
+  - Fixed soundness bug whereby mutually recursive datatypes could take
+    infinite values.
 
 
 *** ML ***

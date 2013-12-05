@@ -11,7 +11,7 @@ sig
   type isar_proof = Sledgehammer_Proof.isar_proof
   val minimize_dependencies_and_remove_unrefed_steps :
     bool -> preplay_interface -> isar_proof -> isar_proof
-end
+end;
 
 structure Sledgehammer_Minimize_Isar : SLEDGEHAMMER_MINIMIZE_ISAR =
 struct
@@ -105,4 +105,4 @@ fun minimize_dependencies_and_remove_unrefed_steps isar_try0 preplay_interface
     snd (do_proof proof)
   end
 
-end
+end;

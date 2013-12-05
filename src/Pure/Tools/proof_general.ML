@@ -36,6 +36,7 @@ sig
   val tell_clear_response: unit -> unit
   val inform_file_processed: string -> unit
   val inform_file_retracted: string -> unit
+  val master_path: Path.T Unsynchronized.ref
   structure ThyLoad: sig val add_path: string -> unit end
   val thm_deps: bool Unsynchronized.ref
   val proof_generalN: string
@@ -269,7 +270,7 @@ fun setup_messages () =
   Output.Internal.urgent_message_fn := message (special "I") (special "J") "";
   Output.Internal.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.Internal.warning_fn := message (special "K") (special "L") "### ";
-  Output.Internal.error_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
+  Output.Internal.error_message_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
   Output.Internal.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
 
 
@@ -293,11 +294,14 @@ fun tell_file_retracted path =
 
 (** theory loader **)
 
-(* fake old ThyLoad -- with new semantics *)
+(* global master path *)
 
+val master_path = Unsynchronized.ref Path.current;
+
+(*fake old ThyLoad -- with new semantics*)
 structure ThyLoad =
 struct
-  val add_path = Thy_Load.set_master_path o Path.explode;
+  fun add_path path = master_path := Path.explode path;
 end;
 
 

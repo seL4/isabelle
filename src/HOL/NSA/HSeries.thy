@@ -131,7 +131,7 @@ apply (cut_tac x = M and y = N in linorder_less_linear)
 apply (auto simp add: approx_refl)
 apply (drule approx_sym [THEN approx_minus_iff [THEN iffD1]])
 apply (auto dest: approx_hrabs 
-            simp add: sumhr_split_diff diff_minus [symmetric])
+            simp add: sumhr_split_diff)
 done
 
 (*----------------------------------------------------------------
@@ -172,7 +172,7 @@ apply (auto simp add: approx_refl)
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (rule_tac [2] approx_minus_iff [THEN iffD2])
 apply (auto dest: approx_hrabs_zero_cancel 
-            simp add: sumhr_split_diff diff_minus [symmetric])
+            simp add: sumhr_split_diff)
 done
 
 

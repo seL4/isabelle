@@ -99,10 +99,10 @@ interchangeably for propositions that have been proved.
   For example, given the goal @{text"x + 0 = x"}, there is nothing to indicate
   that you are talking about natural numbers. Hence Isabelle can only infer
   that @{term x} is of some arbitrary type where @{text 0} and @{text"+"}
-  exist. As a consequence, you will be unable to prove the
-  goal. To alert you to such pitfalls, Isabelle flags numerals without a
-  fixed type in its output: @{prop"x+0 = x"}.  In this particular example,
-  you need to include
+  exist. As a consequence, you will be unable to prove the goal.
+%  To alert you to such pitfalls, Isabelle flags numerals without a
+%  fixed type in its output: @ {prop"x+0 = x"}.
+  In this particular example, you need to include
   an explicit type constraint, for example @{text"x+0 = (x::nat)"}. If there
   is enough contextual information this may not be necessary: @{prop"Suc x =
   x"} automatically implies @{text"x::nat"} because @{term Suc} is not
@@ -372,10 +372,10 @@ simplification at all! In the base case it is @{prop"app ys zs = app Nil (app
 ys zs)"}. It appears almost mysterious because we suddenly complicate the
 term by appending @{text Nil} on the left. What is really going on is this:
 when proving some equality \mbox{@{prop"s = t"}}, both @{text s} and @{text t} are
-simplified to some common term @{text u}.  This heuristic for equality proofs
+simplified until they ``meet in the middle''. This heuristic for equality proofs
 works well for a functional programming context like ours. In the base case
-@{text s} is @{term"app (app Nil ys) zs"}, @{text t} is @{term"app Nil (app
-ys zs)"}, and @{text u} is @{term"app ys zs"}.
+both @{term"app (app Nil ys) zs"} and @{term"app Nil (app
+ys zs)"} are simplified to @{term"app ys zs"}, the term in the middle.
 
 \subsection{Predefined Lists}
 \label{sec:predeflists}
@@ -419,13 +419,19 @@ but underdefined.
 From now on lists are always the predefined lists.
 
 
-\subsection{Exercises}
+\subsection*{Exercises}
+
+\begin{exercise}
+Use the \isacom{value} command to evaluate the following expressions:
+@{term[source] "1 + (2::nat)"}, @{term[source] "1 + (2::int)"},
+@{term[source] "1 - (2::nat)"} and @{term[source] "1 - (2::int)"}.
+\end{exercise}
 
 \begin{exercise}
 Start from the definition of @{const add} given above.
-Prove it is associative (@{prop"add (add m n) p = add m (add n p)"})
-and commutative (@{prop"add m n = add n m"}). Define a recursive function
-@{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"} and prove that @{prop"double m = add m m"}.
+Prove that @{const add} is associative and commutative.
+Define a recursive function @{text double} @{text"::"} @{typ"nat \<Rightarrow> nat"}
+and prove @{prop"double m = add m m"}.
 \end{exercise}
 
 \begin{exercise}
@@ -436,11 +442,15 @@ that counts the number of occurrences of an element in a list. Prove
 
 \begin{exercise}
 Define a recursive function @{text "snoc ::"} @{typ"'a list \<Rightarrow> 'a \<Rightarrow> 'a list"}
-that appends an element to the end of a list. Do not use the predefined append
-operator @{text"@"}. With the help of @{text snoc} define a recursive function
-@{text "reverse ::"} @{typ"'a list \<Rightarrow> 'a list"} that reverses a list. Do not
-use the predefined function @{const rev}.
-Prove @{prop"reverse(reverse xs) = xs"}.
+that appends an element to the end of a list. With the help of @{text snoc}
+define a recursive function @{text "reverse ::"} @{typ"'a list \<Rightarrow> 'a list"}
+that reverses a list. Prove @{prop"reverse(reverse xs) = xs"}.
+\end{exercise}
+
+\begin{exercise}
+Define a recursive function @{text "sum ::"} @{typ"nat \<Rightarrow> nat"} such that
+\mbox{@{text"sum n"}} @{text"="} @{text"0 + ... + n"} and prove
+@{prop" sum(n::nat) = n * (n+1) div 2"}.
 \end{exercise}
 *}
 (*<*)

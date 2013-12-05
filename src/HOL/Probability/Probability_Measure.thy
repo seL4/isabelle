@@ -268,6 +268,31 @@ proof -
     by (intro finite_measure_UNION) auto
 qed
 
+lemma (in prob_space) prob_EX_countable:
+  assumes sets: "\<And>i. i \<in> I \<Longrightarrow> {x\<in>space M. P i x} \<in> sets M" and I: "countable I" 
+  assumes disj: "AE x in M. \<forall>i\<in>I. \<forall>j\<in>I. P i x \<longrightarrow> P j x \<longrightarrow> i = j"
+  shows "\<P>(x in M. \<exists>i\<in>I. P i x) = (\<integral>\<^sup>+i. \<P>(x in M. P i x) \<partial>count_space I)"
+proof -
+  let ?N= "\<lambda>x. \<exists>!i\<in>I. P i x"
+  have "ereal (\<P>(x in M. \<exists>i\<in>I. P i x)) = \<P>(x in M. (\<exists>i\<in>I. P i x \<and> ?N x))"
+    unfolding ereal.inject
+  proof (rule prob_eq_AE)
+    show "AE x in M. (\<exists>i\<in>I. P i x) = (\<exists>i\<in>I. P i x \<and> ?N x)"
+      using disj by eventually_elim blast
+  qed (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets)+
+  also have "\<P>(x in M. (\<exists>i\<in>I. P i x \<and> ?N x)) = emeasure M (\<Union>i\<in>I. {x\<in>space M. P i x \<and> ?N x})"
+    unfolding emeasure_eq_measure by (auto intro!: arg_cong[where f=prob])
+  also have "\<dots> = (\<integral>\<^sup>+i. emeasure M {x\<in>space M. P i x \<and> ?N x} \<partial>count_space I)"
+    by (rule emeasure_UN_countable)
+       (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets
+             simp: disjoint_family_on_def)
+  also have "\<dots> = (\<integral>\<^sup>+i. \<P>(x in M. P i x) \<partial>count_space I)"
+    unfolding emeasure_eq_measure using disj
+    by (intro positive_integral_cong ereal.inject[THEN iffD2] prob_eq_AE)
+       (auto intro!: sets.sets_Collect_countable_Ex' sets.sets_Collect_conj sets.sets_Collect_countable_Ex1' I sets)+
+  finally show ?thesis .
+qed
+
 lemma (in prob_space) cond_prob_eq_AE:
   assumes P: "AE x in M. Q x \<longrightarrow> P x \<longleftrightarrow> P' x" "{x\<in>space M. P x} \<in> events" "{x\<in>space M. P' x} \<in> events"
   assumes Q: "AE x in M. Q x \<longleftrightarrow> Q' x" "{x\<in>space M. Q x} \<in> events" "{x\<in>space M. Q' x} \<in> events"

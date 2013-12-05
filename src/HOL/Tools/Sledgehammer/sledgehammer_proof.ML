@@ -33,9 +33,6 @@ sig
     ArithM |
     BlastM
 
-  (* legacy *)
-  val By_Metis : facts -> byline
-
   val no_label : label
   val no_facts : facts
 
@@ -64,19 +61,19 @@ sig
 
   val add_proof_steps : isar_step list -> int -> int
 
-  (** canonical proof labels: 1, 2, 3, ... in post traversal order **)
+  (** canonical proof labels: 1, 2, 3, ... in postorder **)
   val canonical_label_ord : (label * label) -> order
   val relabel_proof_canonically : isar_proof -> isar_proof
 
   structure Canonical_Lbl_Tab : TABLE
 
-end
+end;
 
 structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF =
 struct
 
 type label = string * int
-type facts = label list * string list (* local & global facts *)
+type facts = label list * string list (* local and global facts *)
 
 datatype isar_qualifier = Show | Then
 
@@ -99,9 +96,6 @@ and proof_method =
   ForceM |
   ArithM |
   BlastM
-
-(* legacy *)
-fun By_Metis facts = By (facts, MetisM)
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
@@ -166,10 +160,8 @@ structure Canonical_Lbl_Tab = Table(
 
 fun relabel_proof_canonically proof =
   let
-    val lbl = pair ""
-
     fun next_label l (next, subst) =
-      (lbl next, (next + 1, (l, lbl next) :: subst))
+      let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
     fun do_byline by (_, subst) =
       by |> map_facts_of_byline (apfst (map (AList.lookup (op =) subst #> the)))
@@ -191,15 +183,15 @@ fun relabel_proof_canonically proof =
 
     and do_step (step as Let _) state = (step, state)
       | do_step (Prove (qs, fix, l, t, subproofs, by)) state=
-      let
-        val by = do_byline by state
-        val (subproofs, state) = fold_map do_proof subproofs state
-        val (l, state) = next_label l state
-      in
-        (Prove (qs, fix, l, t, subproofs, by), state)
-      end
+        let
+          val by = do_byline by state
+          val (subproofs, state) = fold_map do_proof subproofs state
+          val (l, state) = next_label l state
+        in
+          (Prove (qs, fix, l, t, subproofs, by), state)
+        end
   in
     fst (do_proof proof (0, []))
   end
 
-end
+end;

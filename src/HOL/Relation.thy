@@ -5,7 +5,7 @@
 header {* Relations – as sets of pairs, and binary predicates *}
 
 theory Relation
-imports Datatype Finite_Set
+imports Finite_Set
 begin
 
 text {* A preliminary: classical rules for reasoning on predicates *}
@@ -478,7 +478,7 @@ lemma Id_on_empty [simp]: "Id_on {} = {}"
 lemma Id_on_eqI: "a = b ==> a : A ==> (a, b) : Id_on A"
   by (simp add: Id_on_def)
 
-lemma Id_onI [intro!,no_atp]: "a : A ==> (a, a) : Id_on A"
+lemma Id_onI [intro!]: "a : A ==> (a, a) : Id_on A"
   by (rule Id_on_eqI) (rule refl)
 
 lemma Id_onE [elim!]:
@@ -760,7 +760,8 @@ lemma total_on_converse [simp]: "total_on A (r^-1) = total_on A r"
   by (auto simp: total_on_def)
 
 lemma finite_converse [iff]: "finite (r^-1) = finite r"  
-  unfolding converse_def conversep_iff by (auto elim: finite_imageD simp: inj_on_def)
+  unfolding converse_def conversep_iff using [[simproc add: finite_Collect]]
+  by (auto elim: finite_imageD simp: inj_on_def)
 
 lemma conversep_noteq [simp]: "(op \<noteq>)^--1 = op \<noteq>"
   by (auto simp add: fun_eq_iff)
@@ -939,8 +940,6 @@ definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b 
 where
   "r `` s = {y. \<exists>x\<in>s. (x, y) \<in> r}"
 
-declare Image_def [no_atp]
-
 lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
   by (simp add: Image_def)
 
@@ -950,7 +949,7 @@ lemma Image_singleton: "r``{a} = {b. (a, b) : r}"
 lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a, b) : r)"
   by (rule Image_iff [THEN trans]) simp
 
-lemma ImageI [intro,no_atp]: "(a, b) : r ==> a : A ==> b : r``A"
+lemma ImageI [intro]: "(a, b) : r ==> a : A ==> b : r``A"
   by (unfold Image_def) blast
 
 lemma ImageE [elim!]:
@@ -996,6 +995,9 @@ lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subset
 lemma Image_UN: "(r `` (UNION A B)) = (\<Union>x\<in>A. r `` (B x))"
   by blast
 
+lemma UN_Image: "(\<Union>i\<in>I. X i) `` S = (\<Union>i\<in>I. X i `` S)"
+  by auto
+
 lemma Image_INT_subset: "(r `` INTER A B) \<subseteq> (\<Inter>x\<in>A. r `` (B x))"
   by blast
 
@@ -1013,6 +1015,11 @@ lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B))
 lemma Image_Collect_split [simp]: "{(x, y). P x y} `` A = {y. EX x:A. P x y}"
   by auto
 
+lemma Sigma_Image: "(SIGMA x:A. B x) `` X = (\<Union>x\<in>X \<inter> A. B x)"
+  by auto
+
+lemma relcomp_Image: "(X O Y) `` Z = Y `` (X `` Z)"
+  by auto
 
 subsubsection {* Inverse image *}
 

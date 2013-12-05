@@ -230,6 +230,27 @@ lemma surj_countable_vimage: "surj f \<Longrightarrow> countable (f -` B) \<Long
 lemma countable_Collect[simp]: "countable A \<Longrightarrow> countable {a \<in> A. \<phi> a}"
   by (metis Collect_conj_eq Int_absorb Int_commute Int_def countable_Int1)
 
+lemma countable_Image:
+  assumes "\<And>y. y \<in> Y \<Longrightarrow> countable (X `` {y})"
+  assumes "countable Y"
+  shows "countable (X `` Y)"
+proof -
+  have "countable (X `` (\<Union>y\<in>Y. {y}))"
+    unfolding Image_UN by (intro countable_UN assms)
+  then show ?thesis by simp
+qed
+
+lemma countable_relpow:
+  fixes X :: "'a rel"
+  assumes Image_X: "\<And>Y. countable Y \<Longrightarrow> countable (X `` Y)"
+  assumes Y: "countable Y"
+  shows "countable ((X ^^ i) `` Y)"
+  using Y by (induct i arbitrary: Y) (auto simp: relcomp_Image Image_X)
+
+lemma countable_rtrancl:
+  "(\<And>Y. countable Y \<Longrightarrow> countable (X `` Y)) \<Longrightarrow> countable Y \<Longrightarrow> countable (X^* `` Y)"
+  unfolding rtrancl_is_UN_relpow UN_Image by (intro countable_UN countableI_type countable_relpow)
+
 lemma countable_lists[intro, simp]:
   assumes A: "countable A" shows "countable (lists A)"
 proof -

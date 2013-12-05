@@ -482,6 +482,11 @@ abbreviation
 
 lemmas accpI = accp.accI
 
+lemma accp_eq_acc [code]:
+  "accp r = (\<lambda>x. x \<in> Wellfounded.acc {(x, y). r x y})"
+  by (simp add: acc_def)
+
+
 text {* Induction rules *}
 
 theorem accp_induct:
@@ -854,5 +859,8 @@ lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
 declare "prod.size" [no_atp]
+
+
+hide_const (open) acc accp
 
 end

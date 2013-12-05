@@ -360,11 +360,15 @@ theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Rings.dvd}). P (l * x)) \
   apply simp
   done
 
-lemma zdvd_mono: assumes not0: "(k::int) \<noteq> 0"
-shows "((m::int) dvd t) \<equiv> (k*m dvd k*t)" 
-  using not0 by (simp add: dvd_def)
+lemma zdvd_mono:
+  fixes k m t :: int
+  assumes "k \<noteq> 0"
+  shows "m dvd t \<equiv> k * m dvd k * t" 
+  using assms by simp
 
-lemma uminus_dvd_conv: "(d dvd (t::int)) \<equiv> (-d dvd t)" "(d dvd (t::int)) \<equiv> (d dvd -t)"
+lemma uminus_dvd_conv:
+  fixes d t :: int
+  shows "d dvd t \<equiv> - d dvd t" and "d dvd t \<equiv> d dvd - t"
   by simp_all
 
 text {* \bigskip Theorems for transforming predicates on nat to predicates on @{text int}*}
@@ -406,24 +410,23 @@ method_setup presburger = {*
   end
 *} "Cooper's algorithm for Presburger arithmetic"
 
-declare dvd_eq_mod_eq_0[symmetric, presburger]
-declare mod_1[presburger] 
-declare mod_0[presburger]
-declare mod_by_1[presburger]
-declare mod_self[presburger]
-declare mod_by_0[presburger]
-declare mod_div_trivial[presburger]
-declare div_mod_equality2[presburger]
-declare div_mod_equality[presburger]
-declare mod_div_equality2[presburger]
-declare mod_div_equality[presburger]
-declare mod_mult_self1[presburger]
-declare mod_mult_self2[presburger]
-declare div_mod_equality[presburger]
-declare div_mod_equality2[presburger]
+declare dvd_eq_mod_eq_0 [symmetric, presburger]
+declare mod_1 [presburger] 
+declare mod_0 [presburger]
+declare mod_by_1 [presburger]
+declare mod_self [presburger]
+declare div_by_0 [presburger]
+declare mod_by_0 [presburger]
+declare mod_div_trivial [presburger]
+declare div_mod_equality2 [presburger]
+declare div_mod_equality [presburger]
+declare mod_div_equality2 [presburger]
+declare mod_div_equality [presburger]
+declare mod_mult_self1 [presburger]
+declare mod_mult_self2 [presburger]
 declare mod2_Suc_Suc[presburger]
-lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
-by simp_all
+declare not_mod_2_eq_0_eq_1 [presburger] 
+declare nat_zero_less_power_iff [presburger]
 
 lemma [presburger, algebra]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
@@ -432,3 +435,4 @@ lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> 
 lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
 end
+

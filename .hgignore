@@ -5,7 +5,9 @@ syntax: glob
 *.jar
 *.orig
 *.rej
+*.pyc
 .DS_Store
+.swp
 
 
 syntax: regexp

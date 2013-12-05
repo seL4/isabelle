@@ -23,7 +23,7 @@ open BNF_Tactics
 open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
-open BNF_FP_Rec_Sugar
+open BNF_GFP_Rec_Sugar
 open BNF_GFP_Util
 open BNF_GFP_Tactics
 
@@ -56,7 +56,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -74,7 +74,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val mk_internal_b = Binding.name #> Binding.prefix true b_name #> Binding.conceal;
     fun mk_internal_bs name =
       map (fn b =>
-        Binding.prefix true b_name (Binding.suffix_name ("_" ^ name) b) |> Binding.conceal) bs;
+        Binding.prefix true b_name (Binding.prefix_name (name ^ "_") b) |> Binding.conceal) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
       |> note_all = false ? map Binding.conceal;
 
@@ -1695,7 +1695,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       ||>> mk_Frees "s" corec_sTs
       ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
-    fun dtor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtorN);
+    fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
     val dtor_name = Binding.name_of o dtor_bind;
     val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
 
@@ -1747,7 +1747,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
     val timer = time (timer "dtor definitions & thms");
 
-    fun unfold_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtor_unfoldN);
+    fun unfold_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_unfoldN ^ "_");
     val unfold_name = Binding.name_of o unfold_bind;
     val unfold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o unfold_bind;
 
@@ -1868,7 +1868,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       Term.list_comb (mk_map_of_bnf Ds (passiveAs @ Ts) (passiveAs @ FTs) bnf,
         map HOLogic.id_const passiveAs @ dtors)) Dss bnfs;
 
-    fun ctor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctorN);
+    fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
     val ctor_name = Binding.name_of o ctor_bind;
     val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
 
@@ -1939,7 +1939,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           trans OF [mor RS unique, unfold_dtor]) unfold_unique_mor_thms unfold_dtor_thms
       end;
 
-    fun corec_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtor_corecN);
+    fun corec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtor_corecN ^ "_");
     val corec_name = Binding.name_of o corec_bind;
     val corec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o corec_bind;
 
@@ -2673,12 +2673,16 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
 
         val wit_tac = mk_wit_tac n dtor_ctor_thms (flat dtor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
+        val set_bss =
+          map (flat o map2 (fn B => fn b =>
+            if member (op =) resDs (TFree B) then [] else [b]) resBs) set_bss0;
+
         val (Jbnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
               fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac thms) (SOME deads) map_b
               rel_b set_bs
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), bd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts all_witss lthy;
 
@@ -2744,8 +2748,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-       (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
-         dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_common_notes @ Jbnf_notes, lthy)
+        (timer, Jbnfs, (folded_dtor_map_o_thms, folded_dtor_map_thms), folded_dtor_set_thmss',
+          dtor_set_induct_thms, dtor_Jrel_thms, Jbnf_common_notes @ Jbnf_notes, lthy)
       end;
 
       val dtor_unfold_o_map_thms = mk_xtor_un_fold_o_map_thms Greatest_FP false m
@@ -2917,19 +2921,23 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "codatatype"} "define coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
-val option_parser = Parse.group (fn () => "option") (Parse.reserved "sequential" >> K true);
+val option_parser = Parse.group (fn () => "option")
+  ((Parse.reserved "sequential" >> K Option_Sequential)
+  || (Parse.reserved "exhaustive" >> K Option_Exhaustive))
 
 val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
   (Parse_Spec.spec -- Scan.option (Parse.reserved "of" |-- Parse.const)));
 
 val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
   "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
+  ((Scan.optional (@{keyword "("} |--
+      Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorecursive_cmd);
 
 val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
   "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |-- Parse.!!! option_parser --| @{keyword ")"}) false) --
+  ((Scan.optional (@{keyword "("} |--
+      Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) []) --
     (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
 
 end;

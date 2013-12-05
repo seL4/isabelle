@@ -23,9 +23,23 @@ val _ =
       end);
 
 val _ =
+  Isabelle_Process.protocol_command "Document.define_blob"
+    (fn [digest, content] => Document.change_state (Document.define_blob digest content));
+
+val _ =
   Isabelle_Process.protocol_command "Document.define_command"
-    (fn [id, name, text] =>
-      Document.change_state (Document.define_command (Document_ID.parse id) name text));
+    (fn [id, name, blobs_yxml, text] =>
+      let
+        val blobs =
+          YXML.parse_body blobs_yxml |>
+            let open XML.Decode in
+              list (variant
+               [fn ([], a) => Exn.Res (pair string (option string) a),
+                fn ([], a) => Exn.Exn (ERROR (string a))])
+            end;
+      in
+        Document.change_state (Document.define_command (Document_ID.parse id) name blobs text)
+      end);
 
 val _ =
   Isabelle_Process.protocol_command "Document.discontinue_execution"
@@ -48,8 +62,7 @@ val _ =
             let open XML.Decode in
               list (pair string
                 (variant
-                 [fn ([], []) => Document.Clear,  (* FIXME unused !? *)
-                  fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
+                 [fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
                     let
                       val (master, (name, (imports, (keywords, errors)))) =

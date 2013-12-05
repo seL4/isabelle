@@ -70,18 +70,18 @@ fun rewrite_with_asm_tac ctxt k =
   Subgoal.FOCUS (fn {context = ctxt', prems, ...} =>
     Local_Defs.unfold_tac ctxt' [nth prems k]) ctxt;
 
-fun dest_case thy t =
+fun dest_case ctxt t =
   case strip_comb t of
     (Const (case_comb, _), args) =>
-      (case Datatype.info_of_case thy case_comb of
+      (case Ctr_Sugar.ctr_sugar_of_case ctxt case_comb of
          NONE => NONE
-       | SOME {case_rewrites, ...} =>
+       | SOME {case_thms, ...} =>
            let
-             val lhs = prop_of (hd case_rewrites)
+             val lhs = prop_of (hd case_thms)
                |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> fst;
              val arity = length (snd (strip_comb lhs));
              val conv = funpow (length args - arity) Conv.fun_conv
-               (Conv.rewrs_conv (map mk_meta_eq case_rewrites));
+               (Conv.rewrs_conv (map mk_meta_eq case_thms));
            in
              SOME (nth args (arity - 1), conv)
            end)
@@ -91,7 +91,7 @@ fun dest_case thy t =
 val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
   SUBGOAL (fn (t, i) => case t of
     _ $ (_ $ Abs (_, _, body)) =>
-      (case dest_case (Proof_Context.theory_of ctxt) body of
+      (case dest_case ctxt body of
          NONE => no_tac
        | SOME (arg, conv) =>
            let open Conv in
@@ -168,6 +168,9 @@ val split_conv_ss =
   simpset_of (put_simpset HOL_basic_ss @{context}
     addsimps [@{thm Product_Type.split_conv}]);
 
+val curry_K_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps [@{thm Product_Type.curry_K}]);
 
 (* instantiate generic fixpoint induction and eliminate the canonical assumptions;
   curry induction predicate *)
@@ -181,7 +184,8 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
     |> cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry), NONE, SOME (cert P_inst)]
     |> Tactic.rule_by_tactic ctxt
       (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3 (* discharge U (C f) = f *)
-       THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 4) (* simplify induction step *)
+       THEN Simplifier.simp_tac (put_simpset curry_K_ss ctxt) 4 (* simplify bot case *)
+       THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 5) (* simplify induction step *)
     |> (fn thm => thm OF [mono_thm, f_def])
     |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
          (Raw_Simplifier.rewrite false [mk_meta_eq @{thm Product_Type.curry_split}])) 

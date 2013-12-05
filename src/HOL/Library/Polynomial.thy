@@ -667,7 +667,7 @@ instance proof
   show "- p + p = 0"
     by (simp add: poly_eq_iff)
   show "p - q = p + - q"
-    by (simp add: poly_eq_iff diff_minus)
+    by (simp add: poly_eq_iff)
 qed
 
 end
@@ -714,15 +714,15 @@ lemma degree_minus [simp]: "degree (- p) = degree p"
 
 lemma degree_diff_le_max: "degree (p - q) \<le> max (degree p) (degree q)"
   using degree_add_le [where p=p and q="-q"]
-  by (simp add: diff_minus)
+  by simp
 
 lemma degree_diff_le:
   "\<lbrakk>degree p \<le> n; degree q \<le> n\<rbrakk> \<Longrightarrow> degree (p - q) \<le> n"
-  by (simp add: diff_minus degree_add_le)
+  using degree_add_le [of p n "- q"] by simp
 
 lemma degree_diff_less:
   "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p - q) < n"
-  by (simp add: diff_minus degree_add_less)
+  using degree_add_less [of p n "- q"] by simp
 
 lemma add_monom: "monom a n + monom b n = monom (a + b) n"
   by (rule poly_eqI) simp
@@ -793,7 +793,7 @@ lemma poly_minus [simp]:
 lemma poly_diff [simp]:
   fixes x :: "'a::comm_ring"
   shows "poly (p - q) x = poly p x - poly q x"
-  by (simp add: diff_minus)
+  using poly_add [of p "- q" x] by simp
 
 lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (induct A rule: infinite_finite_induct) simp_all
@@ -1575,12 +1575,12 @@ lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
 lemma poly_div_minus_left [simp]:
   fixes x y :: "'a::field poly"
   shows "(- x) div y = - (x div y)"
-  using div_smult_left [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
+  using div_smult_left [of "- 1::'a"] by simp
 
 lemma poly_mod_minus_left [simp]:
   fixes x y :: "'a::field poly"
   shows "(- x) mod y = - (x mod y)"
-  using mod_smult_left [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
+  using mod_smult_left [of "- 1::'a"] by simp
 
 lemma pdivmod_rel_smult_right:
   "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
@@ -1597,13 +1597,12 @@ lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod
 lemma poly_div_minus_right [simp]:
   fixes x y :: "'a::field poly"
   shows "x div (- y) = - (x div y)"
-  using div_smult_right [of "- 1::'a"]
-  by (simp add: nonzero_inverse_minus_eq del: minus_one) (* FIXME *)
+  using div_smult_right [of "- 1::'a"] by (simp add: nonzero_inverse_minus_eq)
 
 lemma poly_mod_minus_right [simp]:
   fixes x y :: "'a::field poly"
   shows "x mod (- y) = x mod y"
-  using mod_smult_right [of "- 1::'a"] by (simp del: minus_one) (* FIXME *)
+  using mod_smult_right [of "- 1::'a"] by simp
 
 lemma pdivmod_rel_mult:
   "\<lbrakk>pdivmod_rel x y q r; pdivmod_rel q z q' r'\<rbrakk>

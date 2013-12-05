@@ -376,7 +376,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       val _ = trace_msg ctxt (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
       val _ = trace_msg ctxt (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
       val _ = trace_msg ctxt (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
-      val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill typed but gives right max*)
+      val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill-typed but gives right max*)
       val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg ctxt (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
       val eq_terms = map (pairself (cterm_of thy))

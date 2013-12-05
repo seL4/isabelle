@@ -43,6 +43,7 @@ session "HOL-Library" (main) in Library = HOL +
     Code_Real_Approx_By_Float
     Code_Target_Numeral
     DAList
+    DAList_Multiset
     RBT_Mapping
     RBT_Set
     (*legacy tools*)
@@ -686,14 +687,14 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
-session "HOL-Cardinals-Base" in Cardinals = HOL +
+session "HOL-Cardinals-FP" in Cardinals = HOL +
   description {*
-    Ordinals and Cardinals, Base Theories.
+    Ordinals and Cardinals, Theories Needed for BNF FP Constructions.
   *}
   options [document = false]
-  theories Cardinal_Arithmetic
+  theories Cardinal_Arithmetic_FP
 
-session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
+session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-FP" +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
@@ -704,16 +705,16 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-BNF-LFP" in BNF = "HOL-Cardinals-Base" +
-  description {*
-    Bounded Natural Functors for Datatypes.
-  *}
-  options [document = false]
-  theories BNF_LFP
-
-session "HOL-BNF" in BNF = "HOL-Cardinals" +
+session "HOL-BNF-FP" in BNF = "HOL-Cardinals-FP" +
   description {*
     Bounded Natural Functors for (Co)datatypes.
+  *}
+  options [document = false]
+  theories BNF_LFP BNF_GFP
+
+session "HOL-BNF" in BNF = "HOL-BNF-FP" +
+  description {*
+    Bounded Natural Functors for (Co)datatypes, Including More BNFs.
   *}
   options [document = false]
   theories BNF
@@ -733,6 +734,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
   theories [condition = ISABELLE_FULL_TEST]
     Misc_Codatatype
     Misc_Datatype
+    Misc_Primcorec
     Misc_Primrec
 
 session "HOL-Word" (main) in Word = HOL +
@@ -778,13 +780,10 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   theories [condition = ISABELLE_FULL_TEST]
     SMT_Tests
   files
-    "Boogie_Dijkstra.b2i"
     "Boogie_Dijkstra.certs"
-    "Boogie_Max.b2i"
     "Boogie_Max.certs"
     "SMT_Examples.certs"
     "SMT_Word_Examples.certs"
-    "VCC_Max.b2i"
     "VCC_Max.certs"
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +

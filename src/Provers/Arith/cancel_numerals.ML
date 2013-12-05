@@ -70,7 +70,7 @@ fun proc ctxt t =
     val prems = Simplifier.prems_of ctxt
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
-    (* FIXME ctxt cs. ctxt' (!?) *)
+    (* FIXME ctxt vs. ctxt' (!?) *)
 
     val (t1,t2) = Data.dest_bal t'
     val terms1 = Data.dest_sum t1

@@ -13,12 +13,6 @@ theory BNF_FP_Base
 imports BNF_Comp Ctr_Sugar
 begin
 
-lemma not_TrueE: "\<not> True \<Longrightarrow> P"
-by (erule notE, rule TrueI)
-
-lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
-by fast
-
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
@@ -172,7 +166,5 @@ ML_file "Tools/bnf_fp_n2m_tactics.ML"
 ML_file "Tools/bnf_fp_n2m.ML"
 ML_file "Tools/bnf_fp_n2m_sugar.ML"
 ML_file "Tools/bnf_fp_rec_sugar_util.ML"
-ML_file "Tools/bnf_fp_rec_sugar_tactics.ML"
-ML_file "Tools/bnf_fp_rec_sugar.ML"
 
 end

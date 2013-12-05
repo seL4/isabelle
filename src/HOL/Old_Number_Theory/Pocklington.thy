@@ -348,15 +348,11 @@ proof-
   let ?w = "x mod (a*b)"
   have wab: "?w < a*b" by (simp add: mod_less_divisor[OF abpos])
   from xq12(1) have "?w mod a = ((m + q1 * a) mod (a*b)) mod a" by simp
-  also have "\<dots> = m mod a" apply (simp add: mod_mult2_eq)
-    apply (subst mod_add_left_eq)
-    by simp
+  also have "\<dots> = m mod a" by (simp add: mod_mult2_eq)
   finally have th1: "[?w = m] (mod a)" by (simp add: modeq_def)
   from xq12(2) have "?w mod b = ((n + q2 * b) mod (a*b)) mod b" by simp
   also have "\<dots> = ((n + q2 * b) mod (b*a)) mod b" by (simp add: mult_commute)
-  also have "\<dots> = n mod b" apply (simp add: mod_mult2_eq)
-    apply (subst mod_add_left_eq)
-    by simp
+  also have "\<dots> = n mod b" by (simp add: mod_mult2_eq)
   finally have th2: "[?w = n] (mod b)" by (simp add: modeq_def)
   {fix y assume H: "y < a*b" "[y = m] (mod a)" "[y = n] (mod b)"
     with th1 th2 have H': "[y = ?w] (mod a)" "[y = ?w] (mod b)"

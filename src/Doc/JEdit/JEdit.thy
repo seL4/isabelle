@@ -1068,12 +1068,6 @@ chapter {* Known problems and workarounds \label{sec:problems} *}
 text {*
   \begin{itemize}
 
-  \item \textbf{Problem:} Lack of dependency management for auxiliary files
-  that contribute to a theory (e.g.\ @{command ML_file}).
-
-  \textbf{Workaround:} Re-load files manually within the prover, by
-  editing corresponding command in the text.
-
   \item \textbf{Problem:} Odd behavior of some diagnostic commands with
   global side-effects, like writing a physical file.
 

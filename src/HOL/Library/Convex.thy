@@ -362,7 +362,7 @@ lemma convex_differences:
   shows "convex {x - y| x y. x \<in> s \<and> y \<in> t}"
 proof -
   have "{x - y| x y. x \<in> s \<and> y \<in> t} = {x + y |x y. x \<in> s \<and> y \<in> uminus ` t}"
-    unfolding diff_def by auto
+    by (auto simp add: diff_conv_add_uminus simp del: add_uminus_conv_diff)
   then show ?thesis
     using convex_sums[OF assms(1) convex_negations[OF assms(2)]] by auto
 qed

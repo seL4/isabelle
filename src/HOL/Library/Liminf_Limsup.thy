@@ -21,19 +21,21 @@ lemma Inf_le_iff_less:
   by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
 lemma SUPR_pair:
-  "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
+  shows "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: SUP_least SUP_upper2)
 
 lemma INFI_pair:
-  "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
+  fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
+  shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
 subsubsection {* @{text Liminf} and @{text Limsup} *}
 
-definition
+definition Liminf :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
   "Liminf F f = (SUP P:{P. eventually P F}. INF x:{x. P x}. f x)"
 
-definition
+definition Limsup :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b :: complete_lattice" where
   "Limsup F f = (INF P:{P. eventually P F}. SUP x:{x. P x}. f x)"
 
 abbreviation "liminf \<equiv> Liminf sequentially"
@@ -50,21 +52,17 @@ lemma Limsup_eqI:
     (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
   unfolding Limsup_def by (auto intro!: INF_eqI)
 
-lemma liminf_SUPR_INFI:
-  fixes f :: "nat \<Rightarrow> 'a :: complete_lattice"
-  shows "liminf f = (SUP n. INF m:{n..}. f m)"
+lemma liminf_SUPR_INFI: "liminf f = (SUP n. INF m:{n..}. f m)"
   unfolding Liminf_def eventually_sequentially
   by (rule SUPR_eq) (auto simp: atLeast_def intro!: INF_mono)
 
-lemma limsup_INFI_SUPR:
-  fixes f :: "nat \<Rightarrow> 'a :: complete_lattice"
-  shows "limsup f = (INF n. SUP m:{n..}. f m)"
+lemma limsup_INFI_SUPR: "limsup f = (INF n. SUP m:{n..}. f m)"
   unfolding Limsup_def eventually_sequentially
   by (rule INFI_eq) (auto simp: atLeast_def intro!: SUP_mono)
 
 lemma Limsup_const: 
   assumes ntriv: "\<not> trivial_limit F"
-  shows "Limsup F (\<lambda>x. c) = (c::'a::complete_lattice)"
+  shows "Limsup F (\<lambda>x. c) = c"
 proof -
   have *: "\<And>P. Ex P \<longleftrightarrow> P \<noteq> (\<lambda>x. False)" by auto
   have "\<And>P. eventually P F \<Longrightarrow> (SUP x : {x. P x}. c) = c"
@@ -77,7 +75,7 @@ qed
 
 lemma Liminf_const:
   assumes ntriv: "\<not> trivial_limit F"
-  shows "Liminf F (\<lambda>x. c) = (c::'a::complete_lattice)"
+  shows "Liminf F (\<lambda>x. c) = c"
 proof -
   have *: "\<And>P. Ex P \<longleftrightarrow> P \<noteq> (\<lambda>x. False)" by auto
   have "\<And>P. eventually P F \<Longrightarrow> (INF x : {x. P x}. c) = c"
@@ -89,7 +87,6 @@ proof -
 qed
 
 lemma Liminf_mono:
-  fixes f g :: "'a => 'b :: complete_lattice"
   assumes ev: "eventually (\<lambda>x. f x \<le> g x) F"
   shows "Liminf F f \<le> Liminf F g"
   unfolding Liminf_def
@@ -101,13 +98,11 @@ proof (safe intro!: SUP_mono)
 qed
 
 lemma Liminf_eq:
-  fixes f g :: "'a \<Rightarrow> 'b :: complete_lattice"
   assumes "eventually (\<lambda>x. f x = g x) F"
   shows "Liminf F f = Liminf F g"
   by (intro antisym Liminf_mono eventually_mono[OF _ assms]) auto
 
 lemma Limsup_mono:
-  fixes f g :: "'a \<Rightarrow> 'b :: complete_lattice"
   assumes ev: "eventually (\<lambda>x. f x \<le> g x) F"
   shows "Limsup F f \<le> Limsup F g"
   unfolding Limsup_def
@@ -119,18 +114,16 @@ proof (safe intro!: INF_mono)
 qed
 
 lemma Limsup_eq:
-  fixes f g :: "'a \<Rightarrow> 'b :: complete_lattice"
   assumes "eventually (\<lambda>x. f x = g x) net"
   shows "Limsup net f = Limsup net g"
   by (intro antisym Limsup_mono eventually_mono[OF _ assms]) auto
 
 lemma Liminf_le_Limsup:
-  fixes f :: "'a \<Rightarrow> 'b::complete_lattice"
   assumes ntriv: "\<not> trivial_limit F"
   shows "Liminf F f \<le> Limsup F f"
   unfolding Limsup_def Liminf_def
-  apply (rule complete_lattice_class.SUP_least)
-  apply (rule complete_lattice_class.INF_greatest)
+  apply (rule SUP_least)
+  apply (rule INF_greatest)
 proof safe
   fix P Q assume "eventually P F" "eventually Q F"
   then have "eventually (\<lambda>x. P x \<and> Q x) F" (is "eventually ?C F") by (rule eventually_conj)
@@ -146,14 +139,12 @@ proof safe
 qed
 
 lemma Liminf_bounded:
-  fixes X Y :: "'a \<Rightarrow> 'b::complete_lattice"
   assumes ntriv: "\<not> trivial_limit F"
   assumes le: "eventually (\<lambda>n. C \<le> X n) F"
   shows "C \<le> Liminf F X"
   using Liminf_mono[OF le] Liminf_const[OF ntriv, of C] by simp
 
 lemma Limsup_bounded:
-  fixes X Y :: "'a \<Rightarrow> 'b::complete_lattice"
   assumes ntriv: "\<not> trivial_limit F"
   assumes le: "eventually (\<lambda>n. X n \<le> C) F"
   shows "Limsup F X \<le> C"

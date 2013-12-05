@@ -7,23 +7,20 @@ Import TPTP problems as Isabelle terms or goals.
 
 signature ATP_PROBLEM_IMPORT =
 sig
-  val read_tptp_file :
-    theory -> (term -> term) -> string
-    -> term list * (term list * term list) * Proof.context
+  val read_tptp_file : theory -> (string * term -> 'a) -> string ->
+    'a list * ('a list * 'a list) * Proof.context
   val nitpick_tptp_file : theory -> int -> string -> unit
   val refute_tptp_file : theory -> int -> string -> unit
   val can_tac : Proof.context -> tactic -> term -> bool
   val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
-  val atp_tac :
-    Proof.context -> int -> (string * string) list -> int -> string -> int
-    -> tactic
+  val atp_tac : Proof.context -> int -> (string * string) list -> int -> string -> int -> tactic
   val smt_solver_tac : string -> Proof.context -> int -> tactic
   val freeze_problem_consts : theory -> term -> term
   val make_conj : term list * term list -> term list -> term
   val sledgehammer_tptp_file : theory -> int -> string -> unit
   val isabelle_tptp_file : theory -> int -> string -> unit
   val isabelle_hot_tptp_file : theory -> int -> string -> unit
-  val translate_tptp_file : string -> string -> string -> unit
+  val translate_tptp_file : theory -> string -> string -> unit
 end;
 
 structure ATP_Problem_Import : ATP_PROBLEM_IMPORT =
@@ -32,6 +29,8 @@ struct
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
+open ATP_Problem_Generate
+open ATP_Systems
 
 val debug = false
 val overlord = false
@@ -39,16 +38,18 @@ val overlord = false
 
 (** TPTP parsing **)
 
+fun exploded_absolute_path file_name =
+  Path.explode file_name
+  |> (fn path => path |> not (Path.is_absolute path) ? Path.append (Path.explode "$PWD"))
+
 fun read_tptp_file thy postproc file_name =
   let
     fun has_role role (_, role', _, _) = (role' = role)
-    fun get_prop (_, _, P, _) =
-      P |> Logic.varify_global |> close_form |> postproc
-    val path =
-      Path.explode file_name
-      |> (fn path =>
-             path |> not (Path.is_absolute path)
-                     ? Path.append (Path.explode "$PWD"))
+    fun get_prop (name, role, P, info) =
+      let val P' = P |> Logic.varify_global |> close_form in
+        (name, P') |> postproc
+      end
+    val path = exploded_absolute_path file_name
     val ((_, _, problem), thy) =
       TPTP_Interpret.interpret_file true [Path.dir path, Path.explode "$TPTP"]
                                     path [] [] thy
@@ -68,7 +69,7 @@ fun aptrueprop f ((t0 as @{const Trueprop}) $ t1) = t0 $ f t1
 
 fun nitpick_tptp_file thy timeout file_name =
   let
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy snd file_name
     val thy = Proof_Context.theory_of ctxt
     val (defs, pseudo_defs) =
       defs |> map (ATP_Util.abs_extensionalize_term ctxt
@@ -115,7 +116,7 @@ fun refute_tptp_file thy timeout file_name =
        else
          "Unknown")
       |> Output.urgent_message
-    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy snd file_name
     val params =
       [("maxtime", string_of_int timeout),
        ("maxvars", "100000")]
@@ -272,7 +273,7 @@ fun print_szs_of_success conjs success =
 fun sledgehammer_tptp_file thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
-      read_tptp_file thy (freeze_problem_consts thy) file_name
+      read_tptp_file thy (freeze_problem_consts thy o snd) file_name
     val conj = make_conj assms conjs
   in
     can_tac ctxt (sledgehammer_tac true ctxt timeout 1) conj
@@ -282,7 +283,7 @@ fun sledgehammer_tptp_file thy timeout file_name =
 fun generic_isabelle_tptp_file demo thy timeout file_name =
   let
     val (conjs, assms, ctxt) =
-      read_tptp_file thy (freeze_problem_consts thy) file_name
+      read_tptp_file thy (freeze_problem_consts thy o snd) file_name
     val conj = make_conj assms conjs
     val (last_hope_atp, last_hope_completeness) =
       if demo then (ATP_Systems.satallaxN, 0) else (ATP_Systems.vampireN, 2)
@@ -300,6 +301,33 @@ val isabelle_hot_tptp_file = generic_isabelle_tptp_file true
 
 (** Translator between TPTP(-like) file formats **)
 
-fun translate_tptp_file format in_file_name out_file_name = ()
+fun translate_tptp_file thy format_str file_name =
+  let
+    val (conjs, (defs, nondefs), ctxt) = read_tptp_file thy I file_name
+    val conj = make_conj ([], []) (map snd conjs)
+
+    val (format, type_enc, lam_trans) =
+      (case format_str of
+        "FOF" => (FOF, "mono_guards??", liftingN)
+      | "TF0" => (TFF Monomorphic, "mono_native", liftingN)
+      | "TH0" => (THF (Monomorphic, THF_Without_Choice), "mono_native_higher", keep_lamsN)
+      | "DFG" => (DFG Monomorphic, "mono_native", liftingN)
+      | _ => error ("Unknown format " ^ quote format_str ^
+        " (expected \"FOF\", \"TF0\", \"TH0\", or \"DFG\")"))
+    val uncurried_aliases = false
+    val readable_names = true
+    val presimp = true
+    val facts = map (apfst (rpair (Global, Non_Rec_Def))) defs @
+      map (apfst (rpair (Global, General))) nondefs
+    val (atp_problem, _, _, _, _) =
+      prepare_atp_problem ctxt format Hypothesis (type_enc_of_string Strict type_enc) Translator
+        lam_trans uncurried_aliases readable_names presimp [] conj facts
+
+    val ord = effective_term_order ctxt spassN
+    val ord_info = K []
+    val lines = lines_of_atp_problem format ord ord_info atp_problem
+  in
+    List.app Output.physical_stdout lines
+  end
 
 end;

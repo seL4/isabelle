@@ -6,9 +6,9 @@ Method "pat_completeness" to prove completeness of datatype patterns.
 
 signature PAT_COMPLETENESS =
 sig
-    val pat_completeness_tac: Proof.context -> int -> tactic
-    val prove_completeness : Proof.context -> term list -> term -> term list list ->
-      term list list -> thm
+  val pat_completeness_tac: Proof.context -> int -> tactic
+  val prove_completeness: Proof.context -> term list -> term -> term list list ->
+    term list list -> thm
 end
 
 structure Pat_Completeness : PAT_COMPLETENESS =
@@ -54,13 +54,6 @@ fun filter_pats thy cons pvars [] = []
     else filter_pats thy cons pvars pts
 
 
-fun inst_constrs_of thy (T as Type (name, _)) =
-  map (fn (Cn,CT) =>
-          Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-      (the (Datatype.get_constrs thy name))
-  | inst_constrs_of thy _ = raise Match
-
-
 fun transform_pat _ avars c_assum ([] , thm) = raise Match
   | transform_pat ctxt avars c_assum (pat :: pats, thm) =
   let
@@ -101,10 +94,9 @@ and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
   else (* Cons case *)
     let
       val thy = Proof_Context.theory_of ctxt
-      val T = fastype_of v
-      val (tname, _) = dest_Type T
-      val {exhaust=case_thm, ...} = Datatype.the_info thy tname
-      val constrs = inst_constrs_of thy T
+      val T as Type (tname, _) = fastype_of v
+      val SOME {exhaust=case_thm, ...} = Ctr_Sugar.ctr_sugar_of ctxt tname
+      val constrs = inst_constrs_of ctxt T
       val c_cases = map (constr_case ctxt P idx (v :: vs) pts) constrs
     in
       inst_case_thm thy v P case_thm

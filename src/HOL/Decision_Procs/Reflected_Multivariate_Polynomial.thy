@@ -5,7 +5,7 @@
 header {* Implementation and verification of multivariate polynomials *}
 
 theory Reflected_Multivariate_Polynomial
-imports Complex_Main "~~/src/HOL/Library/Abstract_Rat" Polynomial_List
+imports Complex_Main Rat_Pair Polynomial_List
 begin
 
 subsection{* Datatype of polynomial expressions *}
@@ -1256,12 +1256,10 @@ lemma polyadd_head:
   apply (case_tac n', simp, simp)
   apply (case_tac n, simp, simp)
   apply (case_tac n, case_tac n', simp add: Let_def)
-  apply (case_tac "pa +\<^sub>p p' = 0\<^sub>p")
-  apply (auto simp add: polyadd_eq_const_degree)
+  apply (auto simp add: polyadd_eq_const_degree)[2]
   apply (metis head_nz)
   apply (metis head_nz)
   apply (metis degree.simps(9) gr0_conv_Suc head.simps(1) less_Suc0 not_less_eq)
-  apply (metis degree.simps(9) gr0_conv_Suc nat_less_le order_le_less_trans)
   done
 
 lemma polymul_head_polyeq:

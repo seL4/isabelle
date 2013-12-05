@@ -42,7 +42,6 @@ val allowed_consts =
    @{term "nat"}, @{term "int"},
    @{term "Num.One"}, @{term "Num.Bit0"}, @{term "Num.Bit1"},
    @{term "Num.numeral :: num => int"}, @{term "Num.numeral :: num => nat"},
-   @{term "Num.neg_numeral :: num => int"},
    @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
    @{term "True"}, @{term "False"}];
 
@@ -610,8 +609,6 @@ fun num_of_term vs (Free vT) = Proc.Bound (Proc.nat_of_integer (find_index (fn v
   | num_of_term vs @{term "1::int"} = Proc.C (Proc.Int_of_integer 1)
   | num_of_term vs (t as Const (@{const_name numeral}, _) $ _) =
       Proc.C (Proc.Int_of_integer (dest_number t))
-  | num_of_term vs (t as Const (@{const_name neg_numeral}, _) $ _) =
-      Proc.Neg (Proc.C (Proc.Int_of_integer (dest_number t)))
   | num_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') =
       Proc.Neg (num_of_term vs t')
   | num_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) =

@@ -24,18 +24,21 @@ lemma problem_25:
   "(\<exists>x. P x) & (\<forall>x. L x --> ~ (M x & R x)) & (\<forall>x. P x --> (M x & L x)) & ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x)) --> (\<exists>x. Q x & P x)"
   apply (rule ccontr)
   ML_prf {*
+    val ctxt = @{context};
     val prem25 = Thm.assume @{cprop "\<not> ?thesis"};
-    val nnf25 = Meson.make_nnf @{context} prem25;
-    val xsko25 = Meson.skolemize @{context} nnf25;
+    val nnf25 = Meson.make_nnf ctxt prem25;
+    val xsko25 = Meson.skolemize ctxt nnf25;
   *}
   apply (tactic {* cut_tac xsko25 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
-    val [_, sko25] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses25 = Meson.make_clauses @{context} [sko25];   (*7 clauses*)
+    val ctxt = @{context};
+    val [_, sko25] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val clauses25 = Meson.make_clauses ctxt [sko25];   (*7 clauses*)
     val horns25 = Meson.make_horns clauses25;     (*16 Horn clauses*)
     val go25 :: _ = Meson.gocls clauses25;
 
-    Goal.prove @{context} [] [] @{prop False} (fn _ =>
+    val (_, ctxt') = Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (go25 :: horns25)) ctxt;
+    Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go25 1 THEN
       Meson.depth_prolog_tac horns25);
   *}
@@ -45,18 +48,23 @@ lemma problem_26:
   "((\<exists>x. p x) = (\<exists>x. q x)) & (\<forall>x. \<forall>y. p x & q y --> (r x = s y)) --> ((\<forall>x. p x --> r x) = (\<forall>x. q x --> s x))"
   apply (rule ccontr)
   ML_prf {*
+    val ctxt = @{context};
     val prem26 = Thm.assume @{cprop "\<not> ?thesis"}
-    val nnf26 = Meson.make_nnf @{context} prem26;
-    val xsko26 = Meson.skolemize @{context} nnf26;
+    val nnf26 = Meson.make_nnf ctxt prem26;
+    val xsko26 = Meson.skolemize ctxt nnf26;
   *}
   apply (tactic {* cut_tac xsko26 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
-    val [_, sko26] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses26 = Meson.make_clauses @{context} [sko26];                   (*9 clauses*)
-    val horns26 = Meson.make_horns clauses26;                     (*24 Horn clauses*)
+    val ctxt = @{context};
+    val [_, sko26] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val clauses26 = Meson.make_clauses ctxt [sko26];
+    val _ = @{assert} (length clauses26 = 9);
+    val horns26 = Meson.make_horns clauses26;
+    val _ = @{assert} (length horns26 = 24);
     val go26 :: _ = Meson.gocls clauses26;
 
-    Goal.prove @{context} [] [] @{prop False} (fn _ =>
+    val (_, ctxt') = Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (go26 :: horns26)) ctxt;
+    Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go26 1 THEN
       Meson.depth_prolog_tac horns26);  (*7 ms*)
     (*Proof is of length 107!!*)
@@ -67,18 +75,23 @@ lemma problem_43:  -- "NOW PROVED AUTOMATICALLY!!"  (*16 Horn clauses*)
   "(\<forall>x. \<forall>y. q x y = (\<forall>z. p z x = (p z y::bool))) --> (\<forall>x. (\<forall>y. q x y = (q y x::bool)))"
   apply (rule ccontr)
   ML_prf {*
+    val ctxt = @{context};
     val prem43 = Thm.assume @{cprop "\<not> ?thesis"};
-    val nnf43 = Meson.make_nnf @{context} prem43;
-    val xsko43 = Meson.skolemize @{context} nnf43;
+    val nnf43 = Meson.make_nnf ctxt prem43;
+    val xsko43 = Meson.skolemize ctxt nnf43;
   *}
   apply (tactic {* cut_tac xsko43 1 THEN REPEAT (etac exE 1) *})
   ML_val {*
-    val [_, sko43] = #prems (#1 (Subgoal.focus @{context} 1 (#goal @{Isar.goal})));
-    val clauses43 = Meson.make_clauses @{context} [sko43];   (*6*)
-    val horns43 = Meson.make_horns clauses43;     (*16*)
+    val ctxt = @{context};
+    val [_, sko43] = #prems (#1 (Subgoal.focus ctxt 1 (#goal @{Isar.goal})));
+    val clauses43 = Meson.make_clauses ctxt [sko43];
+    val _ = @{assert} (length clauses43 = 6);
+    val horns43 = Meson.make_horns clauses43;
+    val _ = @{assert} (length horns43 = 16);
     val go43 :: _ = Meson.gocls clauses43;
 
-    Goal.prove @{context} [] [] @{prop False} (fn _ =>
+    val (_, ctxt') = Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (go43 :: horns43)) ctxt;
+    Goal.prove ctxt' [] [] @{prop False} (fn _ =>
       rtac go43 1 THEN
       Meson.best_prolog_tac Meson.size_of_subgoals horns43);   (*7ms*)
     *}

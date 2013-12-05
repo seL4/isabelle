@@ -86,7 +86,20 @@ begin
 lemma one_neq_zero [simp]: "1 \<noteq> 0"
 by (rule not_sym) (rule zero_neq_one)
 
-end
+definition of_bool :: "bool \<Rightarrow> 'a"
+where
+  "of_bool p = (if p then 1 else 0)" 
+
+lemma of_bool_eq [simp, code]:
+  "of_bool False = 0"
+  "of_bool True = 1"
+  by (simp_all add: of_bool_def)
+
+lemma of_bool_eq_iff:
+  "of_bool p = of_bool q \<longleftrightarrow> p = q"
+  by (simp add: of_bool_def)
+
+end  
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
@@ -127,7 +140,7 @@ proof -
   then show ?thesis ..
 qed
 
-lemma dvd_0_left_iff [no_atp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
+lemma dvd_0_left_iff [simp]: "0 dvd a \<longleftrightarrow> a = 0"
 by (auto intro: dvd_refl elim!: dvdE)
 
 lemma dvd_0_right [iff]: "a dvd 0"
@@ -233,8 +246,8 @@ lemma minus_mult_right: "- (a * b) = a * - b"
 by (rule minus_unique) (simp add: distrib_left [symmetric]) 
 
 text{*Extract signs from products*}
-lemmas mult_minus_left [simp, no_atp] = minus_mult_left [symmetric]
-lemmas mult_minus_right [simp,no_atp] = minus_mult_right [symmetric]
+lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
+lemmas mult_minus_right [simp] = minus_mult_right [symmetric]
 
 lemma minus_mult_minus [simp]: "- a * - b = a * b"
 by simp
@@ -242,13 +255,15 @@ by simp
 lemma minus_mult_commute: "- a * b = a * - b"
 by simp
 
-lemma right_diff_distrib[algebra_simps, field_simps]: "a * (b - c) = a * b - a * c"
-by (simp add: distrib_left diff_minus)
+lemma right_diff_distrib [algebra_simps, field_simps]:
+  "a * (b - c) = a * b - a * c"
+  using distrib_left [of a b "-c "] by simp
 
-lemma left_diff_distrib[algebra_simps, field_simps]: "(a - b) * c = a * c - b * c"
-by (simp add: distrib_right diff_minus)
+lemma left_diff_distrib [algebra_simps, field_simps]:
+  "(a - b) * c = a * c - b * c"
+  using distrib_right [of a "- b" c] by simp
 
-lemmas ring_distribs[no_atp] =
+lemmas ring_distribs =
   distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 lemma eq_add_iff1:
@@ -261,7 +276,7 @@ by (simp add: algebra_simps)
 
 end
 
-lemmas ring_distribs[no_atp] =
+lemmas ring_distribs =
   distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 class comm_ring = comm_semiring + ab_group_add
@@ -318,8 +333,9 @@ next
   then show "- x dvd y" ..
 qed
 
-lemma dvd_diff[simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
-by (simp only: diff_minus dvd_add dvd_minus_iff)
+lemma dvd_diff [simp]:
+  "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
+  using dvd_add [of x y "- z"] by simp
 
 end
 
@@ -336,7 +352,7 @@ next
 qed
 
 text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp, no_atp]:
+lemma mult_cancel_right [simp]:
   "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(a * c = b * c) = ((a - b) * c = 0)"
@@ -344,7 +360,7 @@ proof -
   thus ?thesis by (simp add: disj_commute)
 qed
 
-lemma mult_cancel_left [simp, no_atp]:
+lemma mult_cancel_left [simp]:
   "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
 proof -
   have "(c * a = c * b) = (c * (a - b) = 0)"
@@ -742,9 +758,7 @@ subclass ordered_ab_group_add_abs
 proof
   fix a b
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
-    by (auto simp add: abs_if not_less)
-    (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric],
-     auto intro!: less_imp_le add_neg_neg)
+    by (auto simp add: abs_if not_le not_less algebra_simps simp del: add.commute dest: add_neg_neg add_nonneg_nonneg)
 qed (auto simp add: abs_if)
 
 lemma zero_le_square [simp]: "0 \<le> a * a"
@@ -1044,11 +1058,39 @@ lemma dvd_if_abs_eq:
   "\<bar>l\<bar> = \<bar>k\<bar> \<Longrightarrow> l dvd k"
 by(subst abs_dvd_iff[symmetric]) simp
 
+text {* The following lemmas can be proven in more generale structures, but
+are dangerous as simp rules in absence of @{thm neg_equal_zero}, 
+@{thm neg_less_pos}, @{thm neg_less_eq_nonneg}. *}
+
+lemma equation_minus_iff_1 [simp, no_atp]:
+  "1 = - a \<longleftrightarrow> a = - 1"
+  by (fact equation_minus_iff)
+
+lemma minus_equation_iff_1 [simp, no_atp]:
+  "- a = 1 \<longleftrightarrow> a = - 1"
+  by (subst minus_equation_iff, auto)
+
+lemma le_minus_iff_1 [simp, no_atp]:
+  "1 \<le> - b \<longleftrightarrow> b \<le> - 1"
+  by (fact le_minus_iff)
+
+lemma minus_le_iff_1 [simp, no_atp]:
+  "- a \<le> 1 \<longleftrightarrow> - 1 \<le> a"
+  by (fact minus_le_iff)
+
+lemma less_minus_iff_1 [simp, no_atp]:
+  "1 < - b \<longleftrightarrow> b < - 1"
+  by (fact less_minus_iff)
+
+lemma minus_less_iff_1 [simp, no_atp]:
+  "- a < 1 \<longleftrightarrow> - 1 < a"
+  by (fact minus_less_iff)
+
 end
 
 text {* Simprules for comparisons where common factors can be cancelled. *}
 
-lemmas mult_compare_simps[no_atp] =
+lemmas mult_compare_simps =
     mult_le_cancel_right mult_le_cancel_left
     mult_le_cancel_right1 mult_le_cancel_right2
     mult_le_cancel_left1 mult_le_cancel_left2
@@ -1130,10 +1172,6 @@ proof -
   assume "\<bar>b\<bar> < d"
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
-
-lemma less_minus_self_iff:
-  "a < - a \<longleftrightarrow> a < 0"
-  by (simp only: less_le less_eq_neg_nonpos equal_neg_zero)
 
 lemma abs_less_iff:
   "\<bar>a\<bar> < b \<longleftrightarrow> a < b \<and> - a < b" 

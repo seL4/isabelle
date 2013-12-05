@@ -480,28 +480,25 @@ end;
 fun conclude_goal ctxt goal propss =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val string_of_term = Syntax.string_of_term ctxt;
-    val string_of_thm = Display.string_of_thm ctxt;
 
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
-    val extra_hyps = Assumption.extra_hyps ctxt goal;
-    val _ = null extra_hyps orelse
-      error ("Additional hypotheses:\n" ^ cat_lines (map string_of_term extra_hyps));
+    fun lost_structure () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);
 
-    fun lost_structure () = error ("Lost goal structure:\n" ^ string_of_thm goal);
+    val th =
+      (Goal.conclude (if length (flat propss) > 1 then Thm.norm_proof goal else goal)
+        handle THM _ => lost_structure ())
+      |> Drule.flexflex_unique
+      |> Thm.check_shyps (Variable.sorts_of ctxt)
+      |> Assumption.check_hyps ctxt;
 
-    val th = Goal.conclude
-      (if length (flat propss) > 1 then Thm.norm_proof goal else goal)
-      handle THM _ => lost_structure ();
     val goal_propss = filter_out null propss;
     val results =
       Conjunction.elim_balanced (length goal_propss) th
       |> map2 Conjunction.elim_balanced (map length goal_propss)
       handle THM _ => lost_structure ();
     val _ = Unify.matches_list thy (flat goal_propss) (map Thm.prop_of (flat results)) orelse
-      error ("Proved a different theorem:\n" ^ string_of_thm th);
-    val _ = Thm.check_shyps (Variable.sorts_of ctxt) th;
+      error ("Proved a different theorem:\n" ^ Display.string_of_thm ctxt th);
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss

@@ -12,7 +12,6 @@ imports DTree
 begin
 
 no_notation plus_class.plus (infixl "+" 65)
-no_notation Sublist.parallel (infixl "\<parallel>" 50)
 
 consts Nplus :: "N \<Rightarrow> N \<Rightarrow> N" (infixl "+" 60)
 

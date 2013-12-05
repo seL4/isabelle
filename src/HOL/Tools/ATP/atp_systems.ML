@@ -211,7 +211,7 @@ val term_order =
 
 (* agsyHOL *)
 
-val agsyhol_thf0 = THF (Monomorphic, THF_Without_Choice, THF_With_Defs)
+val agsyhol_thf0 = THF (Monomorphic, THF_Without_Choice)
 
 val agsyhol_config : atp_config =
   {exec = K (["AGSYHOL_HOME"], ["agsyHOL"]),
@@ -461,7 +461,7 @@ val iprover_eq = (iprover_eqN, fn () => iprover_eq_config)
 
 (* LEO-II supports definitions, but it performs significantly better on our
    benchmarks when they are not used. *)
-val leo2_thf0 = THF (Monomorphic, THF_Without_Choice, THF_Without_Defs)
+val leo2_thf0 = THF (Monomorphic, THF_Without_Choice)
 
 val leo2_config : atp_config =
   {exec = K (["LEO2_HOME"], ["leo.opt", "leo"]),
@@ -488,7 +488,7 @@ val leo2 = (leo2N, fn () => leo2_config)
 (* Satallax *)
 
 (* Choice is disabled until there is proper reconstruction for it. *)
-val satallax_thf0 = THF (Monomorphic, THF_Without_Choice, THF_With_Defs)
+val satallax_thf0 = THF (Monomorphic, THF_Without_Choice)
 
 val satallax_config : atp_config =
   {exec = K (["SATALLAX_HOME"], ["satallax.opt", "satallax"]),
@@ -653,7 +653,7 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
-val dummy_thf_format = THF (Polymorphic, THF_With_Choice, THF_With_Defs)
+val dummy_thf_format = THF (Polymorphic, THF_With_Choice)
 val dummy_thf_config =
   dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)

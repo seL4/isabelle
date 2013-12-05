@@ -140,7 +140,6 @@ val is_number =
           is_num env t andalso is_num env u
       | is_num env (Const (@{const_name Let}, _) $ t $ Abs (_, _, u)) =
           is_num (t :: env) u
-      | is_num env (Const (@{const_name uminus}, _) $ t) = is_num env t
       | is_num env (Bound i) = i < length env andalso is_num env (nth env i)
       | is_num _ t = can HOLogic.dest_number t
   in is_num [] end

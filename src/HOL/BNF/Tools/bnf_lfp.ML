@@ -22,12 +22,12 @@ open BNF_Tactics
 open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
-open BNF_FP_Rec_Sugar
+open BNF_LFP_Rec_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -44,7 +44,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val mk_internal_b = Binding.name #> Binding.prefix true b_name #> Binding.conceal;
     fun mk_internal_bs name =
       map (fn b =>
-        Binding.prefix true b_name (Binding.suffix_name ("_" ^ name) b) |> Binding.conceal) bs;
+        Binding.prefix true b_name (Binding.prefix_name (name ^ "_") b) |> Binding.conceal) bs;
     val external_bs = map2 (Binding.prefix false) b_names bs
       |> note_all = false ? map Binding.conceal;
 
@@ -1021,7 +1021,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val phis = map2 retype_free (map mk_pred1T Ts) init_phis;
     val phi2s = map2 retype_free (map2 mk_pred2T Ts Ts') init_phis;
 
-    fun ctor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctorN);
+    fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
     val ctor_name = Binding.name_of o ctor_bind;
     val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
 
@@ -1080,7 +1080,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       (mk_mor UNIVs ctors active_UNIVs ss (map (mk_nthN n fold_f) ks));
     val foldx = HOLogic.choice_const foldT $ fold_fun;
 
-    fun fold_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctor_foldN);
+    fun fold_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_foldN ^ "_");
     val fold_name = Binding.name_of o fold_bind;
     val fold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o fold_bind;
 
@@ -1170,7 +1170,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
       Term.list_comb (mk_map_of_bnf Ds (passiveAs @ FTs) (passiveAs @ Ts) bnf,
         map HOLogic.id_const passiveAs @ ctors)) Dss bnfs;
 
-    fun dtor_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ dtorN);
+    fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
     val dtor_name = Binding.name_of o dtor_bind;
     val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
 
@@ -1243,7 +1243,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
           trans OF [mor RS unique, fold_ctor]) fold_unique_mor_thms fold_ctor_thms
       end;
 
-    fun rec_bind i = nth external_bs (i - 1) |> Binding.suffix_name ("_" ^ ctor_recN);
+    fun rec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_recN ^ "_");
     val rec_name = Binding.name_of o rec_bind;
     val rec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o rec_bind;
 
@@ -1354,7 +1354,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
     val cTs = map (SOME o certifyT lthy o TFree) induct_params;
 
     val weak_ctor_induct_thms =
-      let fun insts i = (replicate (i - 1) TrueI) @ (@{thm asm_rl} :: replicate (n - i) TrueI);
+      let fun insts i = (replicate (i - 1) TrueI) @ (asm_rl :: replicate (n - i) TrueI);
       in map (fn i => (ctor_induct_thm OF insts i) RS mk_conjunctN n i) ks end;
 
     val (ctor_induct2_thm, induct2_params) =
@@ -1744,12 +1744,16 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
         fun wit_tac {context = ctxt, prems = _} =
           mk_wit_tac ctxt n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
+        val set_bss =
+          map (flat o map2 (fn B => fn b =>
+            if member (op =) resDs (TFree B) then [] else [b]) resBs) set_bss0;
+
         val (Ibnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
               fn T => fn wits => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads)
               map_b rel_b set_bs
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), bd), wits), NONE)
               lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts ctor_witss lthy;

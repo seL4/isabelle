@@ -526,25 +526,26 @@ end
 
 local
   (*
-    rewrite negative numerals into positive numerals,
-    rewrite Numeral0 into 0
     rewrite Numeral1 into 1
+    rewrite - 0 into 0
   *)
 
-  fun is_strange_number ctxt (t as Const (@{const_name neg_numeral}, _) $ _) =
-        (case try HOLogic.dest_number t of
-          SOME (_, i) => SMT_Builtin.is_builtin_num ctxt t andalso i < 2
-        | NONE => false)
-    | is_strange_number _ _ = false
+  fun is_irregular_number (Const (@{const_name numeral}, _) $ Const (@{const_name num.One}, _)) =
+        true
+    | is_irregular_number (Const (@{const_name uminus}, _) $ Const (@{const_name Groups.zero}, _)) =
+        true
+    | is_irregular_number _ =
+        false;
 
-  val pos_num_ss =
+  fun is_strange_number ctxt t = is_irregular_number t andalso SMT_Builtin.is_builtin_num ctxt t;
+
+  val proper_num_ss =
     simpset_of (put_simpset HOL_ss @{context}
-      addsimps [@{thm Num.numeral_One}]
-      addsimps [@{thm Num.neg_numeral_def}])
+      addsimps @{thms Num.numeral_One minus_zero})
 
   fun norm_num_conv ctxt =
     SMT_Utils.if_conv (is_strange_number ctxt)
-      (Simplifier.rewrite (put_simpset pos_num_ss ctxt)) Conv.no_conv
+      (Simplifier.rewrite (put_simpset proper_num_ss ctxt)) Conv.no_conv
 in
 
 fun normalize_numerals_conv ctxt =

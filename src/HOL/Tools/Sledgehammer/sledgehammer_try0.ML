@@ -12,7 +12,7 @@ sig
   type preplay_interface = Sledgehammer_Preplay.preplay_interface
 
   val try0 : Time.time -> preplay_interface -> isar_proof -> isar_proof
-end
+end;
 
 structure Sledgehammer_Try0 : SLEDGEHAMMER_TRY0 =
 struct
@@ -59,4 +59,4 @@ fun try0_step _ _ (step as Let _) = step
 fun try0 preplay_timeout preplay_interface proof =
      map_isar_steps (try0_step preplay_timeout preplay_interface) proof
 
-end
+end;

@@ -86,16 +86,50 @@ fun info_of_constr_permissive thy (c, T) =
 
 val info_of_case = Symtab.lookup o #cases o Data.get;
 
-fun register (dt_infos : (string * Datatype_Aux.info) list) =
+fun ctrs_of_exhaust exhaust =
+  Logic.strip_imp_prems (prop_of exhaust) |>
+  map (head_of o snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o the_single
+    o Logic.strip_assums_hyp);
+
+fun case_of_case_rewrite case_rewrite =
+  head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of case_rewrite))));
+
+fun ctr_sugar_of_info ({exhaust, nchotomy, inject, distinct, case_rewrites, case_cong,
+    weak_case_cong, split, split_asm, ...} : Datatype_Aux.info) =
+  {ctrs = ctrs_of_exhaust exhaust,
+   casex = case_of_case_rewrite (hd case_rewrites),
+   discs = [],
+   selss = [],
+   exhaust = exhaust,
+   nchotomy = nchotomy,
+   injects = inject,
+   distincts = distinct,
+   case_thms = case_rewrites,
+   case_cong = case_cong,
+   weak_case_cong = weak_case_cong,
+   split = split,
+   split_asm = split_asm,
+   disc_thmss = [],
+   discIs = [],
+   sel_thmss = [],
+   disc_exhausts = [],
+   sel_exhausts = [],
+   collapses = [],
+   expands = [],
+   sel_splits = [],
+   sel_split_asms = [],
+   case_eq_ifs = []};
+
+fun register dt_infos =
   Data.map (fn {types, constrs, cases} =>
     {types = types |> fold Symtab.update dt_infos,
      constrs = constrs |> fold (fn (constr, dtname_info) =>
          Symtab.map_default (constr, []) (cons dtname_info))
        (maps (fn (dtname, info as {descr, index, ...}) =>
-          map (rpair (dtname, info) o fst)
-            (#3 (the (AList.lookup op = descr index)))) dt_infos),
+          map (rpair (dtname, info) o fst) (#3 (the (AList.lookup op = descr index)))) dt_infos),
      cases = cases |> fold Symtab.update
-       (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)});
+       (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)}) #>
+  fold (fn (key, info) => Ctr_Sugar.register_ctr_sugar_global key (ctr_sugar_of_info info)) dt_infos;
 
 
 (* complex queries *)

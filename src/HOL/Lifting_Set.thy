@@ -153,7 +153,7 @@ lemma set_rel_transfer [transfer_rule]:
   unfolding fun_rel_def set_rel_def by fast
 
 lemma SUPR_parametric [transfer_rule]:
-  "(set_rel R ===> (R ===> op =) ===> op =) SUPR SUPR"
+  "(set_rel R ===> (R ===> op =) ===> op =) SUPR (SUPR :: _ \<Rightarrow> _ \<Rightarrow> _::complete_lattice)"
 proof(rule fun_relI)+
   fix A B f and g :: "'b \<Rightarrow> 'c"
   assume AB: "set_rel R A B"

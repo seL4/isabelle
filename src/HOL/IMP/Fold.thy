@@ -1,5 +1,3 @@
-header "Constant Folding"
-
 theory Fold imports Sem_Equiv Vars begin
 
 subsection "Simple folding of arithmetic expressions"

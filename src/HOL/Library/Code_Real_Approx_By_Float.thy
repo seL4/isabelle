@@ -169,7 +169,7 @@ lemma [code_unfold del]:
   by simp
 
 lemma [code_unfold del]:
-  "neg_numeral k \<equiv> (of_rat (neg_numeral k) :: real)"
+  "- numeral k \<equiv> (of_rat (- numeral k) :: real)"
   by simp
 
 hide_const (open) real_of_int

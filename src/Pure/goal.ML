@@ -182,7 +182,6 @@ fun is_schematic t =
 fun prove_common immediate pri ctxt xs asms props tac =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val string_of_term = Syntax.string_of_term ctxt;
 
     val schematic = exists is_schematic props;
     val future = future_enabled 1;
@@ -191,7 +190,7 @@ fun prove_common immediate pri ctxt xs asms props tac =
     val pos = Position.thread_data ();
     fun err msg = cat_error msg
       ("The error(s) above occurred for the goal statement:\n" ^
-        string_of_term (Logic.list_implies (asms, Logic.mk_conjunction_list props)) ^
+        Syntax.string_of_term ctxt (Logic.list_implies (asms, Logic.mk_conjunction_list props)) ^
         (case Position.here pos of "" => "" | s => "\n" ^ s));
 
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
@@ -215,10 +214,16 @@ fun prove_common immediate pri ctxt xs asms props tac =
       (case SINGLE (tac' {prems = prems, context = ctxt'}) (init stmt) of
         NONE => err "Tactic failed"
       | SOME st =>
-          let val res = finish ctxt' st handle THM (msg, _, _) => err msg in
-            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res]
-            then Thm.check_shyps sorts res
-            else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
+          let
+            val res =
+              (finish ctxt' st
+                |> Drule.flexflex_unique
+                |> Thm.check_shyps sorts
+                (* |> Assumption.check_hyps ctxt' FIXME *))
+              handle THM (msg, _, _) => err msg | ERROR msg => err msg;
+          in
+            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res
+            else err ("Proved a different theorem: " ^ Syntax.string_of_term ctxt' (Thm.prop_of res))
           end);
     val res =
       if immediate orelse schematic orelse not future orelse skip then result ()

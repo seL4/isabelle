@@ -9,7 +9,7 @@
 header {* Bitwise Operations on Binary Integers *}
 
 theory Bit_Int
-imports Bit_Representation Bit_Operations
+imports Bit_Representation Bit_Bit
 begin
 
 subsection {* Logical operations *}
@@ -52,10 +52,10 @@ lemma int_not_BIT [simp]:
 lemma int_not_simps [simp]:
   "NOT (0::int) = -1"
   "NOT (1::int) = -2"
-  "NOT (-1::int) = 0"
-  "NOT (numeral w::int) = neg_numeral (w + Num.One)"
-  "NOT (neg_numeral (Num.Bit0 w)::int) = numeral (Num.BitM w)"
-  "NOT (neg_numeral (Num.Bit1 w)::int) = numeral (Num.Bit0 w)"
+  "NOT (- 1::int) = 0"
+  "NOT (numeral w::int) = - numeral (w + Num.One)"
+  "NOT (- numeral (Num.Bit0 w)::int) = numeral (Num.BitM w)"
+  "NOT (- numeral (Num.Bit1 w)::int) = numeral (Num.Bit0 w)"
   unfolding int_not_def by simp_all
 
 lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
@@ -228,11 +228,11 @@ lemma bin_rl_eqI: "\<lbrakk>bin_rest x = bin_rest y; bin_last x = bin_last y\<rb
   by (metis bin_rl_simp)
 
 lemma bin_rest_neg_numeral_BitM [simp]:
-  "bin_rest (neg_numeral (Num.BitM w)) = neg_numeral w"
+  "bin_rest (- numeral (Num.BitM w)) = - numeral w"
   by (simp only: BIT_bin_simps [symmetric] bin_rest_BIT)
 
 lemma bin_last_neg_numeral_BitM [simp]:
-  "bin_last (neg_numeral (Num.BitM w)) = 1"
+  "bin_last (-  numeral (Num.BitM w)) = 1"
   by (simp only: BIT_bin_simps [symmetric] bin_last_BIT)
 
 text {* FIXME: The rule sets below are very large (24 rules for each
@@ -243,26 +243,26 @@ lemma int_and_numerals [simp]:
   "numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT 0"
   "numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (numeral x AND numeral y) BIT 0"
   "numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (numeral x AND numeral y) BIT 1"
-  "numeral (Num.Bit0 x) AND neg_numeral (Num.Bit0 y) = (numeral x AND neg_numeral y) BIT 0"
-  "numeral (Num.Bit0 x) AND neg_numeral (Num.Bit1 y) = (numeral x AND neg_numeral (y + Num.One)) BIT 0"
-  "numeral (Num.Bit1 x) AND neg_numeral (Num.Bit0 y) = (numeral x AND neg_numeral y) BIT 0"
-  "numeral (Num.Bit1 x) AND neg_numeral (Num.Bit1 y) = (numeral x AND neg_numeral (y + Num.One)) BIT 1"
-  "neg_numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (neg_numeral x AND numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (neg_numeral x AND numeral y) BIT 0"
-  "neg_numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) AND numeral y) BIT 0"
-  "neg_numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) AND numeral y) BIT 1"
-  "neg_numeral (Num.Bit0 x) AND neg_numeral (Num.Bit0 y) = (neg_numeral x AND neg_numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) AND neg_numeral (Num.Bit1 y) = (neg_numeral x AND neg_numeral (y + Num.One)) BIT 0"
-  "neg_numeral (Num.Bit1 x) AND neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) AND neg_numeral y) BIT 0"
-  "neg_numeral (Num.Bit1 x) AND neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) AND neg_numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (numeral x AND - numeral y) BIT 0"
+  "numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (numeral x AND - numeral (y + Num.One)) BIT 0"
+  "numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (numeral x AND - numeral y) BIT 0"
+  "numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = (numeral x AND - numeral (y + Num.One)) BIT 1"
+  "- numeral (Num.Bit0 x) AND numeral (Num.Bit0 y) = (- numeral x AND numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) AND numeral (Num.Bit1 y) = (- numeral x AND numeral y) BIT 0"
+  "- numeral (Num.Bit1 x) AND numeral (Num.Bit0 y) = (- numeral (x + Num.One) AND numeral y) BIT 0"
+  "- numeral (Num.Bit1 x) AND numeral (Num.Bit1 y) = (- numeral (x + Num.One) AND numeral y) BIT 1"
+  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit0 y) = (- numeral x AND - numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) AND - numeral (Num.Bit1 y) = (- numeral x AND - numeral (y + Num.One)) BIT 0"
+  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit0 y) = (- numeral (x + Num.One) AND - numeral y) BIT 0"
+  "- numeral (Num.Bit1 x) AND - numeral (Num.Bit1 y) = (- numeral (x + Num.One) AND - numeral (y + Num.One)) BIT 1"
   "(1::int) AND numeral (Num.Bit0 y) = 0"
   "(1::int) AND numeral (Num.Bit1 y) = 1"
-  "(1::int) AND neg_numeral (Num.Bit0 y) = 0"
-  "(1::int) AND neg_numeral (Num.Bit1 y) = 1"
+  "(1::int) AND - numeral (Num.Bit0 y) = 0"
+  "(1::int) AND - numeral (Num.Bit1 y) = 1"
   "numeral (Num.Bit0 x) AND (1::int) = 0"
   "numeral (Num.Bit1 x) AND (1::int) = 1"
-  "neg_numeral (Num.Bit0 x) AND (1::int) = 0"
-  "neg_numeral (Num.Bit1 x) AND (1::int) = 1"
+  "- numeral (Num.Bit0 x) AND (1::int) = 0"
+  "- numeral (Num.Bit1 x) AND (1::int) = 1"
   by (rule bin_rl_eqI, simp, simp)+
 
 lemma int_or_numerals [simp]:
@@ -270,26 +270,26 @@ lemma int_or_numerals [simp]:
   "numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT 1"
   "numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (numeral x OR numeral y) BIT 1"
   "numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (numeral x OR numeral y) BIT 1"
-  "numeral (Num.Bit0 x) OR neg_numeral (Num.Bit0 y) = (numeral x OR neg_numeral y) BIT 0"
-  "numeral (Num.Bit0 x) OR neg_numeral (Num.Bit1 y) = (numeral x OR neg_numeral (y + Num.One)) BIT 1"
-  "numeral (Num.Bit1 x) OR neg_numeral (Num.Bit0 y) = (numeral x OR neg_numeral y) BIT 1"
-  "numeral (Num.Bit1 x) OR neg_numeral (Num.Bit1 y) = (numeral x OR neg_numeral (y + Num.One)) BIT 1"
-  "neg_numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (neg_numeral x OR numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (neg_numeral x OR numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) OR numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) OR numeral y) BIT 1"
-  "neg_numeral (Num.Bit0 x) OR neg_numeral (Num.Bit0 y) = (neg_numeral x OR neg_numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) OR neg_numeral (Num.Bit1 y) = (neg_numeral x OR neg_numeral (y + Num.One)) BIT 1"
-  "neg_numeral (Num.Bit1 x) OR neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) OR neg_numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) OR neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) OR neg_numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (numeral x OR - numeral y) BIT 0"
+  "numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = (numeral x OR - numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = (numeral x OR - numeral y) BIT 1"
+  "numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = (numeral x OR - numeral (y + Num.One)) BIT 1"
+  "- numeral (Num.Bit0 x) OR numeral (Num.Bit0 y) = (- numeral x OR numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) OR numeral (Num.Bit1 y) = (- numeral x OR numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) OR numeral (Num.Bit0 y) = (- numeral (x + Num.One) OR numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) OR numeral (Num.Bit1 y) = (- numeral (x + Num.One) OR numeral y) BIT 1"
+  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit0 y) = (- numeral x OR - numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) OR - numeral (Num.Bit1 y) = (- numeral x OR - numeral (y + Num.One)) BIT 1"
+  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit0 y) = (- numeral (x + Num.One) OR - numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) OR - numeral (Num.Bit1 y) = (- numeral (x + Num.One) OR - numeral (y + Num.One)) BIT 1"
   "(1::int) OR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
   "(1::int) OR numeral (Num.Bit1 y) = numeral (Num.Bit1 y)"
-  "(1::int) OR neg_numeral (Num.Bit0 y) = neg_numeral (Num.BitM y)"
-  "(1::int) OR neg_numeral (Num.Bit1 y) = neg_numeral (Num.Bit1 y)"
+  "(1::int) OR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
+  "(1::int) OR - numeral (Num.Bit1 y) = - numeral (Num.Bit1 y)"
   "numeral (Num.Bit0 x) OR (1::int) = numeral (Num.Bit1 x)"
   "numeral (Num.Bit1 x) OR (1::int) = numeral (Num.Bit1 x)"
-  "neg_numeral (Num.Bit0 x) OR (1::int) = neg_numeral (Num.BitM x)"
-  "neg_numeral (Num.Bit1 x) OR (1::int) = neg_numeral (Num.Bit1 x)"
+  "- numeral (Num.Bit0 x) OR (1::int) = - numeral (Num.BitM x)"
+  "- numeral (Num.Bit1 x) OR (1::int) = - numeral (Num.Bit1 x)"
   by (rule bin_rl_eqI, simp, simp)+
 
 lemma int_xor_numerals [simp]:
@@ -297,26 +297,26 @@ lemma int_xor_numerals [simp]:
   "numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT 1"
   "numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (numeral x XOR numeral y) BIT 1"
   "numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (numeral x XOR numeral y) BIT 0"
-  "numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit0 y) = (numeral x XOR neg_numeral y) BIT 0"
-  "numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit1 y) = (numeral x XOR neg_numeral (y + Num.One)) BIT 1"
-  "numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit0 y) = (numeral x XOR neg_numeral y) BIT 1"
-  "numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit1 y) = (numeral x XOR neg_numeral (y + Num.One)) BIT 0"
-  "neg_numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (neg_numeral x XOR numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (neg_numeral x XOR numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) XOR numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) XOR numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit0 y) = (neg_numeral x XOR neg_numeral y) BIT 0"
-  "neg_numeral (Num.Bit0 x) XOR neg_numeral (Num.Bit1 y) = (neg_numeral x XOR neg_numeral (y + Num.One)) BIT 1"
-  "neg_numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit0 y) = (neg_numeral (x + Num.One) XOR neg_numeral y) BIT 1"
-  "neg_numeral (Num.Bit1 x) XOR neg_numeral (Num.Bit1 y) = (neg_numeral (x + Num.One) XOR neg_numeral (y + Num.One)) BIT 0"
+  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (numeral x XOR - numeral y) BIT 0"
+  "numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = (numeral x XOR - numeral (y + Num.One)) BIT 1"
+  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = (numeral x XOR - numeral y) BIT 1"
+  "numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (numeral x XOR - numeral (y + Num.One)) BIT 0"
+  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit0 y) = (- numeral x XOR numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) XOR numeral (Num.Bit1 y) = (- numeral x XOR numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit0 y) = (- numeral (x + Num.One) XOR numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) XOR numeral (Num.Bit1 y) = (- numeral (x + Num.One) XOR numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit0 y) = (- numeral x XOR - numeral y) BIT 0"
+  "- numeral (Num.Bit0 x) XOR - numeral (Num.Bit1 y) = (- numeral x XOR - numeral (y + Num.One)) BIT 1"
+  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit0 y) = (- numeral (x + Num.One) XOR - numeral y) BIT 1"
+  "- numeral (Num.Bit1 x) XOR - numeral (Num.Bit1 y) = (- numeral (x + Num.One) XOR - numeral (y + Num.One)) BIT 0"
   "(1::int) XOR numeral (Num.Bit0 y) = numeral (Num.Bit1 y)"
   "(1::int) XOR numeral (Num.Bit1 y) = numeral (Num.Bit0 y)"
-  "(1::int) XOR neg_numeral (Num.Bit0 y) = neg_numeral (Num.BitM y)"
-  "(1::int) XOR neg_numeral (Num.Bit1 y) = neg_numeral (Num.Bit0 (y + Num.One))"
+  "(1::int) XOR - numeral (Num.Bit0 y) = - numeral (Num.BitM y)"
+  "(1::int) XOR - numeral (Num.Bit1 y) = - numeral (Num.Bit0 (y + Num.One))"
   "numeral (Num.Bit0 x) XOR (1::int) = numeral (Num.Bit1 x)"
   "numeral (Num.Bit1 x) XOR (1::int) = numeral (Num.Bit0 x)"
-  "neg_numeral (Num.Bit0 x) XOR (1::int) = neg_numeral (Num.BitM x)"
-  "neg_numeral (Num.Bit1 x) XOR (1::int) = neg_numeral (Num.Bit0 (x + Num.One))"
+  "- numeral (Num.Bit0 x) XOR (1::int) = - numeral (Num.BitM x)"
+  "- numeral (Num.Bit1 x) XOR (1::int) = - numeral (Num.Bit0 (x + Num.One))"
   by (rule bin_rl_eqI, simp, simp)+
 
 subsubsection {* Interactions with arithmetic *}
@@ -631,6 +631,47 @@ lemma nth_2p_bin:
 lemma ex_eq_or:
   "(EX m. n = Suc m & (m = k | P m)) = (n = Suc k | (EX m. n = Suc m & P m))"
   by auto
+
+lemma power_BIT: "2 ^ (Suc n) - 1 = (2 ^ n - 1) BIT 1"
+  unfolding Bit_B1
+  by (induct n) simp_all
+
+lemma mod_BIT:
+  "bin BIT bit mod 2 ^ Suc n = (bin mod 2 ^ n) BIT bit"
+proof -
+  have "bin mod 2 ^ n < 2 ^ n" by simp
+  then have "bin mod 2 ^ n \<le> 2 ^ n - 1" by simp
+  then have "2 * (bin mod 2 ^ n) \<le> 2 * (2 ^ n - 1)"
+    by (rule mult_left_mono) simp
+  then have "2 * (bin mod 2 ^ n) + 1 < 2 * 2 ^ n" by simp
+  then show ?thesis
+    by (auto simp add: Bit_def bitval_def mod_mult_mult1 mod_add_left_eq [of "2 * bin"]
+      mod_pos_pos_trivial split add: bit.split)
+qed
+
+lemma AND_mod:
+  fixes x :: int
+  shows "x AND 2 ^ n - 1 = x mod 2 ^ n"
+proof (induct x arbitrary: n rule: bin_induct)
+  case 1
+  then show ?case
+    by simp
+next
+  case 2
+  then show ?case
+    by (simp, simp add: m1mod2k)
+next
+  case (3 bin bit)
+  show ?case
+  proof (cases n)
+    case 0
+    then show ?thesis by (simp add: int_and_extra_simps)
+  next
+    case (Suc m)
+    with 3 show ?thesis
+      by (simp only: power_BIT mod_BIT int_and_Bits) simp
+  qed
+qed
 
 end
 

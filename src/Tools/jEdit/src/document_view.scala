@@ -10,21 +10,15 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.collection.mutable
-import scala.collection.immutable.SortedMap
 import scala.actors.Actor._
 
-import java.lang.System
-import java.text.BreakIterator
-import java.awt.{Color, Graphics2D, Point}
+import java.awt.Graphics2D
 import java.awt.event.KeyEvent
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.{jEdit, Debug}
-import org.gjt.sp.jedit.gui.RolloverButton
+import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.SyntaxStyle
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 
 
 object Document_View
@@ -88,7 +82,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         PIDE.editor.current_command(view, snapshot) match {
           case Some(command) =>
             snapshot.node.command_start(command) match {
-              case Some(start) => List(command.proper_range + start)
+              case Some(start) => List(snapshot.convert(command.proper_range + start))
               case None => Nil
             }
           case None => Nil
@@ -112,14 +106,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     Text.Perspective(active_command ::: visible_lines)
   }
 
-  private def update_perspective = new TextAreaExtension
+  private def update_view = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       // no robust_body
-      model.update_perspective()
+      PIDE.editor.invoke()
     }
   }
 
@@ -244,7 +238,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
             }
           }
 
-        case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
+        case bad =>
+          java.lang.System.err.println("command_change_actor: ignoring bad message " + bad)
       }
     }
   }
@@ -256,7 +251,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   {
     val painter = text_area.getPainter
 
-    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_view)
     rich_text_area.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addKeyListener(key_listener)
@@ -277,6 +272,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.removeKeyListener(key_listener)
     text_area.getGutter.removeExtension(gutter_painter)
     rich_text_area.deactivate()
-    painter.removeExtension(update_perspective)
+    painter.removeExtension(update_view)
   }
 }

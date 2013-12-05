@@ -22,7 +22,7 @@ section {* Customization *}
 subsection {* Basic properties *}
 
 declare
-  pre_process_rel_def[simp]
+  rel_pre_process_def[simp]
   sum_rel_def[simp]
   prod_rel_def[simp]
 
@@ -81,24 +81,17 @@ subsection{* Multi-guard fixpoint definitions, simulated with auxiliary argument
 
 datatype x_y_ax = x | y | ax
 
-definition "isA \<equiv> \<lambda> K. case K of x \<Rightarrow> False     |y \<Rightarrow> True  |ax \<Rightarrow> True"
-definition "pr  \<equiv> \<lambda> K. case K of x \<Rightarrow> undefined |y \<Rightarrow> ''b'' |ax \<Rightarrow> ''a''"
-definition "co  \<equiv> \<lambda> K. case K of x \<Rightarrow> undefined |y \<Rightarrow> x    |ax \<Rightarrow> x"
-lemmas Action_defs = isA_def pr_def co_def
+primcorec F :: "x_y_ax \<Rightarrow> char list process" where
+  "xyax = x \<Longrightarrow> isChoice (F xyax)"
+| "ch1Of (F xyax) = F ax"
+| "ch2Of (F xyax) = F y"
+| "prefOf (F xyax) = (if xyax = y then ''b'' else ''a'')"
+| "contOf (F xyax) = F x"
 
-definition "c1  \<equiv> \<lambda> K. case K of x \<Rightarrow> ax   |y \<Rightarrow> undefined |ax \<Rightarrow> undefined"
-definition "c2  \<equiv> \<lambda> K. case K of x \<Rightarrow> y    |y \<Rightarrow> undefined |ax \<Rightarrow> undefined"
-lemmas Choice_defs = c1_def c2_def
-
-definition "F \<equiv> process_unfold isA pr co c1 c2"
 definition "X = F x"  definition "Y = F y"  definition "AX = F ax"
 
 lemma X_Y_AX: "X = Choice AX Y"  "Y = Action ''b'' X"  "AX = Action ''a'' X"
-unfolding X_def Y_def AX_def F_def
-using process.unfold(2)[of isA x "pr" co c1 c2]
-      process.unfold(1)[of isA y "pr" co c1 c2]
-      process.unfold(1)[of isA ax "pr" co c1 c2]
-unfolding Action_defs Choice_defs by simp_all
+unfolding X_def Y_def AX_def by (subst F.code, simp)+
 
 (* end product: *)
 lemma X_AX:

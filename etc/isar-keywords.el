@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -33,6 +33,7 @@
     "axiomatization"
     "back"
     "bnf"
+    "boogie_file"
     "bundle"
     "by"
     "cannot_undo"
@@ -343,7 +344,6 @@
     "module_name"
     "monos"
     "morphisms"
-    "no_discs_sels"
     "notes"
     "obtains"
     "open"
@@ -352,7 +352,6 @@
     "parametric"
     "permissive"
     "pervasive"
-    "rep_compat"
     "shows"
     "structure"
     "type_class"
@@ -487,6 +486,7 @@
     "atom_decl"
     "attribute_setup"
     "axiomatization"
+    "boogie_file"
     "bundle"
     "case_of_simps"
     "class"

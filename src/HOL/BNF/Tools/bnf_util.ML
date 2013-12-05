@@ -54,7 +54,6 @@ sig
     term list list list list * Proof.context
   val nonzero_string_of_int: int -> string
   val retype_free: typ -> term -> term
-  val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
 
   val binder_fun_types: typ -> typ list
   val body_fun_type: typ -> typ
@@ -133,22 +132,15 @@ sig
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
-  val cterm_instantiate_pos: cterm option list -> thm -> thm
   val fold_thms: Proof.context -> thm list -> thm -> thm
 
   val parse_binding_colon: binding parser
   val parse_opt_binding_colon: binding parser
+  val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
+  val parse_map_rel_bindings: (binding * binding) parser
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
-
-  val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
-  val WRAP': ('a -> int -> tactic) -> ('a -> int -> tactic) -> 'a list -> (int -> tactic) -> int ->
-    tactic
-  val CONJ_WRAP_GEN: tactic -> ('a -> tactic) -> 'a list -> tactic
-  val CONJ_WRAP_GEN': (int -> tactic) -> ('a -> int -> tactic) -> 'a list -> int -> tactic
-  val CONJ_WRAP: ('a -> tactic) -> 'a list -> tactic
-  val CONJ_WRAP': ('a -> int -> tactic) -> 'a list -> int -> tactic
 end;
 
 structure BNF_Util : BNF_UTIL =
@@ -263,6 +255,32 @@ fun split_list4 [] = ([], [], [], [])
 val parse_binding_colon = parse_binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
+val parse_type_arg_constrained =
+  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
+
+val parse_type_arg_named_constrained =
+   (Parse.minus --| @{keyword ":"} >> K NONE || parse_opt_binding_colon >> SOME) --
+   parse_type_arg_constrained;
+
+val parse_type_args_named_constrained =
+  parse_type_arg_constrained >> (single o pair (SOME Binding.empty)) ||
+  @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
+  Scan.succeed [];
+
+val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_binding;
+
+val no_map_rel = (Binding.empty, Binding.empty);
+
+fun extract_map_rel ("map", b) = apfst (K b)
+  | extract_map_rel ("rel", b) = apsnd (K b)
+  | extract_map_rel (s, _) = error ("Unknown label " ^ quote s ^ " (expected \"map\" or \"rel\")");
+
+val parse_map_rel_bindings =
+  @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
+    >> (fn ps => fold extract_map_rel ps no_map_rel) ||
+  Scan.succeed no_map_rel;
+
+
 (*TODO: is this really different from Typedef.add_typedef_global?*)
 fun typedef (b, Ts, mx) set opt_morphs tac lthy =
   let
@@ -277,25 +295,6 @@ fun typedef (b, Ts, mx) set opt_morphs tac lthy =
     ((name, Typedef.transform_info phi info), lthy)
   end;
 
-(*Tactical WRAP surrounds a static given tactic (core) with two deterministic chains of tactics*)
-fun WRAP gen_before gen_after xs core_tac =
-  fold_rev (fn x => fn tac => gen_before x THEN tac THEN gen_after x) xs core_tac;
-
-fun WRAP' gen_before gen_after xs core_tac =
-  fold_rev (fn x => fn tac => gen_before x THEN' tac THEN' gen_after x) xs core_tac;
-
-fun CONJ_WRAP_GEN conj_tac gen_tac xs =
-  let val (butlast, last) = split_last xs;
-  in WRAP (fn thm => conj_tac THEN gen_tac thm) (K all_tac) butlast (gen_tac last) end;
-
-fun CONJ_WRAP_GEN' conj_tac gen_tac xs =
-  let val (butlast, last) = split_last xs;
-  in WRAP' (fn thm => conj_tac THEN' gen_tac thm) (K (K all_tac)) butlast (gen_tac last) end;
-
-(*not eta-converted because of monotype restriction*)
-fun CONJ_WRAP gen_tac = CONJ_WRAP_GEN (rtac conjI 1) gen_tac;
-fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
-
 
 
 (* Term construction *)
@@ -306,14 +305,6 @@ fun nonzero_string_of_int 0 = ""
   | nonzero_string_of_int n = string_of_int n;
 
 val mk_TFreess = fold_map mk_TFrees;
-
-(*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
-fun typ_subst_nonatomic [] = I
-  | typ_subst_nonatomic inst =
-    let
-      fun subst (Type (s, Ts)) = perhaps (AList.lookup (op =) inst) (Type (s, map subst Ts))
-        | subst T = perhaps (AList.lookup (op =) inst) T;
-    in subst end;
 
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
@@ -547,7 +538,7 @@ fun mk_nthN 1 t 1 = t
 
 fun mk_nth_conv n m =
   let
-    fun thm b = if b then @{thm fst_snd} else @{thm snd_snd}
+    fun thm b = if b then @{thm fstI} else @{thm sndI}
     fun mk_nth_conv _ 1 1 = refl
       | mk_nth_conv _ _ 1 = @{thm fst_conv}
       | mk_nth_conv _ 2 2 = @{thm snd_conv}
@@ -608,17 +599,6 @@ val is_concl_refl = is_refl_prop o Logic.strip_imp_concl o Thm.prop_of;
 
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
-
-fun cterm_instantiate_pos cts thm =
-  let
-    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
-    val vars = Term.add_vars (prop_of thm) [];
-    val vars' = rev (drop (length vars - length cts) vars);
-    val ps = map_filter (fn (_, NONE) => NONE
-      | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);
-  in
-    Drule.cterm_instantiate ps thm
-  end;
 
 fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
 

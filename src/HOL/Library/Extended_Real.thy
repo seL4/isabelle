@@ -156,7 +156,7 @@ lemma ereal_infinity_cases:
 
 subsubsection "Addition"
 
-instantiation ereal :: "{one,comm_monoid_add}"
+instantiation ereal :: "{one,comm_monoid_add,zero_neq_one}"
 begin
 
 definition "0 = ereal 0"
@@ -188,6 +188,11 @@ lemma ereal_eq_0[simp]:
   "0 = ereal r \<longleftrightarrow> r = 0"
   unfolding zero_ereal_def by simp_all
 
+lemma ereal_eq_1[simp]:
+  "ereal r = 1 \<longleftrightarrow> r = 1"
+  "1 = ereal r \<longleftrightarrow> r = 1"
+  unfolding one_ereal_def by simp_all
+
 instance
 proof
   fix a b c :: ereal
@@ -197,6 +202,8 @@ proof
     by (cases rule: ereal2_cases[of a b]) simp_all
   show "a + b + c = a + (b + c)"
     by (cases rule: ereal3_cases[of a b c]) simp_all
+  show "0 \<noteq> (1::ereal)"
+    by (simp add: one_ereal_def zero_ereal_def)
 qed
 
 end
@@ -286,9 +293,11 @@ lemma ereal_infty_less_eq[simp]:
 lemma ereal_less[simp]:
   "ereal r < 0 \<longleftrightarrow> (r < 0)"
   "0 < ereal r \<longleftrightarrow> (0 < r)"
+  "ereal r < 1 \<longleftrightarrow> (r < 1)"
+  "1 < ereal r \<longleftrightarrow> (1 < r)"
   "0 < (\<infinity>::ereal)"
   "-(\<infinity>::ereal) < 0"
-  by (simp_all add: zero_ereal_def)
+  by (simp_all add: zero_ereal_def one_ereal_def)
 
 lemma ereal_less_eq[simp]:
   "x \<le> (\<infinity>::ereal)"
@@ -296,7 +305,9 @@ lemma ereal_less_eq[simp]:
   "ereal r \<le> ereal p \<longleftrightarrow> r \<le> p"
   "ereal r \<le> 0 \<longleftrightarrow> r \<le> 0"
   "0 \<le> ereal r \<longleftrightarrow> 0 \<le> r"
-  by (auto simp add: less_eq_ereal_def zero_ereal_def)
+  "ereal r \<le> 1 \<longleftrightarrow> r \<le> 1"
+  "1 \<le> ereal r \<longleftrightarrow> 1 \<le> r"
+  by (auto simp add: less_eq_ereal_def zero_ereal_def one_ereal_def)
 
 lemma ereal_infty_less_eq2:
   "a \<le> b \<Longrightarrow> a = \<infinity> \<Longrightarrow> b = (\<infinity>::ereal)"
@@ -456,6 +467,11 @@ lemma ereal_less_add:
   shows "\<bar>a\<bar> \<noteq> \<infinity> \<Longrightarrow> c < b \<Longrightarrow> a + c < a + b"
   by (cases rule: ereal2_cases[of b c]) auto
 
+lemma ereal_add_nonneg_eq_0_iff:
+  fixes a b :: ereal
+  shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
+  by (cases a b rule: ereal2_cases) auto
+
 lemma ereal_uminus_eq_reorder: "- a = b \<longleftrightarrow> a = (-b::ereal)"
   by auto
 
@@ -514,8 +530,8 @@ lemma ereal_max_0: "max 0 (ereal r) = ereal (max 0 r)"
 
 lemma
   fixes f :: "nat \<Rightarrow> ereal"
-  shows incseq_uminus[simp]: "incseq (\<lambda>x. - f x) \<longleftrightarrow> decseq f"
-  and decseq_uminus[simp]: "decseq (\<lambda>x. - f x) \<longleftrightarrow> incseq f"
+  shows ereal_incseq_uminus[simp]: "incseq (\<lambda>x. - f x) \<longleftrightarrow> decseq f"
+    and ereal_decseq_uminus[simp]: "decseq (\<lambda>x. - f x) \<longleftrightarrow> incseq f"
   unfolding decseq_def incseq_def by auto
 
 lemma incseq_ereal: "incseq f \<Longrightarrow> incseq (\<lambda>x. ereal (f x))"
@@ -618,14 +634,6 @@ lemma ereal_zero_mult[simp]:
 lemma ereal_m1_less_0[simp]: "-(1::ereal) < 0"
   by (simp add: zero_ereal_def one_ereal_def)
 
-lemma ereal_zero_m1[simp]: "1 \<noteq> (0::ereal)"
-  by (simp add: zero_ereal_def one_ereal_def)
-
-lemma ereal_times_0[simp]:
-  fixes x :: ereal
-  shows "0 * x = 0"
-  by (cases x) (auto simp: zero_ereal_def)
-
 lemma ereal_times[simp]:
   "1 \<noteq> (\<infinity>::ereal)" "(\<infinity>::ereal) \<noteq> 1"
   "1 \<noteq> -(\<infinity>::ereal)" "-(\<infinity>::ereal) \<noteq> 1"
@@ -653,10 +661,10 @@ lemma ereal_mult_eq_MInfty[simp]:
     (a = \<infinity> \<and> b < 0) \<or> (a < 0 \<and> b = \<infinity>) \<or> (a = -\<infinity> \<and> b > 0) \<or> (a > 0 \<and> b = -\<infinity>)"
   by (cases rule: ereal2_cases[of a b]) auto
 
-lemma ereal_0_less_1[simp]: "0 < (1::ereal)"
-  by (simp_all add: zero_ereal_def one_ereal_def)
+lemma ereal_abs_mult: "\<bar>x * y :: ereal\<bar> = \<bar>x\<bar> * \<bar>y\<bar>"
+  by (cases x y rule: ereal2_cases) (auto simp: abs_mult)
 
-lemma ereal_zero_one[simp]: "0 \<noteq> (1::ereal)"
+lemma ereal_0_less_1[simp]: "0 < (1::ereal)"
   by (simp_all add: zero_ereal_def one_ereal_def)
 
 lemma ereal_mult_minus_left[simp]:
@@ -950,7 +958,7 @@ proof -
       by simp
   }
   then show ?thesis
-    by (auto intro!: image_eqI)
+    by force
 qed
 
 lemma ereal_uminus_greaterThan[simp]: "uminus ` {(a::ereal)<..} = {..<-a}"
@@ -1265,7 +1273,7 @@ lemma ereal_divide_left_mono[simp]:
   shows "z / x \<le> z / y"
   using assms
   by (cases x y z rule: ereal3_cases)
-    (auto intro: divide_left_mono simp: field_simps sign_simps split: split_if_asm)
+     (auto intro: divide_left_mono simp: field_simps zero_less_mult_iff mult_less_0_iff split: split_if_asm)
 
 lemma ereal_divide_zero_left[simp]:
   fixes a :: ereal
@@ -1275,7 +1283,7 @@ lemma ereal_divide_zero_left[simp]:
 lemma ereal_times_divide_eq_left[simp]:
   fixes a b c :: ereal
   shows "b / c * a = b * a / c"
-  by (cases a b c rule: ereal3_cases) (auto simp: field_simps sign_simps)
+  by (cases a b c rule: ereal3_cases) (auto simp: field_simps zero_less_mult_iff mult_less_0_iff)
 
 
 subsection "Complete lattice"
@@ -1378,7 +1386,7 @@ instance ereal :: complete_linorder ..
 instance ereal :: linear_continuum
 proof
   show "\<exists>a b::ereal. a \<noteq> b"
-    using ereal_zero_one by blast
+    using zero_neq_one by blast
 qed
 
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
@@ -1391,6 +1399,18 @@ lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
 
 lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S::ereal set) = - Sup S"
   using ereal_Sup_uminus_image_eq[of "uminus ` S"] by simp
+
+lemma ereal_SUP_not_infty:
+  fixes f :: "_ \<Rightarrow> ereal"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>SUPR A f\<bar> \<noteq> \<infinity>"
+  using SUP_upper2[of _ A l f] SUP_least[of A f u]
+  by (cases "SUPR A f") auto
+
+lemma ereal_INF_not_infty:
+  fixes f :: "_ \<Rightarrow> ereal"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>INFI A f\<bar> \<noteq> \<infinity>"
+  using INF_lower2[of _ A f u] INF_greatest[of A l f]
+  by (cases "INFI A f") auto
 
 lemma ereal_SUPR_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -1710,8 +1730,7 @@ next
   next
     case False
     have "\<exists>x\<in>A. 0 \<le> x"
-      by (metis Infty_neq_0 PInf complete_lattice_class.Sup_least
-          ereal_infty_less_eq2 linorder_linear)
+      by (metis Infty_neq_0(2) PInf complete_lattice_class.Sup_least ereal_infty_less_eq2(1) linorder_linear)
     then obtain x where "x \<in> A" and "0 \<le> x"
       by auto
     have "\<forall>n::nat. \<exists>f. f \<in> A \<and> x + ereal (real n) \<le> f"
@@ -1842,7 +1861,6 @@ proof -
        (auto simp: ereal_SUPR_uminus intro!: uminus_ereal_add_uminus_uminus)
   finally show ?thesis .
 qed
-
 
 subsection "Relation to @{typ enat}"
 
@@ -2410,12 +2428,6 @@ lemma liminf_bounded_iff:
   shows "C \<le> liminf x \<longleftrightarrow> (\<forall>B<C. \<exists>N. \<forall>n\<ge>N. B < x n)"
   (is "?lhs \<longleftrightarrow> ?rhs")
   unfolding le_Liminf_iff eventually_sequentially ..
-
-lemma
-  fixes X :: "nat \<Rightarrow> ereal"
-  shows ereal_incseq_uminus[simp]: "incseq (\<lambda>i. - X i) = decseq X"
-    and ereal_decseq_uminus[simp]: "decseq (\<lambda>i. - X i) = incseq X"
-  unfolding incseq_def decseq_def by auto
 
 
 subsubsection {* Tests for code generator *}

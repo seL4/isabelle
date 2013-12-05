@@ -81,8 +81,7 @@ done
 text{*second equivalence *}
 lemma NSDERIV_NSLIM_iff2:
      "(NSDERIV f x :> D) = ((%z. (f(z) - f(x)) / (z-x)) -- x --NS> D)"
-by (simp add: NSDERIV_NSLIM_iff DERIV_LIM_iff  diff_minus [symmetric]
-              LIM_NSLIM_iff [symmetric])
+  by (simp add: NSDERIV_NSLIM_iff DERIV_LIM_iff LIM_NSLIM_iff [symmetric])
 
 (* while we're at it! *)
 
@@ -120,11 +119,10 @@ lemma NSDERIVD4:
                  hypreal_of_real (f x))\<approx> (hypreal_of_real D) * h)"
 apply (auto simp add: nsderiv_def)
 apply (case_tac "h = (0::hypreal) ")
-apply (auto simp add: diff_minus)
+apply auto
 apply (drule_tac x = h in bspec)
 apply (drule_tac [2] c = h in approx_mult1)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: diff_minus)
+apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD])
 done
 
 lemma NSDERIVD3:
@@ -135,8 +133,7 @@ lemma NSDERIVD3:
 apply (auto simp add: nsderiv_def)
 apply (rule ccontr, drule_tac x = h in bspec)
 apply (drule_tac [2] c = h in approx_mult1)
-apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
-            simp add: mult_assoc diff_minus)
+apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD] simp add: mult_assoc)
 done
 
 text{*Differentiability implies continuity
@@ -174,7 +171,7 @@ lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto simp add: add_divide_distrib diff_divide_distrib dest!: spec)
 apply (drule_tac b = "star_of Da" and d = "star_of Db" in approx_add)
-apply (auto simp add: diff_minus add_ac)
+apply (auto simp add: add_ac algebra_simps)
 done
 
 text{*Product of functions - Proof is trivial but tedious
@@ -234,9 +231,11 @@ proof (simp add: NSDERIV_NSLIM_iff)
   hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) -- 0 --NS> - D"
     by (rule NSLIM_minus)
   have "\<forall>h. - ((f (x + h) - f x) / h) = (- f (x + h) + f x) / h"
-    by (simp add: minus_divide_left diff_minus)
+    by (simp add: minus_divide_left)
   with deriv
-  show "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
+  have "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
+  then show "(\<lambda>h. (f (x + h) - f x) / h) -- 0 --NS> D \<Longrightarrow>
+    (\<lambda>h. (f x - f (x + h)) / h) -- 0 --NS> - D" by simp
 qed
 
 text{*Subtraction*}
@@ -244,11 +243,8 @@ lemma NSDERIV_add_minus: "[| NSDERIV f x :> Da; NSDERIV g x :> Db |] ==> NSDERIV
 by (blast dest: NSDERIV_add NSDERIV_minus)
 
 lemma NSDERIV_diff:
-     "[| NSDERIV f x :> Da; NSDERIV g x :> Db |]
-      ==> NSDERIV (%x. f x - g x) x :> Da-Db"
-apply (simp add: diff_minus)
-apply (blast intro: NSDERIV_add_minus)
-done
+  "NSDERIV f x :> Da \<Longrightarrow> NSDERIV g x :> Db \<Longrightarrow> NSDERIV (\<lambda>x. f x - g x) x :> Da-Db"
+  using NSDERIV_add_minus [of f x Da g Db] by simp
 
 text{*  Similarly to the above, the chain rule admits an entirely
    straightforward derivation. Compare this with Harrison's
@@ -294,7 +290,7 @@ lemma NSDERIVD1: "[| NSDERIV f (g x) :> Da;
                    - star_of (f (g x)))
               / (( *f* g) (star_of(x) + xa) - star_of (g x))
              \<approx> star_of(Da)"
-by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def diff_minus [symmetric])
+by (auto simp add: NSDERIV_NSLIM_iff2 NSLIM_def)
 
 (*--------------------------------------------------------------
    from other version of differentiability
@@ -354,13 +350,23 @@ proof -
     from h_Inf have "h * star_of x \<in> Infinitesimal" by (rule Infinitesimal_HFinite_mult) simp
     with assms have "inverse (- (h * star_of x) + - (star_of x * star_of x)) \<approx>
       inverse (- (star_of x * star_of x))"
-      by (auto intro: inverse_add_Infinitesimal_approx2
+      apply - apply (rule inverse_add_Infinitesimal_approx2)
+      apply (auto
         dest!: hypreal_of_real_HFinite_diff_Infinitesimal
         simp add: inverse_minus_eq [symmetric] HFinite_minus_iff)
-    with not_0 `h \<noteq> 0` assms have "(inverse (star_of x + h) - inverse (star_of x)) / h \<approx>
+      done
+    moreover from not_0 `h \<noteq> 0` assms
+      have "inverse (- (h * star_of x) + - (star_of x * star_of x)) =
+        (inverse (star_of x + h) - inverse (star_of x)) / h"
+      apply (simp add: division_ring_inverse_diff nonzero_inverse_mult_distrib [symmetric]
+        nonzero_inverse_minus_eq [symmetric] ac_simps ring_distribs)
+      apply (subst nonzero_inverse_minus_eq [symmetric])
+      using distrib_right [symmetric, of h "star_of x" "star_of x"] apply simp
+      apply (simp add: field_simps) 
+      done
+    ultimately have "(inverse (star_of x + h) - inverse (star_of x)) / h \<approx>
       - (inverse (star_of x) * inverse (star_of x))"
-      by (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric]
-        nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_minus ring_distribs)
+      using assms by (simp add: nonzero_inverse_mult_distrib [symmetric] nonzero_inverse_minus_eq [symmetric])
   } then show ?thesis by (simp add: nsderiv_def)
 qed
 

@@ -43,14 +43,12 @@ object Isabelle_Process
     def is_system = kind == Markup.SYSTEM
     def is_status = kind == Markup.STATUS
     def is_report = kind == Markup.REPORT
-    def is_protocol = kind == Markup.PROTOCOL
     def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
     {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
-        else if (is_protocol) "..."
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
@@ -58,6 +56,12 @@ object Isabelle_Process
         kind.toString + " " +
           (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
     }
+  }
+
+  class Protocol_Output(props: Properties.T, val bytes: Bytes)
+    extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil))
+  {
+    lazy val text: String = bytes.toString
   }
 }
 
@@ -89,28 +93,29 @@ class Isabelle_Process(
     receiver(new Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
-  private def output_message(kind: String, props: Properties.T, body: XML.Body)
+  private def protocol_output(props: Properties.T, bytes: Bytes)
+  {
+    receiver(new Protocol_Output(props, bytes))
+  }
+
+  private def output(kind: String, props: Properties.T, body: XML.Body)
   {
     if (kind == Markup.INIT) system_channel.accepted()
-    if (kind == Markup.PROTOCOL)
-      receiver(new Output(XML.Elem(Markup(kind, props), body)))
-    else {
-      val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
-      val reports = Protocol.message_reports(props, body)
-      for (msg <- main :: reports) receiver(new Output(xml_cache.elem(msg)))
-    }
+
+    val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
+    val reports = Protocol.message_reports(props, body)
+    for (msg <- main :: reports) receiver(new Output(xml_cache.elem(msg)))
   }
 
   private def exit_message(rc: Int)
   {
-    output_message(Markup.EXIT, Markup.Return_Code(rc),
-      List(XML.Text("Return code: " + rc.toString)))
+    output(Markup.EXIT, Markup.Return_Code(rc), List(XML.Text("Return code: " + rc.toString)))
   }
 
 
   /* command input actor */
 
-  private case class Input_Chunks(chunks: List[Array[Byte]])
+  private case class Input_Chunks(chunks: List[Bytes])
 
   private case object Close
   private def close(p: (Thread, Actor))
@@ -232,7 +237,7 @@ class Isabelle_Process(
             else done = true
           }
           if (result.length > 0) {
-            output_message(markup, Nil, List(XML.Text(decode(result.toString))))
+            output(markup, Nil, List(XML.Text(decode(result.toString))))
             result.length = 0
           }
           else {
@@ -261,8 +266,8 @@ class Isabelle_Process(
           //{{{
           receive {
             case Input_Chunks(chunks) =>
-              stream.write(UTF8.string_bytes(chunks.map(_.length).mkString("", ",", "\n")))
-              chunks.foreach(stream.write(_))
+              Bytes(chunks.map(_.length).mkString("", ",", "\n")).write(stream)
+              chunks.foreach(_.write(stream))
               stream.flush
             case Close =>
               stream.close
@@ -306,7 +311,7 @@ class Isabelle_Process(
       }
       //}}}
 
-      def read_chunk(do_decode: Boolean): XML.Body =
+      def read_chunk_bytes(): (Array[Byte], Int) =
       //{{{
       {
         val n = read_int()
@@ -325,23 +330,33 @@ class Isabelle_Process(
         if (i != n)
           throw new Protocol_Error("bad chunk (unexpected EOF after " + i + " of " + n + " bytes)")
 
-        if (do_decode)
-          YXML.parse_body_failsafe(UTF8.decode_chars(decode, buf, 0, n))
-        else List(XML.Text(UTF8.decode_chars(s => s, buf, 0, n).toString))
+        (buf, n)
       }
       //}}}
+
+      def read_chunk(): XML.Body =
+      {
+        val (buf, n) = read_chunk_bytes()
+        YXML.parse_body_failsafe(UTF8.decode_chars(decode, buf, 0, n))
+      }
 
       try {
         do {
           try {
-            val header = read_chunk(true)
+            val header = read_chunk()
             header match {
               case List(XML.Elem(Markup(name, props), Nil)) =>
                 val kind = name.intern
-                val body = read_chunk(kind != Markup.PROTOCOL)
-                output_message(kind, props, body)
+                if (kind == Markup.PROTOCOL) {
+                  val (buf, n) = read_chunk_bytes()
+                  protocol_output(props, Bytes(buf, 0, n))
+                }
+                else {
+                  val body = read_chunk()
+                  output(kind, props, body)
+                }
               case _ =>
-                read_chunk(false)
+                read_chunk()
                 throw new Protocol_Error("bad header: " + header.toString)
             }
           }
@@ -362,13 +377,13 @@ class Isabelle_Process(
 
   /** main methods **/
 
-  def protocol_command_raw(name: String, args: Array[Byte]*): Unit =
-    command_input._2 ! Input_Chunks(UTF8.string_bytes(name) :: args.toList)
+  def protocol_command_raw(name: String, args: Bytes*): Unit =
+    command_input._2 ! Input_Chunks(Bytes(name) :: args.toList)
 
   def protocol_command(name: String, args: String*)
   {
     receiver(new Input(name, args.toList))
-    protocol_command_raw(name, args.map(UTF8.string_bytes): _*)
+    protocol_command_raw(name, args.map(Bytes(_)): _*)
   }
 
   def options(opts: Options): Unit =

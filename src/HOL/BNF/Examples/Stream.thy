@@ -18,7 +18,7 @@ codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
 code_datatype Stream
 
 lemma stream_case_cert:
-  assumes "CASE \<equiv> stream_case c"
+  assumes "CASE \<equiv> case_stream c"
   shows "CASE (a ## s) \<equiv> c a s"
   using assms by simp_all
 
@@ -87,16 +87,25 @@ lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
   by (induct xs) auto
 
 
-subsection {* set of streams with elements in some fixes set *}
+subsection {* set of streams with elements in some fixed set *}
 
 coinductive_set
-  streams :: "'a set => 'a stream set"
+  streams :: "'a set \<Rightarrow> 'a stream set"
   for A :: "'a set"
 where
   Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> a ## s \<in> streams A"
 
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"
   by (induct w) auto
+
+lemma streams_Stream: "x ## s \<in> streams A \<longleftrightarrow> x \<in> A \<and> s \<in> streams A"
+  by (auto elim: streams.cases)
+
+lemma streams_stl: "s \<in> streams A \<Longrightarrow> stl s \<in> streams A"
+  by (cases s) (auto simp: streams_Stream)
+
+lemma streams_shd: "s \<in> streams A \<Longrightarrow> shd s \<in> A"
+  by (cases s) (auto simp: streams_Stream)
 
 lemma sset_streams:
   assumes "sset s \<subseteq> A"
@@ -105,6 +114,28 @@ using assms proof (coinduction arbitrary: s)
   case streams then show ?case by (cases s) simp
 qed
 
+lemma streams_sset:
+  assumes "s \<in> streams A"
+  shows "sset s \<subseteq> A"
+proof
+  fix x assume "x \<in> sset s" from this `s \<in> streams A` show "x \<in> A"
+    by (induct s) (auto intro: streams_shd streams_stl)
+qed
+
+lemma streams_iff_sset: "s \<in> streams A \<longleftrightarrow> sset s \<subseteq> A"
+  by (metis sset_streams streams_sset)
+
+lemma streams_mono:  "s \<in> streams A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> s \<in> streams B"
+  unfolding streams_iff_sset by auto
+
+lemma smap_streams: "s \<in> streams A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> smap f s \<in> streams B"
+  unfolding streams_iff_sset stream.set_map by auto
+
+lemma streams_empty: "streams {} = {}"
+  by (auto elim: streams.cases)
+
+lemma streams_UNIV[simp]: "streams UNIV = UNIV"
+  by (auto simp: streams_iff_sset)
 
 subsection {* nth, take, drop for streams *}
 
@@ -234,6 +265,9 @@ lemma stream_all_iff[iff]: "stream_all P s \<longleftrightarrow> Ball (sset s) P
 lemma stream_all_shift[simp]: "stream_all P (xs @- s) = (list_all P xs \<and> stream_all P s)"
   unfolding stream_all_iff list_all_iff by auto
 
+lemma stream_all_Stream: "stream_all P (x ## X) \<longleftrightarrow> P x \<and> stream_all P X"
+  by simp
+
 
 subsection {* recurring stream out of a list *}
 
@@ -285,58 +319,59 @@ lemma sdrop_cycle: "u \<noteq> [] \<Longrightarrow> sdrop n (cycle u) = cycle (r
   by (induct n arbitrary: u) (auto simp: rotate1_rotate_swap rotate1_hd_tl rotate_conv_mod[symmetric])
 
 
+subsection {* iterated application of a function *}
+
+primcorec siterate where
+  "shd (siterate f x) = x"
+| "stl (siterate f x) = siterate f (f x)"
+
+lemma stake_Suc: "stake (Suc n) s = stake n s @ [s !! n]"
+  by (induct n arbitrary: s) auto
+
+lemma snth_siterate[simp]: "siterate f x !! n = (f^^n) x"
+  by (induct n arbitrary: x) (auto simp: funpow_swap1)
+
+lemma sdrop_siterate[simp]: "sdrop n (siterate f x) = siterate f ((f^^n) x)"
+  by (induct n arbitrary: x) (auto simp: funpow_swap1)
+
+lemma stake_siterate[simp]: "stake n (siterate f x) = map (\<lambda>n. (f^^n) x) [0 ..< n]"
+  by (induct n arbitrary: x) (auto simp del: stake.simps(2) simp: stake_Suc)
+
+lemma sset_siterate: "sset (siterate f x) = {(f^^n) x | n. True}"
+  by (auto simp: sset_range)
+
+lemma smap_siterate: "smap f (siterate f x) = siterate f (f x)"
+  by (coinduction arbitrary: x) auto
+
+
 subsection {* stream repeating a single element *}
 
-primcorec same where
-  "shd (same x) = x"
-| "stl (same x) = same x"
+abbreviation "sconst \<equiv> siterate id"
 
-lemma snth_same[simp]: "same x !! n = x"
-  unfolding same_def by (induct n) auto
+lemma shift_replicate_sconst[simp]: "replicate n x @- sconst x = sconst x"
+  by (subst (3) stake_sdrop[symmetric]) (simp add: map_replicate_trivial)
 
-lemma stake_same[simp]: "stake n (same x) = replicate n x"
-  unfolding same_def by (induct n) (auto simp: upt_rec)
+lemma stream_all_same[simp]: "sset (sconst x) = {x}"
+  by (simp add: sset_siterate)
 
-lemma sdrop_same[simp]: "sdrop n (same x) = same x"
-  unfolding same_def by (induct n) auto
-
-lemma shift_replicate_same[simp]: "replicate n x @- same x = same x"
-  by (metis sdrop_same stake_same stake_sdrop)
-
-lemma stream_all_same[simp]: "stream_all P (same x) \<longleftrightarrow> P x"
-  unfolding stream_all_def by auto
-
-lemma same_cycle: "same x = cycle [x]"
+lemma same_cycle: "sconst x = cycle [x]"
   by coinduction auto
+
+lemma smap_sconst: "smap f (sconst x) = sconst (f x)"
+  by coinduction auto
+
+lemma sconst_streams: "x \<in> A \<Longrightarrow> sconst x \<in> streams A"
+  by (simp add: streams_iff_sset)
 
 
 subsection {* stream of natural numbers *}
 
-primcorec fromN :: "nat \<Rightarrow> nat stream" where
-  "fromN n = n ## fromN (n + 1)"
-
-lemma snth_fromN[simp]: "fromN n !! m = n + m"
-  unfolding fromN_def by (induct m arbitrary: n) auto
-
-lemma stake_fromN[simp]: "stake m (fromN n) = [n ..< m + n]"
-  unfolding fromN_def by (induct m arbitrary: n) (auto simp: upt_rec)
-
-lemma sdrop_fromN[simp]: "sdrop m (fromN n) = fromN (n + m)"
-  unfolding fromN_def by (induct m arbitrary: n) auto
-
-lemma sset_fromN[simp]: "sset (fromN n) = {n ..}" (is "?L = ?R")
-proof safe
-  fix m assume "m \<in> ?L"
-  moreover
-  { fix s assume "m \<in> sset s" "\<exists>n'\<ge>n. s = fromN n'"
-    hence "n \<le> m"  by (induct arbitrary: n rule: sset_induct1) fastforce+
-  }
-  ultimately show "n \<le> m" by auto
-next
-  fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_sset)
-qed
+abbreviation "fromN \<equiv> siterate Suc"
 
 abbreviation "nats \<equiv> fromN 0"
+
+lemma sset_fromN[simp]: "sset (fromN n) = {n ..}"
+  by (auto simp add: sset_siterate) arith
 
 
 subsection {* flatten a stream of lists *}
@@ -497,27 +532,5 @@ lemma smap2_unfold[code]:
 lemma smap2_szip:
   "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
   by (coinduction arbitrary: s1 s2) auto
-
-
-subsection {* iterated application of a function *}
-
-primcorec siterate where
-  "shd (siterate f x) = x"
-| "stl (siterate f x) = siterate f (f x)"
-
-lemma stake_Suc: "stake (Suc n) s = stake n s @ [s !! n]"
-  by (induct n arbitrary: s) auto
-
-lemma snth_siterate[simp]: "siterate f x !! n = (f^^n) x"
-  by (induct n arbitrary: x) (auto simp: funpow_swap1)
-
-lemma sdrop_siterate[simp]: "sdrop n (siterate f x) = siterate f ((f^^n) x)"
-  by (induct n arbitrary: x) (auto simp: funpow_swap1)
-
-lemma stake_siterate[simp]: "stake n (siterate f x) = map (\<lambda>n. (f^^n) x) [0 ..< n]"
-  by (induct n arbitrary: x) (auto simp del: stake.simps(2) simp: stake_Suc)
-
-lemma sset_siterate: "sset (siterate f x) = {(f^^n) x | n. True}"
-  by (auto simp: sset_range)
 
 end
