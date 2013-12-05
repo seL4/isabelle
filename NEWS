@@ -79,6 +79,10 @@ Conditionally_Complete_Lattices.   INCOMPATIBILITY.
 * Introduce bdd_above and bdd_below in Conditionally_Complete_Lattices, use them
 instead of explicitly stating boundedness of sets.
 
+* ccpo.admissible quantifies only over non-empty chains to allow
+more syntax-directed proof rules; the case of the empty chain
+shows up as additional case in fixpoint induction proofs.
+INCOMPATIBILITY
 
 *** ML ***
 
