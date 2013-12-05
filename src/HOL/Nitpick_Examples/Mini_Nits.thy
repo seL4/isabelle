@@ -13,7 +13,7 @@ begin
 
 ML_file "minipick.ML"
 
-nitpick_params [verbose, sat_solver = MiniSat_JNI, max_threads = 1]
+nitpick_params [verbose, sat_solver = Riss3g, max_threads = 1]
 
 nitpick_params [total_consts = smart]
 
