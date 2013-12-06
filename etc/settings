@@ -100,21 +100,21 @@ ISABELLE_LOGIC=HOL
 # Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
-# PDF file viewer
+# "open" within desktop environment (potentially asynchronous)
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)
-    PDF_VIEWER="xdg-open"
+    ISABELLE_OPEN="xdg-open"
     ;;
   macos)
-    PDF_VIEWER="open"
+    ISABELLE_OPEN="open"
     ;;
   windows)
-    PDF_VIEWER="cygstart"
+    ISABELLE_OPEN="cygstart"
     ;;
 esac
 
-# DVI file viewer
-DVI_VIEWER="xdvi"
+PDF_VIEWER="$ISABELLE_OPEN"
+DVI_VIEWER="$ISABELLE_OPEN"
 
 
 ###
