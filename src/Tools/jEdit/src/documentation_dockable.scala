@@ -10,6 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Dimension, GridLayout}
+import java.awt.event.{MouseEvent, MouseAdapter}
 import javax.swing.{JTree, JScrollPane}
 import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
@@ -48,12 +49,12 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   if (!OperatingSystem.isMacOSLF)
     tree.putClientProperty("JTree.lineStyle", "Angled")
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
-  tree.addTreeSelectionListener(
-    new TreeSelectionListener {
-      override def valueChanged(e: TreeSelectionEvent)
-      {
-        tree.getLastSelectedPathComponent match {
-          case node: DefaultMutableTreeNode =>
+  tree.addMouseListener(new MouseAdapter {
+    override def mouseClicked(e: MouseEvent) {
+      val click = tree.getPathForLocation(e.getX, e.getY)
+      if (click != null && e.getClickCount == 1) {
+        (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
+          case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
             node.getUserObject match {
               case Documentation(name, _) =>
                 default_thread_pool.submit(() =>
@@ -70,7 +71,8 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
           case _ =>
         }
       }
-    })
+    }
+  })
   tree.setRootVisible(false)
   tree.setVisibleRowCount(docs.length)
   (0 until docs.length).foreach(tree.expandRow)
