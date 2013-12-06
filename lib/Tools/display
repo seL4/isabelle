@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Author: Markus Wenzel, TU Muenchen
+# Author: Makarius
 #
 # DESCRIPTION: display document (in DVI or PDF format)
 
@@ -10,12 +10,9 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] FILE"
+  echo "Usage: isabelle $PRG DOCUMENT"
   echo
-  echo "  Options are:"
-  echo "    -c           cleanup -- remove FILE after use"
-  echo
-  echo "  Display document FILE (in DVI or PDF format)."
+  echo "  Display DOCUMENT (in DVI or PDF format)."
   echo
   exit 1
 }
@@ -27,55 +24,22 @@ function fail()
 }
 
 
-## process command line
-
-# options
-
-CLEAN=""
-
-while getopts "c" OPT
-do
-  case "$OPT" in
-    c)
-      CLEAN=true
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
-
-shift $(($OPTIND - 1))
-
-
-# args
-
-[ "$#" -ne 1 ] && usage
-
-FILE="$1"; shift
-
-
 ## main
 
-[ -f "$FILE" ] || fail "Bad file: $FILE"
+[ "$#" -ne 1 -o "$1" = "-?" ] && usage
 
-case "$FILE" in
-    *.dvi)
-      VIEWER="$DVI_VIEWER"
-      ;;
-    *.pdf)
-      VIEWER="$PDF_VIEWER"
-      ;;
-    *)
-      fail "Unknown file type: $FILE";
+DOCUMENT="$1"; shift
+
+[ -f "$DOCUMENT" ] || fail "Bad document: \"$DOCUMENT\""
+
+case "$DOCUMENT" in
+  *.dvi)
+    exec "$DVI_VIEWER" "$DOCUMENT"
+    ;;
+  *.pdf)
+    exec "$PDF_VIEWER" "$DOCUMENT"
+    ;;
+  *)
+    fail "Unknown document type: \"$DOCUMENT\"";
 esac
 
-if [ -n "$CLEAN" ]; then
-  PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$FILE")
-  mv "$FILE" "$PRIVATE_FILE" || fail "Cannot move file: $FILE"
-  eval "$VIEWER \"$PRIVATE_FILE\""
-  sleep 5   #try to avoid races
-  rm -f "$PRIVATE_FILE"
-else
-  eval "$VIEWER \"$FILE\""
-fi

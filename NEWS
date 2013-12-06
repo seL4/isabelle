@@ -97,6 +97,19 @@ Note that 'ML_file' is the canonical command to load ML files into the
 formal context.
 
 
+*** System ***
+
+* Simplified "isabelle display" tool.  Settings variables DVI_VIEWER
+and PDF_VIEWER now refer to the actual programs, not shell
+command-lines.  Discontinued option -c: invocation may be asynchronous
+via desktop environment, without any special precautions.  Potential
+INCOMPATIBILITY with ambitious private settings.
+
+* Improved 'display_drafts' concerning desktop integration and
+repeated invocation in PIDE front-end: re-use single file
+$ISABELLE_HOME_USER/tmp/drafts.pdf and corresponding views.
+
+
 
 New in Isabelle2013-2 (December 2013)
 -------------------------------------

@@ -267,12 +267,12 @@ text {*
   
   \item[@{setting_def ISABELLE_DOCS}] is a colon separated list of
   directories with documentation files.
-  
-  \item[@{setting_def PDF_VIEWER}] specifies the command-line to be
-  used for displaying @{verbatim pdf} files.
 
-  \item[@{setting_def DVI_VIEWER}] specifies the command-line to be
-  used for displaying @{verbatim dvi} files.
+  \item[@{setting_def PDF_VIEWER}] specifies the program to be used
+  for displaying @{verbatim pdf} files.
+
+  \item[@{setting_def DVI_VIEWER}] specifies the program to be used
+  for displaying @{verbatim dvi} files.
   
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle-process"}

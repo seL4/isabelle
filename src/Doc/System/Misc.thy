@@ -65,20 +65,16 @@ section {* Displaying documents \label{sec:tool-display} *}
 text {* The @{tool_def display} tool displays documents in DVI or PDF
   format:
 \begin{ttbox}
-Usage: isabelle display [OPTIONS] FILE
+Usage: isabelle display DOCUMENT
 
-  Options are:
-    -c           cleanup -- remove FILE after use
-
-  Display document FILE (in DVI or PDF format).
+  Display DOCUMENT (in DVI or PDF format).
 \end{ttbox}
-
-  \medskip The @{verbatim "-c"} option causes the input file to be
-  removed after use.
 
   \medskip The settings @{setting DVI_VIEWER} and @{setting
   PDF_VIEWER} determine the programs for viewing the corresponding
-  file formats.
+  file formats.  Normally this opens the document via the desktop
+  environment, potentially in an asynchronous manner with re-use of
+  previews views.
 *}
 
 

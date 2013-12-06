@@ -443,10 +443,13 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
 
     val result =
       isabelle_document {verbose = false, purge = true} "pdf" documentN "" doc_path;
-    val detachable_result = Isabelle_System.create_tmp_path documentN "pdf";
-    val _ = File.copy result detachable_result;
+
+    val target_dir = Path.explode "$ISABELLE_HOME_USER/tmp";
+    val target = Path.explode "$ISABELLE_HOME_USER/tmp/drafts.pdf"
+    val _ = Isabelle_System.mkdirs target_dir;
+    val _ = File.copy result target;
   in
-    Isabelle_System.isabelle_tool "display" ("-c " ^ File.shell_path detachable_result ^ " &")
+    Isabelle_System.isabelle_tool "display" (File.shell_path target ^ " &")
   end);
 
 end;
