@@ -9,6 +9,9 @@ New in this Isabelle version
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
 Open text buffers take precedence over copies within the file-system.
 
+* Document panel: simplied interaction where every single mouse click
+(re)opens document via desktop environment or as jEdit buffer.
+
 
 *** HOL ***
 
