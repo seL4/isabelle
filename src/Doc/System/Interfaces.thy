@@ -23,8 +23,8 @@ text {* The @{tool_def jedit} tool invokes a version of
     -n           no build dialog for session image on startup
     -s           system build mode for session image
 
-Start jEdit with Isabelle plugin setup and open theory FILES
-(default "\$USER_HOME/Scratch.thy").
+  Start jEdit with Isabelle plugin setup and open theory FILES
+  (default "\$USER_HOME/Scratch.thy").
 \end{ttbox}
 
   The @{verbatim "-l"} option specifies the session name of the logic
