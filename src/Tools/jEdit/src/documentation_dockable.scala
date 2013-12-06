@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Dimension, GridLayout}
 import java.awt.event.{MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JScrollPane}
+import javax.swing.{JTree, JScrollPane, JComponent}
 import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
@@ -46,6 +46,12 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   private val tree = new JTree(root)
+
+  for (cond <-
+    List(JComponent.WHEN_FOCUSED,
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      JComponent.WHEN_IN_FOCUSED_WINDOW)) tree.setInputMap(cond, null)
+
   if (!OperatingSystem.isMacOSLF)
     tree.putClientProperty("JTree.lineStyle", "Angled")
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
