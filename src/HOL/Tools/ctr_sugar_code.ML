@@ -110,8 +110,10 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
     #> snd
   end;
 
-fun add_ctr_code fcT_name As ctrs inject_thms distinct_thms case_thms thy =
+fun add_ctr_code fcT_name raw_As raw_ctrs inject_thms distinct_thms case_thms thy =
   let
+    val As = map (perhaps (try Logic.unvarifyT_global)) raw_As;
+    val ctrs = map (apsnd (perhaps (try Logic.unvarifyT_global))) raw_ctrs;
     val fcT = Type (fcT_name, As);
     val unover_ctrs = map (fn ctr as (_, fcT) => (Axclass.unoverload_const thy ctr, fcT)) ctrs;
   in

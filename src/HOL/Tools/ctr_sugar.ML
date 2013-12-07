@@ -930,11 +930,14 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
             Local_Theory.declaration {syntax = false, pervasive = true}
               (fn phi => Case_Translation.register
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
-         |> (not no_code andalso null (Thm.hyps_of (hd case_thms)))
-           ? Local_Theory.background_theory
-               (fold (fold Code.del_eqn) [disc_defs, sel_defs]
-                #> add_ctr_code fcT_name As (map dest_Const ctrs) inject_thms distinct_thms
-                  case_thms)
+         |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
+         |> not no_code ?
+            Local_Theory.declaration {syntax = false, pervasive = false}
+              (fn phi => Context.mapping
+                (add_ctr_code fcT_name (map (Morphism.typ phi) As)
+                  (map (dest_Const o Morphism.term phi) ctrs) (Morphism.fact phi inject_thms)
+                  (Morphism.fact phi distinct_thms) (Morphism.fact phi case_thms))
+                I)
          |> Local_Theory.notes (anonymous_notes @ notes) |> snd
          |> register_ctr_sugar fcT_name ctr_sugar)
       end;
