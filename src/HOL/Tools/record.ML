@@ -2007,7 +2007,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           ||>> (Global_Theory.add_defs false o
                 map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) upd_specs
           ||>> (Global_Theory.add_defs false o
-                map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
+                map (rpair [Code.add_default_eqn_attribute]
+                o apfst (Binding.conceal o Binding.name))) (*FIXME Spec_Rules (?)*)
             [make_spec, fields_spec, extend_spec, truncate_spec]);
 
     (* prepare propositions *)
