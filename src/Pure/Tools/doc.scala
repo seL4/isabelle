@@ -81,12 +81,10 @@ object Doc
 
   def view(name: String)
   {
-    val doc = name + ".pdf"
-    dirs().find(dir => (dir + Path.basic(doc)).is_file) match {
-      case Some(dir) =>
-        Isabelle_System.bash_env(dir.file, null,
-          "\"$ISABELLE_TOOL\" display " + quote(doc) + " >/dev/null 2>/dev/null &")
-      case None => error("Missing Isabelle documentation file: " + quote(doc))
+    val doc = Path.basic(name + ".pdf")
+    dirs().find(dir => (dir + doc).is_file) match {
+      case Some(dir) => Isabelle_System.pdf_viewer(dir + doc)
+      case None => error("Missing Isabelle documentation file: " + doc)
     }
   }
 

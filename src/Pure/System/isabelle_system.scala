@@ -419,6 +419,12 @@ object Isabelle_System
     }
   }
 
+  def open(arg: String): Unit =
+    bash("exec \"$ISABELLE_OPEN\" '" + arg + "' >/dev/null 2>/dev/null &")
+
+  def pdf_viewer(arg: Path): Unit =
+    bash("exec \"$PDF_VIEWER\" '" + standard_path(arg) + "' >/dev/null 2>/dev/null &")
+
 
 
   /** Isabelle resources **/
