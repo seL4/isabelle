@@ -184,8 +184,9 @@ corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k *
            of_nat_setsum [symmetric]
            of_nat_eq_iff of_nat_id)
 
-subsection{* Pochhammer's symbol : generalized rising factorial 
-          See http://en.wikipedia.org/wiki/Pochhammer_symbol *}
+subsection{* Pochhammer's symbol : generalized rising factorial *}
+
+text {* See \url{http://en.wikipedia.org/wiki/Pochhammer_symbol} *}
 
 definition "pochhammer (a::'a::comm_semiring_1) n =
   (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
