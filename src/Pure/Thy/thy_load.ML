@@ -192,20 +192,24 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
 (* document antiquotation *)
 
+fun file_antiq do_check ctxt (name, pos) =
+  let
+    val dir = master_directory (Proof_Context.theory_of ctxt);
+    val path = Path.append dir (Path.explode name);
+    val _ =
+      if not do_check orelse File.exists path then ()
+      else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
+    val _ = Position.report pos (Markup.path name);
+  in
+    space_explode "/" name
+    |> map Thy_Output.verb_text
+    |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
+  end;
+
 val _ = Theory.setup
   (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
-    (fn {context = ctxt, ...} => fn (name, pos) =>
-      let
-        val dir = master_directory (Proof_Context.theory_of ctxt);
-        val path = Path.append dir (Path.explode name);
-        val _ =
-          if File.exists path then ()
-          else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
-        val _ = Position.report pos (Markup.path name);
-      in
-        space_explode "/" name
-        |> map Thy_Output.verb_text
-        |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
-      end));
+    (file_antiq true o #context) #>
+  (Thy_Output.antiquotation (Binding.name "file_unchecked") (Scan.lift (Parse.position Parse.path))
+    (file_antiq false o #context)));
 
 end;

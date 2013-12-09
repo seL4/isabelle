@@ -9,6 +9,9 @@ New in this Isabelle version
 * Document antiquotation @{url} produces markup for the given URL,
 which results in an active hyperlink within the text.
 
+* Document antiquotation @{file_unchecked} is like @{file}, but does
+not check existence within the file-system.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

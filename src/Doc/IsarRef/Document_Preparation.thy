@@ -177,6 +177,7 @@ text {*
       @@{antiquotation ML_type} options @{syntax name} |
       @@{antiquotation ML_struct} options @{syntax name} |
       @@{antiquotation \"file\"} options @{syntax name} |
+      @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name}
     ;
     options: '[' (option * ',') ']'
@@ -268,6 +269,10 @@ text {*
 
   \item @{text "@{file path}"} checks that @{text "path"} refers to a
   file (or directory) and prints it verbatim.
+
+  \item @{text "@{file_unchecked path}"} is like @{text "@{file
+  path}"}, but does not check the existence of the @{text "path"}
+  within the file-system.
 
   \item @{text "@{url name}"} produces markup for the given URL, which
   results in an active hyperlink within the text.

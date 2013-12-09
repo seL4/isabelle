@@ -95,7 +95,7 @@ text {* Isabelle executables need to be run within a proper settings
   of these may have to be adapted (probably @{setting ML_SYSTEM}
   etc.).
   
-  \item The file @{verbatim "$ISABELLE_HOME_USER/etc/settings"} (if it
+  \item The file @{file_unchecked "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
   before --- usually to something like @{verbatim
@@ -166,7 +166,7 @@ text {*
   
   \item[@{setting_def ISABELLE_HOME_USER}] is the user-specific
   counterpart of @{setting ISABELLE_HOME}. The default value is
-  relative to @{verbatim "$USER_HOME/.isabelle"}, under rare
+  relative to @{file_unchecked "$USER_HOME/.isabelle"}, under rare
   circumstances this may be changed in the global setting file.
   Typically, the @{setting ISABELLE_HOME_USER} directory mimics
   @{setting ISABELLE_HOME} to some extend. In particular, site-wide
@@ -247,7 +247,7 @@ text {*
   \item[@{setting_def ISABELLE_BROWSER_INFO}] is the directory where
   theory browser information (HTML text, graph data, and printable
   documents) is stored (see also \secref{sec:info}).  The default
-  value is @{verbatim "$ISABELLE_HOME_USER/browser_info"}.
+  value is @{file_unchecked "$ISABELLE_HOME_USER/browser_info"}.
   
   \item[@{setting_def ISABELLE_LOGIC}] specifies the default logic to
   load if none is given explicitely by the user.  The default value is
@@ -277,7 +277,7 @@ text {*
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
   prefix from which any running @{executable "isabelle-process"}
   derives an individual directory for temporary files.  The default is
-  somewhere in @{verbatim "/tmp"}.
+  somewhere in @{file_unchecked "/tmp"}.
   
   \end{description}
 *}
@@ -325,7 +325,7 @@ ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
   itself.  After initializing all of its sub-components recursively,
   @{setting ISABELLE_HOME_USER} is included in the same manner (if
   that directory exists).  This allows to install private components
-  via @{verbatim "$ISABELLE_HOME_USER/etc/components"}, although it is
+  via @{file_unchecked "$ISABELLE_HOME_USER/etc/components"}, although it is
   often more convenient to do that programmatically via the
   \verb,init_component, shell function in the \verb,etc/settings,
   script of \verb,$ISABELLE_HOME_USER, (or any other component

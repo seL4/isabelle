@@ -356,7 +356,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
   \medskip Option @{verbatim "-s"} enables \emph{system mode}, which
   means that resulting heap images and log files are stored in
-  @{verbatim "$ISABELLE_HOME/heaps"} instead of the default location
+  @{file_unchecked "$ISABELLE_HOME/heaps"} instead of the default location
   @{setting ISABELLE_OUTPUT} (which is normally in @{setting
   ISABELLE_HOME_USER}, i.e.\ the user's home directory).
 

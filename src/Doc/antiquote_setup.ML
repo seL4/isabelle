@@ -47,22 +47,6 @@ val verbatim_setup =
     (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
 
 
-(* unchecked file *)
-
-val file_unchecked_setup =
-  Thy_Output.antiquotation @{binding file_unchecked} (Scan.lift (Parse.position Parse.path))
-    (fn {context = ctxt, ...} => fn (name, pos) =>
-      let
-        val dir = Thy_Load.master_directory (Proof_Context.theory_of ctxt);
-        val path = Path.append dir (Path.explode name);
-        val _ = Position.report pos (Markup.path name);
-      in
-        space_explode "/" name
-        |> map Thy_Output.verb_text
-        |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
-      end);
-
-
 (* ML text *)
 
 local
@@ -249,7 +233,6 @@ end;
 
 val setup =
   verbatim_setup #>
-  file_unchecked_setup #>
   index_ml_setup #>
   named_thms_setup #>
   thy_file_setup #>
