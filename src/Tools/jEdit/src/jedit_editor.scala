@@ -10,7 +10,10 @@ package isabelle.jedit
 import isabelle._
 
 
+import java.io.{File => JFile}
+
 import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.browser.VFSBrowser
 
 
 class JEdit_Editor extends Editor[View]
@@ -107,11 +110,11 @@ class JEdit_Editor extends Editor[View]
 
   /* hyperlinks */
 
-  def goto(view: View, file_name: String, line: Int = 0, column: Int = 0)
+  def goto(view: View, name: String, line: Int = 0, column: Int = 0)
   {
     Swing_Thread.require()
 
-    JEdit_Lib.jedit_buffer(file_name) match {
+    JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         view.goToBuffer(buffer)
         val text_area = view.getTextArea
@@ -126,11 +129,14 @@ class JEdit_Editor extends Editor[View]
           case _: IllegalArgumentException =>
         }
 
+      case None if (new JFile(name)).isDirectory =>
+        VFSBrowser.browseDirectory(view, name)
+
       case None =>
         val args =
-          if (line <= 0) Array(file_name)
-          else if (column <= 0) Array(file_name, "+line:" + line.toInt)
-          else Array(file_name, "+line:" + line.toInt + "," + column.toInt)
+          if (line <= 0) Array(name)
+          else if (column <= 0) Array(name, "+line:" + line.toInt)
+          else Array(name, "+line:" + line.toInt + "," + column.toInt)
         jEdit.openFiles(view, null, args)
     }
   }
@@ -146,8 +152,8 @@ class JEdit_Editor extends Editor[View]
           })
     }
 
-  override def hyperlink_file(file_name: String, line: Int = 0, column: Int = 0): Hyperlink =
-    new Hyperlink { def follow(view: View) = goto(view, file_name, line, column) }
+  override def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
+    new Hyperlink { def follow(view: View) = goto(view, name, line, column) }
 
   override def hyperlink_command(snapshot: Document.Snapshot, command: Command, offset: Int = 0)
     : Option[Hyperlink] =
