@@ -4,7 +4,7 @@ imports
   "~~/src/HOL/Library/Code_Prolog"
 begin
 
-text {* An example from the experiments from SmallCheck (http://www.cs.york.ac.uk/fp/smallcheck/) *}
+text {* An example from the experiments from SmallCheck (@{url "http://www.cs.york.ac.uk/fp/smallcheck/"}) *}
 text {* The example (original in Haskell) was imported with Haskabelle and
   manually slightly adapted.
 *}

@@ -24,7 +24,7 @@ text {*
   \item local solver: @{text "(sos csdp)"}
 
   The latter requires a local executable from
-  https://projects.coin-or.org/Csdp and the Isabelle settings variable
+  @{url "https://projects.coin-or.org/Csdp"} and the Isabelle settings variable
   variable @{text ISABELLE_CSDP} pointing to it.
 
   \end{itemize}

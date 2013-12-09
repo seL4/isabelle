@@ -76,7 +76,7 @@ ML "factorial 42"
 ML "factorial 10000 div factorial 9999"
 
 text {*
-  See http://mathworld.wolfram.com/AckermannFunction.html
+  See @{url "http://mathworld.wolfram.com/AckermannFunction.html"}
 *}
 
 ML {*

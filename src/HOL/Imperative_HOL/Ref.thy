@@ -10,8 +10,8 @@ begin
 
 text {*
   Imperative reference operations; modeled after their ML counterparts.
-  See http://caml.inria.fr/pub/docs/manual-caml-light/node14.15.html
-  and http://www.smlnj.org/doc/Conversion/top-level-comparison.html
+  See @{url "http://caml.inria.fr/pub/docs/manual-caml-light/node14.15.html"}
+  and @{url "http://www.smlnj.org/doc/Conversion/top-level-comparison.html"}
 *}
 
 subsection {* Primitives *}

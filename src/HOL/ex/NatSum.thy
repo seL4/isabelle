@@ -10,7 +10,7 @@ text {*
   Summing natural numbers, squares, cubes, etc.
 
   Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
-  \url{http://www.research.att.com/~njas/sequences/}.
+  @{url "http://www.research.att.com/~njas/sequences/"}.
 *}
 
 lemmas [simp] =

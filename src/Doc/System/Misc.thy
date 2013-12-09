@@ -34,7 +34,7 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
   in a permissive manner, which can mark components as ``missing''.
   This state is amended by letting @{tool "components"} download and
   unpack components that are published on the default component
-  repository \url{http://isabelle.in.tum.de/components/} in
+  repository @{url "http://isabelle.in.tum.de/components/"} in
   particular.
 
   Option @{verbatim "-R"} specifies an alternative component

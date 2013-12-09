@@ -719,8 +719,10 @@ done
 
 subsection {* Cauchy Product Formula *}
 
-(* Proof based on Analysis WebNotes: Chapter 07, Class 41
-http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm *)
+text {*
+  Proof based on Analysis WebNotes: Chapter 07, Class 41
+  @{url "http://www.math.unl.edu/~webnotes/classes/class41/prp77.htm"}
+*}
 
 lemma setsum_triangle_reindex:
   fixes n :: nat

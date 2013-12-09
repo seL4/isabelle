@@ -41,9 +41,9 @@ text {* Isabelle/jEdit is a Prover IDE that integrates \emph{parallel
   between ML and Scala, using asynchronous protocol commands.
 
   \item [jEdit] is a sophisticated text editor implemented in
-  Java.\footnote{\url{http://www.jedit.org}} It is easily extensible
+  Java.\footnote{@{url "http://www.jedit.org"}} It is easily extensible
   by plugins written in languages that work on the JVM, e.g.\
-  Scala\footnote{\url{http://www.scala-lang.org/}}.
+  Scala\footnote{@{url "http://www.scala-lang.org/"}}.
 
   \item [Isabelle/jEdit] is the main example application of the PIDE
   framework and the default user-interface for Isabelle. It targets
@@ -74,7 +74,7 @@ text {*
 
   Isabelle/jEdit (\figref{fig:isabelle-jedit}) consists of some
   plugins for the well-known jEdit text editor
-  \url{http://www.jedit.org}, according to the following principles.
+  @{url "http://www.jedit.org"}, according to the following principles.
 
   \begin{itemize}
 
@@ -125,7 +125,7 @@ text {* Regular jEdit documentation is accessible via its @{verbatim
   full \emph{User's Guide} and \emph{Frequently Asked Questions} for
   this sophisticated text editor.  The same can be browsed without the
   technical restrictions of the built-in Java HTML viewer here:
-  \url{http://www.jedit.org/index.php?page=docs} (potentially for a
+  @{url "http://www.jedit.org/index.php?page=docs"} (potentially for a
   different version of jEdit).
 
   Most of this information about jEdit is relevant for Isabelle/jEdit

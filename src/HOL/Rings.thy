@@ -449,7 +449,7 @@ text {*
   \end{itemize}
   Most of the used notions can also be looked up in 
   \begin{itemize}
-  \item \url{http://www.mathworld.com} by Eric Weisstein et. al.
+  \item @{url "http://www.mathworld.com"} by Eric Weisstein et. al.
   \item \emph{Algebra I} by van der Waerden, Springer.
   \end{itemize}
 *}

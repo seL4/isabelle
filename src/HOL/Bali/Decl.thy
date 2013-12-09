@@ -15,7 +15,7 @@ improvements:
 \item clarification and correction of some aspects of the package/access concept
   (Also submitted as bug report to the Java Bug Database:
    Bug Id: 4485402 and Bug Id: 4493343 
-   http://developer.java.sun.com/developer/bugParade/index.jshtml
+   @{url "http://developer.java.sun.com/developer/bugParade/index.jshtml"}
   )
 \end{itemize}
 simplifications:

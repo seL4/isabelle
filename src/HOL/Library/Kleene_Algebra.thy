@@ -14,7 +14,7 @@ text {* WARNING: This is work in progress. Expect changes in the future. *}
 text {* Various lemmas correspond to entries in a database of theorems
   about Kleene algebras and related structures maintained by Peter
   H\"ofner: see
-  \url{http://www.informatik.uni-augsburg.de/~hoefnepe/kleene_db/lemmas/index.html}. *}
+  @{url "http://www.informatik.uni-augsburg.de/~hoefnepe/kleene_db/lemmas/index.html"}. *}
 
 subsection {* Preliminaries *}
 

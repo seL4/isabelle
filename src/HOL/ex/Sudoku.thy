@@ -137,7 +137,7 @@ oops
 
 text {*
   Some "exceptionally difficult" Sudokus, taken from
-  \url{http://en.wikipedia.org/w/index.php?title=Algorithmics_of_sudoku&oldid=254685903}
+  @{url "http://en.wikipedia.org/w/index.php?title=Algorithmics_of_sudoku&oldid=254685903"}
   (accessed December 2, 2008).
 *}
 

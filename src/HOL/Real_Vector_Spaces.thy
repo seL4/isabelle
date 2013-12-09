@@ -1414,7 +1414,7 @@ subsection {* The set of real numbers is a complete metric space *}
 
 text {*
 Proof that Cauchy sequences converge based on the one from
-http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html
+@{url "http://pirate.shu.edu/~wachsmut/ira/numseq/proofs/cauconv.html"}
 *}
 
 text {*

@@ -7,7 +7,7 @@ chapter {* User interfaces *}
 section {* Isabelle/jEdit Prover IDE \label{sec:tool-jedit} *}
 
 text {* The @{tool_def jedit} tool invokes a version of
-  jEdit\footnote{\url{http://www.jedit.org/}} that has been augmented
+  jEdit\footnote{@{url "http://www.jedit.org/"}} that has been augmented
   with some plugins to provide a fully-featured Prover IDE:
 \begin{ttbox} Usage: isabelle jedit [OPTIONS]
   [FILES ...]
@@ -49,7 +49,7 @@ text {* The @{tool_def jedit} tool invokes a version of
   self-build mechanism of Isabelle/jEdit.  This is only relevant for
   building from sources, which also requires an auxiliary @{verbatim
   jedit_build}
-  component.\footnote{\url{http://isabelle.in.tum.de/components}} Note
+  component.\footnote{@{url "http://isabelle.in.tum.de/components"}} Note
   that official Isabelle releases already include a version of
   Isabelle/jEdit that is built properly.
 *}
@@ -58,7 +58,7 @@ text {* The @{tool_def jedit} tool invokes a version of
 section {* Proof General / Emacs *}
 
 text {* The @{tool_def emacs} tool invokes a version of Emacs and
-  Proof General\footnote{http://proofgeneral.inf.ed.ac.uk/} within the
+  Proof General\footnote{@{url "http://proofgeneral.inf.ed.ac.uk/"}} within the
   regular Isabelle settings environment (\secref{sec:settings}).  This
   is more convenient than starting Emacs separately, loading the Proof
   General LISP files, and then attempting to start Isabelle with

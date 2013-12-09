@@ -22,7 +22,7 @@ text {* Isabelle/ML is best understood as a certain culture based on
   Isabelle/ML is to be read and written, and to get access to the
   wealth of experience that is expressed in the source text and its
   history of changes.\footnote{See
-  \url{http://isabelle.in.tum.de/repos/isabelle} for the full
+  @{url "http://isabelle.in.tum.de/repos/isabelle"} for the full
   Mercurial history.  There are symbolic tags to refer to official
   Isabelle releases, as opposed to arbitrary \emph{tip} versions that
   merely reflect snapshots that are never really up-to-date.}  *}
@@ -37,7 +37,7 @@ text {* The sources of Isabelle/Isar are optimized for
   certain style of writing Isabelle/ML that has emerged from long
   years of system development.\footnote{See also the interesting style
   guide for OCaml
-  \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}
+  @{url "http://caml.inria.fr/resources/doc/guides/guidelines.en.html"}
   which shares many of our means and ends.}
 
   The main principle behind any coding style is \emph{consistency}.

@@ -16,8 +16,8 @@ text {*
   by Roshan James (Indiana University) and also by the lecture notes 
   written by Andy Pitts for his semantics course. See
   
-     http://www.cs.indiana.edu/~rpjames/lm.pdf
-     http://www.cl.cam.ac.uk/teaching/2001/Semantics/
+     @{url "http://www.cs.indiana.edu/~rpjames/lm.pdf"}
+     @{url "http://www.cl.cam.ac.uk/teaching/2001/Semantics/"}
 
 *}
 

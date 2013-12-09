@@ -20,7 +20,7 @@ text {*
   monads}, since a state is transformed single-threadedly).
 
   To enter from the Haskell world,
-  \url{http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm} makes
+  @{url "http://www.engr.mun.ca/~theo/Misc/haskell_and_monads.htm"} makes
   a good motivating start.  Here we just sketch briefly how those
   monads enter the game of Isabelle/HOL.
 *}
