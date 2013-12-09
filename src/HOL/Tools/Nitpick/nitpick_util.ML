@@ -173,7 +173,8 @@ fun filter_out_indices js xs =
                                "indices unordered or out of range")
   in aux 0 js xs end
 
-fun n_fold_cartesian_product xss = Sledgehammer_Util.n_fold_cartesian_product
+fun n_fold_cartesian_product xss =
+  Sledgehammer_Util.n_fold_cartesian_product xss
 
 fun all_distinct_unordered_pairs_of [] = []
   | all_distinct_unordered_pairs_of (x :: xs) =
