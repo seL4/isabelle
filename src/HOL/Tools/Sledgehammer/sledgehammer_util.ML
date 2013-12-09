@@ -9,6 +9,7 @@ sig
   val sledgehammerN : string
   val log2 : real -> real
   val app_hd : ('a -> 'a) -> 'a list -> 'a list
+  val n_fold_cartesian_product : 'a list list -> 'a list list
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
@@ -47,6 +48,12 @@ val log10_2 = Math.log10 2.0
 fun log2 n = Math.log10 n / log10_2
 
 fun app_hd f (x :: xs) = f x :: xs
+
+fun cartesian_product [] _ = []
+  | cartesian_product (x :: xs) yss =
+    map (cons x) yss @ cartesian_product xs yss
+
+fun n_fold_cartesian_product xss = fold_rev cartesian_product xss [[]]
 
 fun plural_s n = if n = 1 then "" else "s"
 

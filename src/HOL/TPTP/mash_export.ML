@@ -79,9 +79,9 @@ fun generate_features ctxt prover thys file_name =
       let
         val name = nickname_of_thm th
         val feats =
-          features_of ctxt (theory_of_thm th) 0 Symtab.empty stature [prop_of th] |> map fst
+          features_of ctxt (theory_of_thm th) 0 Symtab.empty stature false [prop_of th] |> map fst
         val s =
-          encode_str name ^ ": " ^ encode_strs (sort string_ord feats) ^ "\n"
+          encode_str name ^ ": " ^ encode_plain_features (sort_wrt hd feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -161,9 +161,6 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val isar_deps = isar_dependencies_of name_tabs th
           val do_query = not (is_bad_query ctxt ho_atp step j th isar_deps)
-          val goal_feats =
-            features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature [prop_of th]
-            |> sort_wrt fst
           val access_facts =
             (if linearize then take (j - 1) new_facts
              else new_facts |> filter_accessible_from th) @ old_facts
@@ -173,11 +170,15 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val parents = if linearize then prevs else parents
           fun extra_features_of (((_, stature), th), weight) =
             [prop_of th]
-            |> features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature
+            |> features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature false
             |> map (apsnd (fn r => weight * extra_feature_factor * r))
           val query =
             if do_query then
               let
+                val goal_feats =
+                  features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature true
+                    [prop_of th]
+                  |> sort_wrt (hd o fst)
                 val query_feats =
                   new_facts
                   |> drop (j - num_extra_feature_facts)
@@ -193,9 +194,13 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
               end
             else
               ""
+          val nongoal_feats =
+            features_of ctxt (theory_of_thm th) (num_old_facts + j) const_tab stature false
+              [prop_of th]
+            |> map fst |> sort_wrt hd
           val update =
             "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
-            encode_strs (map fst goal_feats) ^ "; " ^ marker ^ " " ^
+            encode_plain_features nongoal_feats ^ "; " ^ marker ^ " " ^
             encode_strs deps ^ "\n"
         in query ^ update end
       else
