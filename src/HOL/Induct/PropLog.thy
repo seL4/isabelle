@@ -157,10 +157,8 @@ done
 lemma sat_thms_p: "{} |= p ==> hyps p tt |- p"
   -- {* Key lemma for completeness; yields a set of assumptions
         satisfying @{text p} *}
-apply (unfold sat_def)
-apply (drule spec, erule mp [THEN if_P, THEN subst],
-       rule_tac [2] hyps_thms_if, simp)
-done
+unfolding sat_def
+by (metis (full_types) empty_iff hyps_thms_if)
 
 text {*
   For proving certain theorems in our new propositional logic.
@@ -250,9 +248,7 @@ done
 
 text{*The base case for completeness*}
 lemma completeness_0:  "{} |= p ==> {} |- p"
-apply (rule Diff_cancel [THEN subst])
-apply (erule completeness_0_lemma [THEN spec])
-done
+  by (metis Diff_cancel completeness_0_lemma)
 
 text{*A semantic analogue of the Deduction Theorem*}
 lemma sat_imp: "insert p H |= q ==> H |= p->q"
