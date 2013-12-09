@@ -112,7 +112,19 @@ class sparseNBClassifier(object):
             for f,w in features.iteritems():
                 # DEBUG
                 #w = 1.0
-                if f in fA:
+                # Test for multiple features
+                isMatch = False
+                if not isinstance( f, ( int, long ) ):
+                    f = f[0]
+                    inter = set(f).intersection(fA)
+                    if len(inter) > 0:
+                        isMatch = True
+                else:
+                    if f in fA:
+                        isMatch = True
+                 
+                if isMatch:
+                #if f in fA:
                     if fWeightsA[f] == 0:
                         resultA += w*self.defVal
                     else:

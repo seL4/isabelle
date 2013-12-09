@@ -96,12 +96,19 @@ class Dictionaries(object):
         return nameId
 
     def add_feature(self,featureName):
-        if not self.featureIdDict.has_key(featureName):
-            self.featureIdDict[featureName] = self.maxFeatureId
-            self.maxFeatureId += 1
-            self.changed = True
-        fId = self.featureIdDict[featureName]
-        return fId
+        fMul = featureName.split('|')        
+        fIds = []
+        for f in fMul:
+            if not self.featureIdDict.has_key(f):
+                self.featureIdDict[f] = self.maxFeatureId
+                self.maxFeatureId += 1
+                self.changed = True
+            fId = self.featureIdDict[f]
+            fIds.append(fId)
+        if len(fIds) == 1:
+            return fIds[0]
+        else:
+            return fIds
 
     def get_features(self,line):
         featureNames = [f.strip() for f in line[1].split()]
